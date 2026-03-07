@@ -183,7 +183,10 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     )[1];
     displayMetricsHandler();
 
-    expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(chatWindow);
+    expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledTimes(1);
+    expect(deps.syncWindowDisplayAffinity.mock.calls[0][0]).toBe(deps.screen);
+    expect(deps.syncWindowDisplayAffinity.mock.calls[0][1]).toBe(chatWindow);
+    expect(deps.syncWindowDisplayAffinity.mock.calls[0][2]).toEqual({ requireVisible: true });
     expect(deps.positionChatWindow).toHaveBeenCalledTimes(1);
     expect(deps.positionResponseWindow).toHaveBeenCalledTimes(1);
   });
@@ -210,7 +213,13 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     )[1];
     displayMetricsHandler();
 
-    expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
+    expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledTimes(2);
+    expect(deps.syncWindowDisplayAffinity.mock.calls[0][0]).toBe(deps.screen);
+    expect(deps.syncWindowDisplayAffinity.mock.calls[0][1]).toBe(hiddenChatWindow);
+    expect(deps.syncWindowDisplayAffinity.mock.calls[0][2]).toEqual({ requireVisible: true });
+    expect(deps.syncWindowDisplayAffinity.mock.calls[1][0]).toBe(deps.screen);
+    expect(deps.syncWindowDisplayAffinity.mock.calls[1][1]).toBe(mainWindow);
+    expect(deps.syncWindowDisplayAffinity.mock.calls[1][2]).toEqual({ requireVisible: true });
     expect(deps.positionChatWindow).toHaveBeenCalledTimes(1);
     expect(deps.positionResponseWindow).toHaveBeenCalledTimes(1);
   });

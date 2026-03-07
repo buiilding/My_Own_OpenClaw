@@ -1,4 +1,5 @@
 const { registerOverlayRendererWindows } = require('./overlay_renderer_registration.cjs');
+const { syncVisibleSurfaceDisplayAffinity } = require('./display_affinity_runtime.cjs');
 
 function toMb(value) {
   if (!Number.isFinite(value)) {
@@ -200,13 +201,12 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       );
 
       screen.on('display-metrics-changed', () => {
-        const chatWindow = getChatWindow();
-        const mainWindow = getMainWindow();
-        if (chatWindow && !chatWindow.isDestroyed() && chatWindow.isVisible()) {
-          syncWindowDisplayAffinity(chatWindow);
-        } else if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
-          syncWindowDisplayAffinity(mainWindow);
-        }
+        syncVisibleSurfaceDisplayAffinity({
+          screen,
+          chatWindow: getChatWindow(),
+          mainWindow: getMainWindow(),
+          syncActiveDisplayAffinityForWindow: syncWindowDisplayAffinity,
+        });
         positionChatWindow();
         positionResponseWindow();
       });

@@ -138,6 +138,52 @@ function resolveWindowForWebContents(BrowserWindow, webContents) {
   return BrowserWindow.fromWebContents(webContents);
 }
 
+function resolveVisibleSurfaceDisplayAffinity({
+  screen,
+  chatWindow = null,
+  mainWindow = null,
+  resolveDisplayAffinityForWindow: resolveWindowAffinity = resolveDisplayAffinityForWindow,
+}) {
+  const visibleChatDisplayAffinity = chatWindow
+    ? resolveWindowAffinity(screen, chatWindow, { requireVisible: true })
+    : null;
+  if (visibleChatDisplayAffinity) {
+    return visibleChatDisplayAffinity;
+  }
+
+  const visibleMainDisplayAffinity = mainWindow
+    ? resolveWindowAffinity(screen, mainWindow, { requireVisible: true })
+    : null;
+  if (visibleMainDisplayAffinity) {
+    return visibleMainDisplayAffinity;
+  }
+
+  return null;
+}
+
+function syncVisibleSurfaceDisplayAffinity({
+  screen,
+  chatWindow = null,
+  mainWindow = null,
+  syncActiveDisplayAffinityForWindow: syncWindowAffinity = syncActiveDisplayAffinityForWindow,
+}) {
+  if (chatWindow && typeof chatWindow === 'object') {
+    const visibleChatDisplayAffinity = syncWindowAffinity(screen, chatWindow, { requireVisible: true });
+    if (visibleChatDisplayAffinity) {
+      return visibleChatDisplayAffinity;
+    }
+  }
+
+  if (mainWindow && typeof mainWindow === 'object') {
+    const visibleMainDisplayAffinity = syncWindowAffinity(screen, mainWindow, { requireVisible: true });
+    if (visibleMainDisplayAffinity) {
+      return visibleMainDisplayAffinity;
+    }
+  }
+
+  return null;
+}
+
 function resolveActiveSurfaceDisplayAffinity({
   BrowserWindow,
   screen,
@@ -171,18 +217,14 @@ function resolveActiveSurfaceDisplayAffinity({
     }
   }
 
-  const visibleChatDisplayAffinity = chatWindow
-    ? resolveWindowAffinity(screen, chatWindow, { requireVisible: true })
-    : null;
-  if (visibleChatDisplayAffinity) {
-    return visibleChatDisplayAffinity;
-  }
-
-  const visibleMainDisplayAffinity = mainWindow
-    ? resolveWindowAffinity(screen, mainWindow, { requireVisible: true })
-    : null;
-  if (visibleMainDisplayAffinity) {
-    return visibleMainDisplayAffinity;
+  const visibleSurfaceDisplayAffinity = resolveVisibleSurfaceDisplayAffinity({
+    screen,
+    chatWindow,
+    mainWindow,
+    resolveDisplayAffinityForWindow: resolveWindowAffinity,
+  });
+  if (visibleSurfaceDisplayAffinity) {
+    return visibleSurfaceDisplayAffinity;
   }
 
   return getStoredAffinity();
@@ -299,10 +341,12 @@ module.exports = {
   fitWindowToDisplayWorkArea,
   getActiveDisplayAffinity,
   resolveActiveSurfaceDisplayAffinity,
+  resolveVisibleSurfaceDisplayAffinity,
   resolveDisplayAffinityForWindow,
   resolveDisplayAffinityForWebContents,
   resolveWindowForWebContents,
   setActiveDisplayAffinity,
+  syncVisibleSurfaceDisplayAffinity,
   syncActiveDisplayAffinityForWindow,
   toScreenshotDisplayBounds,
 };

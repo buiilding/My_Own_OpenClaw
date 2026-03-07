@@ -5,7 +5,9 @@ const {
   getActiveDisplayAffinity,
   resolveActiveSurfaceDisplayAffinity,
   resolveDisplayAffinityForWebContents,
+  resolveVisibleSurfaceDisplayAffinity,
   syncActiveDisplayAffinityForWindow,
+  syncVisibleSurfaceDisplayAffinity,
   setActiveDisplayAffinity,
   toScreenshotDisplayBounds,
 } = require('../../frontend/src/main/display_affinity_runtime.cjs');
@@ -241,6 +243,65 @@ describe('display_affinity_runtime', () => {
       desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
     });
     expect(getActiveDisplayAffinity()).toEqual(result);
+  });
+
+  test('resolves visible surface display affinity from chat before main', () => {
+    const chatWindow = { id: 'chat' };
+    const mainWindow = { id: 'main' };
+    const resolveDisplayAffinityForWindow = jest.fn((_screen, targetWindow) => {
+      if (targetWindow === chatWindow) {
+        return {
+          monitor_id: '7',
+          bounds: { x: 3000, y: 0, width: 1920, height: 1080 },
+          workArea: { x: 3000, y: 0, width: 1920, height: 1040 },
+          desktopVirtualBounds: { x: 0, y: 0, width: 4920, height: 1080 },
+        };
+      }
+      if (targetWindow === mainWindow) {
+        return {
+          monitor_id: '2',
+          bounds: { x: 1920, y: 0, width: 1080, height: 1920 },
+          workArea: { x: 1920, y: 0, width: 1080, height: 1880 },
+          desktopVirtualBounds: { x: 0, y: 0, width: 4920, height: 1920 },
+        };
+      }
+      return null;
+    });
+
+    expect(resolveVisibleSurfaceDisplayAffinity({
+      screen: {},
+      chatWindow,
+      mainWindow,
+      resolveDisplayAffinityForWindow,
+    })).toEqual({
+      monitor_id: '7',
+      bounds: { x: 3000, y: 0, width: 1920, height: 1080 },
+      workArea: { x: 3000, y: 0, width: 1920, height: 1040 },
+      desktopVirtualBounds: { x: 0, y: 0, width: 4920, height: 1080 },
+    });
+  });
+
+  test('syncs visible surface display affinity from chat before main', () => {
+    const chatWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+    };
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+    };
+    const syncActiveDisplayAffinityForWindow = jest.fn((_screen, targetWindow) => (
+      targetWindow === chatWindow ? { monitor_id: '7' } : { monitor_id: '2' }
+    ));
+
+    expect(syncVisibleSurfaceDisplayAffinity({
+      screen: {},
+      chatWindow,
+      mainWindow,
+      syncActiveDisplayAffinityForWindow,
+    })).toEqual({ monitor_id: '7' });
+    expect(syncActiveDisplayAffinityForWindow).toHaveBeenCalledTimes(1);
+    expect(syncActiveDisplayAffinityForWindow).toHaveBeenCalledWith({}, chatWindow, { requireVisible: true });
   });
 
   test('resolves active surface affinity from visible chat before stored fallback', () => {
