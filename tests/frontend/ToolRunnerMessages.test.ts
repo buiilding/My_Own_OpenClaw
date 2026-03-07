@@ -31,8 +31,10 @@ describe('toolRunnerMessages', () => {
       text: 'tool output',
       sender: 'assistant',
       type: 'tool-output',
+      screenshot: null,
       screenshotRef: 'artifact-1',
       screenshotUrl: 'https://example.com/shot.png',
+      screenshotContentType: null,
       toolMetadata: { rows: 2 },
       toolName: 'read_file',
       sourceChannel: 'renderer-tool-runner',
@@ -79,6 +81,33 @@ describe('toolRunnerMessages', () => {
     expect(message.screenshotUrl).toBeNull();
     expect(message.toolMetadata).toBeNull();
     expect(message.success).toBe(false);
+    uuidSpy.mockRestore();
+  });
+
+  test('buildToolOutputMessage preserves inline screenshot fallback when no artifact url or ref exists', () => {
+    const uuidSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('msg-inline');
+
+    const message = buildToolOutputMessage({
+      toolName: 'mouse_control',
+      formattedMessage: 'clicked',
+      executionTime: 0.2,
+      correlationId: 'corr-inline',
+      screenshot: 'inline-shot',
+      screenshotRef: null,
+      screenshotUrl: null,
+      screenshotContentType: 'image/png',
+      result: {
+        success: true,
+        data: {
+          output: 'clicked',
+        },
+      },
+    } as any);
+
+    expect(message.screenshot).toBe('inline-shot');
+    expect(message.screenshotContentType).toBe('image/png');
+    expect(message.screenshotRef).toBeNull();
+    expect(message.screenshotUrl).toBeNull();
     uuidSpy.mockRestore();
   });
 

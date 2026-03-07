@@ -14,14 +14,17 @@ type BundleToolInput = {
 
 type ToolOutputEnvelopeInput = {
   formattedMessage: string;
+  screenshot: string | null | undefined;
   screenshotRef: string | null | undefined;
   screenshotUrl: string | null | undefined;
+  screenshotContentType: string | null | undefined;
   executionTime: number;
   success: boolean;
   correlationId: string;
 };
 
 function buildToolOutputEnvelope(result: ToolOutputEnvelopeInput) {
+  const hasRemoteScreenshot = Boolean(result.screenshotRef || result.screenshotUrl);
   return {
     id: crypto.randomUUID(),
     text: result.formattedMessage,
@@ -29,8 +32,10 @@ function buildToolOutputEnvelope(result: ToolOutputEnvelopeInput) {
     type: 'tool-output' as const,
     sourceEventType: 'tool-runner-result' as const,
     sourceChannel: 'renderer-tool-runner' as const,
+    screenshot: hasRemoteScreenshot ? null : (result.screenshot || null),
     screenshotRef: result.screenshotRef || null,
     screenshotUrl: result.screenshotUrl || null,
+    screenshotContentType: hasRemoteScreenshot ? null : (result.screenshotContentType || null),
     executionTime: result.executionTime,
     success: result.success,
     correlationId: result.correlationId,
@@ -49,8 +54,10 @@ export function buildToolOutputMessage(result: ToolExecutionResult): ChatMessage
   return {
     ...buildToolOutputEnvelope({
       formattedMessage: result.formattedMessage,
+      screenshot: result.screenshot,
       screenshotRef: result.screenshotRef,
       screenshotUrl: result.screenshotUrl,
+      screenshotContentType: result.screenshotContentType,
       executionTime: result.executionTime,
       success: result.result.success,
       correlationId: result.correlationId,
@@ -74,8 +81,10 @@ export function buildBundleOutputMessage(result: BundleExecutionResult): ChatMes
   return {
     ...buildToolOutputEnvelope({
       formattedMessage: result.formattedMessage,
+      screenshot: result.screenshot,
       screenshotRef: result.screenshotRef,
       screenshotUrl: result.screenshotUrl,
+      screenshotContentType: result.screenshotContentType,
       executionTime: result.totalTime,
       success: isSuccessful,
       correlationId: result.correlationId,

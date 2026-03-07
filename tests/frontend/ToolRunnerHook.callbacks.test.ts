@@ -87,6 +87,45 @@ describe('useToolRunner callback wiring', () => {
     );
   });
 
+  test('keeps inline screenshot on tool-output rows when artifact upload fallback is used', () => {
+    renderToolRunner(true);
+
+    act(() => {
+      emitBackendEvent({
+        type: 'tool-call',
+        id: 'event-track-corr-inline-shot',
+        payload: {
+          tool_name: 'mouse_control',
+          parameters: { action: 'click', x: 1, y: 2 },
+          correlation_id: 'corr-inline-shot',
+        },
+      });
+    });
+
+    const callbacks = getCapturedServiceCallbacks();
+    callbacks.onToolResult({
+      toolName: 'mouse_control',
+      result: { success: true, data: { metadata: {} }, error: null },
+      executionTime: 0.1,
+      correlationId: 'corr-inline-shot',
+      formattedMessage: 'clicked',
+      screenshot: 'inline-shot',
+      screenshotRef: null,
+      screenshotUrl: null,
+      screenshotContentType: 'image/png',
+    });
+
+    const lastMessage = useChatStore.getState().messages.at(-1);
+    expect(lastMessage).toEqual(expect.objectContaining({
+      type: 'tool-output',
+      toolName: 'mouse_control',
+      screenshot: 'inline-shot',
+      screenshotRef: null,
+      screenshotUrl: null,
+      screenshotContentType: 'image/png',
+    }));
+  });
+
   test('writes bundled tool results via onBundleResult callback', () => {
     renderToolRunner(true);
 

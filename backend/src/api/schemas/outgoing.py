@@ -95,6 +95,7 @@ class ToolOutputPayload(BaseModel):
     output: str
     error: Optional[str] = None
     screenshot: Optional[str] = None
+    screenshot_ref: Optional[str] = None
     metadata: Optional[ToolOutputMetadata] = None
 
 

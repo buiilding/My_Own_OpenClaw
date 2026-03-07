@@ -62,9 +62,11 @@ export function buildToolOutputMessage(
   event: ToolOutputEvent,
   outputText: string,
   modelContext: TranscriptModelContext,
+  screenshot: string | null,
   screenshotRef: string | null,
   screenshotUrl: string | null,
 ): ChatMessage {
+  const hasRemoteScreenshot = Boolean(screenshotRef || screenshotUrl);
   return {
     id: crypto.randomUUID(),
     text: outputText,
@@ -72,6 +74,7 @@ export function buildToolOutputMessage(
     type: 'tool-output',
     sourceEventType: 'tool-output',
     sourceChannel: 'from-backend',
+    screenshot: hasRemoteScreenshot ? null : screenshot,
     screenshotRef,
     screenshotUrl,
     toolMetadata: event.payload?.metadata,

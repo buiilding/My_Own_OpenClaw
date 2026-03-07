@@ -39,6 +39,7 @@ class ToolOutputEventFormatter(EventFormatter):
                 "output": output,
                 "error": event_dict.get("error"),
                 "screenshot": event_dict.get("screenshot"),
+                "screenshot_ref": event_dict.get("screenshot_ref"),
                 "metadata": event_dict.get("metadata"),
             },
         }

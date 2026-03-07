@@ -116,6 +116,7 @@ export function useChatStreamToolHandlers({
       event,
       outputText,
       modelContext,
+      event.payload?.screenshot || null,
       screenshotRef,
       screenshotUrl,
     ), conversationRef);

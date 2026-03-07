@@ -137,6 +137,7 @@ describe('ToolExecutionService', () => {
     const firstSentPayload = sendToBackend.mock.calls[0][0];
     expect(firstSentPayload.payload.data).toMatchObject({
       llm_content: 'formatted',
+      screenshot: 'shot',
       capture_meta: { source_w: 1920, source_h: 1080 },
       system_state: {
         active_window: 'App',
@@ -220,6 +221,7 @@ describe('ToolExecutionService', () => {
 
     const payload = sendToBackend.mock.calls[0][0].payload.data;
     expect(payload.screenshot_ref).toBe('artifact-sidecar-1');
+    expect(payload).not.toHaveProperty('screenshot');
   });
 
   test('executeTool surfaces image payloads from read_file without forwarding screenshot fields to backend', async () => {

@@ -14,6 +14,7 @@ type NormalizedBundleResult = {
 };
 
 type ToolResultPayloadOptions = {
+  screenshot?: string | null;
   screenshotRef?: string | null;
   systemState?: SystemState | null;
   includeScreenshot?: boolean;
@@ -137,8 +138,23 @@ export function buildToolResultPayloadData(
       (typeof rawScreenshotRef === 'string' && rawScreenshotRef.length > 0
         ? rawScreenshotRef
         : null);
+    const selectedInlineScreenshot = (
+      typeof options.screenshot === 'string' && options.screenshot.length > 0
+        ? options.screenshot
+        : (
+          typeof _screenshot === 'string' && _screenshot.length > 0
+            ? _screenshot
+            : (
+              typeof _imageData === 'string' && _imageData.length > 0
+                ? _imageData
+                : null
+            )
+        )
+    );
     if (selectedScreenshotRef) {
       normalizedPayload.screenshot_ref = selectedScreenshotRef;
+    } else if (selectedInlineScreenshot) {
+      normalizedPayload.screenshot = selectedInlineScreenshot;
     }
     const captureMeta = sanitizeCaptureMeta(rawCaptureMeta);
     if (captureMeta) {
