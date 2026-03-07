@@ -8,6 +8,7 @@ function showChatWindow(options = {}, deps = {}) {
     chatWindow,
     mainWindow,
     responseWindow,
+    syncWindowDisplayAffinity = () => {},
     responseOverlayVisible,
     isResponseOverlayStreamingPhase = () => false,
     setResponseOverlayVisible = () => {},
@@ -45,6 +46,7 @@ function showChatWindow(options = {}, deps = {}) {
       chatWindow.show();
     }
   }
+  syncWindowDisplayAffinity(chatWindow);
   ensureChatWindowOnTop();
   // Non-focusing chatbox restores (tool/capture lifecycle) should not resurrect
   // stale response overlays before renderer awaiting state is ready.
@@ -99,6 +101,7 @@ function showMainWindow(options = {}, deps = {}) {
   const {
     mainWindow,
     chatWindow,
+    syncWindowDisplayAffinity = () => {},
     hideChatWindow = () => {},
   } = deps;
   const focus = options?.focus !== false;
@@ -127,6 +130,7 @@ function showMainWindow(options = {}, deps = {}) {
   if (!mainWindow.isVisible()) {
     mainWindow.show();
   }
+  syncWindowDisplayAffinity(mainWindow);
   if (maximize && !targetDisplayAffinity) {
     if (mainWindow.isMinimized()) {
       mainWindow.restore();

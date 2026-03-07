@@ -238,6 +238,7 @@ function showChatWindow({ focus = true } = {}) {
     broadcastResponseOverlayVisibility,
     syncContextLabelWindowVisibility,
     syncWakewordToggleForChatVisibility,
+    syncWindowDisplayAffinity,
     externalFocusTracker,
   });
 }
@@ -258,6 +259,7 @@ function showMainWindow(options = {}) {
   return showMainWindowRuntime({ ...options, focus, maximize }, {
     mainWindow,
     chatWindow,
+    syncWindowDisplayAffinity,
     hideChatWindow,
   });
 }
@@ -423,6 +425,7 @@ function initializeMainProcessIpc() {
     positionResponseWindow,
     positionContextLabelWindow,
     syncContextLabelWindowVisibility,
+    syncWindowDisplayAffinity,
     setManualChatWindowPosition,
     setChatVisualAnchorHeight,
     getResponseWindowBounds,

@@ -34,6 +34,7 @@ describe('window_visibility_runtime showChatWindow', () => {
       {
         chatWindow,
         externalFocusTracker,
+        syncWindowDisplayAffinity: jest.fn(),
         syncWakewordToggleForChatVisibility: jest.fn(),
       },
     );
@@ -49,6 +50,7 @@ describe('window_visibility_runtime showChatWindow', () => {
   test('falls back to show when showInactive is unavailable', () => {
     const chatWindow = createWindow({ visible: false });
     chatWindow.showInactive = undefined;
+    const syncWindowDisplayAffinity = jest.fn();
     const externalFocusTracker = {
       capturePreviousExternalFocusedWindow: jest.fn(),
     };
@@ -58,17 +60,20 @@ describe('window_visibility_runtime showChatWindow', () => {
       {
         chatWindow,
         externalFocusTracker,
+        syncWindowDisplayAffinity,
         syncWakewordToggleForChatVisibility: jest.fn(),
       },
     );
 
     expect(result).toEqual({ success: true });
     expect(chatWindow.show).toHaveBeenCalledTimes(1);
+    expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(chatWindow);
     expect(chatWindow.focus).not.toHaveBeenCalled();
   });
 
   test('still focuses and emits chatbox-focus when focus is true', () => {
     const chatWindow = createWindow({ visible: true });
+    const syncWindowDisplayAffinity = jest.fn();
     const externalFocusTracker = {
       capturePreviousExternalFocusedWindow: jest.fn(),
     };
@@ -78,12 +83,14 @@ describe('window_visibility_runtime showChatWindow', () => {
       {
         chatWindow,
         externalFocusTracker,
+        syncWindowDisplayAffinity,
         syncWakewordToggleForChatVisibility: jest.fn(),
       },
     );
 
     expect(result).toEqual({ success: true });
     expect(externalFocusTracker.capturePreviousExternalFocusedWindow).toHaveBeenCalledTimes(1);
+    expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(chatWindow);
     expect(chatWindow.focus).toHaveBeenCalledTimes(1);
     expect(chatWindow.webContents.send).toHaveBeenCalledWith('chatbox-focus');
   });
@@ -94,12 +101,14 @@ describe('window_visibility_runtime showChatWindow', () => {
     const showResponseWindowInactive = jest.fn();
     const ensureResponseOverlayFallbackBounds = jest.fn();
     const setResponseOverlayVisible = jest.fn();
+    const syncWindowDisplayAffinity = jest.fn();
 
     const result = showChatWindow(
       { focus: false },
       {
         chatWindow,
         responseWindow,
+        syncWindowDisplayAffinity,
         responseOverlayVisible: true,
         isResponseOverlayStreamingPhase: () => true,
         showResponseWindowInactive,
@@ -110,6 +119,7 @@ describe('window_visibility_runtime showChatWindow', () => {
     );
 
     expect(result).toEqual({ success: true });
+    expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(chatWindow);
     expect(showResponseWindowInactive).not.toHaveBeenCalled();
     expect(ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
     expect(setResponseOverlayVisible).not.toHaveBeenCalled();
@@ -127,6 +137,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       show: jest.fn(),
       focus: jest.fn(),
     };
+    const syncWindowDisplayAffinity = jest.fn();
 
     const result = showMainWindow(
       {
@@ -137,7 +148,7 @@ describe('window_visibility_runtime showMainWindow', () => {
           workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
         },
       },
-      { mainWindow },
+      { mainWindow, syncWindowDisplayAffinity },
     );
 
     expect(result).toEqual({ success: true });
@@ -148,6 +159,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       height: 700,
     }, false);
     expect(mainWindow.show).toHaveBeenCalledTimes(1);
+    expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
     expect(mainWindow.focus).toHaveBeenCalledTimes(1);
   });
 
@@ -162,6 +174,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       isMinimized: jest.fn(() => false),
       maximize: jest.fn(),
     };
+    const syncWindowDisplayAffinity = jest.fn();
 
     const result = showMainWindow(
       {
@@ -173,7 +186,7 @@ describe('window_visibility_runtime showMainWindow', () => {
           workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
         },
       },
-      { mainWindow },
+      { mainWindow, syncWindowDisplayAffinity },
     );
 
     expect(result).toEqual({ success: true });
@@ -185,6 +198,7 @@ describe('window_visibility_runtime showMainWindow', () => {
     }, false);
     expect(mainWindow.maximize).not.toHaveBeenCalled();
     expect(mainWindow.show).toHaveBeenCalledTimes(1);
+    expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
     expect(mainWindow.focus).toHaveBeenCalledTimes(1);
   });
 
@@ -199,6 +213,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       show: jest.fn(),
       focus: jest.fn(),
     };
+    const syncWindowDisplayAffinity = jest.fn();
 
     showMainWindow(
       {
@@ -209,11 +224,12 @@ describe('window_visibility_runtime showMainWindow', () => {
           workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
         },
       },
-      { mainWindow },
+      { mainWindow, syncWindowDisplayAffinity },
     );
 
     expect(mainWindow.unmaximize).toHaveBeenCalledTimes(1);
     expect(mainWindow.show).not.toHaveBeenCalled();
+    expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
     expect(mainWindow.focus).not.toHaveBeenCalled();
   });
 });
