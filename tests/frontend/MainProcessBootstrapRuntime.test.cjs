@@ -60,6 +60,7 @@ describe('main_process_bootstrap_runtime', () => {
         syncContextLabelWindowVisibility: jest.fn(),
         setResponseOverlayVisibilityState: jest.fn(),
         enableContentProtectionSafely: jest.fn(),
+        syncWindowDisplayAffinity: jest.fn(),
         externalFocusTracker: {},
         getState: () => state,
         setMainWindow: jest.fn((nextWindow) => {
@@ -87,7 +88,9 @@ describe('main_process_bootstrap_runtime', () => {
 
     runtime.createWindow();
 
-    expect(deps.createMainWindowRuntime).toHaveBeenCalled();
+    expect(deps.createMainWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
+      syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
+    }));
     expect(state.windows.mainWindow).toEqual({ id: 'main-window' });
   });
 
@@ -117,6 +120,12 @@ describe('main_process_bootstrap_runtime', () => {
 
     expect(state.windows.chatWindow).toEqual({ id: 'chat-window' });
     expect(state.windows.responseWindow).toEqual({ id: 'response-window' });
+    expect(deps.createChatWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
+      syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
+    }));
+    expect(deps.createResponseWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
+      syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
+    }));
     expect(deps.createTrayRuntime).toHaveBeenCalled();
   });
 });

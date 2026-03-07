@@ -227,6 +227,7 @@ describe('main_window_runtime createChatWindow', () => {
       },
       setChatWindow: jest.fn(),
       enableContentProtectionSafely: jest.fn(),
+      syncWindowDisplayAffinity: jest.fn(),
       ...overrides,
     };
     return { deps, handlers, chatWindow };
@@ -302,9 +303,19 @@ describe('main_window_runtime createChatWindow', () => {
     handlers.show();
     expect(chatWindow.loadURL).toHaveBeenCalledTimes(1);
     expect(chatWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('view=chatbox'));
+    expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(chatWindow);
 
     handlers.show();
     expect(chatWindow.loadURL).toHaveBeenCalledTimes(1);
+  });
+
+  test('syncs chat display affinity on move events', () => {
+    const { deps, handlers, chatWindow } = createDeps();
+
+    createChatWindow(deps);
+    handlers.move();
+
+    expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(chatWindow);
   });
 
   test('adds debug_stream query flag to chat overlay when stream tracing is enabled', () => {
@@ -380,6 +391,7 @@ describe('main_window_runtime createResponseWindow', () => {
       syncContextLabelWindowVisibility: jest.fn(),
       setResponseWindow: jest.fn(),
       enableContentProtectionSafely: jest.fn(),
+      syncWindowDisplayAffinity: jest.fn(),
       ...overrides,
     };
     return { deps, handlers, responseWindow };
@@ -395,9 +407,19 @@ describe('main_window_runtime createResponseWindow', () => {
     handlers.show();
     expect(responseWindow.loadURL).toHaveBeenCalledTimes(1);
     expect(responseWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('view=chatbox-response'));
+    expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(responseWindow);
 
     handlers.show();
     expect(responseWindow.loadURL).toHaveBeenCalledTimes(1);
+  });
+
+  test('syncs response display affinity on move events', () => {
+    const { deps, handlers, responseWindow } = createDeps();
+
+    createResponseWindow(deps);
+    handlers.move();
+
+    expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(responseWindow);
   });
 
   test('keeps debug response overlay eager-loaded', () => {
@@ -491,6 +513,7 @@ describe('main_window_runtime createMainWindow', () => {
       getWindows: jest.fn(() => ({ mainWindow })),
       setMainWindow: jest.fn(),
       enableContentProtectionSafely: jest.fn(),
+      syncWindowDisplayAffinity: jest.fn(),
       ...overrides,
     };
     return { deps, BrowserWindow, mainWindow, handlers };
@@ -520,6 +543,17 @@ describe('main_window_runtime createMainWindow', () => {
     createMainWindow(deps);
 
     expect(deps.initializeMainProcessIpc).toHaveBeenCalledTimes(1);
+  });
+
+  test('syncs main window display affinity on show and move events', () => {
+    const { deps, handlers, mainWindow } = createDeps();
+
+    createMainWindow(deps);
+    handlers.show();
+    handlers.move();
+
+    expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
+    expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledTimes(2);
   });
 
   test('keeps dashboard visible in system screenshots', () => {

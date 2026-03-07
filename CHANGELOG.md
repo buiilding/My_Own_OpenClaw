@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-display-affinity): sync fallback display affinity from visible dashboard/chat/response window show+move events so no-sender screenshot paths inherit the monitor of the last real visible WindieOS surface instead of only the last query-origin affinity; added main-window/bootstrap/display-affinity regressions for the new event-driven sync.
 - test(frontend-display-affinity): add RPC regression coverage for wrapped `computer_use -> screenshot` requests so hidden-sender screenshot execution still inherits the visible chat-surface monitor bounds end to end.
 - fix(frontend-display-affinity): resolve screenshot monitor bounds from the live visible chat/dashboard surface before falling back to stored query-origin affinity, so hidden dashboard tool execution during chat-pill sessions follows the monitor the user is currently using; added display-bounds regressions for hidden-sender plus visible-chat fallback.
 - fix(frontend-display-affinity): inject active-monitor screenshot bounds into unified `computer_use` screenshot arguments so sidecar screenshot requests no longer bypass the single-monitor crop path and fall back to full-desktop capture; added nested wrapper regression coverage in `LocalBackendBridgeToolArgs.test.cjs`.

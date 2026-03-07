@@ -4,6 +4,7 @@ const {
   centerWindowOnDisplayWorkArea,
   getActiveDisplayAffinity,
   resolveDisplayAffinityForWebContents,
+  syncActiveDisplayAffinityForWindow,
   setActiveDisplayAffinity,
   toScreenshotDisplayBounds,
 } = require('../../frontend/src/main/display_affinity_runtime.cjs');
@@ -170,5 +171,47 @@ describe('display_affinity_runtime', () => {
       workArea: { x: 0, y: 0, width: 1600, height: 860 },
       desktopVirtualBounds: { x: 0, y: 0, width: 1600, height: 900 },
     });
+  });
+
+  test('syncs active display affinity from a visible window', () => {
+    const screen = {
+      getDisplayMatching: jest.fn(() => ({
+        id: 9,
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+        workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      })),
+      getAllDisplays: jest.fn(() => ([
+        {
+          id: 1,
+          bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+          workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+        },
+        {
+          id: 9,
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        },
+      ])),
+      getPrimaryDisplay: jest.fn(() => ({
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      })),
+    };
+    const targetWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+      getBounds: jest.fn(() => ({ x: 2300, y: 50, width: 800, height: 600 })),
+    };
+
+    const result = syncActiveDisplayAffinityForWindow(screen, targetWindow);
+
+    expect(result).toEqual({
+      monitor_id: '9',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
+    });
+    expect(getActiveDisplayAffinity()).toEqual(result);
   });
 });

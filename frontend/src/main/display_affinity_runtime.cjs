@@ -225,6 +225,18 @@ function getActiveDisplayAffinity() {
   } : null;
 }
 
+function syncActiveDisplayAffinityForWindow(screen, targetWindow) {
+  const displayAffinity = resolveDisplayAffinityForWindow(
+    screen,
+    targetWindow,
+    { requireVisible: true },
+  );
+  if (displayAffinity) {
+    setActiveDisplayAffinity(displayAffinity);
+  }
+  return displayAffinity;
+}
+
 module.exports = {
   centerWindowOnDisplayWorkArea,
   fitWindowToDisplayWorkArea,
@@ -232,5 +244,6 @@ module.exports = {
   resolveDisplayAffinityForWindow,
   resolveDisplayAffinityForWebContents,
   setActiveDisplayAffinity,
+  syncActiveDisplayAffinityForWindow,
   toScreenshotDisplayBounds,
 };
