@@ -48,6 +48,34 @@ read_when:
 
 ## Frontend/Main Execution Log (2026-02-26)
 
+- Frontend main window runtime helper extraction (2026-03-07):
+  - extracted app/tray icon path and native-image resolution from:
+    - `frontend/src/main/main_window_runtime.cjs`
+    - into `frontend/src/main/main_window_icon_runtime.cjs`.
+  - extracted renderer-view loading, lazy renderer-loader creation, and overlay BrowserWindow construction from:
+    - `frontend/src/main/main_window_runtime.cjs`
+    - into `frontend/src/main/main_window_overlay_runtime.cjs`.
+  - kept `main_window_runtime.cjs` focused on main/chat/response/tray orchestration and event wiring.
+  - result:
+    - `frontend/src/main/main_window_runtime.cjs` reduced from `556` LOC to `412` LOC.
+    - frontend `jscpd` remains `0` TypeScript/JavaScript clones; remaining clones are only in unrelated dirty backend Python files outside this slice.
+    - `backend/src/api/routes` remains `0` clones.
+  - regression coverage:
+    - added `tests/frontend/MainWindowIconRuntime.test.cjs`.
+    - added `tests/frontend/MainWindowOverlayRuntime.test.cjs`.
+    - reran `tests/frontend/MainWindowRuntime.test.cjs`.
+  - verification:
+    - `cd frontend && npm run test:ci -- ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/MainWindowIconRuntime.test.cjs ../tests/frontend/MainWindowOverlayRuntime.test.cjs`
+    - `cd frontend && npm run lint -- src/main/main_window_runtime.cjs src/main/main_window_icon_runtime.cjs src/main/main_window_overlay_runtime.cjs`
+    - `cd frontend && npm run lint:audit`
+    - `cd frontend && npm run audit:knip`
+    - `cd frontend && npm run audit:jscpd`
+    - `cd frontend && npx jscpd --gitignore --min-lines 5 --min-tokens 50 --reporters console --ignore \"**/__pycache__/**\" ../backend/src/api/routes`
+  - audit delta:
+    - `react-compiler`/`deprecation` lint audits clean.
+    - `knip` clean.
+    - `jscpd` clean for frontend (`0` TypeScript/JavaScript clones).
+
 - Frontend main IPC query/session runtime extraction (2026-03-07):
   - extracted query-send normalization/content-build helpers from:
     - `frontend/src/main/ipc.cjs`
