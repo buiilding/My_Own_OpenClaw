@@ -28,23 +28,46 @@ async function handlePrepareChatboxForScreenshot(
 ) {
   const {
     hideChatWindow,
-    waitForSettlement = (waitMs) => new Promise((resolve) => setTimeout(resolve, waitMs)),
+    waitInMain = (waitMs) => new Promise((resolve) => setTimeout(resolve, waitMs)),
   } = deps;
+  const waitMs = (
+    typeof options?.waitMs === 'number' && Number.isFinite(options.waitMs)
+      ? Math.max(0, options.waitMs)
+      : 0
+  );
   const settleMs = (
     typeof options?.settleMs === 'number' && Number.isFinite(options.settleMs)
       ? Math.max(0, options.settleMs)
       : 120
   );
+  const hideChatbox = options?.hideChatbox !== false;
 
-  const hideResult = hideChatWindow();
-  if (!hideResult?.success) {
-    return hideResult;
+  const waitStartTime = performance.now();
+  await waitInMain(waitMs);
+  const waitTime = (performance.now() - waitStartTime) / 1000;
+
+  let hideResult = { success: true };
+  let hideInvokeTime = 0;
+  if (hideChatbox) {
+    const hideStartTime = performance.now();
+    hideResult = hideChatWindow();
+    hideInvokeTime = (performance.now() - hideStartTime) / 1000;
+    if (!hideResult?.success) {
+      return hideResult;
+    }
   }
 
-  await waitForSettlement(settleMs);
+  const settleStartTime = performance.now();
+  await waitInMain(settleMs);
+  const settleTime = (performance.now() - settleStartTime) / 1000;
   return {
     ...hideResult,
+    waitMs,
     settleMs,
+    hideChatbox,
+    waitTime,
+    hideInvokeTime,
+    settleTime,
   };
 }
 

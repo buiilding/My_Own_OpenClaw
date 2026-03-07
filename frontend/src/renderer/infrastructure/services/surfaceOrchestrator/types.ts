@@ -23,6 +23,7 @@ export type ToolSurfacePreparation = {
 };
 
 export type ChatPillCollapseTiming = {
+  waitTime: number;
   hideInvokeTime: number;
   settleTime: number;
 };

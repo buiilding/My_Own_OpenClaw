@@ -100,14 +100,6 @@ function parseInlineScreenshotPayload(
   };
 }
 
-function waitForCaptureDelay(waitSeconds: number): Promise<void> {
-  const waitMilliseconds = Math.max(0, waitSeconds) * 1000;
-  if (waitMilliseconds <= 0) {
-    return Promise.resolve();
-  }
-  return new Promise((resolve) => setTimeout(resolve, waitMilliseconds));
-}
-
 function resolveScreenshotExplanation(
   explanation: string | undefined,
   isFirstUserMessage: boolean,
@@ -241,16 +233,14 @@ export async function captureScreenshotAttachment({
   }
 
   try {
-    const waitStartTime = performance.now();
-    await waitForCaptureDelay(waitSeconds);
-    waitTime = (performance.now() - waitStartTime) / 1000;
-
     const prepareVisibilityStartTime = performance.now();
     screenshotVisibilityPreparation = await prepareScreenshotCaptureVisibility({
       captureId: correlationId,
       source: 'system-capture',
+      waitMs: Math.max(0, waitSeconds) * 1000,
     });
     prepareVisibilityTime = (performance.now() - prepareVisibilityStartTime) / 1000;
+    waitTime = screenshotVisibilityPreparation.timing?.waitTime || 0;
     hideInvokeTime = screenshotVisibilityPreparation.timing?.hideInvokeTime || 0;
     settleTime = screenshotVisibilityPreparation.timing?.settleTime || 0;
 
