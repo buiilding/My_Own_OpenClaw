@@ -5,9 +5,17 @@ const {
   primeQueryContext,
   registerBridgeSuiteLifecycleHooks,
 } = require('./__mocks__/ipcMainBridgeHarness.cjs');
+const {
+  getActiveDisplayAffinity,
+  setActiveDisplayAffinity,
+} = require('../../frontend/src/main/display_affinity_runtime.cjs');
 
 describe('ipc.cjs bridge lifecycle/config', () => {
   registerBridgeSuiteLifecycleHooks();
+
+  afterEach(() => {
+    setActiveDisplayAffinity(null);
+  });
 
   function setupOpenedIpc(options = {}) {
     const bridge = initIpc(options);
@@ -137,6 +145,27 @@ describe('ipc.cjs bridge lifecycle/config', () => {
       source: 'backend',
       recovery_stage: 'tool-output',
     });
+  });
+
+  test('preserves active display affinity across backend websocket close', () => {
+    const setTimeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(() => 0);
+    setActiveDisplayAffinity({
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
+    });
+    const { ws } = setupOpenedIpc();
+
+    ws.handlers.close();
+
+    expect(getActiveDisplayAffinity()).toEqual({
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
+    });
+    setTimeoutSpy.mockRestore();
   });
 
   test('includes overlay recovery metadata for tool-call phase events when available', () => {
