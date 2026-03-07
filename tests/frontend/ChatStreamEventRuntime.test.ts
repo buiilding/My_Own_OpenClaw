@@ -169,6 +169,9 @@ describe('chatStreamEventRuntime', () => {
   test('stale turn guard ignores packets from just-completed active turn during terminal pending handoff', () => {
     useChatStore.setState((state) => ({
       ...state,
+      messages: [
+        { id: 'assistant-old', sender: 'assistant', text: 'done', type: 'llm-text' as const },
+      ],
       isSending: true,
       streamTracking: {
         ...state.streamTracking,
@@ -179,6 +182,9 @@ describe('chatStreamEventRuntime', () => {
         ...state.workspaces,
         __default__: {
           ...state.workspaces.__default__,
+          messages: [
+            { id: 'assistant-old', sender: 'assistant', text: 'done', type: 'llm-text' as const },
+          ],
           isSending: true,
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
@@ -190,6 +196,38 @@ describe('chatStreamEventRuntime', () => {
     }));
 
     expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
+  });
+
+  test('stale turn guard keeps same-turn packets during terminal pending handoff when a new optimistic user row is present', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      messages: [
+        { id: 'user-new', sender: 'user', text: 'next turn', type: 'user' as const },
+      ],
+      isSending: true,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-current',
+        phase: 'complete',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          messages: [
+            { id: 'user-new', sender: 'user', text: 'next turn', type: 'user' as const },
+          ],
+          isSending: true,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-current',
+            phase: 'complete',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
   });
 
   test('stale turn guard allows next-turn packets during idle pending handoff', () => {
@@ -273,6 +311,9 @@ describe('chatStreamEventRuntime', () => {
   test('stale turn guard ignores same-turn packets during error pending handoff', () => {
     useChatStore.setState((state) => ({
       ...state,
+      messages: [
+        { id: 'assistant-old', sender: 'assistant', text: 'done', type: 'llm-text' as const },
+      ],
       isSending: true,
       streamTracking: {
         ...state.streamTracking,
@@ -283,6 +324,9 @@ describe('chatStreamEventRuntime', () => {
         ...state.workspaces,
         __default__: {
           ...state.workspaces.__default__,
+          messages: [
+            { id: 'assistant-old', sender: 'assistant', text: 'done', type: 'llm-text' as const },
+          ],
           isSending: true,
           streamTracking: {
             ...state.workspaces.__default__.streamTracking,
@@ -294,6 +338,38 @@ describe('chatStreamEventRuntime', () => {
     }));
 
     expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
+  });
+
+  test('stale turn guard keeps same-turn packets during error pending handoff when a new optimistic user row is present', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      messages: [
+        { id: 'user-new', sender: 'user', text: 'next turn', type: 'user' as const },
+      ],
+      isSending: true,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-current',
+        phase: 'error',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          messages: [
+            { id: 'user-new', sender: 'user', text: 'next turn', type: 'user' as const },
+          ],
+          isSending: true,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-current',
+            phase: 'error',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
   });
 
   test('stale turn guard allows mismatched turn packets while sending during awaiting-first-chunk', () => {
