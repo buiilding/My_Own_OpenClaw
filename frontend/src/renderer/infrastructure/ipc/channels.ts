@@ -40,6 +40,7 @@ export const INVOKE_CHANNELS = {
   GET_MAIN_WINDOW_VISIBILITY: 'get-main-window-visibility',
   SHOW_CHATBOX: 'show-chatbox',
   HIDE_CHATBOX: 'hide-chatbox',
+  PREPARE_CHATBOX_FOR_SCREENSHOT: 'prepare-chatbox-for-screenshot',
   GET_DISPLAYS: 'get-displays',
   LOAD_FRONTEND_CONFIG: 'load-frontend-config',
   SAVE_FRONTEND_CONFIG: 'save-frontend-config',

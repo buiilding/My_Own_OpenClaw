@@ -11,7 +11,12 @@ describe('toolRunnerSurface helpers', () => {
   const originalUserAgent = navigator.userAgent;
 
   beforeEach(() => {
-    jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({ success: true });
+    jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: string) => {
+      if (channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT) {
+        return { success: true, settleMs: 120 };
+      }
+      return { success: true };
+    });
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
       value: 'Mozilla/5.0 (X11; Linux x86_64)',
@@ -126,7 +131,7 @@ describe('toolRunnerSurface helpers', () => {
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toEqual([
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
-      [INVOKE_CHANNELS.HIDE_CHATBOX],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { settleMs: 120 }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });
@@ -148,7 +153,7 @@ describe('toolRunnerSurface helpers', () => {
     await restoreToolExecutionSurface(second);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
-      [INVOKE_CHANNELS.HIDE_CHATBOX],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { settleMs: 120 }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });

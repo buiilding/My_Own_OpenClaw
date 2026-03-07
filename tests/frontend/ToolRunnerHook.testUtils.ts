@@ -120,6 +120,7 @@ export function resetToolRunnerTestState() {
     if (
       channel === INVOKE_CHANNELS.SHOW_CHATBOX
       || channel === INVOKE_CHANNELS.HIDE_CHATBOX
+      || channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT
     ) {
       return { success: true };
     }

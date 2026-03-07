@@ -22,8 +22,35 @@ function handleHideChatbox(deps = {}) {
   return hideChatWindow();
 }
 
+async function handlePrepareChatboxForScreenshot(
+  options = {},
+  deps = {},
+) {
+  const {
+    hideChatWindow,
+    waitForSettlement = (waitMs) => new Promise((resolve) => setTimeout(resolve, waitMs)),
+  } = deps;
+  const settleMs = (
+    typeof options?.settleMs === 'number' && Number.isFinite(options.settleMs)
+      ? Math.max(0, options.settleMs)
+      : 120
+  );
+
+  const hideResult = hideChatWindow();
+  if (!hideResult?.success) {
+    return hideResult;
+  }
+
+  await waitForSettlement(settleMs);
+  return {
+    ...hideResult,
+    settleMs,
+  };
+}
+
 module.exports = {
   handleHideChatbox,
+  handlePrepareChatboxForScreenshot,
   handleShowChatbox,
   handleShowMainWindow,
 };
