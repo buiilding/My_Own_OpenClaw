@@ -300,7 +300,6 @@ function createResponseWindow({
   syncContextLabelWindowVisibility,
   setResponseWindow,
   enableContentProtectionSafely,
-  syncWindowDisplayAffinity = () => {},
   resolveAppIconPath = resolveAppIconPathRuntime,
   resolveAppIcon = resolveAppIconNativeImage,
   warn = console.warn,
@@ -357,11 +356,6 @@ function createResponseWindow({
 
   responseWindow.on('show', () => {
     ensureResponseRendererLoaded();
-    syncWindowDisplayAffinity(responseWindow);
-  });
-
-  responseWindow.on('move', () => {
-    syncWindowDisplayAffinity(responseWindow);
   });
 
   responseWindow.on('close', (event) => {
