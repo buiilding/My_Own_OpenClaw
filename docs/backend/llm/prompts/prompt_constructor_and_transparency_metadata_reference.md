@@ -89,6 +89,11 @@ This avoids naive delimiter parsing bugs and constrains extraction work on large
 - does not embed tool schemas into user content
 - `is_first_message` is intentionally ignored in current implementation
 
+Frontend memory/context block handling:
+
+- constructor treats frontend-provided `<system_context>`, `<episodic_memory>`, and `<semantic_memory>` blocks as opaque pass-through content.
+- transparency extraction only parses specific tags used for UI metadata (`system_context`, `active_window`, `user_query`); it does not parse memory lists into structured backend fields.
+
 ## First-Turn Prompt/Event Flow
 
 `ConversationContext.get_prompt(iteration)` behavior:
