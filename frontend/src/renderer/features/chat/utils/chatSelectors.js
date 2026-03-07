@@ -1,19 +1,23 @@
+import { selectActiveWorkspaceState } from '../stores/chatWorkspaceState';
+
 export function selectChatInterfaceState(state) {
+  const activeWorkspace = selectActiveWorkspaceState(state);
   return {
-    messages: state.messages,
-    isSending: state.isSending,
-    thinkingStatus: state.thinkingStatus,
-    thinkingSourceEventType: state.thinkingSourceEventType,
-    tokenCounts: state.tokenCounts,
-    streamPhase: state.streamTracking?.phase ?? 'idle',
+    messages: activeWorkspace.messages,
+    isSending: activeWorkspace.isSending,
+    thinkingStatus: activeWorkspace.thinkingStatus,
+    thinkingSourceEventType: activeWorkspace.thinkingSourceEventType,
+    tokenCounts: activeWorkspace.tokenCounts,
+    streamPhase: activeWorkspace.streamTracking?.phase ?? 'idle',
   };
 }
 
 export function selectChatBoxState(state) {
+  const activeWorkspace = selectActiveWorkspaceState(state);
   return {
-    messages: state.messages,
-    isSending: state.isSending,
-    thinkingStatus: state.thinkingStatus,
-    thinkingSourceEventType: state.thinkingSourceEventType,
+    messages: activeWorkspace.messages,
+    isSending: activeWorkspace.isSending,
+    thinkingStatus: activeWorkspace.thinkingStatus,
+    thinkingSourceEventType: activeWorkspace.thinkingSourceEventType,
   };
 }

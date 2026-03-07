@@ -15,13 +15,13 @@ export interface ChatWorkspaceState {
 
 interface ChatWorkspaceStoreSnapshot {
   activeConversationRef: string | null;
-  workspaces: Record<string, ChatWorkspaceState>;
-  messages: ChatMessage[];
-  isSending: boolean;
-  thinkingStatus: string | null;
-  thinkingSourceEventType: string | null;
-  tokenCounts: TokenCounts | null;
-  streamTracking: StreamTracking;
+  workspaces?: Record<string, ChatWorkspaceState>;
+  messages?: ChatMessage[];
+  isSending?: boolean;
+  thinkingStatus?: string | null;
+  thinkingSourceEventType?: string | null;
+  tokenCounts?: TokenCounts | null;
+  streamTracking?: StreamTracking;
 }
 
 export const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
@@ -85,12 +85,12 @@ export function createInitialWorkspaceState(): ChatWorkspaceState {
 
 function buildActiveWorkspaceSnapshot(state: ChatWorkspaceStoreSnapshot): ChatWorkspaceState {
   return {
-    messages: state.messages,
-    isSending: state.isSending,
-    thinkingStatus: state.thinkingStatus,
-    thinkingSourceEventType: state.thinkingSourceEventType,
-    tokenCounts: state.tokenCounts,
-    streamTracking: state.streamTracking,
+    messages: state.messages ?? [],
+    isSending: state.isSending ?? false,
+    thinkingStatus: state.thinkingStatus ?? null,
+    thinkingSourceEventType: state.thinkingSourceEventType ?? null,
+    tokenCounts: state.tokenCounts ?? null,
+    streamTracking: state.streamTracking ?? createInitialStreamTracking(),
   };
 }
 
@@ -112,7 +112,8 @@ export function readWorkspaceState(
   state: ChatWorkspaceStoreSnapshot,
   workspaceRef: string,
 ): ChatWorkspaceState {
-  const workspace = state.workspaces[workspaceRef];
+  const workspaces = state.workspaces ?? {};
+  const workspace = workspaces[workspaceRef];
   const activeWorkspaceRef = resolveChatWorkspaceRef(state.activeConversationRef);
   const activeWorkspaceSnapshot = buildActiveWorkspaceSnapshot(state);
 
@@ -131,4 +132,11 @@ export function readWorkspaceState(
   }
 
   return createInitialWorkspaceState();
+}
+
+export function selectActiveWorkspaceState(
+  state: ChatWorkspaceStoreSnapshot,
+): ChatWorkspaceState {
+  const activeWorkspaceRef = resolveChatWorkspaceRef(state.activeConversationRef);
+  return readWorkspaceState(state, activeWorkspaceRef);
 }
