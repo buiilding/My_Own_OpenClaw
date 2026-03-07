@@ -12,14 +12,14 @@ import {
 } from '../../../../infrastructure/services/ArtifactImageUtils';
 import type { ClipboardImagePayload } from './chatMessageSenderPayloads';
 
-export type UploadedScreenshotEntry = {
+type UploadedScreenshotEntry = {
   screenshot: string;
   screenshotContentType: string | null;
   screenshotRef: string | null;
   screenshotUrl: string | null;
 };
 
-export type QueryScreenshotArtifacts = {
+type QueryScreenshotArtifacts = {
   captureMeta: CaptureMeta | null;
   uploadedScreenshotEntries: UploadedScreenshotEntry[];
   screenshotRef: string | null;

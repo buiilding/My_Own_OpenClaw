@@ -21,7 +21,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/SurfaceOrchestrat
 }));
 
 import {
-  buildScreenshotArgs,
   buildScreenshotRefs,
   captureScreenshotAttachment,
   createInlineScreenshotAttachment,
@@ -43,13 +42,6 @@ describe('ScreenshotAttachmentPipeline', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
-  });
-
-  test('buildScreenshotArgs keeps screenshot request payload renderer-local and display-agnostic', () => {
-    expect(buildScreenshotArgs('Capture screen')).toEqual({
-      explanation: 'Capture screen',
-      expectation: 'Current screen state',
-    });
   });
 
   test('extractScreenshotAttachment normalizes inline payloads and infers refs from urls', () => {

@@ -236,11 +236,7 @@ function processBackendMessageData(data, {
 }
 
 module.exports = {
-  buildBackendEventTraceSummary,
   generateUserId,
-  isDebugToolScreenshotEnabled,
-  isDebugStreamTraceEnabled,
-  logToolShotDebug,
   normalizeBackendPayload,
   processBackendMessageData,
   runBeforeOverlayQueryCapture,

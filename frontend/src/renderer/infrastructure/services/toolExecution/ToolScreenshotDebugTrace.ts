@@ -5,7 +5,7 @@ function getRendererSearch(): string {
   return typeof window.location?.search === 'string' ? window.location.search : '';
 }
 
-export function isRendererToolScreenshotDebugEnabled(): boolean {
+function isRendererToolScreenshotDebugEnabled(): boolean {
   return getRendererSearch().includes('debug_tool_screenshot=1');
 }
 

@@ -227,14 +227,9 @@ function getActiveDisplayAffinity() {
 
 module.exports = {
   centerWindowOnDisplayWorkArea,
-  createDisplayAffinity,
   fitWindowToDisplayWorkArea,
   getActiveDisplayAffinity,
-  resolveDesktopVirtualBounds,
-  resolveDisplayAffinityForBounds,
   resolveDisplayAffinityForWebContents,
-  resolveDisplayAffinityForWindow,
-  resolvePrimaryDisplayAffinity,
   setActiveDisplayAffinity,
   toScreenshotDisplayBounds,
 };
