@@ -294,6 +294,57 @@ describe('local_backend_bridge_tool_args', () => {
     });
   });
 
+  test('injects native sudo auth mode into system_use run_shell_command arguments', () => {
+    const baseArgs = {
+      tool: 'run_shell_command',
+      explanation: 'run privileged command',
+      arguments: {
+        command: 'sudo apt update',
+        run_in_background: false,
+      },
+    };
+
+    const result = resolveToolArgs(
+      'system_use',
+      baseArgs,
+      () => ({ agent_full_sudo_enabled: true }),
+    );
+
+    expect(result).toEqual({
+      tool: 'run_shell_command',
+      explanation: 'run privileged command',
+      arguments: {
+        command: 'sudo apt update',
+        run_in_background: false,
+        sudo_auth_mode: 'native',
+      },
+    });
+    expect(baseArgs).toEqual({
+      tool: 'run_shell_command',
+      explanation: 'run privileged command',
+      arguments: {
+        command: 'sudo apt update',
+        run_in_background: false,
+      },
+    });
+  });
+
+  test('keeps invalid non-object system_use.arguments unchanged for sidecar validation', () => {
+    const result = resolveToolArgs(
+      'system_use',
+      {
+        tool: 'run_shell_command',
+        arguments: 'not-an-object',
+      },
+      () => ({ agent_full_sudo_enabled: true }),
+    );
+
+    expect(result).toEqual({
+      tool: 'run_shell_command',
+      arguments: 'not-an-object',
+    });
+  });
+
   test('passes through computer_use envelope unchanged for sidecar execution', () => {
     const args = {
       tool: 'mouse_control',

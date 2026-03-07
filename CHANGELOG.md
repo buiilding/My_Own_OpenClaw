@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(fullstack-system-use-shell-sudo-auth-propagation): inject `sudo_auth_mode` into frontend `system_use -> run_shell_command` arguments so full-sudo configuration propagates through unified wrapper flows, with deterministic backend parser + sidecar registry + frontend bridge regression coverage for explanation precedence and non-object argument validation boundaries.
 - test(fullstack-terminal-stream-gates-regressions): add deterministic backend/frontend regressions that lock terminal handoff behavior by ignoring same-turn packets during frontend `error` pending handoff and suppressing backend post-error stream events (including late `streaming-complete`) without emitting fallback completion.
 - docs(frontend-runtime-paths-and-sidecar-protocol-wakeword-helper-scope): refresh runtime-paths and sidecar services/protocol hubs to include `wakeword_bridge_runtime.cjs` in canonical module scope and add wakeword startup/readiness debug guidance tied to helper-level error/status handling.
 - fix(frontend-display-affinity): write active display affinity immediately when opening the dashboard onto an explicit target display, so monitor fallback updates from the chosen open target even before Electron show/move events fire.
