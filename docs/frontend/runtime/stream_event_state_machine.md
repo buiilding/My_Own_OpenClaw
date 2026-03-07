@@ -11,6 +11,7 @@ title: "Stream Event State Machine"
 ## Owner Modules
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useTurnScopedBackendEventHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTextHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
@@ -18,9 +19,12 @@ title: "Stream Event State Machine"
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamBackendIngress.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventRuntime.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTerminalHandoffGuard.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTurnGuard.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerEventGuards.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerExecutionState.ts`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
@@ -85,6 +89,8 @@ Guard exception:
 
 - if workspace is sending a new turn (`isSending=true`) while stream phase is terminal (`idle|complete|error`), stale-turn guard is temporarily relaxed so first packets of the new turn are not dropped due to lagging turn-reset bookkeeping.
 - when terminal handoff has already re-anchored to the current `turn_ref`, same-turn packets are still allowed only if the workspace tail is the optimistic user row for that new turn; assistant-tailed completed/error workspaces still reject trailing old-turn packets.
+- terminal-handoff packet policy now lives in `chatStreamTerminalHandoffGuard.ts` as pure predicates so re-anchor behavior can be regression-tested without going through the whole ingress runtime.
+- tool-runner turn guards and local tool-result persistence now reuse the same terminal-handoff predicates, so dashboard tool rows and local execution output stay aligned with stream ingress during later-turn re-anchor windows.
 
 Handler-level skip:
 

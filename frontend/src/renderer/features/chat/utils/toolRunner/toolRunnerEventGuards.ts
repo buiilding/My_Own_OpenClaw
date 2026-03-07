@@ -1,6 +1,10 @@
 import { type ToolBundleEvent, type ToolCallEvent } from '../../../../types/backendEvents';
 import { useChatStore } from '../../stores/chatStore';
 import { resolveConversationRefWithTurnFallback } from '../chatStream/chatStreamConversationGate';
+import {
+  normalizeTurnRef,
+  shouldIgnoreForTerminalPendingHandoff,
+} from '../chatStream/chatStreamTerminalHandoffGuard';
 import { isTerminalStreamPhase } from '../state/streamPhaseState';
 
 type ToolEventRef = Pick<ToolCallEvent | ToolBundleEvent, 'conversation_ref' | 'turn_ref'>;
@@ -21,15 +25,24 @@ export function shouldIgnoreToolEventForTurn(
   turnRef: string | null | undefined,
   conversationRef: string | null,
 ): boolean {
-  if (!turnRef) {
+  const normalizedTurnRef = normalizeTurnRef(turnRef);
+  if (!normalizedTurnRef) {
     return false;
   }
-  const { streamTracking } = useChatStore.getState().getWorkspaceState(conversationRef);
-  if (!streamTracking.activeTurnRef) {
+  const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+  const activeTurnRef = normalizeTurnRef(workspace.streamTracking.activeTurnRef);
+  if (!activeTurnRef) {
     return true;
   }
-  if (streamTracking.activeTurnRef !== turnRef) {
+  if (activeTurnRef !== normalizedTurnRef) {
     return true;
   }
-  return isTerminalStreamPhase(streamTracking.phase);
+  if (!isTerminalStreamPhase(workspace.streamTracking.phase)) {
+    return false;
+  }
+  return shouldIgnoreForTerminalPendingHandoff(
+    workspace,
+    normalizedTurnRef,
+    activeTurnRef,
+  );
 }

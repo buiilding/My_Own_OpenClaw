@@ -1,4 +1,8 @@
 import { useChatStore } from '../../stores/chatStore';
+import {
+  normalizeTurnRef,
+  shouldIgnoreForTerminalPendingHandoff,
+} from '../chatStream/chatStreamTerminalHandoffGuard';
 import { isTerminalStreamPhase } from '../state/streamPhaseState';
 import {
   type TrackedExecution,
@@ -19,24 +23,33 @@ export function shouldAcceptExecutionResult(
   if (!trackedExecution) {
     return false;
   }
-  const streamTracking = useChatStore.getState()
-    .getWorkspaceState(trackedExecution.conversationRef)
-    .streamTracking;
+  const workspace = useChatStore.getState()
+    .getWorkspaceState(trackedExecution.conversationRef);
+  const streamTracking = workspace.streamTracking;
+  const trackedTurnRef = normalizeTurnRef(trackedExecution.turnRef);
+  const activeTurnRef = normalizeTurnRef(streamTracking.activeTurnRef);
   if (
-    trackedExecution.turnRef
-    && streamTracking.activeTurnRef
-    && trackedExecution.turnRef !== streamTracking.activeTurnRef
+    trackedTurnRef
+    && activeTurnRef
+    && trackedTurnRef !== activeTurnRef
   ) {
     trackedExecutions.delete(correlationId);
     return false;
   }
   if (
-    trackedExecution.turnRef
-    && streamTracking.activeTurnRef === trackedExecution.turnRef
+    trackedTurnRef
+    && activeTurnRef === trackedTurnRef
     && isTerminalStreamPhase(streamTracking.phase)
   ) {
-    trackedExecutions.delete(correlationId);
-    return false;
+    const shouldIgnore = shouldIgnoreForTerminalPendingHandoff(
+      workspace,
+      trackedTurnRef,
+      activeTurnRef,
+    );
+    if (shouldIgnore) {
+      trackedExecutions.delete(correlationId);
+      return false;
+    }
   }
   return true;
 }
