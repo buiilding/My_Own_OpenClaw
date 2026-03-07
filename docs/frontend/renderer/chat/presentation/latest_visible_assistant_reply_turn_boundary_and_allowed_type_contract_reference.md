@@ -1,19 +1,22 @@
 ---
-summary: "Deep reference for renderer assistant-reply selection helper behavior: latest-user turn boundary scan, allowed-type filtering, and shared dashboard/overlay usage contracts."
+summary: "Deep reference for shared current-turn presentation behavior: latest-user turn boundary scan, allowed-type filtering, and shared dashboard/overlay reply projection contracts."
 read_when:
   - When changing assistant-reply visibility logic in `ChatInterface.jsx` or `ChatBoxResponse.jsx`.
   - When debugging awaiting-dot or response-pill state that incorrectly includes stale assistant rows from earlier turns.
-title: "Latest Visible Assistant Reply Turn-Boundary and Allowed-Type Contract Reference"
+title: "Current-Turn Presentation and Visible Assistant Reply Contract Reference"
 ---
 
-# Latest Visible Assistant Reply Turn-Boundary and Allowed-Type Contract Reference
+# Current-Turn Presentation and Visible Assistant Reply Contract Reference
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/utils/message/latestVisibleAssistantReply.js`
+- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
+- `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `tests/frontend/ChatInterfaceWiring.test.jsx`
+- `tests/frontend/CurrentTurnPresentationStateHook.test.jsx`
 - `tests/frontend/ChatBoxResponse.state.test.jsx`
 
 ## Helper API Surface
@@ -22,6 +25,7 @@ Exported functions:
 
 - `findLastUserIndex(messages)`
 - `findLatestVisibleAssistantReply(messages, allowedTypes)`
+- `resolveChatTurnPresentationState({ messages, loopUiState, dismissedResponseId, allowedTypes, activeResponse })`
 
 ## Turn-Boundary Scan Contract
 
@@ -58,23 +62,50 @@ Current call sites pass:
 
 This keeps type-filter policy explicit at component call sites.
 
+## Shared Presentation Contract
+
+`useCurrentTurnPresentationState(...)` composes:
+
+1. `findLatestVisibleAssistantReply(...)`
+2. `useChatLoopUiState(...)`
+3. `resolveChatTurnPresentationState(...)`
+
+It returns one shared snapshot for dashboard and overlay consumers:
+
+- `loopUiState`
+- `isBusy`
+- `isAwaitingReply`
+- `isTransportConnected`
+- `activeResponse`
+- `hasVisibleReply`
+- `showAssistantAwaitingDot`
+- `visibleResponse`
+- `chatboxSurfaceState`
+- `showChatboxAwaitingReply`
+- `showChatboxResponse`
+
 ## Consumer Contracts
 
 `ChatInterface.jsx`:
 
-- uses helper result (`hasVisibleReply`) for loop projection via `useChatLoopUiState(...)`
-- awaiting-dot visibility only appears when no qualifying visible reply exists
+- uses the shared snapshot for busy/stop behavior and awaiting-dot visibility
+- dashboard no longer performs its own assistant-reply scan
+
+`ChatBox.jsx`:
+
+- uses the shared snapshot for loop lock behavior
+- pill input/controls no longer maintain a separate loop-visibility path
 
 `ChatBoxResponse.jsx`:
 
-- uses helper result as `activeResponse`
+- uses shared `activeResponse` and chatbox surface state
 - applies additional dismissal/closeability gating on top (`closedResponseId`, completion rules)
 - response pill therefore stays scoped to the latest active user turn
 
 ## Drift Hotspots
 
 1. Expanding helper scan to include rows before latest user boundary will leak stale responses into active-turn UI states.
-2. Hardcoding message types inside helper instead of caller-provided set can desync dashboard and overlay behavior.
+2. Reintroducing component-local `hasVisibleReply` or surface projection logic will desync dashboard and overlay behavior.
 3. Removing non-empty `text` guard can surface placeholder assistant rows as visible replies.
 
 ## Related Pages

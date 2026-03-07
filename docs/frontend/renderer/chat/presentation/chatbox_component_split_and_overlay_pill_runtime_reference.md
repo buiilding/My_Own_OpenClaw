@@ -12,13 +12,13 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxIcons.jsx`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx`
-- `frontend/src/renderer/features/chat/utils/message/latestVisibleAssistantReply.js`
 - `frontend/src/renderer/features/chat/hooks/useChatBoxBindings.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`
-- `frontend/src/renderer/features/chat/utils/state/chatboxSurfaceState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`
@@ -35,16 +35,17 @@ Chatbox support modules moved under `components/chatbox/`:
 `ChatBox.jsx` and `ChatBoxResponse.jsx` stay as orchestration components; presentational helpers are
 kept side-by-side in the `chatbox/` subfolder.
 
-Response-message selection helper ownership moved to shared chat utils:
+Current-turn presentation ownership moved to shared chat hooks/state:
 
-- `frontend/src/renderer/features/chat/utils/message/latestVisibleAssistantReply.js`
+- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 
 ## `ChatBox` Runtime Contract
 
 ### Send and Loop Locking
 
 - uses `useChatMessageSender(undefined, { senderSurface: "overlay-chatbox" })`
-- derives loop lock via `useChatLoopUiState({ phase, isSending, hasVisibleReply: false })`
+- derives loop lock via `useCurrentTurnPresentationState({ phase, isSending, messages })`
 - loop lock disables:
   - dashboard-open button
   - screenshot capture button
@@ -92,7 +93,7 @@ No renderer-driven `set-chatbox-size` resizing occurs in this component.
 
 - candidate response types are restricted to `llm-text` and `error`
 - latest assistant response is selected only from messages after the latest user message
-  (`findLatestVisibleAssistantReply(...)`)
+  through `useCurrentTurnPresentationState(...)`
 - dismissed response ids are tracked in `closedResponseId`
 
 Closeability:
@@ -103,7 +104,7 @@ Closeability:
 ### Awaiting vs Response Surface
 
 - phase input from `useResponseOverlayPhase()`
-- surface state is derived through `resolveChatboxSurfaceStateFromLoopUiState(...)`
+- surface state is derived through `useCurrentTurnPresentationState(...)`
 - awaiting indicator and response pill are mutually controlled by that state projection
 
 ### Response Render and Formatting
@@ -144,7 +145,7 @@ Closeability:
 ## Drift Hotspots
 
 1. Reintroducing imports from removed legacy helper paths outside `components/chatbox/*`.
-2. Mixing `isSending` and overlay-phase locking policies outside `useChatLoopUiState(...)`.
+2. Mixing `isSending` and overlay-phase locking policies outside `useCurrentTurnPresentationState(...)`.
 3. Re-adding renderer-driven `set-chatbox-size` logic in `ChatBox` can reintroduce startup flicker.
 4. Changing response selection bounds (latest-after-user scan) can leak stale assistant rows into
    overlay response state.

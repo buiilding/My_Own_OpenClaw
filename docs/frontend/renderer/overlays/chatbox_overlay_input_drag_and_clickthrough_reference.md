@@ -17,8 +17,9 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
+- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
-- `frontend/src/renderer/features/chat/utils/state/chatboxSurfaceState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
 - `frontend/src/renderer/features/chat/utils/state/stopQueryState.js`
@@ -148,13 +149,13 @@ Movement path:
 
 ## Visual Loop Activity Signal
 
-`chatboxSurfaceState.js` is the renderer-side projection contract for the minimal pill:
+`chatTurnPresentationState.js` is the renderer-side current-turn projection contract for the minimal pill:
 
 - `compact`: chat pill only
 - `awaiting-reply`: chat pill + typing indicator
 - `response`: chat pill + response overlay
 
-`ChatBox` and `ChatBoxResponse` both derive those visuals from the same loop-state reducer hook (`useChatLoopUiState`) plus `chatboxSurfaceState.js`, so the overlay no longer carries separate component-local transition rules.
+`ChatBox` and `ChatBoxResponse` both derive those visuals from `useCurrentTurnPresentationState(...)`, which composes the shared loop-state reducer (`useChatLoopUiState`) with one current-turn assistant-reply/surface projection helper. The overlay no longer carries separate component-local transition rules.
 
 Loop watchdog behavior:
 

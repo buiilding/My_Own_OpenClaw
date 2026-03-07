@@ -15,7 +15,8 @@ title: "Chat Interface Header Controls, Model Selection, and Compaction Rehydrat
 - `frontend/src/renderer/features/chat/utils/chatModelOptions.js`
 - `frontend/src/renderer/features/chat/hooks/useChatInterfaceBindings.js`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
-- `frontend/src/renderer/features/chat/utils/message/latestVisibleAssistantReply.js`
+- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader.js`
 - `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`
 - `tests/frontend/ChatInterfaceWiring.test.jsx`
@@ -24,17 +25,13 @@ title: "Chat Interface Header Controls, Model Selection, and Compaction Rehydrat
 
 `ChatInterface` derives loop state via:
 
-- `hasVisibleReply = Boolean(findLatestVisibleAssistantReply(messages, Set(["llm-text", "error"])))`
-- `useChatLoopUiState({ phase: streamPhase, isSending, hasVisibleReply })`
+- `useCurrentTurnPresentationState({ phase: streamPhase, isSending, messages, allowedTypes: VISIBLE_ASSISTANT_REPLY_TYPE_SET })`
 
 Derived flags:
 
 - `composerBusy` drives send/stop lock behavior
 - `canStop = composerBusy`
-- `showAssistantAwaitingDot` requires:
-  - `isAwaitingReply`
-  - existing messages
-  - no visible assistant reply
+- `showAssistantAwaitingDot` comes from the shared current-turn presentation contract
 
 ## Stop Query Contract
 

@@ -37,10 +37,12 @@ import {
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { applyStopQueryUiState } from '../utils/state/stopQueryState';
-import { useChatLoopUiState } from '../hooks/useChatLoopUiState';
+import { useCurrentTurnPresentationState } from '../hooks/useCurrentTurnPresentationState';
 import { useTranscriptSessionInfo } from '../../dashboard/hooks/useTranscriptSessionInfo';
 import { isVmModeEnabled } from '../../../infrastructure/runtime/vmMode';
-import { findLatestVisibleAssistantReply } from '../utils/message/latestVisibleAssistantReply';
+import {
+  VISIBLE_ASSISTANT_REPLY_TYPE_SET,
+} from '../utils/state/chatTurnPresentationState';
 import '../../../styles/ChatInterface.css';
 
 function waitForNextPaint() {
@@ -54,7 +56,6 @@ function waitForNextPaint() {
 }
 
 function ChatInterface({ focusComposerToken = 0 }) {
-  const visibleAssistantReplyTypes = useMemo(() => new Set(['llm-text', 'error']), []);
   const vmModeEnabled = isVmModeEnabled();
 
   const { messages, isSending, thinkingStatus, thinkingSourceEventType, streamPhase } = useChatStore(
@@ -84,25 +85,17 @@ function ChatInterface({ focusComposerToken = 0 }) {
 
   const voiceModeEnabled = config?.voice_mode_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
-  const hasVisibleReply = useMemo(
-    () => Boolean(findLatestVisibleAssistantReply(messages, visibleAssistantReplyTypes)),
-    [messages, visibleAssistantReplyTypes],
-  );
   const {
     isBusy: composerBusy,
-    isAwaitingReply: isAwaitingReply,
     isTransportConnected,
-  } = useChatLoopUiState({
+    showAssistantAwaitingDot,
+  } = useCurrentTurnPresentationState({
     phase: streamPhase,
     isSending,
-    hasVisibleReply,
+    messages,
+    allowedTypes: VISIBLE_ASSISTANT_REPLY_TYPE_SET,
   });
   const canStop = composerBusy;
-  const showAssistantAwaitingDot = (
-    isAwaitingReply
-    && messages.length > 0
-    && !hasVisibleReply
-  );
   const modelMode = config?.model_mode || 'online';
   const configuredProvider = config?.model_provider || '';
   const configuredModelId = config?.selected_model_id || '';

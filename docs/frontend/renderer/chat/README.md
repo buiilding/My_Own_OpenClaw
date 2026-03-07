@@ -43,6 +43,7 @@ title: "Frontend Renderer Chat Docs Hub"
 ## Code Scope
 
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
+- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useStreamMessageUpdaters.ts`
@@ -54,7 +55,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/utils/messageSender/readableFileAttachmentContext.ts`
 - `frontend/src/renderer/features/chat/utils/state/chatLoopUiState.js`
 - `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
-- `frontend/src/renderer/features/chat/utils/state/chatboxSurfaceState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamFormatting.ts`

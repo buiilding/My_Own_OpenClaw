@@ -11,9 +11,9 @@ title: "Fixed Response-Pill Height, Scroll Anchor, and Overlay Visibility Re-Rep
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
-- `frontend/src/renderer/features/chat/utils/message/latestVisibleAssistantReply.js`
+- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`
-- `frontend/src/renderer/features/chat/utils/state/chatboxSurfaceState.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
 - `tests/frontend/ChatBoxResponse.state.test.jsx`
@@ -36,9 +36,9 @@ Contract:
 
 Selection pipeline:
 
-1. `findLatestVisibleAssistantReply(messages, allowedTypes)` picks turn-bounded candidate reply.
+1. `useCurrentTurnPresentationState(...)` picks the turn-bounded candidate reply.
 2. `hasVisibleChatboxResponse(...)` applies dismissal state (`closedResponseId`).
-3. `useChatLoopUiState(...)` + `resolveChatboxSurfaceStateFromLoopUiState(...)` decide:
+3. The same shared current-turn presentation state decides:
   - awaiting indicator visibility
   - response-pill visibility
 
