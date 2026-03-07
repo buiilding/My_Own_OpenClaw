@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for native tool-call bridging in `tool_call_bridge.py`: ParsedResponse conversion, `computer_use` normalization, whitespace-safe tool-call-id handling, history tool-call shaping, and recoverable-error helper contracts."
+summary: "Deep reference for native tool-call bridging in `tool_call_bridge.py`: ParsedResponse conversion, unified computer/system wrapper normalization, whitespace-safe tool-call-id handling, history tool-call shaping, and recoverable-error helper contracts."
 read_when:
-  - When changing `backend/src/agent/execution/tool_call_bridge.py` conversion behavior or metadata extraction.
+  - When changing `backend/src/agent/execution/tool_call_bridge.py` conversion behavior, wrapper normalization, or metadata extraction.
   - When debugging mismatches between provider-native `tool_calls` payloads and downstream parsed/history tool-call shapes.
 title: "Native Tool-Call Bridge and History Mapping Reference"
 ---
@@ -61,7 +61,7 @@ Metadata extraction:
 Deep-copy boundary:
 
 - tool-call `arguments` are deep-copied before normalization/mutation
-- metadata extraction and `computer_use` reshaping never mutate provider payload dictionaries in place
+- metadata extraction and unified-wrapper reshaping never mutate provider payload dictionaries in place
 
 ## Unified `computer_use` Mapping
 
@@ -100,7 +100,16 @@ When normalized name is `system_use`:
   - `get_open_windows`
 - valid mapped name -> replace parsed `tool_name` with normalized concrete name
 - executable parameters become `parameters.arguments` if dict, else `{}`
+- resolved rationale uses wrapper explanation precedence:
+  - first `system_use.explanation` (top-level wrapper field)
+  - fallback to nested `system_use.arguments.explanation` (legacy compatibility)
+  - when resolved, explanation is injected into concrete tool parameters
 - invalid mapped names are left as `system_use` so downstream wrapper validation can return a deterministic tool error message
+
+Native-bridge nuance vs parser-module path:
+
+- parser-module `ToolCallSchema.extract_tool_call(...)` rejects unknown `system_use` subtools (`None`)
+- native bridge keeps `tool_name="system_use"` for unknown subtools to preserve deterministic downstream error surfaces in live native-tool-call flows
 
 ## History Tool-Call Shaping
 
@@ -160,6 +169,8 @@ Extraction helpers:
 - native payload argument deep-copy immutability
 - history argument deep-copy immutability
 - invalid computer-use tool mapping behavior
+- unified `system_use` -> concrete subtool mapping behavior
+- unified `system_use` top-level + nested explanation fallback behavior
 - missing unified `arguments` -> empty parameters
 - top-level metadata promotion boundary (nested `arguments.metadata` remains in parameters; non-dict top-level metadata ignored)
 - whitespace-only tool-call id handling in both `extract_tool_call_ids(...)` and history id fallback

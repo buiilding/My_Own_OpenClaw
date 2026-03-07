@@ -1,8 +1,8 @@
 ---
-summary: "Deep backend reference for ToolRegistry and SchemaRegistry internals: remote tool registration, canonical schema caching rules, capability extraction fallbacks, and backend/frontend exposed-tool parity tests."
+summary: "Deep backend reference for ToolRegistry and SchemaRegistry internals: remote tool registration, canonical schema caching rules, unified computer/system declaration collapse rules, capability extraction fallbacks, and backend/frontend exposed-tool parity tests."
 read_when:
   - When changing backend tool declaration generation, schema cache behavior, or remote-tool registration paths.
-  - When debugging missing/invalid tool schemas, request-id correlation, or sidecar contract drift.
+  - When debugging missing/invalid tool schemas, unified-wrapper declaration drift, request-id correlation, or sidecar contract drift.
 title: "Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference"
 ---
 
@@ -50,6 +50,7 @@ Remote registration behavior:
 
 Current names:
 
+- unified wrappers: `computer_use`, `system_use`
 - computer: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`, `get_open_windows`
 - system: `get_system_stats`, `open_app`, `run_shell_command`, `process`
 - filesystem: `read_file`, `replace`
@@ -76,6 +77,14 @@ Computer-tool normalization behavior:
 - if the request list contains only legacy computer names, filtered declarations still return
   a single unified `computer_use` declaration
 
+System-tool normalization behavior:
+
+- `_normalize_requested_tool_names(...)` rewrites any requested legacy system/filesystem names
+  (`run_shell_command`, `replace`, `read_file`, `get_system_stats`, `get_open_windows`)
+  to unified `system_use` before filtering
+- if the request list contains only those legacy names, filtered declarations still return
+  a single unified `system_use` declaration
+
 Unified declaration collapse behavior:
 
 - `_collapse_unified_computer_use_declarations(...)` runs on both full and filtered declaration paths
@@ -84,6 +93,11 @@ Unified declaration collapse behavior:
   `backend/src/tools/computer/unified_schema.py::get_unified_computer_use_function_declaration()`
 - this means outbound `computer_use` declaration shape is sourced from canonical unified schema,
   not from per-class schema generation in legacy stubs
+- `_collapse_unified_system_use_declarations(...)` applies the same pattern for
+  `run_shell_command|replace|read_file|get_system_stats|get_open_windows`
+- outbound `system_use` declaration shape is sourced from
+  `backend/src/tools/system/unified_schema.py::get_unified_system_use_function_declaration()`
+  and requires top-level `tool` + `explanation` with action-specific `arguments`
 
 Capabilities API:
 
@@ -137,7 +151,10 @@ Test-backed behavior from `test_tool_registry_schema.py`:
 - registrations with same name overwrite previous tool instance
 - `get_tool_names()` returns sorted list
 - filtered declaration requests with legacy computer names normalize to `computer_use`
+- filtered declaration requests with legacy system/filesystem names normalize to `system_use`
 - unified declaration includes required `metadata.description|explanation|expectation` fields
+- unified `system_use` declaration requires top-level `explanation` and constrains `arguments`
+  via action-specific `oneOf` variants
 - capabilities fallback returns `{}` parameters when schema/function payload shape is malformed
 
 ## RemoteToolBase and Request-ID Semantics
