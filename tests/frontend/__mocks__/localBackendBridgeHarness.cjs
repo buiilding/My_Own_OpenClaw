@@ -61,6 +61,7 @@ let processHandlers;
 let pythonProcess;
 let bridge;
 let currentMainWindow;
+let currentWindowState;
 
 function resetHarnessState() {
   jest.resetModules();
@@ -68,6 +69,7 @@ function resetHarnessState() {
   stdoutHandler = null;
   stderrHandler = null;
   processHandlers = {};
+  currentWindowState = null;
 }
 
 function createMainWindow() {
@@ -78,6 +80,18 @@ function createMainWindow() {
     webContents: {
       send: jest.fn(),
     },
+  };
+}
+
+function createWindow(overrides = {}) {
+  return {
+    isDestroyed: jest.fn(() => false),
+    isVisible: jest.fn(() => true),
+    getBounds: jest.fn(() => ({ x: 0, y: 0, width: 1200, height: 800 })),
+    webContents: {
+      send: jest.fn(),
+    },
+    ...overrides,
   };
 }
 
@@ -98,14 +112,21 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
 
   bridge = require(path.join(__dirname, '../../../frontend/src/main/local_backend_bridge.cjs'));
 
-  const mainWindow = createMainWindow();
+  const mainWindow = options.mainWindow || createMainWindow();
+  const chatWindow = options.chatWindow || null;
+  const responseWindow = options.responseWindow || null;
   currentMainWindow = mainWindow;
+  currentWindowState = {
+    mainWindow,
+    chatWindow,
+    responseWindow,
+  };
   electron.BrowserWindow.fromWebContents.mockImplementation(() => currentMainWindow);
-  bridge.initializeLocalBackendBridge(mainWindow, {
+  bridge.initializeLocalBackendBridge(() => currentWindowState, {
     getFrontendConfig: () => options.frontendConfig || null,
     isPackaged: options.isPackaged === true,
   });
-  return { mainWindow, bridge, handlers, spawn };
+  return { mainWindow, chatWindow, responseWindow, bridge, handlers, spawn };
 }
 
 function createMockPythonProcess() {
@@ -153,13 +174,15 @@ function initBridge(options = {}) {
     kill: jest.fn(),
   };
 
-  const { mainWindow } = initializeBridgeHarness((spawnMock) => {
+  const { mainWindow, chatWindow, responseWindow } = initializeBridgeHarness((spawnMock) => {
     spawnMock.mockReturnValue(pythonProcess);
   }, options);
   uuid = require('uuid');
 
   return {
     mainWindow,
+    chatWindow,
+    responseWindow,
     bridge,
     handlers,
     pythonProcess,
@@ -172,7 +195,7 @@ function initBridge(options = {}) {
 }
 
 function initBridgeWithProcesses(processes, options = {}) {
-  const { mainWindow } = initializeBridgeHarness((spawnMock) => {
+  const { mainWindow, chatWindow, responseWindow } = initializeBridgeHarness((spawnMock) => {
     spawnMock.mockReset();
     processes.forEach((proc) => {
       spawnMock.mockImplementationOnce(() => proc);
@@ -181,6 +204,8 @@ function initBridgeWithProcesses(processes, options = {}) {
 
   return {
     mainWindow,
+    chatWindow,
+    responseWindow,
     bridge,
     handlers,
     spawn,
@@ -214,6 +239,7 @@ function getLastWrittenRequest() {
 }
 
 module.exports = {
+  createWindow,
   createMockPythonProcess,
   getLastWrittenRequest,
   initBridge,
