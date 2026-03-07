@@ -113,16 +113,25 @@ export function resetToolRunnerTestState() {
     return removeListener;
   });
   jest.spyOn(IpcBridge, 'send').mockImplementation(() => undefined);
-  jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: any) => {
+  jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: any, data?: any) => {
     if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
       return { success: true, data: { visible: false } };
     }
     if (
       channel === INVOKE_CHANNELS.SHOW_CHATBOX
       || channel === INVOKE_CHANNELS.HIDE_CHATBOX
-      || channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT
     ) {
       return { success: true };
+    }
+    if (channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT) {
+      return {
+        success: true,
+        waitMs: data?.waitMs ?? 0,
+        settleMs: data?.settleMs ?? 120,
+        waitTime: typeof data?.waitMs === 'number' ? data.waitMs / 1000 : 0,
+        hideInvokeTime: 0.001,
+        settleTime: typeof data?.settleMs === 'number' ? data.settleMs / 1000 : 0.12,
+      };
     }
     return {};
   });

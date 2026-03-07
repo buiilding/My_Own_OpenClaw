@@ -32,6 +32,7 @@ export async function prepareScreenshotCaptureVisibility(
   options: {
     captureId?: string | null;
     source?: SurfaceTransitionSource;
+    waitMs?: number;
   } = {},
 ): Promise<CaptureVisibilityPreparation> {
   const context = resolveSurfaceTransitionContext(
@@ -47,16 +48,15 @@ export async function prepareScreenshotCaptureVisibility(
     shouldManageChatPillVisibility
     && !isPendingChatPillRestore()
   );
+  const waitMs = typeof options.waitMs === 'number' ? Math.max(0, options.waitMs) : 0;
 
   if (!shouldManageChatPillVisibility) {
+    const collapseResult = await collapseChatPillForBackgroundCapture({ waitMs });
     return {
       prepared: true,
       captureId,
       restoreChatPillAfterCapture: false,
-      timing: {
-        hideInvokeTime: 0,
-        settleTime: 0,
-      },
+      timing: collapseResult.timing,
     };
   }
 
@@ -75,6 +75,7 @@ export async function prepareScreenshotCaptureVisibility(
       captureId,
       restoreChatPillAfterCapture: shouldRestoreChatPillAfterCapture,
       timing: {
+        waitTime: 0,
         hideInvokeTime: 0,
         settleTime: 0,
       },
@@ -99,6 +100,7 @@ export async function prepareScreenshotCaptureVisibility(
         captureId,
         restoreChatPillAfterCapture: false,
         timing: {
+          waitTime: 0,
           hideInvokeTime: 0,
           settleTime: 0,
         },
@@ -112,7 +114,7 @@ export async function prepareScreenshotCaptureVisibility(
       phaseBefore: SURFACE_PHASE.IDLE,
       phaseAfter: SURFACE_PHASE.PREPARING_CAPTURE_VISIBILITY,
     });
-    const collapseResult = await collapseChatPillForBackgroundCapture();
+    const collapseResult = await collapseChatPillForBackgroundCapture({ waitMs });
     setPendingScreenshotCaptureRestore(true);
     logSurfaceTransition({
       source,
@@ -143,6 +145,7 @@ export async function prepareScreenshotCaptureVisibility(
       captureId,
       restoreChatPillAfterCapture: false,
       timing: {
+        waitTime: 0,
         hideInvokeTime: 0,
         settleTime: 0,
       },

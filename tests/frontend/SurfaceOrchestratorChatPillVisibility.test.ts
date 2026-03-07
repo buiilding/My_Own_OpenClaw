@@ -37,13 +37,14 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
     await expect(collapseChatPillForBackgroundCapture()).resolves.toEqual({
       collapsed: true,
       timing: {
+        waitTime: 0,
         hideInvokeTime: expect.any(Number),
         settleTime: 0.12,
       },
     });
 
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { settleMs: 120 }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
     ]);
   });
 
@@ -64,7 +65,7 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
 
     await expect(collapseChatPillForBackgroundCapture()).rejects.toThrow('hide-failed');
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { settleMs: 120 }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
     ]);
   });
 
@@ -79,6 +80,7 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
     await expect(collapseChatPillForBackgroundCapture()).resolves.toEqual({
       collapsed: false,
       timing: {
+        waitTime: 0,
         hideInvokeTime: 0,
         settleTime: 0,
       },
@@ -88,6 +90,8 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
       restoreInvokeTime: 0,
     });
 
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 0, hideChatbox: false }],
+    ]);
   });
 });

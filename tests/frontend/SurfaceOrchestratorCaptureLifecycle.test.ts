@@ -11,9 +11,16 @@ describe('surfaceOrchestrator capture lifecycle', () => {
   const originalUserAgent = navigator.userAgent;
 
   beforeEach(() => {
-    jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: string) => {
+    jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: string, data?: any) => {
       if (channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT) {
-        return { success: true, settleMs: 120 };
+        return {
+          success: true,
+          waitMs: data?.waitMs ?? 0,
+          settleMs: data?.settleMs ?? 120,
+          waitTime: typeof data?.waitMs === 'number' ? data.waitMs / 1000 : 0,
+          hideInvokeTime: data?.hideChatbox === false ? 0 : 0.001,
+          settleTime: typeof data?.settleMs === 'number' ? data.settleMs / 1000 : 0.12,
+        };
       }
       return { success: true };
     });
@@ -38,15 +45,17 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     expect(first.prepared).toBe(true);
     expect(second.prepared).toBe(true);
     expect(first.timing).toEqual({
+      waitTime: 0,
       hideInvokeTime: expect.any(Number),
       settleTime: expect.any(Number),
     });
     expect(second.timing).toEqual({
+      waitTime: 0,
       hideInvokeTime: 0,
       settleTime: 0,
     });
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { settleMs: 120 }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
     ]);
 
     await restoreScreenshotCaptureVisibility(first);
@@ -54,7 +63,7 @@ describe('surfaceOrchestrator capture lifecycle', () => {
 
     await restoreScreenshotCaptureVisibility(second);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { settleMs: 120 }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });
@@ -72,6 +81,7 @@ describe('surfaceOrchestrator capture lifecycle', () => {
 
     expect(capturePreparation.restoreChatPillAfterCapture).toBe(false);
     expect(capturePreparation.timing).toEqual({
+      waitTime: 0,
       hideInvokeTime: 0,
       settleTime: 0,
     });
@@ -79,14 +89,14 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     await restoreScreenshotCaptureVisibility(capturePreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { settleMs: 120 }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
 
     await restoreToolExecutionSurface(toolPreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { settleMs: 120 }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });
@@ -97,22 +107,23 @@ describe('surfaceOrchestrator capture lifecycle', () => {
 
     expect(capturePreparation.restoreChatPillAfterCapture).toBe(true);
     expect(capturePreparation.timing).toEqual({
+      waitTime: 0,
       hideInvokeTime: expect.any(Number),
       settleTime: expect.any(Number),
     });
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { settleMs: 120 }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
     ]);
 
     await restoreScreenshotCaptureVisibility(capturePreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { settleMs: 120 }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
 
     await restoreToolExecutionSurface(toolPreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { settleMs: 120 }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });
@@ -183,12 +194,15 @@ describe('surfaceOrchestrator capture lifecycle', () => {
       captureId: 'capture-win',
       restoreChatPillAfterCapture: false,
       timing: {
+        waitTime: 0,
         hideInvokeTime: 0,
         settleTime: 0,
       },
     });
 
     await restoreScreenshotCaptureVisibility(preparation);
-    expect(IpcBridge.invoke).not.toHaveBeenCalled();
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 0, hideChatbox: false }],
+    ]);
   });
 });

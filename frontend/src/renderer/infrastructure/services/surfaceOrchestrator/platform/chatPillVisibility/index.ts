@@ -29,8 +29,10 @@ export function shouldManageChatPillVisibilityForBackgroundCapture(): boolean {
   return resolveChatPillVisibilityRuntime().shouldManageChatPillVisibilityForBackgroundCapture();
 }
 
-export async function collapseChatPillForBackgroundCapture(): Promise<ChatPillCollapseResult> {
-  return await resolveChatPillVisibilityRuntime().collapseChatPillForBackgroundCapture();
+export async function collapseChatPillForBackgroundCapture(
+  options: { waitMs?: number } = {},
+): Promise<ChatPillCollapseResult> {
+  return await resolveChatPillVisibilityRuntime().collapseChatPillForBackgroundCapture(options);
 }
 
 export async function restoreChatPillInactive(): Promise<ChatPillRestoreResult> {

@@ -212,7 +212,7 @@ describe('useToolRunner event handling', () => {
     }
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { settleMs: 120 }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });

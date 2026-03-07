@@ -11,28 +11,39 @@ const linuxChatPillVisibilityRuntime = {
     return true;
   },
 
-  async collapseChatPillForBackgroundCapture(): Promise<ChatPillCollapseResult> {
-    // Hide-and-settle now runs in Electron main so the hidden overlay renderer
-    // cannot stretch the delay via background timer throttling.
-    const hideStartTime = performance.now();
+  async collapseChatPillForBackgroundCapture(
+    options: { waitMs?: number } = {},
+  ): Promise<ChatPillCollapseResult> {
+    // Full screenshot prep runs in Electron main so the hidden overlay renderer
+    // cannot stretch either the pre-capture wait or the compositor settle delay.
     const result = await IpcBridge.invoke<{
       success?: boolean;
       reason?: string;
+      waitMs?: number;
       settleMs?: number;
+      waitTime?: number;
+      hideInvokeTime?: number;
+      settleTime?: number;
     }>(INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, {
+      waitMs: typeof options.waitMs === 'number' ? Math.max(0, options.waitMs) : 0,
       settleMs: CHAT_PILL_HIDE_SETTLE_MS,
+      hideChatbox: true,
     });
     if (result?.success !== true) {
       throw new Error(result?.reason || 'prepare-chatbox-for-screenshot failed');
     }
-    const totalPreparationTime = (performance.now() - hideStartTime) / 1000;
-    const settleTime = Math.max(0, (result?.settleMs ?? CHAT_PILL_HIDE_SETTLE_MS) / 1000);
-    const hideInvokeTime = Math.max(0, totalPreparationTime - settleTime);
     return {
       collapsed: true,
       timing: {
-        hideInvokeTime,
-        settleTime,
+        waitTime: typeof result?.waitTime === 'number'
+          ? Math.max(0, result.waitTime)
+          : Math.max(0, (result?.waitMs ?? 0) / 1000),
+        hideInvokeTime: typeof result?.hideInvokeTime === 'number'
+          ? Math.max(0, result.hideInvokeTime)
+          : 0,
+        settleTime: typeof result?.settleTime === 'number'
+          ? Math.max(0, result.settleTime)
+          : Math.max(0, (result?.settleMs ?? CHAT_PILL_HIDE_SETTLE_MS) / 1000),
       },
     };
   },
