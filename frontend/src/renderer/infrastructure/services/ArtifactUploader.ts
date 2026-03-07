@@ -3,6 +3,11 @@ import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 const DEFAULT_BACKEND_HTTP_URL = 'http://127.0.0.1:8765';
 let backendHttpUrl = DEFAULT_BACKEND_HTTP_URL;
 
+const DEBUG_TOOL_SCREENSHOT = (
+  typeof process !== 'undefined'
+  && process?.env?.WINDIE_DEBUG_TOOL_SCREENSHOT === '1'
+);
+
 type ArtifactUploadResult = {
   artifactId: string;
   contentType: string;
@@ -22,6 +27,13 @@ type UploadResponse = {
   };
   error?: string;
 };
+
+function logArtifactDebug(stage: string, payload: Record<string, unknown>): void {
+  if (!DEBUG_TOOL_SCREENSHOT) {
+    return;
+  }
+  console.log('[ToolShotDebug][renderer][artifact]', stage, payload);
+}
 
 function normalizeBackendHttpUrl(url: string | null | undefined): string | null {
   if (!url || typeof url !== 'string') {
@@ -62,10 +74,24 @@ export async function uploadArtifactBase64(
     return null;
   }
 
+  logArtifactDebug('request', {
+    contentType,
+    filename: filename || null,
+    base64Length: typeof base64 === 'string' ? base64.length : 0,
+  });
+
   const response = await IpcBridge.invoke<UploadResponse>(INVOKE_CHANNELS.UPLOAD_ARTIFACT, {
     base64,
     contentType,
     filename,
+  });
+
+  logArtifactDebug('response', {
+    success: response?.success ?? null,
+    hasData: Boolean(response?.data),
+    error: response?.error || null,
+    artifactId: response?.data?.artifact_id || null,
+    url: response?.data?.url || null,
   });
 
   if (!response?.success || !response.data) {
