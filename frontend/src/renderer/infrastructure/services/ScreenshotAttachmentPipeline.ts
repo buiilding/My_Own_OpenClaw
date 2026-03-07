@@ -111,7 +111,7 @@ function resolveScreenshotExplanation(
     : 'Screenshot capture';
 }
 
-export function createEmptyScreenshotAttachment(): ScreenshotAttachment {
+function createEmptyScreenshotAttachment(): ScreenshotAttachment {
   return {
     screenshot: null,
     screenshotRef: null,
@@ -143,7 +143,7 @@ export function createInlineScreenshotAttachment({
   };
 }
 
-export function buildScreenshotArgs(explanation: string): Record<string, unknown> {
+function buildScreenshotArgs(explanation: string): Record<string, unknown> {
   return {
     explanation,
     expectation: 'Current screen state',

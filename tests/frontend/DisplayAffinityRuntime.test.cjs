@@ -3,8 +3,7 @@
 const {
   centerWindowOnDisplayWorkArea,
   getActiveDisplayAffinity,
-  resolveDisplayAffinityForBounds,
-  resolveDisplayAffinityForWindow,
+  resolveDisplayAffinityForWebContents,
   setActiveDisplayAffinity,
   toScreenshotDisplayBounds,
 } = require('../../frontend/src/main/display_affinity_runtime.cjs');
@@ -14,7 +13,7 @@ describe('display_affinity_runtime', () => {
     setActiveDisplayAffinity(null);
   });
 
-  test('resolves display affinity from window bounds and preserves monitor id', () => {
+  test('resolves display affinity from sender webContents bounds and preserves monitor id', () => {
     const screen = {
       getDisplayMatching: jest.fn(() => ({
         id: 42,
@@ -44,17 +43,26 @@ describe('display_affinity_runtime', () => {
       isVisible: jest.fn(() => true),
       getBounds: jest.fn(() => ({ x: 2100, y: 100, width: 800, height: 600 })),
     };
+    const BrowserWindow = {
+      fromWebContents: jest.fn(() => targetWindow),
+    };
+    const webContents = {};
 
-    expect(resolveDisplayAffinityForWindow(screen, targetWindow)).toEqual({
+    expect(resolveDisplayAffinityForWebContents({
+      BrowserWindow,
+      screen,
+      webContents,
+    })).toEqual({
       monitor_id: '42',
       bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
       workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
       desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
     });
+    expect(BrowserWindow.fromWebContents).toHaveBeenCalledWith(webContents);
     expect(screen.getDisplayMatching).toHaveBeenCalledWith({ x: 2100, y: 100, width: 800, height: 600 });
   });
 
-  test('returns null for hidden windows when visible sender is required', () => {
+  test('returns null for hidden sender windows when visible sender is required', () => {
     const screen = {
       getPrimaryDisplay: jest.fn(() => ({
         id: 1,
@@ -67,8 +75,16 @@ describe('display_affinity_runtime', () => {
       isVisible: jest.fn(() => false),
       getBounds: jest.fn(),
     };
+    const BrowserWindow = {
+      fromWebContents: jest.fn(() => targetWindow),
+    };
 
-    expect(resolveDisplayAffinityForWindow(screen, targetWindow, { requireVisible: true })).toBeNull();
+    expect(resolveDisplayAffinityForWebContents({
+      BrowserWindow,
+      screen,
+      webContents: {},
+      requireVisible: true,
+    })).toBeNull();
     expect(targetWindow.getBounds).not.toHaveBeenCalled();
   });
 
@@ -121,7 +137,7 @@ describe('display_affinity_runtime', () => {
     expect(getActiveDisplayAffinity().bounds.x).toBe(3000);
   });
 
-  test('falls back to primary display when no matching display helper exists', () => {
+  test('falls back to primary display when no matching sender display helper exists', () => {
     const screen = {
       getAllDisplays: jest.fn(() => ([
         {
@@ -136,8 +152,19 @@ describe('display_affinity_runtime', () => {
         workArea: { x: 0, y: 0, width: 1600, height: 860 },
       })),
     };
+    const BrowserWindow = {
+      fromWebContents: jest.fn(() => ({
+        isDestroyed: jest.fn(() => false),
+        isVisible: jest.fn(() => true),
+        getBounds: jest.fn(() => ({ x: 10, y: 20, width: 300, height: 400 })),
+      })),
+    };
 
-    expect(resolveDisplayAffinityForBounds(screen, { x: 10, y: 20, width: 300, height: 400 })).toEqual({
+    expect(resolveDisplayAffinityForWebContents({
+      BrowserWindow,
+      screen,
+      webContents: {},
+    })).toEqual({
       monitor_id: '5',
       bounds: { x: 0, y: 0, width: 1600, height: 900 },
       workArea: { x: 0, y: 0, width: 1600, height: 860 },

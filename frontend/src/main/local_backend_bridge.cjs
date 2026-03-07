@@ -1,7 +1,5 @@
 const { spawn } = require('child_process');
 const fs = require('fs');
-const fsPromises = require('fs/promises');
-const path = require('path');
 const { ipcMain, BrowserWindow, screen } = require('electron');
 const { v4: uuidv4 } = require('uuid');
 const { resolveBackendEndpoints } = require('./backend_endpoints.cjs');
@@ -15,6 +13,12 @@ const {
   createWindowResolvers,
   withHiddenWindowForScreenshot,
 } = require('./local_backend_bridge_windows.cjs');
+const {
+  resolveScreenshotToolDisplayBounds,
+} = require('./local_backend_bridge_display_bounds.cjs');
+const {
+  materializeScreenshotAttachment,
+} = require('./local_backend_bridge_screenshot_attachment.cjs');
 const {
   getErrorMessage,
   shouldForwardStderrLine,
@@ -44,153 +48,6 @@ let readinessCheckToken = 0;
 let cachedPythonPath = null;
 const LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES = 128 * 1024;
 const isTestEnv = process.env.NODE_ENV === 'test';
-
-function isRecord(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function isImageContentType(value) {
-  return typeof value === 'string' && value.toLowerCase().startsWith('image/');
-}
-
-function resolveScreenshotContentType(data) {
-  if (!isRecord(data)) {
-    return 'image/jpeg';
-  }
-  if (isImageContentType(data.screenshot_content_type)) {
-    return data.screenshot_content_type.toLowerCase();
-  }
-  if (isImageContentType(data.image_content_type)) {
-    return data.image_content_type.toLowerCase();
-  }
-
-  const format = (
-    typeof data.compression === 'string'
-      ? data.compression
-      : typeof data.format === 'string'
-        ? data.format
-        : ''
-  ).toLowerCase();
-  if (format === 'png') {
-    return 'image/png';
-  }
-  if (format === 'webp') {
-    return 'image/webp';
-  }
-  return 'image/jpeg';
-}
-
-function resolveScreenshotFilename(screenshotPath, contentType) {
-  const basename = path.basename(screenshotPath || '');
-  if (basename && basename.includes('.')) {
-    return basename;
-  }
-  if (contentType === 'image/png') {
-    return 'screenshot.png';
-  }
-  if (contentType === 'image/webp') {
-    return 'screenshot.webp';
-  }
-  return 'screenshot.jpg';
-}
-
-async function uploadScreenshotArtifactFromPath({
-  screenshotPath,
-  backendHttpUrl,
-  contentType,
-}) {
-  const resolvedContentType = isImageContentType(contentType) ? contentType : 'image/jpeg';
-  const fileBuffer = await fsPromises.readFile(screenshotPath);
-  const blob = new Blob([fileBuffer], { type: resolvedContentType });
-  const form = new FormData();
-  form.append('file', blob, resolveScreenshotFilename(screenshotPath, resolvedContentType));
-
-  const response = await fetch(`${backendHttpUrl}/api/artifacts/`, {
-    method: 'POST',
-    body: form,
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Upload failed (${response.status}): ${errorText}`);
-  }
-
-  return response.json();
-}
-
-async function readScreenshotInlinePayload(screenshotPath) {
-  const fileBuffer = await fsPromises.readFile(screenshotPath);
-  return fileBuffer.toString('base64');
-}
-
-async function unlinkQuietly(targetPath) {
-  if (!targetPath) {
-    return;
-  }
-  try {
-    await fsPromises.unlink(targetPath);
-  } catch (error) {
-    if (error && error.code !== 'ENOENT') {
-      console.warn(`[LocalBackend] Failed to delete temporary screenshot ${targetPath}:`, error);
-    }
-  }
-}
-
-async function materializeScreenshotAttachment(result, backendHttpUrl) {
-  if (!result || result.success === false || !isRecord(result.data)) {
-    return result;
-  }
-  const data = result.data;
-  const screenshotPath = typeof data.screenshot_path === 'string'
-    ? data.screenshot_path.trim()
-    : '';
-  if (!screenshotPath) {
-    return result;
-  }
-
-  try {
-    const uploaded = await uploadScreenshotArtifactFromPath({
-      screenshotPath,
-      backendHttpUrl,
-      contentType: resolveScreenshotContentType(data),
-    });
-    const artifactId = (
-      uploaded
-      && typeof uploaded === 'object'
-      && typeof uploaded.artifact_id === 'string'
-      && uploaded.artifact_id.trim()
-    ) ? uploaded.artifact_id.trim() : null;
-    const artifactUrl = (
-      uploaded
-      && typeof uploaded === 'object'
-      && typeof uploaded.url === 'string'
-      && uploaded.url.trim()
-    ) ? uploaded.url.trim() : null;
-
-    if (artifactId) {
-      data.screenshot_ref = artifactId;
-      data.screenshot_url = artifactUrl || `${backendHttpUrl}/api/artifacts/${artifactId}`;
-    } else {
-      data.screenshot = await readScreenshotInlinePayload(screenshotPath);
-    }
-  } catch (error) {
-    console.warn(
-      `[LocalBackend] Failed to upload screenshot artifact from ${screenshotPath}: ${getErrorMessage(error)}`,
-    );
-    try {
-      data.screenshot = await readScreenshotInlinePayload(screenshotPath);
-    } catch (fallbackError) {
-      console.warn(
-        `[LocalBackend] Failed to inline screenshot fallback from ${screenshotPath}: ${getErrorMessage(fallbackError)}`,
-      );
-    }
-  } finally {
-    await unlinkQuietly(screenshotPath);
-    delete data.screenshot_path;
-  }
-
-  return result;
-}
 
 function shouldOffloadJsonParse(line) {
   return Buffer.byteLength(line, 'utf8') >= LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES;
@@ -741,21 +598,20 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   ipcMain.handle('execute-tool', async (event, { toolName, args }) => {
     try {
       const timeoutMs = toolName === 'browser' ? 120000 : 30000;
-      const visibleSenderDisplayAffinity = resolveDisplayAffinityForWebContents({
-        BrowserWindow,
-        screen,
-        webContents: event?.sender || null,
-        requireVisible: true,
-      });
       const normalizedArgs = resolveToolArgs(
         toolName,
         args,
         getFrontendConfig,
         console.warn,
         {
-          displayBounds: toScreenshotDisplayBounds(
-            visibleSenderDisplayAffinity || getActiveDisplayAffinity(),
-          ),
+          displayBounds: resolveScreenshotToolDisplayBounds({
+            BrowserWindow,
+            screen,
+            webContents: event?.sender || null,
+            getActiveDisplayAffinity,
+            resolveDisplayAffinityForWebContents,
+            toScreenshotDisplayBounds,
+          }),
         },
       );
       const runTool = () =>
@@ -772,7 +628,10 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
           resolveResponseWindow,
         })
         : await runTool();
-      result = await materializeScreenshotAttachment(result, backendEndpoints.httpUrl);
+      result = await materializeScreenshotAttachment(result, backendEndpoints.httpUrl, {
+        warn: console.warn,
+        getErrorMessage,
+      });
       
       if (result.success === false) {
         return { success: false, error: result.error };

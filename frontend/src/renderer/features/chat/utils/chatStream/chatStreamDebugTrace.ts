@@ -7,11 +7,11 @@ function getRendererSearch(): string {
   return typeof window.location?.search === 'string' ? window.location.search : '';
 }
 
-export function isRendererStreamTraceEnabled(): boolean {
+function isRendererStreamTraceEnabled(): boolean {
   return getRendererSearch().includes('debug_stream=1');
 }
 
-export function getRendererTraceView(): string {
+function getRendererTraceView(): string {
   if (typeof window === 'undefined') {
     return 'unknown';
   }

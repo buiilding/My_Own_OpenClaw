@@ -41,7 +41,7 @@ export function resolveConversationRefForSend(
   };
 }
 
-export type MainSessionSnapshot = {
+type MainSessionSnapshot = {
   conversationRef: string | null;
   userId: string | null;
 };
