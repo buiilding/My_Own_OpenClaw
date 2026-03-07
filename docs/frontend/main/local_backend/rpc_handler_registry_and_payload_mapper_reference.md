@@ -76,8 +76,8 @@ Tool-arg normalization behavior:
 
 Display-affinity fallback precedence for screenshot `execute-tool` calls:
 
-1. visible sender-window affinity (`resolveDisplayAffinityForWebContents(..., requireVisible:true)`)
-2. active query-origin affinity (`getActiveDisplayAffinity()`) when sender window is hidden/unavailable
+1. resolve affinity through `resolveActiveSurfaceDisplayAffinityForWindows(...)` with sender webContents + `getWindows()` adapter
+2. wrapper precedence: visible sender surface (chat/main) -> visible chat/main surface -> stored active query-origin affinity
 
 Timeout tiers:
 

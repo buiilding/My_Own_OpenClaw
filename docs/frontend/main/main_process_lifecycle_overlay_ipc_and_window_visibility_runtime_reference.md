@@ -81,6 +81,7 @@ Owns only phase-driven overlay shell channels:
   - `hideInvokeTime`
   - `settleTime`
 - fail-closes when hide step fails (`hideResult.success === false`)
+- `show-chatbox` target-display resolution routes through `resolveActiveSurfaceDisplayAffinityForWindows(...)` (sender + `getWindows()` wrapper) before delegating to window-visibility runtime
 
 ### `window_controls_ipc_runtime.cjs`
 
@@ -88,6 +89,7 @@ Owns dashboard/display window control channels:
 
 - `show-main-window`
 - `get-main-window-visibility`
+- `show-main-window` target-display resolution routes through `resolveActiveSurfaceDisplayAffinityForWindows(...)` (sender + `getWindows()` wrapper) before delegating to window-visibility runtime
 - `get-displays`
   - mapped payload shape is `{ id, label, isPrimary, bounds, scaleFactor }` with label format `Display N (WIDTHxHEIGHT)`
   - detailed mapper contract: [Display Query Handler Display Inventory Payload Contract Reference](display_query_handler_display_inventory_payload_contract_reference.md)
