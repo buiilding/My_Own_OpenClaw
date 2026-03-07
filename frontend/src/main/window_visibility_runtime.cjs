@@ -3,6 +3,13 @@ const {
   fitWindowToDisplayWorkArea,
 } = require('./display_affinity_runtime.cjs');
 
+function setWindowOpacityIfSupported(targetWindow, opacity) {
+  if (!targetWindow || typeof targetWindow.setOpacity !== 'function') {
+    return;
+  }
+  targetWindow.setOpacity(opacity);
+}
+
 function resolveShowTargetDisplayAffinity({
   targetDisplayAffinity = null,
   targetWindow = null,
@@ -134,6 +141,7 @@ function hideMainWindow(deps = {}) {
     return { success: false, reason: 'Main window not available' };
   }
   if (mainWindow.isVisible()) {
+    setWindowOpacityIfSupported(mainWindow, 0);
     mainWindow.hide();
   }
   return { success: true };
@@ -173,6 +181,7 @@ function showMainWindow(options = {}, deps = {}) {
       centerWindowOnDisplayWorkArea(mainWindow, resolvedTargetDisplayAffinity);
     }
   }
+  setWindowOpacityIfSupported(mainWindow, 1);
   if (!mainWindow.isVisible()) {
     if (!focus && typeof mainWindow.showInactive === 'function') {
       mainWindow.showInactive();
@@ -199,6 +208,7 @@ module.exports = {
   hideMainWindow,
   hideChatWindow,
   resolveShowTargetDisplayAffinity,
+  setWindowOpacityIfSupported,
   showChatWindow,
   showMainWindow,
 };

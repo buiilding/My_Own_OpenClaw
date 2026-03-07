@@ -1,7 +1,9 @@
 /** @jest-environment node */
 
 const {
+  hideMainWindow,
   resolveShowTargetDisplayAffinity,
+  setWindowOpacityIfSupported,
   showMainWindow,
   showChatWindow,
 } = require('../../frontend/src/main/window_visibility_runtime.cjs');
@@ -17,6 +19,7 @@ function createWindow({
     showInactive: jest.fn(),
     hide: jest.fn(),
     focus: jest.fn(),
+    setOpacity: jest.fn(),
     webContents: {
       send: jest.fn(),
     },
@@ -235,6 +238,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       setBounds: jest.fn(),
       show: jest.fn(),
       focus: jest.fn(),
+      setOpacity: jest.fn(),
     };
     const syncWindowDisplayAffinity = jest.fn();
     const setActiveDisplayAffinity = jest.fn();
@@ -252,6 +256,7 @@ describe('window_visibility_runtime showMainWindow', () => {
     );
 
     expect(result).toEqual({ success: true });
+    expect(mainWindow.setOpacity).toHaveBeenCalledWith(1);
     expect(mainWindow.setBounds).toHaveBeenCalledWith({
       x: 2700,
       y: 350,
@@ -277,6 +282,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       setBounds: jest.fn(),
       show: jest.fn(),
       focus: jest.fn(),
+      setOpacity: jest.fn(),
     };
     const syncWindowDisplayAffinity = jest.fn();
     const setActiveDisplayAffinity = jest.fn();
@@ -297,6 +303,7 @@ describe('window_visibility_runtime showMainWindow', () => {
     );
 
     expect(result).toEqual({ success: true });
+    expect(mainWindow.setOpacity).toHaveBeenCalledWith(1);
     expect(mainWindow.setBounds).toHaveBeenCalledWith({
       x: 2700,
       y: 350,
@@ -323,6 +330,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       focus: jest.fn(),
       isMinimized: jest.fn(() => false),
       maximize: jest.fn(),
+      setOpacity: jest.fn(),
     };
     const syncWindowDisplayAffinity = jest.fn();
     const setActiveDisplayAffinity = jest.fn();
@@ -341,6 +349,7 @@ describe('window_visibility_runtime showMainWindow', () => {
     );
 
     expect(result).toEqual({ success: true });
+    expect(mainWindow.setOpacity).toHaveBeenCalledWith(1);
     expect(mainWindow.setBounds).toHaveBeenCalledWith({
       x: 1920,
       y: 0,
@@ -368,6 +377,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       setBounds: jest.fn(),
       show: jest.fn(),
       focus: jest.fn(),
+      setOpacity: jest.fn(),
     };
     const syncWindowDisplayAffinity = jest.fn();
     const setActiveDisplayAffinity = jest.fn();
@@ -385,6 +395,7 @@ describe('window_visibility_runtime showMainWindow', () => {
     );
 
     expect(mainWindow.unmaximize).toHaveBeenCalledTimes(1);
+    expect(mainWindow.setOpacity).toHaveBeenCalledWith(1);
     expect(setActiveDisplayAffinity).toHaveBeenCalledWith({
       monitor_id: '2',
       bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
@@ -393,5 +404,34 @@ describe('window_visibility_runtime showMainWindow', () => {
     expect(mainWindow.show).not.toHaveBeenCalled();
     expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
     expect(mainWindow.focus).not.toHaveBeenCalled();
+  });
+});
+
+describe('window_visibility_runtime hideMainWindow', () => {
+  test('forces transparency before hiding a visible main window', () => {
+    const mainWindow = createWindow({ visible: true });
+
+    const result = hideMainWindow({ mainWindow });
+
+    expect(result).toEqual({ success: true });
+    expect(mainWindow.setOpacity).toHaveBeenCalledWith(0);
+    expect(mainWindow.hide).toHaveBeenCalledTimes(1);
+  });
+
+  test('does not throw when opacity control is unavailable', () => {
+    const mainWindow = createWindow({ visible: true });
+    delete mainWindow.setOpacity;
+
+    const result = hideMainWindow({ mainWindow });
+
+    expect(result).toEqual({ success: true });
+    expect(mainWindow.hide).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('window_visibility_runtime setWindowOpacityIfSupported', () => {
+  test('noops for missing windows and missing opacity support', () => {
+    expect(() => setWindowOpacityIfSupported(null, 0)).not.toThrow();
+    expect(() => setWindowOpacityIfSupported({}, 0)).not.toThrow();
   });
 });
