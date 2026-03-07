@@ -50,6 +50,9 @@ export function resolveChatLoopUiState({
     phase === RESPONSE_OVERLAY_PHASE.COMPLETE
     || phase === RESPONSE_OVERLAY_PHASE.ERROR
   ) {
+    if (isSending && !hasVisibleReply) {
+      return CHAT_LOOP_STATE_TRANSITIONS[CHAT_LOOP_UI_STATE.IDLE][CHAT_LOOP_INTENT.AWAITING_REPLY];
+    }
     return CHAT_LOOP_STATE_TRANSITIONS[CHAT_LOOP_UI_STATE.IDLE][CHAT_LOOP_INTENT.IDLE];
   }
 

@@ -50,11 +50,22 @@ describe('chatLoopUiState', () => {
     expect(isChatLoopBusy(loopUiState)).toBe(false);
   });
 
-  test('treats complete phase as terminal even when send latch is stale', () => {
+  test('keeps terminal complete phase in awaiting state when a new send is already staged', () => {
     const loopUiState = resolveChatLoopUiState({
       phase: 'complete',
       isSending: true,
       hasVisibleReply: false,
+    });
+
+    expect(loopUiState).toBe('awaiting-reply');
+    expect(isChatLoopBusy(loopUiState)).toBe(true);
+  });
+
+  test('keeps terminal complete phase idle when stale send latch still has a visible reply', () => {
+    const loopUiState = resolveChatLoopUiState({
+      phase: 'complete',
+      isSending: true,
+      hasVisibleReply: true,
     });
 
     expect(loopUiState).toBe('idle');
