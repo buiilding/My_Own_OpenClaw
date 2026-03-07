@@ -42,6 +42,7 @@ title: "Frontend Renderer Docs Hub"
 - [Usage Section Placeholder Panel and Modal Contract Reference](dashboard/sections/usage_section_placeholder_panel_and_modal_contract_reference.md)
 - [Chat Stream and Tool Execution Reference](chat_stream_and_tool_execution_reference.md)
 - [Message Send Surface Policy and Screenshot Capture Reference](chat/message_send_surface_policy_and_screenshot_capture_reference.md)
+- [Chat Interface Header Controls, Model Selection, and Compaction Rehydrate Reference](chat/chat_interface_header_controls_model_selection_and_compaction_rehydrate_reference.md)
 - [Chat Store State and New Session Rotation Reference](chat/chat_store_state_and_new_session_rotation_reference.md)
 - [Renderer Chat Stream Docs Hub](chat/stream/README.md)
 - [Conversation Gate and Active-Turn Filtering Reference](chat/stream/conversation_gate_and_active_turn_filtering_reference.md)
