@@ -8,7 +8,9 @@ function showChatWindow(options = {}, deps = {}) {
     chatWindow,
     mainWindow,
     responseWindow,
+    positionChatWindow = () => {},
     syncWindowDisplayAffinity = () => {},
+    setActiveDisplayAffinity = () => {},
     responseOverlayVisible,
     isResponseOverlayStreamingPhase = () => false,
     setResponseOverlayVisible = () => {},
@@ -30,6 +32,10 @@ function showChatWindow(options = {}, deps = {}) {
   if (!chatWindow || chatWindow.isDestroyed()) {
     return { success: false, reason: 'Chat window not available' };
   }
+  const targetDisplayAffinity = (
+    options?.targetDisplayAffinity
+    && typeof options.targetDisplayAffinity === 'object'
+  ) ? options.targetDisplayAffinity : null;
   // Capture external focus target even for non-focusing chatbox transitions.
   // Interactive tool-surface prep calls show-chatbox with focus=false and relies
   // on this snapshot for subsequent focus restoration/verification.
@@ -38,6 +44,10 @@ function showChatWindow(options = {}, deps = {}) {
   }
   if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
     mainWindow.hide();
+  }
+  if (targetDisplayAffinity) {
+    setActiveDisplayAffinity(targetDisplayAffinity);
+    positionChatWindow();
   }
   if (!chatWindow.isVisible()) {
     if (!focus && typeof chatWindow.showInactive === 'function') {

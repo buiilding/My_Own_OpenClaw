@@ -65,20 +65,31 @@ describe('overlay_visibility_handler', () => {
 
   test('show-chatbox defaults focus to true', () => {
     const showChatWindow = jest.fn().mockReturnValue({ success: true, visible: true });
+    const resolveTargetDisplayAffinity = jest.fn().mockReturnValue(null);
 
-    const result = handleShowChatbox(undefined, { showChatWindow });
+    const result = handleShowChatbox(undefined, { showChatWindow, resolveTargetDisplayAffinity });
 
     expect(result).toEqual({ success: true, visible: true });
-    expect(showChatWindow).toHaveBeenCalledWith({ focus: true });
+    expect(showChatWindow).toHaveBeenCalledWith({ focus: true, targetDisplayAffinity: null });
   });
 
   test('show-chatbox passes explicit focus false', () => {
     const showChatWindow = jest.fn().mockReturnValue({ success: true, visible: true });
+    const resolveTargetDisplayAffinity = jest.fn().mockReturnValue({
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+    });
 
-    const result = handleShowChatbox({ focus: false }, { showChatWindow });
+    const result = handleShowChatbox({ focus: false }, { showChatWindow, resolveTargetDisplayAffinity });
 
     expect(result).toEqual({ success: true, visible: true });
-    expect(showChatWindow).toHaveBeenCalledWith({ focus: false });
+    expect(showChatWindow).toHaveBeenCalledWith({
+      focus: false,
+      targetDisplayAffinity: {
+        monitor_id: '2',
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      },
+    });
   });
 
   test('hide-chatbox delegates return value', () => {

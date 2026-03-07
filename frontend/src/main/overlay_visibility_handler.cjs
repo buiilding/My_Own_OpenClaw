@@ -19,9 +19,15 @@ function handleShowChatbox(
   options = {},
   deps = {},
 ) {
-  const { showChatWindow } = deps;
+  const {
+    showChatWindow,
+    resolveTargetDisplayAffinity = () => null,
+  } = deps;
   const focus = options?.focus !== false;
-  return showChatWindow({ focus });
+  return showChatWindow({
+    focus,
+    targetDisplayAffinity: resolveTargetDisplayAffinity(options),
+  });
 }
 
 function handleHideChatbox(deps = {}) {
