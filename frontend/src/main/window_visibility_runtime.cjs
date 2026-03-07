@@ -128,6 +128,17 @@ function hideChatWindow(deps = {}) {
   return { success: true };
 }
 
+function hideMainWindow(deps = {}) {
+  const { mainWindow } = deps;
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return { success: false, reason: 'Main window not available' };
+  }
+  if (mainWindow.isVisible()) {
+    mainWindow.hide();
+  }
+  return { success: true };
+}
+
 function showMainWindow(options = {}, deps = {}) {
   const {
     mainWindow,
@@ -163,7 +174,11 @@ function showMainWindow(options = {}, deps = {}) {
     }
   }
   if (!mainWindow.isVisible()) {
-    mainWindow.show();
+    if (!focus && typeof mainWindow.showInactive === 'function') {
+      mainWindow.showInactive();
+    } else {
+      mainWindow.show();
+    }
   }
   syncWindowDisplayAffinity(mainWindow);
   if (maximize && !resolvedTargetDisplayAffinity) {
@@ -181,6 +196,7 @@ function showMainWindow(options = {}, deps = {}) {
 }
 
 module.exports = {
+  hideMainWindow,
   hideChatWindow,
   resolveShowTargetDisplayAffinity,
   showChatWindow,

@@ -13,6 +13,7 @@ export const SURFACE_PHASE = Object.freeze({
 export type SurfacePhase = (typeof SURFACE_PHASE)[keyof typeof SURFACE_PHASE];
 
 export type SurfaceTransitionSource = 'tool-runner' | 'system-capture';
+export type HiddenSurface = 'none' | 'chatbox' | 'main-window';
 
 export type ToolSurfacePreparation = {
   canExecute: boolean;
@@ -20,29 +21,33 @@ export type ToolSurfacePreparation = {
   surfaceToken: number | null;
   mode: SurfaceMode;
   correlationId: string;
+  hiddenSurface?: HiddenSurface;
 };
 
-export type ChatPillCollapseTiming = {
+export type SurfaceCollapseTiming = {
   waitTime: number;
   hideInvokeTime: number;
   settleTime: number;
 };
 
-export type ChatPillCollapseResult = {
+export type SurfaceCollapseResult = {
   collapsed: boolean;
-  timing: ChatPillCollapseTiming;
+  hiddenSurface: HiddenSurface;
+  timing: SurfaceCollapseTiming;
 };
 
-export type ChatPillRestoreResult = {
+export type SurfaceRestoreResult = {
   restored: boolean;
+  restoredSurface: HiddenSurface;
   restoreInvokeTime: number;
 };
 
 export type CaptureVisibilityPreparation = {
   prepared: boolean;
   captureId: string;
-  restoreChatPillAfterCapture?: boolean;
-  timing?: ChatPillCollapseTiming;
+  restoreSurfaceAfterCapture?: boolean;
+  hiddenSurface?: HiddenSurface;
+  timing?: SurfaceCollapseTiming;
 };
 
 export const OVERLAY_SURFACE_PREPARE_EXCEPTION = 'overlay_surface_prepare_exception';

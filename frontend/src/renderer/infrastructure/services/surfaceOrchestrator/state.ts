@@ -1,7 +1,9 @@
+import type { HiddenSurface } from './types';
+
 type SurfaceOrchestratorState = {
   nextSurfaceToken: number;
   activeSurfaceTokens: Set<number>;
-  pendingChatPillRestore: boolean;
+  pendingHiddenSurfaceRestore: HiddenSurface | null;
   activeScreenshotCaptureCount: number;
   pendingScreenshotCaptureRestore: boolean;
   transitionLogSequence: number;
@@ -11,7 +13,7 @@ type SurfaceOrchestratorState = {
 const state: SurfaceOrchestratorState = {
   nextSurfaceToken: 1,
   activeSurfaceTokens: new Set<number>(),
-  pendingChatPillRestore: false,
+  pendingHiddenSurfaceRestore: null,
   activeScreenshotCaptureCount: 0,
   pendingScreenshotCaptureRestore: false,
   transitionLogSequence: 0,
@@ -54,12 +56,18 @@ export function releaseSurfaceToken(surfaceToken: number | null): boolean {
   return state.activeSurfaceTokens.size === 0;
 }
 
-export function setPendingChatPillRestore(pending: boolean): void {
-  state.pendingChatPillRestore = pending;
+export function setPendingHiddenSurfaceRestore(hiddenSurface: HiddenSurface | null): void {
+  state.pendingHiddenSurfaceRestore = hiddenSurface && hiddenSurface !== 'none'
+    ? hiddenSurface
+    : null;
 }
 
-export function isPendingChatPillRestore(): boolean {
-  return state.pendingChatPillRestore;
+export function getPendingHiddenSurfaceRestore(): HiddenSurface | null {
+  return state.pendingHiddenSurfaceRestore;
+}
+
+export function isPendingHiddenSurfaceRestore(): boolean {
+  return state.pendingHiddenSurfaceRestore !== null;
 }
 
 export function incrementActiveScreenshotCaptureCount(): number {

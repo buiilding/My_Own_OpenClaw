@@ -151,7 +151,7 @@ describe('useToolRunner event handling', () => {
     );
   });
 
-  test('keeps chat pill visible for switch_tab tool-call when dashboard is closed', async () => {
+  test('hides and restores the active surface for switch_tab tool-call when dashboard is closed', async () => {
     renderToolRunner(true);
 
     await emitBackendEventAsync({
@@ -170,9 +170,10 @@ describe('useToolRunner event handling', () => {
       { correlationId: 'req-switch-tab', skipAutoCapture: false },
     );
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
-    expect(invokeCalls).toContainEqual([INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY]);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.SHOW_CHATBOX)).toBe(false);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT)).toBe(false);
+    expect(invokeCalls).toEqual([
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+    ]);
     expect(invokeCalls.some(([channel]: unknown[]) => channel === 'prepare-overlay-tool-focus')).toBe(false);
   });
 
@@ -180,6 +181,17 @@ describe('useToolRunner event handling', () => {
     (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
       if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
         return { success: true, data: { visible: true } };
+      }
+      if (channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT) {
+        return {
+          success: true,
+          waitMs: 0,
+          settleMs: 120,
+          waitTime: 0,
+          hideInvokeTime: 0.001,
+          settleTime: 0.12,
+          hiddenSurface: 'main-window',
+        };
       }
       return { success: true };
     });
@@ -211,9 +223,8 @@ describe('useToolRunner event handling', () => {
       throw new Error(`unexpected skipAutoCapture: ${String(firstExecuteCall[2]?.skipAutoCapture)}`);
     }
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
-      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { focus: false }],
     ]);
   });
 
@@ -298,7 +309,7 @@ describe('useToolRunner event handling', () => {
     );
   });
 
-  test('keeps chat pill visible for screenshot bundles when dashboard is closed', async () => {
+  test('hides and restores the active surface for screenshot bundles when dashboard is closed', async () => {
     renderToolRunner(true);
 
     await emitBackendEventAsync({
@@ -313,9 +324,10 @@ describe('useToolRunner event handling', () => {
     });
 
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
-    expect(invokeCalls).toContainEqual([INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY]);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.SHOW_CHATBOX)).toBe(false);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT)).toBe(false);
+    expect(invokeCalls).toEqual([
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+    ]);
     expect(mockExecuteToolBundle).toHaveBeenCalledWith(
       [
         { toolName: 'read_file', args: { file_path: '/tmp/a' } },
@@ -323,10 +335,9 @@ describe('useToolRunner event handling', () => {
       ],
       'bundle-computer-tool',
     );
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.SHOW_CHATBOX)).toBe(false);
   });
 
-  test('keeps chat pill visible for switch_tab-only bundles without focus verification', async () => {
+  test('hides and restores the active surface for switch_tab-only bundles without focus verification', async () => {
     renderToolRunner(true);
 
     await emitBackendEventAsync({
@@ -346,9 +357,10 @@ describe('useToolRunner event handling', () => {
       'bundle-switch-tab',
     );
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
-    expect(invokeCalls).toContainEqual([INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY]);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.SHOW_CHATBOX)).toBe(false);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT)).toBe(false);
+    expect(invokeCalls).toEqual([
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+    ]);
     expect(invokeCalls.some(([channel]: unknown[]) => channel === 'prepare-overlay-tool-focus')).toBe(false);
   });
 
@@ -395,7 +407,7 @@ describe('useToolRunner event handling', () => {
     );
   });
 
-  test('dispatches tool-call with empty args object', async () => {
+  test('dispatches screenshot tool-call with active-surface capture prep', async () => {
     renderToolRunner(true);
 
     await emitBackendEventAsync({
@@ -413,10 +425,10 @@ describe('useToolRunner event handling', () => {
       { correlationId: 'event-empty-args', skipAutoCapture: false },
     );
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
-    expect(invokeCalls).toContainEqual([INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY]);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.SHOW_CHATBOX)).toBe(false);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT)).toBe(false);
-    expect(invokeCalls.findIndex(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT)).toBe(-1);
+    expect(invokeCalls).toEqual([
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+    ]);
   });
 
   test('keeps interactive tool-call executable without focus verification IPC', async () => {

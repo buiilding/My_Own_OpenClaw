@@ -35,12 +35,58 @@ function handleHideChatbox(deps = {}) {
   return hideChatWindow();
 }
 
+function isUsableWindow(targetWindow) {
+  return Boolean(
+    targetWindow
+    && typeof targetWindow === 'object'
+    && !(typeof targetWindow.isDestroyed === 'function' && targetWindow.isDestroyed())
+  );
+}
+
+function isVisibleWindow(targetWindow) {
+  return Boolean(
+    isUsableWindow(targetWindow)
+    && typeof targetWindow.isVisible === 'function'
+    && targetWindow.isVisible()
+  );
+}
+
+function windowOwnsWebContents(targetWindow, webContents) {
+  return Boolean(
+    isUsableWindow(targetWindow)
+    && webContents
+    && targetWindow.webContents === webContents
+  );
+}
+
+function resolveHiddenSurfaceForScreenshot(event = {}, deps = {}) {
+  const { getWindows = () => ({}) } = deps;
+  const { mainWindow, chatWindow } = getWindows();
+  const senderWebContents = event?.sender || null;
+
+  if (windowOwnsWebContents(mainWindow, senderWebContents) && isVisibleWindow(mainWindow)) {
+    return 'main-window';
+  }
+  if (windowOwnsWebContents(chatWindow, senderWebContents) && isVisibleWindow(chatWindow)) {
+    return 'chatbox';
+  }
+  if (isVisibleWindow(mainWindow)) {
+    return 'main-window';
+  }
+  if (isVisibleWindow(chatWindow)) {
+    return 'chatbox';
+  }
+  return 'none';
+}
+
 async function handlePrepareChatboxForScreenshot(
+  event = null,
   options = {},
   deps = {},
 ) {
   const {
     hideChatWindow,
+    hideMainWindow,
     waitInMain = (waitMs) => new Promise((resolve) => setTimeout(resolve, waitMs)),
   } = deps;
   const waitMs = (
@@ -53,7 +99,10 @@ async function handlePrepareChatboxForScreenshot(
       ? Math.max(0, options.settleMs)
       : 120
   );
-  const hideChatbox = options?.hideChatbox !== false;
+  const hideSurface = options?.hideSurface !== false;
+  const hiddenSurface = hideSurface
+    ? resolveHiddenSurfaceForScreenshot(event, deps)
+    : 'none';
 
   const waitStartTime = performance.now();
   await waitInMain(waitMs);
@@ -61,23 +110,29 @@ async function handlePrepareChatboxForScreenshot(
 
   let hideResult = { success: true };
   let hideInvokeTime = 0;
-  if (hideChatbox) {
+  if (hiddenSurface !== 'none') {
     const hideStartTime = performance.now();
-    hideResult = hideChatWindow();
+    hideResult = hiddenSurface === 'main-window'
+      ? hideMainWindow()
+      : hideChatWindow();
     hideInvokeTime = (performance.now() - hideStartTime) / 1000;
     if (!hideResult?.success) {
       return hideResult;
     }
   }
 
-  const settleStartTime = performance.now();
-  await waitInMain(settleMs);
-  const settleTime = (performance.now() - settleStartTime) / 1000;
+  let settleTime = 0;
+  if (hiddenSurface !== 'none') {
+    const settleStartTime = performance.now();
+    await waitInMain(settleMs);
+    settleTime = (performance.now() - settleStartTime) / 1000;
+  }
   return {
     ...hideResult,
     waitMs,
     settleMs,
-    hideChatbox,
+    hideSurface,
+    hiddenSurface,
     waitTime,
     hideInvokeTime,
     settleTime,
@@ -87,6 +142,7 @@ async function handlePrepareChatboxForScreenshot(
 module.exports = {
   handleHideChatbox,
   handlePrepareChatboxForScreenshot,
+  resolveHiddenSurfaceForScreenshot,
   handleShowChatbox,
   handleShowMainWindow,
 };

@@ -18,8 +18,9 @@ describe('surfaceOrchestrator capture lifecycle', () => {
           waitMs: data?.waitMs ?? 0,
           settleMs: data?.settleMs ?? 120,
           waitTime: typeof data?.waitMs === 'number' ? data.waitMs / 1000 : 0,
-          hideInvokeTime: data?.hideChatbox === false ? 0 : 0.001,
+          hideInvokeTime: data?.hideSurface === false ? 0 : 0.001,
           settleTime: typeof data?.settleMs === 'number' ? data.settleMs / 1000 : 0.12,
+          hiddenSurface: 'chatbox',
         };
       }
       return { success: true };
@@ -55,7 +56,7 @@ describe('surfaceOrchestrator capture lifecycle', () => {
       settleTime: 0,
     });
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
     ]);
 
     await restoreScreenshotCaptureVisibility(first);
@@ -63,7 +64,7 @@ describe('surfaceOrchestrator capture lifecycle', () => {
 
     await restoreScreenshotCaptureVisibility(second);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });
@@ -73,13 +74,24 @@ describe('surfaceOrchestrator capture lifecycle', () => {
       if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
         return { success: true, data: { visible: true } };
       }
+      if (channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT) {
+        return {
+          success: true,
+          waitMs: 0,
+          settleMs: 120,
+          waitTime: 0,
+          hideInvokeTime: 0.001,
+          settleTime: 0.12,
+          hiddenSurface: 'main-window',
+        };
+      }
       return { success: true };
     });
 
     const toolPreparation = await prepareToolExecutionSurface('screenshot');
     const capturePreparation = await prepareScreenshotCaptureVisibility({ captureId: 'capture-nested' });
 
-    expect(capturePreparation.restoreChatPillAfterCapture).toBe(false);
+    expect(capturePreparation.restoreSurfaceAfterCapture).toBe(false);
     expect(capturePreparation.timing).toEqual({
       waitTime: 0,
       hideInvokeTime: 0,
@@ -88,16 +100,14 @@ describe('surfaceOrchestrator capture lifecycle', () => {
 
     await restoreScreenshotCaptureVisibility(capturePreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
-      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { focus: false }],
     ]);
 
     await restoreToolExecutionSurface(toolPreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
-      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { focus: false }],
     ]);
   });
 
@@ -105,25 +115,25 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     const toolPreparation = await prepareToolExecutionSurface('interactive');
     const capturePreparation = await prepareScreenshotCaptureVisibility({ captureId: 'capture-interactive-nested' });
 
-    expect(capturePreparation.restoreChatPillAfterCapture).toBe(true);
+    expect(capturePreparation.restoreSurfaceAfterCapture).toBe(true);
     expect(capturePreparation.timing).toEqual({
       waitTime: 0,
       hideInvokeTime: expect.any(Number),
       settleTime: expect.any(Number),
     });
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
     ]);
 
     await restoreScreenshotCaptureVisibility(capturePreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
 
     await restoreToolExecutionSurface(toolPreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });
@@ -192,17 +202,19 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     expect(preparation).toEqual({
       prepared: true,
       captureId: 'capture-win',
-      restoreChatPillAfterCapture: false,
+      restoreSurfaceAfterCapture: true,
+      hiddenSurface: 'chatbox',
       timing: {
         waitTime: 0,
-        hideInvokeTime: 0,
+        hideInvokeTime: 0.001,
         settleTime: 0,
       },
     });
 
     await restoreScreenshotCaptureVisibility(preparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 0, hideChatbox: false }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 0, hideSurface: true }],
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });
 });

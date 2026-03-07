@@ -3,7 +3,6 @@ import {
   resolveSurfaceTransitionContext,
 } from './context';
 import { buildToolSurfacePreparation } from './preparation';
-import { isMainWindowVisible } from './windowVisibility';
 import {
   SURFACE_REASON_NO_TRANSITION_NEEDED,
   SURFACE_REASON_RESTORE_CHATBOX_FAILED,
@@ -16,11 +15,12 @@ import {
 } from './chatPillVisibility';
 import { resolveToolSurfaceMode } from './mode';
 import {
+  getPendingHiddenSurfaceRestore,
   hasActiveSurfaceTokens,
-  isPendingChatPillRestore,
   registerSurfaceToken,
   releaseSurfaceToken,
-  setPendingChatPillRestore,
+  isPendingHiddenSurfaceRestore,
+  setPendingHiddenSurfaceRestore,
 } from './state';
 import {
   OVERLAY_SURFACE_PREPARE_EXCEPTION,
@@ -66,7 +66,6 @@ export async function prepareToolExecutionSurface(
     mode === 'screenshot'
     && shouldManageChatPillVisibility
     && !hasActiveSurfaceTokens()
-    && await isMainWindowVisible()
   );
 
   try {
@@ -78,8 +77,8 @@ export async function prepareToolExecutionSurface(
         phaseBefore: SURFACE_PHASE.IDLE,
         phaseAfter: SURFACE_PHASE.PREPARING_CAPTURE_VISIBILITY,
       });
-      await collapseChatPillForBackgroundCapture();
-      setPendingChatPillRestore(true);
+      const collapseResult = await collapseChatPillForBackgroundCapture();
+      setPendingHiddenSurfaceRestore(collapseResult.hiddenSurface);
       logSurfaceTransition({
         source,
         correlationId,
@@ -110,6 +109,7 @@ export async function prepareToolExecutionSurface(
         canExecute: true,
         failureReason: null,
         surfaceToken,
+        hiddenSurface: getPendingHiddenSurfaceRestore() ?? 'none',
       });
     }
 
@@ -117,6 +117,7 @@ export async function prepareToolExecutionSurface(
       canExecute: true,
       failureReason: null,
       surfaceToken,
+      hiddenSurface: getPendingHiddenSurfaceRestore() ?? 'none',
     });
   } catch (error) {
     console.warn('[SurfaceOrchestrator] Failed to prepare tool execution surface:', error);
@@ -161,7 +162,7 @@ export async function restoreToolExecutionSurface(
   });
 
   const shouldRestoreChatPill = releaseSurfaceToken(preparation.surfaceToken);
-  if (!shouldRestoreChatPill || !isPendingChatPillRestore()) {
+  if (!shouldRestoreChatPill || !isPendingHiddenSurfaceRestore()) {
     logSurfaceTransition({
       source,
       correlationId,
@@ -174,8 +175,8 @@ export async function restoreToolExecutionSurface(
   }
 
   try {
-    await restoreChatPillInactive();
-    setPendingChatPillRestore(false);
+    await restoreChatPillInactive(getPendingHiddenSurfaceRestore() ?? preparation.hiddenSurface ?? 'none');
+    setPendingHiddenSurfaceRestore(null);
     logSurfaceTransition({
       source,
       correlationId,
