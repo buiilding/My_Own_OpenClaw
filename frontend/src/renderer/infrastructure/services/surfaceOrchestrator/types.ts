@@ -22,10 +22,26 @@ export type ToolSurfacePreparation = {
   correlationId: string;
 };
 
+export type ChatPillCollapseTiming = {
+  hideInvokeTime: number;
+  settleTime: number;
+};
+
+export type ChatPillCollapseResult = {
+  collapsed: boolean;
+  timing: ChatPillCollapseTiming;
+};
+
+export type ChatPillRestoreResult = {
+  restored: boolean;
+  restoreInvokeTime: number;
+};
+
 export type CaptureVisibilityPreparation = {
   prepared: boolean;
   captureId: string;
   restoreChatPillAfterCapture?: boolean;
+  timing?: ChatPillCollapseTiming;
 };
 
 export const OVERLAY_SURFACE_PREPARE_EXCEPTION = 'overlay_surface_prepare_exception';

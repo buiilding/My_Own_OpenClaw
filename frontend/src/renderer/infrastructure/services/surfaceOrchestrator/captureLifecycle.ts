@@ -53,6 +53,10 @@ export async function prepareScreenshotCaptureVisibility(
       prepared: true,
       captureId,
       restoreChatPillAfterCapture: false,
+      timing: {
+        hideInvokeTime: 0,
+        settleTime: 0,
+      },
     };
   }
 
@@ -70,6 +74,10 @@ export async function prepareScreenshotCaptureVisibility(
       prepared: true,
       captureId,
       restoreChatPillAfterCapture: shouldRestoreChatPillAfterCapture,
+      timing: {
+        hideInvokeTime: 0,
+        settleTime: 0,
+      },
     };
   }
 
@@ -90,6 +98,10 @@ export async function prepareScreenshotCaptureVisibility(
         prepared: true,
         captureId,
         restoreChatPillAfterCapture: false,
+        timing: {
+          hideInvokeTime: 0,
+          settleTime: 0,
+        },
       };
     }
 
@@ -100,7 +112,7 @@ export async function prepareScreenshotCaptureVisibility(
       phaseBefore: SURFACE_PHASE.IDLE,
       phaseAfter: SURFACE_PHASE.PREPARING_CAPTURE_VISIBILITY,
     });
-    await collapseChatPillForBackgroundCapture();
+    const collapseResult = await collapseChatPillForBackgroundCapture();
     setPendingScreenshotCaptureRestore(true);
     logSurfaceTransition({
       source,
@@ -113,6 +125,7 @@ export async function prepareScreenshotCaptureVisibility(
       prepared: true,
       captureId,
       restoreChatPillAfterCapture: true,
+      timing: collapseResult.timing,
     };
   } catch (error) {
     decrementActiveScreenshotCaptureCount();
@@ -129,6 +142,10 @@ export async function prepareScreenshotCaptureVisibility(
       prepared: false,
       captureId,
       restoreChatPillAfterCapture: false,
+      timing: {
+        hideInvokeTime: 0,
+        settleTime: 0,
+      },
     };
   }
 }

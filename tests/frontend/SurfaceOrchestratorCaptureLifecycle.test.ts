@@ -32,6 +32,14 @@ describe('surfaceOrchestrator capture lifecycle', () => {
 
     expect(first.prepared).toBe(true);
     expect(second.prepared).toBe(true);
+    expect(first.timing).toEqual({
+      hideInvokeTime: expect.any(Number),
+      settleTime: expect.any(Number),
+    });
+    expect(second.timing).toEqual({
+      hideInvokeTime: 0,
+      settleTime: 0,
+    });
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.HIDE_CHATBOX],
     ]);
@@ -58,6 +66,10 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     const capturePreparation = await prepareScreenshotCaptureVisibility({ captureId: 'capture-nested' });
 
     expect(capturePreparation.restoreChatPillAfterCapture).toBe(false);
+    expect(capturePreparation.timing).toEqual({
+      hideInvokeTime: 0,
+      settleTime: 0,
+    });
 
     await restoreScreenshotCaptureVisibility(capturePreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
@@ -79,6 +91,10 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     const capturePreparation = await prepareScreenshotCaptureVisibility({ captureId: 'capture-interactive-nested' });
 
     expect(capturePreparation.restoreChatPillAfterCapture).toBe(true);
+    expect(capturePreparation.timing).toEqual({
+      hideInvokeTime: expect.any(Number),
+      settleTime: expect.any(Number),
+    });
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.HIDE_CHATBOX],
     ]);
@@ -161,6 +177,10 @@ describe('surfaceOrchestrator capture lifecycle', () => {
       prepared: true,
       captureId: 'capture-win',
       restoreChatPillAfterCapture: false,
+      timing: {
+        hideInvokeTime: 0,
+        settleTime: 0,
+      },
     });
 
     await restoreScreenshotCaptureVisibility(preparation);

@@ -162,6 +162,7 @@ Responsibilities include:
 - attaching system-state fields used by backend prompt/runtime normalization
 - producing stable bundle/single output payload shapes
 - timing + logging instrumentation for tool runtime diagnostics
+- screenshot timing diagnostics now split Linux capture preparation into aggregate `surface` plus `hide IPC` and compositor `settle` substeps so screenshot latency can be attributed without guessing between overlay hide and screenshot-tool runtime
 
 ## Contract with Backend
 

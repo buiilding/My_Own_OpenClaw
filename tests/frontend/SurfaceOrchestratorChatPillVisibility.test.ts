@@ -45,7 +45,13 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
       expect(settled).toBe(false);
 
       jest.advanceTimersByTime(120);
-      await pending;
+      await expect(pending).resolves.toEqual({
+        collapsed: true,
+        timing: {
+          hideInvokeTime: expect.any(Number),
+          settleTime: expect.any(Number),
+        },
+      });
 
       expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
         [INVOKE_CHANNELS.HIDE_CHATBOX],
@@ -56,7 +62,10 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
   });
 
   test('restores chat pill as non-focusing show', async () => {
-    await restoreChatPillInactive();
+    await expect(restoreChatPillInactive()).resolves.toEqual({
+      restored: true,
+      restoreInvokeTime: expect.any(Number),
+    });
 
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
@@ -81,8 +90,17 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
 
     expect(shouldManageChatPillVisibilityForBackgroundCapture()).toBe(false);
 
-    await collapseChatPillForBackgroundCapture();
-    await restoreChatPillInactive();
+    await expect(collapseChatPillForBackgroundCapture()).resolves.toEqual({
+      collapsed: false,
+      timing: {
+        hideInvokeTime: 0,
+        settleTime: 0,
+      },
+    });
+    await expect(restoreChatPillInactive()).resolves.toEqual({
+      restored: false,
+      restoreInvokeTime: 0,
+    });
 
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
   });

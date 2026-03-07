@@ -30,6 +30,8 @@ export function logScreenshotCaptureTiming(params: {
   correlationId?: string | null;
   waitTime: number;
   prepareVisibilityTime: number;
+  hideInvokeTime: number;
+  settleTime: number;
   focusPrepTime: number;
   screenshotInvokeTime: number;
   restoreVisibilityTime: number;
@@ -39,6 +41,8 @@ export function logScreenshotCaptureTiming(params: {
     correlationId,
     waitTime,
     prepareVisibilityTime,
+    hideInvokeTime,
+    settleTime,
     focusPrepTime,
     screenshotInvokeTime,
     restoreVisibilityTime,
@@ -47,6 +51,7 @@ export function logScreenshotCaptureTiming(params: {
   logInfo(
     `[Timing] Screenshot capture completed ` +
     `(wait: ${waitTime.toFixed(3)}s, surface: ${prepareVisibilityTime.toFixed(3)}s, ` +
+    `hide IPC: ${hideInvokeTime.toFixed(3)}s, settle: ${settleTime.toFixed(3)}s, ` +
     `focus: ${focusPrepTime.toFixed(3)}s, screenshot IPC: ${screenshotInvokeTime.toFixed(3)}s, ` +
     `restore: ${restoreVisibilityTime.toFixed(3)}s, total: ${totalTime.toFixed(3)}s) ` +
     `(capture_id=${shortCorrelationId(correlationId || undefined)})`,
