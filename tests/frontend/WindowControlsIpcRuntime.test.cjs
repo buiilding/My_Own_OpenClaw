@@ -15,6 +15,13 @@ describe('window_controls_ipc_runtime', () => {
 
     initializeWindowControlHandlersRuntime({
       ipcMain,
+      BrowserWindow: {
+        fromWebContents: jest.fn(() => ({
+          isDestroyed: jest.fn(() => false),
+          isVisible: jest.fn(() => true),
+          getBounds: jest.fn(() => ({ x: 1920, y: 10, width: 500, height: 300 })),
+        })),
+      },
       screen: {},
       getWindows: () => ({}),
       showMainWindow: jest.fn(() => ({ success: true })),
@@ -32,16 +39,37 @@ describe('window_controls_ipc_runtime', () => {
     const showMainWindow = jest.fn(() => ({ success: true }));
     const normalizeMainWindowOpenTarget = jest.fn(() => 'settings');
     const emitMainWindowOpenTarget = jest.fn();
+    const screen = {
+      getDisplayMatching: jest.fn(() => ({
+        id: 2,
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+        workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      })),
+      getPrimaryDisplay: jest.fn(() => ({
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      })),
+    };
     const { invokeHandlers } = createRuntime({
+      screen,
       showMainWindow,
       normalizeMainWindowOpenTarget,
       emitMainWindowOpenTarget,
     });
 
-    const result = await invokeHandlers['show-main-window'](null, { open: 'settings' });
+    const result = await invokeHandlers['show-main-window']({ sender: {} }, { open: 'settings' });
 
     expect(result).toEqual({ success: true });
-    expect(showMainWindow).toHaveBeenCalledWith({ focus: true, maximize: false });
+    expect(showMainWindow).toHaveBeenCalledWith({
+      focus: true,
+      maximize: false,
+      targetDisplayAffinity: {
+        monitor_id: '2',
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+        workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      },
+    });
     expect(normalizeMainWindowOpenTarget).toHaveBeenCalledWith({ open: 'settings' });
     expect(emitMainWindowOpenTarget).toHaveBeenCalledWith('settings');
     expect(typeof invokeHandlers['window-minimize']).toBe('function');

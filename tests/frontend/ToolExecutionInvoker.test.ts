@@ -1,19 +1,12 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { invokeTool } from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionInvoker';
 
-const DISPLAY_BOUNDS_STORAGE_KEY = 'desktop-assistant-display-bounds';
-
 describe('ToolExecutionInvoker', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    localStorage.clear();
   });
 
-  test('injects display bounds for screenshot tool', async () => {
-    localStorage.setItem(
-      DISPLAY_BOUNDS_STORAGE_KEY,
-      JSON.stringify({ x: 1, y: 2, width: 3, height: 4 }),
-    );
+  test('normalizes screenshot args to plain object without injecting display bounds in renderer', async () => {
     const invokeSpy = jest
       .spyOn(IpcBridge, 'invoke')
       .mockResolvedValue({ success: true, data: {} } as any);
@@ -24,17 +17,12 @@ describe('ToolExecutionInvoker', () => {
       toolName: 'screenshot',
       args: {
         wait: 1,
-        display_bounds: { x: 1, y: 2, width: 3, height: 4 },
       },
       skipAutoCapture: false,
     });
   });
 
   test('does not inject display bounds for other tools', async () => {
-    localStorage.setItem(
-      DISPLAY_BOUNDS_STORAGE_KEY,
-      JSON.stringify({ x: 5, y: 6, width: 7, height: 8 }),
-    );
     const invokeSpy = jest
       .spyOn(IpcBridge, 'invoke')
       .mockResolvedValue({ success: true, data: {} } as any);
@@ -62,11 +50,7 @@ describe('ToolExecutionInvoker', () => {
     });
   });
 
-  test('normalizes screenshot args to object before injecting display bounds', async () => {
-    localStorage.setItem(
-      DISPLAY_BOUNDS_STORAGE_KEY,
-      JSON.stringify({ x: 2, y: 3, width: 4, height: 5 }),
-    );
+  test('normalizes invalid screenshot args to object', async () => {
     const invokeSpy = jest
       .spyOn(IpcBridge, 'invoke')
       .mockResolvedValue({ success: true, data: {} } as any);
@@ -75,9 +59,7 @@ describe('ToolExecutionInvoker', () => {
 
     expect(invokeSpy).toHaveBeenCalledWith(INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'screenshot',
-      args: {
-        display_bounds: { x: 2, y: 3, width: 4, height: 5 },
-      },
+      args: {},
       skipAutoCapture: false,
     });
   });

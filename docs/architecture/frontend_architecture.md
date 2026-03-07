@@ -73,6 +73,7 @@ frontend/src/
 4. Main `ipc.cjs`:
    - Ensures one-time initial settings sync ACK gate.
    - Runs overlay pre-capture focus handoff for chatbox-surface sends.
+   - Resolves sender-window display affinity in main and stores it for follow-on tool screenshots when the dashboard renderer is hidden.
    - Emits local synthetic `local-user-message` event to renderer immediately.
    - Calls `buildQueryPayloadContent()` to inject system-context + memory sections.
    - Sends normalized `query` over backend WebSocket.
@@ -137,6 +138,7 @@ Primary modules:
   - Sidecar subprocess start/readiness ping/retry.
   - JSON-RPC request correlation and timeout handling.
   - Tool execution handlers, system-state/memory RPC handlers.
+  - Screenshot monitor resolution: visible sender-window display wins; otherwise screenshot tools fall back to the active query display affinity stored by `ipc.cjs`.
   - Screenshot execution wrapper delegates to `main/local_backend_bridge_window_visibility.cjs`, which selects `main/platform/screenshot_window_visibility/*` per OS.
 - `main/wakeword_bridge.cjs`:
   - Wakeword subprocess lifecycle.

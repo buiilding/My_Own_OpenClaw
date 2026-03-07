@@ -1,8 +1,15 @@
 function handleShowMainWindow(options = {}, deps = {}) {
-  const { showMainWindow } = deps;
+  const {
+    showMainWindow,
+    resolveTargetDisplayAffinity = () => null,
+  } = deps;
   try {
     const maximize = options?.maximize === true;
-    return showMainWindow({ focus: true, maximize });
+    return showMainWindow({
+      focus: true,
+      maximize,
+      targetDisplayAffinity: resolveTargetDisplayAffinity(options),
+    });
   } catch (error) {
     return { success: false, reason: `Failed to show main window: ${error.message}` };
   }

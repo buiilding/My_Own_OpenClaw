@@ -19,6 +19,36 @@ function deepClone(value) {
   return cloned;
 }
 
+function normalizeDisplayBounds(displayBounds) {
+  if (!isRecord(displayBounds)) {
+    return null;
+  }
+  const x = Number(displayBounds.x);
+  const y = Number(displayBounds.y);
+  const width = Number(displayBounds.width);
+  const height = Number(displayBounds.height);
+  if (
+    !Number.isFinite(x)
+    || !Number.isFinite(y)
+    || !Number.isFinite(width)
+    || !Number.isFinite(height)
+    || width <= 0
+    || height <= 0
+  ) {
+    return null;
+  }
+  const normalized = {
+    x: Math.round(x),
+    y: Math.round(y),
+    width: Math.round(width),
+    height: Math.round(height),
+  };
+  if (typeof displayBounds.monitor_id === 'string' && displayBounds.monitor_id.trim().length > 0) {
+    normalized.monitor_id = displayBounds.monitor_id.trim();
+  }
+  return normalized;
+}
+
 function resolveRunShellCommandArgs(args, getFrontendConfig, warn = console.warn) {
   const nextArgs = (
     isRecord(args)
@@ -45,14 +75,25 @@ function resolveRunShellCommandArgs(args, getFrontendConfig, warn = console.warn
   return nextArgs;
 }
 
-function resolveToolArgs(toolName, args, getFrontendConfig, warn = console.warn) {
+function resolveToolArgs(
+  toolName,
+  args,
+  getFrontendConfig,
+  warn = console.warn,
+  options = {},
+) {
   if (toolName === 'run_shell_command') {
     return resolveRunShellCommandArgs(args, getFrontendConfig, warn);
   }
-  if (isRecord(args)) {
-    return deepClone(args);
+  const nextArgs = isRecord(args) ? deepClone(args) : {};
+  if (toolName === 'screenshot') {
+    const explicitDisplayBounds = normalizeDisplayBounds(nextArgs.display_bounds);
+    const defaultDisplayBounds = normalizeDisplayBounds(options.displayBounds);
+    if (!explicitDisplayBounds && defaultDisplayBounds) {
+      nextArgs.display_bounds = defaultDisplayBounds;
+    }
   }
-  return {};
+  return nextArgs;
 }
 
 module.exports = {

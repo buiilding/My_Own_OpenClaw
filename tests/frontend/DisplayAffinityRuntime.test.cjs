@@ -1,0 +1,123 @@
+/** @jest-environment node */
+
+const {
+  centerWindowOnDisplayWorkArea,
+  getActiveDisplayAffinity,
+  resolveDisplayAffinityForBounds,
+  resolveDisplayAffinityForWindow,
+  setActiveDisplayAffinity,
+  toScreenshotDisplayBounds,
+} = require('../../frontend/src/main/display_affinity_runtime.cjs');
+
+describe('display_affinity_runtime', () => {
+  afterEach(() => {
+    setActiveDisplayAffinity(null);
+  });
+
+  test('resolves display affinity from window bounds and preserves monitor id', () => {
+    const screen = {
+      getDisplayMatching: jest.fn(() => ({
+        id: 42,
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+        workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      })),
+      getPrimaryDisplay: jest.fn(() => ({
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      })),
+    };
+    const targetWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+      getBounds: jest.fn(() => ({ x: 2100, y: 100, width: 800, height: 600 })),
+    };
+
+    expect(resolveDisplayAffinityForWindow(screen, targetWindow)).toEqual({
+      monitor_id: '42',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+    });
+    expect(screen.getDisplayMatching).toHaveBeenCalledWith({ x: 2100, y: 100, width: 800, height: 600 });
+  });
+
+  test('returns null for hidden windows when visible sender is required', () => {
+    const screen = {
+      getPrimaryDisplay: jest.fn(() => ({
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      })),
+    };
+    const targetWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+      getBounds: jest.fn(),
+    };
+
+    expect(resolveDisplayAffinityForWindow(screen, targetWindow, { requireVisible: true })).toBeNull();
+    expect(targetWindow.getBounds).not.toHaveBeenCalled();
+  });
+
+  test('centers a window inside the target display work area', () => {
+    const targetWindow = {
+      getSize: jest.fn(() => [1000, 700]),
+      setBounds: jest.fn(),
+    };
+
+    const positioned = centerWindowOnDisplayWorkArea(targetWindow, {
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+    });
+
+    expect(positioned).toBe(true);
+    expect(targetWindow.setBounds).toHaveBeenCalledWith({
+      x: 2700,
+      y: 350,
+      width: 1000,
+      height: 700,
+    }, false);
+  });
+
+  test('stores active display affinity as cloned screenshot bounds payload', () => {
+    setActiveDisplayAffinity({
+      monitor_id: '7',
+      bounds: { x: 3000, y: 0, width: 1920, height: 1080 },
+      workArea: { x: 3000, y: 0, width: 1920, height: 1040 },
+    });
+
+    const affinity = getActiveDisplayAffinity();
+    expect(affinity).toEqual({
+      monitor_id: '7',
+      bounds: { x: 3000, y: 0, width: 1920, height: 1080 },
+      workArea: { x: 3000, y: 0, width: 1920, height: 1040 },
+    });
+    expect(toScreenshotDisplayBounds(affinity)).toEqual({
+      x: 3000,
+      y: 0,
+      width: 1920,
+      height: 1080,
+      monitor_id: '7',
+    });
+
+    affinity.bounds.x = 0;
+    expect(getActiveDisplayAffinity().bounds.x).toBe(3000);
+  });
+
+  test('falls back to primary display when no matching display helper exists', () => {
+    const screen = {
+      getPrimaryDisplay: jest.fn(() => ({
+        id: 5,
+        bounds: { x: 0, y: 0, width: 1600, height: 900 },
+        workArea: { x: 0, y: 0, width: 1600, height: 860 },
+      })),
+    };
+
+    expect(resolveDisplayAffinityForBounds(screen, { x: 10, y: 20, width: 300, height: 400 })).toEqual({
+      monitor_id: '5',
+      bounds: { x: 0, y: 0, width: 1600, height: 900 },
+      workArea: { x: 0, y: 0, width: 1600, height: 860 },
+    });
+  });
+});

@@ -1,5 +1,4 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../../ipc/bridge';
-import { getStoredDisplayBounds } from '../../../utils/displaySelection';
 import type { ToolResult } from '../MessageFormatter';
 
 type ToolInvokeOutcome = {
@@ -12,13 +11,12 @@ export async function invokeTool(
   args: any,
   skipAutoCapture: boolean
 ): Promise<ToolInvokeOutcome> {
-  const displayBounds = toolName === 'screenshot' ? getStoredDisplayBounds() : null;
   const screenshotArgs = toolName === 'screenshot'
     ? (args && typeof args === 'object' && !Array.isArray(args) ? args : {})
     : null;
   const toolArgs =
     toolName === 'screenshot'
-      ? (displayBounds ? { ...screenshotArgs, display_bounds: displayBounds } : screenshotArgs)
+      ? screenshotArgs
       : args;
   const toolInvokeStartTime = performance.now();
   const result: ToolResult = await IpcBridge.invoke(INVOKE_CHANNELS.EXECUTE_TOOL, {

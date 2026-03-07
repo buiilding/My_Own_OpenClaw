@@ -80,6 +80,71 @@ describe('local_backend_bridge_tool_args', () => {
     expect(resolveToolArgs('read_file', ['x'], null)).toEqual({});
   });
 
+  test('injects default display bounds for screenshot tools when args do not provide them', () => {
+    const result = resolveToolArgs(
+      'screenshot',
+      { explanation: 'Capture current monitor' },
+      null,
+      console.warn,
+      {
+        displayBounds: {
+          x: 1920,
+          y: 0,
+          width: 2560,
+          height: 1440,
+          monitor_id: '2',
+        },
+      },
+    );
+
+    expect(result).toEqual({
+      explanation: 'Capture current monitor',
+      display_bounds: {
+        x: 1920,
+        y: 0,
+        width: 2560,
+        height: 1440,
+        monitor_id: '2',
+      },
+    });
+  });
+
+  test('preserves explicit screenshot display bounds over default affinity bounds', () => {
+    const result = resolveToolArgs(
+      'screenshot',
+      {
+        display_bounds: {
+          x: 0,
+          y: 0,
+          width: 1920,
+          height: 1080,
+          monitor_id: '1',
+        },
+      },
+      null,
+      console.warn,
+      {
+        displayBounds: {
+          x: 1920,
+          y: 0,
+          width: 2560,
+          height: 1440,
+          monitor_id: '2',
+        },
+      },
+    );
+
+    expect(result).toEqual({
+      display_bounds: {
+        x: 0,
+        y: 0,
+        width: 1920,
+        height: 1080,
+        monitor_id: '1',
+      },
+    });
+  });
+
   test('run_shell_command normalizes non-object args to sudo_auth_mode payload', () => {
     const result = resolveToolArgs(
       'run_shell_command',
