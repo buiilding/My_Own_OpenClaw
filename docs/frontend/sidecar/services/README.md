@@ -27,4 +27,5 @@ title: "Frontend Sidecar Services Docs Hub"
 - `frontend/src/main/python/memory_service.py`
 - `frontend/src/main/python/wakeword_service.py`
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `tests/sidecar/test_memory_service.py`

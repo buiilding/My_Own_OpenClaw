@@ -14,6 +14,7 @@ title: "Runtime Paths and Endpoints"
 - `frontend/src/main/runtime_paths.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/runtime_mode.cjs`
@@ -171,3 +172,9 @@ If settings persistence fails:
 
 1. verify writable `app.getPath('userData')`
 2. check for stale `.tmp` file or JSON parse errors in `frontend-config.json`
+
+If wakeword startup/readiness behaves inconsistently:
+
+1. verify `resolveSidecarLaunchTarget('wakeword_service.py')` output
+2. verify packaged-vs-dev error mapping in `wakeword_bridge_runtime.cjs`
+3. verify stderr status lines are parsed through helper-level filter/emit paths
