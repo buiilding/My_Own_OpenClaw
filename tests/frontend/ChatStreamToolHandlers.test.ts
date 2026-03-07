@@ -141,4 +141,62 @@ describe('useChatStreamToolHandlers', () => {
       }),
     );
   });
+
+  test('handles malformed tool-bundle tools payload with stable empty bundle formatting and no transcript tool-call row', () => {
+    const addMessage = jest.fn();
+    const setThinkingStatus = jest.fn();
+    const setThinkingSourceEventType = jest.fn();
+    const recordTrackingEvent = jest.fn();
+
+    const { result } = renderHook(() => useChatStreamToolHandlers({
+      enableTranscript: true,
+      addMessage,
+      setIsSending: jest.fn(),
+      setThinkingStatus,
+      setThinkingSourceEventType,
+      modelContextRef: {
+        current: {
+          modelId: 'model-3',
+          modelProvider: 'provider-3',
+        },
+      },
+      recordTrackingEvent,
+    }));
+
+    expect(() => {
+      act(() => {
+        result.current.handleToolBundle({
+          id: 'event-tool-bundle-1',
+          type: 'tool-bundle',
+          turn_ref: 'turn-bundle-1',
+          conversation_ref: 'conversation-bundle-1',
+          payload: {
+            bundle_id: 'bundle-1',
+            tools: null,
+          },
+        } as any, 'conversation-bundle-1');
+      });
+    }).not.toThrow();
+
+    expect(setThinkingStatus).toHaveBeenCalledWith(null, 'conversation-bundle-1');
+    expect(setThinkingSourceEventType).toHaveBeenCalledWith(null, 'conversation-bundle-1');
+    expect(recordTrackingEvent).toHaveBeenCalledWith(
+      'tool-bundle',
+      'turn-bundle-1',
+      { phase: 'tool-call', toolCall: true },
+      'conversation-bundle-1',
+    );
+
+    expect(addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'tool-call',
+        sourceEventType: 'tool-bundle',
+        text: JSON.stringify({ bundle_id: 'bundle-1', tools: [] }, null, 2),
+      }),
+      'conversation-bundle-1',
+    );
+
+    // Bundle orchestration events must not be persisted as executable tool-call transcript rows.
+    expect(mockRecordToolMessage).not.toHaveBeenCalled();
+  });
 });
