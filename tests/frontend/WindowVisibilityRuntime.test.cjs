@@ -138,6 +138,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       focus: jest.fn(),
     };
     const syncWindowDisplayAffinity = jest.fn();
+    const setActiveDisplayAffinity = jest.fn();
 
     const result = showMainWindow(
       {
@@ -148,7 +149,7 @@ describe('window_visibility_runtime showMainWindow', () => {
           workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
         },
       },
-      { mainWindow, syncWindowDisplayAffinity },
+      { mainWindow, syncWindowDisplayAffinity, setActiveDisplayAffinity },
     );
 
     expect(result).toEqual({ success: true });
@@ -158,6 +159,11 @@ describe('window_visibility_runtime showMainWindow', () => {
       width: 1000,
       height: 700,
     }, false);
+    expect(setActiveDisplayAffinity).toHaveBeenCalledWith({
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+    });
     expect(mainWindow.show).toHaveBeenCalledTimes(1);
     expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
     expect(mainWindow.focus).toHaveBeenCalledTimes(1);
@@ -175,6 +181,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       maximize: jest.fn(),
     };
     const syncWindowDisplayAffinity = jest.fn();
+    const setActiveDisplayAffinity = jest.fn();
 
     const result = showMainWindow(
       {
@@ -186,7 +193,7 @@ describe('window_visibility_runtime showMainWindow', () => {
           workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
         },
       },
-      { mainWindow, syncWindowDisplayAffinity },
+      { mainWindow, syncWindowDisplayAffinity, setActiveDisplayAffinity },
     );
 
     expect(result).toEqual({ success: true });
@@ -196,6 +203,11 @@ describe('window_visibility_runtime showMainWindow', () => {
       width: 2560,
       height: 1400,
     }, false);
+    expect(setActiveDisplayAffinity).toHaveBeenCalledWith({
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+    });
     expect(mainWindow.maximize).not.toHaveBeenCalled();
     expect(mainWindow.show).toHaveBeenCalledTimes(1);
     expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
@@ -214,6 +226,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       focus: jest.fn(),
     };
     const syncWindowDisplayAffinity = jest.fn();
+    const setActiveDisplayAffinity = jest.fn();
 
     showMainWindow(
       {
@@ -224,10 +237,15 @@ describe('window_visibility_runtime showMainWindow', () => {
           workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
         },
       },
-      { mainWindow, syncWindowDisplayAffinity },
+      { mainWindow, syncWindowDisplayAffinity, setActiveDisplayAffinity },
     );
 
     expect(mainWindow.unmaximize).toHaveBeenCalledTimes(1);
+    expect(setActiveDisplayAffinity).toHaveBeenCalledWith({
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+    });
     expect(mainWindow.show).not.toHaveBeenCalled();
     expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
     expect(mainWindow.focus).not.toHaveBeenCalled();
