@@ -5,8 +5,6 @@ import type {
   SurfaceRestoreResult,
 } from '../../types';
 
-const NON_LINUX_CHAT_PILL_HIDE_SETTLE_MS = 120;
-
 export function createNoopChatPillVisibilityRuntime() {
   return {
     shouldManageChatPillVisibilityForBackgroundCapture(): boolean {
@@ -25,7 +23,7 @@ export function createNoopChatPillVisibilityRuntime() {
         hiddenSurface?: HiddenSurface;
       }>(INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, {
         waitMs: typeof options.waitMs === 'number' ? Math.max(0, options.waitMs) : 0,
-        settleMs: NON_LINUX_CHAT_PILL_HIDE_SETTLE_MS,
+        settleMs: 0,
         hideSurface: true,
       });
       if (result?.success !== true) {
@@ -35,18 +33,16 @@ export function createNoopChatPillVisibilityRuntime() {
         collapsed: result?.hiddenSurface === 'chatbox' || result?.hiddenSurface === 'main-window',
         hiddenSurface: result?.hiddenSurface ?? 'none',
         timing: {
-        waitTime: typeof result?.waitTime === 'number'
-          ? Math.max(0, result.waitTime)
-          : Math.max(0, (result?.waitMs ?? 0) / 1000),
-        hideInvokeTime: typeof result?.hideInvokeTime === 'number'
-          ? Math.max(0, result.hideInvokeTime)
-          : 0,
-        settleTime: typeof result?.settleTime === 'number'
-          ? Math.max(0, result.settleTime)
-          : Math.max(0, NON_LINUX_CHAT_PILL_HIDE_SETTLE_MS / 1000),
-      },
-    };
-  },
+          waitTime: typeof result?.waitTime === 'number'
+            ? Math.max(0, result.waitTime)
+            : Math.max(0, (result?.waitMs ?? 0) / 1000),
+          hideInvokeTime: typeof result?.hideInvokeTime === 'number'
+            ? Math.max(0, result.hideInvokeTime)
+            : 0,
+          settleTime: 0,
+        },
+      };
+    },
 
     async restoreChatPillInactive(hiddenSurface: HiddenSurface = 'chatbox'): Promise<SurfaceRestoreResult> {
       if (hiddenSurface === 'main-window') {
