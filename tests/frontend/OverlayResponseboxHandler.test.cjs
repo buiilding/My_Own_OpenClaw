@@ -15,7 +15,20 @@ describe('overlay_responsebox_handler', () => {
       },
       chatWindow: {
         isDestroyed: jest.fn().mockReturnValue(false),
+        isVisible: jest.fn().mockReturnValue(true),
         getBounds: jest.fn().mockReturnValue({ x: 100, y: 200, width: 300, height: 400 }),
+      },
+      mainWindow: {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        isVisible: jest.fn().mockReturnValue(false),
+        getBounds: jest.fn().mockReturnValue({ x: 0, y: 0, width: 1000, height: 700 }),
+      },
+      BrowserWindow: {
+        fromWebContents: jest.fn(() => ({
+          isDestroyed: jest.fn().mockReturnValue(false),
+          isVisible: jest.fn().mockReturnValue(false),
+          getBounds: jest.fn().mockReturnValue({ x: 0, y: 0, width: 200, height: 100 }),
+        })),
       },
       screen: {
         getPrimaryDisplay: jest.fn().mockReturnValue({
@@ -25,6 +38,7 @@ describe('overlay_responsebox_handler', () => {
           bounds: { x: 10, y: 20, width: 1600, height: 900 },
         }),
       },
+      getActiveDisplayAffinity: jest.fn(() => null),
       getResponseWindowBounds: jest.fn((width, height) => ({ x: 1, y: 2, width, height })),
       setResponseOverlayVisibilityState: jest.fn(),
       showResponseWindowWhenChatVisible: jest.fn(),
@@ -59,7 +73,7 @@ describe('overlay_responsebox_handler', () => {
     expect(deps.responseWindow.hide).not.toHaveBeenCalled();
   });
 
-  test('resizes in fullscreen mode using display that matches chat window', async () => {
+  test('resizes in fullscreen mode using active surface display affinity from the visible chat window', async () => {
     const deps = createDeps();
 
     const result = await handleSetResponseboxSize({ visible: true, full_screen: true }, deps);
@@ -80,10 +94,16 @@ describe('overlay_responsebox_handler', () => {
     expect(deps.showResponseWindowWhenChatVisible).toHaveBeenCalledTimes(1);
   });
 
-  test('fullscreen falls back to primary display when chat window is unavailable', async () => {
+  test('fullscreen falls back to primary display when no active surface affinity is available', async () => {
     const deps = createDeps({
       chatWindow: {
         isDestroyed: jest.fn().mockReturnValue(true),
+        isVisible: jest.fn().mockReturnValue(false),
+        getBounds: jest.fn(),
+      },
+      mainWindow: {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        isVisible: jest.fn().mockReturnValue(false),
         getBounds: jest.fn(),
       },
     });
@@ -104,12 +124,28 @@ describe('overlay_responsebox_handler', () => {
     );
   });
 
-  test('fullscreen uses primary display when getDisplayMatching is absent', async () => {
+  test('fullscreen uses stored active display affinity when no visible surface is available', async () => {
     const deps = createDeps({
+      chatWindow: {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        isVisible: jest.fn().mockReturnValue(false),
+        getBounds: jest.fn(),
+      },
+      mainWindow: {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        isVisible: jest.fn().mockReturnValue(false),
+        getBounds: jest.fn(),
+      },
+      getActiveDisplayAffinity: jest.fn(() => ({
+        monitor_id: '7',
+        bounds: { x: -5, y: -6, width: 1280, height: 720 },
+        workArea: { x: -5, y: -6, width: 1280, height: 680 },
+      })),
       screen: {
         getPrimaryDisplay: jest.fn().mockReturnValue({
-          bounds: { x: -5, y: -6, width: 1280, height: 720 },
+          bounds: { x: 0, y: 0, width: 1920, height: 1080 },
         }),
+        getDisplayMatching: jest.fn(),
       },
     });
 
@@ -122,6 +158,38 @@ describe('overlay_responsebox_handler', () => {
       width: 1280,
       height: 720,
     });
+    expect(deps.screen.getDisplayMatching).not.toHaveBeenCalled();
+  });
+
+  test('fullscreen ignores response overlay visibility as a monitor source', async () => {
+    const deps = createDeps({
+      chatWindow: {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        isVisible: jest.fn().mockReturnValue(false),
+        getBounds: jest.fn(),
+      },
+      mainWindow: {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        isVisible: jest.fn().mockReturnValue(false),
+        getBounds: jest.fn(),
+      },
+      getActiveDisplayAffinity: jest.fn(() => ({
+        monitor_id: '1',
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      })),
+    });
+
+    const result = await handleSetResponseboxSize({ visible: true, full_screen: true }, deps);
+
+    expect(result).toEqual({
+      success: true,
+      visible: true,
+      fullScreen: true,
+      width: 1920,
+      height: 1080,
+    });
+    expect(deps.screen.getDisplayMatching).not.toHaveBeenCalled();
   });
 
   test('resizes to bounded width and height in non-fullscreen mode', async () => {

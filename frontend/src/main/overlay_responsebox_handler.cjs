@@ -1,13 +1,24 @@
-function resolveFullscreenBounds({ screen, chatWindow }) {
-  const fallbackDisplay = screen.getPrimaryDisplay();
-  const targetDisplay = (
-    chatWindow
-    && !chatWindow.isDestroyed()
-    && typeof screen.getDisplayMatching === 'function'
-  )
-    ? screen.getDisplayMatching(chatWindow.getBounds()) || fallbackDisplay
-    : fallbackDisplay;
-  const bounds = targetDisplay?.bounds || fallbackDisplay.bounds;
+const {
+  resolveActiveSurfaceDisplayAffinity,
+} = require('./display_affinity_runtime.cjs');
+
+function resolveFullscreenBounds({
+  BrowserWindow,
+  screen,
+  webContents,
+  chatWindow,
+  mainWindow,
+  getActiveDisplayAffinity,
+}) {
+  const displayAffinity = resolveActiveSurfaceDisplayAffinity({
+    BrowserWindow,
+    screen,
+    webContents,
+    chatWindow,
+    mainWindow,
+    getActiveDisplayAffinity,
+  });
+  const bounds = displayAffinity?.bounds || screen.getPrimaryDisplay()?.bounds;
   return {
     x: Math.round(bounds.x),
     y: Math.round(bounds.y),
@@ -29,7 +40,11 @@ async function handleSetResponseboxSize(
   const {
     responseWindow,
     chatWindow,
+    mainWindow,
     screen,
+    BrowserWindow,
+    webContents = null,
+    getActiveDisplayAffinity = () => null,
     getResponseWindowBounds,
     setResponseOverlayVisibilityState,
     showResponseWindowWhenChatVisible,
@@ -50,7 +65,14 @@ async function handleSetResponseboxSize(
 
   if (fullScreen === true) {
     try {
-      const nextBounds = resolveFullscreenBounds({ screen, chatWindow });
+      const nextBounds = resolveFullscreenBounds({
+        BrowserWindow,
+        screen,
+        webContents,
+        chatWindow,
+        mainWindow,
+        getActiveDisplayAffinity,
+      });
       responseWindow.setBounds(nextBounds, false);
       setResponseOverlayVisibilityState(true);
       showResponseWindowWhenChatVisible();

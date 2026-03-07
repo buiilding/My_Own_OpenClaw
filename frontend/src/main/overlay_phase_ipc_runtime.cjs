@@ -10,8 +10,10 @@ const { handleSetResponseboxSize } = require('./overlay_responsebox_handler.cjs'
 function initializeOverlayPhaseHandlersRuntime(deps = {}) {
   const {
     ipcMain,
+    BrowserWindow,
     screen,
     getWindows = () => ({}),
+    getActiveDisplayAffinity = () => null,
     positionResponseWindow,
     positionContextLabelWindow,
     syncContextLabelWindowVisibility,
@@ -50,11 +52,14 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
   });
 
   ipcMain.handle('set-responsebox-size', async (_event, args = {}) => {
-    const { responseWindow, chatWindow } = getWindows();
+    const { responseWindow, chatWindow, mainWindow } = getWindows();
     return handleSetResponseboxSize(args, {
       responseWindow,
       chatWindow,
+      mainWindow,
+      BrowserWindow,
       screen,
+      getActiveDisplayAffinity,
       getResponseWindowBounds,
       setResponseOverlayVisibilityState,
       showResponseWindowWhenChatVisible,

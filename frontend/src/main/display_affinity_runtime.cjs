@@ -141,14 +141,16 @@ function resolveActiveSurfaceDisplayAffinity({
   resolveDisplayAffinityForWebContents: resolveWebContentsAffinity = resolveDisplayAffinityForWebContents,
   getActiveDisplayAffinity: getStoredAffinity = getActiveDisplayAffinity,
 }) {
-  const visibleSenderDisplayAffinity = resolveWebContentsAffinity({
-    BrowserWindow,
-    screen,
-    webContents: webContents || null,
-    requireVisible: true,
-  });
-  if (visibleSenderDisplayAffinity) {
-    return visibleSenderDisplayAffinity;
+  if (webContents) {
+    const visibleSenderDisplayAffinity = resolveWebContentsAffinity({
+      BrowserWindow,
+      screen,
+      webContents,
+      requireVisible: true,
+    });
+    if (visibleSenderDisplayAffinity) {
+      return visibleSenderDisplayAffinity;
+    }
   }
 
   const visibleChatDisplayAffinity = chatWindow
