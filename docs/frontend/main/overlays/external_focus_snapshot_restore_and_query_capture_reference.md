@@ -31,8 +31,8 @@ Non-Windows behavior:
 1. reads active native window via `node-window-manager`
 2. ignores empty titles
 3. ignores titles matching WindieOS app markers:
-   - `"desktop assistant"`
-   - `"windieos"`
+   - `"windieos"` (current runtime window-title marker)
+   - `"desktop assistant"` (legacy compatibility marker from older builds)
 4. stores:
    - external window id
    - exact title fallback
