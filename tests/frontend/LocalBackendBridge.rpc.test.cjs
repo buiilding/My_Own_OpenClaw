@@ -259,6 +259,104 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { ok: true } });
   });
 
+  test('execute-tool injects visible chat window display bounds into wrapped computer_use screenshot requests', async () => {
+    const chatWindow = createWindow({
+      getBounds: jest.fn(() => ({ x: 1920, y: 0, width: 900, height: 600 })),
+    });
+    const { handlers, stdoutHandler, mainWindow } = initBridge({ chatWindow });
+    markReady();
+
+    mainWindow.isVisible.mockReturnValue(false);
+
+    const {
+      setActiveDisplayAffinity,
+    } = require('../../frontend/src/main/display_affinity_runtime.cjs');
+    const electron = require('electron');
+    electron.screen.getAllDisplays.mockReturnValue([
+      {
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      },
+      {
+        id: 2,
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+        workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      },
+    ]);
+    electron.screen.getPrimaryDisplay.mockReturnValue({
+      id: 1,
+      bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+      workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+    });
+    electron.screen.getDisplayMatching.mockImplementation((bounds) => {
+      if (bounds && bounds.x >= 1920) {
+        return {
+          id: 2,
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        };
+      }
+      return {
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      };
+    });
+    setActiveDisplayAffinity({
+      monitor_id: '1',
+      bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+      workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
+    });
+
+    const promise = handlers['execute-tool']({ sender: {} }, {
+      toolName: 'computer_use',
+      args: {
+        tool: 'screenshot',
+        metadata: {
+          description: 'capture current monitor',
+          explanation: 'verify the visible monitor',
+          expectation: 'single-monitor screenshot',
+        },
+        arguments: {
+          explanation: 'Current monitor',
+        },
+      },
+    });
+
+    expectLastRequestWith('execute_tool', {
+      tool_name: 'computer_use',
+      args: {
+        tool: 'screenshot',
+        metadata: {
+          description: 'capture current monitor',
+          explanation: 'verify the visible monitor',
+          expectation: 'single-monitor screenshot',
+        },
+        arguments: {
+          explanation: 'Current monitor',
+          display_bounds: {
+            x: 1920,
+            y: 0,
+            width: 2560,
+            height: 1440,
+            monitor_id: '2',
+            desktop_virtual_bounds: {
+              x: 0,
+              y: 0,
+              width: 4480,
+              height: 1440,
+            },
+          },
+        },
+      },
+    });
+
+    emitRpcResult(stdoutHandler, { success: true, data: { ok: true } });
+    await expect(promise).resolves.toEqual({ success: true, data: { ok: true } });
+  });
+
   test('execute-tool falls back to inline screenshot when screenshot-path artifact upload fails', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
