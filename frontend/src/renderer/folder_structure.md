@@ -215,7 +215,6 @@ frontend/src/renderer/
 └── utils/                                 # Utility functions
     ├── configFilter.js                  # configFilter - Filters config to frontend-managed fields only
     ├── configStorage.js                 # configStorage - localStorage utilities for config persistence (optimistic state pattern)
-    └── displaySelection.ts              # displaySelection - Display bounds validation and active-display selection helpers
 ```
 
 ---

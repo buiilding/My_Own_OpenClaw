@@ -134,6 +134,43 @@ describe('local_backend_bridge RPC handlers', () => {
     }
   });
 
+  test('execute-tool injects active display affinity for screenshot capture when sender window is hidden', async () => {
+    const { handlers, stdoutHandler, mainWindow } = initBridge();
+    markReady();
+
+    mainWindow.isVisible.mockReturnValue(false);
+    const {
+      setActiveDisplayAffinity,
+    } = require('../../frontend/src/main/display_affinity_runtime.cjs');
+    setActiveDisplayAffinity({
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+    });
+
+    const promise = handlers['execute-tool']({ sender: {} }, {
+      toolName: 'screenshot',
+      args: { explanation: 'Current monitor' },
+    });
+
+    expectLastRequestWith('execute_tool', {
+      tool_name: 'screenshot',
+      args: {
+        explanation: 'Current monitor',
+        display_bounds: {
+          x: 1920,
+          y: 0,
+          width: 2560,
+          height: 1440,
+          monitor_id: '2',
+        },
+      },
+    });
+
+    emitRpcResult(stdoutHandler, { success: true, data: { ok: true } });
+    await expect(promise).resolves.toEqual({ success: true, data: { ok: true } });
+  });
+
   test('execute-tool falls back to inline screenshot when screenshot-path artifact upload fails', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();

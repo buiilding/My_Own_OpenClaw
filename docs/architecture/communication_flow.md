@@ -84,6 +84,13 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 - Format: `{ status: string, error?: string }`
 - Usage: Service health monitoring
 
+**`show-main-window`**
+- Purpose: Show the dashboard window from renderer surfaces
+- Format: `{ maximize?: boolean, open?: string }`
+- Usage: Dashboard opens from chat surfaces and can route to a specific panel
+- Notes:
+  - Electron main resolves the sender renderer's monitor and repositions the dashboard onto that display before showing it
+
 ### IPC Implementation
 
 **Preload Script** (`src/preload.js`):

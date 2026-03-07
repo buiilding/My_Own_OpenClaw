@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 const {
+  showMainWindow,
   showChatWindow,
 } = require('../../frontend/src/main/window_visibility_runtime.cjs');
 
@@ -112,5 +113,70 @@ describe('window_visibility_runtime showChatWindow', () => {
     expect(showResponseWindowInactive).not.toHaveBeenCalled();
     expect(ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
     expect(setResponseOverlayVisible).not.toHaveBeenCalled();
+  });
+});
+
+describe('window_visibility_runtime showMainWindow', () => {
+  test('repositions main window onto target display affinity before showing', () => {
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+      isMaximized: jest.fn(() => false),
+      getSize: jest.fn(() => [1000, 700]),
+      setBounds: jest.fn(),
+      show: jest.fn(),
+      focus: jest.fn(),
+    };
+
+    const result = showMainWindow(
+      {
+        focus: true,
+        targetDisplayAffinity: {
+          monitor_id: '2',
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        },
+      },
+      { mainWindow },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(mainWindow.setBounds).toHaveBeenCalledWith({
+      x: 2700,
+      y: 350,
+      width: 1000,
+      height: 700,
+    }, false);
+    expect(mainWindow.show).toHaveBeenCalledTimes(1);
+    expect(mainWindow.focus).toHaveBeenCalledTimes(1);
+  });
+
+  test('unmaximizes before repositioning onto target display', () => {
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+      isMaximized: jest.fn(() => true),
+      unmaximize: jest.fn(),
+      getSize: jest.fn(() => [1000, 700]),
+      setBounds: jest.fn(),
+      show: jest.fn(),
+      focus: jest.fn(),
+    };
+
+    showMainWindow(
+      {
+        focus: false,
+        targetDisplayAffinity: {
+          monitor_id: '2',
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        },
+      },
+      { mainWindow },
+    );
+
+    expect(mainWindow.unmaximize).toHaveBeenCalledTimes(1);
+    expect(mainWindow.show).not.toHaveBeenCalled();
+    expect(mainWindow.focus).not.toHaveBeenCalled();
   });
 });

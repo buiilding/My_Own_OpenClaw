@@ -1,4 +1,4 @@
-const { ipcMain, shell } = require('electron');
+const { ipcMain, shell, BrowserWindow, screen } = require('electron');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const os = require('os');
@@ -46,6 +46,10 @@ const {
   loginOpenAICodexOAuth,
   logoutOpenAICodexOAuth,
 } = require('./openai_codex_oauth.cjs');
+const {
+  resolveDisplayAffinityForWebContents,
+  setActiveDisplayAffinity,
+} = require('./display_affinity_runtime.cjs');
 
 let BACKEND_ENDPOINTS = resolveBackendEndpoints();
 let BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
@@ -174,6 +178,7 @@ function resetBackendSessionState() {
   currentSessionId = null;
   currentServerUserId = null;
   currentConversationRef = null;
+  setActiveDisplayAffinity(null);
 }
 
 function buildIpcStatusPayload(connected) {
@@ -556,6 +561,11 @@ function initializeIpc(win, options = {}) {
       if (!payload.conversation_ref && conversationRef) {
         payload.conversation_ref = conversationRef;
       }
+      setActiveDisplayAffinity(resolveDisplayAffinityForWebContents({
+        BrowserWindow,
+        screen,
+        webContents: event.sender,
+      }));
       const localUserMessage = broadcastLocalUserMessageRuntime({
         sourceWebContents: event.sender,
         payload,

@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const fsPromises = require('fs/promises');
 const path = require('path');
-const { ipcMain } = require('electron');
+const { ipcMain, BrowserWindow, screen } = require('electron');
 const { v4: uuidv4 } = require('uuid');
 const { resolveBackendEndpoints } = require('./backend_endpoints.cjs');
 const {
@@ -26,6 +26,11 @@ const {
   resolvePythonExecutablePath,
   resolveSidecarLaunchTarget,
 } = require('./runtime_paths.cjs');
+const {
+  getActiveDisplayAffinity,
+  resolveDisplayAffinityForWebContents,
+  toScreenshotDisplayBounds,
+} = require('./display_affinity_runtime.cjs');
 
 let pythonProcess = null;
 let isPythonReady = false;
@@ -736,7 +741,23 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   ipcMain.handle('execute-tool', async (event, { toolName, args }) => {
     try {
       const timeoutMs = toolName === 'browser' ? 120000 : 30000;
-      const normalizedArgs = resolveToolArgs(toolName, args, getFrontendConfig);
+      const visibleSenderDisplayAffinity = resolveDisplayAffinityForWebContents({
+        BrowserWindow,
+        screen,
+        webContents: event?.sender || null,
+        requireVisible: true,
+      });
+      const normalizedArgs = resolveToolArgs(
+        toolName,
+        args,
+        getFrontendConfig,
+        console.warn,
+        {
+          displayBounds: toScreenshotDisplayBounds(
+            visibleSenderDisplayAffinity || getActiveDisplayAffinity(),
+          ),
+        },
+      );
       const runTool = () =>
         sendRequest('execute_tool', {
           tool_name: toolName,

@@ -1,6 +1,9 @@
 const { handleGetDisplays } = require('./display_query_handler.cjs');
 const { handleShowMainWindow } = require('./overlay_visibility_handler.cjs');
 const {
+  resolveDisplayAffinityForWebContents,
+} = require('./display_affinity_runtime.cjs');
+const {
   handleWindowClose,
   handleWindowMinimize,
   handleWindowToggleMaximize,
@@ -10,14 +13,22 @@ function initializeWindowControlHandlersRuntime(deps = {}) {
   const {
     ipcMain,
     screen,
+    BrowserWindow,
     getWindows = () => ({}),
     showMainWindow,
     normalizeMainWindowOpenTarget,
     emitMainWindowOpenTarget,
   } = deps;
 
-  ipcMain.handle('show-main-window', async (_event, options = {}) => {
-    const result = handleShowMainWindow(options, { showMainWindow });
+  ipcMain.handle('show-main-window', async (event, options = {}) => {
+    const result = handleShowMainWindow(options, {
+      showMainWindow,
+      resolveTargetDisplayAffinity: () => resolveDisplayAffinityForWebContents({
+        BrowserWindow,
+        screen,
+        webContents: event?.sender || null,
+      }),
+    });
     const target = normalizeMainWindowOpenTarget(options);
     if (result?.success && target) {
       emitMainWindowOpenTarget(target);

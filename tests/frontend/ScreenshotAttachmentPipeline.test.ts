@@ -1,7 +1,3 @@
-jest.mock('../../frontend/src/renderer/utils/displaySelection', () => ({
-  getStoredDisplayBounds: jest.fn(),
-}));
-
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: jest.fn(),
@@ -33,11 +29,9 @@ import {
   materializeScreenshotAttachment,
   resolvePrimaryScreenshotAttachment,
 } from '../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline';
-import { getStoredDisplayBounds } from '../../frontend/src/renderer/utils/displaySelection';
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
 
-const mockGetStoredDisplayBounds = getStoredDisplayBounds as jest.MockedFunction<typeof getStoredDisplayBounds>;
 const mockInvoke = IpcBridge.invoke as jest.MockedFunction<typeof IpcBridge.invoke>;
 const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
 
@@ -45,20 +39,16 @@ describe('ScreenshotAttachmentPipeline', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(console, 'warn').mockImplementation(() => {});
-    mockGetStoredDisplayBounds.mockReturnValue(null);
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  test('buildScreenshotArgs includes stored display bounds when present', () => {
-    mockGetStoredDisplayBounds.mockReturnValue({ x: 10, y: 20, width: 300, height: 200 } as any);
-
+  test('buildScreenshotArgs keeps screenshot request payload renderer-local and display-agnostic', () => {
     expect(buildScreenshotArgs('Capture screen')).toEqual({
       explanation: 'Capture screen',
       expectation: 'Current screen state',
-      display_bounds: { x: 10, y: 20, width: 300, height: 200 },
     });
   });
 

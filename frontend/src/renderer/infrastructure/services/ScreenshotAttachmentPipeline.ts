@@ -1,4 +1,3 @@
-import { getStoredDisplayBounds } from '../../utils/displaySelection';
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import type { ToolResult } from './MessageFormatter';
 import {
@@ -145,15 +144,10 @@ export function createInlineScreenshotAttachment({
 }
 
 export function buildScreenshotArgs(explanation: string): Record<string, unknown> {
-  const args: Record<string, unknown> = {
+  return {
     explanation,
     expectation: 'Current screen state',
   };
-  const displayBounds = getStoredDisplayBounds();
-  if (displayBounds) {
-    args.display_bounds = displayBounds;
-  }
-  return args;
 }
 
 export function hasScreenshotAttachment(attachment: ScreenshotAttachment | null | undefined): boolean {

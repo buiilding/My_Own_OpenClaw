@@ -10,20 +10,44 @@ const {
 describe('overlay_visibility_handler', () => {
   test('show-main-window uses focus true by default and returns result', () => {
     const showMainWindow = jest.fn().mockReturnValue({ success: true });
+    const resolveTargetDisplayAffinity = jest.fn().mockReturnValue(null);
 
-    const result = handleShowMainWindow(undefined, { showMainWindow });
+    const result = handleShowMainWindow(undefined, {
+      showMainWindow,
+      resolveTargetDisplayAffinity,
+    });
 
     expect(result).toEqual({ success: true });
-    expect(showMainWindow).toHaveBeenCalledWith({ focus: true, maximize: false });
+    expect(showMainWindow).toHaveBeenCalledWith({
+      focus: true,
+      maximize: false,
+      targetDisplayAffinity: null,
+    });
   });
 
   test('show-main-window passes maximize true when requested', () => {
     const showMainWindow = jest.fn().mockReturnValue({ success: true });
+    const resolveTargetDisplayAffinity = jest.fn().mockReturnValue({
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+    });
 
-    const result = handleShowMainWindow({ maximize: true }, { showMainWindow });
+    const result = handleShowMainWindow({ maximize: true }, {
+      showMainWindow,
+      resolveTargetDisplayAffinity,
+    });
 
     expect(result).toEqual({ success: true });
-    expect(showMainWindow).toHaveBeenCalledWith({ focus: true, maximize: true });
+    expect(showMainWindow).toHaveBeenCalledWith({
+      focus: true,
+      maximize: true,
+      targetDisplayAffinity: {
+        monitor_id: '2',
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+        workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      },
+    });
   });
 
   test('show-main-window returns formatted error result on exception', () => {
