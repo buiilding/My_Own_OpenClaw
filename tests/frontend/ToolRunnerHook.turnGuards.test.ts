@@ -8,6 +8,7 @@ import {
   resetToolRunnerTestState,
   restoreToolRunnerMocks,
   setStreamTracking,
+  useChatStore,
 } from './ToolRunnerHook.testUtils';
 
 describe('useToolRunner stale turn guards', () => {
@@ -50,6 +51,73 @@ describe('useToolRunner stale turn guards', () => {
           error: 'frontend_stale_turn_cancelled',
         },
       },
+    );
+  });
+
+  test('keeps same-turn tool-call events during terminal handoff when an incomplete assistant placeholder is present', async () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      isSending: true,
+      messages: [
+        {
+          id: 'assistant-placeholder',
+          sender: 'assistant',
+          text: '',
+          type: 'llm-text',
+          isComplete: false,
+          turnRef: 'turn-1',
+          sourceEventType: 'streaming-response',
+        },
+      ],
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          isSending: true,
+          messages: [
+            {
+              id: 'assistant-placeholder',
+              sender: 'assistant',
+              text: '',
+              type: 'llm-text',
+              isComplete: false,
+              turnRef: 'turn-1',
+              sourceEventType: 'streaming-response',
+            },
+          ],
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-1',
+            phase: 'complete',
+          },
+        },
+      },
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-1',
+        phase: 'complete',
+      },
+    }));
+
+    renderToolRunner(true);
+
+    await emitBackendEventAsync({
+      type: 'tool-call',
+      id: 'event-id-allowed',
+      turn_ref: 'turn-1',
+      payload: {
+        tool_name: 'read_file',
+        parameters: { file_path: '/tmp/a' },
+        correlation_id: 'corr-allowed',
+      },
+    });
+
+    expect(mockExecuteTool).toHaveBeenCalledWith(
+      'read_file',
+      { file_path: '/tmp/a' },
+      expect.objectContaining({
+        correlationId: 'corr-allowed',
+      }),
     );
   });
 
