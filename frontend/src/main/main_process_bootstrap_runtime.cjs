@@ -1,0 +1,108 @@
+function createWindowBootstrapRuntime(deps) {
+  function createWindow() {
+    const state = deps.getState();
+    const mainWindow = deps.createMainWindowRuntime({
+      BrowserWindow: deps.BrowserWindow,
+      path: deps.path,
+      app: deps.app,
+      platform: deps.platform,
+      vmMode: deps.vmMode,
+      minimizeToTrayOnClose: !deps.vmMode,
+      enableDevTransparencyUi: deps.enableDevTransparencyUi,
+      enableDebugStreamTrace: deps.enableDebugStreamTrace,
+      enableDebugToolScreenshot: deps.enableDebugToolScreenshot,
+      initializeIpc: deps.initializeIpc,
+      applyResponseOverlayPhase: state.applyResponseOverlayPhase,
+      prepareOverlayQueryCaptureFocus: deps.prepareOverlayQueryCaptureFocus,
+      initializeWakewordBridge: deps.initializeWakewordBridge,
+      showChatWindow: deps.showChatWindow,
+      emitWakewordSttTrigger: deps.emitWakewordSttTrigger,
+      initializeLocalBackendBridge: deps.initializeLocalBackendBridge,
+      initializeMainProcessIpc: deps.initializeMainProcessIpc,
+      getLatestFrontendConfig: deps.getLatestFrontendConfig,
+      getWindows: () => deps.getState().windows,
+      setMainWindow: deps.setMainWindow,
+      enableContentProtectionSafely: deps.enableContentProtectionSafely,
+    });
+    deps.setMainWindow(mainWindow);
+
+    if (deps.vmWorkerMode && !deps.getState().vmWorkerRuntime) {
+      const vmWorkerRuntime = deps.createVmWorkerRuntime({
+        env: process.env,
+        getBackendConnectionState: deps.getBackendConnectionState,
+        sendAutomatedQuery: deps.sendAutomatedQuery,
+        sendMessageToBackend: deps.sendMessageToBackend,
+        registerBackendMessageObserver: deps.registerBackendMessageObserver,
+        log: (...args) => deps.log(...args),
+        warn: (...args) => deps.warn(...args),
+      });
+      vmWorkerRuntime.start();
+      deps.setVmWorkerRuntime(vmWorkerRuntime);
+    }
+  }
+
+  function createChatWindow() {
+    const chatWindow = deps.createChatWindowRuntime({
+      BrowserWindow: deps.BrowserWindow,
+      path: deps.path,
+      app: deps.app,
+      platform: deps.platform,
+      enableDevTransparencyUi: deps.enableDevTransparencyUi,
+      enableDebugStreamTrace: deps.enableDebugStreamTrace,
+      enableDebugToolScreenshot: deps.enableDebugToolScreenshot,
+      positionChatWindow: deps.positionChatWindow,
+      hideChatWindow: deps.hideChatWindow,
+      syncWakewordToggleForChatVisibility: deps.syncWakewordToggleForChatVisibility,
+      externalFocusTracker: deps.externalFocusTracker,
+      setChatWindow: deps.setChatWindow,
+      enableContentProtectionSafely: deps.enableContentProtectionSafely,
+    });
+    deps.setChatWindow(chatWindow);
+    return chatWindow;
+  }
+
+  function createResponseWindow() {
+    const responseWindow = deps.createResponseWindowRuntime({
+      BrowserWindow: deps.BrowserWindow,
+      path: deps.path,
+      app: deps.app,
+      platform: deps.platform,
+      enableDevTransparencyUi: deps.enableDevTransparencyUi,
+      enableDebugStreamTrace: deps.enableDebugStreamTrace,
+      enableDebugToolScreenshot: deps.enableDebugToolScreenshot,
+      enableOsToolGhostDebug: deps.enableOsToolGhostDebug,
+      responseWindowDebugView: deps.responseWindowDebugView,
+      positionResponseWindow: deps.positionResponseWindow,
+      showResponseWindowInactive: deps.showResponseWindowInactive,
+      setResponseOverlayVisible: (nextVisible) => {
+        deps.getState().setResponseOverlayVisible(nextVisible);
+      },
+      setResponseOverlayVisibilityState: deps.setResponseOverlayVisibilityState,
+      syncContextLabelWindowVisibility: deps.syncContextLabelWindowVisibility,
+      setResponseWindow: deps.setResponseWindow,
+      enableContentProtectionSafely: deps.enableContentProtectionSafely,
+    });
+    deps.setResponseWindow(responseWindow);
+    return responseWindow;
+  }
+
+  function createTray() {
+    return deps.createTrayRuntime({
+      Tray: deps.Tray,
+      Menu: deps.Menu,
+      showMainWindow: deps.showMainWindow,
+      app: deps.app,
+    });
+  }
+
+  return {
+    createWindow,
+    createChatWindow,
+    createResponseWindow,
+    createTray,
+  };
+}
+
+module.exports = {
+  createWindowBootstrapRuntime,
+};
