@@ -163,6 +163,125 @@ describe('local_backend_bridge_tool_args', () => {
     });
   });
 
+  test('injects default display bounds into unified computer_use screenshot arguments', () => {
+    const result = resolveToolArgs(
+      'computer_use',
+      {
+        tool: 'screenshot',
+        metadata: {
+          description: 'capture current screen',
+          explanation: 'verify current monitor',
+          expectation: 'single-monitor screenshot',
+        },
+        arguments: {
+          explanation: 'Capture only the active monitor',
+        },
+      },
+      null,
+      console.warn,
+      {
+        displayBounds: {
+          x: 1920,
+          y: 0,
+          width: 2560,
+          height: 1440,
+          monitor_id: '2',
+          desktop_virtual_bounds: {
+            x: 0,
+            y: 0,
+            width: 4480,
+            height: 1440,
+          },
+        },
+      },
+    );
+
+    expect(result).toEqual({
+      tool: 'screenshot',
+      metadata: {
+        description: 'capture current screen',
+        explanation: 'verify current monitor',
+        expectation: 'single-monitor screenshot',
+      },
+      arguments: {
+        explanation: 'Capture only the active monitor',
+        display_bounds: {
+          x: 1920,
+          y: 0,
+          width: 2560,
+          height: 1440,
+          monitor_id: '2',
+          desktop_virtual_bounds: {
+            x: 0,
+            y: 0,
+            width: 4480,
+            height: 1440,
+          },
+        },
+      },
+    });
+  });
+
+  test('preserves explicit nested screenshot display bounds for unified computer_use screenshot arguments', () => {
+    const result = resolveToolArgs(
+      'computer_use',
+      {
+        tool: 'screenshot',
+        metadata: {
+          description: 'capture current screen',
+          explanation: 'verify current monitor',
+          expectation: 'single-monitor screenshot',
+        },
+        arguments: {
+          explanation: 'Capture only the active monitor',
+          display_bounds: {
+            x: 0,
+            y: 0,
+            width: 1920,
+            height: 1080,
+            monitor_id: '1',
+          },
+        },
+      },
+      null,
+      console.warn,
+      {
+        displayBounds: {
+          x: 1920,
+          y: 0,
+          width: 2560,
+          height: 1440,
+          monitor_id: '2',
+          desktop_virtual_bounds: {
+            x: 0,
+            y: 0,
+            width: 4480,
+            height: 1440,
+          },
+        },
+      },
+    );
+
+    expect(result).toEqual({
+      tool: 'screenshot',
+      metadata: {
+        description: 'capture current screen',
+        explanation: 'verify current monitor',
+        expectation: 'single-monitor screenshot',
+      },
+      arguments: {
+        explanation: 'Capture only the active monitor',
+        display_bounds: {
+          x: 0,
+          y: 0,
+          width: 1920,
+          height: 1080,
+          monitor_id: '1',
+        },
+      },
+    });
+  });
+
   test('run_shell_command normalizes non-object args to sudo_auth_mode payload', () => {
     const result = resolveToolArgs(
       'run_shell_command',
