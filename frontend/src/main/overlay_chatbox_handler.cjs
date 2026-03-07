@@ -26,9 +26,9 @@ function handleMoveChatboxTo(
   }
 
   try {
-    setManualChatWindowPosition({ x: nextX, y: nextY });
     chatWindow.setPosition(nextX, nextY, false);
     syncWindowDisplayAffinity(chatWindow);
+    setManualChatWindowPosition({ x: nextX, y: nextY });
     positionResponseWindow();
     positionContextLabelWindow();
     syncContextLabelWindowVisibility();

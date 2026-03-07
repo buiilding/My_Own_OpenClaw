@@ -216,6 +216,50 @@ describe('overlay_window_helpers_runtime', () => {
     expect(chatWindow.setPosition).toHaveBeenNthCalledWith(2, 2100, 120, false);
   });
 
+  test('ignores manually dragged chat window position when monitor affinity changes', () => {
+    const chatWindow = {
+      isDestroyed: jest.fn(() => false),
+      getSize: jest.fn(() => [520, 116]),
+      setPosition: jest.fn(),
+    };
+    let activeDisplayAffinity = {
+      monitor_id: '1',
+      workArea: { x: 0, y: 0, width: 1920, height: 1080 },
+    };
+    const getOverlayChatWindowBounds = jest.fn(({ displayAffinity }) => ({
+      x: displayAffinity?.workArea?.x === 1920 ? 2940 : 1020,
+      y: 900,
+      width: 520,
+      height: 116,
+    }));
+    const runtime = createOverlayWindowHelpersRuntime({
+      screen: {},
+      getActiveDisplayAffinity: () => activeDisplayAffinity,
+      getChatWindow: () => chatWindow,
+      getOverlayChatWindowBounds,
+      getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      contextLabelWidth: 280,
+      contextLabelHeight: 26,
+      contextLabelOffsetX: 14,
+      contextLabelGapAboveChatbox: -6,
+    });
+
+    runtime.positionChatWindow();
+    runtime.setManualChatWindowPosition({ x: 1500, y: 140 });
+    runtime.positionChatWindow();
+    activeDisplayAffinity = {
+      monitor_id: '2',
+      workArea: { x: 1920, y: 0, width: 2560, height: 1440 },
+    };
+    runtime.positionChatWindow();
+
+    expect(chatWindow.setPosition).toHaveBeenNthCalledWith(1, 1020, 900, false);
+    expect(chatWindow.setPosition).toHaveBeenNthCalledWith(2, 1500, 140, false);
+    expect(chatWindow.setPosition).toHaveBeenNthCalledWith(3, 2940, 900, false);
+    expect(getOverlayChatWindowBounds).toHaveBeenCalledTimes(2);
+  });
+
   test('positions chat window on active display affinity when no manual position exists', () => {
     const chatWindow = {
       isDestroyed: jest.fn(() => false),
