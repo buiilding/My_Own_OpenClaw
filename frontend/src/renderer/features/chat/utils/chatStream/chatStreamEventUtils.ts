@@ -25,6 +25,14 @@ type ToolCallPayload = {
   request_id?: string | null;
 };
 
+function normalizeNonEmptyString(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 export function shouldIgnoreStreamError(payload: ErrorPayload | null | undefined): boolean {
   const message = payload?.message;
   const content = payload?.content;
@@ -44,10 +52,11 @@ export function buildScreenshotAttachment(
   screenshotRef: string | null | undefined,
   screenshotUrl?: string | null,
 ) {
-  const normalizedRef = screenshotRef || null;
+  const normalizedRef = normalizeNonEmptyString(screenshotRef);
+  const normalizedUrl = normalizeNonEmptyString(screenshotUrl);
   return {
     screenshotRef: normalizedRef,
-    screenshotUrl: screenshotUrl || (normalizedRef ? buildArtifactUrl(normalizedRef) : null),
+    screenshotUrl: normalizedUrl || (normalizedRef ? buildArtifactUrl(normalizedRef) : null),
   };
 }
 
@@ -56,7 +65,9 @@ export function buildScreenshotAttachments(
   screenshotUrl?: string | null,
 ) {
   const normalizedRefs = Array.isArray(screenshotRefs)
-    ? screenshotRefs.filter((ref): ref is string => typeof ref === 'string' && ref.length > 0)
+    ? screenshotRefs
+      .map((ref) => normalizeNonEmptyString(ref))
+      .filter((ref): ref is string => Boolean(ref))
     : [];
 
   if (normalizedRefs.length === 0) {

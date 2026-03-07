@@ -41,6 +41,11 @@ describe('chatStreamEventUtils', () => {
       screenshotRef: null,
       screenshotUrl: null,
     });
+
+    expect(buildScreenshotAttachment('   ', '   ')).toEqual({
+      screenshotRef: null,
+      screenshotUrl: null,
+    });
   });
 
   test('resolveToolOutputCorrelationId prioritizes request id then metadata then event id', () => {
