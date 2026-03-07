@@ -82,6 +82,12 @@ Screenshot payload shape (`toScreenshotDisplayBounds(...)`):
 - returns synced affinity (or `null` when no visible surface qualifies)
 - keeps precedence consistent with active-surface routing (chat surface preferred over dashboard)
 
+`resolveActiveSurfaceDisplayAffinityForWindows({ BrowserWindow, screen, webContents, getWindows, getActiveDisplayAffinity })`:
+
+- reads `{ chatWindow, mainWindow }` from `getWindows()`
+- delegates to `resolveActiveSurfaceDisplayAffinity(...)` with the same sender/visible/stored precedence
+- used by IPC/local-backend callers to avoid duplicating chat/main window resolution logic
+
 ## Active Query Display-Affinity Lifecycle
 
 Main process stores active query-origin display affinity via:
@@ -102,9 +108,11 @@ Stored state access:
 
 `execute-tool` screenshot calls in `local_backend_bridge.cjs` resolve display bounds in strict order:
 
-1. visible sender-window display affinity (`resolveDisplayAffinityForWebContents(..., requireVisible:true)`)
-2. active query-origin display affinity fallback (`getActiveDisplayAffinity()`)
-3. no display bounds when neither exists
+1. resolve through `resolveActiveSurfaceDisplayAffinityForWindows(...)`
+2. inside that resolver: visible sender surface affinity when sender is chat/main and visible
+3. fallback to visible chat/main surface affinity
+4. fallback to active query-origin display affinity (`getActiveDisplayAffinity()`)
+5. no display bounds when none exist
 
 Resolved affinity is transformed with `toScreenshotDisplayBounds(...)` and provided to
 `resolveToolArgs(..., { displayBounds })`, which injects default `display_bounds` only when

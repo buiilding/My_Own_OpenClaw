@@ -91,6 +91,7 @@ Notable behavior:
 
 - overlay handlers guard for missing/destroyed windows and return structured success/reason payloads
 - chat/response/context windows are repositioned together after move operations, and response resize re-anchors against chat bounds
+- `show-chatbox` target-display selection routes through `resolveActiveSurfaceDisplayAffinityForWindows(...)` (sender + `getWindows()` wrapper) before window-visibility runtime execution
 - `prepare-chatbox-for-screenshot` supports bounded wait/hide/settle orchestration (`waitMs`, `hideChatbox`, `settleMs`) and returns measured timing fields
 - phase-only scope: this registrar no longer owns dashboard window controls or permission channels
 
@@ -108,6 +109,7 @@ Notable behavior:
 Notable behavior:
 
 - `show-main-window` normalizes optional open-target payload and emits `main-window-open-target` to renderer on accepted target
+- `show-main-window` target-display selection routes through `resolveActiveSurfaceDisplayAffinityForWindows(...)` (sender + `getWindows()` wrapper) before window-visibility runtime execution
 - `show-main-window { maximize:true }` restores/minimizes state and maximizes before focusing dashboard window
 - `get-displays` returns mapped inventory rows `{ id, label, isPrimary, bounds, scaleFactor }` produced by `display_query_handler.cjs` (label format: `Display N (WIDTHxHEIGHT)`)
 
@@ -166,8 +168,8 @@ Notable behavior:
   - deep-clone normalization for non-shell payloads
   - screenshot-only `display_bounds` default injection from display-affinity fallback
 - screenshot display-affinity precedence for `execute-tool`:
-  1. visible sender window display affinity (`resolveDisplayAffinityForWebContents(..., requireVisible:true)`)
-  2. previously stored active query display affinity (`getActiveDisplayAffinity()`)
+  1. `resolveActiveSurfaceDisplayAffinityForWindows(...)` resolves sender + visible-surface + stored-affinity selection
+  2. internal precedence: visible sender surface (chat/main) -> visible chat/main surface -> stored active query display affinity
 - screenshot tool results with sidecar temp files are materialized in main process:
   - upload `data.screenshot_path` to backend artifacts API when possible
   - fallback to inline base64 `data.screenshot` on upload failure

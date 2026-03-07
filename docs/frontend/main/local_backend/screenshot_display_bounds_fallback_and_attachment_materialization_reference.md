@@ -32,8 +32,11 @@ This behavior is local-backend bridge specific; non-screenshot tools do not run 
 
 `resolveScreenshotToolDisplayBounds(...)` (`local_backend_bridge_display_bounds.cjs`) resolves fallback bounds with strict precedence:
 
-1. visible sender-window display affinity (`resolveDisplayAffinityForWebContents(..., requireVisible:true)`)
-2. active query display affinity (`getActiveDisplayAffinity()`) when sender affinity is unavailable
+1. call `resolveActiveSurfaceDisplayAffinityForWindows(...)` with:
+  - sender `webContents`
+  - `getWindows()` adapter returning chat/main windows
+  - stored affinity getter fallback
+2. inside that resolver: sender visible surface affinity (when sender is chat/main and visible), then visible chat/main surface affinity, then stored active display affinity
 
 Returned affinity is converted with `toScreenshotDisplayBounds(...)` and includes:
 
