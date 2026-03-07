@@ -16,8 +16,9 @@ title: "Renderer Chat Presentation Docs Hub"
 - [Data-URL Image Parsing and Attachment Payload Contract Reference](data_url_image_parsing_and_attachment_payload_contract_reference.md)
 - [Thinking Display Overflow, Message List Class Assembly, and Stream Token Tracking Reference](thinking_display_overflow_message_list_class_assembly_and_token_count_formatting_reference.md)
 - [Message Action Controls, Source Badge, and Dev-UI Tagging Reference](message_action_controls_source_badge_and_dev_ui_tagging_reference.md)
+- [Latest Visible Assistant Reply Turn-Boundary and Allowed-Type Contract Reference](latest_visible_assistant_reply_turn_boundary_and_allowed_type_contract_reference.md)
 - [Renderer Chat Response-Overlay Presentation Docs Hub](response_overlay/README.md)
-- [Auto-Resized Response Height ResizeObserver and Clamp Contract Reference](response_overlay/auto_resized_response_height_resizeobserver_and_clamp_contract_reference.md)
+- [Fixed Response-Pill Height, Scroll Anchor, and Overlay Visibility Re-Report Contract Reference](response_overlay/fixed_response_pill_height_scroll_and_visibility_rereport_contract_reference.md)
 - [Tool Ghost Cursor Markup and Label A11y Contract Reference](response_overlay/tool_ghost_cursor_markup_and_label_a11y_contract_reference.md)
 
 ## Related Pages
@@ -41,9 +42,8 @@ title: "Renderer Chat Presentation Docs Hub"
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxIcons.jsx`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx`
-- `frontend/src/renderer/features/chat/components/chatbox/chatBoxResponseUtils.js`
+- `frontend/src/renderer/features/chat/utils/message/latestVisibleAssistantReply.js`
 - `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
-- `frontend/src/renderer/features/chat/hooks/useAutoResizedResponseHeight.js`
 - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
 - `frontend/src/renderer/features/chat/utils/message/messageInput.js`
 - `frontend/src/renderer/features/chat/utils/dataUrlImageUtils.js`

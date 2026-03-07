@@ -14,7 +14,7 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxIcons.jsx`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx`
-- `frontend/src/renderer/features/chat/components/chatbox/chatBoxResponseUtils.js`
+- `frontend/src/renderer/features/chat/utils/message/latestVisibleAssistantReply.js`
 - `frontend/src/renderer/features/chat/hooks/useChatBoxBindings.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`
@@ -31,10 +31,13 @@ Chatbox support modules moved under `components/chatbox/`:
 
 - icon render-only exports (`ChatBoxIcons.jsx`)
 - preview-row render-only component (`ChatBoxImagePreviewRow.jsx`)
-- response message selection helpers (`chatBoxResponseUtils.js`)
 
 `ChatBox.jsx` and `ChatBoxResponse.jsx` stay as orchestration components; presentational helpers are
 kept side-by-side in the `chatbox/` subfolder.
+
+Response-message selection helper ownership moved to shared chat utils:
+
+- `frontend/src/renderer/features/chat/utils/message/latestVisibleAssistantReply.js`
 
 ## `ChatBox` Runtime Contract
 
@@ -89,7 +92,7 @@ No renderer-driven `set-chatbox-size` resizing occurs in this component.
 
 - candidate response types are restricted to `llm-text` and `error`
 - latest assistant response is selected only from messages after the latest user message
-  (`findLatestMessageAfterUser(...)`)
+  (`findLatestVisibleAssistantReply(...)`)
 - dismissed response ids are tracked in `closedResponseId`
 
 Closeability:
@@ -150,6 +153,7 @@ Closeability:
 
 - [Renderer Chat Presentation Docs Hub](README.md)
 - [Frontend Renderer Chat Docs Hub](../README.md)
+- [Latest Visible Assistant Reply Turn-Boundary and Allowed-Type Contract Reference](latest_visible_assistant_reply_turn_boundary_and_allowed_type_contract_reference.md)
 - [Chatbox Overlay Input, Drag, and Click-Through Reference](../../overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md)
 - [Response Overlay Phase and Tool-Ghost Runtime Reference](../../overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
 - [Response Overlay Utility Contract Reference](../../overlays/response_overlay_phase_contract_payload_layout_and_frame_utilities_reference.md)
