@@ -1,3 +1,4 @@
+import asyncio
 from types import SimpleNamespace
 
 import pytest
@@ -659,4 +660,73 @@ async def test_execute_ignores_post_error_events_and_skips_fallback_completion()
         "streaming-response",
         "error",
     ]
+    assert not any(isinstance(event, StreamingCompleteEvent) for event, _ in observed_events)
+
+
+@pytest.mark.asyncio
+async def test_execute_re_raises_cancellation_and_reconciles_pending_tool_calls():
+    observed_events = []
+
+    class _Pipeline:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        async def process(self, event, _tts_service, _msg_id, context):
+            observed_events.append((event, context))
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    class _TtsManager:
+        async def initialize_if_enabled(self, _config):
+            return None
+
+        async def cleanup(self, _service, _task):
+            return None
+
+    class _History:
+        def __init__(self):
+            self.cancel_finalize_calls = 0
+
+        def finalize_pending_tool_calls_as_cancelled(self):
+            self.cancel_finalize_calls += 1
+            return 1
+
+    class _Agent:
+        user_id = "user-1"
+        session_id = "session-1"
+        cfg = SimpleNamespace()
+
+        def __init__(self):
+            self.history = _History()
+
+        async def process_query(self, *_args, **_kwargs):
+            yield {"type": "streaming-response", "payload": {"text": "hello "}}
+            raise asyncio.CancelledError()
+
+    class _SessionManager:
+        def __init__(self):
+            self.config = SimpleNamespace()
+            self.agent = _Agent()
+
+        async def get_or_create_session(self, _user_id):
+            return self.agent
+
+    session_manager = _SessionManager()
+    service = QueryExecutionService(
+        session_manager,
+        tts_manager=_TtsManager(),
+        response_formatter=object(),
+    )
+
+    with pytest.raises(asyncio.CancelledError):
+        await service.execute(
+            _build_message(),
+            websocket=object(),
+            user_id="user-1",
+            pipeline_cls=_Pipeline,
+        )
+
+    assert session_manager.agent.history.cancel_finalize_calls == 1
+    assert [event["type"] for event, _ in observed_events] == ["streaming-response"]
     assert not any(isinstance(event, StreamingCompleteEvent) for event, _ in observed_events)
