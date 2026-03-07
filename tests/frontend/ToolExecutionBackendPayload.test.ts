@@ -73,6 +73,79 @@ describe('ToolExecutionBackendPayload', () => {
     });
   });
 
+  test('buildToolResultBackendEnvelope prefers explicit screenshotRef over inline screenshot candidates', () => {
+    const envelope = buildToolResultBackendEnvelope({
+      correlationId: 'req-precedence',
+      result: {
+        success: true,
+        data: {
+          output: 'done',
+          screenshot: 'inline-from-sidecar',
+          screenshot_ref: 'sidecar-ref',
+        },
+      },
+      formattedMessage: 'formatted',
+      includeScreenshot: true,
+      screenshot: 'inline-explicit',
+      screenshotRef: 'artifact-explicit',
+    });
+
+    expect(envelope).toEqual({
+      type: 'tool-result',
+      payload: {
+        request_id: 'req-precedence',
+        success: true,
+        error: undefined,
+        data: {
+          output: 'done',
+          llm_content: 'formatted',
+          screenshot_ref: 'artifact-explicit',
+        },
+      },
+    });
+  });
+
+  test('buildToolResultBackendEnvelope normalizes fallback camelCase system_state fields from tool payload', () => {
+    const envelope = buildToolResultBackendEnvelope({
+      correlationId: 'req-system-fallback',
+      result: {
+        success: true,
+        data: {
+          output: 'done',
+          system_state: {
+            activeWindow: 'Browser',
+            mousePosition: '(10,20)',
+            screenResolution: '2560x1440',
+          },
+        },
+      },
+      formattedMessage: 'formatted',
+      includeSystemState: true,
+    });
+
+    expect(envelope).toEqual({
+      type: 'tool-result',
+      payload: {
+        request_id: 'req-system-fallback',
+        success: true,
+        error: undefined,
+        data: {
+          output: 'done',
+          llm_content: 'formatted',
+          system_state: {
+            active_window: 'Browser',
+            mouse_position: '(10,20)',
+          },
+          system_state_internal: {
+            active_window: 'Browser',
+            mouse_position: '(10,20)',
+            screen_resolution: '2560x1440',
+          },
+        },
+      },
+    });
+  });
+
   test('buildToolBundleBackendEnvelope omits optional screenshot/system fields when not requested', () => {
     const envelope = buildToolBundleBackendEnvelope({
       bundleId: 'bundle-1',

@@ -601,10 +601,10 @@ async def test_execute_system_use_routes_to_selected_subtool():
         "system_use",
         {
             "tool": "run_shell_command",
+            "explanation": "verify route",
             "arguments": {
                 "command": "echo hi",
                 "run_in_background": False,
-                "explanation": "verify route",
             },
         },
     )
@@ -634,11 +634,11 @@ async def test_execute_system_use_routes_replace_to_replace():
         "system_use",
         {
             "tool": "replace",
+            "explanation": "patch",
             "arguments": {
                 "file_path": "/tmp/a.txt",
                 "old_string": "x",
                 "new_string": "y",
-                "explanation": "patch",
             },
         },
     )
@@ -652,6 +652,67 @@ async def test_execute_system_use_routes_replace_to_replace():
         "new_string": "y",
         "explanation": "patch",
     }
+
+
+@pytest.mark.asyncio
+async def test_execute_system_use_supports_nested_explanation_fallback():
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def replace_tool(args):
+        captured["called"] = True
+        captured["args"] = args
+        return ToolResult.success_result({"ok": True, "tool": "replace"})
+
+    registry.tools["replace"] = replace_tool
+
+    result = await registry.execute_tool(
+        "system_use",
+        {
+            "tool": "replace",
+            "arguments": {
+                "file_path": "/tmp/a.txt",
+                "old_string": "x",
+                "new_string": "y",
+                "explanation": "legacy nested",
+            },
+        },
+    )
+
+    assert result.success is True
+    assert captured["called"] is True
+    assert captured["args"]["explanation"] == "legacy nested"
+
+
+@pytest.mark.asyncio
+async def test_execute_system_use_prefers_top_level_explanation_over_nested_fallback():
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def replace_tool(args):
+        captured["called"] = True
+        captured["args"] = args
+        return ToolResult.success_result({"ok": True, "tool": "replace"})
+
+    registry.tools["replace"] = replace_tool
+
+    result = await registry.execute_tool(
+        "system_use",
+        {
+            "tool": "replace",
+            "explanation": "canonical top-level",
+            "arguments": {
+                "file_path": "/tmp/a.txt",
+                "old_string": "x",
+                "new_string": "y",
+                "explanation": "legacy nested",
+            },
+        },
+    )
+
+    assert result.success is True
+    assert captured["called"] is True
+    assert captured["args"]["explanation"] == "canonical top-level"
 
 
 @pytest.mark.asyncio
@@ -705,11 +766,11 @@ async def test_execute_system_use_prevents_subtool_argument_mutation_from_leakin
     registry.tools["replace"] = replace_tool
     envelope = {
         "tool": "replace",
+        "explanation": "patch",
         "arguments": {
             "file_path": "/tmp/original.txt",
             "old_string": "x",
             "new_string": "y",
-            "explanation": "patch",
             "nested": {"marker": "original"},
         },
     }
@@ -725,7 +786,6 @@ async def test_execute_system_use_prevents_subtool_argument_mutation_from_leakin
         "file_path": "/tmp/original.txt",
         "old_string": "x",
         "new_string": "y",
-        "explanation": "patch",
         "nested": {"marker": "original"},
     }
 
