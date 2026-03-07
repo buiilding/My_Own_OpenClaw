@@ -230,7 +230,12 @@ Behavior difference:
 - constructs `RemoteToolResult` directly
 - overrides `get_json_schema(...)` to project a model-facing action/property subset:
   - excludes removed aliases and browser file-edit actions from action enum
+  - projected action enum keeps canonical runtime + helper actions and excludes:
+    - removed aliases: `type`, `open`, `switch_tab`, `press`, `act`
+    - file-edit actions: `write_file`, `replace_file`, `read_file`
   - removes selected compatibility/camelCase and legacy file-edit fields from declaration properties
+    - compatibility/camelCase: `timeoutMs`, `promptText`, `colorScheme`, `targetId`, `targetUrl`, `inputRef`, `snapshotFormat`
+    - legacy file-edit payload keys: `content`, `append`, `trailing_newline`, `leading_newline`, `old_str`, `new_str`
 - uses `args.model_dump(exclude_defaults=True, exclude_none=True)`
 - this omits unset/default fields and reduces payload size
 

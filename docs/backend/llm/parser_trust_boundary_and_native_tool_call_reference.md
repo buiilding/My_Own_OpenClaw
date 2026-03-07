@@ -109,6 +109,7 @@ Unified system-use normalization behavior:
 - resolves explanation with precedence:
   - top-level unified `explanation`
   - fallback nested `arguments.explanation` (legacy compatibility)
+- trims resolved explanation text; whitespace-only values are treated as missing
 - injects resolved explanation into concrete tool parameters
 - rejects unknown unified subtools and non-dict `arguments`
 

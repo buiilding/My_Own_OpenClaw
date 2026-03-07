@@ -116,6 +116,7 @@ When normalized name is `system_use`:
 - resolved rationale uses wrapper explanation precedence:
   - first `system_use.explanation` (top-level wrapper field)
   - fallback to nested `system_use.arguments.explanation` (legacy compatibility)
+  - resolved text is trim-normalized; whitespace-only values are ignored
   - when resolved, explanation is injected into concrete tool parameters
 - invalid mapped names are left as `system_use` so downstream wrapper validation can return a deterministic tool error message
 
