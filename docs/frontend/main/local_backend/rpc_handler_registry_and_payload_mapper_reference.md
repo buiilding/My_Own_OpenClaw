@@ -11,10 +11,13 @@ title: "Local-Backend RPC Handler Registry and Payload-Mapper Reference"
 ## Canonical Modules
 
 - `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/local_backend_bridge_display_bounds.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs`
 - `frontend/src/main/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/local_backend_bridge_window_visibility.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs`
 - `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`
 
 ## Handler Registration Topology
@@ -81,7 +84,7 @@ Timeout tiers:
 
 Special wrapper:
 
-- `screenshot` on Linux runs inside `withHiddenWindowForScreenshot(...)`
+- `screenshot` runs inside `withHiddenWindowForScreenshot(...)` (platform runtime may no-op or apply hide/show guards)
 
 Response normalization:
 
@@ -185,4 +188,5 @@ From `tests/frontend/LocalBackendBridge.rpc.test.cjs`:
 - [Frontend Main Local-Backend Docs Hub](README.md)
 - [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md)
 - [Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference](tool_arg_sudo_auth_mode_resolution_and_config_guard_contract_reference.md)
+- [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)
 - [Main-Process IPC Handler Ownership and RPC Mapper Reference](../../contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)

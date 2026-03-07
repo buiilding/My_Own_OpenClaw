@@ -14,9 +14,11 @@ title: "Display-Affinity Monitor Selection and Screenshot Bounds Reference"
 - `frontend/src/main/display_affinity_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/local_backend_bridge_display_bounds.cjs`
 - `frontend/src/main/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `tests/frontend/DisplayAffinityRuntime.test.cjs`
+- `tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 
 ## Display-Affinity Shape
@@ -117,3 +119,4 @@ When no target affinity is provided:
 - [Main Process Lifecycle, Overlay IPC, and Window Visibility Runtime Reference](main_process_lifecycle_overlay_ipc_and_window_visibility_runtime_reference.md)
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference](local_backend/tool_arg_sudo_auth_mode_resolution_and_config_guard_contract_reference.md)
+- [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](local_backend/screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)
