@@ -68,6 +68,18 @@ Owns only phase-driven overlay shell channels:
 - `set-responsebox-size`
 - `show-chatbox`
 - `hide-chatbox`
+- `prepare-chatbox-for-screenshot`
+
+`prepare-chatbox-for-screenshot` semantics (`overlay_visibility_handler.cjs`):
+
+- optional `waitMs` pre-delay before capture prep (default `0`)
+- optional `settleMs` post-hide compositor settle delay (default `120`)
+- optional `hideChatbox` flag (default `true`)
+- returns timing diagnostics:
+  - `waitTime`
+  - `hideInvokeTime`
+  - `settleTime`
+- fail-closes when hide step fails (`hideResult.success === false`)
 
 ### `window_controls_ipc_runtime.cjs`
 
@@ -109,9 +121,11 @@ Loop interactivity and query-capture focus prep are now internal main-process be
 
 Behavior:
 
+- captures previous external focused window snapshot before transition when tracker is available
 - hide main window if visible
 - show/focus chat window
 - optionally restore response overlay if active stream/visible flag says so
+- non-focusing restores (`focus=false`) do not auto-restore response overlay even when stream phase is active
 - emit chatbox focus event
 - sync wakeword toggle and context-label visibility
 
@@ -128,6 +142,10 @@ Behavior:
 Behavior:
 
 - hide chat overlay when visible
+- optional display-targeted placement (`targetDisplayAffinity`) before show/focus:
+  - centered in target display work area for normal open
+  - fit to target display work area when `maximize=true`
+  - if currently maximized, unmaximize before display-targeted placement
 - show main window
 - optional maximize flow (`restore` + `maximize`)
 - optional focus
@@ -143,6 +161,7 @@ Behavior:
 ## Related Pages
 
 - [Frontend Main Docs Hub](README.md)
+- [Display-Affinity Monitor Selection and Screenshot Bounds Reference](display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md)
 - [Window and Overlay Lifecycle](window_and_overlay_lifecycle.md)
 - [Main Window Runtime Factory and Overlay Bootstrap Reference](main_window_runtime_factory_and_overlay_bootstrap_reference.md)
 - [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md)

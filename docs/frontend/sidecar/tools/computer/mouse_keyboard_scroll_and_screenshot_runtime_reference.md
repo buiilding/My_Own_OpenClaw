@@ -141,23 +141,50 @@ Diagnostics:
 Capture behavior:
 
 - full desktop screenshot by default
-- optional region capture through `display_bounds` (`x`, `y`, `width`, `height`)
-- numeric bounds accept ints/floats and are cast to ints
+- optional region/monitor capture through `display_bounds`:
+  - required region keys: `x`, `y`, `width`, `height`
+  - optional `monitor_id`
+  - optional `desktop_virtual_bounds` (`x`, `y`, `width`, `height`) for multi-monitor virtual desktop crop normalization
+- numeric bounds accept ints/floats and are cast to ints (invalid/non-positive bounds are ignored)
 
-Encoding behavior:
+Capture backend strategy:
+
+- preferred native/system cursor-aware backend per OS when available
+  - Windows: Win32 GDI + `DrawIconEx` cursor rendering
+  - Linux:
+    - X11 session: intentionally skips `gnome-screenshot`/`scrot` to avoid flash/shutter side-effects; uses silent fallback then XFixes cursor overlay
+    - non-X11 path may use `scrot`/`gnome-screenshot` include-pointer capture
+  - macOS: avoids `screencapture` side-effects and overlays cursor bitmap via AppKit (`NSCursor`)
+- fallback path uses `pyautogui.screenshot(...)`
+- if region + `desktop_virtual_bounds` are provided, sidecar captures the full virtual desktop first and crops to target monitor region safely (bounds-checked)
+
+Encoding/storage behavior:
 
 - image forced to RGB for JPEG compatibility
 - JPEG settings:
   - `quality=85`
   - `optimize=False`
   - `progressive=False`
-- output is base64-encoded JPEG string
+- writes JPEG bytes to a temporary file and returns path metadata (not inline base64 at sidecar boundary)
 
 Payload shape:
 
+- `screenshot_path` (temporary local file path)
+- `screenshot_content_type: "image/jpeg"`
 - `compression: "jpeg"`
-- `size` is estimated binary byte size from base64 length (`int(len(base64)*0.75)`)
+- `size` is real JPEG byte length
+- `capture_meta` fields:
+  - `source_w`, `source_h`
+  - `crop_x`, `crop_y`, `crop_w`, `crop_h`
+  - `desktop_virtual_bounds` (`x`, `y`, `width`, `height`)
+  - `monitor_id`
+  - `timestamp` (ms)
+  - `capture_backend` (backend label chain such as `pyautogui_fallback+linux_xfixes_cursor`)
 - `llm_content` and `return_display` are short success text
+
+Cross-layer note:
+
+- Electron main materializes `screenshot_path` into artifact refs (`screenshot_ref`/`screenshot_url`) when upload succeeds, with inline base64 fallback when upload fails; temporary file is deleted in both paths.
 
 ## Schema Notes vs Runtime Enforcement
 

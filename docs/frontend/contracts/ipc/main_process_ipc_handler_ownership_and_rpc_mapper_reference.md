@@ -80,6 +80,7 @@ Notable behavior:
 - `set-responsebox-size`
 - `show-chatbox`
 - `hide-chatbox`
+- `prepare-chatbox-for-screenshot`
 
 `ipcMain.on`:
 
@@ -89,6 +90,7 @@ Notable behavior:
 
 - overlay handlers guard for missing/destroyed windows and return structured success/reason payloads
 - chat/response/context windows are repositioned together after move operations, and response resize re-anchors against chat bounds
+- `prepare-chatbox-for-screenshot` supports bounded wait/hide/settle orchestration (`waitMs`, `hideChatbox`, `settleMs`) and returns measured timing fields
 - phase-only scope: this registrar no longer owns dashboard window controls or permission channels
 
 ### `window_controls_ipc_runtime.cjs` (invoked from `index.cjs`)
@@ -156,7 +158,17 @@ Mapped `ipcMain.handle` registrations via `registerMappedRpcHandlers(...)`:
 Notable behavior:
 
 - `execute-tool` sets extended timeout for `browser` tool (120s vs default 30s)
-- `execute-tool` args are normalized by `resolveToolArgs(...)` before JSON-RPC dispatch, including `run_shell_command` `sudo_auth_mode` derivation from frontend config (`native` vs `os_prompt`)
+- `execute-tool` args are normalized by `resolveToolArgs(...)` before JSON-RPC dispatch, including:
+  - `run_shell_command` `sudo_auth_mode` derivation from frontend config (`native` vs `os_prompt`)
+  - deep-clone normalization for non-shell payloads
+  - screenshot-only `display_bounds` default injection from display-affinity fallback
+- screenshot display-affinity precedence for `execute-tool`:
+  1. visible sender window display affinity (`resolveDisplayAffinityForWebContents(..., requireVisible:true)`)
+  2. previously stored active query display affinity (`getActiveDisplayAffinity()`)
+- screenshot tool results with sidecar temp files are materialized in main process:
+  - upload `data.screenshot_path` to backend artifacts API when possible
+  - fallback to inline base64 `data.screenshot` on upload failure
+  - always delete temporary screenshot file and drop `screenshot_path` from returned payload
 - `screenshot` tool path uses hidden-window guard wrapper
 - all mapped handlers call `sendRequestOrError(...)` and return normalized error payloads
 
@@ -217,5 +229,6 @@ If sidecar memory operations return wrong filters:
 - [Frontend Contracts IPC Docs Hub](README.md)
 - [Preload Allowlist and Channel-Constant Parity Reference](preload_allowlist_and_channel_constant_parity_reference.md)
 - [IPC Channel and Handler Reference](../ipc_channel_and_handler_reference.md)
+- [Display-Affinity Monitor Selection and Screenshot Bounds Reference](../../main/display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md)
 - [Display Query Handler Display Inventory Payload Contract Reference](../../main/display_query_handler_display_inventory_payload_contract_reference.md)
 - [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](../../main/agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)

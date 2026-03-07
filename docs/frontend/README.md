@@ -39,6 +39,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Window and Overlay Lifecycle](main/window_and_overlay_lifecycle.md)
 - [Main Window Runtime Factory and Overlay Bootstrap Reference](main/main_window_runtime_factory_and_overlay_bootstrap_reference.md)
 - [Main Process Lifecycle, Overlay IPC, and Window Visibility Runtime Reference](main/main_process_lifecycle_overlay_ipc_and_window_visibility_runtime_reference.md)
+- [Display-Affinity Monitor Selection and Screenshot Bounds Reference](main/display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md)
 - [Context Label Overlay and Active-Window Runtime Reference](main/context_label_overlay_and_active_window_runtime_reference.md)
 - [Display Query Handler Display Inventory Payload Contract Reference](main/display_query_handler_display_inventory_payload_contract_reference.md)
 - [Runtime Paths and Endpoints](main/runtime_paths_and_endpoints.md)
