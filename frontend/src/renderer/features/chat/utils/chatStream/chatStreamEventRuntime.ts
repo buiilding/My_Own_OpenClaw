@@ -83,6 +83,8 @@ export function shouldIgnoreForStaleTurn(
   // Keep first packets of the next turn when UI has already entered "sending" but
   // stream-tracking still points at a completed previous turn.
   if (isPendingNextTurnAfterTerminalPhase) {
+    const lastMessage = workspace.messages[workspace.messages.length - 1];
+    const isPendingOptimisticUserTurn = lastMessage?.sender === 'user';
     // Idle+isSending is used by the sending renderer before local-user-message
     // replays back through main. Once metadata or chunks have re-anchored the
     // workspace to the current turn, same-turn packets must continue through.
@@ -90,7 +92,7 @@ export function shouldIgnoreForStaleTurn(
       return false;
     }
     if (normalizedActiveTurnRef && eventTurnRef === normalizedActiveTurnRef) {
-      return true;
+      return !isPendingOptimisticUserTurn;
     }
     return false;
   }
