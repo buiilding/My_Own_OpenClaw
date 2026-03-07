@@ -90,6 +90,33 @@ describe('display_affinity_runtime', () => {
     expect(targetWindow.getBounds).not.toHaveBeenCalled();
   });
 
+  test('returns null for destroyed sender windows when visible sender is required', () => {
+    const screen = {
+      getPrimaryDisplay: jest.fn(() => ({
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      })),
+    };
+    const targetWindow = {
+      isDestroyed: jest.fn(() => true),
+      isVisible: jest.fn(),
+      getBounds: jest.fn(),
+    };
+    const BrowserWindow = {
+      fromWebContents: jest.fn(() => targetWindow),
+    };
+
+    expect(resolveDisplayAffinityForWebContents({
+      BrowserWindow,
+      screen,
+      webContents: {},
+      requireVisible: true,
+    })).toBeNull();
+    expect(targetWindow.isVisible).not.toHaveBeenCalled();
+    expect(targetWindow.getBounds).not.toHaveBeenCalled();
+  });
+
   test('centers a window inside the target display work area', () => {
     const targetWindow = {
       getSize: jest.fn(() => [1000, 700]),
@@ -372,5 +399,33 @@ describe('display_affinity_runtime', () => {
       workArea: { x: 2560, y: 0, width: 1600, height: 860 },
       desktopVirtualBounds: { x: 0, y: 0, width: 4160, height: 1080 },
     });
+  });
+
+  test('falls back to stored affinity when a chat surface candidate is destroyed', () => {
+    const chatWindow = { id: 'chat' };
+    const resolveDisplayAffinityForWindow = jest.fn((_screen, targetWindow) => {
+      if (targetWindow === chatWindow) {
+        return null;
+      }
+      return null;
+    });
+    const storedAffinity = {
+      monitor_id: '5',
+      bounds: { x: -1600, y: 0, width: 1600, height: 900 },
+      workArea: { x: -1600, y: 0, width: 1600, height: 860 },
+      desktopVirtualBounds: { x: -1600, y: 0, width: 6080, height: 1440 },
+    };
+
+    const result = resolveActiveSurfaceDisplayAffinity({
+      BrowserWindow: {},
+      screen: {},
+      webContents: null,
+      chatWindow,
+      mainWindow: null,
+      resolveDisplayAffinityForWindow,
+      getActiveDisplayAffinity: jest.fn(() => storedAffinity),
+    });
+
+    expect(result).toEqual(storedAffinity);
   });
 });
