@@ -11,6 +11,7 @@ describe('overlay_chatbox_handler move runtime', () => {
         isDestroyed: jest.fn().mockReturnValue(false),
         setPosition: jest.fn(),
       },
+      setManualChatWindowPosition: jest.fn(() => true),
       positionResponseWindow: jest.fn(),
       positionContextLabelWindow: jest.fn(),
       syncContextLabelWindowVisibility: jest.fn(),
@@ -24,6 +25,7 @@ describe('overlay_chatbox_handler move runtime', () => {
 
     handleMoveChatboxTo({ x: 100.8, y: 50.2 }, deps);
 
+    expect(deps.setManualChatWindowPosition).toHaveBeenCalledWith({ x: 101, y: 50 });
     expect(deps.chatWindow.setPosition).toHaveBeenCalledWith(101, 50, false);
     expect(deps.positionResponseWindow).toHaveBeenCalledTimes(1);
     expect(deps.positionContextLabelWindow).toHaveBeenCalledTimes(1);

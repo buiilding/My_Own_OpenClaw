@@ -23,7 +23,44 @@ function normalizeBounds(bounds) {
   };
 }
 
-function createDisplayAffinity(display) {
+function resolveDesktopVirtualBounds(screen) {
+  if (!screen || typeof screen.getAllDisplays !== 'function') {
+    return null;
+  }
+  const displays = screen.getAllDisplays();
+  if (!Array.isArray(displays) || displays.length === 0) {
+    return null;
+  }
+
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  for (const display of displays) {
+    const bounds = normalizeBounds(display?.bounds);
+    if (!bounds) {
+      continue;
+    }
+    minX = Math.min(minX, bounds.x);
+    minY = Math.min(minY, bounds.y);
+    maxX = Math.max(maxX, bounds.x + bounds.width);
+    maxY = Math.max(maxY, bounds.y + bounds.height);
+  }
+
+  if (!Number.isFinite(minX) || !Number.isFinite(minY) || !Number.isFinite(maxX) || !Number.isFinite(maxY)) {
+    return null;
+  }
+
+  return {
+    x: minX,
+    y: minY,
+    width: Math.max(1, maxX - minX),
+    height: Math.max(1, maxY - minY),
+  };
+}
+
+function createDisplayAffinity(display, options = {}) {
   if (!display || typeof display !== 'object') {
     return null;
   }
@@ -32,11 +69,13 @@ function createDisplayAffinity(display) {
     return null;
   }
   const workArea = normalizeBounds(display.workArea) || bounds;
+  const desktopVirtualBounds = normalizeBounds(options.desktopVirtualBounds);
   const displayId = display.id;
   return {
     monitor_id: displayId === undefined || displayId === null ? null : String(displayId),
     bounds,
     workArea,
+    desktopVirtualBounds,
   };
 }
 
@@ -44,7 +83,10 @@ function resolvePrimaryDisplayAffinity(screen) {
   if (!screen || typeof screen.getPrimaryDisplay !== 'function') {
     return null;
   }
-  return createDisplayAffinity(screen.getPrimaryDisplay());
+  return createDisplayAffinity(
+    screen.getPrimaryDisplay(),
+    { desktopVirtualBounds: resolveDesktopVirtualBounds(screen) },
+  );
 }
 
 function resolveDisplayAffinityForBounds(screen, bounds) {
@@ -52,7 +94,10 @@ function resolveDisplayAffinityForBounds(screen, bounds) {
     return resolvePrimaryDisplayAffinity(screen);
   }
   return (
-    createDisplayAffinity(screen.getDisplayMatching(bounds))
+    createDisplayAffinity(
+      screen.getDisplayMatching(bounds),
+      { desktopVirtualBounds: resolveDesktopVirtualBounds(screen) },
+    )
     || resolvePrimaryDisplayAffinity(screen)
   );
 }
@@ -90,10 +135,14 @@ function toScreenshotDisplayBounds(displayAffinity) {
   if (!displayAffinity || typeof displayAffinity !== 'object' || !displayAffinity.bounds) {
     return null;
   }
-  return {
+  const normalized = {
     ...displayAffinity.bounds,
     monitor_id: displayAffinity.monitor_id,
   };
+  if (displayAffinity.desktopVirtualBounds) {
+    normalized.desktop_virtual_bounds = { ...displayAffinity.desktopVirtualBounds };
+  }
+  return normalized;
 }
 
 function centerWindowOnDisplayWorkArea(targetWindow, displayAffinity) {
@@ -135,6 +184,23 @@ function centerWindowOnDisplayWorkArea(targetWindow, displayAffinity) {
   return true;
 }
 
+function fitWindowToDisplayWorkArea(targetWindow, displayAffinity) {
+  if (
+    !targetWindow
+    || typeof targetWindow !== 'object'
+    || !displayAffinity
+    || typeof targetWindow.setBounds !== 'function'
+  ) {
+    return false;
+  }
+  const workArea = normalizeBounds(displayAffinity.workArea) || normalizeBounds(displayAffinity.bounds);
+  if (!workArea) {
+    return false;
+  }
+  targetWindow.setBounds(workArea, false);
+  return true;
+}
+
 let activeDisplayAffinity = null;
 
 function setActiveDisplayAffinity(displayAffinity) {
@@ -142,6 +208,9 @@ function setActiveDisplayAffinity(displayAffinity) {
     monitor_id: displayAffinity.monitor_id ?? null,
     bounds: displayAffinity.bounds ? { ...displayAffinity.bounds } : null,
     workArea: displayAffinity.workArea ? { ...displayAffinity.workArea } : null,
+    desktopVirtualBounds: displayAffinity.desktopVirtualBounds
+      ? { ...displayAffinity.desktopVirtualBounds }
+      : null,
   } : null;
 }
 
@@ -150,13 +219,18 @@ function getActiveDisplayAffinity() {
     monitor_id: activeDisplayAffinity.monitor_id,
     bounds: activeDisplayAffinity.bounds ? { ...activeDisplayAffinity.bounds } : null,
     workArea: activeDisplayAffinity.workArea ? { ...activeDisplayAffinity.workArea } : null,
+    desktopVirtualBounds: activeDisplayAffinity.desktopVirtualBounds
+      ? { ...activeDisplayAffinity.desktopVirtualBounds }
+      : null,
   } : null;
 }
 
 module.exports = {
   centerWindowOnDisplayWorkArea,
   createDisplayAffinity,
+  fitWindowToDisplayWorkArea,
   getActiveDisplayAffinity,
+  resolveDesktopVirtualBounds,
   resolveDisplayAffinityForBounds,
   resolveDisplayAffinityForWebContents,
   resolveDisplayAffinityForWindow,

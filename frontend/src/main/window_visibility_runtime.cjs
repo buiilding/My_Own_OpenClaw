@@ -1,5 +1,6 @@
 const {
   centerWindowOnDisplayWorkArea,
+  fitWindowToDisplayWorkArea,
 } = require('./display_affinity_runtime.cjs');
 
 function showChatWindow(options = {}, deps = {}) {
@@ -117,12 +118,16 @@ function showMainWindow(options = {}, deps = {}) {
     if (typeof mainWindow.isMaximized === 'function' && mainWindow.isMaximized()) {
       mainWindow.unmaximize();
     }
-    centerWindowOnDisplayWorkArea(mainWindow, targetDisplayAffinity);
+    if (maximize) {
+      fitWindowToDisplayWorkArea(mainWindow, targetDisplayAffinity);
+    } else {
+      centerWindowOnDisplayWorkArea(mainWindow, targetDisplayAffinity);
+    }
   }
   if (!mainWindow.isVisible()) {
     mainWindow.show();
   }
-  if (maximize) {
+  if (maximize && !targetDisplayAffinity) {
     if (mainWindow.isMinimized()) {
       mainWindow.restore();
     }

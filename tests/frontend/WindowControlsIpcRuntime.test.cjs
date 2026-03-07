@@ -40,6 +40,18 @@ describe('window_controls_ipc_runtime', () => {
     const normalizeMainWindowOpenTarget = jest.fn(() => 'settings');
     const emitMainWindowOpenTarget = jest.fn();
     const screen = {
+      getAllDisplays: jest.fn(() => ([
+        {
+          id: 1,
+          bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+          workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+        },
+        {
+          id: 2,
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        },
+      ])),
       getDisplayMatching: jest.fn(() => ({
         id: 2,
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
@@ -68,6 +80,7 @@ describe('window_controls_ipc_runtime', () => {
         monitor_id: '2',
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
         workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
       },
     });
     expect(normalizeMainWindowOpenTarget).toHaveBeenCalledWith({ open: 'settings' });

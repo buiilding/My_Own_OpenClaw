@@ -73,7 +73,7 @@ frontend/src/
 4. Main `ipc.cjs`:
    - Ensures one-time initial settings sync ACK gate.
    - Runs overlay pre-capture focus handoff for chatbox-surface sends.
-   - Resolves sender-window display affinity in main and stores it for follow-on tool screenshots when the dashboard renderer is hidden.
+   - Resolves sender-window display affinity in main (including virtual desktop bounds) and stores it for follow-on tool screenshots when the dashboard renderer is hidden.
    - Emits local synthetic `local-user-message` event to renderer immediately.
    - Calls `buildQueryPayloadContent()` to inject system-context + memory sections.
    - Sends normalized `query` over backend WebSocket.
@@ -126,6 +126,7 @@ Primary modules:
   - Delegates lifecycle boot/activate/quit wiring to `main_process_lifecycle_runtime.cjs`.
   - Delegates split IPC handler registration to `overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, and `permission_ipc_runtime.cjs`.
   - Delegates visibility and overlay positioning helpers to `window_visibility_runtime.cjs`, `overlay_window_helpers_runtime.cjs`, and `overlay_signal_runtime.cjs`.
+  - Preserves sender-display affinity through composition when chat surfaces open the dashboard.
 - `main/main_window_runtime.cjs`:
   - Resolves canonical app icon from `src/main/assets/icons/windieos.app.png` for BrowserWindow and tray runtime wiring.
 - `main/ipc.cjs`:
@@ -139,7 +140,12 @@ Primary modules:
   - JSON-RPC request correlation and timeout handling.
   - Tool execution handlers, system-state/memory RPC handlers.
   - Screenshot monitor resolution: visible sender-window display wins; otherwise screenshot tools fall back to the active query display affinity stored by `ipc.cjs`.
+  - Screenshot args include virtual desktop bounds so sidecar screenshot capture can crop one monitor out of an all-displays capture deterministically.
   - Screenshot execution wrapper delegates to `main/local_backend_bridge_window_visibility.cjs`, which selects `main/platform/screenshot_window_visibility/*` per OS.
+- `main/window_visibility_runtime.cjs`:
+  - Dashboard opens from the chat pill now target the sender display work area directly, avoiding Linux window-manager maximize hops that can reopen on the old monitor.
+- `main/overlay_window_helpers_runtime.cjs`:
+  - Manual chat-pill drag position is stored in main and reused by later overlay positioning passes so recenter logic cannot fight a user drag.
 - `main/wakeword_bridge.cjs`:
   - Wakeword subprocess lifecycle.
   - Binary length-prefixed detection frame parsing.

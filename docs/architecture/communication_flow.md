@@ -90,6 +90,7 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 - Usage: Dashboard opens from chat surfaces and can route to a specific panel
 - Notes:
   - Electron main resolves the sender renderer's monitor and repositions the dashboard onto that display before showing it
+  - The target display affinity is preserved through main-process composition instead of being dropped at the `index.cjs` wrapper boundary
 
 ### IPC Implementation
 
@@ -195,6 +196,7 @@ so memory embedding/summarization calls target the same backend host.
 - Notes:
   - `system_state` is optional; when present, `active_window` and `mouse_position` are required.
   - `screenshot_ref`/`screenshot` are only sent for computer-use tool results.
+  - Automatic screenshot capture is monitor-scoped: Electron main resolves the sender/query display and passes both monitor bounds and virtual desktop bounds so sidecar screenshot capture can crop to one monitor.
 - Response: Acknowledgment
 
 **`tool-bundle-result`**

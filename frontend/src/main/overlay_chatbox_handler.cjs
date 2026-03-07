@@ -7,6 +7,7 @@ function handleMoveChatboxTo(
 ) {
   const {
     chatWindow,
+    setManualChatWindowPosition = () => {},
     positionResponseWindow,
     positionContextLabelWindow,
     syncContextLabelWindowVisibility,
@@ -24,6 +25,7 @@ function handleMoveChatboxTo(
   }
 
   try {
+    setManualChatWindowPosition({ x: nextX, y: nextY });
     chatWindow.setPosition(nextX, nextY, false);
     positionResponseWindow();
     positionContextLabelWindow();

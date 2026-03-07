@@ -42,6 +42,10 @@ def _coerce_region(value: object) -> Optional[tuple[int, int, int, int]]:
     return region
 
 
+def _coerce_virtual_bounds(value: object) -> Optional[tuple[int, int, int, int]]:
+    return _coerce_region(value)
+
+
 def _coerce_virtual_size(value: object) -> Optional[tuple[int, int]]:
     if isinstance(value, tuple) and len(value) == 2:
         left, right = value
@@ -65,6 +69,35 @@ def _is_linux_x11_session() -> bool:
         return False
     session_type = os.environ.get("XDG_SESSION_TYPE", "").lower()
     return session_type == "x11"
+
+
+def _crop_full_desktop_capture_to_region(
+    screenshot: object,
+    *,
+    region: Optional[tuple[int, int, int, int]],
+    desktop_virtual_bounds: Optional[tuple[int, int, int, int]],
+):
+    if region is None or desktop_virtual_bounds is None:
+        return screenshot
+
+    desktop_x, desktop_y, desktop_w, desktop_h = desktop_virtual_bounds
+    crop_x, crop_y, crop_w, crop_h = region
+    relative_left = crop_x - desktop_x
+    relative_top = crop_y - desktop_y
+    relative_right = relative_left + crop_w
+    relative_bottom = relative_top + crop_h
+
+    if (
+        relative_left < 0
+        or relative_top < 0
+        or relative_right > desktop_w
+        or relative_bottom > desktop_h
+    ):
+        raise ValueError(
+            "Display bounds fall outside the reported virtual desktop bounds"
+        )
+
+    return screenshot.crop((relative_left, relative_top, relative_right, relative_bottom))
 
 
 def _paste_cursor_overlay(
@@ -404,16 +437,27 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
 
         def _capture() -> Dict[str, Any]:
             region = _coerce_region(args.get("display_bounds") if isinstance(args, dict) else None)
+            desktop_virtual_bounds = None
             monitor_id = None
             if isinstance(args, dict) and isinstance(args.get("display_bounds"), dict):
                 monitor_id = _normalize_monitor_id(args["display_bounds"].get("monitor_id"))
+                desktop_virtual_bounds = _coerce_virtual_bounds(
+                    args["display_bounds"].get("desktop_virtual_bounds")
+                )
 
-            system_capture = _capture_with_system_cursor(region=region)
+            capture_region = None if region and desktop_virtual_bounds else region
+            system_capture = _capture_with_system_cursor(region=capture_region)
             capture_backend = "pyautogui_fallback"
             if system_capture is not None:
                 screenshot, capture_backend = system_capture
             else:
-                screenshot = pyautogui.screenshot(region=region) if region else pyautogui.screenshot()
+                screenshot = pyautogui.screenshot(region=capture_region) if capture_region else pyautogui.screenshot()
+
+            screenshot = _crop_full_desktop_capture_to_region(
+                screenshot,
+                region=region,
+                desktop_virtual_bounds=desktop_virtual_bounds,
+            )
 
             # Linux X11 fallback: overlay real cursor bitmap from XFixes.
             if _overlay_linux_xfixes_cursor(screenshot, region=region):
@@ -428,6 +472,11 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
             else:
                 crop_x, crop_y = 0, 0
                 crop_w, crop_h = virtual_size if virtual_size else (source_w, source_h)
+            effective_virtual_bounds = desktop_virtual_bounds or (
+                (crop_x, crop_y, crop_w, crop_h)
+                if region
+                else (crop_x, crop_y, crop_w, crop_h)
+            )
 
             if screenshot.mode != 'RGB':
                 screenshot = screenshot.convert('RGB')
@@ -464,10 +513,10 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
                     "crop_w": int(crop_w),
                     "crop_h": int(crop_h),
                     "desktop_virtual_bounds": {
-                        "x": int(crop_x),
-                        "y": int(crop_y),
-                        "width": int(crop_w),
-                        "height": int(crop_h),
+                        "x": int(effective_virtual_bounds[0]),
+                        "y": int(effective_virtual_bounds[1]),
+                        "width": int(effective_virtual_bounds[2]),
+                        "height": int(effective_virtual_bounds[3]),
                     },
                     "monitor_id": monitor_id,
                     "timestamp": timestamp_ms,

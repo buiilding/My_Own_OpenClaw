@@ -73,6 +73,16 @@ class KeyboardControlArgs(BaseModel):
 
 # --- Screenshot Tool Schemas ---
 
+class DesktopVirtualBounds(BaseModel):
+    """Virtual desktop bounds spanning all connected displays."""
+    model_config = ConfigDict(extra='ignore')
+
+    x: int = Field(..., description="Virtual desktop X origin")
+    y: int = Field(..., description="Virtual desktop Y origin")
+    width: int = Field(..., description="Virtual desktop width")
+    height: int = Field(..., description="Virtual desktop height")
+
+
 class DisplayBounds(BaseModel):
     """Screen bounds for targeted screenshot capture."""
     model_config = ConfigDict(extra='ignore')
@@ -82,6 +92,10 @@ class DisplayBounds(BaseModel):
     width: int = Field(..., description="Display width")
     height: int = Field(..., description="Display height")
     monitor_id: Optional[str] = Field(None, description="Optional monitor identifier")
+    desktop_virtual_bounds: Optional[DesktopVirtualBounds] = Field(
+        None,
+        description="Optional virtual desktop bounds for translating a monitor crop from an all-displays screenshot.",
+    )
 
 class ScreenshotToolArgs(BaseModel):
     """Arguments for screenshot tool."""

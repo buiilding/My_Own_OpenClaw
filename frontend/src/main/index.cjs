@@ -143,6 +143,7 @@ function isResponseOverlayStreamingPhase() {
 const {
   ensureResponseOverlayFallbackBounds,
   positionChatWindow,
+  setManualChatWindowPosition,
   getResponseWindowBounds,
   positionResponseWindow,
   positionContextLabelWindow,
@@ -241,8 +242,10 @@ function hideChatWindow() {
   });
 }
 
-function showMainWindow({ focus = true, maximize = false } = {}) {
-  return showMainWindowRuntime({ focus, maximize }, {
+function showMainWindow(options = {}) {
+  const focus = options?.focus !== false;
+  const maximize = options?.maximize === true;
+  return showMainWindowRuntime({ ...options, focus, maximize }, {
     mainWindow,
     chatWindow,
     hideChatWindow,
@@ -438,6 +441,7 @@ function initializeMainProcessIpc() {
     positionResponseWindow,
     positionContextLabelWindow,
     syncContextLabelWindowVisibility,
+    setManualChatWindowPosition,
     setChatVisualAnchorHeight,
     getResponseWindowBounds,
     setResponseOverlayVisibilityState,
