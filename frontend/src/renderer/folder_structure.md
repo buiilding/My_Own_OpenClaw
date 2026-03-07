@@ -58,7 +58,6 @@ frontend/src/renderer/
 │   │   │   │       ├── UserMessage.jsx   # User message attachments + screenshot gallery
 │   │   │   │       ├── ErrorMessage.jsx  # Error message card renderer
 │   │   │   │       └── AssistantThinkingSection.jsx # Collapsible assistant thinking panel
-│   │   │   └── chatBoxResponseUtils.js  # chatBoxResponseUtils - Response/tool-call selection + tool-ghost track style builders
 │   │   │
 │   │   ├── hooks/                       # Chat business logic hooks
 │   │   │   ├── useChatMessageSender.ts  # useChatMessageSender - Handles message sending (dashboard sends skip screenshot capture/window handoff)
@@ -73,6 +72,8 @@ frontend/src/renderer/
 │   │   │
 │   │   └── utils/                       # Chat presentation/formatting selectors and helpers
 │   │       ├── backendAudioEvents.js    # backendAudioEvents - Validates/extracts audio-chunk payloads for playback
+│   │       ├── message/                 # message - Shared message list/reply visibility/status helper utilities
+│   │       │   └── latestVisibleAssistantReply.js # latestVisibleAssistantReply - Finds the latest visible assistant reply after the current user and ignores tool rows
 │   │       ├── messageSender/            # messageSender - Payload normalization and attachment context/upload helper utilities
 │   │       │   ├── chatMessageSenderUtils.ts # chatMessageSenderUtils - User-message creation, first-message detection, and screenshot artifact mapping helpers
 │   │       │   ├── chatMessageSenderPayloads.ts # chatMessageSenderPayloads - Outgoing payload and attachment filename normalization
