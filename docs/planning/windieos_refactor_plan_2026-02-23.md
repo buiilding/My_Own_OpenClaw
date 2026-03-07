@@ -155,7 +155,7 @@ read_when:
     - `frontend/src/main/local_backend_bridge.cjs`
     - into `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs`.
   - deduplicated identical Windows/macOS chat-pill no-op capture runtimes into:
-    - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/platform/chatPillVisibility/noop.ts`.
+    - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/noop.ts`.
   - trimmed low-risk internal/test-only exports flagged by `knip` in display-affinity, IPC debug-trace, screenshot pipeline, and session/query screenshot helpers.
   - result:
     - `frontend/src/main/local_backend_bridge.cjs` reduced from `835` LOC to `694` LOC.
@@ -163,10 +163,10 @@ read_when:
   - regression coverage:
     - added `tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs`.
     - updated `tests/frontend/DisplayAffinityRuntime.test.cjs`, `tests/frontend/ScreenshotAttachmentPipeline.test.ts`, and `tests/frontend/ChatMessageSenderUtils.test.ts`.
-    - reran `tests/frontend/LocalBackendBridge.rpc.test.cjs`, `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`, and `tests/frontend/SurfaceOrchestratorChatPillVisibility.test.ts`.
+    - reran `tests/frontend/LocalBackendBridge.rpc.test.cjs`, `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`, and `tests/frontend/SurfaceOrchestratorSurfaceVisibility.test.ts`.
   - verification:
-    - `cd frontend && npm run lint -- src/main/local_backend_bridge.cjs src/main/local_backend_bridge_display_bounds.cjs src/main/local_backend_bridge_screenshot_attachment.cjs src/main/display_affinity_runtime.cjs src/main/ipc/ipc_runtime_helpers.cjs src/renderer/infrastructure/services/surfaceOrchestrator/platform/chatPillVisibility/noop.ts src/renderer/infrastructure/services/surfaceOrchestrator/platform/chatPillVisibility/windows.ts src/renderer/infrastructure/services/surfaceOrchestrator/platform/chatPillVisibility/macos.ts src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts src/renderer/infrastructure/services/toolExecution/ToolScreenshotDebugTrace.ts src/renderer/features/chat/session/conversationSessionRuntime.ts src/renderer/features/chat/utils/messageSender/queryScreenshotPipeline.ts src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils.ts`
-    - `cd frontend && npm run test:ci -- ../tests/frontend/DisplayAffinityRuntime.test.cjs ../tests/frontend/ChatMessageSenderUtils.test.ts ../tests/frontend/ScreenshotAttachmentPipeline.test.ts ../tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs ../tests/frontend/LocalBackendBridge.rpc.test.cjs ../tests/frontend/LocalBackendBridgeToolArgs.test.cjs ../tests/frontend/SurfaceOrchestratorChatPillVisibility.test.ts`
+    - `cd frontend && npm run lint -- src/main/local_backend_bridge.cjs src/main/local_backend_bridge_display_bounds.cjs src/main/local_backend_bridge_screenshot_attachment.cjs src/main/display_affinity_runtime.cjs src/main/ipc/ipc_runtime_helpers.cjs src/renderer/infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/noop.ts src/renderer/infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/windows.ts src/renderer/infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/macos.ts src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts src/renderer/infrastructure/services/toolExecution/ToolScreenshotDebugTrace.ts src/renderer/features/chat/session/conversationSessionRuntime.ts src/renderer/features/chat/utils/messageSender/queryScreenshotPipeline.ts src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils.ts`
+    - `cd frontend && npm run test:ci -- ../tests/frontend/DisplayAffinityRuntime.test.cjs ../tests/frontend/ChatMessageSenderUtils.test.ts ../tests/frontend/ScreenshotAttachmentPipeline.test.ts ../tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs ../tests/frontend/LocalBackendBridge.rpc.test.cjs ../tests/frontend/LocalBackendBridgeToolArgs.test.cjs ../tests/frontend/SurfaceOrchestratorSurfaceVisibility.test.ts`
     - `cd frontend && npm run audit:knip`
     - `cd frontend && npm run audit:jscpd`
   - audit delta:

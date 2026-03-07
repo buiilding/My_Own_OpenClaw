@@ -12,7 +12,7 @@ describe('toolRunnerSurface helpers', () => {
 
   beforeEach(() => {
     jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: string, data?: any) => {
-      if (channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT) {
+      if (channel === INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT) {
         return {
           success: true,
           waitMs: data?.waitMs ?? 0,
@@ -120,17 +120,17 @@ describe('toolRunnerSurface helpers', () => {
 
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });
 
-  test('collapses and restores chat pill for screenshot mode when dashboard is open', async () => {
+  test('collapses and restores the hidden surface for screenshot mode when dashboard is open', async () => {
     (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
       if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
         return { success: true, data: { visible: true } };
       }
-      if (channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT) {
+      if (channel === INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT) {
         return {
           success: true,
           waitMs: 0,
@@ -150,7 +150,7 @@ describe('toolRunnerSurface helpers', () => {
 
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { focus: false }],
     ]);
   });
@@ -160,7 +160,7 @@ describe('toolRunnerSurface helpers', () => {
       if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
         return { success: true, data: { visible: true } };
       }
-      if (channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT) {
+      if (channel === INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT) {
         return {
           success: true,
           waitMs: 0,
@@ -182,7 +182,7 @@ describe('toolRunnerSurface helpers', () => {
 
     await restoreToolExecutionSurface(second);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { focus: false }],
     ]);
   });

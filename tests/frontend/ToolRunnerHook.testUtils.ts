@@ -123,7 +123,7 @@ export function resetToolRunnerTestState() {
     ) {
       return { success: true };
     }
-    if (channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT) {
+    if (channel === INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT) {
       return {
         success: true,
         waitMs: data?.waitMs ?? 0,

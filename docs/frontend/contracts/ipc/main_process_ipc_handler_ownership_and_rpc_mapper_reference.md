@@ -81,7 +81,7 @@ Notable behavior:
 - `set-responsebox-size`
 - `show-chatbox`
 - `hide-chatbox`
-- `prepare-chatbox-for-screenshot`
+- `prepare-surface-for-screenshot`
 
 `ipcMain.on`:
 
@@ -92,7 +92,7 @@ Notable behavior:
 - overlay handlers guard for missing/destroyed windows and return structured success/reason payloads
 - chat/response/context windows are repositioned together after move operations, and response resize re-anchors against chat bounds
 - `show-chatbox` target-display selection routes through `resolveActiveSurfaceDisplayAffinityForWindows(...)` (sender + `getWindows()` wrapper) before window-visibility runtime execution
-- `prepare-chatbox-for-screenshot` supports bounded wait/hide/settle orchestration (`waitMs`, `hideChatbox`, `settleMs`) and returns measured timing fields
+- `prepare-surface-for-screenshot` supports bounded wait/hide/settle orchestration (`waitMs`, `hideChatbox`, `settleMs`) and returns measured timing fields
 - phase-only scope: this registrar no longer owns dashboard window controls or permission channels
 
 ### `window_controls_ipc_runtime.cjs` (invoked from `index.cjs`)

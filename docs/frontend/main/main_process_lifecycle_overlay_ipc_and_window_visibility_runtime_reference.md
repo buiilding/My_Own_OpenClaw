@@ -69,9 +69,9 @@ Owns only phase-driven overlay shell channels:
 - `set-responsebox-size`
 - `show-chatbox`
 - `hide-chatbox`
-- `prepare-chatbox-for-screenshot`
+- `prepare-surface-for-screenshot`
 
-`prepare-chatbox-for-screenshot` semantics (`overlay_visibility_handler.cjs`):
+`prepare-surface-for-screenshot` semantics (`overlay_visibility_handler.cjs`):
 
 - optional `waitMs` pre-delay before capture prep (default `0`)
 - optional `settleMs` post-hide compositor settle delay (default `120`)

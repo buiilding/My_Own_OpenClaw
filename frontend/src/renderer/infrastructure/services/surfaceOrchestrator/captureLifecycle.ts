@@ -3,10 +3,10 @@ import {
   resolveSurfaceTransitionContext,
 } from './context';
 import {
-  collapseChatPillForBackgroundCapture,
-  restoreChatPillInactive,
-  shouldManageChatPillVisibilityForBackgroundCapture,
-} from './chatPillVisibility';
+  suppressSurfaceForBackgroundCapture,
+  restoreSurfaceAfterBackgroundCapture,
+  shouldManageSurfaceVisibilityForBackgroundCapture,
+} from './surfaceVisibility';
 import {
   decrementActiveScreenshotCaptureCount,
   getPendingHiddenSurfaceRestore,
@@ -44,15 +44,15 @@ export async function prepareScreenshotCaptureVisibility(
   );
   const source = context.source;
   const captureId = context.correlationId;
-  const shouldManageChatPillVisibility = shouldManageChatPillVisibilityForBackgroundCapture();
-  const shouldRestoreChatPillAfterCapture = (
-    shouldManageChatPillVisibility
+  const shouldManageSurfaceVisibility = shouldManageSurfaceVisibilityForBackgroundCapture();
+  const shouldRestoreSurfaceAfterCapture = (
+    shouldManageSurfaceVisibility
     && !isPendingHiddenSurfaceRestore()
   );
   const waitMs = typeof options.waitMs === 'number' ? Math.max(0, options.waitMs) : 0;
 
-  if (!shouldManageChatPillVisibility) {
-    const collapseResult = await collapseChatPillForBackgroundCapture({ waitMs });
+  if (!shouldManageSurfaceVisibility) {
+    const collapseResult = await suppressSurfaceForBackgroundCapture({ waitMs });
     return {
       prepared: true,
       captureId,
@@ -75,7 +75,7 @@ export async function prepareScreenshotCaptureVisibility(
     return {
       prepared: true,
       captureId,
-      restoreSurfaceAfterCapture: shouldRestoreChatPillAfterCapture,
+      restoreSurfaceAfterCapture: shouldRestoreSurfaceAfterCapture,
       hiddenSurface: 'none',
       timing: {
         waitTime: 0,
@@ -86,9 +86,9 @@ export async function prepareScreenshotCaptureVisibility(
   }
 
   try {
-    if (!shouldRestoreChatPillAfterCapture) {
+    if (!shouldRestoreSurfaceAfterCapture) {
       // Nested screenshot captures can run while an outer screenshot surface already
-      // collapsed the chat pill. Mark restore pending so this capture still guarantees
+      // suppressed the active surface. Mark restore pending so this capture still guarantees
       // re-show after screenshot completion.
       setPendingScreenshotCaptureRestore(true);
       logSurfaceTransition({
@@ -118,7 +118,7 @@ export async function prepareScreenshotCaptureVisibility(
       phaseBefore: SURFACE_PHASE.IDLE,
       phaseAfter: SURFACE_PHASE.PREPARING_CAPTURE_VISIBILITY,
     });
-    const collapseResult = await collapseChatPillForBackgroundCapture({ waitMs });
+    const collapseResult = await suppressSurfaceForBackgroundCapture({ waitMs });
     setPendingHiddenSurfaceRestore(collapseResult.hiddenSurface);
     setPendingScreenshotCaptureRestore(true);
     logSurfaceTransition({
@@ -137,7 +137,7 @@ export async function prepareScreenshotCaptureVisibility(
     };
   } catch (error) {
     decrementActiveScreenshotCaptureCount();
-    console.warn('[SurfaceOrchestrator] Failed to hide chat pill before screenshot capture:', error);
+    console.warn('[SurfaceOrchestrator] Failed to suppress active surface before screenshot capture:', error);
     logSurfaceTransition({
       source,
       correlationId: captureId,
@@ -166,7 +166,7 @@ export async function restoreScreenshotCaptureVisibility(
     source?: SurfaceTransitionSource;
   } = {},
 ): Promise<void> {
-  const shouldRestoreChatPillAfterCapture = preparation.restoreSurfaceAfterCapture !== false;
+  const shouldRestoreSurfaceAfterCapture = preparation.restoreSurfaceAfterCapture !== false;
   const context = resolveSurfaceTransitionContext(
     options.source,
     preparation.captureId,
@@ -178,7 +178,7 @@ export async function restoreScreenshotCaptureVisibility(
   if (!preparation.prepared) {
     return;
   }
-  if (!shouldManageChatPillVisibilityForBackgroundCapture()) {
+  if (!shouldManageSurfaceVisibilityForBackgroundCapture()) {
     return;
   }
 
@@ -200,9 +200,9 @@ export async function restoreScreenshotCaptureVisibility(
   });
 
   try {
-    await restoreChatPillInactive(hiddenSurface ?? preparation.hiddenSurface ?? 'none');
+    await restoreSurfaceAfterBackgroundCapture(hiddenSurface ?? preparation.hiddenSurface ?? 'none');
   } catch (error) {
-    console.warn('[SurfaceOrchestrator] Failed to restore chat pill after screenshot capture:', error);
+    console.warn('[SurfaceOrchestrator] Failed to restore hidden surface after screenshot capture:', error);
     logSurfaceTransition({
       source,
       correlationId: captureId,
@@ -212,7 +212,7 @@ export async function restoreScreenshotCaptureVisibility(
       reason: SURFACE_REASON_CAPTURE_RESTORE_FAILED,
     });
   } finally {
-    if (!shouldRestoreChatPillAfterCapture) {
+    if (!shouldRestoreSurfaceAfterCapture) {
       setPendingHiddenSurfaceRestore(null);
     }
     setPendingScreenshotCaptureRestore(false);
