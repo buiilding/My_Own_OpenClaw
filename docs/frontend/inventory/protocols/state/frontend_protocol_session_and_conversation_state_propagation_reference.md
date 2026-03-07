@@ -75,10 +75,11 @@ Every parsed backend event can update cached context:
 On websocket close:
 
 - clears backend session context (`currentSessionId`, `currentServerUserId`, `currentConversationRef`)
+- preserves active display-affinity cache (monitor continuity for hidden-sender screenshot/main-window fallback after reconnect)
 - broadcasts disconnected status
 - schedules reconnect
 
-This reset is critical to avoid leaking stale conversation identity across reconnect boundaries.
+This reset is critical to avoid leaking stale conversation identity across reconnect boundaries while preserving display-target continuity.
 
 ## Client Snapshot State Propagation (`get-client-user-id` + `ipc-status`)
 
@@ -234,6 +235,7 @@ When changing this surface, keep aligned:
 - AppConfigProvider snapshot handling (`get-client-user-id` + `ipc-status`) vs transcript session identity expectations
 - conversation-gate terminal-phase list vs stream-tracking phase names
 - dashboard conversation open/delete session updates vs active-row session snapshots
+- websocket close/session reset behavior vs display-affinity continuity expectations (do not clear `activeDisplayAffinity`)
 - `agent_full_sudo_enabled` config propagation to direct and unified-wrapper (`system_use -> run_shell_command`) `sudo_auth_mode` arg rewrite
 
 ## State Control-Path Index
@@ -245,6 +247,7 @@ When changing this surface, keep aligned:
 | conversation_ref fallback for query/local echo | `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc.cjs` | query payload and synthetic local-user-message share same resolved conversation reference |
 | dashboard conversation open/delete session transitions | `useDashboardConversations`, transcript writer | active conversation + transcript session identity stay in sync during rehydrate/delete flows |
 | renderer stale-event gating | `chatStreamConversationGate.ts` + `useChatStream.ts` | active conversation mismatch rules prevent cross-conversation stream pollution while preserving compatibility events |
+| websocket-close display affinity continuity | `frontend/src/main/ipc.cjs`, `frontend/src/main/display_affinity_runtime.cjs` | backend session identity resets do not clear active monitor affinity, preserving reconnect-time screenshot/main-window fallback targeting |
 | frontend config to sidecar sudo-mode propagation | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_bridge_tool_args.cjs` | `agent_full_sudo_enabled` deterministically maps to `sudo_auth_mode` in direct run-shell args and nested `system_use -> run_shell_command` args |
 
 ## Related Pages

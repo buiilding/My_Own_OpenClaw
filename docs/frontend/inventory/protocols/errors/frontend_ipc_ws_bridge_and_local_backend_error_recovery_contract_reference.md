@@ -58,9 +58,10 @@ On websocket close:
 1. marks disconnected (`isConnected=false`)
 2. resets settings gate/pending ACK state
 3. clears session/user/conversation refs from backend
-4. forces overlay phase `idle`
-5. broadcasts `ipc-status` disconnected
-6. schedules reconnect in `5000ms`
+4. preserves active display-affinity cache for reconnect-time monitor continuity
+5. forces overlay phase `idle`
+6. broadcasts `ipc-status` disconnected
+7. schedules reconnect in `5000ms`
 
 On websocket error while open:
 
