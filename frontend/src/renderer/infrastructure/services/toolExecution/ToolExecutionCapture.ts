@@ -1,14 +1,18 @@
-import { extractOSstate } from '../SystemCapture';
+import {
+  captureScreenshotAttachment,
+  extractScreenshotAttachment,
+  hasScreenshotAttachment,
+  type CaptureMeta,
+  type ScreenshotAttachment,
+} from '../ScreenshotAttachmentPipeline';
+import { captureSystemState } from '../SystemStateCapture';
 import { STANDARD_COMPUTER_USE_TOOLS } from '../ToolComputerUseCatalog';
 import type { SystemState, ToolResult } from '../MessageFormatter';
-import type { CaptureMeta } from '../SystemCapture';
-import {
-  resolveScreenshotContentType,
-  sanitizeCaptureMeta,
-} from '../CapturePayloadUtils';
 
 type ToolCaptureResult = {
   screenshot: string | null;
+  screenshotRef: string | null;
+  screenshotUrl: string | null;
   screenshotContentType: string | null;
   captureMeta: CaptureMeta | null;
   systemState: SystemState | null;
@@ -18,6 +22,8 @@ type ToolCaptureResult = {
 
 type AutoCaptureResult = {
   screenshot: string | null;
+  screenshotRef: string | null;
+  screenshotUrl: string | null;
   screenshotContentType: string | null;
   captureMeta: CaptureMeta | null;
   systemState: SystemState | null;
@@ -56,23 +62,27 @@ function getWaitSeconds(
 
 function extractCaptureFromResult(result: ToolResult): {
   screenshot: string | null;
+  screenshotRef: string | null;
+  screenshotUrl: string | null;
   screenshotContentType: string | null;
   captureMeta: CaptureMeta | null;
   systemState: SystemState | null;
 } {
+  const attachment = extractScreenshotAttachment(result);
   if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
-    const screenshotContentType = resolveScreenshotContentType(result.data);
-    const screenshot = resolveScreenshotValue(result.data);
-    const captureMeta = sanitizeCaptureMeta<CaptureMeta>(result.data.capture_meta);
     return {
-      screenshot,
-      screenshotContentType,
-      captureMeta,
-      systemState: result.data.system_state || null
+      screenshot: attachment.screenshot,
+      screenshotRef: attachment.screenshotRef,
+      screenshotUrl: attachment.screenshotUrl,
+      screenshotContentType: attachment.screenshotContentType,
+      captureMeta: attachment.captureMeta,
+      systemState: result.data.system_state || null,
     };
   }
   return {
     screenshot: null,
+    screenshotRef: null,
+    screenshotUrl: null,
     screenshotContentType: null,
     captureMeta: null,
     systemState: null,
@@ -81,21 +91,24 @@ function extractCaptureFromResult(result: ToolResult): {
 
 function applyCaptureToResult(
   result: ToolResult,
-  screenshot: string | null,
-  captureMeta: CaptureMeta | null,
+  attachment: ScreenshotAttachment,
   systemState: SystemState | null,
-  screenshotContentType: string | null
 ): void {
-  if (!screenshot) {
+  if (
+    !hasScreenshotAttachment(attachment)
+    && !systemState
+  ) {
     return;
   }
   if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
     result.data = {
       ...result.data,
-      screenshot,
-      capture_meta: captureMeta ?? undefined,
+      screenshot: attachment.screenshot ?? undefined,
+      screenshot_ref: attachment.screenshotRef ?? undefined,
+      screenshot_url: attachment.screenshotUrl ?? undefined,
+      capture_meta: attachment.captureMeta ?? undefined,
       system_state: systemState ?? undefined,
-      screenshot_content_type: screenshotContentType ?? undefined
+      screenshot_content_type: attachment.screenshotContentType ?? undefined,
     };
   }
 }
@@ -129,6 +142,8 @@ export async function ensureAutoCapture(
   const isComputerTool = isComputerUseTool(toolName, args);
   let {
     screenshot,
+    screenshotRef,
+    screenshotUrl,
     screenshotContentType,
     captureMeta,
     systemState,
@@ -136,7 +151,14 @@ export async function ensureAutoCapture(
   let waitDelay = 0;
   let captureTime = 0;
 
-  const shouldCapture = !skipAutoCapture && !screenshot && (isComputerTool || toolName === 'screenshot');
+  const hasExistingAttachment = hasScreenshotAttachment({
+    screenshot,
+    screenshotRef,
+    screenshotUrl,
+    screenshotContentType,
+    captureMeta,
+  });
+  const shouldCapture = !skipAutoCapture && !hasExistingAttachment && (isComputerTool || toolName === 'screenshot');
   if (shouldCapture) {
     const capture = await captureAfterTool(
       toolName,
@@ -149,19 +171,25 @@ export async function ensureAutoCapture(
     captureTime = capture.captureTime;
     systemState = capture.systemState;
     screenshot = capture.screenshot;
+    screenshotRef = capture.screenshotRef;
+    screenshotUrl = capture.screenshotUrl;
     screenshotContentType = capture.screenshotContentType;
     captureMeta = capture.captureMeta;
     applyCaptureToResult(
       result,
-      screenshot,
-      captureMeta,
+      {
+        screenshot,
+        screenshotRef,
+        screenshotUrl,
+        screenshotContentType,
+        captureMeta,
+      },
       systemState,
-      screenshotContentType,
     );
   } else {
     const shouldCaptureSystemStateOnly = (
       !skipAutoCapture
-      && Boolean(screenshot)
+      && hasExistingAttachment
       && !systemState
       && (isComputerTool || toolName === 'screenshot')
     );
@@ -177,16 +205,22 @@ export async function ensureAutoCapture(
       systemState = stateCapture.systemState;
       applyCaptureToResult(
         result,
-        screenshot,
-        captureMeta,
+        {
+          screenshot,
+          screenshotRef,
+          screenshotUrl,
+          screenshotContentType,
+          captureMeta,
+        },
         systemState,
-        screenshotContentType,
       );
     }
   }
 
   return {
     screenshot,
+    screenshotRef,
+    screenshotUrl,
     screenshotContentType,
     captureMeta,
     systemState,
@@ -204,16 +238,13 @@ async function captureSystemStateAfterTool(
 ): Promise<Pick<ToolCaptureResult, 'systemState' | 'waitSeconds' | 'captureTime'>> {
   const waitSeconds = getWaitSeconds(toolName, args, defaultWaitSeconds);
   const captureStartTime = performance.now();
-  const captureResult = await extractOSstate(
-    false,
-    true,
+  const systemState = await captureSystemState({
     waitSeconds,
-    false,
-    captureCorrelationId,
-  );
+    correlationId: captureCorrelationId,
+  });
   const captureTime = (performance.now() - captureStartTime) / 1000;
   return {
-    systemState: captureResult.systemState,
+    systemState,
     waitSeconds,
     captureTime,
   };
@@ -228,36 +259,25 @@ export async function captureAfterTool(
 ): Promise<ToolCaptureResult> {
   const waitSeconds = getWaitSeconds(toolName, args, defaultWaitSeconds);
   const captureStartTime = performance.now();
-  const captureResult = await extractOSstate(
-    true,
-    enableSystemState,
+  const screenshotAttachment = await captureScreenshotAttachment({
     waitSeconds,
-    false,
-    captureCorrelationId,
-  );
+    correlationId: captureCorrelationId,
+  });
+  const systemState = enableSystemState
+    ? await captureSystemState({
+        waitSeconds: 0,
+        correlationId: captureCorrelationId,
+      })
+    : null;
   const captureTime = (performance.now() - captureStartTime) / 1000;
   return {
-    screenshot: captureResult.screenshot,
-    screenshotContentType: captureResult.screenshotContentType,
-    captureMeta: captureResult.captureMeta,
-    systemState: enableSystemState ? captureResult.systemState : null,
+    screenshot: screenshotAttachment.screenshot,
+    screenshotRef: screenshotAttachment.screenshotRef,
+    screenshotUrl: screenshotAttachment.screenshotUrl,
+    screenshotContentType: screenshotAttachment.screenshotContentType,
+    captureMeta: screenshotAttachment.captureMeta,
+    systemState,
     waitSeconds,
     captureTime
   };
-}
-
-function resolveScreenshotValue(data: Record<string, any>): string | null {
-  if (typeof data.screenshot === 'string') {
-    return data.screenshot;
-  }
-  if (typeof data.image_data === 'string') {
-    return data.image_data;
-  }
-  if (typeof data.screenshot_ref === 'string' && data.screenshot_ref.trim().length > 0) {
-    return `artifact://${data.screenshot_ref.trim()}`;
-  }
-  if (typeof data.screenshot_url === 'string' && data.screenshot_url.trim().length > 0) {
-    return data.screenshot_url.trim();
-  }
-  return null;
 }

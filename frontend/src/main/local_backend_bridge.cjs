@@ -113,6 +113,11 @@ async function uploadScreenshotArtifactFromPath({
   return response.json();
 }
 
+async function readScreenshotInlinePayload(screenshotPath) {
+  const fileBuffer = await fsPromises.readFile(screenshotPath);
+  return fileBuffer.toString('base64');
+}
+
 async function unlinkQuietly(targetPath) {
   if (!targetPath) {
     return;
@@ -126,7 +131,7 @@ async function unlinkQuietly(targetPath) {
   }
 }
 
-async function hydrateScreenshotArtifact(result, backendHttpUrl) {
+async function materializeScreenshotAttachment(result, backendHttpUrl) {
   if (!result || result.success === false || !isRecord(result.data)) {
     return result;
   }
@@ -160,11 +165,20 @@ async function hydrateScreenshotArtifact(result, backendHttpUrl) {
     if (artifactId) {
       data.screenshot_ref = artifactId;
       data.screenshot_url = artifactUrl || `${backendHttpUrl}/api/artifacts/${artifactId}`;
+    } else {
+      data.screenshot = await readScreenshotInlinePayload(screenshotPath);
     }
   } catch (error) {
     console.warn(
       `[LocalBackend] Failed to upload screenshot artifact from ${screenshotPath}: ${getErrorMessage(error)}`,
     );
+    try {
+      data.screenshot = await readScreenshotInlinePayload(screenshotPath);
+    } catch (fallbackError) {
+      console.warn(
+        `[LocalBackend] Failed to inline screenshot fallback from ${screenshotPath}: ${getErrorMessage(fallbackError)}`,
+      );
+    }
   } finally {
     await unlinkQuietly(screenshotPath);
     delete data.screenshot_path;
@@ -737,7 +751,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
           resolveResponseWindow,
         })
         : await runTool();
-      result = await hydrateScreenshotArtifact(result, backendEndpoints.httpUrl);
+      result = await materializeScreenshotAttachment(result, backendEndpoints.httpUrl);
       
       if (result.success === false) {
         return { success: false, error: result.error };

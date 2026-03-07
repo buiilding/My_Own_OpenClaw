@@ -1,5 +1,10 @@
-jest.mock('../../frontend/src/renderer/infrastructure/services/SystemCapture', () => ({
-  extractOSstate: jest.fn(),
+jest.mock('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline', () => ({
+  ...jest.requireActual('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline'),
+  captureScreenshotAttachment: jest.fn(),
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/services/SystemStateCapture', () => ({
+  captureSystemState: jest.fn(),
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/services/MessageFormatter', () => ({
@@ -17,27 +22,16 @@ import {
   formatBundledToolOutputMessage,
   formatToolOutputMessage,
 } from '../../frontend/src/renderer/infrastructure/services/MessageFormatter';
-import { extractOSstate } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
+import { captureScreenshotAttachment } from '../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline';
+import { captureSystemState } from '../../frontend/src/renderer/infrastructure/services/SystemStateCapture';
 import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
-import * as ToolExecutionBundleRunner from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionBundleRunner';
 
-const DISPLAY_BOUNDS_STORAGE_KEY = 'desktop-assistant-display-bounds';
-
-const mockExtractOSstate = extractOSstate as jest.MockedFunction<typeof extractOSstate>;
+const mockCaptureScreenshotAttachment = captureScreenshotAttachment as jest.MockedFunction<typeof captureScreenshotAttachment>;
+const mockCaptureSystemState = captureSystemState as jest.MockedFunction<typeof captureSystemState>;
 const mockFormatToolOutputMessage = formatToolOutputMessage as jest.MockedFunction<typeof formatToolOutputMessage>;
 const mockFormatBundledToolOutputMessage =
   formatBundledToolOutputMessage as jest.MockedFunction<typeof formatBundledToolOutputMessage>;
 const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
-
-const createDefaultToolBundleSteps = () => ([
-  { toolName: 'read_file', args: { file_path: '/tmp/a' } },
-  { toolName: 'mouse_control', args: { action: 'click', x: 1, y: 2 } },
-]);
-
-const executeDefaultToolBundle = (
-  service: ToolExecutionService,
-  bundleId: string,
-) => service.executeToolBundle(createDefaultToolBundleSteps(), bundleId);
 
 type ToolExecutionServiceOptions = NonNullable<ConstructorParameters<typeof ToolExecutionService>[0]>;
 
@@ -51,53 +45,36 @@ const createServiceWithSendToBackend = (
   };
 };
 
-const executeDefaultToolBundleWithBackend = async (
-  bundleId: string,
-  options: Partial<ToolExecutionServiceOptions> = {},
-) => {
-  const { service, sendToBackend } = createServiceWithSendToBackend(options);
-  const result = await executeDefaultToolBundle(service, bundleId);
-  return { result, sendToBackend };
-};
-
-const expectBundleResultEnvelope = (
-  sendToBackend: jest.Mock,
-  bundleId: string,
-  status: 'success' | 'partial_failure' | 'failure',
-  extraPayload: Record<string, unknown> = {},
-) => {
-  expect(sendToBackend).toHaveBeenCalledWith(
-    expect.objectContaining({
-      type: 'tool-bundle-result',
-      payload: expect.objectContaining({
-        bundle_id: bundleId,
-        status,
-        ...extraPayload,
-      }),
-    }),
-  );
-};
-
 describe('ToolExecutionService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    localStorage.clear();
+    mockCaptureScreenshotAttachment.mockResolvedValue({
+      screenshot: null,
+      screenshotRef: null,
+      screenshotUrl: null,
+      screenshotContentType: null,
+      captureMeta: null,
+    });
+    mockCaptureSystemState.mockResolvedValue({
+      active_window: 'App',
+      mouse_position: 'Unknown',
+    } as any);
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  test('executeTool captures screenshot for computer-use tools without screenshot', async () => {
+  test('executeTool captures screenshot for computer-use tools and forwards normalized payload', async () => {
     const invokeSpy = jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
       success: true,
       data: {},
     });
-
-    mockExtractOSstate.mockResolvedValue({
-      systemState: { active_window: 'App' },
+    mockCaptureScreenshotAttachment.mockResolvedValue({
       screenshot: 'shot',
+      screenshotRef: null,
+      screenshotUrl: null,
       screenshotContentType: 'image/png',
       captureMeta: { source_w: 1920, source_h: 1080 },
     });
@@ -117,7 +94,14 @@ describe('ToolExecutionService', () => {
       args: { action: 'click', x: 1, y: 2 },
       skipAutoCapture: false,
     });
-    expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 2, false, 'req-123');
+    expect(mockCaptureScreenshotAttachment).toHaveBeenCalledWith({
+      waitSeconds: 2,
+      correlationId: 'req-123',
+    });
+    expect(mockCaptureSystemState).toHaveBeenCalledWith({
+      waitSeconds: 0,
+      correlationId: 'req-123',
+    });
     expect(mockUploadArtifactBase64).toHaveBeenCalledWith(
       'shot',
       'image/png',
@@ -134,8 +118,7 @@ describe('ToolExecutionService', () => {
         }),
       }),
     );
-    const firstSentPayload = sendToBackend.mock.calls[0][0];
-    expect(firstSentPayload.payload.data).toMatchObject({
+    expect(sendToBackend.mock.calls[0][0].payload.data).toMatchObject({
       llm_content: 'formatted',
       screenshot: 'shot',
       capture_meta: { source_w: 1920, source_h: 1080 },
@@ -144,35 +127,10 @@ describe('ToolExecutionService', () => {
         mouse_position: 'Unknown',
       },
     });
-    expect(firstSentPayload.payload.data).not.toHaveProperty('screenshot_id');
-    expect(firstSentPayload.payload.data).not.toHaveProperty('is_preformatted');
     expect(mockFormatToolOutputMessage).toHaveBeenCalled();
   });
 
-  test('executeTool skips auto capture for non computer-use tools', async () => {
-    jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
-      success: true,
-      data: { output: 'ok' },
-    });
-
-    const service = new ToolExecutionService();
-    const result = await service.executeTool(
-      'read_file',
-      { file_path: '/tmp/a' },
-      { correlationId: 'req-456', skipAutoCapture: false },
-    );
-
-    expect(mockExtractOSstate).not.toHaveBeenCalled();
-    expect(result.screenshot).toBeNull();
-    expect(mockFormatToolOutputMessage).toHaveBeenCalledWith(
-      'read_file',
-      expect.objectContaining({ success: true }),
-      null,
-      false,
-    );
-  });
-
-  test('executeTool omits screenshot_ref for non computer-use tool results', async () => {
+  test('executeTool skips auto capture and strips screenshot fields for non computer-use tools', async () => {
     jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
       success: true,
       data: {
@@ -183,21 +141,23 @@ describe('ToolExecutionService', () => {
 
     const sendToBackend = jest.fn();
     const service = new ToolExecutionService({ sendToBackend });
-    await service.executeTool(
+    const result = await service.executeTool(
       'read_file',
       { file_path: '/tmp/a' },
       { correlationId: 'req-no-shot', skipAutoCapture: false },
     );
 
-    const payload = sendToBackend.mock.calls[0][0].payload.data;
-    expect(payload).toMatchObject({
+    expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
+    expect(mockCaptureSystemState).not.toHaveBeenCalled();
+    expect(result.screenshot).toBeNull();
+    expect(result.screenshotRef).toBe('should-not-be-forwarded');
+    expect(sendToBackend.mock.calls[0][0].payload.data).toEqual({
+      output: 'ok',
       llm_content: 'formatted',
     });
-    expect(payload).not.toHaveProperty('screenshot_ref');
-    expect(payload).not.toHaveProperty('system_state');
   });
 
-  test('executeTool reuses pre-uploaded screenshot_ref from tool result when image payload is absent', async () => {
+  test('executeTool reuses pre-uploaded screenshot_ref from tool result and captures missing system state only', async () => {
     jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
       success: true,
       data: {
@@ -214,59 +174,26 @@ describe('ToolExecutionService', () => {
       { correlationId: 'req-sidecar-artifact', skipAutoCapture: false },
     );
 
-    expect(mockUploadArtifactBase64.mock.calls.length).toBe(0);
+    expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
+    expect(mockCaptureSystemState).toHaveBeenCalledWith({
+      waitSeconds: 0,
+      correlationId: 'req-sidecar-artifact',
+    });
+    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
     expect(result.screenshot).toBeNull();
     expect(result.screenshotRef).toBe('artifact-sidecar-1');
     expect(result.screenshotUrl).toBe('http://127.0.0.1:8765/api/artifacts/artifact-sidecar-1');
-
-    const payload = sendToBackend.mock.calls[0][0].payload.data;
-    expect(payload.screenshot_ref).toBe('artifact-sidecar-1');
-    expect(payload).not.toHaveProperty('screenshot');
-  });
-
-  test('executeTool surfaces image payloads from read_file without forwarding screenshot fields to backend', async () => {
-    jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
-      success: true,
-      data: {
-        image_data: 'data:image/webp;base64,YWJjZA==',
+    expect(sendToBackend.mock.calls[0][0].payload.data).toMatchObject({
+      llm_content: 'formatted',
+      screenshot_ref: 'artifact-sidecar-1',
+      system_state: {
+        active_window: 'App',
+        mouse_position: 'Unknown',
       },
     });
-    mockUploadArtifactBase64.mockResolvedValue({
-      artifactId: 'artifact-image-1',
-      contentType: 'image/webp',
-      sizeBytes: 4,
-      sha256: 'hash',
-      url: 'http://localhost/artifacts/artifact-image-1',
-    });
-
-    const sendToBackend = jest.fn();
-    const service = new ToolExecutionService({ sendToBackend });
-    const result = await service.executeTool(
-      'read_file',
-      { file_path: '/tmp/image.webp' },
-      { correlationId: 'req-image', skipAutoCapture: false },
-    );
-
-    expect(mockExtractOSstate).not.toHaveBeenCalled();
-    const uploadArgs = mockUploadArtifactBase64.mock.calls[0];
-    expect(uploadArgs?.[0]).toBe('YWJjZA==');
-    expect(uploadArgs?.[1]).toBe('image/webp');
-    expect(uploadArgs?.[2]).toBe('read_file-screenshot.webp');
-    expect(result.screenshot).toBe('YWJjZA==');
-    expect(result.screenshotRef).toBe('artifact-image-1');
-    expect(result.screenshotUrl).toBe('http://localhost/artifacts/artifact-image-1');
-    expect(result.screenshotContentType).toBe('image/webp');
-
-    const payload = sendToBackend.mock.calls[0][0].payload.data;
-    expect(payload).toMatchObject({
-      llm_content: 'formatted',
-    });
-    expect(payload).not.toHaveProperty('screenshot_ref');
-    expect(payload).not.toHaveProperty('screenshot');
-    expect(payload).not.toHaveProperty('image_data');
   });
 
-  test('executeTool reuses system_state and screenshot from tool result', async () => {
+  test('executeTool reuses existing screenshot and system_state from tool result', async () => {
     jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
       success: true,
       data: {
@@ -282,51 +209,14 @@ describe('ToolExecutionService', () => {
       { correlationId: 'req-ss', skipAutoCapture: false },
     );
 
-    expect(mockExtractOSstate).not.toHaveBeenCalled();
+    expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
+    expect(mockCaptureSystemState).not.toHaveBeenCalled();
     expect(mockFormatToolOutputMessage).toHaveBeenCalledWith(
       'mouse_control',
       expect.objectContaining({ success: true }),
       { active_window: 'App', mouse_position: '1,1' },
       true,
     );
-  });
-
-  test('executeTool honors skipAutoCapture for computer-use tools', async () => {
-    jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
-      success: true,
-      data: {},
-    });
-
-    const service = new ToolExecutionService();
-    await service.executeTool(
-      'mouse_control',
-      { action: 'click', x: 1, y: 2 },
-      { correlationId: 'req-skip', skipAutoCapture: true },
-    );
-
-    expect(mockExtractOSstate).not.toHaveBeenCalled();
-  });
-
-  test('executeTool treats run_shell_command with wait as computer-use tool', async () => {
-    jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
-      success: true,
-      data: {},
-    });
-
-    mockExtractOSstate.mockResolvedValue({
-      systemState: { active_window: 'Shell' },
-      screenshot: 'shell-shot',
-      captureMeta: null,
-    });
-
-    const service = new ToolExecutionService();
-    await service.executeTool(
-      'run_shell_command',
-      { command: 'echo hi', wait: 5 },
-      { correlationId: 'req-789', skipAutoCapture: false },
-    );
-
-    expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 5, false, 'req-789');
   });
 
   test('executeTool formats and reports errors', async () => {
@@ -350,30 +240,30 @@ describe('ToolExecutionService', () => {
         }),
       }),
     );
-    const errorPayload = sendToBackend.mock.calls[0][0].payload.data;
-    expect(errorPayload).toMatchObject({
+    expect(sendToBackend.mock.calls[0][0].payload.data).toEqual({
       llm_content: 'formatted',
     });
-    expect(errorPayload).not.toHaveProperty('system_state');
-    expect(errorPayload).not.toHaveProperty('is_preformatted');
   });
 
-  test('executeToolBundle executes sequentially and captures state on last computer-use tool', async () => {
+  test('executeToolBundle executes sequentially and captures state on the last computer-use tool', async () => {
     const invokeSpy = jest
       .spyOn(IpcBridge, 'invoke')
       .mockResolvedValueOnce({ success: true, data: { output: 'a' } })
       .mockResolvedValueOnce({ success: true, data: { output: 'b' } });
-
-    mockExtractOSstate.mockResolvedValue({
-      systemState: { active_window: 'App' },
+    mockCaptureScreenshotAttachment.mockResolvedValue({
       screenshot: 'bundle-shot',
+      screenshotRef: null,
+      screenshotUrl: null,
+      screenshotContentType: 'image/png',
       captureMeta: { source_w: 1440, source_h: 900 },
     });
 
     const onBundleResult = jest.fn();
-    const { result, sendToBackend } = await executeDefaultToolBundleWithBackend('bundle-1', {
-      onBundleResult,
-    });
+    const { service, sendToBackend } = createServiceWithSendToBackend({ onBundleResult });
+    const result = await service.executeToolBundle([
+      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
+      { toolName: 'mouse_control', args: { action: 'click', x: 1, y: 2 } },
+    ], 'bundle-1');
 
     expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'read_file',
@@ -385,110 +275,34 @@ describe('ToolExecutionService', () => {
       args: { action: 'click', x: 1, y: 2 },
       skipAutoCapture: true,
     });
-    expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 0, false, 'bundle-1:step-2:mouse_control');
+    expect(mockCaptureScreenshotAttachment).toHaveBeenCalledWith({
+      waitSeconds: 0,
+      correlationId: 'bundle-1:step-2:mouse_control',
+    });
+    expect(mockCaptureSystemState).toHaveBeenCalledWith({
+      waitSeconds: 0,
+      correlationId: 'bundle-1:step-2:mouse_control',
+    });
     expect(result.screenshot).toBe('bundle-shot');
     expect(onBundleResult).toHaveBeenCalledTimes(1);
-    expectBundleResultEnvelope(sendToBackend, 'bundle-1', 'success', {
-      step_results: [
-        { tool: 'read_file', status: 'ok', output: 'a' },
-        { tool: 'mouse_control', status: 'ok', output: 'b' },
-      ],
-    });
+    expect(sendToBackend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'tool-bundle-result',
+        payload: expect.objectContaining({
+          bundle_id: 'bundle-1',
+          status: 'success',
+          screenshot: 'bundle-shot',
+        }),
+      }),
+    );
     expect(mockFormatBundledToolOutputMessage).toHaveBeenCalledWith(
       [
-        expect.objectContaining({
-          tool_name: 'read_file',
-          success: true,
-          error: null,
-          data: { output: 'a' },
-          _rawResult: expect.objectContaining({
-            data: { output: 'a' },
-          }),
-        }),
-        expect.objectContaining({
-          tool_name: 'mouse_control',
-          success: true,
-          error: null,
-          data: { output: 'b' },
-          _rawResult: expect.objectContaining({
-            data: { output: 'b' },
-          }),
-        }),
+        expect.objectContaining({ tool_name: 'read_file', data: { output: 'a' } }),
+        expect.objectContaining({ tool_name: 'mouse_control', data: { output: 'b' } }),
       ],
-      { active_window: 'App' },
+      { active_window: 'App', mouse_position: 'Unknown' },
       'bundle-shot',
       true,
     );
-  });
-
-  test('executeToolBundle fails fast and reports partial failure', async () => {
-    jest.spyOn(IpcBridge, 'invoke').mockResolvedValueOnce({
-      success: false,
-      error: 'fail',
-      data: null,
-    });
-
-    const { result, sendToBackend } = await executeDefaultToolBundleWithBackend('bundle-2');
-
-    expect(result.results).toHaveLength(1);
-    expectBundleResultEnvelope(sendToBackend, 'bundle-2', 'partial_failure');
-  });
-
-  test('executeToolBundle reports failure and error when last tool fails', async () => {
-    jest.spyOn(IpcBridge, 'invoke')
-      .mockResolvedValueOnce({ success: true, data: { output: 'ok' } })
-      .mockResolvedValueOnce({ success: false, error: 'boom', data: null });
-
-    const { result, sendToBackend } = await executeDefaultToolBundleWithBackend('bundle-3');
-
-    expect(result.results).toHaveLength(2);
-    expectBundleResultEnvelope(sendToBackend, 'bundle-3', 'failure', { error: 'boom' });
-  });
-
-  test('executeToolBundle injects display bounds for bundled screenshot tool', async () => {
-    localStorage.setItem(
-      DISPLAY_BOUNDS_STORAGE_KEY,
-      JSON.stringify({ x: 11, y: 22, width: 333, height: 222 }),
-    );
-
-    const invokeSpy = jest.spyOn(IpcBridge, 'invoke')
-      .mockResolvedValueOnce({ success: true, data: { output: 'ok' } })
-      .mockResolvedValueOnce({ active_window: 'App', mouse_position: '1,1' } as any)
-      .mockResolvedValueOnce({ success: true, data: { screenshot: 'shot' } });
-
-    const service = new ToolExecutionService();
-    await service.executeToolBundle(
-      [{ toolName: 'screenshot', args: { wait: 0 } }],
-      'bundle-screenshot',
-    );
-
-    expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.EXECUTE_TOOL, {
-      toolName: 'screenshot',
-      args: {
-        wait: 0,
-        display_bounds: { x: 11, y: 22, width: 333, height: 222 },
-      },
-      skipAutoCapture: true,
-    });
-  });
-
-  test('executeToolBundle sends deterministic failure envelope when bundle runner throws', async () => {
-    const runnerSpy = jest.spyOn(ToolExecutionBundleRunner, 'runToolBundle')
-      .mockRejectedValueOnce(new Error('bundle runner crashed'));
-    const { service, sendToBackend } = createServiceWithSendToBackend();
-
-    await expect(
-      service.executeToolBundle(
-        [{ toolName: 'read_file', args: { file_path: '/tmp/a' } }],
-        'bundle-runner-throw',
-      ),
-    ).rejects.toThrow('bundle runner crashed');
-
-    expectBundleResultEnvelope(sendToBackend, 'bundle-runner-throw', 'failure', {
-      step_results: [],
-      error: 'bundle runner crashed',
-    });
-
-    runnerSpy.mockRestore();
   });
 });

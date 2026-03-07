@@ -1,16 +1,17 @@
 import { resolveQueryScreenshotArtifacts } from '../../frontend/src/renderer/features/chat/utils/messageSender/queryScreenshotPipeline';
-import { extractOSstate } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
+import { captureScreenshotAttachment } from '../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline';
 import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
 
-jest.mock('../../frontend/src/renderer/infrastructure/services/SystemCapture', () => ({
-  extractOSstate: jest.fn(),
+jest.mock('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline', () => ({
+  ...jest.requireActual('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline'),
+  captureScreenshotAttachment: jest.fn(),
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/services/ArtifactUploader', () => ({
   uploadArtifactBase64: jest.fn(),
 }));
 
-const mockExtractOSstate = extractOSstate as jest.MockedFunction<typeof extractOSstate>;
+const mockCaptureScreenshotAttachment = captureScreenshotAttachment as jest.MockedFunction<typeof captureScreenshotAttachment>;
 const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
 
 describe('queryScreenshotPipeline', () => {
@@ -32,7 +33,7 @@ describe('queryScreenshotPipeline', () => {
       isFirstUserMessage: false,
     });
 
-    expect(mockExtractOSstate).not.toHaveBeenCalled();
+    expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
     expect(mockUploadArtifactBase64).toHaveBeenCalledTimes(2);
     expect(result).toEqual({
       captureMeta: null,
@@ -57,8 +58,7 @@ describe('queryScreenshotPipeline', () => {
   });
 
   test('reuses auto-captured artifact refs when screenshot bytes are absent', async () => {
-    mockExtractOSstate.mockResolvedValue({
-      systemState: null,
+    mockCaptureScreenshotAttachment.mockResolvedValue({
       screenshot: null,
       screenshotRef: 'artifact-auto-1',
       screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-auto-1',
@@ -72,7 +72,10 @@ describe('queryScreenshotPipeline', () => {
       isFirstUserMessage: true,
     });
 
-    expect(mockExtractOSstate).toHaveBeenCalledWith(true, false, 0, true);
+    expect(mockCaptureScreenshotAttachment).toHaveBeenCalledWith({
+      waitSeconds: 0,
+      isFirstUserMessage: true,
+    });
     expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
     expect(result).toEqual({
       captureMeta: { source_w: 1920 },

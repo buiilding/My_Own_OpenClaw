@@ -120,7 +120,7 @@ Single tool flow:
 
 1. invoke tool via IPC
 2. run auto-capture policy (`ToolExecutionCapture`)
-3. optional screenshot artifact upload
+3. normalize screenshot attachments through `ScreenshotAttachmentPipeline`
 4. retain inline screenshot as local/backend fallback when upload is unavailable
 5. format tool output with system context
 6. emit local UI result callbacks
@@ -150,7 +150,8 @@ Supporting modules:
 - `MessageFormatter.ts`
 - `ToolExecutionPayloads.ts`
 - `ToolExecutionBackendPayload.ts`
-- `ToolExecutionImagePayload.ts`
+- `ScreenshotAttachmentPipeline.ts`
+- `SystemStateCapture.ts`
 - `ArtifactUploader.ts`
 - `ToolExecutionInvoker.ts`
 - `ToolExecutionLogger.ts`

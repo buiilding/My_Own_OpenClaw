@@ -10,7 +10,8 @@ title: "Capture, Artifact Upload, and Payload Normalization Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/infrastructure/services/SystemCapture.ts`
+- `frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts`
+- `frontend/src/renderer/infrastructure/services/SystemStateCapture.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionInvoker.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionCapture.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionPayloads.ts`
@@ -19,7 +20,8 @@ title: "Capture, Artifact Upload, and Payload Normalization Reference"
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `frontend/src/renderer/infrastructure/services/MessageFormatter.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionLogger.ts`
-- `tests/frontend/SystemCapture.test.ts`
+- `tests/frontend/ScreenshotAttachmentPipeline.test.ts`
+- `tests/frontend/SystemStateCapture.test.ts`
 - `tests/frontend/ToolExecutionCapture.test.ts`
 - `tests/frontend/ToolExecutionPayloads.test.ts`
 - `tests/frontend/ToolExecutionBackendPayload.test.ts`
@@ -63,7 +65,7 @@ Wait-delay resolution:
   - screenshot tool: `0`
   - other computer-use tools: `2`
 
-## System Capture Execution Paths (`extractOSstate`)
+## Screenshot and System-State Capture Execution Paths
 
 Shared behavior:
 
@@ -73,25 +75,23 @@ Shared behavior:
 - wraps screenshot activity in window event markers:
   - `windie:screenshot-capture {active:true|false}`
 
-First user message mode (`is_first_user_message=true`):
+`captureScreenshotAttachment(...)`:
 
-- optionally queries richer system-state fields:
-  - `active_window`, `mouse_position`, `screen_resolution`, `windows`
 - optional screenshot call uses explanation:
   - `Initial user message screenshot`
+- injects stored `display_bounds` when present
+- preserves inline screenshot fallback when artifact upload is unavailable
 
-Regular mode:
+`captureSystemState(...)`:
 
 - optional system-state fields:
   - `active_window`, `mouse_position`, `screen_resolution`
-- optional screenshot explanation:
-  - `Screenshot capture`
-- executes enabled system-state + screenshot requests in parallel
+- includes `windows` only when explicitly requested
 
 Failure policy:
 
 - invoke errors are logged
-- returns `{systemState:null,screenshot:null,screenshotContentType:null}` instead of throwing
+- returns `null`/empty attachment instead of throwing
 
 ## Artifact Upload and Runtime URL Composition
 
@@ -115,7 +115,7 @@ Failure policy:
 - any `png` variant -> `image/png` + `.png`
 - everything else -> `image/jpeg` + `.jpg`
 
-`SystemCapture` also maps raw screenshot format/compression fields into standardized content types.
+`ScreenshotAttachmentPipeline` also maps raw screenshot format/compression fields into standardized content types and normalizes `screenshot` / `screenshot_ref` / `screenshot_url` onto one attachment contract.
 
 ## Backend Payload Normalization (`ToolExecutionPayloads`)
 
@@ -188,11 +188,11 @@ Error logs still emit through `console.error`.
 
 ## Test-Backed Invariants
 
-`tests/frontend/SystemCapture.test.ts` verifies:
+`tests/frontend/ScreenshotAttachmentPipeline.test.ts` and `tests/frontend/SystemStateCapture.test.ts` verify:
 
-- first-message vs regular capture field sets
 - wait delays, display-bounds propagation, and graceful error fallback
-- screenshot content-type extraction and non-string screenshot handling
+- screenshot content-type extraction, artifact upload fallback, and screenshot-ref/url normalization
+- default versus `includeWindows` system-state field selection
 
 `tests/frontend/ToolExecutionCapture.test.ts` verifies:
 

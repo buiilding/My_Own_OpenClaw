@@ -18,7 +18,7 @@ title: "System-State Collection and Platform Adapter Reference"
 - `frontend/src/main/python/core/system_metrics.py`
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/renderer/infrastructure/services/SystemCapture.ts`
+- `frontend/src/renderer/infrastructure/services/SystemStateCapture.ts`
 
 ## End-to-End Path
 
@@ -138,7 +138,7 @@ Platform bootstrap:
 
 ### Query context assembly
 
-`SystemCapture.extractOSstate(...)` requests:
+`SystemStateCapture.captureSystemState(...)` requests:
 
 - first user message: `active_window`, `mouse_position`, `screen_resolution`, `windows`
 - later captures: `active_window`, `mouse_position`, `screen_resolution`
@@ -163,7 +163,7 @@ Current runtime note:
 
 ## Test-Backed Anchors
 
-- `tests/frontend/SystemCapture.test.ts`
+- `tests/frontend/SystemStateCapture.test.ts`
   - first-turn vs later-turn field selection
   - graceful null fallback on invoke errors
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`

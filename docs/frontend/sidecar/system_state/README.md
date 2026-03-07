@@ -21,5 +21,5 @@ title: "Sidecar System-State Docs Hub"
 - `frontend/src/main/python/core/system_metrics.py`
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/renderer/infrastructure/services/SystemCapture.ts`
+- `frontend/src/renderer/infrastructure/services/SystemStateCapture.ts`
 - `frontend/src/main/query_payload_builder.cjs`

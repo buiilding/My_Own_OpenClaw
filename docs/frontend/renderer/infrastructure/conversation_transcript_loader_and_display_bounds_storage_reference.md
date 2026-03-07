@@ -13,11 +13,11 @@ title: "Conversation Transcript Loader and Display-Bounds Storage Reference"
 - `frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader.js`
 - `frontend/src/renderer/utils/displaySelection.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionInvoker.ts`
-- `frontend/src/renderer/infrastructure/services/SystemCapture.ts`
+- `frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `tests/frontend/ToolExecutionInvoker.test.ts`
-- `tests/frontend/SystemCapture.test.ts`
+- `tests/frontend/ScreenshotAttachmentPipeline.test.ts`
 - `tests/frontend/ToolExecutionService.test.ts`
 
 ## Transcript Conversation Loader Contract
@@ -93,10 +93,10 @@ Storage access behavior:
 - normalizes screenshot args to object before merge
 - non-screenshot tools pass args unchanged
 
-`SystemCapture.buildScreenshotArgs(...)`:
+`ScreenshotAttachmentPipeline.buildScreenshotArgs(...)`:
 
 - injects `display_bounds` into internal screenshot tool call when stored bounds exist
-- used by `extractOSstate(...)` first-message and regular capture paths
+- used by both message-send screenshot capture and tool auto-capture paths
 
 Contract effect:
 

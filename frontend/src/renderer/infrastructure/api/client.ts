@@ -6,7 +6,7 @@
 
 import { IpcBridge, SEND_CHANNELS } from '../ipc/bridge';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
-import type { CaptureMeta } from '../services/SystemCapture';
+import type { CaptureMeta } from '../services/ScreenshotAttachmentPipeline';
 
 type RehydrateConversationEntry = {
   role: 'user' | 'assistant' | 'tool';

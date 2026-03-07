@@ -15,15 +15,14 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 - `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderPayloads.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/queryScreenshotPipeline.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/readableFileAttachmentContext.ts`
-- `frontend/src/renderer/features/chat/utils/screenshotAttachmentContract.ts`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
 - `frontend/src/renderer/features/chat/session/conversationSessionRuntime.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/utils/message/messageInput.js`
 - `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
-- `frontend/src/renderer/infrastructure/services/SystemCapture.ts`
-- `frontend/src/renderer/infrastructure/services/systemCaptureRuntime.ts`
+- `frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts`
+- `frontend/src/renderer/infrastructure/services/SystemStateCapture.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `tests/frontend/ChatMessageSender.test.tsx`
@@ -98,11 +97,13 @@ When attachment(s) exist:
 7. resolve screenshot source:
   - clipboard image base64 list first
   - else OS screenshot capture path (if enabled for surface/config)
-8. upload artifact(s) when screenshot(s) exist.
-   - this branch is centralized in `queryScreenshotPipeline.ts`
-9. normalize screenshot attachment selection through `screenshotAttachmentContract`:
-  - prefer first uploaded/pasted entry with `screenshotRef`
-  - fallback to sidecar-provided auto-capture `screenshot_ref` / `screenshot_url` when base64 is absent
+8. materialize screenshot attachment(s) through `ScreenshotAttachmentPipeline`.
+   - clipboard images become inline attachments first
+   - auto-capture can return inline `screenshot` or pre-materialized `screenshot_ref` / `screenshot_url`
+   - artifact upload and inline fallback normalization happen in one place
+9. select primary screenshot attachment:
+  - prefer first entry with `screenshotRef`
+  - fallback to artifact URL-derived ref when only `screenshotUrl` exists
   - dedupe final `screenshot_refs[]` for backend send
 10. update optimistic message with `screenshotRef/screenshotUrl` plus `screenshots[]`.
 11. write transcript user row (`recordUserMessage`) with conversation ref + primary screenshot ref.
@@ -124,7 +125,7 @@ Readable file injection path:
 Priority order:
 
 1. clipboard image payload(s) from `MessageInput`
-2. `extractOSstate(...)` capture path
+2. `captureScreenshotAttachment(...)` capture path
 3. no screenshot
 
 Clipboard path specifics:
@@ -135,7 +136,7 @@ Clipboard path specifics:
 
 Capture path specifics:
 
-- capture call: `extractOSstate(true, false, 0, isFirstUserMessage)`
+- capture call: `captureScreenshotAttachment({ waitSeconds: 0, isFirstUserMessage })`
 - `isFirstUserMessage` derived before insertion from existing chat store.
 - capture response may contain:
   - inline `screenshot` base64

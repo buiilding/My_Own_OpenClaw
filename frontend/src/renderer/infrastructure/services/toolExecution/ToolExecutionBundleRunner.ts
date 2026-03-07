@@ -2,7 +2,7 @@ import { captureAfterTool, isComputerUseTool } from './ToolExecutionCapture';
 import { logBundledToolStart, logBundledToolTiming } from './ToolExecutionLogger';
 import { invokeTool } from './ToolExecutionInvoker';
 import type { SystemState, ToolResult } from '../MessageFormatter';
-import type { CaptureMeta } from '../SystemCapture';
+import type { CaptureMeta } from '../ScreenshotAttachmentPipeline';
 
 export type BundleStepResult = {
   tool: string;
@@ -14,6 +14,8 @@ type BundleRunOutcome = {
   stepResults: BundleStepResult[];
   systemState: SystemState | null;
   screenshot: string | null;
+  screenshotRef: string | null;
+  screenshotUrl: string | null;
   screenshotContentType: string | null;
   captureMeta: CaptureMeta | null;
   totalWaitDelay: number;
@@ -84,6 +86,8 @@ export async function runToolBundle(
   const toolExecutionTimes: Array<{ tool: string; time: number }> = [];
   let systemState: SystemState | null = null;
   let screenshot: string | null = null;
+  let screenshotRef: string | null = null;
+  let screenshotUrl: string | null = null;
   let screenshotContentType: string | null = null;
   let captureMeta: CaptureMeta | null = null;
   let totalWaitDelay = 0;
@@ -130,6 +134,8 @@ export async function runToolBundle(
         totalCaptureTime += capture.captureTime;
         totalWaitDelay += capture.waitSeconds;
         screenshot = capture.screenshot;
+        screenshotRef = capture.screenshotRef;
+        screenshotUrl = capture.screenshotUrl;
         screenshotContentType = capture.screenshotContentType;
         captureMeta = capture.captureMeta;
         if (isLastTool) {
@@ -156,6 +162,8 @@ export async function runToolBundle(
     stepResults,
     systemState,
     screenshot,
+    screenshotRef,
+    screenshotUrl,
     screenshotContentType,
     captureMeta,
     totalWaitDelay,

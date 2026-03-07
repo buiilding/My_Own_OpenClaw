@@ -35,7 +35,8 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - `frontend/src/renderer/infrastructure/services/ToolExecutionCapture.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionPayloads.ts`
 - `frontend/src/renderer/infrastructure/services/ToolComputerUseCatalog.ts`
-- `frontend/src/renderer/infrastructure/services/SystemCapture.ts`
+- `frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts`
+- `frontend/src/renderer/infrastructure/services/SystemStateCapture.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionLogger.ts`
@@ -52,5 +53,6 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - `tests/frontend/ToolRunnerHook.events.test.ts`
 - `tests/frontend/ToolRunnerSurface.test.ts`
 - `tests/frontend/ToolRunnerHook.callbacks.test.ts`
-- `tests/frontend/SystemCapture.test.ts`
+- `tests/frontend/ScreenshotAttachmentPipeline.test.ts`
+- `tests/frontend/SystemStateCapture.test.ts`
 - `tests/frontend/PlayerService.test.ts`
