@@ -87,6 +87,9 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
     JSON chatter in episodic retrieval.
   - On startup, sidecar backfills missing embeddings for existing transcript
     semantic-candidate rows.
+  - On retrieval, top-ranked episodic transcript user hits are enriched with the
+    next assistant reply from the same conversation (when available), producing
+    canonical paired interaction text for prompt injection.
 
 ### MemorySummarizer
 

@@ -147,6 +147,30 @@ Result payload fields:
 
 - `id`, `text`, `metadata`, `score`, `timestamp`, `type`, optional `conversation_id`
 
+### Transcript Companion Enrichment (Current Retrieval Contract)
+
+After score sort + top-`limit` trim, `search(...)` performs transcript enrichment when episodic search is enabled:
+
+1. scan final episodic rows for transcript user turns
+2. for each user turn, resolve the next assistant transcript reply in the same conversation (primary path uses SQLite lookup by `conversation_id + message_index`)
+3. allow only assistant transcript message types `"" | "llm-text" | "error"`
+4. rewrite user-row `text` in canonical interaction format (`User: ...` + `Assistant: ...`) via `format_interaction_memory(...)`
+5. keep result count stable (no extra rows appended)
+
+Why this exists:
+
+- vector top-k can return user-only transcript rows
+- prompt memory injection needs paired user/assistant context to avoid low-signal one-sided episodic recall
+
+Ownership boundary:
+
+- pairing now lives in `LocalMemoryStore.search(...)` (store/retrieval layer), not in `local_backend_memory_handlers.py`
+- `search_memory` handler remains responsible for payload validation, active-conversation exclusion filtering, and grouping response shape
+
+Regression coverage:
+
+- `tests/sidecar/test_local_store_search_pairing.py`
+
 Conversation search surface (`search_conversations(...)`):
 
 - lexical + semantic transcript hit collection now routes through `conversation_search_runtime`
