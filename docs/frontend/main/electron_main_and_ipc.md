@@ -14,6 +14,8 @@ Primary entrypoint:
 
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/main_window_runtime.cjs`
+- `frontend/src/main/main_window_icon_runtime.cjs`
+- `frontend/src/main/main_window_overlay_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
@@ -32,6 +34,7 @@ Responsibilities:
 - Delegates chat/main visibility transitions to `window_visibility_runtime.cjs`.
 
 See [Main Window Runtime Factory and Overlay Bootstrap Reference](main_window_runtime_factory_and_overlay_bootstrap_reference.md) for extracted helper boundaries.
+See [Main Window Icon and Overlay Runtime Reference](main_window_icon_and_overlay_runtime_reference.md) for icon-path/nativeImage fallback and shared overlay-window/renderer-loader helper contracts.
 See [Main Process Lifecycle, Overlay IPC, and Window Visibility Runtime Reference](main_process_lifecycle_overlay_ipc_and_window_visibility_runtime_reference.md) for lifecycle and overlay-runtime split ownership.
 
 ## Preload Boundary

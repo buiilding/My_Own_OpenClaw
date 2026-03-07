@@ -47,6 +47,7 @@ App-ready path (`app.whenReady()`):
 6. chat/response windows are registered in IPC broadcaster set only when those overlay windows are created.
 
 For extracted factory/helper ownership details, see [Main Window Runtime Factory and Overlay Bootstrap Reference](main_window_runtime_factory_and_overlay_bootstrap_reference.md).
+For icon path resolution and shared overlay BrowserWindow/renderer-loader helper contracts, see [Main Window Icon and Overlay Runtime Reference](main_window_icon_and_overlay_runtime_reference.md).
 For lifecycle + overlay-handler split details, see [Main Process Lifecycle, Overlay IPC, and Window Visibility Runtime Reference](main_process_lifecycle_overlay_ipc_and_window_visibility_runtime_reference.md).
 
 Window close policy:

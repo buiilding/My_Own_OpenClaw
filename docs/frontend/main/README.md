@@ -14,6 +14,7 @@ title: "Frontend Main Docs Hub"
 - [Main Overlay Focus Docs Hub](overlays/README.md)
 - [Window and Overlay Lifecycle](window_and_overlay_lifecycle.md)
 - [Main Window Runtime Factory and Overlay Bootstrap Reference](main_window_runtime_factory_and_overlay_bootstrap_reference.md)
+- [Main Window Icon and Overlay Runtime Reference](main_window_icon_and_overlay_runtime_reference.md)
 - [Main Process Lifecycle, Overlay IPC, and Window Visibility Runtime Reference](main_process_lifecycle_overlay_ipc_and_window_visibility_runtime_reference.md)
 - [Display-Affinity Monitor Selection and Screenshot Bounds Reference](display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md)
 - [Context Label Overlay and Active-Window Runtime Reference](context_label_overlay_and_active_window_runtime_reference.md)
