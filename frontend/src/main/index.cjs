@@ -449,6 +449,7 @@ function initializeMainProcessIpc() {
 
   initializeWindowControlHandlersRuntime({
     ipcMain,
+    BrowserWindow,
     screen,
     getWindows,
     showMainWindow,
