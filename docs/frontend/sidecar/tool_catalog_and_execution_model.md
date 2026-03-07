@@ -31,10 +31,13 @@ Detailed registry behavior:
 
 ### Computer tools
 
+- `computer_use` (unified router)
 - `mouse_control`
 - `keyboard_control`
 - `screenshot`
 - `scroll_control`
+- `switch_tab`
+- `wait`
 
 Deep runtime reference:
 
@@ -51,13 +54,12 @@ Deep runtime reference:
 
 ### System tools
 
+- `system_use` (unified router)
 - `open_app`
 - `run_shell_command`
 - `process`
-- `switch_tab`
 - `get_open_windows`
 - `get_system_stats`
-- `wait`
 
 System shell output shaping is split into dedicated helpers:
 
@@ -89,6 +91,9 @@ Schema classes include validation rules such as:
 Current runtime boundary:
 
 - `ToolRegistry.execute_tool` does not instantiate these schema models before invoking tools.
+- `ToolRegistry` validates envelope shape for unified wrappers before delegation:
+  - `computer_use`: requires `tool` + required `metadata` + object `arguments`
+  - `system_use`: requires valid `tool` + object `arguments`, with top-level `explanation` or nested fallback
 - Effective validation today is split between callers and tool implementations themselves.
 
 Implication:
