@@ -113,7 +113,7 @@ async function handlePrepareChatboxForScreenshot(
   if (hiddenSurface !== 'none') {
     const hideStartTime = performance.now();
     hideResult = hiddenSurface === 'main-window'
-      ? hideMainWindow()
+      ? await hideMainWindow({ suppressForScreenshot: true })
       : hideChatWindow();
     hideInvokeTime = (performance.now() - hideStartTime) / 1000;
     if (!hideResult?.success) {

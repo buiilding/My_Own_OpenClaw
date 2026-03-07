@@ -2,10 +2,12 @@
 
 const {
   hideMainWindow,
+  isMainWindowSuppressedForScreenshot,
   resolveShowTargetDisplayAffinity,
   setWindowOpacityIfSupported,
   showMainWindow,
   showChatWindow,
+  waitForMainWindowSuppressedForScreenshot,
 } = require('../../frontend/src/main/window_visibility_runtime.cjs');
 
 function createWindow({
@@ -20,6 +22,9 @@ function createWindow({
     hide: jest.fn(),
     focus: jest.fn(),
     setOpacity: jest.fn(),
+    minimize: jest.fn(),
+    restore: jest.fn(),
+    isMinimized: jest.fn(() => false),
     webContents: {
       send: jest.fn(),
     },
@@ -239,6 +244,8 @@ describe('window_visibility_runtime showMainWindow', () => {
       show: jest.fn(),
       focus: jest.fn(),
       setOpacity: jest.fn(),
+      restore: jest.fn(),
+      isMinimized: jest.fn(() => false),
     };
     const syncWindowDisplayAffinity = jest.fn();
     const setActiveDisplayAffinity = jest.fn();
@@ -283,6 +290,8 @@ describe('window_visibility_runtime showMainWindow', () => {
       show: jest.fn(),
       focus: jest.fn(),
       setOpacity: jest.fn(),
+      restore: jest.fn(),
+      isMinimized: jest.fn(() => false),
     };
     const syncWindowDisplayAffinity = jest.fn();
     const setActiveDisplayAffinity = jest.fn();
@@ -331,6 +340,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       isMinimized: jest.fn(() => false),
       maximize: jest.fn(),
       setOpacity: jest.fn(),
+      restore: jest.fn(),
     };
     const syncWindowDisplayAffinity = jest.fn();
     const setActiveDisplayAffinity = jest.fn();
@@ -378,6 +388,8 @@ describe('window_visibility_runtime showMainWindow', () => {
       show: jest.fn(),
       focus: jest.fn(),
       setOpacity: jest.fn(),
+      restore: jest.fn(),
+      isMinimized: jest.fn(() => false),
     };
     const syncWindowDisplayAffinity = jest.fn();
     const setActiveDisplayAffinity = jest.fn();
@@ -411,21 +423,93 @@ describe('window_visibility_runtime hideMainWindow', () => {
   test('forces transparency before hiding a visible main window', () => {
     const mainWindow = createWindow({ visible: true });
 
-    const result = hideMainWindow({ mainWindow });
+    const resultPromise = hideMainWindow({}, { mainWindow });
 
-    expect(result).toEqual({ success: true });
-    expect(mainWindow.setOpacity).toHaveBeenCalledWith(0);
-    expect(mainWindow.hide).toHaveBeenCalledTimes(1);
+    return expect(resultPromise).resolves.toEqual({
+      success: true,
+      suppressedForScreenshot: false,
+      minimized: false,
+    }).then(() => {
+      expect(mainWindow.setOpacity).toHaveBeenCalledWith(0);
+      expect(mainWindow.hide).toHaveBeenCalledTimes(1);
+    });
   });
 
   test('does not throw when opacity control is unavailable', () => {
     const mainWindow = createWindow({ visible: true });
     delete mainWindow.setOpacity;
 
-    const result = hideMainWindow({ mainWindow });
+    const resultPromise = hideMainWindow({}, { mainWindow });
 
-    expect(result).toEqual({ success: true });
-    expect(mainWindow.hide).toHaveBeenCalledTimes(1);
+    return expect(resultPromise).resolves.toEqual({
+      success: true,
+      suppressedForScreenshot: false,
+      minimized: false,
+    }).then(() => {
+      expect(mainWindow.hide).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  test('minimizes and waits for dashboard suppression during screenshot prep', async () => {
+    const mainWindow = createWindow({ visible: true });
+    mainWindow.isVisible
+      .mockReturnValueOnce(true)
+      .mockReturnValueOnce(true)
+      .mockReturnValue(false);
+    mainWindow.isMinimized
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(true)
+      .mockReturnValue(true);
+    const waitInMain = jest.fn().mockResolvedValue(undefined);
+
+    const result = await hideMainWindow(
+      { suppressForScreenshot: true },
+      { mainWindow, waitInMain },
+    );
+
+    expect(result).toEqual({
+      success: true,
+      suppressedForScreenshot: true,
+      minimized: true,
+    });
+    expect(mainWindow.setOpacity).toHaveBeenCalledWith(0);
+    expect(mainWindow.minimize).toHaveBeenCalledTimes(1);
+    expect(mainWindow.hide).not.toHaveBeenCalled();
+  });
+});
+
+describe('window_visibility_runtime screenshot suppression helpers', () => {
+  test('recognizes minimized or hidden windows as suppressed', () => {
+    expect(isMainWindowSuppressedForScreenshot({
+      isMinimized: () => true,
+      isVisible: () => true,
+    })).toBe(true);
+    expect(isMainWindowSuppressedForScreenshot({
+      isMinimized: () => false,
+      isVisible: () => false,
+    })).toBe(true);
+    expect(isMainWindowSuppressedForScreenshot({
+      isMinimized: () => false,
+      isVisible: () => true,
+    })).toBe(false);
+  });
+
+  test('waits until suppression predicate becomes true', async () => {
+    const mainWindow = {
+      isMinimized: jest.fn()
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(false)
+        .mockReturnValue(true),
+      isVisible: jest.fn(() => true),
+    };
+    const waitInMain = jest.fn().mockResolvedValue(undefined);
+
+    await expect(waitForMainWindowSuppressedForScreenshot(mainWindow, {
+      waitInMain,
+      timeoutMs: 100,
+      pollMs: 10,
+    })).resolves.toBe(true);
+    expect(waitInMain).toHaveBeenCalled();
   });
 });
 
