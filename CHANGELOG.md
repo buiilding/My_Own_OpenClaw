@@ -2306,3 +2306,4 @@ Includes the last 300 commits on `main`.
 - 02dac42 chore: commit pending changes
 - unreleased fix(tool-calling): unify computer-use calls under computer_use with direct metadata args and legacy-wrapper rejection
 - unreleased fix(tool-selection): remove legacy wrapped computer-use schema traversal; direct args schema only
+- unreleased refactor(frontend-capture): rename screenshot timing aggregate from `surface` to `prep` so logs reflect main-owned wait/hide preparation instead of implying pure overlay work
