@@ -13,6 +13,7 @@ from memory.operations import (
     build_memory_filters,
     build_store_memory_response_data,
     exclude_conversation_results,
+    format_interaction_memory,
     group_memory_texts,
     normalize_and_store_interaction_memory,
     normalize_search_memory_payload,
@@ -42,6 +43,8 @@ def requires_memory_store(
 
 class LocalBackendMemoryHandlersMixin:
     """Memory RPC handlers shared by the local backend service."""
+
+    _ASSISTANT_RETRIEVAL_MESSAGE_TYPES = {"", "llm-text", "error"}
 
     @staticmethod
     def _normalize_transcript_transparency(
@@ -134,6 +137,13 @@ class LocalBackendMemoryHandlersMixin:
             results = await self.memory_store.search(query, user_id, filters, limit)
             filtered_results = exclude_conversation_results(results, exclude_conversation_id)
             memories = group_memory_texts(filtered_results)
+            recovered_transcript_pairs = await self._recover_transcript_pairs_for_search_results(
+                results=filtered_results,
+                grouped_episodic=memories.get("episodic", []),
+                user_id=user_id,
+            )
+            if recovered_transcript_pairs:
+                memories["episodic"] = recovered_transcript_pairs
 
             return {
                 "success": True,
@@ -147,6 +157,169 @@ class LocalBackendMemoryHandlersMixin:
                 "success": False,
                 "error": str(e)
             }
+
+    @staticmethod
+    def _normalize_message_index(value: Any) -> Optional[int]:
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped.isdigit():
+                return int(stripped)
+        return None
+
+    @staticmethod
+    def _extract_result_metadata(result: Dict[str, Any]) -> Dict[str, Any]:
+        metadata = result.get("metadata")
+        if isinstance(metadata, dict):
+            return metadata
+        return {}
+
+    @classmethod
+    def _has_interaction_memories(cls, episodic_memories: Any) -> bool:
+        if not isinstance(episodic_memories, list):
+            return False
+        for entry in episodic_memories:
+            if not isinstance(entry, str):
+                continue
+            normalized = entry.strip().lower()
+            if "user:" in normalized and "assistant:" in normalized:
+                return True
+        return False
+
+    @classmethod
+    def _assistant_message_is_retrievable(cls, message_type: Optional[str]) -> bool:
+        normalized = (message_type or "").strip().lower()
+        return normalized in cls._ASSISTANT_RETRIEVAL_MESSAGE_TYPES
+
+    async def _recover_transcript_pairs_for_search_results(
+        self,
+        *,
+        results: list[Dict[str, Any]],
+        grouped_episodic: Any,
+        user_id: str,
+    ) -> list[str]:
+        """
+        Best-effort fallback pairing for transcript-only search hits.
+
+        Search top-k can return user transcript rows without the matching assistant
+        row. When grouped episodic memories lack interaction-style pairs, fetch the
+        assistant response from the same conversation window and synthesize pairs.
+        """
+        if self._has_interaction_memories(grouped_episodic):
+            return []
+
+        memory_store = getattr(self, "memory_store", None)
+        if memory_store is None:
+            return []
+
+        getter = getattr(memory_store, "get_episodic_memories_by_conversation", None)
+        if not callable(getter):
+            return []
+
+        transcript_candidates: list[tuple[str, int, str]] = []
+        for result in results:
+            if result.get("type") != "episodic":
+                continue
+            text = result.get("text")
+            if not isinstance(text, str) or not text.strip():
+                continue
+
+            metadata = self._extract_result_metadata(result)
+            record_kind = str(
+                result.get("record_kind")
+                or metadata.get("record_kind")
+                or ""
+            ).strip().lower()
+            role = str(
+                result.get("role")
+                or metadata.get("role")
+                or ""
+            ).strip().lower()
+            conversation_id = (
+                result.get("conversation_id")
+                or metadata.get("conversation_id")
+            )
+            message_index = self._normalize_message_index(
+                result.get("message_index", metadata.get("message_index"))
+            )
+
+            if record_kind != "transcript" or role != "user":
+                continue
+            if not isinstance(conversation_id, str) or not conversation_id.strip():
+                continue
+            if message_index is None:
+                continue
+
+            transcript_candidates.append((conversation_id.strip(), message_index, text))
+
+        if not transcript_candidates:
+            return []
+
+        recovered_pairs: list[str] = []
+        seen_pair_keys: set[tuple[str, int]] = set()
+        for conversation_id, user_message_index, user_text in transcript_candidates:
+            pair_key = (conversation_id, user_message_index)
+            if pair_key in seen_pair_keys:
+                continue
+
+            conversation_rows = await getter(
+                user_id=user_id,
+                conversation_id=conversation_id,
+                limit=30,
+                record_kind="transcript",
+                after_message_index=user_message_index,
+            )
+            if not isinstance(conversation_rows, list):
+                continue
+
+            assistant_text: Optional[str] = None
+            for row in conversation_rows:
+                if not isinstance(row, dict):
+                    continue
+                row_metadata = row.get("metadata")
+                if not isinstance(row_metadata, dict):
+                    row_metadata = {}
+
+                row_role = str(
+                    row.get("role")
+                    or row_metadata.get("role")
+                    or ""
+                ).strip().lower()
+                if row_role != "assistant":
+                    continue
+
+                row_message_type = (
+                    row.get("message_type")
+                    or row_metadata.get("message_type")
+                )
+                if not self._assistant_message_is_retrievable(row_message_type):
+                    continue
+
+                row_message_index = self._normalize_message_index(
+                    row.get("message_index", row_metadata.get("message_index"))
+                )
+                if (
+                    row_message_index is not None
+                    and row_message_index <= user_message_index
+                ):
+                    continue
+
+                content = row.get("content")
+                if not isinstance(content, str) or not content.strip():
+                    continue
+                assistant_text = content
+                break
+
+            if not assistant_text:
+                continue
+
+            recovered_pairs.append(format_interaction_memory(user_text, assistant_text))
+            seen_pair_keys.add(pair_key)
+
+        return recovered_pairs
 
     @requires_memory_store
     async def _handle_search_conversations(
