@@ -415,6 +415,22 @@ class TestToolOutputEventFormatter:
 
         assert result["payload"]["screenshot_ref"] == "artifact-shot-1"
 
+    def test_format_preserves_metadata_request_id_for_frontend_correlation_fallback(self, formatter):
+        event = {
+            "type": "tool_output",
+            "tool_name": "read_file",
+            "success": True,
+            "output": "ok",
+            "metadata": {"request_id": "meta-corr-1", "origin": "sidecar"},
+        }
+
+        result = formatter.format(event, "msg-4")
+
+        assert result["payload"]["metadata"] == {
+            "request_id": "meta-corr-1",
+            "origin": "sidecar",
+        }
+
     @pytest.mark.parametrize(
         "event,missing_field",
         [
