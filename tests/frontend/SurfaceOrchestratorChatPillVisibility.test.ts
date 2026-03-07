@@ -27,38 +27,24 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
   });
 
   test('collapses chat pill with deterministic hide-only ordering', async () => {
-    jest.useFakeTimers();
-    try {
-      expect(shouldManageChatPillVisibilityForBackgroundCapture()).toBe(true);
+    (IpcBridge.invoke as jest.Mock).mockResolvedValueOnce({
+      success: true,
+      settleMs: 120,
+    });
 
-      const pending = collapseChatPillForBackgroundCapture();
+    expect(shouldManageChatPillVisibilityForBackgroundCapture()).toBe(true);
 
-      expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-        [INVOKE_CHANNELS.HIDE_CHATBOX],
-      ]);
+    await expect(collapseChatPillForBackgroundCapture()).resolves.toEqual({
+      collapsed: true,
+      timing: {
+        hideInvokeTime: expect.any(Number),
+        settleTime: 0.12,
+      },
+    });
 
-      let settled = false;
-      void pending.then(() => {
-        settled = true;
-      });
-      await Promise.resolve();
-      expect(settled).toBe(false);
-
-      jest.advanceTimersByTime(120);
-      await expect(pending).resolves.toEqual({
-        collapsed: true,
-        timing: {
-          hideInvokeTime: expect.any(Number),
-          settleTime: expect.any(Number),
-        },
-      });
-
-      expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-        [INVOKE_CHANNELS.HIDE_CHATBOX],
-      ]);
-    } finally {
-      jest.useRealTimers();
-    }
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { settleMs: 120 }],
+    ]);
   });
 
   test('restores chat pill as non-focusing show', async () => {
@@ -78,7 +64,7 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
 
     await expect(collapseChatPillForBackgroundCapture()).rejects.toThrow('hide-failed');
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.HIDE_CHATBOX],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { settleMs: 120 }],
     ]);
   });
 

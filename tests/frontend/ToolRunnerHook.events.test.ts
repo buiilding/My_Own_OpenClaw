@@ -113,7 +113,7 @@ describe('useToolRunner event handling', () => {
       expect.anything(),
     );
     expect(IpcBridge.invoke).not.toHaveBeenCalledWith(
-      INVOKE_CHANNELS.HIDE_CHATBOX,
+      INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT,
       expect.anything(),
     );
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
@@ -142,7 +142,7 @@ describe('useToolRunner event handling', () => {
       expect.anything(),
     );
     expect(IpcBridge.invoke).not.toHaveBeenCalledWith(
-      INVOKE_CHANNELS.HIDE_CHATBOX,
+      INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT,
       expect.anything(),
     );
     expect(IpcBridge.invoke).not.toHaveBeenCalledWith(
@@ -172,7 +172,7 @@ describe('useToolRunner event handling', () => {
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toContainEqual([INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY]);
     expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.SHOW_CHATBOX)).toBe(false);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(false);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT)).toBe(false);
     expect(invokeCalls.some(([channel]: unknown[]) => channel === 'prepare-overlay-tool-focus')).toBe(false);
   });
 
@@ -194,10 +194,6 @@ describe('useToolRunner event handling', () => {
         request_id: 'req-screenshot-dashboard-open',
       },
     });
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 130));
-    });
-
     const firstExecuteCall = mockExecuteTool.mock.calls[0];
     if (!firstExecuteCall) {
       throw new Error('executeTool was not called for screenshot tool-call');
@@ -216,7 +212,7 @@ describe('useToolRunner event handling', () => {
     }
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
-      [INVOKE_CHANNELS.HIDE_CHATBOX],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { settleMs: 120 }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });
@@ -248,7 +244,7 @@ describe('useToolRunner event handling', () => {
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY)).toBe(false);
     expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.SHOW_CHATBOX)).toBe(false);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(false);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT)).toBe(false);
     expect(invokeCalls).toEqual([]);
   });
 
@@ -319,7 +315,7 @@ describe('useToolRunner event handling', () => {
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toContainEqual([INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY]);
     expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.SHOW_CHATBOX)).toBe(false);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(false);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT)).toBe(false);
     expect(mockExecuteToolBundle).toHaveBeenCalledWith(
       [
         { toolName: 'read_file', args: { file_path: '/tmp/a' } },
@@ -352,7 +348,7 @@ describe('useToolRunner event handling', () => {
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toContainEqual([INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY]);
     expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.SHOW_CHATBOX)).toBe(false);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(false);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT)).toBe(false);
     expect(invokeCalls.some(([channel]: unknown[]) => channel === 'prepare-overlay-tool-focus')).toBe(false);
   });
 
@@ -419,8 +415,8 @@ describe('useToolRunner event handling', () => {
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toContainEqual([INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY]);
     expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.SHOW_CHATBOX)).toBe(false);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(false);
-    expect(invokeCalls.findIndex(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(-1);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT)).toBe(false);
+    expect(invokeCalls.findIndex(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT)).toBe(-1);
   });
 
   test('keeps interactive tool-call executable without focus verification IPC', async () => {
@@ -428,7 +424,7 @@ describe('useToolRunner event handling', () => {
     (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
       if (
         channel === INVOKE_CHANNELS.SHOW_CHATBOX
-        || channel === INVOKE_CHANNELS.HIDE_CHATBOX
+        || channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT
       ) {
         return { success: true };
       }
@@ -460,7 +456,7 @@ describe('useToolRunner event handling', () => {
     (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
       if (
         channel === INVOKE_CHANNELS.SHOW_CHATBOX
-        || channel === INVOKE_CHANNELS.HIDE_CHATBOX
+        || channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT
       ) {
         return { success: true };
       }

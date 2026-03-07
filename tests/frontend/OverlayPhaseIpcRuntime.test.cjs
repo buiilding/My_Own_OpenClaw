@@ -55,6 +55,7 @@ describe('overlay_phase_ipc_runtime', () => {
     expect(typeof invokeHandlers['set-chatbox-visual-anchor-height']).toBe('function');
     expect(typeof invokeHandlers['show-chatbox']).toBe('function');
     expect(typeof invokeHandlers['hide-chatbox']).toBe('function');
+    expect(typeof invokeHandlers['prepare-chatbox-for-screenshot']).toBe('function');
     expect(typeof eventHandlers['move-chatbox-to']).toBe('function');
     expect(invokeHandlers['show-main-window']).toBeUndefined();
     expect(invokeHandlers['list-permissions']).toBeUndefined();

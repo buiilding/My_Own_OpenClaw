@@ -2,6 +2,7 @@
 
 const {
   handleHideChatbox,
+  handlePrepareChatboxForScreenshot,
   handleShowChatbox,
   handleShowMainWindow,
 } = require('../../frontend/src/main/overlay_visibility_handler.cjs');
@@ -63,5 +64,32 @@ describe('overlay_visibility_handler', () => {
 
     expect(result).toEqual({ success: true, hidden: true });
     expect(hideChatWindow).toHaveBeenCalledTimes(1);
+  });
+
+  test('prepare-chatbox-for-screenshot hides then waits in main process', async () => {
+    const hideChatWindow = jest.fn().mockReturnValue({ success: true, hidden: true });
+    const waitForSettlement = jest.fn().mockResolvedValue(undefined);
+
+    const result = await handlePrepareChatboxForScreenshot(
+      { settleMs: 120 },
+      { hideChatWindow, waitForSettlement },
+    );
+
+    expect(result).toEqual({ success: true, hidden: true, settleMs: 120 });
+    expect(hideChatWindow).toHaveBeenCalledTimes(1);
+    expect(waitForSettlement).toHaveBeenCalledWith(120);
+  });
+
+  test('prepare-chatbox-for-screenshot returns hide failure without waiting', async () => {
+    const hideChatWindow = jest.fn().mockReturnValue({ success: false, reason: 'Chat window not available' });
+    const waitForSettlement = jest.fn().mockResolvedValue(undefined);
+
+    const result = await handlePrepareChatboxForScreenshot(
+      { settleMs: 120 },
+      { hideChatWindow, waitForSettlement },
+    );
+
+    expect(result).toEqual({ success: false, reason: 'Chat window not available' });
+    expect(waitForSettlement).not.toHaveBeenCalled();
   });
 });

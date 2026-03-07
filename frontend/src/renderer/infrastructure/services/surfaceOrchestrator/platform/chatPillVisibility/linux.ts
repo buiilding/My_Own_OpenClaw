@@ -6,25 +6,28 @@ import type {
 
 const CHAT_PILL_HIDE_SETTLE_MS = 120;
 
-function waitForChatPillHideSettlement(): Promise<void> {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, CHAT_PILL_HIDE_SETTLE_MS);
-  });
-}
-
 const linuxChatPillVisibilityRuntime = {
   shouldManageChatPillVisibilityForBackgroundCapture(): boolean {
     return true;
   },
 
   async collapseChatPillForBackgroundCapture(): Promise<ChatPillCollapseResult> {
-    // Hide-only collapse avoids show->hide flashes when the pill is already hidden.
+    // Hide-and-settle now runs in Electron main so the hidden overlay renderer
+    // cannot stretch the delay via background timer throttling.
     const hideStartTime = performance.now();
-    await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
-    const hideInvokeTime = (performance.now() - hideStartTime) / 1000;
-    const settleStartTime = performance.now();
-    await waitForChatPillHideSettlement();
-    const settleTime = (performance.now() - settleStartTime) / 1000;
+    const result = await IpcBridge.invoke<{
+      success?: boolean;
+      reason?: string;
+      settleMs?: number;
+    }>(INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, {
+      settleMs: CHAT_PILL_HIDE_SETTLE_MS,
+    });
+    if (result?.success !== true) {
+      throw new Error(result?.reason || 'prepare-chatbox-for-screenshot failed');
+    }
+    const totalPreparationTime = (performance.now() - hideStartTime) / 1000;
+    const settleTime = Math.max(0, (result?.settleMs ?? CHAT_PILL_HIDE_SETTLE_MS) / 1000);
+    const hideInvokeTime = Math.max(0, totalPreparationTime - settleTime);
     return {
       collapsed: true,
       timing: {
