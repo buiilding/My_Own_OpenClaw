@@ -146,6 +146,7 @@ describe('local_backend_bridge RPC handlers', () => {
       monitor_id: '2',
       bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
       workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
     });
 
     const promise = handlers['execute-tool']({ sender: {} }, {
@@ -163,6 +164,12 @@ describe('local_backend_bridge RPC handlers', () => {
           width: 2560,
           height: 1440,
           monitor_id: '2',
+          desktop_virtual_bounds: {
+            x: 0,
+            y: 0,
+            width: 4480,
+            height: 1440,
+          },
         },
       },
     });

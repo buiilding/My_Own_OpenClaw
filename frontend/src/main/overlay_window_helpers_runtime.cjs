@@ -20,6 +20,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     chatVisualAnchorHeight = null,
     warn = console.warn,
   } = deps;
+  let manualChatWindowPosition = null;
 
   function getAnchoredChatBounds(chatBounds) {
     if (!chatBounds || typeof chatBounds !== 'object') {
@@ -111,10 +112,24 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       return;
     }
     const [width, height] = chatWindow.getSize();
-    const { x, y } = getChatWindowBounds(width, height);
+    const { x, y } = manualChatWindowPosition || getChatWindowBounds(width, height);
     chatWindow.setPosition(x, y, false);
     positionResponseWindow();
     positionContextLabelWindow();
+  }
+
+  function setManualChatWindowPosition(position) {
+    if (!position || typeof position !== 'object') {
+      manualChatWindowPosition = null;
+      return false;
+    }
+    const x = Math.round(Number(position.x));
+    const y = Math.round(Number(position.y));
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      return false;
+    }
+    manualChatWindowPosition = { x, y };
+    return true;
   }
 
   function ensureResponseOverlayFallbackBounds() {
@@ -245,6 +260,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
   return {
     ensureResponseOverlayFallbackBounds,
     positionChatWindow,
+    setManualChatWindowPosition,
     getChatWindowBounds,
     getResponseWindowBounds,
     getContextLabelWindowBounds,

@@ -151,6 +151,43 @@ describe('window_visibility_runtime showMainWindow', () => {
     expect(mainWindow.focus).toHaveBeenCalledTimes(1);
   });
 
+  test('uses target display work area instead of native maximize when opening from another monitor maximized', () => {
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+      isMaximized: jest.fn(() => false),
+      setBounds: jest.fn(),
+      show: jest.fn(),
+      focus: jest.fn(),
+      isMinimized: jest.fn(() => false),
+      maximize: jest.fn(),
+    };
+
+    const result = showMainWindow(
+      {
+        focus: true,
+        maximize: true,
+        targetDisplayAffinity: {
+          monitor_id: '2',
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        },
+      },
+      { mainWindow },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(mainWindow.setBounds).toHaveBeenCalledWith({
+      x: 1920,
+      y: 0,
+      width: 2560,
+      height: 1400,
+    }, false);
+    expect(mainWindow.maximize).not.toHaveBeenCalled();
+    expect(mainWindow.show).toHaveBeenCalledTimes(1);
+    expect(mainWindow.focus).toHaveBeenCalledTimes(1);
+  });
+
   test('unmaximizes before repositioning onto target display', () => {
     const mainWindow = {
       isDestroyed: jest.fn(() => false),

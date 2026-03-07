@@ -15,6 +15,7 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     positionResponseWindow,
     positionContextLabelWindow,
     syncContextLabelWindowVisibility,
+    setManualChatWindowPosition,
     setChatVisualAnchorHeight,
     getResponseWindowBounds,
     setResponseOverlayVisibilityState,
@@ -38,6 +39,7 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     const { chatWindow } = getWindows();
     handleMoveChatboxTo({ x, y }, {
       chatWindow,
+      setManualChatWindowPosition,
       positionResponseWindow,
       positionContextLabelWindow,
       syncContextLabelWindowVisibility,

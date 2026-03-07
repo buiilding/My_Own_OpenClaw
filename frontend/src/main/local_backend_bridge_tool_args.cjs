@@ -46,6 +46,13 @@ function normalizeDisplayBounds(displayBounds) {
   if (typeof displayBounds.monitor_id === 'string' && displayBounds.monitor_id.trim().length > 0) {
     normalized.monitor_id = displayBounds.monitor_id.trim();
   }
+  if (isRecord(displayBounds.desktop_virtual_bounds)) {
+    const desktopVirtualBounds = normalizeDisplayBounds(displayBounds.desktop_virtual_bounds);
+    if (desktopVirtualBounds) {
+      delete desktopVirtualBounds.monitor_id;
+      normalized.desktop_virtual_bounds = desktopVirtualBounds;
+    }
+  }
   return normalized;
 }
 

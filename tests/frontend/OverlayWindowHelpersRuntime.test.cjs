@@ -190,6 +190,32 @@ describe('overlay_window_helpers_runtime', () => {
     );
   });
 
+  test('keeps manually dragged chat window position on subsequent reposition calls', () => {
+    const chatWindow = {
+      isDestroyed: jest.fn(() => false),
+      getSize: jest.fn(() => [520, 116]),
+      setPosition: jest.fn(),
+    };
+    const runtime = createOverlayWindowHelpersRuntime({
+      screen: {},
+      getChatWindow: () => chatWindow,
+      getOverlayChatWindowBounds: jest.fn(() => ({ x: 400, y: 500, width: 520, height: 116 })),
+      getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      contextLabelWidth: 280,
+      contextLabelHeight: 26,
+      contextLabelOffsetX: 14,
+      contextLabelGapAboveChatbox: -6,
+    });
+
+    runtime.positionChatWindow();
+    runtime.setManualChatWindowPosition({ x: 2100, y: 120 });
+    runtime.positionChatWindow();
+
+    expect(chatWindow.setPosition).toHaveBeenNthCalledWith(1, 400, 500, false);
+    expect(chatWindow.setPosition).toHaveBeenNthCalledWith(2, 2100, 120, false);
+  });
+
   test('re-promotes chat overlay with mac level fallback and moveTop', () => {
     const chatWindow = {
       isDestroyed: jest.fn(() => false),

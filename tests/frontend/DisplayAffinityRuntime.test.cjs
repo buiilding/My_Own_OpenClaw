@@ -21,6 +21,18 @@ describe('display_affinity_runtime', () => {
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
         workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
       })),
+      getAllDisplays: jest.fn(() => ([
+        {
+          id: 1,
+          bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+          workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+        },
+        {
+          id: 42,
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        },
+      ])),
       getPrimaryDisplay: jest.fn(() => ({
         id: 1,
         bounds: { x: 0, y: 0, width: 1920, height: 1080 },
@@ -37,6 +49,7 @@ describe('display_affinity_runtime', () => {
       monitor_id: '42',
       bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
       workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
     });
     expect(screen.getDisplayMatching).toHaveBeenCalledWith({ x: 2100, y: 100, width: 800, height: 600 });
   });
@@ -85,6 +98,7 @@ describe('display_affinity_runtime', () => {
       monitor_id: '7',
       bounds: { x: 3000, y: 0, width: 1920, height: 1080 },
       workArea: { x: 3000, y: 0, width: 1920, height: 1040 },
+      desktopVirtualBounds: { x: 0, y: 0, width: 4920, height: 1080 },
     });
 
     const affinity = getActiveDisplayAffinity();
@@ -92,6 +106,7 @@ describe('display_affinity_runtime', () => {
       monitor_id: '7',
       bounds: { x: 3000, y: 0, width: 1920, height: 1080 },
       workArea: { x: 3000, y: 0, width: 1920, height: 1040 },
+      desktopVirtualBounds: { x: 0, y: 0, width: 4920, height: 1080 },
     });
     expect(toScreenshotDisplayBounds(affinity)).toEqual({
       x: 3000,
@@ -99,6 +114,7 @@ describe('display_affinity_runtime', () => {
       width: 1920,
       height: 1080,
       monitor_id: '7',
+      desktop_virtual_bounds: { x: 0, y: 0, width: 4920, height: 1080 },
     });
 
     affinity.bounds.x = 0;
@@ -107,6 +123,13 @@ describe('display_affinity_runtime', () => {
 
   test('falls back to primary display when no matching display helper exists', () => {
     const screen = {
+      getAllDisplays: jest.fn(() => ([
+        {
+          id: 5,
+          bounds: { x: 0, y: 0, width: 1600, height: 900 },
+          workArea: { x: 0, y: 0, width: 1600, height: 860 },
+        },
+      ])),
       getPrimaryDisplay: jest.fn(() => ({
         id: 5,
         bounds: { x: 0, y: 0, width: 1600, height: 900 },
@@ -118,6 +141,7 @@ describe('display_affinity_runtime', () => {
       monitor_id: '5',
       bounds: { x: 0, y: 0, width: 1600, height: 900 },
       workArea: { x: 0, y: 0, width: 1600, height: 860 },
+      desktopVirtualBounds: { x: 0, y: 0, width: 1600, height: 900 },
     });
   });
 });

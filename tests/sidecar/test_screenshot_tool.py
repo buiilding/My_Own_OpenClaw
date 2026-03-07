@@ -11,14 +11,18 @@ from tools.computer import screenshot_tool  # noqa: E402
 
 
 class _FakeImage:
-    def __init__(self, mode="RGBA"):
+    def __init__(self, mode="RGBA", size=(300, 200)):
         self.mode = mode
-        self.size = (300, 200)
+        self.size = size
 
     def convert(self, mode):
-        converted = _FakeImage(mode=mode)
+        converted = _FakeImage(mode=mode, size=self.size)
         converted.size = self.size
         return converted
+
+    def crop(self, box):
+        left, top, right, bottom = box
+        return _FakeImage(mode=self.mode, size=(right - left, bottom - top))
 
     def save(self, buffer, format, quality, optimize, progressive):  # noqa: A002
         assert format == "JPEG"
@@ -83,6 +87,57 @@ async def test_capture_screenshot_success_with_display_bounds(monkeypatch):
       "monitor_id": None,
       "timestamp": payload["capture_meta"]["timestamp"],
       "capture_backend": "pyautogui_fallback",
+    }
+    assert isinstance(payload["capture_meta"]["timestamp"], int)
+
+
+@pytest.mark.asyncio
+async def test_capture_screenshot_crops_full_virtual_desktop_to_target_monitor(monkeypatch):
+    calls = []
+
+    def _screenshot(region=None):
+        calls.append(region)
+        return _FakeImage(mode="RGBA", size=(4480, 1440))
+
+    _install_fake_modules(monkeypatch, screenshot_fn=_screenshot)
+
+    result = await screenshot_tool.capture_screenshot(
+        {
+            "display_bounds": {
+                "x": 1920,
+                "y": 0,
+                "width": 2560,
+                "height": 1440,
+                "monitor_id": "2",
+                "desktop_virtual_bounds": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 4480,
+                    "height": 1440,
+                },
+            }
+        }
+    )
+
+    assert result["success"] is True
+    assert calls == [None]
+    payload = result["data"]
+    assert payload["capture_meta"] == {
+        "source_w": 2560,
+        "source_h": 1440,
+        "crop_x": 1920,
+        "crop_y": 0,
+        "crop_w": 2560,
+        "crop_h": 1440,
+        "desktop_virtual_bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 4480,
+            "height": 1440,
+        },
+        "monitor_id": "2",
+        "timestamp": payload["capture_meta"]["timestamp"],
+        "capture_backend": "pyautogui_fallback",
     }
     assert isinstance(payload["capture_meta"]["timestamp"], int)
 

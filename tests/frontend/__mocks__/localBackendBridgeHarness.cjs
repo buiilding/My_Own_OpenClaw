@@ -15,6 +15,13 @@ jest.mock('electron', () => ({
     fromWebContents: jest.fn(),
   },
   screen: {
+    getAllDisplays: jest.fn(() => ([
+      {
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      },
+    ])),
     getPrimaryDisplay: jest.fn(() => ({
       id: 1,
       bounds: { x: 0, y: 0, width: 1920, height: 1080 },
