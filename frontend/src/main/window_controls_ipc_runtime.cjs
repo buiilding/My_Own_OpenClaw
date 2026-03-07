@@ -1,7 +1,7 @@
 const { handleGetDisplays } = require('./display_query_handler.cjs');
 const { handleShowMainWindow } = require('./overlay_visibility_handler.cjs');
 const {
-  resolveDisplayAffinityForWebContents,
+  resolveActiveSurfaceDisplayAffinity,
 } = require('./display_affinity_runtime.cjs');
 const {
   handleWindowClose,
@@ -23,11 +23,16 @@ function initializeWindowControlHandlersRuntime(deps = {}) {
   ipcMain.handle('show-main-window', async (event, options = {}) => {
     const result = handleShowMainWindow(options, {
       showMainWindow,
-      resolveTargetDisplayAffinity: () => resolveDisplayAffinityForWebContents({
-        BrowserWindow,
-        screen,
-        webContents: event?.sender || null,
-      }),
+      resolveTargetDisplayAffinity: () => {
+        const { mainWindow, chatWindow } = getWindows();
+        return resolveActiveSurfaceDisplayAffinity({
+          BrowserWindow,
+          screen,
+          webContents: event?.sender || null,
+          chatWindow,
+          mainWindow,
+        });
+      },
     });
     const target = normalizeMainWindowOpenTarget(options);
     if (result?.success && target) {
