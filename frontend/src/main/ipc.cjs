@@ -29,6 +29,11 @@ const {
   uploadArtifact,
 } = require('./ipc/ipc_runtime_helpers.cjs');
 const {
+  buildQueryPayload,
+  prepareAutomatedQueryPayload,
+  prepareRendererQueryPayload,
+} = require('./ipc/ipc_query_runtime.cjs');
+const {
   trackRendererWindow: trackRendererWindowRuntime,
   broadcastToRenderers: broadcastToRenderersRuntime,
 } = require('./ipc/ipc_renderer_windows.cjs');
@@ -50,6 +55,9 @@ const {
   resolveDisplayAffinityForWebContents,
   setActiveDisplayAffinity,
 } = require('./display_affinity_runtime.cjs');
+const {
+  applyTranscriptSessionSync,
+} = require('./ipc/ipc_transcript_session_sync.cjs');
 
 let BACKEND_ENDPOINTS = resolveBackendEndpoints();
 let BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
@@ -98,62 +106,6 @@ function notifyBackendMessageObservers(data) {
       log(`Backend message observer error: ${error}`);
     }
   }
-}
-
-function normalizeOptionalString(value) {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function hasOwnProperty(target, key) {
-  return Object.prototype.hasOwnProperty.call(target, key);
-}
-
-function normalizeTranscriptSessionSyncPayload(payload = {}) {
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-    return null;
-  }
-
-  const hasConversationRef = (
-    hasOwnProperty(payload, 'conversationRef')
-    || hasOwnProperty(payload, 'conversation_ref')
-    || hasOwnProperty(payload, 'sessionId')
-    || hasOwnProperty(payload, 'session_id')
-  );
-  const hasUserId = hasOwnProperty(payload, 'userId') || hasOwnProperty(payload, 'user_id');
-
-  if (!hasConversationRef && !hasUserId) {
-    return null;
-  }
-
-  const rawConversationRef = hasOwnProperty(payload, 'conversationRef')
-    ? payload.conversationRef
-    : (
-      hasOwnProperty(payload, 'conversation_ref')
-        ? payload.conversation_ref
-        : (hasOwnProperty(payload, 'sessionId') ? payload.sessionId : payload.session_id)
-    );
-  const rawUserId = hasOwnProperty(payload, 'userId') ? payload.userId : payload.user_id;
-
-  return {
-    conversationRef: hasConversationRef
-      ? (
-        rawConversationRef === null
-          ? null
-          : normalizeOptionalString(rawConversationRef)
-      )
-      : undefined,
-    userId: hasUserId
-      ? (
-        rawUserId === null
-          ? null
-          : normalizeOptionalString(rawUserId)
-      )
-      : undefined,
-  };
 }
 
 async function loadCachedFrontendConfigFromDisk() {
@@ -477,22 +429,19 @@ function initializeIpc(win, options = {}) {
   });
 
   ipcMain.on('transcript-session-sync', (event, payload = {}) => {
-    const normalizedPayload = normalizeTranscriptSessionSyncPayload(payload);
-    if (!normalizedPayload) {
+    const syncResult = applyTranscriptSessionSync({
+      payload,
+      sender: event?.sender || null,
+      currentConversationRef,
+      currentUserId,
+      broadcastToRenderers,
+    });
+    if (!syncResult) {
       return;
     }
 
-    if (normalizedPayload.conversationRef !== undefined) {
-      currentConversationRef = normalizedPayload.conversationRef;
-    }
-    if (typeof normalizedPayload.userId === 'string' && normalizedPayload.userId.length > 0) {
-      currentUserId = normalizedPayload.userId;
-    }
-
-    broadcastToRenderers('transcript-session-sync', {
-      conversationRef: normalizedPayload.conversationRef ?? null,
-      userId: normalizedPayload.userId ?? null,
-    }, event?.sender || null);
+    currentConversationRef = syncResult.nextConversationRef;
+    currentUserId = syncResult.nextUserId;
   });
 
   ipcMain.on('to-backend', async (event, message = {}) => {
@@ -537,30 +486,23 @@ function initializeIpc(win, options = {}) {
         onBeforeOverlayQueryCapture,
         log,
       });
-      const attachmentContext = (
-        typeof payload.attachment_context === 'string' && payload.attachment_context.trim().length > 0
-      )
-        ? payload.attachment_context
-        : null;
-      const normalizedAttachmentFilenames = Array.isArray(payload.attachment_filenames)
-        ? payload.attachment_filenames
-          .filter((filename) => typeof filename === 'string' && filename.trim().length > 0)
-          .map((filename) => filename.trim())
-        : [];
-      if (normalizedAttachmentFilenames.length > 0) {
-        payload.attachment_filenames = normalizedAttachmentFilenames;
-      } else {
-        delete payload.attachment_filenames;
-      }
-      delete payload.attachment_context;
-      const memoryRetrievalEnabled = payload.memory_retrieval_enabled !== false;
-      delete payload.memory_retrieval_enabled;
+      const preparedQuery = prepareRendererQueryPayload(
+        payload,
+        currentConversationRef,
+        resolveConversationRefFromPayload,
+      );
+      const {
+        payload: preparedPayload,
+        attachmentContext,
+        conversationRef,
+        memoryRetrievalEnabled,
+      } = preparedQuery;
+      Object.keys(payload).forEach((key) => {
+        delete payload[key];
+      });
+      Object.assign(payload, preparedPayload);
       queryMessageId = uuidv4();
       setResponseOverlayPhase('awaiting-first-chunk', 'query');
-      const conversationRef = resolveConversationRefFromPayload(payload, currentConversationRef);
-      if (!payload.conversation_ref && conversationRef) {
-        payload.conversation_ref = conversationRef;
-      }
       setActiveDisplayAffinity(resolveDisplayAffinityForWebContents({
         BrowserWindow,
         screen,
@@ -583,31 +525,26 @@ function initializeIpc(win, options = {}) {
       ipcEventReplayState.startTurn(queryMessageId, localUserMessage);
       const contextType = isFirstQuery ? 'initial' : 'sequential';
       queryUsedInitialContext = contextType === 'initial';
-      const userId = currentUserId || generateUserId({
+      const preparedContent = await buildQueryPayload({
+        basePayload: payload,
+        text: payload.text,
+        conversationRef,
+        attachmentContext,
+        memoryRetrievalEnabled,
+        currentUserId,
+        isFirstQuery,
+        buildQueryPayloadContent,
+        getSystemState,
+        searchMemory,
+        generateUserId,
         osUserInfo: () => os.userInfo(),
         uuidGenerator: uuidv4,
         log,
       });
-      const {
-        content: completeContent,
-        runtimeSystemState,
-      } = await buildQueryPayloadContent({
-        text: payload.text,
-        conversationRef,
-        userId,
-        contextType,
-        attachmentContext,
-        getSystemState,
-        searchMemory,
-        memoryRetrievalEnabled,
-        log,
+      Object.keys(payload).forEach((key) => {
+        delete payload[key];
       });
-      payload.content = completeContent;
-      if (runtimeSystemState) {
-        payload.system_state_internal = runtimeSystemState;
-      } else {
-        delete payload.system_state_internal;
-      }
+      Object.assign(payload, preparedContent.payload);
       log('Complete user message built successfully');
     }
 
@@ -669,8 +606,8 @@ function getBackendConnectionState() {
 }
 
 async function sendAutomatedQuery(options = {}) {
-  const text = normalizeOptionalString(options.text);
-  if (!text) {
+  const preparedQuery = prepareAutomatedQueryPayload(options, currentConversationRef);
+  if (!preparedQuery) {
     return { ok: false, error: 'Missing query text' };
   }
 
@@ -683,45 +620,31 @@ async function sendAutomatedQuery(options = {}) {
     await pendingSettingsSyncPromise;
   }
 
-  const conversationRef = normalizeOptionalString(options.conversationRef)
-    || currentConversationRef
-    || `vm-run-${uuidv4()}`;
-  const attachmentContext = normalizeOptionalString(options.attachmentContext);
-  const normalizedAttachmentFilenames = Array.isArray(options.attachmentFilenames)
-    ? options.attachmentFilenames
-      .filter((filename) => typeof filename === 'string' && filename.trim().length > 0)
-      .map((filename) => filename.trim())
-    : [];
-  const memoryRetrievalEnabled = options.memoryRetrievalEnabled !== false;
-  const userId = currentUserId || generateUserId({
+  const conversationRef = preparedQuery.conversationRef || `vm-run-${uuidv4()}`;
+  const builtQuery = await buildQueryPayload({
+    basePayload: {},
+    text: preparedQuery.text,
+    conversationRef,
+    attachmentContext: preparedQuery.attachmentContext,
+    memoryRetrievalEnabled: preparedQuery.memoryRetrievalEnabled,
+    currentUserId,
+    isFirstQuery,
+    buildQueryPayloadContent,
+    getSystemState,
+    searchMemory,
+    generateUserId,
     osUserInfo: () => os.userInfo(),
     uuidGenerator: uuidv4,
     log,
   });
 
-  const contextType = isFirstQuery ? 'initial' : 'sequential';
-  const { content, runtimeSystemState } = await buildQueryPayloadContent({
-    text,
-    conversationRef,
-    userId,
-    contextType,
-    attachmentContext,
-    getSystemState,
-    searchMemory,
-    memoryRetrievalEnabled,
-    log,
-  });
-
   const payload = {
-    text,
+    text: preparedQuery.text,
     conversation_ref: conversationRef,
-    content,
+    ...builtQuery.payload,
   };
-  if (runtimeSystemState) {
-    payload.system_state_internal = runtimeSystemState;
-  }
-  if (normalizedAttachmentFilenames.length > 0) {
-    payload.attachment_filenames = normalizedAttachmentFilenames;
+  if (preparedQuery.attachmentFilenames.length > 0) {
+    payload.attachment_filenames = preparedQuery.attachmentFilenames;
   }
 
   const queryMessageId = uuidv4();
@@ -731,7 +654,7 @@ async function sendAutomatedQuery(options = {}) {
   }
 
   currentConversationRef = conversationRef;
-  if (contextType === 'initial') {
+  if (builtQuery.queryUsedInitialContext) {
     isFirstQuery = false;
   }
   return {
@@ -739,7 +662,7 @@ async function sendAutomatedQuery(options = {}) {
     messageId,
     queryMessageId,
     conversationRef,
-    userId,
+    userId: builtQuery.userId,
   };
 }
 

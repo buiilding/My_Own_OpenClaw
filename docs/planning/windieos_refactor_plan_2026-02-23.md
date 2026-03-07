@@ -48,6 +48,34 @@ read_when:
 
 ## Frontend/Main Execution Log (2026-02-26)
 
+- Frontend main IPC query/session runtime extraction (2026-03-07):
+  - extracted query-send normalization/content-build helpers from:
+    - `frontend/src/main/ipc.cjs`
+    - into `frontend/src/main/ipc/ipc_query_runtime.cjs`.
+  - extracted transcript-session-sync normalization/rebroadcast handling from:
+    - `frontend/src/main/ipc.cjs`
+    - into `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`.
+  - removed duplicated query-preparation policy from `sendAutomatedQuery(...)` and renderer-origin query handling by routing both through the shared query runtime helper.
+  - result:
+    - `frontend/src/main/ipc.cjs` reduced from `754` LOC to `677` LOC.
+    - frontend `jscpd` remains `0` TypeScript/JavaScript clones; remaining clones are only in unrelated dirty backend Python files outside this slice.
+    - `backend/src/api/routes` remains `0` clones.
+  - regression coverage:
+    - added `tests/frontend/IpcQueryRuntime.test.cjs`.
+    - added `tests/frontend/IpcTranscriptSessionSync.test.cjs`.
+    - reran `tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, and `tests/frontend/VmWorkerRuntime.test.cjs`.
+  - verification:
+    - `cd frontend && npm run test:ci -- ../tests/frontend/IpcQueryRuntime.test.cjs ../tests/frontend/IpcTranscriptSessionSync.test.cjs ../tests/frontend/IpcMainBridge.lifecycle.test.cjs ../tests/frontend/IpcMainBridge.query.test.cjs ../tests/frontend/VmWorkerRuntime.test.cjs`
+    - `cd frontend && npm run lint -- src/main/ipc.cjs src/main/ipc/ipc_query_runtime.cjs src/main/ipc/ipc_transcript_session_sync.cjs`
+    - `cd frontend && npm run lint:audit`
+    - `cd frontend && npm run audit:knip`
+    - `cd frontend && npm run audit:jscpd`
+    - `cd frontend && npx jscpd --gitignore --min-lines 5 --min-tokens 50 --reporters console --ignore \"**/__pycache__/**\" ../backend/src/api/routes`
+  - audit delta:
+    - `react-compiler`/`deprecation` lint audits clean.
+    - `knip` clean.
+    - `jscpd` clean for frontend (`0` TypeScript/JavaScript clones).
+
 - Frontend main screenshot-bridge/helper extraction and chat-pill no-op runtime dedupe (2026-03-07):
   - extracted screenshot display-bound resolution from:
     - `frontend/src/main/local_backend_bridge.cjs`
