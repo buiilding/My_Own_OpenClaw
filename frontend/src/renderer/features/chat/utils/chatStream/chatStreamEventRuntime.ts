@@ -7,6 +7,59 @@ import {
   resolveEventConversationRef,
 } from './chatStreamConversationGate';
 
+type ChatStoreState = ReturnType<typeof useChatStore.getState>;
+type ChatWorkspaceState = ReturnType<ChatStoreState['getWorkspaceState']>;
+type StreamPhase = ChatWorkspaceState['streamTracking']['phase'];
+
+const TERMINAL_PENDING_HANDOFF_PHASES: ReadonlySet<StreamPhase> = new Set([
+  'idle',
+  'complete',
+  'error',
+]);
+
+function normalizeTurnRef(turnRef: string | null | undefined): string {
+  return typeof turnRef === 'string' ? turnRef.trim() : '';
+}
+
+function isAwaitingFirstChunkMismatch(
+  workspace: ChatWorkspaceState,
+  eventTurnRef: string,
+  activeTurnRef: string,
+): boolean {
+  return (
+    workspace.isSending === true
+    && workspace.streamTracking.phase === 'awaiting-first-chunk'
+    && activeTurnRef.length > 0
+    && eventTurnRef !== activeTurnRef
+  );
+}
+
+function hasTerminalPendingHandoff(workspace: ChatWorkspaceState): boolean {
+  return (
+    workspace.isSending === true
+    && TERMINAL_PENDING_HANDOFF_PHASES.has(workspace.streamTracking.phase)
+  );
+}
+
+function hasOptimisticPendingUserTurn(workspace: ChatWorkspaceState): boolean {
+  const lastMessage = workspace.messages[workspace.messages.length - 1];
+  return lastMessage?.sender === 'user';
+}
+
+function shouldIgnoreForTerminalPendingHandoff(
+  workspace: ChatWorkspaceState,
+  eventTurnRef: string,
+  activeTurnRef: string,
+): boolean {
+  if (workspace.streamTracking.phase === 'idle') {
+    return false;
+  }
+  if (!activeTurnRef || eventTurnRef !== activeTurnRef) {
+    return false;
+  }
+  return hasOptimisticPendingUserTurn(workspace) === false;
+}
+
 export function resolveTargetConversationRef(
   event: BackendEvent,
   fallbackConversationRef: string | null = null,
@@ -46,55 +99,27 @@ export function shouldIgnoreForStaleTurn(
   event: BackendEvent,
   conversationRef?: string | null,
 ): boolean {
-  const eventTurnRef = (
-    typeof event.turn_ref === 'string'
-      ? event.turn_ref.trim()
-      : ''
-  );
+  const eventTurnRef = normalizeTurnRef(event.turn_ref);
   if (!eventTurnRef) {
     return false;
   }
   const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
   const activeTurnRef = workspace.streamTracking.activeTurnRef;
-  const normalizedActiveTurnRef = (
-    typeof activeTurnRef === 'string'
-      ? activeTurnRef.trim()
-      : ''
-  );
+  const normalizedActiveTurnRef = normalizeTurnRef(activeTurnRef);
   // During awaiting-first-chunk, fail-open on turn-ref mismatch so the first real
   // backend packets can re-anchor stream state if optimistic local turn wiring
   // never seeded this workspace with the current turn ref.
-  if (
-    workspace.isSending === true
-    && workspace.streamTracking.phase === 'awaiting-first-chunk'
-    && normalizedActiveTurnRef
-    && eventTurnRef !== normalizedActiveTurnRef
-  ) {
+  if (isAwaitingFirstChunkMismatch(workspace, eventTurnRef, normalizedActiveTurnRef)) {
     return false;
   }
-  const isPendingNextTurnAfterTerminalPhase = (
-    workspace.isSending === true
-    && (
-      workspace.streamTracking.phase === 'idle'
-      || workspace.streamTracking.phase === 'complete'
-      || workspace.streamTracking.phase === 'error'
-    )
-  );
   // Keep first packets of the next turn when UI has already entered "sending" but
   // stream-tracking still points at a completed previous turn.
-  if (isPendingNextTurnAfterTerminalPhase) {
-    const lastMessage = workspace.messages[workspace.messages.length - 1];
-    const isPendingOptimisticUserTurn = lastMessage?.sender === 'user';
-    // Idle+isSending is used by the sending renderer before local-user-message
-    // replays back through main. Once metadata or chunks have re-anchored the
-    // workspace to the current turn, same-turn packets must continue through.
-    if (workspace.streamTracking.phase === 'idle') {
-      return false;
-    }
-    if (normalizedActiveTurnRef && eventTurnRef === normalizedActiveTurnRef) {
-      return !isPendingOptimisticUserTurn;
-    }
-    return false;
+  if (hasTerminalPendingHandoff(workspace)) {
+    return shouldIgnoreForTerminalPendingHandoff(
+      workspace,
+      eventTurnRef,
+      normalizedActiveTurnRef,
+    );
   }
   return isStaleTurnForActiveStream(eventTurnRef, activeTurnRef);
 }
