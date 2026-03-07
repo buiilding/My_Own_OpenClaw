@@ -38,6 +38,13 @@ Core views:
 - `build_tool_result_message(...)` -> canonical linked `role=tool`, `message_type=TOOL_OUTPUT`, includes `tool_call_id`
 - `build_tool_output_message(...)` -> fallback unlinked `role=user`, `message_type=TOOL_OUTPUT`
 
+Current query append path (`AgentExecutor.process_query(...)`):
+
+- backend stores frontend-enriched message content as an opaque rendered string (`content`)
+- `_resolve_raw_user_query(...)` extracts the last `<user_query>...</user_query>` block (HTML-unescaped) for `user_query_raw`
+- `<system_context>`, `<episodic_memory>`, and `<semantic_memory>` blocks are preserved inside rendered `content` for model context, but are not separately parsed into structured `episodic_memory` / `semantic_memory` fields on the standard query path
+- practical result: `StoredMessage.user_query_raw` is reliably populated; `StoredMessage.episodic_memory` and `StoredMessage.semantic_memory` are currently optional and generally unset unless a caller explicitly provides structured values
+
 Session initialization sets system prompt source of truth:
 
 - `init_prompt_and_history(...)` builds `PromptConstructor`
