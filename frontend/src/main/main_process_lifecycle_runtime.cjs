@@ -124,8 +124,10 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     hideChatWindow,
     showChatWindow,
     showMainWindow,
+    getMainWindow = () => null,
     getChatWindow = () => null,
     getResponseWindow = () => null,
+    syncWindowDisplayAffinity = () => {},
     stopLocalBackend,
     stopVmWorker = () => {},
     log = console.log,
@@ -198,6 +200,13 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       );
 
       screen.on('display-metrics-changed', () => {
+        const chatWindow = getChatWindow();
+        const mainWindow = getMainWindow();
+        if (chatWindow && !chatWindow.isDestroyed() && chatWindow.isVisible()) {
+          syncWindowDisplayAffinity(chatWindow);
+        } else if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
+          syncWindowDisplayAffinity(mainWindow);
+        }
         positionChatWindow();
         positionResponseWindow();
       });

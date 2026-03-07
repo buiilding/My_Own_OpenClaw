@@ -2352,3 +2352,4 @@ Includes the last 300 commits on `main`.
 - unreleased fix(frontend-display-affinity): restrict active monitor resolution to dashboard/chat surfaces so non-surface overlay senders cannot override screenshot and dashboard targeting
 - unreleased fix(frontend-display-affinity): preserve active monitor affinity across backend websocket/session resets so surface-owned monitor selection does not collapse on reconnect
 - unreleased fix(frontend-display-affinity): make hidden dashboard/chat show paths default to the active monitor so tray, hotkey, startup, and lifecycle opens follow the same surface contract without caller-specific targeting
+- unreleased fix(frontend-display-affinity): refresh active monitor affinity from the visible chat/dashboard surface before overlay repositioning on display-metrics changes so screenshot targeting stays aligned after monitor layout updates

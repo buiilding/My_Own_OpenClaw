@@ -43,8 +43,10 @@ function createRuntimeDeps(overrides = {}) {
     hideChatWindow: jest.fn(),
     showChatWindow: jest.fn(),
     showMainWindow: jest.fn(),
+    getMainWindow: jest.fn(() => null),
     getChatWindow: jest.fn(() => null),
     getResponseWindow: jest.fn(() => null),
+    syncWindowDisplayAffinity: jest.fn(),
     stopLocalBackend: jest.fn(),
     log: jest.fn(),
     warn: jest.fn(),
@@ -162,6 +164,55 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
       'display-metrics-changed',
       expect.any(Function),
     );
+  });
+
+  test('refreshes active display affinity from the visible chat surface before repositioning on display changes', async () => {
+    const chatWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+    };
+    const { deps } = createRuntimeDeps({
+      getChatWindow: jest.fn(() => chatWindow),
+    });
+
+    initializeMainProcessLifecycleRuntime(deps);
+    await flushPromises();
+
+    const displayMetricsHandler = deps.screen.on.mock.calls.find(
+      ([eventName]) => eventName === 'display-metrics-changed',
+    )[1];
+    displayMetricsHandler();
+
+    expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(chatWindow);
+    expect(deps.positionChatWindow).toHaveBeenCalledTimes(1);
+    expect(deps.positionResponseWindow).toHaveBeenCalledTimes(1);
+  });
+
+  test('refreshes active display affinity from the visible dashboard when the chat surface is hidden', async () => {
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+    };
+    const hiddenChatWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+    };
+    const { deps } = createRuntimeDeps({
+      getMainWindow: jest.fn(() => mainWindow),
+      getChatWindow: jest.fn(() => hiddenChatWindow),
+    });
+
+    initializeMainProcessLifecycleRuntime(deps);
+    await flushPromises();
+
+    const displayMetricsHandler = deps.screen.on.mock.calls.find(
+      ([eventName]) => eventName === 'display-metrics-changed',
+    )[1];
+    displayMetricsHandler();
+
+    expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
+    expect(deps.positionChatWindow).toHaveBeenCalledTimes(1);
+    expect(deps.positionResponseWindow).toHaveBeenCalledTimes(1);
   });
 
   test('registers fallback hotkey on Windows when primary is unavailable', async () => {
