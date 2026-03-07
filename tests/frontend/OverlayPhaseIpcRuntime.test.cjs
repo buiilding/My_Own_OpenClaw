@@ -19,6 +19,9 @@ describe('overlay_phase_ipc_runtime', () => {
 
     initializeOverlayPhaseHandlersRuntime({
       ipcMain,
+      BrowserWindow: {
+        fromWebContents: jest.fn(() => null),
+      },
       screen: {},
       getWindows: () => ({}),
       positionResponseWindow: jest.fn(),

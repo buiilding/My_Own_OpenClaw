@@ -64,6 +64,7 @@ const {
   syncWakewordToggleForChatVisibility: syncWakewordToggleForChatVisibilityRuntime,
 } = require('./overlay_signal_runtime.cjs');
 const {
+  hideMainWindow: hideMainWindowRuntime,
   hideChatWindow: hideChatWindowRuntime,
   showChatWindow: showChatWindowRuntime,
   showMainWindow: showMainWindowRuntime,
@@ -259,6 +260,12 @@ function hideChatWindow() {
   });
 }
 
+function hideMainWindow() {
+  return hideMainWindowRuntime({
+    mainWindow,
+  });
+}
+
 function showMainWindow(options = {}) {
   const focus = options?.focus !== false;
   const maximize = options?.maximize === true;
@@ -428,6 +435,7 @@ function initializeMainProcessIpc() {
 
   initializeOverlayPhaseHandlersRuntime({
     ipcMain,
+    BrowserWindow,
     screen,
     getWindows,
     positionResponseWindow,
@@ -441,6 +449,7 @@ function initializeMainProcessIpc() {
     showResponseWindowWhenChatVisible,
     showChatWindow,
     hideChatWindow,
+    hideMainWindow,
     warn: console.warn,
   });
 

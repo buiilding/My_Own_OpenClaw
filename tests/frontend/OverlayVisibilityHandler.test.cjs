@@ -3,6 +3,7 @@
 const {
   handleHideChatbox,
   handlePrepareChatboxForScreenshot,
+  resolveHiddenSurfaceForScreenshot,
   handleShowChatbox,
   handleShowMainWindow,
 } = require('../../frontend/src/main/overlay_visibility_handler.cjs');
@@ -103,17 +104,35 @@ describe('overlay_visibility_handler', () => {
 
   test('prepare-chatbox-for-screenshot hides then waits in main process', async () => {
     const hideChatWindow = jest.fn().mockReturnValue({ success: true, hidden: true });
+    const hideMainWindow = jest.fn().mockReturnValue({ success: true, hidden: true });
     const waitInMain = jest.fn().mockResolvedValue(undefined);
+    const event = {
+      sender: { id: 'chat-webcontents' },
+    };
+    const getWindows = () => ({
+      chatWindow: {
+        isDestroyed: () => false,
+        isVisible: () => true,
+        webContents: event.sender,
+      },
+      mainWindow: {
+        isDestroyed: () => false,
+        isVisible: () => false,
+        webContents: { id: 'main-webcontents' },
+      },
+    });
 
     const result = await handlePrepareChatboxForScreenshot(
+      event,
       { waitMs: 2000, settleMs: 120 },
-      { hideChatWindow, waitInMain },
+      { getWindows, hideChatWindow, hideMainWindow, waitInMain },
     );
 
     expect(result).toEqual({
       success: true,
       hidden: true,
-      hideChatbox: true,
+      hideSurface: true,
+      hiddenSurface: 'chatbox',
       waitMs: 2000,
       settleMs: 120,
       waitTime: expect.any(Number),
@@ -121,21 +140,129 @@ describe('overlay_visibility_handler', () => {
       settleTime: expect.any(Number),
     });
     expect(hideChatWindow).toHaveBeenCalledTimes(1);
+    expect(hideMainWindow).not.toHaveBeenCalled();
     expect(waitInMain).toHaveBeenNthCalledWith(1, 2000);
     expect(waitInMain).toHaveBeenNthCalledWith(2, 120);
   });
 
-  test('prepare-chatbox-for-screenshot returns hide failure without waiting', async () => {
-    const hideChatWindow = jest.fn().mockReturnValue({ success: false, reason: 'Chat window not available' });
+  test('prepare-chatbox-for-screenshot hides the dashboard surface when sender is main window', async () => {
+    const hideChatWindow = jest.fn().mockReturnValue({ success: true, hidden: true });
+    const hideMainWindow = jest.fn().mockReturnValue({ success: true, hidden: true });
     const waitInMain = jest.fn().mockResolvedValue(undefined);
+    const event = {
+      sender: { id: 'main-webcontents' },
+    };
+    const getWindows = () => ({
+      chatWindow: {
+        isDestroyed: () => false,
+        isVisible: () => false,
+        webContents: { id: 'chat-webcontents' },
+      },
+      mainWindow: {
+        isDestroyed: () => false,
+        isVisible: () => true,
+        webContents: event.sender,
+      },
+    });
 
     const result = await handlePrepareChatboxForScreenshot(
+      event,
       { waitMs: 2000, settleMs: 120 },
-      { hideChatWindow, waitInMain },
+      { getWindows, hideChatWindow, hideMainWindow, waitInMain },
+    );
+
+    expect(result).toEqual({
+      success: true,
+      hidden: true,
+      hideSurface: true,
+      hiddenSurface: 'main-window',
+      waitMs: 2000,
+      settleMs: 120,
+      waitTime: expect.any(Number),
+      hideInvokeTime: expect.any(Number),
+      settleTime: expect.any(Number),
+    });
+    expect(hideMainWindow).toHaveBeenCalledTimes(1);
+    expect(hideChatWindow).not.toHaveBeenCalled();
+  });
+
+  test('prepare-chatbox-for-screenshot returns hide failure without waiting', async () => {
+    const hideChatWindow = jest.fn().mockReturnValue({ success: false, reason: 'Chat window not available' });
+    const hideMainWindow = jest.fn().mockReturnValue({ success: true, hidden: true });
+    const waitInMain = jest.fn().mockResolvedValue(undefined);
+    const event = {
+      sender: { id: 'chat-webcontents' },
+    };
+    const getWindows = () => ({
+      chatWindow: {
+        isDestroyed: () => false,
+        isVisible: () => true,
+        webContents: event.sender,
+      },
+      mainWindow: {
+        isDestroyed: () => false,
+        isVisible: () => false,
+        webContents: { id: 'main-webcontents' },
+      },
+    });
+
+    const result = await handlePrepareChatboxForScreenshot(
+      event,
+      { waitMs: 2000, settleMs: 120 },
+      { getWindows, hideChatWindow, hideMainWindow, waitInMain },
     );
 
     expect(result).toEqual({ success: false, reason: 'Chat window not available' });
+    expect(hideMainWindow).not.toHaveBeenCalled();
     expect(waitInMain).toHaveBeenCalledTimes(1);
     expect(waitInMain).toHaveBeenCalledWith(2000);
+  });
+
+  test('resolveHiddenSurfaceForScreenshot prefers visible main then chat then none', () => {
+    const sender = { id: 'other-webcontents' };
+    expect(resolveHiddenSurfaceForScreenshot({ sender }, {
+      getWindows: () => ({
+        mainWindow: {
+          isDestroyed: () => false,
+          isVisible: () => true,
+          webContents: { id: 'main-webcontents' },
+        },
+        chatWindow: {
+          isDestroyed: () => false,
+          isVisible: () => true,
+          webContents: { id: 'chat-webcontents' },
+        },
+      }),
+    })).toBe('main-window');
+
+    expect(resolveHiddenSurfaceForScreenshot({ sender }, {
+      getWindows: () => ({
+        mainWindow: {
+          isDestroyed: () => false,
+          isVisible: () => false,
+          webContents: { id: 'main-webcontents' },
+        },
+        chatWindow: {
+          isDestroyed: () => false,
+          isVisible: () => true,
+          webContents: { id: 'chat-webcontents' },
+        },
+      }),
+    })).toBe('chatbox');
+
+    expect(resolveHiddenSurfaceForScreenshot({ sender }, {
+      getWindows: () => ({
+        mainWindow: {
+          isDestroyed: () => false,
+          isVisible: () => false,
+          webContents: { id: 'main-webcontents' },
+        },
+        chatWindow: {
+          isDestroyed: () => false,
+          isVisible: () => false,
+          webContents: { id: 'chat-webcontents' },
+        },
+      }),
+    })).toBe('none');
   });
 });

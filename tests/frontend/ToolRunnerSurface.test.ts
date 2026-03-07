@@ -18,8 +18,9 @@ describe('toolRunnerSurface helpers', () => {
           waitMs: data?.waitMs ?? 0,
           settleMs: data?.settleMs ?? 120,
           waitTime: typeof data?.waitMs === 'number' ? data.waitMs / 1000 : 0,
-          hideInvokeTime: data?.hideChatbox === false ? 0 : 0.001,
+          hideInvokeTime: data?.hideSurface === false ? 0 : 0.001,
           settleTime: typeof data?.settleMs === 'number' ? data.settleMs / 1000 : 0.12,
+          hiddenSurface: 'chatbox',
         };
       }
       return { success: true };
@@ -112,14 +113,15 @@ describe('toolRunnerSurface helpers', () => {
     ).toBe('screenshot');
   });
 
-  test('runs collapse/restore around switch_tab tool surface preparation', async () => {
+  test('runs active-surface collapse/restore around switch_tab tool surface preparation', async () => {
     const preparation = await prepareToolExecutionSurface('screenshot');
     expect(preparation.canExecute).toBe(true);
     await restoreToolExecutionSurface(preparation);
 
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toEqual([
-      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });
 
@@ -128,6 +130,17 @@ describe('toolRunnerSurface helpers', () => {
       if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
         return { success: true, data: { visible: true } };
       }
+      if (channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT) {
+        return {
+          success: true,
+          waitMs: 0,
+          settleMs: 120,
+          waitTime: 0,
+          hideInvokeTime: 0.001,
+          settleTime: 0.12,
+          hiddenSurface: 'main-window',
+        };
+      }
       return { success: true };
     });
 
@@ -137,9 +150,8 @@ describe('toolRunnerSurface helpers', () => {
 
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toEqual([
-      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
-      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { focus: false }],
     ]);
   });
 
@@ -148,6 +160,17 @@ describe('toolRunnerSurface helpers', () => {
       if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
         return { success: true, data: { visible: true } };
       }
+      if (channel === INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT) {
+        return {
+          success: true,
+          waitMs: 0,
+          settleMs: 120,
+          waitTime: 0,
+          hideInvokeTime: 0.001,
+          settleTime: 0.12,
+          hiddenSurface: 'main-window',
+        };
+      }
       return { success: true };
     });
 
@@ -155,13 +178,12 @@ describe('toolRunnerSurface helpers', () => {
     const second = await prepareToolExecutionSurface('screenshot');
 
     await restoreToolExecutionSurface(first);
-    expect(IpcBridge.invoke).toHaveBeenCalledTimes(2);
+    expect(IpcBridge.invoke).toHaveBeenCalledTimes(1);
 
     await restoreToolExecutionSurface(second);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
-      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { focus: false }],
     ]);
   });
 

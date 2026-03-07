@@ -7,6 +7,7 @@ export function buildToolSurfacePreparation(
     canExecute: boolean;
     failureReason: string | null;
     surfaceToken: number | null;
+    hiddenSurface?: ToolSurfacePreparation['hiddenSurface'];
   },
 ): ToolSurfacePreparation {
   return {
@@ -15,5 +16,6 @@ export function buildToolSurfacePreparation(
     surfaceToken: options.surfaceToken,
     mode,
     correlationId,
+    hiddenSurface: options.hiddenSurface ?? 'none',
   };
 }

@@ -1,7 +1,8 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../ipc/bridge';
 import type {
-  ChatPillCollapseResult,
-  ChatPillRestoreResult,
+  HiddenSurface,
+  SurfaceCollapseResult,
+  SurfaceRestoreResult,
 } from '../../types';
 
 const CHAT_PILL_HIDE_SETTLE_MS = 120;
@@ -13,7 +14,7 @@ const linuxChatPillVisibilityRuntime = {
 
   async collapseChatPillForBackgroundCapture(
     options: { waitMs?: number } = {},
-  ): Promise<ChatPillCollapseResult> {
+  ): Promise<SurfaceCollapseResult> {
     // Full screenshot prep runs in Electron main so the hidden overlay renderer
     // cannot stretch either the pre-capture wait or the compositor settle delay.
     const result = await IpcBridge.invoke<{
@@ -24,16 +25,18 @@ const linuxChatPillVisibilityRuntime = {
       waitTime?: number;
       hideInvokeTime?: number;
       settleTime?: number;
+      hiddenSurface?: HiddenSurface;
     }>(INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, {
       waitMs: typeof options.waitMs === 'number' ? Math.max(0, options.waitMs) : 0,
       settleMs: CHAT_PILL_HIDE_SETTLE_MS,
-      hideChatbox: true,
+      hideSurface: true,
     });
     if (result?.success !== true) {
       throw new Error(result?.reason || 'prepare-chatbox-for-screenshot failed');
     }
     return {
-      collapsed: true,
+      collapsed: result?.hiddenSurface === 'chatbox' || result?.hiddenSurface === 'main-window',
+      hiddenSurface: result?.hiddenSurface ?? 'none',
       timing: {
         waitTime: typeof result?.waitTime === 'number'
           ? Math.max(0, result.waitTime)
@@ -48,11 +51,16 @@ const linuxChatPillVisibilityRuntime = {
     };
   },
 
-  async restoreChatPillInactive(): Promise<ChatPillRestoreResult> {
+  async restoreChatPillInactive(hiddenSurface: HiddenSurface = 'chatbox'): Promise<SurfaceRestoreResult> {
     const restoreStartTime = performance.now();
-    await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
+    if (hiddenSurface === 'main-window') {
+      await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { focus: false });
+    } else if (hiddenSurface === 'chatbox') {
+      await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
+    }
     return {
-      restored: true,
+      restored: hiddenSurface !== 'none',
+      restoredSurface: hiddenSurface,
       restoreInvokeTime: (performance.now() - restoreStartTime) / 1000,
     };
   },

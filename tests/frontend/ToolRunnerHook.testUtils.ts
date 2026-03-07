@@ -131,6 +131,7 @@ export function resetToolRunnerTestState() {
         waitTime: typeof data?.waitMs === 'number' ? data.waitMs / 1000 : 0,
         hideInvokeTime: 0.001,
         settleTime: typeof data?.settleMs === 'number' ? data.settleMs / 1000 : 0.12,
+        hiddenSurface: 'chatbox',
       };
     }
     return {};

@@ -9,11 +9,12 @@ import {
 } from './chatPillVisibility';
 import {
   decrementActiveScreenshotCaptureCount,
+  getPendingHiddenSurfaceRestore,
   getActiveScreenshotCaptureCount,
   incrementActiveScreenshotCaptureCount,
-  isPendingChatPillRestore,
+  isPendingHiddenSurfaceRestore,
   isPendingScreenshotCaptureRestore,
-  setPendingChatPillRestore,
+  setPendingHiddenSurfaceRestore,
   setPendingScreenshotCaptureRestore,
 } from './state';
 import {
@@ -46,7 +47,7 @@ export async function prepareScreenshotCaptureVisibility(
   const shouldManageChatPillVisibility = shouldManageChatPillVisibilityForBackgroundCapture();
   const shouldRestoreChatPillAfterCapture = (
     shouldManageChatPillVisibility
-    && !isPendingChatPillRestore()
+    && !isPendingHiddenSurfaceRestore()
   );
   const waitMs = typeof options.waitMs === 'number' ? Math.max(0, options.waitMs) : 0;
 
@@ -55,7 +56,8 @@ export async function prepareScreenshotCaptureVisibility(
     return {
       prepared: true,
       captureId,
-      restoreChatPillAfterCapture: false,
+      restoreSurfaceAfterCapture: false,
+      hiddenSurface: collapseResult.hiddenSurface,
       timing: collapseResult.timing,
     };
   }
@@ -73,7 +75,8 @@ export async function prepareScreenshotCaptureVisibility(
     return {
       prepared: true,
       captureId,
-      restoreChatPillAfterCapture: shouldRestoreChatPillAfterCapture,
+      restoreSurfaceAfterCapture: shouldRestoreChatPillAfterCapture,
+      hiddenSurface: 'none',
       timing: {
         waitTime: 0,
         hideInvokeTime: 0,
@@ -98,7 +101,8 @@ export async function prepareScreenshotCaptureVisibility(
       return {
         prepared: true,
         captureId,
-        restoreChatPillAfterCapture: false,
+        restoreSurfaceAfterCapture: false,
+        hiddenSurface: 'none',
         timing: {
           waitTime: 0,
           hideInvokeTime: 0,
@@ -115,6 +119,7 @@ export async function prepareScreenshotCaptureVisibility(
       phaseAfter: SURFACE_PHASE.PREPARING_CAPTURE_VISIBILITY,
     });
     const collapseResult = await collapseChatPillForBackgroundCapture({ waitMs });
+    setPendingHiddenSurfaceRestore(collapseResult.hiddenSurface);
     setPendingScreenshotCaptureRestore(true);
     logSurfaceTransition({
       source,
@@ -126,7 +131,8 @@ export async function prepareScreenshotCaptureVisibility(
     return {
       prepared: true,
       captureId,
-      restoreChatPillAfterCapture: true,
+      restoreSurfaceAfterCapture: true,
+      hiddenSurface: collapseResult.hiddenSurface,
       timing: collapseResult.timing,
     };
   } catch (error) {
@@ -143,7 +149,8 @@ export async function prepareScreenshotCaptureVisibility(
     return {
       prepared: false,
       captureId,
-      restoreChatPillAfterCapture: false,
+      restoreSurfaceAfterCapture: false,
+      hiddenSurface: 'none',
       timing: {
         waitTime: 0,
         hideInvokeTime: 0,
@@ -159,7 +166,7 @@ export async function restoreScreenshotCaptureVisibility(
     source?: SurfaceTransitionSource;
   } = {},
 ): Promise<void> {
-  const shouldRestoreChatPillAfterCapture = preparation.restoreChatPillAfterCapture !== false;
+  const shouldRestoreChatPillAfterCapture = preparation.restoreSurfaceAfterCapture !== false;
   const context = resolveSurfaceTransitionContext(
     options.source,
     preparation.captureId,
@@ -183,6 +190,7 @@ export async function restoreScreenshotCaptureVisibility(
     return;
   }
 
+  const hiddenSurface = getPendingHiddenSurfaceRestore();
   logSurfaceTransition({
     source,
     correlationId: captureId,
@@ -192,7 +200,7 @@ export async function restoreScreenshotCaptureVisibility(
   });
 
   try {
-    await restoreChatPillInactive();
+    await restoreChatPillInactive(hiddenSurface ?? preparation.hiddenSurface ?? 'none');
   } catch (error) {
     console.warn('[SurfaceOrchestrator] Failed to restore chat pill after screenshot capture:', error);
     logSurfaceTransition({
@@ -205,9 +213,10 @@ export async function restoreScreenshotCaptureVisibility(
     });
   } finally {
     if (!shouldRestoreChatPillAfterCapture) {
-      setPendingChatPillRestore(false);
+      setPendingHiddenSurfaceRestore(null);
     }
     setPendingScreenshotCaptureRestore(false);
+    setPendingHiddenSurfaceRestore(null);
     logSurfaceTransition({
       source,
       correlationId: captureId,

@@ -2,8 +2,9 @@ import linuxRuntime from './linux';
 import macosRuntime from './macos';
 import windowsRuntime from './windows';
 import type {
-  ChatPillCollapseResult,
-  ChatPillRestoreResult,
+  SurfaceCollapseResult,
+  SurfaceRestoreResult,
+  HiddenSurface,
 } from '../../types';
 
 type ChatPillVisibilityRuntime = typeof linuxRuntime;
@@ -31,10 +32,12 @@ export function shouldManageChatPillVisibilityForBackgroundCapture(): boolean {
 
 export async function collapseChatPillForBackgroundCapture(
   options: { waitMs?: number } = {},
-): Promise<ChatPillCollapseResult> {
+): Promise<SurfaceCollapseResult> {
   return await resolveChatPillVisibilityRuntime().collapseChatPillForBackgroundCapture(options);
 }
 
-export async function restoreChatPillInactive(): Promise<ChatPillRestoreResult> {
-  return await resolveChatPillVisibilityRuntime().restoreChatPillInactive();
+export async function restoreChatPillInactive(
+  hiddenSurface: HiddenSurface = 'chatbox',
+): Promise<SurfaceRestoreResult> {
+  return await resolveChatPillVisibilityRuntime().restoreChatPillInactive(hiddenSurface);
 }

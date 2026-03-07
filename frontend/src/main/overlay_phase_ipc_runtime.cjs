@@ -30,6 +30,7 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     setActiveDisplayAffinity = () => {},
     showChatWindow,
     hideChatWindow,
+    hideMainWindow,
     warn = console.warn,
   } = deps;
 
@@ -90,8 +91,12 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     return handleHideChatbox({ hideChatWindow });
   });
 
-  ipcMain.handle('prepare-chatbox-for-screenshot', async (_event, options = {}) => {
-    return await handlePrepareChatboxForScreenshot(options, { hideChatWindow });
+  ipcMain.handle('prepare-chatbox-for-screenshot', async (event, options = {}) => {
+    return await handlePrepareChatboxForScreenshot(event, options, {
+      getWindows,
+      hideChatWindow,
+      hideMainWindow,
+    });
   });
 }
 

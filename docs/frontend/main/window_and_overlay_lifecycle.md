@@ -147,8 +147,12 @@ Tool-execution chat-pill lifecycle (interactive computer-use path):
 
 - shared response-overlay phase is now the only owner of active-loop interactivity: `awaiting-first-chunk|streaming|tool-call|tool-output` force chat/response overlays into click-through + non-focusable mode, terminal phases restore normal interactivity
 - tool-runner prep no longer performs external-window focus restoration/verification; frontend prep is blur-only and avoids hide/show focus demotion churn
-- screenshot capture visibility prep still collapses the chat pill on Linux before capture and restores with `show-chatbox { focus: false }` after capture; Windows/macOS keep overlays visible and rely on content protection
-- Linux collapse now waits a bounded compositor-settle interval (`120ms`) after `hide-chatbox` before invoking the screenshot tool so the hidden pill does not leak into captured frames
+- screenshot capture visibility prep now hides whichever WindieOS surface owns the capture:
+  - `chatbox` for pill-originated capture
+  - `main-window` for dashboard-originated capture
+  - `none` when no WindieOS surface is visible
+- restore is symmetric with prep: capture lifecycles show the same hidden surface again with non-focus-stealing window-control IPC (`show-chatbox { focus: false }` or `show-main-window { focus: false }`)
+- Linux prep waits a bounded compositor-settle interval (`120ms`) after hiding the owning surface before invoking the screenshot tool so neither the pill nor the dashboard leaks into captured frames; Windows/macOS use the same active-surface hide/restore contract with `settleMs=0`
 - response overlay renderer now listens to `response-overlay-visibility`; hide marks the cached frame as hidden and show forces a fresh `set-responsebox-size` report (including `compact_hover`) so typing-indicator compact hover offset is re-applied after capture hide/show cycles
 
 Dashboard-to-chat-pill conversation continuity:
@@ -228,9 +232,8 @@ For renderer-only deep dives:
 
 - selects a platform-specific screenshot visibility runtime
 - Linux behavior lives in `platform/screenshot_window_visibility/linux.cjs`
-- Linux main-process runtime is now a no-op; renderer `SurfaceOrchestrator` owns the single hide/show path to avoid double-collapse races
-- Windows and macOS are also no-op here because overlay protection is handled elsewhere (`setContentProtection(true)`)
-- result: screenshot tool execution no longer adds a second hide/restore cycle on top of renderer capture prep
+- platform-specific screenshot-window runtimes are now bypassed for WindieOS-owned capture prep; renderer `SurfaceOrchestrator` and main-process `prepare-chatbox-for-screenshot` own the single active-surface hide/show path to avoid double-collapse races
+- result: screenshot tool execution no longer adds a second hide/restore cycle on top of renderer capture prep, and dashboard-originated captures use the same prep/restore symmetry as pill-originated captures
 
 For deeper focus/capture guard internals:
 

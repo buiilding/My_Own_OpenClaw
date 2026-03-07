@@ -93,9 +93,10 @@ Responsibilities:
 
 - typed surface transition APIs for tool execution and screenshot capture paths
 - centralized mode resolution (`none | interactive | screenshot`) for single tools and bundles
-- shared chat-pill visibility collapse/restore helper used by both tool-execution and screenshot-capture lifecycles
-- chat-pill visibility selector now routes Linux hide/show to `platform/chatPillVisibility/linux.ts`; Windows/macOS are explicit no-op modules because protected overlays already rely on Electron content protection
-- screenshot capture prep now uses a bounded main-process `prepare-chatbox-for-screenshot -> screenshot` wait; on Linux that same prep step also hides the chat pill and settles before capture so neither the configured post-action wait nor the compositor settle delay can be stretched by hidden-renderer timer throttling
+- shared active-surface collapse/restore helper used by both tool-execution and screenshot-capture lifecycles
+- screenshot prep now hides whichever WindieOS surface currently owns the capture (`chatbox`, `main-window`, or none) and carries that `hiddenSurface` contract through restore so dashboard-originated captures do not leak the dashboard into the screenshot
+- platform capture prep still routes through `platform/chatPillVisibility/*`, but those runtimes now implement active-surface prep/restore instead of a chat-pill-only contract; Linux adds compositor settle, while Windows/macOS use the same hide/restore path with zero settle delay
+- screenshot capture prep now uses a bounded main-process `prepare-chatbox-for-screenshot -> screenshot` wait; the prep handler owns both the intentional pre-capture wait and active-surface hide/settle timing so hidden-renderer timer throttling cannot stretch either phase
 - automatic screenshot monitor selection is main-owned: renderer screenshot calls stay display-agnostic, while Electron main resolves the visible sender window's display first and falls back to the active query-origin display affinity for hidden-dashboard tool turns
 - monitor-scoped screenshot args now include both target monitor bounds and full virtual desktop bounds, allowing the sidecar screenshot tool to crop a single monitor even when the OS backend returns one all-displays image
 - manual chat-pill drag position is main-owned and reused by overlay helper reposition passes so screenshot/show/hide lifecycles cannot snap the pill back to its default centered location
@@ -165,7 +166,7 @@ Responsibilities include:
 - attaching system-state fields used by backend prompt/runtime normalization
 - producing stable bundle/single output payload shapes
 - timing + logging instrumentation for tool runtime diagnostics
-- screenshot timing diagnostics now split capture preparation into aggregate `prep` plus `hide IPC` and compositor `settle` substeps so screenshot latency can be attributed without guessing between the intentional wait, overlay hide, and screenshot-tool runtime
+- screenshot timing diagnostics now split capture preparation into aggregate `prep` plus `hide IPC` and compositor `settle` substeps so screenshot latency can be attributed without guessing between the intentional wait, active-surface hide, and screenshot-tool runtime
 
 ## Contract with Backend
 

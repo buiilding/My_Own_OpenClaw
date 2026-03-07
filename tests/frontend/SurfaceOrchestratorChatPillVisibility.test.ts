@@ -11,7 +11,7 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
   const originalUserAgent = navigator.userAgent;
 
   beforeEach(() => {
-    jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({ success: true });
+    jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({ success: true, hiddenSurface: 'chatbox' });
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
       value: 'Mozilla/5.0 (X11; Linux x86_64)',
@@ -30,12 +30,14 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
     (IpcBridge.invoke as jest.Mock).mockResolvedValueOnce({
       success: true,
       settleMs: 120,
+      hiddenSurface: 'chatbox',
     });
 
     expect(shouldManageChatPillVisibilityForBackgroundCapture()).toBe(true);
 
     await expect(collapseChatPillForBackgroundCapture()).resolves.toEqual({
       collapsed: true,
+      hiddenSurface: 'chatbox',
       timing: {
         waitTime: 0,
         hideInvokeTime: expect.any(Number),
@@ -44,13 +46,14 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
     });
 
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
     ]);
   });
 
   test('restores chat pill as non-focusing show', async () => {
     await expect(restoreChatPillInactive()).resolves.toEqual({
       restored: true,
+      restoredSurface: 'chatbox',
       restoreInvokeTime: expect.any(Number),
     });
 
@@ -65,33 +68,36 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
 
     await expect(collapseChatPillForBackgroundCapture()).rejects.toThrow('hide-failed');
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideChatbox: true }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
     ]);
   });
 
-  test('skips collapse and restore chat pill IPC outside Linux', async () => {
+  test('collapses and restores the active WindieOS surface outside Linux without settle delay', async () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
       value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
     });
 
-    expect(shouldManageChatPillVisibilityForBackgroundCapture()).toBe(false);
+    expect(shouldManageChatPillVisibilityForBackgroundCapture()).toBe(true);
 
     await expect(collapseChatPillForBackgroundCapture()).resolves.toEqual({
-      collapsed: false,
+      collapsed: true,
+      hiddenSurface: 'chatbox',
       timing: {
         waitTime: 0,
-        hideInvokeTime: 0,
+        hideInvokeTime: expect.any(Number),
         settleTime: 0,
       },
     });
     await expect(restoreChatPillInactive()).resolves.toEqual({
-      restored: false,
+      restored: true,
+      restoredSurface: 'chatbox',
       restoreInvokeTime: 0,
     });
 
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 0, hideChatbox: false }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 0, hideSurface: true }],
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });
 });
