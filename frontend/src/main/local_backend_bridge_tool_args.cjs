@@ -56,6 +56,15 @@ function normalizeDisplayBounds(displayBounds) {
   return normalized;
 }
 
+function resolveScreenshotArgsWithDisplayBounds(args, defaultDisplayBounds) {
+  const nextArgs = isRecord(args) ? deepClone(args) : {};
+  const explicitDisplayBounds = normalizeDisplayBounds(nextArgs.display_bounds);
+  if (!explicitDisplayBounds && defaultDisplayBounds) {
+    nextArgs.display_bounds = defaultDisplayBounds;
+  }
+  return nextArgs;
+}
+
 function resolveRunShellCommandArgs(args, getFrontendConfig, warn = console.warn) {
   const nextArgs = (
     isRecord(args)
@@ -94,10 +103,21 @@ function resolveToolArgs(
   }
   const nextArgs = isRecord(args) ? deepClone(args) : {};
   if (toolName === 'screenshot') {
-    const explicitDisplayBounds = normalizeDisplayBounds(nextArgs.display_bounds);
     const defaultDisplayBounds = normalizeDisplayBounds(options.displayBounds);
-    if (!explicitDisplayBounds && defaultDisplayBounds) {
-      nextArgs.display_bounds = defaultDisplayBounds;
+    return resolveScreenshotArgsWithDisplayBounds(nextArgs, defaultDisplayBounds);
+  }
+  if (toolName === 'computer_use') {
+    const nestedToolName = (
+      typeof nextArgs.tool === 'string'
+        ? nextArgs.tool.trim()
+        : ''
+    );
+    if (nestedToolName === 'screenshot') {
+      const defaultDisplayBounds = normalizeDisplayBounds(options.displayBounds);
+      nextArgs.arguments = resolveScreenshotArgsWithDisplayBounds(
+        nextArgs.arguments,
+        defaultDisplayBounds,
+      );
     }
   }
   return nextArgs;
