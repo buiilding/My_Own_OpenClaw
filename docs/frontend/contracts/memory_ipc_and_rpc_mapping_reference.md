@@ -129,6 +129,8 @@ Search payload validation at sidecar boundary:
 Search result shaping detail:
 
 - sidecar `LocalMemoryStore.search(...)` can rewrite episodic transcript user hits into canonical interaction text (`User: ...` + `Assistant: ...`) by resolving the next assistant reply in the same conversation before handler grouping.
+- sidecar handler pipeline then applies `exclude_conversation_results(...)` and `group_memory_texts(...)`.
+- `group_memory_texts(...)` prioritizes explicit interaction-style episodic rows, falls back to transcript pair synthesis, and only then falls back to raw episodic text.
 - grouped response contract remains unchanged: `{ memories: { episodic: [...], semantic: [...] } }`.
 
 ## Sidecar JSON-RPC Response Envelope
@@ -245,6 +247,7 @@ If search results include active conversation unexpectedly:
 ## Related Pages
 
 - [Local Backend JSON-RPC Reference](../sidecar/local_backend_jsonrpc_reference.md)
+- [Memory Search Grouping and Transcript Pair Synthesis Contract Reference](../sidecar/memory/memory_search_grouping_and_transcript_pair_synthesis_contract_reference.md)
 - [IPC Memory-Store Event Persistence Payload Fallback and Fail-Open Logging Contract Reference](../main/ipc_memory_store_event_persistence_payload_fallback_and_fail_open_logging_contract_reference.md)
 - [Transcript Storage, Semantic Candidate, and Watermark Reference](../sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
 - [Transcript Session and Rehydrate Reference](../renderer/transcript_session_and_rehydrate_reference.md)

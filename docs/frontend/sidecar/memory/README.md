@@ -10,6 +10,7 @@ title: "Frontend Sidecar Memory Docs Hub"
 
 ## Deep Pages
 
+- [Memory Search Grouping and Transcript Pair Synthesis Contract Reference](memory_search_grouping_and_transcript_pair_synthesis_contract_reference.md)
 - [Memory Storage Docs Hub](storage/README.md)
 - [Summarizer Watermark and Conversation Batch Reference](summarizer_watermark_and_conversation_batch_reference.md)
 - [Transcript Storage, Semantic Candidate, and Watermark Reference](transcript_storage_semantic_candidate_and_watermark_reference.md)
@@ -30,6 +31,7 @@ title: "Frontend Sidecar Memory Docs Hub"
 
 - `frontend/src/main/python/memory/summarizer.py`
 - `frontend/src/main/python/memory/local_store.py`
+- `frontend/src/main/python/memory/operations.py`
 - `frontend/src/main/python/memory/conversation_search_helpers.py`
 - `frontend/src/main/python/memory/conversation_search_runtime.py`
 - `frontend/src/main/python/memory/conversation_titles.py`
@@ -38,6 +40,7 @@ title: "Frontend Sidecar Memory Docs Hub"
 - `frontend/src/main/python/memory/faiss_index.py`
 - `frontend/src/main/python/memory/watermark_state.py`
 - `frontend/src/main/python/local_backend.py`
+- `frontend/src/main/python/local_backend_memory_handlers.py`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/python/core/remote_semantic_client.py`
 - `frontend/src/main/python/core/remote_title_client.py`

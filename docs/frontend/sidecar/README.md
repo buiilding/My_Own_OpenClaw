@@ -30,6 +30,7 @@ title: "Frontend Sidecar Docs Hub"
 - [Sidecar Memory Docs Hub](memory/README.md)
 - [Sidecar Memory Storage Docs Hub](memory/storage/README.md)
 - [Memory Pipeline and Summarization](memory_pipeline_and_summarization.md)
+- [Memory Search Grouping and Transcript Pair Synthesis Contract Reference](memory/memory_search_grouping_and_transcript_pair_synthesis_contract_reference.md)
 - [Summarizer Watermark and Conversation Batch Reference](memory/summarizer_watermark_and_conversation_batch_reference.md)
 - [Transcript Storage, Semantic Candidate, and Watermark Reference](memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
 - [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](memory/storage/local_memory_store_embedding_search_and_memory_type_routing_reference.md)

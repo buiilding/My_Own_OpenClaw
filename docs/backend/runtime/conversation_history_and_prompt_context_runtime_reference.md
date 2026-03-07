@@ -41,7 +41,11 @@ Core views:
 Current query append path (`AgentExecutor.process_query(...)`):
 
 - backend stores frontend-enriched message content as an opaque rendered string (`content`)
-- `_resolve_raw_user_query(...)` extracts the last `<user_query>...</user_query>` block (HTML-unescaped) for `user_query_raw`
+- `_resolve_raw_user_query(...)` extracts `user_query_raw` with strict fallback semantics:
+  - scans only first `300_000` chars of rendered content (`_USER_QUERY_PARSE_MAX_CHARS`)
+  - uses the last `<user_query>...</user_query>` match when multiple are present
+  - HTML-unescapes extracted text
+  - falls back to raw query input if tag missing/empty
 - `<system_context>`, `<episodic_memory>`, and `<semantic_memory>` blocks are preserved inside rendered `content` for model context, but are not separately parsed into structured `episodic_memory` / `semantic_memory` fields on the standard query path
 - practical result: `StoredMessage.user_query_raw` is reliably populated; `StoredMessage.episodic_memory` and `StoredMessage.semantic_memory` are currently optional and generally unset unless a caller explicitly provides structured values
 

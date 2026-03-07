@@ -132,6 +132,8 @@ Output from `buildQueryPayload(...)`:
 Memory section formatting contract (`query_payload_builder.cjs`):
 
 - `searchMemory(query, user_id, limit=5, memory_type=null, exclude_conversation_id=conversationRef)` is called when retrieval injection is enabled.
+- sidecar search path applies: store search -> active-conversation exclusion -> episodic/semantic grouping.
+- episodic grouping prefers pre-paired interaction rows (`User + Assistant`), then transcript synthesis fallback, then raw episodic fallback text.
 - each section is always emitted when retrieval injection is enabled:
   - `<episodic_memory>...</episodic_memory>`
   - `<semantic_memory>...</semantic_memory>`
@@ -206,6 +208,7 @@ If query content misses memory/system context:
 1. verify `buildQueryPayload(...)` path executes without fallback exception from `buildQueryPayloadContent(...)`
 2. inspect local backend bridge readiness (`Local backend not ready` errors)
 3. verify memory search payload mapping includes expected conversation exclusion key
+4. verify sidecar episodic grouping/pairing behavior from `memory.operations` when retrieval text is unexpectedly user-only
 
 If renderer shows user message but backend never streams:
 
@@ -216,3 +219,4 @@ If renderer shows user message but backend never streams:
 For module ownership details of query/local synthetic event broadcasters and renderer-window fan-out, see [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md).
 For replay and transcript session-sync normalization details, see [IPC Event Replay and Transcript Session Sync Reference](ipc_event_replay_and_transcript_session_sync_reference.md).
 For helper-level contracts (`prepareRendererQueryPayload`, `buildQueryPayload`, `prepareAutomatedQueryPayload`, `applyTranscriptSessionSync`), see [IPC Query Runtime and Transcript Sync Helper Reference](ipc_query_runtime_and_transcript_sync_helper_reference.md).
+For full pairing/grouping details behind `<episodic_memory>` content generation, see [Memory Search Grouping and Transcript Pair Synthesis Contract Reference](../sidecar/memory/memory_search_grouping_and_transcript_pair_synthesis_contract_reference.md).
