@@ -18,7 +18,7 @@ import { isDevUiEnabled } from '../utils/devUiFlag';
 import { buildOutgoingMessage } from '../utils/message/messageInput';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStream/chatStreamThinkingStatus';
-import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
+import { captureScreenshotAttachment } from '../../../infrastructure/services/ScreenshotAttachmentPipeline';
 import {
   normalizeArtifactImageContentType,
   resolveArtifactImageExtension,
@@ -176,7 +176,9 @@ function ChatBox() {
     }
     setIsCapturingScreenshot(true);
     try {
-      const capture = await extractOSstate(true, false, 0, false);
+      const capture = await captureScreenshotAttachment({
+        waitSeconds: 0,
+      });
       if (!capture?.screenshot) {
         return;
       }

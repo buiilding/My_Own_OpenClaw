@@ -1,5 +1,5 @@
 import type { SystemState, ToolResult } from '../MessageFormatter';
-import type { CaptureMeta } from '../SystemCapture';
+import type { CaptureMeta } from '../ScreenshotAttachmentPipeline';
 import type { BundleStepResult } from './ToolExecutionBundleRunner';
 import { buildToolResultPayloadData } from './ToolExecutionPayloads';
 import {

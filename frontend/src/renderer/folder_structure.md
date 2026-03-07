@@ -171,7 +171,8 @@ frontend/src/renderer/
 │   │   ├── ArtifactImageUtils.ts        # ArtifactImageUtils - Artifact image type/extension normalization
 │   │   ├── ArtifactUploader.ts          # ArtifactUploader - Uploads screenshot artifacts and builds artifact URLs
 │   │   ├── MessageFormatter.ts          # MessageFormatter - Pure functions for formatting tool output with system context XML
-│   │   ├── SystemCapture.ts             # SystemCapture - extractOSstate() - Unified screenshot and system state capture
+│   │   ├── ScreenshotAttachmentPipeline.ts # ScreenshotAttachmentPipeline - canonical screenshot capture/materialization/ref fallback service
+│   │   ├── SystemStateCapture.ts        # SystemStateCapture - explicit system-state capture service
 │   │   └── toolExecution/               # toolExecution - Tool execution runtime, payload shaping, and envelope helpers
 │   │       ├── ToolExecutionService.ts  # Thin service wrapper that delegates to single-tool and bundle runtimes
 │   │       ├── singleToolExecution.ts   # Single-tool execution flow (invoke -> capture -> upload -> backend relay)
@@ -269,7 +270,7 @@ frontend/src/renderer/
        ├─> Create user message (immediate UI display)
        ├─> Add to chatStore
        ├─> Main-window sender path: send query directly (no screenshot capture, no window handoff)
-       ├─> Overlay sender path: optional extractOSstate() screenshot capture
+       ├─> Overlay sender path: optional captureScreenshotAttachment() screenshot capture
        └─> ApiClient.sendQuery() - Send to backend via IPC
            ↓
 3. IPC BRIDGE
@@ -329,7 +330,7 @@ frontend/src/renderer/
    └─> infrastructure/services/toolExecution/ToolExecutionService.ts
        ├─> Execute tool via IPC (INVOKE_CHANNELS.EXECUTE_TOOL)
        ├─> Check if computer-use tool (needs screenshot)
-       ├─> extractOSstate() - Capture screenshot/system state (if needed)
+       ├─> captureScreenshotAttachment() / captureSystemState() - explicit capture services
        ├─> formatToolOutputMessage() - Format with system context XML
        ├─> Call onToolResult callback (UI update)
        └─> Send tool-result to backend via IPC

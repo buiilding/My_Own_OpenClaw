@@ -1,18 +1,16 @@
-import { extractOSstate, type CaptureMeta } from '../../../../infrastructure/services/SystemCapture';
-import { uploadArtifactBase64 } from '../../../../infrastructure/services/ArtifactUploader';
-import { normalizeArtifactImageContentType } from '../../../../infrastructure/services/ArtifactImageUtils';
 import {
   buildScreenshotRefs,
+  captureScreenshotAttachment,
+  createInlineScreenshotAttachment,
+  materializeScreenshotAttachments,
   resolvePrimaryScreenshotAttachment,
-  toUploadedArtifactFromCaptureAttachment,
-} from '../screenshotAttachmentContract';
+  type CaptureMeta,
+  type ScreenshotAttachment,
+} from '../../../../infrastructure/services/ScreenshotAttachmentPipeline';
 import {
-  buildArtifactUploadMeta,
-  toScreenshotAttachment,
-} from './chatMessageSenderUtils';
+  normalizeArtifactImageContentType,
+} from '../../../../infrastructure/services/ArtifactImageUtils';
 import type { ClipboardImagePayload } from './chatMessageSenderPayloads';
-
-type UploadedArtifact = { artifactId?: string | null; url?: string | null } | null;
 
 export type UploadedScreenshotEntry = {
   screenshot: string;
@@ -29,110 +27,42 @@ export type QueryScreenshotArtifacts = {
   screenshotRefs: string[];
 };
 
-type AutoCaptureAttachment = {
-  screenshot: string | null;
-  screenshotRef: string | null;
-  screenshotUrl: string | null;
-  screenshotContentType: string | null;
-  captureMeta: CaptureMeta | null;
-};
-
 async function resolveAutoCapturedAttachment(
   shouldCaptureQueryScreenshot: boolean,
   isFirstUserMessage: boolean,
-): Promise<AutoCaptureAttachment> {
+): Promise<ScreenshotAttachment> {
   if (!shouldCaptureQueryScreenshot) {
-    return {
-      screenshot: null,
-      screenshotRef: null,
-      screenshotUrl: null,
+    return createInlineScreenshotAttachment({
+      screenshot: '',
       screenshotContentType: null,
-      captureMeta: null,
-    };
+    });
   }
 
   try {
-    const osStateResult = await extractOSstate(
-      true,
-      false,
-      0,
+    return await captureScreenshotAttachment({
+      waitSeconds: 0,
       isFirstUserMessage,
-    );
-
-    return {
-      screenshot: osStateResult.screenshot,
-      screenshotRef: osStateResult.screenshotRef || null,
-      screenshotUrl: osStateResult.screenshotUrl || null,
-      screenshotContentType: osStateResult.screenshotContentType,
-      captureMeta: osStateResult.captureMeta,
-    };
+    });
   } catch (error) {
-    console.error('[queryScreenshotPipeline] Failed to extract OS state:', error);
-    return {
-      screenshot: null,
-      screenshotRef: null,
-      screenshotUrl: null,
+    console.error('[queryScreenshotPipeline] Failed to capture screenshot attachment:', error);
+    return createInlineScreenshotAttachment({
+      screenshot: '',
       screenshotContentType: null,
-      captureMeta: null,
-    };
-  }
-}
-
-async function uploadClipboardImageArtifacts(
-  clipboardImages: ClipboardImagePayload[],
-): Promise<UploadedArtifact[]> {
-  const uploadedArtifacts: UploadedArtifact[] = [];
-
-  for (const clipboardImage of clipboardImages) {
-    const artifactUploadMeta = buildArtifactUploadMeta(clipboardImage.contentType);
-    try {
-      const uploaded = await uploadArtifactBase64(
-        clipboardImage.base64,
-        artifactUploadMeta.contentType,
-        clipboardImage.filename || artifactUploadMeta.filename,
-      );
-      uploadedArtifacts.push(uploaded || null);
-    } catch (error) {
-      console.warn('[queryScreenshotPipeline] Failed to upload screenshot artifact:', error);
-      uploadedArtifacts.push(null);
-    }
-  }
-
-  return uploadedArtifacts;
-}
-
-async function uploadSingleScreenshotArtifact(
-  screenshot: string,
-  screenshotContentType: string | null,
-  screenshotFilename: string | null,
-): Promise<UploadedArtifact[]> {
-  const artifactUploadMeta = buildArtifactUploadMeta(screenshotContentType);
-  try {
-    const uploaded = await uploadArtifactBase64(
-      screenshot,
-      artifactUploadMeta.contentType,
-      screenshotFilename || artifactUploadMeta.filename,
-    );
-    return [uploaded || null];
-  } catch (error) {
-    console.warn('[queryScreenshotPipeline] Failed to upload screenshot artifact:', error);
-    return [null];
+    });
   }
 }
 
 function buildUploadedScreenshotEntries(
-  clipboardImages: ClipboardImagePayload[],
-  uploadedArtifacts: UploadedArtifact[],
+  attachments: ScreenshotAttachment[],
 ): UploadedScreenshotEntry[] {
-  return clipboardImages.map((clipboardImage, index) => {
-    const attachment = toScreenshotAttachment(uploadedArtifacts[index] || null);
-    return {
-      screenshot: clipboardImage.base64,
-      screenshotContentType: normalizeArtifactImageContentType(clipboardImage.contentType),
+  return attachments
+    .filter((attachment) => Boolean(attachment.screenshot))
+    .map((attachment) => ({
+      screenshot: attachment.screenshot || '',
+      screenshotContentType: normalizeArtifactImageContentType(attachment.screenshotContentType),
       screenshotRef: attachment.screenshotRef,
       screenshotUrl: attachment.screenshotUrl,
-    };
-  });
+    }));
 }
 
 export async function resolveQueryScreenshotArtifacts({
@@ -146,55 +76,37 @@ export async function resolveQueryScreenshotArtifacts({
 }): Promise<QueryScreenshotArtifacts> {
   const firstClipboardImage = clipboardImages[0] || null;
   const autoCapturedAttachment = firstClipboardImage
-    ? {
-      screenshot: null,
-      screenshotRef: null,
-      screenshotUrl: null,
+    ? createInlineScreenshotAttachment({
+      screenshot: '',
       screenshotContentType: null,
-      captureMeta: null,
-    }
+    })
     : await resolveAutoCapturedAttachment(shouldCaptureQueryScreenshot, isFirstUserMessage);
+  const sourceAttachments = clipboardImages.length > 0
+    ? clipboardImages.map((clipboardImage) => createInlineScreenshotAttachment({
+        screenshot: clipboardImage.base64,
+        screenshotContentType: clipboardImage.contentType,
+      }))
+    : (autoCapturedAttachment.screenshot || autoCapturedAttachment.screenshotRef || autoCapturedAttachment.screenshotUrl
+        ? [autoCapturedAttachment]
+        : []);
 
-  const fallbackScreenshot = firstClipboardImage?.base64 || autoCapturedAttachment.screenshot;
-  const fallbackScreenshotContentType = firstClipboardImage
-    ? normalizeArtifactImageContentType(firstClipboardImage.contentType)
-    : autoCapturedAttachment.screenshotContentType;
-  const screenshotFilename = firstClipboardImage?.filename || null;
-
-  let uploadedArtifacts: UploadedArtifact[] = [];
-  if (clipboardImages.length > 0) {
-    uploadedArtifacts = await uploadClipboardImageArtifacts(clipboardImages);
-  } else if (fallbackScreenshot) {
-    uploadedArtifacts = await uploadSingleScreenshotArtifact(
-      fallbackScreenshot,
-      fallbackScreenshotContentType,
-      screenshotFilename,
-    );
-  } else {
-    const captureAttachment = toUploadedArtifactFromCaptureAttachment({
-      screenshotRef: autoCapturedAttachment.screenshotRef,
-      screenshotUrl: autoCapturedAttachment.screenshotUrl,
-    });
-    if (captureAttachment) {
-      uploadedArtifacts = [captureAttachment];
-    }
-  }
-
-  const uploadedScreenshotEntries = buildUploadedScreenshotEntries(
-    clipboardImages,
-    uploadedArtifacts,
+  const materializedAttachments = await materializeScreenshotAttachments(
+    sourceAttachments,
+    (index) => {
+      if (clipboardImages[index]?.filename) {
+        return clipboardImages[index].filename.replace(/\.[^.]+$/, '');
+      }
+      return 'user-message';
+    },
   );
-  const fallbackAttachment = toScreenshotAttachment(uploadedArtifacts[0] || null);
-  const primaryAttachment = resolvePrimaryScreenshotAttachment(
-    uploadedScreenshotEntries,
-    fallbackAttachment,
-  );
+  const uploadedScreenshotEntries = buildUploadedScreenshotEntries(materializedAttachments);
+  const primaryAttachment = resolvePrimaryScreenshotAttachment(materializedAttachments);
 
   return {
     captureMeta: autoCapturedAttachment.captureMeta,
     uploadedScreenshotEntries,
     screenshotRef: primaryAttachment.screenshotRef,
     screenshotUrl: primaryAttachment.screenshotUrl,
-    screenshotRefs: buildScreenshotRefs(uploadedScreenshotEntries, primaryAttachment.screenshotRef),
+    screenshotRefs: buildScreenshotRefs(materializedAttachments),
   };
 }

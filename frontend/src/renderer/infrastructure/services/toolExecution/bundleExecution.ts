@@ -1,9 +1,5 @@
 import { formatBundledToolOutputMessage } from '../MessageFormatter';
-import { uploadArtifactBase64 } from '../ArtifactUploader';
-import {
-  normalizeArtifactImageContentType,
-  resolveArtifactImageExtension,
-} from '../ArtifactImageUtils';
+import { materializeScreenshotAttachment } from '../ScreenshotAttachmentPipeline';
 import { isComputerUseTool } from './ToolExecutionCapture';
 import { runToolBundle, type BundleStepResult } from './ToolExecutionBundleRunner';
 import {
@@ -40,6 +36,8 @@ export async function executeToolBundleRuntime(
       stepResults: collectedStepResults,
       systemState,
       screenshot,
+      screenshotRef,
+      screenshotUrl,
       screenshotContentType,
       captureMeta,
       totalWaitDelay,
@@ -61,25 +59,26 @@ export async function executeToolBundleRuntime(
     const formattingTime = (performance.now() - formattingStartTime) / 1000;
     logBundleFormatting(formattingTime);
 
-    const bundledUpload = screenshot
-      ? await uploadArtifactBase64(
-          screenshot,
-          normalizeArtifactImageContentType(screenshotContentType),
-          `bundle-${bundleId}.${resolveArtifactImageExtension(screenshotContentType)}`,
-        )
-      : null;
-    const bundleScreenshotRef = bundledUpload?.artifactId || null;
-    const bundleScreenshotUrl = bundledUpload?.url || null;
+    const materializedAttachment = await materializeScreenshotAttachment(
+      {
+        screenshot,
+        screenshotRef,
+        screenshotUrl,
+        screenshotContentType,
+        captureMeta,
+      },
+      { filenameStem: `bundle-${bundleId}` },
+    );
 
     const bundleResult: BundleExecutionResult = {
       correlationId: bundleId,
       results: toBundleExecutionResults(normalizedResults),
       totalTime: 0,
       formattedMessage: combinedFormattedMessage,
-      screenshot,
-      screenshotRef: bundleScreenshotRef,
-      screenshotUrl: bundleScreenshotUrl,
-      screenshotContentType: bundledUpload?.contentType || null,
+      screenshot: materializedAttachment.screenshot,
+      screenshotRef: materializedAttachment.screenshotRef,
+      screenshotUrl: materializedAttachment.screenshotUrl,
+      screenshotContentType: materializedAttachment.screenshotContentType,
       systemState,
     };
 
@@ -90,8 +89,8 @@ export async function executeToolBundleRuntime(
       bundleId,
       status: bundleStatus,
       stepResults,
-      screenshot: bundleScreenshotRef ? null : screenshot,
-      screenshotRef: bundleScreenshotRef,
+      screenshot: materializedAttachment.screenshotRef ? null : materializedAttachment.screenshot,
+      screenshotRef: materializedAttachment.screenshotRef,
       captureMeta,
       systemState,
       error: resolveBundleErrorMessage(bundleStatus, stepResults),

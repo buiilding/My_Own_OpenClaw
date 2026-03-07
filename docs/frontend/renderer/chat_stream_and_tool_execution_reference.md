@@ -111,8 +111,8 @@ Persisted thinking cleanup contract from `chatStreamThinkingStatus.ts`:
 3. append pending user message immediately for optimistic UI
 4. set sending state
 5. optional overlay transition back to chatbox (`show-chatbox` invoke)
-6. optional screenshot capture via `extractOSstate(...)`
-7. optional artifact upload (`uploadArtifactBase64`)
+6. optional screenshot capture via `captureScreenshotAttachment(...)`
+7. optional screenshot materialization (`ScreenshotAttachmentPipeline`)
 8. update already-rendered user message with `screenshot_ref/url`
 9. record transcript user row
 10. emit backend `query` via `ApiClient.sendQuery`

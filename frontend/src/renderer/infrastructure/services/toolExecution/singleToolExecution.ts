@@ -1,12 +1,15 @@
 import { formatToolOutputMessage } from '../MessageFormatter';
-import { uploadArtifactBase64 } from '../ArtifactUploader';
+import {
+  extractScreenshotAttachment,
+  hasScreenshotAttachment,
+  materializeScreenshotAttachment,
+} from '../ScreenshotAttachmentPipeline';
 import {
   ensureAutoCapture,
   resolveSystemState,
 } from './ToolExecutionCapture';
 import { invokeTool } from './ToolExecutionInvoker';
 import { logToolStart, logToolTiming } from './ToolExecutionLogger';
-import { resolveToolExecutionScreenshotSelection } from './ToolExecutionScreenshotSelection';
 import {
   emitToolExecutionResult,
   sendToolExecutionResultToBackend,
@@ -38,7 +41,10 @@ export async function executeSingleTool(
     );
     const {
       screenshot,
+      screenshotRef,
+      screenshotUrl,
       screenshotContentType,
+      captureMeta,
       systemState,
       waitDelay,
       captureTime,
@@ -65,45 +71,50 @@ export async function executeSingleTool(
       ),
     });
 
-    const screenshotSelection = resolveToolExecutionScreenshotSelection(
-      toolName,
+    const resultAttachment = extractScreenshotAttachment(result);
+    const selectedAttachment = hasScreenshotAttachment({
       screenshot,
+      screenshotRef,
+      screenshotUrl,
       screenshotContentType,
-      result,
-    );
-    const effectiveScreenshot = screenshotSelection.screenshot;
-    const effectiveScreenshotContentType = screenshotSelection.screenshotContentType;
+      captureMeta,
+    })
+      ? {
+          screenshot,
+          screenshotRef,
+          screenshotUrl,
+          screenshotContentType,
+          captureMeta,
+        }
+      : resultAttachment;
 
     logRendererToolScreenshotDebug('selection', {
       toolName,
       correlationId: options.correlationId,
-      selectedHasInlineScreenshot: Boolean(effectiveScreenshot),
-      selectedInlineScreenshotLength: typeof effectiveScreenshot === 'string' ? effectiveScreenshot.length : 0,
-      selectedScreenshotContentType: effectiveScreenshotContentType,
-      preUploadedScreenshotRef: screenshotSelection.preUploadedScreenshot?.screenshotRef || null,
-      preUploadedScreenshotUrl: screenshotSelection.preUploadedScreenshot?.screenshotUrl || null,
-      uploadFilename: screenshotSelection.uploadFilename || null,
+      selectedHasInlineScreenshot: Boolean(selectedAttachment.screenshot),
+      selectedInlineScreenshotLength: typeof selectedAttachment.screenshot === 'string' ? selectedAttachment.screenshot.length : 0,
+      selectedScreenshotContentType: selectedAttachment.screenshotContentType,
+      preUploadedScreenshotRef: selectedAttachment.screenshotRef || null,
+      preUploadedScreenshotUrl: selectedAttachment.screenshotUrl || null,
+      uploadFilename: selectedAttachment.screenshot
+        ? `${toolName}-screenshot`
+        : null,
     });
 
-    const uploaded = effectiveScreenshot
-      ? await uploadArtifactBase64(
-          effectiveScreenshot,
-          screenshotSelection.uploadContentType,
-          screenshotSelection.uploadFilename || `${toolName}-screenshot.png`,
-        )
-      : null;
-    const screenshotRef = uploaded?.artifactId || screenshotSelection.preUploadedScreenshot?.screenshotRef || null;
-    const screenshotUrl = uploaded?.url || screenshotSelection.preUploadedScreenshot?.screenshotUrl || null;
+    const materializedAttachment = await materializeScreenshotAttachment(
+      selectedAttachment,
+      { filenameStem: `${toolName}-screenshot` },
+    );
 
     logRendererToolScreenshotDebug('post-upload', {
       toolName,
       correlationId: options.correlationId,
-      uploadReturnedArtifact: Boolean(uploaded),
-      uploadedArtifactId: uploaded?.artifactId || null,
-      uploadedUrl: uploaded?.url || null,
-      finalScreenshotRef: screenshotRef,
-      finalScreenshotUrl: screenshotUrl,
-      finalKeepsInlineScreenshot: !screenshotRef && Boolean(effectiveScreenshot),
+      uploadReturnedArtifact: Boolean(materializedAttachment.screenshotRef || materializedAttachment.screenshotUrl),
+      uploadedArtifactId: materializedAttachment.screenshotRef || null,
+      uploadedUrl: materializedAttachment.screenshotUrl || null,
+      finalScreenshotRef: materializedAttachment.screenshotRef,
+      finalScreenshotUrl: materializedAttachment.screenshotUrl,
+      finalKeepsInlineScreenshot: !materializedAttachment.screenshotRef && Boolean(materializedAttachment.screenshot),
     });
 
     const finalSystemState = resolveSystemState(systemState, result.data);
@@ -120,10 +131,10 @@ export async function executeSingleTool(
       executionTime: 0,
       correlationId: options.correlationId,
       formattedMessage,
-      screenshot: effectiveScreenshot,
-      screenshotRef,
-      screenshotUrl,
-      screenshotContentType: effectiveScreenshotContentType,
+      screenshot: materializedAttachment.screenshot,
+      screenshotRef: materializedAttachment.screenshotRef,
+      screenshotUrl: materializedAttachment.screenshotUrl,
+      screenshotContentType: materializedAttachment.screenshotContentType,
       systemState: finalSystemState,
     };
     // Preserve existing UI-before-backend ordering so transcript and chat rows appear immediately.
@@ -133,8 +144,10 @@ export async function executeSingleTool(
       toolName,
       correlationId: options.correlationId,
       includeScreenshot: isComputerTool,
-      backendWillSendScreenshotRef: screenshotRef,
-      backendWillSendInlineScreenshot: screenshotRef ? null : Boolean(effectiveScreenshot),
+      backendWillSendScreenshotRef: materializedAttachment.screenshotRef,
+      backendWillSendInlineScreenshot: materializedAttachment.screenshotRef
+        ? null
+        : Boolean(materializedAttachment.screenshot),
     });
 
     sendToolExecutionResultToBackend(callbacks, {
@@ -143,8 +156,8 @@ export async function executeSingleTool(
       formattedMessage,
       systemState: finalSystemState,
       includeScreenshot: isComputerTool,
-      screenshot: screenshotRef ? null : effectiveScreenshot,
-      screenshotRef,
+      screenshot: materializedAttachment.screenshotRef ? null : materializedAttachment.screenshot,
+      screenshotRef: materializedAttachment.screenshotRef,
       includeSystemState: isComputerTool,
     });
 

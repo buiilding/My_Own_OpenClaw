@@ -194,12 +194,26 @@ describe('useToolRunner event handling', () => {
         request_id: 'req-screenshot-dashboard-open',
       },
     });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 130));
+    });
 
-    expect(mockExecuteTool).toHaveBeenCalledWith(
-      'screenshot',
-      {},
-      { correlationId: 'req-screenshot-dashboard-open', skipAutoCapture: false },
-    );
+    const firstExecuteCall = mockExecuteTool.mock.calls[0];
+    if (!firstExecuteCall) {
+      throw new Error('executeTool was not called for screenshot tool-call');
+    }
+    if (firstExecuteCall[0] !== 'screenshot') {
+      throw new Error(`unexpected tool execution target: ${String(firstExecuteCall[0])}`);
+    }
+    if (JSON.stringify(firstExecuteCall[1]) !== '{}') {
+      throw new Error(`unexpected screenshot args: ${JSON.stringify(firstExecuteCall[1])}`);
+    }
+    if (firstExecuteCall[2]?.correlationId !== 'req-screenshot-dashboard-open') {
+      throw new Error(`unexpected correlation id: ${String(firstExecuteCall[2]?.correlationId)}`);
+    }
+    if (firstExecuteCall[2]?.skipAutoCapture !== false) {
+      throw new Error(`unexpected skipAutoCapture: ${String(firstExecuteCall[2]?.skipAutoCapture)}`);
+    }
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.HIDE_CHATBOX],

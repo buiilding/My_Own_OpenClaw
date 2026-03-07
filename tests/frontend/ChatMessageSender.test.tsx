@@ -4,7 +4,7 @@ import {
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
-import { extractOSstate } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
+import { captureScreenshotAttachment } from '../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline';
 import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
 import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
 import {
@@ -25,8 +25,9 @@ jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
   })),
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/services/SystemCapture', () => ({
-  extractOSstate: jest.fn(),
+jest.mock('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline', () => ({
+  ...jest.requireActual('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline'),
+  captureScreenshotAttachment: jest.fn(),
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
@@ -56,7 +57,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWrite
   recordUserMessage: jest.fn(),
 }));
 
-const mockExtractOSstate = extractOSstate as jest.MockedFunction<typeof extractOSstate>;
+const mockCaptureScreenshotAttachment = captureScreenshotAttachment as jest.MockedFunction<typeof captureScreenshotAttachment>;
 const mockSendQuery = ApiClient.sendQuery as jest.MockedFunction<typeof ApiClient.sendQuery>;
 const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
 const mockRecordUserMessage = recordUserMessage as jest.MockedFunction<typeof recordUserMessage>;
@@ -151,7 +152,7 @@ describe('useChatMessageSender', () => {
   beforeEach(() => {
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    mockExtractOSstate.mockReset();
+    mockCaptureScreenshotAttachment.mockReset();
     mockSendQuery.mockReset();
     mockUploadArtifactBase64.mockReset();
     mockActiveConversationRef = null;
@@ -206,7 +207,13 @@ describe('useChatMessageSender', () => {
       once: jest.fn(),
     };
 
-    mockExtractOSstate.mockResolvedValue({ systemState: null, screenshot: null });
+    mockCaptureScreenshotAttachment.mockResolvedValue({
+      screenshot: null,
+      screenshotRef: null,
+      screenshotUrl: null,
+      screenshotContentType: null,
+      captureMeta: null,
+    });
     mockSendQuery.mockResolvedValue(undefined);
     mockUploadArtifactBase64.mockResolvedValue(null);
   });
@@ -298,12 +305,10 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'hello');
 
-    expect(mockExtractOSstate).toHaveBeenCalledWith(
-      true,
-      false,
-      0,
-      true,
-    );
+    expect(mockCaptureScreenshotAttachment).toHaveBeenCalledWith({
+      waitSeconds: 0,
+      isFirstUserMessage: true,
+    });
   });
 
   test('uses non-first capture path when user message already exists', async () => {
@@ -323,12 +328,10 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'second');
 
-    expect(mockExtractOSstate).toHaveBeenCalledWith(
-      true,
-      false,
-      0,
-      false,
-    );
+    expect(mockCaptureScreenshotAttachment).toHaveBeenCalledWith({
+      waitSeconds: 0,
+      isFirstUserMessage: false,
+    });
   });
 
   test('skips screenshot capture when include_query_screenshot is disabled', async () => {
@@ -336,7 +339,7 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'no image');
 
-    expect(mockExtractOSstate).not.toHaveBeenCalled();
+    expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
     expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
     expectSingleSendQueryCall('no image', 'conv_msg-1');
   });
@@ -345,7 +348,7 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ senderSurface: 'main-window' });
     await sendText(result, 'dashboard text');
 
-    expect(mockExtractOSstate).not.toHaveBeenCalled();
+    expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
     expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
     expectSingleSendQueryCall('dashboard text', 'conv_msg-1');
   });
@@ -360,7 +363,7 @@ describe('useChatMessageSender', () => {
 
   test('continues sending query when screenshot capture fails', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    mockExtractOSstate.mockRejectedValue(new Error('capture-failed'));
+    mockCaptureScreenshotAttachment.mockRejectedValue(new Error('capture-failed'));
 
     try {
       const { result } = renderSender({ returnToChatboxPolicy: 'never' });
@@ -369,7 +372,7 @@ describe('useChatMessageSender', () => {
       expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
       expectSingleSendQueryCall('hello', 'conv_msg-1');
       expect(errorSpy.mock.calls.some(([message, error]) => (
-        message === '[queryScreenshotPipeline] Failed to extract OS state:'
+        message === '[queryScreenshotPipeline] Failed to capture screenshot attachment:'
         && error instanceof Error
         && error.message === 'capture-failed'
       ))).toBe(true);
@@ -379,10 +382,12 @@ describe('useChatMessageSender', () => {
   });
 
   test('continues sending query when artifact upload fails', async () => {
-    mockExtractOSstate.mockResolvedValue({
-      systemState: { active_window: 'App' } as any,
+    mockCaptureScreenshotAttachment.mockResolvedValue({
       screenshot: 'base64-shot',
       screenshotContentType: 'image/png',
+      screenshotRef: null,
+      screenshotUrl: null,
+      captureMeta: null,
     });
     mockUploadArtifactBase64.mockRejectedValue(new Error('upload failed'));
 
@@ -399,10 +404,12 @@ describe('useChatMessageSender', () => {
   });
 
   test('sends uploaded screenshot refs to backend and updates message attachment', async () => {
-    mockExtractOSstate.mockResolvedValue({
-      systemState: null,
+    mockCaptureScreenshotAttachment.mockResolvedValue({
       screenshot: 'base64-shot',
       screenshotContentType: 'image/png',
+      screenshotRef: null,
+      screenshotUrl: null,
+      captureMeta: null,
     } as any);
     mockUploadArtifactBase64.mockResolvedValue({
       artifactId: 'artifact-1',
@@ -436,8 +443,7 @@ describe('useChatMessageSender', () => {
   });
 
   test('reuses auto-capture screenshot_ref and screenshot_url when screenshot bytes are absent', async () => {
-    mockExtractOSstate.mockResolvedValue({
-      systemState: null,
+    mockCaptureScreenshotAttachment.mockResolvedValue({
       screenshot: null,
       screenshotRef: 'artifact-auto-1',
       screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-auto-1',
@@ -481,7 +487,7 @@ describe('useChatMessageSender', () => {
       },
     });
 
-    expect(mockExtractOSstate).not.toHaveBeenCalled();
+    expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
     expect(mockUploadArtifactBase64).toHaveBeenCalledWith(
       'clipboard-image-base64',
       'image/png',
@@ -542,7 +548,7 @@ describe('useChatMessageSender', () => {
       ],
     });
 
-    expect(mockExtractOSstate).not.toHaveBeenCalled();
+    expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
     expect(mockUploadArtifactBase64).toHaveBeenNthCalledWith(
       1,
       'clipboard-image-base64-1',

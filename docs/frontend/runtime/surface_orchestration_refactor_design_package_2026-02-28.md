@@ -99,7 +99,7 @@ Renderer touchpoints:
 
 - `features/chat/hooks/useToolRunner.ts` (tool-call/bundle intake + surface prep wiring)
 - `features/chat/utils/toolRunner/toolRunnerSurface.ts` (surface mode resolution + tokenized prep/restore)
-- `infrastructure/services/SystemCapture.ts` (capture hide/show + focus prep duplication)
+- `infrastructure/services/{ScreenshotAttachmentPipeline,SystemStateCapture}.ts` (current split capture services that replaced mixed capture orchestration)
 - `infrastructure/services/ToolExecutionCapture.ts` (autocapture entry)
 - `infrastructure/services/ToolExecutionService.ts` (tool/bundle execution + backend send)
 - `features/chat/hooks/useChatStream.ts` and `useChatStreamToolHandlers.ts` (phase updates and tool message rows)
@@ -187,7 +187,7 @@ Phase 1 (orchestrator extraction, no behavior change):
 Phase 2 (consumer migration):
 
 - migrate `useToolRunner` to orchestrator APIs.
-- migrate `SystemCapture` to orchestrator capture APIs.
+- migrate screenshot and system-state capture services onto orchestrator capture APIs.
 - remove duplicated token/toggle/retry logic from legacy helpers.
 
 Phase 3 (event contract standardization):

@@ -67,7 +67,7 @@ This matrix maps frontend capabilities to implementation files.
 
 | Capability | Primary files | Notes |
 | --- | --- | --- |
-| Message send and capture path | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/infrastructure/services/{SystemCapture,ArtifactUploader}.ts` | Sends message, captures screenshot/system state, uploads artifacts, dispatches query. |
+| Message send and capture path | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/infrastructure/services/{ScreenshotAttachmentPipeline,SystemStateCapture,ArtifactUploader}.ts` | Sends message, captures screenshots and system state through separate services, uploads artifacts, dispatches query. |
 | Backend stream event handling | `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, `frontend/src/renderer/features/chat/utils/chatStream/chatStream*.ts` | Handles thought/chunk/complete/error/tool/context-compaction event classes. |
 | Tool call execution and stale-turn cancel | `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`, `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerMessages.ts` | Executes tool/tool-bundle and sends cancellation results when turn is stale. |
 | Tool execution orchestration service | `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`, `ToolExecution*.ts` helper modules | Formats payloads, capture orchestration, backend callback dispatch. |

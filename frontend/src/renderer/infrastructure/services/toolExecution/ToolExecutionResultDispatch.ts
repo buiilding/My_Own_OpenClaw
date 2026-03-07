@@ -6,7 +6,7 @@ import {
 } from './ToolExecutionBackendPayload';
 import type { ToolResult, SystemState } from '../MessageFormatter';
 import type { BundleStepResult } from './ToolExecutionBundleRunner';
-import type { CaptureMeta } from '../SystemCapture';
+import type { CaptureMeta } from '../ScreenshotAttachmentPipeline';
 import type { BundleExecutionResult, ToolExecutionResult } from './ToolExecutionTypes';
 
 export function emitToolExecutionResult(

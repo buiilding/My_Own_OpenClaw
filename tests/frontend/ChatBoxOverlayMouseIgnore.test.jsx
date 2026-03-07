@@ -7,7 +7,7 @@ const mockInvoke = jest.fn(() => Promise.resolve({ success: true }));
 const mockSend = jest.fn();
 const mockListeners = new Map();
 const mockSendMessage = jest.fn();
-const mockExtractOSstate = jest.fn();
+const mockCaptureScreenshotAttachment = jest.fn();
 const mockUseChatMessageSender = jest.fn(() => ({
   sendMessage: mockSendMessage,
 }));
@@ -121,8 +121,9 @@ jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
   isDevUiEnabled: () => mockIsDevUiEnabled(),
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/services/SystemCapture', () => ({
-  extractOSstate: (...args) => mockExtractOSstate(...args),
+jest.mock('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline', () => ({
+  ...jest.requireActual('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline'),
+  captureScreenshotAttachment: (...args) => mockCaptureScreenshotAttachment(...args),
 }));
 
 describe('ChatBox overlay mouse ignore', () => {
@@ -142,8 +143,8 @@ describe('ChatBox overlay mouse ignore', () => {
     mockUpdateStreamTracking.mockClear();
     mockIsDevUiEnabled.mockReset();
     mockIsDevUiEnabled.mockReturnValue(false);
-    mockExtractOSstate.mockReset();
-    mockExtractOSstate.mockResolvedValue({
+    mockCaptureScreenshotAttachment.mockReset();
+    mockCaptureScreenshotAttachment.mockResolvedValue({
       screenshot: 'ZmFrZS1zY3JlZW5zaG90',
       screenshotContentType: 'image/png',
     });

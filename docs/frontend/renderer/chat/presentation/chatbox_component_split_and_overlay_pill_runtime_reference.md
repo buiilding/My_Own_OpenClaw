@@ -65,7 +65,7 @@ kept side-by-side in the `chatbox/` subfolder.
 
 ### Screenshot Preview Lane and Visual Anchor
 
-- screenshot button captures via `extractOSstate(true, false, 0, false)`
+- screenshot button captures via `captureScreenshotAttachment({ waitSeconds: 0 })`
 - captured image is normalized into preview row entries using
   `createClipboardScreenshotImage(...)`
 - preview lane state (`with-preview`) is driven only by image count

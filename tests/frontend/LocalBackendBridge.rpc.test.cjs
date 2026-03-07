@@ -134,6 +134,55 @@ describe('local_backend_bridge RPC handlers', () => {
     }
   });
 
+  test('execute-tool falls back to inline screenshot when screenshot-path artifact upload fails', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-shot-inline-'));
+    const screenshotPath = path.join(tempDir, 'capture.jpg');
+    await fsPromises.writeFile(screenshotPath, Buffer.from('fake-jpeg-inline'));
+
+    const originalFetch = global.fetch;
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: async () => 'artifact store offline',
+    });
+    global.fetch = fetchMock;
+
+    try {
+      const promise = handlers['execute-tool'](null, {
+        toolName: 'screenshot',
+        args: {},
+      });
+
+      emitRpcResult(stdoutHandler, {
+        success: true,
+        data: {
+          screenshot_path: screenshotPath,
+          screenshot_content_type: 'image/jpeg',
+        },
+      });
+
+      await expect(promise).resolves.toEqual({
+        success: true,
+        data: {
+          screenshot: Buffer.from('fake-jpeg-inline').toString('base64'),
+          screenshot_content_type: 'image/jpeg',
+        },
+      });
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        'http://127.0.0.1:8765/api/artifacts/',
+        expect.objectContaining({ method: 'POST' }),
+      );
+      await expect(fsPromises.access(screenshotPath)).rejects.toThrow();
+    } finally {
+      global.fetch = originalFetch;
+      await fsPromises.rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
   test('execute-tool injects native sudo auth mode when full sudo access is enabled', async () => {
     const { handlers, stdoutHandler } = initBridge({
       frontendConfig: { agent_full_sudo_enabled: true },
