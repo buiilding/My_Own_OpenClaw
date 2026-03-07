@@ -112,6 +112,7 @@ Contract effect:
 ## Related Pages
 
 - [Frontend Renderer Infrastructure Docs Hub](README.md)
+- [Chat Interface Header Controls, Model Selection, and Compaction Rehydrate Reference](../chat/chat_interface_header_controls_model_selection_and_compaction_rehydrate_reference.md)
 - [Transcript Session and Rehydrate Reference](../transcript_session_and_rehydrate_reference.md)
 - [Dashboard Conversation Hook Search, Polling, and Group Bucket Contract Reference](../dashboard/shell/dashboard_conversation_hook_search_polling_and_group_bucket_contract_reference.md)
 - [Capture, Artifact Upload, and Payload Normalization Reference](capture_artifact_upload_and_payload_normalization_reference.md)
