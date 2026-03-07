@@ -22,10 +22,42 @@ describe('overlay_bounds', () => {
     });
   });
 
+  test('centers chat window on active display affinity work area instead of the primary display', () => {
+    expect(getChatWindowBounds({
+      screen,
+      width: 520,
+      height: 96,
+      displayAffinity: {
+        workArea: { x: 1920, y: 40, width: 2560, height: 1400 },
+      },
+    })).toEqual({
+      x: 2940,
+      y: 1320,
+      width: 520,
+      height: 96,
+    });
+  });
+
   test('response bounds fall back to chat window placement when chat bounds missing', () => {
     expect(getResponseWindowBounds({ screen, width: 520, height: 120 })).toEqual({
       x: 540,
       y: 806,
+      width: 520,
+      height: 120,
+    });
+  });
+
+  test('response fallback bounds use active display affinity when chat bounds are missing', () => {
+    expect(getResponseWindowBounds({
+      screen,
+      width: 520,
+      height: 120,
+      displayAffinity: {
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      },
+    })).toEqual({
+      x: 2940,
+      y: 1296,
       width: 520,
       height: 120,
     });
@@ -94,6 +126,26 @@ describe('overlay_bounds', () => {
     ).toEqual({
       x: 660,
       y: 880,
+      width: 280,
+      height: 26,
+    });
+  });
+
+  test('context label fallback bounds use active display affinity when chat bounds are missing', () => {
+    expect(
+      getContextLabelWindowBounds({
+        screen,
+        displayAffinity: {
+          workArea: { x: 1920, y: 40, width: 2560, height: 1400 },
+        },
+        labelWidth: 280,
+        labelHeight: 26,
+        offsetX: 14,
+        gapAbove: -6,
+      }),
+    ).toEqual({
+      x: 3060,
+      y: 1370,
       width: 280,
       height: 26,
     });

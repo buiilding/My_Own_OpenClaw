@@ -1,6 +1,23 @@
 const COMPACT_RESPONSE_HEIGHT_THRESHOLD = 56;
 const COMPACT_RESPONSE_HOVER_OFFSET = 6;
 
+function normalizeBounds(bounds) {
+  if (!bounds || typeof bounds !== 'object') {
+    return null;
+  }
+  const width = Math.round(Number(bounds.width) || 0);
+  const height = Math.round(Number(bounds.height) || 0);
+  if (width <= 0 || height <= 0) {
+    return null;
+  }
+  return {
+    x: Math.round(Number(bounds.x) || 0),
+    y: Math.round(Number(bounds.y) || 0),
+    width,
+    height,
+  };
+}
+
 function resolvePrimaryWorkArea(screen) {
   if (!screen || typeof screen.getPrimaryDisplay !== 'function') {
     return { x: 0, y: 0, width: 0, height: 0 };
@@ -15,13 +32,26 @@ function resolvePrimaryWorkArea(screen) {
   return { x: 0, y: 0, width: 0, height: 0 };
 }
 
+function resolveTargetWorkArea({ screen, displayAffinity = null }) {
+  const preferredWorkArea = normalizeBounds(displayAffinity?.workArea);
+  if (preferredWorkArea) {
+    return preferredWorkArea;
+  }
+  const preferredBounds = normalizeBounds(displayAffinity?.bounds);
+  if (preferredBounds) {
+    return preferredBounds;
+  }
+  return resolvePrimaryWorkArea(screen);
+}
+
 function getChatWindowBounds({
   screen,
   width,
   height,
+  displayAffinity = null,
   marginBottom = 24,
 }) {
-  const workArea = resolvePrimaryWorkArea(screen);
+  const workArea = resolveTargetWorkArea({ screen, displayAffinity });
   const x = Math.round(workArea.x + (workArea.width - width) / 2);
   const y = Math.round(workArea.y + workArea.height - height - marginBottom);
   return { x, y, width, height };
@@ -47,12 +77,13 @@ function getResponseWindowBounds({
   screen,
   width,
   height,
+  displayAffinity = null,
   chatBounds = null,
   gap = 10,
   compactHover = false,
 }) {
   if (!chatBounds) {
-    return getChatWindowBounds({ screen, width, height });
+    return getChatWindowBounds({ screen, width, height, displayAffinity });
   }
   const resolvedGap = resolveResponseGap({ gap, height, compactHover });
   return {
@@ -65,6 +96,7 @@ function getResponseWindowBounds({
 
 function getContextLabelWindowBounds({
   screen,
+  displayAffinity = null,
   chatBounds = null,
   labelWidth,
   labelHeight,
@@ -76,6 +108,7 @@ function getContextLabelWindowBounds({
       screen,
       width: labelWidth,
       height: labelHeight,
+      displayAffinity,
     });
     return {
       x: fallback.x,

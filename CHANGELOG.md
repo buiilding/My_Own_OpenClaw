@@ -2337,3 +2337,4 @@ Includes the last 300 commits on `main`.
 - unreleased fix(frontend-display-affinity): route dashboard-open monitor targeting through the same active-surface resolver used by screenshot capture, instead of using raw sender-window display matching
 - unreleased fix(frontend-display-affinity): seed query-time active monitor state from the same dashboard/chat active-surface resolver used elsewhere, instead of directly from sender webContents
 - unreleased fix(frontend-display-affinity): avoid implicit primary-display fallback inside the active-surface resolver when no sender webContents exist, so sender-less fullscreen/overlay paths still honor chat/dashboard monitor state
+- unreleased fix(frontend-display-affinity): make default chat-pill/response/context-label fallback bounds use active display affinity instead of always anchoring to the primary display
