@@ -222,6 +222,9 @@ Class:
 Behavior difference:
 
 - constructs `RemoteToolResult` directly
+- overrides `get_json_schema(...)` to project a model-facing action/property subset:
+  - excludes removed aliases and browser file-edit actions from action enum
+  - removes selected compatibility/camelCase and legacy file-edit fields from declaration properties
 - uses `args.model_dump(exclude_defaults=True, exclude_none=True)`
 - this omits unset/default fields and reduces payload size
 
@@ -276,6 +279,7 @@ If payload fields seem missing:
 3. for unified wrappers, verify selected concrete model accepted `arguments` and filled defaults as expected
 4. for `system_use`, verify explanation resolution source (top-level vs nested fallback)
 5. verify sidecar action adapter defaulting assumptions
+6. for browser tools, verify whether missing fields/actions were pruned by `RemoteBrowserTool.get_json_schema(...)` model-facing projection rather than dropped at runtime
 
 ## Related Docs
 

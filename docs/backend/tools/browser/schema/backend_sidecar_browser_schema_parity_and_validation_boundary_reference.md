@@ -31,6 +31,12 @@ Backend browser parse boundary is broad:
 - unknown extras are ignored
 - removed aliases remain parseable for explicit migration errors
 
+Backend model-facing declaration boundary is narrower:
+
+- `RemoteBrowserTool.get_json_schema(...)` projects a canonical action enum for model/tool-calling output
+- projection excludes removed aliases and browser file-edit actions (`write_file`, `replace_file`, `read_file`)
+- projection hides selected compatibility/camelCase fields (`timeoutMs`, `promptText`, `colorScheme`, `targetId`, `targetUrl`, `inputRef`, `snapshotFormat`, plus legacy edit payload keys)
+
 Backend runtime gate in `RemoteBrowserTool`:
 
 - removed aliases (`type`, `open`, `switch_tab`, `press`, `act`) are blocked immediately
@@ -46,6 +52,7 @@ Sidecar enforcement is action-aware and runtime-focused:
 Result:
 
 - backend parse success does not guarantee end-to-end execution success
+- model-facing schema omission does not imply runtime parser rejection for manually supplied payloads
 
 ## Parity Axes That Must Stay Aligned
 
@@ -67,6 +74,7 @@ When changing browser actions, verify four layers:
 - native runtime handler registry covers Browser Use actions
 
 `tests/backend/test_browser_remote_tool.py` additionally checks backend schema/tool registration and alias policy behavior.
+It now also checks model-facing action/property projection boundaries.
 
 ## Typical Drift Failure Patterns
 
