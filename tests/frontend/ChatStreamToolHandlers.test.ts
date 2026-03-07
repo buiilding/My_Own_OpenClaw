@@ -142,6 +142,67 @@ describe('useChatStreamToolHandlers', () => {
     );
   });
 
+  test('keeps inline screenshot when tool-output screenshot_ref and screenshot_url are whitespace', () => {
+    const addMessage = jest.fn();
+
+    const { result } = renderHook(() => useChatStreamToolHandlers({
+      enableTranscript: true,
+      addMessage,
+      setIsSending: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      modelContextRef: {
+        current: {
+          modelId: 'model-2b',
+          modelProvider: 'provider-2b',
+        },
+      },
+      recordTrackingEvent: jest.fn(),
+    }));
+
+    act(() => {
+      result.current.handleToolOutput({
+        id: 'event-tool-output-2b',
+        type: 'tool-output',
+        turn_ref: 'turn-2b',
+        conversation_ref: 'conversation-2b',
+        user_id: 'user-2b',
+        payload: {
+          tool_name: 'mouse_control',
+          success: true,
+          output: 'clicked-inline',
+          request_id: 'request-2b',
+          screenshot: 'inline-shot-2b',
+          screenshot_ref: '   ',
+          screenshot_url: '   ',
+        },
+      } as any, 'conversation-2b');
+    });
+
+    expect(addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'tool-output',
+        text: 'clicked-inline',
+        toolName: 'mouse_control',
+        correlationId: 'request-2b',
+        screenshot: 'inline-shot-2b',
+        screenshotRef: null,
+        screenshotUrl: null,
+      }),
+      'conversation-2b',
+    );
+
+    expect(mockRecordToolMessage).toHaveBeenCalledWith(
+      'clicked-inline',
+      expect.objectContaining({
+        messageType: 'tool-output',
+        toolName: 'mouse_control',
+        correlationId: 'request-2b',
+        screenshotRef: null,
+      }),
+    );
+  });
+
   test('handles malformed tool-bundle tools payload with stable empty bundle formatting and no transcript tool-call row', () => {
     const addMessage = jest.fn();
     const setThinkingStatus = jest.fn();
