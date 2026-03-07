@@ -95,4 +95,22 @@ describe('useCurrentTurnPresentationState', () => {
     expect(screen.getByTestId('current-turn-presentation-probe').dataset.showChatboxResponse).toBe('1');
     expect(screen.getByTestId('current-turn-presentation-probe').dataset.visibleResponseId).toBe('assistant-2');
   });
+
+  test('keeps later-turn terminal handoff in awaiting state when the new user turn has no visible reply yet', () => {
+    render(
+      <CurrentTurnPresentationProbe
+        phase="complete"
+        isSending
+        messages={[
+          { id: 'user-1', sender: 'user', text: 'first task', type: 'user' },
+          { id: 'assistant-1', sender: 'assistant', text: 'done', type: 'llm-text' },
+          { id: 'user-2', sender: 'user', text: 'second task', type: 'user' },
+        ]}
+      />,
+    );
+
+    expect(screen.getByTestId('current-turn-presentation-probe').dataset.loopUiState).toBe('awaiting-reply');
+    expect(screen.getByTestId('current-turn-presentation-probe').dataset.showAwaitingDot).toBe('1');
+    expect(screen.getByTestId('current-turn-presentation-probe').dataset.showChatboxAwaiting).toBe('1');
+  });
 });

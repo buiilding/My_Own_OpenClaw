@@ -625,6 +625,21 @@ describe('ChatInterface wiring', () => {
     expect(lastMessageListProps.showAssistantAwaitingDot).toBe(true);
   });
 
+  test('keeps awaiting dot visible during a later turn while send latch is active over a terminal previous phase', () => {
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'first task', type: 'user' },
+      { id: 'assistant-1', sender: 'assistant', text: 'done', type: 'llm-text' },
+      { id: 'user-2', sender: 'user', text: 'second task', type: 'user' },
+    ];
+    mockChatState.streamTracking.phase = 'complete';
+    mockChatState.isSending = true;
+
+    render(<ChatInterface />);
+
+    const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.showAssistantAwaitingDot).toBe(true);
+  });
+
   test('stop response handler is a no-op when no active stream is running', () => {
     mockChatState.streamTracking.phase = 'idle';
     mockChatState.isSending = false;

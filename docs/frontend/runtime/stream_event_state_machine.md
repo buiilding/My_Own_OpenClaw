@@ -117,6 +117,10 @@ Automatic updates:
 - error options set `lastError`, terminal phase, and completion timestamp
 - `phase='complete'` stamps completion timestamp when missing
 
+Dashboard/pill presentation note:
+
+- terminal `phase='complete'|'error'` still renders as `awaiting-reply` when a new send latch is already active and the current turn has no visible assistant reply yet; this prevents later turns from inheriting the previous turn's terminal phase and suppressing the awaiting indicator.
+
 ## Event-to-State Side Effects
 
 `local-user-message`:

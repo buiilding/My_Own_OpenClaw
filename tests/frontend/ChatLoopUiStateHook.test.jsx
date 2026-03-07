@@ -125,8 +125,15 @@ describe('useChatLoopUiState', () => {
     expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('active-response');
   });
 
-  test('keeps terminal complete state idle even when send latch is stale', () => {
+  test('keeps terminal complete state in awaiting reply when a new send is already staged', () => {
     render(<LoopStateProbe phase="complete" isSending hasVisibleReply={false} />);
+
+    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('awaiting-reply');
+    expect(screen.getByTestId('loop-state-probe').dataset.isBusy).toBe('1');
+  });
+
+  test('keeps terminal complete state idle when stale send latch still has a visible reply', () => {
+    render(<LoopStateProbe phase="complete" isSending hasVisibleReply />);
 
     expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('idle');
     expect(screen.getByTestId('loop-state-probe').dataset.isBusy).toBe('0');
