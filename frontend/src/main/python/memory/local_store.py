@@ -76,6 +76,7 @@ from memory.sqlite_store import (
     load_vector_mappings,
 )
 from memory.watermark_state import WatermarkStateStore
+from memory.operations import format_interaction_memory
 
 logger = logging.getLogger(__name__)
 
@@ -813,7 +814,13 @@ class LocalMemoryStore:
             for memory_type, db_path, index, vector_id_to_memory_id in search_targets
         ]
         all_results = await self._collect_search_results(search_tasks)
-        return self._finalize_search_results(all_results, limit)
+        final_results = self._finalize_search_results(all_results, limit)
+        if search_episodic and final_results:
+            await self._enrich_transcript_user_results_with_assistant_pairs(
+                results=final_results,
+                user_id=user_id,
+            )
+        return final_results
 
     def _build_search_targets(
         self,
@@ -937,6 +944,178 @@ class LocalMemoryStore:
         for results in results_lists:
             all_results.extend(results)
         return all_results
+
+    @staticmethod
+    def _normalize_message_index(value: Any) -> Optional[int]:
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped.isdigit():
+                return int(stripped)
+        return None
+
+    @staticmethod
+    def _extract_result_metadata(result: Dict[str, Any]) -> Dict[str, Any]:
+        metadata = result.get("metadata")
+        if isinstance(metadata, dict):
+            return metadata
+        return {}
+
+    @staticmethod
+    def _result_field_as_str(
+        result: Dict[str, Any],
+        field_name: str,
+        metadata: Dict[str, Any],
+    ) -> str:
+        value = result.get(field_name, metadata.get(field_name))
+        if not isinstance(value, str):
+            return ""
+        return value.strip()
+
+    @staticmethod
+    def _is_retrievable_assistant_message_type(message_type: str) -> bool:
+        normalized = message_type.strip().lower()
+        return normalized in {"", "llm-text", "error"}
+
+    @staticmethod
+    def _assistant_sort_key(candidate: Tuple[Optional[int], str]) -> Tuple[int, int]:
+        message_index = candidate[0]
+        return (
+            message_index if message_index is not None else 10**9,
+            0 if message_index is not None else 1,
+        )
+
+    @classmethod
+    def _find_companion_assistant_text(
+        cls,
+        candidates: List[Tuple[Optional[int], str]],
+        user_message_index: Optional[int],
+    ) -> Optional[str]:
+        if not candidates:
+            return None
+        if user_message_index is None:
+            return candidates[0][1]
+        for assistant_index, assistant_text in candidates:
+            if assistant_index is None or assistant_index > user_message_index:
+                return assistant_text
+        return None
+
+    async def _fetch_next_assistant_transcript_text(
+        self,
+        *,
+        user_id: str,
+        conversation_id: str,
+        after_message_index: int,
+    ) -> Optional[str]:
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            cursor = await conn.cursor()
+            await cursor.execute(
+                """
+                SELECT content
+                FROM memories
+                WHERE user_id = ?
+                  AND conversation_id = ?
+                  AND COALESCE(record_kind, '') = 'transcript'
+                  AND LOWER(TRIM(COALESCE(role, ''))) = 'assistant'
+                  AND message_index > ?
+                  AND LOWER(TRIM(COALESCE(message_type, ''))) IN ('', 'llm-text', 'error')
+                ORDER BY message_index ASC, timestamp ASC
+                LIMIT 1
+                """,
+                (user_id, conversation_id, after_message_index),
+            )
+            row = await cursor.fetchone()
+
+        if not row:
+            return None
+        content = row["content"]
+        if not isinstance(content, str) or not content.strip():
+            return None
+        return content
+
+    async def _enrich_transcript_user_results_with_assistant_pairs(
+        self,
+        *,
+        results: List[Dict[str, Any]],
+        user_id: str,
+    ) -> None:
+        assistant_candidates_by_conversation: Dict[str, List[Tuple[Optional[int], str]]] = {}
+        for result in results:
+            if result.get("type") != "episodic":
+                continue
+            metadata = self._extract_result_metadata(result)
+            record_kind = self._result_field_as_str(result, "record_kind", metadata).lower()
+            role = self._result_field_as_str(result, "role", metadata).lower()
+            if record_kind != "transcript" or role != "assistant":
+                continue
+
+            message_type = self._result_field_as_str(result, "message_type", metadata)
+            if not self._is_retrievable_assistant_message_type(message_type):
+                continue
+
+            conversation_id = self._result_field_as_str(result, "conversation_id", metadata)
+            if not conversation_id:
+                continue
+
+            assistant_text = result.get("text")
+            if not isinstance(assistant_text, str) or not assistant_text.strip():
+                continue
+
+            assistant_message_index = self._normalize_message_index(
+                result.get("message_index", metadata.get("message_index"))
+            )
+            assistant_candidates_by_conversation.setdefault(conversation_id, []).append(
+                (assistant_message_index, assistant_text)
+            )
+
+        for conversation_id in assistant_candidates_by_conversation:
+            assistant_candidates_by_conversation[conversation_id].sort(
+                key=self._assistant_sort_key
+            )
+
+        lookup_cache: Dict[Tuple[str, int], Optional[str]] = {}
+        for result in results:
+            if result.get("type") != "episodic":
+                continue
+            user_text = result.get("text")
+            if not isinstance(user_text, str) or not user_text.strip():
+                continue
+            normalized_text = user_text.lower()
+            if "user:" in normalized_text and "assistant:" in normalized_text:
+                continue
+
+            metadata = self._extract_result_metadata(result)
+            record_kind = self._result_field_as_str(result, "record_kind", metadata).lower()
+            role = self._result_field_as_str(result, "role", metadata).lower()
+            conversation_id = self._result_field_as_str(result, "conversation_id", metadata)
+            if record_kind != "transcript" or role != "user" or not conversation_id:
+                continue
+
+            user_message_index = self._normalize_message_index(
+                result.get("message_index", metadata.get("message_index"))
+            )
+            assistant_text: Optional[str] = None
+            if user_message_index is not None:
+                cache_key = (conversation_id, user_message_index)
+                if cache_key not in lookup_cache:
+                    lookup_cache[cache_key] = await self._fetch_next_assistant_transcript_text(
+                        user_id=user_id,
+                        conversation_id=conversation_id,
+                        after_message_index=user_message_index,
+                    )
+                assistant_text = lookup_cache[cache_key]
+            if not assistant_text:
+                assistant_text = self._find_companion_assistant_text(
+                    assistant_candidates_by_conversation.get(conversation_id, []),
+                    user_message_index,
+                )
+
+            if assistant_text:
+                result["text"] = format_interaction_memory(user_text, assistant_text)
 
     def _finalize_search_results(
         self, all_results: List[Dict[str, Any]], limit: int
