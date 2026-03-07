@@ -1,0 +1,144 @@
+import { act, renderHook } from '@testing-library/react';
+
+import { useChatStreamToolHandlers } from '../../frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers';
+
+const mockRecordToolMessage = jest.fn();
+
+jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
+  recordToolMessage: (...args: unknown[]) => mockRecordToolMessage(...args),
+}));
+
+describe('useChatStreamToolHandlers', () => {
+  beforeEach(() => {
+    mockRecordToolMessage.mockReset();
+  });
+
+  test('handles malformed tool-output payloads without crashing and falls back correlation id to event id', () => {
+    const addMessage = jest.fn();
+    const setIsSending = jest.fn();
+    const setThinkingStatus = jest.fn();
+    const setThinkingSourceEventType = jest.fn();
+    const recordTrackingEvent = jest.fn();
+
+    const { result } = renderHook(() => useChatStreamToolHandlers({
+      enableTranscript: true,
+      addMessage,
+      setIsSending,
+      setThinkingStatus,
+      setThinkingSourceEventType,
+      modelContextRef: {
+        current: {
+          modelId: 'model-1',
+          modelProvider: 'provider-1',
+        },
+      },
+      recordTrackingEvent,
+    }));
+
+    expect(() => {
+      act(() => {
+        result.current.handleToolOutput({
+          id: ' event-tool-output ',
+          type: 'tool-output',
+          turn_ref: 'turn-1',
+          conversation_ref: 'conversation-1',
+          user_id: 'user-1',
+          payload: 'invalid payload',
+        } as any, 'conversation-1');
+      });
+    }).not.toThrow();
+
+    expect(setIsSending).toHaveBeenCalledWith(false, 'conversation-1');
+    expect(setThinkingStatus).toHaveBeenCalledWith(null, 'conversation-1');
+    expect(setThinkingSourceEventType).toHaveBeenCalledWith(null, 'conversation-1');
+
+    expect(addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'tool-output',
+        text: 'No output',
+        toolOutputDetails: null,
+        correlationId: 'event-tool-output',
+        screenshot: null,
+        screenshotRef: null,
+        screenshotUrl: null,
+      }),
+      'conversation-1',
+    );
+
+    expect(recordTrackingEvent).toHaveBeenCalledWith(
+      'tool-output',
+      'turn-1',
+      { toolOutput: true },
+      'conversation-1',
+    );
+
+    expect(mockRecordToolMessage).toHaveBeenCalledWith(
+      'No output',
+      expect.objectContaining({
+        messageType: 'tool-output',
+        correlationId: 'event-tool-output',
+        conversationRef: 'conversation-1',
+      }),
+    );
+  });
+
+  test('prefers remote screenshot references over inline screenshot payload for tool-output rows', () => {
+    const addMessage = jest.fn();
+
+    const { result } = renderHook(() => useChatStreamToolHandlers({
+      enableTranscript: true,
+      addMessage,
+      setIsSending: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      modelContextRef: {
+        current: {
+          modelId: 'model-2',
+          modelProvider: 'provider-2',
+        },
+      },
+      recordTrackingEvent: jest.fn(),
+    }));
+
+    act(() => {
+      result.current.handleToolOutput({
+        id: 'event-tool-output-2',
+        type: 'tool-output',
+        turn_ref: 'turn-2',
+        conversation_ref: 'conversation-2',
+        user_id: 'user-2',
+        payload: {
+          tool_name: 'mouse_control',
+          success: true,
+          output: 'clicked',
+          request_id: 'request-2',
+          screenshot: 'inline-shot',
+          screenshot_ref: 'artifact-shot-2',
+        },
+      } as any, 'conversation-2');
+    });
+
+    expect(addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'tool-output',
+        text: 'clicked',
+        toolName: 'mouse_control',
+        correlationId: 'request-2',
+        screenshot: null,
+        screenshotRef: 'artifact-shot-2',
+        screenshotUrl: expect.stringContaining('/api/artifacts/artifact-shot-2'),
+      }),
+      'conversation-2',
+    );
+
+    expect(mockRecordToolMessage).toHaveBeenCalledWith(
+      'clicked',
+      expect.objectContaining({
+        messageType: 'tool-output',
+        toolName: 'mouse_control',
+        correlationId: 'request-2',
+        screenshotRef: 'artifact-shot-2',
+      }),
+    );
+  });
+});
