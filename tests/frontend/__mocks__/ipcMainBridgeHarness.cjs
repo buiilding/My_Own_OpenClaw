@@ -36,7 +36,28 @@ jest.mock('electron', () => ({
     handle: jest.fn(),
     on: jest.fn(),
   },
-  BrowserWindow: jest.fn(),
+  BrowserWindow: {
+    fromWebContents: jest.fn(),
+  },
+  screen: {
+    getAllDisplays: jest.fn(() => ([
+      {
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      },
+    ])),
+    getPrimaryDisplay: jest.fn(() => ({
+      id: 1,
+      bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+      workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+    })),
+    getDisplayMatching: jest.fn(() => ({
+      id: 1,
+      bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+      workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+    })),
+  },
   app: {
     getPath: jest.fn(() => '/tmp/appdata'),
   },
@@ -127,13 +148,22 @@ function initIpc(options = {}) {
   const mainWindow = {
     on: jest.fn(),
     isDestroyed: jest.fn(() => false),
+    isVisible: jest.fn(() => true),
+    getBounds: jest.fn(() => ({ x: 0, y: 0, width: 1200, height: 800 })),
     webContents: { send: jest.fn() },
   };
-  ipc.initializeIpc(mainWindow, options);
+  const chatWindow = options.chatWindow || null;
+  ipc.initializeIpc(mainWindow, {
+    ...options,
+    getWindows: options.getWindows || (() => ({
+      mainWindow,
+      chatWindow,
+    })),
+  });
 
   const ws = WebSocketMock.instances[0];
 
-  return { handlers, ws, backendBridge, mainWindow, fs, ipc };
+  return { handlers, ws, backendBridge, mainWindow, chatWindow, fs, ipc };
 }
 
 module.exports = {

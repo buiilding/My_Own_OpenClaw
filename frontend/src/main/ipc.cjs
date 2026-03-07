@@ -52,7 +52,7 @@ const {
   logoutOpenAICodexOAuth,
 } = require('./openai_codex_oauth.cjs');
 const {
-  resolveDisplayAffinityForWebContents,
+  resolveActiveSurfaceDisplayAffinity,
   setActiveDisplayAffinity,
 } = require('./display_affinity_runtime.cjs');
 const {
@@ -359,6 +359,9 @@ function initializeIpc(win, options = {}) {
   onBeforeOverlayQueryCapture = typeof options.onBeforeOverlayQueryCapture === 'function'
     ? options.onBeforeOverlayQueryCapture
     : null;
+  const getWindows = typeof options.getWindows === 'function'
+    ? options.getWindows
+    : () => ({ mainWindow: win, chatWindow: null });
   rendererWindows = new Set();
   trackRendererWindow(win);
   connect();
@@ -503,10 +506,13 @@ function initializeIpc(win, options = {}) {
       Object.assign(payload, preparedPayload);
       queryMessageId = uuidv4();
       setResponseOverlayPhase('awaiting-first-chunk', 'query');
-      setActiveDisplayAffinity(resolveDisplayAffinityForWebContents({
+      const { mainWindow, chatWindow } = getWindows();
+      setActiveDisplayAffinity(resolveActiveSurfaceDisplayAffinity({
         BrowserWindow,
         screen,
         webContents: event.sender,
+        chatWindow,
+        mainWindow,
       }));
       const localUserMessage = broadcastLocalUserMessageRuntime({
         sourceWebContents: event.sender,
