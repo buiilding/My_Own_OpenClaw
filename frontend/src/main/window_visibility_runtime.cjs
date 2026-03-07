@@ -3,6 +3,25 @@ const {
   fitWindowToDisplayWorkArea,
 } = require('./display_affinity_runtime.cjs');
 
+function resolveShowTargetDisplayAffinity({
+  targetDisplayAffinity = null,
+  targetWindow = null,
+  getActiveDisplayAffinity = () => null,
+}) {
+  if (targetDisplayAffinity && typeof targetDisplayAffinity === 'object') {
+    return targetDisplayAffinity;
+  }
+  if (
+    !targetWindow
+    || typeof targetWindow !== 'object'
+    || (typeof targetWindow.isDestroyed === 'function' && targetWindow.isDestroyed())
+    || (typeof targetWindow.isVisible === 'function' && targetWindow.isVisible())
+  ) {
+    return null;
+  }
+  return getActiveDisplayAffinity();
+}
+
 function showChatWindow(options = {}, deps = {}) {
   const {
     chatWindow,
@@ -33,10 +52,6 @@ function showChatWindow(options = {}, deps = {}) {
   if (!chatWindow || chatWindow.isDestroyed()) {
     return { success: false, reason: 'Chat window not available' };
   }
-  const targetDisplayAffinity = (
-    options?.targetDisplayAffinity
-    && typeof options.targetDisplayAffinity === 'object'
-  ) ? options.targetDisplayAffinity : null;
   // Capture external focus target even for non-focusing chatbox transitions.
   // Interactive tool-surface prep calls show-chatbox with focus=false and relies
   // on this snapshot for subsequent focus restoration/verification.
@@ -46,12 +61,11 @@ function showChatWindow(options = {}, deps = {}) {
   if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
     mainWindow.hide();
   }
-  const shouldRetargetHiddenChatWindow = !chatWindow.isVisible();
-  const resolvedTargetDisplayAffinity = targetDisplayAffinity || (
-    shouldRetargetHiddenChatWindow
-      ? getActiveDisplayAffinity()
-      : null
-  );
+  const resolvedTargetDisplayAffinity = resolveShowTargetDisplayAffinity({
+    targetDisplayAffinity: options?.targetDisplayAffinity,
+    targetWindow: chatWindow,
+    getActiveDisplayAffinity,
+  });
   if (resolvedTargetDisplayAffinity) {
     setActiveDisplayAffinity(resolvedTargetDisplayAffinity);
     positionChatWindow();
@@ -132,16 +146,11 @@ function showMainWindow(options = {}, deps = {}) {
   if (chatWindow && !chatWindow.isDestroyed() && chatWindow.isVisible()) {
     hideChatWindow();
   }
-  const targetDisplayAffinity = (
-    options?.targetDisplayAffinity
-    && typeof options.targetDisplayAffinity === 'object'
-  ) ? options.targetDisplayAffinity : null;
-  const shouldRetargetHiddenMainWindow = !mainWindow.isVisible();
-  const resolvedTargetDisplayAffinity = targetDisplayAffinity || (
-    shouldRetargetHiddenMainWindow
-      ? getActiveDisplayAffinity()
-      : null
-  );
+  const resolvedTargetDisplayAffinity = resolveShowTargetDisplayAffinity({
+    targetDisplayAffinity: options?.targetDisplayAffinity,
+    targetWindow: mainWindow,
+    getActiveDisplayAffinity,
+  });
   if (resolvedTargetDisplayAffinity) {
     setActiveDisplayAffinity(resolvedTargetDisplayAffinity);
     if (typeof mainWindow.isMaximized === 'function' && mainWindow.isMaximized()) {
@@ -173,6 +182,7 @@ function showMainWindow(options = {}, deps = {}) {
 
 module.exports = {
   hideChatWindow,
+  resolveShowTargetDisplayAffinity,
   showChatWindow,
   showMainWindow,
 };

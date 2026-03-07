@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 const {
+  resolveShowTargetDisplayAffinity,
   showMainWindow,
   showChatWindow,
 } = require('../../frontend/src/main/window_visibility_runtime.cjs');
@@ -23,6 +24,35 @@ function createWindow({
 }
 
 describe('window_visibility_runtime showChatWindow', () => {
+  test('resolveShowTargetDisplayAffinity prefers explicit target and otherwise uses stored affinity only for hidden windows', () => {
+    const explicitTargetDisplayAffinity = { monitor_id: '3' };
+    const hiddenWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+    };
+    const visibleWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+    };
+    const getActiveDisplayAffinity = jest.fn(() => ({ monitor_id: '2' }));
+
+    expect(resolveShowTargetDisplayAffinity({
+      targetDisplayAffinity: explicitTargetDisplayAffinity,
+      targetWindow: hiddenWindow,
+      getActiveDisplayAffinity,
+    })).toEqual(explicitTargetDisplayAffinity);
+    expect(resolveShowTargetDisplayAffinity({
+      targetDisplayAffinity: null,
+      targetWindow: hiddenWindow,
+      getActiveDisplayAffinity,
+    })).toEqual({ monitor_id: '2' });
+    expect(resolveShowTargetDisplayAffinity({
+      targetDisplayAffinity: null,
+      targetWindow: visibleWindow,
+      getActiveDisplayAffinity,
+    })).toBeNull();
+  });
+
   test('captures previous external focus even when focus is false', () => {
     const chatWindow = createWindow({ visible: false });
     const externalFocusTracker = {
