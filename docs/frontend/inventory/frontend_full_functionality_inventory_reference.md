@@ -98,6 +98,7 @@ Primary files:
 
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/local_backend_bridge_utils.cjs`
 - `frontend/src/main/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/runtime_paths.cjs`
@@ -107,7 +108,7 @@ Functionality:
 - Starts/stops sidecar process and verifies readiness with ping retries.
 - Correlates JSON-RPC request/response ids and enforces request timeouts.
 - Registers mapped IPC handlers for memory/transcript/system APIs.
-- Executes tool calls and normalizes tool args (`run_shell_command` sudo mode injection).
+- Executes tool calls and normalizes tool args (`run_shell_command` sudo mode injection, including nested `system_use -> run_shell_command` argument shaping).
 - Applies screenshot visibility runtime wrapper for screenshot tool execution.
 
 ### 1.4 Wakeword + Permission + Privilege Bridges
@@ -115,6 +116,7 @@ Functionality:
 Primary files:
 
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/permission_service.cjs`
 - `frontend/src/main/agent_sudo_access_handler.cjs`
 
@@ -123,8 +125,9 @@ Functionality:
 - Wakeword bridge:
   - Starts python wakeword service lazily on enable.
   - Streams length-prefixed audio frames to subprocess.
-  - Parses length-prefixed detection results and relays `wakeword-detected`.
+  - Parses length-prefixed detection results and relays `wakeword-detected`, with helper-owned payload normalization.
   - Flushes stale buffers when disabled.
+  - Delegates startup/status/process error mapping and noisy stderr suppression to `wakeword_bridge_runtime.cjs`.
 - Agent sudo bridge (Linux-only):
   - Enables passwordless sudo via `pkexec` + sudoers file write/validate.
   - Disables via non-interactive `sudo -n` path.

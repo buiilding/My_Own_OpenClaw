@@ -22,7 +22,7 @@ This page maps protocol surfaces across renderer, Electron main, and Python loca
 - Preload allowlist boundary: `frontend/src/preload.js`
 - Renderer channel constants + typed bridge: `frontend/src/renderer/infrastructure/ipc/channels.ts`, `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - Main WebSocket bridge and IPC handlers: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/index.cjs`, `frontend/src/main/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/main/permission_ipc_runtime.cjs`
-- Wakeword IPC bridge: `frontend/src/main/wakeword_bridge.cjs`
+- Wakeword IPC bridge: `frontend/src/main/wakeword_bridge.cjs` + `frontend/src/main/wakeword_bridge_runtime.cjs`
 - Main-to-sidecar JSON-RPC bridge: `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - Sidecar method registry and protocol parser: `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`
 
@@ -36,8 +36,8 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 |---|---|---|
 | `to-backend` | `main/ipc.cjs` | Sends structured websocket message to backend (`type`, `payload`, `id`, `user_id`, `timestamp`) |
 | `move-chatbox-to` | `main/overlay_phase_ipc_runtime.cjs` | Repositions chatbox overlay window |
-| `wakeword-audio-chunk` | `main/wakeword_bridge.cjs` | Streams mic PCM chunks to wakeword subprocess |
-| `wakeword-enable` | `main/wakeword_bridge.cjs` | Enables wakeword detection / starts service if needed |
+| `wakeword-audio-chunk` | `main/wakeword_bridge.cjs` (`wakeword_bridge_runtime.cjs` normalizes payload types) | Streams mic PCM chunks to wakeword subprocess |
+| `wakeword-enable` | `main/wakeword_bridge.cjs` (`wakeword_bridge_runtime.cjs` maps startup/status errors) | Enables wakeword detection / starts service if needed |
 | `wakeword-disable` | `main/wakeword_bridge.cjs` | Disables wakeword detection and flushes buffers |
 
 ### `invoke` Channels (Renderer -> Main, request/response)
@@ -83,7 +83,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `from-backend` | `main/ipc.cjs` | Rebroadcasts backend websocket events + synthetic local events |
 | `ipc-status` | `main/ipc.cjs` | Backend connection + client user snapshot |
 | `wakeword-detected` | `main/wakeword_bridge.cjs` | Wakeword detection event (`model`, `confidence`, `score`) |
-| `wakeword-status` | `main/wakeword_bridge.cjs` | Wakeword subprocess readiness/error |
+| `wakeword-status` | `main/wakeword_bridge.cjs` (`wakeword_bridge_runtime.cjs` emits normalized status payloads) | Wakeword subprocess readiness/error |
 | `wakeword-toggle` | `main/index.cjs` | UI wakeword enabled/disabled signal |
 | `wakeword-stt-trigger` | `main/index.cjs` | Tells renderer to start post-wakeword STT capture flow |
 | `chatbox-focus` | `main/index.cjs` | Request focus behavior in chatbox view |
@@ -143,7 +143,7 @@ Transport:
 
 | IPC channel | JSON-RPC method | Param mapping notes |
 |---|---|---|
-| `execute-tool` | `execute_tool` | `{ toolName, args } -> { tool_name, args }`; screenshot tool uses Linux hide/show guard; `run_shell_command` receives derived `sudo_auth_mode` from frontend config state |
+| `execute-tool` | `execute_tool` | `{ toolName, args } -> { tool_name, args }`; screenshot tool uses Linux hide/show guard; direct `run_shell_command` and nested `system_use -> run_shell_command` arguments receive derived `sudo_auth_mode` from frontend config state |
 | `get-system-state` | `get_system_state` | Optional `{ fields }` passthrough |
 | `search-memory` | `search_memory` | Maps `excludeConversationId` fallback to `exclude_conversation_id` |
 | `search-conversations` | `search_conversations` | `userId -> user_id` with query/limit passthrough |
@@ -188,7 +188,7 @@ Registered callable surface:
 ## Drift Guards
 
 - Preload allowlists and renderer constants should remain in strict parity.
-- IPC handler registration is split across `ipc.cjs`, `overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, `permission_ipc_runtime.cjs`, `local_backend_bridge.cjs`, and `wakeword_bridge.cjs`; ownership drift often appears when adding channels without updating all surfaces.
+- IPC handler registration is split across `ipc.cjs`, `overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, `permission_ipc_runtime.cjs`, `local_backend_bridge.cjs`, and `wakeword_bridge.cjs` (with helper split in `wakeword_bridge_runtime.cjs`); ownership drift often appears when adding channels without updating all surfaces.
 - JSON-RPC channel maps are centralized in `local_backend_bridge_rpc_mappers.cjs`; direct ad-hoc mapping in other files should be avoided.
 
 ## Recompute Surface Commands

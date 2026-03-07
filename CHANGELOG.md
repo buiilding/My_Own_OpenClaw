@@ -7,7 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-wakeword-helper-and-system-use-shell-contract-alignment): refresh frontend inventory/protocol/IPC and local-backend deep references to include `wakeword_bridge_runtime.cjs` ownership in wakeword surfaces and document wrapper-aware `system_use -> run_shell_command` `sudo_auth_mode` injection semantics (including non-object nested-arguments pass-through for sidecar validation ownership).
 - fix(fullstack-system-use-shell-sudo-auth-propagation): inject `sudo_auth_mode` into frontend `system_use -> run_shell_command` arguments so full-sudo configuration propagates through unified wrapper flows, with deterministic backend parser + sidecar registry + frontend bridge regression coverage for explanation precedence and non-object argument validation boundaries.
+- test(fullstack-cancel-and-toolrunner-error-recovery): add deterministic backend/frontend regressions for cancellation recovery by asserting `QueryExecutionService.execute` re-raises `CancelledError` while reconciling pending tool calls, and ensuring renderer tool-runner drops correlated backend payloads after execution failure untracks the request.
 - test(fullstack-terminal-stream-gates-regressions): add deterministic backend/frontend regressions that lock terminal handoff behavior by ignoring same-turn packets during frontend `error` pending handoff and suppressing backend post-error stream events (including late `streaming-complete`) without emitting fallback completion.
 - docs(frontend-runtime-paths-and-sidecar-protocol-wakeword-helper-scope): refresh runtime-paths and sidecar services/protocol hubs to include `wakeword_bridge_runtime.cjs` in canonical module scope and add wakeword startup/readiness debug guidance tied to helper-level error/status handling.
 - fix(frontend-display-affinity): write active display affinity immediately when opening the dashboard onto an explicit target display, so monitor fallback updates from the chosen open target even before Electron show/move events fire.
@@ -2343,3 +2345,4 @@ Includes the last 300 commits on `main`.
 - unreleased fix(frontend-display-affinity): make default chat-pill/response/context-label fallback bounds use active display affinity instead of always anchoring to the primary display
 - unreleased fix(frontend-display-affinity): route `show-chatbox` through the active-surface monitor resolver and allow chat-window shows to re-anchor to an explicit target display when requested
 - unreleased fix(frontend-display-affinity): scope manual chat-pill positions to the monitor they were dragged on so stale coordinates stop pulling the pill back across monitor changes
+- unreleased fix(frontend-display-affinity): restrict active monitor resolution to dashboard/chat surfaces so non-surface overlay senders cannot override screenshot and dashboard targeting

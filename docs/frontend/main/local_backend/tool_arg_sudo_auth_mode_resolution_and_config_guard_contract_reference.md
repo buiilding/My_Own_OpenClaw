@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for local-backend execute-tool argument normalization: run-shell sudo-auth mode derivation, screenshot display-bounds fallback injection, config-read guardrails, and deep-clone passthrough semantics."
+summary: "Deep reference for local-backend execute-tool argument normalization: direct and unified-wrapper run-shell sudo-auth mode derivation, screenshot display-bounds fallback injection, config-read guardrails, and deep-clone passthrough semantics."
 read_when:
   - When changing `execute-tool` argument shaping in `local_backend_bridge.cjs` or `local_backend_bridge_tool_args.cjs`.
-  - When debugging shell-tool sudo prompt mode drift (`native` vs `os_prompt`), screenshot display-bounds routing, or malformed/non-object tool args reaching sidecar JSON-RPC.
+  - When debugging shell-tool sudo prompt mode drift (`native` vs `os_prompt`), unified `system_use` wrapper shell arg rewrites, screenshot display-bounds routing, or malformed/non-object tool args reaching sidecar JSON-RPC.
 title: "Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference"
 ---
 
@@ -20,6 +20,7 @@ title: "Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference"
 `local_backend_bridge_tool_args.cjs` owns normalization of `execute-tool` args before JSON-RPC dispatch to sidecar:
 
 - tool-specific augmentation for `run_shell_command`
+- wrapper-aware augmentation for `system_use` when nested `tool === "run_shell_command"`
 - screenshot `display_bounds` default injection when available
 - deep cloning/pass-through for other tools
 - defensive fallback for non-object args
@@ -32,6 +33,10 @@ title: "Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference"
 
 - when `toolName === "run_shell_command"`:
   - delegate to `resolveRunShellCommandArgs(...)`
+- when `toolName === "system_use"` and `args.tool === "run_shell_command"` with object `args.arguments`:
+  - deep-clone wrapper envelope
+  - normalize nested `args.arguments` through `resolveRunShellCommandArgs(...)`
+  - keep all other wrapper fields unchanged for sidecar-owned validation
 - otherwise:
   - plain object args -> deep clone (nested objects/arrays detached from caller)
   - non-object args -> `{}`
@@ -96,6 +101,7 @@ Error guard:
 Implication:
 
 - shell sudo behavior is policy-driven from frontend config, not raw renderer payload
+- unified `system_use -> run_shell_command` sudo behavior is likewise policy-driven from frontend config
 - renderer cannot bypass sudo mode policy by omitting/forging `sudo_auth_mode`
 
 ## Test-Backed Invariants
@@ -104,6 +110,8 @@ Implication:
 
 - `run_shell_command` -> `sudo_auth_mode: "native"` when `agent_full_sudo_enabled=true`
 - `run_shell_command` -> `sudo_auth_mode: "os_prompt"` when false
+- `system_use` with nested `tool: "run_shell_command"` injects the same derived `sudo_auth_mode` into nested `arguments`
+- non-object `system_use.arguments` values are left unchanged to preserve sidecar fail-closed validation behavior
 - config read exception logs warning and still returns `os_prompt`
 - non-shell tools return cloned args (same values, new object identity)
 - non-shell tools are deep-cloned (nested mutation does not leak to caller payload)
@@ -119,6 +127,7 @@ Implication:
 3. Throwing on config-read errors can fail all shell-tool execution instead of defaulting safely.
 4. Expanding config truthiness checks without strict object guard can misread invalid config shapes.
 5. Injecting fallback screenshot bounds when explicit bounds exist can override intentional monitor targeting from renderer state.
+6. Rewriting non-object `system_use.arguments` locally can hide sidecar schema validation failures that should remain explicit.
 
 ## Related Pages
 

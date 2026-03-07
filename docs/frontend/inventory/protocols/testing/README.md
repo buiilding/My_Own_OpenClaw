@@ -28,6 +28,7 @@ title: "Frontend Protocol Testing Hub"
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
+- `tests/frontend/WakewordBridgeRuntime.test.cjs`
 - `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`
 - `tests/frontend/WindowControlsIpcRuntime.test.cjs`
 - `tests/frontend/PermissionIpcRuntime.test.cjs`
@@ -38,6 +39,7 @@ title: "Frontend Protocol Testing Hub"
 - `frontend/src/main/query_payload_builder.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permission_ipc_runtime.cjs`

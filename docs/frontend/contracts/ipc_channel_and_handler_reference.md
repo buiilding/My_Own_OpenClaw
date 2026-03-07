@@ -29,6 +29,7 @@ title: "IPC Channel and Handler Reference"
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword_bridge_runtime.cjs`
 
 ## Security/Validation Layers
 
@@ -62,7 +63,7 @@ Behavior:
 
 ### `wakeword-audio-chunk`
 
-Owner: `wakeword_bridge.cjs`
+Owner: `wakeword_bridge.cjs` (payload normalization delegated to `wakeword_bridge_runtime.cjs`)
 
 Behavior:
 
@@ -70,7 +71,7 @@ Behavior:
 
 ### `wakeword-enable` / `wakeword-disable`
 
-Owner: `wakeword_bridge.cjs`
+Owner: `wakeword_bridge.cjs` (status/error mapping delegated to `wakeword_bridge_runtime.cjs`)
 
 Behavior:
 
@@ -144,6 +145,7 @@ Removed legacy renderer-callable channels:
 - screenshot calls resolve display bounds in main-process order:
   1. visible sender window display affinity
   2. active query-origin display affinity fallback
+- direct `run_shell_command` and nested `system_use -> run_shell_command` payloads derive `sudo_auth_mode` from frontend config (`agent_full_sudo_enabled`)
 - sidecar `screenshot_path` responses are materialized into artifact refs (`screenshot_ref`/`screenshot_url`) when upload succeeds, with inline base64 fallback on upload failure
 
 ## Main -> Renderer Event Channels (`on`)
@@ -204,7 +206,7 @@ Keep these in sync whenever adding a channel:
 
 1. `preload.js` allowlist arrays
 2. `channels.ts` constants
-3. `ipc.cjs` / `index.cjs` / `local_backend_bridge.cjs` / `wakeword_bridge.cjs` handler registration
+3. `ipc.cjs` / `index.cjs` / `local_backend_bridge.cjs` / `wakeword_bridge.cjs` handler registration + `wakeword_bridge_runtime.cjs` helper ownership
 4. renderer call sites (`IpcBridge.send|invoke|on`)
 
 ## Related Pages

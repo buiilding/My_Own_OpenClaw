@@ -89,6 +89,7 @@ Primary files:
 - `frontend/src/main/local_backend_bridge_utils.cjs`
 - `frontend/src/main/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/permission_service.cjs`
 - `frontend/src/main/agent_sudo_access_handler.cjs`
 
@@ -98,6 +99,7 @@ Capabilities:
 - Executes sidecar-exposed tool and memory/transcript RPC handlers through typed mapper layer.
 - Routes screenshot tool execution through platform screenshot visibility runtime wrapper.
 - Streams wakeword audio binary frames and receives framed detection payloads.
+- Delegates wakeword stderr readiness/error parsing, startup/process error mapping, and audio chunk normalization to helper runtime module.
 - Provides permission list/check/request/probe IPC contracts for onboarding.
 - Provides Linux sudo enable/disable path with normalized renderer-safe result semantics.
 - Sidecar spawn env injects `WINDIE_BACKEND_HTTP_URL` and enforces `NODE_OPTIONS=--no-deprecation` append policy via bridge utils.
