@@ -27,7 +27,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Main overlay/window runtime | `frontend/src/main/{overlay_phase_ipc_runtime,window_controls_ipc_runtime,permission_ipc_runtime}.cjs`, `frontend/src/main/window_visibility_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/overlay_window_helpers_runtime.cjs` | Split IPC registration, chat/main visibility transitions, overlay side-channel signals, positioning/top-most helpers | Overlay + main window state transitions |
 | Main process backend bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc/ipc_renderer_windows.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs` | WebSocket session, settings ACK gate, relay fan-out | IPC events to renderer |
 | Main process sidecar bridge | `frontend/src/main/local_backend_bridge.cjs` | Python subprocess lifecycle, JSON-RPC correlation | Tool/system/memory responses |
-| Main process wakeword bridge | `frontend/src/main/wakeword_bridge.cjs` | Wakeword subprocess lifecycle + binary framing | Wakeword events to renderer/main IPC |
+| Main process wakeword bridge | `frontend/src/main/wakeword_bridge.cjs`, `frontend/src/main/wakeword_bridge_runtime.cjs` | Wakeword subprocess lifecycle + binary framing with helper-owned status/error parsing + payload normalization | Wakeword events to renderer/main IPC |
 | Main VM worker bridge | `frontend/src/main/{runtime_mode,vm_worker_runtime}.cjs` | Hosted `/api/runs/*` heartbeat polling, run dispatch, stream relay, control-command application | Websocket `stop-query` + `/api/runs/*` event/control updates |
 | Preload trust boundary | `frontend/src/preload.js` | Allowlisted IPC exposure only | `window.ipc` bridge methods |
 | Renderer app shell | `frontend/src/renderer/app/App.jsx` | Provider stack, main layout routing | Chat/dashboard surfaces |
@@ -68,7 +68,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Phase | Module ownership |
 | --- | --- |
 | Wakeword capture | `renderer/features/voice/hooks/useWakewordDetection.ts` |
-| Binary audio relay | `main/wakeword_bridge.cjs` |
+| Binary audio relay | `main/wakeword_bridge.cjs`, `main/wakeword_bridge_runtime.cjs` |
 | Wakeword inference | `main/python/wakeword_service.py` |
 | Detection relay back | `wakeword_bridge.cjs` -> renderer + `ApiClient.wakewordDetected` |
 | Voice gateway stream | `renderer/features/voice/hooks/useVoiceMode.ts` |
@@ -88,7 +88,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 - Backend event payload shape: `renderer/types/backendEvents.ts` <-> backend outgoing schemas.
 - Tool schema parity: backend tool schemas <-> sidecar `tools/schemas.py`.
 - Browser action compatibility: backend browser schema <-> sidecar browser adapter/runtime.
-- Wakeword frame protocol: `main/wakeword_bridge.cjs` <-> `main/python/wakeword_service.py`.
+- Wakeword frame protocol: `main/wakeword_bridge.cjs` + `main/wakeword_bridge_runtime.cjs` <-> `main/python/wakeword_service.py`.
 
 ## Related Docs
 

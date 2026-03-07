@@ -29,6 +29,7 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/permission_service.cjs`
 
@@ -160,6 +161,8 @@ Notable behavior:
 - `execute-tool` sets extended timeout for `browser` tool (120s vs default 30s)
 - `execute-tool` args are normalized by `resolveToolArgs(...)` before JSON-RPC dispatch, including:
   - `run_shell_command` `sudo_auth_mode` derivation from frontend config (`native` vs `os_prompt`)
+  - nested `system_use -> run_shell_command` `arguments.sudo_auth_mode` derivation from the same frontend config policy
+  - non-object nested `system_use.arguments` values are passed through unchanged so sidecar schema validation remains authoritative
   - deep-clone normalization for non-shell payloads
   - screenshot-only `display_bounds` default injection from display-affinity fallback
 - screenshot display-affinity precedence for `execute-tool`:
@@ -184,6 +187,9 @@ Notable behavior:
 
 - disabled wakeword state drops incoming detections
 - disable path clears buffered detections and writes a zero-length reset frame
+- helper ownership:
+  - `wakeword_bridge_runtime.cjs` owns stderr status parsing/noisy-line suppression
+  - `wakeword_bridge_runtime.cjs` owns startup/process error text normalization and audio-chunk payload normalization
 
 ## RPC Mapper Contract Details
 
@@ -206,7 +212,7 @@ Mapper behavior:
 ## Drift Hotspots
 
 1. channel exposed in preload/channels constants but missing `ipcMain` registration
-2. handler moved between files without docs/constants updates
+2. handler moved between files (or helper split added) without docs/constants updates
 3. RPC mapper field rename breaks backend method params silently
 4. channel name typo (`-` vs `_`) between renderer constants and `ipcMain` registration
 

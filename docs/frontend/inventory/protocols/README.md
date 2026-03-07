@@ -36,6 +36,7 @@ title: "Frontend Inventory Protocols Hub"
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permission_ipc_runtime.cjs`
@@ -46,3 +47,4 @@ title: "Frontend Inventory Protocols Hub"
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
+- `tests/frontend/WakewordBridgeRuntime.test.cjs`

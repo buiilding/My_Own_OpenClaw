@@ -17,7 +17,7 @@ This reference maps frontend-owned contract boundaries and their paired modules.
 | IPC bridge wrappers | IPC handlers | `renderer/infrastructure/ipc/{bridge,channels}.ts`, `main/ipc.cjs` | Invoke/send fails, unknown channel errors |
 | Query send API | Backend relay path | `renderer/infrastructure/api/client.ts`, `main/ipc.cjs` | Query never sent or missing ACK gating |
 | Overlay controls | Overlay handlers | Renderer overlay listeners + `main/overlay_*_handler.cjs` | Chatbox/response overlay misbehavior |
-| Wakeword toggle/events | Wakeword bridge lifecycle | Voice hooks + `main/wakeword_bridge.cjs` | No detection or duplicate wakeword triggers |
+| Wakeword toggle/events | Wakeword bridge lifecycle | Voice hooks + `main/wakeword_bridge.cjs` + `main/wakeword_bridge_runtime.cjs` | No detection or duplicate wakeword triggers |
 
 ## Main <-> Backend WebSocket Touchpoints
 
@@ -34,6 +34,7 @@ This reference maps frontend-owned contract boundaries and their paired modules.
 | --- | --- | --- | --- |
 | Local backend bridge | JSON-RPC protocol | `main/local_backend_bridge.cjs`, `main/python/core/ipc_protocol.py` | Timed-out or unresolved RPC calls |
 | RPC mapped handlers | Method signatures | `main/local_backend_bridge_rpc_mappers.cjs`, `main/python/local_backend.py` methods | Param name mismatch and tool failure |
+| Tool-arg normalizer | Tool argument compatibility path | `main/local_backend_bridge_tool_args.cjs`, `main/python/tools/registry.py` | Missing wrapper-field rewrites (`system_use -> run_shell_command` sudo mode) |
 | Readiness lifecycle | Service startup | `main/local_backend_bridge.cjs`, `main/python/local_backend.py` initialize/run | Process starts but marked unavailable |
 | Memory service protocol | Memory loop | Main memory invocations + `main/python/memory_service.py` | Search/store no-op or parse errors |
 
@@ -59,7 +60,7 @@ This reference maps frontend-owned contract boundaries and their paired modules.
 | Frontend owner | Pair owner | Contract files | Contract note |
 | --- | --- | --- | --- |
 | Voice mode hook | Gateway protocol | `renderer/features/voice/hooks/useVoiceMode.ts` | Gateway frame/metadata mismatch |
-| Wakeword capture hook | Wakeword bridge/service | `useWakewordDetection.ts`, `main/wakeword_bridge.cjs`, `main/python/wakeword_service.py` | False retriggers or silent failures |
+| Wakeword capture hook | Wakeword bridge/service | `useWakewordDetection.ts`, `main/wakeword_bridge.cjs`, `main/wakeword_bridge_runtime.cjs`, `main/python/wakeword_service.py` | False retriggers or silent failures |
 | Player service | Backend TTS stream events | `renderer/infrastructure/audio/PlayerService.ts`, backend `audio-chunk` events | Playback queue errors or decode failure |
 
 ## Contract Guardrails

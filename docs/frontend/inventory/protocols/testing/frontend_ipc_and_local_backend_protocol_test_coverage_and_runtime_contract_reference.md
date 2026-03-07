@@ -8,10 +8,10 @@ title: "Frontend IPC and Local-Backend Protocol Test Coverage and Runtime Contra
 
 # Frontend IPC and Local-Backend Protocol Test Coverage and Runtime Contract Reference
 
-## Coverage Snapshot (2026-03-06)
+## Coverage Snapshot (2026-03-07)
 
-- Protocol test files in this reference: `15`
-- Total test cases across listed files: `161`
+- Protocol test files in this reference: `16`
+- Total test cases across listed files: `165`
 
 ## Scope and Sources
 
@@ -23,6 +23,7 @@ Primary runtime modules:
 - `frontend/src/main/query_payload_builder.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permission_ipc_runtime.cjs`
@@ -37,6 +38,7 @@ Primary protocol tests:
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
+- `tests/frontend/WakewordBridgeRuntime.test.cjs`
 - `tests/frontend/AgentSudoAccessHandler.test.cjs`
 - `tests/frontend/PermissionService.test.cjs`
 - `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
@@ -62,6 +64,7 @@ Primary protocol tests:
 | window-control IPC registrar + display mapping | `window_controls_ipc_runtime.cjs`, `display_query_handler.cjs` | `WindowControlsIpcRuntime.test.cjs`, `DisplayQueryHandler.test.cjs` | `show-main-window` normalization/route emit stays in window-control module; display inventory payload is mapped to stable `{ id, label, isPrimary, bounds, scaleFactor }` |
 | permission/sudo IPC registrar ownership | `permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` | permission and sudo invoke handlers are registered in the permission runtime module and remain isolated from overlay/window channels |
 | wakeword stream/restart robustness | wakeword subprocess + framed parser (`wakeword_bridge.cjs`) | `WakewordBridge.test.cjs` | detection callback + renderer event fire only when enabled; process restarts keep callback wiring; stale stdout/stderr partial buffers are cleared across restarts |
+| wakeword helper runtime normalization | helper runtime (`wakeword_bridge_runtime.cjs`) | `WakewordBridgeRuntime.test.cjs` | packaged-vs-dev startup error mapping, ENOENT process error guidance, stderr ready-status promotion, and audio payload normalization (base64/Buffer/ArrayBuffer) |
 | sudo access command-runner protocol | `agent_sudo_access_handler.cjs` | `AgentSudoAccessHandler.test.cjs` | Linux-only guard, pkexec/sudo command execution paths, cancel/auth-failure normalization, and non-interactive disable semantics |
 | permission probe/request protocol | `permission_service.cjs` | `PermissionService.test.cjs` | manifest/status shape, per-permission probe behavior, unknown-permission error surface, and request flow normalization |
 | wakeword STT trigger channel consumption | renderer chatbox overlay listeners | `ChatBoxOverlayMouseIgnore.test.jsx` | renderer listener wiring for `wakeword-stt-trigger` channel and overlay-focused behavior consistency |
@@ -79,7 +82,7 @@ Primary protocol tests:
 | window-control IPC runtime target routing + visibility handlers | `frontend/src/main/window_controls_ipc_runtime.cjs` | `WindowControlsIpcRuntime.test.cjs` |
 | display query payload mapping | `frontend/src/main/display_query_handler.cjs` | `DisplayQueryHandler.test.cjs` |
 | permission/sudo IPC runtime channel ownership | `frontend/src/main/permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` |
-| wakeword detect -> STT trigger channel | `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword_bridge.cjs` | `WakewordBridge.test.cjs`, `ChatBoxOverlayMouseIgnore.test.jsx` |
+| wakeword detect -> STT trigger channel | `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword_bridge.cjs`, `frontend/src/main/wakeword_bridge_runtime.cjs` | `WakewordBridge.test.cjs`, `WakewordBridgeRuntime.test.cjs`, `ChatBoxOverlayMouseIgnore.test.jsx` |
 | show-main-window target normalization -> dashboard surface routing | `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` | `ChatGptDashboardShell.test.jsx` |
 | local sidecar RPC mapping + sudo mode propagation | `frontend/src/main/local_backend_bridge.cjs` | `LocalBackendBridge.rpc.test.cjs`, `LocalBackendBridge.lifecycle.test.cjs` |
 
@@ -155,7 +158,7 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
   - `store-transcript`
   - `store-memory`
 - malformed/non-object IPC payloads normalize to safe empty param objects for mapped handlers
-- `execute-tool` `run_shell_command` payloads inject `sudo_auth_mode` based on `agent_full_sudo_enabled` frontend config
+- `execute-tool` direct `run_shell_command` and nested `system_use -> run_shell_command` payloads inject `sudo_auth_mode` based on `agent_full_sudo_enabled` frontend config
 
 ## Wakeword Bridge Protocol Contract
 
@@ -167,6 +170,13 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 - stale partial stdout frame state is cleared across restart
 - stale process exit events after restart are ignored (generation safety)
 - stale partial stderr JSON buffer is cleared across beforeExit/enable restart path
+
+`tests/frontend/WakewordBridgeRuntime.test.cjs` validates helper-level contracts:
+
+- packaged/dev startup error text mapping
+- ENOENT process-error guidance by launch-target kind
+- stderr `{"status":"ready"}` -> `wakeword-status { ready:true }` promotion
+- audio payload normalization across supported types and invalid payload rejection
 
 ## Permission/Sudo Protocol Contract
 
@@ -228,6 +238,7 @@ Use this command to inspect protocol-test breadth:
 - `  'tests/frontend/LocalBackendBridge.lifecycle.test.cjs',`
 - `  'tests/frontend/LocalBackendBridge.rpc.test.cjs',`
 - `  'tests/frontend/WakewordBridge.test.cjs',`
+- `  'tests/frontend/WakewordBridgeRuntime.test.cjs',`
 - `  'tests/frontend/AgentSudoAccessHandler.test.cjs',`
 - `  'tests/frontend/PermissionService.test.cjs',`
 - `  'tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx',`
