@@ -48,6 +48,7 @@ const {
   getContextLabelWindowBounds: getOverlayContextLabelWindowBounds,
 } = require('./overlay_bounds.cjs');
 const {
+  setActiveDisplayAffinity: setActiveDisplayAffinityRuntime,
   syncActiveDisplayAffinityForWindow: syncActiveDisplayAffinityForWindowRuntime,
 } = require('./display_affinity_runtime.cjs');
 const { createOverlayWindowHelpersRuntime } = require('./overlay_window_helpers_runtime.cjs');
@@ -260,6 +261,7 @@ function showMainWindow(options = {}) {
     mainWindow,
     chatWindow,
     syncWindowDisplayAffinity,
+    setActiveDisplayAffinity: setActiveDisplayAffinityRuntime,
     hideChatWindow,
   });
 }

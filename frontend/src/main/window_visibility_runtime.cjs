@@ -102,6 +102,7 @@ function showMainWindow(options = {}, deps = {}) {
     mainWindow,
     chatWindow,
     syncWindowDisplayAffinity = () => {},
+    setActiveDisplayAffinity = () => {},
     hideChatWindow = () => {},
   } = deps;
   const focus = options?.focus !== false;
@@ -118,6 +119,7 @@ function showMainWindow(options = {}, deps = {}) {
     && typeof options.targetDisplayAffinity === 'object'
   ) ? options.targetDisplayAffinity : null;
   if (targetDisplayAffinity) {
+    setActiveDisplayAffinity(targetDisplayAffinity);
     if (typeof mainWindow.isMaximized === 'function' && mainWindow.isMaximized()) {
       mainWindow.unmaximize();
     }
