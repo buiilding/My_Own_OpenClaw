@@ -1,6 +1,10 @@
 import linuxRuntime from './linux';
 import macosRuntime from './macos';
 import windowsRuntime from './windows';
+import type {
+  ChatPillCollapseResult,
+  ChatPillRestoreResult,
+} from '../../types';
 
 type ChatPillVisibilityRuntime = typeof linuxRuntime;
 
@@ -25,10 +29,10 @@ export function shouldManageChatPillVisibilityForBackgroundCapture(): boolean {
   return resolveChatPillVisibilityRuntime().shouldManageChatPillVisibilityForBackgroundCapture();
 }
 
-export async function collapseChatPillForBackgroundCapture(): Promise<boolean> {
+export async function collapseChatPillForBackgroundCapture(): Promise<ChatPillCollapseResult> {
   return await resolveChatPillVisibilityRuntime().collapseChatPillForBackgroundCapture();
 }
 
-export async function restoreChatPillInactive(): Promise<boolean> {
+export async function restoreChatPillInactive(): Promise<ChatPillRestoreResult> {
   return await resolveChatPillVisibilityRuntime().restoreChatPillInactive();
 }

@@ -2297,6 +2297,7 @@ Includes the last 300 commits on `main`.
 - d995fe7 docs(adr): add ADR for browser extension auto-attach
 
 ### Other
+- cd318faa debug(frontend): split screenshot capture timing into hide IPC and settle substeps
 - bdada3c chore(frontend-test): suppress expected console noise in frontend suites
 - 7565279 chore(frontend-test): quiet config info logs during jest runs
 - c5e7371 build(sidecar): add pytest dependencies to python requirements

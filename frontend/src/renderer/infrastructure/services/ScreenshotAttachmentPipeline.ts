@@ -223,6 +223,8 @@ export async function captureScreenshotAttachment({
   const totalStartTime = performance.now();
   let waitTime = 0;
   let prepareVisibilityTime = 0;
+  let hideInvokeTime = 0;
+  let settleTime = 0;
   let focusPrepTime = 0;
   let screenshotInvokeTime = 0;
   let restoreVisibilityTime = 0;
@@ -249,6 +251,8 @@ export async function captureScreenshotAttachment({
       source: 'system-capture',
     });
     prepareVisibilityTime = (performance.now() - prepareVisibilityStartTime) / 1000;
+    hideInvokeTime = screenshotVisibilityPreparation.timing?.hideInvokeTime || 0;
+    settleTime = screenshotVisibilityPreparation.timing?.settleTime || 0;
 
     const captureFocusCorrelationId = screenshotVisibilityPreparation.prepared
       ? screenshotVisibilityPreparation.captureId
@@ -287,6 +291,8 @@ export async function captureScreenshotAttachment({
       correlationId,
       waitTime,
       prepareVisibilityTime,
+      hideInvokeTime,
+      settleTime,
       focusPrepTime,
       screenshotInvokeTime,
       restoreVisibilityTime,
