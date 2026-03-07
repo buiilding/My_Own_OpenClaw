@@ -11,11 +11,14 @@ title: "Local-Backend Process Lifecycle, Readiness, and Request-Correlation Refe
 ## Canonical Modules
 
 - `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/local_backend_bridge_display_bounds.cjs`
+- `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs`
 - `frontend/src/main/runtime_paths.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/local_backend_bridge_utils.cjs`
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/LocalBackendBridgeDisplayBounds.test.cjs`
 
 ## Spawn Preconditions and Runtime Env Contract
 
@@ -85,18 +88,29 @@ Test-backed guarantees:
 
 ## Stdout/Stderr Protocol Handling
 
-Stdout handling:
+Stdout handling in `local_backend_bridge.cjs`:
 
 - accumulates chunks in `stdoutBuffer`
-- splits by newline, preserves trailing partial line
-- parses each complete line as one JSON object
-- routes parsed object to `handlePythonResponse(...)`
+- splits by newline and preserves trailing partial line
+- parse strategy per complete line:
+  - default: inline `JSON.parse`
+  - large payloads (`>= 128KB`) may offload parse to worker thread (`parseJsonInWorker`)
+- queue/drain runtime:
+  - `pendingStdoutLines` stores deferred lines
+  - `drainStdoutLines(...)` serially drains queued lines and forwards parsed responses
+  - guarded by `isDrainingStdoutLines` and `isActiveProcessReference(...)` so stale process generations cannot drain new-process lines
+- malformed JSON lines are logged and skipped (process stays alive)
 
 Stderr handling:
 
-- splits by newline
-- filters known deprecation noise with `shouldSuppressStderrLine(...)`
-- logs non-empty unsuppressed lines as `[LocalBackend Python] ...`
+- splits by newline and evaluates each non-empty line with `shouldForwardStderrLine(...)`
+- suppressed path:
+  - known Node deprecation noise patterns are dropped
+- forwarded path:
+  - always forward when `WINDIE_VERBOSE_SIDECAR_STDERR` is truthy
+  - otherwise forward Python WARNING/ERROR/CRITICAL log-level lines
+  - fallback keyword forwarding for warning/error/exception/traceback/fatal text
+- forwarded lines log as `[LocalBackend Python] ...`
 
 ## Request Correlation and Timeout Semantics
 
@@ -158,16 +172,17 @@ Test-backed guarantee:
 
 - delayed force-kill timer from an old process generation does not kill a restarted process
 
-## Tool Timeout Tier and Linux Screenshot Wrapper Hook
+## Tool Timeout Tier and Screenshot Wrapper Hook
 
 `execute-tool` timeout tier:
 
 - `browser` tool: `120000ms`
 - all others: `30000ms`
 
-Linux screenshot path:
+Screenshot path:
 
 - only `toolName === 'screenshot'` is wrapped in `withHiddenWindowForScreenshot(...)`
+- platform runtime decides whether hide/show behavior is active or pass-through
 - see overlay deep pages for screenshot visibility runtime ownership details
 
 ## Debug Sequence
@@ -194,4 +209,5 @@ If readiness appears stuck:
 
 - [Frontend Main Local-Backend Docs Hub](README.md)
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](rpc_handler_registry_and_payload_mapper_reference.md)
+- [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)
 - [Local Backend Bridge Handler and Window Guard Reference](../local_backend_bridge_handler_and_window_guard_reference.md)

@@ -12,6 +12,7 @@ title: "Backend Tools Contracts Docs Hub"
 
 - [Tool Domain and Category Enum Contract Reference](tool_domain_and_category_enum_contract_reference.md)
 - [Computer Tool Schema Guidance and Unified Envelope Validation Reference](computer_tool_schema_guidance_and_unified_envelope_validation_reference.md)
+- [System Use Unified Wrapper Schema and Explanation Resolution Reference](system_use_unified_wrapper_schema_and_explanation_resolution_reference.md)
 - [Schema Field Factory Explanation and Post-Action Wait Contract Reference](schema_field_factory_explanation_and_post_action_wait_contract_reference.md)
 - [Tool Execution Result and Batch Dataclass Contract Reference](tool_execution_result_and_batch_dataclass_contract_reference.md)
 - [Tool Result Helper Object Creation and Default Timing Contract Reference](tool_result_helper_object_creation_and_default_timing_contract_reference.md)
@@ -34,6 +35,7 @@ title: "Backend Tools Contracts Docs Hub"
 - `backend/src/tools/single_tool_execution.py`
 - `backend/src/tools/bundle_execution.py`
 - `backend/src/tools/system/schemas.py`
+- `backend/src/tools/system/unified_schema.py`
 - `backend/src/tools/computer/schemas.py`
 - `backend/src/tools/filesystem/schemas.py`
 - `backend/src/llm/parser_types.py`

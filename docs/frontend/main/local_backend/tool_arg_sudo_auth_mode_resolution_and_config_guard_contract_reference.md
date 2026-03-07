@@ -46,7 +46,7 @@ No input object is mutated.
 
 Base args normalization:
 
-- plain object args -> shallow clone
+- plain object args -> deep clone
 - all other arg types -> `{}`
 
 Frontend config read:
@@ -124,5 +124,6 @@ Implication:
 
 - [Frontend Main Local-Backend Docs Hub](README.md)
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](rpc_handler_registry_and_payload_mapper_reference.md)
+- [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)
 - [Local Backend Bridge Overview and Window Guard Index](../local_backend_bridge_handler_and_window_guard_reference.md)
 - [Main-Process IPC Handler Ownership and RPC Mapper Reference](../../contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)

@@ -163,6 +163,7 @@ Additional `ComputerUseMetadata` strictness regressions are locked in:
 
 ## Related Docs
 
+- [System Use Unified Wrapper Schema and Explanation Resolution Reference](system_use_unified_wrapper_schema_and_explanation_resolution_reference.md)
 - [Remote Tool Domain Payload and Request-ID Semantics Reference](../remote/remote_tool_domain_payload_and_request_id_semantics_reference.md)
 - [Tool Policy and Dev Tool Selection Runtime Reference](../policy/tool_policy_and_dev_tool_selection_runtime_reference.md)
 - [Tool Preparation and Coordinate Resolution Reference](../tool_preparation_and_coordinate_resolution_reference.md)
