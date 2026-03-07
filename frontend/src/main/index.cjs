@@ -47,6 +47,9 @@ const {
   getResponseWindowBounds: getOverlayResponseWindowBounds,
   getContextLabelWindowBounds: getOverlayContextLabelWindowBounds,
 } = require('./overlay_bounds.cjs');
+const {
+  syncActiveDisplayAffinityForWindow: syncActiveDisplayAffinityForWindowRuntime,
+} = require('./display_affinity_runtime.cjs');
 const { createOverlayWindowHelpersRuntime } = require('./overlay_window_helpers_runtime.cjs');
 const {
   handleResponseOverlayPhaseEvent,
@@ -111,6 +114,10 @@ const externalFocusTracker = createExternalFocusTracker({
   appWindowTitleMarkers: APP_WINDOW_TITLE_MARKERS,
   warn: (...args) => console.warn(...args),
 });
+
+function syncWindowDisplayAffinity(targetWindow) {
+  return syncActiveDisplayAffinityForWindowRuntime(screen, targetWindow);
+}
 
 async function prepareOverlayQueryCaptureFocus(options = {}) {
   const waitMs = typeof options?.waitMs === 'number' ? options.waitMs : 120;
@@ -335,6 +342,7 @@ const {
   syncContextLabelWindowVisibility,
   setResponseOverlayVisibilityState,
   enableContentProtectionSafely,
+  syncWindowDisplayAffinity,
   externalFocusTracker,
   getState: () => ({
     windows: {

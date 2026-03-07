@@ -103,6 +103,7 @@ function createMainWindow({
   getLatestFrontendConfig,
   getWindows,
   setMainWindow,
+  syncWindowDisplayAffinity = () => {},
   resolveAppIconPath = resolveAppIconPathRuntime,
   resolveAppIcon = resolveAppIconNativeImage,
   warn = console.warn,
@@ -174,6 +175,14 @@ function createMainWindow({
     setMainWindow(null);
   });
 
+  mainWindow.on('show', () => {
+    syncWindowDisplayAffinity(mainWindow);
+  });
+
+  mainWindow.on('move', () => {
+    syncWindowDisplayAffinity(mainWindow);
+  });
+
   return mainWindow;
 }
 
@@ -191,6 +200,7 @@ function createChatWindow({
   externalFocusTracker,
   setChatWindow,
   enableContentProtectionSafely,
+  syncWindowDisplayAffinity = () => {},
   resolveAppIconPath = resolveAppIconPathRuntime,
   resolveAppIcon = resolveAppIconNativeImage,
   warn = console.warn,
@@ -249,11 +259,16 @@ function createChatWindow({
 
   chatWindow.on('show', () => {
     ensureChatRendererLoaded();
+    syncWindowDisplayAffinity(chatWindow);
     syncWakewordToggleForChatVisibility();
   });
 
   chatWindow.on('hide', () => {
     syncWakewordToggleForChatVisibility();
+  });
+
+  chatWindow.on('move', () => {
+    syncWindowDisplayAffinity(chatWindow);
   });
 
   chatWindow.on('blur', () => {
@@ -285,6 +300,7 @@ function createResponseWindow({
   syncContextLabelWindowVisibility,
   setResponseWindow,
   enableContentProtectionSafely,
+  syncWindowDisplayAffinity = () => {},
   resolveAppIconPath = resolveAppIconPathRuntime,
   resolveAppIcon = resolveAppIconNativeImage,
   warn = console.warn,
@@ -341,6 +357,11 @@ function createResponseWindow({
 
   responseWindow.on('show', () => {
     ensureResponseRendererLoaded();
+    syncWindowDisplayAffinity(responseWindow);
+  });
+
+  responseWindow.on('move', () => {
+    syncWindowDisplayAffinity(responseWindow);
   });
 
   responseWindow.on('close', (event) => {
