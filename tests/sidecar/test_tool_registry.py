@@ -716,6 +716,41 @@ async def test_execute_system_use_prefers_top_level_explanation_over_nested_fall
 
 
 @pytest.mark.asyncio
+async def test_execute_system_use_run_shell_preserves_sudo_auth_mode_in_arguments():
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def shell_tool(args):
+        captured["called"] = True
+        captured["args"] = args
+        return ToolResult.success_result({"ok": True, "tool": "run_shell_command"})
+
+    registry.tools["run_shell_command"] = shell_tool
+
+    result = await registry.execute_tool(
+        "system_use",
+        {
+            "tool": "run_shell_command",
+            "explanation": "run privileged command",
+            "arguments": {
+                "command": "sudo apt update",
+                "run_in_background": False,
+                "sudo_auth_mode": "native",
+            },
+        },
+    )
+
+    assert result.success is True
+    assert captured["called"] is True
+    assert captured["args"] == {
+        "command": "sudo apt update",
+        "run_in_background": False,
+        "sudo_auth_mode": "native",
+        "explanation": "run privileged command",
+    }
+
+
+@pytest.mark.asyncio
 async def test_execute_system_use_rejects_unknown_subtool_name():
     registry = ToolRegistry()
 

@@ -120,6 +120,20 @@ function resolveToolArgs(
       );
     }
   }
+  if (toolName === 'system_use') {
+    const nestedToolName = (
+      typeof nextArgs.tool === 'string'
+        ? nextArgs.tool.trim()
+        : ''
+    );
+    if (nestedToolName === 'run_shell_command' && isRecord(nextArgs.arguments)) {
+      nextArgs.arguments = resolveRunShellCommandArgs(
+        nextArgs.arguments,
+        getFrontendConfig,
+        warn,
+      );
+    }
+  }
   return nextArgs;
 }
 
