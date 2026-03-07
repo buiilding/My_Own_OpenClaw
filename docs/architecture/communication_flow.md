@@ -8,7 +8,7 @@ read_when:
 
 ## Overview
 
-Desktop Assistant uses a multi-layered communication architecture with WebSocket for backend communication and IPC for Electron process communication.
+WindieOS uses a multi-layered communication architecture with WebSocket for backend communication and IPC for Electron process communication.
 
 ## Communication Layers
 

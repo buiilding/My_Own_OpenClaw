@@ -8,7 +8,7 @@ read_when:
 
 ## Overview
 
-Desktop Assistant supports multiple LLM providers through a unified interface. The system uses LiteLLM for provider abstraction and supports both cloud and local models.
+WindieOS supports multiple LLM providers through a unified interface. The system uses LiteLLM for provider abstraction and supports both cloud and local models.
 
 ## Supported Providers
 

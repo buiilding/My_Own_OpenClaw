@@ -8,7 +8,7 @@ read_when:
 
 ## Overview
 
-Desktop Assistant is built as a distributed system with a clear separation between frontend (Electron/React) and backend (Python/FastAPI). The architecture follows clean architecture principles with dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR).
+WindieOS is built as a distributed system with a clear separation between frontend (Electron/React) and backend (Python/FastAPI). The architecture follows clean architecture principles with dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR).
 
 ## Future: Hosted Multi-Tenant Architecture (Planned)
 
