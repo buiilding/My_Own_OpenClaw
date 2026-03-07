@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-runtime-paths-and-sidecar-protocol-wakeword-helper-scope): refresh runtime-paths and sidecar services/protocol hubs to include `wakeword_bridge_runtime.cjs` in canonical module scope and add wakeword startup/readiness debug guidance tied to helper-level error/status handling.
 - fix(frontend-display-affinity): write active display affinity immediately when opening the dashboard onto an explicit target display, so monitor fallback updates from the chosen open target even before Electron show/move events fire.
 - fix(frontend-display-affinity): eagerly sync display affinity inside `showChatWindow`, `showMainWindow`, and manual chat-pill drag handling so active-monitor fallback updates immediately from control flow instead of depending on asynchronous Electron show/move event ordering.
 - fix(frontend-display-affinity): sync fallback display affinity from visible dashboard/chat/response window show+move events so no-sender screenshot paths inherit the monitor of the last real visible WindieOS surface instead of only the last query-origin affinity; added main-window/bootstrap/display-affinity regressions for the new event-driven sync.
