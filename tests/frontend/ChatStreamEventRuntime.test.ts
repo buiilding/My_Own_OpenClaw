@@ -270,6 +270,32 @@ describe('chatStreamEventRuntime', () => {
     expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
   });
 
+  test('stale turn guard ignores same-turn packets during error pending handoff', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      isSending: true,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-old',
+        phase: 'error',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          isSending: true,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-old',
+            phase: 'error',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
+  });
+
   test('stale turn guard allows mismatched turn packets while sending during awaiting-first-chunk', () => {
     useChatStore.setState((state) => ({
       ...state,
