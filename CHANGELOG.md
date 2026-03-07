@@ -2307,3 +2307,4 @@ Includes the last 300 commits on `main`.
 - unreleased fix(tool-calling): unify computer-use calls under computer_use with direct metadata args and legacy-wrapper rejection
 - unreleased fix(tool-selection): remove legacy wrapped computer-use schema traversal; direct args schema only
 - unreleased refactor(frontend-capture): rename screenshot timing aggregate from `surface` to `prep` so logs reflect main-owned wait/hide preparation instead of implying pure overlay work
+- unreleased refactor(frontend-tool-capture): collapse screenshot/system-state handling onto a single internal capture snapshot so auto-capture branches stop threading parallel attachment fields
