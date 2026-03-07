@@ -136,6 +136,10 @@ Validation behavior:
 Returns:
 
 - `{ success: true, data: { memories: { episodic:[], semantic:[] } } }` on success
+- episodic retrieval detail:
+  - `LocalMemoryStore.search(...)` enriches transcript user hits with the next assistant transcript reply from the same conversation when available.
+  - this enrichment happens before handler grouping, so prompt-side episodic entries can be full `User + Assistant` interaction text instead of user-only transcript snippets.
+  - enrichment keeps result count stable (rewrites matching user-row text, does not append extra result rows).
 
 ### `store_transcript`
 

@@ -126,6 +126,11 @@ Search payload validation at sidecar boundary:
 - `query` must be a non-empty string (trimmed)
 - `memory_type` must be a string when provided and must normalize to `episodic` or `semantic`
 
+Search result shaping detail:
+
+- sidecar `LocalMemoryStore.search(...)` can rewrite episodic transcript user hits into canonical interaction text (`User: ...` + `Assistant: ...`) by resolving the next assistant reply in the same conversation before handler grouping.
+- grouped response contract remains unchanged: `{ memories: { episodic: [...], semantic: [...] } }`.
+
 ## Sidecar JSON-RPC Response Envelope
 
 Sidecar memory handlers return shape:

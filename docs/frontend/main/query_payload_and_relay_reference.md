@@ -123,6 +123,17 @@ Output injected into query payload:
 3. optional `<attached_file_context>` section (hidden non-image file context from renderer-side `read_file`)
 4. `<user_query>` XML block
 
+Memory section formatting contract (`query_payload_builder.cjs`):
+
+- `searchMemory(query, user_id, limit=5, memory_type=null, exclude_conversation_id=conversationRef)` is called when retrieval injection is enabled.
+- each section is always emitted when retrieval injection is enabled:
+  - `<episodic_memory>...</episodic_memory>`
+  - `<semantic_memory>...</semantic_memory>`
+- empty or missing lists render as:
+  - `<tag>\nNone\n</tag>`
+- non-empty lists render as `- <entry>` bullet lines with XML escaping (`&`, `<`, `>`, `"`, `'`).
+- active conversation exclusion is requested at search time via `exclude_conversation_id` to avoid echoing current-turn transcript context.
+
 System-state field policy:
 
 - initial: `active_window`, `mouse_position`, `screen_resolution`, `windows`
