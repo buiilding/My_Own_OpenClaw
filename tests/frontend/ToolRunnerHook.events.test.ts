@@ -585,6 +585,8 @@ describe('useToolRunner event handling', () => {
     await act(async () => {
       await emitBackendEventAsync({ type: 'unknown-event', payload: {} });
       await emitBackendEventAsync({ type: 'tool-call', payload: {} });
+      await emitBackendEventAsync({ type: 'tool-call', payload: { tool_name: 'read_file', parameters: [] } });
+      await emitBackendEventAsync({ type: 'tool-bundle', payload: { tools: 'not-an-array' } });
       await emitBackendEventAsync({ type: 'tool-bundle', payload: { tools: [{ name: '', args: {} }] } });
     });
 

@@ -195,6 +195,7 @@ describe('toolRunnerMessages', () => {
     ]);
 
     expect(mapBundleTools(null)).toEqual([]);
+    expect(mapBundleTools('not-an-array' as any)).toEqual([]);
   });
 
   test('resolveToolCallCorrelationId prefers explicit payload ids before event id and uuid', () => {
