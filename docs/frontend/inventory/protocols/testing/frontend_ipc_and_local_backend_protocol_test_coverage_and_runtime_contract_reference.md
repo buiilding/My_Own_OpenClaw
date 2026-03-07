@@ -11,7 +11,7 @@ title: "Frontend IPC and Local-Backend Protocol Test Coverage and Runtime Contra
 ## Coverage Snapshot (2026-03-07)
 
 - Protocol test files in this reference: `16`
-- Total test cases across listed files: `165`
+- Total test cases across listed files: `175`
 
 ## Scope and Sources
 
@@ -68,7 +68,7 @@ Primary protocol tests:
 | sudo access command-runner protocol | `agent_sudo_access_handler.cjs` | `AgentSudoAccessHandler.test.cjs` | Linux-only guard, pkexec/sudo command execution paths, cancel/auth-failure normalization, and non-interactive disable semantics |
 | permission probe/request protocol | `permission_service.cjs` | `PermissionService.test.cjs` | manifest/status shape, per-permission probe behavior, unknown-permission error surface, and request flow normalization |
 | wakeword STT trigger channel consumption | renderer chatbox overlay listeners | `ChatBoxOverlayMouseIgnore.test.jsx` | renderer listener wiring for `wakeword-stt-trigger` channel and overlay-focused behavior consistency |
-| websocket open + overlay phase lifecycle | `connect()` open/message handlers (`ipc.cjs`) | `IpcMainBridge.lifecycle.test.cjs` | handshake user-id sanitization, backend endpoint metadata exposure, and backend tool-event to response-overlay phase transitions |
+| websocket open + overlay phase lifecycle | `connect()` open/message handlers (`ipc.cjs`) | `IpcMainBridge.lifecycle.test.cjs` | handshake user-id sanitization, backend endpoint metadata exposure, backend tool-event to response-overlay phase transitions, and active display-affinity continuity across websocket close |
 | main-window open target channel routing | dashboard IPC event listener + panel routing | `ChatGptDashboardShell.test.jsx` | `main-window-open-target` payload routes to chat/settings/models/memory surfaces with chat target panel-close behavior |
 
 ## Protocol Control-Path Test Index

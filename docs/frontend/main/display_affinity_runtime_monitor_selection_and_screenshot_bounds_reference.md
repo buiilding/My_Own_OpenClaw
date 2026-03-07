@@ -77,7 +77,8 @@ Main process stores active query-origin display affinity via:
 
 Reset conditions:
 
-- backend/session reset calls `setActiveDisplayAffinity(null)` (`resetBackendSessionState` in `ipc.cjs`)
+- backend/session reset in `ipc.cjs` intentionally does **not** clear active display affinity
+- active affinity persists across websocket/session resets and is replaced by the next explicit `setActiveDisplayAffinity(...)` update (query send or window-surface sync paths)
 
 Stored state access:
 
@@ -110,7 +111,7 @@ When no target affinity is provided:
 ## Drift Hotspots
 
 1. Losing `requireVisible:true` on screenshot sender-affinity lookup can route captures to hidden/off-screen windows.
-2. Failing to clear active affinity on backend/session reset can leak stale monitor routing into later conversations.
+2. Clearing active affinity on backend/session reset can collapse reconnect-time screenshot/main-window routing to primary-display fallback before a new sender-affinity write occurs.
 3. Overwriting explicit renderer screenshot `display_bounds` with fallback affinity breaks user-selected monitor capture.
 4. Regressing cloned affinity storage can allow downstream mutation to corrupt future routing.
 
