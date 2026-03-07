@@ -27,7 +27,8 @@ export function formatToolCallPayload(payload?: ToolCallPayloadLike): string {
 }
 
 export function formatToolBundlePayload(payload?: ToolBundlePayloadLike): string {
-  const tools = (payload?.tools || []).map((tool) => {
+  const bundleTools = Array.isArray(payload?.tools) ? payload.tools : [];
+  const tools = bundleTools.map((tool) => {
     const modelFacing = tool?.metadata?.model_facing_tool_call;
     if (modelFacing && typeof modelFacing === 'object') {
       return {
