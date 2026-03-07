@@ -72,6 +72,7 @@ Behavior:
 4. build filters via `build_memory_filters(memory_type)`
 5. call `memory_store.search(query, user_id, filters, limit)`
 6. group result texts with `group_memory_texts(...)`
+  - episodic grouping prefers interaction-style `User + Assistant` rows, then transcript pair synthesis fallback, then raw episodic fallback
 7. return grouped episodic/semantic memories
 
 Failure behavior:
@@ -167,5 +168,6 @@ Signal routing:
 - [Memory JSONL and Wakeword Binary Frame Contract Reference](protocols/memory_jsonl_and_wakeword_binary_frame_contract_reference.md)
 - [Wakeword Service Model Bootstrap and Binary Framing Reference](wakeword_service_model_bootstrap_and_binary_framing_reference.md)
 - [Memory Pipeline and Summarization](../memory_pipeline_and_summarization.md)
+- [Memory Search Grouping and Transcript Pair Synthesis Contract Reference](../memory/memory_search_grouping_and_transcript_pair_synthesis_contract_reference.md)
 - [Frontend Sidecar Memory Storage Docs Hub](../memory/storage/README.md)
 - [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](../memory/storage/local_memory_store_embedding_search_and_memory_type_routing_reference.md)

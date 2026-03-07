@@ -137,9 +137,10 @@ Returns:
 
 - `{ success: true, data: { memories: { episodic:[], semantic:[] } } }` on success
 - episodic retrieval detail:
-  - `LocalMemoryStore.search(...)` enriches transcript user hits with the next assistant transcript reply from the same conversation when available.
-  - this enrichment happens before handler grouping, so prompt-side episodic entries can be full `User + Assistant` interaction text instead of user-only transcript snippets.
-  - enrichment keeps result count stable (rewrites matching user-row text, does not append extra result rows).
+  - handler pipeline is ordered: `memory_store.search(...)` -> `exclude_conversation_results(...)` -> `group_memory_texts(...)`.
+  - `LocalMemoryStore.search(...)` enriches transcript user hits with companion assistant replies (primary DB lookup by conversation + `message_index`, fallback to top-k assistant candidates).
+  - `group_memory_texts(...)` then prefers explicit interaction-style rows, else synthesizes transcript user+assistant pairs, else falls back to raw episodic text.
+  - net effect: prompt episodic injection prefers full `User + Assistant` entries and keeps result count stable (rewrites row text without appending rows).
 
 ### `store_transcript`
 
@@ -227,4 +228,5 @@ Main process emits local backend status events:
 - [Sidecar Core Docs Hub](core/README.md)
 - [JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
 - [Memory IPC and RPC Mapping Reference](../contracts/memory_ipc_and_rpc_mapping_reference.md)
+- [Memory Search Grouping and Transcript Pair Synthesis Contract Reference](memory/memory_search_grouping_and_transcript_pair_synthesis_contract_reference.md)
 - [Transcript Storage, Semantic Candidate, and Watermark Reference](memory/transcript_storage_semantic_candidate_and_watermark_reference.md)

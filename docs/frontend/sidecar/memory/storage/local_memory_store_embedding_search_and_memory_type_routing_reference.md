@@ -196,6 +196,7 @@ Test coverage confirms sparse/legacy embedding IDs are rewritten deterministical
 ## Related Pages
 
 - [Frontend Sidecar Memory Storage Docs Hub](README.md)
+- [Memory Search Grouping and Transcript Pair Synthesis Contract Reference](../memory_search_grouping_and_transcript_pair_synthesis_contract_reference.md)
 - [Conversation Search Helper Term, Snippet, Grouping, and Timestamp Contract Reference](conversation_search_helper_term_snippet_grouping_and_timestamp_contract_reference.md)
 - [Conversation Search Runtime FTS, Semantic Fusion, and Summary-Fetch Contract Reference](conversation_search_runtime_fts_semantic_fusion_and_summary_fetch_contract_reference.md)
 - [Conversation Title Generation Runtime and Helper Contract Reference](conversation_title_generation_runtime_and_helper_contract_reference.md)

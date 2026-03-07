@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-memory-retrieval-pairing-contract): add a dedicated cross-layer memory retrieval contract page for main-process memory-tag injection, sidecar episodic grouping + transcript pair synthesis fallback, and backend `user_query_raw` extraction boundaries; wire links across sidecar/main/contracts/backend runtime references.
 - fix(frontend-chat-stream-screenshot-ref-whitespace-normalization): normalize backend `tool-output` screenshot attachment refs/urls in `chatStreamEventUtils` so whitespace-only `screenshot_ref`/`screenshot_url` no longer produce broken artifact links or suppress inline screenshot fallback; add deterministic utility + tool-handler regressions.
 - test(fullstack-tool-bundle-malformed-tools-tolerance): add backend `ToolBundleEventFormatter` compatibility coverage for non-list `tools` passthrough and frontend chat-stream regressions proving `tool-bundle` malformed/null `tools` payloads fail closed to `tools: []` without crashing or writing transcript tool-call rows.
 - fix(frontend-chat-stream-tool-bundle-malformed-tools-guard): normalize `formatToolBundlePayload` to treat non-array `payload.tools` as empty so malformed backend `tool-bundle` events cannot throw during renderer formatting, and add regression coverage in `ChatStreamFormatting.test.ts`.
