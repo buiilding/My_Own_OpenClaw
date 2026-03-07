@@ -22,6 +22,7 @@ title: "Frontend Main Docs Hub"
 - [Runtime Paths and Endpoints](runtime_paths_and_endpoints.md)
 - [Query Payload and Relay Reference](query_payload_and_relay_reference.md)
 - [WebSocket Handshake and Settings Sync Reference](websocket_handshake_and_settings_sync_reference.md)
+- [Wakeword Bridge Runtime Helper Reference](wakeword_bridge_runtime_helper_reference.md)
 - [VM Worker Runs Bridge and OpenAI Codex OAuth Runtime Reference](vm_worker_runs_bridge_and_openai_codex_oauth_runtime_reference.md)
 - [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md)
 - [IPC Event Replay and Transcript Session Sync Reference](ipc_event_replay_and_transcript_session_sync_reference.md)
