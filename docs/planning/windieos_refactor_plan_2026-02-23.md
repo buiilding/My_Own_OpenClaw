@@ -48,6 +48,27 @@ read_when:
 
 ## Frontend/Main Execution Log (2026-02-26)
 
+- Frontend wakeword bridge runtime extraction (2026-03-07):
+  - extracted focused wakeword bridge helpers from:
+    - `frontend/src/main/wakeword_bridge.cjs`
+    - into `frontend/src/main/wakeword_bridge_runtime.cjs`.
+  - moved wakeword status emission, stderr-line handling, audio-chunk normalization, and startup/process error message shaping into the helper so `wakeword_bridge.cjs` owns subprocess lifecycle and IPC wiring only.
+  - result:
+    - `frontend/src/main/wakeword_bridge.cjs` reduced to `316` LOC.
+    - frontend `knip` remains clean.
+    - frontend `jscpd` remains `0` TypeScript/JavaScript clones; remaining clones are still only in unrelated dirty backend Python files.
+  - regression coverage:
+    - added `tests/frontend/WakewordBridgeRuntime.test.cjs`.
+    - reran `tests/frontend/WakewordBridge.test.cjs`.
+  - verification:
+    - `cd frontend && npm run test:ci -- ../tests/frontend/WakewordBridge.test.cjs ../tests/frontend/WakewordBridgeRuntime.test.cjs`
+    - `cd frontend && npm run lint -- src/main/wakeword_bridge.cjs src/main/wakeword_bridge_runtime.cjs`
+    - `cd frontend && npm run audit:knip`
+    - `cd frontend && npm run audit:jscpd`
+  - audit delta:
+    - `knip` clean.
+    - `jscpd` clean for frontend (`0` TypeScript/JavaScript clones).
+
 - Frontend main index bootstrap runtime extraction (2026-03-07):
   - extracted main/chat/response/tray bootstrap wiring and VM-worker startup guard from:
     - `frontend/src/main/index.cjs`
