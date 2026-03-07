@@ -23,6 +23,16 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
   } = deps;
   let manualChatWindowPosition = null;
 
+  function getActiveMonitorId() {
+    const activeDisplayAffinity = getActiveDisplayAffinity();
+    if (!activeDisplayAffinity || typeof activeDisplayAffinity !== 'object') {
+      return null;
+    }
+    return typeof activeDisplayAffinity.monitor_id === 'string'
+      ? activeDisplayAffinity.monitor_id
+      : null;
+  }
+
   function getAnchoredChatBounds(chatBounds) {
     if (!chatBounds || typeof chatBounds !== 'object') {
       return null;
@@ -120,7 +130,18 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       return;
     }
     const [width, height] = chatWindow.getSize();
-    const { x, y } = manualChatWindowPosition || getChatWindowBounds(width, height);
+    const activeMonitorId = getActiveMonitorId();
+    const canUseManualPosition = Boolean(
+      manualChatWindowPosition
+      && (
+        !activeMonitorId
+        || !manualChatWindowPosition.monitorId
+        || manualChatWindowPosition.monitorId === activeMonitorId
+      )
+    );
+    const { x, y } = canUseManualPosition
+      ? manualChatWindowPosition
+      : getChatWindowBounds(width, height);
     chatWindow.setPosition(x, y, false);
     positionResponseWindow();
     positionContextLabelWindow();
@@ -136,7 +157,11 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     if (!Number.isFinite(x) || !Number.isFinite(y)) {
       return false;
     }
-    manualChatWindowPosition = { x, y };
+    manualChatWindowPosition = {
+      x,
+      y,
+      monitorId: getActiveMonitorId(),
+    };
     return true;
   }
 

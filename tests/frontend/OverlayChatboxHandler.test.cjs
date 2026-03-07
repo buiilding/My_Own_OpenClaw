@@ -26,12 +26,18 @@ describe('overlay_chatbox_handler move runtime', () => {
 
     handleMoveChatboxTo({ x: 100.8, y: 50.2 }, deps);
 
-    expect(deps.setManualChatWindowPosition).toHaveBeenCalledWith({ x: 101, y: 50 });
     expect(deps.chatWindow.setPosition).toHaveBeenCalledWith(101, 50, false);
     expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(deps.chatWindow);
+    expect(deps.setManualChatWindowPosition).toHaveBeenCalledWith({ x: 101, y: 50 });
     expect(deps.positionResponseWindow).toHaveBeenCalledTimes(1);
     expect(deps.positionContextLabelWindow).toHaveBeenCalledTimes(1);
     expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
+    expect(deps.chatWindow.setPosition.mock.invocationCallOrder[0]).toBeLessThan(
+      deps.syncWindowDisplayAffinity.mock.invocationCallOrder[0],
+    );
+    expect(deps.syncWindowDisplayAffinity.mock.invocationCallOrder[0]).toBeLessThan(
+      deps.setManualChatWindowPosition.mock.invocationCallOrder[0],
+    );
   });
 
   test('skips move when chat window is unavailable', () => {
