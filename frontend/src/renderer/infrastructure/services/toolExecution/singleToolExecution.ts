@@ -11,19 +11,8 @@ import {
   emitToolExecutionResult,
   sendToolExecutionResultToBackend,
 } from './ToolExecutionResultDispatch';
+import { logRendererToolScreenshotDebug } from './ToolScreenshotDebugTrace';
 import type { ToolExecutionCallbacks, ToolExecutionOptions, ToolExecutionResult } from './ToolExecutionTypes';
-
-const DEBUG_TOOL_SCREENSHOT = (
-  typeof process !== 'undefined'
-  && process?.env?.WINDIE_DEBUG_TOOL_SCREENSHOT === '1'
-);
-
-function logToolScreenshotDebug(stage: string, payload: Record<string, unknown>): void {
-  if (!DEBUG_TOOL_SCREENSHOT) {
-    return;
-  }
-  console.log('[ToolShotDebug][renderer]', stage, payload);
-}
 
 export async function executeSingleTool(
   callbacks: ToolExecutionCallbacks,
@@ -56,7 +45,7 @@ export async function executeSingleTool(
       isComputerTool,
     } = capture;
 
-    logToolScreenshotDebug('post-capture', {
+    logRendererToolScreenshotDebug('post-capture', {
       toolName,
       correlationId: options.correlationId,
       isComputerTool,
@@ -85,7 +74,7 @@ export async function executeSingleTool(
     const effectiveScreenshot = screenshotSelection.screenshot;
     const effectiveScreenshotContentType = screenshotSelection.screenshotContentType;
 
-    logToolScreenshotDebug('selection', {
+    logRendererToolScreenshotDebug('selection', {
       toolName,
       correlationId: options.correlationId,
       selectedHasInlineScreenshot: Boolean(effectiveScreenshot),
@@ -106,7 +95,7 @@ export async function executeSingleTool(
     const screenshotRef = uploaded?.artifactId || screenshotSelection.preUploadedScreenshot?.screenshotRef || null;
     const screenshotUrl = uploaded?.url || screenshotSelection.preUploadedScreenshot?.screenshotUrl || null;
 
-    logToolScreenshotDebug('post-upload', {
+    logRendererToolScreenshotDebug('post-upload', {
       toolName,
       correlationId: options.correlationId,
       uploadReturnedArtifact: Boolean(uploaded),
@@ -140,7 +129,7 @@ export async function executeSingleTool(
     // Preserve existing UI-before-backend ordering so transcript and chat rows appear immediately.
     emitToolExecutionResult(callbacks, executionResult);
 
-    logToolScreenshotDebug('before-backend-send', {
+    logRendererToolScreenshotDebug('before-backend-send', {
       toolName,
       correlationId: options.correlationId,
       includeScreenshot: isComputerTool,

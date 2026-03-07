@@ -101,6 +101,7 @@ function loadRendererView({
   vmMode = false,
   enableDevTransparencyUi = false,
   enableDebugStreamTrace = false,
+  enableDebugToolScreenshot = false,
 }) {
   const query = {};
   if (view) {
@@ -114,6 +115,9 @@ function loadRendererView({
   }
   if (enableDebugStreamTrace) {
     query.debug_stream = '1';
+  }
+  if (enableDebugToolScreenshot) {
+    query.debug_tool_screenshot = '1';
   }
 
   if (app.isPackaged) {
@@ -217,6 +221,7 @@ function createMainWindow({
   minimizeToTrayOnClose = true,
   enableDevTransparencyUi,
   enableDebugStreamTrace = false,
+  enableDebugToolScreenshot = false,
   initializeIpc,
   applyResponseOverlayPhase,
   prepareOverlayQueryCaptureFocus,
@@ -261,6 +266,7 @@ function createMainWindow({
     vmMode,
     enableDevTransparencyUi,
     enableDebugStreamTrace,
+    enableDebugToolScreenshot,
   });
 
   initializeIpc(mainWindow, {
@@ -308,6 +314,7 @@ function createChatWindow({
   platform,
   enableDevTransparencyUi,
   enableDebugStreamTrace = false,
+  enableDebugToolScreenshot = false,
   positionChatWindow,
   hideChatWindow,
   syncWakewordToggleForChatVisibility,
@@ -361,6 +368,7 @@ function createChatWindow({
       path,
       enableDevTransparencyUi,
       enableDebugStreamTrace,
+      enableDebugToolScreenshot,
     });
   };
 
@@ -404,6 +412,7 @@ function createResponseWindow({
   platform,
   enableDevTransparencyUi,
   enableDebugStreamTrace = false,
+  enableDebugToolScreenshot = false,
   enableOsToolGhostDebug,
   responseWindowDebugView,
   positionResponseWindow,
@@ -463,6 +472,7 @@ function createResponseWindow({
       path,
       enableDevTransparencyUi,
       enableDebugStreamTrace,
+      enableDebugToolScreenshot,
     });
   };
 
