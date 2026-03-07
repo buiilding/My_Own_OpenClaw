@@ -1,10 +1,8 @@
 import { useMemo } from 'react';
-import { useChatLoopUiState } from './useChatLoopUiState';
 import {
-  findLatestVisibleAssistantReply,
-  hasVisibleChatTurnReply,
-  resolveChatTurnPresentationState,
+  resolveCurrentTurnPresentationState,
 } from '../utils/state/chatTurnPresentationState';
+import { useChatLoopTransportState } from './useChatLoopUiState';
 
 export function useCurrentTurnPresentationState({
   phase,
@@ -13,33 +11,48 @@ export function useCurrentTurnPresentationState({
   dismissedResponseId = null,
   allowedTypes,
 }) {
-  const activeResponse = useMemo(
-    () => findLatestVisibleAssistantReply(messages, allowedTypes),
-    [allowedTypes, messages],
-  );
-  const hasVisibleReply = hasVisibleChatTurnReply(activeResponse);
-  const loopState = useChatLoopUiState({
+  const optimisticPresentationState = useMemo(() => resolveCurrentTurnPresentationState({
     phase,
     isSending,
-    hasVisibleReply,
+    messages,
+    dismissedResponseId,
+    allowedTypes,
+    transportConnected: true,
+  }), [
+    allowedTypes,
+    dismissedResponseId,
+    isSending,
+    messages,
+    phase,
+  ]);
+
+  const loopTransportState = useChatLoopTransportState({
+    snapshotSignature: [
+      phase || 'idle',
+      isSending ? '1' : '0',
+      optimisticPresentationState.hasVisibleReply ? '1' : '0',
+    ].join('|'),
+    isBusy: optimisticPresentationState.isBusy,
   });
 
-  const presentationState = useMemo(() => resolveChatTurnPresentationState({
+  const presentationState = useMemo(() => resolveCurrentTurnPresentationState({
+    phase,
+    isSending,
     messages,
-    loopUiState: loopState.loopUiState,
     dismissedResponseId,
     allowedTypes,
-    activeResponse,
+    transportConnected: loopTransportState.isPresentationTransportConnected,
   }), [
-    activeResponse,
     allowedTypes,
     dismissedResponseId,
-    loopState.loopUiState,
+    isSending,
+    loopTransportState.isPresentationTransportConnected,
     messages,
+    phase,
   ]);
 
   return {
-    ...loopState,
     ...presentationState,
+    isTransportConnected: loopTransportState.isTransportConnected,
   };
 }

@@ -88,7 +88,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const {
     isBusy: composerBusy,
     isTransportConnected,
-    showAssistantAwaitingDot,
+    awaitingDotTargetMessageId,
   } = useCurrentTurnPresentationState({
     phase: streamPhase,
     isSending,
@@ -340,7 +340,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
             conversationRef={transcriptSessionInfo.conversationRef || null}
             thinkingStatus={thinkingStatus}
             thinkingSourceEventType={thinkingSourceEventType}
-            showAssistantAwaitingDot={showAssistantAwaitingDot}
+            awaitingDotTargetMessageId={awaitingDotTargetMessageId}
             enableAssistantActions
             enableUserActions
             disableAssistantActions={isSending || canStop}

@@ -1,9 +1,9 @@
 import {
-  findAwaitingDotTargetMessageId,
   resolveCompactionStatusText,
   shouldRenderAssistantActions,
   shouldRenderUserActions,
 } from '../../frontend/src/renderer/features/chat/utils/message/messageListState';
+import { findAwaitingDotTargetMessageId } from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';
 
 describe('messageListState', () => {
   test('findAwaitingDotTargetMessageId returns latest user message id when enabled', () => {

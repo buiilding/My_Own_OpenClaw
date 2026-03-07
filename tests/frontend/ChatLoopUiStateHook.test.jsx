@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, render, screen } from '@testing-library/react';
-import { useChatLoopUiState } from '../../frontend/src/renderer/features/chat/hooks/useChatLoopUiState';
+import { useChatLoopTransportState } from '../../frontend/src/renderer/features/chat/hooks/useChatLoopUiState';
+import { resolveChatLoopUiState } from '../../frontend/src/renderer/features/chat/utils/state/chatLoopUiState';
 
 const mockListeners = new Map();
 const mockInvoke = jest.fn();
@@ -29,23 +30,34 @@ function LoopStateProbe({
   hasVisibleReply = false,
   recoveryWatchdogMs = 60,
 }) {
-  const {
-    loopUiState,
-    isBusy,
-    isAwaitingReply,
-  } = useChatLoopUiState({
+  const optimisticLoopUiState = resolveChatLoopUiState({
     phase,
     isSending,
     hasVisibleReply,
+    transportConnected: true,
+  });
+  const transportState = useChatLoopTransportState({
+    snapshotSignature: `${phase || 'idle'}|${isSending ? '1' : '0'}|${hasVisibleReply ? '1' : '0'}`,
+    isBusy: optimisticLoopUiState !== 'idle',
     recoveryWatchdogMs,
   });
+  const loopUiState = resolveChatLoopUiState({
+    phase,
+    isSending,
+    hasVisibleReply,
+    transportConnected: transportState.isPresentationTransportConnected,
+  });
+  const {
+    isTransportConnected,
+  } = transportState;
 
   return (
     <div
       data-testid="loop-state-probe"
       data-loop-ui-state={loopUiState}
-      data-is-busy={isBusy ? '1' : '0'}
-      data-is-awaiting-reply={isAwaitingReply ? '1' : '0'}
+      data-is-busy={loopUiState !== 'idle' ? '1' : '0'}
+      data-is-awaiting-reply={loopUiState === 'awaiting-reply' ? '1' : '0'}
+      data-is-transport-connected={isTransportConnected ? '1' : '0'}
     />
   );
 }

@@ -214,7 +214,7 @@ describe('MessageList assistant actions', () => {
         messages={[
           { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
         ]}
-        showAssistantAwaitingDot
+        awaitingDotTargetMessageId="user-1"
       />,
     );
 
@@ -229,7 +229,7 @@ describe('MessageList assistant actions', () => {
           { id: 'assistant-1', text: 'reply', sender: 'assistant', type: 'llm-text' },
           { id: 'user-2', text: 'second', sender: 'user', type: 'user' },
         ]}
-        showAssistantAwaitingDot
+        awaitingDotTargetMessageId="user-2"
       />,
     );
 

@@ -1,10 +1,5 @@
 import { useEffect, useMemo, useReducer } from 'react';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import {
-  isChatLoopAwaitingReply,
-  isChatLoopBusy,
-  resolveChatLoopUiState,
-} from '../utils/state/chatLoopUiState';
 
 const CHAT_LOOP_MACHINE_EVENT = Object.freeze({
   SNAPSHOT: 'snapshot',
@@ -12,14 +7,10 @@ const CHAT_LOOP_MACHINE_EVENT = Object.freeze({
   RECOVERY_TIMEOUT: 'recovery-timeout',
 });
 
-function buildSnapshotSignature({ phase, isSending, hasVisibleReply }) {
-  return `${phase || 'idle'}|${isSending ? '1' : '0'}|${hasVisibleReply ? '1' : '0'}`;
-}
-
 function createInitialChatLoopMachineState() {
   return {
-    loopUiState: 'idle',
     transportConnected: true,
+    forceIdle: false,
     recoveryWatchdogArmed: false,
     pendingRecoveryFromDisconnect: false,
     preDisconnectSnapshotSignature: null,
@@ -38,7 +29,7 @@ function reduceChatLoopMachineState(state, event) {
       return {
         ...state,
         transportConnected: false,
-        loopUiState: 'idle',
+        forceIdle: false,
         recoveryWatchdogArmed: false,
         pendingRecoveryFromDisconnect: true,
         preDisconnectSnapshotSignature: state.currentSnapshotSignature,
@@ -53,6 +44,7 @@ function reduceChatLoopMachineState(state, event) {
     return {
       ...state,
       transportConnected: true,
+      forceIdle: false,
       recoveryWatchdogArmed: true,
       pendingRecoveryFromDisconnect: false,
     };
@@ -64,7 +56,7 @@ function reduceChatLoopMachineState(state, event) {
     }
     return {
       ...state,
-      loopUiState: 'idle',
+      forceIdle: true,
       recoveryWatchdogArmed: false,
       preDisconnectSnapshotSignature: null,
     };
@@ -74,17 +66,7 @@ function reduceChatLoopMachineState(state, event) {
     return state;
   }
 
-  const snapshotSignature = buildSnapshotSignature({
-    phase: event.phase,
-    isSending: event.isSending === true,
-    hasVisibleReply: event.hasVisibleReply === true,
-  });
-  const nextLoopUiState = resolveChatLoopUiState({
-    phase: event.phase,
-    isSending: event.isSending === true,
-    hasVisibleReply: event.hasVisibleReply === true,
-    transportConnected: state.transportConnected,
-  });
+  const snapshotSignature = event.snapshotSignature;
   const observedProgressSinceDisconnect = (
     state.recoveryWatchdogArmed
     && typeof state.preDisconnectSnapshotSignature === 'string'
@@ -93,14 +75,21 @@ function reduceChatLoopMachineState(state, event) {
   );
   const keepRecoveryWatchdogArmed = (
     state.recoveryWatchdogArmed
-    && nextLoopUiState !== 'idle'
+    && event.isBusy === true
     && !observedProgressSinceDisconnect
+  );
+  const clearForcedIdle = (
+    state.forceIdle === true
+    && (
+      event.isBusy !== true
+      || snapshotSignature !== state.currentSnapshotSignature
+    )
   );
 
   return {
     ...state,
-    loopUiState: nextLoopUiState,
     currentSnapshotSignature: snapshotSignature,
+    forceIdle: clearForcedIdle ? false : state.forceIdle,
     recoveryWatchdogArmed: keepRecoveryWatchdogArmed,
     preDisconnectSnapshotSignature: keepRecoveryWatchdogArmed
       ? state.preDisconnectSnapshotSignature
@@ -108,10 +97,9 @@ function reduceChatLoopMachineState(state, event) {
   };
 }
 
-export function useChatLoopUiState({
-  phase,
-  isSending,
-  hasVisibleReply = false,
+export function useChatLoopTransportState({
+  snapshotSignature,
+  isBusy = false,
   recoveryWatchdogMs = 3500,
 }) {
   const [machineState, dispatch] = useReducer(
@@ -123,11 +111,10 @@ export function useChatLoopUiState({
   useEffect(() => {
     dispatch({
       type: CHAT_LOOP_MACHINE_EVENT.SNAPSHOT,
-      phase,
-      isSending,
-      hasVisibleReply,
+      snapshotSignature,
+      isBusy,
     });
-  }, [hasVisibleReply, isSending, machineState.transportConnected, phase]);
+  }, [isBusy, machineState.transportConnected, snapshotSignature]);
 
   useEffect(() => {
     if (!ON_CHANNELS?.IPC_STATUS) {
@@ -159,7 +146,7 @@ export function useChatLoopUiState({
   }, []);
 
   useEffect(() => {
-    if (!machineState.recoveryWatchdogArmed || !isChatLoopBusy(machineState.loopUiState)) {
+    if (!machineState.recoveryWatchdogArmed || isBusy !== true) {
       return undefined;
     }
     const timerId = window.setTimeout(() => {
@@ -168,12 +155,13 @@ export function useChatLoopUiState({
     return () => {
       window.clearTimeout(timerId);
     };
-  }, [machineState.loopUiState, machineState.recoveryWatchdogArmed, recoveryWatchdogMs]);
+  }, [isBusy, machineState.recoveryWatchdogArmed, recoveryWatchdogMs]);
 
   return useMemo(() => ({
-    loopUiState: machineState.loopUiState,
-    isBusy: isChatLoopBusy(machineState.loopUiState),
-    isAwaitingReply: isChatLoopAwaitingReply(machineState.loopUiState),
     isTransportConnected: machineState.transportConnected,
-  }), [machineState.loopUiState, machineState.transportConnected]);
+    isPresentationTransportConnected: (
+      machineState.transportConnected
+      && machineState.forceIdle !== true
+    ),
+  }), [machineState.forceIdle, machineState.transportConnected]);
 }
