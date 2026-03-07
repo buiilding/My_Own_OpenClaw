@@ -147,7 +147,11 @@ describe('overlay_visibility_handler', () => {
 
   test('prepare-chatbox-for-screenshot hides the dashboard surface when sender is main window', async () => {
     const hideChatWindow = jest.fn().mockReturnValue({ success: true, hidden: true });
-    const hideMainWindow = jest.fn().mockReturnValue({ success: true, hidden: true });
+    const hideMainWindow = jest.fn().mockResolvedValue({
+      success: true,
+      suppressedForScreenshot: true,
+      minimized: true,
+    });
     const waitInMain = jest.fn().mockResolvedValue(undefined);
     const event = {
       sender: { id: 'main-webcontents' },
@@ -173,7 +177,8 @@ describe('overlay_visibility_handler', () => {
 
     expect(result).toEqual({
       success: true,
-      hidden: true,
+      suppressedForScreenshot: true,
+      minimized: true,
       hideSurface: true,
       hiddenSurface: 'main-window',
       waitMs: 2000,
@@ -183,6 +188,7 @@ describe('overlay_visibility_handler', () => {
       settleTime: expect.any(Number),
     });
     expect(hideMainWindow).toHaveBeenCalledTimes(1);
+    expect(hideMainWindow).toHaveBeenCalledWith({ suppressForScreenshot: true });
     expect(hideChatWindow).not.toHaveBeenCalled();
   });
 

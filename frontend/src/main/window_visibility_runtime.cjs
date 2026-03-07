@@ -10,6 +10,44 @@ function setWindowOpacityIfSupported(targetWindow, opacity) {
   targetWindow.setOpacity(opacity);
 }
 
+function isWindowMinimized(targetWindow) {
+  return Boolean(
+    targetWindow
+    && typeof targetWindow.isMinimized === 'function'
+    && targetWindow.isMinimized()
+  );
+}
+
+function isWindowVisible(targetWindow) {
+  return Boolean(
+    targetWindow
+    && typeof targetWindow.isVisible === 'function'
+    && targetWindow.isVisible()
+  );
+}
+
+function isMainWindowSuppressedForScreenshot(targetWindow) {
+  return isWindowMinimized(targetWindow) || !isWindowVisible(targetWindow);
+}
+
+async function waitForMainWindowSuppressedForScreenshot(
+  targetWindow,
+  {
+    waitInMain = (waitMs) => new Promise((resolve) => setTimeout(resolve, waitMs)),
+    timeoutMs = 1200,
+    pollMs = 16,
+  } = {},
+) {
+  const deadline = Date.now() + Math.max(0, timeoutMs);
+  while (Date.now() <= deadline) {
+    if (isMainWindowSuppressedForScreenshot(targetWindow)) {
+      return true;
+    }
+    await waitInMain(pollMs);
+  }
+  return isMainWindowSuppressedForScreenshot(targetWindow);
+}
+
 function resolveShowTargetDisplayAffinity({
   targetDisplayAffinity = null,
   targetWindow = null,
@@ -135,16 +173,40 @@ function hideChatWindow(deps = {}) {
   return { success: true };
 }
 
-function hideMainWindow(deps = {}) {
-  const { mainWindow } = deps;
+async function hideMainWindow(options = {}, deps = {}) {
+  const {
+    mainWindow,
+    waitInMain,
+  } = deps;
+  const suppressForScreenshot = options?.suppressForScreenshot === true;
   if (!mainWindow || mainWindow.isDestroyed()) {
     return { success: false, reason: 'Main window not available' };
   }
   if (mainWindow.isVisible()) {
     setWindowOpacityIfSupported(mainWindow, 0);
-    mainWindow.hide();
+    if (
+      suppressForScreenshot
+      && typeof mainWindow.minimize === 'function'
+      && typeof mainWindow.isMinimized === 'function'
+      && !mainWindow.isMinimized()
+    ) {
+      mainWindow.minimize();
+      const suppressed = await waitForMainWindowSuppressedForScreenshot(mainWindow, { waitInMain });
+      if (!suppressed) {
+        mainWindow.hide();
+      }
+    } else {
+      mainWindow.hide();
+    }
   }
-  return { success: true };
+  const suppressedForScreenshot = suppressForScreenshot
+    ? await waitForMainWindowSuppressedForScreenshot(mainWindow, { waitInMain })
+    : !mainWindow.isVisible();
+  return {
+    success: true,
+    suppressedForScreenshot,
+    minimized: isWindowMinimized(mainWindow),
+  };
 }
 
 function showMainWindow(options = {}, deps = {}) {
@@ -181,6 +243,9 @@ function showMainWindow(options = {}, deps = {}) {
       centerWindowOnDisplayWorkArea(mainWindow, resolvedTargetDisplayAffinity);
     }
   }
+  if (isWindowMinimized(mainWindow) && typeof mainWindow.restore === 'function') {
+    mainWindow.restore();
+  }
   setWindowOpacityIfSupported(mainWindow, 1);
   if (!mainWindow.isVisible()) {
     if (!focus && typeof mainWindow.showInactive === 'function') {
@@ -207,8 +272,10 @@ function showMainWindow(options = {}, deps = {}) {
 module.exports = {
   hideMainWindow,
   hideChatWindow,
+  isMainWindowSuppressedForScreenshot,
   resolveShowTargetDisplayAffinity,
   setWindowOpacityIfSupported,
   showChatWindow,
   showMainWindow,
+  waitForMainWindowSuppressedForScreenshot,
 };

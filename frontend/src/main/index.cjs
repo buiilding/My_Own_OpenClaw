@@ -260,8 +260,8 @@ function hideChatWindow() {
   });
 }
 
-function hideMainWindow() {
-  return hideMainWindowRuntime({
+async function hideMainWindow(options = {}) {
+  return await hideMainWindowRuntime(options, {
     mainWindow,
   });
 }
