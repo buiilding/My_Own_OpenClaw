@@ -72,7 +72,7 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
     ]);
   });
 
-  test('collapses and restores the active WindieOS surface outside Linux with compositor settle delay', async () => {
+  test('collapses and restores the active WindieOS surface outside Linux without settle delay', async () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
       value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
@@ -86,7 +86,7 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
       timing: {
         waitTime: 0,
         hideInvokeTime: expect.any(Number),
-        settleTime: 0.12,
+        settleTime: 0,
       },
     });
     await expect(restoreChatPillInactive()).resolves.toEqual({
@@ -96,7 +96,7 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
     });
 
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 0, hideSurface: true }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });

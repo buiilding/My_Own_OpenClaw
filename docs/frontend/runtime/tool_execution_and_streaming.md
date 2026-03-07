@@ -95,7 +95,7 @@ Responsibilities:
 - centralized mode resolution (`none | interactive | screenshot`) for single tools and bundles
 - shared active-surface collapse/restore helper used by both tool-execution and screenshot-capture lifecycles
 - screenshot prep now hides whichever WindieOS surface currently owns the capture (`chatbox`, `main-window`, or none) and carries that `hiddenSurface` contract through restore so dashboard-originated captures do not leak the dashboard into the screenshot
-- platform capture prep still routes through `platform/chatPillVisibility/*`, and all OS runtimes now use the same active-surface hide/restore contract with a bounded compositor settle delay before screenshot capture
+- platform capture prep still routes through `platform/chatPillVisibility/*`, but those runtimes now implement active-surface prep/restore instead of a chat-pill-only contract; Linux adds compositor settle, while Windows/macOS use the same hide/restore path with zero settle delay
 - screenshot capture prep now uses a bounded main-process `prepare-chatbox-for-screenshot -> screenshot` wait; the prep handler owns both the intentional pre-capture wait and active-surface hide/settle timing so hidden-renderer timer throttling cannot stretch either phase
 - automatic screenshot monitor selection is main-owned: renderer screenshot calls stay display-agnostic, while Electron main resolves the visible sender window's display first and falls back to the active query-origin display affinity for hidden-dashboard tool turns
 - monitor-scoped screenshot args now include both target monitor bounds and full virtual desktop bounds, allowing the sidecar screenshot tool to crop a single monitor even when the OS backend returns one all-displays image
