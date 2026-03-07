@@ -191,7 +191,7 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     expect(IpcBridge.invoke).not.toHaveBeenCalled();
   });
 
-  test('skips Linux-only capture hide bookkeeping on Windows', async () => {
+  test('applies shared capture hide bookkeeping on Windows', async () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
       value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
@@ -207,13 +207,13 @@ describe('surfaceOrchestrator capture lifecycle', () => {
       timing: {
         waitTime: 0,
         hideInvokeTime: 0.001,
-        settleTime: 0,
+        settleTime: 0.12,
       },
     });
 
     await restoreScreenshotCaptureVisibility(preparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 0, hideSurface: true }],
+      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });

@@ -152,7 +152,7 @@ Tool-execution chat-pill lifecycle (interactive computer-use path):
   - `main-window` for dashboard-originated capture
   - `none` when no WindieOS surface is visible
 - restore is symmetric with prep: capture lifecycles show the same hidden surface again with non-focus-stealing window-control IPC (`show-chatbox { focus: false }` or `show-main-window { focus: false }`)
-- Linux prep waits a bounded compositor-settle interval (`120ms`) after hiding the owning surface before invoking the screenshot tool so neither the pill nor the dashboard leaks into captured frames; Windows/macOS use the same active-surface hide/restore contract with `settleMs=0`
+- screenshot prep now waits a bounded compositor-settle interval (`120ms`) after hiding the owning WindieOS surface on Linux, Windows, and macOS before invoking the screenshot tool, reducing dashboard/chat fade-through in captured frames
 - response overlay renderer now listens to `response-overlay-visibility`; hide marks the cached frame as hidden and show forces a fresh `set-responsebox-size` report (including `compact_hover`) so typing-indicator compact hover offset is re-applied after capture hide/show cycles
 
 Dashboard-to-chat-pill conversation continuity:
