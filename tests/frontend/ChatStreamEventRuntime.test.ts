@@ -230,6 +230,54 @@ describe('chatStreamEventRuntime', () => {
     expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
   });
 
+  test('stale turn guard keeps same-turn packets during terminal pending handoff when an incomplete current-turn assistant placeholder is present', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      messages: [
+        {
+          id: 'assistant-placeholder',
+          sender: 'assistant',
+          text: '',
+          type: 'llm-text' as const,
+          isComplete: false,
+          turnRef: 'turn-current',
+          sourceEventType: 'streaming-response',
+        },
+      ],
+      isSending: true,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-current',
+        phase: 'complete',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          messages: [
+            {
+              id: 'assistant-placeholder',
+              sender: 'assistant',
+              text: '',
+              type: 'llm-text' as const,
+              isComplete: false,
+              turnRef: 'turn-current',
+              sourceEventType: 'streaming-response',
+            },
+          ],
+          isSending: true,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-current',
+            phase: 'complete',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
+  });
+
   test('stale turn guard allows next-turn packets during idle pending handoff', () => {
     useChatStore.setState((state) => ({
       ...state,

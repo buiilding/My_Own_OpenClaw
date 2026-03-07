@@ -46,6 +46,18 @@ function hasOptimisticPendingUserTurn(workspace: ChatWorkspaceState): boolean {
   return lastMessage?.sender === 'user';
 }
 
+function hasIncompleteCurrentTurnAssistantPlaceholder(
+  workspace: ChatWorkspaceState,
+  eventTurnRef: string,
+): boolean {
+  const lastMessage = workspace.messages[workspace.messages.length - 1];
+  return (
+    lastMessage?.sender === 'assistant'
+    && lastMessage?.isComplete === false
+    && normalizeTurnRef(lastMessage?.turnRef) === eventTurnRef
+  );
+}
+
 function shouldIgnoreForTerminalPendingHandoff(
   workspace: ChatWorkspaceState,
   eventTurnRef: string,
@@ -55,6 +67,9 @@ function shouldIgnoreForTerminalPendingHandoff(
     return false;
   }
   if (!activeTurnRef || eventTurnRef !== activeTurnRef) {
+    return false;
+  }
+  if (hasIncompleteCurrentTurnAssistantPlaceholder(workspace, eventTurnRef)) {
     return false;
   }
   return hasOptimisticPendingUserTurn(workspace) === false;
