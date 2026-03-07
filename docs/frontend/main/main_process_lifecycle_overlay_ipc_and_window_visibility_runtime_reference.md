@@ -44,6 +44,7 @@ Delegated runtime modules:
     - `createTray`
   - overlay renderer registration
 - display-metrics listener for overlay repositioning (non-VM mode only)
+  - listener syncs active display affinity from visible WindieOS surfaces via `syncVisibleSurfaceDisplayAffinity(...)` (chat first, dashboard second) before `positionChatWindow()` / `positionResponseWindow()`
 - global wakeword hotkey registration and toggle behavior (non-VM mode only)
 - app activation behavior (`create*Window` path when all windows closed, else `showMainWindow`)
 - app quit lifecycle:
@@ -123,7 +124,10 @@ Behavior:
 
 - captures previous external focused window snapshot before transition when tracker is available
 - hide main window if visible
-- when chat window is hidden and no explicit display target is provided, resolves target monitor from stored active display affinity (`getActiveDisplayAffinity()`)
+- display target resolution is centralized in `resolveShowTargetDisplayAffinity(...)`:
+  - explicit `options.targetDisplayAffinity` wins
+  - otherwise stored active display affinity is used only when the chat window is hidden
+  - visible/destroyed/missing windows do not trigger fallback retargeting
 - applies resolved display affinity (explicit or stored fallback) before show by updating active affinity + repositioning chat window
 - show/focus chat window
 - optionally restore response overlay if active stream/visible flag says so
@@ -144,11 +148,15 @@ Behavior:
 Behavior:
 
 - hide chat overlay when visible
-- optional display-targeted placement (`targetDisplayAffinity`) before show/focus:
+- optional display-targeted placement is resolved through `resolveShowTargetDisplayAffinity(...)`:
+  - explicit `options.targetDisplayAffinity` wins
+  - fallback to stored active affinity is used only when main window is hidden
+  - visible/destroyed/missing windows do not trigger fallback retargeting
+- resolved display-targeted placement before show/focus:
   - centered in target display work area for normal open
   - fit to target display work area when `maximize=true`
   - if currently maximized, unmaximize before display-targeted placement
-- when main window is hidden and `targetDisplayAffinity` is omitted, reuses stored active display affinity to preserve monitor continuity
+- hidden-window no-target path therefore preserves monitor continuity without retargeting already-visible windows
 - show main window
 - optional maximize flow (`restore` + `maximize`)
 - optional focus

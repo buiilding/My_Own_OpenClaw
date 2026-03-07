@@ -69,6 +69,19 @@ Screenshot payload shape (`toScreenshotDisplayBounds(...)`):
 - resolves owner window from sender webContents
 - applies window-level rules above
 
+`resolveVisibleSurfaceDisplayAffinity({ screen, chatWindow, mainWindow })`:
+
+- checks visible chat window first (`requireVisible=true`)
+- checks visible main window second (`requireVisible=true`)
+- returns `null` when neither visible surface resolves to a display affinity
+
+`syncVisibleSurfaceDisplayAffinity({ screen, chatWindow, mainWindow, syncActiveDisplayAffinityForWindow })`:
+
+- syncs stored active display affinity from visible chat window first
+- falls back to visible main window second
+- returns synced affinity (or `null` when no visible surface qualifies)
+- keeps precedence consistent with active-surface routing (chat surface preferred over dashboard)
+
 ## Active Query Display-Affinity Lifecycle
 
 Main process stores active query-origin display affinity via:
@@ -79,6 +92,7 @@ Reset conditions:
 
 - backend/session reset in `ipc.cjs` intentionally does **not** clear active display affinity
 - active affinity persists across websocket/session resets and is replaced by the next explicit `setActiveDisplayAffinity(...)` update (query send or window-surface sync paths)
+- non-VM display-metrics listener now calls `syncVisibleSurfaceDisplayAffinity(...)` before overlay repositioning so monitor affinity follows whichever WindieOS surface is currently visible after display layout changes
 
 Stored state access:
 
@@ -120,6 +134,7 @@ When no target affinity is provided:
 2. Clearing active affinity on backend/session reset can collapse reconnect-time screenshot/main-window routing to primary-display fallback before a new sender-affinity write occurs.
 3. Overwriting explicit renderer screenshot `display_bounds` with fallback affinity breaks user-selected monitor capture.
 4. Regressing cloned affinity storage can allow downstream mutation to corrupt future routing.
+5. Diverging helper precedence between resolve and sync paths (chat first, then main) can cause monitor churn after display-metrics changes.
 
 ## Related Pages
 

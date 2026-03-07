@@ -90,6 +90,7 @@ Reposition triggers:
 
 - explicit `positionChatWindow()` and `positionResponseWindow()` calls
 - display metric change event (`screen.on('display-metrics-changed', ...)`)
+  - syncs stored active display affinity from visible WindieOS surfaces (`syncVisibleSurfaceDisplayAffinity`: chat first, then dashboard) before repositioning overlays
 - response resize IPC handler (`set-responsebox-size`)
 
 ## Overlay Phase Model
@@ -128,7 +129,10 @@ Windows-specific external focus tracking:
 `showChatWindow({focus})` behavior:
 
 - hides main window if visible
-- when chat window is hidden and caller omits an explicit display target, reuses stored active display affinity before show
+- display target resolution is centralized in `resolveShowTargetDisplayAffinity(...)`:
+  - explicit display target wins
+  - stored active display affinity fallback applies only when chat window is hidden
+  - visible/destroyed/missing target windows do not trigger fallback retargeting
 - shows chat overlay and restores response overlay if stream is active
 - `focus=false` path uses non-activating show (`showInactive`) when available to avoid stealing active external window
 - `focus=true` path focuses chat overlay and emits `chatbox-focus` to renderer
@@ -182,7 +186,10 @@ Main bridge fanout channel (`ipc.cjs`):
 `show-main-window` behavior details:
 
 - hides overlay windows before dashboard handoff.
-- when main window is hidden and caller omits `targetDisplayAffinity`, opens on stored active display affinity.
+- `resolveShowTargetDisplayAffinity(...)` governs target selection:
+  - explicit `targetDisplayAffinity` wins
+  - stored active affinity fallback applies only when main window is hidden
+  - visible/destroyed/missing target windows do not trigger fallback retargeting
 - `maximize=true` restores and maximizes main window before focus.
 - `open` target still routes to renderer as `main-window-open-target`.
 
