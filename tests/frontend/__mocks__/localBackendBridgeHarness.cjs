@@ -11,6 +11,21 @@ jest.mock('electron', () => ({
   app: {
     isPackaged: false,
   },
+  BrowserWindow: {
+    fromWebContents: jest.fn(),
+  },
+  screen: {
+    getPrimaryDisplay: jest.fn(() => ({
+      id: 1,
+      bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+      workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+    })),
+    getDisplayMatching: jest.fn(() => ({
+      id: 1,
+      bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+      workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+    })),
+  },
 }));
 
 jest.mock('uuid', () => ({
@@ -38,6 +53,7 @@ let stderrHandler;
 let processHandlers;
 let pythonProcess;
 let bridge;
+let currentMainWindow;
 
 function resetHarnessState() {
   jest.resetModules();
@@ -49,6 +65,9 @@ function resetHarnessState() {
 
 function createMainWindow() {
   return {
+    isDestroyed: jest.fn(() => false),
+    isVisible: jest.fn(() => true),
+    getBounds: jest.fn(() => ({ x: 0, y: 0, width: 1200, height: 800 })),
     webContents: {
       send: jest.fn(),
     },
@@ -73,6 +92,8 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
   bridge = require(path.join(__dirname, '../../../frontend/src/main/local_backend_bridge.cjs'));
 
   const mainWindow = createMainWindow();
+  currentMainWindow = mainWindow;
+  electron.BrowserWindow.fromWebContents.mockImplementation(() => currentMainWindow);
   bridge.initializeLocalBackendBridge(mainWindow, {
     getFrontendConfig: () => options.frontendConfig || null,
     isPackaged: options.isPackaged === true,
