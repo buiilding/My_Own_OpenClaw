@@ -131,25 +131,43 @@ function resolveDisplayAffinityForWebContents({
   return resolveDisplayAffinityForWindow(screen, targetWindow, { requireVisible });
 }
 
+function resolveWindowForWebContents(BrowserWindow, webContents) {
+  if (!BrowserWindow || typeof BrowserWindow.fromWebContents !== 'function' || !webContents) {
+    return null;
+  }
+  return BrowserWindow.fromWebContents(webContents);
+}
+
 function resolveActiveSurfaceDisplayAffinity({
   BrowserWindow,
   screen,
   webContents,
   chatWindow = null,
   mainWindow = null,
+  resolveWindowForWebContents: resolveSenderWindow = resolveWindowForWebContents,
   resolveDisplayAffinityForWindow: resolveWindowAffinity = resolveDisplayAffinityForWindow,
   resolveDisplayAffinityForWebContents: resolveWebContentsAffinity = resolveDisplayAffinityForWebContents,
   getActiveDisplayAffinity: getStoredAffinity = getActiveDisplayAffinity,
 }) {
   if (webContents) {
-    const visibleSenderDisplayAffinity = resolveWebContentsAffinity({
-      BrowserWindow,
-      screen,
-      webContents,
-      requireVisible: true,
-    });
-    if (visibleSenderDisplayAffinity) {
-      return visibleSenderDisplayAffinity;
+    const senderWindow = resolveSenderWindow(BrowserWindow, webContents);
+    const senderIsSurfaceWindow = Boolean(
+      senderWindow
+      && (
+        senderWindow === chatWindow
+        || senderWindow === mainWindow
+      )
+    );
+    if (senderIsSurfaceWindow) {
+      const visibleSenderDisplayAffinity = resolveWebContentsAffinity({
+        BrowserWindow,
+        screen,
+        webContents,
+        requireVisible: true,
+      });
+      if (visibleSenderDisplayAffinity) {
+        return visibleSenderDisplayAffinity;
+      }
     }
   }
 
@@ -283,6 +301,7 @@ module.exports = {
   resolveActiveSurfaceDisplayAffinity,
   resolveDisplayAffinityForWindow,
   resolveDisplayAffinityForWebContents,
+  resolveWindowForWebContents,
   setActiveDisplayAffinity,
   syncActiveDisplayAffinityForWindow,
   toScreenshotDisplayBounds,
