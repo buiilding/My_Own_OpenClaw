@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(fullstack-terminal-stream-gates-regressions): add deterministic backend/frontend regressions that lock terminal handoff behavior by ignoring same-turn packets during frontend `error` pending handoff and suppressing backend post-error stream events (including late `streaming-complete`) without emitting fallback completion.
 - docs(frontend-runtime-paths-and-sidecar-protocol-wakeword-helper-scope): refresh runtime-paths and sidecar services/protocol hubs to include `wakeword_bridge_runtime.cjs` in canonical module scope and add wakeword startup/readiness debug guidance tied to helper-level error/status handling.
 - fix(frontend-display-affinity): write active display affinity immediately when opening the dashboard onto an explicit target display, so monitor fallback updates from the chosen open target even before Electron show/move events fire.
 - fix(frontend-display-affinity): eagerly sync display affinity inside `showChatWindow`, `showMainWindow`, and manual chat-pill drag handling so active-monitor fallback updates immediately from control flow instead of depending on asynchronous Electron show/move event ordering.
