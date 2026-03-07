@@ -827,10 +827,14 @@ Tool execution result from backend.
   "execution_time": 0.42,
   "output": "Formatted tool output",
   "error": null,
+  "screenshot_ref": "uuid.jpg",
   "screenshot": "base64-encoded-screenshot",
   "metadata": { ... }
 }
 ```
+
+`screenshot_ref` is the preferred attachment field when the screenshot was uploaded as an artifact.
+`screenshot` remains the inline fallback when no artifact reference is available.
 
 **Example**:
 ```json
@@ -843,7 +847,7 @@ Tool execution result from backend.
     "execution_time": 0.42,
     "output": "Clicked submit button",
     "error": null,
-    "screenshot": "iVBORw0KGgoAAAANSUhEUgAA...",
+    "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg",
     "metadata": {
       "active_window": "Browser"
     }

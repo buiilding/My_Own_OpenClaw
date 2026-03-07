@@ -13,6 +13,7 @@ type BuildToolResultBackendEnvelopeArgs = {
   correlationId?: string;
   result: ToolResult;
   formattedMessage: string;
+  screenshot?: string | null;
   screenshotRef?: string | null;
   systemState?: SystemState | null;
   includeScreenshot?: boolean;
@@ -24,6 +25,7 @@ type BuildToolBundleBackendEnvelopeArgs = {
   status: BundleExecutionStatus;
   stepResults: BundleStepResult[];
   error?: string | null;
+  screenshot?: string | null;
   screenshotRef?: string | null;
   captureMeta?: CaptureMeta | null;
   systemState?: SystemState | null;
@@ -35,12 +37,14 @@ export function buildToolResultBackendEnvelope({
   correlationId,
   result,
   formattedMessage,
+  screenshot = null,
   screenshotRef = null,
   systemState = null,
   includeScreenshot = false,
   includeSystemState = false,
 }: BuildToolResultBackendEnvelopeArgs) {
   const payloadData = buildToolResultPayloadData(result, formattedMessage, {
+    screenshot,
     screenshotRef,
     systemState,
     includeScreenshot,
@@ -60,6 +64,7 @@ export function buildToolBundleBackendEnvelope({
   status,
   stepResults,
   error = null,
+  screenshot = null,
   screenshotRef = null,
   captureMeta = null,
   systemState = null,
@@ -75,6 +80,9 @@ export function buildToolBundleBackendEnvelope({
 
   if (includeScreenshot && screenshotRef) {
     payload.screenshot_ref = screenshotRef;
+  }
+  if (includeScreenshot && !screenshotRef && screenshot) {
+    payload.screenshot = screenshot;
   }
   if (includeScreenshot && captureMeta) {
     payload.capture_meta = captureMeta;

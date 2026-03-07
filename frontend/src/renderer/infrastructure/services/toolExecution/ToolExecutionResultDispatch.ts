@@ -29,6 +29,7 @@ type SendToolResultOptions = {
   formattedMessage: string;
   systemState: SystemState | null;
   includeScreenshot: boolean;
+  screenshot?: string | null;
   screenshotRef?: string | null;
   includeSystemState?: boolean;
 };
@@ -52,6 +53,7 @@ type SendBundleResultOptions = {
   bundleId: string;
   status: BundleExecutionStatus;
   stepResults: BundleStepResult[];
+  screenshot: string | null;
   screenshotRef: string | null;
   captureMeta: CaptureMeta | null;
   systemState: SystemState | null;
@@ -72,6 +74,7 @@ export function sendToolExecutionBundleResultToBackend(
       bundleId: options.bundleId,
       status: options.status,
       stepResults: options.stepResults,
+      screenshot: options.screenshot,
       screenshotRef: options.screenshotRef,
       captureMeta: options.captureMeta,
       systemState: options.systemState,

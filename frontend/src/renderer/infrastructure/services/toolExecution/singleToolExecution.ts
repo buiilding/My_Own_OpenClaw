@@ -91,6 +91,7 @@ export async function executeSingleTool(
       formattedMessage,
       systemState: finalSystemState,
       includeScreenshot: isComputerTool,
+      screenshot: screenshotRef ? null : effectiveScreenshot,
       screenshotRef,
       includeSystemState: isComputerTool,
     });

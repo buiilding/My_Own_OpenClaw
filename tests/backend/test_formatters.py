@@ -375,6 +375,7 @@ class TestToolOutputEventFormatter:
                 "output": "file contents",
                 "error": None,
                 "screenshot": None,
+                "screenshot_ref": None,
                 "metadata": {"source": "sidecar"},
             },
         }
@@ -397,8 +398,22 @@ class TestToolOutputEventFormatter:
             "output": "",
             "error": "Element not found",
             "screenshot": "artifact://shot-1",
+            "screenshot_ref": None,
             "metadata": None,
         }
+
+    def test_format_preserves_screenshot_ref(self, formatter):
+        event = {
+            "type": "tool_output",
+            "tool_name": "mouse_control",
+            "success": True,
+            "output": "clicked",
+            "screenshot_ref": "artifact-shot-1",
+        }
+
+        result = formatter.format(event, "msg-3")
+
+        assert result["payload"]["screenshot_ref"] == "artifact-shot-1"
 
     @pytest.mark.parametrize(
         "event,missing_field",

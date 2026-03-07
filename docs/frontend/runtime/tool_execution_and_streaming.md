@@ -121,9 +121,10 @@ Single tool flow:
 1. invoke tool via IPC
 2. run auto-capture policy (`ToolExecutionCapture`)
 3. optional screenshot artifact upload
-4. format tool output with system context
-5. emit local UI result callbacks
-6. send backend `tool-result` payload (with screenshot/system-state metadata when applicable)
+4. retain inline screenshot as local/backend fallback when upload is unavailable
+5. format tool output with system context
+6. emit local UI result callbacks
+7. send backend `tool-result` payload (with `screenshot_ref` when upload succeeds, otherwise inline `screenshot`, plus system-state metadata when applicable)
 
 Bundle flow:
 
