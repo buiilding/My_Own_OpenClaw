@@ -3,12 +3,14 @@ import TransparencySection from './TransparencySection';
 import { buildTransparencySectionConfigs } from '../../utils/message/messageTransparency';
 import { isDevUiEnabled } from '../../utils/devUiFlag';
 
-export default function MessageTransparencySections({ message }) {
+export default function MessageTransparencySections({ message, conversationToolSchemas = null }) {
   if (!isDevUiEnabled()) {
     return null;
   }
 
-  const sections = buildTransparencySectionConfigs(message);
+  const sections = buildTransparencySectionConfigs(message, {
+    conversationToolSchemas,
+  });
 
   if (sections.length === 0) {
     return null;
@@ -31,6 +33,7 @@ export default function MessageTransparencySections({ message }) {
 
 MessageTransparencySections.propTypes = {
   message: PropTypes.shape({
+    sender: PropTypes.oneOf(['user', 'assistant']),
     systemPrompt: PropTypes.shape({
       content: PropTypes.string,
       toolSchemas: PropTypes.any,
@@ -44,4 +47,5 @@ MessageTransparencySections.propTypes = {
       content: PropTypes.string,
     }),
   }).isRequired,
+  conversationToolSchemas: PropTypes.any,
 };

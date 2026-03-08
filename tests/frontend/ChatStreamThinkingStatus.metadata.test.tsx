@@ -86,7 +86,7 @@ describe('useChatStream message metadata handling', () => {
     });
   });
 
-  test('tool-schemas event updates first user message', () => {
+  test('tool-schemas event updates the current turn user message and later user rows still inherit conversation transparency', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
       useChatStore.setState({
@@ -104,10 +104,10 @@ describe('useChatStream message metadata handling', () => {
       });
     });
 
-    expect(useChatStore.getState().messages[0].toolSchemas).toEqual([
+    expect(useChatStore.getState().messages[0].toolSchemas).toBeUndefined();
+    expect(useChatStore.getState().messages[2].toolSchemas).toEqual([
       { type: 'function', function: { name: 'tool-x', parameters: { type: 'object' } } },
     ]);
-    expect(useChatStore.getState().messages[2].toolSchemas).toBeUndefined();
   });
 
   test('assistant-message-full does not attach to tool-output messages', () => {

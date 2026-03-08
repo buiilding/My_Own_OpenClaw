@@ -13,6 +13,7 @@ import {
   resolveCompactionStatusText,
   scrollToConversationSwitchTarget,
 } from '../utils/message/messageListState';
+import { resolveConversationToolSchemas } from '../utils/message/messageTransparency';
 
 
 function MessageList({
@@ -70,6 +71,8 @@ function MessageList({
     }
   }, [editingUserMessageId, messages]);
 
+  const conversationToolSchemas = useMemo(() => resolveConversationToolSchemas(messages), [messages]);
+
   const renderedMessages = useMemo(
     () => messages.flatMap((msg) => {
       const nodes = [
@@ -77,6 +80,7 @@ function MessageList({
           <MessageItem
             key={msg.id}
             message={msg}
+            conversationToolSchemas={conversationToolSchemas}
             enableAssistantActions={enableAssistantActions}
             enableUserActions={enableUserActions}
             disableAssistantActions={disableAssistantActions}
@@ -114,6 +118,7 @@ function MessageList({
     }),
     [
       messages,
+      conversationToolSchemas,
       awaitingDotTargetMessageId,
       enableAssistantActions,
       enableUserActions,

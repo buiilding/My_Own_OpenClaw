@@ -14,6 +14,11 @@ const messageShapePropType = PropTypes.shape({
   sourceChannel: PropTypes.string,
   thinkingText: PropTypes.string,
   thinkingSourceEventType: PropTypes.string,
+  systemPrompt: PropTypes.shape({
+    content: PropTypes.string,
+    toolSchemas: PropTypes.any,
+  }),
+  toolSchemas: PropTypes.any,
 });
 
 export default messageShapePropType;

@@ -6,7 +6,6 @@ describe('useChatStreamMetadataHandlers', () => {
     const resolveTargetConversationRef = jest.fn(() => 'conversation-1');
     const shouldIgnoreForStaleTurn = jest.fn(() => false);
     const updateLastMessageBySender = jest.fn();
-    const updateFirstMessageBySender = jest.fn();
     const updateLastAssistantLlmTextMessage = jest.fn();
     const recordTrackingEvent = jest.fn();
 
@@ -14,7 +13,6 @@ describe('useChatStreamMetadataHandlers', () => {
       resolveTargetConversationRef,
       shouldIgnoreForStaleTurn,
       updateLastMessageBySender,
-      updateFirstMessageBySender,
       updateLastAssistantLlmTextMessage,
       recordTrackingEvent,
     }));
@@ -42,11 +40,12 @@ describe('useChatStreamMetadataHandlers', () => {
       } as any);
     });
 
-    expect(updateLastMessageBySender).toHaveBeenCalledTimes(2);
+    expect(updateLastMessageBySender).toHaveBeenCalledTimes(3);
     expect(updateLastAssistantLlmTextMessage).toHaveBeenCalledTimes(1);
-    expect(updateFirstMessageBySender).toHaveBeenCalledWith(
+    expect(updateLastMessageBySender).toHaveBeenLastCalledWith(
       'user',
       expect.objectContaining({ toolSchemas: [{ name: 'tool-a' }] }),
+      'turn-1',
       'conversation-1',
     );
     expect(recordTrackingEvent).toHaveBeenCalledTimes(4);
@@ -56,7 +55,6 @@ describe('useChatStreamMetadataHandlers', () => {
     const resolveTargetConversationRef = jest.fn(() => 'conversation-1');
     const shouldIgnoreForStaleTurn = jest.fn(() => true);
     const updateLastMessageBySender = jest.fn();
-    const updateFirstMessageBySender = jest.fn();
     const updateLastAssistantLlmTextMessage = jest.fn();
     const recordTrackingEvent = jest.fn();
 
@@ -64,7 +62,6 @@ describe('useChatStreamMetadataHandlers', () => {
       resolveTargetConversationRef,
       shouldIgnoreForStaleTurn,
       updateLastMessageBySender,
-      updateFirstMessageBySender,
       updateLastAssistantLlmTextMessage,
       recordTrackingEvent,
     }));
@@ -78,7 +75,6 @@ describe('useChatStreamMetadataHandlers', () => {
 
     expect(updateLastMessageBySender).not.toHaveBeenCalled();
     expect(updateLastAssistantLlmTextMessage).not.toHaveBeenCalled();
-    expect(updateFirstMessageBySender).not.toHaveBeenCalled();
     expect(recordTrackingEvent).not.toHaveBeenCalled();
   });
 });
