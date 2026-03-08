@@ -7,6 +7,7 @@
 import { IpcBridge, SEND_CHANNELS } from '../ipc/bridge';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import type { CaptureMeta } from '../services/ScreenshotAttachmentPipeline';
+import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 
 type RehydrateConversationEntry = {
   role: 'user' | 'assistant' | 'tool';
@@ -21,14 +22,6 @@ type RehydrateConversationEntry = {
   screenshot?: string | null;
   transparency?: Record<string, unknown> | null;
 };
-
-function normalizeNonEmptyString(value: unknown): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
 
 export const ApiClient = {
   /**

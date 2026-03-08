@@ -332,18 +332,8 @@ function showMainWindow(options = {}, deps = {}) {
 }
 
 module.exports = {
-  createOffscreenBounds,
-  getWindowBounds,
   hideMainWindow,
   hideChatWindow,
-  isMainWindowSuppressedForScreenshot,
-  isWindowOffscreenForScreenshot,
-  rememberWindowBoundsForScreenshotSuppression,
-  resolveShowTargetDisplayAffinity,
-  restoreWindowBoundsFromScreenshotSuppression,
-  setWindowOpacityIfSupported,
-  setWindowBounds,
   showChatWindow,
   showMainWindow,
-  waitForMainWindowSuppressedForScreenshot,
 };

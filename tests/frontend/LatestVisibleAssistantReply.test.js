@@ -1,37 +1,53 @@
 import {
-  findLastUserIndex,
-  findLatestVisibleAssistantReply,
+  resolveCurrentTurnPresentationState,
 } from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';
 
 describe('chatTurnPresentationState visible reply helpers', () => {
-  test('finds the latest user index', () => {
-    expect(findLastUserIndex([
-      { sender: 'user', text: 'first' },
-      { sender: 'assistant', text: 'reply' },
-      { sender: 'user', text: 'second' },
-    ])).toBe(2);
+  test('targets the latest user row for awaiting-dot rendering', () => {
+    const state = resolveCurrentTurnPresentationState({
+      phase: 'idle',
+      isSending: true,
+      messages: [
+        { id: 'user-1', sender: 'user', text: 'first' },
+        { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text' },
+        { id: 'user-2', sender: 'user', text: 'second' },
+      ],
+    });
+
+    expect(state.awaitingDotTargetMessageId).toBe('user-2');
   });
 
-  test('ignores tool rows after the latest user and returns null until a visible assistant reply exists', () => {
-    const visibleReplyTypes = new Set(['llm-text', 'error']);
-    expect(findLatestVisibleAssistantReply([
-      { sender: 'user', text: 'first task', type: 'user' },
-      { sender: 'assistant', text: 'done', type: 'llm-text' },
-      { sender: 'user', text: 'second task', type: 'user' },
-      { sender: 'assistant', text: '{"name":"tool"}', type: 'tool-call' },
-      { sender: 'assistant', text: '{"ok":true}', type: 'tool-output' },
-    ], visibleReplyTypes)).toBeNull();
+  test('ignores tool rows after the latest user until a visible assistant reply exists', () => {
+    const state = resolveCurrentTurnPresentationState({
+      phase: 'tool-output',
+      isSending: false,
+      messages: [
+        { sender: 'user', text: 'first task', type: 'user' },
+        { sender: 'assistant', text: 'done', type: 'llm-text' },
+        { sender: 'user', text: 'second task', type: 'user' },
+        { sender: 'assistant', text: '{"name":"tool"}', type: 'tool-call' },
+        { sender: 'assistant', text: '{"ok":true}', type: 'tool-output' },
+      ],
+    });
+
+    expect(state.activeResponse).toBeNull();
+    expect(state.hasVisibleReply).toBe(false);
   });
 
-  test('returns the latest visible assistant reply after the latest user', () => {
-    const visibleReplyTypes = new Set(['llm-text', 'error']);
-    expect(findLatestVisibleAssistantReply([
-      { sender: 'user', text: 'first task', type: 'user' },
-      { sender: 'assistant', text: 'done', type: 'llm-text' },
-      { sender: 'user', text: 'second task', type: 'user' },
-      { sender: 'assistant', text: '{"name":"tool"}', type: 'tool-call' },
-      { sender: 'assistant', text: 'final', type: 'llm-text' },
-    ], visibleReplyTypes)).toEqual({
+  test('selects the latest visible assistant reply after the latest user', () => {
+    const state = resolveCurrentTurnPresentationState({
+      phase: 'streaming',
+      isSending: false,
+      messages: [
+        { sender: 'user', text: 'first task', type: 'user' },
+        { sender: 'assistant', text: 'done', type: 'llm-text' },
+        { sender: 'user', text: 'second task', type: 'user' },
+        { sender: 'assistant', text: '{"name":"tool"}', type: 'tool-call' },
+        { sender: 'assistant', text: 'final', type: 'llm-text' },
+      ],
+    });
+
+    expect(state.activeResponse).toEqual({
       sender: 'assistant',
       text: 'final',
       type: 'llm-text',

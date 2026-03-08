@@ -3,18 +3,28 @@ import {
   shouldRenderAssistantActions,
   shouldRenderUserActions,
 } from '../../frontend/src/renderer/features/chat/utils/message/messageListState';
-import { findAwaitingDotTargetMessageId } from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';
+import { resolveCurrentTurnPresentationState } from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';
 
 describe('messageListState', () => {
-  test('findAwaitingDotTargetMessageId returns latest user message id when enabled', () => {
-    const id = findAwaitingDotTargetMessageId([
-      { id: 'assistant-1', sender: 'assistant' },
-      { id: 'user-1', sender: 'user' },
-      { id: 'assistant-2', sender: 'assistant' },
-      { id: 'user-2', sender: 'user' },
-    ], true);
-    expect(id).toBe('user-2');
-    expect(findAwaitingDotTargetMessageId([{ id: 'user-1', sender: 'user' }], false)).toBeNull();
+  test('awaiting-dot target picks latest user row only while awaiting reply', () => {
+    const awaitingState = resolveCurrentTurnPresentationState({
+      phase: 'idle',
+      isSending: true,
+      messages: [
+        { id: 'assistant-1', sender: 'assistant' },
+        { id: 'user-1', sender: 'user' },
+        { id: 'assistant-2', sender: 'assistant' },
+        { id: 'user-2', sender: 'user' },
+      ],
+    });
+    expect(awaitingState.awaitingDotTargetMessageId).toBe('user-2');
+
+    const notAwaitingState = resolveCurrentTurnPresentationState({
+      phase: 'complete',
+      isSending: false,
+      messages: [{ id: 'user-1', sender: 'user' }],
+    });
+    expect(notAwaitingState.awaitingDotTargetMessageId).toBeNull();
   });
 
   test('resolveCompactionStatusText maps source event to status metadata', () => {

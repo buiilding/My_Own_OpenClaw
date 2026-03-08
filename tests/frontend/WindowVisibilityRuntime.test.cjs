@@ -1,19 +1,9 @@
 /** @jest-environment node */
 
 const {
-  createOffscreenBounds,
-  getWindowBounds,
   hideMainWindow,
-  isMainWindowSuppressedForScreenshot,
-  isWindowOffscreenForScreenshot,
-  rememberWindowBoundsForScreenshotSuppression,
-  resolveShowTargetDisplayAffinity,
-  restoreWindowBoundsFromScreenshotSuppression,
-  setWindowOpacityIfSupported,
-  setWindowBounds,
   showMainWindow,
   showChatWindow,
-  waitForMainWindowSuppressedForScreenshot,
 } = require('../../frontend/src/main/window_visibility_runtime.cjs');
 
 function createWindow({
@@ -40,35 +30,6 @@ function createWindow({
 }
 
 describe('window_visibility_runtime showChatWindow', () => {
-  test('resolveShowTargetDisplayAffinity prefers explicit target and otherwise uses stored affinity only for hidden windows', () => {
-    const explicitTargetDisplayAffinity = { monitor_id: '3' };
-    const hiddenWindow = {
-      isDestroyed: jest.fn(() => false),
-      isVisible: jest.fn(() => false),
-    };
-    const visibleWindow = {
-      isDestroyed: jest.fn(() => false),
-      isVisible: jest.fn(() => true),
-    };
-    const getActiveDisplayAffinity = jest.fn(() => ({ monitor_id: '2' }));
-
-    expect(resolveShowTargetDisplayAffinity({
-      targetDisplayAffinity: explicitTargetDisplayAffinity,
-      targetWindow: hiddenWindow,
-      getActiveDisplayAffinity,
-    })).toEqual(explicitTargetDisplayAffinity);
-    expect(resolveShowTargetDisplayAffinity({
-      targetDisplayAffinity: null,
-      targetWindow: hiddenWindow,
-      getActiveDisplayAffinity,
-    })).toEqual({ monitor_id: '2' });
-    expect(resolveShowTargetDisplayAffinity({
-      targetDisplayAffinity: null,
-      targetWindow: visibleWindow,
-      getActiveDisplayAffinity,
-    })).toBeNull();
-  });
-
   test('captures previous external focus even when focus is false', () => {
     const chatWindow = createWindow({ visible: false });
     const externalFocusTracker = {
@@ -512,94 +473,5 @@ describe('window_visibility_runtime hideMainWindow', () => {
       height: 400,
     }, false);
     expect(mainWindow.hide).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe('window_visibility_runtime screenshot suppression helpers', () => {
-  test('creates deterministic offscreen bounds', () => {
-    expect(createOffscreenBounds({
-      x: 100,
-      y: 100,
-      width: 600,
-      height: 400,
-    })).toEqual({
-      x: -50600,
-      y: -50400,
-      width: 600,
-      height: 400,
-    });
-  });
-
-  test('gets and sets bounds only when supported', () => {
-    const mainWindow = createWindow({ visible: true });
-    expect(getWindowBounds(mainWindow)).toEqual({ x: 100, y: 100, width: 600, height: 400 });
-    expect(setWindowBounds(mainWindow, { x: 1, y: 2, width: 3, height: 4 })).toBe(true);
-    expect(mainWindow.setBounds).toHaveBeenCalledWith({ x: 1, y: 2, width: 3, height: 4 }, false);
-    expect(getWindowBounds({})).toBeNull();
-    expect(setWindowBounds({}, { x: 0, y: 0, width: 1, height: 1 })).toBe(false);
-  });
-
-  test('stores and restores pre-suppression bounds', () => {
-    const mainWindow = createWindow({ visible: true });
-    expect(rememberWindowBoundsForScreenshotSuppression(mainWindow)).toBeUndefined();
-    mainWindow.getBounds.mockReturnValue({ x: 320, y: 240, width: 900, height: 700 });
-    const restored = restoreWindowBoundsFromScreenshotSuppression(mainWindow);
-    expect(restored).toBe(true);
-    expect(mainWindow.setBounds).toHaveBeenCalledWith({ x: 100, y: 100, width: 600, height: 400 }, false);
-  });
-
-  test('recognizes minimized or hidden windows as suppressed', () => {
-    expect(isMainWindowSuppressedForScreenshot({
-      isMinimized: () => true,
-      isVisible: () => true,
-      getBounds: () => ({ x: 0, y: 0, width: 100, height: 100 }),
-    })).toBe(true);
-    expect(isMainWindowSuppressedForScreenshot({
-      isMinimized: () => false,
-      isVisible: () => false,
-      getBounds: () => ({ x: 0, y: 0, width: 100, height: 100 }),
-    })).toBe(true);
-    expect(isMainWindowSuppressedForScreenshot({
-      isMinimized: () => false,
-      isVisible: () => true,
-      getBounds: () => ({ x: 0, y: 0, width: 100, height: 100 }),
-    })).toBe(false);
-  });
-
-  test('recognizes offscreen windows as suppressed', () => {
-    expect(isWindowOffscreenForScreenshot({
-      getBounds: () => ({ x: -60000, y: -60000, width: 600, height: 400 }),
-    })).toBe(true);
-    expect(isMainWindowSuppressedForScreenshot({
-      isMinimized: () => false,
-      isVisible: () => true,
-      getBounds: () => ({ x: -60000, y: -60000, width: 600, height: 400 }),
-    })).toBe(true);
-  });
-
-  test('waits until suppression predicate becomes true', async () => {
-    const mainWindow = {
-      isMinimized: jest.fn()
-        .mockReturnValueOnce(false)
-        .mockReturnValueOnce(false)
-        .mockReturnValue(true),
-      isVisible: jest.fn(() => true),
-      getBounds: jest.fn(() => ({ x: 0, y: 0, width: 100, height: 100 })),
-    };
-    const waitInMain = jest.fn().mockResolvedValue(undefined);
-
-    await expect(waitForMainWindowSuppressedForScreenshot(mainWindow, {
-      waitInMain,
-      timeoutMs: 100,
-      pollMs: 10,
-    })).resolves.toBe(true);
-    expect(waitInMain).toHaveBeenCalled();
-  });
-});
-
-describe('window_visibility_runtime setWindowOpacityIfSupported', () => {
-  test('noops for missing windows and missing opacity support', () => {
-    expect(() => setWindowOpacityIfSupported(null, 0)).not.toThrow();
-    expect(() => setWindowOpacityIfSupported({}, 0)).not.toThrow();
   });
 });

@@ -198,7 +198,6 @@ module.exports = {
   handleHandoffSurfaceForComputerUse,
   handlePrepareSurfaceForScreenshot,
   handleRestoreSurfaceAfterScreenshot,
-  resolveHiddenSurfaceForScreenshot,
   handleShowChatbox,
   handleShowMainWindow,
 };

@@ -3,6 +3,7 @@ import {
   resolveToolCallCorrelationId as resolveSharedToolCallCorrelationId,
   resolveToolOutputCorrelationId as resolveSharedToolOutputCorrelationId,
 } from '../toolCorrelationIds';
+import { normalizeNonEmptyString } from '../../../../utils/normalizeNonEmptyString';
 
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
 const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
@@ -24,14 +25,6 @@ type ToolCallPayload = {
   correlation_id?: string | null;
   request_id?: string | null;
 };
-
-function normalizeNonEmptyString(value: unknown): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
 
 export function shouldIgnoreStreamError(payload: ErrorPayload | null | undefined): boolean {
   const message = payload?.message;
