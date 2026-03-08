@@ -69,6 +69,10 @@ const {
   showChatWindow: showChatWindowRuntime,
   showMainWindow: showMainWindowRuntime,
 } = require('./window_visibility_runtime.cjs');
+const {
+  normalizeChatSurfaceWindowOptions,
+  normalizeMainSurfaceWindowOptions,
+} = require('./surface_window_options_runtime.cjs');
 const { createResponseOverlayPhaseEnum } = require('./ipc/ipc_overlay_phase_contract.cjs');
 const { configureGpuRuntime } = require('./gpu_runtime.cjs');
 const { isVmModeEnabled, isVmWorkerModeEnabled } = require('./runtime_mode.cjs');
@@ -227,8 +231,7 @@ function setResponseOverlayVisibilityState(visible) {
 }
 
 function showChatWindow(options = {}) {
-  const focus = options?.focus !== false;
-  return showChatWindowRuntime({ ...options, focus }, {
+  return showChatWindowRuntime(normalizeChatSurfaceWindowOptions(options), {
     chatWindow,
     mainWindow,
     responseWindow,
@@ -268,9 +271,7 @@ async function hideMainWindow(options = {}) {
 }
 
 function showMainWindow(options = {}) {
-  const focus = options?.focus !== false;
-  const maximize = options?.maximize === true;
-  return showMainWindowRuntime({ ...options, focus, maximize }, {
+  return showMainWindowRuntime(normalizeMainSurfaceWindowOptions(options), {
     mainWindow,
     chatWindow,
     syncWindowDisplayAffinity,

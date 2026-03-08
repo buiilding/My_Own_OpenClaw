@@ -1,15 +1,19 @@
+const {
+  normalizeChatSurfaceWindowOptions,
+  normalizeMainSurfaceWindowOptions,
+} = require('./surface_window_options_runtime.cjs');
+
 function handleShowMainWindow(options = {}, deps = {}) {
   const {
     showMainWindow,
     resolveTargetDisplayAffinity = () => null,
   } = deps;
   try {
-    const maximize = options?.maximize === true;
-    return showMainWindow({
+    return showMainWindow(normalizeMainSurfaceWindowOptions({
+      ...options,
       focus: true,
-      maximize,
       targetDisplayAffinity: resolveTargetDisplayAffinity(options),
-    });
+    }));
   } catch (error) {
     return { success: false, reason: `Failed to show main window: ${error.message}` };
   }
@@ -23,11 +27,10 @@ function handleShowChatbox(
     showChatWindow,
     resolveTargetDisplayAffinity = () => null,
   } = deps;
-  const focus = options?.focus !== false;
-  return showChatWindow({
-    focus,
+  return showChatWindow(normalizeChatSurfaceWindowOptions({
+    ...options,
     targetDisplayAffinity: resolveTargetDisplayAffinity(options),
-  });
+  }));
 }
 
 function handleHideChatbox(deps = {}) {
@@ -45,13 +48,13 @@ function handleRestoreSurfaceAfterScreenshot(options = {}, deps = {}) {
     : 'none';
 
   if (hiddenSurface === 'chatbox') {
-    return showChatWindow({
+    return showChatWindow(normalizeChatSurfaceWindowOptions({
       focus: false,
       restoreResponseOverlay: true,
-    });
+    }));
   }
   if (hiddenSurface === 'main-window') {
-    return showMainWindow({ focus: false });
+    return showMainWindow(normalizeMainSurfaceWindowOptions({ focus: false }));
   }
   return { success: true, restored: false };
 }

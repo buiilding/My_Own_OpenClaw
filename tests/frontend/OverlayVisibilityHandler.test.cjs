@@ -72,7 +72,11 @@ describe('overlay_visibility_handler', () => {
     const result = handleShowChatbox(undefined, { showChatWindow, resolveTargetDisplayAffinity });
 
     expect(result).toEqual({ success: true, visible: true });
-    expect(showChatWindow).toHaveBeenCalledWith({ focus: true, targetDisplayAffinity: null });
+    expect(showChatWindow).toHaveBeenCalledWith({
+      focus: true,
+      restoreResponseOverlay: false,
+      targetDisplayAffinity: null,
+    });
   });
 
   test('show-chatbox passes explicit focus false', () => {
@@ -87,6 +91,7 @@ describe('overlay_visibility_handler', () => {
     expect(result).toEqual({ success: true, visible: true });
     expect(showChatWindow).toHaveBeenCalledWith({
       focus: false,
+      restoreResponseOverlay: false,
       targetDisplayAffinity: {
         monitor_id: '2',
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
@@ -115,6 +120,7 @@ describe('overlay_visibility_handler', () => {
     expect(showChatWindow).toHaveBeenCalledWith({
       focus: false,
       restoreResponseOverlay: true,
+      targetDisplayAffinity: null,
     });
   });
 
@@ -127,7 +133,11 @@ describe('overlay_visibility_handler', () => {
     );
 
     expect(result).toEqual({ success: true });
-    expect(showMainWindow).toHaveBeenCalledWith({ focus: false });
+    expect(showMainWindow).toHaveBeenCalledWith({
+      focus: false,
+      maximize: false,
+      targetDisplayAffinity: null,
+    });
   });
 
   test('prepare-surface-for-screenshot hides then waits in main process', async () => {

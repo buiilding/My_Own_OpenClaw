@@ -157,6 +157,7 @@ describe('overlay_phase_ipc_runtime', () => {
     expect(result).toEqual({ success: true });
     expect(showChatWindow).toHaveBeenCalledWith({
       focus: true,
+      restoreResponseOverlay: false,
       targetDisplayAffinity: {
         monitor_id: '2',
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
