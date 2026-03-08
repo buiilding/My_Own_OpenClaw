@@ -44,6 +44,7 @@ contextBridge.exposeInMainWorld('ipc', {
       'get-main-window-visibility',
       'show-chatbox',
       'hide-chatbox',
+      'handoff-surface-for-computer-use',
       'prepare-surface-for-screenshot',
       'restore-surface-after-screenshot',
       'get-displays',

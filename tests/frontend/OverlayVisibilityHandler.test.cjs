@@ -2,6 +2,7 @@
 
 const {
   handleHideChatbox,
+  handleHandoffSurfaceForComputerUse,
   handlePrepareSurfaceForScreenshot,
   handleRestoreSurfaceAfterScreenshot,
   resolveHiddenSurfaceForScreenshot,
@@ -106,6 +107,42 @@ describe('overlay_visibility_handler', () => {
 
     expect(result).toEqual({ success: true, hidden: true });
     expect(hideChatWindow).toHaveBeenCalledTimes(1);
+  });
+
+  test('handoff-surface-for-computer-use switches visible dashboard to chat pill', () => {
+    const showChatWindow = jest.fn().mockReturnValue({ success: true });
+    const result = handleHandoffSurfaceForComputerUse({}, {
+      getWindows: () => ({
+        mainWindow: {
+          isDestroyed: () => false,
+          isVisible: () => true,
+        },
+      }),
+      showChatWindow,
+    });
+
+    expect(result).toEqual({ success: true, handedOff: true, surface: 'chatbox' });
+    expect(showChatWindow).toHaveBeenCalledWith({
+      focus: false,
+      restoreResponseOverlay: true,
+      targetDisplayAffinity: null,
+    });
+  });
+
+  test('handoff-surface-for-computer-use no-ops when dashboard is not visible', () => {
+    const showChatWindow = jest.fn().mockReturnValue({ success: true });
+    const result = handleHandoffSurfaceForComputerUse({}, {
+      getWindows: () => ({
+        mainWindow: {
+          isDestroyed: () => false,
+          isVisible: () => false,
+        },
+      }),
+      showChatWindow,
+    });
+
+    expect(result).toEqual({ success: true, handedOff: false, surface: 'none' });
+    expect(showChatWindow).not.toHaveBeenCalled();
   });
 
   test('restore-surface-after-screenshot restores chatbox with response overlay support', () => {

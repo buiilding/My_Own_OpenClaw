@@ -13,6 +13,10 @@ import {
   restoreSurfaceAfterBackgroundCapture,
   shouldManageSurfaceVisibilityForBackgroundCapture,
 } from './surfaceVisibility';
+import {
+  handoffSurfaceForComputerUse,
+  isDashboardVisibleForComputerUseHandoff,
+} from './surfaceHandoff';
 import { resolveToolSurfaceMode } from './mode';
 import {
   getPendingHiddenSurfaceRestore,
@@ -69,6 +73,12 @@ export async function prepareToolExecutionSurface(
   );
 
   try {
+    if ((mode === 'interactive' || mode === 'screenshot') && !hasActiveSurfaceTokens()) {
+      if (await isDashboardVisibleForComputerUseHandoff()) {
+        await handoffSurfaceForComputerUse();
+      }
+    }
+
     if (shouldCollapseForScreenshot) {
       logSurfaceTransition({
         source,

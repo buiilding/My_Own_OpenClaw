@@ -120,12 +120,13 @@ describe('toolRunnerSurface helpers', () => {
 
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toEqual([
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY, {}],
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'chatbox' }],
     ]);
   });
 
-  test('collapses and restores the hidden surface for screenshot mode when dashboard is open', async () => {
+  test('hands off dashboard to pill before screenshot mode and restores the pill surface', async () => {
     (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
       if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
         return { success: true, data: { visible: true } };
@@ -138,7 +139,7 @@ describe('toolRunnerSurface helpers', () => {
           waitTime: 0,
           hideInvokeTime: 0.001,
           settleTime: 0.12,
-          hiddenSurface: 'main-window',
+          hiddenSurface: 'chatbox',
         };
       }
       return { success: true };
@@ -150,8 +151,10 @@ describe('toolRunnerSurface helpers', () => {
 
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toEqual([
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY, {}],
+      [INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE, {}],
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
-      [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'main-window' }],
+      [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'chatbox' }],
     ]);
   });
 
@@ -168,7 +171,7 @@ describe('toolRunnerSurface helpers', () => {
           waitTime: 0,
           hideInvokeTime: 0.001,
           settleTime: 0.12,
-          hiddenSurface: 'main-window',
+          hiddenSurface: 'chatbox',
         };
       }
       return { success: true };
@@ -178,12 +181,18 @@ describe('toolRunnerSurface helpers', () => {
     const second = await prepareToolExecutionSurface('screenshot');
 
     await restoreToolExecutionSurface(first);
-    expect(IpcBridge.invoke).toHaveBeenCalledTimes(1);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY, {}],
+      [INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE, {}],
+      [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+    ]);
 
     await restoreToolExecutionSurface(second);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY, {}],
+      [INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE, {}],
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
-      [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'main-window' }],
+      [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'chatbox' }],
     ]);
   });
 
@@ -191,10 +200,17 @@ describe('toolRunnerSurface helpers', () => {
     const preparation = await prepareToolExecutionSurface('interactive');
     expect(preparation.canExecute).toBe(true);
     expect(preparation.failureReason).toBeNull();
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls.some(
+      ([channel]: unknown[]) => channel === INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE,
+    )).toBe(false);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls.some(
+      ([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT,
+    )).toBe(false);
 
     await restoreToolExecutionSurface(preparation);
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls.some(
+      ([channel]: unknown[]) => channel === INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT,
+    )).toBe(false);
   });
 
   test('keeps interactive surface prep executable even without external focus verification', async () => {
@@ -208,10 +224,14 @@ describe('toolRunnerSurface helpers', () => {
       correlationId: 'corr-interactive-complete',
     });
     expect(preparation.canExecute).toBe(true);
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls.some(
+      ([channel]: unknown[]) => channel === INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE,
+    )).toBe(false);
 
     await restoreToolExecutionSurface(preparation);
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls.some(
+      ([channel]: unknown[]) => channel === INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT,
+    )).toBe(false);
   });
 
   test('keeps overlapping interactive tokens free of renderer-side overlay IPC', async () => {
@@ -224,10 +244,14 @@ describe('toolRunnerSurface helpers', () => {
     expect(second.canExecute).toBe(true);
 
     await restoreToolExecutionSurface(first);
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls.some(
+      ([channel]: unknown[]) => channel === INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE,
+    )).toBe(false);
 
     await restoreToolExecutionSurface(second);
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls.some(
+      ([channel]: unknown[]) => channel === INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT,
+    )).toBe(false);
   });
 
   test('does not invoke focus preparation IPC for interactive execution', async () => {
@@ -236,6 +260,9 @@ describe('toolRunnerSurface helpers', () => {
     expect(preparation.failureReason).toBeNull();
     expect((IpcBridge.invoke as jest.Mock).mock.calls.some(
       ([channel]: unknown[]) => channel === 'prepare-overlay-tool-focus',
+    )).toBe(false);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls.some(
+      ([channel]: unknown[]) => channel === INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE,
     )).toBe(false);
   });
 
