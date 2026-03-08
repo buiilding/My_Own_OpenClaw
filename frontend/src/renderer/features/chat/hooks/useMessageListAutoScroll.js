@@ -13,6 +13,7 @@ import {
 export function useMessageListAutoScroll({
   messages,
   conversationRef,
+  awaitingDotTargetMessageId = null,
   enableAgentLoopAutoScroll = false,
 }) {
   const messageListRef = useRef(null);
@@ -20,6 +21,7 @@ export function useMessageListAutoScroll({
   const forceInstantAutoScrollRef = useRef(false);
   const skipNextMessagesAutoScrollRef = useRef(false);
   const previousMessagesRef = useRef(messages);
+  const previousAwaitingDotTargetMessageIdRef = useRef(awaitingDotTargetMessageId);
 
   const scrollToBottom = useCallback((behavior = 'smooth') => {
     const element = messageListRef.current;
@@ -61,7 +63,7 @@ export function useMessageListAutoScroll({
 
     if (shouldForceScroll) {
       shouldAutoScrollRef.current = true;
-      const behavior = forceInstantAutoScrollRef.current ? 'auto' : 'smooth';
+      const behavior = 'auto';
       forceInstantAutoScrollRef.current = false;
       previousMessagesRef.current = messages;
       scrollToBottom(behavior);
@@ -84,6 +86,27 @@ export function useMessageListAutoScroll({
     forceInstantAutoScrollRef.current = false;
     scrollToBottom(behavior);
   }, [enableAgentLoopAutoScroll, messages, scrollToBottom]);
+
+  useEffect(() => {
+    const previousAwaitingDotTargetMessageId = previousAwaitingDotTargetMessageIdRef.current;
+    const awaitingDotChanged = previousAwaitingDotTargetMessageId !== awaitingDotTargetMessageId;
+    previousAwaitingDotTargetMessageIdRef.current = awaitingDotTargetMessageId;
+
+    if (!awaitingDotChanged) {
+      return;
+    }
+    if (!enableAgentLoopAutoScroll) {
+      return;
+    }
+    if (!shouldAutoScrollRef.current) {
+      return;
+    }
+    if (!awaitingDotTargetMessageId) {
+      return;
+    }
+
+    scrollToBottom('auto');
+  }, [awaitingDotTargetMessageId, enableAgentLoopAutoScroll, scrollToBottom]);
 
   return {
     messageListRef,

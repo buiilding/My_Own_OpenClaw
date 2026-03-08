@@ -194,7 +194,43 @@ describe('MessageList auto-scroll behavior', () => {
     const scrollToCallsAfterUpdate = scrollTo.mock.calls.slice(scrollToCallsBeforeUpdate);
     expect(scrollToCallsAfterUpdate.length).toBeGreaterThan(0);
     expect(scrollToCallsAfterUpdate.every(([options]) => Number.isFinite(options?.top))).toBe(true);
-    expect(scrollToCallsAfterUpdate.every(([options]) => options?.behavior === 'smooth')).toBe(true);
+    expect(scrollToCallsAfterUpdate.every(([options]) => options?.behavior === 'auto')).toBe(true);
+  });
+
+  test('auto-scrolls when awaiting indicator appears after send while auto-follow is still enabled', () => {
+    const messages = [
+      { id: 'assistant-1', text: 'done', sender: 'assistant', type: 'llm-text' },
+      { id: 'user-2', text: 'follow-up', sender: 'user', type: 'user' },
+    ];
+    const { container, rerender } = render(
+      <MessageList
+        enableAgentLoopAutoScroll
+        messages={messages}
+      />,
+    );
+
+    const list = container.querySelector('.message-list');
+    expect(list).toBeTruthy();
+    applyScrollMetrics(list, {
+      scrollHeight: 1200,
+      clientHeight: 400,
+      scrollTop: 800,
+    });
+    fireEvent.scroll(list);
+
+    const scrollToCallsBeforeUpdate = scrollTo.mock.calls.length;
+    rerender(
+      <MessageList
+        enableAgentLoopAutoScroll
+        messages={messages}
+        awaitingDotTargetMessageId="user-2"
+      />,
+    );
+
+    const scrollToCallsAfterUpdate = scrollTo.mock.calls.slice(scrollToCallsBeforeUpdate);
+    expect(scrollToCallsAfterUpdate.length).toBeGreaterThan(0);
+    expect(scrollToCallsAfterUpdate.every(([options]) => Number.isFinite(options?.top))).toBe(true);
+    expect(scrollToCallsAfterUpdate.every(([options]) => options?.behavior === 'auto')).toBe(true);
   });
 });
 
