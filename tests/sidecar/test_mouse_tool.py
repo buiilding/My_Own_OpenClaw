@@ -24,10 +24,6 @@ def _fake_pyautogui(*, with_hscroll: bool):
     def move_to(x, y):
         calls.append(("moveTo", x, y))
 
-    def position():
-        calls.append(("position",))
-        return (11, 22)
-
     def drag_to(x, y, duration):
         calls.append(("dragTo", x, y, duration))
 
@@ -40,7 +36,6 @@ def _fake_pyautogui(*, with_hscroll: bool):
         doubleClick=double_click,
         rightClick=right_click,
         moveTo=move_to,
-        position=position,
         dragTo=drag_to,
         scroll=scroll,
     )
@@ -63,16 +58,41 @@ async def test_execute_mouse_control_click_success(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_execute_mouse_control_drag_calls_position_and_drag_to(monkeypatch):
+async def test_execute_mouse_control_drag_moves_to_source_and_drags_to_destination(monkeypatch):
+    fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
+    monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
+
+    result = await mouse_tool.execute_mouse_control(
+        {
+            "action": "drag",
+            "x": 300,
+            "y": 400,
+            "drag_to_x": 500,
+            "drag_to_y": 600,
+            "duration": 0.5,
+        }
+    )
+
+    assert result.success is True
+    assert result.data["action"] == "drag"
+    assert result.data["coordinates"] == [500, 600]
+    assert result.data["source_coordinates"] == [300, 400]
+    assert result.data["destination_coordinates"] == [500, 600]
+    assert result.data["duration"] == 0.5
+    assert result.data["message"] == "Dragged from (300, 400) to (500, 600)"
+    assert calls == [("moveTo", 300, 400), ("dragTo", 500, 600, 0.5)]
+
+
+@pytest.mark.asyncio
+async def test_execute_mouse_control_drag_requires_destination_coordinates(monkeypatch):
     fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
     result = await mouse_tool.execute_mouse_control({"action": "drag", "x": 300, "y": 400})
 
-    assert result.success is True
-    assert result.data["action"] == "drag"
-    assert ("position",) in calls
-    assert ("dragTo", 300, 400, 0.1) in calls
+    assert result.success is False
+    assert "drag_to_x and drag_to_y are required" in (result.error or "")
+    assert calls == []
 
 
 @pytest.mark.asyncio

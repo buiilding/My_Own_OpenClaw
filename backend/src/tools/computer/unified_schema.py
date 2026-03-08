@@ -289,10 +289,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                         "required": ["action"],
                                     },
                                     "then": {
-                                        "anyOf": [
-                                            {"required": ["drag_to_x", "drag_to_y"]},
-                                            {"required": ["description"]},
-                                        ]
+                                        "required": ["drag_to_x", "drag_to_y"]
                                     },
                                 },
                                 {

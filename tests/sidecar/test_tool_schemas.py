@@ -38,6 +38,18 @@ def test_mouse_control_scroll_allows_missing_coordinates():
     assert args.scroll_amount == 5
 
 
+def test_mouse_control_drag_requires_destination_coordinates():
+    with pytest.raises(ValidationError):
+        MouseControlArgs(action="drag", x=10, y=20)
+
+    args = MouseControlArgs(action="drag", x=10, y=20, drag_to_x=30, drag_to_y=40, duration=0.5)
+    assert args.x == 10
+    assert args.y == 20
+    assert args.drag_to_x == 30
+    assert args.drag_to_y == 40
+    assert args.duration == 0.5
+
+
 def test_mouse_control_ignores_unknown_fields():
     args = MouseControlArgs(action="click", x=1, y=2, unknown_field="ignored")
     assert args.x == 1

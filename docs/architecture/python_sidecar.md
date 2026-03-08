@@ -67,6 +67,10 @@ The sidecar maintains a `ToolRegistry` (`frontend/src/main/python/tools/registry
 - Background session management (`process`) for polling/logging/writing/killing running shell commands
   - Finished sessions are pruned after ~30 minutes (configurable via `WINDIE_SHELL_JOB_TTL_SECONDS`)
 
+Computer-control execution notes:
+- `mouse_control` drag uses source coordinates from `x/y` and destination coordinates from `drag_to_x/drag_to_y`.
+- Backend coordinate normalization converts both source and drag destination from screenshot space into desktop space before the sidecar executes the drag.
+
 ## Memory
 
 Local memory is implemented in the sidecar:

@@ -171,6 +171,45 @@ async def test_resolve_tool_with_coordinates_preserves_prediction_description(mo
 
 
 @pytest.mark.asyncio
+async def test_resolve_tool_with_coordinates_normalizes_drag_destination(monkeypatch):
+    session, screenshot_manager = _create_session_and_manager(
+        screenshot_id="shot-drag-scale",
+        capture_meta={
+            "screenshot_id": "shot-drag-scale",
+            "source_w": 3840,
+            "source_h": 2160,
+            "crop_x": 0,
+            "crop_y": 0,
+            "crop_w": 1920,
+            "crop_h": 1080,
+            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
+            "monitor_id": None,
+            "timestamp": 1,
+        },
+    )
+
+    tool_call, resolved_call = _build_mouse_call(
+        method=CoordinateFindingMethod.PREDICTION,
+        action="drag",
+        description="gray circle",
+        drag_to_x=2000,
+        drag_to_y=500,
+    )
+
+    _patch_coordinate_resolution(monkeypatch, 1000, 1000)
+    await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "drag-scale-id")
+
+    assert resolved_call.parameters["x"] == 500
+    assert resolved_call.parameters["y"] == 500
+    assert resolved_call.parameters["drag_to_x"] == 1000
+    assert resolved_call.parameters["drag_to_y"] == 250
+    destination_contract = resolved_call.metadata["drag_destination_coordinate_contract"]
+    assert destination_contract["source_coordinates"] == {"x": 2000, "y": 500}
+    assert destination_contract["normalized_coordinates"] == {"x": 1000, "y": 250}
+    assert destination_contract["normalization_status"] == "scaled_to_desktop"
+
+
+@pytest.mark.asyncio
 async def test_resolve_tool_with_coordinates_allows_ocr_candidate_with_implicit_latest_frame(
     monkeypatch,
 ):
@@ -398,3 +437,50 @@ def test_normalize_manual_coordinates_clamps_out_of_bounds_values():
     contract = resolved_call.metadata["coordinate_contract"]
     assert contract["clamped_source_coordinates"] == {"x": 99, "y": 0}
     assert contract["normalization_status"] == "scaled_to_desktop_clamped"
+
+
+def test_normalize_manual_coordinates_scales_drag_destination_to_desktop_space():
+    session, _ = _create_session_and_manager(
+        screenshot_id="shot-manual-drag",
+        capture_meta={
+            "screenshot_id": "shot-manual-drag",
+            "source_w": 3840,
+            "source_h": 2160,
+            "crop_x": 0,
+            "crop_y": 0,
+            "crop_w": 1920,
+            "crop_h": 1080,
+            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
+            "monitor_id": None,
+            "timestamp": 1,
+        },
+    )
+
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={
+            "action": "drag",
+            "x": 1000,
+            "y": 600,
+            "drag_to_x": 2000,
+            "drag_to_y": 800,
+            "screenshot_id": "shot-manual-drag",
+        },
+        raw_call="{}",
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
+
+    normalize_manual_coordinates(
+        resolved_call=resolved_call,
+        session=session,
+        context_id="manual-drag-scale",
+    )
+
+    assert resolved_call.parameters["x"] == 500
+    assert resolved_call.parameters["y"] == 300
+    assert resolved_call.parameters["drag_to_x"] == 1000
+    assert resolved_call.parameters["drag_to_y"] == 400
+    destination_contract = resolved_call.metadata["drag_destination_coordinate_contract"]
+    assert destination_contract["source_coordinates"] == {"x": 2000, "y": 800}
+    assert destination_contract["normalized_coordinates"] == {"x": 1000, "y": 400}
+    assert destination_contract["normalization_status"] == "scaled_to_desktop"

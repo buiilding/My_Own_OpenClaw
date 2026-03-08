@@ -25,6 +25,9 @@ async def execute_mouse_control(args: Dict[str, Any]) -> ToolResult:
     action = args.get("action")
     x = args.get("x")
     y = args.get("y")
+    drag_to_x = args.get("drag_to_x")
+    drag_to_y = args.get("drag_to_y")
+    duration = args.get("duration", 0.5)
     scroll_amount = args.get("scroll_amount")
     scroll_direction = args.get("scroll_direction", "vertical")
     
@@ -85,16 +88,23 @@ async def execute_mouse_control(args: Dict[str, Any]) -> ToolResult:
             
             elif action == "drag":
                 if x is None or y is None:
-                    raise ValueError("X and Y coordinates are required for drag action")
-                # Get current position as start
-                current_x, current_y = pyautogui.position()
-                pyautogui.dragTo(x, y, duration=0.1)
+                    raise ValueError("Source x and y coordinates are required for drag action")
+                if drag_to_x is None or drag_to_y is None:
+                    raise ValueError("drag_to_x and drag_to_y are required for drag action")
+                if not isinstance(duration, (int, float)):
+                    raise ValueError("duration must be numeric for drag action")
+                drag_duration = max(float(duration), 0.0)
+                pyautogui.moveTo(x, y)
+                pyautogui.dragTo(drag_to_x, drag_to_y, duration=drag_duration)
                 return {
                     "action": "drag",
-                    "coordinates": [x, y],
-                    "message": f"Dragged to ({x}, {y})",
-                    "llm_content": f"Dragged to ({x}, {y})",
-                    "return_display": f"Dragged to ({x}, {y})",
+                    "coordinates": [drag_to_x, drag_to_y],
+                    "source_coordinates": [x, y],
+                    "destination_coordinates": [drag_to_x, drag_to_y],
+                    "duration": drag_duration,
+                    "message": f"Dragged from ({x}, {y}) to ({drag_to_x}, {drag_to_y})",
+                    "llm_content": f"Dragged from ({x}, {y}) to ({drag_to_x}, {drag_to_y})",
+                    "return_display": f"Dragged from ({x}, {y}) to ({drag_to_x}, {drag_to_y})",
                 }
             
             elif action == "scroll":

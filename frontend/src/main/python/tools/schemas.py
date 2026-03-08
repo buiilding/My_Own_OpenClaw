@@ -19,6 +19,18 @@ class MouseControlArgs(BaseModel):
     )
     x: Optional[int] = Field(None, description="X coordinate (required for all actions except scroll)")
     y: Optional[int] = Field(None, description="Y coordinate (required for all actions except scroll)")
+    drag_to_x: Optional[int] = Field(
+        None,
+        description="Destination X coordinate for drag actions",
+    )
+    drag_to_y: Optional[int] = Field(
+        None,
+        description="Destination Y coordinate for drag actions",
+    )
+    duration: Optional[float] = Field(
+        0.5,
+        description="Duration in seconds for drag operations",
+    )
     scroll_amount: Optional[int] = Field(None, description="Amount to scroll (required for scroll action)")
     scroll_direction: Literal["vertical", "horizontal"] = Field("vertical", description="Scroll direction")
     wait: Optional[float] = Field(
@@ -31,6 +43,8 @@ class MouseControlArgs(BaseModel):
         """Validate that coordinates are provided when required."""
         if self.action != "scroll" and (self.x is None or self.y is None):
             raise ValueError("X and Y coordinates are required for this action")
+        if self.action == "drag" and (self.drag_to_x is None or self.drag_to_y is None):
+            raise ValueError("drag_to_x and drag_to_y are required for drag action")
         if self.action == "scroll" and self.scroll_amount is None:
             raise ValueError("scroll_amount is required for scroll action")
         return self
