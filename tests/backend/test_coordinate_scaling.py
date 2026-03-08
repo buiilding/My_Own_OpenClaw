@@ -48,6 +48,18 @@ def _patch_coordinate_resolution(monkeypatch, x: int, y: int):
     )
 
 
+def _patch_coordinate_resolution_sequence(monkeypatch, coordinates: list[tuple[int, int]]):
+    iterator = iter(coordinates)
+
+    async def _fake_resolve_coordinates(*_args, **_kwargs):
+        return next(iterator)
+
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.preparation_helper.resolve_coordinates",
+        _fake_resolve_coordinates,
+    )
+
+
 def _build_mouse_call(
     *,
     method: CoordinateFindingMethod,
@@ -207,6 +219,106 @@ async def test_resolve_tool_with_coordinates_normalizes_drag_destination(monkeyp
     assert destination_contract["source_coordinates"] == {"x": 2000, "y": 500}
     assert destination_contract["normalized_coordinates"] == {"x": 1000, "y": 250}
     assert destination_contract["normalization_status"] == "scaled_to_desktop"
+
+
+@pytest.mark.asyncio
+async def test_resolve_tool_with_coordinates_resolves_prediction_destination_from_same_screenshot(
+    monkeypatch,
+):
+    session, screenshot_manager = _create_session_and_manager(
+        screenshot_id="shot-drag-destination-prediction",
+        capture_meta={
+            "screenshot_id": "shot-drag-destination-prediction",
+            "source_w": 1920,
+            "source_h": 1080,
+            "crop_x": 0,
+            "crop_y": 0,
+            "crop_w": 1920,
+            "crop_h": 1080,
+            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
+            "monitor_id": None,
+            "timestamp": 1,
+        },
+    )
+
+    tool_call, resolved_call = _build_mouse_call(
+        method=CoordinateFindingMethod.MANUAL,
+        action="drag",
+        x=620,
+        y=540,
+        drag_to_find_coordinates_by=CoordinateFindingMethod.PREDICTION,
+        drag_to_description="black rounded square",
+    )
+
+    _patch_coordinate_resolution_sequence(monkeypatch, [(620, 320)])
+    await _resolve_with_stubs(
+        tool_call,
+        resolved_call,
+        session,
+        screenshot_manager,
+        "drag-destination-prediction",
+    )
+
+    assert resolved_call.parameters["x"] == 620
+    assert resolved_call.parameters["y"] == 540
+    assert resolved_call.parameters["drag_to_x"] == 620
+    assert resolved_call.parameters["drag_to_y"] == 320
+    assert "drag_to_find_coordinates_by" not in resolved_call.parameters
+    assert resolved_call.parameters["drag_to_description"] == "black rounded square"
+    assert resolved_call.metadata["coordinate_resolution_screenshot_id"] == "shot-drag-destination-prediction"
+    assert resolved_call.metadata["drag_destination_coordinate_method"] == "prediction"
+    destination_contract = resolved_call.metadata["drag_destination_coordinate_contract"]
+    assert destination_contract["screenshot_id"] == "shot-drag-destination-prediction"
+    assert destination_contract["source_coordinates"] == {"x": 620, "y": 320}
+
+
+@pytest.mark.asyncio
+async def test_resolve_tool_with_coordinates_resolves_source_and_destination_against_same_screenshot(
+    monkeypatch,
+):
+    session, screenshot_manager = _create_session_and_manager(
+        screenshot_id="shot-drag-shared-frame",
+        capture_meta={
+            "screenshot_id": "shot-drag-shared-frame",
+            "source_w": 1920,
+            "source_h": 1080,
+            "crop_x": 0,
+            "crop_y": 0,
+            "crop_w": 1920,
+            "crop_h": 1080,
+            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
+            "monitor_id": None,
+            "timestamp": 1,
+        },
+    )
+
+    tool_call, resolved_call = _build_mouse_call(
+        method=CoordinateFindingMethod.OCR,
+        action="drag",
+        ocr_text="gray circle",
+        drag_to_find_coordinates_by=CoordinateFindingMethod.OCR,
+        drag_to_ocr_text="black rounded square",
+    )
+
+    _patch_coordinate_resolution_sequence(monkeypatch, [(620, 540), (620, 320)])
+    await _resolve_with_stubs(
+        tool_call,
+        resolved_call,
+        session,
+        screenshot_manager,
+        "drag-shared-frame",
+    )
+
+    assert resolved_call.parameters["x"] == 620
+    assert resolved_call.parameters["y"] == 540
+    assert resolved_call.parameters["drag_to_x"] == 620
+    assert resolved_call.parameters["drag_to_y"] == 320
+    assert resolved_call.metadata["coordinate_resolution_screenshot_id"] == "shot-drag-shared-frame"
+    assert resolved_call.metadata["coordinate_contract"]["screenshot_id"] == "shot-drag-shared-frame"
+    assert (
+        resolved_call.metadata["drag_destination_coordinate_contract"]["screenshot_id"]
+        == "shot-drag-shared-frame"
+    )
 
 
 @pytest.mark.asyncio

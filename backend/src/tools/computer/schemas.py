@@ -57,15 +57,48 @@ class MouseControlArgs(BaseModel):
         None,
         description=(
             "Destination X coordinate in screenshot pixels for drag actions. "
-            "Required when action='drag'."
+            "Required when action='drag' and drag_to_find_coordinates_by='manual'."
         ),
     )
     drag_to_y: Optional[int] = Field(
         None,
         description=(
             "Destination Y coordinate in screenshot pixels for drag actions. "
-            "Required when action='drag'."
+            "Required when action='drag' and drag_to_find_coordinates_by='manual'."
         ),
+    )
+    drag_to_find_coordinates_by: CoordinateFindingMethod = Field(
+        CoordinateFindingMethod.MANUAL,
+        description=(
+            "Destination coordinate targeting strategy for drag actions. "
+            "Use 'ocr' for text-labeled targets, 'prediction' for non-text targets, "
+            "and 'manual' when you already know destination screenshot coordinates."
+        ),
+    )
+    drag_to_ocr_text: Optional[str] = Field(
+        None,
+        description=(
+            "Exact visible on-screen text for the drag destination when "
+            "drag_to_find_coordinates_by='ocr'."
+        ),
+    )
+    drag_to_candidate_id: Optional[str] = Field(
+        None,
+        description=(
+            "Stable OCR candidate id for the drag destination when "
+            "drag_to_find_coordinates_by='ocr'."
+        ),
+    )
+    drag_to_description: Optional[str] = Field(
+        None,
+        description=(
+            "Detailed visual description of the drag destination when "
+            "drag_to_find_coordinates_by='prediction'."
+        ),
+    )
+    drag_to_model_name: Optional[str] = Field(
+        None,
+        description="Optional specific vision model to use for drag destination prediction",
     )
 
     # OCR coordinate fields
@@ -124,8 +157,24 @@ class MouseControlArgs(BaseModel):
             if self.scroll_amount is None:
                 raise ValueError("scroll_amount is required when action='scroll'")
         elif self.action == MouseAction.DRAG:
-            if self.drag_to_x is None or self.drag_to_y is None:
-                raise ValueError("drag_to_x and drag_to_y are required when action='drag'")
+            if self.drag_to_find_coordinates_by == CoordinateFindingMethod.MANUAL:
+                if self.drag_to_x is None or self.drag_to_y is None:
+                    raise ValueError(
+                        "drag_to_x and drag_to_y are required when action='drag' and "
+                        "drag_to_find_coordinates_by='manual'"
+                    )
+            elif self.drag_to_find_coordinates_by == CoordinateFindingMethod.OCR:
+                if not self.drag_to_ocr_text and not self.drag_to_candidate_id:
+                    raise ValueError(
+                        "drag_to_ocr_text or drag_to_candidate_id is required when "
+                        "action='drag' and drag_to_find_coordinates_by='ocr'"
+                    )
+            elif self.drag_to_find_coordinates_by == CoordinateFindingMethod.PREDICTION:
+                if not self.drag_to_description:
+                    raise ValueError(
+                        "drag_to_description is required when action='drag' and "
+                        "drag_to_find_coordinates_by='prediction'"
+                    )
 
         return self
 

@@ -80,7 +80,18 @@ def test_unified_schema_mouse_arguments_lock_ocr_prediction_and_manual_requireme
         for rule in all_of_rules
     )
     assert any(
-        rule.get("if", {}).get("properties", {}).get("action", {}).get("const") == "drag"
+        rule.get("if", {}).get("properties", {}).get("drag_to_find_coordinates_by", {}).get("const") == "manual"
         and rule.get("then", {}).get("required") == ["drag_to_x", "drag_to_y"]
+        for rule in all_of_rules
+    )
+    assert any(
+        rule.get("if", {}).get("properties", {}).get("drag_to_find_coordinates_by", {}).get("const") == "ocr"
+        and {"required": ["drag_to_ocr_text"]} in rule.get("then", {}).get("anyOf", [])
+        and {"required": ["drag_to_candidate_id"]} in rule.get("then", {}).get("anyOf", [])
+        for rule in all_of_rules
+    )
+    assert any(
+        rule.get("if", {}).get("properties", {}).get("drag_to_find_coordinates_by", {}).get("const") == "prediction"
+        and rule.get("then", {}).get("required") == ["drag_to_description"]
         for rule in all_of_rules
     )

@@ -45,6 +45,50 @@ def _require_prediction_description() -> Dict[str, Any]:
     }
 
 
+def _require_drag_destination_manual_xy() -> Dict[str, Any]:
+    return {
+        "if": {
+            "properties": {
+                "action": {"const": "drag"},
+                "drag_to_find_coordinates_by": {"const": "manual"},
+            },
+            "required": ["action", "drag_to_find_coordinates_by"],
+        },
+        "then": {"required": ["drag_to_x", "drag_to_y"]},
+    }
+
+
+def _require_drag_destination_ocr_target() -> Dict[str, Any]:
+    return {
+        "if": {
+            "properties": {
+                "action": {"const": "drag"},
+                "drag_to_find_coordinates_by": {"const": "ocr"},
+            },
+            "required": ["action", "drag_to_find_coordinates_by"],
+        },
+        "then": {
+            "anyOf": [
+                {"required": ["drag_to_ocr_text"]},
+                {"required": ["drag_to_candidate_id"]},
+            ]
+        },
+    }
+
+
+def _require_drag_destination_prediction_description() -> Dict[str, Any]:
+    return {
+        "if": {
+            "properties": {
+                "action": {"const": "drag"},
+                "drag_to_find_coordinates_by": {"const": "prediction"},
+            },
+            "required": ["action", "drag_to_find_coordinates_by"],
+        },
+        "then": {"required": ["drag_to_description"]},
+    }
+
+
 def _post_action_wait_property() -> Dict[str, Any]:
     return {
         "type": "number",
@@ -234,15 +278,54 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 "drag_to_x": {
                                     "type": "integer",
                                     "description": (
-                                        "Destination X for drag. Required when action='drag' in "
-                                        "manual mode."
+                                        "Destination X for drag. Required when action='drag' and "
+                                        "drag_to_find_coordinates_by='manual'."
                                     ),
                                 },
                                 "drag_to_y": {
                                     "type": "integer",
                                     "description": (
-                                        "Destination Y for drag. Required when action='drag' in "
-                                        "manual mode."
+                                        "Destination Y for drag. Required when action='drag' and "
+                                        "drag_to_find_coordinates_by='manual'."
+                                    ),
+                                },
+                                "drag_to_find_coordinates_by": {
+                                    "type": "string",
+                                    "description": (
+                                        "Destination coordinate targeting strategy for drag "
+                                        "actions. Use 'ocr' for visible text targets, "
+                                        "'prediction' for non-text targets, and 'manual' when "
+                                        "destination screenshot coordinates are already known."
+                                    ),
+                                    "default": "manual",
+                                    "enum": ["manual", "ocr", "prediction"],
+                                },
+                                "drag_to_ocr_text": {
+                                    "type": "string",
+                                    "description": (
+                                        "Exact visible on-screen text for OCR grounding of the "
+                                        "drag destination."
+                                    ),
+                                },
+                                "drag_to_candidate_id": {
+                                    "type": "string",
+                                    "description": (
+                                        "Stable OCR candidate id for the drag destination from an "
+                                        "earlier ambiguity response."
+                                    ),
+                                },
+                                "drag_to_description": {
+                                    "type": "string",
+                                    "description": (
+                                        "Detailed visual description of a non-text drag "
+                                        "destination."
+                                    ),
+                                },
+                                "drag_to_model_name": {
+                                    "type": "string",
+                                    "description": (
+                                        "Optional vision model name to use for drag destination "
+                                        "prediction grounding."
                                     ),
                                 },
                                 "duration": {
@@ -288,10 +371,11 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                         "properties": {"action": {"const": "drag"}},
                                         "required": ["action"],
                                     },
-                                    "then": {
-                                        "required": ["drag_to_x", "drag_to_y"]
-                                    },
+                                    "then": {},
                                 },
+                                _require_drag_destination_manual_xy(),
+                                _require_drag_destination_ocr_target(),
+                                _require_drag_destination_prediction_description(),
                                 {
                                     "if": {
                                         "properties": {"action": {"const": "scroll"}},
