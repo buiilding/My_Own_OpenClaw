@@ -4,6 +4,7 @@ Tool resolution helper for coordinate resolution workflow.
 Extracts shared logic for resolving a tool call that requires coordinate resolution.
 Pure infrastructure code - no side effects beyond tool resolution.
 """
+import copy
 import logging
 import math
 import time
@@ -42,7 +43,13 @@ def tool_call_needs_coordinate_resolution(tool_call: ParsedToolCall) -> bool:
     """Return whether a tool call should run OCR/prediction coordinate resolution."""
     if tool_call.tool_name != "mouse_control":
         return False
-    return tool_call.parameters.get("find_coordinates_by") in _COORDINATE_RESOLUTION_METHODS
+    source_method = normalize_coordinate_method(
+        tool_call.parameters.get("find_coordinates_by"),
+        default=CoordinateFindingMethod.MANUAL.value,
+    )
+    if source_method in _COORDINATE_RESOLUTION_METHODS:
+        return True
+    return _drag_destination_method(tool_call) in _COORDINATE_RESOLUTION_METHODS
 
 
 def _round_coordinate(value: float) -> int:
@@ -130,6 +137,35 @@ def tool_call_has_manual_coordinates(tool_call: ParsedToolCall) -> bool:
     )
 
 
+def _drag_destination_method(tool_call: ParsedToolCall) -> str:
+    if tool_call.tool_name != "mouse_control":
+        return CoordinateFindingMethod.MANUAL.value
+    if tool_call.parameters.get("action") != "drag":
+        return CoordinateFindingMethod.MANUAL.value
+    return normalize_coordinate_method(
+        tool_call.parameters.get("drag_to_find_coordinates_by"),
+        default=CoordinateFindingMethod.MANUAL.value,
+    )
+
+
+def _build_destination_resolution_call(tool_call: ParsedToolCall) -> ParsedToolCall:
+    return ParsedToolCall(
+        tool_name=tool_call.tool_name,
+        parameters={
+            "find_coordinates_by": _drag_destination_method(tool_call),
+            "x": tool_call.parameters.get("drag_to_x"),
+            "y": tool_call.parameters.get("drag_to_y"),
+            "ocr_text": tool_call.parameters.get("drag_to_ocr_text"),
+            "candidate_id": tool_call.parameters.get("drag_to_candidate_id"),
+            "description": tool_call.parameters.get("drag_to_description"),
+            "model_name": tool_call.parameters.get("drag_to_model_name"),
+        },
+        raw_call=tool_call.raw_call,
+        confidence=tool_call.confidence,
+        metadata=copy.deepcopy(tool_call.metadata) if tool_call.metadata else None,
+    )
+
+
 def attach_coordinate_method_metadata(
     tool_call: ParsedToolCall,
     resolved_call: ResolvedToolCall,
@@ -151,6 +187,10 @@ def attach_coordinate_method_metadata(
         default=CoordinateFindingMethod.MANUAL.value,
     )
     resolved_call.metadata["coordinate_method"] = method
+    if tool_call.parameters.get("action") == "drag":
+        resolved_call.metadata["drag_destination_coordinate_method"] = _drag_destination_method(
+            tool_call
+        )
 
 
 async def resolve_tool_with_coordinates(
@@ -188,17 +228,30 @@ async def resolve_tool_with_coordinates(
     if not screenshot_data or not screenshot_id:
         raise ValueError("No screenshot data available for coordinate resolution")
 
-    source_x, source_y = await resolve_coordinates(
-        tool_call,
-        session,
-        screenshot_data,
-        screenshot_id,
-        ocr_coordinator,
-        coordinate_resolver,
-        vision_service,
-        vision_service_provider,
-        context_id,
+    source_method = normalize_coordinate_method(
+        tool_call.parameters.get("find_coordinates_by"),
+        default=CoordinateFindingMethod.MANUAL.value,
     )
+    if source_method in _COORDINATE_RESOLUTION_METHODS:
+        source_x, source_y = await resolve_coordinates(
+            tool_call,
+            session,
+            screenshot_data,
+            screenshot_id,
+            ocr_coordinator,
+            coordinate_resolver,
+            vision_service,
+            vision_service_provider,
+            context_id,
+        )
+    else:
+        source_pair = _coerce_manual_coordinate_pair(
+            tool_call.parameters.get("x"),
+            tool_call.parameters.get("y"),
+        )
+        if source_pair is None:
+            raise ValueError("Manual coordinates require numeric x and y values")
+        source_x, source_y = source_pair
 
     contract, normalized = _normalize_coordinate_pair_for_session(
         session=session,
@@ -216,11 +269,16 @@ async def resolve_tool_with_coordinates(
         contract,
         normalized,
     )
-    _normalize_drag_destination_coordinates(
+    await _resolve_drag_destination_coordinates(
+        tool_call=tool_call,
         resolved_call=resolved_call,
         session=session,
         screenshot_b64=screenshot_data,
         screenshot_id=screenshot_id,
+        ocr_coordinator=ocr_coordinator,
+        coordinate_resolver=coordinate_resolver,
+        vision_service=vision_service,
+        vision_service_provider=vision_service_provider,
         context_id=context_id,
     )
 
@@ -288,6 +346,17 @@ def normalize_manual_coordinates(
         contract,
         normalized,
     )
+    destination_method = normalize_coordinate_method(
+        resolved_call.parameters.get("drag_to_find_coordinates_by"),
+        default=CoordinateFindingMethod.MANUAL.value,
+    )
+    if (
+        resolved_call.parameters.get("action") == "drag"
+        and destination_method in _COORDINATE_RESOLUTION_METHODS
+    ):
+        raise ValueError(
+            "Drag destination OCR/prediction grounding requires coordinate resolution preparation"
+        )
     _normalize_drag_destination_coordinates(
         resolved_call=resolved_call,
         session=session,
@@ -329,6 +398,82 @@ def _build_coordinate_contract(
         coordinate_space="screenshot_px",
         screenshot_id=screenshot_id,
         capture_meta=capture_meta,
+    )
+
+
+async def _resolve_drag_destination_coordinates(
+    *,
+    tool_call: ParsedToolCall,
+    resolved_call: ResolvedToolCall,
+    session: "AgentSession",
+    screenshot_b64: str,
+    screenshot_id: str,
+    ocr_coordinator: "OcrCoordinator",
+    coordinate_resolver: "CoordinateResolver",
+    vision_service: Optional["IVisionService"],
+    vision_service_provider,
+    context_id: str,
+) -> None:
+    if resolved_call.tool_name != "mouse_control":
+        return
+    if resolved_call.parameters.get("action") != "drag":
+        return
+
+    destination_method = _drag_destination_method(tool_call)
+    if destination_method in _COORDINATE_RESOLUTION_METHODS:
+        destination_x, destination_y = await resolve_coordinates(
+            _build_destination_resolution_call(tool_call),
+            session,
+            screenshot_b64,
+            screenshot_id,
+            ocr_coordinator,
+            coordinate_resolver,
+            vision_service,
+            vision_service_provider,
+            context_id,
+        )
+        resolved_call.parameters.pop("drag_to_find_coordinates_by", None)
+        resolved_call.parameters.pop("drag_to_model_name", None)
+    else:
+        _normalize_drag_destination_coordinates(
+            resolved_call=resolved_call,
+            session=session,
+            screenshot_b64=screenshot_b64,
+            screenshot_id=screenshot_id,
+            context_id=context_id,
+        )
+        return
+
+    contract, normalized = _normalize_coordinate_pair_for_session(
+        session=session,
+        screenshot_b64=screenshot_b64,
+        screenshot_id=screenshot_id,
+        x=destination_x,
+        y=destination_y,
+    )
+    resolved_call.parameters["drag_to_x"] = normalized.x
+    resolved_call.parameters["drag_to_y"] = normalized.y
+    resolved_call.parameters.pop("drag_to_find_coordinates_by", None)
+    resolved_call.parameters.pop("drag_to_model_name", None)
+
+    if not resolved_call.metadata:
+        resolved_call.metadata = {}
+    resolved_call.metadata["drag_destination_coordinate_method"] = destination_method
+    resolved_call.metadata["drag_destination_coordinate_contract"] = build_contract_metadata(
+        contract,
+        normalized,
+    )
+
+    logger.info(
+        "[context_id=%s] Resolved drag destination source=(%s,%s) desktop=(%s,%s) "
+        "status=%s screenshot=%s",
+        short_id(context_id),
+        destination_x,
+        destination_y,
+        normalized.x,
+        normalized.y,
+        normalized.status,
+        screenshot_id[:8],
     )
 
 
