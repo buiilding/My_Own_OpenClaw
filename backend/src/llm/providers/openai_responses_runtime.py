@@ -53,11 +53,26 @@ def _normalize_message_content_for_input(content: Any) -> Any:
 def _normalize_assistant_tool_call_input(
     tool_call: Dict[str, Any],
 ) -> Dict[str, Any]:
+    function_payload = tool_call.get("function")
+    if isinstance(function_payload, dict):
+        name = function_payload.get("name")
+        arguments = function_payload.get("arguments")
+    else:
+        name = tool_call.get("name")
+        arguments = tool_call.get("arguments")
+
+    if isinstance(arguments, dict):
+        arguments_payload = json.dumps(arguments, ensure_ascii=False)
+    elif isinstance(arguments, str):
+        arguments_payload = arguments
+    else:
+        arguments_payload = json.dumps({}, ensure_ascii=False)
+
     return {
         "type": "function_call",
         "call_id": str(tool_call.get("id") or ""),
-        "name": str(tool_call.get("name") or ""),
-        "arguments": json.dumps(tool_call.get("arguments") or {}, ensure_ascii=False),
+        "name": str(name or ""),
+        "arguments": arguments_payload,
         "status": "completed",
     }
 
