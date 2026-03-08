@@ -89,7 +89,7 @@ class MouseControlArgs(BaseModel):
             "drag_to_find_coordinates_by='ocr'."
         ),
     )
-    drag_to_description: Optional[str] = Field(
+    destination_description: Optional[str] = Field(
         None,
         description=(
             "Detailed visual description of the drag destination when "
@@ -121,7 +121,7 @@ class MouseControlArgs(BaseModel):
     )
 
     # Prediction coordinate fields
-    description: Optional[str] = Field(
+    source_description: Optional[str] = Field(
         None,
         description=(
             "Detailed visual description of a non-text target (icon, image, shape, relative location). "
@@ -150,8 +150,8 @@ class MouseControlArgs(BaseModel):
                     "ocr_text or candidate_id is required when find_coordinates_by='ocr'"
                 )
         elif self.find_coordinates_by == CoordinateFindingMethod.PREDICTION:
-            if not self.description:
-                raise ValueError("description is required when find_coordinates_by='prediction'")
+            if not self.source_description:
+                raise ValueError("source_description is required when find_coordinates_by='prediction'")
 
         if self.action == MouseAction.SCROLL:
             if self.scroll_amount is None:
@@ -170,9 +170,9 @@ class MouseControlArgs(BaseModel):
                         "action='drag' and drag_to_find_coordinates_by='ocr'"
                     )
             elif self.drag_to_find_coordinates_by == CoordinateFindingMethod.PREDICTION:
-                if not self.drag_to_description:
+                if not self.destination_description:
                     raise ValueError(
-                        "drag_to_description is required when action='drag' and "
+                        "destination_description is required when action='drag' and "
                         "drag_to_find_coordinates_by='prediction'"
                     )
 
@@ -346,7 +346,8 @@ class ComputerUseArgs(BaseModel):
             "For `mouse_control`, this follows mouse schema fields including "
             "`action`, `find_coordinates_by` (`manual` | `ocr` | `prediction`), "
             "`x`/`y` for manual, `ocr_text` or `candidate_id` for OCR, and "
-            "`description` for prediction. "
+            "`source_description` for prediction plus `destination_description` "
+            "for drag destinations using prediction. "
             "For other tools, use the same arguments as their legacy schemas "
             "(keyboard_control/screenshot/scroll_control/switch_tab/wait)."
         ),

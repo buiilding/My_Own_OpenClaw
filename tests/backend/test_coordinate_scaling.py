@@ -169,7 +169,7 @@ async def test_resolve_tool_with_coordinates_preserves_prediction_description(mo
 
     tool_call, resolved_call = _build_mouse_call(
         method=CoordinateFindingMethod.PREDICTION,
-        description="the cheapest shoe listing card",
+        source_description="the cheapest shoe listing card",
     )
 
     _patch_coordinate_resolution(monkeypatch, 743, 873)
@@ -177,7 +177,7 @@ async def test_resolve_tool_with_coordinates_preserves_prediction_description(mo
 
     assert resolved_call.parameters["x"] == 743
     assert resolved_call.parameters["y"] == 873
-    assert resolved_call.parameters["description"] == "the cheapest shoe listing card"
+    assert resolved_call.parameters["source_description"] == "the cheapest shoe listing card"
     assert "find_coordinates_by" not in resolved_call.parameters
     assert resolved_call.metadata["coordinate_method"] == "prediction"
 
@@ -203,7 +203,7 @@ async def test_resolve_tool_with_coordinates_normalizes_drag_destination(monkeyp
     tool_call, resolved_call = _build_mouse_call(
         method=CoordinateFindingMethod.PREDICTION,
         action="drag",
-        description="gray circle",
+        source_description="gray circle",
         drag_to_x=2000,
         drag_to_y=500,
     )
@@ -247,7 +247,7 @@ async def test_resolve_tool_with_coordinates_resolves_prediction_destination_fro
         x=620,
         y=540,
         drag_to_find_coordinates_by=CoordinateFindingMethod.PREDICTION,
-        drag_to_description="black rounded square",
+        destination_description="black rounded square",
     )
 
     _patch_coordinate_resolution_sequence(monkeypatch, [(620, 320)])
@@ -264,7 +264,7 @@ async def test_resolve_tool_with_coordinates_resolves_prediction_destination_fro
     assert resolved_call.parameters["drag_to_x"] == 620
     assert resolved_call.parameters["drag_to_y"] == 320
     assert "drag_to_find_coordinates_by" not in resolved_call.parameters
-    assert resolved_call.parameters["drag_to_description"] == "black rounded square"
+    assert resolved_call.parameters["destination_description"] == "black rounded square"
     assert resolved_call.metadata["coordinate_resolution_screenshot_id"] == "shot-drag-destination-prediction"
     assert resolved_call.metadata["drag_destination_coordinate_method"] == "prediction"
     destination_contract = resolved_call.metadata["drag_destination_coordinate_contract"]

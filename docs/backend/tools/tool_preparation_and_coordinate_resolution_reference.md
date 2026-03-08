@@ -126,7 +126,7 @@ After successful resolution:
 
 - `parameters.x` / `parameters.y` are concrete coordinates
 - `find_coordinates_by` and backend-only `model_name` fields are removed
-- model-generated targeting context (`ocr_text` / `description`) is preserved for transparency
+- model-generated targeting context (`ocr_text` / `source_description`) is preserved for transparency
 
 Metadata additions:
 

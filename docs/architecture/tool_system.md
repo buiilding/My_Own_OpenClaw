@@ -294,7 +294,7 @@ For tools using vision models:
     "arguments": {
         "action": "click",
         "find_coordinates_by": "prediction",
-        "target_description": "Submit button"
+        "source_description": "Submit button"
     }
 }
 ```
@@ -381,7 +381,7 @@ No dual-shape fallback is supported in provider transport.
 
 ### Computer Control Tools
 
-- **mouse_control**: Mouse actions (click, drag, move). Source grounding supports `manual`, `ocr`, or `prediction`. Drag destinations support the same modes via `drag_to_find_coordinates_by` plus destination-specific fields (`drag_to_x/drag_to_y`, `drag_to_ocr_text`/`drag_to_candidate_id`, `drag_to_description`). Backend resolves both source and drag destination against the same current screenshot frame, then normalizes both into desktop coordinates before sidecar execution.
+- **mouse_control**: Mouse actions (click, drag, move). Source grounding supports `manual`, `ocr`, or `prediction` using `source_description` for prediction. Drag destinations support the same modes via `drag_to_find_coordinates_by` plus destination-specific fields (`drag_to_x/drag_to_y`, `drag_to_ocr_text`/`drag_to_candidate_id`, `destination_description`). Backend resolves both source and drag destination against the same current screenshot frame, then normalizes both into desktop coordinates before sidecar execution.
 - **keyboard_control**: Keyboard input
 - **scroll_control**: Scroll actions. Manual coordinates only: model must provide `x` and `y`, sidecar moves cursor to that location before every scroll action (`scroll`, `scroll_up`, `scroll_down`).
 - **screenshot**: Capture screenshot

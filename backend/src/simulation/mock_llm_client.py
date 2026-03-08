@@ -254,7 +254,7 @@ SIMULATION_RESPONSES = [
                     "args": {
                         "action": "click",
                         "find_coordinates_by": "prediction",
-                        "description": "The cheapest pair of shoes on the list",
+                        "source_description": "The cheapest pair of shoes on the list",
                         "wait": 2.0
                     }
                 }

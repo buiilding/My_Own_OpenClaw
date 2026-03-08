@@ -116,7 +116,8 @@ Prompt/schema guidance contract for unified tool descriptions:
 - description explicitly requires metadata payload for every call
 - mouse targeting guidance instructs:
   - `find_coordinates_by='ocr'` + exact `ocr_text` for text targets
-  - `find_coordinates_by='prediction'` + detailed visual `description` for non-text targets
+  - `find_coordinates_by='prediction'` + detailed visual `source_description` for non-text targets
+  - `drag_to_find_coordinates_by='prediction'` + `destination_description` for drag drop targets
 
 Test-backed coverage:
 

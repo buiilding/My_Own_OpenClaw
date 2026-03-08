@@ -284,7 +284,7 @@ async def test_coordinate_resolver_routes_ocr_and_prediction_methods():
         tool_name="mouse_control",
         parameters={
             "find_coordinates_by": CoordinateFindingMethod.PREDICTION,
-            "description": "submit",
+            "source_description": "submit",
         },
     )
     vision_coords = await resolver.resolve(
@@ -324,7 +324,7 @@ async def test_coordinate_resolver_raises_for_missing_inputs_and_unknown_method(
         tool_name="mouse_control",
         parameters={
             "find_coordinates_by": CoordinateFindingMethod.PREDICTION,
-            "description": "target",
+            "source_description": "target",
         },
     )
     with pytest.raises(ValueError, match="Vision service is required"):

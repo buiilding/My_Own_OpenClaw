@@ -339,7 +339,7 @@ class VisionCoordinateResolver:
         """
         vision_start = time.perf_counter()
         if not description:
-            raise ValueError("description parameter is required for prediction method")
+            raise ValueError("source_description parameter is required for prediction method")
         
         if not vision_service or not vision_service.is_initialized:
             raise ValueError("Vision service is not available or initialized")
@@ -420,7 +420,7 @@ class CoordinateResolver:
             )
         
         elif method == CoordinateFindingMethod.PREDICTION:
-            description = tool_call.parameters.get("description")
+            description = tool_call.parameters.get("source_description")
             if not vision_service:
                 raise ValueError("Vision service is required for prediction method")
             return await self.vision_resolver.resolve(

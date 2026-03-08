@@ -171,7 +171,7 @@ class VenusVisionModel(InternVLModel):
 
         vision_prediction_start = time.perf_counter()
         if not instruction:
-            raise ValueError("description parameter is required for prediction method")
+            raise ValueError("source_description parameter is required for prediction method")
         if not getattr(self, "processor", None):
             raise RuntimeError("Vision processor not initialized for Venus model")
 

@@ -31,11 +31,13 @@ title: "Computer Tool Schema Guidance and Unified Envelope Validation Reference"
 - `find_coordinates_by='ocr'`:
   - requires `ocr_text` or `candidate_id`
 - `find_coordinates_by='prediction'`:
-  - requires `description`
+  - requires `source_description`
 
 Action-specific requirement:
 
 - `action='scroll'` requires `scroll_amount`
+- `action='drag'` + `drag_to_find_coordinates_by='prediction'`:
+  - requires `destination_description`
 
 Schema guidance also encodes execution-policy hints in field descriptions:
 

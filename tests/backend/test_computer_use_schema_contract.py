@@ -73,7 +73,7 @@ def test_unified_schema_mouse_arguments_lock_ocr_prediction_and_manual_requireme
     )
     assert any(
         rule.get("if", {}).get("properties", {}).get("find_coordinates_by", {}).get("const") == "prediction"
-        and rule.get("then", {}).get("required") == ["description"]
+        and rule.get("then", {}).get("required") == ["source_description"]
         for rule in all_of_rules
     )
     assert any(
@@ -89,6 +89,6 @@ def test_unified_schema_mouse_arguments_lock_ocr_prediction_and_manual_requireme
     )
     assert any(
         rule.get("if", {}).get("properties", {}).get("drag_to_find_coordinates_by", {}).get("const") == "prediction"
-        and rule.get("then", {}).get("required") == ["drag_to_description"]
+        and rule.get("then", {}).get("required") == ["destination_description"]
         for rule in all_of_rules
     )
