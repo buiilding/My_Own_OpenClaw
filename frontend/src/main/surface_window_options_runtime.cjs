@@ -1,0 +1,30 @@
+function normalizeTargetDisplayAffinity(targetDisplayAffinity) {
+  return (
+    targetDisplayAffinity
+    && typeof targetDisplayAffinity === 'object'
+    && !Array.isArray(targetDisplayAffinity)
+  )
+    ? targetDisplayAffinity
+    : null;
+}
+
+function normalizeChatSurfaceWindowOptions(options = {}) {
+  return {
+    focus: options?.focus !== false,
+    restoreResponseOverlay: options?.restoreResponseOverlay === true,
+    targetDisplayAffinity: normalizeTargetDisplayAffinity(options?.targetDisplayAffinity),
+  };
+}
+
+function normalizeMainSurfaceWindowOptions(options = {}) {
+  return {
+    focus: options?.focus !== false,
+    maximize: options?.maximize === true,
+    targetDisplayAffinity: normalizeTargetDisplayAffinity(options?.targetDisplayAffinity),
+  };
+}
+
+module.exports = {
+  normalizeChatSurfaceWindowOptions,
+  normalizeMainSurfaceWindowOptions,
+};
