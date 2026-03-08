@@ -58,6 +58,16 @@ def test_unified_schema_mouse_arguments_lock_ocr_prediction_and_manual_requireme
 
     find_coordinates_by = mouse_schema["properties"]["find_coordinates_by"]
     assert find_coordinates_by["enum"] == ["manual", "ocr", "prediction"]
+    assert mouse_schema["properties"]["action"]["enum"] == [
+        "click",
+        "double_click",
+        "right_click",
+        "move",
+        "drag",
+    ]
+    assert "scroll_amount" not in mouse_schema["properties"]
+    assert "scroll_direction" not in mouse_schema["properties"]
+    assert "clicks" not in mouse_schema["properties"]
 
     all_of_rules = mouse_schema["allOf"]
     assert any(
@@ -90,5 +100,9 @@ def test_unified_schema_mouse_arguments_lock_ocr_prediction_and_manual_requireme
     assert any(
         rule.get("if", {}).get("properties", {}).get("drag_to_find_coordinates_by", {}).get("const") == "prediction"
         and rule.get("then", {}).get("required") == ["destination_description"]
+        for rule in all_of_rules
+    )
+    assert not any(
+        rule.get("if", {}).get("properties", {}).get("action", {}).get("const") == "scroll"
         for rule in all_of_rules
     )

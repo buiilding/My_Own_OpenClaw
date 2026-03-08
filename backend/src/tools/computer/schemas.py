@@ -8,7 +8,6 @@ from backend.src.core.types.enums import (
     CoordinateFindingMethod,
     KeyboardAction,
     MouseAction,
-    ScrollDirection as ScrollDirectionEnum,
 )
 from backend.src.tools.schema_fields import post_action_wait_field
 
@@ -20,7 +19,7 @@ class MouseControlArgs(BaseModel):
     action: MouseAction = Field(
         ...,
         description=(
-            "Mouse action to perform (click, double_click, right_click, move, drag, or scroll). "
+            "Mouse action to perform (click, double_click, right_click, move, or drag). "
             "Prefer keyboard shortcuts/hotkeys first when they can accomplish the same goal. "
             "Do not treat tool execution status alone as UI success; verify the expected UI change from the latest screenshot."
         ),
@@ -131,8 +130,6 @@ class MouseControlArgs(BaseModel):
     model_name: Optional[str] = Field(None, description="Optional specific vision model to use for prediction")
 
     # Action-specific fields
-    scroll_amount: Optional[int] = Field(None, description="Amount to scroll (positive for down/right, negative for up/left, required for scroll action)")
-    scroll_direction: Optional[ScrollDirectionEnum] = Field(ScrollDirectionEnum.VERTICAL, description="Direction of scrolling (required for scroll action)")
     duration: float = Field(0.5, description="Duration for drag operations")
     wait: float = post_action_wait_field()
 
@@ -153,10 +150,7 @@ class MouseControlArgs(BaseModel):
             if not self.source_description:
                 raise ValueError("source_description is required when find_coordinates_by='prediction'")
 
-        if self.action == MouseAction.SCROLL:
-            if self.scroll_amount is None:
-                raise ValueError("scroll_amount is required when action='scroll'")
-        elif self.action == MouseAction.DRAG:
+        if self.action == MouseAction.DRAG:
             if self.drag_to_find_coordinates_by == CoordinateFindingMethod.MANUAL:
                 if self.drag_to_x is None or self.drag_to_y is None:
                     raise ValueError(

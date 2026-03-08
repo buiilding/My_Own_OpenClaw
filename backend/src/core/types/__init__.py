@@ -12,7 +12,6 @@ from backend.src.core.types.enums import (
     MessageRole,
     MessageType,
     MouseAction,
-    ScrollDirection,
     StreamingEventType,
 )
 from backend.src.core.types.schemas import (
@@ -48,7 +47,6 @@ __all__ = [
     "MessageRole",
     "MessageType",
     "MouseAction",
-    "ScrollDirection",
     "StreamingEventType",
     # Schemas
     "AssistantMessageFullChunk",

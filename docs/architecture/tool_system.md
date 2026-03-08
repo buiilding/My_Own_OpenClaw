@@ -162,6 +162,12 @@ Tool calls are sent by the agent tool sender; execution happens in the frontend 
 
 ## Tool Development
 
+Computer-control ownership notes:
+
+- `mouse_control` covers click, double-click, right-click, move, and drag only.
+- `scroll_control` is the sole scroll contract.
+- Drag execution still uses `x/y` as source and `drag_to_x/drag_to_y` as destination.
+
 ### SDK Tool Base Class
 
 All tools inherit from `Tool` base class (`sdk/tool.py`) and define an

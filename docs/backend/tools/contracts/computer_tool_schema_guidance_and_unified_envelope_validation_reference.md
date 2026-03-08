@@ -35,7 +35,6 @@ title: "Computer Tool Schema Guidance and Unified Envelope Validation Reference"
 
 Action-specific requirement:
 
-- `action='scroll'` requires `scroll_amount`
 - `action='drag'` + `drag_to_find_coordinates_by='prediction'`:
   - requires `destination_description`
 
@@ -61,6 +60,11 @@ Schema guidance also encodes execution-policy hints in field descriptions:
 - requires manual `x`/`y`
 - `action='scroll'` requires `direction`
 - `clicks` default remains `5`
+
+Ownership split:
+
+- `mouse_control` no longer exposes a scroll action
+- `scroll_control` is the sole scroll schema
 
 `WaitToolArgs`:
 

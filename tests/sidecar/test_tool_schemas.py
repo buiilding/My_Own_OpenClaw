@@ -14,7 +14,7 @@ from tools.schemas import (  # noqa: E402
 )
 
 
-def test_mouse_control_requires_coordinates_for_non_scroll():
+def test_mouse_control_requires_coordinates_for_all_actions():
     with pytest.raises(ValidationError):
         MouseControlArgs(action="click")
 
@@ -23,19 +23,9 @@ def test_mouse_control_requires_coordinates_for_non_scroll():
     assert args.y == 2
 
 
-def test_mouse_control_requires_scroll_amount_for_scroll():
+def test_mouse_control_rejects_scroll_action():
     with pytest.raises(ValidationError):
-        MouseControlArgs(action="scroll", scroll_direction="vertical")
-
-    args = MouseControlArgs(action="scroll", scroll_amount=3)
-    assert args.scroll_amount == 3
-
-
-def test_mouse_control_scroll_allows_missing_coordinates():
-    args = MouseControlArgs(action="scroll", scroll_amount=5)
-    assert args.x is None
-    assert args.y is None
-    assert args.scroll_amount == 5
+        MouseControlArgs(action="scroll")
 
 
 def test_mouse_control_drag_requires_destination_coordinates():

@@ -32,21 +32,18 @@ This page documents sidecar computer tools as implemented in:
 
 Supported actions:
 
-- `click`, `double_click`, `right_click`, `move`, `drag`, `scroll`
+- `click`, `double_click`, `right_click`, `move`, `drag`
 
 Action contracts from implementation:
 
-- non-scroll actions require `x` and `y`
-- `scroll` requires `scroll_amount`
-- `scroll_direction` defaults to `vertical`
+- all mouse actions require `x` and `y`
+- `drag` also requires `drag_to_x` and `drag_to_y`
 - pyautogui failsafe is disabled (`pyautogui.FAILSAFE = False`)
 
 Execution semantics:
 
 - sync pyautogui work runs via `loop.run_in_executor(...)`
-- `drag` uses current cursor position as start, then `dragTo(x, y, duration=0.1)`
-- `scroll` uses sign inversion (`pyautogui.scroll(-scroll_amount, ...)`) to align with tool direction semantics
-- horizontal scroll attempts `hscroll`; if unavailable, falls back to vertical `scroll`
+- `drag` moves to the source point first, then `dragTo(drag_to_x, drag_to_y, duration=duration)`
 
 Output semantics:
 
@@ -89,6 +86,8 @@ Output semantics:
 - `input` field truncates visible preview to 50 chars, while `message` contains full text
 
 ## Scroll Tool (`scroll_control`)
+
+`scroll_control` is the only scroll execution path.
 
 Supported actions:
 

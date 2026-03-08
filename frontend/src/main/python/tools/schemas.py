@@ -14,11 +14,11 @@ class MouseControlArgs(BaseModel):
     """Arguments for mouse control tool."""
     model_config = ConfigDict(extra='ignore')
     
-    action: Literal["click", "double_click", "right_click", "move", "drag", "scroll"] = Field(
+    action: Literal["click", "double_click", "right_click", "move", "drag"] = Field(
         ..., description="Mouse action to perform"
     )
-    x: Optional[int] = Field(None, description="X coordinate (required for all actions except scroll)")
-    y: Optional[int] = Field(None, description="Y coordinate (required for all actions except scroll)")
+    x: Optional[int] = Field(None, description="X coordinate")
+    y: Optional[int] = Field(None, description="Y coordinate")
     drag_to_x: Optional[int] = Field(
         None,
         description="Destination X coordinate for drag actions",
@@ -31,8 +31,6 @@ class MouseControlArgs(BaseModel):
         0.5,
         description="Duration in seconds for drag operations",
     )
-    scroll_amount: Optional[int] = Field(None, description="Amount to scroll (required for scroll action)")
-    scroll_direction: Literal["vertical", "horizontal"] = Field("vertical", description="Scroll direction")
     wait: Optional[float] = Field(
         2.0,
         description="Delay in seconds before taking a screenshot after tool execution."
@@ -41,12 +39,10 @@ class MouseControlArgs(BaseModel):
     @model_validator(mode='after')
     def validate_coordinates(self):
         """Validate that coordinates are provided when required."""
-        if self.action != "scroll" and (self.x is None or self.y is None):
+        if self.x is None or self.y is None:
             raise ValueError("X and Y coordinates are required for this action")
         if self.action == "drag" and (self.drag_to_x is None or self.drag_to_y is None):
             raise ValueError("drag_to_x and drag_to_y are required for drag action")
-        if self.action == "scroll" and self.scroll_amount is None:
-            raise ValueError("scroll_amount is required for scroll action")
         return self
 
 

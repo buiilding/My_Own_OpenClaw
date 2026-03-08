@@ -17,7 +17,7 @@ async def execute_mouse_control(args: Dict[str, Any]) -> ToolResult:
     Execute mouse control action.
     
     Args:
-        args: Dictionary with 'action', 'x', 'y', 'scroll_amount', 'scroll_direction'
+        args: Dictionary with 'action', 'x', 'y', and optional drag destination fields
         
     Returns:
         Dictionary with success status and action result
@@ -28,8 +28,6 @@ async def execute_mouse_control(args: Dict[str, Any]) -> ToolResult:
     drag_to_x = args.get("drag_to_x")
     drag_to_y = args.get("drag_to_y")
     duration = args.get("duration", 0.5)
-    scroll_amount = args.get("scroll_amount")
-    scroll_direction = args.get("scroll_direction", "vertical")
     
     try:
         import pyautogui
@@ -105,37 +103,6 @@ async def execute_mouse_control(args: Dict[str, Any]) -> ToolResult:
                     "message": f"Dragged from ({x}, {y}) to ({drag_to_x}, {drag_to_y})",
                     "llm_content": f"Dragged from ({x}, {y}) to ({drag_to_x}, {drag_to_y})",
                     "return_display": f"Dragged from ({x}, {y}) to ({drag_to_x}, {drag_to_y})",
-                }
-            
-            elif action == "scroll":
-                if scroll_amount is None:
-                    raise ValueError("scroll_amount required for scroll action")
-                
-                if x is not None and y is not None:
-                    pyautogui.moveTo(x, y)
-                
-                # pyautogui.scroll uses positive for up, negative for down
-                # scroll_amount is typically positive, direction determines up/down
-                if scroll_direction == "vertical":
-                    # Positive scroll_amount = down, negative = up
-                    pyautogui.scroll(-scroll_amount, x=x, y=y)
-                else:
-                    # Horizontal scrolling (not directly supported by pyautogui)
-                    # Use hscroll if available, otherwise fallback
-                    try:
-                        pyautogui.hscroll(-scroll_amount if scroll_amount > 0 else scroll_amount, x=x, y=y)
-                    except AttributeError:
-                        # hscroll not available, use vertical as fallback
-                        pyautogui.scroll(-scroll_amount, x=x, y=y)
-                
-                return {
-                    "action": "scroll",
-                    "coordinates": [x, y] if x is not None and y is not None else None,
-                    "scroll_amount": scroll_amount,
-                    "scroll_direction": scroll_direction,
-                    "message": f"Scrolled {scroll_direction} {scroll_amount}",
-                    "llm_content": f"Scrolled {scroll_direction} {scroll_amount}",
-                    "return_display": f"Scrolled {scroll_direction} {scroll_amount}",
                 }
             
             else:
