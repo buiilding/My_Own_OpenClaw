@@ -73,6 +73,7 @@ Backend message path:
 Key invariant:
 
 - persistence side effect executes in main process exactly once per backend event, independent of renderer window count
+- `memory-store` is a valid post-terminal event and must still persist after `streaming-complete`
 
 ## Failure and Safety Semantics
 

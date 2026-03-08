@@ -664,6 +664,71 @@ async def test_execute_ignores_post_error_events_and_skips_fallback_completion()
 
 
 @pytest.mark.asyncio
+async def test_execute_preserves_memory_store_after_terminal_completion():
+    observed_events = []
+
+    class _Pipeline:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        async def process(self, event, _tts_service, _msg_id, context):
+            observed_events.append((event, context))
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    class _TtsManager:
+        async def initialize_if_enabled(self, _config):
+            return None
+
+        async def cleanup(self, _service, _task):
+            return None
+
+    class _SessionManager:
+        def __init__(self):
+            self.config = SimpleNamespace()
+
+        async def get_or_create_session(self, _user_id):
+            class _Agent:
+                user_id = "user-1"
+                session_id = "session-1"
+                cfg = SimpleNamespace()
+
+                async def process_query(self, *_args, **_kwargs):
+                    yield {"type": "streaming-response", "payload": {"text": "hello "}}
+                    yield {"type": "streaming-complete", "payload": {"final_response": "hello"}}
+                    yield {
+                        "type": "memory-store",
+                        "payload": {
+                            "user_query": "hi",
+                            "assistant_response": "hello",
+                            "memory_type": "episodic",
+                        },
+                    }
+
+            return _Agent()
+
+    service = QueryExecutionService(
+        _SessionManager(),
+        tts_manager=_TtsManager(),
+        response_formatter=object(),
+    )
+
+    await service.execute(
+        _build_message(),
+        websocket=object(),
+        user_id="user-1",
+        pipeline_cls=_Pipeline,
+    )
+
+    assert observed_events[0][0]["type"] == "streaming-response"
+    assert isinstance(observed_events[1][0], StreamingCompleteEvent)
+    assert observed_events[1][0].final_response == "hello"
+    assert observed_events[2][0]["type"] == "memory-store"
+    assert observed_events[2][0]["payload"]["assistant_response"] == "hello"
+
+
+@pytest.mark.asyncio
 async def test_execute_re_raises_cancellation_and_reconciles_pending_tool_calls():
     observed_events = []
 
