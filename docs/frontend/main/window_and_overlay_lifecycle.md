@@ -19,6 +19,7 @@ Primary modules:
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permission_ipc_runtime.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/window_suppression_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/platform/screenshot_window_visibility/*`

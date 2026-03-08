@@ -5341,3 +5341,26 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass)
   - `cd frontend && npm run audit:jscpd` (0 clones)
   - `cd frontend && npm run audit:knip` (clean)
+
+## Phase 202 Outcome (2026-03-08)
+
+- Refactor slice (main window suppression split):
+  - extracted dashboard screenshot-suppression mechanics out of `frontend/src/main/window_visibility_runtime.cjs` into:
+    - `frontend/src/main/window_suppression_runtime.cjs`
+      - opacity guard helper
+      - offscreen-bounds creation
+      - suppression predicate/poll loop
+      - screenshot restore-bounds bookkeeping
+  - kept `window_visibility_runtime.cjs` focused on chat/dashboard show/hide policy instead of low-level suppression mechanics.
+  - added direct unit coverage:
+    - `tests/frontend/WindowSuppressionRuntime.test.cjs`
+- Audit outcome:
+  - `knip`: clean
+  - frontend `jscpd`: `0` JS/TS clones
+  - backend API routes `jscpd`: `0` clones
+  - remaining combined `jscpd` hits are only in the separate in-progress backend reasoning provider work and were intentionally left out of this refactor slice
+- Validation:
+  - `cd frontend && npm run test:ci -- ../tests/frontend/WindowSuppressionRuntime.test.cjs ../tests/frontend/WindowVisibilityRuntime.test.cjs ../tests/frontend/OverlayVisibilityHandler.test.cjs ../tests/frontend/OverlayPhaseIpcRuntime.test.cjs`
+  - `cd frontend && npm run lint -- src/main/window_visibility_runtime.cjs src/main/window_suppression_runtime.cjs`
+  - `cd frontend && npm run audit:jscpd`
+  - `cd frontend && npm run audit:knip`
