@@ -42,6 +42,7 @@ frontend/src/
 │   ├── ipc_query_broadcast.cjs            # Local user-message/query-failure bridge helpers
 │   ├── main_window_runtime.cjs            # Main/chat/response/tray window constructors + renderer view loading
 │   ├── window_visibility_runtime.cjs      # Main/chat overlay visibility operations (show/hide/maximize)
+│   ├── window_suppression_runtime.cjs     # Screenshot suppression helpers for dashboard offscreen/hide/restore
 │   ├── overlay_window_helpers_runtime.cjs # Overlay bounds/position/on-top/context-label runtime helpers
 │   ├── overlay_signal_runtime.cjs         # Wakeword + overlay visibility signal fan-out helpers
 │   ├── overlay_phase_ipc_runtime.cjs      # Phase-owned overlay surface IPC registration (chat/response shell sizing + visibility)
@@ -144,6 +145,8 @@ Primary modules:
   - Screenshot execution wrapper delegates to `main/local_backend_bridge_window_visibility.cjs`, which selects `main/platform/screenshot_window_visibility/*` per OS.
 - `main/window_visibility_runtime.cjs`:
   - Dashboard opens from the chat pill now target the sender display work area directly, avoiding Linux window-manager maximize hops that can reopen on the old monitor.
+- `main/window_suppression_runtime.cjs`:
+  - Owns offscreen screenshot suppression, suppression polling, and restore-bounds bookkeeping for dashboard capture prep.
 - `main/overlay_window_helpers_runtime.cjs`:
   - Manual chat-pill drag position is stored in main and reused by later overlay positioning passes so recenter logic cannot fight a user drag.
 - `main/wakeword_bridge.cjs`:
