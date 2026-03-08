@@ -157,7 +157,7 @@ def _build_destination_resolution_call(tool_call: ParsedToolCall) -> ParsedToolC
             "y": tool_call.parameters.get("drag_to_y"),
             "ocr_text": tool_call.parameters.get("drag_to_ocr_text"),
             "candidate_id": tool_call.parameters.get("drag_to_candidate_id"),
-            "description": tool_call.parameters.get("drag_to_description"),
+            "source_description": tool_call.parameters.get("destination_description"),
             "model_name": tool_call.parameters.get("drag_to_model_name"),
         },
         raw_call=tool_call.raw_call,

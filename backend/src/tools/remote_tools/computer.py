@@ -41,7 +41,8 @@ class RemoteComputerUseTool(RemoteToolBase, Tool[ComputerUseArgs]):
         "(`description`, `explanation`, `expectation`). "
         "For mouse targeting, use `find_coordinates_by='ocr'` with exact `ocr_text` "
         "for text targets, and use `find_coordinates_by='prediction'` with "
-        "a detailed visual `description` for non-text targets."
+        "a detailed visual `source_description` for non-text targets. "
+        "For drag destinations using prediction, provide `destination_description`."
     )
     args_model = ComputerUseArgs
     category = ToolDomain.COMPUTER

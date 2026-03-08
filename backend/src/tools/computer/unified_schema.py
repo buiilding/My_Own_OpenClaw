@@ -41,7 +41,7 @@ def _require_prediction_description() -> Dict[str, Any]:
             },
             "required": ["find_coordinates_by"],
         },
-        "then": {"required": ["description"]},
+        "then": {"required": ["source_description"]},
     }
 
 
@@ -85,7 +85,7 @@ def _require_drag_destination_prediction_description() -> Dict[str, Any]:
             },
             "required": ["action", "drag_to_find_coordinates_by"],
         },
-        "then": {"required": ["drag_to_description"]},
+        "then": {"required": ["destination_description"]},
     }
 
 
@@ -201,9 +201,9 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                     "type": "string",
                                     "description": "OCR candidate id from an earlier response.",
                                 },
-                                "description": {
+                                "source_description": {
                                     "type": "string",
-                                    "description": "Visual target description for prediction.",
+                                    "description": "Visual source target description for prediction.",
                                 },
                                 "model_name": {
                                     "type": "string",
@@ -243,7 +243,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                     "type": "string",
                                     "description": "OCR candidate id for drag destination.",
                                 },
-                                "drag_to_description": {
+                                "destination_description": {
                                     "type": "string",
                                     "description": "Visual drag destination for prediction.",
                                 },
@@ -432,9 +432,9 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                     "type": "string",
                                     "description": "OCR candidate id from an earlier response.",
                                 },
-                                "description": {
+                                "source_description": {
                                     "type": "string",
-                                    "description": "Visual target description for prediction.",
+                                    "description": "Visual source target description for prediction.",
                                 },
                                 "direction": {
                                     "type": "string",

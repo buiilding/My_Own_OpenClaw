@@ -163,7 +163,8 @@ def test_format_user_message_content_filters_mouse_coordinate_methods(
     assert "x" in args_props
     assert "y" in args_props
     assert "ocr_text" not in args_props
-    assert "description" not in args_props
+    assert "source_description" not in args_props
+    assert "destination_description" not in args_props
     assert "model_name" not in args_props
 
 

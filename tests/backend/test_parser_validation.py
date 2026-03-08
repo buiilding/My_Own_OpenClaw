@@ -133,7 +133,7 @@ def test_validate_tool_call_rejects_disabled_mouse_prediction_method(
     with pytest.raises(ParseValidationError, match="find_coordinates_by"):
         validator.validate_tool_call(
             "mouse_control",
-            {"action": "click", "find_coordinates_by": "prediction", "description": "submit button"},
+            {"action": "click", "find_coordinates_by": "prediction", "source_description": "submit button"},
         )
 
 
