@@ -1,0 +1,206 @@
+"""Input-shaping helpers for the OpenAI Responses API runtime."""
+
+from __future__ import annotations
+
+import copy
+import json
+from typing import Any, Dict, List, Optional
+
+from backend.src.core.types.schemas import LLMMessage
+from backend.src.llm.models.models_config import resolve_model_preset, resolve_runtime_model_id
+from backend.src.llm.providers.response_parsing import get_value
+
+
+def _normalize_message_content_for_input(content: Any) -> Any:
+    if isinstance(content, str):
+        return content
+    if not isinstance(content, list):
+        return str(content) if content is not None else ""
+
+    normalized: List[Dict[str, Any]] = []
+    for item in content:
+        item_type = get_value(item, "type")
+        if item_type == "text":
+            text = get_value(item, "text")
+            if isinstance(text, str):
+                normalized.append({"type": "input_text", "text": text})
+        elif item_type == "image_url":
+            image_url = get_value(item, "image_url")
+            if isinstance(image_url, dict):
+                url = image_url.get("url")
+            else:
+                url = get_value(image_url, "url")
+            if isinstance(url, str) and url:
+                normalized.append({"type": "input_image", "image_url": url})
+    return normalized or ""
+
+
+def _normalize_assistant_tool_call_input(tool_call: Dict[str, Any]) -> Dict[str, Any]:
+    function_payload = tool_call.get("function")
+    if isinstance(function_payload, dict):
+        name = function_payload.get("name")
+        arguments = function_payload.get("arguments")
+    else:
+        name = tool_call.get("name")
+        arguments = tool_call.get("arguments")
+
+    if isinstance(arguments, dict):
+        arguments_payload = json.dumps(arguments, ensure_ascii=False)
+    elif isinstance(arguments, str):
+        arguments_payload = arguments
+    else:
+        arguments_payload = json.dumps({}, ensure_ascii=False)
+
+    return {
+        "type": "function_call",
+        "call_id": str(tool_call.get("id") or ""),
+        "name": str(name or ""),
+        "arguments": arguments_payload,
+        "status": "completed",
+    }
+
+
+def _normalize_tool_output_content(content: Any) -> Any:
+    normalized = _normalize_message_content_for_input(content)
+    if normalized == "":
+        return ""
+    return normalized
+
+
+def build_openai_responses_input(messages: List[LLMMessage]) -> List[Dict[str, Any]]:
+    """Convert WindieOS chat history to OpenAI Responses input items."""
+    input_items: List[Dict[str, Any]] = []
+    for message in messages:
+        role = str(message.get("role") or "").strip()
+        if role in {"system", "user"}:
+            input_items.append(
+                {
+                    "type": "message",
+                    "role": role,
+                    "content": _normalize_message_content_for_input(message.get("content")),
+                }
+            )
+            continue
+
+        if role == "assistant":
+            content = message.get("content")
+            if content not in (None, "", []):
+                input_items.append(
+                    {
+                        "type": "message",
+                        "role": "assistant",
+                        "content": _normalize_message_content_for_input(content),
+                    }
+                )
+            for tool_call in message.get("tool_calls") or []:
+                if isinstance(tool_call, dict):
+                    input_items.append(_normalize_assistant_tool_call_input(tool_call))
+            continue
+
+        if role == "tool":
+            tool_call_id = message.get("tool_call_id")
+            if not isinstance(tool_call_id, str) or not tool_call_id.strip():
+                continue
+            input_items.append(
+                {
+                    "type": "function_call_output",
+                    "call_id": tool_call_id.strip(),
+                    "output": _normalize_tool_output_content(message.get("content")),
+                    "status": "completed",
+                }
+            )
+    return input_items
+
+
+def build_openai_responses_tools(
+    tools: Optional[List[Dict[str, Any]]],
+) -> Optional[List[Dict[str, Any]]]:
+    if tools is None:
+        return None
+    normalized: List[Dict[str, Any]] = []
+    for tool in tools:
+        if not isinstance(tool, dict) or tool.get("type") != "function":
+            continue
+        function = tool.get("function")
+        if not isinstance(function, dict):
+            continue
+        normalized.append(
+            {
+                "type": "function",
+                "name": function.get("name"),
+                "description": function.get("description"),
+                "parameters": copy.deepcopy(function.get("parameters")),
+                "strict": False,
+            }
+        )
+    return normalized
+
+
+def build_openai_responses_tool_choice(tool_choice: Any) -> Any:
+    if tool_choice is None or isinstance(tool_choice, str):
+        return tool_choice
+
+    if isinstance(tool_choice, dict):
+        choice_type = tool_choice.get("type")
+        if choice_type == "function":
+            function = tool_choice.get("function")
+            if isinstance(function, dict) and isinstance(function.get("name"), str):
+                return {"type": "function", "name": function["name"]}
+        if choice_type in {"none", "auto", "required"}:
+            return choice_type
+    return tool_choice
+
+
+def build_openai_reasoning_config(model_id: str) -> Dict[str, str]:
+    preset = resolve_model_preset(model_id)
+    display_name = str((preset or {}).get("display_name") or model_id).lower()
+    effort = "medium"
+    if "extra high" in display_name or "xhigh" in display_name:
+        effort = "xhigh"
+    elif "high" in display_name:
+        effort = "high"
+    elif "low" in display_name or "mini" in display_name:
+        effort = "low"
+    elif "minimal" in display_name:
+        effort = "minimal"
+    elif "none" in display_name:
+        effort = "none"
+    return {"effort": effort, "summary": "detailed"}
+
+
+def build_openai_responses_params(
+    provider: Any,
+    *,
+    model: str,
+    messages: List[LLMMessage],
+    tools: Optional[List[Dict[str, Any]]] = None,
+    tool_choice: Any = None,
+    parallel_tool_calls: Optional[bool] = None,
+    include_reasoning: bool = True,
+) -> Dict[str, Any]:
+    runtime_model_id = resolve_runtime_model_id(model)
+    normalized_messages = provider._normalize_messages_for_provider(
+        messages,
+        model=runtime_model_id,
+    )
+    normalized_tools = (
+        provider._normalize_tools_for_litellm(tools, model=runtime_model_id)
+        if tools is not None
+        else None
+    )
+    params: Dict[str, Any] = {
+        "model": provider._get_full_model_string(runtime_model_id),
+        "input": build_openai_responses_input(normalized_messages),
+        "api_key": provider.api_key,
+        "base_url": provider.base_url,
+        "timeout": provider.timeout,
+    }
+    if normalized_tools is not None:
+        params["tools"] = build_openai_responses_tools(normalized_tools)
+    if tool_choice is not None:
+        params["tool_choice"] = build_openai_responses_tool_choice(tool_choice)
+    if parallel_tool_calls is not None:
+        params["parallel_tool_calls"] = parallel_tool_calls
+    if include_reasoning:
+        params["reasoning"] = build_openai_reasoning_config(model)
+    return params
