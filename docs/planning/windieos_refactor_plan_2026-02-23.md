@@ -12,6 +12,40 @@ read_when:
 - Goal: reduce duplication, dead-code drift, and route inconsistency without behavior regressions.
 - Strategy: phased slices with measurable baselines and verification gates.
 
+## Fullstack Execution Log (2026-03-08)
+
+- Refactor slice: remove private CJS test seams and keep runtime modules exported through public APIs only.
+  - removed test-only exports from:
+    - `frontend/src/main/display_affinity_runtime.cjs`
+    - `frontend/src/main/window_visibility_runtime.cjs`
+    - `frontend/src/main/overlay_visibility_handler.cjs`
+  - rewired tests to verify behavior through public handlers:
+    - `tests/frontend/DisplayAffinityRuntime.test.cjs`
+    - `tests/frontend/WindowVisibilityRuntime.test.cjs`
+    - `tests/frontend/OverlayVisibilityHandler.test.cjs`
+  - result: frontend `knip` unused-export audit is clean.
+- Refactor slice: remove remaining backend duplication hotspots reported by `jscpd`.
+  - added shared string normalization helpers:
+    - `backend/src/core/utils/string_normalization.py`
+  - deduplicated repeated unified-schema normalization/explanation resolution in:
+    - `backend/src/agent/execution/tool_call_bridge.py`
+    - `backend/src/tools/remote_tools/system.py`
+    - `backend/src/llm/parser_types.py`
+    - `backend/src/tools/registry.py`
+  - result: `frontend audit:jscpd` (scanning `backend/src` + `frontend/src`) now reports `0` clones.
+- Audit and verification commands:
+  - `cd frontend && npm run lint:audit`
+  - `cd frontend && npm run audit:knip`
+  - `cd frontend && npm run audit:jscpd`
+  - `cd frontend && npx jscpd --gitignore --min-lines 5 --min-tokens 50 --reporters console --ignore "**/__pycache__/**" ../backend/src/api/routes`
+  - `cd frontend && npm run test:ci -- ../tests/frontend/ApiClient.test.ts ../tests/frontend/ChatStreamEventUtils.test.ts ../tests/frontend/LatestVisibleAssistantReply.test.js ../tests/frontend/ChatboxSurfaceState.test.js ../tests/frontend/MessageListState.test.js ../tests/frontend/SurfaceOrchestratorSurfaceVisibility.test.ts ../tests/frontend/SurfaceOrchestratorWindowVisibility.test.ts ../tests/frontend/DisplayAffinityRuntime.test.cjs ../tests/frontend/WindowVisibilityRuntime.test.cjs ../tests/frontend/OverlayVisibilityHandler.test.cjs`
+  - `./scripts/test-backend tests/backend/test_interaction_tool_call_bridge.py tests/backend/test_parser_types.py tests/backend/test_remote_tools.py tests/backend/test_tool_registry_schema.py`
+- Audit delta:
+  - `react-compiler`/`deprecation` lint audits clean.
+  - `knip` clean.
+  - `jscpd` clean for frontend+backend scan (`0` clones).
+  - `backend/src/api/routes` clone scan remains `0` clones (no consolidation required).
+
 ## Backend-Only Execution Log (2026-02-25)
 
 - Refactor slice: split `backend/src/llm/providers/base.py` into focused helper modules while preserving provider API compatibility.
