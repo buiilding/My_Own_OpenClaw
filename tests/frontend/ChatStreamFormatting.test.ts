@@ -37,6 +37,9 @@ describe('chatStreamFormatting utils', () => {
         tool_name: 'mouse_control',
         parameters: { x: 120, y: 320 },
         metadata: {
+          description: 'Settings button is visible in top bar',
+          explanation: 'Need to open settings menu',
+          expectation: 'Settings menu opens',
           model_facing_tool_call: {
             id: 'tool_123',
             name: 'mouse_control',
@@ -51,6 +54,11 @@ describe('chatStreamFormatting utils', () => {
           id: 'tool_123',
           name: 'mouse_control',
           arguments: { action: 'click', find_coordinates_by: 'ocr', ocr_text: 'Settings' },
+          metadata: {
+            description: 'Settings button is visible in top bar',
+            explanation: 'Need to open settings menu',
+            expectation: 'Settings menu opens',
+          },
           thought_signature: 'sig-123',
         },
         null,
@@ -77,6 +85,12 @@ describe('chatStreamFormatting utils', () => {
     expect(parsed.raw_arguments_preview).toContain('[truncated]');
     expect(parsed.parse_error).toBe('failed to parse streamed tool-call arguments');
     expect(parsed.frontend_execution_skipped).toBe(true);
+    expect(parsed.metadata).toEqual({
+      llm_tool_call_validation_failed: true,
+      skip_frontend_execution: true,
+      llm_tool_call_raw_arguments_preview: '{"command":"cat > index.html << \\"EOF\\""}...[truncated]',
+      llm_tool_call_parse_error: 'failed to parse streamed tool-call arguments',
+    });
     expect(parsed.arguments).toBeUndefined();
   });
 
@@ -160,6 +174,46 @@ describe('chatStreamFormatting utils', () => {
         {
           bundle_id: 'bundle-2',
           tools: [{ name: 'read_file', arguments: { file_path: '/tmp/a' } }],
+        },
+        null,
+        2,
+      ),
+    );
+  });
+
+  test('formats bundle payload with visible metadata on each tool', () => {
+    expect(
+      formatToolBundlePayload({
+        bundle_id: 'bundle-5',
+        tools: [{
+          name: 'mouse_control',
+          args: { action: 'click', x: 100, y: 200 },
+          metadata: {
+            description: 'Submit button is visible',
+            explanation: 'Complete form submission',
+            expectation: 'Form submit starts',
+            model_facing_tool_call: {
+              id: 'tool_789',
+              name: 'mouse_control',
+              arguments: { action: 'click', x: 100, y: 200 },
+            },
+          },
+        }],
+      }),
+    ).toBe(
+      JSON.stringify(
+        {
+          bundle_id: 'bundle-5',
+          tools: [{
+            id: 'tool_789',
+            name: 'mouse_control',
+            arguments: { action: 'click', x: 100, y: 200 },
+            metadata: {
+              description: 'Submit button is visible',
+              explanation: 'Complete form submission',
+              expectation: 'Form submit starts',
+            },
+          }],
         },
         null,
         2,
