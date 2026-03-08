@@ -9,13 +9,10 @@ import PropTypes from 'prop-types';
 import messageShapePropType from './message/messageShapePropType';
 import MessageItem from './message/MessageItem';
 import {
-  isNearBottom,
   resolveCompactionStatusText,
-  scrollToConversationSwitchTarget,
-  shouldForceScrollForNewUserMessage,
-  shouldAutoScrollForAgentLoopMessageUpdate,
 } from '../utils/message/messageListState';
 import { resolveConversationToolSchemas } from '../utils/message/messageTransparency';
+import { useMessageListAutoScroll } from '../hooks/useMessageListAutoScroll';
 
 
 function MessageList({
@@ -34,12 +31,15 @@ function MessageList({
 }) {
   const [editingUserMessageId, setEditingUserMessageId] = useState(null);
   const [editingUserDraft, setEditingUserDraft] = useState('');
-  const messageListRef = useRef(null);
   const messagesEndRef = useRef(null);
-  const shouldAutoScrollRef = useRef(true);
-  const forceInstantAutoScrollRef = useRef(false);
-  const skipNextMessagesAutoScrollRef = useRef(false);
-  const previousMessagesRef = useRef(messages);
+  const {
+    messageListRef,
+    handleMessageListScroll,
+  } = useMessageListAutoScroll({
+    messages,
+    conversationRef,
+    enableAgentLoopAutoScroll,
+  });
 
   const handleStartUserEdit = useCallback((messageId, messageText) => {
     setEditingUserMessageId(messageId);
@@ -136,70 +136,6 @@ function MessageList({
       handleSubmitUserEdit,
     ]
   );
-
-  const scrollToBottom = useCallback((behavior = 'smooth') => {
-    const element = messageListRef.current;
-    if (!element) {
-      return;
-    }
-    const targetTop = Number(element.scrollHeight) || 0;
-    if (typeof element.scrollTo === 'function') {
-      element.scrollTo({ top: targetTop, behavior });
-      return;
-    }
-    element.scrollTop = targetTop;
-  }, []);
-
-  useEffect(() => {
-    if (conversationRef === undefined) {
-      return;
-    }
-    // Conversation switches should land near latest message without animation.
-    shouldAutoScrollRef.current = true;
-    skipNextMessagesAutoScrollRef.current = true;
-    forceInstantAutoScrollRef.current = true;
-    scrollToConversationSwitchTarget(messageListRef.current, 'auto');
-  }, [conversationRef]);
-
-  const handleMessageListScroll = useCallback(() => {
-    shouldAutoScrollRef.current = isNearBottom(messageListRef.current);
-  }, []);
-
-  useEffect(() => {
-    const previousMessages = previousMessagesRef.current;
-    const shouldForceScroll = shouldForceScrollForNewUserMessage(previousMessages, messages);
-
-    if (skipNextMessagesAutoScrollRef.current) {
-      skipNextMessagesAutoScrollRef.current = false;
-      forceInstantAutoScrollRef.current = false;
-      previousMessagesRef.current = messages;
-      return;
-    }
-
-    if (shouldForceScroll) {
-      shouldAutoScrollRef.current = true;
-      const behavior = forceInstantAutoScrollRef.current ? 'auto' : 'smooth';
-      forceInstantAutoScrollRef.current = false;
-      previousMessagesRef.current = messages;
-      scrollToBottom(behavior);
-      return;
-    }
-
-    if (!shouldAutoScrollRef.current) {
-      previousMessagesRef.current = messages;
-      return;
-    }
-
-    const shouldAutoScroll = enableAgentLoopAutoScroll
-      && shouldAutoScrollForAgentLoopMessageUpdate(previousMessages, messages);
-    previousMessagesRef.current = messages;
-    if (!shouldAutoScroll) {
-      return;
-    }
-    const behavior = forceInstantAutoScrollRef.current ? 'auto' : 'smooth';
-    forceInstantAutoScrollRef.current = false;
-    scrollToBottom(behavior);
-  }, [enableAgentLoopAutoScroll, messages, scrollToBottom]);
 
   const compactionStatusText = useMemo(() => {
     return resolveCompactionStatusText(thinkingStatus, thinkingSourceEventType);
