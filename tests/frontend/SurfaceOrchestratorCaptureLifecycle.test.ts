@@ -6,11 +6,23 @@ import {
   restoreScreenshotCaptureVisibility,
   restoreToolExecutionSurface,
 } from '../../frontend/src/renderer/infrastructure/services/SurfaceOrchestrator';
+import {
+  decrementActiveScreenshotCaptureCount,
+  getActiveScreenshotCaptureCount,
+  setPendingHiddenSurfaceRestore,
+  setPendingScreenshotCaptureRestore,
+} from '../../frontend/src/renderer/infrastructure/services/surfaceOrchestrator/state';
 
 describe('surfaceOrchestrator capture lifecycle', () => {
   const originalUserAgent = navigator.userAgent;
 
   beforeEach(() => {
+    setPendingHiddenSurfaceRestore(null);
+    setPendingScreenshotCaptureRestore(false);
+    while (getActiveScreenshotCaptureCount() > 0) {
+      decrementActiveScreenshotCaptureCount();
+    }
+
     jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: string, data?: any) => {
       if (channel === INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT) {
         return {
@@ -69,7 +81,7 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     ]);
   });
 
-  test('restores the hidden surface at capture-level when nested inside screenshot surface token', async () => {
+  test('restores the hidden surface at tool-level when capture is nested inside screenshot surface token', async () => {
     (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
       if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
         return { success: true, data: { visible: true } };
@@ -100,7 +112,7 @@ describe('surfaceOrchestrator capture lifecycle', () => {
 
     await restoreScreenshotCaptureVisibility(capturePreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY, {}],
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE, {}],
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'chatbox' }],
@@ -108,7 +120,7 @@ describe('surfaceOrchestrator capture lifecycle', () => {
 
     await restoreToolExecutionSurface(toolPreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY, {}],
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE, {}],
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'chatbox' }],
@@ -126,20 +138,20 @@ describe('surfaceOrchestrator capture lifecycle', () => {
       settleTime: expect.any(Number),
     });
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY, {}],
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
     ]);
 
     await restoreScreenshotCaptureVisibility(capturePreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY, {}],
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'chatbox' }],
     ]);
 
     await restoreToolExecutionSurface(toolPreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY, {}],
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'chatbox' }],
     ]);
