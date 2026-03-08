@@ -226,6 +226,8 @@ APP_CONFIG = AppConfig(
 **Features**:
 - Streaming responses
 - Token usage tracking
+- Thinking-capable presets use the OpenAI Responses API instead of generic chat-completions delta listening
+- Provider-native reasoning summary/text stream events are forwarded as `ThinkingEvent` when the model exposes them
 
 ### Anthropic
 
@@ -251,6 +253,8 @@ APP_CONFIG = AppConfig(
 - Long context windows
 - Thinking tokens (reasoning)
 - Streaming responses
+- Thinking-capable presets send Anthropic's native `thinking` request payload with a bounded token budget
+- Provider-native `thinking` / `thinking_delta` stream content is surfaced as `ThinkingEvent`
 
 ### Gemini
 
@@ -272,6 +276,8 @@ APP_CONFIG = AppConfig(
 **Features**:
 - Streaming responses
 - Thinking tokens (Gemini 2.5 models)
+- Thinking-capable presets send Gemini's native `thinking` request payload with a bounded token budget
+- Provider-native thought blocks are surfaced as `ThinkingEvent`, while thought-tagged text is filtered out of normal visible text chunks
 
 ### Kimi Coding
 
@@ -449,6 +455,12 @@ ChunkEvent(content="chunk")
 ```python
 ThinkingEvent(content="reasoning")
 ```
+
+Provider-native reasoning behavior:
+- WindieOS only emits `ThinkingEvent` when the provider actually streams reasoning/thought content.
+- OpenAI thinking-capable models use the Responses API runtime and emit provider-native reasoning summary/text events instead of synthetic placeholders.
+- Anthropic thinking-capable models emit native thinking blocks.
+- Gemini thinking-capable models emit native thought blocks while visible assistant text stays separated into normal chunk events.
 
 **Error Event**:
 ```python

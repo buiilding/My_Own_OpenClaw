@@ -90,6 +90,31 @@ def test_gemini_build_request_params_uses_provider_default_reasoning_effort():
     assert "reasoning_effort" not in params
 
 
+def test_gemini_provider_enables_native_thinking_payload_for_thinking_model():
+    provider = GeminiProvider(api_key="test-key")
+    params = {"model": "gemini/gemini-3.1-pro-preview"}
+
+    updated = provider._apply_provider_request_params(
+        params,
+        model="gemini-3.1-pro-preview@@gemini-3-1-pro-thinking",
+    )
+
+    assert updated.get("thinking") == {"type": "enabled", "budget_tokens": 16384}
+
+
+def test_gemini_provider_filters_thought_blocks_from_visible_text():
+    provider = GeminiProvider(api_key="test-key")
+    delta = {
+        "content": [
+            {"type": "text", "thought": True, "text": "private reasoning"},
+            {"type": "text", "text": "visible text"},
+        ]
+    }
+
+    assert provider._extract_thinking_content(delta) == "private reasoning"
+    assert provider._extract_delta_content(delta) == "visible text"
+
+
 @pytest.mark.asyncio
 async def test_gemini_stream_emits_thinking_and_captures_stream_tool_calls(monkeypatch):
     provider = GeminiProvider(api_key="test-key")

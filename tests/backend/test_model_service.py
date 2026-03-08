@@ -345,6 +345,24 @@ def test_get_all_online_models_marks_gemini_3_flash_preview_as_thinking_text_str
     assert gemini_3_flash_preview.get("supports_thinking_text_stream") is True
 
 
+def test_get_all_online_models_marks_openai_gpt_5_2_as_thinking_text_stream_capable():
+    service = ModelService(AppConfig())
+    models = service.get_all_online_models()
+
+    gpt_5_2 = next(
+        (
+            model for model in models
+            if model.get("provider") == "openai"
+            and model.get("runtime_model_id") == "gpt-5.2"
+            and model.get("supports_thinking") is True
+        ),
+        None,
+    )
+    assert gpt_5_2 is not None
+    assert gpt_5_2.get("supports_thinking") is True
+    assert gpt_5_2.get("supports_thinking_text_stream") is True
+
+
 def test_get_all_online_models_marks_gemini_3_1_pro_preview_as_non_thinking():
     service = ModelService(AppConfig())
     models = service.get_all_online_models()
