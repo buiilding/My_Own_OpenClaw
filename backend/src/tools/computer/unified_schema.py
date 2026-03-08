@@ -170,7 +170,6 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                         "right_click",
                                         "move",
                                         "drag",
-                                        "scroll",
                                     ],
                                 },
                                 "find_coordinates_by": {
@@ -257,23 +256,6 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                     "default": 0.5,
                                     "minimum": 0,
                                 },
-                                "scroll_amount": {
-                                    "type": "integer",
-                                    "description": "Signed scroll amount.",
-                                    "minimum": -5000,
-                                    "maximum": 5000,
-                                },
-                                "scroll_direction": {
-                                    "type": "string",
-                                    "description": "Scroll axis for mouse scroll action.",
-                                    "default": "vertical",
-                                    "enum": ["vertical", "horizontal"],
-                                },
-                                "clicks": {
-                                    "type": "integer",
-                                    "description": "Scroll step count.",
-                                    "default": 5,
-                                },
                                 "wait": {
                                     **_post_action_wait_property(),
                                 },
@@ -285,18 +267,6 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 _require_drag_destination_manual_xy(),
                                 _require_drag_destination_ocr_target(),
                                 _require_drag_destination_prediction_description(),
-                                {
-                                    "if": {
-                                        "properties": {"action": {"const": "scroll"}},
-                                        "required": ["action"],
-                                    },
-                                    "then": {
-                                        "anyOf": [
-                                            {"required": ["scroll_amount"]},
-                                            {"required": ["clicks"]},
-                                        ]
-                                    },
-                                },
                             ],
                         },
                         {

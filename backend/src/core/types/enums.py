@@ -57,7 +57,6 @@ class MouseAction(str, Enum):
     RIGHT_CLICK = "right_click"
     MOVE = "move"
     DRAG = "drag"
-    SCROLL = "scroll"
 
 
 class KeyboardAction(str, Enum):
@@ -73,12 +72,6 @@ class CoordinateFindingMethod(str, Enum):
     MANUAL = "manual"
     OCR = "ocr"
     PREDICTION = "prediction"
-
-
-class ScrollDirection(str, Enum):
-    """Scroll directions for mouse control."""
-    VERTICAL = "vertical"
-    HORIZONTAL = "horizontal"
 
 
 class MemoryType(str, Enum):

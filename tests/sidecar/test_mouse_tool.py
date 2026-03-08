@@ -9,7 +9,7 @@ ensure_frontend_python_path()
 from tools.computer import mouse_tool  # noqa: E402
 
 
-def _fake_pyautogui(*, with_hscroll: bool):
+def _fake_pyautogui():
     calls = []
 
     def click(x, y):
@@ -27,9 +27,6 @@ def _fake_pyautogui(*, with_hscroll: bool):
     def drag_to(x, y, duration):
         calls.append(("dragTo", x, y, duration))
 
-    def scroll(amount, x=None, y=None):
-        calls.append(("scroll", amount, x, y))
-
     module = SimpleNamespace(
         FAILSAFE=True,
         click=click,
@@ -37,16 +34,13 @@ def _fake_pyautogui(*, with_hscroll: bool):
         rightClick=right_click,
         moveTo=move_to,
         dragTo=drag_to,
-        scroll=scroll,
     )
-    if with_hscroll:
-        module.hscroll = lambda amount, x=None, y=None: calls.append(("hscroll", amount, x, y))
     return module, calls
 
 
 @pytest.mark.asyncio
 async def test_execute_mouse_control_click_success(monkeypatch):
-    fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
+    fake_pyautogui, calls = _fake_pyautogui()
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
     result = await mouse_tool.execute_mouse_control({"action": "click", "x": 100, "y": 200})
@@ -59,7 +53,7 @@ async def test_execute_mouse_control_click_success(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_execute_mouse_control_drag_moves_to_source_and_drags_to_destination(monkeypatch):
-    fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
+    fake_pyautogui, calls = _fake_pyautogui()
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
     result = await mouse_tool.execute_mouse_control(
@@ -85,7 +79,7 @@ async def test_execute_mouse_control_drag_moves_to_source_and_drags_to_destinati
 
 @pytest.mark.asyncio
 async def test_execute_mouse_control_drag_requires_destination_coordinates(monkeypatch):
-    fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
+    fake_pyautogui, calls = _fake_pyautogui()
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
     result = await mouse_tool.execute_mouse_control({"action": "drag", "x": 300, "y": 400})
@@ -96,35 +90,8 @@ async def test_execute_mouse_control_drag_requires_destination_coordinates(monke
 
 
 @pytest.mark.asyncio
-async def test_execute_mouse_control_scroll_vertical_uses_negative_amount(monkeypatch):
-    fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
-    monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
-
-    result = await mouse_tool.execute_mouse_control(
-        {"action": "scroll", "scroll_amount": 5, "scroll_direction": "vertical", "x": 1, "y": 2}
-    )
-
-    assert result.success is True
-    assert ("moveTo", 1, 2) in calls
-    assert ("scroll", -5, 1, 2) in calls
-
-
-@pytest.mark.asyncio
-async def test_execute_mouse_control_scroll_horizontal_falls_back_without_hscroll(monkeypatch):
-    fake_pyautogui, calls = _fake_pyautogui(with_hscroll=False)
-    monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
-
-    result = await mouse_tool.execute_mouse_control(
-        {"action": "scroll", "scroll_amount": 4, "scroll_direction": "horizontal"}
-    )
-
-    assert result.success is True
-    assert ("scroll", -4, None, None) in calls
-
-
-@pytest.mark.asyncio
 async def test_execute_mouse_control_requires_coordinates_for_move(monkeypatch):
-    fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
+    fake_pyautogui, calls = _fake_pyautogui()
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
     result = await mouse_tool.execute_mouse_control({"action": "move", "x": 100})
@@ -136,25 +103,13 @@ async def test_execute_mouse_control_requires_coordinates_for_move(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_execute_mouse_control_rejects_unknown_action(monkeypatch):
-    fake_pyautogui, _calls = _fake_pyautogui(with_hscroll=True)
+    fake_pyautogui, _calls = _fake_pyautogui()
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
 
     result = await mouse_tool.execute_mouse_control({"action": "hover"})
 
     assert result.success is False
     assert "Unknown mouse action" in (result.error or "")
-
-
-@pytest.mark.asyncio
-async def test_execute_mouse_control_scroll_requires_amount(monkeypatch):
-    fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
-    monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
-
-    result = await mouse_tool.execute_mouse_control({"action": "scroll"})
-
-    assert result.success is False
-    assert "scroll_amount required for scroll action" in (result.error or "")
-    assert calls == []
 
 
 @pytest.mark.asyncio
