@@ -92,10 +92,7 @@ def _require_drag_destination_prediction_description() -> Dict[str, Any]:
 def _post_action_wait_property() -> Dict[str, Any]:
     return {
         "type": "number",
-        "description": (
-            "Delay in seconds before the automatic post-action screenshot "
-            "capture."
-        ),
+        "description": "Seconds to wait before post-action screenshot capture.",
         "default": 0,
         "minimum": 0,
         "maximum": 60,
@@ -107,51 +104,22 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
     "function": {
         "name": "computer_use",
         "description": (
-            "Unified computer-use tool.\n\n"
-            "Use this tool to control a remote desktop style UI with keyboard, mouse, scrolling, "
-            "window focus, and screenshots.\n\n"
-            "Core contract:\n"
-            "- Select a concrete action via `tool`.\n"
-            "- Pass action arguments via `arguments`.\n"
-            "- Always include required `metadata` fields: `description`, `explanation`, "
-            "`expectation`.\n\n"
-            "Grounding rules:\n"
-            "- Prefer keyboard shortcuts and app-native navigation over mouse when equivalent.\n"
-            "- For text-labeled targets, use mouse `find_coordinates_by='ocr'` with exact "
-            "`ocr_text` first.\n"
-            "- If OCR returns multiple matches, retry with `candidate_id` from the ambiguity "
-            "response.\n"
-            "- For non-text targets, use `find_coordinates_by='prediction'` with a detailed "
-            "visual description.\n"
-            "- For manual coordinates, use screenshot pixel coordinates from the latest screenshot "
-            "and treat the visible cursor position as a spatial reference.\n"
-            "- Do not treat tool execution status alone as success. Verify the expected UI change "
-            "via the tool's always-on post-action screenshot.\n\n"
-            "Timing rules:\n"
-            "- Most actions support `wait` to delay before the automatic post-action screenshot "
-            "capture.\n"
-            "- Use `wait` when you expect animations, loading spinners, or async UI updates.\n\n"
-            "Tools supported:\n"
-            "- mouse_control: click, move, drag, scroll with OCR, prediction, or manual "
-            "targeting.\n"
-            "- keyboard_control: type, paste, press, hotkey.\n"
-            "- screenshot: capture the screen.\n"
-            "- scroll_control: scroll up/down/left/right, optionally moving to x/y first.\n"
-            "- switch_tab: focus a window/tab by title.\n"
-            "- wait: pause for seconds and capture state.\n"
+            "Unified computer-use tool for desktop interaction.\n\n"
+            "Choose an action with `tool`, provide required rationale in `metadata` "
+            "(`description`, `explanation`, `expectation`), and pass action-specific fields "
+            "in `arguments`."
         ),
         "parameters": {
             "type": "object",
             "description": (
-                "Unified computer-use tool envelope. `tool` selects a concrete action. "
-                "`arguments` must match that action's schema. `metadata` is always required."
+                "Envelope for unified computer-use calls."
             ),
             "additionalProperties": False,
             "required": ["tool", "metadata"],
             "properties": {
                 "tool": {
                     "type": "string",
-                    "description": "Concrete computer-use action to execute.",
+                    "description": "Computer-use action name.",
                     "enum": [
                         "mouse_control",
                         "keyboard_control",
@@ -163,35 +131,30 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                 },
                 "metadata": {
                     "type": "object",
-                    "description": "Required execution rationale metadata for computer-use actions.",
+                    "description": "Required rationale metadata.",
                     "additionalProperties": False,
                     "required": ["description", "explanation", "expectation"],
                     "properties": {
                         "description": {
                             "type": "string",
                             "minLength": 1,
-                            "description": "Current observed UI or screen state before the action.",
+                            "description": "Observed UI state before the action.",
                         },
                         "explanation": {
                             "type": "string",
                             "minLength": 1,
-                            "description": (
-                                "Why this action is needed to achieve the immediate goal."
-                            ),
+                            "description": "Why this action is needed now.",
                         },
                         "expectation": {
                             "type": "string",
                             "minLength": 1,
-                            "description": "Expected UI or screen state after the action.",
+                            "description": "Expected UI state after the action.",
                         },
                     },
                 },
                 "arguments": {
                     "type": "object",
-                    "description": (
-                        "Arguments for the selected `tool` action. Must match the corresponding "
-                        "action schema."
-                    ),
+                    "description": "Arguments for the selected `tool` action.",
                     "oneOf": [
                         {
                             "title": "mouse_control arguments",
@@ -200,10 +163,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                             "properties": {
                                 "action": {
                                     "type": "string",
-                                    "description": (
-                                        "Mouse action to perform. Prefer keyboard shortcuts when "
-                                        "equivalent. Always verify UI state change after."
-                                    ),
+                                    "description": "Mouse action.",
                                     "enum": [
                                         "click",
                                         "double_click",
@@ -215,12 +175,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 },
                                 "find_coordinates_by": {
                                     "type": "string",
-                                    "description": (
-                                        "Coordinate targeting strategy. Use 'ocr' for visible text "
-                                        "targets, 'prediction' for icons and non-text targets, "
-                                        "'manual' only when you have reliable coordinates from the "
-                                        "latest screenshot."
-                                    ),
+                                    "description": "Coordinate targeting method.",
                                     "default": "manual",
                                     "enum": ["manual", "ocr", "prediction"],
                                 },
@@ -240,34 +195,19 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 },
                                 "ocr_text": {
                                     "type": "string",
-                                    "description": (
-                                        "Exact visible on-screen text for OCR targeting. Required "
-                                        "when find_coordinates_by='ocr' unless candidate_id is "
-                                        "provided. Keep to one line."
-                                    ),
+                                    "description": "Visible text target for OCR selection.",
                                 },
                                 "candidate_id": {
                                     "type": "string",
-                                    "description": (
-                                        "Stable OCR candidate id from an earlier ambiguity "
-                                        "response. Use for deterministic follow-up selection when "
-                                        "multiple OCR matches exist."
-                                    ),
+                                    "description": "OCR candidate id from an earlier response.",
                                 },
                                 "description": {
                                     "type": "string",
-                                    "description": (
-                                        "Detailed visual description for "
-                                        "find_coordinates_by='prediction'. Describe shape, icon, "
-                                        "color, and relative position. Do not combine with "
-                                        "ocr_text."
-                                    ),
+                                    "description": "Visual target description for prediction.",
                                 },
                                 "model_name": {
                                     "type": "string",
-                                    "description": (
-                                        "Optional vision model name to use for prediction grounding."
-                                    ),
+                                    "description": "Optional prediction model override.",
                                 },
                                 "button": {
                                     "type": "string",
@@ -291,42 +231,25 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 },
                                 "drag_to_find_coordinates_by": {
                                     "type": "string",
-                                    "description": (
-                                        "Destination coordinate targeting strategy for drag "
-                                        "actions. Use 'ocr' for visible text targets, "
-                                        "'prediction' for non-text targets, and 'manual' when "
-                                        "destination screenshot coordinates are already known."
-                                    ),
+                                    "description": "Drag destination targeting method.",
                                     "default": "manual",
                                     "enum": ["manual", "ocr", "prediction"],
                                 },
                                 "drag_to_ocr_text": {
                                     "type": "string",
-                                    "description": (
-                                        "Exact visible on-screen text for OCR grounding of the "
-                                        "drag destination."
-                                    ),
+                                    "description": "Visible text target for OCR drag destination.",
                                 },
                                 "drag_to_candidate_id": {
                                     "type": "string",
-                                    "description": (
-                                        "Stable OCR candidate id for the drag destination from an "
-                                        "earlier ambiguity response."
-                                    ),
+                                    "description": "OCR candidate id for drag destination.",
                                 },
                                 "drag_to_description": {
                                     "type": "string",
-                                    "description": (
-                                        "Detailed visual description of a non-text drag "
-                                        "destination."
-                                    ),
+                                    "description": "Visual drag destination for prediction.",
                                 },
                                 "drag_to_model_name": {
                                     "type": "string",
-                                    "description": (
-                                        "Optional vision model name to use for drag destination "
-                                        "prediction grounding."
-                                    ),
+                                    "description": "Optional model override for drag prediction.",
                                 },
                                 "duration": {
                                     "type": "number",
@@ -336,11 +259,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 },
                                 "scroll_amount": {
                                     "type": "integer",
-                                    "description": (
-                                        "Amount to scroll. Positive scrolls down or right, negative "
-                                        "scrolls up or left. Required when action='scroll' unless "
-                                        "clicks is used."
-                                    ),
+                                    "description": "Signed scroll amount.",
                                     "minimum": -5000,
                                     "maximum": 5000,
                                 },
@@ -352,10 +271,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 },
                                 "clicks": {
                                     "type": "integer",
-                                    "description": (
-                                        "Scroll step count. Positive moves up or right, negative "
-                                        "moves down or left. Alternative to scroll_amount."
-                                    ),
+                                    "description": "Scroll step count.",
                                     "default": 5,
                                 },
                                 "wait": {
@@ -366,13 +282,6 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 _require_manual_xy_for_coordinates(),
                                 _require_ocr_text_or_candidate_id(),
                                 _require_prediction_description(),
-                                {
-                                    "if": {
-                                        "properties": {"action": {"const": "drag"}},
-                                        "required": ["action"],
-                                    },
-                                    "then": {},
-                                },
                                 _require_drag_destination_manual_xy(),
                                 _require_drag_destination_ocr_target(),
                                 _require_drag_destination_prediction_description(),
@@ -397,19 +306,12 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                             "properties": {
                                 "action": {
                                     "type": "string",
-                                    "description": (
-                                        "Keyboard action to perform. Use type for normal entry, "
-                                        "paste as fallback when type fails, press for a single key, "
-                                        "hotkey for combos."
-                                    ),
+                                    "description": "Keyboard action.",
                                     "enum": ["type", "paste", "press", "hotkey"],
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": (
-                                        "Text for action='type' or action='paste'. Verify text "
-                                        "appears in UI after input."
-                                    ),
+                                    "description": "Text payload for type or paste.",
                                     "maxLength": 10000,
                                 },
                                 "key": {
@@ -421,10 +323,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 },
                                 "keys": {
                                     "type": "array",
-                                    "description": (
-                                        "Ordered key list for action='hotkey', for example "
-                                        "['ctrl','l'] or ['cmd','shift','p']."
-                                    ),
+                                    "description": "Ordered key list for hotkey action.",
                                     "items": {"type": "string"},
                                     "minItems": 2,
                                 },
@@ -483,9 +382,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                             "properties": {
                                 "wait": {
                                     "type": "number",
-                                    "description": (
-                                        "Optional delay in seconds before capturing a screenshot."
-                                    ),
+                                    "description": "Optional pre-capture delay in seconds.",
                                     "minimum": 0,
                                     "maximum": 60,
                                 }
@@ -509,11 +406,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 },
                                 "find_coordinates_by": {
                                     "type": "string",
-                                    "description": (
-                                        "How to select the scroll focus point. Use manual x/y when "
-                                        "you know the scrollable region. Use OCR to move over a "
-                                        "labeled scroll container if needed."
-                                    ),
+                                    "description": "Scroll focus targeting method.",
                                     "default": "manual",
                                     "enum": ["manual", "ocr", "prediction"],
                                 },
@@ -533,23 +426,15 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 },
                                 "ocr_text": {
                                     "type": "string",
-                                    "description": (
-                                        "Exact visible on-screen text to locate a scrollable region "
-                                        "via OCR."
-                                    ),
+                                    "description": "Visible text target for OCR selection.",
                                 },
                                 "candidate_id": {
                                     "type": "string",
-                                    "description": (
-                                        "Stable OCR candidate id from a prior ambiguity response."
-                                    ),
+                                    "description": "OCR candidate id from an earlier response.",
                                 },
                                 "description": {
                                     "type": "string",
-                                    "description": (
-                                        "Prediction description to locate a scrollable region when "
-                                        "it is not text-labeled."
-                                    ),
+                                    "description": "Visual target description for prediction.",
                                 },
                                 "direction": {
                                     "type": "string",
@@ -561,19 +446,12 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 },
                                 "clicks": {
                                     "type": "integer",
-                                    "description": (
-                                        "Scroll click count. Positive moves up/left, negative moves "
-                                        "down/right when using direction. If you prefer absolute, "
-                                        "use amount."
-                                    ),
+                                    "description": "Scroll step count.",
                                     "default": 5,
                                 },
                                 "amount": {
                                     "type": "integer",
-                                    "description": (
-                                        "Scroll amount in pixels-like units. Use when you want more "
-                                        "consistent magnitude than clicks."
-                                    ),
+                                    "description": "Scroll amount.",
                                     "minimum": 100,
                                     "maximum": 5000,
                                 },
@@ -601,16 +479,11 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                             "properties": {
                                 "tab_name": {
                                     "type": "string",
-                                    "description": (
-                                        "Exact window or tab title to focus, matching the system's "
-                                        "open-window list output exactly."
-                                    ),
+                                    "description": "Window or tab title to focus.",
                                 },
                                 "match_mode": {
                                     "type": "string",
-                                    "description": (
-                                        "How to match tab_name against open window titles."
-                                    ),
+                                    "description": "Window title match mode.",
                                     "default": "exact",
                                     "enum": ["exact", "contains", "regex"],
                                 },

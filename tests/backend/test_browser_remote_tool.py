@@ -37,21 +37,58 @@ class TestRemoteBrowserTool:
     def test_tool_has_description(self):
         """Test tool has description."""
         tool = RemoteBrowserTool()
-        assert len(tool.description) > 100
+        assert len(tool.description) > 40
         assert "browser" in tool.description.lower()
 
-    def test_tool_description_includes_snapshot_pagination_contract(self):
-        """Snapshot pagination guidance should be present for model behavior."""
+    def test_tool_description_is_concise(self):
+        """Tool description should stay concise; detailed strategy lives in prompt."""
         tool = RemoteBrowserTool()
-        assert "Snapshot pagination contract" in tool.description
-        assert "If `has_more=true`" in tool.description
-        assert "offset=<next_offset>" in tool.description
-        assert "do not scroll/click/navigate/type" in tool.description
+        assert "screenshot" in tool.description.lower()
+        assert "pagination" not in tool.description.lower()
 
     def test_args_model(self):
         """Test tool has correct args model."""
         tool = RemoteBrowserTool()
         assert tool.args_model == BrowserControlArgs
+
+    def test_model_facing_schema_exposes_canonical_actions_only(self):
+        tool = RemoteBrowserTool()
+        schema = tool.get_json_schema()
+        action_schema = schema["function"]["parameters"]["properties"]["action"]
+        exposed_actions = set(action_schema["enum"])
+
+        assert "type" not in exposed_actions
+        assert "open" not in exposed_actions
+        assert "switch_tab" not in exposed_actions
+        assert "press" not in exposed_actions
+        assert "act" not in exposed_actions
+        assert "write_file" not in exposed_actions
+        assert "replace_file" not in exposed_actions
+        assert "read_file" not in exposed_actions
+        assert "navigate" in exposed_actions
+        assert "input" in exposed_actions
+        assert "send_keys" in exposed_actions
+
+    def test_model_facing_schema_hides_camel_case_compat_fields(self):
+        tool = RemoteBrowserTool()
+        schema = tool.get_json_schema()
+        props = schema["function"]["parameters"]["properties"]
+
+        assert "timeoutMs" not in props
+        assert "promptText" not in props
+        assert "colorScheme" not in props
+        assert "targetId" not in props
+        assert "targetUrl" not in props
+        assert "inputRef" not in props
+        assert "snapshotFormat" not in props
+        assert "timeout_ms" in props
+        assert "prompt_text" in props
+        assert "color_scheme" in props
+        assert "mode" not in props
+        assert "cdp_url" not in props
+        assert "profile" not in props
+        assert "node" not in props
+        assert "target" not in props
 
     @pytest.mark.asyncio
     async def test_execute_remote_returns_remote_result(self):

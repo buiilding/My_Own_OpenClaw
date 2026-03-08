@@ -12,31 +12,20 @@ _SYSTEM_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
         "name": "system_use",
         "description": (
             "Unified system/filesystem tool.\n\n"
-            "Use this tool for local shell/process control, filesystem edits/reads, "
-            "window listing, and system stats.\n\n"
-            "Core contract:\n"
-            "- Select a concrete action via `tool`.\n"
-            "- Pass action arguments via `arguments`.\n"
-            "\n"
-            "Tools supported:\n"
-            "- run_shell_command: execute shell commands in foreground/background modes.\n"
-            "- replace: edit files via exact/context anchored replacements.\n"
-            "- read_file: read files by offset/limit windows.\n"
-            "- get_system_stats: read CPU/memory/battery usage.\n"
-            "- get_open_windows: list open window titles for deterministic focus flows.\n"
+            "Choose an action with `tool`, provide top-level rationale in `explanation`, "
+            "and pass action-specific fields in `arguments`."
         ),
         "parameters": {
             "type": "object",
             "description": (
-                "Unified system/filesystem tool envelope. `tool` selects a concrete action. "
-                "`arguments` must match that action schema."
+                "Envelope for unified system/filesystem calls."
             ),
             "additionalProperties": False,
-            "required": ["tool"],
+            "required": ["tool", "explanation"],
             "properties": {
                 "tool": {
                     "type": "string",
-                    "description": "Concrete system/filesystem action to execute.",
+                    "description": "System/filesystem action name.",
                     "enum": [
                         "run_shell_command",
                         "replace",
@@ -45,6 +34,11 @@ _SYSTEM_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                         "get_open_windows",
                     ],
                 },
+                "explanation": {
+                    "type": "string",
+                    "description": "Why this action is needed.",
+                    "minLength": 1,
+                },
                 "arguments": {
                     "type": "object",
                     "description": "Arguments for the selected `tool` action.",
@@ -52,86 +46,56 @@ _SYSTEM_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                         {
                             "title": "run_shell_command arguments",
                             "type": "object",
-                            "required": ["command", "run_in_background", "explanation"],
+                            "required": ["command", "run_in_background"],
                             "properties": {
                                 "command": {
                                     "type": "string",
-                                    "description": "Exact command to execute",
+                                    "description": "Shell command to execute.",
                                 },
                                 "directory": {
                                     "type": "string",
-                                    "description": (
-                                        "(OPTIONAL) The absolute path of the directory to run the "
-                                        "command in. If not provided, defaults to the OS user home "
-                                        "directory. Must be an absolute path and must already exist."
-                                    ),
+                                    "description": "Optional absolute working directory.",
                                 },
                                 "run_in_background": {
                                     "type": "boolean",
-                                    "description": (
-                                        "If True, start command asynchronously and return immediately "
-                                        "with a session id. If False, wait for command completion and "
-                                        "return output."
-                                    ),
+                                    "description": "Run command asynchronously when true.",
                                 },
                                 "terminate_after_seconds": {
                                     "type": "number",
-                                    "description": (
-                                        "(OPTIONAL, foreground only) Max seconds to wait before "
-                                        "terminating command output collection."
-                                    ),
+                                    "description": "Optional foreground timeout in seconds.",
                                     "default": 120,
                                 },
                                 "yield_after_seconds": {
                                     "type": "number",
-                                    "description": (
-                                        "(OPTIONAL) Return early if command exceeds this duration "
-                                        "while keeping it running in the background."
-                                    ),
+                                    "description": "Optional early-return threshold in seconds.",
                                 },
                                 "max_output_tokens": {
                                     "type": "integer",
                                     "exclusiveMinimum": 0,
-                                    "description": (
-                                        "(OPTIONAL) Maximum output tokens included for foreground "
-                                        "results."
-                                    ),
+                                    "description": "Optional max output tokens for foreground mode.",
                                 },
                                 "env": {
                                     "type": "object",
-                                    "description": "(OPTIONAL) Environment variable overrides.",
+                                    "description": "Optional environment overrides.",
                                 },
                                 "pty": {
                                     "type": "boolean",
-                                    "description": "(OPTIONAL) Request a pseudo-terminal.",
-                                },
-                                "explanation": {
-                                    "type": "string",
-                                    "description": (
-                                        "One sentence explanation as to why this tool is being used, "
-                                        "and how it contributes to the goal."
-                                    ),
+                                    "description": "Optional pseudo-terminal request.",
                                 },
                                 "wait": {
                                     "type": "number",
-                                    "description": (
-                                        "(OPTIONAL) Delay in seconds before taking a screenshot after "
-                                        "execution."
-                                    ),
+                                    "description": "Optional delay before post-command screenshot.",
                                 },
                             },
                         },
                         {
                             "title": "replace arguments",
                             "type": "object",
-                            "required": ["file_path", "explanation"],
+                            "required": ["file_path"],
                             "properties": {
                                 "file_path": {
                                     "type": "string",
-                                    "description": (
-                                        "Absolute path to the file to edit. Creation is allowed only "
-                                        "when one replacement operation has old_string=''."
-                                    ),
+                                    "description": "Absolute path to the file.",
                                 },
                                 "old_string": {
                                     "type": "string",
@@ -172,7 +136,7 @@ _SYSTEM_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 },
                                 "replacements": {
                                     "type": "array",
-                                    "description": "Optional batched replacements applied in order.",
+                                    "description": "Optional batch replacements.",
                                     "items": {
                                         "type": "object",
                                         "required": ["old_string", "new_string"],
@@ -202,7 +166,7 @@ _SYSTEM_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 },
                                 "patch_chunks": {
                                     "type": "array",
-                                    "description": "Optional apply_patch-style update chunks.",
+                                    "description": "Optional patch-style update chunks.",
                                     "items": {
                                         "type": "object",
                                         "required": ["old_lines", "new_lines"],
@@ -223,23 +187,16 @@ _SYSTEM_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                         },
                                     },
                                 },
-                                "explanation": {
-                                    "type": "string",
-                                    "description": (
-                                        "One sentence explanation as to why this tool is being used, "
-                                        "and how it contributes to the goal."
-                                    ),
-                                },
                             },
                         },
                         {
                             "title": "read_file arguments",
                             "type": "object",
-                            "required": ["file_path", "explanation"],
+                            "required": ["file_path"],
                             "properties": {
                                 "file_path": {
                                     "type": "string",
-                                    "description": "Absolute file path to read.",
+                                    "description": "Absolute file path.",
                                 },
                                 "offset": {
                                     "type": "integer",
@@ -251,33 +208,16 @@ _SYSTEM_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                     "exclusiveMinimum": 0,
                                     "description": "Maximum number of lines to read.",
                                 },
-                                "explanation": {
-                                    "type": "string",
-                                    "description": (
-                                        "One sentence explanation as to why this tool is being used, "
-                                        "and how it contributes to the goal."
-                                    ),
-                                },
                             },
                         },
                         {
                             "title": "get_system_stats arguments",
                             "type": "object",
-                            "required": ["explanation"],
-                            "properties": {
-                                "explanation": {
-                                    "type": "string",
-                                    "description": (
-                                        "One sentence explanation as to why this tool is being used, "
-                                        "and how it contributes to the goal."
-                                    ),
-                                }
-                            },
+                            "properties": {},
                         },
                         {
                             "title": "get_open_windows arguments",
                             "type": "object",
-                            "required": ["explanation"],
                             "properties": {
                                 "filter_text": {
                                     "type": "string",
@@ -286,13 +226,6 @@ _SYSTEM_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                         "(case-insensitive)."
                                     ),
                                     "default": "",
-                                },
-                                "explanation": {
-                                    "type": "string",
-                                    "description": (
-                                        "One sentence explanation as to why this tool is being used, "
-                                        "and how it contributes to the goal."
-                                    ),
                                 },
                             },
                         },

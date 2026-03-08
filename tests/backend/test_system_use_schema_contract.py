@@ -28,25 +28,27 @@ def test_registry_normalizes_legacy_system_tool_names_to_canonical_unified_schem
     assert declarations == [get_unified_system_use_function_declaration()]
 
 
-def test_unified_system_use_schema_description_includes_supported_tools():
+def test_unified_system_use_schema_description_includes_core_contract_fields():
     declaration = get_unified_system_use_function_declaration()
     function = declaration["function"]
     description = function["description"]
 
+    assert "Unified system/filesystem tool." in description
     assert "`tool`" in description
+    assert "`explanation`" in description
     assert "`arguments`" in description
-    assert "replace" in description
-    assert "run_shell_command" in description
-    assert "get_open_windows" in description
 
 
 def test_unified_system_use_schema_requires_tool_and_constrains_arguments_variants():
     declaration = get_unified_system_use_function_declaration()
     parameters = declaration["function"]["parameters"]
     tool_enum = parameters["properties"]["tool"]["enum"]
+    explanation = parameters["properties"]["explanation"]
     one_of_entries = parameters["properties"]["arguments"]["oneOf"]
 
-    assert parameters["required"] == ["tool"]
+    assert parameters["required"] == ["tool", "explanation"]
+    assert explanation["type"] == "string"
+    assert explanation["minLength"] == 1
     assert set(tool_enum) == {
         "run_shell_command",
         "replace",
@@ -64,3 +66,7 @@ def test_unified_system_use_schema_requires_tool_and_constrains_arguments_varian
         "get_system_stats arguments",
         "get_open_windows arguments",
     }
+    assert all(
+        "explanation" not in entry.get("properties", {})
+        for entry in one_of_entries
+    )

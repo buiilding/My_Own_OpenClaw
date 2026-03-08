@@ -22,18 +22,15 @@ def test_registry_normalizes_legacy_computer_tool_names_to_canonical_unified_sch
     assert declarations == [get_unified_computer_use_function_declaration()]
 
 
-def test_unified_schema_function_description_includes_metadata_and_grounding_guidance():
+def test_unified_schema_function_description_is_concise_and_includes_contract_fields():
     declaration = get_unified_computer_use_function_declaration()
     function = declaration["function"]
     description = function["description"]
 
+    assert "Unified computer-use tool for desktop interaction." in description
     assert "`description`, `explanation`, `expectation`" in description
-    assert "find_coordinates_by='ocr'" in description
-    assert "find_coordinates_by='prediction'" in description
-    assert "candidate_id" in description
-    assert "latest screenshot" in description
-    assert "visible cursor position as a spatial reference" in description
-    assert "post-action screenshot" in description
+    assert "`tool`" in description
+    assert "`arguments`" in description
 
 
 def test_unified_schema_requires_metadata_with_required_fields():
