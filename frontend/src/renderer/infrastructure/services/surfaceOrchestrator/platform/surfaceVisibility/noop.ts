@@ -1,9 +1,12 @@
-import { IpcBridge, INVOKE_CHANNELS } from '../../../../ipc/bridge';
 import type {
   HiddenSurface,
   SurfaceCollapseResult,
   SurfaceRestoreResult,
 } from '../../types';
+import {
+  restoreSurfaceAfterBackgroundCaptureCore,
+  suppressSurfaceForBackgroundCaptureCore,
+} from './shared';
 
 export function createNoopSurfaceVisibilityRuntime() {
   return {
@@ -14,43 +17,15 @@ export function createNoopSurfaceVisibilityRuntime() {
     async suppressSurfaceForBackgroundCapture(
       options: { waitMs?: number } = {},
     ): Promise<SurfaceCollapseResult> {
-      const result = await IpcBridge.invoke<{
-        success?: boolean;
-        reason?: string;
-        waitMs?: number;
-        waitTime?: number;
-        hideInvokeTime?: number;
-        hiddenSurface?: HiddenSurface;
-      }>(INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, {
-        waitMs: typeof options.waitMs === 'number' ? Math.max(0, options.waitMs) : 0,
+      return suppressSurfaceForBackgroundCaptureCore({
+        waitMs: options.waitMs,
         settleMs: 0,
-        hideSurface: true,
+        includeSettleTiming: false,
       });
-      if (result?.success !== true) {
-        throw new Error(result?.reason || 'prepare-surface-for-screenshot failed');
-      }
-      return {
-        collapsed: result?.hiddenSurface === 'chatbox' || result?.hiddenSurface === 'main-window',
-        hiddenSurface: result?.hiddenSurface ?? 'none',
-        timing: {
-          waitTime: typeof result?.waitTime === 'number'
-            ? Math.max(0, result.waitTime)
-            : Math.max(0, (result?.waitMs ?? 0) / 1000),
-          hideInvokeTime: typeof result?.hideInvokeTime === 'number'
-            ? Math.max(0, result.hideInvokeTime)
-            : 0,
-          settleTime: 0,
-        },
-      };
     },
 
     async restoreSurfaceAfterBackgroundCapture(hiddenSurface: HiddenSurface = 'chatbox'): Promise<SurfaceRestoreResult> {
-      await IpcBridge.invoke(INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface });
-      return {
-        restored: hiddenSurface !== 'none',
-        restoredSurface: hiddenSurface,
-        restoreInvokeTime: 0,
-      };
+      return restoreSurfaceAfterBackgroundCaptureCore(hiddenSurface, { measureInvokeTime: false });
     },
   };
 }

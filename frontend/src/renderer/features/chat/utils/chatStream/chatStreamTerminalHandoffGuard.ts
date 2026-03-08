@@ -38,12 +38,12 @@ export function hasTerminalPendingHandoff(workspace: GuardWorkspace): boolean {
   );
 }
 
-export function hasOptimisticPendingUserTurn(workspace: GuardWorkspace): boolean {
+function hasOptimisticPendingUserTurn(workspace: GuardWorkspace): boolean {
   const lastMessage = workspace.messages[workspace.messages.length - 1];
   return lastMessage?.sender === 'user';
 }
 
-export function hasIncompleteCurrentTurnAssistantPlaceholder(
+function hasIncompleteCurrentTurnAssistantPlaceholder(
   workspace: GuardWorkspace,
   eventTurnRef: string,
 ): boolean {

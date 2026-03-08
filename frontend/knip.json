@@ -3,7 +3,8 @@
   "entry": [
     "src/main/ipc.cjs",
     "src/preload.js",
-    "src/landing/main.jsx"
+    "src/landing/main.jsx",
+    "../tests/frontend/**/*.{js,jsx,ts,tsx,cjs,mjs}"
   ],
   "project": [
     "src/**/*.{js,jsx,ts,tsx,cjs,mjs}",

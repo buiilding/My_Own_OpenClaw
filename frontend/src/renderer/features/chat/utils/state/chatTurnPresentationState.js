@@ -4,17 +4,17 @@ import {
   resolveChatLoopUiState,
 } from './chatLoopUiState';
 
-export const CHATBOX_SURFACE_STATE = Object.freeze({
+const CHATBOX_SURFACE_STATE = Object.freeze({
   COMPACT: 'compact',
   AWAITING_REPLY: 'awaiting-reply',
   RESPONSE: 'response',
 });
 
-export const VISIBLE_ASSISTANT_REPLY_TYPES = Object.freeze(['llm-text', 'error']);
+const VISIBLE_ASSISTANT_REPLY_TYPES = Object.freeze(['llm-text', 'error']);
 export const VISIBLE_ASSISTANT_REPLY_TYPE_SET = new Set(VISIBLE_ASSISTANT_REPLY_TYPES);
 const DEFAULT_VISIBLE_ASSISTANT_REPLY_TYPES = VISIBLE_ASSISTANT_REPLY_TYPE_SET;
 
-export function findLastUserIndex(messages) {
+function findLastUserIndex(messages) {
   for (let index = messages.length - 1; index >= 0; index -= 1) {
     if (messages[index]?.sender === 'user') {
       return index;
@@ -23,7 +23,7 @@ export function findLastUserIndex(messages) {
   return -1;
 }
 
-export function findLatestVisibleAssistantReply(
+function findLatestVisibleAssistantReply(
   messages,
   allowedTypes = DEFAULT_VISIBLE_ASSISTANT_REPLY_TYPES,
 ) {
@@ -45,11 +45,11 @@ export function findLatestVisibleAssistantReply(
   return null;
 }
 
-export function hasVisibleChatTurnReply(activeResponse) {
+function hasVisibleChatTurnReply(activeResponse) {
   return Boolean(activeResponse);
 }
 
-export function findAwaitingDotTargetMessageId(messages, showAssistantAwaitingDot) {
+function findAwaitingDotTargetMessageId(messages, showAssistantAwaitingDot) {
   if (!showAssistantAwaitingDot) {
     return null;
   }
@@ -61,11 +61,11 @@ export function findAwaitingDotTargetMessageId(messages, showAssistantAwaitingDo
   return typeof message?.id === 'string' && message.id ? message.id : null;
 }
 
-export function hasVisibleChatboxResponse(activeResponse, dismissedResponseId) {
+function hasVisibleChatboxResponse(activeResponse, dismissedResponseId) {
   return Boolean(activeResponse && activeResponse.id !== dismissedResponseId);
 }
 
-export function resolveChatboxSurfaceState({
+function resolveChatboxSurfaceState({
   loopUiState,
   activeResponse,
   dismissedResponseId = null,
@@ -80,11 +80,11 @@ export function resolveChatboxSurfaceState({
   return CHATBOX_SURFACE_STATE.COMPACT;
 }
 
-export function shouldShowChatboxAwaitingReply(surfaceState) {
+function shouldShowChatboxAwaitingReply(surfaceState) {
   return surfaceState === CHATBOX_SURFACE_STATE.AWAITING_REPLY;
 }
 
-export function shouldShowChatboxResponse(surfaceState) {
+function shouldShowChatboxResponse(surfaceState) {
   return surfaceState === CHATBOX_SURFACE_STATE.RESPONSE;
 }
 

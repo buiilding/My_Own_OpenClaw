@@ -1,79 +1,72 @@
 import {
-  hasVisibleChatboxResponse,
-  resolveChatboxSurfaceState,
   resolveCurrentTurnPresentationState,
-  shouldShowChatboxAwaitingReply,
-  shouldShowChatboxResponse,
 } from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';
-import { resolveChatLoopUiState } from '../../frontend/src/renderer/features/chat/utils/state/chatLoopUiState';
 
 describe('chatTurnPresentationState chatbox projection', () => {
-  function deriveSurfaceState({
-    overlayPhase,
-    isSending,
-    activeResponse = null,
-  }) {
-    const loopUiState = resolveChatLoopUiState({
-      phase: overlayPhase,
-      isSending,
-      hasVisibleReply: Boolean(activeResponse),
-    });
-    return resolveChatboxSurfaceState({
-      loopUiState,
-      activeResponse,
-    });
-  }
-
   test('shows awaiting state while user message is still sending', () => {
-    const surfaceState = deriveSurfaceState({
-      overlayPhase: 'idle',
+    const state = resolveCurrentTurnPresentationState({
+      phase: 'idle',
       isSending: true,
-      activeResponse: null,
+      messages: [{ id: 'user-1', sender: 'user', text: 'hello', type: 'user' }],
     });
 
-    expect(surfaceState).toBe('awaiting-reply');
-    expect(shouldShowChatboxAwaitingReply(surfaceState)).toBe(true);
-    expect(shouldShowChatboxResponse(surfaceState)).toBe(false);
+    expect(state.chatboxSurfaceState).toBe('awaiting-reply');
+    expect(state.showChatboxAwaitingReply).toBe(true);
+    expect(state.showChatboxResponse).toBe(false);
   });
 
   test('shows response state after first visible chunk arrives', () => {
-    const surfaceState = deriveSurfaceState({
-      overlayPhase: 'streaming',
+    const state = resolveCurrentTurnPresentationState({
+      phase: 'streaming',
       isSending: false,
-      activeResponse: { id: 'assistant-1', type: 'llm-text' },
+      messages: [
+        { id: 'user-1', sender: 'user', text: 'task', type: 'user' },
+      ],
+      activeResponse: { id: 'assistant-1', type: 'llm-text', sender: 'assistant', text: 'done' },
     });
 
-    expect(surfaceState).toBe('response');
-    expect(shouldShowChatboxResponse(surfaceState)).toBe(true);
-    expect(shouldShowChatboxAwaitingReply(surfaceState)).toBe(false);
+    expect(state.chatboxSurfaceState).toBe('response');
+    expect(state.showChatboxResponse).toBe(true);
+    expect(state.showChatboxAwaitingReply).toBe(false);
   });
 
   test('returns to awaiting state when tool output resumes the loop', () => {
-    const surfaceState = deriveSurfaceState({
-      overlayPhase: 'tool-output',
+    const state = resolveCurrentTurnPresentationState({
+      phase: 'tool-output',
       isSending: false,
-      activeResponse: { id: 'assistant-1', type: 'llm-text' },
+      messages: [
+        { id: 'user-1', sender: 'user', text: 'task', type: 'user' },
+      ],
+      activeResponse: { id: 'assistant-1', type: 'llm-text', sender: 'assistant', text: 'done' },
     });
 
-    expect(surfaceState).toBe('awaiting-reply');
-    expect(shouldShowChatboxAwaitingReply(surfaceState)).toBe(true);
+    expect(state.chatboxSurfaceState).toBe('awaiting-reply');
+    expect(state.showChatboxAwaitingReply).toBe(true);
   });
 
   test('keeps compact state when no response is visible and loop is terminal', () => {
-    const surfaceState = deriveSurfaceState({
-      overlayPhase: 'complete',
+    const state = resolveCurrentTurnPresentationState({
+      phase: 'complete',
       isSending: false,
-      activeResponse: null,
+      messages: [{ id: 'user-1', sender: 'user', text: 'task', type: 'user' }],
     });
 
-    expect(surfaceState).toBe('compact');
-    expect(shouldShowChatboxAwaitingReply(surfaceState)).toBe(false);
-    expect(shouldShowChatboxResponse(surfaceState)).toBe(false);
+    expect(state.chatboxSurfaceState).toBe('compact');
+    expect(state.showChatboxAwaitingReply).toBe(false);
+    expect(state.showChatboxResponse).toBe(false);
   });
 
-  test('treats dismissed responses as not visible', () => {
-    expect(hasVisibleChatboxResponse({ id: 'assistant-1' }, 'assistant-1')).toBe(false);
-    expect(hasVisibleChatboxResponse({ id: 'assistant-1' }, 'assistant-2')).toBe(true);
+  test('treats dismissed responses as hidden in presentation state', () => {
+    const state = resolveCurrentTurnPresentationState({
+      phase: 'streaming',
+      isSending: false,
+      messages: [{ id: 'user-1', sender: 'user', text: 'task', type: 'user' }],
+      activeResponse: { id: 'assistant-1', type: 'llm-text', sender: 'assistant', text: 'done' },
+      dismissedResponseId: 'assistant-1',
+    });
+
+    expect(state.visibleResponse).toBeNull();
+    expect(state.showChatboxResponse).toBe(false);
   });
 
   test('keeps tool rows from suppressing awaiting state after the latest user turn', () => {

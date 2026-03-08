@@ -1,11 +1,8 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../../ipc/bridge';
+import { isMainWindowVisible } from './windowVisibility';
 
 export async function isDashboardVisibleForComputerUseHandoff(): Promise<boolean> {
-  const result = await IpcBridge.invoke<{ success?: boolean; data?: { visible?: boolean } }>(
-    INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY,
-    {},
-  );
-  return Boolean(result?.success && result?.data?.visible);
+  return isMainWindowVisible();
 }
 
 export async function handoffSurfaceForComputerUse(): Promise<void> {

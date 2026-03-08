@@ -5,7 +5,6 @@ const {
   handleHandoffSurfaceForComputerUse,
   handlePrepareSurfaceForScreenshot,
   handleRestoreSurfaceAfterScreenshot,
-  resolveHiddenSurfaceForScreenshot,
   handleShowChatbox,
   handleShowMainWindow,
 } = require('../../frontend/src/main/overlay_visibility_handler.cjs');
@@ -299,51 +298,79 @@ describe('overlay_visibility_handler', () => {
     expect(waitInMain).toHaveBeenCalledWith(2000);
   });
 
-  test('resolveHiddenSurfaceForScreenshot prefers visible main then chat then none', () => {
+  test('prepare-surface-for-screenshot resolves hidden surface preference as main, then chat, then none', async () => {
+    const waitInMain = jest.fn().mockResolvedValue(undefined);
+    const hideChatWindow = jest.fn(() => ({ success: true, hidden: true }));
+    const hideMainWindow = jest.fn(async () => ({ success: true, hidden: true }));
     const sender = { id: 'other-webcontents' };
-    expect(resolveHiddenSurfaceForScreenshot({ sender }, {
-      getWindows: () => ({
-        mainWindow: {
-          isDestroyed: () => false,
-          isVisible: () => true,
-          webContents: { id: 'main-webcontents' },
-        },
-        chatWindow: {
-          isDestroyed: () => false,
-          isVisible: () => true,
-          webContents: { id: 'chat-webcontents' },
-        },
-      }),
-    })).toBe('main-window');
 
-    expect(resolveHiddenSurfaceForScreenshot({ sender }, {
-      getWindows: () => ({
-        mainWindow: {
-          isDestroyed: () => false,
-          isVisible: () => false,
-          webContents: { id: 'main-webcontents' },
-        },
-        chatWindow: {
-          isDestroyed: () => false,
-          isVisible: () => true,
-          webContents: { id: 'chat-webcontents' },
-        },
-      }),
-    })).toBe('chatbox');
+    const mainPreferred = await handlePrepareSurfaceForScreenshot(
+      { sender },
+      { waitMs: 0, settleMs: 0 },
+      {
+        waitInMain,
+        hideChatWindow,
+        hideMainWindow,
+        getWindows: () => ({
+          mainWindow: {
+            isDestroyed: () => false,
+            isVisible: () => true,
+            webContents: { id: 'main-webcontents' },
+          },
+          chatWindow: {
+            isDestroyed: () => false,
+            isVisible: () => true,
+            webContents: { id: 'chat-webcontents' },
+          },
+        }),
+      },
+    );
+    expect(mainPreferred.hiddenSurface).toBe('main-window');
 
-    expect(resolveHiddenSurfaceForScreenshot({ sender }, {
-      getWindows: () => ({
-        mainWindow: {
-          isDestroyed: () => false,
-          isVisible: () => false,
-          webContents: { id: 'main-webcontents' },
-        },
-        chatWindow: {
-          isDestroyed: () => false,
-          isVisible: () => false,
-          webContents: { id: 'chat-webcontents' },
-        },
-      }),
-    })).toBe('none');
+    const chatPreferred = await handlePrepareSurfaceForScreenshot(
+      { sender },
+      { waitMs: 0, settleMs: 0 },
+      {
+        waitInMain,
+        hideChatWindow,
+        hideMainWindow,
+        getWindows: () => ({
+          mainWindow: {
+            isDestroyed: () => false,
+            isVisible: () => false,
+            webContents: { id: 'main-webcontents' },
+          },
+          chatWindow: {
+            isDestroyed: () => false,
+            isVisible: () => true,
+            webContents: { id: 'chat-webcontents' },
+          },
+        }),
+      },
+    );
+    expect(chatPreferred.hiddenSurface).toBe('chatbox');
+
+    const nonePreferred = await handlePrepareSurfaceForScreenshot(
+      { sender },
+      { waitMs: 0, settleMs: 0 },
+      {
+        waitInMain,
+        hideChatWindow,
+        hideMainWindow,
+        getWindows: () => ({
+          mainWindow: {
+            isDestroyed: () => false,
+            isVisible: () => false,
+            webContents: { id: 'main-webcontents' },
+          },
+          chatWindow: {
+            isDestroyed: () => false,
+            isVisible: () => false,
+            webContents: { id: 'chat-webcontents' },
+          },
+        }),
+      },
+    );
+    expect(nonePreferred.hiddenSurface).toBe('none');
   });
 });
