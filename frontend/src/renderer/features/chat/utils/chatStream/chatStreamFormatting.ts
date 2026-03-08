@@ -9,6 +9,18 @@ const MAX_THINKING_STATUS_LENGTH = 5000;
 type ToolCallPayloadLike = ToolCallEvent['payload'];
 type ToolBundlePayloadLike = ToolBundleEvent['payload'];
 type ToolOutputPayloadLike = ToolOutputEvent['payload'];
+type ToolBundleToolMetadata = NonNullable<NonNullable<ToolBundlePayloadLike['tools']>[number]['metadata']>;
+
+function resolveDisplayMetadata(
+  metadata: ToolCallPayloadLike['metadata'] | ToolBundleToolMetadata,
+): Record<string, unknown> | undefined {
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+    return undefined;
+  }
+  const normalized = { ...metadata };
+  delete normalized.model_facing_tool_call;
+  return Object.keys(normalized).length > 0 ? normalized : undefined;
+}
 
 export function buildThinkingStatus(currentStatus: string | null, chunk?: string): string {
   const updated = (currentStatus || '') + (chunk || '');
@@ -41,11 +53,13 @@ export function formatToolBundlePayload(payload?: ToolBundlePayloadLike): string
         )
           ? modelFacing.arguments
           : (tool?.args || {}),
+        metadata: resolveDisplayMetadata(tool?.metadata),
       };
     }
     return {
       name: tool?.name,
       arguments: tool?.args || {},
+      metadata: resolveDisplayMetadata(tool?.metadata),
     };
   });
   return JSON.stringify(
@@ -72,6 +86,7 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
   id?: string;
   name?: string;
   arguments?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
   thought_signature?: string;
   raw_arguments_preview?: string;
   parse_error?: string;
@@ -117,6 +132,7 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
     ? modelArguments
     : (fallbackParameters || {});
   const frontendExecutionSkipped = metadata?.skip_frontend_execution === true;
+  const displayMetadata = resolveDisplayMetadata(metadata);
 
   if (isRecoverableParseFailure) {
     return {
@@ -130,6 +146,7 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
       raw_arguments_preview: rawArgumentsPreview || undefined,
       parse_error: parseError || undefined,
       frontend_execution_skipped: frontendExecutionSkipped || undefined,
+      metadata: displayMetadata,
     };
   }
 
@@ -141,6 +158,7 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
         : payload?.tool_name
     ),
     arguments: resolvedArguments,
+    metadata: displayMetadata,
     thought_signature: thoughtSignature || undefined,
     frontend_execution_skipped: frontendExecutionSkipped || undefined,
   };
