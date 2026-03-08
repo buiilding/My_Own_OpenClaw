@@ -111,7 +111,6 @@ Behavior:
 
 `ToolOrchestrator.execute(...)`:
 
-- emits `ThinkingEvent`
 - delegates to `ToolSender.send_tools(...)`
 
 `ToolSender` behavior:
