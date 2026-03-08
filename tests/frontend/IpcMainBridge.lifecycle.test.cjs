@@ -217,6 +217,51 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(queryMessage.payload.content).toContain('</user_query>');
   });
 
+  test('enables and disables the global stop shortcut based on active loop phases', async () => {
+    const setAgentLoopStopShortcutEnabled = jest.fn();
+    const { handlers, ws, backendBridge, mainWindow } = setupOpenedIpc({
+      setAgentLoopStopShortcutEnabled,
+    });
+    primeQueryContext(backendBridge);
+
+    await handlers['to-backend']({ sender: mainWindow.webContents }, {
+      type: 'query',
+      payload: { text: 'stop shortcut lifecycle' },
+    });
+
+    expect(setAgentLoopStopShortcutEnabled).toHaveBeenLastCalledWith(true);
+
+    emitBackendMessage(ws, {
+      type: 'streaming-complete',
+      conversation_ref: 'conv-stop-shortcut',
+      turn_ref: 'turn-stop-shortcut',
+      payload: { final_response: 'done' },
+    });
+
+    expect(setAgentLoopStopShortcutEnabled).toHaveBeenLastCalledWith(false);
+  });
+
+  test('global stop shortcut sends stop-query through the active conversation context', async () => {
+    const setAgentLoopStopShortcutEnabled = jest.fn();
+    const { handlers, ws, backendBridge, mainWindow, ipc } = setupOpenedIpc({
+      setAgentLoopStopShortcutEnabled,
+    });
+    primeQueryContext(backendBridge);
+
+    await handlers['to-backend']({ sender: mainWindow.webContents }, {
+      type: 'query',
+      payload: { text: 'query before global stop' },
+    });
+
+    const stopTriggered = ipc.triggerStopQueryFromMain();
+    expect(stopTriggered).toBe(true);
+
+    const sentStopQuery = JSON.parse(ws.sent[ws.sent.length - 1]);
+    expect(sentStopQuery.type).toBe('stop-query');
+    expect(sentStopQuery.payload).toEqual(expect.any(Object));
+    expect(setAgentLoopStopShortcutEnabled).toHaveBeenLastCalledWith(false);
+  });
+
   test('uses BACKEND_HOST and BACKEND_PORT for websocket + http endpoint metadata', async () => {
     process.env.BACKEND_HOST = '10.0.0.42';
     process.env.BACKEND_PORT = '9001';

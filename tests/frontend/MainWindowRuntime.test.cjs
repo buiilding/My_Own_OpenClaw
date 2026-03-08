@@ -503,6 +503,7 @@ describe('main_window_runtime createMainWindow', () => {
       enableDevTransparencyUi: false,
       initializeIpc: jest.fn(),
       applyResponseOverlayPhase: jest.fn(),
+      setAgentLoopStopShortcutEnabled: jest.fn(),
       prepareOverlayQueryCaptureFocus: jest.fn(),
       initializeWakewordBridge: jest.fn(),
       showChatWindow: jest.fn().mockReturnValue({ success: true }),
@@ -543,6 +544,9 @@ describe('main_window_runtime createMainWindow', () => {
     createMainWindow(deps);
 
     expect(deps.initializeMainProcessIpc).toHaveBeenCalledTimes(1);
+    expect(deps.initializeIpc).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      setAgentLoopStopShortcutEnabled: deps.setAgentLoopStopShortcutEnabled,
+    }));
   });
 
   test('syncs main window display affinity on show and move events', () => {

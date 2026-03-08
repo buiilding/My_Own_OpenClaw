@@ -58,6 +58,9 @@ const {
 const {
   applyTranscriptSessionSync,
 } = require('./ipc/ipc_transcript_session_sync.cjs');
+const {
+  isAgentLoopStopShortcutPhase,
+} = require('./agent_stop_shortcut_runtime.cjs');
 
 let BACKEND_ENDPOINTS = resolveBackendEndpoints();
 let BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
@@ -79,6 +82,7 @@ const pendingSettingsSyncs = new Map();
 const backendMessageObservers = new Set();
 let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
+let setAgentLoopStopShortcutEnabled = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 
@@ -221,6 +225,11 @@ function setResponseOverlayPhase(phase, source = 'ipc', metadata = null) {
     broadcastToRenderers,
     log,
   });
+  if (typeof setAgentLoopStopShortcutEnabled === 'function') {
+    setAgentLoopStopShortcutEnabled(
+      isAgentLoopStopShortcutPhase(responseOverlayPhaseState.getPhase()),
+    );
+  }
 }
 
 function connect() {
@@ -358,12 +367,21 @@ function initializeIpc(win, options = {}) {
   onBeforeOverlayQueryCapture = typeof options.onBeforeOverlayQueryCapture === 'function'
     ? options.onBeforeOverlayQueryCapture
     : null;
+  setAgentLoopStopShortcutEnabled =
+    typeof options.setAgentLoopStopShortcutEnabled === 'function'
+      ? options.setAgentLoopStopShortcutEnabled
+      : null;
   const getWindows = typeof options.getWindows === 'function'
     ? options.getWindows
     : () => ({ mainWindow: win, chatWindow: null });
   rendererWindows = new Set();
   trackRendererWindow(win);
   connect();
+  if (typeof setAgentLoopStopShortcutEnabled === 'function') {
+    setAgentLoopStopShortcutEnabled(
+      isAgentLoopStopShortcutPhase(responseOverlayPhaseState.getPhase()),
+    );
+  }
 
   ipcMain.handle('load-frontend-config', async () => {
     const config = await loadCachedFrontendConfigFromDisk();
@@ -503,6 +521,7 @@ function initializeIpc(win, options = {}) {
         delete payload[key];
       });
       Object.assign(payload, preparedPayload);
+      currentConversationRef = conversationRef;
       queryMessageId = uuidv4();
       setResponseOverlayPhase('awaiting-first-chunk', 'query');
       const { mainWindow, chatWindow } = getWindows();
@@ -575,6 +594,17 @@ function initializeIpc(win, options = {}) {
       isFirstQuery = false;
     }
   });
+}
+
+function triggerStopQueryFromMain() {
+  const messageId = sendMessageToBackend('stop-query', currentConversationRef
+    ? { conversation_ref: currentConversationRef }
+    : {});
+  if (!messageId) {
+    return false;
+  }
+  setResponseOverlayPhase('complete', 'stop-query');
+  return true;
 }
 
 function registerRendererWindow(win) {
@@ -679,4 +709,5 @@ module.exports = {
   registerRendererWindow,
   sendAutomatedQuery,
   sendMessageToBackend,
+  triggerStopQueryFromMain,
 };
