@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(fullstack-mouse-control-drag-contract): align backend schemas, backend coordinate normalization, and sidecar execution so `mouse_control` drag actions require `drag_to_x/drag_to_y`, normalize both source and destination coordinates against the current screenshot frame, honor requested drag duration, and execute drag from source to destination instead of dragging to the source point.
 - fix(frontend-chat-stream-tool-call-card-metadata-visibility): render tool-call metadata directly in visible tool-call/bundle card JSON (while excluding duplicated `model_facing_tool_call` envelope data), so required computer-use rationale fields (`description`, `explanation`, `expectation`) are visible without opening Details; add formatter regression coverage for single-call, parse-failure, and bundle metadata display contracts.
 - fix(frontend-screenshot-active-surface-hide): hide the active WindieOS surface (`chatbox` or `main-window`) before screenshot capture and restore that same surface afterward, preventing dashboard-originated screenshot/tool flows from capturing the visible dashboard; add focused main-process + surface-orchestrator regressions for active-surface prep/restore symmetry.
 - fix(frontend-screenshot-dashboard-fade-frame): force dashboard opacity to `0` before hide and restore opacity on later dashboard shows so compositor fade animations cannot leak the dashboard into screenshot captures after screenshot-tool execution.

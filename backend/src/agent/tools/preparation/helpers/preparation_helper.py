@@ -12,6 +12,7 @@ from typing import Optional, TYPE_CHECKING
 from backend.src.core.utils.coordinate_methods import normalize_coordinate_method
 from backend.src.agent.tools.preparation.helpers.coordinate_contract import (
     CoordinateContract,
+    NormalizedCoordinates,
     build_contract_metadata,
     normalize_capture_meta,
     normalize_to_display_space,
@@ -75,6 +76,25 @@ def _coerce_manual_coordinate_pair(x: object, y: object) -> Optional[tuple[int, 
     if parsed_x is None or parsed_y is None:
         return None
     return parsed_x, parsed_y
+
+
+def _normalize_coordinate_pair_for_session(
+    *,
+    session: "AgentSession",
+    screenshot_b64: str,
+    screenshot_id: str,
+    x: int,
+    y: int,
+) -> tuple[CoordinateContract, NormalizedCoordinates]:
+    contract = _build_coordinate_contract(
+        session,
+        screenshot_b64=screenshot_b64,
+        screenshot_id=screenshot_id,
+        x=x,
+        y=y,
+    )
+    normalized = normalize_to_display_space(contract)
+    return contract, normalized
 
 
 def _normalize_screenshot_id(value: object) -> Optional[str]:
@@ -180,14 +200,13 @@ async def resolve_tool_with_coordinates(
         context_id,
     )
 
-    contract = _build_coordinate_contract(
-        session,
+    contract, normalized = _normalize_coordinate_pair_for_session(
+        session=session,
         screenshot_b64=screenshot_data,
         screenshot_id=screenshot_id,
         x=source_x,
         y=source_y,
     )
-    normalized = normalize_to_display_space(contract)
 
     _rewrite_to_manual(resolved_call, normalized.x, normalized.y)
     if not resolved_call.metadata:
@@ -196,6 +215,13 @@ async def resolve_tool_with_coordinates(
     resolved_call.metadata["coordinate_contract"] = build_contract_metadata(
         contract,
         normalized,
+    )
+    _normalize_drag_destination_coordinates(
+        resolved_call=resolved_call,
+        session=session,
+        screenshot_b64=screenshot_data,
+        screenshot_id=screenshot_id,
+        context_id=context_id,
     )
 
     logger.info(
@@ -244,14 +270,13 @@ def normalize_manual_coordinates(
     if not isinstance(screenshot_data, str) or not screenshot_data.strip():
         raise ValueError("No active screenshot data available for manual grounding")
 
-    contract = _build_coordinate_contract(
-        session,
+    contract, normalized = _normalize_coordinate_pair_for_session(
+        session=session,
         screenshot_b64=screenshot_data,
         screenshot_id=effective_screenshot_id,
         x=source_x,
         y=source_y,
     )
-    normalized = normalize_to_display_space(contract)
 
     resolved_call.parameters["x"] = normalized.x
     resolved_call.parameters["y"] = normalized.y
@@ -262,6 +287,13 @@ def normalize_manual_coordinates(
     resolved_call.metadata["coordinate_contract"] = build_contract_metadata(
         contract,
         normalized,
+    )
+    _normalize_drag_destination_coordinates(
+        resolved_call=resolved_call,
+        session=session,
+        screenshot_b64=screenshot_data,
+        screenshot_id=effective_screenshot_id,
+        context_id=context_id,
     )
 
     logger.info(
@@ -297,6 +329,58 @@ def _build_coordinate_contract(
         coordinate_space="screenshot_px",
         screenshot_id=screenshot_id,
         capture_meta=capture_meta,
+    )
+
+
+def _normalize_drag_destination_coordinates(
+    *,
+    resolved_call: ResolvedToolCall,
+    session: "AgentSession",
+    screenshot_b64: str,
+    screenshot_id: str,
+    context_id: str,
+) -> None:
+    if resolved_call.tool_name != "mouse_control":
+        return
+    if resolved_call.parameters.get("action") != "drag":
+        return
+
+    destination_pair = _coerce_manual_coordinate_pair(
+        resolved_call.parameters.get("drag_to_x"),
+        resolved_call.parameters.get("drag_to_y"),
+    )
+    if destination_pair is None:
+        raise ValueError("Drag action requires numeric drag_to_x and drag_to_y values")
+
+    destination_x, destination_y = destination_pair
+    contract, normalized = _normalize_coordinate_pair_for_session(
+        session=session,
+        screenshot_b64=screenshot_b64,
+        screenshot_id=screenshot_id,
+        x=destination_x,
+        y=destination_y,
+    )
+
+    resolved_call.parameters["drag_to_x"] = normalized.x
+    resolved_call.parameters["drag_to_y"] = normalized.y
+
+    if not resolved_call.metadata:
+        resolved_call.metadata = {}
+    resolved_call.metadata["drag_destination_coordinate_contract"] = build_contract_metadata(
+        contract,
+        normalized,
+    )
+
+    logger.info(
+        "[context_id=%s] Normalized drag destination source=(%s,%s) desktop=(%s,%s) "
+        "status=%s screenshot=%s",
+        short_id(context_id),
+        destination_x,
+        destination_y,
+        normalized.x,
+        normalized.y,
+        normalized.status,
+        screenshot_id[:8],
     )
 
 

@@ -381,7 +381,7 @@ No dual-shape fallback is supported in provider transport.
 
 ### Computer Control Tools
 
-- **mouse_control**: Mouse actions (click, drag, move). Manual clicks require screenshot-space `x/y`; backend resolves against the current frame.
+- **mouse_control**: Mouse actions (click, drag, move). Manual source coordinates use screenshot-space `x/y`; drag actions also require screenshot-space destination coordinates in `drag_to_x/drag_to_y`. Backend normalizes both source and drag destination against the current frame before sidecar execution.
 - **keyboard_control**: Keyboard input
 - **scroll_control**: Scroll actions. Manual coordinates only: model must provide `x` and `y`, sidecar moves cursor to that location before every scroll action (`scroll`, `scroll_up`, `scroll_down`).
 - **screenshot**: Capture screenshot

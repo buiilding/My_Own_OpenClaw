@@ -53,6 +53,20 @@ class MouseControlArgs(BaseModel):
             "Beware of the mouse position on the image when determining manual coordinates."
         ),
     )
+    drag_to_x: Optional[int] = Field(
+        None,
+        description=(
+            "Destination X coordinate in screenshot pixels for drag actions. "
+            "Required when action='drag'."
+        ),
+    )
+    drag_to_y: Optional[int] = Field(
+        None,
+        description=(
+            "Destination Y coordinate in screenshot pixels for drag actions. "
+            "Required when action='drag'."
+        ),
+    )
 
     # OCR coordinate fields
     ocr_text: Optional[str] = Field(
@@ -109,6 +123,9 @@ class MouseControlArgs(BaseModel):
         if self.action == MouseAction.SCROLL:
             if self.scroll_amount is None:
                 raise ValueError("scroll_amount is required when action='scroll'")
+        elif self.action == MouseAction.DRAG:
+            if self.drag_to_x is None or self.drag_to_y is None:
+                raise ValueError("drag_to_x and drag_to_y are required when action='drag'")
 
         return self
 

@@ -79,3 +79,8 @@ def test_unified_schema_mouse_arguments_lock_ocr_prediction_and_manual_requireme
         and rule.get("then", {}).get("required") == ["description"]
         for rule in all_of_rules
     )
+    assert any(
+        rule.get("if", {}).get("properties", {}).get("action", {}).get("const") == "drag"
+        and rule.get("then", {}).get("required") == ["drag_to_x", "drag_to_y"]
+        for rule in all_of_rules
+    )
