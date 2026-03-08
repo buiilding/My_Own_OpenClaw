@@ -71,6 +71,7 @@ export interface ChatMessage {
   feedback?: 'like' | 'dislike' | null;
   thinkingText?: string | null;
   thinkingSourceEventType?: string | null;
+  tokenCounts?: TokenCounts | null;
 }
 
 /**
