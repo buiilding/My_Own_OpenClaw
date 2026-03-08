@@ -5,7 +5,10 @@ import {
 } from '@testing-library/react';
 
 import MessageList from '../../frontend/src/renderer/features/chat/components/MessageList';
-import { shouldAutoScrollForAgentLoopMessageUpdate } from '../../frontend/src/renderer/features/chat/utils/message/messageListState';
+import {
+  shouldAutoScrollForAgentLoopMessageUpdate,
+  shouldForceScrollForNewUserMessage,
+} from '../../frontend/src/renderer/features/chat/utils/message/messageListState';
 
 function applyScrollMetrics(element, { scrollHeight, clientHeight, scrollTop }) {
   Object.defineProperty(element, 'scrollHeight', {
@@ -158,7 +161,7 @@ describe('MessageList auto-scroll behavior', () => {
     expect(scrollIntoView).toHaveBeenCalledTimes(scrollIntoViewCallsBeforeSwitch);
   });
 
-  test('does not auto-scroll for user-only message appends during an active loop', () => {
+  test('auto-scrolls when a new user message is appended', () => {
     const { container, rerender } = render(
       <MessageList
         enableAgentLoopAutoScroll
@@ -188,7 +191,10 @@ describe('MessageList auto-scroll behavior', () => {
       />,
     );
 
-    expect(scrollTo).toHaveBeenCalledTimes(scrollToCallsBeforeUpdate);
+    const scrollToCallsAfterUpdate = scrollTo.mock.calls.slice(scrollToCallsBeforeUpdate);
+    expect(scrollToCallsAfterUpdate.length).toBeGreaterThan(0);
+    expect(scrollToCallsAfterUpdate.every(([options]) => Number.isFinite(options?.top))).toBe(true);
+    expect(scrollToCallsAfterUpdate.every(([options]) => options?.behavior === 'smooth')).toBe(true);
   });
 });
 
@@ -223,6 +229,32 @@ describe('shouldAutoScrollForAgentLoopMessageUpdate', () => {
       [
         { id: 'assistant-1', text: 'done', sender: 'assistant', type: 'llm-text' },
         { id: 'user-2', text: 'follow-up', sender: 'user', type: 'user' },
+      ],
+    )).toBe(false);
+  });
+});
+
+describe('shouldForceScrollForNewUserMessage', () => {
+  test('returns true for appended user rows', () => {
+    expect(shouldForceScrollForNewUserMessage(
+      [{ id: 'assistant-1', text: 'done', sender: 'assistant', type: 'llm-text' }],
+      [
+        { id: 'assistant-1', text: 'done', sender: 'assistant', type: 'llm-text' },
+        { id: 'user-2', text: 'follow-up', sender: 'user', type: 'user' },
+      ],
+    )).toBe(true);
+  });
+
+  test('returns false when no new user row was appended', () => {
+    expect(shouldForceScrollForNewUserMessage(
+      [{ id: 'user-1', text: 'hello', sender: 'user', type: 'user' }],
+      [{ id: 'user-1', text: 'hello', sender: 'user', type: 'user' }],
+    )).toBe(false);
+    expect(shouldForceScrollForNewUserMessage(
+      [{ id: 'user-1', text: 'hello', sender: 'user', type: 'user' }],
+      [
+        { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
+        { id: 'tool-call-1', text: '{}', sender: 'assistant', type: 'tool-call' },
       ],
     )).toBe(false);
   });
