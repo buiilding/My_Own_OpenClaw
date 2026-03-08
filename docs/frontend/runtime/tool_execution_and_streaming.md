@@ -70,6 +70,7 @@ Responsibilities:
 - interactive computer-use execution no longer toggles overlay interactivity directly from the renderer; shared overlay phase in main process owns loop-wide click-through + `focusable=false`
 - focus verification retries were removed from renderer-side tool execution prep; orchestrator prep is policy-only and no longer performs external-window restore attempts
 - capture-only computer-use turns (`screenshot`, `switch_tab`, `wait`) use orchestrator capture-visibility transitions (hide-before-capture, show-after, overlap-safe restore)
+- when a computer-use tool starts while the dashboard is visible, renderer tool prep now hands execution ownership to the minimal chat pill first; the dashboard is hidden, the pill/response overlay surface is restored, and the rest of the tool turn runs exactly under the existing pill contract instead of keeping a dashboard-owned capture path
 - applies the same handoff policy to bundles when bundled steps include interactive/capture-only computer-use actions
 - forwards execution correlation IDs into auto-capture/screenshot lifecycles so capture transition logs and tool timing logs share deterministic ids (single tool: request id, bundle: deterministic step id)
 
@@ -95,6 +96,7 @@ Responsibilities:
 - centralized mode resolution (`none | interactive | screenshot`) for single tools and bundles
 - shared active-surface collapse/restore helper used by both tool-execution and screenshot-capture lifecycles
 - screenshot prep now hides whichever WindieOS surface currently owns the capture (`chatbox`, `main-window`, or none) and carries that `hiddenSurface` contract through restore so dashboard-originated captures do not leak the dashboard into the screenshot
+- dashboard-originated computer-use execution no longer stays dashboard-owned after the first tool step; once handoff occurs, screenshot prep/restore always targets the pill surface (`chatbox`) and later tool/output waiting states keep using the pill response overlay/typing-indicator contract
 - platform capture prep still routes through `platform/surfaceVisibility/*`, but those runtimes now implement active-surface prep/restore instead of a chat-pill-only contract; Linux adds compositor settle, while Windows/macOS use the same hide/restore path with zero settle delay
 - screenshot capture prep now uses a bounded main-process `prepare-surface-for-screenshot -> screenshot` wait; the prep handler owns both the intentional pre-capture wait and active-surface hide/settle timing so hidden-renderer timer throttling cannot stretch either phase
 - automatic screenshot monitor selection is main-owned: renderer screenshot calls stay display-agnostic, while Electron main resolves the visible sender window's display first and falls back to the active query-origin display affinity for hidden-dashboard tool turns

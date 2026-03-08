@@ -59,11 +59,34 @@ describe('overlay_phase_ipc_runtime', () => {
     expect(typeof invokeHandlers['set-chatbox-visual-anchor-height']).toBe('function');
     expect(typeof invokeHandlers['show-chatbox']).toBe('function');
     expect(typeof invokeHandlers['hide-chatbox']).toBe('function');
+    expect(typeof invokeHandlers['handoff-surface-for-computer-use']).toBe('function');
     expect(typeof invokeHandlers['prepare-surface-for-screenshot']).toBe('function');
     expect(typeof invokeHandlers['restore-surface-after-screenshot']).toBe('function');
     expect(typeof eventHandlers['move-chatbox-to']).toBe('function');
     expect(invokeHandlers['show-main-window']).toBeUndefined();
     expect(invokeHandlers['list-permissions']).toBeUndefined();
+  });
+
+  test('handoff-surface-for-computer-use routes to chatbox restore contract', async () => {
+    const showChatWindow = jest.fn(() => ({ success: true }));
+    const { invokeHandlers } = createRuntime({
+      getWindows: () => ({
+        mainWindow: {
+          isDestroyed: jest.fn(() => false),
+          isVisible: jest.fn(() => true),
+        },
+      }),
+      showChatWindow,
+    });
+
+    const result = await invokeHandlers['handoff-surface-for-computer-use']({}, {});
+
+    expect(result).toEqual({ success: true, handedOff: true, surface: 'chatbox' });
+    expect(showChatWindow).toHaveBeenCalledWith({
+      focus: false,
+      restoreResponseOverlay: true,
+      targetDisplayAffinity: null,
+    });
   });
 
   test('routes chatbox visual anchor updates to positioning runtime', async () => {

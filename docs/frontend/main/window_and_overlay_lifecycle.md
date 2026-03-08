@@ -236,6 +236,7 @@ For renderer-only deep dives:
 - Linux behavior lives in `platform/screenshot_window_visibility/linux.cjs`
 - platform-specific screenshot-window runtimes are now bypassed for WindieOS-owned capture prep; renderer `SurfaceOrchestrator` and main-process `prepare-surface-for-screenshot` own the single active-surface hide/show path to avoid double-collapse races
 - result: screenshot tool execution no longer adds a second hide/restore cycle on top of renderer capture prep, and dashboard-originated captures use the same prep/restore symmetry as pill-originated captures
+- dashboard-visible computer-use turns now perform an explicit main-process dashboard-to-pill handoff before any computer-use tool prep runs; after handoff, main hides the dashboard, restores the pill/response-overlay surface, and all later capture/restore behavior in that turn is pill-owned instead of trying to bounce back to the dashboard after each tool
 
 For deeper focus/capture guard internals:
 

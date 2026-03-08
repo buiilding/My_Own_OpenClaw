@@ -38,6 +38,36 @@ function handleHideChatbox(deps = {}) {
   return hideChatWindow();
 }
 
+function handleHandoffSurfaceForComputerUse(options = {}, deps = {}) {
+  const {
+    getWindows = () => ({}),
+    showChatWindow,
+  } = deps;
+  const { mainWindow } = getWindows();
+  const mainVisible = Boolean(
+    mainWindow
+    && typeof mainWindow.isDestroyed === 'function'
+    && !mainWindow.isDestroyed()
+    && typeof mainWindow.isVisible === 'function'
+    && mainWindow.isVisible()
+  );
+
+  if (!mainVisible) {
+    return { success: true, handedOff: false, surface: 'none' };
+  }
+
+  const result = showChatWindow(normalizeChatSurfaceWindowOptions({
+    ...options,
+    focus: false,
+    restoreResponseOverlay: true,
+  }));
+  return {
+    ...result,
+    handedOff: Boolean(result?.success),
+    surface: result?.success ? 'chatbox' : 'none',
+  };
+}
+
 function handleRestoreSurfaceAfterScreenshot(options = {}, deps = {}) {
   const {
     showChatWindow,
@@ -165,6 +195,7 @@ async function handlePrepareSurfaceForScreenshot(
 
 module.exports = {
   handleHideChatbox,
+  handleHandoffSurfaceForComputerUse,
   handlePrepareSurfaceForScreenshot,
   handleRestoreSurfaceAfterScreenshot,
   resolveHiddenSurfaceForScreenshot,

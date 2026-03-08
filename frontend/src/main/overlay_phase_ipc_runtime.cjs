@@ -1,5 +1,6 @@
 const {
   handleHideChatbox,
+  handleHandoffSurfaceForComputerUse,
   handlePrepareSurfaceForScreenshot,
   handleRestoreSurfaceAfterScreenshot,
   handleShowChatbox,
@@ -90,6 +91,13 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
 
   ipcMain.handle('hide-chatbox', async () => {
     return handleHideChatbox({ hideChatWindow });
+  });
+
+  ipcMain.handle('handoff-surface-for-computer-use', async (_event, options = {}) => {
+    return handleHandoffSurfaceForComputerUse(options, {
+      getWindows,
+      showChatWindow,
+    });
   });
 
   ipcMain.handle('prepare-surface-for-screenshot', async (event, options = {}) => {
