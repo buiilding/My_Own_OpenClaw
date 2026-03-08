@@ -212,27 +212,30 @@ class ToolRegistry:
         }
 
     @staticmethod
-    def _collapse_unified_computer_use_declarations(
+    def _collapse_unified_declarations_by_name(
         declarations: List[Dict[str, Any]],
+        *,
+        unified_tool_name: str,
+        legacy_tool_names: frozenset[str],
+        canonical_unified: Dict[str, Any],
     ) -> List[Dict[str, Any]]:
         has_unified = any(
             isinstance(item, dict)
             and isinstance(item.get("function"), dict)
-            and item["function"].get("name") == _UNIFIED_COMPUTER_TOOL_NAME
+            and item["function"].get("name") == unified_tool_name
             for item in declarations
         )
         if not has_unified:
             return declarations
 
-        canonical_unified = get_unified_computer_use_function_declaration()
         appended_unified = False
         collapsed: List[Dict[str, Any]] = []
         for item in declarations:
             fn = item.get("function") if isinstance(item, dict) else None
             fn_name = fn.get("name") if isinstance(fn, dict) else None
-            if isinstance(fn_name, str) and fn_name in _LEGACY_COMPUTER_TOOL_NAMES:
+            if isinstance(fn_name, str) and fn_name in legacy_tool_names:
                 continue
-            if fn_name == _UNIFIED_COMPUTER_TOOL_NAME:
+            if fn_name == unified_tool_name:
                 if not appended_unified:
                     collapsed.append(canonical_unified)
                     appended_unified = True
@@ -243,35 +246,26 @@ class ToolRegistry:
         return collapsed
 
     @staticmethod
+    def _collapse_unified_computer_use_declarations(
+        declarations: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        return ToolRegistry._collapse_unified_declarations_by_name(
+            declarations,
+            unified_tool_name=_UNIFIED_COMPUTER_TOOL_NAME,
+            legacy_tool_names=_LEGACY_COMPUTER_TOOL_NAMES,
+            canonical_unified=get_unified_computer_use_function_declaration(),
+        )
+
+    @staticmethod
     def _collapse_unified_system_use_declarations(
         declarations: List[Dict[str, Any]],
     ) -> List[Dict[str, Any]]:
-        has_unified = any(
-            isinstance(item, dict)
-            and isinstance(item.get("function"), dict)
-            and item["function"].get("name") == _UNIFIED_SYSTEM_TOOL_NAME
-            for item in declarations
+        return ToolRegistry._collapse_unified_declarations_by_name(
+            declarations,
+            unified_tool_name=_UNIFIED_SYSTEM_TOOL_NAME,
+            legacy_tool_names=_LEGACY_SYSTEM_TOOL_NAMES,
+            canonical_unified=get_unified_system_use_function_declaration(),
         )
-        if not has_unified:
-            return declarations
-
-        canonical_unified = get_unified_system_use_function_declaration()
-        appended_unified = False
-        collapsed: List[Dict[str, Any]] = []
-        for item in declarations:
-            fn = item.get("function") if isinstance(item, dict) else None
-            fn_name = fn.get("name") if isinstance(fn, dict) else None
-            if isinstance(fn_name, str) and fn_name in _LEGACY_SYSTEM_TOOL_NAMES:
-                continue
-            if fn_name == _UNIFIED_SYSTEM_TOOL_NAME:
-                if not appended_unified:
-                    collapsed.append(canonical_unified)
-                    appended_unified = True
-                continue
-            collapsed.append(item)
-        if not appended_unified:
-            collapsed.append(canonical_unified)
-        return collapsed
 
     @classmethod
     def _collapse_unified_declarations(

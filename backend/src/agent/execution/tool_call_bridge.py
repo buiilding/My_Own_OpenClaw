@@ -4,6 +4,10 @@ import copy
 import re
 from typing import Any, Dict, List
 
+from backend.src.core.utils.string_normalization import (
+    normalize_non_empty_string,
+    resolve_top_level_or_nested_string,
+)
 from backend.src.core.types.schemas import NormalizedLLMResponse
 from backend.src.llm.parser_types import ParsedResponse, ParsedToolCall
 
@@ -73,17 +77,22 @@ def _extract_thought_signature(payload: Any) -> str:
 
 
 def _normalize_required_metadata_value(value: Any) -> str | None:
-    if not isinstance(value, str):
-        return None
-    normalized = value.strip()
-    return normalized if normalized else None
+    return normalize_non_empty_string(value)
 
 
 def _normalize_tool_call_id(value: Any) -> str | None:
-    if not isinstance(value, str):
-        return None
-    normalized = value.strip()
-    return normalized if normalized else None
+    return normalize_non_empty_string(value)
+
+
+def _resolve_system_use_explanation(
+    payload: Dict[str, Any],
+    arguments: Dict[str, Any],
+) -> str | None:
+    return resolve_top_level_or_nested_string(
+        payload.get("explanation"),
+        arguments,
+        nested_key="explanation",
+    )
 
 
 def _normalize_computer_metadata(
@@ -173,6 +182,12 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
                 normalized_tool_name = mapped_tool_name
                 if isinstance(mapped_args, dict):
                     parameters = copy.deepcopy(mapped_args)
+                    resolved_explanation = _resolve_system_use_explanation(
+                        tool_call.get("arguments") if isinstance(tool_call.get("arguments"), dict) else {},
+                        parameters,
+                    )
+                    if resolved_explanation is not None:
+                        parameters["explanation"] = resolved_explanation
                 else:
                     parameters = {}
 

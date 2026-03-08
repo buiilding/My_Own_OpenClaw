@@ -497,10 +497,10 @@ def test_to_parsed_response_maps_unified_system_use_to_concrete_tool():
                     "name": "system_use",
                     "arguments": {
                         "tool": "run_shell_command",
+                        "explanation": "verify shell path",
                         "arguments": {
                             "command": "echo hi",
                             "run_in_background": False,
-                            "explanation": "verify shell path",
                         },
                     },
                 }
@@ -530,11 +530,11 @@ def test_to_parsed_response_maps_unified_system_use_replace_to_replace():
                     "name": "system_use",
                     "arguments": {
                         "tool": "replace",
+                        "explanation": "patch file",
                         "arguments": {
                             "file_path": "/tmp/a.txt",
                             "old_string": "x",
                             "new_string": "y",
-                            "explanation": "patch file",
                         },
                     },
                 }
@@ -553,6 +553,36 @@ def test_to_parsed_response_maps_unified_system_use_replace_to_replace():
         "explanation": "patch file",
     }
     assert call.metadata == {"tool_call_id": "call_replace_1"}
+
+
+def test_to_parsed_response_maps_unified_system_use_nested_explanation_fallback():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_replace_fallback_1",
+                    "name": "system_use",
+                    "arguments": {
+                        "tool": "replace",
+                        "arguments": {
+                            "file_path": "/tmp/a.txt",
+                            "old_string": "x",
+                            "new_string": "y",
+                            "explanation": "legacy nested patch rationale",
+                        },
+                    },
+                }
+            ],
+        }
+    )
+
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    call = parsed.tool_calls[0]
+    assert call.tool_name == "replace"
+    assert call.parameters["explanation"] == "legacy nested patch rationale"
+    assert call.metadata == {"tool_call_id": "call_replace_fallback_1"}
 
 
 def test_to_parsed_response_keeps_unified_system_use_when_subtool_is_invalid():

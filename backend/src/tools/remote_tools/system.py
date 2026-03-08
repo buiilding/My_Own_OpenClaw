@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import Any, Type
 
+from backend.src.core.utils.string_normalization import resolve_top_level_or_nested_string
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
@@ -37,12 +38,24 @@ _SYSTEM_USE_TARGET_TOOL_BY_TOOL: dict[str, str] = {
 }
 
 
+def _resolve_system_use_explanation(
+    top_level_explanation: Any,
+    arguments: dict[str, Any],
+) -> str | None:
+    return resolve_top_level_or_nested_string(
+        top_level_explanation,
+        arguments,
+        nested_key="explanation",
+    )
+
+
 class RemoteSystemUseTool(RemoteToolBase, Tool[SystemUseArgs]):
     name = "system_use"
     description = (
-        "Unified system/filesystem tool. Select concrete action via `tool` and pass "
-        "action arguments via `arguments`. Supports: run_shell_command, replace, "
-        "read_file, get_system_stats, get_open_windows."
+        "Unified system/filesystem tool. Select concrete action via `tool`, provide "
+        "top-level `explanation`, and pass action arguments via `arguments`. "
+        "Supports: run_shell_command, replace, read_file, get_system_stats, "
+        "get_open_windows."
     )
     args_model = SystemUseArgs
     category = ToolDomain.SYSTEM
@@ -51,7 +64,14 @@ class RemoteSystemUseTool(RemoteToolBase, Tool[SystemUseArgs]):
         tool_name = args.tool
         model = _SYSTEM_USE_MODEL_BY_TOOL[tool_name]
         target_tool_name = _SYSTEM_USE_TARGET_TOOL_BY_TOOL[tool_name]
-        validated_args = model.model_validate(args.arguments)
+        tool_arguments = dict(args.arguments)
+        resolved_explanation = _resolve_system_use_explanation(
+            args.explanation,
+            tool_arguments,
+        )
+        if resolved_explanation is not None:
+            tool_arguments["explanation"] = resolved_explanation
+        validated_args = model.model_validate(tool_arguments)
         request_id = self._get_request_id(ctx)
         return RemoteToolResult(
             tool_name=target_tool_name,
