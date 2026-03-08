@@ -48,6 +48,9 @@ logger = logging.getLogger(__name__)
 EMPTY_FINAL_RESPONSE_FALLBACK = (
     "I completed the requested action(s), but the model returned an empty final response."
 )
+POST_TERMINAL_ALLOWED_EVENT_TYPES = frozenset({
+    "memory-store",
+})
 
 
 class QueryExecutionService:
@@ -115,6 +118,15 @@ class QueryExecutionService:
                     event_type = extract_event_type(event)
 
                     if stream_state.saw_terminal_event:
+                        if event_type in POST_TERMINAL_ALLOWED_EVENT_TYPES:
+                            await self._process_pipeline_event(
+                                pipeline=pipeline,
+                                event=event,
+                                tts_service=tts_session.service,
+                                msg_id=msg_id,
+                                stream_context=stream_context,
+                            )
+                            continue
                         logger.debug(
                             "Ignoring post-terminal stream event "
                             "(user_id=%s, turn_ref=%s, event_type=%s)",
