@@ -6,7 +6,7 @@ Orchestrates the complete tool lifecycle: sending → waiting → processing.
 import logging
 from typing import TYPE_CHECKING, AsyncGenerator
 
-from backend.src.core.events import AgentStreamingEvent, ThinkingEvent
+from backend.src.core.events import AgentStreamingEvent
 from backend.src.llm.parser import ParsedResponse
 
 if TYPE_CHECKING:
@@ -48,21 +48,16 @@ class ToolOrchestrator:
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
         Execute tools: send → wait → process.
-        
-        Yields execution-time events (ToolSender events, ThinkingEvent).
+
+        Yields execution-time events from tool dispatch only.
         
         Args:
             parsed_response: Parsed LLM response with tool calls
             session: Agent session for context
             
         Yields:
-            Execution-time events: ThinkingEvent, ToolSender events (ToolCallEvent, etc.)
+            Execution-time events from ToolSender (ToolCallEvent, ToolBundleEvent, etc.)
         """
-        # Emit thinking event
-        yield ThinkingEvent(
-            content=f"Executing {len(parsed_response.tool_calls)} tool(s)..."
-        )
-
         # Send tools (yields execution-time events like ToolCallEvent, ToolBundleEvent)
         async for event in self.tool_sender.send_tools(
             parsed_response.tool_calls, session

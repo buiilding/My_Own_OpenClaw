@@ -23,7 +23,7 @@ title: "Tool Result Orchestrator Bundle Detection and Wait Path Reference"
 
 `ToolOrchestrator` splits execution into two explicit phases:
 
-1. `execute(...)`: emit `ThinkingEvent`, then forward sender events (`ToolCallEvent` or `ToolBundleEvent`)
+1. `execute(...)`: forward sender events (`ToolCallEvent` or `ToolBundleEvent`)
 2. `process_results(...)`: call `ToolResultOrchestrator.execute_tools_from_response(...)`, then hand batch to processing coordinator
 
 This keeps send-time streaming separate from wait-and-commit work.
