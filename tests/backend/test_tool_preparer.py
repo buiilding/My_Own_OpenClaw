@@ -106,6 +106,27 @@ async def test_prepare_mouse_control_uses_coordinate_resolution(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_prepare_scroll_control_uses_coordinate_resolution(monkeypatch):
+    preparer = ToolPreparer(object(), object(), object())
+    tool_call = ParsedToolCall(
+        tool_name="scroll_control",
+        parameters={"action": "scroll_down", "find_coordinates_by": CoordinateFindingMethod.PREDICTION},
+        raw_call="{}",
+    )
+
+    async def fake_resolver(*_args, **_kwargs):
+        return None
+
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.preparer.resolve_tool_with_coordinates",
+        fake_resolver,
+    )
+
+    events, result = await _collect_preparation(preparer, [tool_call])
+    _assert_single_result_with_coordinate_method(events, result, "prediction")
+
+
+@pytest.mark.asyncio
 async def test_prepare_mouse_control_manual_sets_coordinate_method_metadata():
     preparer = ToolPreparer(object(), object(), object())
     tool_call = ParsedToolCall(
@@ -116,6 +137,19 @@ async def test_prepare_mouse_control_manual_sets_coordinate_method_metadata():
             "y": 200,
             "screenshot_id": "shot-prepare",
         },
+        raw_call="{}",
+    )
+
+    events, result = await _collect_preparation(preparer, [tool_call])
+    _assert_single_result_with_coordinate_method(events, result, "manual")
+
+
+@pytest.mark.asyncio
+async def test_prepare_scroll_control_manual_sets_coordinate_method_metadata():
+    preparer = ToolPreparer(object(), object(), object())
+    tool_call = ParsedToolCall(
+        tool_name="scroll_control",
+        parameters={"action": "scroll_down", "x": 100, "y": 200},
         raw_call="{}",
     )
 
@@ -183,7 +217,7 @@ async def test_prepare_bundle_invalid_computer_use_tool_returns_bundle_error_wit
     assert first_call.metadata["bundle_id"] == result.bundle_id
 
 
-def test_tool_call_needs_coordinate_resolution_requires_mouse_control_and_supported_method():
+def test_tool_call_needs_coordinate_resolution_supports_grounded_mouse_and_scroll_tools():
     assert (
         tool_call_needs_coordinate_resolution(
             ParsedToolCall(
@@ -198,6 +232,16 @@ def test_tool_call_needs_coordinate_resolution_requires_mouse_control_and_suppor
         tool_call_needs_coordinate_resolution(
             ParsedToolCall(
                 tool_name="mouse_control",
+                parameters={"find_coordinates_by": CoordinateFindingMethod.PREDICTION},
+                raw_call="{}",
+            )
+        )
+        is True
+    )
+    assert (
+        tool_call_needs_coordinate_resolution(
+            ParsedToolCall(
+                tool_name="scroll_control",
                 parameters={"find_coordinates_by": CoordinateFindingMethod.PREDICTION},
                 raw_call="{}",
             )
@@ -232,6 +276,16 @@ def test_tool_call_has_manual_coordinates_accepts_float_coordinates():
             ParsedToolCall(
                 tool_name="mouse_control",
                 parameters={"find_coordinates_by": "manual", "x": 100.0, "y": 200.0},
+                raw_call="{}",
+            )
+        )
+        is True
+    )
+    assert (
+        tool_call_has_manual_coordinates(
+            ParsedToolCall(
+                tool_name="scroll_control",
+                parameters={"find_coordinates_by": "manual", "x": 10.0, "y": 20.0},
                 raw_call="{}",
             )
         )

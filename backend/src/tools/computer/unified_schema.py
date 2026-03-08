@@ -370,8 +370,6 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                         "scroll",
                                         "scroll_up",
                                         "scroll_down",
-                                        "scroll_left",
-                                        "scroll_right",
                                     ],
                                 },
                                 "find_coordinates_by": {
@@ -418,12 +416,6 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                     "type": "integer",
                                     "description": "Scroll step count.",
                                     "default": 5,
-                                },
-                                "amount": {
-                                    "type": "integer",
-                                    "description": "Scroll amount.",
-                                    "minimum": 100,
-                                    "maximum": 5000,
                                 },
                                 "wait": {
                                     **_post_action_wait_property(),

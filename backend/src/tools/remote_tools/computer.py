@@ -116,7 +116,11 @@ class RemoteScreenshotTool(RemoteToolBase, Tool[ScreenshotToolArgs]):
 
 class RemoteScrollTool(RemoteToolBase, Tool[ScrollControlArgs]):
     name = "scroll_control"
-    description = "Control scrolling actions including up, down, left, and right scrolling."
+    description = (
+        "Control desktop scrolling actions. Target the scroll region with exact visible text "
+        "via OCR, a detailed visual `source_description` via prediction, or manual x/y from "
+        "the latest screenshot when grounding is already known."
+    )
     args_model = ScrollControlArgs
     category = ToolDomain.COMPUTER
 

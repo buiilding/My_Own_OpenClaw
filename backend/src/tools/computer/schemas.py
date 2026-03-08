@@ -232,13 +232,46 @@ class ScrollControlArgs(BaseModel):
         ...,
         description="Scroll action to perform (`scroll`, `scroll_up`, or `scroll_down`).",
     )
-    x: int = Field(
-        ...,
-        description="Screen X coordinate to move to before scrolling (manual coordinate mode).",
+    find_coordinates_by: CoordinateFindingMethod = Field(
+        CoordinateFindingMethod.MANUAL,
+        description=(
+            "Coordinate targeting strategy for the scroll focus region. Use 'ocr' for visible "
+            "text targets, 'prediction' for non-text visual regions, and 'manual' only when "
+            "you have reliable coordinates from the latest screenshot."
+        ),
     )
-    y: int = Field(
-        ...,
-        description="Screen Y coordinate to move to before scrolling (manual coordinate mode).",
+    x: Optional[int] = Field(
+        None,
+        description="Screen X coordinate to move to before scrolling. Required when find_coordinates_by='manual'.",
+    )
+    y: Optional[int] = Field(
+        None,
+        description="Screen Y coordinate to move to before scrolling. Required when find_coordinates_by='manual'.",
+    )
+    ocr_text: Optional[str] = Field(
+        None,
+        description=(
+            "Exact visible on-screen text for OCR targeting. Required for "
+            "find_coordinates_by='ocr' unless candidate_id is provided."
+        ),
+    )
+    candidate_id: Optional[str] = Field(
+        None,
+        description=(
+            "Stable OCR candidate id from an earlier ambiguity response. "
+            "Use this for deterministic follow-up scroll targeting when multiple OCR matches exist."
+        ),
+    )
+    source_description: Optional[str] = Field(
+        None,
+        description=(
+            "Detailed visual description of the scroll target region when "
+            "find_coordinates_by='prediction'."
+        ),
+    )
+    model_name: Optional[str] = Field(
+        None,
+        description="Optional specific vision model to use for scroll target prediction",
     )
     clicks: int = Field(
         5,
@@ -251,7 +284,23 @@ class ScrollControlArgs(BaseModel):
     wait: float = post_action_wait_field()
 
     @model_validator(mode='after')
-    def validate_direction(self):
+    def validate_conditional_fields(self):
+        if self.find_coordinates_by == CoordinateFindingMethod.MANUAL:
+            if self.x is None or self.y is None:
+                raise ValueError(
+                    "x and y coordinates are required when find_coordinates_by='manual'"
+                )
+        elif self.find_coordinates_by == CoordinateFindingMethod.OCR:
+            if not self.ocr_text and not self.candidate_id:
+                raise ValueError(
+                    "ocr_text or candidate_id is required when find_coordinates_by='ocr'"
+                )
+        elif self.find_coordinates_by == CoordinateFindingMethod.PREDICTION:
+            if not self.source_description:
+                raise ValueError(
+                    "source_description is required when find_coordinates_by='prediction'"
+                )
+
         if self.action == "scroll" and not self.direction:
             raise ValueError("direction required for scroll action")
         return self

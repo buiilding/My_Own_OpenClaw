@@ -106,3 +106,48 @@ def test_unified_schema_mouse_arguments_lock_ocr_prediction_and_manual_requireme
         rule.get("if", {}).get("properties", {}).get("action", {}).get("const") == "scroll"
         for rule in all_of_rules
     )
+
+
+def test_unified_schema_scroll_arguments_lock_grounding_requirements():
+    declaration = get_unified_computer_use_function_declaration()
+    one_of_entries = declaration["function"]["parameters"]["properties"]["arguments"]["oneOf"]
+    scroll_schema = next(
+        entry
+        for entry in one_of_entries
+        if entry.get("title") == "scroll_control arguments"
+    )
+
+    assert scroll_schema["properties"]["action"]["enum"] == [
+        "scroll",
+        "scroll_up",
+        "scroll_down",
+    ]
+    assert scroll_schema["properties"]["find_coordinates_by"]["enum"] == [
+        "manual",
+        "ocr",
+        "prediction",
+    ]
+    assert "amount" not in scroll_schema["properties"]
+
+    all_of_rules = scroll_schema["allOf"]
+    assert any(
+        rule.get("if", {}).get("properties", {}).get("find_coordinates_by", {}).get("const") == "manual"
+        and rule.get("then", {}).get("required") == ["x", "y"]
+        for rule in all_of_rules
+    )
+    assert any(
+        rule.get("if", {}).get("properties", {}).get("find_coordinates_by", {}).get("const") == "ocr"
+        and {"required": ["ocr_text"]} in rule.get("then", {}).get("anyOf", [])
+        and {"required": ["candidate_id"]} in rule.get("then", {}).get("anyOf", [])
+        for rule in all_of_rules
+    )
+    assert any(
+        rule.get("if", {}).get("properties", {}).get("find_coordinates_by", {}).get("const") == "prediction"
+        and rule.get("then", {}).get("required") == ["source_description"]
+        for rule in all_of_rules
+    )
+    assert any(
+        rule.get("if", {}).get("properties", {}).get("action", {}).get("const") == "scroll"
+        and rule.get("then", {}).get("required") == ["direction"]
+        for rule in all_of_rules
+    )

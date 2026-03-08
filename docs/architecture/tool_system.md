@@ -389,7 +389,7 @@ No dual-shape fallback is supported in provider transport.
 
 - **mouse_control**: Mouse actions (click, drag, move). Source grounding supports `manual`, `ocr`, or `prediction` using `source_description` for prediction. Drag destinations support the same modes via `drag_to_find_coordinates_by` plus destination-specific fields (`drag_to_x/drag_to_y`, `drag_to_ocr_text`/`drag_to_candidate_id`, `destination_description`). Backend resolves both source and drag destination against the same current screenshot frame, then normalizes both into desktop coordinates before sidecar execution.
 - **keyboard_control**: Keyboard input
-- **scroll_control**: Scroll actions. Manual coordinates only: model must provide `x` and `y`, sidecar moves cursor to that location before every scroll action (`scroll`, `scroll_up`, `scroll_down`).
+- **scroll_control**: Scroll actions. Supports `manual`, `ocr`, and `prediction` grounding at the backend preparation layer, then rewrites to concrete `x/y` before sidecar execution. Sidecar scroll execution still consumes manual coordinates only after preparation resolves the target region.
 - **screenshot**: Capture screenshot
 - **switch_tab**: Switch between tabs/windows
 - **wait**: Pause for a specified duration

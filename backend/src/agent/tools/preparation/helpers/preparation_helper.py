@@ -37,11 +37,12 @@ _COORDINATE_RESOLUTION_METHODS = (
     CoordinateFindingMethod.OCR,
     CoordinateFindingMethod.PREDICTION,
 )
+_GROUNDED_COORDINATE_TOOLS = frozenset({"mouse_control", "scroll_control"})
 
 
 def tool_call_needs_coordinate_resolution(tool_call: ParsedToolCall) -> bool:
     """Return whether a tool call should run OCR/prediction coordinate resolution."""
-    if tool_call.tool_name != "mouse_control":
+    if tool_call.tool_name not in _GROUNDED_COORDINATE_TOOLS:
         return False
     source_method = normalize_coordinate_method(
         tool_call.parameters.get("find_coordinates_by"),
@@ -49,6 +50,8 @@ def tool_call_needs_coordinate_resolution(tool_call: ParsedToolCall) -> bool:
     )
     if source_method in _COORDINATE_RESOLUTION_METHODS:
         return True
+    if tool_call.tool_name != "mouse_control":
+        return False
     return _drag_destination_method(tool_call) in _COORDINATE_RESOLUTION_METHODS
 
 
@@ -114,12 +117,12 @@ def _normalize_screenshot_id(value: object) -> Optional[str]:
 
 def tool_call_has_manual_coordinates(tool_call: ParsedToolCall) -> bool:
     """
-    Return whether a mouse tool call uses manual coordinates with x/y payload.
+    Return whether a grounded tool call uses manual coordinates with x/y payload.
 
     Manual calls skip OCR/vision resolution and are transformed against the
     current captured frame.
     """
-    if tool_call.tool_name != "mouse_control":
+    if tool_call.tool_name not in _GROUNDED_COORDINATE_TOOLS:
         return False
     method = normalize_coordinate_method(
         tool_call.parameters.get("find_coordinates_by"),
@@ -171,12 +174,12 @@ def attach_coordinate_method_metadata(
     resolved_call: ResolvedToolCall,
 ) -> None:
     """
-    Persist the mouse coordinate method in metadata for tool-call transparency.
+    Persist the coordinate method in metadata for tool-call transparency.
 
-    We rewrite mouse calls to manual x/y before execution, so we must keep the
+    We rewrite grounded calls to manual x/y before execution, so we must keep the
     original resolution method (`manual|ocr|prediction`) separately in metadata.
     """
-    if tool_call.tool_name != "mouse_control":
+    if tool_call.tool_name not in _GROUNDED_COORDINATE_TOOLS:
         return
 
     if not resolved_call.metadata:
@@ -187,7 +190,7 @@ def attach_coordinate_method_metadata(
         default=CoordinateFindingMethod.MANUAL.value,
     )
     resolved_call.metadata["coordinate_method"] = method
-    if tool_call.parameters.get("action") == "drag":
+    if tool_call.tool_name == "mouse_control" and tool_call.parameters.get("action") == "drag":
         resolved_call.metadata["drag_destination_coordinate_method"] = _drag_destination_method(
             tool_call
         )
@@ -303,12 +306,12 @@ def normalize_manual_coordinates(
     context_id: str,
 ) -> None:
     """
-    Normalize manual mouse coordinates from screenshot pixel space to desktop space.
+    Normalize manual grounded-tool coordinates from screenshot pixel space to desktop space.
 
     Manual coordinates are interpreted in screenshot pixel space and normalized to
     desktop space using the current session frame.
     """
-    if resolved_call.tool_name != "mouse_control":
+    if resolved_call.tool_name not in _GROUNDED_COORDINATE_TOOLS:
         return
 
     coordinate_pair = _coerce_manual_coordinate_pair(
@@ -341,29 +344,34 @@ def normalize_manual_coordinates(
 
     if not resolved_call.metadata:
         resolved_call.metadata = {}
+    resolved_call.metadata.setdefault(
+        "coordinate_method",
+        CoordinateFindingMethod.MANUAL.value,
+    )
     resolved_call.metadata["coordinate_resolution_screenshot_id"] = effective_screenshot_id
     resolved_call.metadata["coordinate_contract"] = build_contract_metadata(
         contract,
         normalized,
     )
-    destination_method = normalize_coordinate_method(
-        resolved_call.parameters.get("drag_to_find_coordinates_by"),
-        default=CoordinateFindingMethod.MANUAL.value,
-    )
-    if (
-        resolved_call.parameters.get("action") == "drag"
-        and destination_method in _COORDINATE_RESOLUTION_METHODS
-    ):
-        raise ValueError(
-            "Drag destination OCR/prediction grounding requires coordinate resolution preparation"
+    if resolved_call.tool_name == "mouse_control":
+        destination_method = normalize_coordinate_method(
+            resolved_call.parameters.get("drag_to_find_coordinates_by"),
+            default=CoordinateFindingMethod.MANUAL.value,
         )
-    _normalize_drag_destination_coordinates(
-        resolved_call=resolved_call,
-        session=session,
-        screenshot_b64=screenshot_data,
-        screenshot_id=effective_screenshot_id,
-        context_id=context_id,
-    )
+        if (
+            resolved_call.parameters.get("action") == "drag"
+            and destination_method in _COORDINATE_RESOLUTION_METHODS
+        ):
+            raise ValueError(
+                "Drag destination OCR/prediction grounding requires coordinate resolution preparation"
+            )
+        _normalize_drag_destination_coordinates(
+            resolved_call=resolved_call,
+            session=session,
+            screenshot_b64=screenshot_data,
+            screenshot_id=effective_screenshot_id,
+            context_id=context_id,
+        )
 
     logger.info(
         "[context_id=%s] Normalized manual coordinates source=(%s,%s) desktop=(%s,%s) "
