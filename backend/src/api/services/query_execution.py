@@ -35,6 +35,9 @@ from backend.src.api.services.query_execution_support.query_execution_runtime im
 from backend.src.api.services.query_execution_support.query_execution_stream_state import (
     QueryExecutionStreamState,
 )
+from backend.src.api.services.query_execution_support.query_execution_terminal_policy import (
+    is_post_terminal_event_allowed,
+)
 from backend.src.api.services.tts_session import TTSSession
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.transport.sender import WebSocketTransportSender
@@ -48,9 +51,6 @@ logger = logging.getLogger(__name__)
 EMPTY_FINAL_RESPONSE_FALLBACK = (
     "I completed the requested action(s), but the model returned an empty final response."
 )
-POST_TERMINAL_ALLOWED_EVENT_TYPES = frozenset({
-    "memory-store",
-})
 
 
 class QueryExecutionService:
@@ -118,7 +118,7 @@ class QueryExecutionService:
                     event_type = extract_event_type(event)
 
                     if stream_state.saw_terminal_event:
-                        if event_type in POST_TERMINAL_ALLOWED_EVENT_TYPES:
+                        if is_post_terminal_event_allowed(event_type):
                             await self._process_pipeline_event(
                                 pipeline=pipeline,
                                 event=event,

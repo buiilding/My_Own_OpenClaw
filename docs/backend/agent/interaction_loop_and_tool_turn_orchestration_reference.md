@@ -11,6 +11,7 @@ title: "Interaction Loop and Tool-Turn Orchestration Reference"
 ## Canonical Modules
 
 - `backend/src/agent/execution/executor.py`
+- `backend/src/agent/execution/completion_side_effects.py`
 - `backend/src/agent/execution/interaction_loop.py`
 - `backend/src/agent/execution/tool_call_bridge.py`
 - `backend/src/agent/execution/policies.py`
@@ -51,6 +52,7 @@ This structure centralizes orchestration in `executor.py` while preserving singl
 4. optional screenshot registration + OCR kickoff
 5. iterate `InteractionLoop.run_loop()` and forward events
 6. finalization block (even on client disconnect):
+  - delegate completed-turn side effects to `completion_side_effects.py`
   - publish `InteractionCompleted`
   - emit/publish `MemoryStoreEvent` fallback (uses resolved raw user query, not full enriched content envelope)
 
@@ -73,6 +75,7 @@ Important reliability behavior:
 
 - memory/publish side effects run in `finally`
 - generator closure (`GeneratorExit`) falls back to event-bus publish via session-tracked background task
+- completed-turn publish + interaction-memory emission stays single-sourced in `publish_and_emit_completion_side_effects(...)`
 
 ## Interaction Loop State Machine
 

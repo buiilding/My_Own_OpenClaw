@@ -4,13 +4,14 @@ Agent Executor - Core execution loop for the agent.
 This module implements the main agent execution loop that processes user queries,
 manages tool execution, handles LLM streaming, and coordinates memory operations.
 """
-import asyncio
-import html
 import logging
-import re
 from typing import TYPE_CHECKING, AsyncGenerator, List, Optional, Union
 
 from backend.src.agent.history.history_committer import HistoryCommitter
+from backend.src.agent.execution.completion_side_effects import (
+    publish_and_emit_completion_side_effects,
+    resolve_raw_user_query,
+)
 from backend.src.agent.execution.interaction_loop import InteractionLoop
 from backend.src.agent.llm.conversation_context import ConversationContext
 from backend.src.agent.llm.event_presenter import EventPresenter
@@ -37,8 +38,6 @@ from backend.src.core.events import (
     ContextCompactionCompletedEvent,
     ContextCompactionFailedEvent,
     ContextCompactionStartedEvent,
-    InteractionCompleted,
-    MemoryStoreEvent,
     StreamingCompleteEvent,
 )
 from backend.src.llm.client import LLMClient
@@ -50,11 +49,6 @@ if TYPE_CHECKING:
     from backend.src.services.ocr.ocr_service import OcrService
 
 logger = logging.getLogger(__name__)
-_USER_QUERY_TAG_PATTERN = re.compile(
-    r"<user_query>\s*(.*?)\s*</user_query>",
-    re.IGNORECASE | re.DOTALL,
-)
-_USER_QUERY_PARSE_MAX_CHARS = 300_000
 
 
 class AgentExecutor:
@@ -250,37 +244,13 @@ class AgentExecutor:
             # even if the generator is closed early (GeneratorExit)
             if final_response:
                 try:
-                    # Publish completion event (side-effect, doesn't require yielding)
-                    await self._publish_completion_event(raw_user_query, final_response)
-                    
-                    # Emit memory store event for frontend to store the interaction
-                    # Currently only episodic memory is automatically stored
-                    # Semantic memory can be stored manually via the memory tool
-                    memory_event = MemoryStoreEvent(
-                        user_query=raw_user_query,
-                        assistant_response=final_response,
-                        memory_type="episodic",  # Store interactions as episodic memory
-                        user_id=self.session.user_id,
-                        session_id=(
-                            self.session.runtime.active_conversation_ref
-                            or self.session.session_id
-                        ),
-                    )
-                    
-                    # Try to yield the memory event, but handle GeneratorExit gracefully
-                    try:
-                        yield memory_event
-                    except GeneratorExit:
-                        # Client disconnected before we could yield the event
-                        # Route fallback publish through session-managed task tracking so
-                        # lifecycle cleanup can cancel/drain it deterministically.
-                        logger.warning(
-                            "Client disconnected before MemoryStoreEvent could be yielded. "
-                            "Publishing to event bus as fallback."
-                        )
-                        self.session.register_background_task(
-                            asyncio.create_task(self.event_bus.publish(memory_event))
-                        )
+                    async for completion_event in publish_and_emit_completion_side_effects(
+                        session=self.session,
+                        event_bus=self.event_bus,
+                        raw_user_query=raw_user_query,
+                        final_response=final_response,
+                    ):
+                        yield completion_event
                 except Exception as e:
                     # Log but don't re-raise - we're in finally block
                     logger.error(
@@ -322,35 +292,6 @@ class AgentExecutor:
         # Access internal history list directly to avoid creating a copy
         return len(self.session.history.history) == 0
 
-    async def _publish_completion_event(self, query: str, response: str):
-        """Publishes the InteractionCompleted event."""
-        event = InteractionCompleted(
-            session_id=self.session.session_id,
-            user_id=self.session.user_id,
-            user_message=query,
-            assistant_response=response,
-        )
-        await self.event_bus.publish(event)
-
     @staticmethod
     def _resolve_raw_user_query(query: str, final_content: str) -> str:
-        """
-        Resolve user-typed query text from formatted content when possible.
-
-        The frontend sends a rich `message_content` envelope that includes
-        `<system_context>`, memory sections, and `<user_query>`. We store
-        only the user query text in history metadata/memory events.
-        """
-        fallback = (query or "").strip()
-        if not final_content:
-            return fallback
-
-        search_space = final_content[:_USER_QUERY_PARSE_MAX_CHARS]
-        match = None
-        for candidate in _USER_QUERY_TAG_PATTERN.finditer(search_space):
-            match = candidate
-        if not match:
-            return fallback
-
-        extracted = html.unescape((match.group(1) or "").strip())
-        return extracted or fallback
+        return resolve_raw_user_query(query, final_content)
