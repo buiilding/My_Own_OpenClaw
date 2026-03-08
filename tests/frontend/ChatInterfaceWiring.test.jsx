@@ -482,10 +482,8 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     const shortcutEvent = new KeyboardEvent('keydown', {
-      key: '.',
-      code: 'Period',
-      ctrlKey: true,
-      altKey: true,
+      key: 'Escape',
+      code: 'Escape',
       cancelable: true,
       bubbles: true,
     });
@@ -505,10 +503,8 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     const shortcutEvent = new KeyboardEvent('keydown', {
-      key: '.',
-      code: 'Period',
-      ctrlKey: true,
-      altKey: true,
+      key: 'Escape',
+      code: 'Escape',
       cancelable: true,
       bubbles: true,
     });
