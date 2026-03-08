@@ -6,7 +6,7 @@ mouse drag-destination handling live in focused helper modules.
 """
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
 from backend.src.agent.tools.preparation.helpers.grounded_source_preparation import (
     attach_source_coordinate_method_metadata,
@@ -22,16 +22,7 @@ from backend.src.agent.tools.preparation.helpers.mouse_drag_destination_preparat
     tool_call_needs_drag_destination_resolution,
     normalize_manual_drag_destination_coordinates,
 )
-from backend.src.llm.parser_types import ParsedToolCall
 from backend.src.tools.computer.grounding_contract import supports_source_grounding
-
-if TYPE_CHECKING:
-    from backend.src.agent.session.session import AgentSession
-    from backend.src.agent.tools.preparation.coordinate_resolution import CoordinateResolver
-    from backend.src.agent.tools.preparation.ocr import OcrCoordinator
-    from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
-    from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
-    from backend.src.core.interfaces.vision import IVisionService
 
 
 def tool_call_needs_coordinate_resolution(tool_call: ParsedToolCall) -> bool:
@@ -44,7 +35,7 @@ def tool_call_needs_coordinate_resolution(tool_call: ParsedToolCall) -> bool:
 
 def attach_coordinate_method_metadata(
     tool_call: ParsedToolCall,
-    resolved_call: "ResolvedToolCall",
+    resolved_call: ResolvedToolCall,
 ) -> None:
     """Persist source/destination grounding methods for tool transparency."""
     attach_source_coordinate_method_metadata(tool_call, resolved_call)
@@ -53,12 +44,12 @@ def attach_coordinate_method_metadata(
 
 async def resolve_tool_with_coordinates(
     tool_call: ParsedToolCall,
-    resolved_call: "ResolvedToolCall",
-    session: "AgentSession",
-    screenshot_manager: "ScreenshotManager",
-    ocr_coordinator: "OcrCoordinator",
-    coordinate_resolver: "CoordinateResolver",
-    vision_service: Optional["IVisionService"],
+    resolved_call: ResolvedToolCall,
+    session: AgentSession,
+    screenshot_manager: ScreenshotManager,
+    ocr_coordinator: OcrCoordinator,
+    coordinate_resolver: CoordinateResolver,
+    vision_service: Optional[IVisionService],
     vision_service_provider,
     context_id: str,
 ) -> None:
@@ -105,8 +96,8 @@ async def resolve_tool_with_coordinates(
 
 def normalize_manual_coordinates(
     *,
-    resolved_call: "ResolvedToolCall",
-    session: "AgentSession",
+    resolved_call: ResolvedToolCall,
+    session: AgentSession,
     context_id: str,
 ) -> None:
     """
