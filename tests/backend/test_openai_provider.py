@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from enum import Enum
 from typing import Any, AsyncGenerator
 
 import pytest
@@ -202,3 +203,68 @@ async def test_openai_responses_stream_emits_provider_native_reasoning_and_captu
     assert usage["prompt_tokens"] == 11
     assert usage["completion_tokens"] == 7
     assert usage["total_tokens"] == 18
+
+
+@pytest.mark.asyncio
+async def test_openai_responses_stream_handles_enum_typed_events(
+    monkeypatch,
+):
+    class FakeResponsesEventType(str, Enum):
+        RESPONSE_REASONING_TEXT_DELTA = "response.reasoning_text.delta"
+        RESPONSE_OUTPUT_TEXT_DELTA = "response.output_text.delta"
+        RESPONSE_COMPLETED = "response.completed"
+
+    provider = OpenAIProvider(api_key="test-key")
+
+    async def fake_stream():
+        yield {
+            "type": FakeResponsesEventType.RESPONSE_REASONING_TEXT_DELTA,
+            "delta": "reasoning",
+        }
+        yield {
+            "type": FakeResponsesEventType.RESPONSE_OUTPUT_TEXT_DELTA,
+            "delta": "visible",
+        }
+        yield {
+            "type": FakeResponsesEventType.RESPONSE_COMPLETED,
+            "response": {
+                "output_text": "visible",
+                "output": [
+                    {
+                        "type": "message",
+                        "content": [{"type": "output_text", "text": "visible"}],
+                    }
+                ],
+                "status": "completed",
+                "usage": {
+                    "prompt_tokens": 3,
+                    "completion_tokens": 2,
+                    "total_tokens": 5,
+                },
+            },
+        }
+
+    async def fake_aresponses(**kwargs):
+        _ = kwargs
+        return fake_stream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
+
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.3-codex@@gpt-5-3-codex-fast-thinking",
+            messages=[{"role": "user", "content": "hi"}],
+        )
+    )
+
+    assert [type(event).__name__ for event in events] == ["ThinkingEvent", "ChunkEvent"]
+    assert events[0].content == "reasoning"
+    assert events[1].content == "visible"
+    assert provider.get_last_stream_response_payload() == {
+        "content": "visible",
+        "finish_reason": "completed",
+    }
