@@ -12,6 +12,7 @@ import {
   isNearBottom,
   resolveCompactionStatusText,
   scrollToConversationSwitchTarget,
+  shouldForceScrollForNewUserMessage,
   shouldAutoScrollForAgentLoopMessageUpdate,
 } from '../utils/message/messageListState';
 import { resolveConversationToolSchemas } from '../utils/message/messageTransparency';
@@ -165,17 +166,30 @@ function MessageList({
   }, []);
 
   useEffect(() => {
-    if (!shouldAutoScrollRef.current) {
-      previousMessagesRef.current = messages;
-      return;
-    }
+    const previousMessages = previousMessagesRef.current;
+    const shouldForceScroll = shouldForceScrollForNewUserMessage(previousMessages, messages);
+
     if (skipNextMessagesAutoScrollRef.current) {
       skipNextMessagesAutoScrollRef.current = false;
       forceInstantAutoScrollRef.current = false;
       previousMessagesRef.current = messages;
       return;
     }
-    const previousMessages = previousMessagesRef.current;
+
+    if (shouldForceScroll) {
+      shouldAutoScrollRef.current = true;
+      const behavior = forceInstantAutoScrollRef.current ? 'auto' : 'smooth';
+      forceInstantAutoScrollRef.current = false;
+      previousMessagesRef.current = messages;
+      scrollToBottom(behavior);
+      return;
+    }
+
+    if (!shouldAutoScrollRef.current) {
+      previousMessagesRef.current = messages;
+      return;
+    }
+
     const shouldAutoScroll = enableAgentLoopAutoScroll
       && shouldAutoScrollForAgentLoopMessageUpdate(previousMessages, messages);
     previousMessagesRef.current = messages;

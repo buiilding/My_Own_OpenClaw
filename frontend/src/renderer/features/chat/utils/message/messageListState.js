@@ -41,6 +41,23 @@ function isAgentLoopAutoScrollEligibleMessage(message) {
   return AGENT_LOOP_AUTO_SCROLL_MESSAGE_TYPES.has(message.type || '');
 }
 
+function isUserMessage(message) {
+  return Boolean(message) && message.sender === 'user';
+}
+
+export function shouldForceScrollForNewUserMessage(previousMessages, nextMessages) {
+  if (!Array.isArray(previousMessages) || !Array.isArray(nextMessages)) {
+    return false;
+  }
+  if (nextMessages.length <= previousMessages.length) {
+    return false;
+  }
+
+  return nextMessages
+    .slice(previousMessages.length)
+    .some(isUserMessage);
+}
+
 export function shouldAutoScrollForAgentLoopMessageUpdate(previousMessages, nextMessages) {
   if (!Array.isArray(previousMessages) || !Array.isArray(nextMessages)) {
     return false;
