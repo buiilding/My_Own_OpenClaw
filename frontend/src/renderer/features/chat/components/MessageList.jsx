@@ -12,6 +12,7 @@ import {
   isNearBottom,
   resolveCompactionStatusText,
   scrollToConversationSwitchTarget,
+  shouldAutoScrollForAgentLoopMessageUpdate,
 } from '../utils/message/messageListState';
 import { resolveConversationToolSchemas } from '../utils/message/messageTransparency';
 
@@ -22,6 +23,7 @@ function MessageList({
   thinkingStatus = null,
   thinkingSourceEventType = null,
   awaitingDotTargetMessageId = null,
+  enableAgentLoopAutoScroll = false,
   enableAssistantActions = false,
   enableUserActions = false,
   disableAssistantActions = false,
@@ -36,6 +38,7 @@ function MessageList({
   const shouldAutoScrollRef = useRef(true);
   const forceInstantAutoScrollRef = useRef(false);
   const skipNextMessagesAutoScrollRef = useRef(false);
+  const previousMessagesRef = useRef(messages);
 
   const handleStartUserEdit = useCallback((messageId, messageText) => {
     setEditingUserMessageId(messageId);
@@ -163,17 +166,26 @@ function MessageList({
 
   useEffect(() => {
     if (!shouldAutoScrollRef.current) {
+      previousMessagesRef.current = messages;
       return;
     }
     if (skipNextMessagesAutoScrollRef.current) {
       skipNextMessagesAutoScrollRef.current = false;
       forceInstantAutoScrollRef.current = false;
+      previousMessagesRef.current = messages;
+      return;
+    }
+    const previousMessages = previousMessagesRef.current;
+    const shouldAutoScroll = enableAgentLoopAutoScroll
+      && shouldAutoScrollForAgentLoopMessageUpdate(previousMessages, messages);
+    previousMessagesRef.current = messages;
+    if (!shouldAutoScroll) {
       return;
     }
     const behavior = forceInstantAutoScrollRef.current ? 'auto' : 'smooth';
     forceInstantAutoScrollRef.current = false;
     scrollToBottom(behavior);
-  }, [messages, scrollToBottom]);
+  }, [enableAgentLoopAutoScroll, messages, scrollToBottom]);
 
   const compactionStatusText = useMemo(() => {
     return resolveCompactionStatusText(thinkingStatus, thinkingSourceEventType);
@@ -213,6 +225,7 @@ MessageList.propTypes = {
   thinkingStatus: PropTypes.string,
   thinkingSourceEventType: PropTypes.string,
   awaitingDotTargetMessageId: PropTypes.string,
+  enableAgentLoopAutoScroll: PropTypes.bool,
   enableAssistantActions: PropTypes.bool,
   enableUserActions: PropTypes.bool,
   disableAssistantActions: PropTypes.bool,

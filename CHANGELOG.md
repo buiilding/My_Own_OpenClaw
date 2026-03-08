@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-dashboard-autoscroll): limit dashboard auto-follow to live agent-loop assistant/tool progression so tool calls, tool outputs, and assistant streaming/final replies keep the dashboard pinned only while the user remains at the bottom, while manual upward scrolling disables follow until the user scrolls back down.
 - test(backend-prompts): align `test_prompt_manager` with the current repo prompt structure by asserting the active tool-policy sections and current execution-status wording, so full backend pytest runs track the real prompt contract instead of the removed `<tool_protocol>` tag.
 - test(frontend-surface-orchestrator): align surface-orchestrator capture/tool-runner suites with the current screenshot handoff contract by updating `get-main-window-visibility` IPC expectations, asserting `hiddenSurface` in preparation payloads, and resetting capture lifecycle state between tests so full frontend Jest runs stay green without changing runtime behavior.
 - fix(frontend-dev-ui-provider-token-badge): attach backend `token-count` payloads to the completed assistant message for the matching turn and prefer provider-reported token usage in dev message badges over local estimation when available, while preserving estimation fallback for user and tool rows; add focused renderer regressions for per-message token-count attachment and provider badge formatting.

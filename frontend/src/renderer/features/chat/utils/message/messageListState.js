@@ -1,5 +1,6 @@
 const MESSAGE_LIST_BOTTOM_STICK_THRESHOLD_PX = 24;
 const CONVERSATION_SWITCH_BOTTOM_OFFSET_PX = 72;
+const AGENT_LOOP_AUTO_SCROLL_MESSAGE_TYPES = new Set(['llm-text', 'tool-call', 'tool-output']);
 
 export function isNearBottom(element) {
   if (!element) {
@@ -31,6 +32,44 @@ export function scrollToConversationSwitchTarget(element, behavior = 'auto') {
     return;
   }
   element.scrollTop = targetTop;
+}
+
+function isAgentLoopAutoScrollEligibleMessage(message) {
+  if (!message || message.sender !== 'assistant') {
+    return false;
+  }
+  return AGENT_LOOP_AUTO_SCROLL_MESSAGE_TYPES.has(message.type || '');
+}
+
+export function shouldAutoScrollForAgentLoopMessageUpdate(previousMessages, nextMessages) {
+  if (!Array.isArray(previousMessages) || !Array.isArray(nextMessages)) {
+    return false;
+  }
+  if (previousMessages.length === 0 || nextMessages.length === 0) {
+    return false;
+  }
+
+  if (nextMessages.length > previousMessages.length) {
+    return nextMessages
+      .slice(previousMessages.length)
+      .some(isAgentLoopAutoScrollEligibleMessage);
+  }
+
+  const previousLastMessage = previousMessages[previousMessages.length - 1] || null;
+  const nextLastMessage = nextMessages[nextMessages.length - 1] || null;
+
+  if (!isAgentLoopAutoScrollEligibleMessage(nextLastMessage)) {
+    return false;
+  }
+
+  if (!previousLastMessage || previousLastMessage.id !== nextLastMessage.id) {
+    return false;
+  }
+
+  return (
+    previousLastMessage.text !== nextLastMessage.text
+    || previousLastMessage.isComplete !== nextLastMessage.isComplete
+  );
 }
 
 export function shouldRenderAssistantActions(message, enableAssistantActions) {
