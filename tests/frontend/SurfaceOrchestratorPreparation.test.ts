@@ -12,6 +12,7 @@ describe('surfaceOrchestrator preparation helper', () => {
       surfaceToken: 7,
       mode: 'interactive',
       correlationId: 'corr-1',
+      hiddenSurface: 'none',
     });
   });
 
@@ -26,6 +27,7 @@ describe('surfaceOrchestrator preparation helper', () => {
       surfaceToken: null,
       mode: 'screenshot',
       correlationId: 'corr-2',
+      hiddenSurface: 'none',
     });
   });
 });

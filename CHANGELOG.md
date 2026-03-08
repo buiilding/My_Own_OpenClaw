@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-surface-orchestrator): align surface-orchestrator capture/tool-runner suites with the current screenshot handoff contract by updating `get-main-window-visibility` IPC expectations, asserting `hiddenSurface` in preparation payloads, and resetting capture lifecycle state between tests so full frontend Jest runs stay green without changing runtime behavior.
 - fix(frontend-dev-ui-provider-token-badge): attach backend `token-count` payloads to the completed assistant message for the matching turn and prefer provider-reported token usage in dev message badges over local estimation when available, while preserving estimation fallback for user and tool rows; add focused renderer regressions for per-message token-count attachment and provider badge formatting.
 - refactor(repo-jscpd): remove new duplicate helper blocks introduced during the grounding and OpenAI Responses cleanup by trimming redundant facade imports and consolidating repeated Responses-param assembly, keeping repo-wide `jscpd` noise limited to the unrelated Anthropic/Gemini provider files already dirty in the workspace.
 - refactor(backend-openai-responses): split the Responses-native runtime into input-shaping and payload/stream helper modules while keeping the provider-facing entry points unchanged, so tool-call replay, final payload parsing, and reasoning event extraction are isolated behind smaller tested helpers.

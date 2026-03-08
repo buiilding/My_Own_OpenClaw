@@ -120,7 +120,7 @@ describe('toolRunnerSurface helpers', () => {
 
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toEqual([
-      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY, {}],
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'chatbox' }],
     ]);
@@ -151,7 +151,7 @@ describe('toolRunnerSurface helpers', () => {
 
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toEqual([
-      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY, {}],
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE, {}],
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'chatbox' }],
@@ -182,14 +182,14 @@ describe('toolRunnerSurface helpers', () => {
 
     await restoreToolExecutionSurface(first);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY, {}],
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE, {}],
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
     ]);
 
     await restoreToolExecutionSurface(second);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY, {}],
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE, {}],
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'chatbox' }],
