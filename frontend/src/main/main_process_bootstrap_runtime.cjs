@@ -13,6 +13,7 @@ function createWindowBootstrapRuntime(deps) {
       enableDebugToolScreenshot: deps.enableDebugToolScreenshot,
       initializeIpc: deps.initializeIpc,
       applyResponseOverlayPhase: state.applyResponseOverlayPhase,
+      setAgentLoopStopShortcutEnabled: deps.setAgentLoopStopShortcutEnabled,
       prepareOverlayQueryCaptureFocus: deps.prepareOverlayQueryCaptureFocus,
       initializeWakewordBridge: deps.initializeWakewordBridge,
       showChatWindow: deps.showChatWindow,

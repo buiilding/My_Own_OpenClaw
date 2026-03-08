@@ -94,6 +94,7 @@ function createMainWindow({
   enableDebugToolScreenshot = false,
   initializeIpc,
   applyResponseOverlayPhase,
+  setAgentLoopStopShortcutEnabled,
   prepareOverlayQueryCaptureFocus,
   initializeWakewordBridge,
   showChatWindow,
@@ -143,6 +144,7 @@ function createMainWindow({
   initializeIpc(mainWindow, {
     applyResponseOverlayPhase,
     onBeforeOverlayQueryCapture: prepareOverlayQueryCaptureFocus,
+    setAgentLoopStopShortcutEnabled,
     isPackaged: app.isPackaged,
     getWindows,
   });

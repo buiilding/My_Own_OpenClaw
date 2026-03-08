@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-global-stop-shortcut): register a main-process global `Esc` shortcut only while the agent loop is active, route it through the existing `stop-query` websocket path, and seed the current conversation ref as soon as a query is sent so stop works even before the first backend chunk arrives; added focused runtime + IPC lifecycle regressions for dynamic shortcut enable/disable and composition-layer option pass-through.
 - fix(frontend-dashboard-stop-shortcut): switch the dashboard/chat stop shortcut to `Esc` so active agent loops can be cancelled from the keyboard with the same stop path as the stop button, and consume the event before other dashboard `Escape` listeners run.
 - fix(frontend-dashboard-autoscroll): limit dashboard auto-follow to live agent-loop assistant/tool progression so tool calls, tool outputs, and assistant streaming/final replies keep the dashboard pinned only while the user remains at the bottom, while manual upward scrolling disables follow until the user scrolls back down.
 - test(backend-prompts): align `test_prompt_manager` with the current repo prompt structure by asserting the active tool-policy sections and current execution-status wording, so full backend pytest runs track the real prompt contract instead of the removed `<tool_protocol>` tag.

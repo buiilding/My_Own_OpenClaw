@@ -18,6 +18,7 @@ const {
   registerRendererWindow,
   sendAutomatedQuery,
   sendMessageToBackend,
+  triggerStopQueryFromMain,
 } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
 const { initializeLocalBackendBridge, stopLocalBackend } = require('./local_backend_bridge.cjs');
@@ -76,6 +77,7 @@ const {
 const { createResponseOverlayPhaseEnum } = require('./ipc/ipc_overlay_phase_contract.cjs');
 const { configureGpuRuntime } = require('./gpu_runtime.cjs');
 const { isVmModeEnabled, isVmWorkerModeEnabled } = require('./runtime_mode.cjs');
+const { initializeAgentStopShortcutRuntime } = require('./agent_stop_shortcut_runtime.cjs');
 let windowManager = null;
 try {
   ({ windowManager } = require('node-window-manager'));
@@ -115,6 +117,14 @@ const VM_MODE_ENABLED = isVmModeEnabled(process.env);
 const VM_WORKER_MODE_ENABLED = isVmWorkerModeEnabled(process.env);
 const RESPONSE_WINDOW_DEBUG_VIEW = 'tool-ghost-debug';
 let vmWorkerRuntime = null;
+const agentStopShortcutRuntime = initializeAgentStopShortcutRuntime({
+  globalShortcut,
+  accelerator: 'Escape',
+  onStop: () => {
+    triggerStopQueryFromMain();
+  },
+  warn: console.warn,
+});
 const externalFocusTracker = createExternalFocusTracker({
   getPlatform: () => process.platform,
   windowManager,
@@ -336,6 +346,7 @@ const {
   enableOsToolGhostDebug: ENABLE_OS_TOOL_GHOST_DEBUG,
   responseWindowDebugView: RESPONSE_WINDOW_DEBUG_VIEW,
   initializeIpc,
+  setAgentLoopStopShortcutEnabled: agentStopShortcutRuntime.setEnabled,
   initializeWakewordBridge,
   initializeLocalBackendBridge,
   initializeMainProcessIpc,

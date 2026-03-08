@@ -35,6 +35,7 @@ describe('main_process_bootstrap_runtime', () => {
         enableOsToolGhostDebug: false,
         responseWindowDebugView: 'tool-ghost-debug',
         initializeIpc: jest.fn(),
+        setAgentLoopStopShortcutEnabled: jest.fn(),
         initializeWakewordBridge: jest.fn(),
         initializeLocalBackendBridge: jest.fn(),
         initializeMainProcessIpc: jest.fn(),
@@ -90,6 +91,7 @@ describe('main_process_bootstrap_runtime', () => {
 
     expect(deps.createMainWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
+      setAgentLoopStopShortcutEnabled: deps.setAgentLoopStopShortcutEnabled,
     }));
     expect(state.windows.mainWindow).toEqual({ id: 'main-window' });
   });
