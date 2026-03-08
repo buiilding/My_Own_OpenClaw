@@ -357,7 +357,7 @@ def test_system_use_sidecar_contract_stays_in_sync_with_backend_unified_schema()
     parameters = declaration["function"]["parameters"]
     tool_enum = parameters["properties"]["tool"]["enum"]
 
-    assert parameters["required"] == ["tool"]
+    assert parameters["required"] == ["tool", "explanation"]
     assert set(tool_enum) == SYSTEM_USE_SUBTOOLS
 
 

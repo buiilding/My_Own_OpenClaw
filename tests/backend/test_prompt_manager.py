@@ -154,22 +154,18 @@ def test_get_system_prompt_global_accessor(tmp_path, monkeypatch):
     assert get_system_prompt() == "global TestOS"
 
 
-def test_repo_system_prompt_keeps_tool_rules_out_of_global_prompt():
+def test_repo_system_prompt_includes_tool_strategy_rules():
     prompt_file = (
         Path(__file__).resolve().parents[2]
         / "backend/src/llm/prompts/system_prompt.txt"
     )
     content = prompt_file.read_text(encoding="utf-8")
 
-    assert "<tool_schema_guidelines>" not in content
-    assert "<tool_chaining_guidelines>" not in content
-    assert "KEYBINDS > CLICKS" not in content
-    assert "exact tool format" not in content
-    assert "<computer_interaction_behavior>" in content
-    assert "<interaction_personality>" in content
-    assert "obsessed with making sure text input bars are truly in focus" in content
-    assert "input bar is in focus when it is visually highlighted or its placeholder text disappears" in content
-    assert "target text bar should look different from the previous image after focusing" in content
-    assert "If typing does not show expected text in the target field, treat that as not focused" in content
-    assert "beware of the mouse position shown on that image" in content
-    assert "Do not treat execution status alone as UI success" in content
+    assert "<tool_protocol>" in content
+    assert "<computer_use_rules>" in content
+    assert "<system_use_rules>" in content
+    assert "<browser_rules>" in content
+    assert "Prefer keyboard shortcuts and app-native commands over mouse actions" in content
+    assert "Do not treat execution status alone as success" in content
+    assert "run_in_background=true" in content
+    assert "Snapshot pagination contract" in content
