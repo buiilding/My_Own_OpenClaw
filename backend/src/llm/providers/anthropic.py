@@ -3,6 +3,9 @@ from typing import Any, Dict
 
 from backend.src.llm.models.models_config import resolve_provider_thinking_preference
 from backend.src.llm.providers.online import OnlineLLMProvider
+from backend.src.llm.providers.provider_native_reasoning import (
+    extract_anthropic_thinking_content,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +19,9 @@ class AnthropicProvider(OnlineLLMProvider):
     provider_label = "Anthropic"
     model_prefix = "anthropic"
     stream_includes_thinking = True
+
+    def _extract_thinking_content(self, delta: Any) -> str | None:
+        return extract_anthropic_thinking_content(delta)
 
     def _apply_provider_request_params(
         self,

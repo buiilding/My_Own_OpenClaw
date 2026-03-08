@@ -48,3 +48,16 @@ def test_anthropic_provider_keeps_existing_thinking_payload_when_model_is_unknow
     )
 
     assert updated.get("thinking") == {"type": "enabled", "budget_tokens": 1000}
+
+
+def test_anthropic_provider_extracts_provider_native_thinking_blocks():
+    provider = AnthropicProvider(api_key="test-key")
+
+    delta = {
+        "content": [
+            {"type": "text", "text": "visible assistant text"},
+            {"type": "thinking_delta", "text": "provider-native thought"},
+        ]
+    }
+
+    assert provider._extract_thinking_content(delta) == "provider-native thought"
