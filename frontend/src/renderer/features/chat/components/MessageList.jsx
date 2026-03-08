@@ -38,6 +38,7 @@ function MessageList({
   } = useMessageListAutoScroll({
     messages,
     conversationRef,
+    awaitingDotTargetMessageId,
     enableAgentLoopAutoScroll,
   });
 
