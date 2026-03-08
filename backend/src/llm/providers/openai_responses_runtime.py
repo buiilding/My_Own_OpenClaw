@@ -18,6 +18,14 @@ _INVALID_OPENAI_RESPONSE = "Invalid response from OpenAI"
 _FUNCTION_CALL_ARGUMENTS_PREVIEW_CHARS = 4000
 
 
+def _normalize_openai_stream_event_type(event: Any) -> str:
+    raw_type = get_value(event, "type")
+    if raw_type is None:
+        return ""
+    value = getattr(raw_type, "value", raw_type)
+    return str(value)
+
+
 def _normalize_message_content_for_input(content: Any) -> Any:
     if isinstance(content, str):
         return content
@@ -327,7 +335,7 @@ async def stream_openai_responses_events(
     final_response_payload: Optional[NormalizedLLMResponse] = None
 
     async for event in stream:
-        event_type = str(get_value(event, "type") or "")
+        event_type = _normalize_openai_stream_event_type(event)
         if event_type in {
             "response.reasoning_summary_text.delta",
             "response.reasoning_text.delta",
