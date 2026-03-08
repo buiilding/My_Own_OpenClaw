@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-dashboard-stop-shortcut): switch the dashboard/chat stop shortcut to `Esc` so active agent loops can be cancelled from the keyboard with the same stop path as the stop button, and consume the event before other dashboard `Escape` listeners run.
 - fix(frontend-dashboard-autoscroll): limit dashboard auto-follow to live agent-loop assistant/tool progression so tool calls, tool outputs, and assistant streaming/final replies keep the dashboard pinned only while the user remains at the bottom, while manual upward scrolling disables follow until the user scrolls back down.
 - test(backend-prompts): align `test_prompt_manager` with the current repo prompt structure by asserting the active tool-policy sections and current execution-status wording, so full backend pytest runs track the real prompt contract instead of the removed `<tool_protocol>` tag.
 - test(frontend-surface-orchestrator): align surface-orchestrator capture/tool-runner suites with the current screenshot handoff contract by updating `get-main-window-visibility` IPC expectations, asserting `hiddenSurface` in preparation payloads, and resetting capture lifecycle state between tests so full frontend Jest runs stay green without changing runtime behavior.

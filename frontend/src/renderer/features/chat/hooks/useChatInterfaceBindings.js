@@ -44,6 +44,10 @@ export function useChatInterfaceStopShortcut(canStop, handleStopQuery) {
         return;
       }
       event.preventDefault();
+      event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === 'function') {
+        event.stopImmediatePropagation();
+      }
       handleStopQuery();
     };
 
