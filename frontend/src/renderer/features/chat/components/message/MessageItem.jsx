@@ -16,6 +16,7 @@ import {
 
 const MessageItem = memo(function MessageItem({
   message,
+  conversationToolSchemas,
   enableAssistantActions,
   enableUserActions,
   disableAssistantActions,
@@ -61,13 +62,17 @@ const MessageItem = memo(function MessageItem({
           onEdit={onStartUserEdit}
         />
       ) : null}
-      <MessageTransparencySections message={message} />
+      <MessageTransparencySections
+        message={message}
+        conversationToolSchemas={conversationToolSchemas}
+      />
     </div>
   );
 });
 
 MessageItem.propTypes = {
   message: messageShapePropType.isRequired,
+  conversationToolSchemas: PropTypes.any,
   enableAssistantActions: PropTypes.bool,
   enableUserActions: PropTypes.bool,
   disableAssistantActions: PropTypes.bool,

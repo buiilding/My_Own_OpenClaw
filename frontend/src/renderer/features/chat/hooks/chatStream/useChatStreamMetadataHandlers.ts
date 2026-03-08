@@ -36,12 +36,6 @@ type UpdateLastMessageBySender = (
   conversationRef?: string | null,
 ) => void;
 
-type UpdateFirstMessageBySender = (
-  sender: ChatMessage['sender'],
-  updates: Partial<ChatMessage>,
-  conversationRef?: string | null,
-) => void;
-
 type UpdateLastAssistantLlmTextMessage = (
   updates: Partial<ChatMessage>,
   turnRef?: string,
@@ -52,14 +46,12 @@ export function useChatStreamMetadataHandlers({
   resolveTargetConversationRef,
   shouldIgnoreForStaleTurn,
   updateLastMessageBySender,
-  updateFirstMessageBySender,
   updateLastAssistantLlmTextMessage,
   recordTrackingEvent,
 }: {
   resolveTargetConversationRef: ResolveTargetConversationRef;
   shouldIgnoreForStaleTurn: ShouldIgnoreForStaleTurn;
   updateLastMessageBySender: UpdateLastMessageBySender;
-  updateFirstMessageBySender: UpdateFirstMessageBySender;
   updateLastAssistantLlmTextMessage: UpdateLastAssistantLlmTextMessage;
   recordTrackingEvent: RecordTrackingEvent;
 }) {
@@ -116,15 +108,15 @@ export function useChatStreamMetadataHandlers({
     if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
-    updateFirstMessageBySender('user', {
+    updateLastMessageBySender('user', {
       toolSchemas: event.payload?.tool_schemas,
-    }, conversationRef);
+    }, event.turn_ref || undefined, conversationRef);
     recordTrackingEvent('tool-schemas', event.turn_ref, {}, conversationRef);
   }, [
     recordTrackingEvent,
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
-    updateFirstMessageBySender,
+    updateLastMessageBySender,
   ]);
 
   return {

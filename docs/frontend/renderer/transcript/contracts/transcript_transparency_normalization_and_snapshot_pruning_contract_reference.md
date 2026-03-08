@@ -72,6 +72,7 @@ Result:
 
 - `transparency` is omitted entirely when normalization returns `null`
 - empty/transient transparency snapshots do not pollute transcript storage
+- conversation-level tool-schema UI is derived at render time from the latest canonical message transparency; transcript normalization remains message-scoped and does not introduce a separate conversation snapshot field
 
 ## Test-Locked Invariants
 

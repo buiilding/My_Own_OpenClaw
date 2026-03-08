@@ -103,10 +103,10 @@ This separation keeps default view aligned with model-facing call while preservi
 
 ## Transparency Section Assembly Contract
 
-`buildTransparencySectionConfigs(message)` appends sections in fixed order:
+`buildTransparencySectionConfigs(message, options?)` appends sections in fixed order:
 
 1. `system-prompt`
-2. `tool-schemas` (only for canonical schema shape)
+2. `tool-schemas` (for canonical schema shape on the message itself, or from conversation-level tool-schema transparency when rendering later user rows)
 3. `user-message-full`
 
 Canonical tool-schema guard requires each entry:
@@ -117,6 +117,12 @@ Canonical tool-schema guard requires each entry:
 - object `function.parameters`
 
 `fullUserMessage.metadata` is copied (`{...metadata}`) to avoid caller-side mutation through section objects.
+
+Conversation-level behavior:
+
+- `MessageList` derives the latest canonical tool-schema payload across the active conversation
+- later user rows can render that conversation-level tool-schema transparency even when the schema event was attached to an earlier turn
+- assistant rows do not inherit conversation-level tool-schema sections
 
 ## Transparency Section Rendering Rules
 
