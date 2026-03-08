@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-openai-responses): split the Responses-native runtime into input-shaping and payload/stream helper modules while keeping the provider-facing entry points unchanged, so tool-call replay, final payload parsing, and reasoning event extraction are isolated behind smaller tested helpers.
 - refactor(backend-computer-grounding): extract shared source/destination grounding builders and validators for `mouse_control`/`scroll_control`, split generic source normalization from mouse drag-destination preparation behind a thin `preparation_helper` facade, and add payload-level parity coverage proving backend-prepared grounded tool calls validate against the sidecar runtime schemas.
 - refactor(computer-use): remove `scroll` from `mouse_control` across backend schemas, unified `computer_use`, and sidecar execution so scrolling only flows through `scroll_control`; updated focused backend/sidecar tests and computer-tool docs while intentionally leaving the system prompt untouched.
 - fix(backend-openai-responses-input): normalize assistant tool-call history in both internal and OpenAI-shaped forms before building Responses API `function_call` items so post-tool follow-up turns do not send empty `input[*].name` fields; added focused backend regression coverage for normalized assistant tool-call replay after tool execution.
