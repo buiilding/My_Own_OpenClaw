@@ -341,6 +341,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
             thinkingStatus={thinkingStatus}
             thinkingSourceEventType={thinkingSourceEventType}
             awaitingDotTargetMessageId={awaitingDotTargetMessageId}
+            enableAgentLoopAutoScroll={composerBusy}
             enableAssistantActions
             enableUserActions
             disableAssistantActions={isSending || canStop}

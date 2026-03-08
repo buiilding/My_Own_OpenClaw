@@ -5,6 +5,7 @@ import {
 } from '@testing-library/react';
 
 import MessageList from '../../frontend/src/renderer/features/chat/components/MessageList';
+import { shouldAutoScrollForAgentLoopMessageUpdate } from '../../frontend/src/renderer/features/chat/utils/message/messageListState';
 
 function applyScrollMetrics(element, { scrollHeight, clientHeight, scrollTop }) {
   Object.defineProperty(element, 'scrollHeight', {
@@ -46,6 +47,7 @@ describe('MessageList auto-scroll behavior', () => {
   test('does not auto-scroll when user has scrolled away from bottom', () => {
     const { container, rerender } = render(
       <MessageList
+        enableAgentLoopAutoScroll
         messages={[
           { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
           { id: 'assistant-1', text: 'working...', sender: 'assistant', type: 'llm-text' },
@@ -66,6 +68,7 @@ describe('MessageList auto-scroll behavior', () => {
     const scrollToCallsBeforeUpdate = scrollTo.mock.calls.length;
     rerender(
       <MessageList
+        enableAgentLoopAutoScroll
         messages={[
           { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
           { id: 'assistant-1', text: 'working... more output', sender: 'assistant', type: 'llm-text' },
@@ -80,6 +83,7 @@ describe('MessageList auto-scroll behavior', () => {
   test('keeps auto-scroll when user remains near bottom', () => {
     const { container, rerender } = render(
       <MessageList
+        enableAgentLoopAutoScroll
         messages={[
           { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
           { id: 'assistant-1', text: 'working...', sender: 'assistant', type: 'llm-text' },
@@ -100,6 +104,7 @@ describe('MessageList auto-scroll behavior', () => {
     const scrollToCallsBeforeUpdate = scrollTo.mock.calls.length;
     rerender(
       <MessageList
+        enableAgentLoopAutoScroll
         messages={[
           { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
           { id: 'assistant-1', text: 'working... more output', sender: 'assistant', type: 'llm-text' },
@@ -151,5 +156,74 @@ describe('MessageList auto-scroll behavior', () => {
     expect(scrollToCallsAfterSwitch.every(([options]) => options?.behavior === 'auto')).toBe(true);
     expect(scrollToCallsAfterSwitch.some(([options]) => options?.top === 728)).toBe(true);
     expect(scrollIntoView).toHaveBeenCalledTimes(scrollIntoViewCallsBeforeSwitch);
+  });
+
+  test('does not auto-scroll for user-only message appends during an active loop', () => {
+    const { container, rerender } = render(
+      <MessageList
+        enableAgentLoopAutoScroll
+        messages={[
+          { id: 'assistant-1', text: 'done', sender: 'assistant', type: 'llm-text' },
+        ]}
+      />,
+    );
+
+    const list = container.querySelector('.message-list');
+    expect(list).toBeTruthy();
+    applyScrollMetrics(list, {
+      scrollHeight: 1200,
+      clientHeight: 400,
+      scrollTop: 776,
+    });
+    fireEvent.scroll(list);
+
+    const scrollToCallsBeforeUpdate = scrollTo.mock.calls.length;
+    rerender(
+      <MessageList
+        enableAgentLoopAutoScroll
+        messages={[
+          { id: 'assistant-1', text: 'done', sender: 'assistant', type: 'llm-text' },
+          { id: 'user-2', text: 'follow-up', sender: 'user', type: 'user' },
+        ]}
+      />,
+    );
+
+    expect(scrollTo).toHaveBeenCalledTimes(scrollToCallsBeforeUpdate);
+  });
+});
+
+describe('shouldAutoScrollForAgentLoopMessageUpdate', () => {
+  test('returns true for appended tool rows', () => {
+    expect(shouldAutoScrollForAgentLoopMessageUpdate(
+      [{ id: 'user-1', text: 'hello', sender: 'user', type: 'user' }],
+      [
+        { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
+        { id: 'tool-call-1', text: '{"name":"tool"}', sender: 'assistant', type: 'tool-call' },
+      ],
+    )).toBe(true);
+    expect(shouldAutoScrollForAgentLoopMessageUpdate(
+      [{ id: 'tool-call-1', text: '{"name":"tool"}', sender: 'assistant', type: 'tool-call' }],
+      [
+        { id: 'tool-call-1', text: '{"name":"tool"}', sender: 'assistant', type: 'tool-call' },
+        { id: 'tool-output-1', text: '{"ok":true}', sender: 'assistant', type: 'tool-output' },
+      ],
+    )).toBe(true);
+  });
+
+  test('returns true for streaming assistant text updates', () => {
+    expect(shouldAutoScrollForAgentLoopMessageUpdate(
+      [{ id: 'assistant-1', text: 'hel', sender: 'assistant', type: 'llm-text', isComplete: false }],
+      [{ id: 'assistant-1', text: 'hello', sender: 'assistant', type: 'llm-text', isComplete: false }],
+    )).toBe(true);
+  });
+
+  test('returns false for non-agent-loop message changes', () => {
+    expect(shouldAutoScrollForAgentLoopMessageUpdate(
+      [{ id: 'assistant-1', text: 'done', sender: 'assistant', type: 'llm-text' }],
+      [
+        { id: 'assistant-1', text: 'done', sender: 'assistant', type: 'llm-text' },
+        { id: 'user-2', text: 'follow-up', sender: 'user', type: 'user' },
+      ],
+    )).toBe(false);
   });
 });
