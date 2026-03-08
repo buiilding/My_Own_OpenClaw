@@ -31,9 +31,9 @@ title: "Tool Preparation and Coordinate Resolution Reference"
 Responsibilities:
 
 - assign stable execution identifiers (`request_id` for single, `bundle_id` for bundle)
-- resolve OCR/prediction coordinates for `mouse_control` when needed
+- resolve OCR/prediction coordinates for grounded desktop tools (`mouse_control`, `scroll_control`) when needed
 - normalize all grounding coordinates from screenshot space to desktop space
-- rewrite resolved mouse calls to manual `x/y` parameters
+- rewrite resolved grounded tool calls to manual `x/y` parameters
 - attach transparency/diagnostic metadata
 - register resolved single-call payloads in session runtime for later stale-screen checks
 
@@ -55,7 +55,7 @@ Non-responsibilities:
 
 `tool_call_needs_coordinate_resolution(...)` is true only when:
 
-- tool name is `mouse_control`
+- tool name is `mouse_control` or `scroll_control`
 - `find_coordinates_by` is `ocr` or `prediction`
 
 `manual` mode bypasses OCR/vision resolution.

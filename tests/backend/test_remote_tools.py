@@ -56,7 +56,7 @@ async def test_remote_tool_generates_request_id_when_missing(monkeypatch):
     assert result.request_id == "fixed-uuid"
 
 
-def test_scroll_control_requires_manual_coordinates():
+def test_scroll_control_requires_manual_coordinates_when_find_coordinates_by_is_manual():
     with pytest.raises(ValidationError):
         ScrollControlArgs(action="scroll_down")
 
@@ -65,12 +65,42 @@ def test_scroll_control_requires_manual_coordinates():
     assert args.y == 20
 
 
+def test_scroll_control_accepts_ocr_grounding():
+    args = ScrollControlArgs(
+        action="scroll_down",
+        find_coordinates_by="ocr",
+        ocr_text="Sidebar",
+    )
+    assert args.find_coordinates_by == "ocr"
+    assert args.ocr_text == "Sidebar"
+
+
+def test_scroll_control_accepts_prediction_grounding():
+    args = ScrollControlArgs(
+        action="scroll_down",
+        find_coordinates_by="prediction",
+        source_description="the left sidebar list area",
+    )
+    assert args.find_coordinates_by == "prediction"
+    assert args.source_description == "the left sidebar list area"
+
+
 def test_scroll_control_requires_direction_for_scroll_action():
     with pytest.raises(ValidationError):
         ScrollControlArgs(action="scroll", x=10, y=20)
 
     args = ScrollControlArgs(action="scroll", x=10, y=20, direction="down")
     assert args.direction == "down"
+
+
+def test_scroll_control_requires_ocr_target_when_using_ocr():
+    with pytest.raises(ValidationError):
+        ScrollControlArgs(action="scroll_down", find_coordinates_by="ocr")
+
+
+def test_scroll_control_requires_prediction_description_when_using_prediction():
+    with pytest.raises(ValidationError):
+        ScrollControlArgs(action="scroll_down", find_coordinates_by="prediction")
 
 
 def test_remote_tool_result_to_dict():

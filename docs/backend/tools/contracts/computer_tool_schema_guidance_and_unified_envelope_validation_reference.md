@@ -57,7 +57,12 @@ Schema guidance also encodes execution-policy hints in field descriptions:
 
 `ScrollControlArgs`:
 
-- requires manual `x`/`y`
+- `find_coordinates_by='manual'`:
+  - requires `x` and `y`
+- `find_coordinates_by='ocr'`:
+  - requires `ocr_text` or `candidate_id`
+- `find_coordinates_by='prediction'`:
+  - requires `source_description`
 - `action='scroll'` requires `direction`
 - `clicks` default remains `5`
 

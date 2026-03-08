@@ -2364,6 +2364,7 @@ Includes the last 300 commits on `main`.
 - d995fe7 docs(adr): add ADR for browser extension auto-attach
 
 ### Other
+- unreleased feat(computer-use): add OCR/prediction grounding to `scroll_control` in backend preparation while keeping sidecar scroll execution on resolved manual `x/y`
 - unreleased fix(frontend-capture): move screenshot wait and Linux settle into main-process prep IPC
 - cd318faa debug(frontend): split screenshot capture timing into hide IPC and settle substeps
 - bdada3c chore(frontend-test): suppress expected console noise in frontend suites

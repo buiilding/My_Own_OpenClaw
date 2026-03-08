@@ -73,6 +73,24 @@ def _build_mouse_call(
     return tool_call, ResolvedToolCall.from_parsed_call(tool_call)
 
 
+def _build_scroll_call(
+    *,
+    method: CoordinateFindingMethod,
+    action: str = "scroll_down",
+    **extra_parameters,
+) -> tuple[ParsedToolCall, ResolvedToolCall]:
+    tool_call = ParsedToolCall(
+        tool_name="scroll_control",
+        parameters={
+            "action": action,
+            "find_coordinates_by": method,
+            **extra_parameters,
+        },
+        raw_call="{}",
+    )
+    return tool_call, ResolvedToolCall.from_parsed_call(tool_call)
+
+
 async def _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, context_id: str):
     await resolve_tool_with_coordinates(
         tool_call=tool_call,
@@ -180,6 +198,41 @@ async def test_resolve_tool_with_coordinates_preserves_prediction_description(mo
     assert resolved_call.parameters["source_description"] == "the cheapest shoe listing card"
     assert "find_coordinates_by" not in resolved_call.parameters
     assert resolved_call.metadata["coordinate_method"] == "prediction"
+
+
+@pytest.mark.asyncio
+async def test_resolve_tool_with_coordinates_supports_scroll_control_prediction(monkeypatch):
+    session, screenshot_manager = _create_session_and_manager(
+        screenshot_id="shot-scroll-pred",
+        capture_meta={
+            "screenshot_id": "shot-scroll-pred",
+            "source_w": 1920,
+            "source_h": 1080,
+            "crop_x": 0,
+            "crop_y": 0,
+            "crop_w": 1920,
+            "crop_h": 1080,
+            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
+            "monitor_id": None,
+            "timestamp": 1,
+        },
+    )
+
+    tool_call, resolved_call = _build_scroll_call(
+        method=CoordinateFindingMethod.PREDICTION,
+        source_description="the left sidebar list area",
+        clicks=6,
+    )
+
+    _patch_coordinate_resolution(monkeypatch, 120, 420)
+    await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "scroll-pred-id")
+
+    assert resolved_call.parameters["x"] == 120
+    assert resolved_call.parameters["y"] == 420
+    assert resolved_call.parameters["source_description"] == "the left sidebar list area"
+    assert "find_coordinates_by" not in resolved_call.parameters
+    assert resolved_call.metadata["coordinate_method"] == "prediction"
+    assert resolved_call.metadata["coordinate_contract"]["screenshot_id"] == "shot-scroll-pred"
 
 
 @pytest.mark.asyncio
@@ -506,6 +559,50 @@ def test_normalize_manual_coordinates_scales_to_desktop_space():
     contract = resolved_call.metadata["coordinate_contract"]
     assert contract["source_coordinates"] == {"x": 1000, "y": 600}
     assert contract["capture_crop"] == {"x": 0, "y": 0, "width": 1920, "height": 1080}
+    assert contract["normalization_status"] == "scaled_to_desktop"
+
+
+def test_normalize_manual_coordinates_scales_scroll_control_to_desktop_space():
+    session, _ = _create_session_and_manager(
+        screenshot_id="shot-scroll-manual-scale",
+        capture_meta={
+            "screenshot_id": "shot-scroll-manual-scale",
+            "source_w": 3840,
+            "source_h": 2160,
+            "crop_x": 0,
+            "crop_y": 0,
+            "crop_w": 1920,
+            "crop_h": 1080,
+            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
+            "monitor_id": None,
+            "timestamp": 1,
+        },
+    )
+
+    tool_call = ParsedToolCall(
+        tool_name="scroll_control",
+        parameters={
+            "action": "scroll_down",
+            "x": 1000,
+            "y": 600,
+            "clicks": 6,
+        },
+        raw_call="{}",
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
+
+    normalize_manual_coordinates(
+        resolved_call=resolved_call,
+        session=session,
+        context_id="scroll-manual-scale",
+    )
+
+    assert resolved_call.parameters["x"] == 500
+    assert resolved_call.parameters["y"] == 300
+    assert resolved_call.metadata["coordinate_resolution_screenshot_id"] == "shot-scroll-manual-scale"
+    assert resolved_call.metadata["coordinate_method"] == "manual"
+    contract = resolved_call.metadata["coordinate_contract"]
+    assert contract["source_coordinates"] == {"x": 1000, "y": 600}
     assert contract["normalization_status"] == "scaled_to_desktop"
 
 
