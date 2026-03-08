@@ -7,6 +7,12 @@ from backend.src.agent.tools.preparation.helpers.preparation_helper import (
 from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
+from frontend.src.main.python.tools.schemas import (
+    MouseControlArgs as SidecarMouseControlArgs,
+)
+from frontend.src.main.python.tools.schemas import (
+    ScrollControlArgs as SidecarScrollControlArgs,
+)
 
 
 class _StubScreenshotManager:
@@ -43,7 +49,11 @@ def _patch_coordinate_resolution(monkeypatch, x: int, y: int):
         return x, y
 
     monkeypatch.setattr(
-        "backend.src.agent.tools.preparation.helpers.preparation_helper.resolve_coordinates",
+        "backend.src.agent.tools.preparation.helpers.grounded_source_preparation.resolve_coordinates",
+        _fake_resolve_coordinates,
+    )
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.mouse_drag_destination_preparation.resolve_coordinates",
         _fake_resolve_coordinates,
     )
 
@@ -55,7 +65,11 @@ def _patch_coordinate_resolution_sequence(monkeypatch, coordinates: list[tuple[i
         return next(iterator)
 
     monkeypatch.setattr(
-        "backend.src.agent.tools.preparation.helpers.preparation_helper.resolve_coordinates",
+        "backend.src.agent.tools.preparation.helpers.grounded_source_preparation.resolve_coordinates",
+        _fake_resolve_coordinates,
+    )
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.mouse_drag_destination_preparation.resolve_coordinates",
         _fake_resolve_coordinates,
     )
 
@@ -232,7 +246,93 @@ async def test_resolve_tool_with_coordinates_supports_scroll_control_prediction(
     assert resolved_call.parameters["source_description"] == "the left sidebar list area"
     assert "find_coordinates_by" not in resolved_call.parameters
     assert resolved_call.metadata["coordinate_method"] == "prediction"
-    assert resolved_call.metadata["coordinate_contract"]["screenshot_id"] == "shot-scroll-pred"
+
+
+@pytest.mark.asyncio
+async def test_resolved_mouse_drag_payload_is_valid_sidecar_input(monkeypatch):
+    session, screenshot_manager = _create_session_and_manager(
+        screenshot_id="shot-drag-parity",
+        capture_meta={
+            "screenshot_id": "shot-drag-parity",
+            "source_w": 1920,
+            "source_h": 1080,
+            "crop_x": 0,
+            "crop_y": 0,
+            "crop_w": 1920,
+            "crop_h": 1080,
+            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
+            "monitor_id": None,
+            "timestamp": 1,
+        },
+    )
+
+    tool_call, resolved_call = _build_mouse_call(
+        method=CoordinateFindingMethod.PREDICTION,
+        action="drag",
+        source_description="the black circle in the upper-left area of the slide",
+        drag_to_find_coordinates_by=CoordinateFindingMethod.PREDICTION,
+        destination_description="the black rounded square in the lower-right area of the slide",
+    )
+
+    _patch_coordinate_resolution_sequence(monkeypatch, [(837, 515), (1381, 751)])
+    await _resolve_with_stubs(
+        tool_call,
+        resolved_call,
+        session,
+        screenshot_manager,
+        "drag-sidecar-parity",
+    )
+
+    sidecar_args = SidecarMouseControlArgs.model_validate(resolved_call.parameters)
+    assert sidecar_args.action == "drag"
+    assert sidecar_args.x == 837
+    assert sidecar_args.y == 515
+    assert sidecar_args.drag_to_x == 1381
+    assert sidecar_args.drag_to_y == 751
+
+
+@pytest.mark.asyncio
+async def test_resolved_scroll_prediction_payload_is_valid_sidecar_input(monkeypatch):
+    session, screenshot_manager = _create_session_and_manager(
+        screenshot_id="shot-scroll-parity",
+        capture_meta={
+            "screenshot_id": "shot-scroll-parity",
+            "source_w": 1920,
+            "source_h": 1080,
+            "crop_x": 0,
+            "crop_y": 0,
+            "crop_w": 1920,
+            "crop_h": 1080,
+            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
+            "monitor_id": None,
+            "timestamp": 1,
+        },
+    )
+
+    tool_call, resolved_call = _build_scroll_call(
+        method=CoordinateFindingMethod.PREDICTION,
+        action="scroll_down",
+        source_description="the left sidebar list area",
+        clicks=6,
+        wait=0.4,
+    )
+
+    _patch_coordinate_resolution(monkeypatch, 320, 480)
+    await _resolve_with_stubs(
+        tool_call,
+        resolved_call,
+        session,
+        screenshot_manager,
+        "scroll-sidecar-parity",
+    )
+
+    sidecar_args = SidecarScrollControlArgs.model_validate(resolved_call.parameters)
+    assert sidecar_args.action == "scroll_down"
+    assert sidecar_args.x == 320
+    assert sidecar_args.y == 480
+    assert sidecar_args.clicks == 6
+    assert sidecar_args.wait == 0.4
+    assert resolved_call.metadata["coordinate_contract"]["screenshot_id"] == "shot-scroll-parity"
 
 
 @pytest.mark.asyncio

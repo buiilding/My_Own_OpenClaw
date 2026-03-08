@@ -4,90 +4,12 @@ from __future__ import annotations
 
 from copy import deepcopy
 from typing import Any, Dict
-
-
-def _require_manual_xy_for_coordinates() -> Dict[str, Any]:
-    return {
-        "if": {
-            "properties": {
-                "find_coordinates_by": {"const": "manual"}
-            },
-            "required": ["find_coordinates_by"],
-        },
-        "then": {"required": ["x", "y"]},
-    }
-
-
-def _require_ocr_text_or_candidate_id() -> Dict[str, Any]:
-    return {
-        "if": {
-            "properties": {"find_coordinates_by": {"const": "ocr"}},
-            "required": ["find_coordinates_by"],
-        },
-        "then": {
-            "anyOf": [
-                {"required": ["ocr_text"]},
-                {"required": ["candidate_id"]},
-            ]
-        },
-    }
-
-
-def _require_prediction_description() -> Dict[str, Any]:
-    return {
-        "if": {
-            "properties": {
-                "find_coordinates_by": {"const": "prediction"}
-            },
-            "required": ["find_coordinates_by"],
-        },
-        "then": {"required": ["source_description"]},
-    }
-
-
-def _require_drag_destination_manual_xy() -> Dict[str, Any]:
-    return {
-        "if": {
-            "properties": {
-                "action": {"const": "drag"},
-                "drag_to_find_coordinates_by": {"const": "manual"},
-            },
-            "required": ["action", "drag_to_find_coordinates_by"],
-        },
-        "then": {"required": ["drag_to_x", "drag_to_y"]},
-    }
-
-
-def _require_drag_destination_ocr_target() -> Dict[str, Any]:
-    return {
-        "if": {
-            "properties": {
-                "action": {"const": "drag"},
-                "drag_to_find_coordinates_by": {"const": "ocr"},
-            },
-            "required": ["action", "drag_to_find_coordinates_by"],
-        },
-        "then": {
-            "anyOf": [
-                {"required": ["drag_to_ocr_text"]},
-                {"required": ["drag_to_candidate_id"]},
-            ]
-        },
-    }
-
-
-def _require_drag_destination_prediction_description() -> Dict[str, Any]:
-    return {
-        "if": {
-            "properties": {
-                "action": {"const": "drag"},
-                "drag_to_find_coordinates_by": {"const": "prediction"},
-            },
-            "required": ["action", "drag_to_find_coordinates_by"],
-        },
-        "then": {"required": ["destination_description"]},
-    }
-
+from backend.src.tools.computer.grounding_contract import (
+    build_drag_destination_json_properties,
+    build_drag_destination_json_rules,
+    build_source_grounding_json_properties,
+    build_source_grounding_json_rules,
+)
 
 def _post_action_wait_property() -> Dict[str, Any]:
     return {
@@ -172,84 +94,14 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                         "drag",
                                     ],
                                 },
-                                "find_coordinates_by": {
-                                    "type": "string",
-                                    "description": "Coordinate targeting method.",
-                                    "default": "manual",
-                                    "enum": ["manual", "ocr", "prediction"],
-                                },
-                                "x": {
-                                    "type": "integer",
-                                    "description": (
-                                        "X coordinate in screenshot pixels. Required when "
-                                        "find_coordinates_by='manual'."
-                                    ),
-                                },
-                                "y": {
-                                    "type": "integer",
-                                    "description": (
-                                        "Y coordinate in screenshot pixels. Required when "
-                                        "find_coordinates_by='manual'."
-                                    ),
-                                },
-                                "ocr_text": {
-                                    "type": "string",
-                                    "description": "Visible text target for OCR selection.",
-                                },
-                                "candidate_id": {
-                                    "type": "string",
-                                    "description": "OCR candidate id from an earlier response.",
-                                },
-                                "source_description": {
-                                    "type": "string",
-                                    "description": "Visual source target description for prediction.",
-                                },
-                                "model_name": {
-                                    "type": "string",
-                                    "description": "Optional prediction model override.",
-                                },
+                                **build_source_grounding_json_properties(),
                                 "button": {
                                     "type": "string",
                                     "description": "Mouse button for click actions.",
                                     "default": "left",
                                     "enum": ["left", "right", "middle"],
                                 },
-                                "drag_to_x": {
-                                    "type": "integer",
-                                    "description": (
-                                        "Destination X for drag. Required when action='drag' and "
-                                        "drag_to_find_coordinates_by='manual'."
-                                    ),
-                                },
-                                "drag_to_y": {
-                                    "type": "integer",
-                                    "description": (
-                                        "Destination Y for drag. Required when action='drag' and "
-                                        "drag_to_find_coordinates_by='manual'."
-                                    ),
-                                },
-                                "drag_to_find_coordinates_by": {
-                                    "type": "string",
-                                    "description": "Drag destination targeting method.",
-                                    "default": "manual",
-                                    "enum": ["manual", "ocr", "prediction"],
-                                },
-                                "drag_to_ocr_text": {
-                                    "type": "string",
-                                    "description": "Visible text target for OCR drag destination.",
-                                },
-                                "drag_to_candidate_id": {
-                                    "type": "string",
-                                    "description": "OCR candidate id for drag destination.",
-                                },
-                                "destination_description": {
-                                    "type": "string",
-                                    "description": "Visual drag destination for prediction.",
-                                },
-                                "drag_to_model_name": {
-                                    "type": "string",
-                                    "description": "Optional model override for drag prediction.",
-                                },
+                                **build_drag_destination_json_properties(),
                                 "duration": {
                                     "type": "number",
                                     "description": "Duration in seconds for drag operations.",
@@ -261,12 +113,8 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 },
                             },
                             "allOf": [
-                                _require_manual_xy_for_coordinates(),
-                                _require_ocr_text_or_candidate_id(),
-                                _require_prediction_description(),
-                                _require_drag_destination_manual_xy(),
-                                _require_drag_destination_ocr_target(),
-                                _require_drag_destination_prediction_description(),
+                                *build_source_grounding_json_rules(),
+                                *build_drag_destination_json_rules(),
                             ],
                         },
                         {
@@ -372,38 +220,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                         "scroll_down",
                                     ],
                                 },
-                                "find_coordinates_by": {
-                                    "type": "string",
-                                    "description": "Scroll focus targeting method.",
-                                    "default": "manual",
-                                    "enum": ["manual", "ocr", "prediction"],
-                                },
-                                "x": {
-                                    "type": "integer",
-                                    "description": (
-                                        "Screen X coordinate to move to before scrolling. Required "
-                                        "when find_coordinates_by='manual'."
-                                    ),
-                                },
-                                "y": {
-                                    "type": "integer",
-                                    "description": (
-                                        "Screen Y coordinate to move to before scrolling. Required "
-                                        "when find_coordinates_by='manual'."
-                                    ),
-                                },
-                                "ocr_text": {
-                                    "type": "string",
-                                    "description": "Visible text target for OCR selection.",
-                                },
-                                "candidate_id": {
-                                    "type": "string",
-                                    "description": "OCR candidate id from an earlier response.",
-                                },
-                                "source_description": {
-                                    "type": "string",
-                                    "description": "Visual source target description for prediction.",
-                                },
+                                **build_source_grounding_json_properties(),
                                 "direction": {
                                     "type": "string",
                                     "description": (
@@ -422,9 +239,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 },
                             },
                             "allOf": [
-                                _require_manual_xy_for_coordinates(),
-                                _require_ocr_text_or_candidate_id(),
-                                _require_prediction_description(),
+                                *build_source_grounding_json_rules(),
                                 {
                                     "if": {
                                         "properties": {"action": {"const": "scroll"}},
