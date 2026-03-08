@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(repo-jscpd): remove new duplicate helper blocks introduced during the grounding and OpenAI Responses cleanup by trimming redundant facade imports and consolidating repeated Responses-param assembly, keeping repo-wide `jscpd` noise limited to the unrelated Anthropic/Gemini provider files already dirty in the workspace.
 - refactor(backend-openai-responses): split the Responses-native runtime into input-shaping and payload/stream helper modules while keeping the provider-facing entry points unchanged, so tool-call replay, final payload parsing, and reasoning event extraction are isolated behind smaller tested helpers.
 - refactor(backend-computer-grounding): extract shared source/destination grounding builders and validators for `mouse_control`/`scroll_control`, split generic source normalization from mouse drag-destination preparation behind a thin `preparation_helper` facade, and add payload-level parity coverage proving backend-prepared grounded tool calls validate against the sidecar runtime schemas.
 - refactor(computer-use): remove `scroll` from `mouse_control` across backend schemas, unified `computer_use`, and sidecar execution so scrolling only flows through `scroll_control`; updated focused backend/sidecar tests and computer-tool docs while intentionally leaving the system prompt untouched.

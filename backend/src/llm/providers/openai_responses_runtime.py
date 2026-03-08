@@ -28,16 +28,16 @@ _OUTPUT_TEXT_EVENT_TYPE = "response.output_text.delta"
 _COMPLETED_EVENT_TYPE = "response.completed"
 
 
-async def get_openai_responses_completion(
+def _build_reasoning_responses_params(
     provider: Any,
     *,
     model: str,
     messages: List[LLMMessage],
-    tools: Optional[List[Dict[str, Any]]] = None,
-    tool_choice: Any = None,
-    parallel_tool_calls: Optional[bool] = None,
-) -> NormalizedLLMResponse:
-    params = build_openai_responses_params(
+    tools: Optional[List[Dict[str, Any]]],
+    tool_choice: Any,
+    parallel_tool_calls: Optional[bool],
+) -> Dict[str, Any]:
+    return build_openai_responses_params(
         provider,
         model=model,
         messages=messages,
@@ -45,6 +45,19 @@ async def get_openai_responses_completion(
         tool_choice=tool_choice,
         parallel_tool_calls=parallel_tool_calls,
         include_reasoning=True,
+    )
+
+
+async def get_openai_responses_completion(
+    provider: Any, *, model: str, messages: List[LLMMessage], tools: Optional[List[Dict[str, Any]]] = None, tool_choice: Any = None, parallel_tool_calls: Optional[bool] = None,
+) -> NormalizedLLMResponse:
+    params = _build_reasoning_responses_params(
+        provider=provider,
+        model=model,
+        messages=messages,
+        tools=tools,
+        tool_choice=tool_choice,
+        parallel_tool_calls=parallel_tool_calls,
     )
     response = await litellm.aresponses(**params)
     provider._record_usage_from_payload_container(response)
@@ -91,22 +104,15 @@ def _maybe_extract_final_response_payload(
 
 
 async def stream_openai_responses_events(
-    provider: Any,
-    *,
-    model: str,
-    messages: List[LLMMessage],
-    tools: Optional[List[Dict[str, Any]]] = None,
-    tool_choice: Any = None,
-    parallel_tool_calls: Optional[bool] = None,
+    provider: Any, *, model: str, messages: List[LLMMessage], tools: Optional[List[Dict[str, Any]]] = None, tool_choice: Any = None, parallel_tool_calls: Optional[bool] = None,
 ) -> AsyncGenerator[StreamingEvent, None]:
-    params = build_openai_responses_params(
-        provider,
+    params = _build_reasoning_responses_params(
+        provider=provider,
         model=model,
         messages=messages,
         tools=tools,
         tool_choice=tool_choice,
         parallel_tool_calls=parallel_tool_calls,
-        include_reasoning=True,
     )
     params["stream"] = True
 
