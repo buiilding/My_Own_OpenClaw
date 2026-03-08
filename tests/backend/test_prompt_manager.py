@@ -161,11 +161,12 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     )
     content = prompt_file.read_text(encoding="utf-8")
 
-    assert "<tool_protocol>" in content
+    assert "<tool_selection_policy>" in content
     assert "<computer_use_rules>" in content
     assert "<system_use_rules>" in content
     assert "<browser_rules>" in content
+    assert "<tool_shape_reminders>" in content
     assert "Prefer keyboard shortcuts and app-native commands over mouse actions" in content
-    assert "Do not treat execution status alone as success" in content
+    assert "Do not treat tool execution status alone as success" in content
     assert "run_in_background=true" in content
     assert "Snapshot pagination contract" in content
