@@ -11,6 +11,7 @@ from backend.src.core.events.streaming_events import ChunkEvent, ThinkingEvent
 from backend.src.llm.providers.online import OnlineLLMProvider
 from backend.src.llm.providers.openai import OpenAIProvider
 from backend.src.llm.providers.openai_responses_runtime import (
+    build_openai_responses_input,
     stream_openai_responses_events,
 )
 
@@ -268,3 +269,57 @@ async def test_openai_responses_stream_handles_enum_typed_events(
         "content": "visible",
         "finish_reason": "completed",
     }
+
+
+def test_build_openai_responses_input_accepts_normalized_assistant_tool_calls():
+    messages = [
+        {"role": "system", "content": "You are helpful."},
+        {"role": "user", "content": "Drag the circle into the square."},
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_1",
+                    "type": "function",
+                    "function": {
+                        "name": "mouse_control",
+                        "arguments": "{\"action\":\"drag\",\"x\":100,\"y\":200}",
+                    },
+                }
+            ],
+        },
+        {
+            "role": "tool",
+            "tool_call_id": "call_1",
+            "content": "Dragged successfully.",
+        },
+    ]
+
+    input_items = build_openai_responses_input(messages)
+
+    assert input_items == [
+        {
+            "type": "message",
+            "role": "system",
+            "content": "You are helpful.",
+        },
+        {
+            "type": "message",
+            "role": "user",
+            "content": "Drag the circle into the square.",
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_1",
+            "name": "mouse_control",
+            "arguments": "{\"action\":\"drag\",\"x\":100,\"y\":200}",
+            "status": "completed",
+        },
+        {
+            "type": "function_call_output",
+            "call_id": "call_1",
+            "output": "Dragged successfully.",
+            "status": "completed",
+        },
+    ]
