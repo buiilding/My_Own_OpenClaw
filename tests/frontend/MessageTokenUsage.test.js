@@ -1,6 +1,24 @@
 import { resolveMessageTokenUsageTag } from '../../frontend/src/renderer/features/chat/utils/message/messageTokenUsage';
 
 describe('messageTokenUsage', () => {
+  test('prefers provider-reported token counts when attached to an assistant message', () => {
+    const tag = resolveMessageTokenUsageTag({
+      sender: 'assistant',
+      type: 'llm-text',
+      text: 'final answer',
+      tokenCounts: {
+        visible_output_tokens: 3,
+        thinking_tokens: 2,
+        output_tokens_total: 5,
+        total_tokens: 17,
+        cached_tokens: 12,
+        usage_source: 'provider',
+      },
+    });
+
+    expect(tag).toBe('tokens(provider) out:5 vis:3 think:2 turn:17 cached:12');
+  });
+
   test('uses fullUserMessage content for user text token estimate and reports image estimate separately', () => {
     const tag = resolveMessageTokenUsageTag({
       sender: 'user',

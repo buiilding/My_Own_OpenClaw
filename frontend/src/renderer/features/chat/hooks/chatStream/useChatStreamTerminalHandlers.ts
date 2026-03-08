@@ -11,6 +11,7 @@ import type {
 } from '../../../../types/backendEvents';
 import { resolveErrorText } from '../../utils/chatStream/chatStreamEventUtils';
 import type { ChatStreamThinkingStateDeps } from './chatStreamHandlerTypes';
+import { findLastAssistantLlmTextMessageId } from '../../utils/chatStream/chatStreamMessageUpdates';
 
 type UseChatStreamTerminalHandlersDeps = ChatStreamThinkingStateDeps<
   'token-count' | 'memory-store' | 'error'
@@ -28,6 +29,7 @@ export function useChatStreamTerminalHandlers({
   setThinkingStatus,
 }: UseChatStreamTerminalHandlersDeps) {
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
+  const updateMessage = useChatStore((state) => state.updateMessage);
 
   const handleTokenCount = useCallback((event: TokenCountEvent, conversationRef?: string | null) => {
     const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
@@ -43,9 +45,19 @@ export function useChatStreamTerminalHandlers({
       recordTrackingEvent('streaming-complete', event.turn_ref, { phase: 'complete' }, conversationRef);
     }
     setTokenCounts(event.payload ?? null, conversationRef);
+    const assistantMessageId = findLastAssistantLlmTextMessageId(
+      workspace.messages,
+      event.turn_ref || undefined,
+    );
+    if (assistantMessageId && event.payload) {
+      updateMessage(assistantMessageId, {
+        tokenCounts: event.payload,
+      }, conversationRef);
+    }
     recordTrackingEvent('token-count', event.turn_ref, undefined, conversationRef);
   }, [
     setTokenCounts,
+    updateMessage,
     recordTrackingEvent,
     setIsSending,
     setThinkingSourceEventType,

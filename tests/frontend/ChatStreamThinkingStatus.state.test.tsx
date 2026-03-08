@@ -798,6 +798,53 @@ describe('useChatStream state + stream handling', () => {
     });
   });
 
+  test('attaches provider token counts to the completed assistant message for the same turn', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'assistant-1',
+            text: 'Final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            turnRef: 'turn-provider',
+            sourceEventType: 'streaming-complete',
+            sourceChannel: 'from-backend',
+          },
+        ],
+      });
+
+      emitBackendEvent({
+        type: 'token-count',
+        turn_ref: 'turn-provider',
+        payload: {
+          prompt_tokens: 12,
+          visible_output_tokens: 3,
+          thinking_tokens: 2,
+          output_tokens_total: 5,
+          total_tokens: 17,
+          conversation_tokens: 120,
+          usage_source: 'provider',
+        },
+      });
+    });
+
+    expect(useChatStore.getState().messages[0]).toEqual(expect.objectContaining({
+      tokenCounts: {
+        prompt_tokens: 12,
+        visible_output_tokens: 3,
+        thinking_tokens: 2,
+        output_tokens_total: 5,
+        total_tokens: 17,
+        conversation_tokens: 120,
+        usage_source: 'provider',
+      },
+    }));
+  });
+
   test('ignores stale token-count event when a newer active turn is in progress', () => {
     const { emitBackendEvent } = registerBackendListener();
 

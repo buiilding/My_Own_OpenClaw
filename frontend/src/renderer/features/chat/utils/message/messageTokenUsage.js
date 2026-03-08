@@ -8,6 +8,13 @@ function normalizeText(value) {
   return value.trim();
 }
 
+function normalizeNonNegativeInteger(value) {
+  if (typeof value === 'number' && Number.isInteger(value) && value >= 0) {
+    return value;
+  }
+  return null;
+}
+
 function estimateTextTokens(text) {
   const normalized = normalizeText(text);
   if (!normalized) {
@@ -76,9 +83,64 @@ function resolveToolMessageText(message) {
   return normalizeText(message?.text);
 }
 
+function resolveProviderTokenUsageTag(message) {
+  const tokenCounts = (
+    message?.tokenCounts
+    && typeof message.tokenCounts === 'object'
+    && !Array.isArray(message.tokenCounts)
+  ) ? message.tokenCounts : null;
+  if (!tokenCounts || tokenCounts.usage_source !== 'provider') {
+    return null;
+  }
+
+  const visibleOutputTokens = normalizeNonNegativeInteger(tokenCounts.visible_output_tokens);
+  const thinkingTokens = normalizeNonNegativeInteger(tokenCounts.thinking_tokens);
+  const outputTokensTotal = normalizeNonNegativeInteger(tokenCounts.output_tokens_total);
+  const totalTokens = normalizeNonNegativeInteger(tokenCounts.total_tokens);
+  const cachedTokens = normalizeNonNegativeInteger(tokenCounts.cached_tokens);
+
+  const resolvedOutputTokens = (
+    outputTokensTotal !== null
+      ? outputTokensTotal
+      : (
+        visibleOutputTokens !== null || thinkingTokens !== null
+          ? (visibleOutputTokens || 0) + (thinkingTokens || 0)
+          : null
+      )
+  );
+
+  const parts = [];
+  if (resolvedOutputTokens !== null) {
+    parts.push(`out:${resolvedOutputTokens}`);
+  }
+  if (visibleOutputTokens !== null) {
+    parts.push(`vis:${visibleOutputTokens}`);
+  }
+  if (thinkingTokens !== null && thinkingTokens > 0) {
+    parts.push(`think:${thinkingTokens}`);
+  }
+  if (totalTokens !== null) {
+    parts.push(`turn:${totalTokens}`);
+  }
+  if (cachedTokens !== null && cachedTokens > 0) {
+    parts.push(`cached:${cachedTokens}`);
+  }
+
+  if (parts.length === 0) {
+    return null;
+  }
+
+  return `tokens(provider) ${parts.join(' ')}`;
+}
+
 export function resolveMessageTokenUsageTag(message) {
   if (!message || typeof message !== 'object') {
     return null;
+  }
+
+  const providerTokenUsageTag = resolveProviderTokenUsageTag(message);
+  if (providerTokenUsageTag) {
+    return providerTokenUsageTag;
   }
 
   if (message.sender === 'user') {
@@ -101,4 +163,3 @@ export function resolveMessageTokenUsageTag(message) {
 
   return null;
 }
-

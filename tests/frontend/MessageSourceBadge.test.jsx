@@ -49,6 +49,32 @@ describe('MessageSourceBadge', () => {
     expect(screen.getByText('tool-output API · renderer-tool-runner · tokens~ 1')).toBeInTheDocument();
   });
 
+  test('renders provider-reported token usage when attached to an assistant message', () => {
+    isDevUiEnabled.mockReturnValue(true);
+    render(
+      <MessageSourceBadge
+        message={{
+          sender: 'assistant',
+          type: 'llm-text',
+          sourceEventType: 'streaming-complete',
+          sourceChannel: 'from-backend',
+          text: 'final answer',
+          tokenCounts: {
+            visible_output_tokens: 3,
+            thinking_tokens: 2,
+            output_tokens_total: 5,
+            total_tokens: 17,
+            usage_source: 'provider',
+          },
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByText('streaming-complete API · from-backend · tokens(provider) out:5 vis:3 think:2 turn:17'),
+    ).toBeInTheDocument();
+  });
+
   test('does not render when dev ui is disabled', () => {
     isDevUiEnabled.mockReturnValue(false);
     const { container } = render(
@@ -65,4 +91,3 @@ describe('MessageSourceBadge', () => {
     expect(container.firstChild).toBeNull();
   });
 });
-
