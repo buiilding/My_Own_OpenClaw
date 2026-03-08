@@ -207,10 +207,13 @@ def test_tool_registry_system_use_declaration_constrains_tool_enum_and_arguments
 
     parameters = declarations[0]["function"]["parameters"]
     tool_enum = parameters["properties"]["tool"]["enum"]
+    explanation = parameters["properties"]["explanation"]
     argument_variants = parameters["properties"]["arguments"]["oneOf"]
 
-    assert parameters["required"] == ["tool"]
+    assert parameters["required"] == ["tool", "explanation"]
     assert parameters["additionalProperties"] is False
+    assert explanation["type"] == "string"
+    assert explanation["minLength"] == 1
     assert set(tool_enum) == {
         "run_shell_command",
         "replace",
@@ -225,6 +228,10 @@ def test_tool_registry_system_use_declaration_constrains_tool_enum_and_arguments
         "get_system_stats arguments",
         "get_open_windows arguments",
     }
+    assert all(
+        "explanation" not in entry.get("properties", {})
+        for entry in argument_variants
+    )
 
 
 def test_tool_registry_availability_and_capabilities_fallback():

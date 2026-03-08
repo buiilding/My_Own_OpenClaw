@@ -2,7 +2,7 @@
 Pydantic schemas for system tools.
 """
 from typing import Any, Dict, Literal, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, model_validator
 
 from backend.src.tools.schema_fields import explanation_field
 
@@ -26,10 +26,36 @@ class SystemUseArgs(BaseModel):
         ...,
         description="Concrete system/filesystem action to execute.",
     )
+    explanation: Optional[str] = Field(
+        default=None,
+        description=(
+            "One sentence explanation for why this system/filesystem action is needed. "
+            "Canonical location for rationale."
+        ),
+    )
     arguments: Dict[str, Any] = Field(
         default_factory=dict,
         description="Arguments for the selected `tool` action.",
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_explanation(cls, value: Any) -> Any:
+        if not isinstance(value, dict):
+            return value
+
+        payload = dict(value)
+        top_level_explanation = payload.get("explanation")
+        if isinstance(top_level_explanation, str) and top_level_explanation.strip():
+            payload["explanation"] = top_level_explanation.strip()
+            return payload
+
+        arguments = payload.get("arguments")
+        if isinstance(arguments, dict):
+            nested_explanation = arguments.get("explanation")
+            if isinstance(nested_explanation, str) and nested_explanation.strip():
+                payload["explanation"] = nested_explanation.strip()
+        return payload
 
 
 # --- Shell Tool Schemas ---

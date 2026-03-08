@@ -422,10 +422,10 @@ def test_extract_tool_call_unified_system_use_maps_to_concrete_tool():
             "name": "system_use",
             "args": {
                 "tool": "run_shell_command",
+                "explanation": "verify shell",
                 "arguments": {
                     "command": "echo hi",
                     "run_in_background": False,
-                    "explanation": "verify shell",
                 },
             },
         }
@@ -451,11 +451,11 @@ def test_extract_tool_call_unified_system_use_maps_replace_to_replace():
             "name": "system_use",
             "args": {
                 "tool": "replace",
+                "explanation": "apply patch",
                 "arguments": {
                     "file_path": "/tmp/a",
                     "old_string": "x",
                     "new_string": "y",
-                    "explanation": "apply patch",
                 },
             },
         }
@@ -470,6 +470,37 @@ def test_extract_tool_call_unified_system_use_maps_replace_to_replace():
             "old_string": "x",
             "new_string": "y",
             "explanation": "apply patch",
+        },
+        None,
+    )
+
+
+def test_extract_tool_call_unified_system_use_uses_nested_explanation_fallback():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "system_use",
+            "args": {
+                "tool": "replace",
+                "arguments": {
+                    "file_path": "/tmp/a",
+                    "old_string": "x",
+                    "new_string": "y",
+                    "explanation": "legacy nested rationale",
+                },
+            },
+        }
+    }
+
+    extracted = schema.extract_tool_call(payload)
+
+    assert extracted == (
+        "replace",
+        {
+            "file_path": "/tmp/a",
+            "old_string": "x",
+            "new_string": "y",
+            "explanation": "legacy nested rationale",
         },
         None,
     )
