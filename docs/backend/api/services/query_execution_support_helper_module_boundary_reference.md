@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for `query_execution_support/*` helper modules used by `QueryExecutionService`: screenshot/runtime-state normalization, stream-state tracking, pipeline-event forwarding, and cancellation reconciliation boundaries."
+summary: "Deep reference for `query_execution_support/*` helper modules used by `QueryExecutionService`: screenshot/runtime-state normalization, stream-state tracking, pipeline-event forwarding, terminal event policy, and cancellation reconciliation boundaries."
 read_when:
   - When changing helper ownership between `query_execution.py`, `query_event_extraction.py`, and `query_execution_support/*`.
   - When debugging query-stream fallback behavior, screenshot-ref normalization, or cancelled-turn pending tool-call reconciliation.
@@ -16,6 +16,7 @@ title: "Query Execution Support Helper Module Boundary Reference"
 - `backend/src/api/services/query_execution_support/query_execution_inputs.py`
 - `backend/src/api/services/query_execution_support/query_execution_pipeline_events.py`
 - `backend/src/api/services/query_execution_support/query_execution_stream_state.py`
+- `backend/src/api/services/query_execution_support/query_execution_terminal_policy.py`
 - `backend/src/api/services/query_execution_support/query_execution_cancellation.py`
 - `tests/backend/test_query_execution_service_helpers.py`
 - `tests/backend/test_query_event_extraction.py`
@@ -98,6 +99,17 @@ Backfill is conditional:
 
 - emitted only when no chunk was previously observed and completion text is non-empty
 
+## `query_execution_terminal_policy.py` Contract
+
+Owns the explicit post-terminal allowlist for query streams.
+
+Current rule:
+
+- `memory-store` is the only event allowed after a terminal stream event
+
+This keeps `QueryExecutionService.execute(...)` orchestration-only while making the
+post-terminal side-effect contract testable in one place.
+
 ## `query_execution_cancellation.py` Contract
 
 `finalize_pending_tool_calls_on_cancel(...)` is best-effort reconciliation:
@@ -129,6 +141,8 @@ These wrappers preserve a stable test seam while main helper logic lives in dedi
    and fallback behavior.
 4. Moving cancellation reconciliation out of helper without equivalent log/context fields reduces
    cancelled-turn diagnostics.
+5. Expanding or shrinking post-terminal behavior outside `query_execution_terminal_policy.py`
+   can silently break completed-turn memory persistence.
 
 ## Related Docs
 

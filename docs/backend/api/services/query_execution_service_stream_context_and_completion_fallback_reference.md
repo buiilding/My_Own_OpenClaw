@@ -15,6 +15,7 @@ title: "Query Execution Service Stream Context and Completion Fallback Reference
 - `backend/src/api/services/query_execution_support/query_execution_inputs.py`
 - `backend/src/api/services/query_execution_support/query_execution_pipeline_events.py`
 - `backend/src/api/services/query_execution_support/query_execution_stream_state.py`
+- `backend/src/api/services/query_execution_support/query_execution_terminal_policy.py`
 - `backend/src/api/services/query_event_extraction.py`
 - `backend/src/api/services/tts_session.py`
 - `backend/src/api/handlers/query.py`
@@ -124,9 +125,13 @@ Execution tracks:
 
 Loop gate semantics:
 
-- once `saw_terminal_event=True`, all later events in the same stream iteration are ignored and only debug-logged
+- once `saw_terminal_event=True`, only helper-approved post-terminal side effects continue through the pipeline; all other later events in the same stream iteration are ignored and debug-logged
 - `streaming-complete` marks terminal, resolves completion text, emits backfill completion path, and skips direct pipeline forwarding of the original event
 - `error` marks terminal and is still forwarded once through `_process_pipeline_event(...)`
+
+Current post-terminal allowlist:
+
+- `memory-store`
 
 ### Event extraction helpers
 
@@ -182,6 +187,7 @@ Within `async with TTSSession(...)`:
 - per-ref artifact failure handling that preserves successful refs
 - direct helper passthrough for event extraction primitives
 - completion backfill ordering (`ChunkEvent` before `StreamingCompleteEvent`) and stream-context reuse in helper forwarding
+- `memory-store` remains the only allowed post-terminal event after `streaming-complete`
 
 `tests/backend/test_query_event_extraction.py` validates resolver precedence and empty-chunk fallback behavior.
 
