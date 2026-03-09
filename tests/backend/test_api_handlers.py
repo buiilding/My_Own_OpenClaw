@@ -1465,6 +1465,7 @@ async def test_load_settings_handler_returns_frontend_config():
     expected_selected_model_id = session_manager.session.cfg.selected_model_id
     assert websocket.sent[0]["payload"]["config"] == {
         "agent_full_sudo_enabled": False,
+        "browser_automation_enabled": False,
         "include_query_screenshot": True,
         "interaction_mode": "agent",
         "model_mode": "online",

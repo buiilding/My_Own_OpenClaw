@@ -205,7 +205,6 @@ export const usePermissionStore = create((set, get) => ({
     const {
       missingRequiredPermissions,
       manifestVersion,
-      onboardingState,
       permissions,
       statusesByPermissionId,
     } = get();
