@@ -38,6 +38,7 @@ const DEFAULT_FRONTEND_CONFIG = {
   speech_mode_enabled: false,
   wakeword_stt_enabled: false,
   agent_full_sudo_enabled: false,
+  browser_automation_enabled: false,
   include_query_screenshot: true,
   provider_api_keys: DEFAULT_PROVIDER_API_KEYS,
   provider_oauth: DEFAULT_PROVIDER_OAUTH,

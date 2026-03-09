@@ -192,6 +192,7 @@ class UpdateSettingsPayload(BaseModel):
     speech_mode_enabled: Optional[bool] = None
     wakeword_stt_enabled: Optional[bool] = None
     agent_full_sudo_enabled: Optional[bool] = None
+    browser_automation_enabled: Optional[bool] = None
     include_query_screenshot: Optional[bool] = None
     provider_api_keys: Optional[ProviderApiKeysPayload] = None
     provider_oauth: Optional[ProviderOAuthPayload] = None

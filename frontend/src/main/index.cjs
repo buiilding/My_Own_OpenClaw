@@ -8,6 +8,8 @@ const {
   globalShortcut,
   shell,
   systemPreferences,
+  dialog,
+  desktopCapturer,
 } = require('electron');
 const path = require('path');
 const {
@@ -21,7 +23,11 @@ const {
   triggerStopQueryFromMain,
 } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
-const { initializeLocalBackendBridge, stopLocalBackend } = require('./local_backend_bridge.cjs');
+const {
+  initializeLocalBackendBridge,
+  stopLocalBackend,
+  getLocalBackendStatus,
+} = require('./local_backend_bridge.cjs');
 const { createVmWorkerRuntime } = require('./vm_worker_runtime.cjs');
 const { createExternalFocusTracker } = require('./external_focus_tracker.cjs');
 const {
@@ -481,6 +487,50 @@ function initializeMainProcessIpc() {
     ipcMain,
     shell,
     systemPreferences,
+    dialog,
+    desktopCapturer,
     platform: process.platform,
+    getBrowserAutomationPreference: () => (
+      getLatestFrontendConfig()?.browser_automation_enabled === true
+    ),
+    verifyBrowserAutomationCapability: async () => {
+      const backendStatus = await getLocalBackendStatus();
+      if (!backendStatus || backendStatus.success !== true || typeof backendStatus.data !== 'object') {
+        return {
+          granted: false,
+          reason: 'WindieOS local backend is not ready. Wait a moment and retry Enable.',
+          details: {
+            backend_status: backendStatus,
+          },
+        };
+      }
+
+      const payload = backendStatus.data;
+      const registeredTools = Array.isArray(payload.registered_tools) ? payload.registered_tools : [];
+      const hasBrowserTool = registeredTools.includes('browser');
+      const featurePackAvailable = payload.browser_feature_pack_available === true;
+
+      if (hasBrowserTool && featurePackAvailable) {
+        return {
+          granted: true,
+          details: {
+            backend_status: payload,
+          },
+        };
+      }
+
+      const autoInstallEnabled = payload.browser_feature_pack_autoinstall_enabled === true;
+      const reason = autoInstallEnabled
+        ? 'Browser automation runtime is still unavailable. Retry Enable in a few seconds.'
+        : 'Browser automation runtime is unavailable in this build. Reinstall WindieOS or install browser feature pack dependencies.';
+
+      return {
+        granted: false,
+        reason,
+        details: {
+          backend_status: payload,
+        },
+      };
+    },
   });
 }

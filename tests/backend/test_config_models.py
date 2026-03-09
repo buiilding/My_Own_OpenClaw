@@ -220,6 +220,7 @@ class TestAppConfig:
         assert config.history_compaction_cooldown_turns == 1
         assert config.voice_mode_enabled is False
         assert config.agent_full_sudo_enabled is False
+        assert config.browser_automation_enabled is False
         assert config.include_query_screenshot is True
         assert config.provider_api_keys.openai.enabled is False
         assert config.provider_api_keys.openai.api_key == ""

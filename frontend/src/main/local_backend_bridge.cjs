@@ -672,6 +672,10 @@ async function getSystemState(fields = null) {
   return getSystemStateFromBackend(fields);
 }
 
+async function getLocalBackendStatus() {
+  return sendRequestOrError('get_status');
+}
+
 async function searchMemory(
   query,
   user_id,
@@ -692,6 +696,7 @@ module.exports = {
   initializeLocalBackendBridge,
   stopLocalBackend,
   getSystemState,
+  getLocalBackendStatus,
   searchMemory,
   storeMemory,
 };

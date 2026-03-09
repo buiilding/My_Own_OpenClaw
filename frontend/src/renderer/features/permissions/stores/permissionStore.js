@@ -166,7 +166,7 @@ export const usePermissionStore = create((set, get) => ({
 
   requestPermission: async (permissionId) => {
     if (!permissionId) {
-      return;
+      return null;
     }
 
     try {
@@ -179,8 +179,10 @@ export const usePermissionStore = create((set, get) => ({
       }
 
       set(buildStatusStateUpdate(get(), [result.data.status]));
+      return result.data.status;
     } catch (error) {
       set({ error: error?.message || 'Failed to request permission.' });
+      return null;
     }
   },
 

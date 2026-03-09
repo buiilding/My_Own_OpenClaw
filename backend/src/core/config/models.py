@@ -268,6 +268,7 @@ class AppConfig(BaseModel):
     voice_mode_enabled: bool = False
     wakeword_stt_enabled: bool = False
     agent_full_sudo_enabled: bool = False
+    browser_automation_enabled: bool = False
     include_query_screenshot: bool = True
     provider_api_keys: ProviderApiKeys = Field(default_factory=ProviderApiKeys)
     provider_oauth: ProviderOAuth = Field(default_factory=ProviderOAuth)
