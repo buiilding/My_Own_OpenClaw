@@ -292,7 +292,7 @@ export const recordToolMessage = (
     queueForRetry,
     buildEntry: (info) => ({
       content: text,
-      role: 'tool',
+      role: options.messageType === 'tool-call' ? 'assistant' : 'tool',
       messageType: options.messageType,
       toolName: options.toolName,
       correlationId: options.correlationId,

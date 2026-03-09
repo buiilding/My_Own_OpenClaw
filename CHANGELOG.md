@@ -2421,3 +2421,7 @@ Includes the last 300 commits on `main`.
 - unreleased refactor(frontend-window-runtime): extract dashboard screenshot suppression helpers into `window_suppression_runtime.cjs` so offscreen hide/restore polling and bounds bookkeeping are unit-tested separately from chat/dashboard visibility policy
 - Refactored dashboard message-list auto-scroll behavior into `useMessageListAutoScroll(...)` so `MessageList.jsx` stays focused on rendering while the scroll follow state machine lives in one reusable hook.
 - Fixed dashboard message-list auto-follow so a new user send snaps fully to the bottom and the awaiting-dot indicator keeps the list pinned when the user has not manually scrolled away.
+# 2026-03-09
+
+### Fixed
+- frontend transcript persistence now stores `tool-call` rows as assistant tool-call turns instead of `role='tool'` rows, so reopened chats can rehydrate provider-valid assistant `tool_calls` history before tool outputs.

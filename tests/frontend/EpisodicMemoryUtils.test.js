@@ -93,6 +93,24 @@ describe('episodicMemoryUtils', () => {
     ]);
   });
 
+  test('parseMemoriesToMessages preserves assistant tool-call transcript rows', () => {
+    const memory = {
+      id: 'assistant-tool-call',
+      content: 'tool call payload',
+      role: 'assistant',
+      message_type: 'tool-call',
+    };
+    expect(parseMemoriesToMessages([memory])).toEqual([
+      {
+        id: 'assistant-tool-call-0',
+        sender: 'assistant',
+        text: 'tool call payload',
+        type: 'tool-call',
+        isComplete: true,
+      },
+    ]);
+  });
+
   test('parseMemoriesToMessages keeps screenshot for tool-output role messages', () => {
     const memory = {
       id: 'tool-output',

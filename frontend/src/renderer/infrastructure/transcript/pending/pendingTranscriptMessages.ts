@@ -130,7 +130,7 @@ export function createPendingTranscriptMessages({
       messages: pendingToolMessages,
       toTranscriptEntry: (message) => ({
         content: message.text,
-        role: 'tool',
+        role: message.messageType === 'tool-call' ? 'assistant' : 'tool',
         messageType: message.messageType,
         toolName: message.toolName || undefined,
         correlationId: message.correlationId || undefined,
