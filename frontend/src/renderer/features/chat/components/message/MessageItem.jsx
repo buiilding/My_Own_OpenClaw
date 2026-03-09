@@ -51,6 +51,7 @@ const MessageItem = memo(function MessageItem({
           messageText={message.text}
           feedback={message.feedback ?? null}
           disabled={disableAssistantActions}
+          visible={!disableAssistantActions}
           onFeedbackChange={onAssistantFeedbackChange}
           onTryAgain={onAssistantTryAgain}
         />

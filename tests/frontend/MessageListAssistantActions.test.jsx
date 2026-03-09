@@ -18,25 +18,45 @@ describe('MessageList assistant actions', () => {
     });
   });
 
-  test('renders copy/like/dislike/try-again actions for assistant llm messages', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test('reveals copy/like/dislike/try-again actions 2 seconds after an assistant llm message completes', () => {
+    jest.useFakeTimers();
+
     render(
       <MessageList
         messages={[
           { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
-          { id: 'assistant-1', text: 'world', sender: 'assistant', type: 'llm-text' },
+          { id: 'assistant-1', text: 'world', sender: 'assistant', type: 'llm-text', isComplete: true },
         ]}
         thinkingStatus={null}
         enableAssistantActions
       />,
     );
 
+    expect(screen.queryByRole('button', { name: 'Copy assistant message' })).not.toBeInTheDocument();
+
+    act(() => {
+      jest.advanceTimersByTime(1999);
+    });
+    expect(screen.queryByRole('button', { name: 'Copy assistant message' })).not.toBeInTheDocument();
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+
     expect(screen.getByRole('button', { name: 'Copy assistant message' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Like response' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Dislike response' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Assistant message actions' })).toHaveClass('assistant-message-actions-enter');
   });
 
   test('does not render assistant actions for tool-call/tool-output messages', () => {
+    jest.useFakeTimers();
+
     render(
       <MessageList
         messages={[
@@ -48,23 +68,93 @@ describe('MessageList assistant actions', () => {
       />,
     );
 
+    act(() => {
+      jest.advanceTimersByTime(2500);
+    });
+
     expect(screen.queryByRole('button', { name: 'Copy assistant message' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
   });
 
+  test('does not render assistant actions while assistant text is still streaming', () => {
+    jest.useFakeTimers();
+
+    render(
+      <MessageList
+        messages={[
+          { id: 'assistant-1', text: 'partial', sender: 'assistant', type: 'llm-text', isComplete: false },
+        ]}
+        thinkingStatus={null}
+        enableAssistantActions
+      />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(2500);
+    });
+
+    expect(screen.queryByRole('button', { name: 'Copy assistant message' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
+  });
+
+  test('waits for the turn to finish before starting the delayed action reveal', () => {
+    jest.useFakeTimers();
+    const { rerender } = render(
+      <MessageList
+        messages={[
+          { id: 'assistant-1', text: 'final answer', sender: 'assistant', type: 'llm-text', isComplete: true },
+        ]}
+        thinkingStatus={null}
+        enableAssistantActions
+        disableAssistantActions
+      />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(3000);
+    });
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
+
+    rerender(
+      <MessageList
+        messages={[
+          { id: 'assistant-1', text: 'final answer', sender: 'assistant', type: 'llm-text', isComplete: true },
+        ]}
+        thinkingStatus={null}
+        enableAssistantActions
+        disableAssistantActions={false}
+      />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(1999);
+    });
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
+  });
+
   test('calls retry callback with assistant message id', () => {
+    jest.useFakeTimers();
     const onAssistantTryAgain = jest.fn();
 
     render(
       <MessageList
         messages={[
-          { id: 'assistant-1', text: 'final answer', sender: 'assistant', type: 'llm-text' },
+          { id: 'assistant-1', text: 'final answer', sender: 'assistant', type: 'llm-text', isComplete: true },
         ]}
         thinkingStatus={null}
         enableAssistantActions
         onAssistantTryAgain={onAssistantTryAgain}
       />,
     );
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
 
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
     expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-1');
@@ -81,12 +171,16 @@ describe('MessageList assistant actions', () => {
     const { container } = render(
       <MessageList
         messages={[
-          { id: 'assistant-1', text: 'copy me', sender: 'assistant', type: 'llm-text' },
+          { id: 'assistant-1', text: 'copy me', sender: 'assistant', type: 'llm-text', isComplete: true },
         ]}
         thinkingStatus={null}
         enableAssistantActions
       />,
     );
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
 
     const copyButton = screen.getByRole('button', { name: 'Copy assistant message' });
     expect(copyButton).toHaveAttribute('title', 'Copy');

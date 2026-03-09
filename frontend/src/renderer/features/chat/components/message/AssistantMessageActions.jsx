@@ -1,12 +1,16 @@
+import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Check, Copy, RotateCcw, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useCopyMessageAction } from '../../hooks/useCopyMessageAction';
+
+const ACTION_REVEAL_DELAY_MS = 2000;
 
 function AssistantMessageActions({
   messageId,
   messageText,
   feedback = null,
   disabled = false,
+  visible = true,
   onFeedbackChange,
   onTryAgain,
 }) {
@@ -14,6 +18,32 @@ function AssistantMessageActions({
     messageText,
     warningPrefix: 'AssistantMessageActions',
   });
+  const revealTimerRef = useRef(null);
+  const [isRevealed, setIsRevealed] = useState(false);
+
+  useEffect(() => {
+    if (revealTimerRef.current) {
+      window.clearTimeout(revealTimerRef.current);
+      revealTimerRef.current = null;
+    }
+
+    if (!visible) {
+      setIsRevealed(false);
+      return undefined;
+    }
+
+    revealTimerRef.current = window.setTimeout(() => {
+      setIsRevealed(true);
+      revealTimerRef.current = null;
+    }, ACTION_REVEAL_DELAY_MS);
+
+    return () => {
+      if (revealTimerRef.current) {
+        window.clearTimeout(revealTimerRef.current);
+        revealTimerRef.current = null;
+      }
+    };
+  }, [messageId, visible]);
 
   const handleFeedback = (nextFeedback) => {
     if (typeof onFeedbackChange !== 'function') {
@@ -29,8 +59,16 @@ function AssistantMessageActions({
     onTryAgain(messageId);
   };
 
+  if (!isRevealed) {
+    return null;
+  }
+
   return (
-    <div className="assistant-message-actions" role="group" aria-label="Assistant message actions">
+    <div
+      className="assistant-message-actions assistant-message-actions-enter"
+      role="group"
+      aria-label="Assistant message actions"
+    >
       <button
         type="button"
         className={`assistant-action-btn${copySuccess ? ' is-active' : ''}`}
@@ -77,6 +115,7 @@ AssistantMessageActions.propTypes = {
   messageText: PropTypes.string,
   feedback: PropTypes.oneOf(['like', 'dislike', null]),
   disabled: PropTypes.bool,
+  visible: PropTypes.bool,
   onFeedbackChange: PropTypes.func,
   onTryAgain: PropTypes.func,
 };

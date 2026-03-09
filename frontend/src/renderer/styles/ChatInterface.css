@@ -754,6 +754,10 @@
   gap: 4px;
 }
 
+.assistant-message-actions-enter {
+  animation: assistant-actions-fade-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .user-message-actions {
   margin-top: 8px;
   margin-right: -4px;
@@ -806,6 +810,18 @@
 .user-action-btn.is-active {
   color: var(--ui-text-primary);
   background: var(--ui-hover-strong-bg);
+}
+
+@keyframes assistant-actions-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .error-message-container {
