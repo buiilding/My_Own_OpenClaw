@@ -99,7 +99,7 @@ Current prompt template defines:
 - OS-aware command/keybind requirement (`{os}` substitution)
 - autonomous loop policy (continue until task complete)
 - context-awareness policy around `<system_context>`
-- explicit `keyboard_control` limitation guidance: synthetic automation input, not trusted native hardware keyboard control, with manual fallback for key recorders and similar capture prompts
+- explicit `keyboard_control` limitation guidance: synthetic automation input, not trusted native hardware keyboard control, with informational fallback guidance for key recorders and similar capture prompts
 - coding standards and frontend aesthetics constraints
 - tool chaining, verification, and desktop-control strategy guidance
 
