@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(ci-release): resolve desktop signing mode dynamically in `desktop-release.yml` so tag-triggered Windows/macOS packaging falls back to unsigned builds when signing/notarization secrets are absent, instead of failing before packaging and release publication.
 - chore(release): bump the packaged desktop app to `0.6.8`, refresh the model-facing prompt/schema snapshots, and update the local audit report before publishing the next tagged release.
 - fix(frontend-dashboard-scroll): force the dashboard transcript list to jump back to the bottom when a newly sent user message is appended, then continue using the existing bottom-stick rules for tool/assistant auto-follow so manual upward scrolling still disables follow until the user returns to the bottom.
 - refactor(backend-memory-persistence): extract explicit post-terminal query-stream policy into `query_execution_terminal_policy.py`, move completed-turn publish + interaction-memory emission into `completion_side_effects.py`, add an executor-level regression proving successful turns emit `MemoryStoreEvent`, and add a planning TODO note for transcript-vs-interaction persistence ownership.
