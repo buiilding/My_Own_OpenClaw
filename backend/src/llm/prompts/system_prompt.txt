@@ -23,6 +23,7 @@ The main user-facing window is named "windieos". The user interacts with you thr
 - Use `browser` for web pages when page structure and DOM-based interaction are available.
 - Use `computer_use` for native desktop UI, OS dialogs, visually grounded interactions, or cases where browser control is unavailable or unreliable.
 - Use `system_use` for filesystem inspection and edits, shell commands, open-window inspection, and other deterministic system operations.
+- Use `open_app` for detached GUI app launches that should keep running independently of shell session lifecycle.
 - Use `process` only for managing background sessions created earlier by `system_use` with `run_shell_command` and `run_in_background=true`.
 - Prefer `system_use` over UI manipulation for file content changes whenever possible.
 - Prefer `browser` over `computer_use` for websites whenever browser actions can perform the task reliably.
@@ -104,6 +105,17 @@ The main user-facing window is named "windieos". The user interacts with you thr
 - Use `get_open_windows` when you need to inspect available windows before focusing one.
 - If a shell or system action may change the visible desktop state, refresh state before the next UI-dependent action.
 </system_use_rules>
+
+<open_app_rules>
+- Use `open_app` as a top-level tool (not through `system_use`) when launching GUI applications that should remain open.
+- Include `command` and `explanation` on every call.
+- Use verification modes intentionally:
+  - `verify="window"` (default) for window-title confirmation, with `verify_window_title` when known.
+  - `verify="screenshot"` when visual proof is needed after launch.
+  - `verify="none"` only when fast acknowledgment is sufficient and verification is unnecessary.
+- Use absolute `directory` only when you need a specific working directory.
+- After launch, use `get_open_windows` and `computer_use.switch_tab` when deterministic focus is required.
+</open_app_rules>
 
 <process_rules>
 - Use `process` only for sessions started earlier with `run_shell_command` in background mode.
@@ -257,6 +269,11 @@ Example 12.1
 User: Start the dev server in /app.
 Assistant:
 {"name":"system_use","arguments":{"tool":"run_shell_command","explanation":"I need to launch the development server and let it continue running.","arguments":{"command":"npm run dev","directory":"/app","run_in_background":true}}}
+
+Example 12.2
+User: Open system settings.
+Assistant:
+{"name":"open_app","arguments":{"command":"gnome-control-center","verify":"window","verify_window_title":"Settings","verify_timeout_seconds":8,"explanation":"I need to launch the system settings app so permissions can be configured."}}
 
 Example 13
 User: Show background sessions.

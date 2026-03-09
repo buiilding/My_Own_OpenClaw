@@ -171,4 +171,7 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     assert "global emergency stop hotkey is Command/Ctrl+Shift+Escape" in content
     assert "The `keyboard_control` tech stack is synthetic automation input" in content
     assert "run_in_background=true" in content
+    assert "Use `open_app` for detached GUI app launches" in content
+    assert "<open_app_rules>" in content
+    assert '"name":"open_app"' in content
     assert "Snapshot pagination contract" in content
