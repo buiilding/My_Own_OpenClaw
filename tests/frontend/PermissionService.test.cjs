@@ -161,6 +161,11 @@ describe('permission_service', () => {
     });
 
     expect(runCommand).toHaveBeenCalled();
+    expect(runCommand).toHaveBeenCalledWith(
+      'xdg-open',
+      ['settings://privacy'],
+      expect.any(Object),
+    );
     expect(status.status).toBe('needs-action');
     expect(status.granted).toBe(false);
   });

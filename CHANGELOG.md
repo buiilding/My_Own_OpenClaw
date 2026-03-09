@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-permissions-linux): hoist Linux permission-center command maps in `permission_service.cjs` to shared module-level constants, alias `screen_capture`/`microphone` through one privacy-command set instead of rebuilding duplicate arrays per call, and add focused permission-service coverage that asserts the Linux microphone flow still opens the privacy settings path.
+- refactor(backend-rehydrate): extract pending tool-call queue + fallback tool-output synthesis into `rehydrate_tool_linkage_repair.py` so transcript row normalization stays focused on per-entry parsing while keeping strict-provider resume repairs test-backed.
 - chore(release): bump packaged desktop app version to `0.6.9` for the new cross-platform desktop release tag.
 - fix(test-settings-load): align backend `load-settings` handler expectation with current config payload by asserting `browser_automation_enabled`.
 - fix(frontend-lint): remove unused chat IPC imports and stale onboarding store destructuring so release lint runs pass cleanly.

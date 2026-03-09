@@ -14,6 +14,29 @@ const PERMISSION_DEFINITIONS = Array.isArray(PERMISSION_MANIFEST.permissions)
 const PERMISSION_DEFINITION_BY_ID = new Map(
   PERMISSION_DEFINITIONS.map((permission) => [permission.permission_id, permission]),
 );
+const LINUX_PERMISSION_CENTER_COMMANDS = Object.freeze({
+  privacy: Object.freeze([
+    Object.freeze({ command: 'xdg-open', args: Object.freeze(['settings://privacy']) }),
+    Object.freeze({ command: 'gnome-control-center', args: Object.freeze(['privacy']) }),
+    Object.freeze({ command: 'systemsettings5', args: Object.freeze(['kcm_privacy']) }),
+  ]),
+  input_control_accessibility: Object.freeze([
+    Object.freeze({ command: 'xdg-open', args: Object.freeze(['settings://accessibility']) }),
+    Object.freeze({ command: 'gnome-control-center', args: Object.freeze(['universal-access']) }),
+    Object.freeze({ command: 'systemsettings5', args: Object.freeze(['kcm_access']) }),
+  ]),
+  shell_execution: Object.freeze([
+    Object.freeze({ command: 'pkexec', args: Object.freeze(['/usr/bin/true']) }),
+  ]),
+  browser_automation: Object.freeze([
+    Object.freeze({ command: 'xdg-open', args: Object.freeze(['settings://default-apps']) }),
+    Object.freeze({ command: 'gnome-control-center', args: Object.freeze(['default-applications']) }),
+  ]),
+});
+const LINUX_PERMISSION_CENTER_TOPIC_ALIASES = Object.freeze({
+  screen_capture: 'privacy',
+  microphone: 'privacy',
+});
 
 // Session-scoped request state for permissions without reliable probe APIs.
 const REQUESTED_PERMISSION_STATE = new Map();
@@ -218,36 +241,8 @@ async function requestDesktopCapturePrompt(deps = {}) {
 }
 
 async function openLinuxPermissionCenter(topic, deps = {}) {
-  const commandSetsByTopic = {
-    screen_capture: [
-      { command: 'xdg-open', args: ['settings://privacy'] },
-      { command: 'gnome-control-center', args: ['privacy'] },
-      { command: 'systemsettings5', args: ['kcm_privacy'] },
-    ],
-    input_control_accessibility: [
-      { command: 'xdg-open', args: ['settings://accessibility'] },
-      { command: 'gnome-control-center', args: ['universal-access'] },
-      { command: 'systemsettings5', args: ['kcm_access'] },
-    ],
-    microphone: [
-      { command: 'xdg-open', args: ['settings://privacy'] },
-      { command: 'gnome-control-center', args: ['privacy'] },
-      { command: 'systemsettings5', args: ['kcm_privacy'] },
-    ],
-    shell_execution: [
-      { command: 'pkexec', args: ['/usr/bin/true'] },
-    ],
-    browser_automation: [
-      { command: 'xdg-open', args: ['settings://default-apps'] },
-      { command: 'gnome-control-center', args: ['default-applications'] },
-    ],
-    privacy: [
-      { command: 'xdg-open', args: ['settings://privacy'] },
-      { command: 'gnome-control-center', args: ['privacy'] },
-      { command: 'systemsettings5', args: ['kcm_privacy'] },
-    ],
-  };
-  const specs = commandSetsByTopic[topic] || [];
+  const resolvedTopic = LINUX_PERMISSION_CENTER_TOPIC_ALIASES[topic] || topic;
+  const specs = LINUX_PERMISSION_CENTER_COMMANDS[resolvedTopic] || [];
   if (specs.length === 0) {
     return { success: false, reason: `No Linux command mapping found for ${topic}.` };
   }
