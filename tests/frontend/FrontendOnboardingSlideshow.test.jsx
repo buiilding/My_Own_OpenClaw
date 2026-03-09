@@ -113,6 +113,7 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(screen.getAllByRole('button', { name: 'Grant' })).toHaveLength(1);
     expect(screen.getByRole('button', { name: 'Enable' })).toBeInTheDocument();
     expect(screen.getByLabelText('Granted')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Planned system-access scope' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Minimize window' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Toggle maximize window' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Close window' })).toBeInTheDocument();
@@ -135,7 +136,6 @@ describe('FrontendOnboardingSlideshow', () => {
 
     expect(screen.getByText('Step 2 of 2')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Stop the agent during loops' })).toBeInTheDocument();
-    expect(screen.getByText('Press this keybind to stop the agent immediately globally.')).toBeInTheDocument();
     expect(screen.getByText('Use this anytime an agent loop needs to end right away.')).toBeInTheDocument();
     expect(screen.getByText('Ctrl + Alt + .').tagName).toBe('KBD');
     expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();

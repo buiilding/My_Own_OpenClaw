@@ -10,7 +10,7 @@ read_when:
 
 ## Objective
 
-On first app launch after install, require users to complete a permission-first onboarding flow that covers all capabilities WindieOS currently uses and is expected to use in planned system-access mode.
+On first app launch after install, require users to complete a permission-first onboarding flow that covers all capabilities WindieOS currently uses.
 
 Target behavior:
 - User sees a dedicated onboarding wizard before normal chat/dashboard usage.
@@ -25,7 +25,7 @@ Permission collection must be explicit and auditable:
 - No hidden fallback that bypasses denied permissions.
 - Clear distinction between:
   - `required_now` (current shipped behavior)
-  - `required_for_planned_system_access` (future capabilities the product intends to support)
+  - roadmap notes about future capability scope that should stay in docs/product copy until a real runtime permission exists
 
 ## Current Capability Surface (Baseline)
 
@@ -47,7 +47,7 @@ Suggested schema:
 - `description`
 - `risk_level` (`low|medium|high`)
 - `required_now` (bool)
-- `required_for_planned_system_access` (bool)
+- `required_for_planned_system_access` (bool metadata on real permissions, not a standalone consent row)
 - `os_scope` (`macos|windows|linux|all`)
 - `validation_probe` (technical check)
 - `unlocks_tool_groups` (list)
@@ -71,10 +71,6 @@ Suggested initial permissions:
 - `browser_automation`:
   - Needed for browser control runtime and CDP flows.
   - Unlocks: `browser`.
-- `planned_system_access` (future flag group):
-  - Declared in onboarding for future capabilities.
-  - Remains disabled in runtime until feature ships.
-
 ## UX Plan: First-Run Permission Wizard
 
 ## Step 0: Intro + Consent
@@ -96,14 +92,7 @@ Each permission row includes:
 - Example action it enables.
 - "Grant" button and "Re-check" button.
 
-## Step 2: Planned System-Access Disclosure
-
-Separate panel for future capabilities:
-- Explain planned system-access behavior and expected permission requirements.
-- Obtain explicit policy consent (`I understand future system-access scope`).
-- Do not mark runtime permissions as granted until actual OS-level checks pass when feature is released.
-
-## Step 3: Verification + Final Gate
+## Step 2: Verification + Final Gate
 
 Before entering normal UI:
 - Run all validation probes.
@@ -111,7 +100,7 @@ Before entering normal UI:
   - Keep user in onboarding.
   - Provide OS-specific remediation steps.
 
-## Step 4: Post-Onboarding Control Center
+## Step 3: Post-Onboarding Control Center
 
 Replace current placeholder "Permissions" section with:
 - Live status of each permission.

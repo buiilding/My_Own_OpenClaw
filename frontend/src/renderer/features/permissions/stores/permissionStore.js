@@ -47,8 +47,7 @@ function resolveGateState({
   const completedForManifest = manifestMatches && onboardingState.completed === true;
 
   const needsOnboarding = !completedForManifest
-    || missingRequiredPermissions.length > 0
-    || onboardingState.planned_system_access_consent !== true;
+    || missingRequiredPermissions.length > 0;
 
   return {
     requiredPermissionIds,
@@ -202,23 +201,6 @@ export const usePermissionStore = create((set, get) => ({
     }
   },
 
-  setPlannedSystemAccessConsent: (consent) => {
-    const onboardingState = {
-      ...get().onboardingState,
-      planned_system_access_consent: consent === true,
-    };
-    savePermissionOnboardingState(onboardingState);
-
-    const gateState = resolveGateState({
-      permissions: get().permissions,
-      statusesByPermissionId: get().statusesByPermissionId,
-      onboardingState,
-      manifestVersion: get().manifestVersion,
-    });
-
-    set({ onboardingState, ...gateState });
-  },
-
   completeOnboarding: () => {
     const {
       missingRequiredPermissions,
@@ -233,11 +215,6 @@ export const usePermissionStore = create((set, get) => ({
       return false;
     }
 
-    if (onboardingState.planned_system_access_consent !== true) {
-      set({ error: 'Confirm planned system-access disclosure before continuing.' });
-      return false;
-    }
-
     if (missingRequiredPermissions.length > 0) {
       set({ error: 'Grant all required permissions before continuing.' });
       return false;
@@ -246,7 +223,6 @@ export const usePermissionStore = create((set, get) => ({
     const nextOnboardingState = {
       manifest_version: manifestVersion,
       completed: true,
-      planned_system_access_consent: true,
       completed_at: new Date().toISOString(),
     };
     savePermissionOnboardingState(nextOnboardingState);

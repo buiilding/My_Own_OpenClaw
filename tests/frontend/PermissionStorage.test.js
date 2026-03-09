@@ -14,7 +14,6 @@ describe('permission onboarding storage', () => {
     expect(loadPermissionOnboardingState()).toEqual({
       manifest_version: '',
       completed: false,
-      planned_system_access_consent: false,
       completed_at: null,
     });
   });
@@ -23,7 +22,6 @@ describe('permission onboarding storage', () => {
     const saved = {
       manifest_version: 'v1',
       completed: true,
-      planned_system_access_consent: true,
       completed_at: '2026-03-03T00:00:00.000Z',
     };
     savePermissionOnboardingState(saved);
@@ -38,8 +36,22 @@ describe('permission onboarding storage', () => {
     expect(loadPermissionOnboardingState()).toEqual({
       manifest_version: '',
       completed: false,
-      planned_system_access_consent: false,
       completed_at: null,
+    });
+  });
+
+  test('drops legacy planned-system-access consent field when reloading stored state', () => {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      manifest_version: 'v2',
+      completed: true,
+      planned_system_access_consent: true,
+      completed_at: '2026-03-04T00:00:00.000Z',
+    }));
+
+    expect(loadPermissionOnboardingState()).toEqual({
+      manifest_version: 'v2',
+      completed: true,
+      completed_at: '2026-03-04T00:00:00.000Z',
     });
   });
 });

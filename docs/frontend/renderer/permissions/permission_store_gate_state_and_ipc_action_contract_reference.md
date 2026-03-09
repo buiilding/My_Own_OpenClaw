@@ -37,7 +37,7 @@ Current runtime-consumer reality:
 
 - active UI callers in current renderer runtime are `bootstrapPermissions`, `runPermissionProbe`,
   and `recheckAllPermissions` (via `PermissionControlCenter`)
-- `requestPermission`, `setPlannedSystemAccessConsent`, and `completeOnboarding` remain exported
+- `requestPermission` and `completeOnboarding` remain exported
   but have no active renderer caller in current code paths
 
 ## Status Normalization Contract
@@ -67,7 +67,7 @@ Algorithm:
 1. `requiredPermissionIds = permissions.filter(required_now).map(permission_id)`
 2. `missingRequiredPermissions = requiredPermissionIds` where status `granted !== true`
 3. `completedForManifest = onboarding.manifest_version === manifestVersion && onboarding.completed === true`
-4. `needsOnboarding = !completedForManifest || missingRequiredPermissions.length > 0 || onboarding.planned_system_access_consent !== true`
+4. `needsOnboarding = !completedForManifest || missingRequiredPermissions.length > 0`
 
 ## Shared Status-Update Helper
 
@@ -122,17 +122,11 @@ Callers:
 - replaces entire status map with fresh normalized statuses
 - does not set or clear `isLoading`; repeated clicks can trigger overlapping recheck requests
 
-### `setPlannedSystemAccessConsent(consent)`
-
-- persists updated consent into localStorage
-- recomputes gate fields immediately from in-memory manifest/status snapshot
-
 ### `completeOnboarding()`
 
 Guardrails:
 
 - requires non-empty `manifestVersion`
-- requires `planned_system_access_consent === true`
 - requires `missingRequiredPermissions.length === 0`
 
 On success:
@@ -156,7 +150,6 @@ On guard failure:
 
 - `manifest_version: ""`
 - `completed: false`
-- `planned_system_access_consent: false`
 - `completed_at: null`
 
 ## UI Coupling Boundary

@@ -49,8 +49,6 @@ Permission definition fields cloned by service:
   - uses `getMediaAccessStatus('microphone')`
 - `filesystem_workspace_access`, `shell_execution`, `browser_automation`:
   - runtime-capability probe scaffold (`probe_stub: true`)
-- `planned_system_access`:
-  - consent-only pseudo permission (always granted probe response)
 
 Status payload shape:
 
