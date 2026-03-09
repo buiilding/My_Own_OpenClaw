@@ -158,6 +158,20 @@ async def test_execute_keyboard_control_hotkey_maps_keys(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_execute_keyboard_control_hotkey_maps_super_to_win(monkeypatch):
+    fake_pyautogui, calls = _fake_pyautogui()
+    monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
+
+    result = await keyboard_tool.execute_keyboard_control(
+        {"action": "hotkey", "keys": ["SUPER", "Shift", "S"]}
+    )
+
+    assert result["success"] is True
+    assert result["data"]["action"] == "hotkey"
+    assert calls == [("hotkey", "win", "shift", "s")]
+
+
+@pytest.mark.asyncio
 async def test_execute_keyboard_control_rejects_unknown_action(monkeypatch):
     fake_pyautogui, _calls = _fake_pyautogui()
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
