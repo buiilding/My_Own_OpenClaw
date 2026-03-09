@@ -14,6 +14,10 @@ import {
   mergeFrontendProviderConfig,
   sanitizeFrontendProviderConfig,
 } from './appConfigPersistence';
+import {
+  buildImmediateBackendConfig,
+  hasImmediateBackendConfigChanges,
+} from './appConfigBackendSync';
 
 const LIST_MODELS_REQUEST_GUARD_KEY = '__windie_models_list_requested__';
 
@@ -57,7 +61,10 @@ export function AppConfigProvider({ children }) {
   const syncCurrentConfigToBackend = useCallback(() => {
     const currentConfig = configRef.current;
     if (currentConfig && typeof currentConfig === 'object') {
-      ApiClient.updateSettings(currentConfig);
+      const immediateBackendConfig = buildImmediateBackendConfig(currentConfig);
+      if (immediateBackendConfig) {
+        ApiClient.updateSettings(immediateBackendConfig);
+      }
     }
   }, [configRef]);
 
@@ -127,12 +134,16 @@ export function AppConfigProvider({ children }) {
         return;
       }
       const filteredConfig = buildMergedFrontendConfig(diskConfig);
+      const previousConfig = configRef.current;
       const didApplyConfig = applyConfigIfChanged(filteredConfig, configRef, setConfig);
       if (!didApplyConfig) {
         return;
       }
       saveConfigToStorage(filteredConfig, Date.now());
-      ApiClient.updateSettings(filteredConfig);
+      const immediateBackendConfig = buildImmediateBackendConfig(filteredConfig);
+      if (immediateBackendConfig && hasImmediateBackendConfigChanges(previousConfig, filteredConfig)) {
+        ApiClient.updateSettings(immediateBackendConfig);
+      }
     }).catch((error) => {
       console.warn('[Config] Failed to load config from disk:', error?.message || error);
     });
@@ -168,6 +179,7 @@ export function AppConfigProvider({ children }) {
 
   const updateConfig = useCallback((newConfig) => {
     const filteredConfig = buildMergedFrontendConfig(newConfig);
+    const previousConfig = configRef.current;
     const didApplyConfig = applyConfigIfChanged(filteredConfig, configRef, setConfig);
     if (!didApplyConfig) {
       logConfigInfo('[Settings Update] No changes detected, skipping save');
@@ -184,7 +196,10 @@ export function AppConfigProvider({ children }) {
     IpcBridge.invoke(INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG, filteredConfig).catch((error) => {
       console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
     });
-    ApiClient.updateSettings(filteredConfig);
+    const immediateBackendConfig = buildImmediateBackendConfig(filteredConfig);
+    if (immediateBackendConfig && hasImmediateBackendConfigChanges(previousConfig, filteredConfig)) {
+      ApiClient.updateSettings(immediateBackendConfig);
+    }
   }, [buildMergedFrontendConfig, configRef]);
 
   useEffect(() => {

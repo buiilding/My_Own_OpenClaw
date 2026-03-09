@@ -15,6 +15,7 @@ import {
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
+import { buildDeferredQueryModelConfig } from '../../../app/providers/appConfigBackendSync';
 import {
   resolveMessageSendUiBehavior,
   type ChatSendSurface,
@@ -209,6 +210,10 @@ export function useChatMessageSender(
     
     // Send query with screenshot to backend
     try {
+      const deferredQueryModelConfig = buildDeferredQueryModelConfig(config);
+      if (deferredQueryModelConfig) {
+        ApiClient.updateSettings(deferredQueryModelConfig);
+      }
       await ApiClient.sendQuery(
         text,
         conversationRef,
@@ -235,6 +240,7 @@ export function useChatMessageSender(
     shouldReturnToChatboxOnSend,
     shouldCaptureQueryScreenshot,
     ensureConversationRef,
+    config,
   ]);
 
   return { sendMessage };

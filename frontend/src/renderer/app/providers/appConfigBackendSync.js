@@ -1,0 +1,50 @@
+const DEFERRED_QUERY_MODEL_CONFIG_KEYS = new Set([
+  'model_provider',
+  'selected_model_id',
+]);
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function pickConfigKeys(config, predicate) {
+  if (!isPlainObject(config)) {
+    return null;
+  }
+
+  const entries = Object.entries(config).filter(([key, value]) => (
+    value !== undefined && predicate(key)
+  ));
+  if (entries.length === 0) {
+    return null;
+  }
+  return Object.fromEntries(entries);
+}
+
+export function buildDeferredQueryModelConfig(config) {
+  return pickConfigKeys(config, (key) => DEFERRED_QUERY_MODEL_CONFIG_KEYS.has(key));
+}
+
+export function buildImmediateBackendConfig(config) {
+  return pickConfigKeys(config, (key) => !DEFERRED_QUERY_MODEL_CONFIG_KEYS.has(key));
+}
+
+export function hasImmediateBackendConfigChanges(previousConfig, nextConfig) {
+  const previous = isPlainObject(previousConfig) ? previousConfig : {};
+  const next = isPlainObject(nextConfig) ? nextConfig : {};
+  const keys = new Set([
+    ...Object.keys(previous),
+    ...Object.keys(next),
+  ]);
+
+  for (const key of keys) {
+    if (DEFERRED_QUERY_MODEL_CONFIG_KEYS.has(key)) {
+      continue;
+    }
+    if (previous[key] !== next[key]) {
+      return true;
+    }
+  }
+
+  return false;
+}

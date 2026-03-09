@@ -51,8 +51,11 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     expect(ApiClient.updateSettings).toHaveBeenCalledWith(
       expect.objectContaining({
         voice_mode_enabled: true,
+      }),
+    );
+    expect(ApiClient.updateSettings).not.toHaveBeenCalledWith(
+      expect.objectContaining({
         selected_model_id: 'model-x',
-        model_provider: 'openai',
       }),
     );
   });
@@ -218,6 +221,25 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
     expect(ApiClient.updateSettings).toHaveBeenCalledWith(
       expect.objectContaining({ voice_mode_enabled: false }),
+    );
+  });
+
+  test('does not include deferred model selection in connection sync payloads', async () => {
+    mockLoadConfigFromStorage.mockReturnValue({
+      voice_mode_enabled: false,
+      model_provider: 'anthropic',
+      selected_model_id: 'claude-sonnet-4-5',
+    });
+    setClientUserIdResponse({ userId: 'client-user-1', isConnected: true });
+
+    renderAppConfigContext();
+    await flushAsyncEffects();
+
+    expect(ApiClient.updateSettings).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        model_provider: 'anthropic',
+        selected_model_id: 'claude-sonnet-4-5',
+      }),
     );
   });
 

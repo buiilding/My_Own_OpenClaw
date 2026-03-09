@@ -108,7 +108,7 @@ describe('AppConfigProvider model + config wiring', () => {
       INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG,
       expect.anything(),
     );
-    expect(ApiClient.updateSettings).not.toHaveBeenCalled();
+    expect(((ApiClient.updateSettings as jest.Mock).mock.calls || []).length).toBe(0);
   });
 
   test('removes backend listener on unmount', () => {
@@ -148,6 +148,27 @@ describe('AppConfigProvider model + config wiring', () => {
       }),
       expect.any(Number),
     );
+    expect(((ApiClient.updateSettings as jest.Mock).mock.calls || []).length).toBe(0);
+  });
+
+  test('keeps model-only config changes local until a query is sent', () => {
+    const { result } = renderAppConfigContext();
+
+    act(() => {
+      result.current.updateConfig({
+        selected_model_id: 'claude-sonnet-4-5',
+        model_provider: 'anthropic',
+      });
+    });
+
+    expect(mockSaveConfigToStorage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selected_model_id: 'claude-sonnet-4-5',
+        model_provider: 'anthropic',
+      }),
+      expect.any(Number),
+    );
+    expect(((ApiClient.updateSettings as jest.Mock).mock.calls || []).length).toBe(0);
   });
 
   test('registerSaveStatusCallback is invoked before persisting changed config', () => {
