@@ -1,32 +1,6 @@
 """Execution policies for the interaction loop."""
 from __future__ import annotations
 
-from dataclasses import dataclass
-
-
-@dataclass(slots=True)
-class IterationPolicy:
-    """Controls max-iteration and extra-turn behavior for tool loops."""
-
-    max_iterations: int
-    in_extra_turn_after_final_tools: bool = False
-
-    def begin_next_iteration(self, iteration: int) -> int:
-        return iteration + 1
-
-    def should_continue(self, iteration: int) -> bool:
-        return iteration < self.max_iterations or self.in_extra_turn_after_final_tools
-
-    def mark_tool_execution(self, iteration: int) -> None:
-        if iteration >= self.max_iterations:
-            self.in_extra_turn_after_final_tools = True
-
-    def can_execute_tools(self) -> bool:
-        return not self.in_extra_turn_after_final_tools
-
-    def reached_hard_limit(self, iteration: int) -> bool:
-        return iteration >= self.max_iterations and not self.in_extra_turn_after_final_tools
-
 
 class ParseRecoveryPolicy:
     """Builds corrective user-facing/system-facing messages after parser failures."""

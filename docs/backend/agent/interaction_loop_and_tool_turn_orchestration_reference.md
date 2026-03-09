@@ -95,18 +95,15 @@ Error handling:
 - rate limit -> deterministic user-facing message + history marker
 - other LLM/tool failures -> error event + history marker
 
-## Iteration Policy Semantics
+## Loop Continuation Semantics
 
-`IterationPolicy` fields:
+`InteractionLoop` continues until one of these terminal conditions occurs:
 
-- `max_iterations`
-- `in_extra_turn_after_final_tools`
+- model returns a final answer without tool calls
+- LLM stream emits an unrecoverable error
+- tool execution path emits a fatal error
 
-Behavior:
-
-- loop may run one extra no-tool turn after final tool execution
-- if tools are attempted in the extra turn, loop forces final answer path
-- hard limit emits deterministic max-step failure
+History size is reduced only by compaction; the loop is not stopped by a fixed step budget.
 
 ## Tool-Turn Lifecycle
 

@@ -21,7 +21,6 @@ from backend.src.agent.execution.tool_call_bridge import (
     to_parsed_response,
 )
 from backend.src.agent.execution.policies import (
-    IterationPolicy,
     ToolExecutionPolicy,
 )
 from backend.src.core.types.enums import MessageType
@@ -90,13 +89,10 @@ class InteractionLoop:
         Controls the state machine and delegates all work to specialized components.
         """
         iteration = 0
-        iteration_policy = IterationPolicy(
-            max_iterations=self.session.cfg.max_agent_iterations
-        )
         tool_execution_policy = ToolExecutionPolicy()
 
-        while iteration_policy.should_continue(iteration):
-            iteration = iteration_policy.begin_next_iteration(iteration)
+        while True:
+            iteration += 1
 
             compaction_engine = getattr(self.session, "compaction_engine", None)
             if iteration > 1 and compaction_engine is not None:
@@ -124,6 +120,7 @@ class InteractionLoop:
                             summary_preview=self._summary_preview(
                                 mid_compaction_result.summary_text
                             ),
+                            summary_text=mid_compaction_result.summary_text,
                             skipped_reason=mid_compaction_result.skip_reason,
                         )
                     except Exception as exc:
@@ -229,25 +226,8 @@ class InteractionLoop:
                     yield event
                 return
 
-            # Step 5: Tool execution path
-            # PREMATURE TERMINATION FIX: If we're in the extra turn after final tool execution,
-            # do not allow more tools - force final answer to prevent infinite loops
-            if not iteration_policy.can_execute_tools():
-                logger.warning(
-                    "Agent attempted to execute tools in extra turn after max_iterations. "
-                    "Forcing final answer instead."
-                )
-                # Treat as final answer (no tools)
-                self.session.history.add_assistant_message(llm_response_text)
-                async for event in self.event_presenter.present_completion(
-                    llm_response_text
-                ):
-                    yield event
-                return
-
             # Check if this is the final iteration and we're executing tools
-            # If so, set flag to allow one more turn after tool execution
-            iteration_policy.mark_tool_execution(iteration)
+            # Tool execution continues until the model returns a final answer or errors.
 
             # Add assistant message with tool calls to history (context is king!)
             self.session.history.add_assistant_message(
@@ -311,14 +291,6 @@ class InteractionLoop:
                             f"Error during tool result cleanup: {cleanup_error}",
                             exc_info=True
                         )
-
-        # Max iterations reached
-        if iteration_policy.reached_hard_limit(iteration):
-            logger.warning("Max iterations reached in agent loop.")
-            error_msg = "I reached the maximum number of steps without finishing."
-            async for event in self._emit_error_and_record(error_msg):
-                yield event
-            return
 
     async def _emit_error_and_record(
         self, error_msg: str

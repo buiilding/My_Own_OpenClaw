@@ -33,7 +33,6 @@ def init_prompt_and_history(session, metrics_service: Optional[Any]) -> None:
         session.tool_registry, session.cfg, metrics_service=metrics_service
     )
     session.history = ConversationHistory(
-        max_length=session.cfg.max_history_length,
         system_prompt=session.prompt_builder.system_prompt,
     )
 

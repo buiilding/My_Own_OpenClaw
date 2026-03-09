@@ -144,13 +144,12 @@ Invalidation triggers:
 - `add_user_message(...)`
 - `add_assistant_message(...)`
 - `clear()`
-- pruning in `_prune_if_needed()`
 - `replace_with_entries(...)`
 
 Incremental optimization path:
 
 - `add_tool_output(...)` computes token delta with `count_message_tokens(...)` when cache is valid
-- applies O(1) incremental add only if pruning did not occur
+- applies O(1) incremental add without any count-based history slicing
 
 ## Interaction Loop Commit Ordering
 

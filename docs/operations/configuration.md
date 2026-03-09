@@ -47,8 +47,6 @@ APP_CONFIG = AppConfig(
     llm_providers=LLMProviders(),
     memory_enabled=True,
     embedding_model="all-MiniLM-L6-v2",
-    max_history_length=1000,
-    max_agent_iterations=1000,
     voice_mode_enabled=False,
     speech_mode_enabled=False,
     include_query_screenshot=True,
@@ -105,7 +103,7 @@ Runtime compatibility note:
 
 Important execution knobs in `AppConfig` (`backend/src/core/config/models.py`) include:
 - `interaction_mode` (`chat` or `agent`) controls tool allowlist behavior.
-- `max_history_length` and `max_agent_iterations` control turn/tool execution bounds.
+- history reduction is compaction-only; there is no message-count pruning or loop-step cap in config.
 - `voice_mode_enabled`, `speech_mode_enabled`, and `include_query_screenshot` shape chat UX behavior.
 
 ## Frontend Configuration (Local)

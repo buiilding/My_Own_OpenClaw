@@ -52,7 +52,7 @@ Notable config domains:
 
 - Provider selection: `model_mode`, `model_provider`, `selected_model_id`, provider blocks
 - Runtime limits: parser size/time constraints, websocket limits, artifact size limits
-- Agent limits: `max_history_length`, `max_agent_iterations`, `interaction_mode`
+- Agent policy: `interaction_mode` plus history-compaction controls
 - Voice/UI policy bridge: `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_stt_enabled`, `include_query_screenshot`
 - Vision/OCR: `vision_model_name`, `ocr_config`
 

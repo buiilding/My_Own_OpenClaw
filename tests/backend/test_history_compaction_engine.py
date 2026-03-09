@@ -56,7 +56,7 @@ async def test_compaction_engine_skips_when_auto_compaction_disabled(monkeypatch
         "get_token_service",
         lambda: _FakeTokenService(),
     )
-    history = ConversationHistory(max_length=200)
+    history = ConversationHistory()
     _seed_history(history)
     cfg = AppConfig(history_compaction_enabled=False)
     session = _FakeSession(cfg=cfg, history=history)
@@ -78,7 +78,7 @@ async def test_compaction_engine_manual_force_replaces_history(monkeypatch):
         "get_token_service",
         lambda: _FakeTokenService(),
     )
-    history = ConversationHistory(max_length=200)
+    history = ConversationHistory()
     _seed_history(history)
     cfg = AppConfig(
         history_compaction_enabled=False,
@@ -106,7 +106,7 @@ async def test_compaction_engine_manual_force_compacts_short_history(monkeypatch
         "get_token_service",
         lambda: _FakeTokenService(),
     )
-    history = ConversationHistory(max_length=200)
+    history = ConversationHistory()
     history.add_user_message("single user turn")
     history.add_assistant_message("single assistant turn")
     cfg = AppConfig(
@@ -144,7 +144,7 @@ async def test_compaction_engine_respects_cooldown(monkeypatch):
         "get_token_service",
         lambda: _CooldownTokenService(),
     )
-    history = ConversationHistory(max_length=200)
+    history = ConversationHistory()
     for _ in range(6):
         _seed_history(history)
     cfg = AppConfig(
@@ -190,7 +190,7 @@ async def test_compaction_engine_uses_model_context_window_for_auto_trigger(monk
         "get_token_service",
         lambda: _DynamicThresholdTokenService(),
     )
-    history = ConversationHistory(max_length=500)
+    history = ConversationHistory()
     for _ in range(12):
         _seed_history(history)
     cfg = AppConfig(
@@ -230,7 +230,7 @@ async def test_compaction_engine_skips_when_dynamic_threshold_not_reached(monkey
         "get_token_service",
         lambda: _DynamicThresholdTokenService(),
     )
-    history = ConversationHistory(max_length=500)
+    history = ConversationHistory()
     for _ in range(12):
         _seed_history(history)
     cfg = AppConfig(

@@ -85,10 +85,9 @@ def test_init_prompt_and_history_wires_prompt_builder_system_prompt():
             captured["prompt_args"] = (tool_registry, cfg, metrics_service)
 
     class DummyHistory:
-        def __init__(self, max_length, system_prompt):
-            self.max_length = max_length
+        def __init__(self, system_prompt):
             self.system_prompt = system_prompt
-            captured["history_args"] = (max_length, system_prompt)
+            captured["history_args"] = (system_prompt,)
 
     monkeypatch = pytest.MonkeyPatch()
     monkeypatch.setattr(initializer, "PromptConstructor", DummyPromptConstructor)
@@ -96,7 +95,7 @@ def test_init_prompt_and_history_wires_prompt_builder_system_prompt():
 
     session = SimpleNamespace(
         tool_registry=object(),
-        cfg=SimpleNamespace(max_history_length=123),
+        cfg=SimpleNamespace(),
     )
     metrics_service = object()
 
@@ -106,14 +105,13 @@ def test_init_prompt_and_history_wires_prompt_builder_system_prompt():
         monkeypatch.undo()
 
     assert session.prompt_builder.metrics_service is metrics_service
-    assert session.history.max_length == 123
     assert session.history.system_prompt == session.prompt_builder.system_prompt
     assert captured["prompt_args"] == (
         session.tool_registry,
         session.cfg,
         metrics_service,
     )
-    assert captured["history_args"] == (123, "dummy-system-prompt")
+    assert captured["history_args"] == ("dummy-system-prompt",)
 
 
 def test_init_executor_passes_expected_dependencies(monkeypatch):

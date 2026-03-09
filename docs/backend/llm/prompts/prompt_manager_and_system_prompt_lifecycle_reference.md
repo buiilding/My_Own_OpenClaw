@@ -70,7 +70,7 @@ This is the main bridge from prompt manager into LLM interaction runtime.
 During session setup (`init_prompt_and_history`):
 
 - constructs `PromptConstructor`
-- creates `ConversationHistory(max_length, system_prompt=prompt_builder.system_prompt)`
+- creates `ConversationHistory(system_prompt=prompt_builder.system_prompt)`
 
 Result:
 

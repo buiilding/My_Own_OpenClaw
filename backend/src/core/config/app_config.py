@@ -30,8 +30,6 @@ APP_CONFIG = AppConfig(
     memory_enabled=True,
     embedding_model="all-MiniLM-L6-v2",
     # Agent Execution Settings
-    max_history_length=None,
-    max_agent_iterations=1000,
     interaction_mode="agent",
     history_compaction_enabled=True,
     history_compaction_manual_enabled=True,

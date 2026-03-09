@@ -22,7 +22,7 @@ Target behavior:
 
 ## Why This Work
 
-Current WindieOS behavior is message-count pruning only (`max_history_length`). That is not enough when token-heavy tool outputs, screenshots, and long XML context inflate prompt size before message count is reached.
+Current WindieOS behavior is compaction-only. That is the right direction when token-heavy tool outputs, screenshots, and long XML context inflate prompt size, but it means compaction is now the sole history-reduction mechanism.
 
 Symptoms today:
 - Context-window risk grows with long sessions.
@@ -34,10 +34,10 @@ Symptoms today:
 
 Primary files and current constraints:
 - `backend/src/agent/session/state.py`
-  - `ConversationHistory` supports count-based pruning (`_prune_if_needed`), cached token counting, and transcript rehydrate.
-  - No token-threshold compaction.
+  - `ConversationHistory` supports cached token counting and transcript rehydrate.
+  - No count-based pruning fallback remains.
 - `backend/src/agent/session/initializer.py`
-  - Injects `max_history_length` only.
+  - Injects the system prompt into conversation history only.
 - `backend/src/agent/execution/executor.py`
   - User message is appended before interaction loop starts.
 - `backend/src/agent/execution/interaction_loop.py`
@@ -226,7 +226,7 @@ File: `backend/src/agent/session/state.py`
 - Add helper extractors for compaction candidates:
   - user-message extraction from structured fields
   - optional unresolved tool-call span detection
-- Keep existing `max_history_length` pruning as fallback safety net.
+- Do not reintroduce count-based pruning as a fallback safety net.
 
 ### Message typing
 File: `backend/src/core/types/enums.py`
@@ -416,4 +416,3 @@ Merge order:
 2. API/events.
 3. Optional OpenAI remote.
 4. Docs and final validation.
-

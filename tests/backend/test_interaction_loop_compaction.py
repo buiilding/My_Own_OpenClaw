@@ -16,7 +16,7 @@ from backend.src.core.events.streaming_events import (
 
 
 class _FakeConfig:
-    max_agent_iterations = 4
+    pass
 
 
 class _FakeHistory:
@@ -151,4 +151,3 @@ async def test_interaction_loop_runs_mid_turn_compaction_before_second_sampling(
     assert any(isinstance(event, StreamingCompleteEvent) for event in events)
     assert session.compaction_engine.evaluate_calls
     assert session.compaction_engine.compact_calls
-

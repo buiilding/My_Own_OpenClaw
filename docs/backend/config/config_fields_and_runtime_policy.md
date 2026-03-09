@@ -57,8 +57,6 @@ Provider defaults in `LLMProviders`:
 | --- | --- | --- | --- |
 | `memory_enabled` | `bool` | `true` | Frontend-side memory services still consume backend config context. |
 | `embedding_model` | `str` | `all-MiniLM-L6-v2` | Used by embedding provider wiring. |
-| `max_history_length` | `int \| null` | `null` | Conversation history cap in session history manager. `null` disables count-based pruning. |
-| `max_agent_iterations` | `int` | `1000` | Loop upper bound for tool/LLM iterations. |
 | `interaction_mode` | `"chat" \| "agent"` | `"agent"` | Controls tool allowlist behavior (`get_tool_allowlist`). |
 | `vision_model_name` | `str \| None` | `OpenGVLab/InternVL3_5-4B` | Vision grounding model selection. |
 
