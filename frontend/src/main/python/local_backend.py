@@ -8,10 +8,12 @@ via JSON-RPC 2.0 protocol over stdin/stdout.
 """
 
 import asyncio
+import glob
 import logging
 import os
 import platform
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -56,6 +58,7 @@ ENV_ENABLE_SEMANTIC_SUMMARIZER = "WINDIE_ENABLE_SEMANTIC_SUMMARIZER"
 ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL = "WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL"
 ENV_PACKAGED_APP = "WINDIE_PACKAGED_APP"
 ENV_SIDECAR_LOG_LEVEL = "WINDIE_SIDECAR_LOG_LEVEL"
+CHROMIUM_INSTALL_TIMEOUT_SECONDS = 900
 
 def _resolve_sidecar_log_level() -> int:
     """Resolve sidecar Python log level from env with warning-safe fallback."""
@@ -148,6 +151,10 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         # Health check and diagnostics
         self.protocol.register_method("ping", self._handle_ping)
         self.protocol.register_method("get_status", self._handle_get_status)
+        self.protocol.register_method(
+            "install_browser_chromium",
+            self._handle_install_browser_chromium,
+        )
 
     async def initialize(self) -> None:
         """Initialize the backend services."""
@@ -233,6 +240,83 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
                 )
 
         return None
+
+    def _resolve_playwright_browsers_path(self) -> Path:
+        configured = os.getenv("PLAYWRIGHT_BROWSERS_PATH")
+        if configured:
+            return Path(configured).expanduser()
+
+        system_name = platform.system()
+        if system_name == "Windows":
+            localappdata = os.getenv("LOCALAPPDATA")
+            if localappdata:
+                return Path(localappdata) / "ms-playwright"
+        if system_name == "Darwin":
+            return Path.home() / "Library" / "Caches" / "ms-playwright"
+        return Path.home() / ".cache" / "ms-playwright"
+
+    def _find_available_browser_binary(self) -> Optional[str]:
+        system_name = platform.system()
+        playwright_root = self._resolve_playwright_browsers_path()
+
+        if system_name == "Darwin":
+            patterns = [
+                str(playwright_root / "chromium-*" / "chrome-mac" / "Chromium.app" / "Contents" / "MacOS" / "Chromium"),
+                "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+                "/Applications/Chromium.app/Contents/MacOS/Chromium",
+                "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
+                "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+                str(playwright_root / "chromium_headless_shell-*" / "chrome-mac" / "Chromium.app" / "Contents" / "MacOS" / "Chromium"),
+            ]
+        elif system_name == "Windows":
+            patterns = [
+                str(playwright_root / "chromium-*" / "chrome-win" / "chrome.exe"),
+                r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+                r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe",
+                r"%PROGRAMFILES%\Google\Chrome\Application\chrome.exe",
+                r"%PROGRAMFILES(X86)%\Google\Chrome\Application\chrome.exe",
+                str(playwright_root / "chromium_headless_shell-*" / "chrome-win" / "chrome.exe"),
+                r"C:\Program Files\Chromium\Application\chrome.exe",
+                r"C:\Program Files (x86)\Chromium\Application\chrome.exe",
+                r"%LOCALAPPDATA%\Chromium\Application\chrome.exe",
+                r"C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe",
+                r"C:\Program Files (x86)\BraveSoftware\Brave-Browser\Application\brave.exe",
+                r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+                r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+                r"%LOCALAPPDATA%\Microsoft\Edge\Application\msedge.exe",
+            ]
+        else:
+            patterns = [
+                str(playwright_root / "chromium-*" / "chrome-linux*" / "chrome"),
+                "/usr/bin/google-chrome-stable",
+                "/usr/bin/google-chrome",
+                "/usr/local/bin/google-chrome",
+                "/usr/bin/chromium",
+                "/usr/bin/chromium-browser",
+                "/usr/local/bin/chromium",
+                "/snap/bin/chromium",
+                "/usr/bin/google-chrome-beta",
+                "/usr/bin/google-chrome-dev",
+                "/usr/bin/brave-browser",
+                str(playwright_root / "chromium_headless_shell-*" / "chrome-linux*" / "chrome"),
+            ]
+
+        for raw_pattern in patterns:
+            pattern = os.path.expandvars(os.path.expanduser(raw_pattern))
+            if "*" in pattern:
+                matches = sorted(glob.glob(pattern))
+                for candidate in reversed(matches):
+                    candidate_path = Path(candidate)
+                    if candidate_path.exists() and candidate_path.is_file():
+                        return str(candidate_path)
+                continue
+
+            candidate_path = Path(pattern)
+            if candidate_path.exists() and candidate_path.is_file():
+                return str(candidate_path)
+
+        return None
     
     async def _handle_ping(self) -> Dict[str, Any]:
         """Health check method."""
@@ -241,6 +325,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
     async def _handle_get_status(self, **kwargs) -> Dict[str, Any]:
         """Get detailed backend status for diagnostics."""
         try:
+            browser_binary_path = self._find_available_browser_binary()
             status = {
                 "status": "ok",
                 "service": "local_backend",
@@ -252,6 +337,9 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
                 "browser_feature_pack_autoinstall_enabled": (
                     self._browser_feature_pack_autoinstall_enabled
                 ),
+                "browser_binary_available": browser_binary_path is not None,
+                "browser_binary_path": browser_binary_path,
+                "playwright_browsers_path": str(self._resolve_playwright_browsers_path()),
                 "runtime_dependency_warnings": list(self._runtime_dependency_warnings),
             }
             
@@ -278,6 +366,98 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
                 "status": "error",
                 "error": str(e)
             }
+
+    async def _handle_install_browser_chromium(self, **kwargs) -> Dict[str, Any]:
+        """Ensure Chromium is available for browser automation."""
+        existing_browser_path = self._find_available_browser_binary()
+        if existing_browser_path:
+            return {
+                "success": True,
+                "installed": False,
+                "skipped": True,
+                "reason": "Browser binary already available.",
+                "browser_binary_path": existing_browser_path,
+                "playwright_browsers_path": str(self._resolve_playwright_browsers_path()),
+            }
+
+        setup_error = await self._ensure_browser_tool_ready()
+        if setup_error:
+            return {
+                "success": False,
+                "error": setup_error,
+                "installed": False,
+            }
+
+        existing_browser_path = self._find_available_browser_binary()
+        if existing_browser_path:
+            return {
+                "success": True,
+                "installed": False,
+                "skipped": True,
+                "reason": "Browser binary became available during browser feature-pack setup.",
+                "browser_binary_path": existing_browser_path,
+                "playwright_browsers_path": str(self._resolve_playwright_browsers_path()),
+            }
+
+        playwright_browsers_path = self._resolve_playwright_browsers_path()
+        playwright_browsers_path.mkdir(parents=True, exist_ok=True)
+
+        try:
+            install_result = await asyncio.to_thread(
+                subprocess.run,
+                [sys.executable, "-m", "playwright", "install", "chromium"],
+                capture_output=True,
+                text=True,
+                timeout=CHROMIUM_INSTALL_TIMEOUT_SECONDS,
+                env={
+                    **os.environ,
+                    "PLAYWRIGHT_BROWSERS_PATH": str(playwright_browsers_path),
+                },
+            )
+        except subprocess.TimeoutExpired:
+            return {
+                "success": False,
+                "error": (
+                    "Timed out while installing Chromium runtime "
+                    f"after {CHROMIUM_INSTALL_TIMEOUT_SECONDS} seconds."
+                ),
+                "installed": False,
+            }
+        except Exception as exc:
+            return {
+                "success": False,
+                "error": f"Chromium install failed: {exc}",
+                "installed": False,
+            }
+
+        if install_result.returncode != 0:
+            error_detail = (install_result.stderr or install_result.stdout or "").strip()
+            return {
+                "success": False,
+                "error": (
+                    "Chromium install command failed."
+                    + (f" {error_detail}" if error_detail else "")
+                ),
+                "installed": False,
+                "returncode": install_result.returncode,
+            }
+
+        installed_browser_path = self._find_available_browser_binary()
+        if not installed_browser_path:
+            return {
+                "success": False,
+                "error": "Chromium install completed but no browser binary was detected afterward.",
+                "installed": False,
+                "returncode": install_result.returncode,
+            }
+
+        return {
+            "success": True,
+            "installed": True,
+            "skipped": False,
+            "browser_binary_path": installed_browser_path,
+            "playwright_browsers_path": str(playwright_browsers_path),
+        }
     
     async def _handle_execute_tool(self, tool_name: str, args: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """

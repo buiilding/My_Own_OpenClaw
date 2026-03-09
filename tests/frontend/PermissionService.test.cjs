@@ -248,6 +248,63 @@ describe('permission_service', () => {
     expect(status.details.browser_automation_enabled).toBe(true);
   });
 
+  test('browser automation request installs chromium when missing and consented', async () => {
+    const verifyBrowserAutomationCapability = jest
+      .fn()
+      .mockResolvedValueOnce({
+        granted: false,
+        reason: 'Chromium runtime missing.',
+        details: { missing_browser_binary: true },
+      })
+      .mockResolvedValueOnce({
+        granted: true,
+        details: { browser_binary_available: true },
+      });
+    const installBrowserAutomationRuntime = jest.fn(async () => ({
+      success: true,
+      details: { installed: true },
+    }));
+    const showMessageBox = jest.fn(async () => ({ response: 0 }));
+
+    const status = await requestPermission('browser_automation', {
+      platform: 'linux',
+      getBrowserAutomationPreference: () => true,
+      verifyBrowserAutomationCapability,
+      installBrowserAutomationRuntime,
+      dialog: { showMessageBox },
+    });
+
+    expect(showMessageBox).toHaveBeenCalledTimes(1);
+    expect(installBrowserAutomationRuntime).toHaveBeenCalledTimes(1);
+    expect(verifyBrowserAutomationCapability).toHaveBeenCalledTimes(2);
+    expect(status.status).toBe('granted');
+    expect(status.granted).toBe(true);
+  });
+
+  test('browser automation request stays needs-action when chromium install is declined', async () => {
+    const verifyBrowserAutomationCapability = jest.fn(async () => ({
+      granted: false,
+      reason: 'Chromium runtime missing.',
+      details: { missing_browser_binary: true },
+    }));
+    const installBrowserAutomationRuntime = jest.fn(async () => ({ success: true }));
+    const showMessageBox = jest.fn(async () => ({ response: 1 }));
+
+    const status = await requestPermission('browser_automation', {
+      platform: 'linux',
+      getBrowserAutomationPreference: () => false,
+      verifyBrowserAutomationCapability,
+      installBrowserAutomationRuntime,
+      dialog: { showMessageBox },
+    });
+
+    expect(showMessageBox).toHaveBeenCalledTimes(1);
+    expect(installBrowserAutomationRuntime).not.toHaveBeenCalled();
+    expect(status.status).toBe('needs-action');
+    expect(status.granted).toBe(false);
+    expect(String(status.reason || '')).toContain('canceled');
+  });
+
   test('unknown permission id returns error status', () => {
     const status = runPermissionProbe('unknown_permission', { platform: 'linux' });
     expect(status.status).toBe('error');

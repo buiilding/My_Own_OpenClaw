@@ -16,7 +16,7 @@ frontend app and do not need Python installed system-wide.
 - Installer includes a bundled Python runtime at `resources/python-runtime`.
 - Sidecar processes run from `resources/python-runtime/sidecar`.
 - Runtime build ships sidecar bytecode (`.pyc`) only; sidecar plaintext `.py` files are removed before packaging.
-- Full-profile runtime bundles Playwright Chromium payload at `resources/python-runtime/ms-playwright`.
+- Runtime bundles Playwright Chromium payload at `resources/python-runtime/ms-playwright`.
 
 ## Repository Pieces
 
@@ -25,7 +25,6 @@ frontend app and do not need Python installed system-wide.
   - `frontend/src/main/local_backend_bridge.cjs`
   - `frontend/src/main/wakeword_bridge.cjs`
 - Runtime dependency set:
-  - `frontend/src/main/python/requirements.runtime.txt` (full aggregate profile)
   - `frontend/src/main/python/requirements.runtime.core.txt`
   - `frontend/src/main/python/requirements.runtime.browser.txt`
 - Runtime build helper:
@@ -45,17 +44,10 @@ Do not reuse one OS runtime for another OS release.
 
 ## Step 1: Build Sidecar Runtime
 
-From repo root (release policy: full profile, all bundled):
+From repo root:
 
 ```bash
-bash scripts/build-sidecar-runtime-full
-```
-
-Alternative profiles (for development only):
-
-```bash
-WINDIE_SIDECAR_RUNTIME_MODE=slim \
-WINDIE_SIDECAR_RUNTIME_PROFILE=core+browser bash scripts/build-sidecar-runtime
+bash scripts/build-sidecar-runtime
 ```
 
 This creates:
@@ -71,22 +63,6 @@ From `frontend/`:
 npm run package:win
 npm run package:mac
 npm run package:linux
-```
-
-Explicit bundled/full variants:
-
-```bash
-npm run package:win:bundled-python:full
-npm run package:mac:bundled-python:full
-npm run package:linux:bundled-python:full
-```
-
-Core+browser-deps variants (no bundled Playwright browser binary payload):
-
-```bash
-npm run package:win:bundled-python:core+browser
-npm run package:mac:bundled-python:core+browser
-npm run package:linux:bundled-python:core+browser
 ```
 
 Use only the command for the OS you are currently building on.
@@ -148,10 +124,11 @@ On a clean test machine:
 - Linux `.deb`/`.rpm` installers declare `xdotool` package dependency; AppImage users must install `xdotool` manually.
 - Sidecar startup/status now emits runtime dependency warnings when `xdotool` is missing so degraded window probes are visible in logs/status payloads.
 - Windows bundled runtime now ships a relocatable CPython tree (not a host-bound `venv`) so installed apps do not depend on build-machine Python paths.
-- Release runtime is full-profile and bundles browser Python dependencies + Playwright Chromium payload.
+- Release runtime bundles browser Python dependencies + Playwright Chromium payload.
 - Packaged launch exports `PLAYWRIGHT_BROWSERS_PATH` to bundled runtime so browser automation uses bundled Chromium by default.
 - Runtime build is idempotent for bundled assets: wakeword prefetch and Playwright Chromium install are skipped when already present.
 - Packaged app disables browser feature-pack runtime auto-install; missing browser deps are treated as build/package errors.
+- Browser automation permission flow checks Chromium availability at runtime and can install Chromium on user consent when needed.
 - Browser `extract`/`read_long_content` now use deterministic markdown extraction in sidecar (no sidecar LLM provider SDK dependency).
 - Browser launch first checks bundled Playwright Chromium payload, then falls back to system-installed Chromium-based browsers.
 - Wakeword model prefetch is required during runtime build; build fails when prefetch fails (unless explicitly overridden via `WINDIE_REQUIRE_WAKEWORD_PREFETCH=0`).

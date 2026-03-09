@@ -26,6 +26,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
     runCommand,
     getBrowserAutomationPreference,
     verifyBrowserAutomationCapability,
+    installBrowserAutomationRuntime,
   } = deps;
 
   const permissionDeps = {
@@ -37,6 +38,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
     runCommand,
     getBrowserAutomationPreference,
     verifyBrowserAutomationCapability,
+    installBrowserAutomationRuntime,
   };
   const getPermissionId = (options = {}) => {
     return typeof options?.permissionId === 'string'

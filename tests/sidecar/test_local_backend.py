@@ -833,6 +833,7 @@ async def test_handle_get_status_reports_tools():
     backend.running = True
     backend.memory_store = DummyMemoryStore()
     backend._runtime_dependency_warnings = ["missing xdotool"]
+    backend._find_available_browser_binary = lambda: "/tmp/chromium"  # type: ignore[assignment]
 
     status = await backend._handle_get_status()
     assert status["running"] is True
@@ -840,6 +841,80 @@ async def test_handle_get_status_reports_tools():
     assert "read_file" in status["registered_tools"]
     assert status["semantic_summarizer_enabled"] is True
     assert status["runtime_dependency_warnings"] == ["missing xdotool"]
+    assert status["browser_binary_available"] is True
+    assert status["browser_binary_path"] == "/tmp/chromium"
+
+
+@pytest.mark.asyncio
+async def test_handle_install_browser_chromium_skips_when_browser_already_available():
+    backend = LocalBackend()
+    backend._find_available_browser_binary = lambda: "/usr/bin/chromium"  # type: ignore[assignment]
+
+    result = await backend._handle_install_browser_chromium()
+
+    assert result["success"] is True
+    assert result["installed"] is False
+    assert result["skipped"] is True
+    assert result["browser_binary_path"] == "/usr/bin/chromium"
+
+
+@pytest.mark.asyncio
+async def test_handle_install_browser_chromium_installs_when_missing(monkeypatch, tmp_path):
+    backend = LocalBackend()
+    browser_checks = {"count": 0}
+
+    def _find_browser():
+        browser_checks["count"] += 1
+        if browser_checks["count"] >= 3:
+            return str(tmp_path / "ms-playwright" / "chromium-123" / "chrome-linux" / "chrome")
+        return None
+
+    async def _ensure_ready():
+        return None
+
+    class _RunResult:
+        returncode = 0
+        stdout = "ok"
+        stderr = ""
+
+    backend._find_available_browser_binary = _find_browser  # type: ignore[assignment]
+    backend._ensure_browser_tool_ready = _ensure_ready  # type: ignore[assignment]
+    backend._resolve_playwright_browsers_path = lambda: tmp_path / "ms-playwright"  # type: ignore[assignment]
+
+    monkeypatch.setattr(local_backend_module.subprocess, "run", lambda *args, **kwargs: _RunResult())
+
+    result = await backend._handle_install_browser_chromium()
+
+    assert result["success"] is True
+    assert result["installed"] is True
+    assert result["skipped"] is False
+    assert "browser_binary_path" in result
+
+
+@pytest.mark.asyncio
+async def test_handle_install_browser_chromium_reports_install_failure(monkeypatch, tmp_path):
+    backend = LocalBackend()
+
+    async def _ensure_ready():
+        return None
+
+    class _RunResult:
+        returncode = 1
+        stdout = ""
+        stderr = "download failed"
+
+    backend._find_available_browser_binary = lambda: None  # type: ignore[assignment]
+    backend._ensure_browser_tool_ready = _ensure_ready  # type: ignore[assignment]
+    backend._resolve_playwright_browsers_path = lambda: tmp_path / "ms-playwright"  # type: ignore[assignment]
+
+    monkeypatch.setattr(local_backend_module.subprocess, "run", lambda *args, **kwargs: _RunResult())
+
+    result = await backend._handle_install_browser_chromium()
+
+    assert result["success"] is False
+    assert result["installed"] is False
+    assert "Chromium install command failed" in result["error"]
+    assert result["returncode"] == 1
 
 
 @pytest.mark.asyncio

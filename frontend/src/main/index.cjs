@@ -27,6 +27,7 @@ const {
   initializeLocalBackendBridge,
   stopLocalBackend,
   getLocalBackendStatus,
+  installBrowserChromium,
 } = require('./local_backend_bridge.cjs');
 const { createVmWorkerRuntime } = require('./vm_worker_runtime.cjs');
 const { createExternalFocusTracker } = require('./external_focus_tracker.cjs');
@@ -509,17 +510,37 @@ function initializeMainProcessIpc() {
       const registeredTools = Array.isArray(payload.registered_tools) ? payload.registered_tools : [];
       const hasBrowserTool = registeredTools.includes('browser');
       const featurePackAvailable = payload.browser_feature_pack_available === true;
+      const browserBinaryAvailable = payload.browser_binary_available === true;
+      const browserBinaryPath = typeof payload.browser_binary_path === 'string'
+        ? payload.browser_binary_path
+        : '';
 
-      if (hasBrowserTool && featurePackAvailable) {
+      if (hasBrowserTool && featurePackAvailable && browserBinaryAvailable) {
         return {
           granted: true,
           details: {
             backend_status: payload,
+            browser_binary_path: browserBinaryPath,
           },
         };
       }
 
       const autoInstallEnabled = payload.browser_feature_pack_autoinstall_enabled === true;
+      if (hasBrowserTool && featurePackAvailable && !browserBinaryAvailable) {
+        return {
+          granted: false,
+          reason: (
+            'Browser automation is enabled, but no Chromium browser runtime is available yet. '
+            + 'Click Grant to install Chromium for WindieOS.'
+          ),
+          details: {
+            backend_status: payload,
+            missing_browser_binary: true,
+            browser_binary_available: false,
+          },
+        };
+      }
+
       const reason = autoInstallEnabled
         ? 'Browser automation runtime is still unavailable. Retry Enable in a few seconds.'
         : 'Browser automation runtime is unavailable in this build. Reinstall WindieOS or install browser feature pack dependencies.';
@@ -529,7 +550,26 @@ function initializeMainProcessIpc() {
         reason,
         details: {
           backend_status: payload,
+          missing_browser_binary: false,
         },
+      };
+    },
+    installBrowserAutomationRuntime: async () => {
+      const installResult = await installBrowserChromium();
+      if (!installResult || installResult.success !== true || typeof installResult.data !== 'object') {
+        return {
+          success: false,
+          error: typeof installResult?.error === 'string'
+            ? installResult.error
+            : 'Failed to install Chromium runtime.',
+          details: installResult,
+        };
+      }
+
+      return {
+        success: installResult.data.success === true,
+        error: typeof installResult.data.error === 'string' ? installResult.data.error : '',
+        details: installResult.data,
       };
     },
   });

@@ -6,15 +6,6 @@ on:
       - "v*"
   workflow_dispatch:
     inputs:
-      sidecar_profile:
-        description: "Bundled sidecar profile"
-        required: true
-        default: "core"
-        type: choice
-        options:
-          - core
-          - core+browser
-          - full
       run_signing:
         description: "Sign/notarize artifacts (requires secrets)"
         required: true
@@ -155,7 +146,6 @@ jobs:
         working-directory: frontend
         shell: bash
         env:
-          SIDECAR_PROFILE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.sidecar_profile || 'core' }}
           RUN_SIGNING: ${{ steps.signing.outputs.effective }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
@@ -164,7 +154,6 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           set -euo pipefail
-          export WINDIE_SIDECAR_RUNTIME_PROFILE="${SIDECAR_PROFILE}"
           if [[ "${RUN_SIGNING}" != "true" ]]; then
             export CSC_IDENTITY_AUTO_DISCOVERY="false"
             unset CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
