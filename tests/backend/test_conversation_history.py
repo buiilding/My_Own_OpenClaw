@@ -6,7 +6,7 @@ from backend.src.llm.providers.base import LLMProvider
 
 
 def test_get_history_includes_system_prompt_and_messages():
-    history = ConversationHistory(max_length=5, system_prompt="system prompt")
+    history = ConversationHistory(system_prompt="system prompt")
 
     history.add_user_message("hello")
 
@@ -16,21 +16,22 @@ def test_get_history_includes_system_prompt_and_messages():
     assert messages[1]["content"] == "hello"
 
 
-def test_prune_keeps_most_recent_messages():
-    history = ConversationHistory(max_length=2)
+def test_history_retains_messages_without_count_pruning():
+    history = ConversationHistory()
 
     history.add_user_message("first")
     history.add_assistant_message("second")
     history.add_user_message("third")
 
     stored = history.get_stored_messages()
-    assert len(stored) == 2
-    assert stored[0].content == "second"
-    assert stored[1].content == "third"
+    assert len(stored) == 3
+    assert stored[0].content == "first"
+    assert stored[1].content == "second"
+    assert stored[2].content == "third"
 
 
 def test_preserves_all_images_in_history():
-    history = ConversationHistory(max_length=10)
+    history = ConversationHistory()
 
     history.add_user_message("one", image_data="img-1")
     history.add_tool_output("two", image_data="img-2")
@@ -48,7 +49,7 @@ def test_preserves_all_images_in_history():
 
 
 def test_get_history_mutable_isolated_from_internal_cache():
-    history = ConversationHistory(max_length=5)
+    history = ConversationHistory()
     history.add_user_message("alpha")
 
     mutable = history.get_history_mutable()
@@ -59,7 +60,7 @@ def test_get_history_mutable_isolated_from_internal_cache():
 
 
 def test_get_token_count_caches_per_model(monkeypatch):
-    history = ConversationHistory(max_length=5)
+    history = ConversationHistory()
     history.add_user_message("alpha")
 
     class FakeTokenService:
@@ -82,7 +83,7 @@ def test_get_token_count_caches_per_model(monkeypatch):
 
 
 def test_add_tool_output_updates_cached_token_count(monkeypatch):
-    history = ConversationHistory(max_length=5)
+    history = ConversationHistory()
     history.add_user_message("alpha")
 
     class FakeTokenService:
@@ -113,7 +114,7 @@ def test_add_tool_output_updates_cached_token_count(monkeypatch):
 
 
 def test_tool_output_with_staged_tool_call_id_avoids_duplicate_text_rows():
-    history = ConversationHistory(max_length=10)
+    history = ConversationHistory()
 
     history.stage_tool_call_ids(["call_1"])
     history.add_tool_output("tool output")
@@ -131,7 +132,7 @@ def test_tool_output_with_staged_tool_call_id_avoids_duplicate_text_rows():
 
 
 def test_tool_output_with_staged_tool_call_id_preserves_image_context_without_text_duplication():
-    history = ConversationHistory(max_length=10)
+    history = ConversationHistory()
 
     history.stage_tool_call_ids(["call_1"])
     history.add_tool_output("tool output", image_data="img-1")
@@ -159,7 +160,7 @@ def test_tool_output_with_staged_tool_call_id_preserves_image_context_without_te
 def test_add_tool_output_with_staged_tool_and_image_updates_cached_token_count_per_row(
     monkeypatch,
 ):
-    history = ConversationHistory(max_length=10)
+    history = ConversationHistory()
     history.add_user_message("alpha")
 
     class FakeTokenService:
@@ -190,7 +191,7 @@ def test_add_tool_output_with_staged_tool_and_image_updates_cached_token_count_p
 
 
 def test_finalize_pending_tool_calls_as_cancelled_adds_tool_rows_and_clears_staging():
-    history = ConversationHistory(max_length=10)
+    history = ConversationHistory()
 
     history.stage_tool_call_ids(["call_1", "call_2"], consume_all_on_next_output=True)
     reconciled = history.finalize_pending_tool_calls_as_cancelled(
@@ -215,8 +216,8 @@ def test_finalize_pending_tool_calls_as_cancelled_adds_tool_rows_and_clears_stag
     assert final_stored[-1].tool_call_id is None
 
 
-def test_prune_invalidates_token_cache(monkeypatch):
-    history = ConversationHistory(max_length=1)
+def test_tool_output_incrementally_updates_token_cache(monkeypatch):
+    history = ConversationHistory()
     history.add_user_message("alpha")
 
     class FakeTokenService:
@@ -237,12 +238,12 @@ def test_prune_invalidates_token_cache(monkeypatch):
     assert service.count_tokens_calls == 1
 
     history.add_tool_output("tool output")
-    assert history.get_token_count("model-a") == 7
-    assert service.count_tokens_calls == 2
+    assert history.get_token_count("model-a") == 9
+    assert service.count_tokens_calls == 1
 
 
 def test_replace_with_entries_rehydrates_order_and_images():
-    history = ConversationHistory(max_length=10)
+    history = ConversationHistory()
 
     history.replace_with_entries(
         [
@@ -273,7 +274,7 @@ def test_replace_with_entries_rehydrates_order_and_images():
 
 
 def test_replace_with_entries_preserves_assistant_tool_call_rows():
-    history = ConversationHistory(max_length=10)
+    history = ConversationHistory()
     history.replace_with_entries(
         [
             {
@@ -313,7 +314,7 @@ def test_replace_with_entries_preserves_assistant_tool_call_rows():
 
 
 def test_replace_with_stored_messages_replaces_history_atomically():
-    history = ConversationHistory(max_length=10)
+    history = ConversationHistory()
     history.add_user_message("old user")
     history.add_assistant_message("old assistant")
 
@@ -338,7 +339,7 @@ def test_replace_with_stored_messages_replaces_history_atomically():
 
 
 def test_replace_with_entries_normalizes_context_compaction_message_type():
-    history = ConversationHistory(max_length=10)
+    history = ConversationHistory()
     history.replace_with_entries(
         [
             {

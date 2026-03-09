@@ -18,7 +18,7 @@ from backend.src.core.types.enums import MessageRole, MessageType
 
 
 class _FakeConfig:
-    max_agent_iterations = 3
+    pass
 
 
 class _FakeHistory:

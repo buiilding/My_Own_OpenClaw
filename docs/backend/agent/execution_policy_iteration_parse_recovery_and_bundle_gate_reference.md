@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for `execution/policies.py`: iteration/extra-turn loop gates, parser validation recovery prompt contract, and bundle detection semantics used by interaction-loop tool turns."
+summary: "Deep reference for `execution/policies.py`: parser validation recovery prompt contract and bundle detection semantics used by interaction-loop tool turns."
 read_when:
-  - When changing max-iteration behavior, extra-turn gating, or tool-execution stop conditions in `backend/src/agent/execution/interaction_loop.py`.
+  - When changing tool-execution stop conditions, parser-validation corrective guidance, or bundle execution semantics in `backend/src/agent/execution/interaction_loop.py`.
   - When changing parser-validation corrective guidance text emitted by `ParseRecoveryPolicy`.
 title: "Execution Policy Iteration, Parse-Recovery, and Bundle Gate Reference"
 ---
@@ -18,44 +18,10 @@ title: "Execution Policy Iteration, Parse-Recovery, and Bundle Gate Reference"
 
 `policies.py` exposes three focused policy classes:
 
-- `IterationPolicy`
 - `ParseRecoveryPolicy`
 - `ToolExecutionPolicy`
 
-`InteractionLoop.run_loop()` composes these policies to keep loop-control rules explicit and testable.
-
-## IterationPolicy Contract
-
-State fields:
-
-- `max_iterations: int`
-- `in_extra_turn_after_final_tools: bool = False`
-
-Method semantics:
-
-- `begin_next_iteration(iteration)`:
-  - increments loop counter by one
-- `should_continue(iteration)`:
-  - continue when `iteration < max_iterations`
-  - also continue when `in_extra_turn_after_final_tools` is already set
-- `mark_tool_execution(iteration)`:
-  - when tools execute at/after max iteration, flips `in_extra_turn_after_final_tools=True`
-- `can_execute_tools()`:
-  - returns `False` once extra-turn mode is active
-- `reached_hard_limit(iteration)`:
-  - returns `True` only when at/above max iterations and not in extra-turn mode
-
-### Interaction-loop behavior driven by IterationPolicy
-
-`interaction_loop.py` uses this policy to allow one final assistant-only turn after tool execution reaches the max iteration budget:
-
-1. tools execute on a max-iteration turn
-2. policy marks extra-turn mode
-3. loop allows one more iteration
-4. if model tries tools again, loop force-completes instead of dispatching more tools
-5. otherwise loop emits normal final assistant completion
-
-This prevents runaway tool loops while still allowing a final natural-language summary after the last tool run.
+`InteractionLoop.run_loop()` now only composes the parse-recovery and tool-execution policies. Loop termination is driven by final responses, tool outcomes, and compaction-aware history management instead of a fixed iteration cap.
 
 ## ParseRecoveryPolicy Contract
 
@@ -84,10 +50,8 @@ This is distinct from stream-time recoverable tool-call error handling (syntheti
 
 ## Drift Hotspots
 
-1. Changing `mark_tool_execution()` trigger conditions without matching interaction-loop usage can silently remove the extra-turn final-answer behavior.
-2. Allowing tools while `in_extra_turn_after_final_tools=True` can reintroduce infinite or runaway tool loops.
-3. Editing parser corrective message examples without matching current wrapper schema contracts (`computer_use` metadata fields and `system_use` top-level explanation) can teach the model invalid formats.
-4. Changing bundle detection threshold (`> 1`) without updating tool-result staging/await assumptions can desynchronize bundle completion ordering.
+1. Editing parser corrective message examples without matching current wrapper schema contracts (`computer_use` metadata fields and `system_use` top-level explanation) can teach the model invalid formats.
+2. Changing bundle detection threshold (`> 1`) without updating tool-result staging/await assumptions can desynchronize bundle completion ordering.
 
 ## Related Pages
 

@@ -1,12 +1,6 @@
-"""
-Conversation History Manager for maintaining conversation state.
-
-This module manages the conversation history, including pruning to prevent
-context window overflow.
-"""
+"""Conversation history manager for maintaining stored and LLM-ready state."""
 
 import copy
-import logging
 from typing import Any, Dict, List, Optional, Union
 
 from backend.src.agent.session.message_builders import (
@@ -20,30 +14,25 @@ from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.core.types.schemas import LLMMessage
 
-logger = logging.getLogger(__name__)
-
-
 class ConversationHistory:
     """
-    Manages conversation history with automatic pruning.
-    
+    Manages conversation history without count-based pruning.
+
     History stores messages in structured StoredMessage format for type safety.
     Maintains a cached LLMMessage format for O(1) retrieval instead of O(n) conversion.
     """
 
-    def __init__(self, max_length: Optional[int] = 10, system_prompt: Optional[str] = None):
+    def __init__(self, system_prompt: Optional[str] = None):
         """
         Initialize the conversation history.
 
         Args:
-            max_length: Maximum number of messages to keep in history
             system_prompt: System prompt to store and include in history
         """
         # Internal format: List of StoredMessage instances
         self.history: List[StoredMessage] = []
         # Cached LLM format for O(1) retrieval (updated incrementally)
         self._llm_history_cache: List[LLMMessage] = []
-        self.max_length = max_length
         self.system_prompt: Optional[str] = system_prompt
         self._pending_tool_call_ids: List[str] = []
         self._consume_all_tool_call_ids_on_next_output = False
@@ -52,10 +41,6 @@ class ConversationHistory:
         # Updated incrementally when messages are added
         self._cached_token_count: Optional[int] = None
         self._cached_token_count_model: Optional[str] = None  # Model ID for which count is cached
-
-        # If max_length is None, disable pruning
-        if self.max_length is None:
-            self.max_length = float('inf')
 
     def add_user_message(
         self,
@@ -86,7 +71,6 @@ class ConversationHistory:
         self._append_message(stored_msg)
         # Invalidate token count cache (new message added)
         self._invalidate_token_cache()
-        self._prune_if_needed()
 
     def add_tool_output(
         self,
@@ -126,7 +110,7 @@ class ConversationHistory:
             # Fallback path when no tool_call_id linkage exists.
             stored_messages.append(build_tool_output_message(message, image_data))
 
-        # INCREMENTAL TOKEN COUNT: If cache is valid, count new message before pruning
+        # INCREMENTAL TOKEN COUNT: If cache is valid, count new message before append
         # This avoids O(N) re-counting when multiple tools are called in sequence
         new_message_token_count = 0
         cache_was_valid = (
@@ -146,34 +130,13 @@ class ConversationHistory:
                     self._cached_token_count_model,
                 )
         
-        # Store history length before pruning to detect if pruning occurred
-        history_length_before = len(self.history)
-
         for stored_msg, llm_msg in zip(stored_messages, llm_messages):
             self._append_message(stored_msg, llm_msg)
-        
-        # Prune if needed (this may invalidate cache if pruning occurs)
-        self._prune_if_needed()
-        
-        # INCREMENTAL UPDATE: If cache was valid and no pruning occurred, update incrementally
-        # If pruning occurred, _prune_if_needed already invalidated the cache
-        history_length_after = len(self.history)
-        if (
-            cache_was_valid 
-            and history_length_before + len(stored_messages) == history_length_after
-        ):
+
+        # INCREMENTAL UPDATE: If cache was valid, update incrementally.
+        if cache_was_valid:
             # Incrementally update cache instead of invalidating
             self._cached_token_count += new_message_token_count
-            logger.debug(
-                f"Incrementally updated token count cache: +{new_message_token_count} tokens "
-                f"(total: {self._cached_token_count})"
-            )
-        elif (
-            cache_was_valid
-            and history_length_before + len(stored_messages) != history_length_after
-        ):
-            # Pruning occurred, cache already invalidated by _prune_if_needed
-            logger.debug("Token count cache invalidated due to history pruning")
 
     def add_assistant_message(
         self,
@@ -191,7 +154,6 @@ class ConversationHistory:
         self._append_message(stored_msg)
         # Invalidate token count cache (new message added)
         self._invalidate_token_cache()
-        self._prune_if_needed()
 
     def stage_tool_call_ids(
         self,
@@ -244,7 +206,6 @@ class ConversationHistory:
             )
 
         self._invalidate_token_cache()
-        self._prune_if_needed()
         return len(pending_tool_call_ids)
 
     def get_history(self) -> List[LLMMessage]:
@@ -403,19 +364,7 @@ class ConversationHistory:
         self.clear()
         for message in messages:
             self._append_message(message)
-        self._prune_if_needed()
         self._invalidate_token_cache()
-
-    def _prune_if_needed(self) -> None:
-        """Remove the oldest messages if the history exceeds the max length."""
-        if len(self.history) > self.max_length:
-            # Keep the most recent messages (prune both lists in sync)
-            removed_count = len(self.history) - self.max_length
-            self.history = self.history[-self.max_length :]
-            self._llm_history_cache = self._llm_history_cache[-self.max_length :]
-            # Invalidate token count cache (history changed)
-            self._invalidate_token_cache()
-            logger.debug(f"Pruned conversation history to {self.max_length} messages (removed {removed_count})")
 
     def _invalidate_token_cache(self) -> None:
         self._cached_token_count = None

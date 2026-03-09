@@ -15,7 +15,6 @@ class SettingsUpdateRule:
 
 
 SETTINGS_UPDATE_RULES: dict[str, SettingsUpdateRule] = {
-    "max_history_length": SettingsUpdateRule((int,), allow_none=True),
     "llm_timeout": SettingsUpdateRule((int, float)),
     "query_timeout": SettingsUpdateRule((int, float)),
     "memory_enabled": SettingsUpdateRule((bool,)),

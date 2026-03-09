@@ -52,7 +52,6 @@ Recent backend-agent refactors split mutable session/runtime concerns into focus
 Interaction-loop control policies were also extracted from `InteractionLoop`:
 
 - `backend/src/agent/execution/policies.py`:
-  - `IterationPolicy` (max-iteration and extra-turn behavior)
   - `ParseRecoveryPolicy` (parser-error corrective messaging)
   - `ToolExecutionPolicy` (bundle-vs-single decision)
 
