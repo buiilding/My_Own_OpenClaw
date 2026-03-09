@@ -79,19 +79,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Validate signing secrets
-        if: ${{ (github.event_name != 'workflow_dispatch' || github.event.inputs.run_signing == 'true') && matrix.label == 'windows' }}
-        shell: bash
-        env:
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-        run: |
-          set -euo pipefail
-          [[ -n "${CSC_LINK}" ]] || { echo "Missing secret: CSC_LINK"; exit 1; }
-          [[ -n "${CSC_KEY_PASSWORD}" ]] || { echo "Missing secret: CSC_KEY_PASSWORD"; exit 1; }
-
-      - name: Validate macOS signing/notarization secrets
-        if: ${{ (github.event_name != 'workflow_dispatch' || github.event.inputs.run_signing == 'true') && matrix.label == 'macos' }}
+      - name: Resolve signing mode
+        id: signing
         shell: bash
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
@@ -101,11 +90,54 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           set -euo pipefail
-          [[ -n "${CSC_LINK}" ]] || { echo "Missing secret: CSC_LINK"; exit 1; }
-          [[ -n "${CSC_KEY_PASSWORD}" ]] || { echo "Missing secret: CSC_KEY_PASSWORD"; exit 1; }
-          [[ -n "${APPLE_ID}" ]] || { echo "Missing secret: APPLE_ID"; exit 1; }
-          [[ -n "${APPLE_APP_SPECIFIC_PASSWORD}" ]] || { echo "Missing secret: APPLE_APP_SPECIFIC_PASSWORD"; exit 1; }
-          [[ -n "${APPLE_TEAM_ID}" ]] || { echo "Missing secret: APPLE_TEAM_ID"; exit 1; }
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            requested="${{ github.event.inputs.run_signing }}"
+          else
+            requested="true"
+          fi
+
+          effective="${requested}"
+          reason="requested"
+
+          if [[ "${requested}" == "true" ]]; then
+            case "${{ matrix.label }}" in
+              windows)
+                if [[ -z "${CSC_LINK}" || -z "${CSC_KEY_PASSWORD}" ]]; then
+                  effective="false"
+                  reason="missing_windows_signing_secrets"
+                fi
+                ;;
+              macos)
+                if [[ -z "${CSC_LINK}" || -z "${CSC_KEY_PASSWORD}" || -z "${APPLE_ID}" || -z "${APPLE_APP_SPECIFIC_PASSWORD}" || -z "${APPLE_TEAM_ID}" ]]; then
+                  effective="false"
+                  reason="missing_macos_signing_or_notarization_secrets"
+                fi
+                ;;
+              *)
+                if [[ -z "${CSC_LINK}" || -z "${CSC_KEY_PASSWORD}" ]]; then
+                  effective="false"
+                  reason="missing_signing_secrets"
+                fi
+                ;;
+            esac
+          else
+            reason="disabled_by_input"
+          fi
+
+          echo "requested=${requested}" >> "${GITHUB_OUTPUT}"
+          echo "effective=${effective}" >> "${GITHUB_OUTPUT}"
+          echo "reason=${reason}" >> "${GITHUB_OUTPUT}"
+
+          if [[ "${requested}" == "true" && "${effective}" != "true" ]]; then
+            echo "::warning::Signing requested for ${{ matrix.label }}, but required secrets are missing. Building unsigned artifacts instead."
+          fi
+
+      - name: Log signing mode
+        shell: bash
+        run: |
+          echo "requested signing: ${{ steps.signing.outputs.requested }}"
+          echo "effective signing: ${{ steps.signing.outputs.effective }}"
+          echo "resolution reason: ${{ steps.signing.outputs.reason }}"
 
       - name: Install Linux smoke dependencies
         if: ${{ matrix.label == 'linux' }}
@@ -124,7 +156,7 @@ jobs:
         shell: bash
         env:
           SIDECAR_PROFILE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.sidecar_profile || 'core' }}
-          RUN_SIGNING: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_signing || 'true' }}
+          RUN_SIGNING: ${{ steps.signing.outputs.effective }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -142,14 +174,14 @@ jobs:
       - name: Smoke test packaged artifact (Linux/macOS)
         if: ${{ matrix.label != 'windows' }}
         env:
-          WINDIE_REQUIRE_SIGNING: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_signing == 'true' }}
+          WINDIE_REQUIRE_SIGNING: ${{ steps.signing.outputs.effective }}
         shell: bash
         run: bash ${{ matrix.smoke_script }}
 
       - name: Smoke test packaged artifact (Windows)
         if: ${{ matrix.label == 'windows' }}
         env:
-          WINDIE_REQUIRE_SIGNING: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_signing == 'true' }}
+          WINDIE_REQUIRE_SIGNING: ${{ steps.signing.outputs.effective }}
         shell: pwsh
         run: pwsh -File ${{ matrix.smoke_script }}
 
