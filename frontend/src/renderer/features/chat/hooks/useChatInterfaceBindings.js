@@ -18,8 +18,10 @@ export function useChatInterfaceAudioChunkStream(audioPlayerRef) {
 export function useChatInterfaceMenuDismiss({
   providerMenuRef,
   modelMenuRef,
+  reasoningModeMenuRef = null,
   setProviderMenuOpen,
   setModelMenuOpen,
+  setReasoningModeMenuOpen = () => {},
 }) {
   useEffect(() => {
     const handlePointerDown = (event) => {
@@ -29,12 +31,26 @@ export function useChatInterfaceMenuDismiss({
       if (modelMenuRef.current && !modelMenuRef.current.contains(event.target)) {
         setModelMenuOpen(false);
       }
+      if (
+        reasoningModeMenuRef
+        && reasoningModeMenuRef.current
+        && !reasoningModeMenuRef.current.contains(event.target)
+      ) {
+        setReasoningModeMenuOpen(false);
+      }
     };
     window.addEventListener('mousedown', handlePointerDown);
     return () => {
       window.removeEventListener('mousedown', handlePointerDown);
     };
-  }, [modelMenuRef, providerMenuRef, setModelMenuOpen, setProviderMenuOpen]);
+  }, [
+    modelMenuRef,
+    providerMenuRef,
+    reasoningModeMenuRef,
+    setModelMenuOpen,
+    setProviderMenuOpen,
+    setReasoningModeMenuOpen,
+  ]);
 }
 
 export function useChatInterfaceStopShortcut(canStop, handleStopQuery) {

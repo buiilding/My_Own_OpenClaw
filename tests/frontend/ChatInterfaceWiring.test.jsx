@@ -387,8 +387,80 @@ describe('ChatInterface wiring', () => {
 
     render(<ChatInterface />);
 
-    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('GPT-5.1 High');
+    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('GPT-5.1');
     expect(screen.getByRole('button', { name: 'Model selector' })).not.toHaveTextContent('gpt-5.1');
+  });
+
+  test('deduplicates model dropdown entries to one base model and shows reasoning mode selector when supported', () => {
+    mockConfig = {
+      interaction_mode: 'chat',
+      model_mode: 'online',
+      model_provider: 'openai',
+      selected_model_id: 'gpt-5-3-codex-low-thinking',
+      voice_mode_enabled: false,
+      speech_mode_enabled: false,
+    };
+    mockAvailableModels = {
+      local: [],
+      online: [
+        {
+          id: 'gpt-5-3-codex-low-thinking',
+          runtime_model_id: 'gpt-5.3-codex',
+          provider: 'openai',
+          display_name: 'GPT-5.3 Codex Low',
+          supports_thinking: true,
+        },
+        {
+          id: 'gpt-5-3-codex-thinking',
+          runtime_model_id: 'gpt-5.3-codex',
+          provider: 'openai',
+          display_name: 'GPT-5.3 Codex',
+          supports_thinking: true,
+        },
+        {
+          id: 'gpt-5-3-codex-high-thinking',
+          runtime_model_id: 'gpt-5.3-codex',
+          provider: 'openai',
+          display_name: 'GPT-5.3 Codex High',
+          supports_thinking: true,
+        },
+      ],
+    };
+
+    render(<ChatInterface />);
+
+    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('GPT-5.3 Codex');
+    expect(screen.getByRole('button', { name: 'Reasoning mode selector' })).toHaveTextContent('Low');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Model selector' }));
+    expect(screen.getAllByRole('menuitem', { name: 'GPT-5.3 Codex' })).toHaveLength(1);
+  });
+
+  test('does not show reasoning mode selector for models without multiple reasoning levels', () => {
+    mockConfig = {
+      interaction_mode: 'chat',
+      model_mode: 'online',
+      model_provider: 'openai',
+      selected_model_id: 'gpt-4-1',
+      voice_mode_enabled: false,
+      speech_mode_enabled: false,
+    };
+    mockAvailableModels = {
+      local: [],
+      online: [
+        {
+          id: 'gpt-4-1',
+          runtime_model_id: 'gpt-4.1',
+          provider: 'openai',
+          display_name: 'GPT-4.1',
+          supports_thinking: false,
+        },
+      ],
+    };
+
+    render(<ChatInterface />);
+
+    expect(screen.queryByRole('button', { name: 'Reasoning mode selector' })).not.toBeInTheDocument();
   });
 
   test('falls back to default model label and disabled voice mode when config is missing', () => {
@@ -453,6 +525,52 @@ describe('ChatInterface wiring', () => {
     expect(mockUpdateConfig).toHaveBeenCalledWith({
       selected_model_id: 'gemini-2.5-flash',
       model_provider: 'gemini',
+    });
+  });
+
+  test('selecting reasoning mode updates config with matching model variant id', () => {
+    mockConfig = {
+      interaction_mode: 'chat',
+      model_mode: 'online',
+      model_provider: 'openai',
+      selected_model_id: 'gpt-5-3-codex-low-thinking',
+      voice_mode_enabled: false,
+      speech_mode_enabled: false,
+    };
+    mockAvailableModels = {
+      local: [],
+      online: [
+        {
+          id: 'gpt-5-3-codex-low-thinking',
+          runtime_model_id: 'gpt-5.3-codex',
+          provider: 'openai',
+          display_name: 'GPT-5.3 Codex Low',
+          supports_thinking: true,
+        },
+        {
+          id: 'gpt-5-3-codex-thinking',
+          runtime_model_id: 'gpt-5.3-codex',
+          provider: 'openai',
+          display_name: 'GPT-5.3 Codex',
+          supports_thinking: true,
+        },
+        {
+          id: 'gpt-5-3-codex-high-thinking',
+          runtime_model_id: 'gpt-5.3-codex',
+          provider: 'openai',
+          display_name: 'GPT-5.3 Codex High',
+          supports_thinking: true,
+        },
+      ],
+    };
+
+    render(<ChatInterface />);
+    fireEvent.click(screen.getByRole('button', { name: 'Reasoning mode selector' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'High' }));
+
+    expect(mockUpdateConfig).toHaveBeenCalledWith({
+      selected_model_id: 'gpt-5-3-codex-high-thinking',
+      model_provider: 'openai',
     });
   });
 
