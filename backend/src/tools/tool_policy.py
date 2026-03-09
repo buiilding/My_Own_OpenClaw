@@ -74,6 +74,9 @@ class ToolPolicy:
         filtered = list(tool_names)
         filtered = self._normalize_unified_computer_use_names(filtered)
         filtered = self._normalize_unified_system_use_names(filtered)
+        disabled_tools = self._get_config_disabled_tools()
+        if disabled_tools:
+            filtered = [name for name in filtered if name not in disabled_tools]
         allowlist = self._get_interaction_allowlist()
         if allowlist is not None:
             filtered = [name for name in filtered if name in allowlist]
@@ -92,6 +95,13 @@ class ToolPolicy:
         Apply interaction-mode allowlist and dev selection to tool schemas.
         """
         filtered = list(tool_schemas)
+        disabled_tools = self._get_config_disabled_tools()
+        if disabled_tools:
+            filtered = [
+                schema
+                for schema in filtered
+                if self._normalize_tool_name(self._extract_tool_name(schema)) not in disabled_tools
+            ]
         allowlist = self._get_interaction_allowlist()
         if allowlist is not None:
             filtered = [
@@ -171,6 +181,13 @@ class ToolPolicy:
         if selection is _UNSET:
             return self.selection
         return selection
+
+    def _get_config_disabled_tools(self) -> set[str]:
+        disabled: set[str] = set()
+        browser_enabled = getattr(self.config, "browser_automation_enabled", True)
+        if browser_enabled is not True:
+            disabled.add("browser")
+        return disabled
 
     def _get_interaction_allowlist(self) -> Optional[set[str]]:
         """Return interaction-mode allowlist (if configured)."""

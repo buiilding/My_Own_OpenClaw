@@ -90,6 +90,8 @@ Execution/event semantics for these fields (decision skip reasons, trigger fallb
 | --- | --- | --- | --- |
 | `voice_mode_enabled` | `bool` | `false` | Frontend runtime voice mode toggle. |
 | `wakeword_stt_enabled` | `bool` | `false` | Enables post-wakeword speech-to-text handoff in frontend query entry flow. |
+| `agent_full_sudo_enabled` | `bool` | `false` | Frontend policy flag controlling agent-level elevated-action allowance. |
+| `browser_automation_enabled` | `bool` | `false` | Frontend feature toggle controlling whether browser tool schemas are exposed to the agent. |
 | `include_query_screenshot` | `bool` | `true` | Controls screenshot attachment behavior for queries. |
 | `wakeword_enabled` | `bool` | `true` | Wakeword runtime toggle. |
 | `wakeword_phrase` | `str` | `"hey jarvis"` | Trigger phrase. |
@@ -161,6 +163,8 @@ Allowed patch keys only:
 - `voice_mode_enabled`
 - `speech_mode_enabled`
 - `wakeword_stt_enabled`
+- `agent_full_sudo_enabled`
+- `browser_automation_enabled`
 - `include_query_screenshot`
 - `provider_api_keys`
 - `provider_oauth` (currently `openai_codex`)

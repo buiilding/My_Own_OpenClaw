@@ -15,6 +15,7 @@ const FRONTEND_CONFIG_FIELDS = [
   'speech_mode_enabled',
   'wakeword_stt_enabled',
   'agent_full_sudo_enabled',
+  'browser_automation_enabled',
   'include_query_screenshot',
   'provider_api_keys',
   'provider_oauth',

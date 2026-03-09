@@ -3,10 +3,15 @@
 const {
   listPermissionsWithStatus,
   requestPermission,
+  resetPermissionRequestStateForTests,
   runPermissionProbe,
 } = require('../../frontend/src/main/permission_service.cjs');
 
 describe('permission_service', () => {
+  beforeEach(() => {
+    resetPermissionRequestStateForTests();
+  });
+
   test('returns manifest snapshot with per-permission status entries', () => {
     const result = listPermissionsWithStatus({ platform: 'linux' });
 
@@ -45,6 +50,202 @@ describe('permission_service', () => {
     expect(askForMediaAccess).toHaveBeenCalledWith('microphone');
     expect(status.status).toBe('granted');
     expect(status.granted).toBe(true);
+  });
+
+  test('filesystem access starts as needs-action and becomes granted after folder picker selection', async () => {
+    const initial = runPermissionProbe('filesystem_workspace_access', {
+      platform: 'linux',
+    });
+    expect(initial.status).toBe('needs-action');
+    expect(initial.granted).toBe(false);
+
+    const status = await requestPermission('filesystem_workspace_access', {
+      platform: 'linux',
+      dialog: {
+        showOpenDialog: jest.fn(async () => ({
+          canceled: false,
+          filePaths: ['/tmp/windieos-workspace'],
+        })),
+      },
+    });
+
+    expect(status.status).toBe('granted');
+    expect(status.granted).toBe(true);
+  });
+
+  test('shell execution grant flow can be satisfied through elevated command prompt', async () => {
+    const runCommand = jest.fn(async () => ({
+      success: true,
+      code: 0,
+      stdout: '',
+      stderr: '',
+    }));
+
+    const status = await requestPermission('shell_execution', {
+      platform: 'linux',
+      runCommand,
+    });
+
+    expect(runCommand).toHaveBeenCalled();
+    expect(status.status).toBe('granted');
+    expect(status.granted).toBe(true);
+  });
+
+  test('linux screen capture grant depends on desktop capture prompt success', async () => {
+    const runCommand = jest.fn(async () => ({
+      success: true,
+      code: 0,
+      stdout: '',
+      stderr: '',
+    }));
+    const grantedStatus = await requestPermission('screen_capture', {
+      platform: 'linux',
+      desktopCapturer: {
+        getSources: jest.fn(async () => ([])),
+      },
+      runCommand,
+    });
+
+    expect(grantedStatus.status).toBe('granted');
+    expect(grantedStatus.granted).toBe(true);
+    expect(runCommand).not.toHaveBeenCalled();
+
+    resetPermissionRequestStateForTests();
+    const deniedStatus = await requestPermission('screen_capture', {
+      platform: 'linux',
+      desktopCapturer: {
+        getSources: jest.fn(async () => {
+          throw new Error('portal canceled');
+        }),
+      },
+      runCommand,
+    });
+
+    expect(deniedStatus.status).toBe('needs-action');
+    expect(deniedStatus.granted).toBe(false);
+    expect(String(deniedStatus.reason || '')).toContain('Screen capture was not granted');
+    expect(runCommand).not.toHaveBeenCalled();
+  });
+
+  test('linux input control grant does not auto-complete when settings page opens', async () => {
+    const runCommand = jest.fn(async () => ({
+      success: true,
+      code: 0,
+      stdout: '',
+      stderr: '',
+    }));
+
+    const status = await requestPermission('input_control_accessibility', {
+      platform: 'linux',
+      runCommand,
+      verifyInputControlCapability: jest.fn(async () => ({ granted: false })),
+    });
+
+    expect(runCommand).toHaveBeenCalled();
+    expect(status.status).toBe('needs-action');
+    expect(status.granted).toBe(false);
+  });
+
+  test('linux microphone grant does not auto-complete when settings page opens', async () => {
+    const runCommand = jest.fn(async () => ({
+      success: true,
+      code: 0,
+      stdout: '',
+      stderr: '',
+    }));
+
+    const status = await requestPermission('microphone', {
+      platform: 'linux',
+      runCommand,
+      verifyMicrophoneCapability: jest.fn(async () => ({ granted: false })),
+    });
+
+    expect(runCommand).toHaveBeenCalled();
+    expect(status.status).toBe('needs-action');
+    expect(status.granted).toBe(false);
+  });
+
+  test('linux input control can become granted after verifier passes', async () => {
+    const status = await requestPermission('input_control_accessibility', {
+      platform: 'linux',
+      verifyInputControlCapability: jest.fn(async () => ({ granted: true })),
+    });
+
+    expect(status.status).toBe('granted');
+    expect(status.granted).toBe(true);
+  });
+
+  test('linux microphone can become granted after verifier passes', async () => {
+    const status = await requestPermission('microphone', {
+      platform: 'linux',
+      verifyMicrophoneCapability: jest.fn(async () => ({ granted: true })),
+    });
+
+    expect(status.status).toBe('granted');
+    expect(status.granted).toBe(true);
+  });
+
+  test('windows screen capture is not granted by settings-open fallback alone', async () => {
+    const status = await requestPermission('screen_capture', {
+      platform: 'win32',
+      desktopCapturer: {
+        getSources: jest.fn(async () => {
+          throw new Error('capture denied');
+        }),
+      },
+      shell: {
+        openExternal: jest.fn(async () => true),
+      },
+    });
+
+    expect(status.status).toBe('needs-action');
+    expect(status.granted).toBe(false);
+  });
+
+  test('browser automation probe reflects frontend enable preference', () => {
+    const disabled = runPermissionProbe('browser_automation', {
+      platform: 'linux',
+      getBrowserAutomationPreference: () => false,
+    });
+    expect(disabled.status).toBe('needs-action');
+    expect(disabled.granted).toBe(false);
+
+    const enabled = runPermissionProbe('browser_automation', {
+      platform: 'linux',
+      getBrowserAutomationPreference: () => true,
+    });
+    expect(enabled.status).toBe('granted');
+    expect(enabled.granted).toBe(true);
+  });
+
+  test('browser automation request returns needs-action when capability check fails', async () => {
+    const status = await requestPermission('browser_automation', {
+      platform: 'linux',
+      getBrowserAutomationPreference: () => false,
+      verifyBrowserAutomationCapability: jest.fn(async () => ({
+        granted: false,
+        reason: 'Runtime pack unavailable.',
+      })),
+    });
+
+    expect(status.status).toBe('needs-action');
+    expect(status.granted).toBe(false);
+    expect(String(status.reason || '')).toContain('Runtime pack unavailable');
+  });
+
+  test('browser automation request can be granted after capability check succeeds', async () => {
+    const status = await requestPermission('browser_automation', {
+      platform: 'linux',
+      getBrowserAutomationPreference: () => true,
+      verifyBrowserAutomationCapability: jest.fn(async () => ({
+        granted: true,
+        details: { browser_feature_pack_available: true },
+      })),
+    });
+
+    expect(status.status).toBe('granted');
+    expect(status.granted).toBe(true);
+    expect(status.details.browser_automation_enabled).toBe(true);
   });
 
   test('unknown permission id returns error status', () => {

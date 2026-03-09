@@ -54,13 +54,29 @@ def test_filter_tool_names_applies_dev_selection(tmp_path: Path):
 
 
 def test_filter_tool_names_normalizes_legacy_computer_tools_to_unified():
-    policy = ToolPolicy(config=AppConfig(interaction_mode="agent"), selection=None)
+    policy = ToolPolicy(
+        config=AppConfig(interaction_mode="agent", browser_automation_enabled=True),
+        selection=None,
+    )
 
     filtered = policy.filter_tool_names(
         ["read_file", "mouse_control", "keyboard_control", "browser"]
     )
 
     assert filtered == ["browser", "computer_use", "system_use"]
+
+
+def test_filter_tool_names_disables_browser_when_browser_automation_not_enabled():
+    policy = ToolPolicy(
+        config=AppConfig(interaction_mode="agent", browser_automation_enabled=False),
+        selection=None,
+    )
+
+    filtered = policy.filter_tool_names(
+        ["browser", "computer_use", "system_use"]
+    )
+
+    assert filtered == ["computer_use", "system_use"]
 
 
 def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
@@ -97,6 +113,32 @@ def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
     assert "source_description" not in args_props
     assert "destination_description" not in args_props
     assert "model_name" not in args_props
+
+
+def test_filter_tool_schemas_disables_browser_when_browser_automation_not_enabled():
+    policy = ToolPolicy(
+        config=AppConfig(interaction_mode="agent", browser_automation_enabled=False),
+        selection=None,
+    )
+
+    browser_schema = {
+        "type": "function",
+        "function": {
+            "name": "browser",
+            "parameters": {"type": "object"},
+        },
+    }
+    system_schema = {
+        "type": "function",
+        "function": {
+            "name": "system_use",
+            "parameters": {"type": "object"},
+        },
+    }
+
+    filtered = policy.filter_tool_schemas([browser_schema, system_schema])
+
+    assert [schema["function"]["name"] for schema in filtered] == ["system_use"]
 
 
 def test_get_method_validation_errors_rejects_disabled_mouse_method(tmp_path: Path):

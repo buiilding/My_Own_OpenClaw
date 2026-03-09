@@ -25,6 +25,7 @@ SETTINGS_UPDATE_RULES: dict[str, SettingsUpdateRule] = {
     "embedding_model": SettingsUpdateRule((str,), allow_none=True),
     "interaction_mode": SettingsUpdateRule((str,), allow_none=True),
     "voice_mode_enabled": SettingsUpdateRule((bool,)),
+    "browser_automation_enabled": SettingsUpdateRule((bool,)),
     "history_compaction_enabled": SettingsUpdateRule((bool,)),
     "history_compaction_manual_enabled": SettingsUpdateRule((bool,)),
     "history_compaction_openai_remote_enabled": SettingsUpdateRule((bool,)),

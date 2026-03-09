@@ -88,10 +88,10 @@ Primary runtime:
 
 Current behavior:
 
-- app startup is not permission-gated in current `App.jsx`; permission onboarding/runtime status is handled in dedicated permission/settings surfaces
+- app startup is not hard permission-gated in current `App.jsx`; routing is still VM mode + frontend onboarding completion
+- frontend onboarding step 1 now renders a permission checklist and triggers `requestPermission` per row plus global `recheckAllPermissions`
 - `PermissionControlCenter` renders live permission status plus probe/recheck maintenance actions
-- `permissionStore` still derives onboarding/gate state (`needsOnboarding`, `completedForManifest`, required permission sets)
-- store onboarding actions (`requestPermission`, `setPlannedSystemAccessConsent`, `completeOnboarding`) remain exported but are not currently called by mounted renderer UI surfaces
+- `permissionStore` derives onboarding/gate state (`needsOnboarding`, `completedForManifest`, required permission sets) and powers both onboarding + settings permission surfaces
 
 ### Voice (`features/voice`)
 
@@ -133,6 +133,7 @@ Typical keys:
 - provider API keys
 - provider OAuth credentials (currently `openai_codex`)
 - agent sudo access policy flag (`agent_full_sudo_enabled`)
+- browser automation feature toggle (`browser_automation_enabled`)
 
 Backend remains source of truth for non-frontend runtime fields.
 

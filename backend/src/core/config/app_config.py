@@ -49,6 +49,7 @@ APP_CONFIG = AppConfig(
     voice_mode_enabled=False,
     wakeword_stt_enabled=False,
     agent_full_sudo_enabled=False,
+    browser_automation_enabled=False,
     # Wakeword Settings
     wakeword_enabled=True,
     wakeword_phrase="hey jarvis",

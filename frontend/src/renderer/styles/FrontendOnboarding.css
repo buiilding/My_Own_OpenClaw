@@ -1,6 +1,7 @@
 .frontend-onboarding-shell {
   min-height: 100vh;
   width: 100%;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,15 +11,32 @@
 }
 
 .frontend-onboarding-card {
-  width: min(760px, 100%);
+  width: min(840px, 100%);
   border: 1px solid #262626;
   border-radius: 16px;
-  padding: 42px 44px;
+  padding: 34px 36px;
   background: #0b0b0b;
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
   display: grid;
-  gap: 20px;
+  gap: 16px;
   font-family: "Avenir Next", Avenir, "Nunito Sans", "Segoe UI", sans-serif;
+}
+
+.frontend-onboarding-window-chrome {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: flex-end;
+  z-index: 2;
+}
+
+.frontend-onboarding-window-controls {
+  flex-shrink: 0;
+}
+
+.frontend-onboarding-card-permissions {
+  width: min(940px, 100%);
 }
 
 .frontend-onboarding-progress {
@@ -41,8 +59,8 @@
 
 .frontend-onboarding-body {
   margin: 0;
-  font-size: clamp(18px, 2.5vw, 22px);
-  line-height: 1.45;
+  font-size: clamp(17px, 2.2vw, 21px);
+  line-height: 1.35;
   font-weight: 400;
   color: #d8d8d8;
   max-width: 60ch;
@@ -73,11 +91,86 @@
   font-weight: 500;
 }
 
+.frontend-onboarding-stop-flow {
+  display: grid;
+  gap: 18px;
+  align-items: start;
+}
+
+.frontend-onboarding-stop-flow-header {
+  display: grid;
+  gap: 10px;
+}
+
+.frontend-onboarding-stop-flow-tag {
+  width: fit-content;
+  border: 1px solid #3a3a3a;
+  border-radius: 999px;
+  padding: 8px 13px;
+  background: #111111;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #a5a5a5;
+}
+
+.frontend-onboarding-stop-flow-copy {
+  font-size: 15px;
+  line-height: 1.45;
+  color: #bcbcbc;
+}
+
+.frontend-onboarding-stop-flow-keybind {
+  display: grid;
+  justify-items: start;
+  gap: 16px;
+  width: min(100%, 360px);
+  padding: 22px 24px 24px;
+  border: 1px solid #2d2d2d;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 58%),
+    linear-gradient(180deg, rgba(19, 19, 19, 0.98), rgba(10, 10, 10, 0.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 20px 44px rgba(0, 0, 0, 0.34);
+}
+
+.frontend-onboarding-stop-flow-keybind-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #8c8c8c;
+}
+
+.frontend-onboarding-stop-flow-keycap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  min-height: 86px;
+  padding: 16px 28px;
+  border: 1px solid #5f5f5f;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #dedede 100%);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.28),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  color: #0d0d0d;
+  font-size: clamp(38px, 7vw, 52px);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  text-transform: none;
+}
+
 .frontend-onboarding-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 6px;
+  margin-top: 10px;
 }
 
 .frontend-onboarding-action-spacer {
@@ -115,3 +208,175 @@
   border-color: #ececec;
 }
 
+.frontend-onboarding-permissions-section {
+  display: grid;
+  gap: 14px;
+  min-height: 0;
+}
+
+.frontend-onboarding-permissions-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.frontend-onboarding-permissions-tag,
+.frontend-onboarding-permissions-tag-value {
+  border: 1px solid #3a3a3a;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: #111111;
+}
+
+.frontend-onboarding-permissions-tag {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #a5a5a5;
+}
+
+.frontend-onboarding-permissions-tag-value {
+  font-size: 15px;
+  line-height: 1.2;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.frontend-onboarding-button.permission-recheck {
+  margin-left: auto;
+}
+
+.frontend-onboarding-permissions-list {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.frontend-onboarding-permission-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: 0;
+  border-radius: 0;
+  padding: 6px 6px;
+  background: transparent;
+}
+
+.frontend-onboarding-permission-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.frontend-onboarding-permission-copy h2 {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.25;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.frontend-onboarding-permission-copy p {
+  margin: 0;
+  color: #d0d0d0;
+  font-size: 13.5px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.frontend-onboarding-permission-row > .frontend-onboarding-button {
+  min-width: 104px;
+  padding: 10px 20px;
+}
+
+.frontend-onboarding-permission-granted {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  color: #6fda8e;
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 104px;
+}
+
+.frontend-onboarding-permission-granted-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(111, 218, 142, 0.18);
+  border: 1px solid rgba(111, 218, 142, 0.62);
+  color: #82e8a2;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.frontend-onboarding-permission-empty {
+  margin: 0;
+  color: #b8b8b8;
+  font-size: 14px;
+  padding: 16px 10px;
+}
+
+.frontend-onboarding-permission-error {
+  margin: 0;
+  color: #d7d7d7;
+  font-size: 14px;
+}
+
+@media (max-width: 860px) {
+  .frontend-onboarding-card {
+    padding: 24px 18px;
+    gap: 16px;
+  }
+
+  .frontend-onboarding-window-chrome {
+    top: 8px;
+    right: 8px;
+  }
+
+  .frontend-onboarding-title {
+    font-size: clamp(34px, 9vw, 50px);
+  }
+
+  .frontend-onboarding-body {
+    font-size: clamp(16px, 4.1vw, 20px);
+  }
+
+  .frontend-onboarding-stop-flow-keybind {
+    width: 100%;
+    padding: 18px 18px 20px;
+  }
+
+  .frontend-onboarding-stop-flow-keycap {
+    width: 100%;
+    min-height: 76px;
+    font-size: clamp(34px, 11vw, 46px);
+  }
+
+  .frontend-onboarding-permission-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .frontend-onboarding-permission-row > .frontend-onboarding-button {
+    width: fit-content;
+  }
+
+  .frontend-onboarding-button.permission-recheck {
+    margin-left: 0;
+  }
+}

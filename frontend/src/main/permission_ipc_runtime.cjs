@@ -21,12 +21,22 @@ function initializePermissionHandlersRuntime(deps = {}) {
     shell,
     systemPreferences,
     platform,
+    dialog,
+    desktopCapturer,
+    runCommand,
+    getBrowserAutomationPreference,
+    verifyBrowserAutomationCapability,
   } = deps;
 
   const permissionDeps = {
     platform,
     shell,
     systemPreferences,
+    dialog,
+    desktopCapturer,
+    runCommand,
+    getBrowserAutomationPreference,
+    verifyBrowserAutomationCapability,
   };
   const getPermissionId = (options = {}) => {
     return typeof options?.permissionId === 'string'

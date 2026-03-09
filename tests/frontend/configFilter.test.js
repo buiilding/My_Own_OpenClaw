@@ -12,6 +12,7 @@ describe('configFilter', () => {
       speech_mode_enabled: true,
       wakeword_stt_enabled: true,
       agent_full_sudo_enabled: true,
+      browser_automation_enabled: true,
       include_query_screenshot: false,
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-test' },
@@ -30,6 +31,7 @@ describe('configFilter', () => {
       speech_mode_enabled: true,
       wakeword_stt_enabled: true,
       agent_full_sudo_enabled: true,
+      browser_automation_enabled: true,
       include_query_screenshot: false,
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-test' },

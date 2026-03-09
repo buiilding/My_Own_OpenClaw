@@ -23,15 +23,21 @@ This page documents policy behavior implemented in:
 
 Tool exposure filtering is layered in this order:
 
-1. interaction-mode allowlist from runtime config (`config.get_tool_allowlist()`)
-2. dev tool-selection policy (`ToolSelection`) when enabled
+1. config-driven hard disables (`ToolPolicy._get_config_disabled_tools()`)
+2. interaction-mode allowlist from runtime config (`config.get_tool_allowlist()`)
+3. dev tool-selection policy (`ToolSelection`) when enabled
 
 `ToolPolicy.filter_tool_names(...)` and `ToolPolicy.filter_tool_schemas(...)` apply both layers in that order.
 
 Practical effect:
 
 - interaction-mode restrictions always apply, even when dev selection is disabled
+- config hard-disables always apply before allowlist/selection filtering
 - dev selection further narrows what remains
+
+Current config hard-disable:
+
+- `browser_automation_enabled != true` removes `browser` from both available-tool names and prompt-injected schemas.
 
 ## ToolSelection Config Model
 
