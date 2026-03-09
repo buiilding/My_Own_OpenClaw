@@ -36,6 +36,7 @@ def _build_reasoning_responses_params(
     tools: Optional[List[Dict[str, Any]]],
     tool_choice: Any,
     parallel_tool_calls: Optional[bool],
+    max_output_tokens: Optional[int],
 ) -> Dict[str, Any]:
     return build_openai_responses_params(
         provider,
@@ -44,12 +45,20 @@ def _build_reasoning_responses_params(
         tools=tools,
         tool_choice=tool_choice,
         parallel_tool_calls=parallel_tool_calls,
+        max_output_tokens=max_output_tokens,
         include_reasoning=True,
     )
 
 
 async def get_openai_responses_completion(
-    provider: Any, *, model: str, messages: List[LLMMessage], tools: Optional[List[Dict[str, Any]]] = None, tool_choice: Any = None, parallel_tool_calls: Optional[bool] = None,
+    provider: Any,
+    *,
+    model: str,
+    messages: List[LLMMessage],
+    tools: Optional[List[Dict[str, Any]]] = None,
+    tool_choice: Any = None,
+    parallel_tool_calls: Optional[bool] = None,
+    max_output_tokens: Optional[int] = None,
 ) -> NormalizedLLMResponse:
     params = _build_reasoning_responses_params(
         provider=provider,
@@ -58,6 +67,7 @@ async def get_openai_responses_completion(
         tools=tools,
         tool_choice=tool_choice,
         parallel_tool_calls=parallel_tool_calls,
+        max_output_tokens=max_output_tokens,
     )
     response = await litellm.aresponses(**params)
     provider._record_usage_from_payload_container(response)
@@ -104,7 +114,14 @@ def _maybe_extract_final_response_payload(
 
 
 async def stream_openai_responses_events(
-    provider: Any, *, model: str, messages: List[LLMMessage], tools: Optional[List[Dict[str, Any]]] = None, tool_choice: Any = None, parallel_tool_calls: Optional[bool] = None,
+    provider: Any,
+    *,
+    model: str,
+    messages: List[LLMMessage],
+    tools: Optional[List[Dict[str, Any]]] = None,
+    tool_choice: Any = None,
+    parallel_tool_calls: Optional[bool] = None,
+    max_output_tokens: Optional[int] = None,
 ) -> AsyncGenerator[StreamingEvent, None]:
     params = _build_reasoning_responses_params(
         provider=provider,
@@ -113,6 +130,7 @@ async def stream_openai_responses_events(
         tools=tools,
         tool_choice=tool_choice,
         parallel_tool_calls=parallel_tool_calls,
+        max_output_tokens=max_output_tokens,
     )
     params["stream"] = True
 

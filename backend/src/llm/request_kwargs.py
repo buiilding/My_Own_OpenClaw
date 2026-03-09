@@ -21,6 +21,7 @@ def build_tool_transport_kwargs(
     tool_choice: Optional[Any],
     parallel_tool_calls: Optional[bool],
     prompt_cache_key: Optional[str],
+    max_output_tokens: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Build shared tool transport kwargs for completion and streaming requests."""
     request_kwargs: Dict[str, Any] = {
@@ -28,4 +29,6 @@ def build_tool_transport_kwargs(
         "tool_choice": tool_choice,
         "parallel_tool_calls": parallel_tool_calls,
     }
+    if isinstance(max_output_tokens, int) and max_output_tokens > 0:
+        request_kwargs["max_output_tokens"] = max_output_tokens
     return apply_prompt_cache_key(request_kwargs, prompt_cache_key)

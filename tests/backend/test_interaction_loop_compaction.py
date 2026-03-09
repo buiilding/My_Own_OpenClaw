@@ -34,8 +34,8 @@ class _FakeHistory:
     def stage_tool_call_ids(self, tool_call_ids, consume_all_on_next_output=False):
         self.staged_tool_call_ids.append((list(tool_call_ids), consume_all_on_next_output))
 
-    def add_tool_output(self, message, image_data=None):
-        _ = (message, image_data)
+    def add_tool_output(self, message, image_data=None, **kwargs):
+        _ = (message, image_data, kwargs)
 
     def get_stored_messages(self):
         return []

@@ -117,13 +117,19 @@ def test_tool_output_with_staged_tool_call_id_avoids_duplicate_text_rows():
     history = ConversationHistory()
 
     history.stage_tool_call_ids(["call_1"])
-    history.add_tool_output("tool output")
+    history.add_tool_output(
+        "tool output",
+        tool_name="browser",
+        compaction_facts={"action": "click", "ref": 42293},
+    )
 
     stored = history.get_stored_messages()
     assert len(stored) == 1
     assert stored[0].role == MessageRole.TOOL
     assert stored[0].content == "tool output"
     assert stored[0].tool_call_id == "call_1"
+    assert stored[0].tool_name == "browser"
+    assert stored[0].compaction_facts == {"action": "click", "ref": 42293}
 
     llm_messages = history.get_history()
     assert len(llm_messages) == 1
@@ -271,6 +277,35 @@ def test_replace_with_entries_rehydrates_order_and_images():
     assert [msg.content for msg in stored] == ["u1", "tool-1", "a1"]
     assert stored[0].image_data == "img-1"
     assert stored[1].image_data == "img-2"
+
+
+def test_replace_with_entries_recovers_user_query_raw_and_compaction_facts():
+    history = ConversationHistory()
+
+    history.replace_with_entries(
+        [
+            {
+                "role": "user",
+                "content": "<system_context>state</system_context><user_query>summarize latest 5 emails</user_query>",
+                "message_type": "user_query",
+            },
+            {
+                "role": "tool",
+                "content": "browser output",
+                "message_type": "tool_output",
+                "tool_name": "browser",
+                "compaction_facts": {"action": "snapshot", "url": "https://outlook.office.com/mail/"},
+            },
+        ]
+    )
+
+    stored = history.get_stored_messages()
+    assert stored[0].user_query_raw == "summarize latest 5 emails"
+    assert stored[1].tool_name == "browser"
+    assert stored[1].compaction_facts == {
+        "action": "snapshot",
+        "url": "https://outlook.office.com/mail/",
+    }
 
 
 def test_replace_with_entries_preserves_assistant_tool_call_rows():

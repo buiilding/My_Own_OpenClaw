@@ -36,6 +36,7 @@ class ToolResult:
     episodic_memories: Optional[List[Dict[str, Any]]] = None
     semantic_facts: Optional[List[str]] = None
     artifacts: Optional[Dict[str, Any]] = None
+    compaction_facts: Optional[Dict[str, Any]] = None
     
     @classmethod
     def from_dict(cls, result_dict: Dict[str, Any]) -> "ToolResult":
@@ -54,7 +55,7 @@ class ToolResult:
         # Standard field names that map directly to ToolResult attributes
         standard_fields = {
             "success", "error", "data", "metadata", "llm_content", "return_display",
-            "episodic_memories", "semantic_facts", "artifacts"
+            "episodic_memories", "semantic_facts", "artifacts", "compaction_facts"
         }
         
         # Extract standard fields

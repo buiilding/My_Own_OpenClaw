@@ -40,5 +40,7 @@ class HistoryCommitter:
         """
         self.history.add_tool_output(
             result.formatted_message,
-            result.screenshot_data
+            result.screenshot_data,
+            tool_name=result.tool_name,
+            compaction_facts=result.compaction_facts,
         )

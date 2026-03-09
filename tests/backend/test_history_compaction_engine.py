@@ -25,8 +25,17 @@ class _FakeTokenService:
 
 
 class _FakeLLMClient(LLMClient):
+    def __init__(self) -> None:
+        self.calls = []
+
     async def get_completion(self, model, messages, **request_kwargs):
-        _ = (model, messages, request_kwargs)
+        self.calls.append(
+            {
+                "model": model,
+                "messages": messages,
+                "request_kwargs": request_kwargs,
+            }
+        )
         return "Compacted summary"
 
     async def get_completion_stream(self, model, messages, **request_kwargs):
@@ -97,6 +106,9 @@ async def test_compaction_engine_manual_force_replaces_history(monkeypatch):
     stored = history.get_stored_messages()
     assert stored[0].message_type == MessageType.CONTEXT_COMPACTION
     assert "Compacted summary" in stored[0].content
+    assert session.llm_client.calls[0]["request_kwargs"]["max_output_tokens"] == (
+        cfg.history_compaction_summary_max_tokens
+    )
 
 
 @pytest.mark.asyncio

@@ -1,6 +1,7 @@
 """Conversation history manager for maintaining stored and LLM-ready state."""
 
 import copy
+import re
 from typing import Any, Dict, List, Optional, Union
 
 from backend.src.agent.session.message_builders import (
@@ -76,6 +77,9 @@ class ConversationHistory:
         self,
         message: str,
         image_data: Optional[Union[str, List[str]]] = None,
+        *,
+        tool_name: Optional[str] = None,
+        compaction_facts: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Add a tool execution result to the conversation history.
@@ -104,11 +108,20 @@ class ConversationHistory:
                         message=message,
                         tool_call_id=tool_call_id,
                         image_data=image_data if index == 0 else None,
+                        tool_name=tool_name,
+                        compaction_facts=compaction_facts,
                     )
                 )
         else:
             # Fallback path when no tool_call_id linkage exists.
-            stored_messages.append(build_tool_output_message(message, image_data))
+            stored_messages.append(
+                build_tool_output_message(
+                    message,
+                    image_data,
+                    tool_name=tool_name,
+                    compaction_facts=compaction_facts,
+                )
+            )
 
         # INCREMENTAL TOKEN COUNT: If cache is valid, count new message before append
         # This avoids O(N) re-counting when multiple tools are called in sequence
@@ -352,9 +365,15 @@ class ConversationHistory:
                 content=str(entry.get("content") or ""),
                 message_type=message_type,
                 image_data=entry.get("image_data"),
+                user_query_raw=(
+                    self._extract_user_query(str(entry.get("content") or ""))
+                    if message_type == MessageType.USER_QUERY
+                    else None
+                ),
                 tool_call_id=entry.get("tool_call_id"),
-                tool_name=entry.get("name"),
+                tool_name=entry.get("tool_name") or entry.get("name"),
                 tool_calls=entry.get("tool_calls"),
+                compaction_facts=entry.get("compaction_facts"),
             )
             stored_messages.append(stored_msg)
         self.replace_with_stored_messages(stored_messages)
@@ -377,6 +396,14 @@ class ConversationHistory:
         self._llm_history_cache.append(
             llm_msg if llm_msg is not None else stored_msg.to_llm_message()
         )
+
+    @staticmethod
+    def _extract_user_query(content: str) -> Optional[str]:
+        match = re.search(r"<user_query>\s*(.*?)\s*</user_query>", content, re.DOTALL)
+        if not match:
+            return None
+        extracted = match.group(1).strip()
+        return extracted or None
 
     def _consume_tool_call_ids_for_next_output(self) -> List[str]:
         """Consume staged tool-call ids for the next tool output message."""

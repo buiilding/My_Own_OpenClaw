@@ -37,6 +37,7 @@ class StoredMessage:
     tool_calls: Optional[List[Dict[str, Any]]] = None
     tool_call_id: Optional[str] = None
     tool_name: Optional[str] = None
+    compaction_facts: Optional[Dict[str, Any]] = None
     
     def to_llm_message(self) -> LLMMessage:
         """

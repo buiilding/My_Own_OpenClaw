@@ -14,6 +14,7 @@ INVARIANT: This class must remain side-effect free.
 All methods must be pure functions: same input → same output, no side effects.
 Future contributors: if you need state mutation, use HistoryCommitter instead.
 """
+import json
 import logging
 import time
 from dataclasses import dataclass
@@ -33,6 +34,7 @@ class ProcessedToolResult:
     success: bool = True
     error: str = ""
     artifacts: Optional[Dict[str, Any]] = None
+    compaction_facts: Optional[Dict[str, Any]] = None
 
 
 class ResultTransformer:
@@ -103,6 +105,11 @@ class ResultTransformer:
             success=tool_result.success,
             error=tool_result.error or "",
             artifacts=artifacts,
+            compaction_facts=self._extract_compaction_facts(
+                tool_name=tool_name,
+                tool_result=tool_result,
+                artifacts=artifacts,
+            ),
         )
 
     def _extract_screenshot_data(
@@ -146,3 +153,100 @@ class ResultTransformer:
         )
         
         return None
+
+    def _extract_compaction_facts(
+        self,
+        *,
+        tool_name: str,
+        tool_result: ToolResult,
+        artifacts: Dict[str, Any],
+    ) -> Optional[Dict[str, Any]]:
+        """Build a bounded structured payload that compaction can render cleanly."""
+        explicit_facts = self._sanitize_for_compaction(tool_result.compaction_facts)
+        if isinstance(explicit_facts, dict) and explicit_facts:
+            explicit_facts.setdefault("tool_name", tool_name)
+            explicit_facts.setdefault("success", bool(tool_result.success))
+            if tool_result.error:
+                explicit_facts.setdefault("error", str(tool_result.error))
+            return explicit_facts
+
+        facts: Dict[str, Any] = {
+            "tool_name": tool_name,
+            "success": bool(tool_result.success),
+        }
+        if tool_result.error:
+            facts["error"] = str(tool_result.error)
+
+        for source_name, source in (
+            ("metadata", tool_result.metadata),
+            ("data", tool_result.data),
+            ("artifacts", artifacts),
+        ):
+            sanitized = self._sanitize_for_compaction(source)
+            if sanitized in (None, "", [], {}):
+                continue
+            facts[source_name] = sanitized
+
+        return facts if len(facts) > 2 or tool_result.error else None
+
+    def _sanitize_for_compaction(
+        self,
+        value: Any,
+        *,
+        depth: int = 0,
+    ) -> Any:
+        """Recursively bound tool payloads so compaction can preserve facts safely."""
+        if depth >= 3:
+            return self._summarize_leaf(value)
+
+        if value is None or isinstance(value, (bool, int, float)):
+            return value
+        if isinstance(value, str):
+            return self._truncate_text(value, limit=400)
+        if isinstance(value, list):
+            items = [
+                self._sanitize_for_compaction(item, depth=depth + 1)
+                for item in value[:8]
+            ]
+            return [item for item in items if item not in (None, "", [], {})]
+        if isinstance(value, dict):
+            sanitized: Dict[str, Any] = {}
+            for key, item in value.items():
+                normalized_key = str(key)
+                if self._skip_compaction_key(normalized_key):
+                    continue
+                cleaned = self._sanitize_for_compaction(item, depth=depth + 1)
+                if cleaned in (None, "", [], {}):
+                    continue
+                sanitized[normalized_key] = cleaned
+                if len(sanitized) >= 12:
+                    break
+            return sanitized
+        return self._summarize_leaf(value)
+
+    @staticmethod
+    def _skip_compaction_key(key: str) -> bool:
+        normalized = key.strip().lower()
+        return normalized in {
+            "screenshot",
+            "screenshot_data",
+            "image",
+            "image_data",
+            "base64",
+            "bytes",
+            "raw_html",
+            "html",
+        }
+
+    def _summarize_leaf(self, value: Any) -> str:
+        try:
+            serialized = json.dumps(value, ensure_ascii=False, default=str)
+        except Exception:
+            serialized = str(value)
+        return self._truncate_text(serialized, limit=240)
+
+    @staticmethod
+    def _truncate_text(text: str, *, limit: int) -> str:
+        if len(text) <= limit:
+            return text
+        return f"{text[: max(0, limit - 3)]}..."

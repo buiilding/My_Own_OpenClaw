@@ -929,6 +929,7 @@ class TestStandardCompletionHelper:
             tool_choice="auto",
             parallel_tool_calls=True,
             prompt_cache_key="cache-key",
+            max_output_tokens=None,
         )
         get_completion_mock.assert_awaited_once_with(
             provider_label="Mock",
@@ -1068,6 +1069,7 @@ class TestOnlineLLMProvider:
             tool_choice=None,
             parallel_tool_calls=None,
             prompt_cache_key="cache-key",
+            max_output_tokens=None,
             invalid_response_message=None,
         )
         assert result == {"content": "ok"}
@@ -1150,6 +1152,7 @@ class TestOnlineLLMProvider:
             tool_choice="auto",
             parallel_tool_calls=True,
             prompt_cache_key="cache-key",
+            max_output_tokens=None,
         )
         assert [event.content for event in events] == ["text"]
 

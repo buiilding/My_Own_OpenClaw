@@ -43,6 +43,7 @@ class OpenAIProvider(OnlineLLMProvider):
                 tools=request_kwargs.get("tools"),
                 tool_choice=request_kwargs.get("tool_choice"),
                 parallel_tool_calls=request_kwargs.get("parallel_tool_calls"),
+                max_output_tokens=request_kwargs.get("max_output_tokens"),
             )
         return await super().get_completion(
             model=model,
@@ -64,6 +65,7 @@ class OpenAIProvider(OnlineLLMProvider):
                 tools=request_kwargs.get("tools"),
                 tool_choice=request_kwargs.get("tool_choice"),
                 parallel_tool_calls=request_kwargs.get("parallel_tool_calls"),
+                max_output_tokens=request_kwargs.get("max_output_tokens"),
             ):
                 yield event
             return
