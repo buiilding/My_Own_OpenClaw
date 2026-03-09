@@ -2,6 +2,10 @@ export function getAgentStopShortcutLabel() {
   return 'Esc';
 }
 
+export function getGlobalAgentStopShortcutLabel() {
+  return 'Cmd/Ctrl + Shift + Esc';
+}
+
 export function isAgentStopShortcutEvent(event) {
   if (!event || typeof event !== 'object') {
     return false;
