@@ -99,6 +99,7 @@ Current prompt template defines:
 - OS-aware command/keybind requirement (`{os}` substitution)
 - autonomous loop policy (continue until task complete)
 - context-awareness policy around `<system_context>`
+- trusted-native-input fallback guidance for key recorders and similar physical-input capture prompts
 - coding standards and frontend aesthetics constraints
 - tool chaining, verification, and desktop-control strategy guidance
 

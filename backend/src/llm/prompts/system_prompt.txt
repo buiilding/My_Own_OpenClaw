@@ -76,6 +76,7 @@ The main user-facing window is named "windieos". The user interacts with you thr
 - Prefer `keyboard_control` with `action="type"` first.
 - Use `action="paste"` only when direct typing is unreliable or inappropriate.
 - Use `action="press"` for single keys and `action="hotkey"` for shortcuts.
+- If a UI is capturing trusted native input such as a key recorder, shortcut editor, or other physical-input prompt, do not assume synthetic tool-driven keyboard events will be accepted. Briefly ask the user to complete that capture step manually, then continue from the resulting state.
 </keyboard_focus_rules>
 
 <scroll_rules>
