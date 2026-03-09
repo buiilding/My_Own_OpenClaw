@@ -492,6 +492,76 @@ function initializeMainProcessIpc() {
     dialog,
     desktopCapturer,
     platform: process.platform,
+    focusPermissionPromptWindow: async () => {
+      if (!mainWindow || mainWindow.isDestroyed()) {
+        return {
+          success: false,
+          reason: 'Main window is unavailable.',
+        };
+      }
+
+      try {
+        if (mainWindow.isMinimized()) {
+          mainWindow.restore();
+        }
+        if (!mainWindow.isVisible()) {
+          mainWindow.show();
+        }
+        mainWindow.moveTop();
+        mainWindow.focus();
+        mainWindow.webContents?.focus();
+        return { success: true };
+      } catch (error) {
+        return {
+          success: false,
+          reason: error?.message || String(error),
+        };
+      }
+    },
+    requestRendererMicrophoneAccess: async () => {
+      if (!mainWindow || mainWindow.isDestroyed() || !mainWindow.webContents || mainWindow.webContents.isDestroyed()) {
+        return {
+          success: false,
+          reason: 'Main window is unavailable for microphone prompt.',
+        };
+      }
+
+      try {
+        return await mainWindow.webContents.executeJavaScript(
+          `(async () => {
+            if (!navigator?.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+              return { success: false, reason: 'getUserMedia is unavailable in renderer.' };
+            }
+            let stream = null;
+            try {
+              stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              return { success: true };
+            } catch (error) {
+              return {
+                success: false,
+                reason: error?.message ? String(error.message) : String(error),
+              };
+            } finally {
+              if (stream && typeof stream.getTracks === 'function') {
+                for (const track of stream.getTracks()) {
+                  try {
+                    track.stop();
+                  } catch (_error) {
+                    // Best-effort cleanup only.
+                  }
+                }
+              }
+            }
+          })()`,
+          true,
+        );
+      } catch (error) {
+        return {
+          success: false,
+          reason: error?.message || String(error),
+        };
+      }
+    },
     getBrowserAutomationPreference: () => (
       getLatestFrontendConfig()?.browser_automation_enabled === true
     ),

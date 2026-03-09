@@ -38,6 +38,7 @@ describe('permission_service', () => {
   test('microphone request invokes askForMediaAccess then re-probes status', async () => {
     const askForMediaAccess = jest.fn(async () => true);
     const getMediaAccessStatus = jest.fn(() => 'granted');
+    const focusPermissionPromptWindow = jest.fn(async () => ({ success: true }));
 
     const status = await requestPermission('microphone', {
       platform: 'darwin',
@@ -45,9 +46,39 @@ describe('permission_service', () => {
         askForMediaAccess,
         getMediaAccessStatus,
       },
+      focusPermissionPromptWindow,
     });
 
     expect(askForMediaAccess).toHaveBeenCalledWith('microphone');
+    expect(focusPermissionPromptWindow).toHaveBeenCalledTimes(1);
+    expect(status.status).toBe('granted');
+    expect(status.granted).toBe(true);
+  });
+
+  test('microphone request on macOS falls back to renderer media prompt when native prompt fails', async () => {
+    const askForMediaAccess = jest.fn(async () => false);
+    const requestRendererMicrophoneAccess = jest.fn(async () => ({ success: true }));
+    const focusPermissionPromptWindow = jest.fn(async () => ({ success: true }));
+    const openExternal = jest.fn(async () => true);
+    const getMediaAccessStatus = jest.fn(() => 'granted');
+
+    const status = await requestPermission('microphone', {
+      platform: 'darwin',
+      shell: {
+        openExternal,
+      },
+      systemPreferences: {
+        askForMediaAccess,
+        getMediaAccessStatus,
+      },
+      focusPermissionPromptWindow,
+      requestRendererMicrophoneAccess,
+    });
+
+    expect(askForMediaAccess).toHaveBeenCalledWith('microphone');
+    expect(focusPermissionPromptWindow).toHaveBeenCalledTimes(1);
+    expect(requestRendererMicrophoneAccess).toHaveBeenCalledTimes(1);
+    expect(openExternal).not.toHaveBeenCalled();
     expect(status.status).toBe('granted');
     expect(status.granted).toBe(true);
   });

@@ -24,6 +24,10 @@ win:
 mac:
   icon: src/main/assets/icons/windieos.icns
   category: public.app-category.productivity
+  entitlements: src/main/assets/macos/entitlements.mac.plist
+  entitlementsInherit: src/main/assets/macos/entitlements.mac.plist
+  extendInfo:
+    NSMicrophoneUsageDescription: WindieOS uses microphone access for voice mode and wakeword capture.
   target:
     - target: dmg
     - target: zip

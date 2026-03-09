@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-permissions-macos-microphone-onboarding): make microphone Grant on macOS trigger a renderer `getUserMedia({audio:true})` fallback when native prompt path does not register the app, wire that bridge through main/IPC permission runtime, add mac build metadata (`NSMicrophoneUsageDescription`) plus audio-input entitlements, and add focused permission-service regression coverage so WindieOS appears in the OS microphone permission flow.
 - refactor(sidecar-memory): centralize transcript-vs-interaction record-kind constants in `memory/record_kinds.py` and rename completed-turn interaction persistence helpers so sidecar memory code no longer overloads generic “episodic” naming for transcript rows vs Episodic Memory entries.
 - refactor(backend-llm): share Anthropic/Gemini provider-native `thinking` request-param logic in `provider_native_reasoning.py`, keeping provider-specific thought/text extraction behavior intact while removing duplicate enable/disable policy code.
 - refactor(sidecar-keyboard-key-normalization): centralize `keyboard_control` key normalization into one OS-aware helper so `press` and `hotkey` share the same alias rules, including platform-correct `SUPER` handling on Linux/Windows vs macOS; add focused sidecar regression coverage and refresh the sidecar keyboard runtime reference.
