@@ -64,7 +64,6 @@ Behavior:
 
 Manual dispatch inputs:
 
-- `sidecar_profile`: `core`, `core+browser`, `full`
 - `run_signing`: `true`/`false`
 - `publish_release`: `true`/`false`
 - `release_tag`: required when manual `publish_release=true`

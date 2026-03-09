@@ -241,7 +241,7 @@ async function openLinuxPermissionCenter(topic, deps = {}) {
       { command: 'xdg-open', args: ['settings://default-apps'] },
       { command: 'gnome-control-center', args: ['default-applications'] },
     ],
-    planned_system_access: [
+    privacy: [
       { command: 'xdg-open', args: ['settings://privacy'] },
       { command: 'gnome-control-center', args: ['privacy'] },
       { command: 'systemsettings5', args: ['kcm_privacy'] },
@@ -589,19 +589,85 @@ async function verifyBrowserAutomationCapability(deps = {}) {
   }
 }
 
-function probeConsentOnly(permission, deps = {}) {
-  const permissionId = permission.permission_id;
-  if (isRequestedGranted(permissionId)) {
-    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Planned system-access disclosure is acknowledged.', {
-      consent_only: true,
-      ...getRequestedStateDetails(permissionId),
-    });
+function shouldPromptBrowserRuntimeInstall(capability = {}) {
+  if (!capability || typeof capability !== 'object') {
+    return false;
   }
-  return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Run Grant to acknowledge planned system-access scope.', {
-    consent_only: true,
-    platform: deps.platform || process.platform,
-    ...getRequestedStateDetails(permissionId),
-  });
+  const details = capability.details && typeof capability.details === 'object'
+    ? capability.details
+    : {};
+  return details.missing_browser_binary === true;
+}
+
+async function requestBrowserRuntimeInstall(deps = {}) {
+  if (typeof deps.installBrowserAutomationRuntime !== 'function') {
+    return {
+      success: false,
+      reason: 'Browser runtime install callback is unavailable.',
+      details: {},
+    };
+  }
+
+  try {
+    const result = await deps.installBrowserAutomationRuntime();
+    if (result && typeof result === 'object') {
+      return {
+        success: result.success === true,
+        reason: typeof result.error === 'string' ? result.error : '',
+        details: result.details && typeof result.details === 'object' ? result.details : result,
+      };
+    }
+    return {
+      success: result === true,
+      reason: result === true ? '' : 'Chromium install did not complete.',
+      details: {},
+    };
+  } catch (error) {
+    return {
+      success: false,
+      reason: error?.message || 'Chromium install failed.',
+      details: { error: String(error?.message || error) },
+    };
+  }
+}
+
+async function requestBrowserInstallConsent(deps = {}) {
+  const dialog = deps.dialog;
+  if (!dialog || typeof dialog.showMessageBox !== 'function') {
+    return {
+      granted: false,
+      reason: 'Install confirmation dialog is unavailable.',
+      response: null,
+    };
+  }
+
+  try {
+    const response = await dialog.showMessageBox({
+      type: 'question',
+      buttons: ['Install Chromium', 'Cancel'],
+      defaultId: 0,
+      cancelId: 1,
+      noLink: true,
+      title: 'Install Browser Runtime',
+      message: 'WindieOS needs a Chromium runtime for browser automation.',
+      detail: (
+        'WindieOS can install Chromium now using Playwright. '
+        + 'If Chromium is already installed on your system, this step will be skipped automatically.'
+      ),
+    });
+    const accepted = response?.response === 0;
+    return {
+      granted: accepted,
+      reason: accepted ? '' : 'Chromium install was canceled by user.',
+      response,
+    };
+  } catch (error) {
+    return {
+      granted: false,
+      reason: error?.message || 'Failed to open Chromium install confirmation dialog.',
+      response: null,
+    };
+  }
 }
 
 function runPermissionProbe(permissionId, deps = {}) {
@@ -620,8 +686,6 @@ function runPermissionProbe(permissionId, deps = {}) {
         return probeInputControl(permission, deps);
       case 'microphone':
         return probeMicrophone(permission, deps);
-      case 'planned_system_access':
-        return probeConsentOnly(permission, deps);
       case 'filesystem_workspace_access':
       case 'shell_execution':
         return probeRuntimeCapability(permission, deps);
@@ -1015,7 +1079,7 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
   const preferenceEnabled = getBrowserAutomationPreference(deps);
-  const capability = await verifyBrowserAutomationCapability(deps);
+  let capability = await verifyBrowserAutomationCapability(deps);
 
   if (capability.granted) {
     markRequestedGranted(permissionId, {
@@ -1024,6 +1088,59 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
       capability_check: capability,
     });
     return runPermissionProbe(permissionId, deps);
+  }
+
+  if (shouldPromptBrowserRuntimeInstall(capability)) {
+    const consent = await requestBrowserInstallConsent(deps);
+    if (!consent.granted) {
+      markRequestedPending(permissionId, {
+        flow: 'browser_automation',
+        browser_automation_enabled: preferenceEnabled,
+        capability_check: capability,
+        install_prompt: consent,
+      });
+      return buildProbeResult(
+        permissionId,
+        PERMISSION_STATUS.NEEDS_ACTION,
+        consent.reason || 'Chromium install was not approved.',
+        {
+          platform,
+          browser_automation_enabled: preferenceEnabled,
+          capability_check: capability,
+          install_prompt: consent,
+        },
+      );
+    }
+
+    const installResult = await requestBrowserRuntimeInstall(deps);
+    capability = await verifyBrowserAutomationCapability(deps);
+    if (capability.granted) {
+      markRequestedGranted(permissionId, {
+        flow: 'browser_automation',
+        browser_automation_enabled: preferenceEnabled,
+        capability_check: capability,
+        chromium_install: installResult,
+      });
+      return runPermissionProbe(permissionId, deps);
+    }
+
+    markRequestedPending(permissionId, {
+      flow: 'browser_automation',
+      browser_automation_enabled: preferenceEnabled,
+      capability_check: capability,
+      chromium_install: installResult,
+    });
+    return buildProbeResult(
+      permissionId,
+      PERMISSION_STATUS.NEEDS_ACTION,
+      installResult.reason || capability.reason || 'Chromium install did not complete.',
+      {
+        platform,
+        browser_automation_enabled: preferenceEnabled,
+        capability_check: capability,
+        chromium_install: installResult,
+      },
+    );
   }
 
   markRequestedPending(permissionId, {
@@ -1036,34 +1153,6 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
     browser_automation_enabled: preferenceEnabled,
     capability_check: capability,
   });
-}
-
-async function requestPlannedSystemAccessPermission(permission, deps = {}) {
-  const permissionId = permission.permission_id;
-  const platform = deps.platform || process.platform;
-  let result = { success: false, reason: 'No planned-system-access flow attempted.' };
-
-  if (platform === 'darwin') {
-    result = await openExternal('x-apple.systempreferences:com.apple.preference.security', deps);
-  } else if (platform === 'win32') {
-    result = await openExternal('ms-settings:windowsdefender', deps);
-  } else if (platform === 'linux') {
-    result = await openLinuxPermissionCenter('planned_system_access', deps);
-  }
-
-  if (result.success) {
-    markRequestedGranted(permissionId, {
-      flow: 'planned_system_access',
-      settings_result: result,
-    });
-  } else {
-    markRequestedPending(permissionId, {
-      flow: 'planned_system_access',
-      settings_result: result,
-    });
-  }
-
-  return runPermissionProbe(permissionId, deps);
 }
 
 async function requestPermission(permissionId, deps = {}) {
@@ -1088,8 +1177,6 @@ async function requestPermission(permissionId, deps = {}) {
         return await requestShellExecutionPermission(permission, deps);
       case 'browser_automation':
         return await requestBrowserAutomationPermission(permission, deps);
-      case 'planned_system_access':
-        return await requestPlannedSystemAccessPermission(permission, deps);
       default:
         return buildProbeResult(permissionId, PERMISSION_STATUS.UNSUPPORTED, 'No request flow implemented for this permission.', {
           permission_id: permissionId,

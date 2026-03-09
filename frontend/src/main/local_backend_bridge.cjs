@@ -673,7 +673,29 @@ async function getSystemState(fields = null) {
 }
 
 async function getLocalBackendStatus() {
-  return sendRequestOrError('get_status');
+  const result = await sendRequestOrError('get_status');
+  if (result && result.success === false) {
+    return result;
+  }
+  return {
+    success: true,
+    data: result,
+  };
+}
+
+async function installBrowserChromium() {
+  const result = await sendRequestOrError(
+    'install_browser_chromium',
+    {},
+    { timeoutMs: 10 * 60 * 1000 },
+  );
+  if (result && result.success === false && typeof result.error === 'string') {
+    return result;
+  }
+  return {
+    success: true,
+    data: result,
+  };
 }
 
 async function searchMemory(
@@ -697,6 +719,7 @@ module.exports = {
   stopLocalBackend,
   getSystemState,
   getLocalBackendStatus,
+  installBrowserChromium,
   searchMemory,
   storeMemory,
 };

@@ -287,6 +287,7 @@ Permission model for packaged installs:
 
 - Installers can bundle runtimes/dependencies, but OS privacy controls (microphone, screen capture, accessibility/input control) are granted by the user at runtime.
 - WindieOS requests these permissions during first-launch onboarding and provides deep links to OS settings when required.
+- Browser automation permission checks whether a Chromium runtime is already available; if missing, WindieOS asks user consent before installing Chromium for the bundled browser runtime.
 
 For full frontend-only installer workflow (bundled runtime build + packaging),
 see `docs/operations/sidecar_runtime_packaging.md`.
