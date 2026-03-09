@@ -169,6 +169,6 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     assert "Prefer keyboard shortcuts and app-native commands over mouse actions" in content
     assert "Do not treat tool execution status alone as success" in content
     assert "global emergency stop hotkey is Command/Ctrl+Shift+Escape" in content
-    assert "If a UI is capturing trusted native input such as a key recorder" in content
+    assert "The `keyboard_control` tech stack is synthetic automation input" in content
     assert "run_in_background=true" in content
     assert "Snapshot pagination contract" in content
