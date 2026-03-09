@@ -39,8 +39,10 @@ class RehydrateExecutionService:
         state = RehydrateNormalizationState()
         hydrated_entries: List[Dict[str, Any]] = []
         rehydrated_system_prompt: Optional[str] = None
+        last_timestamp: Optional[str] = None
 
         for index, entry in enumerate(payload.messages):
+            last_timestamp = getattr(entry, "timestamp", None)
             transparency = self._entry_normalizer.normalize_transparency(
                 getattr(entry, "transparency", None)
             )
@@ -56,15 +58,21 @@ class RehydrateExecutionService:
                 index=index,
             )
 
-            normalized_entries, next_pending_tool_call_id = self._entry_normalizer.normalize_entry(
+            normalized_entries, _ = self._entry_normalizer.normalize_entry(
                 entry=entry,
                 index=index,
                 image_data=image_data,
                 transparency=transparency,
                 state=state,
             )
-            state.pending_tool_call_id = next_pending_tool_call_id
             hydrated_entries.extend(normalized_entries)
+
+        hydrated_entries.extend(
+            self._entry_normalizer.finalize_pending_tool_call_entries(
+                state=state,
+                timestamp=last_timestamp,
+            )
+        )
 
         self._apply_rehydrated_system_prompt(
             session=session,
@@ -87,7 +95,7 @@ class RehydrateExecutionService:
         """
         state = RehydrateNormalizationState(
             known_tool_call_ids=known_tool_call_ids,
-            pending_tool_call_id=pending_tool_call_id,
+            pending_tool_call_ids=[pending_tool_call_id] if pending_tool_call_id else [],
         )
         return self._entry_normalizer.normalize_entry(
             entry=entry,

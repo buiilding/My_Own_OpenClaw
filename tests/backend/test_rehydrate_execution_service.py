@@ -3,6 +3,10 @@ from types import SimpleNamespace
 import pytest
 
 from backend.src.api.schema import RehydrateConversationMessage
+from backend.src.api.services.rehydrate_entry_normalization import (
+    RehydrateEntryNormalizer,
+    RehydrateNormalizationState,
+)
 from backend.src.api.services.rehydrate_execution import RehydrateExecutionService
 
 
@@ -327,6 +331,38 @@ def test_normalize_rehydrated_entry_reuses_pending_tool_call_id_for_tool_output(
     assert pending is None
 
 
+def test_normalize_rehydrated_entry_consumes_matching_pending_tool_call_id():
+    service = RehydrateExecutionService(_FakeSessionManager())
+    known_tool_call_ids = {"call-1", "call-2"}
+    state = RehydrateNormalizationState(
+        known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_ids=["call-1", "call-2"],
+    )
+    entry = SimpleNamespace(
+        role="tool",
+        content="done",
+        message_type="tool-output",
+        tool_name="replace",
+        correlation_id=None,
+        tool_call_id="call-2",
+        timestamp="2026-02-26T00:00:01Z",
+        tool_calls=None,
+    )
+
+    entries, pending = service._entry_normalizer.normalize_entry(
+        entry=entry,
+        index=1,
+        image_data=None,
+        transparency=None,
+        state=state,
+    )
+
+    assert len(entries) == 1
+    assert entries[0]["tool_call_id"] == "call-2"
+    assert pending is None
+    assert state.pending_tool_call_ids == ["call-1"]
+
+
 def test_extract_tool_call_details_reads_arguments_alias_field():
     service = RehydrateExecutionService(_FakeSessionManager())
     tool_name, arguments, tool_call_id, thought_signature = service._extract_tool_call_details(
@@ -440,6 +476,23 @@ def test_normalize_rehydrated_tool_call_entry_uses_explicit_tool_call_id():
     assert known_tool_call_ids == {"call-explicit"}
 
 
+def test_finalize_pending_tool_call_entries_synthesizes_missing_tool_outputs():
+    state = RehydrateNormalizationState(
+        known_tool_call_ids={"call-1", "call-2"},
+        pending_tool_call_ids=["call-1", "call-2"],
+    )
+
+    repaired_entries = RehydrateEntryNormalizer.finalize_pending_tool_call_entries(
+        state=state,
+        timestamp="2026-02-26T00:00:05Z",
+    )
+
+    assert [entry["tool_call_id"] for entry in repaired_entries] == ["call-1", "call-2"]
+    assert all(entry["role"] == "tool" for entry in repaired_entries)
+    assert all(entry["message_type"] == "tool-output" for entry in repaired_entries)
+    assert state.pending_tool_call_ids == []
+
+
 @pytest.mark.asyncio
 async def test_execute_restores_system_prompt_and_full_transparency_content():
     manager = _FakeSessionManager()
@@ -511,6 +564,69 @@ def test_normalize_rehydrated_tool_call_entry_preserves_thought_signature_from_c
     }
     assert pending == "call-1"
     assert known_tool_call_ids == {"call-1"}
+
+
+@pytest.mark.asyncio
+async def test_execute_appends_synthetic_tool_output_for_unanswered_tool_call():
+    manager = _FakeSessionManager()
+    service = RehydrateExecutionService(manager)
+    message = _build_message(
+        [
+            {
+                "role": "assistant",
+                "content": "",
+                "message_type": "assistant-message",
+                "tool_calls": [
+                    {
+                        "id": "call-1",
+                        "name": "run_shell_command",
+                        "arguments": {"command": "pwd"},
+                    }
+                ],
+            }
+        ]
+    )
+
+    await service.execute(message, "user-1", artifact_store_cls=_TrackingArtifactStore)
+
+    _, entries = manager.session.calls[0]
+    assert [entry["role"] for entry in entries] == ["assistant", "tool"]
+    assert entries[0]["tool_calls"][0]["id"] == "call-1"
+    assert entries[1]["tool_call_id"] == "call-1"
+    assert "missing during rehydrate" in entries[1]["content"]
+
+
+@pytest.mark.asyncio
+async def test_execute_repairs_multi_tool_turn_with_one_missing_output():
+    manager = _FakeSessionManager()
+    service = RehydrateExecutionService(manager)
+    message = _build_message(
+        [
+            {
+                "role": "assistant",
+                "content": "",
+                "message_type": "assistant-message",
+                "tool_calls": [
+                    {"id": "call-1", "name": "run_shell_command", "arguments": {"command": "pwd"}},
+                    {"id": "call-2", "name": "read_file", "arguments": {"file_path": "/tmp/a.txt"}},
+                ],
+            },
+            {
+                "role": "tool",
+                "content": "pwd output",
+                "message_type": "tool-output",
+                "tool_call_id": "call-1",
+            },
+        ]
+    )
+
+    await service.execute(message, "user-1", artifact_store_cls=_TrackingArtifactStore)
+
+    _, entries = manager.session.calls[0]
+    assert [entry["role"] for entry in entries] == ["assistant", "tool", "tool"]
+    assert entries[1]["tool_call_id"] == "call-1"
+    assert entries[2]["tool_call_id"] == "call-2"
+    assert "missing during rehydrate" in entries[2]["content"]
 
 
 def test_normalize_stored_message_type_collapses_context_summary_variants():
