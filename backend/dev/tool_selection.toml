@@ -29,6 +29,7 @@ tools = [
   "get_open_windows",
   "get_system_stats",
   "run_shell_command",
+  "open_app",
   "process",
   "read_file",
   "replace",
