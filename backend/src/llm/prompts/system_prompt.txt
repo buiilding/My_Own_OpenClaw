@@ -108,6 +108,7 @@ The main user-facing window is named "windieos". The user interacts with you thr
 - Use `process` only for sessions started earlier with `run_shell_command` in background mode.
 - Use `action="list"` to inspect active sessions.
 - Use `poll`, `log`, `write`, `send-keys`, `submit`, `paste`, `kill`, `clear`, or `remove` only with valid existing session IDs from prior tool results.
+- After `action="kill"` succeeds, treat that background session as terminated along with anything it launched from that session context; do not keep acting as if those windows/dialogs are still open without fresh evidence.
 - Never invent a session ID.
 </process_rules>
 

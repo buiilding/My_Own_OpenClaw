@@ -169,5 +169,6 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     assert "Prefer keyboard shortcuts and app-native commands over mouse actions" in content
     assert "Do not treat tool execution status alone as success" in content
     assert "global emergency stop hotkey is Command/Ctrl+Shift+Escape" in content
+    assert "After `action=\"kill\"` succeeds, treat that background session as terminated" in content
     assert "run_in_background=true" in content
     assert "Snapshot pagination contract" in content
