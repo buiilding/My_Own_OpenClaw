@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(agent-prompt-native-input-fallback): teach the runtime system prompt to hand off trusted native-input capture surfaces such as shortcut/key recorders to the user instead of retrying synthetic keyboard injection, and lock the prompt contract/docs to that guidance.
 - fix(backend-tool-selection-open-app): include `open_app` in `backend/dev/tool_selection.toml` allowlist so chat-mode runtime tool schemas expose the dedicated app-launch tool (`computer_use`, `system_use`, `open_app`, `process`) instead of filtering it out.
 - docs(system-prompt-stop-hotkey): add an explicit global emergency-stop note to the backend system prompt so the agent is aware `Command/Ctrl+Shift+Escape` immediately terminates active loops, and lock it with prompt-manager contract coverage.
 - fix(sidecar-keyboard-super-alias): map `SUPER` hotkey input to pyautogui's Linux `win` key name so system/app shortcuts no longer silently drop the modifier, and add focused sidecar regression coverage for the alias.
