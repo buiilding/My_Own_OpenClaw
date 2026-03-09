@@ -128,6 +128,7 @@ interface ChatState {
   isSending: boolean;
   thinkingStatus: string | null;
   thinkingSourceEventType: string | null;
+  compactionDebugInfo: ChatWorkspaceState['compactionDebugInfo'];
   tokenCounts: TokenCounts | null;
   streamTracking: StreamTracking;
   getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceState;
@@ -147,6 +148,10 @@ interface ChatState {
   setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
   setThinkingSourceEventType: (
     sourceEventType: string | null,
+    conversationRef?: string | null,
+  ) => void;
+  setCompactionDebugInfo: (
+    debugInfo: ChatWorkspaceState['compactionDebugInfo'],
     conversationRef?: string | null,
   ) => void;
   setTokenCounts: (counts: TokenCounts | null, conversationRef?: string | null) => void;
@@ -172,6 +177,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isSending: false,
   thinkingStatus: null,
   thinkingSourceEventType: null,
+  compactionDebugInfo: null,
   tokenCounts: null,
   streamTracking: createInitialStreamTracking(),
   getWorkspaceState: (conversationRef) => {
@@ -193,6 +199,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         && state.isSending === nextWorkspace.isSending
         && state.thinkingStatus === nextWorkspace.thinkingStatus
         && state.thinkingSourceEventType === nextWorkspace.thinkingSourceEventType
+        && state.compactionDebugInfo === nextWorkspace.compactionDebugInfo
         && state.tokenCounts === nextWorkspace.tokenCounts
         && state.streamTracking === nextWorkspace.streamTracking
       ) {
@@ -211,6 +218,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         isSending: nextWorkspace.isSending,
         thinkingStatus: nextWorkspace.thinkingStatus,
         thinkingSourceEventType: nextWorkspace.thinkingSourceEventType,
+        compactionDebugInfo: nextWorkspace.compactionDebugInfo,
         tokenCounts: nextWorkspace.tokenCounts,
         streamTracking: nextWorkspace.streamTracking,
       };
@@ -276,6 +284,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           isSending: nextWorkspace.isSending,
           thinkingStatus: nextWorkspace.thinkingStatus,
           thinkingSourceEventType: nextWorkspace.thinkingSourceEventType,
+          compactionDebugInfo: nextWorkspace.compactionDebugInfo,
           tokenCounts: nextWorkspace.tokenCounts,
           streamTracking: nextWorkspace.streamTracking,
         } : {}),
@@ -389,6 +398,24 @@ export const useChatStore = create<ChatState>((set, get) => ({
       };
     }),
 
+  setCompactionDebugInfo: (compactionDebugInfo, conversationRef) =>
+    set((state) => {
+      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      if (currentWorkspace.compactionDebugInfo === compactionDebugInfo) {
+        return state;
+      }
+      const nextWorkspace = { ...currentWorkspace, compactionDebugInfo };
+      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
+      return {
+        workspaces: {
+          ...state.workspaces,
+          [targetWorkspaceRef]: nextWorkspace,
+        },
+        ...(isActiveWorkspace ? { compactionDebugInfo } : {}),
+      };
+    }),
+
   setTokenCounts: (tokenCounts, conversationRef) =>
     set((state) => {
       const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
@@ -437,6 +464,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         ...currentWorkspace,
         messages: [],
         thinkingSourceEventType: null,
+        compactionDebugInfo: null,
         streamTracking: createInitialStreamTracking(),
       };
       const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
@@ -448,6 +476,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         ...(isActiveWorkspace ? {
           messages: [],
           thinkingSourceEventType: null,
+          compactionDebugInfo: null,
           streamTracking: nextWorkspace.streamTracking,
         } : {}),
       };

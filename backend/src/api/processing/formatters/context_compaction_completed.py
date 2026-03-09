@@ -60,7 +60,8 @@ class ContextCompactionCompletedEventFormatter(EventFormatter):
                 "after_tokens": after_tokens,
                 "removed_messages": removed_messages,
                 "summary_preview": event_dict.get("summary_preview"),
+                "summary_text": event_dict.get("summary_text"),
+                "replacement_history_preview": event_dict.get("replacement_history_preview"),
                 "skipped_reason": event_dict.get("skipped_reason"),
             },
         }
-

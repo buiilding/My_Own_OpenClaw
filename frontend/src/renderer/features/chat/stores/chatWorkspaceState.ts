@@ -9,6 +9,23 @@ export interface ChatWorkspaceState {
   isSending: boolean;
   thinkingStatus: string | null;
   thinkingSourceEventType: string | null;
+  compactionDebugInfo: {
+    reason: string | null;
+    strategy: string | null;
+    beforeTokens: number | null;
+    afterTokens: number | null;
+    removedMessages: number | null;
+    summaryPreview: string | null;
+    summaryText: string | null;
+    replacementHistoryPreview: Array<{
+      role: string | null;
+      messageType: string | null;
+      content: string | null;
+      toolName: string | null;
+      toolCallId: string | null;
+    }>;
+    skippedReason: string | null;
+  } | null;
   tokenCounts: TokenCounts | null;
   streamTracking: StreamTracking;
 }
@@ -20,6 +37,7 @@ interface ChatWorkspaceStoreSnapshot {
   isSending?: boolean;
   thinkingStatus?: string | null;
   thinkingSourceEventType?: string | null;
+  compactionDebugInfo?: ChatWorkspaceState['compactionDebugInfo'];
   tokenCounts?: TokenCounts | null;
   streamTracking?: StreamTracking;
 }
@@ -78,6 +96,7 @@ export function createInitialWorkspaceState(): ChatWorkspaceState {
     isSending: false,
     thinkingStatus: null,
     thinkingSourceEventType: null,
+    compactionDebugInfo: null,
     tokenCounts: null,
     streamTracking: createInitialStreamTracking(),
   };
@@ -89,6 +108,7 @@ function buildActiveWorkspaceSnapshot(state: ChatWorkspaceStoreSnapshot): ChatWo
     isSending: state.isSending ?? false,
     thinkingStatus: state.thinkingStatus ?? null,
     thinkingSourceEventType: state.thinkingSourceEventType ?? null,
+    compactionDebugInfo: state.compactionDebugInfo ?? null,
     tokenCounts: state.tokenCounts ?? null,
     streamTracking: state.streamTracking ?? createInitialStreamTracking(),
   };
@@ -103,6 +123,7 @@ function doesWorkspaceMatch(
     && workspace.isSending === activeWorkspace.isSending
     && workspace.thinkingStatus === activeWorkspace.thinkingStatus
     && workspace.thinkingSourceEventType === activeWorkspace.thinkingSourceEventType
+    && workspace.compactionDebugInfo === activeWorkspace.compactionDebugInfo
     && workspace.tokenCounts === activeWorkspace.tokenCounts
     && workspace.streamTracking === activeWorkspace.streamTracking
   );

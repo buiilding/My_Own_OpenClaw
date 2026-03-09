@@ -186,6 +186,8 @@ class ContextCompactionCompletedEvent(StreamingEvent):
     after_tokens: int
     removed_messages: int
     summary_preview: Optional[str] = None
+    summary_text: Optional[str] = None
+    replacement_history_preview: Optional[List[Dict[str, Any]]] = None
     skipped_reason: Optional[str] = None
 
     def __post_init__(self):

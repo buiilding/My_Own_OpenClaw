@@ -387,6 +387,13 @@ class TestContextCompactionEvents:
             after_tokens=900,
             removed_messages=9,
             summary_preview="summary",
+            replacement_history_preview=[
+                {
+                    "role": "assistant",
+                    "message_type": "context_compaction",
+                    "content": "summary body",
+                }
+            ],
             skipped_reason=None,
         )
 
@@ -394,6 +401,7 @@ class TestContextCompactionEvents:
         result = event.to_dict()
         assert result["after_tokens"] == 900
         assert result["removed_messages"] == 9
+        assert result["replacement_history_preview"][0]["message_type"] == "context_compaction"
 
     def test_context_compaction_failed_event(self):
         event = ContextCompactionFailedEvent(

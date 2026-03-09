@@ -58,7 +58,14 @@ function waitForNextPaint() {
 function ChatInterface({ focusComposerToken = 0 }) {
   const vmModeEnabled = isVmModeEnabled();
 
-  const { messages, isSending, thinkingStatus, thinkingSourceEventType, streamPhase } = useChatStore(
+  const {
+    messages,
+    isSending,
+    thinkingStatus,
+    thinkingSourceEventType,
+    compactionDebugInfo,
+    streamPhase,
+  } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
   const clearMessages = useChatStore((state) => state.clearMessages);
@@ -325,6 +332,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
             conversationRef={transcriptSessionInfo.conversationRef || null}
             thinkingStatus={thinkingStatus}
             thinkingSourceEventType={thinkingSourceEventType}
+            compactionDebugInfo={compactionDebugInfo}
             awaitingDotTargetMessageId={awaitingDotTargetMessageId}
             enableAgentLoopAutoScroll={composerBusy}
             enableAssistantActions

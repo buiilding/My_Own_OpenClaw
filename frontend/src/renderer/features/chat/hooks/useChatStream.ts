@@ -57,6 +57,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus,
     setThinkingSourceEventType,
   } = useChatCommonActions();
+  const setCompactionDebugInfo = useChatStore((state) => state.setCompactionDebugInfo);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const registerTurnConversationRef = useChatStore((state) => state.registerTurnConversationRef);
@@ -163,6 +164,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     shouldIgnoreForStaleTurn,
     setThinkingStatus,
     setThinkingSourceEventType,
+    setCompactionDebugInfo,
     recordTrackingEvent,
   });
 

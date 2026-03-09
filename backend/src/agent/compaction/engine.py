@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, List, Optional
 from backend.src.agent.compaction.models import (
     CompactionDecision,
     CompactionInput,
+    CompactionReplacementMessagePreview,
     CompactionResult,
 )
 from backend.src.agent.compaction.prompt import format_compaction_history_message
@@ -114,6 +115,7 @@ class CompactionEngine:
                 after_tokens=active_decision.before_tokens,
                 removed_messages=0,
                 summary_text="",
+                replacement_history_preview=[],
                 skip_reason=active_decision.skip_reason,
             )
 
@@ -131,6 +133,7 @@ class CompactionEngine:
                 after_tokens=active_decision.before_tokens,
                 removed_messages=0,
                 summary_text="",
+                replacement_history_preview=[],
                 skip_reason="insufficient-history",
             )
 
@@ -145,6 +148,9 @@ class CompactionEngine:
             message_type=MessageType.CONTEXT_COMPACTION,
         )
         replacement_messages = [summary_message, *compaction_input.keep_tail_messages]
+        replacement_history_preview = self._build_replacement_history_preview(
+            replacement_messages
+        )
         self._session.history.replace_with_stored_messages(replacement_messages)
 
         after_tokens = self._session.history.get_token_count(self._session.cfg.llm_model)
@@ -167,8 +173,24 @@ class CompactionEngine:
             after_tokens=after_tokens,
             removed_messages=removed_messages,
             summary_text=strategy_output.summary_text,
+            replacement_history_preview=replacement_history_preview,
             skip_reason=None,
         )
+
+    @staticmethod
+    def _build_replacement_history_preview(
+        replacement_messages: List[StoredMessage],
+    ) -> List[CompactionReplacementMessagePreview]:
+        return [
+            CompactionReplacementMessagePreview(
+                role=message.role.value,
+                message_type=message.message_type.value,
+                content=message.content,
+                tool_name=message.tool_name,
+                tool_call_id=message.tool_call_id,
+            )
+            for message in replacement_messages
+        ]
 
     def _build_compaction_input(
         self,

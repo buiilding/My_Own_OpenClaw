@@ -146,6 +146,7 @@ Handler map (`BackendEventType` -> behavior):
 - `streaming-response`: append/create assistant `llm-text` row and increment chunk tracking
 - `context-compaction-started`: sets thinking text to `Compacting conversation history...` while backend compaction runs
 - `context-compaction-completed`: replaces in-progress compaction thinking with a terminal status message (`Conversation history compacted.` or `Compaction completed (no changes needed).`) and marks source as `context-compaction-completed`
+  - in dev UI, also stores compaction debug payload including the full summary text plus the replacement-history preview (summary message + kept tail messages)
 - `context-compaction-failed`: replaces compaction thinking with terminal failure text (backend error string when available, otherwise `Conversation compaction failed.`) and marks source as `context-compaction-failed`
 - `tool-call`: append assistant tool-call row and transcript tool-call row
 - `tool-output`: append assistant tool-output row with screenshot/tool metadata and transcript tool-output row

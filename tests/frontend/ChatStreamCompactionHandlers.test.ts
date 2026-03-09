@@ -13,6 +13,7 @@ describe('useChatStreamCompactionHandlers', () => {
     const shouldIgnoreForStaleTurn = jest.fn(() => false);
     const setThinkingStatus = jest.fn();
     const setThinkingSourceEventType = jest.fn();
+    const setCompactionDebugInfo = jest.fn();
     const recordTrackingEvent = jest.fn();
 
     const { result } = renderHook(() => useChatStreamCompactionHandlers({
@@ -20,6 +21,7 @@ describe('useChatStreamCompactionHandlers', () => {
       shouldIgnoreForStaleTurn,
       setThinkingStatus,
       setThinkingSourceEventType,
+      setCompactionDebugInfo,
       recordTrackingEvent,
     }));
 
@@ -31,7 +33,22 @@ describe('useChatStreamCompactionHandlers', () => {
       result.current.handleContextCompactionCompleted({
         type: 'context-compaction-completed',
         turn_ref: 'turn-1',
-        payload: { skipped_reason: '' },
+        payload: {
+          skipped_reason: '',
+          summary_text: 'full compacted history',
+          replacement_history_preview: [
+            {
+              role: 'assistant',
+              message_type: 'context_compaction',
+              content: '[[CONTEXT COMPACTION SUMMARY]]\nfull compacted history',
+            },
+            {
+              role: 'user',
+              message_type: 'user_query',
+              content: 'latest question',
+            },
+          ],
+        },
       } as any);
       result.current.handleContextCompactionCompleted({
         type: 'context-compaction-completed',
@@ -52,6 +69,19 @@ describe('useChatStreamCompactionHandlers', () => {
     expect(setThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-started', 'conversation-1');
     expect(setThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-completed', 'conversation-1');
     expect(setThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-failed', 'conversation-1');
+    expect(setCompactionDebugInfo).toHaveBeenNthCalledWith(1, null, 'conversation-1');
+    expect(setCompactionDebugInfo).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        summaryText: 'full compacted history',
+        replacementHistoryPreview: [
+          expect.objectContaining({ messageType: 'context_compaction' }),
+          expect.objectContaining({ messageType: 'user_query' }),
+        ],
+      }),
+      'conversation-1',
+    );
+    expect(setCompactionDebugInfo).toHaveBeenNthCalledWith(4, null, 'conversation-1');
     expect(recordTrackingEvent).toHaveBeenCalledTimes(4);
   });
 
@@ -60,6 +90,7 @@ describe('useChatStreamCompactionHandlers', () => {
     const shouldIgnoreForStaleTurn = jest.fn(() => true);
     const setThinkingStatus = jest.fn();
     const setThinkingSourceEventType = jest.fn();
+    const setCompactionDebugInfo = jest.fn();
     const recordTrackingEvent = jest.fn();
 
     const { result } = renderHook(() => useChatStreamCompactionHandlers({
@@ -67,6 +98,7 @@ describe('useChatStreamCompactionHandlers', () => {
       shouldIgnoreForStaleTurn,
       setThinkingStatus,
       setThinkingSourceEventType,
+      setCompactionDebugInfo,
       recordTrackingEvent,
     }));
 
@@ -78,6 +110,7 @@ describe('useChatStreamCompactionHandlers', () => {
 
     expect(setThinkingStatus).not.toHaveBeenCalled();
     expect(setThinkingSourceEventType).not.toHaveBeenCalled();
+    expect(setCompactionDebugInfo).not.toHaveBeenCalled();
     expect(recordTrackingEvent).not.toHaveBeenCalled();
   });
 });

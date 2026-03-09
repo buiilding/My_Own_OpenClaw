@@ -121,6 +121,16 @@ class InteractionLoop:
                                 mid_compaction_result.summary_text
                             ),
                             summary_text=mid_compaction_result.summary_text,
+                            replacement_history_preview=[
+                                {
+                                    "role": entry.role,
+                                    "message_type": entry.message_type,
+                                    "content": entry.content,
+                                    "tool_name": entry.tool_name,
+                                    "tool_call_id": entry.tool_call_id,
+                                }
+                                for entry in mid_compaction_result.replacement_history_preview
+                            ],
                             skipped_reason=mid_compaction_result.skip_reason,
                         )
                     except Exception as exc:

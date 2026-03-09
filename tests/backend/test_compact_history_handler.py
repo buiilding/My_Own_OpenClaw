@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from backend.src.agent.compaction.models import CompactionDecision, CompactionResult
+from backend.src.agent.compaction.models import (
+    CompactionDecision,
+    CompactionReplacementMessagePreview,
+    CompactionResult,
+)
 from backend.src.api.handlers.compact_history import CompactHistoryHandler
 from backend.src.api.schema import CompactHistoryMessage
 
@@ -67,6 +71,7 @@ async def test_compact_history_handler_rejects_when_query_is_active():
         after_tokens=100,
         removed_messages=0,
         summary_text="",
+        replacement_history_preview=[],
         skip_reason="disabled",
     )
     websocket = _FakeWebSocket()
@@ -109,6 +114,13 @@ async def test_compact_history_handler_emits_started_and_completed_when_applied(
         after_tokens=900,
         removed_messages=7,
         summary_text="summary content",
+        replacement_history_preview=[
+            CompactionReplacementMessagePreview(
+                role="assistant",
+                message_type="context_compaction",
+                content="[[CONTEXT COMPACTION SUMMARY]]\nsummary content",
+            ),
+        ],
         skip_reason=None,
     )
     websocket = _FakeWebSocket()
@@ -133,6 +145,7 @@ async def test_compact_history_handler_emits_started_and_completed_when_applied(
     assert websocket.sent[0]["payload"]["before_tokens"] == 2200
     assert websocket.sent[1]["payload"]["after_tokens"] == 900
     assert websocket.sent[1]["payload"]["removed_messages"] == 7
+    assert websocket.sent[1]["payload"]["replacement_history_preview"][0]["message_type"] == "context_compaction"
 
 
 @pytest.mark.asyncio
@@ -154,6 +167,7 @@ async def test_compact_history_handler_emits_completed_with_skip_reason():
         after_tokens=1200,
         removed_messages=0,
         summary_text="",
+        replacement_history_preview=[],
         skip_reason="below-threshold",
     )
     websocket = _FakeWebSocket()

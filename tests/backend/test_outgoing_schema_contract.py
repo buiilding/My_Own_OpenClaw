@@ -234,6 +234,19 @@ def test_context_compaction_completed_formatter_output_matches_schema() -> None:
             "after_tokens": 900,
             "removed_messages": 10,
             "summary_preview": "short summary",
+            "summary_text": "full summary text",
+            "replacement_history_preview": [
+                {
+                    "role": "assistant",
+                    "message_type": "context_compaction",
+                    "content": "[[CONTEXT COMPACTION SUMMARY]]\nfull summary text",
+                },
+                {
+                    "role": "user",
+                    "message_type": "user_query",
+                    "content": "latest user turn",
+                },
+            ],
             "skipped_reason": None,
         },
         "msg_5",
@@ -248,6 +261,8 @@ def test_context_compaction_completed_formatter_output_matches_schema() -> None:
     )
     assert parsed.payload.after_tokens == 900
     assert parsed.payload.removed_messages == 10
+    assert parsed.payload.summary_text == "full summary text"
+    assert parsed.payload.replacement_history_preview[1]["message_type"] == "user_query"
 
 
 def test_context_compaction_failed_formatter_output_matches_schema() -> None:
