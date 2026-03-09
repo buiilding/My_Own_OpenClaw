@@ -148,7 +148,7 @@ Auto-pre flow (`AgentExecutor.process_query`):
 - includes pending enriched user message text in projected token estimate
 - emits:
   - `context-compaction-started` when decision requires compaction
-  - `context-compaction-completed` on success (with `summary_preview`/`skipped_reason`)
+  - `context-compaction-completed` on success (with `summary_preview`, `summary_text`, dev-only `replacement_history_preview`, and `skipped_reason`)
   - `context-compaction-failed` on exception
 
 Auto-mid flow (`InteractionLoop.run_loop`):

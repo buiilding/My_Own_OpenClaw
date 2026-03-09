@@ -9,6 +9,17 @@ from backend.src.core.messages.structures import StoredMessage
 
 
 @dataclass(frozen=True)
+class CompactionReplacementMessagePreview:
+    """Structured preview of one replacement-history message for dev inspection."""
+
+    role: str
+    message_type: str
+    content: str
+    tool_name: Optional[str] = None
+    tool_call_id: Optional[str] = None
+
+
+@dataclass(frozen=True)
 class CompactionDecision:
     """Preflight decision for whether compaction should run."""
 
@@ -50,5 +61,5 @@ class CompactionResult:
     after_tokens: int
     removed_messages: int
     summary_text: str
+    replacement_history_preview: List[CompactionReplacementMessagePreview]
     skip_reason: Optional[str] = None
-

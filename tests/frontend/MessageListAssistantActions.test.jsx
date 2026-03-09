@@ -9,8 +9,16 @@ import {
 
 import MessageList from '../../frontend/src/renderer/features/chat/components/MessageList';
 
+const mockIsDevUiEnabled = jest.fn(() => false);
+
+jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
+  isDevUiEnabled: () => mockIsDevUiEnabled(),
+}));
+
 describe('MessageList assistant actions', () => {
   beforeEach(() => {
+    mockIsDevUiEnabled.mockReset();
+    mockIsDevUiEnabled.mockReturnValue(false);
     Object.defineProperty(window.HTMLElement.prototype, 'scrollIntoView', {
       configurable: true,
       value: jest.fn(),
@@ -77,6 +85,51 @@ describe('MessageList assistant actions', () => {
 
     expect(screen.queryByRole('button', { name: 'Copy assistant message' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
+  });
+
+  test('renders compaction debug summary in development when payload is present', () => {
+    mockIsDevUiEnabled.mockReturnValue(true);
+    render(
+      <MessageList
+        messages={[]}
+        thinkingStatus="Conversation compacted."
+        thinkingSourceEventType="context-compaction-completed"
+        compactionDebugInfo={{
+          reason: 'manual',
+          strategy: 'inline',
+          beforeTokens: 2400,
+          afterTokens: 900,
+          removedMessages: 10,
+          summaryPreview: 'short summary',
+          summaryText: 'full compacted history summary',
+          replacementHistoryPreview: [
+            {
+              role: 'assistant',
+              messageType: 'context_compaction',
+              content: '[[CONTEXT COMPACTION SUMMARY]]\nfull compacted history summary',
+              toolName: null,
+              toolCallId: null,
+            },
+            {
+              role: 'user',
+              messageType: 'user_query',
+              content: 'latest user turn',
+              toolName: null,
+              toolCallId: null,
+            },
+          ],
+          skippedReason: null,
+        }}
+      />,
+    );
+
+    expect(screen.getByText('Compacted History Summary')).toBeInTheDocument();
+    expect(
+      screen.getByText((content) => content.includes('[[CONTEXT COMPACTION SUMMARY]]') && content.includes('full compacted history summary')),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Replacement History')).toBeInTheDocument();
+    expect(screen.getByText('latest user turn')).toBeInTheDocument();
+    expect(screen.getByText(/Before tokens:/i)).toBeInTheDocument();
   });
 
   test('does not render assistant actions while assistant text is still streaming', () => {

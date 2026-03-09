@@ -13,6 +13,7 @@ import {
 } from '../utils/message/messageListState';
 import { resolveConversationToolSchemas } from '../utils/message/messageTransparency';
 import { useMessageListAutoScroll } from '../hooks/useMessageListAutoScroll';
+import { isDevUiEnabled } from '../utils/devUiFlag';
 
 
 function MessageList({
@@ -20,6 +21,7 @@ function MessageList({
   conversationRef = null,
   thinkingStatus = null,
   thinkingSourceEventType = null,
+  compactionDebugInfo = null,
   awaitingDotTargetMessageId = null,
   enableAgentLoopAutoScroll = false,
   enableAssistantActions = false,
@@ -29,6 +31,7 @@ function MessageList({
   onAssistantTryAgain,
   onUserEdit,
 }) {
+  const showDevCompactionDebug = isDevUiEnabled();
   const [editingUserMessageId, setEditingUserMessageId] = useState(null);
   const [editingUserDraft, setEditingUserDraft] = useState('');
   const messagesEndRef = useRef(null);
@@ -165,6 +168,47 @@ function MessageList({
           </span>
         </div>
       ) : null}
+      {showDevCompactionDebug && compactionDebugInfo ? (
+        <details className="message-list-compaction-debug" open>
+          <summary>Compacted History Summary</summary>
+          <div className="message-list-compaction-debug-metadata">
+            <div><strong>Strategy:</strong> {compactionDebugInfo.strategy || 'unknown'}</div>
+            <div><strong>Reason:</strong> {compactionDebugInfo.reason || 'unknown'}</div>
+            <div><strong>Before tokens:</strong> {compactionDebugInfo.beforeTokens ?? 'unknown'}</div>
+            <div><strong>After tokens:</strong> {compactionDebugInfo.afterTokens ?? 'unknown'}</div>
+            <div><strong>Removed messages:</strong> {compactionDebugInfo.removedMessages ?? 'unknown'}</div>
+            {compactionDebugInfo.skippedReason ? (
+              <div><strong>Skipped reason:</strong> {compactionDebugInfo.skippedReason}</div>
+            ) : null}
+          </div>
+          <div className="message-list-compaction-debug-section">
+            <div className="message-list-compaction-debug-section-title">Replacement History</div>
+            {compactionDebugInfo.replacementHistoryPreview?.length ? (
+              <div className="message-list-compaction-debug-history">
+                {compactionDebugInfo.replacementHistoryPreview.map((entry, index) => (
+                  <div
+                    key={`${entry.role || 'unknown'}:${entry.messageType || 'unknown'}:${entry.toolCallId || index}`}
+                    className="message-list-compaction-debug-entry"
+                  >
+                    <div className="message-list-compaction-debug-entry-header">
+                      <span><strong>#{index + 1}</strong></span>
+                      <span><strong>Role:</strong> {entry.role || 'unknown'}</span>
+                      <span><strong>Type:</strong> {entry.messageType || 'unknown'}</span>
+                      {entry.toolName ? <span><strong>Tool:</strong> {entry.toolName}</span> : null}
+                      {entry.toolCallId ? <span><strong>Tool call id:</strong> {entry.toolCallId}</span> : null}
+                    </div>
+                    <pre className="message-list-compaction-debug-entry-content">
+                      {entry.content || '(no content)'}
+                    </pre>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="message-list-compaction-debug-empty">No replacement history preview.</div>
+            )}
+          </div>
+        </details>
+      ) : null}
       <div ref={messagesEndRef} data-testid="message-list-end" />
     </div>
   );
@@ -175,6 +219,23 @@ MessageList.propTypes = {
   conversationRef: PropTypes.string,
   thinkingStatus: PropTypes.string,
   thinkingSourceEventType: PropTypes.string,
+  compactionDebugInfo: PropTypes.shape({
+    reason: PropTypes.string,
+    strategy: PropTypes.string,
+    beforeTokens: PropTypes.number,
+    afterTokens: PropTypes.number,
+    removedMessages: PropTypes.number,
+    summaryPreview: PropTypes.string,
+    summaryText: PropTypes.string,
+    replacementHistoryPreview: PropTypes.arrayOf(PropTypes.shape({
+      role: PropTypes.string,
+      messageType: PropTypes.string,
+      content: PropTypes.string,
+      toolName: PropTypes.string,
+      toolCallId: PropTypes.string,
+    })),
+    skippedReason: PropTypes.string,
+  }),
   awaitingDotTargetMessageId: PropTypes.string,
   enableAgentLoopAutoScroll: PropTypes.bool,
   enableAssistantActions: PropTypes.bool,

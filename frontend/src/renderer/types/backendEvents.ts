@@ -58,6 +58,14 @@ export type ContextCompactionCompletedEvent = BackendEventBase<'context-compacti
   after_tokens?: number;
   removed_messages?: number;
   summary_preview?: string | null;
+  summary_text?: string | null;
+  replacement_history_preview?: Array<{
+    role?: string | null;
+    message_type?: string | null;
+    content?: string | null;
+    tool_name?: string | null;
+    tool_call_id?: string | null;
+  }> | null;
   skipped_reason?: string | null;
 }>;
 export type ContextCompactionFailedEvent = BackendEventBase<'context-compaction-failed', {

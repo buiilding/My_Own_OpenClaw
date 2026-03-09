@@ -116,6 +116,17 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
                     "after_tokens": result.after_tokens,
                     "removed_messages": result.removed_messages,
                     "summary_preview": summary_preview or None,
+                    "summary_text": result.summary_text or None,
+                    "replacement_history_preview": [
+                        {
+                            "role": entry.role,
+                            "message_type": entry.message_type,
+                            "content": entry.content,
+                            "tool_name": entry.tool_name,
+                            "tool_call_id": entry.tool_call_id,
+                        }
+                        for entry in result.replacement_history_preview
+                    ],
                     "skipped_reason": None,
                 },
                 context=context,
@@ -133,6 +144,8 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
                 "after_tokens": result.after_tokens,
                 "removed_messages": result.removed_messages,
                 "summary_preview": None,
+                "summary_text": result.summary_text or None,
+                "replacement_history_preview": [],
                 "skipped_reason": result.skip_reason or "not-applied",
             },
             context=context,

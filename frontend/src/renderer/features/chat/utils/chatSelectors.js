@@ -7,6 +7,7 @@ export function selectChatInterfaceState(state) {
     isSending: activeWorkspace.isSending,
     thinkingStatus: activeWorkspace.thinkingStatus,
     thinkingSourceEventType: activeWorkspace.thinkingSourceEventType,
+    compactionDebugInfo: activeWorkspace.compactionDebugInfo,
     tokenCounts: activeWorkspace.tokenCounts,
     streamPhase: activeWorkspace.streamTracking?.phase ?? 'idle',
   };

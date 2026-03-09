@@ -196,6 +196,17 @@ class AgentExecutor:
                     after_tokens=pre_compaction_result.after_tokens,
                     removed_messages=pre_compaction_result.removed_messages,
                     summary_preview=summary_preview,
+                    summary_text=pre_compaction_result.summary_text,
+                    replacement_history_preview=[
+                        {
+                            "role": entry.role,
+                            "message_type": entry.message_type,
+                            "content": entry.content,
+                            "tool_name": entry.tool_name,
+                            "tool_call_id": entry.tool_call_id,
+                        }
+                        for entry in pre_compaction_result.replacement_history_preview
+                    ],
                     skipped_reason=pre_compaction_result.skip_reason,
                 )
             except Exception as exc:

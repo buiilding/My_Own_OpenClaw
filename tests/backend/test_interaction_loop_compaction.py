@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from backend.src.agent.compaction.models import CompactionDecision, CompactionResult
+from backend.src.agent.compaction.models import (
+    CompactionDecision,
+    CompactionReplacementMessagePreview,
+    CompactionResult,
+)
 from backend.src.agent.execution.interaction_loop import InteractionLoop
 from backend.src.core.events.streaming_events import (
     AssistantMessageFullEvent,
@@ -63,6 +67,13 @@ class _FakeCompactionEngine:
             after_tokens=900,
             removed_messages=7,
             summary_text="summary text",
+            replacement_history_preview=[
+                CompactionReplacementMessagePreview(
+                    role="assistant",
+                    message_type="context_compaction",
+                    content="[[CONTEXT COMPACTION SUMMARY]]\nsummary text",
+                )
+            ],
             skip_reason=None,
         )
 
