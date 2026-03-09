@@ -122,4 +122,46 @@ describe('chatModelOptions', () => {
     expect(resolveModelIdForReasoningMode(modelOptions[1], 'low')).toBe('gpt-5-thinking-low');
     expect(resolveModelIdForReasoningMode(modelOptions[1], 'extra_high')).toBe('gpt-5-thinking-medium');
   });
+
+  test('builds reasoning modes from explicit reasoning_mode metadata', () => {
+    const availableModelPool = [
+      {
+        id: 'gemini-3-1-pro-low',
+        provider: 'gemini',
+        runtime_model_id: 'gemini-3.1-pro-preview',
+        display_name: 'Gemini 3.1 Pro',
+        supports_thinking: true,
+        reasoning_mode: 'low',
+      },
+      {
+        id: 'gemini-3-1-pro-medium',
+        provider: 'gemini',
+        runtime_model_id: 'gemini-3.1-pro-preview',
+        display_name: 'Gemini 3.1 Pro',
+        supports_thinking: true,
+        reasoning_mode: 'medium',
+      },
+      {
+        id: 'gemini-3-1-pro-high',
+        provider: 'gemini',
+        runtime_model_id: 'gemini-3.1-pro-preview',
+        display_name: 'Gemini 3.1 Pro',
+        supports_thinking: true,
+        reasoning_mode: 'high',
+      },
+    ];
+
+    const options = buildChatModelOptions({
+      availableModelPool,
+      configuredProvider: 'gemini',
+      configuredModelId: 'gemini-3-1-pro-medium',
+    });
+
+    expect(options).toHaveLength(1);
+    expect(options[0]?.reasoningModeOptions.map((option) => option.mode)).toEqual([
+      'low',
+      'medium',
+      'high',
+    ]);
+  });
 });

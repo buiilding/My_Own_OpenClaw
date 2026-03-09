@@ -102,6 +102,18 @@ def test_gemini_provider_enables_native_thinking_payload_for_thinking_model():
     assert updated.get("thinking") == {"type": "enabled", "budget_tokens": 16384}
 
 
+def test_gemini_provider_uses_high_budget_for_high_reasoning_variant():
+    provider = GeminiProvider(api_key="test-key")
+    params = {"model": "gemini/gemini-3.1-pro-preview"}
+
+    updated = provider._apply_provider_request_params(
+        params,
+        model="gemini-3.1-pro-preview@@gemini-3-1-pro-high-thinking",
+    )
+
+    assert updated.get("thinking") == {"type": "enabled", "budget_tokens": 32768}
+
+
 def test_gemini_provider_filters_thought_blocks_from_visible_text():
     provider = GeminiProvider(api_key="test-key")
     delta = {

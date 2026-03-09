@@ -3,6 +3,7 @@ from backend.src.llm.models.models_config import (
     ONLINE_MODELS,
     ONLINE_THINKING_MODELS,
     THINKING_TEXT_STREAM_UNSUPPORTED_MODELS,
+    resolve_provider_thinking_budget_tokens,
     resolve_provider_thinking_preference,
 )
 
@@ -81,6 +82,40 @@ def test_resolve_provider_thinking_preference_returns_none_when_unknown():
         resolve_provider_thinking_preference(
             model_id="nonexistent/model",
             provider_name="openrouter",
+        )
+        is None
+    )
+
+
+def test_resolve_provider_thinking_budget_tokens_uses_variant_budget_overrides():
+    assert (
+        resolve_provider_thinking_budget_tokens(
+            model_id="claude-sonnet-4-5-20250929@@claude-sonnet-4-5-low-thinking",
+            provider_name="anthropic",
+        )
+        == 4096
+    )
+    assert (
+        resolve_provider_thinking_budget_tokens(
+            model_id="gemini-3.1-pro-preview@@gemini-3-1-pro-high-thinking",
+            provider_name="gemini",
+        )
+        == 32768
+    )
+
+
+def test_resolve_provider_thinking_budget_tokens_returns_none_for_medium_or_unknown_models():
+    assert (
+        resolve_provider_thinking_budget_tokens(
+            model_id="gemini-3.1-pro-preview@@gemini-3-1-pro-thinking",
+            provider_name="gemini",
+        )
+        is None
+    )
+    assert (
+        resolve_provider_thinking_budget_tokens(
+            model_id="nonexistent-model",
+            provider_name="gemini",
         )
         is None
     )

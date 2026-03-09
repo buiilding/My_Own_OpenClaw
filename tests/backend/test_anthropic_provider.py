@@ -61,3 +61,15 @@ def test_anthropic_provider_extracts_provider_native_thinking_blocks():
     }
 
     assert provider._extract_thinking_content(delta) == "provider-native thought"
+
+
+def test_anthropic_provider_uses_low_budget_for_low_reasoning_variant():
+    provider = AnthropicProvider(api_key="test-key")
+    params = {"model": "anthropic/claude-sonnet-4-5-20250929"}
+
+    updated = provider._apply_provider_request_params(
+        params,
+        model="claude-sonnet-4-5-20250929@@claude-sonnet-4-5-low-thinking",
+    )
+
+    assert updated.get("thinking") == {"type": "enabled", "budget_tokens": 4096}
