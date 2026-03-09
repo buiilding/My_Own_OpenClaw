@@ -29,7 +29,8 @@ Flow:
 2. optionally build artifact store from backend config
 3. normalize each frontend transcript entry (shared normalizer)
 4. rebuild tool linkage when needed
-5. call `session.rehydrate_conversation(conversation_ref, hydrated_entries)`
+5. synthesize fallback tool outputs for any unanswered pending tool calls
+6. call `session.rehydrate_conversation(conversation_ref, hydrated_entries)`
 
 ## Entry Normalization Model
 
@@ -55,6 +56,17 @@ For tool/tool-output rows:
 - choose call id from explicit tool_call_id, correlation_id, pending call id, or generated fallback
 - if call id not known yet, inject synthetic assistant tool-call row first
 - then append tool row with resolved `tool_call_id`
+- explicit tool output ids consume their matching pending tool-call id even if outputs arrive out of order
+
+### Missing tool-output repair
+
+If rehydrate reaches the end of the transcript with unanswered pending tool calls:
+
+- synthesize `role=tool` fallback rows for each remaining pending `tool_call_id`
+- mark them as `tool-output`
+- preserve the final transcript timestamp for deterministic ordering
+
+This keeps strict providers from rejecting reopened chats that contain assistant tool-call turns without matching tool responses.
 
 This ensures provider-normalized history can maintain assistant-tool -> tool-output linkage.
 
