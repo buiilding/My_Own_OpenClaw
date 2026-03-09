@@ -58,6 +58,10 @@ def _build_catalog(
                     entry["supports_thinking_text_stream"] = bool(
                         model_entry["supports_thinking_text_stream"]
                     )
+                if "reasoning_mode" in model_entry and isinstance(model_entry["reasoning_mode"], str):
+                    normalized_reasoning_mode = model_entry["reasoning_mode"].strip()
+                    if normalized_reasoning_mode:
+                        entry["reasoning_mode"] = normalized_reasoning_mode
             else:
                 model_id = str(model_entry).strip()
                 if not model_id:

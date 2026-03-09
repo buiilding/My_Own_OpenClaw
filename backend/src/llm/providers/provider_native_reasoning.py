@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from typing import Any, Iterable, List, Optional
 
-from backend.src.llm.models.models_config import resolve_provider_thinking_preference
+from backend.src.llm.models.models_config import (
+    resolve_provider_thinking_budget_tokens,
+    resolve_provider_thinking_preference,
+)
 
 DEFAULT_NATIVE_THINKING_TOKEN_BUDGET = 16384
 
@@ -75,9 +78,17 @@ def apply_provider_native_thinking_request_params(
         provider_name=provider_name,
     )
     if thinking_preference is True:
+        thinking_budget_tokens = resolve_provider_thinking_budget_tokens(
+            model_id=model,
+            provider_name=provider_name,
+        )
         params["thinking"] = {
             "type": "enabled",
-            "budget_tokens": DEFAULT_NATIVE_THINKING_TOKEN_BUDGET,
+            "budget_tokens": (
+                thinking_budget_tokens
+                if isinstance(thinking_budget_tokens, int) and thinking_budget_tokens > 0
+                else DEFAULT_NATIVE_THINKING_TOKEN_BUDGET
+            ),
         }
     elif thinking_preference is False:
         params.pop("thinking", None)

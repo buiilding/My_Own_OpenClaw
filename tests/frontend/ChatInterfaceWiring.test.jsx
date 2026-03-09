@@ -574,6 +574,98 @@ describe('ChatInterface wiring', () => {
     });
   });
 
+  test('shows reasoning mode selector for gemini model families with low/medium/high variants', () => {
+    mockConfig = {
+      interaction_mode: 'chat',
+      model_mode: 'online',
+      model_provider: 'gemini',
+      selected_model_id: 'gemini-3-1-pro-low-thinking',
+      voice_mode_enabled: false,
+      speech_mode_enabled: false,
+    };
+    mockAvailableModels = {
+      local: [],
+      online: [
+        {
+          id: 'gemini-3-1-pro-low-thinking',
+          runtime_model_id: 'gemini-3.1-pro-preview',
+          provider: 'gemini',
+          display_name: 'Gemini 3.1 Pro Low',
+          supports_thinking: true,
+        },
+        {
+          id: 'gemini-3-1-pro-thinking',
+          runtime_model_id: 'gemini-3.1-pro-preview',
+          provider: 'gemini',
+          display_name: 'Gemini 3.1 Pro',
+          supports_thinking: true,
+        },
+        {
+          id: 'gemini-3-1-pro-high-thinking',
+          runtime_model_id: 'gemini-3.1-pro-preview',
+          provider: 'gemini',
+          display_name: 'Gemini 3.1 Pro High',
+          supports_thinking: true,
+        },
+      ],
+    };
+
+    render(<ChatInterface />);
+
+    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('Gemini 3.1 Pro');
+    expect(screen.getByRole('button', { name: 'Reasoning mode selector' })).toHaveTextContent('Low');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reasoning mode selector' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'High' }));
+
+    expect(mockUpdateConfig).toHaveBeenCalledWith({
+      selected_model_id: 'gemini-3-1-pro-high-thinking',
+      model_provider: 'gemini',
+    });
+  });
+
+  test('shows reasoning mode selector for anthropic model families with low/medium/high variants', () => {
+    mockConfig = {
+      interaction_mode: 'chat',
+      model_mode: 'online',
+      model_provider: 'anthropic',
+      selected_model_id: 'claude-sonnet-4-5-low-thinking',
+      voice_mode_enabled: false,
+      speech_mode_enabled: false,
+    };
+    mockAvailableModels = {
+      local: [],
+      online: [
+        {
+          id: 'claude-sonnet-4-5-low-thinking',
+          runtime_model_id: 'claude-sonnet-4-5-20250929',
+          provider: 'anthropic',
+          display_name: 'Claude Sonnet 4.5 Low',
+          supports_thinking: true,
+        },
+        {
+          id: 'claude-sonnet-4-5-thinking',
+          runtime_model_id: 'claude-sonnet-4-5-20250929',
+          provider: 'anthropic',
+          display_name: 'Claude Sonnet 4.5',
+          supports_thinking: true,
+        },
+        {
+          id: 'claude-sonnet-4-5-high-thinking',
+          runtime_model_id: 'claude-sonnet-4-5-20250929',
+          provider: 'anthropic',
+          display_name: 'Claude Sonnet 4.5 High',
+          supports_thinking: true,
+        },
+      ],
+    };
+
+    render(<ChatInterface />);
+
+    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('Claude Sonnet 4.5');
+    expect(screen.getByRole('button', { name: 'Reasoning mode selector' })).toHaveTextContent('Low');
+  });
+
   test('renders welcome empty state when there are no messages', () => {
     render(<ChatInterface />);
     expect(screen.getByTestId('chat-empty-state')).toBeInTheDocument();

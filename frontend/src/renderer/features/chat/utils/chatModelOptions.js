@@ -45,6 +45,9 @@ function resolveReasoningModeFromText(value) {
   if (/\bhigh\b/.test(normalized)) {
     return 'high';
   }
+  if (/\bmax\b/.test(normalized)) {
+    return 'extra_high';
+  }
   if (/\blow\b/.test(normalized) || normalized.includes('minimal') || /\bnone\b/.test(normalized)) {
     return 'low';
   }
@@ -55,6 +58,10 @@ function resolveReasoningModeFromText(value) {
 }
 
 function resolveVariantReasoningMode(variant) {
+  const explicitReasoningMode = normalizeString(variant?.reasoningMode).toLowerCase();
+  if (explicitReasoningMode) {
+    return resolveReasoningModeFromText(explicitReasoningMode);
+  }
   const displayName = normalizeString(variant?.displayName);
   const modelId = normalizeString(variant?.id);
   return resolveReasoningModeFromText(displayName || modelId);
@@ -157,6 +164,7 @@ export function buildChatModelOptions({
       provider,
       displayName: normalizeDisplayName(model, modelId),
       supportsThinking: model?.supports_thinking === true,
+      reasoningMode: normalizeString(model?.reasoning_mode),
     });
     groups.set(groupKey, group);
   });

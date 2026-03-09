@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(fullstack-anthropic-gemini-reasoning-modes): add low/high Anthropic and Gemini thinking variants to the curated online model catalog so chat header reasoning-mode dropdowns appear for those model families, wire selected-variant thinking budgets through provider-native request params, and extend backend/frontend regression coverage for model-option grouping and provider request payload behavior.
 - fix(sidecar-browser-role-refs): preserve role refs such as `e12` through the canonical browser adapter path for `click`, `input`, `upload_file`, `dropdown_options`, and `select_dropdown` by routing those actions through controller-backed locator resolution instead of collapsing them to Browser Use numeric indices; add focused sidecar regression coverage and refresh browser schema/control docs.
 - feat(frontend-chat-model-selector-reasoning-mode-split): split chat header model controls so model dropdown shows one base entry per runtime model family (for example one GPT-5.3 Codex row) while a conditional reasoning-mode dropdown (`Low`, `Medium`, `High`, `Extra High`) appears for models with multiple reasoning variants and rewrites `selected_model_id` to the matching variant id.
 - feat(frontend-dev-compaction): extend dev-only compaction debugging so `npm run electron:dev` shows the full replacement history artifact after compaction, including the summary message and every kept tail message with full untruncated content.

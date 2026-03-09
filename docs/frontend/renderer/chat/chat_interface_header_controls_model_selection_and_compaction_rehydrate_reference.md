@@ -79,6 +79,7 @@ Reasoning mode dropdown (conditional):
 
 - shown only when the selected model has more than one reasoning mode variant
 - options are normalized to `Low`, `Medium`, `High`, `Extra High`
+- currently used by model families that expose multiple reasoning variants (for example OpenAI Codex, Anthropic, Gemini)
 - selecting a reasoning mode updates `selected_model_id` to the matching model variant id for the same runtime model family
 
 Window controls:

@@ -68,8 +68,11 @@ Default `list_models()` returns empty list; online model catalogs are static in 
 - `provider_label = "Anthropic"`
 - `model_prefix = "anthropic"`
 - `stream_includes_thinking = True`
-- for models listed in `ONLINE_THINKING_MODELS["anthropic"]`, adds:
-  - `thinking = {"type": "enabled", "budget_tokens": 16384}`
+- for models listed in `ONLINE_THINKING_MODELS["anthropic"]`, adds provider-native thinking payload:
+  - `thinking = {"type": "enabled", "budget_tokens": <resolved>}`
+- budget resolution:
+  - default is `16384`
+  - low/high Anthropic reasoning variants (for example `... Low`, `... High`) map to lower/higher budgets via model preset metadata
 
 ### GeminiProvider
 
@@ -77,8 +80,11 @@ Default `list_models()` returns empty list; online model catalogs are static in 
 - `model_prefix = "gemini"`
 - `stream_includes_thinking = True`
 - custom invalid-response message for parser failures.
-- for models listed in `ONLINE_THINKING_MODELS["gemini"]`, adds:
-  - `reasoning_effort = "low"`
+- for models listed in `ONLINE_THINKING_MODELS["gemini"]`, adds provider-native thinking payload:
+  - `thinking = {"type": "enabled", "budget_tokens": <resolved>}`
+- budget resolution:
+  - default is `16384`
+  - low/high Gemini reasoning variants map to lower/higher budgets via model preset metadata
 - `supports_streaming_tool_turns(...)` returns `True`.
 - stream path reuses shared `StreamingToolCallAggregationMixin`, which accumulates OpenAI-style `delta.tool_calls` (and block-style `tool_use`)
   across chunks, then stores normalized stream payload via

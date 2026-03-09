@@ -16,6 +16,8 @@ def _variant(
     display_name: str,
     supports_thinking: bool,
     supports_thinking_text_stream: Optional[bool] = None,
+    reasoning_mode: Optional[str] = None,
+    thinking_budget_tokens: Optional[int] = None,
 ) -> Dict[str, Any]:
     mode = "thinking" if supports_thinking else "nonthinking"
     model_id = f"{runtime_model_id}@@{_slugify(display_name)}-{mode}"
@@ -27,7 +29,20 @@ def _variant(
     }
     if supports_thinking_text_stream is not None:
         entry["supports_thinking_text_stream"] = supports_thinking_text_stream
+    if supports_thinking and isinstance(reasoning_mode, str) and reasoning_mode.strip():
+        entry["reasoning_mode"] = reasoning_mode.strip()
+    if (
+        supports_thinking
+        and isinstance(thinking_budget_tokens, int)
+        and thinking_budget_tokens > 0
+    ):
+        entry["thinking_budget_tokens"] = thinking_budget_tokens
     return entry
+
+
+LOW_THINKING_BUDGET_TOKENS = 4096
+DEFAULT_THINKING_BUDGET_TOKENS = 16384
+HIGH_THINKING_BUDGET_TOKENS = 32768
 
 
 OPENAI_PRESETS: List[Dict[str, Any]] = [
@@ -82,11 +97,59 @@ OPENAI_PRESETS: List[Dict[str, Any]] = [
 ANTHROPIC_PRESETS: List[Dict[str, Any]] = [
     _variant(runtime_model_id="claude-sonnet-4-5-20250929", display_name="Claude Sonnet 4.5", supports_thinking=False),
     _variant(runtime_model_id="claude-sonnet-4-5-20250929", display_name="Claude Sonnet 4.5", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="claude-sonnet-4-5-20250929",
+        display_name="Claude Sonnet 4.5 Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="low",
+        thinking_budget_tokens=LOW_THINKING_BUDGET_TOKENS,
+    ),
+    _variant(
+        runtime_model_id="claude-sonnet-4-5-20250929",
+        display_name="Claude Sonnet 4.5 High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="high",
+        thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
+    ),
     _variant(runtime_model_id="claude-opus-4-6", display_name="Claude Opus 4.6", supports_thinking=False),
     _variant(runtime_model_id="claude-opus-4-6", display_name="Claude Opus 4.6", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="claude-opus-4-6",
+        display_name="Claude Opus 4.6 Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="low",
+        thinking_budget_tokens=LOW_THINKING_BUDGET_TOKENS,
+    ),
+    _variant(
+        runtime_model_id="claude-opus-4-6",
+        display_name="Claude Opus 4.6 High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="high",
+        thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
+    ),
     _variant(runtime_model_id="claude-haiku-4-5-20251001", display_name="Claude Haiku 4.5", supports_thinking=False),
     _variant(runtime_model_id="claude-sonnet-4-6", display_name="Sonnet 4.6", supports_thinking=False),
     _variant(runtime_model_id="claude-sonnet-4-6", display_name="Sonnet 4.6", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="claude-sonnet-4-6",
+        display_name="Sonnet 4.6 Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="low",
+        thinking_budget_tokens=LOW_THINKING_BUDGET_TOKENS,
+    ),
+    _variant(
+        runtime_model_id="claude-sonnet-4-6",
+        display_name="Sonnet 4.6 High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="high",
+        thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
+    ),
     _variant(runtime_model_id="claude-opus-4-6", display_name="Opus 4.6", supports_thinking=False),
     _variant(runtime_model_id="claude-opus-4-6", display_name="Opus 4.6", supports_thinking=True, supports_thinking_text_stream=True),
     _variant(runtime_model_id="claude-opus-4-6", display_name="Opus 4.6 Max", supports_thinking=False),
@@ -95,12 +158,76 @@ ANTHROPIC_PRESETS: List[Dict[str, Any]] = [
     _variant(runtime_model_id="claude-opus-4-6", display_name="Opus 4.6 Max Fast Max Only", supports_thinking=True, supports_thinking_text_stream=True),
     _variant(runtime_model_id="claude-opus-4-5", display_name="Opus 4.5", supports_thinking=False),
     _variant(runtime_model_id="claude-opus-4-5", display_name="Opus 4.5", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="claude-opus-4-5",
+        display_name="Opus 4.5 Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="low",
+        thinking_budget_tokens=LOW_THINKING_BUDGET_TOKENS,
+    ),
+    _variant(
+        runtime_model_id="claude-opus-4-5",
+        display_name="Opus 4.5 High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="high",
+        thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
+    ),
     _variant(runtime_model_id="claude-haiku-4-5", display_name="Haiku 4.5", supports_thinking=False),
     _variant(runtime_model_id="claude-haiku-4-5", display_name="Haiku 4.5", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="claude-haiku-4-5",
+        display_name="Haiku 4.5 Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="low",
+        thinking_budget_tokens=LOW_THINKING_BUDGET_TOKENS,
+    ),
+    _variant(
+        runtime_model_id="claude-haiku-4-5",
+        display_name="Haiku 4.5 High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="high",
+        thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
+    ),
     _variant(runtime_model_id="claude-sonnet-4-5", display_name="Sonnet 4.5", supports_thinking=False),
     _variant(runtime_model_id="claude-sonnet-4-5", display_name="Sonnet 4.5", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="claude-sonnet-4-5",
+        display_name="Sonnet 4.5 Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="low",
+        thinking_budget_tokens=LOW_THINKING_BUDGET_TOKENS,
+    ),
+    _variant(
+        runtime_model_id="claude-sonnet-4-5",
+        display_name="Sonnet 4.5 High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="high",
+        thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
+    ),
     _variant(runtime_model_id="claude-sonnet-4-20250514", display_name="Sonnet 4", supports_thinking=False),
     _variant(runtime_model_id="claude-sonnet-4-20250514", display_name="Sonnet 4", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="claude-sonnet-4-20250514",
+        display_name="Sonnet 4 Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="low",
+        thinking_budget_tokens=LOW_THINKING_BUDGET_TOKENS,
+    ),
+    _variant(
+        runtime_model_id="claude-sonnet-4-20250514",
+        display_name="Sonnet 4 High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="high",
+        thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
+    ),
     _variant(runtime_model_id="claude-sonnet-4-20250514", display_name="Sonnet 4 1M Max Only", supports_thinking=False),
     _variant(runtime_model_id="claude-sonnet-4-20250514", display_name="Sonnet 4 1M Max Only", supports_thinking=True, supports_thinking_text_stream=True),
 ]
@@ -109,11 +236,91 @@ ANTHROPIC_PRESETS: List[Dict[str, Any]] = [
 GEMINI_PRESETS: List[Dict[str, Any]] = [
     _variant(runtime_model_id="gemini-2.5-flash", display_name="Gemini 2.5 Flash", supports_thinking=False),
     _variant(runtime_model_id="gemini-2.5-pro", display_name="Gemini 2.5 Pro", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="gemini-2.5-pro",
+        display_name="Gemini 2.5 Pro Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="low",
+        thinking_budget_tokens=LOW_THINKING_BUDGET_TOKENS,
+    ),
+    _variant(
+        runtime_model_id="gemini-2.5-pro",
+        display_name="Gemini 2.5 Pro High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="high",
+        thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
+    ),
     _variant(runtime_model_id="gemini-3-pro-preview", display_name="Gemini 3 Pro", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="gemini-3-pro-preview",
+        display_name="Gemini 3 Pro Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="low",
+        thinking_budget_tokens=LOW_THINKING_BUDGET_TOKENS,
+    ),
+    _variant(
+        runtime_model_id="gemini-3-pro-preview",
+        display_name="Gemini 3 Pro High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="high",
+        thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
+    ),
     _variant(runtime_model_id="gemini-3-flash-preview", display_name="Gemini 3 Flash", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="gemini-3-flash-preview",
+        display_name="Gemini 3 Flash Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="low",
+        thinking_budget_tokens=LOW_THINKING_BUDGET_TOKENS,
+    ),
+    _variant(
+        runtime_model_id="gemini-3-flash-preview",
+        display_name="Gemini 3 Flash High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="high",
+        thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
+    ),
     _variant(runtime_model_id="gemini-3.1-pro-preview", display_name="Gemini 3.1 Pro", supports_thinking=False),
     _variant(runtime_model_id="gemini-3.1-pro-preview", display_name="Gemini 3.1 Pro", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="gemini-3.1-pro-preview",
+        display_name="Gemini 3.1 Pro Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="low",
+        thinking_budget_tokens=LOW_THINKING_BUDGET_TOKENS,
+    ),
+    _variant(
+        runtime_model_id="gemini-3.1-pro-preview",
+        display_name="Gemini 3.1 Pro High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="high",
+        thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
+    ),
     _variant(runtime_model_id="gemini-2.5-flash", display_name="Gemini 2.5 Flash", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="gemini-2.5-flash",
+        display_name="Gemini 2.5 Flash Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="low",
+        thinking_budget_tokens=LOW_THINKING_BUDGET_TOKENS,
+    ),
+    _variant(
+        runtime_model_id="gemini-2.5-flash",
+        display_name="Gemini 2.5 Flash High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+        reasoning_mode="high",
+        thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
+    ),
 ]
 
 
@@ -231,6 +438,27 @@ def resolve_provider_thinking_preference(
     thinking_models = ONLINE_THINKING_MODELS.get(normalized_provider, [])
     if normalized_model_id in thinking_models:
         return True
+    return None
+
+
+def resolve_provider_thinking_budget_tokens(
+    *,
+    model_id: str,
+    provider_name: str,
+) -> Optional[int]:
+    """Resolve model-scoped thinking token budget override for provider-native reasoning."""
+    if not isinstance(model_id, str) or not isinstance(provider_name, str):
+        return None
+    normalized_model_id = model_id.strip()
+    normalized_provider = provider_name.strip().lower()
+    if not normalized_model_id or not normalized_provider:
+        return None
+
+    preset = resolve_model_preset(normalized_model_id)
+    if isinstance(preset, dict):
+        value = preset.get("thinking_budget_tokens")
+        if isinstance(value, int) and value > 0:
+            return value
     return None
 
 
