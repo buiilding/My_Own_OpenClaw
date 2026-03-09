@@ -15,19 +15,26 @@ function ChatInterfaceHeaderControls({
   vmModeEnabled,
   providerMenuRef,
   modelMenuRef,
+  reasoningModeMenuRef,
   providerMenuOpen,
   modelMenuOpen,
+  reasoningModeMenuOpen,
   setProviderMenuOpen,
   setModelMenuOpen,
+  setReasoningModeMenuOpen,
   providerLabel,
   providerOptions,
   modelLabelBase,
   selectedModelOption,
   modelOptions,
+  showReasoningModeSelector,
+  selectedReasoningModeLabel,
+  reasoningModeOptions,
   speechModeEnabled,
   devUiEnabled,
   handleProviderSelect,
   handleModelSelect,
+  handleReasoningModeSelect,
   handleToggleSpeechMode,
   handleRunAutoCompaction,
   handleWindowMinimize,
@@ -47,6 +54,7 @@ function ChatInterfaceHeaderControls({
               onClick={() => {
                 setProviderMenuOpen((current) => !current);
                 setModelMenuOpen(false);
+                setReasoningModeMenuOpen(false);
               }}
             >
               <span>{providerLabel}</span>
@@ -85,6 +93,7 @@ function ChatInterfaceHeaderControls({
               onClick={() => {
                 setModelMenuOpen((current) => !current);
                 setProviderMenuOpen(false);
+                setReasoningModeMenuOpen(false);
               }}
             >
               {renderModelLabel(modelLabelBase, selectedModelOption?.supportsThinking)}
@@ -114,6 +123,41 @@ function ChatInterfaceHeaderControls({
               </div>
             ) : null}
           </div>
+          {showReasoningModeSelector ? (
+            <div className="chat-reasoning-mode-dropdown" ref={reasoningModeMenuRef}>
+              <button
+                type="button"
+                className="chat-reasoning-mode-selector"
+                aria-label="Reasoning mode selector"
+                aria-expanded={reasoningModeMenuOpen}
+                onClick={() => {
+                  setReasoningModeMenuOpen((current) => !current);
+                  setProviderMenuOpen(false);
+                  setModelMenuOpen(false);
+                }}
+              >
+                <span>{selectedReasoningModeLabel || 'Reasoning'}</span>
+                <ChevronDown size={16} />
+              </button>
+              {reasoningModeMenuOpen ? (
+                <div className="chat-reasoning-mode-menu" role="menu">
+                  {reasoningModeOptions.map((option) => (
+                    <button
+                      key={`${option.mode}:${option.modelId}`}
+                      type="button"
+                      className="chat-reasoning-mode-menu-item"
+                      role="menuitem"
+                      onClick={() => {
+                        handleReasoningModeSelect(option.mode);
+                      }}
+                    >
+                      <span>{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
       <div className="chat-meta">

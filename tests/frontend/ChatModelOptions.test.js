@@ -3,7 +3,9 @@ import {
   buildChatProviderOptions,
   formatProviderLabel,
   getAvailableModelPool,
+  resolveModelIdForReasoningMode,
   resolveProviderModels,
+  resolveSelectedReasoningMode,
   resolveSelectedModelOption,
 } from '../../frontend/src/renderer/features/chat/utils/chatModelOptions';
 
@@ -23,22 +25,48 @@ describe('chatModelOptions', () => {
     expect(getAvailableModelPool(availableModels, 'online')).toEqual([{ id: 'gpt-5' }]);
   });
 
-  test('builds model options with provider filtering and selected runtime priority', () => {
+  test('builds deduplicated base model options with provider filtering and selected runtime priority', () => {
     const availableModelPool = [
-      { id: 'gpt-5-mini', provider: 'openai', runtime_model_id: 'gpt-5-mini-runtime' },
-      { id: 'gpt-5', provider: 'openai', runtime_model_id: 'gpt-5-runtime' },
+      {
+        id: 'gpt-5-3-codex-low-thinking',
+        provider: 'openai',
+        runtime_model_id: 'gpt-5.3-codex',
+        display_name: 'GPT-5.3 Codex Low',
+        supports_thinking: true,
+      },
+      {
+        id: 'gpt-5-3-codex-thinking',
+        provider: 'openai',
+        runtime_model_id: 'gpt-5.3-codex',
+        display_name: 'GPT-5.3 Codex',
+        supports_thinking: true,
+      },
+      {
+        id: 'gpt-5-3-codex-high-thinking',
+        provider: 'openai',
+        runtime_model_id: 'gpt-5.3-codex',
+        display_name: 'GPT-5.3 Codex High',
+        supports_thinking: true,
+      },
+      { id: 'gpt-5', provider: 'openai', runtime_model_id: 'gpt-5-runtime', display_name: 'GPT-5' },
       { id: 'claude-3', provider: 'anthropic', runtime_model_id: 'claude-3-runtime' },
     ];
 
     const options = buildChatModelOptions({
       availableModelPool,
       configuredProvider: 'openai',
-      configuredModelId: 'gpt-5-runtime',
+      configuredModelId: 'gpt-5.3-codex',
     });
 
     expect(options).toHaveLength(2);
-    expect(options[0]?.id).toBe('gpt-5');
-    expect(options[1]?.id).toBe('gpt-5-mini');
+    expect(options[0]?.label).toBe('GPT-5.3 Codex');
+    expect(options[0]?.runtimeModelId).toBe('gpt-5.3-codex');
+    expect(options[0]?.reasoningModeOptions.map((option) => option.mode)).toEqual([
+      'low',
+      'medium',
+      'high',
+    ]);
+    expect(options[1]?.label).toBe('GPT-5');
   });
 
   test('injects configured model when unavailable in current pool', () => {
@@ -76,10 +104,22 @@ describe('chatModelOptions', () => {
     expect(resolveProviderModels(pool, 'openai')).toEqual([{ id: 'gpt-5', provider: 'openai' }]);
 
     const modelOptions = [
-      { id: 'gpt-5-mini', runtimeModelId: 'gpt-5-mini-runtime' },
-      { id: 'gpt-5', runtimeModelId: 'gpt-5-runtime' },
+      { id: 'gpt-5-mini', runtimeModelId: 'gpt-5-mini-runtime', reasoningModeOptions: [] },
+      {
+        id: 'gpt-5-thinking-medium',
+        runtimeModelId: 'gpt-5-runtime',
+        reasoningModeOptions: [
+          { mode: 'low', label: 'Low', modelId: 'gpt-5-thinking-low' },
+          { mode: 'medium', label: 'Medium', modelId: 'gpt-5-thinking-medium' },
+          { mode: 'high', label: 'High', modelId: 'gpt-5-thinking-high' },
+        ],
+      },
     ];
     expect(resolveSelectedModelOption(modelOptions, 'gpt-5-runtime')).toEqual(modelOptions[1]);
     expect(resolveSelectedModelOption(modelOptions, 'missing')).toEqual(modelOptions[0]);
+    expect(resolveSelectedReasoningMode(modelOptions[1], 'gpt-5-thinking-high')).toBe('high');
+    expect(resolveSelectedReasoningMode(modelOptions[1], 'missing')).toBe('medium');
+    expect(resolveModelIdForReasoningMode(modelOptions[1], 'low')).toBe('gpt-5-thinking-low');
+    expect(resolveModelIdForReasoningMode(modelOptions[1], 'extra_high')).toBe('gpt-5-thinking-medium');
   });
 });

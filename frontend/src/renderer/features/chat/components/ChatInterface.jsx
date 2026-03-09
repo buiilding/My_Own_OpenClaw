@@ -30,7 +30,9 @@ import {
   buildChatProviderOptions,
   formatProviderLabel,
   getAvailableModelPool,
+  resolveModelIdForReasoningMode,
   resolveProviderModels,
+  resolveSelectedReasoningMode,
   resolveSelectedModelOption,
 } from '../utils/chatModelOptions';
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
@@ -124,11 +126,22 @@ function ChatInterface({ focusComposerToken = 0 }) {
   );
   const selectedModelOption = resolveSelectedModelOption(modelOptions, configuredModelId);
   const modelLabelBase = selectedModelOption?.label || configuredModelId || 'No models available';
+  const reasoningModeOptions = Array.isArray(selectedModelOption?.reasoningModeOptions)
+    ? selectedModelOption.reasoningModeOptions
+    : [];
+  const selectedReasoningMode = resolveSelectedReasoningMode(selectedModelOption, configuredModelId);
+  const selectedReasoningModeLabel = (
+    reasoningModeOptions.find((modeOption) => modeOption.mode === selectedReasoningMode)?.label
+    || ''
+  );
+  const showReasoningModeSelector = reasoningModeOptions.length > 1;
   const devUiEnabled = isDevUiEnabled();
   const [providerMenuOpen, setProviderMenuOpen] = useState(false);
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
+  const [reasoningModeMenuOpen, setReasoningModeMenuOpen] = useState(false);
   const providerMenuRef = useRef(null);
   const modelMenuRef = useRef(null);
+  const reasoningModeMenuRef = useRef(null);
   const {
     handleWindowMinimize,
     handleWindowToggleMaximize,
@@ -138,8 +151,10 @@ function ChatInterface({ focusComposerToken = 0 }) {
   useChatInterfaceMenuDismiss({
     providerMenuRef,
     modelMenuRef,
+    reasoningModeMenuRef,
     setProviderMenuOpen,
     setModelMenuOpen,
+    setReasoningModeMenuOpen,
   });
 
   const stopPlayback = useCallback(() => {
@@ -229,6 +244,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
 
   const handleProviderSelect = useCallback((provider) => {
     setProviderMenuOpen(false);
+    setReasoningModeMenuOpen(false);
     if (!provider || typeof updateConfig !== 'function') {
       return;
     }
@@ -256,14 +272,38 @@ function ChatInterface({ focusComposerToken = 0 }) {
 
   const handleModelSelect = useCallback((option) => {
     setModelMenuOpen(false);
+    setReasoningModeMenuOpen(false);
     if (!option || typeof updateConfig !== 'function') {
       return;
     }
+    const nextModelId = resolveModelIdForReasoningMode(option, selectedReasoningMode);
+    if (!nextModelId) {
+      return;
+    }
     updateConfig({
-      selected_model_id: option.id,
+      selected_model_id: nextModelId,
       model_provider: option.provider || configuredProvider,
     });
-  }, [configuredProvider, updateConfig]);
+  }, [configuredProvider, selectedReasoningMode, updateConfig]);
+
+  const handleReasoningModeSelect = useCallback((mode) => {
+    setReasoningModeMenuOpen(false);
+    if (
+      !selectedModelOption
+      || !mode
+      || typeof updateConfig !== 'function'
+    ) {
+      return;
+    }
+    const nextModelId = resolveModelIdForReasoningMode(selectedModelOption, mode);
+    if (!nextModelId || nextModelId === configuredModelId) {
+      return;
+    }
+    updateConfig({
+      selected_model_id: nextModelId,
+      model_provider: selectedModelOption.provider || configuredProvider,
+    });
+  }, [configuredModelId, configuredProvider, selectedModelOption, updateConfig]);
 
   const handleAssistantFeedbackChange = useCallback((messageId, feedback) => {
     updateMessage(messageId, { feedback });
@@ -297,10 +337,17 @@ function ChatInterface({ focusComposerToken = 0 }) {
         modelLabelBase={modelLabelBase}
         selectedModelOption={selectedModelOption}
         modelOptions={modelOptions}
+        showReasoningModeSelector={showReasoningModeSelector}
+        reasoningModeMenuRef={reasoningModeMenuRef}
+        reasoningModeMenuOpen={reasoningModeMenuOpen}
+        setReasoningModeMenuOpen={setReasoningModeMenuOpen}
+        selectedReasoningModeLabel={selectedReasoningModeLabel}
+        reasoningModeOptions={reasoningModeOptions}
         speechModeEnabled={speechModeEnabled}
         devUiEnabled={devUiEnabled}
         handleProviderSelect={handleProviderSelect}
         handleModelSelect={handleModelSelect}
+        handleReasoningModeSelect={handleReasoningModeSelect}
         handleToggleSpeechMode={handleToggleSpeechMode}
         handleRunAutoCompaction={handleRunAutoCompaction}
         handleWindowMinimize={handleWindowMinimize}

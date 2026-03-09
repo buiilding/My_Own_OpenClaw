@@ -71,7 +71,15 @@ Provider dropdown:
 Model dropdown:
 
 - toggles model menu and closes provider menu
+- renders one base entry per runtime model (for example one `GPT-5.3 Codex` instead of separate `Low/High` rows)
 - `handleModelSelect(option)` writes both `selected_model_id` and provider fallback (`option.provider || configuredProvider`)
+- when the selected model exposes multiple reasoning levels, model selection preserves the current reasoning mode when possible (fallback: `medium`, then first available)
+
+Reasoning mode dropdown (conditional):
+
+- shown only when the selected model has more than one reasoning mode variant
+- options are normalized to `Low`, `Medium`, `High`, `Extra High`
+- selecting a reasoning mode updates `selected_model_id` to the matching model variant id for the same runtime model family
 
 Window controls:
 
