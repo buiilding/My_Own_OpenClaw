@@ -58,6 +58,45 @@ Entitlements are a normalized set of permissions derived from a user’s active 
 - **Screenshots**: number of screenshots captured/stored.
 - **Compute time**: optional measurement for long-running tasks.
 
+### Planned Row-Level Token Attribution
+
+Current provider usage payloads are request-level aggregates, not transcript-row allocations. In practice this means the normal completion/stream `usage` metadata is reliable for:
+
+- total input tokens for the whole request
+- total output tokens for the whole provider response
+- optional cache/reasoning subtotals when the provider exposes them
+
+But it does **not** directly answer:
+
+- which visible user row contributed how many billed input tokens
+- which transcript row should own output tokens when one turn contains tool-call JSON plus final assistant text
+
+Planned approach:
+
+1. Keep request-level provider totals as the billing source of truth.
+2. Add provider-specific preflight counting for exact input-side attribution when supported.
+3. Derive per-row input contribution by counting the exact assembled prompt payload with cumulative-prefix differencing, not by counting isolated message text.
+4. Treat output-side attribution as turn-level unless the turn has a single dominant model-generated row.
+
+Suggested provider-specific paths:
+
+- **OpenAI**: use the Responses input-token counting endpoint on the exact assembled request payload before send.
+- **Anthropic**: use `messages.count_tokens` on the exact assembled payload before send.
+- **Other providers**: keep fallback local estimation until an exact provider-side counting path exists and is validated.
+
+Output attribution policy (planned):
+
+- assistant-text-only turn: attach provider output totals to the completed assistant row
+- tool-call-only turn: attach provider output totals to the tool-call row
+- mixed tool-call + final-text turn: keep provider output totals at turn scope and label any finer split as derived, not provider-reported
+
+Implementation guardrails:
+
+- never present tokenizer-only estimates as provider-billed truth
+- count the exact runtime payload after prompt assembly, compaction, tool-history shaping, and provider-specific normalization
+- capability-gate provider-specific counting so unsupported providers fall back cleanly
+- persist whether a displayed row token figure is `provider-reported`, `provider-counted-preflight`, or `estimated`
+
 ### Usage Ledger (Suggested Schema)
 
 ```
