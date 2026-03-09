@@ -1,6 +1,4 @@
-"""
-Keyboard Control Tool - Python implementation using pyautogui and pynput.
-"""
+"""Keyboard Control Tool - Python implementation using pyautogui."""
 
 import asyncio
 import logging
@@ -15,7 +13,7 @@ _AUTO_PASTE_THRESHOLD = 120
 _CLIPBOARD_NOT_CAPTURED = object()
 
 # Key mapping for special keys
-KEY_MAP = {
+COMMON_KEY_MAP = {
     "enter": "enter",
     "tab": "tab",
     "space": "space",
@@ -42,8 +40,40 @@ KEY_MAP = {
     "f10": "f10",
     "f11": "f11",
     "f12": "f12",
-    "super": "win",
 }
+
+PLATFORM_KEY_ALIASES = {
+    "Darwin": {
+        "super": "command",
+        "meta": "command",
+        "win": "command",
+        "cmd": "command",
+    },
+    "Windows": {
+        "super": "win",
+        "meta": "win",
+    },
+    "Linux": {
+        "super": "win",
+        "meta": "win",
+    },
+}
+
+
+def _normalize_key_name(raw_key: str) -> str:
+    normalized_key = raw_key.lower()
+    platform_aliases = PLATFORM_KEY_ALIASES.get(platform.system(), {})
+    if normalized_key in platform_aliases:
+        return platform_aliases[normalized_key]
+    return COMMON_KEY_MAP.get(normalized_key, normalized_key)
+
+
+def _normalize_hotkey_keys(raw_keys: list[str]) -> list[str]:
+    return [_normalize_key_name(key) for key in raw_keys]
+
+
+def _get_paste_modifier_key() -> str:
+    return "command" if platform.system() == "Darwin" else "ctrl"
 
 
 async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
@@ -94,7 +124,7 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
                 )
 
             pyperclip.copy(text)
-            modifier_key = "command" if platform.system() == "Darwin" else "ctrl"
+            modifier_key = _get_paste_modifier_key()
             pyautogui.hotkey(modifier_key, "v")
 
             clipboard_restored = False
@@ -160,8 +190,7 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
                 if not key:
                     raise ValueError("key parameter required for press action")
 
-                # Map key string to pyautogui key name
-                key_name = KEY_MAP.get(key.lower(), key.lower())
+                key_name = _normalize_key_name(key)
                 pyautogui.press(key_name)
 
                 return {
@@ -193,8 +222,7 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     if all(k in keys_lower for k in combo):
                         raise ValueError(f"Dangerous key combination blocked: {' + '.join(combo)}")
 
-                # Map keys to pyautogui key names
-                mapped_keys = [KEY_MAP.get(k.lower(), k.lower()) for k in keys]
+                mapped_keys = _normalize_hotkey_keys(keys)
                 pyautogui.hotkey(*mapped_keys)
 
                 return {
