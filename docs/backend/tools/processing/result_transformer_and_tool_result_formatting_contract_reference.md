@@ -38,6 +38,7 @@ Produced fields:
 - `success`
 - `error`
 - `artifacts` (copied dict)
+- `compaction_facts` (optional bounded dict for history compaction)
 
 Important behavior:
 
@@ -51,9 +52,32 @@ Important behavior:
 1. copy artifacts
 2. extract screenshot payload via `_extract_screenshot_data(...)`
 3. compute history text via `tool_result.format_for_history(tool_name=...)`
-4. return normalized `ProcessedToolResult`
+4. derive bounded structured `compaction_facts`
+5. return normalized `ProcessedToolResult`
 
 No branch in this method mutates session/history state.
+
+## `compaction_facts` Extraction Contract
+
+Primary source order:
+
+1. explicit `tool_result.compaction_facts`
+2. synthesized bounded payload from `tool_result.metadata`, `tool_result.data`, and `artifacts`
+
+Normalization rules:
+
+- always adds `tool_name`
+- always adds `success`
+- adds `error` when present
+- recursively bounds nested dict/list depth and item count
+- skips bulky binary/image/html keys such as `screenshot`, `image_data`, `bytes`, `raw_html`
+- truncates long string leaves before persistence
+
+Design intent:
+
+- preserve identifiers and machine-readable failure state for compaction
+- avoid leaking screenshots/base64/huge raw payloads into history metadata
+- keep transformer pure: no session lookup, no policy branching, no event emission
 
 ## Screenshot Extraction Precedence
 
@@ -115,6 +139,7 @@ For dict-based legacy results:
 2. changing screenshot precedence can silently detach image payloads expected by history writes.
 3. rewriting `format_for_history` precedence can alter LLM context text for every tool turn.
 4. removing screenshot-only text guard in `from_dict` can leak base64 payload into prompt history.
+5. widening `compaction_facts` bounds without test/doc updates can quietly explode compaction prompt size.
 
 ## Related Pages
 

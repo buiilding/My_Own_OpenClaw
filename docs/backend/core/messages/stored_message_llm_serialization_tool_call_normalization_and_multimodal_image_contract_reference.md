@@ -57,8 +57,15 @@ This guarantees assistant tool-call history sent to models is structurally stabl
 - `episodic_memory`
 - `semantic_memory`
 - `injected_context`
+- `compaction_facts`
 
 Design intent: avoid lossy parse-back from rendered XML/text when preserving user-query structure.
+
+`compaction_facts` semantics:
+
+- stored on history rows for compaction/debugging consumers
+- intentionally excluded from `to_llm_message()` serialization so normal provider prompt history does not balloon
+- primarily populated on tool-output rows, but the field lives on `StoredMessage` so history replacement/rehydrate can preserve it generically
 
 ## Test-Backed Matrix
 
@@ -79,6 +86,7 @@ Additional usage coverage:
 1. Changing tool-call default IDs/names breaks deterministic fallback behavior in model-facing history.
 2. Removing image prefix normalization can produce invalid multimodal image URLs.
 3. Changing role-branch priority can alter assistant/tool message envelopes in prompt history.
+4. accidentally serializing `compaction_facts` into provider prompt messages would inflate every turn and duplicate compaction-only metadata in normal LLM context.
 
 ## Related Pages
 
