@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any, List
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.llm.parser import ParsedResponse
+from backend.src.tools.execution_timeout import resolve_bundle_wait_timeout_seconds
 from backend.src.tools.result_helpers import create_tool_result_object
 from backend.src.tools.result_types import ToolExecutionBatch
 
@@ -69,17 +70,26 @@ async def execute_bundle(
             # Wait for bundle result
             try:
                 wait_start = time.perf_counter()
-                logger.info(
-                    f"Waiting for frontend bundle result (bundle_id={bundle_id_short})..."
+                wait_timeout_seconds = resolve_bundle_wait_timeout_seconds(
+                    parsed_response.tool_calls
                 )
-                bundle_result = await asyncio.wait_for(bundle_future, timeout=120.0)
+                logger.info(
+                    f"Waiting for frontend bundle result (bundle_id={bundle_id_short}, "
+                    f"timeout={wait_timeout_seconds:.1f}s)..."
+                )
+                bundle_result = await asyncio.wait_for(
+                    bundle_future,
+                    timeout=wait_timeout_seconds,
+                )
                 wait_time = time.perf_counter() - wait_start
                 logger.info(
-                    f"[Timing] Bundle orchestrator wait completed in {wait_time:.3f}s (bundle_id={bundle_id_short})"
+                    f"[Timing] Bundle orchestrator wait completed in {wait_time:.3f}s "
+                    f"(bundle_id={bundle_id_short}, timeout={wait_timeout_seconds:.1f}s)"
                 )
             except asyncio.TimeoutError:
                 logger.error(
-                    f"Timed out waiting for bundle (bundle_id={bundle_id_short})"
+                    f"Timed out waiting for bundle (bundle_id={bundle_id_short}, "
+                    f"timeout={wait_timeout_seconds:.1f}s)"
                 )
                 bundle_result = ToolResult(
                     success=False,

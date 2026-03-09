@@ -17,21 +17,22 @@ class DummySession:
         return self._result_storage
 
 
-def _make_response(bundle_id="bundle"):
-    calls = [
-        ParsedToolCall(
-            tool_name="read_file",
-            parameters={},
-            raw_call="{}",
-            metadata={"bundle_id": bundle_id},
-        ),
-        ParsedToolCall(
-            tool_name="write_file",
-            parameters={},
-            raw_call="{}",
-            metadata={"bundle_id": bundle_id},
-        ),
-    ]
+def _make_response(bundle_id="bundle", calls=None):
+    if calls is None:
+        calls = [
+            ParsedToolCall(
+                tool_name="read_file",
+                parameters={},
+                raw_call="{}",
+                metadata={"bundle_id": bundle_id},
+            ),
+            ParsedToolCall(
+                tool_name="write_file",
+                parameters={},
+                raw_call="{}",
+                metadata={"bundle_id": bundle_id},
+            ),
+        ]
     return ParsedResponse(
         original_response="{}", tool_calls=calls, text_content="", has_tool_calls=True
     )
@@ -78,6 +79,94 @@ async def test_execute_bundle_timeout(monkeypatch):
     assert len(result.tool_results) == 2
     assert result.tool_results[0].result.success is False
     assert "timed out" in (result.tool_results[0].result.error or "").lower()
+
+
+@pytest.mark.asyncio
+async def test_execute_bundle_uses_adaptive_timeout_for_foreground_shell_steps(
+    monkeypatch,
+):
+    session = DummySession()
+    response = _make_response(
+        "bundle-shell-timeout",
+        calls=[
+            ParsedToolCall(
+                tool_name="run_shell_command",
+                parameters={
+                    "run_in_background": False,
+                    "terminate_after_seconds": 180,
+                    "wait": 5,
+                },
+                raw_call="{}",
+                metadata={"bundle_id": "bundle-shell-timeout"},
+            ),
+            ParsedToolCall(
+                tool_name="run_shell_command",
+                parameters={
+                    "run_in_background": False,
+                    "terminate_after_seconds": 240,
+                    "wait": 0,
+                },
+                raw_call="{}",
+                metadata={"bundle_id": "bundle-shell-timeout"},
+            ),
+        ],
+    )
+    captured_timeout = {"value": None}
+
+    async def fake_wait_for(_future, timeout=None):
+        captured_timeout["value"] = timeout
+        raise asyncio.TimeoutError()
+
+    monkeypatch.setattr(asyncio, "wait_for", fake_wait_for)
+
+    result = await execute_bundle(response, "bundle-shell-timeout", session)
+
+    assert len(result.tool_results) == 2
+    assert result.tool_results[0].result.success is False
+    assert "timed out" in (result.tool_results[0].result.error or "").lower()
+    # (180 + 5 + 15) + (240 + 0 + 15) = 455
+    assert captured_timeout["value"] == pytest.approx(455.0)
+
+
+@pytest.mark.asyncio
+async def test_execute_bundle_caps_adaptive_timeout(monkeypatch):
+    session = DummySession()
+    response = _make_response(
+        "bundle-shell-timeout-cap",
+        calls=[
+            ParsedToolCall(
+                tool_name="run_shell_command",
+                parameters={
+                    "run_in_background": False,
+                    "terminate_after_seconds": 600,
+                },
+                raw_call="{}",
+                metadata={"bundle_id": "bundle-shell-timeout-cap"},
+            ),
+            ParsedToolCall(
+                tool_name="run_shell_command",
+                parameters={
+                    "run_in_background": False,
+                    "terminate_after_seconds": 600,
+                },
+                raw_call="{}",
+                metadata={"bundle_id": "bundle-shell-timeout-cap"},
+            ),
+        ],
+    )
+    captured_timeout = {"value": None}
+
+    async def fake_wait_for(_future, timeout=None):
+        captured_timeout["value"] = timeout
+        raise asyncio.TimeoutError()
+
+    monkeypatch.setattr(asyncio, "wait_for", fake_wait_for)
+
+    result = await execute_bundle(response, "bundle-shell-timeout-cap", session)
+
+    assert len(result.tool_results) == 2
+    assert result.tool_results[0].result.success is False
+    assert captured_timeout["value"] == pytest.approx(900.0)
 
 
 @pytest.mark.asyncio

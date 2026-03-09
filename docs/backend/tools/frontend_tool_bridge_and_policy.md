@@ -25,6 +25,10 @@ Responsibilities:
 - produce function declarations for model tool-calling
 - expose capability metadata
 - wait for frontend tool results and return normalized `ToolExecutionBatch`
+  - single-tool and bundle wait timeouts are adaptive for foreground `run_shell_command` calls:
+    - baseline wait remains `120s`
+    - when `terminate_after_seconds` (and optional shell `wait`) imply longer runtime, backend wait increases with safety buffer
+    - bundle waits aggregate shell-step timeout budgets and cap at a bounded maximum
 
 ## Remote Tool Surface
 
