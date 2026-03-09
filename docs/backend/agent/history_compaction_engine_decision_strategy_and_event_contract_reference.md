@@ -129,16 +129,22 @@ Prompt rendering path:
 
 - `render_messages_for_compaction_prompt(...)`
   - max transcript chars: `24000`
-  - per-message content truncation: `1600` chars
-  - line format: `Role: content`
+  - message-type aware rendering instead of raw `Role: content`
+  - strips bulky XML wrapper blocks (`system_context`, `os_state`, memory tags) before summarization
+  - prefers structured fields when available (`user_query_raw`, assistant `tool_calls`, tool `tool_name`, `tool_call_id`, `compaction_facts`)
+  - when history exceeds budget, preserves both early context and most recent compacted context with a sampled middle section instead of truncating strictly from the front
 - `build_compaction_prompt_messages(...)`
-  - system prompt: fixed compaction instruction
+  - system prompt: fixed compaction instruction that requires exact identifiers plus confirmed-vs-inferred separation
   - user message: custom prompt override or default instruction + rendered transcript
+- inline strategy request:
+  - forwards `history_compaction_summary_max_tokens` as `max_output_tokens` to the LLM request path
+  - standard LiteLLM providers map this to `max_tokens`
+  - OpenAI Responses-native reasoning path maps this to `max_output_tokens`
 
 LLM output normalization:
 
 - non-empty response -> trimmed summary text
-- empty response -> deterministic fallback summary from last 8 compacted messages (280-char per-line truncation)
+- empty response -> deterministic fallback summary built from the structured recent-tail renderer rather than raw line truncation
 
 ## Event Emission Integration
 

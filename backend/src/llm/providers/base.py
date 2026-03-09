@@ -97,6 +97,7 @@ class LLMProvider(ProviderPayloadCompatMixin, ABC):
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
         prompt_cache_key: Optional[str] = None,
+        max_output_tokens: Optional[int] = None,
     ) -> NormalizedLLMResponse:
         """
         Gets a completion from the LLM and returns a normalized response.
@@ -178,6 +179,7 @@ class LLMProvider(ProviderPayloadCompatMixin, ABC):
             tool_choice=request_kwargs.get("tool_choice"),
             parallel_tool_calls=request_kwargs.get("parallel_tool_calls"),
             prompt_cache_key=request_kwargs.get("prompt_cache_key"),
+            max_output_tokens=request_kwargs.get("max_output_tokens"),
         )
         if include_stream:
             self._enable_stream_with_usage(params)
@@ -200,6 +202,7 @@ class LLMProvider(ProviderPayloadCompatMixin, ABC):
             tool_choice=request_kwargs.get("tool_choice"),
             parallel_tool_calls=request_kwargs.get("parallel_tool_calls"),
             prompt_cache_key=request_kwargs.get("prompt_cache_key"),
+            max_output_tokens=request_kwargs.get("max_output_tokens"),
         )
         return await self._get_completion_with_standard_errors(
             provider_label=provider_label,
@@ -379,6 +382,7 @@ class LLMProvider(ProviderPayloadCompatMixin, ABC):
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
         prompt_cache_key: Optional[str] = None,
+        max_output_tokens: Optional[int] = None,
     ) -> dict:
         """
         Helper to construct the basic request parameters for LiteLLM.
@@ -418,6 +422,8 @@ class LLMProvider(ProviderPayloadCompatMixin, ABC):
             params["tool_choice"] = tool_choice
         if parallel_tool_calls is not None:
             params["parallel_tool_calls"] = parallel_tool_calls
+        if isinstance(max_output_tokens, int) and max_output_tokens > 0:
+            params["max_tokens"] = max_output_tokens
         apply_prompt_cache_key(params, prompt_cache_key)
         return self._apply_provider_request_params(
             params,

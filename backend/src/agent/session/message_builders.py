@@ -52,12 +52,17 @@ def build_user_message(
 def build_tool_output_message(
     message: str,
     image_data: Optional[Union[str, List[str]]],
+    *,
+    tool_name: Optional[str] = None,
+    compaction_facts: Optional[Dict[str, Any]] = None,
 ) -> StoredMessage:
     return StoredMessage(
         role=MessageRole.USER,
         content=message,
         message_type=MessageType.TOOL_OUTPUT,
         image_data=image_data,
+        tool_name=tool_name,
+        compaction_facts=compaction_facts,
     )
 
 
@@ -66,6 +71,8 @@ def build_tool_result_message(
     message: str,
     tool_call_id: str,
     image_data: Optional[Union[str, List[str]]] = None,
+    tool_name: Optional[str] = None,
+    compaction_facts: Optional[Dict[str, Any]] = None,
 ) -> StoredMessage:
     return StoredMessage(
         role=MessageRole.TOOL,
@@ -73,6 +80,8 @@ def build_tool_result_message(
         message_type=MessageType.TOOL_OUTPUT,
         image_data=image_data,
         tool_call_id=tool_call_id,
+        tool_name=tool_name,
+        compaction_facts=compaction_facts,
     )
 
 

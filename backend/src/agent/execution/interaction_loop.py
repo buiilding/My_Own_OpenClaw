@@ -363,7 +363,16 @@ class InteractionLoop:
 
         # Feed the synthetic tool output back into history for the next LLM turn.
         self.session.history.stage_tool_call_ids([tool_call_id])
-        self.session.history.add_tool_output(tool_output_message)
+        self.session.history.add_tool_output(
+            tool_output_message,
+            tool_name=tool_name,
+            compaction_facts={
+                "tool_name": tool_name,
+                "success": False,
+                "error": error_msg,
+                "metadata": metadata,
+            },
+        )
 
     def _to_parsed_response(
         self, normalized_response: NormalizedLLMResponse

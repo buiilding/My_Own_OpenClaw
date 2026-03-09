@@ -168,7 +168,17 @@ def build_openai_reasoning_config(model_id: str) -> Dict[str, str]:
     return {"effort": effort, "summary": "detailed"}
 
 
-def build_openai_responses_params(provider: Any, *, model: str, messages: List[LLMMessage], tools: Optional[List[Dict[str, Any]]] = None, tool_choice: Any = None, parallel_tool_calls: Optional[bool] = None, include_reasoning: bool = True) -> Dict[str, Any]:
+def build_openai_responses_params(
+    provider: Any,
+    *,
+    model: str,
+    messages: List[LLMMessage],
+    tools: Optional[List[Dict[str, Any]]] = None,
+    tool_choice: Any = None,
+    parallel_tool_calls: Optional[bool] = None,
+    max_output_tokens: Optional[int] = None,
+    include_reasoning: bool = True,
+) -> Dict[str, Any]:
     runtime_model_id = resolve_runtime_model_id(model)
     normalized_messages = provider._normalize_messages_for_provider(
         messages,
@@ -192,6 +202,8 @@ def build_openai_responses_params(provider: Any, *, model: str, messages: List[L
         params["tool_choice"] = build_openai_responses_tool_choice(tool_choice)
     if parallel_tool_calls is not None:
         params["parallel_tool_calls"] = parallel_tool_calls
+    if isinstance(max_output_tokens, int) and max_output_tokens > 0:
+        params["max_output_tokens"] = max_output_tokens
     if include_reasoning:
         params["reasoning"] = build_openai_reasoning_config(model)
     return params

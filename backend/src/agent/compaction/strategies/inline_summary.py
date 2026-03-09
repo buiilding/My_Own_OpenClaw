@@ -39,6 +39,7 @@ class InlineSummaryCompactionStrategy(CompactionStrategy):
         summary_text = await llm_client.get_completion(
             model=model,
             messages=prompt_messages,
+            max_output_tokens=compaction_input.summary_max_tokens,
         )
         normalized = self._normalize_summary_text(
             summary_text,
@@ -67,21 +68,17 @@ class InlineSummaryCompactionStrategy(CompactionStrategy):
     def _fallback_summary(messages: List[StoredMessage]) -> str:
         if not messages:
             return "No prior conversation details were available."
-
-        tail = messages[-8:]
-        lines: list[str] = [
-            "Conversation compressed due token budget. Key recent context:"
-        ]
-        for item in tail:
-            role = item.role.value
-            content = (item.content or "").strip()
-            if not content:
-                continue
-            if len(content) > 280:
-                content = f"{content[:277]}..."
-            lines.append(f"- {role}: {content}")
-
-        if len(lines) == 1:
-            lines.append("- No textual context available in retained window.")
-        return "\n".join(lines)
-
+        rendered_tail = render_messages_for_compaction_prompt(
+            messages[-8:],
+            max_chars=2400,
+        ).strip()
+        if not rendered_tail:
+            return "Conversation compressed due to token budget. Recent context was unavailable."
+        return (
+            "Objective:\n"
+            "Recent history was compacted after the model returned an empty summary.\n"
+            "Confirmed state/results:\n"
+            f"{rendered_tail}\n"
+            "Open tasks / immediate next step:\n"
+            "Resume from the most recent retained context above and verify unconfirmed details before acting."
+        )

@@ -48,12 +48,14 @@ def test_build_tool_transport_kwargs_forwards_normalized_prompt_cache_key():
         tool_choice="auto",
         parallel_tool_calls=True,
         prompt_cache_key="  session-1  ",
+        max_output_tokens=321,
     )
 
     assert result == {
         "tools": [{"type": "function", "function": {"name": "ping"}}],
         "tool_choice": "auto",
         "parallel_tool_calls": True,
+        "max_output_tokens": 321,
         "prompt_cache_key": "session-1",
     }
 
@@ -64,6 +66,7 @@ def test_build_tool_transport_kwargs_keeps_none_fields_and_omits_blank_prompt_ca
         tool_choice=None,
         parallel_tool_calls=None,
         prompt_cache_key="   ",
+        max_output_tokens=None,
     )
 
     assert result == {

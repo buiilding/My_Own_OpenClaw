@@ -19,6 +19,7 @@ class OnlineLLMProvider(LLMProvider):
         "tool_choice",
         "parallel_tool_calls",
         "prompt_cache_key",
+        "max_output_tokens",
     )
 
     def _validate_dependencies(self) -> None:
