@@ -48,6 +48,7 @@ Sidecar enforcement is action-aware and runtime-focused:
 - action schema routing (`BROWSER_SCHEMAS`) validates sidecar action models
 - `browser_tool` applies removed-alias policy gates
 - adapter/runtime normalize and validate action-specific params
+- role refs (`e12`) for `click`, `input`, `upload_file`, `dropdown_options`, and `select_dropdown` now bypass Browser Use index normalization and route through controller-backed locator resolution; numeric refs / `index` remain Browser Use-native
 
 Result:
 

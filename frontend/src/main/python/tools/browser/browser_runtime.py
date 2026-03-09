@@ -144,6 +144,13 @@ class ControllerRuntimeLike(Protocol):
         ref: str,
         paths: list[str],
     ) -> dict[str, Any]: ...
+    async def get_dropdown_options(self, *, ref: str) -> dict[str, Any]: ...
+    async def select_dropdown_option(
+        self,
+        *,
+        ref: str,
+        text: str,
+    ) -> dict[str, Any]: ...
 
 
 class BrowserRuntimeProvider(Protocol):
@@ -205,6 +212,13 @@ class BrowserRuntimeProvider(Protocol):
         frame_selector: str | None = None,
     ) -> Any: ...
     async def set_input_files(self, *, ref: str, paths: list[str]) -> dict[str, Any]: ...
+    async def get_dropdown_options(self, *, ref: str) -> dict[str, Any]: ...
+    async def select_dropdown_option(
+        self,
+        *,
+        ref: str,
+        text: str,
+    ) -> dict[str, Any]: ...
     async def execute_browser_use_action(
         self,
         *,
@@ -354,6 +368,17 @@ class ControllerBackedRuntimeProvider:
             ref=ref,
             paths=paths,
         )
+
+    async def get_dropdown_options(self, *, ref: str) -> dict[str, Any]:
+        return await self._controller.get_dropdown_options(ref)
+
+    async def select_dropdown_option(
+        self,
+        *,
+        ref: str,
+        text: str,
+    ) -> dict[str, Any]:
+        return await self._controller.select_dropdown(ref, text)
 
     async def execute_browser_use_action(
         self,

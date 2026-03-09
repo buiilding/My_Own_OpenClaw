@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(sidecar-browser-role-refs): preserve role refs such as `e12` through the canonical browser adapter path for `click`, `input`, `upload_file`, `dropdown_options`, and `select_dropdown` by routing those actions through controller-backed locator resolution instead of collapsing them to Browser Use numeric indices; add focused sidecar regression coverage and refresh browser schema/control docs.
 - feat(frontend-chat-model-selector-reasoning-mode-split): split chat header model controls so model dropdown shows one base entry per runtime model family (for example one GPT-5.3 Codex row) while a conditional reasoning-mode dropdown (`Low`, `Medium`, `High`, `Extra High`) appears for models with multiple reasoning variants and rewrites `selected_model_id` to the matching variant id.
 - feat(frontend-dev-compaction): extend dev-only compaction debugging so `npm run electron:dev` shows the full replacement history artifact after compaction, including the summary message and every kept tail message with full untruncated content.
 - fix(sidecar-browser-scroll-watchdog-timeouts): harden browser_use scroll handling by bounding individual CDP scroll steps, aligning page-scroll fallbacks with the actor path (`mouseWheel` -> `synthesizeScrollGesture` -> `window.scrollBy`), and raising a real browser error only after all strategies fail; add focused sidecar regression coverage and refresh the watchdog runtime reference.
