@@ -12,6 +12,7 @@ import {
   useChatInterfaceStopShortcut,
 } from '../hooks/useChatInterfaceBindings';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
+import { buildDeferredQueryModelConfig } from '../../../app/providers/appConfigBackendSync';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
@@ -221,6 +222,10 @@ function ChatInterface({ focusComposerToken = 0 }) {
     setThinkingStatus(COMPACTION_THINKING_STATUS);
     setThinkingSourceEventType('context-compaction-started');
     await waitForNextPaint();
+    const deferredQueryModelConfig = buildDeferredQueryModelConfig(config);
+    if (deferredQueryModelConfig) {
+      ApiClient.updateSettings(deferredQueryModelConfig);
+    }
     const sessionInfo = getTranscriptSessionInfo();
     const conversationRef = getActiveConversationRef() || sessionInfo?.conversationRef || null;
     const userId = sessionInfo?.userId || null;
@@ -240,7 +245,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
       }
     }
     ApiClient.compactHistory(true);
-  }, [setThinkingSourceEventType, setThinkingStatus]);
+  }, [config, setThinkingSourceEventType, setThinkingStatus]);
 
   const handleProviderSelect = useCallback((provider) => {
     setProviderMenuOpen(false);

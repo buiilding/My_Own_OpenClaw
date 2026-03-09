@@ -101,11 +101,12 @@ Utility controls:
 1. sets compaction-specific thinking status/source markers
 2. waits one paint (`waitForNextPaint()`) so state is visible before async work
 3. resolves transcript session (`conversationRef`, `userId`)
-4. when both values exist:
+4. syncs deferred model selection (`model_provider`, `selected_model_id`) to backend session config
+5. when both values exist:
   - loads transcript rows via `loadConversationTranscriptMemories(...)`
   - maps rows with `toRehydrateMessagePayload(...)`
   - calls `ApiClient.sendRehydrateConversation(...)`
-5. always calls `ApiClient.compactHistory(true)` after the pre-rehydrate attempt
+6. always calls `ApiClient.compactHistory(true)` after the pre-rehydrate attempt
 
 Failure behavior:
 

@@ -17,6 +17,8 @@ let mockConfig = {
   interaction_mode: 'chat',
   voice_mode_enabled: false,
   speech_mode_enabled: false,
+  model_provider: 'openai',
+  selected_model_id: 'gpt-5@@gpt-5-nonthinking',
 };
 let mockAvailableModels = {
   local: [],
@@ -34,6 +36,7 @@ const mockStopQuery = jest.fn();
 const mockCompactHistory = jest.fn();
 const mockSendQuery = jest.fn();
 const mockSendRehydrateConversation = jest.fn();
+const mockUpdateSettings = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
 const mockClearMessages = jest.fn();
 const mockSetMessages = jest.fn();
@@ -102,6 +105,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
     compactHistory: (...args) => mockCompactHistory(...args),
     sendQuery: (...args) => mockSendQuery(...args),
     sendRehydrateConversation: (...args) => mockSendRehydrateConversation(...args),
+    updateSettings: (...args) => mockUpdateSettings(...args),
   },
 }));
 
@@ -163,6 +167,8 @@ describe('ChatInterface wiring', () => {
       interaction_mode: 'chat',
       voice_mode_enabled: false,
       speech_mode_enabled: false,
+      model_provider: 'openai',
+      selected_model_id: 'gpt-5@@gpt-5-nonthinking',
     };
     mockAvailableModels = {
       local: [],
@@ -177,6 +183,7 @@ describe('ChatInterface wiring', () => {
     mockCompactHistory.mockClear();
     mockSendQuery.mockClear();
     mockSendRehydrateConversation.mockClear();
+    mockUpdateSettings.mockClear();
     mockClearMessages.mockClear();
     mockSetMessages.mockClear();
     mockUpdateMessage.mockClear();
@@ -300,6 +307,13 @@ describe('ChatInterface wiring', () => {
 
   test('runs compact-history from dashboard when dev auto-compaction control is clicked', async () => {
     mockIsDevUiEnabled.mockReturnValue(true);
+    mockConfig = {
+      interaction_mode: 'chat',
+      voice_mode_enabled: false,
+      speech_mode_enabled: false,
+      model_provider: 'anthropic',
+      selected_model_id: 'claude-sonnet-4-5',
+    };
     render(<ChatInterface />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Run auto compaction' }));
@@ -315,9 +329,16 @@ describe('ChatInterface wiring', () => {
           recordKind: 'transcript',
         }),
       );
+      expect(mockUpdateSettings).toHaveBeenCalledWith({
+        model_provider: 'anthropic',
+        selected_model_id: 'claude-sonnet-4-5',
+      });
       expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv_existing', []);
       expect(mockCompactHistory).toHaveBeenCalledWith(true);
     });
+    expect(mockUpdateSettings.mock.invocationCallOrder[0]).toBeLessThan(
+      mockSendRehydrateConversation.mock.invocationCallOrder[0],
+    );
   });
 
   test('keeps dashboard compaction control clickable even during active stream phases', async () => {
