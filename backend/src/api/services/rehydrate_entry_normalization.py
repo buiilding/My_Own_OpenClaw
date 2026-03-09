@@ -6,6 +6,9 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
+from backend.src.api.services.rehydrate_tool_linkage_repair import (
+    RehydrateToolLinkageState,
+)
 from backend.src.api.services.rehydrate_tool_call_normalization import (
     extract_thought_signature as extract_thought_signature_helper,
     extract_tool_call_details as extract_tool_call_details_helper,
@@ -31,36 +34,46 @@ class RehydrateNormalizationState:
 
     known_tool_call_ids: set[str] = field(default_factory=set)
     pending_tool_call_ids: List[str] = field(default_factory=list)
+    tool_linkage: RehydrateToolLinkageState = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.tool_linkage = RehydrateToolLinkageState(
+            known_tool_call_ids=self.known_tool_call_ids,
+            pending_tool_call_ids=list(self.pending_tool_call_ids),
+        )
+
+    @property
+    def known_tool_call_ids_view(self) -> set[str]:
+        return self.tool_linkage.known_tool_call_ids
 
     @property
     def pending_tool_call_id(self) -> Optional[str]:
-        if not self.pending_tool_call_ids:
-            return None
-        return self.pending_tool_call_ids[-1]
+        return self.tool_linkage.pending_tool_call_id
 
     @pending_tool_call_id.setter
     def pending_tool_call_id(self, value: Optional[str]) -> None:
-        self.pending_tool_call_ids = [value] if value else []
+        self.tool_linkage.pending_tool_call_id = value
+        self.pending_tool_call_ids = self.tool_linkage.pending_tool_call_ids
+
+    @property
+    def pending_tool_call_ids_view(self) -> List[str]:
+        return self.tool_linkage.pending_tool_call_ids
 
     def add_pending_tool_call_ids(self, tool_call_ids: List[str]) -> None:
-        for tool_call_id in tool_call_ids:
-            if (
-                isinstance(tool_call_id, str)
-                and tool_call_id
-                and tool_call_id not in self.pending_tool_call_ids
-            ):
-                self.pending_tool_call_ids.append(tool_call_id)
+        self.tool_linkage.register_tool_call_ids(tool_call_ids)
+        self.known_tool_call_ids = self.tool_linkage.known_tool_call_ids
+        self.pending_tool_call_ids = self.tool_linkage.pending_tool_call_ids
 
     def consume_pending_tool_call_id(
         self,
         preferred_tool_call_id: Optional[str] = None,
     ) -> Optional[str]:
-        if preferred_tool_call_id and preferred_tool_call_id in self.pending_tool_call_ids:
-            self.pending_tool_call_ids.remove(preferred_tool_call_id)
-            return preferred_tool_call_id
-        if not self.pending_tool_call_ids:
-            return None
-        return self.pending_tool_call_ids.pop(0)
+        tool_call_id = self.tool_linkage.consume_tool_output_tool_call_id(
+            preferred_tool_call_id
+        )
+        self.known_tool_call_ids = self.tool_linkage.known_tool_call_ids
+        self.pending_tool_call_ids = self.tool_linkage.pending_tool_call_ids
+        return tool_call_id
 
 
 class RehydrateEntryNormalizer:
@@ -121,7 +134,6 @@ class RehydrateEntryNormalizer:
                 fallback_tool_name=normalized_tool_name,
             )
             call_id = message_tool_call_id or parsed_call_id or f"rehydrate_tool_call_{index}"
-            state.known_tool_call_ids.add(call_id)
             state.add_pending_tool_call_ids([call_id])
             return (
                 [
@@ -168,7 +180,8 @@ class RehydrateEntryNormalizer:
                         image_data=None,
                     )
                 )
-                state.known_tool_call_ids.add(call_id)
+                state.tool_linkage.known_tool_call_ids.add(call_id)
+                state.known_tool_call_ids = state.tool_linkage.known_tool_call_ids
 
             entries.append(
                 {
@@ -196,11 +209,9 @@ class RehydrateEntryNormalizer:
         normalized_tool_calls = self.normalize_tool_calls(entry.tool_calls)
         if entry.role == "assistant" and normalized_tool_calls:
             hydrated_entry["tool_calls"] = normalized_tool_calls
-            pending_tool_call_ids: List[str] = []
-            for tool_call in normalized_tool_calls:
-                state.known_tool_call_ids.add(tool_call["id"])
-                pending_tool_call_ids.append(tool_call["id"])
-            state.add_pending_tool_call_ids(pending_tool_call_ids)
+            state.add_pending_tool_call_ids(
+                [tool_call["id"] for tool_call in normalized_tool_calls]
+            )
             return [hydrated_entry], normalized_tool_calls[-1]["id"]
 
         return [hydrated_entry], None
@@ -211,27 +222,10 @@ class RehydrateEntryNormalizer:
         state: RehydrateNormalizationState,
         timestamp: Optional[str],
     ) -> List[Dict[str, Any]]:
-        if not state.pending_tool_call_ids:
-            return []
-
-        repaired_entries: List[Dict[str, Any]] = []
-        for tool_call_id in list(state.pending_tool_call_ids):
-            repaired_entries.append(
-                {
-                    "role": "tool",
-                    "content": (
-                        "Tool execution transcript missing during rehydrate. "
-                        "Treating the pending tool call as unresolved."
-                    ),
-                    "message_type": "tool-output",
-                    "tool_name": None,
-                    "correlation_id": tool_call_id,
-                    "timestamp": timestamp,
-                    "image_data": None,
-                    "tool_call_id": tool_call_id,
-                }
-            )
-        state.pending_tool_call_ids = []
+        repaired_entries = state.tool_linkage.build_missing_tool_output_entries(
+            timestamp=timestamp
+        )
+        state.pending_tool_call_ids = state.tool_linkage.pending_tool_call_ids
         return repaired_entries
 
     @staticmethod

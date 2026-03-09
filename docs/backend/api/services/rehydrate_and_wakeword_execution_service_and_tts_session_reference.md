@@ -12,6 +12,7 @@ title: "Rehydrate and Wakeword Execution Service and TTS Session Reference"
 
 - `backend/src/api/services/rehydrate_execution.py`
 - `backend/src/api/services/rehydrate_entry_normalization.py`
+- `backend/src/api/services/rehydrate_tool_linkage_repair.py`
 - `backend/src/api/services/wakeword_execution.py`
 - `backend/src/api/services/tts_session.py`
 - `backend/src/api/handlers/rehydrate.py`
