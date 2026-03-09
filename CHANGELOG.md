@@ -2,11 +2,14 @@
 
 All notable changes to WindieOS will be documented in this file.
 
-## Unreleased - 2026-02-07
+## Unreleased
+
+## 0.6.10 - 2026-03-09
 
 Includes the last 300 commits on `main`.
 
 ### Added
+- chore(release): bump packaged desktop app version to `0.6.10` and trigger the cross-platform desktop release workflow for macOS, Windows, and Linux.
 - fix(frontend-dev-compaction-model-sync): sync the currently selected dashboard provider/model into the backend session immediately before manual dev compaction rehydrate/compact requests so compaction uses the active header model instead of a stale prior selection.
 - fix(backend-compaction-summary-preview): stop shortening `context-compaction-completed.summary_preview` in manual and auto compaction paths so dev compaction UI receives the full backend summary preview string; add focused backend regressions and refresh compaction formatter/docs wording.
 - refactor(backend-compaction-structured-rendering): make history compaction render message-type-aware transcripts instead of flattening everything to `Role: content`, strip XML-heavy user/tool wrapper blocks, preserve both early and recent compacted context under budget, and strengthen compaction prompt instructions around exact identifiers and confirmed-vs-preview-only state.
