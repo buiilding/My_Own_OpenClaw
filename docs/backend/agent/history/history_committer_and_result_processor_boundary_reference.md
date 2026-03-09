@@ -37,6 +37,8 @@ Three-layer split is explicit:
 
 - `result.formatted_message`
 - `result.screenshot_data`
+- `result.tool_name`
+- `result.compaction_facts`
 
 No branching, no validation, no side effects outside history mutation.
 
@@ -92,12 +94,25 @@ Bundle special case:
 
 Transformer does not access session/history.
 
+Compaction-specific payload preservation:
+
+- `ResultTransformer` also produces bounded structured `compaction_facts`
+- `HistoryCommitter` forwards those facts unchanged into `ConversationHistory.add_tool_output(...)`
+- this keeps tool-level identifiers (for example refs, urls, actions, ticket numbers, extraction status) available to the compaction renderer without forcing the summary model to recover them from free-text `llm_content`
+
+Design intent:
+
+- `formatted_message` remains the canonical model-facing tool text for normal chat turns
+- `compaction_facts` is a parallel bounded metadata channel used only by history/compaction consumers
+- commit path remains narrow and deterministic: transformer computes, committer forwards, history stores
+
 ## Drift Hotspots
 
 1. adding logic into `HistoryCommitter` breaks strict separation and makes behavior harder to reason about.
 2. skipping pre-collection of request ids reintroduces partial-cleanup leak risk on mid-loop exceptions.
 3. removing `finally` cleanup or interaction-loop guaranteed processing leaks result storage in long-lived sessions.
 4. changing atomic bundle early-return path can duplicate bundle messages in history.
+5. bypassing `compaction_facts` on commit silently regresses compaction quality while leaving normal chat behavior seemingly intact.
 
 ## Related Pages
 

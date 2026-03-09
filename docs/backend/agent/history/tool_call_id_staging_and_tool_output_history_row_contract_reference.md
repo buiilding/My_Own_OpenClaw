@@ -37,11 +37,12 @@ title: "Tool-Call-ID Staging and Tool-Output History Row Contract Reference"
 
 ## Tool Output Storage Strategy
 
-`add_tool_output(message, image_data)` writes:
+`add_tool_output(message, image_data, tool_name=None, compaction_facts=None)` writes:
 
 1. when staged ids exist: one or more canonical `role='tool'` rows with `tool_call_id`
 2. when staged ids exist and screenshot is present: attach `image_data` directly to the first canonical `role='tool'` row (multimodal `content=[text,image_url]` in LLM view)
-3. when no staged ids exist: one legacy `role='user'` `TOOL_OUTPUT` row with text (and screenshot, if present)
+3. `tool_name` and bounded `compaction_facts` are copied onto every stored tool-output row created by that commit
+4. when no staged ids exist: one legacy `role='user'` `TOOL_OUTPUT` row with text (and screenshot, if present)
 
 Builder ownership:
 
@@ -54,6 +55,14 @@ Reason:
 - provider-facing tool-call linkage needs explicit `tool_call_id` rows
 - screenshot continuity stays on canonical linked tool rows
 - duplicate tool-output text rows are avoided on linked tool turns
+- compaction needs a structured side-channel for refs/urls/actions/failure-state that survives beyond plain text formatting
+
+`compaction_facts` contract:
+
+- optional bounded dict carried on `StoredMessage`
+- not included in provider-facing `to_llm_message()` serialization
+- consumed by compaction-specific renderers and debugging flows
+- safe to omit for legacy/unstructured tool rows
 
 ## Token Cache Behavior on Tool Output
 
@@ -74,7 +83,10 @@ On tool output:
 
 - role normalization includes explicit `tool` and `assistant`
 - tool rows keep `tool_call_id`
+- tool rows keep `tool_name`
+- tool rows keep `compaction_facts`
 - assistant tool-call rows keep `tool_calls`
+- user rows rehydrate `user_query_raw` from `<user_query>...</user_query>` when present
 
 Message-type compatibility in rehydrate path comes from `normalize_message_type(...)`:
 
@@ -105,6 +117,7 @@ This allows restored history to survive provider normalization without dropping 
 2. changing staged-id consumption mode can mismatch tool-call/tool-output ordering for bundled turns.
 3. mutating tool-output token cache logic can reintroduce O(N) counting per tool event.
 4. weakening rehydrate normalization can orphan tool rows from assistant tool-call records.
+5. serializing `compaction_facts` into normal provider prompt history would bloat every LLM turn and defeat the purpose of keeping them history-only.
 
 ## Related Pages
 
