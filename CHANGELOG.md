@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- chore(release): bump packaged desktop app version to `0.6.9` for the new cross-platform desktop release tag.
+- fix(test-settings-load): align backend `load-settings` handler expectation with current config payload by asserting `browser_automation_enabled`.
+- fix(frontend-lint): remove unused chat IPC imports and stale onboarding store destructuring so release lint runs pass cleanly.
 - docs(system-prompt-open-app-guidance): update backend system prompt with explicit `open_app` tool-selection/rules guidance and add a one-shot `open_app` example call for detached GUI app launches; add prompt-manager assertions so this guidance remains pinned.
 - fix(agent-prompt-native-input-fallback): teach the runtime system prompt that `keyboard_control` is synthetic automation input rather than trusted native hardware keyboard control, framed as general decision guidance for shortcut/key recorders and similar native-input capture surfaces; lock the prompt contract/docs to that guidance.
 - fix(backend-tool-selection-open-app): include `open_app` in `backend/dev/tool_selection.toml` allowlist so chat-mode runtime tool schemas expose the dedicated app-launch tool (`computer_use`, `system_use`, `open_app`, `process`) instead of filtering it out.
