@@ -5,13 +5,13 @@ ensure_frontend_python_path()
 
 from memory.operations import (  # noqa: E402
     build_store_memory_response_data,
-    build_interaction_metadata,
+    build_completed_turn_memory_metadata,
     format_interaction_memory,
     group_memory_texts,
-    normalize_and_store_interaction_memory,
+    normalize_and_store_completed_turn_memory,
     normalize_search_memory_payload,
     normalize_store_memory_payload,
-    store_interaction_memory,
+    store_completed_turn_memory,
 )
 
 
@@ -132,10 +132,10 @@ class _DummyStore:
 
 
 @pytest.mark.asyncio
-async def test_store_interaction_memory_formats_and_persists_entry():
+async def test_store_completed_turn_memory_formats_and_persists_entry():
     store = _DummyStore()
 
-    memory_id = await store_interaction_memory(
+    memory_id = await store_completed_turn_memory(
         store,
         user_query="hi",
         assistant_response="hello",
@@ -149,7 +149,7 @@ async def test_store_interaction_memory_formats_and_persists_entry():
         (
             format_interaction_memory("hi", "hello"),
             "user-1",
-            build_interaction_metadata("episodic", "session-1"),
+            build_completed_turn_memory_metadata("episodic", "session-1"),
             "session-1",
             {"record_kind": "interaction"},
         )
@@ -157,10 +157,10 @@ async def test_store_interaction_memory_formats_and_persists_entry():
 
 
 @pytest.mark.asyncio
-async def test_normalize_and_store_interaction_memory_returns_validation_error():
+async def test_normalize_and_store_completed_turn_memory_returns_validation_error():
     store = _DummyStore()
 
-    stored, error = await normalize_and_store_interaction_memory(
+    stored, error = await normalize_and_store_completed_turn_memory(
         store,
         user_query="",
         assistant_response="hello",
@@ -175,10 +175,10 @@ async def test_normalize_and_store_interaction_memory_returns_validation_error()
 
 
 @pytest.mark.asyncio
-async def test_normalize_and_store_interaction_memory_persists_and_returns_metadata():
+async def test_normalize_and_store_completed_turn_memory_persists_and_returns_metadata():
     store = _DummyStore()
 
-    stored, error = await normalize_and_store_interaction_memory(
+    stored, error = await normalize_and_store_completed_turn_memory(
         store,
         user_query="  hi  ",
         assistant_response="\nhello\t",
@@ -196,7 +196,7 @@ async def test_normalize_and_store_interaction_memory_persists_and_returns_metad
         (
             format_interaction_memory("hi", "hello"),
             "user-1",
-            build_interaction_metadata("semantic", "session-1"),
+            build_completed_turn_memory_metadata("semantic", "session-1"),
             "session-1",
             {"record_kind": "interaction"},
         )
@@ -204,10 +204,10 @@ async def test_normalize_and_store_interaction_memory_persists_and_returns_metad
 
 
 @pytest.mark.asyncio
-async def test_normalize_and_store_interaction_memory_sanitizes_lone_surrogates():
+async def test_normalize_and_store_completed_turn_memory_sanitizes_lone_surrogates():
     store = _DummyStore()
 
-    stored, error = await normalize_and_store_interaction_memory(
+    stored, error = await normalize_and_store_completed_turn_memory(
         store,
         user_query="hello\udc9duser",
         assistant_response="hello\udc9dassistant",

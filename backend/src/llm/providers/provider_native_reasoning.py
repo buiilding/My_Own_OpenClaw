@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from typing import Any, Iterable, List, Optional
 
+from backend.src.llm.models.models_config import resolve_provider_thinking_preference
+
+DEFAULT_NATIVE_THINKING_TOKEN_BUDGET = 16384
+
 
 def _get_value(source: Any, key: str) -> Any:
     if source is None:
@@ -57,6 +61,27 @@ def _join_text_values(values: Iterable[str]) -> Optional[str]:
     if not parts:
         return None
     return "\n".join(parts)
+
+
+def apply_provider_native_thinking_request_params(
+    params: dict[str, Any],
+    *,
+    model: str,
+    provider_name: str,
+) -> dict[str, Any]:
+    """Apply the shared native `thinking` request payload for providers that use it directly."""
+    thinking_preference = resolve_provider_thinking_preference(
+        model_id=model,
+        provider_name=provider_name,
+    )
+    if thinking_preference is True:
+        params["thinking"] = {
+            "type": "enabled",
+            "budget_tokens": DEFAULT_NATIVE_THINKING_TOKEN_BUDGET,
+        }
+    elif thinking_preference is False:
+        params.pop("thinking", None)
+    return params
 
 
 def extract_anthropic_thinking_content(delta: Any) -> Optional[str]:

@@ -180,7 +180,7 @@ The Electron renderer reads memory through sidecar JSON-RPC handlers exposed ove
 
 - A completed `user -> assistant` turn should persist two different artifacts:
   - transcript rows (`record_kind='transcript'`) for chat history
-  - one interaction memory row (`record_kind='interaction'`) for the Episodic Memory view and semantic summarizer input
+  - one completed-turn interaction memory row (`record_kind='interaction'`) for the Episodic Memory view and semantic summarizer input
 - The interaction row is triggered by the backend `memory-store` stream event after terminal assistant completion.
 - Electron main must persist that `memory-store` event even though it arrives after `streaming-complete`.
 - If chats appear in `Your chats` but `Episodic` stays empty after a successful turn, first verify that a `record_kind='interaction'` row was written to `episodic.db`.

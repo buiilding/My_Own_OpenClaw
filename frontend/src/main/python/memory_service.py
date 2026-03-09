@@ -22,7 +22,7 @@ from memory.operations import (
     build_store_memory_response_data,
     build_memory_filters,
     group_memory_texts,
-    normalize_and_store_interaction_memory,
+    normalize_and_store_completed_turn_memory,
     normalize_search_memory_payload,
 )
 from core.runtime_shutdown import (
@@ -169,7 +169,7 @@ class MemoryService:
         user_id = payload.get("user_id", "default_user")
         session_id = payload.get("session_id")
         try:
-            stored, error = await normalize_and_store_interaction_memory(
+            stored, error = await normalize_and_store_completed_turn_memory(
                 self.memory_store,
                 user_query=payload.get("user_query"),
                 assistant_response=payload.get("assistant_response"),
