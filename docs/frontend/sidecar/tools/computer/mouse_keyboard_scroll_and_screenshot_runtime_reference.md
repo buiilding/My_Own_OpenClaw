@@ -69,7 +69,7 @@ Validation and guards:
 
 Key normalization:
 
-- uses `KEY_MAP` to map aliases (`escape` -> `esc`, arrow keys, page keys, function keys)
+- uses a shared normalization helper with common aliases (`escape` -> `esc`, arrow keys, page keys, function keys) plus platform-specific aliases for modifier keys such as `super`
 - unknown keys are lowercased pass-through
 
 Execution semantics:

@@ -130,6 +130,21 @@ async def test_execute_keyboard_control_press_maps_escape_key(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_execute_keyboard_control_press_maps_super_by_platform(monkeypatch):
+    fake_pyautogui, calls = _fake_pyautogui()
+    monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
+    monkeypatch.setattr(keyboard_tool.platform, "system", lambda: "Darwin")
+
+    result = await keyboard_tool.execute_keyboard_control(
+        {"action": "press", "key": "SUPER"}
+    )
+
+    assert result["success"] is True
+    assert result["data"]["action"] == "press"
+    assert calls == [("press", "command")]
+
+
+@pytest.mark.asyncio
 async def test_execute_keyboard_control_hotkey_blocks_dangerous_combinations(monkeypatch):
     fake_pyautogui, calls = _fake_pyautogui()
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
@@ -161,6 +176,7 @@ async def test_execute_keyboard_control_hotkey_maps_keys(monkeypatch):
 async def test_execute_keyboard_control_hotkey_maps_super_to_win(monkeypatch):
     fake_pyautogui, calls = _fake_pyautogui()
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
+    monkeypatch.setattr(keyboard_tool.platform, "system", lambda: "Linux")
 
     result = await keyboard_tool.execute_keyboard_control(
         {"action": "hotkey", "keys": ["SUPER", "Shift", "S"]}
@@ -169,6 +185,21 @@ async def test_execute_keyboard_control_hotkey_maps_super_to_win(monkeypatch):
     assert result["success"] is True
     assert result["data"]["action"] == "hotkey"
     assert calls == [("hotkey", "win", "shift", "s")]
+
+
+@pytest.mark.asyncio
+async def test_execute_keyboard_control_hotkey_maps_super_to_command_on_macos(monkeypatch):
+    fake_pyautogui, calls = _fake_pyautogui()
+    monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
+    monkeypatch.setattr(keyboard_tool.platform, "system", lambda: "Darwin")
+
+    result = await keyboard_tool.execute_keyboard_control(
+        {"action": "hotkey", "keys": ["SUPER", "Shift", "S"]}
+    )
+
+    assert result["success"] is True
+    assert result["data"]["action"] == "hotkey"
+    assert calls == [("hotkey", "command", "shift", "s")]
 
 
 @pytest.mark.asyncio
