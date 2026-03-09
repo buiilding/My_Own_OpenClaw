@@ -2,8 +2,25 @@ export function getAgentStopShortcutLabel() {
   return 'Esc';
 }
 
+function getRendererPlatformLabel() {
+  if (typeof navigator !== 'object' || navigator == null) {
+    return '';
+  }
+  const userAgentDataPlatform = navigator.userAgentData?.platform;
+  if (typeof userAgentDataPlatform === 'string' && userAgentDataPlatform.trim()) {
+    return userAgentDataPlatform;
+  }
+  const navigatorPlatform = navigator.platform;
+  if (typeof navigatorPlatform === 'string' && navigatorPlatform.trim()) {
+    return navigatorPlatform;
+  }
+  return '';
+}
+
 export function getGlobalAgentStopShortcutLabel() {
-  return 'Cmd/Ctrl + Shift + Esc';
+  return /mac/i.test(getRendererPlatformLabel())
+    ? 'Command + Shift + Esc'
+    : 'Ctrl + Shift + Esc';
 }
 
 export function isAgentStopShortcutEvent(event) {

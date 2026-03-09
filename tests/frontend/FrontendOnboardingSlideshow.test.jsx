@@ -98,7 +98,7 @@ describe('FrontendOnboardingSlideshow', () => {
 
   test('renders slide progression and completes onboarding', async () => {
     const onComplete = jest.fn();
-    render(<FrontendOnboardingSlideshow onComplete={onComplete} stopAgentShortcutLabel="Ctrl + Alt + ." />);
+    render(<FrontendOnboardingSlideshow onComplete={onComplete} stopAgentShortcutLabel="Ctrl + Shift + Esc" />);
 
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-main-window', {
       focus: true,
@@ -138,7 +138,7 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(screen.getByText('Step 2 of 2')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Stop the agent during loops' })).toBeInTheDocument();
     expect(screen.getByText('Use this anytime an agent loop needs to end right away.')).toBeInTheDocument();
-    expect(screen.getByText('Ctrl + Alt + .').tagName).toBe('KBD');
+    expect(screen.getByText('Ctrl + Shift + Esc').tagName).toBe('KBD');
     expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Start WindieOS' })).toBeInTheDocument();
 

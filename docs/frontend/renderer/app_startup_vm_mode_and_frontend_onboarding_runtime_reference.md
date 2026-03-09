@@ -103,8 +103,8 @@ Stop shortcut label source:
 
 Platform mapping in shortcut helper:
 
-- macOS: `Command + Option + .`
-- non-macOS: `Ctrl + Alt + .`
+- macOS: `Command + Shift + Esc`
+- non-macOS: `Ctrl + Shift + Esc`
 
 ## Current Permission-Gate Boundary
 
