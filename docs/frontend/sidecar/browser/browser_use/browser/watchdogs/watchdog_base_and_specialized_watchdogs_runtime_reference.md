@@ -197,6 +197,7 @@ Behavior highlights:
 - blocks unsafe click paths on file-input/select elements; special-cases print flows via `Page.printToPDF`
 - supports coordinate click safety checks with optional force bypass
 - performs text input with sensitive-data-aware logging and fallback typing paths
+- scroll uses bounded per-CDP-step timeouts and ordered fallbacks (`mouseWheel` -> `synthesizeScrollGesture` -> `window.scrollBy`) so one hung CDP input call does not consume the full `ScrollEvent` timeout budget
 - provides history navigation (`goBack`, `goForward`, `refresh`) and wait/send-keys actions
 - supports upload through `DOM.setFileInputFiles`
 - supports dropdown option discovery/selection across native, ARIA, and custom dropdown patterns with structured error memory

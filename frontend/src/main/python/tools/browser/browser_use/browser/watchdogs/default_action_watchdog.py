@@ -37,6 +37,8 @@ TypeTextEvent.model_rebuild()
 ScrollEvent.model_rebuild()
 UploadFileEvent.model_rebuild()
 
+_SCROLL_CDP_CALL_TIMEOUT_SECONDS = 2.0
+
 
 class DefaultActionWatchdog(BaseWatchdog):
 	"""Handles default browser actions like click, type, and scroll using CDP."""
@@ -517,6 +519,9 @@ class DefaultActionWatchdog(BaseWatchdog):
 			error_msg = 'No active target for scrolling'
 			raise BrowserError(error_msg)
 
+		loop = asyncio.get_running_loop()
+		scroll_start = loop.time()
+		target_id = str(self.browser_session.agent_focus_target_id)
 		try:
 			# Convert direction and amount to pixels
 			# Positive pixels = scroll down, negative = scroll up
@@ -547,16 +552,30 @@ class DefaultActionWatchdog(BaseWatchdog):
 						# Wait a bit for the scroll to settle and DOM to update
 						await asyncio.sleep(0.2)
 
+					elapsed = loop.time() - scroll_start
+					self.logger.debug(
+						f'📜 ScrollEvent target={target_id[:8]} element={index_for_logging} '
+						f'direction={event.direction} amount={event.amount} completed in {elapsed:.2f}s'
+					)
 					return None
 
 			# Perform target-level scroll
-			await self._scroll_with_cdp_gesture(pixels)
+			success = await self._scroll_with_cdp_gesture(pixels)
+			if not success:
+				raise BrowserError(
+					f'Failed to scroll active target after exhausting CDP and JavaScript fallbacks '
+					f'(direction={event.direction}, amount={event.amount})'
+				)
 
 			# Note: We don't clear cached state here - let multi_act handle DOM change detection
 			# by explicitly rebuilding and comparing when needed
 
 			# Log success
-			self.logger.debug(f'📜 Scrolled {event.direction} by {event.amount} pixels')
+			elapsed = loop.time() - scroll_start
+			self.logger.debug(
+				f'📜 Scrolled {event.direction} by {event.amount} pixels '
+				f'(target={target_id[:8]}, elapsed={elapsed:.2f}s)'
+			)
 			return None
 		except Exception as e:
 			raise
@@ -2061,7 +2080,7 @@ class DefaultActionWatchdog(BaseWatchdog):
 
 	async def _scroll_with_cdp_gesture(self, pixels: int) -> bool:
 		"""
-		Scroll using CDP Input.synthesizeScrollGesture to simulate realistic scroll gesture.
+		Scroll the active page using bounded CDP fallbacks, then JavaScript as a last resort.
 
 		Args:
 			pixels: Number of pixels to scroll (positive = down, negative = up)
@@ -2080,37 +2099,98 @@ class DefaultActionWatchdog(BaseWatchdog):
 				viewport_width, viewport_height = self.browser_session._original_viewport_size
 			else:
 				# Fallback: query layout metrics
-				layout_metrics = await cdp_client.send.Page.getLayoutMetrics(session_id=session_id)
-				viewport_width = layout_metrics['layoutViewport']['clientWidth']
-				viewport_height = layout_metrics['layoutViewport']['clientHeight']
+				layout_metrics = await self._run_scroll_cdp_call(
+					'Page.getLayoutMetrics',
+					cdp_client.send.Page.getLayoutMetrics(session_id=session_id),
+				)
+				if not layout_metrics:
+					self.logger.debug('Falling back to default viewport size for scroll gesture')
+					viewport_width, viewport_height = 1280, 720
+				else:
+					viewport_width = layout_metrics['layoutViewport']['clientWidth']
+					viewport_height = layout_metrics['layoutViewport']['clientHeight']
 
 			# Calculate center of viewport
 			center_x = viewport_width / 2
 			center_y = viewport_height / 2
 
-			# For scroll gesture, positive yDistance scrolls up, negative scrolls down
-			# (opposite of mouseWheel deltaY convention)
-			y_distance = -pixels
+			target_label = str(self.browser_session.agent_focus_target_id)[:8]
 
-			# Synthesize scroll gesture - use very high speed for near-instant scrolling
-			await cdp_client.send.Input.synthesizeScrollGesture(
-				params={
-					'x': center_x,
-					'y': center_y,
-					'xDistance': 0,
-					'yDistance': y_distance,
-					'speed': 50000,  # pixels per second (high = near-instant scroll)
-				},
-				session_id=session_id,
+			mouse_wheel_result = await self._run_scroll_cdp_call(
+				'Input.dispatchMouseEvent(mouseWheel)',
+				cdp_client.send.Input.dispatchMouseEvent(
+					params={
+						'type': 'mouseWheel',
+						'x': center_x,
+						'y': center_y,
+						'deltaX': 0,
+						'deltaY': pixels,
+					},
+					session_id=session_id,
+				),
 			)
+			if mouse_wheel_result is not None:
+				self.logger.debug(f'📄 Scrolled via mouse wheel: {pixels}px (target={target_label})')
+				return True
 
-			self.logger.debug(f'📄 Scrolled via CDP gesture: {pixels}px')
-			return True
+			y_distance = -pixels
+			synth_result = await self._run_scroll_cdp_call(
+				'Input.synthesizeScrollGesture',
+				cdp_client.send.Input.synthesizeScrollGesture(
+					params={
+						'x': center_x,
+						'y': center_y,
+						'xDistance': 0,
+						'yDistance': y_distance,
+						'speed': 50000,
+					},
+					session_id=session_id,
+				),
+			)
+			if synth_result is not None:
+				self.logger.debug(f'📄 Scrolled via CDP gesture: {pixels}px (target={target_label})')
+				return True
+
+			js_result = await self._run_scroll_cdp_call(
+				'Runtime.evaluate(window.scrollBy)',
+				cdp_client.send.Runtime.evaluate(
+					params={'expression': f'window.scrollBy(0, {pixels})', 'returnByValue': True},
+					session_id=session_id,
+				),
+			)
+			if js_result is not None:
+				self.logger.debug(f'📄 Scrolled via JavaScript fallback: {pixels}px (target={target_label})')
+				return True
+
+			self.logger.warning(
+				f'📄 Scroll failed after all fallbacks (target={target_label}, pixels={pixels})'
+			)
+			return False
 
 		except Exception as e:
-			# Not critical - JavaScript fallback will handle scrolling
-			self.logger.debug(f'CDP gesture scroll failed ({type(e).__name__}: {e}), falling back to JS')
+			self.logger.debug(f'CDP gesture scroll failed ({type(e).__name__}: {e})')
 			return False
+
+	async def _run_scroll_cdp_call(self, label: str, awaitable):
+		"""Run one scroll-related CDP call with a bounded timeout and debug logging."""
+		loop = asyncio.get_running_loop()
+		start = loop.time()
+		try:
+			result = await asyncio.wait_for(awaitable, timeout=_SCROLL_CDP_CALL_TIMEOUT_SECONDS)
+			elapsed = loop.time() - start
+			self.logger.debug(f'📜 Scroll step {label} succeeded in {elapsed:.2f}s')
+			return result
+		except asyncio.TimeoutError:
+			elapsed = loop.time() - start
+			self.logger.warning(
+				f'📜 Scroll step {label} timed out in {elapsed:.2f}s '
+				f'(limit={_SCROLL_CDP_CALL_TIMEOUT_SECONDS:.1f}s)'
+			)
+			return None
+		except Exception as exc:
+			elapsed = loop.time() - start
+			self.logger.debug(f'📜 Scroll step {label} failed in {elapsed:.2f}s: {type(exc).__name__}: {exc}')
+			return None
 
 	async def _scroll_element_container(self, element_node, pixels: int) -> bool:
 		"""Try to scroll an element's container using CDP."""
@@ -2133,36 +2213,39 @@ class DefaultActionWatchdog(BaseWatchdog):
 					object_id = result['object']['objectId']
 
 					# Scroll the iframe's content directly
-					scroll_result = await cdp_session.cdp_client.send.Runtime.callFunctionOn(
-						params={
-							'functionDeclaration': f"""
-								function() {{
-									try {{
-										const doc = this.contentDocument || this.contentWindow.document;
-										if (doc) {{
-											const scrollElement = doc.documentElement || doc.body;
-											if (scrollElement) {{
-												const oldScrollTop = scrollElement.scrollTop;
-												scrollElement.scrollTop += {pixels};
-												const newScrollTop = scrollElement.scrollTop;
-												return {{
-													success: true,
-													oldScrollTop: oldScrollTop,
-													newScrollTop: newScrollTop,
-													scrolled: newScrollTop - oldScrollTop
-												}};
+					scroll_result = await self._run_scroll_cdp_call(
+						'Runtime.callFunctionOn(iframe scroll)',
+						cdp_session.cdp_client.send.Runtime.callFunctionOn(
+							params={
+								'functionDeclaration': f"""
+									function() {{
+										try {{
+											const doc = this.contentDocument || this.contentWindow.document;
+											if (doc) {{
+												const scrollElement = doc.documentElement || doc.body;
+												if (scrollElement) {{
+													const oldScrollTop = scrollElement.scrollTop;
+													scrollElement.scrollTop += {pixels};
+													const newScrollTop = scrollElement.scrollTop;
+													return {{
+														success: true,
+														oldScrollTop: oldScrollTop,
+														newScrollTop: newScrollTop,
+														scrolled: newScrollTop - oldScrollTop
+													}};
+												}}
 											}}
+											return {{success: false, error: 'Could not access iframe content'}};
+										}} catch (e) {{
+											return {{success: false, error: e.toString()}};
 										}}
-										return {{success: false, error: 'Could not access iframe content'}};
-									}} catch (e) {{
-										return {{success: false, error: e.toString()}};
 									}}
-								}}
-							""",
-							'objectId': object_id,
-							'returnByValue': True,
-						},
-						session_id=cdp_session.session_id,
+								""",
+								'objectId': object_id,
+								'returnByValue': True,
+							},
+							session_id=cdp_session.session_id,
+						),
 					)
 
 					if scroll_result and 'result' in scroll_result and 'value' in scroll_result['result']:
@@ -2176,9 +2259,14 @@ class DefaultActionWatchdog(BaseWatchdog):
 			# For non-iframe elements, use the standard mouse wheel approach
 			# Get element bounds to know where to scroll
 			backend_node_id = element_node.backend_node_id
-			box_model = await cdp_session.cdp_client.send.DOM.getBoxModel(
-				params={'backendNodeId': backend_node_id}, session_id=cdp_session.session_id
+			box_model = await self._run_scroll_cdp_call(
+				'DOM.getBoxModel(scroll target)',
+				cdp_session.cdp_client.send.DOM.getBoxModel(
+					params={'backendNodeId': backend_node_id}, session_id=cdp_session.session_id
+				),
 			)
+			if not box_model:
+				return False
 			content_quad = box_model['model']['content']
 
 			# Calculate center point
@@ -2186,18 +2274,21 @@ class DefaultActionWatchdog(BaseWatchdog):
 			center_y = (content_quad[1] + content_quad[3] + content_quad[5] + content_quad[7]) / 4
 
 			# Dispatch mouse wheel event at element location
-			await cdp_session.cdp_client.send.Input.dispatchMouseEvent(
-				params={
-					'type': 'mouseWheel',
-					'x': center_x,
-					'y': center_y,
-					'deltaX': 0,
-					'deltaY': pixels,
-				},
-				session_id=cdp_session.session_id,
+			dispatch_result = await self._run_scroll_cdp_call(
+				'Input.dispatchMouseEvent(element mouseWheel)',
+				cdp_session.cdp_client.send.Input.dispatchMouseEvent(
+					params={
+						'type': 'mouseWheel',
+						'x': center_x,
+						'y': center_y,
+						'deltaX': 0,
+						'deltaY': pixels,
+					},
+					session_id=cdp_session.session_id,
+				),
 			)
 
-			return True
+			return dispatch_result is not None
 		except Exception as e:
 			self.logger.debug(f'Failed to scroll element container via CDP: {e}')
 			return False
