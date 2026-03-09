@@ -110,13 +110,21 @@ This is the central dedupe guard preventing redundant writes and backend updates
 3. optional save-status callback fire
 4. persist localStorage (`saveConfigToStorage`)
 5. async disk save (`SAVE_FRONTEND_CONFIG`)
-6. backend sync (`ApiClient.updateSettings`)
+6. backend sync (`ApiClient.updateSettings`) for non-model settings only
+
+Deferred backend fields:
+
+- `model_provider`
+- `selected_model_id`
+
+Those two fields remain renderer-local until an actual query/replay send path runs. This avoids backend session churn while the user changes model selection in the header.
 
 ### Connection snapshot behavior
 
 When IPC status reports connected:
 
-- provider sends current config to backend (`ApiClient.updateSettings`)
+- provider sends current non-model config to backend (`ApiClient.updateSettings`)
+- deferred model selection is not pushed on connect/reconnect
 
 ### Storage-event sync behavior
 
@@ -154,6 +162,7 @@ On `window.storage` for desktop-assistant config keys:
 - no-op when disk config equals current config
 - cross-window storage event sync path
 - connected status triggers backend resync
+- connected status excludes deferred model selection from backend resync
 - disk-save/load failures log warnings without crashing
 
 ## Drift Hotspots

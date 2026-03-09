@@ -67,6 +67,7 @@ Provider dropdown:
 - toggles provider menu and closes model menu
 - `handleProviderSelect(provider)` trims provider id
 - if currently selected model is not in chosen provider pool, selection falls back to first provider model
+- provider/model changes update renderer config immediately but do not push backend `update-settings` yet
 
 Model dropdown:
 
@@ -74,6 +75,7 @@ Model dropdown:
 - renders one base entry per runtime model (for example one `GPT-5.3 Codex` instead of separate `Low/High` rows)
 - `handleModelSelect(option)` writes both `selected_model_id` and provider fallback (`option.provider || configuredProvider`)
 - when the selected model exposes multiple reasoning levels, model selection preserves the current reasoning mode when possible (fallback: `medium`, then first available)
+- backend session model selection is synced only when the next send/replay query is dispatched
 
 Reasoning mode dropdown (conditional):
 

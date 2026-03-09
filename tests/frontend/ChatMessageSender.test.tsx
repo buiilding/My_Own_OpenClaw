@@ -17,6 +17,8 @@ import {
 
 let mockFrontendConfig: Record<string, unknown> = {
   include_query_screenshot: true,
+  model_provider: 'openai',
+  selected_model_id: 'gpt-5@@gpt-5-nonthinking',
 };
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
@@ -33,6 +35,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachm
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
     sendQuery: jest.fn(),
+    updateSettings: jest.fn(),
   },
 }));
 
@@ -59,6 +62,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWrite
 
 const mockCaptureScreenshotAttachment = captureScreenshotAttachment as jest.MockedFunction<typeof captureScreenshotAttachment>;
 const mockSendQuery = ApiClient.sendQuery as jest.MockedFunction<typeof ApiClient.sendQuery>;
+const mockUpdateSettings = ApiClient.updateSettings as jest.MockedFunction<typeof ApiClient.updateSettings>;
 const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
 const mockRecordUserMessage = recordUserMessage as jest.MockedFunction<typeof recordUserMessage>;
 const mockGetActiveConversationRef = getActiveConversationRef as jest.MockedFunction<typeof getActiveConversationRef>;
@@ -154,9 +158,14 @@ describe('useChatMessageSender', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
     mockCaptureScreenshotAttachment.mockReset();
     mockSendQuery.mockReset();
+    mockUpdateSettings.mockReset();
     mockUploadArtifactBase64.mockReset();
     mockActiveConversationRef = null;
-    mockFrontendConfig = { include_query_screenshot: true };
+    mockFrontendConfig = {
+      include_query_screenshot: true,
+      model_provider: 'openai',
+      selected_model_id: 'gpt-5@@gpt-5-nonthinking',
+    };
     mockGetActiveConversationRef.mockClear();
     mockSetActiveConversationRef.mockClear();
     mockUpdateTranscriptSession.mockClear();
@@ -233,7 +242,31 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender();
     await sendText(result, 'hello');
     expectNoShowChatboxCall();
+    expect(mockUpdateSettings).toHaveBeenCalledWith({
+      model_provider: 'openai',
+      selected_model_id: expect.any(String),
+    });
     expectSingleSendQueryCall('hello', 'conv_msg-1');
+  });
+
+  test('syncs selected model to backend immediately before sending query', async () => {
+    mockFrontendConfig = {
+      include_query_screenshot: false,
+      model_provider: 'anthropic',
+      selected_model_id: 'claude-sonnet-4-5',
+    };
+    const { result } = renderSender();
+
+    await sendText(result, 'use anthropic');
+
+    expect(mockUpdateSettings).toHaveBeenCalledTimes(1);
+    expect(mockUpdateSettings).toHaveBeenCalledWith({
+      model_provider: 'anthropic',
+      selected_model_id: 'claude-sonnet-4-5',
+    });
+    expect(mockUpdateSettings.mock.invocationCallOrder[0]).toBeLessThan(
+      mockSendQuery.mock.invocationCallOrder[0],
+    );
   });
 
   test('overlay-chatbox surface never switches windows by default', async () => {

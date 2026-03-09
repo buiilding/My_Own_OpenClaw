@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
+import { buildDeferredQueryModelConfig } from '../../../app/providers/appConfigBackendSync';
 import {
   getActiveConversationRef,
   getTranscriptSessionInfo,
@@ -49,9 +51,13 @@ async function runReplayQueryFlow({
   queryText,
   screenshotRef,
   screenshotUrl,
+  deferredQueryModelConfig,
 }) {
   await replayTranscriptMessages(transcriptMessages, userId, conversationRef);
   await ApiClient.sendRehydrateConversation(conversationRef, rehydratePayloads);
+  if (deferredQueryModelConfig) {
+    ApiClient.updateSettings(deferredQueryModelConfig);
+  }
   await ApiClient.sendQuery(
     queryText,
     conversationRef,
@@ -81,6 +87,7 @@ async function executeReplayAction({
   setThinkingSourceEventType,
   setIsSending,
   errorPrefix,
+  deferredQueryModelConfig,
 }) {
   const conversationRef = ensureConversationRef(sessionInfo.conversationRef);
   updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
@@ -103,6 +110,7 @@ async function executeReplayAction({
       queryText,
       screenshotRef: screenshotRef || null,
       screenshotUrl: screenshotUrl || null,
+      deferredQueryModelConfig,
     });
   } catch (error) {
     console.error(`[ChatInterface] ${errorPrefix}:`, error);
@@ -117,6 +125,9 @@ export function useConversationReplayActions({
   setThinkingSourceEventType,
   setIsSending,
 }) {
+  const { config } = useAppConfigContext();
+  const deferredQueryModelConfig = buildDeferredQueryModelConfig(config);
+
   const handleEditFromUser = useCallback(async (userMessageId, editedText) => {
     const normalizedEditedText = typeof editedText === 'string'
       ? editedText.trim()
@@ -153,8 +164,9 @@ export function useConversationReplayActions({
       setThinkingSourceEventType,
       setIsSending,
       errorPrefix: 'Failed to edit user message',
+      deferredQueryModelConfig,
     });
-  }, [messages, setIsSending, setMessages, setThinkingSourceEventType, setThinkingStatus]);
+  }, [deferredQueryModelConfig, messages, setIsSending, setMessages, setThinkingSourceEventType, setThinkingStatus]);
 
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
     const assistantIndex = messages.findIndex(
@@ -194,8 +206,9 @@ export function useConversationReplayActions({
       setThinkingSourceEventType,
       setIsSending,
       errorPrefix: 'Failed to retry assistant message',
+      deferredQueryModelConfig,
     });
-  }, [messages, setIsSending, setMessages, setThinkingSourceEventType, setThinkingStatus]);
+  }, [deferredQueryModelConfig, messages, setIsSending, setMessages, setThinkingSourceEventType, setThinkingStatus]);
 
   return {
     handleEditFromUser,
