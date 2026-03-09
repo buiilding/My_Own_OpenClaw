@@ -111,6 +111,14 @@ async def test_compaction_engine_manual_force_replaces_history(monkeypatch):
     )
 
 
+def test_executor_summary_preview_keeps_full_text():
+    from backend.src.agent.execution.executor import AgentExecutor
+
+    long_summary = "summary-" + ("x" * 300)
+
+    assert AgentExecutor._build_summary_preview(long_summary) == long_summary
+
+
 @pytest.mark.asyncio
 async def test_compaction_engine_manual_force_compacts_short_history(monkeypatch):
     monkeypatch.setattr(

@@ -167,7 +167,7 @@ No context field gets attached when value is falsy.
   - `after_tokens`
   - `removed_messages`
 - optional passthrough:
-  - `summary_preview`
+  - `summary_preview` (full summary string when present; backend no longer shortens it)
   - `skipped_reason`
 - validation failure: warning + `None`
 

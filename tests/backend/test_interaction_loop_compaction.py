@@ -162,3 +162,8 @@ async def test_interaction_loop_runs_mid_turn_compaction_before_second_sampling(
     assert any(isinstance(event, StreamingCompleteEvent) for event in events)
     assert session.compaction_engine.evaluate_calls
     assert session.compaction_engine.compact_calls
+
+    completed_event = next(
+        event for event in events if isinstance(event, ContextCompactionCompletedEvent)
+    )
+    assert completed_event.summary_preview == "summary text"
