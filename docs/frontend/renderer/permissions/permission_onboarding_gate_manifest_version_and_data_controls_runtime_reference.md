@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for renderer permission state surfaces: manifest/status bootstrap, required-now evaluation, consent persistence, and Data-controls status checks."
+summary: "Deep reference for renderer permission state surfaces: manifest/status bootstrap, required-now evaluation, onboarding completion persistence, and Data-controls status checks."
 read_when:
   - When changing onboarding gate logic in `App.jsx` or `permissionStore`.
   - When changing permission request/re-check flows in onboarding wizard or settings Data controls tab.
@@ -48,7 +48,6 @@ Gate is true when any condition fails:
 
 - onboarding completion manifest version does not match current manifest version
 - any `required_now` permission is not granted
-- planned-system-access disclosure consent is not set
 
 ## IPC Actions and Store Mutations
 
@@ -74,13 +73,11 @@ Persisted fields:
 
 - `manifest_version`
 - `completed`
-- `planned_system_access_consent`
 - `completed_at`
 
 `completeOnboarding()` guardrails:
 
 - requires non-empty manifest version
-- requires planned-system-access consent `true`
 - requires zero `missingRequiredPermissions`
 
 When satisfied:
@@ -95,10 +92,7 @@ When satisfied:
 `PermissionOnboardingWizard` renders:
 
 - required-now permission list with `Grant` + `Re-check`
-- planned-system-access disclosure consent checkbox
-- continue button disabled until:
-  - required permissions all granted
-  - consent checkbox true
+- continue button disabled until required permissions are all granted
 
 ### Settings Data Controls
 

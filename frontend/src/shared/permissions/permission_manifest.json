@@ -1,5 +1,5 @@
 {
-  "manifest_version": "1.0.0",
+  "manifest_version": "1.0.1",
   "generated_at": "2026-02-26",
   "permissions": [
     {
@@ -67,17 +67,6 @@
       "os_scope": "all",
       "validation_probe": "runtime_browser_capability_probe",
       "unlocks_tool_groups": ["browser"]
-    },
-    {
-      "permission_id": "planned_system_access",
-      "label": "Planned system-access scope",
-      "description": "Acknowledges future capability scope for deeper system access when that feature ships.",
-      "risk_level": "high",
-      "required_now": false,
-      "required_for_planned_system_access": true,
-      "os_scope": "all",
-      "validation_probe": "consent_only",
-      "unlocks_tool_groups": ["planned_system_access"]
     }
   ]
 }

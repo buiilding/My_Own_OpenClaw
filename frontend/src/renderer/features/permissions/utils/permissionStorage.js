@@ -15,7 +15,6 @@ export function loadPermissionOnboardingState() {
     return {
       manifest_version: '',
       completed: false,
-      planned_system_access_consent: false,
       completed_at: null,
     };
   }
@@ -23,7 +22,6 @@ export function loadPermissionOnboardingState() {
   return {
     manifest_version: typeof parsed.manifest_version === 'string' ? parsed.manifest_version : '',
     completed: parsed.completed === true,
-    planned_system_access_consent: parsed.planned_system_access_consent === true,
     completed_at: typeof parsed.completed_at === 'string' ? parsed.completed_at : null,
   };
 }
