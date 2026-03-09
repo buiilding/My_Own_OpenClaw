@@ -67,6 +67,7 @@ Unknown permission ids return `status: error`.
 
 - `microphone`:
   - if available, calls `systemPreferences.askForMediaAccess('microphone')`
+  - on macOS, if native prompt is unavailable/denied in-process, falls back to renderer `navigator.mediaDevices.getUserMedia({ audio: true })` to trigger TCC registration
   - then re-runs probe
 - macOS deep links via `shell.openExternal(...)`:
   - screen capture -> privacy screen-capture pane
@@ -90,6 +91,8 @@ Handler dependency bundle:
 - `platform: process.platform`
 - `shell` (Electron shell module)
 - `systemPreferences` (Electron system permission APIs)
+- foreground/focus bridge (`focusPermissionPromptWindow`) used before macOS microphone prompt flows
+- renderer microphone prompt bridge (`requestRendererMicrophoneAccess`) used by macOS microphone request fallback
 
 Response wrapper contract:
 

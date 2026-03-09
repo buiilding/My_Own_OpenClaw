@@ -890,6 +890,31 @@ async function requestMicrophonePermission(permission, deps = {}) {
   const platform = deps.platform || process.platform;
   const systemPreferences = deps.systemPreferences;
   let promptResult = { success: false, reason: 'No native prompt attempted.' };
+  let rendererPromptResult = { success: false, reason: 'No renderer prompt attempted.' };
+  let focusResult = { success: false, reason: 'No focus action attempted.' };
+
+  if (platform === 'darwin' && typeof deps.focusPermissionPromptWindow === 'function') {
+    try {
+      const result = await deps.focusPermissionPromptWindow();
+      focusResult = result && typeof result === 'object'
+        ? {
+          success: result.success === true,
+          reason: typeof result.reason === 'string' ? result.reason : '',
+          details: result.details && typeof result.details === 'object' ? result.details : {},
+        }
+        : {
+          success: result === true,
+          reason: result === true ? '' : 'Focus action did not complete.',
+          details: {},
+        };
+    } catch (error) {
+      focusResult = {
+        success: false,
+        reason: error?.message || String(error),
+        details: {},
+      };
+    }
+  }
 
   if (systemPreferences && typeof systemPreferences.askForMediaAccess === 'function') {
     try {
@@ -903,12 +928,39 @@ async function requestMicrophonePermission(permission, deps = {}) {
     }
   }
 
+  if (platform === 'darwin' && !promptResult.success && typeof deps.requestRendererMicrophoneAccess === 'function') {
+    try {
+      const rendererResult = await deps.requestRendererMicrophoneAccess();
+      rendererPromptResult = rendererResult && typeof rendererResult === 'object'
+        ? {
+          success: rendererResult.success === true,
+          reason: typeof rendererResult.reason === 'string' ? rendererResult.reason : '',
+          details: rendererResult.details && typeof rendererResult.details === 'object'
+            ? rendererResult.details
+            : {},
+        }
+        : {
+          success: rendererResult === true,
+          reason: rendererResult === true ? '' : 'Renderer microphone prompt failed.',
+          details: {},
+        };
+    } catch (error) {
+      rendererPromptResult = {
+        success: false,
+        reason: error?.message || String(error),
+        details: {},
+      };
+    }
+  }
+
   if ((platform === 'linux' || platform === 'win32') && !promptResult.success) {
     const initialVerify = await verifyMicrophoneCapability(deps);
     if (initialVerify.granted) {
       markRequestedGranted(permissionId, {
         flow: 'microphone_preverified',
+        focus_result: focusResult,
         prompt_result: promptResult,
+        renderer_prompt_result: rendererPromptResult,
         verification: initialVerify.details,
       });
       return runPermissionProbe(permissionId, deps);
@@ -916,7 +968,7 @@ async function requestMicrophonePermission(permission, deps = {}) {
   }
 
   let settingsResult = { success: false, reason: 'No fallback settings action attempted.' };
-  if (!promptResult.success) {
+  if (!promptResult.success && !rendererPromptResult.success) {
     if (platform === 'darwin') {
       settingsResult = await openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone', deps);
     } else if (platform === 'win32') {
@@ -930,7 +982,9 @@ async function requestMicrophonePermission(permission, deps = {}) {
   if (probe.status === PERMISSION_STATUS.GRANTED) {
     markRequestedGranted(permissionId, {
       flow: 'microphone',
+      focus_result: focusResult,
       prompt_result: promptResult,
+      renderer_prompt_result: rendererPromptResult,
       settings_result: settingsResult,
     });
     return probe;
@@ -941,7 +995,9 @@ async function requestMicrophonePermission(permission, deps = {}) {
     if (verifyResult.granted) {
       markRequestedGranted(permissionId, {
         flow: 'microphone',
+        focus_result: focusResult,
         prompt_result: promptResult,
+        renderer_prompt_result: rendererPromptResult,
         settings_result: settingsResult,
         verification: verifyResult.details,
       });
@@ -950,7 +1006,9 @@ async function requestMicrophonePermission(permission, deps = {}) {
 
     markRequestedPending(permissionId, {
       flow: 'microphone',
+      focus_result: focusResult,
       prompt_result: promptResult,
+      renderer_prompt_result: rendererPromptResult,
       settings_result: settingsResult,
       verification: verifyResult.details,
     });
@@ -960,7 +1018,9 @@ async function requestMicrophonePermission(permission, deps = {}) {
       'Microphone was not granted. Click Grant and allow access in the system prompt.',
       {
         platform,
+        focus_result: focusResult,
         prompt_result: promptResult,
+        renderer_prompt_result: rendererPromptResult,
         settings_result: settingsResult,
         verification: verifyResult.details,
       },
@@ -969,7 +1029,9 @@ async function requestMicrophonePermission(permission, deps = {}) {
 
   markRequestedPending(permissionId, {
     flow: 'microphone',
+    focus_result: focusResult,
     prompt_result: promptResult,
+    renderer_prompt_result: rendererPromptResult,
     settings_result: settingsResult,
   });
   return probe;
