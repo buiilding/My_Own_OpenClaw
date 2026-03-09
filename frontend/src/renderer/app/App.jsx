@@ -6,7 +6,7 @@ import {
   loadFrontendOnboardingState,
   saveFrontendOnboardingState,
 } from '../features/onboarding/utils/frontendOnboardingStorage';
-import { getAgentStopShortcutLabel } from '../infrastructure/shortcuts/agentStopShortcut';
+import { getGlobalAgentStopShortcutLabel } from '../infrastructure/shortcuts/agentStopShortcut';
 import { isVmModeEnabled } from '../infrastructure/runtime/vmMode';
 import { AppProvider } from './providers/AppProvider';
 import { useAppConfigContext } from './providers/AppContextHooks';
@@ -52,7 +52,7 @@ function AppContent() {
   if (!frontendOnboardingComplete) {
     return (
       <FrontendOnboardingSlideshow
-        stopAgentShortcutLabel={getAgentStopShortcutLabel()}
+        stopAgentShortcutLabel={getGlobalAgentStopShortcutLabel()}
         onComplete={handleFrontendOnboardingComplete}
       />
     );
