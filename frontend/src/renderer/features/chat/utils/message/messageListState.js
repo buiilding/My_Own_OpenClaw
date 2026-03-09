@@ -85,6 +85,7 @@ export function shouldAutoScrollForAgentLoopMessageUpdate(previousMessages, next
 
   return (
     previousLastMessage.text !== nextLastMessage.text
+    || previousLastMessage.thinkingText !== nextLastMessage.thinkingText
     || previousLastMessage.isComplete !== nextLastMessage.isComplete
   );
 }
@@ -96,7 +97,13 @@ export function shouldRenderAssistantActions(message, enableAssistantActions) {
   if (message.sender !== 'assistant') {
     return false;
   }
-  return message.type !== 'tool-call' && message.type !== 'tool-output';
+  const normalizedType = typeof message.type === 'string' && message.type.trim()
+    ? message.type
+    : 'llm-text';
+  if (normalizedType !== 'llm-text') {
+    return false;
+  }
+  return message.isComplete !== false;
 }
 
 export function shouldRenderUserActions(message, enableUserActions) {
