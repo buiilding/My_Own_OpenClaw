@@ -1,9 +1,19 @@
 import {
   getAgentStopShortcutLabel,
+  getGlobalAgentStopShortcutLabel,
   isAgentStopShortcutEvent,
 } from '../../frontend/src/renderer/infrastructure/shortcuts/agentStopShortcut';
 
 describe('agent stop shortcut helper', () => {
+  const originalNavigatorPlatform = window.navigator.platform;
+
+  afterEach(() => {
+    Object.defineProperty(window.navigator, 'platform', {
+      configurable: true,
+      value: originalNavigatorPlatform,
+    });
+  });
+
   test('matches Escape with no modifiers', () => {
     const event = new KeyboardEvent('keydown', {
       key: 'Escape',
@@ -14,6 +24,24 @@ describe('agent stop shortcut helper', () => {
 
     expect(getAgentStopShortcutLabel()).toBe('Esc');
     expect(isAgentStopShortcutEvent(event)).toBe(true);
+  });
+
+  test('renders macOS global stop shortcut label', () => {
+    Object.defineProperty(window.navigator, 'platform', {
+      configurable: true,
+      value: 'MacIntel',
+    });
+
+    expect(getGlobalAgentStopShortcutLabel()).toBe('Command + Shift + Esc');
+  });
+
+  test('renders non-macOS global stop shortcut label', () => {
+    Object.defineProperty(window.navigator, 'platform', {
+      configurable: true,
+      value: 'Linux x86_64',
+    });
+
+    expect(getGlobalAgentStopShortcutLabel()).toBe('Ctrl + Shift + Esc');
   });
 
   test('rejects Escape with modifiers', () => {
