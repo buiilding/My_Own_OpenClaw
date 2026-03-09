@@ -16,7 +16,7 @@ describe('agent_stop_shortcut_runtime', () => {
     expect(isAgentLoopStopShortcutPhase('error')).toBe(false);
   });
 
-  test('registers Escape only while enabled and unregisters when disabled', () => {
+  test('registers global stop accelerator only while enabled and unregisters when disabled', () => {
     const handlers = [];
     const globalShortcut = {
       register: jest.fn((accelerator, handler) => {
@@ -29,14 +29,17 @@ describe('agent_stop_shortcut_runtime', () => {
     const runtime = initializeAgentStopShortcutRuntime({ globalShortcut, onStop });
 
     runtime.setEnabled(true);
-    expect(globalShortcut.register).toHaveBeenCalledWith('Escape', expect.any(Function));
+    expect(globalShortcut.register).toHaveBeenCalledWith(
+      'CommandOrControl+Shift+Escape',
+      expect.any(Function),
+    );
     expect(runtime.isRegistered()).toBe(true);
 
     handlers[0].handler();
     expect(onStop).toHaveBeenCalledTimes(1);
 
     runtime.setEnabled(false);
-    expect(globalShortcut.unregister).toHaveBeenCalledWith('Escape');
+    expect(globalShortcut.unregister).toHaveBeenCalledWith('CommandOrControl+Shift+Escape');
     expect(runtime.isRegistered()).toBe(false);
   });
 
@@ -64,7 +67,7 @@ describe('agent_stop_shortcut_runtime', () => {
     runtime.setEnabled(true);
 
     expect(warn).toHaveBeenCalledWith(
-      '[Main] Failed to register global stop shortcut: Escape',
+      '[Main] Failed to register global stop shortcut: CommandOrControl+Shift+Escape',
     );
     expect(runtime.isRegistered()).toBe(false);
   });
