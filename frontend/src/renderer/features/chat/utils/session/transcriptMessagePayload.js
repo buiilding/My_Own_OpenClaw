@@ -5,7 +5,7 @@ import {
   resolveRehydrateContent,
 } from '../../../../infrastructure/transcript/rehydratePayload';
 
-const TOOL_MESSAGE_TYPES = new Set(['tool-call', 'tool-output']);
+const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output']);
 
 function normalizeToolCallFromMessage(message) {
   const rawToolCall = (
@@ -45,7 +45,7 @@ export function resolveTranscriptRole(message) {
   if (message.sender === 'user') {
     return 'user';
   }
-  if (message.type && TOOL_MESSAGE_TYPES.has(message.type)) {
+  if (message.type && TOOL_OUTPUT_MESSAGE_TYPES.has(message.type)) {
     return 'tool';
   }
   return 'assistant';
@@ -75,11 +75,11 @@ export function toRehydratePayload(message) {
     content: message.text || '',
     transparency,
   });
-  const normalizedToolCall = role === 'tool' && messageType === 'tool-call'
+  const normalizedToolCall = messageType === 'tool-call'
     ? buildRehydrateToolCall({
       parsedToolCall: toolCall,
-      fallbackToolName: toolName,
-      fallbackToolCallId: toolCallId,
+      fallbackToolName: normalizeOptionalString(message.toolName) || toolCall?.name || null,
+      fallbackToolCallId: normalizeOptionalString(message.correlationId) || toolCall?.id || null,
     })
     : null;
 

@@ -14,7 +14,7 @@ describe('transcriptMessagePayload', () => {
 
   test('resolveTranscriptRole maps tool and user roles', () => {
     expect(resolveTranscriptRole({ sender: 'user' })).toBe('user');
-    expect(resolveTranscriptRole({ sender: 'assistant', type: 'tool-call' })).toBe('tool');
+    expect(resolveTranscriptRole({ sender: 'assistant', type: 'tool-call' })).toBe('assistant');
     expect(resolveTranscriptRole({ sender: 'assistant', type: 'tool-output' })).toBe('tool');
     expect(resolveTranscriptRole({ sender: 'assistant', type: 'llm-text' })).toBe('assistant');
   });
@@ -40,12 +40,12 @@ describe('transcriptMessagePayload', () => {
       timestamp: '2026-02-26T10:00:00.000Z',
       screenshotRef: 'artifact://image-1',
     })).toEqual({
-      role: 'tool',
+      role: 'assistant',
       content: 'open browser',
       message_type: 'tool-call',
-      tool_name: 'browser.open',
-      correlation_id: 'corr-1',
-      tool_call_id: 'corr-1',
+      tool_name: null,
+      correlation_id: null,
+      tool_call_id: null,
       tool_calls: [{
         id: 'call-1',
         name: 'browser.open',
