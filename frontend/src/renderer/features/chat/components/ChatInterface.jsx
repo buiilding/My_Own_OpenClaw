@@ -40,6 +40,7 @@ import { applyStopQueryUiState } from '../utils/state/stopQueryState';
 import { useCurrentTurnPresentationState } from '../hooks/useCurrentTurnPresentationState';
 import { useTranscriptSessionInfo } from '../../dashboard/hooks/useTranscriptSessionInfo';
 import { isVmModeEnabled } from '../../../infrastructure/runtime/vmMode';
+import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import {
   VISIBLE_ASSISTANT_REPLY_TYPE_SET,
 } from '../utils/state/chatTurnPresentationState';
@@ -122,6 +123,11 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
   const providerMenuRef = useRef(null);
   const modelMenuRef = useRef(null);
+  const {
+    handleWindowMinimize,
+    handleWindowToggleMaximize,
+    handleWindowClose,
+  } = useMainWindowControls({ warningPrefix: 'ChatInterface' });
 
   useChatInterfaceMenuDismiss({
     providerMenuRef,
@@ -189,26 +195,6 @@ function ChatInterface({ focusComposerToken = 0 }) {
       speech_mode_enabled: !speechModeEnabled,
     });
   }, [speechModeEnabled, updateConfig]);
-
-  const handleWindowAction = useCallback(async (channel, actionLabel) => {
-    try {
-      await IpcBridge.invoke(channel);
-    } catch (error) {
-      console.warn(`[ChatInterface] Failed to ${actionLabel}:`, error);
-    }
-  }, []);
-
-  const handleWindowMinimize = useCallback(() => {
-    void handleWindowAction(INVOKE_CHANNELS.WINDOW_MINIMIZE, 'minimize window');
-  }, [handleWindowAction]);
-
-  const handleWindowToggleMaximize = useCallback(() => {
-    void handleWindowAction(INVOKE_CHANNELS.WINDOW_TOGGLE_MAXIMIZE, 'toggle maximize window');
-  }, [handleWindowAction]);
-
-  const handleWindowClose = useCallback(() => {
-    void handleWindowAction(INVOKE_CHANNELS.WINDOW_CLOSE, 'close window');
-  }, [handleWindowAction]);
 
   const handleRunAutoCompaction = useCallback(async () => {
     setThinkingStatus(COMPACTION_THINKING_STATUS);

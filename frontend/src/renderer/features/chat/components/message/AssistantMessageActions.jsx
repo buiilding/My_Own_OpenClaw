@@ -59,53 +59,55 @@ function AssistantMessageActions({
     onTryAgain(messageId);
   };
 
-  if (!isRevealed) {
-    return null;
-  }
-
   return (
     <div
-      className="assistant-message-actions assistant-message-actions-enter"
-      role="group"
-      aria-label="Assistant message actions"
+      className={`assistant-message-actions${isRevealed ? ' assistant-message-actions-enter' : ' assistant-message-actions-placeholder'}`}
+      role={isRevealed ? 'group' : undefined}
+      aria-label={isRevealed ? 'Assistant message actions' : undefined}
+      aria-hidden={isRevealed ? undefined : 'true'}
+      data-testid={isRevealed ? undefined : 'assistant-message-actions-placeholder'}
     >
-      <button
-        type="button"
-        className={`assistant-action-btn${copySuccess ? ' is-active' : ''}`}
-        onClick={handleCopy}
-        aria-label="Copy assistant message"
-        title={copySuccess ? 'Copied' : 'Copy'}
-      >
-        {copySuccess ? <Check size={16} /> : <Copy size={16} />}
-      </button>
-      <button
-        type="button"
-        className={`assistant-action-btn${feedback === 'like' ? ' is-active' : ''}`}
-        onClick={() => handleFeedback('like')}
-        aria-label="Like response"
-        title="Like"
-      >
-        <ThumbsUp size={16} />
-      </button>
-      <button
-        type="button"
-        className={`assistant-action-btn${feedback === 'dislike' ? ' is-active' : ''}`}
-        onClick={() => handleFeedback('dislike')}
-        aria-label="Dislike response"
-        title="Dislike"
-      >
-        <ThumbsDown size={16} />
-      </button>
-      <button
-        type="button"
-        className="assistant-action-btn"
-        onClick={handleTryAgain}
-        aria-label="Try again"
-        title="Try again"
-        disabled={disabled}
-      >
-        <RotateCcw size={16} />
-      </button>
+      {isRevealed ? (
+        <>
+          <button
+            type="button"
+            className={`assistant-action-btn${copySuccess ? ' is-active' : ''}`}
+            onClick={handleCopy}
+            aria-label="Copy assistant message"
+            title={copySuccess ? 'Copied' : 'Copy'}
+          >
+            {copySuccess ? <Check size={16} /> : <Copy size={16} />}
+          </button>
+          <button
+            type="button"
+            className={`assistant-action-btn${feedback === 'like' ? ' is-active' : ''}`}
+            onClick={() => handleFeedback('like')}
+            aria-label="Like response"
+            title="Like"
+          >
+            <ThumbsUp size={16} />
+          </button>
+          <button
+            type="button"
+            className={`assistant-action-btn${feedback === 'dislike' ? ' is-active' : ''}`}
+            onClick={() => handleFeedback('dislike')}
+            aria-label="Dislike response"
+            title="Dislike"
+          >
+            <ThumbsDown size={16} />
+          </button>
+          <button
+            type="button"
+            className="assistant-action-btn"
+            onClick={handleTryAgain}
+            aria-label="Try again"
+            title="Try again"
+            disabled={disabled}
+          >
+            <RotateCcw size={16} />
+          </button>
+        </>
+      ) : null}
     </div>
   );
 }

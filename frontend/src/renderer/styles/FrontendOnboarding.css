@@ -294,6 +294,22 @@
   text-overflow: ellipsis;
 }
 
+.frontend-onboarding-permission-reason {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #b7b7b7;
+}
+
+.frontend-onboarding-permission-reason.status-needs-action,
+.frontend-onboarding-permission-reason.status-error {
+  color: #d4d4d4;
+}
+
+.frontend-onboarding-permission-reason.status-granted {
+  color: #8dc29a;
+}
+
 .frontend-onboarding-permission-row > .frontend-onboarding-button {
   min-width: 104px;
   padding: 10px 20px;

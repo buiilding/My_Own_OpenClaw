@@ -1,4 +1,5 @@
-import { Brain, ChevronDown, Minus, Square, Volume2, Workflow, X } from 'lucide-react';
+import { Brain, ChevronDown, Volume2, Workflow } from 'lucide-react';
+import MainWindowControls from '../../../components/MainWindowControls';
 import { formatProviderLabel } from '../utils/chatModelOptions';
 
 function renderModelLabel(label, supportsThinking) {
@@ -117,35 +118,11 @@ function ChatInterfaceHeaderControls({
       </div>
       <div className="chat-meta">
         {!vmModeEnabled ? (
-          <div className="chat-window-controls">
-            <button
-              type="button"
-              className="chat-window-control-btn chat-window-control-minimize"
-              aria-label="Minimize window"
-              title="Minimize"
-              onClick={handleWindowMinimize}
-            >
-              <Minus size={14} strokeWidth={2.2} />
-            </button>
-            <button
-              type="button"
-              className="chat-window-control-btn chat-window-control-maximize"
-              aria-label="Toggle maximize window"
-              title="Maximize or restore"
-              onClick={handleWindowToggleMaximize}
-            >
-              <Square size={11} strokeWidth={2.2} />
-            </button>
-            <button
-              type="button"
-              className="chat-window-control-btn chat-window-control-close"
-              aria-label="Close window"
-              title="Close"
-              onClick={handleWindowClose}
-            >
-              <X size={13} strokeWidth={2.2} />
-            </button>
-          </div>
+          <MainWindowControls
+            onMinimize={handleWindowMinimize}
+            onToggleMaximize={handleWindowToggleMaximize}
+            onClose={handleWindowClose}
+          />
         ) : null}
         <div className="chat-utility-controls">
           <button
