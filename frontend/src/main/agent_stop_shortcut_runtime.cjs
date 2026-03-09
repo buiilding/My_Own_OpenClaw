@@ -12,7 +12,7 @@ function isAgentLoopStopShortcutPhase(phase) {
 function initializeAgentStopShortcutRuntime(deps = {}) {
   const {
     globalShortcut,
-    accelerator = 'Escape',
+    accelerator = 'CommandOrControl+Shift+Escape',
     onStop = () => {},
     warn = console.warn,
   } = deps;

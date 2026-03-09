@@ -123,10 +123,11 @@ const ENABLE_DEBUG_TOOL_SCREENSHOT = process.env.WINDIE_DEBUG_TOOL_SCREENSHOT ==
 const VM_MODE_ENABLED = isVmModeEnabled(process.env);
 const VM_WORKER_MODE_ENABLED = isVmWorkerModeEnabled(process.env);
 const RESPONSE_WINDOW_DEBUG_VIEW = 'tool-ghost-debug';
+const GLOBAL_AGENT_STOP_ACCELERATOR = 'CommandOrControl+Shift+Escape';
 let vmWorkerRuntime = null;
 const agentStopShortcutRuntime = initializeAgentStopShortcutRuntime({
   globalShortcut,
-  accelerator: 'Escape',
+  accelerator: GLOBAL_AGENT_STOP_ACCELERATOR,
   onStop: () => {
     triggerStopQueryFromMain();
   },
