@@ -31,10 +31,12 @@ function applyScrollMetrics(element, { scrollHeight, clientHeight, scrollTop }) 
 describe('MessageList auto-scroll behavior', () => {
   const scrollIntoView = jest.fn();
   const scrollTo = jest.fn();
+  const resizeObserverInstances = [];
 
   beforeEach(() => {
     scrollIntoView.mockReset();
     scrollTo.mockReset();
+    resizeObserverInstances.length = 0;
     Object.defineProperty(window.HTMLElement.prototype, 'scrollIntoView', {
       configurable: true,
       value: scrollIntoView,
@@ -45,6 +47,16 @@ describe('MessageList auto-scroll behavior', () => {
       value: scrollTo,
       writable: true,
     });
+    global.ResizeObserver = class ResizeObserver {
+      constructor(callback) {
+        this.callback = callback;
+        resizeObserverInstances.push(this);
+      }
+
+      observe() {}
+
+      disconnect() {}
+    };
   });
 
   test('does not auto-scroll when user has scrolled away from bottom', () => {
@@ -231,6 +243,86 @@ describe('MessageList auto-scroll behavior', () => {
     expect(scrollToCallsAfterUpdate.length).toBeGreaterThan(0);
     expect(scrollToCallsAfterUpdate.every(([options]) => Number.isFinite(options?.top))).toBe(true);
     expect(scrollToCallsAfterUpdate.every(([options]) => options?.behavior === 'auto')).toBe(true);
+  });
+
+  test('keeps auto-follow enabled when content grows without an upward scroll', () => {
+    const { container, rerender } = render(
+      <MessageList
+        enableAgentLoopAutoScroll
+        messages={[
+          { id: 'assistant-1', text: 'done', sender: 'assistant', type: 'llm-text' },
+          { id: 'user-2', text: 'follow-up', sender: 'user', type: 'user' },
+        ]}
+      />,
+    );
+
+    const list = container.querySelector('.message-list');
+    expect(list).toBeTruthy();
+    applyScrollMetrics(list, {
+      scrollHeight: 1200,
+      clientHeight: 400,
+      scrollTop: 800,
+    });
+    fireEvent.scroll(list);
+
+    applyScrollMetrics(list, {
+      scrollHeight: 1260,
+      clientHeight: 400,
+      scrollTop: 800,
+    });
+    fireEvent.scroll(list);
+
+    const scrollToCallsBeforeUpdate = scrollTo.mock.calls.length;
+    rerender(
+      <MessageList
+        enableAgentLoopAutoScroll
+        messages={[
+          { id: 'assistant-1', text: 'done', sender: 'assistant', type: 'llm-text' },
+          { id: 'user-2', text: 'follow-up', sender: 'user', type: 'user' },
+          { id: 'tool-call-1', text: '{"name":"tool"}', sender: 'assistant', type: 'tool-call' },
+        ]}
+      />,
+    );
+
+    const scrollToCallsAfterUpdate = scrollTo.mock.calls.slice(scrollToCallsBeforeUpdate);
+    expect(scrollToCallsAfterUpdate.length).toBeGreaterThan(0);
+    expect(scrollToCallsAfterUpdate.every(([options]) => Number.isFinite(options?.top))).toBe(true);
+  });
+
+  test('auto-scrolls when resize observer detects late content growth while follow mode is active', () => {
+    const { container } = render(
+      <MessageList
+        enableAgentLoopAutoScroll
+        messages={[
+          { id: 'assistant-1', text: 'done', sender: 'assistant', type: 'llm-text' },
+          { id: 'user-2', text: 'follow-up', sender: 'user', type: 'user' },
+        ]}
+      />,
+    );
+
+    const list = container.querySelector('.message-list');
+    expect(list).toBeTruthy();
+    applyScrollMetrics(list, {
+      scrollHeight: 1200,
+      clientHeight: 400,
+      scrollTop: 800,
+    });
+    fireEvent.scroll(list);
+
+    const resizeObserver = resizeObserverInstances[0];
+    expect(resizeObserver).toBeTruthy();
+
+    const scrollToCallsBeforeResize = scrollTo.mock.calls.length;
+    applyScrollMetrics(list, {
+      scrollHeight: 1280,
+      clientHeight: 400,
+      scrollTop: 800,
+    });
+    resizeObserver.callback();
+
+    const scrollToCallsAfterResize = scrollTo.mock.calls.slice(scrollToCallsBeforeResize);
+    expect(scrollToCallsAfterResize.length).toBeGreaterThan(0);
+    expect(scrollToCallsAfterResize.every(([options]) => Number.isFinite(options?.top))).toBe(true);
   });
 });
 
