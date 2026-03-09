@@ -99,6 +99,7 @@ Notes:
 - Browser Use tab IDs are short IDs; when `target_id` is supplied, WindieOS derives a tab ID suffix.
 - Browser Use actions are also supported via `act.request.kind` using the same names.
 - Overlapping actions now run Browser Use-only semantics at runtime (`snapshot`, `navigate`, `extract`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `evaluate`): compatibility-only fields are rejected (for example `snapshot.format`, `snapshot.snapshotFormat`, `snapshot.wait_until`, `snapshot.mode`, `snapshot.max_chars`, `snapshot.refs`, `snapshot.interactive`, `snapshot.compact`, `snapshot.depth`, `snapshot.selector`, `snapshot.frame`, `extract.mode`, `extract.selector`, `extract.frame`, `wait.state`, `screenshot.full_page`, `screenshot.ref`, `screenshot.element`, `screenshot.type`, `screenshot.quality`).
+- For `click`, `input`, `upload_file`, `dropdown_options`, and `select_dropdown`, WindieOS now preserves role refs such as `e12` through the canonical adapter path. Numeric refs / `index` still use Browser Use-native element indexing; role refs route through controller-backed locator resolution on the exact referenced element.
 
 ### 1. Connect
 
@@ -208,18 +209,61 @@ Options:
 - `double_click: true` - Double click
 - `button: "right"` - Right click
 
-### 6. Type
+### 6. Type / Input
 
 Type text into an input.
 
 ```json
 {
-  "action": "type",
-  "ref": "3",
+  "action": "input",
+  "ref": "e3",
   "text": "windieos",
   "submit": true
 }
 ```
+
+`ref` can be numeric (`"12"`) or role-based (`"e12"`).
+
+### 6a. Dropdown Options
+
+Inspect a dropdown/select element by ref.
+
+```json
+{
+  "action": "dropdown_options",
+  "ref": "e9"
+}
+```
+
+`ref` can be numeric (`"12"`) or role-based (`"e12"`).
+
+### 6b. Select Dropdown
+
+Select a dropdown option by visible text or exact value match.
+
+```json
+{
+  "action": "select_dropdown",
+  "ref": "e9",
+  "text": "Price: Low to High"
+}
+```
+
+`ref` can be numeric (`"12"`) or role-based (`"e12"`).
+
+### 6c. Upload File
+
+Populate a file input by ref.
+
+```json
+{
+  "action": "upload_file",
+  "input_ref": "e5",
+  "paths": ["/tmp/example.txt"]
+}
+```
+
+`ref`, `input_ref`, and `inputRef` all accept numeric (`"12"`) or role-based (`"e12"`) refs.
 
 ### 7. Press
 

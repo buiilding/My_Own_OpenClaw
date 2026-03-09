@@ -2057,6 +2057,136 @@ class BrowserController:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    async def get_dropdown_options(self, ref: str) -> Dict[str, Any]:
+        """List options for a dropdown-like element resolved by reference."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+        try:
+            locator = self._resolve_ref_locator(ref)
+            details = await locator.evaluate(
+                """element => {
+                    const select = element.tagName?.toLowerCase() === "select"
+                        ? element
+                        : element.closest?.("select");
+                    if (!select) {
+                        return {
+                            ok: false,
+                            error: "Resolved element is not inside a <select> dropdown",
+                        };
+                    }
+                    return {
+                        ok: true,
+                        options: Array.from(select.options).map((option, index) => ({
+                            index,
+                            text: option.textContent?.trim() || "",
+                            value: option.value ?? "",
+                            selected: Boolean(option.selected),
+                            disabled: Boolean(option.disabled),
+                        })),
+                        selected_value: select.value ?? "",
+                        selected_index: Number.isInteger(select.selectedIndex)
+                            ? select.selectedIndex
+                            : null,
+                    };
+                }"""
+            )
+            if not isinstance(details, dict):
+                return {"success": False, "error": "Dropdown inspection returned invalid response"}
+            if not details.get("ok"):
+                return {
+                    "success": False,
+                    "error": str(
+                        details.get(
+                            "error",
+                            "Resolved element is not inside a <select> dropdown",
+                        )
+                    ),
+                }
+            return {
+                "success": True,
+                "action": "dropdown_options",
+                "ref": ref,
+                "options": list(details.get("options") or []),
+                "selected_value": details.get("selected_value"),
+                "selected_index": details.get("selected_index"),
+            }
+        except Exception as e:
+            logger.error(f"Dropdown option lookup failed: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def select_dropdown(self, ref: str, text: str) -> Dict[str, Any]:
+        """Select an option by visible text or value for a referenced dropdown."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+        try:
+            locator = self._resolve_ref_locator(ref)
+            details = await locator.evaluate(
+                """(element, targetText) => {
+                    const select = element.tagName?.toLowerCase() === "select"
+                        ? element
+                        : element.closest?.("select");
+                    if (!select) {
+                        return {
+                            ok: false,
+                            error: "Resolved element is not inside a <select> dropdown",
+                        };
+                    }
+                    const normalizedTarget = String(targetText ?? "").trim();
+                    const options = Array.from(select.options);
+                    const exactValueMatch = options.find(
+                        option => String(option.value ?? "") === normalizedTarget
+                    );
+                    const exactTextMatch = options.find(
+                        option => (option.textContent?.trim() || "") === normalizedTarget
+                    );
+                    const option = exactValueMatch || exactTextMatch;
+                    if (!option) {
+                        return {
+                            ok: false,
+                            error: `No dropdown option matched '${normalizedTarget}'`,
+                        };
+                    }
+                    select.value = option.value;
+                    option.selected = true;
+                    select.dispatchEvent(new Event("input", { bubbles: true }));
+                    select.dispatchEvent(new Event("change", { bubbles: true }));
+                    return {
+                        ok: true,
+                        selected_value: option.value ?? "",
+                        selected_text: option.textContent?.trim() || "",
+                    };
+                }""",
+                text,
+            )
+            if not isinstance(details, dict):
+                return {"success": False, "error": "Dropdown selection returned invalid response"}
+            if not details.get("ok"):
+                return {
+                    "success": False,
+                    "error": str(
+                        details.get(
+                            "error",
+                            "Resolved element is not inside a <select> dropdown",
+                        )
+                    ),
+                }
+            return {
+                "success": True,
+                "action": "select_dropdown",
+                "ref": ref,
+                "selected": [
+                    {
+                        "value": details.get("selected_value", ""),
+                        "text": details.get("selected_text", ""),
+                    }
+                ],
+                "selected_value": details.get("selected_value"),
+                "selected_text": details.get("selected_text"),
+            }
+        except Exception as e:
+            logger.error(f"Dropdown selection failed: {e}")
+            return {"success": False, "error": str(e)}
+
     async def set_input_files(self, ref: str, paths: List[str]) -> Dict[str, Any]:
         """Set file input files by reference."""
         if not self._page:

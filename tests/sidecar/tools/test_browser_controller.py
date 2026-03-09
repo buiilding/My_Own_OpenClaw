@@ -461,6 +461,67 @@ class TestBrowserControllerActions:
         
         assert result["success"] is True
         mock_locator.press.assert_called_with("Enter")
+
+    @pytest.mark.asyncio
+    async def test_get_dropdown_options_role_ref(self):
+        """List dropdown options through a role ref."""
+        role_locator = mock.MagicMock()
+        role_locator.evaluate = mock.AsyncMock(
+            return_value={
+                "ok": True,
+                "options": [
+                    {
+                        "index": 0,
+                        "text": "Featured",
+                        "value": "featured-rank",
+                        "selected": True,
+                        "disabled": False,
+                    },
+                    {
+                        "index": 1,
+                        "text": "Price: Low to High",
+                        "value": "price-asc-rank",
+                        "selected": False,
+                        "disabled": False,
+                    },
+                ],
+                "selected_value": "featured-rank",
+                "selected_index": 0,
+            }
+        )
+        self.controller._page.get_by_role.return_value = role_locator
+        self._register_role_ref("e4", "combobox", "Sort by:")
+
+        result = await self.controller.get_dropdown_options("e4")
+
+        assert result["success"] is True
+        assert result["selected_value"] == "featured-rank"
+        assert result["options"][1]["value"] == "price-asc-rank"
+        self.controller._page.get_by_role.assert_called_once_with(
+            "combobox",
+            name="Sort by:",
+        )
+
+    @pytest.mark.asyncio
+    async def test_select_dropdown_role_ref(self):
+        """Select a dropdown option through a role ref."""
+        role_locator = mock.MagicMock()
+        role_locator.evaluate = mock.AsyncMock(
+            return_value={
+                "ok": True,
+                "selected_value": "price-asc-rank",
+                "selected_text": "Price: Low to High",
+            }
+        )
+        self.controller._page.get_by_role.return_value = role_locator
+        self._register_role_ref("e6", "combobox", "Sort by:")
+
+        result = await self.controller.select_dropdown("e6", "Price: Low to High")
+
+        assert result["success"] is True
+        assert result["selected_value"] == "price-asc-rank"
+        assert result["selected_text"] == "Price: Low to High"
+        role_locator.evaluate.assert_awaited_once()
     
     @pytest.mark.asyncio
     async def test_press_key(self):

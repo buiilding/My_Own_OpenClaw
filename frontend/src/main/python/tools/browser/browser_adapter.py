@@ -14,6 +14,7 @@ from tools.browser.browser_action_contract import REMOVED_BROWSER_ACTION_ALIASES
 from tools.browser.browser_runtime import ControllerRuntimeLike
 from tools.browser.browser_runtime import BrowserRuntimeProvider
 from tools.browser.browser_runtime import get_browser_runtime_provider
+from tools.browser.role_snapshot import parse_role_ref
 
 MigrationDecision = Literal["port", "compat", "deprecate"]
 
@@ -217,6 +218,10 @@ class BrowserRuntimeAdapter:
             if not self._runtime.is_connected:
                 return self._not_connected(action)
 
+        role_ref_result = await self._execute_role_ref_action(normalized, args)
+        if role_ref_result is not None:
+            return role_ref_result
+
         params_or_error = self._build_browser_use_action_params(normalized, args)
         if isinstance(params_or_error, AdapterActionResult):
             return params_or_error
@@ -282,6 +287,75 @@ class BrowserRuntimeAdapter:
             decision="port",
             data=payload,
         )
+
+    async def _execute_role_ref_action(
+        self,
+        action: str,
+        args: Mapping[str, Any],
+    ) -> AdapterActionResult | None:
+        role_ref = self._extract_role_ref(action, args)
+        if role_ref is None:
+            return None
+
+        if action == "click":
+            button = self._value_as_str(args.get("button")) or "left"
+            double_click = bool(args.get("double_click"))
+            result = await self._runtime.click(
+                ref=role_ref,
+                double_click=double_click,
+                button=button,
+            )
+            return self._controller_action_result(action, result, ref_override=role_ref)
+
+        if action == "input":
+            text = args.get("text")
+            if not isinstance(text, str):
+                return self._invalid_argument("input", "input requires string 'text'")
+            clear_first = True
+            if isinstance(args.get("clear"), bool):
+                clear_first = bool(args.get("clear"))
+            elif isinstance(args.get("clear_first"), bool):
+                clear_first = bool(args.get("clear_first"))
+            submit = bool(args.get("submit"))
+            result = await self._runtime.type_text(
+                ref=role_ref,
+                text=text,
+                submit=submit,
+                clear_first=clear_first,
+            )
+            return self._controller_action_result(action, result, ref_override=role_ref)
+
+        if action == "upload_file":
+            path = self._extract_upload_path(args)
+            if not path:
+                return self._invalid_argument(
+                    "upload_file",
+                    "upload_file requires non-empty 'path' (or first entry in 'paths')",
+                )
+            result = await self._runtime.set_input_files(
+                ref=role_ref,
+                paths=[path],
+            )
+            return self._controller_action_result(action, result, ref_override=role_ref)
+
+        if action == "dropdown_options":
+            result = await self._runtime.get_dropdown_options(ref=role_ref)
+            return self._controller_action_result(action, result, ref_override=role_ref)
+
+        if action == "select_dropdown":
+            text = self._value_as_str(args.get("text"))
+            if not text:
+                return self._invalid_argument(
+                    "select_dropdown",
+                    "select_dropdown requires non-empty 'text'",
+                )
+            result = await self._runtime.select_dropdown_option(
+                ref=role_ref,
+                text=text,
+            )
+            return self._controller_action_result(action, result, ref_override=role_ref)
+
+        return None
 
     def _build_browser_use_action_params(
         self,
@@ -907,6 +981,23 @@ class BrowserRuntimeAdapter:
         return None
 
     @staticmethod
+    def _extract_role_ref(
+        action: str,
+        args: Mapping[str, Any],
+    ) -> str | None:
+        keys = ("ref",)
+        if action == "upload_file":
+            keys = ("ref", "input_ref", "inputRef")
+        for key in keys:
+            value = args.get(key)
+            if not isinstance(value, str):
+                continue
+            parsed = parse_role_ref(value)
+            if parsed is not None:
+                return parsed
+        return None
+
+    @staticmethod
     def _extract_coordinate(value: Any) -> int | None:
         if isinstance(value, bool):
             return None
@@ -971,6 +1062,45 @@ class BrowserRuntimeAdapter:
             error_code=result.error_code,
             warnings=warnings,
             deprecation=result.deprecation or deprecation_message,
+        )
+
+    @staticmethod
+    def _controller_action_result(
+        action: str,
+        result: Mapping[str, Any],
+        *,
+        ref_override: str | None = None,
+    ) -> AdapterActionResult:
+        if not isinstance(result, Mapping):
+            return AdapterActionResult(
+                success=False,
+                action=action,
+                decision="port",
+                error=f"Controller-backed action '{action}' returned invalid response",
+                error_code="BROWSER_RUNTIME_ERROR",
+            )
+
+        payload = dict(result)
+        payload["action"] = action
+        if ref_override is not None:
+            payload["ref"] = ref_override
+        if payload.get("success", False):
+            return AdapterActionResult(
+                success=True,
+                action=action,
+                decision="port",
+                data=payload,
+            )
+
+        error = payload.get("error")
+        if not isinstance(error, str) or not error.strip():
+            error = f"Controller-backed action '{action}' failed"
+        return AdapterActionResult(
+            success=False,
+            action=action,
+            decision="port",
+            error=error,
+            error_code="BROWSER_RUNTIME_ERROR",
         )
 
     @staticmethod

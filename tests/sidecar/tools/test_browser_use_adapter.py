@@ -96,6 +96,31 @@ def make_controller():
         controller.scroll = mock.AsyncMock(return_value={"success": True})
         controller.screenshot = mock.AsyncMock(return_value=b"controller-image")
         controller.set_input_files = mock.AsyncMock(return_value={"success": True})
+        controller.get_dropdown_options = mock.AsyncMock(
+            return_value={
+                "success": True,
+                "action": "dropdown_options",
+                "ref": "e1",
+                "options": [
+                    {
+                        "index": 0,
+                        "text": "Featured",
+                        "value": "featured-rank",
+                        "selected": True,
+                        "disabled": False,
+                    }
+                ],
+            }
+        )
+        controller.select_dropdown = mock.AsyncMock(
+            return_value={
+                "success": True,
+                "action": "select_dropdown",
+                "ref": "e1",
+                "selected_value": "price-asc-rank",
+                "selected_text": "Price: Low to High",
+            }
+        )
         controller.get_page_snapshot = mock.AsyncMock(
             return_value=DummySnapshot(text="snapshot", url="https://example.com", title="Example")
         )
@@ -314,6 +339,124 @@ class TestBrowserRuntimeAdapter:
         assert result.success is False
         assert result.error_code == "INVALID_ARGUMENT"
         assert "offset + limit exceeds maximum snapshot window" in (result.error or "")
+        runtime.execute_browser_use_action.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_click_role_ref_routes_through_controller_runtime(self, make_controller):
+        controller = make_controller()
+        runtime = ControllerBackedRuntimeProvider(controller)
+        runtime.execute_browser_use_action = mock.AsyncMock()
+        adapter = BrowserRuntimeAdapter(controller, runtime_provider=runtime)
+
+        result = await adapter.execute(
+            "click",
+            {"action": "click", "ref": "e12", "double_click": True, "button": "right"},
+        )
+
+        assert result.success is True
+        assert result.data["ref"] == "e12"
+        controller.click.assert_awaited_once_with(
+            ref="e12",
+            double_click=True,
+            button="right",
+        )
+        runtime.execute_browser_use_action.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_input_role_ref_routes_through_controller_runtime(self, make_controller):
+        controller = make_controller()
+        runtime = ControllerBackedRuntimeProvider(controller)
+        runtime.execute_browser_use_action = mock.AsyncMock()
+        adapter = BrowserRuntimeAdapter(controller, runtime_provider=runtime)
+
+        result = await adapter.execute(
+            "input",
+            {
+                "action": "input",
+                "ref": "e7",
+                "text": "windieos",
+                "submit": True,
+                "clear": False,
+            },
+        )
+
+        assert result.success is True
+        controller.type_text.assert_awaited_once_with(
+            ref="e7",
+            text="windieos",
+            submit=True,
+            clear_first=False,
+        )
+        runtime.execute_browser_use_action.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_upload_file_role_ref_routes_through_controller_runtime(self, make_controller):
+        controller = make_controller()
+        runtime = ControllerBackedRuntimeProvider(controller)
+        runtime.execute_browser_use_action = mock.AsyncMock()
+        adapter = BrowserRuntimeAdapter(controller, runtime_provider=runtime)
+
+        result = await adapter.execute(
+            "upload_file",
+            {
+                "action": "upload_file",
+                "input_ref": "e5",
+                "paths": ["/tmp/example.txt"],
+            },
+        )
+
+        assert result.success is True
+        controller.set_input_files.assert_awaited_once_with(
+            ref="e5",
+            paths=["/tmp/example.txt"],
+        )
+        runtime.execute_browser_use_action.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_dropdown_options_role_ref_routes_through_controller_runtime(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        runtime = ControllerBackedRuntimeProvider(controller)
+        runtime.execute_browser_use_action = mock.AsyncMock()
+        adapter = BrowserRuntimeAdapter(controller, runtime_provider=runtime)
+
+        result = await adapter.execute(
+            "dropdown_options",
+            {"action": "dropdown_options", "ref": "e9"},
+        )
+
+        assert result.success is True
+        assert result.data["options"][0]["value"] == "featured-rank"
+        controller.get_dropdown_options.assert_awaited_once_with("e9")
+        runtime.execute_browser_use_action.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_select_dropdown_role_ref_routes_through_controller_runtime(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        runtime = ControllerBackedRuntimeProvider(controller)
+        runtime.execute_browser_use_action = mock.AsyncMock()
+        adapter = BrowserRuntimeAdapter(controller, runtime_provider=runtime)
+
+        result = await adapter.execute(
+            "select_dropdown",
+            {
+                "action": "select_dropdown",
+                "ref": "e9",
+                "text": "Price: Low to High",
+            },
+        )
+
+        assert result.success is True
+        assert result.data["selected_text"] == "Price: Low to High"
+        controller.select_dropdown.assert_awaited_once_with(
+            "e9",
+            "Price: Low to High",
+        )
         runtime.execute_browser_use_action.assert_not_awaited()
 
     @pytest.mark.asyncio
