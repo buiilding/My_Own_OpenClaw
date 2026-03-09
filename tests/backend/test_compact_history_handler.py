@@ -145,7 +145,48 @@ async def test_compact_history_handler_emits_started_and_completed_when_applied(
     assert websocket.sent[0]["payload"]["before_tokens"] == 2200
     assert websocket.sent[1]["payload"]["after_tokens"] == 900
     assert websocket.sent[1]["payload"]["removed_messages"] == 7
+    assert websocket.sent[1]["payload"]["summary_preview"] == "summary content"
     assert websocket.sent[1]["payload"]["replacement_history_preview"][0]["message_type"] == "context_compaction"
+
+
+@pytest.mark.asyncio
+async def test_compact_history_handler_does_not_truncate_summary_preview():
+    long_summary = "summary-" + ("x" * 300)
+    decision = CompactionDecision(
+        should_compact=True,
+        reason="manual",
+        strategy_name="inline",
+        before_tokens=2200,
+        projected_tokens=2200,
+        user_turn_index=4,
+    )
+    result = CompactionResult(
+        applied=True,
+        reason="manual",
+        strategy_name="inline",
+        before_tokens=2200,
+        after_tokens=900,
+        removed_messages=7,
+        summary_text=long_summary,
+        replacement_history_preview=[],
+        skip_reason=None,
+    )
+    websocket = _FakeWebSocket()
+    session_manager = _FakeSessionManager(
+        has_active_query=False,
+        session=_FakeSession(decision, result),
+    )
+    handler = CompactHistoryHandler(session_manager)
+    message = CompactHistoryMessage(
+        id="msg_compact_4",
+        type="compact-history",
+        user_id="user_1",
+        payload={},
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert websocket.sent[1]["payload"]["summary_preview"] == long_summary
 
 
 @pytest.mark.asyncio

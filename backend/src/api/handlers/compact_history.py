@@ -103,8 +103,6 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
 
         if result.applied:
             summary_preview = (result.summary_text or "").strip()
-            if len(summary_preview) > 180:
-                summary_preview = f"{summary_preview[:177]}..."
             await send_success_response(
                 websocket,
                 message.id,

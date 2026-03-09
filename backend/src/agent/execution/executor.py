@@ -271,12 +271,10 @@ class AgentExecutor:
 
     @staticmethod
     def _build_summary_preview(summary_text: str) -> Optional[str]:
-        """Return a short summary preview suitable for websocket payloads."""
+        """Return the full summary preview for websocket payloads."""
         preview = (summary_text or "").strip()
         if not preview:
             return None
-        if len(preview) > 180:
-            return f"{preview[:177]}..."
         return preview
 
     @staticmethod

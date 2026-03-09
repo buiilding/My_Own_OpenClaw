@@ -61,7 +61,7 @@ Required payload keys:
 
 Optional passthrough keys:
 
-- `summary_preview`
+- `summary_preview` (full summary string when present; no backend shortening)
 - `skipped_reason`
 
 Output payload keys:
@@ -71,7 +71,7 @@ Output payload keys:
 - `before_tokens`
 - `after_tokens`
 - `removed_messages`
-- `summary_preview` (nullable)
+- `summary_preview` (nullable full summary string)
 - `skipped_reason` (nullable)
 
 ### `context-compaction-failed`

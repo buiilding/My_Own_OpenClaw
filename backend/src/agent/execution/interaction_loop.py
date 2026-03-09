@@ -468,10 +468,8 @@ class InteractionLoop:
 
     @staticmethod
     def _summary_preview(summary_text: str) -> str:
-        """Return a short compaction summary preview for event payloads."""
+        """Return the full compaction summary preview for event payloads."""
         preview = (summary_text or "").strip()
         if not preview:
             return ""
-        if len(preview) > 180:
-            return f"{preview[:177]}..."
         return preview
