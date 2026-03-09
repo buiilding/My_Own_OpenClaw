@@ -110,6 +110,7 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(screen.getByRole('heading', { name: 'Screen capture' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Microphone' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Browser automation' })).toBeInTheDocument();
+    expect(screen.getByText('Enable browser automation to expose browser-control tools.')).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Grant' })).toHaveLength(1);
     expect(screen.getByRole('button', { name: 'Enable' })).toBeInTheDocument();
     expect(screen.getByLabelText('Granted')).toBeInTheDocument();

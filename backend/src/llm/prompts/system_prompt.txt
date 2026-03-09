@@ -107,7 +107,6 @@ The main user-facing window is named "windieos". The user interacts with you thr
 </system_use_rules>
 
 <open_app_rules>
-- Use `open_app` as a top-level tool (not through `system_use`) when launching GUI applications that should remain open.
 - Include `command` and `explanation` on every call.
 - Use verification modes intentionally:
   - `verify="window"` (default) for window-title confirmation, with `verify_window_title` when known.

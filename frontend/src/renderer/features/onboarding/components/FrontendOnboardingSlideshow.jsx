@@ -32,7 +32,7 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
     {
       id: 'stop-flow',
       title: 'Stop the agent during loops',
-      body: 'Press this keybind to stop the agent immediately globally.',
+      body: 'Use this anytime an agent loop needs to end right away.',
       emphasisLabel: 'Keybind',
       emphasisValue: resolvedStopShortcutLabel,
     },
@@ -107,6 +107,9 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
             <div className="frontend-onboarding-permissions-list">
               {permissions.map((permission) => {
                 const status = statusesByPermissionId[permission.permission_id];
+                const statusReason = typeof status?.reason === 'string'
+                  ? status.reason.trim()
+                  : '';
                 const isGranted = status?.granted === true || status?.status === 'granted';
                 const isPending = pendingPermissionId === permission.permission_id;
                 const isBrowserAutomation = permission.permission_id === 'browser_automation';
@@ -118,6 +121,11 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
                     <div className="frontend-onboarding-permission-copy">
                       <h2>{permission.label}</h2>
                       <p title={permission.description}>{permission.description}</p>
+                      {isBrowserAutomation && statusReason ? (
+                        <p className={`frontend-onboarding-permission-reason status-${status?.status || 'unknown'}`}>
+                          {statusReason}
+                        </p>
+                      ) : null}
                     </div>
                     {isGranted ? (
                       <div className="frontend-onboarding-permission-granted" aria-label="Granted">
@@ -153,9 +161,6 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
           </div>
         ) : isStopFlowSlide ? (
           <div className="frontend-onboarding-stop-flow">
-            <span className="frontend-onboarding-stop-flow-copy">
-              Use this anytime an agent loop needs to end right away.
-            </span>
             <div
               className="frontend-onboarding-stop-flow-keybind"
               aria-label={`Stop shortcut ${activeSlide.emphasisValue}`}

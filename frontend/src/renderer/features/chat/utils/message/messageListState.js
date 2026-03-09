@@ -85,7 +85,6 @@ export function shouldAutoScrollForAgentLoopMessageUpdate(previousMessages, next
 
   return (
     previousLastMessage.text !== nextLastMessage.text
-    || previousLastMessage.thinkingText !== nextLastMessage.thinkingText
     || previousLastMessage.isComplete !== nextLastMessage.isComplete
   );
 }

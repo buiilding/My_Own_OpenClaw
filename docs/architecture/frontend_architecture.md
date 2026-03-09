@@ -112,11 +112,12 @@ frontend/src/
 
 ### Permission Runtime Flow (Settings + Store Gate State)
 
-1. Renderer `App.jsx` startup is no longer permission-gated; it routes by VM mode + frontend onboarding slideshow state.
-2. `permissionStore` remains the canonical place for manifest fetch + permission gate derivation (`needsOnboarding`, required permission sets, manifest-version completion).
-3. `PermissionControlCenter` (settings surface) bootstraps permission state on mount when needed.
-4. Control center actions call `RUN_PERMISSION_PROBE` (per row) and `CHECK_PERMISSIONS` (global recheck) through store helpers.
-5. `REQUEST_PERMISSION` remains available in store/main IPC contracts but is not currently triggered by `PermissionControlCenter` UI.
+1. Renderer `App.jsx` startup is still not hard permission-gated; it routes by VM mode + frontend onboarding slideshow completion state.
+2. Frontend onboarding step 1 now mounts a permission checklist powered by `permissionStore` (manifest/status bootstrap + per-permission request actions).
+3. `permissionStore` remains the canonical place for manifest fetch + permission gate derivation (`needsOnboarding`, required permission sets, manifest-version completion).
+4. Onboarding and settings surfaces both call store helpers for permission runtime updates:
+   - onboarding uses `REQUEST_PERMISSION` (per row) and `CHECK_PERMISSIONS` (global re-check)
+   - `PermissionControlCenter` uses `RUN_PERMISSION_PROBE` (per row) and `CHECK_PERMISSIONS` (global recheck)
 
 ## Main Process Responsibilities
 

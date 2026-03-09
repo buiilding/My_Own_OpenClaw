@@ -25,7 +25,7 @@ describe('MessageList assistant actions', () => {
   test('reveals copy/like/dislike/try-again actions 2 seconds after an assistant llm message completes', () => {
     jest.useFakeTimers();
 
-    render(
+    const { container } = render(
       <MessageList
         messages={[
           { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
@@ -36,6 +36,8 @@ describe('MessageList assistant actions', () => {
       />,
     );
 
+    expect(screen.getByTestId('assistant-message-actions-placeholder')).toBeInTheDocument();
+    expect(container.querySelector('.assistant-message-actions-placeholder')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Copy assistant message' })).not.toBeInTheDocument();
 
     act(() => {
@@ -52,6 +54,7 @@ describe('MessageList assistant actions', () => {
     expect(screen.getByRole('button', { name: 'Dislike response' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
     expect(screen.getByRole('group', { name: 'Assistant message actions' })).toHaveClass('assistant-message-actions-enter');
+    expect(screen.queryByTestId('assistant-message-actions-placeholder')).not.toBeInTheDocument();
   });
 
   test('does not render assistant actions for tool-call/tool-output messages', () => {
