@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-tool-wait-timeouts): make backend wait-for-tool/wait-for-bundle timeouts adaptive for foreground `run_shell_command` calls by honoring extended `terminate_after_seconds` (plus shell post-action wait buffer), aggregating shell-step budgets for bundles with a bounded cap, and adding execution-layer regression coverage for adaptive/default/capped timeout paths.
 - docs(planning-billing-token-attribution): extend `docs/planning/billing_and_usage.md` with a row-level token attribution plan that distinguishes request-level provider truth from transcript-row display, documents provider-specific preflight counting paths for OpenAI and Anthropic input rows, and defines output attribution rules for assistant-only, tool-only, and mixed tool/text turns.
 - fix(ci-release): resolve desktop signing mode dynamically in `desktop-release.yml` so tag-triggered Windows/macOS packaging falls back to unsigned builds when signing/notarization secrets are absent, instead of failing before packaging and release publication.
 - chore(release): bump the packaged desktop app to `0.6.8`, refresh the model-facing prompt/schema snapshots, and update the local audit report before publishing the next tagged release.

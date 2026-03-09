@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.llm.parser_types import ParsedToolCall
+from backend.src.tools.execution_timeout import resolve_single_tool_wait_timeout_seconds
 from backend.src.tools.result_helpers import create_tool_result_object
 from backend.src.tools.result_types import ToolExecutionResult
 
@@ -153,14 +154,27 @@ async def execute_single_tool(
         # Result not yet available, wait for it
         try:
             wait_start = time.perf_counter()
+            wait_timeout_seconds = resolve_single_tool_wait_timeout_seconds(
+                effective_tool_call
+            )
             logger.info(f"Waiting for frontend tool result (request_id={request_id_short})...")
             # Wait for the result with a timeout
-            tool_result = await asyncio.wait_for(future, timeout=120.0)  # 2 min timeout for tools
+            tool_result = await asyncio.wait_for(
+                future,
+                timeout=wait_timeout_seconds,
+            )
             wait_time = time.perf_counter() - wait_start
-            logger.info(f"[Timing] Tool orchestrator wait completed in {wait_time:.3f}s (request_id={request_id_short}, tool={tool_call.tool_name})")
+            logger.info(
+                f"[Timing] Tool orchestrator wait completed in {wait_time:.3f}s "
+                f"(request_id={request_id_short}, tool={tool_call.tool_name}, "
+                f"timeout={wait_timeout_seconds:.1f}s)"
+            )
             logger.info(f"Received result for request_id {request_id_short}")
         except asyncio.TimeoutError:
-            logger.error(f"Timed out waiting for tool {tool_call.tool_name} (request_id={request_id_short})")
+            logger.error(
+                f"Timed out waiting for tool {tool_call.tool_name} "
+                f"(request_id={request_id_short}, timeout={wait_timeout_seconds:.1f}s)"
+            )
             tool_result = ToolResult(
                 success=False,
                 error=f"Timed out waiting for tool {tool_call.tool_name} execution on frontend.",

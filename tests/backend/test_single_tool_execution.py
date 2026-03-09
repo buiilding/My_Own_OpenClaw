@@ -1,5 +1,6 @@
 import pytest
 from types import SimpleNamespace
+import asyncio
 
 from backend.src.agent.tools.waiting.storage.result_storage import ToolResultStorage
 from backend.src.core.interfaces.tool import ToolResult
@@ -113,3 +114,61 @@ async def test_execute_single_tool_resolved_call_without_to_parsed_call():
     _assert_pending_result_consumed(session, "req-1")
     assert result_obj.tool_call.parameters == {"x": 100, "y": 200}
     assert result_obj.tool_call.metadata == resolved_call.metadata
+
+
+@pytest.mark.asyncio
+async def test_execute_single_tool_uses_adaptive_timeout_for_foreground_shell(
+    monkeypatch,
+):
+    session = DummySession()
+    tool_call = _parsed_tool_call(
+        "run_shell_command",
+        parameters={
+            "run_in_background": False,
+            "terminate_after_seconds": 300,
+            "wait": 10,
+        },
+        request_id="req-timeout-shell",
+    )
+    captured_timeout = {"value": None}
+
+    async def fake_wait_for(_future, timeout=None):
+        captured_timeout["value"] = timeout
+        raise asyncio.TimeoutError()
+
+    monkeypatch.setattr(asyncio, "wait_for", fake_wait_for)
+
+    result_obj = await execute_single_tool(tool_call, session)
+
+    assert result_obj.success is False
+    assert "timed out" in (result_obj.result.error or "").lower()
+    assert captured_timeout["value"] == pytest.approx(325.0)
+
+
+@pytest.mark.asyncio
+async def test_execute_single_tool_keeps_default_timeout_for_background_shell(
+    monkeypatch,
+):
+    session = DummySession()
+    tool_call = _parsed_tool_call(
+        "run_shell_command",
+        parameters={
+            "run_in_background": True,
+            "terminate_after_seconds": 600,
+            "wait": 30,
+        },
+        request_id="req-timeout-shell-bg",
+    )
+    captured_timeout = {"value": None}
+
+    async def fake_wait_for(_future, timeout=None):
+        captured_timeout["value"] = timeout
+        raise asyncio.TimeoutError()
+
+    monkeypatch.setattr(asyncio, "wait_for", fake_wait_for)
+
+    result_obj = await execute_single_tool(tool_call, session)
+
+    assert result_obj.success is False
+    assert "timed out" in (result_obj.result.error or "").lower()
+    assert captured_timeout["value"] == pytest.approx(120.0)
