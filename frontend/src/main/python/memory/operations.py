@@ -7,6 +7,11 @@ from __future__ import annotations
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from core.unicode_sanitizer import sanitize_surrogates_in_text
+from memory.record_kinds import (
+    COMPLETED_TURN_MEMORY_SOURCE,
+    INTERACTION_RECORD_KIND,
+    TRANSCRIPT_RECORD_KIND,
+)
 
 
 def build_memory_filters(memory_type: Optional[str]) -> Dict[str, str]:
@@ -71,12 +76,15 @@ def group_memory_texts(results: Iterable[Dict[str, Any]]) -> Dict[str, List[str]
     episodic_fallback: List[str] = []
     episodic_structured_rows: List[Dict[str, Any]] = []
 
-    def _is_user_assistant_interaction(result: Dict[str, Any], text: str) -> bool:
+    def _is_completed_turn_interaction(result: Dict[str, Any], text: str) -> bool:
         metadata = result.get("metadata")
         if isinstance(metadata, dict):
             source = str(metadata.get("source", "")).strip().lower()
             record_kind = str(metadata.get("record_kind", "")).strip().lower()
-            if source == "interaction_completed" or record_kind == "interaction":
+            if (
+                source == COMPLETED_TURN_MEMORY_SOURCE
+                or record_kind == INTERACTION_RECORD_KIND
+            ):
                 return True
 
         normalized_text = text.strip().lower()
@@ -89,7 +97,7 @@ def group_memory_texts(results: Iterable[Dict[str, Any]]) -> Dict[str, List[str]
             if memory_type == "semantic":
                 grouped["semantic"].append(text)
                 continue
-            if _is_user_assistant_interaction(result, text):
+            if _is_completed_turn_interaction(result, text):
                 episodic_interactions.append(text)
             else:
                 episodic_fallback.append(text)
@@ -144,7 +152,7 @@ def synthesize_transcript_interaction_pairs(results: Iterable[Dict[str, Any]]) -
             or metadata.get("record_kind")
             or ""
         )
-        if str(record_kind).strip().lower() != "transcript":
+        if str(record_kind).strip().lower() != TRANSCRIPT_RECORD_KIND:
             continue
 
         conversation_id = (
@@ -264,19 +272,19 @@ def normalize_store_memory_payload(
     }, None
 
 
-def build_interaction_metadata(
+def build_completed_turn_memory_metadata(
     memory_type: str,
     session_id: Optional[str],
 ) -> Dict[str, Optional[str]]:
-    """Build metadata for conversation interaction memories."""
+    """Build metadata for completed-turn interaction memories."""
     return {
         "type": memory_type,
-        "source": "interaction_completed",
+        "source": COMPLETED_TURN_MEMORY_SOURCE,
         "conversation_id": session_id,
     }
 
 
-async def store_interaction_memory(
+async def store_completed_turn_memory(
     memory_store: Any,
     *,
     user_query: str,
@@ -285,15 +293,15 @@ async def store_interaction_memory(
     user_id: str,
     session_id: Optional[str],
 ) -> Any:
-    """Persist a normalized user/assistant interaction row."""
+    """Persist one completed-turn interaction memory row."""
     memory_content = format_interaction_memory(user_query, assistant_response)
-    metadata = build_interaction_metadata(memory_type, session_id)
+    metadata = build_completed_turn_memory_metadata(memory_type, session_id)
     return await memory_store.add(
         memory_content,
         user_id,
         metadata,
         conversation_id=session_id,
-        record_kind="interaction",
+        record_kind=INTERACTION_RECORD_KIND,
     )
 
 
@@ -309,7 +317,7 @@ def build_store_memory_response_data(
     }
 
 
-async def normalize_and_store_interaction_memory(
+async def normalize_and_store_completed_turn_memory(
     memory_store: Any,
     *,
     user_query: Any,
@@ -334,7 +342,7 @@ async def normalize_and_store_interaction_memory(
         return None, error
 
     normalized_memory_type = normalized["memory_type"]
-    memory_id = await store_interaction_memory(
+    memory_id = await store_completed_turn_memory(
         memory_store,
         user_query=normalized["user_query"],
         assistant_response=normalized["assistant_response"],

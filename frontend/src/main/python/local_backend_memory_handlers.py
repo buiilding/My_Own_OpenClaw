@@ -14,7 +14,7 @@ from memory.operations import (
     build_store_memory_response_data,
     exclude_conversation_results,
     group_memory_texts,
-    normalize_and_store_interaction_memory,
+    normalize_and_store_completed_turn_memory,
     normalize_search_memory_payload,
 )
 from core.unicode_sanitizer import (
@@ -186,7 +186,7 @@ class LocalBackendMemoryHandlersMixin:
         record_kind: Optional[str] = "transcript",
         **kwargs,
     ) -> Dict[str, Any]:
-        """List episodic conversation windows."""
+        """List transcript conversation windows by default."""
         try:
             conversations = await self.memory_store.list_conversations(user_id, limit, record_kind)
             return {
@@ -210,7 +210,7 @@ class LocalBackendMemoryHandlersMixin:
         limit: int = 200,
         **kwargs,
     ) -> Dict[str, Any]:
-        """List episodic memory entries excluding transcript conversation rows."""
+        """List completed-turn interaction memories excluding transcript rows."""
         try:
             memories = await self.memory_store.list_episodic_memories(user_id, limit)
             return {
@@ -237,7 +237,7 @@ class LocalBackendMemoryHandlersMixin:
         after_message_index: Optional[int] = None,
         **kwargs,
     ) -> Dict[str, Any]:
-        """Get episodic memories for a conversation window."""
+        """Get transcript rows or interaction memories for a conversation window."""
         try:
             memories = await self.memory_store.get_episodic_memories_by_conversation(
                 user_id,
@@ -520,7 +520,7 @@ class LocalBackendMemoryHandlersMixin:
                     "Lone surrogate detected in interaction-memory payload fields: %s",
                     ", ".join(surrogate_paths),
                 )
-            stored, error = await normalize_and_store_interaction_memory(
+            stored, error = await normalize_and_store_completed_turn_memory(
                 self.memory_store,
                 user_query=user_query,
                 assistant_response=assistant_response,

@@ -1,16 +1,14 @@
 from typing import Any, Dict
 
-from backend.src.llm.models.models_config import resolve_provider_thinking_preference
 from backend.src.llm.providers.online import OnlineLLMProvider
 from backend.src.llm.providers.provider_native_reasoning import (
+    apply_provider_native_thinking_request_params,
     extract_gemini_text_content,
     extract_gemini_thinking_content,
 )
 from backend.src.llm.providers.streaming_tool_call_aggregation import (
     StreamingToolCallAggregationMixin,
 )
-
-DEFAULT_THINKING_TOKEN_BUDGET = 16384
 
 
 class GeminiProvider(StreamingToolCallAggregationMixin, OnlineLLMProvider):
@@ -39,15 +37,11 @@ class GeminiProvider(StreamingToolCallAggregationMixin, OnlineLLMProvider):
         model: str,
         runtime_model_id: str | None = None,
     ) -> Dict[str, Any]:
-        thinking_preference = resolve_provider_thinking_preference(
-            model_id=model,
+        apply_provider_native_thinking_request_params(
+            params,
+            model=model,
             provider_name="gemini",
         )
-        if thinking_preference is True:
-            params["thinking"] = {"type": "enabled", "budget_tokens": DEFAULT_THINKING_TOKEN_BUDGET}
-        elif thinking_preference is False:
-            params.pop("thinking", None)
-
         _ = runtime_model_id
         return params
 

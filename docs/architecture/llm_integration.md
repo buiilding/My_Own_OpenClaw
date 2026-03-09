@@ -203,6 +203,7 @@ This enables follow-up turns that continue after tool execution without text-JSO
 
 - Native SDK tool-calling is always-on in runtime-critical paths.
 - Provider request/response behavior uses structured `tool_calls` only (no parser fallback path).
+- Anthropic and Gemini share one provider-native `thinking` request helper so native reasoning enable/disable policy stays aligned across those providers.
 
 ## Provider Details
 

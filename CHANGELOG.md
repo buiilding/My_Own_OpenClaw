@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-memory): centralize transcript-vs-interaction record-kind constants in `memory/record_kinds.py` and rename completed-turn interaction persistence helpers so sidecar memory code no longer overloads generic “episodic” naming for transcript rows vs Episodic Memory entries.
+- refactor(backend-llm): share Anthropic/Gemini provider-native `thinking` request-param logic in `provider_native_reasoning.py`, keeping provider-specific thought/text extraction behavior intact while removing duplicate enable/disable policy code.
 - refactor(sidecar-keyboard-key-normalization): centralize `keyboard_control` key normalization into one OS-aware helper so `press` and `hotkey` share the same alias rules, including platform-correct `SUPER` handling on Linux/Windows vs macOS; add focused sidecar regression coverage and refresh the sidecar keyboard runtime reference.
 - refactor(frontend-permissions-linux): hoist Linux permission-center command maps in `permission_service.cjs` to shared module-level constants, alias `screen_capture`/`microphone` through one privacy-command set instead of rebuilding duplicate arrays per call, and add focused permission-service coverage that asserts the Linux microphone flow still opens the privacy settings path.
 - refactor(backend-rehydrate): extract pending tool-call queue + fallback tool-output synthesis into `rehydrate_tool_linkage_repair.py` so transcript row normalization stays focused on per-entry parsing while keeping strict-provider resume repairs test-backed.
