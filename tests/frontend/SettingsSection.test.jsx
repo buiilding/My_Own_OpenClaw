@@ -9,6 +9,7 @@ let mockAppConfigContext = {
   wakewordEnabled: true,
   wakewordSuppressed: false,
   setWakewordEnabled: jest.fn(),
+  globalAgentStopShortcutStatus: null,
 };
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
@@ -56,6 +57,7 @@ describe('SettingsSection', () => {
       wakewordEnabled: true,
       wakewordSuppressed: false,
       setWakewordEnabled: jest.fn(),
+      globalAgentStopShortcutStatus: null,
     };
   });
 
@@ -80,6 +82,7 @@ describe('SettingsSection', () => {
       wakewordEnabled: true,
       wakewordSuppressed: true,
       setWakewordEnabled: jest.fn(),
+      globalAgentStopShortcutStatus: null,
     };
 
     renderSettingsSection();
@@ -117,6 +120,44 @@ describe('SettingsSection', () => {
     expect(onConfigChange).toHaveBeenCalledWith({
       global_agent_stop_shortcut: 'CommandOrControl+Shift+.',
     });
+  });
+
+  test('shows a fallback notice when the requested global stop shortcut is unavailable', () => {
+    mockAppConfigContext = {
+      wakewordEnabled: true,
+      wakewordSuppressed: false,
+      setWakewordEnabled: jest.fn(),
+      globalAgentStopShortcutStatus: {
+        requestedAccelerator: 'CommandOrControl+Alt+.',
+        resolvedAccelerator: 'CommandOrControl+Shift+.',
+        usingFallback: true,
+        registrationFailed: false,
+      },
+    };
+
+    renderSettingsSection();
+
+    expect(screen.getByText(/Requested shortcut unavailable on this system/)).toHaveTextContent(
+      'Requested shortcut unavailable on this system. WindieOS switched to Ctrl + Shift + . and saved that binding locally.',
+    );
+  });
+
+  test('shows a registration failure notice when no global stop shortcut could be registered', () => {
+    mockAppConfigContext = {
+      wakewordEnabled: true,
+      wakewordSuppressed: false,
+      setWakewordEnabled: jest.fn(),
+      globalAgentStopShortcutStatus: {
+        requestedAccelerator: 'CommandOrControl+Alt+.',
+        resolvedAccelerator: 'CommandOrControl+Alt+.',
+        usingFallback: false,
+        registrationFailed: true,
+      },
+    };
+
+    renderSettingsSection();
+
+    expect(screen.getByText(/Global stop shortcut could not be registered/)).toBeInTheDocument();
   });
 
   test('agent full sudo toggle confirms, invokes os auth, then persists on success', async () => {

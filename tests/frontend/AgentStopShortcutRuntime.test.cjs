@@ -72,9 +72,13 @@ describe('agent_stop_shortcut_runtime', () => {
     runtime.setEnabled(true);
 
     expect(warn).toHaveBeenCalledWith(
-      `[Main] Failed to register global stop shortcut: ${resolveGlobalAgentStopAccelerator(process.platform)}`,
+      `[Main] Failed to register global stop shortcut. Tried: ${getSupportedGlobalAgentStopShortcuts(process.platform).map((shortcut) => shortcut.accelerator).join(', ')}`,
     );
     expect(runtime.isRegistered()).toBe(false);
+    expect(runtime.getStatus()).toEqual(expect.objectContaining({
+      registrationFailed: true,
+      resolvedAccelerator: resolveGlobalAgentStopAccelerator(process.platform),
+    }));
   });
 
   test('updates the registered accelerator when the shortcut changes mid-run', () => {
@@ -107,6 +111,7 @@ describe('agent_stop_shortcut_runtime', () => {
   });
 
   test('falls back to the previous accelerator when an updated registration fails', () => {
+    const warn = jest.fn();
     const globalShortcut = {
       register: jest.fn()
         .mockReturnValueOnce(true)
@@ -117,6 +122,7 @@ describe('agent_stop_shortcut_runtime', () => {
     const runtime = initializeAgentStopShortcutRuntime({
       globalShortcut,
       platform: 'win32',
+      warn,
     });
 
     runtime.setEnabled(true);
@@ -139,6 +145,45 @@ describe('agent_stop_shortcut_runtime', () => {
 
   test('uses Ctrl+Alt+. as the Windows global stop accelerator', () => {
     expect(resolveGlobalAgentStopAccelerator('win32')).toBe('CommandOrControl+Alt+.');
+  });
+
+  test('falls back to the next supported Windows accelerator when Ctrl+Alt+. is unavailable', () => {
+    const warn = jest.fn();
+    const globalShortcut = {
+      register: jest.fn()
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(true),
+      unregister: jest.fn(),
+    };
+    const runtime = initializeAgentStopShortcutRuntime({
+      globalShortcut,
+      platform: 'win32',
+      warn,
+    });
+
+    runtime.setEnabled(true);
+
+    expect(globalShortcut.register).toHaveBeenNthCalledWith(
+      1,
+      'CommandOrControl+Alt+.',
+      expect.any(Function),
+    );
+    expect(globalShortcut.register).toHaveBeenNthCalledWith(
+      2,
+      'CommandOrControl+Shift+.',
+      expect.any(Function),
+    );
+    expect(runtime.getAccelerator()).toBe('CommandOrControl+Shift+.');
+    expect(runtime.getStatus()).toEqual(expect.objectContaining({
+      usingFallback: true,
+      registrationFailed: false,
+      resolvedAccelerator: 'CommandOrControl+Shift+.',
+      registeredAccelerator: 'CommandOrControl+Shift+.',
+      requestedAccelerator: 'CommandOrControl+Alt+.',
+    }));
+    expect(warn).toHaveBeenCalledWith(
+      '[Main] Requested global stop shortcut unavailable; using fallback: CommandOrControl+Shift+. (requested CommandOrControl+Alt+.)',
+    );
   });
 
   test('keeps Shift+Escape as the non-Windows global stop accelerator', () => {

@@ -35,6 +35,12 @@ Frontend-managed settings are filtered through `filterFrontendConfig(...)`:
 - `include_query_screenshot`
 - `provider_api_keys`
 
+`global_agent_stop_shortcut` remains frontend-owned and local-only:
+
+- persisted in localStorage + main-process disk config
+- intentionally removed from backend `update-settings` payloads
+- may be rewritten locally when Electron fails to register the requested accelerator and main resolves a supported fallback
+
 All outbound config updates use this boundary before backend sync.
 
 ## Renderer Provider Roles
@@ -134,12 +140,22 @@ Main broadcasts `ipc-status` payload with:
 - `userId`
 - `backendWsUrl`
 - `backendHttpUrl`
+- `globalAgentStopShortcutStatus`
+
+`globalAgentStopShortcutStatus` carries the renderer-visible shortcut runtime state:
+
+- `requestedAccelerator`
+- `resolvedAccelerator`
+- `registrationFailed`
+- `usingFallback`
+- supported accelerator list for the current platform
 
 Renderer uses this to:
 
 - update transcript user identity
 - update artifact uploader backend HTTP base URL
 - trigger config re-sync when connection becomes ready
+- persist resolved global-stop fallback bindings back into local config and Settings UI when the requested accelerator is unavailable
 
 ## Event Handling Notes
 

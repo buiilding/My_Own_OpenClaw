@@ -86,6 +86,7 @@ function GeneralTab({ config, onConfigChange }) {
     wakewordEnabled,
     wakewordSuppressed,
     setWakewordEnabled,
+    globalAgentStopShortcutStatus,
   } = useAppConfigContext();
   const [voice, setVoice] = useState('Jenny');
   const [sudoAccessPending, setSudoAccessPending] = useState(false);
@@ -93,6 +94,13 @@ function GeneralTab({ config, onConfigChange }) {
   const agentFullSudoEnabled = config?.agent_full_sudo_enabled ?? false;
   const globalStopShortcut = config?.global_agent_stop_shortcut;
   const globalStopShortcutOptions = getGlobalAgentStopShortcutOptions();
+  const shortcutRegistrationFailed = globalAgentStopShortcutStatus?.registrationFailed === true;
+  const shortcutFallbackActive = (
+    globalAgentStopShortcutStatus?.usingFallback === true
+    && typeof globalAgentStopShortcutStatus?.resolvedAccelerator === 'string'
+    && typeof globalAgentStopShortcutStatus?.requestedAccelerator === 'string'
+    && globalAgentStopShortcutStatus.resolvedAccelerator !== globalAgentStopShortcutStatus.requestedAccelerator
+  );
 
   const handleWakewordSttEnabledChange = (enabled) => {
     onConfigChange({
@@ -198,6 +206,23 @@ function GeneralTab({ config, onConfigChange }) {
             <strong>{getGlobalAgentStopShortcutLabel(globalStopShortcut)}</strong>
             .
           </p>
+          {shortcutFallbackActive ? (
+            <p className="clone-settings-inline-warning">
+              Requested shortcut unavailable on this system. WindieOS switched to
+              {' '}
+              <strong>
+                {getGlobalAgentStopShortcutLabel(globalAgentStopShortcutStatus.resolvedAccelerator)}
+              </strong>
+              {' '}
+              and saved that binding locally.
+            </p>
+          ) : null}
+          {shortcutRegistrationFailed ? (
+            <p className="clone-settings-inline-warning">
+              Global stop shortcut could not be registered. Choose another binding if you need
+              stop-from-anywhere behavior.
+            </p>
+          ) : null}
           <p>Focused chat and dashboard windows still support <strong>Esc</strong> for stop.</p>
         </div>
         <SelectDropdown

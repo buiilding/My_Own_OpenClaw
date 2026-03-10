@@ -126,6 +126,10 @@
   color: var(--ui-text-muted);
 }
 
+.clone-settings-inline-warning {
+  color: color-mix(in srgb, var(--ui-text-primary) 82%, #c86922 18%);
+}
+
 .clone-settings-select-wrap {
   display: inline-flex;
   align-items: center;

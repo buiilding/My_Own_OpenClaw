@@ -84,8 +84,58 @@ let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
 let setAgentLoopStopShortcutEnabled = null;
 let setGlobalAgentStopShortcutAccelerator = null;
+let currentGlobalAgentStopShortcutStatus = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
+
+function normalizeGlobalAgentStopShortcutStatus(status) {
+  if (!status || typeof status !== 'object' || Array.isArray(status)) {
+    return null;
+  }
+
+  const normalizeAccelerator = (value) => {
+    if (typeof value !== 'string') {
+      return null;
+    }
+    const normalized = value.trim();
+    return normalized.length > 0 ? normalized : null;
+  };
+
+  const supportedAccelerators = Array.isArray(status.supportedAccelerators)
+    ? status.supportedAccelerators
+      .filter((value) => typeof value === 'string' && value.trim().length > 0)
+      .map((value) => value.trim())
+    : [];
+
+  return {
+    enabled: status.enabled === true,
+    requestedAccelerator: normalizeAccelerator(status.requestedAccelerator),
+    resolvedAccelerator: normalizeAccelerator(status.resolvedAccelerator),
+    registeredAccelerator: normalizeAccelerator(status.registeredAccelerator),
+    registrationFailed: status.registrationFailed === true,
+    usingFallback: status.usingFallback === true,
+    supportedAccelerators,
+  };
+}
+
+function applyShortcutStatusFallbackToConfig(config) {
+  if (!isValidConfigPayload(config)) {
+    return config;
+  }
+  const resolvedAccelerator = currentGlobalAgentStopShortcutStatus?.resolvedAccelerator;
+  if (
+    currentGlobalAgentStopShortcutStatus?.registrationFailed === true
+    || typeof resolvedAccelerator !== 'string'
+    || !resolvedAccelerator
+    || config.global_agent_stop_shortcut === resolvedAccelerator
+  ) {
+    return config;
+  }
+  return {
+    ...config,
+    global_agent_stop_shortcut: resolvedAccelerator,
+  };
+}
 
 function refreshBackendEndpoints(options = {}) {
   BACKEND_ENDPOINTS = resolveBackendEndpoints(process.env, options);
@@ -125,6 +175,19 @@ async function persistFrontendConfigToDisk(config) {
   return result;
 }
 
+function updateGlobalAgentStopShortcutStatus(status) {
+  currentGlobalAgentStopShortcutStatus = normalizeGlobalAgentStopShortcutStatus(status);
+
+  if (isValidConfigPayload(latestFrontendConfig)) {
+    const nextConfig = applyShortcutStatusFallbackToConfig(latestFrontendConfig);
+    if (nextConfig !== latestFrontendConfig) {
+      void persistFrontendConfigToDisk(nextConfig);
+    }
+  }
+
+  broadcastConnectionStatus(isConnected);
+}
+
 function resetSettingsSyncState() {
   hasAttemptedInitialSettingsSync = false;
   pendingSettingsSyncPromise = null;
@@ -143,6 +206,7 @@ function buildIpcStatusPayload(connected) {
     userId: currentUserId,
     backendWsUrl: BACKEND_URL,
     backendHttpUrl: BACKEND_HTTP_URL,
+    globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
   };
 }
 
@@ -397,9 +461,9 @@ function initializeIpc(win, options = {}) {
       if (!isValidConfigPayload(config)) {
         return;
       }
-      latestFrontendConfig = { ...config };
+      latestFrontendConfig = applyShortcutStatusFallbackToConfig({ ...config });
       if (typeof setGlobalAgentStopShortcutAccelerator === 'function') {
-        setGlobalAgentStopShortcutAccelerator(config.global_agent_stop_shortcut);
+        setGlobalAgentStopShortcutAccelerator(latestFrontendConfig.global_agent_stop_shortcut);
       }
     })
     .catch(() => {});
@@ -412,12 +476,12 @@ function initializeIpc(win, options = {}) {
   ipcMain.handle('load-frontend-config', async () => {
     const config = await loadCachedFrontendConfigFromDisk();
     if (isValidConfigPayload(config)) {
-      latestFrontendConfig = { ...config };
+      latestFrontendConfig = applyShortcutStatusFallbackToConfig({ ...config });
       if (typeof setGlobalAgentStopShortcutAccelerator === 'function') {
-        setGlobalAgentStopShortcutAccelerator(config.global_agent_stop_shortcut);
+        setGlobalAgentStopShortcutAccelerator(latestFrontendConfig.global_agent_stop_shortcut);
       }
     }
-    return config;
+    return latestFrontendConfig;
   });
 
   ipcMain.handle('get-client-user-id', async () => {
@@ -429,6 +493,7 @@ function initializeIpc(win, options = {}) {
       isConnected,
       backendWsUrl: BACKEND_URL,
       backendHttpUrl: BACKEND_HTTP_URL,
+      globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
     };
   });
 
@@ -669,6 +734,7 @@ function getBackendConnectionState() {
     conversationRef: currentConversationRef,
     backendWsUrl: BACKEND_URL,
     backendHttpUrl: BACKEND_HTTP_URL,
+    globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
   };
 }
 
@@ -742,4 +808,5 @@ module.exports = {
   sendAutomatedQuery,
   sendMessageToBackend,
   triggerStopQueryFromMain,
+  updateGlobalAgentStopShortcutStatus,
 };

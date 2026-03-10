@@ -51,11 +51,13 @@ export function AppConfigProvider({ children }) {
   const [availableModels, setAvailableModels] = useState({ local: [], online: [] });
   const [wakewordEnabled, setWakewordEnabled] = useState(true);
   const [wakewordSuppressed, setWakewordSuppressed] = useState(true);
+  const [globalAgentStopShortcutStatus, setGlobalAgentStopShortcutStatus] = useState(null);
 
   const settingsHandlers = useSettingsManagement(setAvailableModels);
 
   const handlersRef = useLatestRef(settingsHandlers);
   const configRef = useLatestRef(config);
+  const globalAgentStopShortcutStatusRef = useLatestRef(globalAgentStopShortcutStatus);
   const saveStatusCallbackRef = useRef(null);
 
   const syncCurrentConfigToBackend = useCallback(() => {
@@ -83,6 +85,42 @@ export function AppConfigProvider({ children }) {
   }, [handlersRef]);
 
   const applyBackendConnectionSnapshot = useCallback((data) => {
+    const shortcutStatus = (
+      data?.globalAgentStopShortcutStatus
+      && typeof data.globalAgentStopShortcutStatus === 'object'
+      && !Array.isArray(data.globalAgentStopShortcutStatus)
+    ) ? data.globalAgentStopShortcutStatus : null;
+    const previousShortcutStatus = globalAgentStopShortcutStatusRef.current;
+    const shortcutStatusChanged = (
+      JSON.stringify(previousShortcutStatus || null)
+      !== JSON.stringify(shortcutStatus || null)
+    );
+    if (shortcutStatusChanged) {
+      setGlobalAgentStopShortcutStatus(shortcutStatus);
+    }
+
+    const fallbackAccelerator = (
+      shortcutStatus?.registrationFailed !== true
+      && shortcutStatus?.usingFallback === true
+      && typeof shortcutStatus?.resolvedAccelerator === 'string'
+      && shortcutStatus.resolvedAccelerator.trim().length > 0
+    ) ? shortcutStatus.resolvedAccelerator.trim() : null;
+    if (
+      fallbackAccelerator
+      && configRef.current?.global_agent_stop_shortcut !== fallbackAccelerator
+    ) {
+      const fallbackConfig = buildMergedFrontendConfig({
+        global_agent_stop_shortcut: fallbackAccelerator,
+      });
+      const didApplyFallbackConfig = applyConfigIfChanged(fallbackConfig, configRef, setConfig);
+      if (didApplyFallbackConfig) {
+        saveConfigToStorage(fallbackConfig, Date.now());
+        IpcBridge.invoke(INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG, fallbackConfig).catch((error) => {
+          console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
+        });
+      }
+    }
+
     const userId = extractTranscriptUserId(data);
     if (userId) {
       updateTranscriptSession(undefined, userId);
@@ -91,7 +129,12 @@ export function AppConfigProvider({ children }) {
     if (data?.isConnected === true) {
       syncCurrentConfigToBackend();
     }
-  }, [syncCurrentConfigToBackend]);
+  }, [
+    buildMergedFrontendConfig,
+    configRef,
+    globalAgentStopShortcutStatusRef,
+    syncCurrentConfigToBackend,
+  ]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, onBackendEvent);
@@ -222,7 +265,16 @@ export function AppConfigProvider({ children }) {
     setWakewordEnabled,
     updateConfig,
     registerSaveStatusCallback,
-  }), [config, availableModels, wakewordEnabled, wakewordSuppressed, updateConfig, registerSaveStatusCallback]);
+    globalAgentStopShortcutStatus,
+  }), [
+    config,
+    availableModels,
+    wakewordEnabled,
+    wakewordSuppressed,
+    updateConfig,
+    registerSaveStatusCallback,
+    globalAgentStopShortcutStatus,
+  ]);
 
   return (
     <AppConfigContext.Provider value={value}>
