@@ -13,6 +13,7 @@ describe('configFilter', () => {
       wakeword_stt_enabled: true,
       agent_full_sudo_enabled: true,
       browser_automation_enabled: true,
+      global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
       include_query_screenshot: false,
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-test' },
@@ -32,6 +33,7 @@ describe('configFilter', () => {
       wakeword_stt_enabled: true,
       agent_full_sudo_enabled: true,
       browser_automation_enabled: true,
+      global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
       include_query_screenshot: false,
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-test' },

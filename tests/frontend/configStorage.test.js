@@ -15,6 +15,7 @@ const DEFAULT_FRONTEND_CONFIG = {
   wakeword_stt_enabled: false,
   agent_full_sudo_enabled: false,
   browser_automation_enabled: false,
+  global_agent_stop_shortcut: 'CommandOrControl+Shift+Escape',
   include_query_screenshot: true,
   provider_api_keys: {
     openai: { enabled: false, api_key: '' },
@@ -57,6 +58,18 @@ describe('configStorage', () => {
     expect(result).toEqual({
       ...DEFAULT_FRONTEND_CONFIG,
       model_mode: 'offline',
+    });
+  });
+
+  test('loadConfigFromStorage normalizes unsupported stored global stop shortcuts', () => {
+    localStorage.setItem(
+      CONFIG_KEY,
+      JSON.stringify({ global_agent_stop_shortcut: 'CommandOrControl+Alt+/' }),
+    );
+
+    expect(loadConfigFromStorage()).toEqual({
+      ...DEFAULT_FRONTEND_CONFIG,
+      global_agent_stop_shortcut: 'CommandOrControl+Shift+Escape',
     });
   });
 

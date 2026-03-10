@@ -1,0 +1,44 @@
+{
+  "win32": [
+    {
+      "accelerator": "CommandOrControl+Alt+.",
+      "label": "Ctrl + Alt + ."
+    },
+    {
+      "accelerator": "CommandOrControl+Shift+.",
+      "label": "Ctrl + Shift + ."
+    },
+    {
+      "accelerator": "CommandOrControl+Alt+/",
+      "label": "Ctrl + Alt + /"
+    }
+  ],
+  "linux": [
+    {
+      "accelerator": "CommandOrControl+Shift+Escape",
+      "label": "Ctrl + Shift + Esc"
+    },
+    {
+      "accelerator": "CommandOrControl+Alt+.",
+      "label": "Ctrl + Alt + ."
+    },
+    {
+      "accelerator": "CommandOrControl+Shift+.",
+      "label": "Ctrl + Shift + ."
+    }
+  ],
+  "darwin": [
+    {
+      "accelerator": "CommandOrControl+Shift+Escape",
+      "label": "Command + Shift + Esc"
+    },
+    {
+      "accelerator": "CommandOrControl+Alt+.",
+      "label": "Command + Option + ."
+    },
+    {
+      "accelerator": "CommandOrControl+Shift+.",
+      "label": "Command + Shift + ."
+    }
+  ]
+}

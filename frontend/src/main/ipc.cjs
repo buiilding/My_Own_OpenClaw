@@ -83,6 +83,7 @@ const backendMessageObservers = new Set();
 let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
 let setAgentLoopStopShortcutEnabled = null;
+let setGlobalAgentStopShortcutAccelerator = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 
@@ -145,16 +146,26 @@ function buildIpcStatusPayload(connected) {
   };
 }
 
+function buildBackendSettingsPayload(config) {
+  if (!isValidConfigPayload(config)) {
+    return null;
+  }
+  const backendConfig = { ...config };
+  delete backendConfig.global_agent_stop_shortcut;
+  return backendConfig;
+}
+
 function broadcastConnectionStatus(connected) {
   broadcastToRenderers('ipc-status', buildIpcStatusPayload(connected));
 }
 
 function sendSettingsUpdate(config, source = 'renderer') {
-  if (!isValidConfigPayload(config)) {
+  const backendConfig = buildBackendSettingsPayload(config);
+  if (!backendConfig) {
     return Promise.resolve(false);
   }
   latestFrontendConfig = { ...config };
-  const msgId = sendMessageToBackend('update-settings', config);
+  const msgId = sendMessageToBackend('update-settings', backendConfig);
   if (!msgId) {
     return Promise.resolve(false);
   }
@@ -371,12 +382,27 @@ function initializeIpc(win, options = {}) {
     typeof options.setAgentLoopStopShortcutEnabled === 'function'
       ? options.setAgentLoopStopShortcutEnabled
       : null;
+  setGlobalAgentStopShortcutAccelerator =
+    typeof options.setGlobalAgentStopShortcutAccelerator === 'function'
+      ? options.setGlobalAgentStopShortcutAccelerator
+      : null;
   const getWindows = typeof options.getWindows === 'function'
     ? options.getWindows
     : () => ({ mainWindow: win, chatWindow: null });
   rendererWindows = new Set();
   trackRendererWindow(win);
   connect();
+  loadCachedFrontendConfigFromDisk()
+    .then((config) => {
+      if (!isValidConfigPayload(config)) {
+        return;
+      }
+      latestFrontendConfig = { ...config };
+      if (typeof setGlobalAgentStopShortcutAccelerator === 'function') {
+        setGlobalAgentStopShortcutAccelerator(config.global_agent_stop_shortcut);
+      }
+    })
+    .catch(() => {});
   if (typeof setAgentLoopStopShortcutEnabled === 'function') {
     setAgentLoopStopShortcutEnabled(
       isAgentLoopStopShortcutPhase(responseOverlayPhaseState.getPhase()),
@@ -387,6 +413,9 @@ function initializeIpc(win, options = {}) {
     const config = await loadCachedFrontendConfigFromDisk();
     if (isValidConfigPayload(config)) {
       latestFrontendConfig = { ...config };
+      if (typeof setGlobalAgentStopShortcutAccelerator === 'function') {
+        setGlobalAgentStopShortcutAccelerator(config.global_agent_stop_shortcut);
+      }
     }
     return config;
   });
@@ -411,6 +440,9 @@ function initializeIpc(win, options = {}) {
   });
 
   ipcMain.handle('save-frontend-config', async (event, config) => {
+    if (isValidConfigPayload(config) && typeof setGlobalAgentStopShortcutAccelerator === 'function') {
+      setGlobalAgentStopShortcutAccelerator(config.global_agent_stop_shortcut);
+    }
     return await persistFrontendConfigToDisk(config);
   });
 

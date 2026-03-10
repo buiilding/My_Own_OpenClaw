@@ -46,7 +46,7 @@ Routing behavior:
   - bypass frontend onboarding slideshow
 - VM mode disabled + onboarding incomplete:
   - render `FrontendOnboardingSlideshow`
-  - inject stop-agent shortcut label from `getAgentStopShortcutLabel()`
+  - inject stop-agent shortcut label from `getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)`
 - VM mode disabled + onboarding complete:
   - render `ChatGptDashboardShell`
   - pass `vmModeEnabled={false}`
@@ -99,13 +99,15 @@ Navigation behavior:
 Stop shortcut label source:
 
 - prop override when provided
-- fallback to `getAgentStopShortcutLabel()`
+- fallback to `getGlobalAgentStopShortcutLabel()`
+- label reflects the saved renderer config value when `global_agent_stop_shortcut` is present
 
 Platform mapping in shortcut helper:
 
-- macOS: `Command + Shift + Esc`
-- Windows: `Ctrl + Alt + .`
-- Linux: `Ctrl + Shift + Esc`
+- default macOS: `Command + Shift + Esc`
+- default Windows: `Ctrl + Alt + .`
+- default Linux: `Ctrl + Shift + Esc`
+- each platform exposes a small catalog of supported alternatives in Settings > General
 
 ## Current Permission-Gate Boundary
 
@@ -138,6 +140,7 @@ Permission status UI remains accessible through settings data-controls surfaces 
 2. Reintroducing permission gating into `AppContent` without updating routing docs can create confusing onboarding regressions.
 3. Changing onboarding storage key or payload shape without migration handling can reset completion state unexpectedly.
 4. Mounting `WakewordController` conditionally at app root can silently break wakeword readiness assumptions in non-dashboard surfaces.
+5. Changing the global shortcut catalog without updating onboarding/settings copy can make the first-run keybind guidance drift from the actual registered accelerator.
 
 ## Related Docs
 

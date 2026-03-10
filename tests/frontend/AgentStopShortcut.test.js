@@ -1,6 +1,8 @@
 import {
+  getGlobalAgentStopShortcutOptions,
   getAgentStopShortcutLabel,
   getGlobalAgentStopShortcutLabel,
+  normalizeGlobalAgentStopShortcutAccelerator,
   isAgentStopShortcutEvent,
 } from '../../frontend/src/renderer/infrastructure/shortcuts/agentStopShortcut';
 
@@ -51,6 +53,38 @@ describe('agent stop shortcut helper', () => {
     });
 
     expect(getGlobalAgentStopShortcutLabel()).toBe('Ctrl + Shift + Esc');
+  });
+
+  test('renders override labels for supported accelerators', () => {
+    Object.defineProperty(window.navigator, 'platform', {
+      configurable: true,
+      value: 'Win32',
+    });
+
+    expect(getGlobalAgentStopShortcutLabel('CommandOrControl+Shift+.')).toBe('Ctrl + Shift + .');
+  });
+
+  test('normalizes unsupported accelerators back to the platform default', () => {
+    Object.defineProperty(window.navigator, 'platform', {
+      configurable: true,
+      value: 'MacIntel',
+    });
+
+    expect(normalizeGlobalAgentStopShortcutAccelerator('CommandOrControl+Alt+/'))
+      .toBe('CommandOrControl+Shift+Escape');
+  });
+
+  test('returns the supported renderer shortcut options for the active platform', () => {
+    Object.defineProperty(window.navigator, 'platform', {
+      configurable: true,
+      value: 'Linux x86_64',
+    });
+
+    expect(getGlobalAgentStopShortcutOptions()).toEqual([
+      { accelerator: 'CommandOrControl+Shift+Escape', label: 'Ctrl + Shift + Esc' },
+      { accelerator: 'CommandOrControl+Alt+.', label: 'Ctrl + Alt + .' },
+      { accelerator: 'CommandOrControl+Shift+.', label: 'Ctrl + Shift + .' },
+    ]);
   });
 
   test('rejects Escape with modifiers', () => {

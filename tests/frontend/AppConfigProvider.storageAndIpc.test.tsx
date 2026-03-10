@@ -383,4 +383,33 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       }),
     );
   });
+
+  test('persists global stop shortcut locally without syncing it to backend settings', async () => {
+    const { result } = renderAppConfigContext();
+
+    act(() => {
+      result.current.updateConfig({
+        global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
+      });
+    });
+    await flushAsyncEffects();
+
+    expect(mockSaveConfigToStorage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
+      }),
+      expect.any(Number),
+    );
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG,
+      expect.objectContaining({
+        global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
+      }),
+    );
+    expect(ApiClient.updateSettings).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
+      }),
+    );
+  });
 });

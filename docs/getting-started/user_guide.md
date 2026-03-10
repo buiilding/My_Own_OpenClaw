@@ -16,7 +16,11 @@ read_when:
 
 - After required permission onboarding is complete, WindieOS shows a short two-step onboarding slideshow.
 - Slide 1 confirms access requirements for OS-level actions (screen state + control capabilities).
-- Slide 2 shows the dedicated loop-stop keybind: **Ctrl + Alt + .** (Windows/Linux) or **Command + Option + .** (macOS).
+- Slide 2 shows the current dedicated global loop-stop keybind from Settings.
+- Default global stop shortcut by platform:
+  - Windows: **Ctrl + Alt + .**
+  - Linux: **Ctrl + Shift + Esc**
+  - macOS: **Command + Shift + Esc**
 - The slideshow is shown once and then persisted locally.
 
 ## Two Windows
@@ -54,7 +58,12 @@ Default section on open: **Chat**.
 - Mode badge shows **Chat** or **Agent**.
 - **New Chat** starts a fresh conversation immediately (new conversation id) and clears the visible timeline.
 - **Stop** cancels the active response/tool run and returns the UI to ready state.
-- Dedicated stop shortcut: **Ctrl + Alt + .** (Windows/Linux) or **Command + Option + .** (macOS).
+- Focused-window stop shortcut: **Esc**.
+- Global stop shortcut is configurable in **Settings > General**.
+- Default global stop shortcut by platform:
+  - Windows: **Ctrl + Alt + .**
+  - Linux: **Ctrl + Shift + Esc**
+  - macOS: **Command + Shift + Esc**
 - **Shift + Tab** toggles Chat/Agent mode.
 
 ### Episodic Memory
@@ -79,6 +88,7 @@ Default section on open: **Chat**.
 ### Settings
 - Wakeword toggle ("Hey Jarvis").
 - Hotkey reminder: **Win + Alt + W**.
+- Global stop shortcut selector (platform-safe options, stored locally, applied immediately).
 - TTS toggle (speech replies).
 - Screen selection (active display). Screenshots use this display.
 - Permissions (normal now; system access marked as coming soon).
