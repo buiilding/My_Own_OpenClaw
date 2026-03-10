@@ -10,7 +10,7 @@ read_when:
 This guide sets up:
 
 - Backend Python environment (Python 3.11)
-- Backend dependencies from `backend/requirements.txt`
+- Backend dependencies from `backend/requirements.txt` (`backend/requirements_mac.txt` on macOS)
 - CUDA-aware Torch + ONNX Runtime GPU verification for OCR workloads
 - Frontend sidecar Python environment from `frontend/src/main/python/requirements.txt`
 - Frontend Node dependencies and dev/electron launch checks
@@ -42,6 +42,12 @@ python3.11 -m venv .venv-backend311
 source .venv-backend311/bin/activate  # Windows PowerShell: .venv-backend311\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r backend/requirements.txt
+```
+
+On macOS, install the mac-specific backend manifest instead:
+
+```bash
+pip install -r backend/requirements_mac.txt
 ```
 
 Notes:
