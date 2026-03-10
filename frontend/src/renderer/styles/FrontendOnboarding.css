@@ -48,6 +48,22 @@
   width: min(940px, 100%);
 }
 
+.frontend-onboarding-card-permissions .frontend-onboarding-card-scroll-region {
+  padding-top: 28px;
+  gap: 12px;
+}
+
+.frontend-onboarding-card-permissions .frontend-onboarding-title {
+  font-size: clamp(28px, 4.4vw, 46px);
+  line-height: 1.06;
+}
+
+.frontend-onboarding-card-permissions .frontend-onboarding-body {
+  font-size: clamp(15px, 1.8vw, 18px);
+  line-height: 1.3;
+  max-width: 64ch;
+}
+
 .frontend-onboarding-card-scroll-region {
   min-height: 0;
   padding: 34px 36px 22px;
@@ -236,7 +252,7 @@
 
 .frontend-onboarding-permissions-section {
   display: grid;
-  gap: 14px;
+  gap: 10px;
   min-height: 0;
 }
 
@@ -279,31 +295,31 @@
   background: transparent;
   padding: 0;
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .frontend-onboarding-permission-row {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
   border: 0 !important;
   box-shadow: none !important;
   outline: 0;
   border-radius: 0;
-  padding: 6px 6px;
+  padding: 4px 6px;
   background: transparent;
 }
 
 .frontend-onboarding-permission-copy {
   display: grid;
-  gap: 8px;
+  gap: 5px;
 }
 
 .frontend-onboarding-permission-copy h2 {
   margin: 0;
-  font-size: 19px;
-  line-height: 1.25;
+  font-size: 17px;
+  line-height: 1.2;
   font-weight: 600;
   color: #ffffff;
 }
@@ -320,8 +336,8 @@
 .frontend-onboarding-permission-copy p {
   margin: 0;
   color: #d0d0d0;
-  font-size: 13.5px;
-  line-height: 1.35;
+  font-size: 12.5px;
+  line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
@@ -338,8 +354,8 @@
 
 .frontend-onboarding-permission-reason {
   margin: 0;
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 11.5px;
+  line-height: 1.35;
   color: #b7b7b7;
 }
 
@@ -354,7 +370,7 @@
 
 .frontend-onboarding-permission-row > .frontend-onboarding-button {
   min-width: 104px;
-  padding: 10px 20px;
+  padding: 9px 18px;
 }
 
 .frontend-onboarding-permission-granted {
@@ -363,7 +379,7 @@
   justify-content: flex-end;
   gap: 8px;
   color: #6fda8e;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   min-width: 104px;
 }
@@ -408,6 +424,20 @@
 
   .frontend-onboarding-card-scroll-region {
     padding: 24px 18px 18px;
+  }
+
+  .frontend-onboarding-card-permissions .frontend-onboarding-card-scroll-region {
+    padding-top: 24px;
+    gap: 14px;
+  }
+
+  .frontend-onboarding-card-permissions .frontend-onboarding-title {
+    font-size: clamp(32px, 8vw, 44px);
+  }
+
+  .frontend-onboarding-card-permissions .frontend-onboarding-body {
+    font-size: clamp(15px, 3.8vw, 18px);
+    line-height: 1.34;
   }
 
   .frontend-onboarding-window-chrome {
