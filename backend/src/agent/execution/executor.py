@@ -108,6 +108,7 @@ class AgentExecutor:
             coordinate_resolver=coordinate_resolver,
             ocr_coordinator=ocr_coordinator,
             vision_service=vision_service,  # Inject directly instead of using provider
+            tool_registry=tool_orchestrator.tool_registry,
         )
         
         # Tool sending: sends resolved tools to frontend

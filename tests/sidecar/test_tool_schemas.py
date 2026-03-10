@@ -15,6 +15,7 @@ from tools.schemas import (  # noqa: E402
     ReplaceOperationArgs,
     RunShellCommandArgs,
     ScrollControlArgs,
+    SwitchTabArgs,
     WaitToolArgs,
 )
 
@@ -77,11 +78,14 @@ def test_keyboard_control_validates_action_fields_and_length():
 
 
 def test_keyboard_control_accepts_press_and_hotkey_actions():
-    press_args = KeyboardControlArgs(action="press", key="Enter")
+    press_args = KeyboardControlArgs(action="press", key="Enter", repeat=2, interval_ms=25)
     assert press_args.key == "Enter"
+    assert press_args.repeat == 2
+    assert press_args.interval_ms == 25
 
-    hotkey_args = KeyboardControlArgs(action="hotkey", keys=["ctrl", "s"])
+    hotkey_args = KeyboardControlArgs(action="hotkey", keys=["ctrl", "s"], repeat=3)
     assert hotkey_args.keys == ["ctrl", "s"]
+    assert hotkey_args.repeat == 3
 
 
 def test_keyboard_control_allows_text_length_boundary():
@@ -161,6 +165,14 @@ def test_wait_tool_schema_requires_seconds():
 
     args = WaitToolArgs(seconds=1.5)
     assert args.seconds == 1.5
+
+
+def test_switch_tab_schema_supports_match_mode():
+    args = SwitchTabArgs(tab_name="Terminal", match_mode="contains")
+    assert args.match_mode == "contains"
+
+    with pytest.raises(ValidationError):
+        SwitchTabArgs(tab_name="Terminal", match_mode="invalid")
 
 
 def test_replace_operation_occurrence_index_must_be_positive():

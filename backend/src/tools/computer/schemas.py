@@ -78,6 +78,18 @@ class KeyboardControlArgs(BaseModel):
         None,
         description="Ordered key list for action='hotkey' (for example: ['ctrl', 'l']).",
     )
+    repeat: int = Field(
+        1,
+        description="Repeat count for action='press' or action='hotkey'.",
+        ge=1,
+        le=50,
+    )
+    interval_ms: int = Field(
+        0,
+        description="Delay between repeats in milliseconds for action='press' or action='hotkey'.",
+        ge=0,
+        le=2000,
+    )
     wait: float = post_action_wait_field()
 
     @model_validator(mode='after')
@@ -91,7 +103,9 @@ class KeyboardControlArgs(BaseModel):
                 )
         if self.action == KeyboardAction.PRESS and not self.key:
             raise ValueError("key parameter required for press action")
-        if self.action == KeyboardAction.HOTKEY and not self.keys:
+        if self.action == KeyboardAction.HOTKEY and (
+            not self.keys or len(self.keys) < 2
+        ):
             raise ValueError("keys parameter required for hotkey action")
         return self
 
@@ -150,6 +164,10 @@ class SwitchTabArgs(BaseModel):
         description=(
             "Exact window or tab title to focus, matching get_open_windows output exactly."
         ),
+    )
+    match_mode: Literal["exact", "contains", "regex"] = Field(
+        "exact",
+        description="Window title match mode.",
     )
     wait: float = post_action_wait_field()
 
