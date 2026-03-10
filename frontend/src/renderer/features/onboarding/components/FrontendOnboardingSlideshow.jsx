@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import MainWindowControls from '../../../components/MainWindowControls';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
@@ -13,6 +13,13 @@ import {
 
 function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
   const resolvedStopShortcutLabel = stopAgentShortcutLabel || getAgentStopShortcutLabel();
+  const stopShortcutSegments = useMemo(() => {
+    const segments = resolvedStopShortcutLabel
+      .split(/\s*\+\s*/)
+      .map((segment) => segment.trim())
+      .filter(Boolean);
+    return segments.length > 0 ? segments : [resolvedStopShortcutLabel];
+  }, [resolvedStopShortcutLabel]);
   const bootstrapped = usePermissionStore((state) => state.bootstrapped);
   const isLoading = usePermissionStore((state) => state.isLoading);
   const permissions = usePermissionStore((state) => state.permissions);
@@ -40,8 +47,9 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
       body: 'Use this anytime an agent loop needs to end right away.',
       emphasisLabel: 'Keybind',
       emphasisValue: resolvedStopShortcutLabel,
+      emphasisSegments: stopShortcutSegments,
     },
-  ]), [resolvedStopShortcutLabel]);
+  ]), [resolvedStopShortcutLabel, stopShortcutSegments]);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [pendingPermissionId, setPendingPermissionId] = useState('');
 
@@ -174,7 +182,16 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
                 <span className="frontend-onboarding-stop-flow-keybind-label">
                   {activeSlide.emphasisLabel}
                 </span>
-                <kbd className="frontend-onboarding-stop-flow-keycap">{activeSlide.emphasisValue}</kbd>
+                <div className="frontend-onboarding-stop-flow-keycap-row" aria-hidden="true">
+                  {activeSlide.emphasisSegments.map((segment, index) => (
+                    <Fragment key={`${segment}-${index}`}>
+                      {index > 0 ? (
+                        <span className="frontend-onboarding-stop-flow-keycap-separator">+</span>
+                      ) : null}
+                      <kbd className="frontend-onboarding-stop-flow-keycap">{segment}</kbd>
+                    </Fragment>
+                  ))}
+                </div>
               </div>
             </div>
           ) : (
