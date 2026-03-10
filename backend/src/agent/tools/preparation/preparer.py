@@ -28,6 +28,10 @@ from backend.src.agent.tools.preparation.ocr import OcrCoordinator
 from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
 from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
 from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
+from backend.src.agent.tools.preparation.validation import (
+    sanitize_and_validate_resolved_tool_call,
+    validate_parsed_tool_call,
+)
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.llm.parser_types import ParsedToolCall
 
@@ -64,6 +68,7 @@ class ToolPreparer:
         vision_service_provider: Optional[
             Callable[["AgentSession"], Optional["IVisionService"]]
         ] = None,
+        tool_registry: object | None = None,
     ):
         self.screenshot_manager = screenshot_manager
         self.coordinate_resolver = coordinate_resolver
@@ -72,6 +77,7 @@ class ToolPreparer:
         self.vision_service_provider = (
             vision_service_provider or VisionServiceProvider.get_vision_service
         )
+        self.tool_registry = tool_registry
 
     async def prepare(
         self,
@@ -176,6 +182,11 @@ class ToolPreparer:
                 errors.append((tool_call, self._invalid_computer_use_error_message()))
                 break
 
+            validation_error = self._validate_model_emitted_tool_call(tool_call)
+            if validation_error:
+                errors.append((tool_call, validation_error))
+                break
+
             if self._needs_coordinate_resolution(tool_call):
                 try:
                     await self._resolve_coordinates_for_call(
@@ -211,6 +222,11 @@ class ToolPreparer:
                     errors.append((tool_call, str(exc)))
                     break
 
+            resolved_validation_error = self._validate_resolved_call(resolved_call)
+            if resolved_validation_error:
+                errors.append((tool_call, resolved_validation_error))
+                break
+
             resolved_calls.append(resolved_call)
 
         logger.info(
@@ -240,6 +256,13 @@ class ToolPreparer:
             return PreparationResult(
                 resolved_calls=[],
                 errors=[(tool_call, self._invalid_computer_use_error_message())],
+            )
+
+        validation_error = self._validate_model_emitted_tool_call(tool_call)
+        if validation_error:
+            return PreparationResult(
+                resolved_calls=[],
+                errors=[(tool_call, validation_error)],
             )
 
         if self._needs_coordinate_resolution(tool_call):
@@ -288,6 +311,13 @@ class ToolPreparer:
                     errors=[(tool_call, str(exc))],
                 )
 
+        resolved_validation_error = self._validate_resolved_call(resolved_call)
+        if resolved_validation_error:
+            return PreparationResult(
+                resolved_calls=[],
+                errors=[(tool_call, resolved_validation_error)],
+            )
+
         self._register_resolved_call(session, request_id, resolved_call)
         return PreparationResult(
             resolved_calls=[resolved_call],
@@ -311,3 +341,18 @@ class ToolPreparer:
     def _has_manual_coordinates(tool_call: ParsedToolCall) -> bool:
         """Return whether this mouse call contains manual x/y coordinates."""
         return tool_call_has_manual_coordinates(tool_call)
+
+    def _validate_model_emitted_tool_call(
+        self,
+        tool_call: ParsedToolCall,
+    ) -> str | None:
+        return validate_parsed_tool_call(tool_call, self.tool_registry)
+
+    def _validate_resolved_call(
+        self,
+        resolved_call: ResolvedToolCall,
+    ) -> str | None:
+        return sanitize_and_validate_resolved_tool_call(
+            resolved_call,
+            enabled=self.tool_registry is not None,
+        )

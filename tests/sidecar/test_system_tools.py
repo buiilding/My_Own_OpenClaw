@@ -57,7 +57,10 @@ async def test_switch_to_window_requires_tab_name():
 
 @pytest.mark.asyncio
 async def test_switch_to_window_success(monkeypatch):
-    manager = FakeWindowManager(switch_result=True)
+    manager = FakeWindowManager(
+        windows=[{"title": "Terminal"}],
+        switch_result=True,
+    )
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
     result = await window_tool.switch_to_window({"tab_name": "Terminal"})
@@ -70,7 +73,7 @@ async def test_switch_to_window_success(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_switch_to_window_returns_not_found_error(monkeypatch):
-    manager = FakeWindowManager(switch_result=False)
+    manager = FakeWindowManager(windows=[{"title": "Other Window"}], switch_result=False)
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
     result = await window_tool.switch_to_window({"tab_name": "Missing"})
@@ -81,13 +84,50 @@ async def test_switch_to_window_returns_not_found_error(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_switch_to_window_handles_exceptions(monkeypatch):
-    manager = FakeWindowManager(switch_error=RuntimeError("wm unavailable"))
+    manager = FakeWindowManager(
+        windows=[{"title": "Terminal"}],
+        switch_error=RuntimeError("wm unavailable"),
+    )
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
     result = await window_tool.switch_to_window({"tab_name": "Terminal"})
 
     assert result["success"] is False
     assert "Tab switching operation failed" in result["error"]
+
+
+@pytest.mark.asyncio
+async def test_switch_to_window_supports_contains_match_mode(monkeypatch):
+    manager = FakeWindowManager(
+        windows=[{"title": "Browser - docs"}],
+        switch_result=True,
+    )
+    monkeypatch.setattr(window_tool, "_window_manager", manager)
+
+    result = await window_tool.switch_to_window(
+        {"tab_name": "docs", "match_mode": "contains"}
+    )
+
+    assert result["success"] is True
+    assert manager.switch_calls == ["Browser - docs"]
+
+
+@pytest.mark.asyncio
+async def test_switch_to_window_supports_regex_match_mode(monkeypatch):
+    manager = FakeWindowManager(
+        windows=[{"title": "John Lennon - Beautiful Boy (Darling Boy) - Remastered 2010"}],
+        switch_result=True,
+    )
+    monkeypatch.setattr(window_tool, "_window_manager", manager)
+
+    result = await window_tool.switch_to_window(
+        {"tab_name": r"Beautiful Boy.*2010", "match_mode": "regex"}
+    )
+
+    assert result["success"] is True
+    assert manager.switch_calls == [
+        "John Lennon - Beautiful Boy (Darling Boy) - Remastered 2010"
+    ]
 
 
 @pytest.mark.asyncio

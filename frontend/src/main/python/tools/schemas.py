@@ -62,6 +62,18 @@ class KeyboardControlArgs(BaseModel):
     )
     key: Optional[str] = Field(None, description="Single key to press (required for 'press' action)")
     keys: Optional[List[str]] = Field(None, description="List of keys for hotkey (required for 'hotkey' action)")
+    repeat: int = Field(
+        1,
+        ge=1,
+        le=50,
+        description="Repeat count for press or hotkey actions.",
+    )
+    interval_ms: int = Field(
+        0,
+        ge=0,
+        le=2000,
+        description="Delay between repeats in milliseconds.",
+    )
     wait: float = Field(
         0.0,
         description="Delay in seconds before taking a screenshot after tool execution."
@@ -74,7 +86,7 @@ class KeyboardControlArgs(BaseModel):
             raise ValueError("text parameter required for type or paste action")
         if self.action == "press" and not self.key:
             raise ValueError("key parameter required for press action")
-        if self.action == "hotkey" and (not self.keys or len(self.keys) == 0):
+        if self.action == "hotkey" and (not self.keys or len(self.keys) < 2):
             raise ValueError("keys parameter required for hotkey action")
         if self.action in {"type", "paste"} and len(self.text) > 10000:
             raise ValueError(f"Text too long: {len(self.text)} characters (max 10000)")
@@ -303,6 +315,10 @@ class SwitchTabArgs(BaseModel):
     model_config = ConfigDict(extra='forbid')
     
     tab_name: str = Field(..., description="Name of the tab/window to switch to")
+    match_mode: Literal["exact", "contains", "regex"] = Field(
+        "exact",
+        description="Window title match mode.",
+    )
     wait: float = Field(
         0.0,
         description="Delay in seconds before taking a screenshot after tool execution."

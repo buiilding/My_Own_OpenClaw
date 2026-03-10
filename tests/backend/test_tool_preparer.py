@@ -7,6 +7,7 @@ from backend.src.agent.tools.preparation.helpers.preparation_helper import (
 )
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
+from backend.src.tools.computer.schemas import KeyboardControlArgs, MouseControlArgs
 
 
 class DummySession:
@@ -38,6 +39,19 @@ class DummySession:
 
     def get_current_capture_meta(self):
         return dict(self._capture_meta)
+
+
+class _ArgsModelTool:
+    def __init__(self, args_model):
+        self.args_model = args_model
+
+
+class DummyToolRegistry:
+    def __init__(self, mapping):
+        self._mapping = mapping
+
+    def get_tool(self, tool_name):
+        return self._mapping.get(tool_name)
 
 
 async def _collect_preparation(preparer, tool_calls):
@@ -304,3 +318,75 @@ def test_tool_call_has_manual_coordinates_rejects_bool_coordinates():
         )
         is False
     )
+
+
+@pytest.mark.asyncio
+async def test_prepare_rejects_invalid_keyboard_tool_call_before_frontend_dispatch():
+    preparer = ToolPreparer(
+        object(),
+        object(),
+        object(),
+        tool_registry=DummyToolRegistry(
+            {
+                "keyboard_control": _ArgsModelTool(KeyboardControlArgs),
+            }
+        ),
+    )
+    tool_call = ParsedToolCall(
+        tool_name="keyboard_control",
+        parameters={},
+        raw_call="{}",
+    )
+
+    _events, result = await _collect_preparation(preparer, [tool_call])
+
+    assert result is not None
+    assert result.resolved_calls == []
+    assert len(result.errors) == 1
+    failed_call, error_message = result.errors[0]
+    assert failed_call is tool_call
+    assert "rejected before frontend execution" in error_message
+    assert "action" in error_message.lower()
+
+
+@pytest.mark.asyncio
+async def test_prepare_validates_and_sanitizes_resolved_mouse_payload(monkeypatch):
+    preparer = ToolPreparer(
+        object(),
+        object(),
+        object(),
+        tool_registry=DummyToolRegistry(
+            {
+                "mouse_control": _ArgsModelTool(MouseControlArgs),
+            }
+        ),
+    )
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={
+            "action": "click",
+            "find_coordinates_by": CoordinateFindingMethod.OCR,
+            "ocr_text": "Submit",
+        },
+        raw_call="{}",
+    )
+
+    async def fake_resolver(*_args, **_kwargs):
+        resolved_call = _args[1]
+        resolved_call.parameters["x"] = 320
+        resolved_call.parameters["y"] = 180
+
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.preparer.resolve_tool_with_coordinates",
+        fake_resolver,
+    )
+
+    _events, result = await _collect_preparation(preparer, [tool_call])
+
+    assert result is not None
+    assert result.errors == []
+    assert result.resolved_calls[0].parameters == {
+        "action": "click",
+        "x": 320,
+        "y": 180,
+    }

@@ -97,11 +97,12 @@ Current runtime boundary:
     - explanation resolution is trim-normalized; whitespace-only values are treated as missing
     - when explanation resolves, delegated concrete args receive injected `explanation`
     - wrapper scope is limited to `run_shell_command|replace|read_file|get_system_stats|get_open_windows`; `open_app` and `process` remain direct-only tools
-- Effective validation today is split between callers and tool implementations themselves.
+- Backend `ToolPreparer` now performs authoritative pre-dispatch validation for model-emitted tool args and resolved computer-use executor payloads before any frontend execution request is sent.
+- Sidecar still keeps lightweight wrapper-envelope validation plus concrete tool runtime checks as defense in depth.
 
 Implication:
 
-- schema-only changes do not enforce runtime behavior unless registry/tool execution path is updated too.
+- schema-only changes still do not automatically enforce runtime behavior inside the sidecar registry, but malformed backend-dispatched tool payloads should now fail closed in backend preparation before reaching frontend execution.
 
 ## Backend Compatibility Constraint
 

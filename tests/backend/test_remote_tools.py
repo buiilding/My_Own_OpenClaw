@@ -18,6 +18,7 @@ from backend.src.tools.computer.schemas import (
     KeyboardControlArgs,
     MouseControlArgs,
     ScrollControlArgs,
+    SwitchTabArgs,
 )
 from backend.src.tools.system.schemas import SystemUseArgs
 
@@ -126,6 +127,27 @@ def test_keyboard_control_rejects_text_over_length_limit():
         match="Text too long: 10001 characters \\(max 10000\\)",
     ):
         KeyboardControlArgs(action="paste", text="x" * 10001)
+
+
+def test_keyboard_control_accepts_repeat_and_interval_fields():
+    args = KeyboardControlArgs(
+        action="press",
+        key="enter",
+        repeat=3,
+        interval_ms=40,
+    )
+
+    assert args.repeat == 3
+    assert args.interval_ms == 40
+
+
+def test_switch_tab_accepts_match_mode():
+    args = SwitchTabArgs(
+        tab_name="Canva",
+        match_mode="contains",
+    )
+
+    assert args.match_mode == "contains"
 
 
 @pytest.mark.asyncio

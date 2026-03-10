@@ -15,8 +15,8 @@ def _fake_pyautogui():
     def write(text, interval):
         calls.append(("write", text, interval))
 
-    def press(key):
-        calls.append(("press", key))
+    def press(key, presses=1, interval=0.0):
+        calls.append(("press", key, presses, interval))
 
     def hotkey(*keys):
         calls.append(("hotkey", *keys))
@@ -126,7 +126,7 @@ async def test_execute_keyboard_control_press_maps_escape_key(monkeypatch):
 
     assert result["success"] is True
     assert result["data"]["action"] == "press"
-    assert calls == [("press", "esc")]
+    assert calls == [("press", "esc", 1, 0.0)]
 
 
 @pytest.mark.asyncio
@@ -141,7 +141,22 @@ async def test_execute_keyboard_control_press_maps_super_by_platform(monkeypatch
 
     assert result["success"] is True
     assert result["data"]["action"] == "press"
-    assert calls == [("press", "command")]
+    assert calls == [("press", "command", 1, 0.0)]
+
+
+@pytest.mark.asyncio
+async def test_execute_keyboard_control_press_supports_repeat_and_interval(monkeypatch):
+    fake_pyautogui, calls = _fake_pyautogui()
+    monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
+
+    result = await keyboard_tool.execute_keyboard_control(
+        {"action": "press", "key": "enter", "repeat": 3, "interval_ms": 25}
+    )
+
+    assert result["success"] is True
+    assert result["data"]["metadata"]["repeat"] == 3
+    assert result["data"]["metadata"]["interval_ms"] == 25
+    assert calls == [("press", "enter", 3, 0.025)]
 
 
 @pytest.mark.asyncio

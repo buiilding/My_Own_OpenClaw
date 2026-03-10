@@ -101,6 +101,14 @@ Direct computer-subtool parity:
 - direct native calls named `mouse_control|keyboard_control|screenshot|scroll_control|switch_tab|wait` pass through the same metadata normalization gate.
 - missing/invalid metadata in direct computer-subtool calls also resolves to `invalid_computer_use_tool`.
 
+Concrete-argument validation boundary:
+
+- bridge normalization does not fully validate action-specific concrete arguments
+- backend preparation now owns that validation before frontend dispatch:
+  - model-emitted concrete tool args are revalidated against backend tool arg models
+  - resolved computer executor payloads are sanitized into sidecar-executor shape and validated again after OCR/prediction/manual coordinate resolution
+- this closes the prior gap where native `computer_use` calls could survive bridge normalization and fail only inside sidecar tool runtimes with missing `action`/coordinate errors
+
 ## Unified `system_use` Mapping
 
 When normalized name is `system_use`:

@@ -4,6 +4,7 @@ Window Management Tool - Python implementation with platform abstraction.
 
 import asyncio
 import logging
+import re
 from typing import Dict, Any
 
 from core.executors import get_interactive_executor
@@ -34,6 +35,7 @@ async def switch_to_window(args: Dict[str, Any]) -> Dict[str, Any]:
         Dictionary with success status and switch result
     """
     tab_name = args.get("tab_name")
+    match_mode = args.get("match_mode", "exact")
     
     if not tab_name:
         return {"success": False, "error": "tab_name is required"}
@@ -41,11 +43,15 @@ async def switch_to_window(args: Dict[str, Any]) -> Dict[str, Any]:
     try:
         def _switch():
             manager = _get_window_manager()
-            success = manager.switch_to_window(tab_name)
-            return success
+            windows = manager.get_windows()
+            target_title = _resolve_target_title(windows, tab_name, match_mode)
+            if not target_title:
+                return False, None
+            success = manager.switch_to_window(target_title)
+            return success, target_title
         
         loop = asyncio.get_event_loop()
-        success = await loop.run_in_executor(get_interactive_executor(), _switch)
+        success, resolved_title = await loop.run_in_executor(get_interactive_executor(), _switch)
         
         if not success:
             return {
@@ -59,9 +65,9 @@ async def switch_to_window(args: Dict[str, Any]) -> Dict[str, Any]:
         return {
             "success": True,
             "data": {
-                "tab_name": tab_name,
-                "llm_content": f"Successfully switched to tab '{tab_name}'",
-                "return_display": f"Successfully switched to tab '{tab_name}'",
+                "tab_name": resolved_title,
+                "llm_content": f"Successfully switched to tab '{resolved_title}'",
+                "return_display": f"Successfully switched to tab '{resolved_title}'",
             },
         }
     except Exception as e:
@@ -109,3 +115,30 @@ async def get_open_windows(args: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Error getting open windows: {e}", exc_info=True)
         return {"success": False, "error": f"Failed to get open windows: {str(e)}"}
+
+
+def _resolve_target_title(windows: list[dict], tab_name: str, match_mode: str) -> str | None:
+    titles = [window["title"] for window in windows if window.get("title")]
+    query = tab_name.strip()
+    if not query:
+        return None
+
+    normalized_mode = str(match_mode or "exact").strip().lower()
+    if normalized_mode == "contains":
+        query_lower = query.lower()
+        for title in titles:
+            if query_lower in title.lower():
+                return title
+        return None
+
+    if normalized_mode == "regex":
+        pattern = re.compile(query, re.IGNORECASE)
+        for title in titles:
+            if pattern.search(title):
+                return title
+        return None
+
+    for title in titles:
+        if title.lower() == query.lower():
+            return title
+    return None

@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import platform
+import time
 from typing import Any, Dict
 
 from core.executors import get_interactive_executor
@@ -87,9 +88,20 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
         Dictionary with success status and action result
     """
     action = args.get("action")
+    repeat = args.get("repeat", 1)
+    interval_ms = args.get("interval_ms", 0)
     
     if not action:
         return {"success": False, "error": "action is required"}
+
+    try:
+        repeat_count = int(repeat)
+        interval_seconds = max(float(interval_ms) / 1000.0, 0.0)
+    except (TypeError, ValueError):
+        return {"success": False, "error": "repeat and interval_ms must be numeric"}
+
+    if repeat_count < 1:
+        return {"success": False, "error": "repeat must be at least 1"}
     
     try:
         import pyautogui
@@ -191,7 +203,7 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     raise ValueError("key parameter required for press action")
 
                 key_name = _normalize_key_name(key)
-                pyautogui.press(key_name)
+                pyautogui.press(key_name, presses=repeat_count, interval=interval_seconds)
 
                 return {
                     "action": "press",
@@ -202,13 +214,15 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     "metadata": {
                         "action": "press",
                         "input_type": "key",
-                        "input_length": 1,
+                        "input_length": repeat_count,
+                        "repeat": repeat_count,
+                        "interval_ms": int(interval_ms),
                     },
                 }
 
             elif action == "hotkey":
                 keys = args.get("keys")
-                if not keys or len(keys) == 0:
+                if not keys or len(keys) < 2:
                     raise ValueError("keys parameter required for hotkey action")
 
                 # Block dangerous key combinations
@@ -223,7 +237,10 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
                         raise ValueError(f"Dangerous key combination blocked: {' + '.join(combo)}")
 
                 mapped_keys = _normalize_hotkey_keys(keys)
-                pyautogui.hotkey(*mapped_keys)
+                for index in range(repeat_count):
+                    pyautogui.hotkey(*mapped_keys)
+                    if index < (repeat_count - 1) and interval_seconds > 0:
+                        time.sleep(interval_seconds)
 
                 return {
                     "action": "hotkey",
@@ -235,6 +252,8 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
                         "action": "hotkey",
                         "input_type": "keys",
                         "input_length": len(keys),
+                        "repeat": repeat_count,
+                        "interval_ms": int(interval_ms),
                     },
                 }
 
