@@ -16,6 +16,12 @@ From repository root:
 pip install -r backend/requirements.txt
 ```
 
+On macOS, use the mac-specific backend manifest instead:
+
+```bash
+pip install -r backend/requirements_mac.txt
+```
+
 If you run Electron locally, also install sidecar deps:
 
 ```bash
@@ -75,4 +81,3 @@ There is no YAML config file. Primary config models live in:
 - `docs/llm_integration.md`
 - `docs/configuration.md`
 - `docs/developer_guide.md`
-
