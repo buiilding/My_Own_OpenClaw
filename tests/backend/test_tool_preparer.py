@@ -8,6 +8,7 @@ from backend.src.agent.tools.preparation.helpers.preparation_helper import (
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
 from backend.src.tools.computer.schemas import KeyboardControlArgs, MouseControlArgs
+from backend.src.tools.system.schemas import GetOpenWindowsArgs
 
 
 class DummySession:
@@ -190,6 +191,20 @@ async def test_prepare_single_invalid_computer_use_tool_returns_preparation_erro
     tool_call = ParsedToolCall(
         tool_name="invalid_computer_use_tool",
         parameters={"action": "click", "x": 1, "y": 2},
+        metadata={
+            "model_facing_tool_call": {
+                "name": "computer_use",
+                "arguments": {
+                    "tool": "mouse_control",
+                    "metadata": {
+                        "description": "screen",
+                        "explanation": "click target",
+                        "expectation": "dialog opens",
+                    },
+                    "arguments": {"action": "click"},
+                },
+            }
+        },
         raw_call="{}",
     )
 
@@ -202,6 +217,8 @@ async def test_prepare_single_invalid_computer_use_tool_returns_preparation_erro
     failed_call, error_message = result.errors[0]
     assert failed_call is tool_call
     assert "computer_use call is invalid" in error_message
+    assert "Use the unified `computer_use` wrapper" in error_message
+    assert "tool=\"mouse_control\"" in error_message
     assert "request_id" in tool_call.metadata
 
 
@@ -347,6 +364,38 @@ async def test_prepare_rejects_invalid_keyboard_tool_call_before_frontend_dispat
     assert failed_call is tool_call
     assert "rejected before frontend execution" in error_message
     assert "action" in error_message.lower()
+
+
+@pytest.mark.asyncio
+async def test_prepare_rejects_direct_legacy_system_tool_with_wrapper_guidance():
+    preparer = ToolPreparer(
+        object(),
+        object(),
+        object(),
+        tool_registry=DummyToolRegistry(
+            {
+                "get_open_windows": _ArgsModelTool(GetOpenWindowsArgs),
+            }
+        ),
+    )
+    tool_call = ParsedToolCall(
+        tool_name="get_open_windows",
+        parameters={
+            "filter_text": "Settings",
+        },
+        raw_call="{}",
+    )
+
+    _events, result = await _collect_preparation(preparer, [tool_call])
+
+    assert result is not None
+    assert result.resolved_calls == []
+    assert len(result.errors) == 1
+    failed_call, error_message = result.errors[0]
+    assert failed_call is tool_call
+    assert "Details: explanation: Field required." in error_message
+    assert "Use the unified `system_use` wrapper" in error_message
+    assert "tool=\"get_open_windows\"" in error_message
 
 
 @pytest.mark.asyncio
