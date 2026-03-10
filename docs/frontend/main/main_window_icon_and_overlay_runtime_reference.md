@@ -83,9 +83,10 @@ Load behavior:
 
 Shared overlay defaults:
 
-- frameless transparent toolbar window
+- frameless transparent overlay window
 - non-resizable/minimizable/maximizable/fullscreenable
 - `skipTaskbar=true`, `alwaysOnTop=true`, `hasShadow=false`
+- non-Linux overlays keep `type="toolbar"`; Linux omits the custom type to avoid Chromium/X11 `_NET_WM_WINDOW_TYPE_TOOLBAR` startup noise while preserving the same frameless overlay behavior
 - preload: `frontend/src/preload.js`
 - `contextIsolation=true`, `nodeIntegration=false`
 - optional `show` and `icon` overrides
@@ -114,7 +115,7 @@ Used by:
 
 - dev URL includes expected query flags
 - lazy loader performs single load
-- overlay BrowserWindow factory enforces toolbar/transparent defaults
+- overlay BrowserWindow factory keeps transparent defaults and only applies the custom toolbar type off Linux
 
 `tests/frontend/MainWindowRuntime.test.cjs`:
 

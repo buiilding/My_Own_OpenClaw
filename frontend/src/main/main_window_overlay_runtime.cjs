@@ -46,6 +46,7 @@ function loadRendererView({
 function createOverlayBrowserWindow({
   BrowserWindow,
   path,
+  platform = process.platform,
   width,
   height,
   show,
@@ -65,7 +66,6 @@ function createOverlayBrowserWindow({
     skipTaskbar: true,
     alwaysOnTop: true,
     hasShadow: false,
-    type: 'toolbar',
     webPreferences: {
       preload: path.join(__dirname, '../preload.js'),
       contextIsolation: true,
@@ -75,6 +75,9 @@ function createOverlayBrowserWindow({
   };
   if (icon) {
     windowOptions.icon = icon;
+  }
+  if (platform !== 'linux') {
+    windowOptions.type = 'toolbar';
   }
   if (typeof show === 'boolean') {
     windowOptions.show = show;

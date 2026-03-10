@@ -215,6 +215,7 @@ function createChatWindow({
   const chatWindow = createOverlayBrowserWindow({
     BrowserWindow,
     path,
+    platform,
     width: CHATBOX_OVERLAY_FIXED_WIDTH,
     height: CHATBOX_OVERLAY_FIXED_HEIGHT,
     icon: appIcon,
@@ -314,6 +315,7 @@ function createResponseWindow({
   const responseWindow = createOverlayBrowserWindow({
     BrowserWindow,
     path,
+    platform,
     width: 520,
     height: enableOsToolGhostDebug ? 620 : 1,
     show: enableOsToolGhostDebug,

@@ -44,12 +44,13 @@ describe('main_window_overlay_runtime', () => {
     expect(targetWindow.loadURL).toHaveBeenCalledTimes(1);
   });
 
-  test('createOverlayBrowserWindow builds toolbar overlay defaults', () => {
+  test('createOverlayBrowserWindow omits toolbar type on linux overlays', () => {
     const BrowserWindow = jest.fn((options) => ({ options }));
 
     const win = createOverlayBrowserWindow({
       BrowserWindow,
       path: require('path'),
+      platform: 'linux',
       width: 320,
       height: 120,
       show: true,
@@ -59,10 +60,31 @@ describe('main_window_overlay_runtime', () => {
     expect(BrowserWindow).toHaveBeenCalledWith(expect.objectContaining({
       width: 320,
       height: 120,
-      type: 'toolbar',
       transparent: true,
       show: true,
     }));
+    expect(BrowserWindow.mock.calls[0][0]).not.toHaveProperty('type');
     expect(win.options.webPreferences.devTools).toBe(true);
+  });
+
+  test('createOverlayBrowserWindow keeps toolbar type on non-linux overlays', () => {
+    const BrowserWindow = jest.fn((options) => ({ options }));
+
+    const win = createOverlayBrowserWindow({
+      BrowserWindow,
+      path: require('path'),
+      platform: 'win32',
+      width: 320,
+      height: 120,
+      allowDevTools: false,
+    });
+
+    expect(BrowserWindow).toHaveBeenCalledWith(expect.objectContaining({
+      width: 320,
+      height: 120,
+      type: 'toolbar',
+      transparent: true,
+    }));
+    expect(win.options.webPreferences.devTools).toBe(false);
   });
 });
