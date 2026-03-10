@@ -32,6 +32,32 @@ function resolveShowTargetDisplayAffinity({
   return getActiveDisplayAffinity();
 }
 
+function activateWindowForInteraction(targetWindow) {
+  if (
+    !targetWindow
+    || typeof targetWindow !== 'object'
+    || (typeof targetWindow.isDestroyed === 'function' && targetWindow.isDestroyed())
+  ) {
+    return;
+  }
+
+  if (typeof targetWindow.moveTop === 'function') {
+    targetWindow.moveTop();
+  }
+  if (typeof targetWindow.focus === 'function') {
+    targetWindow.focus();
+  }
+
+  const webContents = targetWindow.webContents;
+  if (
+    webContents
+    && !(typeof webContents.isDestroyed === 'function' && webContents.isDestroyed())
+    && typeof webContents.focus === 'function'
+  ) {
+    webContents.focus();
+  }
+}
+
 function showChatWindow(options = {}, deps = {}) {
   const {
     chatWindow,
@@ -231,7 +257,7 @@ function showMainWindow(options = {}, deps = {}) {
     }
   }
   if (focus) {
-    mainWindow.focus();
+    activateWindowForInteraction(mainWindow);
   }
   return { success: true };
 }
