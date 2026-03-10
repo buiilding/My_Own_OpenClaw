@@ -58,6 +58,11 @@ Failure metadata contract (both events):
 - `skip_frontend_execution: true`
 - `request_id`
 
+Failure message contract:
+
+- synthetic tool-output errors should preserve the concrete validation detail
+- when backend preparation can identify a model-facing wrapper mistake, the error should also include corrective guidance (for example, re-emitting `system_use` with top-level `explanation` and nested `arguments`)
+
 ## Model-Facing Metadata Contract
 
 Every emitted call/bundle tool item gets `model_facing_tool_call` unless already present.
