@@ -1,6 +1,8 @@
-function getPermissionPill(status) {
+import { getPermissionGrantedLabel } from './permissionPresentation';
+
+function getPermissionPill(status, permission) {
   if (status === 'granted') {
-    return { label: 'Granted', className: 'granted' };
+    return { label: getPermissionGrantedLabel(permission), className: 'granted' };
   }
   if (status === 'needs-action') {
     return { label: 'Needs action', className: 'warning' };

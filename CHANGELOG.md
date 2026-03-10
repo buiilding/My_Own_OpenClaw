@@ -5,7 +5,8 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
-- fix(frontend-permissions-windows-screen-capture): stop opening Windows privacy settings for screen capture onboarding, verify desktop capture directly through Electron on `Grant`, and add focused permission-service regression coverage so Windows screen capture can be marked available without a fake OS permission step.
+- refactor(frontend-permissions-runtime-model): split OS permissions vs app capabilities vs resource/runtime checks in the desktop permission manifest/UI, replace session-only grant memory with async startup re-probes plus persisted workspace access state, stop opening Windows privacy settings for screen capture onboarding, and add focused permission/onboarding regressions for the new model.
+- fix(fullstack-shared-tool-schema-parity): align sidecar shared tool schemas with backend strict contracts (required `wait.seconds`, direct-tool explanations, `run_in_background`, numeric bounds, and `extra='forbid'`), make sidecar wait runtime reject missing `seconds`, add a non-browser backend/sidecar schema parity suite with explicit exception coverage, and refresh the related tool-contract docs.
 - fix(backend-keyboard-control-validation): enforce action-specific `keyboard_control` backend schema validation (`text` for `type`/`paste`, `key` for `press`, `keys` for `hotkey`, plus 10000-char limit) so invalid `computer_use` keyboard calls fail before frontend dispatch; add focused backend regressions and refresh the computer-tool contract doc.
 
 ## 0.6.10 - 2026-03-09

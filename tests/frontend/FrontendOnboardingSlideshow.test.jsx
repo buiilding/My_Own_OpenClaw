@@ -15,18 +15,24 @@ const mockPermissionState = {
       permission_id: 'screen_capture',
       label: 'Screen capture',
       description: 'Allow WindieOS to capture the current screen for screenshot context and visual grounding.',
+      access_kind: 'os_permission',
+      grant_action_label: 'Grant',
       required_now: true,
     },
     {
       permission_id: 'microphone',
       label: 'Microphone',
       description: 'Allow voice mode and wakeword audio capture.',
+      access_kind: 'os_permission',
+      grant_action_label: 'Grant',
       required_now: false,
     },
     {
       permission_id: 'browser_automation',
       label: 'Browser automation',
       description: 'Enable browser session automation for navigation and data extraction tasks.',
+      access_kind: 'app_capability',
+      grant_action_label: 'Enable',
       required_now: false,
     },
   ],
@@ -106,14 +112,16 @@ describe('FrontendOnboardingSlideshow', () => {
     });
 
     expect(screen.getByText('Step 1 of 2')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Grant access to your computer' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Set up system access' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Screen capture' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Microphone' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Browser automation' })).toBeInTheDocument();
+    expect(screen.getAllByText('OS Permission')).toHaveLength(2);
+    expect(screen.getByText('App Capability')).toBeInTheDocument();
     expect(screen.getByText('Enable browser automation to expose browser-control tools.')).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Grant' })).toHaveLength(1);
     expect(screen.getByRole('button', { name: 'Enable' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Granted')).toBeInTheDocument();
+    expect(screen.getAllByLabelText('Granted')).toHaveLength(1);
     expect(screen.queryByRole('heading', { name: 'Planned system-access scope' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Minimize window' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Toggle maximize window' })).toBeInTheDocument();

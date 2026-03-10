@@ -11,6 +11,7 @@ title: "Permission Manifest, Probe, and IPC Request Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/main/permission_service.cjs`
+- `frontend/src/main/permission_state_store.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/shared/permissions/permission_manifest.json`
 - `frontend/src/preload.js`
@@ -32,24 +33,29 @@ Top-level fields surfaced to renderer:
 Permission definition fields cloned by service:
 
 - `permission_id`, `label`, `description`, `risk_level`
+- `access_kind`, `grant_action_label`
 - `required_now`, `required_for_planned_system_access`
 - `os_scope`, `validation_probe`, `unlocks_tool_groups`
 
 ## Probe Runtime (`permission_service.cjs`)
 
-`runPermissionProbe(permissionId, deps)` dispatches by permission id:
+`runPermissionProbe(permissionId, deps)` is async and dispatches by permission id:
 
 - `screen_capture`:
   - macOS: uses `systemPreferences.getMediaAccessStatus('screen')`
-  - Windows: stays `needs-action` until the user runs `Grant`, which performs a direct desktop-capture capability check via Electron `desktopCapturer`
-  - Linux: remains request-state driven because the portal/system prompt is only triggered during request flow
+  - Windows/Linux: probes desktop-capture capability directly through Electron `desktopCapturer.getSources(...)`
 - `input_control_accessibility`:
   - macOS: uses `systemPreferences.isTrustedAccessibilityClient(false)`
-  - non-macOS: currently granted by platform profile contract
+  - Windows/Linux: runs an explicit capability verifier on startup/re-check instead of relying on prior in-memory request state
 - `microphone`:
-  - uses `getMediaAccessStatus('microphone')`
-- `filesystem_workspace_access`, `shell_execution`, `browser_automation`:
-  - runtime-capability probe scaffold (`probe_stub: true`)
+  - macOS: uses `getMediaAccessStatus('microphone')`
+  - Windows/Linux: probes microphone capability directly
+- `filesystem_workspace_access`:
+  - reads persisted folder-selection state from `permission_state_store.cjs` and verifies the selected path still exists
+- `shell_execution`:
+  - probes runtime availability (shell/PowerShell presence), not cached authorization state
+- `browser_automation`:
+  - requires both frontend enablement and backend runtime verification; missing verifier now fails closed
 
 Status payload shape:
 
@@ -73,13 +79,33 @@ Unknown permission ids return `status: error`.
 - `screen_capture`:
   - macOS: opens the Screen Recording privacy pane and relies on TCC status
   - Windows: verifies desktop capture directly via `desktopCapturer.getSources(...)`; does not deep-link to Windows privacy settings
-  - Linux: attempts the portal/system screen-share prompt and records the result in request state
+  - Linux: verifies desktop capture directly via Electron capability check
+- `filesystem_workspace_access`:
+  - opens a folder picker and persists the selected paths to `permission_state_store.cjs`
+- `shell_execution`:
+  - runs an elevated authentication flow and reports success/failure for that attempt without caching a fake permanent grant
+- `browser_automation`:
+  - verifies runtime availability, optionally installs Chromium on consent, and returns readiness status for the renderer-owned enablement toggle
 - macOS deep links via `shell.openExternal(...)`:
   - screen capture -> privacy screen-capture pane
   - accessibility input control -> privacy accessibility pane
 - all paths end with `runPermissionProbe(...)` result return
 
 Request API is best-effort and returns normalized probe/status payloads.
+
+## Persistent App-Managed State
+
+`permission_state_store.cjs` persists app-managed grants that are not OS privacy permissions.
+
+Current persisted item:
+
+- `filesystem_workspace_access` selected folder paths
+
+Current non-persisted items:
+
+- OS permissions (`screen_capture`, `input_control_accessibility`, `microphone`) because they are re-probed from the platform or capability verifier
+- `shell_execution` because authorization is runtime-scoped
+- `browser_automation` because enablement is frontend-config owned and runtime readiness is re-verified
 
 ## Main IPC Handler Surface (`index.cjs`)
 
@@ -94,6 +120,7 @@ Renderer invoke handlers:
 Handler dependency bundle:
 
 - `platform: process.platform`
+- `userDataPath` used to initialize `permission_state_store.cjs`
 - `shell` (Electron shell module)
 - `systemPreferences` (Electron system permission APIs)
 - foreground/focus bridge (`focusPermissionPromptWindow`) used before macOS microphone prompt flows
@@ -125,8 +152,9 @@ Channel names:
 1. Manifest field changes without updating clone/shape contracts in service.
 2. Adding permission ids in manifest without probe/request switch handling.
 3. Channel parity drift between preload/channels constants/index handler registration.
-4. Treating `probe_stub` runtime capability responses as production security guarantees.
+4. Reintroducing session-only grant memory in place of startup re-probes or persisted app-managed state.
 5. Assuming Windows has a macOS-style screen-capture privacy pane; current Windows behavior is capability verification, not OS settings registration.
+6. Treating browser automation as granted when no runtime verifier is configured; current behavior is fail-closed.
 
 ## Related Pages
 

@@ -1,3 +1,4 @@
+const fs = require('fs');
 const { spawn } = require('child_process');
 const PERMISSION_MANIFEST = require('../shared/permissions/permission_manifest.json');
 
@@ -38,9 +39,6 @@ const LINUX_PERMISSION_CENTER_TOPIC_ALIASES = Object.freeze({
   microphone: 'privacy',
 });
 
-// Session-scoped request state for permissions without reliable probe APIs.
-const REQUESTED_PERMISSION_STATE = new Map();
-
 function nowIso() {
   return new Date().toISOString();
 }
@@ -50,6 +48,8 @@ function clonePermissionDefinition(permission) {
     permission_id: permission.permission_id,
     label: permission.label,
     description: permission.description,
+    access_kind: typeof permission.access_kind === 'string' ? permission.access_kind : 'os_permission',
+    grant_action_label: typeof permission.grant_action_label === 'string' ? permission.grant_action_label : 'Grant',
     risk_level: permission.risk_level,
     required_now: permission.required_now === true,
     required_for_planned_system_access: permission.required_for_planned_system_access === true,
@@ -91,34 +91,57 @@ function getMediaAccessStatus(mediaType, deps = {}) {
   }
 }
 
-function getRequestedState(permissionId) {
-  const state = REQUESTED_PERMISSION_STATE.get(permissionId);
-  return state && typeof state === 'object' ? state : null;
+function normalizeStoredPermissionEntry(rawEntry) {
+  if (!rawEntry || typeof rawEntry !== 'object' || Array.isArray(rawEntry)) {
+    return null;
+  }
+
+  return {
+    granted: rawEntry.granted === true,
+    source: typeof rawEntry.source === 'string' ? rawEntry.source : 'app',
+    updated_at: typeof rawEntry.updated_at === 'string' ? rawEntry.updated_at : null,
+    selected_paths: Array.isArray(rawEntry.selected_paths)
+      ? rawEntry.selected_paths.filter((value) => typeof value === 'string' && value.trim())
+      : [],
+    details: rawEntry.details && typeof rawEntry.details === 'object' && !Array.isArray(rawEntry.details)
+      ? rawEntry.details
+      : {},
+  };
 }
 
-function markRequestedGranted(permissionId, details = {}) {
-  REQUESTED_PERMISSION_STATE.set(permissionId, {
-    granted: true,
+async function getStoredPermissionEntry(permissionId, deps = {}) {
+  const store = deps.permissionStateStore;
+  if (!store || typeof store.get !== 'function') {
+    return null;
+  }
+
+  try {
+    return normalizeStoredPermissionEntry(await store.get(permissionId));
+  } catch (_error) {
+    return null;
+  }
+}
+
+async function setStoredPermissionEntry(permissionId, entry, deps = {}) {
+  const store = deps.permissionStateStore;
+  if (!store || typeof store.set !== 'function') {
+    return null;
+  }
+
+  const normalizedEntry = normalizeStoredPermissionEntry({
+    ...entry,
     updated_at: nowIso(),
-    details,
   });
-}
+  if (!normalizedEntry) {
+    return null;
+  }
 
-function markRequestedPending(permissionId, details = {}) {
-  REQUESTED_PERMISSION_STATE.set(permissionId, {
-    granted: false,
-    updated_at: nowIso(),
-    details,
-  });
-}
-
-function getRequestedStateDetails(permissionId) {
-  const state = getRequestedState(permissionId);
-  return state ? { requested_state: state } : {};
-}
-
-function isRequestedGranted(permissionId) {
-  return getRequestedState(permissionId)?.granted === true;
+  try {
+    await store.set(permissionId, normalizedEntry);
+    return normalizedEntry;
+  } catch (_error) {
+    return null;
+  }
 }
 
 async function runCommand(command, args = [], deps = {}, options = {}) {
@@ -261,6 +284,96 @@ async function verifyScreenCaptureCapability(deps = {}) {
   };
 }
 
+async function verifyWorkspaceAccessCapability(permissionId, deps = {}) {
+  const storedEntry = await getStoredPermissionEntry(permissionId, deps);
+  const selectedPaths = Array.isArray(storedEntry?.selected_paths) ? storedEntry.selected_paths : [];
+  const fsModule = deps.fs || fs;
+
+  if (selectedPaths.length === 0) {
+    return {
+      granted: false,
+      reason: 'No workspace folder has been selected yet.',
+      details: {
+        selected_paths: [],
+      },
+    };
+  }
+
+  const existingPaths = selectedPaths.filter((selectedPath) => {
+    try {
+      return fsModule.existsSync(selectedPath);
+    } catch (_error) {
+      return false;
+    }
+  });
+
+  if (existingPaths.length === 0) {
+    return {
+      granted: false,
+      reason: 'The previously selected workspace folder is no longer available.',
+      details: {
+        selected_paths: selectedPaths,
+      },
+    };
+  }
+
+  return {
+    granted: true,
+    reason: 'Workspace access is configured.',
+    details: {
+      selected_paths: existingPaths,
+      stored_entry: storedEntry,
+    },
+  };
+}
+
+async function verifyShellExecutionCapability(deps = {}) {
+  if (typeof deps.verifyShellExecutionCapability === 'function') {
+    const result = await deps.verifyShellExecutionCapability(deps);
+    return result && typeof result === 'object'
+      ? {
+        granted: result.granted === true,
+        reason: typeof result.reason === 'string' ? result.reason : '',
+        details: result.details || result,
+      }
+      : { granted: result === true, reason: '', details: {} };
+  }
+
+  const platform = deps.platform || process.platform;
+  if (platform === 'win32') {
+    const result = await runCommand('powershell', [
+      '-NoProfile',
+      '-NonInteractive',
+      '-Command',
+      '$PSVersionTable.PSVersion.Major',
+    ], deps);
+    return {
+      granted: result?.success === true,
+      reason: result?.success === true ? 'PowerShell runtime is available.' : 'PowerShell runtime is unavailable.',
+      details: { platform, command_result: result },
+    };
+  }
+
+  if (platform === 'darwin') {
+    const result = await runCommand('sh', ['-lc', 'command -v osascript >/dev/null 2>&1'], deps);
+    return {
+      granted: result?.success === true,
+      reason: result?.success === true ? 'Shell execution runtime is available.' : 'osascript runtime is unavailable.',
+      details: { platform, command_result: result },
+    };
+  }
+
+  const result = await runFirstSuccessfulCommand([
+    { command: 'bash', args: ['-lc', 'command -v bash >/dev/null 2>&1'] },
+    { command: 'sh', args: ['-lc', 'command -v sh >/dev/null 2>&1'] },
+  ], deps);
+  return {
+    granted: result?.success === true,
+    reason: result?.success === true ? 'Shell execution runtime is available.' : 'No supported shell runtime was found.',
+    details: { platform, command_result: result },
+  };
+}
+
 async function openLinuxPermissionCenter(topic, deps = {}) {
   const resolvedTopic = LINUX_PERMISSION_CENTER_TOPIC_ALIASES[topic] || topic;
   const specs = LINUX_PERMISSION_CENTER_COMMANDS[resolvedTopic] || [];
@@ -378,7 +491,7 @@ async function verifyMicrophoneCapability(deps = {}) {
   };
 }
 
-function probeScreenCapture(permission, deps = {}) {
+async function probeScreenCapture(permission, deps = {}) {
   const platform = deps.platform || process.platform;
   const permissionId = permission.permission_id;
 
@@ -392,37 +505,27 @@ function probeScreenCapture(permission, deps = {}) {
     return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Grant Screen Recording in System Settings > Privacy & Security.', {
       media_status: mediaStatus,
       remediation: 'Open System Settings -> Privacy & Security -> Screen Recording and enable WindieOS.',
-      ...getRequestedStateDetails(permissionId),
     });
   }
 
-  if (isRequestedGranted(permissionId)) {
-    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Screen capture capability was verified.', {
+  const capability = await verifyScreenCaptureCapability(deps);
+  if (capability.granted) {
+    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Screen capture capability is available.', {
       platform,
-      ...getRequestedStateDetails(permissionId),
+      capability_check: capability,
     });
   }
 
-  if (platform === 'win32') {
-    return buildProbeResult(
-      permissionId,
-      PERMISSION_STATUS.NEEDS_ACTION,
-      'Run Grant to verify desktop capture availability on Windows.',
-      {
-        platform,
-        remediation: 'WindieOS will verify desktop capture directly; no Windows privacy settings step is required for standard desktop capture.',
-        ...getRequestedStateDetails(permissionId),
-      },
-    );
-  }
-
-  return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Run Grant to trigger the screen-capture permission flow on this platform.', {
+  return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, capability.reason || 'Screen capture is unavailable on this platform.', {
     platform,
-    ...getRequestedStateDetails(permissionId),
+    capability_check: capability,
+    remediation: platform === 'win32'
+      ? 'Run Grant to verify desktop capture directly; no Windows privacy settings step is required.'
+      : 'Run Grant to verify screen capture on this platform.',
   });
 }
 
-function probeInputControl(permission, deps = {}) {
+async function probeInputControl(permission, deps = {}) {
   const platform = deps.platform || process.platform;
   const systemPreferences = deps.systemPreferences;
   const permissionId = permission.permission_id;
@@ -442,42 +545,24 @@ function probeInputControl(permission, deps = {}) {
     return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Grant Accessibility access in System Settings > Privacy & Security.', {
       trusted,
       remediation: 'Open System Settings -> Privacy & Security -> Accessibility and enable WindieOS.',
-      ...getRequestedStateDetails(permissionId),
     });
   }
 
-  if (platform === 'linux') {
-    if (isRequestedGranted(permissionId)) {
-      return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Input-control capability verified for this system.', {
-        platform,
-        ...getRequestedStateDetails(permissionId),
-      });
-    }
-    return buildProbeResult(
-      permissionId,
-      PERMISSION_STATUS.NEEDS_ACTION,
-      'Run Grant, then enable assistive/input control in your desktop settings.',
-      {
-        platform,
-        ...getRequestedStateDetails(permissionId),
-      },
-    );
-  }
-
-  if (isRequestedGranted(permissionId)) {
-    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Input-control permission flow was completed for this platform.', {
+  const capability = await verifyInputControlCapability(deps);
+  if (capability.granted) {
+    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Input-control capability is available.', {
       platform,
-      ...getRequestedStateDetails(permissionId),
+      verification: capability.details,
     });
   }
 
-  return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Run Grant to start input-control permission setup for this platform.', {
+  return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Input control is not yet available on this system.', {
     platform,
-    ...getRequestedStateDetails(permissionId),
+    verification: capability.details,
   });
 }
 
-function probeMicrophone(permission, deps = {}) {
+async function probeMicrophone(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
   const mediaStatus = getMediaAccessStatus('microphone', deps);
@@ -491,54 +576,58 @@ function probeMicrophone(permission, deps = {}) {
   if (mediaStatus === 'denied' || mediaStatus === 'restricted') {
     return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Enable microphone access for WindieOS in OS privacy settings.', {
       media_status: mediaStatus,
-      ...getRequestedStateDetails(permissionId),
     });
   }
 
-  if (platform === 'linux') {
-    if (isRequestedGranted(permissionId)) {
-      return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Microphone capability verified for this system.', {
-        media_status: mediaStatus,
-        platform,
-        ...getRequestedStateDetails(permissionId),
-      });
-    }
-    return buildProbeResult(
-      permissionId,
-      PERMISSION_STATUS.NEEDS_ACTION,
-      'Run Grant, then approve microphone access in the desktop permission prompt.',
-      {
-        media_status: mediaStatus,
-        platform,
-        ...getRequestedStateDetails(permissionId),
-      },
-    );
-  }
-
-  if (isRequestedGranted(permissionId)) {
-    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Microphone permission flow was completed on this platform.', {
+  const capability = await verifyMicrophoneCapability(deps);
+  if (capability.granted) {
+    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Microphone capability is available.', {
       media_status: mediaStatus,
-      ...getRequestedStateDetails(permissionId),
+      platform,
+      verification: capability.details,
     });
   }
 
-  return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Run Grant to request microphone permission.', {
+  return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, capability.reason || 'Microphone access is not yet available.', {
     media_status: mediaStatus,
-    ...getRequestedStateDetails(permissionId),
+    platform,
+    verification: capability.details,
   });
 }
 
-function probeRuntimeCapability(permission, deps = {}) {
+async function probeFilesystemWorkspaceAccess(permission, deps = {}) {
   const permissionId = permission.permission_id;
-  if (isRequestedGranted(permissionId)) {
-    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Permission request flow completed for this capability.', {
-      platform: deps.platform || process.platform,
-      ...getRequestedStateDetails(permissionId),
+  const platform = deps.platform || process.platform;
+  const capability = await verifyWorkspaceAccessCapability(permissionId, deps);
+
+  if (capability.granted) {
+    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Workspace access is configured.', {
+      platform,
+      ...capability.details,
     });
   }
-  return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Run Grant to complete this capability permission flow.', {
-    platform: deps.platform || process.platform,
-    ...getRequestedStateDetails(permissionId),
+
+  return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, capability.reason || 'Select a workspace folder to continue.', {
+    platform,
+    ...capability.details,
+  });
+}
+
+async function probeShellExecution(permission, deps = {}) {
+  const permissionId = permission.permission_id;
+  const platform = deps.platform || process.platform;
+  const capability = await verifyShellExecutionCapability(deps);
+
+  if (capability.granted) {
+    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, capability.reason || 'Shell execution runtime is available.', {
+      platform,
+      verification: capability.details,
+    });
+  }
+
+  return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, capability.reason || 'Shell execution runtime is unavailable.', {
+    platform,
+    verification: capability.details,
   });
 }
 
@@ -553,21 +642,34 @@ function getBrowserAutomationPreference(deps = {}) {
   return false;
 }
 
-function probeBrowserAutomation(permission, deps = {}) {
+async function probeBrowserAutomation(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
   const preferenceEnabled = getBrowserAutomationPreference(deps);
-  const requestedGranted = isRequestedGranted(permissionId);
+  const capability = await verifyBrowserAutomationCapability(deps);
 
-  if (preferenceEnabled || requestedGranted) {
+  if (!preferenceEnabled) {
     return buildProbeResult(
       permissionId,
-      PERMISSION_STATUS.GRANTED,
-      'Browser automation is enabled.',
+      PERMISSION_STATUS.NEEDS_ACTION,
+      'Enable browser automation to expose browser-control tools.',
       {
         platform,
         browser_automation_enabled: preferenceEnabled,
-        ...getRequestedStateDetails(permissionId),
+        capability_check: capability,
+      },
+    );
+  }
+
+  if (capability.granted) {
+    return buildProbeResult(
+      permissionId,
+      PERMISSION_STATUS.GRANTED,
+      'Browser automation is enabled and runtime-ready.',
+      {
+        platform,
+        browser_automation_enabled: preferenceEnabled,
+        capability_check: capability,
       },
     );
   }
@@ -575,11 +677,11 @@ function probeBrowserAutomation(permission, deps = {}) {
   return buildProbeResult(
     permissionId,
     PERMISSION_STATUS.NEEDS_ACTION,
-    'Enable browser automation to expose browser-control tools.',
+    capability.reason || 'Browser automation runtime is unavailable.',
     {
       platform,
       browser_automation_enabled: preferenceEnabled,
-      ...getRequestedStateDetails(permissionId),
+      capability_check: capability,
     },
   );
 }
@@ -587,8 +689,8 @@ function probeBrowserAutomation(permission, deps = {}) {
 async function verifyBrowserAutomationCapability(deps = {}) {
   if (typeof deps.verifyBrowserAutomationCapability !== 'function') {
     return {
-      granted: true,
-      reason: 'Browser capability verification is not configured; treating enable as allowed.',
+      granted: false,
+      reason: 'Browser capability verification is not configured.',
       details: {},
     };
   }
@@ -699,7 +801,7 @@ async function requestBrowserInstallConsent(deps = {}) {
   }
 }
 
-function runPermissionProbe(permissionId, deps = {}) {
+async function runPermissionProbe(permissionId, deps = {}) {
   const permission = PERMISSION_DEFINITION_BY_ID.get(permissionId);
   if (!permission) {
     return buildProbeResult(permissionId, PERMISSION_STATUS.ERROR, 'Unknown permission id.', {
@@ -710,16 +812,17 @@ function runPermissionProbe(permissionId, deps = {}) {
   try {
     switch (permission.permission_id) {
       case 'screen_capture':
-        return probeScreenCapture(permission, deps);
+        return await probeScreenCapture(permission, deps);
       case 'input_control_accessibility':
-        return probeInputControl(permission, deps);
+        return await probeInputControl(permission, deps);
       case 'microphone':
-        return probeMicrophone(permission, deps);
+        return await probeMicrophone(permission, deps);
       case 'filesystem_workspace_access':
+        return await probeFilesystemWorkspaceAccess(permission, deps);
       case 'shell_execution':
-        return probeRuntimeCapability(permission, deps);
+        return await probeShellExecution(permission, deps);
       case 'browser_automation':
-        return probeBrowserAutomation(permission, deps);
+        return await probeBrowserAutomation(permission, deps);
       default:
         return buildProbeResult(permission.permission_id, PERMISSION_STATUS.UNSUPPORTED, 'No probe implementation found for this permission.', {
           unsupported_permission_id: permission.permission_id,
@@ -746,93 +849,30 @@ function isAuthPromptCanceled(errorText) {
 async function requestScreenCapturePermission(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
+
+  if (platform === 'darwin') {
+    await openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture', deps);
+    return await runPermissionProbe(permissionId, deps);
+  }
+
   const capability = await verifyScreenCaptureCapability(deps);
   const captureResult = capability.details?.capture_prompt_result || {
     success: false,
     reason: capability.reason || 'Desktop capture capability verification failed.',
   };
 
-  if (platform === 'darwin') {
-    await openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture', deps);
-    const status = runPermissionProbe(permissionId, deps);
-    markRequestedPending(permissionId, {
-      flow: 'screen_capture',
-      capture_prompt_result: captureResult,
-    });
-    return status;
-  }
-
-  if (platform === 'linux') {
-    if (captureResult.success) {
-      markRequestedGranted(permissionId, {
-        flow: 'screen_capture_portal',
-        capture_prompt_result: captureResult,
-      });
-      return runPermissionProbe(permissionId, deps);
-    }
-
-    markRequestedPending(permissionId, {
-      flow: 'screen_capture_portal',
-      capture_prompt_result: captureResult,
-    });
-    return buildProbeResult(
-      permissionId,
-      PERMISSION_STATUS.NEEDS_ACTION,
-      'Screen capture was not granted. Click Grant and approve the system screen-share prompt.',
-      {
-        platform,
-        capture_prompt_result: captureResult,
-      },
-    );
-  }
-
-  if (platform === 'win32') {
-    if (capability.granted) {
-      markRequestedGranted(permissionId, {
-        flow: 'screen_capture_capability_check',
-        capture_prompt_result: captureResult,
-        capability_check: capability,
-      });
-      return runPermissionProbe(permissionId, deps);
-    }
-
-    markRequestedPending(permissionId, {
-      flow: 'screen_capture_capability_check',
+  if (capability.granted) {
+    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Screen capture capability is available.', {
+      platform,
       capture_prompt_result: captureResult,
       capability_check: capability,
     });
-    return buildProbeResult(
-      permissionId,
-      PERMISSION_STATUS.NEEDS_ACTION,
-      capability.reason || 'Screen capture is unavailable on this Windows system.',
-      {
-        platform,
-        capture_prompt_result: captureResult,
-        capability_check: capability,
-      },
-    );
   }
 
-  const settingsResult = { success: false, reason: 'No settings action attempted.' };
-
-  if (captureResult.success || settingsResult.success) {
-    markRequestedGranted(permissionId, {
-      flow: 'screen_capture',
-      capture_prompt_result: captureResult,
-      settings_result: settingsResult,
-    });
-    return runPermissionProbe(permissionId, deps);
-  }
-
-  markRequestedPending(permissionId, {
-    flow: 'screen_capture',
-    capture_prompt_result: captureResult,
-    settings_result: settingsResult,
-  });
-  return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Failed to start the screen-capture permission flow.', {
+  return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, capability.reason || 'Screen capture is unavailable on this platform.', {
     platform,
     capture_prompt_result: captureResult,
-    settings_result: settingsResult,
+    capability_check: capability,
   });
 }
 
@@ -848,22 +888,16 @@ async function requestInputControlPermission(permission, deps = {}) {
     }
     if (!prompted) {
       await openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility', deps);
-      markRequestedPending(permissionId, { flow: 'input_control_accessibility', prompted });
-      return runPermissionProbe(permissionId, deps);
+      return await runPermissionProbe(permissionId, deps);
     }
 
-    markRequestedGranted(permissionId, { flow: 'input_control_accessibility', prompted });
-    return runPermissionProbe(permissionId, deps);
+    return await runPermissionProbe(permissionId, deps);
   }
 
   if (platform === 'linux' || platform === 'win32') {
     const initialVerify = await verifyInputControlCapability(deps);
     if (initialVerify.granted) {
-      markRequestedGranted(permissionId, {
-        flow: 'input_control_accessibility_preverified',
-        verification: initialVerify.details,
-      });
-      return runPermissionProbe(permissionId, deps);
+      return await runPermissionProbe(permissionId, deps);
     }
   }
 
@@ -877,19 +911,9 @@ async function requestInputControlPermission(permission, deps = {}) {
   if (platform === 'linux' || platform === 'win32') {
     const verifyResult = await verifyInputControlCapability(deps);
     if (verifyResult.granted) {
-      markRequestedGranted(permissionId, {
-        flow: 'input_control_accessibility',
-        settings_result: settingsResult,
-        verification: verifyResult.details,
-      });
-      return runPermissionProbe(permissionId, deps);
+      return await runPermissionProbe(permissionId, deps);
     }
 
-    markRequestedPending(permissionId, {
-      flow: 'input_control_accessibility',
-      settings_result: settingsResult,
-      verification: verifyResult.details,
-    });
     return buildProbeResult(
       permissionId,
       PERMISSION_STATUS.NEEDS_ACTION,
@@ -903,17 +927,9 @@ async function requestInputControlPermission(permission, deps = {}) {
   }
 
   if (settingsResult.success) {
-    markRequestedGranted(permissionId, {
-      flow: 'input_control_accessibility',
-      settings_result: settingsResult,
-    });
-    return runPermissionProbe(permissionId, deps);
+    return await runPermissionProbe(permissionId, deps);
   }
 
-  markRequestedPending(permissionId, {
-    flow: 'input_control_accessibility',
-    settings_result: settingsResult,
-  });
   return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Failed to open input-control permission settings.', {
     platform,
     settings_result: settingsResult,
@@ -991,14 +1007,7 @@ async function requestMicrophonePermission(permission, deps = {}) {
   if ((platform === 'linux' || platform === 'win32') && !promptResult.success) {
     const initialVerify = await verifyMicrophoneCapability(deps);
     if (initialVerify.granted) {
-      markRequestedGranted(permissionId, {
-        flow: 'microphone_preverified',
-        focus_result: focusResult,
-        prompt_result: promptResult,
-        renderer_prompt_result: rendererPromptResult,
-        verification: initialVerify.details,
-      });
-      return runPermissionProbe(permissionId, deps);
+      return await runPermissionProbe(permissionId, deps);
     }
   }
 
@@ -1013,40 +1022,17 @@ async function requestMicrophonePermission(permission, deps = {}) {
     }
   }
 
-  const probe = runPermissionProbe(permissionId, deps);
+  const probe = await runPermissionProbe(permissionId, deps);
   if (probe.status === PERMISSION_STATUS.GRANTED) {
-    markRequestedGranted(permissionId, {
-      flow: 'microphone',
-      focus_result: focusResult,
-      prompt_result: promptResult,
-      renderer_prompt_result: rendererPromptResult,
-      settings_result: settingsResult,
-    });
     return probe;
   }
 
   if (platform === 'linux' || platform === 'win32') {
     const verifyResult = await verifyMicrophoneCapability(deps);
     if (verifyResult.granted) {
-      markRequestedGranted(permissionId, {
-        flow: 'microphone',
-        focus_result: focusResult,
-        prompt_result: promptResult,
-        renderer_prompt_result: rendererPromptResult,
-        settings_result: settingsResult,
-        verification: verifyResult.details,
-      });
-      return runPermissionProbe(permissionId, deps);
+      return await runPermissionProbe(permissionId, deps);
     }
 
-    markRequestedPending(permissionId, {
-      flow: 'microphone',
-      focus_result: focusResult,
-      prompt_result: promptResult,
-      renderer_prompt_result: rendererPromptResult,
-      settings_result: settingsResult,
-      verification: verifyResult.details,
-    });
     return buildProbeResult(
       permissionId,
       PERMISSION_STATUS.NEEDS_ACTION,
@@ -1062,13 +1048,6 @@ async function requestMicrophonePermission(permission, deps = {}) {
     );
   }
 
-  markRequestedPending(permissionId, {
-    flow: 'microphone',
-    focus_result: focusResult,
-    prompt_result: promptResult,
-    renderer_prompt_result: rendererPromptResult,
-    settings_result: settingsResult,
-  });
   return probe;
 }
 
@@ -1078,10 +1057,6 @@ async function requestFilesystemWorkspaceAccessPermission(permission, deps = {})
   const platform = deps.platform || process.platform;
 
   if (!dialog || typeof dialog.showOpenDialog !== 'function') {
-    markRequestedPending(permissionId, {
-      flow: 'filesystem_workspace_access',
-      reason: 'dialog.showOpenDialog unavailable',
-    });
     return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Workspace access prompt is unavailable in this runtime.', {
       platform,
     });
@@ -1095,25 +1070,21 @@ async function requestFilesystemWorkspaceAccessPermission(permission, deps = {})
     });
 
     if (!result || result.canceled === true || !Array.isArray(result.filePaths) || result.filePaths.length === 0) {
-      markRequestedPending(permissionId, {
-        flow: 'filesystem_workspace_access',
-        canceled: true,
-      });
       return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Workspace access was not granted. Select a folder to continue.', {
         platform,
       });
     }
 
-    markRequestedGranted(permissionId, {
-      flow: 'filesystem_workspace_access',
+    await setStoredPermissionEntry(permissionId, {
+      granted: true,
+      source: 'workspace_picker',
       selected_paths: result.filePaths,
-    });
-    return runPermissionProbe(permissionId, deps);
+      details: {
+        selected_paths: result.filePaths,
+      },
+    }, deps);
+    return await runPermissionProbe(permissionId, deps);
   } catch (error) {
-    markRequestedPending(permissionId, {
-      flow: 'filesystem_workspace_access',
-      error: error?.message || String(error),
-    });
     return buildProbeResult(permissionId, PERMISSION_STATUS.ERROR, error?.message || 'Failed to open workspace access prompt.', {
       platform,
     });
@@ -1143,17 +1114,12 @@ async function requestShellExecutionPermission(permission, deps = {}) {
 
   const errorText = result?.stderr || result?.error || result?.reason || '';
   if (result?.success === true) {
-    markRequestedGranted(permissionId, {
-      flow: 'shell_execution',
+    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Shell execution authentication flow completed.', {
+      platform,
       command_result: result,
     });
-    return runPermissionProbe(permissionId, deps);
   }
 
-  markRequestedPending(permissionId, {
-    flow: 'shell_execution',
-    command_result: result,
-  });
   return buildProbeResult(
     permissionId,
     PERMISSION_STATUS.NEEDS_ACTION,
@@ -1174,23 +1140,16 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
   let capability = await verifyBrowserAutomationCapability(deps);
 
   if (capability.granted) {
-    markRequestedGranted(permissionId, {
-      flow: 'browser_automation',
+    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Browser automation runtime is ready.', {
+      platform,
       browser_automation_enabled: preferenceEnabled,
       capability_check: capability,
     });
-    return runPermissionProbe(permissionId, deps);
   }
 
   if (shouldPromptBrowserRuntimeInstall(capability)) {
     const consent = await requestBrowserInstallConsent(deps);
     if (!consent.granted) {
-      markRequestedPending(permissionId, {
-        flow: 'browser_automation',
-        browser_automation_enabled: preferenceEnabled,
-        capability_check: capability,
-        install_prompt: consent,
-      });
       return buildProbeResult(
         permissionId,
         PERMISSION_STATUS.NEEDS_ACTION,
@@ -1207,21 +1166,14 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
     const installResult = await requestBrowserRuntimeInstall(deps);
     capability = await verifyBrowserAutomationCapability(deps);
     if (capability.granted) {
-      markRequestedGranted(permissionId, {
-        flow: 'browser_automation',
+      return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Browser automation runtime is ready.', {
+        platform,
         browser_automation_enabled: preferenceEnabled,
         capability_check: capability,
         chromium_install: installResult,
       });
-      return runPermissionProbe(permissionId, deps);
     }
 
-    markRequestedPending(permissionId, {
-      flow: 'browser_automation',
-      browser_automation_enabled: preferenceEnabled,
-      capability_check: capability,
-      chromium_install: installResult,
-    });
     return buildProbeResult(
       permissionId,
       PERMISSION_STATUS.NEEDS_ACTION,
@@ -1235,11 +1187,6 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
     );
   }
 
-  markRequestedPending(permissionId, {
-    flow: 'browser_automation',
-    browser_automation_enabled: preferenceEnabled,
-    capability_check: capability,
-  });
   return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, capability.reason || 'Browser automation runtime is unavailable.', {
     platform,
     browser_automation_enabled: preferenceEnabled,
@@ -1285,24 +1232,20 @@ function listPermissionDefinitions() {
   return PERMISSION_DEFINITIONS.map(clonePermissionDefinition);
 }
 
-function checkPermissions(permissionIds = null, deps = {}) {
+async function checkPermissions(permissionIds = null, deps = {}) {
   const ids = Array.isArray(permissionIds)
     ? permissionIds.filter((id) => typeof id === 'string' && id.length > 0)
     : PERMISSION_DEFINITIONS.map((permission) => permission.permission_id);
-  return ids.map((permissionId) => runPermissionProbe(permissionId, deps));
+  return await Promise.all(ids.map((permissionId) => runPermissionProbe(permissionId, deps)));
 }
 
-function listPermissionsWithStatus(deps = {}) {
+async function listPermissionsWithStatus(deps = {}) {
   return {
     manifest_version: String(PERMISSION_MANIFEST.manifest_version || '1'),
     generated_at: PERMISSION_MANIFEST.generated_at || null,
     permissions: listPermissionDefinitions(),
-    statuses: checkPermissions(null, deps),
+    statuses: await checkPermissions(null, deps),
   };
-}
-
-function resetPermissionRequestStateForTests() {
-  REQUESTED_PERMISSION_STATE.clear();
 }
 
 module.exports = {
@@ -1310,5 +1253,4 @@ module.exports = {
   runPermissionProbe,
   requestPermission,
   listPermissionsWithStatus,
-  resetPermissionRequestStateForTests,
 };

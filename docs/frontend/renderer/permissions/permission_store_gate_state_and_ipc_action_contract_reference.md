@@ -24,6 +24,7 @@ title: "Permission Store Gate-State and IPC Action Contract Reference"
 
 - manifest metadata: `manifestVersion`, `generatedAt`
 - manifest snapshot: `permissions`
+  - each permission now includes presentation metadata such as `access_kind` and `grant_action_label`
 - normalized status index: `statusesByPermissionId`
 - gate derivation outputs:
   - `requiredPermissionIds`
@@ -37,8 +38,8 @@ Current runtime-consumer reality:
 
 - active UI callers in current renderer runtime are `bootstrapPermissions`, `runPermissionProbe`,
   and `recheckAllPermissions` (via `PermissionControlCenter`)
-- `requestPermission` and `completeOnboarding` remain exported
-  but have no active renderer caller in current code paths
+- onboarding also calls `requestPermission(permissionId)` via `FrontendOnboardingSlideshow`
+- `completeOnboarding` remains exported for any future gate-completion surface
 
 ## Status Normalization Contract
 
@@ -68,6 +69,11 @@ Algorithm:
 2. `missingRequiredPermissions = requiredPermissionIds` where status `granted !== true`
 3. `completedForManifest = onboarding.manifest_version === manifestVersion && onboarding.completed === true`
 4. `needsOnboarding = !completedForManifest || missingRequiredPermissions.length > 0`
+
+Important current manifest consequence:
+
+- runtime checks such as `shell_execution` are no longer `required_now`
+- onboarding gate is therefore driven by real OS/resource setup items rather than every capability-like row
 
 ## Shared Status-Update Helper
 
@@ -100,6 +106,8 @@ Callers:
   - clears `isLoading`
 
 `bootstrapped=true` on failure is intentional so renderer surfaces can show error state instead of spinning indefinitely.
+
+Main-process runtime now performs async startup probes before returning the initial manifest snapshot.
 
 ### `runPermissionProbe(permissionId)`
 
@@ -156,14 +164,13 @@ On guard failure:
 
 - Renderer `App.jsx` startup is not permission-gated in current runtime.
 - `PermissionControlCenter` mounts this store and uses probe/recheck actions.
+- `FrontendOnboardingSlideshow` uses the manifest presentation metadata to render action labels and item-kind copy.
 - Store gate-state fields remain authoritative for any surfaces that still depend on onboarding state.
-- Current renderer runtime has no mounted onboarding wizard component that consumes
-  `needsOnboarding`, consent toggles, or `completeOnboarding()`.
 
 ## Test-Backed Notes
 
 - `PermissionStorage.test.js` covers storage defaults, round-trip save/load, and malformed JSON fail-closed behavior.
-- `PermissionService.test.cjs` covers main-process probe/request normalization contracts consumed by store actions.
+- `PermissionService.test.cjs` covers async main-process probe/request normalization, workspace-access persistence, and Windows screen-capture verification contracts consumed by store actions.
 - No dedicated `permissionStore` unit test currently verifies every state transition path end-to-end.
 
 ## Drift Hotspots

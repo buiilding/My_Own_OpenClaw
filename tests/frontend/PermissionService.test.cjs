@@ -3,17 +3,34 @@
 const {
   listPermissionsWithStatus,
   requestPermission,
-  resetPermissionRequestStateForTests,
   runPermissionProbe,
 } = require('../../frontend/src/main/permission_service.cjs');
 
+function createMockPermissionStateStore() {
+  const state = new Map();
+  return {
+    get: jest.fn(async (permissionId) => state.get(permissionId) || null),
+    set: jest.fn(async (permissionId, entry) => {
+      state.set(permissionId, entry);
+      return entry;
+    }),
+    delete: jest.fn(async (permissionId) => state.delete(permissionId)),
+  };
+}
+
 describe('permission_service', () => {
+  let permissionStateStore;
+
   beforeEach(() => {
-    resetPermissionRequestStateForTests();
+    permissionStateStore = createMockPermissionStateStore();
   });
 
-  test('returns manifest snapshot with per-permission status entries', () => {
-    const result = listPermissionsWithStatus({ platform: 'linux' });
+  test('returns manifest snapshot with per-permission status entries', async () => {
+    const result = await listPermissionsWithStatus({
+      platform: 'linux',
+      permissionStateStore,
+      verifyBrowserAutomationCapability: jest.fn(async () => ({ granted: false })),
+    });
 
     expect(typeof result.manifest_version).toBe('string');
     expect(Array.isArray(result.permissions)).toBe(true);
@@ -22,8 +39,8 @@ describe('permission_service', () => {
     expect(result.statuses).toHaveLength(result.permissions.length);
   });
 
-  test('screen capture probe on macOS requires action when screen access missing', () => {
-    const status = runPermissionProbe('screen_capture', {
+  test('screen capture probe on macOS requires action when screen access missing', async () => {
+    const status = await runPermissionProbe('screen_capture', {
       platform: 'darwin',
       systemPreferences: {
         getMediaAccessStatus: jest.fn(() => 'denied'),
@@ -42,6 +59,7 @@ describe('permission_service', () => {
 
     const status = await requestPermission('microphone', {
       platform: 'darwin',
+      permissionStateStore,
       systemPreferences: {
         askForMediaAccess,
         getMediaAccessStatus,
@@ -64,6 +82,7 @@ describe('permission_service', () => {
 
     const status = await requestPermission('microphone', {
       platform: 'darwin',
+      permissionStateStore,
       shell: {
         openExternal,
       },
@@ -84,14 +103,19 @@ describe('permission_service', () => {
   });
 
   test('filesystem access starts as needs-action and becomes granted after folder picker selection', async () => {
-    const initial = runPermissionProbe('filesystem_workspace_access', {
+    const initial = await runPermissionProbe('filesystem_workspace_access', {
       platform: 'linux',
+      permissionStateStore,
     });
     expect(initial.status).toBe('needs-action');
     expect(initial.granted).toBe(false);
 
     const status = await requestPermission('filesystem_workspace_access', {
       platform: 'linux',
+      permissionStateStore,
+      fs: {
+        existsSync: jest.fn(() => true),
+      },
       dialog: {
         showOpenDialog: jest.fn(async () => ({
           canceled: false,
@@ -102,6 +126,16 @@ describe('permission_service', () => {
 
     expect(status.status).toBe('granted');
     expect(status.granted).toBe(true);
+
+    const reprobe = await runPermissionProbe('filesystem_workspace_access', {
+      platform: 'linux',
+      permissionStateStore,
+      fs: {
+        existsSync: jest.fn(() => true),
+      },
+    });
+    expect(reprobe.status).toBe('granted');
+    expect(reprobe.details.selected_paths).toEqual(['/tmp/windieos-workspace']);
   });
 
   test('shell execution grant flow can be satisfied through elevated command prompt', async () => {
@@ -114,6 +148,7 @@ describe('permission_service', () => {
 
     const status = await requestPermission('shell_execution', {
       platform: 'linux',
+      permissionStateStore,
       runCommand,
     });
 
@@ -131,6 +166,7 @@ describe('permission_service', () => {
     }));
     const grantedStatus = await requestPermission('screen_capture', {
       platform: 'linux',
+      permissionStateStore,
       desktopCapturer: {
         getSources: jest.fn(async () => ([])),
       },
@@ -141,9 +177,9 @@ describe('permission_service', () => {
     expect(grantedStatus.granted).toBe(true);
     expect(runCommand).not.toHaveBeenCalled();
 
-    resetPermissionRequestStateForTests();
     const deniedStatus = await requestPermission('screen_capture', {
       platform: 'linux',
+      permissionStateStore: createMockPermissionStateStore(),
       desktopCapturer: {
         getSources: jest.fn(async () => {
           throw new Error('portal canceled');
@@ -154,7 +190,7 @@ describe('permission_service', () => {
 
     expect(deniedStatus.status).toBe('needs-action');
     expect(deniedStatus.granted).toBe(false);
-    expect(String(deniedStatus.reason || '')).toContain('Screen capture was not granted');
+    expect(String(deniedStatus.reason || '')).toContain('portal canceled');
     expect(runCommand).not.toHaveBeenCalled();
   });
 
@@ -168,6 +204,7 @@ describe('permission_service', () => {
 
     const status = await requestPermission('input_control_accessibility', {
       platform: 'linux',
+      permissionStateStore,
       runCommand,
       verifyInputControlCapability: jest.fn(async () => ({ granted: false })),
     });
@@ -187,6 +224,7 @@ describe('permission_service', () => {
 
     const status = await requestPermission('microphone', {
       platform: 'linux',
+      permissionStateStore,
       runCommand,
       verifyMicrophoneCapability: jest.fn(async () => ({ granted: false })),
     });
@@ -204,6 +242,7 @@ describe('permission_service', () => {
   test('linux input control can become granted after verifier passes', async () => {
     const status = await requestPermission('input_control_accessibility', {
       platform: 'linux',
+      permissionStateStore,
       verifyInputControlCapability: jest.fn(async () => ({ granted: true })),
     });
 
@@ -214,6 +253,7 @@ describe('permission_service', () => {
   test('linux microphone can become granted after verifier passes', async () => {
     const status = await requestPermission('microphone', {
       platform: 'linux',
+      permissionStateStore,
       verifyMicrophoneCapability: jest.fn(async () => ({ granted: true })),
     });
 
@@ -227,6 +267,7 @@ describe('permission_service', () => {
 
     const status = await requestPermission('screen_capture', {
       platform: 'win32',
+      permissionStateStore,
       desktopCapturer: {
         getSources,
       },
@@ -245,13 +286,14 @@ describe('permission_service', () => {
     const openExternal = jest.fn(async () => true);
     const status = await requestPermission('screen_capture', {
       platform: 'win32',
+      permissionStateStore,
       desktopCapturer: {
         getSources: jest.fn(async () => {
           throw new Error('capture denied');
         }),
       },
       shell: {
-        openExternal: jest.fn(async () => true),
+        openExternal,
       },
     });
 
@@ -261,17 +303,19 @@ describe('permission_service', () => {
     expect(String(status.reason || '')).toContain('capture denied');
   });
 
-  test('browser automation probe reflects frontend enable preference', () => {
-    const disabled = runPermissionProbe('browser_automation', {
+  test('browser automation probe reflects frontend enable preference and runtime readiness', async () => {
+    const disabled = await runPermissionProbe('browser_automation', {
       platform: 'linux',
       getBrowserAutomationPreference: () => false,
+      verifyBrowserAutomationCapability: jest.fn(async () => ({ granted: true })),
     });
     expect(disabled.status).toBe('needs-action');
     expect(disabled.granted).toBe(false);
 
-    const enabled = runPermissionProbe('browser_automation', {
+    const enabled = await runPermissionProbe('browser_automation', {
       platform: 'linux',
       getBrowserAutomationPreference: () => true,
+      verifyBrowserAutomationCapability: jest.fn(async () => ({ granted: true })),
     });
     expect(enabled.status).toBe('granted');
     expect(enabled.granted).toBe(true);
@@ -280,6 +324,7 @@ describe('permission_service', () => {
   test('browser automation request returns needs-action when capability check fails', async () => {
     const status = await requestPermission('browser_automation', {
       platform: 'linux',
+      permissionStateStore,
       getBrowserAutomationPreference: () => false,
       verifyBrowserAutomationCapability: jest.fn(async () => ({
         granted: false,
@@ -295,6 +340,7 @@ describe('permission_service', () => {
   test('browser automation request can be granted after capability check succeeds', async () => {
     const status = await requestPermission('browser_automation', {
       platform: 'linux',
+      permissionStateStore,
       getBrowserAutomationPreference: () => true,
       verifyBrowserAutomationCapability: jest.fn(async () => ({
         granted: true,
@@ -327,6 +373,7 @@ describe('permission_service', () => {
 
     const status = await requestPermission('browser_automation', {
       platform: 'linux',
+      permissionStateStore,
       getBrowserAutomationPreference: () => true,
       verifyBrowserAutomationCapability,
       installBrowserAutomationRuntime,
@@ -351,6 +398,7 @@ describe('permission_service', () => {
 
     const status = await requestPermission('browser_automation', {
       platform: 'linux',
+      permissionStateStore,
       getBrowserAutomationPreference: () => false,
       verifyBrowserAutomationCapability,
       installBrowserAutomationRuntime,
@@ -364,8 +412,11 @@ describe('permission_service', () => {
     expect(String(status.reason || '')).toContain('canceled');
   });
 
-  test('unknown permission id returns error status', () => {
-    const status = runPermissionProbe('unknown_permission', { platform: 'linux' });
+  test('unknown permission id returns error status', async () => {
+    const status = await runPermissionProbe('unknown_permission', {
+      platform: 'linux',
+      permissionStateStore,
+    });
     expect(status.status).toBe('error');
     expect(status.granted).toBe(false);
   });
