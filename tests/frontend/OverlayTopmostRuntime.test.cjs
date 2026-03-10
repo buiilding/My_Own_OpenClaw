@@ -58,33 +58,32 @@ describe('overlay_topmost_runtime', () => {
     expect(success).toBe(true);
     expect(targetWindow.setVisibleOnAllWorkspaces).toHaveBeenCalledWith(true, {
       visibleOnFullScreen: true,
-      skipTransformProcessType: true,
     });
   });
 
-  test('falls back to default workspace options when mac skipTransform flag is unsupported', () => {
+  test('warns when workspace pinning fails', () => {
     const targetWindow = {
       setVisibleOnAllWorkspaces: jest.fn()
         .mockImplementationOnce(() => {
           throw new Error('unsupported option');
-        })
-        .mockImplementationOnce(() => {}),
+        }),
     };
+    const warn = jest.fn();
 
     const success = setOverlayVisibleOnAllWorkspaces({
       targetWindow,
       platform: 'darwin',
-      warn: jest.fn(),
+      warn,
       windowLabel: 'chat box',
     });
 
-    expect(success).toBe(true);
-    expect(targetWindow.setVisibleOnAllWorkspaces).toHaveBeenNthCalledWith(1, true, {
-      visibleOnFullScreen: true,
-      skipTransformProcessType: true,
-    });
-    expect(targetWindow.setVisibleOnAllWorkspaces).toHaveBeenNthCalledWith(2, true, {
+    expect(success).toBe(false);
+    expect(targetWindow.setVisibleOnAllWorkspaces).toHaveBeenCalledWith(true, {
       visibleOnFullScreen: true,
     });
+    expect(warn).toHaveBeenCalledWith(
+      '[Main] Failed to pin chat box across workspaces/fullscreen:',
+      'unsupported option',
+    );
   });
 });

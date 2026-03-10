@@ -43,19 +43,6 @@ function setOverlayVisibleOnAllWorkspaces({
   }
 
   const sharedOptions = { visibleOnFullScreen: true };
-  const preferredOptions = platform === 'darwin'
-    ? { ...sharedOptions, skipTransformProcessType: true }
-    : sharedOptions;
-
-  try {
-    targetWindow.setVisibleOnAllWorkspaces(true, preferredOptions);
-    return true;
-  } catch (_error) {
-    if (platform !== 'darwin') {
-      warn(`[Main] Failed to pin ${windowLabel} across workspaces/fullscreen:`, _error?.message || _error);
-      return false;
-    }
-  }
 
   try {
     targetWindow.setVisibleOnAllWorkspaces(true, sharedOptions);
