@@ -392,6 +392,10 @@ describe('permission_service', () => {
   });
 
   test('browser automation request can be granted after capability check succeeds', async () => {
+    const warmBrowserAutomationPermission = jest.fn(async () => ({
+      success: true,
+      details: { status: 'successful' },
+    }));
     const status = await requestPermission('browser_automation', {
       platform: 'linux',
       permissionStateStore,
@@ -400,11 +404,14 @@ describe('permission_service', () => {
         granted: true,
         details: { browser_feature_pack_available: true },
       })),
+      warmBrowserAutomationPermission,
     });
 
+    expect(warmBrowserAutomationPermission).toHaveBeenCalledTimes(1);
     expect(status.status).toBe('granted');
     expect(status.granted).toBe(true);
     expect(status.details.browser_automation_enabled).toBe(true);
+    expect(status.details.browser_warmup.success).toBe(true);
   });
 
   test('browser automation request installs chromium when missing and consented', async () => {
@@ -424,6 +431,10 @@ describe('permission_service', () => {
       details: { installed: true },
     }));
     const showMessageBox = jest.fn(async () => ({ response: 0 }));
+    const warmBrowserAutomationPermission = jest.fn(async () => ({
+      success: true,
+      details: { status: 'successful' },
+    }));
 
     const status = await requestPermission('browser_automation', {
       platform: 'linux',
@@ -431,14 +442,39 @@ describe('permission_service', () => {
       getBrowserAutomationPreference: () => true,
       verifyBrowserAutomationCapability,
       installBrowserAutomationRuntime,
+      warmBrowserAutomationPermission,
       dialog: { showMessageBox },
     });
 
     expect(showMessageBox).toHaveBeenCalledTimes(1);
     expect(installBrowserAutomationRuntime).toHaveBeenCalledTimes(1);
     expect(verifyBrowserAutomationCapability).toHaveBeenCalledTimes(2);
+    expect(warmBrowserAutomationPermission).toHaveBeenCalledTimes(1);
     expect(status.status).toBe('granted');
     expect(status.granted).toBe(true);
+  });
+
+  test('browser automation request stays needs-action when browser warmup fails', async () => {
+    const warmBrowserAutomationPermission = jest.fn(async () => ({
+      success: false,
+      error: 'Failed to connect to Chrome.',
+    }));
+
+    const status = await requestPermission('browser_automation', {
+      platform: 'darwin',
+      permissionStateStore,
+      getBrowserAutomationPreference: () => true,
+      verifyBrowserAutomationCapability: jest.fn(async () => ({
+        granted: true,
+        details: { browser_feature_pack_available: true },
+      })),
+      warmBrowserAutomationPermission,
+    });
+
+    expect(warmBrowserAutomationPermission).toHaveBeenCalledTimes(1);
+    expect(status.status).toBe('needs-action');
+    expect(status.granted).toBe(false);
+    expect(String(status.reason || '')).toContain('Failed to connect to Chrome');
   });
 
   test('browser automation request stays needs-action when chromium install is declined', async () => {

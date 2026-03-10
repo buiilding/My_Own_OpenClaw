@@ -56,6 +56,7 @@ Permission definition fields cloned by service:
   - probes runtime availability (shell/PowerShell presence), not cached authorization state
 - `browser_automation`:
   - requires both frontend enablement and backend runtime verification; missing verifier now fails closed
+  - pre-grant guidance now tells users that WindieOS will open its dedicated browser so they can sign in with the profile WindieOS should use
 
 Status payload shape:
 
@@ -85,7 +86,8 @@ Unknown permission ids return `status: error`.
 - `shell_execution`:
   - runs an elevated authentication flow and reports success/failure for that attempt without caching a fake permanent grant
 - `browser_automation`:
-  - verifies runtime availability, optionally installs Chromium on consent, and returns readiness status for the renderer-owned enablement toggle
+  - verifies runtime availability, optionally installs Chromium on consent, then runs a real dedicated `browser connect` warm-up so onboarding/settings can open the WindieOS browser ahead of first task use
+  - successful request leaves the dedicated WindieOS browser available for sign-in/profile setup; status is inferred from real connect success, not a separate OS permission probe
 - macOS deep links via `shell.openExternal(...)`:
   - screen capture -> privacy screen-capture pane
   - accessibility input control -> privacy accessibility pane

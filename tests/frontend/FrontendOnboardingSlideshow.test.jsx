@@ -30,9 +30,9 @@ const mockPermissionState = {
     {
       permission_id: 'browser_automation',
       label: 'Browser automation',
-      description: 'Enable browser session automation for navigation and data extraction tasks.',
+      description: 'Open the WindieOS browser so you can sign in with the profile WindieOS should use for browsing, navigation, and web tasks.',
       access_kind: 'app_capability',
-      grant_action_label: 'Enable',
+      grant_action_label: 'Open browser',
       required_now: false,
     },
   ],
@@ -50,7 +50,7 @@ const mockPermissionState = {
     browser_automation: {
       status: 'needs-action',
       granted: false,
-      reason: 'Enable browser automation to expose browser-control tools.',
+      reason: 'Open the WindieOS browser and sign in with the profile WindieOS should use for browser help.',
     },
   },
   error: '',
@@ -118,9 +118,9 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(screen.getByRole('heading', { name: 'Browser automation' })).toBeInTheDocument();
     expect(screen.getAllByText('OS Permission')).toHaveLength(2);
     expect(screen.getByText('App Capability')).toBeInTheDocument();
-    expect(screen.getByText('Enable browser automation to expose browser-control tools.')).toBeInTheDocument();
+    expect(screen.getByText('Open the WindieOS browser so you can sign in with the profile WindieOS should use for browsing, navigation, and web tasks.')).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Grant' })).toHaveLength(1);
-    expect(screen.getByRole('button', { name: 'Enable' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open browser' })).toBeInTheDocument();
     expect(screen.getAllByLabelText('Granted')).toHaveLength(1);
     expect(screen.queryByRole('heading', { name: 'Planned system-access scope' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Minimize window' })).toBeInTheDocument();
@@ -136,7 +136,7 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(mockUpdateConfig).not.toHaveBeenCalled();
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Enable' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Open browser' }));
     });
     expect(mockRequestPermission).toHaveBeenCalledWith('browser_automation');
     expect(mockUpdateConfig).toHaveBeenCalledWith({ browser_automation_enabled: true });
