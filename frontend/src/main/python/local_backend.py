@@ -261,22 +261,21 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
 
         if system_name == "Darwin":
             patterns = [
-                str(playwright_root / "chromium-*" / "chrome-mac" / "Chromium.app" / "Contents" / "MacOS" / "Chromium"),
                 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
                 "/Applications/Chromium.app/Contents/MacOS/Chromium",
                 "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
                 "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+                "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+                str(playwright_root / "chromium-*" / "chrome-mac" / "Chromium.app" / "Contents" / "MacOS" / "Chromium"),
                 str(playwright_root / "chromium_headless_shell-*" / "chrome-mac" / "Chromium.app" / "Contents" / "MacOS" / "Chromium"),
             ]
         elif system_name == "Windows":
             patterns = [
-                str(playwright_root / "chromium-*" / "chrome-win" / "chrome.exe"),
                 r"C:\Program Files\Google\Chrome\Application\chrome.exe",
                 r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
                 r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe",
                 r"%PROGRAMFILES%\Google\Chrome\Application\chrome.exe",
                 r"%PROGRAMFILES(X86)%\Google\Chrome\Application\chrome.exe",
-                str(playwright_root / "chromium_headless_shell-*" / "chrome-win" / "chrome.exe"),
                 r"C:\Program Files\Chromium\Application\chrome.exe",
                 r"C:\Program Files (x86)\Chromium\Application\chrome.exe",
                 r"%LOCALAPPDATA%\Chromium\Application\chrome.exe",
@@ -285,10 +284,11 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
                 r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
                 r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
                 r"%LOCALAPPDATA%\Microsoft\Edge\Application\msedge.exe",
+                str(playwright_root / "chromium-*" / "chrome-win" / "chrome.exe"),
+                str(playwright_root / "chromium_headless_shell-*" / "chrome-win" / "chrome.exe"),
             ]
         else:
             patterns = [
-                str(playwright_root / "chromium-*" / "chrome-linux*" / "chrome"),
                 "/usr/bin/google-chrome-stable",
                 "/usr/bin/google-chrome",
                 "/usr/local/bin/google-chrome",
@@ -299,6 +299,9 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
                 "/usr/bin/google-chrome-beta",
                 "/usr/bin/google-chrome-dev",
                 "/usr/bin/brave-browser",
+                "/usr/bin/microsoft-edge",
+                "/usr/bin/microsoft-edge-stable",
+                str(playwright_root / "chromium-*" / "chrome-linux*" / "chrome"),
                 str(playwright_root / "chromium_headless_shell-*" / "chrome-linux*" / "chrome"),
             ]
 

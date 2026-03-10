@@ -149,16 +149,6 @@ describe('runtime_paths sidecar launch target resolution', () => {
     });
   });
 
-  test('resolves bundled playwright browser payload directory in packaged mode', () => {
-    withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
-      app.isPackaged = true;
-      const bundledPlaywrightPath = '/opt/WindieOS/resources/python-runtime/ms-playwright';
-      fs.existsSync.mockImplementation((candidate) => candidate === bundledPlaywrightPath);
-
-      expect(runtimePaths.resolveBundledPlaywrightBrowsersPath()).toBe(bundledPlaywrightPath);
-    });
-  });
-
   test('uses development source path when app is not packaged', () => {
     withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
       app.isPackaged = false;

@@ -30,17 +30,15 @@ Startup sequence:
 `startLocalBackend(...)` behavior:
 
 1. resolve launch target (`resolveSidecarLaunchTarget('local_backend.py')`)
-2. packaged builds probe bundled Playwright browser payload (`resolveBundledPlaywrightBrowsersPath`)
-3. fail-close when launch target is python and command is missing:
+2. fail-close when launch target is python and command is missing:
 - packaged: bundled runtime reinstall guidance
 - dev: install Python / set `WINDIE_PYTHON_PATH` guidance
-4. fail-close when launch target is python and script path is missing
-5. spawn child process with:
+3. fail-close when launch target is python and script path is missing
+4. spawn child process with:
 - `cwd` = script directory
 - `PYTHONUNBUFFERED=1`
 - `WINDIE_BACKEND_HTTP_URL` from `resolveBackendEndpoints().httpUrl`
 - `WINDIE_PACKAGED_APP` and `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL`
-- optional `PLAYWRIGHT_BROWSERS_PATH` when bundled browser payload exists
 - `NODE_OPTIONS` amended with `--no-deprecation`
 
 If executable missing (`ENOENT`):

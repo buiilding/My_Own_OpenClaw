@@ -120,13 +120,6 @@ Returned launch target object:
 - `kind`: `binary` or `python`
 - `command`, `args`, `cwd`, `resolvedPath`
 
-### `resolveBundledPlaywrightBrowsersPath()`
-
-Packaged-only helper:
-
-- returns first existing `<resources>/{python-runtime|python}/ms-playwright`
-- used by local backend bridge to set `PLAYWRIGHT_BROWSERS_PATH` when bundled browser payload exists
-
 ## Frontend Config Persistence Path
 
 `ipc_frontend_config.cjs` stores renderer config at:

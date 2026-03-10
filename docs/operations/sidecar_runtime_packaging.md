@@ -16,7 +16,7 @@ frontend app and do not need Python installed system-wide.
 - Installer includes a bundled Python runtime at `resources/python-runtime`.
 - Sidecar processes run from `resources/python-runtime/sidecar`.
 - Runtime build ships sidecar bytecode (`.pyc`) only; sidecar plaintext `.py` files are removed before packaging.
-- Runtime bundles Playwright Chromium payload at `resources/python-runtime/ms-playwright`.
+- Runtime defaults to system-browser-first packaging and does not prebundle Playwright Chromium.
 
 ## Repository Pieces
 
@@ -124,12 +124,12 @@ On a clean test machine:
 - Linux `.deb`/`.rpm` installers declare `xdotool` package dependency; AppImage users must install `xdotool` manually.
 - Sidecar startup/status now emits runtime dependency warnings when `xdotool` is missing so degraded window probes are visible in logs/status payloads.
 - Windows bundled runtime now ships a relocatable CPython tree (not a host-bound `venv`) so installed apps do not depend on build-machine Python paths.
-- Release runtime bundles browser Python dependencies + Playwright Chromium payload.
-- Packaged launch exports `PLAYWRIGHT_BROWSERS_PATH` to bundled runtime so browser automation uses bundled Chromium by default.
-- Runtime build is idempotent for bundled assets: wakeword prefetch and Playwright Chromium install are skipped when already present.
+- Release runtime bundles browser Python dependencies but does not ship a preinstalled Chromium payload.
+- Browser automation uses an installed Chrome/Chromium-family browser first and only installs Chromium after user consent when no compatible browser is found.
+- Runtime build is idempotent for bundled assets: wakeword prefetch is skipped when already present.
 - Packaged app disables browser feature-pack runtime auto-install; missing browser deps are treated as build/package errors.
 - Browser automation permission flow checks Chromium availability at runtime and can install Chromium on user consent when needed.
 - Browser `extract`/`read_long_content` now use deterministic markdown extraction in sidecar (no sidecar LLM provider SDK dependency).
-- Browser launch first checks bundled Playwright Chromium payload, then falls back to system-installed Chromium-based browsers.
+- Browser launch first checks system-installed Chrome/Chromium-family browsers, then falls back to any Chromium previously installed into the user Playwright cache.
 - Wakeword model prefetch is required during runtime build; build fails when prefetch fails (unless explicitly overridden via `WINDIE_REQUIRE_WAKEWORD_PREFETCH=0`).
 - Packaged wakeword runtime disables model download fallback; missing wakeword model is treated as packaging/install error.

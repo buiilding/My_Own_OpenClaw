@@ -63,7 +63,7 @@ Bundled sidecar-runtime packaging profile:
 - `npm run package:win:bundled-python`
 - `npm run package:mac:bundled-python`
 - `npm run package:linux:bundled-python`
-- These use the single full bundled runtime (includes Playwright Chromium payload).
+- These use the bundled Python sidecar runtime with system-browser-first packaging.
 - runtime build guide: `docs/operations/sidecar_runtime_packaging.md`
 
 ### Signing & update channels

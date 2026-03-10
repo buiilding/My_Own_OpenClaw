@@ -26,7 +26,6 @@ const {
   withLocalBackendNodeOptions,
 } = require('./local_backend_bridge_utils.cjs');
 const {
-  resolveBundledPlaywrightBrowsersPath,
   resolvePythonExecutablePath,
   resolveSidecarLaunchTarget,
 } = require('./runtime_paths.cjs');
@@ -286,16 +285,7 @@ function startLocalBackend(mainWindow, options = {}) {
 
   const launchTarget = resolveSidecarLaunchTarget('local_backend.py');
   const scriptPath = launchTarget.resolvedPath;
-  const pythonPath = launchTarget.kind === 'python' ? getPythonPath() : launchTarget.command;
   const packagedApp = options.isPackaged === true;
-  const bundledPlaywrightBrowsersPath = packagedApp
-    ? resolveBundledPlaywrightBrowsersPath()
-    : null;
-  if (packagedApp && !bundledPlaywrightBrowsersPath && process.env.NODE_ENV !== 'production') {
-    console.warn(
-      '[LocalBackend] Bundled Playwright browser payload not found; browser automation may be unavailable.',
-    );
-  }
 
   if (launchTarget.kind === 'python' && !launchTarget.command) {
     const errorMessage = options.isPackaged === true
@@ -348,9 +338,6 @@ function startLocalBackend(mainWindow, options = {}) {
       WINDIE_BACKEND_HTTP_URL: backendEndpoints.httpUrl,
       WINDIE_PACKAGED_APP: packagedApp ? '1' : '0',
       WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: packagedApp ? '0' : '1',
-      ...(bundledPlaywrightBrowsersPath
-        ? { PLAYWRIGHT_BROWSERS_PATH: bundledPlaywrightBrowsersPath }
-        : {}),
     }),
   });
   const processRef = pythonProcess;
