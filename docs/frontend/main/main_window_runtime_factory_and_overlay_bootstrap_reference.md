@@ -80,7 +80,7 @@ Creation behavior:
 - positions via injected `positionChatWindow`
 - lazily loads renderer route `view=chatbox` on first `show` event
 - syncs wakeword toggle on show/hide
-- applies content protection and topmost/workspace visibility policy through shared runtime helpers
+- applies content protection and topmost/workspace visibility policy through shared runtime helpers, with macOS overlay panels avoiding explicit `setVisibleOnAllWorkspaces(...)` calls
 
 Close behavior:
 
@@ -95,7 +95,7 @@ Creation behavior:
   - `view=chatbox-response` (normal mode; lazy-loaded on first show)
   - debug view (ghost overlay mode) when `enableOsToolGhostDebug=true`
 - syncs response overlay visibility state via injected setters
-- applies content protection and topmost/workspace visibility policy through shared runtime helpers
+- applies content protection and topmost/workspace visibility policy through shared runtime helpers, with macOS overlay panels avoiding explicit `setVisibleOnAllWorkspaces(...)` calls
 
 Debug mode behavior:
 

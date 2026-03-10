@@ -76,7 +76,9 @@ function createOverlayBrowserWindow({
   if (icon) {
     windowOptions.icon = icon;
   }
-  if (platform !== 'linux') {
+  if (platform === 'darwin') {
+    windowOptions.type = 'panel';
+  } else if (platform === 'win32') {
     windowOptions.type = 'toolbar';
   }
   if (typeof show === 'boolean') {
