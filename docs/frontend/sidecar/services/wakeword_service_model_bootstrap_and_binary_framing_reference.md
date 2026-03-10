@@ -35,6 +35,7 @@ Startup pipeline:
 2. `ensure_models_available()` first checks packaged model path, then checks user cache path (`WINDIE_WAKEWORD_MODEL_DIR` or WindieOS user-data dir).
 3. if model is missing, `download_models(['hey_jarvis'], target_directory=<user-cache>)` is used when supported by the installed openWakeWord version.
 4. runtime resolves a concrete model file path from the writable cache and initializes `Model` with explicit `wakeword_model_paths` when constructor signature supports it (including `**kwargs` signatures).
+   When cached models are used, auxiliary feature-model paths (`melspectrogram`, `embedding_model`) are resolved from the same cache directory so ONNX fallback does not drift back to broken package-relative defaults.
 5. inference framework tries `tflite` first, falls back to `onnx` on failure
 
 Status payloads are written to stderr JSON lines:

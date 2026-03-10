@@ -26,6 +26,13 @@ class _PredictModel:
         return {"hey_jarvis": 0.73}
 
 
+class _CompatVariadicModel:
+    def __init__(self, *args, **kwargs):
+        if kwargs.get("inference_framework") == "tflite":
+            raise RuntimeError("tflite unavailable")
+        self.kwargs = kwargs
+
+
 def test_resolve_wakeword_model_prefers_hey_jarvis():
     module = SimpleNamespace(
         models={
@@ -77,6 +84,38 @@ def test_create_model_old_signature_falls_back_to_onnx():
     assert model.wakeword_models == ["hey_jarvis"]
     assert model.inference_framework == "onnx"
     assert inference == "onnx"
+
+
+def test_create_model_variadic_signature_uses_cached_auxiliary_models_for_onnx_fallback(tmp_path):
+    model_dir = tmp_path / "models"
+    model_dir.mkdir(parents=True)
+    tflite_model = model_dir / "hey_jarvis_v0.1.tflite"
+    onnx_model = model_dir / "hey_jarvis_v0.1.onnx"
+    melspec_onnx = model_dir / "melspectrogram.onnx"
+    embedding_onnx = model_dir / "embedding_model.onnx"
+
+    for file_path in (
+        tflite_model,
+        onnx_model,
+        model_dir / "melspectrogram.tflite",
+        model_dir / "embedding_model.tflite",
+        melspec_onnx,
+        embedding_onnx,
+    ):
+        file_path.write_bytes(b"ok")
+
+    model, inference = wakeword_service.create_model(
+        _CompatVariadicModel,
+        "hey_jarvis",
+        str(tflite_model),
+    )
+
+    assert inference == "onnx"
+    assert model.kwargs["inference_framework"] == "onnx"
+    assert model.kwargs["wakeword_model_paths"] == [str(onnx_model)]
+    assert "wakeword_models" not in model.kwargs
+    assert model.kwargs["melspec_model_path"] == str(melspec_onnx)
+    assert model.kwargs["embedding_model_path"] == str(embedding_onnx)
 
 
 def test_ensure_models_available_returns_true_when_path_exists(tmp_path):
