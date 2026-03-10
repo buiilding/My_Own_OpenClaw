@@ -216,38 +216,96 @@ def ensure_models_available(
     return True
 
 
+def resolve_model_path_for_framework(model_path: Optional[str], framework: str) -> Optional[str]:
+    if not model_path:
+        return None
+
+    resolved_path = Path(model_path).expanduser()
+    suffix = ".tflite" if framework == "tflite" else ".onnx"
+    if resolved_path.suffix == suffix:
+        return str(resolved_path)
+
+    sibling_path = resolved_path.with_suffix(suffix)
+    if sibling_path.exists():
+        return str(sibling_path)
+    return str(resolved_path)
+
+
+def resolve_audio_feature_model_args(
+    init_params: Dict[str, inspect.Parameter],
+    supports_variadic_kwargs: bool,
+    model_path: Optional[str],
+    framework: str,
+) -> Dict[str, str]:
+    if not model_path:
+        return {}
+
+    model_directory = Path(model_path).expanduser().parent
+    suffix = ".tflite" if framework == "tflite" else ".onnx"
+    candidate_paths = {
+        "melspec_model_path": model_directory / f"melspectrogram{suffix}",
+        "embedding_model_path": model_directory / f"embedding_model{suffix}",
+    }
+
+    model_args: Dict[str, str] = {}
+    for arg_name, candidate_path in candidate_paths.items():
+        if not candidate_path.exists():
+            continue
+        if arg_name in init_params or supports_variadic_kwargs:
+            model_args[arg_name] = str(candidate_path)
+    return model_args
+
+
 def create_model(model_cls: Any, model_name: str, model_path: Optional[str]) -> Tuple[Any, str]:
     init_params = inspect.signature(model_cls.__init__).parameters
     supports_variadic_kwargs = any(
         param.kind == inspect.Parameter.VAR_KEYWORD for param in init_params.values()
     )
     supports_model_paths = "wakeword_model_paths" in init_params or supports_variadic_kwargs
-    supports_model_names = "wakeword_models" in init_params
-    supports_framework = "inference_framework" in init_params
+    supports_explicit_model_names = "wakeword_models" in init_params
+    supports_model_names = supports_explicit_model_names or supports_variadic_kwargs
+    supports_framework = "inference_framework" in init_params or supports_variadic_kwargs
 
-    def _build_model_with_framework_fallback(model_args: Dict[str, Any]) -> Tuple[Any, str]:
+    def _build_model_args(framework: str) -> Dict[str, Any]:
+        resolved_model_path = resolve_model_path_for_framework(model_path, framework)
+        model_args: Dict[str, Any] = {}
+        if resolved_model_path and supports_model_paths:
+            model_args["wakeword_model_paths"] = [resolved_model_path]
+        elif supports_model_names:
+            model_args["wakeword_models"] = [model_name]
+
+        if (not resolved_model_path and supports_model_names) or (
+            supports_explicit_model_names and "wakeword_models" not in model_args
+        ):
+            model_args["wakeword_models"] = [model_name]
+
+        model_args.update(
+            resolve_audio_feature_model_args(
+                init_params,
+                supports_variadic_kwargs,
+                resolved_model_path,
+                framework,
+            )
+        )
+        return model_args
+
+    def _build_model_with_framework_fallback() -> Tuple[Any, str]:
         if supports_framework:
             try:
-                return model_cls(**model_args, inference_framework="tflite"), "tflite"
+                return model_cls(**_build_model_args("tflite"), inference_framework="tflite"), "tflite"
             except Exception as tflite_error:
                 _emit_status(
                     "fallback",
                     f"TFLite failed ({tflite_error}), retrying with ONNX",
                 )
-                return model_cls(**model_args, inference_framework="onnx"), "onnx"
-        return model_cls(**model_args), "onnx"
+                return model_cls(**_build_model_args("onnx"), inference_framework="onnx"), "onnx"
+        return model_cls(**_build_model_args("onnx")), "onnx"
 
     if model_path and supports_model_paths:
-        model_args: Dict[str, Any] = {"wakeword_model_paths": [model_path]}
-        if supports_model_names:
-            model_args["wakeword_models"] = [model_name]
-        return _build_model_with_framework_fallback(model_args)
+        return _build_model_with_framework_fallback()
 
     if supports_model_names:
-        model_args = {"wakeword_models": [model_name]}
-        if model_path and supports_model_paths:
-            model_args["wakeword_model_paths"] = [model_path]
-        return _build_model_with_framework_fallback(model_args)
+        return _build_model_with_framework_fallback()
 
     # Last-resort compatibility for unrecognized constructor signatures.
     return model_cls(), "unknown"
