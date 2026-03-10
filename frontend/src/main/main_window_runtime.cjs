@@ -1,11 +1,4 @@
 const {
-  createContentProtectionRuntime,
-} = require('./platform/content_protection/index.cjs');
-const {
-  setOverlayAlwaysOnTop,
-  setOverlayVisibleOnAllWorkspaces,
-} = require('./overlay_topmost_runtime.cjs');
-const {
   resolveAppIconNativeImage,
   resolveAppIconPathRuntime,
   resolveTrayIconNativeImage,
@@ -15,6 +8,9 @@ const {
   createOverlayBrowserWindow,
   loadRendererView,
 } = require('./main_window_overlay_runtime.cjs');
+const {
+  createWindowPlatformPolicy,
+} = require('./window_platform_policy.cjs');
 
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
 const CHATBOX_OVERLAY_FIXED_HEIGHT = 116;
@@ -53,11 +49,13 @@ function enableContentProtectionSafely({
   windowLabel,
   warn = console.warn,
 }) {
-  const runtime = createContentProtectionRuntime(platform);
-  runtime({
+  const policy = createWindowPlatformPolicy({
+    platform,
+    warn,
+  });
+  policy.applyContentProtection({
     targetWindow,
     windowLabel,
-    warn,
   });
 }
 
@@ -204,12 +202,15 @@ function createChatWindow({
   syncWakewordToggleForChatVisibility,
   externalFocusTracker,
   setChatWindow,
-  enableContentProtectionSafely,
+  applyOverlayWindowPolicy = null,
   syncWindowDisplayAffinity = () => {},
   resolveAppIconPath = resolveAppIconPathRuntime,
   resolveAppIcon = resolveAppIconNativeImage,
   warn = console.warn,
 }) {
+  const applyOverlayPolicy = typeof applyOverlayWindowPolicy === 'function'
+    ? applyOverlayWindowPolicy
+    : createWindowPlatformPolicy({ platform, warn }).applyOverlayWindowPolicy;
   const appIcon = resolveAppIcon({
     resolveAppIconPath,
     warn,
@@ -224,18 +225,8 @@ function createChatWindow({
     allowDevTools: Boolean(enableDevTransparencyUi),
   });
   setChatWindow(chatWindow);
-  enableContentProtectionSafely({ targetWindow: chatWindow, platform, windowLabel: 'chat box' });
-
-  setOverlayAlwaysOnTop({
+  applyOverlayPolicy({
     targetWindow: chatWindow,
-    platform,
-    warn,
-    windowLabel: 'chat box',
-  });
-  setOverlayVisibleOnAllWorkspaces({
-    targetWindow: chatWindow,
-    platform,
-    warn,
     windowLabel: 'chat box',
   });
   chatWindow.setIgnoreMouseEvents(false);
@@ -305,11 +296,14 @@ function createResponseWindow({
   setResponseOverlayVisibilityState,
   syncContextLabelWindowVisibility,
   setResponseWindow,
-  enableContentProtectionSafely,
+  applyOverlayWindowPolicy = null,
   resolveAppIconPath = resolveAppIconPathRuntime,
   resolveAppIcon = resolveAppIconNativeImage,
   warn = console.warn,
 }) {
+  const applyOverlayPolicy = typeof applyOverlayWindowPolicy === 'function'
+    ? applyOverlayWindowPolicy
+    : createWindowPlatformPolicy({ platform, warn }).applyOverlayWindowPolicy;
   const appIcon = resolveAppIcon({
     resolveAppIconPath,
     warn,
@@ -325,22 +319,8 @@ function createResponseWindow({
     allowDevTools: Boolean(enableDevTransparencyUi),
   });
   setResponseWindow(responseWindow);
-  enableContentProtectionSafely({
+  applyOverlayPolicy({
     targetWindow: responseWindow,
-    platform,
-    windowLabel: 'response overlay',
-  });
-
-  setOverlayAlwaysOnTop({
-    targetWindow: responseWindow,
-    platform,
-    warn,
-    windowLabel: 'response overlay',
-  });
-  setOverlayVisibleOnAllWorkspaces({
-    targetWindow: responseWindow,
-    platform,
-    warn,
     windowLabel: 'response overlay',
   });
 

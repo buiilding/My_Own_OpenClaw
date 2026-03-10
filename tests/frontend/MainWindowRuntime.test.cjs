@@ -226,7 +226,7 @@ describe('main_window_runtime createChatWindow', () => {
         capturePreviousExternalFocusedWindow: jest.fn(),
       },
       setChatWindow: jest.fn(),
-      enableContentProtectionSafely: jest.fn(),
+      applyOverlayWindowPolicy: jest.fn(),
       syncWindowDisplayAffinity: jest.fn(),
       ...overrides,
     };
@@ -286,9 +286,8 @@ describe('main_window_runtime createChatWindow', () => {
 
     createChatWindow(deps);
 
-    expect(deps.enableContentProtectionSafely).toHaveBeenCalledWith({
+    expect(deps.applyOverlayWindowPolicy).toHaveBeenCalledWith({
       targetWindow: chatWindow,
-      platform: 'win32',
       windowLabel: 'chat box',
     });
   });
@@ -345,7 +344,10 @@ describe('main_window_runtime createChatWindow', () => {
 
     createChatWindow(deps);
 
-    expect(chatWindow.setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver');
+    expect(deps.applyOverlayWindowPolicy).toHaveBeenCalledWith({
+      targetWindow: chatWindow,
+      windowLabel: 'chat box',
+    });
   });
 
   test('pins chat overlay across workspaces and fullscreen spaces on mac', () => {
@@ -353,8 +355,9 @@ describe('main_window_runtime createChatWindow', () => {
 
     createChatWindow(deps);
 
-    expect(chatWindow.setVisibleOnAllWorkspaces).toHaveBeenCalledWith(true, {
-      visibleOnFullScreen: true,
+    expect(deps.applyOverlayWindowPolicy).toHaveBeenCalledWith({
+      targetWindow: chatWindow,
+      windowLabel: 'chat box',
     });
   });
 });
@@ -389,7 +392,7 @@ describe('main_window_runtime createResponseWindow', () => {
       setResponseOverlayVisibilityState: jest.fn(),
       syncContextLabelWindowVisibility: jest.fn(),
       setResponseWindow: jest.fn(),
-      enableContentProtectionSafely: jest.fn(),
+      applyOverlayWindowPolicy: jest.fn(),
       syncWindowDisplayAffinity: jest.fn(),
       ...overrides,
     };
@@ -460,7 +463,10 @@ describe('main_window_runtime createResponseWindow', () => {
 
     createResponseWindow(deps);
 
-    expect(responseWindow.setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver');
+    expect(deps.applyOverlayWindowPolicy).toHaveBeenCalledWith({
+      targetWindow: responseWindow,
+      windowLabel: 'response overlay',
+    });
   });
 
   test('pins response overlay across workspaces and fullscreen spaces on mac', () => {
@@ -468,8 +474,9 @@ describe('main_window_runtime createResponseWindow', () => {
 
     createResponseWindow(deps);
 
-    expect(responseWindow.setVisibleOnAllWorkspaces).toHaveBeenCalledWith(true, {
-      visibleOnFullScreen: true,
+    expect(deps.applyOverlayWindowPolicy).toHaveBeenCalledWith({
+      targetWindow: responseWindow,
+      windowLabel: 'response overlay',
     });
   });
 });

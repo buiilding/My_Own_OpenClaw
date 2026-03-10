@@ -13,7 +13,9 @@ title: "Window and Overlay Lifecycle"
 Primary modules:
 
 - `frontend/src/main/index.cjs`
+- `frontend/src/main/surface_runtime.cjs`
 - `frontend/src/main/main_window_runtime.cjs`
+- `frontend/src/main/window_platform_policy.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
@@ -33,6 +35,12 @@ Window set:
 - `responseWindow`: response overlay above chat pill (`transparent`, `alwaysOnTop`)
 - `contextLabelWindow`: dormant context-label shell window hooks remain in main process, but window is not currently instantiated in startup flow
 - chat/response overlays request strongest topmost level first (`screen-saver`, fallback `floating`) and are pinned to all workspaces/fullscreen spaces (`visibleOnFullScreen`)
+
+Shared ownership model:
+
+- `surface_runtime.cjs` is the single main-process owner for `mainWindow`, `chatWindow`, `responseWindow`, `contextLabelWindow`, response-overlay visibility, and response phase.
+- `window_platform_policy.cjs` is the single owner for per-platform `BrowserWindow` policy such as content protection, overlay topmost/workspace rules, and explicit activation/focus handoff.
+- `index.cjs` now wires those owners together and passes their narrow callbacks into bootstrap/lifecycle/IPC modules instead of mutating window state directly.
 
 For deeper context-label runtime details, see [Context Label Overlay and Active-Window Runtime Reference](context_label_overlay_and_active_window_runtime_reference.md).
 
@@ -75,7 +83,7 @@ Global app policy:
 
 ## Positioning and Bounds Rules
 
-Position helpers in `index.cjs`:
+Position helpers in `surface_runtime.cjs` (via `overlay_window_helpers_runtime.cjs`):
 
 - `getChatWindowBounds(width, height)`:
 - anchored to primary display work area
@@ -96,7 +104,7 @@ Reposition triggers:
 
 ## Overlay Phase Model
 
-Canonical phases (`index.cjs` + `ipc.cjs`):
+Canonical phases (`surface_runtime.cjs` + `ipc.cjs`):
 
 - `idle`
 - `awaiting-first-chunk`
@@ -166,7 +174,7 @@ Dashboard-to-chat-pill conversation continuity:
 
 ## Main IPC Handlers for Window Control
 
-Handlers split across narrow registrars (wired by `index.cjs`):
+Handlers split across narrow registrars (wired by `index.cjs`, guarded by `surface_runtime.initializeMainProcessIpcOnce(...)`):
 
 - `overlay_phase_ipc_runtime.cjs`
 - `set-responsebox-size`:

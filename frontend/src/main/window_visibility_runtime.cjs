@@ -12,6 +12,9 @@ const {
   setWindowOpacityIfSupported,
   waitForMainWindowSuppressedForScreenshot,
 } = require('./window_suppression_runtime.cjs');
+const {
+  activateWindowForInteraction: activateWindowForInteractionRuntime,
+} = require('./window_platform_policy.cjs');
 
 function resolveShowTargetDisplayAffinity({
   targetDisplayAffinity = null,
@@ -30,32 +33,6 @@ function resolveShowTargetDisplayAffinity({
     return null;
   }
   return getActiveDisplayAffinity();
-}
-
-function activateWindowForInteraction(targetWindow) {
-  if (
-    !targetWindow
-    || typeof targetWindow !== 'object'
-    || (typeof targetWindow.isDestroyed === 'function' && targetWindow.isDestroyed())
-  ) {
-    return;
-  }
-
-  if (typeof targetWindow.moveTop === 'function') {
-    targetWindow.moveTop();
-  }
-  if (typeof targetWindow.focus === 'function') {
-    targetWindow.focus();
-  }
-
-  const webContents = targetWindow.webContents;
-  if (
-    webContents
-    && !(typeof webContents.isDestroyed === 'function' && webContents.isDestroyed())
-    && typeof webContents.focus === 'function'
-  ) {
-    webContents.focus();
-  }
 }
 
 function showChatWindow(options = {}, deps = {}) {
@@ -206,6 +183,7 @@ function showMainWindow(options = {}, deps = {}) {
     setActiveDisplayAffinity = () => {},
     getActiveDisplayAffinity = () => null,
     hideChatWindow = () => {},
+    activateWindowForInteraction = activateWindowForInteractionRuntime,
   } = deps;
   const focus = options?.focus !== false;
   const maximize = options?.maximize === true;
