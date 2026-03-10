@@ -18,11 +18,6 @@ import { isDevUiEnabled } from '../utils/devUiFlag';
 import { buildOutgoingMessage } from '../utils/message/messageInput';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStream/chatStreamThinkingStatus';
-import { captureScreenshotAttachment } from '../../../infrastructure/services/ScreenshotAttachmentPipeline';
-import {
-  normalizeArtifactImageContentType,
-  resolveArtifactImageExtension,
-} from '../../../infrastructure/services/ArtifactImageUtils';
 import {
   CompactIcon,
   ScreenshotIcon,
@@ -32,7 +27,6 @@ import {
 } from './chatbox/ChatBoxIcons';
 import ChatBoxImagePreviewRow from './chatbox/ChatBoxImagePreviewRow';
 import {
-  createClipboardScreenshotImage,
   isDragBlockedTarget,
 } from '../utils/state/chatBoxState';
 
@@ -48,7 +42,6 @@ function ChatBox() {
   const overlayPhase = useResponseOverlayPhase();
   const [wakewordSttSessionActive, setWakewordSttSessionActive] = useState(false);
   const [clipboardImages, setClipboardImages] = useState([]);
-  const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
   const inputRef = useRef(null);
   const loopInteractionLockedRef = useRef(false);
   const dragStateRef = useRef({
@@ -62,6 +55,7 @@ function ChatBox() {
   });
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
+  const includeQueryScreenshot = config?.include_query_screenshot ?? true;
   const { isBusy: loopInteractionLocked } = useCurrentTurnPresentationState({
     phase: overlayPhase,
     isSending,
@@ -171,35 +165,18 @@ function ChatBox() {
     }
   }, [loopInteractionLocked]);
 
-  const handleCaptureScreenshot = useCallback(async () => {
-    if (loopInteractionLocked || isCapturingScreenshot) {
+  const handleToggleQueryScreenshot = useCallback(() => {
+    if (loopInteractionLocked) {
       return;
     }
-    setIsCapturingScreenshot(true);
-    try {
-      const capture = await captureScreenshotAttachment({
-        waitSeconds: 0,
-      });
-      if (!capture?.screenshot) {
-        return;
-      }
-      const contentType = normalizeArtifactImageContentType(capture.screenshotContentType || 'image/png');
-      const extension = resolveArtifactImageExtension(contentType);
-      setClipboardImages((previous) => ([
-        ...previous,
-        createClipboardScreenshotImage({
-          screenshot: capture.screenshot,
-          contentType,
-          extension,
-        }),
-      ]));
-      focusInput();
-    } catch (error) {
-      console.warn('[ChatBox] Failed to capture screenshot:', error);
-    } finally {
-      setIsCapturingScreenshot(false);
+    if (typeof updateConfig !== 'function') {
+      return;
     }
-  }, [focusInput, isCapturingScreenshot, loopInteractionLocked]);
+    updateConfig({
+      include_query_screenshot: !includeQueryScreenshot,
+    });
+    focusInput();
+  }, [focusInput, includeQueryScreenshot, loopInteractionLocked, updateConfig]);
 
   const handleToggleSpeechMode = useCallback(() => {
     if (loopInteractionLocked) {
@@ -334,11 +311,11 @@ function ChatBox() {
             </div>
             <button
               type="button"
-              className="chatbox-icon chatbox-screenshot"
-              aria-label="Take screenshot"
-              title="Take screenshot"
-              onClick={handleCaptureScreenshot}
-              disabled={loopInteractionLocked || isCapturingScreenshot}
+              className={`chatbox-icon chatbox-screenshot${includeQueryScreenshot ? ' is-enabled' : ''}`}
+              aria-label="Toggle auto screenshot"
+              title={includeQueryScreenshot ? 'Disable auto screenshot' : 'Enable auto screenshot'}
+              onClick={handleToggleQueryScreenshot}
+              disabled={loopInteractionLocked}
             >
               <ScreenshotIcon />
             </button>

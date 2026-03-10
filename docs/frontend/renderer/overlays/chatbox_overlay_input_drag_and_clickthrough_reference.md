@@ -61,6 +61,14 @@ Resulting behavior in `useChatMessageSender`:
 - screenshot capture path remains enabled by default unless config disables it
 - send flow can invoke `show-chatbox` (focus false) for non-main surfaces when policy allows
 
+Chatbox camera-toggle behavior:
+
+- the camera button no longer captures immediately into the preview lane
+- it toggles frontend config `include_query_screenshot`
+- enabled state is blue and defaults to enabled on startup
+- disabled state falls back to the normal icon color
+- auto-capture happens only when the user sends a message from the overlay and no explicit image attachments were already provided
+
 Send sequence in chatbox component:
 
 1. trim input
@@ -70,6 +78,7 @@ Send sequence in chatbox component:
 
 Right-side action button parity with dashboard composer:
 
+- camera button toggles overlay auto screenshot on/off instead of inserting a screenshot preview
 - send button (`ArrowUp`) remains mounted at all times
 - during active loop phases, the send button is disabled instead of becoming a local stop affordance
 - active loop lock disables input, settings, screenshot, TTS, dev compaction, drag, and input auto-focus until the loop exits
@@ -176,7 +185,7 @@ Loop watchdog behavior:
 `ChatBoxOverlayMouseIgnore` now includes explicit anti-regression coverage for:
 
 - startup compact-class stability (no delayed `with-preview` flip when no images exist)
-- multi-attachment preview stability (stay expanded until last image is removed, then remain compact)
+- camera-toggle enabled/disabled styling and config writes without creating preview items
 
 ## Debug Checklist
 

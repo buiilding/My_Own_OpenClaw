@@ -331,6 +331,10 @@ body {
   color: #3b82f6;
 }
 
+.chatbox-screenshot.is-enabled {
+  color: #3b82f6;
+}
+
 .chatbox-floating-context {
   position: fixed;
   top: 5px;
