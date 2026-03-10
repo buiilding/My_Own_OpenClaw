@@ -47,6 +47,13 @@ let readinessCheckToken = 0;
 let cachedPythonPath = null;
 const LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES = 128 * 1024;
 const isTestEnv = process.env.NODE_ENV === 'test';
+let runtimeScreenCaptureCapabilityVerifier = async () => ({
+  granted: false,
+  reason: 'Local backend bridge is not initialized.',
+  details: {
+    initialized: false,
+  },
+});
 
 function shouldOffloadJsonParse(line) {
   return Buffer.byteLength(line, 'utf8') >= LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES;
@@ -640,6 +647,72 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     }
   });
 
+  runtimeScreenCaptureCapabilityVerifier = async () => {
+    const cleanupScreenshotPath = async (result) => {
+      const screenshotPath = result?.data?.screenshot_path;
+      if (typeof screenshotPath !== 'string' || !screenshotPath.trim()) {
+        return;
+      }
+      try {
+        await fs.promises.unlink(screenshotPath);
+      } catch (error) {
+        console.warn(
+          `[LocalBackend] Failed to delete screen-capture verification screenshot ${screenshotPath}: ${getErrorMessage(error)}`,
+        );
+      }
+    };
+
+    try {
+      const runTool = () => sendRequest(
+        'execute_tool',
+        {
+          tool_name: 'screenshot',
+          args: {
+            explanation: 'Screen capture permission verification',
+            expectation: 'Permission verification screenshot',
+          },
+        },
+        { timeoutMs: 30000 },
+      );
+      const result = await withHiddenWindowForScreenshot({
+        platform: process.platform,
+        task: runTool,
+        resolveWindows,
+        resolveChatWindow,
+        resolveResponseWindow,
+      });
+
+      await cleanupScreenshotPath(result);
+
+      if (result?.success === true) {
+        return {
+          granted: true,
+          reason: 'Real screenshot capture succeeded.',
+          details: {
+            capture_backend: result?.data?.capture_meta?.capture_backend || null,
+            capture_meta: result?.data?.capture_meta || null,
+          },
+        };
+      }
+
+      return {
+        granted: false,
+        reason: result?.error || 'Real screenshot capture failed.',
+        details: {
+          result: result || null,
+        },
+      };
+    } catch (error) {
+      return {
+        granted: false,
+        reason: getErrorMessage(error),
+        details: {
+          error: getErrorMessage(error),
+        },
+      };
+    }
+  };
+
   ipcMain.handle('get-system-state', async (event, { fields } = {}) => {
     return getSystemStateFromBackend(fields);
   });
@@ -705,6 +778,7 @@ module.exports = {
   initializeLocalBackendBridge,
   stopLocalBackend,
   getSystemState,
+  verifyScreenCaptureCapability: async () => runtimeScreenCaptureCapabilityVerifier(),
   getLocalBackendStatus,
   installBrowserChromium,
   searchMemory,

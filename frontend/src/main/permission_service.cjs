@@ -264,6 +264,32 @@ async function requestDesktopCapturePrompt(deps = {}) {
 }
 
 async function verifyScreenCaptureCapability(deps = {}) {
+  if (typeof deps.verifyScreenCaptureCapability === 'function') {
+    try {
+      const result = await deps.verifyScreenCaptureCapability(deps);
+      if (result && typeof result === 'object') {
+        return {
+          granted: result.granted === true,
+          reason: typeof result.reason === 'string' ? result.reason : '',
+          details: result.details && typeof result.details === 'object' ? result.details : result,
+        };
+      }
+      return {
+        granted: result === true,
+        reason: result === true ? 'Screen capture capability is available.' : 'Screen capture capability verification failed.',
+        details: {},
+      };
+    } catch (error) {
+      return {
+        granted: false,
+        reason: error?.message || 'Screen capture capability verification failed.',
+        details: {
+          error: String(error?.message || error),
+        },
+      };
+    }
+  }
+
   const captureResult = await requestDesktopCapturePrompt(deps);
   if (captureResult.success !== true) {
     return {
@@ -851,8 +877,40 @@ async function requestScreenCapturePermission(permission, deps = {}) {
   const platform = deps.platform || process.platform;
 
   if (platform === 'darwin') {
-    await openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture', deps);
-    return await runPermissionProbe(permissionId, deps);
+    const settingsResult = await openExternal(
+      'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture',
+      deps,
+    );
+    const capability = await verifyScreenCaptureCapability(deps);
+
+    if (capability.granted) {
+      return buildProbeResult(
+        permissionId,
+        PERMISSION_STATUS.GRANTED,
+        'Screen capture permission verified with a real screenshot.',
+        {
+          platform,
+          settings_result: settingsResult,
+          capability_check: capability,
+        },
+      );
+    }
+
+    return buildProbeResult(
+      permissionId,
+      PERMISSION_STATUS.NEEDS_ACTION,
+      capability.reason || 'Grant Screen Recording and allow the verification screenshot prompt.',
+      {
+        platform,
+        media_status: getMediaAccessStatus('screen', deps),
+        settings_result: settingsResult,
+        capability_check: capability,
+        remediation: (
+          'Open System Settings -> Privacy & Security -> Screen Recording, enable WindieOS, '
+          + 'then allow the verification screenshot prompt so future auto-screenshots do not re-prompt.'
+        ),
+      },
+    );
   }
 
   const capability = await verifyScreenCaptureCapability(deps);
