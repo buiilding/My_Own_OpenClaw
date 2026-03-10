@@ -91,6 +91,12 @@ Completion path in `AppContent`:
 - permissions/access expectation slide
 - stop-agent shortcut slide (platform label)
 
+Viewport/layout behavior:
+
+- onboarding card is capped to the renderer viewport instead of growing unbounded
+- slide content lives inside an internal scroll region
+- footer actions remain outside the scroll region so `Next` / `Back` / `Start WindieOS` stay reachable on short viewports
+
 Navigation behavior:
 
 - `Next` / `Back` controls slide index
@@ -133,6 +139,7 @@ Permission status UI remains accessible through settings data-controls surfaces 
 - deterministic 2-step progression
 - back/next behavior
 - completion callback fires once on final CTA
+- actions remain outside the scroll region on the permissions slide so footer controls stay reachable under constrained viewport heights
 
 ## Drift Hotspots
 
