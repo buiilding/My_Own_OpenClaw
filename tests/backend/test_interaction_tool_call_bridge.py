@@ -31,8 +31,11 @@ def test_to_parsed_response_normalizes_native_tool_calls():
     assert parsed.text_content == "assistant text"
     assert parsed.has_tool_calls is True
     assert len(parsed.tool_calls) == 1
-    assert parsed.tool_calls[0].tool_name == "replace"
-    assert parsed.tool_calls[0].parameters["path"] == "README.md"
+    assert parsed.tool_calls[0].tool_name == "system_use"
+    assert parsed.tool_calls[0].parameters == {
+        "tool": "replace",
+        "arguments": {"path": "README.md"},
+    }
     assert parsed.tool_calls[0].metadata == {"tool_call_id": "call_123", "source": "llm"}
 
 
@@ -66,7 +69,7 @@ def test_to_parsed_response_returns_deep_copied_arguments():
     }
 
     parsed = to_parsed_response(payload)
-    parsed.tool_calls[0].parameters["options"]["offset"] = 99
+    parsed.tool_calls[0].parameters["arguments"]["options"]["offset"] = 99
 
     assert payload["tool_calls"][0]["arguments"]["options"]["offset"] == 1
 
@@ -760,6 +763,38 @@ def test_to_parsed_response_keeps_unified_system_use_when_subtool_is_invalid():
         "arguments": {"command": "echo hi"},
     }
     assert call.metadata == {"tool_call_id": "call_system_bad_1"}
+
+
+def test_to_parsed_response_canonicalizes_direct_legacy_system_tool_to_system_use():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_windows_1",
+                    "name": "get_open_windows",
+                    "arguments": {
+                        "filter_text": "System Settings",
+                        "explanation": "inspect settings windows",
+                    },
+                }
+            ],
+        }
+    )
+
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    call = parsed.tool_calls[0]
+    assert call.tool_name == "system_use"
+    assert call.parameters == {
+        "tool": "get_open_windows",
+        "explanation": "inspect settings windows",
+        "arguments": {
+            "filter_text": "System Settings",
+            "explanation": "inspect settings windows",
+        },
+    }
+    assert call.metadata == {"tool_call_id": "call_windows_1"}
 
 
 def test_recoverable_error_detection_and_message_formatting():
