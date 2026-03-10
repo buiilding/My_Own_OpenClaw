@@ -3,6 +3,7 @@ const path = require('path');
 const {
   buildLaunchCommand,
   parseOptions,
+  pipeForwardedStdout,
   pipeFilteredStderr,
   resolveElectronBinaryForPlatform,
   resolveCondaPythonPath,
@@ -186,5 +187,26 @@ describe('electron-launcher', () => {
     expect(destination.write).toHaveBeenCalledWith(
       '[146193:0309/225928.064159:ERROR:content/browser/gpu/gpu_process_host.cc:998] GPU process launch failed: error_code=1002\n',
     );
+  });
+
+  test('pipeForwardedStdout forwards stdout chunks verbatim', () => {
+    const handlers = {};
+    const stream = {
+      setEncoding: jest.fn(),
+      on: jest.fn((event, handler) => {
+        handlers[event] = handler;
+      }),
+    };
+    const destination = {
+      write: jest.fn(),
+    };
+
+    pipeForwardedStdout(stream, { destination });
+
+    handlers.data('[Main] hello from electron\n');
+    handlers.data('[IPC] more logs\n');
+
+    expect(destination.write).toHaveBeenNthCalledWith(1, '[Main] hello from electron\n');
+    expect(destination.write).toHaveBeenNthCalledWith(2, '[IPC] more logs\n');
   });
 });
