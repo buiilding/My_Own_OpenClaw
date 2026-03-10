@@ -4,6 +4,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+- fix(frontend-permissions-windows-screen-capture): stop opening Windows privacy settings for screen capture onboarding, verify desktop capture directly through Electron on `Grant`, and add focused permission-service regression coverage so Windows screen capture can be marked available without a fake OS permission step.
+
 ## 0.6.10 - 2026-03-09
 
 Includes the last 300 commits on `main`.

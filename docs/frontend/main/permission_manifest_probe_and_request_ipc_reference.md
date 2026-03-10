@@ -41,7 +41,8 @@ Permission definition fields cloned by service:
 
 - `screen_capture`:
   - macOS: uses `systemPreferences.getMediaAccessStatus('screen')`
-  - non-macOS: currently granted by platform profile contract
+  - Windows: stays `needs-action` until the user runs `Grant`, which performs a direct desktop-capture capability check via Electron `desktopCapturer`
+  - Linux: remains request-state driven because the portal/system prompt is only triggered during request flow
 - `input_control_accessibility`:
   - macOS: uses `systemPreferences.isTrustedAccessibilityClient(false)`
   - non-macOS: currently granted by platform profile contract
@@ -69,6 +70,10 @@ Unknown permission ids return `status: error`.
   - if available, calls `systemPreferences.askForMediaAccess('microphone')`
   - on macOS, if native prompt is unavailable/denied in-process, falls back to renderer `navigator.mediaDevices.getUserMedia({ audio: true })` to trigger TCC registration
   - then re-runs probe
+- `screen_capture`:
+  - macOS: opens the Screen Recording privacy pane and relies on TCC status
+  - Windows: verifies desktop capture directly via `desktopCapturer.getSources(...)`; does not deep-link to Windows privacy settings
+  - Linux: attempts the portal/system screen-share prompt and records the result in request state
 - macOS deep links via `shell.openExternal(...)`:
   - screen capture -> privacy screen-capture pane
   - accessibility input control -> privacy accessibility pane
@@ -121,6 +126,7 @@ Channel names:
 2. Adding permission ids in manifest without probe/request switch handling.
 3. Channel parity drift between preload/channels constants/index handler registration.
 4. Treating `probe_stub` runtime capability responses as production security guarantees.
+5. Assuming Windows has a macOS-style screen-capture privacy pane; current Windows behavior is capability verification, not OS settings registration.
 
 ## Related Pages
 

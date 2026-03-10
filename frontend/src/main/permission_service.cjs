@@ -240,6 +240,27 @@ async function requestDesktopCapturePrompt(deps = {}) {
   }
 }
 
+async function verifyScreenCaptureCapability(deps = {}) {
+  const captureResult = await requestDesktopCapturePrompt(deps);
+  if (captureResult.success !== true) {
+    return {
+      granted: false,
+      reason: captureResult.reason || 'Desktop capture is unavailable.',
+      details: {
+        capture_prompt_result: captureResult,
+      },
+    };
+  }
+
+  return {
+    granted: true,
+    reason: 'Desktop capture is available.',
+    details: {
+      capture_prompt_result: captureResult,
+    },
+  };
+}
+
 async function openLinuxPermissionCenter(topic, deps = {}) {
   const resolvedTopic = LINUX_PERMISSION_CENTER_TOPIC_ALIASES[topic] || topic;
   const specs = LINUX_PERMISSION_CENTER_COMMANDS[resolvedTopic] || [];
@@ -376,10 +397,23 @@ function probeScreenCapture(permission, deps = {}) {
   }
 
   if (isRequestedGranted(permissionId)) {
-    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Screen capture OS prompt flow was completed.', {
+    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Screen capture capability was verified.', {
       platform,
       ...getRequestedStateDetails(permissionId),
     });
+  }
+
+  if (platform === 'win32') {
+    return buildProbeResult(
+      permissionId,
+      PERMISSION_STATUS.NEEDS_ACTION,
+      'Run Grant to verify desktop capture availability on Windows.',
+      {
+        platform,
+        remediation: 'WindieOS will verify desktop capture directly; no Windows privacy settings step is required for standard desktop capture.',
+        ...getRequestedStateDetails(permissionId),
+      },
+    );
   }
 
   return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Run Grant to trigger the screen-capture permission flow on this platform.', {
@@ -712,7 +746,11 @@ function isAuthPromptCanceled(errorText) {
 async function requestScreenCapturePermission(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
-  const captureResult = await requestDesktopCapturePrompt(deps);
+  const capability = await verifyScreenCaptureCapability(deps);
+  const captureResult = capability.details?.capture_prompt_result || {
+    success: false,
+    reason: capability.reason || 'Desktop capture capability verification failed.',
+  };
 
   if (platform === 'darwin') {
     await openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture', deps);
@@ -748,37 +786,34 @@ async function requestScreenCapturePermission(permission, deps = {}) {
     );
   }
 
-  let settingsResult = { success: false, reason: 'No settings action attempted.' };
   if (platform === 'win32') {
-    settingsResult = await openExternal('ms-settings:privacy', deps);
-  }
-
-  if (platform === 'win32') {
-    if (captureResult.success) {
+    if (capability.granted) {
       markRequestedGranted(permissionId, {
-        flow: 'screen_capture',
+        flow: 'screen_capture_capability_check',
         capture_prompt_result: captureResult,
-        settings_result: settingsResult,
+        capability_check: capability,
       });
       return runPermissionProbe(permissionId, deps);
     }
 
     markRequestedPending(permissionId, {
-      flow: 'screen_capture',
+      flow: 'screen_capture_capability_check',
       capture_prompt_result: captureResult,
-      settings_result: settingsResult,
+      capability_check: capability,
     });
     return buildProbeResult(
       permissionId,
       PERMISSION_STATUS.NEEDS_ACTION,
-      'Screen capture was not granted. Click Grant and approve the system capture prompt.',
+      capability.reason || 'Screen capture is unavailable on this Windows system.',
       {
         platform,
         capture_prompt_result: captureResult,
-        settings_result: settingsResult,
+        capability_check: capability,
       },
     );
   }
+
+  const settingsResult = { success: false, reason: 'No settings action attempted.' };
 
   if (captureResult.success || settingsResult.success) {
     markRequestedGranted(permissionId, {

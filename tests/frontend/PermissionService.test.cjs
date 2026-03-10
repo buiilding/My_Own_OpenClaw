@@ -221,7 +221,28 @@ describe('permission_service', () => {
     expect(status.granted).toBe(true);
   });
 
-  test('windows screen capture is not granted by settings-open fallback alone', async () => {
+  test('windows screen capture grant verifies capability directly without opening settings', async () => {
+    const openExternal = jest.fn(async () => true);
+    const getSources = jest.fn(async () => ([{ id: 'screen:1:0', name: 'Display 1' }]));
+
+    const status = await requestPermission('screen_capture', {
+      platform: 'win32',
+      desktopCapturer: {
+        getSources,
+      },
+      shell: {
+        openExternal,
+      },
+    });
+
+    expect(getSources).toHaveBeenCalledTimes(1);
+    expect(openExternal).not.toHaveBeenCalled();
+    expect(status.status).toBe('granted');
+    expect(status.granted).toBe(true);
+  });
+
+  test('windows screen capture stays needs-action when desktop capture verification fails', async () => {
+    const openExternal = jest.fn(async () => true);
     const status = await requestPermission('screen_capture', {
       platform: 'win32',
       desktopCapturer: {
@@ -234,8 +255,10 @@ describe('permission_service', () => {
       },
     });
 
+    expect(openExternal).not.toHaveBeenCalled();
     expect(status.status).toBe('needs-action');
     expect(status.granted).toBe(false);
+    expect(String(status.reason || '')).toContain('capture denied');
   });
 
   test('browser automation probe reflects frontend enable preference', () => {
