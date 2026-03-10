@@ -39,7 +39,6 @@ The bridge:
   silently switch the sidecar back to a base Conda interpreter.
 - Sends `ping` until ready, then marks the sidecar as ready.
 - Uses bounded exponential-backoff retries and stale-callback guards in readiness checks to avoid old timeout callbacks marking restarted processes incorrectly.
-- Exports `PLAYWRIGHT_BROWSERS_PATH` to bundled runtime path when packaged payload exists.
 
 ## JSON-RPC Methods
 
@@ -102,11 +101,11 @@ Wakeword detection runs as a separate Python subprocess:
 ## Packaging Expectations
 
 - Runtime build prefetches wakeword models into bundled runtime and verifies required model markers.
-- Full-profile runtime installs Playwright Chromium payload into bundled runtime.
+- Runtime bundles browser Python dependencies, but does not preinstall Playwright Chromium.
 - Build is idempotent for bundled assets:
   - If wakeword model assets already exist, prefetch download is skipped.
-  - If Playwright Chromium payload already exists, install is skipped.
 - Packaged app disables browser feature-pack runtime auto-install and expects browser deps to be bundled.
+- Browser automation uses a system-installed Chrome/Chromium-family browser first and falls back to Playwright-installed Chromium only after explicit user consent.
 
 ## Troubleshooting
 

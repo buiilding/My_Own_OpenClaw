@@ -858,6 +858,43 @@ async def test_handle_install_browser_chromium_skips_when_browser_already_availa
     assert result["browser_binary_path"] == "/usr/bin/chromium"
 
 
+def test_find_available_browser_binary_prefers_system_browser_over_playwright_cache(monkeypatch, tmp_path):
+    backend = LocalBackend()
+    playwright_root = tmp_path / "ms-playwright"
+    playwright_browser = playwright_root / "chromium-123" / "chrome-linux" / "chrome"
+    playwright_browser.parent.mkdir(parents=True, exist_ok=True)
+    playwright_browser.write_text("")
+
+    existing_paths = {
+        "/usr/bin/google-chrome",
+        str(playwright_browser),
+    }
+
+    monkeypatch.setattr(local_backend_module.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(
+        backend,
+        "_resolve_playwright_browsers_path",
+        lambda: playwright_root,
+    )
+    monkeypatch.setattr(
+        local_backend_module.glob,
+        "glob",
+        lambda pattern: [str(playwright_browser)] if "chromium-*" in pattern else [],
+    )
+    monkeypatch.setattr(
+        local_backend_module.Path,
+        "exists",
+        lambda self: str(self) in existing_paths,
+    )
+    monkeypatch.setattr(
+        local_backend_module.Path,
+        "is_file",
+        lambda self: str(self) in existing_paths,
+    )
+
+    assert backend._find_available_browser_binary() == "/usr/bin/google-chrome"
+
+
 @pytest.mark.asyncio
 async def test_handle_install_browser_chromium_installs_when_missing(monkeypatch, tmp_path):
     backend = LocalBackend()

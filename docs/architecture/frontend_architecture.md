@@ -27,7 +27,6 @@ WindieOS frontend is a multi-runtime desktop stack:
 - Bundled runtime is expected to include:
   - wakeword model assets
   - browser Python dependencies
-  - Playwright Chromium payload (full profile)
 - Runtime bootstrap should not reinstall already-present bundled assets.
 
 ## Current Source Layout

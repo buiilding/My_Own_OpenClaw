@@ -780,10 +780,10 @@ async function requestBrowserInstallConsent(deps = {}) {
       cancelId: 1,
       noLink: true,
       title: 'Install Browser Runtime',
-      message: 'WindieOS needs a Chromium runtime for browser automation.',
+      message: 'WindieOS needs Chrome or Chromium for browser automation.',
       detail: (
-        'WindieOS can install Chromium now using Playwright. '
-        + 'If Chromium is already installed on your system, this step will be skipped automatically.'
+        'WindieOS will use an installed Chrome or Chromium browser when one is available. '
+        + 'If none is found, it can install Chromium now using Playwright.'
       ),
     });
     const accepted = response?.response === 0;

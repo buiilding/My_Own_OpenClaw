@@ -36,7 +36,7 @@ describe('local_backend_bridge process lifecycle', () => {
     }
   });
 
-  test('packaged mode disables browser feature-pack autoinstall in sidecar env', () => {
+  test('packaged mode disables browser feature-pack autoinstall in sidecar env without bundled browser path overrides', () => {
     const originalResourcesPath = process.resourcesPath;
     process.resourcesPath = '/opt/WindieOS/resources';
 
@@ -46,7 +46,6 @@ describe('local_backend_bridge process lifecycle', () => {
         mockExistsSync: (candidate) => (
           candidate === '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc'
           || candidate === '/opt/WindieOS/resources/python-runtime/bin/python3'
-          || candidate === '/opt/WindieOS/resources/python-runtime/ms-playwright'
         ),
       });
 
@@ -54,8 +53,8 @@ describe('local_backend_bridge process lifecycle', () => {
       expect(spawnOptions.env).toEqual(expect.objectContaining({
         WINDIE_PACKAGED_APP: '1',
         WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: '0',
-        PLAYWRIGHT_BROWSERS_PATH: '/opt/WindieOS/resources/python-runtime/ms-playwright',
       }));
+      expect(spawnOptions.env.PLAYWRIGHT_BROWSERS_PATH).toBeUndefined();
     } finally {
       process.resourcesPath = originalResourcesPath;
     }

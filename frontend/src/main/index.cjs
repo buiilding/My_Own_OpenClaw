@@ -602,7 +602,7 @@ function initializeMainProcessIpc() {
         return {
           granted: false,
           reason: (
-            'Browser automation is enabled, but no Chromium browser runtime is available yet. '
+            'Browser automation is enabled, but no compatible Chrome or Chromium browser was found. '
             + 'Click Grant to install Chromium for WindieOS.'
           ),
           details: {

@@ -238,10 +238,11 @@ class LocalBrowserWatchdog(BaseWatchdog):
 				playwright_path = '~/Library/Caches/ms-playwright'
 			patterns = [
 				'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-				f'{playwright_path}/chromium-*/chrome-mac/Chromium.app/Contents/MacOS/Chromium',
 				'/Applications/Chromium.app/Contents/MacOS/Chromium',
 				'/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
 				'/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
+				'/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+				f'{playwright_path}/chromium-*/chrome-mac/Chromium.app/Contents/MacOS/Chromium',
 				f'{playwright_path}/chromium_headless_shell-*/chrome-mac/Chromium.app/Contents/MacOS/Chromium',
 			]
 		elif system == 'Linux':
@@ -251,7 +252,6 @@ class LocalBrowserWatchdog(BaseWatchdog):
 				'/usr/bin/google-chrome-stable',
 				'/usr/bin/google-chrome',
 				'/usr/local/bin/google-chrome',
-				f'{playwright_path}/chromium-*/chrome-linux*/chrome',
 				'/usr/bin/chromium',
 				'/usr/bin/chromium-browser',
 				'/usr/local/bin/chromium',
@@ -259,6 +259,9 @@ class LocalBrowserWatchdog(BaseWatchdog):
 				'/usr/bin/google-chrome-beta',
 				'/usr/bin/google-chrome-dev',
 				'/usr/bin/brave-browser',
+				'/usr/bin/microsoft-edge',
+				'/usr/bin/microsoft-edge-stable',
+				f'{playwright_path}/chromium-*/chrome-linux*/chrome',
 				f'{playwright_path}/chromium_headless_shell-*/chrome-linux*/chrome',
 			]
 		elif system == 'Windows':
@@ -270,7 +273,6 @@ class LocalBrowserWatchdog(BaseWatchdog):
 				r'%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe',
 				r'%PROGRAMFILES%\Google\Chrome\Application\chrome.exe',
 				r'%PROGRAMFILES(X86)%\Google\Chrome\Application\chrome.exe',
-				f'{playwright_path}\\chromium-*\\chrome-win\\chrome.exe',
 				r'C:\Program Files\Chromium\Application\chrome.exe',
 				r'C:\Program Files (x86)\Chromium\Application\chrome.exe',
 				r'%LOCALAPPDATA%\Chromium\Application\chrome.exe',
@@ -279,6 +281,7 @@ class LocalBrowserWatchdog(BaseWatchdog):
 				r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
 				r'C:\Program Files\Microsoft\Edge\Application\msedge.exe',
 				r'%LOCALAPPDATA%\Microsoft\Edge\Application\msedge.exe',
+				f'{playwright_path}\\chromium-*\\chrome-win\\chrome.exe',
 				f'{playwright_path}\\chromium_headless_shell-*\\chrome-win\\chrome.exe',
 			]
 
@@ -321,27 +324,25 @@ class LocalBrowserWatchdog(BaseWatchdog):
 	def _build_missing_browser_error_message(system_name: str | None = None) -> str:
 		system = system_name or platform.system()
 		base = (
-			'No Chromium browser binary was found in bundled Playwright runtime '
-			'or system browser locations.'
+			'No supported Chrome or Chromium browser binary was found on this system '
+			'or in the WindieOS-installed Playwright cache.'
 		)
 		if system == 'Linux':
 			return (
 				f'{base} '
-				'Reinstall WindieOS to restore bundled runtime, or install Chrome/Chromium '
+				'Install Chrome, Chromium, Edge, or Brave '
 				'(for example: `sudo apt install google-chrome-stable` or '
 				'`sudo apt install chromium-browser`), then retry.'
 			)
 		if system == 'Darwin':
 			return (
 				f'{base} '
-				'Reinstall WindieOS to restore bundled runtime, or install Google Chrome '
-				'or Chromium in /Applications, then retry.'
+				'Install Google Chrome, Chromium, Edge, or Brave in /Applications, then retry.'
 			)
 		if system == 'Windows':
 			return (
 				f'{base} '
-				'Reinstall WindieOS to restore bundled runtime, or install Google Chrome, '
-				'Chromium, or Microsoft Edge, then retry.'
+				'Install Google Chrome, Chromium, Microsoft Edge, or Brave, then retry.'
 			)
 		return f'{base} Install a supported browser and retry.'
 

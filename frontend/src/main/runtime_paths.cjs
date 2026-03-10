@@ -97,17 +97,6 @@ function getBundledPythonExecutableCandidates() {
   ]);
 }
 
-function getBundledPlaywrightBrowsersPathCandidates() {
-  if (!isPackagedApp()) {
-    return [];
-  }
-  return getBundledRuntimeRoots().map((root) => path.join(root, 'ms-playwright'));
-}
-
-function resolveBundledPlaywrightBrowsersPath() {
-  return firstExistingPath(getBundledPlaywrightBrowsersPathCandidates());
-}
-
 function resolvePythonExecutablePath() {
   const explicitPythonPath = process.env.WINDIE_PYTHON_PATH;
   if (explicitPythonPath && fs.existsSync(explicitPythonPath)) {
@@ -178,7 +167,6 @@ function resolveSidecarLaunchTarget(scriptName) {
 }
 
 module.exports = {
-  resolveBundledPlaywrightBrowsersPath,
   resolvePythonExecutablePath,
   resolveSidecarLaunchTarget,
 };

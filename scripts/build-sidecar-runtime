@@ -30,7 +30,7 @@ else
   exit 1
 fi
 
-echo "[build-sidecar-runtime] profile=full"
+echo "[build-sidecar-runtime] profile=system-browser-first"
 echo "[build-sidecar-runtime] python=${BASE_PYTHON}"
 echo "[build-sidecar-runtime] runtime=${RUNTIME_DIR}"
 
@@ -180,18 +180,6 @@ else
     exit 1
   fi
   echo "[build-sidecar-runtime] WARNING: wakeword prefetch failed; continuing because WINDIE_REQUIRE_WAKEWORD_PREFETCH=${REQUIRE_WAKEWORD_PREFETCH}"
-fi
-
-if find "${RUNTIME_DIR}/ms-playwright" -maxdepth 2 -type d -name 'chromium-*' | grep -q .; then
-  echo "[build-sidecar-runtime] playwright chromium payload already present; skipping install"
-else
-  echo "[build-sidecar-runtime] installing playwright chromium payload"
-  PLAYWRIGHT_BROWSERS_PATH="${RUNTIME_DIR}/ms-playwright" \
-    "${RUNTIME_PYTHON}" -m playwright install chromium
-fi
-if ! find "${RUNTIME_DIR}/ms-playwright" -maxdepth 2 -type d -name 'chromium-*' | grep -q .; then
-  echo "[build-sidecar-runtime] ERROR: playwright chromium payload missing after install" >&2
-  exit 1
 fi
 
 # Copy WindieOS sidecar source into runtime, compile to sourceless bytecode,
