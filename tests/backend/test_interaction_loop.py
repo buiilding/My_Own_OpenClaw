@@ -379,8 +379,11 @@ async def test_interaction_loop_fail_closes_native_computer_use_without_required
     assert session.history.assistant_messages[0][1] == [
         {
             "id": "call_mouse_1",
-            "name": "invalid_computer_use_tool",
-            "arguments": {"action": "click", "x": 10, "y": 20},
+            "name": "computer_use",
+            "arguments": {
+                "tool": "mouse_control",
+                "arguments": {"action": "click", "x": 10, "y": 20},
+            },
         }
     ]
     assert session.history.staged_tool_call_ids[0] == (["call_mouse_1"], False)
@@ -410,8 +413,17 @@ async def test_interaction_loop_fail_closes_native_computer_use_with_unexpected_
     assert session.history.assistant_messages[0][1] == [
         {
             "id": "call_mouse_extra_meta_1",
-            "name": "invalid_computer_use_tool",
-            "arguments": {"action": "click", "x": 10, "y": 20},
+            "name": "computer_use",
+            "arguments": {
+                "tool": "mouse_control",
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "click target",
+                    "expectation": "dialog opens",
+                    "trace_id": "abc-123",
+                },
+                "arguments": {"action": "click", "x": 10, "y": 20},
+            },
         }
     ]
     assert session.history.staged_tool_call_ids[0] == (["call_mouse_extra_meta_1"], False)

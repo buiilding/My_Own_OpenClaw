@@ -159,8 +159,9 @@ From `InteractionLoop.run_loop()`:
 2. stream LLM response
 3. parse native tool calls into `ParsedResponse`
 4. when tool calls exist, store assistant tool-call turn in history first
-5. execute tools
-6. process results and commit tool outputs for next-iteration context
+5. if a parsed call carries `metadata.model_facing_tool_call` (for example invalid `computer_use` fail-close), assistant history uses that preserved raw payload instead of the rewritten internal executable tool name
+6. execute tools
+7. process results and commit tool outputs for next-iteration context
 
 `finally` block always attempts `process_results(...)` to prevent leaked pending tool state when execution errors/disconnects occur.
 
