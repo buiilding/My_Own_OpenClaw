@@ -39,5 +39,4 @@ tools = [
 [tool_options.mouse_control]
 enabled_coordinate_methods = [
   "manual",
-  "ocr",
-  "prediction"]
+  "ocr"]
