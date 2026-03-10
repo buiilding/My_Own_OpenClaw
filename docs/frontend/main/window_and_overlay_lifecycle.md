@@ -198,6 +198,7 @@ Main bridge fanout channel (`ipc.cjs`):
   - stored active affinity fallback applies only when main window is hidden
   - visible/destroyed/missing target windows do not trigger fallback retargeting
 - `maximize=true` restores and maximizes main window before focus.
+- focused dashboard restores use a stronger activation path (`moveTop()` -> `focus()` -> `webContents.focus()`) after the overlay handoff so Windows does not leave the frameless dashboard visible-but-inactive after opening from the minimal chat pill.
 - `open` target still routes to renderer as `main-window-open-target`.
 
 ## Renderer Participation

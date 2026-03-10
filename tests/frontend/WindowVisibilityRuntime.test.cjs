@@ -17,6 +17,7 @@ function createWindow({
     showInactive: jest.fn(),
     hide: jest.fn(),
     focus: jest.fn(),
+    moveTop: jest.fn(),
     setOpacity: jest.fn(),
     minimize: jest.fn(),
     restore: jest.fn(),
@@ -24,6 +25,7 @@ function createWindow({
     getBounds: jest.fn(() => ({ x: 100, y: 100, width: 600, height: 400 })),
     setBounds: jest.fn(),
     webContents: {
+      focus: jest.fn(),
       send: jest.fn(),
     },
   };
@@ -239,10 +241,14 @@ describe('window_visibility_runtime showMainWindow', () => {
       getSize: jest.fn(() => [1000, 700]),
       setBounds: jest.fn(),
       show: jest.fn(),
+      moveTop: jest.fn(),
       focus: jest.fn(),
       setOpacity: jest.fn(),
       restore: jest.fn(),
       isMinimized: jest.fn(() => false),
+      webContents: {
+        focus: jest.fn(),
+      },
     };
     const syncWindowDisplayAffinity = jest.fn();
     const setActiveDisplayAffinity = jest.fn();
@@ -274,7 +280,9 @@ describe('window_visibility_runtime showMainWindow', () => {
     });
     expect(mainWindow.show).toHaveBeenCalledTimes(1);
     expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
+    expect(mainWindow.moveTop).toHaveBeenCalledTimes(1);
     expect(mainWindow.focus).toHaveBeenCalledTimes(1);
+    expect(mainWindow.webContents.focus).toHaveBeenCalledTimes(1);
   });
 
   test('repositions hidden main window onto stored active display affinity when no explicit target is provided', () => {
@@ -285,10 +293,14 @@ describe('window_visibility_runtime showMainWindow', () => {
       getSize: jest.fn(() => [1000, 700]),
       setBounds: jest.fn(),
       show: jest.fn(),
+      moveTop: jest.fn(),
       focus: jest.fn(),
       setOpacity: jest.fn(),
       restore: jest.fn(),
       isMinimized: jest.fn(() => false),
+      webContents: {
+        focus: jest.fn(),
+      },
     };
     const syncWindowDisplayAffinity = jest.fn();
     const setActiveDisplayAffinity = jest.fn();
@@ -323,7 +335,9 @@ describe('window_visibility_runtime showMainWindow', () => {
     });
     expect(mainWindow.show).toHaveBeenCalledTimes(1);
     expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
+    expect(mainWindow.moveTop).toHaveBeenCalledTimes(1);
     expect(mainWindow.focus).toHaveBeenCalledTimes(1);
+    expect(mainWindow.webContents.focus).toHaveBeenCalledTimes(1);
   });
 
   test('uses target display work area instead of native maximize when opening from another monitor maximized', () => {
@@ -333,11 +347,15 @@ describe('window_visibility_runtime showMainWindow', () => {
       isMaximized: jest.fn(() => false),
       setBounds: jest.fn(),
       show: jest.fn(),
+      moveTop: jest.fn(),
       focus: jest.fn(),
       isMinimized: jest.fn(() => false),
       maximize: jest.fn(),
       setOpacity: jest.fn(),
       restore: jest.fn(),
+      webContents: {
+        focus: jest.fn(),
+      },
     };
     const syncWindowDisplayAffinity = jest.fn();
     const setActiveDisplayAffinity = jest.fn();
@@ -371,7 +389,9 @@ describe('window_visibility_runtime showMainWindow', () => {
     expect(mainWindow.maximize).not.toHaveBeenCalled();
     expect(mainWindow.show).toHaveBeenCalledTimes(1);
     expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
+    expect(mainWindow.moveTop).toHaveBeenCalledTimes(1);
     expect(mainWindow.focus).toHaveBeenCalledTimes(1);
+    expect(mainWindow.webContents.focus).toHaveBeenCalledTimes(1);
   });
 
   test('unmaximizes before repositioning onto target display', () => {
@@ -383,10 +403,14 @@ describe('window_visibility_runtime showMainWindow', () => {
       getSize: jest.fn(() => [1000, 700]),
       setBounds: jest.fn(),
       show: jest.fn(),
+      moveTop: jest.fn(),
       focus: jest.fn(),
       setOpacity: jest.fn(),
       restore: jest.fn(),
       isMinimized: jest.fn(() => false),
+      webContents: {
+        focus: jest.fn(),
+      },
     };
     const syncWindowDisplayAffinity = jest.fn();
     const setActiveDisplayAffinity = jest.fn();
@@ -412,7 +436,9 @@ describe('window_visibility_runtime showMainWindow', () => {
     });
     expect(mainWindow.show).not.toHaveBeenCalled();
     expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
+    expect(mainWindow.moveTop).not.toHaveBeenCalled();
     expect(mainWindow.focus).not.toHaveBeenCalled();
+    expect(mainWindow.webContents.focus).not.toHaveBeenCalled();
   });
 });
 
