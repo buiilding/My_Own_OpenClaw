@@ -95,6 +95,7 @@ function createMainWindow({
   initializeIpc,
   applyResponseOverlayPhase,
   setAgentLoopStopShortcutEnabled,
+  setGlobalAgentStopShortcutAccelerator,
   prepareOverlayQueryCaptureFocus,
   initializeWakewordBridge,
   showChatWindow,
@@ -145,6 +146,7 @@ function createMainWindow({
     applyResponseOverlayPhase,
     onBeforeOverlayQueryCapture: prepareOverlayQueryCaptureFocus,
     setAgentLoopStopShortcutEnabled,
+    setGlobalAgentStopShortcutAccelerator,
     isPackaged: app.isPackaged,
     getWindows,
   });

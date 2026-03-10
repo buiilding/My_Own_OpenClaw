@@ -1,3 +1,5 @@
+import { normalizeGlobalAgentStopShortcutAccelerator } from '../infrastructure/shortcuts/agentStopShortcut';
+
 /**
  * Local storage utilities for configuration persistence.
  * 
@@ -39,6 +41,7 @@ const DEFAULT_FRONTEND_CONFIG = {
   wakeword_stt_enabled: false,
   agent_full_sudo_enabled: false,
   browser_automation_enabled: false,
+  global_agent_stop_shortcut: normalizeGlobalAgentStopShortcutAccelerator(),
   include_query_screenshot: true,
   provider_api_keys: DEFAULT_PROVIDER_API_KEYS,
   provider_oauth: DEFAULT_PROVIDER_OAUTH,
@@ -98,6 +101,9 @@ function buildFrontendConfig(overrides = {}) {
   return {
     ...DEFAULT_FRONTEND_CONFIG,
     ...overrides,
+    global_agent_stop_shortcut: normalizeGlobalAgentStopShortcutAccelerator(
+      overrides.global_agent_stop_shortcut,
+    ),
     provider_api_keys: normalizeProviderApiKeys(overrides.provider_api_keys),
     provider_oauth: normalizeProviderOAuth(overrides.provider_oauth),
   };

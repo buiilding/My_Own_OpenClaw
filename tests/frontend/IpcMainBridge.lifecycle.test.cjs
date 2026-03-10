@@ -1,5 +1,7 @@
 /** @jest-environment node */
 
+const path = require('path');
+
 const {
   initIpc,
   primeQueryContext,
@@ -347,20 +349,37 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   });
 
   test('save-frontend-config writes file and renames temp path', async () => {
-    const { handlers, fs } = initIpc();
+    const setGlobalAgentStopShortcutAccelerator = jest.fn();
+    const { handlers, fs } = initIpc({ setGlobalAgentStopShortcutAccelerator });
+    const appDataPath = path.join(path.sep, 'tmp', 'appdata');
+    const tempConfigPath = path.join(appDataPath, 'frontend-config.json.tmp');
+    const configPath = path.join(appDataPath, 'frontend-config.json');
 
-    const result = await handlers['save-frontend-config'](null, { model_mode: 'online' });
+    const result = await handlers['save-frontend-config'](null, {
+      model_mode: 'online',
+      global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
+    });
 
     expect(result).toEqual({ success: true });
-    expect(fs.promises.mkdir).toHaveBeenCalledWith('/tmp/appdata', { recursive: true });
-    expect(fs.promises.writeFile).toHaveBeenCalledWith(
-      '/tmp/appdata/frontend-config.json.tmp',
-      JSON.stringify({ model_mode: 'online' }, null, 2),
-      'utf-8',
-    );
-    expect(fs.promises.rename).toHaveBeenCalledWith(
-      '/tmp/appdata/frontend-config.json.tmp',
-      '/tmp/appdata/frontend-config.json',
-    );
+    expect(fs.promises.mkdir.mock.calls).toEqual([
+      [appDataPath, { recursive: true }],
+    ]);
+    expect(fs.promises.writeFile.mock.calls).toEqual([
+      [
+        tempConfigPath,
+        JSON.stringify({
+          model_mode: 'online',
+          global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
+        }, null, 2),
+        'utf-8',
+      ],
+    ]);
+    expect(fs.promises.rename.mock.calls).toEqual([
+      [
+        tempConfigPath,
+        configPath,
+      ],
+    ]);
+    expect(setGlobalAgentStopShortcutAccelerator).toHaveBeenCalledWith('CommandOrControl+Alt+.');
   });
 });

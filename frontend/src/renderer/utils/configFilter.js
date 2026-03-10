@@ -4,7 +4,7 @@
  */
 
 /**
- * Fields that the frontend is allowed to manage and send to the backend.
+ * Fields that the frontend is allowed to manage and persist locally.
  */
 const FRONTEND_CONFIG_FIELDS = [
   'model_mode',
@@ -16,6 +16,7 @@ const FRONTEND_CONFIG_FIELDS = [
   'wakeword_stt_enabled',
   'agent_full_sudo_enabled',
   'browser_automation_enabled',
+  'global_agent_stop_shortcut',
   'include_query_screenshot',
   'provider_api_keys',
   'provider_oauth',

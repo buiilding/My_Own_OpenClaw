@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Docs
 - docs(planning-browser-launcher): add a dated planning note for the dedicated Windie browser launcher/profile-branding approach, including shortcut strategy, platform-specific constraints, optional profile-metadata seeding, and follow-up docs/index wiring.
+- docs(frontend-global-stop-shortcut-settings): refresh the user guide, frontend architecture, and onboarding runtime docs so they describe the configurable global stop shortcut, its platform defaults, the local-only config boundary, and the way onboarding mirrors the saved accelerator.
+
+### Added
+- feat(frontend-global-stop-shortcut-settings): expose the main-process global agent-stop shortcut in Settings > General, offer platform-safe accelerator choices, persist the selected accelerator locally, apply changes live through the Electron shortcut runtime, and keep onboarding copy aligned with the saved value; add focused renderer/main/IPC regression coverage.
 
 ### Fixed
 - fix(fullstack-computer-use-backend-dispatch-validation): make backend `ToolPreparer` revalidate model-emitted tool args before frontend dispatch and revalidate resolved computer-use executor payloads after coordinate grounding, preventing malformed native `computer_use` calls from reaching sidecar runtimes with missing `action`/coordinate fields; align keyboard `repeat`/`interval_ms` and window `match_mode` contracts across backend, sidecar schemas, runtimes, docs, and focused regressions.

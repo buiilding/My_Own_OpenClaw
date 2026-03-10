@@ -134,6 +134,7 @@ Primary modules:
   - Single backend WebSocket client lifecycle and reconnect.
   - Handshake/user/session/conversation context propagation.
   - Settings sync ACK tracking (`settings-updated`/timeout handling).
+  - Applies the renderer-owned `global_agent_stop_shortcut` preference locally in main while filtering that key out of backend `update-settings` payloads.
   - Query preprocessing + local-user-message synthesis.
   - Artifact upload HTTP helper.
 - `main/local_backend_bridge.cjs`:
@@ -163,6 +164,7 @@ Primary modules:
   - No boot-time renderer permission gate in current `App.jsx`.
 - `renderer/app/providers/AppConfigProvider.jsx`:
   - Frontend config load/merge/save.
+  - Persists renderer-owned config such as `global_agent_stop_shortcut` locally without syncing that key to the backend.
   - Backend settings sync, backend model-list routing.
   - Wakeword suppression and effective wakeword state.
 - `renderer/app/providers/AppProvider.jsx`:
@@ -182,7 +184,7 @@ Primary modules:
   - Executes incoming tool calls/bundles, stale-turn cancellation responses.
 - `features/chat/components/ChatInterface.jsx`:
   - Provider + model selectors, stop/new-chat actions, speech toggle, retry/edit message flows.
-  - Dedicated loop-stop shortcut handler (`Ctrl+Alt+.` on Windows/Linux, `Command+Option+.` on macOS) wired to the same stop-query path as the stop button.
+  - Focused-window `Esc` stop handler wired to the same stop-query path as the stop button.
 - `features/chat/components/MessageList.jsx`:
   - Message rendering + inline user-message editor.
 
@@ -200,6 +202,9 @@ Primary modules:
   - Sidebar + modal surface orchestration.
   - Conversation search/recent grouping/open/rename/pin/delete actions.
   - `main-window-open-target` IPC target routing (`chat|settings|models|memory`).
+- `features/dashboard/components/sections/SettingsSection.jsx`:
+  - General settings controls for wakeword, TTS, and the configurable global stop shortcut.
+  - Shortcut choices come from a shared platform catalog so the dashboard, onboarding, and main-process global registration stay aligned.
 - `features/dashboard/hooks/useDashboardConversations.js`:
   - Extracted conversation runtime state: list/search fetch, open/rehydrate, rename/pin/delete handlers, transcript-entry polling.
 - `features/dashboard/components/sections/MemorySection.jsx`:

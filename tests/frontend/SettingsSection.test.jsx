@@ -28,6 +28,7 @@ describe('SettingsSection', () => {
   const defaultConfig = {
     wakeword_stt_enabled: false,
     agent_full_sudo_enabled: false,
+    global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
     show_additional_models: true,
   };
 
@@ -92,6 +93,30 @@ describe('SettingsSection', () => {
 
     fireEvent.click(screen.getByLabelText('Speech-To-Text After "Hey Jarvis"'));
     expect(onConfigChange).toHaveBeenCalledWith({ wakeword_stt_enabled: true });
+  });
+
+  test('shows the configured global stop shortcut label', () => {
+    renderSettingsSection({
+      config: {
+        ...defaultConfig,
+        global_agent_stop_shortcut: 'CommandOrControl+Shift+.',
+      },
+    });
+
+    expect(screen.getByText(/Current binding:/)).toHaveTextContent('Ctrl + Shift + .');
+  });
+
+  test('global stop shortcut dropdown emits config update payload', () => {
+    const onConfigChange = jest.fn();
+    renderSettingsSection({ onConfigChange });
+
+    fireEvent.change(screen.getByDisplayValue('Ctrl + Alt + .'), {
+      target: { value: 'CommandOrControl+Shift+.' },
+    });
+
+    expect(onConfigChange).toHaveBeenCalledWith({
+      global_agent_stop_shortcut: 'CommandOrControl+Shift+.',
+    });
   });
 
   test('agent full sudo toggle confirms, invokes os auth, then persists on success', async () => {

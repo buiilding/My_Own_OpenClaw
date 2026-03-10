@@ -7,6 +7,10 @@ import {
 } from 'lucide-react';
 import { useAppConfigContext } from '../../../../app/providers/AppContextHooks';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
+import {
+  getGlobalAgentStopShortcutLabel,
+  getGlobalAgentStopShortcutOptions,
+} from '../../../../infrastructure/shortcuts/agentStopShortcut';
 import PermissionControlCenter from '../../../permissions/components/PermissionControlCenter';
 import '../../../../styles/CloneSettings.css';
 
@@ -14,13 +18,21 @@ const SETTINGS_TABS = Object.freeze([
   { id: 'general', icon: Settings, label: 'General' },
 ]);
 
-function SelectDropdown({ value, options, onChange, showSwatch = false }) {
+function SelectDropdown({
+  value,
+  options,
+  onChange,
+  showSwatch = false,
+  className = '',
+}) {
   return (
-    <div className="clone-settings-select-wrap">
+    <div className={['clone-settings-select-wrap', className].filter(Boolean).join(' ')}>
       {showSwatch ? <span className="clone-settings-swatch" aria-hidden="true" /> : null}
       <select value={value} onChange={(event) => onChange(event.target.value)} className="clone-settings-select">
         {options.map((option) => (
-          <option key={option} value={option}>{option}</option>
+          <option key={option.value || option} value={option.value || option}>
+            {option.label || option}
+          </option>
         ))}
       </select>
       <ChevronDown size={14} />
@@ -30,9 +42,16 @@ function SelectDropdown({ value, options, onChange, showSwatch = false }) {
 
 SelectDropdown.propTypes = {
   value: PropTypes.string.isRequired,
-  options: PropTypes.arrayOf(PropTypes.string).isRequired,
+  options: PropTypes.arrayOf(PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    }),
+  ])).isRequired,
   onChange: PropTypes.func.isRequired,
   showSwatch: PropTypes.bool,
+  className: PropTypes.string,
 };
 
 function CloneToggle({
@@ -72,6 +91,8 @@ function GeneralTab({ config, onConfigChange }) {
   const [sudoAccessPending, setSudoAccessPending] = useState(false);
   const wakewordSttEnabled = config?.wakeword_stt_enabled ?? false;
   const agentFullSudoEnabled = config?.agent_full_sudo_enabled ?? false;
+  const globalStopShortcut = config?.global_agent_stop_shortcut;
+  const globalStopShortcutOptions = getGlobalAgentStopShortcutOptions();
 
   const handleWakewordSttEnabledChange = (enabled) => {
     onConfigChange({
@@ -168,6 +189,32 @@ function GeneralTab({ config, onConfigChange }) {
         />
       </div>
 
+      <div className="clone-settings-row clone-settings-row-rich">
+        <div>
+          <span>Global Stop Shortcut</span>
+          <p>
+            Ends the active agent loop from anywhere. Current binding:
+            {' '}
+            <strong>{getGlobalAgentStopShortcutLabel(globalStopShortcut)}</strong>
+            .
+          </p>
+          <p>Focused chat and dashboard windows still support <strong>Esc</strong> for stop.</p>
+        </div>
+        <SelectDropdown
+          value={globalStopShortcut}
+          options={globalStopShortcutOptions.map((shortcut) => ({
+            value: shortcut.accelerator,
+            label: shortcut.label,
+          }))}
+          onChange={(nextShortcut) => {
+            onConfigChange({
+              global_agent_stop_shortcut: nextShortcut,
+            });
+          }}
+          className="clone-settings-select-shortcut"
+        />
+      </div>
+
     </div>
   );
 }
@@ -176,6 +223,7 @@ GeneralTab.propTypes = {
   config: PropTypes.shape({
     wakeword_stt_enabled: PropTypes.bool,
     agent_full_sudo_enabled: PropTypes.bool,
+    global_agent_stop_shortcut: PropTypes.string,
   }),
   onConfigChange: PropTypes.func.isRequired,
 };
@@ -253,6 +301,7 @@ SettingsSection.propTypes = {
   config: PropTypes.shape({
     show_additional_models: PropTypes.bool,
     agent_full_sudo_enabled: PropTypes.bool,
+    global_agent_stop_shortcut: PropTypes.string,
   }),
   onConfigChange: PropTypes.func.isRequired,
   initialTab: PropTypes.string,

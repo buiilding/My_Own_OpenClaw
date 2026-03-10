@@ -52,7 +52,7 @@ function AppContent() {
   if (!frontendOnboardingComplete) {
     return (
       <FrontendOnboardingSlideshow
-        stopAgentShortcutLabel={getGlobalAgentStopShortcutLabel()}
+        stopAgentShortcutLabel={getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)}
         onComplete={handleFrontendOnboardingComplete}
       />
     );

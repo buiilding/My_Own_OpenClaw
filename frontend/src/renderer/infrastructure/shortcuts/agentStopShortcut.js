@@ -1,3 +1,5 @@
+import shortcutCatalog from '../../../shared/agent_stop_shortcut_catalog.json';
+
 export function getAgentStopShortcutLabel() {
   return 'Esc';
 }
@@ -17,15 +19,35 @@ function getRendererPlatformLabel() {
   return '';
 }
 
-export function getGlobalAgentStopShortcutLabel() {
+function resolveRendererShortcutPlatformKey() {
   const platformLabel = getRendererPlatformLabel();
   if (/mac/i.test(platformLabel)) {
-    return 'Command + Shift + Esc';
+    return 'darwin';
   }
   if (/win/i.test(platformLabel)) {
-    return 'Ctrl + Alt + .';
+    return 'win32';
   }
-  return 'Ctrl + Shift + Esc';
+  return 'linux';
+}
+
+export function getGlobalAgentStopShortcutOptions() {
+  return shortcutCatalog[resolveRendererShortcutPlatformKey()] || shortcutCatalog.linux;
+}
+
+export function normalizeGlobalAgentStopShortcutAccelerator(accelerator) {
+  const shortcuts = getGlobalAgentStopShortcutOptions();
+  const normalizedAccelerator = typeof accelerator === 'string' ? accelerator.trim() : '';
+  const matchedShortcut = shortcuts.find((shortcut) => shortcut.accelerator === normalizedAccelerator);
+  return matchedShortcut?.accelerator || shortcuts[0]?.accelerator || 'CommandOrControl+Shift+Escape';
+}
+
+export function getGlobalAgentStopShortcutLabel(accelerator = null) {
+  const normalizedAccelerator = normalizeGlobalAgentStopShortcutAccelerator(accelerator);
+  return (
+    getGlobalAgentStopShortcutOptions().find(
+      (shortcut) => shortcut.accelerator === normalizedAccelerator,
+    )?.label || getGlobalAgentStopShortcutOptions()[0]?.label || 'Ctrl + Shift + Esc'
+  );
 }
 
 export function isAgentStopShortcutEvent(event) {
