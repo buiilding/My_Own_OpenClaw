@@ -80,6 +80,21 @@ class KeyboardControlArgs(BaseModel):
     )
     wait: float = post_action_wait_field()
 
+    @model_validator(mode='after')
+    def validate_conditional_fields(self):
+        if self.action in {KeyboardAction.TYPE, KeyboardAction.PASTE}:
+            if not self.text:
+                raise ValueError("text parameter required for type or paste action")
+            if len(self.text) > 10000:
+                raise ValueError(
+                    f"Text too long: {len(self.text)} characters (max 10000)"
+                )
+        if self.action == KeyboardAction.PRESS and not self.key:
+            raise ValueError("key parameter required for press action")
+        if self.action == KeyboardAction.HOTKEY and not self.keys:
+            raise ValueError("keys parameter required for hotkey action")
+        return self
+
 
 # --- Screenshot Tool Schemas ---
 
