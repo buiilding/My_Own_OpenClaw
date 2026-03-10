@@ -8,6 +8,7 @@ All notable changes to WindieOS will be documented in this file.
 - docs(planning-browser-launcher): add a dated planning note for the dedicated Windie browser launcher/profile-branding approach, including shortcut strategy, platform-specific constraints, optional profile-metadata seeding, and follow-up docs/index wiring.
 - docs(frontend-global-stop-shortcut-settings): refresh the user guide, frontend architecture, and onboarding runtime docs so they describe the configurable global stop shortcut, its platform defaults, the local-only config boundary, and the way onboarding mirrors the saved accelerator.
 - docs(frontend-onboarding-layout): document the viewport-capped onboarding card and fixed footer action contract so short-window regressions stay aligned with the renderer implementation.
+- docs(frontend-main-surface-runtime): refresh frontend architecture and window lifecycle references so they document the new `surface_runtime` owner, centralized `window_platform_policy`, and supervisor-owned sidecar/wakeword subprocess state.
 
 ### Added
 - feat(frontend-global-stop-shortcut-settings): expose the main-process global agent-stop shortcut in Settings > General, offer platform-safe accelerator choices, persist the selected accelerator locally, apply changes live through the Electron shortcut runtime, and keep onboarding copy aligned with the saved value; add focused renderer/main/IPC regression coverage.
@@ -39,6 +40,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Refactored
 - refactor(frontend-chatbox-toggle-controls): consolidate the minimal chat pill's config-backed toggle plumbing behind one shared boolean-config helper and one shared enabled-state icon style, reducing duplicated button logic while preserving the same camera/TTS behavior.
+- refactor(frontend-main-runtime-ownership): centralize dashboard/chat/response lifecycle ownership in `surface_runtime.cjs`, move overlay/content-protection/activation rules into `window_platform_policy.cjs`, shrink `index.cjs` to composition wiring, and give local-backend/wakeword bridges explicit supervisor-owned subprocess state.
 
 ## 0.6.10 - 2026-03-09
 

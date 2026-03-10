@@ -34,9 +34,9 @@ const {
   resolveActiveSurfaceDisplayAffinityForWindows,
   toScreenshotDisplayBounds,
 } = require('./display_affinity_runtime.cjs');
+const { createLocalBackendSupervisor } = require('./local_backend_supervisor.cjs');
 
 let pythonProcess = null;
-let isPythonReady = false;
 let pendingRequests = new Map();
 let stdoutBuffer = '';
 let pendingStdoutLines = [];
@@ -54,6 +54,11 @@ let runtimeScreenCaptureCapabilityVerifier = async () => ({
     initialized: false,
   },
 });
+const localBackendSupervisor = createLocalBackendSupervisor();
+
+function isBackendReady() {
+  return localBackendSupervisor.getSnapshot().ready;
+}
 
 function shouldOffloadJsonParse(line) {
   return Buffer.byteLength(line, 'utf8') >= LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES;
@@ -156,7 +161,7 @@ async function drainStdoutLines(processRef) {
 }
 
 function isActiveProcessReference(processRef) {
-  return Boolean(processRef) && pythonProcess === processRef;
+  return localBackendSupervisor.isActiveProcess(processRef);
 }
 
 function getReadinessRetryDelay(attempt) {
@@ -178,7 +183,7 @@ function scheduleReadinessRetry(mainWindow, attempt, maxAttempts, checkToken) {
 }
 
 function markBackendReady(mainWindow) {
-  isPythonReady = true;
+  localBackendSupervisor.markReady();
   mainWindow?.webContents.send('local-backend-status', { ready: true });
 }
 
@@ -192,11 +197,14 @@ function rejectPendingRequests(reason) {
   }
 }
 
-function resetBackendProcessState(reason) {
+function resetBackendProcessState({ reason, status = 'stopped' } = {}) {
   pythonProcess = null;
-  isPythonReady = false;
+  localBackendSupervisor.clear({
+    status,
+    error: status === 'error' ? reason || '' : '',
+  });
   readinessCheckCallback = null;
-  readinessCheckToken += 1;
+  readinessCheckToken = localBackendSupervisor.getSnapshot().generation;
   rejectPendingRequests(reason);
   stdoutBuffer = '';
   pendingStdoutLines = [];
@@ -348,6 +356,7 @@ function startLocalBackend(mainWindow, options = {}) {
     }),
   });
   const processRef = pythonProcess;
+  readinessCheckToken = localBackendSupervisor.attachProcess(processRef);
 
   checkReadiness(mainWindow);
 
@@ -415,7 +424,10 @@ function startLocalBackend(mainWindow, options = {}) {
       return;
     }
     console.log(`[LocalBackend] Python process exited with code ${code}, signal ${signal}`);
-    resetBackendProcessState('Local backend process exited');
+    resetBackendProcessState({
+      reason: 'Local backend process exited',
+      status: code !== 0 && code !== null ? 'error' : 'stopped',
+    });
     const exitError = code !== 0 && code !== null
       ? `Python process exited with code ${code}`
       : null;
@@ -427,7 +439,10 @@ function startLocalBackend(mainWindow, options = {}) {
       return;
     }
     console.error('[LocalBackend] Failed to start Python process:', error);
-    resetBackendProcessState('Local backend process error');
+    resetBackendProcessState({
+      reason: 'Local backend process error',
+      status: 'error',
+    });
 
     let errorMessage = error.message;
     if (error.code === 'ENOENT') {
@@ -464,7 +479,7 @@ function handlePythonResponse(response) {
 }
 
 function sendRequest(method, params = {}, options = {}) {
-  if (!pythonProcess || !isPythonReady) {
+  if (!pythonProcess || !isBackendReady()) {
     throw new Error('Local backend not ready');
   }
 
@@ -553,6 +568,7 @@ async function storeMemory(payload = {}) {
 function stopLocalBackend() {
   if (pythonProcess) {
     const processToStop = pythonProcess;
+    localBackendSupervisor.beginStop();
     console.log('[LocalBackend] Stopping Python process...');
     processToStop.kill('SIGTERM');
 

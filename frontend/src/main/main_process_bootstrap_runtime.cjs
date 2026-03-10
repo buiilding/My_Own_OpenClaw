@@ -24,7 +24,6 @@ function createWindowBootstrapRuntime(deps) {
       getLatestFrontendConfig: deps.getLatestFrontendConfig,
       getWindows: () => deps.getState().windows,
       setMainWindow: deps.setMainWindow,
-      enableContentProtectionSafely: deps.enableContentProtectionSafely,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
     });
     deps.setMainWindow(mainWindow);
@@ -58,7 +57,7 @@ function createWindowBootstrapRuntime(deps) {
       syncWakewordToggleForChatVisibility: deps.syncWakewordToggleForChatVisibility,
       externalFocusTracker: deps.externalFocusTracker,
       setChatWindow: deps.setChatWindow,
-      enableContentProtectionSafely: deps.enableContentProtectionSafely,
+      applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
     });
     deps.setChatWindow(chatWindow);
@@ -84,7 +83,7 @@ function createWindowBootstrapRuntime(deps) {
       setResponseOverlayVisibilityState: deps.setResponseOverlayVisibilityState,
       syncContextLabelWindowVisibility: deps.syncContextLabelWindowVisibility,
       setResponseWindow: deps.setResponseWindow,
-      enableContentProtectionSafely: deps.enableContentProtectionSafely,
+      applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
     });
     deps.setResponseWindow(responseWindow);

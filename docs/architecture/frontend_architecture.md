@@ -40,7 +40,9 @@ frontend/src/
 │   ├── ipc_renderer_windows.cjs           # Renderer-window tracking + broadcast helpers for IPC bridge
 │   ├── ipc_query_broadcast.cjs            # Local user-message/query-failure bridge helpers
 │   ├── main_window_runtime.cjs            # Main/chat/response/tray window constructors + renderer view loading
+│   ├── surface_runtime.cjs                # Shared owner for main/chat/response window refs, overlay phase, and visibility orchestration
 │   ├── window_visibility_runtime.cjs      # Main/chat overlay visibility operations (show/hide/maximize)
+│   ├── window_platform_policy.cjs         # Centralized per-OS window policy (activation, content protection, overlay topmost/workspace rules)
 │   ├── window_suppression_runtime.cjs     # Screenshot suppression helpers for dashboard offscreen/hide/restore
 │   ├── overlay_window_helpers_runtime.cjs # Overlay bounds/position/on-top/context-label runtime helpers
 │   ├── overlay_signal_runtime.cjs         # Wakeword + overlay visibility signal fan-out helpers
@@ -48,7 +50,9 @@ frontend/src/
 │   ├── window_controls_ipc_runtime.cjs    # Main-window/display control IPC registration
 │   ├── permission_ipc_runtime.cjs         # Permission + sudo IPC registration
 │   ├── main_process_lifecycle_runtime.cjs # app.whenReady/activate/quit lifecycle wiring + shortcut registration
+│   ├── local_backend_supervisor.cjs       # Explicit sidecar subprocess state supervisor (starting/ready/stopping/error)
 │   ├── local_backend_bridge*.cjs          # Main <-> sidecar JSON-RPC bridge
+│   ├── wakeword_supervisor.cjs            # Explicit wakeword subprocess state supervisor (starting/ready/stopping/error)
 │   ├── wakeword_bridge.cjs                # Main <-> wakeword subprocess bridge
 │   ├── query_payload_builder.cjs          # System-state/memory XML augmentation for query payload
 │   ├── permission_service.cjs             # Install-time permission manifest checks + OS probe/request helpers
@@ -123,13 +127,21 @@ frontend/src/
 Primary modules:
 
 - `main/index.cjs`:
-  - Main-process composition root: assembles runtime modules and shared state references.
+  - Main-process composition root: assembles runtime modules and passes shared dependencies only.
   - Delegates lifecycle boot/activate/quit wiring to `main_process_lifecycle_runtime.cjs`.
   - Delegates split IPC handler registration to `overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, and `permission_ipc_runtime.cjs`.
-  - Delegates visibility and overlay positioning helpers to `window_visibility_runtime.cjs`, `overlay_window_helpers_runtime.cjs`, and `overlay_signal_runtime.cjs`.
+  - Delegates surface/window ownership to `surface_runtime.cjs` and per-OS activation/protection/topmost policy to `window_platform_policy.cjs`.
   - Preserves sender-display affinity through composition when chat surfaces open the dashboard.
+- `main/surface_runtime.cjs`:
+  - Single owner for `mainWindow` / `chatWindow` / `responseWindow` refs plus response-overlay visibility + phase state.
+  - Composes overlay positioning, wakeword visibility fan-out, blur-only capture prep, and one-time main-process IPC initialization behind one surface lifecycle boundary.
+  - Exposes the window operations consumed by bootstrap/lifecycle modules (`showChatWindow`, `hideChatWindow`, `showMainWindow`, `applyResponseOverlayPhase`, `syncWindowDisplayAffinity`, VM worker shutdown).
 - `main/main_window_runtime.cjs`:
-  - Resolves canonical app icon from `src/main/assets/icons/windieos.app.png` for BrowserWindow and tray runtime wiring.
+  - Constructs dashboard/chat/response/tray windows and lazy renderer-view loading.
+  - Leaves cross-platform overlay policy to `window_platform_policy.cjs` instead of setting topmost/workspace/content-protection flags inline.
+- `main/window_platform_policy.cjs`:
+  - Centralizes per-platform `BrowserWindow` policy for overlay topmost level, workspace/fullscreen visibility, content protection, and activation/focus handoff.
+  - Keeps macOS/Windows/Linux window rules in one place so composition/runtime modules do not duplicate Electron platform conditionals.
 - `main/ipc.cjs`:
   - Single backend WebSocket client lifecycle and reconnect.
   - Handshake/user/session/conversation context propagation.
@@ -138,7 +150,8 @@ Primary modules:
   - Query preprocessing + local-user-message synthesis.
   - Artifact upload HTTP helper.
 - `main/local_backend_bridge.cjs`:
-  - Sidecar subprocess start/readiness ping/retry.
+  - Sidecar subprocess start/readiness ping/retry and JSON-RPC bridge wiring.
+  - Uses `local_backend_supervisor.cjs` to track process identity plus explicit `starting|ready|stopping|error` lifecycle state.
   - JSON-RPC request correlation and timeout handling.
   - Tool execution handlers, system-state/memory RPC handlers.
   - Screenshot monitor resolution: visible sender-window display wins; otherwise screenshot tools fall back to the active query display affinity stored by `ipc.cjs`.
@@ -151,7 +164,8 @@ Primary modules:
 - `main/overlay_window_helpers_runtime.cjs`:
   - Manual chat-pill drag position is stored in main and reused by later overlay positioning passes so recenter logic cannot fight a user drag.
 - `main/wakeword_bridge.cjs`:
-  - Wakeword subprocess lifecycle.
+  - Wakeword subprocess lifecycle and framed stdout/stderr protocol handling.
+  - Uses `wakeword_supervisor.cjs` to track process identity, readiness, enabled state, and terminal errors.
   - Binary length-prefixed detection frame parsing.
   - Enable/disable buffering policy to avoid stale detections.
 
