@@ -67,6 +67,7 @@ Shape:
 - `name`: tool name
 - `arguments`: original model parameters
 - optional `id`: from `metadata.tool_call_id` when non-empty string
+- when bridge already supplied `metadata.model_facing_tool_call` (for example invalid `computer_use` fail-close), sender preserves that raw payload instead of rebuilding from rewritten internal tool names
 
 This preserves model-origin transparency even when prepared parameters are rewritten.
 

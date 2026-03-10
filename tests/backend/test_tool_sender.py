@@ -115,6 +115,19 @@ async def test_send_tools_marks_invalid_computer_use_preparation_failure_as_vali
             "description": "screen",
             "explanation": "click target",
             "expectation": "dialog opens",
+            "model_facing_tool_call": {
+                "id": "tool_llm_invalid_1",
+                "name": "computer_use",
+                "arguments": {
+                    "tool": "mouse_control",
+                    "metadata": {
+                        "description": "screen",
+                        "explanation": "click target",
+                        "expectation": "dialog opens",
+                    },
+                    "arguments": {"action": "click"},
+                },
+            },
         },
     )
 
@@ -137,8 +150,17 @@ async def test_send_tools_marks_invalid_computer_use_preparation_failure_as_vali
     assert emitted[0].metadata["computer_use_validation_failed"] is True
     assert "coordinate_resolution_failed" not in emitted[0].metadata
     assert emitted[0].metadata["model_facing_tool_call"] == {
-        "name": "invalid_computer_use_tool",
-        "arguments": {"action": "click"},
+        "id": "tool_llm_invalid_1",
+        "name": "computer_use",
+        "arguments": {
+            "tool": "mouse_control",
+            "metadata": {
+                "description": "screen",
+                "explanation": "click target",
+                "expectation": "dialog opens",
+            },
+            "arguments": {"action": "click"},
+        },
     }
 
     assert isinstance(emitted[1], ToolOutputEvent)

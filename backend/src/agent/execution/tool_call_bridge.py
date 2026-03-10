@@ -119,6 +119,24 @@ def _normalize_computer_metadata(
     return normalized, has_all_required and has_only_allowed_fields
 
 
+def _build_model_facing_tool_call(
+    *,
+    tool_name: str,
+    arguments: Dict[str, Any],
+    tool_call_id: str | None,
+    thought_signature: str | None,
+) -> Dict[str, Any]:
+    model_facing: Dict[str, Any] = {
+        "name": tool_name,
+        "arguments": copy.deepcopy(arguments),
+    }
+    if tool_call_id:
+        model_facing["id"] = tool_call_id
+    if thought_signature:
+        model_facing["thought_signature"] = thought_signature
+    return model_facing
+
+
 def to_parsed_response(normalized_response: NormalizedLLMResponse) -> ParsedResponse:
     """Bridge native SDK tool calls into existing ParsedResponse-based tool pipeline."""
     content = normalized_response.get("content", "")
@@ -145,6 +163,8 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
         parameters = {}
     else:
         parameters = copy.deepcopy(parameters)
+    original_tool_name = normalized_tool_name
+    original_parameters = copy.deepcopy(parameters)
 
     metadata: Dict[str, Any] = {}
     tool_call_id = _normalize_tool_call_id(tool_call.get("id"))
@@ -154,6 +174,13 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
     thought_signature = _extract_thought_signature(tool_call)
     if thought_signature:
         metadata["thought_signature"] = thought_signature
+
+    original_model_facing_tool_call = _build_model_facing_tool_call(
+        tool_name=original_tool_name,
+        arguments=original_parameters,
+        tool_call_id=tool_call_id,
+        thought_signature=thought_signature or None,
+    )
 
     metadata_payload = parameters.get("metadata")
     if isinstance(metadata_payload, dict):
@@ -199,6 +226,9 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
         if not has_all_required_metadata:
             normalized_tool_name = "invalid_computer_use_tool"
 
+    if normalized_tool_name == "invalid_computer_use_tool":
+        metadata["model_facing_tool_call"] = original_model_facing_tool_call
+
     return ParsedToolCall(
         tool_name=normalized_tool_name,
         parameters=parameters,
@@ -213,21 +243,38 @@ def to_history_tool_calls(
     history_calls: List[Dict[str, Any]] = []
     for index, tool_call in enumerate(parsed_tool_calls):
         tool_call_id = None
+        model_facing = None
         if isinstance(tool_call.metadata, dict):
             candidate = _normalize_tool_call_id(tool_call.metadata.get("tool_call_id"))
             if candidate:
                 tool_call_id = candidate
+            metadata_model_facing = tool_call.metadata.get("model_facing_tool_call")
+            if isinstance(metadata_model_facing, dict):
+                model_facing = copy.deepcopy(metadata_model_facing)
         if tool_call_id is None:
             tool_call_id = f"tool_call_{index}"
 
+        history_name = tool_call.tool_name
+        history_arguments = copy.deepcopy(tool_call.parameters or {})
         thought_signature = ""
-        if isinstance(tool_call.metadata, dict):
+        if model_facing is not None:
+            candidate_id = _normalize_tool_call_id(model_facing.get("id"))
+            if candidate_id:
+                tool_call_id = candidate_id
+            candidate_name = model_facing.get("name")
+            if isinstance(candidate_name, str) and candidate_name.strip():
+                history_name = candidate_name.strip()
+            candidate_arguments = model_facing.get("arguments")
+            if isinstance(candidate_arguments, dict):
+                history_arguments = copy.deepcopy(candidate_arguments)
+            thought_signature = _extract_thought_signature(model_facing)
+        elif isinstance(tool_call.metadata, dict):
             thought_signature = _extract_thought_signature(tool_call.metadata)
 
         history_call: Dict[str, Any] = {
             "id": tool_call_id,
-            "name": tool_call.tool_name,
-            "arguments": copy.deepcopy(tool_call.parameters or {}),
+            "name": history_name,
+            "arguments": history_arguments,
         }
         if thought_signature:
             history_call["thought_signature"] = thought_signature

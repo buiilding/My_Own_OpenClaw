@@ -67,6 +67,7 @@ Deep-copy boundary:
 
 - tool-call `arguments` are deep-copied before normalization/mutation
 - metadata extraction and unified-wrapper reshaping never mutate provider payload dictionaries in place
+- invalid computer-use calls also retain the original provider-normalized envelope in `metadata.model_facing_tool_call` so history/transparency can show the exact model-emitted wrapper while execution fails closed internally
 
 ## Unified `computer_use` Mapping
 
@@ -133,8 +134,9 @@ Native-bridge nuance vs parser-module path:
   - uses `metadata.tool_call_id` when present
   - trims metadata id and treats blank/whitespace-only ids as missing
   - otherwise fallback `tool_call_<index>`
-- `name`: parsed `tool_name`
-- `arguments`: parsed `parameters` copy
+- if `metadata.model_facing_tool_call` exists, history prefers that preserved raw payload for `id`/`name`/`arguments`
+- otherwise `name`: parsed `tool_name`
+- otherwise `arguments`: parsed `parameters` copy
 - `thought_signature`: included when metadata contains non-empty signature
 
 `extract_tool_call_ids(...)` returns only metadata-backed ids, preserving emission order.
