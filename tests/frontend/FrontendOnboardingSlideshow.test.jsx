@@ -146,7 +146,10 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(screen.getByText('Step 2 of 2')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Stop the agent during loops' })).toBeInTheDocument();
     expect(screen.getByText('Use this anytime an agent loop needs to end right away.')).toBeInTheDocument();
-    expect(screen.getByText('Ctrl + Shift + Esc').tagName).toBe('KBD');
+    expect(screen.getByLabelText('Stop shortcut Ctrl + Shift + Esc')).toBeInTheDocument();
+    expect(screen.getByText('Ctrl').tagName).toBe('KBD');
+    expect(screen.getByText('Shift').tagName).toBe('KBD');
+    expect(screen.getByText('Esc').tagName).toBe('KBD');
     expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Start WindieOS' })).toBeInTheDocument();
 
@@ -183,5 +186,21 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(scrollRegion).not.toContain(actions);
     expect(scrollRegion).toContainElement(screen.getByRole('heading', { name: 'Set up system access' }));
     expect(actions).toContainElement(nextButton);
+  });
+
+  test('renders long macOS stop shortcuts as separate keycaps', () => {
+    render(
+      <FrontendOnboardingSlideshow
+        onComplete={jest.fn()}
+        stopAgentShortcutLabel="Command + Shift + Esc"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    expect(screen.getByLabelText('Stop shortcut Command + Shift + Esc')).toBeInTheDocument();
+    expect(screen.getByText('Command').tagName).toBe('KBD');
+    expect(screen.getByText('Shift').tagName).toBe('KBD');
+    expect(screen.getByText('Esc').tagName).toBe('KBD');
   });
 });
