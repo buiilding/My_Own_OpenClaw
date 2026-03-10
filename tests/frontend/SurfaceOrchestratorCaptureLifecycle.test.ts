@@ -214,19 +214,40 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     expect(preparation).toEqual({
       prepared: true,
       captureId: 'capture-win',
-      restoreSurfaceAfterCapture: true,
-      hiddenSurface: 'chatbox',
+      restoreSurfaceAfterCapture: false,
+      hiddenSurface: 'none',
       timing: {
         waitTime: 0,
-        hideInvokeTime: 0.001,
+        hideInvokeTime: 0,
         settleTime: 0,
       },
     });
 
     await restoreScreenshotCaptureVisibility(preparation);
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 0, hideSurface: true }],
-      [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'chatbox' }],
-    ]);
+    expect(IpcBridge.invoke).not.toHaveBeenCalled();
+  });
+
+  test('skips Linux-only capture hide bookkeeping on macOS', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+    });
+
+    const preparation = await prepareScreenshotCaptureVisibility({ captureId: 'capture-mac' });
+
+    expect(preparation).toEqual({
+      prepared: true,
+      captureId: 'capture-mac',
+      restoreSurfaceAfterCapture: false,
+      hiddenSurface: 'none',
+      timing: {
+        waitTime: 0,
+        hideInvokeTime: 0,
+        settleTime: 0,
+      },
+    });
+
+    await restoreScreenshotCaptureVisibility(preparation);
+    expect(IpcBridge.invoke).not.toHaveBeenCalled();
   });
 });
