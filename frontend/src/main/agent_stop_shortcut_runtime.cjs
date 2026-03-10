@@ -9,10 +9,16 @@ function isAgentLoopStopShortcutPhase(phase) {
   return ACTIVE_AGENT_LOOP_STOP_PHASES.has(phase);
 }
 
+function resolveGlobalAgentStopAccelerator(platform = process.platform) {
+  return platform === 'win32'
+    ? 'CommandOrControl+Alt+.'
+    : 'CommandOrControl+Shift+Escape';
+}
+
 function initializeAgentStopShortcutRuntime(deps = {}) {
   const {
     globalShortcut,
-    accelerator = 'CommandOrControl+Shift+Escape',
+    accelerator = resolveGlobalAgentStopAccelerator(),
     onStop = () => {},
     warn = console.warn,
   } = deps;
@@ -80,4 +86,5 @@ module.exports = {
   ACTIVE_AGENT_LOOP_STOP_PHASES,
   initializeAgentStopShortcutRuntime,
   isAgentLoopStopShortcutPhase,
+  resolveGlobalAgentStopAccelerator,
 };

@@ -104,7 +104,8 @@ Stop shortcut label source:
 Platform mapping in shortcut helper:
 
 - macOS: `Command + Shift + Esc`
-- non-macOS: `Ctrl + Shift + Esc`
+- Windows: `Ctrl + Alt + .`
+- Linux: `Ctrl + Shift + Esc`
 
 ## Current Permission-Gate Boundary
 

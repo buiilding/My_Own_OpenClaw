@@ -3,6 +3,7 @@
 const {
   initializeAgentStopShortcutRuntime,
   isAgentLoopStopShortcutPhase,
+  resolveGlobalAgentStopAccelerator,
 } = require('../../frontend/src/main/agent_stop_shortcut_runtime.cjs');
 
 describe('agent_stop_shortcut_runtime', () => {
@@ -30,7 +31,7 @@ describe('agent_stop_shortcut_runtime', () => {
 
     runtime.setEnabled(true);
     expect(globalShortcut.register).toHaveBeenCalledWith(
-      'CommandOrControl+Shift+Escape',
+      resolveGlobalAgentStopAccelerator(),
       expect.any(Function),
     );
     expect(runtime.isRegistered()).toBe(true);
@@ -39,7 +40,7 @@ describe('agent_stop_shortcut_runtime', () => {
     expect(onStop).toHaveBeenCalledTimes(1);
 
     runtime.setEnabled(false);
-    expect(globalShortcut.unregister).toHaveBeenCalledWith('CommandOrControl+Shift+Escape');
+    expect(globalShortcut.unregister).toHaveBeenCalledWith(resolveGlobalAgentStopAccelerator());
     expect(runtime.isRegistered()).toBe(false);
   });
 
@@ -67,8 +68,17 @@ describe('agent_stop_shortcut_runtime', () => {
     runtime.setEnabled(true);
 
     expect(warn).toHaveBeenCalledWith(
-      '[Main] Failed to register global stop shortcut: CommandOrControl+Shift+Escape',
+      `[Main] Failed to register global stop shortcut: ${resolveGlobalAgentStopAccelerator()}`,
     );
     expect(runtime.isRegistered()).toBe(false);
+  });
+
+  test('uses Ctrl+Alt+. as the Windows global stop accelerator', () => {
+    expect(resolveGlobalAgentStopAccelerator('win32')).toBe('CommandOrControl+Alt+.');
+  });
+
+  test('keeps Shift+Escape as the non-Windows global stop accelerator', () => {
+    expect(resolveGlobalAgentStopAccelerator('linux')).toBe('CommandOrControl+Shift+Escape');
+    expect(resolveGlobalAgentStopAccelerator('darwin')).toBe('CommandOrControl+Shift+Escape');
   });
 });

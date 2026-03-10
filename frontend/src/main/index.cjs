@@ -84,7 +84,10 @@ const {
 const { createResponseOverlayPhaseEnum } = require('./ipc/ipc_overlay_phase_contract.cjs');
 const { configureGpuRuntime } = require('./gpu_runtime.cjs');
 const { isVmModeEnabled, isVmWorkerModeEnabled } = require('./runtime_mode.cjs');
-const { initializeAgentStopShortcutRuntime } = require('./agent_stop_shortcut_runtime.cjs');
+const {
+  initializeAgentStopShortcutRuntime,
+  resolveGlobalAgentStopAccelerator,
+} = require('./agent_stop_shortcut_runtime.cjs');
 let windowManager = null;
 try {
   ({ windowManager } = require('node-window-manager'));
@@ -123,7 +126,7 @@ const ENABLE_DEBUG_TOOL_SCREENSHOT = process.env.WINDIE_DEBUG_TOOL_SCREENSHOT ==
 const VM_MODE_ENABLED = isVmModeEnabled(process.env);
 const VM_WORKER_MODE_ENABLED = isVmWorkerModeEnabled(process.env);
 const RESPONSE_WINDOW_DEBUG_VIEW = 'tool-ghost-debug';
-const GLOBAL_AGENT_STOP_ACCELERATOR = 'CommandOrControl+Shift+Escape';
+const GLOBAL_AGENT_STOP_ACCELERATOR = resolveGlobalAgentStopAccelerator(process.platform);
 let vmWorkerRuntime = null;
 const agentStopShortcutRuntime = initializeAgentStopShortcutRuntime({
   globalShortcut,
