@@ -95,6 +95,7 @@ Viewport/layout behavior:
 
 - onboarding card is capped to the renderer viewport instead of growing unbounded
 - slide content lives inside an internal scroll region
+- wide desktop viewports render the permissions list in two columns to reduce unnecessary scrolling under the current manifest size
 - footer actions remain outside the scroll region so `Next` / `Back` / `Start WindieOS` stay reachable on short viewports
 
 Navigation behavior:
