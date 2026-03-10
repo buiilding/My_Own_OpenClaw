@@ -65,6 +65,7 @@ Default section on open: **Chat**.
   - Windows: **Ctrl + Alt + .**
   - Linux: **Ctrl + Shift + Esc**
   - macOS: **Command + Shift + Esc**
+- If the selected global shortcut is unavailable on the current machine, WindieOS falls back to the next supported binding and saves that resolved shortcut locally.
 - **Shift + Tab** toggles Chat/Agent mode.
 
 ### Episodic Memory
@@ -90,6 +91,7 @@ Default section on open: **Chat**.
 - Wakeword toggle ("Hey Jarvis").
 - Hotkey reminder: **Win + Alt + W**.
 - Global stop shortcut selector (platform-safe options, stored locally, applied immediately).
+- If Windows or another app blocks the selected global stop shortcut, Settings shows either the active fallback binding or a registration-failure warning.
 - TTS toggle (speech replies).
 - Screen selection (active display). Screenshots use this display.
 - Permissions (normal now; system access marked as coming soon).

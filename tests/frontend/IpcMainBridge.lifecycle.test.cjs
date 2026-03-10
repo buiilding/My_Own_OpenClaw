@@ -72,6 +72,37 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     }));
   });
 
+  test('includes global stop shortcut status in IPC snapshots after runtime updates', async () => {
+    const { handlers, mainWindow, ipc } = setupOpenedIpc();
+
+    ipc.updateGlobalAgentStopShortcutStatus({
+      requestedAccelerator: 'CommandOrControl+Alt+.',
+      resolvedAccelerator: 'CommandOrControl+Shift+.',
+      registeredAccelerator: 'CommandOrControl+Shift+.',
+      usingFallback: true,
+      registrationFailed: false,
+      supportedAccelerators: [
+        'CommandOrControl+Alt+.',
+        'CommandOrControl+Shift+.',
+      ],
+    });
+
+    const clientInfo = await handlers['get-client-user-id']();
+    expect(clientInfo.globalAgentStopShortcutStatus).toEqual(expect.objectContaining({
+      usingFallback: true,
+      resolvedAccelerator: 'CommandOrControl+Shift+.',
+    }));
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      'ipc-status',
+      expect.objectContaining({
+        globalAgentStopShortcutStatus: expect.objectContaining({
+          usingFallback: true,
+          resolvedAccelerator: 'CommandOrControl+Shift+.',
+        }),
+      }),
+    );
+  });
+
   test('keeps dashboard-selected conversation for chat-pill send after dashboard handoff', async () => {
     const { handlers, ws, mainWindow, backendBridge, ipc } = setupOpenedIpc();
     primeQueryContext(backendBridge);

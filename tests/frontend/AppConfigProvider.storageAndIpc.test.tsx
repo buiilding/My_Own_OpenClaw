@@ -412,4 +412,48 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       }),
     );
   });
+
+  test('applies global stop shortcut fallback from IPC status and persists the resolved binding', async () => {
+    const { result } = renderAppConfigContext();
+    await flushAsyncEffects();
+
+    const ipcStatusHandler = getBackendHandler(ON_CHANNELS.IPC_STATUS);
+    expect(ipcStatusHandler).toEqual(expect.any(Function));
+
+    act(() => {
+      ipcStatusHandler?.({
+        globalAgentStopShortcutStatus: {
+          requestedAccelerator: 'CommandOrControl+Alt+.',
+          resolvedAccelerator: 'CommandOrControl+Shift+.',
+          registeredAccelerator: null,
+          usingFallback: true,
+          registrationFailed: false,
+          supportedAccelerators: [
+            'CommandOrControl+Alt+.',
+            'CommandOrControl+Shift+.',
+          ],
+        },
+      });
+    });
+
+    expect(result.current.config).toEqual(expect.objectContaining({
+      global_agent_stop_shortcut: 'CommandOrControl+Shift+.',
+    }));
+    expect(result.current.globalAgentStopShortcutStatus).toEqual(expect.objectContaining({
+      usingFallback: true,
+      resolvedAccelerator: 'CommandOrControl+Shift+.',
+    }));
+    expect(mockSaveConfigToStorage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        global_agent_stop_shortcut: 'CommandOrControl+Shift+.',
+      }),
+      expect.any(Number),
+    );
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG,
+      expect.objectContaining({
+        global_agent_stop_shortcut: 'CommandOrControl+Shift+.',
+      }),
+    );
+  });
 });

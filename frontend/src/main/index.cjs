@@ -21,6 +21,7 @@ const {
   sendAutomatedQuery,
   sendMessageToBackend,
   triggerStopQueryFromMain,
+  updateGlobalAgentStopShortcutStatus,
 } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
 const {
@@ -134,8 +135,10 @@ const agentStopShortcutRuntime = initializeAgentStopShortcutRuntime({
   onStop: () => {
     triggerStopQueryFromMain();
   },
+  onStatusChange: updateGlobalAgentStopShortcutStatus,
   warn: console.warn,
 });
+updateGlobalAgentStopShortcutStatus(agentStopShortcutRuntime.getStatus());
 const externalFocusTracker = createExternalFocusTracker({
   getPlatform: () => process.platform,
   windowManager,

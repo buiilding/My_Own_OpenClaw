@@ -38,26 +38,89 @@ function resolveGlobalAgentStopAccelerator(
   return normalizeGlobalAgentStopAccelerator(accelerator, platform);
 }
 
+function buildRegistrationCandidates(
+  requestedAccelerator,
+  platform = process.platform,
+) {
+  const supportedAccelerators = getSupportedGlobalAgentStopShortcuts(platform)
+    .map((shortcut) => shortcut?.accelerator)
+    .filter((value) => typeof value === 'string' && value.length > 0);
+  const normalizedRequested = normalizeGlobalAgentStopAccelerator(
+    requestedAccelerator,
+    platform,
+  );
+  return [
+    normalizedRequested,
+    ...supportedAccelerators.filter((value) => value !== normalizedRequested),
+  ];
+}
+
 function initializeAgentStopShortcutRuntime(deps = {}) {
   const {
     globalShortcut,
     accelerator = null,
     platform = process.platform,
     onStop = () => {},
+    onStatusChange = null,
     warn = console.warn,
   } = deps;
 
   let enabled = false;
   let registered = false;
-  let currentAccelerator = resolveGlobalAgentStopAccelerator(platform, accelerator);
+  let requestedAccelerator = resolveGlobalAgentStopAccelerator(platform, accelerator);
+  let resolvedAccelerator = requestedAccelerator;
+  let registeredAccelerator = null;
+  let registrationFailed = false;
+  let lastStatusKey = null;
+
+  function buildStatus() {
+    return {
+      enabled,
+      requestedAccelerator,
+      resolvedAccelerator,
+      registeredAccelerator,
+      registrationFailed,
+      usingFallback: (
+        !registrationFailed
+        && typeof resolvedAccelerator === 'string'
+        && resolvedAccelerator.length > 0
+        && resolvedAccelerator !== requestedAccelerator
+      ),
+      supportedAccelerators: getSupportedGlobalAgentStopShortcuts(platform)
+        .map((shortcut) => shortcut?.accelerator)
+        .filter((value) => typeof value === 'string' && value.length > 0),
+    };
+  }
+
+  function emitStatusChange() {
+    const nextStatus = buildStatus();
+    const nextStatusKey = JSON.stringify({
+      requestedAccelerator: nextStatus.requestedAccelerator,
+      resolvedAccelerator: nextStatus.resolvedAccelerator,
+      registrationFailed: nextStatus.registrationFailed,
+      usingFallback: nextStatus.usingFallback,
+      supportedAccelerators: nextStatus.supportedAccelerators,
+    });
+    if (nextStatusKey === lastStatusKey) {
+      return;
+    }
+    lastStatusKey = nextStatusKey;
+    if (typeof onStatusChange === 'function') {
+      onStatusChange(nextStatus);
+    }
+  }
 
   function unregister() {
     if (!registered || !globalShortcut || typeof globalShortcut.unregister !== 'function') {
       registered = false;
+      registeredAccelerator = null;
+      emitStatusChange();
       return;
     }
-    globalShortcut.unregister(currentAccelerator);
+    globalShortcut.unregister(registeredAccelerator);
     registered = false;
+    registeredAccelerator = null;
+    emitStatusChange();
   }
 
   function ensureRegistered() {
@@ -65,42 +128,85 @@ function initializeAgentStopShortcutRuntime(deps = {}) {
       return true;
     }
     if (!globalShortcut || typeof globalShortcut.register !== 'function') {
+      registrationFailed = true;
+      registered = false;
+      registeredAccelerator = null;
+      emitStatusChange();
       return false;
     }
 
-    const didRegister = globalShortcut.register(currentAccelerator, () => {
+    const shortcutHandler = () => {
       if (!enabled) {
         return;
       }
       onStop();
-    });
-    if (!didRegister) {
-      warn(`[Main] Failed to register global stop shortcut: ${currentAccelerator}`);
-      registered = false;
-      return false;
+    };
+    const candidateAccelerators = buildRegistrationCandidates(
+      requestedAccelerator,
+      platform,
+    );
+
+    for (const candidateAccelerator of candidateAccelerators) {
+      const didRegister = globalShortcut.register(candidateAccelerator, shortcutHandler);
+      if (!didRegister) {
+        continue;
+      }
+      registered = true;
+      registeredAccelerator = candidateAccelerator;
+      resolvedAccelerator = candidateAccelerator;
+      registrationFailed = false;
+      if (candidateAccelerator !== requestedAccelerator) {
+        warn(
+          `[Main] Requested global stop shortcut unavailable; ` +
+          `using fallback: ${candidateAccelerator} (requested ${requestedAccelerator})`,
+        );
+      }
+      emitStatusChange();
+      return true;
     }
 
-    registered = true;
-    return true;
+    registered = false;
+    registeredAccelerator = null;
+    resolvedAccelerator = requestedAccelerator;
+    registrationFailed = true;
+    warn(
+      `[Main] Failed to register global stop shortcut. Tried: ${candidateAccelerators.join(', ')}`,
+    );
+    emitStatusChange();
+    return false;
   }
 
   function setAccelerator(nextAccelerator) {
     const normalizedAccelerator = normalizeGlobalAgentStopAccelerator(nextAccelerator, platform);
-    if (normalizedAccelerator === currentAccelerator) {
-      return currentAccelerator;
+    if (normalizedAccelerator === requestedAccelerator) {
+      return resolvedAccelerator;
     }
 
-    const previousAccelerator = currentAccelerator;
+    const previousRequestedAccelerator = requestedAccelerator;
+    const previousResolvedAccelerator = resolvedAccelerator;
+    const previousRegistrationFailed = registrationFailed;
     const wasEnabled = enabled;
     unregister();
-    currentAccelerator = normalizedAccelerator;
+    requestedAccelerator = normalizedAccelerator;
+    resolvedAccelerator = normalizedAccelerator;
+    registrationFailed = false;
 
     if (wasEnabled && !ensureRegistered()) {
-      currentAccelerator = previousAccelerator;
-      ensureRegistered();
+      const hadPreviousWorkingAccelerator = (
+        previousRegistrationFailed !== true
+        && typeof previousResolvedAccelerator === 'string'
+        && previousResolvedAccelerator.length > 0
+      );
+      if (hadPreviousWorkingAccelerator) {
+        requestedAccelerator = previousRequestedAccelerator;
+        resolvedAccelerator = previousResolvedAccelerator;
+        registrationFailed = false;
+        ensureRegistered();
+      }
     }
 
-    return currentAccelerator;
+    emitStatusChange();
+    return resolvedAccelerator;
   }
 
   function setEnabled(nextEnabled) {
@@ -120,9 +226,10 @@ function initializeAgentStopShortcutRuntime(deps = {}) {
 
   return {
     dispose,
-    getAccelerator: () => currentAccelerator,
+    getAccelerator: () => resolvedAccelerator,
     isEnabled: () => enabled,
     isRegistered: () => registered,
+    getStatus: buildStatus,
     setAccelerator,
     setEnabled,
   };
