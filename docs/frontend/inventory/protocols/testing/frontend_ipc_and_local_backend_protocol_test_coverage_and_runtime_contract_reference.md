@@ -120,8 +120,8 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 
 `tests/frontend/QueryPayloadBuilder.test.cjs` locks details in `buildQueryPayloadContent(...)`:
 
-- initial context requests full field set (`active_window`, `mouse_position`, `screen_resolution`, `windows`)
-- sequential context requests reduced field set (no `windows`)
+- query context requests `active_window`, `mouse_position`, and `screen_resolution`
+- `windows` is only requested by explicit callers that opt into the broader system-state capture
 - memory search receives `(text, userId, 5, null, conversationRef)` call contract
 - output content always includes:
   - `<system_context> ... </system_context>`

@@ -30,7 +30,6 @@ const INITIAL_SYSTEM_STATE_FIELDS = Object.freeze([
   'active_window',
   'mouse_position',
   'screen_resolution',
-  'windows',
 ]);
 
 const SEQUENTIAL_SYSTEM_STATE_FIELDS = Object.freeze([
@@ -40,20 +39,14 @@ const SEQUENTIAL_SYSTEM_STATE_FIELDS = Object.freeze([
 ]);
 
 /**
- * Format system state as initial XML (with all windows and stats)
+ * Format system state as initial XML.
  */
 function formatInitialStateXml(state) {
-  const windows = state.windows || [];
-  const windowsXml = windows.map((w) => `        <window>${escapeXml(w)}</window>`).join('\n');
-
   return `<system_context>
     <os_state>
         <active_window>${escapeXml(state.active_window || 'Unknown')}</active_window>
         <mouse_position>${escapeXml(state.mouse_position || 'Unknown')}</mouse_position>
         <screen_resolution>${escapeXml(state.screen_resolution || 'Unknown')}</screen_resolution>
-        <all_open_windows>
-${windowsXml}
-        </all_open_windows>
     </os_state>
 </system_context>`;
 }

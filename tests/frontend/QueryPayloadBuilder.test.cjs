@@ -36,7 +36,6 @@ describe('query_payload_builder', () => {
       'active_window',
       'mouse_position',
       'screen_resolution',
-      'windows',
     ]);
     expect(searchMemory).toHaveBeenCalledWith(
       'hello <world>',
