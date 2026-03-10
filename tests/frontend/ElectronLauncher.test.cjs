@@ -162,6 +162,18 @@ describe('electron-launcher', () => {
     )).toBe(true);
   });
 
+  test('shouldForwardElectronStderrLine suppresses the known macOS Chromium LaunchServices daemon warning', () => {
+    expect(shouldForwardElectronStderrLine(
+      '[53797:0310/170251.792364:ERROR:sandbox/mac/system_services.cc:35] SetApplicationIsDaemon: ' +
+        'Error Domain=NSOSStatusErrorDomain Code=-50 "paramErr: error in user parameter list" (-50)',
+      'darwin',
+    )).toBe(false);
+    expect(shouldForwardElectronStderrLine(
+      '[53797:0310/170251.792364:ERROR:sandbox/mac/system_services.cc:35] other warning',
+      'darwin',
+    )).toBe(true);
+  });
+
   test('pipeFilteredStderr forwards non-filtered lines and drops the known linux scope warning', () => {
     const handlers = {};
     const stream = {
@@ -187,6 +199,30 @@ describe('electron-launcher', () => {
     expect(destination.write).toHaveBeenCalledWith(
       '[146193:0309/225928.064159:ERROR:content/browser/gpu/gpu_process_host.cc:998] GPU process launch failed: error_code=1002\n',
     );
+  });
+
+  test('pipeFilteredStderr drops the known macOS daemon warning and forwards adjacent lines', () => {
+    const handlers = {};
+    const stream = {
+      setEncoding: jest.fn(),
+      on: jest.fn((event, handler) => {
+        handlers[event] = handler;
+      }),
+    };
+    const destination = {
+      write: jest.fn(),
+    };
+
+    pipeFilteredStderr(stream, { destination, platform: 'darwin' });
+
+    handlers.data(
+      '[53797:0310/170251.792364:ERROR:sandbox/mac/system_services.cc:35] SetApplicationIsDaemon: ' +
+        'Error Domain=NSOSStatusErrorDomain Code=-50 "paramErr: error in user parameter list" (-50)\n' +
+        '[Main] normal stderr line\n',
+    );
+
+    expect(destination.write).toHaveBeenCalledTimes(1);
+    expect(destination.write).toHaveBeenCalledWith('[Main] normal stderr line\n');
   });
 
   test('pipeForwardedStdout forwards stdout chunks verbatim', () => {
