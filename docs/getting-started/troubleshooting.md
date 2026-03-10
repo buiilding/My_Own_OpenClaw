@@ -120,11 +120,27 @@ read_when:
    rm -rf node_modules
    npm install
    ```
+   
+   Windows PowerShell:
+   ```powershell
+   cd frontend
+   Remove-Item -Recurse -Force .\node_modules
+   npm install
+   ```
 
 3. **Check Node Version**:
    ```bash
    node --version  # Should be 18+
    ```
+
+4. **Cross-OS Electron payload mismatch**:
+   - Symptom: `npm run electron` fails with `spawn ...\frontend\node_modules\electron\dist\electron ENOENT` on Windows.
+   - Cause: `frontend/node_modules/electron` was installed on Linux/macOS, so the package contains `dist/electron` and `.so` files instead of `electron.exe`.
+   - Fix: delete `frontend/node_modules` on Windows and run `npm install` again in `frontend`.
+
+5. **`docs-list` opens the Windows app chooser**:
+   - Cause: `bin/docs-list` is a Bash wrapper with no Windows executable extension.
+   - Fix: run `.\bin\docs-list.cmd` or `node .\scripts\docs-list.js`.
 
 #### Electron Sandbox Error (Linux)
 

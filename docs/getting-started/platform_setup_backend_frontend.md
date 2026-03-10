@@ -177,6 +177,11 @@ $env:WINDIE_PYTHON_PATH = "C:\path\to\WindieOS\.venv-sidecar311\Scripts\python.e
 npm run electron:dev
 ```
 
+Windows notes:
+
+- Run the docs index helper as `.\bin\docs-list.cmd` or `node .\scripts\docs-list.js`; `.\bin\docs-list` is a Bash wrapper and Windows will treat it like an unknown file type.
+- If `npm run electron` or `npm run electron:dev` fails with `spawn ...\node_modules\electron\dist\electron ENOENT`, reinstall `frontend/node_modules` from Windows so Electron downloads `electron.exe` for this OS instead of reusing a Linux payload.
+
 Optional backend endpoint overrides (Electron main -> backend):
 
 - `BACKEND_HTTP_URL` (highest priority for HTTP)
