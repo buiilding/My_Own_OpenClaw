@@ -33,6 +33,10 @@
 
 .frontend-onboarding-window-controls {
   flex-shrink: 0;
+  position: relative;
+  z-index: 4;
+  pointer-events: auto;
+  -webkit-app-region: no-drag;
 }
 
 .frontend-onboarding-card-permissions {
