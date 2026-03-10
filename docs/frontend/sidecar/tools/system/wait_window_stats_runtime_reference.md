@@ -35,7 +35,7 @@ All calls flow through `LocalBackend._handle_execute_tool` -> `ToolRegistry.exec
 
 Contract:
 
-- input: optional `seconds` (default `1.0`)
+- input: required `seconds`
 - validation: must be non-negative int/float
 
 Important behavior:
@@ -54,7 +54,7 @@ Return shape:
 
 Test-backed semantics:
 
-- default status is exactly `Waited for 1 second`
+- missing `seconds` returns canonical error text
 - non-integer values preserve decimal formatting (for example `2.5`)
 - invalid type or negative values return canonical error text
 

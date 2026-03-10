@@ -230,9 +230,8 @@ async def test_get_system_stats_handles_runtime_exception(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_wait_tool_validates_seconds_and_formats_status():
-    default_result = await wait_tool.wait({})
-    assert default_result["success"] is True
-    assert default_result["data"]["status"] == "Waited for 1 second"
+    missing_seconds = await wait_tool.wait({})
+    assert missing_seconds == {"success": False, "error": "seconds is required"}
 
     custom_result = await wait_tool.wait({"seconds": 2.5})
     assert custom_result["success"] is True

@@ -5,12 +5,17 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from tools.schemas import (  # noqa: E402
+    GetOpenWindowsArgs,
+    GetSystemStatsArgs,
     KeyboardControlArgs,
     MouseControlArgs,
     OpenAppArgs,
+    ReadFileArgs,
     ReplaceArgs,
     ReplaceOperationArgs,
+    RunShellCommandArgs,
     ScrollControlArgs,
+    WaitToolArgs,
 )
 
 
@@ -40,11 +45,9 @@ def test_mouse_control_drag_requires_destination_coordinates():
     assert args.duration == 0.5
 
 
-def test_mouse_control_ignores_unknown_fields():
-    args = MouseControlArgs(action="click", x=1, y=2, unknown_field="ignored")
-    assert args.x == 1
-    assert args.y == 2
-    assert not hasattr(args, "unknown_field")
+def test_mouse_control_rejects_unknown_fields():
+    with pytest.raises(ValidationError):
+        MouseControlArgs(action="click", x=1, y=2, unknown_field="ignored")
 
 
 def test_keyboard_control_validates_action_fields_and_length():
@@ -118,7 +121,12 @@ def test_scroll_control_scroll_up_down_do_not_require_direction():
 
 
 def test_replace_args_default_context_and_matching_fields():
-    args = ReplaceArgs(file_path="/tmp/a.txt", old_string="old", new_string="new")
+    args = ReplaceArgs(
+        file_path="/tmp/a.txt",
+        old_string="old",
+        new_string="new",
+        explanation="Update one string in the file.",
+    )
 
     assert args.before_context is None
     assert args.after_context is None
@@ -127,18 +135,55 @@ def test_replace_args_default_context_and_matching_fields():
     assert args.match_mode == "lenient"
 
 
+def test_shared_direct_tool_schemas_require_explanation():
+    with pytest.raises(ValidationError):
+        ReadFileArgs(file_path="/tmp/a.txt")
+
+    with pytest.raises(ValidationError):
+        ReplaceArgs(file_path="/tmp/a.txt", old_string="old", new_string="new")
+
+    with pytest.raises(ValidationError):
+        RunShellCommandArgs(command="pwd", run_in_background=False)
+
+    with pytest.raises(ValidationError):
+        OpenAppArgs(command="notepad")
+
+    with pytest.raises(ValidationError):
+        GetOpenWindowsArgs()
+
+    with pytest.raises(ValidationError):
+        GetSystemStatsArgs()
+
+
+def test_wait_tool_schema_requires_seconds():
+    with pytest.raises(ValidationError):
+        WaitToolArgs()
+
+    args = WaitToolArgs(seconds=1.5)
+    assert args.seconds == 1.5
+
+
 def test_replace_operation_occurrence_index_must_be_positive():
     with pytest.raises(ValidationError):
         ReplaceOperationArgs(old_string="old", new_string="new", occurrence_index=0)
 
 
 def test_open_app_args_validate_command_and_timeout():
-    args = OpenAppArgs(command="notepad", verify="window", verify_timeout_seconds=5.0)
+    args = OpenAppArgs(
+        command="notepad",
+        verify="window",
+        verify_timeout_seconds=5.0,
+        explanation="Launch Notepad so the user can edit a file.",
+    )
     assert args.command == "notepad"
     assert args.verify == "window"
 
     with pytest.raises(ValidationError):
-        OpenAppArgs(command="   ")
+        OpenAppArgs(command="   ", explanation="Launch the app.")
 
     with pytest.raises(ValidationError):
-        OpenAppArgs(command="notepad", verify_timeout_seconds=-1)
+        OpenAppArgs(
+            command="notepad",
+            verify_timeout_seconds=-1,
+            explanation="Launch Notepad so the user can edit a file.",
+        )

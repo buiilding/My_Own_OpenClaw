@@ -200,6 +200,18 @@ Operational impact of drift:
 - LLM can call a backend-advertised tool that frontend cannot execute
 - or sidecar supports a tool never surfaced to model schema generation
 
+Field-level shared-schema guard:
+
+- `tests/sidecar/test_shared_tool_schema_parity.py` compares backend and sidecar
+  Pydantic schema contracts for shared non-browser tools where exact parity is
+  expected (`keyboard_control`, `switch_tab`, `wait`, `run_shell_command`,
+  `open_app`, `process`, `read_file`, `replace`, `get_open_windows`,
+  `get_system_stats`, plus replace support models).
+- the same suite documents intentional exceptions instead of treating them as
+  silent drift:
+  - backend-grounded `mouse_control` / `scroll_control`
+  - sidecar-only `screenshot.display_bounds`
+
 ## Related Docs
 
 - [Frontend Tool Bridge and Policy](../frontend_tool_bridge_and_policy.md)
