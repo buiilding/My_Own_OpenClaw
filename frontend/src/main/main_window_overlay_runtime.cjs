@@ -49,7 +49,7 @@ function createOverlayBrowserWindow({
   platform = process.platform,
   width,
   height,
-  show,
+  show = false,
   icon = null,
   allowDevTools = false,
 }) {
@@ -81,9 +81,7 @@ function createOverlayBrowserWindow({
   } else if (platform === 'win32') {
     windowOptions.type = 'toolbar';
   }
-  if (typeof show === 'boolean') {
-    windowOptions.show = show;
-  }
+  windowOptions.show = show === true;
   return new BrowserWindow(windowOptions);
 }
 

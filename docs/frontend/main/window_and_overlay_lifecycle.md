@@ -56,6 +56,7 @@ App-ready path (`app.whenReady()`):
 4. when VM mode is disabled, `createResponseWindow()` delegates to `createResponseWindowRuntime(...)` for response surface (`view=chatbox-response` or debug view).
 5. when VM mode is disabled, tray and global hotkey (`Super+Alt+W`) are initialized.
 6. chat/response windows are registered in IPC broadcaster set only when those overlay windows are created.
+7. chat/response overlay BrowserWindows now start hidden unless explicitly shown, so startup does not briefly materialize overlay surfaces before the dashboard handoff.
 
 For extracted factory/helper ownership details, see [Main Window Runtime Factory and Overlay Bootstrap Reference](main_window_runtime_factory_and_overlay_bootstrap_reference.md).
 For icon path resolution and shared overlay BrowserWindow/renderer-loader helper contracts, see [Main Window Icon and Overlay Runtime Reference](main_window_icon_and_overlay_runtime_reference.md).
