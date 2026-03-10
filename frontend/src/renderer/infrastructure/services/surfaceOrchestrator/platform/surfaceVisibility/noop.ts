@@ -3,29 +3,33 @@ import type {
   SurfaceCollapseResult,
   SurfaceRestoreResult,
 } from '../../types';
-import {
-  restoreSurfaceAfterBackgroundCaptureCore,
-  suppressSurfaceForBackgroundCaptureCore,
-} from './shared';
 
 export function createNoopSurfaceVisibilityRuntime() {
   return {
     shouldManageSurfaceVisibilityForBackgroundCapture(): boolean {
-      return true;
+      return false;
     },
 
     async suppressSurfaceForBackgroundCapture(
-      options: { waitMs?: number } = {},
+      _options: { waitMs?: number } = {},
     ): Promise<SurfaceCollapseResult> {
-      return suppressSurfaceForBackgroundCaptureCore({
-        waitMs: options.waitMs,
-        settleMs: 0,
-        includeSettleTiming: false,
-      });
+      return {
+        collapsed: false,
+        hiddenSurface: 'none',
+        timing: {
+          waitTime: 0,
+          hideInvokeTime: 0,
+          settleTime: 0,
+        },
+      };
     },
 
-    async restoreSurfaceAfterBackgroundCapture(hiddenSurface: HiddenSurface = 'chatbox'): Promise<SurfaceRestoreResult> {
-      return restoreSurfaceAfterBackgroundCaptureCore(hiddenSurface, { measureInvokeTime: false });
+    async restoreSurfaceAfterBackgroundCapture(_hiddenSurface: HiddenSurface = 'chatbox'): Promise<SurfaceRestoreResult> {
+      return {
+        restored: false,
+        restoredSurface: 'none',
+        restoreInvokeTime: 0,
+      };
     },
   };
 }

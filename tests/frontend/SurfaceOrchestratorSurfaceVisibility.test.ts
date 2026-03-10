@@ -72,32 +72,55 @@ describe('surfaceOrchestrator surfaceVisibility', () => {
     ]);
   });
 
-  test('collapses and restores the active WindieOS surface outside Linux without settle delay', async () => {
+  test('uses a true no-op surface visibility runtime on Windows', async () => {
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
       value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
     });
 
-    expect(shouldManageSurfaceVisibilityForBackgroundCapture()).toBe(true);
+    expect(shouldManageSurfaceVisibilityForBackgroundCapture()).toBe(false);
 
     await expect(suppressSurfaceForBackgroundCapture()).resolves.toEqual({
-      collapsed: true,
-      hiddenSurface: 'chatbox',
+      collapsed: false,
+      hiddenSurface: 'none',
       timing: {
         waitTime: 0,
-        hideInvokeTime: expect.any(Number),
+        hideInvokeTime: 0,
         settleTime: 0,
       },
     });
     await expect(restoreSurfaceAfterBackgroundCapture()).resolves.toEqual({
-      restored: true,
-      restoredSurface: 'chatbox',
+      restored: false,
+      restoredSurface: 'none',
       restoreInvokeTime: 0,
     });
 
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 0, hideSurface: true }],
-      [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'chatbox' }],
-    ]);
+    expect(IpcBridge.invoke).not.toHaveBeenCalled();
+  });
+
+  test('uses a true no-op surface visibility runtime on macOS', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+    });
+
+    expect(shouldManageSurfaceVisibilityForBackgroundCapture()).toBe(false);
+
+    await expect(suppressSurfaceForBackgroundCapture()).resolves.toEqual({
+      collapsed: false,
+      hiddenSurface: 'none',
+      timing: {
+        waitTime: 0,
+        hideInvokeTime: 0,
+        settleTime: 0,
+      },
+    });
+    await expect(restoreSurfaceAfterBackgroundCapture()).resolves.toEqual({
+      restored: false,
+      restoredSurface: 'none',
+      restoreInvokeTime: 0,
+    });
+
+    expect(IpcBridge.invoke).not.toHaveBeenCalled();
   });
 });
