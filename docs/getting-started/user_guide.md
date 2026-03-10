@@ -35,6 +35,7 @@ read_when:
 - **Win + Alt + W** toggles chatbox visibility.
 - When shown, input is focusable and ready to type.
 - Status indicator shows **Ready / Sending / Thinking**.
+- The **camera** button is an auto-screenshot toggle for chatbox sends. Blue means enabled, white means disabled, and the default is enabled.
 - **Config** button opens the dashboard window and hides the chatbox.
 - **Mic** button is disabled (voice typing off).
 - Closing the dashboard restores the chatbox.

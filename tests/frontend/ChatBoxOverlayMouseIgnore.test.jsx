@@ -7,7 +7,6 @@ const mockInvoke = jest.fn(() => Promise.resolve({ success: true }));
 const mockSend = jest.fn();
 const mockListeners = new Map();
 const mockSendMessage = jest.fn();
-const mockCaptureScreenshotAttachment = jest.fn();
 const mockUseChatMessageSender = jest.fn(() => ({
   sendMessage: mockSendMessage,
 }));
@@ -86,6 +85,13 @@ const mockChatState = {
   streamTracking: { phase: 'idle' },
 };
 
+let mockConfig = {
+  interaction_mode: 'chat',
+  wakeword_stt_enabled: false,
+  speech_mode_enabled: false,
+  include_query_screenshot: true,
+};
+
 jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
   useChatStore: (selector) =>
     require('./storeSelectorTestUtils.cjs').selectMockStoreState(selector, mockChatState),
@@ -93,11 +99,7 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
   useAppConfigContext: () => ({
-    config: {
-      interaction_mode: 'chat',
-      wakeword_stt_enabled: false,
-      speech_mode_enabled: false,
-    },
+    config: mockConfig,
     updateConfig: (...args) => mockUpdateConfig(...args),
   }),
 }));
@@ -121,11 +123,6 @@ jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
   isDevUiEnabled: () => mockIsDevUiEnabled(),
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline', () => ({
-  ...jest.requireActual('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline'),
-  captureScreenshotAttachment: (...args) => mockCaptureScreenshotAttachment(...args),
-}));
-
 describe('ChatBox overlay mouse ignore', () => {
   beforeEach(() => {
     mockInvoke.mockClear();
@@ -143,11 +140,12 @@ describe('ChatBox overlay mouse ignore', () => {
     mockUpdateStreamTracking.mockClear();
     mockIsDevUiEnabled.mockReset();
     mockIsDevUiEnabled.mockReturnValue(false);
-    mockCaptureScreenshotAttachment.mockReset();
-    mockCaptureScreenshotAttachment.mockResolvedValue({
-      screenshot: 'ZmFrZS1zY3JlZW5zaG90',
-      screenshotContentType: 'image/png',
-    });
+    mockConfig = {
+      interaction_mode: 'chat',
+      wakeword_stt_enabled: false,
+      speech_mode_enabled: false,
+      include_query_screenshot: true,
+    };
     mockChatState.isSending = false;
     mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
@@ -180,38 +178,29 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(enabledClickThrough).toBe(false);
   });
 
-  test('keeps fixed-size preview lane and does not invoke chatbox resize when images change', async () => {
+  test('camera toggle starts enabled by default and does not create a preview row when clicked', async () => {
     const { container } = render(<ChatBox />);
     const shellWrap = container.querySelector('.chatbox-input-shell-wrap');
     const pill = container.querySelector('.chatbox-pill');
     const previewRow = container.querySelector('.chatbox-image-preview-row');
+    const cameraButton = screen.getByRole('button', { name: 'Toggle auto screenshot' });
+
+    expect(cameraButton.classList.contains('is-enabled')).toBe(true);
     expect(shellWrap?.classList.contains('with-preview')).toBe(false);
     expect(pill?.classList.contains('with-preview')).toBe(false);
     expect(previewRow).toBeTruthy();
     expect(previewRow.classList.contains('has-items')).toBe(false);
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      fireEvent.click(cameraButton);
       await Promise.resolve();
     });
-    expect(shellWrap?.classList.contains('with-preview')).toBe(true);
-    expect(pill?.classList.contains('with-preview')).toBe(true);
-    expect(previewRow.classList.contains('has-items')).toBe(true);
-    expect(mockInvoke.mock.calls.some(
-      ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 116,
-    )).toBe(true);
-    expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
-      await Promise.resolve();
-    });
+    expect(mockUpdateConfig).toHaveBeenCalledWith({ include_query_screenshot: false });
     expect(shellWrap?.classList.contains('with-preview')).toBe(false);
     expect(pill?.classList.contains('with-preview')).toBe(false);
     expect(previewRow.classList.contains('has-items')).toBe(false);
-    expect(mockInvoke.mock.calls.some(
-      ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 64,
-    )).toBe(true);
+    expect(screen.queryByRole('button', { name: /Remove screenshot/i })).not.toBeInTheDocument();
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
 
@@ -239,49 +228,29 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
 
-  test('keeps preview-expanded class until last image is removed and stays compact afterward', async () => {
-    jest.useFakeTimers();
-    const { container } = render(<ChatBox />);
-    const shellWrap = container.querySelector('.chatbox-input-shell-wrap');
-    const pill = container.querySelector('.chatbox-pill');
-    const previewRow = container.querySelector('.chatbox-image-preview-row');
-    const initialPreviewNode = previewRow;
+  test('camera toggle reflects disabled state and can request re-enable', () => {
+    mockConfig = {
+      ...mockConfig,
+      include_query_screenshot: false,
+    };
+    const { rerender } = render(<ChatBox />);
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
-      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
-      await Promise.resolve();
-    });
+    let cameraButton = screen.getByRole('button', { name: 'Toggle auto screenshot' });
+    expect(cameraButton.classList.contains('is-enabled')).toBe(false);
+    expect(cameraButton).toHaveAttribute('title', 'Enable auto screenshot');
 
-    expect(container.querySelector('.chatbox-image-preview-row')).toBe(initialPreviewNode);
-    expect(screen.getByRole('button', { name: 'Remove screenshot 1' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Remove screenshot 2' })).toBeInTheDocument();
-    expect(shellWrap?.classList.contains('with-preview')).toBe(true);
-    expect(pill?.classList.contains('with-preview')).toBe(true);
-    expect(previewRow?.classList.contains('has-items')).toBe(true);
+    fireEvent.click(cameraButton);
+    expect(mockUpdateConfig).toHaveBeenCalledWith({ include_query_screenshot: true });
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
-      await Promise.resolve();
-    });
+    mockConfig = {
+      ...mockConfig,
+      include_query_screenshot: true,
+    };
+    rerender(<ChatBox />);
 
-    expect(shellWrap?.classList.contains('with-preview')).toBe(true);
-    expect(pill?.classList.contains('with-preview')).toBe(true);
-    expect(previewRow?.classList.contains('has-items')).toBe(true);
-    expect(screen.getAllByRole('button', { name: /Remove screenshot/i })).toHaveLength(1);
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Remove screenshot/i }));
-      await Promise.resolve();
-      jest.runOnlyPendingTimers();
-      await Promise.resolve();
-      jest.runOnlyPendingTimers();
-    });
-
-    expect(shellWrap?.classList.contains('with-preview')).toBe(false);
-    expect(pill?.classList.contains('with-preview')).toBe(false);
-    expect(previewRow?.classList.contains('has-items')).toBe(false);
-    expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
+    cameraButton = screen.getByRole('button', { name: 'Toggle auto screenshot' });
+    expect(cameraButton.classList.contains('is-enabled')).toBe(true);
+    expect(cameraButton).toHaveAttribute('title', 'Disable auto screenshot');
   });
 
   test('wires overlay sender surface for centralized UI send behavior', () => {
@@ -311,7 +280,7 @@ describe('ChatBox overlay mouse ignore', () => {
 
     expect(screen.getByRole('button', { name: 'Open dashboard' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Take screenshot' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Toggle auto screenshot' })).toBeDisabled();
     expect(screen.getByPlaceholderText('Ask me anything...')).toBeDisabled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Open dashboard' }));

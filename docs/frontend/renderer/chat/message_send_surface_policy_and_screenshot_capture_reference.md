@@ -40,6 +40,7 @@ Surface consequences:
 - `main-window` hard-disables return-to-chatbox behavior.
 - screenshot capture gate is `senderSurface !== "main-window" && include_query_screenshot`.
 - overlay sender may call `show-chatbox { focus:false }` when policy resolves true.
+- overlay `ChatBox` exposes that gate as the camera toggle in the minimal pill; the button only flips `include_query_screenshot` and does not capture immediately.
 
 ## Outgoing Payload Contract
 
