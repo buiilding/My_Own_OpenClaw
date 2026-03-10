@@ -355,7 +355,6 @@ describe('main_window_runtime createChatWindow', () => {
 
     expect(chatWindow.setVisibleOnAllWorkspaces).toHaveBeenCalledWith(true, {
       visibleOnFullScreen: true,
-      skipTransformProcessType: true,
     });
   });
 });
@@ -471,7 +470,6 @@ describe('main_window_runtime createResponseWindow', () => {
 
     expect(responseWindow.setVisibleOnAllWorkspaces).toHaveBeenCalledWith(true, {
       visibleOnFullScreen: true,
-      skipTransformProcessType: true,
     });
   });
 });

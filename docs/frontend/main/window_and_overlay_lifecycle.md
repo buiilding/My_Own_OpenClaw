@@ -32,7 +32,7 @@ Window set:
 - `chatWindow`: bottom-center overlay input pill (`transparent`, `alwaysOnTop`)
 - `responseWindow`: response overlay above chat pill (`transparent`, `alwaysOnTop`)
 - `contextLabelWindow`: dormant context-label shell window hooks remain in main process, but window is not currently instantiated in startup flow
-- chat/response overlays request strongest topmost level first (`screen-saver`, fallback `floating`) and are pinned to all workspaces/fullscreen spaces (`visibleOnFullScreen`; macOS also requests `skipTransformProcessType`)
+- chat/response overlays request strongest topmost level first (`screen-saver`, fallback `floating`) and are pinned to all workspaces/fullscreen spaces (`visibleOnFullScreen`)
 
 For deeper context-label runtime details, see [Context Label Overlay and Active-Window Runtime Reference](context_label_overlay_and_active_window_runtime_reference.md).
 
