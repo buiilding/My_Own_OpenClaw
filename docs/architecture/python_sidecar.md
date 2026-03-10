@@ -37,9 +37,11 @@ The bridge:
 - Frontend npm Electron launchers now snapshot the caller's active `CONDA_PREFIX` into
   `WINDIE_PYTHON_PATH` before entering `bash -lc`, so login-shell startup files cannot
   silently switch the sidecar back to a base Conda interpreter.
-- On Linux, the Electron launcher also filters one known harmless Chromium
-  `StartTransientUnit ... UnitExists` stderr line during startup so real app/runtime
-  errors remain visible in dev logs.
+- On Linux, the Electron launcher filters one known harmless Chromium
+  `StartTransientUnit ... UnitExists` stderr line during startup; on macOS it also
+  filters the Chromium `SetApplicationIsDaemon ... paramErr` LaunchServices warning
+  emitted by child processes during startup so real app/runtime errors remain visible
+  in dev logs.
 - Sends `ping` until ready, then marks the sidecar as ready.
 - Uses bounded exponential-backoff retries and stale-callback guards in readiness checks to avoid old timeout callbacks marking restarted processes incorrectly.
 

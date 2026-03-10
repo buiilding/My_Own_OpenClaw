@@ -86,17 +86,24 @@ function printModeBanner(options) {
 }
 
 function shouldForwardElectronStderrLine(line, platform = process.platform) {
-  if (platform !== 'linux') {
-    return true;
-  }
   if (typeof line !== 'string' || !line.trim()) {
     return true;
   }
-  const isChromiumSystemdScopeWarning =
-    line.includes('org.freedesktop.systemd1.Manager.StartTransientUnit') &&
-    line.includes('org.freedesktop.systemd1.UnitExists: Unit app-org.chromium.Chromium-') &&
-    line.includes('.scope was already loaded or has a fragment file.');
-  return !isChromiumSystemdScopeWarning;
+  if (platform === 'linux') {
+    const isChromiumSystemdScopeWarning =
+      line.includes('org.freedesktop.systemd1.Manager.StartTransientUnit') &&
+      line.includes('org.freedesktop.systemd1.UnitExists: Unit app-org.chromium.Chromium-') &&
+      line.includes('.scope was already loaded or has a fragment file.');
+    return !isChromiumSystemdScopeWarning;
+  }
+  if (platform === 'darwin') {
+    const isChromiumLaunchServicesDaemonWarning =
+      line.includes('sandbox/mac/system_services.cc:35') &&
+      line.includes('SetApplicationIsDaemon: Error Domain=NSOSStatusErrorDomain Code=-50') &&
+      line.includes('paramErr: error in user parameter list');
+    return !isChromiumLaunchServicesDaemonWarning;
+  }
+  return true;
 }
 
 function pipeFilteredStderr(stream, {
