@@ -41,6 +41,7 @@ read_when:
 - Closing the dashboard restores the chatbox.
 - Sending a message from the dashboard closes it and returns to the chatbox.
 - While waiting for a reply, the typing indicator and response overlay continue to work even when transitioning from dashboard back to chatbox.
+- Once the chatbox response overlay starts receiving content for a turn, it stays visible for that turn and accumulates streamed assistant text plus tool `explanation` lines in order so you can scroll the full mini-transcript after the loop completes.
 
 ## Dashboard Layout
 

@@ -164,7 +164,14 @@ Movement path:
 - `awaiting-reply`: chat pill + typing indicator
 - `response`: chat pill + response overlay
 
-`ChatBox` and `ChatBoxResponse` both derive those visuals from `useCurrentTurnPresentationState(...)`, which composes the shared loop-state reducer (`useChatLoopUiState`) with one current-turn assistant-reply/surface projection helper. The overlay no longer carries separate component-local transition rules.
+`ChatBox` derives pill lock/loop state from `useCurrentTurnPresentationState(...)`, which composes the shared loop-state reducer (`useChatLoopUiState`) with one current-turn assistant-reply/surface projection helper.
+
+`ChatBoxResponse` keeps one additional renderer-local transcript projection for the current turn:
+
+- streamed assistant `llm-text` messages are rendered as persistent transcript blocks
+- tool-call `explanation` arguments are rendered as additional transcript lines
+- once the response overlay has at least one transcript entry for the current turn, it stays visible through later `tool-call` and `tool-output` phases instead of falling back to the typing indicator
+- the typing indicator is now only the pre-transcript state (before any current-turn assistant text or tool explanation exists)
 
 Loop watchdog behavior:
 

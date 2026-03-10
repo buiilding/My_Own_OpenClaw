@@ -16,6 +16,7 @@ import {
 } from '../utils/overlay/responseOverlayLayoutMode';
 import { RESPONSE_OVERLAY_PHASE } from '../utils/overlay/responseOverlayPhaseContract';
 import {
+  buildCurrentTurnResponseOverlayEntries,
   isResponseCloseable,
   normalizeThinkingText,
   resolveSourceTagForResponse,
@@ -23,7 +24,6 @@ import {
 } from '../utils/state/chatBoxResponseState';
 import { logRendererResponseSurfaceTrace } from '../utils/chatStream/chatStreamDebugTrace';
 
-const RESPONSE_TYPES = new Set(['llm-text', 'error']);
 const RESPONSE_FIXED_HEIGHT = 236;
 const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;
 const TYPING_FRAME_HEIGHT = 24;
@@ -39,13 +39,17 @@ function createHiddenFrameState() {
   };
 }
 
-function renderResponseContent(response, markdownHtml) {
-  if (!response) {
+function renderResponseEntry(entry, markdownHtml) {
+  if (!entry) {
     return null;
   }
 
-  if (response.type === 'error') {
-    return <div className="chatbox-response-text chatbox-response-plain">{response.text}</div>;
+  if (entry.type === 'tool-explanation') {
+    return <div className="chatbox-response-text chatbox-response-plain">{entry.text}</div>;
+  }
+
+  if (entry.type === 'error') {
+    return <div className="chatbox-response-text chatbox-response-plain chatbox-response-error">{entry.text}</div>;
   }
 
   return (
@@ -70,35 +74,71 @@ function ChatBoxResponse() {
   const shouldStickToBottomRef = useRef(true);
   const lastFrameRef = useRef(createHiddenFrameState());
 
-  const {
-    activeResponse,
-    visibleResponse,
-    showChatboxAwaitingReply: showAwaitingReply,
-    showChatboxResponse: showResponse,
-  } = useCurrentTurnPresentationState({
+  const currentTurnPresentationState = useCurrentTurnPresentationState({
     phase: overlayPhase,
     isSending,
     messages,
     dismissedResponseId: closedResponseId,
-    allowedTypes: RESPONSE_TYPES,
   });
+  const responseOverlayEntries = useMemo(
+    () => buildCurrentTurnResponseOverlayEntries(messages),
+    [messages],
+  );
+  const latestResponseOverlayEntryId = responseOverlayEntries.length > 0
+    ? responseOverlayEntries[responseOverlayEntries.length - 1].id
+    : null;
+  const showResponse = responseOverlayEntries.length > 0 && latestResponseOverlayEntryId !== closedResponseId;
+  const showAwaitingReply = !showResponse && currentTurnPresentationState.showChatboxAwaitingReply;
+  const latestSourceTaggedResponseEntry = useMemo(() => {
+    for (let index = responseOverlayEntries.length - 1; index >= 0; index -= 1) {
+      const entry = responseOverlayEntries[index];
+      if (entry?.type === 'llm-text' || entry?.type === 'error') {
+        return entry;
+      }
+    }
+    return null;
+  }, [responseOverlayEntries]);
+  const responseEntrySignature = useMemo(
+    () => responseOverlayEntries.map((entry) => `${entry.id}:${entry.text}`).join('\u0001'),
+    [responseOverlayEntries],
+  );
 
   const responseIsCloseable = useMemo(() => {
-    return isResponseCloseable(visibleResponse);
-  }, [visibleResponse]);
-
-  const responseMarkdownHtml = useMemo(() => {
-    if (!shouldRenderResponseMarkdown(visibleResponse)) {
-      return '';
+    if (!showResponse) {
+      return false;
     }
-    const contract = resolveLlmOutputContract(visibleResponse.text ?? '', {
-      provider: visibleResponse.modelProvider || null,
-      modelId: visibleResponse.modelId || null,
-      enableMath: true,
-      stripAccidentalHtmlTokens: true,
+    if (currentTurnPresentationState.isBusy) {
+      return false;
+    }
+    return isResponseCloseable(latestSourceTaggedResponseEntry)
+      || responseOverlayEntries.some((entry) => entry.type === 'tool-explanation');
+  }, [
+    currentTurnPresentationState.isBusy,
+    latestSourceTaggedResponseEntry,
+    responseOverlayEntries,
+    showResponse,
+  ]);
+
+  const renderedResponseEntries = useMemo(() => {
+    return responseOverlayEntries.map((entry) => {
+      if (!shouldRenderResponseMarkdown(entry)) {
+        return {
+          ...entry,
+          markdownHtml: '',
+        };
+      }
+      const contract = resolveLlmOutputContract(entry.text ?? '', {
+        provider: entry.modelProvider || null,
+        modelId: entry.modelId || null,
+        enableMath: true,
+        stripAccidentalHtmlTokens: true,
+      });
+      return {
+        ...entry,
+        markdownHtml: toSanitizedMarkdownHtml(contract.markdown, { enableMath: contract.mathEnabled }),
+      };
     });
-    return toSanitizedMarkdownHtml(contract.markdown, { enableMath: contract.mathEnabled });
-  }, [visibleResponse]);
+  }, [responseOverlayEntries]);
 
   const thinkingText = useMemo(
     () => normalizeThinkingText(thinkingStatus),
@@ -113,35 +153,38 @@ function ChatBoxResponse() {
 
   const sourceTagForResponse = useMemo(() => {
     return resolveSourceTagForResponse({
-      visibleResponse,
+      visibleResponse: latestSourceTaggedResponseEntry,
       showResponse,
       devUiEnabled: isDevUiEnabled(),
     });
-  }, [showResponse, visibleResponse]);
+  }, [latestSourceTaggedResponseEntry, showResponse]);
 
   useEffect(() => {
     logRendererResponseSurfaceTrace({
       overlayPhase,
       isSending,
       messageCount: messages.length,
-      activeResponseTextLength: typeof activeResponse?.text === 'string' ? activeResponse.text.length : 0,
-      activeResponseType: activeResponse?.type || null,
-      visibleResponseId: visibleResponse?.id || null,
+      activeResponseTextLength: typeof latestSourceTaggedResponseEntry?.text === 'string'
+        ? latestSourceTaggedResponseEntry.text.length
+        : 0,
+      activeResponseType: latestSourceTaggedResponseEntry?.type || null,
+      visibleResponseId: latestResponseOverlayEntryId,
+      responseOverlayEntryCount: responseOverlayEntries.length,
       showAwaitingReply,
       showResponse,
       thinkingTextLength: typeof thinkingText === 'string' ? thinkingText.length : 0,
     });
   }, [
-    activeResponse?.id,
-    activeResponse?.text,
-    activeResponse?.type,
     isSending,
+    latestResponseOverlayEntryId,
+    latestSourceTaggedResponseEntry?.text,
+    latestSourceTaggedResponseEntry?.type,
     messages.length,
     overlayPhase,
+    responseOverlayEntries.length,
     showAwaitingReply,
     showResponse,
     thinkingText,
-    visibleResponse?.id,
   ]);
 
   const reportOverlaySize = useCallback(async ({
@@ -276,7 +319,7 @@ function ChatBoxResponse() {
       responseEl.scrollTop = responseEl.scrollHeight;
     }
     syncScrollState();
-  }, [showResponse, activeResponse?.id, activeResponse?.text, syncScrollState]);
+  }, [responseEntrySignature, showResponse, syncScrollState]);
 
   useEffect(() => {
     let cancelled = false;
@@ -320,8 +363,7 @@ function ChatBoxResponse() {
     isVisible,
     overlayLayoutMode,
     reportOverlaySize,
-    activeResponse?.id,
-    activeResponse?.text,
+    responseEntrySignature,
     showResponse,
     thinkingText,
   ]);
@@ -337,11 +379,11 @@ function ChatBoxResponse() {
   }, [reportOverlaySize]);
 
   const handleCloseResponse = useCallback(() => {
-    if (!visibleResponse || !responseIsCloseable) {
+    if (!latestResponseOverlayEntryId || !responseIsCloseable) {
       return;
     }
-    setClosedResponseId(visibleResponse.id);
-  }, [responseIsCloseable, visibleResponse]);
+    setClosedResponseId(latestResponseOverlayEntryId);
+  }, [latestResponseOverlayEntryId, responseIsCloseable]);
 
   if (!isVisible) {
     return null;
@@ -368,11 +410,20 @@ function ChatBoxResponse() {
             </button>
             <div className="chatbox-response-body">
               {sourceTagForResponse ? (
-                <div className="chatbox-source-badge" title={`source_event=${activeResponse?.sourceEventType || 'unknown'}`}>
+                <div className="chatbox-source-badge" title={`source_event=${latestSourceTaggedResponseEntry?.sourceEventType || 'unknown'}`}>
                   {sourceTagForResponse}
                 </div>
               ) : null}
-              {renderResponseContent(visibleResponse, responseMarkdownHtml)}
+              <div className="chatbox-response-transcript">
+                {renderedResponseEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className={`chatbox-response-entry chatbox-response-entry-${entry.type}`}
+                  >
+                    {renderResponseEntry(entry, entry.markdownHtml)}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ) : null}
