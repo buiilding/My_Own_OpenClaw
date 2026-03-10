@@ -100,6 +100,7 @@ async def test_capture_screenshot_crops_full_virtual_desktop_to_target_monitor(m
         return _FakeImage(mode="RGBA", size=(4480, 1440))
 
     _install_fake_modules(monkeypatch, screenshot_fn=_screenshot)
+    monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Linux")
 
     result = await screenshot_tool.capture_screenshot(
         {
@@ -121,6 +122,60 @@ async def test_capture_screenshot_crops_full_virtual_desktop_to_target_monitor(m
 
     assert result["success"] is True
     assert calls == [None]
+    payload = result["data"]
+    assert payload["capture_meta"] == {
+        "source_w": 2560,
+        "source_h": 1440,
+        "crop_x": 1920,
+        "crop_y": 0,
+        "crop_w": 2560,
+        "crop_h": 1440,
+        "desktop_virtual_bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 4480,
+            "height": 1440,
+        },
+        "monitor_id": "2",
+        "timestamp": payload["capture_meta"]["timestamp"],
+        "capture_backend": "pyautogui_fallback",
+    }
+    assert isinstance(payload["capture_meta"]["timestamp"], int)
+
+
+@pytest.mark.asyncio
+async def test_capture_screenshot_on_macos_uses_direct_region_for_monitor_bounds(monkeypatch):
+    calls = []
+
+    def _screenshot(region=None):
+        calls.append(region)
+        if region is None:
+            return _FakeImage(mode="RGBA", size=(5120, 2880))
+        return _FakeImage(mode="RGBA", size=(2560, 1440))
+
+    _install_fake_modules(monkeypatch, screenshot_fn=_screenshot)
+    monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Darwin")
+
+    result = await screenshot_tool.capture_screenshot(
+        {
+            "display_bounds": {
+                "x": 1920,
+                "y": 0,
+                "width": 2560,
+                "height": 1440,
+                "monitor_id": "2",
+                "desktop_virtual_bounds": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 4480,
+                    "height": 1440,
+                },
+            }
+        }
+    )
+
+    assert result["success"] is True
+    assert calls == [(1920, 0, 2560, 1440)]
     payload = result["data"]
     assert payload["capture_meta"] == {
         "source_w": 2560,
