@@ -84,6 +84,7 @@ Load behavior:
 Shared overlay defaults:
 
 - frameless transparent overlay window
+- startup-hidden by default unless caller explicitly requests `show: true`
 - non-resizable/minimizable/maximizable/fullscreenable
 - `skipTaskbar=true`, `alwaysOnTop=true`, `hasShadow=false`
 - macOS overlays use native `type="panel"` so they can float across Spaces/fullscreen without forcing workspace-transform calls

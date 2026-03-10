@@ -67,6 +67,26 @@ describe('main_window_overlay_runtime', () => {
     expect(win.options.webPreferences.devTools).toBe(true);
   });
 
+  test('createOverlayBrowserWindow starts hidden by default', () => {
+    const BrowserWindow = jest.fn((options) => ({ options }));
+
+    const win = createOverlayBrowserWindow({
+      BrowserWindow,
+      path: require('path'),
+      platform: 'darwin',
+      width: 320,
+      height: 120,
+      allowDevTools: false,
+    });
+
+    expect(BrowserWindow).toHaveBeenCalledWith(expect.objectContaining({
+      width: 320,
+      height: 120,
+      show: false,
+    }));
+    expect(win.options.show).toBe(false);
+  });
+
   test('createOverlayBrowserWindow uses native panel windows on mac overlays', () => {
     const BrowserWindow = jest.fn((options) => ({ options }));
 
