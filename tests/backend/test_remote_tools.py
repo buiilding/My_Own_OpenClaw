@@ -15,6 +15,7 @@ from backend.src.tools.remote_tools.computer import RemoteComputerUseTool
 from backend.src.tools.remote_tools.system import RemoteSystemUseTool
 from backend.src.tools.computer.schemas import (
     ComputerUseArgs,
+    KeyboardControlArgs,
     MouseControlArgs,
     ScrollControlArgs,
 )
@@ -91,6 +92,67 @@ def test_scroll_control_requires_direction_for_scroll_action():
 
     args = ScrollControlArgs(action="scroll", x=10, y=20, direction="down")
     assert args.direction == "down"
+
+
+def test_keyboard_control_requires_action_specific_fields():
+    with pytest.raises(
+        ValidationError,
+        match="text parameter required for type or paste action",
+    ):
+        KeyboardControlArgs(action="type")
+
+    with pytest.raises(
+        ValidationError,
+        match="text parameter required for type or paste action",
+    ):
+        KeyboardControlArgs(action="paste")
+
+    with pytest.raises(ValidationError, match="key parameter required for press action"):
+        KeyboardControlArgs(action="press")
+
+    with pytest.raises(ValidationError, match="keys parameter required for hotkey action"):
+        KeyboardControlArgs(action="hotkey")
+
+
+def test_keyboard_control_rejects_text_over_length_limit():
+    with pytest.raises(
+        ValidationError,
+        match="Text too long: 10001 characters \\(max 10000\\)",
+    ):
+        KeyboardControlArgs(action="type", text="x" * 10001)
+
+    with pytest.raises(
+        ValidationError,
+        match="Text too long: 10001 characters \\(max 10000\\)",
+    ):
+        KeyboardControlArgs(action="paste", text="x" * 10001)
+
+
+@pytest.mark.asyncio
+async def test_remote_computer_use_rejects_invalid_keyboard_press_args_before_frontend_dispatch():
+    tool = RemoteComputerUseTool()
+    args = ComputerUseArgs.model_validate(
+        {
+            "tool": "keyboard_control",
+            "metadata": {
+                "description": "A focused text field is active.",
+                "explanation": "I need to submit the focused form.",
+                "expectation": "The form is submitted.",
+            },
+            "arguments": {
+                "action": "press",
+            },
+        }
+    )
+
+    with pytest.raises(
+        ValidationError,
+        match="key parameter required for press action",
+    ):
+        await tool.run(
+            args,
+            _make_context(metadata={"request_id": "req-kbd-invalid"}),
+        )
 
 
 def test_scroll_control_requires_ocr_target_when_using_ocr():

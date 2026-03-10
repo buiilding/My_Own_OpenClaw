@@ -52,8 +52,12 @@ Schema guidance also encodes execution-policy hints in field descriptions:
 - `action` supports `type|paste|press|hotkey`
 - guidance biases toward `type` first, `paste` as recovery override
 - submit-only intent guard for `press/hotkey`
-- backend schema is guidance-first here: it does not currently enforce action-specific required fields (`text` vs `key` vs `keys`) via validator
-  - stricter action-field enforcement is applied in sidecar runtime tool schemas/execution layer
+- backend schema now enforces action-specific required fields via validator
+  - `type` / `paste` require non-empty `text`
+  - `press` requires `key`
+  - `hotkey` requires non-empty `keys`
+  - `type` / `paste` reject text longer than `10000` characters
+- sidecar runtime keeps the same validation as defense in depth if invalid payloads still reach frontend execution
 
 `ScrollControlArgs`:
 

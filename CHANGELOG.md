@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 - fix(frontend-permissions-windows-screen-capture): stop opening Windows privacy settings for screen capture onboarding, verify desktop capture directly through Electron on `Grant`, and add focused permission-service regression coverage so Windows screen capture can be marked available without a fake OS permission step.
+- fix(backend-keyboard-control-validation): enforce action-specific `keyboard_control` backend schema validation (`text` for `type`/`paste`, `key` for `press`, `keys` for `hotkey`, plus 10000-char limit) so invalid `computer_use` keyboard calls fail before frontend dispatch; add focused backend regressions and refresh the computer-tool contract doc.
 
 ## 0.6.10 - 2026-03-09
 
