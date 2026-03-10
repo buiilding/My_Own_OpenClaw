@@ -18,9 +18,14 @@ function getRendererPlatformLabel() {
 }
 
 export function getGlobalAgentStopShortcutLabel() {
-  return /mac/i.test(getRendererPlatformLabel())
-    ? 'Command + Shift + Esc'
-    : 'Ctrl + Shift + Esc';
+  const platformLabel = getRendererPlatformLabel();
+  if (/mac/i.test(platformLabel)) {
+    return 'Command + Shift + Esc';
+  }
+  if (/win/i.test(platformLabel)) {
+    return 'Ctrl + Alt + .';
+  }
+  return 'Ctrl + Shift + Esc';
 }
 
 export function isAgentStopShortcutEvent(event) {

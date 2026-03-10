@@ -35,7 +35,16 @@ describe('agent stop shortcut helper', () => {
     expect(getGlobalAgentStopShortcutLabel()).toBe('Command + Shift + Esc');
   });
 
-  test('renders non-macOS global stop shortcut label', () => {
+  test('renders Windows global stop shortcut label', () => {
+    Object.defineProperty(window.navigator, 'platform', {
+      configurable: true,
+      value: 'Win32',
+    });
+
+    expect(getGlobalAgentStopShortcutLabel()).toBe('Ctrl + Alt + .');
+  });
+
+  test('renders Linux global stop shortcut label', () => {
     Object.defineProperty(window.navigator, 'platform', {
       configurable: true,
       value: 'Linux x86_64',
