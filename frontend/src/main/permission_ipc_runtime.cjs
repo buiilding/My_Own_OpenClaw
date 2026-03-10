@@ -1,5 +1,8 @@
 const os = require('os');
 const { handleSetAgentSudoAccess } = require('./agent_sudo_access_handler.cjs');
+const {
+  verifyScreenCaptureCapability: verifyRealScreenCaptureCapability,
+} = require('./local_backend_bridge.cjs');
 const { createPermissionStateStore } = require('./permission_state_store.cjs');
 const {
   checkPermissions,
@@ -27,6 +30,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
     runCommand,
     requestRendererMicrophoneAccess,
     focusPermissionPromptWindow,
+    verifyScreenCaptureCapability,
     getBrowserAutomationPreference,
     verifyBrowserAutomationCapability,
     installBrowserAutomationRuntime,
@@ -47,6 +51,11 @@ function initializePermissionHandlersRuntime(deps = {}) {
     runCommand,
     requestRendererMicrophoneAccess,
     focusPermissionPromptWindow,
+    verifyScreenCaptureCapability: (
+      typeof verifyScreenCaptureCapability === 'function'
+        ? verifyScreenCaptureCapability
+        : verifyRealScreenCaptureCapability
+    ),
     getBrowserAutomationPreference,
     verifyBrowserAutomationCapability,
     installBrowserAutomationRuntime,

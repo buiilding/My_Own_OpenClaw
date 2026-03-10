@@ -52,6 +52,60 @@ describe('permission_service', () => {
     expect(status.granted).toBe(false);
   });
 
+  test('screen capture request on macOS verifies the real screenshot path before granting', async () => {
+    const openExternal = jest.fn(async () => true);
+    const verifyScreenCaptureCapability = jest.fn(async () => ({
+      granted: true,
+      details: {
+        capture_backend: 'pyautogui_fallback+macos_appkit_cursor',
+      },
+    }));
+
+    const status = await requestPermission('screen_capture', {
+      platform: 'darwin',
+      permissionStateStore,
+      shell: {
+        openExternal,
+      },
+      systemPreferences: {
+        getMediaAccessStatus: jest.fn(() => 'granted'),
+      },
+      verifyScreenCaptureCapability,
+    });
+
+    expect(openExternal).toHaveBeenCalledWith(
+      'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture',
+    );
+    expect(verifyScreenCaptureCapability).toHaveBeenCalledTimes(1);
+    expect(status.status).toBe('granted');
+    expect(status.granted).toBe(true);
+    expect(status.details.capability_check.details.capture_backend).toBe('pyautogui_fallback+macos_appkit_cursor');
+  });
+
+  test('screen capture request on macOS stays needs-action when real screenshot verification fails', async () => {
+    const verifyScreenCaptureCapability = jest.fn(async () => ({
+      granted: false,
+      reason: 'User dismissed the verification screenshot prompt.',
+    }));
+
+    const status = await requestPermission('screen_capture', {
+      platform: 'darwin',
+      permissionStateStore,
+      shell: {
+        openExternal: jest.fn(async () => true),
+      },
+      systemPreferences: {
+        getMediaAccessStatus: jest.fn(() => 'granted'),
+      },
+      verifyScreenCaptureCapability,
+    });
+
+    expect(verifyScreenCaptureCapability).toHaveBeenCalledTimes(1);
+    expect(status.status).toBe('needs-action');
+    expect(status.granted).toBe(false);
+    expect(String(status.reason || '')).toContain('verification screenshot prompt');
+  });
+
   test('microphone request invokes askForMediaAccess then re-probes status', async () => {
     const askForMediaAccess = jest.fn(async () => true);
     const getMediaAccessStatus = jest.fn(() => 'granted');
