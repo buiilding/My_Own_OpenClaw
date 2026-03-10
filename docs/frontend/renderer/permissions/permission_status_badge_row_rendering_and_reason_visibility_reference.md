@@ -25,15 +25,20 @@ It can be reused by future permission surfaces without changing badge/reason sem
 Row output shape:
 
 - title (`permission.label`)
+- access-kind line (`permission.access_kind` mapped through `permissionPresentation.js`)
 - status badge (`PermissionStatusBadge`)
 - description (`permission.description`)
 - optional reason line when `status.reason` is non-empty
 
 ## Status Pill Mapping Contract
 
-`PermissionStatusBadge` delegates to `getPermissionPill(status)`:
+`PermissionStatusBadge` delegates to `getPermissionPill(status, permission)`:
 
-- `granted` -> label `Granted`, class `granted`
+- `granted` -> label depends on `permission.access_kind`:
+  - `os_permission` -> `Granted`
+  - `app_capability` -> `Enabled`
+  - `resource_access` -> `Configured`
+  - `runtime_check` -> `Ready`
 - `needs-action` -> label `Needs action`, class `warning`
 - `unsupported` -> label `Unsupported`, class `warning`
 - any other value -> label `Not checked`, no extra class
@@ -63,12 +68,14 @@ If reason missing/empty, no reason node is rendered.
 
 As long as additional surfaces use `PermissionRowMain` + `PermissionStatusBadge`, status wording and reason visibility stay consistent.
 
+`FrontendOnboardingSlideshow` reuses the same presentation metadata but renders action buttons from `permission.grant_action_label` instead of hard-coding `Grant` vs `Enable`.
+
 ## Drift Hotspots
 
 1. Changing status keywords from main/permission service/store without updating `getPermissionPill`.
-2. Adding new status values but leaving them to default `Not checked`.
+2. Adding new `access_kind` values without extending `permissionPresentation.js` and granted-label mapping.
 3. Diverging control-center vs future permission-surface row composition without shared `PermissionRowMain`.
-4. Renaming CSS class tokens (`permission-pill`, `permission-row-reason`) without style updates.
+4. Renaming CSS class tokens (`permission-pill`, `permission-row-reason`, `permission-row-kind`) without style updates.
 
 ## Coverage Notes
 

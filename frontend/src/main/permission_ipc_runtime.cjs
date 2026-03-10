@@ -1,5 +1,6 @@
 const os = require('os');
 const { handleSetAgentSudoAccess } = require('./agent_sudo_access_handler.cjs');
+const { createPermissionStateStore } = require('./permission_state_store.cjs');
 const {
   checkPermissions,
   listPermissionsWithStatus,
@@ -29,7 +30,13 @@ function initializePermissionHandlersRuntime(deps = {}) {
     getBrowserAutomationPreference,
     verifyBrowserAutomationCapability,
     installBrowserAutomationRuntime,
+    permissionStateStore,
+    userDataPath,
   } = deps;
+
+  const resolvedPermissionStateStore = permissionStateStore || createPermissionStateStore({
+    userDataPath,
+  });
 
   const permissionDeps = {
     platform,
@@ -43,17 +50,18 @@ function initializePermissionHandlersRuntime(deps = {}) {
     getBrowserAutomationPreference,
     verifyBrowserAutomationCapability,
     installBrowserAutomationRuntime,
+    permissionStateStore: resolvedPermissionStateStore,
   };
   const getPermissionId = (options = {}) => {
     return typeof options?.permissionId === 'string'
       ? options.permissionId
       : '';
   };
-  const buildPermissionProbeResult = (permissionId) => {
+  const buildPermissionProbeResult = async (permissionId) => {
     return {
       success: true,
       data: {
-        status: runPermissionProbe(permissionId, permissionDeps),
+        status: await runPermissionProbe(permissionId, permissionDeps),
       },
     };
   };
@@ -68,7 +76,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
   ipcMain.handle('list-permissions', async () => {
     return {
       success: true,
-      data: listPermissionsWithStatus(permissionDeps),
+      data: await listPermissionsWithStatus(permissionDeps),
     };
   });
 
@@ -77,17 +85,17 @@ function initializePermissionHandlersRuntime(deps = {}) {
     return {
       success: true,
       data: {
-        statuses: checkPermissions(permissionIds, permissionDeps),
+        statuses: await checkPermissions(permissionIds, permissionDeps),
       },
     };
   });
 
   ipcMain.handle('check-permission', async (_event, options = {}) => {
-    return buildPermissionProbeResult(getPermissionId(options));
+    return await buildPermissionProbeResult(getPermissionId(options));
   });
 
   ipcMain.handle('run-permission-probe', async (_event, options = {}) => {
-    return buildPermissionProbeResult(getPermissionId(options));
+    return await buildPermissionProbeResult(getPermissionId(options));
   });
 
   ipcMain.handle('request-permission', async (_event, options = {}) => {

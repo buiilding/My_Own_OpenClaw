@@ -492,6 +492,7 @@ function initializeMainProcessIpc() {
     dialog,
     desktopCapturer,
     platform: process.platform,
+    userDataPath: app.getPath('userData'),
     focusPermissionPromptWindow: async () => {
       if (!mainWindow || mainWindow.isDestroyed()) {
         return {

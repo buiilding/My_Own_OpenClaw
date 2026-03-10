@@ -5,6 +5,11 @@ import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import { getAgentStopShortcutLabel } from '../../../infrastructure/shortcuts/agentStopShortcut';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { usePermissionStore } from '../../permissions/stores/permissionStore';
+import {
+  getPermissionActionLabel,
+  getPermissionGrantedLabel,
+  getPermissionKindLabel,
+} from '../../permissions/utils/permissionPresentation';
 
 function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
   const resolvedStopShortcutLabel = stopAgentShortcutLabel || getAgentStopShortcutLabel();
@@ -26,8 +31,8 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
   const slides = useMemo(() => ([
     {
       id: 'permissions',
-      title: 'Grant access to your computer',
-      body: 'Allow the requested permissions so WindieOS can capture screen state and safely run actions for you.',
+      title: 'Set up system access',
+      body: 'Review each item before you continue. Some are OS permissions, some are app capabilities, and some are workspace or runtime checks.',
     },
     {
       id: 'stop-flow',
@@ -112,7 +117,8 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
                   : '';
                 const isGranted = status?.granted === true || status?.status === 'granted';
                 const isPending = pendingPermissionId === permission.permission_id;
-                const isBrowserAutomation = permission.permission_id === 'browser_automation';
+                const actionLabel = getPermissionActionLabel(permission);
+                const grantedLabel = getPermissionGrantedLabel(permission);
                 return (
                   <article
                     key={permission.permission_id}
@@ -120,17 +126,18 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
                   >
                     <div className="frontend-onboarding-permission-copy">
                       <h2>{permission.label}</h2>
+                      <p className="frontend-onboarding-permission-kind">{getPermissionKindLabel(permission)}</p>
                       <p title={permission.description}>{permission.description}</p>
-                      {isBrowserAutomation && statusReason ? (
+                      {statusReason ? (
                         <p className={`frontend-onboarding-permission-reason status-${status?.status || 'unknown'}`}>
                           {statusReason}
                         </p>
                       ) : null}
                     </div>
                     {isGranted ? (
-                      <div className="frontend-onboarding-permission-granted" aria-label="Granted">
+                      <div className="frontend-onboarding-permission-granted" aria-label={grantedLabel}>
                         <span className="frontend-onboarding-permission-granted-icon" aria-hidden="true">✓</span>
-                        <span>Granted</span>
+                        <span>{grantedLabel}</span>
                       </div>
                     ) : (
                       <button
@@ -141,9 +148,7 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
                         }}
                         disabled={isLoading || isPending}
                       >
-                        {isPending
-                          ? (isBrowserAutomation ? 'Enabling...' : 'Requesting...')
-                          : (isBrowserAutomation ? 'Enable' : 'Grant')}
+                        {isPending ? `${actionLabel}...` : actionLabel}
                       </button>
                     )}
                   </article>

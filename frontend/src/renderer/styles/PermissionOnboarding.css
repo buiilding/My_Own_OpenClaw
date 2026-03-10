@@ -207,6 +207,15 @@
   color: #d5d5d5;
 }
 
+.permission-row-kind {
+  margin: 0 0 4px;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9b9b9b;
+}
+
 .permission-consent-row {
   display: flex;
   align-items: flex-start;

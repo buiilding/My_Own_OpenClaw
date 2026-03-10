@@ -282,6 +282,15 @@
   color: #ffffff;
 }
 
+.frontend-onboarding-permission-kind {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9b9b9b;
+}
+
 .frontend-onboarding-permission-copy p {
   margin: 0;
   color: #d0d0d0;
@@ -292,6 +301,13 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.frontend-onboarding-permission-copy p.frontend-onboarding-permission-kind {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .frontend-onboarding-permission-reason {
