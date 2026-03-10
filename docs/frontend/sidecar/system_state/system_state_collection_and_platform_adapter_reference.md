@@ -140,8 +140,8 @@ Platform bootstrap:
 
 `SystemStateCapture.captureSystemState(...)` requests:
 
-- first user message: `active_window`, `mouse_position`, `screen_resolution`, `windows`
-- later captures: `active_window`, `mouse_position`, `screen_resolution`
+- default captures: `active_window`, `mouse_position`, `screen_resolution`
+- `windows` only when explicitly requested by the caller
 
 ### Context-label overlay
 

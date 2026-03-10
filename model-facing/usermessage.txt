@@ -3,46 +3,6 @@
         <active_window>WindieOS</active_window>
         <mouse_position>(863, 583)</mouse_position>
         <screen_resolution>3360x1080</screen_resolution>
-        <all_open_windows>
-        <window>457408084 - RustDesk</window>
-        <window>mutter guard window</window>
-        <window>GNOME Shell</window>
-        <window>mutter-x11-frames</window>
-        <window>gsd-keyboard</window>
-        <window>gsd-color</window>
-        <window>gsd-power</window>
-        <window>gsd-media-keys</window>
-        <window>gsd-wacom</window>
-        <window>gsd-xsettings</window>
-        <window>ibus-extension-gtk3</window>
-        <window>ibus-x11</window>
-        <window>ibus-xim</window>
-        <window>Cloudflare Zero Trust</window>
-        <window>evolution-alarm-notify</window>
-        <window>Caps Lock Indicator</window>
-        <window>xdg-desktop-portal-gnome</window>
-        <window>xdg-desktop-portal-gtk</window>
-        <window>update-notifier</window>
-        <window>Chromium clipboard</window>
-        <window>google-chrome-stable</window>
-        <window>google-chrome-stable</window>
-        <window>ghostty</window>
-        <window>gjs</window>
-        <window>rustdesk</window>
-        <window>rustdesk</window>
-        <window>Desktop Icons 1</window>
-        <window>Desktop Icons 2</window>
-        <window>Computer-use schema explanation - Google Chrome</window>
-        <window>WindieOS_workspace — tool_schema.txt</window>
-        <window>codex</window>
-        <window>Chromium clipboard</window>
-        <window>electron</window>
-        <window>npm run electron:dev</window>
-        <window>WindieOS</window>
-        <window>windieos</window>
-        <window>windieos</window>
-        <window>electron</window>
-        </all_open_windows>
     </os_state>
 </system_context>
 
