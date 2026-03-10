@@ -3,8 +3,10 @@ const path = require('path');
 const {
   buildLaunchCommand,
   parseOptions,
+  pipeFilteredStderr,
   resolveElectronBinaryForPlatform,
   resolveCondaPythonPath,
+  shouldForwardElectronStderrLine,
 } = require('../../frontend/scripts/electron-launcher.cjs');
 
 describe('electron-launcher', () => {
@@ -144,5 +146,45 @@ describe('electron-launcher', () => {
     expect(() =>
       resolveElectronBinaryForPlatform('   ', { platform: 'linux' }),
     ).toThrow('Electron binary path is missing or invalid.');
+  });
+
+  test('shouldForwardElectronStderrLine suppresses known chromium systemd scope warning on linux', () => {
+    expect(shouldForwardElectronStderrLine(
+      '[146193:0309/225916.534701:ERROR:dbus/object_proxy.cc:573] Failed to call method: ' +
+        'org.freedesktop.systemd1.Manager.StartTransientUnit: object_path= /org/freedesktop/systemd1: ' +
+        'org.freedesktop.systemd1.UnitExists: Unit app-org.chromium.Chromium-146193.scope was already loaded or has a fragment file.',
+      'linux',
+    )).toBe(false);
+    expect(shouldForwardElectronStderrLine(
+      '[146193:0309/225928.064159:ERROR:content/browser/gpu/gpu_process_host.cc:998] GPU process launch failed: error_code=1002',
+      'linux',
+    )).toBe(true);
+  });
+
+  test('pipeFilteredStderr forwards non-filtered lines and drops the known linux scope warning', () => {
+    const handlers = {};
+    const stream = {
+      setEncoding: jest.fn(),
+      on: jest.fn((event, handler) => {
+        handlers[event] = handler;
+      }),
+    };
+    const destination = {
+      write: jest.fn(),
+    };
+
+    pipeFilteredStderr(stream, { destination, platform: 'linux' });
+
+    handlers.data(
+      '[146193:0309/225916.534701:ERROR:dbus/object_proxy.cc:573] Failed to call method: ' +
+        'org.freedesktop.systemd1.Manager.StartTransientUnit: object_path= /org/freedesktop/systemd1: ' +
+        'org.freedesktop.systemd1.UnitExists: Unit app-org.chromium.Chromium-146193.scope was already loaded or has a fragment file.\n' +
+        '[146193:0309/225928.064159:ERROR:content/browser/gpu/gpu_process_host.cc:998] GPU process launch failed: error_code=1002\n',
+    );
+
+    expect(destination.write).toHaveBeenCalledTimes(1);
+    expect(destination.write).toHaveBeenCalledWith(
+      '[146193:0309/225928.064159:ERROR:content/browser/gpu/gpu_process_host.cc:998] GPU process launch failed: error_code=1002\n',
+    );
   });
 });

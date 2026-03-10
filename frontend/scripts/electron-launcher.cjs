@@ -85,6 +85,48 @@ function printModeBanner(options) {
   console.log('[WindieOS] Customer mode launch. Developers should run: npm run electron:dev');
 }
 
+function shouldForwardElectronStderrLine(line, platform = process.platform) {
+  if (platform !== 'linux') {
+    return true;
+  }
+  if (typeof line !== 'string' || !line.trim()) {
+    return true;
+  }
+  const isChromiumSystemdScopeWarning =
+    line.includes('org.freedesktop.systemd1.Manager.StartTransientUnit') &&
+    line.includes('org.freedesktop.systemd1.UnitExists: Unit app-org.chromium.Chromium-') &&
+    line.includes('.scope was already loaded or has a fragment file.');
+  return !isChromiumSystemdScopeWarning;
+}
+
+function pipeFilteredStderr(stream, {
+  destination = process.stderr,
+  platform = process.platform,
+} = {}) {
+  if (!stream || typeof stream.on !== 'function') {
+    return;
+  }
+
+  let buffered = '';
+
+  stream.setEncoding?.('utf8');
+  stream.on('data', (chunk) => {
+    buffered += String(chunk ?? '');
+    const lines = buffered.split(/\r?\n/);
+    buffered = lines.pop() ?? '';
+    lines.forEach((line) => {
+      if (shouldForwardElectronStderrLine(line, platform)) {
+        destination.write(`${line}\n`);
+      }
+    });
+  });
+  stream.on('end', () => {
+    if (buffered && shouldForwardElectronStderrLine(buffered, platform)) {
+      destination.write(buffered);
+    }
+  });
+}
+
 function main() {
   const options = parseOptions(process.argv.slice(2));
   printModeBanner(options);
@@ -117,9 +159,11 @@ function main() {
   });
 
   const child = spawn(launch.command, launch.args, {
-    stdio: 'inherit',
+    stdio: ['inherit', 'inherit', 'pipe'],
     env,
   });
+
+  pipeFilteredStderr(child.stderr, { platform: process.platform });
 
   child.on('error', (error) => {
     console.error(`[WindieOS] Failed to launch Electron: ${error.message}`);
@@ -143,6 +187,8 @@ module.exports = {
   buildLaunchCommand,
   hasXvfbRun,
   parseOptions,
+  pipeFilteredStderr,
   resolveElectronBinaryForPlatform,
   resolveCondaPythonPath,
+  shouldForwardElectronStderrLine,
 };
