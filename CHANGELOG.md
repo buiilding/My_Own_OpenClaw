@@ -4,6 +4,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Docs
+- docs(planning-browser-launcher): add a dated planning note for the dedicated Windie browser launcher/profile-branding approach, including shortcut strategy, platform-specific constraints, optional profile-metadata seeding, and follow-up docs/index wiring.
+
 ### Fixed
 - fix(frontend-sidecar-system-browser-first-packaging): stop bundling Playwright Chromium into the packaged sidecar runtime, remove packaged-launch `PLAYWRIGHT_BROWSERS_PATH` injection, prefer system-installed Chrome/Chromium-family browsers before any Playwright cache fallback, refresh browser-install permission copy/docs, and add focused frontend+sidecar regressions for the new packaged runtime behavior.
 - fix(frontend-windows-macos-capture-noop): make renderer screenshot surface visibility a true no-op on Windows/macOS so protected overlays rely on content protection instead of chat-pill hide/show, while preserving the existing Linux hide/restore path and adding focused surface-orchestrator regressions for both contracts.

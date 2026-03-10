@@ -32,6 +32,7 @@ Single entrypoint for future work. Use this page first.
 - `windieos_vm_multi_agent_plan.md`
 - `windieos_frontend_sidecar_packaging_plan_2026-02-25.md`
 - `windieos_browser_use_hard_merge_plan_2026-02-25.md`
+- `windieos_browser_launcher_profile_plan_2026-03-10.md`
 - `windieos_backend_web_search_tool_plan_2026-02-26.md`
 - `windieos_screenshot_normalization_plan_2026-03-01.md`
 - `windieos_dashboard_tool_trace_toggle_plan_2026-03-02.md`
