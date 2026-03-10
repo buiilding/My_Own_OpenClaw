@@ -29,6 +29,7 @@ const {
   stopLocalBackend,
   getLocalBackendStatus,
   installBrowserChromium,
+  warmBrowserAutomation,
 } = require('./local_backend_bridge.cjs');
 const { createVmWorkerRuntime } = require('./vm_worker_runtime.cjs');
 const { createExternalFocusTracker } = require('./external_focus_tracker.cjs');
@@ -424,6 +425,23 @@ function initializeMainProcessIpc() {
           success: installResult.data.success === true,
           error: typeof installResult.data.error === 'string' ? installResult.data.error : '',
           details: installResult.data,
+        };
+      },
+      warmBrowserAutomationPermission: async () => {
+        const warmResult = await warmBrowserAutomation();
+        if (!warmResult || warmResult.success !== true) {
+          return {
+            success: false,
+            error: typeof warmResult?.error === 'string'
+              ? warmResult.error
+              : 'Failed to open the WindieOS browser.',
+            details: warmResult,
+          };
+        }
+
+        return {
+          success: true,
+          details: warmResult.data,
         };
       },
     });

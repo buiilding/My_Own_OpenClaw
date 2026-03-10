@@ -70,9 +70,9 @@
     {
       "permission_id": "browser_automation",
       "label": "Browser automation",
-      "description": "Enable browser session automation for navigation and data extraction tasks.",
+      "description": "Open the WindieOS browser so you can sign in with the profile WindieOS should use for browsing, navigation, and web tasks.",
       "access_kind": "app_capability",
-      "grant_action_label": "Enable",
+      "grant_action_label": "Open browser",
       "risk_level": "high",
       "required_now": false,
       "required_for_planned_system_access": true,

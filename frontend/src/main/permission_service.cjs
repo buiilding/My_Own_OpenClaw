@@ -678,7 +678,7 @@ async function probeBrowserAutomation(permission, deps = {}) {
     return buildProbeResult(
       permissionId,
       PERMISSION_STATUS.NEEDS_ACTION,
-      'Enable browser automation to expose browser-control tools.',
+      'Open the WindieOS browser and sign in with the profile WindieOS should use for browser help.',
       {
         platform,
         browser_automation_enabled: preferenceEnabled,
@@ -1197,12 +1197,76 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
   const preferenceEnabled = getBrowserAutomationPreference(deps);
   let capability = await verifyBrowserAutomationCapability(deps);
 
+  const runBrowserWarmup = async () => {
+    if (typeof deps.warmBrowserAutomationPermission !== 'function') {
+      return {
+        success: true,
+        details: {},
+      };
+    }
+
+    try {
+      const result = await deps.warmBrowserAutomationPermission();
+      if (result && typeof result === 'object') {
+        return {
+          success: result.success === true,
+          reason: typeof result.reason === 'string'
+            ? result.reason
+            : (typeof result.error === 'string' ? result.error : ''),
+          details: result.details && typeof result.details === 'object'
+            ? result.details
+            : result,
+        };
+      }
+      return {
+        success: result === true,
+        reason: result === true ? '' : 'Failed to open the WindieOS browser.',
+        details: {},
+      };
+    } catch (error) {
+      return {
+        success: false,
+        reason: error?.message || 'Failed to open the WindieOS browser.',
+        details: {
+          error: String(error?.message || error),
+        },
+      };
+    }
+  };
+
+  const buildWarmGrantedStatus = async (extraDetails = {}) => {
+    const warmup = await runBrowserWarmup();
+    if (!warmup.success) {
+      return buildProbeResult(
+        permissionId,
+        PERMISSION_STATUS.NEEDS_ACTION,
+        warmup.reason || 'WindieOS could not open the browser yet. Retry Open browser.',
+        {
+          platform,
+          browser_automation_enabled: preferenceEnabled,
+          capability_check: capability,
+          browser_warmup: warmup,
+          ...extraDetails,
+        },
+      );
+    }
+
+    return buildProbeResult(
+      permissionId,
+      PERMISSION_STATUS.GRANTED,
+      'WindieOS browser is ready. Sign in with the profile WindieOS should use for browser help.',
+      {
+        platform,
+        browser_automation_enabled: preferenceEnabled,
+        capability_check: capability,
+        browser_warmup: warmup,
+        ...extraDetails,
+      },
+    );
+  };
+
   if (capability.granted) {
-    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Browser automation runtime is ready.', {
-      platform,
-      browser_automation_enabled: preferenceEnabled,
-      capability_check: capability,
-    });
+    return await buildWarmGrantedStatus();
   }
 
   if (shouldPromptBrowserRuntimeInstall(capability)) {
@@ -1224,10 +1288,7 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
     const installResult = await requestBrowserRuntimeInstall(deps);
     capability = await verifyBrowserAutomationCapability(deps);
     if (capability.granted) {
-      return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Browser automation runtime is ready.', {
-        platform,
-        browser_automation_enabled: preferenceEnabled,
-        capability_check: capability,
+      return await buildWarmGrantedStatus({
         chromium_install: installResult,
       });
     }

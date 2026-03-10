@@ -774,6 +774,28 @@ async function installBrowserChromium() {
   };
 }
 
+async function warmBrowserAutomation() {
+  const result = await sendRequestOrError(
+    'execute_tool',
+    {
+      tool_name: 'browser',
+      args: {
+        action: 'connect',
+      },
+    },
+    { timeoutMs: 120000 },
+  );
+
+  if (result && result.success === false && typeof result.error === 'string') {
+    return result;
+  }
+
+  return {
+    success: true,
+    data: result,
+  };
+}
+
 async function searchMemory(
   query,
   user_id,
@@ -797,6 +819,7 @@ module.exports = {
   verifyScreenCaptureCapability: async () => runtimeScreenCaptureCapabilityVerifier(),
   getLocalBackendStatus,
   installBrowserChromium,
+  warmBrowserAutomation,
   searchMemory,
   storeMemory,
 };
