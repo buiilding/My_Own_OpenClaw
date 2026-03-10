@@ -30,6 +30,16 @@ import {
   isDragBlockedTarget,
 } from '../utils/state/chatBoxState';
 
+function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
+  if (typeof updateConfig !== 'function') {
+    return false;
+  }
+  updateConfig({
+    [key]: nextValue,
+  });
+  return true;
+}
+
 function ChatBox() {
   const { config, updateConfig } = useAppConfigContext();
   const messages = useChatStore((state) => state.messages);
@@ -165,30 +175,28 @@ function ChatBox() {
     }
   }, [loopInteractionLocked]);
 
-  const handleToggleQueryScreenshot = useCallback(() => {
+  const handleConfigToggle = useCallback((key, nextValue, options = {}) => {
     if (loopInteractionLocked) {
       return;
     }
-    if (typeof updateConfig !== 'function') {
+    const didUpdate = applyBooleanConfigUpdate(updateConfig, key, nextValue);
+    if (!didUpdate) {
       return;
     }
-    updateConfig({
-      include_query_screenshot: !includeQueryScreenshot,
+    if (options.focusInputAfter) {
+      focusInput();
+    }
+  }, [focusInput, loopInteractionLocked, updateConfig]);
+
+  const handleToggleQueryScreenshot = useCallback(() => {
+    handleConfigToggle('include_query_screenshot', !includeQueryScreenshot, {
+      focusInputAfter: true,
     });
-    focusInput();
-  }, [focusInput, includeQueryScreenshot, loopInteractionLocked, updateConfig]);
+  }, [handleConfigToggle, includeQueryScreenshot]);
 
   const handleToggleSpeechMode = useCallback(() => {
-    if (loopInteractionLocked) {
-      return;
-    }
-    if (typeof updateConfig !== 'function') {
-      return;
-    }
-    updateConfig({
-      speech_mode_enabled: !speechModeEnabled,
-    });
-  }, [speechModeEnabled, loopInteractionLocked, updateConfig]);
+    handleConfigToggle('speech_mode_enabled', !speechModeEnabled);
+  }, [handleConfigToggle, speechModeEnabled]);
 
   const handleDevAutoCompaction = useCallback(() => {
     if (loopInteractionLocked) {

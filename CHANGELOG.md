@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 - fix(fullstack-shared-tool-schema-parity): align sidecar shared tool schemas with backend strict contracts (required `wait.seconds`, direct-tool explanations, `run_in_background`, numeric bounds, and `extra='forbid'`), make sidecar wait runtime reject missing `seconds`, add a non-browser backend/sidecar schema parity suite with explicit exception coverage, and refresh the related tool-contract docs.
 - fix(backend-keyboard-control-validation): enforce action-specific `keyboard_control` backend schema validation (`text` for `type`/`paste`, `key` for `press`, `keys` for `hotkey`, plus 10000-char limit) so invalid `computer_use` keyboard calls fail before frontend dispatch; add focused backend regressions and refresh the computer-tool contract doc.
 
+### Refactored
+- refactor(frontend-chatbox-toggle-controls): consolidate the minimal chat pill's config-backed toggle plumbing behind one shared boolean-config helper and one shared enabled-state icon style, reducing duplicated button logic while preserving the same camera/TTS behavior.
+
 ## 0.6.10 - 2026-03-09
 
 Includes the last 300 commits on `main`.

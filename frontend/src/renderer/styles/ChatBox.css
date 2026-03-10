@@ -327,11 +327,7 @@ body {
   background: rgba(22, 22, 22, 0.9);
 }
 
-.chatbox-tts.is-enabled {
-  color: #3b82f6;
-}
-
-.chatbox-screenshot.is-enabled {
+.chatbox-icon.is-enabled {
   color: #3b82f6;
 }
 
