@@ -4,6 +4,9 @@ from backend.src.agent.tools.preparation.helpers.preparation_helper import (
     normalize_manual_coordinates,
     resolve_tool_with_coordinates,
 )
+from backend.src.agent.tools.preparation.validation import (
+    sanitize_and_validate_resolved_tool_call,
+)
 from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
@@ -117,6 +120,14 @@ async def _resolve_with_stubs(tool_call, resolved_call, session, screenshot_mana
         vision_service_provider=lambda _s: None,
         context_id=context_id,
     )
+
+
+def _sanitize_resolved_call_for_executor(resolved_call: ResolvedToolCall) -> None:
+    validation_error = sanitize_and_validate_resolved_tool_call(
+        resolved_call,
+        enabled=True,
+    )
+    assert validation_error is None
 
 
 @pytest.mark.asyncio
@@ -283,6 +294,7 @@ async def test_resolved_mouse_drag_payload_is_valid_sidecar_input(monkeypatch):
         "drag-sidecar-parity",
     )
 
+    _sanitize_resolved_call_for_executor(resolved_call)
     sidecar_args = SidecarMouseControlArgs.model_validate(resolved_call.parameters)
     assert sidecar_args.action == "drag"
     assert sidecar_args.x == 837
@@ -326,6 +338,7 @@ async def test_resolved_scroll_prediction_payload_is_valid_sidecar_input(monkeyp
         "scroll-sidecar-parity",
     )
 
+    _sanitize_resolved_call_for_executor(resolved_call)
     sidecar_args = SidecarScrollControlArgs.model_validate(resolved_call.parameters)
     assert sidecar_args.action == "scroll_down"
     assert sidecar_args.x == 320
