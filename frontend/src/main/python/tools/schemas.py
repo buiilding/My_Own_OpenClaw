@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, ConfigDict, model_validator
 
 class MouseControlArgs(BaseModel):
     """Arguments for mouse control tool."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
     
     action: Literal["click", "double_click", "right_click", "move", "drag"] = Field(
         ..., description="Mouse action to perform"
@@ -31,8 +31,8 @@ class MouseControlArgs(BaseModel):
         0.5,
         description="Duration in seconds for drag operations",
     )
-    wait: Optional[float] = Field(
-        2.0,
+    wait: float = Field(
+        0.0,
         description="Delay in seconds before taking a screenshot after tool execution."
     )
     
@@ -50,7 +50,7 @@ class MouseControlArgs(BaseModel):
 
 class KeyboardControlArgs(BaseModel):
     """Arguments for keyboard control tool."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
     
     action: Literal["type", "paste", "press", "hotkey"] = Field(
         ...,
@@ -62,8 +62,8 @@ class KeyboardControlArgs(BaseModel):
     )
     key: Optional[str] = Field(None, description="Single key to press (required for 'press' action)")
     keys: Optional[List[str]] = Field(None, description="List of keys for hotkey (required for 'hotkey' action)")
-    wait: Optional[float] = Field(
-        2.0,
+    wait: float = Field(
+        0.0,
         description="Delay in seconds before taking a screenshot after tool execution."
     )
     
@@ -85,7 +85,7 @@ class KeyboardControlArgs(BaseModel):
 
 class DesktopVirtualBounds(BaseModel):
     """Virtual desktop bounds spanning all connected displays."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
 
     x: int = Field(..., description="Virtual desktop X origin")
     y: int = Field(..., description="Virtual desktop Y origin")
@@ -95,7 +95,7 @@ class DesktopVirtualBounds(BaseModel):
 
 class DisplayBounds(BaseModel):
     """Screen bounds for targeted screenshot capture."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
 
     x: int = Field(..., description="Display X origin")
     y: int = Field(..., description="Display Y origin")
@@ -109,7 +109,7 @@ class DisplayBounds(BaseModel):
 
 class ScreenshotToolArgs(BaseModel):
     """Arguments for screenshot tool."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
     
     wait: Optional[float] = Field(
         None,
@@ -135,7 +135,7 @@ class ScrollControlArgs(BaseModel):
     - macOS: 1 unit ≈ 0.3 wheel ticks (smooth scrolling compensation)
     - Linux: 1 unit ≈ 1 wheel tick (typically 3 lines)
     """
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
     
     action: Literal["scroll", "scroll_up", "scroll_down"] = Field(..., description="Scroll action to perform")
     x: int = Field(..., description="X coordinate to move to before scrolling (manual coordinates only)")
@@ -152,8 +152,8 @@ class ScrollControlArgs(BaseModel):
         None,
         description="Direction for scroll action: vertical 'up'|'down', or horizontal 'left'|'right'. Required when action is 'scroll'.",
     )
-    wait: Optional[float] = Field(
-        2.0,
+    wait: float = Field(
+        0.0,
         description="Delay in seconds before taking a screenshot after tool execution."
     )
     
@@ -169,11 +169,12 @@ class ScrollControlArgs(BaseModel):
 
 class ReadFileArgs(BaseModel):
     """Arguments for read file tool."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
     
     file_path: str = Field(..., description="Absolute path to the file to read")
     offset: Optional[int] = Field(
         None,
+        ge=0,
         description=(
             "0-based offset to start reading from (defaults to 0). "
             "For text files this is a line offset; for PDF files this is a page offset."
@@ -181,13 +182,14 @@ class ReadFileArgs(BaseModel):
     )
     limit: Optional[int] = Field(
         None,
+        gt=0,
         description=(
             "Maximum amount to read (defaults to 2000 when omitted). "
             "For text files this is max lines; for PDF files this is max pages considered before size-aware selection."
         ),
     )
-    explanation: Optional[str] = Field(
-        None,
+    explanation: str = Field(
+        ...,
         description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
     )
 
@@ -196,11 +198,11 @@ class ReadFileArgs(BaseModel):
 
 class RunShellCommandArgs(BaseModel):
     """Arguments for shell command tool."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
     
     command: str = Field(..., description="Command to execute")
     directory: Optional[str] = Field(None, description="Working directory (must be absolute path)")
-    run_in_background: bool = Field(False, description="Run command in background")
+    run_in_background: bool = Field(..., description="Run command in background")
     terminate_after_seconds: Optional[float] = Field(120.0, description="Timeout in seconds (for foreground execution)")
     yield_after_seconds: Optional[float] = Field(
         None,
@@ -208,6 +210,7 @@ class RunShellCommandArgs(BaseModel):
     )
     max_output_tokens: Optional[int] = Field(
         None,
+        gt=0,
         description=(
             "(OPTIONAL) Maximum number of output tokens to include in llm_content for foreground responses. "
             "Defaults to 10000 when omitted."
@@ -221,8 +224,8 @@ class RunShellCommandArgs(BaseModel):
         None,
         description="(OPTIONAL) Request a pseudo-terminal (best-effort).",
     )
-    explanation: Optional[str] = Field(
-        None,
+    explanation: str = Field(
+        ...,
         description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
     )
     wait: Optional[float] = Field(
@@ -233,7 +236,7 @@ class RunShellCommandArgs(BaseModel):
 
 class OpenAppArgs(BaseModel):
     """Arguments for detached app launch tool."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
 
     command: str = Field(..., description="Executable or app command to launch")
     args: Optional[list[str]] = Field(
@@ -257,10 +260,11 @@ class OpenAppArgs(BaseModel):
     )
     verify_timeout_seconds: Optional[float] = Field(
         6.0,
+        ge=0.0,
         description="(OPTIONAL) Max seconds to wait for verification.",
     )
-    explanation: Optional[str] = Field(
-        None,
+    explanation: str = Field(
+        ...,
         description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
     )
 
@@ -276,7 +280,7 @@ class OpenAppArgs(BaseModel):
 
 class ProcessShellCommandArgs(BaseModel):
     """Arguments for process tool (manage background shell sessions)."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
 
     action: str = Field(
         ...,
@@ -296,42 +300,42 @@ class ProcessShellCommandArgs(BaseModel):
 
 class SwitchTabArgs(BaseModel):
     """Arguments for switch tab tool."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
     
     tab_name: str = Field(..., description="Name of the tab/window to switch to")
-    wait: Optional[float] = Field(
-        2.0,
+    wait: float = Field(
+        0.0,
         description="Delay in seconds before taking a screenshot after tool execution."
     )
 
 
 class GetOpenWindowsArgs(BaseModel):
     """Arguments for get open windows tool."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
     
-    filter_text: Optional[str] = Field("", description="Optional filter text to search window titles")
-    explanation: Optional[str] = Field(
-        None,
+    filter_text: str = Field("", description="Optional filter text to search window titles")
+    explanation: str = Field(
+        ...,
         description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
     )
 
 
 class GetSystemStatsArgs(BaseModel):
     """Arguments for get system stats tool."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
     
-    explanation: Optional[str] = Field(
-        None,
+    explanation: str = Field(
+        ...,
         description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
     )
 
 
 class WaitToolArgs(BaseModel):
     """Arguments for wait tool."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
     
-    seconds: Optional[float] = Field(
-        1.0,
+    seconds: float = Field(
+        ...,
         description="Number of seconds to wait before capturing a screenshot."
     )
 
@@ -369,7 +373,7 @@ def _require_eof_field():
 
 class ReplaceOperationArgs(BaseModel):
     """Arguments for one replacement operation in a batched replace call."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
 
     old_string: str = Field(..., description="The string to search for and replace")
     new_string: str = Field(
@@ -395,7 +399,7 @@ class ReplaceOperationArgs(BaseModel):
 
 class ReplacePatchChunkArgs(BaseModel):
     """Arguments for one apply_patch-style ordered update chunk."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
 
     change_context: Optional[str] = Field(
         None,
@@ -417,7 +421,7 @@ class ReplacePatchChunkArgs(BaseModel):
 
 class ReplaceArgs(BaseModel):
     """Arguments for replace tool."""
-    model_config = ConfigDict(extra='ignore')
+    model_config = ConfigDict(extra='forbid')
     
     file_path: str = Field(..., description="Absolute path to the file to modify")
     old_string: Optional[str] = Field(
@@ -454,4 +458,8 @@ class ReplaceArgs(BaseModel):
             "Cannot be combined with old_string/new_string/replacements. "
             "Prefer multiple focused chunks/calls over one oversized payload."
         ),
+    )
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
     )

@@ -17,14 +17,16 @@ async def wait(args: Dict[str, Any]) -> Dict[str, Any]:
     capture by the specified seconds. This ensures the wait doesn't block other operations.
     
     Args:
-        args: Dictionary with 'seconds' parameter (defaults to 1.0 if not provided)
+        args: Dictionary with required 'seconds' parameter
         
     Returns:
         Dictionary with success status and wait result (returns immediately)
     """
     try:
-        # Extract seconds from args, default to 1.0 for backward compatibility
-        seconds = args.get("seconds", 1.0)
+        if "seconds" not in args:
+            return {"success": False, "error": "seconds is required"}
+
+        seconds = args.get("seconds")
         
         # Validate seconds is a positive number
         if not isinstance(seconds, (int, float)) or seconds < 0:
