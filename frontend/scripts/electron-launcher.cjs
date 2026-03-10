@@ -127,6 +127,19 @@ function pipeFilteredStderr(stream, {
   });
 }
 
+function pipeForwardedStdout(stream, {
+  destination = process.stdout,
+} = {}) {
+  if (!stream || typeof stream.on !== 'function') {
+    return;
+  }
+
+  stream.setEncoding?.('utf8');
+  stream.on('data', (chunk) => {
+    destination.write(String(chunk ?? ''));
+  });
+}
+
 function main() {
   const options = parseOptions(process.argv.slice(2));
   printModeBanner(options);
@@ -159,10 +172,11 @@ function main() {
   });
 
   const child = spawn(launch.command, launch.args, {
-    stdio: ['inherit', 'inherit', 'pipe'],
+    stdio: ['inherit', 'pipe', 'pipe'],
     env,
   });
 
+  pipeForwardedStdout(child.stdout);
   pipeFilteredStderr(child.stderr, { platform: process.platform });
 
   child.on('error', (error) => {
@@ -187,6 +201,7 @@ module.exports = {
   buildLaunchCommand,
   hasXvfbRun,
   parseOptions,
+  pipeForwardedStdout,
   pipeFilteredStderr,
   resolveElectronBinaryForPlatform,
   resolveCondaPythonPath,
