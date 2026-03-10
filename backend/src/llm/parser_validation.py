@@ -186,15 +186,15 @@ class ToolCallValidator:
             deduped_tool_names,
             selection=self._dev_tool_selection,
         )
-        if _UNIFIED_COMPUTER_TOOL_NAME in filtered_tool_names:
-            filtered_tool_names = sorted(
-                set(filtered_tool_names) | _UNIFIED_COMPUTER_SUBTOOLS
-            )
-        if _UNIFIED_SYSTEM_TOOL_NAME in filtered_tool_names:
-            filtered_tool_names = sorted(
-                set(filtered_tool_names) | _UNIFIED_SYSTEM_SUBTOOLS
-            )
         return filtered_tool_names
+
+    def _compute_allowed_tool_name_set(self, display_tool_names: List[str]) -> set[str]:
+        allowed_tool_names = set(display_tool_names)
+        if _UNIFIED_COMPUTER_TOOL_NAME in display_tool_names:
+            allowed_tool_names.update(_UNIFIED_COMPUTER_SUBTOOLS)
+        if _UNIFIED_SYSTEM_TOOL_NAME in display_tool_names:
+            allowed_tool_names.update(_UNIFIED_SYSTEM_SUBTOOLS)
+        return allowed_tool_names
 
     def _get_valid_tool_name_index(self) -> tuple[List[str], set[str]]:
         """
@@ -211,7 +211,7 @@ class ToolCallValidator:
             return self._valid_tool_name_cache
 
         valid_tool_names = self._compute_valid_tool_names()
-        valid_tool_name_set = set(valid_tool_names)
+        valid_tool_name_set = self._compute_allowed_tool_name_set(valid_tool_names)
         self._valid_tool_name_cache = (valid_tool_names, valid_tool_name_set)
         self._valid_tool_name_cache_selection = selection
         return self._valid_tool_name_cache

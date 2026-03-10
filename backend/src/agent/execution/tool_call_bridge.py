@@ -95,6 +95,24 @@ def _resolve_system_use_explanation(
     )
 
 
+def _canonicalize_legacy_system_tool_call(
+    tool_name: str,
+    arguments: Dict[str, Any],
+) -> tuple[str, Dict[str, Any]]:
+    wrapper_arguments = copy.deepcopy(arguments)
+    payload: Dict[str, Any] = {
+        "tool": tool_name,
+        "arguments": wrapper_arguments,
+    }
+    resolved_explanation = _resolve_system_use_explanation(
+        wrapper_arguments,
+        wrapper_arguments,
+    )
+    if resolved_explanation is not None:
+        payload["explanation"] = resolved_explanation
+    return _SYSTEM_USE_TOOL_NAME, payload
+
+
 def _normalize_computer_metadata(
     metadata: Dict[str, Any],
 ) -> tuple[Dict[str, Any], bool]:
@@ -217,6 +235,11 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
                         parameters["explanation"] = resolved_explanation
                 else:
                     parameters = {}
+    elif normalized_tool_name in _SYSTEM_SUBTOOL_TO_CONCRETE:
+        normalized_tool_name, parameters = _canonicalize_legacy_system_tool_call(
+            normalized_tool_name,
+            parameters,
+        )
 
     if normalized_tool_name in _COMPUTER_SUBTOOLS:
         normalized_metadata, has_all_required_metadata = _normalize_computer_metadata(

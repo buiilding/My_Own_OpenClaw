@@ -75,6 +75,7 @@ Important declaration boundary:
 
 - concrete action `oneOf` entries intentionally do not expose nested `arguments.explanation`
 - rationale is canonicalized as top-level `explanation`
+- model-facing calls should use the direct tool name `system_use`; concrete action names such as `get_open_windows` are wrapper values, not top-level function names
 
 ## Remote Dispatch Normalization (`RemoteSystemUseTool`)
 
@@ -109,6 +110,7 @@ Important declaration boundary:
 - maps known subtools to concrete names
 - injects explanation with same precedence rules
 - if mapped subtool is invalid, keeps `tool_name="system_use"` (instead of dropping call) to preserve deterministic downstream wrapper validation errors in native-tool-call flows
+- direct legacy top-level system action names are canonicalized into `system_use` wrapper payloads so native tool-call execution stays aligned with the public schema surface
 
 ## Registry Collapse Contract
 
@@ -172,8 +174,9 @@ Direct-tool boundary remains unchanged in sidecar:
 
 1. Diverging `tool` enums across `SystemUseArgs`, unified declaration schema, remote mapping tables, and sidecar wrapper router creates runtime-only failures.
 2. Requiring nested `arguments.explanation` in one layer while top-level is canonical in another causes model/schema drift.
-3. Changing parser rejection behavior for unknown `system_use.tool` without matching native bridge semantics can produce inconsistent error surfaces between providers.
-4. Removing declaration-level required `explanation` weakens rationale guarantees even if remote runtime still injects fallback.
+3. Letting parser/validator error previews advertise concrete action names as top-level tools can mislead the model away from the canonical `system_use` wrapper.
+4. Changing parser rejection behavior for unknown `system_use.tool` without matching native bridge semantics can produce inconsistent error surfaces between providers.
+5. Removing declaration-level required `explanation` weakens rationale guarantees even if remote runtime still injects fallback.
 
 ## Related Docs
 

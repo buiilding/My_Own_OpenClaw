@@ -116,7 +116,6 @@ class ToolCallSchema:
                 if normalized is None:
                     return None
                 return normalized
-
             return (normalized_tool_name, args, metadata)
 
         return None
