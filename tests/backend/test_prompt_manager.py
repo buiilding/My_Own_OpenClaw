@@ -172,6 +172,8 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     assert "The `keyboard_control` tech stack is synthetic automation input" in content
     assert "run_in_background=true" in content
     assert "Use `open_app` for detached GUI app launches" in content
+    assert "If the user explicitly asks you to use `computer_use`" in content
+    assert "If the user explicitly asks you to use your own browser" in content
     assert "<open_app_rules>" in content
     assert '"name":"open_app"' in content
     assert "Snapshot pagination contract" in content

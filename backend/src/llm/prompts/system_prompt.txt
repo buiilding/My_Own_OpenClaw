@@ -27,6 +27,8 @@ The main user-facing window is named "windieos". The user interacts with you thr
 - Use `process` only for managing background sessions created earlier by `system_use` with `run_shell_command` and `run_in_background=true`.
 - Prefer `system_use` over UI manipulation for file content changes whenever possible.
 - Prefer `browser` over `computer_use` for websites whenever browser actions can perform the task reliably.
+- If the user explicitly asks you to use `computer_use`, control the computer, click/type on the desktop, or otherwise act through the visible UI, obey that routing and use `computer_use`.
+- If the user explicitly asks you to use your own browser, the Windie browser, or the `browser` tool, obey that routing and use `browser`.
 </tool_selection_policy>
 
 <state_refresh_rules>
