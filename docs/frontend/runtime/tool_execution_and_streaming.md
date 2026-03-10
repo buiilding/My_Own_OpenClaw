@@ -100,7 +100,7 @@ Responsibilities:
 - platform capture prep still routes through `platform/surfaceVisibility/*`; Linux owns the chat-pill hide/restore path with compositor settle, while Windows/macOS use a true no-op runtime and rely on content protection for protected overlays
 - screenshot capture prep now uses a bounded main-process `prepare-surface-for-screenshot -> screenshot` wait; the prep handler owns both the intentional pre-capture wait and active-surface hide/settle timing so hidden-renderer timer throttling cannot stretch either phase
 - automatic screenshot monitor selection is main-owned: renderer screenshot calls stay display-agnostic, while Electron main resolves the visible sender window's display first and falls back to the active query-origin display affinity for hidden-dashboard tool turns
-- monitor-scoped screenshot args now include both target monitor bounds and full virtual desktop bounds, allowing the sidecar screenshot tool to crop a single monitor even when the OS backend returns one all-displays image
+- monitor-scoped screenshot args now include both target monitor bounds and full virtual desktop bounds; Windows/Linux sidecar capture may crop a single monitor out of an all-displays image, while macOS uses direct bounded capture to avoid Retina scaling drift
 - manual chat-pill drag position is main-owned and reused by overlay helper reposition passes so screenshot/show/hide lifecycles cannot snap the pill back to its default centered location
 - shared transition-context resolver helper (`context.ts`) for source/correlation-id normalization across tool and capture lifecycles
 - capture focus prep now resolves as a no-op lifecycle marker; frontend no longer asks main process to restore/verify an external window before screenshot capture

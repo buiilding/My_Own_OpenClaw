@@ -71,6 +71,23 @@ def _is_linux_x11_session() -> bool:
     return session_type == "x11"
 
 
+def _should_capture_full_virtual_desktop(
+    *,
+    region: Optional[tuple[int, int, int, int]],
+    desktop_virtual_bounds: Optional[tuple[int, int, int, int]],
+) -> bool:
+    if region is None or desktop_virtual_bounds is None:
+        return False
+
+    # On macOS, Pillow's bounded grab path already accepts desktop-space
+    # coordinates and returns the correctly scaled region. Capturing the full
+    # desktop and cropping manually reintroduces Retina pixel/logical drift.
+    if platform.system().lower() == "darwin":
+        return False
+
+    return True
+
+
 def _crop_full_desktop_capture_to_region(
     screenshot: object,
     *,
@@ -445,7 +462,11 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
                     args["display_bounds"].get("desktop_virtual_bounds")
                 )
 
-            capture_region = None if region and desktop_virtual_bounds else region
+            capture_full_virtual_desktop = _should_capture_full_virtual_desktop(
+                region=region,
+                desktop_virtual_bounds=desktop_virtual_bounds,
+            )
+            capture_region = None if capture_full_virtual_desktop else region
             system_capture = _capture_with_system_cursor(region=capture_region)
             capture_backend = "pyautogui_fallback"
             if system_capture is not None:
@@ -453,11 +474,12 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
             else:
                 screenshot = pyautogui.screenshot(region=capture_region) if capture_region else pyautogui.screenshot()
 
-            screenshot = _crop_full_desktop_capture_to_region(
-                screenshot,
-                region=region,
-                desktop_virtual_bounds=desktop_virtual_bounds,
-            )
+            if capture_full_virtual_desktop:
+                screenshot = _crop_full_desktop_capture_to_region(
+                    screenshot,
+                    region=region,
+                    desktop_virtual_bounds=desktop_virtual_bounds,
+                )
 
             # Linux X11 fallback: overlay real cursor bitmap from XFixes.
             if _overlay_linux_xfixes_cursor(screenshot, region=region):

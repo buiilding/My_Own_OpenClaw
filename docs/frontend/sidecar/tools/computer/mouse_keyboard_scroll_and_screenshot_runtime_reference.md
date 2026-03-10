@@ -156,6 +156,7 @@ Capture backend strategy:
   - macOS: avoids `screencapture` side-effects and overlays cursor bitmap via AppKit (`NSCursor`)
 - fallback path uses `pyautogui.screenshot(...)`
 - if region + `desktop_virtual_bounds` are provided, sidecar captures the full virtual desktop first and crops to target monitor region safely (bounds-checked)
+- macOS exception: when monitor bounds are provided, sidecar uses direct bounded capture instead of full-desktop crop because Pillow's macOS region path already returns correctly scaled logical-space images and avoids Retina upper-left clipping
 
 Encoding/storage behavior:
 
