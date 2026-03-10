@@ -164,4 +164,24 @@ describe('FrontendOnboardingSlideshow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Start WindieOS' }));
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
+
+  test('keeps actions outside the scroll region on the permissions slide', () => {
+    const onComplete = jest.fn();
+    const { container } = render(
+      <FrontendOnboardingSlideshow onComplete={onComplete} stopAgentShortcutLabel="Ctrl + Shift + Esc" />,
+    );
+
+    const dialog = screen.getByRole('dialog', { name: 'WindieOS onboarding' });
+    const scrollRegion = container.querySelector('.frontend-onboarding-card-scroll-region');
+    const actions = container.querySelector('.frontend-onboarding-actions');
+    const nextButton = screen.getByRole('button', { name: 'Next' });
+
+    expect(scrollRegion).not.toBeNull();
+    expect(actions).not.toBeNull();
+    expect(dialog).toContainElement(scrollRegion);
+    expect(dialog).toContainElement(actions);
+    expect(scrollRegion).not.toContain(actions);
+    expect(scrollRegion).toContainElement(screen.getByRole('heading', { name: 'Set up system access' }));
+    expect(actions).toContainElement(nextButton);
+  });
 });

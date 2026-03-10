@@ -1,25 +1,30 @@
 .frontend-onboarding-shell {
+  min-height: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 28px;
+  overflow: auto;
   background: #050505;
   color: #f3f3f3;
 }
 
 .frontend-onboarding-card {
   width: min(840px, 100%);
+  max-height: calc(100vh - 56px);
+  max-height: calc(100dvh - 56px);
   border: 1px solid #262626;
   border-radius: 16px;
-  padding: 34px 36px;
   background: #0b0b0b;
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
   display: grid;
-  gap: 16px;
+  grid-template-rows: minmax(0, 1fr) auto;
   font-family: "Avenir Next", Avenir, "Nunito Sans", "Segoe UI", sans-serif;
+  overflow: hidden;
 }
 
 .frontend-onboarding-window-chrome {
@@ -41,6 +46,15 @@
 
 .frontend-onboarding-card-permissions {
   width: min(940px, 100%);
+}
+
+.frontend-onboarding-card-scroll-region {
+  min-height: 0;
+  padding: 34px 36px 22px;
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  overflow: auto;
 }
 
 .frontend-onboarding-progress {
@@ -177,7 +191,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 10px;
+  gap: 16px;
+  padding: 18px 36px 26px;
+  border-top: 1px solid #202020;
+  background:
+    linear-gradient(180deg, rgba(11, 11, 11, 0.82), rgba(11, 11, 11, 0.98));
+  flex-shrink: 0;
 }
 
 .frontend-onboarding-action-spacer {
@@ -377,9 +396,18 @@
 }
 
 @media (max-width: 860px) {
+  .frontend-onboarding-shell {
+    align-items: stretch;
+    padding: 18px 14px;
+  }
+
   .frontend-onboarding-card {
-    padding: 24px 18px;
-    gap: 16px;
+    max-height: calc(100vh - 36px);
+    max-height: calc(100dvh - 36px);
+  }
+
+  .frontend-onboarding-card-scroll-region {
+    padding: 24px 18px 18px;
   }
 
   .frontend-onboarding-window-chrome {
@@ -393,6 +421,10 @@
 
   .frontend-onboarding-body {
     font-size: clamp(16px, 4.1vw, 20px);
+  }
+
+  .frontend-onboarding-actions {
+    padding: 16px 18px 18px;
   }
 
   .frontend-onboarding-stop-flow-keybind {

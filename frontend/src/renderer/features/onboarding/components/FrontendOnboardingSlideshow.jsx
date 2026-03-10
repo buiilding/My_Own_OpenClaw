@@ -102,86 +102,88 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
         role="dialog"
         aria-modal="true"
       >
-        <p className="frontend-onboarding-progress">
-          Step {activeSlideIndex + 1} of {slides.length}
-        </p>
-        <h1 className="frontend-onboarding-title">{activeSlide.title}</h1>
-        <p className="frontend-onboarding-body">{activeSlide.body}</p>
-        {isPermissionSlide ? (
-          <div className="frontend-onboarding-permissions-section">
-            <div className="frontend-onboarding-permissions-list">
-              {permissions.map((permission) => {
-                const status = statusesByPermissionId[permission.permission_id];
-                const statusReason = typeof status?.reason === 'string'
-                  ? status.reason.trim()
-                  : '';
-                const isGranted = status?.granted === true || status?.status === 'granted';
-                const isPending = pendingPermissionId === permission.permission_id;
-                const actionLabel = getPermissionActionLabel(permission);
-                const grantedLabel = getPermissionGrantedLabel(permission);
-                return (
-                  <article
-                    key={permission.permission_id}
-                    className="frontend-onboarding-permission-row"
-                  >
-                    <div className="frontend-onboarding-permission-copy">
-                      <h2>{permission.label}</h2>
-                      <p className="frontend-onboarding-permission-kind">{getPermissionKindLabel(permission)}</p>
-                      <p title={permission.description}>{permission.description}</p>
-                      {statusReason ? (
-                        <p className={`frontend-onboarding-permission-reason status-${status?.status || 'unknown'}`}>
-                          {statusReason}
-                        </p>
-                      ) : null}
-                    </div>
-                    {isGranted ? (
-                      <div className="frontend-onboarding-permission-granted" aria-label={grantedLabel}>
-                        <span className="frontend-onboarding-permission-granted-icon" aria-hidden="true">✓</span>
-                        <span>{grantedLabel}</span>
+        <div className="frontend-onboarding-card-scroll-region">
+          <p className="frontend-onboarding-progress">
+            Step {activeSlideIndex + 1} of {slides.length}
+          </p>
+          <h1 className="frontend-onboarding-title">{activeSlide.title}</h1>
+          <p className="frontend-onboarding-body">{activeSlide.body}</p>
+          {isPermissionSlide ? (
+            <div className="frontend-onboarding-permissions-section">
+              <div className="frontend-onboarding-permissions-list">
+                {permissions.map((permission) => {
+                  const status = statusesByPermissionId[permission.permission_id];
+                  const statusReason = typeof status?.reason === 'string'
+                    ? status.reason.trim()
+                    : '';
+                  const isGranted = status?.granted === true || status?.status === 'granted';
+                  const isPending = pendingPermissionId === permission.permission_id;
+                  const actionLabel = getPermissionActionLabel(permission);
+                  const grantedLabel = getPermissionGrantedLabel(permission);
+                  return (
+                    <article
+                      key={permission.permission_id}
+                      className="frontend-onboarding-permission-row"
+                    >
+                      <div className="frontend-onboarding-permission-copy">
+                        <h2>{permission.label}</h2>
+                        <p className="frontend-onboarding-permission-kind">{getPermissionKindLabel(permission)}</p>
+                        <p title={permission.description}>{permission.description}</p>
+                        {statusReason ? (
+                          <p className={`frontend-onboarding-permission-reason status-${status?.status || 'unknown'}`}>
+                            {statusReason}
+                          </p>
+                        ) : null}
                       </div>
-                    ) : (
-                      <button
-                        type="button"
-                        className="frontend-onboarding-button primary"
-                        onClick={() => {
-                          void handleGrantPermission(permission.permission_id);
-                        }}
-                        disabled={isLoading || isPending}
-                      >
-                        {isPending ? `${actionLabel}...` : actionLabel}
-                      </button>
-                    )}
-                  </article>
-                );
-              })}
-              {bootstrapped && permissions.length === 0 ? (
-                <p className="frontend-onboarding-permission-empty">
-                  No permission items were returned by the manifest.
-                </p>
+                      {isGranted ? (
+                        <div className="frontend-onboarding-permission-granted" aria-label={grantedLabel}>
+                          <span className="frontend-onboarding-permission-granted-icon" aria-hidden="true">✓</span>
+                          <span>{grantedLabel}</span>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          className="frontend-onboarding-button primary"
+                          onClick={() => {
+                            void handleGrantPermission(permission.permission_id);
+                          }}
+                          disabled={isLoading || isPending}
+                        >
+                          {isPending ? `${actionLabel}...` : actionLabel}
+                        </button>
+                      )}
+                    </article>
+                  );
+                })}
+                {bootstrapped && permissions.length === 0 ? (
+                  <p className="frontend-onboarding-permission-empty">
+                    No permission items were returned by the manifest.
+                  </p>
+                ) : null}
+              </div>
+              {error ? (
+                <p className="frontend-onboarding-permission-error">{error}</p>
               ) : null}
             </div>
-            {error ? (
-              <p className="frontend-onboarding-permission-error">{error}</p>
-            ) : null}
-          </div>
-        ) : isStopFlowSlide ? (
-          <div className="frontend-onboarding-stop-flow">
-            <div
-              className="frontend-onboarding-stop-flow-keybind"
-              aria-label={`Stop shortcut ${activeSlide.emphasisValue}`}
-            >
-              <span className="frontend-onboarding-stop-flow-keybind-label">
-                {activeSlide.emphasisLabel}
-              </span>
-              <kbd className="frontend-onboarding-stop-flow-keycap">{activeSlide.emphasisValue}</kbd>
+          ) : isStopFlowSlide ? (
+            <div className="frontend-onboarding-stop-flow">
+              <div
+                className="frontend-onboarding-stop-flow-keybind"
+                aria-label={`Stop shortcut ${activeSlide.emphasisValue}`}
+              >
+                <span className="frontend-onboarding-stop-flow-keybind-label">
+                  {activeSlide.emphasisLabel}
+                </span>
+                <kbd className="frontend-onboarding-stop-flow-keycap">{activeSlide.emphasisValue}</kbd>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="frontend-onboarding-emphasis">
-            <span className="frontend-onboarding-emphasis-label">{activeSlide.emphasisLabel}</span>
-            <span className="frontend-onboarding-emphasis-value">{activeSlide.emphasisValue}</span>
-          </div>
-        )}
+          ) : (
+            <div className="frontend-onboarding-emphasis">
+              <span className="frontend-onboarding-emphasis-label">{activeSlide.emphasisLabel}</span>
+              <span className="frontend-onboarding-emphasis-value">{activeSlide.emphasisValue}</span>
+            </div>
+          )}
+        </div>
         <div className="frontend-onboarding-actions">
           {activeSlideIndex > 0 ? (
             <button
