@@ -43,7 +43,7 @@ describe('overlay_topmost_runtime', () => {
     expect(targetWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(2, true, 'floating');
   });
 
-  test('pins overlay across all workspaces and fullscreen spaces on macOS', () => {
+  test('skips workspace pinning calls on macOS panels', () => {
     const targetWindow = {
       setVisibleOnAllWorkspaces: jest.fn(),
     };
@@ -56,12 +56,10 @@ describe('overlay_topmost_runtime', () => {
     });
 
     expect(success).toBe(true);
-    expect(targetWindow.setVisibleOnAllWorkspaces).toHaveBeenCalledWith(true, {
-      visibleOnFullScreen: true,
-    });
+    expect(targetWindow.setVisibleOnAllWorkspaces).not.toHaveBeenCalled();
   });
 
-  test('warns when workspace pinning fails', () => {
+  test('warns when non-mac workspace pinning fails', () => {
     const targetWindow = {
       setVisibleOnAllWorkspaces: jest.fn()
         .mockImplementationOnce(() => {
@@ -72,7 +70,7 @@ describe('overlay_topmost_runtime', () => {
 
     const success = setOverlayVisibleOnAllWorkspaces({
       targetWindow,
-      platform: 'darwin',
+      platform: 'win32',
       warn,
       windowLabel: 'chat box',
     });

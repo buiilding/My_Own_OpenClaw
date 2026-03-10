@@ -67,7 +67,28 @@ describe('main_window_overlay_runtime', () => {
     expect(win.options.webPreferences.devTools).toBe(true);
   });
 
-  test('createOverlayBrowserWindow keeps toolbar type on non-linux overlays', () => {
+  test('createOverlayBrowserWindow uses native panel windows on mac overlays', () => {
+    const BrowserWindow = jest.fn((options) => ({ options }));
+
+    const win = createOverlayBrowserWindow({
+      BrowserWindow,
+      path: require('path'),
+      platform: 'darwin',
+      width: 320,
+      height: 120,
+      allowDevTools: false,
+    });
+
+    expect(BrowserWindow).toHaveBeenCalledWith(expect.objectContaining({
+      width: 320,
+      height: 120,
+      type: 'panel',
+      transparent: true,
+    }));
+    expect(win.options.webPreferences.devTools).toBe(false);
+  });
+
+  test('createOverlayBrowserWindow keeps toolbar type on windows overlays', () => {
     const BrowserWindow = jest.fn((options) => ({ options }));
 
     const win = createOverlayBrowserWindow({

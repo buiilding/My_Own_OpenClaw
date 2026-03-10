@@ -6,7 +6,7 @@ const {
 } = require('../../frontend/src/main/window_platform_policy.cjs');
 
 describe('window_platform_policy', () => {
-  test('applies overlay content protection and workspace policy through one helper', () => {
+  test('applies overlay content protection and mac panel policy through one helper', () => {
     const targetWindow = {
       setContentProtection: jest.fn(),
       setAlwaysOnTop: jest.fn(),
@@ -24,9 +24,7 @@ describe('window_platform_policy', () => {
 
     expect(targetWindow.setContentProtection).toHaveBeenCalledWith(true);
     expect(targetWindow.setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver');
-    expect(targetWindow.setVisibleOnAllWorkspaces).toHaveBeenCalledWith(true, {
-      visibleOnFullScreen: true,
-    });
+    expect(targetWindow.setVisibleOnAllWorkspaces).not.toHaveBeenCalled();
   });
 
   test('activates the native window and its webContents together', () => {

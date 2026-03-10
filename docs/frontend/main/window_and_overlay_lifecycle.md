@@ -34,7 +34,9 @@ Window set:
 - `chatWindow`: bottom-center overlay input pill (`transparent`, `alwaysOnTop`)
 - `responseWindow`: response overlay above chat pill (`transparent`, `alwaysOnTop`)
 - `contextLabelWindow`: dormant context-label shell window hooks remain in main process, but window is not currently instantiated in startup flow
-- chat/response overlays request strongest topmost level first (`screen-saver`, fallback `floating`) and are pinned to all workspaces/fullscreen spaces (`visibleOnFullScreen`)
+- chat/response overlays request strongest topmost level first (`screen-saver`, fallback `floating`)
+- macOS overlays now use native `panel` windows, which span Spaces/fullscreen without calling `setVisibleOnAllWorkspaces(...)`
+- Windows/Linux overlays still use the shared workspace-pinning helper when available
 
 Shared ownership model:
 

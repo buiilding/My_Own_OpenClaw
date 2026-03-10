@@ -38,6 +38,12 @@ function setOverlayVisibleOnAllWorkspaces({
   warn = console.warn,
   windowLabel = 'overlay window',
 } = {}) {
+  if (platform === 'darwin') {
+    // Native macOS panel windows already span Spaces/fullscreen without forcing
+    // Electron's process-type transform path, which can emit SetApplicationIsDaemon warnings.
+    return true;
+  }
+
   if (!targetWindow || typeof targetWindow.setVisibleOnAllWorkspaces !== 'function') {
     return false;
   }
