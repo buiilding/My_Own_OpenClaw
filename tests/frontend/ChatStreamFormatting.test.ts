@@ -74,24 +74,15 @@ describe('chatStreamFormatting utils', () => {
       metadata: {
         llm_tool_call_validation_failed: true,
         skip_frontend_execution: true,
+        llm_tool_call_raw_tool_call_preview: '{"id":"tool_bad","name":"run_shell_command","arguments":"{\\"command\\":\\"cat > index.html << \\\\\\"EOF\\\\\\"\\"}...[truncated]"}',
         llm_tool_call_raw_arguments_preview: '{"command":"cat > index.html << \\"EOF\\""}...[truncated]',
         llm_tool_call_parse_error: 'failed to parse streamed tool-call arguments',
       },
     });
 
-    const parsed = JSON.parse(formatted);
-    expect(parsed.name).toBe('run_shell_command');
-    expect(parsed.raw_arguments_preview).toContain('cat > index.html');
-    expect(parsed.raw_arguments_preview).toContain('[truncated]');
-    expect(parsed.parse_error).toBe('failed to parse streamed tool-call arguments');
-    expect(parsed.frontend_execution_skipped).toBe(true);
-    expect(parsed.metadata).toEqual({
-      llm_tool_call_validation_failed: true,
-      skip_frontend_execution: true,
-      llm_tool_call_raw_arguments_preview: '{"command":"cat > index.html << \\"EOF\\""}...[truncated]',
-      llm_tool_call_parse_error: 'failed to parse streamed tool-call arguments',
-    });
-    expect(parsed.arguments).toBeUndefined();
+    expect(formatted).toBe(
+      '{"id":"tool_bad","name":"run_shell_command","arguments":"{\\"command\\":\\"cat > index.html << \\\\\\"EOF\\\\\\"\\"}...[truncated]"}',
+    );
   });
 
   test('includes frontend skip marker for computer-use validation failures', () => {
@@ -149,6 +140,46 @@ describe('chatStreamFormatting utils', () => {
     expect(parsed.parse_error).toBe('invalid tool arguments json');
     expect(parsed.frontend_execution_skipped).toBe(true);
     expect(parsed.arguments).toBeUndefined();
+  });
+
+  test('formats pre-dispatch validation failures from preserved model-facing payload', () => {
+    const formatted = formatToolCallPayload({
+      tool_name: 'system_use',
+      parameters: {
+        tool: 'run_shell_command',
+        explanation: 'Create a temporary test file to test the replace tool',
+        arguments: {
+          command: "echo 'Original text to replace' > /tmp/test_replace.txt",
+        },
+      },
+      metadata: {
+        llm_tool_call_validation_failed: true,
+        skip_frontend_execution: true,
+        model_facing_tool_call: {
+          id: 'tool_raw_1',
+          name: 'system_use',
+          arguments: {
+            tool: 'run_shell_command',
+            explanation: 'Create a temporary test file to test the replace tool',
+            arguments: {
+              command: "echo 'Original text to replace' > /tmp/test_replace.txt",
+            },
+          },
+        },
+      },
+    });
+
+    expect(JSON.parse(formatted)).toEqual({
+      id: 'tool_raw_1',
+      name: 'system_use',
+      arguments: {
+        tool: 'run_shell_command',
+        explanation: 'Create a temporary test file to test the replace tool',
+        arguments: {
+          command: "echo 'Original text to replace' > /tmp/test_replace.txt",
+        },
+      },
+    });
   });
 
   test('formats undefined tool call payload as empty object', () => {

@@ -81,6 +81,10 @@ Backend malformed-tool-call recovery emits synthetic events with metadata:
 - `skip_frontend_execution = true`
 - `llm_tool_call_validation_failed = true`
 - `request_id = <synthetic_or_extracted_id>`
+- optional preview fields:
+  - `llm_tool_call_raw_tool_call_preview`
+  - `llm_tool_call_raw_arguments_preview`
+  - `llm_tool_call_parse_error`
 
 Transport guarantee:
 
@@ -90,6 +94,7 @@ Transport guarantee:
 Frontend outcome:
 
 - chat shows tool-call/tool-output narrative
+- tool-call cards prefer `llm_tool_call_raw_tool_call_preview` when present; otherwise they render preserved `metadata.model_facing_tool_call` for pre-dispatch validation failures instead of a synthesized normalized fallback
 - tool runner skips local execution for synthetic call
 - stream can continue to next model turn
 

@@ -81,6 +81,7 @@ export type ToolCallEvent = BackendEventBase<'tool-call', {
   request_id?: string;
   metadata?: Record<string, unknown> & {
     llm_tool_call_validation_failed?: boolean;
+    llm_tool_call_raw_tool_call_preview?: string;
     llm_tool_call_raw_arguments_preview?: string;
     llm_tool_call_raw_arguments_preview_truncated?: boolean;
     llm_tool_call_parse_error?: string;

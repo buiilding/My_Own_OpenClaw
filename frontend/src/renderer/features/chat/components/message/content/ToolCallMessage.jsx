@@ -3,16 +3,15 @@ import PropTypes from 'prop-types';
 
 export default function ToolCallMessage({ message }) {
   const [showDetails, setShowDetails] = useState(false);
-  const modelFacingCall = (
-    message.modelFacingToolCall
-    && typeof message.modelFacingToolCall === 'object'
-    && !Array.isArray(message.modelFacingToolCall)
-  )
-    ? message.modelFacingToolCall
-    : null;
-  const modelFacingText = modelFacingCall
-    ? JSON.stringify(modelFacingCall, null, 2)
-    : message.text;
+  const modelFacingText = typeof message.text === 'string' && message.text.trim()
+    ? message.text
+    : (
+      message.modelFacingToolCall
+      && typeof message.modelFacingToolCall === 'object'
+      && !Array.isArray(message.modelFacingToolCall)
+    )
+      ? JSON.stringify(message.modelFacingToolCall, null, 2)
+      : '';
   const detailsPayload = (
     message.toolCallDetails
     && typeof message.toolCallDetails === 'object'

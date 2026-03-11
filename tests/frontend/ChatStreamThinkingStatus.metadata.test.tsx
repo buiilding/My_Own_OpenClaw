@@ -210,6 +210,7 @@ describe('useChatStream message metadata handling', () => {
           metadata: {
             llm_tool_call_validation_failed: true,
             skip_frontend_execution: true,
+            llm_tool_call_raw_tool_call_preview: '{"id":"tool_bad","name":"run_shell_command","arguments":"{\\"command\\":\\"cat > index.html << \\\\\\"EOF\\\\\\"\\"}...[truncated]"}',
             llm_tool_call_raw_arguments_preview: '{"command":"cat > index.html << \\"EOF\\""}...[truncated]',
             llm_tool_call_parse_error: 'failed to parse streamed tool-call arguments',
           },
@@ -222,12 +223,75 @@ describe('useChatStream message metadata handling', () => {
       type: 'tool-call',
       modelFacingToolCall: expect.objectContaining({
         name: 'run_shell_command',
+        raw_tool_call_preview: expect.stringContaining('"name":"run_shell_command"'),
         raw_arguments_preview: expect.stringContaining('cat > index.html'),
         parse_error: 'failed to parse streamed tool-call arguments',
         frontend_execution_skipped: true,
       }),
     }));
     expect((toolCallMessage?.modelFacingToolCall as Record<string, unknown>)?.arguments).toBeUndefined();
+    expect(toolCallMessage?.text).toBe(
+      '{"id":"tool_bad","name":"run_shell_command","arguments":"{\\"command\\":\\"cat > index.html << \\\\\\"EOF\\\\\\"\\"}...[truncated]"}',
+    );
+  });
+
+  test('tool-call message keeps preserved model-facing payload visible for pre-dispatch validation failures', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'tool-call',
+        payload: {
+          tool_name: 'system_use',
+          parameters: {},
+          metadata: {
+            llm_tool_call_validation_failed: true,
+            skip_frontend_execution: true,
+            model_facing_tool_call: {
+              id: 'tool_raw_2',
+              name: 'system_use',
+              arguments: {
+                tool: 'run_shell_command',
+                explanation: 'Create a temporary test file to test the replace tool',
+                arguments: {
+                  command: "echo 'Original text to replace' > /tmp/test_replace.txt",
+                },
+              },
+            },
+          },
+        },
+      });
+    });
+
+    const toolCallMessage = useChatStore.getState().messages.at(-1);
+    expect(toolCallMessage?.text).toBe(
+      JSON.stringify({
+        id: 'tool_raw_2',
+        name: 'system_use',
+        arguments: {
+          tool: 'run_shell_command',
+          explanation: 'Create a temporary test file to test the replace tool',
+          arguments: {
+            command: "echo 'Original text to replace' > /tmp/test_replace.txt",
+          },
+        },
+      }, null, 2),
+    );
+    expect(toolCallMessage).toEqual(expect.objectContaining({
+      type: 'tool-call',
+      modelFacingToolCall: expect.objectContaining({
+        id: 'tool_raw_2',
+        name: 'system_use',
+        arguments: {
+          tool: 'run_shell_command',
+          explanation: 'Create a temporary test file to test the replace tool',
+          arguments: {
+            command: "echo 'Original text to replace' > /tmp/test_replace.txt",
+          },
+        },
+        frontend_execution_skipped: true,
+      }),
+    }));
   });
 
   test('tool-call message marks frontend execution skipped for computer-use validation failures', () => {

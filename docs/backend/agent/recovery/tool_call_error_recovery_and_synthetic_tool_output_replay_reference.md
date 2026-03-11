@@ -62,6 +62,7 @@ Synthetic payload metadata:
 - `llm_tool_call_validation_failed = True`
 - `skip_frontend_execution = True`
 - optional parse diagnostics:
+  - `llm_tool_call_raw_tool_call_preview`
   - `llm_tool_call_raw_arguments_preview`
   - `llm_tool_call_raw_arguments_preview_truncated` (`True` when preview ends with `...[truncated]`)
   - `llm_tool_call_parse_error` (raw-arguments marker removed + whitespace-normalized summary)
@@ -107,7 +108,13 @@ Error preview normalization:
 - whitespace collapsed
 - capped at `_TOOL_OUTPUT_ERROR_PREVIEW_CHARS` (`600`), with `...[truncated]` suffix when exceeded
 
-### Raw-arguments preview and target-file extraction
+### Raw tool-call preview, raw-arguments preview, and target-file extraction
+
+`extract_raw_tool_call_preview_from_error(...)` reads the provider error suffix after marker:
+
+- `Raw tool call preview:`
+
+When present, recovery metadata carries that preview so frontend transparency can show the raw model-emitted call instead of a synthesized fallback object.
 
 `extract_raw_arguments_preview_from_error(...)` reads the provider error suffix after marker:
 

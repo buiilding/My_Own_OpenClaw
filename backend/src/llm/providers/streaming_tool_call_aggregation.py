@@ -1,4 +1,5 @@
 import copy
+import json
 import logging
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
@@ -9,6 +10,15 @@ from backend.src.llm.providers.base import LLMProvider
 
 logger = logging.getLogger(__name__)
 _TOOL_ARGUMENTS_PREVIEW_CHARS = 4000
+
+
+def _build_raw_tool_call_preview(*, tool_call_id: str, tool_name: str, raw_arguments_preview: str) -> str:
+    payload: Dict[str, Any] = {
+        "id": tool_call_id,
+        "name": tool_name,
+        "arguments": raw_arguments_preview,
+    }
+    return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
 
 
 def _extract_thought_signature(*sources: Any) -> Optional[str]:
@@ -207,10 +217,16 @@ class StreamingToolCallAggregationMixin:
                         tool_call_id,
                         arguments_preview,
                     )
+                    raw_tool_call_preview = _build_raw_tool_call_preview(
+                        tool_call_id=tool_call_id,
+                        tool_name=name.strip(),
+                        raw_arguments_preview=arguments_preview,
+                    )
                     raise LLMAPIError(
                         (
                             f"{self.tool_turn_invalid_response_message}: failed to parse streamed "
                             f"tool-call arguments for id={tool_call_id} name={name.strip()}. "
+                            f"Raw tool call preview: {raw_tool_call_preview!r} "
                             f"Raw arguments preview: {arguments_preview!r}"
                         ),
                         model=model,
@@ -219,6 +235,7 @@ class StreamingToolCallAggregationMixin:
                             "llm_tool_call_id": tool_call_id,
                             "llm_tool_name": name.strip(),
                             "llm_tool_call_parse_error": parse_error_summary,
+                            "llm_tool_call_raw_tool_call_preview": raw_tool_call_preview,
                             "llm_tool_call_raw_arguments_preview": arguments_preview,
                             "llm_tool_call_raw_arguments_preview_truncated": (
                                 len(raw_arguments.strip()) > _TOOL_ARGUMENTS_PREVIEW_CHARS

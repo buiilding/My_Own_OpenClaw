@@ -10,8 +10,10 @@ from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List
 from uuid import uuid4
 
 from backend.src.agent.execution.tool_call_bridge import (
+    build_raw_tool_call_preview,
     build_recoverable_tool_output_message,
     extract_raw_arguments_preview_from_error,
+    extract_raw_tool_call_preview_from_error,
     extract_tool_call_parse_error_from_error,
     extract_tool_call_id_from_error,
     extract_tool_call_ids,
@@ -330,10 +332,17 @@ class InteractionLoop:
         """
         tool_name = self._extract_tool_name_from_error(error_msg)
         tool_call_id = self._extract_tool_call_id_from_error(error_msg)
+        raw_tool_call_preview = self._extract_raw_tool_call_preview_from_error(error_msg)
         raw_arguments_preview = self._extract_raw_arguments_preview_from_error(error_msg)
         parse_error_summary = self._extract_tool_call_parse_error_from_error(error_msg)
         if not tool_call_id:
             tool_call_id = f"llm_tool_call_error_{uuid4().hex[:12]}"
+        if not raw_tool_call_preview and raw_arguments_preview:
+            raw_tool_call_preview = build_raw_tool_call_preview(
+                tool_call_id=tool_call_id,
+                tool_name=tool_name,
+                raw_arguments_preview=raw_arguments_preview,
+            )
 
         tool_output_message = self._build_recoverable_tool_output_message(
             tool_name,
@@ -350,6 +359,8 @@ class InteractionLoop:
             metadata["llm_tool_call_raw_arguments_preview_truncated"] = raw_arguments_preview.endswith(
                 "...[truncated]"
             )
+        if raw_tool_call_preview:
+            metadata["llm_tool_call_raw_tool_call_preview"] = raw_tool_call_preview
         if parse_error_summary:
             metadata["llm_tool_call_parse_error"] = parse_error_summary
 
@@ -455,6 +466,11 @@ class InteractionLoop:
     def _extract_raw_arguments_preview_from_error(error_msg: str) -> str:
         """Best-effort extraction of raw streamed tool arguments preview."""
         return extract_raw_arguments_preview_from_error(error_msg)
+
+    @staticmethod
+    def _extract_raw_tool_call_preview_from_error(error_msg: str) -> str:
+        """Best-effort extraction of raw streamed tool-call preview."""
+        return extract_raw_tool_call_preview_from_error(error_msg)
 
     @staticmethod
     def _extract_tool_call_parse_error_from_error(error_msg: str) -> str:
