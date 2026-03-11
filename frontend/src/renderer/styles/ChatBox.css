@@ -410,7 +410,7 @@ body {
 
 .chatbox-close-badge {
   position: absolute;
-  left: calc(var(--chatbox-close-center-x) - (var(--chatbox-close-button-size) / 2) - 14px);
+  left: calc(var(--chatbox-close-center-x) - (var(--chatbox-close-button-size) / 2) - 20px);
   top: calc((var(--chatbox-bump-height) * -1) - 2px);
   width: var(--chatbox-close-button-size);
   height: var(--chatbox-close-button-size);
