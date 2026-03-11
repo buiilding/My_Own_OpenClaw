@@ -11,6 +11,9 @@ _original_deps = install_route_deps_shim()
 
 from backend.src.api.routes.websocket import message_handler as mh
 from backend.src.api.schema import QueryMessage, ToolBundleResultMessage, ToolResultMessage
+from backend.src.core.infrastructure.user_facing_errors import (
+    INTERNAL_SERVER_ERROR_MESSAGE,
+)
 
 restore_route_deps_shim(_original_deps)
 
@@ -276,7 +279,7 @@ async def test_parse_and_validate_message_delegates_to_runtime_parser(monkeypatc
         captured["parse_json_object_payload_fn"] = parse_json_object_payload_fn
         captured["loop_getter"] = loop_getter
         captured["logger"] = logger
-        return None, "An internal error occurred"
+        return None, INTERNAL_SERVER_ERROR_MESSAGE
 
     monkeypatch.setattr(mh, "parse_and_validate_message_runtime", fake_parse_runtime)
 
@@ -287,7 +290,7 @@ async def test_parse_and_validate_message_delegates_to_runtime_parser(monkeypatc
     )
 
     assert message is None
-    assert error == "An internal error occurred"
+    assert error == INTERNAL_SERVER_ERROR_MESSAGE
     assert captured["user_id"] == "user_1"
     assert captured["max_message_size"] == 2048
     assert captured["json_parse_offload_bytes"] == mh._JSON_PARSE_OFFLOAD_BYTES
@@ -770,7 +773,7 @@ async def test_handle_message_sends_sanitized_unexpected_error(monkeypatch) -> N
 
     assert len(sent_errors) == 1
     assert sent_errors[0][1] == "msg_102"
-    assert sent_errors[0][2] == "An internal error occurred"
+    assert sent_errors[0][2] == INTERNAL_SERVER_ERROR_MESSAGE
 
 
 @pytest.mark.asyncio

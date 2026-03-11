@@ -7,6 +7,9 @@ from backend.src.api.processing.formatters.chunk import ChunkEventFormatter
 from backend.src.api.processing.formatters.assistant_message import AssistantMessageFullEventFormatter
 from backend.src.api.processing.formatters.complete import StreamingCompleteEventFormatter
 from backend.src.api.processing.formatters.error import ErrorEventFormatter
+from backend.src.core.infrastructure.user_facing_errors import (
+    INTERNAL_SERVER_ERROR_MESSAGE,
+)
 from backend.src.api.processing.formatters.thinking import ThinkingEventFormatter
 from backend.src.api.processing.formatters.tool_call import ToolCallEventFormatter
 from backend.src.api.processing.formatters.tool_output import ToolOutputEventFormatter
@@ -177,8 +180,7 @@ class TestErrorEventFormatter:
             "type": "error",
             "id": msg_id,
             "payload": {
-                "message": "Error message",
-                "content": None,
+                "message": INTERNAL_SERVER_ERROR_MESSAGE,
             },
         }
 
@@ -188,8 +190,8 @@ class TestErrorEventFormatter:
         
         result = formatter.format(event, msg_id)
         
-        assert result["payload"]["message"] == "Error message"
-        assert result["payload"]["content"] == "Stack trace"
+        assert result["payload"]["message"] == INTERNAL_SERVER_ERROR_MESSAGE
+        assert "content" not in result["payload"]
 
     def test_format_with_empty_content(self, formatter):
         event = {"type": "error"}
@@ -197,7 +199,14 @@ class TestErrorEventFormatter:
         
         result = formatter.format(event, msg_id)
         
-        assert result["payload"]["message"] == "An unexpected error occurred"
+        assert result["payload"]["message"] == INTERNAL_SERVER_ERROR_MESSAGE
+
+    def test_format_preserves_rate_limit_message(self, formatter):
+        event = {"type": "error", "content": "Rate limit exceeded. Please wait."}
+
+        result = formatter.format(event, "msg-456")
+
+        assert result["payload"]["message"] == "Rate limit exceeded. Please wait."
 
 
 class TestThinkingEventFormatter:

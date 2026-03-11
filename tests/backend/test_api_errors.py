@@ -10,6 +10,9 @@ from backend.src.api.infrastructure.errors import (
     send_error_response,
     send_success_response,
 )
+from backend.src.core.infrastructure.user_facing_errors import (
+    INTERNAL_SERVER_ERROR_MESSAGE,
+)
 from backend.src.core.validation.validators import ValidationError
 
 
@@ -59,7 +62,7 @@ def test_sanitize_error_message_exposes_safe_key_error_keywords() -> None:
 
 def test_sanitize_error_message_hides_unsafe_value_error_details() -> None:
     exc = ValueError("database DSN password leaked")
-    assert sanitize_error_message(exc) == "An internal error occurred"
+    assert sanitize_error_message(exc) == INTERNAL_SERVER_ERROR_MESSAGE
 
 
 def test_sanitize_error_message_exposes_not_allowed_keyword_case_insensitive() -> None:
@@ -69,7 +72,10 @@ def test_sanitize_error_message_exposes_not_allowed_keyword_case_insensitive() -
 
 def test_sanitize_error_message_applies_context_for_internal_errors() -> None:
     exc = RuntimeError("traceback details")
-    assert sanitize_error_message(exc, context="registry") == "registry: An internal error occurred"
+    assert (
+        sanitize_error_message(exc, context="registry")
+        == f"registry: {INTERNAL_SERVER_ERROR_MESSAGE}"
+    )
 
 
 @pytest.mark.asyncio
@@ -87,7 +93,7 @@ async def test_send_error_response_sanitizes_internal_exception() -> None:
         {
             "type": "error",
             "id": "msg_err_1",
-            "payload": {"message": "An internal error occurred"},
+            "payload": {"message": INTERNAL_SERVER_ERROR_MESSAGE},
         }
     ]
 

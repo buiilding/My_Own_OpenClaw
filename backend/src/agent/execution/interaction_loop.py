@@ -37,6 +37,10 @@ from backend.src.core.events.streaming_events import (
 from backend.src.core.infrastructure.exceptions import (
     LLMRateLimitError,
 )
+from backend.src.core.infrastructure.user_facing_errors import (
+    INTERNAL_SERVER_ERROR_MESSAGE,
+    sanitize_stream_error_message,
+)
 from backend.src.core.types.schemas import NormalizedLLMResponse
 from backend.src.llm.parser_types import ParsedResponse, ParsedToolCall
 
@@ -166,14 +170,12 @@ class InteractionLoop:
                     prompt,
                     tools=tool_schemas,
                 ):
-                    # Forward streaming events
+                    if isinstance(event, ErrorEvent):
+                        llm_error_event_content = event.content
+                        continue
                     yield event
-
-                    # Track full response
                     if isinstance(event, FullResponseEvent):
                         llm_response_text = event.content
-                    elif isinstance(event, ErrorEvent):
-                        llm_error_event_content = event.content
 
             except LLMRateLimitError:
                 error_msg = "Rate limit exceeded. Please wait."
@@ -182,8 +184,9 @@ class InteractionLoop:
                 return
             except Exception as e:
                 logger.error(f"LLM error: {e}", exc_info=True)
-                error_msg = f"LLM error: {str(e)}"
-                async for event in self._emit_error_and_record(error_msg):
+                async for event in self._emit_error_and_record(
+                    INTERNAL_SERVER_ERROR_MESSAGE
+                ):
                     yield event
                 return
 
@@ -203,9 +206,13 @@ class InteractionLoop:
                     "Aborting interaction loop turn after LLM stream error event: %s",
                     llm_error_event_content,
                 )
-                self.session.history.add_assistant_message(
-                    f"[System Error: {llm_error_event_content}]"
+                sanitized_error_message = sanitize_stream_error_message(
+                    llm_error_event_content
                 )
+                async for event in self._emit_error_and_record(
+                    sanitized_error_message
+                ):
+                    yield event
                 return
 
             normalized_response = self.llm_handler.get_last_response_payload() or {
@@ -276,8 +283,9 @@ class InteractionLoop:
                     logger.info("Bundle execution completed, continuing interaction loop")
             except Exception as e:
                 logger.error(f"Critical tool execution error: {e}", exc_info=True)
-                error_msg = f"Tool execution error: {str(e)}"
-                async for event in self._emit_error_and_record(error_msg):
+                async for event in self._emit_error_and_record(
+                    INTERNAL_SERVER_ERROR_MESSAGE
+                ):
                     yield event
                 break
             finally:

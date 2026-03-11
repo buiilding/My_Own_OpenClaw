@@ -116,7 +116,7 @@ Send path:
 
 - explicit `ValidationError`: safe to expose `message`
 - selected user-input-style `ValueError` / `KeyError` with known validation keywords may pass through
-- all other exceptions collapse to `"An internal error occurred"`
+- all other exceptions collapse to `"Internal server error. Start a new chat and try again."`
 
 When exception object is provided:
 

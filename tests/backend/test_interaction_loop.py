@@ -14,6 +14,9 @@ from backend.src.core.events.streaming_events import (
     ToolOutputEvent,
 )
 from backend.src.core.messages.structures import StoredMessage
+from backend.src.core.infrastructure.user_facing_errors import (
+    INTERNAL_SERVER_ERROR_MESSAGE,
+)
 from backend.src.core.types.enums import MessageRole, MessageType
 
 
@@ -113,8 +116,7 @@ class _FakeEventPresenter:
         yield StreamingCompleteEvent(final_response=final_response)
 
     async def present_error(self, error_message):
-        if False:
-            yield None
+        yield ErrorEvent(content=error_message)
 
 
 @pytest.mark.asyncio
@@ -207,7 +209,7 @@ async def test_interaction_loop_recovers_after_stream_tool_call_format_error():
 
     events = [event async for event in loop.run_loop()]
 
-    assert any(isinstance(event, ErrorEvent) for event in events)
+    assert not any(isinstance(event, ErrorEvent) for event in events)
     tool_call_events = [event for event in events if isinstance(event, ToolCallEvent)]
     tool_output_events = [event for event in events if isinstance(event, ToolOutputEvent)]
     assert tool_call_events
@@ -349,11 +351,16 @@ async def test_interaction_loop_stops_after_nonrecoverable_stream_error_event():
 
     events = [event async for event in loop.run_loop()]
 
-    assert any(isinstance(event, ErrorEvent) for event in events)
+    error_events = [event for event in events if isinstance(event, ErrorEvent)]
+    assert len(error_events) == 1
+    assert error_events[0].content == INTERNAL_SERVER_ERROR_MESSAGE
     assert not any(isinstance(event, StreamingCompleteEvent) for event in events)
     assert not any(isinstance(event, ToolOutputEvent) for event in events)
     assert tool_executor.execute_called is False
-    assert session.history.assistant_messages[-1][0].startswith("[System Error:")
+    assert (
+        session.history.assistant_messages[-1][0]
+        == f"[System Error: {INTERNAL_SERVER_ERROR_MESSAGE}]"
+    )
 
 
 @pytest.mark.asyncio

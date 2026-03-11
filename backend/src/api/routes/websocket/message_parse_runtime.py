@@ -13,6 +13,9 @@ from backend.src.api.routes.websocket.json_parse import (
     parse_json_object_payload,
 )
 from backend.src.api.schema import IncomingMessage
+from backend.src.core.infrastructure.user_facing_errors import (
+    INTERNAL_SERVER_ERROR_MESSAGE,
+)
 
 # Create TypeAdapter once at module level for performance.
 _INCOMING_MESSAGE_ADAPTER = TypeAdapter(IncomingMessage)
@@ -65,4 +68,4 @@ async def parse_and_validate_message_runtime(
         return None, "Malformed JSON"
     except Exception as error:
         logger.error("Unexpected error parsing message: %s", error, exc_info=True)
-        return None, "An internal error occurred"
+        return None, INTERNAL_SERVER_ERROR_MESSAGE

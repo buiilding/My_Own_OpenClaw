@@ -9,6 +9,9 @@ from backend.src.api.routes.websocket.message_parse_runtime import (
     parse_and_validate_message_runtime,
 )
 from backend.src.api.routes.websocket.json_parse import JsonRootTypeError
+from backend.src.core.infrastructure.user_facing_errors import (
+    INTERNAL_SERVER_ERROR_MESSAGE,
+)
 
 
 @pytest.mark.asyncio
@@ -143,7 +146,7 @@ async def test_parse_and_validate_message_runtime_maps_unexpected_errors_to_inte
         )
 
     assert message is None
-    assert error == "An internal error occurred"
+    assert error == INTERNAL_SERVER_ERROR_MESSAGE
     assert any("Unexpected error parsing message" in record.message for record in caplog.records)
 
 
