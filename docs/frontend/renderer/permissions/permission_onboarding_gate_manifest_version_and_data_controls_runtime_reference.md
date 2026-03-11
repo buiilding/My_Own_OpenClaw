@@ -13,14 +13,18 @@ title: "Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime 
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow.jsx`
+- `frontend/src/renderer/features/onboarding/components/PermissionOnboardingSlide.jsx`
+- `frontend/src/renderer/features/onboarding/hooks/useOnboardingPermissionActions.js`
 - `frontend/src/renderer/features/permissions/components/PermissionControlCenter.jsx`
 - `frontend/src/renderer/features/permissions/components/PermissionRowMain.jsx`
 - `frontend/src/renderer/features/permissions/components/PermissionStatusBadge.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
+- `frontend/src/renderer/features/permissions/utils/permissionGrantEffects.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStatus.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
 - `tests/frontend/FrontendOnboardingSlideshow.test.jsx`
 - `tests/frontend/AppPermissionGate.test.jsx`
+- `tests/frontend/permissionGrantEffects.test.js`
 
 ## Startup Behavior (`App.jsx`)
 
@@ -95,6 +99,12 @@ When satisfied:
 - a final stop-agent shortcut slide after the permission sequence
 - final `Start WindieOS` CTA enabled after permission status loads, with a warning if permissions remain missing
 
+Permission request handling is split deliberately:
+
+- `usePermissionStore.requestPermission()` remains the shared IPC-backed request primitive
+- `useOnboardingPermissionActions()` owns onboarding-local request pending state
+- `applyPermissionGrantEffects(...)` centralizes permission-specific post-grant renderer effects such as enabling `browser_automation_enabled`
+
 ### Settings Data Controls
 
 `SettingsSection` routes `data-controls` tab to `PermissionControlCenter`.
@@ -125,6 +135,7 @@ Examples:
 2. Forgetting to recompute gate state after status or onboarding-state writes.
 3. Diverging onboarding and settings permission actions into separate stores.
 4. Changing storage key/shape without compatibility handling for existing local state.
+5. Reintroducing permission-specific config side effects directly inside onboarding view components will make permission behavior harder to reuse or test.
 
 ## Related Pages
 

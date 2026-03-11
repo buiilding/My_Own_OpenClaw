@@ -1,4 +1,9 @@
 .frontend-onboarding-shell {
+  --onboarding-shell-width: min(1120px, calc(100% - 88px));
+  --onboarding-stage-width: min(1120px, 100%);
+  --onboarding-copy-width: min(760px, 100%);
+  --onboarding-card-width: min(860px, 100%);
+  --onboarding-feedback-width: min(700px, 100%);
   min-height: 100dvh;
   width: 100%;
   position: relative;
@@ -63,7 +68,7 @@
 
 .frontend-onboarding-card-scroll-region {
   min-height: 0;
-  width: min(1120px, calc(100% - 88px));
+  width: var(--onboarding-shell-width);
   margin: 0 auto;
   padding: 40px 0 24px;
   display: grid;
@@ -74,7 +79,7 @@
 }
 
 .frontend-onboarding-stage {
-  width: min(1120px, 100%);
+  width: var(--onboarding-stage-width);
   min-height: 100%;
   display: grid;
   align-content: center;
@@ -84,7 +89,7 @@
 }
 
 .frontend-onboarding-stage-copy {
-  width: min(760px, 100%);
+  width: var(--onboarding-copy-width);
   display: grid;
   justify-items: center;
   gap: 16px;
@@ -119,60 +124,12 @@
   max-width: 28ch;
 }
 
-.frontend-onboarding-emphasis {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  width: fit-content;
-  border: 1px solid #3a3a3a;
-  border-radius: 999px;
-  padding: 8px 14px;
-  background: #111111;
-}
-
-.frontend-onboarding-emphasis-label {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: #a5a5a5;
-}
-
-.frontend-onboarding-emphasis-value {
-  font-size: 16px;
-  line-height: 1.2;
-  color: #ffffff;
-  font-weight: 500;
-}
-
 .frontend-onboarding-stop-flow {
   display: grid;
   gap: 28px;
   align-items: start;
   justify-items: center;
   padding-top: 20px;
-}
-
-.frontend-onboarding-stop-flow-header {
-  display: grid;
-  gap: 10px;
-}
-
-.frontend-onboarding-stop-flow-tag {
-  width: fit-content;
-  border: 1px solid #3a3a3a;
-  border-radius: 999px;
-  padding: 8px 13px;
-  background: #111111;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: #a5a5a5;
-}
-
-.frontend-onboarding-stop-flow-copy {
-  font-size: 15px;
-  line-height: 1.45;
-  color: #bcbcbc;
 }
 
 .frontend-onboarding-stop-flow-keybind {
@@ -244,7 +201,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  width: min(1120px, calc(100% - 88px));
+  width: var(--onboarding-shell-width);
   margin: 0 auto;
   padding: 14px 0 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.09);
@@ -292,14 +249,14 @@
   display: grid;
   gap: 18px;
   min-height: 0;
-  width: min(860px, 100%);
+  width: var(--onboarding-card-width);
   justify-items: center;
 }
 
 .frontend-onboarding-permission-stage-meta {
   display: grid;
   gap: 6px;
-  width: min(700px, 100%);
+  width: var(--onboarding-feedback-width);
   justify-items: center;
   text-align: center;
 }
@@ -320,39 +277,6 @@
   color: #aeaeae;
 }
 
-.frontend-onboarding-permissions-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.frontend-onboarding-permissions-tag,
-.frontend-onboarding-permissions-tag-value {
-  border: 1px solid #3a3a3a;
-  border-radius: 999px;
-  padding: 7px 12px;
-  background: #111111;
-}
-
-.frontend-onboarding-permissions-tag {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: #a5a5a5;
-}
-
-.frontend-onboarding-permissions-tag-value {
-  font-size: 15px;
-  line-height: 1.2;
-  color: #ffffff;
-  font-weight: 500;
-}
-
-.frontend-onboarding-button.permission-recheck {
-  margin-left: auto;
-}
-
 .frontend-onboarding-permissions-list {
   border: none;
   border-radius: 0;
@@ -364,19 +288,8 @@
 
 .frontend-onboarding-permissions-list.single {
   grid-template-columns: 1fr;
-  width: min(860px, 100%);
+  width: var(--onboarding-card-width);
   justify-items: center;
-}
-
-.frontend-onboarding-card-permissions .frontend-onboarding-permissions-list {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: 16px;
-  row-gap: 14px;
-  align-items: start;
-}
-
-.frontend-onboarding-card-permissions .frontend-onboarding-permissions-list.single {
-  grid-template-columns: 1fr;
 }
 
 .frontend-onboarding-permission-row {
@@ -394,7 +307,7 @@
 }
 
 .frontend-onboarding-permission-row.single {
-  width: min(860px, 100%);
+  width: var(--onboarding-card-width);
   min-height: 0;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 20px;
@@ -538,24 +451,14 @@
   margin: 0;
   color: #d7d7d7;
   font-size: 16px;
-  width: min(700px, 100%);
+  width: var(--onboarding-feedback-width);
   text-align: center;
-}
-
-@media (max-width: 1100px) {
-  .frontend-onboarding-card-permissions .frontend-onboarding-permissions-list {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 1480px) {
-  .frontend-onboarding-card-permissions .frontend-onboarding-permissions-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 860px) {
   .frontend-onboarding-shell {
+    --onboarding-shell-width: calc(100% - 36px);
+    --onboarding-card-width: 100%;
     overflow: auto;
   }
 
@@ -564,7 +467,6 @@
   }
 
   .frontend-onboarding-card-scroll-region {
-    width: calc(100% - 36px);
     padding: 70px 0 24px;
     align-content: start;
   }
@@ -602,7 +504,6 @@
   }
 
   .frontend-onboarding-actions {
-    width: calc(100% - 36px);
     padding: 16px 0 18px;
   }
 
@@ -651,9 +552,5 @@
 
   .frontend-onboarding-permission-row > .frontend-onboarding-button {
     width: fit-content;
-  }
-
-  .frontend-onboarding-button.permission-recheck {
-    margin-left: 0;
   }
 }

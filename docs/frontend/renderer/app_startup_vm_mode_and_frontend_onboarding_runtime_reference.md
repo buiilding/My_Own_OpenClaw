@@ -14,10 +14,15 @@ title: "App Startup VM-Mode and Permission Onboarding Runtime Reference"
 - `frontend/src/renderer/infrastructure/runtime/vmMode.js`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow.jsx`
+- `frontend/src/renderer/features/onboarding/components/PermissionOnboardingSlide.jsx`
+- `frontend/src/renderer/features/onboarding/components/StopShortcutOnboardingSlide.jsx`
+- `frontend/src/renderer/features/onboarding/hooks/useOnboardingPermissionActions.js`
+- `frontend/src/renderer/features/onboarding/utils/onboardingSlides.js`
 - `frontend/src/renderer/infrastructure/shortcuts/agentStopShortcut.js`
 - `tests/frontend/AppVmMode.test.jsx`
 - `tests/frontend/AppPermissionGate.test.jsx`
 - `tests/frontend/FrontendOnboardingSlideshow.test.jsx`
+- `tests/frontend/onboardingSlides.test.js`
 
 ## Provider and Root Composition
 
@@ -77,10 +82,19 @@ Startup completion is now sourced from `permissionStore` local persistence:
 - one permission slide per manifest permission on the current platform
 - one final stop-agent shortcut slide (platform label)
 
+Implementation split:
+
+- `FrontendOnboardingSlideshow` owns shell routing, footer controls, and startup window maximize behavior
+- `buildOnboardingSlideState(...)` is the pure slide-index/slide-kind model
+- `PermissionOnboardingSlide` renders the active permission card only
+- `StopShortcutOnboardingSlide` renders the keybind-only final slide
+- `useOnboardingPermissionActions()` owns request-in-flight state plus post-grant permission effects
+
 Viewport/layout behavior:
 
 - onboarding uses the full renderer window
 - permission setup shows one permission card per slide so fit does not depend on total permission count
+- widths are driven by a small set of onboarding CSS tokens (`shell`, `stage`, `copy`, `card`, `feedback`) instead of repeated inline caps
 - footer actions remain outside the scroll region so `Next` / `Back` / `Start WindieOS` stay reachable under constrained viewport heights
 
 Navigation behavior:
@@ -130,6 +144,10 @@ The same permission store also powers Settings > Permissions (`PermissionControl
 - completion callback fires once on final CTA
 - actions remain outside the scroll region on permission slides so footer controls stay reachable under constrained viewport heights
 
+`tests/frontend/onboardingSlides.test.js`:
+
+- slide-state derivation clamps out-of-range indices and preserves permission-vs-stop-slide semantics
+
 ## Drift Hotspots
 
 1. Changing VM-mode detection source (URL query vs config/env) without updating startup docs/tests can break hosted VM launch behavior.
@@ -137,6 +155,7 @@ The same permission store also powers Settings > Permissions (`PermissionControl
 3. Changing onboarding storage key or payload shape without migration handling can reset completion state unexpectedly.
 4. Mounting `WakewordController` conditionally at app root can silently break wakeword readiness assumptions in non-dashboard surfaces.
 5. Changing the global shortcut catalog without updating onboarding/settings copy can make the first-run keybind guidance drift from the actual registered accelerator.
+6. Reintroducing mixed grid/wizard permission CSS selectors can silently left-align the single-card wizard even when the React tree is correct.
 
 ## Related Docs
 
