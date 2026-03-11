@@ -2,9 +2,9 @@ import type { ToolExecutionCallbacks } from './ToolExecutionTypes';
 import {
   buildToolBundleBackendEnvelope,
   buildToolResultBackendEnvelope,
-  type BundleExecutionStatus,
 } from './ToolExecutionBackendPayload';
 import type { ToolResult, SystemState } from '../MessageFormatter';
+import type { BundleStatus } from './BundleExecutionModel';
 import type { BundleStepResult } from './ToolExecutionBundleRunner';
 import type { CaptureMeta } from '../ScreenshotAttachmentPipeline';
 import type { BundleExecutionResult, ToolExecutionResult } from './ToolExecutionTypes';
@@ -51,7 +51,7 @@ export function sendToolExecutionResultToBackend(
 
 type SendBundleResultOptions = {
   bundleId: string;
-  status: BundleExecutionStatus;
+  status: BundleStatus;
   stepResults: BundleStepResult[];
   screenshot: string | null;
   screenshotRef: string | null;

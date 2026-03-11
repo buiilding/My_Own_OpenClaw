@@ -11,6 +11,7 @@ title: "App Startup VM-Mode and Permission Onboarding Runtime Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/app/App.jsx`
+- `frontend/src/renderer/app/startupSurface.js`
 - `frontend/src/renderer/infrastructure/runtime/vmMode.js`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow.jsx`
@@ -38,7 +39,7 @@ title: "App Startup VM-Mode and Permission Onboarding Runtime Reference"
 
 ## Startup Routing in `AppContent`
 
-`AppContent` resolves startup destination with two gates:
+`AppContent` resolves startup destination through `selectStartupSurface(...)`, which centralizes the two gates:
 
 1. VM mode gate (`isVmModeEnabled()`)
 2. permission onboarding gate (`permissionStore.needsOnboarding`)
@@ -58,7 +59,7 @@ Routing behavior:
 
 Pre-bootstrap startup behavior:
 
-- when permission bootstrap has not finished yet, `AppContent` uses the persisted onboarding completion bit from `permissionStore.onboardingState`
+- when permission bootstrap has not finished yet, `selectStartupSurface(...)` uses the persisted onboarding completion bit from `permissionStore.onboardingState`
 - this avoids a first-frame onboarding flash for users who already completed onboarding on the current install
 - after bootstrap resolves, `needsOnboarding` becomes authoritative again so manifest-version changes can still route users back into onboarding
 
@@ -143,6 +144,12 @@ The same permission store also powers Settings > Permissions (`PermissionControl
 - non-VM mode renders onboarding while `needsOnboarding` is true
 - non-VM mode renders dashboard after permission onboarding completes
 - non-VM mode does not flash onboarding during pre-bootstrap startup when persisted onboarding completion is already true
+
+`tests/frontend/startupSurface.test.js`:
+
+- startup selector sends VM launches straight to dashboard
+- pre-bootstrap routing uses persisted onboarding completion
+- post-bootstrap routing uses the manifest-aware permission gate
 
 `tests/frontend/FrontendOnboardingSlideshow.test.jsx`:
 

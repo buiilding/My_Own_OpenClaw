@@ -6,6 +6,9 @@ import {
   parseToolCallPayload,
   resolveRehydrateContent,
 } from '../../../infrastructure/transcript/rehydratePayload';
+import {
+  buildToolCallMessageState,
+} from '../../../infrastructure/transcript/toolCallMessageState';
 
 export const DEFAULT_USER_ID = 'default_user';
 
@@ -80,25 +83,27 @@ function parseMemoryContent(memory) {
 
   if (role) {
     const sender = role === 'user' ? 'user' : 'assistant';
+    const isBundleToolCall = messageType === 'tool-bundle';
     const normalizedType = messageType === 'tool-bundle'
       ? 'tool-call'
       : (messageType || (role === 'tool' ? 'tool-output' : 'llm-text'));
-    const normalizedToolCall = normalizedType === 'tool-call'
-      ? buildRehydrateToolCall({
-        parsedToolCall: parseToolCallPayload(rawContent || ''),
-        fallbackToolName: null,
-        fallbackToolCallId: null,
+    const normalizedToolCallMessage = normalizedType === 'tool-call' && !isBundleToolCall
+      ? buildToolCallMessageState({
+        rawContent: rawContent || '',
+        rawToolCall: parseToolCallPayload(rawContent || ''),
       })
       : null;
     const shouldAttachScreenshot = sender === 'user' || normalizedType === 'tool-output';
     return [{
       sender,
-      text: rawContent || '(empty)',
+      text: normalizedToolCallMessage?.text || rawContent || '(empty)',
       type: normalizedType,
       ...(normalizedType === 'tool-call'
-        ? { toolCallDisplayText: rawContent || '(empty)' }
+        ? { toolCallDisplayText: normalizedToolCallMessage?.toolCallDisplayText || rawContent || '(empty)' }
         : {}),
-      ...(normalizedToolCall ? { modelFacingToolCall: normalizedToolCall } : {}),
+      ...(normalizedToolCallMessage?.modelFacingToolCall
+        ? { modelFacingToolCall: normalizedToolCallMessage.modelFacingToolCall }
+        : {}),
       modelProvider,
       modelId,
       screenshot: shouldAttachScreenshot ? screenshotAttachment.screenshot : null,
@@ -240,7 +245,17 @@ export function toRehydrateMessagePayload(memory) {
     || (!screenshotInline && typeof rawScreenshot === 'string' ? rawScreenshot : null);
   const transparency = resolveTranscriptTransparency(memory);
   const parsedToolCall = normalizedMessageType === 'tool-call'
-    ? parseToolCallPayload(memory?.content || '')
+    ? buildToolCallMessageState({
+      rawContent: memory?.content || '',
+      rawToolCall: parseToolCallPayload(memory?.content || ''),
+      fallbackToolName: normalizeOptionalString(memory?.tool_name || metadata?.tool_name) || null,
+      fallbackToolCallId: normalizeOptionalString(
+        memory?.tool_call_id
+          || metadata?.tool_call_id
+          || memory?.correlation_id
+          || metadata?.correlation_id,
+      ) || null,
+    }).modelFacingToolCall
     : null;
   const resolvedToolCallId = normalizeOptionalString(
     memory?.tool_call_id

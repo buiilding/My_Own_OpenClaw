@@ -156,6 +156,7 @@ Computer-use tools trigger capture policy checks via `ensureAutoCapture`:
 Supporting modules:
 
 - `MessageFormatter.ts`
+- `toolExecution/BundleExecutionModel.ts`
 - `ToolExecutionPayloads.ts`
 - `ToolExecutionBackendPayload.ts`
 - `ScreenshotAttachmentPipeline.ts`
@@ -167,8 +168,9 @@ Supporting modules:
 Responsibilities include:
 
 - shaping `llm_content` payloads
+- defining one canonical bundled-step UI/runtime shape in `BundleExecutionModel.ts` (`BundledToolResult`, bundle status, failure summary)
 - attaching system-state fields used by backend prompt/runtime normalization
-- producing stable bundle/single output payload shapes
+- producing stable single-tool payload shapes in `ToolExecutionPayloads.ts` while bundle UI/runtime modeling stays out of that payload-only module
 - timing + logging instrumentation for tool runtime diagnostics
 - screenshot timing diagnostics now split capture preparation into aggregate `prep` plus `hide IPC` and compositor `settle` substeps so screenshot latency can be attributed without guessing between the intentional wait, active-surface hide, and screenshot-tool runtime
 

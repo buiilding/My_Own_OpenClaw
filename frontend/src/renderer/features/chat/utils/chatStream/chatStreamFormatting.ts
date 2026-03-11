@@ -3,24 +3,17 @@ import type {
   ToolCallEvent,
   ToolOutputEvent,
 } from '../../../../types/backendEvents';
+import {
+  buildNormalizedToolCall,
+  buildToolBundleMessageState,
+  buildToolCallMessageState,
+} from '../../../../infrastructure/transcript/toolCallMessageState';
 
 const MAX_THINKING_STATUS_LENGTH = 5000;
 
 type ToolCallPayloadLike = ToolCallEvent['payload'];
 type ToolBundlePayloadLike = ToolBundleEvent['payload'];
 type ToolOutputPayloadLike = ToolOutputEvent['payload'];
-type ToolBundleToolMetadata = NonNullable<NonNullable<ToolBundlePayloadLike['tools']>[number]['metadata']>;
-
-function resolveDisplayMetadata(
-  metadata: ToolCallPayloadLike['metadata'] | ToolBundleToolMetadata,
-): Record<string, unknown> | undefined {
-  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
-    return undefined;
-  }
-  const normalized = { ...metadata };
-  delete normalized.model_facing_tool_call;
-  return Object.keys(normalized).length > 0 ? normalized : undefined;
-}
 
 export function buildThinkingStatus(currentStatus: string | null, chunk?: string): string {
   const updated = (currentStatus || '') + (chunk || '');
@@ -30,61 +23,18 @@ export function buildThinkingStatus(currentStatus: string | null, chunk?: string
 }
 
 export function formatToolCallPayload(payload?: ToolCallPayloadLike): string {
-  const metadata = payload?.metadata;
-  if (metadata?.llm_tool_call_validation_failed === true) {
-    const rawToolCallPreview = (
-      typeof metadata?.llm_tool_call_raw_tool_call_preview === 'string'
-        ? metadata.llm_tool_call_raw_tool_call_preview.trim()
-        : ''
-    );
-    if (rawToolCallPreview) {
-      return rawToolCallPreview;
-    }
-    const modelFacing = payload?.metadata?.model_facing_tool_call;
-    if (modelFacing && typeof modelFacing === 'object' && !Array.isArray(modelFacing)) {
-      return JSON.stringify(modelFacing, null, 2);
-    }
-  }
-  const modelFacing = resolveModelFacingToolCall(payload);
-  return JSON.stringify(
-    modelFacing,
-    null,
-    2,
-  );
+  return buildToolCallMessageState({
+    rawToolCall: payload?.metadata?.model_facing_tool_call || null,
+    fallbackToolName: payload?.tool_name || null,
+    fallbackToolCallId: payload?.request_id || null,
+    fallbackArguments: payload?.parameters || null,
+    metadata: payload?.metadata || null,
+    toolCallDetails: payload || null,
+  }).text;
 }
 
 export function formatToolBundlePayload(payload?: ToolBundlePayloadLike): string {
-  const bundleTools = Array.isArray(payload?.tools) ? payload.tools : [];
-  const tools = bundleTools.map((tool) => {
-    const modelFacing = tool?.metadata?.model_facing_tool_call;
-    if (modelFacing && typeof modelFacing === 'object') {
-      return {
-        id: typeof modelFacing.id === 'string' ? modelFacing.id : undefined,
-        name: typeof modelFacing.name === 'string' ? modelFacing.name : tool?.name,
-        arguments: (
-          modelFacing.arguments
-          && typeof modelFacing.arguments === 'object'
-          && !Array.isArray(modelFacing.arguments)
-        )
-          ? modelFacing.arguments
-          : (tool?.args || {}),
-        metadata: resolveDisplayMetadata(tool?.metadata),
-      };
-    }
-    return {
-      name: tool?.name,
-      arguments: tool?.args || {},
-      metadata: resolveDisplayMetadata(tool?.metadata),
-    };
-  });
-  return JSON.stringify(
-    {
-      bundle_id: payload?.bundle_id,
-      tools,
-    },
-    null,
-    2,
-  );
+  return buildToolBundleMessageState(payload).text;
 }
 
 export function formatToolOutputText(payload?: ToolOutputPayloadLike): string {
@@ -108,107 +58,11 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
   parse_error?: string;
   frontend_execution_skipped?: boolean;
 } {
-  const modelFacing = payload?.metadata?.model_facing_tool_call;
-  const modelArguments = modelFacing?.arguments;
-  const fallbackParameters = payload?.parameters;
-  const metadata = payload?.metadata;
-  const isRecoverableParseFailure = metadata?.llm_tool_call_validation_failed === true;
-  const rawArgumentsPreview = (
-    typeof metadata?.llm_tool_call_raw_arguments_preview === 'string'
-      ? metadata.llm_tool_call_raw_arguments_preview
-      : null
-  );
-  const rawToolCallPreview = (
-    typeof metadata?.llm_tool_call_raw_tool_call_preview === 'string'
-      ? metadata.llm_tool_call_raw_tool_call_preview
-      : null
-  );
-  const parseError = (
-    typeof metadata?.llm_tool_call_parse_error === 'string'
-      ? metadata.llm_tool_call_parse_error
-      : null
-  );
-  const thoughtSignature = (
-    typeof modelFacing?.thought_signature === 'string'
-      ? modelFacing.thought_signature
-      : (
-        typeof modelFacing?.thoughtSignature === 'string'
-          ? modelFacing.thoughtSignature
-          : (
-            typeof metadata?.thought_signature === 'string'
-              ? metadata.thought_signature
-              : (
-                typeof metadata?.thoughtSignature === 'string'
-                  ? metadata.thoughtSignature
-                  : null
-              )
-          )
-      )
-  );
-  const resolvedArguments = (
-    modelArguments
-    && typeof modelArguments === 'object'
-    && !Array.isArray(modelArguments)
-  )
-    ? modelArguments
-    : (fallbackParameters || {});
-  const frontendExecutionSkipped = metadata?.skip_frontend_execution === true;
-  const displayMetadata = resolveDisplayMetadata(metadata);
-
-  if (isRecoverableParseFailure) {
-    if (
-      modelFacing
-      && typeof modelFacing === 'object'
-      && !Array.isArray(modelFacing)
-    ) {
-      return {
-        id: typeof modelFacing?.id === 'string' ? modelFacing.id : undefined,
-        name: (
-          typeof modelFacing?.name === 'string'
-            ? modelFacing.name
-            : payload?.tool_name
-        ),
-        arguments: (
-          modelArguments
-          && typeof modelArguments === 'object'
-          && !Array.isArray(modelArguments)
-        )
-          ? modelArguments
-          : undefined,
-        metadata: displayMetadata,
-        thought_signature: thoughtSignature || undefined,
-        raw_tool_call_preview: rawToolCallPreview || undefined,
-        raw_arguments_preview: rawArgumentsPreview || undefined,
-        parse_error: parseError || undefined,
-        frontend_execution_skipped: frontendExecutionSkipped || undefined,
-      };
-    }
-    return {
-      id: typeof modelFacing?.id === 'string' ? modelFacing.id : undefined,
-      name: (
-        typeof modelFacing?.name === 'string'
-          ? modelFacing.name
-          : payload?.tool_name
-      ),
-      thought_signature: thoughtSignature || undefined,
-      raw_tool_call_preview: rawToolCallPreview || undefined,
-      raw_arguments_preview: rawArgumentsPreview || undefined,
-      parse_error: parseError || undefined,
-      frontend_execution_skipped: frontendExecutionSkipped || undefined,
-      metadata: displayMetadata,
-    };
-  }
-
-  return {
-    id: typeof modelFacing?.id === 'string' ? modelFacing.id : undefined,
-    name: (
-      typeof modelFacing?.name === 'string'
-        ? modelFacing.name
-        : payload?.tool_name
-    ),
-    arguments: resolvedArguments,
-    metadata: displayMetadata,
-    thought_signature: thoughtSignature || undefined,
-    frontend_execution_skipped: frontendExecutionSkipped || undefined,
-  };
+  return buildNormalizedToolCall({
+    rawToolCall: payload?.metadata?.model_facing_tool_call || null,
+    fallbackToolName: payload?.tool_name || null,
+    fallbackToolCallId: payload?.request_id || null,
+    fallbackArguments: payload?.parameters || null,
+    metadata: payload?.metadata || null,
+  }) || {};
 }

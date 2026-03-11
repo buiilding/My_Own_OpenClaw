@@ -1,17 +1,4 @@
-import type { BundledToolResult, SystemState, ToolResult } from '../MessageFormatter';
-import type { BundleStepResult } from './ToolExecutionBundleRunner';
-
-type BundleStatus = 'success' | 'partial_failure' | 'failure';
-
-type NormalizedBundleResult = {
-  tool_name: string;
-  _rawResult: ToolResult;
-  success: boolean;
-  error: string | null;
-  data: {
-    output: string;
-  };
-};
+import type { SystemState, ToolResult } from '../MessageFormatter';
 
 type ToolResultPayloadOptions = {
   screenshot?: string | null;
@@ -163,65 +150,4 @@ export function buildToolResultPayloadData(
   }
 
   return normalizedPayload;
-}
-
-export function resolveBundleStatus(
-  stepResults: BundleStepResult[],
-  bundleLength: number,
-): BundleStatus {
-  if (stepResults.length < bundleLength) {
-    return 'partial_failure';
-  }
-
-  const allSuccess = stepResults.every((step) => step.status === 'ok');
-  if (allSuccess) {
-    return 'success';
-  }
-
-  return 'failure';
-}
-
-export function normalizeBundleStepResults(
-  stepResults: BundleStepResult[],
-): NormalizedBundleResult[] {
-  return stepResults.map((step) => ({
-    tool_name: step.tool,
-    _rawResult: {
-      success: step.status === 'ok',
-      error: step.status === 'error' ? step.output : null,
-      data: {
-        output: step.output,
-      },
-    },
-    success: step.status === 'ok',
-    error: step.status === 'error' ? step.output : null,
-    data: {
-      output: step.output,
-    },
-  }));
-}
-
-export function toBundleExecutionResults(
-  normalizedResults: NormalizedBundleResult[],
-): BundledToolResult[] {
-  return normalizedResults.map((step) => ({
-    tool_name: step.tool_name,
-    request_id: '',
-    success: step.success,
-    data: step.data,
-    error: step.error,
-    executionTime: 0,
-    _rawResult: step._rawResult,
-  }));
-}
-
-export function resolveBundleErrorMessage(
-  bundleStatus: BundleStatus,
-  stepResults: BundleStepResult[],
-): string | null {
-  if (bundleStatus !== 'failure') {
-    return null;
-  }
-  const failedStep = stepResults.find((step) => step.status === 'error');
-  return failedStep?.output || 'Bundle execution failed';
 }

@@ -3,11 +3,10 @@ import { materializeScreenshotAttachment } from '../ScreenshotAttachmentPipeline
 import { isComputerUseTool } from './ToolExecutionCapture';
 import { runToolBundle, type BundleStepResult } from './ToolExecutionBundleRunner';
 import {
-  normalizeBundleStepResults,
+  buildBundledToolResults,
   resolveBundleErrorMessage,
   resolveBundleStatus,
-  toBundleExecutionResults,
-} from './ToolExecutionPayloads';
+} from './BundleExecutionModel';
 import {
   logBundleDispatch,
   logBundleFailure,
@@ -47,11 +46,11 @@ export async function executeToolBundleRuntime(
     stepResults = collectedStepResults;
 
     const bundleStatus = resolveBundleStatus(stepResults, bundle.length);
-    const normalizedResults = normalizeBundleStepResults(stepResults);
+    const bundledResults = buildBundledToolResults(stepResults);
 
     const formattingStartTime = performance.now();
     const combinedFormattedMessage = formatBundledToolOutputMessage(
-      normalizedResults,
+      bundledResults,
       systemState,
       screenshot,
       bundleHasComputerTool,
@@ -72,7 +71,7 @@ export async function executeToolBundleRuntime(
 
     const bundleResult: BundleExecutionResult = {
       correlationId: bundleId,
-      results: toBundleExecutionResults(normalizedResults),
+      results: bundledResults,
       totalTime: 0,
       formattedMessage: combinedFormattedMessage,
       screenshot: materializedAttachment.screenshot,

@@ -11,29 +11,22 @@ type TranscriptModelContext = {
   modelProvider: string | null;
 };
 
-function cloneToolPayload(payload: unknown): Record<string, unknown> | null {
-  if (!payload || typeof payload !== 'object') {
-    return null;
-  }
-  return { ...payload };
-}
-
 export function buildToolCallMessage(
   event: ToolCallEvent,
-  formattedText: string,
+  messageState: Pick<ChatMessage, 'text' | 'toolCallDisplayText' | 'modelFacingToolCall' | 'toolCallDetails' | 'correlationId'>,
   modelContext: TranscriptModelContext,
-  modelFacingToolCall: unknown,
 ): ChatMessage {
   return {
     id: crypto.randomUUID(),
-    text: formattedText,
-    toolCallDisplayText: formattedText,
+    text: messageState.text,
+    toolCallDisplayText: messageState.toolCallDisplayText,
     sender: 'assistant',
     type: 'tool-call',
     sourceEventType: 'tool-call',
     sourceChannel: 'from-backend',
-    modelFacingToolCall,
-    toolCallDetails: cloneToolPayload(event.payload),
+    modelFacingToolCall: messageState.modelFacingToolCall ?? null,
+    toolCallDetails: messageState.toolCallDetails ?? null,
+    correlationId: messageState.correlationId ?? undefined,
     turnRef: event.turn_ref,
     modelId: modelContext.modelId,
     modelProvider: modelContext.modelProvider,
@@ -42,18 +35,19 @@ export function buildToolCallMessage(
 
 export function buildToolBundleMessage(
   event: ToolBundleEvent,
-  formattedText: string,
+  messageState: Pick<ChatMessage, 'text' | 'toolCallDisplayText' | 'toolCallDetails' | 'correlationId'>,
   modelContext: TranscriptModelContext,
 ): ChatMessage {
   return {
     id: crypto.randomUUID(),
-    text: formattedText,
-    toolCallDisplayText: formattedText,
+    text: messageState.text,
+    toolCallDisplayText: messageState.toolCallDisplayText,
     sender: 'assistant',
     type: 'tool-call',
     sourceEventType: 'tool-bundle',
     sourceChannel: 'from-backend',
-    toolCallDetails: cloneToolPayload(event.payload),
+    toolCallDetails: messageState.toolCallDetails ?? null,
+    correlationId: messageState.correlationId ?? undefined,
     turnRef: event.turn_ref,
     modelId: modelContext.modelId,
     modelProvider: modelContext.modelProvider,
@@ -85,7 +79,11 @@ export function buildToolOutputMessage(
     success: event.payload?.success,
     correlationId: resolveToolOutputCorrelationId(event.payload, event.id),
     modelFacingToolOutput: outputText,
-    toolOutputDetails: cloneToolPayload(event.payload),
+    toolOutputDetails: (
+      event.payload && typeof event.payload === 'object'
+        ? { ...event.payload }
+        : null
+    ),
     turnRef: event.turn_ref,
     modelId: modelContext.modelId,
     modelProvider: modelContext.modelProvider,

@@ -4,6 +4,8 @@
  * No side effects, no React dependencies.
  */
 
+import type { BundledToolResult } from './toolExecution/BundleExecutionModel';
+
 /**
  * System state structure
  */
@@ -198,19 +200,6 @@ export function formatToolOutputMessage(
   }
   
   return parts.join('\n');
-}
-
-/**
- * Bundled tool result structure
- */
-export interface BundledToolResult {
-  tool_name: string;
-  request_id?: string;
-  success: boolean;
-  error?: string | null;
-  data?: any;
-  executionTime?: number;
-  _rawResult?: ToolResult;
 }
 
 /**

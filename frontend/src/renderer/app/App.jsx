@@ -4,6 +4,7 @@ import FrontendOnboardingSlideshow from '../features/onboarding/components/Front
 import { usePermissionStore } from '../features/permissions/stores/permissionStore';
 import { getGlobalAgentStopShortcutLabel } from '../infrastructure/shortcuts/agentStopShortcut';
 import { isVmModeEnabled } from '../infrastructure/runtime/vmMode';
+import { selectStartupSurface } from './startupSurface';
 import { AppProvider } from './providers/AppProvider';
 import { useAppConfigContext } from './providers/AppContextHooks';
 import { ChatProvider } from './providers/ChatProvider';
@@ -24,9 +25,14 @@ function AppContent() {
   const bootstrapped = usePermissionStore((state) => state.bootstrapped);
   const needsOnboarding = usePermissionStore((state) => state.needsOnboarding);
   const onboardingCompleted = usePermissionStore((state) => state.onboardingState?.completed === true);
-  const shouldShowOnboarding = bootstrapped ? needsOnboarding : !onboardingCompleted;
+  const startupSurface = selectStartupSurface({
+    vmModeEnabled,
+    bootstrapped,
+    needsOnboarding,
+    onboardingCompleted,
+  });
 
-  if (vmModeEnabled) {
+  if (startupSurface === 'dashboard-vm') {
     return (
       <ChatGptDashboardShell
         config={config}
@@ -37,7 +43,7 @@ function AppContent() {
     );
   }
 
-  if (shouldShowOnboarding) {
+  if (startupSurface === 'onboarding') {
     return (
       <FrontendOnboardingSlideshow
         stopAgentShortcutLabel={getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)}

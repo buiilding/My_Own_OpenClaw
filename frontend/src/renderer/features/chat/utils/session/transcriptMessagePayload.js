@@ -4,36 +4,11 @@ import {
   normalizeOptionalString,
   resolveRehydrateContent,
 } from '../../../../infrastructure/transcript/rehydratePayload';
+import {
+  buildToolCallMessageState,
+} from '../../../../infrastructure/transcript/toolCallMessageState';
 
 const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output']);
-
-function normalizeToolCallFromMessage(message) {
-  const rawToolCall = (
-    message?.modelFacingToolCall
-    && typeof message.modelFacingToolCall === 'object'
-    && !Array.isArray(message.modelFacingToolCall)
-  ) ? message.modelFacingToolCall : null;
-  if (!rawToolCall) {
-    return null;
-  }
-
-  return buildRehydrateToolCall({
-    parsedToolCall: {
-      id: normalizeOptionalString(rawToolCall.id) || undefined,
-      name: normalizeOptionalString(rawToolCall.name) || undefined,
-      arguments: (
-        rawToolCall.arguments
-        && typeof rawToolCall.arguments === 'object'
-        && !Array.isArray(rawToolCall.arguments)
-      ) ? { ...rawToolCall.arguments } : {},
-      thought_signature: normalizeOptionalString(
-        rawToolCall.thought_signature || rawToolCall.thoughtSignature,
-      ) || undefined,
-    },
-    fallbackToolName: null,
-    fallbackToolCallId: null,
-  });
-}
 
 export function normalizeProvider(provider) {
   return provider === undefined || provider === null
@@ -61,7 +36,26 @@ export function resolveTranscriptMessageType(message) {
 export function toRehydratePayload(message) {
   const role = resolveTranscriptRole(message);
   const messageType = resolveTranscriptMessageType(message);
-  const toolCall = normalizeToolCallFromMessage(message);
+  const normalizedToolCallMessage = buildToolCallMessageState({
+    rawContent: typeof message?.text === 'string' ? message.text : null,
+    rawToolCall: (
+      message?.modelFacingToolCall
+      && typeof message.modelFacingToolCall === 'object'
+      && !Array.isArray(message.modelFacingToolCall)
+    ) ? message.modelFacingToolCall : null,
+    fallbackToolName: normalizeOptionalString(message?.toolName) || null,
+    fallbackToolCallId: normalizeOptionalString(message?.correlationId) || null,
+    toolCallDetails: (
+      message?.toolCallDetails
+      && typeof message.toolCallDetails === 'object'
+      && !Array.isArray(message.toolCallDetails)
+    ) ? message.toolCallDetails : null,
+  });
+  const toolCall = buildRehydrateToolCall({
+    parsedToolCall: normalizedToolCallMessage.modelFacingToolCall,
+    fallbackToolName: normalizeOptionalString(message?.toolName) || null,
+    fallbackToolCallId: normalizeOptionalString(message?.correlationId) || null,
+  });
   const toolCallId = role === 'tool'
     ? (normalizeOptionalString(message.correlationId) || toolCall?.id || null)
     : null;
