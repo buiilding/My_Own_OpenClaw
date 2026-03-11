@@ -32,8 +32,11 @@ title: "Frontend Config Filter, Storage, and Provider Merge Runtime Reference"
 - `speech_mode_enabled`
 - `wakeword_stt_enabled`
 - `agent_full_sudo_enabled`
+- `browser_automation_enabled`
+- `global_agent_stop_shortcut`
 - `include_query_screenshot`
 - `provider_api_keys`
+- `provider_oauth`
 
 `filterFrontendConfig(config)` behavior:
 
@@ -52,16 +55,20 @@ Default config surface:
 
 - `model_mode: "online"`
 - `model_provider: "openai"`
-- `selected_model_id: "gpt-5.1"`
+- `selected_model_id: "gpt-5@@gpt-5-nonthinking"`
 - `interaction_mode: "agent"`
 - `voice_mode_enabled: false`
 - `speech_mode_enabled: false`
 - `wakeword_stt_enabled: false`
 - `agent_full_sudo_enabled: false`
+- `browser_automation_enabled: false`
+- `global_agent_stop_shortcut`: normalized platform default accelerator
 - `include_query_screenshot: true`
 - `provider_api_keys`:
   - `openai`, `anthropic`, `google`, `openrouter`, `mistral`, `kimi_coding`
   - each entry stores `{ enabled: boolean, api_key: string }`
+- `provider_oauth`:
+  - `openai_codex` entry stores `{ connected, access_token, refresh_token, expires_at, profile_id }`
 
 Load semantics (`loadConfigFromStorage`):
 

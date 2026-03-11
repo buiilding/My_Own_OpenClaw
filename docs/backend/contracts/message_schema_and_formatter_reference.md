@@ -51,7 +51,15 @@ Model config: `extra="forbid"`.
 
 ### `stop-query`
 
-Payload: empty object model (`StopQueryPayload`), `extra="forbid"`.
+Payload (`StopQueryPayload`):
+
+- optional `conversation_ref: str`
+
+Model notes:
+
+- schema allows omitting payload entirely (`default_factory=StopQueryPayload`)
+- payload model forbids extra keys (`extra="forbid"`)
+- current websocket handler path cancels by `user_id` only and does not forward payload `conversation_ref` into cancellation filtering
 
 ### `rehydrate-conversation`
 
@@ -81,7 +89,10 @@ Payload: empty object model.
 Payload keys (schema-level optional):
 
 - `model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`
-- `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_stt_enabled`, `include_query_screenshot`
+- `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_stt_enabled`
+- `agent_full_sudo_enabled`, `browser_automation_enabled`
+- `include_query_screenshot`
+- `provider_api_keys`, `provider_oauth`
 
 Schema forbids extras; handler-level validation further restricts to frontend-owned patch policy.
 

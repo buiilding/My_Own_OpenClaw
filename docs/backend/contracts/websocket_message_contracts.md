@@ -38,6 +38,26 @@ Fields:
 - `conversation_ref`
 - optional: `content`, `screenshot`, `screenshot_ref`, `system_state_internal`
 
+### `stop-query` payload
+
+Fields:
+
+- optional: `conversation_ref`
+
+Runtime note:
+
+- websocket `StopQueryHandler` currently cancels active tasks by `user_id` and does not forward payload `conversation_ref` into cancellation filtering.
+
+### `update-settings` payload
+
+Optional frontend-owned fields:
+
+- `model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`
+- `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_stt_enabled`
+- `agent_full_sudo_enabled`, `browser_automation_enabled`
+- `include_query_screenshot`
+- `provider_api_keys`, `provider_oauth`
+
 ### `tool-result` payload
 
 Fields:

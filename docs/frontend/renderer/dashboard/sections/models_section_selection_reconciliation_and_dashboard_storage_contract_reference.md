@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for dashboard ModelsSection runtime: provider-first navigation, model/provider reconciliation, helper-module card mapping, and provider API-key config payload contracts."
+summary: "Deep reference for dashboard ModelsSection runtime: provider-first navigation, model/provider reconciliation, helper-module card mapping, and provider API-key/OAuth config payload contracts."
 read_when:
   - When changing `ModelsSection` provider/model selection flow or reconciliation behavior.
   - When modifying model card/provider card helper modules or API-key payload normalization.
@@ -114,6 +114,25 @@ Outbound config update on model select (`buildModelConfigUpdate`):
 - `onConfigChange({ provider_api_keys: normalizedKeys })`
 
 Persistence/sync remains owned by AppConfig provider pipeline.
+
+## OAuth Contract
+
+`ModelsSection` also wires provider OAuth state through `OAuthSection`:
+
+- normalizes `config.provider_oauth` via `normalizeProviderOAuth(...)`
+- currently supports `openai_codex` only
+- login action:
+  - invokes `IpcBridge.invoke(INVOKE_CHANNELS.OPENAI_CODEX_OAUTH_LOGIN)`
+  - on success updates `provider_oauth.openai_codex` with:
+    - `connected=true`
+    - `access_token`, `refresh_token`, `expires_at`, `profile_id`
+- logout action:
+  - invokes `IpcBridge.invoke(INVOKE_CHANNELS.OPENAI_CODEX_OAUTH_LOGOUT)`
+  - resets `provider_oauth.openai_codex` to disconnected/empty token state
+
+`ModelsSection` forwards OAuth updates as partial config patch:
+
+- `onConfigChange({ provider_oauth: ... })`
 
 ## Test-Backed Signals
 
