@@ -34,7 +34,7 @@ Runtime path:
 | --- | --- | --- | --- |
 | `model_mode` | `"local" \| "online"` | `"online"` | Local mode skips API key loading. |
 | `model_provider` | `str` | `"openai"` | Normalized (`-` -> `_`); `kimi_code` maps to `kimi_coding`. |
-| `selected_model_id` | `str` | `"gpt-5.1"` | Combined with provider into `llm_model` property when online mode. |
+| `selected_model_id` | `str` | `"gpt-5@@gpt-5-nonthinking"` | Combined with provider into `llm_model` property when online mode. |
 | `llm_timeout` | `int` | `300` | Provider completion timeout. |
 | `query_timeout` | `int` | `600` | Query-level timeout budget. |
 | `debug_litellm` | `bool` | `false` | Enables LiteLLM debug logging path. |

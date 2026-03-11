@@ -554,11 +554,16 @@ Update application configuration.
 {
   "model_mode": "online" | "local",
   "model_provider": "openai" | "anthropic" | ...,
-  "selected_model_id": "gpt-5.1",
+  "selected_model_id": "gpt-5@@gpt-5-nonthinking",
   "interaction_mode": "chat" | "agent",
   "voice_mode_enabled": true | false,
   "speech_mode_enabled": true | false,
-  "include_query_screenshot": true | false
+  "wakeword_stt_enabled": true | false,
+  "agent_full_sudo_enabled": true | false,
+  "browser_automation_enabled": true | false,
+  "include_query_screenshot": true | false,
+  "provider_api_keys": { ... },
+  "provider_oauth": { ... }
 }
 ```
 
@@ -575,11 +580,26 @@ Payload shape is validated at message-parse time; value semantics are validated 
   "payload": {
     "model_mode": "online",
     "model_provider": "openai",
-    "selected_model_id": "gpt-5.1",
+    "selected_model_id": "gpt-5@@gpt-5-nonthinking",
     "interaction_mode": "chat",
     "voice_mode_enabled": false,
     "speech_mode_enabled": true,
-    "include_query_screenshot": true
+    "wakeword_stt_enabled": false,
+    "agent_full_sudo_enabled": false,
+    "browser_automation_enabled": true,
+    "include_query_screenshot": true,
+    "provider_api_keys": {
+      "openai": { "enabled": true, "api_key": "sk-..." }
+    },
+    "provider_oauth": {
+      "openai_codex": {
+        "connected": false,
+        "access_token": "",
+        "refresh_token": "",
+        "expires_at": null,
+        "profile_id": ""
+      }
+    }
   },
   "timestamp": "2025-01-20T10:00:00Z"
 }
@@ -938,10 +958,13 @@ Response to load-settings request.
   "config": {
     "model_mode": "online",
     "model_provider": "openai",
-    "selected_model_id": "gpt-5.1",
+    "selected_model_id": "gpt-5@@gpt-5-nonthinking",
     "interaction_mode": "chat",
     "voice_mode_enabled": false,
     "speech_mode_enabled": true,
+    "wakeword_stt_enabled": false,
+    "agent_full_sudo_enabled": false,
+    "browser_automation_enabled": false,
     "include_query_screenshot": true
   }
 }
@@ -958,10 +981,13 @@ Response to load-settings request.
     "config": {
       "model_mode": "online",
       "model_provider": "openai",
-      "selected_model_id": "gpt-5.1",
+      "selected_model_id": "gpt-5@@gpt-5-nonthinking",
       "interaction_mode": "chat",
       "voice_mode_enabled": false,
       "speech_mode_enabled": true,
+      "wakeword_stt_enabled": false,
+      "agent_full_sudo_enabled": false,
+      "browser_automation_enabled": false,
       "include_query_screenshot": true
     }
   },
