@@ -38,7 +38,7 @@ describe('preload IPC channel registry', () => {
       }),
     );
 
-    jest.doMock('node:fs', () => ({
+    jest.doMock('fs', () => ({
       readFileSync: readFileSyncMock,
     }));
 
@@ -47,7 +47,7 @@ describe('preload IPC channel registry', () => {
 
   afterEach(() => {
     jest.dontMock('electron');
-    jest.dontMock('node:fs');
+    jest.dontMock('fs');
   });
 
   test('allows shared invoke channels from the central registry', async () => {
