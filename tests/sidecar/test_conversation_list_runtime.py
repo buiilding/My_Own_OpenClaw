@@ -112,6 +112,7 @@ async def test_fetch_transcript_conversation_rows_uses_transcript_scope_and_orde
         "user-1",
         "user-1",
         "user-1",
+        "user-1",
         25,
     )
 

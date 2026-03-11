@@ -275,6 +275,11 @@ describe('useChatStream message metadata handling', () => {
             command: "echo 'Original text to replace' > /tmp/test_replace.txt",
           },
         },
+        metadata: {
+          llm_tool_call_validation_failed: true,
+          skip_frontend_execution: true,
+        },
+        frontend_execution_skipped: true,
       }, null, 2),
     );
     expect(toolCallMessage).toEqual(expect.objectContaining({

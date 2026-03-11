@@ -26,7 +26,6 @@ const {
   withLocalBackendNodeOptions,
 } = require('./local_backend_bridge_utils.cjs');
 const {
-  resolvePythonExecutablePath,
   resolveSidecarLaunchTarget,
 } = require('./runtime_paths.cjs');
 const {
@@ -44,7 +43,6 @@ let isDrainingStdoutLines = false;
 let readinessCheckCallback = null;
 let readinessCheckToken = 0;
 
-let cachedPythonPath = null;
 const LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES = 128 * 1024;
 const isTestEnv = process.env.NODE_ENV === 'test';
 let runtimeScreenCaptureCapabilityVerifier = async () => ({
@@ -219,15 +217,6 @@ function notifyBackendUnavailable(mainWindow, error) {
     ready: false,
     error,
   });
-}
-
-function getPythonPath() {
-  if (cachedPythonPath !== null) {
-    return cachedPythonPath;
-  }
-
-  cachedPythonPath = resolvePythonExecutablePath();
-  return cachedPythonPath;
 }
 
 function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
@@ -448,7 +437,7 @@ function startLocalBackend(mainWindow, options = {}) {
     if (error.code === 'ENOENT') {
       errorMessage = launchTarget.kind === 'binary'
         ? `Bundled sidecar executable '${launchTarget.command}' not found. Reinstall WindieOS.`
-        : `Python executable '${pythonPath}' not found. Please install Python 3 or ensure it is in your PATH.`;
+        : `Python executable '${launchTarget.command}' not found. Please install Python 3 or ensure it is in your PATH.`;
     }
 
     notifyBackendUnavailable(mainWindow, errorMessage);

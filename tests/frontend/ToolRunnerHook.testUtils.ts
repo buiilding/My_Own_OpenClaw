@@ -105,6 +105,10 @@ export function resetToolRunnerTestState() {
   (global as any).crypto = {
     randomUUID: jest.fn(() => 'generated-id'),
   };
+  Object.defineProperty(window.navigator, 'userAgent', {
+    value: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) jsdom',
+    configurable: true,
+  });
 
   jest.spyOn(IpcBridge, 'on').mockImplementation((channel: any, handler: any) => {
     if (channel === ON_CHANNELS.FROM_BACKEND) {

@@ -34,7 +34,6 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
     isLastSlide,
     isPermissionSlide,
     isStopFlowSlide,
-    permissionSlideCount,
     permissionSlides,
     totalSlides,
   } = buildOnboardingSlideState({ permissions, activeSlideIndex });

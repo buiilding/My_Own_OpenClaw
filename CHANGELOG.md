@@ -4,7 +4,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+## 0.6.11 - 2026-03-11
+
+Includes the last 147 commits on `main`.
+
+### Added
+- chore(release): bump packaged desktop app version to `0.6.11` and trigger the cross-platform desktop release workflow for macOS, Windows, and Linux.
+
 ### Fixed
+- fix(release-validation): repair the local backend ENOENT message path, align prompt/browser/transcript expectations with current runtime behavior, and restore the desktop release validation suites on current `main`.
 - fix(chat-history-immediate-temp-title): show a new transcript chat in `Your chats` immediately after the first user message by deriving a temporary heuristic title from that first user row, then replace it automatically once assistant `llm-text` title generation finishes; add sidecar and dashboard regressions for immediate visibility and title replacement.
 - fix(frontend-transcript-tool-call-replay-display): restore visible tool-call bodies for historical chats by carrying replayed transcript tool-call text into `toolCallDisplayText` and rebuilding parsed model-facing tool-call payloads during episodic-memory message normalization.
 - fix(frontend-tool-bundle-call-display): show bundled tool-call payloads in tool-call cards by carrying the formatted bundle text into `toolCallDisplayText`, so bundle rows no longer render as blank cards even when execution/output events were received correctly.
