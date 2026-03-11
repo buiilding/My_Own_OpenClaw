@@ -276,7 +276,7 @@ describe('ToolExecutionService', () => {
       skipAutoCapture: true,
     });
     expect(mockCaptureScreenshotAttachment).toHaveBeenCalledWith({
-      waitSeconds: 2,
+      waitSeconds: 0,
       correlationId: 'bundle-1:step-2:mouse_control',
     });
     expect(mockCaptureSystemState).toHaveBeenCalledWith({

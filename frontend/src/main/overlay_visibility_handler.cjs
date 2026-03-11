@@ -2,9 +2,6 @@ const {
   normalizeChatSurfaceWindowOptions,
   normalizeMainSurfaceWindowOptions,
 } = require('./surface_window_options_runtime.cjs');
-const {
-  setOverlayAlwaysOnTop,
-} = require('./overlay_topmost_runtime.cjs');
 
 function handleShowMainWindow(options = {}, deps = {}) {
   const {
@@ -90,86 +87,6 @@ function handleRestoreSurfaceAfterScreenshot(options = {}, deps = {}) {
     return showMainWindow(normalizeMainSurfaceWindowOptions({ focus: false }));
   }
   return { success: true, restored: false };
-}
-
-function getUsableOverlayWindows(getWindows = () => ({})) {
-  const { chatWindow, responseWindow, contextLabelWindow } = getWindows();
-  return [
-    { key: 'chatbox', label: 'chat box', window: chatWindow },
-    { key: 'response-overlay', label: 'response overlay', window: responseWindow },
-    { key: 'context-label', label: 'context label', window: contextLabelWindow },
-  ].filter(({ window }) => isUsableWindow(window));
-}
-
-function handleDemoteOverlayTopmostForWindowSwitch(options = {}, deps = {}) {
-  const {
-    getWindows = () => ({}),
-    externalFocusTracker = null,
-    warn = console.warn,
-  } = deps;
-  void options;
-
-  let demoted = false;
-  for (const { window: targetWindow } of getUsableOverlayWindows(getWindows)) {
-    if (typeof targetWindow.setAlwaysOnTop === 'function') {
-      try {
-        targetWindow.setAlwaysOnTop(false);
-        demoted = true;
-      } catch (error) {
-        warn('[Main] Failed to demote overlay topmost state for window switch:', error?.message || error);
-      }
-    }
-    if (typeof targetWindow.blur === 'function') {
-      try {
-        targetWindow.blur();
-      } catch (_error) {
-        // Best-effort only.
-      }
-    }
-  }
-
-  const restoredExternalFocus = Boolean(
-    demoted
-    && externalFocusTracker
-    && typeof externalFocusTracker.canTrackExternalFocus === 'function'
-    && externalFocusTracker.canTrackExternalFocus() === true
-    && typeof externalFocusTracker.restorePreviousExternalFocusedWindow === 'function'
-    && externalFocusTracker.restorePreviousExternalFocusedWindow() === true
-  );
-
-  return {
-    success: true,
-    demoted,
-    restoredExternalFocus,
-  };
-}
-
-function handleRestoreOverlayTopmostAfterWindowSwitch(options = {}, deps = {}) {
-  const {
-    getWindows = () => ({}),
-    platform = process.platform,
-    warn = console.warn,
-  } = deps;
-  void options;
-
-  let restored = false;
-  for (const { label, window: targetWindow } of getUsableOverlayWindows(getWindows)) {
-    const promoted = setOverlayAlwaysOnTop({
-      targetWindow,
-      platform,
-      warn,
-      windowLabel: label,
-    });
-    if (promoted && typeof targetWindow.moveTop === 'function') {
-      targetWindow.moveTop();
-    }
-    restored = restored || promoted;
-  }
-
-  return {
-    success: true,
-    restored,
-  };
 }
 
 function isUsableWindow(targetWindow) {
@@ -277,11 +194,9 @@ async function handlePrepareSurfaceForScreenshot(
 }
 
 module.exports = {
-  handleDemoteOverlayTopmostForWindowSwitch,
   handleHideChatbox,
   handleHandoffSurfaceForComputerUse,
   handlePrepareSurfaceForScreenshot,
-  handleRestoreOverlayTopmostAfterWindowSwitch,
   handleRestoreSurfaceAfterScreenshot,
   handleShowChatbox,
   handleShowMainWindow,

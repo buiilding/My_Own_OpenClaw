@@ -22,7 +22,6 @@ export type ToolSurfacePreparation = {
   mode: SurfaceMode;
   correlationId: string;
   hiddenSurface?: HiddenSurface;
-  overlayDemoted?: boolean;
 };
 
 export type SurfaceCollapseTiming = {

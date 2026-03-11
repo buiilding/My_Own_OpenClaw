@@ -5,7 +5,6 @@ Window Management Tool - Python implementation with platform abstraction.
 import asyncio
 import logging
 import re
-import time
 from typing import Dict, Any
 
 from core.executors import get_interactive_executor
@@ -47,36 +46,19 @@ async def switch_to_window(args: Dict[str, Any]) -> Dict[str, Any]:
             windows = manager.get_windows()
             target_title = _resolve_target_title(windows, tab_name, match_mode)
             if not target_title:
-                return False, None, None
+                return False, None
             success = manager.switch_to_window(target_title)
-            if not success:
-                return False, target_title, _get_active_window_title(manager)
-
-            verified = _verify_window_switch(
-                manager,
-                target_title,
-            )
-            active_window_title = _get_active_window_title(manager)
-            return verified, target_title, active_window_title
+            return success, target_title
         
         loop = asyncio.get_event_loop()
-        success, resolved_title, active_window_title = await loop.run_in_executor(
-            get_interactive_executor(),
-            _switch,
-        )
+        success, resolved_title = await loop.run_in_executor(get_interactive_executor(), _switch)
         
         if not success:
-            active_window_suffix = (
-                f" Active window after switch attempt: '{active_window_title}'."
-                if isinstance(active_window_title, str) and active_window_title.strip()
-                else ""
-            )
             return {
                 "success": False,
                 "error": (
                     f"Could not find or switch to window/tab with name: {tab_name}. "
                     "Use the full window title from get_open_windows output for best results."
-                    f"{active_window_suffix}"
                 ),
             }
         
@@ -160,44 +142,3 @@ def _resolve_target_title(windows: list[dict], tab_name: str, match_mode: str) -
         if title.lower() == query.lower():
             return title
     return None
-
-
-def _normalize_title(title: str | None) -> str:
-    if not isinstance(title, str):
-        return ""
-    return " ".join(title.strip().split()).casefold()
-
-
-def _titles_match(expected_title: str, active_title: str | None) -> bool:
-    normalized_expected = _normalize_title(expected_title)
-    normalized_active = _normalize_title(active_title)
-    if not normalized_expected or not normalized_active:
-        return False
-    return (
-        normalized_expected == normalized_active
-        or normalized_expected in normalized_active
-        or normalized_active in normalized_expected
-    )
-
-
-def _get_active_window_title(manager: WindowManager) -> str | None:
-    active_window = manager.get_active_window()
-    if not isinstance(active_window, dict):
-        return None
-    title = active_window.get("title")
-    return title if isinstance(title, str) and title.strip() else None
-
-
-def _verify_window_switch(
-    manager: WindowManager,
-    expected_title: str,
-    *,
-    attempts: int = 10,
-    delay_seconds: float = 0.1,
-) -> bool:
-    for _ in range(max(1, attempts)):
-        active_title = _get_active_window_title(manager)
-        if _titles_match(expected_title, active_title):
-            return True
-        time.sleep(max(0.0, delay_seconds))
-    return False

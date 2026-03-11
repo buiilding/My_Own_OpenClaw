@@ -64,10 +64,6 @@ function getWaitSeconds(
   return defaultWaitSeconds;
 }
 
-export function resolveCaptureWaitSeconds(toolName: string, args: any): number {
-  return getWaitSeconds(toolName, args, getDefaultWaitSeconds(toolName));
-}
-
 function createCaptureSnapshot(
   attachment: ScreenshotAttachment,
   systemState: SystemState | null,

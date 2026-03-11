@@ -4,7 +4,6 @@ import {
   resolveBundleSurfaceMode,
   resolveToolRequestIdForCancellation,
   restoreToolExecutionSurface,
-  shouldDemoteOverlayForBundle,
   shouldSkipToolExecution,
 } from '../../../../infrastructure/services/SurfaceOrchestrator';
 export {
@@ -13,6 +12,5 @@ export {
   resolveBundleSurfaceMode,
   resolveToolRequestIdForCancellation,
   restoreToolExecutionSurface,
-  shouldDemoteOverlayForBundle,
   shouldSkipToolExecution,
 };

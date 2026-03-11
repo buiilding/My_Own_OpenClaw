@@ -15,7 +15,6 @@ import {
   restoreScreenshotCaptureVisibility,
   type CaptureVisibilityPreparation,
 } from './SurfaceOrchestrator';
-import { waitForCaptureDelay } from './CaptureDelay';
 import { logScreenshotCaptureTiming } from './toolExecution/ToolExecutionLogger';
 
 export type CaptureMeta = {
@@ -228,16 +227,14 @@ export async function captureScreenshotAttachment({
   }
 
   try {
-    const waitStartTime = performance.now();
-    await waitForCaptureDelay(waitSeconds);
-    waitTime = (performance.now() - waitStartTime) / 1000;
-
     const prepareVisibilityStartTime = performance.now();
     screenshotVisibilityPreparation = await prepareScreenshotCaptureVisibility({
       captureId: correlationId,
       source: 'system-capture',
+      waitMs: Math.max(0, waitSeconds) * 1000,
     });
     preparationTime = (performance.now() - prepareVisibilityStartTime) / 1000;
+    waitTime = screenshotVisibilityPreparation.timing?.waitTime || 0;
     hideInvokeTime = screenshotVisibilityPreparation.timing?.hideInvokeTime || 0;
     settleTime = screenshotVisibilityPreparation.timing?.settleTime || 0;
 

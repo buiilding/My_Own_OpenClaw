@@ -16,7 +16,7 @@ class MacOSWindowManager(BaseWindowManager):
             from AppKit import NSWorkspace
             self.NSWorkspace = NSWorkspace
             self._available = True
-        except Exception:
+        except ImportError:
             logger.warning("AppKit not available, window management disabled on macOS")
             self._available = False
     
