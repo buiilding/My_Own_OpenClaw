@@ -2,6 +2,7 @@
 
 import ctypes
 import logging
+import time
 from typing import List, Optional
 
 from .base import BaseWindowManager
@@ -15,11 +16,46 @@ class WindowsWindowManager(BaseWindowManager):
     def __init__(self):
         try:
             self.user32 = ctypes.windll.user32  # type: ignore[attr-defined]
+            self.kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
             self.SW_RESTORE = 9
+            self.SW_SHOW = 5
             self._available = True
         except Exception:
             logger.warning("Win32 user32 APIs unavailable, window management disabled on Windows")
             self._available = False
+
+    def _get_window_title(self, hwnd) -> str:
+        length = self.user32.GetWindowTextLengthW(hwnd)
+        if length <= 0:
+            return ""
+        buffer = ctypes.create_unicode_buffer(length + 1)
+        copied = self.user32.GetWindowTextW(hwnd, buffer, length + 1)
+        if copied <= 0:
+            return ""
+        return buffer.value
+
+    def _wait_for_foreground_window(
+        self,
+        hwnd: int,
+        target_title: str,
+        timeout_seconds: float = 1.0,
+        poll_seconds: float = 0.05,
+    ) -> bool:
+        deadline = time.monotonic() + max(0.0, timeout_seconds)
+        normalized_target = target_title.strip().lower()
+
+        while time.monotonic() <= deadline:
+            foreground_hwnd = self.user32.GetForegroundWindow()
+            if foreground_hwnd and int(foreground_hwnd) == int(hwnd):
+                return True
+
+            foreground_title = self._get_window_title(foreground_hwnd) if foreground_hwnd else ""
+            if foreground_title and normalized_target in foreground_title.lower():
+                return True
+
+            time.sleep(max(0.0, poll_seconds))
+
+        return False
     
     def get_windows(self) -> List[dict]:
         """Get list of all open windows."""
@@ -30,19 +66,9 @@ class WindowsWindowManager(BaseWindowManager):
 
         enum_windows_proc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
 
-        def _get_window_title(hwnd) -> str:
-            length = self.user32.GetWindowTextLengthW(hwnd)
-            if length <= 0:
-                return ""
-            buffer = ctypes.create_unicode_buffer(length + 1)
-            copied = self.user32.GetWindowTextW(hwnd, buffer, length + 1)
-            if copied <= 0:
-                return ""
-            return buffer.value
-
         def enum_windows_callback(hwnd, _):
             if self.user32.IsWindowVisible(hwnd):
-                title = _get_window_title(hwnd)
+                title = self._get_window_title(hwnd)
                 if title:
                     windows.append({"title": title, "hwnd": int(hwnd)})
             return True
@@ -62,14 +88,9 @@ class WindowsWindowManager(BaseWindowManager):
         try:
             hwnd = self.user32.GetForegroundWindow()
             if hwnd:
-                length = self.user32.GetWindowTextLengthW(hwnd)
-                if length <= 0:
-                    return None
-                buffer = ctypes.create_unicode_buffer(length + 1)
-                copied = self.user32.GetWindowTextW(hwnd, buffer, length + 1)
-                if copied <= 0:
-                    return None
-                return {"title": buffer.value, "hwnd": int(hwnd)}
+                title = self._get_window_title(hwnd)
+                if title:
+                    return {"title": title, "hwnd": int(hwnd)}
         except Exception as e:
             logger.error(f"Error getting active window: {e}", exc_info=True)
         
@@ -93,12 +114,53 @@ class WindowsWindowManager(BaseWindowManager):
         
         try:
             hwnd = target["hwnd"]
+            current_thread_id = self.kernel32.GetCurrentThreadId()
+            foreground_hwnd = self.user32.GetForegroundWindow()
+            foreground_thread_id = (
+                self.user32.GetWindowThreadProcessId(foreground_hwnd, None)
+                if foreground_hwnd
+                else 0
+            )
+            target_thread_id = self.user32.GetWindowThreadProcessId(hwnd, None)
+            attached_pairs: list[tuple[int, int]] = []
+
+            def _attach_threads(source_thread_id: int, destination_thread_id: int) -> None:
+                if (
+                    not source_thread_id
+                    or not destination_thread_id
+                    or source_thread_id == destination_thread_id
+                ):
+                    return
+                if self.user32.AttachThreadInput(source_thread_id, destination_thread_id, True):
+                    attached_pairs.append((source_thread_id, destination_thread_id))
+
             # Restore if minimized
             if self.user32.IsIconic(hwnd):
                 self.user32.ShowWindow(hwnd, self.SW_RESTORE)
-            # Bring to front
-            self.user32.SetForegroundWindow(hwnd)
-            return True
+            else:
+                self.user32.ShowWindow(hwnd, self.SW_SHOW)
+
+            try:
+                _attach_threads(foreground_thread_id, current_thread_id)
+                _attach_threads(target_thread_id, current_thread_id)
+                _attach_threads(target_thread_id, foreground_thread_id)
+
+                self.user32.BringWindowToTop(hwnd)
+                self.user32.SetActiveWindow(hwnd)
+                self.user32.SetFocus(hwnd)
+                set_foreground_result = self.user32.SetForegroundWindow(hwnd)
+            finally:
+                for source_thread_id, destination_thread_id in reversed(attached_pairs):
+                    self.user32.AttachThreadInput(
+                        source_thread_id,
+                        destination_thread_id,
+                        False,
+                    )
+
+            if not set_foreground_result:
+                logger.info("SetForegroundWindow returned 0 for '%s'", target["title"])
+
+            return self._wait_for_foreground_window(hwnd, target["title"])
         except Exception as e:
             logger.error(f"Error switching to window: {e}", exc_info=True)
             return False

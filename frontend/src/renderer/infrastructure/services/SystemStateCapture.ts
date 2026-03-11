@@ -9,7 +9,7 @@ type CaptureSystemStateOptions = {
   correlationId?: string | null;
 };
 
-function waitForCaptureDelay(waitSeconds: number): Promise<void> {
+export function waitForCaptureDelay(waitSeconds: number): Promise<void> {
   const waitMilliseconds = Math.max(0, waitSeconds) * 1000;
   if (waitMilliseconds <= 0) {
     return Promise.resolve();

@@ -1,4 +1,9 @@
-import { captureAfterTool, isComputerUseTool } from './ToolExecutionCapture';
+import {
+  ensureAutoCapture,
+  isComputerUseTool,
+  resolveExplicitPostActionWaitSeconds,
+  resolvePostActionWaitSeconds,
+} from './ToolExecutionCapture';
 import { logBundledToolStart, logBundledToolTiming } from './ToolExecutionLogger';
 import { invokeTool } from './ToolExecutionInvoker';
 import type { SystemState, ToolResult } from '../MessageFormatter';
@@ -92,6 +97,8 @@ export async function runToolBundle(
   let captureMeta: CaptureMeta | null = null;
   let totalWaitDelay = 0;
   let totalCaptureTime = 0;
+  let lastComputerTool: { toolName: string; args: any; result: ToolResult; stepIndex: number } | null = null;
+  let accumulatedExplicitWaitSeconds = 0;
 
   for (let i = 0; i < bundle.length; i++) {
     const tool = bundle[i];
@@ -122,25 +129,16 @@ export async function runToolBundle(
 
       const isComputerTool = isComputerUseTool(tool.toolName, tool.args);
       if (isComputerTool) {
-        const isLastTool = i === bundle.length - 1;
-        const captureCorrelationId = `${bundleId}:step-${i + 1}:${tool.toolName}`;
-        const capture = await captureAfterTool(
+        lastComputerTool = {
+          toolName: tool.toolName,
+          args: tool.args,
+          result,
+          stepIndex: i + 1,
+        };
+        accumulatedExplicitWaitSeconds += resolveExplicitPostActionWaitSeconds(
           tool.toolName,
           tool.args,
-          isLastTool,
-          0,
-          captureCorrelationId,
         );
-        totalCaptureTime += capture.captureTime;
-        totalWaitDelay += capture.waitSeconds;
-        screenshot = capture.screenshot;
-        screenshotRef = capture.screenshotRef;
-        screenshotUrl = capture.screenshotUrl;
-        screenshotContentType = capture.screenshotContentType;
-        captureMeta = capture.captureMeta;
-        if (isLastTool) {
-          systemState = capture.systemState;
-        }
       }
     } catch (err: unknown) {
       const toolExecutionTime = (performance.now() - toolStartTime) / 1000;
@@ -155,6 +153,38 @@ export async function runToolBundle(
       appendStepResult(stepResults, tool.toolName, 'error', errorMessage);
 
       break;
+    }
+  }
+
+  if (lastComputerTool) {
+    try {
+      const captureCorrelationId = `${bundleId}:step-${lastComputerTool.stepIndex}:${lastComputerTool.toolName}`;
+      const finalWaitSeconds = accumulatedExplicitWaitSeconds > 0
+        ? accumulatedExplicitWaitSeconds
+        : resolvePostActionWaitSeconds(lastComputerTool.toolName, lastComputerTool.args, 0);
+      const capture = await ensureAutoCapture(
+        lastComputerTool.toolName,
+        lastComputerTool.args,
+        false,
+        lastComputerTool.result,
+        captureCorrelationId,
+        finalWaitSeconds,
+      );
+      totalCaptureTime += capture.captureTime;
+      totalWaitDelay += capture.waitDelay;
+      screenshot = capture.screenshot;
+      screenshotRef = capture.screenshotRef;
+      screenshotUrl = capture.screenshotUrl;
+      screenshotContentType = capture.screenshotContentType;
+      captureMeta = capture.captureMeta;
+      systemState = capture.systemState;
+    } catch (err: unknown) {
+      appendStepResult(
+        stepResults,
+        lastComputerTool.toolName,
+        'error',
+        getErrorMessage(err),
+      );
     }
   }
 

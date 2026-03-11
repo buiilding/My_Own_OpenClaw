@@ -98,7 +98,7 @@ Responsibilities:
 - screenshot prep now hides whichever WindieOS surface currently owns the capture (`chatbox`, `main-window`, or none) and carries that `hiddenSurface` contract through restore so dashboard-originated captures do not leak the dashboard into the screenshot
 - dashboard-originated computer-use execution no longer stays dashboard-owned after the first tool step; once handoff occurs, screenshot prep/restore always targets the pill surface (`chatbox`) and later tool/output waiting states keep using the pill response overlay/typing-indicator contract
 - platform capture prep still routes through `platform/surfaceVisibility/*`; Linux owns the chat-pill hide/restore path with compositor settle, while Windows/macOS use a true no-op runtime and rely on content protection for protected overlays
-- screenshot capture prep now uses a bounded main-process `prepare-surface-for-screenshot -> screenshot` wait; the prep handler owns both the intentional pre-capture wait and active-surface hide/settle timing so hidden-renderer timer throttling cannot stretch either phase
+- intentional post-tool waits are now owned by shared renderer capture policy (`ToolExecutionCapture` / `SystemStateCapture`) instead of platform surface-visibility runtimes, so the same delay contract applies on Windows, macOS, and Linux before screenshot/system-state capture
 - automatic screenshot monitor selection is main-owned: renderer screenshot calls stay display-agnostic, while Electron main resolves the visible sender window's display first and falls back to the active query-origin display affinity for hidden-dashboard tool turns
 - monitor-scoped screenshot args now include both target monitor bounds and full virtual desktop bounds; Windows/Linux sidecar capture may crop a single monitor out of an all-displays image, while macOS uses direct bounded capture to avoid Retina scaling drift
 - manual chat-pill drag position is main-owned and reused by overlay helper reposition passes so screenshot/show/hide lifecycles cannot snap the pill back to its default centered location
@@ -145,7 +145,9 @@ Bundle flow:
 Computer-use tools trigger capture policy checks via `ensureAutoCapture`:
 
 - default wait and screenshot behavior can vary by tool type
+- the tool/runtime now applies one shared post-action delay before capture, then captures screenshot and system state through the same post-tool pipeline
 - capture path can be skipped when tool already provides screenshot payload
+- bundle execution captures at most once after the full bundle completes; explicit per-tool wait budgets are accumulated into that final post-bundle capture
 - capture path accepts optional correlation id so orchestrator capture/focus transitions are directly joinable with tool request/bundle-step logs
 - resulting screenshot may be uploaded as artifact reference for backend payloads
 
