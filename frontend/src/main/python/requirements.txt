@@ -56,7 +56,7 @@ pathspec>=0.10.0
 pywin32>=306; sys_platform == 'win32'
 
 # macOS
-pyobjc-framework-AppKit>=10.3; sys_platform == 'darwin'
+pyobjc-framework-Cocoa>=10.3; sys_platform == 'darwin'
 pyobjc-framework-Quartz>=10.3; sys_platform == 'darwin'
 
 # Linux: xdotool should be installed via system package manager
