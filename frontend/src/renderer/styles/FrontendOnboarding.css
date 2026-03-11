@@ -1,39 +1,36 @@
 .frontend-onboarding-shell {
-  min-height: 100%;
-  min-height: 100vh;
   min-height: 100dvh;
   width: 100%;
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 28px;
-  overflow: auto;
-  background: #050505;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(126, 211, 122, 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.07), transparent 18%),
+    linear-gradient(180deg, #080808 0%, #020202 100%);
   color: #f3f3f3;
 }
 
 .frontend-onboarding-card {
-  width: min(840px, 100%);
-  max-height: calc(100vh - 56px);
-  max-height: calc(100dvh - 56px);
-  border: 1px solid #262626;
-  border-radius: 16px;
-  background: #0b0b0b;
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+  width: 100%;
+  min-height: 100dvh;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
+  background:
+    linear-gradient(180deg, rgba(10, 10, 10, 0.96), rgba(4, 4, 4, 0.98)),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025), transparent 26%);
   font-family: "Avenir Next", Avenir, "Nunito Sans", "Segoe UI", sans-serif;
   overflow: hidden;
 }
 
 .frontend-onboarding-window-chrome {
   position: fixed;
-  top: 10px;
-  right: 10px;
+  top: 18px;
+  right: 18px;
   display: flex;
   justify-content: flex-end;
-  z-index: 2;
+  z-index: 5;
 }
 
 .frontend-onboarding-window-controls {
@@ -45,59 +42,61 @@
 }
 
 .frontend-onboarding-card-permissions {
-  width: min(940px, 100%);
+  width: 100%;
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-card-scroll-region {
-  padding-top: 28px;
-  gap: 12px;
+  padding-top: 72px;
+  gap: 18px;
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-title {
-  font-size: clamp(28px, 4.4vw, 46px);
+  font-size: clamp(42px, 5vw, 72px);
   line-height: 1.06;
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-body {
-  font-size: clamp(15px, 1.8vw, 18px);
-  line-height: 1.3;
-  max-width: 64ch;
+  font-size: clamp(18px, 2vw, 30px);
+  line-height: 1.32;
+  max-width: 52ch;
 }
 
 .frontend-onboarding-card-scroll-region {
   min-height: 0;
-  padding: 34px 36px 22px;
+  width: min(1640px, calc(100% - 88px));
+  margin: 0 auto;
+  padding: 78px 0 32px;
   display: grid;
   align-content: start;
-  gap: 16px;
+  gap: 20px;
   overflow: auto;
 }
 
 .frontend-onboarding-progress {
   margin: 0;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.3;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #bdbdbd;
+  color: #c5c5c5;
 }
 
 .frontend-onboarding-title {
   margin: 0;
-  font-size: clamp(36px, 6vw, 58px);
+  font-size: clamp(52px, 7vw, 96px);
   line-height: 1.05;
   font-weight: 500;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.03em;
   color: #ffffff;
 }
 
 .frontend-onboarding-body {
   margin: 0;
-  font-size: clamp(17px, 2.2vw, 21px);
+  font-size: clamp(20px, 2.4vw, 34px);
   line-height: 1.35;
   font-weight: 400;
   color: #d8d8d8;
-  max-width: 60ch;
+  max-width: 52ch;
 }
 
 .frontend-onboarding-emphasis {
@@ -127,8 +126,9 @@
 
 .frontend-onboarding-stop-flow {
   display: grid;
-  gap: 18px;
+  gap: 28px;
   align-items: start;
+  padding-top: 20px;
 }
 
 .frontend-onboarding-stop-flow-header {
@@ -160,9 +160,9 @@
   gap: 16px;
   width: fit-content;
   max-width: 100%;
-  padding: 22px 24px 24px;
-  border: 1px solid #2d2d2d;
-  border-radius: 24px;
+  padding: 28px 32px 34px;
+  border: 1px solid #343434;
+  border-radius: 30px;
   background:
     radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 58%),
     linear-gradient(180deg, rgba(19, 19, 19, 0.98), rgba(10, 10, 10, 0.98));
@@ -223,10 +223,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px 36px 26px;
-  border-top: 1px solid #202020;
+  width: min(1640px, calc(100% - 88px));
+  margin: 0 auto;
+  padding: 22px 0 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
   background:
-    linear-gradient(180deg, rgba(11, 11, 11, 0.82), rgba(11, 11, 11, 0.98));
+    linear-gradient(180deg, rgba(7, 7, 7, 0.82), rgba(7, 7, 7, 0.98));
   flex-shrink: 0;
 }
 
@@ -235,10 +237,10 @@
 }
 
 .frontend-onboarding-button {
-  border: 1px solid #444444;
+  border: 1px solid #4d4d4d;
   border-radius: 999px;
-  padding: 11px 22px;
-  font-size: 15px;
+  padding: 14px 28px;
+  font-size: 17px;
   line-height: 1;
   font-family: inherit;
   cursor: pointer;
@@ -267,7 +269,7 @@
 
 .frontend-onboarding-permissions-section {
   display: grid;
-  gap: 10px;
+  gap: 18px;
   min-height: 0;
 }
 
@@ -310,27 +312,28 @@
   background: transparent;
   padding: 0;
   display: grid;
-  gap: 10px;
+  gap: 18px;
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-permissions-list {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 22px;
-  row-gap: 12px;
+  column-gap: 28px;
+  row-gap: 18px;
   align-items: start;
 }
 
 .frontend-onboarding-permission-row {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 12px;
-  align-items: center;
-  border: 0 !important;
-  box-shadow: none !important;
+  gap: 18px;
+  align-items: start;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
   outline: 0;
-  border-radius: 0;
-  padding: 4px 6px;
-  background: transparent;
+  border-radius: 28px;
+  padding: 24px 26px;
+  background:
+    linear-gradient(180deg, rgba(18, 18, 18, 0.92), rgba(10, 10, 10, 0.96));
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-permission-row {
@@ -340,12 +343,12 @@
 
 .frontend-onboarding-permission-copy {
   display: grid;
-  gap: 5px;
+  gap: 10px;
 }
 
 .frontend-onboarding-permission-copy h2 {
   margin: 0;
-  font-size: 17px;
+  font-size: 24px;
   line-height: 1.2;
   font-weight: 600;
   color: #ffffff;
@@ -353,36 +356,34 @@
 
 .frontend-onboarding-permission-kind {
   margin: 0;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.2;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.11em;
   color: #9b9b9b;
 }
 
 .frontend-onboarding-permission-copy p {
   margin: 0;
   color: #d0d0d0;
-  font-size: 12.5px;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 16px;
+  line-height: 1.45;
+  display: block;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .frontend-onboarding-permission-copy p.frontend-onboarding-permission-kind {
   display: block;
-  -webkit-line-clamp: unset;
   overflow: visible;
   text-overflow: clip;
 }
 
 .frontend-onboarding-permission-reason {
   margin: 0;
-  font-size: 11.5px;
-  line-height: 1.35;
+  font-size: 15px;
+  line-height: 1.45;
   color: #b7b7b7;
 }
 
@@ -396,8 +397,8 @@
 }
 
 .frontend-onboarding-permission-row > .frontend-onboarding-button {
-  min-width: 104px;
-  padding: 9px 18px;
+  min-width: 140px;
+  padding: 14px 24px;
   align-self: start;
 }
 
@@ -405,17 +406,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 10px;
   color: #6fda8e;
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 600;
-  min-width: 104px;
+  min-width: 140px;
   align-self: start;
 }
 
 .frontend-onboarding-permission-granted-icon {
-  width: 18px;
-  height: 18px;
+  width: 26px;
+  height: 26px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
@@ -423,7 +424,7 @@
   background: rgba(111, 218, 142, 0.18);
   border: 1px solid rgba(111, 218, 142, 0.62);
   color: #82e8a2;
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1;
 }
 
@@ -437,26 +438,31 @@
 .frontend-onboarding-permission-error {
   margin: 0;
   color: #d7d7d7;
-  font-size: 14px;
+  font-size: 16px;
+}
+
+@media (max-width: 1100px) {
+  .frontend-onboarding-card-permissions .frontend-onboarding-permissions-list {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 860px) {
   .frontend-onboarding-shell {
-    align-items: stretch;
-    padding: 18px 14px;
+    overflow: auto;
   }
 
   .frontend-onboarding-card {
-    max-height: calc(100vh - 36px);
-    max-height: calc(100dvh - 36px);
+    min-height: 100dvh;
   }
 
   .frontend-onboarding-card-scroll-region {
-    padding: 24px 18px 18px;
+    width: calc(100% - 36px);
+    padding: 70px 0 24px;
   }
 
   .frontend-onboarding-card-permissions .frontend-onboarding-card-scroll-region {
-    padding-top: 24px;
+    padding-top: 70px;
     gap: 14px;
   }
 
@@ -470,8 +476,8 @@
   }
 
   .frontend-onboarding-window-chrome {
-    top: 8px;
-    right: 8px;
+    top: 10px;
+    right: 10px;
   }
 
   .frontend-onboarding-title {
@@ -483,7 +489,8 @@
   }
 
   .frontend-onboarding-actions {
-    padding: 16px 18px 18px;
+    width: calc(100% - 36px);
+    padding: 16px 0 18px;
   }
 
   .frontend-onboarding-stop-flow-keybind {
@@ -508,12 +515,7 @@
   .frontend-onboarding-permission-row {
     grid-template-columns: 1fr;
     align-items: stretch;
-  }
-
-  .frontend-onboarding-card-permissions .frontend-onboarding-permissions-list {
-    grid-template-columns: 1fr;
-    column-gap: 0;
-    row-gap: 10px;
+    padding: 20px 18px;
   }
 
   .frontend-onboarding-permission-row > .frontend-onboarding-button {
