@@ -1,6 +1,7 @@
 """Helpers for native tool-call bridging and recoverable tool-call error parsing."""
 
 import copy
+import json
 import re
 from typing import Any, Dict, List
 
@@ -27,6 +28,7 @@ _RECOVERABLE_TOOL_CALL_ERROR_MARKERS = (
     "invalid tool_calls type",
 )
 _TOOL_OUTPUT_ERROR_PREVIEW_CHARS = 600
+_RAW_TOOL_CALL_PREVIEW_MARKER = "Raw tool call preview:"
 _RAW_ARGUMENTS_PREVIEW_MARKER = "Raw arguments preview:"
 _FILE_PATH_JSON_PATTERN = re.compile(
     r'"file_path"\s*:\s*"([^"\n]+)"'
@@ -370,9 +372,44 @@ def extract_raw_arguments_preview_from_error(error_msg: str) -> str:
     return preview.strip()
 
 
+def build_raw_tool_call_preview(
+    *,
+    tool_call_id: str,
+    tool_name: str,
+    raw_arguments_preview: str,
+) -> str:
+    """Build a compact raw tool-call preview for validation-failure transparency."""
+    payload: Dict[str, Any] = {
+        "id": tool_call_id,
+        "name": tool_name,
+        "arguments": raw_arguments_preview,
+    }
+    return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+
+
+def extract_raw_tool_call_preview_from_error(error_msg: str) -> str:
+    """Best-effort extraction of raw streamed tool-call preview from error text."""
+    marker_index = error_msg.find(_RAW_TOOL_CALL_PREVIEW_MARKER)
+    if marker_index < 0:
+        return ""
+
+    preview = error_msg[marker_index + len(_RAW_TOOL_CALL_PREVIEW_MARKER):].strip()
+    if not preview:
+        return ""
+
+    if preview[0] in {"'", '"'}:
+        quote = preview[0]
+        preview = preview[1:]
+        if preview.endswith(quote):
+            preview = preview[:-1]
+    return preview.strip()
+
+
 def extract_tool_call_parse_error_from_error(error_msg: str) -> str:
     """Extract a concise parse-error summary from recoverable tool-call error text."""
-    marker_index = error_msg.find(_RAW_ARGUMENTS_PREVIEW_MARKER)
+    marker_index = error_msg.find(_RAW_TOOL_CALL_PREVIEW_MARKER)
+    if marker_index < 0:
+        marker_index = error_msg.find(_RAW_ARGUMENTS_PREVIEW_MARKER)
     summary = error_msg[:marker_index] if marker_index >= 0 else error_msg
     return " ".join(summary.split()).strip()
 

@@ -30,6 +30,21 @@ export function buildThinkingStatus(currentStatus: string | null, chunk?: string
 }
 
 export function formatToolCallPayload(payload?: ToolCallPayloadLike): string {
+  const metadata = payload?.metadata;
+  if (metadata?.llm_tool_call_validation_failed === true) {
+    const rawToolCallPreview = (
+      typeof metadata?.llm_tool_call_raw_tool_call_preview === 'string'
+        ? metadata.llm_tool_call_raw_tool_call_preview.trim()
+        : ''
+    );
+    if (rawToolCallPreview) {
+      return rawToolCallPreview;
+    }
+    const modelFacing = payload?.metadata?.model_facing_tool_call;
+    if (modelFacing && typeof modelFacing === 'object' && !Array.isArray(modelFacing)) {
+      return JSON.stringify(modelFacing, null, 2);
+    }
+  }
   const modelFacing = resolveModelFacingToolCall(payload);
   return JSON.stringify(
     modelFacing,
@@ -88,6 +103,7 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
   arguments?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
   thought_signature?: string;
+  raw_tool_call_preview?: string;
   raw_arguments_preview?: string;
   parse_error?: string;
   frontend_execution_skipped?: boolean;
@@ -100,6 +116,11 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
   const rawArgumentsPreview = (
     typeof metadata?.llm_tool_call_raw_arguments_preview === 'string'
       ? metadata.llm_tool_call_raw_arguments_preview
+      : null
+  );
+  const rawToolCallPreview = (
+    typeof metadata?.llm_tool_call_raw_tool_call_preview === 'string'
+      ? metadata.llm_tool_call_raw_tool_call_preview
       : null
   );
   const parseError = (
@@ -135,6 +156,33 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
   const displayMetadata = resolveDisplayMetadata(metadata);
 
   if (isRecoverableParseFailure) {
+    if (
+      modelFacing
+      && typeof modelFacing === 'object'
+      && !Array.isArray(modelFacing)
+    ) {
+      return {
+        id: typeof modelFacing?.id === 'string' ? modelFacing.id : undefined,
+        name: (
+          typeof modelFacing?.name === 'string'
+            ? modelFacing.name
+            : payload?.tool_name
+        ),
+        arguments: (
+          modelArguments
+          && typeof modelArguments === 'object'
+          && !Array.isArray(modelArguments)
+        )
+          ? modelArguments
+          : undefined,
+        metadata: displayMetadata,
+        thought_signature: thoughtSignature || undefined,
+        raw_tool_call_preview: rawToolCallPreview || undefined,
+        raw_arguments_preview: rawArgumentsPreview || undefined,
+        parse_error: parseError || undefined,
+        frontend_execution_skipped: frontendExecutionSkipped || undefined,
+      };
+    }
     return {
       id: typeof modelFacing?.id === 'string' ? modelFacing.id : undefined,
       name: (
@@ -143,6 +191,7 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
           : payload?.tool_name
       ),
       thought_signature: thoughtSignature || undefined,
+      raw_tool_call_preview: rawToolCallPreview || undefined,
       raw_arguments_preview: rawArgumentsPreview || undefined,
       parse_error: parseError || undefined,
       frontend_execution_skipped: frontendExecutionSkipped || undefined,

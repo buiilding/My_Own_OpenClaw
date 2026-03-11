@@ -180,6 +180,7 @@ class _ErrorOnlyLLMHandler:
                 content=(
                     "Unexpected system error: Invalid response from stream: "
                     "failed to parse streamed tool-call arguments for id=tool_bad name=replace. "
+                    "Raw tool call preview: '{\"id\":\"tool_bad\",\"name\":\"replace\",\"arguments\":\"{\\\"command\\\":\\\"cat > index.html << \\\\\\\"EOF\\\\\\\"\\\\n<!DOCTYPE html>...\\\"...[truncated]\"}' "
                     "Raw arguments preview: '{\"command\":\"cat > index.html << \\\"EOF\\\"\\\\n"
                     "<!DOCTYPE html>...\"...[truncated]'"
                 )
@@ -223,6 +224,9 @@ async def test_interaction_loop_recovers_after_stream_tool_call_format_error():
     assert fallback_call.metadata is not None
     assert fallback_call.metadata["llm_tool_call_validation_failed"] is True
     assert fallback_call.metadata["skip_frontend_execution"] is True
+    assert fallback_call.metadata["llm_tool_call_raw_tool_call_preview"].startswith(
+        '{"id":"tool_bad","name":"replace","arguments":"'
+    )
     assert "index.html" in fallback_call.metadata["llm_tool_call_raw_arguments_preview"]
     assert fallback_call.metadata["llm_tool_call_raw_arguments_preview_truncated"] is True
     assert "failed to parse streamed tool-call arguments" in fallback_call.metadata["llm_tool_call_parse_error"]
