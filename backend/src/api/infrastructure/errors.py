@@ -39,6 +39,9 @@ from fastapi import WebSocketDisconnect
 
 from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.core.validation.validators import ValidationError
+from backend.src.core.infrastructure.user_facing_errors import (
+    format_internal_server_error_message,
+)
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.transport.sender import WebSocketTransportSender
 from backend.src.api.transport.envelope import build_transport_message
@@ -87,9 +90,7 @@ def sanitize_error_message(exception: Exception, context: Optional[str] = None) 
 
     # All other exceptions: return generic message to prevent information leakage
     # Full details are logged server-side via logger.error(exc_info=True)
-    if context:
-        return f"{context}: An internal error occurred"
-    return "An internal error occurred"
+    return format_internal_server_error_message(context)
 
 
 async def send_error_response(

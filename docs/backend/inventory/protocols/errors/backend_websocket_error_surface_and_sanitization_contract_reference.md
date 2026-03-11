@@ -54,6 +54,7 @@ Contract notes:
 
 - Route/handler code should not handcraft error envelopes.
 - `msg_id` may be absent for parse-stage failures before a valid envelope exists.
+- Streamed internal backend failures use the same envelope text and do not expose raw provider/system details in `payload.content`.
 
 ## Handshake Failure Error Surface
 
@@ -76,7 +77,7 @@ Handshake failures do not emit a websocket `error` envelope first; route closes 
 | JSON root not object | `Invalid message format: root must be an object, got <type>` |
 | malformed JSON | `Malformed JSON` |
 | schema mismatch | `Invalid message format: <joined pydantic errors>` |
-| unexpected parse exception | `An internal error occurred` |
+| unexpected parse exception | `Internal server error. Start a new chat and try again.` |
 
 Route loop behavior:
 
@@ -94,7 +95,7 @@ Route loop behavior:
 
 1. `ValidationError` -> expose validation message.
 2. `ValueError`/`KeyError` -> expose only when message contains allowlisted validation terms (`invalid`, `required`, `missing`, `expected`, `not found`, `not allowed`).
-3. Everything else -> generic `An internal error occurred` (or `<context>: An internal error occurred` when context provided).
+3. Everything else -> generic `Internal server error. Start a new chat and try again.` (or `<context>: Internal server error. Start a new chat and try again.` when context provided).
 
 ## Error Send Fallbacks on Disconnect
 
@@ -147,7 +148,8 @@ When changing error behavior, keep aligned:
 |---|---|---|
 | handshake parse/validation failure close | `backend/src/api/routes/websocket/connection.py`, `backend/src/api/routes/websocket/json_parse.py` | closes connection with policy violation (`1008`) before normal route loop |
 | post-handshake parse/schema failure response | `backend/src/api/routes/websocket/message_handler.py` | returns canonical websocket `error` envelope while keeping receive loop alive |
-| handler exception sanitization | `backend/src/api/infrastructure/errors.py`, `message_handler.py` | only safe validation-like errors pass through; internal errors collapse to generic client-safe message |
+| handler exception sanitization | `backend/src/api/infrastructure/errors.py`, `message_handler.py` | only safe validation-like errors pass through; internal errors collapse to the restart-chat generic client-safe message |
+| streamed backend error sanitization | `backend/src/agent/execution/interaction_loop.py`, `backend/src/api/processing/formatters/error.py` | recoverable tool-call parse errors stay internal to the loop; non-recoverable internal failures surface one generic UI-safe message with no raw detail payload |
 | closed-socket error-send fallback | `backend/src/api/transport/sender.py`, `backend/src/api/infrastructure/errors.py` | expected close-path send exceptions are swallowed/logged, preventing route crash loops |
 | sender-task terminal failure propagation | `backend/src/api/transport/websocket.py` | queued/pending sends fail fast when sender enters terminal error state |
 

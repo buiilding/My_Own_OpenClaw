@@ -16,6 +16,9 @@ from backend.src.api.handlers.settings import (
 from backend.src.api.handlers.stop_query import StopQueryHandler
 from backend.src.api.handlers.tool_result import ToolResultHandler
 from backend.src.api.handlers.wakeword import WakewordHandler
+from backend.src.core.infrastructure.user_facing_errors import (
+    INTERNAL_SERVER_ERROR_MESSAGE,
+)
 from backend.src.api.handlers import query as query_handler_module
 from backend.src.api.services import query_execution as query_execution_module
 from backend.src.api.services import rehydrate_execution as rehydrate_execution_module
@@ -1550,7 +1553,7 @@ async def test_load_settings_handler_sends_error_when_config_serialization_fails
 
     assert websocket.sent
     assert websocket.sent[0]["type"] == "error"
-    assert websocket.sent[0]["payload"]["message"] == "An internal error occurred"
+    assert websocket.sent[0]["payload"]["message"] == INTERNAL_SERVER_ERROR_MESSAGE
 
 
 @pytest.mark.asyncio
