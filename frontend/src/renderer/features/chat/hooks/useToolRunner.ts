@@ -34,6 +34,7 @@ import {
   resolveBundleSurfaceMode,
   resolveToolRequestIdForCancellation,
   restoreToolExecutionSurface,
+  shouldDemoteOverlayForBundle,
   shouldSkipToolExecution,
 } from '../utils/toolRunner/toolRunnerSurface';
 import {
@@ -254,6 +255,7 @@ export function useToolRunner(enabled = true) {
         prepareSurface: () => prepareToolExecutionSurface(resolveBundleSurfaceMode(tools), {
           correlationId: bundleId,
           source: 'tool-runner',
+          shouldDemoteOverlay: shouldDemoteOverlayForBundle(tools),
         }),
         runExecution: async () => {
           await toolService.executeToolBundle(tools, bundleId);

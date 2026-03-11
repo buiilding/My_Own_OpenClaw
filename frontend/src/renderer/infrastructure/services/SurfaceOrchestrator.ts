@@ -14,6 +14,7 @@ export {
 
 export {
   resolveBundleSurfaceMode,
+  shouldDemoteOverlayForBundle,
   resolveToolRequestIdForCancellation,
   shouldSkipToolExecution,
 } from './surfaceOrchestrator/mode';

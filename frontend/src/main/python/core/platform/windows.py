@@ -96,9 +96,11 @@ class WindowsWindowManager(BaseWindowManager):
             # Restore if minimized
             if self.user32.IsIconic(hwnd):
                 self.user32.ShowWindow(hwnd, self.SW_RESTORE)
+            if hasattr(self.user32, "BringWindowToTop"):
+                self.user32.BringWindowToTop(hwnd)
             # Bring to front
-            self.user32.SetForegroundWindow(hwnd)
-            return True
+            foreground_result = self.user32.SetForegroundWindow(hwnd)
+            return bool(foreground_result)
         except Exception as e:
             logger.error(f"Error switching to window: {e}", exc_info=True)
             return False

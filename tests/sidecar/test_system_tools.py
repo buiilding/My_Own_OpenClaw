@@ -11,11 +11,20 @@ from tools.system import stats_tool, wait_tool, window_tool  # noqa: E402
 
 
 class FakeWindowManager:
-    def __init__(self, *, windows=None, switch_result=True, switch_error=None, windows_error=None):
+    def __init__(
+        self,
+        *,
+        windows=None,
+        switch_result=True,
+        switch_error=None,
+        windows_error=None,
+        active_window_title=None,
+    ):
         self._windows = windows or []
         self._switch_result = switch_result
         self._switch_error = switch_error
         self._windows_error = windows_error
+        self._active_window_title = active_window_title
         self.switch_calls = []
 
     def switch_to_window(self, tab_name):
@@ -28,6 +37,11 @@ class FakeWindowManager:
         if self._windows_error is not None:
             raise self._windows_error
         return self._windows
+
+    def get_active_window(self):
+        if self._active_window_title is None:
+            return None
+        return {"title": self._active_window_title, "hwnd": 1}
 
 
 def test_get_window_manager_creates_and_reuses_singleton(monkeypatch):
@@ -60,6 +74,7 @@ async def test_switch_to_window_success(monkeypatch):
     manager = FakeWindowManager(
         windows=[{"title": "Terminal"}],
         switch_result=True,
+        active_window_title="Terminal",
     )
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
@@ -101,6 +116,7 @@ async def test_switch_to_window_supports_contains_match_mode(monkeypatch):
     manager = FakeWindowManager(
         windows=[{"title": "Browser - docs"}],
         switch_result=True,
+        active_window_title="Browser - docs",
     )
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
@@ -117,6 +133,7 @@ async def test_switch_to_window_supports_regex_match_mode(monkeypatch):
     manager = FakeWindowManager(
         windows=[{"title": "John Lennon - Beautiful Boy (Darling Boy) - Remastered 2010"}],
         switch_result=True,
+        active_window_title="John Lennon - Beautiful Boy (Darling Boy) - Remastered 2010",
     )
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
@@ -128,6 +145,22 @@ async def test_switch_to_window_supports_regex_match_mode(monkeypatch):
     assert manager.switch_calls == [
         "John Lennon - Beautiful Boy (Darling Boy) - Remastered 2010"
     ]
+
+
+@pytest.mark.asyncio
+async def test_switch_to_window_fails_when_active_window_never_changes(monkeypatch):
+    manager = FakeWindowManager(
+        windows=[{"title": "Terminal"}],
+        switch_result=True,
+        active_window_title="WindieOS Dashboard",
+    )
+    monkeypatch.setattr(window_tool, "_window_manager", manager)
+
+    result = await window_tool.switch_to_window({"tab_name": "Terminal"})
+
+    assert result["success"] is False
+    assert "Active window after switch attempt" in result["error"]
+    assert "WindieOS Dashboard" in result["error"]
 
 
 @pytest.mark.asyncio

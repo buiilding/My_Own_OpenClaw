@@ -1,4 +1,8 @@
-import { captureAfterTool, isComputerUseTool } from './ToolExecutionCapture';
+import {
+  captureAfterTool,
+  isComputerUseTool,
+  resolveCaptureWaitSeconds,
+} from './ToolExecutionCapture';
 import { logBundledToolStart, logBundledToolTiming } from './ToolExecutionLogger';
 import { invokeTool } from './ToolExecutionInvoker';
 import type { SystemState, ToolResult } from '../MessageFormatter';
@@ -124,11 +128,12 @@ export async function runToolBundle(
       if (isComputerTool) {
         const isLastTool = i === bundle.length - 1;
         const captureCorrelationId = `${bundleId}:step-${i + 1}:${tool.toolName}`;
+        const waitSeconds = resolveCaptureWaitSeconds(tool.toolName, tool.args);
         const capture = await captureAfterTool(
           tool.toolName,
           tool.args,
           isLastTool,
-          0,
+          waitSeconds,
           captureCorrelationId,
         );
         totalCaptureTime += capture.captureTime;

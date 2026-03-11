@@ -5,6 +5,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/toolExecution/Too
 jest.mock('../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionCapture', () => ({
   captureAfterTool: jest.fn(),
   isComputerUseTool: jest.fn(),
+  resolveCaptureWaitSeconds: jest.fn(),
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionLogger', () => ({
@@ -17,11 +18,14 @@ import { invokeTool } from '../../frontend/src/renderer/infrastructure/services/
 import {
   captureAfterTool,
   isComputerUseTool,
+  resolveCaptureWaitSeconds,
 } from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionCapture';
 
 const mockInvokeTool = invokeTool as jest.MockedFunction<typeof invokeTool>;
 const mockCaptureAfterTool = captureAfterTool as jest.MockedFunction<typeof captureAfterTool>;
 const mockIsComputerUseTool = isComputerUseTool as jest.MockedFunction<typeof isComputerUseTool>;
+const mockResolveCaptureWaitSeconds =
+  resolveCaptureWaitSeconds as jest.MockedFunction<typeof resolveCaptureWaitSeconds>;
 const READ_FILE_STEP = { toolName: 'read_file', args: { file_path: '/tmp/a' } };
 const MOUSE_CLICK_STEP = { toolName: 'mouse_control', args: { action: 'click', x: 1, y: 2 } };
 const READ_FILE_BUNDLE_ID = 'bundle-read-file';
@@ -59,8 +63,15 @@ const mockTwoStepInvokeResults = (firstResult: unknown, secondResult: unknown) =
 describe('ToolExecutionBundleRunner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockInvokeTool.mockReset();
+    mockCaptureAfterTool.mockReset();
+    mockIsComputerUseTool.mockReset();
+    mockResolveCaptureWaitSeconds.mockReset();
     jest.spyOn(console, 'error').mockImplementation(() => {});
     mockIsComputerUseTool.mockReturnValue(false);
+    mockResolveCaptureWaitSeconds.mockImplementation((toolName) => (
+      toolName === 'screenshot' ? 0 : 2
+    ));
   });
 
   afterEach(() => {
@@ -87,13 +98,11 @@ describe('ToolExecutionBundleRunner', () => {
 
     expect(mockInvokeTool).toHaveBeenNthCalledWith(1, READ_FILE_STEP.toolName, READ_FILE_STEP.args, true);
     expect(mockInvokeTool).toHaveBeenNthCalledWith(2, MOUSE_CLICK_STEP.toolName, MOUSE_CLICK_STEP.args, true);
-    expect(mockCaptureAfterTool).toHaveBeenCalledWith(
-      'mouse_control',
-      MOUSE_CLICK_STEP.args,
-      true,
-      0,
-      'bundle-two-step:step-2:mouse_control',
-    );
+    expect(mockCaptureAfterTool.mock.calls[0]?.[0]).toBe('mouse_control');
+    expect(mockCaptureAfterTool.mock.calls[0]?.[1]).toBe(MOUSE_CLICK_STEP.args);
+    expect(mockCaptureAfterTool.mock.calls[0]?.[2]).toBe(true);
+    expect(mockCaptureAfterTool.mock.calls[0]?.[3]).toBe(2);
+    expect(mockCaptureAfterTool.mock.calls[0]?.[4]).toBe('bundle-two-step:step-2:mouse_control');
     expect(outcome.stepResults).toEqual([
       { tool: 'read_file', status: 'ok', output: 'first' },
       { tool: 'mouse_control', status: 'ok', output: 'second' },
@@ -194,13 +203,11 @@ describe('ToolExecutionBundleRunner', () => {
       { toolName: 'read_file', args: { file_path: '/tmp/a' } },
     ], 'bundle-two-step-non-final-capture');
 
-    expect(mockCaptureAfterTool).toHaveBeenCalledWith(
-      'mouse_control',
-      { action: 'move', x: 1, y: 2 },
-      false,
-      0,
-      'bundle-two-step-non-final-capture:step-1:mouse_control',
-    );
+    expect(mockCaptureAfterTool.mock.calls[0]?.[0]).toBe('mouse_control');
+    expect(mockCaptureAfterTool.mock.calls[0]?.[1]).toEqual({ action: 'move', x: 1, y: 2 });
+    expect(mockCaptureAfterTool.mock.calls[0]?.[2]).toBe(false);
+    expect(mockCaptureAfterTool.mock.calls[0]?.[3]).toBe(2);
+    expect(mockCaptureAfterTool.mock.calls[0]?.[4]).toBe('bundle-two-step-non-final-capture:step-1:mouse_control');
     expect(outcome.systemState).toBeNull();
     expect(outcome.screenshot).toBe('shot-1');
     expect(outcome.totalWaitDelay).toBe(1);

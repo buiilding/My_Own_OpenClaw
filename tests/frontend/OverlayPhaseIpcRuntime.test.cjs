@@ -60,6 +60,8 @@ describe('overlay_phase_ipc_runtime', () => {
     expect(typeof invokeHandlers['show-chatbox']).toBe('function');
     expect(typeof invokeHandlers['hide-chatbox']).toBe('function');
     expect(typeof invokeHandlers['handoff-surface-for-computer-use']).toBe('function');
+    expect(typeof invokeHandlers['demote-overlay-topmost-for-window-switch']).toBe('function');
+    expect(typeof invokeHandlers['restore-overlay-topmost-after-window-switch']).toBe('function');
     expect(typeof invokeHandlers['prepare-surface-for-screenshot']).toBe('function');
     expect(typeof invokeHandlers['restore-surface-after-screenshot']).toBe('function');
     expect(typeof eventHandlers['move-chatbox-to']).toBe('function');
@@ -87,6 +89,62 @@ describe('overlay_phase_ipc_runtime', () => {
       restoreResponseOverlay: true,
       targetDisplayAffinity: null,
     });
+  });
+
+  test('demote-overlay-topmost-for-window-switch demotes visible overlays and restores external focus best-effort', async () => {
+    const setAlwaysOnTop = jest.fn();
+    const blur = jest.fn();
+    const restorePreviousExternalFocusedWindow = jest.fn(() => true);
+    const { invokeHandlers } = createRuntime({
+      getWindows: () => ({
+        chatWindow: {
+          isDestroyed: jest.fn(() => false),
+          isVisible: jest.fn(() => true),
+          setAlwaysOnTop,
+          blur,
+        },
+      }),
+      externalFocusTracker: {
+        canTrackExternalFocus: jest.fn(() => true),
+        restorePreviousExternalFocusedWindow,
+      },
+    });
+
+    const result = await invokeHandlers['demote-overlay-topmost-for-window-switch']({}, {});
+
+    expect(result).toEqual({
+      success: true,
+      demoted: true,
+      restoredExternalFocus: true,
+    });
+    expect(setAlwaysOnTop).toHaveBeenCalledWith(false);
+    expect(blur).toHaveBeenCalledTimes(1);
+    expect(restorePreviousExternalFocusedWindow).toHaveBeenCalledTimes(1);
+  });
+
+  test('restore-overlay-topmost-after-window-switch re-promotes visible overlays', async () => {
+    const setAlwaysOnTop = jest.fn();
+    const moveTop = jest.fn();
+    const { invokeHandlers } = createRuntime({
+      platform: 'darwin',
+      getWindows: () => ({
+        chatWindow: {
+          isDestroyed: jest.fn(() => false),
+          isVisible: jest.fn(() => true),
+          setAlwaysOnTop,
+          moveTop,
+        },
+      }),
+    });
+
+    const result = await invokeHandlers['restore-overlay-topmost-after-window-switch']({}, {});
+
+    expect(result).toEqual({
+      success: true,
+      restored: true,
+    });
+    expect(setAlwaysOnTop).toHaveBeenCalled();
+    expect(moveTop).toHaveBeenCalledTimes(1);
   });
 
   test('routes chatbox visual anchor updates to positioning runtime', async () => {

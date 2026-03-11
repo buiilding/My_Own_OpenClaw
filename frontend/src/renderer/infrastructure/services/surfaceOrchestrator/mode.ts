@@ -35,6 +35,30 @@ export function resolveToolSurfaceMode(
   return 'none';
 }
 
+function isWindowsOrMacPlatform(): boolean {
+  if (typeof navigator === 'undefined') {
+    return false;
+  }
+  const userAgent = typeof navigator.userAgent === 'string' ? navigator.userAgent : '';
+  return /windows|macintosh|mac os x|macintel/i.test(userAgent);
+}
+
+export function shouldDemoteOverlayForTool(
+  toolName: string,
+  _args: Record<string, unknown> | undefined,
+): boolean {
+  return isWindowsOrMacPlatform() && normalizeActionName(toolName) === 'switch_tab';
+}
+
+export function shouldDemoteOverlayForBundle(
+  tools: Array<{ toolName: string; args: Record<string, unknown> }>,
+): boolean {
+  if (!isWindowsOrMacPlatform()) {
+    return false;
+  }
+  return tools.some((tool) => normalizeActionName(tool.toolName) === 'switch_tab');
+}
+
 export function resolveBundleSurfaceMode(
   tools: Array<{ toolName: string; args: Record<string, unknown> }>,
 ): SurfaceMode {

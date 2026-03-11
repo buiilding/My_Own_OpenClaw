@@ -1,7 +1,9 @@
 const {
+  handleDemoteOverlayTopmostForWindowSwitch,
   handleHideChatbox,
   handleHandoffSurfaceForComputerUse,
   handlePrepareSurfaceForScreenshot,
+  handleRestoreOverlayTopmostAfterWindowSwitch,
   handleRestoreSurfaceAfterScreenshot,
   handleShowChatbox,
 } = require('./overlay_visibility_handler.cjs');
@@ -33,6 +35,8 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     showChatWindow,
     hideChatWindow,
     hideMainWindow,
+    externalFocusTracker = null,
+    platform = process.platform,
     warn = console.warn,
   } = deps;
 
@@ -109,6 +113,22 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     return handleHandoffSurfaceForComputerUse(options, {
       getWindows,
       showChatWindow,
+    });
+  });
+
+  ipcMain.handle('demote-overlay-topmost-for-window-switch', async (_event, options = {}) => {
+    return handleDemoteOverlayTopmostForWindowSwitch(options, {
+      getWindows,
+      externalFocusTracker,
+      warn,
+    });
+  });
+
+  ipcMain.handle('restore-overlay-topmost-after-window-switch', async (_event, options = {}) => {
+    return handleRestoreOverlayTopmostAfterWindowSwitch(options, {
+      getWindows,
+      platform,
+      warn,
     });
   });
 
