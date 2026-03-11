@@ -19,7 +19,6 @@ import { buildOutgoingMessage } from '../utils/message/messageInput';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStream/chatStreamThinkingStatus';
 import {
-  CloseIcon,
   CompactIcon,
   ScreenshotIcon,
   SendIcon,
@@ -54,8 +53,6 @@ function ChatBox() {
   const [wakewordSttSessionActive, setWakewordSttSessionActive] = useState(false);
   const [clipboardImages, setClipboardImages] = useState([]);
   const inputRef = useRef(null);
-  const pillRef = useRef(null);
-  const sendButtonRef = useRef(null);
   const loopInteractionLockedRef = useRef(false);
   const dragStateRef = useRef({
     isDragging: false,
@@ -159,17 +156,6 @@ function ChatBox() {
       });
     } catch (error) {
       console.warn('[ChatBox] Failed to show main window:', error);
-    }
-  }, [loopInteractionLocked]);
-
-  const handleCloseChatbox = useCallback(async () => {
-    if (loopInteractionLocked) {
-      return;
-    }
-    try {
-      await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
-    } catch (error) {
-      console.warn('[ChatBox] Failed to hide chatbox:', error);
     }
   }, [loopInteractionLocked]);
 
@@ -280,35 +266,12 @@ function ChatBox() {
 
   useChatboxVisualAnchorBindings(hasImagePreview);
 
-  useEffect(() => {
-    const pill = pillRef.current;
-    const sendButton = sendButtonRef.current;
-    if (!pill || !sendButton) {
-      return undefined;
-    }
-
-    const syncCloseAnchor = () => {
-      const sendRect = sendButton.getBoundingClientRect();
-      const pillRect = pill.getBoundingClientRect();
-      const centerX = Math.round((sendRect.left - pillRect.left) + (sendRect.width / 2));
-      pill.style.setProperty('--chatbox-close-center-x', `${centerX}px`);
-    };
-
-    const rafId = window.requestAnimationFrame(syncCloseAnchor);
-    window.addEventListener('resize', syncCloseAnchor);
-    return () => {
-      window.cancelAnimationFrame(rafId);
-      window.removeEventListener('resize', syncCloseAnchor);
-    };
-  }, [devUiEnabled, hasImagePreview]);
-
   return (
     <div
       className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasImagePreview ? ' with-preview' : ''}${loopInteractionLocked ? ' loop-active' : ''}`}
     >
       <div className="chatbox-shell">
         <form
-          ref={pillRef}
           className={`chatbox-pill${hasImagePreview ? ' with-preview' : ''}`}
           onSubmit={handleSubmit}
           onMouseDown={handlePillMouseDown}
@@ -375,7 +338,6 @@ function ChatBox() {
               <SoundIcon />
             </button>
             <button
-              ref={sendButtonRef}
               type="submit"
               className="chatbox-icon chatbox-send"
               aria-label="Send message"
@@ -385,16 +347,6 @@ function ChatBox() {
               <SendIcon />
             </button>
           </div>
-          <button
-            type="button"
-            className="chatbox-icon chatbox-pill-close"
-            onClick={handleCloseChatbox}
-            aria-label="Hide chat pill"
-            title="Hide chat pill"
-            disabled={loopInteractionLocked}
-          >
-            <CloseIcon />
-          </button>
         </form>
       </div>
     </div>
