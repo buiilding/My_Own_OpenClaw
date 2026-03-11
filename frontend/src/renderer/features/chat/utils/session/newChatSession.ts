@@ -1,12 +1,13 @@
 import type { TokenCounts } from '../../stores/chatStore';
 import { setActiveConversationRef } from '../../../../infrastructure/transcript/TranscriptWriter';
 import { createConversationRef } from './conversationRef';
+import { resetActiveChatSession } from './resetActiveChatSession';
 
 type NewChatSessionOptions = {
-  clearMessages: () => void;
-  setIsSending: (isSending: boolean) => void;
-  setThinkingStatus: (status: string | null) => void;
-  setTokenCounts: (counts: TokenCounts | null) => void;
+  clearMessages: (conversationRef?: string | null) => void;
+  setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
+  setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
+  setTokenCounts: (counts: TokenCounts | null, conversationRef?: string | null) => void;
   stopActiveQuery?: () => void;
 };
 
@@ -21,10 +22,12 @@ export const startNewChatSession = ({
     stopActiveQuery();
   }
 
-  clearMessages();
-  setIsSending(false);
-  setThinkingStatus(null);
-  setTokenCounts(null);
+  resetActiveChatSession({
+    clearMessages,
+    setIsSending,
+    setThinkingStatus,
+    setTokenCounts,
+  });
 
   const nextConversationRef = createConversationRef();
   setActiveConversationRef(nextConversationRef);

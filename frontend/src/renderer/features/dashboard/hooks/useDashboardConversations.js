@@ -6,6 +6,7 @@ import {
   setActiveConversationRef,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
+import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
 import {
   parseMemoriesToMessages,
   toRehydrateMessagePayload,
@@ -21,9 +22,11 @@ import {
 function useDashboardConversations({
   resolvedUserId,
   sessionConversationRef,
+  clearChatMessages,
   setChatMessages,
   setChatIsSending,
   setChatThinkingStatus,
+  setChatTokenCounts,
   setChatActiveConversationRef,
   searchOpen,
 }) {
@@ -240,23 +243,27 @@ function useDashboardConversations({
       setSearchedConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
       setPinnedConversationRefs((current) => current.filter((id) => id !== conversationRef));
       if (sessionConversationRef === conversationRef) {
-        setActiveConversationRef(null);
-        updateTranscriptSession(null, resolvedUserId);
-        setChatActiveConversationRef(null);
-        setChatMessages([], null);
-        setChatIsSending(false, null);
-        setChatThinkingStatus(null, null);
+        resetActiveChatSession({
+          conversationRef,
+          userId: resolvedUserId,
+          clearMessages: clearChatMessages,
+          setIsSending: setChatIsSending,
+          setThinkingStatus: setChatThinkingStatus,
+          setTokenCounts: setChatTokenCounts,
+          setChatActiveConversationRef,
+        });
       }
     } catch (error) {
       setRecentConversationsError(error?.message || 'Failed to delete chat');
     }
   }, [
+    clearChatMessages,
     resolvedUserId,
     sessionConversationRef,
     setChatActiveConversationRef,
     setChatIsSending,
-    setChatMessages,
     setChatThinkingStatus,
+    setChatTokenCounts,
   ]);
 
   const recentConversationGroups = useMemo(() => (

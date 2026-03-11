@@ -12,10 +12,7 @@ import { useTranscriptSessionInfo } from '../hooks/useTranscriptSessionInfo';
 import { useDashboardConversations } from '../hooks/useDashboardConversations';
 import MemorySection from './sections/MemorySection';
 import SearchChatsModal from './SearchChatsModal';
-import {
-  setActiveConversationRef,
-  updateTranscriptSession,
-} from '../../../infrastructure/transcript/TranscriptWriter';
+import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) {
@@ -97,9 +94,11 @@ function ChatGptDashboardShell({
   } = useDashboardConversations({
     resolvedUserId,
     sessionConversationRef: sessionInfo.conversationRef,
+    clearChatMessages,
     setChatMessages,
     setChatIsSending,
     setChatThinkingStatus,
+    setChatTokenCounts,
     setChatActiveConversationRef,
     searchOpen,
   });
@@ -182,14 +181,15 @@ function ChatGptDashboardShell({
   }, [closeAllPanels, handleOpenConversation]);
 
   const handleChatsCleared = useCallback(async () => {
-    const conversationRef = sessionInfo.conversationRef || null;
-    setActiveConversationRef(null);
-    updateTranscriptSession(null, resolvedUserId);
-    clearChatMessages(conversationRef);
-    setChatIsSending(false, conversationRef);
-    setChatThinkingStatus(null, conversationRef);
-    setChatTokenCounts(null, conversationRef);
-    setChatActiveConversationRef(null);
+    resetActiveChatSession({
+      conversationRef: sessionInfo.conversationRef || null,
+      userId: resolvedUserId,
+      clearMessages: clearChatMessages,
+      setIsSending: setChatIsSending,
+      setThinkingStatus: setChatThinkingStatus,
+      setTokenCounts: setChatTokenCounts,
+      setChatActiveConversationRef,
+    });
     await loadRecentConversations();
   }, [
     clearChatMessages,
