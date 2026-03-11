@@ -375,6 +375,10 @@
   align-items: start;
 }
 
+.frontend-onboarding-card-permissions .frontend-onboarding-permissions-list.single {
+  grid-template-columns: 1fr;
+}
+
 .frontend-onboarding-permission-row {
   display: grid;
   grid-template-columns: 1fr auto;
