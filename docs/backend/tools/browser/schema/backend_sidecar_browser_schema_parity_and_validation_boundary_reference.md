@@ -35,7 +35,7 @@ Backend model-facing declaration boundary is narrower:
 
 - `RemoteBrowserTool.get_json_schema(...)` projects a canonical action enum for model/tool-calling output
 - projection excludes removed aliases and browser file-edit actions (`write_file`, `replace_file`, `read_file`)
-- projection hides selected compatibility/camelCase fields (`timeoutMs`, `promptText`, `colorScheme`, `targetId`, `targetUrl`, `inputRef`, `snapshotFormat`, plus legacy edit payload keys)
+- projection hides selected compatibility/camelCase fields (`timeoutMs`, `promptText`, `colorScheme`, `targetId`, `targetUrl`, `inputRef`, `snapshotFormat`, generic storage-only `value`, plus legacy edit payload keys)
 
 Backend runtime gate in `RemoteBrowserTool`:
 

@@ -46,6 +46,7 @@ _BROWSER_EXPOSED_REMOVED_PROPERTIES = frozenset(
         "profile",
         "node",
         "target",
+        "value",
     }
 )
 
@@ -56,7 +57,7 @@ _COMPACT_BROWSER_PROPERTY_DESCRIPTIONS: dict[str, str] = {
     "query": "Query text for extract/search actions.",
     "ref": "Element reference from snapshot output.",
     "index": "Element index.",
-    "text": "Text payload for input action.",
+    "text": "Text payload for input, find_text, done, or select_dropdown actions.",
     "submit": "Submit after input.",
     "keys": "Key sequence for send_keys.",
     "key": "Single key value.",

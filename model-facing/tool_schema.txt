@@ -1003,7 +1003,6 @@
           "values": {
             "type": "object"
           },
-          "value": {},
           "contains": {
             "type": "string"
           },
@@ -1221,7 +1220,7 @@
           "text": {
             "type": "string",
             "maxLength": 10000,
-            "description": "Text payload for input action."
+            "description": "Text payload for input, find_text, done, or select_dropdown actions."
           },
           "submit": {
             "type": "boolean",
