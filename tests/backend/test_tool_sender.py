@@ -289,3 +289,59 @@ async def test_send_tools_bundle_includes_model_facing_tool_call_metadata() -> N
         "name": "read_file",
         "arguments": {"file_path": "/tmp/a.txt"},
     }
+
+
+@pytest.mark.asyncio
+async def test_send_tools_preserves_existing_model_facing_wrapper_for_successful_call():
+    request_id = "req-wrapper-1"
+    parsed_call = ParsedToolCall(
+        tool_name="screenshot",
+        parameters={},
+        metadata={
+            "request_id": request_id,
+            "tool_call_id": "tool_llm_wrapper_1",
+            "description": "System Settings is open",
+            "explanation": "Verify the visible UI",
+            "expectation": "A screenshot is captured",
+            "model_facing_tool_call": {
+                "id": "tool_llm_wrapper_1",
+                "name": "computer_use",
+                "arguments": {
+                    "tool": "screenshot",
+                    "metadata": {
+                        "description": "System Settings is open",
+                        "explanation": "Verify the visible UI",
+                        "expectation": "A screenshot is captured",
+                    },
+                    "arguments": {},
+                },
+            },
+        },
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(parsed_call)
+
+    sender = _build_sender(
+        PreparationResult(
+            resolved_calls=[resolved_call],
+            errors=[],
+            bundle_id=None,
+        )
+    )
+    session = _DummySession()
+    emitted = await _collect_emitted_events(sender, [parsed_call], session)
+
+    assert len(emitted) == 1
+    assert isinstance(emitted[0], ToolCallEvent)
+    assert emitted[0].metadata["model_facing_tool_call"] == {
+        "id": "tool_llm_wrapper_1",
+        "name": "computer_use",
+        "arguments": {
+            "tool": "screenshot",
+            "metadata": {
+                "description": "System Settings is open",
+                "explanation": "Verify the visible UI",
+                "expectation": "A screenshot is captured",
+            },
+            "arguments": {},
+        },
+    }

@@ -36,7 +36,18 @@ def test_to_parsed_response_normalizes_native_tool_calls():
         "tool": "replace",
         "arguments": {"path": "README.md"},
     }
-    assert parsed.tool_calls[0].metadata == {"tool_call_id": "call_123", "source": "llm"}
+    assert parsed.tool_calls[0].metadata == {
+        "tool_call_id": "call_123",
+        "source": "llm",
+        "model_facing_tool_call": {
+            "id": "call_123",
+            "name": "replace",
+            "arguments": {
+                "path": "README.md",
+                "metadata": {"source": "llm"},
+            },
+        },
+    }
 
 
 def test_to_parsed_response_handles_invalid_native_payload_fields():
@@ -216,6 +227,23 @@ def test_to_parsed_response_maps_unified_computer_use_to_concrete_tool():
         "description": "screen",
         "explanation": "click target",
         "expectation": "dialog opens",
+        "model_facing_tool_call": {
+            "id": "call_mouse_1",
+            "name": "computer_use",
+            "arguments": {
+                "tool": "mouse_control",
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "click target",
+                    "expectation": "dialog opens",
+                },
+                "arguments": {
+                    "action": "click",
+                    "x": 120,
+                    "y": 240,
+                },
+            },
+        },
     }
 
 
@@ -297,6 +325,18 @@ def test_to_parsed_response_maps_unified_computer_use_without_arguments_to_empty
         "description": "screen",
         "explanation": "wait for response",
         "expectation": "new content appears",
+        "model_facing_tool_call": {
+            "id": "call_wait_1",
+            "name": "computer_use",
+            "arguments": {
+                "tool": "wait",
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "wait for response",
+                    "expectation": "new content appears",
+                },
+            },
+        },
     }
 
 
@@ -669,7 +709,62 @@ def test_to_parsed_response_maps_unified_system_use_to_concrete_tool():
         "run_in_background": False,
         "explanation": "verify shell path",
     }
-    assert call.metadata == {"tool_call_id": "call_shell_1"}
+    assert call.metadata == {
+        "tool_call_id": "call_shell_1",
+        "model_facing_tool_call": {
+            "id": "call_shell_1",
+            "name": "system_use",
+            "arguments": {
+                "tool": "run_shell_command",
+                "explanation": "verify shell path",
+                "arguments": {
+                    "command": "echo hi",
+                    "run_in_background": False,
+                },
+            },
+        },
+    }
+
+
+def test_to_history_tool_calls_preserves_successful_unified_computer_use_wrapper():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_screenshot_1",
+                    "name": "computer_use",
+                    "arguments": {
+                        "tool": "screenshot",
+                        "metadata": {
+                            "description": "System Settings is open",
+                            "explanation": "Verify the currently focused window",
+                            "expectation": "A screenshot of the current desktop is captured",
+                        },
+                        "arguments": {},
+                    },
+                }
+            ],
+        }
+    )
+
+    history_calls = to_history_tool_calls(parsed.tool_calls)
+
+    assert history_calls == [
+        {
+            "id": "call_screenshot_1",
+            "name": "computer_use",
+            "arguments": {
+                "tool": "screenshot",
+                "metadata": {
+                    "description": "System Settings is open",
+                    "explanation": "Verify the currently focused window",
+                    "expectation": "A screenshot of the current desktop is captured",
+                },
+                "arguments": {},
+            },
+        }
+    ]
 
 
 def test_to_parsed_response_maps_unified_system_use_replace_to_replace():
@@ -704,7 +799,22 @@ def test_to_parsed_response_maps_unified_system_use_replace_to_replace():
         "new_string": "y",
         "explanation": "patch file",
     }
-    assert call.metadata == {"tool_call_id": "call_replace_1"}
+    assert call.metadata == {
+        "tool_call_id": "call_replace_1",
+        "model_facing_tool_call": {
+            "id": "call_replace_1",
+            "name": "system_use",
+            "arguments": {
+                "tool": "replace",
+                "explanation": "patch file",
+                "arguments": {
+                    "file_path": "/tmp/a.txt",
+                    "old_string": "x",
+                    "new_string": "y",
+                },
+            },
+        },
+    }
 
 
 def test_to_parsed_response_maps_unified_system_use_nested_explanation_fallback():
@@ -734,7 +844,22 @@ def test_to_parsed_response_maps_unified_system_use_nested_explanation_fallback(
     call = parsed.tool_calls[0]
     assert call.tool_name == "replace"
     assert call.parameters["explanation"] == "legacy nested patch rationale"
-    assert call.metadata == {"tool_call_id": "call_replace_fallback_1"}
+    assert call.metadata == {
+        "tool_call_id": "call_replace_fallback_1",
+        "model_facing_tool_call": {
+            "id": "call_replace_fallback_1",
+            "name": "system_use",
+            "arguments": {
+                "tool": "replace",
+                "arguments": {
+                    "file_path": "/tmp/a.txt",
+                    "old_string": "x",
+                    "new_string": "y",
+                    "explanation": "legacy nested patch rationale",
+                },
+            },
+        },
+    }
 
 
 def test_to_parsed_response_keeps_unified_system_use_when_subtool_is_invalid():
@@ -762,7 +887,17 @@ def test_to_parsed_response_keeps_unified_system_use_when_subtool_is_invalid():
         "tool": "not_a_real_system_tool",
         "arguments": {"command": "echo hi"},
     }
-    assert call.metadata == {"tool_call_id": "call_system_bad_1"}
+    assert call.metadata == {
+        "tool_call_id": "call_system_bad_1",
+        "model_facing_tool_call": {
+            "id": "call_system_bad_1",
+            "name": "system_use",
+            "arguments": {
+                "tool": "not_a_real_system_tool",
+                "arguments": {"command": "echo hi"},
+            },
+        },
+    }
 
 
 def test_to_parsed_response_canonicalizes_direct_legacy_system_tool_to_system_use():
@@ -794,7 +929,17 @@ def test_to_parsed_response_canonicalizes_direct_legacy_system_tool_to_system_us
             "explanation": "inspect settings windows",
         },
     }
-    assert call.metadata == {"tool_call_id": "call_windows_1"}
+    assert call.metadata == {
+        "tool_call_id": "call_windows_1",
+        "model_facing_tool_call": {
+            "id": "call_windows_1",
+            "name": "get_open_windows",
+            "arguments": {
+                "filter_text": "System Settings",
+                "explanation": "inspect settings windows",
+            },
+        },
+    }
 
 
 def test_recoverable_error_detection_and_message_formatting():
