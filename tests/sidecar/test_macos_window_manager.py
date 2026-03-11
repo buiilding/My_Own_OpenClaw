@@ -22,6 +22,20 @@ class _FakeApp:
         self.activated = True
 
 
+class _FakeQuartzNSDictionary:
+    def __init__(self, data):
+        self._data = data
+
+    def get(self, key, default=None):
+        return self._data.get(key, default)
+
+    def __iter__(self):
+        return iter(self._data.items())
+
+    def __repr__(self):
+        return repr(self._data)
+
+
 def _install_fake_appkit(monkeypatch, *, apps, active_app):
     class _FakeWorkspace:
         def runningApplications(self):
@@ -124,6 +138,28 @@ def test_macos_window_manager_get_windows_falls_back_to_running_apps_when_quartz
         {"title": "Terminal", "hwnd": None},
         {"title": "Safari", "hwnd": None},
     ]
+
+
+def test_macos_window_manager_accepts_mapping_like_quartz_records(monkeypatch):
+    _install_fake_appkit(
+        monkeypatch,
+        apps=[_FakeApp("Terminal")],
+        active_app={"NSApplicationName": "Terminal"},
+    )
+    _install_fake_quartz(
+        monkeypatch,
+        all_windows=[
+            _FakeQuartzNSDictionary(
+                {"owner": "Google Chrome", "name": "Inbox", "layer": 0, "alpha": 1, "id": 12}
+            ),
+            _FakeQuartzNSDictionary(
+                {"owner": "Dock", "name": "", "layer": 20, "alpha": 1, "id": 13}
+            ),
+        ],
+    )
+    manager = MacOSWindowManager()
+
+    assert manager.get_windows() == [{"title": "Inbox", "hwnd": 12}]
 
 
 def test_macos_window_manager_logs_quartz_filter_debug_summary(monkeypatch, caplog):

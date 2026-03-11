@@ -1,5 +1,6 @@
 """macOS window manager implementation."""
 
+from collections.abc import Mapping
 import logging
 import subprocess
 import time
@@ -32,8 +33,20 @@ class MacOSWindowManager(BaseWindowManager):
             self._available = False
 
     @staticmethod
-    def _summarize_quartz_window(raw_window) -> dict:
-        if not isinstance(raw_window, dict):
+    def _coerce_quartz_window_record(raw_window):
+        if isinstance(raw_window, Mapping):
+            return raw_window
+        if hasattr(raw_window, "get"):
+            return raw_window
+        try:
+            coerced_window = dict(raw_window)
+        except (TypeError, ValueError):
+            return None
+        return coerced_window if hasattr(coerced_window, "get") else None
+
+    def _summarize_quartz_window(self, raw_window) -> dict:
+        window_record = self._coerce_quartz_window_record(raw_window)
+        if window_record is None:
             return {
                 "type": type(raw_window).__name__,
                 "repr": repr(raw_window)[:120],
@@ -41,7 +54,7 @@ class MacOSWindowManager(BaseWindowManager):
 
         def _pick(*keys):
             for key in keys:
-                value = raw_window.get(key)
+                value = window_record.get(key)
                 if value not in {None, ""}:
                     return value
             return None
@@ -131,7 +144,8 @@ class MacOSWindowManager(BaseWindowManager):
         dropped_alpha = 0
         dropped_title = 0
         for raw_window in raw_windows:
-            if not isinstance(raw_window, dict):
+            window_record = self._coerce_quartz_window_record(raw_window)
+            if window_record is None:
                 dropped_non_dict += 1
                 if len(sample_records) < 5:
                     sample_records.append(
@@ -143,13 +157,13 @@ class MacOSWindowManager(BaseWindowManager):
                 continue
 
             owner_name = str(
-                raw_window.get(self.Quartz.kCGWindowOwnerName) or ""
+                window_record.get(self.Quartz.kCGWindowOwnerName) or ""
             ).strip()
             window_name = str(
-                raw_window.get(self.Quartz.kCGWindowName) or ""
+                window_record.get(self.Quartz.kCGWindowName) or ""
             ).strip()
-            layer = int(raw_window.get(self.Quartz.kCGWindowLayer, 0) or 0)
-            alpha = float(raw_window.get(self.Quartz.kCGWindowAlpha, 1.0) or 0.0)
+            layer = int(window_record.get(self.Quartz.kCGWindowLayer, 0) or 0)
+            alpha = float(window_record.get(self.Quartz.kCGWindowAlpha, 1.0) or 0.0)
 
             if layer != 0:
                 dropped_layer += 1
@@ -187,7 +201,7 @@ class MacOSWindowManager(BaseWindowManager):
             windows.append(
                 {
                     "title": title,
-                    "hwnd": raw_window.get(self.Quartz.kCGWindowNumber),
+                    "hwnd": window_record.get(self.Quartz.kCGWindowNumber),
                     "app_name": owner_name or title,
                     "window_name": window_name or title,
                 }
