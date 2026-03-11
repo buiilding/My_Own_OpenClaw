@@ -134,6 +134,9 @@ const mapSearchMemoryPayload = createPayloadMapper({
   limit: 'limit',
   memory_type: 'memory_type',
   exclude_conversation_id: ['excludeConversationId', 'exclude_conversation_id'],
+  episodic_limit: ['episodicLimit', 'episodic_limit'],
+  semantic_limit: ['semanticLimit', 'semantic_limit'],
+  semantic_min_score: ['semanticMinScore', 'semantic_min_score'],
 });
 
 const COMPILED_RPC_HANDLER_DEFINITIONS = [

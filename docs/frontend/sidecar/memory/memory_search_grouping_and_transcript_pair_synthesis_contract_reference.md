@@ -42,7 +42,7 @@ title: "Memory Search Grouping and Transcript Pair Synthesis Contract Reference"
 `query_payload_builder.cjs` behavior:
 
 - `resolveMemoryEnrichment(...)` calls:
-  - `searchMemory(text, userId, 5, null, conversationRef)`
+  - `searchMemory(text, userId, 6, null, conversationRef, { episodic_limit=4, semantic_limit=2, semantic_min_score=0.20 })`
 - memory tags are always present when retrieval injection is enabled:
   - `<episodic_memory> ... </episodic_memory>`
   - `<semantic_memory> ... </semantic_memory>`
@@ -54,9 +54,14 @@ title: "Memory Search Grouping and Transcript Pair Synthesis Contract Reference"
 `LocalBackendMemoryHandlersMixin._handle_search_memory(...)`:
 
 1. validate payload using `normalize_search_memory_payload(...)`
-2. build optional memory-type filter via `build_memory_filters(...)`
-3. query store: `memory_store.search(query, user_id, filters, limit)`
-4. remove active conversation rows via `exclude_conversation_results(...)` when `exclude_conversation_id` is provided
+2. validate optional balanced retrieval settings (`limit`, `episodic_limit`, `semantic_limit`, `semantic_min_score`)
+3. default mode:
+  - build optional memory-type filter via `build_memory_filters(...)`
+  - query store: `memory_store.search(query, user_id, filters, limit)`
+4. balanced prompt-injection mode:
+  - run separate episodic + semantic searches with independent limits
+  - apply active-conversation exclusion to episodic results only
+  - apply `semantic_min_score` to semantic results
 5. normalize output text buckets via `group_memory_texts(...)`
 6. return grouped shape:
   - `{ memories: { episodic: [...], semantic: [...] } }`

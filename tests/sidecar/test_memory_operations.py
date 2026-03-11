@@ -6,10 +6,12 @@ ensure_frontend_python_path()
 from memory.operations import (  # noqa: E402
     build_store_memory_response_data,
     build_completed_turn_memory_metadata,
+    filter_results_by_min_score,
     format_interaction_memory,
     group_memory_texts,
     normalize_and_store_completed_turn_memory,
     normalize_search_memory_payload,
+    normalize_search_memory_selection,
     normalize_store_memory_payload,
     store_completed_turn_memory,
 )
@@ -109,6 +111,61 @@ def test_normalize_search_memory_payload_allows_no_type_filter():
     assert normalized is not None
     assert normalized["query"] == "hello"
     assert normalized["memory_type"] is None
+
+
+def test_normalize_search_memory_selection_returns_balanced_settings():
+    normalized, error = normalize_search_memory_selection(
+        limit=6,
+        episodic_limit=4,
+        semantic_limit=2,
+        semantic_min_score=0.2,
+    )
+
+    assert error is None
+    assert normalized == {
+        "limit": 6,
+        "episodic_limit": 4,
+        "semantic_limit": 2,
+        "semantic_min_score": 0.2,
+        "use_balanced_limits": True,
+    }
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected_error"),
+    [
+        ({"limit": 0}, "limit must be greater than 0"),
+        ({"limit": "5"}, "limit must be an integer"),
+        ({"limit": 5, "episodic_limit": 0}, "episodic_limit must be greater than 0"),
+        ({"limit": 5, "semantic_limit": "2"}, "semantic_limit must be an integer"),
+        (
+            {"limit": 5, "semantic_min_score": 2},
+            "semantic_min_score must be between 0 and 1",
+        ),
+    ],
+)
+def test_normalize_search_memory_selection_rejects_invalid_values(kwargs, expected_error):
+    normalized, error = normalize_search_memory_selection(**kwargs)
+
+    assert normalized is None
+    assert error == expected_error
+
+
+def test_filter_results_by_min_score_keeps_only_results_at_or_above_threshold():
+    filtered = filter_results_by_min_score(
+        [
+            {"type": "semantic", "text": "high", "score": 0.9},
+            {"type": "semantic", "text": "edge", "score": 0.2},
+            {"type": "semantic", "text": "low", "score": 0.19},
+            {"type": "semantic", "text": "missing"},
+        ],
+        0.2,
+    )
+
+    assert filtered == [
+        {"type": "semantic", "text": "high", "score": 0.9},
+        {"type": "semantic", "text": "edge", "score": 0.2},
+    ]
 
 
 def test_build_store_memory_response_data():

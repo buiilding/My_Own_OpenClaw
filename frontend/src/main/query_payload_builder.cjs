@@ -26,6 +26,13 @@ function appendMemorySections(parts, memories = null) {
   parts.push(formatMemorySection('semantic_memory', memories?.semantic));
 }
 
+const PROMPT_MEMORY_RETRIEVAL = Object.freeze({
+  combinedLimit: 6,
+  episodicLimit: 4,
+  semanticLimit: 2,
+  semanticMinScore: 0.2,
+});
+
 const INITIAL_SYSTEM_STATE_FIELDS = Object.freeze([
   'active_window',
   'mouse_position',
@@ -143,7 +150,18 @@ async function resolveMemoryEnrichment({
   logger,
 }) {
   try {
-    const memoryData = await searchMemory(text, userId, 5, null, conversationRef);
+    const memoryData = await searchMemory(
+      text,
+      userId,
+      PROMPT_MEMORY_RETRIEVAL.combinedLimit,
+      null,
+      conversationRef,
+      {
+        episodic_limit: PROMPT_MEMORY_RETRIEVAL.episodicLimit,
+        semantic_limit: PROMPT_MEMORY_RETRIEVAL.semanticLimit,
+        semantic_min_score: PROMPT_MEMORY_RETRIEVAL.semanticMinScore,
+      },
+    );
     if (memoryData?.success && memoryData?.data?.memories) {
       const memories = memoryData.data.memories;
       logger(`Memory response received - episodic: ${memories.episodic?.length || 0}, semantic: ${memories.semantic?.length || 0}`);
