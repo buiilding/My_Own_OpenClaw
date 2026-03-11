@@ -153,6 +153,7 @@ Functionality:
 - Dispatches assigned runs through existing websocket query path (`sendAutomatedQuery`) and acknowledges with `/api/runs/{run_id}/worker-dispatched`.
 - Relays backend stream events into run timelines via `/api/runs/{run_id}/events`.
 - Applies stop controls by issuing websocket `stop-query` with mapped `conversation_ref`.
+  - Backend `StopQueryHandler` currently cancels per-user active tasks and does not forward payload `conversation_ref` into cancellation filtering.
 
 ## 2) Preload Boundary Inventory
 

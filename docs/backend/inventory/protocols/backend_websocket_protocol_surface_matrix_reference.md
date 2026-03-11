@@ -64,11 +64,11 @@ Runtime flow for each frame after handshake:
 | Incoming `type` | Schema model | Key payload fields | Route `handler_key` |
 |---|---|---|---|
 | `query` | `QueryMessage` | `text`, `conversation_ref`, optional `content`, `screenshot`, `screenshot_ref`, `system_state_internal` | `query_handler` |
-| `stop-query` | `StopQueryMessage` | Empty payload object | `stop_query_handler` |
+| `stop-query` | `StopQueryMessage` | Optional `conversation_ref` | `stop_query_handler` |
 | `rehydrate-conversation` | `RehydrateConversationMessage` | `conversation_ref`, `messages[]`, `rehydrate_mode="replace"` | `rehydrate_conversation_handler` |
 | `load-settings` | `LoadSettingsMessage` | Optional `client_version` | `load_settings_handler` |
 | `list-models` | `ListModelsMessage` | Empty payload object | `list_models_handler` |
-| `update-settings` | `UpdateSettingsMessage` | Optional frontend-owned config fields (`model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`, `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_stt_enabled`, `agent_full_sudo_enabled`, `include_query_screenshot`, `provider_api_keys`) | `update_settings_handler` |
+| `update-settings` | `UpdateSettingsMessage` | Optional frontend-owned config fields (`model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`, `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_stt_enabled`, `agent_full_sudo_enabled`, `browser_automation_enabled`, `include_query_screenshot`, `provider_api_keys`, `provider_oauth`) | `update_settings_handler` |
 | `wakeword-detected` | `WakewordDetectedMessage` | Empty payload object | `wakeword_handler` |
 | `compact-history` | `CompactHistoryMessage` | Optional `force` (default `true`) | `compact_history_handler` |
 | `tool-result` | `ToolResultMessage` | `request_id`, `success`, optional `data`, optional `error` | `tool_result_handler` |
@@ -80,7 +80,7 @@ Runtime flow for each frame after handshake:
 |---|---|---|---|---|
 | Handshake identity bootstrap | websocket initial frame | route bootstrap (`perform_handshake`) | establishes validated `user_id` for all subsequent schema validations + context attachment | [Backend Protocol Identity and Context-Field Propagation Reference](state/backend_protocol_identity_and_context_field_propagation_reference.md) |
 | Query loop + stream lifecycle | `query` | `query_handler` | `streaming-response`, `tool-call`, `tool-output`, `streaming-complete`, `error` | [Backend WebSocket Receive Loop and Task-Cancellation Contract Reference](lifecycle/backend_websocket_receive_loop_and_task_cancellation_contract_reference.md) |
-| Active-query cancellation | `stop-query` | `stop_query_handler` | cancel active task, emit completion/error path, keep session context stable | [Backend WebSocket Receive Loop and Task-Cancellation Contract Reference](lifecycle/backend_websocket_receive_loop_and_task_cancellation_contract_reference.md) |
+| Active-query cancellation | `stop-query` | `stop_query_handler` | cancel active task (current handler path is user-scoped and does not forward payload `conversation_ref`), emit completion/error path, keep session context stable | [Backend WebSocket Receive Loop and Task-Cancellation Contract Reference](lifecycle/backend_websocket_receive_loop_and_task_cancellation_contract_reference.md) |
 | Settings ACK control path | `update-settings` | `update_settings_handler` | emits `settings-updated` or `error` with request correlation id | [Backend Message Envelope and Contract Validation Boundary Reference](validation/backend_message_envelope_and_contract_validation_boundary_reference.md) |
 | Wakeword activation path | `wakeword-detected` | `wakeword_handler` | emits wakeword activation/greeting flow (`wakeword-activated`, `wakeword-greeting`, optional `audio-chunk`) | [Backend Protocol Identity and Context-Field Propagation Reference](state/backend_protocol_identity_and_context_field_propagation_reference.md) |
 | Tool turn result reintegration | `tool-result`, `tool-bundle-result` | `tool_result_handler` | resolves pending tool requests, injects tool output back into active loop, can advance stream lifecycle | [Backend WebSocket Protocol Test Coverage and Runtime Contract Reference](testing/backend_websocket_protocol_test_coverage_and_runtime_contract_reference.md) |
