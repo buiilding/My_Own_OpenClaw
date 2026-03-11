@@ -22,7 +22,7 @@ describe('ChatBoxResponse state behavior', () => {
     resetChatBoxResponseTestState();
   });
 
-  test('shows awaiting indicator when no assistant response exists yet', async () => {
+  test('keeps the response overlay hidden when no assistant response exists yet', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
     ]);
@@ -33,8 +33,11 @@ describe('ChatBoxResponse state behavior', () => {
     render(<ChatBoxResponse />);
 
     await waitFor(() => {
-      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
     });
+    expect(mockInvoke).not.toHaveBeenCalledWith('set-responsebox-size', expect.objectContaining({
+      visible: true,
+    }));
   });
 
   test('shows response overlay even when assistant text arrives before local user anchor', async () => {
@@ -91,7 +94,7 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.getByText('first chunk')).toBeInTheDocument();
   });
 
-  test('keeps awaiting indicator visible when query is sending and overlay phase is streaming', async () => {
+  test('keeps the response overlay hidden while streaming before the first assistant chunk arrives', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
     ]);
@@ -103,11 +106,14 @@ describe('ChatBoxResponse state behavior', () => {
     emitOverlayPhase('streaming');
 
     await waitFor(() => {
-      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
     });
+    expect(mockInvoke).not.toHaveBeenCalledWith('set-responsebox-size', expect.objectContaining({
+      visible: true,
+    }));
   });
 
-  test('keeps awaiting indicator during tool-output and clears on terminal overlay phase', async () => {
+  test('keeps the response overlay hidden during tool-output until there is response content', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
     ]);
@@ -116,13 +122,11 @@ describe('ChatBoxResponse state behavior', () => {
     emitOverlayPhase('tool-output');
 
     await waitFor(() => {
-      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
-    });
-
-    emitOverlayPhase('complete');
-    await waitFor(() => {
       expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
     });
+    expect(mockInvoke).not.toHaveBeenCalledWith('set-responsebox-size', expect.objectContaining({
+      visible: true,
+    }));
   });
 
   test('renders tool explanations as persistent transcript lines', async () => {
@@ -316,7 +320,7 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
-  test('keeps awaiting indicator stable while thinking text exists', async () => {
+  test('keeps the response overlay hidden while thinking text exists but no response is visible', async () => {
     setChatState([
       { id: 'user-1', text: 'think', sender: 'user' },
     ]);
@@ -328,7 +332,7 @@ describe('ChatBoxResponse state behavior', () => {
     render(<ChatBoxResponse />);
 
     await waitFor(() => {
-      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
     });
     expect(screen.queryByLabelText('Assistant reasoning stream')).not.toBeInTheDocument();
   });
@@ -348,13 +352,13 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
-  test('clears awaiting indicator on idle and only re-shows it for a live phase', async () => {
+  test('keeps awaiting-only phases hidden across idle and live phase transitions until response content exists', async () => {
     setChatState([]);
     render(<ChatBoxResponse />);
 
     emitOverlayPhase('tool-output');
     await waitFor(() => {
-      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
     });
 
     emitOverlayPhase('idle');
@@ -364,7 +368,7 @@ describe('ChatBoxResponse state behavior', () => {
 
     emitOverlayPhase('streaming');
     await waitFor(() => {
-      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
     });
   });
 
@@ -442,7 +446,7 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
-  test('re-reports compact overlay size after visibility hide/show cycle', async () => {
+  test('does not re-report a visible overlay size for awaiting-only visibility restores', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
     ]);
@@ -453,7 +457,7 @@ describe('ChatBoxResponse state behavior', () => {
     render(<ChatBoxResponse />);
 
     await waitFor(() => {
-      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
     });
 
     const initialVisibleReports = mockInvoke.mock.calls.filter(
@@ -467,11 +471,7 @@ describe('ChatBoxResponse state behavior', () => {
       const visibleReports = mockInvoke.mock.calls.filter(
         ([channel, payload]) => channel === 'set-responsebox-size' && payload?.visible === true,
       );
-      expect(visibleReports.length).toBeGreaterThan(initialVisibleReports);
-      expect(visibleReports[visibleReports.length - 1][1]).toEqual(expect.objectContaining({
-        visible: true,
-        compact_hover: true,
-      }));
+      expect(visibleReports.length).toBe(initialVisibleReports);
     });
   });
 

@@ -75,17 +75,14 @@ Important behavior:
 
 ## Layout-Mode Resolver Contract
 
-`resolveResponseOverlayLayoutMode({ showResponse, showAwaitingReply })`:
+`resolveResponseOverlayLayoutMode({ showResponse })`:
 
 - `showResponse=true` -> `response`
-- else if `showAwaitingReply=true` -> `awaiting-typing`
 - else -> `hidden`
-
-`isCompactHoverLayoutMode(mode)` is true only for `awaiting-typing`.
 
 This classification feeds `set-responsebox-size` payload shape in `ChatBoxResponse`:
 
-- `awaiting-typing` maps to compact-hover behavior and fixed typing frame height.
+- `hidden` suppresses the response overlay until the current turn has visible assistant/tool transcript content.
 
 ## Frame Measurement Contract
 

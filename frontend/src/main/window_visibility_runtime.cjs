@@ -45,10 +45,7 @@ function showChatWindow(options = {}, deps = {}) {
     setActiveDisplayAffinity = () => {},
     getActiveDisplayAffinity = () => null,
     responseOverlayVisible,
-    isResponseOverlayStreamingPhase = () => false,
-    setResponseOverlayVisible = () => {},
     ensureChatWindowOnTop = () => {},
-    ensureResponseOverlayFallbackBounds = () => {},
     showResponseWindowInactive = () => {},
     broadcastResponseOverlayVisibility = () => {},
     syncContextLabelWindowVisibility = () => {},
@@ -93,17 +90,11 @@ function showChatWindow(options = {}, deps = {}) {
   }
   syncWindowDisplayAffinity(chatWindow);
   ensureChatWindowOnTop();
-  // Non-focusing chatbox restores (tool/capture lifecycle) should not resurrect
-  // stale response overlays before renderer awaiting state is ready.
   const shouldRestoreResponse = (
     (focus || restoreResponseOverlay)
-    && (responseOverlayVisible || isResponseOverlayStreamingPhase())
+    && responseOverlayVisible
   );
   if (responseWindow && !responseWindow.isDestroyed() && shouldRestoreResponse) {
-    if (isResponseOverlayStreamingPhase()) {
-      setResponseOverlayVisible(true);
-      ensureResponseOverlayFallbackBounds();
-    }
     showResponseWindowInactive();
   }
   const responseIsVisible = Boolean(
