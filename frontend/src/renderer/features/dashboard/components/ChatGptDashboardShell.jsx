@@ -12,6 +12,10 @@ import { useTranscriptSessionInfo } from '../hooks/useTranscriptSessionInfo';
 import { useDashboardConversations } from '../hooks/useDashboardConversations';
 import MemorySection from './sections/MemorySection';
 import SearchChatsModal from './SearchChatsModal';
+import {
+  setActiveConversationRef,
+  updateTranscriptSession,
+} from '../../../infrastructure/transcript/TranscriptWriter';
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) {
@@ -70,8 +74,10 @@ function ChatGptDashboardShell({
   const resolvedUserId = sessionInfo.userId || DEFAULT_USER_ID;
 
   const setChatMessages = useChatStore((state) => state.setMessages);
+  const clearChatMessages = useChatStore((state) => state.clearMessages);
   const setChatIsSending = useChatStore((state) => state.setIsSending);
   const setChatThinkingStatus = useChatStore((state) => state.setThinkingStatus);
+  const setChatTokenCounts = useChatStore((state) => state.setTokenCounts);
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const {
     searchQuery,
@@ -79,6 +85,7 @@ function ChatGptDashboardShell({
     searchConversationsError,
     isLoadingRecentConversations,
     recentConversationsError,
+    loadRecentConversations,
     handleOpenConversation,
     handleRenameConversation,
     handleTogglePinConversation,
@@ -173,6 +180,27 @@ function ChatGptDashboardShell({
     closeAllPanels();
     void handleOpenConversation(conversation);
   }, [closeAllPanels, handleOpenConversation]);
+
+  const handleChatsCleared = useCallback(async () => {
+    const conversationRef = sessionInfo.conversationRef || null;
+    setActiveConversationRef(null);
+    updateTranscriptSession(null, resolvedUserId);
+    clearChatMessages(conversationRef);
+    setChatIsSending(false, conversationRef);
+    setChatThinkingStatus(null, conversationRef);
+    setChatTokenCounts(null, conversationRef);
+    setChatActiveConversationRef(null);
+    await loadRecentConversations();
+  }, [
+    clearChatMessages,
+    loadRecentConversations,
+    resolvedUserId,
+    sessionInfo.conversationRef,
+    setChatActiveConversationRef,
+    setChatIsSending,
+    setChatThinkingStatus,
+    setChatTokenCounts,
+  ]);
 
   useEffect(() => {
     if (!dashboardOpening) {
@@ -346,6 +374,7 @@ function ChatGptDashboardShell({
                 onConfigChange={onConfigChange}
                 initialTab={settingsInitialTab}
                 onClose={() => setSettingsOpen(false)}
+                onChatsCleared={handleChatsCleared}
               />
             </div>
           </DashboardModal>

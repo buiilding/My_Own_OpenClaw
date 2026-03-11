@@ -35,8 +35,13 @@ jest.mock('../../frontend/src/renderer/features/chat/components/ChatInterface', 
   <div data-testid="chat-interface-stub">ChatInterfaceStub</div>
 ));
 
-jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/SettingsSection', () => () => (
-  <div data-testid="settings-section-stub">SettingsSectionStub</div>
+jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/SettingsSection', () => (props) => (
+  <div data-testid="settings-section-stub">
+    <button type="button" onClick={() => props.onChatsCleared?.()}>
+      Trigger chats cleared
+    </button>
+    SettingsSectionStub
+  </div>
 ));
 
 jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/ModelsSection', () => () => (
@@ -590,6 +595,25 @@ describe('ChatGptDashboardShell', () => {
       expect.objectContaining({ userId: 'default_user' }),
     );
     expect(screen.getByRole('button', { name: 'How are you' })).toBeInTheDocument();
+  });
+
+  test('settings chat-clear callback resets active chat state and reloads recent chats', async () => {
+    mockSessionInfo = { conversationRef: 'conv-live', userId: 'user-live' };
+
+    await renderDashboardShell();
+    mockInvoke.mockClear();
+
+    fireEvent.click(screen.getByTestId('sidebar-user-menu-trigger'));
+    fireEvent.click(screen.getByTestId('sidebar-user-menu-settings'));
+    fireEvent.click(screen.getByRole('button', { name: 'Trigger chats cleared' }));
+    await flushMicrotasks();
+
+    expect(mockSetActiveConversationRef).toHaveBeenCalledWith(null);
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(null, 'user-live');
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'list-conversations',
+      expect.objectContaining({ userId: 'user-live' }),
+    );
   });
 
   test('retries recent chats on startup when local backend is not ready', async () => {

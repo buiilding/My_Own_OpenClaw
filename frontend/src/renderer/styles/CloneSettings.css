@@ -118,6 +118,10 @@
   min-width: 0;
 }
 
+.clone-settings-row-action {
+  align-items: center;
+}
+
 .clone-settings-row-rich p {
   margin: 4px 0 0;
   max-width: 390px;
@@ -128,6 +132,45 @@
 
 .clone-settings-inline-warning {
   color: color-mix(in srgb, var(--ui-text-primary) 82%, #c86922 18%);
+}
+
+.clone-settings-danger-button {
+  border: 1px solid color-mix(in srgb, #c84d3c 68%, var(--ui-border-soft) 32%);
+  border-radius: 999px;
+  background: color-mix(in srgb, #c84d3c 14%, transparent 86%);
+  color: color-mix(in srgb, #ffd9d4 72%, var(--ui-text-primary) 28%);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  min-width: 112px;
+  padding: 7px 14px;
+  transition: background 140ms ease, border-color 140ms ease, opacity 140ms ease;
+}
+
+.clone-settings-danger-button:hover:not(:disabled) {
+  background: color-mix(in srgb, #c84d3c 24%, transparent 76%);
+  border-color: color-mix(in srgb, #e0624e 78%, var(--ui-border-soft) 22%);
+}
+
+.clone-settings-danger-button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.clone-settings-action-status {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.clone-settings-action-status-success {
+  color: color-mix(in srgb, #8bd29b 72%, var(--ui-text-primary) 28%);
+}
+
+.clone-settings-action-status-error {
+  color: color-mix(in srgb, #ff9d90 76%, var(--ui-text-primary) 24%);
 }
 
 .clone-settings-select-wrap {

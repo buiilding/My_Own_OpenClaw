@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for current clone-style SettingsSection runtime: single-tab routing, wakeword/STT/sudo control ownership, optional data-controls fallback routing, and local-only selector state."
+summary: "Deep reference for current clone-style SettingsSection runtime: general/memory tab routing, wakeword/STT/sudo control ownership, optional data-controls fallback routing, and local destructive reset actions."
 read_when:
   - When changing `SettingsSection.jsx` tab layout, initial-tab behavior, or close controls.
   - When debugging wakeword/wakeword-STT/agent-sudo settings payloads or data-controls permission-center mounting.
-title: "Settings Section Clone Tabs and Wakeword Toggle Runtime Reference"
+title: "Settings Section General + Memory Tabs Runtime Reference"
 ---
 
-# Settings Section Clone Tabs and Wakeword Toggle Runtime Reference
+# Settings Section General + Memory Tabs Runtime Reference
 
 ## Canonical Modules
 
@@ -26,10 +26,12 @@ title: "Settings Section Clone Tabs and Wakeword Toggle Runtime Reference"
 Current visible tab ids:
 
 - `general`
+- `memory`
 
 Routing model:
 
 - `general` renders live settings controls (`GeneralTab`)
+- `memory` renders destructive local-data controls for memory/chat resets
 - `data-controls` branch exists in `renderTabContent()` and renders `PermissionControlCenter`, but there is no current tab button for it in `SETTINGS_TABS`
 - unknown tabs fall back to `PlaceholderTab` title rendering
 
@@ -78,6 +80,20 @@ Current local-only controls do not emit config updates:
 
 - `voice`
 
+## Memory Tab Ownership Model
+
+`MemoryTab` owns two destructive local-data actions:
+
+1. `Nuke memory`
+   - invokes renderer IPC `clear-local-memory`
+   - deletes user-local episodic interaction memory plus semantic memory
+   - preserves transcript chat history
+
+2. `Nuke chats`
+   - invokes renderer IPC `clear-chat-history`
+   - deletes transcript chat history only
+   - on success, calls parent `onChatsCleared` so dashboard chat state and recent-chat lists are reset/reloaded
+
 These are UI state only in current implementation.
 
 ## Payload and Persistence Boundary
@@ -89,6 +105,7 @@ All config persistence/sync side effects are delegated through parent `onConfigC
 Exception:
 
 - `GeneralTab` invokes `IpcBridge.invoke('set-agent-sudo-access', { enabled })` for passwordless sudo toggle handshake before persisting `agent_full_sudo_enabled`.
+- `MemoryTab` invokes `clear-local-memory` / `clear-chat-history` over the local-backend IPC bridge for destructive data resets.
 - `data-controls` branch mounts `PermissionControlCenter`, which uses permission-store probe/recheck actions.
 
 ## Test-Backed Invariants
@@ -100,6 +117,7 @@ Exception:
 - suppression helper message render condition
 - wakeword STT toggle emits exact payload `{ wakeword_stt_enabled: true }`
 - agent full sudo toggle confirm/invoke/failure handling behavior
+- memory-tab destructive actions call the correct IPC channels and success callbacks
 
 ## Drift Hotspots
 

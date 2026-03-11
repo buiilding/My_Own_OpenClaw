@@ -457,6 +457,46 @@ class LocalBackendMemoryHandlersMixin:
             }
 
     @requires_memory_store
+    async def _handle_clear_local_memory(
+        self,
+        user_id: str = "default_user",
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """Delete user-local episodic interaction memory and semantic memory."""
+        try:
+            result = await self.memory_store.clear_local_memory(user_id=user_id)
+            return {
+                "success": True,
+                "data": result,
+            }
+        except Exception as e:
+            logger.error(f"Local memory clear failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+    @requires_memory_store
+    async def _handle_clear_chat_history(
+        self,
+        user_id: str = "default_user",
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """Delete user-local transcript chat history while keeping memory."""
+        try:
+            result = await self.memory_store.clear_chat_history(user_id=user_id)
+            return {
+                "success": True,
+                "data": result,
+            }
+        except Exception as e:
+            logger.error(f"Chat history clear failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+    @requires_memory_store
     async def _handle_store_transcript(
         self,
         content: str,

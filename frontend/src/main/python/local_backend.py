@@ -146,6 +146,8 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         self.protocol.register_method("delete_episodic_memory", self._handle_delete_episodic_memory)
         self.protocol.register_method("delete_conversation", self._handle_delete_conversation)
         self.protocol.register_method("delete_semantic_memory", self._handle_delete_semantic_memory)
+        self.protocol.register_method("clear_local_memory", self._handle_clear_local_memory)
+        self.protocol.register_method("clear_chat_history", self._handle_clear_chat_history)
         self.protocol.register_method("store_transcript", self._handle_store_transcript)
         
         # Health check and diagnostics

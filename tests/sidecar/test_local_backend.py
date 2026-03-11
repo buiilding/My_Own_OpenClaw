@@ -36,8 +36,18 @@ class DummyMemoryStore:
         self.conversation_calls = []
         self.deleted_semantic_calls = []
         self.deleted_episodic_calls = []
+        self.cleared_local_memory_calls = []
+        self.cleared_chat_history_calls = []
         self.delete_semantic_return = True
         self.delete_episodic_return = True
+        self.clear_local_memory_return = {
+            "episodic_deleted_count": 0,
+            "semantic_deleted_count": 0,
+        }
+        self.clear_chat_history_return = {
+            "deleted_count": 0,
+            "deleted_title_count": 0,
+        }
 
     async def search(self, query, user_id, filters, limit):
         return [
@@ -94,6 +104,14 @@ class DummyMemoryStore:
     async def delete_episodic_memory(self, user_id, memory_id):
         self.deleted_episodic_calls.append((user_id, memory_id))
         return self.delete_episodic_return
+
+    async def clear_local_memory(self, user_id):
+        self.cleared_local_memory_calls.append(user_id)
+        return self.clear_local_memory_return
+
+    async def clear_chat_history(self, user_id):
+        self.cleared_chat_history_calls.append(user_id)
+        return self.clear_chat_history_return
 
 
 class DummyRegistryRaises:
@@ -1083,6 +1101,8 @@ def test_initialize_methods_keeps_memory_handlers_registered():
         "delete_episodic_memory",
         "delete_conversation",
         "delete_semantic_memory",
+        "clear_local_memory",
+        "clear_chat_history",
         "store_transcript",
     }
     assert expected_methods.issubset(set(backend.protocol.methods.keys()))
@@ -1495,6 +1515,48 @@ async def test_handle_delete_episodic_memory_requires_memory_id():
 
     assert result["success"] is False
     assert result["error"] == "memory_id is required"
+
+
+@pytest.mark.asyncio
+async def test_handle_clear_local_memory_routes_to_store():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+    backend.memory_store.clear_local_memory_return = {
+        "episodic_deleted_count": 4,
+        "semantic_deleted_count": 2,
+    }
+
+    result = await backend._handle_clear_local_memory(user_id="user-1")
+
+    assert result == {
+        "success": True,
+        "data": {
+            "episodic_deleted_count": 4,
+            "semantic_deleted_count": 2,
+        },
+    }
+    assert backend.memory_store.cleared_local_memory_calls == ["user-1"]
+
+
+@pytest.mark.asyncio
+async def test_handle_clear_chat_history_routes_to_store():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+    backend.memory_store.clear_chat_history_return = {
+        "deleted_count": 8,
+        "deleted_title_count": 3,
+    }
+
+    result = await backend._handle_clear_chat_history(user_id="user-1")
+
+    assert result == {
+        "success": True,
+        "data": {
+            "deleted_count": 8,
+            "deleted_title_count": 3,
+        },
+    }
+    assert backend.memory_store.cleared_chat_history_calls == ["user-1"]
 
 
 @pytest.mark.asyncio

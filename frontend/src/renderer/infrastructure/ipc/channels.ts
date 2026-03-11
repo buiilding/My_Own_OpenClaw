@@ -32,6 +32,8 @@ export const INVOKE_CHANNELS = {
   DELETE_EPISODIC_MEMORY: 'delete-episodic-memory',
   DELETE_CONVERSATION: 'delete-conversation',
   DELETE_SEMANTIC_MEMORY: 'delete-semantic-memory',
+  CLEAR_LOCAL_MEMORY: 'clear-local-memory',
+  CLEAR_CHAT_HISTORY: 'clear-chat-history',
   STORE_TRANSCRIPT: 'store-transcript',
   GET_CLIENT_USER_ID: 'get-client-user-id',
   SET_CHATBOX_VISUAL_ANCHOR_HEIGHT: 'set-chatbox-visual-anchor-height',

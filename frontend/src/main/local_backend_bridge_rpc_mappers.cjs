@@ -211,6 +211,20 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
     }),
   },
   {
+    channel: 'clear-local-memory',
+    method: 'clear_local_memory',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+    }),
+  },
+  {
+    channel: 'clear-chat-history',
+    method: 'clear_chat_history',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+    }),
+  },
+  {
     channel: 'store-memory',
     method: 'store_memory',
     mapParams: createPayloadMapper({

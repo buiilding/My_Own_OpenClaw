@@ -1005,6 +1005,42 @@ describe('local_backend_bridge RPC handlers', () => {
     await expectResolvedSuccess(stdoutHandler, promise, { deleted: true });
   });
 
+  test('clear-local-memory handler maps payload keys to backend params', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['clear-local-memory'](null, {
+      userId: 'u-memory',
+    });
+
+    expectLastRequestWith('clear_local_memory', {
+      user_id: 'u-memory',
+    });
+
+    await expectResolvedSuccess(stdoutHandler, promise, {
+      episodic_deleted_count: 2,
+      semantic_deleted_count: 3,
+    });
+  });
+
+  test('clear-chat-history handler maps payload keys to backend params', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['clear-chat-history'](null, {
+      userId: 'u-chats',
+    });
+
+    expectLastRequestWith('clear_chat_history', {
+      user_id: 'u-chats',
+    });
+
+    await expectResolvedSuccess(stdoutHandler, promise, {
+      deleted_count: 4,
+      deleted_title_count: 1,
+    });
+  });
+
   test('store-transcript handler returns standardized error payload', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
