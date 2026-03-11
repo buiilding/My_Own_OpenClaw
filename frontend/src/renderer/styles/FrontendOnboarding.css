@@ -46,26 +46,26 @@
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-card-scroll-region {
-  padding-top: 72px;
-  gap: 18px;
+  padding-top: 42px;
+  gap: 14px;
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-title {
-  font-size: clamp(42px, 5vw, 72px);
-  line-height: 1.06;
+  font-size: clamp(34px, 3.7vw, 58px);
+  line-height: 1;
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-body {
-  font-size: clamp(18px, 2vw, 30px);
-  line-height: 1.32;
-  max-width: 52ch;
+  font-size: clamp(14px, 1.5vw, 22px);
+  line-height: 1.28;
+  max-width: 44ch;
 }
 
 .frontend-onboarding-card-scroll-region {
   min-height: 0;
   width: min(1640px, calc(100% - 88px));
   margin: 0 auto;
-  padding: 78px 0 32px;
+  padding: 64px 0 20px;
   display: grid;
   align-content: start;
   gap: 20px;
@@ -74,9 +74,9 @@
 
 .frontend-onboarding-progress {
   margin: 0;
-  font-size: 16px;
+  font-size: 13px;
   line-height: 1.3;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: #c5c5c5;
 }
@@ -225,7 +225,7 @@
   gap: 16px;
   width: min(1640px, calc(100% - 88px));
   margin: 0 auto;
-  padding: 22px 0 30px;
+  padding: 14px 0 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.09);
   background:
     linear-gradient(180deg, rgba(7, 7, 7, 0.82), rgba(7, 7, 7, 0.98));
@@ -239,8 +239,8 @@
 .frontend-onboarding-button {
   border: 1px solid #4d4d4d;
   border-radius: 999px;
-  padding: 14px 28px;
-  font-size: 17px;
+  padding: 12px 24px;
+  font-size: 15px;
   line-height: 1;
   font-family: inherit;
   cursor: pointer;
@@ -269,7 +269,7 @@
 
 .frontend-onboarding-permissions-section {
   display: grid;
-  gap: 18px;
+  gap: 12px;
   min-height: 0;
 }
 
@@ -312,26 +312,26 @@
   background: transparent;
   padding: 0;
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-permissions-list {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 28px;
-  row-gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 16px;
+  row-gap: 14px;
   align-items: start;
 }
 
 .frontend-onboarding-permission-row {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 18px;
+  gap: 14px;
   align-items: start;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
   outline: 0;
-  border-radius: 28px;
-  padding: 24px 26px;
+  border-radius: 22px;
+  padding: 16px 18px;
   background:
     linear-gradient(180deg, rgba(18, 18, 18, 0.92), rgba(10, 10, 10, 0.96));
 }
@@ -343,12 +343,12 @@
 
 .frontend-onboarding-permission-copy {
   display: grid;
-  gap: 10px;
+  gap: 6px;
 }
 
 .frontend-onboarding-permission-copy h2 {
   margin: 0;
-  font-size: 24px;
+  font-size: 18px;
   line-height: 1.2;
   font-weight: 600;
   color: #ffffff;
@@ -356,18 +356,18 @@
 
 .frontend-onboarding-permission-kind {
   margin: 0;
-  font-size: 13px;
+  font-size: 11px;
   line-height: 1.2;
   text-transform: uppercase;
-  letter-spacing: 0.11em;
+  letter-spacing: 0.1em;
   color: #9b9b9b;
 }
 
 .frontend-onboarding-permission-copy p {
   margin: 0;
   color: #d0d0d0;
-  font-size: 16px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.35;
   display: block;
   overflow: visible;
   text-overflow: clip;
@@ -382,8 +382,8 @@
 
 .frontend-onboarding-permission-reason {
   margin: 0;
-  font-size: 15px;
-  line-height: 1.45;
+  font-size: 12px;
+  line-height: 1.35;
   color: #b7b7b7;
 }
 
@@ -397,8 +397,8 @@
 }
 
 .frontend-onboarding-permission-row > .frontend-onboarding-button {
-  min-width: 140px;
-  padding: 14px 24px;
+  min-width: 112px;
+  padding: 11px 18px;
   align-self: start;
 }
 
@@ -406,17 +406,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
   color: #6fda8e;
-  font-size: 18px;
+  font-size: 13px;
   font-weight: 600;
-  min-width: 140px;
+  min-width: 112px;
   align-self: start;
 }
 
 .frontend-onboarding-permission-granted-icon {
-  width: 26px;
-  height: 26px;
+  width: 20px;
+  height: 20px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
@@ -424,7 +424,7 @@
   background: rgba(111, 218, 142, 0.18);
   border: 1px solid rgba(111, 218, 142, 0.62);
   color: #82e8a2;
-  font-size: 16px;
+  font-size: 12px;
   line-height: 1;
 }
 
@@ -444,6 +444,12 @@
 @media (max-width: 1100px) {
   .frontend-onboarding-card-permissions .frontend-onboarding-permissions-list {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1480px) {
+  .frontend-onboarding-card-permissions .frontend-onboarding-permissions-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
