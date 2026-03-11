@@ -21,7 +21,10 @@ import '../styles/accessibility.css';
 function AppContent() {
   const { config, availableModels, updateConfig } = useAppConfigContext();
   const vmModeEnabled = isVmModeEnabled();
+  const bootstrapped = usePermissionStore((state) => state.bootstrapped);
   const needsOnboarding = usePermissionStore((state) => state.needsOnboarding);
+  const onboardingCompleted = usePermissionStore((state) => state.onboardingState?.completed === true);
+  const shouldShowOnboarding = bootstrapped ? needsOnboarding : !onboardingCompleted;
 
   if (vmModeEnabled) {
     return (
@@ -34,7 +37,7 @@ function AppContent() {
     );
   }
 
-  if (needsOnboarding) {
+  if (shouldShowOnboarding) {
     return (
       <FrontendOnboardingSlideshow
         stopAgentShortcutLabel={getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)}

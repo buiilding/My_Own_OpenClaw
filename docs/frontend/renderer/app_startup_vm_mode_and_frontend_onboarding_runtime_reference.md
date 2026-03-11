@@ -56,6 +56,12 @@ Routing behavior:
   - render `ChatGptDashboardShell`
   - pass `vmModeEnabled={false}`
 
+Pre-bootstrap startup behavior:
+
+- when permission bootstrap has not finished yet, `AppContent` uses the persisted onboarding completion bit from `permissionStore.onboardingState`
+- this avoids a first-frame onboarding flash for users who already completed onboarding on the current install
+- after bootstrap resolves, `needsOnboarding` becomes authoritative again so manifest-version changes can still route users back into onboarding
+
 ## VM Mode Detection Contract
 
 `isVmModeEnabled()` is renderer-URL based:
@@ -136,6 +142,7 @@ The same permission store also powers Settings > Permissions (`PermissionControl
 
 - non-VM mode renders onboarding while `needsOnboarding` is true
 - non-VM mode renders dashboard after permission onboarding completes
+- non-VM mode does not flash onboarding during pre-bootstrap startup when persisted onboarding completion is already true
 
 `tests/frontend/FrontendOnboardingSlideshow.test.jsx`:
 

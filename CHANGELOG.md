@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-onboarding-startup-flash): stop the renderer from briefly showing onboarding on app launch for users who already completed it by using the persisted onboarding completion bit until permission bootstrap finishes, then falling back to the manifest-aware gate.
 - fix(frontend-onboarding-card-balance): reduce the centered single-permission card back to a medium desktop width so it aligns with the hero-copy column instead of spanning nearly the full onboarding track.
 - fix(frontend-onboarding-single-card-centering): stop the desktop multi-column permission-grid rule from overriding the one-permission `.single` onboarding slide so the active permission card renders in a true centered single column instead of the left grid column.
 - fix(frontend-onboarding-desktop-card-span): give the centered permission area an explicit wider desktop width so single permission cards visibly span farther to the right instead of staying narrow due to nested auto-sized grid tracks.
