@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from cdp_use.cdp.target import AttachedToTargetEvent, DetachedFromTargetEvent, SessionID, TargetID
 
-from browser_use.utils import create_task_with_error_handling
+from browser_use.utils import create_task_with_error_handling, is_internal_browser_surface
 
 if TYPE_CHECKING:
 	from browser_use.browser.session import BrowserSession, CDPSession, Target
@@ -148,15 +148,21 @@ class SessionManager:
 		return self._sessions.get(next(iter(session_ids)))
 
 	def get_all_page_targets(self) -> list:
-		"""Get all page/tab targets using owned data.
+		"""Get all user-visible page/tab targets using owned data.
 
 		Returns:
-			List of Target objects for all page/tab targets
+			List of Target objects for controllable page/tab targets
 		"""
 		page_targets = []
 		for target in self._targets.values():
-			if target.target_type in ('page', 'tab'):
-				page_targets.append(target)
+			if target.target_type not in ('page', 'tab'):
+				continue
+
+			target_url = getattr(target, 'url', '') or ''
+			if is_internal_browser_surface(target_url):
+				continue
+
+			page_targets.append(target)
 		return page_targets
 
 	async def validate_session(self, target_id: TargetID) -> bool:

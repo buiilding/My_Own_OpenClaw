@@ -453,6 +453,19 @@ def is_new_tab_page(url: str) -> bool:
 	return url in ('about:blank', 'chrome://new-tab-page/', 'chrome://new-tab-page', 'chrome://newtab/', 'chrome://newtab')
 
 
+def is_internal_browser_surface(url: str) -> bool:
+	"""
+	Check if a URL is an internal browser UI surface that should not be exposed as a user tab.
+
+	Args:
+		url: The URL to check
+
+	Returns:
+		bool: True if the URL points to an internal Chrome surface, False otherwise
+	"""
+	return url.startswith('chrome://omnibox-popup.top-chrome/')
+
+
 def match_url_with_domain_pattern(url: str, domain_pattern: str, log_warnings: bool = False) -> bool:
 	"""
 	Check if a URL matches a domain pattern. SECURITY CRITICAL.
