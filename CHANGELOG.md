@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-transcript-tool-call-replay-display): restore visible tool-call bodies for historical chats by carrying replayed transcript tool-call text into `toolCallDisplayText` and rebuilding parsed model-facing tool-call payloads during episodic-memory message normalization.
 - fix(frontend-tool-bundle-call-display): show bundled tool-call payloads in tool-call cards by carrying the formatted bundle text into `toolCallDisplayText`, so bundle rows no longer render as blank cards even when execution/output events were received correctly.
 - fix(frontend-onboarding-startup-flash): stop the renderer from briefly showing onboarding on app launch for users who already completed it by using the persisted onboarding completion bit until permission bootstrap finishes, then falling back to the manifest-aware gate.
 - fix(frontend-onboarding-card-balance): reduce the centered single-permission card back to a medium desktop width so it aligns with the hero-copy column instead of spanning nearly the full onboarding track.
