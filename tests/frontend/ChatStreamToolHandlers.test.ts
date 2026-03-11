@@ -253,6 +253,7 @@ describe('useChatStreamToolHandlers', () => {
         type: 'tool-call',
         sourceEventType: 'tool-bundle',
         text: JSON.stringify({ bundle_id: 'bundle-1', tools: [] }, null, 2),
+        toolCallDisplayText: JSON.stringify({ bundle_id: 'bundle-1', tools: [] }, null, 2),
       }),
       'conversation-bundle-1',
     );

@@ -48,6 +48,7 @@ export function buildToolBundleMessage(
   return {
     id: crypto.randomUUID(),
     text: formattedText,
+    toolCallDisplayText: formattedText,
     sender: 'assistant',
     type: 'tool-call',
     sourceEventType: 'tool-bundle',
