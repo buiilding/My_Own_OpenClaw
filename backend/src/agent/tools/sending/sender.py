@@ -25,6 +25,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 _INVALID_COMPUTER_USE_TOOL_NAME = "invalid_computer_use_tool"
+_PRE_DISPATCH_VALIDATION_FAILURE_MARKER = (
+    "call is invalid and was rejected before frontend execution"
+)
 
 
 class ToolSender:
@@ -100,6 +103,7 @@ class ToolSender:
             failure_metadata = self._build_preparation_failure_metadata(
                 tool_call=tool_call,
                 request_id=request_id,
+                error_msg=error_msg,
             )
             tool_metadata.update(failure_metadata)
             yield ToolCallEvent(
@@ -197,6 +201,7 @@ class ToolSender:
         *,
         tool_call: "ParsedToolCall",
         request_id: str,
+        error_msg: str,
     ) -> Dict[str, Any]:
         metadata: Dict[str, Any] = {
             "skip_frontend_execution": True,
@@ -204,6 +209,8 @@ class ToolSender:
         }
         if tool_call.tool_name == _INVALID_COMPUTER_USE_TOOL_NAME:
             metadata["computer_use_validation_failed"] = True
+        elif _PRE_DISPATCH_VALIDATION_FAILURE_MARKER in error_msg:
+            metadata["llm_tool_call_validation_failed"] = True
         else:
             metadata["coordinate_resolution_failed"] = True
         return metadata
