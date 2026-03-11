@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-onboarding-start-gate): stop blocking `Start WindieOS` on missing permissions so users can finish onboarding after manifest acknowledgement and grant remaining permissions later from Settings.
 - fix(frontend-onboarding-fullpage-layout): expand onboarding into a true full-window surface, remove the cramped rounded overlay treatment, and stop truncating permission descriptions so long remediation copy stays readable during setup.
 - fix(frontend-onboarding-stop-shortcut-row-layout): let the onboarding stop-shortcut keybind card size to its content instead of a fixed inner width, so `Command + Shift + Esc` stays on one line on the final slide.
 - fix(frontend-permissions-macos-automation-onboarding): add a macOS System Events automation permission to the onboarding manifest, verify/request it through a sidecar Apple Events probe before agent loops, require onboarding completion from the shared permission store before entering the dashboard, and add mac build metadata (`NSAppleEventsUsageDescription` plus Apple Events entitlement) with focused frontend/sidecar regression coverage so Automation prompts appear during onboarding instead of mid-task.

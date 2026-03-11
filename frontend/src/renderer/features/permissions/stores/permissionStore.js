@@ -46,8 +46,7 @@ function resolveGateState({
   const manifestMatches = onboardingState.manifest_version === manifestVersion;
   const completedForManifest = manifestMatches && onboardingState.completed === true;
 
-  const needsOnboarding = !completedForManifest
-    || missingRequiredPermissions.length > 0;
+  const needsOnboarding = !completedForManifest;
 
   return {
     requiredPermissionIds,
@@ -203,7 +202,6 @@ export const usePermissionStore = create((set, get) => ({
 
   completeOnboarding: () => {
     const {
-      missingRequiredPermissions,
       manifestVersion,
       permissions,
       statusesByPermissionId,
@@ -211,11 +209,6 @@ export const usePermissionStore = create((set, get) => ({
 
     if (!manifestVersion) {
       set({ error: 'Missing permission manifest version.' });
-      return false;
-    }
-
-    if (missingRequiredPermissions.length > 0) {
-      set({ error: 'Grant all required permissions before continuing.' });
       return false;
     }
 

@@ -223,7 +223,7 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(screen.getByText('Esc').tagName).toBe('KBD');
   });
 
-  test('disables Start WindieOS until required permissions are complete', () => {
+  test('allows Start WindieOS even when required permissions are still missing', () => {
     const previousMissingRequiredPermissions = mockPermissionState.missingRequiredPermissions;
     mockPermissionState.missingRequiredPermissions = ['screen_capture', 'system_events_automation'];
 
@@ -237,9 +237,9 @@ describe('FrontendOnboardingSlideshow', () => {
 
       fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 
-      expect(screen.getByRole('button', { name: 'Start WindieOS' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Start WindieOS' })).toBeEnabled();
       expect(
-        screen.getByText('Finish the required permissions on the previous step before starting WindieOS.'),
+        screen.getByText('Some permissions are still missing. You can continue now and grant them later in Settings.'),
       ).toBeInTheDocument();
     } finally {
       mockPermissionState.missingRequiredPermissions = previousMissingRequiredPermissions;

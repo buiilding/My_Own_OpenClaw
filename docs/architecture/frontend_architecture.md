@@ -127,7 +127,7 @@ Current runtime behavior also relies on these explicit seams:
 
 ### Permission Runtime Flow (Settings + Store Gate State)
 
-1. Renderer `App.jsx` startup is still not hard permission-gated; it routes by VM mode + frontend onboarding slideshow completion state.
+1. Renderer `App.jsx` startup routes by VM mode + permission-onboarding completion state for the current manifest, but missing permissions no longer hard-block Start.
 2. Frontend onboarding step 1 now mounts a permission checklist powered by `permissionStore` (manifest/status bootstrap + per-permission request actions).
 3. `permissionStore` remains the canonical place for manifest fetch + permission gate derivation (`needsOnboarding`, required permission sets, manifest-version completion).
 4. Onboarding and settings surfaces both call store helpers for permission runtime updates:
