@@ -4,7 +4,7 @@ from collections.abc import Mapping
 import logging
 import subprocess
 import time
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from .base import BaseWindowManager
 
@@ -21,8 +21,10 @@ class MacOSWindowManager(BaseWindowManager):
                 NSApplicationActivateIgnoringOtherApps,
                 NSWorkspace,
             )
+            import ApplicationServices
             import Quartz
 
+            self.ApplicationServices = ApplicationServices
             self.NSWorkspace = NSWorkspace
             self.NSApplicationActivationPolicyRegular = (
                 NSApplicationActivationPolicyRegular
@@ -33,8 +35,149 @@ class MacOSWindowManager(BaseWindowManager):
             self.Quartz = Quartz
             self._available = True
         except ImportError:
-            logger.warning("AppKit/Quartz not available, window management disabled on macOS")
+            logger.warning("AppKit/ApplicationServices/Quartz not available, window management disabled on macOS")
             self._available = False
+
+    def _ax_is_trusted(self) -> bool:
+        if not self._available:
+            return False
+        trust_fn = getattr(self.ApplicationServices, "AXIsProcessTrusted", None)
+        if trust_fn is None:
+            return False
+        try:
+            return bool(trust_fn())
+        except Exception:
+            logger.debug("AXIsProcessTrusted probe failed", exc_info=True)
+            return False
+
+    def _ax_copy_attribute_value(self, element: Any, attribute: str) -> tuple[int | None, Any]:
+        try:
+            result = self.ApplicationServices.AXUIElementCopyAttributeValue(
+                element,
+                attribute,
+                None,
+            )
+        except Exception:
+            logger.debug(
+                "AXUIElementCopyAttributeValue failed for attribute %s",
+                attribute,
+                exc_info=True,
+            )
+            return None, None
+
+        if isinstance(result, tuple) and len(result) == 2:
+            return result
+        return self.ApplicationServices.kAXErrorSuccess, result
+
+    def _list_accessibility_window_records(self) -> List[dict]:
+        if not self._available or not self._ax_is_trusted():
+            return []
+
+        windows: List[dict] = []
+        workspace = self.NSWorkspace.sharedWorkspace()
+        for app in workspace.runningApplications():
+            app_name = app.localizedName()
+            if not app_name:
+                continue
+            try:
+                if app.activationPolicy() != self.NSApplicationActivationPolicyRegular:
+                    continue
+            except Exception:
+                continue
+            try:
+                if app.isHidden():
+                    continue
+            except Exception:
+                pass
+
+            app_ref = self.ApplicationServices.AXUIElementCreateApplication(
+                app.processIdentifier()
+            )
+            err, app_windows = self._ax_copy_attribute_value(
+                app_ref,
+                self.ApplicationServices.kAXWindowsAttribute,
+            )
+            if err != self.ApplicationServices.kAXErrorSuccess or not app_windows:
+                continue
+
+            for ax_window in app_windows:
+                minimized_err, minimized_value = self._ax_copy_attribute_value(
+                    ax_window,
+                    self.ApplicationServices.kAXMinimizedAttribute,
+                )
+                if (
+                    minimized_err == self.ApplicationServices.kAXErrorSuccess
+                    and bool(minimized_value)
+                ):
+                    continue
+
+                title_err, title_value = self._ax_copy_attribute_value(
+                    ax_window,
+                    self.ApplicationServices.kAXTitleAttribute,
+                )
+                title = (
+                    str(title_value).strip()
+                    if title_err == self.ApplicationServices.kAXErrorSuccess and title_value
+                    else ""
+                )
+                main_err, main_value = self._ax_copy_attribute_value(
+                    ax_window,
+                    self.ApplicationServices.kAXMainAttribute,
+                )
+
+                windows.append(
+                    {
+                        "title": title or app_name,
+                        "hwnd": None,
+                        "app_name": app_name,
+                        "window_name": title or app_name,
+                        "is_main": (
+                            bool(main_value)
+                            if main_err == self.ApplicationServices.kAXErrorSuccess
+                            else False
+                        ),
+                    }
+                )
+
+        if windows:
+            windows.sort(
+                key=lambda window: (
+                    not bool(window.get("is_main")),
+                    str(window.get("app_name") or "").lower(),
+                    str(window.get("title") or "").lower(),
+                )
+            )
+            logger.info(
+                "Accessibility window enumeration returned %s usable macOS windows",
+                len(windows),
+            )
+        else:
+            logger.info("Accessibility window enumeration returned no usable macOS windows")
+        return windows
+
+    def _list_user_window_records(self) -> List[dict]:
+        accessibility_windows = self._list_accessibility_window_records()
+        quartz_windows = self._list_window_records(on_screen_only=False)
+
+        if not accessibility_windows:
+            return quartz_windows
+
+        covered_apps = {
+            str(window.get("app_name") or "").strip().lower()
+            for window in accessibility_windows
+            if str(window.get("app_name") or "").strip()
+        }
+        fallback_quartz_windows = [
+            window
+            for window in quartz_windows
+            if str(window.get("app_name") or "").strip().lower() not in covered_apps
+        ]
+        if fallback_quartz_windows:
+            logger.info(
+                "Quartz fallback added %s macOS windows for apps without Accessibility windows",
+                len(fallback_quartz_windows),
+            )
+        return accessibility_windows + fallback_quartz_windows
 
     @staticmethod
     def _coerce_quartz_window_record(raw_window):
@@ -344,18 +487,13 @@ return "false"
             return []
 
         try:
-            window_records = self._list_window_records(on_screen_only=False)
+            window_records = self._list_user_window_records()
             if not window_records:
                 logger.info(
-                    "Quartz window enumeration returned no usable macOS windows; "
+                    "Quartz window enumeration returned no usable macOS windows after Accessibility fallback; "
                     "falling back to running applications",
                 )
                 window_records = self._list_running_app_records()
-            else:
-                logger.info(
-                    "Quartz window enumeration returned %s usable macOS windows",
-                    len(window_records),
-                )
             return [
                 {
                     "title": window["title"],
@@ -375,6 +513,36 @@ return "false"
             return None
 
         try:
+            workspace = self.NSWorkspace.sharedWorkspace()
+            app = workspace.activeApplication()
+            app_name = app.get("NSApplicationName")
+            if app_name and self._ax_is_trusted():
+                for running_app in workspace.runningApplications():
+                    if running_app.localizedName() != app_name:
+                        continue
+                    app_ref = self.ApplicationServices.AXUIElementCreateApplication(
+                        running_app.processIdentifier()
+                    )
+                    err, focused_window = self._ax_copy_attribute_value(
+                        app_ref,
+                        self.ApplicationServices.kAXFocusedWindowAttribute,
+                    )
+                    if (
+                        err == self.ApplicationServices.kAXErrorSuccess
+                        and focused_window is not None
+                    ):
+                        title_err, title_value = self._ax_copy_attribute_value(
+                            focused_window,
+                            self.ApplicationServices.kAXTitleAttribute,
+                        )
+                        title = (
+                            str(title_value).strip()
+                            if title_err == self.ApplicationServices.kAXErrorSuccess and title_value
+                            else app_name
+                        )
+                        return {"title": title or app_name, "hwnd": None, "app_name": app_name}
+                    break
+
             windows = self._list_window_records(on_screen_only=True)
             if windows:
                 active_window = windows[0]
@@ -384,9 +552,6 @@ return "false"
                     "app_name": active_window["app_name"],
                 }
 
-            workspace = self.NSWorkspace.sharedWorkspace()
-            app = workspace.activeApplication()
-            app_name = app.get("NSApplicationName")
             if app_name:
                 return {"title": app_name, "hwnd": None, "app_name": app_name}
         except Exception as e:
@@ -402,7 +567,7 @@ return "false"
         try:
             target_window = None
             normalized_requested_title = window_title.lower()
-            candidate_windows = self._list_window_records(on_screen_only=False)
+            candidate_windows = self._list_user_window_records()
             if not candidate_windows:
                 candidate_windows = self._list_running_app_records()
             for window in candidate_windows:

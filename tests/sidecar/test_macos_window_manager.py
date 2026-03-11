@@ -11,10 +11,11 @@ from core.platform.macos import MacOSWindowManager  # noqa: E402
 
 
 class _FakeApp:
-    def __init__(self, name, *, activation_policy=0, hidden=False):
+    def __init__(self, name, *, activation_policy=0, hidden=False, pid=0):
         self._name = name
         self._activation_policy = activation_policy
         self._hidden = hidden
+        self._pid = pid
         self.activated = False
 
     def localizedName(self):
@@ -25,6 +26,9 @@ class _FakeApp:
 
     def isHidden(self):
         return self._hidden
+
+    def processIdentifier(self):
+        return self._pid
 
     def activateWithOptions_(self, _options):
         self.activated = True
@@ -68,6 +72,65 @@ def _install_fake_appkit(monkeypatch, *, apps, active_app):
     )
 
 
+def _install_fake_application_services(
+    monkeypatch,
+    *,
+    trusted=True,
+    app_windows_by_pid=None,
+    focused_window_by_pid=None,
+):
+    app_windows_by_pid = app_windows_by_pid or {}
+    focused_window_by_pid = focused_window_by_pid or {}
+
+    class _FakeApplicationServices:
+        kAXWindowsAttribute = "AXWindows"
+        kAXTitleAttribute = "AXTitle"
+        kAXMinimizedAttribute = "AXMinimized"
+        kAXMainAttribute = "AXMain"
+        kAXFocusedWindowAttribute = "AXFocusedWindow"
+        kAXErrorSuccess = 0
+        kAXErrorAPIDisabled = -25211
+
+        @staticmethod
+        def AXIsProcessTrusted():
+            return trusted
+
+        @staticmethod
+        def AXUIElementCreateApplication(pid):
+            return ("app", pid)
+
+        @staticmethod
+        def AXUIElementCopyAttributeValue(element, attribute, _unused):
+            kind, value = element
+            if kind == "app":
+                if attribute == _FakeApplicationServices.kAXWindowsAttribute:
+                    if value not in app_windows_by_pid:
+                        return (_FakeApplicationServices.kAXErrorAPIDisabled, None)
+                    return (
+                        _FakeApplicationServices.kAXErrorSuccess,
+                        app_windows_by_pid.get(value) or [],
+                    )
+                if attribute == _FakeApplicationServices.kAXFocusedWindowAttribute:
+                    focused_window = focused_window_by_pid.get(value)
+                    if focused_window is None:
+                        return (_FakeApplicationServices.kAXErrorAPIDisabled, None)
+                    return (_FakeApplicationServices.kAXErrorSuccess, focused_window)
+
+            if kind == "window":
+                return (
+                    _FakeApplicationServices.kAXErrorSuccess,
+                    value.get(attribute),
+                )
+
+            return (_FakeApplicationServices.kAXErrorAPIDisabled, None)
+
+    monkeypatch.setitem(
+        sys.modules,
+        "ApplicationServices",
+        _FakeApplicationServices,
+    )
+
+
 def _install_fake_quartz(monkeypatch, *, all_windows, on_screen_windows=None):
     if on_screen_windows is None:
         on_screen_windows = all_windows
@@ -96,7 +159,7 @@ def test_macos_window_manager_unavailable_without_appkit(monkeypatch):
     real_import = builtins.__import__
 
     def _fake_import(name, *args, **kwargs):
-        if name in {"AppKit", "Quartz"}:
+        if name in {"AppKit", "ApplicationServices", "Quartz"}:
             raise ImportError("missing test dependency")
         return real_import(name, *args, **kwargs)
 
@@ -115,6 +178,7 @@ def test_macos_window_manager_get_windows_prefers_window_titles(monkeypatch):
         apps=[_FakeApp("Terminal"), _FakeApp(None), _FakeApp("Safari")],
         active_app={"NSApplicationName": "Terminal"},
     )
+    _install_fake_application_services(monkeypatch, trusted=False)
     _install_fake_quartz(
         monkeypatch,
         all_windows=[
@@ -137,6 +201,7 @@ def test_macos_window_manager_get_windows_falls_back_to_running_apps_when_quartz
         apps=[_FakeApp("Terminal"), _FakeApp("Safari")],
         active_app={"NSApplicationName": "Terminal"},
     )
+    _install_fake_application_services(monkeypatch, trusted=False)
     _install_fake_quartz(
         monkeypatch,
         all_windows=[],
@@ -149,12 +214,85 @@ def test_macos_window_manager_get_windows_falls_back_to_running_apps_when_quartz
     ]
 
 
+def test_macos_window_manager_get_windows_prefers_accessibility_windows(monkeypatch):
+    apps = [
+        _FakeApp("Codex", pid=101),
+        _FakeApp("Google Chrome", pid=202),
+    ]
+    _install_fake_appkit(
+        monkeypatch,
+        apps=apps,
+        active_app={"NSApplicationName": "Codex"},
+    )
+    _install_fake_application_services(
+        monkeypatch,
+        trusted=True,
+        app_windows_by_pid={
+            101: [
+                ("window", {"AXTitle": "Codex", "AXMinimized": False, "AXMain": True}),
+            ],
+            202: [
+                ("window", {"AXTitle": "Mail - Outlook", "AXMinimized": False, "AXMain": True}),
+                ("window", {"AXTitle": "Hidden", "AXMinimized": True, "AXMain": False}),
+            ],
+        },
+    )
+    _install_fake_quartz(
+        monkeypatch,
+        all_windows=[
+            {"owner": "Dock", "name": "", "layer": 20, "alpha": 1, "id": 2},
+        ],
+    )
+    manager = MacOSWindowManager()
+
+    assert manager.get_windows() == [
+        {"title": "Codex", "hwnd": None, "app_name": "Codex"},
+        {"title": "Mail - Outlook", "hwnd": None, "app_name": "Google Chrome"},
+    ]
+
+
+def test_macos_window_manager_get_windows_merges_quartz_for_apps_without_accessibility_windows(monkeypatch):
+    apps = [
+        _FakeApp("Ghostty", pid=101),
+        _FakeApp("Google Chrome", pid=202),
+    ]
+    _install_fake_appkit(
+        monkeypatch,
+        apps=apps,
+        active_app={"NSApplicationName": "Google Chrome"},
+    )
+    _install_fake_application_services(
+        monkeypatch,
+        trusted=True,
+        app_windows_by_pid={
+            101: [],
+            202: [
+                ("window", {"AXTitle": "Mail - Outlook", "AXMinimized": False, "AXMain": True}),
+            ],
+        },
+    )
+    _install_fake_quartz(
+        monkeypatch,
+        all_windows=[
+            {"owner": "Ghostty", "name": "Ghostty", "layer": 0, "alpha": 1, "id": 51},
+            {"owner": "Google Chrome", "name": "Old Quartz Title", "layer": 0, "alpha": 1, "id": 52},
+        ],
+    )
+    manager = MacOSWindowManager()
+
+    assert manager.get_windows() == [
+        {"title": "Mail - Outlook", "hwnd": None, "app_name": "Google Chrome"},
+        {"title": "Ghostty", "hwnd": 51, "app_name": "Ghostty"},
+    ]
+
+
 def test_macos_window_manager_accepts_mapping_like_quartz_records(monkeypatch):
     _install_fake_appkit(
         monkeypatch,
         apps=[_FakeApp("Terminal"), _FakeApp("Google Chrome")],
         active_app={"NSApplicationName": "Terminal"},
     )
+    _install_fake_application_services(monkeypatch, trusted=False)
     _install_fake_quartz(
         monkeypatch,
         all_windows=[
@@ -177,6 +315,7 @@ def test_macos_window_manager_logs_quartz_filter_debug_summary(monkeypatch, capl
         apps=[_FakeApp("Terminal")],
         active_app={"NSApplicationName": "Terminal"},
     )
+    _install_fake_application_services(monkeypatch, trusted=False)
     _install_fake_quartz(
         monkeypatch,
         all_windows=[
@@ -201,10 +340,14 @@ def test_macos_window_manager_logs_quartz_filter_debug_summary(monkeypatch, capl
 
 
 def test_macos_window_manager_get_active_window(monkeypatch):
-    _install_fake_appkit(
+    notes = _FakeApp("Notes", pid=404)
+    _install_fake_appkit(monkeypatch, apps=[notes], active_app={"NSApplicationName": "Notes"})
+    _install_fake_application_services(
         monkeypatch,
-        apps=[_FakeApp("Notes")],
-        active_app={"NSApplicationName": "Notes"},
+        trusted=True,
+        focused_window_by_pid={
+            404: ("window", {"AXTitle": "Shopping List"}),
+        },
     )
     _install_fake_quartz(
         monkeypatch,
@@ -215,17 +358,26 @@ def test_macos_window_manager_get_active_window(monkeypatch):
 
     assert manager.get_active_window() == {
         "title": "Shopping List",
-        "hwnd": 6,
+        "hwnd": None,
         "app_name": "Notes",
     }
 
 
 def test_macos_window_manager_switch_to_window_raises_specific_window(monkeypatch):
-    target = _FakeApp("Google Chrome")
+    target = _FakeApp("Google Chrome", pid=777)
     _install_fake_appkit(
         monkeypatch,
         apps=[_FakeApp("Terminal"), target],
         active_app={"NSApplicationName": "Terminal"},
+    )
+    _install_fake_application_services(
+        monkeypatch,
+        trusted=True,
+        app_windows_by_pid={
+            777: [
+                ("window", {"AXTitle": "Inbox", "AXMinimized": False, "AXMain": True}),
+            ],
+        },
     )
     _install_fake_quartz(
         monkeypatch,
@@ -256,11 +408,20 @@ def test_macos_window_manager_switch_to_window_raises_specific_window(monkeypatc
 
 
 def test_macos_window_manager_switch_to_window_matches_app_name(monkeypatch):
-    target = _FakeApp("Google Chrome")
+    target = _FakeApp("Google Chrome", pid=888)
     _install_fake_appkit(
         monkeypatch,
         apps=[_FakeApp("Terminal"), target],
         active_app={"NSApplicationName": "Terminal"},
+    )
+    _install_fake_application_services(
+        monkeypatch,
+        trusted=True,
+        app_windows_by_pid={
+            888: [
+                ("window", {"AXTitle": "my prompts - Google Docs", "AXMinimized": False, "AXMain": True}),
+            ],
+        },
     )
     _install_fake_quartz(
         monkeypatch,
@@ -292,6 +453,7 @@ def test_macos_window_manager_switch_to_window_returns_false_when_missing(monkey
         apps=[_FakeApp("Terminal"), _FakeApp("Safari")],
         active_app={"NSApplicationName": "Terminal"},
     )
+    _install_fake_application_services(monkeypatch, trusted=False)
     _install_fake_quartz(
         monkeypatch,
         all_windows=[{"owner": "Safari", "name": "Docs", "layer": 0, "alpha": 1, "id": 4}],
