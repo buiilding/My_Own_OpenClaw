@@ -2004,7 +2004,9 @@ class LocalMemoryStore:
         )
     
     async def mark_episodic_memories_semanticized(
-        self, memory_ids: List[str]
+        self,
+        memory_ids: List[str],
+        metadata_patch: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Mark episodic memories as semanticized.
@@ -2015,6 +2017,7 @@ class LocalMemoryStore:
         await mark_semanticized_memories_runtime(
             episodic_db_path=self.episodic_db_path,
             memory_ids=memory_ids,
+            metadata_patch=metadata_patch,
             log_debug=logger.debug,
         )
     

@@ -154,9 +154,10 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 
 #### Is low-signal filtering currently implemented?
 
-- No.
-- Current logic skips write only when both summary and facts are empty.
-- If summary/facts are non-empty (even if low value), a semantic memory is written.
+- Yes.
+- The semantic summarizer now rejects low-value outputs such as greetings, transient UI/app state, and runtime/tool-error facts.
+- Rejected batches do not create semantic-memory rows.
+- Rejected episodic interaction rows are still marked as processed so the same low-signal batch does not loop forever.
 
 #### Idle-trigger removal status
 

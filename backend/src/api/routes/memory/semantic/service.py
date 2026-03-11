@@ -165,17 +165,30 @@ class SemanticSummarizationService:
         conversations_text = "\n\n---\n\n".join(conversations)
         return f"""You are analyzing conversation history to extract important semantic information that should be remembered long-term.
 
-Extract:
-1. **User Preferences**: Any stated preferences (e.g., "I prefer dark mode", "I like Python over JavaScript")
-2. **Key Facts**: Important facts about the user (e.g., "User works as a software engineer", "User's name is John")
-3. **Important Context**: Context that would be useful in future conversations (e.g., "User is learning machine learning", "User uses Linux")
+Extract only durable long-term memory:
+1. **Identity**: stable facts about the user (name, email, role, accounts, devices)
+2. **Preferences**: repeatable likes/dislikes or explicit defaults
+3. **Workflows**: recurring ways the user works or tools they consistently use
+4. **Projects**: ongoing work, sustained goals, or active learning tracks
+5. **Constraints**: durable limits, requirements, or must/never rules
+
+Do not store:
+- greetings, chit-chat, or politeness
+- one-off requests with no lasting value
+- temporary UI/screen/app state
+- transient browser/session state
+- tool/runtime errors
+- anything that is explicitly ephemeral or unlikely to matter in a future conversation
 
 Conversation History:
 {conversations_text}
 
 Provide a structured summary with:
-- A brief overall summary (1-2 sentences)
-- A list of specific facts and preferences (one per line, as bullet points)
+- If there is durable memory: a brief overall summary (1-2 sentences) and a list of durable facts
+- If there is no durable memory worth storing: return exactly:
+SUMMARY: NONE
+
+FACTS:
 
 Format your response as:
 SUMMARY: [brief summary]

@@ -330,3 +330,49 @@ async def test_unsemanticized_helpers_mark_and_watermark_cursor_paths(tmp_path: 
     assert [row["id"] for row in unsemanticized] == ["m2", "m3"]
     assert [row["id"] for row in after_existing_watermark] == ["m3"]
     assert [row["id"] for row in all_after_missing_watermark] == ["m2", "m3"]
+
+
+@pytest.mark.asyncio
+async def test_mark_episodic_memories_semanticized_merges_metadata_patch(tmp_path: Path):
+    db_path = tmp_path / "episodic.db"
+    await init_episodic_schema(db_path)
+
+    await _insert_memory(
+        db_path,
+        id="m1",
+        user_id="user-1",
+        content="first",
+        timestamp="2026-01-01T00:00:00+00:00",
+        metadata=json.dumps({"source": "interaction_completed"}),
+        conversation_id="conv-1",
+        record_kind="interaction",
+        role="user",
+        message_index=1,
+        message_type="llm-text",
+        tool_name=None,
+        is_semanticized=0,
+    )
+
+    await runtime.mark_episodic_memories_semanticized(
+        episodic_db_path=str(db_path),
+        memory_ids=["m1"],
+        metadata_patch={
+            "semantic_status": "skipped_low_signal",
+            "semantic_skip_reason": "low_signal",
+        },
+    )
+
+    async with aiosqlite.connect(db_path) as conn:
+        conn.row_factory = aiosqlite.Row
+        cursor = await conn.cursor()
+        await cursor.execute(
+            "SELECT is_semanticized, metadata FROM memories WHERE id = ?",
+            ("m1",),
+        )
+        row = await cursor.fetchone()
+
+    assert row["is_semanticized"] == 1
+    metadata = json.loads(row["metadata"])
+    assert metadata["source"] == "interaction_completed"
+    assert metadata["semantic_status"] == "skipped_low_signal"
+    assert metadata["semantic_skip_reason"] == "low_signal"

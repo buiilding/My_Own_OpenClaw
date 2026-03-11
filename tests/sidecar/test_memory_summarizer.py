@@ -12,7 +12,7 @@ class FakeMemoryStore:
     def __init__(self, memories):
         self.memories = memories
         self.add_calls = []
-        self.marked_ids = []
+        self.mark_calls = []
 
     async def get_unsemanticized_episodic_memories_by_conversation(self, user_id, conversation_id, limit):
         return self.memories
@@ -31,8 +31,13 @@ class FakeMemoryStore:
         )
         return "semantic-1"
 
-    async def mark_episodic_memories_semanticized(self, memory_ids):
-        self.marked_ids = list(memory_ids)
+    async def mark_episodic_memories_semanticized(self, memory_ids, metadata_patch=None):
+        self.mark_calls.append(
+            {
+                "memory_ids": list(memory_ids),
+                "metadata_patch": dict(metadata_patch or {}),
+            }
+        )
 
 
 class FakeSemanticClient:
@@ -128,7 +133,58 @@ async def test_summarizer_processes_interaction_batch():
     assert "Summarize project status" in chunk_payload
     assert len(memory_store.add_calls) == 1
     assert memory_store.add_calls[0]["metadata"]["source_memory_count"] == 2
-    assert memory_store.marked_ids == ["1", "2"]
+    assert len(memory_store.mark_calls) == 1
+    assert memory_store.mark_calls[0]["memory_ids"] == ["1", "2"]
+    assert memory_store.mark_calls[0]["metadata_patch"]["semantic_status"] == "stored"
+    assert (
+        memory_store.mark_calls[0]["metadata_patch"]["semantic_summary_hash"]
+        == memory_store.add_calls[0]["metadata"]["summary_hash"]
+    )
+    assert memory_store.mark_calls[0]["metadata_patch"]["semantic_durable_fact_count"] == 1
+    assert memory_store.mark_calls[0]["metadata_patch"]["semantic_skipped_fact_count"] == 0
+    assert "semantic_processed_at" in memory_store.mark_calls[0]["metadata_patch"]
+
+
+@pytest.mark.asyncio
+async def test_summarizer_marks_low_signal_batches_processed_without_storing_semantic_row():
+    memories = [
+        {
+            "id": "1",
+            "content": "User: hi\nAssistant: Hello! How can I help you today?",
+            "timestamp": "2026-02-12T10:00:00Z",
+            "record_kind": "interaction",
+        }
+    ]
+    memory_store = FakeMemoryStore(memories)
+
+    class LowSignalSemanticClient:
+        async def summarize(self, conversations, user_id):
+            return "NONE", [
+                "No user preferences stated",
+                "User initiated contact with a casual greeting",
+                "Finder open to Applications folder (ephemeral context)",
+            ]
+
+    summarizer = MemorySummarizer(
+        memory_store=memory_store,
+        semantic_client=LowSignalSemanticClient(),
+        settings=SummarizerSettings(min_batch_size=1, min_batch_size_idle=1),
+    )
+
+    summarized = await summarizer._summarize_conversation_batch(
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+
+    assert summarized == 1
+    assert memory_store.add_calls == []
+    assert len(memory_store.mark_calls) == 1
+    assert memory_store.mark_calls[0]["memory_ids"] == ["1"]
+    assert memory_store.mark_calls[0]["metadata_patch"]["semantic_status"] == "skipped_low_signal"
+    assert memory_store.mark_calls[0]["metadata_patch"]["semantic_durable_fact_count"] == 0
+    assert memory_store.mark_calls[0]["metadata_patch"]["semantic_skipped_fact_count"] == 3
+    assert "semantic_summary_hash" in memory_store.mark_calls[0]["metadata_patch"]
+    assert "semantic_processed_at" in memory_store.mark_calls[0]["metadata_patch"]
 
 
 @pytest.mark.asyncio
