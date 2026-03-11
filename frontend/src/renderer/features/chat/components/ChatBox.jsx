@@ -177,11 +177,10 @@ function ChatBox() {
     pillElement.style.setProperty('--chatbox-close-center-x', `${centerX}px`);
     const clipPath = buildChatboxPillClipPath({
       width: pillWidth,
-      height: pillHeight,
+      height: pillHeight + CHATBOX_CLOSE_BUMP_HEIGHT,
       centerX,
     });
-    pillElement.style.clipPath = clipPath;
-    pillElement.style.webkitClipPath = clipPath;
+    pillElement.style.setProperty('--chatbox-pill-clip-path', clipPath);
   }, []);
 
   useLayoutEffect(() => {
