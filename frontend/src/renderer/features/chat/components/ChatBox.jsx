@@ -60,36 +60,28 @@ function buildChatboxPillClipPath({
   const cornerRadius = Math.min(CHATBOX_CLOSE_CORNER_RADIUS, safeWidth / 2, safeHeight / 2);
   const bodyTop = Math.min(CHATBOX_CLOSE_BUMP_HEIGHT, Math.max(0, safeHeight - cornerRadius - 1));
   const boundedCenterX = Math.min(
-    safeWidth - cornerRadius - 6,
-    Math.max(cornerRadius + 6, Number(centerX) || 0),
+    safeWidth - cornerRadius - 2,
+    Math.max(cornerRadius + 2, Number(centerX) || 0),
   );
-  const availableLeftWidth = Math.max(10, boundedCenterX - cornerRadius - 6);
-  const availableRightWidth = Math.max(10, safeWidth - cornerRadius - 6 - boundedCenterX);
-  const resolvedRightHalfWidth = Math.max(
-    12,
-    Math.min(CHATBOX_CLOSE_BUMP_HALF_WIDTH, availableRightWidth),
+  const availableHalfWidth = Math.min(
+    CHATBOX_CLOSE_BUMP_HALF_WIDTH,
+    Math.max(12, boundedCenterX - cornerRadius - 2),
+    Math.max(12, safeWidth - cornerRadius - 2 - boundedCenterX),
   );
-  const resolvedLeftHalfWidth = Math.max(
-    14,
-    Math.min(
-      availableLeftWidth,
-      CHATBOX_CLOSE_BUMP_HALF_WIDTH + Math.max(0, CHATBOX_CLOSE_BUMP_HALF_WIDTH - resolvedRightHalfWidth),
-    ),
-  );
-  const leftShoulderX = boundedCenterX - resolvedLeftHalfWidth;
-  const rightShoulderX = boundedCenterX + resolvedRightHalfWidth;
+  const resolvedHalfWidth = Math.max(12, availableHalfWidth);
+  const leftShoulderX = boundedCenterX - resolvedHalfWidth;
+  const rightShoulderX = boundedCenterX + resolvedHalfWidth;
   const topHalfWidth = Math.min(
-    CHATBOX_CLOSE_BUMP_TOP_HALF_WIDTH,
-    Math.max(4, Math.min(resolvedLeftHalfWidth, resolvedRightHalfWidth) * 0.42),
+    CHATBOX_CLOSE_BUMP_TOP_HALF_WIDTH + 2,
+    Math.max(7, resolvedHalfWidth * 0.58),
   );
   const leftCrownX = boundedCenterX - topHalfWidth;
   const rightCrownX = boundedCenterX + topHalfWidth;
-  const crownY = 0.8;
-  const leftCurveLead = Math.min(18, resolvedLeftHalfWidth * 0.58);
-  const rightCurveLead = Math.min(18, resolvedRightHalfWidth * 0.58);
-  const crownControlOffset = Math.max(4, topHalfWidth * 0.82);
+  const crownY = 0.6;
+  const curveLead = Math.min(18, resolvedHalfWidth * 0.62);
+  const crownControlOffset = Math.max(5, topHalfWidth * 0.78);
 
-  return `path("M ${formatPathNumber(cornerRadius)} ${formatPathNumber(bodyTop)} L ${formatPathNumber(leftShoulderX)} ${formatPathNumber(bodyTop)} C ${formatPathNumber(leftShoulderX + leftCurveLead)} ${formatPathNumber(bodyTop)}, ${formatPathNumber(leftCrownX - crownControlOffset)} ${formatPathNumber(crownY)}, ${formatPathNumber(leftCrownX)} ${formatPathNumber(crownY)} L ${formatPathNumber(rightCrownX)} ${formatPathNumber(crownY)} C ${formatPathNumber(rightCrownX + crownControlOffset)} ${formatPathNumber(crownY)}, ${formatPathNumber(rightShoulderX - rightCurveLead)} ${formatPathNumber(bodyTop)}, ${formatPathNumber(rightShoulderX)} ${formatPathNumber(bodyTop)} L ${formatPathNumber(safeWidth - cornerRadius)} ${formatPathNumber(bodyTop)} A ${formatPathNumber(cornerRadius)} ${formatPathNumber(cornerRadius)} 0 0 1 ${formatPathNumber(safeWidth)} ${formatPathNumber(bodyTop + cornerRadius)} L ${formatPathNumber(safeWidth)} ${formatPathNumber(safeHeight - cornerRadius)} A ${formatPathNumber(cornerRadius)} ${formatPathNumber(cornerRadius)} 0 0 1 ${formatPathNumber(safeWidth - cornerRadius)} ${formatPathNumber(safeHeight)} L ${formatPathNumber(cornerRadius)} ${formatPathNumber(safeHeight)} A ${formatPathNumber(cornerRadius)} ${formatPathNumber(cornerRadius)} 0 0 1 0 ${formatPathNumber(safeHeight - cornerRadius)} L 0 ${formatPathNumber(bodyTop + cornerRadius)} A ${formatPathNumber(cornerRadius)} ${formatPathNumber(cornerRadius)} 0 0 1 ${formatPathNumber(cornerRadius)} ${formatPathNumber(bodyTop)} Z")`;
+  return `path("M ${formatPathNumber(cornerRadius)} ${formatPathNumber(bodyTop)} L ${formatPathNumber(leftShoulderX)} ${formatPathNumber(bodyTop)} C ${formatPathNumber(leftShoulderX + curveLead)} ${formatPathNumber(bodyTop)}, ${formatPathNumber(leftCrownX - crownControlOffset)} ${formatPathNumber(crownY)}, ${formatPathNumber(leftCrownX)} ${formatPathNumber(crownY)} L ${formatPathNumber(rightCrownX)} ${formatPathNumber(crownY)} C ${formatPathNumber(rightCrownX + crownControlOffset)} ${formatPathNumber(crownY)}, ${formatPathNumber(rightShoulderX - curveLead)} ${formatPathNumber(bodyTop)}, ${formatPathNumber(rightShoulderX)} ${formatPathNumber(bodyTop)} L ${formatPathNumber(safeWidth - cornerRadius)} ${formatPathNumber(bodyTop)} A ${formatPathNumber(cornerRadius)} ${formatPathNumber(cornerRadius)} 0 0 1 ${formatPathNumber(safeWidth)} ${formatPathNumber(bodyTop + cornerRadius)} L ${formatPathNumber(safeWidth)} ${formatPathNumber(safeHeight - cornerRadius)} A ${formatPathNumber(cornerRadius)} ${formatPathNumber(cornerRadius)} 0 0 1 ${formatPathNumber(safeWidth - cornerRadius)} ${formatPathNumber(safeHeight)} L ${formatPathNumber(cornerRadius)} ${formatPathNumber(safeHeight)} A ${formatPathNumber(cornerRadius)} ${formatPathNumber(cornerRadius)} 0 0 1 0 ${formatPathNumber(safeHeight - cornerRadius)} L 0 ${formatPathNumber(bodyTop + cornerRadius)} A ${formatPathNumber(cornerRadius)} ${formatPathNumber(cornerRadius)} 0 0 1 ${formatPathNumber(cornerRadius)} ${formatPathNumber(bodyTop)} Z")`;
 }
 
 function ChatBox() {
