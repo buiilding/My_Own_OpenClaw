@@ -1,5 +1,6 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import type { SystemState } from './MessageFormatter';
+import { waitForCaptureDelay } from './CaptureDelay';
 import { prepareExternalFocusForCapture } from './SurfaceOrchestrator';
 import { logSystemStateCaptureTiming } from './toolExecution/ToolExecutionLogger';
 
@@ -8,14 +9,6 @@ type CaptureSystemStateOptions = {
   includeWindows?: boolean;
   correlationId?: string | null;
 };
-
-function waitForCaptureDelay(waitSeconds: number): Promise<void> {
-  const waitMilliseconds = Math.max(0, waitSeconds) * 1000;
-  if (waitMilliseconds <= 0) {
-    return Promise.resolve();
-  }
-  return new Promise((resolve) => setTimeout(resolve, waitMilliseconds));
-}
 
 export async function captureSystemState({
   waitSeconds = 0,

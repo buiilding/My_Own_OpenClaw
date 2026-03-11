@@ -1,4 +1,5 @@
 import {
+  ensureToolExecutionSurface,
   prepareToolExecutionSurface,
   restoreToolExecutionSurface,
   resolveBundleSurfaceMode,
@@ -123,6 +124,31 @@ describe('toolRunnerSurface helpers', () => {
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
       [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'chatbox' }],
+    ]);
+  });
+
+  test('demotes and restores overlay topmost state for switch_tab on Windows', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+    });
+    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
+      if (channel === INVOKE_CHANNELS.DEMOTE_OVERLAY_TOPMOST_FOR_WINDOW_SWITCH) {
+        return { success: true, demoted: true };
+      }
+      return { success: true };
+    });
+
+    const preparation = await ensureToolExecutionSurface('switch_tab', { tab_name: 'Editor' }, {
+      correlationId: 'corr-switch-win',
+    });
+    expect(preparation.canExecute).toBe(true);
+    await restoreToolExecutionSurface(preparation);
+
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
+      [INVOKE_CHANNELS.DEMOTE_OVERLAY_TOPMOST_FOR_WINDOW_SWITCH, {}],
+      [INVOKE_CHANNELS.RESTORE_OVERLAY_TOPMOST_AFTER_WINDOW_SWITCH, {}],
     ]);
   });
 

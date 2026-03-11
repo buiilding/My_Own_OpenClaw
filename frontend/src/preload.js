@@ -45,6 +45,8 @@ contextBridge.exposeInMainWorld('ipc', {
       'show-chatbox',
       'hide-chatbox',
       'handoff-surface-for-computer-use',
+      'demote-overlay-topmost-for-window-switch',
+      'restore-overlay-topmost-after-window-switch',
       'prepare-surface-for-screenshot',
       'restore-surface-after-screenshot',
       'get-displays',

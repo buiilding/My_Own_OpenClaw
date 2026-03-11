@@ -41,6 +41,8 @@ export const INVOKE_CHANNELS = {
   SHOW_CHATBOX: 'show-chatbox',
   HIDE_CHATBOX: 'hide-chatbox',
   HANDOFF_SURFACE_FOR_COMPUTER_USE: 'handoff-surface-for-computer-use',
+  DEMOTE_OVERLAY_TOPMOST_FOR_WINDOW_SWITCH: 'demote-overlay-topmost-for-window-switch',
+  RESTORE_OVERLAY_TOPMOST_AFTER_WINDOW_SWITCH: 'restore-overlay-topmost-after-window-switch',
   PREPARE_SURFACE_FOR_SCREENSHOT: 'prepare-surface-for-screenshot',
   RESTORE_SURFACE_AFTER_SCREENSHOT: 'restore-surface-after-screenshot',
   GET_DISPLAYS: 'get-displays',
