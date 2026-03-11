@@ -228,14 +228,14 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
                 normalized_tool_name = mapped_tool_name
                 if isinstance(mapped_args, dict):
                     parameters = copy.deepcopy(mapped_args)
-                    resolved_explanation = _resolve_system_use_explanation(
-                        tool_call.get("arguments") if isinstance(tool_call.get("arguments"), dict) else {},
-                        parameters,
-                    )
-                    if resolved_explanation is not None:
-                        parameters["explanation"] = resolved_explanation
                 else:
                     parameters = {}
+                resolved_explanation = _resolve_system_use_explanation(
+                    tool_call.get("arguments") if isinstance(tool_call.get("arguments"), dict) else {},
+                    parameters,
+                )
+                if resolved_explanation is not None:
+                    parameters["explanation"] = resolved_explanation
     elif normalized_tool_name in _SYSTEM_SUBTOOL_TO_CONCRETE:
         normalized_tool_name, parameters = _canonicalize_legacy_system_tool_call(
             normalized_tool_name,

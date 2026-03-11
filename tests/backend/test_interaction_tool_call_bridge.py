@@ -726,6 +726,41 @@ def test_to_parsed_response_maps_unified_system_use_to_concrete_tool():
     }
 
 
+def test_to_parsed_response_maps_unified_system_use_without_arguments_to_empty_parameters():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_windows_empty_1",
+                    "name": "system_use",
+                    "arguments": {
+                        "tool": "get_open_windows",
+                        "explanation": "inspect currently open windows",
+                    },
+                }
+            ],
+        }
+    )
+
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    call = parsed.tool_calls[0]
+    assert call.tool_name == "get_open_windows"
+    assert call.parameters == {"explanation": "inspect currently open windows"}
+    assert call.metadata == {
+        "tool_call_id": "call_windows_empty_1",
+        "model_facing_tool_call": {
+            "id": "call_windows_empty_1",
+            "name": "system_use",
+            "arguments": {
+                "tool": "get_open_windows",
+                "explanation": "inspect currently open windows",
+            },
+        },
+    }
+
+
 def test_to_history_tool_calls_preserves_successful_unified_computer_use_wrapper():
     parsed = to_parsed_response(
         {
