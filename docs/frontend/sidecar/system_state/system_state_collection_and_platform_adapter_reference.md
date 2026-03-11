@@ -116,7 +116,7 @@ Per-field post-processing:
 ### macOS
 
 - active app/window: `NSWorkspace.sharedWorkspace().activeApplication()`
-- open-window inspection prefers on-screen Quartz windows owned by regular GUI apps, with `runningApplications()` fallback when Quartz enumeration is unavailable/empty
+- open-window inspection prefers Quartz windows owned by regular GUI apps, including maximized/full-screen windows that `onScreenOnly` enumeration can miss, with `runningApplications()` fallback when Quartz enumeration is unavailable/empty
 - switch behavior: `activateWithOptions_(0)` on matched app name
 - dependency: `AppKit` bridge
 

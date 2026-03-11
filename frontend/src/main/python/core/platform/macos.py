@@ -344,7 +344,7 @@ return "false"
             return []
 
         try:
-            window_records = self._list_window_records(on_screen_only=True)
+            window_records = self._list_window_records(on_screen_only=False)
             if not window_records:
                 logger.info(
                     "Quartz window enumeration returned no usable macOS windows; "
