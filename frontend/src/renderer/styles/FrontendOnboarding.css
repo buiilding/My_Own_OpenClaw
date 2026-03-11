@@ -20,7 +20,7 @@
   background:
     linear-gradient(180deg, rgba(10, 10, 10, 0.96), rgba(4, 4, 4, 0.98)),
     linear-gradient(90deg, rgba(255, 255, 255, 0.025), transparent 26%);
-  font-family: "Avenir Next", Avenir, "Nunito Sans", "Segoe UI", sans-serif;
+  font-family: var(--font-ui);
   overflow: hidden;
 }
 
@@ -46,7 +46,7 @@
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-card-scroll-region {
-  padding-top: 48px;
+  padding-top: 32px;
   gap: 18px;
 }
 
@@ -63,13 +63,32 @@
 
 .frontend-onboarding-card-scroll-region {
   min-height: 0;
-  width: min(1640px, calc(100% - 88px));
+  width: min(980px, calc(100% - 88px));
   margin: 0 auto;
-  padding: 64px 0 20px;
+  padding: 40px 0 24px;
   display: grid;
-  align-content: start;
+  align-content: center;
+  justify-items: center;
   gap: 20px;
   overflow: auto;
+}
+
+.frontend-onboarding-stage {
+  width: min(920px, 100%);
+  min-height: 100%;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 28px;
+  padding: 10px 0 18px;
+}
+
+.frontend-onboarding-stage-copy {
+  width: min(760px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  text-align: center;
 }
 
 .frontend-onboarding-progress {
@@ -84,19 +103,20 @@
 .frontend-onboarding-title {
   margin: 0;
   font-size: clamp(52px, 7vw, 96px);
-  line-height: 1.05;
-  font-weight: 500;
-  letter-spacing: -0.03em;
+  line-height: 0.98;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.045em;
   color: #ffffff;
 }
 
 .frontend-onboarding-body {
   margin: 0;
   font-size: clamp(20px, 2.4vw, 34px);
-  line-height: 1.35;
+  line-height: 1.42;
   font-weight: 400;
   color: #d8d8d8;
-  max-width: 52ch;
+  max-width: 28ch;
 }
 
 .frontend-onboarding-emphasis {
@@ -128,6 +148,7 @@
   display: grid;
   gap: 28px;
   align-items: start;
+  justify-items: center;
   padding-top: 20px;
 }
 
@@ -223,7 +244,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  width: min(1640px, calc(100% - 88px));
+  width: min(980px, calc(100% - 88px));
   margin: 0 auto;
   padding: 14px 0 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.09);
@@ -271,11 +292,16 @@
   display: grid;
   gap: 18px;
   min-height: 0;
+  width: 100%;
+  justify-items: center;
 }
 
 .frontend-onboarding-permission-stage-meta {
   display: grid;
   gap: 6px;
+  width: min(700px, 100%);
+  justify-items: center;
+  text-align: center;
 }
 
 .frontend-onboarding-permission-stage-count {
@@ -338,6 +364,8 @@
 
 .frontend-onboarding-permissions-list.single {
   grid-template-columns: 1fr;
+  width: 100%;
+  justify-items: center;
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-permissions-list {
@@ -362,11 +390,11 @@
 }
 
 .frontend-onboarding-permission-row.single {
-  width: min(920px, 100%);
+  width: min(840px, 100%);
   min-height: 0;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 20px;
-  padding: 22px 24px;
+  padding: 24px 26px;
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-permission-row {
@@ -376,7 +404,7 @@
 
 .frontend-onboarding-permission-copy {
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .frontend-onboarding-permission-copy h2 {
@@ -388,7 +416,7 @@
 }
 
 .frontend-onboarding-permission-row.single .frontend-onboarding-permission-copy h2 {
-  font-size: 28px;
+  font-size: 30px;
 }
 
 .frontend-onboarding-permission-kind {
@@ -417,7 +445,7 @@
 
 .frontend-onboarding-permission-row.single .frontend-onboarding-permission-copy p {
   font-size: 18px;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .frontend-onboarding-permission-copy p.frontend-onboarding-permission-kind {
@@ -506,6 +534,8 @@
   margin: 0;
   color: #d7d7d7;
   font-size: 16px;
+  width: min(700px, 100%);
+  text-align: center;
 }
 
 @media (max-width: 1100px) {
@@ -532,6 +562,7 @@
   .frontend-onboarding-card-scroll-region {
     width: calc(100% - 36px);
     padding: 70px 0 24px;
+    align-content: start;
   }
 
   .frontend-onboarding-card-permissions .frontend-onboarding-card-scroll-region {
@@ -563,6 +594,7 @@
 
   .frontend-onboarding-body {
     font-size: clamp(16px, 4.1vw, 20px);
+    max-width: 30ch;
   }
 
   .frontend-onboarding-actions {

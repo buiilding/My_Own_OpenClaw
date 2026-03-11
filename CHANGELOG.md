@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-onboarding-centered-stage): center the permission-by-permission onboarding wizard in a narrower stage, align the footer to the same axis, and swap the hero typography onto a softer display/body font combination so the first-run flow feels less left-heavy and more comfortable to read.
 - fix(frontend-onboarding-guaranteed-fit): replace the all-permissions overview with a one-permission-per-slide wizard so onboarding fit no longer depends on viewport size or future permission-count growth.
 - fix(frontend-onboarding-permission-slide-fit): compress the desktop permission slide into a denser 3-column overview with smaller hero copy and tighter cards so the full onboarding checklist fits on one screen without relying on scroll.
 - fix(frontend-onboarding-start-gate): stop blocking `Start WindieOS` on missing permissions so users can finish onboarding after manifest acknowledgement and grant remaining permissions later from Settings.
