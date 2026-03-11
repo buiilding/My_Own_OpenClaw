@@ -46,12 +46,12 @@
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-card-scroll-region {
-  padding-top: 42px;
-  gap: 14px;
+  padding-top: 48px;
+  gap: 18px;
 }
 
 .frontend-onboarding-card-permissions .frontend-onboarding-title {
-  font-size: clamp(34px, 3.7vw, 58px);
+  font-size: clamp(34px, 4vw, 60px);
   line-height: 1;
 }
 
@@ -269,8 +269,29 @@
 
 .frontend-onboarding-permissions-section {
   display: grid;
-  gap: 12px;
+  gap: 18px;
   min-height: 0;
+}
+
+.frontend-onboarding-permission-stage-meta {
+  display: grid;
+  gap: 6px;
+}
+
+.frontend-onboarding-permission-stage-count {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #8fc49a;
+}
+
+.frontend-onboarding-permission-stage-summary {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.35;
+  color: #aeaeae;
 }
 
 .frontend-onboarding-permissions-header {
@@ -315,6 +336,10 @@
   gap: 14px;
 }
 
+.frontend-onboarding-permissions-list.single {
+  grid-template-columns: 1fr;
+}
+
 .frontend-onboarding-card-permissions .frontend-onboarding-permissions-list {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   column-gap: 16px;
@@ -336,6 +361,14 @@
     linear-gradient(180deg, rgba(18, 18, 18, 0.92), rgba(10, 10, 10, 0.96));
 }
 
+.frontend-onboarding-permission-row.single {
+  width: min(920px, 100%);
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  padding: 22px 24px;
+}
+
 .frontend-onboarding-card-permissions .frontend-onboarding-permission-row {
   min-width: 0;
   align-items: start;
@@ -354,6 +387,10 @@
   color: #ffffff;
 }
 
+.frontend-onboarding-permission-row.single .frontend-onboarding-permission-copy h2 {
+  font-size: 28px;
+}
+
 .frontend-onboarding-permission-kind {
   margin: 0;
   font-size: 11px;
@@ -361,6 +398,10 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: #9b9b9b;
+}
+
+.frontend-onboarding-permission-row.single .frontend-onboarding-permission-kind {
+  font-size: 12px;
 }
 
 .frontend-onboarding-permission-copy p {
@@ -374,6 +415,11 @@
   white-space: normal;
 }
 
+.frontend-onboarding-permission-row.single .frontend-onboarding-permission-copy p {
+  font-size: 18px;
+  line-height: 1.4;
+}
+
 .frontend-onboarding-permission-copy p.frontend-onboarding-permission-kind {
   display: block;
   overflow: visible;
@@ -385,6 +431,11 @@
   font-size: 12px;
   line-height: 1.35;
   color: #b7b7b7;
+}
+
+.frontend-onboarding-permission-row.single .frontend-onboarding-permission-reason {
+  font-size: 16px;
+  line-height: 1.4;
 }
 
 .frontend-onboarding-permission-reason.status-needs-action,
@@ -402,6 +453,11 @@
   align-self: start;
 }
 
+.frontend-onboarding-permission-row.single > .frontend-onboarding-button {
+  min-width: 132px;
+  padding: 13px 22px;
+}
+
 .frontend-onboarding-permission-granted {
   display: inline-flex;
   align-items: center;
@@ -412,6 +468,11 @@
   font-weight: 600;
   min-width: 112px;
   align-self: start;
+}
+
+.frontend-onboarding-permission-row.single .frontend-onboarding-permission-granted {
+  font-size: 17px;
+  min-width: 132px;
 }
 
 .frontend-onboarding-permission-granted-icon {
@@ -426,6 +487,12 @@
   color: #82e8a2;
   font-size: 12px;
   line-height: 1;
+}
+
+.frontend-onboarding-permission-row.single .frontend-onboarding-permission-granted-icon {
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
 }
 
 .frontend-onboarding-permission-empty {
@@ -470,6 +537,10 @@
   .frontend-onboarding-card-permissions .frontend-onboarding-card-scroll-region {
     padding-top: 70px;
     gap: 14px;
+  }
+
+  .frontend-onboarding-permission-stage-summary {
+    font-size: 14px;
   }
 
   .frontend-onboarding-card-permissions .frontend-onboarding-title {
@@ -522,6 +593,24 @@
     grid-template-columns: 1fr;
     align-items: stretch;
     padding: 20px 18px;
+  }
+
+  .frontend-onboarding-permission-row.single {
+    width: 100%;
+    gap: 16px;
+    padding: 20px 18px;
+  }
+
+  .frontend-onboarding-permission-row.single .frontend-onboarding-permission-copy h2 {
+    font-size: 24px;
+  }
+
+  .frontend-onboarding-permission-row.single .frontend-onboarding-permission-copy p {
+    font-size: 16px;
+  }
+
+  .frontend-onboarding-permission-row.single .frontend-onboarding-permission-reason {
+    font-size: 15px;
   }
 
   .frontend-onboarding-permission-row > .frontend-onboarding-button {
