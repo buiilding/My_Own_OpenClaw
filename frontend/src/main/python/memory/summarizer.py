@@ -8,14 +8,41 @@ import asyncio
 import hashlib
 import json
 import logging
+import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import List, Optional, Sequence, Set
+from typing import Any, Dict, List, Optional, Sequence, Set
 
 from core.remote_semantic_client import RemoteSemanticClient
 from memory.local_store import LocalMemoryStore
 
 logger = logging.getLogger(__name__)
+
+_NO_DURABLE_MEMORY_MARKERS = {
+    "none",
+    "no durable memory",
+    "no durable memories",
+    "no durable fact",
+    "no durable facts",
+    "nothing durable",
+}
+_LOW_SIGNAL_FACT_PATTERNS = (
+    re.compile(r"\bno (?:user )?preferences?\b", re.IGNORECASE),
+    re.compile(r"\bno key facts?\b", re.IGNORECASE),
+    re.compile(r"\bno durable (?:memory|memories|fact|facts)\b", re.IGNORECASE),
+    re.compile(r"\buser (?:greeted|said hi|said hello|initiated contact)\b", re.IGNORECASE),
+    re.compile(r"\bcasual greeting\b", re.IGNORECASE),
+    re.compile(r"\bcommunication style is casual\b", re.IGNORECASE),
+    re.compile(r"\bfinder\b", re.IGNORECASE),
+    re.compile(r"\bapplications folder\b", re.IGNORECASE),
+    re.compile(r"\bactive window\b", re.IGNORECASE),
+    re.compile(r"\bephemeral context\b", re.IGNORECASE),
+    re.compile(r"\bconnected to a browser\b", re.IGNORECASE),
+    re.compile(r"\bbrowser is now connected\b", re.IGNORECASE),
+    re.compile(r"\bunexpected system error\b", re.IGNORECASE),
+    re.compile(r"\boperation timed out\b", re.IGNORECASE),
+    re.compile(r"\bcannot connect\b", re.IGNORECASE),
+)
 
 
 @dataclass(frozen=True)
@@ -227,14 +254,29 @@ class MemorySummarizer:
             return 0
 
         summary, facts = await self.semantic_client.summarize(conversation_chunks, user_id)
-        summary = (summary or "").strip()
-        facts = [fact.strip() for fact in facts if fact and fact.strip()]
+        summary = self._normalize_summary(summary)
+        facts = self._normalize_fact_list(facts)
+        durable_facts = self._filter_durable_facts(facts)
 
-        if not summary and not facts:
-            logger.warning("Semantic summarization returned empty result")
-            return 0
+        if not durable_facts:
+            logger.info(
+                "Skipping semantic memory write for low-signal batch "
+                "(user_id=%s, conversation_id=%s, source_memory_count=%s)",
+                user_id,
+                conversation_id,
+                len(memories),
+            )
+            await self._mark_semanticized(
+                memories,
+                metadata_patch=self._build_semanticization_metadata(
+                    status="skipped_low_signal",
+                    summary_hash=summary_hash,
+                    skipped_fact_count=len(facts),
+                ),
+            )
+            return 1
 
-        semantic_content = self._format_semantic_content(summary, facts)
+        semantic_content = self._format_semantic_content(summary, durable_facts)
         metadata = {
             "type": "semantic",
             "source": "periodic_summarization",
@@ -243,6 +285,8 @@ class MemorySummarizer:
             "source_memory_ids": [m["id"] for m in memories],
             "source_memory_count": len(memories),
             "summary_created_at": datetime.now(timezone.utc).isoformat(),
+            "durable_fact_count": len(durable_facts),
+            "semantic_categories": self._categorize_facts(durable_facts),
         }
 
         await self.memory_store.add(
@@ -252,7 +296,14 @@ class MemorySummarizer:
             conversation_id=conversation_id,
         )
 
-        await self._mark_semanticized(memories)
+        await self._mark_semanticized(
+            memories,
+            metadata_patch=self._build_semanticization_metadata(
+                status="stored",
+                summary_hash=summary_hash,
+                durable_fact_count=len(durable_facts),
+            ),
+        )
 
         return 1
 
@@ -381,9 +432,88 @@ class MemorySummarizer:
             parts.extend([f"- {fact}" for fact in facts])
         return "\n".join(parts).strip()
 
-    async def _mark_semanticized(self, memories: Sequence[dict]) -> None:
+    def _normalize_summary(self, summary: Optional[str]) -> str:
+        normalized = (summary or "").strip()
+        if not normalized:
+            return ""
+        lowered = normalized.lower().rstrip(".!")
+        if lowered in _NO_DURABLE_MEMORY_MARKERS:
+            return ""
+        return normalized
+
+    @staticmethod
+    def _normalize_fact_list(facts: Sequence[str]) -> List[str]:
+        normalized: List[str] = []
+        seen: Set[str] = set()
+        for fact in facts:
+            if not fact:
+                continue
+            cleaned = fact.strip()
+            if not cleaned:
+                continue
+            dedupe_key = cleaned.lower()
+            if dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+            normalized.append(cleaned)
+        return normalized
+
+    def _filter_durable_facts(self, facts: Sequence[str]) -> List[str]:
+        return [fact for fact in facts if not self._is_low_signal_fact(fact)]
+
+    @staticmethod
+    def _is_low_signal_fact(fact: str) -> bool:
+        normalized = fact.strip()
+        if len(normalized) < 8:
+            return True
+        lowered = normalized.lower()
+        if lowered in _NO_DURABLE_MEMORY_MARKERS:
+            return True
+        return any(pattern.search(normalized) for pattern in _LOW_SIGNAL_FACT_PATTERNS)
+
+    @staticmethod
+    def _categorize_facts(facts: Sequence[str]) -> List[str]:
+        categories: Set[str] = set()
+        for fact in facts:
+            lowered = fact.lower()
+            if any(token in lowered for token in ("prefer", "preference", "likes", "dislikes", "wants")):
+                categories.add("preference")
+            if any(token in lowered for token in ("workflow", "uses", "runs", "connects", "manages")):
+                categories.add("workflow")
+            if any(token in lowered for token in ("project", "working on", "building", "learning", "focused on")):
+                categories.add("project")
+            if any(token in lowered for token in ("name is", "email", "works as", "account")):
+                categories.add("identity")
+            if any(token in lowered for token in ("must", "needs", "constraint", "cannot", "should")):
+                categories.add("constraint")
+        return sorted(categories)
+
+    @staticmethod
+    def _build_semanticization_metadata(
+        *,
+        status: str,
+        summary_hash: str,
+        durable_fact_count: int = 0,
+        skipped_fact_count: int = 0,
+    ) -> Dict[str, Any]:
+        return {
+            "semantic_status": status,
+            "semantic_summary_hash": summary_hash,
+            "semantic_processed_at": datetime.now(timezone.utc).isoformat(),
+            "semantic_durable_fact_count": durable_fact_count,
+            "semantic_skipped_fact_count": skipped_fact_count,
+        }
+
+    async def _mark_semanticized(
+        self,
+        memories: Sequence[dict],
+        metadata_patch: Optional[Dict[str, Any]] = None,
+    ) -> None:
         memory_ids = [m.get("id") for m in memories if m.get("id")]
-        await self.memory_store.mark_episodic_memories_semanticized(memory_ids)
+        await self.memory_store.mark_episodic_memories_semanticized(
+            memory_ids,
+            metadata_patch=metadata_patch,
+        )
 
     def _parse_timestamp(self, timestamp: Optional[str]) -> Optional[datetime]:
         if not timestamp:

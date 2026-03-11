@@ -4,6 +4,7 @@ Shared transcript-window runtime helpers for LocalMemoryStore.
 
 from __future__ import annotations
 
+import json
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -242,6 +243,7 @@ async def mark_episodic_memories_semanticized(
     *,
     episodic_db_path: str,
     memory_ids: List[str],
+    metadata_patch: Optional[Dict[str, Any]] = None,
     log_debug=None,
 ) -> None:
     if not memory_ids:
@@ -249,18 +251,52 @@ async def mark_episodic_memories_semanticized(
 
     async with _open_episodic_connection(
         episodic_db_path=episodic_db_path,
-        use_row_factory=False,
+        use_row_factory=bool(metadata_patch),
     ) as conn:
         cursor = await conn.cursor()
-        placeholders = ",".join(["?"] * len(memory_ids))
-        await cursor.execute(
-            f"""
-            UPDATE memories
-            SET is_semanticized = 1
-            WHERE id IN ({placeholders})
-        """,
-            memory_ids,
-        )
+        if metadata_patch:
+            placeholders = ",".join(["?"] * len(memory_ids))
+            await cursor.execute(
+                f"""
+                SELECT id, metadata
+                FROM memories
+                WHERE id IN ({placeholders})
+            """,
+                memory_ids,
+            )
+            rows = await cursor.fetchall()
+            rows_by_id = {
+                row["id"]: row["metadata"] if row["metadata"] is not None else "{}"
+                for row in rows
+            }
+            for memory_id in memory_ids:
+                raw_metadata = rows_by_id.get(memory_id, "{}")
+                try:
+                    metadata = json.loads(raw_metadata) if raw_metadata else {}
+                except (TypeError, ValueError):
+                    metadata = {}
+                if not isinstance(metadata, dict):
+                    metadata = {}
+                metadata.update(metadata_patch)
+                await cursor.execute(
+                    """
+                    UPDATE memories
+                    SET is_semanticized = 1,
+                        metadata = ?
+                    WHERE id = ?
+                """,
+                    (json.dumps(metadata, sort_keys=True), memory_id),
+                )
+        else:
+            placeholders = ",".join(["?"] * len(memory_ids))
+            await cursor.execute(
+                f"""
+                UPDATE memories
+                SET is_semanticized = 1
+                WHERE id IN ({placeholders})
+            """,
+                memory_ids,
+            )
         await conn.commit()
 
     if callable(log_debug):
