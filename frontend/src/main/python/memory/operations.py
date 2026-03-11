@@ -4,6 +4,7 @@ Shared memory request/response helpers for sidecar services.
 
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from core.unicode_sanitizer import sanitize_surrogates_in_text
@@ -11,6 +12,32 @@ from memory.record_kinds import (
     COMPLETED_TURN_MEMORY_SOURCE,
     INTERACTION_RECORD_KIND,
     TRANSCRIPT_RECORD_KIND,
+)
+
+_NO_DURABLE_MEMORY_MARKERS = {
+    "none",
+    "no durable memory",
+    "no durable memories",
+    "no durable fact",
+    "no durable facts",
+    "nothing durable",
+}
+_LOW_SIGNAL_SEMANTIC_FACT_PATTERNS = (
+    re.compile(r"\bno (?:user )?preferences?\b", re.IGNORECASE),
+    re.compile(r"\bno key facts?\b", re.IGNORECASE),
+    re.compile(r"\bno durable (?:memory|memories|fact|facts)\b", re.IGNORECASE),
+    re.compile(r"\buser (?:greeted|said hi|said hello|initiated contact)\b", re.IGNORECASE),
+    re.compile(r"\bcasual greeting\b", re.IGNORECASE),
+    re.compile(r"\bcommunication style is casual\b", re.IGNORECASE),
+    re.compile(r"\bfinder\b", re.IGNORECASE),
+    re.compile(r"\bapplications folder\b", re.IGNORECASE),
+    re.compile(r"\bactive window\b", re.IGNORECASE),
+    re.compile(r"\bephemeral context\b", re.IGNORECASE),
+    re.compile(r"\bconnected to a browser\b", re.IGNORECASE),
+    re.compile(r"\bbrowser is now connected\b", re.IGNORECASE),
+    re.compile(r"\bunexpected system error\b", re.IGNORECASE),
+    re.compile(r"\boperation timed out\b", re.IGNORECASE),
+    re.compile(r"\bcannot connect\b", re.IGNORECASE),
 )
 
 
@@ -131,6 +158,48 @@ def filter_results_by_min_score(
     return filtered
 
 
+def _extract_semantic_facts(text: str) -> List[str]:
+    facts: List[str] = []
+    in_facts = False
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line.lower() == "facts:":
+            in_facts = True
+            continue
+        if not in_facts:
+            continue
+        if line.startswith("-"):
+            fact = line[1:].strip()
+            if fact:
+                facts.append(fact)
+    return facts
+
+
+def _is_low_signal_semantic_fact(fact: str) -> bool:
+    normalized = fact.strip()
+    if len(normalized) < 8:
+        return True
+    lowered = normalized.lower()
+    if lowered in _NO_DURABLE_MEMORY_MARKERS:
+        return True
+    return any(pattern.search(normalized) for pattern in _LOW_SIGNAL_SEMANTIC_FACT_PATTERNS)
+
+
+def is_durable_semantic_text(text: Any) -> bool:
+    """Return True when a semantic memory contains at least one durable fact."""
+    if not isinstance(text, str):
+        return False
+    normalized = text.strip()
+    if not normalized:
+        return False
+    facts = _extract_semantic_facts(normalized)
+    if not facts:
+        return True
+    return any(not _is_low_signal_semantic_fact(fact) for fact in facts)
+
+
 def exclude_conversation_results(
     results: Iterable[Dict[str, Any]],
     conversation_id: Optional[str],
@@ -181,6 +250,8 @@ def group_memory_texts(results: Iterable[Dict[str, Any]]) -> Dict[str, List[str]
         text = result.get("text")
         if memory_type in grouped and text:
             if memory_type == "semantic":
+                if not is_durable_semantic_text(text):
+                    continue
                 grouped["semantic"].append(text)
                 continue
             if _is_completed_turn_interaction(result, text):
