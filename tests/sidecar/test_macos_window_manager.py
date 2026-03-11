@@ -1,4 +1,5 @@
 import builtins
+import logging
 import sys
 from types import SimpleNamespace
 
@@ -123,6 +124,37 @@ def test_macos_window_manager_get_windows_falls_back_to_running_apps_when_quartz
         {"title": "Terminal", "hwnd": None},
         {"title": "Safari", "hwnd": None},
     ]
+
+
+def test_macos_window_manager_logs_quartz_filter_debug_summary(monkeypatch, caplog):
+    _install_fake_appkit(
+        monkeypatch,
+        apps=[_FakeApp("Terminal")],
+        active_app={"NSApplicationName": "Terminal"},
+    )
+    _install_fake_quartz(
+        monkeypatch,
+        all_windows=[
+            {"owner": "Dock", "name": "", "layer": 20, "alpha": 1, "id": 1},
+            {"owner": "Ghost", "name": "Hidden", "layer": 0, "alpha": 0, "id": 2},
+            {"owner": "", "name": "", "layer": 0, "alpha": 1, "id": 3},
+            "invalid-window-record",
+        ],
+    )
+    manager = MacOSWindowManager()
+
+    with caplog.at_level(logging.DEBUG, logger="core.platform.macos"):
+        assert manager.get_windows() == [{"title": "Terminal", "hwnd": None}]
+
+    assert (
+        "Quartz window enumeration debug (on_screen_only=False): raw=4 usable=0 "
+        "dropped_non_dict=1 dropped_layer=1 dropped_alpha=1 dropped_title=1"
+    ) in caplog.text
+    assert "Quartz window enumeration samples:" in caplog.text
+    assert "drop_layer" in caplog.text
+    assert "drop_alpha" in caplog.text
+    assert "drop_title" in caplog.text
+    assert "drop_non_dict" in caplog.text
 
 
 def test_macos_window_manager_get_active_window(monkeypatch):
