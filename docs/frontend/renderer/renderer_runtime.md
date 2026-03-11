@@ -19,7 +19,8 @@ Provider layering:
 
 1. `AppConfigProvider`
 2. `AppStatusProvider`
-3. `ChatProvider`
+3. `AppContextCoordinator` (inside `AppProvider`)
+4. `ChatProvider`
 
 Provider responsibilities:
 
@@ -27,10 +28,15 @@ Provider responsibilities:
   - frontend-owned config state
   - model list loading/refresh
   - backend settings sync
+  - one-shot `list-models` request guard in main dashboard renderer only
+  - IPC status snapshot projection (`backendHttpUrl`, transcript user/session wiring, global stop-shortcut fallback status)
   - disk/localStorage sync
   - wakeword enabled/suppressed state
 - `AppStatusProvider`:
   - transient save status/UI status
+- `AppContextCoordinator`:
+  - registers save-status callback from config provider into status provider
+  - owns global `Shift+Tab` interaction-mode toggle (`chat <-> agent`) with editable-target guard
 - `ChatProvider`:
   - initializes `useChatStream` + `useToolRunner`
 

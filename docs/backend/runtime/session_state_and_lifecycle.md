@@ -70,6 +70,7 @@ Cancellation:
 - when omitted, all live tasks for the user are canceled (legacy/global stop behavior).
 - manager returns last cancelled `(turn_ref, conversation_ref)` metadata tuple.
 - if nothing is currently cancelable, manager stores short-lived pending stop intent (scoped by conversation when provided) and consumes it on later query registration race.
+- pending stop intent grace window is `5.0s` (`_PENDING_STOP_GRACE_SECONDS`).
 - `StopQueryHandler` always emits `streaming-complete` so renderer exits active phase even if no live task exists.
 
 Cleanup:

@@ -107,7 +107,10 @@ Persisted thinking cleanup contract from `chatStreamThinkingStatus.ts`:
 `sendMessage(text)` sequence:
 
 1. stop playback (optional)
-2. ensure `conversation_ref` exists (create if absent)
+2. ensure `conversation_ref` exists:
+  - resolve from transcript/store active ref
+  - fallback to main-process session snapshot (`GET_CLIENT_USER_ID`)
+  - create new ref only when both are absent
 3. append pending user message immediately for optimistic UI
 4. set sending state
 5. optional overlay transition back to chatbox (`show-chatbox` invoke)
@@ -116,6 +119,8 @@ Persisted thinking cleanup contract from `chatStreamThinkingStatus.ts`:
 8. update already-rendered user message with `screenshot_ref/url`
 9. record transcript user row
 10. emit backend `query` via `ApiClient.sendQuery`
+
+Before final query dispatch, hook may send immediate model/provider updates via `ApiClient.updateSettings(...)` when deferred-model config changes are detected.
 
 Failure handling:
 
