@@ -47,6 +47,15 @@ To reduce feature-change friction in `backend/src/api`, WebSocket + semantic API
 - **FastAPI dependency resolution now prefers app scope** in `backend/src/api/deps.py` (`app.state.container` first, global fallback second) so tests and request-scoped integrations can use a single container source.
 - **WebSocket JSON parse policy is shared** in `backend/src/api/routes/websocket/json_parse.py` so handshake/message parsing uses one threshold policy (inline for small payloads, executor offload for larger payloads) to protect event-loop latency.
 
+## Runtime Surface Notes (2026-03-11)
+
+Current backend runtime wiring also includes:
+
+- **Runs API routes are first-class app routes**: `backend/src/api/routes/__init__.py` registers `runs.router` beside websocket/artifact/memory routes, so `/api/runs/*` is part of canonical app assembly (`backend/src/api/app_assembly.py`).
+- **Query execution helper split is now structural**: `backend/src/api/services/query_execution_support/*` owns screenshot/input resolution, completion backfill, post-terminal filtering, and cancellation cleanup used by `QueryExecutionService`.
+- **OpenAI native reasoning path is provider-owned**: `backend/src/llm/providers/openai.py` routes reasoning-enabled models through `openai_responses_runtime.py` (`litellm.aresponses`) while non-reasoning models keep the shared online provider path.
+- **VM run control service is app-state scoped and in-memory**: `backend/src/api/routes/runs/support.py` lazily creates `VmRunControlService` on `app.state` with optional API-key protection via `x-windie-runs-key`.
+
 ## Future: Multi-Tenant Backend & Subscription Platform (Planned)
 
 This section documents the roadmap to move from a single-user/local backend to a **multi-tenant, hosted backend** that serves many users with subscriptions, usage limits, and enterprise controls.

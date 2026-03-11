@@ -143,6 +143,7 @@ Covers:
 - [Tool-Call Error Recovery and Synthetic Tool-Output Replay Reference](agent/recovery/tool_call_error_recovery_and_synthetic_tool_output_replay_reference.md)
 - [Request-ID Shortener Utility and Logging Contract Reference](agent/tools/shared/request_id_shortener_utility_and_logging_contract_reference.md)
 - [Query Execution and Stream Pipeline Reference](runtime/query_execution_and_stream_pipeline_reference.md)
+- [Backend Runtime Surface: Query, Tool Loop, and VM Runs](runtime/backend_runtime_surface_query_tool_loop_and_vm_runs_reference.md)
 - [Conversation History and Prompt Context Runtime Reference](runtime/conversation_history_and_prompt_context_runtime_reference.md)
 - [Token Count Event and Usage Diagnostics Reference](runtime/token_count_event_and_usage_diagnostics_reference.md)
 - [Tools Docs Hub](tools/README.md)
