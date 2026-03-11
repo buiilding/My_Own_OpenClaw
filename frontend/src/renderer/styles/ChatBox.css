@@ -56,11 +56,11 @@ body {
 }
 
 .chatbox-input-shell-wrap:not(.with-preview) .chatbox-pill {
-  justify-content: center;
+  justify-content: flex-end;
 }
 
 .chatbox-input-shell-wrap:not(.with-preview) .chatbox-main-row {
-  margin-top: 0;
+  margin-top: auto;
 }
 
 .chatbox-input-shell-wrap .chatbox-image-preview-row {
@@ -138,7 +138,7 @@ body {
 .chatbox-pill {
   --chatbox-body-top: 14px;
   --chatbox-close-center-x: calc(100% - 28px);
-  --chatbox-close-button-size: 16px;
+  --chatbox-close-button-size: 18px;
   border-radius: 26px;
   display: flex;
   flex-direction: column;
@@ -385,13 +385,13 @@ body {
 .chatbox-close-badge {
   position: absolute;
   left: calc(var(--chatbox-close-center-x) - (var(--chatbox-close-button-size) / 2));
-  top: 2px;
+  top: 3px;
   width: var(--chatbox-close-button-size);
   height: var(--chatbox-close-button-size);
   border: 0;
   border-radius: 999px;
-  background: transparent;
-  color: var(--ui-text-muted);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.94);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -402,18 +402,18 @@ body {
 }
 
 .chatbox-close-badge svg {
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.1;
+  stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .chatbox-close-badge:hover:not(:disabled) {
   color: var(--ui-text-primary);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .chatbox-close-badge:disabled {
