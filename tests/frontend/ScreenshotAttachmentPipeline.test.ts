@@ -9,6 +9,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 
 jest.mock('../../frontend/src/renderer/infrastructure/services/ArtifactUploader', () => ({
   uploadArtifactBase64: jest.fn(),
+  buildArtifactUrl: (artifactId: string) => `http://127.0.0.1:8765/api/artifacts/${artifactId}`,
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/services/SurfaceOrchestrator', () => ({

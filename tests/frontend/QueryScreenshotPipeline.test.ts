@@ -9,6 +9,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachm
 
 jest.mock('../../frontend/src/renderer/infrastructure/services/ArtifactUploader', () => ({
   uploadArtifactBase64: jest.fn(),
+  buildArtifactUrl: (artifactId: string) => `http://127.0.0.1:8765/api/artifacts/${artifactId}`,
 }));
 
 const mockCaptureScreenshotAttachment = captureScreenshotAttachment as jest.MockedFunction<typeof captureScreenshotAttachment>;

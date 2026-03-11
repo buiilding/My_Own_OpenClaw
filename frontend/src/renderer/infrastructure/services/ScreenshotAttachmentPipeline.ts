@@ -10,6 +10,11 @@ import {
   sanitizeCaptureMeta,
 } from './CapturePayloadUtils';
 import {
+  buildRemoteScreenshotAttachment,
+  inferArtifactRefFromUrl,
+  resolveScreenshotAttachmentState,
+} from './screenshotMessageState';
+import {
   prepareExternalFocusForCapture,
   prepareScreenshotCaptureVisibility,
   restoreScreenshotCaptureVisibility,
@@ -54,51 +59,6 @@ type MaterializeScreenshotAttachmentOptions = {
   filenameStem: string;
 };
 
-function normalizeOptionalString(value: unknown): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function inferArtifactRefFromUrl(url: string | null): string | null {
-  if (!url) {
-    return null;
-  }
-  const match = url.match(/\/api\/artifacts\/([^/?#]+)/i);
-  return match?.[1] || null;
-}
-
-function parseInlineScreenshotPayload(
-  payload: string | null,
-): { base64: string; contentType: string | null } | null {
-  const trimmedPayload = normalizeOptionalString(payload);
-  if (!trimmedPayload) {
-    return null;
-  }
-  if (
-    trimmedPayload.toLowerCase().startsWith('artifact://')
-    || trimmedPayload.toLowerCase().startsWith('http://')
-    || trimmedPayload.toLowerCase().startsWith('https://')
-  ) {
-    return null;
-  }
-
-  const dataUrlMatch = trimmedPayload.match(/^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i);
-  if (dataUrlMatch) {
-    return {
-      base64: dataUrlMatch[2].trim(),
-      contentType: dataUrlMatch[1].toLowerCase(),
-    };
-  }
-
-  return {
-    base64: trimmedPayload,
-    contentType: null,
-  };
-}
-
 function resolveScreenshotExplanation(
   explanation: string | undefined,
   isFirstUserMessage: boolean,
@@ -130,15 +90,17 @@ export function createInlineScreenshotAttachment({
   screenshotContentType: string | null;
   captureMeta?: CaptureMeta | null;
 }): ScreenshotAttachment {
-  const parsedPayload = parseInlineScreenshotPayload(screenshot);
+  const {
+    hasRemoteScreenshot: _hasRemoteScreenshot,
+    ...attachmentState
+  } = resolveScreenshotAttachmentState({
+    screenshot,
+    screenshotContentType,
+    preserveInlineScreenshotWithRemote: true,
+  });
   return {
     ...createEmptyScreenshotAttachment(),
-    screenshot: parsedPayload?.base64 || null,
-    screenshotContentType: (
-      parsedPayload?.contentType
-      || normalizeOptionalString(screenshotContentType)
-      || null
-    ),
+    ...attachmentState,
     captureMeta,
   };
 }
@@ -166,36 +128,33 @@ export function extractScreenshotAttachment(result: ToolResult): ScreenshotAttac
     return createEmptyScreenshotAttachment();
   }
 
-  const parsedInlineScreenshot = (
-    parseInlineScreenshotPayload(
+  const {
+    hasRemoteScreenshot: _hasRemoteScreenshot,
+    ...screenshotAttachment
+  } = resolveScreenshotAttachmentState({
+    screenshot: (
       typeof result.data.screenshot === 'string'
         ? result.data.screenshot
         : typeof result.data.image_data === 'string'
           ? result.data.image_data
-          : null,
-    )
-  );
-  const screenshotUrl = normalizeOptionalString(result.data.screenshot_url);
-  const screenshotRef = (
-    normalizeOptionalString(result.data.screenshot_ref)
-    || inferArtifactRefFromUrl(screenshotUrl)
-  );
-  const explicitContentType = (
-    normalizeOptionalString(result.data.screenshot_content_type)
-    || normalizeOptionalString(result.data.image_content_type)
-  );
+          : null
+    ),
+    screenshotRef: typeof result.data.screenshot_ref === 'string' ? result.data.screenshot_ref : null,
+    screenshotUrl: typeof result.data.screenshot_url === 'string' ? result.data.screenshot_url : null,
+    screenshotContentType: (
+      typeof result.data.screenshot_content_type === 'string'
+        ? result.data.screenshot_content_type
+        : typeof result.data.image_content_type === 'string'
+          ? result.data.image_content_type
+          : null
+    ),
+    preserveInlineScreenshotWithRemote: true,
+  });
 
   return {
     ...createEmptyScreenshotAttachment(),
-    screenshot: parsedInlineScreenshot?.base64 || null,
-    screenshotRef,
-    screenshotUrl,
-    screenshotContentType: (
-      explicitContentType
-      || parsedInlineScreenshot?.contentType
-      || resolveScreenshotContentType(result.data)
-      || null
-    ),
+    ...screenshotAttachment,
+    screenshotContentType: screenshotAttachment.screenshotContentType || resolveScreenshotContentType(result.data) || null,
     captureMeta: sanitizeCaptureMeta<CaptureMeta>(result.data.capture_meta),
   };
 }
@@ -342,24 +301,24 @@ export async function materializeScreenshotAttachments(
 export function resolvePrimaryScreenshotAttachment(
   attachments: Array<Pick<ScreenshotAttachment, 'screenshotRef' | 'screenshotUrl'>>,
 ): { screenshotRef: string | null; screenshotUrl: string | null } {
-  const firstWithRef = attachments.find(
-    (attachment) => normalizeOptionalString(attachment.screenshotRef),
-  );
+  const firstWithRef = attachments.find((attachment) => (
+    buildRemoteScreenshotAttachment(attachment.screenshotRef, attachment.screenshotUrl).screenshotRef
+  ));
   if (firstWithRef) {
-    return {
-      screenshotRef: normalizeOptionalString(firstWithRef.screenshotRef),
-      screenshotUrl: normalizeOptionalString(firstWithRef.screenshotUrl),
-    };
+    return buildRemoteScreenshotAttachment(firstWithRef.screenshotRef, firstWithRef.screenshotUrl);
   }
-  const firstWithUrl = attachments.find(
-    (attachment) => normalizeOptionalString(attachment.screenshotUrl),
-  );
+  const firstWithUrl = attachments.find((attachment) => (
+    buildRemoteScreenshotAttachment(attachment.screenshotRef, attachment.screenshotUrl).screenshotUrl
+  ));
   return {
     screenshotRef: firstWithUrl
-      ? inferArtifactRefFromUrl(normalizeOptionalString(firstWithUrl.screenshotUrl))
+      ? inferArtifactRefFromUrl(buildRemoteScreenshotAttachment(
+        firstWithUrl.screenshotRef,
+        firstWithUrl.screenshotUrl,
+      ).screenshotUrl)
       : null,
     screenshotUrl: firstWithUrl
-      ? normalizeOptionalString(firstWithUrl.screenshotUrl)
+      ? buildRemoteScreenshotAttachment(firstWithUrl.screenshotRef, firstWithUrl.screenshotUrl).screenshotUrl
       : null,
   };
 }
@@ -369,7 +328,7 @@ export function buildScreenshotRefs(
 ): string[] {
   const refs = new Set<string>();
   for (const attachment of attachments) {
-    const normalizedRef = normalizeOptionalString(attachment.screenshotRef);
+    const normalizedRef = buildRemoteScreenshotAttachment(attachment.screenshotRef, null).screenshotRef;
     if (normalizedRef) {
       refs.add(normalizedRef);
     }

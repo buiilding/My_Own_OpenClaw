@@ -9,54 +9,41 @@ import {
 import {
   buildToolCallMessageState,
 } from '../../../infrastructure/transcript/toolCallMessageState';
+import {
+  resolveScreenshotAttachmentState,
+} from '../../../infrastructure/services/screenshotMessageState';
 
 export const DEFAULT_USER_ID = 'default_user';
 
-function looksLikeInlineImageData(value) {
-  if (!value) {
-    return false;
-  }
-  if (value.startsWith('data:image/')) {
-    return true;
-  }
-  return /^[A-Za-z0-9+/]+={0,2}$/.test(value) && value.length >= 128;
-}
-
 function resolveScreenshotAttachment(memory) {
   const metadata = memory?.metadata || {};
-  const screenshotRef = normalizeOptionalString(
-    memory?.screenshot_ref
+  return resolveScreenshotAttachmentState({
+    screenshot: memory?.screenshot || metadata.screenshot || null,
+    screenshotRef: (
+      memory?.screenshot_ref
       || memory?.screenshotRef
       || metadata.screenshot_ref
-      || metadata.screenshotRef,
-  );
-  const screenshotUrl = normalizeOptionalString(
-    memory?.screenshot_url
+      || metadata.screenshotRef
+      || null
+    ),
+    screenshotUrl: (
+      memory?.screenshot_url
       || memory?.screenshotUrl
       || metadata.screenshot_url
-      || metadata.screenshotUrl,
-  );
-  const screenshotContentType = normalizeOptionalString(
-    memory?.screenshot_content_type
+      || metadata.screenshotUrl
+      || null
+    ),
+    screenshotContentType: (
+      memory?.screenshot_content_type
       || memory?.screenshotContentType
       || metadata.screenshot_content_type
-      || metadata.screenshotContentType,
-  );
-  const rawScreenshot = normalizeOptionalString(memory?.screenshot || metadata.screenshot);
-  const inferredScreenshotRef = !screenshotRef
-    && rawScreenshot
-    && memory?.record_kind === 'transcript'
-    && !looksLikeInlineImageData(rawScreenshot)
-    ? rawScreenshot
-    : null;
-  const screenshot = inferredScreenshotRef ? null : rawScreenshot;
-
-  return {
-    screenshot,
-    screenshotRef: screenshotRef || inferredScreenshotRef,
-    screenshotUrl,
-    screenshotContentType,
-  };
+      || metadata.screenshotContentType
+      || null
+    ),
+    inferArtifactRefFromScreenshot: memory?.record_kind === 'transcript',
+    preserveInlineScreenshotWithRemote: true,
+    deriveUrlFromRef: false,
+  });
 }
 
 function parseMemoryContent(memory) {
@@ -238,11 +225,7 @@ export function toRehydrateMessagePayload(memory) {
   const role = memory?.role || metadata?.role || 'assistant';
   const messageType = memory?.message_type || metadata?.message_type || null;
   const normalizedMessageType = normalizeMessageType(messageType);
-  const rawScreenshot = memory?.screenshot || metadata?.screenshot || null;
-  const screenshotInline = looksLikeInlineImageData(rawScreenshot);
-  const screenshotRef = memory?.screenshot_ref
-    || metadata?.screenshot_ref
-    || (!screenshotInline && typeof rawScreenshot === 'string' ? rawScreenshot : null);
+  const screenshotAttachment = resolveScreenshotAttachment(memory);
   const transparency = resolveTranscriptTransparency(memory);
   const parsedToolCall = normalizedMessageType === 'tool-call'
     ? buildToolCallMessageState({
@@ -294,8 +277,8 @@ export function toRehydrateMessagePayload(memory) {
     tool_call_id: resolvedToolCallId,
     tool_calls: normalizedToolCall ? [normalizedToolCall] : null,
     timestamp: memory?.timestamp || null,
-    screenshot_ref: screenshotRef,
-    screenshot: screenshotInline ? rawScreenshot : null,
+    screenshot_ref: screenshotAttachment.screenshotRef,
+    screenshot: screenshotAttachment.screenshot,
     transparency,
   };
 }
