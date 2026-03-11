@@ -27,6 +27,19 @@ title: "Dashboard Memory Management and Resume Reference"
 
 ## Runtime Surfaces
 
+### Dashboard shell lifecycle surface
+
+`ChatGptDashboardShell` also owns dashboard-level runtime state that affects memory/resume UX:
+
+- VM-mode gating:
+  - when `vmModeEnabled=true`, sidebar/search/settings/models/memory/usage modal surfaces are not mounted
+  - main chat surface remains mounted
+- dashboard open animation state (`cg-dashboard-shell-opening`) with visibility-change replay
+- global dashboard scroll-lock class (`cg-scroll-locked`) applied to `documentElement`, `body`, and root
+- transport connectivity projection from:
+  - `ipc-status` stream updates, plus
+  - startup snapshot via `GET_CLIENT_USER_ID`
+
 ### Memory modal surface
 
 `MemorySection` (opened from dashboard modal) owns:

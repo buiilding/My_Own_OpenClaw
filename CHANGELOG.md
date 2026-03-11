@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Docs
+- docs(ui-dashboard-and-backend-stopquery-drift): sync dashboard shell and sidebar docs with current renderer runtime (VM-mode surface gating, open/scroll-lock lifecycle, ipc-status connectivity projection, search debounce/limits, transcript-title visibility polling) and align backend stop-query/settings docs with current handler behavior (`conversation_ref` schema present but not forwarded) plus expanded `update-settings` frontend-owned fields.
 - docs(ui-overlay-and-settings-payload-drift): align response-overlay phase docs with current entry-driven visibility (including `tool-explanation` rows) and update communication-flow `update-settings` payload docs to include current backend schema fields (`browser_automation_enabled`, `provider_api_keys`, `provider_oauth`).
 - docs(ui-and-backend-drift-followup): add renderer-provider/runtime details (AppContextCoordinator, model-list guard, main-session conversation-ref hydration), expand chat send-lifecycle notes for deferred model sync, and update backend API/session docs with runs API-key + app-state service details and explicit stop-request grace-window behavior.
 - docs(architecture-runtime-planes): expand high-level architecture/communication docs with the dual-plane runtime model (`/ws` streaming plus `/api/runs/*` control plane), VM worker runtime placement in Electron main, and OpenAI provider native-reasoning runtime note so system-level docs match current backend/frontend execution surfaces.

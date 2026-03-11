@@ -68,7 +68,11 @@ Validation scope (`FrontendConfigPatch`):
 - `voice_mode_enabled`
 - `speech_mode_enabled`
 - `wakeword_stt_enabled`
+- `agent_full_sudo_enabled`
+- `browser_automation_enabled`
 - `include_query_screenshot`
+- `provider_api_keys`
+- `provider_oauth`
 
 ## Manual Compaction Control Path
 
@@ -96,6 +100,7 @@ Active-query rejection behavior:
 Behavior:
 
 1. call `SessionManager.cancel_active_query_task(user_id)`
+   - current handler does not forward `StopQueryPayload.conversation_ref`, so cancel path is user-scoped (all live tasks) in websocket runtime
 2. if task canceled, capture `(turn_ref, conversation_ref)` metadata
 3. if no task is currently registered, SessionManager stores a short-lived pending stop intent (race guard for query task registration)
 4. always emit terminal success envelope so renderer exits active streaming UI state

@@ -134,6 +134,12 @@ Mode switch by query length:
 
 The modal does not perform network fetch itself; shell passes precomputed groups and loading/error booleans.
 
+Search fetch policy (owned by `useDashboardConversations`):
+
+- search executes only when modal is open and trimmed query length is at least `2`
+- backend search call is debounced (`180ms`) and cancel-safe on query/modal changes
+- search limit is `60` rows per request
+
 ### Search groups and labels
 
 Group order is fixed:
@@ -188,6 +194,15 @@ They do not own:
 - backend rehydrate calls
 
 Those side effects are owned by `useDashboardConversations` (consumed by `ChatGptDashboardShell`).
+
+Recent-chat title visibility sync details:
+
+- hook listens for `transcript-entry-stored` events
+- when assistant `llm-text` entries land, hook triggers recent-conversation refresh/poll
+- per-conversation title visibility polling:
+  - delay: `1250ms`
+  - max attempts: `240`
+  - clears timers on unmount
 
 ## Drift Hotspots
 

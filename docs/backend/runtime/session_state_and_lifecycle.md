@@ -65,9 +65,10 @@ Registration:
 
 Cancellation:
 
-- `stop-query` calls `SessionManager.cancel_active_query_task(user_id, conversation_ref=...)`.
-- when `conversation_ref` is provided, only matching live tasks are canceled.
-- when omitted, all live tasks for the user are canceled (legacy/global stop behavior).
+- `stop-query` currently calls `SessionManager.cancel_active_query_task(user_id)` (global per-user cancel from handler path).
+- `StopQueryPayload.conversation_ref` exists in schema, but current handler implementation does not forward this field into cancellation filtering.
+- `SessionManager.cancel_active_query_task(...)` supports scoped cancellation when `conversation_ref` is provided.
+- current websocket stop handler uses the unscoped path, so runtime behavior today is all-live-task cancel for the user.
 - manager returns last cancelled `(turn_ref, conversation_ref)` metadata tuple.
 - if nothing is currently cancelable, manager stores short-lived pending stop intent (scoped by conversation when provided) and consumes it on later query registration race.
 - pending stop intent grace window is `5.0s` (`_PENDING_STOP_GRACE_SECONDS`).
