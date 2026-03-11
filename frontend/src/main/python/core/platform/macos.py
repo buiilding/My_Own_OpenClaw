@@ -31,6 +31,58 @@ class MacOSWindowManager(BaseWindowManager):
             logger.warning("AppKit/Quartz not available, window management disabled on macOS")
             self._available = False
 
+    @staticmethod
+    def _summarize_quartz_window(raw_window) -> dict:
+        if not isinstance(raw_window, dict):
+            return {
+                "type": type(raw_window).__name__,
+                "repr": repr(raw_window)[:120],
+            }
+
+        def _pick(*keys):
+            for key in keys:
+                value = raw_window.get(key)
+                if value not in {None, ""}:
+                    return value
+            return None
+
+        return {
+            "id": _pick("id", "kCGWindowNumber"),
+            "owner": str(_pick("owner", "kCGWindowOwnerName") or "").strip(),
+            "name": str(_pick("name", "kCGWindowName") or "").strip(),
+            "layer": _pick("layer", "kCGWindowLayer"),
+            "alpha": _pick("alpha", "kCGWindowAlpha"),
+        }
+
+    def _debug_log_quartz_enumeration(
+        self,
+        *,
+        on_screen_only: bool,
+        raw_count: int,
+        usable_count: int,
+        dropped_non_dict: int,
+        dropped_layer: int,
+        dropped_alpha: int,
+        dropped_title: int,
+        sample_records: List[dict],
+    ) -> None:
+        if not logger.isEnabledFor(logging.DEBUG):
+            return
+
+        logger.debug(
+            "Quartz window enumeration debug (on_screen_only=%s): raw=%s usable=%s "
+            "dropped_non_dict=%s dropped_layer=%s dropped_alpha=%s dropped_title=%s",
+            on_screen_only,
+            raw_count,
+            usable_count,
+            dropped_non_dict,
+            dropped_layer,
+            dropped_alpha,
+            dropped_title,
+        )
+        if sample_records:
+            logger.debug("Quartz window enumeration samples: %s", sample_records)
+
     def _list_running_app_records(self) -> List[dict]:
         if not self._available:
             return []
@@ -73,8 +125,21 @@ class MacOSWindowManager(BaseWindowManager):
             ) or []
         )
         windows: List[dict] = []
+        sample_records: List[dict] = []
+        dropped_non_dict = 0
+        dropped_layer = 0
+        dropped_alpha = 0
+        dropped_title = 0
         for raw_window in raw_windows:
             if not isinstance(raw_window, dict):
+                dropped_non_dict += 1
+                if len(sample_records) < 5:
+                    sample_records.append(
+                        {
+                            "decision": "drop_non_dict",
+                            "window": self._summarize_quartz_window(raw_window),
+                        }
+                    )
                 continue
 
             owner_name = str(
@@ -86,11 +151,37 @@ class MacOSWindowManager(BaseWindowManager):
             layer = int(raw_window.get(self.Quartz.kCGWindowLayer, 0) or 0)
             alpha = float(raw_window.get(self.Quartz.kCGWindowAlpha, 1.0) or 0.0)
 
-            if layer != 0 or alpha <= 0:
+            if layer != 0:
+                dropped_layer += 1
+                if len(sample_records) < 5:
+                    sample_records.append(
+                        {
+                            "decision": "drop_layer",
+                            "window": self._summarize_quartz_window(raw_window),
+                        }
+                    )
+                continue
+            if alpha <= 0:
+                dropped_alpha += 1
+                if len(sample_records) < 5:
+                    sample_records.append(
+                        {
+                            "decision": "drop_alpha",
+                            "window": self._summarize_quartz_window(raw_window),
+                        }
+                    )
                 continue
 
             title = window_name or owner_name
             if not title:
+                dropped_title += 1
+                if len(sample_records) < 5:
+                    sample_records.append(
+                        {
+                            "decision": "drop_title",
+                            "window": self._summarize_quartz_window(raw_window),
+                        }
+                    )
                 continue
 
             windows.append(
@@ -101,6 +192,24 @@ class MacOSWindowManager(BaseWindowManager):
                     "window_name": window_name or title,
                 }
             )
+            if len(sample_records) < 5:
+                sample_records.append(
+                    {
+                        "decision": "keep",
+                        "window": self._summarize_quartz_window(raw_window),
+                    }
+                )
+
+        self._debug_log_quartz_enumeration(
+            on_screen_only=on_screen_only,
+            raw_count=len(raw_windows),
+            usable_count=len(windows),
+            dropped_non_dict=dropped_non_dict,
+            dropped_layer=dropped_layer,
+            dropped_alpha=dropped_alpha,
+            dropped_title=dropped_title,
+            sample_records=sample_records,
+        )
 
         return windows
 
