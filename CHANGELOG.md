@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-onboarding-permission-slide-fit): compress the desktop permission slide into a denser 3-column overview with smaller hero copy and tighter cards so the full onboarding checklist fits on one screen without relying on scroll.
 - fix(frontend-onboarding-start-gate): stop blocking `Start WindieOS` on missing permissions so users can finish onboarding after manifest acknowledgement and grant remaining permissions later from Settings.
 - fix(frontend-onboarding-fullpage-layout): expand onboarding into a true full-window surface, remove the cramped rounded overlay treatment, and stop truncating permission descriptions so long remediation copy stays readable during setup.
 - fix(frontend-onboarding-stop-shortcut-row-layout): let the onboarding stop-shortcut keybind card size to its content instead of a fixed inner width, so `Command + Shift + Esc` stays on one line on the final slide.
