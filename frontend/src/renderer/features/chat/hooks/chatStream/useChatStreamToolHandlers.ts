@@ -8,16 +8,17 @@ import {
   type ToolOutputEvent,
 } from '../../../../types/backendEvents';
 import {
-  formatToolBundlePayload,
-  formatToolCallPayload,
   formatToolOutputText,
-  resolveModelFacingToolCall,
 } from '../../utils/chatStream/chatStreamFormatting';
 import {
   buildToolBundleMessage,
   buildToolCallMessage,
   buildToolOutputMessage,
 } from '../../utils/chatStream/chatStreamToolMessages';
+import {
+  buildToolBundleMessageState,
+  buildToolCallMessageState,
+} from '../../../../infrastructure/transcript/toolCallMessageState';
 import {
   buildScreenshotAttachment,
   resolveToolCallCorrelationId,
@@ -80,20 +81,25 @@ export function useChatStreamToolHandlers({
     setIsSending(false, conversationRef);
     setThinkingStatus(null, conversationRef);
     setThinkingSourceEventType(null, conversationRef);
-    const modelFacingToolCall = resolveModelFacingToolCall(event.payload);
-    const formattedText = formatToolCallPayload(event.payload);
+    const toolCallMessageState = buildToolCallMessageState({
+      rawToolCall: event.payload?.metadata?.model_facing_tool_call || null,
+      fallbackToolName: event.payload?.tool_name || null,
+      fallbackToolCallId: event.payload?.request_id || null,
+      fallbackArguments: event.payload?.parameters || null,
+      metadata: event.payload?.metadata || null,
+      toolCallDetails: event.payload || null,
+      correlationId: resolveToolCallCorrelationId(event.payload),
+    });
     const modelContext = modelContextRef.current;
-    addMessage(buildToolCallMessage(event, formattedText, modelContext, modelFacingToolCall), conversationRef);
+    addMessage(buildToolCallMessage(event, toolCallMessageState, modelContext), conversationRef);
 
     recordTrackingEvent('tool-call', event.turn_ref, { toolCall: true }, conversationRef);
 
-    const correlationId = resolveToolCallCorrelationId(event.payload);
-
     recordToolCallTranscript(
-      formattedText,
+      toolCallMessageState.text,
       event,
       event.payload?.tool_name || '',
-      correlationId,
+      toolCallMessageState.correlationId,
     );
   }, [
     addMessage,
@@ -149,9 +155,9 @@ export function useChatStreamToolHandlers({
   const handleToolBundle = useCallback((event: ToolBundleEvent, conversationRef?: string | null) => {
     setThinkingStatus(null, conversationRef);
     setThinkingSourceEventType(null, conversationRef);
-    const formattedText = formatToolBundlePayload(event.payload);
+    const toolBundleMessageState = buildToolBundleMessageState(event.payload);
     const modelContext = modelContextRef.current;
-    addMessage(buildToolBundleMessage(event, formattedText, modelContext), conversationRef);
+    addMessage(buildToolBundleMessage(event, toolBundleMessageState, modelContext), conversationRef);
 
     recordTrackingEvent(
       'tool-bundle',

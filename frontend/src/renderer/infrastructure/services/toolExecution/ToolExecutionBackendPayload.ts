@@ -1,13 +1,12 @@
 import type { SystemState, ToolResult } from '../MessageFormatter';
 import type { CaptureMeta } from '../ScreenshotAttachmentPipeline';
 import type { BundleStepResult } from './ToolExecutionBundleRunner';
+import type { BundleStatus } from './BundleExecutionModel';
 import { buildToolResultPayloadData } from './ToolExecutionPayloads';
 import {
   buildToolBundleResultEnvelope,
   buildToolResultEnvelope,
 } from './ToolResultEnvelope';
-
-export type BundleExecutionStatus = 'success' | 'partial_failure' | 'failure';
 
 type BuildToolResultBackendEnvelopeArgs = {
   correlationId?: string;
@@ -22,7 +21,7 @@ type BuildToolResultBackendEnvelopeArgs = {
 
 type BuildToolBundleBackendEnvelopeArgs = {
   bundleId: string;
-  status: BundleExecutionStatus;
+  status: BundleStatus;
   stepResults: BundleStepResult[];
   error?: string | null;
   screenshot?: string | null;
