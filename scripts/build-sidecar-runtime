@@ -5,17 +5,11 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FRONTEND_DIR="${ROOT_DIR}/frontend"
 RUNTIME_DIR="${FRONTEND_DIR}/python-runtime"
 RUNTIME_ARCHIVE="${FRONTEND_DIR}/python-runtime.tar.gz"
-RUNTIME_REQS_CORE="${FRONTEND_DIR}/src/main/python/requirements.runtime.core.txt"
-RUNTIME_REQS_BROWSER="${FRONTEND_DIR}/src/main/python/requirements.runtime.browser.txt"
+RUNTIME_REQS="${FRONTEND_DIR}/src/main/python/requirements.runtime.txt"
 REQUIRE_WAKEWORD_PREFETCH="${WINDIE_REQUIRE_WAKEWORD_PREFETCH:-1}"
 
-if [[ ! -f "${RUNTIME_REQS_CORE}" ]]; then
-  echo "[build-sidecar-runtime] Missing runtime requirements file: ${RUNTIME_REQS_CORE}" >&2
-  exit 1
-fi
-
-if [[ ! -f "${RUNTIME_REQS_BROWSER}" ]]; then
-  echo "[build-sidecar-runtime] Missing runtime browser requirements file: ${RUNTIME_REQS_BROWSER}" >&2
+if [[ ! -f "${RUNTIME_REQS}" ]]; then
+  echo "[build-sidecar-runtime] Missing runtime requirements file: ${RUNTIME_REQS}" >&2
   exit 1
 fi
 
@@ -30,7 +24,7 @@ else
   exit 1
 fi
 
-echo "[build-sidecar-runtime] profile=system-browser-first"
+echo "[build-sidecar-runtime] profile=runtime"
 echo "[build-sidecar-runtime] python=${BASE_PYTHON}"
 echo "[build-sidecar-runtime] runtime=${RUNTIME_DIR}"
 
@@ -115,8 +109,7 @@ fi
 
 "${RUNTIME_PYTHON}" -m pip install --upgrade pip setuptools wheel
 
-"${RUNTIME_PYTHON}" -m pip install -r "${RUNTIME_REQS_CORE}"
-"${RUNTIME_PYTHON}" -m pip install -r "${RUNTIME_REQS_BROWSER}"
+"${RUNTIME_PYTHON}" -m pip install -r "${RUNTIME_REQS}"
 
 echo "[build-sidecar-runtime] prefetching wakeword model assets"
 if "${RUNTIME_PYTHON}" - <<'PY'
