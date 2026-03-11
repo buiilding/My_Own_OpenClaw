@@ -171,6 +171,7 @@ async def test_fetch_conversation_summaries_assigns_pending_when_title_missing(m
             "title": None,
             "title_source": None,
             "title_locked": 0,
+            "first_user_content": "Draft release checklist for beta launch",
             "model_id": "gpt-5-mini",
             "model_provider": "openai",
         },
@@ -185,7 +186,7 @@ async def test_fetch_conversation_summaries_assigns_pending_when_title_missing(m
     ):
         _ = (cursor, user_id)
         if row.get("conversation_id") == "thread-beta":
-            return None, None
+            return row.get("first_user_content"), "heuristic"
         return "  Alpha title  ", "model"
 
     monkeypatch.setattr(
@@ -202,8 +203,8 @@ async def test_fetch_conversation_summaries_assigns_pending_when_title_missing(m
     assert summaries["conv_alpha"]["title"] == "Alpha title"
     assert summaries["conv_alpha"]["title_source"] == "model"
     assert summaries["conv_alpha"]["is_resumable"] is True
-    assert summaries["thread-beta"]["title"] == "New chat"
-    assert summaries["thread-beta"]["title_source"] == "pending"
+    assert summaries["thread-beta"]["title"] == "Draft release checklist for beta launch"
+    assert summaries["thread-beta"]["title_source"] == "heuristic"
     assert summaries["thread-beta"]["is_resumable"] is False
     assert cursor.last_params[-2:] == ("conv_alpha", "thread-beta")
     assert "conversation_id IN (?,?)" in cursor.last_query

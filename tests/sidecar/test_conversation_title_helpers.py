@@ -6,9 +6,11 @@ ensure_frontend_python_path()
 
 from memory.conversation_title_helpers import ensure_conversation_title  # noqa: E402
 from memory.conversation_title_helpers import ensure_conversation_title_from_row  # noqa: E402
+from memory.conversation_title_helpers import fetch_pending_title_input  # noqa: E402
 from memory.conversation_title_helpers import fetch_title_generation_inputs  # noqa: E402
 from memory.conversation_title_helpers import lookup_conversation_title_state  # noqa: E402
 from memory.conversation_title_helpers import normalize_generated_title  # noqa: E402
+from memory.conversation_titles import derive_pending_conversation_title  # noqa: E402
 
 
 class _QueueCursor:
@@ -34,6 +36,11 @@ def test_normalize_generated_title_strips_prefix_and_limits_words():
         'Title:   "A very long title with too many words and punctuation!!!"\nextra line'
     )
     assert title == "A very long title with too"
+
+
+def test_derive_pending_conversation_title_keeps_user_prompt_text():
+    title = derive_pending_conversation_title("How to fix ubuntu mic settings")
+    assert title == "How to fix ubuntu mic settings"
 
 
 @pytest.mark.asyncio
@@ -85,6 +92,20 @@ async def test_fetch_title_generation_inputs_falls_back_when_preferred_model_mis
 
 
 @pytest.mark.asyncio
+async def test_fetch_pending_title_input_reads_first_user_row():
+    cursor = _QueueCursor([_Row(content="First user message title")])
+
+    title_input = await fetch_pending_title_input(
+        cursor=cursor,
+        user_id="user-1",
+        conversation_id="conv_1",
+    )
+
+    assert title_input == "First user message title"
+    assert len(cursor.executed) == 1
+
+
+@pytest.mark.asyncio
 async def test_ensure_conversation_title_prefers_existing_title_without_lookup():
     cursor = _QueueCursor([])
 
@@ -118,3 +139,22 @@ async def test_ensure_conversation_title_from_row_reads_row_shape():
 
     assert title == "Row title"
     assert source == "model"
+
+
+@pytest.mark.asyncio
+async def test_ensure_conversation_title_from_row_uses_first_user_content_when_saved_title_missing():
+    cursor = _QueueCursor([None])
+    title, source = await ensure_conversation_title_from_row(
+        cursor=cursor,
+        user_id="user-1",
+        row={
+            "conversation_id": "conv_1",
+            "title": None,
+            "title_source": None,
+            "title_locked": 0,
+            "first_user_content": "How to fix ubuntu mic settings",
+        },
+    )
+
+    assert title == "How to fix ubuntu mic settings"
+    assert source == "heuristic"

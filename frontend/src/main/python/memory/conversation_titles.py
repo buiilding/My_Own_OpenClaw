@@ -57,7 +57,17 @@ def derive_conversation_title(
     return _FALLBACK_TITLE
 
 
-def _sanitize_candidate(text: Optional[str]) -> str:
+def derive_pending_conversation_title(user_text: Optional[str]) -> Optional[str]:
+    """
+    Build a temporary title directly from the first user message.
+    """
+    candidate = _sanitize_candidate(user_text, strip_leading_prompt=False)
+    if not candidate:
+        return _FALLBACK_TITLE
+    return _truncate_candidate(candidate)
+
+
+def _sanitize_candidate(text: Optional[str], *, strip_leading_prompt: bool = True) -> str:
     if not isinstance(text, str):
         return ""
     stripped = text.strip()
@@ -73,7 +83,8 @@ def _sanitize_candidate(text: Optional[str]) -> str:
     first_line = first_line.replace("`", "")
     first_line = re.sub(r"\s+", " ", first_line).strip()
     first_line = first_line.strip(" .,!?:;\"'()[]{}")
-    first_line = _LEADING_PROMPT_RE.sub("", first_line).strip()
+    if strip_leading_prompt:
+        first_line = _LEADING_PROMPT_RE.sub("", first_line).strip()
     return first_line
 
 

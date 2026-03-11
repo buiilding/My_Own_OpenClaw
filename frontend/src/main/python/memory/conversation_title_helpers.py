@@ -7,6 +7,8 @@ from __future__ import annotations
 import re
 from typing import Any, Mapping, Optional, Tuple
 
+from memory.conversation_titles import derive_pending_conversation_title
+
 TITLE_NORMALIZED_MAX_WORDS = 6
 TITLE_NORMALIZED_MAX_CHARS = 48
 
@@ -142,6 +144,32 @@ async def fetch_title_generation_inputs(
     )
 
 
+async def fetch_pending_title_input(
+    *,
+    cursor,
+    user_id: str,
+    conversation_id: str,
+) -> Optional[str]:
+    await cursor.execute(
+        """
+        SELECT content
+        FROM memories
+        WHERE user_id = ? AND conversation_id = ?
+          AND record_kind = 'transcript'
+          AND role = 'user'
+          AND content IS NOT NULL
+          AND content != ''
+        ORDER BY message_index ASC, timestamp ASC
+        LIMIT 1
+    """,
+        (user_id, conversation_id),
+    )
+    row = await cursor.fetchone()
+    if not row:
+        return None
+    return (row["content"] or "").strip() or None
+
+
 async def ensure_conversation_title(
     *,
     cursor,
@@ -150,6 +178,7 @@ async def ensure_conversation_title(
     existing_title: Optional[str],
     existing_title_source: Optional[str],
     existing_title_locked: Optional[int],
+    existing_first_user_content: Optional[str] = None,
 ) -> Tuple[Optional[str], Optional[str]]:
     if not conversation_id:
         return None, None
@@ -167,6 +196,16 @@ async def ensure_conversation_title(
         return title, source or "model"
     if is_locked or existing_title_locked:
         return None, source
+    pending_title = derive_pending_conversation_title(existing_first_user_content)
+    if not pending_title:
+        first_user_content = await fetch_pending_title_input(
+            cursor=cursor,
+            user_id=user_id,
+            conversation_id=conversation_id,
+        )
+        pending_title = derive_pending_conversation_title(first_user_content)
+    if pending_title:
+        return pending_title, "heuristic"
     return None, None
 
 
@@ -192,4 +231,5 @@ async def ensure_conversation_title_from_row(
         existing_title=_row_value("title"),
         existing_title_source=_row_value("title_source"),
         existing_title_locked=_row_value("title_locked"),
+        existing_first_user_content=_row_value("first_user_content"),
     )

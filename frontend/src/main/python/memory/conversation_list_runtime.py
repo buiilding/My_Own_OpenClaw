@@ -43,6 +43,15 @@ async def fetch_transcript_conversation_rows(
                  LIMIT 1
                ) as title_locked,
                (
+                 SELECT content FROM memories m2
+                 WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
+                   AND m2.record_kind = 'transcript'
+                   AND m2.role = 'user'
+                   AND m2.content IS NOT NULL AND m2.content != ''
+                 ORDER BY m2.message_index ASC, m2.timestamp ASC
+                 LIMIT 1
+               ) as first_user_content,
+               (
                  SELECT model_id FROM memories m2
                  WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
                    AND m2.record_kind = 'transcript'
@@ -64,7 +73,7 @@ async def fetch_transcript_conversation_rows(
         ORDER BY last_timestamp DESC
         LIMIT ?
     """,
-        (user_id, user_id, user_id, user_id, user_id, user_id, limit),
+        (user_id, user_id, user_id, user_id, user_id, user_id, user_id, limit),
     )
     return await cursor.fetchall()
 

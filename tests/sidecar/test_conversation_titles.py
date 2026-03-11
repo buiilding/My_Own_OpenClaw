@@ -91,7 +91,10 @@ async def test_title_generation_requires_user_and_assistant_rows(tmp_path: Path)
     )
 
     user_only_conversations = await store.list_conversations("user-1")
-    assert user_only_conversations == []
+    assert len(user_only_conversations) == 1
+    assert user_only_conversations[0]["conversation_id"] == conversation_id
+    assert user_only_conversations[0]["title"] == user_text
+    assert user_only_conversations[0]["title_source"] == "heuristic"
 
     with sqlite3.connect(store.episodic_db_path) as conn:
         title_count_before = conn.execute(
@@ -114,7 +117,9 @@ async def test_title_generation_requires_user_and_assistant_rows(tmp_path: Path)
     )
 
     error_only_conversations = await store.list_conversations("user-1")
-    assert error_only_conversations == []
+    assert len(error_only_conversations) == 1
+    assert error_only_conversations[0]["title"] == user_text
+    assert error_only_conversations[0]["title_source"] == "heuristic"
 
     with sqlite3.connect(store.episodic_db_path) as conn:
         title_count_after_error = conn.execute(
@@ -137,7 +142,9 @@ async def test_title_generation_requires_user_and_assistant_rows(tmp_path: Path)
     )
 
     conversations_while_pending = await store.list_conversations("user-1")
-    assert conversations_while_pending == []
+    assert len(conversations_while_pending) == 1
+    assert conversations_while_pending[0]["title"] == user_text
+    assert conversations_while_pending[0]["title_source"] == "heuristic"
 
     await _wait_for_title_tasks(store)
 
