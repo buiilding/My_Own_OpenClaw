@@ -6,7 +6,6 @@ from typing import Any, Dict, List
 
 from backend.src.core.utils.string_normalization import (
     normalize_non_empty_string,
-    resolve_top_level_or_nested_string,
 )
 from backend.src.core.types.schemas import NormalizedLLMResponse
 from backend.src.llm.parser_types import ParsedResponse, ParsedToolCall
@@ -86,13 +85,8 @@ def _normalize_tool_call_id(value: Any) -> str | None:
 
 def _resolve_system_use_explanation(
     payload: Dict[str, Any],
-    arguments: Dict[str, Any],
 ) -> str | None:
-    return resolve_top_level_or_nested_string(
-        payload.get("explanation"),
-        arguments,
-        nested_key="explanation",
-    )
+    return normalize_non_empty_string(payload.get("explanation"))
 
 
 def _canonicalize_legacy_system_tool_call(
@@ -100,14 +94,12 @@ def _canonicalize_legacy_system_tool_call(
     arguments: Dict[str, Any],
 ) -> tuple[str, Dict[str, Any]]:
     wrapper_arguments = copy.deepcopy(arguments)
+    wrapper_arguments.pop("explanation", None)
     payload: Dict[str, Any] = {
         "tool": tool_name,
         "arguments": wrapper_arguments,
     }
-    resolved_explanation = _resolve_system_use_explanation(
-        wrapper_arguments,
-        wrapper_arguments,
-    )
+    resolved_explanation = normalize_non_empty_string(arguments.get("explanation"))
     if resolved_explanation is not None:
         payload["explanation"] = resolved_explanation
     return _SYSTEM_USE_TOOL_NAME, payload
@@ -230,9 +222,11 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
                     parameters = copy.deepcopy(mapped_args)
                 else:
                     parameters = {}
+                parameters.pop("explanation", None)
                 resolved_explanation = _resolve_system_use_explanation(
-                    tool_call.get("arguments") if isinstance(tool_call.get("arguments"), dict) else {},
-                    parameters,
+                    tool_call.get("arguments")
+                    if isinstance(tool_call.get("arguments"), dict)
+                    else {},
                 )
                 if resolved_explanation is not None:
                     parameters["explanation"] = resolved_explanation

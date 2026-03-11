@@ -132,7 +132,7 @@ Unified wrapper normalization contract before execution:
 - `system_use` is normalized to concrete tools (`run_shell_command`, `replace`, `read_file`, `get_system_stats`, `get_open_windows`)
 - `system_use` explanation resolution precedence:
   1. top-level wrapper `explanation`
-  2. nested `arguments.explanation` fallback (legacy compatibility)
+  2. nested `arguments.explanation` is ignored and stripped
 
 ### 3. Tool Execution
 
@@ -400,7 +400,7 @@ No dual-shape fallback is supported in provider transport.
 - **replace**: Replace text in a file (single operation or batched operations)
 
 These tools are exposed to the LLM via unified `system_use` with `tool` + top-level `explanation` + `arguments` envelope.
-Legacy nested `arguments.explanation` is accepted as compatibility fallback in parser/native-bridge/sidecar routing paths.
+Nested `arguments.explanation` is rejected as wrapper rationale and stripped before execution.
 
 `read_file` behavior:
 - Reads file content as line slices with `offset` (0-based) and `limit`.

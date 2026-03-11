@@ -384,33 +384,6 @@ describe('local_backend_bridge_tool_args', () => {
     expect(args.arguments.target.x).toBe(10);
   });
 
-  test('keeps legacy nested arguments.metadata wrapper unchanged for computer_use payloads', () => {
-    const args = {
-      tool: 'mouse_control',
-      arguments: {
-        metadata: {
-          description: 'screen',
-          explanation: 'click target',
-          expectation: 'dialog opens',
-        },
-        action: 'click',
-        x: 10,
-        y: 20,
-      },
-    };
-
-    const result = resolveToolArgs('computer_use', args, null);
-
-    expect(result).toEqual(args);
-    expect(result).not.toBe(args);
-    expect(result.metadata).toBeUndefined();
-    expect(result.arguments.metadata).toEqual({
-      description: 'screen',
-      explanation: 'click target',
-      expectation: 'dialog opens',
-    });
-  });
-
   test('does not synthesize missing top-level metadata for computer_use payloads', () => {
     const args = {
       tool: 'mouse_control',

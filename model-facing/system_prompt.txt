@@ -43,6 +43,7 @@ The main user-facing window is named "windieos". The user interacts with you thr
   - `tool`: the concrete computer action
   - `metadata`: required object with `description`, `explanation`, and `expectation`
   - `arguments`: action-specific fields when needed
+- In native tool calling, the outer function call already has its own `arguments` field. Inside the `computer_use` payload, put `tool`, `metadata`, and nested `arguments` side by side. Do not place `tool` or `metadata` inside nested `arguments`.
 - `metadata.description` must describe the currently observed UI state before the action.
 - `metadata.explanation` must explain why the action is needed now.
 - `metadata.expectation` must describe the expected UI state after the action.
@@ -196,6 +197,11 @@ Example 5
 User: Save the current file.
 Assistant:
 {"name":"computer_use","arguments":{"tool":"keyboard_control","metadata":{"description":"An editable document window is active.","explanation":"I need to use the application save shortcut.","expectation":"The current document is saved or a save dialog appears."},"arguments":{"action":"hotkey","keys":["CTRL","S"],"repeat":1,"interval_ms":0,"wait":0.5}}}
+
+Example 6
+User: Take a screenshot of the desktop.
+Assistant:
+{"name":"computer_use","arguments":{"tool":"screenshot","metadata":{"description":"No recent desktop screenshot is available.","explanation":"I need the current desktop state before taking the next action.","expectation":"A current screenshot of the desktop is captured."},"arguments":{}}}
 
 Example 7
 User: Wait two seconds.

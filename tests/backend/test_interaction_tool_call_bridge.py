@@ -852,7 +852,7 @@ def test_to_parsed_response_maps_unified_system_use_replace_to_replace():
     }
 
 
-def test_to_parsed_response_maps_unified_system_use_nested_explanation_fallback():
+def test_to_parsed_response_strips_nested_system_use_explanation_without_top_level():
     parsed = to_parsed_response(
         {
             "content": "",
@@ -878,7 +878,11 @@ def test_to_parsed_response_maps_unified_system_use_nested_explanation_fallback(
     assert len(parsed.tool_calls) == 1
     call = parsed.tool_calls[0]
     assert call.tool_name == "replace"
-    assert call.parameters["explanation"] == "legacy nested patch rationale"
+    assert call.parameters == {
+        "file_path": "/tmp/a.txt",
+        "old_string": "x",
+        "new_string": "y",
+    }
     assert call.metadata == {
         "tool_call_id": "call_replace_fallback_1",
         "model_facing_tool_call": {
@@ -961,7 +965,6 @@ def test_to_parsed_response_canonicalizes_direct_legacy_system_tool_to_system_us
         "explanation": "inspect settings windows",
         "arguments": {
             "filter_text": "System Settings",
-            "explanation": "inspect settings windows",
         },
     }
     assert call.metadata == {

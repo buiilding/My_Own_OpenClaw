@@ -122,11 +122,8 @@ When normalized name is `system_use`:
   - `get_open_windows`
 - valid mapped name -> replace parsed `tool_name` with normalized concrete name
 - executable parameters become `parameters.arguments` if dict, else `{}`
-- resolved rationale uses wrapper explanation precedence:
-  - first `system_use.explanation` (top-level wrapper field)
-  - fallback to nested `system_use.arguments.explanation` (legacy compatibility)
-  - resolved text is trim-normalized; whitespace-only values are ignored
-  - when resolved, explanation is injected into concrete tool parameters
+- nested `system_use.arguments.explanation` is stripped and ignored
+- top-level `system_use.explanation` is trim-normalized and, when present, injected into concrete tool parameters
 - invalid mapped names are left as `system_use` so downstream wrapper validation can return a deterministic tool error message
 
 Native-bridge nuance vs parser-module path:
@@ -194,7 +191,7 @@ Extraction helpers:
 - history argument deep-copy immutability
 - invalid computer-use tool mapping behavior
 - unified `system_use` -> concrete subtool mapping behavior
-- unified `system_use` top-level + nested explanation fallback behavior
+- unified `system_use` top-level explanation injection and nested explanation stripping
 - missing unified `arguments` -> empty parameters
 - top-level metadata promotion boundary (nested `arguments.metadata` remains in parameters; non-dict top-level metadata ignored)
 - whitespace-only tool-call id handling in both `extract_tool_call_ids(...)` and history id fallback
@@ -215,7 +212,7 @@ Extraction helpers:
 2. Removing `arguments.metadata` stripping can leak metadata fields into executable tool parameter payloads.
 3. Changing history id fallback format can break downstream assumptions in tool-output correlation/debug tooling.
 4. Modifying recoverable marker heuristics can convert retryable malformed-tool-call events into hard loop aborts.
-5. Changing `system_use` mapped subtool names without schema/sidecar updates can desync wrapper routing.
+5. Re-introducing nested `arguments.explanation` fallback in the bridge without matching parser/sidecar behavior can desync wrapper routing.
 
 ## Related Docs
 

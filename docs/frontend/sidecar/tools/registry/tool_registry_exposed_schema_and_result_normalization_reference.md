@@ -74,11 +74,9 @@ Unified system-use behavior:
 - `system_use` accepts `{tool, explanation, arguments}` and routes to mapped concrete local tools (`run_shell_command`, `replace`, `read_file`, `get_system_stats`, `get_open_windows`).
 - `tool` is trim-normalized and must be in the supported set, else fail-closed (`system_use requires a valid 'tool' value ...`).
 - `arguments` must be an object, else fail-closed (`system_use.arguments must be an object`).
-- explanation resolution precedence:
-  1. top-level `explanation` when non-empty
-  2. fallback nested `arguments.explanation` (legacy compatibility)
-- resolved explanation text is trim-normalized; whitespace-only values are treated as missing
-- delegated concrete subtool receives a deep-copied `arguments` payload (plus resolved explanation when available), preventing subtool mutations from leaking back into wrapper envelope input.
+- top-level `explanation` is required and trim-normalized; whitespace-only values fail closed (`system_use.explanation must be a non-empty string`).
+- nested `arguments.explanation` is discarded and never treated as wrapper rationale.
+- delegated concrete subtool receives a deep-copied `arguments` payload plus the canonical top-level explanation, preventing mutation leaks and wrapper-shape drift.
 - wrapper scope is intentionally limited to those five actions; `open_app` and `process` remain direct tools and are rejected when sent as `system_use.tool` values.
 
 Exception behavior:
@@ -133,9 +131,9 @@ Returned failure payload:
 - `computer_use` fails closed when required metadata is missing/blank
 - `computer_use` rejects legacy nested `arguments.metadata` wrappers and non-string required metadata fields
 - `computer_use` accepts trimmed required metadata and still delegates unchanged concrete `arguments`
-- `system_use` routes supported wrappers to the expected concrete subtool and injects resolved explanation into delegated args
-- `system_use` supports nested explanation fallback for legacy payload compatibility
-- `system_use` trims explanation text and ignores whitespace-only top-level/nested values before delegation
+- `system_use` routes supported wrappers to the expected concrete subtool and injects top-level explanation into delegated args
+- `system_use` rejects missing or whitespace-only top-level explanation values
+- `system_use` strips nested `arguments.explanation` before delegation
 - `system_use` rejects unknown wrapper subtool names (including `open_app` and `process`) and non-object `arguments`
 - dict legacy success/failure normalization behaves as expected
 - nested legacy errors (for example usage text in `data.error`) are surfaced to top-level `ToolResult.error`
