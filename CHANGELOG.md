@@ -22,6 +22,7 @@ All notable changes to WindieOS will be documented in this file.
 - feat(frontend-global-stop-shortcut-settings): expose the main-process global agent-stop shortcut in Settings > General, offer platform-safe accelerator choices, persist the selected accelerator locally, apply changes live through the Electron shortcut runtime, and keep onboarding copy aligned with the saved value; add focused renderer/main/IPC regression coverage.
 
 ### Fixed
+- fix(macos-quartz-nsdictionary-interop): accept PyObjC Quartz `NSDictionary` window records in macOS window enumeration so `get_open_windows`, active-window detection, and `switch_tab` use real Quartz results instead of dropping every record as non-dict and falling back to running-app enumeration.
 - fix(macos-quartz-debug-diagnostics): add macOS sidecar `DEBUG` diagnostics for Quartz window enumeration so dev runs show raw/usable counts, filter-drop reasons, and compact sample records when `get_open_windows` falls back to running-app enumeration.
 - fix(macos-window-list-logging): add sidecar `INFO` logs for the macOS `get_open_windows` decision path so dev runs show whether Quartz returned usable windows or the runtime fell back to running-app enumeration.
 - fix(sidecar-browser-watchdog-noise): downgrade non-fatal browser lifecycle readiness misses from error to warning, stop `DownloadsWatchdog` from synthesizing `NavigationCompleteEvent` during browser-state snapshots, and add focused sidecar regression coverage for the snapshot/PDF auto-download path.
