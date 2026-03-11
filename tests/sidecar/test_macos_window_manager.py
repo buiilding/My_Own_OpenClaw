@@ -192,7 +192,7 @@ def test_macos_window_manager_logs_quartz_filter_debug_summary(monkeypatch, capl
         assert manager.get_windows() == [{"title": "Terminal", "hwnd": None, "app_name": "Terminal"}]
 
     assert (
-        "Quartz window enumeration debug (on_screen_only=True): raw=4 usable=0 "
+        "Quartz window enumeration debug (on_screen_only=False): raw=4 usable=0 "
         "dropped_non_dict=1 dropped_non_regular_app=3 dropped_layer=0 dropped_alpha=0 dropped_title=0"
     ) in caplog.text
     assert "Quartz window enumeration samples:" in caplog.text

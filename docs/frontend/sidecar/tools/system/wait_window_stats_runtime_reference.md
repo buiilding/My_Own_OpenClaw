@@ -87,7 +87,7 @@ Input:
 
 Semantics:
 
-- pulls visible user-facing windows from the platform manager
+- pulls open user-facing windows from the platform manager while filtering out background/helper windows
 - formats entries as `app_name: title` when both exist and differ; otherwise uses whichever one is available
 - removes empty entries and dedupes case-insensitively by the final displayed string while preserving first-seen order
 - optional filter is case-insensitive substring match against the displayed app/window name and its raw app/title parts
