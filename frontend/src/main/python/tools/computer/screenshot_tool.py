@@ -386,7 +386,9 @@ def _overlay_macos_appkit_cursor(
         from AppKit import NSCursor
         from PIL import Image
 
-        cursor = NSCursor.currentSystemCursor() or NSCursor.arrowCursor()
+        # Use the stable arrow cursor instead of the transient current cursor
+        # so post-action screenshots do not freeze macOS hover/magnification states.
+        cursor = NSCursor.arrowCursor()
         ns_image = cursor.image()
         hot_spot = cursor.hotSpot()
         tiff_data = ns_image.TIFFRepresentation()
