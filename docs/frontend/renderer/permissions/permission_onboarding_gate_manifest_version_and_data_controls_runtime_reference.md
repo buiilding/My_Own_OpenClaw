@@ -24,10 +24,10 @@ title: "Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime 
 
 ## Startup Behavior (`App.jsx`)
 
-`AppContent` now enforces a renderer permission gate before shell render in non-VM mode.
+`AppContent` now enforces an onboarding-completion gate before shell render in non-VM mode.
 
 - startup routes between VM dashboard mode and `permissionStore.needsOnboarding`
-- permission onboarding is a startup blocker for dashboard/chat shell access until current-platform required permissions are granted
+- onboarding blocks dashboard/chat shell access only until the current manifest has been acknowledged
 
 ## Store State Model
 
@@ -47,7 +47,7 @@ title: "Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime 
 Gate is true when any condition fails:
 
 - onboarding completion manifest version does not match current manifest version
-- any current-platform `required_now` permission is not granted
+- onboarding for the current manifest has not been completed
 
 ## IPC Actions and Store Mutations
 
@@ -78,7 +78,7 @@ Persisted fields:
 `completeOnboarding()` guardrails:
 
 - requires non-empty manifest version
-- requires zero `missingRequiredPermissions`
+- does not require all `missingRequiredPermissions` to be cleared first
 
 When satisfied:
 
@@ -93,7 +93,7 @@ When satisfied:
 
 - permission list with `Grant` actions on the first slide
 - stop-agent shortcut instructions on the second slide
-- final `Start WindieOS` CTA disabled until required permissions are all granted
+- final `Start WindieOS` CTA enabled after permission status loads, with a warning if permissions remain missing
 
 ### Settings Data Controls
 

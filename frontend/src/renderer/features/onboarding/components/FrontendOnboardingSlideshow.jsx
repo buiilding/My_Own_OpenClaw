@@ -59,7 +59,7 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
   const isLastSlide = activeSlideIndex === slides.length - 1;
   const isPermissionSlide = activeSlide.id === 'permissions';
   const isStopFlowSlide = activeSlide.id === 'stop-flow';
-  const canStartWindieOs = bootstrapped && missingRequiredPermissions.length === 0 && !isLoading;
+  const canStartWindieOs = bootstrapped && !isLoading;
 
   useEffect(() => {
     if (isPermissionSlide && !bootstrapped && !isLoading) {
@@ -212,7 +212,12 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
           ) : null}
           {isLastSlide && !canStartWindieOs ? (
             <p className="frontend-onboarding-permission-error">
-              Finish the required permissions on the previous step before starting WindieOS.
+              WindieOS is still loading permission status. Wait a moment and try again.
+            </p>
+          ) : null}
+          {isLastSlide && missingRequiredPermissions.length > 0 ? (
+            <p className="frontend-onboarding-permission-error">
+              Some permissions are still missing. You can continue now and grant them later in Settings.
             </p>
           ) : null}
         </div>

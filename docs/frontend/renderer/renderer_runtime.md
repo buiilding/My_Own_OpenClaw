@@ -94,7 +94,7 @@ Primary runtime:
 
 Current behavior:
 
-- app startup is not hard permission-gated in current `App.jsx`; routing is still VM mode + frontend onboarding completion
+- app startup routes by VM mode + permission-onboarding completion for the current manifest
 - frontend onboarding step 1 now renders a permission checklist and triggers `requestPermission` per row plus global `recheckAllPermissions`
 - `PermissionControlCenter` renders live permission status plus probe/recheck maintenance actions
 - `permissionStore` derives onboarding/gate state (`needsOnboarding`, `completedForManifest`, required permission sets) and powers both onboarding + settings permission surfaces

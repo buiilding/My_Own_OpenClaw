@@ -68,12 +68,12 @@ Algorithm:
 1. `requiredPermissionIds = permissions.filter(required_now).map(permission_id)`
 2. `missingRequiredPermissions = requiredPermissionIds` where status `granted !== true`
 3. `completedForManifest = onboarding.manifest_version === manifestVersion && onboarding.completed === true`
-4. `needsOnboarding = !completedForManifest || missingRequiredPermissions.length > 0`
+4. `needsOnboarding = !completedForManifest`
 
 Important current manifest consequence:
 
 - runtime checks such as `shell_execution` are no longer `required_now`
-- onboarding gate is therefore driven by real OS/resource setup items rather than every capability-like row
+- `missingRequiredPermissions` still highlights real OS/resource setup gaps even though they no longer hard-block startup completion
 
 ## Shared Status-Update Helper
 
@@ -135,7 +135,6 @@ Main-process runtime now performs async startup probes before returning the init
 Guardrails:
 
 - requires non-empty `manifestVersion`
-- requires `missingRequiredPermissions.length === 0`
 
 On success:
 
@@ -162,7 +161,7 @@ On guard failure:
 
 ## UI Coupling Boundary
 
-- Renderer `App.jsx` startup is permission-gated in non-VM mode through `permissionStore.needsOnboarding`.
+- Renderer `App.jsx` startup is onboarding-completion-gated in non-VM mode through `permissionStore.needsOnboarding`.
 - `PermissionControlCenter` mounts this store and uses probe/recheck actions.
 - `FrontendOnboardingSlideshow` uses the manifest presentation metadata plus `requestPermission()` / `completeOnboarding()` to drive startup gating.
 - Store gate-state fields remain authoritative for any surfaces that still depend on onboarding state.

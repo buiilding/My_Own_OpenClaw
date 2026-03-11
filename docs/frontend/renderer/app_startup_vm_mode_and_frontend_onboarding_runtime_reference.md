@@ -67,7 +67,7 @@ Startup completion is now sourced from `permissionStore` local persistence:
 
 - storage key: `windieos-permission-onboarding`
 - persisted fields: `manifest_version`, `completed`, `completed_at`
-- `completeOnboarding()` fails closed until all current-platform `required_now` permissions are granted
+- `completeOnboarding()` only requires a manifest version and stores completion even if some permissions are still missing
 - when completion succeeds, `permissionStore.needsOnboarding` flips false and `AppContent` re-renders into the dashboard shell
 
 ## Onboarding Slideshow Runtime Contract
@@ -88,7 +88,8 @@ Navigation behavior:
 
 - `Next` / `Back` controls slide index
 - final CTA `Start WindieOS` calls `permissionStore.completeOnboarding()`
-- `Start WindieOS` stays disabled until required permissions are granted for the current platform
+- `Start WindieOS` stays enabled once permission status has loaded, even if some permissions are still missing
+- the final slide warns when permissions remain missing and points the user to Settings for follow-up
 
 Stop shortcut label source:
 
@@ -106,7 +107,7 @@ Platform mapping in shortcut helper:
 
 ## Current Permission-Gate Boundary
 
-Renderer app startup blocks on `permissionStore.needsOnboarding` in non-VM mode.
+Renderer app startup blocks only until onboarding has been completed for the current manifest in non-VM mode.
 
 The same permission store also powers Settings > Permissions (`PermissionControlCenter`) so onboarding and post-onboarding rechecks stay on one state model.
 
