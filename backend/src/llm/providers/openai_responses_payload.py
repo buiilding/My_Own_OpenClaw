@@ -2,24 +2,15 @@
 
 from __future__ import annotations
 
-import json
 from typing import Any, Dict, Iterable, List
 
 from backend.src.core.infrastructure.exceptions import LLMAPIError
 from backend.src.core.types.schemas import NormalizedLLMResponse
+from backend.src.core.utils.raw_tool_call_preview import build_raw_tool_call_preview
 from backend.src.llm.providers.response_parsing import get_value
 
 _INVALID_OPENAI_RESPONSE = "Invalid response from OpenAI"
 _FUNCTION_CALL_ARGUMENTS_PREVIEW_CHARS = 4000
-
-
-def _build_raw_tool_call_preview(*, tool_call_id: str, tool_name: str, raw_arguments_preview: str) -> str:
-    payload: Dict[str, Any] = {
-        "id": tool_call_id,
-        "name": tool_name,
-        "arguments": raw_arguments_preview,
-    }
-    return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
 
 
 def normalize_openai_stream_event_type(event: Any) -> str:
@@ -89,7 +80,7 @@ def normalize_openai_responses_payload(
                 or f"tool_call_{len(tool_calls)}"
             )
             tool_name = str(get_value(item, "name") or "")
-            raw_tool_call_preview = _build_raw_tool_call_preview(
+            raw_tool_call_preview = build_raw_tool_call_preview(
                 tool_call_id=tool_call_id,
                 tool_name=tool_name,
                 raw_arguments_preview=preview,
@@ -97,8 +88,7 @@ def normalize_openai_responses_payload(
             raise LLMAPIError(
                 (
                     f"{_INVALID_OPENAI_RESPONSE}: failed to parse Responses API tool-call arguments "
-                    f"for name={tool_name!r}. Raw tool call preview: {raw_tool_call_preview!r} "
-                    f"Raw arguments preview: {preview!r}"
+                    f"for name={tool_name!r}."
                 ),
                 model=model,
                 metadata={

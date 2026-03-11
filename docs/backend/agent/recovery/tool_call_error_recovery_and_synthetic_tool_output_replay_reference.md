@@ -28,6 +28,8 @@ Without recovery, loop behavior would:
 
 Recovery converts these errors into synthetic tool protocol events plus history context so model can retry with corrected call syntax.
 
+Primary data source for recovery is structured `ErrorEvent.metadata` propagated from `LLMAPIError.metadata`; string parsing remains only as a compatibility fallback for legacy/mock error events that do not carry metadata.
+
 ## Recovery Decision Gate
 
 After LLM stream finishes in `run_loop()`:
@@ -66,6 +68,12 @@ Synthetic payload metadata:
   - `llm_tool_call_raw_arguments_preview`
   - `llm_tool_call_raw_arguments_preview_truncated` (`True` when preview ends with `...[truncated]`)
   - `llm_tool_call_parse_error` (raw-arguments marker removed + whitespace-normalized summary)
+
+Upstream source:
+
+- streaming/native provider normalization attaches these fields to `LLMAPIError.metadata`
+- `LLMStreamProcessor` preserves that metadata on consumed `ErrorEvent`
+- `InteractionLoop` reads metadata first and only falls back to error-text extraction when metadata is absent
 
 `ToolCallEvent` fields:
 

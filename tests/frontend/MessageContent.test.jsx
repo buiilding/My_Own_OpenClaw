@@ -121,4 +121,29 @@ describe('MessageContent', () => {
     expect(screen.getByText('Tool Call Details')).toBeInTheDocument();
     expect(screen.getByText(/"request_id": "req-1"/)).toBeInTheDocument();
   });
+
+  test('tool call display prefers dedicated toolCallDisplayText over legacy text', () => {
+    render(
+      <MessageContent
+        message={{
+          sender: 'assistant',
+          type: 'tool-call',
+          text: 'legacy normalized view',
+          toolCallDisplayText: '{"id":"tool_2","name":"system_use"}',
+          modelFacingToolCall: {
+            id: 'tool_2',
+            name: 'system_use',
+            arguments: { tool: 'read_file' },
+          },
+          toolCallDetails: {
+            tool_name: 'read_file',
+            request_id: 'req-2',
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByText('{"id":"tool_2","name":"system_use"}')).toBeInTheDocument();
+    expect(screen.queryByText('legacy normalized view')).not.toBeInTheDocument();
+  });
 });

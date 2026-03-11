@@ -167,6 +167,7 @@ class InteractionLoop:
             # Step 2: Get LLM response (delegated to LLMInteractionHandler)
             llm_response_text = ""
             llm_error_event_content = None
+            llm_error_event_metadata = None
             try:
                 async for event in self.llm_handler.get_response(
                     prompt,
@@ -174,6 +175,11 @@ class InteractionLoop:
                 ):
                     if isinstance(event, ErrorEvent):
                         llm_error_event_content = event.content
+                        llm_error_event_metadata = (
+                            dict(event.metadata)
+                            if isinstance(event.metadata, dict)
+                            else None
+                        )
                         continue
                     yield event
                     if isinstance(event, FullResponseEvent):
@@ -200,7 +206,8 @@ class InteractionLoop:
                         llm_error_event_content,
                     )
                     async for event in self._emit_recoverable_tool_call_error(
-                        llm_error_event_content
+                        llm_error_event_content,
+                        metadata=llm_error_event_metadata,
                     ):
                         yield event
                     continue
@@ -323,6 +330,7 @@ class InteractionLoop:
     async def _emit_recoverable_tool_call_error(
         self,
         error_msg: str,
+        metadata: Dict[str, Any] | None = None,
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
         Convert malformed LLM tool-call payloads into synthetic tool output.
@@ -330,11 +338,31 @@ class InteractionLoop:
         This keeps the interaction loop alive and gives the model explicit,
         tool-shaped feedback so it can retry with corrected arguments.
         """
-        tool_name = self._extract_tool_name_from_error(error_msg)
-        tool_call_id = self._extract_tool_call_id_from_error(error_msg)
-        raw_tool_call_preview = self._extract_raw_tool_call_preview_from_error(error_msg)
-        raw_arguments_preview = self._extract_raw_arguments_preview_from_error(error_msg)
-        parse_error_summary = self._extract_tool_call_parse_error_from_error(error_msg)
+        structured_metadata = (
+            dict(metadata)
+            if isinstance(metadata, dict)
+            else {}
+        )
+        tool_name = self._extract_tool_name_from_metadata_or_error(
+            structured_metadata,
+            error_msg,
+        )
+        tool_call_id = self._extract_tool_call_id_from_metadata_or_error(
+            structured_metadata,
+            error_msg,
+        )
+        raw_tool_call_preview = self._extract_raw_tool_call_preview_from_metadata_or_error(
+            structured_metadata,
+            error_msg,
+        )
+        raw_arguments_preview = self._extract_raw_arguments_preview_from_metadata_or_error(
+            structured_metadata,
+            error_msg,
+        )
+        parse_error_summary = self._extract_tool_call_parse_error_from_metadata_or_error(
+            structured_metadata,
+            error_msg,
+        )
         if not tool_call_id:
             tool_call_id = f"llm_tool_call_error_{uuid4().hex[:12]}"
         if not raw_tool_call_preview and raw_arguments_preview:
@@ -463,8 +491,28 @@ class InteractionLoop:
         return extract_tool_call_id_from_error(error_msg)
 
     @staticmethod
+    def _extract_tool_call_id_from_metadata_or_error(
+        metadata: Dict[str, Any],
+        error_msg: str,
+    ) -> str:
+        value = metadata.get("llm_tool_call_id")
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+        return extract_tool_call_id_from_error(error_msg)
+
+    @staticmethod
     def _extract_raw_arguments_preview_from_error(error_msg: str) -> str:
         """Best-effort extraction of raw streamed tool arguments preview."""
+        return extract_raw_arguments_preview_from_error(error_msg)
+
+    @staticmethod
+    def _extract_raw_arguments_preview_from_metadata_or_error(
+        metadata: Dict[str, Any],
+        error_msg: str,
+    ) -> str:
+        value = metadata.get("llm_tool_call_raw_arguments_preview")
+        if isinstance(value, str) and value.strip():
+            return value.strip()
         return extract_raw_arguments_preview_from_error(error_msg)
 
     @staticmethod
@@ -473,8 +521,28 @@ class InteractionLoop:
         return extract_raw_tool_call_preview_from_error(error_msg)
 
     @staticmethod
+    def _extract_raw_tool_call_preview_from_metadata_or_error(
+        metadata: Dict[str, Any],
+        error_msg: str,
+    ) -> str:
+        value = metadata.get("llm_tool_call_raw_tool_call_preview")
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+        return extract_raw_tool_call_preview_from_error(error_msg)
+
+    @staticmethod
     def _extract_tool_call_parse_error_from_error(error_msg: str) -> str:
         """Best-effort extraction of parse-error summary from provider error text."""
+        return extract_tool_call_parse_error_from_error(error_msg)
+
+    @staticmethod
+    def _extract_tool_call_parse_error_from_metadata_or_error(
+        metadata: Dict[str, Any],
+        error_msg: str,
+    ) -> str:
+        value = metadata.get("llm_tool_call_parse_error")
+        if isinstance(value, str) and value.strip():
+            return value.strip()
         return extract_tool_call_parse_error_from_error(error_msg)
 
     @staticmethod
@@ -497,3 +565,13 @@ class InteractionLoop:
         if not preview:
             return ""
         return preview
+
+    @staticmethod
+    def _extract_tool_name_from_metadata_or_error(
+        metadata: Dict[str, Any],
+        error_msg: str,
+    ) -> str:
+        value = metadata.get("llm_tool_name")
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+        return extract_tool_name_from_error(error_msg)

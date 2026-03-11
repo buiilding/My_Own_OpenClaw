@@ -27,6 +27,7 @@ export function buildToolCallMessage(
   return {
     id: crypto.randomUUID(),
     text: formattedText,
+    toolCallDisplayText: formattedText,
     sender: 'assistant',
     type: 'tool-call',
     sourceEventType: 'tool-call',
