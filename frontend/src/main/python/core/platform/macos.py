@@ -50,6 +50,10 @@ class MacOSWindowManager(BaseWindowManager):
                     "window_name": app_name,
                 }
             )
+        logger.info(
+            "macOS window listing fallback enumerated %s running apps",
+            len(windows),
+        )
         return windows
 
     def _list_window_records(self, *, on_screen_only: bool) -> List[dict]:
@@ -170,7 +174,16 @@ return "false"
         try:
             window_records = self._list_window_records(on_screen_only=False)
             if not window_records:
+                logger.info(
+                    "Quartz window enumeration returned no usable macOS windows; "
+                    "falling back to running applications",
+                )
                 window_records = self._list_running_app_records()
+            else:
+                logger.info(
+                    "Quartz window enumeration returned %s usable macOS windows",
+                    len(window_records),
+                )
             return [
                 {"title": window["title"], "hwnd": window["hwnd"]}
                 for window in window_records
