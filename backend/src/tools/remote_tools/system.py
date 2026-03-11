@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Any, Type
 
-from backend.src.core.utils.string_normalization import resolve_top_level_or_nested_string
+from backend.src.core.utils.string_normalization import normalize_non_empty_string
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
@@ -40,13 +40,8 @@ _SYSTEM_USE_TARGET_TOOL_BY_TOOL: dict[str, str] = {
 
 def _resolve_system_use_explanation(
     top_level_explanation: Any,
-    arguments: dict[str, Any],
 ) -> str | None:
-    return resolve_top_level_or_nested_string(
-        top_level_explanation,
-        arguments,
-        nested_key="explanation",
-    )
+    return normalize_non_empty_string(top_level_explanation)
 
 
 class RemoteSystemUseTool(RemoteToolBase, Tool[SystemUseArgs]):
@@ -65,10 +60,8 @@ class RemoteSystemUseTool(RemoteToolBase, Tool[SystemUseArgs]):
         model = _SYSTEM_USE_MODEL_BY_TOOL[tool_name]
         target_tool_name = _SYSTEM_USE_TARGET_TOOL_BY_TOOL[tool_name]
         tool_arguments = dict(args.arguments)
-        resolved_explanation = _resolve_system_use_explanation(
-            args.explanation,
-            tool_arguments,
-        )
+        tool_arguments.pop("explanation", None)
+        resolved_explanation = _resolve_system_use_explanation(args.explanation)
         if resolved_explanation is not None:
             tool_arguments["explanation"] = resolved_explanation
         validated_args = model.model_validate(tool_arguments)

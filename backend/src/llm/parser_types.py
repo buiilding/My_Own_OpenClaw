@@ -5,9 +5,7 @@ import copy
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-from backend.src.core.utils.string_normalization import (
-    resolve_top_level_or_nested_string,
-)
+from backend.src.core.utils.string_normalization import normalize_non_empty_string
 
 _COMPUTER_USE_TOOL_NAME = "computer_use"
 _COMPUTER_SUBTOOLS = {
@@ -151,10 +149,8 @@ class ToolCallSchema:
         if normalized is None:
             return None
         normalized_tool_name, normalized_arguments = normalized
-        resolved_explanation = ToolCallSchema._resolve_system_use_explanation(
-            args,
-            normalized_arguments,
-        )
+        normalized_arguments.pop("explanation", None)
+        resolved_explanation = ToolCallSchema._resolve_system_use_explanation(args)
         if resolved_explanation is not None:
             normalized_arguments["explanation"] = resolved_explanation
 
@@ -197,12 +193,5 @@ class ToolCallSchema:
         return normalized_tool_name, normalized_arguments, metadata
 
     @staticmethod
-    def _resolve_system_use_explanation(
-        payload: Dict[str, Any],
-        arguments: Dict[str, Any],
-    ) -> Optional[str]:
-        return resolve_top_level_or_nested_string(
-            payload.get("explanation"),
-            arguments,
-            nested_key="explanation",
-        )
+    def _resolve_system_use_explanation(payload: Dict[str, Any]) -> Optional[str]:
+        return normalize_non_empty_string(payload.get("explanation"))

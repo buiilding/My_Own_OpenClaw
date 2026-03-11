@@ -161,8 +161,9 @@ Consequence:
 
 - sidecar `ToolRegistry` validates unified `system_use` envelope shape when that wrapper name is invoked directly:
   - requires valid `tool` in supported set and object `arguments`
-  - resolves rationale from top-level `explanation`, with legacy nested `arguments.explanation` fallback
-  - injects resolved explanation into delegated concrete args when present
+  - requires non-empty top-level `explanation`
+  - strips nested `arguments.explanation` before delegation
+  - injects top-level explanation into delegated concrete args
   - routes to mapped concrete executor (`run_shell_command`, `replace`, `read_file`, `get_system_stats`, `get_open_windows`)
 - in backend-normalized flows where concrete tool names are already selected, sidecar executes concrete tool handlers directly
 
@@ -196,14 +197,14 @@ Wrapper boundary:
 
 Normalization behavior in `SystemUseArgs.normalize_explanation`:
 
-- top-level `explanation` is preferred when non-empty
-- backward-compatible fallback accepts legacy nested `arguments.explanation`
+- top-level `explanation` is trim-normalized in place
+- nested `arguments.explanation` is ignored and never promoted
 
 Runtime path in `RemoteSystemUseTool.execute_remote(...)`:
 
 1. resolve selected model from `_SYSTEM_USE_MODEL_BY_TOOL`
 2. deep-copy `arguments`
-3. resolve explanation from top-level or nested fallback
+3. strip nested `arguments.explanation` and use top-level `explanation` only
 4. inject resolved explanation into concrete args when present
 5. validate concrete args with `model_validate(...)`
 6. emit `RemoteToolResult` where `tool_name` is the concrete tool (not `system_use`)

@@ -106,11 +106,9 @@ Unified system-use normalization behavior:
 
 - maps unified `tool` to concrete action (`run_shell_command|replace|read_file|get_system_stats|get_open_windows`)
 - defaults missing unified `arguments` to `{}`
-- resolves explanation with precedence:
-  - top-level unified `explanation`
-  - fallback nested `arguments.explanation` (legacy compatibility)
-- trims resolved explanation text; whitespace-only values are treated as missing
-- injects resolved explanation into concrete tool parameters
+- strips nested `arguments.explanation`
+- trims top-level unified `explanation`; whitespace-only values are treated as missing
+- injects top-level explanation into concrete tool parameters when present
 - rejects unknown unified subtools and non-dict `arguments`
 
 Legacy metadata/action wrapper payloads are rejected by current parser schema extraction.
@@ -210,8 +208,8 @@ Each includes boundary metadata (`boundary_name="response_parser"` plus optional
   - direct native computer-subtool names (`mouse_control|keyboard_control|screenshot|scroll_control|switch_tab|wait`) run through the same metadata gate; missing/invalid metadata resolves to `invalid_computer_use_tool`
 - unified native `system_use` bridge behavior:
   - maps `arguments.tool` to concrete tool (`run_shell_command|replace|read_file|get_system_stats|get_open_windows`) when valid
-  - resolves rationale from top-level `explanation` then nested `arguments.explanation` fallback
-  - injects resolved explanation into concrete parameters when present
+  - strips nested `arguments.explanation`
+  - injects top-level `explanation` into concrete parameters when present
   - invalid mapped subtool is kept as `tool_name="system_use"` so downstream wrapper validation emits deterministic errors in native path
 
 History-call shaping via `tool_call_bridge.to_history_tool_calls(...)`:

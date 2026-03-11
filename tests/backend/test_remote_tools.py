@@ -468,27 +468,19 @@ async def test_remote_system_use_run_routes_replace():
     assert result.args["explanation"] == "apply update"
 
 
-@pytest.mark.asyncio
-async def test_remote_system_use_run_accepts_nested_explanation_as_backward_compat_fallback():
-    ctx = _make_context(metadata={"request_id": "req-system-fallback"})
-    tool = RemoteSystemUseTool()
-    args = SystemUseArgs.model_validate(
-        {
-            "tool": "replace",
-            "arguments": {
-                "file_path": "/tmp/example.txt",
-                "old_string": "old",
-                "new_string": "new",
-                "explanation": "legacy nested explanation",
-            },
-        }
-    )
-
-    result = await tool.run(args, ctx)
-
-    assert result.tool_name == "replace"
-    assert result.request_id == "req-system-fallback"
-    assert result.args["explanation"] == "legacy nested explanation"
+def test_remote_system_use_schema_requires_top_level_explanation():
+    with pytest.raises(ValidationError):
+        SystemUseArgs.model_validate(
+            {
+                "tool": "replace",
+                "arguments": {
+                    "file_path": "/tmp/example.txt",
+                    "old_string": "old",
+                    "new_string": "new",
+                    "explanation": "legacy nested explanation",
+                },
+            }
+        )
 
 
 @pytest.mark.asyncio
@@ -498,6 +490,7 @@ async def test_remote_system_use_run_revalidates_selected_tool_arguments():
     args = SystemUseArgs.model_validate(
         {
             "tool": "run_shell_command",
+            "explanation": "run shell command",
             "arguments": {
                 "command": "echo hi",
             },

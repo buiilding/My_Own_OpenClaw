@@ -591,38 +591,6 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: false, error: 'computer_use.arguments must be an object' });
   });
 
-  test('execute-tool keeps nested computer_use arguments.metadata wrapper unchanged', async () => {
-    const { handlers, stdoutHandler } = initBridge();
-    markReady();
-
-    const envelope = {
-      tool: 'mouse_control',
-      arguments: {
-        metadata: {
-          description: 'screen visible',
-          explanation: 'click submit',
-          expectation: 'modal opens',
-        },
-        action: 'click',
-        x: 10,
-        y: 20,
-      },
-    };
-
-    const promise = handlers['execute-tool'](null, {
-      toolName: 'computer_use',
-      args: envelope,
-    });
-
-    expectLastRequestWith('execute_tool', {
-      tool_name: 'computer_use',
-      args: envelope,
-    });
-
-    emitRpcResult(stdoutHandler, { success: false, error: 'computer_use.metadata must be an object' });
-    await expect(promise).resolves.toEqual({ success: false, error: 'computer_use.metadata must be an object' });
-  });
-
   test('execute-tool preserves extra computer_use metadata fields for sidecar allowlist rejection', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();

@@ -120,6 +120,7 @@ class ToolPreparer:
         message = (
             "computer_use call is invalid and was rejected before frontend execution. "
             "Use the unified `computer_use` wrapper with top-level `tool`, `metadata`, and nested `arguments`. "
+            "Keep `tool` and `metadata` alongside nested `arguments` inside the `computer_use` payload; do not move them inside nested `arguments`. "
             "The `metadata` object must contain only `description`, `explanation`, and `expectation`."
         )
         if intended_tool:

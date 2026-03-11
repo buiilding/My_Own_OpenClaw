@@ -58,9 +58,8 @@ Envelope fields:
 
 Normalization (`model_validator(mode="before")`):
 
-1. if top-level `explanation` is non-empty string, trim and keep it
-2. else if `arguments.explanation` is non-empty string, copy trimmed value to top-level `explanation`
-3. otherwise leave as-is (`None` allowed at model layer)
+1. if top-level `explanation` is a string, trim it in place
+2. nested `arguments.explanation` is ignored and never promoted
 
 ## Canonical Declaration Contract (`unified_schema.py`)
 
@@ -84,11 +83,8 @@ Important declaration boundary:
 1. picks concrete model from `_SYSTEM_USE_MODEL_BY_TOOL`
 2. maps wrapper tool name to concrete remote tool name via `_SYSTEM_USE_TARGET_TOOL_BY_TOOL`
 3. copies `args.arguments` into mutable dict
-4. resolves explanation with precedence:
-  - top-level `args.explanation`
-  - fallback nested `arguments.explanation`
-  - resolved text is trim-normalized; whitespace-only values are treated as missing
-5. injects resolved explanation into concrete arguments when present
+4. removes any nested `arguments.explanation`
+5. injects trim-normalized top-level `args.explanation` into concrete arguments
 6. re-validates concrete arguments with selected model (`model_validate`)
 7. emits `RemoteToolResult` with concrete `tool_name` (not `system_use`)
 
@@ -100,7 +96,7 @@ Important declaration boundary:
 
 - requires valid mapped `tool` in supported set
 - requires `arguments` to be dict (defaults to `{}` when omitted)
-- resolves and injects explanation using top-level then nested fallback
+- strips nested `arguments.explanation` and injects top-level `explanation` only
 - rejects unknown subtools by returning `None`
 
 ### Native provider bridge path (`tool_call_bridge.py`)
@@ -108,7 +104,7 @@ Important declaration boundary:
 `to_parsed_tool_call(...)` for `system_use`:
 
 - maps known subtools to concrete names
-- injects explanation with same precedence rules
+- strips nested `arguments.explanation` and injects top-level `explanation` only
 - if mapped subtool is invalid, keeps `tool_name="system_use"` (instead of dropping call) to preserve deterministic downstream wrapper validation errors in native-tool-call flows
 - direct legacy top-level system action names are canonicalized into `system_use` wrapper payloads so native tool-call execution stays aligned with the public schema surface
 
@@ -129,10 +125,8 @@ Both return the same canonical declaration from `unified_schema.py`.
 
 - accepts `{tool, explanation, arguments}`
 - requires valid `tool` and dict `arguments`
-- resolves explanation using same precedence:
-  1. top-level `explanation`
-  2. fallback nested `arguments.explanation`
-- trim-normalizes resolved explanation text and ignores whitespace-only values
+- requires non-empty top-level `explanation`
+- strips nested `arguments.explanation` before delegation
 - deep-copies delegated concrete arguments before dispatch to prevent mutation leaks
 
 This keeps backend wrapper guidance and sidecar direct-wrapper behavior aligned when wrapper payloads bypass backend normalization.
@@ -154,26 +148,26 @@ Direct-tool boundary remains unchanged in sidecar:
 `test_remote_tools.py`:
 
 - remote `system_use` wrapper routes to concrete tool with validated args
-- top-level `explanation` is accepted
-- nested `arguments.explanation` fallback is accepted
+- top-level `explanation` is required
+- nested `arguments.explanation` does not satisfy the wrapper contract
 
 `test_response_parser.py` / `test_interaction_tool_call_bridge.py`:
 
 - parser path maps valid `system_use` envelope to concrete tool
-- parser supports nested explanation fallback
-- native bridge supports top-level and nested fallback explanation resolution
+- parser rejects missing top-level explanation even if nested `arguments.explanation` is present later in the payload
+- native bridge strips nested wrapper rationale and uses top-level explanation only
 
 `tests/sidecar/test_tool_registry.py`:
 
 - `system_use` routes to expected concrete tools with top-level explanation
-- nested explanation fallback is accepted
+- missing top-level explanation fails closed
 - delegated argument mutation does not leak back to original wrapper envelope
 - wrapper rejects unknown subtool names (for example `open_app`/`process`) with deterministic invalid-tool errors
 
 ## Drift Hotspots
 
 1. Diverging `tool` enums across `SystemUseArgs`, unified declaration schema, remote mapping tables, and sidecar wrapper router creates runtime-only failures.
-2. Requiring nested `arguments.explanation` in one layer while top-level is canonical in another causes model/schema drift.
+2. Allowing nested `arguments.explanation` in any layer reintroduces model/schema drift.
 3. Letting parser/validator error previews advertise concrete action names as top-level tools can mislead the model away from the canonical `system_use` wrapper.
 4. Changing parser rejection behavior for unknown `system_use.tool` without matching native bridge semantics can produce inconsistent error surfaces between providers.
 5. Removing declaration-level required `explanation` weakens rationale guarantees even if remote runtime still injects fallback.

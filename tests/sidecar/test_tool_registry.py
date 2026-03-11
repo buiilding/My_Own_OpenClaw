@@ -655,16 +655,8 @@ async def test_execute_system_use_routes_replace_to_replace():
 
 
 @pytest.mark.asyncio
-async def test_execute_system_use_supports_nested_explanation_fallback():
+async def test_execute_system_use_rejects_missing_top_level_explanation():
     registry = ToolRegistry()
-    captured = {"called": False}
-
-    def replace_tool(args):
-        captured["called"] = True
-        captured["args"] = args
-        return ToolResult.success_result({"ok": True, "tool": "replace"})
-
-    registry.tools["replace"] = replace_tool
 
     result = await registry.execute_tool(
         "system_use",
@@ -679,9 +671,8 @@ async def test_execute_system_use_supports_nested_explanation_fallback():
         },
     )
 
-    assert result.success is True
-    assert captured["called"] is True
-    assert captured["args"]["explanation"] == "legacy nested"
+    assert result.success is False
+    assert result.error == "system_use.explanation must be a non-empty string"
 
 
 @pytest.mark.asyncio
@@ -712,7 +703,12 @@ async def test_execute_system_use_prefers_top_level_explanation_over_nested_fall
 
     assert result.success is True
     assert captured["called"] is True
-    assert captured["args"]["explanation"] == "canonical top-level"
+    assert captured["args"] == {
+        "file_path": "/tmp/a.txt",
+        "old_string": "x",
+        "new_string": "y",
+        "explanation": "canonical top-level",
+    }
 
 
 @pytest.mark.asyncio

@@ -475,7 +475,7 @@ def test_extract_tool_call_unified_system_use_maps_replace_to_replace():
     )
 
 
-def test_extract_tool_call_unified_system_use_uses_nested_explanation_fallback():
+def test_extract_tool_call_unified_system_use_ignores_nested_explanation_without_top_level():
     schema = ToolCallSchema()
     payload = {
         "functionCall": {
@@ -500,7 +500,6 @@ def test_extract_tool_call_unified_system_use_uses_nested_explanation_fallback()
             "file_path": "/tmp/a",
             "old_string": "x",
             "new_string": "y",
-            "explanation": "legacy nested rationale",
         },
         None,
     )

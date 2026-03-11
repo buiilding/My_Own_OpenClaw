@@ -166,8 +166,7 @@ class ToolRegistry:
             Unified system/filesystem router.
 
             Accepts `{tool, explanation, arguments}` and delegates to the selected
-            concrete sidecar tool. For backward compatibility, nested
-            `arguments.explanation` is accepted as a fallback source.
+            concrete sidecar tool.
             """
             if not isinstance(args, dict):
                 return ToolResult.error_result("Tool args must be an object")
@@ -186,15 +185,15 @@ class ToolRegistry:
                 return ToolResult.error_result("system_use.arguments must be an object")
             tool_arguments = copy.deepcopy(tool_arguments)
             top_level_explanation = args.get("explanation")
-            resolved_explanation = None
-            if isinstance(top_level_explanation, str) and top_level_explanation.strip():
-                resolved_explanation = top_level_explanation.strip()
-            else:
-                nested_explanation = tool_arguments.get("explanation")
-                if isinstance(nested_explanation, str) and nested_explanation.strip():
-                    resolved_explanation = nested_explanation.strip()
-            if resolved_explanation is not None:
-                tool_arguments["explanation"] = resolved_explanation
+            if (
+                not isinstance(top_level_explanation, str)
+                or not top_level_explanation.strip()
+            ):
+                return ToolResult.error_result(
+                    "system_use.explanation must be a non-empty string"
+                )
+            tool_arguments.pop("explanation", None)
+            tool_arguments["explanation"] = top_level_explanation.strip()
             target_tool_name = SYSTEM_USE_TOOL_NAME_TO_EXECUTOR[tool_name]
             return await self.execute_tool(target_tool_name, tool_arguments)
 

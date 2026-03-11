@@ -26,13 +26,7 @@ class SystemUseArgs(BaseModel):
         ...,
         description="Concrete system/filesystem action to execute.",
     )
-    explanation: Optional[str] = Field(
-        default=None,
-        description=(
-            "One sentence explanation for why this system/filesystem action is needed. "
-            "Canonical location for rationale."
-        ),
-    )
+    explanation: str = explanation_field()
     arguments: Dict[str, Any] = Field(
         default_factory=dict,
         description="Arguments for the selected `tool` action.",
@@ -46,15 +40,8 @@ class SystemUseArgs(BaseModel):
 
         payload = dict(value)
         top_level_explanation = payload.get("explanation")
-        if isinstance(top_level_explanation, str) and top_level_explanation.strip():
+        if isinstance(top_level_explanation, str):
             payload["explanation"] = top_level_explanation.strip()
-            return payload
-
-        arguments = payload.get("arguments")
-        if isinstance(arguments, dict):
-            nested_explanation = arguments.get("explanation")
-            if isinstance(nested_explanation, str) and nested_explanation.strip():
-                payload["explanation"] = nested_explanation.strip()
         return payload
 
 

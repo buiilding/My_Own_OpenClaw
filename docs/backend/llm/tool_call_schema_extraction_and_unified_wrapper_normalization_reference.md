@@ -93,9 +93,9 @@ When `name == "system_use"`:
 Explanation resolution:
 
 1. top-level wrapper `args.explanation` (trimmed, non-empty)
-2. fallback nested `arguments.explanation` (trimmed, non-empty)
+2. nested `arguments.explanation` is ignored and not promoted
 
-When resolved, explanation is injected into returned concrete args as `arguments["explanation"]`.
+When present, top-level explanation is injected into returned concrete args as `arguments["explanation"]`.
 
 ## Immutability and Deep-Copy Guarantees
 
@@ -123,7 +123,7 @@ No exceptions are raised by this helper for normal invalid input rejection paths
 
 1. Changing unified subtool allowlists without synchronizing tool schemas/registry docs can cause parser/runtime divergence.
 2. Mutating source payloads in-place breaks caller expectations and test contracts around parser immutability.
-3. Altering explanation precedence in parser path without matching native bridge path creates provider-specific behavior drift.
+3. Re-introducing nested `arguments.explanation` fallback in parser path without matching native bridge and sidecar behavior creates provider-specific drift.
 
 ## Related Pages
 
