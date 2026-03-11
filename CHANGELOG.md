@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Docs
+- docs(backend-runtime-surface-query-loop-vm-runs): add a new backend runtime deep reference that documents app route assembly, query_execution_support helper boundaries, interaction-loop/tool-orchestrator contracts, OpenAI Responses-native reasoning routing, and `/api/runs/*` VM control runtime behavior; wire links from backend runtime/functionality hubs and refresh backend architecture notes.
 - docs(planning-browser-launcher): add a dated planning note for the dedicated Windie browser launcher/profile-branding approach, including shortcut strategy, platform-specific constraints, optional profile-metadata seeding, and follow-up docs/index wiring.
 - docs(frontend-global-stop-shortcut-settings): refresh the user guide, frontend architecture, and onboarding runtime docs so they describe the configurable global stop shortcut, its platform defaults, the local-only config boundary, and the way onboarding mirrors the saved accelerator.
 - docs(frontend-onboarding-layout): document the viewport-capped onboarding card and fixed footer action contract so short-window regressions stay aligned with the renderer implementation.
