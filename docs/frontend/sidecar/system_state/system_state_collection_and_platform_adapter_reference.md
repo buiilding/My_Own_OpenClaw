@@ -116,7 +116,7 @@ Per-field post-processing:
 ### macOS
 
 - active app/window: `NSWorkspace.sharedWorkspace().activeApplication()`
-- open-window inspection prefers Quartz owner app names, with `runningApplications()` fallback when Quartz enumeration is unavailable/empty
+- open-window inspection prefers on-screen Quartz windows owned by regular GUI apps, with `runningApplications()` fallback when Quartz enumeration is unavailable/empty
 - switch behavior: `activateWithOptions_(0)` on matched app name
 - dependency: `AppKit` bridge
 
@@ -124,7 +124,7 @@ Per-field post-processing:
 
 - active window: `xdotool getactivewindow getwindowname`
 - active-window fallback: Python Xlib probe of `_NET_ACTIVE_WINDOW` (`_NET_WM_NAME` / `WM_NAME`) when `xdotool` path fails
-- open windows: enumerate IDs with `xdotool search --name .*`, then names per ID
+- open windows: enumerate visible IDs with `xdotool search --onlyvisible --name .*`, then names per ID
 - mouse-position fallback: Python Xlib pointer query (`root.query_pointer`) when `pyautogui.position()` path fails
 - switch behavior: exact -> normalized -> substring -> conservative fuzzy match
 - ambiguity guards prevent unsafe focus switching for close-match titles

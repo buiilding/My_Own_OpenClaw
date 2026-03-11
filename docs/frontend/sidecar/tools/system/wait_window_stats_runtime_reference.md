@@ -87,10 +87,10 @@ Input:
 
 Semantics:
 
-- pulls all windows from manager
-- prefers `app_name` when the platform exposes it, otherwise falls back to window `title`
-- removes empty entries and dedupes case-insensitively while preserving first-seen order
-- optional filter is case-insensitive substring match against the displayed app/window name
+- pulls visible user-facing windows from the platform manager
+- formats entries as `app_name: title` when both exist and differ; otherwise uses whichever one is available
+- removes empty entries and dedupes case-insensitively by the final displayed string while preserving first-seen order
+- optional filter is case-insensitive substring match against the displayed app/window name and its raw app/title parts
 - `llm_content` is bullet list (`- <name>`) or `No open windows found.`
 
 ## Platform Window Manager Semantics
