@@ -9,6 +9,7 @@ function isStreamingResponseOverlayPhase(phase, phaseEnum = {}) {
 
 const RESPONSE_OVERLAY_WINDOW_MODE = Object.freeze({
   HIDDEN: 'hidden',
+  AWAITING: 'awaiting',
   ACTIVE_LOOP: 'active-loop',
   TERMINAL: 'terminal',
 });
@@ -19,6 +20,9 @@ const RESPONSE_OVERLAY_WINDOW_MODE = Object.freeze({
 function resolveResponseOverlayWindowMode(phase, phaseEnum = {}) {
   if (phase === phaseEnum.IDLE) {
     return RESPONSE_OVERLAY_WINDOW_MODE.HIDDEN;
+  }
+  if (phase === phaseEnum.AWAITING_FIRST_CHUNK) {
+    return RESPONSE_OVERLAY_WINDOW_MODE.AWAITING;
   }
   if (isStreamingResponseOverlayPhase(phase, phaseEnum)) {
     return RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP;
@@ -96,6 +100,14 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
     return;
   }
 
+  if (mode === RESPONSE_OVERLAY_WINDOW_MODE.AWAITING) {
+    setResponseOverlayVisibilityState(false);
+    if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
+      responseWindow.hide();
+    }
+    return;
+  }
+
   if (mode === RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP) {
     setResponseOverlayVisibilityState(true);
     if (!responseWindow || responseWindow.isDestroyed()) {
@@ -142,12 +154,16 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
 
   setResponseOverlayPhase(nextPhase);
   const windowMode = resolveResponseOverlayWindowMode(nextPhase, RESPONSE_OVERLAY_PHASE);
-  syncOverlayLoopInteractivity(windowMode === RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP, {
+  syncOverlayLoopInteractivity(
+    windowMode === RESPONSE_OVERLAY_WINDOW_MODE.AWAITING
+      || windowMode === RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP,
+    {
     chatWindow,
     responseWindow,
     contextLabelWindow,
     warn,
-  });
+    },
+  );
   applyResponseOverlayWindowMode(windowMode, {
     getResponseOverlayVisible,
     setResponseOverlayVisibilityState,
