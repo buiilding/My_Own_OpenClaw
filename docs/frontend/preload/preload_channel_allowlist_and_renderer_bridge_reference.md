@@ -10,6 +10,7 @@ title: "Preload Channel Allowlist and Renderer Bridge Reference"
 
 ## Canonical Modules
 
+- `frontend/src/shared/ipcChannels.cjs`
 - `frontend/src/preload.js`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
@@ -18,6 +19,8 @@ title: "Preload Channel Allowlist and Renderer Bridge Reference"
 ## Security Boundary
 
 `preload.js` is the hard runtime boundary between sandboxed renderer and Electron privileged APIs.
+
+Channel names are now sourced from `frontend/src/shared/ipcChannels.cjs`, which is consumed by both preload and renderer constants to prevent drift.
 
 `contextBridge.exposeInMainWorld('ipc', ...)` exposes only four methods:
 
@@ -32,7 +35,7 @@ All methods are channel-allowlisted in preload before hitting `ipcRenderer`.
 
 ### `send(...)` behavior
 
-Allowed channels:
+Allowed channels (from shared `SEND_CHANNELS` registry):
 
 - `to-backend`
 - `move-chatbox-to`
@@ -46,7 +49,7 @@ For invalid channels:
 
 ### `invoke(...)` behavior
 
-Allowed channels:
+Allowed channels (from shared `INVOKE_CHANNELS` registry):
 
 - `execute-tool`
 - `upload-artifact`
@@ -61,8 +64,15 @@ Allowed channels:
 - `delete-episodic-memory`
 - `delete-conversation`
 - `delete-semantic-memory`
+- `clear-local-memory`
+- `clear-chat-history`
 - `store-transcript`
+- `set-chatbox-visual-anchor-height`
 - `get-client-user-id`
+- `get-main-window-visibility`
+- `handoff-surface-for-computer-use`
+- `prepare-surface-for-screenshot`
+- `restore-surface-after-screenshot`
 - `set-responsebox-size`
 - `show-main-window`
 - `show-chatbox`
@@ -91,7 +101,7 @@ Legacy note:
 
 ### `on(...)` and `once(...)` behavior
 
-Allowed channels:
+Allowed channels (from shared `ON_CHANNELS` registry):
 
 - `from-backend`
 - `ipc-status`
@@ -121,7 +131,7 @@ Invalid `on/once` channel behavior:
 
 ## Renderer Typed Bridge Alignment
 
-`channels.ts` defines typed constants/types:
+`channels.ts` re-exports typed constants/types from the shared channel registry:
 
 - `SEND_CHANNELS`
 - `INVOKE_CHANNELS`
@@ -178,8 +188,7 @@ Primary coverage:
 
 When adding or renaming channels:
 
-1. update preload allowlist arrays in `frontend/src/preload.js`
-2. update typed constants in `frontend/src/renderer/infrastructure/ipc/channels.ts`
-3. update/confirm `frontend/src/main/ipc.cjs` handler or broadcast owner
-4. update related contract docs under `docs/frontend/contracts/*`
-5. add/update tests for bridge validation and main handler behavior
+1. update the shared registry in `frontend/src/shared/ipcChannels.cjs`
+2. update/confirm `frontend/src/main/ipc.cjs` handler or broadcast owner
+3. update related contract docs under `docs/frontend/contracts/*`
+4. add/update tests for bridge validation, preload allowlist behavior, and main handler behavior

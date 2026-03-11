@@ -9,6 +9,7 @@ All notable changes to WindieOS will be documented in this file.
 - fix(agent-browser-validation-guidance): keep browser-specific pre-dispatch repair guidance for empty `browser` calls while removing the reverted strict browser `oneOf` validation dependency from tool preparation.
 - fix(tool-sender-validation-metadata): classify pre-dispatch browser/tool-schema rejections as `llm_tool_call_validation_failed` instead of `coordinate_resolution_failed`, and add focused sender regression coverage so skipped frontend executions surface the right failure reason.
 ### Docs
+- docs(frontend-ipc-settings-memory-admin-refactor): update preload/channel parity docs, settings-section runtime notes, and memory-system architecture notes to reflect the shared IPC registry, extracted settings tabs/actions, chat-session reset helper, and dedicated sidecar memory admin module.
 - docs(ui-dashboard-and-backend-stopquery-drift): sync dashboard shell and sidebar docs with current renderer runtime (VM-mode surface gating, open/scroll-lock lifecycle, ipc-status connectivity projection, search debounce/limits, transcript-title visibility polling) and align backend stop-query/settings docs with current handler behavior (`conversation_ref` schema present but not forwarded) plus expanded `update-settings` frontend-owned fields.
 - docs(ui-overlay-and-settings-payload-drift): align response-overlay phase docs with current entry-driven visibility (including `tool-explanation` rows) and update communication-flow `update-settings` payload docs to include current backend schema fields (`browser_automation_enabled`, `provider_api_keys`, `provider_oauth`).
 - docs(settings-memory-reset-controls): document the new Settings > Memory tab plus sidecar-backed memory/chat reset behavior and index rebuild guarantees.
@@ -26,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
 ### Added
 - feat(settings-memory-reset-controls): add a Settings > Memory tab with destructive `Nuke memory` and `Nuke chats` actions, backed by new main/sidecar bulk-clear IPC flows that preserve surviving local data via index rebuilds.
 - feat(frontend-global-stop-shortcut-settings): expose the main-process global agent-stop shortcut in Settings > General, offer platform-safe accelerator choices, persist the selected accelerator locally, apply changes live through the Electron shortcut runtime, and keep onboarding copy aligned with the saved value; add focused renderer/main/IPC regression coverage.
+
+### Refactored
+- refactor(frontend-ipc-settings-memory-admin): move renderer/preload IPC channel names to a shared registry, split Settings into extracted General/Memory tab modules plus a dedicated memory action hook, centralize active-chat reset logic for new-chat/delete/clear flows, and move sidecar bulk memory/chat reset orchestration into `memory/admin.py`.
 
 ### Fixed
 - fix(sidecar-runtime-requirements-collapse): remove the split `requirements.runtime.core.txt` / `requirements.runtime.browser.txt` manifests in favor of a single `requirements.runtime.txt`, point the runtime builder and browser feature-pack installer at that unified file, and include `markdownify` in the bundled runtime dependency set.

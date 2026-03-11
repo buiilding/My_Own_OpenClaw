@@ -11,6 +11,9 @@ title: "Settings Section General + Memory Tabs Runtime Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/settings/GeneralSettingsTab.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/settings/MemorySettingsTab.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/settings/useMemorySettingsActions.js`
 - `frontend/src/renderer/features/permissions/components/PermissionControlCenter.jsx`
 - `frontend/src/renderer/app/providers/AppContextHooks.js`
 - `tests/frontend/SettingsSection.test.jsx`
@@ -42,7 +45,7 @@ Routing model:
 
 ## General Tab Ownership Model
 
-`GeneralTab` owns four control classes:
+`GeneralSettingsTab` owns four control classes:
 
 ### 1) AppConfigContext-driven wakeword preference
 
@@ -82,7 +85,7 @@ Current local-only controls do not emit config updates:
 
 ## Memory Tab Ownership Model
 
-`MemoryTab` owns two destructive local-data actions:
+`MemorySettingsTab` owns two destructive local-data actions:
 
 1. `Nuke memory`
    - invokes renderer IPC `clear-local-memory`
@@ -104,8 +107,8 @@ All config persistence/sync side effects are delegated through parent `onConfigC
 
 Exception:
 
-- `GeneralTab` invokes `IpcBridge.invoke('set-agent-sudo-access', { enabled })` for passwordless sudo toggle handshake before persisting `agent_full_sudo_enabled`.
-- `MemoryTab` invokes `clear-local-memory` / `clear-chat-history` over the local-backend IPC bridge for destructive data resets.
+- `GeneralSettingsTab` invokes `IpcBridge.invoke('set-agent-sudo-access', { enabled })` for passwordless sudo toggle handshake before persisting `agent_full_sudo_enabled`.
+- `useMemorySettingsActions()` invokes `clear-local-memory` / `clear-chat-history` over the local-backend IPC bridge for destructive data resets, while `MemorySettingsTab` stays presentation-focused.
 - `data-controls` branch mounts `PermissionControlCenter`, which uses permission-store probe/recheck actions.
 
 ## Test-Backed Invariants
@@ -123,7 +126,7 @@ Exception:
 
 1. Replacing context-driven wakeword setter with direct config patches can desync suppression-aware wakeword state.
 2. Bypassing sudo toggle confirmation/invoke flow can persist `agent_full_sudo_enabled` without OS-auth success.
-3. Assuming `data-controls` is reachable from tab list can cause dead UI paths; it currently requires external `initialTab` routing.
+3. Adding new settings tabs requires updating both the shared `SETTINGS_TABS` registry and `renderTabContent()` routing in `SettingsSection.jsx`.
 4. Treating local-only `voice` selector as persisted config without wiring provider updates.
 
 ## Related Pages

@@ -12,6 +12,7 @@ Memory is implemented in the **frontend Python sidecar**, not the backend. The s
 
 **Key locations:**
 - Sidecar implementation: `frontend/src/main/python/memory/`
+- Bulk destructive maintenance ops: `frontend/src/main/python/memory/admin.py`
 - Memory orchestration: `frontend/src/main/python/local_backend.py`
 - Embeddings API (backend): `backend/src/api/routes/memory/embeddings/router.py`
 - Semantic summary API (backend): `backend/src/api/routes/memory/semantic/router.py`
@@ -78,6 +79,7 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 `frontend/src/main/python/memory/local_store.py`
 - Manages SQLite + FAISS indices
 - Supports search, add, update, delete
+- Delegates bulk destructive reset flows to `memory/admin.py`
 - Generates embeddings via `RemoteEmbeddingClient`
 - Transcript-aware indexing behavior:
   - `record_kind='transcript'` rows are stored in episodic SQLite.
@@ -184,7 +186,7 @@ Settings now exposes two destructive local-data actions:
 - `Nuke memory`: deletes user-local episodic interaction memory plus semantic memory, then rebuilds local indices so transcript chats remain searchable.
 - `Nuke chats`: deletes transcript chat history plus saved conversation titles, then rebuilds the episodic index so non-chat memory stays intact.
 
-These actions are user-scoped (`user_id`) and run through the frontend sidecar memory store, not the backend FastAPI service.
+These actions are user-scoped (`user_id`) and run through the frontend sidecar memory admin module/store boundary, not the backend FastAPI service.
 
 ## Prompt Injection Retrieval
 

@@ -10,16 +10,18 @@ title: "Preload Allowlist and Channel-Constant Parity Reference"
 
 ## Canonical Modules
 
+- `frontend/src/shared/ipcChannels.cjs`
 - `frontend/src/preload.js`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 
 ## Contract Layers
 
-Channel validation has two layers:
+Channel validation has two runtime layers plus one shared source:
 
-1. preload allowlists (`preload.js`) are the hard boundary
-2. renderer `IpcBridge` set checks are dev-only safety checks
+1. shared channel registry (`ipcChannels.cjs`) defines the names
+2. preload allowlists (`preload.js`) are the hard boundary
+3. renderer `IpcBridge` set checks are dev-only safety checks
 
 In production, preload is authoritative because `IpcBridge` validation is gated by `NODE_ENV === "development"`.
 
@@ -27,7 +29,7 @@ In production, preload is authoritative because `IpcBridge` validation is gated 
 
 ### `send` (`window.ipc.send`)
 
-Shared names in preload + `SEND_CHANNELS`:
+Shared names from `ipcChannels.cjs`, consumed by preload + `SEND_CHANNELS`:
 
 - `to-backend`
 - `move-chatbox-to`
@@ -41,7 +43,7 @@ Invalid behavior:
 
 ### `invoke` (`window.ipc.invoke`)
 
-Shared names in preload + `INVOKE_CHANNELS`:
+Shared names from `ipcChannels.cjs`, consumed by preload + `INVOKE_CHANNELS`:
 
 - `execute-tool`
 - `upload-artifact`
@@ -56,8 +58,15 @@ Shared names in preload + `INVOKE_CHANNELS`:
 - `delete-episodic-memory`
 - `delete-conversation`
 - `delete-semantic-memory`
+- `clear-local-memory`
+- `clear-chat-history`
 - `store-transcript`
+- `set-chatbox-visual-anchor-height`
 - `get-client-user-id`
+- `get-main-window-visibility`
+- `handoff-surface-for-computer-use`
+- `prepare-surface-for-screenshot`
+- `restore-surface-after-screenshot`
 - `set-responsebox-size`
 - `show-main-window` (optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`)
 - `show-chatbox`
@@ -81,7 +90,7 @@ Invalid behavior:
 
 ### `on` / `once` listeners
 
-Shared names in preload + `ON_CHANNELS`:
+Shared names from `ipcChannels.cjs`, consumed by preload + `ON_CHANNELS`:
 
 - `from-backend`
 - `ipc-status`
@@ -118,18 +127,17 @@ If callers skip cleanup, listeners accumulate and duplicate event handling.
 
 ## Drift Hotspots
 
-1. new channel added to `channels.ts` but not to preload allowlist
-2. preload allowlist changed but `channels.ts` not updated
-3. docs and constants updated but main `ipcMain` handler missing
-4. relying on `IpcBridge` validation in production (it is not active there)
+1. new channel added to `ipcChannels.cjs` without a matching main handler
+2. docs drift from the shared registry after channel additions/removals
+3. relying on `IpcBridge` validation in production (it is not active there)
 
 ## Debug Checklist
 
 If `IpcBridge.invoke(...)` throws `Invalid invoke channel`:
 
-1. compare channel against preload invoke allowlist
-2. compare channel against `INVOKE_CHANNELS`
-3. verify typo/case/hyphen differences
+1. compare channel against shared `INVOKE_CHANNELS` registry in `ipcChannels.cjs`
+2. verify typo/case/hyphen differences
+3. verify preload is loading the current shared registry
 
 If `send` appears ignored:
 

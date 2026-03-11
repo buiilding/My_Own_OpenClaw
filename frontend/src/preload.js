@@ -4,88 +4,33 @@
  */
 
 const { contextBridge, ipcRenderer } = require('electron');
+const {
+  SEND_CHANNELS,
+  INVOKE_CHANNELS,
+  ON_CHANNELS,
+} = require('./shared/ipcChannels.cjs');
+
+const VALID_SEND_CHANNELS = new Set(Object.values(SEND_CHANNELS));
+const VALID_INVOKE_CHANNELS = new Set(Object.values(INVOKE_CHANNELS));
+const VALID_ON_CHANNELS = new Set(Object.values(ON_CHANNELS));
 
 contextBridge.exposeInMainWorld('ipc', {
   // Send messages from renderer to main process
   send: (channel, data) => {
-    const validChannels = [
-      'to-backend',
-      'transcript-session-sync',
-      'move-chatbox-to',
-      'wakeword-audio-chunk',
-      'wakeword-enable',
-      'wakeword-disable',
-    ];
-    if (validChannels.includes(channel)) {
+    if (VALID_SEND_CHANNELS.has(channel)) {
       ipcRenderer.send(channel, data);
     }
   },
   // Invoke async handlers (returns Promise)
   invoke: (channel, data) => {
-    const validChannels = [
-      'execute-tool',
-      'upload-artifact',
-      'get-system-state',
-      'store-memory',
-      'search-memory',
-      'search-conversations',
-      'list-conversations',
-      'list-episodic-memories',
-      'get-conversation',
-      'list-semantic-memories',
-      'delete-episodic-memory',
-      'delete-conversation',
-      'delete-semantic-memory',
-      'clear-local-memory',
-      'clear-chat-history',
-      'store-transcript',
-      'get-client-user-id',
-      'set-chatbox-visual-anchor-height',
-      'set-responsebox-size',
-      'show-main-window',
-      'get-main-window-visibility',
-      'show-chatbox',
-      'hide-chatbox',
-      'handoff-surface-for-computer-use',
-      'prepare-surface-for-screenshot',
-      'restore-surface-after-screenshot',
-      'get-displays',
-      'load-frontend-config',
-      'save-frontend-config',
-      'openai-codex-oauth-login',
-      'openai-codex-oauth-logout',
-      'set-agent-sudo-access',
-      'list-permissions',
-      'check-permissions',
-      'check-permission',
-      'run-permission-probe',
-      'request-permission',
-      'window-minimize',
-      'window-toggle-maximize',
-      'window-close',
-    ];
-    if (validChannels.includes(channel)) {
+    if (VALID_INVOKE_CHANNELS.has(channel)) {
       return ipcRenderer.invoke(channel, data);
     }
     return Promise.reject(new Error(`Invalid invoke channel: ${channel}`));
   },
   // Receive messages from main process
   on: (channel, func) => {
-    const validChannels = [
-      'from-backend',
-      'transcript-session-sync',
-      'ipc-status',
-      'log',
-      'wakeword-detected',
-      'wakeword-status',
-      'wakeword-toggle',
-      'wakeword-stt-trigger',
-      'chatbox-focus',
-      'main-window-open-target',
-      'response-overlay-phase',
-      'response-overlay-visibility',
-    ];
-    if (validChannels.includes(channel)) {
+    if (VALID_ON_CHANNELS.has(channel)) {
       // Deliberately strip event as it includes `sender`
       const subscription = (event, ...args) => func(...args);
       ipcRenderer.on(channel, subscription);
@@ -96,21 +41,7 @@ contextBridge.exposeInMainWorld('ipc', {
   },
   // One-time listener
   once: (channel, func) => {
-    const validChannels = [
-      'from-backend',
-      'transcript-session-sync',
-      'ipc-status',
-      'log',
-      'wakeword-detected',
-      'wakeword-status',
-      'wakeword-toggle',
-      'wakeword-stt-trigger',
-      'chatbox-focus',
-      'main-window-open-target',
-      'response-overlay-phase',
-      'response-overlay-visibility',
-    ];
-    if (validChannels.includes(channel)) {
+    if (VALID_ON_CHANNELS.has(channel)) {
       ipcRenderer.once(channel, (event, ...args) => func(...args));
     }
   },
