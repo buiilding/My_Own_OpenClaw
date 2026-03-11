@@ -416,7 +416,7 @@ body {
   height: var(--chatbox-close-button-size);
   border: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: transparent;
   color: rgba(255, 255, 255, 0.94);
   display: inline-flex;
   align-items: center;
@@ -439,7 +439,7 @@ body {
 
 .chatbox-close-badge:hover:not(:disabled) {
   color: var(--ui-text-primary);
-  background: rgba(255, 255, 255, 0.14);
+  background: transparent;
 }
 
 .chatbox-close-badge:disabled {
