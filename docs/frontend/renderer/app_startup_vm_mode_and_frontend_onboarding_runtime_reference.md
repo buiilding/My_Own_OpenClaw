@@ -95,7 +95,7 @@ Stop shortcut label source:
 - prop override when provided
 - fallback to `getGlobalAgentStopShortcutLabel()`
 - label reflects the saved renderer config value when `global_agent_stop_shortcut` is present
-- slide renders the shortcut as separate keycaps split on `+` so longer labels like `Command` do not clip inside one fixed-width pill
+- slide renders the shortcut as separate keycaps split on `+` so longer labels like `Command + Shift + Esc` can stay on one line instead of clipping inside one fixed-width pill
 
 Platform mapping in shortcut helper:
 
