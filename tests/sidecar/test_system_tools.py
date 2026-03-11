@@ -147,7 +147,7 @@ async def test_switch_to_window_supports_regex_match_mode(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_open_windows_prefers_app_names_and_dedupes(monkeypatch):
+async def test_get_open_windows_prefers_app_names_and_includes_titles(monkeypatch):
     manager = FakeWindowManager(
         windows=[
             {"title": "my prompts - Google Docs", "app_name": "Google Chrome"},
@@ -163,8 +163,18 @@ async def test_get_open_windows_prefers_app_names_and_dedupes(monkeypatch):
     result = await window_tool.get_open_windows({})
 
     assert result["success"] is True
-    assert result["data"]["windows"] == ["Google Chrome", "Terminal", "Editor"]
-    assert result["data"]["llm_content"] == "- Google Chrome\n- Terminal\n- Editor"
+    assert result["data"]["windows"] == [
+        "Google Chrome: my prompts - Google Docs",
+        "Google Chrome: u reverse - Google Search",
+        "Terminal",
+        "Editor",
+    ]
+    assert result["data"]["llm_content"] == (
+        "- Google Chrome: my prompts - Google Docs\n"
+        "- Google Chrome: u reverse - Google Search\n"
+        "- Terminal\n"
+        "- Editor"
+    )
 
 
 @pytest.mark.asyncio
@@ -180,8 +190,8 @@ async def test_get_open_windows_filters_display_names_case_insensitively(monkeyp
     result = await window_tool.get_open_windows({"filter_text": "chrome"})
 
     assert result["success"] is True
-    assert result["data"]["windows"] == ["Google Chrome"]
-    assert result["data"]["llm_content"] == "- Google Chrome"
+    assert result["data"]["windows"] == ["Google Chrome: my prompts - Google Docs"]
+    assert result["data"]["llm_content"] == "- Google Chrome: my prompts - Google Docs"
 
 
 @pytest.mark.asyncio

@@ -48,7 +48,7 @@ class LinuxWindowManager(BaseWindowManager):
         windows = []
         try:
             result = subprocess.run(
-                ["xdotool", "search", "--name", ".*"],
+                ["xdotool", "search", "--onlyvisible", "--name", ".*"],
                 capture_output=True,
                 text=True,
                 timeout=2

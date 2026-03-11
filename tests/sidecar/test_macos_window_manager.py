@@ -11,12 +11,20 @@ from core.platform.macos import MacOSWindowManager  # noqa: E402
 
 
 class _FakeApp:
-    def __init__(self, name):
+    def __init__(self, name, *, activation_policy=0, hidden=False):
         self._name = name
+        self._activation_policy = activation_policy
+        self._hidden = hidden
         self.activated = False
 
     def localizedName(self):
         return self._name
+
+    def activationPolicy(self):
+        return self._activation_policy
+
+    def isHidden(self):
+        return self._hidden
 
     def activateWithOptions_(self, _options):
         self.activated = True
@@ -54,6 +62,7 @@ def _install_fake_appkit(monkeypatch, *, apps, active_app):
         "AppKit",
         SimpleNamespace(
             NSWorkspace=_FakeNSWorkspace,
+            NSApplicationActivationPolicyRegular=0,
             NSApplicationActivateIgnoringOtherApps=1,
         ),
     )
@@ -143,7 +152,7 @@ def test_macos_window_manager_get_windows_falls_back_to_running_apps_when_quartz
 def test_macos_window_manager_accepts_mapping_like_quartz_records(monkeypatch):
     _install_fake_appkit(
         monkeypatch,
-        apps=[_FakeApp("Terminal")],
+        apps=[_FakeApp("Terminal"), _FakeApp("Google Chrome")],
         active_app={"NSApplicationName": "Terminal"},
     )
     _install_fake_quartz(
@@ -183,13 +192,11 @@ def test_macos_window_manager_logs_quartz_filter_debug_summary(monkeypatch, capl
         assert manager.get_windows() == [{"title": "Terminal", "hwnd": None, "app_name": "Terminal"}]
 
     assert (
-        "Quartz window enumeration debug (on_screen_only=False): raw=4 usable=0 "
-        "dropped_non_dict=1 dropped_layer=1 dropped_alpha=1 dropped_title=1"
+        "Quartz window enumeration debug (on_screen_only=True): raw=4 usable=0 "
+        "dropped_non_dict=1 dropped_non_regular_app=3 dropped_layer=0 dropped_alpha=0 dropped_title=0"
     ) in caplog.text
     assert "Quartz window enumeration samples:" in caplog.text
-    assert "drop_layer" in caplog.text
-    assert "drop_alpha" in caplog.text
-    assert "drop_title" in caplog.text
+    assert "drop_non_regular_app" in caplog.text
     assert "drop_non_dict" in caplog.text
 
 

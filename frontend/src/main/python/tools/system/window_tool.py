@@ -26,9 +26,13 @@ def _get_window_manager() -> WindowManager:
 
 def _get_window_display_name(window: Dict[str, Any]) -> str:
     app_name = str(window.get("app_name") or "").strip()
+    title = str(window.get("title") or "").strip()
+
+    if app_name and title and title.lower() != app_name.lower():
+        return f"{app_name}: {title}"
     if app_name:
         return app_name
-    return str(window.get("title") or "").strip()
+    return title
 
 
 def _collect_window_display_names(
@@ -44,8 +48,18 @@ def _collect_window_display_names(
         display_name = _get_window_display_name(window)
         if not display_name:
             continue
-        if query and query not in display_name.lower():
-            continue
+        if query:
+            candidate_text = " ".join(
+                value
+                for value in (
+                    display_name,
+                    str(window.get("app_name") or "").strip(),
+                    str(window.get("title") or "").strip(),
+                )
+                if value
+            ).lower()
+            if query not in candidate_text:
+                continue
         normalized_name = display_name.lower()
         if normalized_name in seen:
             continue
@@ -142,20 +156,28 @@ async def get_open_windows(args: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _resolve_target_title(windows: list[dict], tab_name: str, match_mode: str) -> str | None:
-    titles: list[str] = []
-    seen: set[str] = set()
+    candidates: list[tuple[str, str]] = []
+    seen: set[tuple[str, str]] = set()
     for window in windows:
+        switch_target = (
+            str(window.get("title") or "").strip()
+            or str(window.get("app_name") or "").strip()
+        )
+        if not switch_target:
+            continue
         for candidate in (
-            str(window.get("title") or "").strip(),
-            str(window.get("app_name") or "").strip(),
+            (str(window.get("app_name") or "").strip(), str(window.get("app_name") or "").strip()),
+            (str(window.get("title") or "").strip(), str(window.get("title") or "").strip()),
+            (_get_window_display_name(window), switch_target),
         ):
-            if not candidate:
+            candidate_label, candidate_target = candidate
+            if not candidate_label or not candidate_target:
                 continue
-            normalized_candidate = candidate.lower()
+            normalized_candidate = (candidate_label.lower(), candidate_target.lower())
             if normalized_candidate in seen:
                 continue
             seen.add(normalized_candidate)
-            titles.append(candidate)
+            candidates.append((candidate_label, candidate_target))
 
     query = tab_name.strip()
     if not query:
@@ -164,19 +186,19 @@ def _resolve_target_title(windows: list[dict], tab_name: str, match_mode: str) -
     normalized_mode = str(match_mode or "exact").strip().lower()
     if normalized_mode == "contains":
         query_lower = query.lower()
-        for title in titles:
-            if query_lower in title.lower():
-                return title
+        for candidate_label, candidate_target in candidates:
+            if query_lower in candidate_label.lower():
+                return candidate_target
         return None
 
     if normalized_mode == "regex":
         pattern = re.compile(query, re.IGNORECASE)
-        for title in titles:
-            if pattern.search(title):
-                return title
+        for candidate_label, candidate_target in candidates:
+            if pattern.search(candidate_label):
+                return candidate_target
         return None
 
-    for title in titles:
-        if title.lower() == query.lower():
-            return title
+    for candidate_label, candidate_target in candidates:
+        if candidate_label.lower() == query.lower():
+            return candidate_target
     return None

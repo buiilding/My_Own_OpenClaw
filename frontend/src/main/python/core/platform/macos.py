@@ -17,12 +17,16 @@ class MacOSWindowManager(BaseWindowManager):
     def __init__(self):
         try:
             from AppKit import (
+                NSApplicationActivationPolicyRegular,
                 NSApplicationActivateIgnoringOtherApps,
                 NSWorkspace,
             )
             import Quartz
 
             self.NSWorkspace = NSWorkspace
+            self.NSApplicationActivationPolicyRegular = (
+                NSApplicationActivationPolicyRegular
+            )
             self.NSApplicationActivateIgnoringOtherApps = (
                 NSApplicationActivateIgnoringOtherApps
             )
@@ -74,6 +78,7 @@ class MacOSWindowManager(BaseWindowManager):
         raw_count: int,
         usable_count: int,
         dropped_non_dict: int,
+        dropped_non_regular_app: int,
         dropped_layer: int,
         dropped_alpha: int,
         dropped_title: int,
@@ -84,11 +89,13 @@ class MacOSWindowManager(BaseWindowManager):
 
         logger.debug(
             "Quartz window enumeration debug (on_screen_only=%s): raw=%s usable=%s "
-            "dropped_non_dict=%s dropped_layer=%s dropped_alpha=%s dropped_title=%s",
+            "dropped_non_dict=%s dropped_non_regular_app=%s dropped_layer=%s "
+            "dropped_alpha=%s dropped_title=%s",
             on_screen_only,
             raw_count,
             usable_count,
             dropped_non_dict,
+            dropped_non_regular_app,
             dropped_layer,
             dropped_alpha,
             dropped_title,
@@ -100,12 +107,16 @@ class MacOSWindowManager(BaseWindowManager):
         if not self._available:
             return []
 
+        regular_app_names = self._get_regular_running_app_names()
+        if not regular_app_names:
+            return []
+
         workspace = self.NSWorkspace.sharedWorkspace()
         running_apps = workspace.runningApplications()
         windows: List[dict] = []
         for app in running_apps:
             app_name = app.localizedName()
-            if not app_name:
+            if not app_name or app_name not in regular_app_names:
                 continue
             windows.append(
                 {
@@ -120,6 +131,31 @@ class MacOSWindowManager(BaseWindowManager):
             len(windows),
         )
         return windows
+
+    def _get_regular_running_app_names(self) -> set[str]:
+        if not self._available:
+            return set()
+
+        workspace = self.NSWorkspace.sharedWorkspace()
+        running_apps = workspace.runningApplications()
+        regular_app_names: set[str] = set()
+        for app in running_apps:
+            app_name = app.localizedName()
+            if not app_name:
+                continue
+            try:
+                activation_policy = app.activationPolicy()
+            except Exception:
+                activation_policy = None
+            if activation_policy != self.NSApplicationActivationPolicyRegular:
+                continue
+            try:
+                if app.isHidden():
+                    continue
+            except Exception:
+                pass
+            regular_app_names.add(app_name)
+        return regular_app_names
 
     def _list_window_records(self, *, on_screen_only: bool) -> List[dict]:
         if not self._available:
@@ -140,9 +176,11 @@ class MacOSWindowManager(BaseWindowManager):
         windows: List[dict] = []
         sample_records: List[dict] = []
         dropped_non_dict = 0
+        dropped_non_regular_app = 0
         dropped_layer = 0
         dropped_alpha = 0
         dropped_title = 0
+        regular_app_names = self._get_regular_running_app_names()
         for raw_window in raw_windows:
             window_record = self._coerce_quartz_window_record(raw_window)
             if window_record is None:
@@ -159,6 +197,16 @@ class MacOSWindowManager(BaseWindowManager):
             owner_name = str(
                 window_record.get(self.Quartz.kCGWindowOwnerName) or ""
             ).strip()
+            if regular_app_names and owner_name not in regular_app_names:
+                dropped_non_regular_app += 1
+                if len(sample_records) < 5:
+                    sample_records.append(
+                        {
+                            "decision": "drop_non_regular_app",
+                            "window": self._summarize_quartz_window(raw_window),
+                        }
+                    )
+                continue
             window_name = str(
                 window_record.get(self.Quartz.kCGWindowName) or ""
             ).strip()
@@ -219,6 +267,7 @@ class MacOSWindowManager(BaseWindowManager):
             raw_count=len(raw_windows),
             usable_count=len(windows),
             dropped_non_dict=dropped_non_dict,
+            dropped_non_regular_app=dropped_non_regular_app,
             dropped_layer=dropped_layer,
             dropped_alpha=dropped_alpha,
             dropped_title=dropped_title,
@@ -295,7 +344,7 @@ return "false"
             return []
 
         try:
-            window_records = self._list_window_records(on_screen_only=False)
+            window_records = self._list_window_records(on_screen_only=True)
             if not window_records:
                 logger.info(
                     "Quartz window enumeration returned no usable macOS windows; "
