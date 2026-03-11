@@ -3,8 +3,8 @@
  * Exposes necessary Node.js/Electron APIs to the sandboxed renderer.
  */
 
-const fs = require('node:fs');
-const path = require('node:path');
+const fs = require('fs');
+const path = require('path');
 const { contextBridge, ipcRenderer } = require('electron');
 
 function loadIpcChannels() {
