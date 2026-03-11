@@ -101,6 +101,11 @@ Details panel payload:
 
 This separation keeps default view aligned with model-facing call while preserving raw execution payload in details.
 
+Backend contract:
+
+- `metadata.model_facing_tool_call` should carry the exact LLM-emitted tool payload whenever available, including successful unified wrapper calls that are internally normalized before execution
+- if backend omits that field, the renderer falls back to the normalized execution payload (`tool_name` + `parameters`)
+
 ## Transparency Section Assembly Contract
 
 `buildTransparencySectionConfigs(message, options?)` appends sections in fixed order:

@@ -172,7 +172,8 @@ def to_parsed_response(normalized_response: NormalizedLLMResponse) -> ParsedResp
 
 def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
     """Normalize one native tool call into ParsedToolCall shape."""
-    normalized_tool_name = str(tool_call.get("name", "")).strip()
+    raw_tool_name = str(tool_call.get("name", "")).strip()
+    normalized_tool_name = raw_tool_name
     if not normalized_tool_name:
         normalized_tool_name = "unknown_tool"
 
@@ -249,7 +250,7 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
         if not has_all_required_metadata:
             normalized_tool_name = "invalid_computer_use_tool"
 
-    if normalized_tool_name == "invalid_computer_use_tool":
+    if raw_tool_name:
         metadata["model_facing_tool_call"] = original_model_facing_tool_call
 
     return ParsedToolCall(

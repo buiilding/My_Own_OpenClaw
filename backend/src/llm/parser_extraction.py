@@ -174,13 +174,46 @@ class JsonToolCallExtractor:
     ) -> ParsedToolCall:
         self.validator.validate_tool_call(tool_name, args)
         self.validator.validate_metadata(tool_name, metadata)
+        merged_metadata = dict(metadata) if isinstance(metadata, dict) else {}
+        model_facing_tool_call = self._extract_model_facing_tool_call(raw_call)
+        if model_facing_tool_call is not None:
+            merged_metadata["model_facing_tool_call"] = model_facing_tool_call
         return ParsedToolCall(
             tool_name=tool_name,
             parameters=args,
             raw_call=raw_call,
             confidence=confidence,
-            metadata=metadata,
+            metadata=merged_metadata or None,
         )
+
+    @staticmethod
+    def _extract_model_facing_tool_call(raw_call: str) -> Optional[Dict[str, Any]]:
+        if not isinstance(raw_call, str) or not raw_call.strip():
+            return None
+
+        try:
+            parsed_json = json.loads(raw_call)
+        except (json.JSONDecodeError, TypeError, ValueError):
+            return None
+
+        if not isinstance(parsed_json, dict):
+            return None
+
+        function_call = parsed_json.get("functionCall")
+        if not isinstance(function_call, dict):
+            return None
+
+        tool_name = function_call.get("name")
+        arguments = function_call.get("args")
+        if not isinstance(tool_name, str) or not tool_name.strip():
+            return None
+        if not isinstance(arguments, dict):
+            return None
+
+        return {
+            "name": tool_name.strip(),
+            "arguments": arguments,
+        }
 
     def _validate_json_depth(self, obj: Any, max_depth: int) -> None:
         stack = [(obj, 0)]

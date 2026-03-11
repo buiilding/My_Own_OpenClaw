@@ -146,6 +146,48 @@ async def test_parse_response_accepts_direct_computer_use_metadata():
     assert tool_call.metadata["description"] == "screen"
     assert tool_call.tool_name == "mouse_control"
     assert tool_call.parameters["action"] == "click"
+    assert tool_call.metadata["model_facing_tool_call"] == {
+        "name": "computer_use",
+        "arguments": {
+            "tool": "mouse_control",
+            "metadata": {
+                "description": "screen",
+                "explanation": "click",
+                "expectation": "dialog",
+            },
+            "arguments": {"action": "click", "x": 1, "y": 2},
+        },
+    }
+
+
+@pytest.mark.asyncio
+async def test_parse_response_preserves_model_facing_system_use_wrapper():
+    parser = _make_parser([DummyTool("system_use", ToolDomain.SYSTEM)])
+    response = (
+        '{"functionCall":{"name":"system_use","args":{"tool":"get_open_windows",'
+        '"explanation":"inspect open windows","arguments":{"filter_text":"System Settings"}}}}'
+    )
+
+    parsed = await parser.parse_response(response)
+
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    tool_call: ParsedToolCall = parsed.tool_calls[0]
+    assert tool_call.tool_name == "get_open_windows"
+    assert tool_call.parameters == {
+        "filter_text": "System Settings",
+        "explanation": "inspect open windows",
+    }
+    assert tool_call.metadata == {
+        "model_facing_tool_call": {
+            "name": "system_use",
+            "arguments": {
+                "tool": "get_open_windows",
+                "explanation": "inspect open windows",
+                "arguments": {"filter_text": "System Settings"},
+            },
+        }
+    }
 
 
 @pytest.mark.asyncio
@@ -163,6 +205,18 @@ async def test_parse_response_trims_direct_computer_use_metadata_fields():
         "description": "screen",
         "explanation": "click",
         "expectation": "dialog",
+        "model_facing_tool_call": {
+            "name": "computer_use",
+            "arguments": {
+                "tool": "mouse_control",
+                "metadata": {
+                    "description": " screen ",
+                    "explanation": " click ",
+                    "expectation": " dialog ",
+                },
+                "arguments": {"action": "click", "x": 1, "y": 2},
+            },
+        },
     }
 
 
@@ -185,6 +239,19 @@ async def test_parse_response_accepts_direct_legacy_mouse_tool_when_only_compute
         "description": "screen",
         "explanation": "click button",
         "expectation": "dialog opens",
+        "model_facing_tool_call": {
+            "name": "mouse_control",
+            "arguments": {
+                "action": "click",
+                "x": 2,
+                "y": 3,
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "click button",
+                    "expectation": "dialog opens",
+                },
+            },
+        },
     }
 
 
