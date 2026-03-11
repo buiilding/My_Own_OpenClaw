@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(chat-history-immediate-temp-title): show a new transcript chat in `Your chats` immediately after the first user message by deriving a temporary heuristic title from that first user row, then replace it automatically once assistant `llm-text` title generation finishes; add sidecar and dashboard regressions for immediate visibility and title replacement.
 - fix(frontend-transcript-tool-call-replay-display): restore visible tool-call bodies for historical chats by carrying replayed transcript tool-call text into `toolCallDisplayText` and rebuilding parsed model-facing tool-call payloads during episodic-memory message normalization.
 - fix(frontend-tool-bundle-call-display): show bundled tool-call payloads in tool-call cards by carrying the formatted bundle text into `toolCallDisplayText`, so bundle rows no longer render as blank cards even when execution/output events were received correctly.
 - fix(frontend-onboarding-startup-flash): stop the renderer from briefly showing onboarding on app launch for users who already completed it by using the persisted onboarding completion bit until permission bootstrap finishes, then falling back to the manifest-aware gate.
@@ -29,6 +30,7 @@ All notable changes to WindieOS will be documented in this file.
 - fix(agent-browser-validation-guidance): keep browser-specific pre-dispatch repair guidance for empty `browser` calls while removing the reverted strict browser `oneOf` validation dependency from tool preparation.
 - fix(tool-sender-validation-metadata): classify pre-dispatch browser/tool-schema rejections as `llm_tool_call_validation_failed` instead of `coordinate_resolution_failed`, and add focused sender regression coverage so skipped frontend executions surface the right failure reason.
 ### Docs
+- docs(memory-chat-title-timing): document that transcript chat list/search can surface a temporary first-user-message title before the async model-generated title lands.
 - docs(frontend-onboarding-runtime-boundaries): refresh the onboarding and permission runtime references to document the extracted slide model, permission-action hook, centralized post-grant effect helper, and tokenized single-card layout boundaries.
 - docs(llm-integration-selected-model-example-drift): update architecture LLM integration AppConfig examples so `selected_model_id` matches current default variant id (`gpt-5@@gpt-5-nonthinking`) while keeping provider model examples unchanged.
 - docs(config-default-and-settings-examples-drift): align backend/ops/API config examples with current `selected_model_id` default (`gpt-5@@gpt-5-nonthinking`), expand backend bootstrap config-domain docs for current frontend-managed settings fields, and refresh API `update-settings` payload examples to include wakeword/sudo/browser/provider credential patch keys.

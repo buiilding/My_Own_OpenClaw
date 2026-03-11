@@ -179,6 +179,11 @@ The Electron renderer reads memory through sidecar JSON-RPC handlers exposed ove
 - `list_conversations` + `get_conversation` for episodic/transcript browsing.
 - `list_semantic_memories` for semantic-memory browsing in the Semantic Memory tab.
 
+Current title behavior for transcript chats:
+- A new chat can appear in `Your chats` immediately after the first user transcript row is stored.
+- Until a saved model title exists, list/search reads derive a temporary heuristic title from the first user message.
+- After the first assistant `llm-text` transcript row is stored, async model title generation can replace that temporary title.
+
 ## User-Facing Reset Controls
 
 Settings now exposes two destructive local-data actions:

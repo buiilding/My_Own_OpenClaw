@@ -597,6 +597,80 @@ describe('ChatGptDashboardShell', () => {
     expect(screen.getByRole('button', { name: 'How are you' })).toBeInTheDocument();
   });
 
+  test('shows a new chat after user transcript storage and replaces the temporary title after assistant completion', async () => {
+    const nowIso = new Date().toISOString();
+    let listCallCount = 0;
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-conversations') {
+        listCallCount += 1;
+        if (listCallCount === 1) {
+          return {
+            success: true,
+            data: { conversations: [] },
+          };
+        }
+        if (listCallCount === 2) {
+          return {
+            success: true,
+            data: {
+              conversations: [
+                {
+                  conversation_id: 'conv-title-2',
+                  record_kind: 'transcript',
+                  last_timestamp: nowIso,
+                  title: 'How to fix ubuntu mic settings',
+                  title_source: 'heuristic',
+                },
+              ],
+            },
+          };
+        }
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-title-2',
+                record_kind: 'transcript',
+                last_timestamp: nowIso,
+                title: 'Ubuntu mic timeout troubleshooting',
+                title_source: 'model',
+              },
+            ],
+          },
+        };
+      }
+      return { success: true, data: {} };
+    });
+
+    await renderDashboardShell();
+    expect(screen.getByText('No chats yet.')).toBeInTheDocument();
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent('transcript-entry-stored', {
+        detail: {
+          role: 'user',
+          messageType: 'user',
+          conversationRef: 'conv-title-2',
+        },
+      }));
+    });
+    await flushMicrotasks();
+    expect(screen.getByRole('button', { name: 'How to fix ubuntu mic settings' })).toBeInTheDocument();
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent('transcript-entry-stored', {
+        detail: {
+          role: 'assistant',
+          messageType: 'llm-text',
+          conversationRef: 'conv-title-2',
+        },
+      }));
+    });
+    await flushMicrotasks();
+    expect(screen.getByRole('button', { name: 'Ubuntu mic timeout troubleshooting' })).toBeInTheDocument();
+  });
+
   test('settings chat-clear callback resets active chat state and reloads recent chats', async () => {
     mockSessionInfo = { conversationRef: 'conv-live', userId: 'user-live' };
 

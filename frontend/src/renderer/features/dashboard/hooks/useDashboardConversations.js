@@ -326,6 +326,10 @@ function useDashboardConversations({
       const conversationRef = typeof detail?.conversationRef === 'string'
         ? detail.conversationRef
         : '';
+      if (role === 'user' && messageType === 'user') {
+        void loadRecentConversations();
+        return;
+      }
       if (role !== 'assistant' || messageType !== 'llm-text') {
         return;
       }
