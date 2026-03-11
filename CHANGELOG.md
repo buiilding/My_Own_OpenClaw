@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Docs
+- docs(sidecar-tool-contract-and-runtime-hub-sync): fix sidecar docs mismatch for `system_use` top-level `explanation` requirement, clarify sidecar schema-vs-runtime enforcement boundaries, repair malformed front-matter in local-backend lifecycle reference, and refresh backend/frontend runtime hub scope plus docs-hub links for the new runtime surface pages.
 - docs(frontend-runtime-surface-main-renderer-sidecar-vm-worker): add a new frontend runtime deep reference covering Electron composition splits, IPC/session state contracts, global stop shortcut runtime behavior, VM worker `/api/runs/*` relay flow, and sidecar feature-pack + unified-wrapper tool exposure; wire links from frontend runtime/functionality hubs and refresh frontend architecture notes.
 - docs(backend-runtime-surface-query-loop-vm-runs): add a new backend runtime deep reference that documents app route assembly, query_execution_support helper boundaries, interaction-loop/tool-orchestrator contracts, OpenAI Responses-native reasoning routing, and `/api/runs/*` VM control runtime behavior; wire links from backend runtime/functionality hubs and refresh backend architecture notes.
 - docs(planning-browser-launcher): add a dated planning note for the dedicated Windie browser launcher/profile-branding approach, including shortcut strategy, platform-specific constraints, optional profile-metadata seeding, and follow-up docs/index wiring.

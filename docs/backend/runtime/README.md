@@ -26,5 +26,10 @@ title: "Backend Runtime Docs Hub"
 - `backend/src/agent/session/*`
 - `backend/src/api/handlers/query.py`
 - `backend/src/api/services/query_execution.py`
+- `backend/src/api/services/query_execution_support/*`
 - `backend/src/api/services/query_event_extraction.py`
 - `backend/src/api/processing/pipeline.py`
+- `backend/src/api/routes/runs/*`
+- `backend/src/services/vm_run_control.py`
+- `backend/src/llm/providers/openai.py`
+- `backend/src/llm/providers/openai_responses_runtime.py`
