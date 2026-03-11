@@ -8,9 +8,6 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 
 from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
 from backend.src.llm.parser_types import ParsedToolCall
-from backend.src.tools.browser.model_facing_schemas import (
-    MODEL_FACING_BROWSER_ACTION_MODELS,
-)
 
 _BROWSER_TOOL_NAME = "browser"
 _SYSTEM_USE_TOOL_NAME = "system_use"
@@ -212,53 +209,12 @@ def _build_model_facing_validation_guidance(
 def _build_browser_guidance(
     parameters: dict[str, Any] | None,
     exc: ValidationError,
-) -> str:
-    payload = parameters if isinstance(parameters, dict) else {}
-    selected_action = payload.get("action")
-    normalized_action = (
-        selected_action.strip()
-        if isinstance(selected_action, str) and selected_action.strip()
-        else None
-    )
-
+) -> str | None:
     if _has_missing_required_field(exc, "action"):
         return (
-            "Use the `browser` tool with exactly one top-level action branch and always include top-level `action`. "
+            "Use the `browser` tool with top-level `action` and the fields required for that action. "
             f"Example: {_BROWSER_ACTION_REPAIR_EXAMPLES['connect']}."
         )
-
-    hints = [
-        "The `browser` tool schema is a strict `oneOf`: choose exactly one action branch and include only the fields for that action.",
-    ]
-    if normalized_action:
-        hints.append(
-            f"Re-emit `browser` with `action=\"{normalized_action}\"` and only the fields allowed for that branch."
-        )
-        example = _BROWSER_ACTION_REPAIR_EXAMPLES.get(normalized_action)
-        if example is not None:
-            hints.append(f"Example: {example}.")
-    hints.append(
-        "Do not mix fields from other browser actions; drop unrelated keys and include that branch's required fields."
-    )
-    return " ".join(hints)
-
-
-def _validate_browser_model_facing_branch(
-    parameters: dict[str, Any] | None,
-) -> ValidationError | None:
-    payload = parameters if isinstance(parameters, dict) else {}
-    selected_action = payload.get("action")
-    if not isinstance(selected_action, str) or not selected_action.strip():
-        return None
-
-    strict_model = MODEL_FACING_BROWSER_ACTION_MODELS.get(selected_action.strip())
-    if strict_model is None:
-        return None
-
-    try:
-        strict_model.model_validate(payload)
-    except ValidationError as exc:
-        return exc
     return None
 
 
@@ -289,22 +245,6 @@ def validate_parsed_tool_call(
         return (
             message
         )
-
-    if tool_call.tool_name == _BROWSER_TOOL_NAME:
-        browser_branch_error = _validate_browser_model_facing_branch(tool_call.parameters)
-        if browser_branch_error is not None:
-            details = _format_validation_error(browser_branch_error)
-            guidance = _build_model_facing_validation_guidance(
-                tool_call,
-                browser_branch_error,
-            )
-            message = (
-                f"{tool_call.tool_name} call is invalid and was rejected before frontend execution. "
-                f"Details: {details}."
-            )
-            if guidance:
-                message = f"{message} {guidance}"
-            return message
     return None
 
 

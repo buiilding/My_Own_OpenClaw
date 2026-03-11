@@ -426,44 +426,8 @@ async def test_prepare_rejects_browser_call_missing_action_with_repair_guidance(
     failed_call, error_message = result.errors[0]
     assert failed_call is tool_call
     assert "Details: action: Field required." in error_message
-    assert "exactly one top-level action branch" in error_message
+    assert "top-level `action` and the fields required for that action" in error_message
     assert '`{"action":"connect"}`' in error_message
-
-
-@pytest.mark.asyncio
-async def test_prepare_rejects_browser_bad_branch_selection_with_repair_guidance():
-    preparer = ToolPreparer(
-        object(),
-        object(),
-        object(),
-        tool_registry=DummyToolRegistry(
-            {
-                "browser": _ArgsModelTool(BrowserControlArgs),
-            }
-        ),
-    )
-    tool_call = ParsedToolCall(
-        tool_name="browser",
-        parameters={
-            "action": "search",
-            "url": "https://example.com/search?q=test",
-        },
-        raw_call="{}",
-    )
-
-    _events, result = await _collect_preparation(preparer, [tool_call])
-
-    assert result is not None
-    assert result.resolved_calls == []
-    assert len(result.errors) == 1
-    failed_call, error_message = result.errors[0]
-    assert failed_call is tool_call
-    assert "Details:" in error_message
-    assert "query: Field required" in error_message
-    assert "url: Extra inputs are not permitted" in error_message
-    assert "strict `oneOf`" in error_message
-    assert 'action="search"' in error_message
-    assert '`{"action":"search","query":"windie browser use"}`' in error_message
 
 
 @pytest.mark.asyncio
