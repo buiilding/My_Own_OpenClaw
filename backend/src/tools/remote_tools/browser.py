@@ -8,13 +8,8 @@ from copy import deepcopy
 import logging
 from typing import Any
 
-from pydantic import ValidationError
-
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
-from backend.src.tools.browser.model_facing_schemas import (
-    MODEL_FACING_BROWSER_ACTION_MODELS,
-)
 from backend.src.tools.browser.schemas import BrowserControlArgs
 from backend.src.tools.browser.schema_types import (
     BROWSER_CANONICAL_ACTIONS,
@@ -56,6 +51,30 @@ _BROWSER_EXPOSED_REMOVED_PROPERTIES = frozenset(
 
 _COMPACT_BROWSER_PROPERTY_DESCRIPTIONS: dict[str, str] = {
     "action": "Browser action.",
+    "url": "URL for navigate action.",
+    "wait_until": "Navigation wait condition.",
+    "query": "Query text for extract/search actions.",
+    "ref": "Element reference from snapshot output.",
+    "index": "Element index.",
+    "text": "Text payload for input action.",
+    "submit": "Submit after input.",
+    "keys": "Key sequence for send_keys.",
+    "key": "Single key value.",
+    "direction": "Scroll direction.",
+    "amount": "Scroll amount.",
+    "seconds": "Wait duration in seconds.",
+    "target_id": "Target tab id.",
+    "tab_id": "Tab id.",
+    "file_name": "Optional output filename.",
+    "paths": "File paths for upload action.",
+    "input_ref": "Input reference for upload action.",
+    "script": "JavaScript code for evaluate action.",
+    "code": "JavaScript code alias.",
+    "offset": "Character offset for paginated reads.",
+    "limit": "Maximum result count or page size.",
+    "extract_links": "Include links in extracted content.",
+    "start_from_char": "Character offset for extract continuation.",
+    "output_schema": "Optional schema hint for extract results.",
 }
 
 
@@ -111,59 +130,39 @@ class RemoteBrowserTool(RemoteToolBase, Tool[BrowserControlArgs]):
         )
 
     def get_json_schema(self) -> dict[str, Any]:
-        def _clean_model_schema(model: type[Any]) -> dict[str, Any]:
-            raw_schema = model.model_json_schema()
-            resolved_schema = self._resolve_local_defs(raw_schema)
-            cleaned_schema = self._clean_schema(resolved_schema)
-            cleaned_schema.pop("title", None)
-            if "properties" in cleaned_schema and cleaned_schema.get("type") is None:
-                cleaned_schema["type"] = "object"
-            cleaned_schema["additionalProperties"] = False
-            properties = cleaned_schema.get("properties")
-            if isinstance(properties, dict):
-                for field_name in _BROWSER_EXPOSED_REMOVED_PROPERTIES:
-                    properties.pop(field_name, None)
-                for field_name, property_schema in properties.items():
-                    if not isinstance(property_schema, dict):
-                        continue
-                    compact = _COMPACT_BROWSER_PROPERTY_DESCRIPTIONS.get(field_name)
-                    if compact is None:
-                        property_schema.pop("description", None)
-                    else:
-                        property_schema["description"] = compact
-            return cleaned_schema
+        schema = deepcopy(super().get_json_schema())
+        function = schema.get("function")
+        if not isinstance(function, dict):
+            return schema
+        function["description"] = self.description
+        parameters = function.get("parameters")
+        if not isinstance(parameters, dict):
+            return schema
+        parameters["description"] = "Arguments for browser action execution."
+        properties = parameters.get("properties")
+        if not isinstance(properties, dict):
+            return schema
 
-        one_of = [
-            _clean_model_schema(MODEL_FACING_BROWSER_ACTION_MODELS[action])
-            for action in _BROWSER_EXPOSED_ACTIONS
-            if action in MODEL_FACING_BROWSER_ACTION_MODELS
-        ]
-        return {
-            "type": "function",
-            "function": {
-                "name": self.name,
-                "description": self.description,
-                "parameters": {
-                    "type": "object",
-                    "description": "Arguments for browser action execution.",
-                    "additionalProperties": False,
-                    "oneOf": one_of,
-                },
-            },
-        }
+        for field_name in _BROWSER_EXPOSED_REMOVED_PROPERTIES:
+            properties.pop(field_name, None)
 
-    @staticmethod
-    def _format_action_validation_error(action: str, exc: ValidationError) -> str:
-        parts: list[str] = []
-        for error in exc.errors():
-            location = ".".join(str(item) for item in error.get("loc", ()) if item != "__root__")
-            message = str(error.get("msg", "invalid value"))
-            if location:
-                parts.append(f"{location}: {message}")
+        for field_name, property_schema in properties.items():
+            if not isinstance(property_schema, dict):
+                continue
+            compact = _COMPACT_BROWSER_PROPERTY_DESCRIPTIONS.get(field_name)
+            if compact is None:
+                property_schema.pop("description", None)
             else:
-                parts.append(message)
-        detail = "; ".join(parts) if parts else str(exc)
-        return f"Invalid browser arguments for action '{action}': {detail}"
+                property_schema["description"] = compact
+
+        action_schema = properties.get("action")
+        if isinstance(action_schema, dict):
+            properties["action"] = {
+                "type": "string",
+                "description": "Browser action.",
+                "enum": list(_BROWSER_EXPOSED_ACTIONS),
+            }
+        return schema
 
     async def execute_remote(self, args: BrowserControlArgs, ctx: ToolContext) -> Any:
         if args.action in BROWSER_REMOVED_COMPAT_ACTIONS:
@@ -176,14 +175,6 @@ class RemoteBrowserTool(RemoteToolBase, Tool[BrowserControlArgs]):
             raise ValueError(
                 _removed_legacy_alias_error(args.action, args.preferred_action)
             )
-        strict_model = MODEL_FACING_BROWSER_ACTION_MODELS.get(args.action)
-        if strict_model is not None:
-            try:
-                strict_model(**args.model_dump(exclude_none=True, exclude_defaults=True))
-            except ValidationError as exc:
-                raise ValueError(
-                    self._format_action_validation_error(args.action, exc)
-                ) from exc
         request_id = self._get_request_id(ctx)
         return RemoteToolResult(
             tool_name=self.name,
