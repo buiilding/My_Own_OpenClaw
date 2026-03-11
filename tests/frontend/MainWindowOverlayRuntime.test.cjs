@@ -63,6 +63,11 @@ describe('main_window_overlay_runtime', () => {
       transparent: true,
       show: true,
     }));
+    expect(win.options.webPreferences.additionalArguments).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('--windie-ipc-channels='),
+      ]),
+    );
     expect(BrowserWindow.mock.calls[0][0]).not.toHaveProperty('type');
     expect(win.options.webPreferences.devTools).toBe(true);
   });

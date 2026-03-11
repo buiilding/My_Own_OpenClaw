@@ -23,7 +23,7 @@ Channel validation has two runtime layers plus one shared source:
 2. preload allowlists (`preload.js`) are the hard boundary
 3. renderer `IpcBridge` set checks are dev-only safety checks
 
-Preload loads the registry from disk with Node `fs` instead of `require(...)` because Electron's sandboxed preload runtime can fail relative sibling-module resolution.
+Electron main injects the serialized shared registry through `webPreferences.additionalArguments`, and preload parses it from `process.argv` because Electron's sandboxed preload runtime can fail both relative sibling-module resolution and Node builtin imports.
 
 In production, preload is authoritative because `IpcBridge` validation is gated by `NODE_ENV === "development"`.
 
