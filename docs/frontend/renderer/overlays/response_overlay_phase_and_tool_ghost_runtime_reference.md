@@ -37,11 +37,19 @@ Primary inputs:
 - `messages`
 - `thinkingStatus`
 
+Current-turn entry construction:
+
+- `buildCurrentTurnResponseOverlayEntries(...)` scans assistant messages after the latest user boundary.
+- entry types currently included:
+  - `llm-text`
+  - `error`
+  - `tool-explanation` (derived from tool-call explanation fields)
+
 Selection logic:
 
-1. `useCurrentTurnPresentationState(...)` resolves the latest user turn boundary.
-2. It projects the latest visible assistant reply only from rows after that boundary.
-3. candidate row must be `sender="assistant"`, non-empty `text`, and `type` in allowed set (`llm-text`, `error`).
+1. `useCurrentTurnPresentationState(...)` resolves loop state and latest visible assistant reply for compact/awaiting behavior.
+2. `resolveChatPillViewIntent(...)` uses the response-overlay entry list to resolve overlay visibility.
+3. `showResponse` is true when current-turn entry list is non-empty and not dismissed, even when latest entry is a `tool-explanation`.
 
 Closeability:
 
@@ -61,14 +69,11 @@ Payload normalization boundary:
 Modes:
 
 - `showResponse`:
-  - assistant response exists
-  - not awaiting first chunk
-  - not manually dismissed
+  - response-overlay entry list for current turn is non-empty (`llm-text`, `error`, and/or `tool-explanation`)
+  - entry id is not manually dismissed
 - `showAwaitingReply`:
-  - awaiting mode / phase is `awaiting-first-chunk`, `tool-call`, or `tool-output`
-  - local send fallback when chat workspace `isSending === true`
-  - or chat thinking source is `context-compaction-started` with active compaction status text
-  - no visible response row
+  - no visible response-entry list
+  - and current-turn presentation state reports awaiting-reply mode
 
 Contract ownership:
 
