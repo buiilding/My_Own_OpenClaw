@@ -4,6 +4,7 @@ import FrontendOnboardingSlideshow from '../../frontend/src/renderer/features/on
 
 const mockBootstrapPermissions = jest.fn();
 const mockRequestPermission = jest.fn();
+const mockCompleteOnboarding = jest.fn();
 const mockUpdateConfig = jest.fn();
 const mockIpcInvoke = jest.fn(async () => ({ success: true }));
 
@@ -15,6 +16,14 @@ const mockPermissionState = {
       permission_id: 'screen_capture',
       label: 'Screen capture',
       description: 'Allow WindieOS to capture the current screen for screenshot context and visual grounding.',
+      access_kind: 'os_permission',
+      grant_action_label: 'Grant',
+      required_now: true,
+    },
+    {
+      permission_id: 'system_events_automation',
+      label: 'System Events automation',
+      description: 'Allow WindieOS to control macOS System Events so window focusing and other UI automation steps do not prompt mid-task.',
       access_kind: 'os_permission',
       grant_action_label: 'Grant',
       required_now: true,
@@ -42,6 +51,11 @@ const mockPermissionState = {
       granted: false,
       reason: 'Grant Screen Recording in System Settings > Privacy & Security.',
     },
+    system_events_automation: {
+      status: 'needs-action',
+      granted: false,
+      reason: 'WindieOS still needs permission to control System Events. Click Grant to show the macOS Automation prompt.',
+    },
     microphone: {
       status: 'granted',
       granted: true,
@@ -53,8 +67,10 @@ const mockPermissionState = {
       reason: 'Open the WindieOS browser and sign in with the profile WindieOS should use for browser help.',
     },
   },
+  missingRequiredPermissions: [],
   error: '',
   bootstrapPermissions: mockBootstrapPermissions,
+  completeOnboarding: mockCompleteOnboarding,
   requestPermission: mockRequestPermission,
   recheckAllPermissions: jest.fn(),
 };
@@ -99,6 +115,7 @@ describe('FrontendOnboardingSlideshow', () => {
       };
     });
     mockUpdateConfig.mockReset();
+    mockCompleteOnboarding.mockReset().mockReturnValue(true);
     mockIpcInvoke.mockClear();
   });
 
@@ -114,12 +131,13 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(screen.getByText('Step 1 of 2')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Set up system access' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Screen capture' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'System Events automation' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Microphone' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Browser automation' })).toBeInTheDocument();
-    expect(screen.getAllByText('OS Permission')).toHaveLength(2);
+    expect(screen.getAllByText('OS Permission')).toHaveLength(3);
     expect(screen.getByText('App Capability')).toBeInTheDocument();
     expect(screen.getByText('Open the WindieOS browser so you can sign in with the profile WindieOS should use for browsing, navigation, and web tasks.')).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Grant' })).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: 'Grant' })).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Open browser' })).toBeInTheDocument();
     expect(screen.getAllByLabelText('Granted')).toHaveLength(1);
     expect(screen.queryByRole('heading', { name: 'Planned system-access scope' })).not.toBeInTheDocument();
@@ -130,7 +148,7 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(screen.queryByRole('button', { name: 'Back' })).not.toBeInTheDocument();
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Grant' }));
+      fireEvent.click(screen.getAllByRole('button', { name: 'Grant' })[0]);
     });
     expect(mockRequestPermission).toHaveBeenCalledWith('screen_capture');
     expect(mockUpdateConfig).not.toHaveBeenCalled();
@@ -165,6 +183,7 @@ describe('FrontendOnboardingSlideshow', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     fireEvent.click(screen.getByRole('button', { name: 'Start WindieOS' }));
+    expect(mockCompleteOnboarding).toHaveBeenCalledTimes(1);
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
@@ -202,5 +221,28 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(screen.getByText('Command').tagName).toBe('KBD');
     expect(screen.getByText('Shift').tagName).toBe('KBD');
     expect(screen.getByText('Esc').tagName).toBe('KBD');
+  });
+
+  test('disables Start WindieOS until required permissions are complete', () => {
+    const previousMissingRequiredPermissions = mockPermissionState.missingRequiredPermissions;
+    mockPermissionState.missingRequiredPermissions = ['screen_capture', 'system_events_automation'];
+
+    try {
+      render(
+        <FrontendOnboardingSlideshow
+          onComplete={jest.fn()}
+          stopAgentShortcutLabel="Command + Shift + Esc"
+        />,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+      expect(screen.getByRole('button', { name: 'Start WindieOS' })).toBeDisabled();
+      expect(
+        screen.getByText('Finish the required permissions on the previous step before starting WindieOS.'),
+      ).toBeInTheDocument();
+    } finally {
+      mockPermissionState.missingRequiredPermissions = previousMissingRequiredPermissions;
+    }
   });
 });

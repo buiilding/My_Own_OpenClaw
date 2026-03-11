@@ -34,6 +34,8 @@ function initializePermissionHandlersRuntime(deps = {}) {
     getBrowserAutomationPreference,
     verifyBrowserAutomationCapability,
     installBrowserAutomationRuntime,
+    probeMacOsSystemEventsAutomationPermission,
+    requestMacOsSystemEventsAutomationPermission,
     permissionStateStore,
     userDataPath,
   } = deps;
@@ -59,6 +61,8 @@ function initializePermissionHandlersRuntime(deps = {}) {
     getBrowserAutomationPreference,
     verifyBrowserAutomationCapability,
     installBrowserAutomationRuntime,
+    probeMacOsSystemEventsAutomationPermission,
+    requestMacOsSystemEventsAutomationPermission,
     permissionStateStore: resolvedPermissionStateStore,
   };
   const getPermissionId = (options = {}) => {

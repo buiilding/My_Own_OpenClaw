@@ -37,6 +37,18 @@ describe('permission_service', () => {
     expect(Array.isArray(result.statuses)).toBe(true);
     expect(result.permissions.length).toBeGreaterThan(0);
     expect(result.statuses).toHaveLength(result.permissions.length);
+    expect(result.permissions.some((permission) => permission.permission_id === 'system_events_automation')).toBe(false);
+  });
+
+  test('returns macOS-only System Events automation permission on darwin', async () => {
+    const result = await listPermissionsWithStatus({
+      platform: 'darwin',
+      permissionStateStore,
+      verifyBrowserAutomationCapability: jest.fn(async () => ({ granted: false })),
+      probeMacOsSystemEventsAutomationPermission: jest.fn(async () => ({ granted: false })),
+    });
+
+    expect(result.permissions.some((permission) => permission.permission_id === 'system_events_automation')).toBe(true);
   });
 
   test('screen capture probe on macOS requires action when screen access missing', async () => {
@@ -154,6 +166,47 @@ describe('permission_service', () => {
     expect(openExternal).not.toHaveBeenCalled();
     expect(status.status).toBe('granted');
     expect(status.granted).toBe(true);
+  });
+
+  test('System Events automation probe on macOS reflects the sidecar automation verifier', async () => {
+    const probeMacOsSystemEventsAutomationPermission = jest.fn(async () => ({
+      granted: false,
+      reason: 'WindieOS still needs permission to control System Events.',
+      details: {
+        os_status: -1744,
+      },
+    }));
+
+    const status = await runPermissionProbe('system_events_automation', {
+      platform: 'darwin',
+      probeMacOsSystemEventsAutomationPermission,
+    });
+
+    expect(probeMacOsSystemEventsAutomationPermission).toHaveBeenCalledTimes(1);
+    expect(status.status).toBe('needs-action');
+    expect(status.granted).toBe(false);
+    expect(status.details.verification.os_status).toBe(-1744);
+  });
+
+  test('System Events automation request on macOS is granted after the explicit prompt path succeeds', async () => {
+    const requestMacOsSystemEventsAutomationPermission = jest.fn(async () => ({
+      granted: true,
+      reason: 'System Events automation permission is granted.',
+      details: {
+        os_status: 0,
+      },
+    }));
+
+    const status = await requestPermission('system_events_automation', {
+      platform: 'darwin',
+      permissionStateStore,
+      requestMacOsSystemEventsAutomationPermission,
+    });
+
+    expect(requestMacOsSystemEventsAutomationPermission).toHaveBeenCalledTimes(1);
+    expect(status.status).toBe('granted');
+    expect(status.granted).toBe(true);
+    expect(status.details.verification.os_status).toBe(0);
   });
 
   test('filesystem access starts as needs-action and becomes granted after folder picker selection', async () => {

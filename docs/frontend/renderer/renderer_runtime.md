@@ -43,8 +43,8 @@ Provider responsibilities:
 Startup surface routing in `AppContent`:
 
 - VM mode (`vm_mode=1` query param) renders `ChatGptDashboardShell` directly (`vmModeEnabled=true`)
-- non-VM mode renders frontend onboarding slideshow until persisted completion state is true
-- onboarding completion persists `windieos-frontend-onboarding` state (`completed`, `completed_at`) then routes to dashboard shell
+- non-VM mode renders frontend onboarding slideshow until `permissionStore.needsOnboarding` is false
+- onboarding completion persists `windieos-permission-onboarding` (`manifest_version`, `completed`, `completed_at`) then routes to dashboard shell
 
 ## Feature Domains
 

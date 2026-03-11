@@ -1,11 +1,7 @@
-import { useCallback, useState } from 'react';
 import ErrorBoundary from '../components/ErrorBoundary';
 import ChatGptDashboardShell from '../features/dashboard/components/ChatGptDashboardShell';
 import FrontendOnboardingSlideshow from '../features/onboarding/components/FrontendOnboardingSlideshow';
-import {
-  loadFrontendOnboardingState,
-  saveFrontendOnboardingState,
-} from '../features/onboarding/utils/frontendOnboardingStorage';
+import { usePermissionStore } from '../features/permissions/stores/permissionStore';
 import { getGlobalAgentStopShortcutLabel } from '../infrastructure/shortcuts/agentStopShortcut';
 import { isVmModeEnabled } from '../infrastructure/runtime/vmMode';
 import { AppProvider } from './providers/AppProvider';
@@ -25,18 +21,7 @@ import '../styles/accessibility.css';
 function AppContent() {
   const { config, availableModels, updateConfig } = useAppConfigContext();
   const vmModeEnabled = isVmModeEnabled();
-  const [frontendOnboardingComplete, setFrontendOnboardingComplete] = useState(
-    () => loadFrontendOnboardingState().completed,
-  );
-
-  const handleFrontendOnboardingComplete = useCallback(() => {
-    const completionState = {
-      completed: true,
-      completed_at: new Date().toISOString(),
-    };
-    saveFrontendOnboardingState(completionState);
-    setFrontendOnboardingComplete(true);
-  }, []);
+  const needsOnboarding = usePermissionStore((state) => state.needsOnboarding);
 
   if (vmModeEnabled) {
     return (
@@ -49,11 +34,10 @@ function AppContent() {
     );
   }
 
-  if (!frontendOnboardingComplete) {
+  if (needsOnboarding) {
     return (
       <FrontendOnboardingSlideshow
         stopAgentShortcutLabel={getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)}
-        onComplete={handleFrontendOnboardingComplete}
       />
     );
   }

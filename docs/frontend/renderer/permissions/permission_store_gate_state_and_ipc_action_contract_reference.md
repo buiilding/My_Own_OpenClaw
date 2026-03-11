@@ -162,9 +162,9 @@ On guard failure:
 
 ## UI Coupling Boundary
 
-- Renderer `App.jsx` startup is not permission-gated in current runtime.
+- Renderer `App.jsx` startup is permission-gated in non-VM mode through `permissionStore.needsOnboarding`.
 - `PermissionControlCenter` mounts this store and uses probe/recheck actions.
-- `FrontendOnboardingSlideshow` uses the manifest presentation metadata to render action labels and item-kind copy.
+- `FrontendOnboardingSlideshow` uses the manifest presentation metadata plus `requestPermission()` / `completeOnboarding()` to drive startup gating.
 - Store gate-state fields remain authoritative for any surfaces that still depend on onboarding state.
 
 ## Test-Backed Notes
