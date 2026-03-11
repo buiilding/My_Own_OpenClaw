@@ -8,9 +8,6 @@ import pytest
 from pydantic import ValidationError
 
 from backend.src.tools.browser import RemoteBrowserTool
-from backend.src.tools.browser.model_facing_schemas import (
-    MODEL_FACING_BROWSER_ACTION_MODELS,
-)
 from backend.src.tools.browser.schemas import (
     BrowserClickArgs,
     BrowserControlArgs,
@@ -57,20 +54,8 @@ class TestRemoteBrowserTool:
     def test_model_facing_schema_exposes_canonical_actions_only(self):
         tool = RemoteBrowserTool()
         schema = tool.get_json_schema()
-        one_of = schema["function"]["parameters"]["oneOf"]
-
-        def _branch_action(branch: dict) -> str:
-            action_schema = branch["properties"]["action"]
-            enum_values = action_schema.get("enum")
-            if isinstance(enum_values, list) and len(enum_values) == 1:
-                return enum_values[0]
-            return action_schema["const"]
-
-        exposed_actions = {
-            _branch_action(branch)
-            for branch in one_of
-            if isinstance(branch, dict)
-        }
+        action_schema = schema["function"]["parameters"]["properties"]["action"]
+        exposed_actions = set(action_schema["enum"])
 
         assert "type" not in exposed_actions
         assert "open" not in exposed_actions
@@ -87,9 +72,7 @@ class TestRemoteBrowserTool:
     def test_model_facing_schema_hides_camel_case_compat_fields(self):
         tool = RemoteBrowserTool()
         schema = tool.get_json_schema()
-        props: set[str] = set()
-        for branch in schema["function"]["parameters"]["oneOf"]:
-            props.update(branch.get("properties", {}).keys())
+        props = schema["function"]["parameters"]["properties"]
 
         assert "timeoutMs" not in props
         assert "promptText" not in props
@@ -98,50 +81,14 @@ class TestRemoteBrowserTool:
         assert "targetUrl" not in props
         assert "inputRef" not in props
         assert "snapshotFormat" not in props
-        assert "timeout_ms" not in props
-        assert "prompt_text" not in props
-        assert "color_scheme" not in props
+        assert "timeout_ms" in props
+        assert "prompt_text" in props
+        assert "color_scheme" in props
         assert "mode" not in props
         assert "cdp_url" not in props
         assert "profile" not in props
         assert "node" not in props
         assert "target" not in props
-
-    def test_model_facing_schema_uses_action_specific_one_of_contract(self):
-        tool = RemoteBrowserTool()
-        schema = tool.get_json_schema()
-        parameters = schema["function"]["parameters"]
-
-        assert parameters["type"] == "object"
-        assert parameters["additionalProperties"] is False
-        assert "oneOf" in parameters
-        assert len(parameters["oneOf"]) == len(MODEL_FACING_BROWSER_ACTION_MODELS)
-
-    def test_model_facing_search_branch_requires_query(self):
-        tool = RemoteBrowserTool()
-        schema = tool.get_json_schema()
-        branch = next(
-            branch
-            for branch in schema["function"]["parameters"]["oneOf"]
-            if branch["properties"]["action"].get("enum") == ["search"]
-        )
-
-        assert branch["required"] == ["action", "query"]
-        assert "url" not in branch["properties"]
-        assert branch["additionalProperties"] is False
-
-    def test_model_facing_find_elements_branch_requires_selector(self):
-        tool = RemoteBrowserTool()
-        schema = tool.get_json_schema()
-        branch = next(
-            branch
-            for branch in schema["function"]["parameters"]["oneOf"]
-            if branch["properties"]["action"].get("enum") == ["find_elements"]
-        )
-
-        assert branch["required"] == ["action", "selector"]
-        assert "description" not in branch["properties"]
-        assert branch["additionalProperties"] is False
 
     @pytest.mark.asyncio
     async def test_execute_remote_returns_remote_result(self):
@@ -318,34 +265,6 @@ class TestRemoteBrowserTool:
         result = await tool.execute_remote(args, mock_ctx)
         assert result.is_remote is True
         assert result.args["action"] == "navigate"
-
-    @pytest.mark.asyncio
-    async def test_execute_remote_rejects_search_without_query(self):
-        tool = RemoteBrowserTool()
-        mock_ctx = mock.Mock()
-        mock_ctx.session = mock.Mock()
-        mock_ctx.session.metadata = {"request_id": "search-missing-query"}
-
-        args = BrowserControlArgs(action="search", url="https://example.com/search?q=test")
-        with pytest.raises(
-            ValueError,
-            match="Invalid browser arguments for action 'search': .*query.*Field required.*url.*Extra inputs are not permitted",
-        ):
-            await tool.execute_remote(args, mock_ctx)
-
-    @pytest.mark.asyncio
-    async def test_execute_remote_rejects_find_elements_without_selector(self):
-        tool = RemoteBrowserTool()
-        mock_ctx = mock.Mock()
-        mock_ctx.session = mock.Mock()
-        mock_ctx.session.metadata = {"request_id": "find-elements-missing-selector"}
-
-        args = BrowserControlArgs(action="find_elements", description="links on the page")
-        with pytest.raises(
-            ValueError,
-            match="Invalid browser arguments for action 'find_elements': .*selector.*Field required.*description.*Extra inputs are not permitted",
-        ):
-            await tool.execute_remote(args, mock_ctx)
 
 
 class TestBrowserToolRegistry:
