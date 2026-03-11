@@ -12,11 +12,11 @@ from tools.computer import mouse_tool  # noqa: E402
 def _fake_pyautogui():
     calls = []
 
-    def click(x, y):
-        calls.append(("click", x, y))
+    def click(x, y, button="left"):
+        calls.append(("click", x, y, button))
 
-    def double_click(x, y):
-        calls.append(("doubleClick", x, y))
+    def double_click(x, y, button="left"):
+        calls.append(("doubleClick", x, y, button))
 
     def right_click(x, y):
         calls.append(("rightClick", x, y))
@@ -48,7 +48,22 @@ async def test_execute_mouse_control_click_success(monkeypatch):
     assert result.success is True
     assert result.data["action"] == "click"
     assert result.data["coordinates"] == [100, 200]
-    assert calls == [("click", 100, 200)]
+    assert result.data["button"] == "left"
+    assert calls == [("click", 100, 200, "left")]
+
+
+@pytest.mark.asyncio
+async def test_execute_mouse_control_click_passes_explicit_button(monkeypatch):
+    fake_pyautogui, calls = _fake_pyautogui()
+    monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
+
+    result = await mouse_tool.execute_mouse_control(
+        {"action": "click", "x": 100, "y": 200, "button": "middle"}
+    )
+
+    assert result.success is True
+    assert result.data["button"] == "middle"
+    assert calls == [("click", 100, 200, "middle")]
 
 
 @pytest.mark.asyncio

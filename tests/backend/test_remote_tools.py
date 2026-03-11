@@ -67,6 +67,12 @@ def test_scroll_control_requires_manual_coordinates_when_find_coordinates_by_is_
     assert args.y == 20
 
 
+def test_mouse_control_accepts_button_field():
+    args = MouseControlArgs(action="click", x=10, y=20, button="middle")
+
+    assert args.button == "middle"
+
+
 def test_scroll_control_accepts_ocr_grounding():
     args = ScrollControlArgs(
         action="scroll_down",

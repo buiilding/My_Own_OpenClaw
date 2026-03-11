@@ -25,6 +25,7 @@ async def execute_mouse_control(args: Dict[str, Any]) -> ToolResult:
     action = args.get("action")
     x = args.get("x")
     y = args.get("y")
+    button = args.get("button", "left")
     drag_to_x = args.get("drag_to_x")
     drag_to_y = args.get("drag_to_y")
     duration = args.get("duration", 0.5)
@@ -39,10 +40,11 @@ async def execute_mouse_control(args: Dict[str, Any]) -> ToolResult:
             if action == "click":
                 if x is None or y is None:
                     raise ValueError("X and Y coordinates are required")
-                pyautogui.click(x, y)
+                pyautogui.click(x, y, button=button)
                 return {
                     "action": "click",
                     "coordinates": [x, y],
+                    "button": button,
                     "message": f"Clicked at ({x}, {y})",
                     "llm_content": f"Clicked at ({x}, {y})",
                     "return_display": f"Clicked at ({x}, {y})",
@@ -51,10 +53,11 @@ async def execute_mouse_control(args: Dict[str, Any]) -> ToolResult:
             elif action == "double_click":
                 if x is None or y is None:
                     raise ValueError("X and Y coordinates are required")
-                pyautogui.doubleClick(x, y)
+                pyautogui.doubleClick(x, y, button=button)
                 return {
                     "action": "double_click",
                     "coordinates": [x, y],
+                    "button": button,
                     "message": f"Double-clicked at ({x}, {y})",
                     "llm_content": f"Double-clicked at ({x}, {y})",
                     "return_display": f"Double-clicked at ({x}, {y})",
