@@ -22,7 +22,7 @@ title: "Preload Channel Allowlist and Renderer Bridge Reference"
 
 Channel names are now sourced from `frontend/src/shared/ipcChannels.json`, which is consumed by both preload and renderer constants to prevent drift.
 
-Preload reads the JSON registry from disk with Node `fs` because Electron's sandboxed preload bundle does not reliably support local relative `require(...)` of sibling files.
+Electron main injects the serialized registry into each BrowserWindow via `webPreferences.additionalArguments`, and preload reads it from `process.argv` because the sandboxed preload bundle does not reliably support local sibling-module resolution or Node builtin imports.
 
 `contextBridge.exposeInMainWorld('ipc', ...)` exposes only four methods:
 

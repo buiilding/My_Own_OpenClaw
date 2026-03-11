@@ -1,3 +1,7 @@
+const {
+  buildPreloadIpcChannelsArgument,
+} = require('./ipc_channel_registry_runtime.cjs');
+
 function loadRendererView({
   targetWindow,
   view,
@@ -68,6 +72,7 @@ function createOverlayBrowserWindow({
     hasShadow: false,
     webPreferences: {
       preload: path.join(__dirname, '../preload.js'),
+      additionalArguments: [buildPreloadIpcChannelsArgument()],
       contextIsolation: true,
       nodeIntegration: false,
       devTools: Boolean(allowDevTools),

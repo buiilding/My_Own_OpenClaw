@@ -3,13 +3,22 @@
  * Exposes necessary Node.js/Electron APIs to the sandboxed renderer.
  */
 
-const fs = require('fs');
-const path = require('path');
 const { contextBridge, ipcRenderer } = require('electron');
 
-function loadIpcChannels() {
-  const registryPath = path.join(__dirname, 'shared', 'ipcChannels.json');
-  return JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+const IPC_CHANNELS_ARGUMENT_PREFIX = '--windie-ipc-channels=';
+
+function loadIpcChannels(argv = process.argv) {
+  const serializedRegistry = argv.find(
+    (value) => typeof value === 'string' && value.startsWith(IPC_CHANNELS_ARGUMENT_PREFIX),
+  );
+
+  if (!serializedRegistry) {
+    throw new Error('Missing preload IPC channel registry argument');
+  }
+
+  return JSON.parse(decodeURIComponent(
+    serializedRegistry.slice(IPC_CHANNELS_ARGUMENT_PREFIX.length),
+  ));
 }
 
 const { SEND_CHANNELS, INVOKE_CHANNELS, ON_CHANNELS } = loadIpcChannels();

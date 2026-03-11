@@ -3,11 +3,12 @@
 describe('preload IPC channel registry', () => {
   let exposedIpc;
   let ipcRendererMock;
-  let readFileSyncMock;
+  let originalArgv;
 
   beforeEach(() => {
     jest.resetModules();
     exposedIpc = null;
+    originalArgv = process.argv;
     ipcRendererMock = {
       send: jest.fn(),
       invoke: jest.fn(async () => 'ok'),
@@ -27,27 +28,17 @@ describe('preload IPC channel registry', () => {
       ipcRenderer: ipcRendererMock,
     }));
 
-    readFileSyncMock = jest.fn(() =>
-      JSON.stringify({
-        SEND_CHANNELS: {},
-        INVOKE_CHANNELS: {
-          CLEAR_CHAT_HISTORY: 'clear-chat-history',
-          CLEAR_LOCAL_MEMORY: 'clear-local-memory',
-        },
-        ON_CHANNELS: {},
-      }),
-    );
-
-    jest.doMock('fs', () => ({
-      readFileSync: readFileSyncMock,
-    }));
+    process.argv = [
+      '/path/to/electron',
+      '--windie-ipc-channels=%7B%22SEND_CHANNELS%22%3A%7B%7D%2C%22INVOKE_CHANNELS%22%3A%7B%22CLEAR_CHAT_HISTORY%22%3A%22clear-chat-history%22%2C%22CLEAR_LOCAL_MEMORY%22%3A%22clear-local-memory%22%7D%2C%22ON_CHANNELS%22%3A%7B%7D%7D',
+    ];
 
     require('../../frontend/src/preload.js');
   });
 
   afterEach(() => {
+    process.argv = originalArgv;
     jest.dontMock('electron');
-    jest.dontMock('fs');
   });
 
   test('allows shared invoke channels from the central registry', async () => {
@@ -64,10 +55,11 @@ describe('preload IPC channel registry', () => {
     );
   });
 
-  test('loads channel data from the shared JSON registry on disk', () => {
-    expect(readFileSyncMock).toHaveBeenCalledWith(
-      expect.stringContaining('shared/ipcChannels.json'),
-      'utf8',
+  test('loads channel data from the injected preload argument', () => {
+    expect(process.argv).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('--windie-ipc-channels='),
+      ]),
     );
   });
 });

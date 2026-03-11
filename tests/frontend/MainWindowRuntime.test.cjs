@@ -532,6 +532,11 @@ describe('main_window_runtime createMainWindow', () => {
 
     const options = BrowserWindow.mock.calls[0][0];
     expect(options.webPreferences.devTools).toBe(false);
+    expect(options.webPreferences.additionalArguments).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('--windie-ipc-channels='),
+      ]),
+    );
   });
 
   test('enables dashboard devtools in dev mode', () => {

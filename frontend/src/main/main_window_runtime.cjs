@@ -9,6 +9,9 @@ const {
   loadRendererView,
 } = require('./main_window_overlay_runtime.cjs');
 const {
+  buildPreloadIpcChannelsArgument,
+} = require('./ipc_channel_registry_runtime.cjs');
+const {
   createWindowPlatformPolicy,
 } = require('./window_platform_policy.cjs');
 
@@ -122,6 +125,7 @@ function createMainWindow({
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, '../preload.js'),
+      additionalArguments: [buildPreloadIpcChannelsArgument()],
       contextIsolation: true,
       nodeIntegration: false,
       devTools: allowDevTools,
