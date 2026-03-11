@@ -246,6 +246,7 @@ async def test_prepare_bundle_invalid_computer_use_tool_returns_bundle_error_wit
     assert failed_call is first_call
     assert "computer_use call is invalid" in error_message
     assert first_call.metadata["bundle_id"] == result.bundle_id
+    assert second_call.metadata["bundle_id"] == result.bundle_id
 
 
 def test_tool_call_needs_coordinate_resolution_supports_grounded_mouse_and_scroll_tools():
