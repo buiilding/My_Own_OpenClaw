@@ -34,6 +34,14 @@ class _FailOnEmbedder:
         raise AssertionError("search should not call embedder when no indices are searchable")
 
 
+class _WatermarkStoreStub:
+    def __init__(self) -> None:
+        self.updates = []
+
+    async def update(self, **kwargs) -> None:
+        self.updates.append(kwargs)
+
+
 def _build_store(tmp_path: Path) -> LocalMemoryStore:
     store = LocalMemoryStore.__new__(LocalMemoryStore)
 
@@ -100,7 +108,55 @@ def _create_episodic_memories_table(db_path: Path) -> None:
         conn.commit()
 
 
+def _create_bulk_clear_episodic_memories_table(db_path: Path) -> None:
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE memories (
+                id TEXT PRIMARY KEY,
+                user_id TEXT,
+                content TEXT,
+                embedding_id INTEGER,
+                conversation_id TEXT,
+                record_kind TEXT,
+                role TEXT,
+                message_type TEXT
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE conversation_titles (
+                user_id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                source TEXT NOT NULL DEFAULT 'heuristic',
+                is_locked INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (user_id, conversation_id)
+            )
+            """
+        )
+        conn.commit()
+
+
 def _create_rebuild_memories_table(db_path: Path) -> None:
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE memories (
+                id TEXT PRIMARY KEY,
+                user_id TEXT,
+                content TEXT,
+                embedding_id INTEGER
+            )
+            """
+        )
+        conn.commit()
+
+
+def _create_bulk_clear_semantic_memories_table(db_path: Path) -> None:
     with sqlite3.connect(db_path) as conn:
         conn.execute(
             """
@@ -212,6 +268,143 @@ async def test_delete_episodic_memory_clears_faiss_artifacts_when_empty(tmp_path
     assert store.episodic_index is not None
     assert store.episodic_index.ntotal == 0
     assert store.episodic_index_path.exists() is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(faiss is None, reason="faiss is required")
+async def test_clear_local_memory_preserves_transcripts_and_rebuilds_indices(tmp_path: Path):
+    store = _build_store(tmp_path)
+    _create_bulk_clear_episodic_memories_table(store.episodic_db_path)
+    _create_bulk_clear_semantic_memories_table(store.semantic_db_path)
+
+    with sqlite3.connect(store.episodic_db_path) as conn:
+        conn.executemany(
+            """
+            INSERT INTO memories (
+                id, user_id, content, embedding_id, conversation_id, record_kind, role, message_type
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                ("interaction-1", "user-1", "episodic memory", 0, "conv-1", "interaction", "assistant", "llm-text"),
+                ("transcript-1", "user-1", "chat transcript", 1, "conv-1", "transcript", "user", "user"),
+            ],
+        )
+        conn.commit()
+
+    with sqlite3.connect(store.semantic_db_path) as conn:
+        conn.execute(
+            "INSERT INTO memories (id, user_id, content, embedding_id) VALUES (?, ?, ?, ?)",
+            ("semantic-1", "user-1", "semantic memory", 0),
+        )
+        conn.commit()
+
+    store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
+    store.episodic_index.add(
+        np.stack(
+            [
+                np.full((store.embedder.dimension,), 1.0, dtype=np.float32),
+                np.full((store.embedder.dimension,), 2.0, dtype=np.float32),
+            ],
+            axis=0,
+        )
+    )
+    store.semantic_index = faiss.IndexFlatIP(store.embedder.dimension)
+    store.semantic_index.add(np.full((1, store.embedder.dimension), 3.0, dtype=np.float32))
+    store._watermark_store = _WatermarkStoreStub()
+
+    result = await store.clear_local_memory("user-1")
+
+    assert result == {
+        "episodic_deleted_count": 1,
+        "semantic_deleted_count": 1,
+    }
+    assert store.episodic_index is not None
+    assert store.episodic_index.ntotal == 1
+    assert store.semantic_index is not None
+    assert store.semantic_index.ntotal == 0
+    assert store.semantic_index_path.exists() is False
+    assert store._watermark_store.updates == [
+        {
+            "last_semanticized_id": None,
+            "pending_message_count": 0,
+        },
+    ]
+
+    with sqlite3.connect(store.episodic_db_path) as conn:
+        remaining_rows = conn.execute(
+            "SELECT id, record_kind, embedding_id FROM memories ORDER BY id"
+        ).fetchall()
+    assert remaining_rows == [("transcript-1", "transcript", 0)]
+
+    with sqlite3.connect(store.semantic_db_path) as conn:
+        remaining_semantic_rows = conn.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
+    assert remaining_semantic_rows == 0
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(faiss is None, reason="faiss is required")
+async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(tmp_path: Path):
+    store = _build_store(tmp_path)
+    _create_bulk_clear_episodic_memories_table(store.episodic_db_path)
+
+    with sqlite3.connect(store.episodic_db_path) as conn:
+        conn.executemany(
+            """
+            INSERT INTO memories (
+                id, user_id, content, embedding_id, conversation_id, record_kind, role, message_type
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                ("interaction-1", "user-1", "episodic memory", 0, "conv-1", "interaction", "assistant", "llm-text"),
+                ("transcript-1", "user-1", "chat transcript", 1, "conv-1", "transcript", "user", "user"),
+            ],
+        )
+        conn.execute(
+            """
+            INSERT INTO conversation_titles (
+                user_id, conversation_id, title, source, is_locked, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            ("user-1", "conv-1", "Saved title", "heuristic", 0, "2026-03-11T00:00:00+00:00", "2026-03-11T00:00:00+00:00"),
+        )
+        conn.commit()
+
+    store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
+    store.episodic_index.add(
+        np.stack(
+            [
+                np.full((store.embedder.dimension,), 1.0, dtype=np.float32),
+                np.full((store.embedder.dimension,), 2.0, dtype=np.float32),
+            ],
+            axis=0,
+        )
+    )
+    cancel_calls = []
+
+    async def _cancel_titles():
+        cancel_calls.append("called")
+
+    store._cancel_title_generation_tasks = _cancel_titles
+
+    result = await store.clear_chat_history("user-1")
+
+    assert result == {
+        "deleted_count": 1,
+        "deleted_title_count": 1,
+    }
+    assert cancel_calls == ["called"]
+    assert store.episodic_index is not None
+    assert store.episodic_index.ntotal == 1
+
+    with sqlite3.connect(store.episodic_db_path) as conn:
+        remaining_rows = conn.execute(
+            "SELECT id, record_kind, embedding_id FROM memories ORDER BY id"
+        ).fetchall()
+        remaining_titles = conn.execute(
+            "SELECT COUNT(*) FROM conversation_titles"
+        ).fetchone()[0]
+    assert remaining_rows == [("interaction-1", "interaction", 0)]
+    assert remaining_titles == 0
 
 
 @pytest.mark.asyncio

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {
   X,
   Settings,
+  Database,
   ChevronDown,
 } from 'lucide-react';
 import { useAppConfigContext } from '../../../../app/providers/AppContextHooks';
@@ -12,10 +13,13 @@ import {
   getGlobalAgentStopShortcutOptions,
 } from '../../../../infrastructure/shortcuts/agentStopShortcut';
 import PermissionControlCenter from '../../../permissions/components/PermissionControlCenter';
+import { useTranscriptSessionInfo } from '../../hooks/useTranscriptSessionInfo';
+import { DEFAULT_USER_ID } from '../../utils/episodicMemoryUtils';
 import '../../../../styles/CloneSettings.css';
 
 const SETTINGS_TABS = Object.freeze([
   { id: 'general', icon: Settings, label: 'General' },
+  { id: 'memory', icon: Database, label: 'Memory' },
 ]);
 
 function SelectDropdown({
@@ -253,6 +257,120 @@ GeneralTab.propTypes = {
   onConfigChange: PropTypes.func.isRequired,
 };
 
+function MemoryTab({ onChatsCleared }) {
+  const sessionInfo = useTranscriptSessionInfo();
+  const userId = sessionInfo.userId || DEFAULT_USER_ID;
+  const [pendingAction, setPendingAction] = useState(null);
+  const [status, setStatus] = useState({
+    tone: 'idle',
+    message: '',
+  });
+
+  const runDestructiveAction = async ({
+    actionId,
+    confirmMessage,
+    channel,
+    successMessage,
+    onSuccess,
+  }) => {
+    if (pendingAction) {
+      return;
+    }
+
+    const confirmed = window.confirm(confirmMessage);
+    if (!confirmed) {
+      return;
+    }
+
+    setPendingAction(actionId);
+    setStatus({ tone: 'idle', message: '' });
+
+    try {
+      const result = await IpcBridge.invoke(channel, { userId });
+      if (!result || result.success === false) {
+        throw new Error(result?.error || 'Failed to complete destructive action');
+      }
+
+      if (typeof onSuccess === 'function') {
+        await onSuccess(result?.data);
+      }
+
+      setStatus({
+        tone: 'success',
+        message: successMessage,
+      });
+    } catch (error) {
+      setStatus({
+        tone: 'error',
+        message: error?.message || 'Failed to complete destructive action',
+      });
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
+  return (
+    <div className="clone-settings-memory">
+      <h2>Memory</h2>
+
+      <div className="clone-settings-row clone-settings-row-rich clone-settings-row-action">
+        <div>
+          <span>Nuke memory</span>
+          <p>Deletes all local episodic and semantic memory. Past chats stay intact.</p>
+        </div>
+        <button
+          type="button"
+          className="clone-settings-danger-button"
+          onClick={() => {
+            void runDestructiveAction({
+              actionId: 'memory',
+              confirmMessage: 'Delete all local episodic and semantic memory? Past chats will be kept.',
+              channel: INVOKE_CHANNELS.CLEAR_LOCAL_MEMORY,
+              successMessage: 'Local episodic and semantic memory deleted.',
+            });
+          }}
+          disabled={pendingAction !== null}
+        >
+          {pendingAction === 'memory' ? 'Nuking...' : 'Nuke memory'}
+        </button>
+      </div>
+
+      <div className="clone-settings-row clone-settings-row-rich clone-settings-row-action">
+        <div>
+          <span>Nuke chats</span>
+          <p>Deletes all past chats. Local episodic and semantic memory stay intact.</p>
+        </div>
+        <button
+          type="button"
+          className="clone-settings-danger-button"
+          onClick={() => {
+            void runDestructiveAction({
+              actionId: 'chats',
+              confirmMessage: 'Delete all past chats? Local episodic and semantic memory will be kept.',
+              channel: INVOKE_CHANNELS.CLEAR_CHAT_HISTORY,
+              successMessage: 'Past chats deleted.',
+              onSuccess: onChatsCleared,
+            });
+          }}
+          disabled={pendingAction !== null}
+        >
+          {pendingAction === 'chats' ? 'Nuking...' : 'Nuke chats'}
+        </button>
+      </div>
+
+      {status.message ? (
+        <p className={`clone-settings-action-status clone-settings-action-status-${status.tone}`}>
+          {status.message}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+MemoryTab.propTypes = {
+  onChatsCleared: PropTypes.func,
+};
+
 function PlaceholderTab({ title }) {
   return (
     <div className="clone-settings-placeholder">
@@ -266,7 +384,13 @@ PlaceholderTab.propTypes = {
   title: PropTypes.string.isRequired,
 };
 
-function SettingsSection({ config, onConfigChange, initialTab = 'general', onClose }) {
+function SettingsSection({
+  config,
+  onConfigChange,
+  initialTab = 'general',
+  onClose,
+  onChatsCleared,
+}) {
   const [activeTab, setActiveTab] = useState(initialTab);
 
   useEffect(() => {
@@ -276,6 +400,9 @@ function SettingsSection({ config, onConfigChange, initialTab = 'general', onClo
   const renderTabContent = () => {
     if (activeTab === 'general') {
       return <GeneralTab config={config} onConfigChange={onConfigChange} />;
+    }
+    if (activeTab === 'memory') {
+      return <MemoryTab onChatsCleared={onChatsCleared} />;
     }
     if (activeTab === 'data-controls') {
       return <PermissionControlCenter />;
@@ -331,6 +458,7 @@ SettingsSection.propTypes = {
   onConfigChange: PropTypes.func.isRequired,
   initialTab: PropTypes.string,
   onClose: PropTypes.func.isRequired,
+  onChatsCleared: PropTypes.func,
 };
 
 export default SettingsSection;

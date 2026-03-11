@@ -11,6 +11,10 @@ let mockAppConfigContext = {
   setWakewordEnabled: jest.fn(),
   globalAgentStopShortcutStatus: null,
 };
+let mockTranscriptSessionInfo = {
+  conversationRef: null,
+  userId: null,
+};
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
@@ -18,11 +22,17 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     SET_AGENT_SUDO_ACCESS: 'set-agent-sudo-access',
+    CLEAR_LOCAL_MEMORY: 'clear-local-memory',
+    CLEAR_CHAT_HISTORY: 'clear-chat-history',
   },
 }));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
   useAppConfigContext: () => mockAppConfigContext,
+}));
+
+jest.mock('../../frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo', () => ({
+  useTranscriptSessionInfo: () => mockTranscriptSessionInfo,
 }));
 
 describe('SettingsSection', () => {
@@ -38,12 +48,16 @@ describe('SettingsSection', () => {
       config = defaultConfig,
       onConfigChange = jest.fn(),
       onClose = jest.fn(),
+      onChatsCleared = jest.fn(),
+      initialTab = 'general',
     } = overrides;
     return render(
       <SettingsSection
         config={config}
         onConfigChange={onConfigChange}
         onClose={onClose}
+        onChatsCleared={onChatsCleared}
+        initialTab={initialTab}
       />,
     );
   }
@@ -58,6 +72,10 @@ describe('SettingsSection', () => {
       wakewordSuppressed: false,
       setWakewordEnabled: jest.fn(),
       globalAgentStopShortcutStatus: null,
+    };
+    mockTranscriptSessionInfo = {
+      conversationRef: null,
+      userId: null,
     };
   });
 
@@ -204,6 +222,51 @@ describe('SettingsSection', () => {
       );
       expect(onConfigChange).not.toHaveBeenCalledWith({ agent_full_sudo_enabled: true });
       expect(sudoToggle).not.toBeDisabled();
+    });
+  });
+
+  test('renders a memory tab in the settings sidebar', () => {
+    renderSettingsSection();
+
+    expect(screen.getByTestId('settings-tab-memory')).toBeInTheDocument();
+  });
+
+  test('nuke memory invokes clear-local-memory for the resolved user id', async () => {
+    mockTranscriptSessionInfo = {
+      conversationRef: 'conv-memory',
+      userId: 'user-memory',
+    };
+    renderSettingsSection({ initialTab: 'memory' });
+
+    fireEvent.click(screen.getByTestId('settings-tab-memory'));
+    fireEvent.click(screen.getByRole('button', { name: 'Nuke memory' }));
+
+    await waitFor(() => {
+      expect(window.confirm).toHaveBeenCalledWith(
+        'Delete all local episodic and semantic memory? Past chats will be kept.',
+      );
+      expect(mockInvoke).toHaveBeenCalledWith('clear-local-memory', { userId: 'user-memory' });
+      expect(screen.getByText('Local episodic and semantic memory deleted.')).toBeInTheDocument();
+    });
+  });
+
+  test('nuke chats invokes clear-chat-history and notifies the parent on success', async () => {
+    const onChatsCleared = jest.fn();
+    renderSettingsSection({
+      initialTab: 'memory',
+      onChatsCleared,
+    });
+
+    fireEvent.click(screen.getByTestId('settings-tab-memory'));
+    fireEvent.click(screen.getByRole('button', { name: 'Nuke chats' }));
+
+    await waitFor(() => {
+      expect(window.confirm).toHaveBeenCalledWith(
+        'Delete all past chats? Local episodic and semantic memory will be kept.',
+      );
+      expect(mockInvoke).toHaveBeenCalledWith('clear-chat-history', { userId: 'default_user' });
+      expect(onChatsCleared).toHaveBeenCalled();
+      expect(screen.getByText('Past chats deleted.')).toBeInTheDocument();
     });
   });
 });

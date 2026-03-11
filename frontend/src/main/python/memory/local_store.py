@@ -1731,6 +1731,115 @@ class LocalMemoryStore:
             logger.debug("Deleted semantic memory %s (user_id=%s)", memory_id, user_id)
         return bool(deleted)
 
+    async def _rebuild_and_sync_index(self, memory_type: str) -> None:
+        """
+        Rebuild an index from current DB rows, then backfill any embeddable NULL rows.
+
+        Bulk delete flows use this to drop stale vectors while preserving surviving rows.
+        """
+        await self._rebuild_index(memory_type)
+        (
+            db_path,
+            index,
+            vector_id_to_memory_id,
+            memory_id_to_vector_id,
+            next_vector_id,
+        ) = self._get_memory_state(memory_type)
+        updated_next_vector_id, embedded_count = await self._sync_vector_mappings_for_db(
+            memory_type=memory_type,
+            db_path=db_path,
+            index=index,
+            vector_id_to_memory_id=vector_id_to_memory_id,
+            memory_id_to_vector_id=memory_id_to_vector_id,
+            next_vector_id=next_vector_id,
+        )
+        self._set_next_vector_id(memory_type, updated_next_vector_id)
+        if embedded_count > 0:
+            await self._save_faiss_indices()
+        await self._cleanup_index_artifacts_if_empty(memory_type)
+
+    async def clear_local_memory(self, user_id: str) -> Dict[str, int]:
+        """
+        Clear user-local episodic interaction memory and semantic memory while preserving chats.
+        """
+        episodic_deleted = 0
+        semantic_deleted = 0
+
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            cursor = await conn.cursor()
+            await cursor.execute(
+                """
+                DELETE FROM memories
+                WHERE user_id = ? AND COALESCE(record_kind, '') != 'transcript'
+                """,
+                (user_id,),
+            )
+            episodic_deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+            await conn.commit()
+
+        async with aiosqlite.connect(self.semantic_db_path) as conn:
+            cursor = await conn.cursor()
+            await cursor.execute(
+                "DELETE FROM memories WHERE user_id = ?",
+                (user_id,),
+            )
+            semantic_deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+            await conn.commit()
+
+        await self._watermark_store.update(last_semanticized_id=None, pending_message_count=0)
+        await self._rebuild_and_sync_index("episodic")
+        await self._rebuild_and_sync_index("semantic")
+
+        logger.info(
+            "Cleared local memory for user_id=%s (episodic=%s semantic=%s)",
+            user_id,
+            episodic_deleted,
+            semantic_deleted,
+        )
+        return {
+            "episodic_deleted_count": int(episodic_deleted),
+            "semantic_deleted_count": int(semantic_deleted),
+        }
+
+    async def clear_chat_history(self, user_id: str) -> Dict[str, int]:
+        """Clear transcript chat history and conversation titles while preserving memory rows."""
+        await self._cancel_title_generation_tasks()
+
+        transcript_deleted = 0
+        conversation_titles_deleted = 0
+
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            cursor = await conn.cursor()
+            await cursor.execute(
+                """
+                DELETE FROM memories
+                WHERE user_id = ? AND record_kind = 'transcript'
+                """,
+                (user_id,),
+            )
+            transcript_deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+            await cursor.execute(
+                "DELETE FROM conversation_titles WHERE user_id = ?",
+                (user_id,),
+            )
+            conversation_titles_deleted = (
+                cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+            )
+            await conn.commit()
+
+        await self._rebuild_and_sync_index("episodic")
+
+        logger.info(
+            "Cleared chat history for user_id=%s (transcripts=%s titles=%s)",
+            user_id,
+            transcript_deleted,
+            conversation_titles_deleted,
+        )
+        return {
+            "deleted_count": int(transcript_deleted),
+            "deleted_title_count": int(conversation_titles_deleted),
+        }
+
     async def delete_conversation(
         self,
         user_id: str,

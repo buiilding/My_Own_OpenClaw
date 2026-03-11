@@ -177,6 +177,15 @@ The Electron renderer reads memory through sidecar JSON-RPC handlers exposed ove
 - `list_conversations` + `get_conversation` for episodic/transcript browsing.
 - `list_semantic_memories` for semantic-memory browsing in the Semantic Memory tab.
 
+## User-Facing Reset Controls
+
+Settings now exposes two destructive local-data actions:
+
+- `Nuke memory`: deletes user-local episodic interaction memory plus semantic memory, then rebuilds local indices so transcript chats remain searchable.
+- `Nuke chats`: deletes transcript chat history plus saved conversation titles, then rebuilds the episodic index so non-chat memory stays intact.
+
+These actions are user-scoped (`user_id`) and run through the frontend sidecar memory store, not the backend FastAPI service.
+
 ## Prompt Injection Retrieval
 
 Prompt-time memory injection is not a raw database dump.
