@@ -886,9 +886,9 @@ describe('ChatInterface wiring', () => {
     });
 
     expect(mockClearMessages).toHaveBeenCalledTimes(1);
-    expect(mockSetIsSending).toHaveBeenCalledWith(false);
-    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
-    expect(mockSetTokenCounts).toHaveBeenCalledWith(null);
+    expect(mockSetIsSending.mock.calls).toContainEqual([false, null]);
+    expect(mockSetThinkingStatus.mock.calls).toContainEqual([null, null]);
+    expect(mockSetTokenCounts.mock.calls).toContainEqual([null, null]);
     expect(mockSetActiveConversationRef).toHaveBeenCalledWith(expect.stringMatching(/^conv_/));
     expect(mockStopQuery).not.toHaveBeenCalled();
   });

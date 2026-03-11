@@ -139,7 +139,9 @@ describe('chatStreamFormatting utils', () => {
     expect(parsed.raw_arguments_preview).toContain('/tmp/a.txt');
     expect(parsed.parse_error).toBe('invalid tool arguments json');
     expect(parsed.frontend_execution_skipped).toBe(true);
-    expect(parsed.arguments).toBeUndefined();
+    if (Object.prototype.hasOwnProperty.call(parsed, 'arguments')) {
+      throw new Error(`expected parsed tool-call payload to omit arguments, got: ${JSON.stringify(parsed)}`);
+    }
   });
 
   test('formats pre-dispatch validation failures from preserved model-facing payload', () => {
@@ -179,6 +181,11 @@ describe('chatStreamFormatting utils', () => {
           command: "echo 'Original text to replace' > /tmp/test_replace.txt",
         },
       },
+      metadata: {
+        llm_tool_call_validation_failed: true,
+        skip_frontend_execution: true,
+      },
+      frontend_execution_skipped: true,
     });
   });
 

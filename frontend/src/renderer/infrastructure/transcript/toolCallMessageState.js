@@ -14,6 +14,20 @@ function cloneArguments(value) {
   return cloned ? { ...cloned } : null;
 }
 
+function sanitizeFallbackArgumentsForDisplay(argumentsValue, metadata) {
+  const clonedArguments = cloneArguments(argumentsValue);
+  if (!clonedArguments) {
+    return null;
+  }
+  if (metadata?.llm_tool_call_validation_failed !== true) {
+    return clonedArguments;
+  }
+
+  delete clonedArguments.raw_arguments_preview;
+  delete clonedArguments.parse_error;
+  return Object.keys(clonedArguments).length > 0 ? clonedArguments : null;
+}
+
 export function normalizeToolCallDisplayMetadata(metadata) {
   const normalized = cloneObject(metadata);
   if (!normalized) {
@@ -48,7 +62,7 @@ export function buildNormalizedToolCall({
   const resolvedArguments = (
     cloneArguments(toolCall.arguments)
     || cloneArguments(toolCall.args)
-    || cloneArguments(fallbackArguments)
+    || sanitizeFallbackArgumentsForDisplay(fallbackArguments, metadata)
     || {}
   );
   const resolvedMetadata = normalizeToolCallDisplayMetadata(metadata);

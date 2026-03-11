@@ -3,15 +3,8 @@
 const {
   initializePermissionHandlersRuntime,
 } = require('../../frontend/src/main/permission_ipc_runtime.cjs');
-const {
-  resetPermissionRequestStateForTests,
-} = require('../../frontend/src/main/permission_service.cjs');
 
 describe('permission_ipc_runtime', () => {
-  beforeEach(() => {
-    resetPermissionRequestStateForTests();
-  });
-
   function createRuntime(overrides = {}) {
     const invokeHandlers = {};
     const ipcMain = {
