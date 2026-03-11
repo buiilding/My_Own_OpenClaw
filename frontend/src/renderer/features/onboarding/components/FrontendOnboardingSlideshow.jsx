@@ -122,116 +122,120 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
         aria-modal="true"
       >
         <div className="frontend-onboarding-card-scroll-region">
-          <p className="frontend-onboarding-progress">
-            Step {activeSlideIndex + 1} of {totalSlides}
-          </p>
-          <h1 className="frontend-onboarding-title">{activeSlideTitle}</h1>
-          <p className="frontend-onboarding-body">{activeSlideBody}</p>
-          {isPermissionSlide ? (
-            <div className="frontend-onboarding-permissions-section">
-              {activePermission ? (
-                <>
-                  <div className="frontend-onboarding-permission-stage-meta">
-                    <p className="frontend-onboarding-permission-stage-count">
-                      Permission {activeSlideIndex + 1} of {permissionSlides.length}
-                    </p>
-                    <p className="frontend-onboarding-permission-stage-summary">
-                      Grant what you want now. You can revisit the rest later in Settings.
-                    </p>
-                  </div>
-                  <div className="frontend-onboarding-permissions-list single">
-                    {(() => {
-                      const status = statusesByPermissionId[activePermission.permission_id];
-                      const statusReason = typeof status?.reason === 'string'
-                        ? status.reason.trim()
-                        : '';
-                      const isGranted = status?.granted === true || status?.status === 'granted';
-                      const isPending = pendingPermissionId === activePermission.permission_id;
-                      const actionLabel = getPermissionActionLabel(activePermission);
-                      const grantedLabel = getPermissionGrantedLabel(activePermission);
-                      return (
-                        <article
-                          key={activePermission.permission_id}
-                          className="frontend-onboarding-permission-row single"
-                        >
-                          <div className="frontend-onboarding-permission-copy">
-                            <h2>{activePermission.label}</h2>
-                            <p className="frontend-onboarding-permission-kind">{getPermissionKindLabel(activePermission)}</p>
-                            <p>{activePermission.description}</p>
-                            {statusReason ? (
-                              <p className={`frontend-onboarding-permission-reason status-${status?.status || 'unknown'}`}>
-                                {statusReason}
-                              </p>
-                            ) : null}
-                          </div>
-                          {isGranted ? (
-                            <div className="frontend-onboarding-permission-granted" aria-label={grantedLabel}>
-                              <span className="frontend-onboarding-permission-granted-icon" aria-hidden="true">✓</span>
-                              <span>{grantedLabel}</span>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              className="frontend-onboarding-button primary"
-                              onClick={() => {
-                                void handleGrantPermission(activePermission.permission_id);
-                              }}
-                              disabled={isLoading || isPending}
-                            >
-                              {isPending ? `${actionLabel}...` : actionLabel}
-                            </button>
-                          )}
-                        </article>
-                      );
-                    })()}
-                  </div>
-                </>
-              ) : (
-                <p className="frontend-onboarding-permission-empty">
-                  {bootstrapped ? 'No permission items were returned by the manifest.' : 'Loading permissions...'}
-                </p>
-              )}
+          <div className="frontend-onboarding-stage">
+            <div className="frontend-onboarding-stage-copy">
+              <p className="frontend-onboarding-progress">
+                Step {activeSlideIndex + 1} of {totalSlides}
+              </p>
+              <h1 className="frontend-onboarding-title">{activeSlideTitle}</h1>
+              <p className="frontend-onboarding-body">{activeSlideBody}</p>
             </div>
-          ) : isStopFlowSlide ? (
-            <div className="frontend-onboarding-stop-flow">
-              <div
-                className="frontend-onboarding-stop-flow-keybind"
-                aria-label={`Stop shortcut ${resolvedStopShortcutLabel}`}
-              >
-                <span className="frontend-onboarding-stop-flow-keybind-label">
-                  Keybind
-                </span>
-                <div className="frontend-onboarding-stop-flow-keycap-row" aria-hidden="true">
-                  {stopShortcutSegments.map((segment, index) => (
-                    <Fragment key={`${segment}-${index}`}>
-                      {index > 0 ? (
-                        <span className="frontend-onboarding-stop-flow-keycap-separator">+</span>
-                      ) : null}
-                      <kbd className="frontend-onboarding-stop-flow-keycap">{segment}</kbd>
-                    </Fragment>
-                  ))}
+            {isPermissionSlide ? (
+              <div className="frontend-onboarding-permissions-section">
+                {activePermission ? (
+                  <>
+                    <div className="frontend-onboarding-permission-stage-meta">
+                      <p className="frontend-onboarding-permission-stage-count">
+                        Permission {activeSlideIndex + 1} of {permissionSlides.length}
+                      </p>
+                      <p className="frontend-onboarding-permission-stage-summary">
+                        Grant what you want now. You can revisit the rest later in Settings.
+                      </p>
+                    </div>
+                    <div className="frontend-onboarding-permissions-list single">
+                      {(() => {
+                        const status = statusesByPermissionId[activePermission.permission_id];
+                        const statusReason = typeof status?.reason === 'string'
+                          ? status.reason.trim()
+                          : '';
+                        const isGranted = status?.granted === true || status?.status === 'granted';
+                        const isPending = pendingPermissionId === activePermission.permission_id;
+                        const actionLabel = getPermissionActionLabel(activePermission);
+                        const grantedLabel = getPermissionGrantedLabel(activePermission);
+                        return (
+                          <article
+                            key={activePermission.permission_id}
+                            className="frontend-onboarding-permission-row single"
+                          >
+                            <div className="frontend-onboarding-permission-copy">
+                              <h2>{activePermission.label}</h2>
+                              <p className="frontend-onboarding-permission-kind">{getPermissionKindLabel(activePermission)}</p>
+                              <p>{activePermission.description}</p>
+                              {statusReason ? (
+                                <p className={`frontend-onboarding-permission-reason status-${status?.status || 'unknown'}`}>
+                                  {statusReason}
+                                </p>
+                              ) : null}
+                            </div>
+                            {isGranted ? (
+                              <div className="frontend-onboarding-permission-granted" aria-label={grantedLabel}>
+                                <span className="frontend-onboarding-permission-granted-icon" aria-hidden="true">✓</span>
+                                <span>{grantedLabel}</span>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                className="frontend-onboarding-button primary"
+                                onClick={() => {
+                                  void handleGrantPermission(activePermission.permission_id);
+                                }}
+                                disabled={isLoading || isPending}
+                              >
+                                {isPending ? `${actionLabel}...` : actionLabel}
+                              </button>
+                            )}
+                          </article>
+                        );
+                      })()}
+                    </div>
+                  </>
+                ) : (
+                  <p className="frontend-onboarding-permission-empty">
+                    {bootstrapped ? 'No permission items were returned by the manifest.' : 'Loading permissions...'}
+                  </p>
+                )}
+              </div>
+            ) : isStopFlowSlide ? (
+              <div className="frontend-onboarding-stop-flow">
+                <div
+                  className="frontend-onboarding-stop-flow-keybind"
+                  aria-label={`Stop shortcut ${resolvedStopShortcutLabel}`}
+                >
+                  <span className="frontend-onboarding-stop-flow-keybind-label">
+                    Keybind
+                  </span>
+                  <div className="frontend-onboarding-stop-flow-keycap-row" aria-hidden="true">
+                    {stopShortcutSegments.map((segment, index) => (
+                      <Fragment key={`${segment}-${index}`}>
+                        {index > 0 ? (
+                          <span className="frontend-onboarding-stop-flow-keycap-separator">+</span>
+                        ) : null}
+                        <kbd className="frontend-onboarding-stop-flow-keycap">{segment}</kbd>
+                      </Fragment>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="frontend-onboarding-emphasis">
-              <span className="frontend-onboarding-emphasis-label">{activeSlide.emphasisLabel}</span>
-              <span className="frontend-onboarding-emphasis-value">{activeSlide.emphasisValue}</span>
-            </div>
-          )}
-          {error ? (
-            <p className="frontend-onboarding-permission-error">{error}</p>
-          ) : null}
-          {isLastSlide && !canStartWindieOs ? (
-            <p className="frontend-onboarding-permission-error">
-              WindieOS is still loading permission status. Wait a moment and try again.
-            </p>
-          ) : null}
-          {isLastSlide && missingRequiredPermissions.length > 0 ? (
-            <p className="frontend-onboarding-permission-error">
-              Some permissions are still missing. You can continue now and grant them later in Settings.
-            </p>
-          ) : null}
+            ) : (
+              <div className="frontend-onboarding-emphasis">
+                <span className="frontend-onboarding-emphasis-label">{activeSlide.emphasisLabel}</span>
+                <span className="frontend-onboarding-emphasis-value">{activeSlide.emphasisValue}</span>
+              </div>
+            )}
+            {error ? (
+              <p className="frontend-onboarding-permission-error">{error}</p>
+            ) : null}
+            {isLastSlide && !canStartWindieOs ? (
+              <p className="frontend-onboarding-permission-error">
+                WindieOS is still loading permission status. Wait a moment and try again.
+              </p>
+            ) : null}
+            {isLastSlide && missingRequiredPermissions.length > 0 ? (
+              <p className="frontend-onboarding-permission-error">
+                Some permissions are still missing. You can continue now and grant them later in Settings.
+              </p>
+            ) : null}
+          </div>
         </div>
         <div className="frontend-onboarding-actions">
           {activeSlideIndex > 0 ? (
