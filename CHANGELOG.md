@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(agent-browser-validation-guidance): add browser-specific pre-dispatch repair guidance for empty `browser` calls and mixed-branch payloads, and validate strict browser `oneOf` action branches during tool preparation so retries get actionable correction text before frontend execution.
 - fix(tool-sender-validation-metadata): classify pre-dispatch browser/tool-schema rejections as `llm_tool_call_validation_failed` instead of `coordinate_resolution_failed`, and add focused sender regression coverage so skipped frontend executions surface the right failure reason.
 - fix(backend-browser-tool-schema): tighten the model-facing `browser` tool contract to action-specific `oneOf` branches with strict backend validation for canonical actions, so invalid calls like `search + url` or `find_elements + description` fail before sidecar execution; add backend regression coverage, refresh browser schema docs, and add prompt examples for `search` and `find_elements`.
 
