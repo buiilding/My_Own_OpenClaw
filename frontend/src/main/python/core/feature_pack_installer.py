@@ -19,7 +19,7 @@ from typing import Dict, Tuple
 APP_NAME = "desktop-assistant"
 
 _FEATURE_PACK_REQUIREMENTS: Dict[str, str] = {
-    "browser": "requirements.runtime.browser.txt",
+    "browser": "requirements.runtime.txt",
 }
 
 _FEATURE_PACK_MODULE_MARKERS: Dict[str, Tuple[str, ...]] = {
