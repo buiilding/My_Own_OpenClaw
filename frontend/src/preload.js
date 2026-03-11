@@ -36,6 +36,8 @@ contextBridge.exposeInMainWorld('ipc', {
       'delete-episodic-memory',
       'delete-conversation',
       'delete-semantic-memory',
+      'clear-local-memory',
+      'clear-chat-history',
       'store-transcript',
       'get-client-user-id',
       'set-chatbox-visual-anchor-height',
