@@ -33,13 +33,15 @@ Backend browser parse boundary is broad:
 
 Backend model-facing declaration boundary is narrower:
 
-- `RemoteBrowserTool.get_json_schema(...)` projects a canonical action enum for model/tool-calling output
+- `RemoteBrowserTool.get_json_schema(...)` now emits a canonical action-specific `oneOf` schema for model/tool-calling output
 - projection excludes removed aliases and browser file-edit actions (`write_file`, `replace_file`, `read_file`)
 - projection hides selected compatibility/camelCase fields (`timeoutMs`, `promptText`, `colorScheme`, `targetId`, `targetUrl`, `inputRef`, `snapshotFormat`, plus legacy edit payload keys)
+- action branches now set `additionalProperties: false` and encode per-action required fields where possible (for example `search.query`, `find_elements.selector`)
 
 Backend runtime gate in `RemoteBrowserTool`:
 
 - removed aliases (`type`, `open`, `switch_tab`, `press`, `act`) are blocked immediately
+- canonical model-facing actions are validated against strict per-action backend models before remote execution
 
 ### Sidecar boundary
 
@@ -99,6 +101,11 @@ Symptoms:
 
 - payload parses in backend model
 - sidecar returns `INVALID_ARGUMENT` after normalization/compat rejection
+
+Current mitigation:
+
+- model-facing canonical actions should now fail earlier at backend validation when they violate strict per-action schema branches
+- remaining backend-pass/sidecar-fail cases should be limited to non-model-facing/legacy compatibility payloads
 
 ### Pattern 4: Default stripping side effects
 
