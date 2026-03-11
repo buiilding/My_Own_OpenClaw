@@ -1,3 +1,4 @@
+---
 summary: "Electron main local-backend process lifecycle reference: sidecar launch-target resolution (binary-first packaged paths), readiness probe loop, request correlation/timeouts, and failure recovery behavior."
 read_when:
   - When changing local backend process startup, readiness checks, or request timeout behavior.
