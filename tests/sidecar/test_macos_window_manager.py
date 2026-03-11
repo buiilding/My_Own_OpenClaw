@@ -37,7 +37,7 @@ def _install_fake_appkit(monkeypatch, *, apps, active_app):
 
 
 def test_macos_window_manager_unavailable_without_appkit(monkeypatch):
-    monkeypatch.setitem(sys.modules, "AppKit", None)
+    monkeypatch.delitem(sys.modules, "AppKit", raising=False)
 
     manager = MacOSWindowManager()
 

@@ -8,7 +8,6 @@ export function buildToolSurfacePreparation(
     failureReason: string | null;
     surfaceToken: number | null;
     hiddenSurface?: ToolSurfacePreparation['hiddenSurface'];
-    overlayDemoted?: boolean;
   },
 ): ToolSurfacePreparation {
   return {
@@ -18,6 +17,5 @@ export function buildToolSurfacePreparation(
     mode,
     correlationId,
     hiddenSurface: options.hiddenSurface ?? 'none',
-    overlayDemoted: options.overlayDemoted === true,
   };
 }

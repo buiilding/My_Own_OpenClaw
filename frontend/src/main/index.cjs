@@ -253,8 +253,6 @@ function initializeMainProcessIpc() {
       showChatWindow: surfaceRuntime.showChatWindow,
       hideChatWindow: surfaceRuntime.hideChatWindow,
       hideMainWindow: surfaceRuntime.hideMainWindow,
-      externalFocusTracker,
-      platform: process.platform,
       warn: console.warn,
     });
 

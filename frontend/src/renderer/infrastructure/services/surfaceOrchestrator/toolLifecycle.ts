@@ -1,5 +1,4 @@
 import { logSurfaceTransition } from './logging';
-import { IpcBridge, INVOKE_CHANNELS } from '../../ipc/bridge';
 import {
   resolveSurfaceTransitionContext,
 } from './context';
@@ -18,18 +17,13 @@ import {
   handoffSurfaceForComputerUse,
   isDashboardVisibleForComputerUseHandoff,
 } from './surfaceHandoff';
-import {
-  resolveToolSurfaceMode,
-  shouldDemoteOverlayForTool,
-} from './mode';
+import { resolveToolSurfaceMode } from './mode';
 import {
   getPendingHiddenSurfaceRestore,
   hasActiveSurfaceTokens,
-  isPendingOverlayDemotionRestore,
   registerSurfaceToken,
   releaseSurfaceToken,
   isPendingHiddenSurfaceRestore,
-  setPendingOverlayDemotionRestore,
   setPendingHiddenSurfaceRestore,
 } from './state';
 import {
@@ -45,7 +39,6 @@ export async function prepareToolExecutionSurface(
   options: {
     correlationId?: string | null;
     source?: SurfaceTransitionSource;
-    shouldDemoteOverlay?: boolean;
   } = {},
 ): Promise<ToolSurfacePreparation> {
   const context = resolveSurfaceTransitionContext(
@@ -72,7 +65,6 @@ export async function prepareToolExecutionSurface(
   }
 
   let surfaceToken: number | null = null;
-  let overlayDemoted = false;
   const shouldManageSurfaceVisibility = shouldManageSurfaceVisibilityForBackgroundCapture();
   const shouldCollapseForScreenshot = (
     mode === 'screenshot'
@@ -84,17 +76,6 @@ export async function prepareToolExecutionSurface(
     if ((mode === 'interactive' || mode === 'screenshot') && !hasActiveSurfaceTokens()) {
       if (await isDashboardVisibleForComputerUseHandoff()) {
         await handoffSurfaceForComputerUse();
-      }
-    }
-
-    if (options.shouldDemoteOverlay === true && !hasActiveSurfaceTokens()) {
-      const demotionResult = await IpcBridge.invoke(
-        INVOKE_CHANNELS.DEMOTE_OVERLAY_TOPMOST_FOR_WINDOW_SWITCH,
-        {},
-      );
-      overlayDemoted = demotionResult?.success === true && demotionResult?.demoted === true;
-      if (overlayDemoted) {
-        setPendingOverlayDemotionRestore(true);
       }
     }
 
@@ -139,7 +120,6 @@ export async function prepareToolExecutionSurface(
         failureReason: null,
         surfaceToken,
         hiddenSurface: getPendingHiddenSurfaceRestore() ?? 'none',
-        overlayDemoted,
       });
     }
 
@@ -148,7 +128,6 @@ export async function prepareToolExecutionSurface(
       failureReason: null,
       surfaceToken,
       hiddenSurface: getPendingHiddenSurfaceRestore() ?? 'none',
-      overlayDemoted,
     });
   } catch (error) {
     console.warn('[SurfaceOrchestrator] Failed to prepare tool execution surface:', error);
@@ -193,7 +172,7 @@ export async function restoreToolExecutionSurface(
   });
 
   const shouldRestoreSurface = releaseSurfaceToken(preparation.surfaceToken);
-  if (!shouldRestoreSurface) {
+  if (!shouldRestoreSurface || !isPendingHiddenSurfaceRestore()) {
     logSurfaceTransition({
       source,
       correlationId,
@@ -206,16 +185,8 @@ export async function restoreToolExecutionSurface(
   }
 
   try {
-    if (isPendingHiddenSurfaceRestore()) {
-      await restoreSurfaceAfterBackgroundCapture(
-        getPendingHiddenSurfaceRestore() ?? preparation.hiddenSurface ?? 'none',
-      );
-      setPendingHiddenSurfaceRestore(null);
-    }
-    if (isPendingOverlayDemotionRestore()) {
-      await IpcBridge.invoke(INVOKE_CHANNELS.RESTORE_OVERLAY_TOPMOST_AFTER_WINDOW_SWITCH, {});
-      setPendingOverlayDemotionRestore(false);
-    }
+    await restoreSurfaceAfterBackgroundCapture(getPendingHiddenSurfaceRestore() ?? preparation.hiddenSurface ?? 'none');
+    setPendingHiddenSurfaceRestore(null);
     logSurfaceTransition({
       source,
       correlationId,
@@ -245,8 +216,5 @@ export async function ensureToolExecutionSurface(
   } = {},
 ): Promise<ToolSurfacePreparation> {
   const mode = resolveToolSurfaceMode(toolName, args);
-  return prepareToolExecutionSurface(mode, {
-    ...options,
-    shouldDemoteOverlay: shouldDemoteOverlayForTool(toolName, args),
-  });
+  return prepareToolExecutionSurface(mode, options);
 }

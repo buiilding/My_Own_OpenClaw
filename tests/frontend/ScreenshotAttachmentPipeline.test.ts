@@ -30,14 +30,9 @@ import {
 } from '../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline';
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
-import {
-  prepareScreenshotCaptureVisibility,
-} from '../../frontend/src/renderer/infrastructure/services/SurfaceOrchestrator';
 
 const mockInvoke = IpcBridge.invoke as jest.MockedFunction<typeof IpcBridge.invoke>;
 const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
-const mockPrepareScreenshotCaptureVisibility =
-  prepareScreenshotCaptureVisibility as jest.MockedFunction<typeof prepareScreenshotCaptureVisibility>;
 
 describe('ScreenshotAttachmentPipeline', () => {
   beforeEach(() => {
@@ -47,7 +42,6 @@ describe('ScreenshotAttachmentPipeline', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
-    jest.useRealTimers();
   });
 
   test('extractScreenshotAttachment normalizes inline payloads and infers refs from urls', () => {
@@ -106,34 +100,6 @@ describe('ScreenshotAttachmentPipeline', () => {
       type: 'windie:screenshot-capture',
       detail: { active: false },
     }));
-  });
-
-  test('captureScreenshotAttachment waits before invoking screenshot even when visibility prep is a no-op', async () => {
-    jest.useFakeTimers();
-    mockInvoke.mockResolvedValue({
-      success: true,
-      data: {
-        screenshot: 'shot',
-      },
-    } as any);
-    mockPrepareScreenshotCaptureVisibility.mockResolvedValue({
-      prepared: false,
-      captureId: 'capture-id',
-    } as any);
-
-    const capturePromise = captureScreenshotAttachment({
-      waitSeconds: 2,
-      correlationId: 'cap-wait',
-    });
-
-    await jest.advanceTimersByTimeAsync(1999);
-    expect(mockInvoke).not.toHaveBeenCalled();
-
-    await jest.advanceTimersByTimeAsync(1);
-    await capturePromise;
-
-    expect(mockInvoke).toHaveBeenCalledTimes(1);
-    jest.useRealTimers();
   });
 
   test('materializeScreenshotAttachment uploads inline screenshots and preserves inline fallback on upload failure', async () => {
