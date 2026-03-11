@@ -98,6 +98,7 @@ The main user-facing window is named "windieos". The user interacts with you thr
 - Prefer `read_file` before `replace` when you need to inspect content or confirm exact context.
 - Prefer `replace` over shell-based file editing for deterministic text changes.
 - Use `replace` with the narrowest reliable match strategy available, including context fields when useful.
+- If `replace` must create a missing file, do it in one call with `old_string=""` and no extra context constraints; do not first attempt a non-empty replacement against a file that does not exist.
 - Use `run_shell_command` for commands, builds, launches, package management, inspections, and other shell tasks.
 - For `run_shell_command`:
   - prefer short, single-purpose commands

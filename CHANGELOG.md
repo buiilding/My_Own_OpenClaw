@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(prompt-replace-file-creation-guidance): teach the system prompt that creating a missing file with `system_use` `replace` must be done in one call with `old_string=\"\"` and no extra context constraints, so the agent avoids the invalid two-step replace-then-create pattern.
 - fix(dashboard-invalid-tool-call-transparency): show raw model-emitted tool calls in dashboard tool-call cards for validation failures by preferring preserved `model_facing_tool_call` payloads and raw tool-call previews over synthesized normalized formatter output, propagate invalid-call previews through structured `LLMAPIError`/`ErrorEvent` metadata instead of reparsing error strings, and render tool-call cards from a dedicated display-text field; add backend/frontend regressions for streamed parse failures and pre-dispatch `system_use` wrapper rejections.
 - fix(sidecar-browser-omnibox-target-filtering): stop sidecar browser tab enumeration and focus recovery from treating internal `chrome://omnibox-popup.top-chrome/...` surfaces as real user tabs; add focused session-manager regression coverage for visible-tab filtering and close-tab recovery.
 - fix(frontend-preload-ipc-registry-loading): replace the shared IPC CJS module with a JSON registry and inject it into sandboxed preload windows via `additionalArguments`, so preload keeps renderer parity without relying on unsupported sibling-module or builtin-import resolution; add focused preload/window regression coverage.
