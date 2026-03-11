@@ -9,6 +9,7 @@ All notable changes to WindieOS will be documented in this file.
 - docs(frontend-global-stop-shortcut-settings): refresh the user guide, frontend architecture, and onboarding runtime docs so they describe the configurable global stop shortcut, its platform defaults, the local-only config boundary, and the way onboarding mirrors the saved accelerator.
 - docs(frontend-onboarding-layout): document the viewport-capped onboarding card and fixed footer action contract so short-window regressions stay aligned with the renderer implementation.
 - docs(frontend-main-surface-runtime): refresh frontend architecture and window lifecycle references so they document the new `surface_runtime` owner, centralized `window_platform_policy`, and supervisor-owned sidecar/wakeword subprocess state.
+- docs(frontend-chat-pill-capture-policy): correct the main overlay lifecycle doc so it matches runtime reality: Linux owns automatic screenshot-time chat-pill hide/restore suppression, while Windows/macOS keep generic pill show/hide APIs but use no-op screenshot surface-visibility runtimes.
 
 ### Added
 - feat(frontend-global-stop-shortcut-settings): expose the main-process global agent-stop shortcut in Settings > General, offer platform-safe accelerator choices, persist the selected accelerator locally, apply changes live through the Electron shortcut runtime, and keep onboarding copy aligned with the saved value; add focused renderer/main/IPC regression coverage.

@@ -166,7 +166,7 @@ Tool-execution chat-pill lifecycle (interactive computer-use path):
 - restore is symmetric with prep: capture lifecycles use a dedicated `restore-surface-after-screenshot` IPC so the same hidden surface is restored with the correct contract
 - chat-pill restores through that IPC explicitly re-apply the response-overlay shell when the active overlay phase is still in the loop (`awaiting-first-chunk|streaming|tool-call|tool-output`), instead of reusing generic non-focusing `show-chatbox` behavior
 - dashboard capture prep now moves the main window off the visible desktop before hide and does not return until the dashboard is offscreen, minimized, or hidden, so screenshot execution no longer races the dashboard hide animation
-- Linux prep waits a bounded compositor-settle interval (`120ms`) after hiding the owning surface before invoking the screenshot tool so neither the pill nor the dashboard leaks into captured frames; Windows/macOS use the same active-surface hide/restore contract with `settleMs=0`
+- Linux prep waits a bounded compositor-settle interval (`120ms`) after hiding the owning surface before invoking the screenshot tool so neither the pill nor the dashboard leaks into captured frames; Windows/macOS keep the generic chat-pill `show-chatbox` / `hide-chatbox` behavior, but the renderer screenshot-capture runtime is a true no-op there and does not perform automatic capture-time hide/restore suppression
 - response overlay renderer now listens to `response-overlay-visibility`; hide marks the cached frame as hidden and show forces a fresh `set-responsebox-size` report (including `compact_hover`) so typing-indicator compact hover offset is re-applied after capture hide/show cycles
 
 Dashboard-to-chat-pill conversation continuity:
