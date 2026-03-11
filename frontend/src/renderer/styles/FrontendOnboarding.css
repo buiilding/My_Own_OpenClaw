@@ -63,7 +63,7 @@
 
 .frontend-onboarding-card-scroll-region {
   min-height: 0;
-  width: min(980px, calc(100% - 88px));
+  width: min(1120px, calc(100% - 88px));
   margin: 0 auto;
   padding: 40px 0 24px;
   display: grid;
@@ -74,7 +74,7 @@
 }
 
 .frontend-onboarding-stage {
-  width: min(980px, 100%);
+  width: min(1120px, 100%);
   min-height: 100%;
   display: grid;
   align-content: center;
@@ -244,7 +244,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  width: min(980px, calc(100% - 88px));
+  width: min(1120px, calc(100% - 88px));
   margin: 0 auto;
   padding: 14px 0 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.09);
@@ -292,7 +292,7 @@
   display: grid;
   gap: 18px;
   min-height: 0;
-  width: 100%;
+  width: min(980px, 100%);
   justify-items: center;
 }
 
@@ -364,7 +364,7 @@
 
 .frontend-onboarding-permissions-list.single {
   grid-template-columns: 1fr;
-  width: 100%;
+  width: min(980px, 100%);
   justify-items: center;
 }
 
@@ -390,7 +390,7 @@
 }
 
 .frontend-onboarding-permission-row.single {
-  width: 100%;
+  width: min(980px, 100%);
   min-height: 0;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 20px;

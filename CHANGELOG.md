@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-onboarding-desktop-card-span): give the centered permission area an explicit wider desktop width so single permission cards visibly span farther to the right instead of staying narrow due to nested auto-sized grid tracks.
 - fix(frontend-onboarding-stage-width): widen the centered onboarding stage to the full scroll-region width so single permission cards extend farther to the right instead of staying artificially capped inside a narrower inner frame.
 - fix(frontend-onboarding-permission-card-width): let the single permission card fill the centered onboarding stage width so the lower pill visually tracks the hero copy above instead of reading as undersized.
 - fix(frontend-onboarding-centered-stage): center the permission-by-permission onboarding wizard in a narrower stage, align the footer to the same axis, and swap the hero typography onto a softer display/body font combination so the first-run flow feels less left-heavy and more comfortable to read.
