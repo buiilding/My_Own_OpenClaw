@@ -5,11 +5,12 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
-- fix(agent-browser-validation-guidance): add browser-specific pre-dispatch repair guidance for empty `browser` calls and mixed-branch payloads, and validate strict browser `oneOf` action branches during tool preparation so retries get actionable correction text before frontend execution.
+- fix(agent-browser-validation-guidance): keep browser-specific pre-dispatch repair guidance for empty `browser` calls while removing the reverted strict browser `oneOf` validation dependency from tool preparation.
 - fix(tool-sender-validation-metadata): classify pre-dispatch browser/tool-schema rejections as `llm_tool_call_validation_failed` instead of `coordinate_resolution_failed`, and add focused sender regression coverage so skipped frontend executions surface the right failure reason.
 ### Docs
 - docs(ui-dashboard-and-backend-stopquery-drift): sync dashboard shell and sidebar docs with current renderer runtime (VM-mode surface gating, open/scroll-lock lifecycle, ipc-status connectivity projection, search debounce/limits, transcript-title visibility polling) and align backend stop-query/settings docs with current handler behavior (`conversation_ref` schema present but not forwarded) plus expanded `update-settings` frontend-owned fields.
 - docs(ui-overlay-and-settings-payload-drift): align response-overlay phase docs with current entry-driven visibility (including `tool-explanation` rows) and update communication-flow `update-settings` payload docs to include current backend schema fields (`browser_automation_enabled`, `provider_api_keys`, `provider_oauth`).
+- docs(settings-memory-reset-controls): document the new Settings > Memory tab plus sidecar-backed memory/chat reset behavior and index rebuild guarantees.
 - docs(ui-and-backend-drift-followup): add renderer-provider/runtime details (AppContextCoordinator, model-list guard, main-session conversation-ref hydration), expand chat send-lifecycle notes for deferred model sync, and update backend API/session docs with runs API-key + app-state service details and explicit stop-request grace-window behavior.
 - docs(architecture-runtime-planes): expand high-level architecture/communication docs with the dual-plane runtime model (`/ws` streaming plus `/api/runs/*` control plane), VM worker runtime placement in Electron main, and OpenAI provider native-reasoning runtime note so system-level docs match current backend/frontend execution surfaces.
 - docs(sidecar-tool-contract-and-runtime-hub-sync): fix sidecar docs mismatch for `system_use` top-level `explanation` requirement, clarify sidecar schema-vs-runtime enforcement boundaries, repair malformed front-matter in local-backend lifecycle reference, and refresh backend/frontend runtime hub scope plus docs-hub links for the new runtime surface pages.
@@ -22,6 +23,7 @@ All notable changes to WindieOS will be documented in this file.
 - docs(frontend-chat-pill-capture-policy): correct the main overlay lifecycle doc so it matches runtime reality: Linux owns automatic screenshot-time chat-pill hide/restore suppression, while Windows/macOS keep generic pill show/hide APIs but use no-op screenshot surface-visibility runtimes.
 
 ### Added
+- feat(settings-memory-reset-controls): add a Settings > Memory tab with destructive `Nuke memory` and `Nuke chats` actions, backed by new main/sidecar bulk-clear IPC flows that preserve surviving local data via index rebuilds.
 - feat(frontend-global-stop-shortcut-settings): expose the main-process global agent-stop shortcut in Settings > General, offer platform-safe accelerator choices, persist the selected accelerator locally, apply changes live through the Electron shortcut runtime, and keep onboarding copy aligned with the saved value; add focused renderer/main/IPC regression coverage.
 
 ### Fixed
