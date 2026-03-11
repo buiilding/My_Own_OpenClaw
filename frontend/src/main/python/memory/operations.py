@@ -45,6 +45,92 @@ def normalize_search_memory_payload(
     }, None
 
 
+def _normalize_optional_positive_int(
+    value: Any,
+    *,
+    field_name: str,
+    default: Optional[int] = None,
+) -> Tuple[Optional[int], Optional[str]]:
+    if value is None:
+        return default, None
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None, f"{field_name} must be an integer"
+    if value <= 0:
+        return None, f"{field_name} must be greater than 0"
+    return value, None
+
+
+def normalize_search_memory_selection(
+    *,
+    limit: Any,
+    episodic_limit: Any = None,
+    semantic_limit: Any = None,
+    semantic_min_score: Any = None,
+) -> Tuple[Optional[Dict[str, Optional[float]]], Optional[str]]:
+    """Validate optional prompt-injection retrieval budgets and score thresholds."""
+    normalized_limit, error = _normalize_optional_positive_int(
+        limit,
+        field_name="limit",
+        default=5,
+    )
+    if error:
+        return None, error
+
+    normalized_episodic_limit, error = _normalize_optional_positive_int(
+        episodic_limit,
+        field_name="episodic_limit",
+    )
+    if error:
+        return None, error
+
+    normalized_semantic_limit, error = _normalize_optional_positive_int(
+        semantic_limit,
+        field_name="semantic_limit",
+    )
+    if error:
+        return None, error
+
+    normalized_semantic_min_score: Optional[float] = None
+    if semantic_min_score is not None:
+        if isinstance(semantic_min_score, bool) or not isinstance(
+            semantic_min_score, (int, float)
+        ):
+            return None, "semantic_min_score must be a number"
+        normalized_semantic_min_score = float(semantic_min_score)
+        if not 0.0 <= normalized_semantic_min_score <= 1.0:
+            return None, "semantic_min_score must be between 0 and 1"
+
+    return {
+        "limit": normalized_limit,
+        "episodic_limit": normalized_episodic_limit,
+        "semantic_limit": normalized_semantic_limit,
+        "semantic_min_score": normalized_semantic_min_score,
+        "use_balanced_limits": bool(
+            normalized_episodic_limit is not None
+            or normalized_semantic_limit is not None
+            or normalized_semantic_min_score is not None
+        ),
+    }, None
+
+
+def filter_results_by_min_score(
+    results: Iterable[Dict[str, Any]],
+    min_score: Optional[float],
+) -> List[Dict[str, Any]]:
+    """Drop search results that fall below an optional similarity floor."""
+    if min_score is None:
+        return list(results)
+
+    filtered: List[Dict[str, Any]] = []
+    for result in results:
+        score = result.get("score")
+        if isinstance(score, bool) or not isinstance(score, (int, float)):
+            continue
+        if float(score) >= min_score:
+            filtered.append(result)
+    return filtered
+
+
 def exclude_conversation_results(
     results: Iterable[Dict[str, Any]],
     conversation_id: Optional[str],

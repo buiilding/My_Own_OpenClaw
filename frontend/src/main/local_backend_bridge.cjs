@@ -802,6 +802,7 @@ async function searchMemory(
   limit,
   memory_type,
   exclude_conversation_id,
+  retrievalOptions = {},
 ) {
   return sendMemorySearchRequest({
     query,
@@ -809,6 +810,7 @@ async function searchMemory(
     limit,
     memory_type,
     exclude_conversation_id,
+    ...retrievalOptions,
   });
 }
 

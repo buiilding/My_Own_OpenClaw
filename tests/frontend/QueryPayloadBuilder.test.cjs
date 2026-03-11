@@ -40,9 +40,14 @@ describe('query_payload_builder', () => {
     expect(searchMemory).toHaveBeenCalledWith(
       'hello <world>',
       'user-1',
-      5,
+      6,
       null,
       'conv-1',
+      {
+        episodic_limit: 4,
+        semantic_limit: 2,
+        semantic_min_score: 0.2,
+      },
     );
     expect(result.content).toContain('<system_context>');
     expect(result.content).toContain('<episodic_memory>');

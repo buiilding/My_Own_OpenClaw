@@ -176,6 +176,20 @@ The Electron renderer reads memory through sidecar JSON-RPC handlers exposed ove
 - `list_conversations` + `get_conversation` for episodic/transcript browsing.
 - `list_semantic_memories` for semantic-memory browsing in the Semantic Memory tab.
 
+## Prompt Injection Retrieval
+
+Prompt-time memory injection is not a raw database dump.
+
+- The dashboard Semantic tab reads direct rows from `semantic.db`.
+- Query-time prompt enrichment uses `search_memory`, which retrieves only query-relevant results.
+- The prompt path now uses a split retrieval budget:
+  - episodic limit `4`
+  - semantic limit `2`
+  - semantic minimum similarity `0.20`
+- Practical effect:
+  - semantic memories no longer lose every prompt slot to highly similar episodic transcript rows
+  - trivial or low-similarity semantic summaries still stay out of the prompt
+
 ## Completed Turn Persistence Contract
 
 - A completed `user -> assistant` turn should persist two different artifacts:

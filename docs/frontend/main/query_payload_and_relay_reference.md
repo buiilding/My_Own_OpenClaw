@@ -131,7 +131,11 @@ Output from `buildQueryPayload(...)`:
 
 Memory section formatting contract (`query_payload_builder.cjs`):
 
-- `searchMemory(query, user_id, limit=5, memory_type=null, exclude_conversation_id=conversationRef)` is called when retrieval injection is enabled.
+- `searchMemory(query, user_id, limit=6, memory_type=null, exclude_conversation_id=conversationRef, retrievalOptions)` is called when retrieval injection is enabled.
+- prompt injection requests a balanced retrieval budget:
+  - `episodic_limit=4`
+  - `semantic_limit=2`
+  - `semantic_min_score=0.20`
 - sidecar search path applies: store search -> active-conversation exclusion -> episodic/semantic grouping.
 - episodic grouping prefers pre-paired interaction rows (`User + Assistant`), then transcript synthesis fallback, then raw episodic fallback text.
 - each section is always emitted when retrieval injection is enabled:

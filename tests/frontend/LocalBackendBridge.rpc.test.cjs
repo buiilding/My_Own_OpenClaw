@@ -793,6 +793,9 @@ describe('local_backend_bridge RPC handlers', () => {
       limit: 3,
       memory_type: 'semantic',
       excludeConversationId: 'conv-active',
+      episodicLimit: 4,
+      semanticLimit: 2,
+      semanticMinScore: 0.2,
     });
     const request = getLastWrittenRequest();
     expect(request).toEqual(
@@ -804,6 +807,9 @@ describe('local_backend_bridge RPC handlers', () => {
           limit: 3,
           memory_type: 'semantic',
           exclude_conversation_id: 'conv-active',
+          episodic_limit: 4,
+          semantic_limit: 2,
+          semantic_min_score: 0.2,
         },
       }),
     );
@@ -824,6 +830,9 @@ describe('local_backend_bridge RPC handlers', () => {
       limit: 4,
       memory_type: 'episodic',
       exclude_conversation_id: 'conv-snake',
+      episodic_limit: 3,
+      semantic_limit: 1,
+      semantic_min_score: 0.15,
     });
     const request = getLastWrittenRequest();
     expect(request).toEqual(
@@ -835,6 +844,9 @@ describe('local_backend_bridge RPC handlers', () => {
           limit: 4,
           memory_type: 'episodic',
           exclude_conversation_id: 'conv-snake',
+          episodic_limit: 3,
+          semantic_limit: 1,
+          semantic_min_score: 0.15,
         },
       }),
     );

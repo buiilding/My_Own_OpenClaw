@@ -133,6 +133,11 @@ class DummyMemoryStoreCapturing(DummyMemoryStore):
 
     async def search(self, query, user_id, filters, limit):
         self.search_calls.append((query, user_id, filters, limit))
+        if isinstance(self.results, dict):
+            normalized_type = None
+            if isinstance(filters, dict):
+                normalized_type = filters.get("type")
+            return self.results.get(normalized_type, [])
         return self.results
 
     async def search_conversations(self, user_id, query, limit=40):
@@ -1207,6 +1212,41 @@ async def test_handle_search_memory_excludes_active_conversation():
     assert result["success"] is True
     assert result["data"]["memories"]["episodic"] == ["from old"]
     assert result["data"]["memories"]["semantic"] == ["semantic fact"]
+
+
+@pytest.mark.asyncio
+async def test_handle_search_memory_balances_episodic_and_semantic_results():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStoreCapturing(
+        {
+            "episodic": [
+                {"type": "episodic", "text": "from active", "conversation_id": "conv-active", "score": 0.95},
+                {"type": "episodic", "text": "from old", "conversation_id": "conv-old", "score": 0.9},
+            ],
+            "semantic": [
+                {"type": "semantic", "text": "high value fact", "score": 0.3},
+                {"type": "semantic", "text": "low value fact", "score": 0.1},
+            ],
+        }
+    )
+
+    result = await backend._handle_search_memory(
+        "query",
+        user_id="user-1",
+        limit=6,
+        exclude_conversation_id="conv-active",
+        episodic_limit=4,
+        semantic_limit=2,
+        semantic_min_score=0.2,
+    )
+
+    assert result["success"] is True
+    assert result["data"]["memories"]["episodic"] == ["from old"]
+    assert result["data"]["memories"]["semantic"] == ["high value fact"]
+    assert backend.memory_store.search_calls == [
+        ("query", "user-1", {"type": "episodic"}, 4),
+        ("query", "user-1", {"type": "semantic"}, 2),
+    ]
 
 
 @pytest.mark.asyncio
