@@ -30,6 +30,10 @@ class MouseControlArgs(SourceGroundingArgsMixin, DragDestinationGroundingArgsMix
             "Do not treat tool execution status alone as UI success; verify the expected UI change from the latest screenshot."
         ),
     )
+    button: Literal["left", "right", "middle"] = Field(
+        "left",
+        description="Mouse button for click and double_click actions.",
+    )
 
     # Action-specific fields
     duration: float = Field(0.5, description="Duration for drag operations")

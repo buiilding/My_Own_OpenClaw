@@ -37,6 +37,7 @@ Supported actions:
 Action contracts from implementation:
 
 - all mouse actions require `x` and `y`
+- `click` and `double_click` accept optional `button` (`left`, `right`, `middle`); default is `left`
 - `drag` also requires `drag_to_x` and `drag_to_y`
 - pyautogui failsafe is disabled (`pyautogui.FAILSAFE = False`)
 
