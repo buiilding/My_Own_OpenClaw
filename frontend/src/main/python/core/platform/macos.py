@@ -31,6 +31,27 @@ class MacOSWindowManager(BaseWindowManager):
             logger.warning("AppKit/Quartz not available, window management disabled on macOS")
             self._available = False
 
+    def _list_running_app_records(self) -> List[dict]:
+        if not self._available:
+            return []
+
+        workspace = self.NSWorkspace.sharedWorkspace()
+        running_apps = workspace.runningApplications()
+        windows: List[dict] = []
+        for app in running_apps:
+            app_name = app.localizedName()
+            if not app_name:
+                continue
+            windows.append(
+                {
+                    "title": app_name,
+                    "hwnd": None,
+                    "app_name": app_name,
+                    "window_name": app_name,
+                }
+            )
+        return windows
+
     def _list_window_records(self, *, on_screen_only: bool) -> List[dict]:
         if not self._available:
             return []
@@ -147,9 +168,12 @@ return "false"
             return []
 
         try:
+            window_records = self._list_window_records(on_screen_only=False)
+            if not window_records:
+                window_records = self._list_running_app_records()
             return [
                 {"title": window["title"], "hwnd": window["hwnd"]}
-                for window in self._list_window_records(on_screen_only=False)
+                for window in window_records
             ]
         except Exception as e:
             logger.error(f"Error getting windows: {e}", exc_info=True)
@@ -189,7 +213,10 @@ return "false"
         try:
             target_window = None
             normalized_requested_title = window_title.lower()
-            for window in self._list_window_records(on_screen_only=False):
+            candidate_windows = self._list_window_records(on_screen_only=False)
+            if not candidate_windows:
+                candidate_windows = self._list_running_app_records()
+            for window in candidate_windows:
                 if normalized_requested_title in window["title"].lower():
                     target_window = window
                     break
