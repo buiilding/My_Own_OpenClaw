@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(sidecar-browser-omnibox-target-filtering): stop sidecar browser tab enumeration and focus recovery from treating internal `chrome://omnibox-popup.top-chrome/...` surfaces as real user tabs; add focused session-manager regression coverage for visible-tab filtering and close-tab recovery.
 - fix(frontend-preload-ipc-registry-loading): replace the shared IPC CJS module with a JSON registry and inject it into sandboxed preload windows via `additionalArguments`, so preload keeps renderer parity without relying on unsupported sibling-module or builtin-import resolution; add focused preload/window regression coverage.
 - fix(browser-tool-schema-dropdown-text): remove the generic browser `value` field from the model-facing browser schema and restore a multi-action `text` description so `select_dropdown` calls are steered toward `text` instead of an irrelevant storage payload key; add focused backend schema regression coverage and update the browser schema parity doc.
 - fix(agent-browser-validation-guidance): keep browser-specific pre-dispatch repair guidance for empty `browser` calls while removing the reverted strict browser `oneOf` validation dependency from tool preparation.
