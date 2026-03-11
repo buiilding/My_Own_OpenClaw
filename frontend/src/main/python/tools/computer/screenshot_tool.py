@@ -389,8 +389,17 @@ def _overlay_macos_appkit_cursor(
         # Use the stable arrow cursor instead of the transient current cursor
         # so post-action screenshots do not freeze macOS hover/magnification states.
         cursor = NSCursor.arrowCursor()
+        if cursor is None:
+            return False
+
         ns_image = cursor.image()
+        if ns_image is None:
+            return False
+
         hot_spot = cursor.hotSpot()
+        if hot_spot is None:
+            return False
+
         tiff_data = ns_image.TIFFRepresentation()
         if tiff_data is None:
             return False

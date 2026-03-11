@@ -349,3 +349,38 @@ def test_overlay_macos_appkit_cursor_uses_stable_arrow_cursor(monkeypatch):
             "draw_y": 124,
         }
     ]
+
+
+def test_overlay_macos_appkit_cursor_returns_false_when_arrow_cursor_missing(monkeypatch):
+    monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Darwin")
+
+    class _FakeNSCursor:
+        @staticmethod
+        def arrowCursor():
+            return None
+
+    appkit_module = ModuleType("AppKit")
+    appkit_module.NSCursor = _FakeNSCursor
+    monkeypatch.setitem(sys.modules, "AppKit", appkit_module)
+
+    pyautogui_module = ModuleType("pyautogui")
+    pyautogui_module.position = lambda: SimpleNamespace(x=100, y=150)
+    monkeypatch.setitem(sys.modules, "pyautogui", pyautogui_module)
+
+    pil_module = ModuleType("PIL")
+    pil_module.Image = SimpleNamespace(
+        open=lambda _stream: (_ for _ in ()).throw(AssertionError("Image.open should not run without a cursor"))
+    )
+    monkeypatch.setitem(sys.modules, "PIL", pil_module)
+
+    monkeypatch.setattr(
+        screenshot_tool,
+        "_paste_cursor_overlay",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            AssertionError("_paste_cursor_overlay should not run without a cursor")
+        ),
+    )
+
+    screenshot = _FakeImage(mode="RGBA", size=(300, 200))
+
+    assert screenshot_tool._overlay_macos_appkit_cursor(screenshot, region=(10, 20, 300, 200)) is False
