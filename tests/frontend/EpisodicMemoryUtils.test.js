@@ -88,6 +88,7 @@ describe('episodicMemoryUtils', () => {
         sender: 'assistant',
         text: 'bundle issued',
         type: 'tool-call',
+        toolCallDisplayText: 'bundle issued',
         isComplete: true,
       },
     ]);
@@ -96,7 +97,7 @@ describe('episodicMemoryUtils', () => {
   test('parseMemoriesToMessages preserves assistant tool-call transcript rows', () => {
     const memory = {
       id: 'assistant-tool-call',
-      content: 'tool call payload',
+      content: '{"id":"call-1","name":"browser","arguments":{"action":"navigate"}}',
       role: 'assistant',
       message_type: 'tool-call',
     };
@@ -104,8 +105,15 @@ describe('episodicMemoryUtils', () => {
       {
         id: 'assistant-tool-call-0',
         sender: 'assistant',
-        text: 'tool call payload',
+        text: '{"id":"call-1","name":"browser","arguments":{"action":"navigate"}}',
         type: 'tool-call',
+        toolCallDisplayText: '{"id":"call-1","name":"browser","arguments":{"action":"navigate"}}',
+        modelFacingToolCall: {
+          id: 'call-1',
+          name: 'browser',
+          arguments: { action: 'navigate' },
+          thought_signature: undefined,
+        },
         isComplete: true,
       },
     ]);

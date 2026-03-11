@@ -83,11 +83,22 @@ function parseMemoryContent(memory) {
     const normalizedType = messageType === 'tool-bundle'
       ? 'tool-call'
       : (messageType || (role === 'tool' ? 'tool-output' : 'llm-text'));
+    const normalizedToolCall = normalizedType === 'tool-call'
+      ? buildRehydrateToolCall({
+        parsedToolCall: parseToolCallPayload(rawContent || ''),
+        fallbackToolName: null,
+        fallbackToolCallId: null,
+      })
+      : null;
     const shouldAttachScreenshot = sender === 'user' || normalizedType === 'tool-output';
     return [{
       sender,
       text: rawContent || '(empty)',
       type: normalizedType,
+      ...(normalizedType === 'tool-call'
+        ? { toolCallDisplayText: rawContent || '(empty)' }
+        : {}),
+      ...(normalizedToolCall ? { modelFacingToolCall: normalizedToolCall } : {}),
       modelProvider,
       modelId,
       screenshot: shouldAttachScreenshot ? screenshotAttachment.screenshot : null,
@@ -206,6 +217,8 @@ export function parseMemoriesToMessages(memories) {
         text: part.text,
         sender: part.sender,
         type: part.type,
+        ...(part.toolCallDisplayText ? { toolCallDisplayText: part.toolCallDisplayText } : {}),
+        ...(part.modelFacingToolCall ? { modelFacingToolCall: part.modelFacingToolCall } : {}),
         ...modelFields,
         ...screenshotFields,
         ...transparencyFields,
