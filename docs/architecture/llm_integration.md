@@ -83,7 +83,7 @@ from backend.src.core.config.models import (
 APP_CONFIG = AppConfig(
     model_provider="openai",
     model_mode="online",
-    selected_model_id="gpt-5.1",
+    selected_model_id="gpt-5@@gpt-5-nonthinking",
     llm_providers=LLMProviders(
         openai=OpenAIConfig(model="gpt-5.1"),
         anthropic=AnthropicConfig(model="claude-sonnet-4-5-20250929"),
@@ -217,7 +217,7 @@ from backend.src.core.config.models import AppConfig, LLMProviders, OpenAIConfig
 
 APP_CONFIG = AppConfig(
     model_provider="openai",
-    selected_model_id="gpt-5.1",
+    selected_model_id="gpt-5@@gpt-5-nonthinking",
     llm_providers=LLMProviders(
         openai=OpenAIConfig(model="gpt-5.1", api_key_env="OPENAI_API_KEY"),
     ),
