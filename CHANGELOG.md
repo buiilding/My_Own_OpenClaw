@@ -4,6 +4,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+- fix(backend-browser-tool-schema): tighten the model-facing `browser` tool contract to action-specific `oneOf` branches with strict backend validation for canonical actions, so invalid calls like `search + url` or `find_elements + description` fail before sidecar execution; add backend regression coverage, refresh browser schema docs, and add prompt examples for `search` and `find_elements`.
+
 ### Docs
 - docs(ui-dashboard-and-backend-stopquery-drift): sync dashboard shell and sidebar docs with current renderer runtime (VM-mode surface gating, open/scroll-lock lifecycle, ipc-status connectivity projection, search debounce/limits, transcript-title visibility polling) and align backend stop-query/settings docs with current handler behavior (`conversation_ref` schema present but not forwarded) plus expanded `update-settings` frontend-owned fields.
 - docs(ui-overlay-and-settings-payload-drift): align response-overlay phase docs with current entry-driven visibility (including `tool-explanation` rows) and update communication-flow `update-settings` payload docs to include current backend schema fields (`browser_automation_enabled`, `provider_api_keys`, `provider_oauth`).

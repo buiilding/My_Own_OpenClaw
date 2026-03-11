@@ -328,6 +328,16 @@ User: Extract the visible article text.
 Assistant:
 {"name":"browser","arguments":{"action":"extract","query":"main article text","extract_links":false,"start_from_char":0}}
 
+Example 20.1
+User: Search the web for windie browser use.
+Assistant:
+{"name":"browser","arguments":{"action":"search","query":"windie browser use"}}
+
+Example 20.2
+User: Find all links on the page.
+Assistant:
+{"name":"browser","arguments":{"action":"find_elements","selector":"a","attributes":["href"],"include_text":true}}
+
 Example 21
 User: Show browser tabs.
 Assistant:
