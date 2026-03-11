@@ -154,7 +154,7 @@ Capture backend strategy:
   - Linux:
     - X11 session: intentionally skips `gnome-screenshot`/`scrot` to avoid flash/shutter side-effects; uses silent fallback then XFixes cursor overlay
     - non-X11 path may use `scrot`/`gnome-screenshot` include-pointer capture
-  - macOS: avoids `screencapture` side-effects and overlays the stable AppKit arrow cursor (`NSCursor.arrowCursor()`) instead of the transient current cursor, preventing magnified/animated cursor states from being frozen into post-action screenshots
+  - macOS: avoids `screencapture` side-effects and overlays the stable AppKit arrow cursor (`NSCursor.arrowCursor()`) instead of the transient current cursor, preventing magnified/animated cursor states from being frozen into post-action screenshots; if AppKit returns no arrow cursor/image/hotspot, the overlay is skipped cleanly and capture continues without a cursor artifact
 - fallback path uses `pyautogui.screenshot(...)`
 - if region + `desktop_virtual_bounds` are provided, sidecar captures the full virtual desktop first and crops to target monitor region safely (bounds-checked)
 - macOS exception: when monitor bounds are provided, sidecar uses direct bounded capture instead of full-desktop crop because Pillow's macOS region path already returns correctly scaled logical-space images and avoids Retina upper-left clipping
