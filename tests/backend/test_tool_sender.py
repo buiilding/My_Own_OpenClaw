@@ -173,6 +173,55 @@ async def test_send_tools_marks_invalid_computer_use_preparation_failure_as_vali
 
 
 @pytest.mark.asyncio
+async def test_send_tools_marks_invalid_browser_preparation_failure_as_validation_error():
+    request_id = "req-invalid-browser-1"
+    failed_call = ParsedToolCall(
+        tool_name="browser",
+        parameters={},
+        metadata={
+            "request_id": request_id,
+            "model_facing_tool_call": {
+                "id": "tool_llm_invalid_browser_1",
+                "name": "browser",
+                "arguments": {},
+            },
+        },
+    )
+
+    sender = _build_sender(
+        PreparationResult(
+            resolved_calls=[],
+            errors=[(
+                failed_call,
+                "browser call is invalid and was rejected before frontend execution. Details: action: Field required.",
+            )],
+            bundle_id=None,
+        )
+    )
+    session = _DummySession()
+    emitted = await _collect_emitted_events(sender, [failed_call], session)
+
+    assert len(emitted) == 2
+    assert isinstance(emitted[0], ToolCallEvent)
+    assert emitted[0].metadata["skip_frontend_execution"] is True
+    assert emitted[0].metadata["llm_tool_call_validation_failed"] is True
+    assert "coordinate_resolution_failed" not in emitted[0].metadata
+    assert emitted[0].metadata["model_facing_tool_call"] == {
+        "id": "tool_llm_invalid_browser_1",
+        "name": "browser",
+        "arguments": {},
+    }
+
+    assert isinstance(emitted[1], ToolOutputEvent)
+    assert emitted[1].metadata["skip_frontend_execution"] is True
+    assert emitted[1].metadata["llm_tool_call_validation_failed"] is True
+    assert "coordinate_resolution_failed" not in emitted[1].metadata
+
+    assert request_id in session.pending_results
+    assert "browser call is invalid" in (session.pending_results[request_id].error or "")
+
+
+@pytest.mark.asyncio
 async def test_send_tools_does_not_dispatch_bundle_when_preparation_fails():
     bundle_id = "bundle-123"
     first_call = ParsedToolCall(
