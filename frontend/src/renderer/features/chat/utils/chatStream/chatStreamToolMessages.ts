@@ -3,6 +3,7 @@ import type {
   ToolCallEvent,
   ToolOutputEvent,
 } from '../../../../types/backendEvents';
+import { buildMessageScreenshotState } from '../../../../infrastructure/services/screenshotMessageState';
 import type { ChatMessage } from '../../stores/chatStore';
 import { resolveToolOutputCorrelationId } from './chatStreamEventUtils';
 
@@ -62,7 +63,11 @@ export function buildToolOutputMessage(
   screenshotRef: string | null,
   screenshotUrl: string | null,
 ): ChatMessage {
-  const hasRemoteScreenshot = Boolean(screenshotRef || screenshotUrl);
+  const screenshotState = buildMessageScreenshotState({
+    screenshot,
+    screenshotRef,
+    screenshotUrl,
+  });
   return {
     id: crypto.randomUUID(),
     text: outputText,
@@ -70,9 +75,10 @@ export function buildToolOutputMessage(
     type: 'tool-output',
     sourceEventType: 'tool-output',
     sourceChannel: 'from-backend',
-    screenshot: hasRemoteScreenshot ? null : screenshot,
-    screenshotRef,
-    screenshotUrl,
+    screenshot: screenshotState.screenshot,
+    screenshotRef: screenshotState.screenshotRef,
+    screenshotUrl: screenshotState.screenshotUrl,
+    screenshotContentType: screenshotState.screenshotContentType,
     toolMetadata: event.payload?.metadata,
     toolName: event.payload?.tool_name,
     executionTime: event.payload?.execution_time,

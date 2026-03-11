@@ -1,9 +1,11 @@
-import { buildArtifactUrl } from '../../../../infrastructure/services/ArtifactUploader';
 import {
   resolveToolCallCorrelationId as resolveSharedToolCallCorrelationId,
   resolveToolOutputCorrelationId as resolveSharedToolOutputCorrelationId,
 } from '../toolCorrelationIds';
-import { normalizeNonEmptyString } from '../../../../utils/normalizeNonEmptyString';
+import {
+  buildRemoteScreenshotAttachment,
+  buildRemoteScreenshotAttachments,
+} from '../../../../infrastructure/services/screenshotMessageState';
 
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
 const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
@@ -45,34 +47,14 @@ export function buildScreenshotAttachment(
   screenshotRef: string | null | undefined,
   screenshotUrl?: string | null,
 ) {
-  const normalizedRef = normalizeNonEmptyString(screenshotRef);
-  const normalizedUrl = normalizeNonEmptyString(screenshotUrl);
-  return {
-    screenshotRef: normalizedRef,
-    screenshotUrl: normalizedUrl || (normalizedRef ? buildArtifactUrl(normalizedRef) : null),
-  };
+  return buildRemoteScreenshotAttachment(screenshotRef, screenshotUrl);
 }
 
 export function buildScreenshotAttachments(
   screenshotRefs: Array<string | null | undefined> | null | undefined,
   screenshotUrl?: string | null,
 ) {
-  const normalizedRefs = Array.isArray(screenshotRefs)
-    ? screenshotRefs
-      .map((ref) => normalizeNonEmptyString(ref))
-      .filter((ref): ref is string => Boolean(ref))
-    : [];
-
-  if (normalizedRefs.length === 0) {
-    const single = buildScreenshotAttachment(null, screenshotUrl);
-    return single.screenshotUrl
-      ? [single]
-      : [];
-  }
-
-  return normalizedRefs.map((ref, index) => (
-    buildScreenshotAttachment(ref, index === 0 ? screenshotUrl : null)
-  ));
+  return buildRemoteScreenshotAttachments(screenshotRefs, screenshotUrl);
 }
 
 export function resolveToolOutputCorrelationId(

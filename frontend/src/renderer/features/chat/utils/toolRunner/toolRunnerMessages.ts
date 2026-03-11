@@ -1,4 +1,5 @@
 import type { BundleExecutionResult, ToolExecutionResult } from '../../../../infrastructure/services/toolExecution/ToolExecutionService';
+import { buildMessageScreenshotState } from '../../../../infrastructure/services/screenshotMessageState';
 import type { ChatMessage } from '../../stores/chatStore';
 import { resolveToolCallCorrelationId as resolveSharedToolCallCorrelationId } from '../toolCorrelationIds';
 
@@ -24,7 +25,12 @@ type ToolOutputEnvelopeInput = {
 };
 
 function buildToolOutputEnvelope(result: ToolOutputEnvelopeInput) {
-  const hasRemoteScreenshot = Boolean(result.screenshotRef || result.screenshotUrl);
+  const screenshotState = buildMessageScreenshotState({
+    screenshot: result.screenshot,
+    screenshotRef: result.screenshotRef,
+    screenshotUrl: result.screenshotUrl,
+    screenshotContentType: result.screenshotContentType,
+  });
   return {
     id: crypto.randomUUID(),
     text: result.formattedMessage,
@@ -32,10 +38,10 @@ function buildToolOutputEnvelope(result: ToolOutputEnvelopeInput) {
     type: 'tool-output' as const,
     sourceEventType: 'tool-runner-result' as const,
     sourceChannel: 'renderer-tool-runner' as const,
-    screenshot: hasRemoteScreenshot ? null : (result.screenshot || null),
-    screenshotRef: result.screenshotRef || null,
-    screenshotUrl: result.screenshotUrl || null,
-    screenshotContentType: hasRemoteScreenshot ? null : (result.screenshotContentType || null),
+    screenshot: screenshotState.screenshot,
+    screenshotRef: screenshotState.screenshotRef,
+    screenshotUrl: screenshotState.screenshotUrl,
+    screenshotContentType: screenshotState.screenshotContentType,
     executionTime: result.executionTime,
     success: result.success,
     correlationId: result.correlationId,

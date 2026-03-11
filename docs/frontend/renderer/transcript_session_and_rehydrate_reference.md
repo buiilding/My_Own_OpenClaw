@@ -22,6 +22,7 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/infrastructure/transcript/pending/pendingToolQueue.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush.ts`
 - `frontend/src/renderer/infrastructure/transcript/toolCallMessageState.js`
+- `frontend/src/renderer/infrastructure/services/screenshotMessageState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
@@ -100,6 +101,7 @@ Stored fields include:
   - `fullAssistantMessage`
 - transparency snapshots are normalized via `normalizeTransparencyData(...)` before queueing/persistence so empty/invalid snapshots are dropped
 - tool-call message reconstruction is normalized through `toolCallMessageState.js` so live stream rows, session serialization, replayed transcript rows, and rehydrate payloads share one canonical `text/toolCallDisplayText/modelFacingToolCall/toolCallDetails/correlationId` contract
+- screenshot attachment reconstruction is normalized through `screenshotMessageState.js` so live tool rows, replayed transcript rows, and screenshot capture/runtime helpers agree on artifact-ref/url inference and inline-vs-remote attachment behavior
 
 Successful writes dispatch browser event `transcript-entry-stored` so dashboard/chat consumers can refresh derived rows without a full reload.
 

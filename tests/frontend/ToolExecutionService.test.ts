@@ -15,6 +15,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/MessageFormatter'
 
 jest.mock('../../frontend/src/renderer/infrastructure/services/ArtifactUploader', () => ({
   uploadArtifactBase64: jest.fn().mockResolvedValue(null),
+  buildArtifactUrl: (artifactId: string) => `http://127.0.0.1:8765/api/artifacts/${artifactId}`,
 }));
 
 import { ToolExecutionService } from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionService';
