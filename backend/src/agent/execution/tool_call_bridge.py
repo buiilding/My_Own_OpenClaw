@@ -1,13 +1,13 @@
 """Helpers for native tool-call bridging and recoverable tool-call error parsing."""
 
 import copy
-import json
 import re
 from typing import Any, Dict, List
 
 from backend.src.core.utils.string_normalization import (
     normalize_non_empty_string,
 )
+from backend.src.core.utils.raw_tool_call_preview import build_raw_tool_call_preview
 from backend.src.core.types.schemas import NormalizedLLMResponse
 from backend.src.llm.parser_types import ParsedResponse, ParsedToolCall
 
@@ -370,21 +370,6 @@ def extract_raw_arguments_preview_from_error(error_msg: str) -> str:
         if preview.endswith(quote):
             preview = preview[:-1]
     return preview.strip()
-
-
-def build_raw_tool_call_preview(
-    *,
-    tool_call_id: str,
-    tool_name: str,
-    raw_arguments_preview: str,
-) -> str:
-    """Build a compact raw tool-call preview for validation-failure transparency."""
-    payload: Dict[str, Any] = {
-        "id": tool_call_id,
-        "name": tool_name,
-        "arguments": raw_arguments_preview,
-    }
-    return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
 
 
 def extract_raw_tool_call_preview_from_error(error_msg: str) -> str:

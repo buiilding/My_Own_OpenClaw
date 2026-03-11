@@ -178,7 +178,10 @@ class LLMStreamProcessor:
             raise
         except LLMAPIError as e:
             logger.error(f"LLM API error: {e}", exc_info=True)
-            yield ErrorEvent(content=self._build_llm_api_error_message(e))
+            yield ErrorEvent(
+                content=self._build_llm_api_error_message(e),
+                metadata=dict(e.metadata) if isinstance(e.metadata, dict) else None,
+            )
             raise
         except Exception as e:
             logger.error(f"LLM error: {e}", exc_info=True)

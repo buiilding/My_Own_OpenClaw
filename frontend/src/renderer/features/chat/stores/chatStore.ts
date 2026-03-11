@@ -59,6 +59,7 @@ export interface ChatMessage {
     parse_error?: string;
     frontend_execution_skipped?: boolean;
   } | null;
+  toolCallDisplayText?: string | null;
   modelFacingToolOutput?: string | null;
   toolCallDetails?: Record<string, unknown> | null;
   toolOutputDetails?: Record<string, unknown> | null;

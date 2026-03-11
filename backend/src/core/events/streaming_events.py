@@ -51,9 +51,16 @@ class ChunkEvent(StreamingEvent):
 class ErrorEvent(StreamingEvent):
     """Event emitted when an error occurs."""
     content: str
+    metadata: Optional[Dict[str, Any]] = None
     
     def __post_init__(self):
         self.type = StreamingEventType.ERROR
+
+    def to_dict(self) -> Dict[str, Any]:
+        result = {"type": self.type.value, "content": self.content}
+        if self.metadata is not None:
+            result["metadata"] = self.metadata
+        return result
 
 
 @dataclass

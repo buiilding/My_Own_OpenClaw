@@ -94,6 +94,7 @@ Transport guarantee:
 Frontend outcome:
 
 - chat shows tool-call/tool-output narrative
+- `useChatStream` stores a dedicated tool-call display string on the chat message, so tool-call cards no longer depend on generic `message.text` for invalid-call transparency rendering
 - tool-call cards prefer `llm_tool_call_raw_tool_call_preview` when present; otherwise they render preserved `metadata.model_facing_tool_call` for pre-dispatch validation failures instead of a synthesized normalized fallback
 - tool runner skips local execution for synthetic call
 - stream can continue to next model turn

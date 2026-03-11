@@ -179,11 +179,24 @@ class _ErrorOnlyLLMHandler:
             yield ErrorEvent(
                 content=(
                     "Unexpected system error: Invalid response from stream: "
-                    "failed to parse streamed tool-call arguments for id=tool_bad name=replace. "
-                    "Raw tool call preview: '{\"id\":\"tool_bad\",\"name\":\"replace\",\"arguments\":\"{\\\"command\\\":\\\"cat > index.html << \\\\\\\"EOF\\\\\\\"\\\\n<!DOCTYPE html>...\\\"...[truncated]\"}' "
-                    "Raw arguments preview: '{\"command\":\"cat > index.html << \\\"EOF\\\"\\\\n"
-                    "<!DOCTYPE html>...\"...[truncated]'"
-                )
+                    "failed to parse streamed tool-call arguments for id=tool_bad name=replace."
+                ),
+                metadata={
+                    "llm_tool_call_id": "tool_bad",
+                    "llm_tool_name": "replace",
+                    "llm_tool_call_raw_tool_call_preview": (
+                        '{"id":"tool_bad","name":"replace","arguments":"'
+                        '{\\"command\\":\\"cat > index.html << \\\\\\"EOF\\\\\\"\\\\n<!DOCTYPE html>...\\"...[truncated]"}'
+                    ),
+                    "llm_tool_call_raw_arguments_preview": (
+                        '{"command":"cat > index.html << \\"EOF\\"\\\\n<!DOCTYPE html>..."}...[truncated]'
+                    ),
+                    "llm_tool_call_raw_arguments_preview_truncated": True,
+                    "llm_tool_call_parse_error": (
+                        "Unexpected system error: Invalid response from stream: "
+                        "failed to parse streamed tool-call arguments for id=tool_bad name=replace."
+                    ),
+                },
             )
             yield FullResponseEvent(content="")
             return

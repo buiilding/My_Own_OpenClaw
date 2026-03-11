@@ -147,6 +147,33 @@ class _Api520LLMClient:
         return None
 
 
+class _ApiParseFailureLLMClient:
+    async def get_completion_response(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        raise LLMAPIError(
+            "Invalid response from stream: failed to parse streamed tool-call arguments for id=tool_bad name=replace.",
+            model=model,
+            metadata={
+                "llm_tool_call_id": "tool_bad",
+                "llm_tool_name": "replace",
+                "llm_tool_call_raw_tool_call_preview": (
+                    '{"id":"tool_bad","name":"replace","arguments":"{\\"file_path\\":\\"/tmp/demo.txt\\"}"}'
+                ),
+                "llm_tool_call_raw_arguments_preview": '{"file_path":"/tmp/demo.txt"}',
+                "llm_tool_call_parse_error": "invalid tool arguments json",
+            },
+        )
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+
 class _ProviderUsageLLMClient:
     async def get_completion_stream(
         self,
@@ -423,6 +450,34 @@ async def test_maps_http_520_api_error_to_retry_friendly_error_event(monkeypatch
     assert len(events) == 1
     assert isinstance(events[0], ErrorEvent)
     assert events[0].content == "Kimi Coding is temporarily unavailable (HTTP 520). Please retry shortly."
+
+
+@pytest.mark.asyncio
+async def test_preserves_llm_api_error_metadata_on_error_event(monkeypatch):
+    _patch_fake_token_service(monkeypatch)
+
+    processor = LLMStreamProcessor(llm_client=_ApiParseFailureLLMClient(), session=_FakeSession())
+    events = []
+
+    with pytest.raises(LLMAPIError, match="failed to parse streamed tool-call arguments"):
+        async for event in processor.get_response(
+            _hello_prompt(),
+            tools=_single_function_tool("replace"),
+        ):
+            events.append(event)
+
+    assert len(events) == 1
+    assert isinstance(events[0], ErrorEvent)
+    assert events[0].metadata == {
+        "llm_tool_call_id": "tool_bad",
+        "llm_tool_name": "replace",
+        "llm_tool_call_raw_tool_call_preview": (
+            '{"id":"tool_bad","name":"replace","arguments":"{\\"file_path\\":\\"/tmp/demo.txt\\"}"}'
+        ),
+        "llm_tool_call_raw_arguments_preview": '{"file_path":"/tmp/demo.txt"}',
+        "llm_tool_call_parse_error": "invalid tool arguments json",
+        "model": "gpt-test",
+    }
 
 
 @pytest.mark.asyncio

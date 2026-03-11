@@ -63,6 +63,7 @@ MessageContent.propTypes = {
     screenshotUrl: PropTypes.string,
     screenshotContentType: PropTypes.string,
     modelFacingToolCall: PropTypes.object,
+    toolCallDisplayText: PropTypes.string,
     modelFacingToolOutput: PropTypes.string,
     toolCallDetails: PropTypes.object,
     toolOutputDetails: PropTypes.object,

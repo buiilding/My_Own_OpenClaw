@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 
 export default function ToolCallMessage({ message }) {
   const [showDetails, setShowDetails] = useState(false);
-  const modelFacingText = typeof message.text === 'string' && message.text.trim()
-    ? message.text
+  const modelFacingText = typeof message.toolCallDisplayText === 'string' && message.toolCallDisplayText.trim()
+    ? message.toolCallDisplayText
     : (
       message.modelFacingToolCall
       && typeof message.modelFacingToolCall === 'object'
@@ -48,6 +48,7 @@ export default function ToolCallMessage({ message }) {
 ToolCallMessage.propTypes = {
   message: PropTypes.shape({
     text: PropTypes.string.isRequired,
+    toolCallDisplayText: PropTypes.string,
     modelFacingToolCall: PropTypes.object,
     toolCallDetails: PropTypes.object,
   }).isRequired,
