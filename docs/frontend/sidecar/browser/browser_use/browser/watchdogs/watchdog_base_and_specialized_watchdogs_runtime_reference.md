@@ -142,6 +142,7 @@ Behavior highlights:
 - tracks direct callback hooks for click-action synchronous wait workflows
 - handles `downloadWillBegin` + `downloadProgress` and emits start/progress/complete events
 - adds network-response monitoring to detect attachment/PDF content and trigger background download logic
+- when `auto_download_pdfs` is enabled, a `BrowserStateRequestEvent` may inspect the currently focused target directly for PDF-viewer URLs without emitting a synthetic `NavigationCompleteEvent`
 - supports URL-based PDF viewer detection and auto-download path
 
 ### `RecordingWatchdog`
