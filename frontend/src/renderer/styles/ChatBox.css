@@ -21,8 +21,9 @@ body {
 }
 
 .chatbox-input-shell-wrap {
-  --chatbox-fixed-shell-height: 78px;
-  --chatbox-fixed-pill-height: 70px;
+  --chatbox-bump-height: 14px;
+  --chatbox-fixed-shell-height: 70px;
+  --chatbox-fixed-pill-height: 56px;
   --chatbox-fixed-pill-padding: 8px 12px 8px;
   --chatbox-preview-track-height: 46px;
   position: fixed;
@@ -50,17 +51,17 @@ body {
 }
 
 .chatbox-input-shell-wrap.with-preview {
-  --chatbox-fixed-shell-height: 130px;
-  --chatbox-fixed-pill-height: 122px;
+  --chatbox-fixed-shell-height: 122px;
+  --chatbox-fixed-pill-height: 108px;
   --chatbox-fixed-pill-padding: 58px 12px 8px;
 }
 
 .chatbox-input-shell-wrap:not(.with-preview) .chatbox-pill {
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 .chatbox-input-shell-wrap:not(.with-preview) .chatbox-main-row {
-  margin-top: auto;
+  margin-top: 0;
 }
 
 .chatbox-input-shell-wrap .chatbox-image-preview-row {
@@ -136,10 +137,15 @@ body {
 }
 
 .chatbox-pill {
-  --chatbox-body-top: 14px;
   --chatbox-close-center-x: calc(100% - 28px);
   --chatbox-close-button-size: 18px;
+  --chatbox-pill-clip-path: inset(0 round 26px);
   border-radius: 26px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -148,12 +154,32 @@ body {
   min-height: 52px;
   margin: 0;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  isolation: isolate;
   cursor: default;
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
+}
+
+.chatbox-pill::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--chatbox-bump-height) * -1);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 26px;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-panel-bg);
+  box-shadow: var(--ui-shadow);
+  backdrop-filter: blur(var(--ui-backdrop-blur));
+  -webkit-backdrop-filter: blur(var(--ui-backdrop-blur));
+  clip-path: var(--chatbox-pill-clip-path);
+  -webkit-clip-path: var(--chatbox-pill-clip-path);
+  z-index: 0;
+  pointer-events: none;
 }
 
 .chatbox-main-row {
@@ -385,7 +411,7 @@ body {
 .chatbox-close-badge {
   position: absolute;
   left: calc(var(--chatbox-close-center-x) - (var(--chatbox-close-button-size) / 2));
-  top: 3px;
+  top: calc((var(--chatbox-bump-height) * -1) + 3px);
   width: var(--chatbox-close-button-size);
   height: var(--chatbox-close-button-size);
   border: 0;
