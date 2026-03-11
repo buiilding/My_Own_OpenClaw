@@ -55,9 +55,9 @@ pathspec>=0.10.0
 # Windows
 pywin32>=306; sys_platform == 'win32'
 
-# macOS (AppKit is part of pyobjc, but we can use it directly if available)
-# Note: AppKit is typically available via system Python on macOS
-# If not available, install: pip install pyobjc-framework-AppKit
+# macOS
+pyobjc-framework-AppKit>=10.3; sys_platform == 'darwin'
+pyobjc-framework-Quartz>=10.3; sys_platform == 'darwin'
 
 # Linux: xdotool should be installed via system package manager
 # sudo apt-get install xdotool  (Debian/Ubuntu)
