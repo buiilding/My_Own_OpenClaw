@@ -72,7 +72,8 @@ title: "Memory Search Grouping and Transcript Pair Synthesis Contract Reference"
 
 Semantic path:
 
-- every semantic result text is appended as-is.
+- low-signal semantic rows are dropped before prompt injection.
+- semantic rows are kept only when at least one durable fact remains after filtering.
 
 Episodic path (priority order):
 

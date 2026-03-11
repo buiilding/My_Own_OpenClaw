@@ -9,6 +9,7 @@ from memory.operations import (  # noqa: E402
     filter_results_by_min_score,
     format_interaction_memory,
     group_memory_texts,
+    is_durable_semantic_text,
     normalize_and_store_completed_turn_memory,
     normalize_search_memory_payload,
     normalize_search_memory_selection,
@@ -301,6 +302,46 @@ def test_group_memory_texts_prefers_user_assistant_interactions_for_episodic():
 
     assert grouped["episodic"] == ["User: plan trip\nAssistant: Start with flights"]
     assert grouped["semantic"] == ["User prefers aisle seats"]
+
+
+def test_is_durable_semantic_text_rejects_low_signal_semantic_summary():
+    assert is_durable_semantic_text(
+        """Summary: This is a brief, casual greeting exchange.
+Facts:
+- No user preferences stated
+- No key facts about the user revealed
+- User has Finder open showing the Applications folder (ephemeral context)
+"""
+    ) is False
+
+
+def test_group_memory_texts_drops_low_signal_semantic_rows():
+    grouped = group_memory_texts([
+        {
+            "type": "semantic",
+            "text": """Summary: This is a brief, casual greeting exchange.
+Facts:
+- No user preferences stated
+- User initiated contact with a casual greeting
+""",
+        },
+        {
+            "type": "semantic",
+            "text": """Summary: The user asked for their account details.
+Facts:
+- User's name is Peter Tuan Anh Bui
+- User's email is peterbuics@gmail.com
+""",
+        },
+    ])
+
+    assert grouped["semantic"] == [
+        """Summary: The user asked for their account details.
+Facts:
+- User's name is Peter Tuan Anh Bui
+- User's email is peterbuics@gmail.com
+"""
+    ]
 
 
 def test_group_memory_texts_falls_back_when_no_interaction_style_episodic_rows():
