@@ -37,28 +37,29 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
     handleWindowClose,
     showMainWindow,
   } = useMainWindowControls({ warningPrefix: 'FrontendOnboardingSlideshow' });
-  const slides = useMemo(() => ([
-    {
-      id: 'permissions',
-      title: 'Set up system access',
-      body: 'Review each item before you continue. Some are OS permissions, some are app capabilities, and some are workspace or runtime checks.',
-    },
-    {
-      id: 'stop-flow',
-      title: 'Stop the agent during loops',
-      body: 'Use this anytime an agent loop needs to end right away.',
-      emphasisLabel: 'Keybind',
-      emphasisValue: resolvedStopShortcutLabel,
-      emphasisSegments: stopShortcutSegments,
-    },
-  ]), [resolvedStopShortcutLabel, stopShortcutSegments]);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [pendingPermissionId, setPendingPermissionId] = useState('');
+  const permissionSlides = permissions;
+  const permissionSlideCount = permissionSlides.length > 0 ? permissionSlides.length : 1;
+  const totalSlides = permissionSlideCount + 1;
+  const isStopFlowSlide = activeSlideIndex >= permissionSlideCount;
+  const isPermissionSlide = !isStopFlowSlide;
+  const isLastSlide = activeSlideIndex === totalSlides - 1;
+  const activePermission = isPermissionSlide && permissionSlides.length > 0
+    ? permissionSlides[Math.min(activeSlideIndex, permissionSlides.length - 1)]
+    : null;
+  const activeSlideTitle = isPermissionSlide
+    ? 'Set up system access'
+    : 'Stop the agent during loops';
+  const activeSlideBody = isPermissionSlide
+    ? 'Review each item before you continue. Some are OS permissions, some are app capabilities, and some are workspace or runtime checks.'
+    : 'Use this anytime an agent loop needs to end right away.';
 
-  const activeSlide = slides[activeSlideIndex];
-  const isLastSlide = activeSlideIndex === slides.length - 1;
-  const isPermissionSlide = activeSlide.id === 'permissions';
-  const isStopFlowSlide = activeSlide.id === 'stop-flow';
+  useEffect(() => {
+    if (activeSlideIndex > totalSlides - 1) {
+      setActiveSlideIndex(totalSlides - 1);
+    }
+  }, [activeSlideIndex, totalSlides]);
   const canStartWindieOs = bootstrapped && !isLoading;
 
   useEffect(() => {
@@ -122,75 +123,86 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
       >
         <div className="frontend-onboarding-card-scroll-region">
           <p className="frontend-onboarding-progress">
-            Step {activeSlideIndex + 1} of {slides.length}
+            Step {activeSlideIndex + 1} of {totalSlides}
           </p>
-          <h1 className="frontend-onboarding-title">{activeSlide.title}</h1>
-          <p className="frontend-onboarding-body">{activeSlide.body}</p>
+          <h1 className="frontend-onboarding-title">{activeSlideTitle}</h1>
+          <p className="frontend-onboarding-body">{activeSlideBody}</p>
           {isPermissionSlide ? (
             <div className="frontend-onboarding-permissions-section">
-              <div className="frontend-onboarding-permissions-list">
-                {permissions.map((permission) => {
-                  const status = statusesByPermissionId[permission.permission_id];
-                  const statusReason = typeof status?.reason === 'string'
-                    ? status.reason.trim()
-                    : '';
-                  const isGranted = status?.granted === true || status?.status === 'granted';
-                  const isPending = pendingPermissionId === permission.permission_id;
-                  const actionLabel = getPermissionActionLabel(permission);
-                  const grantedLabel = getPermissionGrantedLabel(permission);
-                  return (
-                    <article
-                      key={permission.permission_id}
-                      className="frontend-onboarding-permission-row"
-                    >
-                      <div className="frontend-onboarding-permission-copy">
-                        <h2>{permission.label}</h2>
-                        <p className="frontend-onboarding-permission-kind">{getPermissionKindLabel(permission)}</p>
-                        <p title={permission.description}>{permission.description}</p>
-                        {statusReason ? (
-                          <p className={`frontend-onboarding-permission-reason status-${status?.status || 'unknown'}`}>
-                            {statusReason}
-                          </p>
-                        ) : null}
-                      </div>
-                      {isGranted ? (
-                        <div className="frontend-onboarding-permission-granted" aria-label={grantedLabel}>
-                          <span className="frontend-onboarding-permission-granted-icon" aria-hidden="true">✓</span>
-                          <span>{grantedLabel}</span>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          className="frontend-onboarding-button primary"
-                          onClick={() => {
-                            void handleGrantPermission(permission.permission_id);
-                          }}
-                          disabled={isLoading || isPending}
+              {activePermission ? (
+                <>
+                  <div className="frontend-onboarding-permission-stage-meta">
+                    <p className="frontend-onboarding-permission-stage-count">
+                      Permission {activeSlideIndex + 1} of {permissionSlides.length}
+                    </p>
+                    <p className="frontend-onboarding-permission-stage-summary">
+                      Grant what you want now. You can revisit the rest later in Settings.
+                    </p>
+                  </div>
+                  <div className="frontend-onboarding-permissions-list single">
+                    {(() => {
+                      const status = statusesByPermissionId[activePermission.permission_id];
+                      const statusReason = typeof status?.reason === 'string'
+                        ? status.reason.trim()
+                        : '';
+                      const isGranted = status?.granted === true || status?.status === 'granted';
+                      const isPending = pendingPermissionId === activePermission.permission_id;
+                      const actionLabel = getPermissionActionLabel(activePermission);
+                      const grantedLabel = getPermissionGrantedLabel(activePermission);
+                      return (
+                        <article
+                          key={activePermission.permission_id}
+                          className="frontend-onboarding-permission-row single"
                         >
-                          {isPending ? `${actionLabel}...` : actionLabel}
-                        </button>
-                      )}
-                    </article>
-                  );
-                })}
-                {bootstrapped && permissions.length === 0 ? (
-                  <p className="frontend-onboarding-permission-empty">
-                    No permission items were returned by the manifest.
-                  </p>
-                ) : null}
-              </div>
+                          <div className="frontend-onboarding-permission-copy">
+                            <h2>{activePermission.label}</h2>
+                            <p className="frontend-onboarding-permission-kind">{getPermissionKindLabel(activePermission)}</p>
+                            <p>{activePermission.description}</p>
+                            {statusReason ? (
+                              <p className={`frontend-onboarding-permission-reason status-${status?.status || 'unknown'}`}>
+                                {statusReason}
+                              </p>
+                            ) : null}
+                          </div>
+                          {isGranted ? (
+                            <div className="frontend-onboarding-permission-granted" aria-label={grantedLabel}>
+                              <span className="frontend-onboarding-permission-granted-icon" aria-hidden="true">✓</span>
+                              <span>{grantedLabel}</span>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              className="frontend-onboarding-button primary"
+                              onClick={() => {
+                                void handleGrantPermission(activePermission.permission_id);
+                              }}
+                              disabled={isLoading || isPending}
+                            >
+                              {isPending ? `${actionLabel}...` : actionLabel}
+                            </button>
+                          )}
+                        </article>
+                      );
+                    })()}
+                  </div>
+                </>
+              ) : (
+                <p className="frontend-onboarding-permission-empty">
+                  {bootstrapped ? 'No permission items were returned by the manifest.' : 'Loading permissions...'}
+                </p>
+              )}
             </div>
           ) : isStopFlowSlide ? (
             <div className="frontend-onboarding-stop-flow">
               <div
                 className="frontend-onboarding-stop-flow-keybind"
-                aria-label={`Stop shortcut ${activeSlide.emphasisValue}`}
+                aria-label={`Stop shortcut ${resolvedStopShortcutLabel}`}
               >
                 <span className="frontend-onboarding-stop-flow-keybind-label">
-                  {activeSlide.emphasisLabel}
+                  Keybind
                 </span>
                 <div className="frontend-onboarding-stop-flow-keycap-row" aria-hidden="true">
-                  {activeSlide.emphasisSegments.map((segment, index) => (
+                  {stopShortcutSegments.map((segment, index) => (
                     <Fragment key={`${segment}-${index}`}>
                       {index > 0 ? (
                         <span className="frontend-onboarding-stop-flow-keycap-separator">+</span>
@@ -246,7 +258,7 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
             <button
               type="button"
               className="frontend-onboarding-button primary"
-              onClick={() => setActiveSlideIndex((current) => Math.min(current + 1, slides.length - 1))}
+              onClick={() => setActiveSlideIndex((current) => Math.min(current + 1, totalSlides - 1))}
             >
               Next
             </button>

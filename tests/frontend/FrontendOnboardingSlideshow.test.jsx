@@ -128,18 +128,15 @@ describe('FrontendOnboardingSlideshow', () => {
       maximize: true,
     });
 
-    expect(screen.getByText('Step 1 of 2')).toBeInTheDocument();
+    expect(screen.getByText('Step 1 of 5')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Set up system access' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Screen capture' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'System Events automation' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Microphone' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Browser automation' })).toBeInTheDocument();
-    expect(screen.getAllByText('OS Permission')).toHaveLength(3);
-    expect(screen.getByText('App Capability')).toBeInTheDocument();
-    expect(screen.getByText('Open the WindieOS browser so you can sign in with the profile WindieOS should use for browsing, navigation, and web tasks.')).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Grant' })).toHaveLength(2);
-    expect(screen.getByRole('button', { name: 'Open browser' })).toBeInTheDocument();
-    expect(screen.getAllByLabelText('Granted')).toHaveLength(1);
+    expect(screen.queryByRole('heading', { name: 'System Events automation' })).not.toBeInTheDocument();
+    expect(screen.getByText('Permission 1 of 4')).toBeInTheDocument();
+    expect(screen.getByText('OS Permission')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Grant' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Open browser' })).not.toBeInTheDocument();
+    expect(screen.queryAllByLabelText('Granted')).toHaveLength(0);
     expect(screen.queryByRole('heading', { name: 'Planned system-access scope' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Minimize window' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Toggle maximize window' })).toBeInTheDocument();
@@ -153,6 +150,22 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(mockRequestPermission).toHaveBeenCalledWith('screen_capture');
     expect(mockUpdateConfig).not.toHaveBeenCalled();
 
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByText('Step 2 of 5')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'System Events automation' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByText('Step 3 of 5')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Microphone' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Granted')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByText('Step 4 of 5')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Browser automation' })).toBeInTheDocument();
+    expect(screen.getByText('App Capability')).toBeInTheDocument();
+    expect(screen.getByText('Open the WindieOS browser so you can sign in with the profile WindieOS should use for browsing, navigation, and web tasks.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open browser' })).toBeInTheDocument();
+
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Open browser' }));
     });
@@ -161,7 +174,7 @@ describe('FrontendOnboardingSlideshow', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 
-    expect(screen.getByText('Step 2 of 2')).toBeInTheDocument();
+    expect(screen.getByText('Step 5 of 5')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Stop the agent during loops' })).toBeInTheDocument();
     expect(screen.getByText('Use this anytime an agent loop needs to end right away.')).toBeInTheDocument();
     expect(screen.getByLabelText('Stop shortcut Ctrl + Shift + Esc')).toBeInTheDocument();
@@ -179,7 +192,7 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(mockIpcInvoke).toHaveBeenNthCalledWith(4, 'window-close', undefined);
 
     fireEvent.click(screen.getByRole('button', { name: 'Back' }));
-    expect(screen.getByText('Step 1 of 2')).toBeInTheDocument();
+    expect(screen.getByText('Step 4 of 5')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     fireEvent.click(screen.getByRole('button', { name: 'Start WindieOS' }));
@@ -205,6 +218,7 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(scrollRegion).not.toContain(actions);
     expect(scrollRegion).toContainElement(screen.getByRole('heading', { name: 'Set up system access' }));
     expect(actions).toContainElement(nextButton);
+    expect(screen.getByText('Permission 1 of 4')).toBeInTheDocument();
   });
 
   test('renders long macOS stop shortcuts as separate keycaps', () => {
@@ -215,7 +229,9 @@ describe('FrontendOnboardingSlideshow', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    for (let index = 0; index < 4; index += 1) {
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    }
 
     expect(screen.getByLabelText('Stop shortcut Command + Shift + Esc')).toBeInTheDocument();
     expect(screen.getByText('Command').tagName).toBe('KBD');
@@ -235,7 +251,9 @@ describe('FrontendOnboardingSlideshow', () => {
         />,
       );
 
-      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      for (let index = 0; index < 4; index += 1) {
+        fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      }
 
       expect(screen.getByRole('button', { name: 'Start WindieOS' })).toBeEnabled();
       expect(

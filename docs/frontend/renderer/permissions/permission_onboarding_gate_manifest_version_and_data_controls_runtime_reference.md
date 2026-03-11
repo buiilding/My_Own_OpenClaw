@@ -91,8 +91,8 @@ When satisfied:
 
 `FrontendOnboardingSlideshow` renders:
 
-- permission list with `Grant` actions on the first slide
-- stop-agent shortcut instructions on the second slide
+- one permission card per slide with a `Grant` action where applicable
+- a final stop-agent shortcut slide after the permission sequence
 - final `Start WindieOS` CTA enabled after permission status loads, with a warning if permissions remain missing
 
 ### Settings Data Controls
