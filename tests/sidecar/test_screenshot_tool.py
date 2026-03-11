@@ -280,51 +280,17 @@ def test_capture_with_system_cursor_uses_silent_fallback_on_linux_x11(monkeypatc
     assert result is None
 
 
-def test_overlay_macos_appkit_cursor_uses_stable_arrow_cursor(monkeypatch):
+def test_overlay_macos_builtin_cursor_uses_repo_owned_cursor(monkeypatch):
     monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Darwin")
 
     overlay_calls = []
-
-    class _FakeTiffData:
-        def __bytes__(self):
-            return b"fake-tiff"
-
-    class _FakeCursorImage:
-        def TIFFRepresentation(self):
-            return _FakeTiffData()
-
-    class _FakeCursor:
-        def image(self):
-            return _FakeCursorImage()
-
-        def hotSpot(self):
-            return SimpleNamespace(x=4, y=6)
-
-    class _FakeNSCursor:
-        @staticmethod
-        def currentSystemCursor():
-            raise AssertionError("currentSystemCursor should not be used for macOS screenshot overlay")
-
-        @staticmethod
-        def arrowCursor():
-            return _FakeCursor()
-
-    class _FakeOpenedImage:
-        def convert(self, mode):
-            assert mode == "RGBA"
-            return self
-
-    appkit_module = ModuleType("AppKit")
-    appkit_module.NSCursor = _FakeNSCursor
-    monkeypatch.setitem(sys.modules, "AppKit", appkit_module)
 
     pyautogui_module = ModuleType("pyautogui")
     pyautogui_module.position = lambda: SimpleNamespace(x=100, y=150)
     monkeypatch.setitem(sys.modules, "pyautogui", pyautogui_module)
 
-    pil_module = ModuleType("PIL")
-    pil_module.Image = SimpleNamespace(open=lambda _stream: _FakeOpenedImage())
-    monkeypatch.setitem(sys.modules, "PIL", pil_module)
+    cursor_image = object()
+    monkeypatch.setattr(screenshot_tool, "_get_macos_builtin_cursor", lambda: (cursor_image, (4, 6)))
 
     monkeypatch.setattr(
         screenshot_tool,
@@ -335,7 +301,7 @@ def test_overlay_macos_appkit_cursor_uses_stable_arrow_cursor(monkeypatch):
     )
 
     screenshot = _FakeImage(mode="RGBA", size=(300, 200))
-    result = screenshot_tool._overlay_macos_appkit_cursor(
+    result = screenshot_tool._overlay_macos_builtin_cursor(
         screenshot,
         region=(10, 20, 300, 200),
     )
@@ -344,34 +310,25 @@ def test_overlay_macos_appkit_cursor_uses_stable_arrow_cursor(monkeypatch):
     assert overlay_calls == [
         {
             "screenshot": screenshot,
-            "cursor_image": overlay_calls[0]["cursor_image"],
+            "cursor_image": cursor_image,
             "draw_x": 86,
             "draw_y": 124,
         }
     ]
 
 
-def test_overlay_macos_appkit_cursor_returns_false_when_arrow_cursor_missing(monkeypatch):
+def test_overlay_macos_builtin_cursor_returns_false_when_cursor_generation_fails(monkeypatch):
     monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Darwin")
-
-    class _FakeNSCursor:
-        @staticmethod
-        def arrowCursor():
-            return None
-
-    appkit_module = ModuleType("AppKit")
-    appkit_module.NSCursor = _FakeNSCursor
-    monkeypatch.setitem(sys.modules, "AppKit", appkit_module)
 
     pyautogui_module = ModuleType("pyautogui")
     pyautogui_module.position = lambda: SimpleNamespace(x=100, y=150)
     monkeypatch.setitem(sys.modules, "pyautogui", pyautogui_module)
 
-    pil_module = ModuleType("PIL")
-    pil_module.Image = SimpleNamespace(
-        open=lambda _stream: (_ for _ in ()).throw(AssertionError("Image.open should not run without a cursor"))
+    monkeypatch.setattr(
+        screenshot_tool,
+        "_get_macos_builtin_cursor",
+        lambda: (_ for _ in ()).throw(RuntimeError("cursor build failed")),
     )
-    monkeypatch.setitem(sys.modules, "PIL", pil_module)
 
     monkeypatch.setattr(
         screenshot_tool,
@@ -383,4 +340,4 @@ def test_overlay_macos_appkit_cursor_returns_false_when_arrow_cursor_missing(mon
 
     screenshot = _FakeImage(mode="RGBA", size=(300, 200))
 
-    assert screenshot_tool._overlay_macos_appkit_cursor(screenshot, region=(10, 20, 300, 200)) is False
+    assert screenshot_tool._overlay_macos_builtin_cursor(screenshot, region=(10, 20, 300, 200)) is False
