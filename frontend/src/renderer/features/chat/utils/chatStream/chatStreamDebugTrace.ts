@@ -1,17 +1,18 @@
 import { useChatStore } from '../../stores/chatStore';
 
-function getRendererSearch(): string {
+export function getRendererSearch(): string {
   if (typeof window === 'undefined') {
     return '';
   }
   return typeof window.location?.search === 'string' ? window.location.search : '';
 }
 
-function isRendererStreamTraceEnabled(): boolean {
-  return getRendererSearch().includes('debug_stream=1');
+export function isRendererStreamTraceEnabled(): boolean {
+  const search = getRendererSearch();
+  return search.includes('debug_stream=1') || search.includes('debug_chat_pill=1');
 }
 
-function getRendererTraceView(): string {
+export function getRendererTraceView(): string {
   if (typeof window === 'undefined') {
     return 'unknown';
   }
@@ -19,7 +20,7 @@ function getRendererTraceView(): string {
   return params.get('view') || 'main';
 }
 
-function summarizeWorkspaceForTrace(conversationRef: string | null) {
+export function summarizeWorkspaceForTrace(conversationRef: string | null) {
   const store = useChatStore.getState();
   const workspace = store.getWorkspaceState(conversationRef);
   const lastMessage = workspace.messages[workspace.messages.length - 1] || null;
@@ -70,6 +71,29 @@ export function logRendererResponseSurfaceTrace(data: Record<string, unknown>): 
   }
   console.log('[StreamTrace][renderer][response-surface]', {
     view: getRendererTraceView(),
+    ...data,
+  });
+}
+
+function getRendererPlatform(): string | null {
+  if (typeof navigator === 'undefined' || typeof navigator.platform !== 'string') {
+    return null;
+  }
+  const platform = navigator.platform.trim();
+  return platform.length > 0 ? platform : null;
+}
+
+export function logRendererChatPillTrace(
+  data: Record<string, unknown>,
+  conversationRef: string | null = null,
+): void {
+  if (!isRendererStreamTraceEnabled()) {
+    return;
+  }
+  console.log('[ChatPillTrace][renderer]', {
+    view: getRendererTraceView(),
+    platform: getRendererPlatform(),
+    ...summarizeWorkspaceForTrace(conversationRef),
     ...data,
   });
 }

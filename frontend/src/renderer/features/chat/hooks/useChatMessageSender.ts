@@ -17,7 +17,6 @@ import {
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { buildDeferredQueryModelConfig } from '../../../app/providers/appConfigBackendSync';
 import {
-  resolveMessageSendUiBehavior,
   type ChatSendSurface,
   type ReturnToChatboxPolicy,
 } from '../policies/messageSendUiPolicy';
@@ -40,6 +39,8 @@ import {
   hasUserMessages,
 } from '../utils/messageSender/chatMessageSenderUtils';
 import { resolveQueryScreenshotArtifacts } from '../utils/messageSender/queryScreenshotPipeline';
+import { resolveChatPillSendLifecycle } from '../utils/chatPill/chatPillSessionFlow';
+import { logRendererChatPillTrace } from '../utils/chatStream/chatStreamDebugTrace';
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
@@ -59,15 +60,12 @@ export function useChatMessageSender(
   const { config } = useAppConfigContext();
   const { senderSurface = 'overlay-chatbox', returnToChatboxPolicy } = options;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;
-  const shouldCaptureQueryScreenshot = senderSurface !== 'main-window' && includeQueryScreenshot;
-  const sendUiBehavior = useMemo(() => resolveMessageSendUiBehavior({
+  const sendLifecycle = useMemo(() => resolveChatPillSendLifecycle({
     senderSurface,
     returnToChatboxPolicy,
-    includeQueryScreenshot: shouldCaptureQueryScreenshot,
-  }), [senderSurface, returnToChatboxPolicy, shouldCaptureQueryScreenshot]);
-  const shouldReturnToChatboxOnSend = senderSurface === 'main-window'
-    ? false
-    : sendUiBehavior.shouldReturnToChatboxOnSend;
+    includeQueryScreenshot,
+  }), [includeQueryScreenshot, returnToChatboxPolicy, senderSurface]);
+  const shouldReturnToChatboxOnSend = sendLifecycle.shouldReturnToChatboxOnSend;
 
   const appendSendFailureMessage = useCallback((conversationRef?: string | null) => {
     addMessage({
@@ -155,6 +153,14 @@ export function useChatMessageSender(
       screenshotRef: null,
       screenshotUrl: null,
     }));
+    logRendererChatPillTrace({
+      source: 'renderer-send',
+      action: 'send-start',
+      turn_id: userMessageId,
+      include_query_screenshot: sendLifecycle.shouldCaptureQueryScreenshot,
+      reason: sendLifecycle.surfaceReason,
+    }, conversationRef);
+
     const userMessage: ChatMessage = {
       ...buildPendingUserMessage(userMessageId, text),
       sourceEventType: 'renderer-compose',
@@ -187,8 +193,13 @@ export function useChatMessageSender(
       screenshotRefs,
     } = await resolveQueryScreenshotArtifacts({
       clipboardImages,
-      shouldCaptureQueryScreenshot,
+      shouldCaptureQueryScreenshot: sendLifecycle.shouldCaptureQueryScreenshot,
       isFirstUserMessage: !hadUserMessages,
+      traceContext: {
+        conversationRef,
+        turnId: userMessageId,
+        surfaceReason: sendLifecycle.surfaceReason,
+      },
     });
     
     // Update message with screenshot
@@ -224,6 +235,13 @@ export function useChatMessageSender(
         attachmentContext,
         attachmentFilenames.length > 0 ? attachmentFilenames : null,
       );
+      logRendererChatPillTrace({
+        source: 'renderer-send',
+        action: 'query-dispatched',
+        turn_id: userMessageId,
+        include_query_screenshot: sendLifecycle.shouldCaptureQueryScreenshot,
+        reason: sendLifecycle.surfaceReason,
+      }, conversationRef);
     } catch (error) {
       console.error('[useChatMessageSender] Failed to send query:', error);
       setIsSending(false, conversationRef);
@@ -238,7 +256,7 @@ export function useChatMessageSender(
     setThinkingStatus,
     stopPlayback,
     shouldReturnToChatboxOnSend,
-    shouldCaptureQueryScreenshot,
+    sendLifecycle,
     ensureConversationRef,
     config,
   ]);

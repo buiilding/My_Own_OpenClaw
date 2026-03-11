@@ -11,6 +11,7 @@ import {
   normalizeArtifactImageContentType,
 } from '../../../../infrastructure/services/ArtifactImageUtils';
 import type { ClipboardImagePayload } from './chatMessageSenderPayloads';
+import { logRendererChatPillTrace } from '../chatStream/chatStreamDebugTrace';
 
 type UploadedScreenshotEntry = {
   screenshot: string;
@@ -69,11 +70,25 @@ export async function resolveQueryScreenshotArtifacts({
   clipboardImages,
   shouldCaptureQueryScreenshot,
   isFirstUserMessage,
+  traceContext = null,
 }: {
   clipboardImages: ClipboardImagePayload[];
   shouldCaptureQueryScreenshot: boolean;
   isFirstUserMessage: boolean;
+  traceContext?: {
+    conversationRef?: string | null;
+    turnId?: string | null;
+    surfaceReason?: string | null;
+  } | null;
 }): Promise<QueryScreenshotArtifacts> {
+  logRendererChatPillTrace({
+    source: 'renderer-send',
+    action: 'screenshot-decision',
+    turn_id: traceContext?.turnId || null,
+    include_query_screenshot: shouldCaptureQueryScreenshot,
+    reason: traceContext?.surfaceReason || null,
+  }, traceContext?.conversationRef || null);
+
   const firstClipboardImage = clipboardImages[0] || null;
   const autoCapturedAttachment = firstClipboardImage
     ? createInlineScreenshotAttachment({

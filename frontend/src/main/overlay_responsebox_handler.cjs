@@ -1,6 +1,7 @@
 const {
   resolveActiveSurfaceDisplayAffinity,
 } = require('./display_affinity_runtime.cjs');
+const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
 
 function resolveFullscreenBounds({
   BrowserWindow,
@@ -48,6 +49,8 @@ async function handleSetResponseboxSize(
     getResponseWindowBounds,
     setResponseOverlayVisibilityState,
     showResponseWindowWhenChatVisible,
+    getResponseOverlayVisible = () => false,
+    getResponseOverlayPhase = () => null,
   } = deps;
 
   if (!responseWindow || responseWindow.isDestroyed()) {
@@ -60,6 +63,13 @@ async function handleSetResponseboxSize(
     if (responseWindow.isVisible()) {
       responseWindow.hide();
     }
+    logChatPillMainTrace({
+      source: 'responsebox-size',
+      action: 'hide',
+      phase: getResponseOverlayPhase(),
+      responseWindow,
+      responseOverlayVisibleFlag: false,
+    }, deps);
     return { success: true, visible: false };
   }
 
@@ -76,6 +86,13 @@ async function handleSetResponseboxSize(
       responseWindow.setBounds(nextBounds, false);
       setResponseOverlayVisibilityState(true);
       showResponseWindowWhenChatVisible();
+      logChatPillMainTrace({
+        source: 'responsebox-size',
+        action: 'set-bounds',
+        phase: getResponseOverlayPhase(),
+        responseWindow,
+        responseOverlayVisibleFlag: getResponseOverlayVisible(),
+      }, deps);
       return {
         success: true,
         visible: true,
@@ -97,6 +114,14 @@ async function handleSetResponseboxSize(
     responseWindow.setBounds(bounds, false);
     setResponseOverlayVisibilityState(true);
     showResponseWindowWhenChatVisible();
+    logChatPillMainTrace({
+      source: 'responsebox-size',
+      action: 'set-bounds',
+      phase: getResponseOverlayPhase(),
+      responseWindow,
+      responseOverlayVisibleFlag: getResponseOverlayVisible(),
+      responseLayoutMode: compactHover ? 'awaiting-typing' : 'response',
+    }, deps);
     return {
       success: true,
       visible: true,

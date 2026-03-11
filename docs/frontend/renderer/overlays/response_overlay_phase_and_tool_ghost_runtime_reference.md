@@ -13,6 +13,7 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/utils/chatPill/chatPillSessionFlow.ts`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
@@ -20,7 +21,9 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
+- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayViewContract.ts`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts`
 - `frontend/src/renderer/infrastructure/markdown.ts`
 - `tests/frontend/ChatBoxResponse.state.test.jsx`
 - `tests/frontend/OverlayPhaseListener.test.js`
@@ -67,6 +70,15 @@ Modes:
   - or chat thinking source is `context-compaction-started` with active compaction status text
   - no visible response row
 
+Contract ownership:
+
+- `resolveResponseOverlayViewContract(...)` is the canonical pure helper for:
+  - latest visible response entry id
+  - `showResponse`
+  - `showAwaitingReply`
+  - overlay layout mode (`hidden` / `awaiting-typing` / `response`)
+- `resolveChatPillViewIntent(...)` layers turn-id selection on top of that contract for renderer trace/debug output.
+
 Rendering:
 
 - returns `null` when both modes are false.
@@ -105,6 +117,21 @@ Dedupe behavior:
 
 - skips repeated identical size payloads.
 - unmount cleanup always sends hidden payload.
+
+## Debug Trace Contract
+
+Under `WINDIE_DEBUG_STREAM_EVENTS=1` (main injects `?debug_stream=1`) or explicit `?debug_chat_pill=1`:
+
+- renderer emits `[ChatPillTrace][renderer]` with:
+  - workspace/stream snapshot
+  - `turn_id`
+  - phase
+  - layout mode
+  - `show_response`
+  - `show_awaiting_reply`
+- `useChatMessageSender` logs send start and backend dispatch intent
+- `queryScreenshotPipeline` logs auto-capture decision
+- `ChatBoxResponse` logs the resolved overlay view contract each render pass that matters
 
 ## Tool-Ghost Status (Current)
 

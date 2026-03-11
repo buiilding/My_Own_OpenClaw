@@ -71,6 +71,18 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
       getResponseWindowBounds,
       setResponseOverlayVisibilityState,
       showResponseWindowWhenChatVisible,
+      getResponseOverlayVisible: () => {
+        const currentResponseWindow = getWindows().responseWindow;
+        return Boolean(
+          currentResponseWindow
+            && !currentResponseWindow.isDestroyed()
+            && currentResponseWindow.isVisible(),
+        );
+      },
+      getResponseOverlayPhase: () => {
+        const { responseOverlayPhase } = deps.getState ? deps.getState() : {};
+        return responseOverlayPhase || null;
+      },
     });
   });
 

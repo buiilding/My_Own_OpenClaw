@@ -72,6 +72,7 @@ function createSurfaceRuntime({
     return {
       windows: getWindows(),
       vmWorkerRuntime: state.vmWorkerRuntime,
+      responseOverlayPhase: state.responseOverlayPhase,
       applyResponseOverlayPhase,
       setResponseOverlayVisible: (nextVisible) => {
         state.responseOverlayVisible = Boolean(nextVisible);
@@ -220,6 +221,7 @@ function createSurfaceRuntime({
       setActiveDisplayAffinity,
       getActiveDisplayAffinity,
       externalFocusTracker,
+      getResponseOverlayPhase: () => state.responseOverlayPhase,
     });
   }
 
@@ -230,6 +232,7 @@ function createSurfaceRuntime({
       contextLabelWindow: state.contextLabelWindow,
       broadcastResponseOverlayVisibility,
       syncWakewordToggleForChatVisibility,
+      getResponseOverlayPhase: () => state.responseOverlayPhase,
     });
   }
 
@@ -274,6 +277,7 @@ function createSurfaceRuntime({
         state.responseOverlayPhase = nextPhase;
       },
       getResponseOverlayVisible: () => state.responseOverlayVisible,
+      getResponseOverlayPhase: () => state.responseOverlayPhase,
       setResponseOverlayVisibilityState,
       responseWindow: state.responseWindow,
       chatWindow: state.chatWindow,
