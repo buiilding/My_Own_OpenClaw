@@ -84,9 +84,9 @@ Scroll behavior:
 
 ## Awaiting Indicator Behavior
 
-- awaiting-only phases keep the response overlay hidden until the current turn has visible assistant text or tool explanation content.
+- awaiting mode shows typing indicator.
 - `ChatBoxResponse` does not render a separate reasoning/thinking stream region.
-- compaction status text alone does not render overlay content unless response mode is active.
+- compaction status text alone does not render overlay content unless awaiting/response mode is active.
 
 ## Overlay Size IPC Contract
 

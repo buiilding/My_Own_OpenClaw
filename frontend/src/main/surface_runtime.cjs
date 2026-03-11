@@ -1,6 +1,7 @@
 const { createOverlayWindowHelpersRuntime } = require('./overlay_window_helpers_runtime.cjs');
 const {
   handleResponseOverlayPhaseEvent,
+  isStreamingResponseOverlayPhase,
 } = require('./response_overlay_phase_handler.cjs');
 const {
   broadcastResponseOverlayVisibility: broadcastResponseOverlayVisibilityRuntime,
@@ -191,6 +192,13 @@ function createSurfaceRuntime({
     });
   }
 
+  function isResponseOverlayStreamingPhaseForState() {
+    return isStreamingResponseOverlayPhase(
+      state.responseOverlayPhase,
+      responseOverlayPhaseEnum,
+    );
+  }
+
   function showChatWindow(options = {}) {
     return showChatWindowRuntime(normalizeChatSurfaceWindowOptions(options), {
       chatWindow: state.chatWindow,
@@ -198,7 +206,12 @@ function createSurfaceRuntime({
       responseWindow: state.responseWindow,
       positionChatWindow: overlayHelpers.positionChatWindow,
       responseOverlayVisible: state.responseOverlayVisible,
+      isResponseOverlayStreamingPhase: isResponseOverlayStreamingPhaseForState,
+      setResponseOverlayVisible: (nextVisible) => {
+        state.responseOverlayVisible = Boolean(nextVisible);
+      },
       ensureChatWindowOnTop: overlayHelpers.ensureChatWindowOnTop,
+      ensureResponseOverlayFallbackBounds: overlayHelpers.ensureResponseOverlayFallbackBounds,
       showResponseWindowInactive: overlayHelpers.showResponseWindowInactive,
       broadcastResponseOverlayVisibility,
       syncContextLabelWindowVisibility: overlayHelpers.syncContextLabelWindowVisibility,

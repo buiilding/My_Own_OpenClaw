@@ -1,15 +1,9 @@
 function isStreamingResponseOverlayPhase(phase, phaseEnum = {}) {
   return (
-    phase === phaseEnum.STREAMING
+    phase === phaseEnum.AWAITING_FIRST_CHUNK
+    || phase === phaseEnum.STREAMING
     || phase === phaseEnum.TOOL_CALL
     || phase === phaseEnum.TOOL_OUTPUT
-  );
-}
-
-function isActiveLoopResponseOverlayPhase(phase, phaseEnum = {}) {
-  return (
-    phase === phaseEnum.AWAITING_FIRST_CHUNK
-    || isStreamingResponseOverlayPhase(phase, phaseEnum)
   );
 }
 
@@ -26,7 +20,7 @@ function resolveResponseOverlayWindowMode(phase, phaseEnum = {}) {
   if (phase === phaseEnum.IDLE) {
     return RESPONSE_OVERLAY_WINDOW_MODE.HIDDEN;
   }
-  if (isActiveLoopResponseOverlayPhase(phase, phaseEnum)) {
+  if (isStreamingResponseOverlayPhase(phase, phaseEnum)) {
     return RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP;
   }
   if (Object.values(phaseEnum).includes(phase)) {
@@ -86,7 +80,6 @@ function shouldRestoreTerminalResponseWindow(deps = {}) {
 
 function applyResponseOverlayWindowMode(mode, deps = {}) {
   const {
-    getResponseOverlayVisible = () => false,
     setResponseOverlayVisibilityState = () => {},
     responseWindow,
     ensureResponseOverlayFallbackBounds = () => {},
@@ -104,19 +97,10 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
   }
 
   if (mode === RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP) {
-    const shouldKeepVisible = Boolean(
-      getResponseOverlayVisible()
-      && responseWindow
-      && !responseWindow.isDestroyed()
-    );
-    if (!shouldKeepVisible) {
-      setResponseOverlayVisibilityState(false);
-      if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
-        responseWindow.hide();
-      }
+    setResponseOverlayVisibilityState(true);
+    if (!responseWindow || responseWindow.isDestroyed()) {
       return;
     }
-    setResponseOverlayVisibilityState(true);
     ensureResponseOverlayFallbackBounds();
     showResponseWindowWhenChatVisible();
     return;
@@ -158,7 +142,7 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
 
   setResponseOverlayPhase(nextPhase);
   const windowMode = resolveResponseOverlayWindowMode(nextPhase, RESPONSE_OVERLAY_PHASE);
-  syncOverlayLoopInteractivity(isActiveLoopResponseOverlayPhase(nextPhase, RESPONSE_OVERLAY_PHASE), {
+  syncOverlayLoopInteractivity(windowMode === RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP, {
     chatWindow,
     responseWindow,
     contextLabelWindow,
@@ -178,6 +162,5 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
 
 module.exports = {
   handleResponseOverlayPhaseEvent,
-  isActiveLoopResponseOverlayPhase,
   isStreamingResponseOverlayPhase,
 };

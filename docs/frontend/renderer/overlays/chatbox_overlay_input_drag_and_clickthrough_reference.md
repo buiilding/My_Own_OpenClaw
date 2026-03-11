@@ -161,7 +161,7 @@ Movement path:
 `chatTurnPresentationState.js` is the renderer-side current-turn projection contract for the minimal pill:
 
 - `compact`: chat pill only
-- `awaiting-reply`: chat pill only
+- `awaiting-reply`: chat pill + typing indicator
 - `response`: chat pill + response overlay
 
 `ChatBox` derives pill lock/loop state from `useCurrentTurnPresentationState(...)`, which composes the shared loop-state reducer (`useChatLoopUiState`) with one current-turn assistant-reply/surface projection helper.
@@ -170,8 +170,8 @@ Movement path:
 
 - streamed assistant `llm-text` messages are rendered as persistent transcript blocks
 - tool-call `explanation` arguments are rendered as additional transcript lines
-- once the response overlay has at least one transcript entry for the current turn, it stays visible through later `tool-call` and `tool-output` phases instead of collapsing back to the pill
-- pre-transcript awaiting phases do not materialize a separate response overlay window
+- once the response overlay has at least one transcript entry for the current turn, it stays visible through later `tool-call` and `tool-output` phases instead of falling back to the typing indicator
+- the typing indicator is now only the pre-transcript state (before any current-turn assistant text or tool explanation exists)
 
 Loop watchdog behavior:
 

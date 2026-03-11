@@ -95,7 +95,7 @@ Position helpers in `surface_runtime.cjs` (via `overlay_window_helpers_runtime.c
 - `getResponseWindowBounds(width, height)`:
 - centered to current chat window width
 - rendered above chat window with tight runtime gap (`2px` in current non-dashboard config)
-- response window is only shown once the renderer reports visible response/tool transcript content for the current turn
+- compact response shells (`<=56px` tall, e.g., typing indicator only) apply a hover offset so the bubble sits closer to the chat pill instead of floating high above it
 - fallback to chat-window positioning if chat unavailable
 
 Reposition triggers:

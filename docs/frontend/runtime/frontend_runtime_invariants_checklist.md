@@ -16,9 +16,9 @@ Any change touching renderer chat loop state, main-process overlay phase handlin
 ## Runtime Invariants
 
 1. Chat loop UI projection is phase-driven and deterministic.
-   - user message / awaiting-first-chunk with no current-turn content -> chat pill only
-   - first token or first current-turn tool explanation -> chat pill + response overlay
-   - later tool output keeps the response overlay only if the current turn already has visible overlay content
+   - user message -> chat pill + typing indicator
+   - first token -> chat pill + response overlay
+   - tool output -> chat pill + typing indicator
 2. Active loop interactivity is owned by main-process overlay phase.
    - during `awaiting-first-chunk|streaming|tool-call|tool-output`: chat pill + response overlay are click-through and `focusable=false`
    - renderer does not toggle loop interactivity directly
