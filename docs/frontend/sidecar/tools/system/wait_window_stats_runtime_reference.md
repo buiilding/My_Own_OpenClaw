@@ -88,9 +88,10 @@ Input:
 Semantics:
 
 - pulls all windows from manager
-- keeps only non-empty trimmed titles
-- optional filter is case-insensitive substring match
-- `llm_content` is bullet list (`- <title>`) or `No open windows found.`
+- prefers `app_name` when the platform exposes it, otherwise falls back to window `title`
+- removes empty entries and dedupes case-insensitively while preserving first-seen order
+- optional filter is case-insensitive substring match against the displayed app/window name
+- `llm_content` is bullet list (`- <name>`) or `No open windows found.`
 
 ## Platform Window Manager Semantics
 

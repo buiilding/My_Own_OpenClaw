@@ -117,8 +117,8 @@ def test_macos_window_manager_get_windows_prefers_window_titles(monkeypatch):
     manager = MacOSWindowManager()
 
     assert manager.get_windows() == [
-        {"title": "Terminal - repo", "hwnd": 1},
-        {"title": "Safari", "hwnd": 3},
+        {"title": "Terminal - repo", "hwnd": 1, "app_name": "Terminal"},
+        {"title": "Safari", "hwnd": 3, "app_name": "Safari"},
     ]
 
 
@@ -135,8 +135,8 @@ def test_macos_window_manager_get_windows_falls_back_to_running_apps_when_quartz
     manager = MacOSWindowManager()
 
     assert manager.get_windows() == [
-        {"title": "Terminal", "hwnd": None},
-        {"title": "Safari", "hwnd": None},
+        {"title": "Terminal", "hwnd": None, "app_name": "Terminal"},
+        {"title": "Safari", "hwnd": None, "app_name": "Safari"},
     ]
 
 
@@ -159,7 +159,7 @@ def test_macos_window_manager_accepts_mapping_like_quartz_records(monkeypatch):
     )
     manager = MacOSWindowManager()
 
-    assert manager.get_windows() == [{"title": "Inbox", "hwnd": 12}]
+    assert manager.get_windows() == [{"title": "Inbox", "hwnd": 12, "app_name": "Google Chrome"}]
 
 
 def test_macos_window_manager_logs_quartz_filter_debug_summary(monkeypatch, caplog):
@@ -180,7 +180,7 @@ def test_macos_window_manager_logs_quartz_filter_debug_summary(monkeypatch, capl
     manager = MacOSWindowManager()
 
     with caplog.at_level(logging.DEBUG, logger="core.platform.macos"):
-        assert manager.get_windows() == [{"title": "Terminal", "hwnd": None}]
+        assert manager.get_windows() == [{"title": "Terminal", "hwnd": None, "app_name": "Terminal"}]
 
     assert (
         "Quartz window enumeration debug (on_screen_only=False): raw=4 usable=0 "
@@ -246,6 +246,37 @@ def test_macos_window_manager_switch_to_window_raises_specific_window(monkeypatc
     assert run_calls[0][:2] == ["osascript", "-e"]
     assert 'process "Google Chrome"' in run_calls[0][2]
     assert 'window whose name is "Inbox"' in run_calls[0][2]
+
+
+def test_macos_window_manager_switch_to_window_matches_app_name(monkeypatch):
+    target = _FakeApp("Google Chrome")
+    _install_fake_appkit(
+        monkeypatch,
+        apps=[_FakeApp("Terminal"), target],
+        active_app={"NSApplicationName": "Terminal"},
+    )
+    _install_fake_quartz(
+        monkeypatch,
+        all_windows=[
+            {"owner": "Google Chrome", "name": "my prompts - Google Docs", "layer": 0, "alpha": 1, "id": 10},
+        ],
+        on_screen_windows=[
+            {"owner": "Google Chrome", "name": "my prompts - Google Docs", "layer": 0, "alpha": 1, "id": 10},
+        ],
+    )
+    run_calls = []
+
+    def fake_run(cmd, **_kwargs):
+        run_calls.append(cmd)
+        return SimpleNamespace(returncode=0, stdout="true\n")
+
+    monkeypatch.setattr("core.platform.macos.subprocess.run", fake_run)
+    monkeypatch.setattr("core.platform.macos.time.sleep", lambda *_args, **_kwargs: None)
+    manager = MacOSWindowManager()
+
+    assert manager.switch_to_window("google chrome") is True
+    assert target.activated is True
+    assert len(run_calls) == 1
 
 
 def test_macos_window_manager_switch_to_window_returns_false_when_missing(monkeypatch):

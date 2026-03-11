@@ -24,6 +24,37 @@ def _get_window_manager() -> WindowManager:
     return _window_manager
 
 
+def _get_window_display_name(window: Dict[str, Any]) -> str:
+    app_name = str(window.get("app_name") or "").strip()
+    if app_name:
+        return app_name
+    return str(window.get("title") or "").strip()
+
+
+def _collect_window_display_names(
+    windows: list[dict],
+    *,
+    filter_text: str = "",
+) -> list[str]:
+    query = str(filter_text or "").strip().lower()
+    display_names: list[str] = []
+    seen: set[str] = set()
+
+    for window in windows:
+        display_name = _get_window_display_name(window)
+        if not display_name:
+            continue
+        if query and query not in display_name.lower():
+            continue
+        normalized_name = display_name.lower()
+        if normalized_name in seen:
+            continue
+        seen.add(normalized_name)
+        display_names.append(display_name)
+
+    return display_names
+
+
 async def switch_to_window(args: Dict[str, Any]) -> Dict[str, Any]:
     """
     Switch to a window by title.
@@ -58,7 +89,7 @@ async def switch_to_window(args: Dict[str, Any]) -> Dict[str, Any]:
                 "success": False,
                 "error": (
                     f"Could not find or switch to window/tab with name: {tab_name}. "
-                    "Use the full window title from get_open_windows output for best results."
+                    "Use the app/window name from get_open_windows output for best results."
                 ),
             }
         
@@ -91,14 +122,7 @@ async def get_open_windows(args: Dict[str, Any]) -> Dict[str, Any]:
         def _get_windows():
             manager = _get_window_manager()
             windows = manager.get_windows()
-            window_titles = [w["title"] for w in windows if w.get("title") and w["title"].strip()]
-            
-            # Apply filter if provided
-            if filter_text:
-                query = filter_text.lower()
-                window_titles = [t for t in window_titles if query in t.lower()]
-            
-            return window_titles
+            return _collect_window_display_names(windows, filter_text=filter_text)
         
         loop = asyncio.get_event_loop()
         window_titles = await loop.run_in_executor(get_interactive_executor(), _get_windows)
@@ -118,7 +142,21 @@ async def get_open_windows(args: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _resolve_target_title(windows: list[dict], tab_name: str, match_mode: str) -> str | None:
-    titles = [window["title"] for window in windows if window.get("title")]
+    titles: list[str] = []
+    seen: set[str] = set()
+    for window in windows:
+        for candidate in (
+            str(window.get("title") or "").strip(),
+            str(window.get("app_name") or "").strip(),
+        ):
+            if not candidate:
+                continue
+            normalized_candidate = candidate.lower()
+            if normalized_candidate in seen:
+                continue
+            seen.add(normalized_candidate)
+            titles.append(candidate)
+
     query = tab_name.strip()
     if not query:
         return None

@@ -116,7 +116,7 @@ Per-field post-processing:
 ### macOS
 
 - active app/window: `NSWorkspace.sharedWorkspace().activeApplication()`
-- open windows approximation: running app names (`runningApplications()`)
+- open-window inspection prefers Quartz owner app names, with `runningApplications()` fallback when Quartz enumeration is unavailable/empty
 - switch behavior: `activateWithOptions_(0)` on matched app name
 - dependency: `AppKit` bridge
 
