@@ -85,6 +85,7 @@ Scroll behavior:
 ## Awaiting Indicator Behavior
 
 - awaiting mode shows typing indicator.
+- `awaiting-first-chunk` keeps loop click-through active but does not pre-show the response window from the main-process phase handler; the first visible show comes from the renderer's measured awaiting layout.
 - `ChatBoxResponse` does not render a separate reasoning/thinking stream region.
 - compaction status text alone does not render overlay content unless awaiting/response mode is active.
 
