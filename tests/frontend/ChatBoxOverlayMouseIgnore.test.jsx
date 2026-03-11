@@ -66,6 +66,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   INVOKE_CHANNELS: {
     SET_CHATBOX_VISUAL_ANCHOR_HEIGHT: 'set-chatbox-visual-anchor-height',
     SHOW_MAIN_WINDOW: 'show-main-window',
+    HIDE_CHATBOX: 'hide-chatbox',
   },
   ON_CHANNELS: {
     CHATBOX_FOCUS: 'chatbox-focus',
@@ -279,6 +280,7 @@ describe('ChatBox overlay mouse ignore', () => {
     emitOverlayPhase('streaming');
 
     expect(screen.getByRole('button', { name: 'Open dashboard' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Hide chat pill' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Toggle auto screenshot' })).toBeDisabled();
     expect(screen.getByPlaceholderText('Ask me anything...')).toBeDisabled();
@@ -396,6 +398,16 @@ describe('ChatBox overlay mouse ignore', () => {
 
     expect(mockSendMessage).toHaveBeenCalledWith('hello world');
     expect(input).toHaveValue('');
+  });
+
+  test('hide button invokes the existing hide-chatbox bridge action', async () => {
+    render(<ChatBox />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Hide chat pill' }));
+    });
+
+    expectInvokeCall(([channel]) => channel === 'hide-chatbox');
   });
 
   test('keeps send button rendered but disabled during active stream', () => {

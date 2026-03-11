@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useCurrentTurnPresentationState } from '../hooks/useCurrentTurnPresentationState';
@@ -20,6 +20,7 @@ import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStream/chatStreamThinkingStatus';
 import {
   CompactIcon,
+  CloseIcon,
   ScreenshotIcon,
   SendIcon,
   SettingsIcon,
@@ -53,6 +54,8 @@ function ChatBox() {
   const [wakewordSttSessionActive, setWakewordSttSessionActive] = useState(false);
   const [clipboardImages, setClipboardImages] = useState([]);
   const inputRef = useRef(null);
+  const pillRef = useRef(null);
+  const sendButtonRef = useRef(null);
   const loopInteractionLockedRef = useRef(false);
   const dragStateRef = useRef({
     isDragging: false,
@@ -115,6 +118,51 @@ function ChatBox() {
     inputRef.current?.blur();
   }, [loopInteractionLocked]);
 
+  const syncCloseButtonAnchor = useCallback(() => {
+    const pillElement = pillRef.current;
+    const sendButtonElement = sendButtonRef.current;
+    if (!pillElement || !sendButtonElement) {
+      return;
+    }
+
+    const pillRect = pillElement.getBoundingClientRect();
+    const sendRect = sendButtonElement.getBoundingClientRect();
+    if (pillRect.width <= 0 || sendRect.width <= 0) {
+      return;
+    }
+
+    const centerX = Math.round((sendRect.left - pillRect.left) + (sendRect.width / 2));
+    pillElement.style.setProperty('--chatbox-close-center-x', `${centerX}px`);
+  }, []);
+
+  useLayoutEffect(() => {
+    syncCloseButtonAnchor();
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', syncCloseButtonAnchor);
+    }
+
+    let resizeObserver = null;
+    if (typeof ResizeObserver === 'function') {
+      resizeObserver = new ResizeObserver(() => {
+        syncCloseButtonAnchor();
+      });
+      if (pillRef.current) {
+        resizeObserver.observe(pillRef.current);
+      }
+      if (sendButtonRef.current) {
+        resizeObserver.observe(sendButtonRef.current);
+      }
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', syncCloseButtonAnchor);
+      }
+      resizeObserver?.disconnect();
+    };
+  }, [syncCloseButtonAnchor, devUiEnabled]);
+
   useVoiceMode(
     wakewordSttEnabled && wakewordSttSessionActive,
     (text, isFinal) => {
@@ -156,6 +204,17 @@ function ChatBox() {
       });
     } catch (error) {
       console.warn('[ChatBox] Failed to show main window:', error);
+    }
+  }, [loopInteractionLocked]);
+
+  const handleHideChatbox = useCallback(async () => {
+    if (loopInteractionLocked) {
+      return;
+    }
+    try {
+      await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
+    } catch (error) {
+      console.warn('[ChatBox] Failed to hide chat window:', error);
     }
   }, [loopInteractionLocked]);
 
@@ -272,10 +331,21 @@ function ChatBox() {
     >
       <div className="chatbox-shell">
         <form
+          ref={pillRef}
           className={`chatbox-pill${hasImagePreview ? ' with-preview' : ''}`}
           onSubmit={handleSubmit}
           onMouseDown={handlePillMouseDown}
         >
+          <button
+            type="button"
+            className="chatbox-close-badge"
+            onClick={handleHideChatbox}
+            aria-label="Hide chat pill"
+            title="Hide chat pill"
+            disabled={loopInteractionLocked}
+          >
+            <CloseIcon />
+          </button>
           <ChatBoxImagePreviewRow
             clipboardImages={clipboardImages}
             onRemoveImage={(id) => {
@@ -338,6 +408,7 @@ function ChatBox() {
               <SoundIcon />
             </button>
             <button
+              ref={sendButtonRef}
               type="submit"
               className="chatbox-icon chatbox-send"
               aria-label="Send message"
