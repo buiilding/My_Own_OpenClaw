@@ -308,7 +308,11 @@ return "false"
                     len(window_records),
                 )
             return [
-                {"title": window["title"], "hwnd": window["hwnd"]}
+                {
+                    "title": window["title"],
+                    "hwnd": window["hwnd"],
+                    "app_name": window["app_name"],
+                }
                 for window in window_records
             ]
         except Exception as e:
@@ -353,7 +357,10 @@ return "false"
             if not candidate_windows:
                 candidate_windows = self._list_running_app_records()
             for window in candidate_windows:
-                if normalized_requested_title in window["title"].lower():
+                if (
+                    normalized_requested_title in window["title"].lower()
+                    or normalized_requested_title in window["app_name"].lower()
+                ):
                     target_window = window
                     break
 

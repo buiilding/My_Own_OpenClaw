@@ -113,6 +113,22 @@ async def test_switch_to_window_supports_contains_match_mode(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_switch_to_window_supports_app_name_matches(monkeypatch):
+    manager = FakeWindowManager(
+        windows=[{"title": "my prompts - Google Docs", "app_name": "Google Chrome"}],
+        switch_result=True,
+    )
+    monkeypatch.setattr(window_tool, "_window_manager", manager)
+
+    result = await window_tool.switch_to_window(
+        {"tab_name": "Google Chrome", "match_mode": "contains"}
+    )
+
+    assert result["success"] is True
+    assert manager.switch_calls == ["Google Chrome"]
+
+
+@pytest.mark.asyncio
 async def test_switch_to_window_supports_regex_match_mode(monkeypatch):
     manager = FakeWindowManager(
         windows=[{"title": "John Lennon - Beautiful Boy (Darling Boy) - Remastered 2010"}],
@@ -131,11 +147,12 @@ async def test_switch_to_window_supports_regex_match_mode(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_open_windows_filters_titles_case_insensitively(monkeypatch):
+async def test_get_open_windows_prefers_app_names_and_dedupes(monkeypatch):
     manager = FakeWindowManager(
         windows=[
+            {"title": "my prompts - Google Docs", "app_name": "Google Chrome"},
+            {"title": "u reverse - Google Search", "app_name": "Google Chrome"},
             {"title": "Terminal"},
-            {"title": "Browser - docs"},
             {"title": "  "},
             {"title": "Editor"},
             {},
@@ -143,11 +160,28 @@ async def test_get_open_windows_filters_titles_case_insensitively(monkeypatch):
     )
     monkeypatch.setattr(window_tool, "_window_manager", manager)
 
-    result = await window_tool.get_open_windows({"filter_text": "DOC"})
+    result = await window_tool.get_open_windows({})
 
     assert result["success"] is True
-    assert result["data"]["windows"] == ["Browser - docs"]
-    assert result["data"]["llm_content"] == "- Browser - docs"
+    assert result["data"]["windows"] == ["Google Chrome", "Terminal", "Editor"]
+    assert result["data"]["llm_content"] == "- Google Chrome\n- Terminal\n- Editor"
+
+
+@pytest.mark.asyncio
+async def test_get_open_windows_filters_display_names_case_insensitively(monkeypatch):
+    manager = FakeWindowManager(
+        windows=[
+            {"title": "my prompts - Google Docs", "app_name": "Google Chrome"},
+            {"title": "Terminal"},
+        ]
+    )
+    monkeypatch.setattr(window_tool, "_window_manager", manager)
+
+    result = await window_tool.get_open_windows({"filter_text": "chrome"})
+
+    assert result["success"] is True
+    assert result["data"]["windows"] == ["Google Chrome"]
+    assert result["data"]["llm_content"] == "- Google Chrome"
 
 
 @pytest.mark.asyncio
