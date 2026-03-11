@@ -79,7 +79,6 @@ Send sequence in chatbox component:
 Right-side action button parity with dashboard composer:
 
 - camera button toggles overlay auto screenshot on/off instead of inserting a screenshot preview
-- send area includes a compact close affordance mounted above the send button; close calls `hide-chatbox` and does not affect main window state
 - send button (`ArrowUp`) remains mounted at all times
 - during active loop phases, the send button is disabled instead of becoming a local stop affordance
 - active loop lock disables input, settings, screenshot, TTS, dev compaction, drag, and input auto-focus until the loop exits

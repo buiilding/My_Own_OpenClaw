@@ -66,7 +66,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   INVOKE_CHANNELS: {
     SET_CHATBOX_VISUAL_ANCHOR_HEIGHT: 'set-chatbox-visual-anchor-height',
     SHOW_MAIN_WINDOW: 'show-main-window',
-    HIDE_CHATBOX: 'hide-chatbox',
   },
   ON_CHANNELS: {
     CHATBOX_FOCUS: 'chatbox-focus',
@@ -273,14 +272,6 @@ describe('ChatBox overlay mouse ignore', () => {
         && payload?.maximize === true
         && payload?.open === 'chat',
     );
-  });
-
-  test('close icon hides the chat pill overlay', () => {
-    render(<ChatBox />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Hide chat pill' }));
-
-    expectInvokeCall(([channel]) => channel === 'hide-chatbox');
   });
 
   test('locks pill controls during active loop phases and leaves send disabled', () => {
