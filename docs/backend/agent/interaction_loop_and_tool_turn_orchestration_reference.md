@@ -118,6 +118,7 @@ History size is reduced only by compaction; the loop is not stopped by a fixed s
 - single resolved tool -> `ToolCallEvent`
 - multi-tool bundle -> one `ToolBundleEvent`
 - preparation errors -> synthetic failed result storage + `ToolCallEvent` then `ToolOutputEvent` (protocol order preserved)
+- failed bundle preparation still leaves all parsed calls bundle-scoped so wait/process stays on the atomic-bundle path and history can reconcile every staged `tool_call_id`
 
 Validated by:
 

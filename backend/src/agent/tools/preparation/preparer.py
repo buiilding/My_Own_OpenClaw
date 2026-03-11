@@ -189,6 +189,11 @@ class ToolPreparer:
             short_id(bundle_id),
         )
 
+        # Bundle metadata must exist on every parsed call before any early exit so
+        # failed bundle preparation still routes through atomic-bundle processing.
+        for tool_call in tool_calls:
+            tool_call.metadata = execution_ref.apply_to_metadata(tool_call.metadata)
+
         resolved_calls: List[ResolvedToolCall] = []
         errors: List[Tuple[ParsedToolCall, str]] = []
 
