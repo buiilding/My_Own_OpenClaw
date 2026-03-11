@@ -10,6 +10,16 @@ read_when:
 
 WindieOS is built as a distributed system with a clear separation between frontend (Electron/React) and backend (Python/FastAPI). The architecture follows clean architecture principles with dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR).
 
+Current runtime topology includes both:
+
+- a primary chat stream plane (`/ws`) for query/tool-turn orchestration, and
+- an HTTP control plane (`/api/runs/*`) for VM worker assignment, heartbeat, control commands, and event relay.
+
+See:
+
+- [Backend Runtime Surface: Query, Tool Loop, and VM Runs](../backend/runtime/backend_runtime_surface_query_tool_loop_and_vm_runs_reference.md)
+- [Frontend Runtime Surface: Main, Renderer, Sidecar, and VM Worker](../frontend/runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)
+
 ## Future: Hosted Multi-Tenant Architecture (Planned)
 
 To bring this to end users at scale, the system will evolve into a hosted, multi-tenant platform with subscription-based usage and limits while preserving a local-only mode.
@@ -111,6 +121,7 @@ Local-only mode remains available for privacy-first users:
 #### Main Process (Node.js)
 - **IPC Bridge**: Secure communication between renderer and main
 - **WebSocket Client**: Connection to Python backend
+- **VM Worker Runtime**: Optional heartbeat/assignment relay loop for `/api/runs/*` when `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE` are enabled
 - **Wakeword Bridge**: Python subprocess management for wakeword detection
 - **Python Sidecar**: Tool execution, system state capture, and local memory
 
@@ -132,6 +143,7 @@ Local-only mode remains available for privacy-first users:
 - **Embedding Service**: SentenceTransformer provider exposed via `/api/embeddings` (used by sidecar memory)
 - **Tool System**: Tool registry and orchestration
 - **LLM Client**: Multi-provider LLM abstraction
+  - OpenAI provider includes a model-gated native reasoning runtime (`litellm.aresponses`) alongside the provider-generic path
 - **Vision Service**: AI-powered visual understanding
 - **OCR Service**: RapidOCR-backed text detection for coordinate resolution
 

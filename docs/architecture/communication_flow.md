@@ -34,6 +34,12 @@ WindieOS uses a multi-layered communication architecture with WebSocket for back
 │  │  - Message Handlers                                 │  │
 │  │  - Agent System                                     │  │
 │  └───────────────────────────────────────────────────┘  │
+│                    ↕ HTTP Control Plane (/api/runs/*)   │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  VM Run Control (FastAPI REST)                    │  │
+│  │  - Worker heartbeat / assignment                  │  │
+│  │  - Run control commands / event relay             │  │
+│  └───────────────────────────────────────────────────┘  │
 ```
 
 ## IPC Communication (Electron)
@@ -121,6 +127,17 @@ WindieOS uses a multi-layered communication architecture with WebSocket for back
 3. **Session Creation**: Backend creates session
 4. **Message Loop**: Continuous message exchange
 5. **Disconnection**: Cleanup on disconnect
+
+### Parallel HTTP Control Plane (`/api/runs/*`)
+
+In VM worker mode, Electron main also uses backend HTTP routes for run orchestration:
+
+1. worker heartbeat poll (`POST /api/runs/workers/heartbeat`)
+2. run assignment dispatch and ack (`POST /api/runs/{run_id}/worker-dispatched`)
+3. backend stream event relay to run timelines (`POST /api/runs/{run_id}/events`)
+4. worker-scoped control command application (`stop` currently mapped to websocket `stop-query`)
+
+This control plane is separate from the `/ws` streaming channel and exists to coordinate worker assignment/control state for hosted VM scenarios.
 
 ### Endpoint Resolution (Electron Main)
 
