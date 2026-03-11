@@ -1,9 +1,9 @@
 ---
-summary: "Deep reference for renderer app startup routing in `App.jsx`: VM-mode dashboard bypass, frontend onboarding slideshow persistence gate, provider stack ownership, and wakeword controller mount boundaries."
+summary: "Deep reference for renderer app startup routing in `App.jsx`: VM-mode dashboard bypass, permission-gated onboarding slideshow routing, provider stack ownership, and wakeword controller mount boundaries."
 read_when:
   - When changing renderer app startup flow in `frontend/src/renderer/app/App.jsx`.
   - When debugging why users land in onboarding slideshow vs dashboard shell across VM and non-VM launches.
-title: "App Startup VM-Mode and Frontend Onboarding Runtime Reference"
+title: "App Startup VM-Mode and Permission Onboarding Runtime Reference"
 ---
 
 # App Startup VM-Mode and Frontend Onboarding Runtime Reference
@@ -12,11 +12,11 @@ title: "App Startup VM-Mode and Frontend Onboarding Runtime Reference"
 
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/infrastructure/runtime/vmMode.js`
-- `frontend/src/renderer/features/onboarding/utils/frontendOnboardingStorage.js`
+- `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow.jsx`
 - `frontend/src/renderer/infrastructure/shortcuts/agentStopShortcut.js`
 - `tests/frontend/AppVmMode.test.jsx`
-- `tests/frontend/FrontendOnboardingStorage.test.js`
+- `tests/frontend/AppPermissionGate.test.jsx`
 - `tests/frontend/FrontendOnboardingSlideshow.test.jsx`
 
 ## Provider and Root Composition
@@ -36,7 +36,7 @@ title: "App Startup VM-Mode and Frontend Onboarding Runtime Reference"
 `AppContent` resolves startup destination with two gates:
 
 1. VM mode gate (`isVmModeEnabled()`)
-2. frontend onboarding completion gate (`loadFrontendOnboardingState().completed`)
+2. permission onboarding gate (`permissionStore.needsOnboarding`)
 
 Routing behavior:
 
@@ -61,28 +61,14 @@ Routing behavior:
 
 This is intentionally independent from backend/frontend config state.
 
-## Frontend Onboarding Persistence Contract
+## Permission Onboarding Persistence Contract
 
-Storage key:
+Startup completion is now sourced from `permissionStore` local persistence:
 
-- `windieos-frontend-onboarding` (localStorage JSON object)
-
-`loadFrontendOnboardingState()`:
-
-- returns default `{ completed: false, completed_at: null }` when missing/malformed
-- only treats `completed === true` as completed
-- only accepts string `completed_at`; otherwise `null`
-
-`saveFrontendOnboardingState(state)`:
-
-- writes provided state via shared JSON localStorage helper
-
-Completion path in `AppContent`:
-
-1. create completion payload with current ISO timestamp
-2. persist payload
-3. set local React state `frontendOnboardingComplete = true`
-4. re-render into dashboard shell
+- storage key: `windieos-permission-onboarding`
+- persisted fields: `manifest_version`, `completed`, `completed_at`
+- `completeOnboarding()` fails closed until all current-platform `required_now` permissions are granted
+- when completion succeeds, `permissionStore.needsOnboarding` flips false and `AppContent` re-renders into the dashboard shell
 
 ## Onboarding Slideshow Runtime Contract
 
@@ -101,7 +87,8 @@ Viewport/layout behavior:
 Navigation behavior:
 
 - `Next` / `Back` controls slide index
-- final CTA `Start WindieOS` calls `onComplete`
+- final CTA `Start WindieOS` calls `permissionStore.completeOnboarding()`
+- `Start WindieOS` stays disabled until required permissions are granted for the current platform
 
 Stop shortcut label source:
 
@@ -119,9 +106,9 @@ Platform mapping in shortcut helper:
 
 ## Current Permission-Gate Boundary
 
-Renderer app startup no longer blocks on `PermissionOnboardingWizard` gate in `AppContent`.
+Renderer app startup blocks on `permissionStore.needsOnboarding` in non-VM mode.
 
-Permission status UI remains accessible through settings data-controls surfaces (`PermissionControlCenter`), but it is not the startup routing gate in current `App.jsx`.
+The same permission store also powers Settings > Permissions (`PermissionControlCenter`) so onboarding and post-onboarding rechecks stay on one state model.
 
 ## Test-Backed Invariants
 
@@ -130,11 +117,10 @@ Permission status UI remains accessible through settings data-controls surfaces 
 - VM mode always renders dashboard shell
 - VM mode bypasses onboarding slideshow
 
-`tests/frontend/FrontendOnboardingStorage.test.js`:
+`tests/frontend/AppPermissionGate.test.jsx`:
 
-- empty storage default
-- persisted completion state round-trip
-- malformed JSON fails closed to default
+- non-VM mode renders onboarding while `needsOnboarding` is true
+- non-VM mode renders dashboard after permission onboarding completes
 
 `tests/frontend/FrontendOnboardingSlideshow.test.jsx`:
 

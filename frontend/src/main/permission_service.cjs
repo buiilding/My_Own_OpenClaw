@@ -39,6 +39,29 @@ const LINUX_PERMISSION_CENTER_TOPIC_ALIASES = Object.freeze({
   microphone: 'privacy',
 });
 
+function normalizePlatformScope(platform = process.platform) {
+  switch (platform) {
+    case 'darwin':
+      return 'macos';
+    case 'win32':
+      return 'windows';
+    case 'linux':
+      return 'linux';
+    default:
+      return platform;
+  }
+}
+
+function permissionAppliesToPlatform(permission, platform = process.platform) {
+  const osScope = typeof permission?.os_scope === 'string'
+    ? permission.os_scope.trim().toLowerCase()
+    : 'all';
+  if (!osScope || osScope === 'all') {
+    return true;
+  }
+  return osScope === normalizePlatformScope(platform);
+}
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -517,6 +540,72 @@ async function verifyMicrophoneCapability(deps = {}) {
   };
 }
 
+async function verifyMacOsSystemEventsAutomationPermission(deps = {}) {
+  if (typeof deps.probeMacOsSystemEventsAutomationPermission !== 'function') {
+    return {
+      granted: false,
+      reason: 'System Events automation probe is unavailable.',
+      details: {},
+    };
+  }
+
+  try {
+    const result = await deps.probeMacOsSystemEventsAutomationPermission();
+    return result && typeof result === 'object'
+      ? {
+        granted: result.granted === true,
+        reason: typeof result.reason === 'string' ? result.reason : '',
+        details: result.details && typeof result.details === 'object' ? result.details : result,
+      }
+      : {
+        granted: result === true,
+        reason: result === true ? '' : 'System Events automation verification failed.',
+        details: {},
+      };
+  } catch (error) {
+    return {
+      granted: false,
+      reason: error?.message || 'System Events automation verification failed.',
+      details: {
+        error: String(error?.message || error),
+      },
+    };
+  }
+}
+
+async function requestMacOsSystemEventsAutomationPermission(deps = {}) {
+  if (typeof deps.requestMacOsSystemEventsAutomationPermission !== 'function') {
+    return {
+      granted: false,
+      reason: 'System Events automation request flow is unavailable.',
+      details: {},
+    };
+  }
+
+  try {
+    const result = await deps.requestMacOsSystemEventsAutomationPermission();
+    return result && typeof result === 'object'
+      ? {
+        granted: result.granted === true,
+        reason: typeof result.reason === 'string' ? result.reason : '',
+        details: result.details && typeof result.details === 'object' ? result.details : result,
+      }
+      : {
+        granted: result === true,
+        reason: result === true ? '' : 'System Events automation request failed.',
+        details: {},
+      };
+  } catch (error) {
+    return {
+      granted: false,
+      reason: error?.message || 'System Events automation request failed.',
+      details: {
+        error: String(error?.message || error),
+      },
+    };
+  }
+}
+
 async function probeScreenCapture(permission, deps = {}) {
   const platform = deps.platform || process.platform;
   const permissionId = permission.permission_id;
@@ -619,6 +708,40 @@ async function probeMicrophone(permission, deps = {}) {
     platform,
     verification: capability.details,
   });
+}
+
+async function probeSystemEventsAutomation(permission, deps = {}) {
+  const permissionId = permission.permission_id;
+  const platform = deps.platform || process.platform;
+
+  if (platform !== 'darwin') {
+    return buildProbeResult(permissionId, PERMISSION_STATUS.UNSUPPORTED, 'System Events automation applies only to macOS.', {
+      platform,
+      os_scope: permission.os_scope,
+    });
+  }
+
+  const capability = await verifyMacOsSystemEventsAutomationPermission(deps);
+  if (capability.granted) {
+    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'System Events automation access is granted.', {
+      platform,
+      verification: capability.details,
+    });
+  }
+
+  return buildProbeResult(
+    permissionId,
+    PERMISSION_STATUS.NEEDS_ACTION,
+    capability.reason || 'System Events automation access is not yet available.',
+    {
+      platform,
+      verification: capability.details,
+      remediation: (
+        'Click Grant to show the macOS Automation prompt, then allow WindieOS to control System Events. '
+        + 'If you already denied it, reopen System Settings -> Privacy & Security -> Automation and enable WindieOS under System Events.'
+      ),
+    },
+  );
 }
 
 async function probeFilesystemWorkspaceAccess(permission, deps = {}) {
@@ -835,12 +958,21 @@ async function runPermissionProbe(permissionId, deps = {}) {
     });
   }
 
+  if (!permissionAppliesToPlatform(permission, deps.platform || process.platform)) {
+    return buildProbeResult(permission.permission_id, PERMISSION_STATUS.UNSUPPORTED, 'This permission does not apply on the current platform.', {
+      platform: deps.platform || process.platform,
+      os_scope: permission.os_scope,
+    });
+  }
+
   try {
     switch (permission.permission_id) {
       case 'screen_capture':
         return await probeScreenCapture(permission, deps);
       case 'input_control_accessibility':
         return await probeInputControl(permission, deps);
+      case 'system_events_automation':
+        return await probeSystemEventsAutomation(permission, deps);
       case 'microphone':
         return await probeMicrophone(permission, deps);
       case 'filesystem_workspace_access':
@@ -1109,6 +1241,40 @@ async function requestMicrophonePermission(permission, deps = {}) {
   return probe;
 }
 
+async function requestSystemEventsAutomationPermission(permission, deps = {}) {
+  const permissionId = permission.permission_id;
+  const platform = deps.platform || process.platform;
+
+  if (platform !== 'darwin') {
+    return buildProbeResult(permissionId, PERMISSION_STATUS.UNSUPPORTED, 'System Events automation applies only to macOS.', {
+      platform,
+      os_scope: permission.os_scope,
+    });
+  }
+
+  const requestResult = await requestMacOsSystemEventsAutomationPermission(deps);
+  if (requestResult.granted) {
+    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'System Events automation access is granted.', {
+      platform,
+      verification: requestResult.details,
+    });
+  }
+
+  return buildProbeResult(
+    permissionId,
+    PERMISSION_STATUS.NEEDS_ACTION,
+    requestResult.reason || 'System Events automation access was not granted.',
+    {
+      platform,
+      verification: requestResult.details,
+      remediation: (
+        'Approve the macOS Automation prompt for WindieOS. If the prompt no longer appears, '
+        + 'open System Settings -> Privacy & Security -> Automation and enable WindieOS under System Events.'
+      ),
+    },
+  );
+}
+
 async function requestFilesystemWorkspaceAccessPermission(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const dialog = deps.dialog;
@@ -1321,12 +1487,21 @@ async function requestPermission(permissionId, deps = {}) {
     });
   }
 
+  if (!permissionAppliesToPlatform(permission, deps.platform || process.platform)) {
+    return buildProbeResult(permission.permission_id, PERMISSION_STATUS.UNSUPPORTED, 'This permission does not apply on the current platform.', {
+      platform: deps.platform || process.platform,
+      os_scope: permission.os_scope,
+    });
+  }
+
   try {
     switch (permissionId) {
       case 'screen_capture':
         return await requestScreenCapturePermission(permission, deps);
       case 'input_control_accessibility':
         return await requestInputControlPermission(permission, deps);
+      case 'system_events_automation':
+        return await requestSystemEventsAutomationPermission(permission, deps);
       case 'microphone':
         return await requestMicrophonePermission(permission, deps);
       case 'filesystem_workspace_access':
@@ -1347,14 +1522,19 @@ async function requestPermission(permissionId, deps = {}) {
   }
 }
 
-function listPermissionDefinitions() {
-  return PERMISSION_DEFINITIONS.map(clonePermissionDefinition);
+function listPermissionDefinitions(deps = {}) {
+  const platform = deps.platform || process.platform;
+  return PERMISSION_DEFINITIONS
+    .filter((permission) => permissionAppliesToPlatform(permission, platform))
+    .map(clonePermissionDefinition);
 }
 
 async function checkPermissions(permissionIds = null, deps = {}) {
   const ids = Array.isArray(permissionIds)
     ? permissionIds.filter((id) => typeof id === 'string' && id.length > 0)
-    : PERMISSION_DEFINITIONS.map((permission) => permission.permission_id);
+    : PERMISSION_DEFINITIONS
+      .filter((permission) => permissionAppliesToPlatform(permission, deps.platform || process.platform))
+      .map((permission) => permission.permission_id);
   return await Promise.all(ids.map((permissionId) => runPermissionProbe(permissionId, deps)));
 }
 
@@ -1362,7 +1542,7 @@ async function listPermissionsWithStatus(deps = {}) {
   return {
     manifest_version: String(PERMISSION_MANIFEST.manifest_version || '1'),
     generated_at: PERMISSION_MANIFEST.generated_at || null,
-    permissions: listPermissionDefinitions(),
+    permissions: listPermissionDefinitions(deps),
     statuses: await checkPermissions(null, deps),
   };
 }

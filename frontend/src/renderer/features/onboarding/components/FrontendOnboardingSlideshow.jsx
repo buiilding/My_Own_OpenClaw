@@ -25,7 +25,9 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
   const permissions = usePermissionStore((state) => state.permissions);
   const statusesByPermissionId = usePermissionStore((state) => state.statusesByPermissionId);
   const error = usePermissionStore((state) => state.error);
+  const missingRequiredPermissions = usePermissionStore((state) => state.missingRequiredPermissions);
   const bootstrapPermissions = usePermissionStore((state) => state.bootstrapPermissions);
+  const completeOnboarding = usePermissionStore((state) => state.completeOnboarding);
   const requestPermission = usePermissionStore((state) => state.requestPermission);
   const { updateConfig } = useAppConfigContext();
   const startupMaximizeRequestedRef = useRef(false);
@@ -57,6 +59,7 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
   const isLastSlide = activeSlideIndex === slides.length - 1;
   const isPermissionSlide = activeSlide.id === 'permissions';
   const isStopFlowSlide = activeSlide.id === 'stop-flow';
+  const canStartWindieOs = bootstrapped && missingRequiredPermissions.length === 0 && !isLoading;
 
   useEffect(() => {
     if (isPermissionSlide && !bootstrapped && !isLoading) {
@@ -88,6 +91,13 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
       }
     } finally {
       setPendingPermissionId('');
+    }
+  }
+
+  function handleComplete() {
+    const completed = completeOnboarding();
+    if (completed && typeof onComplete === 'function') {
+      onComplete();
     }
   }
 
@@ -169,9 +179,6 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
                   </p>
                 ) : null}
               </div>
-              {error ? (
-                <p className="frontend-onboarding-permission-error">{error}</p>
-              ) : null}
             </div>
           ) : isStopFlowSlide ? (
             <div className="frontend-onboarding-stop-flow">
@@ -200,6 +207,14 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
               <span className="frontend-onboarding-emphasis-value">{activeSlide.emphasisValue}</span>
             </div>
           )}
+          {error ? (
+            <p className="frontend-onboarding-permission-error">{error}</p>
+          ) : null}
+          {isLastSlide && !canStartWindieOs ? (
+            <p className="frontend-onboarding-permission-error">
+              Finish the required permissions on the previous step before starting WindieOS.
+            </p>
+          ) : null}
         </div>
         <div className="frontend-onboarding-actions">
           {activeSlideIndex > 0 ? (
@@ -217,7 +232,8 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
             <button
               type="button"
               className="frontend-onboarding-button primary"
-              onClick={onComplete}
+              onClick={handleComplete}
+              disabled={!canStartWindieOs}
             >
               Start WindieOS
             </button>
@@ -237,7 +253,7 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
 }
 
 FrontendOnboardingSlideshow.propTypes = {
-  onComplete: PropTypes.func.isRequired,
+  onComplete: PropTypes.func,
   stopAgentShortcutLabel: PropTypes.string,
 };
 

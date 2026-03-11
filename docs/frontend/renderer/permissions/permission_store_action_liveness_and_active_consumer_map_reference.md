@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for which `permissionStore` actions are actively consumed by mounted renderer UI versus currently dormant onboarding-only actions."
+summary: "Deep reference for which `permissionStore` actions are actively consumed by mounted renderer UI, including the startup permission-onboarding gate."
 read_when:
   - When changing renderer permissions flows and deciding whether store actions are dead, dormant, or actively wired.
-  - When debugging why permission gate fields (`needsOnboarding`, consent/completion state) change even though startup is not permission-gated.
+  - When debugging why permission gate fields (`needsOnboarding`, consent/completion state) change during startup routing or settings re-check flows.
 title: "Permission Store Action Liveness and Active Consumer Map Reference"
 ---
 
@@ -17,29 +17,30 @@ title: "Permission Store Action Liveness and Active Consumer Map Reference"
 
 ## Why This Page Exists
 
-The permission store still carries onboarding-gate fields and onboarding-completion actions, but
-the current renderer runtime no longer mounts a permission-onboarding startup surface.
+The permission store now drives both startup routing and settings-time permission maintenance.
 
-Without an explicit liveness map, it is easy to assume all store actions are currently in use.
+Without an explicit liveness map, it is easy to misclassify store actions as dead when they still gate app entry.
 
 ## Active UI Consumer Map (Current Runtime)
 
 ### Actively called from mounted UI
 
 - `bootstrapPermissions()`
-  - called by `PermissionControlCenter` effect when `bootstrapped` is false
+  - called by `FrontendOnboardingSlideshow` and `PermissionControlCenter` when `bootstrapped` is false
 - `runPermissionProbe(permissionId)`
   - called by per-row `Re-check` button in `PermissionControlCenter`
 - `recheckAllPermissions()`
   - called by global `Re-run checks` button in `PermissionControlCenter`
+- `requestPermission(permissionId)`
+  - called by `FrontendOnboardingSlideshow` Grant actions
+- `completeOnboarding()`
+  - called by `FrontendOnboardingSlideshow` before `Start WindieOS`
 
 ### Exported but currently dormant in mounted renderer UI
 
-- `requestPermission(permissionId)`
 - `setPlannedSystemAccessConsent(consent)`
-- `completeOnboarding()`
 
-No current `frontend/src/renderer/**` component/hook calls these actions.
+No current `frontend/src/renderer/**` component/hook calls this action.
 
 ## Gate-Field Liveness
 
@@ -50,22 +51,21 @@ No current `frontend/src/renderer/**` component/hook calls these actions.
 - `requiredPermissionIds`
 - `missingRequiredPermissions`
 
-Those fields are still semantically valid store state, but not a startup-route gate in current
-`App.jsx` routing.
+Those fields are startup-route inputs in current `App.jsx` routing.
 
 ## Startup Boundary Clarification
 
 `App.jsx` startup routing currently depends on:
 
 1. VM mode (`isVmModeEnabled()`)
-2. frontend onboarding slideshow state (`windieos-frontend-onboarding`)
+2. permission onboarding gate (`permissionStore.needsOnboarding`)
 
-It does not currently branch on `permissionStore.needsOnboarding`.
+It no longer uses the deleted `windieos-frontend-onboarding` localStorage flag.
 
 ## Drift Hotspots
 
 1. Assuming dormant actions can be removed without checking non-renderer callers (tests, future surfaces, IPC consumers).
-2. Reintroducing startup permission gating without documenting the route switch back to `needsOnboarding`.
+2. Changing current-platform permission filtering without updating `missingRequiredPermissions` expectations.
 3. Adding new UI consumers for consent/completion actions without restoring/adding dedicated regression tests.
 
 ## Related Docs

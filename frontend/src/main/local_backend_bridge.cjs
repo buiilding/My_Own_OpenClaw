@@ -774,6 +774,24 @@ async function installBrowserChromium() {
   };
 }
 
+async function determineMacOsSystemEventsAutomationPermission(askUserIfNeeded = false) {
+  const result = await sendRequestOrError(
+    'determine_macos_system_events_automation_permission',
+    {
+      ask_user_if_needed: askUserIfNeeded === true,
+    },
+  );
+
+  if (result && result.success === false && typeof result.error === 'string') {
+    return result;
+  }
+
+  return {
+    success: true,
+    data: result,
+  };
+}
+
 async function warmBrowserAutomation() {
   const result = await sendRequestOrError(
     'execute_tool',
@@ -821,6 +839,7 @@ module.exports = {
   verifyScreenCaptureCapability: async () => runtimeScreenCaptureCapabilityVerifier(),
   getLocalBackendStatus,
   installBrowserChromium,
+  determineMacOsSystemEventsAutomationPermission,
   warmBrowserAutomation,
   searchMemory,
   storeMemory,

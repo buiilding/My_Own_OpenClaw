@@ -1,6 +1,6 @@
 {
-  "manifest_version": "1.1.0",
-  "generated_at": "2026-03-10",
+  "manifest_version": "1.2.0",
+  "generated_at": "2026-03-11",
   "permissions": [
     {
       "permission_id": "screen_capture",
@@ -26,6 +26,19 @@
       "required_for_planned_system_access": true,
       "os_scope": "all",
       "validation_probe": "os_accessibility_or_runtime_probe",
+      "unlocks_tool_groups": ["computer_control"]
+    },
+    {
+      "permission_id": "system_events_automation",
+      "label": "System Events automation",
+      "description": "Allow WindieOS to control macOS System Events so window focusing and other UI automation steps do not prompt mid-task.",
+      "access_kind": "os_permission",
+      "grant_action_label": "Grant",
+      "risk_level": "high",
+      "required_now": true,
+      "required_for_planned_system_access": true,
+      "os_scope": "macos",
+      "validation_probe": "macos_system_events_automation_probe",
       "unlocks_tool_groups": ["computer_control"]
     },
     {

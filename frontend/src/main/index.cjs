@@ -29,6 +29,7 @@ const {
   stopLocalBackend,
   getLocalBackendStatus,
   installBrowserChromium,
+  determineMacOsSystemEventsAutomationPermission,
   warmBrowserAutomation,
 } = require('./local_backend_bridge.cjs');
 const { createVmWorkerRuntime } = require('./vm_worker_runtime.cjs');
@@ -443,6 +444,38 @@ function initializeMainProcessIpc() {
           success: true,
           details: warmResult.data,
         };
+      },
+      probeMacOsSystemEventsAutomationPermission: async () => {
+        const probeResult = await determineMacOsSystemEventsAutomationPermission(false);
+        if (!probeResult || probeResult.success !== true || typeof probeResult.data !== 'object') {
+          return {
+            granted: false,
+            reason: typeof probeResult?.error === 'string'
+              ? probeResult.error
+              : 'WindieOS could not verify macOS Automation permission yet.',
+            details: {
+              backend_result: probeResult,
+            },
+          };
+        }
+
+        return probeResult.data;
+      },
+      requestMacOsSystemEventsAutomationPermission: async () => {
+        const requestResult = await determineMacOsSystemEventsAutomationPermission(true);
+        if (!requestResult || requestResult.success !== true || typeof requestResult.data !== 'object') {
+          return {
+            granted: false,
+            reason: typeof requestResult?.error === 'string'
+              ? requestResult.error
+              : 'WindieOS could not request macOS Automation permission.',
+            details: {
+              backend_result: requestResult,
+            },
+          };
+        }
+
+        return requestResult.data;
       },
     });
   });

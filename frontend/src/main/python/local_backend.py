@@ -36,6 +36,9 @@ from core.runtime_shutdown import (
     register_shutdown_signal_handlers,
     request_stdin_shutdown,
 )
+from core.platform.macos_automation_permission import (
+    determine_system_events_automation_permission,
+)
 from local_backend_memory_handlers import LocalBackendMemoryHandlersMixin
 
 ensure_feature_pack_site_packages_on_path()
@@ -156,6 +159,10 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         self.protocol.register_method(
             "install_browser_chromium",
             self._handle_install_browser_chromium,
+        )
+        self.protocol.register_method(
+            "determine_macos_system_events_automation_permission",
+            self._handle_determine_macos_system_events_automation_permission,
         )
 
     async def initialize(self) -> None:
@@ -463,6 +470,16 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
             "browser_binary_path": installed_browser_path,
             "playwright_browsers_path": str(playwright_browsers_path),
         }
+
+    async def _handle_determine_macos_system_events_automation_permission(
+        self,
+        ask_user_if_needed: bool = False,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        return await asyncio.to_thread(
+            determine_system_events_automation_permission,
+            ask_user_if_needed,
+        )
     
     async def _handle_execute_tool(self, tool_name: str, args: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """
