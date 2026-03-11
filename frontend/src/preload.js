@@ -3,12 +3,16 @@
  * Exposes necessary Node.js/Electron APIs to the sandboxed renderer.
  */
 
+const fs = require('node:fs');
+const path = require('node:path');
 const { contextBridge, ipcRenderer } = require('electron');
-const {
-  SEND_CHANNELS,
-  INVOKE_CHANNELS,
-  ON_CHANNELS,
-} = require('./shared/ipcChannels.cjs');
+
+function loadIpcChannels() {
+  const registryPath = path.join(__dirname, 'shared', 'ipcChannels.json');
+  return JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+}
+
+const { SEND_CHANNELS, INVOKE_CHANNELS, ON_CHANNELS } = loadIpcChannels();
 
 const VALID_SEND_CHANNELS = new Set(Object.values(SEND_CHANNELS));
 const VALID_INVOKE_CHANNELS = new Set(Object.values(INVOKE_CHANNELS));

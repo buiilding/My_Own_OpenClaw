@@ -10,7 +10,7 @@ title: "Preload Allowlist and Channel-Constant Parity Reference"
 
 ## Canonical Modules
 
-- `frontend/src/shared/ipcChannels.cjs`
+- `frontend/src/shared/ipcChannels.json`
 - `frontend/src/preload.js`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
@@ -19,9 +19,11 @@ title: "Preload Allowlist and Channel-Constant Parity Reference"
 
 Channel validation has two runtime layers plus one shared source:
 
-1. shared channel registry (`ipcChannels.cjs`) defines the names
+1. shared channel registry (`ipcChannels.json`) defines the names
 2. preload allowlists (`preload.js`) are the hard boundary
 3. renderer `IpcBridge` set checks are dev-only safety checks
+
+Preload loads the registry from disk with Node `fs` instead of `require(...)` because Electron's sandboxed preload runtime can fail relative sibling-module resolution.
 
 In production, preload is authoritative because `IpcBridge` validation is gated by `NODE_ENV === "development"`.
 
@@ -29,7 +31,7 @@ In production, preload is authoritative because `IpcBridge` validation is gated 
 
 ### `send` (`window.ipc.send`)
 
-Shared names from `ipcChannels.cjs`, consumed by preload + `SEND_CHANNELS`:
+Shared names from `ipcChannels.json`, consumed by preload + `SEND_CHANNELS`:
 
 - `to-backend`
 - `move-chatbox-to`
@@ -43,7 +45,7 @@ Invalid behavior:
 
 ### `invoke` (`window.ipc.invoke`)
 
-Shared names from `ipcChannels.cjs`, consumed by preload + `INVOKE_CHANNELS`:
+Shared names from `ipcChannels.json`, consumed by preload + `INVOKE_CHANNELS`:
 
 - `execute-tool`
 - `upload-artifact`
@@ -90,7 +92,7 @@ Invalid behavior:
 
 ### `on` / `once` listeners
 
-Shared names from `ipcChannels.cjs`, consumed by preload + `ON_CHANNELS`:
+Shared names from `ipcChannels.json`, consumed by preload + `ON_CHANNELS`:
 
 - `from-backend`
 - `ipc-status`
@@ -127,7 +129,7 @@ If callers skip cleanup, listeners accumulate and duplicate event handling.
 
 ## Drift Hotspots
 
-1. new channel added to `ipcChannels.cjs` without a matching main handler
+1. new channel added to `ipcChannels.json` without a matching main handler
 2. docs drift from the shared registry after channel additions/removals
 3. relying on `IpcBridge` validation in production (it is not active there)
 
@@ -135,7 +137,7 @@ If callers skip cleanup, listeners accumulate and duplicate event handling.
 
 If `IpcBridge.invoke(...)` throws `Invalid invoke channel`:
 
-1. compare channel against shared `INVOKE_CHANNELS` registry in `ipcChannels.cjs`
+1. compare channel against shared `INVOKE_CHANNELS` registry in `ipcChannels.json`
 2. verify typo/case/hyphen differences
 3. verify preload is loading the current shared registry
 

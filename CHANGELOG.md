@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-preload-ipc-registry-loading): replace the shared IPC CJS module with a JSON registry so the sandboxed Electron preload can load channel definitions from disk without relative-module resolution failures; keep renderer/preload channel parity and add focused preload regression coverage.
 - fix(browser-tool-schema-dropdown-text): remove the generic browser `value` field from the model-facing browser schema and restore a multi-action `text` description so `select_dropdown` calls are steered toward `text` instead of an irrelevant storage payload key; add focused backend schema regression coverage and update the browser schema parity doc.
 - fix(agent-browser-validation-guidance): keep browser-specific pre-dispatch repair guidance for empty `browser` calls while removing the reverted strict browser `oneOf` validation dependency from tool preparation.
 - fix(tool-sender-validation-metadata): classify pre-dispatch browser/tool-schema rejections as `llm_tool_call_validation_failed` instead of `coordinate_resolution_failed`, and add focused sender regression coverage so skipped frontend executions surface the right failure reason.
