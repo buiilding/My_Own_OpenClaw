@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import tempfile
 import time
+from functools import lru_cache
 from typing import Dict, Any, Optional
 
 from core.executors import get_interactive_executor
@@ -368,13 +369,45 @@ def _overlay_linux_xfixes_cursor(
         return False
 
 
-def _overlay_macos_appkit_cursor(
+@lru_cache(maxsize=1)
+def _get_macos_builtin_cursor() -> tuple[object, tuple[int, int]]:
+    from PIL import Image, ImageDraw
+
+    cursor_image = Image.new("RGBA", (24, 24), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(cursor_image)
+
+    outline_points = [
+        (0, 0),
+        (0, 17),
+        (4, 13),
+        (7, 22),
+        (10, 20),
+        (7, 12),
+        (13, 12),
+    ]
+    fill_points = [
+        (1, 1),
+        (1, 15),
+        (4, 12),
+        (7, 20),
+        (8, 19),
+        (5, 11),
+        (11, 11),
+    ]
+
+    draw.polygon(outline_points, fill=(0, 0, 0, 255))
+    draw.polygon(fill_points, fill=(255, 255, 255, 255))
+
+    return cursor_image, (0, 0)
+
+
+def _overlay_macos_builtin_cursor(
     screenshot: object,
     *,
     region: Optional[tuple[int, int, int, int]],
 ) -> bool:
     """
-    Overlay real macOS cursor bitmap using AppKit cursor image/hotspot.
+    Overlay a deterministic built-in macOS-style cursor image.
 
     Returns True when cursor pixels were drawn.
     """
@@ -383,28 +416,7 @@ def _overlay_macos_appkit_cursor(
 
     try:
         import pyautogui
-        from AppKit import NSCursor
-        from PIL import Image
-
-        # Use the stable arrow cursor instead of the transient current cursor
-        # so post-action screenshots do not freeze macOS hover/magnification states.
-        cursor = NSCursor.arrowCursor()
-        if cursor is None:
-            return False
-
-        ns_image = cursor.image()
-        if ns_image is None:
-            return False
-
-        hot_spot = cursor.hotSpot()
-        if hot_spot is None:
-            return False
-
-        tiff_data = ns_image.TIFFRepresentation()
-        if tiff_data is None:
-            return False
-
-        cursor_image = Image.open(io.BytesIO(bytes(tiff_data))).convert("RGBA")
+        cursor_image, (hot_spot_x, hot_spot_y) = _get_macos_builtin_cursor()
         cursor_pos = pyautogui.position()
 
         if region:
@@ -412,8 +424,8 @@ def _overlay_macos_appkit_cursor(
         else:
             left, top = 0, 0
 
-        draw_x = int(cursor_pos.x) - int(hot_spot.x) - int(left)
-        draw_y = int(cursor_pos.y) - int(hot_spot.y) - int(top)
+        draw_x = int(cursor_pos.x) - int(hot_spot_x) - int(left)
+        draw_y = int(cursor_pos.y) - int(hot_spot_y) - int(top)
 
         _paste_cursor_overlay(
             screenshot,
@@ -423,7 +435,7 @@ def _overlay_macos_appkit_cursor(
         )
         return True
     except Exception as exc:
-        logger.debug("macOS AppKit cursor overlay failed: %s", exc)
+        logger.debug("macOS built-in cursor overlay failed: %s", exc)
         return False
 
 
@@ -495,8 +507,8 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
             # Linux X11 fallback: overlay real cursor bitmap from XFixes.
             if _overlay_linux_xfixes_cursor(screenshot, region=region):
                 capture_backend = f"{capture_backend}+linux_xfixes_cursor"
-            if _overlay_macos_appkit_cursor(screenshot, region=region):
-                capture_backend = f"{capture_backend}+macos_appkit_cursor"
+            if _overlay_macos_builtin_cursor(screenshot, region=region):
+                capture_backend = f"{capture_backend}+macos_builtin_cursor"
 
             source_w, source_h = screenshot.size
             virtual_size = _coerce_virtual_size(pyautogui.size())
