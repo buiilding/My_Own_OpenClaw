@@ -2,6 +2,7 @@
 
 const {
   handleResponseOverlayPhaseEvent,
+  isActiveLoopResponseOverlayPhase,
   isStreamingResponseOverlayPhase,
 } = require('../../frontend/src/main/response_overlay_phase_handler.cjs');
 
@@ -45,11 +46,19 @@ describe('response_overlay_phase_handler', () => {
   }
 
   test('recognizes streaming phases only', () => {
-    expect(isStreamingResponseOverlayPhase(PHASE.AWAITING_FIRST_CHUNK, PHASE)).toBe(true);
+    expect(isStreamingResponseOverlayPhase(PHASE.AWAITING_FIRST_CHUNK, PHASE)).toBe(false);
     expect(isStreamingResponseOverlayPhase(PHASE.STREAMING, PHASE)).toBe(true);
     expect(isStreamingResponseOverlayPhase(PHASE.TOOL_CALL, PHASE)).toBe(true);
     expect(isStreamingResponseOverlayPhase(PHASE.TOOL_OUTPUT, PHASE)).toBe(true);
     expect(isStreamingResponseOverlayPhase(PHASE.COMPLETE, PHASE)).toBe(false);
+  });
+
+  test('recognizes active loop phases including awaiting-first-chunk', () => {
+    expect(isActiveLoopResponseOverlayPhase(PHASE.AWAITING_FIRST_CHUNK, PHASE)).toBe(true);
+    expect(isActiveLoopResponseOverlayPhase(PHASE.STREAMING, PHASE)).toBe(true);
+    expect(isActiveLoopResponseOverlayPhase(PHASE.TOOL_CALL, PHASE)).toBe(true);
+    expect(isActiveLoopResponseOverlayPhase(PHASE.TOOL_OUTPUT, PHASE)).toBe(true);
+    expect(isActiveLoopResponseOverlayPhase(PHASE.COMPLETE, PHASE)).toBe(false);
   });
 
   test('returns early when debug overlay mode is enabled', () => {
@@ -81,8 +90,24 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.responseWindow.setFocusable).toHaveBeenCalledWith(true);
   });
 
-  test('handles streaming phase by making overlay visible and restoring bounds', () => {
+  test('keeps awaiting-first-chunk loop active without showing a response overlay window', () => {
     const deps = createDeps();
+
+    handleResponseOverlayPhaseEvent({ phase: PHASE.AWAITING_FIRST_CHUNK }, deps);
+
+    expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.AWAITING_FIRST_CHUNK);
+    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
+    expect(deps.ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
+    expect(deps.showResponseWindowWhenChatVisible).not.toHaveBeenCalled();
+    expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
+    expect(deps.chatWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
+    expect(deps.responseWindow.setFocusable).toHaveBeenCalledWith(false);
+  });
+
+  test('handles streaming phase by restoring an already-visible overlay window', () => {
+    const deps = createDeps({
+      getResponseOverlayVisible: jest.fn().mockReturnValue(true),
+    });
 
     handleResponseOverlayPhaseEvent({ phase: PHASE.STREAMING }, deps);
 
@@ -94,8 +119,20 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.responseWindow.setFocusable).toHaveBeenCalledWith(false);
   });
 
+  test('keeps streaming overlay hidden until renderer marks response content visible', () => {
+    const deps = createDeps();
+
+    handleResponseOverlayPhaseEvent({ phase: PHASE.STREAMING }, deps);
+
+    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
+    expect(deps.ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
+    expect(deps.showResponseWindowWhenChatVisible).not.toHaveBeenCalled();
+    expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
+  });
+
   test('skips fallback/show when response window is unavailable in streaming phase', () => {
     const deps = createDeps({
+      getResponseOverlayVisible: jest.fn().mockReturnValue(true),
       responseWindow: {
         isDestroyed: jest.fn().mockReturnValue(true),
       },
@@ -103,7 +140,7 @@ describe('response_overlay_phase_handler', () => {
 
     handleResponseOverlayPhaseEvent({ phase: PHASE.TOOL_CALL }, deps);
 
-    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
+    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
     expect(deps.ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
     expect(deps.showResponseWindowWhenChatVisible).not.toHaveBeenCalled();
   });

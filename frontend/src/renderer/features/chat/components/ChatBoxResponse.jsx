@@ -10,7 +10,6 @@ import { selectChatBoxState } from '../utils/chatSelectors';
 import { getRoundedFrameSize } from '../utils/overlay/overlayFrameSize';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import {
-  isCompactHoverLayoutMode,
   RESPONSE_OVERLAY_LAYOUT_MODE,
   resolveResponseOverlayLayoutMode,
 } from '../utils/overlay/responseOverlayLayoutMode';
@@ -26,7 +25,6 @@ import { logRendererResponseSurfaceTrace } from '../utils/chatStream/chatStreamD
 
 const RESPONSE_FIXED_HEIGHT = 236;
 const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;
-const TYPING_FRAME_HEIGHT = 24;
 
 function createHiddenFrameState() {
   return {
@@ -147,8 +145,7 @@ function ChatBoxResponse() {
 
   const overlayLayoutMode = useMemo(() => resolveResponseOverlayLayoutMode({
     showResponse,
-    showAwaitingReply,
-  }), [showAwaitingReply, showResponse]);
+  }), [showResponse]);
   const isVisible = overlayLayoutMode !== RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN;
 
   const sourceTagForResponse = useMemo(() => {
@@ -212,16 +209,11 @@ function ChatBoxResponse() {
     if (!nextFrame) {
       return;
     }
-    const compactHover = isCompactHoverLayoutMode(layoutMode);
     let { width, height } = nextFrame;
-    if (layoutMode === RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING) {
-      // Typing mode stays on a fixed shell so the overlay never visibly jumps.
-      height = TYPING_FRAME_HEIGHT;
-    }
     const unchanged = (
       lastFrameRef.current.visible === true
       && lastFrameRef.current.fullScreenGhost === false
-      && lastFrameRef.current.compactHover === Boolean(compactHover)
+      && lastFrameRef.current.compactHover === false
       && lastFrameRef.current.layoutMode === layoutMode
       && lastFrameRef.current.width === width
       && lastFrameRef.current.height === height
@@ -234,7 +226,7 @@ function ChatBoxResponse() {
       height,
       visible: true,
       fullScreenGhost: false,
-      compactHover: Boolean(compactHover),
+      compactHover: false,
       layoutMode,
     };
 
@@ -243,7 +235,7 @@ function ChatBoxResponse() {
         visible: true,
         width,
         height,
-        compact_hover: Boolean(compactHover),
+        compact_hover: false,
       });
     } catch (error) {
       console.warn('[ChatBoxResponse] Failed to resize response overlay:', error);
@@ -390,7 +382,7 @@ function ChatBoxResponse() {
   }
 
   return (
-    <div className={`chatbox-shell-wrap chatbox-response-shell-wrap${showResponse ? ' has-response-pill' : ''}${showAwaitingReply && !showResponse ? ' awaiting-only' : ''}`}>
+    <div className={`chatbox-shell-wrap chatbox-response-shell-wrap${showResponse ? ' has-response-pill' : ''}`}>
       <div className="chatbox-shell" ref={shellRef}>
         {showResponse ? (
           <div
@@ -424,16 +416,6 @@ function ChatBoxResponse() {
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-        ) : null}
-
-        {showAwaitingReply ? (
-          <div className="chatbox-awaiting-shell" data-thinking={thinkingText ? '1' : '0'}>
-            <div className="chatbox-typing-indicator" aria-label="Assistant is awaiting reply">
-              <span />
-              <span />
-              <span />
             </div>
           </div>
         ) : null}
