@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-onboarding-stop-shortcut-row-layout): let the onboarding stop-shortcut keybind card size to its content instead of a fixed inner width, so `Command + Shift + Esc` stays on one line on the final slide.
 - fix(frontend-permissions-macos-automation-onboarding): add a macOS System Events automation permission to the onboarding manifest, verify/request it through a sidecar Apple Events probe before agent loops, require onboarding completion from the shared permission store before entering the dashboard, and add mac build metadata (`NSAppleEventsUsageDescription` plus Apple Events entitlement) with focused frontend/sidecar regression coverage so Automation prompts appear during onboarding instead of mid-task.
 - fix(prompt-replace-guidance-copy): simplify the `replace` file-creation rule in the backend system prompt so it states the direct one-call pattern with `old_string=""` without the extra context-constraint wording.
 - fix(prompt-replace-file-creation-guidance): teach the system prompt that creating a missing file with `system_use` `replace` must be done in one call with `old_string=\"\"` and no extra context constraints, so the agent avoids the invalid two-step replace-then-create pattern.
