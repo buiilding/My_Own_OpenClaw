@@ -10,7 +10,7 @@ title: "Preload Channel Allowlist and Renderer Bridge Reference"
 
 ## Canonical Modules
 
-- `frontend/src/shared/ipcChannels.cjs`
+- `frontend/src/shared/ipcChannels.json`
 - `frontend/src/preload.js`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
@@ -20,7 +20,9 @@ title: "Preload Channel Allowlist and Renderer Bridge Reference"
 
 `preload.js` is the hard runtime boundary between sandboxed renderer and Electron privileged APIs.
 
-Channel names are now sourced from `frontend/src/shared/ipcChannels.cjs`, which is consumed by both preload and renderer constants to prevent drift.
+Channel names are now sourced from `frontend/src/shared/ipcChannels.json`, which is consumed by both preload and renderer constants to prevent drift.
+
+Preload reads the JSON registry from disk with Node `fs` because Electron's sandboxed preload bundle does not reliably support local relative `require(...)` of sibling files.
 
 `contextBridge.exposeInMainWorld('ipc', ...)` exposes only four methods:
 
@@ -188,7 +190,7 @@ Primary coverage:
 
 When adding or renaming channels:
 
-1. update the shared registry in `frontend/src/shared/ipcChannels.cjs`
+1. update the shared registry in `frontend/src/shared/ipcChannels.json`
 2. update/confirm `frontend/src/main/ipc.cjs` handler or broadcast owner
 3. update related contract docs under `docs/frontend/contracts/*`
 4. add/update tests for bridge validation, preload allowlist behavior, and main handler behavior

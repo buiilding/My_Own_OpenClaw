@@ -3,6 +3,7 @@
 describe('preload IPC channel registry', () => {
   let exposedIpc;
   let ipcRendererMock;
+  let readFileSyncMock;
 
   beforeEach(() => {
     jest.resetModules();
@@ -26,11 +27,27 @@ describe('preload IPC channel registry', () => {
       ipcRenderer: ipcRendererMock,
     }));
 
+    readFileSyncMock = jest.fn(() =>
+      JSON.stringify({
+        SEND_CHANNELS: {},
+        INVOKE_CHANNELS: {
+          CLEAR_CHAT_HISTORY: 'clear-chat-history',
+          CLEAR_LOCAL_MEMORY: 'clear-local-memory',
+        },
+        ON_CHANNELS: {},
+      }),
+    );
+
+    jest.doMock('node:fs', () => ({
+      readFileSync: readFileSyncMock,
+    }));
+
     require('../../frontend/src/preload.js');
   });
 
   afterEach(() => {
     jest.dontMock('electron');
+    jest.dontMock('node:fs');
   });
 
   test('allows shared invoke channels from the central registry', async () => {
@@ -44,6 +61,13 @@ describe('preload IPC channel registry', () => {
   test('rejects channels outside the shared invoke registry', async () => {
     await expect(exposedIpc.invoke('missing-channel', {})).rejects.toThrow(
       'Invalid invoke channel: missing-channel',
+    );
+  });
+
+  test('loads channel data from the shared JSON registry on disk', () => {
+    expect(readFileSyncMock).toHaveBeenCalledWith(
+      expect.stringContaining('shared/ipcChannels.json'),
+      'utf8',
     );
   });
 });

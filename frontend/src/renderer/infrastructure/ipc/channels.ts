@@ -3,7 +3,7 @@
  * Values come from the shared preload/main registry so renderer and preload stay in sync.
  */
 
-import sharedIpcChannels from '../../../shared/ipcChannels.cjs';
+import sharedIpcChannels from '../../../shared/ipcChannels.json';
 
 type SharedChannelRegistry = {
   SEND_CHANNELS: {
