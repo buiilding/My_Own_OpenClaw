@@ -89,6 +89,16 @@ class TestRemoteBrowserTool:
         assert "profile" not in props
         assert "node" not in props
         assert "target" not in props
+        assert "value" not in props
+
+    def test_model_facing_schema_keeps_text_description_generic(self):
+        tool = RemoteBrowserTool()
+        schema = tool.get_json_schema()
+        props = schema["function"]["parameters"]["properties"]
+
+        assert props["text"]["description"] == (
+            "Text payload for input, find_text, done, or select_dropdown actions."
+        )
 
     @pytest.mark.asyncio
     async def test_execute_remote_returns_remote_result(self):
