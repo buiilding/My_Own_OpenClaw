@@ -150,6 +150,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Runtime Docs Hub](runtime/README.md)
 - [Tool Execution and Streaming](runtime/tool_execution_and_streaming.md)
 - [Stream Event State Machine](runtime/stream_event_state_machine.md)
+- [Frontend Runtime Surface: Main, Renderer, Sidecar, and VM Worker](runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)
 - [Config Sync and Settings Lifecycle Reference](runtime/config_sync_and_settings_lifecycle_reference.md)
 - [Audio Chunk Playback and Stop Semantics Reference](runtime/audio_chunk_playback_and_stop_semantics_reference.md)
 
