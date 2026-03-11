@@ -107,6 +107,24 @@ def test_macos_window_manager_get_windows_prefers_window_titles(monkeypatch):
     ]
 
 
+def test_macos_window_manager_get_windows_falls_back_to_running_apps_when_quartz_is_empty(monkeypatch):
+    _install_fake_appkit(
+        monkeypatch,
+        apps=[_FakeApp("Terminal"), _FakeApp("Safari")],
+        active_app={"NSApplicationName": "Terminal"},
+    )
+    _install_fake_quartz(
+        monkeypatch,
+        all_windows=[],
+    )
+    manager = MacOSWindowManager()
+
+    assert manager.get_windows() == [
+        {"title": "Terminal", "hwnd": None},
+        {"title": "Safari", "hwnd": None},
+    ]
+
+
 def test_macos_window_manager_get_active_window(monkeypatch):
     _install_fake_appkit(
         monkeypatch,
