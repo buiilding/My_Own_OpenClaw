@@ -1,33 +1,10 @@
-function isStreamingResponseOverlayPhase(phase, phaseEnum = {}) {
-  return (
-    phase === phaseEnum.AWAITING_FIRST_CHUNK
-    || phase === phaseEnum.STREAMING
-    || phase === phaseEnum.TOOL_CALL
-    || phase === phaseEnum.TOOL_OUTPUT
-  );
-}
-
-const RESPONSE_OVERLAY_WINDOW_MODE = Object.freeze({
-  HIDDEN: 'hidden',
-  ACTIVE_LOOP: 'active-loop',
-  TERMINAL: 'terminal',
-});
-
-// One shared phase->mode resolver keeps the cross-window behavior readable:
-// active loop phases lock interactivity + show overlay, idle hides, and
-// terminal phases preserve the last response shell without re-entering the loop.
-function resolveResponseOverlayWindowMode(phase, phaseEnum = {}) {
-  if (phase === phaseEnum.IDLE) {
-    return RESPONSE_OVERLAY_WINDOW_MODE.HIDDEN;
-  }
-  if (isStreamingResponseOverlayPhase(phase, phaseEnum)) {
-    return RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP;
-  }
-  if (Object.values(phaseEnum).includes(phase)) {
-    return RESPONSE_OVERLAY_WINDOW_MODE.TERMINAL;
-  }
-  return null;
-}
+const {
+  RESPONSE_OVERLAY_WINDOW_MODE,
+  isStreamingResponseOverlayPhase,
+  resolveResponseOverlayWindowMode,
+  shouldRestoreTerminalResponseWindow,
+} = require('./response_overlay_visibility_policy.cjs');
+const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
 
 function syncOverlayLoopInteractivity(active, deps = {}) {
   const {
@@ -61,23 +38,6 @@ function syncOverlayLoopInteractivity(active, deps = {}) {
   }
 }
 
-function shouldRestoreTerminalResponseWindow(deps = {}) {
-  const {
-    getResponseOverlayVisible = () => false,
-    responseWindow,
-    chatWindow,
-  } = deps;
-
-  return Boolean(
-    getResponseOverlayVisible()
-      && responseWindow
-      && !responseWindow.isDestroyed()
-      && chatWindow
-      && !chatWindow.isDestroyed()
-      && chatWindow.isVisible(),
-  );
-}
-
 function applyResponseOverlayWindowMode(mode, deps = {}) {
   const {
     setResponseOverlayVisibilityState = () => {},
@@ -86,6 +46,7 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
     showResponseWindowWhenChatVisible = () => {},
     showResponseWindowInactive = () => {},
     syncContextLabelWindowVisibility = () => {},
+    phase = null,
   } = deps;
 
   if (mode === RESPONSE_OVERLAY_WINDOW_MODE.HIDDEN) {
@@ -93,6 +54,12 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
     if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
       responseWindow.hide();
     }
+    logChatPillMainTrace({
+      source: 'phase-handler',
+      action: 'hide-response-window',
+      phase,
+      responseWindow,
+    }, deps);
     return;
   }
 
@@ -103,12 +70,24 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
     }
     ensureResponseOverlayFallbackBounds();
     showResponseWindowWhenChatVisible();
+    logChatPillMainTrace({
+      source: 'phase-handler',
+      action: 'show-response-window',
+      phase,
+      responseWindow,
+    }, deps);
     return;
   }
 
   if (mode === RESPONSE_OVERLAY_WINDOW_MODE.TERMINAL) {
     if (shouldRestoreTerminalResponseWindow(deps)) {
       showResponseWindowInactive();
+      logChatPillMainTrace({
+        source: 'phase-handler',
+        action: 'restore-terminal-response-window',
+        phase,
+        responseWindow,
+      }, deps);
     }
     syncContextLabelWindowVisibility();
   }
@@ -128,6 +107,7 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     showResponseWindowWhenChatVisible = () => {},
     showResponseWindowInactive = () => {},
     syncContextLabelWindowVisibility = () => {},
+    getResponseOverlayPhase = () => null,
     warn = console.warn,
   } = deps;
 
@@ -142,6 +122,16 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
 
   setResponseOverlayPhase(nextPhase);
   const windowMode = resolveResponseOverlayWindowMode(nextPhase, RESPONSE_OVERLAY_PHASE);
+  logChatPillMainTrace({
+    source: 'phase-handler',
+    action: 'phase-change',
+    phase: nextPhase,
+    correlationId: event?.correlation_id || null,
+    reason: windowMode,
+  }, {
+    ...deps,
+    getResponseOverlayPhase,
+  });
   syncOverlayLoopInteractivity(windowMode === RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP, {
     chatWindow,
     responseWindow,
@@ -157,6 +147,8 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     showResponseWindowWhenChatVisible,
     showResponseWindowInactive,
     syncContextLabelWindowVisibility,
+    phase: nextPhase,
+    getResponseOverlayPhase,
   });
 }
 

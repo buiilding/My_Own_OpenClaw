@@ -15,6 +15,10 @@ const {
 const {
   activateWindowForInteraction: activateWindowForInteractionRuntime,
 } = require('./window_platform_policy.cjs');
+const {
+  resolveChatWindowResponseOverlayRestore,
+} = require('./response_overlay_visibility_policy.cjs');
+const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
 
 function resolveShowTargetDisplayAffinity({
   targetDisplayAffinity = null,
@@ -54,6 +58,7 @@ function showChatWindow(options = {}, deps = {}) {
     syncContextLabelWindowVisibility = () => {},
     syncWakewordToggleForChatVisibility = () => {},
     externalFocusTracker,
+    getResponseOverlayPhase = () => null,
   } = deps;
   const focus = options?.focus !== false;
   const restoreResponseOverlay = options?.restoreResponseOverlay === true;
@@ -95,12 +100,17 @@ function showChatWindow(options = {}, deps = {}) {
   ensureChatWindowOnTop();
   // Non-focusing chatbox restores (tool/capture lifecycle) should not resurrect
   // stale response overlays before renderer awaiting state is ready.
-  const shouldRestoreResponse = (
-    (focus || restoreResponseOverlay)
-    && (responseOverlayVisible || isResponseOverlayStreamingPhase())
-  );
+  const {
+    shouldRestoreResponse,
+    shouldPrimeFallbackBounds,
+  } = resolveChatWindowResponseOverlayRestore({
+    focus,
+    restoreResponseOverlay,
+    responseOverlayVisible,
+    isResponseOverlayStreamingPhase,
+  });
   if (responseWindow && !responseWindow.isDestroyed() && shouldRestoreResponse) {
-    if (isResponseOverlayStreamingPhase()) {
+    if (shouldPrimeFallbackBounds) {
       setResponseOverlayVisible(true);
       ensureResponseOverlayFallbackBounds();
     }
@@ -111,6 +121,16 @@ function showChatWindow(options = {}, deps = {}) {
   );
   broadcastResponseOverlayVisibility(responseIsVisible);
   syncContextLabelWindowVisibility();
+  logChatPillMainTrace({
+    source: 'window-visibility',
+    action: 'show-chat-window',
+    phase: getResponseOverlayPhase(),
+    chatWindowVisible: safeWindowVisible(chatWindow),
+    responseWindowVisible: responseIsVisible,
+    responseOverlayVisibleFlag: responseOverlayVisible,
+    focus,
+    restoreResponseOverlay,
+  }, deps);
   if (focus) {
     chatWindow.focus();
     chatWindow.webContents.send('chatbox-focus');
@@ -126,6 +146,7 @@ function hideChatWindow(deps = {}) {
     contextLabelWindow,
     broadcastResponseOverlayVisibility = () => {},
     syncWakewordToggleForChatVisibility = () => {},
+    getResponseOverlayPhase = () => null,
   } = deps;
 
   if (!chatWindow || chatWindow.isDestroyed()) {
@@ -142,7 +163,22 @@ function hideChatWindow(deps = {}) {
   }
   broadcastResponseOverlayVisibility(false);
   syncWakewordToggleForChatVisibility();
+  logChatPillMainTrace({
+    source: 'window-visibility',
+    action: 'hide-chat-window',
+    phase: getResponseOverlayPhase(),
+    chatWindowVisible: safeWindowVisible(chatWindow),
+    responseWindowVisible: safeWindowVisible(responseWindow),
+    responseOverlayVisibleFlag: false,
+  }, deps);
   return { success: true };
+}
+
+function safeWindowVisible(win) {
+  if (!win || typeof win !== 'object' || typeof win.isDestroyed !== 'function' || win.isDestroyed()) {
+    return null;
+  }
+  return typeof win.isVisible === 'function' ? Boolean(win.isVisible()) : null;
 }
 
 async function hideMainWindow(options = {}, deps = {}) {

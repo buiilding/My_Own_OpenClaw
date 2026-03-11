@@ -60,6 +60,7 @@ All notable changes to WindieOS will be documented in this file.
 - fix(backend-keyboard-control-validation): enforce action-specific `keyboard_control` backend schema validation (`text` for `type`/`paste`, `key` for `press`, `keys` for `hotkey`, plus 10000-char limit) so invalid `computer_use` keyboard calls fail before frontend dispatch; add focused backend regressions and refresh the computer-tool contract doc.
 
 ### Refactored
+- refactor(frontend-chat-pill-flow-and-logging): extract pure main-process response-overlay visibility policy helpers and renderer chat-pill session/view contracts, wire the existing send/overlay runtime through those shared seams without changing behavior, and add gated `[ChatPillTrace][main|renderer]` logs plus focused contract tests/docs so later minimal-pill debugging stops depending on scattered ad hoc conditions.
 - refactor(frontend-chatbox-toggle-controls): consolidate the minimal chat pill's config-backed toggle plumbing behind one shared boolean-config helper and one shared enabled-state icon style, reducing duplicated button logic while preserving the same camera/TTS behavior.
 - refactor(frontend-main-runtime-ownership): centralize dashboard/chat/response lifecycle ownership in `surface_runtime.cjs`, move overlay/content-protection/activation rules into `window_platform_policy.cjs`, shrink `index.cjs` to composition wiring, and give local-backend/wakeword bridges explicit supervisor-owned subprocess state.
 

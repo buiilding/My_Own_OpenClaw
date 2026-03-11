@@ -21,6 +21,8 @@ Primary modules:
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permission_ipc_runtime.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/response_overlay_visibility_policy.cjs`
+- `frontend/src/main/chat_pill_trace_runtime.cjs`
 - `frontend/src/main/window_suppression_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/local_backend_bridge_window_visibility.cjs`
@@ -42,6 +44,8 @@ Shared ownership model:
 
 - `surface_runtime.cjs` is the single main-process owner for `mainWindow`, `chatWindow`, `responseWindow`, `contextLabelWindow`, response-overlay visibility, and response phase.
 - `window_platform_policy.cjs` is the single owner for per-platform `BrowserWindow` policy such as content protection, overlay topmost/workspace rules, and explicit activation/focus handoff.
+- `response_overlay_visibility_policy.cjs` is the shared pure policy layer for response-overlay phase -> window mode mapping and chat-pill response-shell restore eligibility.
+- `chat_pill_trace_runtime.cjs` is the gated main-process trace helper for chat-pill / response-overlay transitions (`[ChatPillTrace][main]`).
 - `index.cjs` now wires those owners together and passes their narrow callbacks into bootstrap/lifecycle/IPC modules instead of mutating window state directly.
 
 For deeper context-label runtime details, see [Context Label Overlay and Active-Window Runtime Reference](context_label_overlay_and_active_window_runtime_reference.md).
@@ -128,6 +132,7 @@ Visibility behavior:
 - `idle`: force-hide response overlay and clear visibility flag
 - streaming/tool phases: ensure overlay visible, keep on top, show inactive if chat window is visible
 - terminal phases (`complete`, `error`) keep overlay visible only when previously visible and chat is visible
+- those rules are now centralized in `response_overlay_visibility_policy.cjs`, while `response_overlay_phase_handler.cjs` owns only phase application + interactivity sync
 
 ## Focus and Foreground Behavior
 
@@ -168,6 +173,7 @@ Tool-execution chat-pill lifecycle (interactive computer-use path):
 - dashboard capture prep now moves the main window off the visible desktop before hide and does not return until the dashboard is offscreen, minimized, or hidden, so screenshot execution no longer races the dashboard hide animation
 - Linux prep waits a bounded compositor-settle interval (`120ms`) after hiding the owning surface before invoking the screenshot tool so neither the pill nor the dashboard leaks into captured frames; Windows/macOS keep the generic chat-pill `show-chatbox` / `hide-chatbox` behavior, but the renderer screenshot-capture runtime is a true no-op there and does not perform automatic capture-time hide/restore suppression
 - response overlay renderer now listens to `response-overlay-visibility`; hide marks the cached frame as hidden and show forces a fresh `set-responsebox-size` report (including `compact_hover`) so typing-indicator compact hover offset is re-applied after capture hide/show cycles
+- debug tracing for these show/hide/resize transitions is now available in main under `WINDIE_DEBUG_STREAM_EVENTS=1` or `WINDIE_DEBUG_CHAT_PILL=1`
 
 Dashboard-to-chat-pill conversation continuity:
 

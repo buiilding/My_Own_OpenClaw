@@ -12,7 +12,6 @@ import { isDevUiEnabled } from '../utils/devUiFlag';
 import {
   isCompactHoverLayoutMode,
   RESPONSE_OVERLAY_LAYOUT_MODE,
-  resolveResponseOverlayLayoutMode,
 } from '../utils/overlay/responseOverlayLayoutMode';
 import { RESPONSE_OVERLAY_PHASE } from '../utils/overlay/responseOverlayPhaseContract';
 import {
@@ -22,7 +21,11 @@ import {
   resolveSourceTagForResponse,
   shouldRenderResponseMarkdown,
 } from '../utils/state/chatBoxResponseState';
-import { logRendererResponseSurfaceTrace } from '../utils/chatStream/chatStreamDebugTrace';
+import {
+  logRendererChatPillTrace,
+  logRendererResponseSurfaceTrace,
+} from '../utils/chatStream/chatStreamDebugTrace';
+import { resolveChatPillViewIntent } from '../utils/chatPill/chatPillSessionFlow';
 
 const RESPONSE_FIXED_HEIGHT = 236;
 const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;
@@ -84,11 +87,24 @@ function ChatBoxResponse() {
     () => buildCurrentTurnResponseOverlayEntries(messages),
     [messages],
   );
-  const latestResponseOverlayEntryId = responseOverlayEntries.length > 0
-    ? responseOverlayEntries[responseOverlayEntries.length - 1].id
-    : null;
-  const showResponse = responseOverlayEntries.length > 0 && latestResponseOverlayEntryId !== closedResponseId;
-  const showAwaitingReply = !showResponse && currentTurnPresentationState.showChatboxAwaitingReply;
+  const {
+    latestResponseOverlayEntryId,
+    showResponse,
+    showAwaitingReply,
+    overlayLayoutMode,
+    isVisible,
+    turnId: currentTurnId,
+  } = useMemo(() => resolveChatPillViewIntent({
+    messages,
+    currentTurnPresentationState,
+    responseOverlayEntries,
+    dismissedResponseId: closedResponseId,
+  }), [
+    closedResponseId,
+    currentTurnPresentationState,
+    messages,
+    responseOverlayEntries,
+  ]);
   const latestSourceTaggedResponseEntry = useMemo(() => {
     for (let index = responseOverlayEntries.length - 1; index >= 0; index -= 1) {
       const entry = responseOverlayEntries[index];
@@ -145,12 +161,6 @@ function ChatBoxResponse() {
     [thinkingStatus],
   );
 
-  const overlayLayoutMode = useMemo(() => resolveResponseOverlayLayoutMode({
-    showResponse,
-    showAwaitingReply,
-  }), [showAwaitingReply, showResponse]);
-  const isVisible = overlayLayoutMode !== RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN;
-
   const sourceTagForResponse = useMemo(() => {
     return resolveSourceTagForResponse({
       visibleResponse: latestSourceTaggedResponseEntry,
@@ -174,7 +184,17 @@ function ChatBoxResponse() {
       showResponse,
       thinkingTextLength: typeof thinkingText === 'string' ? thinkingText.length : 0,
     });
+    logRendererChatPillTrace({
+      source: 'renderer-response-surface',
+      action: 'render',
+      turn_id: currentTurnId,
+      phase: overlayPhase,
+      response_layout_mode: overlayLayoutMode,
+      show_response: showResponse,
+      show_awaiting_reply: showAwaitingReply,
+    });
   }, [
+    currentTurnId,
     isSending,
     latestResponseOverlayEntryId,
     latestSourceTaggedResponseEntry?.text,
@@ -185,6 +205,7 @@ function ChatBoxResponse() {
     showAwaitingReply,
     showResponse,
     thinkingText,
+    overlayLayoutMode,
   ]);
 
   const reportOverlaySize = useCallback(async ({

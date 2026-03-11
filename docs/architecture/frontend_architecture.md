@@ -42,6 +42,8 @@ frontend/src/
 │   ├── main_window_runtime.cjs            # Main/chat/response/tray window constructors + renderer view loading
 │   ├── surface_runtime.cjs                # Shared owner for main/chat/response window refs, overlay phase, and visibility orchestration
 │   ├── window_visibility_runtime.cjs      # Main/chat overlay visibility operations (show/hide/maximize)
+│   ├── response_overlay_visibility_policy.cjs # Pure response-overlay/chat-pill visibility policy helpers used by main lifecycle handlers
+│   ├── chat_pill_trace_runtime.cjs        # Gated main-process chat-pill/response-overlay trace logging
 │   ├── window_platform_policy.cjs         # Centralized per-OS window policy (activation, content protection, overlay topmost/workspace rules)
 │   ├── window_suppression_runtime.cjs     # Screenshot suppression helpers for dashboard offscreen/hide/restore
 │   ├── overlay_window_helpers_runtime.cjs # Overlay bounds/position/on-top/context-label runtime helpers
@@ -136,6 +138,12 @@ Primary modules:
   - Single owner for `mainWindow` / `chatWindow` / `responseWindow` refs plus response-overlay visibility + phase state.
   - Composes overlay positioning, wakeword visibility fan-out, blur-only capture prep, and one-time main-process IPC initialization behind one surface lifecycle boundary.
   - Exposes the window operations consumed by bootstrap/lifecycle modules (`showChatWindow`, `hideChatWindow`, `showMainWindow`, `applyResponseOverlayPhase`, `syncWindowDisplayAffinity`, VM worker shutdown).
+- `main/response_overlay_visibility_policy.cjs`:
+  - Pure shared policy for response-overlay window mode resolution, terminal restore eligibility, and chat-pill response-shell restore rules.
+  - Keeps `response_overlay_phase_handler.cjs` and `window_visibility_runtime.cjs` on one shared policy contract instead of duplicating phase/restore branching.
+- `main/chat_pill_trace_runtime.cjs`:
+  - Gated main-process tracing for chat-pill and response-overlay transitions.
+  - Emits `[ChatPillTrace][main]` payloads under `WINDIE_DEBUG_STREAM_EVENTS=1` or `WINDIE_DEBUG_CHAT_PILL=1`.
 - `main/main_window_runtime.cjs`:
   - Constructs dashboard/chat/response/tray windows and lazy renderer-view loading.
   - Leaves cross-platform overlay policy to `window_platform_policy.cjs` instead of setting topmost/workspace/content-protection flags inline.
@@ -194,6 +202,12 @@ Primary modules:
   - Conversation gating, turn tracking, token-count handling.
   - Dev transparency source tagging: in `electron:dev` (`dev_ui=1`), message/thinking/response surfaces show source badges mapped to stream/event origin (`streaming-response`, `tool-call`, `tool-output`, `llm-thought`, etc.).
   - Stream trace logging is separately gated by `WINDIE_DEBUG_STREAM_EVENTS=1`, which main process fans out as `?debug_stream=1` so renderer consoles stay quiet during normal `electron:dev` runs.
+- `features/chat/utils/chatPill/chatPillSessionFlow.ts`:
+  - Pure renderer contract for chat-pill send lifecycle decisions (`query_send_with_capture` vs `query_send_without_capture`) and current overlay turn/view intent.
+  - Gives `useChatMessageSender` and `ChatBoxResponse` one shared place to answer “what should the pill/response overlay do for this turn?”
+- `features/chat/utils/overlay/responseOverlayViewContract.ts`:
+  - Small renderer contract for `showResponse` vs `showAwaitingReply` vs hidden layout state.
+  - Keeps awaiting typing and response overlay mode selection out of `ChatBoxResponse.jsx`.
 - `features/chat/hooks/useToolRunner.ts`:
   - Executes incoming tool calls/bundles, stale-turn cancellation responses.
 - `features/chat/components/ChatInterface.jsx`:

@@ -61,6 +61,7 @@ const {
 const {
   isAgentLoopStopShortcutPhase,
 } = require('./agent_stop_shortcut_runtime.cjs');
+const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
 
 let BACKEND_ENDPOINTS = resolveBackendEndpoints();
 let BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
@@ -295,6 +296,15 @@ function broadcastToRenderers(channel, payload, sourceWebContents = null) {
 }
 
 function setResponseOverlayPhase(phase, source = 'ipc', metadata = null) {
+  logChatPillMainTrace({
+    source: 'ipc',
+    action: 'set-phase',
+    phase,
+    correlationId: metadata?.correlation_id || null,
+    reason: source,
+  }, {
+    getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
+  });
   responseOverlayPhaseState.setPhase(phase, source, metadata, {
     onPhaseChange: applyResponseOverlayPhase,
     broadcastToRenderers,
@@ -620,6 +630,11 @@ function initializeIpc(win, options = {}) {
       Object.assign(payload, preparedPayload);
       currentConversationRef = conversationRef;
       queryMessageId = uuidv4();
+      logChatPillMainTrace({
+        source: 'ipc',
+        action: 'query-send-accepted',
+        turnId: queryMessageId,
+      });
       setResponseOverlayPhase('awaiting-first-chunk', 'query');
       const { mainWindow, chatWindow } = getWindows();
       setActiveDisplayAffinity(resolveActiveSurfaceDisplayAffinity({

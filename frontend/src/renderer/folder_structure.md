@@ -76,7 +76,10 @@ frontend/src/renderer/
 │   │       ├── messageSender/            # messageSender - Payload normalization and attachment context/upload helper utilities
 │   │       │   ├── chatMessageSenderUtils.ts # chatMessageSenderUtils - User-message creation, first-message detection, and screenshot artifact mapping helpers
 │   │       │   ├── chatMessageSenderPayloads.ts # chatMessageSenderPayloads - Outgoing payload and attachment filename normalization
+│   │       │   ├── queryScreenshotPipeline.ts # queryScreenshotPipeline - Clipboard-first query screenshot resolution + trace logging
 │   │       │   └── readableFileAttachmentContext.ts # readableFileAttachmentContext - Hidden read_file attachment context assembly for readable file uploads
+│   │       ├── chatPill/                # chatPill - Shared minimal-pill session flow contracts
+│   │       │   └── chatPillSessionFlow.ts # chatPillSessionFlow - Send lifecycle reason + overlay turn/view intent resolver
 │   │       ├── session/                 # session - Conversation/session ref and transcript-rehydrate payload helpers
 │   │       │   ├── conversationRef.ts   # conversationRef - Conversation ref creation helper
 │   │       │   ├── newChatSession.ts    # newChatSession - New chat reset/rotation flow helper
@@ -91,6 +94,7 @@ frontend/src/renderer/
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/ChatBox
 │   │       ├── chatStream/              # chatStream - Stream ingress/event/update/tracking/thinking/transparency utility helpers
 │   │       │   ├── chatStreamConversationGate.ts # chatStreamConversationGate - Active-conversation filtering helpers for backend stream events
+│   │       │   ├── chatStreamDebugTrace.ts # chatStreamDebugTrace - Gated stream + chat-pill renderer trace helpers
 │   │       │   ├── chatStreamEventUtils.ts # chatStreamEventUtils - Screenshot attachment, error filtering/text, and correlation-id event helpers
 │   │       │   ├── chatStreamFormatting.ts # chatStreamFormatting - Thought/tool message formatting helpers
 │   │       │   ├── chatStreamMessageUpdates.ts # chatStreamMessageUpdates - Message selection and streaming/system/full-message update shaping helpers
@@ -105,6 +109,9 @@ frontend/src/renderer/
 │   │       │   └── sourceTags.js        # sourceTags - Source tag derivation for message badges/thinking labels
 │   │       ├── toolRunner/              # toolRunner - Tool runner guards, envelopes, surface lifecycle, and message persistence helpers
 │   │       │   ├── toolRunnerMessages.ts # toolRunnerMessages - Tool result/bundle message builders and tool-call/bundle mapping helpers
+│   │       ├── overlay/                 # overlay - Phase/layout contracts for the response overlay shell
+│   │       │   ├── responseOverlayLayoutMode.js # responseOverlayLayoutMode - hidden/awaiting/response layout enum + compact-hover predicate
+│   │       │   └── responseOverlayViewContract.ts # responseOverlayViewContract - showResponse/showAwaitingReply/layout contract helper
 │   │       └── transcriptionRegions.ts  # transcriptionRegions - Pure cursor/boundary helper logic for transcription updates
 │   │
 │   ├── dashboard/                        # Dashboard feature module
