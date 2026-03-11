@@ -390,7 +390,7 @@
 }
 
 .frontend-onboarding-permission-row.single {
-  width: min(840px, 100%);
+  width: 100%;
   min-height: 0;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 20px;
