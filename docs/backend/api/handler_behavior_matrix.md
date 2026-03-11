@@ -36,6 +36,7 @@ Handler implementations live in `backend/src/api/handlers/*` and are wired by `A
 ### `StopQueryHandler`
 
 - cancels active query task for user if present
+- current websocket handler path is user-scoped cancel (payload `conversation_ref` is not forwarded to cancellation filter)
 - always emits streaming completion response so frontend exits active send/stream state
 - includes context metadata (`turn_ref`, `conversation_ref`, `session_id`) when available
 
@@ -78,6 +79,7 @@ Handler implementations live in `backend/src/api/handlers/*` and are wired by `A
 - validates frontend-owned settings fields
 - applies updates to user session config
 - returns updated-key list
+- frontend-owned field set includes runtime toggles (`agent_full_sudo_enabled`, `browser_automation_enabled`) and provider credentials payloads (`provider_api_keys`, `provider_oauth`)
 
 ## Response Pattern Contract
 
