@@ -4,6 +4,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachm
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/services/SystemStateCapture', () => ({
+  ...jest.requireActual('../../frontend/src/renderer/infrastructure/services/SystemStateCapture'),
   captureSystemState: jest.fn(),
 }));
 
@@ -43,15 +44,22 @@ describe('ToolExecutionCapture', () => {
   });
 
   test('captureAfterTool captures screenshot first and conditionally captures system state', async () => {
+    jest.useFakeTimers();
     const nowSpy = jest
       .spyOn(performance, 'now')
       .mockReturnValueOnce(1000)
       .mockReturnValueOnce(2500);
+    const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
 
-    const result = await captureAfterTool('wait', { seconds: 3 }, true, 2, 'corr-1');
+    const pending = captureAfterTool('wait', { seconds: 3 }, true, 2, 'corr-1');
+
+    expect(typeof setTimeoutSpy.mock.calls[0]?.[0]).toBe('function');
+    expect(setTimeoutSpy.mock.calls[0]?.[1]).toBe(3000);
+    await jest.runAllTimersAsync();
+    const result = await pending;
 
     expect(mockCaptureScreenshotAttachment).toHaveBeenCalledWith({
-      waitSeconds: 3,
+      waitSeconds: 0,
       correlationId: 'corr-1',
     });
     expect(mockCaptureSystemState).toHaveBeenCalledWith({
@@ -69,28 +77,44 @@ describe('ToolExecutionCapture', () => {
       captureTime: 1.5,
     });
 
+    setTimeoutSpy.mockRestore();
+    jest.useRealTimers();
     nowSpy.mockRestore();
   });
 
   test('captureAfterTool skips system state when disabled', async () => {
-    const result = await captureAfterTool('mouse_control', { action: 'click' }, false, 2);
+    jest.useFakeTimers();
+    const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+    const pending = captureAfterTool('mouse_control', { action: 'click' }, false, 2);
+
+    expect(typeof setTimeoutSpy.mock.calls[0]?.[0]).toBe('function');
+    expect(setTimeoutSpy.mock.calls[0]?.[1]).toBe(2000);
+    await jest.runAllTimersAsync();
+    const result = await pending;
 
     expect(mockCaptureScreenshotAttachment.mock.calls[0][0]).toEqual({
-      waitSeconds: 2,
+      waitSeconds: 0,
       correlationId: undefined,
     });
     expect(mockCaptureSystemState).not.toHaveBeenCalled();
     expect(result.systemState).toBeNull();
+
+    setTimeoutSpy.mockRestore();
+    jest.useRealTimers();
   });
 
   test('ensureAutoCapture treats screenshot_ref as existing capture and fetches missing system state only', async () => {
-    const result = await ensureAutoCapture('screenshot', {}, false, {
+    jest.useFakeTimers();
+    const pending = ensureAutoCapture('screenshot', {}, false, {
       success: true,
       data: {
         screenshot_ref: 'artifact-1',
         screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-1',
       },
     } as any);
+
+    await jest.runAllTimersAsync();
+    const result = await pending;
 
     expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
     expect(mockCaptureSystemState.mock.calls[0][0]).toEqual({
@@ -108,6 +132,8 @@ describe('ToolExecutionCapture', () => {
       captureTime: expect.any(Number),
       isComputerTool: true,
     });
+
+    jest.useRealTimers();
   });
 
   test('ensureAutoCapture preserves existing screenshot and state without recapturing', async () => {
@@ -138,6 +164,7 @@ describe('ToolExecutionCapture', () => {
   });
 
   test('ensureAutoCapture captures screenshot tool output and writes normalized fields back to result data', async () => {
+    jest.useFakeTimers();
     mockCaptureScreenshotAttachment.mockResolvedValue({
       screenshot: 'captured-shot',
       screenshotRef: 'artifact-captured',
@@ -147,7 +174,10 @@ describe('ToolExecutionCapture', () => {
     });
 
     const result: any = { success: true, data: { output: 'ok' } };
-    const capture = await ensureAutoCapture('screenshot', {}, false, result, 'req-capture');
+    const pending = ensureAutoCapture('screenshot', {}, false, result, 'req-capture');
+
+    await jest.runAllTimersAsync();
+    const capture = await pending;
 
     expect(mockCaptureScreenshotAttachment).toHaveBeenCalledWith({
       waitSeconds: 0,
@@ -177,6 +207,8 @@ describe('ToolExecutionCapture', () => {
       capture_meta: { source_w: 1920, source_h: 1080 },
       system_state: { active_window: 'Captured', mouse_position: '(10, 20)' },
     });
+
+    jest.useRealTimers();
   });
 
   test('resolveSystemState prefers explicit state then payload fallback', () => {

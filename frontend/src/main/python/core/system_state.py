@@ -218,12 +218,14 @@ async def _get_active_window_windows() -> Optional[str]:
 async def _get_active_window_macos() -> Optional[str]:
     """Get active window on macOS."""
     try:
-        from AppKit import NSWorkspace
-        
         def _get_window_title():
-            workspace = NSWorkspace.sharedWorkspace()
-            app = workspace.activeApplication()
-            return app.get("NSApplicationName", None)
+            from core.platform import WindowManager
+
+            manager = WindowManager()
+            active_window = manager.get_active_window()
+            if not active_window:
+                return None
+            return active_window.get("title")
         
         # Run in thread pool
         loop = asyncio.get_event_loop()
@@ -231,7 +233,7 @@ async def _get_active_window_macos() -> Optional[str]:
         normalized = _normalize_runtime_text(title)
         return normalized if normalized else None
     except ImportError:
-        logger.warning("AppKit not available, cannot get active window on macOS")
+        logger.warning("macOS window manager dependencies not available, cannot get active window")
         return None
     except Exception as e:
         logger.error(f"macOS window detection failed: {e}", exc_info=True)

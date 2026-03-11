@@ -5,7 +5,7 @@ import {
   type CaptureMeta,
   type ScreenshotAttachment,
 } from '../ScreenshotAttachmentPipeline';
-import { captureSystemState } from '../SystemStateCapture';
+import { captureSystemState, waitForCaptureDelay } from '../SystemStateCapture';
 import { STANDARD_COMPUTER_USE_TOOLS } from '../ToolComputerUseCatalog';
 import type { SystemState, ToolResult } from '../MessageFormatter';
 
@@ -50,7 +50,7 @@ export function isComputerUseTool(toolName: string, args: any): boolean {
   return isStandardComputerUseTool || isRunShellCommandWithWait;
 }
 
-function getWaitSeconds(
+export function resolvePostActionWaitSeconds(
   toolName: string,
   args: any,
   defaultWaitSeconds: number
@@ -62,6 +62,19 @@ function getWaitSeconds(
     return args.wait;
   }
   return defaultWaitSeconds;
+}
+
+export function resolveExplicitPostActionWaitSeconds(
+  toolName: string,
+  args: any,
+): number {
+  if (toolName === 'wait' && args && typeof args === 'object' && typeof args.seconds === 'number') {
+    return Math.max(0, args.seconds);
+  }
+  if (args && typeof args === 'object' && typeof args.wait === 'number') {
+    return Math.max(0, args.wait);
+  }
+  return 0;
 }
 
 function createCaptureSnapshot(
@@ -144,12 +157,17 @@ function getDefaultWaitSeconds(toolName: string): number {
     : DEFAULT_COMPUTER_TOOL_WAIT_SECONDS;
 }
 
+async function captureSharedPostToolDelay(waitSeconds: number): Promise<void> {
+  await waitForCaptureDelay(waitSeconds);
+}
+
 export async function ensureAutoCapture(
   toolName: string,
   args: any,
   skipAutoCapture: boolean | undefined,
   result: ToolResult,
   captureCorrelationId?: string | null,
+  waitSecondsOverride?: number | null,
 ): Promise<AutoCaptureResult> {
   const isComputerTool = isComputerUseTool(toolName, args);
   let snapshot = extractCaptureSnapshotFromResult(result);
@@ -165,6 +183,7 @@ export async function ensureAutoCapture(
       true,
       getDefaultWaitSeconds(toolName),
       captureCorrelationId,
+      waitSecondsOverride,
     );
     waitDelay = capture.waitSeconds;
     captureTime = capture.captureTime;
@@ -183,6 +202,7 @@ export async function ensureAutoCapture(
         args,
         getDefaultWaitSeconds(toolName),
         captureCorrelationId,
+        waitSecondsOverride,
       );
       waitDelay = stateCapture.waitSeconds;
       captureTime = stateCapture.captureTime;
@@ -202,11 +222,15 @@ async function captureSystemStateAfterTool(
   args: any,
   defaultWaitSeconds: number,
   captureCorrelationId?: string | null,
+  waitSecondsOverride?: number | null,
 ): Promise<Pick<ToolCaptureResult, 'systemState' | 'waitSeconds' | 'captureTime'>> {
-  const waitSeconds = getWaitSeconds(toolName, args, defaultWaitSeconds);
+  const waitSeconds = typeof waitSecondsOverride === 'number' && Number.isFinite(waitSecondsOverride)
+    ? Math.max(0, waitSecondsOverride)
+    : resolvePostActionWaitSeconds(toolName, args, defaultWaitSeconds);
   const captureStartTime = performance.now();
+  await captureSharedPostToolDelay(waitSeconds);
   const systemState = await captureSystemState({
-    waitSeconds,
+    waitSeconds: 0,
     correlationId: captureCorrelationId,
   });
   const captureTime = (performance.now() - captureStartTime) / 1000;
@@ -223,11 +247,15 @@ export async function captureAfterTool(
   enableSystemState: boolean,
   defaultWaitSeconds: number,
   captureCorrelationId?: string | null,
+  waitSecondsOverride?: number | null,
 ): Promise<ToolCaptureResult> {
-  const waitSeconds = getWaitSeconds(toolName, args, defaultWaitSeconds);
+  const waitSeconds = typeof waitSecondsOverride === 'number' && Number.isFinite(waitSecondsOverride)
+    ? Math.max(0, waitSecondsOverride)
+    : resolvePostActionWaitSeconds(toolName, args, defaultWaitSeconds);
   const captureStartTime = performance.now();
+  await captureSharedPostToolDelay(waitSeconds);
   const screenshotAttachment = await captureScreenshotAttachment({
-    waitSeconds,
+    waitSeconds: 0,
     correlationId: captureCorrelationId,
   });
   const systemState = enableSystemState

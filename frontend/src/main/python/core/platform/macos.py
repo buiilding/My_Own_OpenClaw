@@ -1,6 +1,8 @@
 """macOS window manager implementation."""
 
 import logging
+import subprocess
+import time
 from typing import List, Optional
 
 from .base import BaseWindowManager
@@ -13,63 +15,211 @@ class MacOSWindowManager(BaseWindowManager):
     
     def __init__(self):
         try:
-            from AppKit import NSWorkspace
+            from AppKit import (
+                NSApplicationActivateIgnoringOtherApps,
+                NSWorkspace,
+            )
+            import Quartz
+
             self.NSWorkspace = NSWorkspace
+            self.NSApplicationActivateIgnoringOtherApps = (
+                NSApplicationActivateIgnoringOtherApps
+            )
+            self.Quartz = Quartz
             self._available = True
         except ImportError:
-            logger.warning("AppKit not available, window management disabled on macOS")
+            logger.warning("AppKit/Quartz not available, window management disabled on macOS")
             self._available = False
+
+    def _list_window_records(self, *, on_screen_only: bool) -> List[dict]:
+        if not self._available:
+            return []
+
+        options = self.Quartz.kCGWindowListExcludeDesktopElements
+        if on_screen_only:
+            options |= self.Quartz.kCGWindowListOptionOnScreenOnly
+        else:
+            options |= self.Quartz.kCGWindowListOptionAll
+
+        raw_windows = (
+            self.Quartz.CGWindowListCopyWindowInfo(
+                options,
+                self.Quartz.kCGNullWindowID,
+            ) or []
+        )
+        windows: List[dict] = []
+        for raw_window in raw_windows:
+            if not isinstance(raw_window, dict):
+                continue
+
+            owner_name = str(
+                raw_window.get(self.Quartz.kCGWindowOwnerName) or ""
+            ).strip()
+            window_name = str(
+                raw_window.get(self.Quartz.kCGWindowName) or ""
+            ).strip()
+            layer = int(raw_window.get(self.Quartz.kCGWindowLayer, 0) or 0)
+            alpha = float(raw_window.get(self.Quartz.kCGWindowAlpha, 1.0) or 0.0)
+
+            if layer != 0 or alpha <= 0:
+                continue
+
+            title = window_name or owner_name
+            if not title:
+                continue
+
+            windows.append(
+                {
+                    "title": title,
+                    "hwnd": raw_window.get(self.Quartz.kCGWindowNumber),
+                    "app_name": owner_name or title,
+                    "window_name": window_name or title,
+                }
+            )
+
+        return windows
+
+    @staticmethod
+    def _escape_applescript_string(value: str) -> str:
+        return str(value).replace("\\", "\\\\").replace('"', '\\"')
+
+    def _raise_window_via_applescript(self, app_name: str, window_name: str) -> bool:
+        escaped_app_name = self._escape_applescript_string(app_name)
+        escaped_window_name = self._escape_applescript_string(window_name)
+        script = f'''
+tell application "System Events"
+    tell process "{escaped_app_name}"
+        if exists (first window whose name is "{escaped_window_name}") then
+            set frontmost to true
+            set targetWindow to first window whose name is "{escaped_window_name}"
+            try
+                perform action "AXRaise" of targetWindow
+            end try
+            try
+                set value of attribute "AXMain" of targetWindow to true
+            end try
+            return "true"
+        end if
+    end tell
+end tell
+return "false"
+'''
+        result = subprocess.run(
+            ["osascript", "-e", script],
+            capture_output=True,
+            text=True,
+            timeout=2,
+        )
+        return result.returncode == 0 and "true" in (result.stdout or "").lower()
+
+    def _wait_for_active_window(
+        self,
+        target_title: str,
+        app_name: str,
+        timeout_seconds: float = 1.0,
+        poll_seconds: float = 0.05,
+    ) -> bool:
+        deadline = time.monotonic() + max(0.0, timeout_seconds)
+        normalized_target = target_title.strip().lower()
+        normalized_app_name = app_name.strip().lower()
+
+        while time.monotonic() <= deadline:
+            active_window = self.get_active_window()
+            if active_window:
+                active_title = str(active_window.get("title") or "").strip().lower()
+                active_app_name = str(active_window.get("app_name") or "").strip().lower()
+                if active_title == normalized_target:
+                    return True
+                if normalized_target and normalized_target in active_title:
+                    return True
+                if active_app_name == normalized_app_name and active_title in {
+                    normalized_target,
+                    normalized_app_name,
+                }:
+                    return True
+            time.sleep(max(0.0, poll_seconds))
+
+        return False
     
     def get_windows(self) -> List[dict]:
         """Get list of all open windows."""
         if not self._available:
             return []
-        
-        windows = []
+
         try:
-            workspace = self.NSWorkspace.sharedWorkspace()
-            running_apps = workspace.runningApplications()
-            
-            for app in running_apps:
-                app_name = app.localizedName()
-                if app_name:
-                    windows.append({"title": app_name, "hwnd": None})  # macOS doesn't use hwnd
+            return [
+                {"title": window["title"], "hwnd": window["hwnd"]}
+                for window in self._list_window_records(on_screen_only=False)
+            ]
         except Exception as e:
             logger.error(f"Error getting windows: {e}", exc_info=True)
-        
-        return windows
+
+        return []
     
     def get_active_window(self) -> Optional[dict]:
         """Get active window."""
         if not self._available:
             return None
-        
+
         try:
+            windows = self._list_window_records(on_screen_only=True)
+            if windows:
+                active_window = windows[0]
+                return {
+                    "title": active_window["title"],
+                    "hwnd": active_window["hwnd"],
+                    "app_name": active_window["app_name"],
+                }
+
             workspace = self.NSWorkspace.sharedWorkspace()
             app = workspace.activeApplication()
             app_name = app.get("NSApplicationName")
             if app_name:
-                return {"title": app_name, "hwnd": None}
+                return {"title": app_name, "hwnd": None, "app_name": app_name}
         except Exception as e:
             logger.error(f"Error getting active window: {e}", exc_info=True)
-        
+
         return None
     
     def switch_to_window(self, window_title: str) -> bool:
         """Switch to a window by title."""
         if not self._available:
             return False
-        
+
         try:
+            target_window = None
+            normalized_requested_title = window_title.lower()
+            for window in self._list_window_records(on_screen_only=False):
+                if normalized_requested_title in window["title"].lower():
+                    target_window = window
+                    break
+
+            if not target_window:
+                return False
+
             workspace = self.NSWorkspace.sharedWorkspace()
             running_apps = workspace.runningApplications()
-            
+
             for app in running_apps:
                 app_name = app.localizedName()
-                if app_name and window_title.lower() in app_name.lower():
-                    app.activateWithOptions_(0)  # Activate the application
-                    return True
+                if app_name and target_window["app_name"].lower() == app_name.lower():
+                    app.activateWithOptions_(
+                        self.NSApplicationActivateIgnoringOtherApps
+                    )
+                    raised_window = self._raise_window_via_applescript(
+                        target_window["app_name"],
+                        target_window["window_name"],
+                    )
+                    if not raised_window and target_window["window_name"] != target_window["app_name"]:
+                        logger.info(
+                            "AppleScript window raise did not confirm activation for '%s'",
+                            target_window["window_name"],
+                        )
+                    return self._wait_for_active_window(
+                        target_window["title"],
+                        target_window["app_name"],
+                    )
         except Exception as e:
             logger.error(f"Error switching to window: {e}", exc_info=True)
-        
+
         return False

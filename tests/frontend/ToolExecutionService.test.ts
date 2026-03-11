@@ -4,6 +4,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachm
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/services/SystemStateCapture', () => ({
+  ...jest.requireActual('../../frontend/src/renderer/infrastructure/services/SystemStateCapture'),
   captureSystemState: jest.fn(),
 }));
 
@@ -67,6 +68,7 @@ describe('ToolExecutionService', () => {
   });
 
   test('executeTool captures screenshot for computer-use tools and forwards normalized payload', async () => {
+    jest.useFakeTimers();
     const invokeSpy = jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
       success: true,
       data: {},
@@ -83,11 +85,13 @@ describe('ToolExecutionService', () => {
     const sendToBackend = jest.fn();
     const service = new ToolExecutionService({ onToolResult, sendToBackend });
 
-    const result = await service.executeTool(
+    const pending = service.executeTool(
       'mouse_control',
       { action: 'click', x: 1, y: 2 },
       { correlationId: 'req-123', skipAutoCapture: false },
     );
+    await jest.runAllTimersAsync();
+    const result = await pending;
 
     expect(invokeSpy).toHaveBeenCalledWith(INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'mouse_control',
@@ -95,7 +99,7 @@ describe('ToolExecutionService', () => {
       skipAutoCapture: false,
     });
     expect(mockCaptureScreenshotAttachment).toHaveBeenCalledWith({
-      waitSeconds: 2,
+      waitSeconds: 0,
       correlationId: 'req-123',
     });
     expect(mockCaptureSystemState).toHaveBeenCalledWith({
@@ -128,6 +132,7 @@ describe('ToolExecutionService', () => {
       },
     });
     expect(mockFormatToolOutputMessage).toHaveBeenCalled();
+    jest.useRealTimers();
   });
 
   test('executeTool skips auto capture and strips screenshot fields for non computer-use tools', async () => {
@@ -246,6 +251,7 @@ describe('ToolExecutionService', () => {
   });
 
   test('executeToolBundle executes sequentially and captures state on the last computer-use tool', async () => {
+    jest.useFakeTimers();
     const invokeSpy = jest
       .spyOn(IpcBridge, 'invoke')
       .mockResolvedValueOnce({ success: true, data: { output: 'a' } })
@@ -260,10 +266,12 @@ describe('ToolExecutionService', () => {
 
     const onBundleResult = jest.fn();
     const { service, sendToBackend } = createServiceWithSendToBackend({ onBundleResult });
-    const result = await service.executeToolBundle([
+    const pending = service.executeToolBundle([
       { toolName: 'read_file', args: { file_path: '/tmp/a' } },
       { toolName: 'mouse_control', args: { action: 'click', x: 1, y: 2 } },
     ], 'bundle-1');
+    await jest.runAllTimersAsync();
+    const result = await pending;
 
     expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'read_file',
@@ -304,5 +312,6 @@ describe('ToolExecutionService', () => {
       'bundle-shot',
       true,
     );
+    jest.useRealTimers();
   });
 });
