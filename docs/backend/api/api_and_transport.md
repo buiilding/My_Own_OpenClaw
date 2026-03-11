@@ -72,6 +72,12 @@ Implementation:
 - `api/routes/runs/router.py`
 - `services/vm_run_control.py`
 
+Runtime notes:
+
+- optional auth header: `x-windie-runs-key`
+- expected key resolved from `WINDIE_RUNS_API_KEY` or `WINDIE_DEMO_API_KEY`
+- service instance is app-state scoped (`request.app.state.vm_run_control_service`) and lazily initialized
+
 ## WebSocket Lifecycle
 
 Entrypoint:
@@ -141,6 +147,13 @@ Query handler delegates to `QueryExecutionService` then `StreamPipeline`:
 - Send formatted payload via `WebSocketTransportSender`
 - Process TTS asynchronously in parallel without blocking text streaming
 - Flush pending TTS tasks before stream close
+
+`QueryExecutionService` runtime helpers are split under `api/services/query_execution_support/*` for:
+
+- screenshot/input resolution
+- runtime system-state application
+- completion backfill/terminal policy
+- cancellation-side cleanup
 
 ## Transport Guarantees and Safety
 
