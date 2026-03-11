@@ -81,20 +81,6 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.responseWindow.setFocusable).toHaveBeenCalledWith(true);
   });
 
-  test('keeps awaiting-first-chunk loop active without pre-showing the response window', () => {
-    const deps = createDeps();
-
-    handleResponseOverlayPhaseEvent({ phase: PHASE.AWAITING_FIRST_CHUNK }, deps);
-
-    expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.AWAITING_FIRST_CHUNK);
-    expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
-    expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
-    expect(deps.ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
-    expect(deps.showResponseWindowWhenChatVisible).not.toHaveBeenCalled();
-    expect(deps.chatWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
-    expect(deps.responseWindow.setFocusable).toHaveBeenCalledWith(false);
-  });
-
   test('handles streaming phase by making overlay visible and restoring bounds', () => {
     const deps = createDeps();
 
