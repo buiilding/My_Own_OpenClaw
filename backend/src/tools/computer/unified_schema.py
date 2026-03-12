@@ -232,8 +232,9 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 "clicks": {
                                     "type": "integer",
                                     "description": (
-                                        "Optional explicit click override. Omit for the default "
-                                        "coarse vertical scroll step."
+                                        "Optional explicit click override. Fallback-only for "
+                                        "follow-up fine tuning. Omit it on the first vertical "
+                                        "scroll attempt for the default coarse step."
                                     ),
                                 },
                                 "wait": {
