@@ -27,9 +27,8 @@ import {
   SoundIcon,
 } from './chatbox/ChatBoxIcons';
 import ChatBoxImagePreviewRow from './chatbox/ChatBoxImagePreviewRow';
-import {
-  isDragBlockedTarget,
-} from '../utils/state/chatBoxState';
+
+const CHATBOX_DRAG_START_THRESHOLD = 5;
 
 function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
   if (typeof updateConfig !== 'function') {
@@ -89,6 +88,7 @@ function ChatBox() {
   const loopInteractionLockedRef = useRef(false);
   const dragStateRef = useRef({
     isDragging: false,
+    didDrag: false,
     startClientX: 0,
     startClientY: 0,
     pointerOffsetX: 0,
@@ -351,9 +351,10 @@ function ChatBox() {
     const clientY = Math.round(Number(event.clientY) || 0);
     const movedDistance = Math.abs(clientX - dragState.startClientX) + Math.abs(clientY - dragState.startClientY);
 
-    if (movedDistance < 2) {
+    if (movedDistance < CHATBOX_DRAG_START_THRESHOLD) {
       return;
     }
+    dragState.didDrag = true;
 
     const nextX = screenX - dragState.pointerOffsetX;
     const nextY = screenY - dragState.pointerOffsetY;
@@ -377,7 +378,7 @@ function ChatBox() {
   useChatboxDragWindowBindings(handleDragMove, stopDragging);
 
   const handlePillMouseDown = useCallback((event) => {
-    if (loopInteractionLocked || event.button !== 0 || isDragBlockedTarget(event.target)) {
+    if (loopInteractionLocked || event.button !== 0) {
       return;
     }
     const screenX = Math.round(Number(event.screenX) || 0);
@@ -386,14 +387,23 @@ function ChatBox() {
     const windowScreenY = Math.round(Number(window.screenY) || 0);
 
     dragStateRef.current.isDragging = true;
+    dragStateRef.current.didDrag = false;
     dragStateRef.current.startClientX = Math.round(Number(event.clientX) || 0);
     dragStateRef.current.startClientY = Math.round(Number(event.clientY) || 0);
     dragStateRef.current.pointerOffsetX = screenX - windowScreenX;
     dragStateRef.current.pointerOffsetY = screenY - windowScreenY;
     dragStateRef.current.lastTargetX = windowScreenX;
     dragStateRef.current.lastTargetY = windowScreenY;
-    event.preventDefault();
   }, [loopInteractionLocked]);
+
+  const handlePillClickCapture = useCallback((event) => {
+    if (!dragStateRef.current.didDrag) {
+      return;
+    }
+    dragStateRef.current.didDrag = false;
+    event.preventDefault();
+    event.stopPropagation();
+  }, []);
   const hasImagePreview = clipboardImages.length > 0;
 
   useChatboxVisualAnchorBindings(hasImagePreview);
@@ -408,6 +418,7 @@ function ChatBox() {
           className={`chatbox-pill${hasImagePreview ? ' with-preview' : ''}`}
           onSubmit={handleSubmit}
           onMouseDown={handlePillMouseDown}
+          onClickCapture={handlePillClickCapture}
           onMouseEnter={() => {
             if (!loopInteractionLockedRef.current) {
               setChatboxHitTestActive(true);

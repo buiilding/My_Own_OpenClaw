@@ -140,23 +140,26 @@ This is required after main-process `showChatWindow({ focus: true })`.
 
 ## Drag Movement Runtime
 
-Drag is initiated on pill mousedown only when:
+Drag is initiated from any visible pill region on mousedown when:
 
 - primary button
-- target is not interactive/editable
+- loop lock is not active
 
-Blocked target selector includes:
+Interaction contract:
 
-- buttons/links/inputs/textboxes/contenteditable regions
-- explicit `.chatbox-input-wrap` and `.chatbox-actions`
+- buttons/icons and the text input all participate in the same tentative drag start
+- movement below the drag threshold is treated as a normal click/focus interaction
+- movement beyond the drag threshold upgrades the gesture into window drag and suppresses the later click event
+- result: the pill is easy to grab from anywhere without turning every tap into a drag
 
 Movement path:
 
 1. cache pointer offset from current window origin
-2. on mousemove, ignore small movement (<2 px manhattan distance)
-3. compute absolute target window coordinates
-4. send `move-chatbox-to` with `{ x, y }`
-5. stop on mouseup/window blur
+2. on mousemove, ignore small movement (`<5px` manhattan distance)
+3. once the threshold is crossed, mark the gesture as a real drag
+4. compute absolute target window coordinates
+5. send `move-chatbox-to` with `{ x, y }`
+6. stop on mouseup/window blur
 
 ## Visual Loop Activity Signal
 
@@ -195,6 +198,8 @@ Loop watchdog behavior:
 
 - startup compact-class stability (no delayed `with-preview` flip when no images exist)
 - camera-toggle enabled/disabled styling and config writes without creating preview items
+- drag-from-input and drag-from-button behavior after the shared `5px` threshold
+- normal button clicks still firing when no drag threshold crossing occurs
 
 ## Debug Checklist
 
@@ -206,8 +211,8 @@ If chatbox becomes permanently click-through:
 
 If drag movement is jittery or ignored:
 
-1. confirm mousedown target is not in blocked selector
-2. inspect computed pointer offset and 2px movement threshold behavior
+1. inspect computed pointer offset and `5px` movement threshold behavior
+2. confirm click-capture suppression only happens after `didDrag === true`
 3. verify `move-chatbox-to` IPC reaches main process
 
 If chatbox flickers on startup or image insert:
