@@ -145,6 +145,39 @@ describe('overlay_window_helpers_runtime', () => {
     );
   });
 
+  test('resizes chat window frame to match compact and preview visual shell heights', () => {
+    let currentHeight = 70;
+    const chatWindow = {
+      isDestroyed: jest.fn(() => false),
+      getSize: jest.fn(() => [520, currentHeight]),
+      getBounds: jest.fn(() => ({ x: 300, y: 800, width: 520, height: currentHeight })),
+      setBounds: jest.fn((bounds) => {
+        currentHeight = bounds.height;
+      }),
+    };
+
+    const runtime = createOverlayWindowHelpersRuntime({
+      screen: {},
+      getChatWindow: () => chatWindow,
+      getOverlayChatWindowBounds: jest.fn(() => ({ x: 300, y: 800, width: 520, height: currentHeight })),
+      getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      contextLabelWidth: 280,
+      contextLabelHeight: 26,
+      contextLabelOffsetX: 14,
+      contextLabelGapAboveChatbox: -6,
+    });
+
+    expect(runtime.resizeChatWindowForVisualAnchorHeight(64)).toBe(false);
+    expect(runtime.resizeChatWindowForVisualAnchorHeight(116)).toBe(true);
+    expect(chatWindow.setBounds).toHaveBeenCalledWith({
+      x: 300,
+      y: 800,
+      width: 520,
+      height: 122,
+    }, false);
+  });
+
   test('keeps compact fallback response height at 24px instead of inflating to 42px', () => {
     const responseWindow = {
       isDestroyed: jest.fn(() => false),

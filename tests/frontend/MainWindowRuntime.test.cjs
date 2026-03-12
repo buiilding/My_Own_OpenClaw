@@ -270,14 +270,14 @@ describe('main_window_runtime createChatWindow', () => {
     expect(options.webPreferences.devTools).toBe(true);
   });
 
-  test('uses fixed chat overlay dimensions to avoid runtime resize flicker', () => {
+  test('uses compact chat overlay dimensions by default to avoid oversized click regions', () => {
     const { deps } = createDeps();
 
     createChatWindow(deps);
 
     const options = deps.BrowserWindow.mock.calls[0][0];
     expect(options.width).toBe(520);
-    expect(options.height).toBe(116);
+    expect(options.height).toBe(70);
     expect(options.resizable).toBe(false);
   });
 

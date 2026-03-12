@@ -224,7 +224,7 @@ Main bridge fanout channel (`ipc.cjs`):
 
 ### Chat overlay (`ChatBox.jsx`)
 
-- uses fixed overlay dimensions (no renderer-driven live resize IPC)
+- uses a compact default overlay height in main and only expands the chat window when preview-mode visual anchor height is reported (no renderer-driven freeform resize IPC)
 - keeps preview lane always mounted and toggles animated visibility on image attach/remove
 - uses deterministic class-based layout states: compact default pill (`64px` shell / `56px` pill) and fixed expanded `with-preview` pill while image attachments exist
 - reports chat visual anchor height (`64` compact / `116` with-preview) via IPC so response/context overlays re-anchor upward when preview mode is active
