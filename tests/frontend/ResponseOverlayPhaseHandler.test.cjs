@@ -36,6 +36,7 @@ describe('response_overlay_phase_handler', () => {
         setIgnoreMouseEvents: jest.fn(),
         setFocusable: jest.fn(),
       },
+      getChatboxHitTestActive: jest.fn(() => false),
       ensureResponseOverlayFallbackBounds: jest.fn(),
       showResponseWindowWhenChatVisible: jest.fn(),
       showResponseWindowInactive: jest.fn(),
@@ -77,8 +78,18 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.IDLE);
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
     expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
-    expect(deps.chatWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(false);
+    expect(deps.chatWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
     expect(deps.responseWindow.setFocusable).toHaveBeenCalledWith(true);
+  });
+
+  test('handles idle phase by restoring direct hit-testing only when pointer is over the pill', () => {
+    const deps = createDeps({
+      getChatboxHitTestActive: jest.fn(() => true),
+    });
+
+    handleResponseOverlayPhaseEvent({ phase: PHASE.IDLE }, deps);
+
+    expect(deps.chatWindow.setIgnoreMouseEvents.mock.calls).toEqual([[false]]);
   });
 
   test('handles streaming phase by making overlay visible and restoring bounds', () => {

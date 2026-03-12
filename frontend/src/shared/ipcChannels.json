@@ -26,6 +26,7 @@
     "STORE_TRANSCRIPT": "store-transcript",
     "GET_CLIENT_USER_ID": "get-client-user-id",
     "SET_CHATBOX_VISUAL_ANCHOR_HEIGHT": "set-chatbox-visual-anchor-height",
+    "SET_CHATBOX_HIT_TEST_ACTIVE": "set-chatbox-hit-test-active",
     "SET_RESPONSEBOX_SIZE": "set-responsebox-size",
     "SHOW_MAIN_WINDOW": "show-main-window",
     "GET_MAIN_WINDOW_VISIBILITY": "get-main-window-visibility",

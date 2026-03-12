@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-chat-pill-idle-hit-testing): make the idle minimal chat pill click-through outside the visible pill/bump by default and re-enable direct interaction only when renderer hover reports the pointer over the actual shell, removing the last transparent blocking around the compact overlay.
 - fix(frontend-chat-pill-drag-regression): restore free x/y dragging for the minimal chat pill after the compact hitbox refactor instead of forcing drag restores to stay bottom-locked.
 - fix(frontend-chat-pill-hitbox): shrink the compact minimal chat-pill window to the visible shell height and expand it only for preview mode, removing the invisible click-blocking region above the idle pill while preserving preview expansion via visual-anchor IPC.
 - fix(frontend-response-overlay-gap): raise the minimal chat-pill response overlay anchor gap from `2px` to `8px` so the response shell clears the pill close-button bump instead of overlapping it.

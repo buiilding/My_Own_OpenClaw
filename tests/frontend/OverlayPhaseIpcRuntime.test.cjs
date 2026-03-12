@@ -28,10 +28,12 @@ describe('overlay_phase_ipc_runtime', () => {
       positionResponseWindow: jest.fn(),
       positionContextLabelWindow: jest.fn(),
       syncContextLabelWindowVisibility: jest.fn(),
+      syncChatboxHitTestState: jest.fn(),
       resizeChatWindowForVisualAnchorHeight: jest.fn(() => false),
       getResponseWindowBounds: jest.fn(),
       setResponseOverlayVisibilityState: jest.fn(),
       showResponseWindowWhenChatVisible: jest.fn(),
+      setChatboxHitTestActive: jest.fn(() => false),
       showChatWindow: jest.fn(),
       showMainWindow: jest.fn(),
       hideChatWindow: jest.fn(),
@@ -59,6 +61,7 @@ describe('overlay_phase_ipc_runtime', () => {
     expect(invokeHandlers['set-chatbox-size']).toBeUndefined();
     expect(typeof invokeHandlers['set-responsebox-size']).toBe('function');
     expect(typeof invokeHandlers['set-chatbox-visual-anchor-height']).toBe('function');
+    expect(typeof invokeHandlers['set-chatbox-hit-test-active']).toBe('function');
     expect(typeof invokeHandlers['show-chatbox']).toBe('function');
     expect(typeof invokeHandlers['hide-chatbox']).toBe('function');
     expect(typeof invokeHandlers['handoff-surface-for-computer-use']).toBe('function');
@@ -120,6 +123,25 @@ describe('overlay_phase_ipc_runtime', () => {
     expect(positionResponseWindow).not.toHaveBeenCalled();
     expect(positionContextLabelWindow).not.toHaveBeenCalled();
     expect(syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
+  });
+
+  test('routes chatbox hit-test updates to main-owned idle passthrough state', async () => {
+    const setChatboxHitTestActive = jest.fn(() => true);
+    const syncChatboxHitTestState = jest.fn();
+    const { invokeHandlers } = createRuntime({
+      setChatboxHitTestActive,
+      syncChatboxHitTestState,
+    });
+
+    const result = await invokeHandlers['set-chatbox-hit-test-active'](null, { active: true });
+
+    expect(result).toEqual({
+      success: true,
+      active: true,
+      changed: true,
+    });
+    expect(setChatboxHitTestActive).toHaveBeenCalledWith(true);
+    expect(syncChatboxHitTestState).toHaveBeenCalledTimes(1);
   });
 
   test('show-chatbox resolves target display affinity from the active surface contract', async () => {

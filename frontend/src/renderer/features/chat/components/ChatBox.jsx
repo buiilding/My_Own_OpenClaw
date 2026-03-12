@@ -96,6 +96,7 @@ function ChatBox() {
     lastTargetX: null,
     lastTargetY: null,
   });
+  const chatboxHitTestActiveRef = useRef(null);
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;
@@ -210,6 +211,30 @@ function ChatBox() {
       resizeObserver?.disconnect();
     };
   }, [syncCloseButtonAnchor, devUiEnabled]);
+
+  const setChatboxHitTestActive = useCallback((active) => {
+    const nextActive = active === true;
+    if (chatboxHitTestActiveRef.current === nextActive) {
+      return;
+    }
+    chatboxHitTestActiveRef.current = nextActive;
+    IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_HIT_TEST_ACTIVE, {
+      active: nextActive,
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setChatboxHitTestActive(false);
+    return () => {
+      setChatboxHitTestActive(false);
+    };
+  }, [setChatboxHitTestActive]);
+
+  useEffect(() => {
+    if (loopInteractionLocked) {
+      setChatboxHitTestActive(false);
+    }
+  }, [loopInteractionLocked, setChatboxHitTestActive]);
 
   useVoiceMode(
     wakewordSttEnabled && wakewordSttSessionActive,
@@ -383,6 +408,19 @@ function ChatBox() {
           className={`chatbox-pill${hasImagePreview ? ' with-preview' : ''}`}
           onSubmit={handleSubmit}
           onMouseDown={handlePillMouseDown}
+          onMouseEnter={() => {
+            if (!loopInteractionLockedRef.current) {
+              setChatboxHitTestActive(true);
+            }
+          }}
+          onMouseMove={() => {
+            if (!loopInteractionLockedRef.current) {
+              setChatboxHitTestActive(true);
+            }
+          }}
+          onMouseLeave={() => {
+            setChatboxHitTestActive(false);
+          }}
         >
           <button
             type="button"
