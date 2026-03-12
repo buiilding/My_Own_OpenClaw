@@ -250,6 +250,7 @@ function initializeMainProcessIpc() {
       getResponseWindowBounds,
       setResponseOverlayVisibilityState: surfaceRuntime.setResponseOverlayVisibilityState,
       showResponseWindowWhenChatVisible,
+      setActiveDisplayAffinity: setActiveDisplayAffinityRuntime,
       showMainWindow: surfaceRuntime.showMainWindow,
       showChatWindow: surfaceRuntime.showChatWindow,
       hideChatWindow: surfaceRuntime.hideChatWindow,

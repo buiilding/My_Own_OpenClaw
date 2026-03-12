@@ -64,6 +64,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       width,
       height,
       displayAffinity: getActiveDisplayAffinity(),
+      targetX: null,
     });
   }
 
@@ -140,7 +141,13 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       )
     );
     const { x, y } = canUseManualPosition
-      ? manualChatWindowPosition
+      ? getOverlayChatWindowBounds({
+        screen,
+        width,
+        height,
+        displayAffinity: getActiveDisplayAffinity(),
+        targetX: manualChatWindowPosition.x,
+      })
       : getChatWindowBounds(width, height);
     chatWindow.setPosition(x, y, false);
     positionResponseWindow();
@@ -153,14 +160,14 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       return false;
     }
     const x = Math.round(Number(position.x));
-    const y = Math.round(Number(position.y));
-    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    if (!Number.isFinite(x)) {
       return false;
     }
     manualChatWindowPosition = {
       x,
-      y,
-      monitorId: getActiveMonitorId(),
+      monitorId: typeof position.monitorId === 'string'
+        ? position.monitorId
+        : getActiveMonitorId(),
     };
     return true;
   }

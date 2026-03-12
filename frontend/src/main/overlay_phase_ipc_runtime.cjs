@@ -7,6 +7,7 @@ const {
 } = require('./overlay_visibility_handler.cjs');
 const {
   resolveActiveSurfaceDisplayAffinityForWindows,
+  resolveDisplayAffinityForBounds,
 } = require('./display_affinity_runtime.cjs');
 const { handleMoveChatboxTo } = require('./overlay_chatbox_handler.cjs');
 const { handleSetChatboxVisualAnchorHeight } = require('./overlay_chatbox_visual_anchor_handler.cjs');
@@ -49,8 +50,12 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
   ipcMain.on('move-chatbox-to', (_event, { x, y } = {}) => {
     const { chatWindow } = getWindows();
     handleMoveChatboxTo({ x, y }, {
+      screen,
       chatWindow,
+      resolveDisplayAffinityForBounds,
+      setActiveDisplayAffinity,
       setManualChatWindowPosition,
+      positionChatWindow,
       syncWindowDisplayAffinity,
       positionResponseWindow,
       positionContextLabelWindow,

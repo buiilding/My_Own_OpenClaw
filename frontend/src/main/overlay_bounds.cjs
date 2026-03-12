@@ -44,15 +44,28 @@ function resolveTargetWorkArea({ screen, displayAffinity = null }) {
   return resolvePrimaryWorkArea(screen);
 }
 
+function clampToRange(value, min, max) {
+  if (!Number.isFinite(value)) {
+    return min;
+  }
+  return Math.min(max, Math.max(min, value));
+}
+
 function getChatWindowBounds({
   screen,
   width,
   height,
   displayAffinity = null,
   marginBottom = 24,
+  targetX = null,
 }) {
   const workArea = resolveTargetWorkArea({ screen, displayAffinity });
-  const x = Math.round(workArea.x + (workArea.width - width) / 2);
+  const maxX = workArea.x + Math.max(0, workArea.width - width);
+  const centeredX = Math.round(workArea.x + (workArea.width - width) / 2);
+  const hasManualTargetX = targetX !== null && targetX !== undefined && Number.isFinite(Number(targetX));
+  const x = hasManualTargetX
+    ? clampToRange(Math.round(Number(targetX)), workArea.x, maxX)
+    : centeredX;
   const y = Math.round(workArea.y + workArea.height - height - marginBottom);
   return { x, y, width, height };
 }

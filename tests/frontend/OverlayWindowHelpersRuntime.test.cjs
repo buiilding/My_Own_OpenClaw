@@ -190,7 +190,7 @@ describe('overlay_window_helpers_runtime', () => {
     );
   });
 
-  test('keeps manually dragged chat window position on subsequent reposition calls', () => {
+  test('keeps manually dragged chat window horizontally while re-anchoring it to the display bottom', () => {
     const chatWindow = {
       isDestroyed: jest.fn(() => false),
       getSize: jest.fn(() => [520, 116]),
@@ -199,7 +199,12 @@ describe('overlay_window_helpers_runtime', () => {
     const runtime = createOverlayWindowHelpersRuntime({
       screen: {},
       getChatWindow: () => chatWindow,
-      getOverlayChatWindowBounds: jest.fn(() => ({ x: 400, y: 500, width: 520, height: 116 })),
+      getOverlayChatWindowBounds: jest.fn(({ targetX }) => ({
+        x: Number.isFinite(targetX) ? targetX : 400,
+        y: 500,
+        width: 520,
+        height: 116,
+      })),
       getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
       getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
       contextLabelWidth: 280,
@@ -212,8 +217,10 @@ describe('overlay_window_helpers_runtime', () => {
     runtime.setManualChatWindowPosition({ x: 2100, y: 120 });
     runtime.positionChatWindow();
 
-    expect(chatWindow.setPosition).toHaveBeenNthCalledWith(1, 400, 500, false);
-    expect(chatWindow.setPosition).toHaveBeenNthCalledWith(2, 2100, 120, false);
+    expect(chatWindow.setPosition.mock.calls).toEqual([
+      [400, 500, false],
+      [2100, 500, false],
+    ]);
   });
 
   test('ignores manually dragged chat window position when monitor affinity changes', () => {
@@ -226,8 +233,8 @@ describe('overlay_window_helpers_runtime', () => {
       monitor_id: '1',
       workArea: { x: 0, y: 0, width: 1920, height: 1080 },
     };
-    const getOverlayChatWindowBounds = jest.fn(({ displayAffinity }) => ({
-      x: displayAffinity?.workArea?.x === 1920 ? 2940 : 1020,
+    const getOverlayChatWindowBounds = jest.fn(({ displayAffinity, targetX }) => ({
+      x: Number.isFinite(targetX) ? targetX : (displayAffinity?.workArea?.x === 1920 ? 2940 : 1020),
       y: 900,
       width: 520,
       height: 116,
@@ -254,10 +261,14 @@ describe('overlay_window_helpers_runtime', () => {
     };
     runtime.positionChatWindow();
 
-    expect(chatWindow.setPosition).toHaveBeenNthCalledWith(1, 1020, 900, false);
-    expect(chatWindow.setPosition).toHaveBeenNthCalledWith(2, 1500, 140, false);
-    expect(chatWindow.setPosition).toHaveBeenNthCalledWith(3, 2940, 900, false);
-    expect(getOverlayChatWindowBounds).toHaveBeenCalledTimes(2);
+    expect(chatWindow.setPosition.mock.calls).toEqual([
+      [1020, 900, false],
+      [1500, 900, false],
+      [2940, 900, false],
+    ]);
+    if (getOverlayChatWindowBounds.mock.calls.length !== 3) {
+      throw new Error(`Expected 3 chat bound computations, received ${getOverlayChatWindowBounds.mock.calls.length}`);
+    }
   });
 
   test('positions chat window on active display affinity when no manual position exists', () => {
@@ -288,7 +299,7 @@ describe('overlay_window_helpers_runtime', () => {
 
     runtime.positionChatWindow();
 
-    expect(chatWindow.setPosition).toHaveBeenCalledWith(2940, 1300, false);
+    expect(chatWindow.setPosition.mock.calls).toEqual([[2940, 1300, false]]);
   });
 
   test('re-promotes chat overlay with mac level fallback and moveTop', () => {

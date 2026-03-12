@@ -38,6 +38,23 @@ describe('overlay_bounds', () => {
     });
   });
 
+  test('clamps manual chat x within the active display work area while keeping bottom anchoring', () => {
+    expect(getChatWindowBounds({
+      screen,
+      width: 520,
+      height: 96,
+      displayAffinity: {
+        workArea: { x: 1920, y: 40, width: 2560, height: 1400 },
+      },
+      targetX: 4700,
+    })).toEqual({
+      x: 3960,
+      y: 1320,
+      width: 520,
+      height: 96,
+    });
+  });
+
   test('response bounds fall back to chat window placement when chat bounds missing', () => {
     expect(getResponseWindowBounds({ screen, width: 520, height: 120 })).toEqual({
       x: 540,
