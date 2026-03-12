@@ -1,5 +1,7 @@
 const { setOverlayAlwaysOnTop } = require('./overlay_topmost_runtime.cjs');
 
+const CHAT_WINDOW_FRAME_HEIGHT_PADDING = 6;
+
 function createOverlayWindowHelpersRuntime(deps = {}) {
   const {
     screen,
@@ -22,6 +24,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     warn = console.warn,
   } = deps;
   let manualChatWindowPosition = null;
+  let chatWindowHeightOverride = null;
 
   function getActiveMonitorId() {
     const activeDisplayAffinity = getActiveDisplayAffinity();
@@ -66,6 +69,11 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       displayAffinity: getActiveDisplayAffinity(),
       targetX: null,
     });
+  }
+
+  function getChatWindowFrameHeightForVisualAnchorHeight(anchorHeight) {
+    const normalizedAnchorHeight = Math.max(1, Math.round(Number(anchorHeight) || 0));
+    return normalizedAnchorHeight + CHAT_WINDOW_FRAME_HEIGHT_PADDING;
   }
 
   function getResponseWindowBounds(width, height, options = {}) {
@@ -130,7 +138,13 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     if (!chatWindow) {
       return;
     }
-    const [width, height] = chatWindow.getSize();
+    const [width, currentHeight] = chatWindow.getSize();
+    const height = Math.max(
+      1,
+      Number.isFinite(chatWindowHeightOverride)
+        ? chatWindowHeightOverride
+        : Math.round(Number(currentHeight) || 0),
+    );
     const activeMonitorId = getActiveMonitorId();
     const canUseManualPosition = Boolean(
       manualChatWindowPosition
@@ -152,6 +166,50 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     chatWindow.setPosition(x, y, false);
     positionResponseWindow();
     positionContextLabelWindow();
+  }
+
+  function resizeChatWindowForVisualAnchorHeight(anchorHeight) {
+    const chatWindow = getChatWindow();
+    if (
+      !chatWindow
+      || chatWindow.isDestroyed?.()
+      || typeof chatWindow.getSize !== 'function'
+    ) {
+      return false;
+    }
+
+    const [widthRaw, currentHeightRaw] = chatWindow.getSize();
+    const width = Math.max(1, Math.round(Number(widthRaw) || 0));
+    const currentHeight = Math.max(
+      1,
+      Number.isFinite(chatWindowHeightOverride)
+        ? chatWindowHeightOverride
+        : Math.round(Number(currentHeightRaw) || 0),
+    );
+    const nextHeight = getChatWindowFrameHeightForVisualAnchorHeight(anchorHeight);
+
+    if (currentHeight === nextHeight) {
+      return false;
+    }
+
+    if (typeof chatWindow.setBounds === 'function' && typeof chatWindow.getBounds === 'function') {
+      const currentBounds = chatWindow.getBounds();
+      chatWindow.setBounds({
+        ...currentBounds,
+        width,
+        height: nextHeight,
+      }, false);
+      chatWindowHeightOverride = nextHeight;
+      return true;
+    }
+
+    if (typeof chatWindow.setSize === 'function') {
+      chatWindow.setSize(width, nextHeight, false);
+      chatWindowHeightOverride = nextHeight;
+      return true;
+    }
+
+    return false;
   }
 
   function setManualChatWindowPosition(position) {
@@ -300,6 +358,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
   return {
     ensureResponseOverlayFallbackBounds,
     positionChatWindow,
+    resizeChatWindowForVisualAnchorHeight,
     setManualChatWindowPosition,
     getChatWindowBounds,
     getResponseWindowBounds,

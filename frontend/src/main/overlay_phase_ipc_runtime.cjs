@@ -19,6 +19,7 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     BrowserWindow,
     screen,
     getWindows = () => ({}),
+    positionChatWindow,
     getActiveDisplayAffinity = () => null,
     positionResponseWindow,
     positionContextLabelWindow,
@@ -26,10 +27,10 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     syncWindowDisplayAffinity = () => {},
     setManualChatWindowPosition,
     setChatVisualAnchorHeight,
+    resizeChatWindowForVisualAnchorHeight,
     getResponseWindowBounds,
     setResponseOverlayVisibilityState,
     showResponseWindowWhenChatVisible,
-    positionChatWindow,
     setActiveDisplayAffinity = () => {},
     showChatWindow,
     hideChatWindow,
@@ -40,6 +41,8 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
   ipcMain.handle('set-chatbox-visual-anchor-height', async (_event, args = {}) => {
     return handleSetChatboxVisualAnchorHeight(args, {
       setChatVisualAnchorHeight,
+      resizeChatWindowForVisualAnchorHeight,
+      positionChatWindow,
       positionResponseWindow,
       positionContextLabelWindow,
       syncContextLabelWindowVisibility,

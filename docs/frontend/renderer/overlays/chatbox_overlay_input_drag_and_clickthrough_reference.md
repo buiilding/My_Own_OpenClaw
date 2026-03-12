@@ -125,6 +125,7 @@ This is required after main-process `showChatWindow({ focus: true })`.
 
 - chat overlay window dimensions are fixed in main runtime (`createChatWindow`).
 - `ChatBox.jsx` no longer emits renderer-driven resize IPC for preview or startup transitions; deprecated `set-chatbox-size` channel has been removed from preload/channel contracts.
+- main process now keeps the compact chat window frame aligned to the visible shell height and expands that frame only when the preview visual-anchor height switches to the `with-preview` state, so the idle pill does not retain an oversized transparent hitbox above it.
 - attachment preview uses an always-mounted preview row with class toggle (`has-items`) and opacity/translate animation.
 - non-dashboard input pill now has two fixed CSS states (no live resize IPC):
   - default compact pill: no `with-preview` class (`64px` shell / `56px` pill)

@@ -79,6 +79,7 @@ Current-turn presentation ownership moved to shared chat hooks/state:
 - unmount resets anchor to compact height
 
 No renderer-driven `set-chatbox-size` resizing occurs in this component.
+Main-process chat window height now tracks the compact-vs-preview visual-anchor state so the idle overlay hit area stays tight to the visible pill instead of keeping the old taller transparent frame.
 
 ### Optional Dev Compaction Control
 

@@ -6,6 +6,8 @@ function handleSetChatboxVisualAnchorHeight(
 ) {
   const {
     setChatVisualAnchorHeight,
+    resizeChatWindowForVisualAnchorHeight,
+    positionChatWindow,
     positionResponseWindow,
     positionContextLabelWindow,
     syncContextLabelWindowVisibility,
@@ -24,11 +26,16 @@ function handleSetChatboxVisualAnchorHeight(
     const didChange = typeof setChatVisualAnchorHeight === 'function'
       ? setChatVisualAnchorHeight(nextHeight)
       : true;
-    if (didChange) {
+    const didResize = typeof resizeChatWindowForVisualAnchorHeight === 'function'
+      ? resizeChatWindowForVisualAnchorHeight(nextHeight)
+      : false;
+    if (didChange || didResize) {
+      positionChatWindow?.();
+    } else {
       positionResponseWindow?.();
       positionContextLabelWindow?.();
-      syncContextLabelWindowVisibility?.();
     }
+    syncContextLabelWindowVisibility?.();
     return {
       success: true,
       height: nextHeight,
