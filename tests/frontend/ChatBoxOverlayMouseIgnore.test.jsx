@@ -337,7 +337,7 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockSend).toHaveBeenCalledWith('move-chatbox-to', { x: 100, y: 108 });
   });
 
-  test('input interactions do not start drag movement', () => {
+  test('input drag starts chat pill movement after the movement threshold', () => {
     setWindowScreenPosition(90, 90);
 
     render(<ChatBox />);
@@ -347,7 +347,35 @@ describe('ChatBox overlay mouse ignore', () => {
     fireEvent.mouseMove(window, { clientX: 34, clientY: 30, screenX: 140, screenY: 130 });
     fireEvent.mouseUp(window);
 
-    expect(mockSend).not.toHaveBeenCalledWith('move-chatbox-to', expect.anything());
+    expect(mockSend).toHaveBeenCalledWith('move-chatbox-to', { x: 130, y: 120 });
+  });
+
+  test('button drag also starts chat pill movement after the movement threshold', () => {
+    setWindowScreenPosition(90, 90);
+
+    render(<ChatBox />);
+    const configButton = screen.getByRole('button', { name: 'Open config' });
+
+    fireEvent.mouseDown(configButton, { button: 0, clientX: 10, clientY: 10, screenX: 100, screenY: 100 });
+    fireEvent.mouseMove(window, { clientX: 26, clientY: 18, screenX: 120, screenY: 116 });
+    fireEvent.mouseUp(window);
+
+    expect(mockSend).toHaveBeenCalledWith('move-chatbox-to', { x: 110, y: 106 });
+  });
+
+  test('simple button click still triggers its action when no drag occurs', () => {
+    render(<ChatBox />);
+
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'Open config' }), { button: 0, clientX: 10, clientY: 10, screenX: 100, screenY: 100 });
+    fireEvent.mouseUp(screen.getByRole('button', { name: 'Open config' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open config' }));
+
+    expectInvokeCall(
+      ([channel, payload]) =>
+        channel === 'show-main-window'
+        && payload?.maximize === true
+        && payload?.open === 'settings',
+    );
   });
 
   test('auto-focuses input on mount', () => {
