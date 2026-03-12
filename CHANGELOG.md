@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-chat-pill-dashboard-open): stop the minimal chat-pill config button from routing the dashboard into the settings panel and restore plain dashboard-only open behavior.
 - fix(frontend-backend-system-prompt-os): send the frontend operating-system label once in the websocket handshake and apply it to the backend user session so the WindieOS system prompt follows the frontend OS instead of the Python host OS.
 - fix(frontend-chat-pill-drag-anywhere): let the minimal chat pill start a window drag from buttons and the text input after a `5px` movement threshold, while preserving normal click/focus behavior when the pointer does not actually move.
 - fix(frontend-chat-pill-idle-hit-testing): make the idle minimal chat pill click-through outside the visible pill/bump by default and re-enable direct interaction only when renderer hover reports the pointer over the actual shell, removing the last transparent blocking around the compact overlay.
