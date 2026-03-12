@@ -55,33 +55,31 @@ async def test_execute_scroll_control_requires_coordinates(monkeypatch):
 async def test_execute_scroll_control_scroll_up_uses_positive_vscroll(monkeypatch):
     fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
-    monkeypatch.setattr(scroll_tool, "calculate_scroll_clicks", lambda _units, _direction: 4)
 
     result = await scroll_tool.execute_scroll_control(
         {"action": "scroll_up", "x": 100, "y": 200, "clicks": 3}
     )
 
     assert result["success"] is True
-    assert result["data"]["os_clicks"] == 4
+    assert result["data"]["os_clicks"] == 3
     assert result["data"]["requested_clicks"] == 3
     assert result["data"]["scroll_mode"] == "manual_clicks"
-    assert calls == [("moveTo", 100, 200), ("vscroll", 4)]
+    assert calls == [("moveTo", 100, 200), ("vscroll", 3)]
 
 
 @pytest.mark.asyncio
 async def test_execute_scroll_control_scroll_down_uses_negative_vscroll(monkeypatch):
     fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
-    monkeypatch.setattr(scroll_tool, "calculate_scroll_clicks", lambda _units, _direction: 6)
 
     result = await scroll_tool.execute_scroll_control(
         {"action": "scroll_down", "x": 10, "y": 20, "clicks": 2}
     )
 
     assert result["success"] is True
-    assert result["data"]["os_clicks"] == 6
+    assert result["data"]["os_clicks"] == 2
     assert result["data"]["requested_clicks"] == 2
-    assert calls == [("moveTo", 10, 20), ("vscroll", -6)]
+    assert calls == [("moveTo", 10, 20), ("vscroll", -2)]
 
 
 @pytest.mark.asyncio
@@ -89,9 +87,6 @@ async def test_execute_scroll_control_vertical_uses_coarse_auto_when_clicks_omit
     fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
     fake_pyautogui.size = lambda: SimpleNamespace(width=1470, height=956)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
-    monkeypatch.setattr(
-        scroll_tool, "calculate_coarse_vertical_scroll_units", lambda _height: 10
-    )
     monkeypatch.setattr(
         scroll_tool, "calculate_coarse_vertical_scroll_clicks", lambda _height: 9
     )
@@ -103,7 +98,6 @@ async def test_execute_scroll_control_vertical_uses_coarse_auto_when_clicks_omit
     assert result["success"] is True
     assert result["data"]["scroll_mode"] == "coarse_auto"
     assert result["data"]["requested_clicks"] is None
-    assert result["data"]["coarse_units"] == 10
     assert result["data"]["screen_height"] == 956
     assert result["data"]["os_clicks"] == 9
     assert calls == [("moveTo", 10, 20), ("vscroll", -9)]
@@ -113,39 +107,36 @@ async def test_execute_scroll_control_vertical_uses_coarse_auto_when_clicks_omit
 async def test_execute_scroll_control_scroll_left_falls_back_without_hscroll(monkeypatch):
     fake_pyautogui, calls = _fake_pyautogui(with_hscroll=False)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
-    monkeypatch.setattr(scroll_tool, "calculate_scroll_clicks", lambda _units, _direction: 5)
 
     result = await scroll_tool.execute_scroll_control(
         {"action": "scroll", "direction": "left", "x": 5, "y": 6, "clicks": 1}
     )
 
     assert result["success"] is True
-    assert result["data"]["os_clicks"] == 5
+    assert result["data"]["os_clicks"] == 1
     assert result["data"]["scroll_mode"] == "manual_clicks"
-    assert calls == [("moveTo", 5, 6), ("vscroll", -5)]
+    assert calls == [("moveTo", 5, 6), ("vscroll", -1)]
 
 
 @pytest.mark.asyncio
 async def test_execute_scroll_control_scroll_right_uses_hscroll_when_available(monkeypatch):
     fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
-    monkeypatch.setattr(scroll_tool, "calculate_scroll_clicks", lambda _units, _direction: 7)
 
     result = await scroll_tool.execute_scroll_control(
         {"action": "scroll", "direction": "right", "x": 9, "y": 11, "clicks": 2}
     )
 
     assert result["success"] is True
-    assert result["data"]["os_clicks"] == 7
+    assert result["data"]["os_clicks"] == 2
     assert result["data"]["scroll_mode"] == "manual_clicks"
-    assert calls == [("moveTo", 9, 11), ("hscroll", 7)]
+    assert calls == [("moveTo", 9, 11), ("hscroll", 2)]
 
 
 @pytest.mark.asyncio
 async def test_execute_scroll_control_rejects_invalid_direction(monkeypatch):
     fake_pyautogui, _calls = _fake_pyautogui(with_hscroll=True)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
-    monkeypatch.setattr(scroll_tool, "calculate_scroll_clicks", lambda _units, _direction: 2)
 
     result = await scroll_tool.execute_scroll_control(
         {"action": "scroll", "direction": "diagonal", "x": 1, "y": 2}
@@ -172,7 +163,6 @@ async def test_execute_scroll_control_rejects_unknown_action(monkeypatch):
 async def test_execute_scroll_control_requires_direction_for_scroll_action(monkeypatch):
     fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
-    monkeypatch.setattr(scroll_tool, "calculate_scroll_clicks", lambda _units, _direction: 3)
 
     result = await scroll_tool.execute_scroll_control(
         {"action": "scroll", "x": 1, "y": 2}

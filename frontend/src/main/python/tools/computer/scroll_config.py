@@ -1,18 +1,21 @@
-"""OS-aware scroll configuration for standardized scrolling behavior.
+"""OS-aware scroll configuration for targeted coarse scrolling behavior.
 
-Vertical scroll defaults are executor-owned coarse movements so one scroll
-reveals materially more new content by default. Explicit `clicks` remain
-available as an override for smaller or larger manual adjustments.
+Explicit `clicks` are literal OS wheel clicks. Vertical scroll defaults are
+executor-owned coarse literal click counts tuned per OS and scaled by display
+height so one scroll reveals materially more new content by default.
 """
 
-import platform
 import logging
+import platform
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# Standardized "scroll units" to OS-specific clicks mapping for explicit
-# clicks overrides. One unit remains roughly one Windows/Linux wheel tick.
+# Diagnostics for OS wheel behavior. Explicit `clicks` are now literal OS
+# wheel clicks, but Windows settings still affect how much content one OS click
+# moves, so these values remain useful for observability and future tuning.
+TARGET_LINES_PER_UNIT = 3
+
 SCROLL_MULTIPLIERS = {
     "Windows": {
         "default": 1.0,  # 1 scroll_unit = 1 Windows wheel tick (typically 3 lines)
@@ -28,18 +31,30 @@ SCROLL_MULTIPLIERS = {
     },
 }
 
-# Target lines per explicit scroll unit for standardization
-TARGET_LINES_PER_UNIT = 3
+# Default explicit OS clicks when callers opt into click-based scrolling and do
+# not provide a value.
+DEFAULT_SCROLL_CLICKS = 5
 
-# Default explicit scroll units when callers opt into click-based scrolling.
-DEFAULT_SCROLL_UNITS = 5
-
-# Coarse vertical scrolling targets a substantial chunk of the visible surface.
+# Coarse vertical scrolling targets a substantial chunk of the visible surface
+# using literal OS click counts chosen by the executor.
 DEFAULT_SCREEN_HEIGHT = 900
-COARSE_VERTICAL_SCROLL_REFERENCE_HEIGHT = 900
-COARSE_VERTICAL_SCROLL_REFERENCE_UNITS = 10
-COARSE_VERTICAL_SCROLL_MIN_UNITS = 8
-COARSE_VERTICAL_SCROLL_MAX_UNITS = 16
+COARSE_VERTICAL_SCROLL_BY_OS = {
+    "Windows": {
+        "reference_clicks": 10,
+        "min_clicks": 8,
+        "max_clicks": 16,
+    },
+    "Darwin": {
+        "reference_clicks": 3,
+        "min_clicks": 3,
+        "max_clicks": 5,
+    },
+    "Linux": {
+        "reference_clicks": 10,
+        "min_clicks": 8,
+        "max_clicks": 16,
+    },
+}
 
 
 def _get_windows_scroll_lines() -> Optional[int]:
@@ -99,63 +114,49 @@ def _normalize_screen_height(screen_height: Optional[int]) -> int:
 def calculate_scroll_clicks(
     requested_units: Optional[int], direction: Optional[str] = None
 ) -> int:
-    """Convert standardized scroll units to OS-specific pyautogui clicks.
+    """Return literal OS wheel clicks for explicit scroll overrides.
 
     Args:
-        requested_units: Number of scroll units (None = use default).
-            One unit is visually ~3 lines of text.
+        requested_units: Number of literal OS wheel clicks (None = use default).
         direction: Scroll direction (for logging purposes only).
 
     Returns:
-        Number of clicks to pass to pyautogui.vscroll()/hscroll().
+        Number of literal clicks to pass to pyautogui.vscroll()/hscroll().
         Always returns at least 1 to ensure some scroll happens.
     """
-    units = requested_units if requested_units is not None else DEFAULT_SCROLL_UNITS
-    multiplier = get_os_scroll_multiplier()
-
-    # Calculate clicks, round to int, ensure at least 1
-    clicks = max(1, round(units * multiplier))
+    clicks = max(1, int(requested_units if requested_units is not None else DEFAULT_SCROLL_CLICKS))
 
     logger.debug(
-        f"Scroll calc: {units} units × {multiplier:.2f} = {clicks} clicks "
-        f"({platform.system()})"
+        "Explicit scroll clicks: requested=%s -> os_clicks=%s (%s, direction=%s)",
+        requested_units,
+        clicks,
+        platform.system(),
+        direction,
     )
     return clicks
-
-
-def calculate_coarse_vertical_scroll_units(screen_height: Optional[int]) -> int:
-    """Return display-aware coarse units for vertical scrolling."""
-    normalized_height = _normalize_screen_height(screen_height)
-    scaled_units = round(
-        COARSE_VERTICAL_SCROLL_REFERENCE_UNITS
-        * normalized_height
-        / COARSE_VERTICAL_SCROLL_REFERENCE_HEIGHT
-    )
-    coarse_units = max(
-        COARSE_VERTICAL_SCROLL_MIN_UNITS,
-        min(COARSE_VERTICAL_SCROLL_MAX_UNITS, scaled_units),
-    )
-    logger.debug(
-        "Coarse vertical scroll units: screen_height=%s -> %s units",
-        normalized_height,
-        coarse_units,
-    )
-    return coarse_units
 
 
 def calculate_coarse_vertical_scroll_clicks(screen_height: Optional[int]) -> int:
-    """Convert display-aware coarse vertical scroll units to OS clicks."""
-    coarse_units = calculate_coarse_vertical_scroll_units(screen_height)
-    multiplier = get_os_scroll_multiplier()
-    clicks = max(1, round(coarse_units * multiplier))
-    logger.debug(
-        "Coarse vertical scroll: %s units × %.2f = %s clicks (%s)",
-        coarse_units,
-        multiplier,
-        clicks,
-        platform.system(),
+    """Return display-aware coarse literal OS clicks for vertical scrolling."""
+    normalized_height = _normalize_screen_height(screen_height)
+    system = platform.system()
+    config = COARSE_VERTICAL_SCROLL_BY_OS.get(system, COARSE_VERTICAL_SCROLL_BY_OS["Linux"])
+    scaled_clicks = round(
+        config["reference_clicks"]
+        * normalized_height
+        / DEFAULT_SCREEN_HEIGHT
     )
-    return clicks
+    coarse_clicks = max(
+        config["min_clicks"],
+        min(config["max_clicks"], scaled_clicks),
+    )
+    logger.debug(
+        "Coarse vertical scroll clicks: screen_height=%s -> %s clicks (%s)",
+        normalized_height,
+        coarse_clicks,
+        system,
+    )
+    return coarse_clicks
 
 
 def get_scroll_diagnostics() -> dict:
@@ -166,6 +167,10 @@ def get_scroll_diagnostics() -> dict:
     """
     system = platform.system()
     config = SCROLL_MULTIPLIERS.get(system, SCROLL_MULTIPLIERS["Linux"])
+    coarse_config = COARSE_VERTICAL_SCROLL_BY_OS.get(
+        system,
+        COARSE_VERTICAL_SCROLL_BY_OS["Linux"],
+    )
     multiplier = get_os_scroll_multiplier()
     
     # Check if using custom Windows setting
@@ -179,12 +184,11 @@ def get_scroll_diagnostics() -> dict:
         "os": system,
         "multiplier": multiplier,
         "default_multiplier": config["default"],
-        "target_lines_per_unit": TARGET_LINES_PER_UNIT,
-        "default_explicit_scroll_units": DEFAULT_SCROLL_UNITS,
-        "coarse_vertical_reference_height": COARSE_VERTICAL_SCROLL_REFERENCE_HEIGHT,
-        "coarse_vertical_reference_units": COARSE_VERTICAL_SCROLL_REFERENCE_UNITS,
-        "coarse_vertical_min_units": COARSE_VERTICAL_SCROLL_MIN_UNITS,
-        "coarse_vertical_max_units": COARSE_VERTICAL_SCROLL_MAX_UNITS,
+        "default_explicit_scroll_clicks": DEFAULT_SCROLL_CLICKS,
+        "coarse_vertical_reference_height": DEFAULT_SCREEN_HEIGHT,
+        "coarse_vertical_reference_clicks": coarse_config["reference_clicks"],
+        "coarse_vertical_min_clicks": coarse_config["min_clicks"],
+        "coarse_vertical_max_clicks": coarse_config["max_clicks"],
         "os_default_lines_per_tick": config["lines_per_tick"],
         "using_custom_windows_setting": is_custom,
     }

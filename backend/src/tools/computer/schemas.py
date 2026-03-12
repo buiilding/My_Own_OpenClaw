@@ -144,9 +144,9 @@ class ScrollControlArgs(SourceGroundingArgsMixin):
     clicks: Optional[int] = Field(
         None,
         description=(
-            "Optional explicit click override. Fallback-only for follow-up fine tuning. "
-            "Omit it on the first vertical scroll attempt so the executor chooses a coarse "
-            "display-aware amount."
+            "Optional explicit literal OS wheel click override. Fallback-only for "
+            "follow-up fine tuning. Omit it on the first vertical scroll attempt so "
+            "the executor chooses a coarse display-aware click count."
         ),
     )
     direction: Optional[ScrollToolDirection] = Field(
