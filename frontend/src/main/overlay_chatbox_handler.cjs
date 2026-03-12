@@ -46,6 +46,7 @@ function handleMoveChatboxTo(
 
     setManualChatWindowPosition({
       x: nextX,
+      y: nextY,
       monitorId: targetDisplayAffinity?.monitor_id ?? null,
     });
 
