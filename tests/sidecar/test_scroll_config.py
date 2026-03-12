@@ -28,14 +28,10 @@ def test_get_os_scroll_multiplier_unknown_os_uses_linux_defaults(monkeypatch):
 
 
 def test_calculate_scroll_clicks_uses_default_units_when_unspecified(monkeypatch):
-    monkeypatch.setattr(scroll_config, "get_os_scroll_multiplier", lambda: 1.0)
-
-    assert scroll_config.calculate_scroll_clicks(None, "down") == scroll_config.DEFAULT_SCROLL_UNITS
+    assert scroll_config.calculate_scroll_clicks(None, "down") == scroll_config.DEFAULT_SCROLL_CLICKS
 
 
-def test_calculate_scroll_clicks_enforces_minimum_one_click(monkeypatch):
-    monkeypatch.setattr(scroll_config, "get_os_scroll_multiplier", lambda: 0.1)
-
+def test_calculate_scroll_clicks_enforces_minimum_one_click():
     assert scroll_config.calculate_scroll_clicks(1, "up") == 1
 
 
@@ -52,13 +48,17 @@ def test_get_scroll_diagnostics_reports_custom_windows_setting(monkeypatch):
     assert diagnostics["os_default_lines_per_tick"] == 3
 
 
-def test_calculate_coarse_vertical_scroll_units_scales_with_screen_height():
-    assert scroll_config.calculate_coarse_vertical_scroll_units(900) == 10
-    assert scroll_config.calculate_coarse_vertical_scroll_units(720) == 8
-    assert scroll_config.calculate_coarse_vertical_scroll_units(1440) == 16
+def test_calculate_coarse_vertical_scroll_clicks_scales_with_screen_height_windows(monkeypatch):
+    monkeypatch.setattr(scroll_config.platform, "system", lambda: "Windows")
+
+    assert scroll_config.calculate_coarse_vertical_scroll_clicks(900) == 10
+    assert scroll_config.calculate_coarse_vertical_scroll_clicks(720) == 8
+    assert scroll_config.calculate_coarse_vertical_scroll_clicks(1440) == 16
 
 
-def test_calculate_coarse_vertical_scroll_clicks_uses_multiplier(monkeypatch):
-    monkeypatch.setattr(scroll_config, "get_os_scroll_multiplier", lambda: 0.5)
+def test_calculate_coarse_vertical_scroll_clicks_scales_with_screen_height_macos(monkeypatch):
+    monkeypatch.setattr(scroll_config.platform, "system", lambda: "Darwin")
 
-    assert scroll_config.calculate_coarse_vertical_scroll_clicks(900) == 5
+    assert scroll_config.calculate_coarse_vertical_scroll_clicks(900) == 3
+    assert scroll_config.calculate_coarse_vertical_scroll_clicks(720) == 3
+    assert scroll_config.calculate_coarse_vertical_scroll_clicks(1440) == 5

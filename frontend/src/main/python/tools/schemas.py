@@ -138,9 +138,10 @@ class ScreenshotToolArgs(BaseModel):
 class ScrollControlArgs(BaseModel):
     """Arguments for scroll control tool. Vertical: up/down (vscroll). Horizontal: left/right (hscroll).
 
-    Vertical scroll defaults are executor-owned coarse movements derived from the
-    current display height so one scroll reveals materially more content by
-    default. Optional `clicks` remains available as an explicit override.
+    Vertical scroll defaults are executor-owned coarse literal OS click counts
+    derived from the current display height so one scroll reveals materially
+    more content by default. Optional `clicks` remains available as a literal
+    override.
     """
     model_config = ConfigDict(extra='forbid')
     
@@ -150,10 +151,10 @@ class ScrollControlArgs(BaseModel):
     clicks: Optional[int] = Field(
         None,
         description=(
-            "Optional explicit scroll click override. Fallback-only for follow-up fine "
-            "tuning. Omit it on the first vertical scroll attempt so the executor chooses "
-            "a coarse display-aware amount. Provide it only when a smaller or larger "
-            "manual adjustment is needed."
+            "Optional explicit literal OS wheel click override. Fallback-only for "
+            "follow-up fine tuning. Omit it on the first vertical scroll attempt so "
+            "the executor chooses a coarse display-aware click count. Provide it only "
+            "when a smaller or larger manual adjustment is needed."
         )
     )
     direction: Optional[Literal["up", "down", "left", "right"]] = Field(

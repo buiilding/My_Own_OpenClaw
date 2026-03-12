@@ -121,7 +121,8 @@ class RemoteScrollTool(RemoteToolBase, Tool[ScrollControlArgs]):
         "via OCR, a detailed visual `source_description` via prediction, or manual x/y from "
         "the latest screenshot when grounding is already known. Omit `clicks` on the first "
         "vertical scroll attempt for the default coarse step; treat `clicks` as fallback-only "
-        "for follow-up fine tuning when a specific manual adjustment is needed."
+        "for follow-up fine tuning when a specific manual adjustment is needed. When provided, "
+        "`clicks` means literal OS wheel clicks."
     )
     args_model = ScrollControlArgs
     category = ToolDomain.COMPUTER
