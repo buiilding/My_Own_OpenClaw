@@ -89,6 +89,21 @@ let currentGlobalAgentStopShortcutStatus = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 
+function resolveFrontendOperatingSystem(platformName = process.platform) {
+  switch (platformName) {
+    case 'darwin':
+      return 'macOS';
+    case 'win32':
+      return 'Windows';
+    case 'linux':
+      return 'Linux';
+    default:
+      return typeof platformName === 'string' && platformName.trim().length > 0
+        ? platformName.trim()
+        : null;
+  }
+}
+
 function normalizeGlobalAgentStopShortcutStatus(status) {
   if (!status || typeof status !== 'object' || Array.isArray(status)) {
     return null;
@@ -348,6 +363,7 @@ function connect() {
     const handshakeMessage = {
       type: 'handshake',
       user_id: currentUserId,
+      operating_system: resolveFrontendOperatingSystem(process.platform),
     };
     try {
       ws.send(JSON.stringify(handshakeMessage));

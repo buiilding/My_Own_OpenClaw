@@ -10,10 +10,10 @@ from backend.src.llm.prompts.prompts import PromptManager, get_system_prompt
 @pytest.fixture(autouse=True)
 def reset_prompt_manager_state():
     PromptManager._instance = None
-    PromptManager._system_prompt = None
+    PromptManager._system_prompt_template = None
     yield
     PromptManager._instance = None
-    PromptManager._system_prompt = None
+    PromptManager._system_prompt_template = None
 
 
 def test_initialize_loads_and_formats_prompt(tmp_path, monkeypatch):
@@ -152,6 +152,18 @@ def test_get_system_prompt_global_accessor(tmp_path, monkeypatch):
     manager.initialize(prompt_file)
 
     assert get_system_prompt() == "global TestOS"
+
+
+def test_get_system_prompt_renders_explicit_operating_system(tmp_path, monkeypatch):
+    prompt_file = tmp_path / "system_prompt.txt"
+    prompt_file.write_text("global {os}", encoding="utf-8")
+    monkeypatch.setattr("backend.src.llm.prompts.prompts.platform.system", lambda: "BackendOS")
+
+    manager = PromptManager()
+    manager.initialize(prompt_file)
+
+    assert get_system_prompt("macOS") == "global macOS"
+    assert manager.system_prompt == "global BackendOS"
 
 
 def test_repo_system_prompt_includes_tool_strategy_rules():

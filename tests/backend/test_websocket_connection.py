@@ -78,13 +78,18 @@ def _capture_connection_logger_calls(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_perform_handshake_returns_client_user_id() -> None:
-    websocket = DummyWebSocket(json.dumps({"type": "handshake", "user_id": "client_user"}))
+    websocket = DummyWebSocket(json.dumps({
+        "type": "handshake",
+        "user_id": "client_user",
+        "operating_system": "macOS",
+    }))
     safe_ws = DummySafeWebSocket()
 
     assigned_user_id = await perform_handshake(websocket, safe_ws)
 
     assert assigned_user_id == "client_user"
     assert safe_ws.closed == []
+    assert getattr(safe_ws, "frontend_operating_system", None) == "macOS"
 
 
 @pytest.mark.asyncio

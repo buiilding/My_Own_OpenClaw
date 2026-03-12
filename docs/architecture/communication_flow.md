@@ -123,6 +123,7 @@ WindieOS uses a multi-layered communication architecture with WebSocket for back
 
 1. **Connection**: Client connects to backend WebSocket (default `ws://127.0.0.1:8765/ws`)
 2. **Handshake**: Client sends handshake message (backend validates and uses client `user_id`)
+   - Electron main also sends the frontend operating-system label so backend session prompt rendering can follow the frontend OS instead of the Python host OS
    - Invalid handshake JSON/schema closes the socket with code `1008` (policy violation)
 3. **Session Creation**: Backend creates session
 4. **Message Loop**: Continuous message exchange
@@ -154,7 +155,7 @@ so memory embedding/summarization calls target the same backend host.
 
 **Handshake (required, before any other messages)**:
 ```json
-{ "type": "handshake", "user_id": "user-123" }
+{ "type": "handshake", "user_id": "user-123", "operating_system": "macOS" }
 ```
 
 **Outgoing (Client → Server)**:

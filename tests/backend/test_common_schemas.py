@@ -51,8 +51,9 @@ def test_base_message_rejects_default_user_id():
 
 
 def test_handshake_message_validates_user_id():
-    ok = HandshakeMessage(type="handshake", user_id=" user-2 ")
+    ok = HandshakeMessage(type="handshake", user_id=" user-2 ", operating_system=" macOS ")
     assert ok.user_id == "user-2"
+    assert ok.operating_system == "macOS"
 
     with pytest.raises(ValidationError):
         HandshakeMessage(type="handshake", user_id="default_user")

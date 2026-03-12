@@ -59,6 +59,7 @@ class HandshakeMessage(BaseModel):
 
     type: Literal["handshake"]
     user_id: str
+    operating_system: Optional[str] = None
 
     @field_validator("user_id")
     @classmethod
@@ -67,3 +68,15 @@ class HandshakeMessage(BaseModel):
             return validate_user_id(v)
         except ValidationError as e:
             raise ValueError(e.message) from e
+
+    @field_validator("operating_system")
+    @classmethod
+    def validate_handshake_operating_system(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("operating_system cannot be empty or whitespace-only")
+        if len(normalized) > 64:
+            raise ValueError("operating_system exceeds 64 characters")
+        return normalized

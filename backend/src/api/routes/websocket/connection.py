@@ -74,6 +74,7 @@ async def perform_handshake(
         )
         handshake_msg = HandshakeMessage.model_validate(handshake_data)
         user_id = handshake_msg.user_id
+        setattr(safe_ws, "frontend_operating_system", handshake_msg.operating_system)
         
         logger.info(
             "Handshake successful (user_id=%s)",

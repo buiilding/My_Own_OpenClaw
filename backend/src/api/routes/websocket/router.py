@@ -62,6 +62,15 @@ async def websocket_endpoint(
     if not user_id:
         return
 
+    frontend_operating_system = getattr(safe_ws, "frontend_operating_system", None)
+    set_frontend_operating_system = getattr(
+        session_manager,
+        "set_frontend_operating_system",
+        None,
+    )
+    if callable(set_frontend_operating_system) and isinstance(frontend_operating_system, str):
+        set_frontend_operating_system(user_id, frontend_operating_system)
+
     try:
         while True:
             try:

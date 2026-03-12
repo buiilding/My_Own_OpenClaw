@@ -14,6 +14,7 @@ from backend.src.core.config import AppConfig
 from backend.src.core.config.loader import get_default_tts_model_path, load_api_key_for_provider
 from backend.src.core.config.runtime import assemble_runtime_config
 from backend.src.core.config.subscriptions import ConfigSubscriber
+from backend.src.llm.prompts.prompts import get_system_prompt
 
 logger = logging.getLogger(__name__)
 _PENDING_STOP_GRACE_SECONDS = 5.0
@@ -55,6 +56,7 @@ class SessionManager(ConfigSubscriber):
         # Pending stop-query requests keyed by user_id and optional conversation_ref.
         # Value is expiry timestamp (monotonic seconds).
         self._pending_stop_requests: Dict[str, Dict[Optional[str], float]] = {}
+        self._frontend_operating_systems: Dict[str, str] = {}
 
     @staticmethod
     def _normalize_optional_conversation_ref(
@@ -109,6 +111,42 @@ class SessionManager(ConfigSubscriber):
         if not user_pending:
             self._pending_stop_requests.pop(user_id, None)
         return False
+
+    @staticmethod
+    def _normalize_frontend_operating_system(
+        operating_system: Optional[str],
+    ) -> Optional[str]:
+        if not isinstance(operating_system, str):
+            return None
+        normalized = operating_system.strip()
+        return normalized or None
+
+    @staticmethod
+    def _apply_frontend_operating_system_to_session(
+        session: AgentSession,
+        operating_system: str,
+    ) -> None:
+        rendered_prompt = get_system_prompt(operating_system)
+        session.prompt_builder.system_prompt = rendered_prompt
+        session.history.system_prompt = rendered_prompt
+
+    def set_frontend_operating_system(
+        self,
+        user_id: str,
+        operating_system: Optional[str],
+    ) -> None:
+        normalized_operating_system = self._normalize_frontend_operating_system(
+            operating_system
+        )
+        if normalized_operating_system is None:
+            return
+        self._frontend_operating_systems[user_id] = normalized_operating_system
+        session = self.active_sessions.get(user_id)
+        if session is not None:
+            self._apply_frontend_operating_system_to_session(
+                session,
+                normalized_operating_system,
+            )
 
     def register_active_query_task(
         self,
@@ -306,6 +344,12 @@ class SessionManager(ConfigSubscriber):
                 session = self.create_agent_session(
                     user_id=user_id, config=session_config
                 )
+                operating_system = self._frontend_operating_systems.get(user_id)
+                if operating_system:
+                    self._apply_frontend_operating_system_to_session(
+                        session,
+                        operating_system,
+                    )
                 self.active_sessions[user_id] = session
                 logger.info(f"Successfully created session for user {user_id}")
                 return session
@@ -412,6 +456,7 @@ class SessionManager(ConfigSubscriber):
                 del self.active_sessions[user_id]
                 self.clear_active_query_task(user_id)
                 self._pending_stop_requests.pop(user_id, None)
+                self._frontend_operating_systems.pop(user_id, None)
                 
                 # Clean up lock if no longer needed
                 async with self._locks_lock:

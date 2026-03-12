@@ -23,6 +23,10 @@ class DummyConfig:
 class DummySessionManager:
     def __init__(self):
         self.config = DummyConfig()
+        self.frontend_operating_system_calls = []
+
+    def set_frontend_operating_system(self, user_id: str, operating_system: str) -> None:
+        self.frontend_operating_system_calls.append((user_id, operating_system))
 
 
 class DummyWebSocket:
@@ -142,6 +146,36 @@ async def test_websocket_endpoint_returns_early_when_handshake_fails(
     assert cleanup_calls == []
     assert len(FakeSafeWebSocket.instances) == 1
     assert FakeSafeWebSocket.instances[0].accepted is True
+
+
+@pytest.mark.asyncio
+async def test_websocket_endpoint_applies_handshake_operating_system_to_session_manager(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session_manager = DummySessionManager()
+
+    async def fake_perform_handshake(websocket, safe_ws):  # noqa: ARG001
+        setattr(safe_ws, "frontend_operating_system", "Windows")
+        return "user_os"
+
+    async def forced_disconnect(awaitable, timeout):  # noqa: ARG001
+        close = getattr(awaitable, "close", None)
+        if callable(close):
+            close()
+        raise websocket_route_module.WebSocketDisconnect(code=1000)
+
+    monkeypatch.setattr(websocket_route_module, "SafeWebSocket", FakeSafeWebSocket)
+    monkeypatch.setattr(websocket_route_module, "TaskManager", FakeTaskManager)
+    monkeypatch.setattr(websocket_route_module, "perform_handshake", fake_perform_handshake)
+    monkeypatch.setattr(websocket_route_module.asyncio, "wait_for", forced_disconnect)
+
+    await websocket_route_module.websocket_endpoint(
+        websocket=DummyWebSocket(),
+        session_manager=session_manager,
+        handler_registry=object(),
+    )
+
+    assert session_manager.frontend_operating_system_calls == [("user_os", "Windows")]
 
 
 @pytest.mark.asyncio
