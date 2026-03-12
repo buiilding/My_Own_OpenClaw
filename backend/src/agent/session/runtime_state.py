@@ -25,7 +25,6 @@ class SessionRuntimeState:
     tool_results: ToolResultStorage = field(
         default_factory=lambda: ToolResultStorage(cleanup_ttl_seconds=300)
     )
-    frontend_operating_system: Optional[str] = None
     system_state: Optional[Dict[str, Any]] = None
     active_conversation_ref: Optional[str] = None
     ocr_completion_event: asyncio.Event = field(default_factory=asyncio.Event)
@@ -53,7 +52,6 @@ class SessionRuntimeState:
         self.resolved_calls.clear()
         self.tool_results.clear_all()
         self.background_tasks.clear()
-        self.frontend_operating_system = None
         self.system_state = None
         self.active_conversation_ref = None
         self.ocr_completion_event.set()

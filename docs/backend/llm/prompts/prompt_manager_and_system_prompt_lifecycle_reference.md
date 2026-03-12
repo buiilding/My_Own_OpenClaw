@@ -24,9 +24,9 @@ title: "Prompt Manager and System Prompt Lifecycle Reference"
 
 Key rules:
 
-- prompt file template load is deferred to `initialize(...)` (no import-time read)
+- prompt file load is deferred to `initialize(...)` (no import-time read)
 - `system_prompt` property raises until initialized
-- `get_system_prompt()` renders from the cached template and accepts an optional frontend-provided operating-system override
+- `get_system_prompt()` delegates to `PromptManager().system_prompt`
 - module intentionally avoids a global `SYSTEM_PROMPT` constant
 
 Thread safety:
@@ -44,8 +44,7 @@ Load behavior:
 
 - reads UTF-8 text
 - rejects empty/whitespace-only prompt file
-- caches the raw template and renders `{os}` at access time
-- default render path still falls back to runtime `platform.system()` when no frontend override is provided
+- replaces `{os}` placeholder with runtime `platform.system()`
 
 Failure behavior (all raise `RuntimeError`):
 
@@ -63,12 +62,6 @@ Initialization is effectively idempotent after first successful load.
 - optional injected `system_prompt` overrides manager value
 - default path loads via `get_system_prompt()`
 - constructor requires non-null config for security limits/tool policy setup
-
-Current session/query behavior:
-
-- Electron main sends `frontend_operating_system` with each `query`
-- query runtime applies that frontend OS to `prompt_builder.system_prompt` and `history.system_prompt` before the turn runs
-- result: prompt rendering tracks the frontend machine OS instead of the Python backend host OS
 
 This is the main bridge from prompt manager into LLM interaction runtime.
 
@@ -103,7 +96,7 @@ Current prompt template defines:
 
 - runtime assistant identity string: `You are windieos, an AI Operating System Layer.`
 - main-window context instruction: `NOTE: Your main window is named "windieos".`
-- OS-aware command/keybind requirement (`{os}` substitution), with query-time frontend OS override support through `frontend_operating_system`
+- OS-aware command/keybind requirement (`{os}` substitution)
 - autonomous loop policy (continue until task complete)
 - context-awareness policy around `<system_context>`
 - explicit `keyboard_control` limitation guidance: synthetic automation input, not trusted native hardware keyboard control, with informational fallback guidance for key recorders and similar capture prompts

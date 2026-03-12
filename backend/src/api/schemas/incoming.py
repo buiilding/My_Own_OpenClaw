@@ -40,25 +40,12 @@ class QueryPayload(BaseModel):
     screenshot_ref: Optional[str] = None
     screenshot_refs: Optional[List[str]] = None
     capture_meta: Optional[Dict[str, Any]] = None
-    frontend_operating_system: Optional[str] = None
     system_state_internal: Optional[Dict[str, Any]] = None
 
     @field_validator("conversation_ref")
     @classmethod
     def validate_conversation_ref(cls, value: str) -> str:
         return _validate_conversation_ref(value)
-
-    @field_validator("frontend_operating_system")
-    @classmethod
-    def validate_frontend_operating_system(cls, value: Optional[str]) -> Optional[str]:
-        if value is None:
-            return None
-        normalized = value.strip()
-        if not normalized:
-            raise ValueError("frontend_operating_system cannot be empty or whitespace-only")
-        if len(normalized) > 64:
-            raise ValueError("frontend_operating_system exceeds 64 characters")
-        return normalized
 
 
 class QueryMessage(BaseMessage):

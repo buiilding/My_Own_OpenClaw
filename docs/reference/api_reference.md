@@ -368,7 +368,6 @@ Send a user query with optional screenshot.
   "content": "<system_context>...</system_context> ...", // Optional, built by Electron main process
   "screenshot": "base64-encoded-screenshot", // Optional (legacy)
   "screenshot_ref": "uuid.jpg", // Preferred
-  "frontend_operating_system": "macOS", // Optional frontend-owned OS label for system prompt rendering
   "system_state_internal": { "screen_resolution": "1920x1080" } // Optional backend-only runtime state
 }
 ```
@@ -390,7 +389,6 @@ Send a user query with optional screenshot.
 
 **Note**: The Electron main process enriches `query` payloads by adding `content` (system context + memory + user query).
 `conversation_ref` is required and identifies the active transcript/session thread.
-`frontend_operating_system` is sent by Electron main so the backend renders the system prompt for the frontend OS instead of the Python host OS.
 `system_state_internal` is backend-only runtime state and is not model-facing prompt/tool-output content.
 
 **Example**:
