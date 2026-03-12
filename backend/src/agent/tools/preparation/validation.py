@@ -77,7 +77,7 @@ class ExecutorScrollControlArgs(BaseModel):
     action: str
     x: int
     y: int
-    clicks: int = 5
+    clicks: int | None = None
     direction: str | None = None
     wait: float = 0.0
 

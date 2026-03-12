@@ -136,11 +136,17 @@ class ScrollControlArgs(SourceGroundingArgsMixin):
 
     action: Literal["scroll", "scroll_up", "scroll_down"] = Field(
         ...,
-        description="Scroll action to perform (`scroll`, `scroll_up`, or `scroll_down`).",
+        description=(
+            "Scroll action to perform (`scroll`, `scroll_up`, or `scroll_down`). "
+            "Vertical actions default to a coarse executor-owned step."
+        ),
     )
-    clicks: int = Field(
-        5,
-        description="Scroll click count (positive moves up/right, negative moves down/left).",
+    clicks: Optional[int] = Field(
+        None,
+        description=(
+            "Optional explicit click override. When omitted for vertical scrolling, "
+            "the executor chooses a coarse display-aware amount."
+        ),
     )
     direction: Optional[ScrollToolDirection] = Field(
         None,

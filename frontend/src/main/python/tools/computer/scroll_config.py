@@ -1,12 +1,8 @@
 """OS-aware scroll configuration for standardized scrolling behavior.
 
-Scroll "clicks" are not standardized across operating systems:
-- Windows: Configurable, typically 3 lines per wheel tick (registry: WheelScrollLines)
-- macOS: Pixel-based smooth scrolling, no direct "lines" equivalent
-- Linux: Varies by DE, typically 3 lines per tick
-
-This module converts standardized "scroll units" (visually ~3 lines each) to
-OS-specific pyautogui clicks for consistent behavior across platforms.
+Vertical scroll defaults are executor-owned coarse movements so one scroll
+reveals materially more new content by default. Explicit `clicks` remain
+available as an override for smaller or larger manual adjustments.
 """
 
 import platform
@@ -15,8 +11,8 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# Standardized "scroll units" to OS-specific clicks mapping
-# Goal: 1 scroll_unit ≈ 3 lines of text (standard readable content)
+# Standardized "scroll units" to OS-specific clicks mapping for explicit
+# clicks overrides. One unit remains roughly one Windows/Linux wheel tick.
 SCROLL_MULTIPLIERS = {
     "Windows": {
         "default": 1.0,  # 1 scroll_unit = 1 Windows wheel tick (typically 3 lines)
@@ -32,11 +28,18 @@ SCROLL_MULTIPLIERS = {
     },
 }
 
-# Target lines per scroll unit for standardization
+# Target lines per explicit scroll unit for standardization
 TARGET_LINES_PER_UNIT = 3
 
-# Default scroll units when not specified
+# Default explicit scroll units when callers opt into click-based scrolling.
 DEFAULT_SCROLL_UNITS = 5
+
+# Coarse vertical scrolling targets a substantial chunk of the visible surface.
+DEFAULT_SCREEN_HEIGHT = 900
+COARSE_VERTICAL_SCROLL_REFERENCE_HEIGHT = 900
+COARSE_VERTICAL_SCROLL_REFERENCE_UNITS = 10
+COARSE_VERTICAL_SCROLL_MIN_UNITS = 8
+COARSE_VERTICAL_SCROLL_MAX_UNITS = 16
 
 
 def _get_windows_scroll_lines() -> Optional[int]:
@@ -87,6 +90,12 @@ def get_os_scroll_multiplier() -> float:
     return multiplier
 
 
+def _normalize_screen_height(screen_height: Optional[int]) -> int:
+    if isinstance(screen_height, int) and screen_height > 0:
+        return screen_height
+    return DEFAULT_SCREEN_HEIGHT
+
+
 def calculate_scroll_clicks(
     requested_units: Optional[int], direction: Optional[str] = None
 ) -> int:
@@ -114,6 +123,41 @@ def calculate_scroll_clicks(
     return clicks
 
 
+def calculate_coarse_vertical_scroll_units(screen_height: Optional[int]) -> int:
+    """Return display-aware coarse units for vertical scrolling."""
+    normalized_height = _normalize_screen_height(screen_height)
+    scaled_units = round(
+        COARSE_VERTICAL_SCROLL_REFERENCE_UNITS
+        * normalized_height
+        / COARSE_VERTICAL_SCROLL_REFERENCE_HEIGHT
+    )
+    coarse_units = max(
+        COARSE_VERTICAL_SCROLL_MIN_UNITS,
+        min(COARSE_VERTICAL_SCROLL_MAX_UNITS, scaled_units),
+    )
+    logger.debug(
+        "Coarse vertical scroll units: screen_height=%s -> %s units",
+        normalized_height,
+        coarse_units,
+    )
+    return coarse_units
+
+
+def calculate_coarse_vertical_scroll_clicks(screen_height: Optional[int]) -> int:
+    """Convert display-aware coarse vertical scroll units to OS clicks."""
+    coarse_units = calculate_coarse_vertical_scroll_units(screen_height)
+    multiplier = get_os_scroll_multiplier()
+    clicks = max(1, round(coarse_units * multiplier))
+    logger.debug(
+        "Coarse vertical scroll: %s units × %.2f = %s clicks (%s)",
+        coarse_units,
+        multiplier,
+        clicks,
+        platform.system(),
+    )
+    return clicks
+
+
 def get_scroll_diagnostics() -> dict:
     """Get diagnostic information about scroll configuration.
     
@@ -136,6 +180,11 @@ def get_scroll_diagnostics() -> dict:
         "multiplier": multiplier,
         "default_multiplier": config["default"],
         "target_lines_per_unit": TARGET_LINES_PER_UNIT,
+        "default_explicit_scroll_units": DEFAULT_SCROLL_UNITS,
+        "coarse_vertical_reference_height": COARSE_VERTICAL_SCROLL_REFERENCE_HEIGHT,
+        "coarse_vertical_reference_units": COARSE_VERTICAL_SCROLL_REFERENCE_UNITS,
+        "coarse_vertical_min_units": COARSE_VERTICAL_SCROLL_MIN_UNITS,
+        "coarse_vertical_max_units": COARSE_VERTICAL_SCROLL_MAX_UNITS,
         "os_default_lines_per_tick": config["lines_per_tick"],
         "using_custom_windows_setting": is_custom,
     }

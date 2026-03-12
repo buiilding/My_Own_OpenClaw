@@ -124,6 +124,12 @@ def test_scroll_control_scroll_up_down_do_not_require_direction():
     assert down_args.direction is None
 
 
+def test_scroll_control_clicks_remains_optional():
+    args = ScrollControlArgs(action="scroll_down", x=3, y=4)
+
+    assert args.clicks is None
+
+
 def test_replace_args_default_context_and_matching_fields():
     args = ReplaceArgs(
         file_path="/tmp/a.txt",

@@ -137,27 +137,22 @@ class ScreenshotToolArgs(BaseModel):
 
 class ScrollControlArgs(BaseModel):
     """Arguments for scroll control tool. Vertical: up/down (vscroll). Horizontal: left/right (hscroll).
-    
-    Scroll amounts are specified in 'scroll units' (the 'clicks' parameter) where each unit
-    represents approximately 3 lines of text visually. The actual OS wheel clicks are
-    automatically calculated based on the operating system for consistent cross-platform behavior.
-    
-    OS-specific behavior:
-    - Windows: 1 unit ≈ 1 wheel tick (typically 3 lines), adjustable based on user settings
-    - macOS: 1 unit ≈ 0.3 wheel ticks (smooth scrolling compensation)
-    - Linux: 1 unit ≈ 1 wheel tick (typically 3 lines)
+
+    Vertical scroll defaults are executor-owned coarse movements derived from the
+    current display height so one scroll reveals materially more content by
+    default. Optional `clicks` remains available as an explicit override.
     """
     model_config = ConfigDict(extra='forbid')
     
     action: Literal["scroll", "scroll_up", "scroll_down"] = Field(..., description="Scroll action to perform")
     x: int = Field(..., description="X coordinate to move to before scrolling (manual coordinates only)")
     y: int = Field(..., description="Y coordinate to move to before scrolling (manual coordinates only)")
-    clicks: int = Field(
-        5,
+    clicks: Optional[int] = Field(
+        None,
         description=(
-            "Number of scroll units (visually ~3 lines of text per unit). "
-            "Default 5 units ≈ 15 lines. Automatically converted to OS-specific wheel clicks: "
-            "Windows/Linux ≈ 1:1, macOS ≈ 0.3:1 due to smooth scrolling."
+            "Optional explicit scroll click override. When omitted for vertical "
+            "scrolling, the executor chooses a coarse display-aware amount. "
+            "Provide this only when a smaller or larger manual adjustment is needed."
         )
     )
     direction: Optional[Literal["up", "down", "left", "right"]] = Field(
