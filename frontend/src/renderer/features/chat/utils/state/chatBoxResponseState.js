@@ -20,12 +20,25 @@ function normalizeEntryText(value) {
 }
 
 function readExplanationFromArguments(argumentsLike) {
-  const explanation = argumentsLike?.explanation;
-  if (typeof explanation !== 'string') {
+  if (!argumentsLike || typeof argumentsLike !== 'object' || Array.isArray(argumentsLike)) {
     return null;
   }
-  const normalizedExplanation = explanation.trim();
-  return normalizedExplanation.length > 0 ? normalizedExplanation : null;
+  const explanationCandidates = [
+    argumentsLike.explanation,
+    argumentsLike?.metadata?.explanation,
+    argumentsLike?.arguments?.explanation,
+    argumentsLike?.arguments?.metadata?.explanation,
+  ];
+  for (const explanation of explanationCandidates) {
+    if (typeof explanation !== 'string') {
+      continue;
+    }
+    const normalizedExplanation = explanation.trim();
+    if (normalizedExplanation.length > 0) {
+      return normalizedExplanation;
+    }
+  }
+  return null;
 }
 
 function collectToolExplanationTexts(message) {
