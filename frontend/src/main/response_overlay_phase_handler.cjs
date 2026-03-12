@@ -11,13 +11,35 @@ function syncOverlayLoopInteractivity(active, deps = {}) {
     chatWindow,
     responseWindow,
     contextLabelWindow,
+    getChatboxHitTestActive = () => false,
     warn = console.warn,
   } = deps;
-  const targetWindows = [chatWindow, responseWindow, contextLabelWindow].filter(
+
+  if (chatWindow && !chatWindow.isDestroyed()) {
+    try {
+      if (active || !getChatboxHitTestActive()) {
+        chatWindow.setIgnoreMouseEvents(true, { forward: true });
+      } else {
+        chatWindow.setIgnoreMouseEvents(false);
+      }
+    } catch (error) {
+      warn('[Main] Failed to sync overlay click-through state:', error?.message || error);
+    }
+
+    try {
+      if (typeof chatWindow.setFocusable === 'function') {
+        chatWindow.setFocusable(!active);
+      }
+    } catch (error) {
+      warn('[Main] Failed to sync overlay focusable state:', error?.message || error);
+    }
+  }
+
+  const passiveWindows = [responseWindow, contextLabelWindow].filter(
     (win) => win && !win.isDestroyed(),
   );
 
-  for (const win of targetWindows) {
+  for (const win of passiveWindows) {
     try {
       if (active) {
         win.setIgnoreMouseEvents(true, { forward: true });
@@ -108,6 +130,7 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     showResponseWindowInactive = () => {},
     syncContextLabelWindowVisibility = () => {},
     getResponseOverlayPhase = () => null,
+    getChatboxHitTestActive = () => false,
     warn = console.warn,
   } = deps;
 
@@ -136,6 +159,7 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     chatWindow,
     responseWindow,
     contextLabelWindow,
+    getChatboxHitTestActive,
     warn,
   });
   applyResponseOverlayWindowMode(windowMode, {

@@ -104,7 +104,7 @@ Behavior:
 
 - main-process overlay phase handler owns click-through + focusable policy for both chat and response overlays
 - active loop phases (`awaiting-first-chunk|streaming|tool-call|tool-output`) force click-through and `focusable=false`
-- terminal phases (`complete|error|idle`) restore normal interaction
+- terminal phases (`complete|error|idle`) restore normal interaction for the visible pill shell, but idle chatbox hit-testing now defaults to click-through until the renderer reports pointer hover over the actual pill/bump
 
 ## Focus Contract
 
@@ -126,6 +126,7 @@ This is required after main-process `showChatWindow({ focus: true })`.
 - chat overlay window dimensions are fixed in main runtime (`createChatWindow`).
 - `ChatBox.jsx` no longer emits renderer-driven resize IPC for preview or startup transitions; deprecated `set-chatbox-size` channel has been removed from preload/channel contracts.
 - main process now keeps the compact chat window frame aligned to the visible shell height and expands that frame only when the preview visual-anchor height switches to the `with-preview` state, so the idle pill does not retain an oversized transparent hitbox above it.
+- idle chatbox hover now reports a dedicated main-process hit-test state, allowing the transparent overlay window to stay click-through outside the visible pill shape while preserving direct interaction over the pill and close bump.
 - attachment preview uses an always-mounted preview row with class toggle (`has-items`) and opacity/translate animation.
 - non-dashboard input pill now has two fixed CSS states (no live resize IPC):
   - default compact pill: no `with-preview` class (`64px` shell / `56px` pill)

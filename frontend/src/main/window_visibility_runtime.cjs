@@ -56,6 +56,7 @@ function showChatWindow(options = {}, deps = {}) {
     showResponseWindowInactive = () => {},
     broadcastResponseOverlayVisibility = () => {},
     syncContextLabelWindowVisibility = () => {},
+    syncChatboxHitTestState = () => {},
     syncWakewordToggleForChatVisibility = () => {},
     externalFocusTracker,
     getResponseOverlayPhase = () => null,
@@ -98,6 +99,7 @@ function showChatWindow(options = {}, deps = {}) {
   }
   syncWindowDisplayAffinity(chatWindow);
   ensureChatWindowOnTop();
+  syncChatboxHitTestState();
   // Non-focusing chatbox restores (tool/capture lifecycle) should not resurrect
   // stale response overlays before renderer awaiting state is ready.
   const {

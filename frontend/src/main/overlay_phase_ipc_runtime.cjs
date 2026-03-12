@@ -27,6 +27,7 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     syncWindowDisplayAffinity = () => {},
     setManualChatWindowPosition,
     setChatVisualAnchorHeight,
+    setChatboxHitTestActive = () => false,
     resizeChatWindowForVisualAnchorHeight,
     getResponseWindowBounds,
     setResponseOverlayVisibilityState,
@@ -48,6 +49,17 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
       syncContextLabelWindowVisibility,
       warn,
     });
+  });
+
+  ipcMain.handle('set-chatbox-hit-test-active', async (_event, args = {}) => {
+    const nextActive = args?.active === true;
+    const changed = setChatboxHitTestActive(nextActive);
+    deps.syncChatboxHitTestState?.();
+    return {
+      success: true,
+      active: nextActive,
+      changed: Boolean(changed),
+    };
   });
 
   ipcMain.on('move-chatbox-to', (_event, { x, y } = {}) => {

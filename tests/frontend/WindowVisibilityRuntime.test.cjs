@@ -44,6 +44,7 @@ describe('window_visibility_runtime showChatWindow', () => {
         chatWindow,
         externalFocusTracker,
         syncWindowDisplayAffinity: jest.fn(),
+        syncChatboxHitTestState: jest.fn(),
         syncWakewordToggleForChatVisibility: jest.fn(),
       },
     );
@@ -60,6 +61,7 @@ describe('window_visibility_runtime showChatWindow', () => {
     const chatWindow = createWindow({ visible: false });
     const positionChatWindow = jest.fn();
     const setActiveDisplayAffinity = jest.fn();
+    const syncChatboxHitTestState = jest.fn();
     const externalFocusTracker = {
       capturePreviousExternalFocusedWindow: jest.fn(),
     };
@@ -78,6 +80,7 @@ describe('window_visibility_runtime showChatWindow', () => {
         externalFocusTracker,
         positionChatWindow,
         setActiveDisplayAffinity,
+        syncChatboxHitTestState,
         syncWindowDisplayAffinity: jest.fn(),
         syncWakewordToggleForChatVisibility: jest.fn(),
       },
@@ -91,6 +94,7 @@ describe('window_visibility_runtime showChatWindow', () => {
     });
     expect(positionChatWindow).toHaveBeenCalledTimes(1);
     expect(chatWindow.show).toHaveBeenCalledTimes(1);
+    expect(syncChatboxHitTestState).toHaveBeenCalledTimes(1);
   });
 
   test('repositions hidden chat window onto stored active display affinity when no explicit target is provided', () => {

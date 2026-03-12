@@ -57,6 +57,7 @@ function createSurfaceRuntime({
     responseOverlayVisible: false,
     responseOverlayPhase: 'idle',
     chatVisualAnchorHeight: initialChatVisualAnchorHeight,
+    chatboxHitTestActive: false,
   };
 
   function getWindows() {
@@ -157,6 +158,39 @@ function createSurfaceRuntime({
     return true;
   }
 
+  function setChatboxHitTestActive(active) {
+    const nextActive = active === true;
+    if (nextActive === state.chatboxHitTestActive) {
+      return false;
+    }
+    state.chatboxHitTestActive = nextActive;
+    return true;
+  }
+
+  function syncChatboxHitTestState() {
+    const chatWindow = state.chatWindow;
+    if (!chatWindow || chatWindow.isDestroyed()) {
+      return false;
+    }
+
+    const shouldIgnoreMouse = (
+      isResponseOverlayStreamingPhaseForState()
+      || !state.chatboxHitTestActive
+    );
+
+    try {
+      if (shouldIgnoreMouse) {
+        chatWindow.setIgnoreMouseEvents(true, { forward: true });
+      } else {
+        chatWindow.setIgnoreMouseEvents(false);
+      }
+      return true;
+    } catch (error) {
+      warn('[Main] Failed to sync chatbox hit-test state:', error?.message || error);
+      return false;
+    }
+  }
+
   function syncWakewordToggleForChatVisibility() {
     syncWakewordToggleForChatVisibilityRuntime({
       mainWindow: state.mainWindow,
@@ -218,6 +252,7 @@ function createSurfaceRuntime({
       syncContextLabelWindowVisibility: overlayHelpers.syncContextLabelWindowVisibility,
       syncWakewordToggleForChatVisibility,
       syncWindowDisplayAffinity,
+      syncChatboxHitTestState,
       setActiveDisplayAffinity,
       getActiveDisplayAffinity,
       externalFocusTracker,
@@ -278,6 +313,7 @@ function createSurfaceRuntime({
       },
       getResponseOverlayVisible: () => state.responseOverlayVisible,
       getResponseOverlayPhase: () => state.responseOverlayPhase,
+      getChatboxHitTestActive: () => state.chatboxHitTestActive,
       setResponseOverlayVisibilityState,
       responseWindow: state.responseWindow,
       chatWindow: state.chatWindow,
@@ -326,6 +362,7 @@ function createSurfaceRuntime({
     initializeMainProcessIpcOnce,
     normalizeMainWindowOpenTarget,
     overlayHelpers,
+    setChatboxHitTestActive,
     prepareOverlayQueryCaptureFocus,
     setChatVisualAnchorHeight,
     setChatWindow: (nextWindow) => {
@@ -344,6 +381,7 @@ function createSurfaceRuntime({
     showChatWindow,
     showMainWindow,
     stopVmWorker,
+    syncChatboxHitTestState,
     syncWakewordToggleForChatVisibility,
     syncWindowDisplayAffinity,
   };

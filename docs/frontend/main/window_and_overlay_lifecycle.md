@@ -163,7 +163,7 @@ Windows-specific external focus tracking:
 
 Tool-execution chat-pill lifecycle (interactive computer-use path):
 
-- shared response-overlay phase is now the only owner of active-loop interactivity: `awaiting-first-chunk|streaming|tool-call|tool-output` force chat/response overlays into click-through + non-focusable mode, terminal phases restore normal interactivity
+- shared response-overlay phase is now the only owner of active-loop interactivity: `awaiting-first-chunk|streaming|tool-call|tool-output` force chat/response overlays into click-through + non-focusable mode; outside active-loop phases the chat pill falls back to main-owned idle hit-testing that keeps transparent regions click-through until the renderer hover state says the pointer is over the visible pill shell
 - tool-runner prep no longer performs external-window focus restoration/verification; frontend prep is blur-only and avoids hide/show focus demotion churn
 - screenshot capture visibility prep now hides whichever WindieOS surface owns the capture:
   - `chatbox` for pill-originated capture

@@ -65,6 +65,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     SET_CHATBOX_VISUAL_ANCHOR_HEIGHT: 'set-chatbox-visual-anchor-height',
+    SET_CHATBOX_HIT_TEST_ACTIVE: 'set-chatbox-hit-test-active',
     SHOW_MAIN_WINDOW: 'show-main-window',
     HIDE_CHATBOX: 'hide-chatbox',
   },
@@ -177,6 +178,24 @@ describe('ChatBox overlay mouse ignore', () => {
       ([channel, payload]) => channel === 'set-overlay-ignore-mouse' && payload?.ignore === true,
     );
     expect(enabledClickThrough).toBe(false);
+  });
+
+  test('reports pill hover state to main-owned hit-testing runtime', async () => {
+    const { container } = render(<ChatBox />);
+    const pill = container.querySelector('.chatbox-pill');
+
+    await act(async () => {
+      fireEvent.mouseEnter(pill);
+      fireEvent.mouseLeave(pill);
+      await Promise.resolve();
+    });
+
+    expect(mockInvoke.mock.calls.some(
+      ([channel, payload]) => channel === 'set-chatbox-hit-test-active' && payload?.active === true,
+    )).toBe(true);
+    expect(mockInvoke.mock.calls.some(
+      ([channel, payload]) => channel === 'set-chatbox-hit-test-active' && payload?.active === false,
+    )).toBe(true);
   });
 
   test('camera toggle starts enabled by default and does not create a preview row when clicked', async () => {
