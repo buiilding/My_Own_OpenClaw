@@ -44,7 +44,7 @@ describe('overlay_chatbox_handler move runtime', () => {
       monitor_id: 'display-2',
       workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
     });
-    expect(deps.setManualChatWindowPosition).toHaveBeenCalledWith({ x: 101, monitorId: 'display-2' });
+    expect(deps.setManualChatWindowPosition).toHaveBeenCalledWith({ x: 101, y: 50, monitorId: 'display-2' });
     expect(deps.positionChatWindow).toHaveBeenCalledTimes(1);
     expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(deps.chatWindow);
     expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);

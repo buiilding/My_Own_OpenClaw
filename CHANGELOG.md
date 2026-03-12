@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-chat-pill-drag-regression): restore free x/y dragging for the minimal chat pill after the compact hitbox refactor instead of forcing drag restores to stay bottom-locked.
 - fix(frontend-chat-pill-hitbox): shrink the compact minimal chat-pill window to the visible shell height and expand it only for preview mode, removing the invisible click-blocking region above the idle pill while preserving preview expansion via visual-anchor IPC.
 - fix(frontend-response-overlay-gap): raise the minimal chat-pill response overlay anchor gap from `2px` to `8px` so the response shell clears the pill close-button bump instead of overlapping it.
 - fix(frontend-chat-pill-bottom-anchor): keep the minimal chat pill bottom-anchored to each display work area across drag/restore flows by persisting horizontal drag intent plus display affinity instead of a raw screen `y`, and add focused overlay runtime regressions for the new snapping contract.

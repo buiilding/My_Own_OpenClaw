@@ -223,7 +223,7 @@ describe('overlay_window_helpers_runtime', () => {
     );
   });
 
-  test('keeps manually dragged chat window horizontally while re-anchoring it to the display bottom', () => {
+  test('keeps manually dragged chat window position on subsequent reposition calls', () => {
     const chatWindow = {
       isDestroyed: jest.fn(() => false),
       getSize: jest.fn(() => [520, 116]),
@@ -252,7 +252,7 @@ describe('overlay_window_helpers_runtime', () => {
 
     expect(chatWindow.setPosition.mock.calls).toEqual([
       [400, 500, false],
-      [2100, 500, false],
+      [2100, 120, false],
     ]);
   });
 
@@ -296,11 +296,11 @@ describe('overlay_window_helpers_runtime', () => {
 
     expect(chatWindow.setPosition.mock.calls).toEqual([
       [1020, 900, false],
-      [1500, 900, false],
+      [1500, 140, false],
       [2940, 900, false],
     ]);
-    if (getOverlayChatWindowBounds.mock.calls.length !== 3) {
-      throw new Error(`Expected 3 chat bound computations, received ${getOverlayChatWindowBounds.mock.calls.length}`);
+    if (getOverlayChatWindowBounds.mock.calls.length !== 2) {
+      throw new Error(`Expected 2 chat bound computations, received ${getOverlayChatWindowBounds.mock.calls.length}`);
     }
   });
 
