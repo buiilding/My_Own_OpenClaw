@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-chat-pill-dashboard-button): change the minimal chat pill leading action from a settings gear/chat-target shortcut into a dashboard button that opens the maximized dashboard shell without forcing the chat panel, and add focused chatbox regression coverage.
 - fix(scroll-control-coarse-default): make desktop `scroll_control` vertical actions use a display-aware coarse default step owned by the executor instead of model-guessed small wheel ticks, while keeping optional `clicks` as an explicit override; update backend/model-facing scroll guidance, sidecar scroll diagnostics, and focused backend/sidecar regressions.
 - fix(scroll-control-clicks-fallback-guidance): tighten model-facing and schema guidance so vertical `scroll_control` treats optional `clicks` as fallback-only follow-up tuning, and first-attempt `scroll_up`/`scroll_down` calls default to the executor-owned coarse step.
 - fix(scroll-control-literal-clicks): treat explicit `scroll_control.clicks` as literal OS wheel clicks on every platform, and make the coarse default choose literal OS click counts per OS/display instead of converting logical units through platform multipliers.

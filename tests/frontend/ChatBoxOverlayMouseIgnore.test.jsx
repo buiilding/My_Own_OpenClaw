@@ -262,7 +262,7 @@ describe('ChatBox overlay mouse ignore', () => {
     });
   });
 
-  test('settings button opens and maximizes the dashboard window', () => {
+  test('dashboard button opens and maximizes the dashboard window', () => {
     render(<ChatBox />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Open dashboard' }));
@@ -271,7 +271,7 @@ describe('ChatBox overlay mouse ignore', () => {
       ([channel, payload]) =>
         channel === 'show-main-window'
         && payload?.maximize === true
-        && payload?.open === 'chat',
+        && !Object.prototype.hasOwnProperty.call(payload ?? {}, 'open'),
     );
   });
 
