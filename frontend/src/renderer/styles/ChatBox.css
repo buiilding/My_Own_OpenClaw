@@ -270,7 +270,7 @@ body {
   pointer-events: none;
 }
 
-.chatbox-dashboard {
+.chatbox-config {
   width: 36px;
   height: 36px;
   margin-left: 0;
@@ -280,13 +280,13 @@ body {
   color: var(--ui-text-primary);
 }
 
-.chatbox-dashboard:hover:not(:disabled) {
+.chatbox-config:hover:not(:disabled) {
   border: none;
   background: var(--ui-hover-bg);
   color: var(--ui-text-primary);
 }
 
-.chatbox-dashboard svg {
+.chatbox-config svg {
   width: 16px;
   height: 16px;
 }

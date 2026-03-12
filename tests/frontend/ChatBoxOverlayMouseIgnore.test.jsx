@@ -262,16 +262,16 @@ describe('ChatBox overlay mouse ignore', () => {
     });
   });
 
-  test('dashboard button opens and maximizes the dashboard window', () => {
+  test('config button opens and maximizes the settings panel', () => {
     render(<ChatBox />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open dashboard' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open config' }));
 
     expectInvokeCall(
       ([channel, payload]) =>
         channel === 'show-main-window'
         && payload?.maximize === true
-        && !Object.prototype.hasOwnProperty.call(payload ?? {}, 'open'),
+        && payload?.open === 'settings',
     );
   });
 
@@ -279,13 +279,13 @@ describe('ChatBox overlay mouse ignore', () => {
     render(<ChatBox />);
     emitOverlayPhase('streaming');
 
-    expect(screen.getByRole('button', { name: 'Open dashboard' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Open config' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Hide chat pill' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Toggle auto screenshot' })).toBeDisabled();
     expect(screen.getByPlaceholderText('Ask me anything...')).toBeDisabled();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open dashboard' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open config' }));
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'show-main-window')).toBe(false);
     expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Stop response' })).not.toBeInTheDocument();
