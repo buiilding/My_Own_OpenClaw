@@ -30,7 +30,7 @@ def test_get_os_scroll_multiplier_unknown_os_uses_linux_defaults(monkeypatch):
 def test_calculate_scroll_clicks_uses_default_units_when_unspecified(monkeypatch):
     monkeypatch.setattr(scroll_config.platform, "system", lambda: "Darwin")
 
-    assert scroll_config.calculate_scroll_clicks(None, "down") == 5
+    assert scroll_config.calculate_scroll_clicks(None, "down") == 8
 
 
 def test_calculate_scroll_clicks_enforces_minimum_one_click():
@@ -59,4 +59,4 @@ def test_get_default_scroll_clicks_uses_windows_default(monkeypatch):
 def test_get_default_scroll_clicks_uses_macos_default(monkeypatch):
     monkeypatch.setattr(scroll_config.platform, "system", lambda: "Darwin")
 
-    assert scroll_config.get_default_scroll_clicks() == 5
+    assert scroll_config.get_default_scroll_clicks() == 8
