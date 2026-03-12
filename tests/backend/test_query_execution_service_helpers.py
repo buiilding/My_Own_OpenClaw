@@ -20,7 +20,6 @@ from backend.src.api.services.query_execution_support.query_execution_completion
     resolve_query_completion_text,
 )
 from backend.src.api.services.query_execution_support.query_execution_runtime import (
-    resolve_query_frontend_operating_system,
     resolve_query_runtime_system_state,
     resolve_screenshots,
 )
@@ -32,7 +31,6 @@ from backend.src.core.events.streaming_events import ChunkEvent, StreamingComple
 
 def _build_message(
     *,
-    frontend_operating_system=None,
     system_state_internal=None,
     screenshot=None,
     screenshot_ref=None,
@@ -45,7 +43,6 @@ def _build_message(
         payload={
             "text": "hello",
             "conversation_ref": "conv-1",
-            "frontend_operating_system": frontend_operating_system,
             "system_state_internal": system_state_internal,
             "screenshot": screenshot,
             "screenshot_ref": screenshot_ref,
@@ -100,12 +97,6 @@ def test_resolve_query_runtime_system_state_returns_none_for_missing_or_invalid_
     assert resolve_query_runtime_system_state(fake_message) is None
 
 
-def test_resolve_query_frontend_operating_system_returns_trimmed_value():
-    message = _build_message(frontend_operating_system="  macOS  ")
-
-    assert resolve_query_frontend_operating_system(message) == "macOS"
-
-
 def test_apply_query_runtime_system_state_merges_existing_values():
     observed = {}
 
@@ -142,32 +133,6 @@ def test_apply_query_runtime_system_state_ignores_missing_setter():
 
     service = _build_service()
     service._apply_query_runtime_system_state(_Agent(), _build_message(system_state_internal={"active_window": "x"}))
-
-
-def test_apply_query_runtime_system_state_updates_prompt_from_frontend_operating_system(
-    monkeypatch,
-):
-    class _Agent:
-        def __init__(self):
-            self.prompt_builder = SimpleNamespace(system_prompt="backend-default")
-            self.history = SimpleNamespace(system_prompt="backend-default")
-            self.runtime = SimpleNamespace(frontend_operating_system=None)
-
-    monkeypatch.setattr(
-        "backend.src.api.services.query_execution_support.query_execution_runtime.get_system_prompt",
-        lambda operating_system=None: f"prompt:{operating_system}",
-    )
-
-    agent = _Agent()
-    service = _build_service()
-    service._apply_query_runtime_system_state(
-        agent,
-        _build_message(frontend_operating_system="Windows"),
-    )
-
-    assert agent.prompt_builder.system_prompt == "prompt:Windows"
-    assert agent.history.system_prompt == "prompt:Windows"
-    assert agent.runtime.frontend_operating_system == "Windows"
 
 
 def test_build_stream_context_uses_agent_identifiers():

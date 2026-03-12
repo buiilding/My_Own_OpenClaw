@@ -51,7 +51,6 @@ async function buildQueryPayload({
   basePayload,
   text,
   conversationRef,
-  frontendOperatingSystem,
   currentUserId,
   isFirstQuery,
   attachmentContext = null,
@@ -86,12 +85,6 @@ async function buildQueryPayload({
   });
 
   const payload = { ...basePayload, content };
-  const normalizedFrontendOperatingSystem = normalizeOptionalString(frontendOperatingSystem);
-  if (normalizedFrontendOperatingSystem) {
-    payload.frontend_operating_system = normalizedFrontendOperatingSystem;
-  } else {
-    delete payload.frontend_operating_system;
-  }
   if (runtimeSystemState) {
     payload.system_state_internal = runtimeSystemState;
   } else {
