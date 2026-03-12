@@ -85,22 +85,18 @@ async def test_execute_scroll_control_scroll_down_uses_negative_vscroll(monkeypa
 @pytest.mark.asyncio
 async def test_execute_scroll_control_vertical_uses_coarse_auto_when_clicks_omitted(monkeypatch):
     fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
-    fake_pyautogui.size = lambda: SimpleNamespace(width=1470, height=956)
     monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
-    monkeypatch.setattr(
-        scroll_tool, "calculate_coarse_vertical_scroll_clicks", lambda _height: 9
-    )
+    monkeypatch.setattr(scroll_tool, "get_default_scroll_clicks", lambda: 5)
 
     result = await scroll_tool.execute_scroll_control(
         {"action": "scroll_down", "x": 10, "y": 20}
     )
 
     assert result["success"] is True
-    assert result["data"]["scroll_mode"] == "coarse_auto"
+    assert result["data"]["scroll_mode"] == "default_clicks"
     assert result["data"]["requested_clicks"] is None
-    assert result["data"]["screen_height"] == 956
-    assert result["data"]["os_clicks"] == 9
-    assert calls == [("moveTo", 10, 20), ("vscroll", -9)]
+    assert result["data"]["os_clicks"] == 5
+    assert calls == [("moveTo", 10, 20), ("vscroll", -5)]
 
 
 @pytest.mark.asyncio
