@@ -151,8 +151,9 @@ class ScrollControlArgs(BaseModel):
         description=(
             "Optional explicit literal OS wheel click override. Fallback-only for "
             "follow-up fine tuning. Omit it on the first vertical scroll attempt so "
-            "the executor chooses the default 5-click amount. Provide it only "
-            "when a smaller or larger manual adjustment is needed."
+            "the executor chooses the default click amount (8 on macOS, 5 on "
+            "Windows/Linux). Provide it only when a smaller or larger manual "
+            "adjustment is needed."
         )
     )
     direction: Optional[Literal["up", "down", "left", "right"]] = Field(
