@@ -1,8 +1,7 @@
 """Scroll Control Tool - targeted coarse scrolling using pyautogui.
 
-Vertical scrolling defaults to an executor-owned coarse literal OS click count
-derived from the current display height, with explicit `clicks` retained as a
-literal override.
+Vertical scrolling defaults to an executor-owned OS-default literal click
+count, with explicit `clicks` retained as a literal override.
 Horizontal scrolling continues to use click-based behavior.
 """
 
@@ -13,8 +12,8 @@ from typing import Dict, Any
 
 from core.executors import get_interactive_executor
 from .scroll_config import (
-    calculate_coarse_vertical_scroll_clicks,
     calculate_scroll_clicks,
+    get_default_scroll_clicks,
 )
 
 logger = logging.getLogger(__name__)
@@ -52,32 +51,12 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
         # Disable pyautogui failsafe
         pyautogui.FAILSAFE = False
 
-        def _read_screen_height() -> int | None:
-            size = getattr(pyautogui, "size", None)
-            if not callable(size):
-                return None
-            try:
-                current_size = size()
-            except Exception:
-                return None
-
-            height = getattr(current_size, "height", None)
-            if height is not None:
-                return int(height)
-
-            if isinstance(current_size, (tuple, list)) and len(current_size) >= 2:
-                return int(current_size[1])
-
-            return None
-
         def _resolve_vertical_scroll(direction_name: str) -> tuple[int, Dict[str, Any]]:
-            screen_height = _read_screen_height()
             if requested_clicks is None:
-                os_clicks = calculate_coarse_vertical_scroll_clicks(screen_height)
+                os_clicks = get_default_scroll_clicks()
                 return os_clicks, {
-                    "scroll_mode": "coarse_auto",
+                    "scroll_mode": "default_clicks",
                     "requested_clicks": None,
-                    "screen_height": screen_height,
                     "direction": direction_name,
                 }
 
@@ -85,7 +64,6 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
             return os_clicks, {
                 "scroll_mode": "manual_clicks",
                 "requested_clicks": requested_clicks,
-                "screen_height": screen_height,
                 "direction": direction_name,
             }
 
@@ -112,7 +90,6 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
                             else "default_clicks"
                         ),
                         "requested_clicks": requested_clicks,
-                        "screen_height": _read_screen_height(),
                         "direction": direction,
                     }
 

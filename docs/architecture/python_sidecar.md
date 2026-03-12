@@ -74,7 +74,7 @@ The sidecar maintains a `ToolRegistry` (`frontend/src/main/python/tools/registry
 Computer-control execution notes:
 - `mouse_control` covers click, double-click, right-click, move, and drag only.
 - `scroll_control` is the dedicated scroll tool.
-- `scroll_control` vertical actions default to a display-aware coarse step owned by the sidecar runtime; optional `clicks` remains available for explicit overrides.
+- `scroll_control` vertical actions default to an OS-default click count owned by the sidecar runtime; optional `clicks` remains available for explicit literal overrides.
 - `mouse_control` drag uses source coordinates from `x/y` and destination coordinates from `drag_to_x/drag_to_y`.
 - Backend coordinate normalization converts both source and drag destination from screenshot space into desktop space before the sidecar executes the drag.
 

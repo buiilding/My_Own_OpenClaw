@@ -28,7 +28,9 @@ def test_get_os_scroll_multiplier_unknown_os_uses_linux_defaults(monkeypatch):
 
 
 def test_calculate_scroll_clicks_uses_default_units_when_unspecified(monkeypatch):
-    assert scroll_config.calculate_scroll_clicks(None, "down") == scroll_config.DEFAULT_SCROLL_CLICKS
+    monkeypatch.setattr(scroll_config.platform, "system", lambda: "Darwin")
+
+    assert scroll_config.calculate_scroll_clicks(None, "down") == 5
 
 
 def test_calculate_scroll_clicks_enforces_minimum_one_click():
@@ -48,17 +50,13 @@ def test_get_scroll_diagnostics_reports_custom_windows_setting(monkeypatch):
     assert diagnostics["os_default_lines_per_tick"] == 3
 
 
-def test_calculate_coarse_vertical_scroll_clicks_scales_with_screen_height_windows(monkeypatch):
+def test_get_default_scroll_clicks_uses_windows_default(monkeypatch):
     monkeypatch.setattr(scroll_config.platform, "system", lambda: "Windows")
 
-    assert scroll_config.calculate_coarse_vertical_scroll_clicks(900) == 10
-    assert scroll_config.calculate_coarse_vertical_scroll_clicks(720) == 8
-    assert scroll_config.calculate_coarse_vertical_scroll_clicks(1440) == 16
+    assert scroll_config.get_default_scroll_clicks() == 10
 
 
-def test_calculate_coarse_vertical_scroll_clicks_scales_with_screen_height_macos(monkeypatch):
+def test_get_default_scroll_clicks_uses_macos_default(monkeypatch):
     monkeypatch.setattr(scroll_config.platform, "system", lambda: "Darwin")
 
-    assert scroll_config.calculate_coarse_vertical_scroll_clicks(900) == 3
-    assert scroll_config.calculate_coarse_vertical_scroll_clicks(720) == 3
-    assert scroll_config.calculate_coarse_vertical_scroll_clicks(1440) == 5
+    assert scroll_config.get_default_scroll_clicks() == 5

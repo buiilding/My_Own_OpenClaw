@@ -170,7 +170,7 @@ Computer-control ownership notes:
 
 - `mouse_control` covers click, double-click, right-click, move, and drag only.
 - `scroll_control` is the sole scroll contract.
-- `scroll_control` vertical actions (`scroll_up`/`scroll_down`) now default to an executor-owned coarse step so one scroll reveals substantially more content; optional `clicks` remains available as an explicit override.
+- `scroll_control` vertical actions (`scroll_up`/`scroll_down`) default to an executor-owned OS-default click count; optional `clicks` remains available as an explicit literal override.
 - Drag execution still uses `x/y` as source and `drag_to_x/drag_to_y` as destination.
 
 ### SDK Tool Base Class
