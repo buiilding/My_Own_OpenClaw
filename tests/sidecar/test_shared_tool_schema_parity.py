@@ -232,7 +232,9 @@ def test_mouse_and_scroll_schemas_keep_expected_grounding_abstraction_gap():
     assert "find_coordinates_by" in backend_mouse_properties
     assert "ocr_text" in backend_mouse_properties
     assert "source_description" in backend_mouse_properties
+    assert "button" in backend_mouse_properties
     assert {"x", "y"} <= sidecar_mouse_properties
+    assert "button" in sidecar_mouse_properties
     assert "find_coordinates_by" not in sidecar_mouse_properties
 
     backend_scroll_properties = set(

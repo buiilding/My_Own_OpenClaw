@@ -24,8 +24,8 @@ def _fake_pyautogui():
     def move_to(x, y):
         calls.append(("moveTo", x, y))
 
-    def drag_to(x, y, duration):
-        calls.append(("dragTo", x, y, duration))
+    def drag_to(x, y, duration, button="left"):
+        calls.append(("dragTo", x, y, duration, button))
 
     module = SimpleNamespace(
         FAILSAFE=True,
@@ -87,9 +87,32 @@ async def test_execute_mouse_control_drag_moves_to_source_and_drags_to_destinati
     assert result.data["coordinates"] == [500, 600]
     assert result.data["source_coordinates"] == [300, 400]
     assert result.data["destination_coordinates"] == [500, 600]
+    assert result.data["button"] == "left"
     assert result.data["duration"] == 0.5
     assert result.data["message"] == "Dragged from (300, 400) to (500, 600)"
-    assert calls == [("moveTo", 300, 400), ("dragTo", 500, 600, 0.5)]
+    assert calls == [("moveTo", 300, 400), ("dragTo", 500, 600, 0.5, "left")]
+
+
+@pytest.mark.asyncio
+async def test_execute_mouse_control_drag_passes_explicit_button(monkeypatch):
+    fake_pyautogui, calls = _fake_pyautogui()
+    monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
+
+    result = await mouse_tool.execute_mouse_control(
+        {
+            "action": "drag",
+            "x": 300,
+            "y": 400,
+            "drag_to_x": 500,
+            "drag_to_y": 600,
+            "duration": 0.5,
+            "button": "middle",
+        }
+    )
+
+    assert result.success is True
+    assert result.data["button"] == "middle"
+    assert calls == [("moveTo", 300, 400), ("dragTo", 500, 600, 0.5, "middle")]
 
 
 @pytest.mark.asyncio

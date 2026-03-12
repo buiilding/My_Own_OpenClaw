@@ -96,12 +96,18 @@ async def execute_mouse_control(args: Dict[str, Any]) -> ToolResult:
                     raise ValueError("duration must be numeric for drag action")
                 drag_duration = max(float(duration), 0.0)
                 pyautogui.moveTo(x, y)
-                pyautogui.dragTo(drag_to_x, drag_to_y, duration=drag_duration)
+                pyautogui.dragTo(
+                    drag_to_x,
+                    drag_to_y,
+                    duration=drag_duration,
+                    button=button,
+                )
                 return {
                     "action": "drag",
                     "coordinates": [drag_to_x, drag_to_y],
                     "source_coordinates": [x, y],
                     "destination_coordinates": [drag_to_x, drag_to_y],
+                    "button": button,
                     "duration": drag_duration,
                     "message": f"Dragged from ({x}, {y}) to ({drag_to_x}, {drag_to_y})",
                     "llm_content": f"Dragged from ({x}, {y}) to ({drag_to_x}, {drag_to_y})",
