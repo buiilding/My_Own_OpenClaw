@@ -21,9 +21,9 @@ import { COMPACTION_THINKING_STATUS } from '../utils/chatStream/chatStreamThinki
 import {
   CompactIcon,
   CloseIcon,
-  DashboardIcon,
   ScreenshotIcon,
   SendIcon,
+  SettingsIcon,
   SoundIcon,
 } from './chatbox/ChatBoxIcons';
 import ChatBoxImagePreviewRow from './chatbox/ChatBoxImagePreviewRow';
@@ -241,13 +241,14 @@ function ChatBox() {
     void handleSend();
   }, [handleSend]);
 
-  const handleOpenDashboard = useCallback(async () => {
+  const handleOpenConfig = useCallback(async () => {
     if (loopInteractionLocked) {
       return;
     }
     try {
       await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
         maximize: true,
+        open: 'settings',
       });
     } catch (error) {
       console.warn('[ChatBox] Failed to show main window:', error);
@@ -402,13 +403,13 @@ function ChatBox() {
           <div className="chatbox-main-row">
             <button
               type="button"
-              className="chatbox-icon chatbox-dashboard"
-              onClick={handleOpenDashboard}
-              aria-label="Open dashboard"
-              title="Open dashboard"
+              className="chatbox-icon chatbox-config"
+              onClick={handleOpenConfig}
+              aria-label="Open config"
+              title="Open config"
               disabled={loopInteractionLocked}
             >
-              <DashboardIcon />
+              <SettingsIcon />
             </button>
             {devUiEnabled ? (
               <button
