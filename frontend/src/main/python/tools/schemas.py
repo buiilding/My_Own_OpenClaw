@@ -150,9 +150,10 @@ class ScrollControlArgs(BaseModel):
     clicks: Optional[int] = Field(
         None,
         description=(
-            "Optional explicit scroll click override. When omitted for vertical "
-            "scrolling, the executor chooses a coarse display-aware amount. "
-            "Provide this only when a smaller or larger manual adjustment is needed."
+            "Optional explicit scroll click override. Fallback-only for follow-up fine "
+            "tuning. Omit it on the first vertical scroll attempt so the executor chooses "
+            "a coarse display-aware amount. Provide it only when a smaller or larger "
+            "manual adjustment is needed."
         )
     )
     direction: Optional[Literal["up", "down", "left", "right"]] = Field(

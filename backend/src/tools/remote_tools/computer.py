@@ -119,8 +119,9 @@ class RemoteScrollTool(RemoteToolBase, Tool[ScrollControlArgs]):
     description = (
         "Control desktop scrolling actions. Target the scroll region with exact visible text "
         "via OCR, a detailed visual `source_description` via prediction, or manual x/y from "
-        "the latest screenshot when grounding is already known. Omit `clicks` for the default "
-        "coarse vertical scroll step; provide it only when a specific manual adjustment is needed."
+        "the latest screenshot when grounding is already known. Omit `clicks` on the first "
+        "vertical scroll attempt for the default coarse step; treat `clicks` as fallback-only "
+        "for follow-up fine tuning when a specific manual adjustment is needed."
     )
     args_model = ScrollControlArgs
     category = ToolDomain.COMPUTER
