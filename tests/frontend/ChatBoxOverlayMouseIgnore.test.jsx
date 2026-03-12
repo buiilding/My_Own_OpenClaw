@@ -281,7 +281,7 @@ describe('ChatBox overlay mouse ignore', () => {
     });
   });
 
-  test('config button opens and maximizes the settings panel', () => {
+  test('config button opens and maximizes the dashboard without routing to settings', () => {
     render(<ChatBox />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Open config' }));
@@ -290,7 +290,7 @@ describe('ChatBox overlay mouse ignore', () => {
       ([channel, payload]) =>
         channel === 'show-main-window'
         && payload?.maximize === true
-        && payload?.open === 'settings',
+        && !Object.prototype.hasOwnProperty.call(payload || {}, 'open'),
     );
   });
 
@@ -374,7 +374,7 @@ describe('ChatBox overlay mouse ignore', () => {
       ([channel, payload]) =>
         channel === 'show-main-window'
         && payload?.maximize === true
-        && payload?.open === 'settings',
+        && !Object.prototype.hasOwnProperty.call(payload || {}, 'open'),
     );
   });
 
