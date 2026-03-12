@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-backend-system-prompt-os): stop rendering the WindieOS system prompt from the Python backend host OS by sending the frontend OS label with each query and using that value when backend renders the per-session prompt.
 - fix(frontend-chat-pill-drag-anywhere): let the minimal chat pill start a window drag from buttons and the text input after a `5px` movement threshold, while preserving normal click/focus behavior when the pointer does not actually move.
 - fix(frontend-chat-pill-idle-hit-testing): make the idle minimal chat pill click-through outside the visible pill/bump by default and re-enable direct interaction only when renderer hover reports the pointer over the actual shell, removing the last transparent blocking around the compact overlay.
 - fix(frontend-chat-pill-drag-regression): restore free x/y dragging for the minimal chat pill after the compact hitbox refactor instead of forcing drag restores to stay bottom-locked.
