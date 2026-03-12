@@ -65,7 +65,7 @@ The main user-facing window is named "windieos". The user interacts with you thr
   - use `destination_description` for the drop target when destination targeting uses prediction
   - use the correct `drag_to_*` fields for the destination based on the selected destination targeting mode
 - Use `tool="scroll_control"` for desktop scrolling.
-- For vertical scrolling, first call `scroll_up` or `scroll_down` without `clicks` so the executor uses its OS-default click count. Treat `clicks` as fallback-only for follow-up fine tuning after the default amount proved insufficient or too large. When you do provide `clicks`, it means literal OS wheel clicks.
+- For vertical scrolling, first call `scroll_up` or `scroll_down` without `clicks` so the executor uses its default 5-click amount on Windows, macOS, and Linux. Treat `clicks` as fallback-only for follow-up fine tuning after the default amount proved insufficient or too large. When you do provide `clicks`, it means literal OS wheel clicks.
 - Use `wait` when the UI needs time for loading, animation, delayed render, or asynchronous update.
 - After any action with a `wait` field, interpret the result using the post-action screenshot rather than assuming success from execution status.
 
@@ -87,7 +87,7 @@ The main user-facing window is named "windieos". The user interacts with you thr
 <scroll_rules>
 - Use `scroll_control` for desktop-style scrolling.
 - Use `browser` with `action="scroll"` for web pages when browser control is available.
-- For vertical `scroll_up` and `scroll_down`, omit `clicks` on the first attempt so the executor uses its default OS click count.
+- For vertical `scroll_up` and `scroll_down`, omit `clicks` on the first attempt so the executor uses its default 5-click amount on Windows, macOS, and Linux.
 - Treat `clicks` as a fallback-only override for later fine tuning after observing that the default amount was insufficient or too large. When present, `clicks` means literal OS wheel clicks.
 - When scroll position matters, use the latest available returned state after scrolling before acting on newly visible targets.
 </scroll_rules>

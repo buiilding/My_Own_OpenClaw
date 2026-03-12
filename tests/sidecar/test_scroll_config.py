@@ -53,7 +53,7 @@ def test_get_scroll_diagnostics_reports_custom_windows_setting(monkeypatch):
 def test_get_default_scroll_clicks_uses_windows_default(monkeypatch):
     monkeypatch.setattr(scroll_config.platform, "system", lambda: "Windows")
 
-    assert scroll_config.get_default_scroll_clicks() == 10
+    assert scroll_config.get_default_scroll_clicks() == 5
 
 
 def test_get_default_scroll_clicks_uses_macos_default(monkeypatch):

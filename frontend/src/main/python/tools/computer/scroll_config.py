@@ -1,7 +1,7 @@
 """OS-aware scroll configuration for targeted scrolling behavior.
 
 Explicit `clicks` are literal OS wheel clicks. When `clicks` is omitted, the
-executor uses an OS-default literal click count.
+executor uses a universal default of 5 literal clicks across OSes.
 """
 
 import logging
@@ -31,17 +31,7 @@ SCROLL_MULTIPLIERS = {
 }
 
 # Default literal OS clicks when callers omit `clicks`.
-DEFAULT_SCROLL_CLICKS_BY_OS = {
-    "Windows": {
-        "default_clicks": 10,
-    },
-    "Darwin": {
-        "default_clicks": 5,
-    },
-    "Linux": {
-        "default_clicks": 10,
-    },
-}
+DEFAULT_SCROLL_CLICKS = 5
 
 
 def _get_windows_scroll_lines() -> Optional[int]:
@@ -106,11 +96,7 @@ def calculate_scroll_clicks(
         Always returns at least 1 to ensure some scroll happens.
     """
     system = platform.system()
-    default_clicks = DEFAULT_SCROLL_CLICKS_BY_OS.get(
-        system,
-        DEFAULT_SCROLL_CLICKS_BY_OS["Linux"],
-    )["default_clicks"]
-    clicks = max(1, int(requested_units if requested_units is not None else default_clicks))
+    clicks = max(1, int(requested_units if requested_units is not None else DEFAULT_SCROLL_CLICKS))
 
     logger.debug(
         "Explicit scroll clicks: requested=%s -> os_clicks=%s (%s, direction=%s)",
@@ -123,13 +109,9 @@ def calculate_scroll_clicks(
 
 
 def get_default_scroll_clicks() -> int:
-    """Return the executor-owned default literal OS click count."""
+    """Return the executor-owned default literal click count."""
     system = platform.system()
-    config = DEFAULT_SCROLL_CLICKS_BY_OS.get(
-        system,
-        DEFAULT_SCROLL_CLICKS_BY_OS["Linux"],
-    )
-    default_clicks = config["default_clicks"]
+    default_clicks = DEFAULT_SCROLL_CLICKS
     logger.debug(
         "Default scroll clicks: %s clicks (%s)",
         default_clicks,
@@ -146,10 +128,6 @@ def get_scroll_diagnostics() -> dict:
     """
     system = platform.system()
     config = SCROLL_MULTIPLIERS.get(system, SCROLL_MULTIPLIERS["Linux"])
-    default_config = DEFAULT_SCROLL_CLICKS_BY_OS.get(
-        system,
-        DEFAULT_SCROLL_CLICKS_BY_OS["Linux"],
-    )
     multiplier = get_os_scroll_multiplier()
     
     # Check if using custom Windows setting
@@ -163,7 +141,7 @@ def get_scroll_diagnostics() -> dict:
         "os": system,
         "multiplier": multiplier,
         "default_multiplier": config["default"],
-        "default_scroll_clicks": default_config["default_clicks"],
+        "default_scroll_clicks": DEFAULT_SCROLL_CLICKS,
         "os_default_lines_per_tick": config["lines_per_tick"],
         "using_custom_windows_setting": is_custom,
     }

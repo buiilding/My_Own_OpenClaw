@@ -151,7 +151,7 @@ class ScrollControlArgs(BaseModel):
         description=(
             "Optional explicit literal OS wheel click override. Fallback-only for "
             "follow-up fine tuning. Omit it on the first vertical scroll attempt so "
-            "the executor chooses its OS-default click count. Provide it only "
+            "the executor chooses the default 5-click amount. Provide it only "
             "when a smaller or larger manual adjustment is needed."
         )
     )

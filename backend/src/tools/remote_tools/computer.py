@@ -120,7 +120,7 @@ class RemoteScrollTool(RemoteToolBase, Tool[ScrollControlArgs]):
         "Control desktop scrolling actions. Target the scroll region with exact visible text "
         "via OCR, a detailed visual `source_description` via prediction, or manual x/y from "
         "the latest screenshot when grounding is already known. Omit `clicks` on the first "
-        "vertical scroll attempt for the default OS click count; treat `clicks` as fallback-only "
+        "vertical scroll attempt for the default 5-click amount; treat `clicks` as fallback-only "
         "for follow-up fine tuning when a specific manual adjustment is needed. When provided, "
         "`clicks` means literal OS wheel clicks."
     )
