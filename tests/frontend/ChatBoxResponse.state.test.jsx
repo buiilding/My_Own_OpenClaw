@@ -187,6 +187,39 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
+  test('shows computer_use metadata explanation-only overlay before the first llm-text arrives', async () => {
+    setChatState([
+      { id: 'user-1', text: 'run command', sender: 'user' },
+      {
+        id: 'tool-call-1',
+        text: '{\n  "name": "computer_use"\n}',
+        sender: 'assistant',
+        type: 'tool-call',
+        sourceEventType: 'tool-call',
+        modelFacingToolCall: {
+          name: 'computer_use',
+          arguments: {
+            tool: 'screenshot',
+            metadata: {
+              description: 'System Settings is open',
+              explanation: 'Verify the currently focused window',
+              expectation: 'A screenshot of the current desktop is captured',
+            },
+            arguments: {},
+          },
+        },
+      },
+    ]);
+
+    render(<ChatBoxResponse />);
+    emitOverlayPhase('tool-call');
+
+    await waitFor(() => {
+      expect(screen.getByText('Verify the currently focused window')).toBeInTheDocument();
+    });
+    expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+  });
+
   test('incomplete llm response is visible but not closeable', async () => {
     setChatState([
       { id: 'user-1', text: 'question', sender: 'user' },

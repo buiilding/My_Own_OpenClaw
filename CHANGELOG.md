@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-response-overlay-computer-use-explanation): let the response overlay surface first-turn unified `computer_use` rationale lines by reading explanation text from wrapper metadata paths as well as direct tool arguments, and add focused response-overlay regression coverage.
 - fix(sidecar-mouse-drag-button-contract): pass the requested mouse button through sidecar drag execution, expose `button` in the sidecar mouse schema, and add focused regressions so unified `computer_use` drag calls no longer fail when the backend provides an explicit left-button drag.
 - fix(frontend-chat-pill-dashboard-open): stop the minimal chat-pill config button from routing the dashboard into the settings panel and restore plain dashboard-only open behavior.
 - fix(frontend-backend-system-prompt-os): send the frontend operating-system label once in the websocket handshake and apply it to the backend user session so the WindieOS system prompt follows the frontend OS instead of the Python host OS.

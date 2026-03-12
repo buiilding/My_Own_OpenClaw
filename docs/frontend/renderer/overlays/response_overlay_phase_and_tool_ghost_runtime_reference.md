@@ -43,7 +43,7 @@ Current-turn entry construction:
 - entry types currently included:
   - `llm-text`
   - `error`
-  - `tool-explanation` (derived from tool-call explanation fields)
+  - `tool-explanation` (derived from tool-call explanation fields, including unified wrapper paths such as `system_use.arguments.explanation` and `computer_use.arguments.metadata.explanation`)
 
 Selection logic:
 
