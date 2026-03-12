@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(sidecar-mouse-drag-button-contract): pass the requested mouse button through sidecar drag execution, expose `button` in the sidecar mouse schema, and add focused regressions so unified `computer_use` drag calls no longer fail when the backend provides an explicit left-button drag.
 - fix(frontend-chat-pill-dashboard-open): stop the minimal chat-pill config button from routing the dashboard into the settings panel and restore plain dashboard-only open behavior.
 - fix(frontend-backend-system-prompt-os): send the frontend operating-system label once in the websocket handshake and apply it to the backend user session so the WindieOS system prompt follows the frontend OS instead of the Python host OS.
 - fix(frontend-chat-pill-drag-anywhere): let the minimal chat pill start a window drag from buttons and the text input after a `5px` movement threshold, while preserving normal click/focus behavior when the pointer does not actually move.

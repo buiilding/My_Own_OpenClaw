@@ -51,6 +51,15 @@ def test_mouse_control_rejects_unknown_fields():
         MouseControlArgs(action="click", x=1, y=2, unknown_field="ignored")
 
 
+def test_mouse_control_accepts_button_field():
+    args = MouseControlArgs(action="click", x=1, y=2, button="middle")
+
+    assert args.button == "middle"
+
+    with pytest.raises(ValidationError):
+        MouseControlArgs(action="click", x=1, y=2, button="primary")
+
+
 def test_keyboard_control_validates_action_fields_and_length():
     with pytest.raises(ValidationError):
         KeyboardControlArgs(action="type")

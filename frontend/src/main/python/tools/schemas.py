@@ -17,6 +17,10 @@ class MouseControlArgs(BaseModel):
     action: Literal["click", "double_click", "right_click", "move", "drag"] = Field(
         ..., description="Mouse action to perform"
     )
+    button: Literal["left", "right", "middle"] = Field(
+        "left",
+        description="Mouse button for click, double_click, and drag actions",
+    )
     x: Optional[int] = Field(None, description="X coordinate")
     y: Optional[int] = Field(None, description="Y coordinate")
     drag_to_x: Optional[int] = Field(
