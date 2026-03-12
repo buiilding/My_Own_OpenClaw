@@ -26,6 +26,7 @@ title: "Session Runtime and Config Rewire Reference"
 - `active_sessions[user_id]`
 - per-user locks (`_user_locks`)
 - active query task metadata (`_active_query_tasks`)
+- frontend operating-system overrides captured from websocket handshake and applied to session prompt/history
 
 `AgentSession` owns per-session mutable runtime:
 
@@ -43,6 +44,7 @@ title: "Session Runtime and Config Rewire Reference"
 3. double-check after lock acquisition
 4. detached `AppConfig` copy + runtime normalization
 5. factory `create_agent_session(user_id, config)` and cache insert
+6. apply any frontend operating-system override already registered for that user so prompt/history use the frontend OS instead of the backend host OS
 
 Concurrency properties:
 

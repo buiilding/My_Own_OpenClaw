@@ -14,6 +14,10 @@ class DummySession:
         self.cfg = AppConfig()
         self.updated_configs = []
         self.cleanup_called = False
+        self.prompt_builder = AsyncMock()
+        self.prompt_builder.system_prompt = "backend-default"
+        self.history = AsyncMock()
+        self.history.system_prompt = "backend-default"
 
     async def update_config(self, config: AppConfig) -> None:
         self.cfg = config
@@ -50,6 +54,39 @@ async def test_get_or_create_session_is_race_safe() -> None:
     assert create_count == 1
     assert len({id(session) for session in results}) == 1
     assert results[0] is created_sessions["user-1"]
+
+
+@pytest.mark.asyncio
+async def test_get_or_create_session_applies_handshake_operating_system(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "backend.src.agent.session.manager.get_system_prompt",
+        lambda operating_system=None: f"prompt:{operating_system}",
+    )
+
+    manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
+    manager.set_frontend_operating_system("user-1", "Windows")
+
+    session = await manager.get_or_create_session("user-1")
+
+    assert session.prompt_builder.system_prompt == "prompt:Windows"
+    assert session.history.system_prompt == "prompt:Windows"
+
+
+@pytest.mark.asyncio
+async def test_set_frontend_operating_system_updates_active_session(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "backend.src.agent.session.manager.get_system_prompt",
+        lambda operating_system=None: f"prompt:{operating_system}",
+    )
+
+    manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
+    session = DummySession("existing")
+    manager.active_sessions["user-1"] = session
+
+    manager.set_frontend_operating_system("user-1", "macOS")
+
+    assert session.prompt_builder.system_prompt == "prompt:macOS"
+    assert session.history.system_prompt == "prompt:macOS"
 
 
 @pytest.mark.asyncio

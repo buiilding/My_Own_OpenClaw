@@ -24,9 +24,9 @@ title: "Prompt Manager and System Prompt Lifecycle Reference"
 
 Key rules:
 
-- prompt file load is deferred to `initialize(...)` (no import-time read)
+- prompt file template load is deferred to `initialize(...)` (no import-time read)
 - `system_prompt` property raises until initialized
-- `get_system_prompt()` delegates to `PromptManager().system_prompt`
+- `get_system_prompt()` renders from the cached template and accepts an optional frontend-provided operating-system override
 - module intentionally avoids a global `SYSTEM_PROMPT` constant
 
 Thread safety:
@@ -44,7 +44,8 @@ Load behavior:
 
 - reads UTF-8 text
 - rejects empty/whitespace-only prompt file
-- replaces `{os}` placeholder with runtime `platform.system()`
+- caches the raw template and renders `{os}` at access time
+- default render path still falls back to runtime `platform.system()` when no frontend override is provided
 
 Failure behavior (all raise `RuntimeError`):
 
@@ -62,6 +63,12 @@ Initialization is effectively idempotent after first successful load.
 - optional injected `system_prompt` overrides manager value
 - default path loads via `get_system_prompt()`
 - constructor requires non-null config for security limits/tool policy setup
+
+Current session behavior:
+
+- Electron main includes `operating_system` in the websocket handshake once per connection
+- websocket router forwards that value into `SessionManager`
+- `SessionManager` applies the rendered prompt to `prompt_builder.system_prompt` and `history.system_prompt` when the user session is created (or immediately if the session already exists)
 
 This is the main bridge from prompt manager into LLM interaction runtime.
 

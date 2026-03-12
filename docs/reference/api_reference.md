@@ -40,7 +40,7 @@ Handshake validation behavior:
 
 **Payload**:
 ```json
-{ "type": "handshake", "user_id": "user-123" }
+{ "type": "handshake", "user_id": "user-123", "operating_system": "macOS" }
 ```
 
 ### Hosted WebSocket (Planned)
