@@ -4,6 +4,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+## 0.6.12 - 2026-03-12
+
+### Added
+- chore(release): bump packaged desktop app version to `0.6.12` and trigger the cross-platform desktop release workflow for macOS, Windows, and Linux.
+
 ### Fixed
 - fix(frontend-response-overlay-computer-use-explanation): let the response overlay surface first-turn unified `computer_use` rationale lines by reading explanation text from wrapper metadata paths as well as direct tool arguments, and add focused response-overlay regression coverage.
 - fix(sidecar-mouse-drag-button-contract): pass the requested mouse button through sidecar drag execution, expose `button` in the sidecar mouse schema, and add focused regressions so unified `computer_use` drag calls no longer fail when the backend provides an explicit left-button drag.
