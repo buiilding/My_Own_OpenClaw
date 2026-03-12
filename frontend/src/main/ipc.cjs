@@ -89,6 +89,21 @@ let currentGlobalAgentStopShortcutStatus = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 
+function resolveFrontendOperatingSystem(platformName = process.platform) {
+  switch (platformName) {
+    case 'darwin':
+      return 'macOS';
+    case 'win32':
+      return 'Windows';
+    case 'linux':
+      return 'Linux';
+    default:
+      return typeof platformName === 'string' && platformName.trim().length > 0
+        ? platformName.trim()
+        : null;
+  }
+}
+
 function normalizeGlobalAgentStopShortcutStatus(status) {
   if (!status || typeof status !== 'object' || Array.isArray(status)) {
     return null;
@@ -665,6 +680,7 @@ function initializeIpc(win, options = {}) {
         basePayload: payload,
         text: payload.text,
         conversationRef,
+        frontendOperatingSystem: resolveFrontendOperatingSystem(process.platform),
         attachmentContext,
         memoryRetrievalEnabled,
         currentUserId,
@@ -773,6 +789,7 @@ async function sendAutomatedQuery(options = {}) {
     basePayload: {},
     text: preparedQuery.text,
     conversationRef,
+    frontendOperatingSystem: resolveFrontendOperatingSystem(process.platform),
     attachmentContext: preparedQuery.attachmentContext,
     memoryRetrievalEnabled: preparedQuery.memoryRetrievalEnabled,
     currentUserId,

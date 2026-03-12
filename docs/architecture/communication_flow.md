@@ -181,8 +181,10 @@ so memory embedding/summarization calls target the same backend host.
 
 **`query`**
 - Purpose: User query with optional screenshot
-- Payload: `{ text: string, conversation_ref: string, content?: string, screenshot?: string, screenshot_ref?: string, screenshot_refs?: string[], system_state_internal?: object }`
+- Payload: `{ text: string, conversation_ref: string, content?: string, screenshot?: string, screenshot_ref?: string, screenshot_refs?: string[], frontend_operating_system?: string, system_state_internal?: object }`
 - Response: Streaming response
+- Notes:
+  - Electron main supplies `frontend_operating_system` so backend system-prompt rendering uses the frontend OS instead of the Python host OS.
 
 **`list-models`**
 - Purpose: Request available models

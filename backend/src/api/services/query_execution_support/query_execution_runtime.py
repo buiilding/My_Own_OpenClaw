@@ -6,6 +6,7 @@ import logging
 from typing import Any, List, Optional, Type
 
 from backend.src.api.schema import QueryMessage
+from backend.src.llm.prompts.prompts import get_system_prompt
 from backend.src.services.artifacts import ArtifactStore
 
 logger = logging.getLogger(__name__)
@@ -91,30 +92,54 @@ def resolve_query_runtime_system_state(message: QueryMessage) -> Optional[dict[s
     return runtime_state or None
 
 
+def resolve_query_frontend_operating_system(message: QueryMessage) -> Optional[str]:
+    """Extract the frontend-owned OS label used for system prompt rendering."""
+    value = getattr(message.payload, "frontend_operating_system", None)
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    return normalized or None
+
+
 def apply_query_runtime_system_state(agent_instance: Any, message: QueryMessage) -> None:
     """Best-effort seed of session runtime state before tool preparation."""
     runtime_state = resolve_query_runtime_system_state(message)
-    if not runtime_state:
+    if runtime_state:
+        setter = getattr(agent_instance, "set_current_system_state", None)
+        if callable(setter):
+            getter = getattr(agent_instance, "get_current_system_state", None)
+            existing_state = getter() if callable(getter) else None
+            merged_state: dict[str, str] = {}
+            if isinstance(existing_state, dict):
+                for key in _RUNTIME_STATE_KEYS:
+                    value = existing_state.get(key)
+                    if isinstance(value, str) and value.strip():
+                        merged_state[key] = value.strip()
+            merged_state.update(runtime_state)
+
+            try:
+                setter(merged_state)
+            except Exception as exc:
+                logger.warning("Failed to apply query runtime system state: %s", exc)
+
+    frontend_operating_system = resolve_query_frontend_operating_system(message)
+    if not frontend_operating_system:
         return
 
-    setter = getattr(agent_instance, "set_current_system_state", None)
-    if not callable(setter):
+    prompt_builder = getattr(agent_instance, "prompt_builder", None)
+    history = getattr(agent_instance, "history", None)
+    if prompt_builder is None or history is None:
         return
-
-    getter = getattr(agent_instance, "get_current_system_state", None)
-    existing_state = getter() if callable(getter) else None
-    merged_state: dict[str, str] = {}
-    if isinstance(existing_state, dict):
-        for key in _RUNTIME_STATE_KEYS:
-            value = existing_state.get(key)
-            if isinstance(value, str) and value.strip():
-                merged_state[key] = value.strip()
-    merged_state.update(runtime_state)
 
     try:
-        setter(merged_state)
+        rendered_prompt = get_system_prompt(frontend_operating_system)
+        prompt_builder.system_prompt = rendered_prompt
+        history.system_prompt = rendered_prompt
+        runtime = getattr(agent_instance, "runtime", None)
+        if runtime is not None:
+            setattr(runtime, "frontend_operating_system", frontend_operating_system)
     except Exception as exc:
-        logger.warning("Failed to apply query runtime system state: %s", exc)
+        logger.warning("Failed to apply frontend operating system to session prompt: %s", exc)
 
 
 def build_stream_context(
