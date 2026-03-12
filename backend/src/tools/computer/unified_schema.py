@@ -235,7 +235,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                         "Optional explicit literal OS wheel click override. "
                                         "Fallback-only for follow-up fine tuning. Omit it on "
                                         "the first vertical scroll attempt for the default "
-                                        "5-click amount."
+                                        "click amount (8 on macOS, 5 on Windows/Linux)."
                                     ),
                                 },
                                 "wait": {

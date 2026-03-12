@@ -11,6 +11,7 @@ All notable changes to WindieOS will be documented in this file.
 - fix(scroll-control-os-default-clicks): remove display-aware coarse auto scrolling and make omitted `scroll_control.clicks` use fixed OS-default literal click counts instead, with macOS defaulting to 5 clicks.
 - fix(scroll-control-universal-default-clicks): flatten omitted `scroll_control.clicks` to the same default 5 literal clicks on Windows, macOS, and Linux, and state that directly in the model-facing guidance.
 - fix(scroll-control-macos-default-clicks): change the runtime default for omitted `scroll_control.clicks` to 8 on macOS only, while keeping Windows and Linux at 5.
+- fix(scroll-control-macos-schema-guidance): align model-facing scroll schema/prompt text with the macOS runtime default so omitted `scroll_control.clicks` is documented as 8 on macOS and 5 on Windows/Linux.
 
 ## 0.6.11 - 2026-03-11
 
