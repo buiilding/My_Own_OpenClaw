@@ -4,6 +4,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+- fix(scroll-control-coarse-default): make desktop `scroll_control` vertical actions use a display-aware coarse default step owned by the executor instead of model-guessed small wheel ticks, while keeping optional `clicks` as an explicit override; update backend/model-facing scroll guidance, sidecar scroll diagnostics, and focused backend/sidecar regressions.
+
 ## 0.6.11 - 2026-03-11
 
 Includes the last 147 commits on `main`.

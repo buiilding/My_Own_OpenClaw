@@ -50,3 +50,15 @@ def test_get_scroll_diagnostics_reports_custom_windows_setting(monkeypatch):
     assert diagnostics["multiplier"] == 0.75
     assert diagnostics["using_custom_windows_setting"] is True
     assert diagnostics["os_default_lines_per_tick"] == 3
+
+
+def test_calculate_coarse_vertical_scroll_units_scales_with_screen_height():
+    assert scroll_config.calculate_coarse_vertical_scroll_units(900) == 10
+    assert scroll_config.calculate_coarse_vertical_scroll_units(720) == 8
+    assert scroll_config.calculate_coarse_vertical_scroll_units(1440) == 16
+
+
+def test_calculate_coarse_vertical_scroll_clicks_uses_multiplier(monkeypatch):
+    monkeypatch.setattr(scroll_config, "get_os_scroll_multiplier", lambda: 0.5)
+
+    assert scroll_config.calculate_coarse_vertical_scroll_clicks(900) == 5

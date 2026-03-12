@@ -233,7 +233,6 @@ SIMULATION_RESPONSES = [
                         "action": "scroll_down",
                         "x": 960,
                         "y": 540,
-                        "clicks": 5,
                         "wait": 1.0
                     }
                 }

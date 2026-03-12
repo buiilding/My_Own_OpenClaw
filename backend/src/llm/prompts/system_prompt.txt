@@ -86,6 +86,7 @@ The main user-facing window is named "windieos". The user interacts with you thr
 <scroll_rules>
 - Use `scroll_control` for desktop-style scrolling.
 - Use `browser` with `action="scroll"` for web pages when browser control is available.
+- Omit `clicks` for ordinary vertical `scroll_up` and `scroll_down` calls so the executor uses its default coarse step. Include `clicks` only when a smaller or larger manual adjustment is necessary.
 - When scroll position matters, use the latest available returned state after scrolling before acting on newly visible targets.
 </scroll_rules>
 
@@ -247,17 +248,17 @@ Assistant:
 Example 9
 User: Scroll down in the sidebar.
 Assistant:
-{"name":"computer_use","arguments":{"tool":"scroll_control","metadata":{"description":"A desktop application is open with a left sidebar containing more items below the visible area.","explanation":"I need to scroll down within the sidebar to reveal additional items.","expectation":"The sidebar scrolls downward and lower items become visible."},"arguments":{"action":"scroll_down","find_coordinates_by":"prediction","source_description":"the left sidebar list area","clicks":6,"wait":0.4}}}
+{"name":"computer_use","arguments":{"tool":"scroll_control","metadata":{"description":"A desktop application is open with a left sidebar containing more items below the visible area.","explanation":"I need to scroll down within the sidebar to reveal additional items.","expectation":"The sidebar scrolls downward and lower items become visible."},"arguments":{"action":"scroll_down","find_coordinates_by":"prediction","source_description":"the left sidebar list area","wait":0.4}}}
 
 Example 9.1
 User: Scroll down in the Layers panel.
 Assistant:
-{"name":"computer_use","arguments":{"tool":"scroll_control","metadata":{"description":"A design application is open and a visible Layers panel contains more entries below the current view.","explanation":"I need to scroll down within the Layers panel to reveal lower layer entries.","expectation":"The Layers panel scrolls downward and additional lower layers become visible."},"arguments":{"action":"scroll_down","find_coordinates_by":"ocr","ocr_text":"Layers","clicks":5,"wait":0.4}}}
+{"name":"computer_use","arguments":{"tool":"scroll_control","metadata":{"description":"A design application is open and a visible Layers panel contains more entries below the current view.","explanation":"I need to scroll down within the Layers panel to reveal lower layer entries.","expectation":"The Layers panel scrolls downward and additional lower layers become visible."},"arguments":{"action":"scroll_down","find_coordinates_by":"ocr","ocr_text":"Layers","wait":0.4}}}
 
 Example 9.2
 User: Scroll down in the right panel at these coordinates.
 Assistant:
-{"name":"computer_use","arguments":{"tool":"scroll_control","metadata":{"description":"A desktop application is open and the right-side panel is visible with more content below the current view.","explanation":"I need to scroll within the right-side panel","expectation":"The right-side panel scrolls downward and lower content becomes visible."},"arguments":{"action":"scroll_down","find_coordinates_by":"manual","x":1420,"y":420,"clicks":6,"wait":0.4}}}
+{"name":"computer_use","arguments":{"tool":"scroll_control","metadata":{"description":"A desktop application is open and the right-side panel is visible with more content below the current view.","explanation":"I need to scroll within the right-side panel","expectation":"The right-side panel scrolls downward and lower content becomes visible."},"arguments":{"action":"scroll_down","find_coordinates_by":"manual","x":1420,"y":420,"wait":0.4}}}
 
 Example 10
 User: Read the file at /app/config.yaml.

@@ -18,7 +18,12 @@ def _fake_pyautogui(*, with_hscroll: bool):
     def vscroll(clicks):
         calls.append(("vscroll", clicks))
 
-    module = SimpleNamespace(FAILSAFE=True, moveTo=move_to, vscroll=vscroll)
+    module = SimpleNamespace(
+        FAILSAFE=True,
+        moveTo=move_to,
+        vscroll=vscroll,
+        size=lambda: SimpleNamespace(width=1280, height=900),
+    )
     if with_hscroll:
         module.hscroll = lambda clicks: calls.append(("hscroll", clicks))
     return module, calls
@@ -58,7 +63,8 @@ async def test_execute_scroll_control_scroll_up_uses_positive_vscroll(monkeypatc
 
     assert result["success"] is True
     assert result["data"]["os_clicks"] == 4
-    assert result["data"]["scroll_units"] == 3
+    assert result["data"]["requested_clicks"] == 3
+    assert result["data"]["scroll_mode"] == "manual_clicks"
     assert calls == [("moveTo", 100, 200), ("vscroll", 4)]
 
 
@@ -74,7 +80,33 @@ async def test_execute_scroll_control_scroll_down_uses_negative_vscroll(monkeypa
 
     assert result["success"] is True
     assert result["data"]["os_clicks"] == 6
+    assert result["data"]["requested_clicks"] == 2
     assert calls == [("moveTo", 10, 20), ("vscroll", -6)]
+
+
+@pytest.mark.asyncio
+async def test_execute_scroll_control_vertical_uses_coarse_auto_when_clicks_omitted(monkeypatch):
+    fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
+    fake_pyautogui.size = lambda: SimpleNamespace(width=1470, height=956)
+    monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
+    monkeypatch.setattr(
+        scroll_tool, "calculate_coarse_vertical_scroll_units", lambda _height: 10
+    )
+    monkeypatch.setattr(
+        scroll_tool, "calculate_coarse_vertical_scroll_clicks", lambda _height: 9
+    )
+
+    result = await scroll_tool.execute_scroll_control(
+        {"action": "scroll_down", "x": 10, "y": 20}
+    )
+
+    assert result["success"] is True
+    assert result["data"]["scroll_mode"] == "coarse_auto"
+    assert result["data"]["requested_clicks"] is None
+    assert result["data"]["coarse_units"] == 10
+    assert result["data"]["screen_height"] == 956
+    assert result["data"]["os_clicks"] == 9
+    assert calls == [("moveTo", 10, 20), ("vscroll", -9)]
 
 
 @pytest.mark.asyncio
@@ -89,6 +121,7 @@ async def test_execute_scroll_control_scroll_left_falls_back_without_hscroll(mon
 
     assert result["success"] is True
     assert result["data"]["os_clicks"] == 5
+    assert result["data"]["scroll_mode"] == "manual_clicks"
     assert calls == [("moveTo", 5, 6), ("vscroll", -5)]
 
 
@@ -104,6 +137,7 @@ async def test_execute_scroll_control_scroll_right_uses_hscroll_when_available(m
 
     assert result["success"] is True
     assert result["data"]["os_clicks"] == 7
+    assert result["data"]["scroll_mode"] == "manual_clicks"
     assert calls == [("moveTo", 9, 11), ("hscroll", 7)]
 
 

@@ -101,6 +101,12 @@ def test_scroll_control_requires_direction_for_scroll_action():
     assert args.direction == "down"
 
 
+def test_scroll_control_clicks_is_optional():
+    args = ScrollControlArgs(action="scroll_down", x=10, y=20)
+
+    assert args.clicks is None
+
+
 def test_keyboard_control_requires_action_specific_fields():
     with pytest.raises(
         ValidationError,

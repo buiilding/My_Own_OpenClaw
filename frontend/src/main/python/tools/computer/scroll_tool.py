@@ -1,10 +1,8 @@
-"""Scroll Control Tool - OS-standardized scrolling using pyautogui.
+"""Scroll Control Tool - targeted coarse scrolling using pyautogui.
 
-Uses vscroll/hscroll for vertical/horizontal scroll with OS-aware multipliers
-to provide consistent visual scrolling across Windows, macOS, and Linux.
-
-Includes time.sleep(0.5) after moveTo and before scroll (agent-s pattern)
-for consistent behavior across different polling rates and operating systems.
+Vertical scrolling defaults to an executor-owned coarse step derived from the
+current display height, with explicit `clicks` retained as an override.
+Horizontal scrolling continues to use click-based behavior.
 """
 
 import asyncio
@@ -13,39 +11,36 @@ import time
 from typing import Dict, Any
 
 from core.executors import get_interactive_executor
-from .scroll_config import calculate_scroll_clicks
+from .scroll_config import (
+    calculate_coarse_vertical_scroll_clicks,
+    calculate_coarse_vertical_scroll_units,
+    calculate_scroll_clicks,
+)
 
 logger = logging.getLogger(__name__)
 
 
 async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
-    """Execute scroll control action with OS-standardized scroll amounts.
-
-    Scroll amounts are specified in "scroll units" where 1 unit is visually
-    approximately 3 lines of text. The actual wheel clicks are calculated
-    based on the OS to ensure consistent behavior:
-    - Windows: Typically 1 click per unit (3 lines/tick default)
-    - macOS: ~0.3 clicks per unit (smooth scrolling)
-    - Linux: 1 click per unit (3 lines/tick typical)
+    """Execute scroll control action with targeted coarse vertical scrolling.
 
     Args:
         args: Dictionary with:
             - 'action': "scroll", "scroll_up", or "scroll_down"
             - 'x': Required X coordinate to move to before scrolling
             - 'y': Required Y coordinate to move to before scrolling
-            - 'clicks': Number of scroll units (default 5, ~15 lines visually)
+            - 'clicks': Optional explicit click override
             - 'direction': "up", "down", "left", or "right" (for "scroll" action)
 
     Returns:
         Dictionary with success status and scroll result including:
-        - 'scroll_units': The requested standardized units
+        - 'scroll_mode': Whether the executor used coarse auto scrolling or
+          explicit clicks
         - 'os_clicks': Actual wheel clicks sent to OS
     """
     action = args.get("action")
     x = args.get("x")
     y = args.get("y")
-    # 'clicks' in args means "scroll units" (standardized visual amount)
-    scroll_units = args.get("clicks", 5)
+    requested_clicks = args.get("clicks")
     direction = args.get("direction")
 
     if not action:
@@ -56,6 +51,46 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
 
         # Disable pyautogui failsafe
         pyautogui.FAILSAFE = False
+
+        def _read_screen_height() -> int | None:
+            size = getattr(pyautogui, "size", None)
+            if not callable(size):
+                return None
+            try:
+                current_size = size()
+            except Exception:
+                return None
+
+            height = getattr(current_size, "height", None)
+            if height is not None:
+                return int(height)
+
+            if isinstance(current_size, (tuple, list)) and len(current_size) >= 2:
+                return int(current_size[1])
+
+            return None
+
+        def _resolve_vertical_scroll(direction_name: str) -> tuple[int, Dict[str, Any]]:
+            screen_height = _read_screen_height()
+            if requested_clicks is None:
+                coarse_units = calculate_coarse_vertical_scroll_units(screen_height)
+                os_clicks = calculate_coarse_vertical_scroll_clicks(screen_height)
+                return os_clicks, {
+                    "scroll_mode": "coarse_auto",
+                    "requested_clicks": None,
+                    "coarse_units": coarse_units,
+                    "screen_height": screen_height,
+                    "direction": direction_name,
+                }
+
+            os_clicks = calculate_scroll_clicks(requested_clicks, direction_name)
+            return os_clicks, {
+                "scroll_mode": "manual_clicks",
+                "requested_clicks": requested_clicks,
+                "coarse_units": None,
+                "screen_height": screen_height,
+                "direction": direction_name,
+            }
 
         def _execute_action():
             if x is None or y is None:
@@ -69,8 +104,21 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
                 if not direction:
                     raise ValueError("direction required for scroll action")
 
-                # Convert standardized units to OS-specific clicks
-                clicks = calculate_scroll_clicks(scroll_units, direction)
+                if direction in {"up", "down"}:
+                    clicks, scroll_meta = _resolve_vertical_scroll(direction)
+                else:
+                    clicks = calculate_scroll_clicks(requested_clicks, direction)
+                    scroll_meta = {
+                        "scroll_mode": (
+                            "manual_clicks"
+                            if requested_clicks is not None
+                            else "default_clicks"
+                        ),
+                        "requested_clicks": requested_clicks,
+                        "coarse_units": None,
+                        "screen_height": _read_screen_height(),
+                        "direction": direction,
+                    }
 
                 # vscroll: positive=up, negative=down.
                 # hscroll: positive=right, negative=left.
@@ -95,46 +143,50 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
 
                 return {
                     "action": "scroll",
-                    "scroll_units": scroll_units,
                     "os_clicks": clicks,
                     "coordinates": [x, y],
                     "direction": direction,
-                    "message": f"Scrolled {direction} {scroll_units} units",
+                    "message": (
+                        f"Scrolled {direction} with {scroll_meta['scroll_mode']}"
+                    ),
                     "llm_content": (
-                        f"Scrolled {direction} {scroll_units} units "
+                        f"Scrolled {direction} using {scroll_meta['scroll_mode']} "
                         f"({clicks} OS clicks)"
                     ),
-                    "return_display": f"Scrolled {direction} {scroll_units} units",
+                    "return_display": f"Scrolled {direction}",
+                    **scroll_meta,
                 }
 
             elif action == "scroll_up":
-                clicks = calculate_scroll_clicks(scroll_units, "up")
+                clicks, scroll_meta = _resolve_vertical_scroll("up")
                 pyautogui.vscroll(clicks)
                 return {
                     "action": "scroll_up",
-                    "scroll_units": scroll_units,
                     "os_clicks": clicks,
                     "coordinates": [x, y],
-                    "message": f"Scrolled up {scroll_units} units",
+                    "message": f"Scrolled up with {scroll_meta['scroll_mode']}",
                     "llm_content": (
-                        f"Scrolled up {scroll_units} units ({clicks} OS clicks)"
+                        f"Scrolled up using {scroll_meta['scroll_mode']} "
+                        f"({clicks} OS clicks)"
                     ),
-                    "return_display": f"Scrolled up {scroll_units} units",
+                    "return_display": "Scrolled up",
+                    **scroll_meta,
                 }
 
             elif action == "scroll_down":
-                clicks = calculate_scroll_clicks(scroll_units, "down")
+                clicks, scroll_meta = _resolve_vertical_scroll("down")
                 pyautogui.vscroll(-clicks)
                 return {
                     "action": "scroll_down",
-                    "scroll_units": scroll_units,
                     "os_clicks": clicks,
                     "coordinates": [x, y],
-                    "message": f"Scrolled down {scroll_units} units",
+                    "message": f"Scrolled down with {scroll_meta['scroll_mode']}",
                     "llm_content": (
-                        f"Scrolled down {scroll_units} units ({clicks} OS clicks)"
+                        f"Scrolled down using {scroll_meta['scroll_mode']} "
+                        f"({clicks} OS clicks)"
                     ),
-                    "return_display": f"Scrolled down {scroll_units} units",
+                    "return_display": "Scrolled down",
+                    **scroll_meta,
                 }
 
             else:

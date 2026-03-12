@@ -231,8 +231,10 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                 },
                                 "clicks": {
                                     "type": "integer",
-                                    "description": "Scroll step count.",
-                                    "default": 5,
+                                    "description": (
+                                        "Optional explicit click override. Omit for the default "
+                                        "coarse vertical scroll step."
+                                    ),
                                 },
                                 "wait": {
                                     **_post_action_wait_property(),
