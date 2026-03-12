@@ -59,8 +59,8 @@ Behavior:
   - Windows (`nsis .exe`)
   - macOS (`dmg`, `zip`)
 - Runs install/launch smoke checks per platform before upload.
-- Uploads artifacts to workflow run.
-- Publishes GitHub release artifacts on tag pushes (`v*`) or manual dispatch with publish enabled.
+- On tag pushes (`v*`) or manual dispatch with publish enabled, creates/updates the GitHub release first and then uploads each platform's packaged files directly from the runner to that release.
+- This direct-release path avoids GitHub Actions artifact-storage quota blocking release publication; publish runs do not rely on workflow-run artifact retention.
 
 Manual dispatch inputs:
 

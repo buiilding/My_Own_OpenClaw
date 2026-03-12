@@ -4,6 +4,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+- fix(release-workflow-artifact-quota): stop desktop publish runs from depending on GitHub Actions artifact storage by creating the release first and uploading Linux, macOS, and Windows files directly from each packaging job.
+
 ## 0.6.12 - 2026-03-12
 
 ### Added
