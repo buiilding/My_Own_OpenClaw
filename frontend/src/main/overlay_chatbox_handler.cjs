@@ -6,8 +6,12 @@ function handleMoveChatboxTo(
   deps = {},
 ) {
   const {
+    screen,
     chatWindow,
+    resolveDisplayAffinityForBounds = () => null,
+    setActiveDisplayAffinity = () => {},
     setManualChatWindowPosition = () => {},
+    positionChatWindow,
     syncWindowDisplayAffinity = () => {},
     positionResponseWindow,
     positionContextLabelWindow,
@@ -26,11 +30,34 @@ function handleMoveChatboxTo(
   }
 
   try {
-    chatWindow.setPosition(nextX, nextY, false);
+    const [windowWidth = 0, windowHeight = 0] = typeof chatWindow.getSize === 'function'
+      ? chatWindow.getSize()
+      : [];
+    const targetDisplayAffinity = resolveDisplayAffinityForBounds(screen, {
+      x: nextX,
+      y: nextY,
+      width: Math.max(1, Math.round(Number(windowWidth) || 0)),
+      height: Math.max(1, Math.round(Number(windowHeight) || 0)),
+    });
+
+    if (targetDisplayAffinity) {
+      setActiveDisplayAffinity(targetDisplayAffinity);
+    }
+
+    setManualChatWindowPosition({
+      x: nextX,
+      monitorId: targetDisplayAffinity?.monitor_id ?? null,
+    });
+
+    if (typeof positionChatWindow === 'function') {
+      positionChatWindow();
+    } else {
+      chatWindow.setPosition(nextX, nextY, false);
+      positionResponseWindow?.();
+      positionContextLabelWindow?.();
+    }
+
     syncWindowDisplayAffinity(chatWindow);
-    setManualChatWindowPosition({ x: nextX, y: nextY });
-    positionResponseWindow();
-    positionContextLabelWindow();
     syncContextLabelWindowVisibility();
   } catch (error) {
     warn('[Main] Failed to move chatbox:', error?.message || error);

@@ -360,6 +360,7 @@ module.exports = {
   getActiveDisplayAffinity,
   resolveActiveSurfaceDisplayAffinity,
   resolveActiveSurfaceDisplayAffinityForWindows,
+  resolveDisplayAffinityForBounds,
   setActiveDisplayAffinity,
   syncVisibleSurfaceDisplayAffinity,
   syncActiveDisplayAffinityForWindow,
