@@ -32,10 +32,17 @@ class StopQueryHandler(TypedMessageHandler[StopQueryMessage]):
         user_id: str,
     ) -> None:
         try:
-            canceled = self.session_manager.cancel_active_query_task(user_id)
+            conversation_ref = message.payload.conversation_ref
+            canceled = self.session_manager.cancel_active_query_task(
+                user_id,
+                conversation_ref=conversation_ref,
+            )
             context: dict[str, Any] = {"user_id": user_id}
 
-            session = self.session_manager.get_session(user_id)
+            session = self.session_manager.get_session(
+                user_id,
+                conversation_ref=conversation_ref,
+            )
             session_id = getattr(session, "session_id", None)
             if isinstance(session_id, str) and session_id:
                 context["session_id"] = session_id
@@ -57,8 +64,9 @@ class StopQueryHandler(TypedMessageHandler[StopQueryMessage]):
             else:
                 logger.info(
                     "[Stop Query] User requested stop but no active query task was running "
-                    "(user_id=%s, session_id=%s)",
+                    "(user_id=%s, conversation_ref=%s, session_id=%s)",
                     user_id,
+                    conversation_ref,
                     context.get("session_id"),
                 )
 

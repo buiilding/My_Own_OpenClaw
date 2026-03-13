@@ -79,7 +79,15 @@ class LoadSettingsHandler(TypedMessageHandler[LoadSettingsMessage]):
             session = self.session_manager.get_session(user_id)
             config_source = getattr(session, "cfg", None)
             if config_source is None:
-                config_source = getattr(self.session_manager, "config", None)
+                effective_config = getattr(
+                    self.session_manager,
+                    "get_effective_config",
+                    None,
+                )
+                if callable(effective_config):
+                    config_source = effective_config(user_id)
+                else:
+                    config_source = getattr(self.session_manager, "config", None)
 
             await send_success_response(
                 websocket,

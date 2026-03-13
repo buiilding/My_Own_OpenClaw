@@ -259,10 +259,28 @@ class DummySessionManager:
         self.clear_calls = []
         self.cancel_calls = []
 
-    async def get_or_create_session(self, user_id: str):
+    async def get_or_create_session(
+        self,
+        user_id: str,
+        conversation_ref: Optional[str] = None,
+    ):
+        _ = (user_id, conversation_ref)
         return self.session
 
-    def get_session(self, user_id: str):
+    def get_session(
+        self,
+        user_id: str,
+        conversation_ref: Optional[str] = None,
+    ):
+        _ = (user_id, conversation_ref)
+        return getattr(self, "session_instance", None)
+
+    def get_session_for_request_id(self, user_id: str, request_id: str):
+        _ = (user_id, request_id)
+        return getattr(self, "session_instance", None)
+
+    def get_session_for_bundle_id(self, user_id: str, bundle_id: str):
+        _ = (user_id, bundle_id)
         return getattr(self, "session_instance", None)
 
     def register_active_query_task(

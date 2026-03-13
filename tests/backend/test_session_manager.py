@@ -14,6 +14,11 @@ class DummySession:
         self.cfg = AppConfig()
         self.updated_configs = []
         self.cleanup_called = False
+        self.resolved_tool_calls = {}
+        self.pending_tool_results = {}
+        self.result_futures = {}
+        self.bundle_results = {}
+        self.bundle_futures = {}
         self.prompt_builder = AsyncMock()
         self.prompt_builder.system_prompt = "backend-default"
         self.history = AsyncMock()
@@ -26,11 +31,39 @@ class DummySession:
     async def cleanup(self) -> None:
         self.cleanup_called = True
 
+    def get_resolved_tool_call(self, request_id: str):
+        return self.resolved_tool_calls.get(request_id)
+
+    def get_pending_tool_result(self, request_id: str):
+        return self.pending_tool_results.get(request_id)
+
+    def get_result_storage(self):
+        return self
+
+    def get_result_future(self, request_id: str):
+        return self.result_futures.get(request_id)
+
+    def get_bundled_result(self, bundle_id: str):
+        return self.bundle_results.get(bundle_id)
+
+    def get_bundle_future(self, bundle_id: str):
+        return self.bundle_futures.get(bundle_id)
+
 
 class FailingCleanupSession(DummySession):
     async def cleanup(self) -> None:
         self.cleanup_called = True
         raise RuntimeError("cleanup failed")
+
+
+def _assign_active_session(
+    manager: SessionManager,
+    user_id: str,
+    session: DummySession,
+    *,
+    conversation_ref: str | None = None,
+) -> None:
+    manager.active_sessions[user_id] = {conversation_ref: session}
 
 
 @pytest.mark.asyncio
@@ -54,6 +87,44 @@ async def test_get_or_create_session_is_race_safe() -> None:
     assert create_count == 1
     assert len({id(session) for session in results}) == 1
     assert results[0] is created_sessions["user-1"]
+
+
+@pytest.mark.asyncio
+async def test_get_or_create_session_creates_distinct_sessions_per_conversation() -> None:
+    create_count = 0
+
+    def create_agent_session(user_id: str, config: AppConfig) -> DummySession:
+        nonlocal create_count
+        create_count += 1
+        session = DummySession(session_id=f"session-{create_count}")
+        session.cfg = config
+        return session
+
+    manager = SessionManager(AppConfig(), create_agent_session)
+
+    session_a = await manager.get_or_create_session("user-1", conversation_ref="conv-a")
+    session_b = await manager.get_or_create_session("user-1", conversation_ref="conv-b")
+    session_a_again = await manager.get_or_create_session("user-1", conversation_ref="conv-a")
+
+    assert session_a is session_a_again
+    assert session_a is not session_b
+    assert manager.get_session("user-1", conversation_ref="conv-a") is session_a
+    assert manager.get_session("user-1", conversation_ref="conv-b") is session_b
+    assert manager.get_session("user-1") is session_b
+
+
+@pytest.mark.asyncio
+async def test_get_session_without_conversation_prefers_latest_named_conversation_over_default() -> None:
+    manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
+    default_session = DummySession("default")
+    named_session = DummySession("named")
+    manager.active_sessions["user-1"] = {
+        None: default_session,
+        "conv-a": named_session,
+    }
+    manager._latest_conversation_refs["user-1"] = "conv-a"
+
+    assert manager.get_session("user-1") is named_session
 
 
 @pytest.mark.asyncio
@@ -81,7 +152,7 @@ async def test_set_frontend_operating_system_updates_active_session(monkeypatch)
 
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
     session = DummySession("existing")
-    manager.active_sessions["user-1"] = session
+    _assign_active_session(manager, "user-1", session)
 
     manager.set_frontend_operating_system("user-1", "macOS")
 
@@ -94,8 +165,8 @@ async def test_update_all_sessions_config_updates_active_sessions() -> None:
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
     first = DummySession("first")
     second = DummySession("second")
-    manager.active_sessions["user-1"] = first
-    manager.active_sessions["user-2"] = second
+    _assign_active_session(manager, "user-1", first)
+    _assign_active_session(manager, "user-2", second)
 
     new_config = AppConfig(model_provider="anthropic")
     await manager.update_all_sessions_config(new_config)
@@ -109,7 +180,7 @@ async def test_update_all_sessions_config_updates_active_sessions() -> None:
 @pytest.mark.asyncio
 async def test_update_all_sessions_config_does_not_mutate_container() -> None:
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
-    manager.active_sessions["user-1"] = DummySession("s-1")
+    _assign_active_session(manager, "user-1", DummySession("s-1"))
 
     # Legacy attribute may still appear dynamically; manager should ignore it.
     manager.container = AsyncMock()
@@ -137,7 +208,7 @@ async def test_get_session_returns_active_or_none() -> None:
     assert manager.get_session("missing") is None
 
     session = DummySession("existing")
-    manager.active_sessions["user-1"] = session
+    _assign_active_session(manager, "user-1", session)
     assert manager.get_session("user-1") is session
 
 
@@ -180,6 +251,25 @@ async def test_update_session_config_applies_non_none_changes(monkeypatch) -> No
 
 
 @pytest.mark.asyncio
+async def test_update_session_config_applies_to_future_conversation_sessions() -> None:
+    create_count = 0
+
+    def create_agent_session(user_id: str, config: AppConfig) -> DummySession:
+        nonlocal create_count
+        create_count += 1
+        session = DummySession(session_id=f"session-{create_count}")
+        session.cfg = config
+        return session
+
+    manager = SessionManager(AppConfig(), create_agent_session)
+
+    await manager.update_session_config("user-1", {"model_provider": "anthropic"})
+    session = await manager.get_or_create_session("user-1", conversation_ref="conv-a")
+
+    assert session.cfg.model_provider == "anthropic"
+
+
+@pytest.mark.asyncio
 async def test_end_session_removes_session_and_lock() -> None:
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
     session = await manager.get_or_create_session("user-1")
@@ -214,6 +304,26 @@ async def test_end_session_missing_user_is_noop() -> None:
 
 
 @pytest.mark.asyncio
+async def test_end_session_can_remove_one_conversation_without_clearing_others() -> None:
+    first = DummySession("first")
+    second = DummySession("second")
+    manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
+    manager.active_sessions["user-1"] = {
+        "conv-a": first,
+        "conv-b": second,
+    }
+    manager._latest_conversation_refs["user-1"] = "conv-b"
+
+    await manager.end_session("user-1", conversation_ref="conv-a")
+
+    assert first.cleanup_called is True
+    assert second.cleanup_called is False
+    assert manager.get_session("user-1", conversation_ref="conv-a") is None
+    assert manager.get_session("user-1", conversation_ref="conv-b") is second
+    assert "user-1" in manager.active_sessions
+
+
+@pytest.mark.asyncio
 async def test_update_all_sessions_config_continues_after_one_failure() -> None:
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
     good = DummySession("good")
@@ -221,13 +331,41 @@ async def test_update_all_sessions_config_continues_after_one_failure() -> None:
     bad.update_config = AsyncMock(side_effect=RuntimeError("boom"))
     good.update_config = AsyncMock()
 
-    manager.active_sessions["good-user"] = good
-    manager.active_sessions["bad-user"] = bad
+    _assign_active_session(manager, "good-user", good)
+    _assign_active_session(manager, "bad-user", bad)
 
     await manager.update_all_sessions_config(AppConfig(model_provider="anthropic"))
 
     good.update_config.assert_called_once()
     bad.update_config.assert_called_once()
+
+
+def test_get_session_for_request_id_resolves_matching_conversation_session() -> None:
+    manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
+    session_a = DummySession("session-a")
+    session_b = DummySession("session-b")
+    session_b.result_futures["req-123"] = object()
+    manager.active_sessions["user-1"] = {
+        "conv-a": session_a,
+        "conv-b": session_b,
+    }
+
+    assert manager.get_session_for_request_id("user-1", "req-123") is session_b
+    assert manager.get_session_for_request_id("user-1", "missing") is None
+
+
+def test_get_session_for_bundle_id_resolves_matching_conversation_session() -> None:
+    manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
+    session_a = DummySession("session-a")
+    session_b = DummySession("session-b")
+    session_a.bundle_futures["bundle-123"] = object()
+    manager.active_sessions["user-1"] = {
+        "conv-a": session_a,
+        "conv-b": session_b,
+    }
+
+    assert manager.get_session_for_bundle_id("user-1", "bundle-123") is session_a
+    assert manager.get_session_for_bundle_id("user-1", "missing") is None
 
 
 @pytest.mark.asyncio

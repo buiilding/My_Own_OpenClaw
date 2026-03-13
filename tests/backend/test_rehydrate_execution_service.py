@@ -25,8 +25,8 @@ class _FakeSessionManager:
         self.session = _FakeSession()
         self.requested_users = []
 
-    async def get_or_create_session(self, user_id):
-        self.requested_users.append(user_id)
+    async def get_or_create_session(self, user_id, conversation_ref=None):
+        self.requested_users.append((user_id, conversation_ref))
         return self.session
 
 
@@ -91,7 +91,7 @@ async def test_execute_resolves_screenshot_ref_from_artifact_store():
 
     await service.execute(message, "user-1", artifact_store_cls=_TrackingArtifactStore)
 
-    assert manager.requested_users == ["user-1"]
+    assert manager.requested_users == [("user-1", "conv-1")]
     conversation_ref, entries = manager.session.calls[0]
     assert conversation_ref == "conv-1"
     assert entries[0]["image_data"] == "resolved:shot-1"

@@ -8,7 +8,6 @@ type NewChatSessionOptions = {
   setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
   setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
   setTokenCounts: (counts: TokenCounts | null, conversationRef?: string | null) => void;
-  stopActiveQuery?: () => void;
 };
 
 export const startNewChatSession = ({
@@ -16,12 +15,7 @@ export const startNewChatSession = ({
   setIsSending,
   setThinkingStatus,
   setTokenCounts,
-  stopActiveQuery,
 }: NewChatSessionOptions): string => {
-  if (stopActiveQuery) {
-    stopActiveQuery();
-  }
-
   resetActiveChatSession({
     clearMessages,
     setIsSending,

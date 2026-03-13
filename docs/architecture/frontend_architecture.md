@@ -103,6 +103,12 @@ Current runtime behavior also relies on these explicit seams:
    - Updates Zustand store for thinking, streaming text, tool messages, completion, errors.
    - Persists transcript rows (`recordUserMessage`, `recordAssistantMessage`, `recordToolMessage`).
 
+New-chat behavior:
+
+- starting a new chat resets the visible workspace and creates a fresh `conversationRef`
+- it does **not** auto-send `stop-query` for an older in-flight conversation
+- late backend events remain conversation-scoped and continue to route into the original workspace/transcript instead of the newly created chat
+
 ### Tool Turn Flow
 
 1. Backend emits `tool-call` or `tool-bundle`.
