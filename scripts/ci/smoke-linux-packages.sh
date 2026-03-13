@@ -45,6 +45,53 @@ else
   exit 1
 fi
 
+RUNTIME_ROOT="/opt/WindieOS/resources/python-runtime"
+RUNTIME_PYTHON="${RUNTIME_ROOT}/bin/python3"
+[[ -x "${RUNTIME_PYTHON}" ]] || { echo "Bundled runtime python missing at ${RUNTIME_PYTHON}" >&2; exit 1; }
+
+"${RUNTIME_PYTHON}" - "${RUNTIME_ROOT}" <<'PY'
+from __future__ import annotations
+
+import pathlib
+import sqlite3
+import ssl
+import sys
+
+import _socket
+import _sqlite3
+import _ssl
+
+runtime_root = pathlib.Path(sys.argv[1]).resolve()
+version = f"{sys.version_info.major}.{sys.version_info.minor}"
+expected_stdlib = runtime_root / "lib" / f"python{version}"
+offenders = []
+
+for attribute in ("prefix", "exec_prefix", "base_prefix", "base_exec_prefix"):
+    value = pathlib.Path(getattr(sys, attribute)).resolve()
+    if value != runtime_root:
+        offenders.append(f"{attribute}={value}")
+
+for module_name, module in {
+    "_socket": _socket,
+    "_ssl": _ssl,
+    "_sqlite3": _sqlite3,
+    "ssl": ssl,
+    "sqlite3": sqlite3,
+}.items():
+    module_path = pathlib.Path(getattr(module, "__file__", "")).resolve()
+    if not module_path.is_relative_to(runtime_root):
+        offenders.append(f"{module_name}={module_path}")
+
+if not expected_stdlib.exists():
+    offenders.append(f"missing_stdlib={expected_stdlib}")
+
+if offenders:
+    raise SystemExit(
+        "Bundled runtime leaked host paths or is missing stdlib entries: "
+        + ", ".join(offenders)
+    )
+PY
+
 chmod +x "${APPIMAGE_ARTIFACT}"
 "${APPIMAGE_ARTIFACT}" --appimage-version >/tmp/windieos-appimage-version.log 2>&1
 

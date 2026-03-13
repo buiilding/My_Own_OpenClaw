@@ -90,10 +90,79 @@ if pyvenv_cfg.exists():
 print(f"[build-sidecar-runtime] copied CPython runtime from {base} to {dest}")
 PY
 else
-  # Use copies to avoid absolute symlinks in bundled runtime directories.
-  # macOS codesign --deep --strict rejects app bundles containing symlinks that
-  # resolve outside the bundle.
-  "${BASE_PYTHON}" -m venv --copies "${RUNTIME_DIR}"
+  echo "[build-sidecar-runtime] creating relocatable POSIX runtime (copied interpreter prefix)"
+  "${BASE_PYTHON}" - "${RUNTIME_DIR}" <<'PY'
+from __future__ import annotations
+
+import shutil
+import sys
+from pathlib import Path
+
+dest = Path(sys.argv[1]).resolve()
+base = Path(sys.base_prefix).resolve()
+version = f"{sys.version_info.major}.{sys.version_info.minor}"
+
+if dest.exists():
+    shutil.rmtree(dest)
+dest.mkdir(parents=True, exist_ok=True)
+
+python_lib_rel = Path("lib") / f"python{version}"
+
+
+def ignore_runtime_entries(directory: str, names: list[str]) -> set[str]:
+    directory_path = Path(directory)
+    ignored = {name for name in names if name == "__pycache__" or name.endswith((".pyc", ".pyo"))}
+
+    try:
+        rel = directory_path.resolve().relative_to(base)
+    except ValueError:
+        return ignored
+
+    if rel == python_lib_rel and "site-packages" in names:
+        ignored.add("site-packages")
+    return ignored
+
+
+def copy_entry(src: Path, dst: Path) -> None:
+    if not src.exists():
+        return
+    if src.is_dir():
+        shutil.copytree(
+            src,
+            dst,
+            symlinks=False,
+            dirs_exist_ok=True,
+            ignore=ignore_runtime_entries,
+        )
+        return
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src, dst)
+
+
+bin_dir = base / "bin"
+for name in (
+    f"python{version}",
+    "python3",
+    "python",
+    "pythonw",
+):
+    copy_entry(bin_dir / name, dest / "bin" / name)
+
+copy_entry(base / "lib", dest / "lib")
+copy_entry(base / "lib64", dest / "lib64")
+copy_entry(base / "etc", dest / "etc")
+
+site_packages_dir = dest / python_lib_rel / "site-packages"
+if site_packages_dir.exists():
+    shutil.rmtree(site_packages_dir)
+site_packages_dir.mkdir(parents=True, exist_ok=True)
+
+pyvenv_cfg = dest / "pyvenv.cfg"
+if pyvenv_cfg.exists():
+    pyvenv_cfg.unlink()
+
+print(f"[build-sidecar-runtime] copied POSIX runtime from {base} to {dest}")
+PY
 fi
 
 if [[ -x "${RUNTIME_DIR}/python.exe" ]]; then
@@ -107,9 +176,61 @@ else
   exit 1
 fi
 
+if ! "${RUNTIME_PYTHON}" -m pip --version >/dev/null 2>&1; then
+  echo "[build-sidecar-runtime] bootstrapping pip via ensurepip"
+  "${RUNTIME_PYTHON}" -m ensurepip --upgrade
+fi
+
 "${RUNTIME_PYTHON}" -m pip install --upgrade pip setuptools wheel
 
 "${RUNTIME_PYTHON}" -m pip install -r "${RUNTIME_REQS}"
+
+echo "[build-sidecar-runtime] validating relocated runtime imports"
+"${RUNTIME_PYTHON}" - "${RUNTIME_DIR}" <<'PY'
+from __future__ import annotations
+
+import pathlib
+import sqlite3
+import ssl
+import sys
+
+import _socket
+import _sqlite3
+import _ssl
+
+runtime_root = pathlib.Path(sys.argv[1]).resolve()
+version = f"{sys.version_info.major}.{sys.version_info.minor}"
+expected_prefix = runtime_root
+expected_stdlib = runtime_root / "lib" / f"python{version}"
+offenders: list[str] = []
+
+for attribute in ("prefix", "exec_prefix", "base_prefix", "base_exec_prefix"):
+    value = pathlib.Path(getattr(sys, attribute)).resolve()
+    if value != expected_prefix:
+        offenders.append(f"{attribute}={value}")
+
+for module_name, module in {
+    "_socket": _socket,
+    "_ssl": _ssl,
+    "_sqlite3": _sqlite3,
+    "ssl": ssl,
+    "sqlite3": sqlite3,
+}.items():
+    module_path = pathlib.Path(getattr(module, "__file__", "")).resolve()
+    if not module_path.is_relative_to(runtime_root):
+        offenders.append(f"{module_name}={module_path}")
+
+if not expected_stdlib.exists():
+    offenders.append(f"missing_stdlib={expected_stdlib}")
+
+if offenders:
+    raise RuntimeError(
+        "Bundled runtime validation failed; leaked or missing runtime paths: "
+        + ", ".join(offenders)
+    )
+
+print(f"[build-sidecar-runtime] runtime validation passed for {runtime_root}", file=sys.stderr)
+PY
 
 echo "[build-sidecar-runtime] prefetching wakeword model assets"
 if "${RUNTIME_PYTHON}" - <<'PY'

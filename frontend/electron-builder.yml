@@ -16,6 +16,8 @@ asar: true
 
 publish: null
 
+afterSign: scripts/electron-builder-after-sign.cjs
+
 win:
   icon: src/main/assets/icons/windieos.ico
   target:
