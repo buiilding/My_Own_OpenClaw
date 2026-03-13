@@ -122,7 +122,9 @@ On a clean test machine:
 - Linux may require non-Python packages for some operations (for example `xdotool`).
 - Linux `.deb`/`.rpm` installers declare `xdotool` package dependency; AppImage users must install `xdotool` manually.
 - Sidecar startup/status now emits runtime dependency warnings when `xdotool` is missing so degraded window probes are visible in logs/status payloads.
-- Windows bundled runtime now ships a relocatable CPython tree (not a host-bound `venv`) so installed apps do not depend on build-machine Python paths.
+- Bundled runtimes now ship relocatable interpreter trees on Windows, macOS, and Linux (not host-bound `venv` shells) so installed apps do not depend on build-machine Python paths.
+- POSIX runtime validation now imports stdlib extension modules (`_socket`, `_ssl`, `_sqlite3`) from inside the bundled runtime and fails packaging when host-prefix leakage is detected.
+- Local ad-hoc macOS package builds now re-sign every Mach-O file inside `Contents/Resources/python-runtime` after bundling so copied CPython binaries/extensions do not trip library-validation mismatches during packaged-app startup.
 - Release runtime bundles browser Python dependencies but does not ship a preinstalled Chromium payload.
 - Browser automation uses an installed Chrome/Chromium-family browser first and only installs Chromium after user consent when no compatible browser is found.
 - Runtime build is idempotent for bundled assets: wakeword prefetch is skipped when already present.

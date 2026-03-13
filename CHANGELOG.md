@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 ### Fixed
 - fix(release-workflow-artifact-quota): stop desktop publish runs from depending on GitHub Actions artifact storage by creating the release first and uploading Linux, macOS, and Windows files directly from each packaging job.
 - fix(release-macos-downloaded-app-validation): require signing/notarization before publishing macOS releases and validate the quarantined downloaded-app launch path instead of only executing the inner Mach-O binary.
+- fix(sidecar-runtime-posix-relocation): replace the host-bound POSIX `venv` packaging path with a copied relocatable interpreter tree and fail smoke checks when bundled runtime imports leak back to the build machine.
+- fix(macos-ad-hoc-sidecar-signing): re-sign bundled Python Mach-O files for local ad-hoc macOS packages so the packaged sidecar runtime can import stdlib/native modules at startup.
 
 ## 0.6.12 - 2026-03-12
 
