@@ -59,6 +59,8 @@ Behavior:
   - Windows (`nsis .exe`)
   - macOS (`dmg`, `zip`)
 - Runs install/launch smoke checks per platform before upload.
+- macOS publish runs must have signing + notarization available; the workflow now refuses to publish unsigned mac artifacts.
+- macOS smoke for publish runs validates the downloaded-app path by applying quarantine to the installed `.app`, running `spctl` Gatekeeper assessment, and verifying LaunchServices can open the bundle.
 - On tag pushes (`v*`) or manual dispatch with publish enabled, creates/updates the GitHub release first and then uploads each platform's packaged files directly from the runner to that release.
 - This direct-release path avoids GitHub Actions artifact-storage quota blocking release publication; publish runs do not rely on workflow-run artifact retention.
 
