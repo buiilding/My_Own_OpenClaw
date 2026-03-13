@@ -383,6 +383,10 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         """Ensure Chromium is available for browser automation."""
         existing_browser_path = self._find_available_browser_binary()
         if existing_browser_path:
+            logger.info(
+                "Skipping Chromium install because an existing browser binary is already available: %s",
+                existing_browser_path,
+            )
             return {
                 "success": True,
                 "installed": False,
@@ -402,6 +406,10 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
 
         existing_browser_path = self._find_available_browser_binary()
         if existing_browser_path:
+            logger.info(
+                "Skipping Chromium install because a browser binary became available during setup: %s",
+                existing_browser_path,
+            )
             return {
                 "success": True,
                 "installed": False,
@@ -413,6 +421,10 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
 
         playwright_browsers_path = self._resolve_playwright_browsers_path()
         playwright_browsers_path.mkdir(parents=True, exist_ok=True)
+        logger.info(
+            "No compatible Chrome/Chromium binary found; installing Chromium into %s",
+            playwright_browsers_path,
+        )
 
         try:
             install_result = await asyncio.to_thread(
@@ -444,6 +456,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
 
         if install_result.returncode != 0:
             error_detail = (install_result.stderr or install_result.stdout or "").strip()
+            logger.error("Chromium install command failed: %s", error_detail or install_result.returncode)
             return {
                 "success": False,
                 "error": (
@@ -456,6 +469,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
 
         installed_browser_path = self._find_available_browser_binary()
         if not installed_browser_path:
+            logger.error("Chromium install completed but no browser binary was detected afterward")
             return {
                 "success": False,
                 "error": "Chromium install completed but no browser binary was detected afterward.",
@@ -463,6 +477,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
                 "returncode": install_result.returncode,
             }
 
+        logger.info("Chromium install completed successfully: %s", installed_browser_path)
         return {
             "success": True,
             "installed": True,
