@@ -451,6 +451,10 @@ function handlePythonResponse(response) {
     readinessCheckCallback(response);
     return;
   }
+
+  if (requestId && requestId.startsWith('__readiness_check_')) {
+    return;
+  }
   
   if (requestId && pendingRequests.has(requestId)) {
     const { resolve, reject, timeout } = pendingRequests.get(requestId);
@@ -749,13 +753,28 @@ async function getLocalBackendStatus() {
 }
 
 async function installBrowserChromium() {
+  console.log('[BrowserRuntime] Requesting browser runtime status/install from local backend');
   const result = await sendRequestOrError(
     'install_browser_chromium',
     {},
     { timeoutMs: 10 * 60 * 1000 },
   );
   if (result && result.success === false && typeof result.error === 'string') {
+    console.error('[BrowserRuntime] Chromium install request failed:', result.error);
     return result;
+  }
+  if (result && typeof result === 'object') {
+    if (result.skipped === true && typeof result.browser_binary_path === 'string') {
+      console.log(
+        `[BrowserRuntime] Using existing Chrome/Chromium-family browser at ${result.browser_binary_path}; skipping Chromium install`,
+      );
+    } else if (result.installed === true && typeof result.browser_binary_path === 'string') {
+      console.log(
+        `[BrowserRuntime] Chromium install completed and browser binary is ready at ${result.browser_binary_path}`,
+      );
+    } else if (result.installed === false && result.skipped !== true) {
+      console.log('[BrowserRuntime] No existing Chrome/Chromium was detected; Chromium install was attempted');
+    }
   }
   return {
     success: true,

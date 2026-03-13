@@ -70,6 +70,11 @@ Manual dispatch inputs:
 - `publish_release`: `true`/`false`
 - `release_tag`: required when manual `publish_release=true`
 
+Local macOS packaged-user test helper:
+
+- `./scripts/reinstall-windieos-macos.sh`
+- Rebuilds the local macOS DMG, removes old installed WindieOS copies, clears `~/Library/Application Support/WindieOS`, resets TCC grants for `com.windieos.desktop`, reinstalls into `/Applications`, and launches the installed app while streaming packaged-app logs to `~/windieos-packaged-run.log`.
+
 Required secrets when `run_signing=true`:
 
 - Windows signing:

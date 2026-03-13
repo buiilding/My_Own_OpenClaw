@@ -10,6 +10,7 @@ All notable changes to WindieOS will be documented in this file.
 - fix(sidecar-runtime-posix-relocation): replace the host-bound POSIX `venv` packaging path with a copied relocatable interpreter tree and fail smoke checks when bundled runtime imports leak back to the build machine.
 - fix(macos-ad-hoc-sidecar-signing): re-sign bundled Python Mach-O files for local ad-hoc macOS packages so the packaged sidecar runtime can import stdlib/native modules at startup.
 - fix(onboarding-macos-permission-refresh): keep rechecking macOS System Settings permissions after `Grant` so onboarding rows flip from `Grant` to `Granted` when Screen Recording, Accessibility, Automation, or Microphone access is enabled outside the app.
+- feat(macos-reinstall-script): add a one-command local macOS reinstall/reset/package flow that clears old app copies, resets WindieOS TCC grants, reinstalls from the freshly built DMG, and streams packaged-app logs from the installed app.
 
 ## 0.6.12 - 2026-03-12
 
