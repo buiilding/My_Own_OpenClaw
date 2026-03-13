@@ -220,6 +220,14 @@ class CompactHistoryPayload(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     force: bool = True
+    conversation_ref: Optional[str] = None
+
+    @field_validator("conversation_ref")
+    @classmethod
+    def validate_conversation_ref(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        return _validate_conversation_ref(value)
 
 
 class CompactHistoryMessage(BaseMessage):

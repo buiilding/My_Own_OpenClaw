@@ -79,11 +79,25 @@ describe('chatStreamBackendIngress', () => {
     expect(registerTurnConversationRef).toHaveBeenCalledWith('turn-1', 'conv-1');
   });
 
-  test('prefers resolved event conversation over active transcript conversation', () => {
+  test('keeps the active transcript conversation for non-local backend events', () => {
     mockGetActiveConversationRef.mockReturnValue('conv-active');
     const dispatchEvent = jest.fn();
 
     ingestBackendEvent({ type: 'token-count', user_id: 'user-2' } as any, 'conv-event', {
+      syncActiveConversationProjection: jest.fn(),
+      registerTurnConversationRef: jest.fn(),
+      enableTranscript: true,
+      dispatchEvent,
+    });
+
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-active', 'user-2');
+  });
+
+  test('local-user-message promotes its explicit conversation over a stale active transcript conversation', () => {
+    mockGetActiveConversationRef.mockReturnValue('conv-active');
+    const dispatchEvent = jest.fn();
+
+    ingestBackendEvent({ type: 'local-user-message', user_id: 'user-2' } as any, 'conv-event', {
       syncActiveConversationProjection: jest.fn(),
       registerTurnConversationRef: jest.fn(),
       enableTranscript: true,

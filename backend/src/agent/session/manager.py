@@ -301,14 +301,27 @@ class SessionManager(ConfigSubscriber):
                     self._pending_stop_requests.pop(user_id, None)
         return cancelled_entries[-1]
 
-    def has_active_query_task(self, user_id: str) -> bool:
-        """Return True when at least one active query task is still running."""
+    def has_active_query_task(
+        self,
+        user_id: str,
+        conversation_ref: Optional[str] = None,
+    ) -> bool:
+        """Return True when at least one matching active query task is still running."""
         user_tasks = self._active_query_tasks.get(user_id)
         if not user_tasks:
             return False
+        normalized_conversation_ref = self._normalize_optional_conversation_ref(
+            conversation_ref
+        )
         for task in list(user_tasks.keys()):
             if task.done():
                 user_tasks.pop(task, None)
+                continue
+            _, task_conversation_ref = user_tasks[task]
+            if (
+                normalized_conversation_ref is not None
+                and task_conversation_ref != normalized_conversation_ref
+            ):
                 continue
             return True
         if not user_tasks:

@@ -235,7 +235,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
         console.warn('[ChatInterface] Failed to rehydrate conversation before compaction:', error);
       }
     }
-    ApiClient.compactHistory(true);
+    ApiClient.compactHistory(true, conversationRef);
   }, [config, setThinkingSourceEventType, setThinkingStatus]);
 
   const handleProviderSelect = useCallback((provider) => {

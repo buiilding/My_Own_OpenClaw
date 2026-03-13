@@ -334,7 +334,7 @@ describe('ChatInterface wiring', () => {
         selected_model_id: 'claude-sonnet-4-5',
       });
       expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv_existing', []);
-      expect(mockCompactHistory).toHaveBeenCalledWith(true);
+      expect(mockCompactHistory).toHaveBeenCalledWith(true, 'conv_existing');
     });
     expect(mockUpdateSettings.mock.invocationCallOrder[0]).toBeLessThan(
       mockSendRehydrateConversation.mock.invocationCallOrder[0],
@@ -353,7 +353,7 @@ describe('ChatInterface wiring', () => {
     expect(mockSetThinkingStatus).toHaveBeenCalledWith('Compacting conversation history...');
     expect(mockSetThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-started');
     await waitFor(() => {
-      expect(mockCompactHistory).toHaveBeenCalledWith(true);
+      expect(mockCompactHistory).toHaveBeenCalledWith(true, 'conv_existing');
     });
   });
 

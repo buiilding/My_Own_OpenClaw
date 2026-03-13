@@ -79,6 +79,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 const mockChatState = {
   messages: [],
   isSending: false,
+  activeConversationRef: 'conv-overlay',
   thinkingStatus: null,
   setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
   setThinkingSourceEventType: (...args) => mockSetThinkingSourceEventType(...args),
@@ -148,6 +149,7 @@ describe('ChatBox overlay mouse ignore', () => {
       speech_mode_enabled: false,
       include_query_screenshot: true,
     };
+    mockChatState.activeConversationRef = 'conv-overlay';
     mockChatState.isSending = false;
     mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
@@ -320,7 +322,7 @@ describe('ChatBox overlay mouse ignore', () => {
     render(<ChatBox />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Run auto compaction' }));
-    expect(mockCompactHistory).toHaveBeenCalledWith(true);
+    expect(mockCompactHistory).toHaveBeenCalledWith(true, 'conv-overlay');
   });
 
   test('dragging pill sends absolute move-chatbox-to coordinates', () => {

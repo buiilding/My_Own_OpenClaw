@@ -108,6 +108,8 @@ New-chat behavior:
 - starting a new chat resets the visible workspace and creates a fresh `conversationRef`
 - it does **not** auto-send `stop-query` for an older in-flight conversation
 - late backend events remain conversation-scoped and continue to route into the original workspace/transcript instead of the newly created chat
+- background backend events no longer re-select the active conversation in the renderer; only bootstrap/local-send session projection can move foreground chat focus
+- manual `compact-history` requests are sent with the active `conversationRef`, so dev compaction targets the currently selected conversation instead of an arbitrary fallback session
 
 ### Tool Turn Flow
 

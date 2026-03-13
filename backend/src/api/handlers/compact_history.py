@@ -33,20 +33,27 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
         user_id: str,
     ) -> None:
         force = bool(message.payload.force)
+        conversation_ref = message.payload.conversation_ref
         logger.info(
-            "Manual compaction requested (user_id=%s, force=%s, msg_id=%s)",
+            "Manual compaction requested (user_id=%s, conversation_ref=%s, force=%s, msg_id=%s)",
             user_id,
+            conversation_ref,
             force,
             message.id,
         )
-        if self.session_manager.has_active_query_task(user_id):
+        if self.session_manager.has_active_query_task(
+            user_id,
+            conversation_ref=conversation_ref,
+        ):
             error_text = (
                 "Cannot compact history while a query is active. "
                 "Stop the current query and retry."
             )
             logger.info(
-                "Manual compaction rejected: active query in progress (user_id=%s, msg_id=%s)",
+                "Manual compaction rejected: active query in progress "
+                "(user_id=%s, conversation_ref=%s, msg_id=%s)",
                 user_id,
+                conversation_ref,
                 message.id,
             )
             await send_success_response(
@@ -62,7 +69,10 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
             )
             return
 
-        session = await self.session_manager.get_or_create_session(user_id)
+        session = await self.session_manager.get_or_create_session(
+            user_id,
+            conversation_ref=conversation_ref,
+        )
         context = build_user_session_context(user_id=user_id, session=session)
 
         decision, result = await session.run_history_compaction(

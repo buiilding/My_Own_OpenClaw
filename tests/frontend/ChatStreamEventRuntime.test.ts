@@ -637,7 +637,7 @@ describe('chatStreamEventRuntime', () => {
     expect(setActiveConversationRef).toHaveBeenCalledWith('conv-next');
   });
 
-  test('active conversation projection promotes explicit ref for non-local stream events', () => {
+  test('active conversation projection does not let non-local stream events replace an active chat', () => {
     const setActiveConversationRef = jest.fn();
     useChatStore.setState((state) => ({
       ...state,
@@ -650,7 +650,7 @@ describe('chatStreamEventRuntime', () => {
       setActiveConversationRef,
     );
 
-    expect(setActiveConversationRef).toHaveBeenCalledWith('conv-next');
+    expect(setActiveConversationRef).not.toHaveBeenCalled();
   });
 
   test('active conversation projection promotes explicit ref on local-user-message', () => {
