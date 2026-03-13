@@ -24,6 +24,167 @@ else
   exit 1
 fi
 
+prune_runtime_payload() {
+  local runtime_root="$1"
+  local runtime_python="$2"
+
+  echo "[build-sidecar-runtime] pruning packaged runtime payload"
+  "${runtime_python}" - "${runtime_root}" <<'PY'
+from __future__ import annotations
+
+import os
+import shutil
+import sys
+from pathlib import Path
+
+runtime_root = Path(sys.argv[1]).resolve()
+version = f"{sys.version_info.major}.{sys.version_info.minor}"
+stdlib_dir = runtime_root / "lib" / f"python{version}"
+site_packages = stdlib_dir / "site-packages"
+removed_count = 0
+
+
+def remove_path(path: Path) -> None:
+    global removed_count
+    if not path.exists() and not path.is_symlink():
+        return
+    if path.is_dir() and not path.is_symlink():
+        shutil.rmtree(path)
+    else:
+        path.unlink()
+    removed_count += 1
+
+
+for relative in (
+    Path("bin/pip"),
+    Path("bin/pip3"),
+    Path(f"bin/pip{version}"),
+    Path("bin/wheel"),
+    Path("lib") / f"python{version}" / "ensurepip",
+    Path("lib") / "python3.1",
+):
+    remove_path(runtime_root / relative)
+
+for static_lib in (runtime_root / "lib").rglob("*.a"):
+    remove_path(static_lib)
+
+for site_name in ("pip", "setuptools", "wheel"):
+    remove_path(site_packages / site_name)
+
+for pattern in (
+    "pip-*.dist-info",
+    "setuptools-*.dist-info",
+    "wheel-*.dist-info",
+):
+    for path in site_packages.glob(pattern):
+        remove_path(path)
+
+for pattern in (
+    "**/tests",
+    "**/test",
+):
+    for path in site_packages.glob(pattern):
+        remove_path(path)
+
+for pattern in (
+    "**/*.pyx",
+    "**/*.pxd",
+    "**/*.npz",
+):
+    for path in site_packages.glob(pattern):
+        remove_path(path)
+
+for path in stdlib_dir.glob("test"):
+    remove_path(path)
+
+print(f"[build-sidecar-runtime] pruned runtime paths={removed_count}")
+PY
+}
+
+thin_macos_universal_binaries() {
+  local runtime_root="$1"
+  local target_arch="$2"
+
+  if [[ "$(uname -s)" != "Darwin" ]]; then
+    return
+  fi
+
+  if ! command -v lipo >/dev/null 2>&1; then
+    return
+  fi
+
+  echo "[build-sidecar-runtime] thinning universal macOS binaries to ${target_arch}"
+  "${BASE_PYTHON}" - "${runtime_root}" "${target_arch}" <<'PY'
+from __future__ import annotations
+
+import os
+import stat
+import subprocess
+import sys
+from pathlib import Path
+
+runtime_root = Path(sys.argv[1]).resolve()
+target_arch = sys.argv[2]
+thinned = 0
+
+
+def is_macho(path: Path) -> bool:
+    try:
+        with path.open("rb") as handle:
+            magic = handle.read(4)
+    except OSError:
+        return False
+    return magic in {
+        b"\xfe\xed\xfa\xce",
+        b"\xce\xfa\xed\xfe",
+        b"\xfe\xed\xfa\xcf",
+        b"\xcf\xfa\xed\xfe",
+        b"\xca\xfe\xba\xbe",
+        b"\xbe\xba\xfe\xca",
+        b"\xca\xfe\xba\xbf",
+        b"\xbf\xba\xfe\xca",
+    }
+
+
+for path in runtime_root.rglob("*"):
+    if not path.is_file():
+        continue
+    if not is_macho(path):
+        continue
+    try:
+        info = subprocess.run(
+            ["lipo", "-info", str(path)],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        continue
+    output = (info.stdout or info.stderr or "").strip().lower()
+    if "non-fat file" in output or "is architecture:" in output:
+        continue
+    if "are:" not in output or target_arch.lower() not in output:
+        continue
+    tmp_path = path.with_name(f".{path.name}.thin")
+    result = subprocess.run(
+        ["lipo", str(path), "-thin", target_arch, "-output", str(tmp_path)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        if tmp_path.exists():
+            tmp_path.unlink()
+        continue
+    mode = stat.S_IMODE(path.stat().st_mode)
+    os.replace(tmp_path, path)
+    path.chmod(mode)
+    thinned += 1
+
+print(f"[build-sidecar-runtime] thinned_macho_files={thinned}")
+PY
+}
+
 echo "[build-sidecar-runtime] profile=runtime"
 echo "[build-sidecar-runtime] python=${BASE_PYTHON}"
 echo "[build-sidecar-runtime] runtime=${RUNTIME_DIR}"
@@ -184,6 +345,13 @@ fi
 "${RUNTIME_PYTHON}" -m pip install --upgrade pip setuptools wheel
 
 "${RUNTIME_PYTHON}" -m pip install -r "${RUNTIME_REQS}"
+
+prune_runtime_payload "${RUNTIME_DIR}" "${RUNTIME_PYTHON}"
+thin_macos_universal_binaries "${RUNTIME_DIR}" "$("${BASE_PYTHON}" - <<'PY'
+import platform
+print(platform.machine())
+PY
+)"
 
 echo "[build-sidecar-runtime] validating relocated runtime imports"
 "${RUNTIME_PYTHON}" - "${RUNTIME_DIR}" <<'PY'
