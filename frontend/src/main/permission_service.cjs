@@ -1066,13 +1066,8 @@ async function requestInputControlPermission(permission, deps = {}) {
   const systemPreferences = deps.systemPreferences;
 
   if (platform === 'darwin') {
-    let prompted = false;
     if (systemPreferences && typeof systemPreferences.isTrustedAccessibilityClient === 'function') {
-      prompted = Boolean(systemPreferences.isTrustedAccessibilityClient(true));
-    }
-    if (!prompted) {
-      await openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility', deps);
-      return await runPermissionProbe(permissionId, deps);
+      systemPreferences.isTrustedAccessibilityClient(true);
     }
 
     return await runPermissionProbe(permissionId, deps);
@@ -1197,9 +1192,7 @@ async function requestMicrophonePermission(permission, deps = {}) {
 
   let settingsResult = { success: false, reason: 'No fallback settings action attempted.' };
   if (!promptResult.success && !rendererPromptResult.success) {
-    if (platform === 'darwin') {
-      settingsResult = await openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone', deps);
-    } else if (platform === 'win32') {
+    if (platform === 'win32') {
       settingsResult = await openExternal('ms-settings:privacy-microphone', deps);
     } else if (platform === 'linux') {
       settingsResult = await openLinuxPermissionCenter('microphone', deps);

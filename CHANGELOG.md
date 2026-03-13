@@ -8,6 +8,7 @@ All notable changes to WindieOS will be documented in this file.
 - feat(multi-conversation-session-runtime): scope backend agent sessions per `(user_id, conversation_ref)` instead of one mutable session per user, route query/rehydrate/tool-result/stop-query flows to the owning conversation session, preserve per-user runtime settings for newly created conversations, and let `New Chat` create a fresh conversation without auto-canceling an older in-flight one.
 
 ### Fixed
+- fix(onboarding-macos-settings-handoff-order): align macOS onboarding permission requests so Screen Recording, Accessibility, and Microphone no longer preemptively open System Settings before the native OS prompt path finishes.
 - fix(onboarding-macos-screen-capture-prompt-order): stop auto-opening System Settings before the macOS Screen Recording prompt so onboarding now lets the OS mini-dialog drive the “Open System Settings” step.
 - fix(onboarding-browser-first-click): make the onboarding `Open browser` action warm the Windie browser on the first explicit grant click even before the frontend toggle has been persisted, so the browser actually opens during first-run setup.
 - fix(macos-reinstall-script-real-launch): make the local packaged-mac reinstall helper clear broader app state, reset TCC for WindieOS and its Electron helper bundle IDs, launch the installed app through LaunchServices instead of executing the inner Mach-O directly, and keep live packaged-app logs in the terminal via `open --stdout/--stderr`.
