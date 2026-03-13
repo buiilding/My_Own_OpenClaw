@@ -4,6 +4,7 @@ import FrontendOnboardingSlideshow from '../../frontend/src/renderer/features/on
 
 const mockBootstrapPermissions = jest.fn();
 const mockRequestPermission = jest.fn();
+const mockRunPermissionProbe = jest.fn();
 const mockCompleteOnboarding = jest.fn();
 const mockUpdateConfig = jest.fn();
 const mockIpcInvoke = jest.fn(async () => ({ success: true }));
@@ -72,6 +73,7 @@ const mockPermissionState = {
   bootstrapPermissions: mockBootstrapPermissions,
   completeOnboarding: mockCompleteOnboarding,
   requestPermission: mockRequestPermission,
+  runPermissionProbe: mockRunPermissionProbe,
   recheckAllPermissions: jest.fn(),
 };
 
@@ -100,6 +102,11 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 describe('FrontendOnboardingSlideshow', () => {
   beforeEach(() => {
     mockBootstrapPermissions.mockReset();
+    mockRunPermissionProbe.mockReset().mockResolvedValue({
+      permission_id: 'screen_capture',
+      status: 'needs-action',
+      granted: false,
+    });
     mockRequestPermission.mockReset().mockImplementation(async (permissionId) => {
       if (permissionId === 'browser_automation') {
         return {

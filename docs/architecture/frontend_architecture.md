@@ -133,6 +133,7 @@ Current runtime behavior also relies on these explicit seams:
 4. Onboarding and settings surfaces both call store helpers for permission runtime updates:
    - onboarding uses `REQUEST_PERMISSION` (per row) and `CHECK_PERMISSIONS` (global re-check)
    - `PermissionControlCenter` uses `RUN_PERMISSION_PROBE` (per row) and `CHECK_PERMISSIONS` (global recheck)
+5. macOS permissions that bounce users into System Settings now trigger short-lived re-probes from onboarding after `Grant`, so rows can flip to granted when the user returns from Screen Recording / Accessibility / Automation settings.
 
 ## Main Process Responsibilities
 
