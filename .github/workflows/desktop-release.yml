@@ -128,6 +128,8 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           set -euo pipefail
+          publish_release="${{ needs.prepare-release.outputs.publish_release }}"
+
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
             requested="${{ github.event.inputs.run_signing }}"
           else
@@ -168,6 +170,11 @@ jobs:
 
           if [[ "${requested}" == "true" && "${effective}" != "true" ]]; then
             echo "::warning::Signing requested for ${{ matrix.label }}, but required secrets are missing. Building unsigned artifacts instead."
+          fi
+
+          if [[ "${{ matrix.label }}" == "macos" && "${publish_release}" == "true" && "${effective}" != "true" ]]; then
+            echo "macOS published releases must be signed and notarized; refusing to publish an unsigned DMG/ZIP." >&2
+            exit 1
           fi
 
       - name: Log signing mode
@@ -211,6 +218,7 @@ jobs:
         if: ${{ matrix.label != 'windows' }}
         env:
           WINDIE_REQUIRE_SIGNING: ${{ steps.signing.outputs.effective }}
+          WINDIE_VALIDATE_DOWNLOADED_APP: ${{ matrix.label == 'macos' && needs.prepare-release.outputs.publish_release == 'true' }}
         shell: bash
         run: bash ${{ matrix.smoke_script }}
 
