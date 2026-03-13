@@ -85,9 +85,7 @@ describe('permission_service', () => {
       verifyScreenCaptureCapability,
     });
 
-    expect(openExternal).toHaveBeenCalledWith(
-      'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture',
-    );
+    expect(openExternal).not.toHaveBeenCalled();
     expect(verifyScreenCaptureCapability).toHaveBeenCalledTimes(1);
     expect(status.status).toBe('granted');
     expect(status.granted).toBe(true);
@@ -95,6 +93,7 @@ describe('permission_service', () => {
   });
 
   test('screen capture request on macOS stays needs-action when real screenshot verification fails', async () => {
+    const openExternal = jest.fn(async () => true);
     const verifyScreenCaptureCapability = jest.fn(async () => ({
       granted: false,
       reason: 'User dismissed the verification screenshot prompt.',
@@ -104,7 +103,7 @@ describe('permission_service', () => {
       platform: 'darwin',
       permissionStateStore,
       shell: {
-        openExternal: jest.fn(async () => true),
+        openExternal,
       },
       systemPreferences: {
         getMediaAccessStatus: jest.fn(() => 'granted'),
@@ -112,6 +111,7 @@ describe('permission_service', () => {
       verifyScreenCaptureCapability,
     });
 
+    expect(openExternal).not.toHaveBeenCalled();
     expect(verifyScreenCaptureCapability).toHaveBeenCalledTimes(1);
     expect(status.status).toBe('needs-action');
     expect(status.granted).toBe(false);

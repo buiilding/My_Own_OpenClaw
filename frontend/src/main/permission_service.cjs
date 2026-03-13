@@ -1009,10 +1009,6 @@ async function requestScreenCapturePermission(permission, deps = {}) {
   const platform = deps.platform || process.platform;
 
   if (platform === 'darwin') {
-    const settingsResult = await openExternal(
-      'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture',
-      deps,
-    );
     const capability = await verifyScreenCaptureCapability(deps);
 
     if (capability.granted) {
@@ -1022,7 +1018,6 @@ async function requestScreenCapturePermission(permission, deps = {}) {
         'Screen capture permission verified with a real screenshot.',
         {
           platform,
-          settings_result: settingsResult,
           capability_check: capability,
         },
       );
@@ -1035,7 +1030,6 @@ async function requestScreenCapturePermission(permission, deps = {}) {
       {
         platform,
         media_status: getMediaAccessStatus('screen', deps),
-        settings_result: settingsResult,
         capability_check: capability,
         remediation: (
           'Open System Settings -> Privacy & Security -> Screen Recording, enable WindieOS, '
