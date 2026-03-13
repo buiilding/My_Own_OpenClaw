@@ -42,13 +42,19 @@ class _FakeSessionManager:
     def __init__(self, *, has_active_query: bool, session: _FakeSession):
         self._has_active_query = has_active_query
         self._session = session
+        self.has_active_query_calls = []
+        self.get_or_create_calls = []
 
-    def has_active_query_task(self, user_id: str) -> bool:
-        _ = user_id
+    def has_active_query_task(
+        self,
+        user_id: str,
+        conversation_ref=None,
+    ) -> bool:
+        self.has_active_query_calls.append((user_id, conversation_ref))
         return self._has_active_query
 
     async def get_or_create_session(self, user_id: str, conversation_ref=None):
-        _ = (user_id, conversation_ref)
+        self.get_or_create_calls.append((user_id, conversation_ref))
         return self._session
 
 
@@ -89,6 +95,7 @@ async def test_compact_history_handler_rejects_when_query_is_active():
 
     await handler.handle(message, websocket, "user_1")
 
+    assert session_manager.has_active_query_calls == [("user_1", None)]
     assert websocket.sent
     assert websocket.sent[0]["type"] == "context-compaction-failed"
     assert websocket.sent[0]["payload"]["reason"] == "manual"
@@ -138,6 +145,7 @@ async def test_compact_history_handler_emits_started_and_completed_when_applied(
 
     await handler.handle(message, websocket, "user_1")
 
+    assert session_manager.get_or_create_calls == [("user_1", None)]
     assert [item["type"] for item in websocket.sent] == [
         "context-compaction-started",
         "context-compaction-completed",
@@ -229,3 +237,44 @@ async def test_compact_history_handler_emits_completed_with_skip_reason():
     assert len(websocket.sent) == 1
     assert websocket.sent[0]["type"] == "context-compaction-completed"
     assert websocket.sent[0]["payload"]["skipped_reason"] == "below-threshold"
+
+
+@pytest.mark.asyncio
+async def test_compact_history_handler_scopes_active_query_check_and_session_lookup_by_conversation():
+    decision = CompactionDecision(
+        should_compact=False,
+        reason="manual",
+        strategy_name="inline",
+        before_tokens=1200,
+        projected_tokens=1200,
+        user_turn_index=4,
+        skip_reason="below-threshold",
+    )
+    result = CompactionResult(
+        applied=False,
+        reason="manual",
+        strategy_name="inline",
+        before_tokens=1200,
+        after_tokens=1200,
+        removed_messages=0,
+        summary_text="",
+        replacement_history_preview=[],
+        skip_reason="below-threshold",
+    )
+    websocket = _FakeWebSocket()
+    session_manager = _FakeSessionManager(
+        has_active_query=False,
+        session=_FakeSession(decision, result),
+    )
+    handler = CompactHistoryHandler(session_manager)
+    message = CompactHistoryMessage(
+        id="msg_compact_scoped",
+        type="compact-history",
+        user_id="user_1",
+        payload={"conversation_ref": "conv_scoped"},
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert session_manager.has_active_query_calls == [("user_1", "conv_scoped")]
+    assert session_manager.get_or_create_calls == [("user_1", "conv_scoped")]

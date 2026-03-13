@@ -74,6 +74,7 @@ function ChatBox() {
   const { config, updateConfig } = useAppConfigContext();
   const messages = useChatStore((state) => state.messages);
   const isSending = useChatStore((state) => state.isSending);
+  const activeConversationRef = useChatStore((state) => state.activeConversationRef);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const { sendMessage } = useChatMessageSender(undefined, {
@@ -335,8 +336,13 @@ function ChatBox() {
     }
     setThinkingStatus(COMPACTION_THINKING_STATUS);
     setThinkingSourceEventType('context-compaction-started');
-    ApiClient.compactHistory(true);
-  }, [loopInteractionLocked, setThinkingSourceEventType, setThinkingStatus]);
+    ApiClient.compactHistory(true, activeConversationRef || null);
+  }, [
+    activeConversationRef,
+    loopInteractionLocked,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+  ]);
 
   const handleDragMove = useCallback((event) => {
     const dragState = dragStateRef.current;

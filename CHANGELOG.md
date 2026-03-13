@@ -8,6 +8,8 @@ All notable changes to WindieOS will be documented in this file.
 - feat(multi-conversation-session-runtime): scope backend agent sessions per `(user_id, conversation_ref)` instead of one mutable session per user, route query/rehydrate/tool-result/stop-query flows to the owning conversation session, preserve per-user runtime settings for newly created conversations, and let `New Chat` create a fresh conversation without auto-canceling an older in-flight one.
 
 ### Fixed
+- fix(frontend-conversation-projection-background-streams): stop background backend events from re-selecting a different active conversation in the renderer/transcript session after the user starts a new chat, while still allowing `local-user-message` to project the new foreground conversation.
+- fix(compact-history-conversation-scope): add optional `conversation_ref` routing to `compact-history` from renderer to backend, scope active-query blocking to that conversation, and run manual compaction against the selected conversation session instead of a user-global fallback.
 - fix(onboarding-macos-settings-handoff-order): align macOS onboarding permission requests so Screen Recording, Accessibility, and Microphone no longer preemptively open System Settings before the native OS prompt path finishes.
 - fix(onboarding-macos-screen-capture-prompt-order): stop auto-opening System Settings before the macOS Screen Recording prompt so onboarding now lets the OS mini-dialog drive the “Open System Settings” step.
 - fix(onboarding-browser-first-click): make the onboarding `Open browser` action warm the Windie browser on the first explicit grant click even before the frontend toggle has been persisted, so the browser actually opens during first-run setup.

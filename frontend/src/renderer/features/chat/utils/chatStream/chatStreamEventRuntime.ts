@@ -38,13 +38,21 @@ export function syncActiveConversationProjection(
   if (!explicitConversationRef) {
     return;
   }
-  const activeConversationRef = useChatStore.getState().activeConversationRef;
+  const rawActiveConversationRef = useChatStore.getState().activeConversationRef;
+  const activeConversationRef = (
+    typeof rawActiveConversationRef === 'string'
+      ? rawActiveConversationRef.trim()
+      : ''
+  ) || null;
   if (activeConversationRef === conversationRef) {
     return;
   }
-  // Conversation-scoped backend events are the authoritative active-chat signal
-  // for each renderer window. This lets late-mounted overlay windows re-anchor
-  // to the current stream even if they missed the initial local-user-message.
+  if (event.type !== 'local-user-message' && activeConversationRef) {
+    return;
+  }
+  // Only user-initiated local sends or an empty renderer session may project a
+  // new active conversation. Background stream events must stay scoped to their
+  // own workspace instead of stealing foreground chat focus.
   setActiveConversationRef(conversationRef);
 }
 
