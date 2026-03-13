@@ -571,7 +571,8 @@ async def test_execute_emits_fallback_completion_when_agent_stream_ends_without_
         def __init__(self):
             self.config = SimpleNamespace()
 
-        async def get_or_create_session(self, _user_id):
+        async def get_or_create_session(self, _user_id, conversation_ref=None):
+            _ = conversation_ref
             class _Agent:
                 user_id = "user-1"
                 session_id = "session-1"
@@ -628,7 +629,8 @@ async def test_execute_ignores_post_error_events_and_skips_fallback_completion()
         def __init__(self):
             self.config = SimpleNamespace()
 
-        async def get_or_create_session(self, _user_id):
+        async def get_or_create_session(self, _user_id, conversation_ref=None):
+            _ = conversation_ref
             class _Agent:
                 user_id = "user-1"
                 session_id = "session-1"
@@ -688,7 +690,8 @@ async def test_execute_preserves_memory_store_after_terminal_completion():
         def __init__(self):
             self.config = SimpleNamespace()
 
-        async def get_or_create_session(self, _user_id):
+        async def get_or_create_session(self, _user_id, conversation_ref=None):
+            _ = conversation_ref
             class _Agent:
                 user_id = "user-1"
                 session_id = "session-1"
@@ -774,7 +777,8 @@ async def test_execute_re_raises_cancellation_and_reconciles_pending_tool_calls(
             self.config = SimpleNamespace()
             self.agent = _Agent()
 
-        async def get_or_create_session(self, _user_id):
+        async def get_or_create_session(self, _user_id, conversation_ref=None):
+            _ = conversation_ref
             return self.agent
 
     session_manager = _SessionManager()

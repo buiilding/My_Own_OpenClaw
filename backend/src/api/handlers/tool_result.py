@@ -104,7 +104,10 @@ class ToolResultHandler(MessageHandler):
             request_id = payload.request_id
 
             # Get session
-            session = self.session_manager.get_session(user_id)
+            session = self.session_manager.get_session_for_request_id(
+                user_id,
+                request_id,
+            )
             if not session:
                 # Benign - stale/terminated session, log and drop silently
                 logger.debug(
@@ -138,7 +141,10 @@ class ToolResultHandler(MessageHandler):
         bundle_id = payload.bundle_id
 
         # Get session
-        session = self.session_manager.get_session(user_id)
+        session = self.session_manager.get_session_for_bundle_id(
+            user_id,
+            bundle_id,
+        )
         if not session:
             logger.debug(
                 f"Tool bundle result for non-existent session "

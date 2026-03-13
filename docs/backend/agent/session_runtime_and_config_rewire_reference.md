@@ -23,9 +23,10 @@ title: "Session Runtime and Config Rewire Reference"
 
 `SessionManager` owns user-level lifecycle and concurrency:
 
-- `active_sessions[user_id]`
+- `active_sessions[user_id][conversation_ref]`
 - per-user locks (`_user_locks`)
 - active query task metadata (`_active_query_tasks`)
+- per-user effective-config overrides reused by newly created conversation sessions
 - frontend operating-system overrides captured from websocket handshake and applied to session prompt/history
 
 `AgentSession` owns per-session mutable runtime:
@@ -37,18 +38,18 @@ title: "Session Runtime and Config Rewire Reference"
 
 ## Session Creation and Locking Model
 
-`SessionManager.get_or_create_session(user_id)` uses:
+`SessionManager.get_or_create_session(user_id, conversation_ref=...)` uses:
 
 1. fast path without lock when session already cached
 2. per-user lock slow path
 3. double-check after lock acquisition
-4. detached `AppConfig` copy + runtime normalization
-5. factory `create_agent_session(user_id, config)` and cache insert
+4. detached `AppConfig` copy + per-user override merge + runtime normalization
+5. factory `create_agent_session(user_id, config)` and cache insert under the requested conversation ref
 6. apply any frontend operating-system override already registered for that user so prompt/history use the frontend OS instead of the backend host OS
 
 Concurrency properties:
 
-- user-level lock prevents duplicate session creation races
+- user-level lock prevents duplicate session creation races while still allowing multiple cached conversations per user
 - `tests/backend/test_session_manager.py::test_get_or_create_session_is_race_safe` validates single creation under concurrent calls
 
 ## Active Query Task Tracking
@@ -62,6 +63,7 @@ Manager tracks task -> `(turn_ref, conversation_ref)` per user:
 Cancellation behavior:
 
 - cancels all live tasks for user
+- optional `conversation_ref` scopes cancellation to one active conversation
 - drops done tasks
 - when stop arrives before task registration, stores a short-lived pending stop request and consumes it on next `register_active_query_task(...)`
 - returns latest cancelled tuple for stop-query completion metadata
@@ -78,7 +80,7 @@ Validated by:
 - `resolved_calls` (`ResolvedToolCallStorage`)
 - `tool_results` (`ToolResultStorage(cleanup_ttl_seconds=300)`)
 - `system_state`
-- `active_conversation_ref`
+- `active_conversation_ref` (stable per conversation-scoped session in the normal path)
 - `ocr_completion_event`
 - tracked `background_tasks`
 
@@ -109,6 +111,11 @@ This avoids:
 - if same ref: keep history
 - if changed: update `runtime.active_conversation_ref` and clear history
 
+Current expectation after the multi-conversation refactor:
+
+- normal query/rehydrate flow resolves the matching conversation session first, so `_switch_conversation_ref(...)` is usually a no-op
+- history clearing on conversation switch remains as defensive behavior for legacy/default-session paths
+
 `rehydrate_conversation(conversation_ref, entries)`:
 
 - sets active conversation ref
@@ -133,11 +140,12 @@ Why this matters:
 
 ## Session Cleanup Contract
 
-`SessionManager.end_session(user_id)`:
+`SessionManager.end_session(user_id, conversation_ref=None)`:
 
 - acquires user lock
-- calls `session.cleanup()`
-- always removes session, query-task tracking, and lock entries (even if cleanup errors)
+- when `conversation_ref` is provided, cleans up only that conversation-scoped session
+- when omitted, cleans up all sessions for the user
+- always removes cleaned sessions from cache even if cleanup errors
 
 `SessionLifecycle.cleanup(session)`:
 
@@ -157,4 +165,4 @@ Validated by:
 1. Adding new executor/session dependencies without config-rewire updates causes partial settings updates.
 2. Mutating session state outside `AgentSession._lock` can introduce cross-turn history corruption.
 3. Forgetting to register long-lived background tasks in `SessionRuntimeState` breaks deterministic cleanup.
-4. Changing query-task tracking tuple shape can break stop-query completion metadata and frontend state closure.
+4. New conversation-bound routing must preserve request-id and bundle-id lookup, or frontend tool results can land on the wrong session.

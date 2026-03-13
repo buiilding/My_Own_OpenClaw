@@ -192,21 +192,12 @@ function ChatInterface({ focusComposerToken = 0 }) {
       setIsSending,
       setThinkingStatus,
       setTokenCounts,
-      stopActiveQuery: composerBusy
-        ? () => {
-          stopPlayback();
-          ApiClient.stopQuery(transcriptSessionInfo.conversationRef || getActiveConversationRef() || null);
-        }
-        : undefined,
     });
   }, [
-    composerBusy,
     clearMessages,
     setIsSending,
     setThinkingStatus,
     setTokenCounts,
-    stopPlayback,
-    transcriptSessionInfo.conversationRef,
   ]);
 
   const handleToggleSpeechMode = useCallback(() => {

@@ -33,7 +33,10 @@ class RehydrateExecutionService:
         artifact_store_cls: Type[ArtifactStore] = ArtifactStore,
     ) -> None:
         payload = message.payload
-        session = await self._session_manager.get_or_create_session(user_id)
+        session = await self._session_manager.get_or_create_session(
+            user_id,
+            conversation_ref=payload.conversation_ref,
+        )
         artifact_store = self._build_artifact_store(artifact_store_cls)
 
         state = RehydrateNormalizationState()

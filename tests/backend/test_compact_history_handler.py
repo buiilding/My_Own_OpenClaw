@@ -47,8 +47,8 @@ class _FakeSessionManager:
         _ = user_id
         return self._has_active_query
 
-    async def get_or_create_session(self, user_id: str):
-        _ = user_id
+    async def get_or_create_session(self, user_id: str, conversation_ref=None):
+        _ = (user_id, conversation_ref)
         return self._session
 
 

@@ -893,6 +893,21 @@ describe('ChatInterface wiring', () => {
     expect(mockStopQuery).not.toHaveBeenCalled();
   });
 
+  test('dashboard new-chat event does not stop an in-flight conversation', () => {
+    mockChatState.streamTracking.phase = 'streaming';
+    mockChatState.isSending = true;
+
+    render(<ChatInterface />);
+
+    act(() => {
+      window.dispatchEvent(new Event('windie:new-chat'));
+    });
+
+    expect(mockClearMessages).toHaveBeenCalledTimes(1);
+    expect(mockSetActiveConversationRef).toHaveBeenCalledWith(expect.stringMatching(/^conv_/));
+    expect(mockStopQuery).not.toHaveBeenCalled();
+  });
+
   test('passes assistant message action handlers to MessageList when chat has messages', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'hello' },

@@ -82,7 +82,10 @@ class QueryExecutionService:
         msg_id = message.id
 
         query_text = validate_query_text(message.payload.text)
-        agent_instance = await self._session_manager.get_or_create_session(user_id)
+        agent_instance = await self._session_manager.get_or_create_session(
+            user_id,
+            conversation_ref=message.payload.conversation_ref,
+        )
         self._apply_query_runtime_system_state(agent_instance, message)
         stream_context = self._build_stream_context(
             agent_instance=agent_instance,
