@@ -467,6 +467,29 @@ describe('permission_service', () => {
     expect(status.details.browser_warmup.success).toBe(true);
   });
 
+  test('browser automation request opens the browser on first grant even before the frontend toggle is saved', async () => {
+    const warmBrowserAutomationPermission = jest.fn(async () => ({
+      success: true,
+      details: { status: 'successful' },
+    }));
+    const status = await requestPermission('browser_automation', {
+      platform: 'darwin',
+      permissionStateStore,
+      getBrowserAutomationPreference: () => false,
+      verifyBrowserAutomationCapability: jest.fn(async () => ({
+        granted: true,
+        details: { browser_binary_available: true },
+      })),
+      warmBrowserAutomationPermission,
+    });
+
+    expect(warmBrowserAutomationPermission).toHaveBeenCalledTimes(1);
+    expect(status.status).toBe('granted');
+    expect(status.granted).toBe(true);
+    expect(status.details.browser_automation_enabled).toBe(true);
+    expect(status.details.browser_warmup.success).toBe(true);
+  });
+
   test('browser automation request installs chromium when missing and consented', async () => {
     const verifyBrowserAutomationCapability = jest
       .fn()

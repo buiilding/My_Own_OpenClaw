@@ -5,6 +5,8 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(onboarding-browser-first-click): make the onboarding `Open browser` action warm the Windie browser on the first explicit grant click even before the frontend toggle has been persisted, so the browser actually opens during first-run setup.
+- fix(macos-reinstall-script-real-launch): make the local packaged-mac reinstall helper clear broader app state, reset TCC for WindieOS and its Electron helper bundle IDs, launch the installed app through LaunchServices instead of executing the inner Mach-O directly, and keep live packaged-app logs in the terminal via `open --stdout/--stderr`.
 - fix(release-workflow-artifact-quota): stop desktop publish runs from depending on GitHub Actions artifact storage by creating the release first and uploading Linux, macOS, and Windows files directly from each packaging job.
 - fix(release-macos-downloaded-app-validation): require signing/notarization before publishing macOS releases and validate the quarantined downloaded-app launch path instead of only executing the inner Mach-O binary.
 - fix(sidecar-runtime-posix-relocation): replace the host-bound POSIX `venv` packaging path with a copied relocatable interpreter tree and fail smoke checks when bundled runtime imports leak back to the build machine.
