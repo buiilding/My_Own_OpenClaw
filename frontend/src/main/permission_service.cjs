@@ -1360,8 +1360,9 @@ async function requestShellExecutionPermission(permission, deps = {}) {
 async function requestBrowserAutomationPermission(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
-  const preferenceEnabled = getBrowserAutomationPreference(deps);
+  const currentPreferenceEnabled = getBrowserAutomationPreference(deps);
   let capability = await verifyBrowserAutomationCapability(deps);
+  let requestedPreferenceEnabled = currentPreferenceEnabled;
 
   const runBrowserWarmup = async () => {
     if (typeof deps.warmBrowserAutomationPermission !== 'function') {
@@ -1401,6 +1402,7 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
   };
 
   const buildWarmGrantedStatus = async (extraDetails = {}) => {
+    requestedPreferenceEnabled = true;
     const warmup = await runBrowserWarmup();
     if (!warmup.success) {
       return buildProbeResult(
@@ -1409,7 +1411,7 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
         warmup.reason || 'WindieOS could not open the browser yet. Retry Open browser.',
         {
           platform,
-          browser_automation_enabled: preferenceEnabled,
+          browser_automation_enabled: requestedPreferenceEnabled,
           capability_check: capability,
           browser_warmup: warmup,
           ...extraDetails,
@@ -1423,7 +1425,7 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
       'WindieOS browser is ready. Sign in with the profile WindieOS should use for browser help.',
       {
         platform,
-        browser_automation_enabled: preferenceEnabled,
+        browser_automation_enabled: requestedPreferenceEnabled,
         capability_check: capability,
         browser_warmup: warmup,
         ...extraDetails,
@@ -1444,7 +1446,7 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
         consent.reason || 'Chromium install was not approved.',
         {
           platform,
-          browser_automation_enabled: preferenceEnabled,
+          browser_automation_enabled: currentPreferenceEnabled,
           capability_check: capability,
           install_prompt: consent,
         },
@@ -1465,18 +1467,14 @@ async function requestBrowserAutomationPermission(permission, deps = {}) {
       installResult.reason || capability.reason || 'Chromium install did not complete.',
       {
         platform,
-        browser_automation_enabled: preferenceEnabled,
+        browser_automation_enabled: requestedPreferenceEnabled,
         capability_check: capability,
         chromium_install: installResult,
       },
     );
   }
 
-  return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, capability.reason || 'Browser automation runtime is unavailable.', {
-    platform,
-    browser_automation_enabled: preferenceEnabled,
-    capability_check: capability,
-  });
+  return await buildWarmGrantedStatus();
 }
 
 async function requestPermission(permissionId, deps = {}) {
