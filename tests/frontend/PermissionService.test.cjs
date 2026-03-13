@@ -118,6 +118,31 @@ describe('permission_service', () => {
     expect(String(status.reason || '')).toContain('verification screenshot prompt');
   });
 
+  test('accessibility request on macOS uses the native prompt path without auto-opening System Settings', async () => {
+    const openExternal = jest.fn(async () => true);
+    const isTrustedAccessibilityClient = jest
+      .fn()
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(false);
+
+    const status = await requestPermission('input_control_accessibility', {
+      platform: 'darwin',
+      permissionStateStore,
+      shell: {
+        openExternal,
+      },
+      systemPreferences: {
+        isTrustedAccessibilityClient,
+      },
+    });
+
+    expect(isTrustedAccessibilityClient).toHaveBeenNthCalledWith(1, true);
+    expect(isTrustedAccessibilityClient).toHaveBeenNthCalledWith(2, false);
+    expect(openExternal).not.toHaveBeenCalled();
+    expect(status.status).toBe('needs-action');
+    expect(status.granted).toBe(false);
+  });
+
   test('microphone request invokes askForMediaAccess then re-probes status', async () => {
     const askForMediaAccess = jest.fn(async () => true);
     const getMediaAccessStatus = jest.fn(() => 'granted');
@@ -166,6 +191,35 @@ describe('permission_service', () => {
     expect(openExternal).not.toHaveBeenCalled();
     expect(status.status).toBe('granted');
     expect(status.granted).toBe(true);
+  });
+
+  test('microphone request on macOS does not auto-open System Settings when access is denied', async () => {
+    const askForMediaAccess = jest.fn(async () => false);
+    const requestRendererMicrophoneAccess = jest.fn(async () => ({ success: false }));
+    const focusPermissionPromptWindow = jest.fn(async () => ({ success: true }));
+    const openExternal = jest.fn(async () => true);
+    const getMediaAccessStatus = jest.fn(() => 'denied');
+
+    const status = await requestPermission('microphone', {
+      platform: 'darwin',
+      permissionStateStore,
+      shell: {
+        openExternal,
+      },
+      systemPreferences: {
+        askForMediaAccess,
+        getMediaAccessStatus,
+      },
+      focusPermissionPromptWindow,
+      requestRendererMicrophoneAccess,
+    });
+
+    expect(askForMediaAccess).toHaveBeenCalledWith('microphone');
+    expect(focusPermissionPromptWindow).toHaveBeenCalledTimes(1);
+    expect(requestRendererMicrophoneAccess).toHaveBeenCalledTimes(1);
+    expect(openExternal).not.toHaveBeenCalled();
+    expect(status.status).toBe('needs-action');
+    expect(status.granted).toBe(false);
   });
 
   test('System Events automation probe on macOS reflects the sidecar automation verifier', async () => {
