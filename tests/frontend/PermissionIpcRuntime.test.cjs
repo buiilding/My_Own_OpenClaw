@@ -67,4 +67,36 @@ describe('permission_ipc_runtime', () => {
       },
     });
   });
+
+  test('passes browser warmup dependency through request-permission runtime wiring', async () => {
+    const warmBrowserAutomationPermission = jest.fn(async () => ({
+      success: true,
+      details: { status: 'connected' },
+    }));
+    const verifyBrowserAutomationCapability = jest.fn(async () => ({
+      granted: true,
+      details: { browser_binary_available: true },
+    }));
+    const { invokeHandlers } = createRuntime({
+      getBrowserAutomationPreference: () => true,
+      verifyBrowserAutomationCapability,
+      warmBrowserAutomationPermission,
+    });
+
+    const result = await invokeHandlers['request-permission'](null, {
+      permissionId: 'browser_automation',
+    });
+
+    expect(warmBrowserAutomationPermission).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({
+      success: true,
+      data: {
+        status: expect.objectContaining({
+          permission_id: 'browser_automation',
+          status: 'granted',
+          granted: true,
+        }),
+      },
+    });
+  });
 });
