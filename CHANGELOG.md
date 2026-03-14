@@ -2627,6 +2627,7 @@ Includes the last 300 commits on `main`.
 - unreleased refactor(frontend-window-runtime): extract dashboard screenshot suppression helpers into `window_suppression_runtime.cjs` so offscreen hide/restore polling and bounds bookkeeping are unit-tested separately from chat/dashboard visibility policy
 - unreleased fix(backend-stop-query): restore the corrupted `stop_query` handler source after a null-byte checkout regression so backend startup and stop-query routing load normally again.
 - unreleased fix(frontend-permissions): make macOS `screen_capture` grant verify the real screenshot backend once, so onboarding/settings consume the direct-capture prompt before the first auto-screenshot send.
+- unreleased fix(frontend-permissions): pass browser warmup through the permission IPC runtime so Browser Automation grant calls browser `connect` and opens the persistent WindieOS Chrome profile.
 - unreleased fix(sidecar-wakeword): keep wakeword auxiliary model paths in the writable cache during ONNX fallback so dev installs with `openwakeword` but no packaged `resources/models` directory stop crashing on `melspectrogram.onnx` startup.
 - Refactored dashboard message-list auto-scroll behavior into `useMessageListAutoScroll(...)` so `MessageList.jsx` stays focused on rendering while the scroll follow state machine lives in one reusable hook.
 - Fixed dashboard message-list auto-follow so a new user send snaps fully to the bottom and the awaiting-dot indicator keeps the list pinned when the user has not manually scrolled away.
