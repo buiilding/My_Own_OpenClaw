@@ -36,7 +36,10 @@ function resolveGateState({
   manifestVersion,
 }) {
   const requiredPermissionIds = permissions
-    .filter((permission) => permission.required_now === true)
+    .filter((permission) => (
+      permission.onboarding_required_now === true
+        || (permission.onboarding_required_now == null && permission.required_now === true)
+    ))
     .map((permission) => permission.permission_id);
 
   const missingRequiredPermissions = requiredPermissionIds.filter((permissionId) => (

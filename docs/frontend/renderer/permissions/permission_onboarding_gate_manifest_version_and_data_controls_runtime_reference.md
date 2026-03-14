@@ -48,6 +48,11 @@ title: "Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime 
 
 `resolveGateState(...)` computes whether onboarding is required.
 
+The required set is onboarding-specific, not a raw copy of manifest `required_now`.
+Renderer prefers `onboarding_required_now` when present so first-run flow can be
+lighter on platforms where some rows are capability checks rather than true OS
+permission prompts.
+
 Gate is true when any condition fails:
 
 - onboarding completion manifest version does not match current manifest version
@@ -98,6 +103,11 @@ When satisfied:
 - one permission card per slide with a `Grant` action where applicable
 - a final stop-agent shortcut slide after the permission sequence
 - final `Start WindieOS` CTA enabled after permission status loads, with a warning if permissions remain missing
+
+The slideshow uses only permissions where `show_in_onboarding !== false`.
+Settings/Data controls still render the full permission list, including
+settings-only/runtime-check rows hidden from first-run onboarding on
+Windows/Linux.
 
 Permission request handling is split deliberately:
 
