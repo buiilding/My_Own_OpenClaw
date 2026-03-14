@@ -270,4 +270,82 @@ describe('FrontendOnboardingSlideshow', () => {
       mockPermissionState.missingRequiredPermissions = previousMissingRequiredPermissions;
     }
   });
+
+  test('skips settings-only permissions in onboarding slide progression', () => {
+    const previousPermissions = mockPermissionState.permissions;
+    const previousStatuses = mockPermissionState.statusesByPermissionId;
+
+    mockPermissionState.permissions = [
+      {
+        permission_id: 'screen_capture',
+        label: 'Screen capture',
+        description: 'Allow WindieOS to capture the current screen for screenshot context and visual grounding.',
+        access_kind: 'os_permission',
+        grant_action_label: 'Grant',
+        required_now: true,
+        onboarding_required_now: false,
+        show_in_onboarding: false,
+        onboarding_visibility: 'settings',
+      },
+      {
+        permission_id: 'filesystem_workspace_access',
+        label: 'Workspace file access',
+        description: 'Allow file read/replace operations in user-selected workspace locations.',
+        access_kind: 'resource_access',
+        grant_action_label: 'Choose folder',
+        required_now: true,
+        onboarding_required_now: true,
+        show_in_onboarding: true,
+        onboarding_visibility: 'required',
+      },
+      {
+        permission_id: 'browser_automation',
+        label: 'Browser automation',
+        description: 'Open the WindieOS browser so you can sign in with the profile WindieOS should use for browsing, navigation, and web tasks.',
+        access_kind: 'app_capability',
+        grant_action_label: 'Open browser',
+        required_now: false,
+        onboarding_required_now: false,
+        show_in_onboarding: true,
+        onboarding_visibility: 'optional',
+      },
+    ];
+    mockPermissionState.statusesByPermissionId = {
+      screen_capture: {
+        status: 'needs-action',
+        granted: false,
+        reason: 'Grant Screen Recording in Settings if desktop capture fails.',
+      },
+      filesystem_workspace_access: {
+        status: 'needs-action',
+        granted: false,
+        reason: 'Choose a workspace folder to continue.',
+      },
+      browser_automation: {
+        status: 'needs-action',
+        granted: false,
+        reason: 'Open the WindieOS browser and sign in with the profile WindieOS should use for browser help.',
+      },
+    };
+
+    try {
+      render(<FrontendOnboardingSlideshow onComplete={jest.fn()} stopAgentShortcutLabel="Ctrl + Shift + Esc" />);
+
+      expect(screen.getByText('Step 1 of 3')).toBeInTheDocument();
+      expect(screen.getByText('Permission 1 of 2')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Workspace file access' })).toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Screen capture' })).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      expect(screen.getByText('Step 2 of 3')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Browser automation' })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      expect(screen.getByText('Step 3 of 3')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Stop the agent during loops' })).toBeInTheDocument();
+    } finally {
+      mockPermissionState.permissions = previousPermissions;
+      mockPermissionState.statusesByPermissionId = previousStatuses;
+    }
+  });
 });

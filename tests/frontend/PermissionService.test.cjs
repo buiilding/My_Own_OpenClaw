@@ -38,6 +38,26 @@ describe('permission_service', () => {
     expect(result.permissions.length).toBeGreaterThan(0);
     expect(result.statuses).toHaveLength(result.permissions.length);
     expect(result.permissions.some((permission) => permission.permission_id === 'system_events_automation')).toBe(false);
+    expect(result.permissions.find((permission) => permission.permission_id === 'screen_capture')).toMatchObject({
+      show_in_onboarding: false,
+      onboarding_required_now: false,
+      onboarding_visibility: 'settings',
+    });
+    expect(result.permissions.find((permission) => permission.permission_id === 'input_control_accessibility')).toMatchObject({
+      show_in_onboarding: false,
+      onboarding_required_now: false,
+      onboarding_visibility: 'settings',
+    });
+    expect(result.permissions.find((permission) => permission.permission_id === 'filesystem_workspace_access')).toMatchObject({
+      show_in_onboarding: true,
+      onboarding_required_now: true,
+      onboarding_visibility: 'required',
+    });
+    expect(result.permissions.find((permission) => permission.permission_id === 'browser_automation')).toMatchObject({
+      show_in_onboarding: true,
+      onboarding_required_now: false,
+      onboarding_visibility: 'optional',
+    });
   });
 
   test('returns macOS-only System Events automation permission on darwin', async () => {
@@ -49,6 +69,16 @@ describe('permission_service', () => {
     });
 
     expect(result.permissions.some((permission) => permission.permission_id === 'system_events_automation')).toBe(true);
+    expect(result.permissions.find((permission) => permission.permission_id === 'screen_capture')).toMatchObject({
+      show_in_onboarding: true,
+      onboarding_required_now: true,
+      onboarding_visibility: 'required',
+    });
+    expect(result.permissions.find((permission) => permission.permission_id === 'shell_execution')).toMatchObject({
+      show_in_onboarding: false,
+      onboarding_required_now: false,
+      onboarding_visibility: 'settings',
+    });
   });
 
   test('screen capture probe on macOS requires action when screen access missing', async () => {

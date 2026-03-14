@@ -52,6 +52,26 @@ function normalizePlatformScope(platform = process.platform) {
   }
 }
 
+function resolveOnboardingVisibility(permission, platform = process.platform) {
+  const normalizedPlatform = normalizePlatformScope(platform);
+  switch (permission?.permission_id) {
+    case 'screen_capture':
+    case 'input_control_accessibility':
+      return normalizedPlatform === 'macos' ? 'required' : 'settings';
+    case 'system_events_automation':
+    case 'filesystem_workspace_access':
+      return 'required';
+    case 'microphone':
+      return normalizedPlatform === 'macos' ? 'optional' : 'settings';
+    case 'browser_automation':
+      return 'optional';
+    case 'shell_execution':
+      return 'settings';
+    default:
+      return permission?.required_now === true ? 'required' : 'optional';
+  }
+}
+
 function permissionAppliesToPlatform(permission, platform = process.platform) {
   const osScope = typeof permission?.os_scope === 'string'
     ? permission.os_scope.trim().toLowerCase()
@@ -66,7 +86,8 @@ function nowIso() {
   return new Date().toISOString();
 }
 
-function clonePermissionDefinition(permission) {
+function clonePermissionDefinition(permission, platform = process.platform) {
+  const onboardingVisibility = resolveOnboardingVisibility(permission, platform);
   return {
     permission_id: permission.permission_id,
     label: permission.label,
@@ -75,6 +96,9 @@ function clonePermissionDefinition(permission) {
     grant_action_label: typeof permission.grant_action_label === 'string' ? permission.grant_action_label : 'Grant',
     risk_level: permission.risk_level,
     required_now: permission.required_now === true,
+    onboarding_required_now: onboardingVisibility === 'required',
+    show_in_onboarding: onboardingVisibility !== 'settings',
+    onboarding_visibility: onboardingVisibility,
     required_for_planned_system_access: permission.required_for_planned_system_access === true,
     os_scope: permission.os_scope,
     validation_probe: permission.validation_probe,
@@ -1511,7 +1535,7 @@ function listPermissionDefinitions(deps = {}) {
   const platform = deps.platform || process.platform;
   return PERMISSION_DEFINITIONS
     .filter((permission) => permissionAppliesToPlatform(permission, platform))
-    .map(clonePermissionDefinition);
+    .map((permission) => clonePermissionDefinition(permission, platform));
 }
 
 async function checkPermissions(permissionIds = null, deps = {}) {

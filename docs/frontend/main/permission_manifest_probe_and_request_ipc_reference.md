@@ -35,6 +35,7 @@ Permission definition fields cloned by service:
 - `permission_id`, `label`, `description`, `risk_level`
 - `access_kind`, `grant_action_label`
 - `required_now`, `required_for_planned_system_access`
+- `onboarding_required_now`, `show_in_onboarding`, `onboarding_visibility`
 - `os_scope`, `validation_probe`, `unlocks_tool_groups`
 
 ## Probe Runtime (`permission_service.cjs`)
@@ -68,6 +69,17 @@ Status payload shape:
 - `details` object
 
 Unknown permission ids return `status: error`.
+
+Platform-aware onboarding metadata is computed in main before the manifest reaches
+the renderer:
+
+- macOS keeps first-run onboarding for real OS/privacy grants plus selected
+  setup actions such as workspace access and browser profile warm-up
+- Windows/Linux downgrade screen-capture and input-control rows to
+  settings/control-center only because those paths are runtime capability checks,
+  not true first-run OS permission prompts
+- shell verification is not shown in onboarding because it is a runtime
+  availability check rather than a grant
 
 ## Permission Request Runtime
 

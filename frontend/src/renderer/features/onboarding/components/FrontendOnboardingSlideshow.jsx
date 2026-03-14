@@ -27,6 +27,9 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
     showMainWindow,
   } = useMainWindowControls({ warningPrefix: 'FrontendOnboardingSlideshow' });
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const onboardingPermissions = Array.isArray(permissions)
+    ? permissions.filter((permission) => permission?.show_in_onboarding !== false)
+    : [];
   const {
     activePermission,
     activeSlideBody,
@@ -36,7 +39,7 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
     isStopFlowSlide,
     permissionSlides,
     totalSlides,
-  } = buildOnboardingSlideState({ permissions, activeSlideIndex });
+  } = buildOnboardingSlideState({ permissions: onboardingPermissions, activeSlideIndex });
 
   useEffect(() => {
     if (activeSlideIndex > totalSlides - 1) {
