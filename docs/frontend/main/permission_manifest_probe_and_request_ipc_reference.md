@@ -75,9 +75,6 @@ the renderer:
 
 - macOS keeps first-run onboarding for real OS/privacy grants plus selected
   setup actions such as workspace access and browser profile warm-up
-- macOS browser setup now includes a dedicated `app_management` onboarding step
-  ahead of `browser_automation`; the request path uses the real browser warm-up
-  flow to trigger the native App Management prompt the user must allow
 - Windows/Linux downgrade screen-capture and input-control rows to
   settings/control-center only because those paths are runtime capability checks,
   not true first-run OS permission prompts
@@ -103,12 +100,6 @@ the renderer:
 - `browser_automation`:
   - verifies runtime availability, optionally installs Chromium on consent, then runs a real dedicated `browser connect` warm-up so onboarding/settings can open the WindieOS browser ahead of first task use
   - successful request leaves the dedicated WindieOS browser available for sign-in/profile setup; status is inferred from real connect success, not a separate OS permission probe
-- `app_management`:
-  - macOS only
-  - request path triggers the real browser warm-up flow to surface the native
-    App Management prompt before `Open browser`
-  - grant state is persisted after successful warm-up because macOS does not
-    expose a clean direct probe for this permission in the current runtime
 - macOS deep links via `shell.openExternal(...)`:
   - screen capture -> privacy screen-capture pane
   - accessibility input control -> privacy accessibility pane
