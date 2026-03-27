@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 - feat(multi-conversation-session-runtime): scope backend agent sessions per `(user_id, conversation_ref)` instead of one mutable session per user, route query/rehydrate/tool-result/stop-query flows to the owning conversation session, preserve per-user runtime settings for newly created conversations, and let `New Chat` create a fresh conversation without auto-canceling an older in-flight one.
+- tweak(dashboard-sidebar-label): rename the sidebar recent-conversations section from `Your chats` to `Your workspace`.
 
 ### Fixed
 - fix(onboarding-windows-linux-permission-scope): stop first-run onboarding on Windows/Linux from showing screen-capture, input-control, and shell rows as if they were true OS grant steps; keep those in Settings/Data Controls while the onboarding gate now uses explicit platform-aware onboarding metadata.
