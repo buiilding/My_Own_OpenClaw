@@ -3,7 +3,10 @@ const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const os = require('os');
 const { getSystemState, searchMemory, storeMemory } = require('./local_backend_bridge.cjs');
-const { resolveBackendEndpoints } = require('./backend_endpoints.cjs');
+const {
+  resolveBackendEndpointCandidates,
+  resolveBackendEndpoints,
+} = require('./backend_endpoints.cjs');
 const {
   loadFrontendConfigFromDisk,
   saveFrontendConfigToDisk,
@@ -66,6 +69,8 @@ const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
 let BACKEND_ENDPOINTS = resolveBackendEndpoints();
 let BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
 let BACKEND_HTTP_URL = BACKEND_ENDPOINTS.httpUrl;
+let BACKEND_ENDPOINT_CANDIDATES = [BACKEND_ENDPOINTS];
+let activeBackendEndpointIndex = 0;
 const SETTINGS_SYNC_TIMEOUT_MS = 2500;
 let ws = null;
 let rendererWindows = new Set();
@@ -154,9 +159,27 @@ function applyShortcutStatusFallbackToConfig(config) {
 }
 
 function refreshBackendEndpoints(options = {}) {
-  BACKEND_ENDPOINTS = resolveBackendEndpoints(process.env, options);
+  BACKEND_ENDPOINT_CANDIDATES = resolveBackendEndpointCandidates(process.env, options);
+  activeBackendEndpointIndex = 0;
+  BACKEND_ENDPOINTS = BACKEND_ENDPOINT_CANDIDATES[0] || resolveBackendEndpoints(process.env, options);
   BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
   BACKEND_HTTP_URL = BACKEND_ENDPOINTS.httpUrl;
+}
+
+function setActiveBackendEndpoint(index) {
+  const candidate = BACKEND_ENDPOINT_CANDIDATES[index];
+  if (!candidate) {
+    return false;
+  }
+  activeBackendEndpointIndex = index;
+  BACKEND_ENDPOINTS = candidate;
+  BACKEND_URL = candidate.wsUrl;
+  BACKEND_HTTP_URL = candidate.httpUrl;
+  return true;
+}
+
+function advanceToNextBackendEndpoint() {
+  return setActiveBackendEndpoint(activeBackendEndpointIndex + 1);
 }
 
 function log(message) {
@@ -342,9 +365,15 @@ function connect() {
   }
 
   log(`Attempting to connect to Python backend at ${BACKEND_URL}...`);
-  ws = new WebSocket(BACKEND_URL, { origin: BACKEND_ENDPOINTS.wsOrigin });
+  const socket = new WebSocket(BACKEND_URL, { origin: BACKEND_ENDPOINTS.wsOrigin });
+  ws = socket;
+  let opened = false;
 
-  ws.on('open', () => {
+  socket.on('open', () => {
+    if (ws !== socket) {
+      return;
+    }
+    opened = true;
     isConnected = true;
     isFirstQuery = true; // Reset on new connection (new session)
     resetSettingsSyncState();
@@ -375,7 +404,10 @@ function connect() {
     }
   });
 
-  ws.on('message', (message) => {
+  socket.on('message', (message) => {
+    if (ws !== socket) {
+      return;
+    }
     try {
       const data = JSON.parse(message);
       ipcEventReplayState.appendForActiveTurn(data);
@@ -406,23 +438,41 @@ function connect() {
     }
   });
 
-  ws.on('close', () => {
+  socket.on('close', () => {
+    if (ws !== socket) {
+      return;
+    }
     isConnected = false;
     resetSettingsSyncState();
     resetBackendSessionState();
     setResponseOverlayPhase('idle', 'ws-close');
     ipcEventReplayState.clear();
+    if (!opened && advanceToNextBackendEndpoint()) {
+      log(`Primary backend unavailable. Falling back to ${BACKEND_URL}.`);
+      broadcastConnectionStatus(false);
+      ws = null;
+      setTimeout(connect, 0);
+      return;
+    }
     log('Disconnected from Python backend. Attempting to reconnect...');
     broadcastConnectionStatus(false);
+    ws = null;
     setTimeout(connect, reconnectInterval);
   });
 
-  ws.on('error', (error) => {
+  socket.on('error', (error) => {
+    if (ws !== socket) {
+      return;
+    }
     log(`WebSocket error: ${error.message}`);
-    if (ws.readyState !== WebSocket.OPEN) {
-      // No need to explicitly close if it's already closed or closing
-    } else {
-      ws.close();
+    if (!opened && advanceToNextBackendEndpoint()) {
+      log(`Primary backend unavailable. Falling back to ${BACKEND_URL}.`);
+      ws = null;
+      connect();
+      return;
+    }
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.close();
     }
   });
 }

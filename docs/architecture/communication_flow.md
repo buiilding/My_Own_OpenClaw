@@ -27,7 +27,7 @@ WindieOS uses a multi-layered communication architecture with WebSocket for back
 │  │  - IPC Bridge (ipc.cjs)                            │  │
 │  │  - WebSocket Client                                 │  │
 │  └───────────────────────────────────────────────────┘  │
-│                    ↕ WebSocket (default ws://127.0.0.1:8765/ws) │
+│        ↕ WebSocket (default remote-first, local fallback in dev) │
 │  ┌───────────────────────────────────────────────────┐  │
 │  │  Python Backend (FastAPI)                          │  │
 │  │  - WebSocket Routes                                 │  │
@@ -121,7 +121,7 @@ WindieOS uses a multi-layered communication architecture with WebSocket for back
 
 ### Connection Lifecycle
 
-1. **Connection**: Client connects to backend WebSocket (default `ws://127.0.0.1:8765/ws`)
+1. **Connection**: Client connects to backend WebSocket (customer-mode source runs try `wss://api.windieos.com/ws` first and fall back to `ws://127.0.0.1:8765/ws` if the hosted backend is unreachable before the socket opens)
 2. **Handshake**: Client sends handshake message (backend validates and uses client `user_id`)
    - Electron main also sends the frontend operating-system label so backend session prompt rendering can follow the frontend OS instead of the Python host OS
    - Invalid handshake JSON/schema closes the socket with code `1008` (policy violation)
@@ -146,10 +146,15 @@ This control plane is separate from the `/ws` streaming channel and exists to co
 
 1. `BACKEND_WS_URL` and/or `BACKEND_HTTP_URL`
 2. `BACKEND_HOST` + `BACKEND_PORT`
-3. Fallback: `ws://127.0.0.1:8765/ws` and `http://127.0.0.1:8765`
+3. Default customer-mode source-run candidate order:
+   - hosted: `wss://api.windieos.com/ws` and `https://api.windieos.com`
+   - fallback local: `ws://127.0.0.1:8765/ws` and `http://127.0.0.1:8765`
+4. Packaged fallback: hosted defaults only unless explicitly overridden
 
-The resolved HTTP URL is also passed to the Python sidecar as `WINDIE_BACKEND_HTTP_URL`
-so memory embedding/summarization calls target the same backend host.
+The resolved HTTP URL is also passed to the Python sidecar as `WINDIE_BACKEND_HTTP_URL`.
+For source runs that use the hosted-first default, Electron also passes
+`WINDIE_BACKEND_FALLBACK_HTTP_URL=http://127.0.0.1:8765` so sidecar HTTP clients can
+fall back locally when the hosted backend is unreachable.
 
 ### Message Format
 

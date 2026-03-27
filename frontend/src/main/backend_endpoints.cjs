@@ -4,15 +4,17 @@
  * Supported env vars:
  * - BACKEND_WS_URL   (highest priority for WebSocket URL)
  * - BACKEND_HTTP_URL (highest priority for HTTP base URL)
- * - BACKEND_HOST + BACKEND_PORT (fallback)
+ * - BACKEND_HOST + BACKEND_PORT (explicit local endpoint override)
+ * - WINDIE_DEFAULT_BACKEND_HTTP_URL / WINDIE_DEFAULT_BACKEND_WS_URL
+ *   (optional hosted-default overrides for all app modes)
  * - WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL / WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL
- *   (optional packaged-app defaults)
+ *   (legacy hosted-default overrides for packaged mode; still honored)
  */
 
 const DEFAULT_LOCAL_BACKEND_HOST = '127.0.0.1';
 const DEFAULT_LOCAL_BACKEND_PORT = '8765';
-const DEFAULT_PACKAGED_BACKEND_HTTP_URL = 'https://api.windieos.com';
-const DEFAULT_PACKAGED_BACKEND_WS_URL = 'wss://api.windieos.com/ws';
+const DEFAULT_HOSTED_BACKEND_HTTP_URL = 'https://api.windieos.com';
+const DEFAULT_HOSTED_BACKEND_WS_URL = 'wss://api.windieos.com/ws';
 
 function trimTrailingSlash(value) {
   return value.endsWith('/') ? value.slice(0, -1) : value;
@@ -68,7 +70,53 @@ function toHttpUrl(wsUrl) {
   return trimTrailingSlash(parsed.toString());
 }
 
-function resolvePackagedFallbackEndpoints(env) {
+function normalizeEndpointPair(endpoint) {
+  if (!endpoint || typeof endpoint !== 'object') {
+    return null;
+  }
+  const httpUrl = normalizeUrl(endpoint.httpUrl, ['http:', 'https:']);
+  const wsUrl = normalizeUrl(endpoint.wsUrl, ['ws:', 'wss:']);
+  if (!httpUrl && !wsUrl) {
+    return null;
+  }
+  const normalizedHttpUrl = httpUrl || toHttpUrl(wsUrl);
+  const normalizedWsUrl = wsUrl || toWsUrl(httpUrl);
+  return {
+    httpUrl: normalizedHttpUrl,
+    wsUrl: normalizedWsUrl,
+    wsOrigin: normalizedHttpUrl,
+  };
+}
+
+function dedupeEndpointCandidates(candidates = []) {
+  const seen = new Set();
+  const normalized = [];
+
+  for (const candidate of candidates) {
+    const endpoint = normalizeEndpointPair(candidate);
+    if (!endpoint) {
+      continue;
+    }
+    const key = `${endpoint.httpUrl}::${endpoint.wsUrl}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    normalized.push(endpoint);
+  }
+
+  return normalized;
+}
+
+function resolveHostedDefaultEndpoints(env) {
+  const explicitDefaultHttpUrl = normalizeUrl(
+    env.WINDIE_DEFAULT_BACKEND_HTTP_URL,
+    ['http:', 'https:'],
+  );
+  const explicitDefaultWsUrl = normalizeUrl(
+    env.WINDIE_DEFAULT_BACKEND_WS_URL,
+    ['ws:', 'wss:'],
+  );
   const explicitPackagedHttpUrl = normalizeUrl(
     env.WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL,
     ['http:', 'https:'],
@@ -78,6 +126,21 @@ function resolvePackagedFallbackEndpoints(env) {
     ['ws:', 'wss:'],
   );
 
+  if (explicitDefaultHttpUrl && explicitDefaultWsUrl) {
+    return { httpUrl: explicitDefaultHttpUrl, wsUrl: explicitDefaultWsUrl };
+  }
+  if (explicitDefaultHttpUrl) {
+    return {
+      httpUrl: explicitDefaultHttpUrl,
+      wsUrl: toWsUrl(explicitDefaultHttpUrl),
+    };
+  }
+  if (explicitDefaultWsUrl) {
+    return {
+      httpUrl: toHttpUrl(explicitDefaultWsUrl),
+      wsUrl: explicitDefaultWsUrl,
+    };
+  }
   if (explicitPackagedHttpUrl && explicitPackagedWsUrl) {
     return { httpUrl: explicitPackagedHttpUrl, wsUrl: explicitPackagedWsUrl };
   }
@@ -94,8 +157,8 @@ function resolvePackagedFallbackEndpoints(env) {
     };
   }
   return {
-    httpUrl: DEFAULT_PACKAGED_BACKEND_HTTP_URL,
-    wsUrl: DEFAULT_PACKAGED_BACKEND_WS_URL,
+    httpUrl: DEFAULT_HOSTED_BACKEND_HTTP_URL,
+    wsUrl: DEFAULT_HOSTED_BACKEND_WS_URL,
   };
 }
 
@@ -111,14 +174,12 @@ function resolveLocalFallbackEndpoints(env) {
 function resolveBackendEndpoints(env = process.env, options = {}) {
   const explicitHttpUrl = normalizeUrl(env.BACKEND_HTTP_URL, ['http:', 'https:']);
   const explicitWsUrl = normalizeUrl(env.BACKEND_WS_URL, ['ws:', 'wss:']);
-  const fallback = options.isPackaged === true
-    ? resolvePackagedFallbackEndpoints(env)
-    : resolveLocalFallbackEndpoints(env);
 
   let httpUrl = explicitHttpUrl;
   let wsUrl = explicitWsUrl;
 
   if (!httpUrl && !wsUrl) {
+    const [fallback] = resolveBackendEndpointCandidates(env, options);
     httpUrl = fallback.httpUrl;
     wsUrl = fallback.wsUrl;
   } else if (httpUrl && !wsUrl) {
@@ -134,6 +195,42 @@ function resolveBackendEndpoints(env = process.env, options = {}) {
   };
 }
 
+function resolveBackendEndpointCandidates(env = process.env, options = {}) {
+  const explicitHttpUrl = normalizeUrl(env.BACKEND_HTTP_URL, ['http:', 'https:']);
+  const explicitWsUrl = normalizeUrl(env.BACKEND_WS_URL, ['ws:', 'wss:']);
+  const explicitLocalHostOrPort = (
+    typeof env.BACKEND_HOST === 'string'
+    || typeof env.BACKEND_PORT === 'string'
+  );
+
+  if (explicitHttpUrl || explicitWsUrl) {
+    return dedupeEndpointCandidates([
+      {
+        httpUrl: explicitHttpUrl || toHttpUrl(explicitWsUrl),
+        wsUrl: explicitWsUrl || toWsUrl(explicitHttpUrl),
+      },
+    ]);
+  }
+
+  if (explicitLocalHostOrPort) {
+    return dedupeEndpointCandidates([
+      resolveLocalFallbackEndpoints(env),
+    ]);
+  }
+
+  if (options.isPackaged === true) {
+    return dedupeEndpointCandidates([
+      resolveHostedDefaultEndpoints(env),
+    ]);
+  }
+
+  return dedupeEndpointCandidates([
+    resolveHostedDefaultEndpoints(env),
+    resolveLocalFallbackEndpoints(env),
+  ]);
+}
+
 module.exports = {
+  resolveBackendEndpointCandidates,
   resolveBackendEndpoints,
 };

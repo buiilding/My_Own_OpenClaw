@@ -7,7 +7,7 @@ from typing import Any, Optional
 
 import aiohttp
 
-from core.backend_config import get_backend_http_url
+from core.backend_config import get_backend_http_url, get_backend_http_urls
 from core.unicode_sanitizer import sanitize_surrogates
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,12 @@ class RemoteApiClientBase:
     _aiohttp = aiohttp
 
     def __init__(self, backend_url: Optional[str] = None, timeout_seconds: int = 60):
-        self.backend_url = (backend_url or get_backend_http_url()).rstrip("/")
+        self.backend_urls = (
+            [(backend_url or get_backend_http_url()).rstrip("/")]
+            if backend_url
+            else get_backend_http_urls()
+        )
+        self.backend_url = self.backend_urls[0]
         self.timeout_seconds = timeout_seconds
         self._session: Optional[aiohttp.ClientSession] = None
 
@@ -44,27 +49,45 @@ class RemoteApiClientBase:
         if not self._session:
             await self.initialize()
 
-        try:
-            sanitized_payload = sanitize_surrogates(payload)
-            async with self._session.post(
-                f"{self.backend_url}{path}",
-                json=sanitized_payload,
-                timeout=self._aiohttp.ClientTimeout(total=self.timeout_seconds),
-            ) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    raise Exception(f"{api_label} API returned {response.status}: {error_text}")
+        sanitized_payload = sanitize_surrogates(payload)
+        last_network_error: Optional[Exception] = None
 
-                data = await response.json()
-                if not data.get("success"):
-                    raise Exception(f"{api_label} API returned success=false")
+        for index, backend_url in enumerate(self.backend_urls):
+            try:
+                async with self._session.post(
+                    f"{backend_url}{path}",
+                    json=sanitized_payload,
+                    timeout=self._aiohttp.ClientTimeout(total=self.timeout_seconds),
+                ) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        raise Exception(f"{api_label} API returned {response.status}: {error_text}")
 
-                return data
-        except self._aiohttp.ClientError as err:
-            logger.error("Network error calling %s API: %s", api_label.lower(), err)
-            raise Exception(
-                f"Failed to connect to {network_service_label} service: {err}"
-            ) from err
-        except Exception as err:
-            logger.error("Error requesting %s: %s", request_error_label, err)
-            raise
+                    data = await response.json()
+                    if not data.get("success"):
+                        raise Exception(f"{api_label} API returned success=false")
+
+                    self.backend_url = backend_url
+                    return data
+            except self._aiohttp.ClientError as err:
+                last_network_error = err
+                if index + 1 < len(self.backend_urls):
+                    logger.warning(
+                        "Network error calling %s API at %s: %s; trying fallback %s",
+                        api_label.lower(),
+                        backend_url,
+                        err,
+                        self.backend_urls[index + 1],
+                    )
+                    continue
+                logger.error("Network error calling %s API: %s", api_label.lower(), err)
+                raise Exception(
+                    f"Failed to connect to {network_service_label} service: {err}"
+                ) from err
+            except Exception as err:
+                logger.error("Error requesting %s: %s", request_error_label, err)
+                raise
+
+        raise Exception(
+            f"Failed to connect to {network_service_label} service: {last_network_error}"
+        )

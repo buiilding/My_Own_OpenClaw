@@ -16,6 +16,31 @@ from core import remote_embedding_client as remote_embedding_client_module  # no
 from core.remote_embedding_client import RemoteEmbeddingClient  # noqa: E402
 
 
+class SequentialSession:
+    def __init__(self, *, post_results=None, get_results=None):
+        self.post_results = list(post_results or [])
+        self.get_results = list(get_results or [])
+        self.post_calls = []
+        self.get_calls = []
+
+    def post(self, url, json=None, timeout=None):
+        self.post_calls.append((url, json, timeout))
+        result = self.post_results.pop(0)
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    def get(self, url, timeout=None):
+        self.get_calls.append((url, timeout))
+        result = self.get_results.pop(0)
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    async def close(self):
+        return None
+
+
 @pytest.mark.asyncio
 async def test_embed_text_success():
     response = DummyResponse(200, json_data={"embedding": [1.0, 2.0, 3.0]})
@@ -49,6 +74,28 @@ async def test_embed_text_wraps_network_client_error():
 
     with pytest.raises(Exception, match="Failed to connect to embedding service"):
         await client.embed_text("hello")
+
+
+@pytest.mark.asyncio
+async def test_embed_text_falls_back_to_secondary_backend_on_network_error(monkeypatch):
+    monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://api.windieos.com")
+    monkeypatch.setenv("WINDIE_BACKEND_FALLBACK_HTTP_URL", "http://127.0.0.1:8765")
+    client = RemoteEmbeddingClient()
+    client._session = SequentialSession(
+        post_results=[
+            aiohttp.ClientError("remote down"),
+            DummyResponse(200, json_data={"embedding": [4.0, 5.0]}),
+        ],
+    )
+
+    embedding = await client.embed_text("hello")
+
+    assert embedding.tolist() == [4.0, 5.0]
+    assert [call[0] for call in client._session.post_calls] == [
+        "https://api.windieos.com/api/embeddings/",
+        "http://127.0.0.1:8765/api/embeddings/",
+    ]
+    assert client.backend_url == "http://127.0.0.1:8765"
 
 
 @pytest.mark.asyncio
@@ -87,6 +134,26 @@ async def test_health_check_returns_false_when_request_raises():
     )
 
     assert await client.health_check() is False
+
+
+@pytest.mark.asyncio
+async def test_health_check_falls_back_to_secondary_backend(monkeypatch):
+    monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://api.windieos.com")
+    monkeypatch.setenv("WINDIE_BACKEND_FALLBACK_HTTP_URL", "http://127.0.0.1:8765")
+    client = RemoteEmbeddingClient()
+    client._session = SequentialSession(
+        get_results=[
+            RuntimeError("remote down"),
+            DummyResponse(200, json_data={"status": "healthy"}),
+        ],
+    )
+
+    assert await client.health_check() is True
+    assert [call[0] for call in client._session.get_calls] == [
+        "https://api.windieos.com/api/embeddings/health",
+        "http://127.0.0.1:8765/api/embeddings/health",
+    ]
+    assert client.backend_url == "http://127.0.0.1:8765"
 
 
 @pytest.mark.asyncio

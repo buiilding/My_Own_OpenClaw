@@ -306,6 +306,30 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     await expectClientEndpoints(handlers, 'ws://10.0.0.42:9001/ws', 'http://10.0.0.42:9001');
   });
 
+  test('uses hosted backend defaults first for customer-mode desktop runs', async () => {
+    const { ws, handlers } = initIpc();
+    expect(ws.url).toBe('wss://api.windieos.com/ws');
+    expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://api.windieos.com' }));
+
+    await expectClientEndpoints(handlers, 'wss://api.windieos.com/ws', 'https://api.windieos.com');
+  });
+
+  test('falls back to the local backend when the hosted default is unreachable before open', async () => {
+    const { handlers } = initIpc();
+    const WebSocketMock = require('ws');
+    const remoteSocket = WebSocketMock.instances[0];
+
+    remoteSocket.handlers.error({ message: 'connect ECONNREFUSED api.windieos.com' });
+
+    const fallbackSocket = WebSocketMock.instances[1];
+    expect(fallbackSocket.url).toBe('ws://127.0.0.1:8765/ws');
+    expect(fallbackSocket.options).toEqual(expect.objectContaining({ origin: 'http://127.0.0.1:8765' }));
+
+    fallbackSocket.triggerOpen();
+
+    await expectClientEndpoints(handlers, 'ws://127.0.0.1:8765/ws', 'http://127.0.0.1:8765');
+  });
+
   test('derives websocket URL from BACKEND_HTTP_URL when explicit ws url is absent', async () => {
     process.env.BACKEND_HTTP_URL = 'https://windie.example.com/';
 

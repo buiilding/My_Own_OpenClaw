@@ -2,7 +2,7 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
-from core.backend_config import get_backend_http_url  # noqa: E402
+from core.backend_config import get_backend_http_url, get_backend_http_urls  # noqa: E402
 
 
 def test_get_backend_http_url_defaults_to_localhost(monkeypatch):
@@ -41,3 +41,14 @@ def test_get_backend_http_url_strips_multiple_trailing_slashes(monkeypatch):
     monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "http://localhost:9001////")
 
     assert get_backend_http_url() == "http://localhost:9001"
+
+
+def test_get_backend_http_urls_includes_windie_fallback_without_duplicates(monkeypatch):
+    monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://api.windieos.com/")
+    monkeypatch.setenv("WINDIE_BACKEND_FALLBACK_HTTP_URL", "http://127.0.0.1:8765/")
+    monkeypatch.setenv("BACKEND_HTTP_URL", "http://127.0.0.1:8765/")
+
+    assert get_backend_http_urls() == [
+        "https://api.windieos.com",
+        "http://127.0.0.1:8765",
+    ]

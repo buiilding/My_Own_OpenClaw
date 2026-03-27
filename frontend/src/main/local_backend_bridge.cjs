@@ -2,7 +2,10 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const { ipcMain, BrowserWindow, screen } = require('electron');
 const { v4: uuidv4 } = require('uuid');
-const { resolveBackendEndpoints } = require('./backend_endpoints.cjs');
+const {
+  resolveBackendEndpointCandidates,
+  resolveBackendEndpoints,
+} = require('./backend_endpoints.cjs');
 const {
   COMPILED_RPC_HANDLER_DEFINITIONS,
   mapSearchMemoryPayload,
@@ -293,6 +296,9 @@ function startLocalBackend(mainWindow, options = {}) {
   const permissionStatePath = typeof options.permissionStatePath === 'string'
     ? options.permissionStatePath.trim()
     : '';
+  const backendFallbackHttpUrl = typeof options.backendFallbackHttpUrl === 'string'
+    ? options.backendFallbackHttpUrl.trim()
+    : '';
 
   if (launchTarget.kind === 'python' && !launchTarget.command) {
     const errorMessage = options.isPackaged === true
@@ -343,6 +349,7 @@ function startLocalBackend(mainWindow, options = {}) {
       ...process.env,
       PYTHONUNBUFFERED: '1',
       WINDIE_BACKEND_HTTP_URL: backendEndpoints.httpUrl,
+      ...(backendFallbackHttpUrl ? { WINDIE_BACKEND_FALLBACK_HTTP_URL: backendFallbackHttpUrl } : {}),
       WINDIE_PACKAGED_APP: packagedApp ? '1' : '0',
       WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: packagedApp ? '0' : '1',
       ...(permissionStatePath ? { WINDIE_PERMISSION_STATE_PATH: permissionStatePath } : {}),
@@ -583,7 +590,9 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     ? options.getFrontendConfig
     : null;
   const isPackaged = options.isPackaged === true;
-  const backendEndpoints = resolveBackendEndpoints(process.env, { isPackaged });
+  const backendEndpointCandidates = resolveBackendEndpointCandidates(process.env, { isPackaged });
+  const backendEndpoints = backendEndpointCandidates[0] || resolveBackendEndpoints(process.env, { isPackaged });
+  const backendFallbackHttpUrl = backendEndpointCandidates[1]?.httpUrl || '';
   const {
     resolveWindows,
     resolveMainWindow,
@@ -595,6 +604,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   startLocalBackend(mainWindow, {
     isPackaged,
     backendEndpoints,
+    backendFallbackHttpUrl,
     permissionStatePath: options.permissionStatePath,
   });
 
