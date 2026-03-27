@@ -74,6 +74,11 @@ describe('permission_service', () => {
       onboarding_required_now: true,
       onboarding_visibility: 'required',
     });
+    expect(result.permissions.find((permission) => permission.permission_id === 'app_management')).toMatchObject({
+      show_in_onboarding: true,
+      onboarding_required_now: true,
+      onboarding_visibility: 'required',
+    });
     expect(result.permissions.find((permission) => permission.permission_id === 'shell_execution')).toMatchObject({
       show_in_onboarding: false,
       onboarding_required_now: false,
@@ -556,6 +561,10 @@ describe('permission_service', () => {
       success: true,
       details: { status: 'successful' },
     }));
+    await permissionStateStore.set('app_management', {
+      granted: true,
+      source: 'os',
+    });
     const status = await requestPermission('browser_automation', {
       platform: 'darwin',
       permissionStateStore,
@@ -619,6 +628,10 @@ describe('permission_service', () => {
       success: false,
       error: 'Failed to connect to Chrome.',
     }));
+    await permissionStateStore.set('app_management', {
+      granted: true,
+      source: 'os',
+    });
 
     const status = await requestPermission('browser_automation', {
       platform: 'darwin',
@@ -660,6 +673,68 @@ describe('permission_service', () => {
     expect(status.status).toBe('needs-action');
     expect(status.granted).toBe(false);
     expect(String(status.reason || '')).toContain('canceled');
+  });
+
+  test('app management request on macOS becomes granted after browser warmup succeeds', async () => {
+    const warmBrowserAutomationPermission = jest.fn(async () => ({
+      success: true,
+      details: { app_management_prompt_shown: true },
+    }));
+
+    const status = await requestPermission('app_management', {
+      platform: 'darwin',
+      permissionStateStore,
+      warmBrowserAutomationPermission,
+    });
+
+    expect(warmBrowserAutomationPermission).toHaveBeenCalledTimes(1);
+    expect(status.status).toBe('granted');
+    expect(status.granted).toBe(true);
+
+    const probe = await runPermissionProbe('app_management', {
+      platform: 'darwin',
+      permissionStateStore,
+    });
+    expect(probe.status).toBe('granted');
+    expect(probe.granted).toBe(true);
+  });
+
+  test('browser automation on macOS stays blocked until app management is granted', async () => {
+    const warmBrowserAutomationPermission = jest.fn(async () => ({
+      success: true,
+      details: { browser_connected: true },
+    }));
+
+    const blocked = await requestPermission('browser_automation', {
+      platform: 'darwin',
+      permissionStateStore,
+      getBrowserAutomationPreference: () => false,
+      verifyBrowserAutomationCapability: jest.fn(async () => ({ granted: true })),
+      warmBrowserAutomationPermission,
+    });
+
+    expect(blocked.status).toBe('needs-action');
+    expect(blocked.granted).toBe(false);
+    expect(String(blocked.reason || '')).toContain('App Management');
+    expect(warmBrowserAutomationPermission).not.toHaveBeenCalled();
+
+    await requestPermission('app_management', {
+      platform: 'darwin',
+      permissionStateStore,
+      warmBrowserAutomationPermission,
+    });
+
+    const unblocked = await requestPermission('browser_automation', {
+      platform: 'darwin',
+      permissionStateStore,
+      getBrowserAutomationPreference: () => false,
+      verifyBrowserAutomationCapability: jest.fn(async () => ({ granted: true })),
+      warmBrowserAutomationPermission,
+    });
+
+    expect(unblocked.status).toBe('granted');
+    expect(unblocked.granted).toBe(true);
+    expect(warmBrowserAutomationPermission).toHaveBeenCalledTimes(2);
   });
 
   test('unknown permission id returns error status', async () => {
