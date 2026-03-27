@@ -1,6 +1,6 @@
 {
-  "manifest_version": "1.3.0",
-  "generated_at": "2026-03-27",
+  "manifest_version": "1.2.0",
+  "generated_at": "2026-03-11",
   "permissions": [
     {
       "permission_id": "screen_capture",
@@ -53,19 +53,6 @@
       "os_scope": "all",
       "validation_probe": "os_media_status_microphone",
       "unlocks_tool_groups": ["voice"]
-    },
-    {
-      "permission_id": "app_management",
-      "label": "App Management",
-      "description": "Allow WindieOS to prepare and manage the dedicated browser instance on macOS without Privacy & Security blocking app-management operations.",
-      "access_kind": "os_permission",
-      "grant_action_label": "Allow",
-      "risk_level": "high",
-      "required_now": true,
-      "required_for_planned_system_access": true,
-      "os_scope": "macos",
-      "validation_probe": "macos_app_management_browser_probe",
-      "unlocks_tool_groups": ["browser"]
     },
     {
       "permission_id": "filesystem_workspace_access",
