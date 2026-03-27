@@ -131,7 +131,7 @@ Wakeword detection runs as a separate Python subprocess:
   - `tests/frontend/WakewordBridge.test.cjs` validates stale partial wakeword `stderr` buffers are cleared across stop/start restart.
 - Shell command sessions:
   - Use `open_app` for detached GUI launches that should survive sidecar/agent exit.
-  - `run_shell_command` supports `yield_after_seconds`, `env`, and best-effort `pty` (PTY on Unix; fallback on Windows).
-  - If `directory` is omitted, `run_shell_command` starts in the OS user home directory.
+- `run_shell_command` supports `yield_after_seconds`, `env`, and best-effort `pty` (PTY on Unix; fallback on Windows).
+  - If `directory` is omitted, `run_shell_command` starts in the user-selected workspace folder when `filesystem_workspace_access` has a stored selected path; otherwise it falls back to the OS user home directory.
   - Use `process` to list/poll/log/write/kill backgrounded shell sessions.
 - Run: `./scripts/test-sidecar` (preferred), or `./scripts/python-in-env sidecar python -m pytest tests/sidecar`.

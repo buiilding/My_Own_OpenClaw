@@ -51,7 +51,15 @@ class RunShellCommandArgs(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
     command: str = Field(..., description="Exact command to execute")
-    directory: Optional[str] = Field(None, description="(OPTIONAL) The absolute path of the directory to run the command in. If not provided, defaults to the OS user home directory. Must be an absolute path and must already exist.")
+    directory: Optional[str] = Field(
+        None,
+        description=(
+            "(OPTIONAL) The absolute path of the directory to run the command in. "
+            "If not provided, defaults to the user-selected WindieOS workspace folder "
+            "when one is configured, otherwise the OS user home directory. Must be an "
+            "absolute path and must already exist."
+        ),
+    )
     run_in_background: bool = Field(
         ...,
         description=(

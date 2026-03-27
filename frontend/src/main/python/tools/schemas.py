@@ -213,7 +213,13 @@ class RunShellCommandArgs(BaseModel):
     model_config = ConfigDict(extra='forbid')
     
     command: str = Field(..., description="Command to execute")
-    directory: Optional[str] = Field(None, description="Working directory (must be absolute path)")
+    directory: Optional[str] = Field(
+        None,
+        description=(
+            "Working directory (must be absolute path). If omitted, WindieOS uses the "
+            "user-selected workspace folder when configured, otherwise the OS user home directory."
+        ),
+    )
     run_in_background: bool = Field(..., description="Run command in background")
     terminate_after_seconds: Optional[float] = Field(120.0, description="Timeout in seconds (for foreground execution)")
     yield_after_seconds: Optional[float] = Field(

@@ -41,7 +41,7 @@ Entry: `run_shell_command(args: dict)`.
 Validation and defaults:
 
 - `command` must be non-empty
-- `directory` must be absolute if provided; default is `Path.home()`
+- `directory` must be absolute if provided; otherwise default is the selected workspace folder from `filesystem_workspace_access` when available, then `Path.home()`
 - `max_output_tokens` defaults to `10000`; must be positive int
 - `terminate_after_seconds` defaults to `120.0`
 - optional `pty=true` is best-effort (disabled on Windows or missing `pty` module)
@@ -144,7 +144,7 @@ Termination and cleanup:
 
 - background poll path and completion states
 - timeout handling + timeout flag
-- default cwd fallback to user home
+- default cwd fallback to selected workspace folder, then user home
 - environment override support
 - PTY warning behavior when unavailable
 - default/custom output token truncation

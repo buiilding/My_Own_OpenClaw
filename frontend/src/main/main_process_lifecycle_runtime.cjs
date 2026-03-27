@@ -128,6 +128,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     getMainWindow = () => null,
     getChatWindow = () => null,
     getResponseWindow = () => null,
+    installApplicationMenu = () => {},
     syncWindowDisplayAffinity = () => {},
     stopLocalBackend,
     stopVmWorker = () => {},
@@ -181,6 +182,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
   });
 
   app.whenReady().then(() => {
+    installApplicationMenu();
     createWindow();
     let chatOverlay = null;
     let responseOverlay = null;

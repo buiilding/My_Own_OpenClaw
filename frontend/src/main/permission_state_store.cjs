@@ -131,4 +131,5 @@ function createPermissionStateStore(deps = {}) {
 
 module.exports = {
   createPermissionStateStore,
+  resolveStatePath,
 };

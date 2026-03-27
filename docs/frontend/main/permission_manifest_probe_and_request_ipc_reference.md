@@ -95,6 +95,7 @@ the renderer:
   - Linux: verifies desktop capture directly via Electron capability check
 - `filesystem_workspace_access`:
   - opens a folder picker and persists the selected paths to `permission_state_store.cjs`
+  - the same picker is reused by the native `File -> Open Folder…` app-menu action so users can switch the default workspace folder outside onboarding/settings
 - `shell_execution`:
   - runs an elevated authentication flow and reports success/failure for that attempt without caching a fake permanent grant
 - `browser_automation`:
@@ -114,6 +115,7 @@ Request API is best-effort and returns normalized probe/status payloads.
 Current persisted item:
 
 - `filesystem_workspace_access` selected folder paths
+  - sidecar shell commands use the first still-existing selected path as the default cwd when `directory` is omitted
 
 Current non-persisted items:
 

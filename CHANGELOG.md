@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 - feat(multi-conversation-session-runtime): scope backend agent sessions per `(user_id, conversation_ref)` instead of one mutable session per user, route query/rehydrate/tool-result/stop-query flows to the owning conversation session, preserve per-user runtime settings for newly created conversations, and let `New Chat` create a fresh conversation without auto-canceling an older in-flight one.
+- feat(file-menu-workspace-picker): add `File -> Open Folder…` to reuse the workspace folder picker, persist the selected folder as the default WindieOS workspace, and make shell commands without an explicit `directory` start there before falling back to the OS user home directory.
 - tweak(dashboard-sidebar-label): rename the sidebar recent-conversations section from `Your chats` to `Your workspace`.
 
 ### Fixed
