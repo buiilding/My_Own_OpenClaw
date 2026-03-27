@@ -13,6 +13,13 @@ const {
 } = require('electron');
 const path = require('path');
 const {
+  installApplicationMenu,
+} = require('./app_menu_runtime.cjs');
+const {
+  createPermissionStateStore,
+  resolveStatePath: resolvePermissionStatePath,
+} = require('./permission_state_store.cjs');
+const {
   getBackendConnectionState,
   getLatestFrontendConfig,
   initializeIpc,
@@ -97,6 +104,10 @@ const ENABLE_DEBUG_TOOL_SCREENSHOT = process.env.WINDIE_DEBUG_TOOL_SCREENSHOT ==
 const VM_MODE_ENABLED = isVmModeEnabled(process.env);
 const VM_WORKER_MODE_ENABLED = isVmWorkerModeEnabled(process.env);
 const RESPONSE_WINDOW_DEBUG_VIEW = 'tool-ghost-debug';
+const getUserDataPath = () => app.getPath('userData');
+const getPermissionStatePath = () => resolvePermissionStatePath({
+  userDataPath: getUserDataPath(),
+});
 const agentStopShortcutRuntime = initializeAgentStopShortcutRuntime({
   globalShortcut,
   platform: process.platform,
@@ -173,6 +184,7 @@ const {
   setAgentLoopStopShortcutEnabled: agentStopShortcutRuntime.setEnabled,
   initializeWakewordBridge,
   initializeLocalBackendBridge,
+  getPermissionStatePath,
   initializeMainProcessIpc,
   createVmWorkerRuntime,
   getBackendConnectionState,
@@ -222,6 +234,18 @@ initializeMainProcessLifecycleRuntime({
   createChatWindow,
   createResponseWindow,
   createTray,
+  installApplicationMenu: () => {
+    installApplicationMenu({
+      Menu,
+      dialog,
+      platform: process.platform,
+      userDataPath: getUserDataPath(),
+      permissionStateStore: createPermissionStateStore({
+        userDataPath: getUserDataPath(),
+      }),
+      log: console.warn,
+    });
+  },
   syncWakewordToggleForChatVisibility: surfaceRuntime.syncWakewordToggleForChatVisibility,
   positionChatWindow,
   positionResponseWindow,
@@ -279,7 +303,7 @@ function initializeMainProcessIpc() {
       dialog,
       desktopCapturer,
       platform: process.platform,
-      userDataPath: app.getPath('userData'),
+      userDataPath: getUserDataPath(),
       focusPermissionPromptWindow: async () => {
         const mainWindow = surfaceRuntime.getMainWindow();
         if (!mainWindow || mainWindow.isDestroyed()) {

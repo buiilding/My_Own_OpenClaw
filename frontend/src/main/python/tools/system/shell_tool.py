@@ -3,6 +3,7 @@ Shell Tool - Python implementation with background session support.
 """
 
 import asyncio
+import json
 import logging
 import os
 import platform
@@ -84,6 +85,40 @@ _SUDO_IGNORED_FLAGS_WITH_VALUE = {
     "--type",
     "-C",
 }
+_WORKSPACE_ACCESS_PERMISSION_ID = "filesystem_workspace_access"
+
+
+def _resolve_default_workspace_directory() -> Optional[Path]:
+    permission_state_path = os.environ.get("WINDIE_PERMISSION_STATE_PATH", "").strip()
+    if not permission_state_path:
+        return None
+
+    try:
+        with open(permission_state_path, "r", encoding="utf-8") as handle:
+            raw_state = json.load(handle)
+    except (FileNotFoundError, OSError, ValueError, TypeError):
+        return None
+
+    permissions = raw_state.get("permissions")
+    if not isinstance(permissions, dict):
+        return None
+
+    workspace_entry = permissions.get(_WORKSPACE_ACCESS_PERMISSION_ID)
+    if not isinstance(workspace_entry, dict) or workspace_entry.get("granted") is not True:
+        return None
+
+    selected_paths = workspace_entry.get("selected_paths")
+    if not isinstance(selected_paths, list):
+        return None
+
+    for selected_path in selected_paths:
+        if not isinstance(selected_path, str) or not selected_path.strip():
+            continue
+        workspace_path = Path(selected_path).expanduser()
+        if workspace_path.exists() and workspace_path.is_dir():
+            return workspace_path
+
+    return None
 
 
 async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
@@ -121,8 +156,8 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             if not working_path.exists() or not working_path.is_dir():
                 return {"success": False, "error": f"Directory does not exist or is not a directory: {working_dir}"}
         else:
-            # Use OS home directory as stable default for new shell invocations.
-            working_dir = Path.home()
+            # Prefer the latest user-selected workspace folder when available.
+            working_dir = _resolve_default_workspace_directory() or Path.home()
         
         warnings = []
         if pty_requested and (IS_WINDOWS or pty is None):

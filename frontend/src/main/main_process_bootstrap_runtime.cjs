@@ -20,6 +20,9 @@ function createWindowBootstrapRuntime(deps) {
       showChatWindow: deps.showChatWindow,
       emitWakewordSttTrigger: deps.emitWakewordSttTrigger,
       initializeLocalBackendBridge: deps.initializeLocalBackendBridge,
+      permissionStatePath: typeof deps.getPermissionStatePath === 'function'
+        ? deps.getPermissionStatePath()
+        : null,
       initializeMainProcessIpc: deps.initializeMainProcessIpc,
       getLatestFrontendConfig: deps.getLatestFrontendConfig,
       getWindows: () => deps.getState().windows,

@@ -290,6 +290,9 @@ function startLocalBackend(mainWindow, options = {}) {
   const launchTarget = resolveSidecarLaunchTarget('local_backend.py');
   const scriptPath = launchTarget.resolvedPath;
   const packagedApp = options.isPackaged === true;
+  const permissionStatePath = typeof options.permissionStatePath === 'string'
+    ? options.permissionStatePath.trim()
+    : '';
 
   if (launchTarget.kind === 'python' && !launchTarget.command) {
     const errorMessage = options.isPackaged === true
@@ -342,6 +345,7 @@ function startLocalBackend(mainWindow, options = {}) {
       WINDIE_BACKEND_HTTP_URL: backendEndpoints.httpUrl,
       WINDIE_PACKAGED_APP: packagedApp ? '1' : '0',
       WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: packagedApp ? '0' : '1',
+      ...(permissionStatePath ? { WINDIE_PERMISSION_STATE_PATH: permissionStatePath } : {}),
     }),
   });
   const processRef = pythonProcess;
@@ -588,7 +592,11 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   } = createWindowResolvers(getWindows);
 
   const [mainWindow] = resolveWindows();
-  startLocalBackend(mainWindow, { isPackaged, backendEndpoints });
+  startLocalBackend(mainWindow, {
+    isPackaged,
+    backendEndpoints,
+    permissionStatePath: options.permissionStatePath,
+  });
 
   const registerRpcHandler = (channel, method, mapParams) => {
     ipcMain.handle(channel, async (event, payload = {}) => (

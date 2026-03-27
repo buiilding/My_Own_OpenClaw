@@ -559,6 +559,20 @@ describe('main_window_runtime createMainWindow', () => {
     }));
   });
 
+  test('passes the permission state path into local backend initialization', () => {
+    const { deps } = createDeps({
+      permissionStatePath: '/tmp/windieos-permission-state.json',
+    });
+
+    createMainWindow(deps);
+
+    expect(deps.initializeLocalBackendBridge).toHaveBeenCalledWith(expect.any(Function), {
+      getFrontendConfig: deps.getLatestFrontendConfig,
+      isPackaged: false,
+      permissionStatePath: '/tmp/windieos-permission-state.json',
+    });
+  });
+
   test('syncs main window display affinity on show and move events', () => {
     const { deps, handlers, mainWindow } = createDeps();
 

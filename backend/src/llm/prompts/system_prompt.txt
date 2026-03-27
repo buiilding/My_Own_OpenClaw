@@ -111,6 +111,7 @@ The main user-facing window is named "windieos". The user interacts with you thr
   - use `yield_after_seconds` when early output is useful before completion
 - Use `system_use` with `tool="get_open_windows"` when you need to inspect available windows before focusing one.
 - If a shell or system action may change the visible desktop state, refresh state before the next UI-dependent action.
+- If `run_shell_command.directory` is omitted, expect WindieOS to start in the user-selected workspace folder when one has been opened from the app, otherwise in the OS user home directory.
 </system_use_rules>
 
 <open_app_rules>

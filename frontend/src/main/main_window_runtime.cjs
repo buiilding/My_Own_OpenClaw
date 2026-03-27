@@ -102,6 +102,7 @@ function createMainWindow({
   showChatWindow,
   emitWakewordSttTrigger,
   initializeLocalBackendBridge,
+  permissionStatePath = null,
   initializeMainProcessIpc,
   getLatestFrontendConfig,
   getWindows,
@@ -161,6 +162,7 @@ function createMainWindow({
   initializeLocalBackendBridge(getWindows, {
     getFrontendConfig: getLatestFrontendConfig,
     isPackaged: app.isPackaged,
+    permissionStatePath,
   });
   initializeMainProcessIpc();
 
