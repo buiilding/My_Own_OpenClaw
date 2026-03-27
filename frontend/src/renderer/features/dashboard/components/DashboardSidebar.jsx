@@ -241,7 +241,7 @@ function DashboardSidebar({
         {!isCollapsed ? (
           <>
             <div className="cg-sidebar-divider" />
-            <div className="cg-sidebar-section-label">Your chats</div>
+            <div className="cg-sidebar-section-label">Your workspace</div>
             <div className="cg-chat-list-scroll">
               {hasRecentConversations ? (
                 <>
