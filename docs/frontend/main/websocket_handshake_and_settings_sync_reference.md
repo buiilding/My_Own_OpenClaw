@@ -30,10 +30,15 @@ title: "WebSocket Handshake and Settings Sync Reference"
 
 - explicit `BACKEND_WS_URL` / `BACKEND_HTTP_URL` if valid
 - otherwise derived counterpart URL from whichever explicit URL exists
-- final fallback:
-  - dev/source runs: `127.0.0.1:8765` (`ws://.../ws`, `http://...`)
-  - packaged runs: hosted defaults (`wss://api.windieos.com/ws`, `https://api.windieos.com`)
-  - packaged fallback env overrides:
+- final default candidates:
+  - dev/source runs:
+    - hosted first: `wss://api.windieos.com/ws`, `https://api.windieos.com`
+    - local fallback second: `ws://127.0.0.1:8765/ws`, `http://127.0.0.1:8765`
+  - packaged runs: hosted defaults only (`wss://api.windieos.com/ws`, `https://api.windieos.com`)
+  - hosted default env overrides:
+    - `WINDIE_DEFAULT_BACKEND_HTTP_URL`
+    - `WINDIE_DEFAULT_BACKEND_WS_URL`
+  - packaged compatibility overrides:
     - `WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL`
     - `WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL`
 
@@ -72,8 +77,9 @@ On close:
 3. clear backend session context (`session_id`, server `user_id`, `conversation_ref`)
 4. set overlay phase `idle`
 5. clear turn replay buffer
-6. broadcast disconnected status
-7. schedule reconnect after `reconnectInterval` (5s)
+6. if the socket never opened and another candidate endpoint exists, promote the next candidate immediately
+7. otherwise broadcast disconnected status
+8. schedule reconnect after `reconnectInterval` (5s)
 
 ## Identity and Session Context Tracking
 

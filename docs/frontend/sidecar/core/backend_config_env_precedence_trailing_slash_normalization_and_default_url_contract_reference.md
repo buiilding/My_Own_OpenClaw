@@ -20,26 +20,31 @@ title: "Backend Config Env-Precedence, Trailing-Slash Normalization, and Default
 Constants and function:
 
 - `DEFAULT_BACKEND_HTTP_URL = "http://127.0.0.1:8765"`
+- `get_backend_http_urls() -> list[str]`
 - `get_backend_http_url() -> str`
 
-`get_backend_http_url()` is the canonical URL source for sidecar backend-bound clients when explicit URL is not passed.
+`get_backend_http_urls()` is the canonical candidate list for sidecar backend-bound clients
+when an explicit URL is not passed. `get_backend_http_url()` returns the first candidate.
 
 ## Resolution Precedence Contract
 
 URL resolution order:
 
 1. `WINDIE_BACKEND_HTTP_URL`
-2. `BACKEND_HTTP_URL`
-3. `DEFAULT_BACKEND_HTTP_URL`
+2. `WINDIE_BACKEND_FALLBACK_HTTP_URL`
+3. `BACKEND_HTTP_URL`
+4. `DEFAULT_BACKEND_HTTP_URL`
 
 Semantics:
 
-- uses Python `or` chaining, so empty strings are treated as falsey
-- if `WINDIE_BACKEND_HTTP_URL=""`, fallback continues to `BACKEND_HTTP_URL`
+- empty strings are ignored
+- trailing slashes are stripped before dedupe
+- duplicate URLs are collapsed while preserving first-seen order
+- if `WINDIE_BACKEND_HTTP_URL=""`, fallback continues to later candidates
 
 ## Normalization Contract
 
-After selecting source value:
+After selecting each source value:
 
 - applies `rstrip("/")`
 
@@ -68,12 +73,13 @@ Each consumer applies additional endpoint-specific path suffixes on top of this 
 - fallback to `BACKEND_HTTP_URL` when Windie-specific env is empty
 - preservation of non-trailing path segments
 - stripping of multiple trailing slashes
+- inclusion of `WINDIE_BACKEND_FALLBACK_HTTP_URL` without duplicate localhost entries
 
 ## Drift Hotspots
 
 1. Reordering env precedence can silently redirect sidecar traffic between intended and fallback backends.
 2. Removing empty-string fallback behavior can treat blank env values as valid URLs.
-3. Dropping trailing-slash stripping can create double-slash endpoint URLs in client requests.
+3. Dropping trailing-slash stripping or dedupe can create duplicate/double-slash retry targets.
 4. Changing default URL without synchronized desktop/runtime defaults can break local dev assumptions.
 
 ## Related Pages

@@ -647,6 +647,22 @@ describe('local_backend_bridge RPC handlers', () => {
     );
   });
 
+  test('passes hosted-first backend URLs to Python sidecar env for customer-mode desktop runs', () => {
+    const { spawn } = initBridge();
+    markReady();
+
+    expect(spawn).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(Array),
+      expect.objectContaining({
+        env: expect.objectContaining({
+          WINDIE_BACKEND_HTTP_URL: 'https://api.windieos.com',
+          WINDIE_BACKEND_FALLBACK_HTTP_URL: 'http://127.0.0.1:8765',
+        }),
+      }),
+    );
+  });
+
   test('passes packaged hosted backend default URL to Python sidecar env', () => {
     const { spawn } = initBridge({ isPackaged: true });
     markReady();
@@ -660,6 +676,7 @@ describe('local_backend_bridge RPC handlers', () => {
         }),
       }),
     );
+    expect(spawn.mock.calls[0][2].env.WINDIE_BACKEND_FALLBACK_HTTP_URL).toBeUndefined();
   });
 
   test('adds --no-deprecation to Node options for local backend subprocesses', () => {

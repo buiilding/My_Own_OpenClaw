@@ -28,7 +28,10 @@ Supported env vars (priority order):
 
 - `BACKEND_WS_URL`
 - `BACKEND_HTTP_URL`
-- fallback pair: `BACKEND_HOST` + `BACKEND_PORT`
+- explicit local override pair: `BACKEND_HOST` + `BACKEND_PORT`
+- hosted-default override pair:
+  - `WINDIE_DEFAULT_BACKEND_HTTP_URL`
+  - `WINDIE_DEFAULT_BACKEND_WS_URL`
 - packaged fallback override pair:
   - `WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL`
   - `WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL`
@@ -36,14 +39,18 @@ Supported env vars (priority order):
 Defaults when explicit `BACKEND_*` is unset:
 
 - Dev/source runs:
-  - host: `127.0.0.1`
-  - port: `8765`
-  - http: `http://127.0.0.1:8765`
-  - ws: `ws://127.0.0.1:8765/ws`
+  - primary hosted candidate:
+    - http: `https://api.windieos.com`
+    - ws: `wss://api.windieos.com/ws`
+  - fallback local candidate:
+    - host: `127.0.0.1`
+    - port: `8765`
+    - http: `http://127.0.0.1:8765`
+    - ws: `ws://127.0.0.1:8765/ws`
 - Packaged runs:
   - http: `https://api.windieos.com`
   - ws: `wss://api.windieos.com/ws`
-  - or `WINDIE_DEFAULT_PACKAGED_BACKEND_*` when set
+  - or `WINDIE_DEFAULT_BACKEND_*` / `WINDIE_DEFAULT_PACKAGED_BACKEND_*` when set
 
 Normalization rules:
 
@@ -58,6 +65,13 @@ Returned object:
 - `httpUrl`
 - `wsUrl`
 - `wsOrigin` (set to `httpUrl` for ws client origin header)
+
+`resolveBackendEndpointCandidates(env, { isPackaged })` returns the ordered candidate list
+used by the IPC websocket bridge:
+
+- source runs: hosted default first, local fallback second
+- packaged runs: hosted default only
+- explicit `BACKEND_*` or host/port overrides collapse the list to the explicit target
 
 ## VM Worker Endpoint Consumption
 
