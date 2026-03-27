@@ -109,6 +109,10 @@ Settings/Data controls still render the full permission list, including
 settings-only/runtime-check rows hidden from first-run onboarding on
 Windows/Linux.
 
+macOS browser onboarding now includes a dedicated `app_management` step before
+`browser_automation` so users can approve the native Privacy & Security prompt
+before the browser-open action is offered.
+
 Permission request handling is split deliberately:
 
 - `usePermissionStore.requestPermission()` remains the shared IPC-backed request primitive
