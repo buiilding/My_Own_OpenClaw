@@ -356,6 +356,77 @@ describe('ChatInterface wiring', () => {
     ]);
   });
 
+  test('reapplies the hidden-tool presentation when the toggle flips on and off for existing transcript rows', () => {
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace' },
+      {
+        id: 'tool-call-1',
+        sender: 'assistant',
+        text: 'raw tool call',
+        type: 'tool-call',
+        sourceEventType: 'tool-call',
+        toolCallDetails: {
+          parameters: {
+            tool: 'run_shell_command',
+            explanation: 'List the active workspace contents.',
+          },
+        },
+      },
+      {
+        id: 'tool-output-1',
+        sender: 'assistant',
+        text: 'raw output',
+        type: 'tool-output',
+      },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'The workspace contains src and tests.',
+        type: 'llm-text',
+        isComplete: true,
+      },
+    ];
+
+    const { rerender } = render(<ChatInterface />);
+
+    let renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
+    expect(renderedMessages.map((message) => message.type || 'llm-text')).toEqual([
+      'llm-text',
+      'llm-text',
+      'tool-actions-summary',
+    ]);
+
+    mockConfig = {
+      ...mockConfig,
+      show_tool_logs: true,
+    };
+    rerender(<ChatInterface />);
+
+    renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
+    expect(renderedMessages.map((message) => message.type || 'llm-text')).toEqual([
+      'llm-text',
+      'tool-call',
+      'tool-output',
+      'llm-text',
+    ]);
+
+    mockConfig = {
+      ...mockConfig,
+      show_tool_logs: false,
+    };
+    rerender(<ChatInterface />);
+
+    renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
+    expect(renderedMessages.map((message) => message.type || 'llm-text')).toEqual([
+      'llm-text',
+      'llm-text',
+      'tool-actions-summary',
+    ]);
+    expect(renderedMessages[2].actionExplanations).toEqual([
+      'List the active workspace contents.',
+    ]);
+  });
+
   test('shows text-to-speech toggle in header', () => {
     render(<ChatInterface />);
 
