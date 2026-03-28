@@ -38,6 +38,14 @@ const mockPermissionState = {
       required_now: false,
     },
     {
+      permission_id: 'app_management',
+      label: 'App Management',
+      description: 'Allow WindieOS to prepare and manage the dedicated browser instance on macOS without Privacy & Security blocking app-management operations.',
+      access_kind: 'os_permission',
+      grant_action_label: 'Allow',
+      required_now: true,
+    },
+    {
       permission_id: 'browser_automation',
       label: 'Browser automation',
       description: 'Open the WindieOS browser so you can sign in with the profile WindieOS should use for browsing, navigation, and web tasks.',
@@ -61,6 +69,11 @@ const mockPermissionState = {
       status: 'granted',
       granted: true,
       reason: 'Microphone access is granted.',
+    },
+    app_management: {
+      status: 'needs-action',
+      granted: false,
+      reason: 'Allow WindieOS in macOS App Management before opening the browser.',
     },
     browser_automation: {
       status: 'needs-action',
@@ -108,9 +121,9 @@ describe('FrontendOnboardingSlideshow', () => {
       granted: false,
     });
     mockRequestPermission.mockReset().mockImplementation(async (permissionId) => {
-      if (permissionId === 'browser_automation') {
+      if (permissionId === 'browser_automation' || permissionId === 'app_management') {
         return {
-          permission_id: 'browser_automation',
+          permission_id: permissionId,
           status: 'granted',
           granted: true,
         };
@@ -135,11 +148,11 @@ describe('FrontendOnboardingSlideshow', () => {
       maximize: true,
     });
 
-    expect(screen.getByText('Step 1 of 5')).toBeInTheDocument();
+    expect(screen.getByText('Step 1 of 6')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Set up system access' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Screen capture' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'System Events automation' })).not.toBeInTheDocument();
-    expect(screen.getByText('Permission 1 of 4')).toBeInTheDocument();
+    expect(screen.getByText('Permission 1 of 5')).toBeInTheDocument();
     expect(screen.getByText('OS Permission')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Grant' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Open browser' })).not.toBeInTheDocument();
@@ -158,16 +171,28 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(mockUpdateConfig).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    expect(screen.getByText('Step 2 of 5')).toBeInTheDocument();
+    expect(screen.getByText('Step 2 of 6')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'System Events automation' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    expect(screen.getByText('Step 3 of 5')).toBeInTheDocument();
+    expect(screen.getByText('Step 3 of 6')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Microphone' })).toBeInTheDocument();
     expect(screen.getByLabelText('Granted')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    expect(screen.getByText('Step 4 of 5')).toBeInTheDocument();
+    expect(screen.getByText('Step 4 of 6')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'App Management' })).toBeInTheDocument();
+    expect(screen.getByText('Allow WindieOS to prepare and manage the dedicated browser instance on macOS without Privacy & Security blocking app-management operations.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Allow' })).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Allow' }));
+    });
+    expect(mockRequestPermission).toHaveBeenCalledWith('app_management');
+    expect(mockUpdateConfig).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByText('Step 5 of 6')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Browser automation' })).toBeInTheDocument();
     expect(screen.getByText('App Capability')).toBeInTheDocument();
     expect(screen.getByText('Open the WindieOS browser so you can sign in with the profile WindieOS should use for browsing, navigation, and web tasks.')).toBeInTheDocument();
@@ -181,7 +206,7 @@ describe('FrontendOnboardingSlideshow', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 
-    expect(screen.getByText('Step 5 of 5')).toBeInTheDocument();
+    expect(screen.getByText('Step 6 of 6')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Stop the agent during loops' })).toBeInTheDocument();
     expect(screen.getByText('Use this anytime an agent loop needs to end right away.')).toBeInTheDocument();
     expect(screen.getByLabelText('Stop shortcut Ctrl + Shift + Esc')).toBeInTheDocument();
@@ -199,7 +224,7 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(mockIpcInvoke).toHaveBeenNthCalledWith(4, 'window-close', undefined);
 
     fireEvent.click(screen.getByRole('button', { name: 'Back' }));
-    expect(screen.getByText('Step 4 of 5')).toBeInTheDocument();
+    expect(screen.getByText('Step 5 of 6')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     fireEvent.click(screen.getByRole('button', { name: 'Start WindieOS' }));
@@ -225,7 +250,7 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(scrollRegion).not.toContain(actions);
     expect(scrollRegion).toContainElement(screen.getByRole('heading', { name: 'Set up system access' }));
     expect(actions).toContainElement(nextButton);
-    expect(screen.getByText('Permission 1 of 4')).toBeInTheDocument();
+    expect(screen.getByText('Permission 1 of 5')).toBeInTheDocument();
   });
 
   test('renders long macOS stop shortcuts as separate keycaps', () => {
@@ -236,7 +261,7 @@ describe('FrontendOnboardingSlideshow', () => {
       />,
     );
 
-    for (let index = 0; index < 4; index += 1) {
+    for (let index = 0; index < 5; index += 1) {
       fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     }
 
@@ -258,7 +283,7 @@ describe('FrontendOnboardingSlideshow', () => {
         />,
       );
 
-      for (let index = 0; index < 4; index += 1) {
+      for (let index = 0; index < 5; index += 1) {
         fireEvent.click(screen.getByRole('button', { name: 'Next' }));
       }
 
@@ -299,6 +324,17 @@ describe('FrontendOnboardingSlideshow', () => {
         onboarding_visibility: 'required',
       },
       {
+        permission_id: 'app_management',
+        label: 'App Management',
+        description: 'Allow WindieOS to prepare and manage the dedicated browser instance on macOS without Privacy & Security blocking app-management operations.',
+        access_kind: 'os_permission',
+        grant_action_label: 'Allow',
+        required_now: true,
+        onboarding_required_now: true,
+        show_in_onboarding: true,
+        onboarding_visibility: 'required',
+      },
+      {
         permission_id: 'browser_automation',
         label: 'Browser automation',
         description: 'Open the WindieOS browser so you can sign in with the profile WindieOS should use for browsing, navigation, and web tasks.',
@@ -321,6 +357,11 @@ describe('FrontendOnboardingSlideshow', () => {
         granted: false,
         reason: 'Choose a workspace folder to continue.',
       },
+      app_management: {
+        status: 'needs-action',
+        granted: false,
+        reason: 'Allow WindieOS in macOS App Management before opening the browser.',
+      },
       browser_automation: {
         status: 'needs-action',
         granted: false,
@@ -331,17 +372,21 @@ describe('FrontendOnboardingSlideshow', () => {
     try {
       render(<FrontendOnboardingSlideshow onComplete={jest.fn()} stopAgentShortcutLabel="Ctrl + Shift + Esc" />);
 
-      expect(screen.getByText('Step 1 of 3')).toBeInTheDocument();
-      expect(screen.getByText('Permission 1 of 2')).toBeInTheDocument();
+      expect(screen.getByText('Step 1 of 4')).toBeInTheDocument();
+      expect(screen.getByText('Permission 1 of 3')).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: 'Workspace file access' })).toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Screen capture' })).not.toBeInTheDocument();
 
       fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-      expect(screen.getByText('Step 2 of 3')).toBeInTheDocument();
+      expect(screen.getByText('Step 2 of 4')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'App Management' })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+      expect(screen.getByText('Step 3 of 4')).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: 'Browser automation' })).toBeInTheDocument();
 
       fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-      expect(screen.getByText('Step 3 of 3')).toBeInTheDocument();
+      expect(screen.getByText('Step 4 of 4')).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: 'Stop the agent during loops' })).toBeInTheDocument();
     } finally {
       mockPermissionState.permissions = previousPermissions;
