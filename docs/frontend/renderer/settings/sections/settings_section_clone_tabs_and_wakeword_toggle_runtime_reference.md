@@ -45,7 +45,7 @@ Routing model:
 
 ## General Tab Ownership Model
 
-`GeneralSettingsTab` owns four control classes:
+`GeneralSettingsTab` owns five control classes:
 
 ### 1) AppConfigContext-driven wakeword preference
 
@@ -83,6 +83,18 @@ Current local-only controls do not emit config updates:
 
 - `voice`
 
+### 5) Frontend-only chat transcript presentation toggles
+
+`View tool logs` emits:
+
+- `{ show_tool_logs: boolean }`
+
+This is a renderer-owned presentation preference. It does not alter tool execution or transcript
+storage. The dashboard thread uses it to either:
+
+- show raw `tool-call` / `tool-output` rows, or
+- hide raw tool rows and derive subdued explanation text plus a collapsed `View actions` summary
+
 ## Memory Tab Ownership Model
 
 `MemorySettingsTab` owns two destructive local-data actions:
@@ -119,6 +131,7 @@ Exception:
 - only one left sidebar close button is rendered
 - suppression helper message render condition
 - wakeword STT toggle emits exact payload `{ wakeword_stt_enabled: true }`
+- tool log visibility toggle emits exact payload `{ show_tool_logs: true }`
 - agent full sudo toggle confirm/invoke/failure handling behavior
 - memory-tab destructive actions call the correct IPC channels and success callbacks
 

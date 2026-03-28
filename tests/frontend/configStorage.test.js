@@ -14,6 +14,7 @@ const DEFAULT_FRONTEND_CONFIG = {
   speech_mode_enabled: false,
   wakeword_stt_enabled: false,
   agent_full_sudo_enabled: false,
+  show_tool_logs: false,
   browser_automation_enabled: false,
   global_agent_stop_shortcut: 'CommandOrControl+Shift+Escape',
   include_query_screenshot: true,
@@ -84,6 +85,19 @@ describe('configStorage', () => {
       ...DEFAULT_FRONTEND_CONFIG,
       speech_mode_enabled: true,
       voice_mode_enabled: true,
+    });
+  });
+
+  test('loadConfigFromStorage preserves stored show_tool_logs value', () => {
+    localStorage.setItem(
+      CONFIG_KEY,
+      JSON.stringify({ show_tool_logs: true }),
+    );
+
+    const result = loadConfigFromStorage();
+    expect(result).toEqual({
+      ...DEFAULT_FRONTEND_CONFIG,
+      show_tool_logs: true,
     });
   });
 

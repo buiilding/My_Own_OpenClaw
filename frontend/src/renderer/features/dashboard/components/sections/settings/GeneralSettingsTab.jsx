@@ -19,6 +19,7 @@ function GeneralSettingsTab({ config, onConfigChange }) {
   const [sudoAccessPending, setSudoAccessPending] = useState(false);
   const wakewordSttEnabled = config?.wakeword_stt_enabled ?? false;
   const agentFullSudoEnabled = config?.agent_full_sudo_enabled ?? false;
+  const showToolLogs = config?.show_tool_logs === true;
   const globalStopShortcut = config?.global_agent_stop_shortcut;
   const globalStopShortcutOptions = getGlobalAgentStopShortcutOptions();
   const shortcutRegistrationFailed = globalAgentStopShortcutStatus?.registrationFailed === true;
@@ -32,6 +33,12 @@ function GeneralSettingsTab({ config, onConfigChange }) {
   const handleWakewordSttEnabledChange = (enabled) => {
     onConfigChange({
       wakeword_stt_enabled: enabled,
+    });
+  };
+
+  const handleShowToolLogsChange = (enabled) => {
+    onConfigChange({
+      show_tool_logs: enabled,
     });
   };
 
@@ -126,6 +133,22 @@ function GeneralSettingsTab({ config, onConfigChange }) {
 
       <div className="clone-settings-row clone-settings-row-rich">
         <div>
+          <span>View tool logs</span>
+          <p>
+            Show raw tool-call and tool-output cards in chat. When off, WindieOS shows only
+            subdued action explanations and collapses them into a View actions summary after the
+            loop completes.
+          </p>
+        </div>
+        <CloneToggle
+          checked={showToolLogs}
+          onChange={handleShowToolLogsChange}
+          ariaLabel="View tool logs"
+        />
+      </div>
+
+      <div className="clone-settings-row clone-settings-row-rich">
+        <div>
           <span>Global Stop Shortcut</span>
           <p>
             Ends the active agent loop from anywhere. Current binding:
@@ -174,6 +197,7 @@ GeneralSettingsTab.propTypes = {
   config: PropTypes.shape({
     wakeword_stt_enabled: PropTypes.bool,
     agent_full_sudo_enabled: PropTypes.bool,
+    show_tool_logs: PropTypes.bool,
     global_agent_stop_shortcut: PropTypes.string,
   }),
   onConfigChange: PropTypes.func.isRequired,

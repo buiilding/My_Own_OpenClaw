@@ -1,6 +1,7 @@
 export type TestAppConfig = {
   selected_model_id: string;
   model_provider: string;
+  show_tool_logs?: boolean;
 };
 
 export type TestAvailableModel = {
@@ -18,6 +19,7 @@ export type TestAvailableModels = {
 const DEFAULT_TEST_APP_CONFIG: TestAppConfig = {
   selected_model_id: 'test-model',
   model_provider: 'test-provider',
+  show_tool_logs: false,
 };
 
 export function createDefaultTestAppConfig(): TestAppConfig {

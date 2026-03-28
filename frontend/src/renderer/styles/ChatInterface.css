@@ -683,6 +683,8 @@
 
 .message-type-tool-output,
 .message-type-tool-call,
+.message-type-tool-explanation,
+.message-type-tool-actions-summary,
 .message-type-error,
 .message-has-screenshot {
   max-width: 100%;
@@ -1076,6 +1078,51 @@
   border: 1px solid var(--border);
   background: rgba(11, 14, 20, 0.76);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+
+.tool-explanation-message,
+.tool-actions-summary-message {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 4px 0;
+}
+
+.tool-explanation-message {
+  padding-left: 2px;
+}
+
+.tool-explanation-text,
+.tool-actions-summary-item {
+  display: inline-block;
+  color: rgba(236, 241, 247, 0.68);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.tool-actions-summary-toggle {
+  border: 0;
+  background: transparent;
+  color: rgba(236, 241, 247, 0.68);
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tool-actions-summary-toggle:hover,
+.tool-actions-summary-toggle.is-open {
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.tool-actions-summary-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .tool-output-container {

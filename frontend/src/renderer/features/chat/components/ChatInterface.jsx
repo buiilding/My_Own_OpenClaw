@@ -47,6 +47,7 @@ import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import {
   VISIBLE_ASSISTANT_REPLY_TYPE_SET,
 } from '../utils/state/chatTurnPresentationState';
+import { buildToolLogPresentationMessages } from '../utils/message/toolExplanationMessages';
 import '../../../styles/ChatInterface.css';
 
 function waitForNextPaint() {
@@ -207,6 +208,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
 
   const voiceModeEnabled = config?.voice_mode_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
+  const showToolLogs = config?.show_tool_logs === true;
   const {
     isBusy: composerBusy,
     isTransportConnected,
@@ -218,6 +220,13 @@ function ChatInterface({ focusComposerToken = 0 }) {
     allowedTypes: VISIBLE_ASSISTANT_REPLY_TYPE_SET,
   });
   const canStop = composerBusy;
+  const renderedMessages = useMemo(() => buildToolLogPresentationMessages(messages, {
+    showToolLogs,
+    isBusy: composerBusy,
+  }), [composerBusy, messages, showToolLogs]);
+  const hasLiveToolExplanationMessages = useMemo(() => (
+    renderedMessages.some((message) => message?.type === 'tool-explanation')
+  ), [renderedMessages]);
   const modelMode = config?.model_mode || 'online';
   const configuredProvider = config?.model_provider || '';
   const configuredModelId = config?.selected_model_id || '';
@@ -470,7 +479,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
         </div>
       )}
 
-      {messages.length === 0 ? (
+      {renderedMessages.length === 0 ? (
         <div className="chat-empty-state" data-testid="chat-empty-state">
           <h1 className="chat-empty-title">Welcome to WindieOS Demo</h1>
           <MessageInput
@@ -485,12 +494,12 @@ function ChatInterface({ focusComposerToken = 0 }) {
       ) : (
         <>
           <MessageList
-            messages={messages}
+            messages={renderedMessages}
             conversationRef={transcriptSessionInfo.conversationRef || null}
             thinkingStatus={thinkingStatus}
             thinkingSourceEventType={thinkingSourceEventType}
             compactionDebugInfo={compactionDebugInfo}
-            awaitingDotTargetMessageId={awaitingDotTargetMessageId}
+            awaitingDotTargetMessageId={hasLiveToolExplanationMessages ? null : awaitingDotTargetMessageId}
             enableAgentLoopAutoScroll={composerBusy}
             enableAssistantActions
             enableUserActions

@@ -146,4 +146,39 @@ describe('MessageContent', () => {
     expect(screen.getByText('{"id":"tool_2","name":"system_use"}')).toBeInTheDocument();
     expect(screen.queryByText('legacy normalized view')).not.toBeInTheDocument();
   });
+
+  test('renders tool explanation rows as subdued plain text', () => {
+    render(
+      <MessageContent
+        message={{
+          sender: 'assistant',
+          type: 'tool-explanation',
+          text: 'Inspect the selected workspace before editing files.',
+        }}
+      />,
+    );
+
+    expect(screen.getByText('Inspect the selected workspace before editing files.')).toBeInTheDocument();
+  });
+
+  test('renders collapsed tool action summaries with expandable explanations', () => {
+    render(
+      <MessageContent
+        message={{
+          id: 'summary-1',
+          sender: 'assistant',
+          type: 'tool-actions-summary',
+          text: '2 actions',
+          actionExplanations: [
+            'Inspect the selected workspace before editing files.',
+            'Open the target file to confirm the change.',
+          ],
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'View actions (2)' }));
+    expect(screen.getByText('Inspect the selected workspace before editing files.')).toBeInTheDocument();
+    expect(screen.getByText('Open the target file to confirm the change.')).toBeInTheDocument();
+  });
 });
