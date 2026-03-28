@@ -121,6 +121,34 @@ def _resolve_default_workspace_directory() -> Optional[Path]:
     return None
 
 
+def _resolve_shell_working_directory(raw_directory: object) -> Tuple[Optional[Path], Optional[str]]:
+    default_directory = _resolve_default_workspace_directory() or Path.home()
+
+    if raw_directory is None:
+        return default_directory, None
+
+    if not isinstance(raw_directory, str):
+        return None, "Directory must be a string"
+
+    normalized_directory = raw_directory.strip()
+    if not normalized_directory:
+        return default_directory, None
+
+    candidate_path = Path(normalized_directory).expanduser()
+    if not candidate_path.is_absolute():
+        candidate_path = default_directory / candidate_path
+
+    try:
+        resolved_path = candidate_path.resolve(strict=False)
+    except OSError:
+        resolved_path = candidate_path
+
+    if not resolved_path.exists() or not resolved_path.is_dir():
+        return None, f"Directory does not exist or is not a directory: {normalized_directory}"
+
+    return resolved_path, None
+
+
 async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
     """
     Execute shell command.
@@ -147,18 +175,10 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
         return {"success": False, "error": max_output_error}
     
     try:
-        # Determine working directory
-        working_dir = directory
-        if working_dir:
-            working_path = Path(working_dir)
-            if not working_path.is_absolute():
-                return {"success": False, "error": "Directory must be an absolute path"}
-            if not working_path.exists() or not working_path.is_dir():
-                return {"success": False, "error": f"Directory does not exist or is not a directory: {working_dir}"}
-        else:
-            # Prefer the latest user-selected workspace folder when available.
-            working_dir = _resolve_default_workspace_directory() or Path.home()
-        
+        working_dir, directory_error = _resolve_shell_working_directory(directory)
+        if directory_error:
+            return {"success": False, "error": directory_error}
+
         warnings = []
         if pty_requested and (IS_WINDOWS or pty is None):
             warnings.append("PTY requested but not supported in this sidecar; running without PTY.")
