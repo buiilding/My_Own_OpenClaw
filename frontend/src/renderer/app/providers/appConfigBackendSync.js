@@ -4,6 +4,7 @@ const DEFERRED_QUERY_MODEL_CONFIG_KEYS = new Set([
 ]);
 const LOCAL_ONLY_FRONTEND_CONFIG_KEYS = new Set([
   'global_agent_stop_shortcut',
+  'show_tool_logs',
 ]);
 
 function isPlainObject(value) {

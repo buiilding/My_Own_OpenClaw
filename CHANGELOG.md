@@ -14,6 +14,7 @@ All notable changes to WindieOS will be documented in this file.
 - feat(tool-log-visibility-toggle): add a General settings toggle that hides raw tool-call/tool-output cards by default, replaces live tool rows with subdued explanation text, and collapses completed-loop actions behind a `View actions` summary.
 
 ### Fixed
+- fix(tool-log-toggle-backend-sync): keep `show_tool_logs` frontend-only so toggling raw tool trace visibility no longer sends invalid `update-settings` payloads to the backend.
 - fix(onboarding-windows-linux-permission-scope): stop first-run onboarding on Windows/Linux from showing screen-capture, input-control, and shell rows as if they were true OS grant steps; keep those in Settings/Data Controls while the onboarding gate now uses explicit platform-aware onboarding metadata.
 - fix(frontend-conversation-projection-background-streams): stop background backend events from re-selecting a different active conversation in the renderer/transcript session after the user starts a new chat, while still allowing `local-user-message` to project the new foreground conversation.
 - fix(compact-history-conversation-scope): add optional `conversation_ref` routing to `compact-history` from renderer to backend, scope active-query blocking to that conversation, and run manual compaction against the selected conversation session instead of a user-global fallback.
