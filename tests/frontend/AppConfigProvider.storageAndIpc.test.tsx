@@ -224,6 +224,24 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     );
   });
 
+  test('does not include local-only tool log visibility in backend sync payloads', async () => {
+    mockLoadConfigFromStorage.mockReturnValue({
+      voice_mode_enabled: false,
+      show_tool_logs: true,
+    });
+    setClientUserIdResponse({ userId: 'client-user-1', isConnected: true });
+
+    renderAppConfigContext();
+    await flushAsyncEffects();
+
+    expect(ApiClient.updateSettings).toHaveBeenCalled();
+    expect(ApiClient.updateSettings).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        show_tool_logs: true,
+      }),
+    );
+  });
+
   test('does not include deferred model selection in connection sync payloads', async () => {
     mockLoadConfigFromStorage.mockReturnValue({
       voice_mode_enabled: false,
