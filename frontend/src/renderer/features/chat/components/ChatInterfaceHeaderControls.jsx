@@ -31,6 +31,8 @@ function ChatInterfaceHeaderControls({
   selectedReasoningModeLabel,
   reasoningModeOptions,
   speechModeEnabled,
+  activeWorkspaceName,
+  activeWorkspacePath,
   devUiEnabled,
   handleProviderSelect,
   handleModelSelect,
@@ -169,6 +171,16 @@ function ChatInterfaceHeaderControls({
           />
         ) : null}
         <div className="chat-utility-controls">
+          {activeWorkspaceName ? (
+            <div
+              className="chat-active-workspace-chip"
+              title={activeWorkspacePath || activeWorkspaceName}
+              aria-label={`Active workspace: ${activeWorkspaceName}`}
+            >
+              <span className="chat-active-workspace-label">Workspace</span>
+              <span className="chat-active-workspace-name">{activeWorkspaceName}</span>
+            </div>
+          ) : null}
           <button
             type="button"
             className={`chat-top-icon-btn${speechModeEnabled ? ' is-enabled' : ''}`}

@@ -95,7 +95,7 @@ the renderer:
   - Linux: verifies desktop capture directly via Electron capability check
 - `filesystem_workspace_access`:
   - opens a folder picker and persists the selected paths to `permission_state_store.cjs`
-  - the same picker is reused by the native `File -> Open Folder…` app-menu action so users can switch the default workspace folder outside onboarding/settings
+  - the same picker is reused by the native `File -> Set active workspace…` app-menu action so users can switch the default workspace folder outside onboarding/settings
 - `shell_execution`:
   - runs an elevated authentication flow and reports success/failure for that attempt without caching a fake permanent grant
 - `browser_automation`:

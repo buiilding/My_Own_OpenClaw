@@ -35,7 +35,7 @@ WindieOS frontend is a multi-runtime desktop stack:
 frontend/src/
 ├── main/
 │   ├── index.cjs                          # Electron main composition root (wires runtime modules)
-│   ├── app_menu_runtime.cjs               # Native application menu wiring (File -> Open Folder and standard roles)
+│   ├── app_menu_runtime.cjs               # Native application menu wiring (File -> Set active workspace and standard roles)
 │   ├── ipc.cjs                            # Renderer <-> backend WS bridge and event fan-out
 │   ├── ipc_runtime_helpers.cjs            # IPC runtime helper set (user-id, payload normalization, upload, backend message processing)
 │   ├── ipc_renderer_windows.cjs           # Renderer-window tracking + broadcast helpers for IPC bridge
@@ -150,7 +150,7 @@ Primary modules:
 
 - `main/index.cjs`:
   - Main-process composition root: assembles runtime modules and passes shared dependencies only.
-  - Installs the native application menu, including `File -> Open Folder…`, which reuses the workspace-access folder picker.
+  - Installs the native application menu, including `File -> Set active workspace…`, which reuses the workspace-access folder picker and broadcasts the active workspace selection back to renderer windows.
   - Delegates lifecycle boot/activate/quit wiring to `main_process_lifecycle_runtime.cjs`.
   - Delegates split IPC handler registration to `overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, and `permission_ipc_runtime.cjs`.
   - Delegates surface/window ownership to `surface_runtime.cjs` and per-OS activation/protection/topmost policy to `window_platform_policy.cjs`.

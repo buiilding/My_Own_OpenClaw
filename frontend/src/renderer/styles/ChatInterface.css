@@ -330,6 +330,37 @@
   padding-right: 16px;
 }
 
+.chat-active-workspace-chip {
+  max-width: 220px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(127, 221, 176, 0.22);
+  background: rgba(33, 58, 48, 0.48);
+  color: var(--ui-text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-active-workspace-label {
+  color: rgba(170, 186, 178, 0.82);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chat-active-workspace-name {
+  max-width: 132px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #ecfdf5;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .chat-top-icon-btn {
   width: 32px;
   height: 32px;
