@@ -82,7 +82,7 @@ pkill -f '/WindieOS.app/Contents/MacOS/WindieOS' || true
 
 echo "[reinstall-windieos-macos] resetting macOS privacy permissions for WindieOS bundles"
 for bundle in "${BUNDLE_IDS[@]}"; do
-  for service in All ScreenCapture Accessibility Microphone AppleEvents; do
+  for service in All ScreenCapture Accessibility Microphone AppleEvents AppManagement; do
     tccutil reset "${service}" "${bundle}" >/dev/null 2>&1 || true
   done
 done

@@ -51,12 +51,15 @@ Permission definition fields cloned by service:
 - `microphone`:
   - macOS: uses `getMediaAccessStatus('microphone')`
   - Windows/Linux: probes microphone capability directly
+- `app_management`:
+  - macOS-only onboarding/status step backed by app-managed state written after the dedicated browser warm-up path is used to trigger the native App Management flow
 - `filesystem_workspace_access`:
   - reads persisted folder-selection state from `permission_state_store.cjs` and verifies the selected path still exists
 - `shell_execution`:
   - probes runtime availability (shell/PowerShell presence), not cached authorization state
 - `browser_automation`:
   - requires both frontend enablement and backend runtime verification; missing verifier now fails closed
+  - on macOS, it remains blocked until the dedicated `app_management` onboarding step has been granted first
   - pre-grant guidance now tells users that WindieOS will open its dedicated browser so they can sign in with the profile WindieOS should use
 
 Status payload shape:
@@ -101,6 +104,9 @@ the renderer:
 - `browser_automation`:
   - verifies runtime availability, optionally installs Chromium on consent, then runs a real dedicated `browser connect` warm-up so onboarding/settings can open the WindieOS browser ahead of first task use
   - successful request leaves the dedicated WindieOS browser available for sign-in/profile setup; status is inferred from real connect success, not a separate OS permission probe
+- `app_management`:
+  - macOS-only step that uses the same browser warm-up path to surface App Management before the browser-automation onboarding slide
+  - successful request persists an app-managed grant so later browser onboarding can proceed without immediately re-blocking on the same prerequisite
 - macOS deep links via `shell.openExternal(...)`:
   - screen capture -> privacy screen-capture pane
   - accessibility input control -> privacy accessibility pane
@@ -116,6 +122,8 @@ Current persisted item:
 
 - `filesystem_workspace_access` selected folder paths
   - sidecar shell commands use the first still-existing selected path as the default cwd when `directory` is omitted
+- `app_management` on macOS
+  - stores whether the dedicated browser warm-up flow already satisfied the App Management prerequisite for onboarding/browser setup
 
 Current non-persisted items:
 

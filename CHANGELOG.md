@@ -9,6 +9,7 @@ All notable changes to WindieOS will be documented in this file.
 - feat(file-menu-workspace-picker): add `File -> Set active workspace…` to reuse the workspace folder picker, persist the selected folder as the default WindieOS workspace, show its folder name in the dashboard header beside the text-to-speech control, and make shell commands without an explicit `directory` start there before falling back to the OS user home directory.
 - feat(remote-backend-default-fallback): make customer-mode desktop runs try the hosted backend at `https://api.windieos.com` / `wss://api.windieos.com/ws` by default, fall back to the local `127.0.0.1:8765` backend when the hosted websocket is unreachable before connect, and pass the matching HTTP fallback list into sidecar remote-memory clients.
 - tweak(dashboard-sidebar-label): rename the sidebar recent-conversations section from `Your chats` to `Your workspace`.
+- feat(onboarding-app-management-step): add a dedicated macOS App Management onboarding step ahead of browser automation so users can approve the Privacy & Security prerequisite before the browser setup slide.
 
 ### Fixed
 - fix(onboarding-windows-linux-permission-scope): stop first-run onboarding on Windows/Linux from showing screen-capture, input-control, and shell rows as if they were true OS grant steps; keep those in Settings/Data Controls while the onboarding gate now uses explicit platform-aware onboarding metadata.
