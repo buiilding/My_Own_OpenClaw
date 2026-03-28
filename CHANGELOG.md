@@ -11,6 +11,7 @@ All notable changes to WindieOS will be documented in this file.
 - tweak(dashboard-sidebar-label): rename the sidebar recent-conversations section from `Your chats` to `Your workspace`.
 - feat(onboarding-app-management-step): add a dedicated macOS App Management onboarding step ahead of browser automation so users can approve the Privacy & Security prerequisite before the browser setup slide.
 - fix(shell-relative-workspace-directories): let `run_shell_command.directory` accept `.` and other relative paths by resolving them from the active workspace (or the OS user home directory when no workspace is selected) instead of requiring absolute paths.
+- feat(tool-log-visibility-toggle): add a General settings toggle that hides raw tool-call/tool-output cards by default, replaces live tool rows with subdued explanation text, and collapses completed-loop actions behind a `View actions` summary.
 
 ### Fixed
 - fix(onboarding-windows-linux-permission-scope): stop first-run onboarding on Windows/Linux from showing screen-capture, input-control, and shell rows as if they were true OS grant steps; keep those in Settings/Data Controls while the onboarding gate now uses explicit platform-aware onboarding metadata.

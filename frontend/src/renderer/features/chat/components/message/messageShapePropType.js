@@ -12,6 +12,7 @@ const messageShapePropType = PropTypes.shape({
   screenshotUrl: PropTypes.string,
   sourceEventType: PropTypes.string,
   sourceChannel: PropTypes.string,
+  actionExplanations: PropTypes.arrayOf(PropTypes.string),
   thinkingText: PropTypes.string,
   thinkingSourceEventType: PropTypes.string,
   tokenCounts: PropTypes.shape({

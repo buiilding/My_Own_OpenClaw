@@ -40,6 +40,7 @@ const DEFAULT_FRONTEND_CONFIG = {
   speech_mode_enabled: false,
   wakeword_stt_enabled: false,
   agent_full_sudo_enabled: false,
+  show_tool_logs: false,
   browser_automation_enabled: false,
   global_agent_stop_shortcut: normalizeGlobalAgentStopShortcutAccelerator(),
   include_query_screenshot: true,

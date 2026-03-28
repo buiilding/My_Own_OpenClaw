@@ -1,6 +1,12 @@
 const MESSAGE_LIST_BOTTOM_STICK_THRESHOLD_PX = 24;
 const CONVERSATION_SWITCH_BOTTOM_OFFSET_PX = 72;
-const AGENT_LOOP_AUTO_SCROLL_MESSAGE_TYPES = new Set(['llm-text', 'tool-call', 'tool-output']);
+const AGENT_LOOP_AUTO_SCROLL_MESSAGE_TYPES = new Set([
+  'llm-text',
+  'tool-call',
+  'tool-output',
+  'tool-explanation',
+  'tool-actions-summary',
+]);
 
 export function isNearBottom(element) {
   if (!element) {

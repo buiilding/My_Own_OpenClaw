@@ -3,7 +3,9 @@ import { isUserMessageWithScreenshot } from '../utils/message/messageScreenshots
 import AssistantThinkingSection from './message/content/AssistantThinkingSection';
 import ErrorMessage from './message/content/ErrorMessage';
 import MarkdownMessage from './message/content/MarkdownMessage';
+import ToolActionsSummaryMessage from './message/content/ToolActionsSummaryMessage';
 import ToolCallMessage from './message/content/ToolCallMessage';
+import ToolExplanationMessage from './message/content/ToolExplanationMessage';
 import ToolOutputMessage from './message/content/ToolOutputMessage';
 import UserMessage from './message/content/UserMessage';
 
@@ -18,6 +20,14 @@ export default function MessageContent({ message }) {
 
   if (message.type === 'tool-call') {
     return <ToolCallMessage message={message} />;
+  }
+
+  if (message.type === 'tool-explanation') {
+    return <ToolExplanationMessage message={message} />;
+  }
+
+  if (message.type === 'tool-actions-summary') {
+    return <ToolActionsSummaryMessage message={message} />;
   }
 
   if (isUserMessageWithScreenshot(message)) {
@@ -67,6 +77,7 @@ MessageContent.propTypes = {
     modelFacingToolOutput: PropTypes.string,
     toolCallDetails: PropTypes.object,
     toolOutputDetails: PropTypes.object,
+    actionExplanations: PropTypes.arrayOf(PropTypes.string),
     toolMetadata: PropTypes.object,
     toolName: PropTypes.string,
     executionTime: PropTypes.number,

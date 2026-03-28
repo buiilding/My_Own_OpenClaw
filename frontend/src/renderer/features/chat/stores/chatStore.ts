@@ -25,7 +25,7 @@ export interface ChatMessage {
   text: string;
   sender: 'user' | 'assistant';
   turnRef?: string;
-  type?: 'llm-text' | 'tool-call' | 'tool-output' | 'error';
+  type?: 'llm-text' | 'tool-call' | 'tool-output' | 'tool-explanation' | 'tool-actions-summary' | 'error';
   sourceEventType?: string | null;
   sourceChannel?: string | null;
   isComplete?: boolean;
@@ -63,6 +63,7 @@ export interface ChatMessage {
   modelFacingToolOutput?: string | null;
   toolCallDetails?: Record<string, unknown> | null;
   toolOutputDetails?: Record<string, unknown> | null;
+  actionExplanations?: string[] | null;
   systemPrompt?: {
     content: string;
     toolSchemas?: any;

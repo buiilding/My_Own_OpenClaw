@@ -12,6 +12,8 @@ title: "Tool Call/Output and Transparency Section Rendering Reference"
 
 - `frontend/src/renderer/features/chat/components/MessageContent.jsx`
 - `frontend/src/renderer/features/chat/components/message/content/MarkdownMessage.jsx`
+- `frontend/src/renderer/features/chat/components/message/content/ToolExplanationMessage.jsx`
+- `frontend/src/renderer/features/chat/components/message/content/ToolActionsSummaryMessage.jsx`
 - `frontend/src/renderer/features/chat/components/message/content/ToolCallMessage.jsx`
 - `frontend/src/renderer/features/chat/components/message/content/ToolOutputMessage.jsx`
 - `frontend/src/renderer/features/chat/components/message/content/UserMessage.jsx`
@@ -36,10 +38,27 @@ Render priority:
 1. `message.type === "error"` -> error card
 2. `message.type === "tool-output"` -> tool output card
 3. `message.type === "tool-call"` -> tool call card
-4. user message with screenshot -> user message container with screenshot
-5. fallback markdown message
+4. `message.type === "tool-explanation"` -> subdued action-explanation text row
+5. `message.type === "tool-actions-summary"` -> collapsed `View actions` summary row
+6. user message with screenshot -> user message container with screenshot
+7. fallback markdown message
 
 This ensures tool cards are chosen before generic markdown rendering.
+
+## Hidden Tool Log Presentation Contract
+
+When the frontend-only `show_tool_logs` setting is `false`, `ChatInterface` transforms dashboard
+message rendering without mutating the underlying transcript:
+
+- raw `tool-output` rows are omitted from the dashboard thread
+- completed-turn `tool-call` rows are replaced with one collapsed `tool-actions-summary` row per
+  user turn, populated from each tool call's `explanation`
+- in-flight tool calls for the active turn are shown as live `tool-explanation` rows until the loop
+  completes, at which point they collapse into the summary row on the next render
+
+Explanation extraction is shared with the response overlay helper and checks the canonical model/tool
+payload paths first (`modelFacingToolCall.arguments`, `toolCallDetails.parameters`, bundled tool
+entries inside `toolCallDetails.tools`)
 
 ## LLM Output Rendering Contract
 
@@ -153,6 +172,8 @@ Metadata panel prints each key/value pair with string coercion.
 - inline screenshot URL defaults to jpeg when content type missing
 - tool output details toggle reveals model-facing output + detail payload
 - tool call details toggle reveals model-facing call JSON + details payload
+- hidden-tool-log presentation rows render subdued explanation text and expandable `View actions`
+  summaries
 
 `tests/frontend/MessageTransparency.test.js` verifies:
 

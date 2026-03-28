@@ -39,6 +39,7 @@ describe('SettingsSection', () => {
   const defaultConfig = {
     wakeword_stt_enabled: false,
     agent_full_sudo_enabled: false,
+    show_tool_logs: false,
     global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
     show_additional_models: true,
   };
@@ -114,6 +115,14 @@ describe('SettingsSection', () => {
 
     fireEvent.click(screen.getByLabelText('Speech-To-Text After "Hey Jarvis"'));
     expect(onConfigChange).toHaveBeenCalledWith({ wakeword_stt_enabled: true });
+  });
+
+  test('view tool logs toggle emits config update payload', () => {
+    const onConfigChange = jest.fn();
+    renderSettingsSection({ onConfigChange });
+
+    fireEvent.click(screen.getByLabelText('View tool logs'));
+    expect(onConfigChange).toHaveBeenCalledWith({ show_tool_logs: true });
   });
 
   test('shows the configured global stop shortcut label', () => {

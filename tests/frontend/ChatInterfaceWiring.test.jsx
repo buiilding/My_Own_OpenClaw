@@ -17,6 +17,7 @@ let mockConfig = {
   interaction_mode: 'chat',
   voice_mode_enabled: false,
   speech_mode_enabled: false,
+  show_tool_logs: false,
   model_provider: 'openai',
   selected_model_id: 'gpt-5@@gpt-5-nonthinking',
 };
@@ -169,6 +170,7 @@ describe('ChatInterface wiring', () => {
       interaction_mode: 'chat',
       voice_mode_enabled: false,
       speech_mode_enabled: false,
+      show_tool_logs: false,
       model_provider: 'openai',
       selected_model_id: 'gpt-5@@gpt-5-nonthinking',
     };
@@ -256,6 +258,102 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     expect(mockSetChatActiveConversationRef).not.toHaveBeenCalledWith(null);
+  });
+
+  test('replaces tool call and output rows with a collapsed actions summary when tool logs are hidden', () => {
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace' },
+      {
+        id: 'tool-call-1',
+        sender: 'assistant',
+        text: 'raw tool call',
+        type: 'tool-call',
+        sourceEventType: 'tool-call',
+        toolCallDetails: {
+          parameters: {
+            tool: 'run_shell_command',
+            explanation: 'List the active workspace contents.',
+          },
+        },
+      },
+      {
+        id: 'tool-output-1',
+        sender: 'assistant',
+        text: 'raw output',
+        type: 'tool-output',
+      },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'The workspace contains src and tests.',
+        type: 'llm-text',
+        isComplete: true,
+      },
+    ];
+
+    render(<ChatInterface />);
+
+    const renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
+    expect(renderedMessages.map((message) => message.type || 'llm-text')).toEqual([
+      'llm-text',
+      'llm-text',
+      'tool-actions-summary',
+    ]);
+    expect(renderedMessages[2].actionExplanations).toEqual([
+      'List the active workspace contents.',
+    ]);
+  });
+
+  test('shows live tool explanation rows while the active loop is still running', () => {
+    mockChatState.isSending = true;
+    mockChatState.streamTracking.phase = 'tool-output';
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'Open a folder' },
+      {
+        id: 'tool-call-1',
+        sender: 'assistant',
+        text: 'raw tool call',
+        type: 'tool-call',
+        sourceEventType: 'tool-call',
+        toolCallDetails: {
+          parameters: {
+            tool: 'filesystem_workspace_access',
+            explanation: 'Check the selected workspace before reading files.',
+          },
+        },
+      },
+    ];
+
+    render(<ChatInterface />);
+
+    const lastCall = mockMessageList.mock.calls.at(-1)[0];
+    expect(lastCall.awaitingDotTargetMessageId).toBeNull();
+    expect(lastCall.messages.map((message) => message.type || 'llm-text')).toEqual([
+      'llm-text',
+      'tool-explanation',
+    ]);
+    expect(lastCall.messages[1].text).toBe('Check the selected workspace before reading files.');
+  });
+
+  test('passes raw tool rows through when tool logs are enabled', () => {
+    mockConfig = {
+      ...mockConfig,
+      show_tool_logs: true,
+    };
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace' },
+      { id: 'tool-call-1', sender: 'assistant', text: 'raw tool call', type: 'tool-call' },
+      { id: 'tool-output-1', sender: 'assistant', text: 'raw output', type: 'tool-output' },
+    ];
+
+    render(<ChatInterface />);
+
+    const renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
+    expect(renderedMessages.map((message) => message.type || 'llm-text')).toEqual([
+      'llm-text',
+      'tool-call',
+      'tool-output',
+    ]);
   });
 
   test('shows text-to-speech toggle in header', () => {
