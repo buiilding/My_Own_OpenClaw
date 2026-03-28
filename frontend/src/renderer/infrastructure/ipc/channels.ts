@@ -67,6 +67,7 @@ type SharedChannelRegistry = {
     WAKEWORD_TOGGLE: 'wakeword-toggle';
     WAKEWORD_STT_TRIGGER: 'wakeword-stt-trigger';
     CHATBOX_FOCUS: 'chatbox-focus';
+    WORKSPACE_ACCESS_UPDATED: 'workspace-access-updated';
     MAIN_WINDOW_OPEN_TARGET: 'main-window-open-target';
     RESPONSE_OVERLAY_PHASE: 'response-overlay-phase';
     RESPONSE_OVERLAY_VISIBILITY: 'response-overlay-visibility';

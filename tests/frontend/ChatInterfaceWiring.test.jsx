@@ -134,6 +134,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     GET_CONVERSATION: 'get-conversation',
     DELETE_CONVERSATION: 'delete-conversation',
     STORE_TRANSCRIPT: 'store-transcript',
+    CHECK_PERMISSION: 'check-permission',
     WINDOW_MINIMIZE: 'window-minimize',
     WINDOW_TOGGLE_MAXIMIZE: 'window-toggle-maximize',
     WINDOW_CLOSE: 'window-close',
@@ -141,6 +142,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   ON_CHANNELS: {
     FROM_BACKEND: 'from-backend',
     IPC_STATUS: 'ipc-status',
+    WORKSPACE_ACCESS_UPDATED: 'workspace-access-updated',
   },
 }));
 
@@ -203,6 +205,23 @@ describe('ChatInterface wiring', () => {
       userId: 'default_user',
     }));
     mockIpcInvoke.mockClear();
+    mockIpcInvoke.mockImplementation(async (channel) => {
+      if (channel === 'check-permission') {
+        return {
+          success: true,
+          data: {
+            status: {
+              permission_id: 'filesystem_workspace_access',
+              granted: false,
+              details: {
+                selected_paths: [],
+              },
+            },
+          },
+        };
+      }
+      return { success: true };
+    });
     mockIpcListeners.clear();
     mockMessageList.mockClear();
     mockUpdateConfig.mockClear();
@@ -245,6 +264,50 @@ describe('ChatInterface wiring', () => {
     expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeInTheDocument();
   });
 
+  test('shows the active workspace name next to the text-to-speech toggle', async () => {
+    mockIpcInvoke.mockImplementation(async (channel) => {
+      if (channel === 'check-permission') {
+        return {
+          success: true,
+          data: {
+            status: {
+              permission_id: 'filesystem_workspace_access',
+              granted: true,
+              details: {
+                selected_paths: ['/Users/peterbui/Projects/WindieOS'],
+              },
+            },
+          },
+        };
+      }
+      return { success: true };
+    });
+
+    render(<ChatInterface />);
+
+    expect(await screen.findByLabelText('Active workspace: WindieOS')).toBeInTheDocument();
+    expect(screen.getByText('Workspace')).toBeInTheDocument();
+    expect(screen.getByText('WindieOS')).toBeInTheDocument();
+  });
+
+  test('updates the active workspace badge when the main process broadcasts a workspace change', async () => {
+    render(<ChatInterface />);
+
+    await waitFor(() => {
+      expect(mockIpcListeners.has('workspace-access-updated')).toBe(true);
+    });
+
+    act(() => {
+      mockIpcListeners.get('workspace-access-updated')?.({
+        granted: true,
+        workspaceName: 'client-demo',
+        workspacePath: '/Users/peterbui/client-demo',
+      });
+    });
+
+    expect(await screen.findByLabelText('Active workspace: client-demo')).toBeInTheDocument();
+  });
+
   test('window controls invoke minimize, maximize, and close IPC channels', () => {
     render(<ChatInterface />);
 
@@ -252,9 +315,9 @@ describe('ChatInterface wiring', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Toggle maximize window' }));
     fireEvent.click(screen.getByRole('button', { name: 'Close window' }));
 
-    expect(mockIpcInvoke).toHaveBeenNthCalledWith(1, 'window-minimize', undefined);
-    expect(mockIpcInvoke).toHaveBeenNthCalledWith(2, 'window-toggle-maximize', undefined);
-    expect(mockIpcInvoke).toHaveBeenNthCalledWith(3, 'window-close', undefined);
+    expect(mockIpcInvoke).toHaveBeenCalledWith('window-minimize', undefined);
+    expect(mockIpcInvoke).toHaveBeenCalledWith('window-toggle-maximize', undefined);
+    expect(mockIpcInvoke).toHaveBeenCalledWith('window-close', undefined);
   });
 
   test('hides native window controls when vm_mode query flag is enabled', () => {
@@ -319,7 +382,10 @@ describe('ChatInterface wiring', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Run auto compaction' }));
     expect(mockSetThinkingStatus).toHaveBeenCalledWith('Compacting conversation history...');
     expect(mockSetThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-started');
-    expect(mockIpcInvoke).not.toHaveBeenCalled();
+    expect(mockIpcInvoke).not.toHaveBeenCalledWith(
+      'get-conversation',
+      expect.anything(),
+    );
     await waitFor(() => {
       expect(mockIpcInvoke).toHaveBeenCalledWith(
         'get-conversation',

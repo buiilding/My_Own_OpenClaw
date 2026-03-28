@@ -243,6 +243,22 @@ initializeMainProcessLifecycleRuntime({
       permissionStateStore: createPermissionStateStore({
         userDataPath: getUserDataPath(),
       }),
+      onWorkspaceAccessUpdated: ({ granted, workspaceSelection }) => {
+        const payload = {
+          granted: granted === true,
+          workspaceName: workspaceSelection?.workspaceName || '',
+          workspacePath: workspaceSelection?.workspacePath || '',
+          selectedPaths: Array.isArray(workspaceSelection?.selectedPaths)
+            ? workspaceSelection.selectedPaths
+            : [],
+        };
+        BrowserWindow.getAllWindows().forEach((windowRef) => {
+          if (!windowRef || windowRef.isDestroyed()) {
+            return;
+          }
+          windowRef.webContents.send('workspace-access-updated', payload);
+        });
+      },
       log: console.warn,
     });
   },

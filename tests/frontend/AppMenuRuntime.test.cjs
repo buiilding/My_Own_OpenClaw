@@ -2,26 +2,27 @@
 
 const {
   buildApplicationMenuTemplate,
+  extractWorkspaceSelection,
   installApplicationMenu,
 } = require('../../frontend/src/main/app_menu_runtime.cjs');
 
 describe('app_menu_runtime', () => {
-  test('builds a File menu with Open Folder first', () => {
+  test('builds a File menu with Set active workspace first', () => {
     const template = buildApplicationMenuTemplate({
       platform: 'darwin',
-      onOpenFolder: jest.fn(),
+      onSetActiveWorkspace: jest.fn(),
     });
 
     const fileMenu = template.find((entry) => entry && entry.label === 'File');
     expect(fileMenu).toBeTruthy();
     expect(fileMenu.submenu[0]).toMatchObject({
-      label: 'Open Folder…',
+      label: 'Set active workspace…',
       accelerator: 'CommandOrControl+O',
     });
   });
 
-  test('installApplicationMenu wires Open Folder to the provided handler', async () => {
-    const onOpenFolder = jest.fn(async () => ({ status: 'granted' }));
+  test('installApplicationMenu wires Set active workspace to the provided handler', async () => {
+    const onSetActiveWorkspace = jest.fn(async () => ({ status: 'granted' }));
     const capturedMenus = [];
     const Menu = {
       buildFromTemplate: jest.fn((template) => {
@@ -34,7 +35,7 @@ describe('app_menu_runtime', () => {
     const installed = installApplicationMenu({
       Menu,
       platform: 'darwin',
-      onOpenFolder,
+      onSetActiveWorkspace,
     });
 
     expect(Menu.buildFromTemplate).toHaveBeenCalledTimes(1);
@@ -43,6 +44,19 @@ describe('app_menu_runtime', () => {
     const fileMenu = capturedMenus[0].find((entry) => entry && entry.label === 'File');
     await fileMenu.submenu[0].click();
 
-    expect(onOpenFolder).toHaveBeenCalledTimes(1);
+    expect(onSetActiveWorkspace).toHaveBeenCalledTimes(1);
+  });
+
+  test('extractWorkspaceSelection returns the active workspace name and path', () => {
+    expect(extractWorkspaceSelection({
+      granted: true,
+      details: {
+        selected_paths: ['/Users/peter/work/demo-workspace'],
+      },
+    })).toEqual({
+      workspaceName: 'demo-workspace',
+      workspacePath: '/Users/peter/work/demo-workspace',
+      selectedPaths: ['/Users/peter/work/demo-workspace'],
+    });
   });
 });

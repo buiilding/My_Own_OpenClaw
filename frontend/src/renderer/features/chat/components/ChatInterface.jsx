@@ -15,6 +15,7 @@ import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { buildDeferredQueryModelConfig } from '../../../app/providers/appConfigBackendSync';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
+import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import { startNewChatSession } from '../utils/session/newChatSession';
 import { loadConversationTranscriptMemories } from '../../../infrastructure/transcript/conversationTranscriptLoader';
@@ -58,6 +59,42 @@ function waitForNextPaint() {
   });
 }
 
+function getLastPathSegment(pathValue = '') {
+  if (typeof pathValue !== 'string') {
+    return '';
+  }
+  const trimmed = pathValue.trim().replace(/[\\/]+$/, '');
+  if (!trimmed) {
+    return '';
+  }
+  const segments = trimmed.split(/[\\/]/).filter(Boolean);
+  return segments.length > 0 ? segments[segments.length - 1] : trimmed;
+}
+
+function normalizeActiveWorkspace(statusPayload = null) {
+  const selectedPaths = Array.isArray(statusPayload?.details?.selected_paths)
+    ? statusPayload.details.selected_paths.filter((value) => typeof value === 'string' && value.trim())
+    : [];
+  if (statusPayload?.granted !== true || selectedPaths.length === 0) {
+    return {
+      activeWorkspaceName: '',
+      activeWorkspacePath: '',
+    };
+  }
+  const activeWorkspacePath = selectedPaths[0];
+  return {
+    activeWorkspaceName: getLastPathSegment(activeWorkspacePath) || activeWorkspacePath,
+    activeWorkspacePath,
+  };
+}
+
+function workspaceStateMatches(currentWorkspace, nextWorkspace) {
+  return (
+    currentWorkspace?.activeWorkspaceName === nextWorkspace?.activeWorkspaceName
+    && currentWorkspace?.activeWorkspacePath === nextWorkspace?.activeWorkspacePath
+  );
+}
+
 function ChatInterface({ focusComposerToken = 0 }) {
   const vmModeEnabled = isVmModeEnabled();
 
@@ -81,8 +118,15 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const { config, updateConfig, availableModels } = useAppConfigContext();
   const transcriptSessionInfo = useTranscriptSessionInfo();
+  const [activeWorkspace, setActiveWorkspace] = useState(() => ({
+    activeWorkspaceName: '',
+    activeWorkspacePath: '',
+  }));
 
   const audioPlayerRef = useRef(null);
+  const activeWorkspaceRef = useRef(activeWorkspace);
+  const workspaceRefreshRequestIdRef = useRef(0);
+  const workspaceSelectionVersionRef = useRef(0);
 
   useEffect(() => {
     audioPlayerRef.current = new PlayerService();
@@ -92,6 +136,74 @@ function ChatInterface({ focusComposerToken = 0 }) {
   }, []);
 
   useChatInterfaceAudioChunkStream(audioPlayerRef);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const applyActiveWorkspace = (nextWorkspace, { markSelectionChange = false } = {}) => {
+      if (markSelectionChange) {
+        workspaceSelectionVersionRef.current += 1;
+      }
+      if (workspaceStateMatches(activeWorkspaceRef.current, nextWorkspace)) {
+        return;
+      }
+      activeWorkspaceRef.current = nextWorkspace;
+      setActiveWorkspace(nextWorkspace);
+    };
+
+    const refreshActiveWorkspace = async () => {
+      const requestId = workspaceRefreshRequestIdRef.current + 1;
+      workspaceRefreshRequestIdRef.current = requestId;
+      const selectionVersionAtRequestStart = workspaceSelectionVersionRef.current;
+      try {
+        const result = await IpcBridge.invoke(INVOKE_CHANNELS.CHECK_PERMISSION, {
+          permissionId: 'filesystem_workspace_access',
+        });
+        if (
+          cancelled
+          || requestId !== workspaceRefreshRequestIdRef.current
+          || selectionVersionAtRequestStart !== workspaceSelectionVersionRef.current
+        ) {
+          return;
+        }
+        applyActiveWorkspace(normalizeActiveWorkspace(result?.data?.status || null));
+      } catch (_error) {
+        if (
+          !cancelled
+          && requestId === workspaceRefreshRequestIdRef.current
+          && selectionVersionAtRequestStart === workspaceSelectionVersionRef.current
+        ) {
+          applyActiveWorkspace({
+            activeWorkspaceName: '',
+            activeWorkspacePath: '',
+          });
+        }
+      }
+    };
+
+    void refreshActiveWorkspace();
+
+    const removeWorkspaceAccessUpdated = IpcBridge.on(
+      ON_CHANNELS.WORKSPACE_ACCESS_UPDATED,
+      (payload = {}) => {
+        applyActiveWorkspace({
+          activeWorkspaceName: typeof payload?.workspaceName === 'string' ? payload.workspaceName : '',
+          activeWorkspacePath: typeof payload?.workspacePath === 'string' ? payload.workspacePath : '',
+        }, { markSelectionChange: true });
+      },
+    );
+
+    const handleWindowFocus = () => {
+      void refreshActiveWorkspace();
+    };
+    window.addEventListener('focus', handleWindowFocus);
+
+    return () => {
+      cancelled = true;
+      removeWorkspaceAccessUpdated?.();
+      window.removeEventListener('focus', handleWindowFocus);
+    };
+  }, []);
 
   const voiceModeEnabled = config?.voice_mode_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
@@ -340,6 +452,8 @@ function ChatInterface({ focusComposerToken = 0 }) {
         selectedReasoningModeLabel={selectedReasoningModeLabel}
         reasoningModeOptions={reasoningModeOptions}
         speechModeEnabled={speechModeEnabled}
+        activeWorkspaceName={activeWorkspace.activeWorkspaceName}
+        activeWorkspacePath={activeWorkspace.activeWorkspacePath}
         devUiEnabled={devUiEnabled}
         handleProviderSelect={handleProviderSelect}
         handleModelSelect={handleModelSelect}
