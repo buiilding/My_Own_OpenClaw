@@ -8,18 +8,33 @@ read_when:
 # Cloudflared Self-Host Runbook (`windieos.com`)
 
 This runbook sets up:
-- WindieOS backend as a user-level systemd service.
 - Cloudflare Tunnel from this machine to `api.windieos.com`.
-- Persistent startup for both services.
+- Persistent startup for the tunnel service.
+- Optional backend startup as a separate user-level systemd service when you explicitly want that.
 
 ## Prerequisites
 
 - Domain `windieos.com` managed in Cloudflare DNS.
 - Linux machine with `systemctl --user` available.
 - WindieOS repo on machine.
-- Backend secrets provided through a local env file (do not commit secrets).
+- Backend secrets provided through your shell env or a local env file (do not commit secrets).
 
-## 1) Install backend user service
+## Preferred mode: tunnel on startup, backend started manually
+
+This is the preferred local-dev setup for this repo:
+- keep `windieos-cloudflared.service` enabled at startup
+- start the backend manually only when you want it public:
+
+```bash
+cd /path/to/windieos
+python -m backend.src.main
+```
+
+When the backend is not running, `https://api.windieos.com` stays routed to this machine but requests fail because nothing is listening on `127.0.0.1:8765`.
+
+## 1) Optional: install backend user service
+
+Skip this section if you do not want the backend to start automatically.
 
 Create a local env file for backend secrets:
 
@@ -76,8 +91,18 @@ Notes:
   - `~/.cloudflared/windieos-config.yml`
   - `~/.config/systemd/user/windieos-cloudflared.service`
 - Script enables/starts `windieos-cloudflared.service`.
+- This tunnel service can stay enabled even if you prefer to launch the backend manually with `python -m backend.src.main`.
 
 ## 4) Validate remote access
+
+If you are using the preferred manual-backend flow, start the backend first:
+
+```bash
+cd /path/to/windieos
+python -m backend.src.main
+```
+
+Then validate remote access:
 
 ```bash
 curl -fsSL https://api.windieos.com/api/embeddings/health
@@ -91,6 +116,8 @@ systemctl --user status windieos-cloudflared.service --no-pager
 journalctl --user -u windieos-backend.service -n 100 --no-pager
 journalctl --user -u windieos-cloudflared.service -n 100 --no-pager
 ```
+
+If you skipped the optional backend service install, ignore the `windieos-backend.service` checks and just inspect the manual backend terminal plus `windieos-cloudflared.service`.
 
 ## 5) Optional one-shot bootstrap
 
@@ -115,4 +142,4 @@ Current WindieOS packaged defaults already target:
 - `https://api.windieos.com`
 - `wss://api.windieos.com/ws`
 
-So installers on other laptops connect to remote backend by default once tunnel + backend are healthy.
+So installers on other laptops connect to the remote backend by default whenever the tunnel is up and your manually started local backend is healthy.
