@@ -9,6 +9,10 @@ from typing import Any, Dict, List, Optional
 from backend.src.core.types.schemas import LLMMessage
 from backend.src.llm.models.models_config import resolve_model_preset, resolve_runtime_model_id
 from backend.src.llm.providers.response_parsing import get_value
+from backend.src.tools.tool_specs import (
+    is_function_tool_spec,
+    to_litellm_tool_choice,
+)
 
 
 def _normalize_message_content_for_input(content: Any) -> Any:
@@ -119,36 +123,27 @@ def build_openai_responses_tools(
         return None
     normalized: List[Dict[str, Any]] = []
     for tool in tools:
-        if not isinstance(tool, dict) or tool.get("type") != "function":
-            continue
-        function = tool.get("function")
-        if not isinstance(function, dict):
+        if not is_function_tool_spec(tool):
             continue
         normalized.append(
             {
                 "type": "function",
-                "name": function.get("name"),
-                "description": function.get("description"),
-                "parameters": copy.deepcopy(function.get("parameters")),
-                "strict": False,
+                "name": tool.get("name"),
+                "description": tool.get("description"),
+                "parameters": copy.deepcopy(tool.get("parameters")),
+                "strict": bool(tool.get("strict", False)),
             }
         )
     return normalized
 
 
 def build_openai_responses_tool_choice(tool_choice: Any) -> Any:
-    if tool_choice is None or isinstance(tool_choice, str):
-        return tool_choice
-
-    if isinstance(tool_choice, dict):
-        choice_type = tool_choice.get("type")
-        if choice_type == "function":
-            function = tool_choice.get("function")
-            if isinstance(function, dict) and isinstance(function.get("name"), str):
-                return {"type": "function", "name": function["name"]}
-        if choice_type in {"none", "auto", "required"}:
-            return choice_type
-    return tool_choice
+    choice = to_litellm_tool_choice(tool_choice)
+    if isinstance(choice, dict):
+        function = choice.get("function")
+        if isinstance(function, dict) and isinstance(function.get("name"), str):
+            return {"type": "function", "name": function["name"]}
+    return choice
 
 
 def build_openai_reasoning_config(model_id: str) -> Dict[str, str]:
@@ -184,11 +179,6 @@ def build_openai_responses_params(
         messages,
         model=runtime_model_id,
     )
-    normalized_tools = (
-        provider._normalize_tools_for_litellm(tools, model=runtime_model_id)
-        if tools is not None
-        else None
-    )
     params: Dict[str, Any] = {
         "model": provider._get_full_model_string(runtime_model_id),
         "input": build_openai_responses_input(normalized_messages),
@@ -196,8 +186,8 @@ def build_openai_responses_params(
         "base_url": provider.base_url,
         "timeout": provider.timeout,
     }
-    if normalized_tools is not None:
-        params["tools"] = build_openai_responses_tools(normalized_tools)
+    if tools is not None:
+        params["tools"] = build_openai_responses_tools(tools)
     if tool_choice is not None:
         params["tool_choice"] = build_openai_responses_tool_choice(tool_choice)
     if parallel_tool_calls is not None:

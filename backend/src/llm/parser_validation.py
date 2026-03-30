@@ -4,24 +4,9 @@ import json
 import logging
 
 from backend.src.core.infrastructure.exceptions import ParseValidationError
-from backend.src.tools.tool_catalog import (
-    expand_model_tool_names,
-    get_wrapper_member_names,
-)
 from backend.src.tools.tool_policy import ToolPolicy
 
 logger = logging.getLogger(__name__)
-_UNIFIED_COMPUTER_TOOL_NAME = "computer_use"
-_UNIFIED_COMPUTER_SUBTOOLS = frozenset(get_wrapper_member_names(_UNIFIED_COMPUTER_TOOL_NAME))
-_UNIFIED_SYSTEM_TOOL_NAME = "system_use"
-_UNIFIED_SYSTEM_SUBTOOLS = frozenset(get_wrapper_member_names(_UNIFIED_SYSTEM_TOOL_NAME))
-_COMPUTER_REQUIRED_METADATA_FIELDS = frozenset(
-    {
-        "description",
-        "explanation",
-        "expectation",
-    }
-)
 
 
 class ToolCallValidator:
@@ -176,7 +161,7 @@ class ToolCallValidator:
         return filtered_tool_names
 
     def _compute_allowed_tool_name_set(self, display_tool_names: List[str]) -> set[str]:
-        return expand_model_tool_names(display_tool_names)
+        return set(display_tool_names)
 
     def _get_valid_tool_name_index(self) -> tuple[List[str], set[str]]:
         """
@@ -215,108 +200,21 @@ class ToolCallValidator:
     def validate_metadata(
         self, tool_name: str, metadata: Optional[Dict[str, Any]]
     ) -> None:
-        """
-        Validate metadata for computer-use tools.
-
-        SECURITY: Computer-use tools MUST have metadata with required fields.
-        """
-        is_computer_use = self._is_computer_use_tool(tool_name)
-
-        if not is_computer_use:
-            if metadata is not None:
-                logger.debug(
-                    f"Non-computer-use tool '{tool_name}' has metadata (will be ignored)"
-                )
-            return
-
-        validation_errors = []
-
-        if metadata is None:
-            validation_errors.append(
-                f"Computer-use tool '{tool_name}' is missing metadata. "
-                "Use direct tool-call format with the unified computer_use tool and include metadata in args. "
-                "Format: {\"functionCall\": {\"name\": \"computer_use\", \"args\": {\"tool\": \"mouse_control\", \"metadata\": {\"description\": \"...\", \"explanation\": \"...\", \"expectation\": \"...\"}, \"arguments\": {...}}}}"
-            )
-        elif not isinstance(metadata, dict):
-            validation_errors.append(
-                f"Computer-use tool '{tool_name}' has invalid metadata type: {type(metadata).__name__}. "
-                "Metadata must be a dictionary."
-            )
-        else:
-            description = metadata.get("description")
-            normalized_description = self._normalize_required_metadata_value(description)
-            if normalized_description is None:
-                validation_errors.append(
-                    f"Computer-use tool '{tool_name}' is missing required metadata field 'description'. "
-                    "Description describes the most recent screenshot provided to you."
-                )
-            else:
-                metadata["description"] = normalized_description
-
-            explanation = metadata.get("explanation")
-            normalized_explanation = self._normalize_required_metadata_value(explanation)
-            if normalized_explanation is None:
-                validation_errors.append(
-                    f"Computer-use tool '{tool_name}' is missing required metadata field 'explanation'. "
-                    "Explanation describes why this tool is being used."
-                )
-            else:
-                metadata["explanation"] = normalized_explanation
-
-            expectation = metadata.get("expectation")
-            normalized_expectation = self._normalize_required_metadata_value(expectation)
-            if normalized_expectation is None:
-                validation_errors.append(
-                    f"Computer-use tool '{tool_name}' is missing required metadata field 'expectation'. "
-                    "Expectation describes what you expect to see after execution."
-                )
-            else:
-                metadata["expectation"] = normalized_expectation
-
-            unexpected_fields = sorted(
-                key for key in metadata.keys() if key not in _COMPUTER_REQUIRED_METADATA_FIELDS
-            )
-            if unexpected_fields:
-                validation_errors.append(
-                    "Computer-use tool "
-                    f"'{tool_name}' has unexpected metadata fields: "
-                    f"{', '.join(unexpected_fields)}. "
-                    "Allowed fields: description, explanation, expectation."
-                )
-
-        if validation_errors:
+        _ = tool_name
+        if metadata is not None and not isinstance(metadata, dict):
+            validation_errors = [
+                f"Tool metadata must be an object when present, got {type(metadata).__name__}"
+            ]
             self.metrics.record_validation_violation(
                 validation_errors=validation_errors,
                 boundary_name="response_parser",
-                metadata={"tool_name": tool_name, "has_metadata": metadata is not None},
+                metadata={"tool_name": tool_name, "has_metadata": True},
             )
             raise ParseValidationError(
-                f"Metadata validation failed for computer-use tool '{tool_name}': {', '.join(validation_errors)}",
+                validation_errors[0],
                 validation_errors=validation_errors,
                 boundary_name="response_parser",
             )
-
-    def _is_computer_use_tool(self, tool_name: str) -> bool:
-        if tool_name == _UNIFIED_COMPUTER_TOOL_NAME or tool_name in _UNIFIED_COMPUTER_SUBTOOLS:
-            return True
-
-        from backend.src.tools.categorization import ToolDomain
-
-        tool = self.tool_registry.get_tool(tool_name)
-        if tool and hasattr(tool, "category"):
-            return tool.category == ToolDomain.COMPUTER
-        return False
-
-    @staticmethod
-    def _has_nonempty_text(value: Any) -> bool:
-        return isinstance(value, str) and bool(value.strip())
-
-    @staticmethod
-    def _normalize_required_metadata_value(value: Any) -> Optional[str]:
-        if not isinstance(value, str):
-            return None
-        normalized = value.strip()
-        return normalized if normalized else None
 
     @staticmethod
     def _safe_count(value: Any) -> Optional[int]:

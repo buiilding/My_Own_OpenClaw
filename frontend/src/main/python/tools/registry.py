@@ -10,10 +10,7 @@ from importlib import import_module
 import logging
 from typing import Any, Callable, Dict
 
-from backend.src.tools.tool_catalog import (
-    get_backend_exposed_tool_names,
-    get_wrapper_member_names,
-)
+from backend.src.tools.tool_catalog import get_backend_exposed_tool_names
 from tools.result import ToolResult
 logger = logging.getLogger(__name__)
 
@@ -21,17 +18,6 @@ logger = logging.getLogger(__name__)
 # called by the LLM. Derive it from the backend catalog so backend and sidecar
 # stay aligned when tools are added or removed.
 EXPOSED_TO_BACKEND_TOOLS = frozenset(get_backend_exposed_tool_names())
-
-COMPUTER_USE_SUBTOOLS = frozenset(get_wrapper_member_names("computer_use"))
-COMPUTER_USE_REQUIRED_METADATA_FIELDS = (
-    "description",
-    "explanation",
-    "expectation",
-)
-SYSTEM_USE_SUBTOOLS = frozenset(get_wrapper_member_names("system_use"))
-SYSTEM_USE_TOOL_NAME_TO_EXECUTOR = {
-    tool_name: tool_name for tool_name in SYSTEM_USE_SUBTOOLS
-}
 
 
 class ToolRegistry:
@@ -79,97 +65,6 @@ class ToolRegistry:
         except ImportError as e:
             logger.warning(f"Failed to import scroll_tool: {e}")
 
-        async def execute_computer_use(args: Dict[str, Any]) -> ToolResult:
-            """
-            Unified computer-use router.
-
-            Accepts `{tool, arguments, metadata}` and delegates to the selected
-            concrete sidecar tool so backend/sidecar exposed-tool sets stay in
-            sync while execution remains lightweight in the sidecar.
-            """
-            if not isinstance(args, dict):
-                return ToolResult.error_result("Tool args must be an object")
-
-            raw_tool_name = args.get("tool")
-            tool_name = raw_tool_name.strip() if isinstance(raw_tool_name, str) else None
-            if not tool_name or tool_name not in COMPUTER_USE_SUBTOOLS:
-                return ToolResult.error_result(
-                    "computer_use requires a valid 'tool' value "
-                    f"({', '.join(sorted(COMPUTER_USE_SUBTOOLS))})"
-                )
-            args["tool"] = tool_name
-
-            tool_arguments = args.get("arguments", {})
-            if not isinstance(tool_arguments, dict):
-                return ToolResult.error_result("computer_use.arguments must be an object")
-            tool_arguments = copy.deepcopy(tool_arguments)
-
-            metadata = args.get("metadata")
-            if not isinstance(metadata, dict):
-                return ToolResult.error_result("computer_use.metadata must be an object")
-
-            normalized_metadata: Dict[str, str] = {}
-            for field_name in COMPUTER_USE_REQUIRED_METADATA_FIELDS:
-                raw_value = metadata.get(field_name)
-                if not isinstance(raw_value, str) or not raw_value.strip():
-                    return ToolResult.error_result(
-                        f"computer_use missing required metadata field: {field_name}"
-                    )
-                normalized_metadata[field_name] = raw_value.strip()
-            unexpected_metadata_fields = sorted(
-                key
-                for key in metadata.keys()
-                if key not in COMPUTER_USE_REQUIRED_METADATA_FIELDS
-            )
-            if unexpected_metadata_fields:
-                return ToolResult.error_result(
-                    "computer_use.metadata contains unexpected fields: "
-                    f"{', '.join(unexpected_metadata_fields)}"
-                )
-            args["metadata"] = normalized_metadata
-
-            return await self.execute_tool(tool_name, tool_arguments)
-
-        self.tools["computer_use"] = execute_computer_use
-
-        async def execute_system_use(args: Dict[str, Any]) -> ToolResult:
-            """
-            Unified system/filesystem router.
-
-            Accepts `{tool, explanation, arguments}` and delegates to the selected
-            concrete sidecar tool.
-            """
-            if not isinstance(args, dict):
-                return ToolResult.error_result("Tool args must be an object")
-
-            raw_tool_name = args.get("tool")
-            tool_name = raw_tool_name.strip() if isinstance(raw_tool_name, str) else None
-            if not tool_name or tool_name not in SYSTEM_USE_SUBTOOLS:
-                return ToolResult.error_result(
-                    "system_use requires a valid 'tool' value "
-                    f"({', '.join(sorted(SYSTEM_USE_SUBTOOLS))})"
-                )
-            args["tool"] = tool_name
-
-            tool_arguments = args.get("arguments", {})
-            if not isinstance(tool_arguments, dict):
-                return ToolResult.error_result("system_use.arguments must be an object")
-            tool_arguments = copy.deepcopy(tool_arguments)
-            top_level_explanation = args.get("explanation")
-            if (
-                not isinstance(top_level_explanation, str)
-                or not top_level_explanation.strip()
-            ):
-                return ToolResult.error_result(
-                    "system_use.explanation must be a non-empty string"
-                )
-            tool_arguments.pop("explanation", None)
-            tool_arguments["explanation"] = top_level_explanation.strip()
-            target_tool_name = SYSTEM_USE_TOOL_NAME_TO_EXECUTOR[tool_name]
-            return await self.execute_tool(target_tool_name, tool_arguments)
-
-        self.tools["system_use"] = execute_system_use
-        
         # Filesystem tools
         try:
             from tools.filesystem.read_file_tool import read_file
@@ -302,7 +197,7 @@ class ToolRegistry:
 
         if not isinstance(args, dict):
             return ToolResult.error_result("Tool args must be an object")
-        tool_args = args
+        tool_args = copy.deepcopy(args)
         
         # Execute tool (handle both sync and async)
         try:

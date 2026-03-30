@@ -35,20 +35,18 @@ def test_tool_schema_standard_format():
     tool = DummyTool()
     schema = tool.get_json_schema()
     assert schema["type"] == "function"
-    function_schema = schema["function"]
-    assert function_schema["name"] == "dummy_tool"
-    assert function_schema["description"] == "Dummy tool"
-    assert "parameters" in function_schema
-    assert "metadata" not in function_schema.get("parameters", {})
+    assert schema["name"] == "dummy_tool"
+    assert schema["description"] == "Dummy tool"
+    assert "parameters" in schema
+    assert "metadata" not in schema.get("parameters", {})
 
 
 def test_tool_schema_computer_format_native():
     tool = DummyComputerTool()
     schema = tool.get_json_schema()
     assert schema["type"] == "function"
-    function_schema = schema["function"]
-    assert function_schema["name"] == "dummy_computer"
-    params = function_schema["parameters"]
+    assert schema["name"] == "dummy_computer"
+    params = schema["parameters"]
     assert "metadata" not in params.get("properties", {})
     assert "action" not in params.get("properties", {})
     assert params["properties"]["path"]["type"] == "string"
@@ -94,7 +92,7 @@ def test_tool_registry_declarations_and_capabilities():
 
     declarations = registry.get_function_declarations_filtered(["dummy_tool"])
     assert len(declarations) == 1
-    assert declarations[0]["function"]["name"] == "dummy_tool"
+    assert declarations[0]["name"] == "dummy_tool"
 
     capabilities = registry.get_tool_capabilities("dummy_tool")
     assert capabilities is not None
@@ -148,90 +146,66 @@ def test_tool_registry_filtered_declarations_include_only_requested_tool():
 
     declarations = registry.get_function_declarations_filtered(["dummy_tool"])
 
-    assert [d["function"]["name"] for d in declarations] == ["dummy_tool"]
+    assert [d["name"] for d in declarations] == ["dummy_tool"]
 
 
-def test_tool_registry_filtered_declarations_normalize_legacy_computer_tools():
+def test_tool_registry_filtered_declarations_include_requested_computer_tools():
     config = AppConfig()
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
 
     declarations = registry.get_function_declarations_filtered(
         ["mouse_control", "keyboard_control", "screenshot", "switch_tab", "wait"]
     )
-    names = [d["function"]["name"] for d in declarations]
+    names = [d["name"] for d in declarations]
 
-    assert names == ["computer_use"]
+    assert names == ["mouse_control", "keyboard_control", "screenshot", "switch_tab", "wait"]
 
 
-def test_tool_registry_filtered_declarations_normalize_legacy_system_tools():
+def test_tool_registry_filtered_declarations_include_requested_system_tools():
     config = AppConfig()
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
 
     declarations = registry.get_function_declarations_filtered(
         ["run_shell_command", "replace", "read_file", "get_system_stats", "get_open_windows"]
     )
-    names = [d["function"]["name"] for d in declarations]
+    names = [d["name"] for d in declarations]
 
-    assert names == ["system_use"]
-
-
-def test_tool_registry_computer_use_declaration_includes_metadata_fields():
-    config = AppConfig()
-    registry = ToolRegistry(config=config, cache_manager=CacheManager())
-
-    declarations = registry.get_function_declarations_filtered(["computer_use"])
-    assert len(declarations) == 1
-
-    parameters = declarations[0]["function"]["parameters"]
-    metadata = parameters["properties"]["metadata"]
-
-    assert "metadata" in parameters["required"]
-    assert parameters["additionalProperties"] is False
-    assert metadata["type"] == "object"
-    assert metadata["additionalProperties"] is False
-    assert set(metadata["required"]) == {"description", "explanation", "expectation"}
-    assert metadata["properties"]["description"]["type"] == "string"
-    assert metadata["properties"]["description"]["minLength"] == 1
-    assert metadata["properties"]["explanation"]["type"] == "string"
-    assert metadata["properties"]["explanation"]["minLength"] == 1
-    assert metadata["properties"]["expectation"]["type"] == "string"
-    assert metadata["properties"]["expectation"]["minLength"] == 1
-
-
-def test_tool_registry_system_use_declaration_constrains_tool_enum_and_arguments():
-    config = AppConfig()
-    registry = ToolRegistry(config=config, cache_manager=CacheManager())
-
-    declarations = registry.get_function_declarations_filtered(["system_use"])
-    assert len(declarations) == 1
-
-    parameters = declarations[0]["function"]["parameters"]
-    tool_enum = parameters["properties"]["tool"]["enum"]
-    explanation = parameters["properties"]["explanation"]
-    argument_variants = parameters["properties"]["arguments"]["oneOf"]
-
-    assert parameters["required"] == ["tool", "explanation"]
-    assert parameters["additionalProperties"] is False
-    assert explanation["type"] == "string"
-    assert explanation["minLength"] == 1
-    assert set(tool_enum) == {
-        "run_shell_command",
-        "replace",
-        "read_file",
-        "get_system_stats",
+    assert names == [
         "get_open_windows",
-    }
-    assert {entry["title"] for entry in argument_variants} == {
-        "run_shell_command arguments",
-        "replace arguments",
-        "read_file arguments",
-        "get_system_stats arguments",
-        "get_open_windows arguments",
-    }
-    assert all(
-        "explanation" not in entry.get("properties", {})
-        for entry in argument_variants
-    )
+        "get_system_stats",
+        "run_shell_command",
+        "read_file",
+        "replace",
+    ]
+
+
+def test_tool_registry_mouse_declaration_exposes_direct_action_schema():
+    config = AppConfig()
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+
+    declarations = registry.get_function_declarations_filtered(["mouse_control"])
+    assert len(declarations) == 1
+
+    parameters = declarations[0]["parameters"]
+    assert parameters["properties"]["action"]["type"] == "string"
+    assert parameters["properties"]["find_coordinates_by"]["type"] == "string"
+    assert "metadata" not in parameters["properties"]
+
+
+def test_tool_registry_run_shell_declaration_is_direct_and_requires_explanation():
+    config = AppConfig()
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+
+    declarations = registry.get_function_declarations_filtered(["run_shell_command"])
+    assert len(declarations) == 1
+
+    parameters = declarations[0]["parameters"]
+    explanation = parameters["properties"]["explanation"]
+
+    assert parameters["required"] == ["command", "run_in_background", "explanation"]
+    assert explanation["type"] == "string"
+    assert "tool" not in parameters["properties"]
+    assert "arguments" not in parameters["properties"]
 
 
 def test_tool_registry_availability_and_capabilities_fallback():

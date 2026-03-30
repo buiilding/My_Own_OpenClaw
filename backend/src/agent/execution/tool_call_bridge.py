@@ -4,9 +4,7 @@ import copy
 import re
 from typing import Any, Dict, List
 
-from backend.src.core.utils.string_normalization import (
-    normalize_non_empty_string,
-)
+from backend.src.core.utils.string_normalization import normalize_non_empty_string
 from backend.src.core.utils.raw_tool_call_preview import build_raw_tool_call_preview
 from backend.src.core.types.schemas import NormalizedLLMResponse
 from backend.src.llm.parser_types import ParsedResponse, ParsedToolCall
@@ -39,32 +37,6 @@ _FILE_PATH_ESCAPED_JSON_PATTERN = re.compile(
 _CAT_REDIRECT_PATTERN = re.compile(
     r"cat\s*>\s*([^\s<>'\"`]+)"
 )
-_COMPUTER_USE_TOOL_NAME = "computer_use"
-_COMPUTER_SUBTOOLS = {
-    "mouse_control",
-    "keyboard_control",
-    "screenshot",
-    "scroll_control",
-    "switch_tab",
-    "wait",
-}
-_SYSTEM_USE_TOOL_NAME = "system_use"
-_SYSTEM_SUBTOOL_TO_CONCRETE = {
-    "run_shell_command": "run_shell_command",
-    "replace": "replace",
-    "read_file": "read_file",
-    "get_system_stats": "get_system_stats",
-    "get_open_windows": "get_open_windows",
-}
-_COMPUTER_REQUIRED_METADATA_FIELDS = (
-    "description",
-    "explanation",
-    "expectation",
-)
-_COMPUTER_INTERNAL_METADATA_FIELDS = (
-    "tool_call_id",
-    "thought_signature",
-)
 
 
 def _extract_thought_signature(payload: Any) -> str:
@@ -76,59 +48,8 @@ def _extract_thought_signature(payload: Any) -> str:
             return value.strip()
     return ""
 
-
-def _normalize_required_metadata_value(value: Any) -> str | None:
-    return normalize_non_empty_string(value)
-
-
 def _normalize_tool_call_id(value: Any) -> str | None:
     return normalize_non_empty_string(value)
-
-
-def _resolve_system_use_explanation(
-    payload: Dict[str, Any],
-) -> str | None:
-    return normalize_non_empty_string(payload.get("explanation"))
-
-
-def _canonicalize_legacy_system_tool_call(
-    tool_name: str,
-    arguments: Dict[str, Any],
-) -> tuple[str, Dict[str, Any]]:
-    wrapper_arguments = copy.deepcopy(arguments)
-    wrapper_arguments.pop("explanation", None)
-    payload: Dict[str, Any] = {
-        "tool": tool_name,
-        "arguments": wrapper_arguments,
-    }
-    resolved_explanation = normalize_non_empty_string(arguments.get("explanation"))
-    if resolved_explanation is not None:
-        payload["explanation"] = resolved_explanation
-    return _SYSTEM_USE_TOOL_NAME, payload
-
-
-def _normalize_computer_metadata(
-    metadata: Dict[str, Any],
-) -> tuple[Dict[str, Any], bool]:
-    normalized: Dict[str, Any] = {}
-    has_all_required = True
-    for field_name in _COMPUTER_INTERNAL_METADATA_FIELDS:
-        if field_name in metadata:
-            normalized[field_name] = metadata[field_name]
-    for field_name in _COMPUTER_REQUIRED_METADATA_FIELDS:
-        field_value = _normalize_required_metadata_value(metadata.get(field_name))
-        if field_value is None:
-            has_all_required = False
-            continue
-        normalized[field_name] = field_value
-    unexpected_fields = [
-        field_name
-        for field_name in metadata.keys()
-        if field_name not in _COMPUTER_REQUIRED_METADATA_FIELDS
-        and field_name not in _COMPUTER_INTERNAL_METADATA_FIELDS
-    ]
-    has_only_allowed_fields = len(unexpected_fields) == 0
-    return normalized, has_all_required and has_only_allowed_fields
 
 
 def _build_model_facing_tool_call(
@@ -194,57 +115,6 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
         tool_call_id=tool_call_id,
         thought_signature=thought_signature or None,
     )
-
-    metadata_payload = parameters.get("metadata")
-    if isinstance(metadata_payload, dict):
-        metadata.update(copy.deepcopy(metadata_payload))
-        parameters = dict(parameters)
-        parameters.pop("metadata", None)
-
-    if normalized_tool_name == _COMPUTER_USE_TOOL_NAME:
-        mapped_tool = parameters.get("tool")
-        mapped_args = parameters.get("arguments")
-        if isinstance(mapped_tool, str) and mapped_tool.strip() in _COMPUTER_SUBTOOLS:
-            normalized_tool_name = mapped_tool.strip()
-        else:
-            normalized_tool_name = "invalid_computer_use_tool"
-        if isinstance(mapped_args, dict):
-            parameters = copy.deepcopy(mapped_args)
-        else:
-            parameters = {}
-
-    if normalized_tool_name == _SYSTEM_USE_TOOL_NAME:
-        mapped_tool = parameters.get("tool")
-        mapped_args = parameters.get("arguments")
-        if isinstance(mapped_tool, str):
-            mapped_tool_name = _SYSTEM_SUBTOOL_TO_CONCRETE.get(mapped_tool.strip())
-            if mapped_tool_name is not None:
-                normalized_tool_name = mapped_tool_name
-                if isinstance(mapped_args, dict):
-                    parameters = copy.deepcopy(mapped_args)
-                else:
-                    parameters = {}
-                parameters.pop("explanation", None)
-                resolved_explanation = _resolve_system_use_explanation(
-                    tool_call.get("arguments")
-                    if isinstance(tool_call.get("arguments"), dict)
-                    else {},
-                )
-                if resolved_explanation is not None:
-                    parameters["explanation"] = resolved_explanation
-    elif normalized_tool_name in _SYSTEM_SUBTOOL_TO_CONCRETE:
-        normalized_tool_name, parameters = _canonicalize_legacy_system_tool_call(
-            normalized_tool_name,
-            parameters,
-        )
-
-    if normalized_tool_name in _COMPUTER_SUBTOOLS:
-        normalized_metadata, has_all_required_metadata = _normalize_computer_metadata(
-            metadata
-        )
-        metadata = normalized_metadata
-        if not has_all_required_metadata:
-            normalized_tool_name = "invalid_computer_use_tool"
 
     if raw_tool_name:
         metadata["model_facing_tool_call"] = original_model_facing_tool_call

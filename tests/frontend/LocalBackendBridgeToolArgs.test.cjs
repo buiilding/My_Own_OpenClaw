@@ -163,19 +163,11 @@ describe('local_backend_bridge_tool_args', () => {
     });
   });
 
-  test('injects default display bounds into unified computer_use screenshot arguments', () => {
+  test('injects default display bounds into direct screenshot arguments', () => {
     const result = resolveToolArgs(
-      'computer_use',
+      'screenshot',
       {
-        tool: 'screenshot',
-        metadata: {
-          description: 'capture current screen',
-          explanation: 'verify current monitor',
-          expectation: 'single-monitor screenshot',
-        },
-        arguments: {
-          explanation: 'Capture only the active monitor',
-        },
+        explanation: 'Capture only the active monitor',
       },
       null,
       console.warn,
@@ -197,79 +189,27 @@ describe('local_backend_bridge_tool_args', () => {
     );
 
     expect(result).toEqual({
-      tool: 'screenshot',
-      metadata: {
-        description: 'capture current screen',
-        explanation: 'verify current monitor',
-        expectation: 'single-monitor screenshot',
-      },
-      arguments: {
-        explanation: 'Capture only the active monitor',
-        display_bounds: {
-          x: 1920,
+      explanation: 'Capture only the active monitor',
+      display_bounds: {
+        x: 1920,
+        y: 0,
+        width: 2560,
+        height: 1440,
+        monitor_id: '2',
+        desktop_virtual_bounds: {
+          x: 0,
           y: 0,
-          width: 2560,
+          width: 4480,
           height: 1440,
-          monitor_id: '2',
-          desktop_virtual_bounds: {
-            x: 0,
-            y: 0,
-            width: 4480,
-            height: 1440,
-          },
         },
       },
     });
   });
 
-  test('preserves explicit nested screenshot display bounds for unified computer_use screenshot arguments', () => {
+  test('preserves explicit screenshot display bounds for direct screenshot arguments', () => {
     const result = resolveToolArgs(
-      'computer_use',
+      'screenshot',
       {
-        tool: 'screenshot',
-        metadata: {
-          description: 'capture current screen',
-          explanation: 'verify current monitor',
-          expectation: 'single-monitor screenshot',
-        },
-        arguments: {
-          explanation: 'Capture only the active monitor',
-          display_bounds: {
-            x: 0,
-            y: 0,
-            width: 1920,
-            height: 1080,
-            monitor_id: '1',
-          },
-        },
-      },
-      null,
-      console.warn,
-      {
-        displayBounds: {
-          x: 1920,
-          y: 0,
-          width: 2560,
-          height: 1440,
-          monitor_id: '2',
-          desktop_virtual_bounds: {
-            x: 0,
-            y: 0,
-            width: 4480,
-            height: 1440,
-          },
-        },
-      },
-    );
-
-    expect(result).toEqual({
-      tool: 'screenshot',
-      metadata: {
-        description: 'capture current screen',
-        explanation: 'verify current monitor',
-        expectation: 'single-monitor screenshot',
-      },
-      arguments: {
         explanation: 'Capture only the active monitor',
         display_bounds: {
           x: 0,
@@ -278,6 +218,34 @@ describe('local_backend_bridge_tool_args', () => {
           height: 1080,
           monitor_id: '1',
         },
+      },
+      null,
+      console.warn,
+      {
+        displayBounds: {
+          x: 1920,
+          y: 0,
+          width: 2560,
+          height: 1440,
+          monitor_id: '2',
+          desktop_virtual_bounds: {
+            x: 0,
+            y: 0,
+            width: 4480,
+            height: 1440,
+          },
+        },
+      },
+    );
+
+    expect(result).toEqual({
+      explanation: 'Capture only the active monitor',
+      display_bounds: {
+        x: 0,
+        y: 0,
+        width: 1920,
+        height: 1080,
+        monitor_id: '1',
       },
     });
   });
@@ -294,125 +262,41 @@ describe('local_backend_bridge_tool_args', () => {
     });
   });
 
-  test('injects native sudo auth mode into system_use run_shell_command arguments', () => {
+  test('injects native sudo auth mode into direct run_shell_command arguments', () => {
     const baseArgs = {
-      tool: 'run_shell_command',
+      command: 'sudo apt update',
+      run_in_background: false,
       explanation: 'run privileged command',
-      arguments: {
-        command: 'sudo apt update',
-        run_in_background: false,
-      },
     };
 
     const result = resolveToolArgs(
-      'system_use',
+      'run_shell_command',
       baseArgs,
       () => ({ agent_full_sudo_enabled: true }),
     );
 
     expect(result).toEqual({
-      tool: 'run_shell_command',
+      command: 'sudo apt update',
+      run_in_background: false,
       explanation: 'run privileged command',
-      arguments: {
-        command: 'sudo apt update',
-        run_in_background: false,
-        sudo_auth_mode: 'native',
-      },
+      sudo_auth_mode: 'native',
     });
     expect(baseArgs).toEqual({
-      tool: 'run_shell_command',
+      command: 'sudo apt update',
+      run_in_background: false,
       explanation: 'run privileged command',
-      arguments: {
-        command: 'sudo apt update',
-        run_in_background: false,
-      },
     });
   });
 
-  test('keeps invalid non-object system_use.arguments unchanged for sidecar validation', () => {
+  test('normalizes non-object direct run_shell_command args into sudo payload', () => {
     const result = resolveToolArgs(
-      'system_use',
-      {
-        tool: 'run_shell_command',
-        arguments: 'not-an-object',
-      },
+      'run_shell_command',
+      'not-an-object',
       () => ({ agent_full_sudo_enabled: true }),
     );
 
     expect(result).toEqual({
-      tool: 'run_shell_command',
-      arguments: 'not-an-object',
+      sudo_auth_mode: 'native',
     });
-  });
-
-  test('passes through computer_use envelope unchanged for sidecar execution', () => {
-    const args = {
-      tool: 'mouse_control',
-      metadata: {
-        description: 'screen',
-        explanation: 'click target',
-        expectation: 'dialog opens',
-      },
-      arguments: { action: 'click', x: 10, y: 20 },
-    };
-
-    const result = resolveToolArgs('computer_use', args, null);
-
-    expect(result).toEqual(args);
-    expect(result).not.toBe(args);
-  });
-
-  test('returns deep-cloned nested computer_use envelope for sidecar execution', () => {
-    const args = {
-      tool: 'mouse_control',
-      metadata: {
-        description: 'screen',
-        explanation: 'click target',
-        expectation: 'dialog opens',
-      },
-      arguments: {
-        action: 'click',
-        target: { x: 10, y: 20 },
-      },
-    };
-
-    const result = resolveToolArgs('computer_use', args, null);
-    result.metadata.description = 'changed';
-    result.arguments.target.x = 999;
-
-    expect(args.metadata.description).toBe('screen');
-    expect(args.arguments.target.x).toBe(10);
-  });
-
-  test('does not synthesize missing top-level metadata for computer_use payloads', () => {
-    const args = {
-      tool: 'mouse_control',
-      arguments: { action: 'click', x: 1, y: 2 },
-    };
-
-    const result = resolveToolArgs('computer_use', args, null);
-
-    expect(result).toEqual(args);
-    expect(result).not.toBe(args);
-    expect(Object.prototype.hasOwnProperty.call(result, 'metadata')).toBe(false);
-  });
-
-  test('preserves malformed computer_use envelope for sidecar-owned validation', () => {
-    const args = {
-      tool: 'mouse_control_typo',
-      metadata: {
-        description: 'screen',
-        explanation: 'click target',
-        expectation: 'dialog opens',
-      },
-      arguments: 'not-a-dict',
-    };
-
-    const result = resolveToolArgs('computer_use', args, null);
-
-    expect(result).toEqual(args);
-    expect(result).not.toBe(args);
-    expect(result.tool).toBe('mouse_control_typo');
-    expect(result.arguments).toBe('not-a-dict');
   });
 });

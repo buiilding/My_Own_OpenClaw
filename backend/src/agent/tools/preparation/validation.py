@@ -8,11 +8,8 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 
 from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
 from backend.src.llm.parser_types import ParsedToolCall
-from backend.src.tools.tool_catalog import get_wrapper_member_names
 
 _BROWSER_TOOL_NAME = "browser"
-_SYSTEM_USE_TOOL_NAME = "system_use"
-_SYSTEM_USE_SUBTOOLS = frozenset(get_wrapper_member_names(_SYSTEM_USE_TOOL_NAME))
 
 
 class ExecutorMouseControlArgs(BaseModel):
@@ -148,54 +145,12 @@ def _has_missing_required_field(exc: ValidationError, field_name: str) -> bool:
     return False
 
 
-def _build_system_use_guidance(
-    parameters: dict[str, Any] | None,
-    exc: ValidationError,
-    *,
-    selected_tool_override: str | None = None,
-) -> str:
-    payload = parameters if isinstance(parameters, dict) else {}
-    selected_tool = selected_tool_override or payload.get("tool")
-    nested_arguments = payload.get("arguments")
-    nested_explanation = None
-    if isinstance(nested_arguments, dict):
-        candidate = nested_arguments.get("explanation")
-        if isinstance(candidate, str) and candidate.strip():
-            nested_explanation = candidate.strip()
-
-    hints = [
-        "Use the unified `system_use` wrapper with top-level `tool`, top-level `explanation`, and nested `arguments`.",
-    ]
-    if isinstance(selected_tool, str) and selected_tool.strip() in _SYSTEM_USE_SUBTOOLS:
-        normalized_tool = selected_tool.strip()
-        hints.append(
-            f"Re-emit this as `system_use` with `tool=\"{normalized_tool}\"`, `explanation=\"...\"`, and `arguments={{...}}`."
-        )
-        if normalized_tool == "get_open_windows":
-            hints.append(
-                "Example: `system_use` with `tool=\"get_open_windows\"`, top-level `explanation`, and `arguments={\"filter_text\":\"Settings\"}`."
-            )
-    if _has_missing_required_field(exc, "explanation") and nested_explanation:
-        hints.append(
-            "Move `arguments.explanation` to top-level `explanation`; nested rationale is not the canonical model-facing shape."
-        )
-    return " ".join(hints)
-
-
 def _build_model_facing_validation_guidance(
     tool_call: ParsedToolCall,
     exc: ValidationError,
 ) -> str | None:
     if tool_call.tool_name == _BROWSER_TOOL_NAME:
         return _build_browser_guidance(tool_call.parameters, exc)
-    if tool_call.tool_name == _SYSTEM_USE_TOOL_NAME:
-        return _build_system_use_guidance(tool_call.parameters, exc)
-    if tool_call.tool_name in _SYSTEM_USE_SUBTOOLS:
-        return _build_system_use_guidance(
-            tool_call.parameters,
-            exc,
-            selected_tool_override=tool_call.tool_name,
-        )
     return None
 
 

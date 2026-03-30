@@ -529,25 +529,17 @@ describe('useToolRunner event handling', () => {
     expect(mockExecuteTool).not.toHaveBeenCalled();
   });
 
-  test('skips frontend execution for computer-use validation-failure metadata', async () => {
+  test('skips frontend execution for direct-tool validation-failure metadata', async () => {
     renderToolRunner(true);
 
     await emitBackendEventAsync({
       type: 'tool-call',
       id: 'event-skip-computer-use-validation-failed',
       payload: {
-        tool_name: 'computer_use',
-        parameters: {
-          tool: 'mouse_control',
-          metadata: {
-            description: 'Click submit',
-            explanation: 'Complete form submission',
-            expectation: 'Submit button is pressed',
-          },
-          arguments: { action: 'click', x: 100, y: 200 },
-        },
+        tool_name: 'mouse_control',
+        parameters: { action: 'click', x: 100, y: 200 },
         metadata: {
-          computer_use_validation_failed: true,
+          llm_tool_call_validation_failed: true,
           skip_frontend_execution: true,
         },
       },

@@ -77,10 +77,8 @@ def test_format_user_message_content_adds_tool_schemas_only_for_first_message():
     tool_schemas = [
         {
             "type": "function",
-            "function": {
-                "name": "read_file",
-                "parameters": {"type": "object"},
-            },
+            "name": "read_file",
+            "parameters": {"type": "object"},
         }
     ]
     constructor = _make_constructor(tool_schemas)
@@ -108,17 +106,13 @@ def test_format_user_message_content_respects_allowlist_for_tool_schemas():
             [
                 {
                     "type": "function",
-                    "function": {
-                        "name": "read_file",
-                        "parameters": {"type": "object"},
-                    },
+                    "name": "read_file",
+                    "parameters": {"type": "object"},
                 },
                 {
                     "type": "function",
-                    "function": {
-                        "name": "secret_tool",
-                        "parameters": {"type": "object"},
-                    },
+                    "name": "secret_tool",
+                    "parameters": {"type": "object"},
                 },
             ]
         ),
@@ -128,7 +122,7 @@ def test_format_user_message_content_respects_allowlist_for_tool_schemas():
 
     _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
 
-    assert [schema["function"]["name"] for schema in schemas] == ["read_file"]
+    assert [schema["name"] for schema in schemas] == ["read_file"]
 
 
 def test_format_user_message_content_filters_mouse_coordinate_methods(
@@ -157,7 +151,7 @@ def test_format_user_message_content_filters_mouse_coordinate_methods(
     _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
     mouse_schema = schemas[0]
 
-    args_props = mouse_schema["function"]["parameters"]["properties"]
+    args_props = mouse_schema["parameters"]["properties"]
     method_schema = args_props["find_coordinates_by"]
 
     assert method_schema["type"] == "string"
@@ -175,10 +169,8 @@ def test_build_prompt_populates_user_message_metadata_from_history():
         [
             {
                 "type": "function",
-                "function": {
-                    "name": "read_file",
-                    "parameters": {"type": "object"},
-                },
+                "name": "read_file",
+                "parameters": {"type": "object"},
             }
         ]
     )
@@ -202,10 +194,8 @@ def test_build_prompt_populates_user_message_metadata_from_history():
     assert tool_schemas == [
         {
             "type": "function",
-            "function": {
-                "name": "read_file",
-                "parameters": {"type": "object"},
-            },
+            "name": "read_file",
+            "parameters": {"type": "object"},
         }
     ]
     assert metadata.user_message_metadata is not None
@@ -243,7 +233,7 @@ def test_build_prompt_returns_empty_history_and_no_user_metadata_without_store()
     assert metadata.user_message_metadata is None
 
 
-def test_build_prompt_allowlisting_mouse_control_yields_single_member_computer_use_schema():
+def test_build_prompt_allowlisting_mouse_control_yields_single_direct_schema():
     registry = ToolRegistry(config=AppConfig(tool_allowlist=["mouse_control"]), cache_manager=CacheManager())
     constructor = PromptConstructor(
         tool_registry=registry,
@@ -253,17 +243,18 @@ def test_build_prompt_allowlisting_mouse_control_yields_single_member_computer_u
 
     _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
 
-    assert [schema["function"]["name"] for schema in schemas] == ["computer_use"]
-    parameters = schemas[0]["function"]["parameters"]
-    assert parameters["properties"]["tool"]["enum"] == ["mouse_control"]
-    argument_titles = [
-        entry["title"]
-        for entry in parameters["properties"]["arguments"]["oneOf"]
+    assert [schema["name"] for schema in schemas] == ["mouse_control"]
+    parameters = schemas[0]["parameters"]
+    assert parameters["properties"]["action"]["enum"] == [
+        "click",
+        "double_click",
+        "right_click",
+        "move",
+        "drag",
     ]
-    assert argument_titles == ["mouse_control arguments"]
 
 
-def test_build_prompt_allowlisting_read_file_yields_single_member_system_use_schema():
+def test_build_prompt_allowlisting_read_file_yields_single_direct_schema():
     registry = ToolRegistry(config=AppConfig(tool_allowlist=["read_file"]), cache_manager=CacheManager())
     constructor = PromptConstructor(
         tool_registry=registry,
@@ -273,11 +264,6 @@ def test_build_prompt_allowlisting_read_file_yields_single_member_system_use_sch
 
     _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
 
-    assert [schema["function"]["name"] for schema in schemas] == ["system_use"]
-    parameters = schemas[0]["function"]["parameters"]
-    assert parameters["properties"]["tool"]["enum"] == ["read_file"]
-    argument_titles = [
-        entry["title"]
-        for entry in parameters["properties"]["arguments"]["oneOf"]
-    ]
-    assert argument_titles == ["read_file arguments"]
+    assert [schema["name"] for schema in schemas] == ["read_file"]
+    parameters = schemas[0]["parameters"]
+    assert "file_path" in parameters["properties"]

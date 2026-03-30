@@ -132,19 +132,14 @@ class WakewordGreetingMessage(BaseMessage):
     payload: WakewordGreetingPayload
 
 
-class ToolFunctionSchemaPayload(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    name: str
-    description: Optional[str] = None
-    parameters: Dict[str, Any]
-
-
 class ToolSchemaPayload(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     type: Literal["function"]
-    function: ToolFunctionSchemaPayload
+    name: str
+    description: Optional[str] = None
+    strict: bool = False
+    parameters: Dict[str, Any]
 
 
 class SystemPromptPayload(BaseModel):

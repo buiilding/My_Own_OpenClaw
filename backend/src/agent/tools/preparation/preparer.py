@@ -40,7 +40,6 @@ if TYPE_CHECKING:
     from backend.src.core.interfaces.vision import IVisionService
 
 logger = logging.getLogger(__name__)
-_INVALID_COMPUTER_USE_TOOL_NAME = "invalid_computer_use_tool"
 
 
 @dataclass
@@ -100,35 +99,6 @@ class ToolPreparer:
             preparation_total_time,
         )
         return result
-
-    @staticmethod
-    def _is_invalid_computer_use_tool(tool_call: ParsedToolCall) -> bool:
-        return tool_call.tool_name == _INVALID_COMPUTER_USE_TOOL_NAME
-
-    @staticmethod
-    def _invalid_computer_use_error_message(tool_call: ParsedToolCall) -> str:
-        intended_tool = None
-        metadata = tool_call.metadata if isinstance(tool_call.metadata, dict) else {}
-        model_facing = metadata.get("model_facing_tool_call")
-        if isinstance(model_facing, dict):
-            arguments = model_facing.get("arguments")
-            if isinstance(arguments, dict):
-                candidate = arguments.get("tool")
-                if isinstance(candidate, str) and candidate.strip():
-                    intended_tool = candidate.strip()
-
-        message = (
-            "computer_use call is invalid and was rejected before frontend execution. "
-            "Use the unified `computer_use` wrapper with top-level `tool`, `metadata`, and nested `arguments`. "
-            "Keep `tool` and `metadata` alongside nested `arguments` inside the `computer_use` payload; do not move them inside nested `arguments`. "
-            "The `metadata` object must contain only `description`, `explanation`, and `expectation`."
-        )
-        if intended_tool:
-            message = (
-                f"{message} Re-emit this as `computer_use` with `tool=\"{intended_tool}\"` "
-                "and place action-specific fields inside `arguments`."
-            )
-        return message
 
     @staticmethod
     def _initialize_resolved_call(
@@ -200,10 +170,6 @@ class ToolPreparer:
         for tool_call in tool_calls:
             resolved_call = self._initialize_resolved_call(tool_call, execution_ref)
 
-            if self._is_invalid_computer_use_tool(tool_call):
-                errors.append((tool_call, self._invalid_computer_use_error_message(tool_call)))
-                break
-
             validation_error = self._validate_model_emitted_tool_call(tool_call)
             if validation_error:
                 errors.append((tool_call, validation_error))
@@ -273,12 +239,6 @@ class ToolPreparer:
         tool_preparation_start_time = time.perf_counter()
 
         resolved_call = self._initialize_resolved_call(tool_call, execution_ref)
-
-        if self._is_invalid_computer_use_tool(tool_call):
-            return PreparationResult(
-                resolved_calls=[],
-                errors=[(tool_call, self._invalid_computer_use_error_message(tool_call))],
-            )
 
         validation_error = self._validate_model_emitted_tool_call(tool_call)
         if validation_error:

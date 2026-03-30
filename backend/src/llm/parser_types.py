@@ -5,14 +5,6 @@ import copy
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-from backend.src.core.utils.string_normalization import normalize_non_empty_string
-from backend.src.tools.tool_catalog import get_wrapper_member_names
-
-_COMPUTER_USE_TOOL_NAME = "computer_use"
-_COMPUTER_SUBTOOLS = set(get_wrapper_member_names(_COMPUTER_USE_TOOL_NAME))
-_SYSTEM_USE_TOOL_NAME = "system_use"
-_SYSTEM_SUBTOOLS = set(get_wrapper_member_names(_SYSTEM_USE_TOOL_NAME))
-
 
 @dataclass
 class ParsedToolCall:
@@ -79,7 +71,6 @@ class ToolCallSchema:
 
         Returns:
             Tuple of (tool_name, args_dict, metadata_dict) or None if not a valid tool call
-            - metadata_dict is extracted from `args.metadata` when present
         """
         if not isinstance(parsed_json, dict):
             return None
@@ -90,96 +81,6 @@ class ToolCallSchema:
             if extracted is None:
                 return None
             normalized_tool_name, args = extracted
-            metadata = self._extract_metadata_from_args(args)
-
-            if normalized_tool_name == _COMPUTER_USE_TOOL_NAME:
-                normalized = self._normalize_unified_computer_use(args, metadata)
-                if normalized is None:
-                    return None
-                return normalized
-            if normalized_tool_name == _SYSTEM_USE_TOOL_NAME:
-                normalized = self._normalize_unified_system_use(args, metadata)
-                if normalized is None:
-                    return None
-                return normalized
-            return (normalized_tool_name, args, metadata)
+            return (normalized_tool_name, args, None)
 
         return None
-
-    @staticmethod
-    def _extract_metadata_from_args(args: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        metadata_value = args.get("metadata")
-        if not isinstance(metadata_value, dict):
-            return None
-        args.pop("metadata", None)
-        return copy.deepcopy(metadata_value)
-
-    @staticmethod
-    def _normalize_unified_computer_use(
-        args: Dict[str, Any],
-        metadata: Optional[Dict[str, Any]],
-    ) -> Optional[Tuple[str, Dict[str, Any], Optional[Dict[str, Any]]]]:
-        return ToolCallSchema._normalize_unified_tool_with_metadata(
-            args,
-            metadata,
-            allowed_tools=_COMPUTER_SUBTOOLS,
-        )
-
-    @staticmethod
-    def _normalize_unified_system_use(
-        args: Dict[str, Any],
-        metadata: Optional[Dict[str, Any]],
-    ) -> Optional[Tuple[str, Dict[str, Any], Optional[Dict[str, Any]]]]:
-        normalized = ToolCallSchema._normalize_unified_tool_payload(
-            args,
-            allowed_tools=_SYSTEM_SUBTOOLS,
-        )
-        if normalized is None:
-            return None
-        normalized_tool_name, normalized_arguments = normalized
-        normalized_arguments.pop("explanation", None)
-        resolved_explanation = ToolCallSchema._resolve_system_use_explanation(args)
-        if resolved_explanation is not None:
-            normalized_arguments["explanation"] = resolved_explanation
-
-        return normalized_tool_name, normalized_arguments, metadata
-
-    @staticmethod
-    def _normalize_unified_tool_payload(
-        args: Dict[str, Any],
-        *,
-        allowed_tools: set[str],
-    ) -> Optional[Tuple[str, Dict[str, Any]]]:
-        tool_name = args.get("tool")
-        if not isinstance(tool_name, str):
-            return None
-        normalized_tool_name = tool_name.strip()
-        if not normalized_tool_name or normalized_tool_name not in allowed_tools:
-            return None
-
-        arguments = args.get("arguments")
-        if arguments is None:
-            arguments = {}
-        if not isinstance(arguments, dict):
-            return None
-        return normalized_tool_name, copy.deepcopy(arguments)
-
-    @staticmethod
-    def _normalize_unified_tool_with_metadata(
-        args: Dict[str, Any],
-        metadata: Optional[Dict[str, Any]],
-        *,
-        allowed_tools: set[str],
-    ) -> Optional[Tuple[str, Dict[str, Any], Optional[Dict[str, Any]]]]:
-        normalized = ToolCallSchema._normalize_unified_tool_payload(
-            args,
-            allowed_tools=allowed_tools,
-        )
-        if normalized is None:
-            return None
-        normalized_tool_name, normalized_arguments = normalized
-        return normalized_tool_name, normalized_arguments, metadata
-
-    @staticmethod
-    def _resolve_system_use_explanation(payload: Dict[str, Any]) -> Optional[str]:
-        return normalize_non_empty_string(payload.get("explanation"))

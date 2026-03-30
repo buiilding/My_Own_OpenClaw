@@ -267,7 +267,7 @@ class _FatalErrorOnlyLLMHandler:
         return {"content": ""}
 
 
-class _NativeComputerUseMissingMetadataLLMHandler:
+class _NativeMouseControlMissingActionLLMHandler:
     def __init__(self):
         self.calls = 0
 
@@ -292,22 +292,15 @@ class _NativeComputerUseMissingMetadataLLMHandler:
                 "tool_calls": [
                     {
                         "id": "call_mouse_1",
-                        "name": "computer_use",
-                        "arguments": {
-                            "tool": "mouse_control",
-                            "arguments": {
-                                "action": "click",
-                                "x": 10,
-                                "y": 20,
-                            },
-                        },
+                        "name": "mouse_control",
+                        "arguments": {"x": 10, "y": 20},
                     }
                 ],
             }
         return {"content": "Final answer after failed tool call."}
 
 
-class _NativeComputerUseUnexpectedMetadataLLMHandler:
+class _NativeBrowserMissingActionLLMHandler:
     def __init__(self):
         self.calls = 0
 
@@ -331,22 +324,9 @@ class _NativeComputerUseUnexpectedMetadataLLMHandler:
                 "content": "",
                 "tool_calls": [
                     {
-                        "id": "call_mouse_extra_meta_1",
-                        "name": "computer_use",
-                        "arguments": {
-                            "tool": "mouse_control",
-                            "metadata": {
-                                "description": "screen",
-                                "explanation": "click target",
-                                "expectation": "dialog opens",
-                                "trace_id": "abc-123",
-                            },
-                            "arguments": {
-                                "action": "click",
-                                "x": 10,
-                                "y": 20,
-                            },
-                        },
+                        "id": "call_browser_invalid_1",
+                        "name": "browser",
+                        "arguments": {},
                     }
                 ],
             }
@@ -381,13 +361,13 @@ async def test_interaction_loop_stops_after_nonrecoverable_stream_error_event():
 
 
 @pytest.mark.asyncio
-async def test_interaction_loop_fail_closes_native_computer_use_without_required_metadata():
+async def test_interaction_loop_replays_invalid_direct_mouse_tool_call():
     session = _FakeSession(stored_messages=[])
     tool_executor = _CapturingToolExecutor()
     loop = InteractionLoop(
         session=session,
         prompt_coordinator=_FakePromptCoordinator(),
-        llm_handler=_NativeComputerUseMissingMetadataLLMHandler(),
+        llm_handler=_NativeMouseControlMissingActionLLMHandler(),
         tool_executor=tool_executor,
         event_presenter=_FakeEventPresenter(),
     )
@@ -396,18 +376,15 @@ async def test_interaction_loop_fail_closes_native_computer_use_without_required
 
     assert any(isinstance(event, StreamingCompleteEvent) for event in events)
     assert tool_executor.execute_called is True
-    assert tool_executor.executed_tool_names == ["invalid_computer_use_tool"]
+    assert tool_executor.executed_tool_names == ["mouse_control"]
     assert tool_executor.executed_parameters == [
-        {"action": "click", "x": 10, "y": 20},
+        {"x": 10, "y": 20},
     ]
     assert session.history.assistant_messages[0][1] == [
         {
             "id": "call_mouse_1",
-            "name": "computer_use",
-            "arguments": {
-                "tool": "mouse_control",
-                "arguments": {"action": "click", "x": 10, "y": 20},
-            },
+            "name": "mouse_control",
+            "arguments": {"x": 10, "y": 20},
         }
     ]
     assert session.history.staged_tool_call_ids[0] == (["call_mouse_1"], False)
@@ -415,13 +392,13 @@ async def test_interaction_loop_fail_closes_native_computer_use_without_required
 
 
 @pytest.mark.asyncio
-async def test_interaction_loop_fail_closes_native_computer_use_with_unexpected_metadata_fields():
+async def test_interaction_loop_replays_invalid_direct_browser_tool_call():
     session = _FakeSession(stored_messages=[])
     tool_executor = _CapturingToolExecutor()
     loop = InteractionLoop(
         session=session,
         prompt_coordinator=_FakePromptCoordinator(),
-        llm_handler=_NativeComputerUseUnexpectedMetadataLLMHandler(),
+        llm_handler=_NativeBrowserMissingActionLLMHandler(),
         tool_executor=tool_executor,
         event_presenter=_FakeEventPresenter(),
     )
@@ -430,27 +407,16 @@ async def test_interaction_loop_fail_closes_native_computer_use_with_unexpected_
 
     assert any(isinstance(event, StreamingCompleteEvent) for event in events)
     assert tool_executor.execute_called is True
-    assert tool_executor.executed_tool_names == ["invalid_computer_use_tool"]
-    assert tool_executor.executed_parameters == [
-        {"action": "click", "x": 10, "y": 20},
-    ]
+    assert tool_executor.executed_tool_names == ["browser"]
+    assert tool_executor.executed_parameters == [{}]
     assert session.history.assistant_messages[0][1] == [
         {
-            "id": "call_mouse_extra_meta_1",
-            "name": "computer_use",
-            "arguments": {
-                "tool": "mouse_control",
-                "metadata": {
-                    "description": "screen",
-                    "explanation": "click target",
-                    "expectation": "dialog opens",
-                    "trace_id": "abc-123",
-                },
-                "arguments": {"action": "click", "x": 10, "y": 20},
-            },
+            "id": "call_browser_invalid_1",
+            "name": "browser",
+            "arguments": {},
         }
     ]
-    assert session.history.staged_tool_call_ids[0] == (["call_mouse_extra_meta_1"], False)
+    assert session.history.staged_tool_call_ids[0] == (["call_browser_invalid_1"], False)
     assert session.history.assistant_messages[-1][0] == (
         "Final answer after metadata allowlist rejection."
     )

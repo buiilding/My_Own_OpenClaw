@@ -187,25 +187,21 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
-  test('shows computer_use metadata explanation-only overlay before the first llm-text arrives', async () => {
+  test('shows direct tool explanation-only overlay before the first llm-text arrives', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
       {
         id: 'tool-call-1',
-        text: '{\n  "name": "computer_use"\n}',
+        text: '{\n  "name": "run_shell_command"\n}',
         sender: 'assistant',
         type: 'tool-call',
         sourceEventType: 'tool-call',
         modelFacingToolCall: {
-          name: 'computer_use',
+          name: 'run_shell_command',
           arguments: {
-            tool: 'screenshot',
-            metadata: {
-              description: 'System Settings is open',
-              explanation: 'Verify the currently focused window',
-              expectation: 'A screenshot of the current desktop is captured',
-            },
-            arguments: {},
+            command: 'pwd',
+            run_in_background: false,
+            explanation: 'Verify the currently focused workspace',
           },
         },
       },
@@ -215,7 +211,7 @@ describe('ChatBoxResponse state behavior', () => {
     emitOverlayPhase('tool-call');
 
     await waitFor(() => {
-      expect(screen.getByText('Verify the currently focused window')).toBeInTheDocument();
+      expect(screen.getByText('Verify the currently focused workspace')).toBeInTheDocument();
     });
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });

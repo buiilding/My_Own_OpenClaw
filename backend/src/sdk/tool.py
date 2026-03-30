@@ -11,6 +11,7 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel
 
 from backend.src.sdk.context import ToolContext
+from backend.src.tools.tool_specs import build_function_tool_spec
 
 if TYPE_CHECKING:
     from backend.src.core.security.policy import Permission
@@ -77,7 +78,6 @@ class Tool(ABC, Generic[TArgs]):
         
         Removes unnecessary fields and simplifies structure:
         - Removes 'title' fields
-        - Removes 'additionalProperties' 
         - Simplifies Optional types (anyOf with null) to just optional fields
         - Removes redundant 'type: object' wrapper
         """
@@ -125,6 +125,9 @@ class Tool(ABC, Generic[TArgs]):
         # Keep description if present
         if "description" in schema:
             cleaned["description"] = schema["description"]
+
+        if "additionalProperties" in schema and isinstance(schema["additionalProperties"], bool):
+            cleaned["additionalProperties"] = schema["additionalProperties"]
         
         # Keep default only if it's not None/null (null defaults are implicit for optional fields)
         if "default" in schema and schema["default"] is not None:
@@ -199,9 +202,12 @@ class Tool(ABC, Generic[TArgs]):
         Returns the JSON Schema for the tool's arguments.
         Used by the LLM to understand how to call the tool.
 
-        Returns canonical OpenAI/LiteLLM tool object shape:
+        Returns canonical internal flat tool-spec shape:
         - type=function
-        - function.{name, description, parameters}
+        - name
+        - description
+        - strict
+        - parameters
 
         Returns a cleaned, optimized schema format.
         """
@@ -220,11 +226,9 @@ class Tool(ABC, Generic[TArgs]):
         if "properties" in cleaned_params and cleaned_params.get("type") is None:
             cleaned_params["type"] = "object"
         
-        return {
-            "type": "function",
-            "function": {
-                "name": self.name,
-                "description": self.description,
-                "parameters": cleaned_params,
-            },
-        }
+        return build_function_tool_spec(
+            name=self.name,
+            description=self.description,
+            parameters=cleaned_params,
+            strict=False,
+        )

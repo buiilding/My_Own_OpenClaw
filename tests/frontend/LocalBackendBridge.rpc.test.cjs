@@ -259,7 +259,7 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { ok: true } });
   });
 
-  test('execute-tool injects visible chat window display bounds into wrapped computer_use screenshot requests', async () => {
+  test('execute-tool injects visible chat window display bounds into direct screenshot requests', async () => {
     const chatWindow = createWindow({
       getBounds: jest.fn(() => ({ x: 1920, y: 0, width: 900, height: 600 })),
     });
@@ -311,43 +311,27 @@ describe('local_backend_bridge RPC handlers', () => {
     });
 
     const promise = handlers['execute-tool']({ sender: {} }, {
-      toolName: 'computer_use',
+      toolName: 'screenshot',
       args: {
-        tool: 'screenshot',
-        metadata: {
-          description: 'capture current monitor',
-          explanation: 'verify the visible monitor',
-          expectation: 'single-monitor screenshot',
-        },
-        arguments: {
-          explanation: 'Current monitor',
-        },
+        explanation: 'Current monitor',
       },
     });
 
     expectLastRequestWith('execute_tool', {
-      tool_name: 'computer_use',
+      tool_name: 'screenshot',
       args: {
-        tool: 'screenshot',
-        metadata: {
-          description: 'capture current monitor',
-          explanation: 'verify the visible monitor',
-          expectation: 'single-monitor screenshot',
-        },
-        arguments: {
-          explanation: 'Current monitor',
-          display_bounds: {
-            x: 1920,
+        explanation: 'Current monitor',
+        display_bounds: {
+          x: 1920,
+          y: 0,
+          width: 2560,
+          height: 1440,
+          monitor_id: '2',
+          desktop_virtual_bounds: {
+            x: 0,
             y: 0,
-            width: 2560,
+            width: 4480,
             height: 1440,
-            monitor_id: '2',
-            desktop_virtual_bounds: {
-              x: 0,
-              y: 0,
-              width: 4480,
-              height: 1440,
-            },
           },
         },
       },
@@ -531,103 +515,28 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { value: 1 } });
   });
 
-  test('execute-tool forwards computer_use envelope unchanged', async () => {
+  test('execute-tool forwards direct tool args unchanged', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
 
-    const envelope = {
-      tool: 'mouse_control',
-      metadata: {
-        description: 'screen visible',
-        explanation: 'click submit',
-        expectation: 'modal opens',
-      },
-      arguments: {
-        action: 'click',
-        find_coordinates_by: 'ocr',
-        ocr_text: 'Submit',
-      },
+    const args = {
+      action: 'click',
+      find_coordinates_by: 'ocr',
+      ocr_text: 'Submit',
     };
 
     const promise = handlers['execute-tool'](null, {
-      toolName: 'computer_use',
-      args: envelope,
+      toolName: 'mouse_control',
+      args,
     });
 
     expectLastRequestWith('execute_tool', {
-      tool_name: 'computer_use',
-      args: envelope,
+      tool_name: 'mouse_control',
+      args,
     });
 
     emitRpcResult(stdoutHandler, { success: true, data: { ok: true } });
     await expect(promise).resolves.toEqual({ success: true, data: { ok: true } });
-  });
-
-  test('execute-tool preserves malformed computer_use envelope for sidecar validation', async () => {
-    const { handlers, stdoutHandler } = initBridge();
-    markReady();
-
-    const envelope = {
-      tool: 'mouse_control_typo',
-      metadata: {
-        description: 'screen visible',
-        explanation: 'click submit',
-        expectation: 'modal opens',
-      },
-      arguments: 'not-a-dict',
-    };
-
-    const promise = handlers['execute-tool'](null, {
-      toolName: 'computer_use',
-      args: envelope,
-    });
-
-    expectLastRequestWith('execute_tool', {
-      tool_name: 'computer_use',
-      args: envelope,
-    });
-
-    emitRpcResult(stdoutHandler, { success: false, error: 'computer_use.arguments must be an object' });
-    await expect(promise).resolves.toEqual({ success: false, error: 'computer_use.arguments must be an object' });
-  });
-
-  test('execute-tool preserves extra computer_use metadata fields for sidecar allowlist rejection', async () => {
-    const { handlers, stdoutHandler } = initBridge();
-    markReady();
-
-    const envelope = {
-      tool: 'mouse_control',
-      metadata: {
-        description: 'screen visible',
-        explanation: 'click submit',
-        expectation: 'modal opens',
-        extra_debug_field: 'not-allowed',
-      },
-      arguments: {
-        action: 'click',
-        x: 10,
-        y: 20,
-      },
-    };
-
-    const promise = handlers['execute-tool'](null, {
-      toolName: 'computer_use',
-      args: envelope,
-    });
-
-    expectLastRequestWith('execute_tool', {
-      tool_name: 'computer_use',
-      args: envelope,
-    });
-
-    emitRpcResult(stdoutHandler, {
-      success: false,
-      error: 'computer_use.metadata contains unexpected fields: extra_debug_field',
-    });
-    await expect(promise).resolves.toEqual({
-      success: false,
-      error: 'computer_use.metadata contains unexpected fields: extra_debug_field',
-    });
   });
 
   test('passes resolved backend http URL to Python sidecar env', () => {

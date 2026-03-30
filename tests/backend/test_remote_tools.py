@@ -11,16 +11,7 @@ from backend.src.tools.remote import (
     get_all_remote_tools,
     get_remote_tool,
 )
-from backend.src.tools.remote_tools.computer import RemoteComputerUseTool
-from backend.src.tools.remote_tools.system import RemoteSystemUseTool
-from backend.src.tools.computer.schemas import (
-    ComputerUseArgs,
-    KeyboardControlArgs,
-    MouseControlArgs,
-    ScrollControlArgs,
-    SwitchTabArgs,
-)
-from backend.src.tools.system.schemas import SystemUseArgs
+from backend.src.tools.computer.schemas import KeyboardControlArgs, MouseControlArgs, ScrollControlArgs, SwitchTabArgs
 
 
 def _make_context(metadata=None):
@@ -162,33 +153,6 @@ def test_switch_tab_accepts_match_mode():
     assert args.match_mode == "contains"
 
 
-@pytest.mark.asyncio
-async def test_remote_computer_use_rejects_invalid_keyboard_press_args_before_frontend_dispatch():
-    tool = RemoteComputerUseTool()
-    args = ComputerUseArgs.model_validate(
-        {
-            "tool": "keyboard_control",
-            "metadata": {
-                "description": "A focused text field is active.",
-                "explanation": "I need to submit the focused form.",
-                "expectation": "The form is submitted.",
-            },
-            "arguments": {
-                "action": "press",
-            },
-        }
-    )
-
-    with pytest.raises(
-        ValidationError,
-        match="key parameter required for press action",
-    ):
-        await tool.run(
-            args,
-            _make_context(metadata={"request_id": "req-kbd-invalid"}),
-        )
-
-
 def test_scroll_control_requires_ocr_target_when_using_ocr():
     with pytest.raises(ValidationError):
         ScrollControlArgs(action="scroll_down", find_coordinates_by="ocr")
@@ -264,14 +228,13 @@ def test_get_all_remote_tools_returns_copy():
 def test_remote_mouse_tool_schema_explicitly_guides_ocr_for_text_targets():
     tool = RemoteMouseTool()
     schema = tool.get_json_schema()
-    function = schema["function"]
-    parameters = function["parameters"]["properties"]
+    parameters = schema["parameters"]["properties"]
 
-    assert "Prefer keyboard shortcuts" in function["description"]
-    assert "find_coordinates_by='ocr'" in function["description"]
-    assert "type something here" in function["description"]
-    assert "beware of the mouse position on that image" in function["description"]
-    assert "Do not treat tool status alone as success" in function["description"]
+    assert "Prefer keyboard shortcuts" in schema["description"]
+    assert "find_coordinates_by='ocr'" in schema["description"]
+    assert "type something here" in schema["description"]
+    assert "beware of the mouse position on that image" in schema["description"]
+    assert "Do not treat tool status alone as success" in schema["description"]
     assert "visible mouse position as a spatial reference" in parameters["find_coordinates_by"]["description"]
     assert "success requires both cursor alignment and the intended UI state change" in parameters["find_coordinates_by"]["description"]
     assert "type something here" in parameters["ocr_text"]["description"]
@@ -280,228 +243,9 @@ def test_remote_mouse_tool_schema_explicitly_guides_ocr_for_text_targets():
     assert "Beware of the mouse position on the image" in parameters["y"]["description"]
 
 
-def test_remote_computer_use_schema_enforces_metadata_shape_and_mouse_guidance():
-    tool = RemoteComputerUseTool()
-    schema = tool.get_json_schema()
-    function = schema["function"]
-    params = function["parameters"]["properties"]
-    metadata = params["metadata"]
+def test_direct_remote_tool_schema_uses_flat_internal_shape():
+    schema = get_remote_tool("run_shell_command")().get_json_schema()
 
-    assert "required metadata" in function["description"]
-    assert "find_coordinates_by='ocr'" in function["description"]
-    assert "find_coordinates_by='prediction'" in function["description"]
-
-    assert metadata["type"] == "object"
-    assert set(metadata["required"]) == {"description", "explanation", "expectation"}
-    assert metadata["properties"]["description"]["type"] == "string"
-    assert metadata["properties"]["description"]["minLength"] == 1
-    assert metadata["properties"]["explanation"]["type"] == "string"
-    assert metadata["properties"]["expectation"]["type"] == "string"
-    assert "find_coordinates_by" in params["arguments"]["description"]
-    assert "ocr_text" in params["arguments"]["description"]
-
-
-def test_computer_use_schema_rejects_whitespace_only_metadata_fields():
-    with pytest.raises(ValidationError):
-        ComputerUseArgs.model_validate(
-            {
-                "tool": "mouse_control",
-                "metadata": {
-                    "description": "   ",
-                    "explanation": "\n",
-                    "expectation": "\t",
-                },
-                "arguments": {"action": "click", "x": 10, "y": 20},
-            }
-        )
-
-
-def test_computer_use_schema_rejects_unexpected_metadata_fields():
-    with pytest.raises(ValidationError):
-        ComputerUseArgs.model_validate(
-            {
-                "tool": "mouse_control",
-                "metadata": {
-                    "description": "screen",
-                    "explanation": "click submit",
-                    "expectation": "dialog opens",
-                    "extra_debug_field": "not allowed",
-                },
-                "arguments": {"action": "click", "x": 10, "y": 20},
-            }
-        )
-
-
-def test_computer_use_schema_trims_metadata_fields_before_validation():
-    args = ComputerUseArgs.model_validate(
-        {
-            "tool": "mouse_control",
-            "metadata": {
-                "description": " current screen ",
-                "explanation": " click submit ",
-                "expectation": " modal opens ",
-            },
-            "arguments": {"action": "click", "x": 10, "y": 20},
-        }
-    )
-
-    assert args.metadata.description == "current screen"
-    assert args.metadata.explanation == "click submit"
-    assert args.metadata.expectation == "modal opens"
-
-
-@pytest.mark.asyncio
-async def test_remote_computer_use_run_routes_to_concrete_tool_with_validated_arguments():
-    ctx = _make_context(metadata={"request_id": "req-computer-1"})
-    tool = RemoteComputerUseTool()
-    args = ComputerUseArgs.model_validate(
-        {
-            "tool": "mouse_control",
-            "metadata": {
-                "description": "current screen",
-                "explanation": "click submit",
-                "expectation": "dialog opens",
-            },
-            "arguments": {
-                "action": "click",
-                "x": 10,
-                "y": 20,
-            },
-        }
-    )
-
-    result = await tool.run(args, ctx)
-
-    assert result.tool_name == "mouse_control"
-    assert result.request_id == "req-computer-1"
-    assert result.args["action"] == "click"
-    assert result.args["x"] == 10
-    assert result.args["y"] == 20
-    assert "metadata" not in result.args
-
-
-@pytest.mark.asyncio
-async def test_remote_computer_use_run_generates_request_id_when_session_missing_request_id(monkeypatch):
-    monkeypatch.setattr(uuid, "uuid4", lambda: "req-generated-computer-use")
-    ctx = _make_context(metadata={})
-    tool = RemoteComputerUseTool()
-    args = ComputerUseArgs.model_validate(
-        {
-            "tool": "mouse_control",
-            "metadata": {
-                "description": "current screen",
-                "explanation": "click submit",
-                "expectation": "dialog opens",
-            },
-            "arguments": {
-                "action": "click",
-                "x": 1,
-                "y": 2,
-            },
-        }
-    )
-
-    result = await tool.run(args, ctx)
-
-    assert result.request_id == "req-generated-computer-use"
-    assert result.tool_name == "mouse_control"
-
-
-@pytest.mark.asyncio
-async def test_remote_computer_use_run_revalidates_selected_tool_arguments():
-    ctx = _make_context(metadata={"request_id": "req-computer-2"})
-    tool = RemoteComputerUseTool()
-    args = ComputerUseArgs.model_validate(
-        {
-            "tool": "mouse_control",
-            "metadata": {
-                "description": "current screen",
-                "explanation": "click submit",
-                "expectation": "dialog opens",
-            },
-            "arguments": {
-                "action": "click",
-                "x": 10,
-            },
-        }
-    )
-
-    with pytest.raises(ValidationError):
-        await tool.run(args, ctx)
-
-
-def test_remote_system_use_schema_includes_supported_tools():
-    tool = RemoteSystemUseTool()
-    schema = tool.get_json_schema()
-    function = schema["function"]
-    params = function["parameters"]["properties"]
-
-    assert function["name"] == "system_use"
-    assert set(params["tool"]["enum"]) == {
-        "run_shell_command",
-        "replace",
-        "read_file",
-        "get_system_stats",
-        "get_open_windows",
-    }
-    assert params["explanation"]["type"] == "string"
-    assert params["arguments"]["type"] == "object"
-
-
-@pytest.mark.asyncio
-async def test_remote_system_use_run_routes_replace():
-    ctx = _make_context(metadata={"request_id": "req-system-1"})
-    tool = RemoteSystemUseTool()
-    args = SystemUseArgs.model_validate(
-        {
-            "tool": "replace",
-            "explanation": "apply update",
-            "arguments": {
-                "file_path": "/tmp/example.txt",
-                "old_string": "old",
-                "new_string": "new",
-            },
-        }
-    )
-
-    result = await tool.run(args, ctx)
-
-    assert result.tool_name == "replace"
-    assert result.request_id == "req-system-1"
-    assert result.args["file_path"] == "/tmp/example.txt"
-    assert result.args["old_string"] == "old"
-    assert result.args["new_string"] == "new"
-    assert result.args["explanation"] == "apply update"
-
-
-def test_remote_system_use_schema_requires_top_level_explanation():
-    with pytest.raises(ValidationError):
-        SystemUseArgs.model_validate(
-            {
-                "tool": "replace",
-                "arguments": {
-                    "file_path": "/tmp/example.txt",
-                    "old_string": "old",
-                    "new_string": "new",
-                    "explanation": "legacy nested explanation",
-                },
-            }
-        )
-
-
-@pytest.mark.asyncio
-async def test_remote_system_use_run_revalidates_selected_tool_arguments():
-    ctx = _make_context(metadata={"request_id": "req-system-2"})
-    tool = RemoteSystemUseTool()
-    args = SystemUseArgs.model_validate(
-        {
-            "tool": "run_shell_command",
-            "explanation": "run shell command",
-            "arguments": {
-                "command": "echo hi",
-            },
-        }
-    )
-
-    with pytest.raises(ValidationError):
-        await tool.run(args, ctx)
+    assert schema["type"] == "function"
+    assert schema["name"] == "run_shell_command"
+    assert "parameters" in schema

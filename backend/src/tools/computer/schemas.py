@@ -1,7 +1,7 @@
 """
 Pydantic schemas for computer control tools.
 """
-from typing import Any, Dict, List, Literal, Optional
+from typing import List, Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 
 from backend.src.core.types.enums import (
@@ -195,66 +195,3 @@ class WaitToolArgs(BaseModel):
         description="Number of seconds to wait before capturing a screenshot."
     )
 
-
-class ComputerUseMetadata(BaseModel):
-    """Required rationale payload for computer-use calls."""
-
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-
-    description: str = Field(
-        ...,
-        min_length=1,
-        description="Current observed UI/screen state before action.",
-    )
-    explanation: str = Field(
-        ...,
-        min_length=1,
-        description="Why this action is needed toward the goal.",
-    )
-    expectation: str = Field(
-        ...,
-        min_length=1,
-        description="Expected UI state after action.",
-    )
-
-
-class ComputerUseArgs(BaseModel):
-    """
-    Unified computer-use tool envelope.
-
-    `tool` selects the concrete computer action. `arguments` are validated against
-    the selected action schema by RemoteComputerUseTool at runtime.
-    """
-
-    model_config = ConfigDict(extra="forbid")
-
-    tool: Literal[
-        "mouse_control",
-        "keyboard_control",
-        "screenshot",
-        "scroll_control",
-        "switch_tab",
-        "wait",
-    ] = Field(
-        ...,
-        description="Concrete computer-use action to execute.",
-    )
-    metadata: ComputerUseMetadata = Field(
-        ...,
-        description=(
-            "Required execution rationale metadata for computer-use actions."
-        ),
-    )
-    arguments: Dict[str, Any] = Field(
-        default_factory=dict,
-        description=(
-            "Arguments for the selected `tool` action. "
-            "For `mouse_control`, this follows mouse schema fields including "
-            "`action`, `find_coordinates_by` (`manual` | `ocr` | `prediction`), "
-            "`x`/`y` for manual, `ocr_text` or `candidate_id` for OCR, and "
-            "`source_description` for prediction plus `destination_description` "
-            "for drag destinations using prediction. "
-            "For other tools, use the same arguments as their legacy schemas "
-            "(keyboard_control/screenshot/scroll_control/switch_tab/wait)."
-        ),
-    )

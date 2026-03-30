@@ -15,20 +15,12 @@ import logging
 from typing import Any, Dict, List, Optional, Sequence
 
 from backend.src.core.utils.coordinate_methods import normalize_coordinate_method
-from backend.src.tools.tool_catalog import (
-    expand_model_tool_names,
-    get_wrapper_member_names,
-    normalize_model_tool_name,
-)
 from backend.src.tools.tool_selection import ToolSelection, load_tool_selection
+from backend.src.tools.tool_specs import get_tool_spec_name
 
 logger = logging.getLogger(__name__)
 
 _UNSET = object()
-_LEGACY_COMPUTER_TOOL_NAMES = frozenset(get_wrapper_member_names("computer_use"))
-_UNIFIED_COMPUTER_TOOL_NAME = "computer_use"
-_LEGACY_SYSTEM_TOOL_NAMES = frozenset(get_wrapper_member_names("system_use"))
-_UNIFIED_SYSTEM_TOOL_NAME = "system_use"
 
 
 @dataclass(slots=True)
@@ -40,7 +32,6 @@ class ToolPolicy:
 
     @classmethod
     def from_config(cls, config: Any) -> "ToolPolicy":
-        """Build policy from runtime config + dev tool selection file."""
         selection: Optional[ToolSelection]
         try:
             selection = load_tool_selection()
@@ -56,28 +47,18 @@ class ToolPolicy:
         *,
         normalize_wrappers: bool = True,
     ) -> List[str]:
-        """
-        Apply interaction-mode allowlist and dev selection to tool name list.
-
-        Preserves input ordering.
-        """
-        filtered = list(tool_names)
-        if normalize_wrappers:
-            filtered = self._normalize_unified_computer_use_names(filtered)
-            filtered = self._normalize_unified_system_use_names(filtered)
+        _ = normalize_wrappers
+        filtered = [name for name in tool_names if isinstance(name, str)]
         disabled_tools = self._get_config_disabled_tools()
         if disabled_tools:
             filtered = [name for name in filtered if name not in disabled_tools]
-        allowlist = self._get_interaction_allowlist(normalize_wrappers=normalize_wrappers)
+        allowlist = self._get_interaction_allowlist()
         if allowlist is not None:
             filtered = [name for name in filtered if name in allowlist]
 
         effective_selection = self._resolve_selection(selection)
         if effective_selection is not None:
-            filtered = effective_selection.filter_tool_names(
-                filtered,
-                normalize_wrappers=normalize_wrappers,
-            )
+            filtered = effective_selection.filter_tool_names(filtered, normalize_wrappers=False)
         return filtered
 
     def filter_tool_schemas(
@@ -85,23 +66,20 @@ class ToolPolicy:
         tool_schemas: Sequence[Dict[str, Any]],
         selection: Optional[ToolSelection] | object = _UNSET,
     ) -> List[Dict[str, Any]]:
-        """
-        Apply interaction-mode allowlist and dev selection to tool schemas.
-        """
         filtered = list(tool_schemas)
         disabled_tools = self._get_config_disabled_tools()
         if disabled_tools:
             filtered = [
                 schema
                 for schema in filtered
-                if self._normalize_tool_name(self._extract_tool_name(schema)) not in disabled_tools
+                if self._extract_tool_name(schema) not in disabled_tools
             ]
-        allowlist = self._get_interaction_allowlist(normalize_wrappers=True)
+        allowlist = self._get_interaction_allowlist()
         if allowlist is not None:
             filtered = [
                 schema
                 for schema in filtered
-                if self._normalize_tool_name(self._extract_tool_name(schema)) in allowlist
+                if self._extract_tool_name(schema) in allowlist
             ]
 
         effective_selection = self._resolve_selection(selection)
@@ -115,11 +93,6 @@ class ToolPolicy:
         args: Dict[str, Any],
         selection: Optional[ToolSelection] | object = _UNSET,
     ) -> List[str]:
-        """
-        Return method-level validation errors for specific tools.
-
-        Currently only enforces dev policy for mouse_control.find_coordinates_by.
-        """
         if tool_name != "mouse_control":
             return []
 
@@ -152,7 +125,6 @@ class ToolPolicy:
         self,
         selection: Optional[ToolSelection] | object = _UNSET,
     ) -> bool:
-        """Whether OCR startup initialization should run."""
         effective_selection = self._resolve_selection(selection)
         if effective_selection is None:
             return True
@@ -162,7 +134,6 @@ class ToolPolicy:
         self,
         selection: Optional[ToolSelection] | object = _UNSET,
     ) -> bool:
-        """Whether vision startup initialization should run."""
         effective_selection = self._resolve_selection(selection)
         if effective_selection is None:
             return True
@@ -183,92 +154,17 @@ class ToolPolicy:
             disabled.add("browser")
         return disabled
 
-    def _get_interaction_allowlist(self, *, normalize_wrappers: bool) -> Optional[set[str]]:
-        """Return interaction-mode allowlist (if configured)."""
+    def _get_interaction_allowlist(self) -> Optional[set[str]]:
         try:
             allowlist = self.config.get_tool_allowlist()
         except Exception:
             return None
         if allowlist is None:
             return None
-        if isinstance(allowlist, set):
-            if not normalize_wrappers:
-                return expand_model_tool_names(allowlist)
-            return self._normalize_unified_system_use_name_set(
-                self._normalize_unified_computer_use_name_set(allowlist)
-            )
-        if isinstance(allowlist, (list, tuple)):
-            normalized = {
-                name
-                for name in allowlist
-                if isinstance(name, str)
-            }
-            if not normalize_wrappers:
-                return expand_model_tool_names(normalized)
-            return self._normalize_unified_system_use_name_set(
-                self._normalize_unified_computer_use_name_set(normalized)
-            )
+        if isinstance(allowlist, (set, list, tuple)):
+            return {name for name in allowlist if isinstance(name, str)}
         return None
 
     @staticmethod
-    def _normalize_unified_computer_use_names(tool_names: Sequence[str]) -> List[str]:
-        normalized: List[str] = []
-        saw_legacy = False
-        saw_unified = False
-        for name in tool_names:
-            if name in _LEGACY_COMPUTER_TOOL_NAMES:
-                saw_legacy = True
-                continue
-            if name == _UNIFIED_COMPUTER_TOOL_NAME:
-                saw_unified = True
-            normalized.append(name)
-        if saw_legacy and not saw_unified:
-            normalized.append(_UNIFIED_COMPUTER_TOOL_NAME)
-        return normalized
-
-    @staticmethod
-    def _normalize_unified_computer_use_name_set(tool_names: set[str]) -> set[str]:
-        normalized = set(tool_names)
-        if normalized & _LEGACY_COMPUTER_TOOL_NAMES:
-            normalized -= _LEGACY_COMPUTER_TOOL_NAMES
-            normalized.add(_UNIFIED_COMPUTER_TOOL_NAME)
-        return normalized
-
-    @staticmethod
-    def _normalize_unified_system_use_names(tool_names: Sequence[str]) -> List[str]:
-        normalized: List[str] = []
-        saw_legacy = False
-        saw_unified = False
-        for name in tool_names:
-            if name in _LEGACY_SYSTEM_TOOL_NAMES:
-                saw_legacy = True
-                continue
-            if name == _UNIFIED_SYSTEM_TOOL_NAME:
-                saw_unified = True
-            normalized.append(name)
-        if saw_legacy and not saw_unified:
-            normalized.append(_UNIFIED_SYSTEM_TOOL_NAME)
-        return normalized
-
-    @staticmethod
-    def _normalize_unified_system_use_name_set(tool_names: set[str]) -> set[str]:
-        normalized = set(tool_names)
-        if normalized & _LEGACY_SYSTEM_TOOL_NAMES:
-            normalized -= _LEGACY_SYSTEM_TOOL_NAMES
-            normalized.add(_UNIFIED_SYSTEM_TOOL_NAME)
-        return normalized
-
-    @staticmethod
     def _extract_tool_name(schema: Dict[str, Any]) -> Optional[str]:
-        """Extract canonical tool name from OpenAI/LiteLLM tool object."""
-        function_schema = schema.get("function")
-        if not isinstance(function_schema, dict):
-            return None
-        tool_name = function_schema.get("name")
-        return tool_name if isinstance(tool_name, str) else None
-
-    @staticmethod
-    def _normalize_tool_name(tool_name: Optional[str]) -> Optional[str]:
-        if not isinstance(tool_name, str):
-            return None
-        return normalize_model_tool_name(tool_name)
+        return get_tool_spec_name(schema)

@@ -29,15 +29,12 @@ export type BackendEventBase<TType extends BackendEventType, TPayload = undefine
   turn_ref?: string;
 };
 
-export type ToolFunctionSchema = {
-  name: string;
-  description?: string;
-  parameters: Record<string, unknown>;
-};
-
 export type ToolSchema = {
   type: 'function';
-  function: ToolFunctionSchema;
+  name: string;
+  description?: string;
+  strict?: boolean;
+  parameters: Record<string, unknown>;
 };
 
 export type LlmThoughtEvent = BackendEventBase<'llm-thought', { status?: string }>;

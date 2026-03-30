@@ -24,7 +24,6 @@ if TYPE_CHECKING:
     from backend.src.llm.parser_types import ParsedToolCall
 
 logger = logging.getLogger(__name__)
-_INVALID_COMPUTER_USE_TOOL_NAME = "invalid_computer_use_tool"
 _PRE_DISPATCH_VALIDATION_FAILURE_MARKER = (
     "call is invalid and was rejected before frontend execution"
 )
@@ -207,9 +206,7 @@ class ToolSender:
             "skip_frontend_execution": True,
             "request_id": request_id,
         }
-        if tool_call.tool_name == _INVALID_COMPUTER_USE_TOOL_NAME:
-            metadata["computer_use_validation_failed"] = True
-        elif _PRE_DISPATCH_VALIDATION_FAILURE_MARKER in error_msg:
+        if _PRE_DISPATCH_VALIDATION_FAILURE_MARKER in error_msg:
             metadata["llm_tool_call_validation_failed"] = True
         else:
             metadata["coordinate_resolution_failed"] = True

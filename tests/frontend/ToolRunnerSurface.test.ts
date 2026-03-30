@@ -44,11 +44,11 @@ describe('toolRunnerSurface helpers', () => {
     expect(shouldSkipToolExecution({ skip_frontend_execution: false })).toBe(false);
     expect(shouldSkipToolExecution({ skip_frontend_execution: true })).toBe(true);
     expect(shouldSkipToolExecution({
-      computer_use_validation_failed: true,
+      llm_tool_call_validation_failed: true,
       skip_frontend_execution: true,
     })).toBe(true);
     expect(shouldSkipToolExecution({
-      computer_use_validation_failed: true,
+      llm_tool_call_validation_failed: true,
       skip_frontend_execution: false,
     })).toBe(false);
   });

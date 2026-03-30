@@ -30,13 +30,11 @@ function normalizeToolSchemas(value: unknown): ToolSchema[] | undefined {
       return false;
     }
 
-    const tool = item as { type?: unknown; function?: unknown };
-    if (tool.type !== 'function' || !tool.function || typeof tool.function !== 'object') {
+    const tool = item as { type?: unknown; name?: unknown; parameters?: unknown };
+    if (tool.type !== 'function') {
       return false;
     }
-
-    const fn = tool.function as { name?: unknown; parameters?: unknown };
-    return typeof fn.name === 'string' && typeof fn.parameters === 'object' && fn.parameters !== null;
+    return typeof tool.name === 'string' && typeof tool.parameters === 'object' && tool.parameters !== null;
   });
 
   return isCanonicalList ? (value as ToolSchema[]) : undefined;

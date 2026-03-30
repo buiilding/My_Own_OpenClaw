@@ -271,7 +271,21 @@ class TestAppConfig:
     def test_get_tool_allowlist_chat_mode(self):
         config = AppConfig(interaction_mode="chat")
         allowlist = config.get_tool_allowlist()
-        assert allowlist == {"open_app", "process", "computer_use", "system_use"}
+        assert allowlist == {
+            "open_app",
+            "process",
+            "mouse_control",
+            "keyboard_control",
+            "screenshot",
+            "scroll_control",
+            "switch_tab",
+            "wait",
+            "run_shell_command",
+            "replace",
+            "read_file",
+            "get_system_stats",
+            "get_open_windows",
+        }
 
     def test_get_tool_allowlist_agent_mode(self):
         config = AppConfig(interaction_mode="agent")

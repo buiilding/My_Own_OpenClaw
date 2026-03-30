@@ -105,28 +105,17 @@ async def test_send_tools_marks_failed_coordinate_resolution_as_non_executable()
 
 
 @pytest.mark.asyncio
-async def test_send_tools_marks_invalid_computer_use_preparation_failure_as_validation_error():
-    request_id = "req-invalid-computer-1"
+async def test_send_tools_marks_invalid_direct_tool_preparation_failure_as_validation_error():
+    request_id = "req-invalid-mouse-1"
     failed_call = ParsedToolCall(
-        tool_name="invalid_computer_use_tool",
-        parameters={"action": "click"},
+        tool_name="mouse_control",
+        parameters={"x": 10, "y": 20},
         metadata={
             "request_id": request_id,
-            "description": "screen",
-            "explanation": "click target",
-            "expectation": "dialog opens",
             "model_facing_tool_call": {
-                "id": "tool_llm_invalid_1",
-                "name": "computer_use",
-                "arguments": {
-                    "tool": "mouse_control",
-                    "metadata": {
-                        "description": "screen",
-                        "explanation": "click target",
-                        "expectation": "dialog opens",
-                    },
-                    "arguments": {"action": "click"},
-                },
+                "id": "tool_llm_invalid_mouse_1",
+                "name": "mouse_control",
+                "arguments": {"x": 10, "y": 20},
             },
         },
     )
@@ -136,7 +125,7 @@ async def test_send_tools_marks_invalid_computer_use_preparation_failure_as_vali
             resolved_calls=[],
             errors=[(
                 failed_call,
-                "computer_use call is invalid and was rejected before frontend execution.",
+                "mouse_control call is invalid and was rejected before frontend execution. Details: action: Field required.",
             )],
             bundle_id=None,
         )
@@ -147,29 +136,21 @@ async def test_send_tools_marks_invalid_computer_use_preparation_failure_as_vali
     assert len(emitted) == 2
     assert isinstance(emitted[0], ToolCallEvent)
     assert emitted[0].metadata["skip_frontend_execution"] is True
-    assert emitted[0].metadata["computer_use_validation_failed"] is True
+    assert emitted[0].metadata["llm_tool_call_validation_failed"] is True
     assert "coordinate_resolution_failed" not in emitted[0].metadata
     assert emitted[0].metadata["model_facing_tool_call"] == {
-        "id": "tool_llm_invalid_1",
-        "name": "computer_use",
-        "arguments": {
-            "tool": "mouse_control",
-            "metadata": {
-                "description": "screen",
-                "explanation": "click target",
-                "expectation": "dialog opens",
-            },
-            "arguments": {"action": "click"},
-        },
+        "id": "tool_llm_invalid_mouse_1",
+        "name": "mouse_control",
+        "arguments": {"x": 10, "y": 20},
     }
 
     assert isinstance(emitted[1], ToolOutputEvent)
     assert emitted[1].metadata["skip_frontend_execution"] is True
-    assert emitted[1].metadata["computer_use_validation_failed"] is True
+    assert emitted[1].metadata["llm_tool_call_validation_failed"] is True
     assert "coordinate_resolution_failed" not in emitted[1].metadata
 
     assert request_id in session.pending_results
-    assert "computer_use call is invalid" in (session.pending_results[request_id].error or "")
+    assert "mouse_control call is invalid" in (session.pending_results[request_id].error or "")
 
 
 @pytest.mark.asyncio
@@ -341,29 +322,18 @@ async def test_send_tools_bundle_includes_model_facing_tool_call_metadata() -> N
 
 
 @pytest.mark.asyncio
-async def test_send_tools_preserves_existing_model_facing_wrapper_for_successful_call():
-    request_id = "req-wrapper-1"
+async def test_send_tools_preserves_existing_model_facing_payload_for_successful_call():
+    request_id = "req-direct-1"
     parsed_call = ParsedToolCall(
         tool_name="screenshot",
         parameters={},
         metadata={
             "request_id": request_id,
-            "tool_call_id": "tool_llm_wrapper_1",
-            "description": "System Settings is open",
-            "explanation": "Verify the visible UI",
-            "expectation": "A screenshot is captured",
+            "tool_call_id": "tool_llm_screenshot_1",
             "model_facing_tool_call": {
-                "id": "tool_llm_wrapper_1",
-                "name": "computer_use",
-                "arguments": {
-                    "tool": "screenshot",
-                    "metadata": {
-                        "description": "System Settings is open",
-                        "explanation": "Verify the visible UI",
-                        "expectation": "A screenshot is captured",
-                    },
-                    "arguments": {},
-                },
+                "id": "tool_llm_screenshot_1",
+                "name": "screenshot",
+                "arguments": {},
             },
         },
     )
@@ -382,15 +352,7 @@ async def test_send_tools_preserves_existing_model_facing_wrapper_for_successful
     assert len(emitted) == 1
     assert isinstance(emitted[0], ToolCallEvent)
     assert emitted[0].metadata["model_facing_tool_call"] == {
-        "id": "tool_llm_wrapper_1",
-        "name": "computer_use",
-        "arguments": {
-            "tool": "screenshot",
-            "metadata": {
-                "description": "System Settings is open",
-                "explanation": "Verify the visible UI",
-                "expectation": "A screenshot is captured",
-            },
-            "arguments": {},
-        },
+        "id": "tool_llm_screenshot_1",
+        "name": "screenshot",
+        "arguments": {},
     }

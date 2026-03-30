@@ -25,7 +25,7 @@ def test_load_tool_selection_allowlist_filters(tmp_path: Path):
     p.write_text('enabled = true\nmode = "allowlist"\ntools = ["read_file"]\n', encoding="utf-8")
     selection = load_tool_selection(p)
     assert selection is not None
-    assert selection.filter_tool_names(["read_file", "write_file"]) == ["system_use"]
+    assert selection.filter_tool_names(["read_file", "replace"]) == ["read_file"]
 
 
 def test_load_tool_selection_mouse_coordinate_methods(tmp_path: Path):
@@ -43,7 +43,7 @@ def test_load_tool_selection_mouse_coordinate_methods(tmp_path: Path):
     selection = load_tool_selection(p)
     assert selection is not None
     assert selection.get_allowed_mouse_coordinate_methods() == {"manual", "ocr"}
-    assert selection.filter_tool_names(["mouse_control", "read_file"]) == ["computer_use"]
+    assert selection.filter_tool_names(["mouse_control", "read_file"]) == ["mouse_control"]
 
 
 def test_load_tool_selection_mouse_disabled_when_no_methods(tmp_path: Path):

@@ -23,22 +23,12 @@ from typing import Any, Dict, List, Optional, Sequence
 
 import tomllib
 
-from backend.src.tools.tool_catalog import (
-    expand_model_tool_names,
-    get_wrapper_member_names,
-    normalize_model_tool_name,
-)
+from backend.src.tools.tool_specs import get_tool_spec_name
 
 logger = logging.getLogger(__name__)
 
 _ENV_PATH = "WINDIEOS_DEV_TOOL_SELECTION_PATH"
 _MOUSE_COORD_METHODS: tuple[str, ...] = ("manual", "ocr", "prediction")
-_LEGACY_COMPUTER_TOOL_NAMES: frozenset[str] = frozenset(get_wrapper_member_names("computer_use"))
-_UNIFIED_COMPUTER_TOOL_NAME = "computer_use"
-_LEGACY_SYSTEM_TOOL_NAMES: frozenset[str] = frozenset(get_wrapper_member_names("system_use"))
-_UNIFIED_SYSTEM_TOOL_NAME = "system_use"
-
-
 def _ordered_mouse_methods(methods: Sequence[str]) -> List[str]:
     return [method for method in _MOUSE_COORD_METHODS if method in methods]
 
@@ -57,12 +47,11 @@ class ToolSelection:
 
     def is_tool_enabled(self, tool_name: str) -> bool:
         """Return True if the tool is enabled by top-level allow/deny policy."""
-        normalized_name = self._normalize_tool_name(tool_name)
         if not self.enabled:
             return True
         if self.mode == "allowlist":
-            return self._is_allowlisted(normalized_name)
-        return self._is_not_denylisted(normalized_name)
+            return self._is_allowlisted(tool_name)
+        return self._is_not_denylisted(tool_name)
 
     def get_allowed_mouse_coordinate_methods(self) -> frozenset[str]:
         """
@@ -72,7 +61,7 @@ class ToolSelection:
         - If mouse_control is disabled, this returns an empty set.
         - If enabled and method list is unspecified, all methods are allowed.
         """
-        if not self.is_tool_enabled(_UNIFIED_COMPUTER_TOOL_NAME):
+        if not self.is_tool_enabled("mouse_control"):
             return frozenset()
         if self.mouse_enabled_coordinate_methods is None:
             return frozenset(_MOUSE_COORD_METHODS)
@@ -88,39 +77,22 @@ class ToolSelection:
         normalize_wrappers: bool = True,
     ) -> List[str]:
         """Filter tool names according to selection mode (stable order)."""
+        _ = normalize_wrappers
         if not self.enabled:
-            if normalize_wrappers:
-                return self._normalize_unified_computer_use_tool_names(tool_names)
             return [
                 name
                 for name in tool_names
                 if isinstance(name, str)
             ]
         filtered: List[str] = []
-        has_unified_computer = False
-        has_unified_system = False
         for name in tool_names:
             if not isinstance(name, str):
                 continue
-            normalized_name = self._normalize_tool_name(name)
-            if not self.is_tool_enabled(normalized_name):
+            if not self.is_tool_enabled(name):
                 continue
             if name == "mouse_control" and not self._is_mouse_control_effectively_enabled():
                 continue
-            if not normalize_wrappers:
-                filtered.append(name)
-                continue
-            if normalized_name == _UNIFIED_COMPUTER_TOOL_NAME and not self._is_mouse_control_effectively_enabled():
-                continue
-            if normalized_name == _UNIFIED_COMPUTER_TOOL_NAME:
-                if has_unified_computer:
-                    continue
-                has_unified_computer = True
-            if normalized_name == _UNIFIED_SYSTEM_TOOL_NAME:
-                if has_unified_system:
-                    continue
-                has_unified_system = True
-            filtered.append(normalized_name)
+            filtered.append(name)
         return filtered
 
     def filter_tool_schemas(self, tool_schemas: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -129,8 +101,6 @@ class ToolSelection:
             return list(tool_schemas)
 
         filtered: List[Dict[str, Any]] = []
-        has_unified_computer = False
-        has_unified_system = False
         for schema in tool_schemas:
             tool_name = self._get_tool_name(schema)
             if not isinstance(tool_name, str):
@@ -139,29 +109,14 @@ class ToolSelection:
                     filtered.append(schema)
                 continue
 
-            normalized_name = self._normalize_tool_name(tool_name)
-            if not self.is_tool_enabled(normalized_name):
+            if not self.is_tool_enabled(tool_name):
                 continue
 
-            if normalized_name != _UNIFIED_COMPUTER_TOOL_NAME:
-                if normalized_name == _UNIFIED_SYSTEM_TOOL_NAME:
-                    if has_unified_system:
-                        continue
-                    has_unified_system = True
-                filtered.append(schema)
-                continue
-
-            if has_unified_computer:
-                continue
-            has_unified_computer = True
-
-            allowed_methods = self.get_allowed_mouse_coordinate_methods()
-            if not allowed_methods:
-                continue
             if tool_name == "mouse_control":
+                allowed_methods = self.get_allowed_mouse_coordinate_methods()
+                if not allowed_methods:
+                    continue
                 filtered.append(self._filter_mouse_control_schema(schema, allowed_methods))
-            elif tool_name == _UNIFIED_COMPUTER_TOOL_NAME:
-                filtered.append(self._filter_computer_use_schema(schema, allowed_methods))
             else:
                 filtered.append(schema)
 
@@ -211,157 +166,32 @@ class ToolSelection:
 
         return schema_copy
 
-    def _filter_computer_use_schema(
-        self,
-        schema: Dict[str, Any],
-        allowed_methods: frozenset[str],
-    ) -> Dict[str, Any]:
-        """Filter unified computer_use wrapper so mouse variant matches selection."""
-        schema_copy = copy.deepcopy(schema)
-        function_schema = schema_copy.get("function")
-        if not isinstance(function_schema, dict):
-            return schema_copy
-        parameters = function_schema.get("parameters")
-        if not isinstance(parameters, dict):
-            return schema_copy
-        properties = parameters.get("properties")
-        if not isinstance(properties, dict):
-            return schema_copy
-
-        tool_schema = properties.get("tool")
-        if isinstance(tool_schema, dict):
-            tool_enum = tool_schema.get("enum")
-            if isinstance(tool_enum, list):
-                filtered_tool_enum = [
-                    tool_name
-                    for tool_name in tool_enum
-                    if tool_name != "mouse_control" or allowed_methods
-                ]
-                tool_schema["enum"] = filtered_tool_enum
-
-        arguments_schema = properties.get("arguments")
-        if not isinstance(arguments_schema, dict):
-            return schema_copy
-        variants = arguments_schema.get("oneOf")
-        if not isinstance(variants, list):
-            return schema_copy
-
-        filtered_variants: list[dict[str, Any]] = []
-        for variant in variants:
-            if not isinstance(variant, dict):
-                filtered_variants.append(variant)
-                continue
-            if variant.get("title") == "mouse_control arguments":
-                filtered_variants.append(
-                    self._filter_unified_mouse_variant(variant, allowed_methods)
-                )
-                continue
-            filtered_variants.append(variant)
-        arguments_schema["oneOf"] = filtered_variants
-        return schema_copy
-
-    def _filter_unified_mouse_variant(
-        self,
-        variant: Dict[str, Any],
-        allowed_methods: frozenset[str],
-    ) -> Dict[str, Any]:
-        variant_copy = copy.deepcopy(variant)
-        properties = variant_copy.get("properties")
-        if not isinstance(properties, dict):
-            return variant_copy
-
-        ordered_methods = _ordered_mouse_methods(tuple(allowed_methods))
-        method_schema = properties.get("find_coordinates_by")
-        if isinstance(method_schema, dict):
-            method_schema["type"] = "string"
-            method_schema["enum"] = ordered_methods
-            default_method = method_schema.get("default")
-            if default_method not in allowed_methods:
-                if ordered_methods:
-                    method_schema["default"] = ordered_methods[0]
-                else:
-                    method_schema.pop("default", None)
-
-        if "manual" not in allowed_methods:
-            properties.pop("x", None)
-            properties.pop("y", None)
-        if "ocr" not in allowed_methods:
-            properties.pop("ocr_text", None)
-            properties.pop("candidate_id", None)
-            properties.pop("drag_to_ocr_text", None)
-            properties.pop("drag_to_candidate_id", None)
-        if "prediction" not in allowed_methods:
-            properties.pop("source_description", None)
-            properties.pop("destination_description", None)
-            properties.pop("drag_to_model_name", None)
-            properties.pop("model_name", None)
-
-        return variant_copy
-
     @staticmethod
     def _get_mouse_args_properties(schema: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Navigate to mouse_control args.properties from canonical direct schema."""
-        function_schema = schema.get("function")
-        if not isinstance(function_schema, dict):
-            return None
-        parameters = function_schema.get("parameters")
+        parameters = schema.get("parameters")
         if not isinstance(parameters, dict):
             return None
-
         properties = parameters.get("properties")
         if isinstance(properties, dict):
             return properties
         return None
 
-    def _is_allowlisted(self, normalized_tool_name: str) -> bool:
-        if normalized_tool_name in self.tools:
-            return True
-        if normalized_tool_name == _UNIFIED_COMPUTER_TOOL_NAME:
-            return bool(expand_model_tool_names(self.tools) & set(_LEGACY_COMPUTER_TOOL_NAMES))
-        if normalized_tool_name == _UNIFIED_SYSTEM_TOOL_NAME:
-            return bool(expand_model_tool_names(self.tools) & set(_LEGACY_SYSTEM_TOOL_NAMES))
-        return False
+    def _is_allowlisted(self, tool_name: str) -> bool:
+        return tool_name in self.tools
 
-    def _is_not_denylisted(self, normalized_tool_name: str) -> bool:
-        if normalized_tool_name in self.tools:
+    def _is_not_denylisted(self, tool_name: str) -> bool:
+        if tool_name in self.tools:
             return False
-        if normalized_tool_name == _UNIFIED_COMPUTER_TOOL_NAME:
-            return not bool(expand_model_tool_names(self.tools) & set(_LEGACY_COMPUTER_TOOL_NAMES))
-        if normalized_tool_name == _UNIFIED_SYSTEM_TOOL_NAME:
-            return not bool(expand_model_tool_names(self.tools) & set(_LEGACY_SYSTEM_TOOL_NAMES))
         return True
 
     @staticmethod
     def _normalize_tool_name(tool_name: str) -> str:
-        return normalize_model_tool_name(tool_name)
-
-    @classmethod
-    def _normalize_unified_computer_use_tool_names(
-        cls, tool_names: Sequence[str]
-    ) -> List[str]:
-        normalized: List[str] = []
-        has_unified = False
-        has_unified_system = False
-        for name in tool_names:
-            mapped = cls._normalize_tool_name(name)
-            if mapped == _UNIFIED_COMPUTER_TOOL_NAME:
-                if has_unified:
-                    continue
-                has_unified = True
-            if mapped == _UNIFIED_SYSTEM_TOOL_NAME:
-                if has_unified_system:
-                    continue
-                has_unified_system = True
-            normalized.append(mapped)
-        return normalized
+        return tool_name
 
     @staticmethod
     def _get_tool_name(schema: Dict[str, Any]) -> Optional[str]:
-        function_schema = schema.get("function")
-        if not isinstance(function_schema, dict):
-            return None
-        tool_name = function_schema.get("name")
-        return tool_name if isinstance(tool_name, str) else None
+        return get_tool_spec_name(schema)
 
 
 _CACHE: dict[Path, tuple[tuple[int, int, int], str, Optional[ToolSelection]]] = {}

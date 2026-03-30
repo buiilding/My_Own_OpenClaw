@@ -7,11 +7,9 @@ function isCanonicalToolSchemas(value) {
     item
     && typeof item === 'object'
     && item.type === 'function'
-    && item.function
-    && typeof item.function === 'object'
-    && typeof item.function.name === 'string'
-    && item.function.parameters
-    && typeof item.function.parameters === 'object'
+    && typeof item.name === 'string'
+    && item.parameters
+    && typeof item.parameters === 'object'
   ));
 }
 
