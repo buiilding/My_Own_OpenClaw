@@ -1,9 +1,11 @@
 import pytest
 
+from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.core.config.models import AppConfig
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 from backend.src.tools.remote import RemoteMouseTool
+from backend.src.tools.registry import ToolRegistry
 
 
 class DummyRegistry:
@@ -239,3 +241,43 @@ def test_build_prompt_returns_empty_history_and_no_user_metadata_without_store()
     assert prompt_messages == []
     assert tool_schemas == []
     assert metadata.user_message_metadata is None
+
+
+def test_build_prompt_allowlisting_mouse_control_yields_single_member_computer_use_schema():
+    registry = ToolRegistry(config=AppConfig(tool_allowlist=["mouse_control"]), cache_manager=CacheManager())
+    constructor = PromptConstructor(
+        tool_registry=registry,
+        config=AppConfig(tool_allowlist=["mouse_control"]),
+        system_prompt="system",
+    )
+
+    _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
+
+    assert [schema["function"]["name"] for schema in schemas] == ["computer_use"]
+    parameters = schemas[0]["function"]["parameters"]
+    assert parameters["properties"]["tool"]["enum"] == ["mouse_control"]
+    argument_titles = [
+        entry["title"]
+        for entry in parameters["properties"]["arguments"]["oneOf"]
+    ]
+    assert argument_titles == ["mouse_control arguments"]
+
+
+def test_build_prompt_allowlisting_read_file_yields_single_member_system_use_schema():
+    registry = ToolRegistry(config=AppConfig(tool_allowlist=["read_file"]), cache_manager=CacheManager())
+    constructor = PromptConstructor(
+        tool_registry=registry,
+        config=AppConfig(tool_allowlist=["read_file"]),
+        system_prompt="system",
+    )
+
+    _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
+
+    assert [schema["function"]["name"] for schema in schemas] == ["system_use"]
+    parameters = schemas[0]["function"]["parameters"]
+    assert parameters["properties"]["tool"]["enum"] == ["read_file"]
+    argument_titles = [
+        entry["title"]
+        for entry in parameters["properties"]["arguments"]["oneOf"]
+    ]
+    assert argument_titles == ["read_file arguments"]

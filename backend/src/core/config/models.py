@@ -216,6 +216,16 @@ class OCRConfig(BaseModel):
     inter_op_threads_min: int = Field(default=2, description="Min inter-op threads")
 
 
+_DEFAULT_TOOL_ALLOWLIST_BY_INTERACTION_MODE: dict[str, set[str]] = {
+    "chat": {
+        "open_app",
+        "process",
+        "computer_use",
+        "system_use",
+    },
+}
+
+
 class AppConfig(BaseModel):
     """Main application configuration model (immutable)."""
 
@@ -343,11 +353,9 @@ class AppConfig(BaseModel):
                 for name in self.tool_allowlist
                 if isinstance(name, str) and name.strip()
             }
-        if self.interaction_mode == "chat":
-            return {
-                "open_app",
-                "process",
-                "computer_use",
-                "system_use",
-            }
+        default_allowlist = _DEFAULT_TOOL_ALLOWLIST_BY_INTERACTION_MODE.get(
+            self.interaction_mode
+        )
+        if default_allowlist is not None:
+            return set(default_allowlist)
         return None

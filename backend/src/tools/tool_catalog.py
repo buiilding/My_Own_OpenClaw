@@ -133,6 +133,11 @@ def get_model_visible_tool_names() -> list[str]:
     return [spec.name for spec in _WRAPPER_SPECS] + list(_MODEL_VISIBLE_DIRECT_TOOLS)
 
 
+def get_backend_exposed_tool_names() -> list[str]:
+    """Return all backend-registered remote tool names exposed to the sidecar contract."""
+    return [entry.name for entry in _CATALOG]
+
+
 def normalize_model_tool_name(tool_name: str) -> str:
     return get_wrapper_name_for_tool(tool_name) or tool_name
 

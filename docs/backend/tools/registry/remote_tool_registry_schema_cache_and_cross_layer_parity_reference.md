@@ -72,6 +72,7 @@ Catalog-driven runtime helpers also power:
 - wrapper-member lookup in parser/policy code
 - wrapper dispatch parity aliases in remote computer/system stubs
 - model-facing surface resolution in `ToolRegistry`
+- sidecar exposed-tool and wrapper-member sets in `frontend/src/main/python/tools/registry.py`
 
 ## Declaration and Capability APIs
 
