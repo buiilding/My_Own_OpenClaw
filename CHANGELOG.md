@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- docs(planning): add a dated refactor plan for dynamic model-facing tool schema generation with a canonical tool catalog, wrapper-aware filtering, and removal of post-hoc schema rewrites.
 - docs(cloudflare-tunnel): document the preferred self-hosted setup as a startup-enabled `windieos-cloudflared` tunnel with a manually launched backend on `python -m backend.src.main`, instead of requiring backend auto-start.
 - feat(multi-conversation-session-runtime): scope backend agent sessions per `(user_id, conversation_ref)` instead of one mutable session per user, route query/rehydrate/tool-result/stop-query flows to the owning conversation session, preserve per-user runtime settings for newly created conversations, and let `New Chat` create a fresh conversation without auto-canceling an older in-flight one.
 - feat(file-menu-workspace-picker): add `File -> Set active workspace…` to reuse the workspace folder picker, persist the selected folder as the default WindieOS workspace, show its folder name in the dashboard header beside the text-to-speech control, and make shell commands without an explicit `directory` start there before falling back to the OS user home directory.
