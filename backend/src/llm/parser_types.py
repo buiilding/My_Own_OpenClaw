@@ -6,24 +6,12 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 from backend.src.core.utils.string_normalization import normalize_non_empty_string
+from backend.src.tools.tool_catalog import get_wrapper_member_names
 
 _COMPUTER_USE_TOOL_NAME = "computer_use"
-_COMPUTER_SUBTOOLS = {
-    "mouse_control",
-    "keyboard_control",
-    "screenshot",
-    "scroll_control",
-    "switch_tab",
-    "wait",
-}
+_COMPUTER_SUBTOOLS = set(get_wrapper_member_names(_COMPUTER_USE_TOOL_NAME))
 _SYSTEM_USE_TOOL_NAME = "system_use"
-_SYSTEM_SUBTOOLS = {
-    "run_shell_command",
-    "replace",
-    "read_file",
-    "get_system_stats",
-    "get_open_windows",
-}
+_SYSTEM_SUBTOOLS = set(get_wrapper_member_names(_SYSTEM_USE_TOOL_NAME))
 
 
 @dataclass

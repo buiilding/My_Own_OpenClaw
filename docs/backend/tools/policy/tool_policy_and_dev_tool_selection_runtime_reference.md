@@ -29,6 +29,11 @@ Tool exposure filtering is layered in this order:
 
 `ToolPolicy.filter_tool_names(...)` and `ToolPolicy.filter_tool_schemas(...)` apply both layers in that order.
 
+Two filtering modes now exist in practice:
+
+- wrapper-normalized filtering (`normalize_wrappers=True`, default) for parser/tool-capability surfaces
+- concrete schema-source filtering (`normalize_wrappers=False`) for prompt schema generation before wrapper assembly
+
 Practical effect:
 
 - interaction-mode restrictions always apply, even when dev selection is disabled
@@ -104,12 +109,20 @@ Method normalization:
 
 ## Prompt Injection Coupling
 
-`PromptConstructor._get_filtered_tool_schemas()` uses `ToolPolicy.filter_tool_schemas(...)`.
+`PromptConstructor._get_filtered_tool_schemas()` no longer filters final wrapper schemas directly.
+
+Current flow:
+
+1. read schema-source tool names from `ToolRegistry.get_schema_source_tool_names()`
+2. apply `ToolPolicy.filter_tool_names(..., normalize_wrappers=False)` to keep concrete tool membership intact
+3. hand the filtered concrete list back to `ToolRegistry.get_function_declarations_filtered(...)`
+4. assemble final model-facing wrappers/direct tools from that filtered set
 
 Result:
 
 - LLM only sees policy-filtered tool schemas
-- mouse schema it receives already excludes disabled method fields
+- wrapper membership now tracks the concrete tools that survived filtering
+- mouse schema the LLM receives is pruned inside `computer_use` when dev selection disables OCR or prediction
 
 ## Available-Tools Listing Coupling
 

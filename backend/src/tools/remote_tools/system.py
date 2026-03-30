@@ -4,7 +4,7 @@ Remote system-domain tool stubs.
 
 from __future__ import annotations
 
-from typing import Any, Type
+from typing import Any
 
 from backend.src.core.utils.string_normalization import normalize_non_empty_string
 from backend.src.sdk.context import ToolContext
@@ -20,22 +20,13 @@ from backend.src.tools.system.schemas import (
     RunShellCommandArgs,
     SystemUseArgs,
 )
+from backend.src.tools.tool_catalog import (
+    get_tool_catalog_entry,
+    get_wrapper_member_names,
+    resolve_tool_class,
+)
 
-_SYSTEM_USE_MODEL_BY_TOOL: dict[str, Type[Any]] = {
-    "run_shell_command": RunShellCommandArgs,
-    "replace": ReplaceArgs,
-    "read_file": ReadFileArgs,
-    "get_system_stats": GetSystemStatsArgs,
-    "get_open_windows": GetOpenWindowsArgs,
-}
-
-_SYSTEM_USE_TARGET_TOOL_BY_TOOL: dict[str, str] = {
-    "run_shell_command": "run_shell_command",
-    "replace": "replace",
-    "read_file": "read_file",
-    "get_system_stats": "get_system_stats",
-    "get_open_windows": "get_open_windows",
-}
+_SYSTEM_USE_SUBTOOLS = frozenset(get_wrapper_member_names("system_use"))
 
 
 def _resolve_system_use_explanation(
@@ -57,8 +48,12 @@ class RemoteSystemUseTool(RemoteToolBase, Tool[SystemUseArgs]):
 
     async def execute_remote(self, args: SystemUseArgs, ctx: ToolContext) -> RemoteToolResult:
         tool_name = args.tool
-        model = _SYSTEM_USE_MODEL_BY_TOOL[tool_name]
-        target_tool_name = _SYSTEM_USE_TARGET_TOOL_BY_TOOL[tool_name]
+        if tool_name not in _SYSTEM_USE_SUBTOOLS:
+            raise ValueError(f"Unknown system_use tool: {tool_name}")
+        tool_entry = get_tool_catalog_entry(tool_name)
+        if tool_entry is None:
+            raise ValueError(f"Missing catalog entry for system_use tool: {tool_name}")
+        model = resolve_tool_class(tool_entry).args_model
         tool_arguments = dict(args.arguments)
         tool_arguments.pop("explanation", None)
         resolved_explanation = _resolve_system_use_explanation(args.explanation)
@@ -67,7 +62,7 @@ class RemoteSystemUseTool(RemoteToolBase, Tool[SystemUseArgs]):
         validated_args = model.model_validate(tool_arguments)
         request_id = self._get_request_id(ctx)
         return RemoteToolResult(
-            tool_name=target_tool_name,
+            tool_name=tool_name,
             args=validated_args.model_dump(),
             request_id=request_id,
         )
@@ -163,3 +158,13 @@ class RemoteProcessTool(RemoteToolBase, Tool[ProcessShellCommandArgs]):
             ctx,
             log_message=f"Remote process tool call: {args.action}",
         )
+
+
+_SYSTEM_USE_MODEL_BY_TOOL = {
+    "run_shell_command": RunShellCommandArgs,
+    "replace": ReplaceArgs,
+    "read_file": ReadFileArgs,
+    "get_system_stats": GetSystemStatsArgs,
+    "get_open_windows": GetOpenWindowsArgs,
+}
+_SYSTEM_USE_TARGET_TOOL_BY_TOOL = {tool_name: tool_name for tool_name in _SYSTEM_USE_MODEL_BY_TOOL}

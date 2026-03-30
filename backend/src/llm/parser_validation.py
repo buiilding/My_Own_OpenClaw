@@ -4,30 +4,17 @@ import json
 import logging
 
 from backend.src.core.infrastructure.exceptions import ParseValidationError
+from backend.src.tools.tool_catalog import (
+    expand_model_tool_names,
+    get_wrapper_member_names,
+)
 from backend.src.tools.tool_policy import ToolPolicy
 
 logger = logging.getLogger(__name__)
 _UNIFIED_COMPUTER_TOOL_NAME = "computer_use"
-_UNIFIED_COMPUTER_SUBTOOLS = frozenset(
-    {
-        "mouse_control",
-        "keyboard_control",
-        "screenshot",
-        "scroll_control",
-        "switch_tab",
-        "wait",
-    }
-)
+_UNIFIED_COMPUTER_SUBTOOLS = frozenset(get_wrapper_member_names(_UNIFIED_COMPUTER_TOOL_NAME))
 _UNIFIED_SYSTEM_TOOL_NAME = "system_use"
-_UNIFIED_SYSTEM_SUBTOOLS = frozenset(
-    {
-        "run_shell_command",
-        "replace",
-        "read_file",
-        "get_system_stats",
-        "get_open_windows",
-    }
-)
+_UNIFIED_SYSTEM_SUBTOOLS = frozenset(get_wrapper_member_names(_UNIFIED_SYSTEM_TOOL_NAME))
 _COMPUTER_REQUIRED_METADATA_FIELDS = frozenset(
     {
         "description",
@@ -189,12 +176,7 @@ class ToolCallValidator:
         return filtered_tool_names
 
     def _compute_allowed_tool_name_set(self, display_tool_names: List[str]) -> set[str]:
-        allowed_tool_names = set(display_tool_names)
-        if _UNIFIED_COMPUTER_TOOL_NAME in display_tool_names:
-            allowed_tool_names.update(_UNIFIED_COMPUTER_SUBTOOLS)
-        if _UNIFIED_SYSTEM_TOOL_NAME in display_tool_names:
-            allowed_tool_names.update(_UNIFIED_SYSTEM_SUBTOOLS)
-        return allowed_tool_names
+        return expand_model_tool_names(display_tool_names)
 
     def _get_valid_tool_name_index(self) -> tuple[List[str], set[str]]:
         """

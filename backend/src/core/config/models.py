@@ -241,6 +241,7 @@ class AppConfig(BaseModel):
 
     # Agent Execution Settings
     interaction_mode: Literal["chat", "agent"] = "agent"
+    tool_allowlist: Optional[List[str]] = None
     history_compaction_enabled: bool = True
     history_compaction_manual_enabled: bool = True
     history_compaction_openai_remote_enabled: bool = False
@@ -336,6 +337,12 @@ class AppConfig(BaseModel):
 
     def get_tool_allowlist(self) -> Optional[set[str]]:
         """Return allowed tool names for the current interaction mode."""
+        if self.tool_allowlist:
+            return {
+                name
+                for name in self.tool_allowlist
+                if isinstance(name, str) and name.strip()
+            }
         if self.interaction_mode == "chat":
             return {
                 "open_app",

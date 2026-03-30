@@ -1,8 +1,8 @@
 ---
-summary: "Deep backend reference for ToolRegistry and SchemaRegistry internals: remote tool registration, canonical schema caching rules, unified computer/system declaration collapse rules, capability extraction fallbacks, and backend/frontend exposed-tool parity tests."
+summary: "Deep backend reference for ToolRegistry and SchemaRegistry internals: catalog-driven remote tool registration, canonical schema caching rules, dynamic unified computer/system declaration assembly, capability extraction fallbacks, and backend/frontend exposed-tool parity tests."
 read_when:
   - When changing backend tool declaration generation, schema cache behavior, or remote-tool registration paths.
-  - When debugging missing/invalid tool schemas, unified-wrapper declaration drift, request-id correlation, or sidecar contract drift.
+- When debugging missing/invalid tool schemas, catalog-driven wrapper assembly drift, request-id correlation, or sidecar contract drift.
 title: "Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference"
 ---
 
@@ -46,7 +46,16 @@ Remote registration behavior:
 
 ## Remote Tool Source of Truth
 
-`backend/src/tools/remote_tools/registry.py` defines `REMOTE_TOOLS` mapping names to classes.
+`backend/src/tools/tool_catalog.py` is the backend source of truth for remote-tool metadata.
+
+The catalog owns:
+
+- every backend-registered remote tool name
+- the import path/class name used to instantiate the stub
+- whether the tool is model-visible directly
+- whether the tool belongs to a unified wrapper (`computer_use`, `system_use`)
+
+`backend/src/tools/remote_tools/registry.py` now builds `REMOTE_TOOLS` from that catalog at import time.
 
 Current names:
 
@@ -56,7 +65,13 @@ Current names:
 - filesystem: `read_file`, `replace`
 - browser: `browser`
 
-`get_all_remote_tools()` returns a copy, preventing external mutation of module-level registry.
+`get_all_remote_tools()` still returns a copy, preventing external mutation of module-level registry.
+
+Catalog-driven runtime helpers also power:
+
+- wrapper-member lookup in parser/policy code
+- wrapper dispatch parity aliases in remote computer/system stubs
+- model-facing surface resolution in `ToolRegistry`
 
 ## Declaration and Capability APIs
 
@@ -67,37 +82,23 @@ Current names:
 
 Ordering behavior:
 
-- filtered declarations keep order from `get_all_tools()` (registration/insertion order)
+- model-facing declarations follow catalog order, not raw registration order
+- full declaration generation starts from schema-source tools (`mouse_control`, `read_file`, `browser`, etc.), not from wrapper stubs
 
-Computer-tool normalization behavior:
+Dynamic surface resolution behavior:
 
-- `_normalize_requested_tool_names(...)` rewrites any requested legacy computer-tool names
-  (`mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`)
-  to unified `computer_use` before filtering
-- if the request list contains only legacy computer names, filtered declarations still return
-  a single unified `computer_use` declaration
+- `ToolRegistry.get_schema_source_tool_names()` returns the concrete/direct inputs that feed model-facing schema generation
+- `resolve_model_tool_surface(...)` groups requested concrete computer members into `computer_use`
+  and requested concrete system/filesystem members into `system_use`
+- if only a subset of wrapper members survives filtering, the wrapper schema shrinks to that subset
+- if no members remain for a wrapper, that wrapper disappears from the emitted model-facing surface
 
-System-tool normalization behavior:
+Wrapper schema generation behavior:
 
-- `_normalize_requested_tool_names(...)` rewrites any requested legacy system/filesystem names
-  (`run_shell_command`, `replace`, `read_file`, `get_system_stats`, `get_open_windows`)
-  to unified `system_use` before filtering
-- if the request list contains only those legacy names, filtered declarations still return
-  a single unified `system_use` declaration
-
-Unified declaration collapse behavior:
-
-- `_collapse_unified_computer_use_declarations(...)` runs on both full and filtered declaration paths
-- when a unified declaration is present, it removes legacy computer-tool declarations from the
-  outgoing list and injects canonical schema from
-  `backend/src/tools/computer/unified_schema.py::get_unified_computer_use_function_declaration()`
-- this means outbound `computer_use` declaration shape is sourced from canonical unified schema,
-  not from per-class schema generation in legacy stubs
-- `_collapse_unified_system_use_declarations(...)` applies the same pattern for
-  `run_shell_command|replace|read_file|get_system_stats|get_open_windows`
-- outbound `system_use` declaration shape is sourced from
-  `backend/src/tools/system/unified_schema.py::get_unified_system_use_function_declaration()`
-  and requires top-level `tool` + `explanation` with action-specific `arguments`
+- `backend/src/tools/computer/unified_schema.py` builds `computer_use` from the wrapper member set selected for that request
+- `backend/src/tools/system/unified_schema.py` builds `system_use` from the wrapper member set selected for that request
+- direct model-visible tools (`open_app`, `process`, `browser`) keep their own declarations
+- non-catalog test/helper tools registered directly into `ToolRegistry` still pass through as direct schemas when explicitly requested
 
 Capabilities API:
 
@@ -115,6 +116,11 @@ Parameter extraction fallback behavior (`_extract_schema_parameters`):
 - missing/invalid `parameters` dict -> returns `{}`
 
 This keeps capability calls non-fatal during partial schema failures.
+
+Wrapper capability behavior:
+
+- `computer_use` / `system_use` capabilities now use the same dynamically assembled declaration the model sees
+- direct non-wrapper tools still read parameters from `SchemaRegistry`
 
 ## SchemaRegistry Canonicalization and Cache Behavior
 
@@ -152,6 +158,7 @@ Test-backed behavior from `test_tool_registry_schema.py`:
 - `get_tool_names()` returns sorted list
 - filtered declaration requests with legacy computer names normalize to `computer_use`
 - filtered declaration requests with legacy system/filesystem names normalize to `system_use`
+- filtered wrapper declarations shrink to the selected member set instead of using a static final replacement layer
 - unified declaration includes required `metadata.description|explanation|expectation` fields
 - unified `system_use` declaration requires top-level `explanation` and constrains `arguments`
   via action-specific `oneOf` variants

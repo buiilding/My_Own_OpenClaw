@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- refactor(dynamic-tool-schemas): move backend model-facing tool schema generation onto a canonical tool catalog, assemble `computer_use`/`system_use` dynamically from filtered concrete members, add config-backed `tool_allowlist`, and make prompt filtering operate on concrete schema-source tools before wrapper assembly.
 - docs(planning): add a second dated refactor plan covering a production-grade system prompt, provider-agnostic flat tool specs, and removal of wrapper tools in favor of individual model-facing tools.
 - docs(planning): add a dated refactor plan for dynamic model-facing tool schema generation with a canonical tool catalog, wrapper-aware filtering, and removal of post-hoc schema rewrites.
 - docs(cloudflare-tunnel): document the preferred self-hosted setup as a startup-enabled `windieos-cloudflared` tunnel with a manually launched backend on `python -m backend.src.main`, instead of requiring backend auto-start.

@@ -1,6 +1,4 @@
-"""
-Registry for frontend-executed remote tools.
-"""
+"""Registry for frontend-executed remote tools."""
 
 from __future__ import annotations
 
@@ -18,10 +16,7 @@ from backend.src.tools.remote_tools.computer import (
     RemoteSwitchTabTool,
     RemoteWaitTool,
 )
-from backend.src.tools.remote_tools.filesystem import (
-    RemoteReadFileTool,
-    RemoteReplaceTool,
-)
+from backend.src.tools.remote_tools.filesystem import RemoteReadFileTool, RemoteReplaceTool
 from backend.src.tools.remote_tools.system import (
     RemoteGetSystemStatsTool,
     RemoteOpenAppTool,
@@ -29,24 +24,11 @@ from backend.src.tools.remote_tools.system import (
     RemoteShellTool,
     RemoteSystemUseTool,
 )
+from backend.src.tools.tool_catalog import get_tool_catalog, resolve_tool_class
 
 REMOTE_TOOLS: Dict[str, Type[Tool]] = {
-    "computer_use": RemoteComputerUseTool,
-    "mouse_control": RemoteMouseTool,
-    "keyboard_control": RemoteKeyboardTool,
-    "screenshot": RemoteScreenshotTool,
-    "scroll_control": RemoteScrollTool,
-    "switch_tab": RemoteSwitchTabTool,
-    "wait": RemoteWaitTool,
-    "system_use": RemoteSystemUseTool,
-    "get_open_windows": RemoteGetOpenWindowsTool,
-    "get_system_stats": RemoteGetSystemStatsTool,
-    "open_app": RemoteOpenAppTool,
-    "run_shell_command": RemoteShellTool,
-    "process": RemoteProcessTool,
-    "read_file": RemoteReadFileTool,
-    "replace": RemoteReplaceTool,
-    "browser": RemoteBrowserTool,
+    entry.name: resolve_tool_class(entry)
+    for entry in get_tool_catalog()
 }
 
 

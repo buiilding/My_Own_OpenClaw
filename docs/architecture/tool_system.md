@@ -71,10 +71,16 @@ Most tools are executed on the frontend Python sidecar:
 - **Additional System Tools**: `open_app`, `process`
 - **Browser Tools**: `browser`
 
-Declaration collapse contract:
+Catalog-driven declaration contract:
 
-- backend `ToolRegistry` collapses legacy concrete computer/system declaration requests into canonical wrapper schemas (`computer_use`, `system_use`)
+- backend `backend/src/tools/tool_catalog.py` is the source of truth for backend-registered remote tools and wrapper membership
+- prompt-time filtering happens on concrete schema-source tools first, before wrapper assembly
+- backend `ToolRegistry` then assembles the final model-facing surface dynamically:
+  - concrete computer members -> `computer_use`
+  - concrete system/filesystem members -> `system_use`
+  - direct model-visible tools stay direct (`open_app`, `process`, `browser`)
 - concrete legacy names remain registered and executable for compatibility, but model-facing declaration surfaces are unified
+- if filtering removes some wrapper members, the emitted wrapper enum/variants shrink automatically instead of using a static final replacement
 
 ### Backend Responsibilities (No Tool Execution)
 

@@ -15,31 +15,19 @@ import logging
 from typing import Any, Dict, List, Optional, Sequence
 
 from backend.src.core.utils.coordinate_methods import normalize_coordinate_method
+from backend.src.tools.tool_catalog import (
+    expand_model_tool_names,
+    get_wrapper_member_names,
+    normalize_model_tool_name,
+)
 from backend.src.tools.tool_selection import ToolSelection, load_tool_selection
 
 logger = logging.getLogger(__name__)
 
 _UNSET = object()
-_LEGACY_COMPUTER_TOOL_NAMES = frozenset(
-    {
-        "mouse_control",
-        "keyboard_control",
-        "screenshot",
-        "scroll_control",
-        "switch_tab",
-        "wait",
-    }
-)
+_LEGACY_COMPUTER_TOOL_NAMES = frozenset(get_wrapper_member_names("computer_use"))
 _UNIFIED_COMPUTER_TOOL_NAME = "computer_use"
-_LEGACY_SYSTEM_TOOL_NAMES = frozenset(
-    {
-        "run_shell_command",
-        "replace",
-        "read_file",
-        "get_system_stats",
-        "get_open_windows",
-    }
-)
+_LEGACY_SYSTEM_TOOL_NAMES = frozenset(get_wrapper_member_names("system_use"))
 _UNIFIED_SYSTEM_TOOL_NAME = "system_use"
 
 
@@ -65,6 +53,8 @@ class ToolPolicy:
         self,
         tool_names: Sequence[str],
         selection: Optional[ToolSelection] | object = _UNSET,
+        *,
+        normalize_wrappers: bool = True,
     ) -> List[str]:
         """
         Apply interaction-mode allowlist and dev selection to tool name list.
@@ -72,18 +62,22 @@ class ToolPolicy:
         Preserves input ordering.
         """
         filtered = list(tool_names)
-        filtered = self._normalize_unified_computer_use_names(filtered)
-        filtered = self._normalize_unified_system_use_names(filtered)
+        if normalize_wrappers:
+            filtered = self._normalize_unified_computer_use_names(filtered)
+            filtered = self._normalize_unified_system_use_names(filtered)
         disabled_tools = self._get_config_disabled_tools()
         if disabled_tools:
             filtered = [name for name in filtered if name not in disabled_tools]
-        allowlist = self._get_interaction_allowlist()
+        allowlist = self._get_interaction_allowlist(normalize_wrappers=normalize_wrappers)
         if allowlist is not None:
             filtered = [name for name in filtered if name in allowlist]
 
         effective_selection = self._resolve_selection(selection)
         if effective_selection is not None:
-            filtered = effective_selection.filter_tool_names(filtered)
+            filtered = effective_selection.filter_tool_names(
+                filtered,
+                normalize_wrappers=normalize_wrappers,
+            )
         return filtered
 
     def filter_tool_schemas(
@@ -102,7 +96,7 @@ class ToolPolicy:
                 for schema in filtered
                 if self._normalize_tool_name(self._extract_tool_name(schema)) not in disabled_tools
             ]
-        allowlist = self._get_interaction_allowlist()
+        allowlist = self._get_interaction_allowlist(normalize_wrappers=True)
         if allowlist is not None:
             filtered = [
                 schema
@@ -189,7 +183,7 @@ class ToolPolicy:
             disabled.add("browser")
         return disabled
 
-    def _get_interaction_allowlist(self) -> Optional[set[str]]:
+    def _get_interaction_allowlist(self, *, normalize_wrappers: bool) -> Optional[set[str]]:
         """Return interaction-mode allowlist (if configured)."""
         try:
             allowlist = self.config.get_tool_allowlist()
@@ -198,6 +192,8 @@ class ToolPolicy:
         if allowlist is None:
             return None
         if isinstance(allowlist, set):
+            if not normalize_wrappers:
+                return expand_model_tool_names(allowlist)
             return self._normalize_unified_system_use_name_set(
                 self._normalize_unified_computer_use_name_set(allowlist)
             )
@@ -207,6 +203,8 @@ class ToolPolicy:
                 for name in allowlist
                 if isinstance(name, str)
             }
+            if not normalize_wrappers:
+                return expand_model_tool_names(normalized)
             return self._normalize_unified_system_use_name_set(
                 self._normalize_unified_computer_use_name_set(normalized)
             )
@@ -271,8 +269,6 @@ class ToolPolicy:
 
     @staticmethod
     def _normalize_tool_name(tool_name: Optional[str]) -> Optional[str]:
-        if tool_name in _LEGACY_COMPUTER_TOOL_NAMES:
-            return _UNIFIED_COMPUTER_TOOL_NAME
-        if tool_name in _LEGACY_SYSTEM_TOOL_NAMES:
-            return _UNIFIED_SYSTEM_TOOL_NAME
-        return tool_name
+        if not isinstance(tool_name, str):
+            return None
+        return normalize_model_tool_name(tool_name)
