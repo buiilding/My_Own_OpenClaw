@@ -184,6 +184,7 @@ Default behavior:
 
 - Dev/source runs try the hosted backend first (`https://api.windieos.com`, `wss://api.windieos.com/ws`) and fall back to the local backend (`127.0.0.1:8765`) if the hosted socket is unreachable before connect.
 - Packaged builds use the hosted backend (`https://api.windieos.com`, `wss://api.windieos.com/ws`) unless overridden by `BACKEND_*`, `WINDIE_DEFAULT_BACKEND_*`, or `WINDIE_DEFAULT_PACKAGED_BACKEND_*`.
+- Preferred self-hosted dev setup: keep the Cloudflare tunnel service for `api.windieos.com` enabled at startup, but launch the backend manually with `python -m backend.src.main` only when you want the local machine publicly reachable.
 
 For bundled runtime packaging details, see `docs/operations/sidecar_runtime_packaging.md`.
 
