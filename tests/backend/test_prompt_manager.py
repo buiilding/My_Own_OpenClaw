@@ -173,20 +173,15 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     )
     content = prompt_file.read_text(encoding="utf-8")
 
-    assert "<tool_selection_policy>" in content
-    assert "<computer_use_rules>" in content
-    assert "<system_use_rules>" in content
-    assert "<browser_rules>" in content
-    assert "<tool_shape_reminders>" in content
-    assert "Prefer keyboard shortcuts and app-native commands over mouse actions" in content
-    assert "Do not treat tool execution status alone as success" in content
-    assert "global emergency stop hotkey is Command/Ctrl+Shift+Escape" in content
-    assert "The `keyboard_control` tech stack is synthetic automation input" in content
+    assert "<tool_selection>" in content
+    assert "<state_rules>" in content
+    assert "<tool_notes>" in content
+    assert "<response_rules>" in content
+    assert "Prefer keyboard shortcuts over mouse interaction when both are reliable" in content
+    assert "Do not treat execution status alone as success" in content
+    assert "The emergency stop hotkey is Command/Ctrl+Shift+Escape" in content
     assert "run_in_background=true" in content
-    assert 'To create a file with `replace`, you can do it in one call with `old_string=""`' in content
-    assert "Use `open_app` for detached GUI app launches" in content
-    assert "If the user explicitly asks you to use `computer_use`" in content
-    assert "If the user explicitly asks you to use your own browser" in content
-    assert "<open_app_rules>" in content
+    assert "Use `open_app` for detached GUI launches that should keep running" in content
     assert '"name":"open_app"' in content
-    assert "Snapshot pagination contract" in content
+    assert '"name":"mouse_control"' in content
+    assert '"name":"browser"' in content

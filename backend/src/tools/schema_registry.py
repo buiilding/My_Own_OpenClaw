@@ -5,6 +5,7 @@ This module handles the generation and caching of tool schemas (function declara
 """
 import logging
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from backend.src.tools.tool_specs import is_function_tool_spec
 
 if TYPE_CHECKING:
     from backend.src.core.infrastructure.cache import CacheManager
@@ -72,19 +73,5 @@ class SchemaRegistry:
 
     @staticmethod
     def _is_canonical_tool_schema(schema: Any) -> bool:
-        """Validate canonical OpenAI/LiteLLM tool object shape."""
-        if not isinstance(schema, dict):
-            return False
-        if schema.get("type") != "function":
-            return False
-        function_schema = schema.get("function")
-        if not isinstance(function_schema, dict):
-            return False
-        if not isinstance(function_schema.get("name"), str):
-            return False
-        if not isinstance(function_schema.get("parameters"), dict):
-            return False
-        description = function_schema.get("description")
-        if description is not None and not isinstance(description, str):
-            return False
-        return True
+        """Validate canonical internal flat tool-spec shape."""
+        return is_function_tool_spec(schema)

@@ -1,72 +1,44 @@
 from backend.src.core.config import AppConfig
 from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.tools.registry import ToolRegistry
-from backend.src.tools.system.unified_schema import (
-    get_unified_system_use_function_declaration,
-)
 
 
-def test_registry_emits_canonical_unified_system_use_schema():
+_SYSTEM_TOOL_NAMES = [
+    "get_open_windows",
+    "get_system_stats",
+    "open_app",
+    "run_shell_command",
+    "process",
+    "read_file",
+    "replace",
+]
+
+
+def test_registry_emits_direct_system_tool_schemas():
     registry = ToolRegistry(config=AppConfig(), cache_manager=CacheManager())
-    declarations = registry.get_function_declarations_filtered(["system_use"])
 
-    assert declarations == [get_unified_system_use_function_declaration()]
+    declarations = registry.get_function_declarations_filtered(_SYSTEM_TOOL_NAMES)
+
+    assert [declaration["name"] for declaration in declarations] == _SYSTEM_TOOL_NAMES
 
 
-def test_registry_normalizes_legacy_system_tool_names_to_canonical_unified_schema():
+def test_run_shell_command_schema_is_direct_and_requires_explanation():
     registry = ToolRegistry(config=AppConfig(), cache_manager=CacheManager())
-    declarations = registry.get_function_declarations_filtered(
-        [
-            "run_shell_command",
-            "replace",
-            "read_file",
-            "get_system_stats",
-            "get_open_windows",
-        ],
-    )
+    declaration = registry.get_function_declarations_filtered(["run_shell_command"])[0]
+    parameters = declaration["parameters"]
 
-    assert declarations == [get_unified_system_use_function_declaration()]
+    assert declaration["name"] == "run_shell_command"
+    assert parameters["required"] == ["command", "run_in_background", "explanation"]
+    assert "tool" not in parameters["properties"]
+    assert "arguments" not in parameters["properties"]
 
 
-def test_unified_system_use_schema_description_includes_core_contract_fields():
-    declaration = get_unified_system_use_function_declaration()
-    function = declaration["function"]
-    description = function["description"]
+def test_replace_schema_keeps_batch_and_patch_variants_directly():
+    registry = ToolRegistry(config=AppConfig(), cache_manager=CacheManager())
+    declaration = registry.get_function_declarations_filtered(["replace"])[0]
+    properties = declaration["parameters"]["properties"]
 
-    assert "Unified system/filesystem tool." in description
-    assert "`tool`" in description
-    assert "`explanation`" in description
-    assert "`arguments`" in description
-
-
-def test_unified_system_use_schema_requires_tool_and_constrains_arguments_variants():
-    declaration = get_unified_system_use_function_declaration()
-    parameters = declaration["function"]["parameters"]
-    tool_enum = parameters["properties"]["tool"]["enum"]
-    explanation = parameters["properties"]["explanation"]
-    one_of_entries = parameters["properties"]["arguments"]["oneOf"]
-
-    assert parameters["required"] == ["tool", "explanation"]
-    assert explanation["type"] == "string"
-    assert explanation["minLength"] == 1
-    assert set(tool_enum) == {
-        "run_shell_command",
-        "replace",
-        "read_file",
-        "get_system_stats",
-        "get_open_windows",
-    }
-    assert {
-        entry["title"]
-        for entry in one_of_entries
-    } == {
-        "run_shell_command arguments",
-        "replace arguments",
-        "read_file arguments",
-        "get_system_stats arguments",
-        "get_open_windows arguments",
-    }
-    assert all(
-        "explanation" not in entry.get("properties", {})
-        for entry in one_of_entries
-    )
+    assert declaration["name"] == "replace"
+    assert "replacements" in properties
+    assert "patch_chunks" in properties
+    assert "explanation" in properties

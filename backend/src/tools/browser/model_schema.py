@@ -84,11 +84,10 @@ class _BrowserSchemaTool(Tool[BrowserControlArgs]):
 def get_browser_function_declaration() -> dict[str, Any]:
     """Build the canonical model-facing browser schema from the args model."""
     schema = deepcopy(_BrowserSchemaTool().get_json_schema())
-    function = schema.get("function")
-    if not isinstance(function, dict):
+    if not isinstance(schema, dict):
         return schema
-    function["description"] = _DESCRIPTION
-    parameters = function.get("parameters")
+    schema["description"] = _DESCRIPTION
+    parameters = schema.get("parameters")
     if not isinstance(parameters, dict):
         return schema
     parameters["description"] = "Arguments for browser action execution."

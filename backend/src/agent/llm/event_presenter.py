@@ -36,7 +36,7 @@ class EventPresenter:
 
     @staticmethod
     def _validate_tool_schemas(tool_schemas: object) -> List[ToolSchema]:
-        """Validate transparency tool schemas use canonical OpenAI/LiteLLM shape."""
+        """Validate transparency tool schemas use the canonical flat tool-spec shape."""
         if not isinstance(tool_schemas, list):
             raise ValueError("tool_schemas must be a list of canonical tool objects")
 
@@ -48,22 +48,15 @@ class EventPresenter:
                 raise ValueError(
                     f"tool_schemas[{index}].type must be 'function'"
                 )
-
-            function_block = schema.get("function")
-            if not isinstance(function_block, dict):
-                raise ValueError(
-                    f"tool_schemas[{index}].function must be an object"
-                )
-
-            name = function_block.get("name")
-            parameters = function_block.get("parameters")
+            name = schema.get("name")
+            parameters = schema.get("parameters")
             if not isinstance(name, str) or not name:
                 raise ValueError(
-                    f"tool_schemas[{index}].function.name must be a non-empty string"
+                    f"tool_schemas[{index}].name must be a non-empty string"
                 )
             if not isinstance(parameters, dict):
                 raise ValueError(
-                    f"tool_schemas[{index}].function.parameters must be an object"
+                    f"tool_schemas[{index}].parameters must be an object"
                 )
 
         return cast(List[ToolSchema], tool_schemas)

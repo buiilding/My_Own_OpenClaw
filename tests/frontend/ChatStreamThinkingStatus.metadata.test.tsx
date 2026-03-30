@@ -242,20 +242,17 @@ describe('useChatStream message metadata handling', () => {
       emitBackendEvent({
         type: 'tool-call',
         payload: {
-          tool_name: 'system_use',
+          tool_name: 'run_shell_command',
           parameters: {},
           metadata: {
             llm_tool_call_validation_failed: true,
             skip_frontend_execution: true,
             model_facing_tool_call: {
               id: 'tool_raw_2',
-              name: 'system_use',
+              name: 'run_shell_command',
               arguments: {
-                tool: 'run_shell_command',
                 explanation: 'Create a temporary test file to test the replace tool',
-                arguments: {
-                  command: "echo 'Original text to replace' > /tmp/test_replace.txt",
-                },
+                command: "echo 'Original text to replace' > /tmp/test_replace.txt",
               },
             },
           },
@@ -267,13 +264,10 @@ describe('useChatStream message metadata handling', () => {
     expect(toolCallMessage?.text).toBe(
       JSON.stringify({
         id: 'tool_raw_2',
-        name: 'system_use',
+        name: 'run_shell_command',
         arguments: {
-          tool: 'run_shell_command',
           explanation: 'Create a temporary test file to test the replace tool',
-          arguments: {
-            command: "echo 'Original text to replace' > /tmp/test_replace.txt",
-          },
+          command: "echo 'Original text to replace' > /tmp/test_replace.txt",
         },
         metadata: {
           llm_tool_call_validation_failed: true,
@@ -286,38 +280,31 @@ describe('useChatStream message metadata handling', () => {
       type: 'tool-call',
       modelFacingToolCall: expect.objectContaining({
         id: 'tool_raw_2',
-        name: 'system_use',
+        name: 'run_shell_command',
         arguments: {
-          tool: 'run_shell_command',
           explanation: 'Create a temporary test file to test the replace tool',
-          arguments: {
-            command: "echo 'Original text to replace' > /tmp/test_replace.txt",
-          },
+          command: "echo 'Original text to replace' > /tmp/test_replace.txt",
         },
         frontend_execution_skipped: true,
       }),
     }));
   });
 
-  test('tool-call message marks frontend execution skipped for computer-use validation failures', () => {
+  test('tool-call message marks frontend execution skipped for direct-tool validation failures', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
       emitBackendEvent({
         type: 'tool-call',
         payload: {
-          tool_name: 'computer_use',
+          tool_name: 'mouse_control',
           parameters: {
-            tool: 'mouse_control',
-            metadata: {
-              description: 'Click submit',
-              explanation: 'Complete form submission',
-              expectation: 'Submit button is pressed',
-            },
-            arguments: { action: 'click', x: 100, y: 200 },
+            action: 'click',
+            x: 100,
+            y: 200,
           },
           metadata: {
-            computer_use_validation_failed: true,
+            llm_tool_call_validation_failed: true,
             skip_frontend_execution: true,
           },
         },
@@ -328,17 +315,9 @@ describe('useChatStream message metadata handling', () => {
     expect(toolCallMessage).toEqual(expect.objectContaining({
       type: 'tool-call',
       modelFacingToolCall: expect.objectContaining({
-        name: 'computer_use',
+        name: 'mouse_control',
         frontend_execution_skipped: true,
-        arguments: {
-          tool: 'mouse_control',
-          metadata: {
-            description: 'Click submit',
-            explanation: 'Complete form submission',
-            expectation: 'Submit button is pressed',
-          },
-          arguments: { action: 'click', x: 100, y: 200 },
-        },
+        arguments: { action: 'click', x: 100, y: 200 },
       }),
     }));
   });

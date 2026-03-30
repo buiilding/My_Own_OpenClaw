@@ -51,11 +51,9 @@ from backend.src.tools.system.schemas import (
 INTENTIONAL_EXCEPTIONS = frozenset(
     {
         "browser",
-        "computer_use",
         "mouse_control",
         "screenshot",
         "scroll_control",
-        "system_use",
     }
 )
 

@@ -24,16 +24,17 @@ def test_filter_tool_names_applies_interaction_mode_allowlist():
             "open_app",
             "process",
             "screenshot",
-            "computer_use",
             "browser",
         ]
     )
 
     assert filtered == [
+        "read_file",
+        "replace",
+        "run_shell_command",
         "open_app",
         "process",
-        "computer_use",
-        "system_use",
+        "screenshot",
     ]
 
 
@@ -50,10 +51,10 @@ def test_filter_tool_names_applies_dev_selection(tmp_path: Path):
 
     filtered = policy.filter_tool_names(["read_file", "write_file", "glob"])
 
-    assert filtered == ["write_file", "system_use"]
+    assert filtered == ["read_file", "write_file"]
 
 
-def test_filter_tool_names_normalizes_legacy_computer_tools_to_unified():
+def test_filter_tool_names_keeps_direct_tool_names():
     policy = ToolPolicy(
         config=AppConfig(interaction_mode="agent", browser_automation_enabled=True),
         selection=None,
@@ -63,7 +64,7 @@ def test_filter_tool_names_normalizes_legacy_computer_tools_to_unified():
         ["read_file", "mouse_control", "keyboard_control", "browser"]
     )
 
-    assert filtered == ["browser", "computer_use", "system_use"]
+    assert filtered == ["read_file", "mouse_control", "keyboard_control", "browser"]
 
 
 def test_filter_tool_names_disables_browser_when_browser_automation_not_enabled():
@@ -73,10 +74,10 @@ def test_filter_tool_names_disables_browser_when_browser_automation_not_enabled(
     )
 
     filtered = policy.filter_tool_names(
-        ["browser", "computer_use", "system_use"]
+        ["browser", "mouse_control", "read_file"]
     )
 
-    assert filtered == ["computer_use", "system_use"]
+    assert filtered == ["mouse_control", "read_file"]
 
 
 def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
@@ -95,16 +96,14 @@ def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
     mouse_schema = RemoteMouseTool().get_json_schema()
     read_schema = {
         "type": "function",
-        "function": {
-            "name": "read_file",
-            "parameters": {"type": "object"},
-        },
+        "name": "read_file",
+        "parameters": {"type": "object"},
     }
     schemas = policy.filter_tool_schemas([mouse_schema, read_schema])
 
     assert len(schemas) == 1
-    assert schemas[0]["function"]["name"] == "mouse_control"
-    args_props = schemas[0]["function"]["parameters"]["properties"]
+    assert schemas[0]["name"] == "mouse_control"
+    args_props = schemas[0]["parameters"]["properties"]
     assert args_props["find_coordinates_by"]["type"] == "string"
     assert args_props["find_coordinates_by"]["enum"] == ["manual"]
     assert "x" in args_props
@@ -123,22 +122,18 @@ def test_filter_tool_schemas_disables_browser_when_browser_automation_not_enable
 
     browser_schema = {
         "type": "function",
-        "function": {
-            "name": "browser",
-            "parameters": {"type": "object"},
-        },
+        "name": "browser",
+        "parameters": {"type": "object"},
     }
     system_schema = {
         "type": "function",
-        "function": {
-            "name": "system_use",
-            "parameters": {"type": "object"},
-        },
+        "name": "read_file",
+        "parameters": {"type": "object"},
     }
 
     filtered = policy.filter_tool_schemas([browser_schema, system_schema])
 
-    assert [schema["function"]["name"] for schema in filtered] == ["system_use"]
+    assert [schema["name"] for schema in filtered] == ["read_file"]
 
 
 def test_get_method_validation_errors_rejects_disabled_mouse_method(tmp_path: Path):

@@ -187,23 +187,24 @@ async def test_prepare_mouse_control_manual_without_screenshot_id_uses_current_f
 
 
 @pytest.mark.asyncio
-async def test_prepare_single_invalid_computer_use_tool_returns_preparation_error():
-    preparer = ToolPreparer(object(), object(), object())
+async def test_prepare_single_invalid_mouse_control_tool_returns_preparation_error():
+    preparer = ToolPreparer(
+        object(),
+        object(),
+        object(),
+        tool_registry=DummyToolRegistry(
+            {
+                "mouse_control": _ArgsModelTool(MouseControlArgs),
+            }
+        ),
+    )
     tool_call = ParsedToolCall(
-        tool_name="invalid_computer_use_tool",
-        parameters={"action": "click", "x": 1, "y": 2},
+        tool_name="mouse_control",
+        parameters={"x": 1, "y": 2},
         metadata={
             "model_facing_tool_call": {
-                "name": "computer_use",
-                "arguments": {
-                    "tool": "mouse_control",
-                    "metadata": {
-                        "description": "screen",
-                        "explanation": "click target",
-                        "expectation": "dialog opens",
-                    },
-                    "arguments": {"action": "click"},
-                },
+                "name": "mouse_control",
+                "arguments": {"x": 1, "y": 2},
             }
         },
         raw_call="{}",
@@ -217,18 +218,26 @@ async def test_prepare_single_invalid_computer_use_tool_returns_preparation_erro
     assert len(result.errors) == 1
     failed_call, error_message = result.errors[0]
     assert failed_call is tool_call
-    assert "computer_use call is invalid" in error_message
-    assert "Use the unified `computer_use` wrapper" in error_message
-    assert "tool=\"mouse_control\"" in error_message
+    assert "mouse_control call is invalid" in error_message
+    assert "action: Field required" in error_message
     assert "request_id" in tool_call.metadata
 
 
 @pytest.mark.asyncio
-async def test_prepare_bundle_invalid_computer_use_tool_returns_bundle_error_without_resolved_calls():
-    preparer = ToolPreparer(object(), object(), object())
+async def test_prepare_bundle_invalid_mouse_control_tool_returns_bundle_error_without_resolved_calls():
+    preparer = ToolPreparer(
+        object(),
+        object(),
+        object(),
+        tool_registry=DummyToolRegistry(
+            {
+                "mouse_control": _ArgsModelTool(MouseControlArgs),
+            }
+        ),
+    )
     first_call = ParsedToolCall(
-        tool_name="invalid_computer_use_tool",
-        parameters={"action": "click"},
+        tool_name="mouse_control",
+        parameters={"x": 10, "y": 20},
         raw_call="{}",
     )
     second_call = ParsedToolCall(
@@ -245,7 +254,7 @@ async def test_prepare_bundle_invalid_computer_use_tool_returns_bundle_error_wit
     assert len(result.errors) == 1
     failed_call, error_message = result.errors[0]
     assert failed_call is first_call
-    assert "computer_use call is invalid" in error_message
+    assert "mouse_control call is invalid" in error_message
     assert first_call.metadata["bundle_id"] == result.bundle_id
     assert second_call.metadata["bundle_id"] == result.bundle_id
 
@@ -369,7 +378,7 @@ async def test_prepare_rejects_invalid_keyboard_tool_call_before_frontend_dispat
 
 
 @pytest.mark.asyncio
-async def test_prepare_rejects_direct_legacy_system_tool_with_wrapper_guidance():
+async def test_prepare_rejects_direct_system_tool_missing_required_explanation():
     preparer = ToolPreparer(
         object(),
         object(),
@@ -396,8 +405,7 @@ async def test_prepare_rejects_direct_legacy_system_tool_with_wrapper_guidance()
     failed_call, error_message = result.errors[0]
     assert failed_call is tool_call
     assert "Details: explanation: Field required." in error_message
-    assert "Use the unified `system_use` wrapper" in error_message
-    assert "tool=\"get_open_windows\"" in error_message
+    assert "get_open_windows call is invalid" in error_message
 
 
 @pytest.mark.asyncio

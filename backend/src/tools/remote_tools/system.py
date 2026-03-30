@@ -18,54 +18,7 @@ from backend.src.tools.system.schemas import (
     OpenAppArgs,
     ProcessShellCommandArgs,
     RunShellCommandArgs,
-    SystemUseArgs,
 )
-from backend.src.tools.tool_catalog import (
-    get_tool_catalog_entry,
-    get_wrapper_member_names,
-    resolve_tool_class,
-)
-
-_SYSTEM_USE_SUBTOOLS = frozenset(get_wrapper_member_names("system_use"))
-
-
-def _resolve_system_use_explanation(
-    top_level_explanation: Any,
-) -> str | None:
-    return normalize_non_empty_string(top_level_explanation)
-
-
-class RemoteSystemUseTool(RemoteToolBase, Tool[SystemUseArgs]):
-    name = "system_use"
-    description = (
-        "Unified system/filesystem tool. Select concrete action via `tool`, provide "
-        "top-level `explanation`, and pass action arguments via `arguments`. "
-        "Supports: run_shell_command, replace, read_file, get_system_stats, "
-        "get_open_windows."
-    )
-    args_model = SystemUseArgs
-    category = ToolDomain.SYSTEM
-
-    async def execute_remote(self, args: SystemUseArgs, ctx: ToolContext) -> RemoteToolResult:
-        tool_name = args.tool
-        if tool_name not in _SYSTEM_USE_SUBTOOLS:
-            raise ValueError(f"Unknown system_use tool: {tool_name}")
-        tool_entry = get_tool_catalog_entry(tool_name)
-        if tool_entry is None:
-            raise ValueError(f"Missing catalog entry for system_use tool: {tool_name}")
-        model = resolve_tool_class(tool_entry).args_model
-        tool_arguments = dict(args.arguments)
-        tool_arguments.pop("explanation", None)
-        resolved_explanation = _resolve_system_use_explanation(args.explanation)
-        if resolved_explanation is not None:
-            tool_arguments["explanation"] = resolved_explanation
-        validated_args = model.model_validate(tool_arguments)
-        request_id = self._get_request_id(ctx)
-        return RemoteToolResult(
-            tool_name=tool_name,
-            args=validated_args.model_dump(),
-            request_id=request_id,
-        )
 
 
 class RemoteGetSystemStatsTool(RemoteToolBase, Tool[GetSystemStatsArgs]):

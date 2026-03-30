@@ -3,7 +3,6 @@ import pytest
 from backend.src.core.config.models import SecurityLimits
 from backend.src.core.infrastructure.exceptions import ParseValidationError
 from backend.src.llm.parser_validation import ToolCallValidator
-from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.tool_selection import ToolSelection
 from tests.backend.tool_validator_test_utils import DummyRegistry, make_tool_call_validator
 
@@ -14,25 +13,6 @@ class BrokenRegistry(DummyRegistry):
 
     def get_tool_names(self):
         return self._tool_names
-
-
-class DummyTool:
-    def __init__(self, category):
-        self.category = category
-
-
-class ComputerRegistry(DummyRegistry):
-    def get_tool(self, name):
-        if name == "mouse_control":
-            return DummyTool(ToolDomain.COMPUTER)
-        return None
-
-
-class CustomComputerRegistry(DummyRegistry):
-    def get_tool(self, name):
-        if name == "custom_computer_action":
-            return DummyTool(ToolDomain.COMPUTER)
-        return None
 
 
 class CountingRegistry(DummyRegistry):
@@ -111,7 +91,6 @@ def test_validate_tool_call_rejects_unhashable_tool_name_without_crashing():
 def test_validate_tool_call_filters_non_string_tool_names():
     validator, _metrics = _make_validator(["read_file", None, 123])
 
-    # Should not crash on non-string names in registry; valid call still passes.
     validator.validate_tool_call("read_file", {"file_path": "/tmp/x"})
 
 
@@ -172,210 +151,48 @@ def test_validate_tool_call_handles_non_iterable_registry_tool_names():
 def test_validate_tool_call_handles_string_registry_tool_names():
     validator, _metrics = _make_validator_for_registry(BrokenRegistry("read_file"))
 
-    with pytest.raises(ParseValidationError, match="Valid tools \\(0\\):"):
+    with pytest.raises(ParseValidationError, match=r"Valid tools \(0\):"):
         validator.validate_tool_call("read_file", {})
 
 
-def test_validate_metadata_rejects_whitespace_only_fields_for_computer_tools():
-    validator, _metrics = _make_validator_for_registry(ComputerRegistry(["mouse_control"]))
+def test_validate_metadata_accepts_none_for_direct_tools():
+    validator, _metrics = _make_validator(["mouse_control"])
 
-    with pytest.raises(ParseValidationError, match="missing required metadata field"):
-        validator.validate_metadata(
-            "mouse_control",
-            {
-                "description": "   ",
-                "explanation": "\n",
-                "expectation": "   ",
-            },
-        )
+    validator.validate_metadata("mouse_control", None)
 
 
-def test_validate_metadata_rejects_missing_metadata_for_legacy_computer_tool():
-    validator, _metrics = _make_validator_for_registry(ComputerRegistry(["mouse_control"]))
-
-    with pytest.raises(ParseValidationError, match="missing metadata"):
-        validator.validate_metadata("mouse_control", None)
-
-
-def test_validate_metadata_rejects_missing_metadata_for_unified_computer_use_tool():
-    validator, _metrics = _make_validator(["computer_use"])
-
-    with pytest.raises(ParseValidationError, match="missing metadata"):
-        validator.validate_metadata("computer_use", None)
-
-
-@pytest.mark.parametrize("tool_name", ["mouse_control", "computer_use"])
-@pytest.mark.parametrize("missing_field", ["description", "explanation", "expectation"])
-def test_validate_metadata_rejects_missing_required_fields_for_computer_tools(
-    tool_name: str,
-    missing_field: str,
-):
-    validator, _metrics = _make_validator(["computer_use"])
-    metadata = {
-        "description": "screen",
-        "explanation": "click submit",
-        "expectation": "dialog opens",
-    }
-    metadata.pop(missing_field)
-
-    with pytest.raises(
-        ParseValidationError,
-        match=f"missing required metadata field '{missing_field}'",
-    ):
-        validator.validate_metadata(tool_name, metadata)
-
-
-def test_validate_metadata_accepts_trimmed_nonempty_strings_for_computer_tools():
-    validator, _metrics = _make_validator_for_registry(ComputerRegistry(["mouse_control"]))
-    metadata = {
-        "description": " current screen ",
-        "explanation": " click submit ",
-        "expectation": " modal opens ",
-    }
-
-    validator.validate_metadata(
-        "mouse_control",
-        metadata,
-    )
-
-    assert metadata == {
-        "description": "current screen",
-        "explanation": "click submit",
-        "expectation": "modal opens",
-    }
-
-
-def test_validate_metadata_rejects_non_string_required_fields_for_computer_tools():
-    validator, _metrics = _make_validator_for_registry(ComputerRegistry(["mouse_control"]))
-
-    with pytest.raises(ParseValidationError, match="missing required metadata field"):
-        validator.validate_metadata(
-            "mouse_control",
-            {
-                "description": 123,
-                "explanation": {"why": "click"},
-                "expectation": ["dialog", "opens"],
-            },
-        )
-
-
-def test_validate_metadata_rejects_unexpected_metadata_fields_for_computer_tools():
-    validator, _metrics = _make_validator_for_registry(ComputerRegistry(["mouse_control"]))
-
-    with pytest.raises(ParseValidationError, match="unexpected metadata fields"):
-        validator.validate_metadata(
-            "mouse_control",
-            {
-                "description": "screen",
-                "explanation": "click submit",
-                "expectation": "dialog opens",
-                "trace_id": "abc-123",
-            },
-        )
-
-
-def test_validate_metadata_accepts_and_trims_metadata_for_unified_computer_use_tool():
-    validator, _metrics = _make_validator(["computer_use"])
-    metadata = {
-        "description": " screen ",
-        "explanation": " click ",
-        "expectation": " opens ",
-    }
-
-    validator.validate_metadata("computer_use", metadata)
-
-    assert metadata == {
-        "description": "screen",
-        "explanation": "click",
-        "expectation": "opens",
-    }
-
-
-def test_validate_metadata_accepts_legacy_computer_tool_name_when_unified_tool_is_registered():
-    validator, _metrics = _make_validator(["computer_use"])
-    metadata = {
-        "description": " screen ",
-        "explanation": " click ",
-        "expectation": " opens ",
-    }
+def test_validate_metadata_accepts_dict_when_present():
+    validator, _metrics = _make_validator(["mouse_control"])
+    metadata = {"description": "screen"}
 
     validator.validate_metadata("mouse_control", metadata)
 
-    assert metadata == {
-        "description": "screen",
-        "explanation": "click",
-        "expectation": "opens",
-    }
+    assert metadata == {"description": "screen"}
 
 
-def test_validate_metadata_rejects_missing_metadata_for_legacy_name_when_unified_tool_is_registered():
-    validator, _metrics = _make_validator(["computer_use"])
+def test_validate_metadata_rejects_non_dict_when_present():
+    validator, _metrics = _make_validator(["mouse_control"])
 
-    with pytest.raises(ParseValidationError, match="missing metadata"):
-        validator.validate_metadata("mouse_control", None)
-
-
-def test_validate_metadata_rejects_non_dict_metadata_for_unified_computer_use_tool():
-    validator, _metrics = _make_validator(["computer_use"])
-
-    with pytest.raises(ParseValidationError, match="invalid metadata type"):
-        validator.validate_metadata("computer_use", "not-a-dict")
-
-
-def test_validate_metadata_rejects_missing_metadata_for_category_based_computer_tool():
-    validator, _metrics = _make_validator_for_registry(
-        CustomComputerRegistry(["custom_computer_action"]),
-    )
-
-    with pytest.raises(ParseValidationError, match="missing metadata"):
-        validator.validate_metadata("custom_computer_action", None)
-
-
-def test_validate_metadata_accepts_trimmed_metadata_for_category_based_computer_tool():
-    validator, _metrics = _make_validator_for_registry(
-        CustomComputerRegistry(["custom_computer_action"]),
-    )
-    metadata = {
-        "description": " screen ",
-        "explanation": " click ",
-        "expectation": " opens ",
-    }
-
-    validator.validate_metadata("custom_computer_action", metadata)
-
-    assert metadata == {
-        "description": "screen",
-        "explanation": "click",
-        "expectation": "opens",
-    }
-
-
-def test_validate_metadata_ignores_non_computer_tool_metadata():
-    validator, _metrics = _make_validator(["read_file"])
-    metadata = {"description": "not required for read_file"}
-
-    validator.validate_metadata("read_file", metadata)
-
-    assert metadata == {"description": "not required for read_file"}
+    with pytest.raises(ParseValidationError, match="Tool metadata must be an object"):
+        validator.validate_metadata("mouse_control", "not-a-dict")
 
 
 def test_get_valid_tool_names_deduplicates_registry_values():
     validator, _metrics = _make_validator(["read_file", "read_file", "replace"])
 
-    assert validator._get_valid_tool_names() == ["system_use"]
+    assert validator._get_valid_tool_names() == ["read_file", "replace"]
 
 
 def test_get_valid_tool_names_returns_sorted_output():
     validator, _metrics = _make_validator({"replace", "read_file"})
 
-    assert validator._get_valid_tool_names() == ["system_use"]
+    assert validator._get_valid_tool_names() == ["read_file", "replace"]
 
 
 def test_validate_tool_call_uses_compact_json_size_for_nested_params():
     limits = SecurityLimits(max_parameter_value_size=13)
     validator, _metrics = _make_validator_for_registry(DummyRegistry(["read_file"]), limits=limits)
 
-    # Compact JSON length is 13: {"a":1,"b":2}
     validator.validate_tool_call("read_file", {"payload": {"a": 1, "b": 2}})
 
 
@@ -388,7 +205,6 @@ def test_serialized_param_size_returns_none_for_unserializable_payload():
 def test_validate_tool_call_whitelist_error_truncates_sorted_tool_display():
     tool_names = [f"tool_{index:02d}" for index in range(20, 0, -1)]
     validator, _metrics = _make_validator(tool_names)
-    # Keep this unit deterministic regardless of dev tool-selection config.
     validator._dev_tool_selection = None
 
     with pytest.raises(ParseValidationError) as exc:
@@ -423,29 +239,3 @@ def test_validate_tool_call_invalidates_cache_when_dev_selection_changes():
     )
     validator.validate_tool_call("read_file", {"file_path": "/tmp/b"})
     assert registry.calls == 2
-
-
-def test_validate_tool_call_accepts_legacy_mouse_name_when_unified_computer_use_is_registered():
-    validator, _metrics = _make_validator(["computer_use"])
-
-    validator.validate_tool_call(
-        "mouse_control",
-        {"action": "click", "x": 10, "y": 20},
-    )
-
-
-def test_get_valid_tool_names_returns_canonical_model_facing_names():
-    validator, _metrics = _make_validator(["computer_use", "read_file"])
-
-    names = validator._get_valid_tool_names()
-
-    assert names == ["computer_use", "system_use"]
-
-
-def test_validate_tool_call_accepts_legacy_system_name_when_unified_system_use_is_registered():
-    validator, _metrics = _make_validator(["system_use"])
-
-    validator.validate_tool_call(
-        "read_file",
-        {"file_path": "/tmp/a", "explanation": "inspect file"},
-    )

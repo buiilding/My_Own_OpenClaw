@@ -106,34 +106,6 @@ function resolveToolArgs(
     const defaultDisplayBounds = normalizeDisplayBounds(options.displayBounds);
     return resolveScreenshotArgsWithDisplayBounds(nextArgs, defaultDisplayBounds);
   }
-  if (toolName === 'computer_use') {
-    const nestedToolName = (
-      typeof nextArgs.tool === 'string'
-        ? nextArgs.tool.trim()
-        : ''
-    );
-    if (nestedToolName === 'screenshot') {
-      const defaultDisplayBounds = normalizeDisplayBounds(options.displayBounds);
-      nextArgs.arguments = resolveScreenshotArgsWithDisplayBounds(
-        nextArgs.arguments,
-        defaultDisplayBounds,
-      );
-    }
-  }
-  if (toolName === 'system_use') {
-    const nestedToolName = (
-      typeof nextArgs.tool === 'string'
-        ? nextArgs.tool.trim()
-        : ''
-    );
-    if (nestedToolName === 'run_shell_command' && isRecord(nextArgs.arguments)) {
-      nextArgs.arguments = resolveRunShellCommandArgs(
-        nextArgs.arguments,
-        getFrontendConfig,
-        warn,
-      );
-    }
-  }
   return nextArgs;
 }
 

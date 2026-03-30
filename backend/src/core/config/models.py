@@ -220,8 +220,17 @@ _DEFAULT_TOOL_ALLOWLIST_BY_INTERACTION_MODE: dict[str, set[str]] = {
     "chat": {
         "open_app",
         "process",
-        "computer_use",
-        "system_use",
+        "mouse_control",
+        "keyboard_control",
+        "screenshot",
+        "scroll_control",
+        "switch_tab",
+        "wait",
+        "run_shell_command",
+        "replace",
+        "read_file",
+        "get_system_stats",
+        "get_open_windows",
     },
 }
 

@@ -10,11 +10,10 @@ class ParseRecoveryPolicy:
         return (
             f"[System Validation Error: {error_details}]\n\n"
             "Your tool call format was invalid. "
-            "For computer-use actions, use the unified computer_use tool and include metadata. "
-            "For system/filesystem actions, use the unified system_use tool with tool + explanation + arguments envelope. "
-            "you MUST use this format:\n"
-            '{"functionCall": {"name": "computer_use", "args": {"tool": "mouse_control", "metadata": {"description": "...", "explanation": "...", "expectation": "..."}, "arguments": {...}}}}\n\n'
-            '{"functionCall": {"name": "system_use", "args": {"tool": "run_shell_command", "explanation": "...", "arguments": {...}}}}\n\n'
+            "Use direct tool names and pass only the fields defined by the active tool schema. "
+            "Examples:\n"
+            '{"functionCall": {"name": "mouse_control", "args": {"action": "click", "find_coordinates_by": "ocr", "ocr_text": "Save"}}}\n\n'
+            '{"functionCall": {"name": "run_shell_command", "args": {"command": "pwd", "run_in_background": false, "explanation": "Check the current workspace."}}}\n\n'
             "Direct functionCall format is required. "
             "Please correct your format and try again."
         )

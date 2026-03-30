@@ -13,6 +13,10 @@ from backend.src.core.messages.tool_call_thought_signature import (
     extract_tool_call_thought_signature,
 )
 from backend.src.core.types.schemas import LLMMessage
+from backend.src.tools.tool_specs import (
+    is_function_tool_spec,
+    to_litellm_function_tool,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -240,10 +244,10 @@ def normalize_tools_for_litellm(
     model: str,
 ) -> List[Dict[str, Any]]:
     """
-    Validate canonical tool schemas for LiteLLM transport.
+    Validate canonical internal tool specs and convert them for LiteLLM transport.
 
     Runtime contract is strict: each entry must be
-    `{type: "function", function: {name, description?, parameters}}`.
+    `{type: "function", name, description?, strict?, parameters}`.
     """
     if not isinstance(tools, list):
         raise LLMAPIError(
@@ -269,51 +273,22 @@ def normalize_single_tool_for_litellm(
     index: int,
     model: str,
 ) -> Dict[str, Any]:
-    """Validate one canonical tool schema and return a deep copy."""
+    """Validate one canonical tool spec and convert it for LiteLLM."""
     if not isinstance(tool, dict):
         raise LLMAPIError(
             f"Invalid tool schema at index {index}: expected object",
             model=model,
         )
 
-    tool_type = tool.get("type")
-    if tool_type != "function":
+    if not is_function_tool_spec(tool):
         raise LLMAPIError(
-            f"Invalid tool schema at index {index}: field 'type' must be 'function'",
+            f"Invalid tool schema at index {index}: expected flat function tool spec",
             model=model,
         )
-
-    function_payload = tool.get("function")
-    if not isinstance(function_payload, dict):
+    try:
+        return to_litellm_function_tool(tool)
+    except ValueError as exc:
         raise LLMAPIError(
-            f"Invalid tool schema at index {index}: missing or invalid 'function' object",
+            f"Invalid tool schema at index {index}: {exc}",
             model=model,
-        )
-
-    function_name = function_payload.get("name")
-    if not isinstance(function_name, str) or not function_name.strip():
-        raise LLMAPIError(
-            f"Invalid tool schema at index {index}: function.name must be a non-empty string",
-            model=model,
-        )
-
-    if "parameters" not in function_payload:
-        raise LLMAPIError(
-            f"Invalid tool schema at index {index}: function.parameters is required",
-            model=model,
-        )
-    parameters = function_payload.get("parameters")
-    if not isinstance(parameters, dict):
-        raise LLMAPIError(
-            f"Invalid tool schema at index {index}: function.parameters must be an object",
-            model=model,
-        )
-
-    description = function_payload.get("description")
-    if description is not None and not isinstance(description, str):
-        raise LLMAPIError(
-            f"Invalid tool schema at index {index}: function.description must be a string when provided",
-            model=model,
-        )
-
-    return copy.deepcopy(tool)
+        ) from exc

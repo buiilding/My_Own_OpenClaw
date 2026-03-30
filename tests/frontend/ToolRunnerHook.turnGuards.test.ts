@@ -184,7 +184,7 @@ describe('useToolRunner stale turn guards', () => {
     );
   });
 
-  test('stale-turn guard still cancels skipped computer-use validation failures', async () => {
+  test('stale-turn guard still cancels skipped direct-tool validation failures', async () => {
     setStreamTracking({
       activeTurnRef: 'turn-active',
       phase: 'streaming',
@@ -197,19 +197,11 @@ describe('useToolRunner stale turn guards', () => {
       id: 'event-stale-skip-computer-use',
       turn_ref: 'turn-old',
       payload: {
-        tool_name: 'computer_use',
-        parameters: {
-          tool: 'mouse_control',
-          metadata: {
-            description: 'Click submit',
-            explanation: 'Complete form submission',
-            expectation: 'Submit button is pressed',
-          },
-          arguments: { action: 'click', x: 100, y: 200 },
-        },
+        tool_name: 'mouse_control',
+        parameters: { action: 'click', x: 100, y: 200 },
         request_id: 'req-stale-skip-computer-use',
         metadata: {
-          computer_use_validation_failed: true,
+          llm_tool_call_validation_failed: true,
           skip_frontend_execution: true,
         },
       },

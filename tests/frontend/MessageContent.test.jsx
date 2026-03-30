@@ -129,21 +129,21 @@ describe('MessageContent', () => {
           sender: 'assistant',
           type: 'tool-call',
           text: 'legacy normalized view',
-          toolCallDisplayText: '{"id":"tool_2","name":"system_use"}',
+          toolCallDisplayText: '{"id":"tool_2","name":"run_shell_command"}',
           modelFacingToolCall: {
             id: 'tool_2',
-            name: 'system_use',
-            arguments: { tool: 'read_file' },
+            name: 'run_shell_command',
+            arguments: { command: 'pwd', run_in_background: false },
           },
           toolCallDetails: {
-            tool_name: 'read_file',
+            tool_name: 'run_shell_command',
             request_id: 'req-2',
           },
         }}
       />,
     );
 
-    expect(screen.getByText('{"id":"tool_2","name":"system_use"}')).toBeInTheDocument();
+    expect(screen.getByText('{"id":"tool_2","name":"run_shell_command"}')).toBeInTheDocument();
     expect(screen.queryByText('legacy normalized view')).not.toBeInTheDocument();
   });
 

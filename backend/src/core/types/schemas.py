@@ -265,16 +265,11 @@ class ToolParameterSchema(TypedDict, total=False):
     additionalProperties: NotRequired[Union[bool, Dict[str, Any]]]
 
 
-class ToolFunctionSchema(TypedDict, total=False):
-    """Canonical function definition nested under a provider tool object."""
-
-    name: str
-    description: NotRequired[str]
-    parameters: Dict[str, Any]
-
-
-class ToolSchema(TypedDict):
-    """Canonical provider-facing tool object (OpenAI/LiteLLM compatible)."""
+class ToolSchema(TypedDict, total=False):
+    """Canonical internal flat function tool schema."""
 
     type: Literal["function"]
-    function: ToolFunctionSchema
+    name: str
+    description: str
+    strict: bool
+    parameters: Dict[str, Any]

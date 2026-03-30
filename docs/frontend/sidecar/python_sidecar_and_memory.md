@@ -72,7 +72,7 @@ Current enforcement boundary:
 - schema models define canonical argument contracts shared by sidecar tooling/tests
 - `ToolRegistry.execute_tool(...)` does not automatically instantiate all schema models before invocation
 - runtime guardrails are split between:
-  - wrapper-envelope validation in `tools/registry.py` (`computer_use`, `system_use`)
+  - direct tool-name routing and caller-arg cloning in `tools/registry.py`
   - concrete tool runtime checks inside tool modules
   - backend pre-dispatch validation for model-emitted args in backend tool-preparation path
 

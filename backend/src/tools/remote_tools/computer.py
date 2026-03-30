@@ -11,7 +11,6 @@ from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.computer.schemas import (
-    ComputerUseArgs,
     KeyboardControlArgs,
     MouseControlArgs,
     ScreenshotToolArgs,
@@ -21,45 +20,6 @@ from backend.src.tools.computer.schemas import (
 )
 from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
 from backend.src.tools.system.schemas import GetOpenWindowsArgs
-from backend.src.tools.tool_catalog import (
-    get_tool_catalog_entry,
-    get_wrapper_member_names,
-    resolve_tool_class,
-)
-
-_COMPUTER_USE_SUBTOOLS = frozenset(get_wrapper_member_names("computer_use"))
-
-
-class RemoteComputerUseTool(RemoteToolBase, Tool[ComputerUseArgs]):
-    name = "computer_use"
-    description = (
-        "Unified computer-use tool. "
-        "Select concrete action via `tool`, pass action arguments via `arguments`, "
-        "and always include required metadata "
-        "(`description`, `explanation`, `expectation`). "
-        "For mouse targeting, use `find_coordinates_by='ocr'` with exact `ocr_text` "
-        "for text targets, and use `find_coordinates_by='prediction'` with "
-        "a detailed visual `source_description` for non-text targets. "
-        "For drag destinations using prediction, provide `destination_description`."
-    )
-    args_model = ComputerUseArgs
-    category = ToolDomain.COMPUTER
-
-    async def execute_remote(self, args: ComputerUseArgs, ctx: ToolContext) -> RemoteToolResult:
-        tool_name = args.tool
-        if tool_name not in _COMPUTER_USE_SUBTOOLS:
-            raise ValueError(f"Unknown computer_use tool: {tool_name}")
-        tool_entry = get_tool_catalog_entry(tool_name)
-        if tool_entry is None:
-            raise ValueError(f"Missing catalog entry for computer_use tool: {tool_name}")
-        model = resolve_tool_class(tool_entry).args_model
-        validated_args = model.model_validate(args.arguments)
-        request_id = self._get_request_id(ctx)
-        return RemoteToolResult(
-            tool_name=tool_name,
-            args=validated_args.model_dump(),
-            request_id=request_id,
-        )
 
 
 class RemoteMouseTool(RemoteToolBase, Tool[MouseControlArgs]):

@@ -305,7 +305,7 @@ def test_normalize_messages_for_provider_drops_thought_signature_for_non_gemini(
 
 
 def test_normalize_tools_for_litellm_rejects_legacy_shape():
-    with pytest.raises(LLMAPIError, match="field 'type' must be 'function'"):
+    with pytest.raises(LLMAPIError, match="expected flat function tool spec"):
         normalize_tools_for_litellm(
             [{"name": "read_file", "parameters": {"type": "object"}}],
             model="m",
@@ -707,12 +707,12 @@ def test_normalize_raw_tool_calls_rejects_blank_tool_name():
 
 
 def test_normalize_tools_for_litellm_requires_parameters_object():
-    with pytest.raises(LLMAPIError, match="function\\.parameters is required"):
+    with pytest.raises(LLMAPIError, match="expected flat function tool spec"):
         normalize_tools_for_litellm(
             [
                 {
                     "type": "function",
-                    "function": {"name": "read_file"},
+                    "name": "read_file",
                 }
             ],
             model="m",
@@ -720,16 +720,14 @@ def test_normalize_tools_for_litellm_requires_parameters_object():
 
 
 def test_normalize_tools_for_litellm_requires_description_to_be_string_when_present():
-    with pytest.raises(LLMAPIError, match="function\\.description must be a string"):
+    with pytest.raises(LLMAPIError, match="expected flat function tool spec"):
         normalize_tools_for_litellm(
             [
                 {
                     "type": "function",
-                    "function": {
-                        "name": "read_file",
-                        "description": 42,
-                        "parameters": {"type": "object"},
-                    },
+                    "name": "read_file",
+                    "description": 42,
+                    "parameters": {"type": "object"},
                 }
             ],
             model="m",
@@ -740,14 +738,12 @@ def test_normalize_tools_for_litellm_returns_deep_copy():
     tools = [
         {
             "type": "function",
-            "function": {
-                "name": "read_file",
-                "parameters": {"type": "object", "properties": {"path": {"type": "string"}}},
-            },
+            "name": "read_file",
+            "parameters": {"type": "object", "properties": {"path": {"type": "string"}}},
         }
     ]
 
     normalized = normalize_tools_for_litellm(tools, model="m")
     normalized[0]["function"]["parameters"]["properties"]["path"]["type"] = "number"
 
-    assert tools[0]["function"]["parameters"]["properties"]["path"]["type"] == "string"
+    assert tools[0]["parameters"]["properties"]["path"]["type"] == "string"

@@ -7,7 +7,6 @@ from typing import Dict, Optional, Type
 from backend.src.sdk.tool import Tool
 from backend.src.tools.remote_tools.browser import RemoteBrowserTool
 from backend.src.tools.remote_tools.computer import (
-    RemoteComputerUseTool,
     RemoteGetOpenWindowsTool,
     RemoteKeyboardTool,
     RemoteMouseTool,
@@ -22,7 +21,6 @@ from backend.src.tools.remote_tools.system import (
     RemoteOpenAppTool,
     RemoteProcessTool,
     RemoteShellTool,
-    RemoteSystemUseTool,
 )
 from backend.src.tools.tool_catalog import get_tool_catalog, resolve_tool_class
 

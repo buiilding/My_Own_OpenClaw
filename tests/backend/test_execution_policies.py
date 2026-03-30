@@ -8,7 +8,7 @@ def test_parse_recovery_policy_message_contains_format_guidance():
     message = ParseRecoveryPolicy.build_validation_error_user_message("bad payload")
 
     assert "System Validation Error: bad payload" in message
-    assert '"functionCall": {"name": "computer_use", "args": {"tool": "mouse_control"' in message
+    assert '"functionCall": {"name": "mouse_control", "args": {"action": "click"' in message
     assert "Direct functionCall format is required" in message
 
 

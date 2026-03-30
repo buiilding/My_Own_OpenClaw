@@ -85,35 +85,23 @@ describe('chatStreamFormatting utils', () => {
     );
   });
 
-  test('includes frontend skip marker for computer-use validation failures', () => {
+  test('includes frontend skip marker for direct-tool validation failures', () => {
     const formatted = formatToolCallPayload({
-      tool_name: 'computer_use',
+      tool_name: 'mouse_control',
       parameters: {
-        tool: 'mouse_control',
-        metadata: {
-          description: 'Click submit',
-          explanation: 'Complete form submission',
-          expectation: 'Submit button is pressed',
-        },
-        arguments: { action: 'click', x: 100, y: 200 },
+        action: 'click',
+        x: 100,
+        y: 200,
       },
       metadata: {
-        computer_use_validation_failed: true,
+        llm_tool_call_validation_failed: true,
         skip_frontend_execution: true,
       },
     });
 
     const parsed = JSON.parse(formatted);
-    expect(parsed.name).toBe('computer_use');
-    expect(parsed.arguments).toEqual({
-      tool: 'mouse_control',
-      metadata: {
-        description: 'Click submit',
-        explanation: 'Complete form submission',
-        expectation: 'Submit button is pressed',
-      },
-      arguments: { action: 'click', x: 100, y: 200 },
-    });
+    expect(parsed.name).toBe('mouse_control');
+    expect(parsed.arguments).toEqual({ action: 'click', x: 100, y: 200 });
     expect(parsed.frontend_execution_skipped).toBe(true);
     expect(parsed.parse_error).toBeUndefined();
     expect(parsed.raw_arguments_preview).toBeUndefined();
@@ -146,26 +134,20 @@ describe('chatStreamFormatting utils', () => {
 
   test('formats pre-dispatch validation failures from preserved model-facing payload', () => {
     const formatted = formatToolCallPayload({
-      tool_name: 'system_use',
+      tool_name: 'run_shell_command',
       parameters: {
-        tool: 'run_shell_command',
         explanation: 'Create a temporary test file to test the replace tool',
-        arguments: {
-          command: "echo 'Original text to replace' > /tmp/test_replace.txt",
-        },
+        command: "echo 'Original text to replace' > /tmp/test_replace.txt",
       },
       metadata: {
         llm_tool_call_validation_failed: true,
         skip_frontend_execution: true,
         model_facing_tool_call: {
           id: 'tool_raw_1',
-          name: 'system_use',
+          name: 'run_shell_command',
           arguments: {
-            tool: 'run_shell_command',
             explanation: 'Create a temporary test file to test the replace tool',
-            arguments: {
-              command: "echo 'Original text to replace' > /tmp/test_replace.txt",
-            },
+            command: "echo 'Original text to replace' > /tmp/test_replace.txt",
           },
         },
       },
@@ -173,13 +155,10 @@ describe('chatStreamFormatting utils', () => {
 
     expect(JSON.parse(formatted)).toEqual({
       id: 'tool_raw_1',
-      name: 'system_use',
+      name: 'run_shell_command',
       arguments: {
-        tool: 'run_shell_command',
         explanation: 'Create a temporary test file to test the replace tool',
-        arguments: {
-          command: "echo 'Original text to replace' > /tmp/test_replace.txt",
-        },
+        command: "echo 'Original text to replace' > /tmp/test_replace.txt",
       },
       metadata: {
         llm_tool_call_validation_failed: true,
