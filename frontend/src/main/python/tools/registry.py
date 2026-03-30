@@ -10,56 +10,27 @@ from importlib import import_module
 import logging
 from typing import Any, Callable, Dict
 
+from backend.src.tools.tool_catalog import (
+    get_backend_exposed_tool_names,
+    get_wrapper_member_names,
+)
 from tools.result import ToolResult
 logger = logging.getLogger(__name__)
 
 # Tools in this set are advertised by backend remote schema generation and may be
-# called by the LLM. Keep this list in sync with backend/src/tools/remote.py.
-EXPOSED_TO_BACKEND_TOOLS = frozenset({
-    "computer_use",
-    "system_use",
-    "mouse_control",
-    "keyboard_control",
-    "screenshot",
-    "scroll_control",
-    "switch_tab",
-    "wait",
-    "get_open_windows",
-    "get_system_stats",
-    "open_app",
-    "run_shell_command",
-    "process",
-    "read_file",
-    "replace",
-    "browser",
-})
+# called by the LLM. Derive it from the backend catalog so backend and sidecar
+# stay aligned when tools are added or removed.
+EXPOSED_TO_BACKEND_TOOLS = frozenset(get_backend_exposed_tool_names())
 
-COMPUTER_USE_SUBTOOLS = frozenset({
-    "mouse_control",
-    "keyboard_control",
-    "screenshot",
-    "scroll_control",
-    "switch_tab",
-    "wait",
-})
+COMPUTER_USE_SUBTOOLS = frozenset(get_wrapper_member_names("computer_use"))
 COMPUTER_USE_REQUIRED_METADATA_FIELDS = (
     "description",
     "explanation",
     "expectation",
 )
-SYSTEM_USE_SUBTOOLS = frozenset({
-    "run_shell_command",
-    "replace",
-    "read_file",
-    "get_system_stats",
-    "get_open_windows",
-})
+SYSTEM_USE_SUBTOOLS = frozenset(get_wrapper_member_names("system_use"))
 SYSTEM_USE_TOOL_NAME_TO_EXECUTOR = {
-    "run_shell_command": "run_shell_command",
-    "replace": "replace",
-    "read_file": "read_file",
-    "get_system_stats": "get_system_stats",
-    "get_open_windows": "get_open_windows",
+    tool_name: tool_name for tool_name in SYSTEM_USE_SUBTOOLS
 }
 
 

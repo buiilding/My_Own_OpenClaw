@@ -4,6 +4,10 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
+from backend.src.tools.tool_catalog import (
+    get_backend_exposed_tool_names,
+    get_wrapper_member_names,
+)
 import tools.registry as registry_module  # noqa: E402
 from tools.registry import ToolRegistry  # noqa: E402
 from tools.result import ToolResult  # noqa: E402
@@ -25,6 +29,15 @@ def test_registered_tools_match_exposed_tool_set():
         f"Missing from registered tools: {missing_from_registered}\n"
         f"Extra registered tools (not exposed): {extra_in_registered}"
     )
+
+
+def test_exposed_tool_names_are_derived_from_backend_catalog():
+    assert ToolRegistry.get_exposed_tool_names() == set(get_backend_exposed_tool_names())
+
+
+def test_sidecar_wrapper_membership_matches_backend_catalog():
+    assert registry_module.COMPUTER_USE_SUBTOOLS == set(get_wrapper_member_names("computer_use"))
+    assert registry_module.SYSTEM_USE_SUBTOOLS == set(get_wrapper_member_names("system_use"))
 
 
 @pytest.mark.asyncio
