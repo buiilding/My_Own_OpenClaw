@@ -5,7 +5,7 @@ Remote computer-domain tool stubs.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Type
+from typing import Any
 
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
@@ -21,15 +21,13 @@ from backend.src.tools.computer.schemas import (
 )
 from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
 from backend.src.tools.system.schemas import GetOpenWindowsArgs
+from backend.src.tools.tool_catalog import (
+    get_tool_catalog_entry,
+    get_wrapper_member_names,
+    resolve_tool_class,
+)
 
-_COMPUTER_USE_MODEL_BY_TOOL: dict[str, Type[Any]] = {
-    "mouse_control": MouseControlArgs,
-    "keyboard_control": KeyboardControlArgs,
-    "screenshot": ScreenshotToolArgs,
-    "scroll_control": ScrollControlArgs,
-    "switch_tab": SwitchTabArgs,
-    "wait": WaitToolArgs,
-}
+_COMPUTER_USE_SUBTOOLS = frozenset(get_wrapper_member_names("computer_use"))
 
 
 class RemoteComputerUseTool(RemoteToolBase, Tool[ComputerUseArgs]):
@@ -49,7 +47,12 @@ class RemoteComputerUseTool(RemoteToolBase, Tool[ComputerUseArgs]):
 
     async def execute_remote(self, args: ComputerUseArgs, ctx: ToolContext) -> RemoteToolResult:
         tool_name = args.tool
-        model = _COMPUTER_USE_MODEL_BY_TOOL[tool_name]
+        if tool_name not in _COMPUTER_USE_SUBTOOLS:
+            raise ValueError(f"Unknown computer_use tool: {tool_name}")
+        tool_entry = get_tool_catalog_entry(tool_name)
+        if tool_entry is None:
+            raise ValueError(f"Missing catalog entry for computer_use tool: {tool_name}")
+        model = resolve_tool_class(tool_entry).args_model
         validated_args = model.model_validate(args.arguments)
         request_id = self._get_request_id(ctx)
         return RemoteToolResult(
@@ -183,3 +186,13 @@ class RemoteGetOpenWindowsTool(RemoteToolBase, Tool[GetOpenWindowsArgs]):
 
     async def execute_remote(self, args: GetOpenWindowsArgs, ctx: ToolContext) -> RemoteToolResult:
         return self._build_remote_result(args, ctx, log_message="Remote get open windows tool call")
+
+
+_COMPUTER_USE_MODEL_BY_TOOL = {
+    "mouse_control": RemoteMouseTool.args_model,
+    "keyboard_control": RemoteKeyboardTool.args_model,
+    "screenshot": RemoteScreenshotTool.args_model,
+    "scroll_control": RemoteScrollTool.args_model,
+    "switch_tab": RemoteSwitchTabTool.args_model,
+    "wait": RemoteWaitTool.args_model,
+}

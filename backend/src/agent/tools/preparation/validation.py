@@ -8,18 +8,11 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 
 from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
 from backend.src.llm.parser_types import ParsedToolCall
+from backend.src.tools.tool_catalog import get_wrapper_member_names
 
 _BROWSER_TOOL_NAME = "browser"
 _SYSTEM_USE_TOOL_NAME = "system_use"
-_SYSTEM_USE_SUBTOOLS = frozenset(
-    {
-        "run_shell_command",
-        "replace",
-        "read_file",
-        "get_system_stats",
-        "get_open_windows",
-    }
-)
+_SYSTEM_USE_SUBTOOLS = frozenset(get_wrapper_member_names(_SYSTEM_USE_TOOL_NAME))
 
 
 class ExecutorMouseControlArgs(BaseModel):

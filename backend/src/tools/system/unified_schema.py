@@ -3,240 +3,108 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Dict
+from typing import Any, Mapping, Sequence
+
+from backend.src.tools.remote_tools.computer import RemoteGetOpenWindowsTool
+from backend.src.tools.remote_tools.filesystem import RemoteReadFileTool, RemoteReplaceTool
+from backend.src.tools.remote_tools.system import RemoteGetSystemStatsTool, RemoteShellTool
+from backend.src.tools.tool_catalog import get_wrapper_member_names
+
+_SYSTEM_TOOL_CLASSES = {
+    "run_shell_command": RemoteShellTool,
+    "replace": RemoteReplaceTool,
+    "read_file": RemoteReadFileTool,
+    "get_system_stats": RemoteGetSystemStatsTool,
+    "get_open_windows": RemoteGetOpenWindowsTool,
+}
+_SYSTEM_TOOL_ORDER = get_wrapper_member_names("system_use")
 
 
-_SYSTEM_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
-    "type": "function",
-    "function": {
-        "name": "system_use",
-        "description": (
-            "Unified system/filesystem tool.\n\n"
-            "Choose an action with `tool`, provide top-level rationale in `explanation`, "
-            "and pass action-specific fields in `arguments`."
-        ),
-        "parameters": {
-            "type": "object",
+def _extract_parameters(function_declaration: Mapping[str, Any]) -> dict[str, Any]:
+    function_schema = function_declaration.get("function", {})
+    parameters = function_schema.get("parameters", {})
+    return deepcopy(parameters) if isinstance(parameters, dict) else {"type": "object"}
+
+
+def _get_concrete_declaration(tool_name: str) -> dict[str, Any]:
+    return _SYSTEM_TOOL_CLASSES[tool_name]().get_json_schema()
+
+
+def _build_variant(
+    tool_name: str,
+    concrete_declarations: Mapping[str, Mapping[str, Any]],
+) -> dict[str, Any]:
+    schema = concrete_declarations.get(tool_name)
+    if not isinstance(schema, Mapping):
+        schema = _get_concrete_declaration(tool_name)
+    variant = _extract_parameters(schema)
+    properties = variant.get("properties")
+    if isinstance(properties, dict):
+        properties = deepcopy(properties)
+        properties.pop("explanation", None)
+        variant["properties"] = properties
+
+    required = variant.get("required")
+    if isinstance(required, list):
+        variant["required"] = [
+            field_name
+            for field_name in required
+            if field_name != "explanation"
+        ]
+
+    variant["title"] = f"{tool_name} arguments"
+    return variant
+
+
+def get_unified_system_use_function_declaration(
+    *,
+    included_tool_names: Sequence[str] | None = None,
+    concrete_declarations: Mapping[str, Mapping[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Return the canonical unified system/filesystem function declaration schema."""
+    requested_names = included_tool_names or _SYSTEM_TOOL_ORDER
+    concrete_schemas = concrete_declarations or {}
+    ordered_tool_names = [
+        tool_name
+        for tool_name in _SYSTEM_TOOL_ORDER
+        if tool_name in requested_names
+    ]
+    variants = [
+        _build_variant(tool_name, concrete_schemas)
+        for tool_name in ordered_tool_names
+    ]
+
+    return {
+        "type": "function",
+        "function": {
+            "name": "system_use",
             "description": (
-                "Envelope for unified system/filesystem calls."
+                "Unified system/filesystem tool.\n\n"
+                "Choose an action with `tool`, provide top-level rationale in `explanation`, "
+                "and pass action-specific fields in `arguments`."
             ),
-            "additionalProperties": False,
-            "required": ["tool", "explanation"],
-            "properties": {
-                "tool": {
-                    "type": "string",
-                    "description": "System/filesystem action name.",
-                    "enum": [
-                        "run_shell_command",
-                        "replace",
-                        "read_file",
-                        "get_system_stats",
-                        "get_open_windows",
-                    ],
-                },
-                "explanation": {
-                    "type": "string",
-                    "description": "Why this action is needed.",
-                    "minLength": 1,
-                },
-                "arguments": {
-                    "type": "object",
-                    "description": "Arguments for the selected `tool` action.",
-                    "oneOf": [
-                        {
-                            "title": "run_shell_command arguments",
-                            "type": "object",
-                            "required": ["command", "run_in_background"],
-                            "properties": {
-                                "command": {
-                                    "type": "string",
-                                    "description": "Shell command to execute.",
-                                },
-                                "directory": {
-                                    "type": "string",
-                                    "description": "Optional absolute working directory.",
-                                },
-                                "run_in_background": {
-                                    "type": "boolean",
-                                    "description": "Run command asynchronously when true.",
-                                },
-                                "terminate_after_seconds": {
-                                    "type": "number",
-                                    "description": "Optional foreground timeout in seconds.",
-                                    "default": 120,
-                                },
-                                "yield_after_seconds": {
-                                    "type": "number",
-                                    "description": "Optional early-return threshold in seconds.",
-                                },
-                                "max_output_tokens": {
-                                    "type": "integer",
-                                    "exclusiveMinimum": 0,
-                                    "description": "Optional max output tokens for foreground mode.",
-                                },
-                                "env": {
-                                    "type": "object",
-                                    "description": "Optional environment overrides.",
-                                },
-                                "pty": {
-                                    "type": "boolean",
-                                    "description": "Optional pseudo-terminal request.",
-                                },
-                                "wait": {
-                                    "type": "number",
-                                    "description": "Optional delay before post-command screenshot.",
-                                },
-                            },
-                        },
-                        {
-                            "title": "replace arguments",
-                            "type": "object",
-                            "required": ["file_path"],
-                            "properties": {
-                                "file_path": {
-                                    "type": "string",
-                                    "description": "Absolute path to the file.",
-                                },
-                                "old_string": {
-                                    "type": "string",
-                                    "description": "Single-operation old string.",
-                                },
-                                "new_string": {
-                                    "type": "string",
-                                    "description": "Single-operation replacement string.",
-                                },
-                                "replace_all": {
-                                    "type": "boolean",
-                                    "description": "Replace all matches for old_string.",
-                                    "default": False,
-                                },
-                                "before_context": {
-                                    "type": "string",
-                                    "description": "Optional required context before old_string.",
-                                },
-                                "after_context": {
-                                    "type": "string",
-                                    "description": "Optional required context after old_string.",
-                                },
-                                "occurrence_index": {
-                                    "type": "integer",
-                                    "minimum": 1,
-                                    "description": "Optional 1-based match index.",
-                                },
-                                "require_eof": {
-                                    "type": "boolean",
-                                    "description": "Require match at EOF.",
-                                    "default": False,
-                                },
-                                "match_mode": {
-                                    "type": "string",
-                                    "enum": ["strict", "lenient"],
-                                    "description": "Matching mode for single and batched operations.",
-                                    "default": "lenient",
-                                },
-                                "replacements": {
-                                    "type": "array",
-                                    "description": "Optional batch replacements.",
-                                    "items": {
-                                        "type": "object",
-                                        "required": ["old_string", "new_string"],
-                                        "properties": {
-                                            "old_string": {"type": "string"},
-                                            "new_string": {"type": "string"},
-                                            "replace_all": {
-                                                "type": "boolean",
-                                                "default": False,
-                                            },
-                                            "before_context": {"type": "string"},
-                                            "after_context": {"type": "string"},
-                                            "occurrence_index": {
-                                                "type": "integer",
-                                                "minimum": 1,
-                                            },
-                                            "require_eof": {
-                                                "type": "boolean",
-                                                "default": False,
-                                            },
-                                            "match_mode": {
-                                                "type": "string",
-                                                "enum": ["strict", "lenient"],
-                                            },
-                                        },
-                                    },
-                                },
-                                "patch_chunks": {
-                                    "type": "array",
-                                    "description": "Optional patch-style update chunks.",
-                                    "items": {
-                                        "type": "object",
-                                        "required": ["old_lines", "new_lines"],
-                                        "properties": {
-                                            "change_context": {"type": "string"},
-                                            "old_lines": {
-                                                "type": "array",
-                                                "items": {"type": "string"},
-                                            },
-                                            "new_lines": {
-                                                "type": "array",
-                                                "items": {"type": "string"},
-                                            },
-                                            "is_end_of_file": {
-                                                "type": "boolean",
-                                                "default": False,
-                                            },
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                        {
-                            "title": "read_file arguments",
-                            "type": "object",
-                            "required": ["file_path"],
-                            "properties": {
-                                "file_path": {
-                                    "type": "string",
-                                    "description": "Absolute file path.",
-                                },
-                                "offset": {
-                                    "type": "integer",
-                                    "minimum": 0,
-                                    "description": "0-based line offset to start reading from.",
-                                },
-                                "limit": {
-                                    "type": "integer",
-                                    "exclusiveMinimum": 0,
-                                    "description": "Maximum number of lines to read.",
-                                },
-                            },
-                        },
-                        {
-                            "title": "get_system_stats arguments",
-                            "type": "object",
-                            "properties": {},
-                        },
-                        {
-                            "title": "get_open_windows arguments",
-                            "type": "object",
-                            "properties": {
-                                "filter_text": {
-                                    "type": "string",
-                                    "description": (
-                                        "Optional text to filter window titles by "
-                                        "(case-insensitive)."
-                                    ),
-                                    "default": "",
-                                },
-                            },
-                        },
-                    ],
+            "parameters": {
+                "type": "object",
+                "description": "Envelope for unified system/filesystem calls.",
+                "additionalProperties": False,
+                "required": ["tool", "explanation"],
+                "properties": {
+                    "tool": {
+                        "type": "string",
+                        "description": "System/filesystem action name.",
+                        "enum": ordered_tool_names,
+                    },
+                    "explanation": {
+                        "type": "string",
+                        "description": "Why this action is needed.",
+                        "minLength": 1,
+                    },
+                    "arguments": {
+                        "type": "object",
+                        "description": "Arguments for the selected `tool` action.",
+                        "oneOf": variants,
+                    },
                 },
             },
         },
-    },
-}
-
-
-def get_unified_system_use_function_declaration() -> Dict[str, Any]:
-    """Return the canonical unified system/filesystem function declaration schema."""
-    return deepcopy(_SYSTEM_USE_FUNCTION_DECLARATION)
+    }
