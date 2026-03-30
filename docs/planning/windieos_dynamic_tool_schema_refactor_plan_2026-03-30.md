@@ -19,6 +19,10 @@ Refactor backend tool schema generation so the model-facing tool surface comes f
 
 This is a backend-first refactor. It keeps backend ownership of model-facing schema generation and does not implement the planned frontend-sourced tool catalog sync in the same change.
 
+Follow-up note:
+
+- if the individual-tool plan in `docs/planning/windieos_production_prompt_and_individual_tool_contract_plan_2026-03-30.md` is adopted, that later plan supersedes this document's wrapper-preservation assumption
+
 ## Current Problems
 
 Current model-facing tool schemas are fragmented across:
