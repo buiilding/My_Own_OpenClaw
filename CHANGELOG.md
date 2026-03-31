@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 - feat(web-search): expose one logical backend-owned `web_search` tool whenever the active provider can fulfill it, route tool execution to provider-native search for OpenAI/Gemini or backend Brave Search for other providers, and keep lightweight `search-source` trace rows unchanged.
+- refactor(frontend-chat-pill): extract chat-pill clip-path and drag-target math into a pure layout utility so `ChatBox.jsx` focuses on renderer wiring while the geometry/drag contract stays unit-testable.
 - fix(frontend-chat-pill-dashboard-open): make the minimal chat-pill dashboard button explicitly reopen the main window on the dashboard chat surface so stale hidden modal/search state cannot block interaction after opening from the pill.
 - refactor(frontend-dashboard): rename renderer `ChatGpt*` files to descriptive WindieOS-oriented names (`DashboardShell`, `DashboardShell.css`, and `WindieGlyph`) and update frontend imports/docs accordingly.
 - feat(frontend-workspace-switcher): make the dashboard header workspace chip interactive, add a Settings > Workspace management tab, and broadcast renderer-triggered workspace changes immediately from main so menu, header, and settings stay in sync.

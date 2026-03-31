@@ -15,6 +15,14 @@ import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { isDevUiEnabled } from '../utils/devUiFlag';
+import {
+  buildChatboxPillClipPath,
+  createChatboxDragState,
+  getChatboxDragTarget,
+  getChatboxPillClipHeight,
+  startChatboxDrag,
+  stopChatboxDrag,
+} from '../utils/chatbox/chatboxPillLayout';
 import { buildOutgoingMessage } from '../utils/message/messageInput';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStream/chatStreamThinkingStatus';
@@ -28,8 +36,6 @@ import {
 } from './chatbox/ChatBoxIcons';
 import ChatBoxImagePreviewRow from './chatbox/ChatBoxImagePreviewRow';
 
-const CHATBOX_DRAG_START_THRESHOLD = 5;
-
 function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
   if (typeof updateConfig !== 'function') {
     return false;
@@ -38,36 +44,6 @@ function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
     [key]: nextValue,
   });
   return true;
-}
-
-const CHATBOX_CLOSE_BUMP_HEIGHT = 14;
-const CHATBOX_CLOSE_BUMP_HALF_WIDTH = 22;
-const CHATBOX_CLOSE_CORNER_RADIUS = 26;
-
-function formatPathNumber(value) {
-  return Number(value.toFixed(2));
-}
-
-function buildChatboxPillClipPath({
-  width,
-  height,
-  centerX,
-}) {
-  const safeWidth = Math.max(1, Number(width) || 0);
-  const safeHeight = Math.max(1, Number(height) || 0);
-  const cornerRadius = Math.min(CHATBOX_CLOSE_CORNER_RADIUS, safeWidth / 2, safeHeight / 2);
-  const bodyTop = Math.min(CHATBOX_CLOSE_BUMP_HEIGHT, Math.max(0, safeHeight - cornerRadius - 1));
-  const maxHalfWidth = Math.max(12, Math.min(CHATBOX_CLOSE_BUMP_HALF_WIDTH, ((safeWidth - (cornerRadius * 2)) / 2) - 8));
-  const clampedCenterX = Math.min(
-    safeWidth - cornerRadius - maxHalfWidth - 6,
-    Math.max(cornerRadius + maxHalfWidth + 6, Number(centerX) || 0),
-  );
-  const leftShoulderX = clampedCenterX - maxHalfWidth;
-  const rightShoulderX = clampedCenterX + maxHalfWidth;
-  const curveInset = Math.min(16, maxHalfWidth * 0.72);
-  const apexControlInset = Math.min(14, maxHalfWidth * 0.56);
-
-  return `path("M ${formatPathNumber(cornerRadius)} ${formatPathNumber(bodyTop)} L ${formatPathNumber(leftShoulderX)} ${formatPathNumber(bodyTop)} C ${formatPathNumber(leftShoulderX + curveInset)} ${formatPathNumber(bodyTop)}, ${formatPathNumber(clampedCenterX - apexControlInset)} 0, ${formatPathNumber(clampedCenterX)} 0 C ${formatPathNumber(clampedCenterX + apexControlInset)} 0, ${formatPathNumber(rightShoulderX - curveInset)} ${formatPathNumber(bodyTop)}, ${formatPathNumber(rightShoulderX)} ${formatPathNumber(bodyTop)} L ${formatPathNumber(safeWidth - cornerRadius)} ${formatPathNumber(bodyTop)} A ${formatPathNumber(cornerRadius)} ${formatPathNumber(cornerRadius)} 0 0 1 ${formatPathNumber(safeWidth)} ${formatPathNumber(bodyTop + cornerRadius)} L ${formatPathNumber(safeWidth)} ${formatPathNumber(safeHeight - cornerRadius)} A ${formatPathNumber(cornerRadius)} ${formatPathNumber(cornerRadius)} 0 0 1 ${formatPathNumber(safeWidth - cornerRadius)} ${formatPathNumber(safeHeight)} L ${formatPathNumber(cornerRadius)} ${formatPathNumber(safeHeight)} A ${formatPathNumber(cornerRadius)} ${formatPathNumber(cornerRadius)} 0 0 1 0 ${formatPathNumber(safeHeight - cornerRadius)} L 0 ${formatPathNumber(bodyTop + cornerRadius)} A ${formatPathNumber(cornerRadius)} ${formatPathNumber(cornerRadius)} 0 0 1 ${formatPathNumber(cornerRadius)} ${formatPathNumber(bodyTop)} Z")`;
 }
 
 function ChatBox() {
@@ -87,16 +63,7 @@ function ChatBox() {
   const pillRef = useRef(null);
   const sendButtonRef = useRef(null);
   const loopInteractionLockedRef = useRef(false);
-  const dragStateRef = useRef({
-    isDragging: false,
-    didDrag: false,
-    startClientX: 0,
-    startClientY: 0,
-    pointerOffsetX: 0,
-    pointerOffsetY: 0,
-    lastTargetX: null,
-    lastTargetY: null,
-  });
+  const dragStateRef = useRef(createChatboxDragState());
   const chatboxHitTestActiveRef = useRef(null);
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
@@ -179,7 +146,7 @@ function ChatBox() {
     pillElement.style.setProperty('--chatbox-close-center-x', `${centerX}px`);
     const clipPath = buildChatboxPillClipPath({
       width: pillWidth,
-      height: pillHeight + CHATBOX_CLOSE_BUMP_HEIGHT,
+      height: getChatboxPillClipHeight(pillHeight),
       centerX,
     });
     pillElement.style.setProperty('--chatbox-pill-clip-path', clipPath);
@@ -347,39 +314,17 @@ function ChatBox() {
   ]);
 
   const handleDragMove = useCallback((event) => {
-    const dragState = dragStateRef.current;
-    if (!dragState.isDragging) {
+    const nextTarget = getChatboxDragTarget(dragStateRef.current, event);
+    if (!nextTarget) {
       return;
     }
 
-    const screenX = Math.round(Number(event.screenX) || 0);
-    const screenY = Math.round(Number(event.screenY) || 0);
-    const clientX = Math.round(Number(event.clientX) || 0);
-    const clientY = Math.round(Number(event.clientY) || 0);
-    const movedDistance = Math.abs(clientX - dragState.startClientX) + Math.abs(clientY - dragState.startClientY);
-
-    if (movedDistance < CHATBOX_DRAG_START_THRESHOLD) {
-      return;
-    }
-    dragState.didDrag = true;
-
-    const nextX = screenX - dragState.pointerOffsetX;
-    const nextY = screenY - dragState.pointerOffsetY;
-
-    if (nextX === dragState.lastTargetX && nextY === dragState.lastTargetY) {
-      return;
-    }
-    dragState.lastTargetX = nextX;
-    dragState.lastTargetY = nextY;
-
-    IpcBridge.send(SEND_CHANNELS.MOVE_CHATBOX_TO, { x: nextX, y: nextY });
+    IpcBridge.send(SEND_CHANNELS.MOVE_CHATBOX_TO, nextTarget);
     event.preventDefault();
   }, []);
 
   const stopDragging = useCallback(() => {
-    dragStateRef.current.isDragging = false;
-    dragStateRef.current.lastTargetX = null;
-    dragStateRef.current.lastTargetY = null;
+    stopChatboxDrag(dragStateRef.current);
   }, []);
 
   useChatboxDragWindowBindings(handleDragMove, stopDragging);
@@ -388,19 +333,12 @@ function ChatBox() {
     if (loopInteractionLocked || event.button !== 0) {
       return;
     }
-    const screenX = Math.round(Number(event.screenX) || 0);
-    const screenY = Math.round(Number(event.screenY) || 0);
-    const windowScreenX = Math.round(Number(window.screenX) || 0);
-    const windowScreenY = Math.round(Number(window.screenY) || 0);
-
-    dragStateRef.current.isDragging = true;
-    dragStateRef.current.didDrag = false;
-    dragStateRef.current.startClientX = Math.round(Number(event.clientX) || 0);
-    dragStateRef.current.startClientY = Math.round(Number(event.clientY) || 0);
-    dragStateRef.current.pointerOffsetX = screenX - windowScreenX;
-    dragStateRef.current.pointerOffsetY = screenY - windowScreenY;
-    dragStateRef.current.lastTargetX = windowScreenX;
-    dragStateRef.current.lastTargetY = windowScreenY;
+    startChatboxDrag(
+      dragStateRef.current,
+      event,
+      window.screenX,
+      window.screenY,
+    );
   }, [loopInteractionLocked]);
 
   const handlePillClickCapture = useCallback((event) => {
