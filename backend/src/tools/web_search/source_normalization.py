@@ -45,6 +45,53 @@ def dedupe_sources(sources: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return deduped
 
 
+def extract_tool_result_web_search_sources(
+    payload: Any,
+    *,
+    default_provider: str = "brave",
+) -> List[Dict[str, Any]]:
+    if not isinstance(payload, dict):
+        return []
+
+    raw_results = payload.get("results")
+    if not isinstance(raw_results, list):
+        return []
+
+    payload_provider = payload.get("provider")
+    provider = (
+        payload_provider.strip()
+        if isinstance(payload_provider, str) and payload_provider.strip()
+        else default_provider
+    )
+    payload_query = payload.get("query")
+    query = payload_query.strip() if isinstance(payload_query, str) and payload_query.strip() else None
+
+    sources: List[Dict[str, Any]] = []
+    for raw_result in raw_results:
+        if not isinstance(raw_result, dict):
+            continue
+        row_provider = raw_result.get("provider")
+        row_query = raw_result.get("query")
+        normalized = _normalize_source_entry(
+            url=raw_result.get("url"),
+            title=raw_result.get("title"),
+            provider=(
+                row_provider.strip()
+                if isinstance(row_provider, str) and row_provider.strip()
+                else provider
+            ),
+            query=(
+                row_query.strip()
+                if isinstance(row_query, str) and row_query.strip()
+                else query
+            ),
+            rank=raw_result.get("rank"),
+        )
+        if normalized:
+            sources.append(normalized)
+    return dedupe_sources(sources)
+
+
 def extract_openai_web_search_sources(response: Any) -> List[Dict[str, Any]]:
     sources: List[Dict[str, Any]] = []
     output_items = getattr(response, "output", None)
@@ -142,4 +189,3 @@ def extract_gemini_web_search_sources(payload: Any) -> List[Dict[str, Any]]:
             if normalized:
                 sources.append(normalized)
     return dedupe_sources(sources)
-
