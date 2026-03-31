@@ -74,7 +74,8 @@ Most tools are executed on the frontend Python sidecar:
 Catalog-driven declaration contract:
 
 - backend `backend/src/tools/tool_catalog.py` is the source of truth for backend-registered remote tools and model visibility
-- backend `ToolRegistry` emits direct canonical tool specs from that catalog through one builder path; model visibility, declaration assembly, and runtime lookup all project from the same registered tool names
+- backend `tool_catalog.py` now builds canonical tool specs and remote stub classes together through one builder path; `ToolRegistry` consumes those prebuilt specs instead of deriving schemas from live tool instances
+- model visibility, declaration assembly, and runtime lookup all project from the same registered tool names
 - prompt-time filtering, parser whitelists, transparency payloads, and sidecar exposed-tool parity all consume the same direct tool names
 - browser now uses the same generic schema generation path as every other backend-exposed tool; there is no browser-only schema rewriter
 - provider adapters convert the internal flat tool spec into nested provider transport formats when needed
@@ -383,11 +384,11 @@ No dual-shape fallback is supported in provider transport.
 
 ### Schema Registry
 
-**SchemaRegistry** (`tools/schema_registry.py`) manages tool schemas:
+**SchemaRegistry** (`tools/schema_registry.py`) manages tool-schema caching:
 
-- Registers tool schemas
-- Provides schemas to the LLM via native tool params (and for transparency)
-- Validates tool call arguments
+- Validates canonical prebuilt tool specs
+- Caches schemas for LLM native tool params and transparency emission
+- Does not own schema shaping or tool-spec assembly
 
 ## Built-in Tools
 

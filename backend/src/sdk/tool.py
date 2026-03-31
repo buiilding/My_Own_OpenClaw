@@ -72,7 +72,8 @@ class Tool(ABC, Generic[TArgs]):
         """
         pass
 
-    def _clean_schema(self, schema: dict[str, Any]) -> dict[str, Any]:
+    @classmethod
+    def _clean_schema(cls, schema: dict[str, Any]) -> dict[str, Any]:
         """
         Clean and optimize Pydantic-generated JSON schema for LLM consumption.
         
@@ -89,7 +90,7 @@ class Tool(ABC, Generic[TArgs]):
         # Handle properties recursively
         if "properties" in schema:
             cleaned["properties"] = {
-                key: self._clean_schema(value) 
+                key: cls._clean_schema(value)
                 for key, value in schema["properties"].items()
             }
         
@@ -105,22 +106,22 @@ class Tool(ABC, Generic[TArgs]):
             
             if len(non_null_types) == 1:
                 # It's Optional[T], use the non-null type
-                cleaned.update(self._clean_schema(non_null_types[0]))
+                cleaned.update(cls._clean_schema(non_null_types[0]))
             else:
                 # Keep anyOf but clean each option
-                cleaned["anyOf"] = [self._clean_schema(t) for t in any_of]
+                cleaned["anyOf"] = [cls._clean_schema(t) for t in any_of]
         elif "type" in schema:
             cleaned["type"] = schema["type"]
 
         # Keep oneOf/allOf compositions when present
         if "oneOf" in schema:
-            cleaned["oneOf"] = [self._clean_schema(t) for t in schema["oneOf"]]
+            cleaned["oneOf"] = [cls._clean_schema(t) for t in schema["oneOf"]]
         if "allOf" in schema:
-            cleaned["allOf"] = [self._clean_schema(t) for t in schema["allOf"]]
+            cleaned["allOf"] = [cls._clean_schema(t) for t in schema["allOf"]]
         
         # Handle array items
         if "items" in schema:
-            cleaned["items"] = self._clean_schema(schema["items"])
+            cleaned["items"] = cls._clean_schema(schema["items"])
         
         # Keep description if present
         if "description" in schema:
@@ -141,7 +142,8 @@ class Tool(ABC, Generic[TArgs]):
         
         return cleaned
 
-    def _resolve_local_defs(self, schema: dict[str, Any]) -> dict[str, Any]:
+    @classmethod
+    def _resolve_local_defs(cls, schema: dict[str, Any]) -> dict[str, Any]:
         """
         Inline local $defs/$ref references so nested object schemas survive cleaning.
         """
@@ -197,6 +199,29 @@ class Tool(ABC, Generic[TArgs]):
 
         return _resolve(schema)
     
+    @classmethod
+    def build_tool_spec(cls) -> dict[str, Any]:
+        """Build the canonical flat function-tool spec from class metadata."""
+        raw_schema = cls.args_model.model_json_schema()
+        resolved_schema = cls._resolve_local_defs(raw_schema)
+        cleaned_params = cls._clean_schema(resolved_schema)
+
+        # Remove unnecessary top-level fields
+        cleaned_params.pop("title", None)
+        cleaned_params.pop("additionalProperties", None)
+        
+        # OpenAI Responses API requires function.parameters to be an explicit
+        # JSON Schema object with type="object".
+        if "properties" in cleaned_params and cleaned_params.get("type") is None:
+            cleaned_params["type"] = "object"
+
+        return build_function_tool_spec(
+            name=cls.name,
+            description=cls.description,
+            parameters=cleaned_params,
+            strict=False,
+        )
+
     def get_json_schema(self) -> dict[str, Any]:
         """
         Returns the JSON Schema for the tool's arguments.
@@ -208,27 +233,5 @@ class Tool(ABC, Generic[TArgs]):
         - description
         - strict
         - parameters
-
-        Returns a cleaned, optimized schema format.
         """
-        raw_schema = self.args_model.model_json_schema()
-        resolved_schema = self._resolve_local_defs(raw_schema)
-        
-        # Clean the schema
-        cleaned_params = self._clean_schema(resolved_schema)
-        
-        # Remove unnecessary top-level fields
-        cleaned_params.pop("title", None)
-        cleaned_params.pop("additionalProperties", None)
-        
-        # OpenAI Responses API requires function.parameters to be an explicit
-        # JSON Schema object with type="object".
-        if "properties" in cleaned_params and cleaned_params.get("type") is None:
-            cleaned_params["type"] = "object"
-        
-        return build_function_tool_spec(
-            name=self.name,
-            description=self.description,
-            parameters=cleaned_params,
-            strict=False,
-        )
+        return self.__class__.build_tool_spec()

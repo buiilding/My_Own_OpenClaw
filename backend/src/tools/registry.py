@@ -7,11 +7,12 @@ backend provides canonical model-facing tool specs plus remote stubs.
 """
 
 import logging
+from copy import deepcopy
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from backend.src.tools.schema_registry import SchemaRegistry
 from backend.src.tools.tool_catalog import (
-    get_all_remote_tool_classes,
+    get_built_tool_catalog,
     get_model_visible_tool_names,
 )
 from backend.src.tools.tool_specs import get_tool_spec_parameters
@@ -35,6 +36,7 @@ class ToolRegistry:
     ):
         self.config = config
         self.tools: Dict[str, "SDKTool"] = {}
+        self.tool_specs: Dict[str, Dict[str, Any]] = {}
         self.schema_registry = SchemaRegistry(cache_manager=cache_manager)
 
         if context_factory is None:
@@ -47,17 +49,29 @@ class ToolRegistry:
         self._register_remote_tools()
 
     def _register_remote_tools(self) -> None:
-        for name, tool_class in get_all_remote_tool_classes().items():
+        for built_entry in get_built_tool_catalog():
+            name = built_entry.entry.name
             try:
-                self.register_tool(tool_class())
+                self.register_tool(
+                    built_entry.tool_class(),
+                    tool_spec=built_entry.tool_spec,
+                )
                 logger.debug("Registered remote tool: %s", name)
             except Exception as exc:
                 logger.error("Failed to register remote tool %s: %s", name, exc)
 
-    def register_tool(self, tool: "SDKTool") -> None:
+    def register_tool(
+        self,
+        tool: "SDKTool",
+        *,
+        tool_spec: Optional[Dict[str, Any]] = None,
+    ) -> None:
         if tool.name in self.tools:
             logger.warning("Tool '%s' is already registered. Overwriting.", tool.name)
         self.tools[tool.name] = tool
+        if tool_spec is None:
+            tool_spec = tool.__class__.build_tool_spec()
+        self.tool_specs[tool.name] = deepcopy(tool_spec)
 
     def get_tool(self, name: str) -> Optional["SDKTool"]:
         return self.tools.get(name)
@@ -92,7 +106,10 @@ class ToolRegistry:
             tool = self.get_tool(tool_name)
             if tool is None:
                 continue
-            schema = self.schema_registry.get_schema(tool)
+            tool_spec = self.tool_specs.get(tool_name)
+            if not isinstance(tool_spec, dict):
+                continue
+            schema = self.schema_registry.get_schema(tool_name, tool_spec)
             if isinstance(schema, dict):
                 declarations.append(schema)
         return declarations
@@ -111,7 +128,11 @@ class ToolRegistry:
         if tool is None:
             return None
 
-        schema = self.schema_registry.get_schema(tool)
+        tool_spec = self.tool_specs.get(tool_name)
+        if not isinstance(tool_spec, dict):
+            return None
+
+        schema = self.schema_registry.get_schema(tool_name, tool_spec)
         parameters = self._extract_schema_parameters(schema)
         if parameters is None:
             return None

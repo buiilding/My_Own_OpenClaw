@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass
 from importlib import import_module
-from typing import Optional
+from typing import Any, Optional
+
+from backend.src.tools.tool_specs import is_function_tool_spec
 
 
 @dataclass(frozen=True, slots=True)
@@ -13,6 +16,13 @@ class ToolCatalogEntry:
     module_path: str
     class_name: str
     model_visible: bool = True
+
+
+@dataclass(frozen=True, slots=True)
+class BuiltToolCatalogEntry:
+    entry: ToolCatalogEntry
+    tool_class: type[Any]
+    tool_spec: dict[str, Any]
 
 
 _CATALOG: tuple[ToolCatalogEntry, ...] = (
@@ -47,6 +57,38 @@ def resolve_tool_class(entry: ToolCatalogEntry):
     return getattr(module, entry.class_name)
 
 
+def build_tool_catalog_entry(entry: ToolCatalogEntry) -> BuiltToolCatalogEntry:
+    tool_class = resolve_tool_class(entry)
+    build_spec = getattr(tool_class, "build_tool_spec", None)
+    if not callable(build_spec):
+        raise TypeError(
+            f"Tool class {tool_class!r} does not expose build_tool_spec(); "
+            "catalog tools must define their canonical spec at the class layer."
+        )
+
+    tool_spec = build_spec()
+    if not is_function_tool_spec(tool_spec):
+        raise ValueError(
+            f"Tool class {tool_class.__name__} emitted non-canonical tool spec"
+        )
+    return BuiltToolCatalogEntry(
+        entry=entry,
+        tool_class=tool_class,
+        tool_spec=copy.deepcopy(tool_spec),
+    )
+
+
+def get_built_tool_catalog() -> tuple[BuiltToolCatalogEntry, ...]:
+    return tuple(build_tool_catalog_entry(entry) for entry in _CATALOG)
+
+
+def get_built_tool_catalog_entry(tool_name: str) -> Optional[BuiltToolCatalogEntry]:
+    entry = get_tool_catalog_entry(tool_name)
+    if entry is None:
+        return None
+    return build_tool_catalog_entry(entry)
+
+
 def get_remote_tool_class(tool_name: str):
     entry = get_tool_catalog_entry(tool_name)
     if entry is None:
@@ -55,10 +97,7 @@ def get_remote_tool_class(tool_name: str):
 
 
 def get_all_remote_tool_classes() -> dict[str, type]:
-    return {
-        entry.name: resolve_tool_class(entry)
-        for entry in _CATALOG
-    }
+    return {built.entry.name: built.tool_class for built in get_built_tool_catalog()}
 
 
 def get_model_visible_tool_names() -> list[str]:
