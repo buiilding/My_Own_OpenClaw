@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- tweak(frontend-dashboard): replace the oversized rounded glass dashboard header container with a simpler horizontal divider while keeping the blue glass theme intact.
 - feat(frontend-dashboard): restyle the dashboard into a blue futuristic glassmorphism UI with frosted shell surfaces, luminous controls, and matching memory/settings panels while leaving the overlay chat pill untouched.
 - feat(web-search): add one logical backend-owned `web_search` capability that routes to provider-native search for OpenAI/Gemini, falls back to backend Brave Search for other providers, emits lightweight `search-source` trace rows, and updates backend/frontend/docs coverage for the new execution lane.
 - refactor(frontend-dashboard): rename renderer `ChatGpt*` files to descriptive WindieOS-oriented names (`DashboardShell`, `DashboardShell.css`, and `WindieGlyph`) and update frontend imports/docs accordingly.
