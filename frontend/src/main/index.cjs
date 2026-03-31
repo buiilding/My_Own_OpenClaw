@@ -13,6 +13,7 @@ const {
 } = require('electron');
 const path = require('path');
 const {
+  extractWorkspaceSelection,
   installApplicationMenu,
 } = require('./app_menu_runtime.cjs');
 const {
@@ -221,6 +222,24 @@ const {
   warn: (...args) => console.warn(...args),
 });
 
+function broadcastWorkspaceAccessUpdated(status) {
+  const workspaceSelection = extractWorkspaceSelection(status);
+  const payload = {
+    granted: status?.granted === true,
+    workspaceName: workspaceSelection?.workspaceName || '',
+    workspacePath: workspaceSelection?.workspacePath || '',
+    selectedPaths: Array.isArray(workspaceSelection?.selectedPaths)
+      ? workspaceSelection.selectedPaths
+      : [],
+  };
+  BrowserWindow.getAllWindows().forEach((windowRef) => {
+    if (!windowRef || windowRef.isDestroyed()) {
+      return;
+    }
+    windowRef.webContents.send('workspace-access-updated', payload);
+  });
+}
+
 initializeMainProcessLifecycleRuntime({
   app,
   BrowserWindow,
@@ -243,21 +262,8 @@ initializeMainProcessLifecycleRuntime({
       permissionStateStore: createPermissionStateStore({
         userDataPath: getUserDataPath(),
       }),
-      onWorkspaceAccessUpdated: ({ granted, workspaceSelection }) => {
-        const payload = {
-          granted: granted === true,
-          workspaceName: workspaceSelection?.workspaceName || '',
-          workspacePath: workspaceSelection?.workspacePath || '',
-          selectedPaths: Array.isArray(workspaceSelection?.selectedPaths)
-            ? workspaceSelection.selectedPaths
-            : [],
-        };
-        BrowserWindow.getAllWindows().forEach((windowRef) => {
-          if (!windowRef || windowRef.isDestroyed()) {
-            return;
-          }
-          windowRef.webContents.send('workspace-access-updated', payload);
-        });
+      onWorkspaceAccessUpdated: ({ status }) => {
+        broadcastWorkspaceAccessUpdated(status);
       },
       log: console.warn,
     });
@@ -522,6 +528,7 @@ function initializeMainProcessIpc() {
 
         return requestResult.data;
       },
+      emitWorkspaceAccessUpdated: broadcastWorkspaceAccessUpdated,
     });
   });
 }

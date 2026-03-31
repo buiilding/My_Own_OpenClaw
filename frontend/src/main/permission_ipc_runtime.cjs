@@ -39,6 +39,7 @@ function initializePermissionHandlersRuntime(deps = {}) {
     requestMacOsSystemEventsAutomationPermission,
     permissionStateStore,
     userDataPath,
+    emitWorkspaceAccessUpdated,
   } = deps;
 
   const resolvedPermissionStateStore = permissionStateStore || createPermissionStateStore({
@@ -115,10 +116,18 @@ function initializePermissionHandlersRuntime(deps = {}) {
 
   ipcMain.handle('request-permission', async (_event, options = {}) => {
     const permissionId = getPermissionId(options);
+    const status = await requestPermission(permissionId, permissionDeps);
+    if (
+      permissionId === 'filesystem_workspace_access'
+      && status?.granted === true
+      && typeof emitWorkspaceAccessUpdated === 'function'
+    ) {
+      emitWorkspaceAccessUpdated(status);
+    }
     return {
       success: true,
       data: {
-        status: await requestPermission(permissionId, permissionDeps),
+        status,
       },
     };
   });

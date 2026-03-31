@@ -15,7 +15,7 @@ import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { buildDeferredQueryModelConfig } from '../../../app/providers/appConfigBackendSync';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import { startNewChatSession } from '../utils/session/newChatSession';
 import { loadConversationTranscriptMemories } from '../../../infrastructure/transcript/conversationTranscriptLoader';
@@ -45,6 +45,10 @@ import { useTranscriptSessionInfo } from '../../dashboard/hooks/useTranscriptSes
 import { isVmModeEnabled } from '../../../infrastructure/runtime/vmMode';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import {
+  fetchActiveWorkspaceSelection,
+  requestActiveWorkspaceSelection,
+} from '../../../infrastructure/workspace/workspaceAccess';
+import {
   VISIBLE_ASSISTANT_REPLY_TYPE_SET,
 } from '../utils/state/chatTurnPresentationState';
 import { buildToolLogPresentationMessages } from '../utils/message/toolExplanationMessages';
@@ -58,35 +62,6 @@ function waitForNextPaint() {
     }
     setTimeout(resolve, 0);
   });
-}
-
-function getLastPathSegment(pathValue = '') {
-  if (typeof pathValue !== 'string') {
-    return '';
-  }
-  const trimmed = pathValue.trim().replace(/[\\/]+$/, '');
-  if (!trimmed) {
-    return '';
-  }
-  const segments = trimmed.split(/[\\/]/).filter(Boolean);
-  return segments.length > 0 ? segments[segments.length - 1] : trimmed;
-}
-
-function normalizeActiveWorkspace(statusPayload = null) {
-  const selectedPaths = Array.isArray(statusPayload?.details?.selected_paths)
-    ? statusPayload.details.selected_paths.filter((value) => typeof value === 'string' && value.trim())
-    : [];
-  if (statusPayload?.granted !== true || selectedPaths.length === 0) {
-    return {
-      activeWorkspaceName: '',
-      activeWorkspacePath: '',
-    };
-  }
-  const activeWorkspacePath = selectedPaths[0];
-  return {
-    activeWorkspaceName: getLastPathSegment(activeWorkspacePath) || activeWorkspacePath,
-    activeWorkspacePath,
-  };
 }
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
@@ -157,9 +132,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
       workspaceRefreshRequestIdRef.current = requestId;
       const selectionVersionAtRequestStart = workspaceSelectionVersionRef.current;
       try {
-        const result = await IpcBridge.invoke(INVOKE_CHANNELS.CHECK_PERMISSION, {
-          permissionId: 'filesystem_workspace_access',
-        });
+        const result = await fetchActiveWorkspaceSelection();
         if (
           cancelled
           || requestId !== workspaceRefreshRequestIdRef.current
@@ -167,7 +140,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
         ) {
           return;
         }
-        applyActiveWorkspace(normalizeActiveWorkspace(result?.data?.status || null));
+        applyActiveWorkspace(result.workspace);
       } catch (_error) {
         if (
           !cancelled
@@ -330,6 +303,18 @@ function ChatInterface({ focusComposerToken = 0 }) {
     });
   }, [speechModeEnabled, updateConfig]);
 
+  const handleChangeWorkspace = useCallback(async () => {
+    try {
+      const result = await requestActiveWorkspaceSelection();
+      if (result?.status?.granted === true) {
+        activeWorkspaceRef.current = result.workspace;
+        setActiveWorkspace(result.workspace);
+      }
+    } catch (error) {
+      console.warn('[ChatInterface] Failed to change active workspace:', error);
+    }
+  }, []);
+
   const handleRunAutoCompaction = useCallback(async () => {
     setThinkingStatus(COMPACTION_THINKING_STATUS);
     setThinkingSourceEventType('context-compaction-started');
@@ -463,6 +448,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
         speechModeEnabled={speechModeEnabled}
         activeWorkspaceName={activeWorkspace.activeWorkspaceName}
         activeWorkspacePath={activeWorkspace.activeWorkspacePath}
+        handleChangeWorkspace={handleChangeWorkspace}
         devUiEnabled={devUiEnabled}
         handleProviderSelect={handleProviderSelect}
         handleModelSelect={handleModelSelect}

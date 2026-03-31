@@ -136,6 +136,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     DELETE_CONVERSATION: 'delete-conversation',
     STORE_TRANSCRIPT: 'store-transcript',
     CHECK_PERMISSION: 'check-permission',
+    REQUEST_PERMISSION: 'request-permission',
     WINDOW_MINIMIZE: 'window-minimize',
     WINDOW_TOGGLE_MAXIMIZE: 'window-toggle-maximize',
     WINDOW_CLOSE: 'window-close',
@@ -491,7 +492,7 @@ describe('ChatInterface wiring', () => {
 
     render(<ChatInterface />);
 
-    expect(await screen.findByLabelText('Active workspace: WindieOS')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Change active workspace from WindieOS' })).toBeInTheDocument();
     expect(screen.getByText('Workspace')).toBeInTheDocument();
     expect(screen.getByText('WindieOS')).toBeInTheDocument();
   });
@@ -511,7 +512,54 @@ describe('ChatInterface wiring', () => {
       });
     });
 
-    expect(await screen.findByLabelText('Active workspace: client-demo')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Change active workspace from client-demo' })).toBeInTheDocument();
+  });
+
+  test('workspace button requests a new workspace selection', async () => {
+    mockIpcInvoke.mockImplementation(async (channel) => {
+      if (channel === 'check-permission') {
+        return {
+          success: true,
+          data: {
+            status: {
+              permission_id: 'filesystem_workspace_access',
+              granted: false,
+              details: {
+                selected_paths: [],
+              },
+            },
+          },
+        };
+      }
+      if (channel === 'request-permission') {
+        return {
+          success: true,
+          data: {
+            status: {
+              permission_id: 'filesystem_workspace_access',
+              granted: true,
+              details: {
+                selected_paths: ['D:\\Assistants\\WindieOS_workspace\\windieos'],
+              },
+            },
+          },
+        };
+      }
+      return { success: true };
+    });
+
+    render(<ChatInterface />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Set active workspace' }));
+
+    await waitFor(() => {
+      expect(mockIpcInvoke).toHaveBeenCalledWith('request-permission', {
+        permissionId: 'filesystem_workspace_access',
+      });
+    });
+    expect(
+      await screen.findByRole('button', { name: 'Change active workspace from windieos' }),
+    ).toBeInTheDocument();
   });
 
   test('window controls invoke minimize, maximize, and close IPC channels', () => {

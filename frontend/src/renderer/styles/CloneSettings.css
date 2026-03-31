@@ -130,6 +130,10 @@
   color: var(--ui-text-muted);
 }
 
+.clone-settings-workspace-path {
+  word-break: break-word;
+}
+
 .clone-settings-inline-warning {
   color: color-mix(in srgb, var(--ui-text-primary) 82%, #c86922 18%);
 }

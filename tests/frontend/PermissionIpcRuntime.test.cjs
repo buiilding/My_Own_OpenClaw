@@ -99,4 +99,39 @@ describe('permission_ipc_runtime', () => {
       },
     });
   });
+
+  test('emits workspace update after a granted workspace selection request', async () => {
+    const emitWorkspaceAccessUpdated = jest.fn();
+    const { invokeHandlers } = createRuntime({
+      dialog: {
+        showOpenDialog: jest.fn(async () => ({
+          canceled: false,
+          filePaths: ['D:\\Assistants\\WindieOS_workspace\\windieos'],
+        })),
+      },
+      emitWorkspaceAccessUpdated,
+    });
+
+    const result = await invokeHandlers['request-permission'](null, {
+      permissionId: 'filesystem_workspace_access',
+    });
+
+    expect(emitWorkspaceAccessUpdated).toHaveBeenCalledTimes(1);
+    expect(emitWorkspaceAccessUpdated).toHaveBeenCalledWith(expect.objectContaining({
+      permission_id: 'filesystem_workspace_access',
+      granted: true,
+      details: expect.objectContaining({
+        selected_paths: ['D:\\Assistants\\WindieOS_workspace\\windieos'],
+      }),
+    }));
+    expect(result).toEqual({
+      success: true,
+      data: {
+        status: expect.objectContaining({
+          permission_id: 'filesystem_workspace_access',
+          granted: true,
+        }),
+      },
+    });
+  });
 });

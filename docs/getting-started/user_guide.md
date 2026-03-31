@@ -58,6 +58,7 @@ Default section on open: **Chat**.
 - Type and send messages.
 - Shows streaming responses, tool output, and screenshots.
 - Mode badge shows **Chat** or **Agent**.
+- The header shows the active workspace. Click it to change the default folder WindieOS uses for file reads, shell commands, and repo-aware work.
 - **New Chat** starts a fresh conversation immediately (new conversation id) and clears the visible timeline.
 - **Stop** cancels the active response/tool run and returns the UI to ready state.
 - Focused-window stop shortcut: **Esc**.
@@ -93,6 +94,7 @@ Default section on open: **Chat**.
 - Hotkey reminder: **Win + Alt + W**.
 - Global stop shortcut selector (platform-safe options, stored locally, applied immediately).
 - If Windows or another app blocks the selected global stop shortcut, Settings shows either the active fallback binding or a registration-failure warning.
+- **Workspace** section shows the current active workspace and includes a **Change workspace** button that reopens the folder picker.
 - **Onboarding** section includes an **Open onboarding** button that sends you back through the first-run onboarding flow.
 - TTS toggle (speech replies).
 - Screen selection (active display). Screenshots use this display.
