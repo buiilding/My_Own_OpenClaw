@@ -159,6 +159,31 @@
   opacity: 0.55;
 }
 
+.clone-settings-secondary-button {
+  border: 1px solid var(--ui-border-soft);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ui-panel-bg) 82%, white 18%);
+  color: var(--ui-text-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  min-width: 132px;
+  padding: 7px 14px;
+  transition: background 140ms ease, border-color 140ms ease, opacity 140ms ease;
+}
+
+.clone-settings-secondary-button:hover:not(:disabled) {
+  background: var(--ui-hover-strong-bg);
+  border-color: var(--ui-text-dim);
+}
+
+.clone-settings-secondary-button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
 .clone-settings-action-status {
   margin: 6px 0 0;
   font-size: 12px;

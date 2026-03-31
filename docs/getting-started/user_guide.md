@@ -93,6 +93,7 @@ Default section on open: **Chat**.
 - Hotkey reminder: **Win + Alt + W**.
 - Global stop shortcut selector (platform-safe options, stored locally, applied immediately).
 - If Windows or another app blocks the selected global stop shortcut, Settings shows either the active fallback binding or a registration-failure warning.
+- **Onboarding** section includes an **Open onboarding** button that sends you back through the first-run onboarding flow.
 - TTS toggle (speech replies).
 - Screen selection (active display). Screenshots use this display.
 - Permissions (normal now; system access marked as coming soon).

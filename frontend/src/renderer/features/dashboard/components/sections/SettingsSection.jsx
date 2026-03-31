@@ -4,15 +4,18 @@ import {
   X,
   Settings,
   Database,
+  Sparkles,
 } from 'lucide-react';
 import PermissionControlCenter from '../../../permissions/components/PermissionControlCenter';
 import GeneralSettingsTab from './settings/GeneralSettingsTab';
 import MemorySettingsTab from './settings/MemorySettingsTab';
+import OnboardingSettingsTab from './settings/OnboardingSettingsTab';
 import '../../../../styles/CloneSettings.css';
 
 const SETTINGS_TABS = Object.freeze([
   { id: 'general', icon: Settings, label: 'General' },
   { id: 'memory', icon: Database, label: 'Memory' },
+  { id: 'onboarding', icon: Sparkles, label: 'Onboarding' },
 ]);
 
 function PlaceholderTab({ title }) {
@@ -47,6 +50,9 @@ function SettingsSection({
     }
     if (activeTab === 'memory') {
       return <MemorySettingsTab onChatsCleared={onChatsCleared} />;
+    }
+    if (activeTab === 'onboarding') {
+      return <OnboardingSettingsTab />;
     }
     if (activeTab === 'data-controls') {
       return <PermissionControlCenter />;

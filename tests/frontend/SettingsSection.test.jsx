@@ -4,6 +4,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import SettingsSection from '../../frontend/src/renderer/features/dashboard/components/sections/SettingsSection';
 
 const mockInvoke = jest.fn();
+const mockRestartOnboarding = jest.fn();
 
 let mockAppConfigContext = {
   wakewordEnabled: true,
@@ -33,6 +34,12 @@ jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
 
 jest.mock('../../frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo', () => ({
   useTranscriptSessionInfo: () => mockTranscriptSessionInfo,
+}));
+
+jest.mock('../../frontend/src/renderer/features/permissions/stores/permissionStore', () => ({
+  usePermissionStore: (selector) => selector({
+    restartOnboarding: (...args) => mockRestartOnboarding(...args),
+  }),
 }));
 
 describe('SettingsSection', () => {
@@ -65,6 +72,7 @@ describe('SettingsSection', () => {
 
   beforeEach(() => {
     mockInvoke.mockReset();
+    mockRestartOnboarding.mockReset();
     mockInvoke.mockResolvedValue({ success: true });
     jest.spyOn(window, 'confirm').mockReturnValue(true);
     jest.spyOn(window, 'alert').mockImplementation(() => {});
@@ -238,6 +246,21 @@ describe('SettingsSection', () => {
     renderSettingsSection();
 
     expect(screen.getByTestId('settings-tab-memory')).toBeInTheDocument();
+  });
+
+  test('renders an onboarding tab in the settings sidebar', () => {
+    renderSettingsSection();
+
+    expect(screen.getByTestId('settings-tab-onboarding')).toBeInTheDocument();
+  });
+
+  test('onboarding tab can send the user back to onboarding', () => {
+    renderSettingsSection({ initialTab: 'onboarding' });
+
+    fireEvent.click(screen.getByTestId('settings-tab-onboarding'));
+    fireEvent.click(screen.getByRole('button', { name: 'Open onboarding' }));
+
+    expect(mockRestartOnboarding).toHaveBeenCalledTimes(1);
   });
 
   test('nuke memory invokes clear-local-memory for the resolved user id', async () => {

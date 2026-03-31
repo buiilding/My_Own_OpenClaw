@@ -237,4 +237,32 @@ export const usePermissionStore = create((set, get) => ({
 
     return true;
   },
+
+  restartOnboarding: () => {
+    const {
+      manifestVersion,
+      permissions,
+      statusesByPermissionId,
+    } = get();
+
+    const nextOnboardingState = {
+      manifest_version: manifestVersion || '',
+      completed: false,
+      completed_at: null,
+    };
+    savePermissionOnboardingState(nextOnboardingState);
+
+    const gateState = resolveGateState({
+      permissions,
+      statusesByPermissionId,
+      onboardingState: nextOnboardingState,
+      manifestVersion,
+    });
+
+    set({
+      onboardingState: nextOnboardingState,
+      ...gateState,
+      error: '',
+    });
+  },
 }));
