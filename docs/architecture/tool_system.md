@@ -8,7 +8,7 @@ read_when:
 
 ## Overview
 
-The Tool System enables WindieOS to interact with the computer through a set of specialized tools. **Tools are executed in the frontend Python sidecar**, while the backend provides tool schemas, coordinates resolution, and orchestration.
+The Tool System enables WindieOS to interact with the computer through a set of specialized tools. Most tools are still executed in the frontend Python sidecar, but WindieOS now also supports backend-executed tools and provider-native capabilities when the transport requires it.
 
 For planned schema-ownership migration (frontend-sourced runtime tool catalogs), see `docs/adr/005-frontend-tool-schema-source-of-truth.md`.
 
@@ -80,13 +80,24 @@ Catalog-driven declaration contract:
 - browser now uses the same generic schema generation path as every other backend-exposed tool; there is no browser-only schema rewriter
 - provider adapters convert the internal flat tool spec into nested provider transport formats when needed
 
-### Backend Responsibilities (No Tool Execution)
+### Backend-Executed Tools
 
-The backend does not directly execute tools. It:
+Some logical tools are fulfilled entirely in the backend and never go through the sidecar. Current v1 support is `web_search`:
+
+- The agent always sees one logical `web_search` tool when the active backend can fulfill it.
+- OpenAI and Gemini fulfill that tool by making a backend-owned provider-native web search request when the tool is called.
+- Other providers use a backend-executed Brave Search fallback when `BRAVE_SEARCH_API_KEY` is configured.
+- The frontend receives lightweight `search-source` trace events and renders rows like `Searching https://...` when a concrete source URL is known.
+
+### Backend Responsibilities
+
+The backend:
 - Builds tool schemas and passes them to LiteLLM via native request params (`tools`, optional `tool_choice`, optional `parallel_tool_calls`)
 - Emits tool schemas as a transparency event (`tool-schemas`)
 - Resolves coordinates and screenshots with frame-local metadata (`capture_meta` + internal frame identity)
-- Waits for results from the frontend sidecar
+- Waits for results from the frontend sidecar for frontend-executed tools
+- Executes backend-owned tools directly when a tool declares backend execution
+- Augments backend-owned `web_search` executions with provider-native capabilities when supported
 - Keeps tool schemas focused on action/parameter contracts while placing cross-tool operational strategy (grounding, timing, verification, sequencing) in the global system prompt
 
 ## Tool Execution Flow
@@ -142,7 +153,11 @@ Direct tool contract before execution:
 
 ### 3. Tool Execution
 
-Tool calls are sent by the agent tool sender; execution happens in the frontend sidecar.
+Tool calls are sent by the agent tool sender. Execution now has two lanes:
+
+- Frontend lane: the backend emits a `tool-call` or `tool-bundle` event and the frontend sidecar executes the tool.
+- Backend lane: the backend validates args, creates tool context, executes the tool immediately, emits any lightweight transparency events (for example `search-source`), then emits the corresponding `tool-output`.
+
 **ToolResultOrchestrator** (`tools/orchestrator.py`) waits for frontend results and assembles `ToolResult` objects:
 
 1. Frontend receives tool-call event
@@ -155,6 +170,13 @@ Tool calls are sent by the agent tool sender; execution happens in the frontend 
    - Formats result with MessageFormatter
 4. Result displayed in UI via callback
 5. Result sent back to backend via WebSocket
+
+Backend lane additions:
+
+1. The sender resolves the tool implementation from the backend registry
+2. Backend-executed tools run without sidecar dispatch
+3. Results are staged directly in session pending-results storage
+4. Tool-output history continues through the normal orchestration path
 
 ### 4. Result Processing
 
@@ -260,6 +282,7 @@ Tools are automatically registered:
 2. **Sidecar executors**: Registered in `frontend/src/main/python/tools/registry.py`.
 3. **LLM-callable sidecar subset**: Explicitly declared in sidecar `EXPOSED_TO_BACKEND_TOOLS`.
 4. **Backend-only tools**: Require explicit `register_tool()` wiring; not auto-discovered by default runtime.
+   - `web_search` is the first backend-owned logical tool and can be fulfilled either by provider-native search or a backend Brave Search fallback.
 
 ## Coordinate Resolution
 

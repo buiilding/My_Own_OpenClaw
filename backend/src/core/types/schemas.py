@@ -159,6 +159,7 @@ class NormalizedLLMResponse(TypedDict):
     content: str
     tool_calls: NotRequired[List[NormalizedToolCall]]
     finish_reason: NotRequired[Optional[str]]
+    web_search_sources: NotRequired[List[Dict[str, Any]]]
 
 
 # ============================================================================

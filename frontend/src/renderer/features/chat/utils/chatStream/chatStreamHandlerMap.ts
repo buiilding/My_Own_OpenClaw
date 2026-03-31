@@ -9,6 +9,7 @@ import type {
   LlmThoughtEvent,
   LocalUserMessageEvent,
   MemoryStoreEvent,
+  SearchSourceEvent,
   StreamingCompleteEvent,
   StreamingResponseEvent,
   SystemPromptEvent,
@@ -31,6 +32,7 @@ type ChatStreamEventHandlers = {
   handleToolCall: (event: ToolCallEvent) => void;
   handleToolOutput: (event: ToolOutputEvent) => void;
   handleToolBundle: (event: ToolBundleEvent) => void;
+  handleSearchSource: (event: SearchSourceEvent) => void;
   handleSystemPrompt: (event: SystemPromptEvent) => void;
   handleLocalUserMessage: (event: LocalUserMessageEvent) => void;
   handleUserMessageFull: (event: UserMessageFullEvent) => void;
@@ -53,6 +55,7 @@ export function buildChatStreamHandlerMap(
     'context-compaction-failed': event => handlers.handleContextCompactionFailed(event as ContextCompactionFailedEvent),
     'tool-call': event => handlers.handleToolCall(event as ToolCallEvent),
     'tool-output': event => handlers.handleToolOutput(event as ToolOutputEvent),
+    'search-source': event => handlers.handleSearchSource(event as SearchSourceEvent),
     'tool-bundle': event => handlers.handleToolBundle(event as ToolBundleEvent),
     'system-prompt': event => handlers.handleSystemPrompt(event as SystemPromptEvent),
     'local-user-message': event => handlers.handleLocalUserMessage(event as LocalUserMessageEvent),

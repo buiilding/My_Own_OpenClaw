@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Optional, Sequence
 from backend.src.core.utils.coordinate_methods import normalize_coordinate_method
 from backend.src.tools.tool_selection import ToolSelection, load_tool_selection
 from backend.src.tools.tool_specs import get_tool_spec_name
+from backend.src.tools.web_search.capabilities import should_expose_backend_web_search_tool
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,7 @@ class ToolPolicy:
     ) -> List[str]:
         _ = normalize_wrappers
         filtered = [name for name in tool_names if isinstance(name, str)]
+        filtered = self._filter_web_search_names(filtered)
         disabled_tools = self._get_config_disabled_tools()
         if disabled_tools:
             filtered = [name for name in filtered if name not in disabled_tools]
@@ -67,6 +69,7 @@ class ToolPolicy:
         selection: Optional[ToolSelection] | object = _UNSET,
     ) -> List[Dict[str, Any]]:
         filtered = list(tool_schemas)
+        filtered = self._filter_web_search_schemas(filtered)
         disabled_tools = self._get_config_disabled_tools()
         if disabled_tools:
             filtered = [
@@ -164,6 +167,23 @@ class ToolPolicy:
         if isinstance(allowlist, (set, list, tuple)):
             return {name for name in allowlist if isinstance(name, str)}
         return None
+
+    def _filter_web_search_names(self, tool_names: Sequence[str]) -> List[str]:
+        if should_expose_backend_web_search_tool(self.config):
+            return list(tool_names)
+        return [tool_name for tool_name in tool_names if tool_name != "web_search"]
+
+    def _filter_web_search_schemas(
+        self,
+        tool_schemas: Sequence[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        if should_expose_backend_web_search_tool(self.config):
+            return list(tool_schemas)
+        return [
+            schema
+            for schema in tool_schemas
+            if self._extract_tool_name(schema) != "web_search"
+        ]
 
     @staticmethod
     def _extract_tool_name(schema: Dict[str, Any]) -> Optional[str]:

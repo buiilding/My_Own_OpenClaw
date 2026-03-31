@@ -79,6 +79,20 @@ export function buildCurrentTurnResponseOverlayEntries(messages) {
         });
       });
     }
+
+    if (message.type === 'search-source') {
+      const entryText = normalizeEntryText(message.text);
+      if (!entryText) {
+        continue;
+      }
+      entries.push({
+        id: message.id,
+        type: 'tool-explanation',
+        text: message.text,
+        sourceEventType: message.sourceEventType || null,
+        sourceChannel: message.sourceChannel || null,
+      });
+    }
   }
 
   return entries;

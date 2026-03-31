@@ -8,6 +8,7 @@ from backend.src.core.infrastructure.exceptions import LLMAPIError
 from backend.src.core.types.schemas import NormalizedLLMResponse
 from backend.src.core.utils.raw_tool_call_preview import build_raw_tool_call_preview
 from backend.src.llm.providers.response_parsing import get_value
+from backend.src.tools.web_search.source_normalization import extract_openai_web_search_sources
 
 _INVALID_OPENAI_RESPONSE = "Invalid response from OpenAI"
 _FUNCTION_CALL_ARGUMENTS_PREVIEW_CHARS = 4000
@@ -123,6 +124,9 @@ def normalize_openai_responses_payload(
     normalized: NormalizedLLMResponse = {"content": content}
     if tool_calls:
         normalized["tool_calls"] = tool_calls
+    web_search_sources = extract_openai_web_search_sources(response)
+    if web_search_sources:
+        normalized["web_search_sources"] = web_search_sources
     finish_reason = get_value(response, "status")
     if isinstance(finish_reason, str):
         normalized["finish_reason"] = finish_reason

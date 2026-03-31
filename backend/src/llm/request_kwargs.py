@@ -22,6 +22,7 @@ def build_tool_transport_kwargs(
     parallel_tool_calls: Optional[bool],
     prompt_cache_key: Optional[str],
     max_output_tokens: Optional[int] = None,
+    native_web_search_enabled: Optional[bool] = None,
 ) -> Dict[str, Any]:
     """Build shared tool transport kwargs for completion and streaming requests."""
     request_kwargs: Dict[str, Any] = {
@@ -31,4 +32,6 @@ def build_tool_transport_kwargs(
     }
     if isinstance(max_output_tokens, int) and max_output_tokens > 0:
         request_kwargs["max_output_tokens"] = max_output_tokens
+    if native_web_search_enabled is not None:
+        request_kwargs["native_web_search_enabled"] = bool(native_web_search_enabled)
     return apply_prompt_cache_key(request_kwargs, prompt_cache_key)

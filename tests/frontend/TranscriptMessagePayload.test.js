@@ -112,4 +112,12 @@ describe('transcriptMessagePayload', () => {
       },
     });
   });
+
+  test('toRehydratePayload skips lightweight search-source transcript rows', () => {
+    expect(toRehydratePayload({
+      sender: 'assistant',
+      type: 'search-source',
+      text: 'Searching https://example.com/source',
+    })).toBeNull();
+  });
 });

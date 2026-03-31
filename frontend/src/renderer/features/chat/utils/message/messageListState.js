@@ -5,6 +5,7 @@ const AGENT_LOOP_AUTO_SCROLL_MESSAGE_TYPES = new Set([
   'tool-call',
   'tool-output',
   'tool-explanation',
+  'search-source',
   'tool-actions-summary',
 ]);
 

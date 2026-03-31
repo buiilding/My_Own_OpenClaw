@@ -16,6 +16,7 @@ from backend.src.tools.tool_catalog import (
     get_model_visible_tool_names,
 )
 from backend.src.tools.tool_specs import get_tool_spec_parameters
+from backend.src.tools.web_search.tool import WebSearchTool
 
 if TYPE_CHECKING:
     from backend.src.core.infrastructure.cache import CacheManager
@@ -47,6 +48,7 @@ class ToolRegistry:
             self.context_factory = context_factory
 
         self._register_remote_tools()
+        self._register_backend_tools()
 
     def _register_remote_tools(self) -> None:
         for built_entry in get_built_tool_catalog():
@@ -59,6 +61,15 @@ class ToolRegistry:
                 logger.debug("Registered remote tool: %s", name)
             except Exception as exc:
                 logger.error("Failed to register remote tool %s: %s", name, exc)
+
+    def _register_backend_tools(self) -> None:
+        for tool_class in (WebSearchTool,):
+            name = tool_class.name
+            try:
+                self.register_tool(tool_class())
+                logger.debug("Registered backend tool: %s", name)
+            except Exception as exc:
+                logger.error("Failed to register backend tool %s: %s", name, exc)
 
     def register_tool(
         self,
@@ -84,11 +95,14 @@ class ToolRegistry:
 
     def get_model_tool_names(self) -> List[str]:
         registered = set(self.tools.keys())
-        return [
+        model_tool_names = [
             tool_name
             for tool_name in get_model_visible_tool_names()
             if tool_name in registered
         ]
+        if "web_search" in registered and "web_search" not in model_tool_names:
+            model_tool_names.append("web_search")
+        return model_tool_names
 
     def get_function_declarations(self) -> List[Dict[str, Any]]:
         return self.get_function_declarations_filtered(self.get_model_tool_names())

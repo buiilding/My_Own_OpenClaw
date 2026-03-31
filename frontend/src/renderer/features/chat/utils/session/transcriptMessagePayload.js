@@ -34,6 +34,9 @@ export function resolveTranscriptMessageType(message) {
 }
 
 export function toRehydratePayload(message) {
+  if (message?.type === 'search-source') {
+    return null;
+  }
   const role = resolveTranscriptRole(message);
   const messageType = resolveTranscriptMessageType(message);
   const normalizedToolCallMessage = buildToolCallMessageState({

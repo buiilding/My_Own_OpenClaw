@@ -40,6 +40,7 @@ class RemoteToolBase:
     """
 
     required_permissions: set[Permission] = set()
+    execution_target = "frontend"
 
     def _get_request_id(self, ctx: ToolContext) -> str:
         if ctx.session and ctx.session.metadata:

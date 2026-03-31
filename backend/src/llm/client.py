@@ -215,6 +215,7 @@ class LiteLLMClient(LLMClient):
         parallel_tool_calls: Optional[bool],
         prompt_cache_key: Optional[str],
         max_output_tokens: Optional[int],
+        native_web_search_enabled: Optional[bool],
     ) -> Dict[str, Any]:
         """Build provider transport kwargs for completion and stream calls."""
         return build_tool_transport_kwargs(
@@ -223,6 +224,7 @@ class LiteLLMClient(LLMClient):
             parallel_tool_calls=parallel_tool_calls,
             prompt_cache_key=prompt_cache_key,
             max_output_tokens=max_output_tokens,
+            native_web_search_enabled=native_web_search_enabled,
         )
 
     def _capture_stream_tracking_state(
@@ -251,6 +253,7 @@ class LiteLLMClient(LLMClient):
             parallel_tool_calls=request_kwargs.get("parallel_tool_calls"),
             prompt_cache_key=request_kwargs.get("prompt_cache_key"),
             max_output_tokens=request_kwargs.get("max_output_tokens"),
+            native_web_search_enabled=request_kwargs.get("native_web_search_enabled"),
         )
 
     async def get_completion_response(

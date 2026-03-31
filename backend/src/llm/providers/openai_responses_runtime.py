@@ -37,6 +37,8 @@ def _build_reasoning_responses_params(
     tool_choice: Any,
     parallel_tool_calls: Optional[bool],
     max_output_tokens: Optional[int],
+    include_reasoning: bool,
+    native_web_search_enabled: bool,
 ) -> Dict[str, Any]:
     return build_openai_responses_params(
         provider,
@@ -46,7 +48,8 @@ def _build_reasoning_responses_params(
         tool_choice=tool_choice,
         parallel_tool_calls=parallel_tool_calls,
         max_output_tokens=max_output_tokens,
-        include_reasoning=True,
+        include_reasoning=include_reasoning,
+        native_web_search_enabled=native_web_search_enabled,
     )
 
 
@@ -59,6 +62,8 @@ async def get_openai_responses_completion(
     tool_choice: Any = None,
     parallel_tool_calls: Optional[bool] = None,
     max_output_tokens: Optional[int] = None,
+    native_web_search_enabled: bool = False,
+    include_reasoning: bool = True,
 ) -> NormalizedLLMResponse:
     params = _build_reasoning_responses_params(
         provider=provider,
@@ -68,6 +73,8 @@ async def get_openai_responses_completion(
         tool_choice=tool_choice,
         parallel_tool_calls=parallel_tool_calls,
         max_output_tokens=max_output_tokens,
+        include_reasoning=include_reasoning,
+        native_web_search_enabled=native_web_search_enabled,
     )
     response = await litellm.aresponses(**params)
     provider._record_usage_from_payload_container(response)
@@ -122,6 +129,8 @@ async def stream_openai_responses_events(
     tool_choice: Any = None,
     parallel_tool_calls: Optional[bool] = None,
     max_output_tokens: Optional[int] = None,
+    native_web_search_enabled: bool = False,
+    include_reasoning: bool = True,
 ) -> AsyncGenerator[StreamingEvent, None]:
     params = _build_reasoning_responses_params(
         provider=provider,
@@ -131,6 +140,8 @@ async def stream_openai_responses_events(
         tool_choice=tool_choice,
         parallel_tool_calls=parallel_tool_calls,
         max_output_tokens=max_output_tokens,
+        include_reasoning=include_reasoning,
+        native_web_search_enabled=native_web_search_enabled,
     )
     params["stream"] = True
 

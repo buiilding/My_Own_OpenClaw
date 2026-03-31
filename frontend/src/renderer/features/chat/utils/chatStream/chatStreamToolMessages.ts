@@ -1,4 +1,5 @@
 import type {
+  SearchSourceEvent,
   ToolBundleEvent,
   ToolCallEvent,
   ToolOutputEvent,
@@ -86,6 +87,29 @@ export function buildToolOutputMessage(
     correlationId: resolveToolOutputCorrelationId(event.payload, event.id),
     modelFacingToolOutput: outputText,
     toolOutputDetails: (
+      event.payload && typeof event.payload === 'object'
+        ? { ...event.payload }
+        : null
+    ),
+    turnRef: event.turn_ref,
+    modelId: modelContext.modelId,
+    modelProvider: modelContext.modelProvider,
+  };
+}
+
+export function buildSearchSourceMessage(
+  event: SearchSourceEvent,
+  modelContext: TranscriptModelContext,
+): ChatMessage {
+  const url = typeof event.payload?.url === 'string' ? event.payload.url.trim() : '';
+  return {
+    id: crypto.randomUUID(),
+    text: `Searching ${url}`,
+    sender: 'assistant',
+    type: 'search-source',
+    sourceEventType: 'search-source',
+    sourceChannel: 'from-backend',
+    toolMetadata: (
       event.payload && typeof event.payload === 'object'
         ? { ...event.payload }
         : null

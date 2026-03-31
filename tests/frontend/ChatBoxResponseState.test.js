@@ -1,4 +1,5 @@
 import {
+  buildCurrentTurnResponseOverlayEntries,
   isResponseCloseable,
   normalizeThinkingText,
   resolveSourceTagForResponse,
@@ -44,5 +45,18 @@ describe('chatBoxResponseState', () => {
       showResponse: true,
       devUiEnabled: true,
     })).toBe('unknown-source · unknown');
+  });
+
+  test('buildCurrentTurnResponseOverlayEntries includes lightweight search-source rows', () => {
+    expect(buildCurrentTurnResponseOverlayEntries([
+      { id: 'user-1', sender: 'user', text: 'find the answer' },
+      { id: 'search-1', sender: 'assistant', type: 'search-source', text: 'Searching https://example.com' },
+    ])).toEqual([
+      expect.objectContaining({
+        id: 'search-1',
+        type: 'tool-explanation',
+        text: 'Searching https://example.com',
+      }),
+    ]);
   });
 });

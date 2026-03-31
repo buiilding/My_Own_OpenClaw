@@ -47,8 +47,10 @@ class StreamingToolCallAggregationMixin:
         full_text_parts: List[str] = []
         tool_call_deltas: Dict[int, Dict[str, Any]] = {}
         finish_reason: Optional[str] = None
+        last_chunk: Optional[Any] = None
 
         async for chunk in stream:
+            last_chunk = chunk
             self._record_stream_usage_from_chunk(chunk)
             finish_reason = self._extract_stream_finish_reason(chunk) or finish_reason
             delta = self._extract_stream_delta(chunk)
@@ -77,6 +79,15 @@ class StreamingToolCallAggregationMixin:
             normalized_response["tool_calls"] = tool_calls
         if finish_reason:
             normalized_response["finish_reason"] = finish_reason
+        payload_augmenter = getattr(self, "_augment_stream_response_payload", None)
+        if callable(payload_augmenter):
+            augmented_response = payload_augmenter(
+                normalized_response,
+                last_chunk=last_chunk,
+                model=model,
+            )
+            if isinstance(augmented_response, dict):
+                normalized_response = augmented_response
         self._set_last_stream_response_payload(normalized_response)
 
     def _accumulate_stream_tool_calls(
