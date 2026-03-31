@@ -190,14 +190,15 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     assert "### Bullets" in content
     assert "### Monospace" in content
     assert "### File references" in content
-    assert "<tool_selection>" in content
-    assert "<state_rules>" in content
-    assert "<computer_use_rules>" in content
-    assert "<browser_use_rules>" in content
-    assert "<coding_rules>" in content
-    assert "<process_rules>" in content
-    assert "<failure_recovery>" in content
-    assert "<response_rules>" in content
+    assert "## Tool selection" in content
+    assert "## State rules" in content
+    assert "## Computer-use rules" in content
+    assert "## Browser-use rules" in content
+    assert "## Coding rules" in content
+    assert "## Process rules" in content
+    assert "## Failure recovery" in content
+    assert "## Response rules" in content
+    assert "## Examples" in content
     assert "behave like a strong coding agent first" in content
     assert "default workflow is:" in content
     assert "continue until the coding task is actually resolved" in content
