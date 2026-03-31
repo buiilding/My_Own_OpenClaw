@@ -735,17 +735,8 @@ describe('ChatGptDashboardShell', () => {
     }
   });
 
-  test('plays dashboard open animation on mount and when window becomes visible again', async () => {
+  test('plays dashboard open animation on mount without retriggering it on window visibility restore', async () => {
     jest.useFakeTimers();
-    let visibilityState = 'visible';
-    const originalDescriptor = Object.getOwnPropertyDescriptor(document, 'visibilityState');
-    const rafSpy = jest.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
-      return window.setTimeout(() => callback(performance.now()), 0);
-    });
-    Object.defineProperty(document, 'visibilityState', {
-      configurable: true,
-      get: () => visibilityState,
-    });
 
     try {
       const { container } = render(
@@ -768,25 +759,14 @@ describe('ChatGptDashboardShell', () => {
       expect(shell.className).not.toContain('cg-dashboard-shell-opening');
 
       act(() => {
-        visibilityState = 'hidden';
         document.dispatchEvent(new Event('visibilitychange'));
       });
       act(() => {
-        visibilityState = 'visible';
         document.dispatchEvent(new Event('visibilitychange'));
       });
-      act(() => {
-        jest.advanceTimersByTime(2);
-      });
-      expect(shell.className).toContain('cg-dashboard-shell-opening');
+      expect(shell.className).not.toContain('cg-dashboard-shell-opening');
     } finally {
-      rafSpy.mockRestore();
       jest.useRealTimers();
-      if (originalDescriptor) {
-        Object.defineProperty(document, 'visibilityState', originalDescriptor);
-      } else {
-        delete document.visibilityState;
-      }
     }
   });
 
