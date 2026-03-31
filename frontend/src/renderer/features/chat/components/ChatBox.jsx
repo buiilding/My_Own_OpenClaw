@@ -272,13 +272,15 @@ function ChatBox() {
       return;
     }
     try {
+      setChatboxHitTestActive(false);
       await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
         maximize: true,
+        open: 'chat',
       });
     } catch (error) {
       console.warn('[ChatBox] Failed to show main window:', error);
     }
-  }, [loopInteractionLocked]);
+  }, [loopInteractionLocked, setChatboxHitTestActive]);
 
   const handleHideChatbox = useCallback(async () => {
     if (loopInteractionLocked) {

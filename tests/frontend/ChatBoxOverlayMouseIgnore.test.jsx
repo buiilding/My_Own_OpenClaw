@@ -283,7 +283,7 @@ describe('ChatBox overlay mouse ignore', () => {
     });
   });
 
-  test('config button opens and maximizes the dashboard without routing to settings', () => {
+  test('config button opens and maximizes the dashboard on the chat surface', () => {
     render(<ChatBox />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Open config' }));
@@ -292,7 +292,7 @@ describe('ChatBox overlay mouse ignore', () => {
       ([channel, payload]) =>
         channel === 'show-main-window'
         && payload?.maximize === true
-        && !Object.prototype.hasOwnProperty.call(payload || {}, 'open'),
+        && payload?.open === 'chat',
     );
   });
 
@@ -365,7 +365,7 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockSend).toHaveBeenCalledWith('move-chatbox-to', { x: 110, y: 106 });
   });
 
-  test('simple button click still triggers its action when no drag occurs', () => {
+  test('simple button click still triggers dashboard chat-surface open when no drag occurs', () => {
     render(<ChatBox />);
 
     fireEvent.mouseDown(screen.getByRole('button', { name: 'Open config' }), { button: 0, clientX: 10, clientY: 10, screenX: 100, screenY: 100 });
@@ -376,7 +376,7 @@ describe('ChatBox overlay mouse ignore', () => {
       ([channel, payload]) =>
         channel === 'show-main-window'
         && payload?.maximize === true
-        && !Object.prototype.hasOwnProperty.call(payload || {}, 'open'),
+        && payload?.open === 'chat',
     );
   });
 
