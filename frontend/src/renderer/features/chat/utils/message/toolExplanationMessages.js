@@ -165,6 +165,7 @@ export function buildToolLogPresentationMessages(messages, { showToolLogs = true
       return;
     }
 
+    flushPendingSummary();
     renderedMessages.push(message);
   });
 
