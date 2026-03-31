@@ -21,9 +21,9 @@ import { COMPACTION_THINKING_STATUS } from '../utils/chatStream/chatStreamThinki
 import {
   CompactIcon,
   CloseIcon,
-  PlusIcon,
   ScreenshotIcon,
   SendIcon,
+  SettingsIcon,
   SoundIcon,
 } from './chatbox/ChatBoxIcons';
 import ChatBoxImagePreviewRow from './chatbox/ChatBoxImagePreviewRow';
@@ -459,11 +459,11 @@ function ChatBox() {
               type="button"
               className="chatbox-icon chatbox-config"
               onClick={handleOpenConfig}
-              aria-label="Open dashboard"
-              title="Open dashboard"
+              aria-label="Open config"
+              title="Open config"
               disabled={loopInteractionLocked}
             >
-              <PlusIcon />
+              <SettingsIcon />
             </button>
             {devUiEnabled ? (
               <button
@@ -484,7 +484,7 @@ function ChatBox() {
                 value={inputValue}
                 onChange={handleInputChange}
                 onPaste={handleComposerPaste}
-                placeholder="Ask anything"
+                placeholder="Ask me anything..."
                 className="chatbox-input"
                 disabled={loopInteractionLocked}
               />
