@@ -335,6 +335,43 @@ describe('ChatInterface wiring', () => {
     expect(lastCall.messages[1].text).toBe('Check the selected workspace before reading files.');
   });
 
+  test('keeps live tool explanation rows visible until the assistant reply is complete', () => {
+    mockChatState.streamTracking.phase = 'complete';
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'Inspect workspace' },
+      {
+        id: 'tool-call-1',
+        sender: 'assistant',
+        text: 'raw tool call',
+        type: 'tool-call',
+        sourceEventType: 'tool-call',
+        toolCallDetails: {
+          parameters: {
+            tool: 'read_file',
+            explanation: 'Read the selected workspace entry before summarizing it.',
+          },
+        },
+      },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'I’ve explored the selected file and I’m summarizing it now.',
+        type: 'llm-text',
+        isComplete: false,
+      },
+    ];
+
+    render(<ChatInterface />);
+
+    const renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
+    expect(renderedMessages.map((message) => message.type || 'llm-text')).toEqual([
+      'llm-text',
+      'tool-explanation',
+      'llm-text',
+    ]);
+    expect(renderedMessages[1].text).toBe('Read the selected workspace entry before summarizing it.');
+  });
+
   test('passes raw tool rows through when tool logs are enabled', () => {
     mockConfig = {
       ...mockConfig,
