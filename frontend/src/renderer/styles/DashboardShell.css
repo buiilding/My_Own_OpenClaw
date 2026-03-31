@@ -1020,3 +1020,339 @@ body.cg-scroll-locked,
     display: none;
   }
 }
+
+/* Notebook dashboard theme */
+.cg-dashboard-shell {
+  --ui-shell-bg: var(--dashboard-paper);
+  --ui-sidebar-bg: transparent;
+  --ui-panel-bg: var(--dashboard-paper-panel);
+  --ui-panel-raised-bg: var(--dashboard-paper-raised);
+  --ui-hover-bg: rgba(255, 249, 219, 0.92);
+  --ui-hover-strong-bg: rgba(255, 250, 231, 0.98);
+  --ui-text-primary: var(--dashboard-ink);
+  --ui-text-secondary: var(--dashboard-ink-soft);
+  --ui-text-muted: var(--dashboard-ink-faint);
+  --ui-text-dim: rgba(88, 74, 52, 0.56);
+  --ui-border: var(--dashboard-border);
+  --ui-border-soft: var(--dashboard-border-soft);
+  --ui-border-subtle: var(--dashboard-border-faint);
+  --ui-scrim: rgba(87, 68, 36, 0.24);
+  --ui-shadow: var(--dashboard-box-shadow-strong);
+  --ui-shadow-strong: var(--dashboard-box-shadow-strong);
+  --ui-backdrop-blur: 0px;
+  --ui-send-bg: #f9ecac;
+  --ui-send-bg-hover: #fff6cb;
+  --ui-send-bg-disabled: rgba(122, 104, 74, 0.34);
+  --ui-send-text: var(--dashboard-ink);
+  --ui-brand-dot-bg: #f9edb6;
+  --ui-brand-dot-fg: var(--dashboard-ink);
+  --ui-settings-swatch-bg: var(--dashboard-ink);
+  --ui-toggle-thumb-on: #fff7d7;
+  --accent: #587b9d;
+  --accent-strong: #466a8d;
+  --accent-soft: rgba(88, 123, 157, 0.12);
+  --warning: #9a7040;
+  --danger: #bb5d46;
+  --success: #5c8760;
+  position: relative;
+  padding-left: 42px;
+  font-family: var(--font-dashboard);
+  color: var(--ui-text-primary);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(0, 0, 0, 0.04)),
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.3), transparent 30%),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 calc(var(--dashboard-rule-step) - 2px),
+      var(--dashboard-rule-line) calc(var(--dashboard-rule-step) - 2px) var(--dashboard-rule-step)
+    ),
+    linear-gradient(180deg, var(--dashboard-paper) 0%, var(--dashboard-paper-strong) 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.cg-dashboard-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 42px;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(66, 56, 36, 0.36), rgba(66, 56, 36, 0.06)),
+    repeating-radial-gradient(
+      circle at 21px 28px,
+      rgba(52, 43, 31, 0.9) 0 4px,
+      rgba(234, 215, 141, 0) 4px 96px
+    );
+  box-shadow: inset -2px 0 0 rgba(66, 56, 36, 0.25);
+}
+
+.cg-dashboard-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.cg-dashboard-shell,
+.cg-dashboard-shell button,
+.cg-dashboard-shell input,
+.cg-dashboard-shell textarea,
+.cg-dashboard-shell select {
+  font-family: var(--font-dashboard);
+}
+
+.cg-dashboard-shell code,
+.cg-dashboard-shell pre,
+.cg-dashboard-shell .tool-output-container,
+.cg-dashboard-shell .tool-call-container,
+.cg-dashboard-shell .transparency-section,
+.cg-dashboard-shell .message-source-badge {
+  font-family: var(--font-mono);
+}
+
+.cg-sidebar {
+  background: linear-gradient(180deg, rgba(248, 236, 180, 0.6), rgba(243, 226, 160, 0.34));
+  border-right: 2px solid var(--dashboard-margin-line);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.2);
+}
+
+.cg-sidebar-content,
+.cg-sidebar-footer {
+  background: transparent;
+}
+
+.cg-sidebar-header {
+  padding: 12px 14px 10px;
+}
+
+.cg-sidebar-brand-toggle,
+.cg-sidebar-toggle,
+.cg-sidebar-open,
+.cg-nav-item,
+.cg-chat-item,
+.cg-chat-item-menu-trigger,
+.cg-user-button,
+.cg-search-close,
+.cg-search-new-chat,
+.cg-search-chat-item,
+.cg-modal,
+.cg-search-modal {
+  box-shadow: var(--dashboard-box-shadow);
+}
+
+.cg-brand-dot,
+.cg-sidebar-brand-toggle {
+  border: 2px solid var(--dashboard-border);
+  background: rgba(250, 241, 191, 0.96);
+  color: var(--dashboard-ink);
+  box-shadow: var(--dashboard-box-shadow);
+}
+
+.cg-sidebar-toggle,
+.cg-sidebar-open {
+  border: 2px solid transparent;
+  border-radius: 14px;
+  color: var(--dashboard-ink-soft);
+}
+
+.cg-sidebar-toggle:hover,
+.cg-sidebar-toggle:focus-visible,
+.cg-sidebar-open:hover,
+.cg-sidebar-open:focus-visible {
+  border-color: var(--dashboard-border-soft);
+  background: rgba(255, 249, 218, 0.8);
+  color: var(--dashboard-ink);
+}
+
+.cg-nav-item,
+.cg-chat-item,
+.cg-user-button {
+  border: 2px solid transparent;
+  border-radius: 16px;
+  color: var(--dashboard-ink-soft);
+  background: transparent;
+}
+
+.cg-nav-item:hover:enabled,
+.cg-nav-item.active,
+.cg-chat-item:hover,
+.cg-chat-item.active,
+.cg-chat-item-row.menu-open .cg-chat-item,
+.cg-chat-item-row.active .cg-chat-item,
+.cg-user-button:hover,
+.cg-user-button:focus-visible {
+  border-color: var(--dashboard-border-soft);
+  background: rgba(255, 249, 223, 0.88);
+  color: var(--dashboard-ink);
+}
+
+.cg-sidebar-section-label,
+.cg-chat-list-subheader,
+.cg-search-group-label {
+  color: rgba(96, 69, 42, 0.74);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.84rem;
+}
+
+.cg-sidebar-divider {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(70, 60, 43, 0.2) 12%,
+    rgba(70, 60, 43, 0.38) 50%,
+    rgba(70, 60, 43, 0.2) 88%,
+    transparent 100%
+  );
+}
+
+.cg-chat-item-menu-trigger {
+  border: 2px solid transparent;
+  background: rgba(250, 241, 191, 0.8);
+  color: var(--dashboard-ink-faint);
+}
+
+.cg-chat-item-menu-trigger:hover,
+.cg-chat-item-row.menu-open .cg-chat-item-menu-trigger {
+  border-color: var(--dashboard-border-soft);
+  background: rgba(255, 250, 229, 0.98);
+  color: var(--dashboard-ink);
+}
+
+.cg-chat-item-menu,
+.cg-search-modal,
+.cg-modal {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(0, 0, 0, 0.02)),
+    linear-gradient(180deg, rgba(249, 238, 187, 0.98), rgba(243, 226, 160, 0.96));
+  border: 2px solid var(--dashboard-border);
+  box-shadow: var(--dashboard-box-shadow-strong);
+}
+
+.cg-chat-item-menu {
+  border-radius: 16px;
+}
+
+.cg-chat-item-menu-item,
+.cg-search-chat-item,
+.cg-search-new-chat {
+  border-radius: 14px;
+  border: 2px solid transparent;
+  color: var(--dashboard-ink);
+}
+
+.cg-chat-item-menu-item:hover,
+.cg-search-chat-item:hover,
+.cg-search-chat-item.active,
+.cg-search-new-chat:hover {
+  border-color: var(--dashboard-border-soft);
+  background: rgba(255, 250, 229, 0.92);
+}
+
+.cg-chat-item-menu-divider {
+  background: rgba(70, 60, 43, 0.18);
+}
+
+.cg-chat-item-menu-item.danger {
+  color: #9d503e;
+}
+
+.cg-chat-item-menu-item.danger:hover {
+  background: rgba(187, 93, 70, 0.1);
+}
+
+.cg-chat-list-state,
+.cg-search-empty,
+.cg-search-chat-snippet {
+  color: var(--dashboard-ink-faint);
+}
+
+.cg-sidebar-footer {
+  border-top-color: rgba(70, 60, 43, 0.18);
+}
+
+.cg-main-content,
+.cg-main-content .chat-container {
+  background: transparent;
+}
+
+.cg-search-overlay,
+.cg-modal-overlay {
+  background: rgba(104, 81, 43, 0.18);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.cg-search-header {
+  border-bottom: 2px solid rgba(70, 60, 43, 0.16);
+  padding: 18px 18px 14px;
+}
+
+.cg-search-input {
+  border: 2px solid var(--dashboard-border);
+  border-radius: 18px;
+  background: rgba(255, 250, 228, 0.94);
+  color: var(--dashboard-ink);
+  box-shadow: var(--dashboard-box-shadow);
+}
+
+.cg-search-input::placeholder {
+  color: rgba(88, 74, 52, 0.48);
+}
+
+.cg-search-close {
+  border: 2px solid var(--dashboard-border-soft);
+  border-radius: 14px;
+  background: rgba(255, 250, 228, 0.82);
+  color: var(--dashboard-ink);
+}
+
+.cg-search-results {
+  padding: 16px 18px 18px;
+}
+
+.cg-search-chat-title {
+  color: var(--dashboard-ink);
+}
+
+.cg-search-chat-icon {
+  color: rgba(96, 69, 42, 0.78);
+}
+
+.cg-panel-wrapper {
+  background: transparent;
+}
+
+.cg-modal-body,
+.cg-sidebar-content,
+.cg-search-results {
+  scrollbar-color: rgba(92, 78, 53, 0.35) transparent;
+}
+
+.cg-modal-body::-webkit-scrollbar-thumb,
+.cg-sidebar-content::-webkit-scrollbar-thumb,
+.cg-search-results::-webkit-scrollbar-thumb {
+  background: rgba(92, 78, 53, 0.34);
+}
+
+.cg-modal-body::-webkit-scrollbar-thumb:hover,
+.cg-sidebar-content::-webkit-scrollbar-thumb:hover,
+.cg-search-results::-webkit-scrollbar-thumb:hover {
+  background: rgba(92, 78, 53, 0.48);
+}
+
+@media (max-width: 980px) {
+  .cg-dashboard-shell {
+    padding-left: 34px;
+  }
+
+  .cg-dashboard-shell::before {
+    width: 34px;
+    background:
+      linear-gradient(90deg, rgba(66, 56, 36, 0.34), rgba(66, 56, 36, 0.05)),
+      repeating-radial-gradient(
+        circle at 17px 26px,
+        rgba(52, 43, 31, 0.84) 0 3px,
+        rgba(234, 215, 141, 0) 3px 88px
+      );
+  }
+}
