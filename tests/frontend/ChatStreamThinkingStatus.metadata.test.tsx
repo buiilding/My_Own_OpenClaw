@@ -20,7 +20,7 @@ describe('useChatStream message metadata handling', () => {
         type: 'system-prompt',
         payload: {
           content: 'prompt text',
-          tool_schemas: [{ type: 'function', function: { name: 'tool-a', parameters: { type: 'object' } } }],
+          tool_schemas: [{ type: 'function', name: 'tool-a', parameters: { type: 'object' } }],
         },
       });
     });
@@ -28,7 +28,7 @@ describe('useChatStream message metadata handling', () => {
     const userMessage = useChatStore.getState().messages[0];
     expect(userMessage.systemPrompt).toEqual({
       content: 'prompt text',
-      toolSchemas: [{ type: 'function', function: { name: 'tool-a', parameters: { type: 'object' } } }],
+      toolSchemas: [{ type: 'function', name: 'tool-a', parameters: { type: 'object' } }],
     });
   });
 
@@ -99,14 +99,14 @@ describe('useChatStream message metadata handling', () => {
       emitBackendEvent({
         type: 'tool-schemas',
         payload: {
-          tool_schemas: [{ type: 'function', function: { name: 'tool-x', parameters: { type: 'object' } } }],
+          tool_schemas: [{ type: 'function', name: 'tool-x', parameters: { type: 'object' } }],
         },
       });
     });
 
     expect(useChatStore.getState().messages[0].toolSchemas).toBeUndefined();
     expect(useChatStore.getState().messages[2].toolSchemas).toEqual([
-      { type: 'function', function: { name: 'tool-x', parameters: { type: 'object' } } },
+      { type: 'function', name: 'tool-x', parameters: { type: 'object' } },
     ]);
   });
 
@@ -169,7 +169,7 @@ describe('useChatStream message metadata handling', () => {
         turn_ref: 'turn-old',
         payload: {
           content: 'stale prompt',
-          tool_schemas: [{ type: 'function', function: { name: 'tool-a', parameters: { type: 'object' } } }],
+          tool_schemas: [{ type: 'function', name: 'tool-a', parameters: { type: 'object' } }],
         },
       });
       emitBackendEvent({
@@ -186,7 +186,7 @@ describe('useChatStream message metadata handling', () => {
         type: 'tool-schemas',
         turn_ref: 'turn-old',
         payload: {
-          tool_schemas: [{ type: 'function', function: { name: 'tool-stale', parameters: { type: 'object' } } }],
+          tool_schemas: [{ type: 'function', name: 'tool-stale', parameters: { type: 'object' } }],
         },
       });
     });

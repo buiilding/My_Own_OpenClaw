@@ -124,10 +124,14 @@ describe('local_backend_bridge RPC handlers', () => {
         },
       });
 
-      expect(fetchMock).toHaveBeenCalledWith(
-        'http://127.0.0.1:8765/api/artifacts/',
-        expect.objectContaining({ method: 'POST' }),
-      );
+      expect(fetchMock).toHaveBeenCalled();
+      const [uploadUrl, uploadOptions] = fetchMock.mock.calls[0];
+      if (String(uploadUrl) !== 'https://api.windieos.com/api/artifacts/') {
+        throw new Error(`unexpected upload url: ${String(uploadUrl)}`);
+      }
+      if (uploadOptions?.method !== 'POST') {
+        throw new Error(`unexpected upload method: ${String(uploadOptions?.method)}`);
+      }
       await expect(fsPromises.access(screenshotPath)).rejects.toThrow();
     } finally {
       global.fetch = originalFetch;
@@ -427,10 +431,14 @@ describe('local_backend_bridge RPC handlers', () => {
         },
       });
 
-      expect(fetchMock).toHaveBeenCalledWith(
-        'http://127.0.0.1:8765/api/artifacts/',
-        expect.objectContaining({ method: 'POST' }),
-      );
+      expect(fetchMock).toHaveBeenCalled();
+      const [uploadUrl, uploadOptions] = fetchMock.mock.calls[0];
+      if (String(uploadUrl) !== 'https://api.windieos.com/api/artifacts/') {
+        throw new Error(`unexpected upload url: ${String(uploadUrl)}`);
+      }
+      if (uploadOptions?.method !== 'POST') {
+        throw new Error(`unexpected upload method: ${String(uploadOptions?.method)}`);
+      }
       await expect(fsPromises.access(screenshotPath)).rejects.toThrow();
     } finally {
       global.fetch = originalFetch;
