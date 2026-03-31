@@ -1090,6 +1090,7 @@
 
 .tool-explanation-message {
   padding-left: 2px;
+  opacity: 0.72;
 }
 
 .tool-explanation-text,
@@ -1098,6 +1099,10 @@
   color: rgba(236, 241, 247, 0.68);
   font-size: 0.95rem;
   line-height: 1.55;
+}
+
+.tool-explanation-message .tool-explanation-text {
+  color: inherit;
 }
 
 .tool-actions-summary-toggle {
