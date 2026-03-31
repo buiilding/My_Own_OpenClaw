@@ -22,7 +22,7 @@ title: "Backend Remote Tools Docs Hub"
 ## Code Scope
 
 - `backend/src/tools/remote_tools/base.py`
-- `backend/src/tools/remote_tools/registry.py`
+- `backend/src/tools/tool_catalog.py`
 - `backend/src/tools/remote_tools/computer.py`
 - `backend/src/tools/remote_tools/system.py`
 - `backend/src/tools/remote_tools/filesystem.py`

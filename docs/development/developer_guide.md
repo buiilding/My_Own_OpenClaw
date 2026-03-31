@@ -433,7 +433,7 @@ const addMessage = useChatStore((state) => state.addMessage);
    ```python
    # LLM-callable remote tools:
    # - add backend stub in backend/src/tools/remote_tools/
-   # - register in backend/src/tools/remote_tools/registry.py
+   # - add a catalog entry in backend/src/tools/tool_catalog.py
    # - add sidecar implementation + frontend/src/main/python/tools/registry.py entry
    # - keep EXPOSED_TO_BACKEND_TOOLS in sync
 

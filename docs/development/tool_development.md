@@ -22,7 +22,7 @@ This guide documents the current tool API and registration flow.
 - SDK base class: `backend/src/sdk/tool.py`
 - Tool context: `backend/src/sdk/context.py`
 - Remote tool stubs: `backend/src/tools/remote_tools/`
-- Remote tool registry: `backend/src/tools/remote_tools/registry.py`
+- Remote tool catalog: `backend/src/tools/tool_catalog.py`
 - Backend-facing re-export: `backend/src/tools/remote.py`
 - Contract test: `tests/backend/test_remote_tool_contract.py`
 
@@ -113,7 +113,7 @@ class RemoteMyTool(RemoteToolBase, Tool[MyRemoteToolArgs]):
 
 ### 3. Register backend stub
 
-- Add the tool class in `backend/src/tools/remote_tools/registry.py` (`REMOTE_TOOLS`).
+- Add the tool metadata entry in `backend/src/tools/tool_catalog.py`.
 - Export from the package (`backend/src/tools/remote_tools/__init__.py`) if needed.
 
 ### 4. Implement sidecar execution handler
@@ -203,7 +203,7 @@ If you add backend-only tools, document the wiring point in the same PR.
 
 ### Tool not visible to model
 
-1. Confirm backend stub is in `REMOTE_TOOLS`.
+1. Confirm backend stub is present in `backend/src/tools/tool_catalog.py` and `backend/src/tools/remote.py` exports.
 2. Confirm sidecar tool is listed in `EXPOSED_TO_BACKEND_TOOLS`.
 3. Confirm handler is registered in sidecar `ToolRegistry`.
 4. Run remote contract test.

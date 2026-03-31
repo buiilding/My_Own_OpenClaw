@@ -19,7 +19,7 @@ title: "Backend Tools Registry Docs Hub"
 - `backend/src/tools/schema_registry.py`
 - `backend/src/tools/remote.py`
 - `backend/src/tools/remote_tools/base.py`
-- `backend/src/tools/remote_tools/registry.py`
+- `backend/src/tools/tool_catalog.py`
 - `backend/src/tools/remote_tools/computer.py`
 - `backend/src/tools/remote_tools/system.py`
 - `backend/src/tools/remote_tools/filesystem.py`
