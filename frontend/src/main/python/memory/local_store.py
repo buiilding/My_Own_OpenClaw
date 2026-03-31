@@ -411,33 +411,16 @@ class LocalMemoryStore:
         setattr(self, attrs.next_vector_id, next_vector_id)
 
     def _normalize_memory_type(self, memory_type_value: Any) -> str:
-        try:
-            from backend.src.core.types import MemoryType
-
-            memory_type_enum = MemoryType(memory_type_value)
-            if memory_type_enum == MemoryType.EPISODIC:
-                return "episodic"
-            if memory_type_enum == MemoryType.SEMANTIC:
-                return "semantic"
-        except (ImportError, ValueError):
-            pass
-
-        return "episodic" if str(memory_type_value) == "episodic" else "semantic"
+        normalized_type = self._maybe_normalize_memory_type(memory_type_value)
+        return normalized_type or "semantic"
 
     def _maybe_normalize_memory_type(self, memory_type_value: Any) -> Optional[str]:
-        try:
-            from backend.src.core.types import MemoryType
-
-            memory_type_enum = MemoryType(memory_type_value)
-            if memory_type_enum == MemoryType.EPISODIC:
-                return "episodic"
-            if memory_type_enum == MemoryType.SEMANTIC:
-                return "semantic"
-        except (ImportError, ValueError):
-            pass
-
-        if memory_type_value in ("episodic", "semantic"):
-            return memory_type_value
+        normalized_value = getattr(memory_type_value, "value", memory_type_value)
+        normalized_text = str(normalized_value).strip().lower()
+        if normalized_text == "episodic":
+            return "episodic"
+        if normalized_text == "semantic":
+            return "semantic"
         return None
 
     @staticmethod

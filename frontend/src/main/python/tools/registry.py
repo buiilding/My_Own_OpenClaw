@@ -10,14 +10,9 @@ from importlib import import_module
 import logging
 from typing import Any, Callable, Dict
 
-from backend.src.tools.tool_catalog import get_backend_exposed_tool_names
+from tools.exposed_tool_names import EXPOSED_TO_BACKEND_TOOL_NAMES
 from tools.result import ToolResult
 logger = logging.getLogger(__name__)
-
-# Tools in this set are advertised by backend remote schema generation and may be
-# called by the LLM. Derive it from the backend catalog so backend and sidecar
-# stay aligned when tools are added or removed.
-EXPOSED_TO_BACKEND_TOOLS = frozenset(get_backend_exposed_tool_names())
 
 
 class ToolRegistry:
@@ -125,7 +120,7 @@ class ToolRegistry:
         except ImportError as e:
             logger.warning(f"Failed to import browser_tool: {e}")
 
-        missing_exposed_tools = EXPOSED_TO_BACKEND_TOOLS - set(self.tools.keys())
+        missing_exposed_tools = EXPOSED_TO_BACKEND_TOOL_NAMES - set(self.tools.keys())
         if missing_exposed_tools:
             logger.warning(
                 "Tools expected by backend schemas are unavailable in sidecar runtime: %s",
@@ -137,7 +132,7 @@ class ToolRegistry:
     @staticmethod
     def get_exposed_tool_names() -> set[str]:
         """Return sidecar tools that are expected to be exposed by backend schemas."""
-        return set(EXPOSED_TO_BACKEND_TOOLS)
+        return set(EXPOSED_TO_BACKEND_TOOL_NAMES)
 
     @staticmethod
     def _build_lazy_tool(module_name: str, attr_name: str) -> Callable[..., Any]:
