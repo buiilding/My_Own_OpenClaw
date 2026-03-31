@@ -41,6 +41,7 @@ ContextFactory behavior:
 Remote registration behavior:
 
 - remote classes are instantiated one-by-one
+- each remote tool is registered together with its prebuilt canonical tool spec from the catalog builder
 - failures are isolated per tool (`try/except`) and logged
 - one failing tool does not prevent registration of others
 
@@ -53,8 +54,9 @@ The catalog owns:
 - every backend-registered remote tool name
 - the import path/class name used to instantiate the stub
 - whether the tool is model-visible directly
+- the canonical flat tool spec built from the tool class
 
-`backend/src/tools/tool_catalog.py` now owns both the catalog entries and the name->class lookup helpers used by the backend public remote-tool exports.
+`backend/src/tools/tool_catalog.py` now owns the built tool-spec layer as well as the name->class lookup helpers used by the backend public remote-tool exports.
 
 Current names:
 
@@ -84,7 +86,7 @@ Ordering behavior:
 
 Assembly behavior:
 
-- each registered tool emits one canonical flat tool spec directly from its `args_model`
+- each registered tool is paired with a canonical flat tool spec built once at registration time
 - browser now follows the same generic schema path as every other registered backend tool
 - non-catalog test/helper tools registered directly into `ToolRegistry` still pass through as direct schemas when explicitly requested
 
@@ -106,7 +108,7 @@ This keeps capability calls non-fatal during partial schema failures.
 
 ## SchemaRegistry Canonicalization and Cache Behavior
 
-`SchemaRegistry` stores canonical tool schemas in cache manager store keyed by `get_tool_schema_key(tool.name)`.
+`SchemaRegistry` stores canonical tool schemas in cache manager store keyed by `get_tool_schema_key(tool_name)`.
 
 Canonical schema requirements (`_is_canonical_tool_schema`):
 
@@ -122,18 +124,18 @@ Cache read rules:
 
 Generate-and-cache rules:
 
-- calls `tool.get_json_schema()`
+- accepts a prebuilt canonical tool spec from `ToolRegistry`
 - rejects non-canonical output with explicit error
 - stores canonical schema only
 
 Failure behavior:
 
 - `get_schema()` catches exceptions and returns `None` instead of raising
-- `get_declarations()` includes only dict schemas returned by `get_schema()`
 
 Test-backed behavior from `test_tool_registry_schema.py`:
 
-- schema cache prevents duplicate schema generation calls
+- catalog builder exposes canonical prebuilt specs
+- registry builds a custom tool spec once at registration time and reuses it across declaration calls
 - schema errors are contained and return `None`
 - registrations with same name overwrite previous tool instance
 - `get_tool_names()` returns sorted list

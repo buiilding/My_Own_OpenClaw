@@ -67,7 +67,7 @@ class ExampleTool(Tool[ExampleArgs]):
 
 Notes:
 - Do not implement `get_schema()` manually for SDK tools.
-- Schema is generated from `args_model` via Pydantic and normalized by `Tool.get_json_schema()`.
+- Schema is built from `args_model` via Pydantic and normalized by the class-level `Tool.build_tool_spec()` path.
 
 ## Adding an LLM-Callable Remote Tool
 

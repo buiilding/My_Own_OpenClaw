@@ -9,7 +9,10 @@ from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.schema_registry import SchemaRegistry
-from backend.src.tools.tool_catalog import get_model_visible_tool_names
+from backend.src.tools.tool_catalog import (
+    get_built_tool_catalog_entry,
+    get_model_visible_tool_names,
+)
 
 
 class DummyArgs(BaseModel):
@@ -56,33 +59,29 @@ def test_tool_schema_computer_format_native():
 
 def test_schema_registry_caches_schemas():
     cache_manager = CacheManager()
-
-    class CountingTool(DummyTool):
-        calls = 0
-
-        def get_json_schema(self):
-            CountingTool.calls += 1
-            return super().get_json_schema()
-
-    tool = CountingTool()
     registry = SchemaRegistry(cache_manager=cache_manager)
-    schema1 = registry.get_schema(tool)
-    schema2 = registry.get_schema(tool)
+    schema = DummyTool.build_tool_spec()
+    schema1 = registry.get_schema("dummy_tool", schema)
+    schema2 = registry.get_schema("dummy_tool", schema)
 
     assert schema1 == schema2
-    assert CountingTool.calls == 1
 
 
 def test_schema_registry_handles_schema_errors():
     cache_manager = CacheManager()
-
-    class BrokenTool(DummyTool):
-        def get_json_schema(self):
-            raise RuntimeError("boom")
-
     registry = SchemaRegistry(cache_manager=cache_manager)
-    schema = registry.get_schema(BrokenTool())
+    schema = registry.get_schema("broken_tool", {"invalid": True})
     assert schema is None
+
+
+def test_catalog_build_entry_contains_prebuilt_canonical_spec():
+    built_entry = get_built_tool_catalog_entry("browser")
+
+    assert built_entry is not None
+    assert built_entry.entry.name == "browser"
+    assert built_entry.tool_class.__name__ == "RemoteBrowserTool"
+    assert built_entry.tool_spec["type"] == "function"
+    assert built_entry.tool_spec["name"] == "browser"
 
 
 def test_tool_registry_declarations_and_capabilities():
@@ -116,6 +115,30 @@ def test_tool_registry_register_overwrites_existing_tool():
 
     assert registry.get_tool("dummy_tool") is replacement
     assert registry.get_tool("dummy_tool").description == "Replacement"
+    assert registry.tool_specs["dummy_tool"]["description"] == "Replacement"
+
+
+def test_tool_registry_builds_schema_once_at_registration_time():
+    config = AppConfig()
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+
+    class CountingTool(DummyTool):
+        calls = 0
+
+        @classmethod
+        def build_tool_spec(cls):
+            cls.calls += 1
+            return super().build_tool_spec()
+
+    registry.register_tool(CountingTool())
+
+    assert CountingTool.calls == 1
+
+    declarations_first = registry.get_function_declarations_filtered(["dummy_tool"])
+    declarations_second = registry.get_function_declarations_filtered(["dummy_tool"])
+
+    assert CountingTool.calls == 1
+    assert declarations_first == declarations_second
 
 
 def test_tool_registry_get_tool_names_is_sorted():
@@ -241,7 +264,7 @@ def test_tool_registry_availability_and_capabilities_fallback():
     assert registry.is_tool_available("dummy_tool") is True
 
     original_get_schema = registry.schema_registry.get_schema
-    registry.schema_registry.get_schema = lambda _tool: None
+    registry.schema_registry.get_schema = lambda _tool_name, _schema: None
     try:
         assert registry.get_tool_capabilities("dummy_tool") is None
     finally:
@@ -254,7 +277,7 @@ def test_tool_registry_capabilities_handles_non_dict_function_schema():
     registry.register_tool(DummyTool())
 
     original_get_schema = registry.schema_registry.get_schema
-    registry.schema_registry.get_schema = lambda _tool: {"function": "invalid"}
+    registry.schema_registry.get_schema = lambda _tool_name, _schema: {"function": "invalid"}
     try:
         capabilities = registry.get_tool_capabilities("dummy_tool")
     finally:
