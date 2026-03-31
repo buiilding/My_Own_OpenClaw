@@ -4,8 +4,10 @@ Read File Tool - Python implementation.
 
 import asyncio
 import base64
+import json
 import logging
 import mimetypes
+import os
 import re
 from pathlib import Path
 from typing import Dict, Any
@@ -46,6 +48,52 @@ IMAGE_FALLBACK_CONTENT_TYPES = {
     ".ico": "image/x-icon",
     ".svg": "image/svg+xml",
 }
+_WORKSPACE_ACCESS_PERMISSION_ID = "filesystem_workspace_access"
+
+
+def _resolve_default_workspace_directory() -> Path:
+    permission_state_path = os.environ.get("WINDIE_PERMISSION_STATE_PATH", "").strip()
+    if permission_state_path:
+        try:
+            with open(permission_state_path, "r", encoding="utf-8") as handle:
+                raw_state = json.load(handle)
+        except (FileNotFoundError, OSError, ValueError, TypeError):
+            raw_state = None
+        if isinstance(raw_state, dict):
+            permissions = raw_state.get("permissions")
+            if isinstance(permissions, dict):
+                workspace_entry = permissions.get(_WORKSPACE_ACCESS_PERMISSION_ID)
+                if isinstance(workspace_entry, dict) and workspace_entry.get("granted") is True:
+                    selected_paths = workspace_entry.get("selected_paths")
+                    if isinstance(selected_paths, list):
+                        for selected_path in selected_paths:
+                            if not isinstance(selected_path, str) or not selected_path.strip():
+                                continue
+                            workspace_path = Path(selected_path).expanduser()
+                            if workspace_path.exists() and workspace_path.is_dir():
+                                return workspace_path
+
+    return Path.home()
+
+
+def _resolve_read_file_path(raw_file_path: object) -> tuple[Path | None, str | None]:
+    if not isinstance(raw_file_path, str):
+        return None, "file_path parameter is required"
+
+    normalized_file_path = raw_file_path.strip()
+    if not normalized_file_path:
+        return None, "file_path parameter is required"
+
+    candidate_path = Path(normalized_file_path).expanduser()
+    if not candidate_path.is_absolute():
+        candidate_path = _resolve_default_workspace_directory() / candidate_path
+
+    try:
+        resolved_path = candidate_path.resolve(strict=False)
+    except OSError:
+        resolved_path = candidate_path
+
+    return resolved_path, None
 PDF_SEARCH_STOPWORDS = {
     "about",
     "after",
@@ -392,23 +440,22 @@ async def read_file(args: Dict[str, Any]) -> ToolResult:
     Returns:
         ToolResult with file data and standardized truncation messages
     """
-    file_path = args.get("file_path")
+    raw_file_path = args.get("file_path")
     offset = args.get("offset")
     limit = args.get("limit")
     
     try:
-        path = Path(file_path)
-        
-        # Validate absolute path
-        if not path.is_absolute():
-            return ToolResult.error_result(f"File path must be absolute: {file_path}")
+        path, path_error = _resolve_read_file_path(raw_file_path)
+        if path_error:
+            return ToolResult.error_result(path_error)
+        assert path is not None
         
         # Check if file exists
         if not path.exists():
-            return ToolResult.error_result(f"File not found: {file_path}")
+            return ToolResult.error_result(f"File not found: {path}")
         
         if not path.is_file():
-            return ToolResult.error_result(f"Not a file: {file_path}")
+            return ToolResult.error_result(f"Not a file: {path}")
 
         start = offset if offset is not None else 0
         line_limit = limit if limit is not None else DEFAULT_LINE_LIMIT
@@ -427,7 +474,7 @@ async def read_file(args: Dict[str, Any]) -> ToolResult:
         # Check if binary file
         if is_binary_file(str(path)):
             return ToolResult.error_result(
-                f"File appears to be binary and cannot be read as text: {file_path}"
+                f"File appears to be binary and cannot be read as text: {path}"
             )
 
         # Detect encoding

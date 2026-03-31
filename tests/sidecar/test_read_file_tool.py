@@ -48,6 +48,59 @@ async def test_read_file_uses_default_limit_when_not_provided(tmp_path: Path):
 
 
 @pytest.mark.asyncio
+async def test_read_file_resolves_relative_path_from_selected_workspace(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+):
+    workspace_dir = tmp_path / "workspace"
+    nested_dir = workspace_dir / "frontend" / "src" / "main"
+    nested_dir.mkdir(parents=True)
+    target = nested_dir / "index.cjs"
+    target.write_text("console.log('workspace');\n", encoding="utf-8")
+    permission_state_path = tmp_path / "permission-state.json"
+    permission_state_path.write_text(
+        (
+            '{'
+            '"version":1,'
+            '"permissions":{"filesystem_workspace_access":{'
+            '"granted":true,'
+            '"selected_paths":["%s"]'
+            '}}'
+            '}'
+        ) % str(workspace_dir),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("WINDIE_PERMISSION_STATE_PATH", str(permission_state_path))
+
+    result = await read_file({"file_path": "frontend/src/main/index.cjs"})
+
+    assert result.success is True
+    assert result.data["file_path"] == str(target)
+    assert result.data["content"] == "console.log('workspace');\n"
+    assert f"File path: {target}" in result.data["llm_content"]
+
+
+@pytest.mark.asyncio
+async def test_read_file_resolves_relative_path_from_home_when_workspace_missing(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+):
+    home_dir = tmp_path / "home"
+    target = home_dir / "notes.txt"
+    home_dir.mkdir()
+    target.write_text("hello from home\n", encoding="utf-8")
+    monkeypatch.delenv("WINDIE_PERMISSION_STATE_PATH", raising=False)
+    monkeypatch.setattr(Path, "home", lambda: home_dir)
+
+    result = await read_file({"file_path": "notes.txt"})
+
+    assert result.success is True
+    assert result.data["file_path"] == str(target)
+    assert result.data["content"] == "hello from home\n"
+    assert f"File path: {target}" in result.data["llm_content"]
+
+
+@pytest.mark.asyncio
 async def test_read_file_respects_offset_and_limit_window(tmp_path: Path):
     target = tmp_path / "window.txt"
     target.write_text("alpha\nbeta\ngamma\ndelta\n", encoding="utf-8")

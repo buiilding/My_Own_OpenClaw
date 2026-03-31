@@ -28,7 +28,7 @@ The sidecar filesystem surface is intentionally narrow:
 - `read_file`: safe text reads with pagination + truncation hints
 - `replace`: deterministic edits with strict/lenient matching and atomic file writes
 
-Both require absolute file paths.
+`replace` still requires an absolute file path. `read_file` accepts absolute paths and also accepts paths relative to the selected workspace folder when one is set; otherwise relative paths resolve from `Path.home()`.
 
 ## `read_file` Contract
 
@@ -36,7 +36,8 @@ Entry: `read_file(args: dict) -> ToolResult`.
 
 Validation:
 
-- `file_path` must be absolute and point to existing regular file
+- `file_path` must resolve to an existing regular file
+- absolute paths are allowed; relative paths resolve from the selected workspace folder when available, otherwise from `Path.home()`
 - binary-like non-PDF files are rejected via extension/signature/null-byte/printable-ratio checks (`file_utils.is_binary_file`)
 - image files (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.tif`, `.tiff`, `.ico`, `.svg`) are handled by an image attachment path before binary rejection
 - `offset` must be non-negative int

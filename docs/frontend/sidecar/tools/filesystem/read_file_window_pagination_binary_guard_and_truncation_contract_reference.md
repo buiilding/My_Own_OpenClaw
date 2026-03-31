@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for sidecar `read_file`: absolute-path guardrails, binary/encoding detection, line-window pagination semantics, and long-line truncation messaging."
+summary: "Deep reference for sidecar `read_file`: workspace-relative path resolution, binary/encoding detection, line-window pagination semantics, and long-line truncation messaging."
 read_when:
   - When changing `read_file_tool.py`, `file_utils.py`, or `ReadFileArgs` schema fields.
   - When debugging offset/limit paging behavior, binary-file rejections, or truncated-line output hints.
@@ -19,7 +19,10 @@ title: "Read-File Window Pagination, Binary Guard, and Truncation Contract Refer
 
 `read_file(args)` requires:
 
-- `file_path`: absolute path to an existing regular file
+- `file_path`: path to an existing regular file
+  - absolute paths are allowed
+  - relative paths resolve from the selected workspace folder when `filesystem_workspace_access` has a stored selected path
+  - if no workspace folder is selected, relative paths resolve from `Path.home()`
 
 Optional controls:
 
@@ -28,7 +31,6 @@ Optional controls:
 
 Validation failures:
 
-- non-absolute path -> error
 - missing path / non-file path -> error
 - invalid `offset` (< 0 or non-int) -> error
 - invalid `limit` (<= 0 or non-int) -> error
