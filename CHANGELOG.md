@@ -29,6 +29,7 @@ All notable changes to WindieOS will be documented in this file.
 - feat(tool-log-visibility-toggle): add a General settings toggle that hides raw tool-call/tool-output cards by default, replaces live tool rows with subdued explanation text, and collapses completed-loop actions behind a `View actions` summary.
 
 ### Fixed
+- fix(sidecar-remote-memory-fallback): make sidecar embedding, semantic summarization, and title HTTP clients fall back to the local backend on retryable hosted `5xx` responses such as Cloudflare tunnel `530`, instead of failing transcript and memory persistence outright when the hosted endpoint is degraded.
 - fix(browser-tool-schema-contract): remove the browser-only schema rewriter, make the backend `browser` tool emit its model-facing schema through the generic tool path, and reject removed legacy browser alias actions directly during backend validation.
 - fix(sidecar-test-harness): make shared schema-parity normalization resolve single-entry composition wrappers correctly and let vendored `browser_use` origin checks skip when optional vendored dependencies are unavailable in the local test env.
 - fix(frontend-sidecar-runtime-decoupling): remove backend-package imports from the sidecar runtime by keeping client-local exposed-tool names and string-based memory-type normalization in the sidecar itself, so Windows/Electron source runs in `frontend_jarvis` no longer depend on `backend.src.*`; add focused sidecar regression coverage and update sidecar/setup docs.

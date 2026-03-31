@@ -37,6 +37,11 @@ class RemoteApiClientBase:
             await self._session.close()
             self._session = None
 
+    @staticmethod
+    def _should_try_fallback_for_status(status: int) -> bool:
+        """Return True when an HTTP status should try the next backend URL."""
+        return 500 <= int(status) <= 599
+
     async def _post_success_json(
         self,
         *,
@@ -61,6 +66,18 @@ class RemoteApiClientBase:
                 ) as response:
                     if response.status != 200:
                         error_text = await response.text()
+                        if (
+                            self._should_try_fallback_for_status(response.status)
+                            and index + 1 < len(self.backend_urls)
+                        ):
+                            logger.warning(
+                                "%s API at %s returned HTTP %s; trying fallback %s",
+                                api_label,
+                                backend_url,
+                                response.status,
+                                self.backend_urls[index + 1],
+                            )
+                            continue
                         raise Exception(f"{api_label} API returned {response.status}: {error_text}")
 
                     data = await response.json()

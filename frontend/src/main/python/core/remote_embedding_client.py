@@ -6,47 +6,31 @@ Client for calling the backend embedding API from the frontend memory system.
 
 import aiohttp
 import logging
-from typing import Optional
 import numpy as np
 
-from core.backend_config import get_backend_http_url, get_backend_http_urls
+from core.remote_api_client_base import RemoteApiClientBase
 from core.unicode_sanitizer import sanitize_surrogates_in_text
 
 logger = logging.getLogger(__name__)
 
 
-class RemoteEmbeddingClient:
+class RemoteEmbeddingClient(RemoteApiClientBase):
     """
     Client for remote embedding generation via backend API.
 
     This replaces the local EmbeddingProvider in the frontend memory system.
     """
 
-    def __init__(self, backend_url: Optional[str] = None):
+    _aiohttp = aiohttp
+
+    def __init__(self, backend_url: str | None = None):
         """
         Initialize the remote embedding client.
 
         Args:
             backend_url: Base URL of the backend API
         """
-        self.backend_urls = (
-            [(backend_url or get_backend_http_url()).rstrip("/")]
-            if backend_url
-            else get_backend_http_urls()
-        )
-        self.backend_url = self.backend_urls[0]
-        self._session: Optional[aiohttp.ClientSession] = None
-
-    async def initialize(self) -> None:
-        """Initialize the HTTP session."""
-        if self._session is None:
-            self._session = aiohttp.ClientSession()
-
-    async def close(self) -> None:
-        """Close the HTTP session."""
-        if self._session:
-            await self._session.close()
-            self._session = None
+        super().__init__(backend_url=backend_url, timeout_seconds=30)
 
     async def embed_text(self, text: str) -> np.ndarray:
         """
@@ -75,10 +59,21 @@ class RemoteEmbeddingClient:
                 async with self._session.post(
                     f"{backend_url}/api/embeddings/",
                     json=payload,
-                    timeout=aiohttp.ClientTimeout(total=30)
+                    timeout=aiohttp.ClientTimeout(total=self.timeout_seconds)
                 ) as response:
                     if response.status != 200:
                         error_text = await response.text()
+                        if (
+                            self._should_try_fallback_for_status(response.status)
+                            and index + 1 < len(self.backend_urls)
+                        ):
+                            logger.warning(
+                                "Embedding API at %s returned HTTP %s; trying fallback %s",
+                                backend_url,
+                                response.status,
+                                self.backend_urls[index + 1],
+                            )
+                            continue
                         raise Exception(f"Embedding API returned {response.status}: {error_text}")
 
                     data = await response.json()
