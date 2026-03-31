@@ -16,6 +16,14 @@ From repository root:
 pip install -r backend/requirements.txt
 ```
 
+On Windows from the backend directory, you can run the bundled setup helper instead:
+
+```powershell
+.\setup-windows.ps1
+```
+
+That installs `requirements.txt`, removes `onnxruntime`, and installs `onnxruntime-gpu`.
+
 On macOS, use the mac-specific backend manifest instead:
 
 ```bash
