@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- tweak(frontend-dashboard): refine the dashboard shell reference-tuning pass, including removing the decorative left notebook-coil gutter and simplifying the sidebar offset so the ruled page starts cleanly at the window edge.
 - feat(frontend-chat-pill): restyle the overlay chat pill into a flatter hand-drawn notebook control with a pencil-outline shell, handwritten input styling, a simple leading plus, and paper-toned action buttons.
 - feat(frontend-dashboard): restyle the main dashboard window into a ruled notebook theme with paper-toned panels, sketch borders, and handwriting typography while leaving the chat pill and response overlay unchanged.
 - refactor(frontend-dashboard): rename renderer `ChatGpt*` files to descriptive WindieOS-oriented names (`DashboardShell`, `DashboardShell.css`, and `WindieGlyph`) and update frontend imports/docs accordingly.
