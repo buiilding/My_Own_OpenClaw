@@ -22,7 +22,7 @@ On Windows from the backend directory, you can run the bundled setup helper inst
 .\setup-windows.ps1
 ```
 
-That installs `requirements.txt`, removes `onnxruntime`, and installs `onnxruntime-gpu`.
+That installs `requirements.txt`, upgrades `torch`/`torchvision`/`torchaudio` to the CUDA 12.8 wheels, removes `onnxruntime`, and installs `onnxruntime-gpu`.
 
 On macOS, use the mac-specific backend manifest instead:
 
