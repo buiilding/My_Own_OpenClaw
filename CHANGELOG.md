@@ -5,12 +5,6 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
-- feat(frontend-dashboard): add a dedicated top dashboard title bar for WindieOS window controls so minimize, maximize, and close sit in their own horizontal strip and the main dashboard content starts below it.
-- fix(frontend-dashboard): stop the glass dashboard header from overflowing horizontally so the standalone close button no longer gets clipped at the right edge.
-- tweak(frontend-dashboard): split the dashboard window controls back into three standalone circular buttons instead of a shared glass capsule.
-- tweak(frontend-dashboard): replace the oversized rounded glass dashboard header container with a simpler horizontal divider while keeping the blue glass theme intact.
-- feat(frontend-dashboard): restyle the dashboard into a blue futuristic glassmorphism UI with frosted shell surfaces, luminous controls, and matching memory/settings panels while leaving the overlay chat pill untouched.
-- feat(web-search): add one logical backend-owned `web_search` capability that routes to provider-native search for OpenAI/Gemini, falls back to backend Brave Search for other providers, emits lightweight `search-source` trace rows, and updates backend/frontend/docs coverage for the new execution lane.
 - refactor(frontend-dashboard): rename renderer `ChatGpt*` files to descriptive WindieOS-oriented names (`DashboardShell`, `DashboardShell.css`, and `WindieGlyph`) and update frontend imports/docs accordingly.
 - feat(frontend-workspace-switcher): make the dashboard header workspace chip interactive, add a Settings > Workspace management tab, and broadcast renderer-triggered workspace changes immediately from main so menu, header, and settings stay in sync.
 - refactor(system-prompt): expand the Codex-style WindieOS system prompt with more of Codex's execution scaffold, including repo-instruction scope, preamble discipline, and final-answer formatting rules, while keeping WindieOS-specific computer-use, browser-use, process, and coding rules, and extend the prompt regression contract accordingly.
