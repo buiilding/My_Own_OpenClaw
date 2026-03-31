@@ -9,6 +9,7 @@ from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.schema_registry import SchemaRegistry
+from backend.src.tools.tool_catalog import get_model_visible_tool_names
 
 
 class DummyArgs(BaseModel):
@@ -171,12 +172,32 @@ def test_tool_registry_filtered_declarations_include_requested_system_tools():
     names = [d["name"] for d in declarations]
 
     assert names == [
-        "get_open_windows",
-        "get_system_stats",
         "run_shell_command",
-        "read_file",
         "replace",
+        "read_file",
+        "get_system_stats",
+        "get_open_windows",
     ]
+
+
+def test_tool_registry_declarations_follow_model_visible_catalog_order():
+    config = AppConfig()
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+
+    declarations = registry.get_function_declarations()
+
+    assert [d["name"] for d in declarations] == get_model_visible_tool_names()
+
+
+def test_tool_registry_filtered_declarations_preserve_requested_order():
+    config = AppConfig()
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+
+    declarations = registry.get_function_declarations_filtered(
+        ["replace", "browser", "read_file", "replace"]
+    )
+
+    assert [d["name"] for d in declarations] == ["replace", "browser", "read_file"]
 
 
 def test_tool_registry_mouse_declaration_exposes_direct_action_schema():

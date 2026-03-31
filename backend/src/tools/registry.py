@@ -13,7 +13,6 @@ from backend.src.tools.remote import get_all_remote_tools
 from backend.src.tools.schema_registry import SchemaRegistry
 from backend.src.tools.tool_catalog import (
     get_model_visible_tool_names,
-    get_schema_source_tool_names,
 )
 from backend.src.tools.tool_specs import get_tool_spec_parameters
 
@@ -69,41 +68,27 @@ class ToolRegistry:
     def get_tool_names(self) -> List[str]:
         return sorted(self.tools.keys())
 
-    def get_schema_source_tool_names(self) -> List[str]:
+    def get_model_tool_names(self) -> List[str]:
         registered = set(self.tools.keys())
-        catalog_tool_names = [
+        return [
             tool_name
-            for tool_name in get_schema_source_tool_names()
+            for tool_name in get_model_visible_tool_names()
             if tool_name in registered
         ]
-        extra_tool_names = sorted(
-            tool_name
-            for tool_name in registered
-            if tool_name not in set(get_model_visible_tool_names())
-            and tool_name not in set(get_schema_source_tool_names())
-        )
-        return catalog_tool_names + extra_tool_names
-
-    def get_model_tool_names(self) -> List[str]:
-        visible = set(get_model_visible_tool_names())
-        return [tool_name for tool_name in self.get_schema_source_tool_names() if tool_name in visible]
 
     def get_function_declarations(self) -> List[Dict[str, Any]]:
-        return self.get_function_declarations_filtered(self.get_schema_source_tool_names())
+        return self.get_function_declarations_filtered(self.get_model_tool_names())
 
     def get_function_declarations_filtered(
         self,
         tool_names: List[str],
     ) -> List[Dict[str, Any]]:
-        requested_tool_names = {
-            tool_name
-            for tool_name in tool_names
-            if isinstance(tool_name, str)
-        }
         declarations: List[Dict[str, Any]] = []
-        for tool_name in self.get_schema_source_tool_names():
-            if tool_name not in requested_tool_names:
+        seen_tool_names: set[str] = set()
+        for tool_name in tool_names:
+            if not isinstance(tool_name, str) or tool_name in seen_tool_names:
                 continue
+            seen_tool_names.add(tool_name)
             tool = self.get_tool(tool_name)
             if tool is None:
                 continue

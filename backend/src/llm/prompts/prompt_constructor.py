@@ -99,11 +99,10 @@ class PromptConstructor:
 
     def _get_filtered_tool_schemas(self) -> List[Dict[str, Any]]:
         """Return tool schemas filtered by centralized tool policy."""
-        schema_source_getter = getattr(self.tool_registry, "get_schema_source_tool_names", None)
-        if callable(schema_source_getter):
-            schema_source_names = schema_source_getter()
+        model_tool_names_getter = getattr(self.tool_registry, "get_model_tool_names", None)
+        if callable(model_tool_names_getter):
             filtered_names = self.tool_policy.filter_tool_names(
-                schema_source_names,
+                model_tool_names_getter(),
                 normalize_wrappers=False,
             )
             return self.tool_registry.get_function_declarations_filtered(filtered_names) or []

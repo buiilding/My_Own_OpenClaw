@@ -1,8 +1,8 @@
 ---
-summary: "Deep backend reference for ToolRegistry and SchemaRegistry internals: catalog-driven remote tool registration, canonical schema caching rules, dynamic unified computer/system declaration assembly, capability extraction fallbacks, and backend/frontend exposed-tool parity tests."
+summary: "Deep backend reference for ToolRegistry and SchemaRegistry internals: catalog-driven remote tool registration, canonical schema caching rules, direct model-facing declaration assembly, capability extraction fallbacks, and backend/frontend exposed-tool parity tests."
 read_when:
   - When changing backend tool declaration generation, schema cache behavior, or remote-tool registration paths.
-- When debugging missing/invalid tool schemas, catalog-driven wrapper assembly drift, request-id correlation, or sidecar contract drift.
+  - When debugging missing/invalid tool schemas, catalog-driven declaration drift, request-id correlation, or sidecar contract drift.
 title: "Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference"
 ---
 
@@ -53,13 +53,11 @@ The catalog owns:
 - every backend-registered remote tool name
 - the import path/class name used to instantiate the stub
 - whether the tool is model-visible directly
-- whether the tool belongs to a unified wrapper (`computer_use`, `system_use`)
 
 `backend/src/tools/remote_tools/registry.py` now builds `REMOTE_TOOLS` from that catalog at import time.
 
 Current names:
 
-- unified wrappers: `computer_use`, `system_use`
 - computer: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`, `get_open_windows`
 - system: `get_system_stats`, `open_app`, `run_shell_command`, `process`
 - filesystem: `read_file`, `replace`
@@ -69,36 +67,25 @@ Current names:
 
 Catalog-driven runtime helpers also power:
 
-- wrapper-member lookup in parser/policy code
-- wrapper dispatch parity aliases in remote computer/system stubs
 - model-facing surface resolution in `ToolRegistry`
-- sidecar exposed-tool and wrapper-member sets in `frontend/src/main/python/tools/registry.py`
+- sidecar exposed-tool parity in `frontend/src/main/python/tools/registry.py`
 
 ## Declaration and Capability APIs
 
 `ToolRegistry` declaration APIs:
 
-- `get_function_declarations()` -> all registered tools
-- `get_function_declarations_filtered(tool_names)` -> subset by name set
+- `get_function_declarations()` -> all registered model-visible tools in catalog order
+- `get_function_declarations_filtered(tool_names)` -> subset by requested name list
 
 Ordering behavior:
 
-- model-facing declarations follow catalog order, not raw registration order
-- full declaration generation starts from schema-source tools (`mouse_control`, `read_file`, `browser`, etc.), not from wrapper stubs
+- full declaration generation follows the catalog-defined model-visible order, not raw registration order
+- filtered declaration generation preserves caller-provided tool-name order while skipping missing or unregistered names
 
-Dynamic surface resolution behavior:
+Assembly behavior:
 
-- `ToolRegistry.get_schema_source_tool_names()` returns the concrete/direct inputs that feed model-facing schema generation
-- `resolve_model_tool_surface(...)` groups requested concrete computer members into `computer_use`
-  and requested concrete system/filesystem members into `system_use`
-- if only a subset of wrapper members survives filtering, the wrapper schema shrinks to that subset
-- if no members remain for a wrapper, that wrapper disappears from the emitted model-facing surface
-
-Wrapper schema generation behavior:
-
-- `backend/src/tools/computer/unified_schema.py` builds `computer_use` from the wrapper member set selected for that request
-- `backend/src/tools/system/unified_schema.py` builds `system_use` from the wrapper member set selected for that request
-- direct model-visible tools (`open_app`, `process`, `browser`) keep their own declarations
+- each registered tool emits one canonical flat tool spec directly from its `args_model`
+- browser now follows the same generic schema path as every other registered backend tool
 - non-catalog test/helper tools registered directly into `ToolRegistry` still pass through as direct schemas when explicitly requested
 
 Capabilities API:
@@ -113,15 +100,9 @@ Parameter extraction fallback behavior (`_extract_schema_parameters`):
 
 - schema is `None` -> returns `None` (capabilities unavailable)
 - non-dict schema -> returns `{}`
-- missing/invalid `function` dict -> returns `{}`
 - missing/invalid `parameters` dict -> returns `{}`
 
 This keeps capability calls non-fatal during partial schema failures.
-
-Wrapper capability behavior:
-
-- `computer_use` / `system_use` capabilities now use the same dynamically assembled declaration the model sees
-- direct non-wrapper tools still read parameters from `SchemaRegistry`
 
 ## SchemaRegistry Canonicalization and Cache Behavior
 
@@ -130,10 +111,9 @@ Wrapper capability behavior:
 Canonical schema requirements (`_is_canonical_tool_schema`):
 
 - top-level dict with `type == "function"`
-- `function` is dict
-- `function.name` is string
-- `function.parameters` is dict
-- `function.description` is optional string
+- `name` is string
+- `parameters` is dict
+- `description` is optional string
 
 Cache read rules:
 
@@ -157,12 +137,8 @@ Test-backed behavior from `test_tool_registry_schema.py`:
 - schema errors are contained and return `None`
 - registrations with same name overwrite previous tool instance
 - `get_tool_names()` returns sorted list
-- filtered declaration requests with legacy computer names normalize to `computer_use`
-- filtered declaration requests with legacy system/filesystem names normalize to `system_use`
-- filtered wrapper declarations shrink to the selected member set instead of using a static final replacement layer
-- unified declaration includes required `metadata.description|explanation|expectation` fields
-- unified `system_use` declaration requires top-level `explanation` and constrains `arguments`
-  via action-specific `oneOf` variants
+- full declarations follow the model-visible catalog order
+- filtered declarations preserve requested direct-tool order
 - capabilities fallback returns `{}` parameters when schema/function payload shape is malformed
 
 ## RemoteToolBase and Request-ID Semantics
