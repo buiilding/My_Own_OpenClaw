@@ -9,7 +9,7 @@ import {
   Pin,
   Trash2,
 } from 'lucide-react';
-import ChatGptLogo from '../../../components/ChatGptLogo';
+import WindieGlyph from '../../../components/WindieGlyph';
 import { conversationGroupsPropType } from './shared/conversationGroupPropTypes';
 import DashboardSidebarNavigation from './sidebar/DashboardSidebarNavigation';
 import DashboardSidebarUserMenu from './sidebar/DashboardSidebarUserMenu';
@@ -189,7 +189,7 @@ function DashboardSidebar({
                 <PanelLeft size={18} data-testid="sidebar-collapsed-expand-icon" />
               ) : (
                 <span data-testid="sidebar-collapsed-brand-icon" aria-hidden="true">
-                  <ChatGptLogo size={14} />
+                  <WindieGlyph size={14} />
                 </span>
               )}
             </button>
@@ -207,7 +207,7 @@ function DashboardSidebar({
           <>
             <div className="cg-sidebar-brand">
               <div className="cg-brand-dot">
-                <ChatGptLogo size={14} />
+                <WindieGlyph size={14} />
               </div>
             </div>
             <button
