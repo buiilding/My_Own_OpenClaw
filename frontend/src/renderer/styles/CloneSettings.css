@@ -375,3 +375,91 @@
     justify-content: space-between;
   }
 }
+
+.cg-dashboard-shell .clone-settings-panel {
+  background:
+    linear-gradient(180deg, rgba(23, 45, 84, 0.72), rgba(10, 21, 42, 0.6)),
+    rgba(8, 18, 36, 0.42);
+  color: var(--dashboard-text);
+  box-shadow: var(--dashboard-shadow-strong);
+  backdrop-filter: blur(calc(var(--dashboard-blur) + 10px));
+  -webkit-backdrop-filter: blur(calc(var(--dashboard-blur) + 10px));
+}
+
+.cg-dashboard-shell .clone-settings-sidebar {
+  border-right: 1px solid var(--dashboard-border-soft);
+  background: rgba(7, 17, 34, 0.28);
+}
+
+.cg-dashboard-shell .clone-settings-close,
+.cg-dashboard-shell .clone-settings-tab,
+.cg-dashboard-shell .clone-settings-secondary-button,
+.cg-dashboard-shell .clone-settings-danger-button,
+.cg-dashboard-shell .clone-settings-play-button,
+.cg-dashboard-shell .clone-settings-row-tts .clone-settings-select-wrap,
+.cg-dashboard-shell .clone-settings-select-shortcut {
+  border: 1px solid var(--dashboard-border);
+  background:
+    linear-gradient(180deg, rgba(30, 58, 104, 0.58), rgba(11, 23, 46, 0.44)),
+    rgba(9, 19, 38, 0.34);
+  color: var(--dashboard-text);
+  box-shadow: var(--dashboard-shadow);
+  backdrop-filter: blur(var(--dashboard-blur));
+  -webkit-backdrop-filter: blur(var(--dashboard-blur));
+}
+
+.cg-dashboard-shell .clone-settings-close:hover,
+.cg-dashboard-shell .clone-settings-tab:hover,
+.cg-dashboard-shell .clone-settings-tab.active,
+.cg-dashboard-shell .clone-settings-secondary-button:hover:not(:disabled),
+.cg-dashboard-shell .clone-settings-danger-button:hover:not(:disabled),
+.cg-dashboard-shell .clone-settings-play-button:hover,
+.cg-dashboard-shell .clone-settings-row-tts .clone-settings-select-wrap:hover,
+.cg-dashboard-shell .clone-settings-select-shortcut:hover {
+  border-color: var(--dashboard-border-strong);
+  background:
+    linear-gradient(180deg, rgba(44, 80, 141, 0.72), rgba(15, 33, 64, 0.58)),
+    rgba(11, 24, 46, 0.42);
+}
+
+.cg-dashboard-shell .clone-settings-general h2,
+.cg-dashboard-shell .clone-settings-placeholder h2,
+.cg-dashboard-shell .clone-settings-row > span,
+.cg-dashboard-shell .clone-settings-row-rich span {
+  color: var(--dashboard-text);
+}
+
+.cg-dashboard-shell .clone-settings-row-rich p,
+.cg-dashboard-shell .clone-settings-placeholder p,
+.cg-dashboard-shell .clone-settings-action-status,
+.cg-dashboard-shell .clone-settings-workspace-path {
+  color: var(--dashboard-text-muted);
+}
+
+.cg-dashboard-shell .clone-settings-select,
+.cg-dashboard-shell .clone-settings-select option {
+  color: var(--dashboard-text);
+  background: rgba(11, 23, 46, 0.92);
+}
+
+.cg-dashboard-shell .clone-settings-toggle {
+  border: 1px solid var(--dashboard-border);
+  background: rgba(11, 24, 46, 0.56);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.cg-dashboard-shell .clone-settings-toggle-thumb {
+  background: rgba(208, 231, 247, 0.9);
+}
+
+.cg-dashboard-shell .clone-settings-toggle.checked {
+  background: linear-gradient(135deg, rgba(119, 216, 255, 0.5) 0%, rgba(76, 184, 255, 0.34) 100%);
+}
+
+.cg-dashboard-shell .clone-settings-toggle.checked .clone-settings-toggle-thumb {
+  background: #f4fbff;
+}
+
+.cg-dashboard-shell .clone-settings-swatch {
+  border-color: rgba(176, 230, 255, 0.36);
+}

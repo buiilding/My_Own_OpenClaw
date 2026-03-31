@@ -1,8 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 :root {
   --font-ui: 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
+  --font-dashboard-ui: 'Space Grotesk', 'Manrope', 'Segoe UI', sans-serif;
 
   --bg-base: #141414;
   --bg-muted: #1d1d1d;
@@ -93,6 +94,33 @@
   --ui-on-accent: var(--ui-neutral-white);
   --ui-settings-swatch-bg: var(--ui-neutral-black);
   --ui-toggle-thumb-on: var(--ui-neutral-white);
+
+  --dashboard-shell-bg: #06101f;
+  --dashboard-shell-bg-strong: #0a1730;
+  --dashboard-shell-bg-soft: #102545;
+  --dashboard-surface: rgba(11, 24, 46, 0.58);
+  --dashboard-surface-strong: rgba(16, 33, 64, 0.76);
+  --dashboard-surface-raised: rgba(22, 44, 84, 0.7);
+  --dashboard-surface-soft: rgba(13, 28, 52, 0.48);
+  --dashboard-border: rgba(146, 221, 255, 0.18);
+  --dashboard-border-strong: rgba(146, 221, 255, 0.34);
+  --dashboard-border-soft: rgba(146, 221, 255, 0.12);
+  --dashboard-text: rgba(238, 248, 255, 0.96);
+  --dashboard-text-muted: rgba(168, 197, 222, 0.74);
+  --dashboard-text-dim: rgba(129, 157, 189, 0.56);
+  --dashboard-accent: #77d8ff;
+  --dashboard-accent-strong: #4cb8ff;
+  --dashboard-accent-soft: rgba(76, 184, 255, 0.16);
+  --dashboard-glow: rgba(100, 202, 255, 0.22);
+  --dashboard-glow-strong: rgba(76, 184, 255, 0.42);
+  --dashboard-shadow:
+    0 24px 60px rgba(1, 9, 24, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --dashboard-shadow-strong:
+    0 34px 80px rgba(1, 7, 22, 0.56),
+    0 0 0 1px rgba(146, 221, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --dashboard-blur: 22px;
 }
 
 *,
