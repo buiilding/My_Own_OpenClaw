@@ -18,6 +18,29 @@ function findLastUserIndex(messages) {
   return -1;
 }
 
+function hasIncompleteAssistantReplyAfterIndex(messages, lowerBound) {
+  if (!Array.isArray(messages)) {
+    return false;
+  }
+  for (let index = lowerBound; index < messages.length; index += 1) {
+    const message = messages[index];
+    if (message?.sender !== 'assistant') {
+      continue;
+    }
+    if (message?.type === 'tool-call' || message?.type === 'tool-output') {
+      continue;
+    }
+    if (typeof message?.text !== 'string' || message.text.trim().length === 0) {
+      continue;
+    }
+    if (message.isComplete === true) {
+      continue;
+    }
+    return true;
+  }
+  return false;
+}
+
 export function readExplanationFromArguments(argumentsLike) {
   if (!argumentsLike || typeof argumentsLike !== 'object' || Array.isArray(argumentsLike)) {
     return null;
@@ -106,6 +129,10 @@ export function buildToolLogPresentationMessages(messages, { showToolLogs = true
     const lastUserIndex = findLastUserIndex(messages);
     return lastUserIndex >= 0 ? lastUserIndex + 1 : 0;
   })();
+  const keepActiveSegmentExpanded = (
+    isBusy
+    || hasIncompleteAssistantReplyAfterIndex(messages, activeSegmentLowerBound)
+  );
   let pendingSummary = null;
   let summaryIndex = 0;
 
@@ -151,7 +178,7 @@ export function buildToolLogPresentationMessages(messages, { showToolLogs = true
         return;
       }
 
-      const isActiveSegmentMessage = isBusy && index >= activeSegmentLowerBound;
+      const isActiveSegmentMessage = keepActiveSegmentExpanded && index >= activeSegmentLowerBound;
       if (isActiveSegmentMessage) {
         explanations.forEach((explanation, explanationIndex) => {
           renderedMessages.push(buildToolExplanationMessage(message, explanation, explanationIndex));
