@@ -32,7 +32,7 @@ Tool exposure filtering is layered in this order:
 Two filtering modes now exist in practice:
 
 - wrapper-normalized filtering (`normalize_wrappers=True`, default) for parser/tool-capability surfaces
-- concrete schema-source filtering (`normalize_wrappers=False`) for prompt schema generation before wrapper assembly
+- direct-tool filtering (`normalize_wrappers=False`) for prompt schema generation against the canonical model-visible tool list
 
 Practical effect:
 
@@ -113,16 +113,15 @@ Method normalization:
 
 Current flow:
 
-1. read schema-source tool names from `ToolRegistry.get_schema_source_tool_names()`
-2. apply `ToolPolicy.filter_tool_names(..., normalize_wrappers=False)` to keep concrete tool membership intact
-3. hand the filtered concrete list back to `ToolRegistry.get_function_declarations_filtered(...)`
-4. assemble final model-facing wrappers/direct tools from that filtered set
+1. read model-visible tool names from `ToolRegistry.get_model_tool_names()`
+2. apply `ToolPolicy.filter_tool_names(..., normalize_wrappers=False)` to that direct-tool list
+3. hand the filtered list back to `ToolRegistry.get_function_declarations_filtered(...)`
 
 Result:
 
 - LLM only sees policy-filtered tool schemas
-- wrapper membership now tracks the concrete tools that survived filtering
-- mouse schema the LLM receives is pruned inside `computer_use` when dev selection disables OCR or prediction
+- prompt injection no longer depends on a separate schema-source helper path
+- mouse schema the LLM receives is still pruned when dev selection disables OCR or prediction
 
 ## Available-Tools Listing Coupling
 

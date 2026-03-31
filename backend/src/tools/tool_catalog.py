@@ -51,9 +51,5 @@ def get_model_visible_tool_names() -> list[str]:
     return [entry.name for entry in _CATALOG if entry.model_visible]
 
 
-def get_schema_source_tool_names() -> list[str]:
-    return get_model_visible_tool_names()
-
-
 def get_backend_exposed_tool_names() -> list[str]:
     return [entry.name for entry in _CATALOG]
