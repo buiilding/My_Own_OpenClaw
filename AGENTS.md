@@ -125,6 +125,7 @@ User experience target:
 - Destructive ops forbidden unless explicit (`reset --hard`, `clean`, `restore`, `rm`, …).
 - Prefer HTTPS remotes; flip SSH->HTTPS before pull/push.
 - Commit helper on PATH: `committer` (bash). This repo ships `./scripts/committer` (executable); use it directly or via PATH `committer`.
+- On Windows PowerShell, do not invoke `./scripts/committer` directly; it can trigger the shell "How do you want to open this file?" dialog. Use Git Bash explicitly, or fall back to plain `git add` + `git commit` from PowerShell.
 - Commit message: Conventional Commit subject + short description body (when it helps review). Example:
   - `feat(frontend-dashboard): delete semantic memory entries`
   - blank line

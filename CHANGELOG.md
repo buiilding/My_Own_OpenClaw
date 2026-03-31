@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- docs(agents): document that Windows PowerShell should not invoke `./scripts/committer` directly because it can trigger the shell file-open dialog; use Git Bash explicitly or plain `git add` + `git commit` instead.
 - fix(backend-setup): make the Windows backend setup helper install CUDA-enabled PyTorch wheels before `onnxruntime-gpu` so ONNX Runtime can load its required CUDA DLLs instead of falling back to CPU.
 - chore(backend-setup): add a Windows backend setup script that installs `requirements.txt`, removes `onnxruntime`, and installs `onnxruntime-gpu`, and document it in the backend README.
 - chore(editor): add a repo-level `pyrightconfig.json` so `backend.src.*` imports resolve consistently in Basedpyright/Pyright from the workspace root.
