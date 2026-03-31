@@ -173,16 +173,23 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     )
     content = prompt_file.read_text(encoding="utf-8")
 
-    assert "You are WindieOS, an AI operating system agent running in the WindieOS desktop runtime." in content
+    assert "You are WindieOS, a coding and operating agent running in the WindieOS desktop runtime." in content
     assert "## Personality" in content
     assert "## Workspace instructions" in content
     assert "## Task execution" in content
     assert "## Validating your work" in content
+    assert "## Progress updates" in content
+    assert "## Presenting results" in content
     assert "<tool_selection>" in content
     assert "<state_rules>" in content
     assert "<tool_notes>" in content
     assert "<coding_rules>" in content
     assert "<response_rules>" in content
+    assert "behave like a strong coding agent first" in content
+    assert "default workflow is:" in content
+    assert "continue until the coding task is actually resolved" in content
+    assert "For coding tasks, prefer targeted tests, builds, or command output over assumption." in content
+    assert "Treat coding work as first-class work, not a fallback path behind browser or desktop actions." in content
     assert "Prefer keyboard shortcuts over mouse interaction when both are reliable" in content
     assert "Do not treat execution status alone as success" in content
     assert "The emergency stop hotkey is Command/Ctrl+Shift+Escape" in content
