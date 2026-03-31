@@ -221,3 +221,53 @@ async def test_web_search_tool_routes_to_gemini_native_search(monkeypatch):
         }
     ]
     assert 'Web search results for "windieos latest":' in result.llm_content
+
+
+@pytest.mark.asyncio
+async def test_web_search_tool_prefers_live_session_config_over_stale_context_config(monkeypatch):
+    tool = WebSearchTool()
+    stale_config = AppConfig(
+        model_provider="openai",
+        selected_model_id="gpt-5@@gpt-5-nonthinking",
+    )
+    live_session_config = AppConfig(
+        model_provider="gemini",
+        selected_model_id="gemini-3-flash-preview@@gemini-3-flash-thinking",
+    )
+
+    class _DummyLLMClient:
+        async def get_completion_response(self, **kwargs):
+            assert kwargs["model"] == live_session_config.selected_model_id
+            assert kwargs["native_web_search_enabled"] is True
+            return {
+                "content": "",
+                "web_search_sources": [
+                    {
+                        "url": "https://example.com/live",
+                        "title": "Live Gemini Result",
+                        "provider": "gemini",
+                        "rank": 1,
+                    }
+                ],
+            }
+
+    session = SimpleNamespace(llm_client=_DummyLLMClient(), cfg=live_session_config)
+    result = await tool.run(
+        WebSearchArgs(query="rachel greene", count=1),
+        _build_tool_context(config=stale_config, session=session),
+    )
+
+    assert result.success is True
+    assert result.data == {
+        "query": "rachel greene",
+        "provider": "gemini",
+        "results": [
+            {
+                "url": "https://example.com/live",
+                "title": "Live Gemini Result",
+                "provider": "gemini",
+                "rank": 1,
+                "query": "rachel greene",
+            }
+        ],
+    }

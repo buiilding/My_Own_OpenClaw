@@ -132,6 +132,118 @@ def test_gemini_provider_filters_thought_blocks_from_visible_text():
 
 
 @pytest.mark.asyncio
+async def test_gemini_native_web_search_falls_back_to_sync_completion_when_async_transform_is_missing(
+    monkeypatch,
+):
+    provider = GeminiProvider(api_key="test-key")
+
+    async def fake_async_completion(**kwargs):
+        _ = kwargs
+        raise NotImplementedError(
+            "Vertex AI has a custom implementation of transform_request. Needs sync + async."
+        )
+
+    def fake_sync_completion(**kwargs):
+        assert kwargs["tools"] == [{"google_search": {}}]
+        return {
+            "choices": [
+                {
+                    "message": {
+                        "content": "grounded answer",
+                    },
+                    "finish_reason": "stop",
+                }
+            ],
+            "candidates": [
+                {
+                    "groundingMetadata": {
+                        "webSearchQueries": ["latest windieos news"],
+                        "groundingChunks": [
+                            {"web": {"uri": "https://example.com/a", "title": "Example A"}}
+                        ],
+                    }
+                }
+            ],
+        }
+
+    monkeypatch.setattr("backend.src.llm.providers.gemini.litellm.acompletion", fake_async_completion)
+    monkeypatch.setattr("backend.src.llm.providers.gemini.litellm.completion", fake_sync_completion)
+
+    response = await provider.get_completion(
+        model="gemini-3-flash-preview@@gemini-3-flash-thinking",
+        messages=[{"role": "user", "content": "hi"}],
+        native_web_search_enabled=True,
+    )
+
+    assert response["content"] == "grounded answer"
+    assert response["web_search_sources"] == [
+        {
+            "url": "https://example.com/a",
+            "title": "Example A",
+            "provider": "gemini",
+            "query": "latest windieos news",
+            "rank": 1,
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_gemini_native_web_search_falls_back_when_litellm_wraps_transform_gap(
+    monkeypatch,
+):
+    provider = GeminiProvider(api_key="test-key")
+
+    async def fake_async_completion(**kwargs):
+        _ = kwargs
+        raise RuntimeError(
+            "litellm.APIConnectionError: Vertex AI has a custom implementation of transform_request. Needs sync + async."
+        )
+
+    def fake_sync_completion(**kwargs):
+        assert kwargs["tools"] == [{"google_search": {}}]
+        return {
+            "choices": [
+                {
+                    "message": {
+                        "content": "grounded answer",
+                    },
+                    "finish_reason": "stop",
+                }
+            ],
+            "candidates": [
+                {
+                    "groundingMetadata": {
+                        "webSearchQueries": ["rachel greene"],
+                        "groundingChunks": [
+                            {"web": {"uri": "https://example.com/rachel", "title": "Rachel"}}
+                        ],
+                    }
+                }
+            ],
+        }
+
+    monkeypatch.setattr("backend.src.llm.providers.gemini.litellm.acompletion", fake_async_completion)
+    monkeypatch.setattr("backend.src.llm.providers.gemini.litellm.completion", fake_sync_completion)
+
+    response = await provider.get_completion(
+        model="gemini-3-flash-preview@@gemini-3-flash-thinking",
+        messages=[{"role": "user", "content": "hi"}],
+        native_web_search_enabled=True,
+    )
+
+    assert response["content"] == "grounded answer"
+    assert response["web_search_sources"] == [
+        {
+            "url": "https://example.com/rachel",
+            "title": "Rachel",
+            "provider": "gemini",
+            "query": "rachel greene",
+            "rank": 1,
+        }
+    ]
+
+
+@pytest.mark.asyncio
 async def test_gemini_stream_emits_thinking_and_captures_stream_tool_calls(monkeypatch):
     provider = GeminiProvider(api_key="test-key")
 
