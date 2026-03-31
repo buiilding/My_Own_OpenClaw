@@ -159,10 +159,9 @@ Dev/source run:
 3. Platform fallback command (`py` on Windows, `python3` on Linux/macOS).
 
 Set `WINDIE_PYTHON_PATH` explicitly during development to avoid accidental interpreter drift.
-In current source builds, the sidecar bootstrap also adds the repository root to
-`sys.path`, so `npm run electron:dev` from `frontend_jarvis` can import
-`backend.src.*` helpers without having to install the backend package into the
-frontend environment.
+The sidecar source runtime keeps its startup imports client-local, so
+`npm run electron:dev` from `frontend_jarvis` does not require the backend package
+to be installed into the frontend environment.
 
 ## 4) Frontend Node setup + run
 

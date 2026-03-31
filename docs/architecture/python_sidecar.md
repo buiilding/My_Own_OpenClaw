@@ -37,11 +37,9 @@ The bridge:
 - Frontend npm Electron launchers now snapshot the caller's active `CONDA_PREFIX` into
   `WINDIE_PYTHON_PATH` before entering `bash -lc`, so login-shell startup files cannot
   silently switch the sidecar back to a base Conda interpreter.
-- Sidecar source entrypoints now prepend both `frontend/src/main/python` and the
-  repository root to `sys.path` during bootstrap so dev Electron launches from the
-  frontend Conda environment can still import repo-root packages such as
-  `backend.src.tools.tool_catalog` without separately installing the backend as a
-  Python package into that environment.
+- Sidecar runtime modules do not import backend Python packages at startup. Client-side
+  tool exposure and memory-type normalization are kept local to the sidecar runtime,
+  while tests enforce parity against backend tool contracts.
 - On Linux, the Electron launcher filters one known harmless Chromium
   `StartTransientUnit ... UnitExists` stderr line during startup; on macOS it also
   filters the Chromium `SetApplicationIsDaemon ... paramErr` LaunchServices warning
@@ -130,7 +128,7 @@ Wakeword detection runs as a separate Python subprocess:
 - Core coverage:
   - `tests/sidecar/test_local_backend.py` (JSON-RPC handlers, tool execution, memory wiring)
   - `tests/sidecar/test_memory_service.py` (search/store validation, error handling)
-  - `tests/sidecar/test_bootstrap_paths.py` (source-run import path bootstrap for repo-root sidecar dependencies)
+  - `tests/sidecar/test_bootstrap_paths.py` (source-run bootstrap for client-local sidecar imports)
   - `tests/sidecar/test_stdout_json.py` (shared JSON-line stdout writer behavior)
 - Bridge regression coverage:
   - `tests/frontend/LocalBackendBridge.test.cjs` validates stale readiness retry timers cannot override newer process readiness checks.

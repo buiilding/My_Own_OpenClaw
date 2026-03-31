@@ -22,9 +22,9 @@ frontend_python_dir = str(Path(__file__).resolve().parent)
 if frontend_python_dir not in sys.path:
     sys.path.insert(0, frontend_python_dir)
 
-from core.bootstrap_paths import ensure_sidecar_import_paths
+from core.bootstrap_paths import ensure_sidecar_python_path
 
-frontend_python_dir, repo_root = ensure_sidecar_import_paths(__file__)
+frontend_python_dir = ensure_sidecar_python_path(__file__)
 
 from core.ipc_protocol import JSONRPCProtocol
 from core.feature_pack_installer import (
