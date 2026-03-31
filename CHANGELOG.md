@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- refactor(system-prompt): expand the Codex-style WindieOS system prompt with more of Codex's execution scaffold, including repo-instruction scope, preamble discipline, and final-answer formatting rules, while keeping WindieOS-specific computer-use, browser-use, process, and coding rules, and extend the prompt regression contract accordingly.
 - tweak(system-prompt): strengthen the new Codex-style WindieOS system prompt so WindieOS is explicitly a coding-first agent with desktop and browser extensions, and add regression coverage for the coding-first prompt structure.
 - refactor(system-prompt): replace the backend system prompt with a Codex-style execution prompt adapted for WindieOS, keeping WindieOS-specific desktop/browser tool rules and adding prompt-content regression coverage.
 - refactor(backend-tool-spec-builder): make backend catalog entries build canonical tool specs up front, have `ToolRegistry` register handlers together with prebuilt specs, and reduce `SchemaRegistry` to cache/validation over canonical specs instead of deriving schemas from live tool instances.

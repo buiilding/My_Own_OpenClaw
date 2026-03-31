@@ -11,7 +11,7 @@ read_when:
 WindieOS supports multiple LLM providers through a unified interface. The system uses LiteLLM for provider abstraction and supports both cloud and local models.
 
 System prompt note:
-- `backend/src/llm/prompts/system_prompt.txt` now follows a Codex-style execution prompt adapted for WindieOS, with coding-agent workflow as the default posture and WindieOS-specific browser-use, desktop-use, and validation rules layered on top.
+- `backend/src/llm/prompts/system_prompt.txt` now carries a fuller Codex-style execution scaffold adapted for WindieOS, including Codex-like repo-instruction scope, preamble/response discipline, final-answer formatting rules, and coding workflow guidance, with WindieOS-specific browser-use, desktop-use, process, and validation rules layered on top.
 
 ## Supported Providers
 

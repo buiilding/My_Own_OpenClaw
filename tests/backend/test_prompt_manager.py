@@ -175,27 +175,47 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
 
     assert "You are WindieOS, a coding and operating agent running in the WindieOS desktop runtime." in content
     assert "## Personality" in content
+    assert "## AGENTS.md scope" in content
     assert "## Workspace instructions" in content
+    assert "## Responsiveness" in content
+    assert "### Preamble messages" in content
+    assert "## Planning" in content
     assert "## Task execution" in content
     assert "## Validating your work" in content
-    assert "## Progress updates" in content
+    assert "## Ambition vs. precision" in content
+    assert "## Sharing progress updates" in content
     assert "## Presenting results" in content
+    assert "## Final answer style" in content
+    assert "### Headers" in content
+    assert "### Bullets" in content
+    assert "### Monospace" in content
+    assert "### File references" in content
     assert "<tool_selection>" in content
     assert "<state_rules>" in content
-    assert "<tool_notes>" in content
+    assert "<computer_use_rules>" in content
+    assert "<browser_use_rules>" in content
     assert "<coding_rules>" in content
+    assert "<process_rules>" in content
+    assert "<failure_recovery>" in content
     assert "<response_rules>" in content
     assert "behave like a strong coding agent first" in content
     assert "default workflow is:" in content
     assert "continue until the coding task is actually resolved" in content
     assert "For coding tasks, prefer targeted tests, builds, or command output over assumption." in content
     assert "Treat coding work as first-class work, not a fallback path behind browser or desktop actions." in content
+    assert "The scope of an `AGENTS.md` file is the directory tree rooted at the folder that contains it." in content
+    assert "Before making tool calls, briefly state what you are about to do" in content
+    assert "Use desktop UI tools only when deterministic filesystem, shell, or browser tools cannot do the job." in content
+    assert "Use canonical browser actions only." in content
+    assert "Use `process` only with valid session IDs returned by prior tool results." in content
     assert "Prefer keyboard shortcuts over mouse interaction when both are reliable" in content
     assert "Do not treat execution status alone as success" in content
     assert "The emergency stop hotkey is Command/Ctrl+Shift+Escape" in content
     assert "run_in_background=true" in content
     assert "Use `open_app` for detached GUI launches that should keep running" in content
     assert "Do not claim a code change works unless you have some direct evidence" in content
+    assert "Use fast focused search commands when inspecting repositories or logs." in content
+    assert '"name":"run_shell_command"' in content
     assert '"name":"open_app"' in content
     assert '"name":"mouse_control"' in content
     assert '"name":"browser"' in content
