@@ -126,6 +126,9 @@ def _normalize_schema_fragment(node: Any) -> Any:
         "required",
         "properties",
         "items",
+        "allOf",
+        "anyOf",
+        "oneOf",
         "default",
         "enum",
         "minimum",
@@ -147,6 +150,9 @@ def _normalize_schema_fragment(node: Any) -> Any:
                 prop_name: _normalize_schema_fragment(prop_value)
                 for prop_name, prop_value in sorted(value.items())
             }
+            continue
+        if key in {"allOf", "anyOf", "oneOf"} and isinstance(value, list):
+            normalized[key] = [_normalize_schema_fragment(item) for item in value]
             continue
         normalized[key] = _normalize_schema_fragment(value)
 
@@ -175,6 +181,20 @@ def _normalized_model_schema(model: type[Any]) -> dict[str, Any]:
                         nested_key: _resolve_local_refs(nested_value)
                         for nested_key, nested_value in node.items()
                         if nested_key != "$ref"
+                    }
+                )
+                return merged
+
+        all_of = node.get("allOf")
+        if isinstance(all_of, list) and len(all_of) == 1:
+            resolved_base = _resolve_local_refs(all_of[0])
+            if isinstance(resolved_base, dict):
+                merged = dict(resolved_base)
+                merged.update(
+                    {
+                        key: _resolve_local_refs(value)
+                        for key, value in node.items()
+                        if key != "allOf"
                     }
                 )
                 return merged

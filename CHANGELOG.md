@@ -23,6 +23,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 - fix(browser-tool-schema-contract): remove the browser-only schema rewriter, make the backend `browser` tool emit its model-facing schema through the generic tool path, and reject removed legacy browser alias actions directly during backend validation.
+- fix(sidecar-test-harness): make shared schema-parity normalization resolve single-entry composition wrappers correctly and let vendored `browser_use` origin checks skip when optional vendored dependencies are unavailable in the local test env.
 - fix(frontend-sidecar-runtime-decoupling): remove backend-package imports from the sidecar runtime by keeping client-local exposed-tool names and string-based memory-type normalization in the sidecar itself, so Windows/Electron source runs in `frontend_jarvis` no longer depend on `backend.src.*`; add focused sidecar regression coverage and update sidecar/setup docs.
 - fix(tool-log-toggle-backend-sync): keep `show_tool_logs` frontend-only so toggling raw tool trace visibility no longer sends invalid `update-settings` payloads to the backend.
 - fix(onboarding-windows-linux-permission-scope): stop first-run onboarding on Windows/Linux from showing screen-capture, input-control, and shell rows as if they were true OS grant steps; keep those in Settings/Data Controls while the onboarding gate now uses explicit platform-aware onboarding metadata.
