@@ -164,49 +164,51 @@ function ChatInterfaceHeaderControls({
         </div>
       </div>
       <div className="chat-meta">
-        {!vmModeEnabled ? (
-          <MainWindowControls
-            onMinimize={handleWindowMinimize}
-            onToggleMaximize={handleWindowToggleMaximize}
-            onClose={handleWindowClose}
-          />
-        ) : null}
-        <div className="chat-utility-controls">
-          <button
-            type="button"
-            className={`chat-active-workspace-chip chat-active-workspace-button${
-              activeWorkspaceName ? '' : ' is-empty'
-            }`}
-            title={activeWorkspacePath || 'Select active workspace'}
-            aria-label={activeWorkspaceName
-              ? `Change active workspace from ${activeWorkspaceName}`
-              : 'Set active workspace'}
-            onClick={handleChangeWorkspace}
-          >
-            <span className="chat-active-workspace-label">Workspace</span>
-            <span className="chat-active-workspace-name">
-              {activeWorkspaceName || 'Set workspace'}
-            </span>
-          </button>
-          <button
-            type="button"
-            className={`chat-top-icon-btn${speechModeEnabled ? ' is-enabled' : ''}`}
-            aria-label="Toggle text-to-speech"
-            title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
-            onClick={handleToggleSpeechMode}
-          >
-            <Volume2 size={18} />
-          </button>
-          {devUiEnabled ? (
+        <div className="chat-meta-top-row">
+          <div className="chat-utility-controls">
+            {devUiEnabled ? (
+              <button
+                type="button"
+                className="chat-top-icon-btn"
+                aria-label="Run auto compaction"
+                title="Run auto compaction"
+                onClick={handleRunAutoCompaction}
+              >
+                <Workflow size={18} />
+              </button>
+            ) : null}
             <button
               type="button"
-              className="chat-top-icon-btn"
-              aria-label="Run auto compaction"
-              title="Run auto compaction"
-              onClick={handleRunAutoCompaction}
+              className={`chat-active-workspace-chip chat-active-workspace-button${
+                activeWorkspaceName ? '' : ' is-empty'
+              }`}
+              title={activeWorkspacePath || 'Select active workspace'}
+              aria-label={activeWorkspaceName
+                ? `Change active workspace from ${activeWorkspaceName}`
+                : 'Set active workspace'}
+              onClick={handleChangeWorkspace}
             >
-              <Workflow size={18} />
+              <span className="chat-active-workspace-label">Workspace</span>
+              <span className="chat-active-workspace-name">
+                {activeWorkspaceName || 'Set workspace'}
+              </span>
             </button>
+            <button
+              type="button"
+              className={`chat-top-icon-btn${speechModeEnabled ? ' is-enabled' : ''}`}
+              aria-label="Toggle text-to-speech"
+              title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
+              onClick={handleToggleSpeechMode}
+            >
+              <Volume2 size={18} />
+            </button>
+          </div>
+          {!vmModeEnabled ? (
+            <MainWindowControls
+              onMinimize={handleWindowMinimize}
+              onToggleMaximize={handleWindowToggleMaximize}
+              onClose={handleWindowClose}
+            />
           ) : null}
         </div>
       </div>
