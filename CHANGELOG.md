@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- chore(backend-setup): add a Windows backend setup script that installs `requirements.txt`, removes `onnxruntime`, and installs `onnxruntime-gpu`, and document it in the backend README.
 - chore(editor): add a repo-level `pyrightconfig.json` so `backend.src.*` imports resolve consistently in Basedpyright/Pyright from the workspace root.
 - refactor(production-tool-contract): replace model-facing `computer_use`/`system_use` wrappers with direct individual tools, move backend canonical tool specs to a flat provider-agnostic `{type,name,description,strict,parameters}` contract, remove wrapper normalization paths and dead wrapper runtime code, tighten sidecar execution to clone caller args before tool invocation, and refresh prompt/tool-system docs plus backend/sidecar contract tests around the direct-tool surface.
 - docs(planning): add a second dated refactor plan covering a production-grade system prompt, provider-agnostic flat tool specs, and removal of wrapper tools in favor of individual model-facing tools.
