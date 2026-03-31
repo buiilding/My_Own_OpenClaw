@@ -183,7 +183,14 @@ class ReadFileArgs(BaseModel):
     """Arguments for read file tool."""
     model_config = ConfigDict(extra='forbid')
     
-    file_path: str = Field(..., description="Absolute path to the file to read")
+    file_path: str = Field(
+        ...,
+        description=(
+            "Path to the file to read. Absolute paths are allowed, and relative paths resolve "
+            "from the selected workspace folder when available; otherwise they resolve from the "
+            "OS user home directory."
+        ),
+    )
     offset: Optional[int] = Field(
         None,
         ge=0,
