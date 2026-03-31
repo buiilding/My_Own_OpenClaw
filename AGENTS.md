@@ -99,6 +99,14 @@ User experience target:
 - When answering questions, verify in code first; avoid guessing.
 - If unrelated changes from other agents are present, continue with your scoped task and report only the files/behavior you changed.
 
+### Explanation Style
+
+- When the user asks architectural or product-flow questions, answer in a conceptual, system-level manner first.
+- Describe how the runtime works, where a change fits in the flow, what boundaries would change, and why.
+- Do not lead with file paths, symbol names, or implementation breadcrumbs unless the user explicitly asks for them.
+- If code was inspected, use that to make the explanation accurate, but present the answer as an integration narrative rather than a file tour.
+- After the conceptual explanation is clear, optionally add implementation detail or file-level pointers only if the user asks for them.
+
 ### Frontend Wiring Protocol
 
 - For complex UI/runtime bugs, define state machine + event timeline before code changes.
