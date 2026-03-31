@@ -1,15 +1,8 @@
-export function SettingsIcon() {
+export function PlusIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M3 6h3" />
-      <path d="M10 6h11" />
-      <circle cx="8" cy="6" r="2" />
-      <path d="M3 12h9" />
-      <path d="M16 12h5" />
-      <circle cx="14" cy="12" r="2" />
-      <path d="M3 18h3" />
-      <path d="M10 18h11" />
-      <circle cx="8" cy="18" r="2" />
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
     </svg>
   );
 }
