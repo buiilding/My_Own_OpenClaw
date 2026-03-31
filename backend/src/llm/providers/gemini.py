@@ -37,6 +37,7 @@ class GeminiProvider(StreamingToolCallAggregationMixin, OnlineLLMProvider):
         model: str,
         runtime_model_id: str | None = None,
     ) -> Dict[str, Any]:
+        params["temperature"] = 1.0
         apply_provider_native_thinking_request_params(
             params,
             model=model,
