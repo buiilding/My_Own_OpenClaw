@@ -3,6 +3,7 @@ import pytest
 from tests.sidecar.remote_client_test_utils import (
     DummyResponse,
     DummySession,
+    SequentialSession,
     assert_client_initialize_reuses_session_and_close_resets,
     ensure_aiohttp_with_stubs,
     ensure_frontend_python_path,
@@ -112,6 +113,32 @@ async def test_generate_title_wraps_network_client_error():
             user_message="a",
             assistant_message="b",
         )
+
+
+@pytest.mark.asyncio
+async def test_generate_title_falls_back_to_secondary_backend_on_retryable_http_status(monkeypatch):
+    monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://api.windieos.com")
+    monkeypatch.setenv("WINDIE_BACKEND_FALLBACK_HTTP_URL", "http://127.0.0.1:8765")
+    client = RemoteTitleClient()
+    client._session = SequentialSession(
+        post_results=[
+            DummyResponse(530, text_data="cloudflare tunnel error"),
+            DummyResponse(200, json_data={"success": True, "title": "Recovered title"}),
+        ],
+    )
+
+    title = await client.generate_title(
+        user_id="u-fallback",
+        user_message="a",
+        assistant_message="b",
+    )
+
+    assert title == "Recovered title"
+    assert [call[0] for call in client._session.post_calls] == [
+        "https://api.windieos.com/api/semantic/title",
+        "http://127.0.0.1:8765/api/semantic/title",
+    ]
+    assert client.backend_url == "http://127.0.0.1:8765"
 
 
 @pytest.mark.asyncio

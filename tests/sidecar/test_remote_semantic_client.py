@@ -3,6 +3,7 @@ import pytest
 from tests.sidecar.remote_client_test_utils import (
     DummyResponse,
     DummySession,
+    SequentialSession,
     assert_client_initialize_reuses_session_and_close_resets,
     ensure_aiohttp_with_stubs,
     ensure_frontend_python_path,
@@ -76,6 +77,29 @@ async def test_summarize_wraps_network_client_error():
 
     with pytest.raises(Exception, match="Failed to connect to semantic service"):
         await client.summarize(["chunk"], user_id="u-4")
+
+
+@pytest.mark.asyncio
+async def test_summarize_falls_back_to_secondary_backend_on_retryable_http_status(monkeypatch):
+    monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://api.windieos.com")
+    monkeypatch.setenv("WINDIE_BACKEND_FALLBACK_HTTP_URL", "http://127.0.0.1:8765")
+    client = RemoteSemanticClient()
+    client._session = SequentialSession(
+        post_results=[
+            DummyResponse(530, text_data="cloudflare tunnel error"),
+            DummyResponse(200, json_data={"success": True, "summary": "ok", "facts": ["f1"]}),
+        ],
+    )
+
+    summary, facts = await client.summarize(["chunk"], user_id="u-fallback")
+
+    assert summary == "ok"
+    assert facts == ["f1"]
+    assert [call[0] for call in client._session.post_calls] == [
+        "https://api.windieos.com/api/semantic/summarize",
+        "http://127.0.0.1:8765/api/semantic/summarize",
+    ]
+    assert client.backend_url == "http://127.0.0.1:8765"
 
 
 @pytest.mark.asyncio

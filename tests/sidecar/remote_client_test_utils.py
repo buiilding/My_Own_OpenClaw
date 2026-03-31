@@ -83,6 +83,31 @@ class DummySession:
         return None
 
 
+class SequentialSession:
+    def __init__(self, *, post_results=None, get_results=None):
+        self.post_results = list(post_results or [])
+        self.get_results = list(get_results or [])
+        self.post_calls = []
+        self.get_calls = []
+
+    def post(self, url, json=None, timeout=None):
+        self.post_calls.append((url, json, timeout))
+        result = self.post_results.pop(0)
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    def get(self, url, timeout=None):
+        self.get_calls.append((url, timeout))
+        result = self.get_results.pop(0)
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    async def close(self):
+        return None
+
+
 async def assert_client_initialize_reuses_session_and_close_resets(
     monkeypatch,
     aiohttp_module,

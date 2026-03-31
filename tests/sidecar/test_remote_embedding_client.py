@@ -4,6 +4,7 @@ import pytest
 from tests.sidecar.remote_client_test_utils import (
     DummyResponse,
     DummySession,
+    SequentialSession,
     assert_client_initialize_reuses_session_and_close_resets,
     ensure_aiohttp_with_stubs,
     ensure_frontend_python_path,
@@ -14,31 +15,6 @@ ensure_frontend_python_path()
 
 from core import remote_embedding_client as remote_embedding_client_module  # noqa: E402
 from core.remote_embedding_client import RemoteEmbeddingClient  # noqa: E402
-
-
-class SequentialSession:
-    def __init__(self, *, post_results=None, get_results=None):
-        self.post_results = list(post_results or [])
-        self.get_results = list(get_results or [])
-        self.post_calls = []
-        self.get_calls = []
-
-    def post(self, url, json=None, timeout=None):
-        self.post_calls.append((url, json, timeout))
-        result = self.post_results.pop(0)
-        if isinstance(result, Exception):
-            raise result
-        return result
-
-    def get(self, url, timeout=None):
-        self.get_calls.append((url, timeout))
-        result = self.get_results.pop(0)
-        if isinstance(result, Exception):
-            raise result
-        return result
-
-    async def close(self):
-        return None
 
 
 @pytest.mark.asyncio
@@ -91,6 +67,28 @@ async def test_embed_text_falls_back_to_secondary_backend_on_network_error(monke
     embedding = await client.embed_text("hello")
 
     assert embedding.tolist() == [4.0, 5.0]
+    assert [call[0] for call in client._session.post_calls] == [
+        "https://api.windieos.com/api/embeddings/",
+        "http://127.0.0.1:8765/api/embeddings/",
+    ]
+    assert client.backend_url == "http://127.0.0.1:8765"
+
+
+@pytest.mark.asyncio
+async def test_embed_text_falls_back_to_secondary_backend_on_retryable_http_status(monkeypatch):
+    monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://api.windieos.com")
+    monkeypatch.setenv("WINDIE_BACKEND_FALLBACK_HTTP_URL", "http://127.0.0.1:8765")
+    client = RemoteEmbeddingClient()
+    client._session = SequentialSession(
+        post_results=[
+            DummyResponse(530, text_data="cloudflare tunnel error"),
+            DummyResponse(200, json_data={"embedding": [7.0, 8.0]}),
+        ],
+    )
+
+    embedding = await client.embed_text("hello")
+
+    assert embedding.tolist() == [7.0, 8.0]
     assert [call[0] for call in client._session.post_calls] == [
         "https://api.windieos.com/api/embeddings/",
         "http://127.0.0.1:8765/api/embeddings/",
