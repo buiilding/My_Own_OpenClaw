@@ -12,7 +12,7 @@ title: "Remote Tool Domain Payload and Request-ID Semantics Reference"
 This page documents behavior in:
 
 - `backend/src/tools/remote_tools/base.py`
-- `backend/src/tools/remote_tools/registry.py`
+- `backend/src/tools/tool_catalog.py`
 - `backend/src/tools/remote_tools/computer.py`
 - `backend/src/tools/remote_tools/system.py`
 - `backend/src/tools/remote_tools/filesystem.py`
@@ -230,14 +230,8 @@ Class:
 Behavior difference:
 
 - constructs `RemoteToolResult` directly
-- overrides `get_json_schema(...)` to project a model-facing action/property subset:
-  - excludes removed aliases and browser file-edit actions from action enum
-  - projected action enum keeps canonical runtime + helper actions and excludes:
-    - removed aliases: `type`, `open`, `switch_tab`, `press`, `act`
-    - file-edit actions: `write_file`, `replace_file`, `read_file`
-  - removes selected compatibility/camelCase and legacy file-edit fields from declaration properties
-    - compatibility/camelCase: `timeoutMs`, `promptText`, `colorScheme`, `targetId`, `targetUrl`, `inputRef`, `snapshotFormat`
-    - legacy file-edit payload keys: `content`, `append`, `trailing_newline`, `leading_newline`, `old_str`, `new_str`
+- uses the same generic `Tool.get_json_schema(...)` path as other remote stubs for model-facing declarations
+- relies on the canonical backend browser args model to define the model-visible action/field set
 - uses `args.model_dump(exclude_defaults=True, exclude_none=True)`
 - this omits unset/default fields and reduces payload size
 
@@ -256,9 +250,9 @@ Integration consequence:
 
 ## Registry and Export Wiring
 
-`remote_tools/registry.py` defines canonical name->class mapping (`REMOTE_TOOLS`).
+`tool_catalog.py` defines the canonical name->class mapping helpers.
 
-`backend/src/tools/remote.py` re-exports this surface as backend public entrypoint.
+`backend/src/tools/remote.py` materializes and re-exports that surface as the backend public entrypoint.
 
 Contract test (`test_remote_tool_contract.py`) ensures names exactly match frontend sidecar exposed tool set.
 
@@ -292,7 +286,7 @@ If payload fields seem missing:
 3. for unified wrappers, verify selected concrete model accepted `arguments` and filled defaults as expected
 4. for `system_use`, verify explanation resolution source (top-level vs nested fallback)
 5. verify sidecar action adapter defaulting assumptions
-6. for browser tools, verify whether missing fields/actions were pruned by `RemoteBrowserTool.get_json_schema(...)` model-facing projection rather than dropped at runtime
+6. for browser tools, verify whether missing fields/actions are absent from the canonical backend browser args model rather than dropped later at runtime
 
 ## Related Docs
 

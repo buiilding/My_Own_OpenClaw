@@ -32,7 +32,7 @@ Constructor responsibilities:
 2. initialize in-memory tool map (`self.tools`)
 3. create `SchemaRegistry(cache_manager=...)`
 4. create/use `ContextFactory`
-5. register all remote tools from `get_all_remote_tools()`
+5. register all remote tools from `get_all_remote_tool_classes()`
 
 ContextFactory behavior:
 
@@ -54,7 +54,7 @@ The catalog owns:
 - the import path/class name used to instantiate the stub
 - whether the tool is model-visible directly
 
-`backend/src/tools/remote_tools/registry.py` now builds `REMOTE_TOOLS` from that catalog at import time.
+`backend/src/tools/tool_catalog.py` now owns both the catalog entries and the name->class lookup helpers used by the backend public remote-tool exports.
 
 Current names:
 
@@ -63,7 +63,7 @@ Current names:
 - filesystem: `read_file`, `replace`
 - browser: `browser`
 
-`get_all_remote_tools()` still returns a copy, preventing external mutation of module-level registry.
+`backend.src.tools.remote.get_all_remote_tools()` still returns a copy, preventing external mutation of the module-level export map.
 
 Catalog-driven runtime helpers also power:
 

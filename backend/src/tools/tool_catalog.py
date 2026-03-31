@@ -47,6 +47,20 @@ def resolve_tool_class(entry: ToolCatalogEntry):
     return getattr(module, entry.class_name)
 
 
+def get_remote_tool_class(tool_name: str):
+    entry = get_tool_catalog_entry(tool_name)
+    if entry is None:
+        return None
+    return resolve_tool_class(entry)
+
+
+def get_all_remote_tool_classes() -> dict[str, type]:
+    return {
+        entry.name: resolve_tool_class(entry)
+        for entry in _CATALOG
+    }
+
+
 def get_model_visible_tool_names() -> list[str]:
     return [entry.name for entry in _CATALOG if entry.model_visible]
 

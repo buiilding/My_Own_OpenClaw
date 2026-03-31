@@ -255,7 +255,7 @@ async def execute_my_tool(args: Dict[str, Any]) -> Dict[str, Any]:
 
 Tools are automatically registered:
 
-1. **Backend remote stubs**: Declared in `backend/src/tools/remote_tools/registry.py` and loaded by `backend/src/tools/registry.py`.
+1. **Backend remote stubs**: Declared once in `backend/src/tools/tool_catalog.py`, instantiated by `backend/src/tools/registry.py`, and re-exported through `backend/src/tools/remote.py`.
 2. **Sidecar executors**: Registered in `frontend/src/main/python/tools/registry.py`.
 3. **LLM-callable sidecar subset**: Explicitly declared in sidecar `EXPOSED_TO_BACKEND_TOOLS`.
 4. **Backend-only tools**: Require explicit `register_tool()` wiring; not auto-discovered by default runtime.
@@ -515,7 +515,7 @@ async def test_tool_execution_flow():
 ### Tool Registration
 
 1. Create tool class inheriting from `Tool`
-2. Add remote stubs in `backend/src/tools/remote_tools/registry.py`
+2. Add the remote stub entry in `backend/src/tools/tool_catalog.py`
 3. Add sidecar implementation + sidecar registry wiring
 4. Keep `EXPOSED_TO_BACKEND_TOOLS` in sync for LLM-callable tools
 

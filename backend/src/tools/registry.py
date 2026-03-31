@@ -9,9 +9,9 @@ backend provides canonical model-facing tool specs plus remote stubs.
 import logging
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
-from backend.src.tools.remote import get_all_remote_tools
 from backend.src.tools.schema_registry import SchemaRegistry
 from backend.src.tools.tool_catalog import (
+    get_all_remote_tool_classes,
     get_model_visible_tool_names,
 )
 from backend.src.tools.tool_specs import get_tool_spec_parameters
@@ -47,7 +47,7 @@ class ToolRegistry:
         self._register_remote_tools()
 
     def _register_remote_tools(self) -> None:
-        for name, tool_class in get_all_remote_tools().items():
+        for name, tool_class in get_all_remote_tool_classes().items():
             try:
                 self.register_tool(tool_class())
                 logger.debug("Registered remote tool: %s", name)
