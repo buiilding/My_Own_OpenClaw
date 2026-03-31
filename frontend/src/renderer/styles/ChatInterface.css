@@ -1927,6 +1927,7 @@
 }
 
 .cg-dashboard-shell .chat-header {
+  width: auto;
   margin: 0 18px;
   padding: 14px 0 12px;
   border: 0;

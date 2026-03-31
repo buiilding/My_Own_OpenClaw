@@ -377,11 +377,13 @@
 }
 
 .cg-dashboard-shell .clone-settings-panel {
+  height: 100%;
+  border-radius: 24px;
   background:
     linear-gradient(180deg, rgba(23, 45, 84, 0.72), rgba(10, 21, 42, 0.6)),
     rgba(8, 18, 36, 0.42);
   color: var(--dashboard-text);
-  box-shadow: var(--dashboard-shadow-strong);
+  box-shadow: none;
   backdrop-filter: blur(calc(var(--dashboard-blur) + 10px));
   -webkit-backdrop-filter: blur(calc(var(--dashboard-blur) + 10px));
 }
