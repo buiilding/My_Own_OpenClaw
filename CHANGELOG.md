@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- feat(frontend-dashboard): add a dedicated top dashboard title bar for WindieOS window controls so minimize, maximize, and close sit in their own horizontal strip and the main dashboard content starts below it.
 - fix(frontend-dashboard): stop the glass dashboard header from overflowing horizontally so the standalone close button no longer gets clipped at the right edge.
 - tweak(frontend-dashboard): split the dashboard window controls back into three standalone circular buttons instead of a shared glass capsule.
 - tweak(frontend-dashboard): replace the oversized rounded glass dashboard header container with a simpler horizontal divider while keeping the blue glass theme intact.

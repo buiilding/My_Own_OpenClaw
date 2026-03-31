@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import ChatInterface from '../../chat/components/ChatInterface';
+import MainWindowControls from '../../../components/MainWindowControls';
 import { useChatStore } from '../../chat/stores/chatStore';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import ModelsSection from './sections/ModelsSection';
@@ -13,6 +14,7 @@ import { useDashboardConversations } from '../hooks/useDashboardConversations';
 import MemorySection from './sections/MemorySection';
 import SearchChatsModal from './SearchChatsModal';
 import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
+import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) {
@@ -101,6 +103,11 @@ function DashboardShell({
     setChatActiveConversationRef,
     searchOpen,
   });
+  const {
+    handleWindowMinimize,
+    handleWindowToggleMaximize,
+    handleWindowClose,
+  } = useMainWindowControls({ warningPrefix: 'DashboardShell' });
 
   const closeAllPanels = useCallback(() => {
     setSettingsOpen(false);
@@ -262,39 +269,57 @@ function DashboardShell({
   return (
     <div className={`cg-dashboard-shell${dashboardOpening ? ' cg-dashboard-shell-opening' : ''}`}>
       {!vmModeEnabled ? (
-        <DashboardSidebar
-          sidebarOpen={sidebarOpen}
-          onExpandSidebar={handleExpandSidebar}
-          onCollapseSidebar={handleCollapseSidebar}
-          onStartNewChat={handleStartNewChat}
-          onOpenSearch={handleOpenSearch}
-          onOpenMemory={handleMemorySurface}
-          onOpenUsage={openUsage}
-          onOpenModels={openModels}
-          onOpenSettings={openSettings}
-          searchOpen={searchOpen}
-          memoryOpen={memoryOpen}
-          usageOpen={usageOpen}
-          modelsOpen={modelsOpen}
-          isLoadingRecentConversations={isLoadingRecentConversations}
-          recentConversationsError={recentConversationsError}
-          recentConversationGroups={recentConversationGroups}
-          onOpenConversation={openConversationFromDashboard}
-          onRenameConversation={handleRenameConversation}
-          onTogglePinConversation={handleTogglePinConversation}
-          onDeleteConversation={handleDeleteConversation}
-          activeConversationRef={sessionInfo.conversationRef || null}
-          isTransportConnected={isTransportConnected}
-        />
+        <div className="cg-dashboard-titlebar">
+          <div className="cg-dashboard-titlebar-label">WindieOS</div>
+          <MainWindowControls
+            className="cg-dashboard-titlebar-controls"
+            onMinimize={handleWindowMinimize}
+            onToggleMaximize={handleWindowToggleMaximize}
+            onClose={handleWindowClose}
+          />
+        </div>
       ) : null}
 
-      <main className={`cg-main-content${
-        vmModeEnabled
-          ? ''
-          : (sidebarOpen ? '' : ' cg-main-content-collapsed')
-      }`.trim()}>
-        <ChatInterface sidebarOpen={sidebarOpen} focusComposerToken={composerFocusToken} />
-      </main>
+      <div className="cg-dashboard-body">
+        {!vmModeEnabled ? (
+          <DashboardSidebar
+            sidebarOpen={sidebarOpen}
+            onExpandSidebar={handleExpandSidebar}
+            onCollapseSidebar={handleCollapseSidebar}
+            onStartNewChat={handleStartNewChat}
+            onOpenSearch={handleOpenSearch}
+            onOpenMemory={handleMemorySurface}
+            onOpenUsage={openUsage}
+            onOpenModels={openModels}
+            onOpenSettings={openSettings}
+            searchOpen={searchOpen}
+            memoryOpen={memoryOpen}
+            usageOpen={usageOpen}
+            modelsOpen={modelsOpen}
+            isLoadingRecentConversations={isLoadingRecentConversations}
+            recentConversationsError={recentConversationsError}
+            recentConversationGroups={recentConversationGroups}
+            onOpenConversation={openConversationFromDashboard}
+            onRenameConversation={handleRenameConversation}
+            onTogglePinConversation={handleTogglePinConversation}
+            onDeleteConversation={handleDeleteConversation}
+            activeConversationRef={sessionInfo.conversationRef || null}
+            isTransportConnected={isTransportConnected}
+          />
+        ) : null}
+
+        <main className={`cg-main-content${
+          vmModeEnabled
+            ? ''
+            : (sidebarOpen ? '' : ' cg-main-content-collapsed')
+        }`.trim()}>
+          <ChatInterface
+            sidebarOpen={sidebarOpen}
+            focusComposerToken={composerFocusToken}
+            showWindowControls={vmModeEnabled}
+          />
+        </main>
+      </div>
 
       {!vmModeEnabled ? (
         <>
