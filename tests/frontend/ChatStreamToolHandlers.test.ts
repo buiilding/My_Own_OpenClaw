@@ -3,14 +3,17 @@ import { act, renderHook } from '@testing-library/react';
 import { useChatStreamToolHandlers } from '../../frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers';
 
 const mockRecordToolMessage = jest.fn();
+const mockRecordAssistantMessage = jest.fn();
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
   recordToolMessage: (...args: unknown[]) => mockRecordToolMessage(...args),
+  recordAssistantMessage: (...args: unknown[]) => mockRecordAssistantMessage(...args),
 }));
 
 describe('useChatStreamToolHandlers', () => {
   beforeEach(() => {
     mockRecordToolMessage.mockReset();
+    mockRecordAssistantMessage.mockReset();
   });
 
   test('handles malformed tool-output payloads without crashing and falls back correlation id to event id', () => {
@@ -260,5 +263,59 @@ describe('useChatStreamToolHandlers', () => {
 
     // Bundle orchestration events must not be persisted as executable tool-call transcript rows.
     expect(mockRecordToolMessage).not.toHaveBeenCalled();
+  });
+
+  test('records lightweight search-source rows as assistant transcript entries', () => {
+    const addMessage = jest.fn();
+    const recordTrackingEvent = jest.fn();
+
+    const { result } = renderHook(() => useChatStreamToolHandlers({
+      enableTranscript: true,
+      addMessage,
+      setIsSending: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      modelContextRef: {
+        current: {
+          modelId: 'model-search',
+          modelProvider: 'openai',
+        },
+      },
+      recordTrackingEvent,
+    }));
+
+    act(() => {
+      result.current.handleSearchSource({
+        type: 'search-source',
+        turn_ref: 'turn-search-1',
+        conversation_ref: 'conversation-search-1',
+        user_id: 'user-search-1',
+        payload: {
+          url: 'https://example.com/source',
+          provider: 'openai',
+        },
+      } as any, 'conversation-search-1');
+    });
+
+    expect(addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'search-source',
+        text: 'Searching https://example.com/source',
+      }),
+      'conversation-search-1',
+    );
+    expect(recordTrackingEvent).toHaveBeenCalledWith(
+      'search-source',
+      'turn-search-1',
+      { phase: 'tool-output' },
+      'conversation-search-1',
+    );
+    expect(mockRecordAssistantMessage).toHaveBeenCalledWith(
+      'Searching https://example.com/source',
+      expect.objectContaining({
+        messageType: 'search-source',
+        conversationRef: 'conversation-search-1',
+      }),
+    );
   });
 });

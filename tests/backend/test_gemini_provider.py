@@ -4,6 +4,9 @@ import pytest
 
 from backend.src.core.events.streaming_events import ChunkEvent, ErrorEvent, ThinkingEvent
 from backend.src.llm.providers.gemini import GeminiProvider
+from backend.src.tools.web_search.source_normalization import (
+    extract_gemini_web_search_sources,
+)
 
 
 async def _collect_stream_events(provider: GeminiProvider, **kwargs):
@@ -356,4 +359,39 @@ async def test_gemini_stream_preserves_thought_signature(monkeypatch):
             "arguments": {"action": "snapshot"},
             "thought_signature": "sig-123",
         }
+    ]
+
+
+def test_extract_gemini_web_search_sources_ignores_entries_without_urls_and_dedupes():
+    payload = {
+        "candidates": [
+            {
+                "groundingMetadata": {
+                    "webSearchQueries": ["latest windieos news"],
+                    "groundingChunks": [
+                        {"web": {"uri": "https://example.com/a", "title": "Example A"}},
+                        {"web": {"uri": "", "title": "Missing URL"}},
+                        {"web": {"uri": "https://example.com/a", "title": "Duplicate A"}},
+                        {"web": {"url": "https://example.com/b", "title": "Example B"}},
+                    ],
+                }
+            }
+        ]
+    }
+
+    assert extract_gemini_web_search_sources(payload) == [
+        {
+            "url": "https://example.com/a",
+            "title": "Example A",
+            "provider": "gemini",
+            "query": "latest windieos news",
+            "rank": 1,
+        },
+        {
+            "url": "https://example.com/b",
+            "title": "Example B",
+            "provider": "gemini",
+            "query": "latest windieos news",
+            "rank": 4,
+        },
     ]

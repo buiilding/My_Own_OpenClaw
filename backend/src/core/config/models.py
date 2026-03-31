@@ -80,6 +80,12 @@ class KimiCodingConfig(BaseModel):
     base_url: str = "https://api.kimi.com/coding"
 
 
+class BraveSearchConfig(BaseModel):
+    """Configuration for backend Brave Search fallback."""
+
+    api_key_env: str = "BRAVE_SEARCH_API_KEY"
+
+
 class LLMProviders(BaseModel):
     """Container for all supported LLM provider configurations."""
 
@@ -231,6 +237,7 @@ _DEFAULT_TOOL_ALLOWLIST_BY_INTERACTION_MODE: dict[str, set[str]] = {
         "read_file",
         "get_system_stats",
         "get_open_windows",
+        "web_search",
     },
 }
 
@@ -275,6 +282,7 @@ class AppConfig(BaseModel):
     # Tool Execution Settings
     # This section is largely redundant as tools execute on the frontend
     # but kept for backend-specific tool configurations if any
+    brave_search: BraveSearchConfig = Field(default_factory=BraveSearchConfig)
     
     # Vision Model Settings
     vision_model_name: Optional[str] = "OpenGVLab/InternVL3_5-4B"  # Defaults to "OpenGVLab/InternVL3_5-4B" if None

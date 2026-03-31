@@ -95,6 +95,7 @@ class LLMStreamProcessor:
             tool_choice=tool_choice,
             parallel_tool_calls=parallel_tool_calls,
             prompt_cache_key=prompt_cache_key,
+            native_web_search_enabled=False,
         )
         self._last_response_payload = None
         logger.info(
@@ -241,6 +242,7 @@ class LLMStreamProcessor:
         tool_choice: Optional[Any],
         parallel_tool_calls: Optional[bool],
         prompt_cache_key: Optional[str],
+        native_web_search_enabled: bool,
     ) -> Dict[str, Any]:
         """Build shared completion transport kwargs for stream and non-stream calls."""
         request_kwargs: Dict[str, Any] = {
@@ -253,6 +255,7 @@ class LLMStreamProcessor:
                 tool_choice=tool_choice,
                 parallel_tool_calls=parallel_tool_calls,
                 prompt_cache_key=prompt_cache_key,
+                native_web_search_enabled=native_web_search_enabled,
             )
         )
         return request_kwargs

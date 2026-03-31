@@ -74,6 +74,18 @@ API keys are loaded from environment variables defined in `backend/src/core/conf
 - `MISTRAL_API_KEY`
 - `KIMI_API_KEY` (Kimi Coding)
 - `KIMICODE_API_KEY` (legacy fallback for Kimi Coding)
+- `BRAVE_SEARCH_API_KEY` (backend fallback for logical `web_search` when the active provider lacks native web retrieval)
+
+### Web Search Capability Routing
+
+WindieOS exposes one logical capability named `web_search`. Availability is automatic and backend-owned:
+
+- OpenAI supported models fulfill the logical `web_search` tool through a backend-owned provider-native web-search request.
+- Gemini supported models fulfill the logical `web_search` tool through a backend-owned native Google Search grounding request.
+- Other providers use backend Brave Search only when `BRAVE_SEARCH_API_KEY` is set.
+- If neither native support nor Brave fallback is available, `web_search` is hidden from the model.
+
+No separate runtime toggle is required in v1.
 
 ### Local Providers
 

@@ -48,6 +48,7 @@ class Tool(ABC, Generic[TArgs]):
     # Using string annotations (via __future__ import) to avoid circular import
     required_permissions: ClassVar[Set[Permission]] = set()
     category: ClassVar[ToolDomain] = None  # Will be set in __init_subclass__ if not provided
+    execution_target: ClassVar[str] = "backend"
     
     def __init_subclass__(cls, **kwargs):
         """Set default category if not specified by subclass."""

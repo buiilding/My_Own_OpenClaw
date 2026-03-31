@@ -29,13 +29,26 @@ class OpenAIProvider(OnlineLLMProvider):
             is True
         )
 
+    @classmethod
+    def _uses_responses_runtime(
+        cls,
+        model: str,
+        *,
+        native_web_search_enabled: bool = False,
+    ) -> bool:
+        return cls._uses_native_reasoning_runtime(model) or native_web_search_enabled
+
     async def get_completion(
         self,
         model: str,
         messages: List[LLMMessage],
         **request_kwargs: Any,
     ) -> NormalizedLLMResponse:
-        if self._uses_native_reasoning_runtime(model):
+        native_web_search_enabled = bool(request_kwargs.get("native_web_search_enabled"))
+        if self._uses_responses_runtime(
+            model,
+            native_web_search_enabled=native_web_search_enabled,
+        ):
             return await get_openai_responses_completion(
                 self,
                 model=model,
@@ -44,6 +57,8 @@ class OpenAIProvider(OnlineLLMProvider):
                 tool_choice=request_kwargs.get("tool_choice"),
                 parallel_tool_calls=request_kwargs.get("parallel_tool_calls"),
                 max_output_tokens=request_kwargs.get("max_output_tokens"),
+                native_web_search_enabled=native_web_search_enabled,
+                include_reasoning=self._uses_native_reasoning_runtime(model),
             )
         return await super().get_completion(
             model=model,
@@ -57,7 +72,11 @@ class OpenAIProvider(OnlineLLMProvider):
         messages: List[LLMMessage],
         **request_kwargs: Any,
     ) -> AsyncGenerator[Any, None]:
-        if self._uses_native_reasoning_runtime(model):
+        native_web_search_enabled = bool(request_kwargs.get("native_web_search_enabled"))
+        if self._uses_responses_runtime(
+            model,
+            native_web_search_enabled=native_web_search_enabled,
+        ):
             async for event in stream_openai_responses_events(
                 self,
                 model=model,
@@ -66,6 +85,8 @@ class OpenAIProvider(OnlineLLMProvider):
                 tool_choice=request_kwargs.get("tool_choice"),
                 parallel_tool_calls=request_kwargs.get("parallel_tool_calls"),
                 max_output_tokens=request_kwargs.get("max_output_tokens"),
+                native_web_search_enabled=native_web_search_enabled,
+                include_reasoning=self._uses_native_reasoning_runtime(model),
             ):
                 yield event
             return

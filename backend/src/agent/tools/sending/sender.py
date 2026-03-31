@@ -1,21 +1,23 @@
 """
 Tool sender.
 
-Sends resolved tools to frontend by yielding events.
-Only responsible for sending frontend events (ToolCallEvent, ToolBundleEvent, ToolOutputEvent).
-Delegates preparation to ToolPreparer.
+Dispatches prepared tool calls to the correct execution surface:
+- frontend-executed tools emit tool-call / tool-bundle events only
+- backend-executed tools run immediately and emit their own tool-output events
 """
 import logging
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Optional
 
 from backend.src.core.events import AgentStreamingEvent
 from backend.src.core.events.streaming_events import (
+    SearchSourceEvent,
     ToolBundleEvent,
     ToolCallEvent,
     ToolOutputEvent,
 )
 from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
 from backend.src.core.interfaces.tool import ToolResult
+from backend.src.sdk.tool import Tool
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -139,8 +141,19 @@ class ToolSender:
         if preparation_result.errors and not preparation_result.bundle_id:
             return
         
-        # Send frontend events for prepared tools (bundles may have partial tools even with errors)
+        # Send frontend or backend execution events for prepared tools.
         if preparation_result.bundle_id:
+            if self._bundle_contains_backend_tool(preparation_result.resolved_calls, session):
+                self._store_failed_bundle_result(
+                    session=session,
+                    bundle_id=preparation_result.bundle_id,
+                    tool_calls=tool_calls,
+                    errors=[(
+                        tool_calls[0],
+                        "Tool bundles that include backend-executed tools are not supported yet.",
+                    )],
+                )
+                return
             # Bundle: send single ToolBundleEvent
             tools = []
             for resolved_call in preparation_result.resolved_calls:
@@ -166,13 +179,28 @@ class ToolSender:
                 
                 if request_id:
                     tool_metadata = self._build_tool_event_metadata(resolved_call)
-                    yield ToolCallEvent(
-                        tool_name=resolved_call.tool_name,
-                        parameters=resolved_call.parameters,
-                        request_id=request_id,
-                        metadata=tool_metadata,
-                    )
-                    logger.debug(f"Sent tool call event: {resolved_call.tool_name} (request_id={request_id[:15]})")
+                    tool = self._resolve_tool(session, resolved_call.tool_name)
+                    if self._execution_target(tool) == "backend":
+                        async for event in self._execute_backend_tool(
+                            tool=tool,
+                            resolved_call=resolved_call,
+                            session=session,
+                            request_id=request_id,
+                            tool_metadata=tool_metadata,
+                        ):
+                            yield event
+                    else:
+                        yield ToolCallEvent(
+                            tool_name=resolved_call.tool_name,
+                            parameters=resolved_call.parameters,
+                            request_id=request_id,
+                            metadata=tool_metadata,
+                        )
+                        logger.debug(
+                            "Sent tool call event: %s (request_id=%s)",
+                            resolved_call.tool_name,
+                            request_id[:15],
+                        )
 
     def _build_tool_event_metadata(self, resolved_call: Any) -> Dict[str, Any]:
         """
@@ -194,6 +222,170 @@ class ToolSender:
             ),
         )
         return tool_metadata
+
+    @staticmethod
+    def _resolve_tool(session: "AgentSession", tool_name: str) -> Optional[Tool]:
+        tool_registry = getattr(session, "tool_registry", None)
+        if tool_registry is None:
+            return None
+        return tool_registry.get_tool(tool_name)
+
+    @staticmethod
+    def _execution_target(tool: Optional[Tool]) -> str:
+        if tool is None:
+            return "frontend"
+        target = getattr(tool, "execution_target", "frontend")
+        return target if isinstance(target, str) and target.strip() else "frontend"
+
+    def _bundle_contains_backend_tool(
+        self,
+        resolved_calls: List[Any],
+        session: "AgentSession",
+    ) -> bool:
+        for resolved_call in resolved_calls:
+            tool = self._resolve_tool(session, resolved_call.tool_name)
+            if self._execution_target(tool) == "backend":
+                return True
+        return False
+
+    async def _execute_backend_tool(
+        self,
+        *,
+        tool: Optional[Tool],
+        resolved_call: Any,
+        session: "AgentSession",
+        request_id: str,
+        tool_metadata: Dict[str, Any],
+    ) -> AsyncGenerator[AgentStreamingEvent, None]:
+        if tool is None:
+            error_msg = f"Backend tool '{resolved_call.tool_name}' is not registered."
+            result = ToolResult(
+                success=False,
+                error=error_msg,
+                llm_content=f"Error: {error_msg}",
+                return_display=error_msg,
+            )
+        else:
+            result = await self._run_backend_tool(tool, resolved_call, session)
+
+        backend_metadata = dict(tool_metadata)
+        backend_metadata["skip_frontend_execution"] = True
+        backend_metadata["request_id"] = request_id
+        session.register_pending_tool_result(request_id, result)
+
+        yield ToolCallEvent(
+            tool_name=resolved_call.tool_name,
+            parameters=resolved_call.parameters,
+            request_id=request_id,
+            metadata=backend_metadata,
+        )
+
+        for source_event in self._build_search_source_events(result):
+            yield source_event
+
+        output_text = (
+            result.return_display
+            or result.llm_content
+            or result.format_for_history(resolved_call.tool_name)
+        )
+        yield ToolOutputEvent(
+            tool_name=resolved_call.tool_name,
+            success=result.success,
+            output=output_text,
+            error=result.error,
+            execution_time=0.0,
+            metadata=backend_metadata,
+        )
+
+    async def _run_backend_tool(
+        self,
+        tool: Tool,
+        resolved_call: Any,
+        session: "AgentSession",
+    ) -> ToolResult:
+        context_factory = getattr(getattr(session, "tool_registry", None), "context_factory", None)
+        if context_factory is None:
+            error_msg = "Tool context factory is unavailable."
+            return ToolResult(
+                success=False,
+                error=error_msg,
+                llm_content=f"Error: {error_msg}",
+                return_display=error_msg,
+            )
+
+        try:
+            validated_args = tool.args_model.model_validate(resolved_call.parameters or {})
+            tool_context = context_factory.create_tool_context(
+                user_id=getattr(session, "user_id", "default_user"),
+                session_id=getattr(session, "session_id", "default_session"),
+                session_ref=session,
+            )
+            raw_result = await tool.run(validated_args, tool_context)
+        except Exception as exc:
+            logger.error(
+                "Backend tool execution failed for %s: %s",
+                resolved_call.tool_name,
+                exc,
+                exc_info=True,
+            )
+            error_msg = str(exc) or f"{resolved_call.tool_name} failed"
+            return ToolResult(
+                success=False,
+                error=error_msg,
+                llm_content=f"Error: {error_msg}",
+                return_display=error_msg,
+            )
+
+        if isinstance(raw_result, ToolResult):
+            return raw_result
+        if isinstance(raw_result, dict):
+            return ToolResult.from_dict(raw_result)
+        if raw_result is None:
+            return ToolResult(
+                success=True,
+                llm_content=f"{resolved_call.tool_name} completed.",
+                return_display=f"{resolved_call.tool_name} completed.",
+            )
+        return ToolResult(
+            success=True,
+            data=raw_result,
+            llm_content=str(raw_result),
+            return_display=str(raw_result),
+        )
+
+    @staticmethod
+    def _build_search_source_events(result: ToolResult) -> List[SearchSourceEvent]:
+        data = result.data if isinstance(result.data, dict) else None
+        raw_results = data.get("results") if isinstance(data, dict) else None
+        if not isinstance(raw_results, list):
+            return []
+
+        seen_urls: set[str] = set()
+        events: List[SearchSourceEvent] = []
+        for raw_result in raw_results:
+            if not isinstance(raw_result, dict):
+                continue
+            url = raw_result.get("url")
+            if not isinstance(url, str) or not url.strip():
+                continue
+            normalized_url = url.strip()
+            if normalized_url in seen_urls:
+                continue
+            seen_urls.add(normalized_url)
+            title = raw_result.get("title")
+            provider = data.get("provider") if isinstance(data.get("provider"), str) else "brave"
+            rank = raw_result.get("rank") if isinstance(raw_result.get("rank"), int) else None
+            query = data.get("query") if isinstance(data.get("query"), str) else None
+            events.append(
+                SearchSourceEvent(
+                    url=normalized_url,
+                    title=title.strip() if isinstance(title, str) and title.strip() else None,
+                    provider=provider,
+                    query=query,
+                    rank=rank,
+                )
+            )
+        return events
 
     @staticmethod
     def _build_preparation_failure_metadata(

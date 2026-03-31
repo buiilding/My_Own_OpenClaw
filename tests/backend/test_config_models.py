@@ -9,6 +9,7 @@ import backend.src.core.config.models as config_models
 from backend.src.core.config.models import (
     AnthropicConfig,
     AppConfig,
+    BraveSearchConfig,
     GeminiConfig,
     KimiCodingConfig,
     LLMProviders,
@@ -100,6 +101,14 @@ class TestKimiCodingConfig:
         assert config.model == "k2p5"
         assert config.api_key_env == "KIMI_API_KEY"
         assert config.base_url == "https://api.kimi.com/coding"
+
+
+class TestBraveSearchConfig:
+    """Tests for BraveSearchConfig model."""
+
+    def test_default_values(self):
+        config = BraveSearchConfig()
+        assert config.api_key_env == "BRAVE_SEARCH_API_KEY"
 
 
 class TestLLMProviders:
@@ -225,6 +234,7 @@ class TestAppConfig:
         assert config.provider_api_keys.kimi_coding.enabled is False
         assert config.provider_oauth.openai_codex.connected is False
         assert config.provider_oauth.openai_codex.access_token == ""
+        assert config.brave_search.api_key_env == "BRAVE_SEARCH_API_KEY"
         assert config.wakeword_enabled is True
         assert config.wakeword_phrase == "hey jarvis"
         assert len(config.wakeword_greetings) == 5
@@ -285,6 +295,7 @@ class TestAppConfig:
             "read_file",
             "get_system_stats",
             "get_open_windows",
+            "web_search",
         }
 
     def test_get_tool_allowlist_agent_mode(self):

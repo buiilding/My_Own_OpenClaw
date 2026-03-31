@@ -237,6 +237,20 @@ class ToolBundleEvent(StreamingEvent):
         self.type = StreamingEventType.TOOL_BUNDLE
 
 
+@dataclass
+class SearchSourceEvent(StreamingEvent):
+    """Event emitted when the backend learns a concrete web-search source URL."""
+
+    url: str
+    provider: str
+    title: Optional[str] = None
+    query: Optional[str] = None
+    rank: Optional[int] = None
+
+    def __post_init__(self):
+        self.type = StreamingEventType.SEARCH_SOURCE
+
+
 # Union type for all event types
 AgentStreamingEvent = Union[
     ThinkingEvent,
@@ -256,4 +270,5 @@ AgentStreamingEvent = Union[
     ContextCompactionFailedEvent,
     MemoryStoreEvent,
     ToolBundleEvent,
+    SearchSourceEvent,
 ]

@@ -118,22 +118,27 @@ def build_openai_responses_input(messages: List[LLMMessage]) -> List[Dict[str, A
 
 def build_openai_responses_tools(
     tools: Optional[List[Dict[str, Any]]],
+    *,
+    native_web_search_enabled: bool = False,
 ) -> Optional[List[Dict[str, Any]]]:
-    if tools is None:
-        return None
     normalized: List[Dict[str, Any]] = []
-    for tool in tools:
-        if not is_function_tool_spec(tool):
-            continue
-        normalized.append(
-            {
-                "type": "function",
-                "name": tool.get("name"),
-                "description": tool.get("description"),
-                "parameters": copy.deepcopy(tool.get("parameters")),
-                "strict": bool(tool.get("strict", False)),
-            }
-        )
+    if tools is not None:
+        for tool in tools:
+            if not is_function_tool_spec(tool):
+                continue
+            normalized.append(
+                {
+                    "type": "function",
+                    "name": tool.get("name"),
+                    "description": tool.get("description"),
+                    "parameters": copy.deepcopy(tool.get("parameters")),
+                    "strict": bool(tool.get("strict", False)),
+                }
+            )
+    if native_web_search_enabled:
+        normalized.append({"type": "web_search"})
+    if not normalized:
+        return None
     return normalized
 
 
@@ -173,6 +178,7 @@ def build_openai_responses_params(
     parallel_tool_calls: Optional[bool] = None,
     max_output_tokens: Optional[int] = None,
     include_reasoning: bool = True,
+    native_web_search_enabled: bool = False,
 ) -> Dict[str, Any]:
     runtime_model_id = resolve_runtime_model_id(model)
     normalized_messages = provider._normalize_messages_for_provider(
@@ -187,7 +193,15 @@ def build_openai_responses_params(
         "timeout": provider.timeout,
     }
     if tools is not None:
-        params["tools"] = build_openai_responses_tools(tools)
+        params["tools"] = build_openai_responses_tools(
+            tools,
+            native_web_search_enabled=native_web_search_enabled,
+        )
+    elif native_web_search_enabled:
+        params["tools"] = build_openai_responses_tools(
+            None,
+            native_web_search_enabled=True,
+        )
     if tool_choice is not None:
         params["tool_choice"] = build_openai_responses_tool_choice(tool_choice)
     if parallel_tool_calls is not None:
@@ -196,4 +210,6 @@ def build_openai_responses_params(
         params["max_output_tokens"] = max_output_tokens
     if include_reasoning:
         params["reasoning"] = build_openai_reasoning_config(model)
+    if native_web_search_enabled:
+        params["include"] = ["web_search_call.action.sources"]
     return params

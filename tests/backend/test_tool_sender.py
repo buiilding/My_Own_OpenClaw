@@ -1,11 +1,14 @@
 import pytest
 
+from pydantic import BaseModel
+
 from backend.src.agent.tools.preparation.preparer import PreparationResult
 from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
 from backend.src.agent.tools.sending.sender import ToolSender
-from backend.src.core.events.streaming_events import ToolBundleEvent, ToolCallEvent, ToolOutputEvent
+from backend.src.core.events.streaming_events import SearchSourceEvent, ToolBundleEvent, ToolCallEvent, ToolOutputEvent
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.llm.parser_types import ParsedToolCall
+from backend.src.sdk.tool import Tool
 
 
 class _DummyPreparer:
@@ -22,20 +25,52 @@ class _DummySyntheticResultFactory:
         return ToolResult(success=False, error=error_msg, llm_content=error_msg)
 
 
+class _DummyContextFactory:
+    @staticmethod
+    def create_tool_context(*, user_id, session_id, session_ref=None, **_kwargs):
+        return type(
+            "DummyToolContext",
+            (),
+            {
+                "user": type("DummyUser", (), {"user_id": user_id})(),
+                "session": type("DummySessionCtx", (), {"session_id": session_id, "metadata": {}})(),
+                "runtime": type("DummyRuntime", (), {"services": {"config": None}})(),
+                "services": {"config": None},
+                "session_ref": session_ref,
+            },
+        )()
+
+
+class _DummyToolRegistry:
+    def __init__(self):
+        self._tools = {}
+        self.context_factory = _DummyContextFactory()
+
+    def register_tool(self, tool):
+        self._tools[tool.name] = tool
+
+    def get_tool(self, name):
+        return self._tools.get(name)
+
+
+class _DummyResultStorage:
+    def __init__(self):
+        self.bundled_results = {}
+
+    def store_bundled_result(self, bundle_id: str, result: ToolResult) -> None:
+        self.bundled_results[bundle_id] = result
+
+    def resolve_bundle_future(self, _bundle_id: str, _result: ToolResult) -> bool:
+        return False
+
+
 class _DummySession:
-    class _DummyResultStorage:
-        def __init__(self):
-            self.bundled_results = {}
-
-        def store_bundled_result(self, bundle_id: str, result: ToolResult) -> None:
-            self.bundled_results[bundle_id] = result
-
-        def resolve_bundle_future(self, _bundle_id: str, _result: ToolResult) -> bool:
-            return False
-
     def __init__(self):
         self.pending_results = {}
-        self.result_storage = self._DummyResultStorage()
+        self.result_storage = _DummyResultStorage()
+        self.tool_registry = _DummyToolRegistry()
+        self.user_id = "user-1"
+        self.session_id = "session-1"
 
     def register_pending_tool_result(self, request_id: str, result: ToolResult) -> None:
         self.pending_results[request_id] = result
@@ -356,3 +391,78 @@ async def test_send_tools_preserves_existing_model_facing_payload_for_successful
         "name": "screenshot",
         "arguments": {},
     }
+
+
+class _BackendSearchArgs(BaseModel):
+    query: str
+
+
+class _BackendSearchTool(Tool[_BackendSearchArgs]):
+    name = "web_search"
+    description = "search"
+    args_model = _BackendSearchArgs
+    execution_target = "backend"
+
+    async def run(self, args: _BackendSearchArgs, ctx):  # noqa: ANN001
+        _ = (args, ctx)
+        return ToolResult(
+            success=True,
+            data={
+                "provider": "brave",
+                "query": "latest windieos news",
+                "results": [
+                    {
+                        "rank": 1,
+                        "url": "https://example.com/a",
+                        "title": "Example A",
+                    },
+                    {
+                        "rank": 2,
+                        "url": "https://example.com/b",
+                        "title": "Example B",
+                    },
+                ],
+            },
+            llm_content="search results",
+            return_display="search results",
+        )
+
+
+@pytest.mark.asyncio
+async def test_send_tools_executes_backend_tool_and_emits_search_source_rows():
+    request_id = "req-web-search-1"
+    parsed_call = ParsedToolCall(
+        tool_name="web_search",
+        parameters={"query": "latest windieos news"},
+        metadata={
+            "request_id": request_id,
+            "tool_call_id": "tool_llm_web_search_1",
+        },
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(parsed_call)
+
+    sender = _build_sender(
+        PreparationResult(
+            resolved_calls=[resolved_call],
+            errors=[],
+            bundle_id=None,
+        )
+    )
+    session = _DummySession()
+    session.tool_registry.register_tool(_BackendSearchTool())
+    emitted = await _collect_emitted_events(sender, [parsed_call], session)
+
+    assert [type(event).__name__ for event in emitted] == [
+        "ToolCallEvent",
+        "SearchSourceEvent",
+        "SearchSourceEvent",
+        "ToolOutputEvent",
+    ]
+    assert isinstance(emitted[0], ToolCallEvent)
+    assert emitted[0].metadata["skip_frontend_execution"] is True
+    assert isinstance(emitted[1], SearchSourceEvent)
+    assert emitted[1].url == "https://example.com/a"
+    assert isinstance(emitted[3], ToolOutputEvent)
+    assert emitted[3].output == "search results"
+    assert request_id in session.pending_results
+    assert session.pending_results[request_id].data["provider"] == "brave"

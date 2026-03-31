@@ -14,6 +14,9 @@ from backend.src.llm.providers.openai_responses_runtime import (
     build_openai_responses_input,
     stream_openai_responses_events,
 )
+from backend.src.tools.web_search.source_normalization import (
+    extract_openai_web_search_sources,
+)
 
 
 async def _collect_events(
@@ -321,5 +324,58 @@ def test_build_openai_responses_input_accepts_normalized_assistant_tool_calls():
             "call_id": "call_1",
             "output": "Dragged successfully.",
             "status": "completed",
+        },
+    ]
+
+
+def test_extract_openai_web_search_sources_dedupes_urls_and_preserves_query_order():
+    response = {
+        "output": [
+            {
+                "type": "web_search_call",
+                "query": "latest windieos news",
+                "action": {
+                    "sources": [
+                        {"url": "https://example.com/a", "title": "Example A"},
+                        {"url": "https://example.com/a", "title": "Duplicate A"},
+                        {"url": "https://example.com/b", "title": "Example B"},
+                    ]
+                },
+            },
+            {
+                "type": "message",
+                "content": [
+                    {
+                        "type": "output_text",
+                        "text": "visible text",
+                        "annotations": [
+                            {"url": "https://example.com/b", "title": "Duplicate B"},
+                            {"url": "https://example.com/c", "title": "Example C"},
+                        ],
+                    }
+                ],
+            },
+        ]
+    }
+
+    assert extract_openai_web_search_sources(response) == [
+        {
+            "url": "https://example.com/a",
+            "title": "Example A",
+            "provider": "openai",
+            "query": "latest windieos news",
+            "rank": 1,
+        },
+        {
+            "url": "https://example.com/b",
+            "title": "Example B",
+            "provider": "openai",
+            "query": "latest windieos news",
+            "rank": 3,
+        },
+        {
+            "url": "https://example.com/c",
+            "title": "Example C",
+            "provider": "openai",
         },
     ]

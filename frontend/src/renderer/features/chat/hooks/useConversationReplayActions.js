@@ -150,7 +150,7 @@ export function useConversationReplayActions({
     const preservedMessages = messages.slice(0, userIndex);
     const replayContextMessages = buildReplayContextMessages(preservedMessages);
     const replayConversation = [...replayContextMessages, editUserMessage];
-    const preservedPayloads = replayContextMessages.map(toRehydratePayload);
+    const preservedPayloads = replayContextMessages.map(toRehydratePayload).filter(Boolean);
     const sessionInfo = getTranscriptSessionInfo();
     await executeReplayAction({
       sessionInfo,
@@ -192,7 +192,8 @@ export function useConversationReplayActions({
     const replayContextMessages = buildReplayContextMessages(preservedMessages);
     const preservedPayloads = replayContextMessages
       .slice(0, -1)
-      .map(toRehydratePayload);
+      .map(toRehydratePayload)
+      .filter(Boolean);
     const sessionInfo = getTranscriptSessionInfo();
     await executeReplayAction({
       sessionInfo,

@@ -80,6 +80,36 @@ def test_filter_tool_names_disables_browser_when_browser_automation_not_enabled(
     assert filtered == ["mouse_control", "read_file"]
 
 
+def test_filter_tool_names_exposes_web_search_for_native_capable_provider():
+    policy = ToolPolicy(
+        config=AppConfig(
+            interaction_mode="chat",
+            model_provider="gemini",
+            selected_model_id="gemini-3-flash-preview@@gemini-3-flash-thinking",
+        ),
+        selection=None,
+    )
+
+    filtered = policy.filter_tool_names(["browser", "web_search", "read_file"])
+
+    assert filtered == ["web_search", "read_file"]
+
+
+def test_filter_tool_names_hides_web_search_without_native_or_brave_support():
+    policy = ToolPolicy(
+        config=AppConfig(
+            interaction_mode="chat",
+            model_provider="anthropic",
+            selected_model_id="claude-sonnet-4-20250514",
+        ),
+        selection=None,
+    )
+
+    filtered = policy.filter_tool_names(["web_search", "read_file"])
+
+    assert filtered == ["read_file"]
+
+
 def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
     selection = _load_selection(
         tmp_path,
@@ -134,6 +164,32 @@ def test_filter_tool_schemas_disables_browser_when_browser_automation_not_enable
     filtered = policy.filter_tool_schemas([browser_schema, system_schema])
 
     assert [schema["name"] for schema in filtered] == ["read_file"]
+
+
+def test_filter_tool_schemas_exposes_web_search_for_native_capable_provider():
+    policy = ToolPolicy(
+        config=AppConfig(
+            interaction_mode="chat",
+            model_provider="openai",
+            selected_model_id="gpt-5@@gpt-5-nonthinking",
+        ),
+        selection=None,
+    )
+
+    web_search_schema = {
+        "type": "function",
+        "name": "web_search",
+        "parameters": {"type": "object"},
+    }
+    read_schema = {
+        "type": "function",
+        "name": "read_file",
+        "parameters": {"type": "object"},
+    }
+
+    filtered = policy.filter_tool_schemas([web_search_schema, read_schema])
+
+    assert [schema["name"] for schema in filtered] == ["web_search", "read_file"]
 
 
 def test_get_method_validation_errors_rejects_disabled_mouse_method(tmp_path: Path):
