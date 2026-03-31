@@ -13,6 +13,7 @@ function renderModelLabel(label, supportsThinking) {
 
 function ChatInterfaceHeaderControls({
   vmModeEnabled,
+  showWindowControls = true,
   providerMenuRef,
   modelMenuRef,
   reasoningModeMenuRef,
@@ -164,7 +165,7 @@ function ChatInterfaceHeaderControls({
         </div>
       </div>
       <div className="chat-meta">
-        {!vmModeEnabled ? (
+        {!vmModeEnabled && showWindowControls ? (
           <MainWindowControls
             onMinimize={handleWindowMinimize}
             onToggleMaximize={handleWindowToggleMaximize}

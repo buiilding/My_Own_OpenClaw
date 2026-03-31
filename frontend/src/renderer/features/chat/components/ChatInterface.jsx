@@ -71,7 +71,7 @@ function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   );
 }
 
-function ChatInterface({ focusComposerToken = 0 }) {
+function ChatInterface({ focusComposerToken = 0, showWindowControls = true }) {
   const vmModeEnabled = isVmModeEnabled();
 
   const {
@@ -428,6 +428,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
     <div className="chat-container">
       <ChatInterfaceHeaderControls
         vmModeEnabled={vmModeEnabled}
+        showWindowControls={showWindowControls}
         providerMenuRef={providerMenuRef}
         modelMenuRef={modelMenuRef}
         providerMenuOpen={providerMenuOpen}
