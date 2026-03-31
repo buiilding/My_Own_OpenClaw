@@ -18,6 +18,9 @@ from backend.src.core.events.streaming_events import (
 from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.sdk.tool import Tool
+from backend.src.tools.web_search.source_normalization import (
+    extract_tool_result_web_search_sources,
+)
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -356,33 +359,16 @@ class ToolSender:
     @staticmethod
     def _build_search_source_events(result: ToolResult) -> List[SearchSourceEvent]:
         data = result.data if isinstance(result.data, dict) else None
-        raw_results = data.get("results") if isinstance(data, dict) else None
-        if not isinstance(raw_results, list):
-            return []
-
-        seen_urls: set[str] = set()
+        normalized_sources = extract_tool_result_web_search_sources(data)
         events: List[SearchSourceEvent] = []
-        for raw_result in raw_results:
-            if not isinstance(raw_result, dict):
-                continue
-            url = raw_result.get("url")
-            if not isinstance(url, str) or not url.strip():
-                continue
-            normalized_url = url.strip()
-            if normalized_url in seen_urls:
-                continue
-            seen_urls.add(normalized_url)
-            title = raw_result.get("title")
-            provider = data.get("provider") if isinstance(data.get("provider"), str) else "brave"
-            rank = raw_result.get("rank") if isinstance(raw_result.get("rank"), int) else None
-            query = data.get("query") if isinstance(data.get("query"), str) else None
+        for source in normalized_sources:
             events.append(
                 SearchSourceEvent(
-                    url=normalized_url,
-                    title=title.strip() if isinstance(title, str) and title.strip() else None,
-                    provider=provider,
-                    query=query,
-                    rank=rank,
+                    url=source["url"],
+                    title=source.get("title"),
+                    provider=source["provider"],
+                    query=source.get("query"),
+                    rank=source.get("rank"),
                 )
             )
         return events

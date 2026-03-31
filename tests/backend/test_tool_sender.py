@@ -428,6 +428,44 @@ class _BackendSearchTool(Tool[_BackendSearchArgs]):
         )
 
 
+class _BackendSearchToolWithDuplicateResults(Tool[_BackendSearchArgs]):
+    name = "web_search"
+    description = "search"
+    args_model = _BackendSearchArgs
+    execution_target = "backend"
+
+    async def run(self, args: _BackendSearchArgs, ctx):  # noqa: ANN001
+        _ = (args, ctx)
+        return ToolResult(
+            success=True,
+            data={
+                "provider": "brave",
+                "query": "latest windieos news",
+                "results": [
+                    {
+                        "rank": 1,
+                        "url": "https://example.com/a",
+                        "title": "Example A",
+                    },
+                    {
+                        "rank": 2,
+                        "url": "https://example.com/a",
+                        "title": "Duplicate A",
+                    },
+                    {
+                        "rank": 3,
+                        "url": "https://example.com/b",
+                        "title": "Example B",
+                        "provider": "openai",
+                        "query": "custom query",
+                    },
+                ],
+            },
+            llm_content="search results",
+            return_display="search results",
+        )
+
+
 @pytest.mark.asyncio
 async def test_send_tools_executes_backend_tool_and_emits_search_source_rows():
     request_id = "req-web-search-1"
@@ -466,3 +504,39 @@ async def test_send_tools_executes_backend_tool_and_emits_search_source_rows():
     assert emitted[3].output == "search results"
     assert request_id in session.pending_results
     assert session.pending_results[request_id].data["provider"] == "brave"
+
+
+@pytest.mark.asyncio
+async def test_send_tools_uses_centralized_search_source_normalization_for_backend_search():
+    request_id = "req-web-search-dedupe-1"
+    parsed_call = ParsedToolCall(
+        tool_name="web_search",
+        parameters={"query": "latest windieos news"},
+        metadata={
+            "request_id": request_id,
+            "tool_call_id": "tool_llm_web_search_dedupe_1",
+        },
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(parsed_call)
+
+    sender = _build_sender(
+        PreparationResult(
+            resolved_calls=[resolved_call],
+            errors=[],
+            bundle_id=None,
+        )
+    )
+    session = _DummySession()
+    session.tool_registry.register_tool(_BackendSearchToolWithDuplicateResults())
+    emitted = await _collect_emitted_events(sender, [parsed_call], session)
+
+    search_events = [event for event in emitted if isinstance(event, SearchSourceEvent)]
+    assert len(search_events) == 2
+    assert [event.url for event in search_events] == [
+        "https://example.com/a",
+        "https://example.com/b",
+    ]
+    assert search_events[0].provider == "brave"
+    assert search_events[0].query == "latest windieos news"
+    assert search_events[1].provider == "openai"
+    assert search_events[1].query == "custom query"
