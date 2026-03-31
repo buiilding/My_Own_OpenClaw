@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- tweak(frontend-dashboard-theme): restyle the dashboard shell and settings surfaces with the minimal chat pill's darker black-glass palette, elevated panel treatment, and white-button accents so the expanded UI feels like the same surface family.
 - feat(web-search): expose one logical backend-owned `web_search` tool whenever the active provider can fulfill it, route tool execution to provider-native search for OpenAI/Gemini or backend Brave Search for other providers, and keep lightweight `search-source` trace rows unchanged.
 - refactor(web-search-source-normalization): centralize backend search-source extraction/deduping in the web-search module so sender only transports normalized source rows instead of re-parsing backend tool result payloads.
 - refactor(frontend-chat-pill): extract chat-pill clip-path and drag-target math into a pure layout utility so `ChatBox.jsx` focuses on renderer wiring while the geometry/drag contract stays unit-testable.
