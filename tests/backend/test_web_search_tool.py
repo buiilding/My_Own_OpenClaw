@@ -224,6 +224,56 @@ async def test_web_search_tool_routes_to_gemini_native_search(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_web_search_tool_extracts_native_sources_from_content_when_metadata_missing():
+    tool = WebSearchTool()
+    config = AppConfig(
+        model_provider="gemini",
+        selected_model_id="gemini-3-flash-preview@@gemini-3-flash-thinking",
+    )
+
+    class _DummyLLMClient:
+        async def get_completion_response(self, **kwargs):
+            assert kwargs["native_web_search_enabled"] is True
+            return {
+                "content": (
+                    "## Sources:\n"
+                    "1. [Wikipedia: Rachel Green](https://en.wikipedia.org/wiki/Rachel_Green)\n"
+                    "2. [Friends Central](https://friends.example.com/rachel-green)\n"
+                ),
+                "web_search_sources": [],
+            }
+
+    session = SimpleNamespace(llm_client=_DummyLLMClient())
+    result = await tool.run(
+        WebSearchArgs(query="rachel green", count=2),
+        _build_tool_context(config=config, session=session),
+    )
+
+    assert result.success is True
+    assert result.data == {
+        "query": "rachel green",
+        "provider": "gemini",
+        "results": [
+            {
+                "url": "https://en.wikipedia.org/wiki/Rachel_Green",
+                "title": "Wikipedia: Rachel Green",
+                "provider": "gemini",
+                "rank": 1,
+                "query": "rachel green",
+            },
+            {
+                "url": "https://friends.example.com/rachel-green",
+                "title": "Friends Central",
+                "provider": "gemini",
+                "rank": 2,
+                "query": "rachel green",
+            },
+        ],
+    }
+    assert "https://en.wikipedia.org/wiki/Rachel_Green" in result.llm_content
+
+
+@pytest.mark.asyncio
 async def test_web_search_tool_prefers_live_session_config_over_stale_context_config(monkeypatch):
     tool = WebSearchTool()
     stale_config = AppConfig(

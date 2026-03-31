@@ -17,6 +17,9 @@ from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.web_search.capabilities import resolve_web_search_execution_mode
 from backend.src.tools.web_search.schemas import WebSearchArgs
+from backend.src.tools.web_search.source_normalization import (
+    extract_content_web_search_sources,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -282,13 +285,20 @@ class WebSearchTool(Tool[WebSearchArgs]):
             raw_sources=response.get("web_search_sources"),
             count=args.count,
         )
+        content = str(response.get("content") or "").strip()
+        if not results and content:
+            results = extract_content_web_search_sources(
+                content,
+                provider=provider_name,
+                query=args.query,
+                count=max(1, min(int(args.count), 10)),
+            )
         cls._log_completion(
             ctx=ctx,
             provider_name=provider_name,
             query=args.query,
             results=results,
         )
-        content = str(response.get("content") or "").strip()
         llm_content = content or _build_llm_content(args.query, results)
         return ToolResult(
             success=True,

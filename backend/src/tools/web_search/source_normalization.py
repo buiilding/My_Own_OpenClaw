@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, List, Optional
+
+_MARKDOWN_LINK_PATTERN = re.compile(r"\[([^\]]+)\]\((https?://[^\s)]+)\)")
+_URL_PATTERN = re.compile(r"https?://[^\s<>()]+")
 
 
 def _normalize_source_entry(
@@ -189,3 +193,47 @@ def extract_gemini_web_search_sources(payload: Any) -> List[Dict[str, Any]]:
             if normalized:
                 sources.append(normalized)
     return dedupe_sources(sources)
+
+
+def extract_content_web_search_sources(
+    content: Any,
+    *,
+    provider: str,
+    query: str | None = None,
+    count: int | None = None,
+) -> List[Dict[str, Any]]:
+    if not isinstance(content, str) or not content.strip():
+        return []
+
+    normalized_query = query.strip() if isinstance(query, str) and query.strip() else None
+    max_results = max(1, int(count)) if isinstance(count, int) else None
+    sources: List[Dict[str, Any]] = []
+    seen_urls: set[str] = set()
+
+    def append_source(url: str, title: str | None = None) -> None:
+        normalized = _normalize_source_entry(
+            url=url,
+            title=title,
+            provider=provider,
+            query=normalized_query,
+            rank=len(sources) + 1,
+        )
+        if not normalized:
+            return
+        normalized_url = normalized["url"]
+        if normalized_url in seen_urls:
+            return
+        seen_urls.add(normalized_url)
+        sources.append(normalized)
+
+    for match in _MARKDOWN_LINK_PATTERN.finditer(content):
+        append_source(match.group(2), match.group(1))
+        if max_results is not None and len(sources) >= max_results:
+            return sources
+
+    for match in _URL_PATTERN.finditer(content):
+        append_source(match.group(0))
+        if max_results is not None and len(sources) >= max_results:
+            return sources
+
+    return sources
