@@ -10,6 +10,9 @@ read_when:
 
 WindieOS supports multiple LLM providers through a unified interface. The system uses LiteLLM for provider abstraction and supports both cloud and local models.
 
+System prompt note:
+- `backend/src/llm/prompts/system_prompt.txt` now follows a Codex-style execution prompt adapted for WindieOS, while preserving WindieOS-specific browser-use, desktop-use, and validation rules.
+
 ## Supported Providers
 
 ### Cloud Providers

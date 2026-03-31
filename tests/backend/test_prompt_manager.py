@@ -173,15 +173,22 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     )
     content = prompt_file.read_text(encoding="utf-8")
 
+    assert "You are WindieOS, an AI operating system agent running in the WindieOS desktop runtime." in content
+    assert "## Personality" in content
+    assert "## Workspace instructions" in content
+    assert "## Task execution" in content
+    assert "## Validating your work" in content
     assert "<tool_selection>" in content
     assert "<state_rules>" in content
     assert "<tool_notes>" in content
+    assert "<coding_rules>" in content
     assert "<response_rules>" in content
     assert "Prefer keyboard shortcuts over mouse interaction when both are reliable" in content
     assert "Do not treat execution status alone as success" in content
     assert "The emergency stop hotkey is Command/Ctrl+Shift+Escape" in content
     assert "run_in_background=true" in content
     assert "Use `open_app` for detached GUI launches that should keep running" in content
+    assert "Do not claim a code change works unless you have some direct evidence" in content
     assert '"name":"open_app"' in content
     assert '"name":"mouse_control"' in content
     assert '"name":"browser"' in content
