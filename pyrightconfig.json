@@ -1,0 +1,10 @@
+{
+  "pythonVersion": "3.11",
+  "extraPaths": ["."],
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "extraPaths": ["."]
+    }
+  ]
+}
