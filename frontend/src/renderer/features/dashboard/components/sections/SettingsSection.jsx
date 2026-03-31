@@ -4,16 +4,19 @@ import {
   X,
   Settings,
   Database,
+  FolderOpen,
   Sparkles,
 } from 'lucide-react';
 import PermissionControlCenter from '../../../permissions/components/PermissionControlCenter';
 import GeneralSettingsTab from './settings/GeneralSettingsTab';
 import MemorySettingsTab from './settings/MemorySettingsTab';
 import OnboardingSettingsTab from './settings/OnboardingSettingsTab';
+import WorkspaceSettingsTab from './settings/WorkspaceSettingsTab';
 import '../../../../styles/CloneSettings.css';
 
 const SETTINGS_TABS = Object.freeze([
   { id: 'general', icon: Settings, label: 'General' },
+  { id: 'workspace', icon: FolderOpen, label: 'Workspace' },
   { id: 'memory', icon: Database, label: 'Memory' },
   { id: 'onboarding', icon: Sparkles, label: 'Onboarding' },
 ]);
@@ -50,6 +53,9 @@ function SettingsSection({
     }
     if (activeTab === 'memory') {
       return <MemorySettingsTab onChatsCleared={onChatsCleared} />;
+    }
+    if (activeTab === 'workspace') {
+      return <WorkspaceSettingsTab />;
     }
     if (activeTab === 'onboarding') {
       return <OnboardingSettingsTab />;

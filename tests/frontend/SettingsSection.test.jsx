@@ -1,10 +1,17 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 
 import SettingsSection from '../../frontend/src/renderer/features/dashboard/components/sections/SettingsSection';
 
 const mockInvoke = jest.fn();
 const mockRestartOnboarding = jest.fn();
+const mockIpcListeners = new Map();
 
 let mockAppConfigContext = {
   wakewordEnabled: true,
@@ -20,11 +27,22 @@ let mockTranscriptSessionInfo = {
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: (...args) => mockInvoke(...args),
+    on: (channel, listener) => {
+      mockIpcListeners.set(channel, listener);
+      return () => {
+        mockIpcListeners.delete(channel);
+      };
+    },
   },
   INVOKE_CHANNELS: {
     SET_AGENT_SUDO_ACCESS: 'set-agent-sudo-access',
     CLEAR_LOCAL_MEMORY: 'clear-local-memory',
     CLEAR_CHAT_HISTORY: 'clear-chat-history',
+    CHECK_PERMISSION: 'check-permission',
+    REQUEST_PERMISSION: 'request-permission',
+  },
+  ON_CHANNELS: {
+    WORKSPACE_ACCESS_UPDATED: 'workspace-access-updated',
   },
 }));
 
@@ -73,7 +91,24 @@ describe('SettingsSection', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
     mockRestartOnboarding.mockReset();
-    mockInvoke.mockResolvedValue({ success: true });
+    mockIpcListeners.clear();
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'check-permission') {
+        return {
+          success: true,
+          data: {
+            status: {
+              permission_id: 'filesystem_workspace_access',
+              granted: false,
+              details: {
+                selected_paths: [],
+              },
+            },
+          },
+        };
+      }
+      return { success: true };
+    });
     jest.spyOn(window, 'confirm').mockReturnValue(true);
     jest.spyOn(window, 'alert').mockImplementation(() => {});
     mockAppConfigContext = {
@@ -252,6 +287,78 @@ describe('SettingsSection', () => {
     renderSettingsSection();
 
     expect(screen.getByTestId('settings-tab-onboarding')).toBeInTheDocument();
+  });
+
+  test('renders a workspace tab in the settings sidebar', () => {
+    renderSettingsSection();
+
+    expect(screen.getByTestId('settings-tab-workspace')).toBeInTheDocument();
+  });
+
+  test('workspace tab shows the active workspace and can change it', async () => {
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'check-permission') {
+        return {
+          success: true,
+          data: {
+            status: {
+              permission_id: 'filesystem_workspace_access',
+              granted: true,
+              details: {
+                selected_paths: ['D:\\Assistants\\WindieOS_workspace\\windieos'],
+              },
+            },
+          },
+        };
+      }
+      if (channel === 'request-permission') {
+        return {
+          success: true,
+          data: {
+            status: {
+              permission_id: 'filesystem_workspace_access',
+              granted: true,
+              details: {
+                selected_paths: ['D:\\Assistants\\WindieOS_workspace\\windieos\\frontend'],
+              },
+            },
+          },
+        };
+      }
+      return { success: true };
+    });
+
+    renderSettingsSection({ initialTab: 'workspace' });
+
+    expect(await screen.findByText('D:\\Assistants\\WindieOS_workspace\\windieos')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Change workspace' }));
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('request-permission', {
+        permissionId: 'filesystem_workspace_access',
+      });
+    });
+    expect(await screen.findByText('Active workspace set to frontend.')).toBeInTheDocument();
+    expect(screen.getByText('D:\\Assistants\\WindieOS_workspace\\windieos\\frontend')).toBeInTheDocument();
+  });
+
+  test('workspace tab updates when the main process broadcasts a workspace change', async () => {
+    renderSettingsSection({ initialTab: 'workspace' });
+
+    await waitFor(() => {
+      expect(mockIpcListeners.has('workspace-access-updated')).toBe(true);
+    });
+
+    act(() => {
+      mockIpcListeners.get('workspace-access-updated')?.({
+        granted: true,
+        workspaceName: 'client-demo',
+        workspacePath: 'D:\\Assistants\\client-demo',
+      });
+    });
+
+    expect(await screen.findByText('D:\\Assistants\\client-demo')).toBeInTheDocument();
   });
 
   test('onboarding tab can send the user back to onboarding', () => {
