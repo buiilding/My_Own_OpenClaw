@@ -5,9 +5,6 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
-- tweak(frontend-dashboard): align dashboard text rows more closely to the notebook ruling and move the workspace/audio controls into the top header row immediately left of the window buttons.
-- tweak(frontend-dashboard): refine the dashboard shell reference-tuning pass, including removing the decorative left notebook-coil gutter and simplifying the sidebar offset so the ruled page starts cleanly at the window edge.
-- feat(frontend-dashboard): restyle the main dashboard window into a ruled notebook theme with paper-toned panels, sketch borders, and handwriting typography while leaving the chat pill and response overlay unchanged.
 - refactor(frontend-dashboard): rename renderer `ChatGpt*` files to descriptive WindieOS-oriented names (`DashboardShell`, `DashboardShell.css`, and `WindieGlyph`) and update frontend imports/docs accordingly.
 - feat(frontend-workspace-switcher): make the dashboard header workspace chip interactive, add a Settings > Workspace management tab, and broadcast renderer-triggered workspace changes immediately from main so menu, header, and settings stay in sync.
 - refactor(system-prompt): expand the Codex-style WindieOS system prompt with more of Codex's execution scaffold, including repo-instruction scope, preamble discipline, and final-answer formatting rules, while keeping WindieOS-specific computer-use, browser-use, process, and coding rules, and extend the prompt regression contract accordingly.
