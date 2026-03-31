@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import ChatInterface from '../../chat/components/ChatInterface';
 import { useChatStore } from '../../chat/stores/chatStore';
@@ -66,7 +66,6 @@ function ChatGptDashboardShell({
   const [searchOpen, setSearchOpen] = useState(false);
   const [isTransportConnected, setIsTransportConnected] = useState(true);
   const [composerFocusToken, setComposerFocusToken] = useState(0);
-  const wasHiddenRef = useRef(false);
   const sessionInfo = useTranscriptSessionInfo();
   const resolvedUserId = sessionInfo.userId || DEFAULT_USER_ID;
 
@@ -102,15 +101,6 @@ function ChatGptDashboardShell({
     setChatActiveConversationRef,
     searchOpen,
   });
-
-  const triggerDashboardOpenAnimation = useCallback(() => {
-    setDashboardOpening(false);
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
-        setDashboardOpening(true);
-      });
-    });
-  }, []);
 
   const closeAllPanels = useCallback(() => {
     setSettingsOpen(false);
@@ -213,24 +203,6 @@ function ChatGptDashboardShell({
       window.clearTimeout(timer);
     };
   }, [dashboardOpening]);
-
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        wasHiddenRef.current = true;
-        return;
-      }
-      if (document.visibilityState === 'visible' && wasHiddenRef.current) {
-        wasHiddenRef.current = false;
-        triggerDashboardOpenAnimation();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [triggerDashboardOpenAnimation]);
 
   useEffect(() => {
     const rootElement = document.getElementById('root');
