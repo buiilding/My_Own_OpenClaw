@@ -1083,3 +1083,117 @@
     gap: 8px;
   }
 }
+
+.cg-dashboard-shell .clone-memory-panel,
+.cg-dashboard-shell .clone-model-panel {
+  background: transparent;
+  color: var(--dashboard-text);
+}
+
+.cg-dashboard-shell .clone-panel-close,
+.cg-dashboard-shell .clone-memory-type-btn,
+.cg-dashboard-shell .clone-memory-add-btn,
+.cg-dashboard-shell .clone-memory-add-actions button,
+.cg-dashboard-shell .clone-memory-editor-btn,
+.cg-dashboard-shell .clone-memory-action-btn {
+  border: 1px solid var(--dashboard-border);
+  background:
+    linear-gradient(180deg, rgba(30, 58, 104, 0.58), rgba(11, 23, 46, 0.44)),
+    rgba(9, 19, 38, 0.34);
+  color: var(--dashboard-text);
+  box-shadow: var(--dashboard-shadow);
+  backdrop-filter: blur(var(--dashboard-blur));
+  -webkit-backdrop-filter: blur(var(--dashboard-blur));
+}
+
+.cg-dashboard-shell .clone-panel-close:hover,
+.cg-dashboard-shell .clone-memory-type-btn:hover,
+.cg-dashboard-shell .clone-memory-add-btn:hover,
+.cg-dashboard-shell .clone-memory-add-actions button:hover,
+.cg-dashboard-shell .clone-memory-editor-btn:hover,
+.cg-dashboard-shell .clone-memory-action-btn:hover {
+  border-color: var(--dashboard-border-strong);
+  background:
+    linear-gradient(180deg, rgba(44, 80, 141, 0.72), rgba(15, 33, 64, 0.58)),
+    rgba(11, 24, 46, 0.42);
+}
+
+.cg-dashboard-shell .clone-panel-header {
+  border-bottom: 1px solid var(--dashboard-border-soft);
+}
+
+.cg-dashboard-shell .clone-panel-header h1,
+.cg-dashboard-shell .clone-memory-retrieval-title,
+.cg-dashboard-shell .clone-memory-item-title,
+.cg-dashboard-shell .clone-model-title {
+  color: var(--dashboard-text);
+}
+
+.cg-dashboard-shell .clone-panel-header p,
+.cg-dashboard-shell .clone-memory-toolbar p,
+.cg-dashboard-shell .clone-memory-retrieval-subtitle,
+.cg-dashboard-shell .clone-memory-item-meta-row,
+.cg-dashboard-shell .clone-memory-item-detail,
+.cg-dashboard-shell .clone-model-description,
+.cg-dashboard-shell .clone-model-metric span,
+.cg-dashboard-shell .clone-model-metric strong {
+  color: var(--dashboard-text-muted);
+}
+
+.cg-dashboard-shell .clone-memory-retrieval-row,
+.cg-dashboard-shell .clone-memory-add-box,
+.cg-dashboard-shell .clone-memory-item,
+.cg-dashboard-shell .clone-model-card {
+  border: 1px solid var(--dashboard-border);
+  background:
+    linear-gradient(180deg, rgba(24, 47, 88, 0.74), rgba(10, 21, 42, 0.58)),
+    rgba(8, 18, 36, 0.38);
+  box-shadow: var(--dashboard-shadow);
+  backdrop-filter: blur(calc(var(--dashboard-blur) + 6px));
+  -webkit-backdrop-filter: blur(calc(var(--dashboard-blur) + 6px));
+}
+
+.cg-dashboard-shell .clone-memory-item:hover,
+.cg-dashboard-shell .clone-model-card:hover {
+  border-color: var(--dashboard-border-strong);
+}
+
+.cg-dashboard-shell .clone-memory-search input,
+.cg-dashboard-shell .clone-memory-add-box input,
+.cg-dashboard-shell .clone-memory-add-box textarea,
+.cg-dashboard-shell .clone-memory-editor-textarea,
+.cg-dashboard-shell .clone-model-search-input {
+  border: 1px solid var(--dashboard-border);
+  background:
+    linear-gradient(180deg, rgba(17, 35, 67, 0.72), rgba(9, 19, 38, 0.58)),
+    rgba(7, 15, 29, 0.34);
+  color: var(--dashboard-text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.cg-dashboard-shell .clone-memory-search input::placeholder,
+.cg-dashboard-shell .clone-memory-add-box input::placeholder,
+.cg-dashboard-shell .clone-memory-add-box textarea::placeholder,
+.cg-dashboard-shell .clone-memory-editor-textarea::placeholder,
+.cg-dashboard-shell .clone-model-search-input::placeholder {
+  color: var(--dashboard-text-dim);
+}
+
+.cg-dashboard-shell .clone-memory-type-btn.active {
+  border-color: rgba(119, 216, 255, 0.38);
+  background:
+    linear-gradient(180deg, rgba(39, 88, 156, 0.82), rgba(17, 41, 79, 0.68)),
+    rgba(13, 29, 55, 0.48);
+  color: #eff9ff;
+  box-shadow:
+    0 0 0 1px rgba(76, 184, 255, 0.12),
+    0 0 22px rgba(76, 184, 255, 0.12);
+}
+
+.cg-dashboard-shell .clone-memory-type-count,
+.cg-dashboard-shell .clone-memory-confidence,
+.cg-dashboard-shell .clone-model-strengths span {
+  border: 1px solid rgba(146, 221, 255, 0.12);
+  background: rgba(11, 24, 46, 0.44);
+  color: var(--dashboard-text-muted);
+}
