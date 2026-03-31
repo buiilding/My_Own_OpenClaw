@@ -35,6 +35,7 @@ All notable changes to WindieOS will be documented in this file.
 - feat(tool-log-visibility-toggle): add a General settings toggle that hides raw tool-call/tool-output cards by default, replaces live tool rows with subdued explanation text, and collapses completed-loop actions behind a `View actions` summary.
 
 ### Fixed
+- fix(frontend-web-search-live-state): keep chat sending/thinking state alive for backend-owned `web_search` tool calls that skip frontend execution, so the live response surface does not disappear before later `search-source` or `tool-output` events arrive.
 - fix(web-search-gemini-runtime-routing): make backend logical `web_search` resolve provider/model from the live session config instead of the startup default, broaden Gemini native-search retry detection to handle wrapped LiteLLM Vertex async-transform errors, and add backend regressions for stale-config routing plus wrapped-exception fallback.
 - fix(sidecar-remote-memory-fallback): make sidecar embedding, semantic summarization, and title HTTP clients fall back to the local backend on retryable hosted `5xx` responses such as Cloudflare tunnel `530`, instead of failing transcript and memory persistence outright when the hosted endpoint is degraded.
 - fix(browser-tool-schema-contract): remove the browser-only schema rewriter, make the backend `browser` tool emit its model-facing schema through the generic tool path, and reject removed legacy browser alias actions directly during backend validation.

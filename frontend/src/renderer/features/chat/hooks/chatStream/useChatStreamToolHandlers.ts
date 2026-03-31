@@ -81,9 +81,12 @@ export function useChatStreamToolHandlers({
   }, [enableTranscript, modelContextRef]);
 
   const handleToolCall = useCallback((event: ToolCallEvent, conversationRef?: string | null) => {
-    setIsSending(false, conversationRef);
-    setThinkingStatus(null, conversationRef);
-    setThinkingSourceEventType(null, conversationRef);
+    const skipFrontendExecution = event.payload?.metadata?.skip_frontend_execution === true;
+    if (!skipFrontendExecution) {
+      setIsSending(false, conversationRef);
+      setThinkingStatus(null, conversationRef);
+      setThinkingSourceEventType(null, conversationRef);
+    }
     const toolCallMessageState = buildToolCallMessageState({
       rawToolCall: event.payload?.metadata?.model_facing_tool_call || null,
       fallbackToolName: event.payload?.tool_name || null,
