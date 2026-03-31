@@ -50,7 +50,7 @@ DashboardModal.propTypes = {
 const DASHBOARD_OPEN_ANIMATION_MS = 420;
 const DASHBOARD_SCROLL_LOCK_CLASS = 'cg-scroll-locked';
 
-function ChatGptDashboardShell({
+function DashboardShell({
   config,
   availableModels,
   onConfigChange,
@@ -356,7 +356,7 @@ function ChatGptDashboardShell({
   );
 }
 
-ChatGptDashboardShell.propTypes = {
+DashboardShell.propTypes = {
   config: PropTypes.shape({}),
   availableModels: PropTypes.shape({
     local: PropTypes.array,
@@ -366,4 +366,4 @@ ChatGptDashboardShell.propTypes = {
   vmModeEnabled: PropTypes.bool,
 };
 
-export default ChatGptDashboardShell;
+export default DashboardShell;

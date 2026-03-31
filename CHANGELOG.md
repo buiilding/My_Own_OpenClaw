@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- refactor(frontend-dashboard): rename renderer `ChatGpt*` files to descriptive WindieOS-oriented names (`DashboardShell`, `DashboardShell.css`, and `WindieGlyph`) and update frontend imports/docs accordingly.
 - feat(frontend-workspace-switcher): make the dashboard header workspace chip interactive, add a Settings > Workspace management tab, and broadcast renderer-triggered workspace changes immediately from main so menu, header, and settings stay in sync.
 - refactor(system-prompt): expand the Codex-style WindieOS system prompt with more of Codex's execution scaffold, including repo-instruction scope, preamble discipline, and final-answer formatting rules, while keeping WindieOS-specific computer-use, browser-use, process, and coding rules, and extend the prompt regression contract accordingly.
 - tweak(system-prompt): replace XML-style prompt section markers with markdown headings so the expanded WindieOS system prompt stays structurally consistent end to end.

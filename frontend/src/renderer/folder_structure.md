@@ -30,7 +30,7 @@ frontend/src/renderer/
 │       └── configComparison.ts          # configComparison - Shallow config change detection helpers
 │
 ├── components/                           # Shared UI components
-│   ├── ChatGptLogo.jsx                  # ChatGptLogo - Shared Windie glyph used in chat/sidebar affordances
+│   ├── WindieGlyph.jsx                  # WindieGlyph - Shared Windie glyph used in chat/sidebar affordances
 │   └── ErrorBoundary.jsx                # ErrorBoundary - Catches React errors and displays fallback UI
 │
 ├── features/                             # Feature modules (organized by domain)
@@ -120,7 +120,7 @@ frontend/src/renderer/
 │   │   │   └── useTranscriptSessionInfo.js # useTranscriptSessionInfo - External-store transcript session subscription
 │   │   │
 │   │   └── components/                  # Dashboard UI components
-│   │       ├── ChatGptDashboardShell.jsx # ChatGptDashboardShell - Conversation-first shell + memory/models/settings modals
+│   │       ├── DashboardShell.jsx       # DashboardShell - Conversation-first shell + memory/models/settings modals
 │   │       └── sections/                # Dashboard section components
 │   │           ├── MemorySection.jsx    # MemorySection - Unified episodic/semantic/procedural memory manager
 │   │           ├── MemoryItem.jsx       # MemoryItem - Expand/edit/delete UI row for individual memory entries
@@ -208,7 +208,7 @@ frontend/src/renderer/
 │   ├── accessibility.css                # Accessibility utilities (visually-hidden class)
 │   ├── ChatBox.css                      # Chat box overlay styles
 │   ├── ChatInterface.css               # Chat interface styles (messages, tool outputs, transparency sections)
-│   ├── ChatGptDashboardShell.css        # ChatGPT-style dashboard shell + modal panel styles
+│   ├── DashboardShell.css               # Dashboard shell + modal panel styles
 │   ├── ErrorBoundary.css                # ErrorBoundary fallback UI styling
 │   ├── PermissionOnboarding.css         # Permission onboarding/control-center styles
 │   ├── SettingsPanel.css                # Dashboard section styles (cards, toggles, model list)
@@ -240,7 +240,7 @@ frontend/src/renderer/
        ├─> ErrorBoundary (error handling)
        ├─> AppProvider (config and status contexts)
        ├─> ChatProvider (chat hooks setup)
-       └─> AppContent (permission bootstrap gate -> onboarding wizard or ChatGptDashboardShell)
+       └─> AppContent (permission bootstrap gate -> onboarding wizard or DashboardShell)
            ↓
 3. PERMISSION BOOTSTRAP
    └─> features/permissions/stores/permissionStore.js
@@ -409,7 +409,7 @@ frontend/src/renderer/
 
 ```
 1. SETTINGS CHANGE
-   └─> features/dashboard/components/ChatGptDashboardShell.jsx
+   └─> features/dashboard/components/DashboardShell.jsx
        └─> User changes model/speech settings
            └─> onConfigChange(newConfig)
                ↓
@@ -519,7 +519,7 @@ App
 │       │       └── ChatProvider
 │       │           ├── WakewordController
 │       │           └── AppContent
-│       │               └── ChatGptDashboardShell
+│       │               └── DashboardShell
 │       │                   ├── Sidebar
 │       │                   ├── ChatInterface
 │       │                   │   ├── MessageList

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-function ChatGptLogo({ size = 14 }) {
+function WindieGlyph({ size = 14 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -10,8 +10,8 @@ function ChatGptLogo({ size = 14 }) {
   );
 }
 
-ChatGptLogo.propTypes = {
+WindieGlyph.propTypes = {
   size: PropTypes.number,
 };
 
-export default ChatGptLogo;
+export default WindieGlyph;

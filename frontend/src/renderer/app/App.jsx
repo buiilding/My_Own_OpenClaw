@@ -1,5 +1,5 @@
 import ErrorBoundary from '../components/ErrorBoundary';
-import ChatGptDashboardShell from '../features/dashboard/components/ChatGptDashboardShell';
+import DashboardShell from '../features/dashboard/components/DashboardShell';
 import FrontendOnboardingSlideshow from '../features/onboarding/components/FrontendOnboardingSlideshow';
 import { usePermissionStore } from '../features/permissions/stores/permissionStore';
 import { getGlobalAgentStopShortcutLabel } from '../infrastructure/shortcuts/agentStopShortcut';
@@ -11,7 +11,7 @@ import { ChatProvider } from './providers/ChatProvider';
 import WakewordController from './WakewordController';
 import '../styles/theme.css';
 import '../styles/ChatInterface.css';
-import '../styles/ChatGptDashboardShell.css';
+import '../styles/DashboardShell.css';
 import '../styles/CloneMemoryModels.css';
 import '../styles/FrontendOnboarding.css';
 import '../styles/accessibility.css';
@@ -34,7 +34,7 @@ function AppContent() {
 
   if (startupSurface === 'dashboard-vm') {
     return (
-      <ChatGptDashboardShell
+      <DashboardShell
         config={config}
         availableModels={availableModels}
         onConfigChange={updateConfig}
@@ -52,7 +52,7 @@ function AppContent() {
   }
 
   return (
-    <ChatGptDashboardShell
+    <DashboardShell
       config={config}
       availableModels={availableModels}
       onConfigChange={updateConfig}
