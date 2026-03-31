@@ -204,6 +204,14 @@ class WebSearchTool(Tool[WebSearchArgs]):
         return session
 
     @classmethod
+    def _resolve_runtime_config(cls, ctx: ToolContext) -> Any:
+        session = cls._resolve_session(ctx)
+        session_cfg = getattr(session, "cfg", None)
+        if session_cfg is not None:
+            return session_cfg
+        return ctx.services.get("config")
+
+    @classmethod
     async def _run_provider_native_search(
         cls,
         *,
@@ -213,7 +221,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
     ) -> ToolResult:
         session = cls._resolve_session(ctx)
         llm_client = getattr(session, "llm_client", None)
-        config = ctx.services.get("config")
+        config = cls._resolve_runtime_config(ctx)
         selected_model_id = getattr(config, "selected_model_id", None)
         if llm_client is None or not isinstance(selected_model_id, str) or not selected_model_id.strip():
             error_msg = "Provider-native web search is unavailable in the current backend session."
@@ -262,7 +270,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
 
     @staticmethod
     def _resolve_api_key(ctx: ToolContext) -> Optional[str]:
-        config = ctx.services.get("config")
+        config = WebSearchTool._resolve_runtime_config(ctx)
         env_var = str(getattr(getattr(config, "brave_search", None), "api_key_env", "") or "").strip()
         if not env_var:
             env_var = "BRAVE_SEARCH_API_KEY"
@@ -350,7 +358,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
         raise RuntimeError("Brave Search request failed.") from last_error
 
     async def run(self, args: WebSearchArgs, ctx: ToolContext) -> ToolResult:
-        config = ctx.services.get("config")
+        config = self._resolve_runtime_config(ctx)
         execution_mode = resolve_web_search_execution_mode(config) if config is not None else None
 
         if execution_mode == "native-openai":

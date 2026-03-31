@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any, Dict, List
 
 import litellm
@@ -63,6 +64,11 @@ class GeminiProvider(StreamingToolCallAggregationMixin, OnlineLLMProvider):
         _ = runtime_model_id
         return params
 
+    @staticmethod
+    def _is_native_web_search_async_transform_gap(exc: Exception) -> bool:
+        message = str(exc or "")
+        return "Vertex AI has a custom implementation of transform_request" in message
+
     async def get_completion(
         self,
         model: str,
@@ -83,7 +89,17 @@ class GeminiProvider(StreamingToolCallAggregationMixin, OnlineLLMProvider):
             params,
             native_web_search_enabled=native_web_search_enabled,
         )
-        response = await litellm.acompletion(**params)
+        try:
+            response = await litellm.acompletion(**params)
+        except Exception as exc:
+            if not (
+                native_web_search_enabled
+                and self._is_native_web_search_async_transform_gap(exc)
+            ):
+                raise
+            # LiteLLM's async Gemini/Vertex path currently misses the custom
+            # transform_request implementation needed for google_search tools.
+            response = await asyncio.to_thread(litellm.completion, **params)
         self._record_usage_from_payload_container(response)
         normalized = self._extract_completion_response(
             response,

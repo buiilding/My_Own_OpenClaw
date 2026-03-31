@@ -33,10 +33,10 @@ tools = [
   "process",
   "read_file",
   "replace",
+  "web_search",
 ]
 # Optional method-level controls for mouse_control.
 # If omitted, all methods are enabled.
 [tool_options.mouse_control]
 enabled_coordinate_methods = [
-  "manual",
-  "ocr"]
+  "manual", "ocr"]
