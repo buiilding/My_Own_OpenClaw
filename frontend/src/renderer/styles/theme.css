@@ -1,9 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Patrick+Hand&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
   --font-ui: 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
-  --font-dashboard: 'Patrick Hand', 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive;
 
   --bg-base: #141414;
   --bg-muted: #1d1d1d;
@@ -94,26 +93,6 @@
   --ui-on-accent: var(--ui-neutral-white);
   --ui-settings-swatch-bg: var(--ui-neutral-black);
   --ui-toggle-thumb-on: var(--ui-neutral-white);
-
-  --dashboard-paper: #f2e4a5;
-  --dashboard-paper-strong: #ead78d;
-  --dashboard-paper-raised: rgba(250, 240, 187, 0.92);
-  --dashboard-paper-panel: rgba(247, 236, 180, 0.96);
-  --dashboard-paper-muted: rgba(243, 228, 162, 0.88);
-  --dashboard-paper-shadow: rgba(108, 88, 53, 0.24);
-  --dashboard-ink: #3f392c;
-  --dashboard-ink-soft: rgba(63, 57, 44, 0.78);
-  --dashboard-ink-faint: rgba(63, 57, 44, 0.52);
-  --dashboard-rule-line: rgba(97, 159, 198, 0.62);
-  --dashboard-margin-line: rgba(208, 94, 78, 0.72);
-  --dashboard-border: rgba(70, 60, 43, 0.56);
-  --dashboard-border-soft: rgba(70, 60, 43, 0.28);
-  --dashboard-border-faint: rgba(70, 60, 43, 0.16);
-  --dashboard-box-shadow: 3px 3px 0 rgba(70, 60, 43, 0.28);
-  --dashboard-box-shadow-strong:
-    5px 5px 0 rgba(70, 60, 43, 0.22),
-    0 18px 34px rgba(121, 98, 62, 0.18);
-  --dashboard-rule-step: 2.35rem;
 }
 
 *,
