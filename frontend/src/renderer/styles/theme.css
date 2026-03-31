@@ -15,9 +15,9 @@
   --text-muted: #b9b9b9;
   --text-soft: #8b8b8b;
 
-  --accent: #8e97a5;
-  --accent-strong: #7a8493;
-  --accent-soft: rgba(142, 151, 165, 0.16);
+  --accent: #c6c6c6;
+  --accent-strong: #f2f2f2;
+  --accent-soft: rgba(255, 255, 255, 0.16);
 
   --warning: #e3a84f;
   --danger: #f87171;
@@ -62,12 +62,22 @@
     0 30px 64px -22px rgba(0, 0, 0, 0.82),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --pill-backdrop-blur: 24px;
+  --pill-shell-bg:
+    linear-gradient(180deg, rgba(5, 5, 5, 0.98) 0%, rgba(8, 8, 8, 0.96) 48%, rgba(11, 11, 11, 0.98) 100%);
+  --pill-shell-ambient:
+    radial-gradient(1200px 760px at 12% -18%, rgba(255, 255, 255, 0.07), transparent 56%),
+    radial-gradient(920px 620px at 100% 0%, rgba(255, 255, 255, 0.04), transparent 52%);
+  --pill-sidebar-bg:
+    linear-gradient(180deg, rgba(8, 8, 8, 0.96) 0%, rgba(6, 6, 6, 0.98) 100%);
+  --pill-panel-elevated-bg:
+    linear-gradient(180deg, rgba(15, 15, 15, 0.95) 0%, rgba(10, 10, 10, 0.92) 100%);
 
   /* Active theme mapping. To revert quickly, point these back to --legacy-* tokens below. */
-  --ui-shell-bg: #171717;
-  --ui-sidebar-bg: #111111;
+  --ui-shell-bg: var(--pill-shell-bg);
+  --ui-shell-ambient: var(--pill-shell-ambient);
+  --ui-sidebar-bg: var(--pill-sidebar-bg);
   --ui-panel-bg: var(--pill-surface-bg);
-  --ui-panel-raised-bg: var(--pill-surface-raised-bg);
+  --ui-panel-raised-bg: var(--pill-panel-elevated-bg);
   --ui-hover-bg: var(--pill-hover-bg);
   --ui-hover-strong-bg: var(--pill-hover-strong-bg);
   --ui-text-primary: var(--pill-text-primary);
@@ -112,9 +122,8 @@ body {
   font-family: var(--font-ui);
   color: var(--text-primary);
   background:
-    radial-gradient(900px 600px at 10% -10%, rgba(142, 151, 165, 0.08), transparent 58%),
-    radial-gradient(900px 600px at 100% 0%, rgba(255, 255, 255, 0.06), transparent 58%),
-    linear-gradient(180deg, var(--bg-base) 0%, var(--bg-muted) 100%);
+    var(--ui-shell-ambient),
+    linear-gradient(180deg, rgba(4, 4, 4, 1) 0%, rgba(8, 8, 8, 1) 54%, rgba(11, 11, 11, 1) 100%);
   background-attachment: fixed;
   overflow: hidden;
 }
@@ -136,7 +145,7 @@ a {
 }
 
 ::selection {
-  background: rgba(142, 151, 165, 0.3);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 ::-webkit-scrollbar {

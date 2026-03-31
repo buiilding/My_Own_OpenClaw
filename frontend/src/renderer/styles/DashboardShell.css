@@ -8,6 +8,8 @@ body.cg-scroll-locked,
 .cg-dashboard-shell {
   --cg-sidebar-motion-duration: 260ms;
   --cg-sidebar-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  isolation: isolate;
   display: flex;
   width: 100%;
   max-width: 100%;
@@ -19,6 +21,27 @@ body.cg-scroll-locked,
   background: var(--ui-shell-bg);
   color: var(--ui-text-primary);
   transform: translateZ(0);
+}
+
+.cg-dashboard-shell::before,
+.cg-dashboard-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cg-dashboard-shell::before {
+  background: var(--ui-shell-ambient);
+  opacity: 0.92;
+  z-index: 0;
+}
+
+.cg-dashboard-shell::after {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 18%),
+    radial-gradient(1200px 820px at 50% 100%, rgba(0, 0, 0, 0.28), transparent 64%);
+  z-index: 0;
 }
 
 .cg-dashboard-shell.cg-dashboard-shell-opening {
@@ -34,10 +57,13 @@ body.cg-scroll-locked,
 }
 
 .cg-sidebar {
+  position: relative;
   width: 260px;
   min-width: 260px;
   height: 100%;
   background: var(--ui-sidebar-bg);
+  border-right: 1px solid var(--ui-border-subtle);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.03);
   display: flex;
   flex-direction: column;
   z-index: 20;
@@ -337,6 +363,7 @@ body.cg-scroll-locked,
 .cg-chat-item-row.active .cg-chat-item {
   background: var(--ui-hover-bg);
   color: var(--ui-text-primary);
+  box-shadow: inset 0 0 0 1px var(--ui-border-subtle);
 }
 
 .cg-chat-item {
@@ -504,8 +531,8 @@ body.cg-scroll-locked,
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  background: linear-gradient(140deg, var(--accent), var(--accent-strong));
-  color: var(--ui-on-accent);
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.96), rgba(166, 166, 166, 0.86));
+  color: rgba(8, 8, 8, 0.96);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -610,11 +637,13 @@ body.cg-scroll-locked,
 }
 
 .cg-main-content {
+  position: relative;
   flex: 1;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--ui-shell-bg);
+  background:
+    linear-gradient(180deg, rgba(10, 10, 10, 0.92) 0%, rgba(8, 8, 8, 0.82) 100%);
   transform: translateX(0);
   transition: transform var(--cg-sidebar-motion-duration) var(--cg-sidebar-motion-ease);
 }
@@ -626,6 +655,7 @@ body.cg-scroll-locked,
 .cg-main-content .chat-container {
   padding: 0;
   gap: 0;
+  background: transparent;
 }
 
 .cg-search-overlay {
@@ -645,8 +675,8 @@ body.cg-scroll-locked,
   max-height: min(420px, calc(100vh - 72px));
   border-radius: 14px;
   border: 1px solid var(--ui-border-soft);
-  background: var(--ui-panel-bg);
-  box-shadow: var(--ui-shadow);
+  background: var(--ui-panel-raised-bg);
+  box-shadow: var(--ui-shadow-strong);
   backdrop-filter: blur(var(--ui-backdrop-blur));
   -webkit-backdrop-filter: blur(var(--ui-backdrop-blur));
   overflow: hidden;
@@ -814,9 +844,9 @@ body.cg-scroll-locked,
   max-width: 100%;
   max-height: 100%;
   border-radius: 16px;
-  background: var(--ui-panel-bg);
+  background: var(--ui-panel-raised-bg);
   border: 1px solid var(--ui-border-soft);
-  box-shadow: var(--ui-shadow);
+  box-shadow: var(--ui-shadow-strong);
   backdrop-filter: blur(var(--ui-backdrop-blur));
   -webkit-backdrop-filter: blur(var(--ui-backdrop-blur));
   overflow: hidden;
