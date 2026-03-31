@@ -99,6 +99,7 @@ def test_gemini_provider_enables_native_thinking_payload_for_thinking_model():
         model="gemini-3.1-pro-preview@@gemini-3-1-pro-thinking",
     )
 
+    assert updated.get("temperature") == 1.0
     assert updated.get("thinking") == {"type": "enabled", "budget_tokens": 16384}
 
 
