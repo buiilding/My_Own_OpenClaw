@@ -5,7 +5,6 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
-- tweak(frontend-dashboard): restore the glass settings panel to a more clearly centered popup with tighter modal bounds, more outer gap, and an inset framed surface instead of a docked-looking sheet.
 - fix(frontend-dashboard): stop the glass dashboard header from overflowing horizontally so the standalone close button no longer gets clipped at the right edge.
 - tweak(frontend-dashboard): split the dashboard window controls back into three standalone circular buttons instead of a shared glass capsule.
 - tweak(frontend-dashboard): replace the oversized rounded glass dashboard header container with a simpler horizontal divider while keeping the blue glass theme intact.
