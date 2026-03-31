@@ -318,4 +318,71 @@ describe('useChatStreamToolHandlers', () => {
       }),
     );
   });
+
+  test('keeps sending/thinking state alive for backend-owned tool calls that skip frontend execution', () => {
+    const addMessage = jest.fn();
+    const setIsSending = jest.fn();
+    const setThinkingStatus = jest.fn();
+    const setThinkingSourceEventType = jest.fn();
+    const recordTrackingEvent = jest.fn();
+
+    const { result } = renderHook(() => useChatStreamToolHandlers({
+      enableTranscript: true,
+      addMessage,
+      setIsSending,
+      setThinkingStatus,
+      setThinkingSourceEventType,
+      modelContextRef: {
+        current: {
+          modelId: 'model-web-search',
+          modelProvider: 'gemini',
+        },
+      },
+      recordTrackingEvent,
+    }));
+
+    act(() => {
+      result.current.handleToolCall({
+        id: 'event-tool-call-web-search',
+        type: 'tool-call',
+        turn_ref: 'turn-web-search-1',
+        conversation_ref: 'conversation-web-search-1',
+        user_id: 'user-web-search-1',
+        payload: {
+          tool_name: 'web_search',
+          request_id: 'request-web-search-1',
+          parameters: {
+            query: 'Rachel Green',
+          },
+          metadata: {
+            skip_frontend_execution: true,
+            model_facing_tool_call: {
+              id: 'tool_llm_web_search_1',
+              name: 'web_search',
+              arguments: {
+                query: 'Rachel Green',
+              },
+            },
+          },
+        },
+      } as any, 'conversation-web-search-1');
+    });
+
+    expect(setIsSending).not.toHaveBeenCalled();
+    expect(setThinkingStatus).not.toHaveBeenCalled();
+    expect(setThinkingSourceEventType).not.toHaveBeenCalled();
+    expect(addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'tool-call',
+        sourceEventType: 'tool-call',
+      }),
+      'conversation-web-search-1',
+    );
+    expect(recordTrackingEvent).toHaveBeenCalledWith(
+      'tool-call',
+      'turn-web-search-1',
+      { toolCall: true },
+      'conversation-web-search-1',
+    );
+  });
 });
