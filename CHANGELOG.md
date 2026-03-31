@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- feat(frontend-chat-pill): restyle the overlay chat pill into a flatter hand-drawn notebook control with a pencil-outline shell, handwritten input styling, a simple leading plus, and paper-toned action buttons.
 - feat(frontend-dashboard): restyle the main dashboard window into a ruled notebook theme with paper-toned panels, sketch borders, and handwriting typography while leaving the chat pill and response overlay unchanged.
 - refactor(frontend-dashboard): rename renderer `ChatGpt*` files to descriptive WindieOS-oriented names (`DashboardShell`, `DashboardShell.css`, and `WindieGlyph`) and update frontend imports/docs accordingly.
 - feat(frontend-workspace-switcher): make the dashboard header workspace chip interactive, add a Settings > Workspace management tab, and broadcast renderer-triggered workspace changes immediately from main so menu, header, and settings stay in sync.
