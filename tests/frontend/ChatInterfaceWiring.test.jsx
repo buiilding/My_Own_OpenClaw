@@ -296,10 +296,10 @@ describe('ChatInterface wiring', () => {
     const renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
     expect(renderedMessages.map((message) => message.type || 'llm-text')).toEqual([
       'llm-text',
-      'llm-text',
       'tool-actions-summary',
+      'llm-text',
     ]);
-    expect(renderedMessages[2].actionExplanations).toEqual([
+    expect(renderedMessages[1].actionExplanations).toEqual([
       'List the active workspace contents.',
     ]);
   });
@@ -392,8 +392,8 @@ describe('ChatInterface wiring', () => {
     let renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
     expect(renderedMessages.map((message) => message.type || 'llm-text')).toEqual([
       'llm-text',
-      'llm-text',
       'tool-actions-summary',
+      'llm-text',
     ]);
 
     mockConfig = {
@@ -419,10 +419,10 @@ describe('ChatInterface wiring', () => {
     renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
     expect(renderedMessages.map((message) => message.type || 'llm-text')).toEqual([
       'llm-text',
-      'llm-text',
       'tool-actions-summary',
+      'llm-text',
     ]);
-    expect(renderedMessages[2].actionExplanations).toEqual([
+    expect(renderedMessages[1].actionExplanations).toEqual([
       'List the active workspace contents.',
     ]);
   });
