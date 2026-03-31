@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- tweak(system-prompt): strengthen the new Codex-style WindieOS system prompt so WindieOS is explicitly a coding-first agent with desktop and browser extensions, and add regression coverage for the coding-first prompt structure.
 - refactor(system-prompt): replace the backend system prompt with a Codex-style execution prompt adapted for WindieOS, keeping WindieOS-specific desktop/browser tool rules and adding prompt-content regression coverage.
 - refactor(backend-tool-spec-builder): make backend catalog entries build canonical tool specs up front, have `ToolRegistry` register handlers together with prebuilt specs, and reduce `SchemaRegistry` to cache/validation over canonical specs instead of deriving schemas from live tool instances.
 - docs(agents): document that Windows PowerShell should not invoke `./scripts/committer` directly because it can trigger the shell file-open dialog; use Git Bash explicitly or plain `git add` + `git commit` instead.
