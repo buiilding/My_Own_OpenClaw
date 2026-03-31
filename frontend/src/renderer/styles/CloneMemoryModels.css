@@ -260,6 +260,123 @@
   background: color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
+/* Notebook dashboard theme */
+.cg-dashboard-shell .clone-memory-panel,
+.cg-dashboard-shell .clone-model-panel {
+  background: transparent;
+  color: var(--dashboard-ink);
+  font-family: var(--font-dashboard);
+}
+
+.cg-dashboard-shell .clone-panel-close,
+.cg-dashboard-shell .clone-memory-type-btn,
+.cg-dashboard-shell .clone-memory-add-btn,
+.cg-dashboard-shell .clone-memory-search input,
+.cg-dashboard-shell .clone-memory-search button {
+  box-shadow: var(--dashboard-box-shadow);
+}
+
+.cg-dashboard-shell .clone-panel-close {
+  border: 2px solid var(--dashboard-border-soft);
+  border-radius: 14px;
+  background: rgba(251, 242, 194, 0.88);
+  color: var(--dashboard-ink);
+}
+
+.cg-dashboard-shell .clone-panel-close:hover {
+  background: rgba(255, 249, 224, 0.98);
+}
+
+.cg-dashboard-shell .clone-panel-header {
+  border-bottom: 2px solid rgba(70, 60, 43, 0.16);
+}
+
+.cg-dashboard-shell .clone-panel-header h1,
+.cg-dashboard-shell .clone-memory-retrieval-title,
+.cg-dashboard-shell .clone-memory-item-title,
+.cg-dashboard-shell .clone-provider-card-title,
+.cg-dashboard-shell .clone-model-card-name {
+  color: var(--dashboard-ink);
+}
+
+.cg-dashboard-shell .clone-panel-header p,
+.cg-dashboard-shell .clone-memory-retrieval-subtitle,
+.cg-dashboard-shell .clone-memory-toolbar p,
+.cg-dashboard-shell .clone-provider-card-subtitle,
+.cg-dashboard-shell .clone-model-card-provider,
+.cg-dashboard-shell .clone-model-empty-state {
+  color: rgba(88, 74, 52, 0.7);
+}
+
+.cg-dashboard-shell .clone-memory-retrieval-row,
+.cg-dashboard-shell .clone-memory-type-btn,
+.cg-dashboard-shell .clone-memory-search input,
+.cg-dashboard-shell .clone-memory-add-btn,
+.cg-dashboard-shell .clone-memory-item,
+.cg-dashboard-shell .clone-provider-card,
+.cg-dashboard-shell .clone-model-card,
+.cg-dashboard-shell .clone-provider-auth-card,
+.cg-dashboard-shell .clone-provider-api-key-card,
+.cg-dashboard-shell .clone-model-filter-select {
+  border: 2px solid var(--dashboard-border);
+  background: rgba(255, 248, 220, 0.92);
+  color: var(--dashboard-ink);
+  box-shadow: var(--dashboard-box-shadow);
+}
+
+.cg-dashboard-shell .clone-memory-type-btn:hover,
+.cg-dashboard-shell .clone-memory-type-btn.active,
+.cg-dashboard-shell .clone-memory-add-btn:hover,
+.cg-dashboard-shell .clone-memory-item:hover,
+.cg-dashboard-shell .clone-provider-card:hover,
+.cg-dashboard-shell .clone-provider-card.active,
+.cg-dashboard-shell .clone-model-card:hover,
+.cg-dashboard-shell .clone-model-card.active {
+  background: rgba(255, 249, 224, 0.98);
+  border-color: rgba(70, 60, 43, 0.38);
+  color: var(--dashboard-ink);
+}
+
+.cg-dashboard-shell .clone-memory-type-count {
+  background: rgba(251, 242, 194, 0.92);
+  color: rgba(88, 74, 52, 0.78);
+}
+
+.cg-dashboard-shell .clone-memory-retrieval-toggle,
+.cg-dashboard-shell .clone-memory-item-toggle {
+  border-color: rgba(70, 60, 43, 0.34);
+  background: rgba(241, 224, 156, 0.78);
+}
+
+.cg-dashboard-shell .clone-memory-retrieval-toggle-thumb,
+.cg-dashboard-shell .clone-memory-item-toggle-thumb {
+  background: rgba(88, 74, 52, 0.84);
+}
+
+.cg-dashboard-shell .clone-memory-retrieval-toggle.checked,
+.cg-dashboard-shell .clone-memory-item-toggle.checked {
+  background: rgba(88, 123, 157, 0.18);
+  border-color: rgba(88, 123, 157, 0.48);
+}
+
+.cg-dashboard-shell .clone-memory-retrieval-toggle.checked .clone-memory-retrieval-toggle-thumb,
+.cg-dashboard-shell .clone-memory-item-toggle.checked .clone-memory-item-toggle-thumb {
+  background: #587b9d;
+}
+
+.cg-dashboard-shell .clone-memory-search svg,
+.cg-dashboard-shell .clone-memory-search button,
+.cg-dashboard-shell .clone-model-card-chip,
+.cg-dashboard-shell .clone-provider-auth-status,
+.cg-dashboard-shell .clone-provider-api-key-status {
+  color: rgba(88, 74, 52, 0.76);
+}
+
+.cg-dashboard-shell .clone-memory-search input::placeholder,
+.cg-dashboard-shell .clone-provider-api-key-input::placeholder {
+  color: rgba(88, 74, 52, 0.5);
+}
+
 .clone-memory-add-box {
   margin-bottom: 12px;
   border: 1px solid color-mix(in srgb, var(--accent) 44%, transparent);
