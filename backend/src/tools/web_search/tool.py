@@ -24,6 +24,7 @@ _BRAVE_WEB_SEARCH_URL = "https://api.search.brave.com/res/v1/web/search"
 _DEFAULT_TIMEOUT_SECONDS = 12.0
 _MAX_RETRIES = 3
 _DOMAIN_PATTERN = re.compile(r"^[a-z0-9.-]+\.[a-z]{2,}$")
+_MAX_LOG_QUERY_CHARS = 120
 
 
 def _sanitize_domain(domain: str) -> Optional[str]:
@@ -120,6 +121,13 @@ def _sanitize_domains(domains: Optional[List[str]]) -> List[str]:
     return normalized_domains
 
 
+def _truncate_log_query(query: str) -> str:
+    normalized = query.strip()
+    if len(normalized) <= _MAX_LOG_QUERY_CHARS:
+        return normalized
+    return f"{normalized[:_MAX_LOG_QUERY_CHARS]}..."
+
+
 def _build_native_search_messages(args: WebSearchArgs) -> List[Dict[str, str]]:
     normalized_domains = _sanitize_domains(args.domains)
     instruction_lines = [
@@ -212,6 +220,25 @@ class WebSearchTool(Tool[WebSearchArgs]):
         return ctx.services.get("config")
 
     @classmethod
+    def _log_completion(
+        cls,
+        *,
+        ctx: ToolContext,
+        provider_name: str,
+        query: str,
+        results: List[Dict[str, Any]],
+    ) -> None:
+        session = cls._resolve_session(ctx)
+        session_id = getattr(session, "session_id", None)
+        logger.info(
+            "[Web Search] Completed provider=%s session=%s results=%s query=%r",
+            provider_name,
+            session_id or "unknown",
+            len(results),
+            _truncate_log_query(query),
+        )
+
+    @classmethod
     async def _run_provider_native_search(
         cls,
         *,
@@ -254,6 +281,12 @@ class WebSearchTool(Tool[WebSearchArgs]):
             query=args.query,
             raw_sources=response.get("web_search_sources"),
             count=args.count,
+        )
+        cls._log_completion(
+            ctx=ctx,
+            provider_name=provider_name,
+            query=args.query,
+            results=results,
         )
         content = str(response.get("content") or "").strip()
         llm_content = content or _build_llm_content(args.query, results)
@@ -401,6 +434,12 @@ class WebSearchTool(Tool[WebSearchArgs]):
             if normalized is not None:
                 results.append(normalized)
 
+        self._log_completion(
+            ctx=ctx,
+            provider_name="brave",
+            query=args.query,
+            results=results,
+        )
         llm_content = _build_llm_content(args.query, results)
         return ToolResult(
             success=True,
