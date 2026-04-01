@@ -18,6 +18,7 @@ title: "Frontend Sidecar Tools Docs Hub"
 - [Shell and Process Session Runtime Reference](shell_and_process_session_runtime_reference.md)
 - [Shell Output Formatting and Response Payload Contract Reference](system/shell_output_formatting_and_response_payload_contract_reference.md)
 - [Filesystem Read and Replace Runtime Reference](filesystem_read_replace_runtime_reference.md)
+- [Browser Runtime Contract And Windie Runtime Reference](browser_runtime_contract_and_windie_runtime_reference.md)
 - [Tool Registry Exposed Schema and Result Normalization Reference](registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
 - [Mouse, Keyboard, Scroll, and Screenshot Runtime Reference](computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md)
 - [Wait, Window, and Stats Runtime Reference](system/wait_window_stats_runtime_reference.md)
@@ -60,6 +61,7 @@ The `browser` sidecar tool now runs through a Windie-owned runtime layered direc
 - `tests/sidecar/test_shell_process_registry.py`
 - `tests/sidecar/test_read_file_tool.py`
 - `tests/sidecar/test_replace_tool.py`
+- `tests/sidecar/tools/test_windie_runtime.py`
 - `tests/sidecar/test_tool_registry.py`
 - `tests/sidecar/test_system_tools.py`
 - `tests/sidecar/test_linux_window_manager.py`

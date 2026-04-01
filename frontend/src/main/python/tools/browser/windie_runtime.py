@@ -31,6 +31,41 @@ logger = logging.getLogger(__name__)
 DEFAULT_SNAPSHOT_PAGE_LIMIT = 4_000
 MAX_SNAPSHOT_WINDOW_CHARS = 120_000
 RUNTIME_SOURCE = "windie.browser"
+_RUNTIME_HANDLER_BINDINGS: tuple[tuple[str, str], ...] = (
+    ("connect", "_handle_connect"),
+    ("status", "_handle_status"),
+    ("profiles", "_handle_profiles"),
+    ("navigate", "_handle_navigate"),
+    ("snapshot", "_handle_snapshot"),
+    ("extract", "_handle_extract"),
+    ("click", "_handle_click"),
+    ("input", "_handle_input"),
+    ("send_keys", "_handle_send_keys"),
+    ("scroll", "_handle_scroll"),
+    ("screenshot", "_handle_screenshot"),
+    ("wait", "_handle_wait"),
+    ("get_tabs", "_handle_get_tabs"),
+    ("switch", "_handle_switch"),
+    ("evaluate", "_handle_evaluate"),
+    ("done", "_handle_done"),
+    ("search", "_handle_search"),
+    ("go_back", "_handle_go_back"),
+    ("search_page", "_handle_search_page"),
+    ("find_elements", "_handle_find_elements"),
+    ("find_text", "_handle_find_text"),
+    ("close_tab", "_handle_close_tab"),
+    ("dropdown_options", "_handle_dropdown_options"),
+    ("select_dropdown", "_handle_select_dropdown"),
+    ("upload_file", "_handle_upload_file"),
+    ("write_file", "_handle_write_file"),
+    ("replace_file", "_handle_replace_file"),
+    ("read_file", "_handle_read_file"),
+    ("read_long_content", "_handle_read_long_content"),
+    ("close", "_handle_close"),
+)
+BROWSER_RUNTIME_ACTIONS = frozenset(
+    action for action, _handler_name in _RUNTIME_HANDLER_BINDINGS
+)
 
 
 @dataclass(slots=True)
@@ -162,37 +197,16 @@ class WindieBrowserRuntime:
 
     def __init__(self, controller: Any):
         self._controller = controller
-        self._handlers: dict[str, Callable[[Any], Awaitable[dict[str, Any]]]] = {
-            "connect": self._handle_connect,
-            "status": self._handle_status,
-            "profiles": self._handle_profiles,
-            "navigate": self._handle_navigate,
-            "snapshot": self._handle_snapshot,
-            "extract": self._handle_extract,
-            "click": self._handle_click,
-            "input": self._handle_input,
-            "send_keys": self._handle_send_keys,
-            "scroll": self._handle_scroll,
-            "screenshot": self._handle_screenshot,
-            "wait": self._handle_wait,
-            "get_tabs": self._handle_get_tabs,
-            "switch": self._handle_switch,
-            "evaluate": self._handle_evaluate,
-            "done": self._handle_done,
-            "search": self._handle_search,
-            "go_back": self._handle_go_back,
-            "search_page": self._handle_search_page,
-            "find_elements": self._handle_find_elements,
-            "find_text": self._handle_find_text,
-            "close_tab": self._handle_close_tab,
-            "dropdown_options": self._handle_dropdown_options,
-            "select_dropdown": self._handle_select_dropdown,
-            "upload_file": self._handle_upload_file,
-            "write_file": self._handle_write_file,
-            "replace_file": self._handle_replace_file,
-            "read_file": self._handle_read_file,
-            "read_long_content": self._handle_read_long_content,
-            "close": self._handle_close,
+        self._handlers = self._build_handlers()
+
+    @classmethod
+    def supported_actions(cls) -> frozenset[str]:
+        return BROWSER_RUNTIME_ACTIONS
+
+    def _build_handlers(self) -> dict[str, Callable[[Any], Awaitable[dict[str, Any]]]]:
+        return {
+            action: getattr(self, handler_name)
+            for action, handler_name in _RUNTIME_HANDLER_BINDINGS
         }
 
     async def execute(self, args: Any) -> dict[str, Any]:
