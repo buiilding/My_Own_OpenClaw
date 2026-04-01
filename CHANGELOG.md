@@ -86,6 +86,7 @@ All notable changes to WindieOS will be documented in this file.
 ## 0.6.12 - 2026-03-12
 
 ### Added
+- test(frontend-message-presentation): add renderer regressions covering hidden tool-row summaries in thread presentation and live tool/search explanation rows in the current-turn response overlay pipeline.
 - chore(release): bump packaged desktop app version to `0.6.12` and trigger the cross-platform desktop release workflow for macOS, Windows, and Linux.
 
 ### Fixed
