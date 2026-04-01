@@ -281,6 +281,8 @@ function createSurfaceRuntime({
     return showMainWindowRuntime(normalizeMainSurfaceWindowOptions(options), {
       mainWindow: state.mainWindow,
       chatWindow: state.chatWindow,
+      responseWindow: state.responseWindow,
+      contextLabelWindow: state.contextLabelWindow,
       syncWindowDisplayAffinity,
       setActiveDisplayAffinity,
       getActiveDisplayAffinity,

@@ -217,6 +217,8 @@ function showMainWindow(options = {}, deps = {}) {
   const {
     mainWindow,
     chatWindow,
+    responseWindow,
+    contextLabelWindow,
     syncWindowDisplayAffinity = () => {},
     setActiveDisplayAffinity = () => {},
     getActiveDisplayAffinity = () => null,
@@ -229,7 +231,12 @@ function showMainWindow(options = {}, deps = {}) {
   if (!mainWindow || mainWindow.isDestroyed()) {
     return { success: false, reason: 'Main window not available' };
   }
-  if (chatWindow && !chatWindow.isDestroyed() && chatWindow.isVisible()) {
+  const overlaySurfaceVisible = (
+    safeWindowVisible(chatWindow)
+    || safeWindowVisible(responseWindow)
+    || safeWindowVisible(contextLabelWindow)
+  );
+  if (overlaySurfaceVisible) {
     hideChatWindow();
   }
   const resolvedTargetDisplayAffinity = resolveShowTargetDisplayAffinity({
