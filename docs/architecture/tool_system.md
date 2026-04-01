@@ -79,6 +79,7 @@ Catalog-driven declaration contract:
 - prompt-time filtering, parser whitelists, transparency payloads, and sidecar exposed-tool parity all consume the same direct tool names
 - browser now uses the same generic schema generation path as every other backend-exposed tool; there is no browser-only schema rewriter
 - provider adapters convert the internal flat tool spec into nested provider transport formats when needed
+- OpenAI `chat.completions` transport applies an additional compatibility projection for grouped schemas such as `browser`, removing unsupported root combinators (for example top-level `oneOf`) while preserving the canonical backend contract and runtime validation
 
 Boundary rule:
 

@@ -14,6 +14,7 @@ from backend.src.llm.providers.openai_responses_runtime import (
     build_openai_responses_input,
     stream_openai_responses_events,
 )
+from backend.src.tools.browser.schemas import build_browser_tool_parameters_schema
 from backend.src.tools.web_search.source_normalization import (
     extract_openai_web_search_sources,
 )
@@ -120,6 +121,62 @@ async def test_openai_provider_routes_nonthinking_stream_to_standard_runtime(mon
     )
 
     assert [event.content for event in events] == ["fallback"]
+
+
+def test_openai_provider_build_request_params_rewrites_root_oneof_tool_schema():
+    provider = OpenAIProvider(api_key="test-key")
+    browser_parameters = build_browser_tool_parameters_schema()
+
+    params = provider._build_request_params(
+        "gpt-5@@gpt-5-nonthinking",
+        [{"role": "user", "content": "hi"}],
+        tools=[
+            {
+                "type": "function",
+                "name": "browser",
+                "description": "Grouped browser control tool.",
+                "parameters": browser_parameters,
+            }
+        ],
+    )
+
+    tool_parameters = params["tools"][0]["function"]["parameters"]
+    assert tool_parameters["type"] == "object"
+    assert "oneOf" not in tool_parameters
+    assert "anyOf" not in tool_parameters
+    assert "action" in tool_parameters["properties"]
+    assert "url" in tool_parameters["properties"]
+    assert "query" in tool_parameters["properties"]
+    assert "text" in tool_parameters["properties"]
+    assert "Action-specific field requirements are enforced by runtime validation." in (
+        tool_parameters["description"]
+    )
+
+    # Keep the canonical backend browser contract unchanged.
+    assert "oneOf" in browser_parameters
+
+
+def test_openai_provider_build_request_params_preserves_plain_object_tool_schema():
+    provider = OpenAIProvider(api_key="test-key")
+    plain_parameters = {
+        "type": "object",
+        "properties": {"path": {"type": "string"}},
+        "required": ["path"],
+    }
+
+    params = provider._build_request_params(
+        "gpt-5@@gpt-5-nonthinking",
+        [{"role": "user", "content": "hi"}],
+        tools=[
+            {
+                "type": "function",
+                "name": "read_file",
+                "parameters": plain_parameters,
+            }
+        ],
+    )
+
+    assert params["tools"][0]["function"]["parameters"] == plain_parameters
 
 
 @pytest.mark.asyncio
