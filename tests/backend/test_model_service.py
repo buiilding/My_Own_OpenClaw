@@ -48,8 +48,16 @@ class FakeLocalProvider:
 class DuplicateLocalProvider:
     async def list_models(self):
         return [
-            {"id": "dup-model", "provider": "ollama", "display_name": "ollama/dup-model"},
-            {"id": "dup-model", "provider": "ollama", "display_name": "ollama/dup-model"},
+            {
+                "id": "dup-model",
+                "provider": "ollama",
+                "display_name": "ollama/dup-model",
+            },
+            {
+                "id": "dup-model",
+                "provider": "ollama",
+                "display_name": "ollama/dup-model",
+            },
         ]
 
 
@@ -78,7 +86,11 @@ class GeneratorModelsProvider:
         return (
             item
             for item in [
-                {"id": "g-model", "provider": "ollama", "display_name": "ollama/g-model"},
+                {
+                    "id": "g-model",
+                    "provider": "ollama",
+                    "display_name": "ollama/g-model",
+                },
                 {"id": "", "provider": "ollama"},
             ]
         )
@@ -164,7 +176,11 @@ async def test_get_local_models_filters_invalid_model_entries(monkeypatch):
     factory = {
         "ollama": MalformedModelsProvider(
             [
-                {"id": "valid-model", "provider": "ollama", "display_name": "ollama/valid-model"},
+                {
+                    "id": "valid-model",
+                    "provider": "ollama",
+                    "display_name": "ollama/valid-model",
+                },
                 {"id": "", "provider": "ollama"},
                 {"id": "missing-provider"},
                 "not-a-dict",
@@ -201,7 +217,9 @@ async def test_get_local_models_accepts_iterable_provider_payloads(monkeypatch):
 @pytest.mark.asyncio
 async def test_get_local_models_skips_provider_discovery_in_online_mode(monkeypatch):
     def _should_not_be_called(_cfg):
-        raise AssertionError("create_provider_factory should not be called in online mode")
+        raise AssertionError(
+            "create_provider_factory should not be called in online mode"
+        )
 
     monkeypatch.setattr(
         "backend.src.llm.providers.create_provider_factory",
@@ -275,9 +293,11 @@ def test_get_online_models_returns_defensive_copy():
 
     models = service.get_online_models()
     models[0]["id"] = "mutated-id"
+    models[0]["strengths"][0] = "mutated-strength"
 
     refreshed = service.get_online_models()
     assert refreshed[0]["id"] != "mutated-id"
+    assert refreshed[0]["strengths"][0] != "mutated-strength"
 
 
 def test_get_all_online_models_deduplicates_provider_model_pairs():
@@ -302,7 +322,10 @@ def test_get_all_online_models_provider_first_entries_are_consumer_defaults():
 
     assert first_by_provider["openai"]["runtime_model_id"] == "gpt-5"
     assert first_by_provider["openai"]["supports_thinking"] is False
-    assert first_by_provider["anthropic"]["runtime_model_id"] == "claude-sonnet-4-5-20250929"
+    assert (
+        first_by_provider["anthropic"]["runtime_model_id"]
+        == "claude-sonnet-4-5-20250929"
+    )
     assert first_by_provider["gemini"]["runtime_model_id"] == "gemini-2.5-flash"
     assert first_by_provider["mistral"]["runtime_model_id"] == "mistral-large-latest"
     assert first_by_provider["openrouter"]["runtime_model_id"] == "openrouter/auto"
@@ -315,7 +338,8 @@ def test_get_all_online_models_marks_gemini_3_pro_preview_as_thinking_text_strea
 
     gemini_3_pro_preview = next(
         (
-            model for model in models
+            model
+            for model in models
             if model.get("provider") == "gemini"
             and model.get("runtime_model_id") == "gemini-3-pro-preview"
             and model.get("supports_thinking") is True
@@ -333,7 +357,8 @@ def test_get_all_online_models_marks_gemini_3_flash_preview_as_thinking_text_str
 
     gemini_3_flash_preview = next(
         (
-            model for model in models
+            model
+            for model in models
             if model.get("provider") == "gemini"
             and model.get("runtime_model_id") == "gemini-3-flash-preview"
             and model.get("supports_thinking") is True
@@ -351,7 +376,8 @@ def test_get_all_online_models_marks_openai_gpt_5_2_as_thinking_text_stream_capa
 
     gpt_5_2 = next(
         (
-            model for model in models
+            model
+            for model in models
             if model.get("provider") == "openai"
             and model.get("runtime_model_id") == "gpt-5.2"
             and model.get("supports_thinking") is True
@@ -369,7 +395,8 @@ def test_get_all_online_models_marks_gemini_3_1_pro_preview_as_non_thinking():
 
     gemini_3_1 = next(
         (
-            model for model in models
+            model
+            for model in models
             if model.get("provider") == "gemini"
             and model.get("runtime_model_id") == "gemini-3.1-pro-preview"
             and model.get("supports_thinking") is False
@@ -387,7 +414,8 @@ def test_get_all_online_models_marks_openrouter_qwen3_vl_as_thinking_text_stream
 
     qwen3_vl = next(
         (
-            model for model in models
+            model
+            for model in models
             if model.get("provider") == "openrouter"
             and model.get("id") == "qwen/qwen3-vl-235b-a22b-thinking"
         ),
@@ -407,3 +435,33 @@ def test_get_online_models_includes_openrouter_qwen3_vl_235b_a22b_thinking():
         and model.get("id") == "qwen/qwen3-vl-235b-a22b-thinking"
         for model in models
     )
+
+
+def test_get_online_models_include_card_metadata_for_demo_catalog():
+    service = ModelService(AppConfig())
+    models = service.get_online_models()
+
+    gemini_flash = next(
+        model
+        for model in models
+        if model.get("provider") == "gemini"
+        and model.get("runtime_model_id") == "gemini-2.5-flash"
+        and model.get("supports_thinking") is False
+    )
+    openrouter_auto = next(
+        model
+        for model in models
+        if model.get("provider") == "openrouter"
+        and model.get("runtime_model_id") == "openrouter/auto"
+    )
+
+    assert gemini_flash["context_window"] == 1048576
+    assert gemini_flash["input_price"] == "Free"
+    assert gemini_flash["output_price"] == "Free"
+    assert gemini_flash["latency"] == "~1.0s"
+    assert gemini_flash["description"]
+    assert gemini_flash["strengths"] == ["Multimodal", "Fast", "Search", "1M Context"]
+
+    assert openrouter_auto["context_window"] == 2000000
+    assert openrouter_auto["input_price"] == "Free"
+    assert openrouter_auto["output_price"] == "Free"

@@ -45,58 +45,494 @@ DEFAULT_THINKING_BUDGET_TOKENS = 16384
 HIGH_THINKING_BUDGET_TOKENS = 32768
 
 
+def _card_metadata(
+    *,
+    context_window: int,
+    description: str,
+    strengths: List[str],
+    latency: str,
+    input_price: str = "Free",
+    output_price: str = "Free",
+) -> Dict[str, Any]:
+    return {
+        "context_window": context_window,
+        "description": description,
+        "strengths": list(strengths),
+        "latency": latency,
+        "input_price": input_price,
+        "output_price": output_price,
+    }
+
+
+MODEL_CARD_METADATA_BY_RUNTIME_ID: Dict[str, Dict[str, Any]] = {
+    "gpt-5": _card_metadata(
+        context_window=400000,
+        description="OpenAI's flagship reasoning model for complex coding, agentic workflows, and multimodal chat.",
+        strengths=["Reasoning", "Code", "Vision", "Tools"],
+        latency="~1.5s",
+    ),
+    "gpt-5.1": _card_metadata(
+        context_window=400000,
+        description="OpenAI's strongest GPT-5 family model for coding, agents, and deliberate reasoning.",
+        strengths=["Reasoning", "Code", "Agents", "Tools"],
+        latency="~1.6s",
+    ),
+    "gpt-5-mini": _card_metadata(
+        context_window=400000,
+        description="A faster, smaller GPT-5 variant tuned for responsive chat, coding, and high-throughput tasks.",
+        strengths=["Fast", "Code", "Tools", "General"],
+        latency="~1.0s",
+    ),
+    "gpt-4.1": _card_metadata(
+        context_window=1047576,
+        description="OpenAI's strongest non-reasoning model with long-context instruction following and tool use.",
+        strengths=["Long Context", "Tools", "Vision", "Reliable"],
+        latency="~1.2s",
+    ),
+    "gpt-5.3-codex": _card_metadata(
+        context_window=400000,
+        description="OpenAI's most capable Codex model for long-horizon, agentic coding work.",
+        strengths=["Agentic", "Code", "Long Horizon", "Tools"],
+        latency="~1.6s",
+    ),
+    "gpt-5.2": _card_metadata(
+        context_window=400000,
+        description="A high-end GPT-5 reasoning model tuned for professional work with configurable effort levels.",
+        strengths=["Reasoning", "Analysis", "Code", "Flexible"],
+        latency="~1.5s",
+    ),
+    "gpt-5.2-codex": _card_metadata(
+        context_window=400000,
+        description="OpenAI's GPT-5.2 Codex line optimized for deliberate, long-running coding and tool orchestration.",
+        strengths=["Agentic", "Code", "Tools", "Long Horizon"],
+        latency="~1.5s",
+    ),
+    "gpt-5.1-codex-max": _card_metadata(
+        context_window=400000,
+        description="A GPT-5.1 Codex variant optimized for long-running coding tasks and deeper agent execution.",
+        strengths=["Agentic", "Code", "Long Horizon", "Reasoning"],
+        latency="~1.7s",
+    ),
+    "gpt-5.1-codex-mini": _card_metadata(
+        context_window=400000,
+        description="A smaller GPT-5.1 Codex variant for faster, cheaper coding assistance and iterative tool use.",
+        strengths=["Fast", "Code", "Agentic", "Efficiency"],
+        latency="~1.0s",
+    ),
+    "claude-sonnet-4-5-20250929": _card_metadata(
+        context_window=200000,
+        description="Anthropic's Claude Sonnet 4.5 balances strong coding, reasoning, and agent reliability.",
+        strengths=["Agents", "Coding", "Writing", "Reliable"],
+        latency="~1.3s",
+    ),
+    "claude-opus-4-6": _card_metadata(
+        context_window=1000000,
+        description="Anthropic's most capable Claude 4.6 model for difficult coding, analysis, and long-context work.",
+        strengths=["Deep Reasoning", "Coding", "Long Context", "Agents"],
+        latency="~2.2s",
+    ),
+    "claude-haiku-4-5-20251001": _card_metadata(
+        context_window=200000,
+        description="Anthropic's fastest Claude 4.5 family model for responsive assistants and lightweight agent tasks.",
+        strengths=["Fast", "Efficiency", "Agents", "Writing"],
+        latency="~0.9s",
+    ),
+    "claude-sonnet-4-6": _card_metadata(
+        context_window=1000000,
+        description="Claude Sonnet 4.6 pairs frontier reasoning with 1M-token context for serious agent workflows.",
+        strengths=["Long Context", "Agents", "Coding", "Balanced"],
+        latency="~1.4s",
+    ),
+    "claude-opus-4-5": _card_metadata(
+        context_window=200000,
+        description="Claude Opus 4.5 prioritizes maximum capability for demanding coding and reasoning tasks.",
+        strengths=["Deep Reasoning", "Coding", "Analysis", "Vision"],
+        latency="~2.1s",
+    ),
+    "claude-haiku-4-5": _card_metadata(
+        context_window=200000,
+        description="Claude Haiku 4.5 emphasizes speed and efficiency while keeping the Claude 4.5 tool-use stack.",
+        strengths=["Fast", "Efficiency", "Agents", "Vision"],
+        latency="~0.9s",
+    ),
+    "claude-sonnet-4-5": _card_metadata(
+        context_window=200000,
+        description="Claude Sonnet 4.5 is Anthropic's balanced model for coding, reasoning, and agent execution.",
+        strengths=["Coding", "Reasoning", "Agents", "Writing"],
+        latency="~1.3s",
+    ),
+    "claude-sonnet-4-20250514": _card_metadata(
+        context_window=200000,
+        description="Claude Sonnet 4 offers strong everyday coding and analysis with dependable tool use.",
+        strengths=["Coding", "Reasoning", "Agents", "Balanced"],
+        latency="~1.3s",
+    ),
+    "gemini-2.5-flash": _card_metadata(
+        context_window=1048576,
+        description="Google's fast Gemini 2.5 model for low-latency multimodal chat, coding, and search-grounded tasks.",
+        strengths=["Multimodal", "Fast", "Search", "1M Context"],
+        latency="~1.0s",
+    ),
+    "gemini-2.5-pro": _card_metadata(
+        context_window=1048576,
+        description="Google's state-of-the-art Gemini thinking model for complex code, STEM reasoning, and long-context analysis.",
+        strengths=["Reasoning", "Code", "Multimodal", "1M Context"],
+        latency="~1.8s",
+    ),
+    "gemini-3-pro-preview": _card_metadata(
+        context_window=1048576,
+        description="A Gemini 3 preview model geared toward advanced reasoning, multimodal understanding, and agent workflows.",
+        strengths=["Reasoning", "Multimodal", "Agents", "1M Context"],
+        latency="~1.8s",
+    ),
+    "gemini-3-flash-preview": _card_metadata(
+        context_window=1048576,
+        description="A Gemini 3 preview Flash model tuned for fast, cost-efficient multimodal and coding workloads.",
+        strengths=["Fast", "Multimodal", "Code", "1M Context"],
+        latency="~1.0s",
+    ),
+    "gemini-3.1-pro-preview": _card_metadata(
+        context_window=1048576,
+        description="Gemini 3.1 Pro Preview targets advanced coding, long-context reasoning, and multimodal agent work.",
+        strengths=["Reasoning", "Code", "Multimodal", "1M Context"],
+        latency="~1.7s",
+    ),
+    "openrouter/auto": _card_metadata(
+        context_window=2000000,
+        description="OpenRouter's auto router picks a suitable upstream model automatically for each request.",
+        strengths=["Auto Routing", "2M Context", "Flexible", "Breadth"],
+        latency="~1.4s",
+    ),
+    "qwen/qwen3-vl-235b-a22b-thinking": _card_metadata(
+        context_window=131072,
+        description="Qwen3 VL 235B A22B Thinking is a multimodal reasoning model exposed through OpenRouter.",
+        strengths=["Multimodal", "Vision", "Reasoning", "UI Tasks"],
+        latency="~2.0s",
+    ),
+    "mistral-large-latest": _card_metadata(
+        context_window=256000,
+        description="Mistral's flagship large model for coding, reasoning, and multimodal assistance.",
+        strengths=["Coding", "Reasoning", "Multimodal", "256k Context"],
+        latency="~1.6s",
+    ),
+    "mistral-small-latest": _card_metadata(
+        context_window=128000,
+        description="Mistral's smaller general-purpose model for fast chat, instruction following, and coding support.",
+        strengths=["Fast", "Coding", "Efficient", "128k Context"],
+        latency="~1.0s",
+    ),
+    "k2p5": _card_metadata(
+        context_window=256000,
+        description="Moonshot's Kimi K2.5 model is built for agentic coding, multimodal reasoning, and long-context work.",
+        strengths=["Agentic", "Coding", "Multimodal", "256k Context"],
+        latency="~1.4s",
+    ),
+}
+
+
+def get_model_card_metadata(
+    provider_name: str, runtime_model_id: str
+) -> Dict[str, Any]:
+    if not isinstance(runtime_model_id, str):
+        return {"input_price": "Free", "output_price": "Free"}
+
+    normalized_runtime_model_id = runtime_model_id.strip()
+    if not normalized_runtime_model_id:
+        return {"input_price": "Free", "output_price": "Free"}
+
+    metadata = dict(
+        MODEL_CARD_METADATA_BY_RUNTIME_ID.get(normalized_runtime_model_id, {})
+    )
+    if not metadata and isinstance(provider_name, str):
+        normalized_provider_name = provider_name.strip().lower()
+        if (
+            normalized_provider_name == "openrouter"
+            and not normalized_runtime_model_id.startswith("openrouter/")
+        ):
+            scoped_runtime_model_id = f"openrouter/{normalized_runtime_model_id}"
+            metadata = dict(
+                MODEL_CARD_METADATA_BY_RUNTIME_ID.get(scoped_runtime_model_id, {})
+            )
+
+    metadata.setdefault("input_price", "Free")
+    metadata.setdefault("output_price", "Free")
+    return metadata
+
+
 OPENAI_PRESETS: List[Dict[str, Any]] = [
     _variant(runtime_model_id="gpt-5", display_name="GPT-5", supports_thinking=False),
-    _variant(runtime_model_id="gpt-5.1", display_name="GPT-5.1", supports_thinking=False),
-    _variant(runtime_model_id="gpt-5-mini", display_name="GPT-5 Mini", supports_thinking=False),
-    _variant(runtime_model_id="gpt-4.1", display_name="GPT-4.1", supports_thinking=False),
-    _variant(runtime_model_id="gpt-5.3-codex", display_name="GPT-5.3 Codex Low", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.3-codex", display_name="GPT-5.3 Codex Low Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.3-codex", display_name="GPT-5.3 Codex", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.3-codex", display_name="GPT-5.3 Codex Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.3-codex", display_name="GPT-5.3 Codex High", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.3-codex", display_name="GPT-5.3 Codex High Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.3-codex", display_name="GPT-5.3 Codex Extra High", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.3-codex", display_name="GPT-5.3 Codex Extra High Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.3-codex", display_name="GPT-5.3 Codex Spark Low", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.3-codex", display_name="GPT-5.3 Codex Spark", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.3-codex", display_name="GPT-5.3 Codex Spark High", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.3-codex", display_name="GPT-5.3 Codex Spark Extra High", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2", display_name="GPT-5.2 Low", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2", display_name="GPT-5.2 Low Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2", display_name="GPT-5.2", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2", display_name="GPT-5.2 Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2", display_name="GPT-5.2 High", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2", display_name="GPT-5.2 High Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2", display_name="GPT-5.2 Extra High", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2", display_name="GPT-5.2 Extra High Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2-codex", display_name="GPT-5.2 Codex Low", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2-codex", display_name="GPT-5.2 Codex Low Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2-codex", display_name="GPT-5.2 Codex", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2-codex", display_name="GPT-5.2 Codex Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2-codex", display_name="GPT-5.2 Codex High", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2-codex", display_name="GPT-5.2 Codex High Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2-codex", display_name="GPT-5.2 Codex Extra High", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.2-codex", display_name="GPT-5.2 Codex Extra High Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.1-codex-max", display_name="GPT-5.1 Codex Max Low", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.1-codex-max", display_name="GPT-5.1 Codex Max Low Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.1-codex-max", display_name="GPT-5.1 Codex Max", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.1-codex-max", display_name="GPT-5.1 Codex Max Medium Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.1-codex-max", display_name="GPT-5.1 Codex Max High", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.1-codex-max", display_name="GPT-5.1 Codex Max High Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.1-codex-max", display_name="GPT-5.1 Codex Max Extra High", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.1-codex-max", display_name="GPT-5.1 Codex Max Extra High Fast", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.1", display_name="GPT-5.1 High", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.1-codex-mini", display_name="GPT-5.1 Codex Mini Low", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.1-codex-mini", display_name="GPT-5.1 Codex Mini", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5.1-codex-mini", display_name="GPT-5.1 Codex Mini High", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="gpt-5-mini", display_name="GPT-5 Mini", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="gpt-5.1", display_name="GPT-5.1", supports_thinking=False
+    ),
+    _variant(
+        runtime_model_id="gpt-5-mini",
+        display_name="GPT-5 Mini",
+        supports_thinking=False,
+    ),
+    _variant(
+        runtime_model_id="gpt-4.1", display_name="GPT-4.1", supports_thinking=False
+    ),
+    _variant(
+        runtime_model_id="gpt-5.3-codex",
+        display_name="GPT-5.3 Codex Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.3-codex",
+        display_name="GPT-5.3 Codex Low Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.3-codex",
+        display_name="GPT-5.3 Codex",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.3-codex",
+        display_name="GPT-5.3 Codex Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.3-codex",
+        display_name="GPT-5.3 Codex High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.3-codex",
+        display_name="GPT-5.3 Codex High Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.3-codex",
+        display_name="GPT-5.3 Codex Extra High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.3-codex",
+        display_name="GPT-5.3 Codex Extra High Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.3-codex",
+        display_name="GPT-5.3 Codex Spark Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.3-codex",
+        display_name="GPT-5.3 Codex Spark",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.3-codex",
+        display_name="GPT-5.3 Codex Spark High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.3-codex",
+        display_name="GPT-5.3 Codex Spark Extra High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2",
+        display_name="GPT-5.2 Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2",
+        display_name="GPT-5.2 Low Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2",
+        display_name="GPT-5.2",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2",
+        display_name="GPT-5.2 Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2",
+        display_name="GPT-5.2 High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2",
+        display_name="GPT-5.2 High Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2",
+        display_name="GPT-5.2 Extra High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2",
+        display_name="GPT-5.2 Extra High Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2-codex",
+        display_name="GPT-5.2 Codex Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2-codex",
+        display_name="GPT-5.2 Codex Low Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2-codex",
+        display_name="GPT-5.2 Codex",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2-codex",
+        display_name="GPT-5.2 Codex Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2-codex",
+        display_name="GPT-5.2 Codex High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2-codex",
+        display_name="GPT-5.2 Codex High Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2-codex",
+        display_name="GPT-5.2 Codex Extra High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.2-codex",
+        display_name="GPT-5.2 Codex Extra High Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.1-codex-max",
+        display_name="GPT-5.1 Codex Max Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.1-codex-max",
+        display_name="GPT-5.1 Codex Max Low Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.1-codex-max",
+        display_name="GPT-5.1 Codex Max",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.1-codex-max",
+        display_name="GPT-5.1 Codex Max Medium Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.1-codex-max",
+        display_name="GPT-5.1 Codex Max High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.1-codex-max",
+        display_name="GPT-5.1 Codex Max High Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.1-codex-max",
+        display_name="GPT-5.1 Codex Max Extra High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.1-codex-max",
+        display_name="GPT-5.1 Codex Max Extra High Fast",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.1",
+        display_name="GPT-5.1 High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.1-codex-mini",
+        display_name="GPT-5.1 Codex Mini Low",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.1-codex-mini",
+        display_name="GPT-5.1 Codex Mini",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5.1-codex-mini",
+        display_name="GPT-5.1 Codex Mini High",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="gpt-5-mini",
+        display_name="GPT-5 Mini",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
 ]
 
 
 ANTHROPIC_PRESETS: List[Dict[str, Any]] = [
-    _variant(runtime_model_id="claude-sonnet-4-5-20250929", display_name="Claude Sonnet 4.5", supports_thinking=False),
-    _variant(runtime_model_id="claude-sonnet-4-5-20250929", display_name="Claude Sonnet 4.5", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="claude-sonnet-4-5-20250929",
+        display_name="Claude Sonnet 4.5",
+        supports_thinking=False,
+    ),
+    _variant(
+        runtime_model_id="claude-sonnet-4-5-20250929",
+        display_name="Claude Sonnet 4.5",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
     _variant(
         runtime_model_id="claude-sonnet-4-5-20250929",
         display_name="Claude Sonnet 4.5 Low",
@@ -113,8 +549,17 @@ ANTHROPIC_PRESETS: List[Dict[str, Any]] = [
         reasoning_mode="high",
         thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
     ),
-    _variant(runtime_model_id="claude-opus-4-6", display_name="Claude Opus 4.6", supports_thinking=False),
-    _variant(runtime_model_id="claude-opus-4-6", display_name="Claude Opus 4.6", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="claude-opus-4-6",
+        display_name="Claude Opus 4.6",
+        supports_thinking=False,
+    ),
+    _variant(
+        runtime_model_id="claude-opus-4-6",
+        display_name="Claude Opus 4.6",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
     _variant(
         runtime_model_id="claude-opus-4-6",
         display_name="Claude Opus 4.6 Low",
@@ -131,9 +576,22 @@ ANTHROPIC_PRESETS: List[Dict[str, Any]] = [
         reasoning_mode="high",
         thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
     ),
-    _variant(runtime_model_id="claude-haiku-4-5-20251001", display_name="Claude Haiku 4.5", supports_thinking=False),
-    _variant(runtime_model_id="claude-sonnet-4-6", display_name="Sonnet 4.6", supports_thinking=False),
-    _variant(runtime_model_id="claude-sonnet-4-6", display_name="Sonnet 4.6", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="claude-haiku-4-5-20251001",
+        display_name="Claude Haiku 4.5",
+        supports_thinking=False,
+    ),
+    _variant(
+        runtime_model_id="claude-sonnet-4-6",
+        display_name="Sonnet 4.6",
+        supports_thinking=False,
+    ),
+    _variant(
+        runtime_model_id="claude-sonnet-4-6",
+        display_name="Sonnet 4.6",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
     _variant(
         runtime_model_id="claude-sonnet-4-6",
         display_name="Sonnet 4.6 Low",
@@ -150,14 +608,51 @@ ANTHROPIC_PRESETS: List[Dict[str, Any]] = [
         reasoning_mode="high",
         thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
     ),
-    _variant(runtime_model_id="claude-opus-4-6", display_name="Opus 4.6", supports_thinking=False),
-    _variant(runtime_model_id="claude-opus-4-6", display_name="Opus 4.6", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="claude-opus-4-6", display_name="Opus 4.6 Max", supports_thinking=False),
-    _variant(runtime_model_id="claude-opus-4-6", display_name="Opus 4.6 Max", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="claude-opus-4-6", display_name="Opus 4.6 Fast Max Only", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="claude-opus-4-6", display_name="Opus 4.6 Max Fast Max Only", supports_thinking=True, supports_thinking_text_stream=True),
-    _variant(runtime_model_id="claude-opus-4-5", display_name="Opus 4.5", supports_thinking=False),
-    _variant(runtime_model_id="claude-opus-4-5", display_name="Opus 4.5", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="claude-opus-4-6",
+        display_name="Opus 4.6",
+        supports_thinking=False,
+    ),
+    _variant(
+        runtime_model_id="claude-opus-4-6",
+        display_name="Opus 4.6",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="claude-opus-4-6",
+        display_name="Opus 4.6 Max",
+        supports_thinking=False,
+    ),
+    _variant(
+        runtime_model_id="claude-opus-4-6",
+        display_name="Opus 4.6 Max",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="claude-opus-4-6",
+        display_name="Opus 4.6 Fast Max Only",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="claude-opus-4-6",
+        display_name="Opus 4.6 Max Fast Max Only",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
+    _variant(
+        runtime_model_id="claude-opus-4-5",
+        display_name="Opus 4.5",
+        supports_thinking=False,
+    ),
+    _variant(
+        runtime_model_id="claude-opus-4-5",
+        display_name="Opus 4.5",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
     _variant(
         runtime_model_id="claude-opus-4-5",
         display_name="Opus 4.5 Low",
@@ -174,8 +669,17 @@ ANTHROPIC_PRESETS: List[Dict[str, Any]] = [
         reasoning_mode="high",
         thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
     ),
-    _variant(runtime_model_id="claude-haiku-4-5", display_name="Haiku 4.5", supports_thinking=False),
-    _variant(runtime_model_id="claude-haiku-4-5", display_name="Haiku 4.5", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="claude-haiku-4-5",
+        display_name="Haiku 4.5",
+        supports_thinking=False,
+    ),
+    _variant(
+        runtime_model_id="claude-haiku-4-5",
+        display_name="Haiku 4.5",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
     _variant(
         runtime_model_id="claude-haiku-4-5",
         display_name="Haiku 4.5 Low",
@@ -192,8 +696,17 @@ ANTHROPIC_PRESETS: List[Dict[str, Any]] = [
         reasoning_mode="high",
         thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
     ),
-    _variant(runtime_model_id="claude-sonnet-4-5", display_name="Sonnet 4.5", supports_thinking=False),
-    _variant(runtime_model_id="claude-sonnet-4-5", display_name="Sonnet 4.5", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="claude-sonnet-4-5",
+        display_name="Sonnet 4.5",
+        supports_thinking=False,
+    ),
+    _variant(
+        runtime_model_id="claude-sonnet-4-5",
+        display_name="Sonnet 4.5",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
     _variant(
         runtime_model_id="claude-sonnet-4-5",
         display_name="Sonnet 4.5 Low",
@@ -210,8 +723,17 @@ ANTHROPIC_PRESETS: List[Dict[str, Any]] = [
         reasoning_mode="high",
         thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
     ),
-    _variant(runtime_model_id="claude-sonnet-4-20250514", display_name="Sonnet 4", supports_thinking=False),
-    _variant(runtime_model_id="claude-sonnet-4-20250514", display_name="Sonnet 4", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="claude-sonnet-4-20250514",
+        display_name="Sonnet 4",
+        supports_thinking=False,
+    ),
+    _variant(
+        runtime_model_id="claude-sonnet-4-20250514",
+        display_name="Sonnet 4",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
     _variant(
         runtime_model_id="claude-sonnet-4-20250514",
         display_name="Sonnet 4 Low",
@@ -228,14 +750,32 @@ ANTHROPIC_PRESETS: List[Dict[str, Any]] = [
         reasoning_mode="high",
         thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
     ),
-    _variant(runtime_model_id="claude-sonnet-4-20250514", display_name="Sonnet 4 1M Max Only", supports_thinking=False),
-    _variant(runtime_model_id="claude-sonnet-4-20250514", display_name="Sonnet 4 1M Max Only", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="claude-sonnet-4-20250514",
+        display_name="Sonnet 4 1M Max Only",
+        supports_thinking=False,
+    ),
+    _variant(
+        runtime_model_id="claude-sonnet-4-20250514",
+        display_name="Sonnet 4 1M Max Only",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
 ]
 
 
 GEMINI_PRESETS: List[Dict[str, Any]] = [
-    _variant(runtime_model_id="gemini-2.5-flash", display_name="Gemini 2.5 Flash", supports_thinking=False),
-    _variant(runtime_model_id="gemini-2.5-pro", display_name="Gemini 2.5 Pro", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="gemini-2.5-flash",
+        display_name="Gemini 2.5 Flash",
+        supports_thinking=False,
+    ),
+    _variant(
+        runtime_model_id="gemini-2.5-pro",
+        display_name="Gemini 2.5 Pro",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
     _variant(
         runtime_model_id="gemini-2.5-pro",
         display_name="Gemini 2.5 Pro Low",
@@ -252,7 +792,12 @@ GEMINI_PRESETS: List[Dict[str, Any]] = [
         reasoning_mode="high",
         thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
     ),
-    _variant(runtime_model_id="gemini-3-pro-preview", display_name="Gemini 3 Pro", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="gemini-3-pro-preview",
+        display_name="Gemini 3 Pro",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
     _variant(
         runtime_model_id="gemini-3-pro-preview",
         display_name="Gemini 3 Pro Low",
@@ -269,7 +814,12 @@ GEMINI_PRESETS: List[Dict[str, Any]] = [
         reasoning_mode="high",
         thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
     ),
-    _variant(runtime_model_id="gemini-3-flash-preview", display_name="Gemini 3 Flash", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="gemini-3-flash-preview",
+        display_name="Gemini 3 Flash",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
     _variant(
         runtime_model_id="gemini-3-flash-preview",
         display_name="Gemini 3 Flash Low",
@@ -286,8 +836,17 @@ GEMINI_PRESETS: List[Dict[str, Any]] = [
         reasoning_mode="high",
         thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
     ),
-    _variant(runtime_model_id="gemini-3.1-pro-preview", display_name="Gemini 3.1 Pro", supports_thinking=False),
-    _variant(runtime_model_id="gemini-3.1-pro-preview", display_name="Gemini 3.1 Pro", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="gemini-3.1-pro-preview",
+        display_name="Gemini 3.1 Pro",
+        supports_thinking=False,
+    ),
+    _variant(
+        runtime_model_id="gemini-3.1-pro-preview",
+        display_name="Gemini 3.1 Pro",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
     _variant(
         runtime_model_id="gemini-3.1-pro-preview",
         display_name="Gemini 3.1 Pro Low",
@@ -304,7 +863,12 @@ GEMINI_PRESETS: List[Dict[str, Any]] = [
         reasoning_mode="high",
         thinking_budget_tokens=HIGH_THINKING_BUDGET_TOKENS,
     ),
-    _variant(runtime_model_id="gemini-2.5-flash", display_name="Gemini 2.5 Flash", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(
+        runtime_model_id="gemini-2.5-flash",
+        display_name="Gemini 2.5 Flash",
+        supports_thinking=True,
+        supports_thinking_text_stream=True,
+    ),
     _variant(
         runtime_model_id="gemini-2.5-flash",
         display_name="Gemini 2.5 Flash Low",
@@ -385,8 +949,7 @@ ONLINE_THINKING_MODELS: Dict[str, List[str]] = {
 
 # Models that emit reasoning token usage but do not reliably stream
 # textual thought deltas through LiteLLM streaming payloads.
-THINKING_TEXT_STREAM_UNSUPPORTED_MODELS: Dict[str, List[str]] = {
-}
+THINKING_TEXT_STREAM_UNSUPPORTED_MODELS: Dict[str, List[str]] = {}
 
 
 _MODEL_PRESET_BY_ID: Dict[str, Dict[str, Any]] = {
@@ -431,7 +994,9 @@ def resolve_provider_thinking_preference(
         return None
 
     preset = resolve_model_preset(normalized_model_id)
-    supports_thinking = preset.get("supports_thinking") if isinstance(preset, dict) else None
+    supports_thinking = (
+        preset.get("supports_thinking") if isinstance(preset, dict) else None
+    )
     if isinstance(supports_thinking, bool):
         return supports_thinking
 

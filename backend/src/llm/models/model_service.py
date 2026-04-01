@@ -7,6 +7,7 @@ Responsible for discovering and aggregating available LLM models from:
 """
 
 import asyncio
+import copy
 import logging
 from collections.abc import Iterable
 from typing import Any, Awaitable, Dict, List, Optional, Sequence, Tuple
@@ -16,6 +17,7 @@ from backend.src.llm.models.models_config import (
     LOCAL_VISION_MODELS,
     ONLINE_MODELS,
     THINKING_TEXT_STREAM_UNSUPPORTED_MODELS,
+    get_model_card_metadata,
 )
 
 # Lazy import to avoid circular dependency
@@ -40,12 +42,16 @@ def _build_catalog(
                 model_id = str(model_entry.get("id") or "").strip()
                 if not model_id:
                     continue
-                runtime_model_id = str(
-                    model_entry.get("runtime_model_id") or model_id
-                ).strip() or model_id
-                display_name = str(
-                    model_entry.get("display_name") or f"{provider}/{model_id}"
-                ).strip() or f"{provider}/{model_id}"
+                runtime_model_id = (
+                    str(model_entry.get("runtime_model_id") or model_id).strip()
+                    or model_id
+                )
+                display_name = (
+                    str(
+                        model_entry.get("display_name") or f"{provider}/{model_id}"
+                    ).strip()
+                    or f"{provider}/{model_id}"
+                )
                 entry = {
                     "id": model_id,
                     "runtime_model_id": runtime_model_id,
@@ -58,10 +64,13 @@ def _build_catalog(
                     entry["supports_thinking_text_stream"] = bool(
                         model_entry["supports_thinking_text_stream"]
                     )
-                if "reasoning_mode" in model_entry and isinstance(model_entry["reasoning_mode"], str):
+                if "reasoning_mode" in model_entry and isinstance(
+                    model_entry["reasoning_mode"], str
+                ):
                     normalized_reasoning_mode = model_entry["reasoning_mode"].strip()
                     if normalized_reasoning_mode:
                         entry["reasoning_mode"] = normalized_reasoning_mode
+                entry.update(get_model_card_metadata(provider, runtime_model_id))
             else:
                 model_id = str(model_entry).strip()
                 if not model_id:
@@ -72,9 +81,14 @@ def _build_catalog(
                     "provider": provider,
                     "display_name": f"{provider}/{model_id}",
                 }
+                entry.update(get_model_card_metadata(provider, model_id))
             if supports_thinking is not None and "supports_thinking" not in entry:
                 entry["supports_thinking"] = supports_thinking
-            if "supports_thinking" in entry and entry["supports_thinking"] and "supports_thinking_text_stream" not in entry:
+            if (
+                "supports_thinking" in entry
+                and entry["supports_thinking"]
+                and "supports_thinking_text_stream" not in entry
+            ):
                 entry["supports_thinking_text_stream"] = True
             models.append(entry)
     return tuple(models)
@@ -82,10 +96,12 @@ def _build_catalog(
 
 def _copy_catalog(catalog: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Return a defensive copy so callers cannot mutate cached catalog entries."""
-    return [dict(model) for model in catalog]
+    return [copy.deepcopy(model) for model in catalog]
 
 
-def _with_thinking_stream_capabilities(catalog: Sequence[Dict[str, Any]]) -> Tuple[Dict[str, Any], ...]:
+def _with_thinking_stream_capabilities(
+    catalog: Sequence[Dict[str, Any]]
+) -> Tuple[Dict[str, Any], ...]:
     """
     Add `supports_thinking_text_stream` to thinking-capable model entries.
 
@@ -137,7 +153,11 @@ _THINKING_IDS = {(m["provider"], m["id"]) for m in _THINKING_MODELS_CATALOG}
 _ALL_ONLINE_MODELS_CATALOG = tuple(
     sorted(
         [
-            *[m for m in _ONLINE_MODELS_CATALOG if (m["provider"], m["id"]) not in _THINKING_IDS],
+            *[
+                m
+                for m in _ONLINE_MODELS_CATALOG
+                if (m["provider"], m["id"]) not in _THINKING_IDS
+            ],
             *_THINKING_MODELS_CATALOG,
         ],
         key=lambda m: (m["provider"], m.get("supports_thinking", False)),
@@ -164,7 +184,7 @@ class ModelService:
     def get_all_online_models(self) -> List[Dict[str, Any]]:
         """
         Return all online models (both thinking and non-thinking).
-        
+
         Deduplicates models that appear in both lists, preferring the thinking version.
         """
         return _copy_catalog(_ALL_ONLINE_MODELS_CATALOG)
@@ -178,9 +198,8 @@ class ModelService:
     @staticmethod
     def _normalize_provider_models(raw_models: Any) -> List[Dict[str, Any]]:
         """Normalize provider model payloads to a clean list of model dicts."""
-        if (
-            not isinstance(raw_models, Iterable)
-            or isinstance(raw_models, (str, bytes, dict))
+        if not isinstance(raw_models, Iterable) or isinstance(
+            raw_models, (str, bytes, dict)
         ):
             return []
 
@@ -209,7 +228,9 @@ class ModelService:
                 normalized_item["runtime_model_id"] = runtime_model_id.strip()
             display_name = normalized_item.get("display_name")
             if not isinstance(display_name, str) or not display_name.strip():
-                normalized_item["display_name"] = f"{normalized_provider}/{normalized_id}"
+                normalized_item["display_name"] = (
+                    f"{normalized_provider}/{normalized_id}"
+                )
             else:
                 normalized_item["display_name"] = display_name.strip()
             normalized.append(normalized_item)
@@ -229,18 +250,18 @@ class ModelService:
         except Exception as e:
             logger.warning(
                 f"Failed to list {label} models: {e}",
-                exc_info=logger.isEnabledFor(logging.DEBUG)
+                exc_info=logger.isEnabledFor(logging.DEBUG),
             )
             return label, [], str(e)
 
     async def get_local_models(self) -> List[Dict[str, Any]]:
         """
         Fetch available models from local providers (Ollama, LM Studio).
-        
+
         Uses the provider factory to ensure consistent provider instantiation
         and benefit from caching. This prevents duplicate provider instances
         and ensures configuration consistency.
-        
+
         Returns:
             List of available local models. If a provider fails, it logs a warning
             but continues to try other providers. Returns empty list if all providers fail.
@@ -254,10 +275,10 @@ class ModelService:
 
         # Lazy import to avoid circular dependency
         from backend.src.llm.providers import create_provider_factory
-        
+
         local_models: List[Dict[str, Any]] = []
         provider_failures: List[tuple[str, str]] = []
-        
+
         # Get provider factory (cached, uses same instances as rest of system)
         factory = create_provider_factory(self.config)
 

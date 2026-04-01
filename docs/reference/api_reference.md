@@ -1043,13 +1043,25 @@ Response to list-models request.
       "id": "gpt-5.1",
       "provider": "openai",
       "display_name": "openai/gpt-5.1",
-      "supports_thinking": false
+      "supports_thinking": false,
+      "context_window": 400000,
+      "description": "OpenAI's strongest GPT-5 family model for coding, agents, and deliberate reasoning.",
+      "strengths": ["Reasoning", "Code", "Agents", "Tools"],
+      "input_price": "Free",
+      "output_price": "Free",
+      "latency": "~1.6s"
     },
     {
       "id": "claude-sonnet-4-5-20250929",
       "provider": "anthropic",
       "display_name": "anthropic/claude-sonnet-4-5-20250929",
-      "supports_thinking": true
+      "supports_thinking": true,
+      "context_window": 200000,
+      "description": "Anthropic's Claude Sonnet 4.5 balances strong coding, reasoning, and agent reliability.",
+      "strengths": ["Agents", "Coding", "Writing", "Reliable"],
+      "input_price": "Free",
+      "output_price": "Free",
+      "latency": "~1.3s"
     }
   ],
   "vision": [
@@ -1080,13 +1092,25 @@ Response to list-models request.
         "id": "gpt-5.1",
         "provider": "openai",
         "display_name": "openai/gpt-5.1",
-        "supports_thinking": false
+        "supports_thinking": false,
+        "context_window": 400000,
+        "description": "OpenAI's strongest GPT-5 family model for coding, agents, and deliberate reasoning.",
+        "strengths": ["Reasoning", "Code", "Agents", "Tools"],
+        "input_price": "Free",
+        "output_price": "Free",
+        "latency": "~1.6s"
       },
       {
         "id": "claude-sonnet-4-5-20250929",
         "provider": "anthropic",
         "display_name": "anthropic/claude-sonnet-4-5-20250929",
-        "supports_thinking": true
+        "supports_thinking": true,
+        "context_window": 200000,
+        "description": "Anthropic's Claude Sonnet 4.5 balances strong coding, reasoning, and agent reliability.",
+        "strengths": ["Agents", "Coding", "Writing", "Reliable"],
+        "input_price": "Free",
+        "output_price": "Free",
+        "latency": "~1.3s"
       }
     ],
     "vision": [
