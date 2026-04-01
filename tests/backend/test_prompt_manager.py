@@ -216,6 +216,7 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     assert "Use `open_app` for detached GUI launches that should keep running" in content
     assert "Do not claim a code change works unless you have some direct evidence" in content
     assert "Use fast focused search commands when inspecting repositories or logs." in content
+    assert "prefer `rg` over recursive `grep`" in content
     assert '"name":"run_shell_command"' in content
     assert '"name":"open_app"' in content
     assert '"name":"mouse_control"' in content

@@ -9,6 +9,83 @@ from tools.filesystem.replace_tool import replace  # noqa: E402
 
 
 @pytest.mark.asyncio
+async def test_replace_resolves_relative_path_from_selected_workspace(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+):
+    workspace_dir = tmp_path / "workspace"
+    nested_dir = workspace_dir / "frontend" / "src" / "main"
+    nested_dir.mkdir(parents=True)
+    target = nested_dir / "index.cjs"
+    target.write_text("console.log('before');\n", encoding="utf-8")
+    permission_state_path = tmp_path / "permission-state.json"
+    permission_state_path.write_text(
+        (
+            '{'
+            '"version":1,'
+            '"permissions":{"filesystem_workspace_access":{'
+            '"granted":true,'
+            '"selected_paths":["%s"]'
+            '}}'
+            '}'
+        ) % str(workspace_dir),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("WINDIE_PERMISSION_STATE_PATH", str(permission_state_path))
+
+    result = await replace(
+        {
+            "file_path": "frontend/src/main/index.cjs",
+            "old_string": "before",
+            "new_string": "after",
+        }
+    )
+
+    assert result.success is True
+    assert target.read_text(encoding="utf-8") == "console.log('after');\n"
+    assert "Successfully modified file:" in result.data["llm_content"]
+    assert str(target) in result.data["llm_content"]
+
+
+@pytest.mark.asyncio
+async def test_replace_reports_original_relative_path_when_missing(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+):
+    workspace_dir = tmp_path / "workspace"
+    workspace_dir.mkdir()
+    permission_state_path = tmp_path / "permission-state.json"
+    permission_state_path.write_text(
+        (
+            '{'
+            '"version":1,'
+            '"permissions":{"filesystem_workspace_access":{'
+            '"granted":true,'
+            '"selected_paths":["%s"]'
+            '}}'
+            '}'
+        ) % str(workspace_dir),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("WINDIE_PERMISSION_STATE_PATH", str(permission_state_path))
+
+    result = await replace(
+        {
+            "file_path": "frontend/src/main/missing.cjs",
+            "old_string": "before",
+            "new_string": "after",
+        }
+    )
+
+    assert result.success is False
+    assert result.error == (
+        f"File does not exist: frontend/src/main/missing.cjs "
+        f"(resolved to {workspace_dir / 'frontend' / 'src' / 'main' / 'missing.cjs'}). "
+        "To create a file, provide exactly one replacement with old_string='' and no context constraints."
+    )
+
+
+@pytest.mark.asyncio
 async def test_replace_single_unique_match(tmp_path: Path):
     target = tmp_path / "example.txt"
     target.write_text("line1\nline2\nline3\n", encoding="utf-8")
