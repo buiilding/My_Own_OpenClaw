@@ -202,8 +202,10 @@ class ContainerInitializer:
                 return
 
             await ocr_service.initialize()
-            if ocr_service.enabled:
+            if getattr(ocr_service, "is_ready", getattr(ocr_service, "enabled", False)):
                 logger.info("OCR service initialized successfully")
+            elif getattr(ocr_service, "enabled", False):
+                logger.warning("OCR service initialization completed but engine is not ready")
             else:
                 logger.warning("OCR service initialized but disabled (dependencies missing)")
 

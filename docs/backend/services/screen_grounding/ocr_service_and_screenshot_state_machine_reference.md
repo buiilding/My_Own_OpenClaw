@@ -32,7 +32,7 @@ title: "OCR Service and Screenshot State-Machine Reference"
    - skips startup engine initialization
 3. if enabled:
    - runs `ocr_service.initialize()`
-   - logs whether service remains enabled
+   - logs whether the engine is ready, still enabled-but-not-ready, or disabled
 
 Policy source:
 
@@ -151,7 +151,7 @@ Normalization details:
 RapidOCR parameter policy:
 
 - WindieOS uses an explicit quality-first RapidOCR profile instead of bare library defaults.
-- Detection and recognition are pinned to ONNX Runtime `PP-OCRv5` `server` models with `lang_type="ch"`.
+- Detection and recognition are pinned to ONNX Runtime `PP-OCRv5` `server` models with RapidOCR `LangDet.CH` / `LangRec.CH` enum values (string fallback only when the installed RapidOCR build does not expose those enums).
 - Engine creation still toggles `EngineConfig.onnxruntime.use_cuda` so OCR prefers CUDA first and falls back to CPU by recreating the same quality-first profile with `use_cuda=false`.
 
 Test-backed behavior:

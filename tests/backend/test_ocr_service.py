@@ -50,11 +50,21 @@ def test_build_engine_params_selects_quality_first_profile():
     params = service._build_engine_params(use_cuda=True)
 
     assert params["Det.engine_type"] == ocr_service_module.EngineType.ONNXRUNTIME
-    assert params["Det.lang_type"] == "ch"
+    expected_det_lang = (
+        ocr_service_module.LangDet.CH
+        if ocr_service_module.LangDet is not None
+        else "ch"
+    )
+    expected_rec_lang = (
+        ocr_service_module.LangRec.CH
+        if ocr_service_module.LangRec is not None
+        else "ch"
+    )
+    assert params["Det.lang_type"] == expected_det_lang
     assert params["Det.model_type"] == ocr_service_module.ModelType.SERVER
     assert params["Det.ocr_version"] == ocr_service_module.OCRVersion.PPOCRV5
     assert params["Rec.engine_type"] == ocr_service_module.EngineType.ONNXRUNTIME
-    assert params["Rec.lang_type"] == "ch"
+    assert params["Rec.lang_type"] == expected_rec_lang
     assert params["Rec.model_type"] == ocr_service_module.ModelType.SERVER
     assert params["Rec.ocr_version"] == ocr_service_module.OCRVersion.PPOCRV5
     assert params["EngineConfig.onnxruntime.use_cuda"] is True
@@ -91,13 +101,37 @@ def test_create_engine_uses_quality_first_profile(monkeypatch):
     service._create_engine(use_cuda=False)
 
     assert captured["params"]["Det.engine_type"] == ocr_service_module.EngineType.ONNXRUNTIME
+    expected_det_lang = (
+        ocr_service_module.LangDet.CH
+        if ocr_service_module.LangDet is not None
+        else "ch"
+    )
+    expected_rec_lang = (
+        ocr_service_module.LangRec.CH
+        if ocr_service_module.LangRec is not None
+        else "ch"
+    )
+    assert captured["params"]["Det.lang_type"] == expected_det_lang
     assert captured["params"]["Det.model_type"] == ocr_service_module.ModelType.SERVER
     assert captured["params"]["Det.ocr_version"] == ocr_service_module.OCRVersion.PPOCRV5
     assert captured["params"]["Rec.engine_type"] == ocr_service_module.EngineType.ONNXRUNTIME
+    assert captured["params"]["Rec.lang_type"] == expected_rec_lang
     assert captured["params"]["Rec.model_type"] == ocr_service_module.ModelType.SERVER
     assert captured["params"]["Rec.ocr_version"] == ocr_service_module.OCRVersion.PPOCRV5
     assert captured["params"]["EngineConfig.onnxruntime.use_cuda"] is False
     assert service.use_cuda is False
+
+
+def test_is_ready_requires_enabled_service_and_engine():
+    service = OcrService()
+
+    assert service.is_ready is False
+
+    service._ocr_engine = object()
+    assert service.is_ready is True
+
+    service.enabled = False
+    assert service.is_ready is False
 
 
 def test_ensure_engine_initialized_sync_short_circuits_when_engine_exists():

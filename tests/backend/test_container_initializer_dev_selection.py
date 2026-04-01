@@ -31,16 +31,17 @@ class DummyVisionService:
 
 
 class DummyOcrService:
-    def __init__(self):
+    def __init__(self, *, ready=True, enabled=True):
         self.calls = 0
-        self.enabled = True
+        self.enabled = enabled
+        self.is_ready = ready
 
     async def initialize(self):
         self.calls += 1
 
 
-def _build_ocr_initializer():
-    ocr_service = DummyOcrService()
+def _build_ocr_initializer(*, ready=True, enabled=True):
+    ocr_service = DummyOcrService(ready=ready, enabled=enabled)
     container = SimpleNamespace(ocr_service=ocr_service, config=SimpleNamespace())
     return ContainerInitializer(container), ocr_service
 
@@ -77,3 +78,17 @@ async def test_initialize_ocr_service_runs_when_enabled(monkeypatch: pytest.Monk
 
     assert ocr_service.calls == 1
     assert ocr_service.enabled is True
+
+
+@pytest.mark.asyncio
+async def test_initialize_ocr_service_warns_when_engine_not_ready(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+):
+    initializer, ocr_service = _build_ocr_initializer(ready=False, enabled=True)
+    monkeypatch.setattr(initializer, "_should_initialize_ocr_service", lambda: True)
+
+    with caplog.at_level("WARNING"):
+        await initializer._initialize_ocr_service()
+
+    assert ocr_service.calls == 1
+    assert "OCR service initialization completed but engine is not ready" in caplog.text
