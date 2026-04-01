@@ -1,14 +1,19 @@
-"""
-Container Initializer.
-
-Handles async initialization of container components including vision service initialization.
-"""
 import logging
-from typing import Any
+from dataclasses import dataclass
+from typing import Any, Awaitable, Callable, Optional
 
 from backend.src.tools.tool_policy import ToolPolicy
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class StartupStep:
+    """Declarative startup step contract for container-owned runtime services."""
+
+    name: str
+    run: Callable[["ContainerInitializer"], Awaitable[None]]
+    publish_to_context_factory: Optional[Callable[["ContainerInitializer"], None]] = None
 
 
 class ContainerInitializer:
@@ -27,38 +32,46 @@ class ContainerInitializer:
         """
         self.container = container
         self._tool_policy = ToolPolicy.from_config(getattr(container, "config", None))
+        self._startup_steps = {
+            step.name: step for step in self._build_startup_steps()
+        }
 
     async def initialize(self) -> None:
         """
         Perform async initialization of container components.
 
-This includes:
-- Configuration service initialization
-- Vision service initialization (for fast first-time use)
-- OCR service initialization (for fast first-time use)
-- Setting vision/OCR services in context factory
+        This includes:
+        - Configuration service initialization
+        - Vision service initialization for fast first-time use
+        - OCR service initialization for fast first-time use
+        - Publishing vision/OCR services into the shared context factory
         """
         # Initialize configuration service (loads config and makes it available)
-        await self._initialize_config_service()
-
-        # Initialize vision service (pre-loads InternVL model for fast first-time use)
-        await self._initialize_vision_service()
-
-        # Initialize OCR service (pre-loads RapidOCR engine for fast first-time use)
-        await self._initialize_ocr_service()
-
-        # Initialize embedder (loads SentenceTransformer model in thread pool)
-        await self._initialize_embedder()
-
-        # Set vision service in context factory so tools can access it
-        if self.container.vision_service is not None:
-            self.container.context_factory.set_vision_service(self.container.vision_service)
-
-        # Set OCR service in context factory so tools can access it
-        if self.container.ocr_service is not None:
-            self.container.context_factory.set_ocr_service(self.container.ocr_service)
+        for step in self._startup_steps.values():
+            await step.run(self)
+            if step.publish_to_context_factory is not None:
+                step.publish_to_context_factory(self)
 
         logger.info("Container initialization complete")
+
+    def _build_startup_steps(self) -> list[StartupStep]:
+        return [
+            StartupStep(name="config_service", run=ContainerInitializer._run_config_service_step),
+            StartupStep(
+                name="vision_service",
+                run=ContainerInitializer._run_vision_service_step,
+                publish_to_context_factory=ContainerInitializer._publish_vision_service,
+            ),
+            StartupStep(
+                name="ocr_service",
+                run=ContainerInitializer._run_ocr_service_step,
+                publish_to_context_factory=ContainerInitializer._publish_ocr_service,
+            ),
+            StartupStep(name="embedder", run=ContainerInitializer._run_embedder_step),
+        ]
+
+    def _get_startup_step(self, name: str) -> StartupStep:
+        return self._startup_steps[name]
 
     def _should_initialize_vision_service(self) -> bool:
         """Return whether vision startup initialization should run."""
@@ -69,6 +82,9 @@ This includes:
         return self._tool_policy.should_initialize_ocr()
 
     async def _initialize_config_service(self) -> None:
+        await self._get_startup_step("config_service").run(self)
+
+    async def _run_config_service_step(self) -> None:
         """
         Initialize the configuration service by loading configuration.
         
@@ -90,6 +106,9 @@ This includes:
             logger.error(f"Failed to initialize configuration service: {e}", exc_info=True)
 
     async def _initialize_vision_service(self) -> None:
+        await self._get_startup_step("vision_service").run(self)
+
+    async def _run_vision_service_step(self) -> None:
         """
         Initialize the vision service to pre-load the InternVL model.
         
@@ -128,6 +147,9 @@ This includes:
             logger.error(f"Failed to initialize vision service: {e}", exc_info=True)
 
     async def _initialize_embedder(self) -> None:
+        await self._get_startup_step("embedder").run(self)
+
+    async def _run_embedder_step(self) -> None:
         """
         Initialize the embedder to pre-load the SentenceTransformer model.
         
@@ -156,6 +178,9 @@ This includes:
             logger.error(f"Failed to initialize embedder: {e}", exc_info=True)
 
     async def _initialize_ocr_service(self) -> None:
+        await self._get_startup_step("ocr_service").run(self)
+
+    async def _run_ocr_service_step(self) -> None:
         """
         Initialize the OCR service to pre-load the RapidOCR engine.
         """
@@ -186,3 +211,15 @@ This includes:
             logger.warning(f"OCR service dependencies not available: {e}")
         except Exception as e:
             logger.error(f"Failed to initialize OCR service: {e}", exc_info=True)
+
+    def _publish_vision_service(self) -> None:
+        context_factory = getattr(self.container, "context_factory", None)
+        vision_service = getattr(self.container, "vision_service", None)
+        if context_factory is not None and vision_service is not None:
+            context_factory.set_vision_service(vision_service)
+
+    def _publish_ocr_service(self) -> None:
+        context_factory = getattr(self.container, "context_factory", None)
+        ocr_service = getattr(self.container, "ocr_service", None)
+        if context_factory is not None and ocr_service is not None:
+            context_factory.set_ocr_service(ocr_service)

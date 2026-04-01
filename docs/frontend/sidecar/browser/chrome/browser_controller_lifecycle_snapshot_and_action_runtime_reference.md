@@ -11,18 +11,30 @@ title: "Browser Controller Lifecycle, Snapshot, and Action Runtime Reference"
 ## Canonical Modules
 
 - `frontend/src/main/python/tools/browser/controller.py`
+- `frontend/src/main/python/tools/browser/observation_store.py`
+- `frontend/src/main/python/tools/browser/session_runtime.py`
 - `frontend/src/main/python/tools/browser/chrome_launcher.py`
 - `frontend/src/main/python/tools/browser/chrome_detection.py`
 - `tests/sidecar/tools/test_browser_controller.py`
+- `tests/sidecar/tools/test_browser_observation_store.py`
+- `tests/sidecar/tools/test_browser_session_runtime.py`
 
 ## Session State Model
 
-`BrowserController` owns one active session with fields for:
+`BrowserSessionRuntime` owns the live active-session fields for:
 
 - Playwright handles (`_playwright`, `_browser`, `_context`, `_page`)
 - connect mode (`_mode`: `user_chrome` or `managed`)
 - CDP URL (`_cdp_url`)
 - optional managed temp profile dir (`_user_data_dir`)
+- trace/headless flags used by diagnostics and launch helpers
+
+`BrowserController` remains the public execution surface and proxies those fields through the runtime object.
+
+Tab-scoped observation ownership:
+
+- `BrowserObservationStore` owns per-tab ref registries, role refs, observer-installed tab ids, console/dialog/page-error buffers, and network request records
+- `BrowserController` remains the public execution surface, but delegates tab-scoped observation state to the store
 
 Singleton boundary:
 
@@ -78,6 +90,11 @@ Per-tab capture stores (bounded):
 - dialog events: max 100
 - page errors: max 200
 - network requests: max 500
+
+State boundaries:
+
+- controller still decides when observers are attached and when events are recorded
+- observation-store owns the underlying tab-scoped data structures and reset behavior
 
 Observer installation (`_ensure_page_observers`) is one-time per tab and wires:
 
@@ -207,6 +224,17 @@ Cleanup exceptions are logged and do not raise to caller.
 - AI snapshot enhanced-path success and enhanced->legacy fallback
 - aria snapshot truncation behavior
 - singleton getter/reset behavior
+
+`tests/sidecar/tools/test_browser_observation_store.py` verifies:
+
+- console-message filtering/limit/clear behavior
+- network request lifecycle updates (`request` -> `response` -> `requestfailed`)
+- dialog waiter resolution and pruning
+
+`tests/sidecar/tools/test_browser_session_runtime.py` verifies:
+
+- connection/current-page metadata projection
+- runtime reset clears live handles and trace/headless flags
 
 ## Related Pages
 

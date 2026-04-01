@@ -47,11 +47,12 @@ class OcrCoordinator:
         # Determine which screenshot_id to use
         if screenshot_id is None:
             screenshot_id = session.get_current_screenshot_id()
+        ocr_state = session.get_ocr_runtime_state()
         
         # Wait for in-flight OCR task for this screenshot (if any).
         # Use shielded wait to avoid cancelling background OCR on timeout.
         ocr_wait_start = time.perf_counter()
-        active_ocr_task = session.get_active_ocr_task(screenshot_id)
+        active_ocr_task = ocr_state.get_active_task(screenshot_id)
         if active_ocr_task:
             logger.info("Waiting for proactive OCR task to complete...")
             try:
@@ -71,7 +72,7 @@ class OcrCoordinator:
 
         # SIMPLIFIED: Get OCR results for current screenshot only
         # Verify screenshot_id matches current screenshot (if provided)
-        current_screenshot_id = session.get_current_screenshot_id()
+        current_screenshot_id = ocr_state.get_current_screenshot_id()
         if screenshot_id and current_screenshot_id != screenshot_id:
             logger.warning(
                 f"Screenshot ID mismatch: requested {screenshot_id[:8]}, "
@@ -82,7 +83,7 @@ class OcrCoordinator:
             ocr_results = None
         else:
             # Get OCR results for current screenshot
-            ocr_results = session.get_ocr_results()
+            ocr_results = ocr_state.get_results()
             if ocr_results:
                 logger.info(f"Using cached OCR results for current screenshot {current_screenshot_id[:8] if current_screenshot_id else 'unknown'}")
 
@@ -100,7 +101,7 @@ class OcrCoordinator:
             logger.info(f"[Timing] OCR execution took {ocr_exec_time:.3f}s (found {len(ocr_results) if ocr_results else 0} results)")
             
             # SIMPLIFIED: Store results for current screenshot only
-            session.set_current_ocr_results(ocr_results)
+            ocr_state.set_results(ocr_results)
 
         if not ocr_results:
             raise ValueError("OCR analysis returned no results")

@@ -13,6 +13,9 @@ title: "Session State and Lifecycle"
 Primary modules:
 
 - `backend/src/agent/session/manager.py`
+- `backend/src/agent/session/session_registry.py`
+- `backend/src/agent/session/session_config_service.py`
+- `backend/src/agent/session/active_query_tracker.py`
 - `backend/src/agent/session/session.py`
 - `backend/src/agent/session/runtime_state.py`
 - `backend/src/agent/session/lifecycle.py`
@@ -21,22 +24,25 @@ Primary modules:
 
 Responsibilities split:
 
-- `SessionManager`: user-level session registry, locking, query task tracking.
+- `SessionManager`: thin orchestration facade over the extracted runtime services below.
+- `SessionRegistry`: conversation-keyed active-session registry, latest conversation refs, per-user locks.
+- `SessionConfigService`: effective session-config assembly, user overrides, frontend operating-system prompt rewrites.
+- `ActiveQueryTracker`: active query task tracking, scoped cancellation, pending stop-query race guards.
 - `AgentSession`: per-user orchestrator wrapping history, executor, tool result handler.
 - `SessionRuntimeState`: mutable runtime containers owned by one `AgentSession`.
 
-## SessionManager State Maps and Locks
+## Session Runtime Maps and Locks
 
-`SessionManager` keeps these long-lived maps:
+The backend session runtime keeps these long-lived maps:
 
-- `active_sessions: Dict[user_id, AgentSession]`
+- `active_sessions: Dict[user_id, Dict[conversation_ref|None, AgentSession]]`
 - `_user_locks: Dict[user_id, asyncio.Lock]`
 - `_active_query_tasks: Dict[user_id, Dict[Task, (turn_ref, conversation_ref)]]`
 - `_pending_stop_requests: Dict[user_id, Dict[conversation_ref|None, expires_at]]`
 
 Locking model:
 
-- `_locks_lock` serializes creation/deletion of per-user locks.
+- `SessionRegistry.locks_lock` serializes creation/deletion of per-user locks.
 - each user gets one lock used by create/update/end operations.
 - session creation uses double-check pattern before and after acquiring lock.
 
@@ -46,10 +52,10 @@ Called from query/rehydrate/tool-result paths through `get_or_create_session(use
 
 Steps:
 
-1. Fast path returns existing `active_sessions[user_id]` when present.
+1. Fast path returns an existing conversation-scoped session from `active_sessions[user_id][conversation_ref]` when present.
 2. Slow path acquires user lock.
 3. Global config is copied into a new `AppConfig` instance.
-4. Runtime config policy is applied (`assemble_runtime_config`): TTS normalization + provider key loading.
+4. `SessionConfigService` copies the current base config, applies user overrides, and runs runtime config policy (`assemble_runtime_config`).
 5. `create_agent_session(...)` factory builds session and stores it in `active_sessions`.
 
 Important detail:
@@ -100,7 +106,7 @@ Compaction runtime attachment:
 ### Screenshot/OCR state (`ScreenshotState`)
 
 - stores only current screenshot + current OCR result set (no history chain).
-- tracks one active OCR task with screenshot_id correlation.
+- owns nested OCR runtime state for current screenshot id, cached OCR results, and active OCR task correlation.
 - `set_current_screenshot(...)` resets OCR cache for previous frame.
 - cleanup cancels active OCR task and clears all screenshot fields.
 
@@ -144,7 +150,8 @@ Per-session frontend update path:
 
 1. `UpdateSettingsHandler` validates frontend-owned keys only.
 2. `SessionManager.update_session_config(...)` merges updates into session config copy.
-3. `SessionConfigRuntime.apply(...)` updates:
+3. `SessionConfigService` recomputes effective config for affected sessions.
+4. `SessionConfigRuntime.apply(...)` updates:
 - `session.cfg`
 - `session.llm_client`
 - `executor.llm_client`
@@ -154,7 +161,7 @@ Per-session frontend update path:
 Global config change path:
 
 - `ConfigurationService` notifies subscribers.
-- `SessionManager.on_config_changed(...)` loops through active sessions and applies new config under per-user locks.
+- `SessionManager.on_config_changed(...)` updates `SessionConfigService` base config and delegates the per-user locked fanout to `SessionConfigService.update_all_sessions_config(...)`.
 
 ## End Session and Cleanup Path
 

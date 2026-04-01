@@ -9,11 +9,10 @@ import logging
 import inspect
 import tempfile
 import asyncio
-from weakref import WeakKeyDictionary
 from dataclasses import dataclass, field
 from pathlib import Path
 from datetime import datetime, UTC
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 # Playwright imports
@@ -34,7 +33,9 @@ from tools.browser.chrome_launcher import (
     ChromeLauncherError,
 )
 from tools.browser.enhanced_cdp_pipeline import EnhancedCdpDomPipeline
+from tools.browser.observation_store import BrowserObservationStore
 from tools.browser.ref_registry import RefRegistry
+from tools.browser.session_runtime import BrowserSessionRuntime
 from tools.browser.role_snapshot import (
     RoleRef,
     RoleSnapshotOptions,
@@ -86,52 +87,117 @@ class BrowserController:
     """
 
     def __init__(self):
-        self._playwright: Optional[Playwright] = None
-        self._browser: Optional[Browser] = None
-        self._context: Optional[BrowserContext] = None
-        self._page: Optional[Page] = None
-        self._cdp_url: Optional[str] = None
-        self._mode: Optional[str] = None  # "user_chrome" or "managed"
-        self._user_data_dir: Optional[Path] = None
-        self._browser_process = None
-        # Per-tab ref registries keyed by target_id (currently str(id(Page))).
-        self._ref_registry_by_tab: Dict[str, RefRegistry] = {}
-        # Per-tab role refs from role snapshots (e.g., e1/e2), with optional iframe scope.
-        self._role_refs_by_tab: Dict[str, Dict[str, RoleRef]] = {}
-        self._role_refs_frame_by_tab: Dict[str, Optional[str]] = {}
-        self._observed_tabs: Set[str] = set()
-        self._console_messages_by_tab: Dict[str, List[Dict[str, Any]]] = {}
-        self._dialog_events_by_tab: Dict[str, List[Dict[str, Any]]] = {}
-        self._dialog_arms_by_tab: Dict[str, Dict[str, Any]] = {}
-        self._dialog_waiters_by_tab: Dict[str, List[asyncio.Future]] = {}
-        self._page_errors_by_tab: Dict[str, List[Dict[str, Any]]] = {}
-        self._network_requests_by_tab: Dict[str, List[Dict[str, Any]]] = {}
-        self._network_request_id_by_req: WeakKeyDictionary = WeakKeyDictionary()
-        self._next_request_id_by_tab: Dict[str, int] = {}
-        self._trace_active: bool = False
+        self._runtime = BrowserSessionRuntime()
+        self._observation_store = BrowserObservationStore()
+        # Compatibility aliases while controller ownership is decomposed.
+        self._ref_registry_by_tab = self._observation_store.ref_registry_by_tab
+        self._role_refs_by_tab = self._observation_store.role_refs_by_tab
+        self._role_refs_frame_by_tab = self._observation_store.role_refs_frame_by_tab
+        self._observed_tabs = self._observation_store.observed_tabs
+        self._console_messages_by_tab = self._observation_store.console_messages_by_tab
+        self._dialog_events_by_tab = self._observation_store.dialog_events_by_tab
+        self._dialog_arms_by_tab = self._observation_store.dialog_arms_by_tab
+        self._dialog_waiters_by_tab = self._observation_store.dialog_waiters_by_tab
+        self._page_errors_by_tab = self._observation_store.page_errors_by_tab
+        self._network_requests_by_tab = self._observation_store.network_requests_by_tab
+        self._network_request_id_by_req = self._observation_store.network_request_id_by_req
+        self._next_request_id_by_tab = self._observation_store.next_request_id_by_tab
         self._enhanced_cdp_pipeline = EnhancedCdpDomPipeline()
+
+    @property
+    def _playwright(self) -> Optional[Playwright]:
+        return self._runtime.playwright
+
+    @_playwright.setter
+    def _playwright(self, value: Optional[Playwright]) -> None:
+        self._runtime.playwright = value
+
+    @property
+    def _browser(self) -> Optional[Browser]:
+        return self._runtime.browser
+
+    @_browser.setter
+    def _browser(self, value: Optional[Browser]) -> None:
+        self._runtime.browser = value
+
+    @property
+    def _context(self) -> Optional[BrowserContext]:
+        return self._runtime.context
+
+    @_context.setter
+    def _context(self, value: Optional[BrowserContext]) -> None:
+        self._runtime.context = value
+
+    @property
+    def _page(self) -> Optional[Page]:
+        return self._runtime.page
+
+    @_page.setter
+    def _page(self, value: Optional[Page]) -> None:
+        self._runtime.page = value
+
+    @property
+    def _cdp_url(self) -> Optional[str]:
+        return self._runtime.cdp_url
+
+    @_cdp_url.setter
+    def _cdp_url(self, value: Optional[str]) -> None:
+        self._runtime.cdp_url = value
+
+    @property
+    def _mode(self) -> Optional[str]:
+        return self._runtime.mode
+
+    @_mode.setter
+    def _mode(self, value: Optional[str]) -> None:
+        self._runtime.mode = value
+
+    @property
+    def _user_data_dir(self) -> Optional[Path]:
+        return self._runtime.user_data_dir
+
+    @_user_data_dir.setter
+    def _user_data_dir(self, value: Optional[Path]) -> None:
+        self._runtime.user_data_dir = value
+
+    @property
+    def _browser_process(self) -> object | None:
+        return self._runtime.browser_process
+
+    @_browser_process.setter
+    def _browser_process(self, value: object | None) -> None:
+        self._runtime.browser_process = value
+
+    @property
+    def _headless(self) -> bool:
+        return self._runtime.headless
+
+    @_headless.setter
+    def _headless(self, value: bool) -> None:
+        self._runtime.headless = value
+
+    @property
+    def _trace_active(self) -> bool:
+        return self._runtime.trace_active
+
+    @_trace_active.setter
+    def _trace_active(self, value: bool) -> None:
+        self._runtime.trace_active = value
 
     @property
     def is_connected(self) -> bool:
         """Check if browser is connected."""
-        return self._context is not None and self._page is not None
+        return self._runtime.is_connected
 
     @property
     def current_url(self) -> str:
         """Get current page URL."""
-        if self._page:
-            return self._page.url
-        return ""
+        return self._runtime.current_url
 
     @property
     def current_title(self) -> str:
         """Get current page title."""
-        if self._page:
-            # Async Playwright exposes title() as a coroutine; keep this sync
-            # property safe and let callers that need accurate title await get_status().
-            title_attr = getattr(self._page, "title", None)
-            return title_attr if isinstance(title_attr, str) else ""
-        return ""
+        return self._runtime.current_title
 
     def _get_target_id(self, page: Optional[Page] = None) -> str:
         p = page or self._page
@@ -142,120 +208,65 @@ class BrowserController:
         if not target_id:
             # Shouldn't happen in normal operation; keep callers simple.
             return RefRegistry()
-        reg = self._ref_registry_by_tab.get(target_id)
-        if reg is None:
-            reg = RefRegistry()
-            self._ref_registry_by_tab[target_id] = reg
-        return reg
+        return self._observation_store.get_ref_registry(target_id)
 
     def _reset_ref_registry(self, page: Optional[Page] = None) -> None:
         target_id = self._get_target_id(page)
         if not target_id:
             return
-        reg = self._ref_registry_by_tab.get(target_id)
-        if reg is None:
-            reg = RefRegistry()
-            self._ref_registry_by_tab[target_id] = reg
-        reg.reset()
-        self._role_refs_by_tab.pop(target_id, None)
-        self._role_refs_frame_by_tab.pop(target_id, None)
+        self._observation_store.reset_ref_registry(target_id)
 
     def _record_console_message(self, page: Page, entry: Dict[str, Any]) -> None:
         target_id = self._get_target_id(page)
         if not target_id:
             return
-        messages = self._console_messages_by_tab.setdefault(target_id, [])
-        messages.append(entry)
-        if len(messages) > 500:
-            del messages[0 : len(messages) - 500]
+        self._observation_store.record_console_message(target_id, entry)
 
     def _record_dialog_event(self, page: Page, entry: Dict[str, Any]) -> None:
         target_id = self._get_target_id(page)
         if not target_id:
             return
-        events = self._dialog_events_by_tab.setdefault(target_id, [])
-        events.append(entry)
-        if len(events) > 100:
-            del events[0 : len(events) - 100]
+        self._observation_store.record_dialog_event(target_id, entry)
 
     def _record_page_error(self, page: Page, entry: Dict[str, Any]) -> None:
         target_id = self._get_target_id(page)
         if not target_id:
             return
-        errors = self._page_errors_by_tab.setdefault(target_id, [])
-        errors.append(entry)
-        if len(errors) > 200:
-            del errors[0 : len(errors) - 200]
+        self._observation_store.record_page_error(target_id, entry)
 
     def _record_network_request(self, page: Page, req: Any) -> None:
         target_id = self._get_target_id(page)
         if not target_id:
             return
-
-        next_id = self._next_request_id_by_tab.get(target_id, 0) + 1
-        self._next_request_id_by_tab[target_id] = next_id
-        req_id = f"r{next_id}"
-        self._network_request_id_by_req[req] = req_id
-
-        records = self._network_requests_by_tab.setdefault(target_id, [])
-        records.append(
+        self._observation_store.record_network_request(
+            target_id,
+            req,
             {
-                "id": req_id,
                 "timestamp": datetime.now(UTC).isoformat(),
                 "method": req.method,
                 "url": req.url,
                 "resource_type": req.resource_type,
-            }
+            },
         )
-        if len(records) > 500:
-            del records[0 : len(records) - 500]
 
     def _record_network_response(self, page: Page, response: Any) -> None:
         target_id = self._get_target_id(page)
         if not target_id:
             return
-        req = response.request
-        req_id = self._network_request_id_by_req.get(req)
-        if not req_id:
-            return
-        records = self._network_requests_by_tab.get(target_id, [])
-        for record in reversed(records):
-            if record.get("id") == req_id:
-                record["status"] = response.status
-                record["ok"] = response.ok
-                break
+        self._observation_store.record_network_response(target_id, response)
 
     def _record_network_request_failed(self, page: Page, req: Any) -> None:
         target_id = self._get_target_id(page)
         if not target_id:
             return
-        req_id = self._network_request_id_by_req.get(req)
-        if not req_id:
-            return
-        records = self._network_requests_by_tab.get(target_id, [])
-        failure_text = None
-        try:
-            failure = req.failure
-            failure_text = (
-                failure.get("errorText") if isinstance(failure, dict) else None
-            )
-        except Exception:
-            failure_text = None
-        for record in reversed(records):
-            if record.get("id") == req_id:
-                record["failure_text"] = failure_text or "request failed"
-                record["ok"] = False
-                break
+        self._observation_store.record_network_request_failed(target_id, req)
 
     async def _handle_dialog_event(self, page: Page, dialog) -> None:
         target_id = self._get_target_id(page)
         if not target_id:
             return
 
-        arm = self._dialog_arms_by_tab.pop(
-            target_id,
-            {"accept": True, "prompt_text": None},
-        )
+        arm = self._observation_store.pop_dialog_arm(target_id)
         accept = bool(arm.get("accept", True))
         prompt_text = arm.get("prompt_text")
         handled_as = "dismiss"
@@ -284,22 +295,15 @@ class BrowserController:
 
         self._record_dialog_event(page, event)
 
-        waiters = self._dialog_waiters_by_tab.get(target_id, [])
-        for waiter in waiters:
-            if waiter.done():
-                continue
-            waiter.set_result(event)
-        self._dialog_waiters_by_tab[target_id] = [w for w in waiters if not w.done()]
+        self._observation_store.resolve_dialog_waiters(target_id, event)
 
     def _ensure_page_observers(self, page: Optional[Page]) -> None:
         if not page:
             return
 
         target_id = self._get_target_id(page)
-        if not target_id or target_id in self._observed_tabs:
+        if not self._observation_store.mark_observed(target_id):
             return
-
-        self._observed_tabs.add(target_id)
 
         def _on_console(msg) -> None:
             try:
@@ -372,23 +376,23 @@ class BrowserController:
         target_id = self._get_target_id(page)
         if not target_id:
             return
-        self._role_refs_by_tab[target_id] = refs
-        self._role_refs_frame_by_tab[target_id] = frame_selector
+        self._observation_store.store_role_refs(
+            target_id,
+            refs,
+            frame_selector=frame_selector,
+        )
 
     def _get_role_ref(self, ref: str, page: Optional[Page] = None) -> Optional[RoleRef]:
         target_id = self._get_target_id(page)
         if not target_id:
             return None
-        refs = self._role_refs_by_tab.get(target_id)
-        if not refs:
-            return None
-        return refs.get(ref)
+        return self._observation_store.get_role_ref(target_id, ref)
 
     def _get_role_frame_selector(self, page: Optional[Page] = None) -> Optional[str]:
         target_id = self._get_target_id(page)
         if not target_id:
             return None
-        return self._role_refs_frame_by_tab.get(target_id)
+        return self._observation_store.get_role_frame_selector(target_id)
 
     async def auto_connect_to_chrome(
         self,
@@ -776,18 +780,12 @@ class BrowserController:
         if not target_id:
             return []
 
-        messages = list(self._console_messages_by_tab.get(target_id, []))
-        if level:
-            lvl = level.lower()
-            messages = [m for m in messages if str(m.get("type", "")).lower() == lvl]
-
-        if limit > 0:
-            messages = messages[-limit:]
-
-        if clear:
-            self._console_messages_by_tab[target_id] = []
-
-        return messages
+        return self._observation_store.get_console_messages(
+            target_id,
+            level=level,
+            limit=limit,
+            clear=clear,
+        )
 
     def arm_dialog(
         self,
@@ -799,10 +797,11 @@ class BrowserController:
         target_id = self._get_target_id(self._page)
         if not target_id:
             return
-        self._dialog_arms_by_tab[target_id] = {
-            "accept": accept,
-            "prompt_text": prompt_text,
-        }
+        self._observation_store.arm_dialog(
+            target_id,
+            accept=accept,
+            prompt_text=prompt_text,
+        )
 
     async def wait_for_dialog(
         self, timeout_ms: int = 10000
@@ -814,17 +813,14 @@ class BrowserController:
 
         loop = asyncio.get_running_loop()
         waiter: asyncio.Future = loop.create_future()
-        self._dialog_waiters_by_tab.setdefault(target_id, []).append(waiter)
+        self._observation_store.add_dialog_waiter(target_id, waiter)
         try:
             result = await asyncio.wait_for(waiter, timeout=max(1, timeout_ms) / 1000.0)
             return result if isinstance(result, dict) else None
         except asyncio.TimeoutError:
             return None
         finally:
-            waiters = self._dialog_waiters_by_tab.get(target_id, [])
-            self._dialog_waiters_by_tab[target_id] = [
-                w for w in waiters if w is not waiter
-            ]
+            self._observation_store.prune_dialog_waiter(target_id, waiter)
 
     def get_dialog_events(
         self, limit: int = 20, clear: bool = False
@@ -834,14 +830,11 @@ class BrowserController:
         if not target_id:
             return []
 
-        events = list(self._dialog_events_by_tab.get(target_id, []))
-        if limit > 0:
-            events = events[-limit:]
-
-        if clear:
-            self._dialog_events_by_tab[target_id] = []
-
-        return events
+        return self._observation_store.get_dialog_events(
+            target_id,
+            limit=limit,
+            clear=clear,
+        )
 
     def get_page_errors(
         self, limit: int = 100, clear: bool = False
@@ -851,14 +844,11 @@ class BrowserController:
         if not target_id:
             return []
 
-        errors = list(self._page_errors_by_tab.get(target_id, []))
-        if limit > 0:
-            errors = errors[-limit:]
-
-        if clear:
-            self._page_errors_by_tab[target_id] = []
-
-        return errors
+        return self._observation_store.get_page_errors(
+            target_id,
+            limit=limit,
+            clear=clear,
+        )
 
     def get_network_requests(
         self,
@@ -872,22 +862,12 @@ class BrowserController:
         if not target_id:
             return []
 
-        requests = list(self._network_requests_by_tab.get(target_id, []))
-        if contains:
-            needle = contains.lower()
-            requests = [
-                r
-                for r in requests
-                if needle in str(r.get("url", "")).lower()
-                or needle in str(r.get("method", "")).lower()
-            ]
-        if limit > 0:
-            requests = requests[-limit:]
-
-        if clear:
-            self._network_requests_by_tab[target_id] = []
-
-        return requests
+        return self._observation_store.get_network_requests(
+            target_id,
+            limit=limit,
+            contains=contains,
+            clear=clear,
+        )
 
     async def trace_start(
         self, *, snapshots: bool = True, screenshots: bool = True, sources: bool = True
@@ -2332,23 +2312,9 @@ class BrowserController:
                 except Exception as e:
                     logger.warning(f"Failed to cleanup user data dir: {e}")
 
-            self._page = None
-            self._context = None
-            self._mode = None
-            self._cdp_url = None
-            self._ref_registry_by_tab.clear()
-            self._role_refs_by_tab.clear()
-            self._role_refs_frame_by_tab.clear()
-            self._observed_tabs.clear()
-            self._console_messages_by_tab.clear()
-            self._dialog_events_by_tab.clear()
-            self._dialog_arms_by_tab.clear()
-            self._dialog_waiters_by_tab.clear()
-            self._page_errors_by_tab.clear()
-            self._network_requests_by_tab.clear()
-            self._network_request_id_by_req = WeakKeyDictionary()
-            self._next_request_id_by_tab.clear()
-            self._trace_active = False
+            self._observation_store.reset()
+            self._network_request_id_by_req = self._observation_store.network_request_id_by_req
+            self._runtime.reset()
 
         except Exception as e:
             logger.error(f"Error during browser close: {e}")

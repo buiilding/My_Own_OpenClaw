@@ -1,15 +1,16 @@
-"""
-Session Manager for managing user agent sessions.
+"""Session Manager facade for user/session runtime lifecycle."""
 
-This module handles the lifecycle of agent sessions, including creation, retrieval,
-and cleanup.
-"""
 import asyncio
 import logging
-import time
 from collections.abc import Iterable
 from typing import Any, Dict, Optional
 
+from backend.src.agent.session.active_query_tracker import ActiveQueryTracker
+from backend.src.agent.session.conversation_refs import (
+    normalize_optional_conversation_ref,
+)
+from backend.src.agent.session.session_config_service import SessionConfigService
+from backend.src.agent.session.session_registry import SessionRegistry
 from backend.src.agent.session.session import AgentSession
 from backend.src.core.config import AppConfig
 from backend.src.core.config.loader import get_default_tts_model_path, load_api_key_for_provider
@@ -18,10 +19,6 @@ from backend.src.core.config.subscriptions import ConfigSubscriber
 from backend.src.llm.prompts.prompts import get_system_prompt
 
 logger = logging.getLogger(__name__)
-_PENDING_STOP_GRACE_SECONDS = 5.0
-
-
-
 
 class SessionManager(ConfigSubscriber):
     """
@@ -44,44 +41,42 @@ class SessionManager(ConfigSubscriber):
         """
         self.config = config
         self.create_agent_session = create_agent_session_func
-        self.active_sessions: Dict[str, Dict[Optional[str], AgentSession]] = {}
-        # Per-user locks to prevent race conditions during session creation
-        self._user_locks: Dict[str, asyncio.Lock] = {}
-        # Lock for managing user_locks dictionary itself
-        self._locks_lock = asyncio.Lock()
-        # Active query task metadata by user_id:
-        # task -> (turn_ref, conversation_ref)
-        self._active_query_tasks: Dict[
-            str, Dict[asyncio.Task[Any], tuple[str, Optional[str]]]
-        ] = {}
-        # Pending stop-query requests keyed by user_id and optional conversation_ref.
-        # Value is expiry timestamp (monotonic seconds).
-        self._pending_stop_requests: Dict[str, Dict[Optional[str], float]] = {}
-        self._frontend_operating_systems: Dict[str, str] = {}
-        self._latest_conversation_refs: Dict[str, Optional[str]] = {}
-        self._user_config_overrides: Dict[str, Dict[str, Any]] = {}
+        self._registry = SessionRegistry()
+        self._config_service = SessionConfigService(
+            base_config=config,
+            registry=self._registry,
+            assemble_runtime_session_config=lambda cfg: self._assemble_runtime_session_config(
+                cfg
+            ),
+            render_system_prompt=lambda operating_system=None: get_system_prompt(
+                operating_system
+            ),
+        )
+        self._active_queries = ActiveQueryTracker()
+
+        # Temporary aliases kept during the facade transition so external callers/tests
+        # do not need to know about the extracted internal services.
+        self.active_sessions = self._registry.active_sessions
+        self._user_locks = self._registry.user_locks
+        self._locks_lock = self._registry.locks_lock
+        self._active_query_tasks = self._active_queries.active_query_tasks
+        self._pending_stop_requests = self._active_queries.pending_stop_requests
+        self._frontend_operating_systems = self._config_service.frontend_operating_systems
+        self._latest_conversation_refs = self._registry.latest_conversation_refs
+        self._user_config_overrides = self._config_service.user_config_overrides
 
     def _get_user_sessions(
         self,
         user_id: str,
     ) -> Dict[Optional[str], AgentSession]:
         """Return a normalized conversation->session map for a user."""
-        raw_sessions = self.active_sessions.get(user_id)
-        if raw_sessions is None:
-            return {}
-        if isinstance(raw_sessions, dict):
-            return raw_sessions
-
-        normalized_sessions = {None: raw_sessions}
-        self.active_sessions[user_id] = normalized_sessions
-        return normalized_sessions
+        return self._registry.get_user_sessions(user_id)
 
     def _iter_user_sessions(
         self,
         user_id: str,
     ) -> Iterable[tuple[Optional[str], AgentSession]]:
-        user_sessions = self._get_user_sessions(user_id)
-        return tuple(user_sessions.items())
+        return self._registry.iter_user_sessions(user_id)
 
     def _build_effective_config(
         self,
@@ -89,40 +84,26 @@ class SessionManager(ConfigSubscriber):
         *,
         base_config: Optional[AppConfig] = None,
     ) -> AppConfig:
-        config_dict = (base_config or self.config).model_dump()
-        overrides = self._user_config_overrides.get(user_id, {})
-        for key, value in overrides.items():
-            if value is not None:
-                config_dict[key] = value
-        return self._assemble_runtime_session_config(AppConfig(**config_dict))
+        return self._config_service.build_effective_config(
+            user_id,
+            base_config=base_config or self.config,
+        )
 
     def get_effective_config(self, user_id: str) -> AppConfig:
         """Return the effective user config after applying user-scoped overrides."""
-        return self._build_effective_config(user_id)
+        return self._config_service.get_effective_config(user_id)
 
     def _resolve_default_conversation_ref(
         self,
         user_id: str,
     ) -> Optional[str]:
-        user_sessions = self._get_user_sessions(user_id)
-        if not user_sessions:
-            return None
-
-        latest_conversation_ref = self._latest_conversation_refs.get(user_id)
-        if latest_conversation_ref in user_sessions:
-            return latest_conversation_ref
-        if None in user_sessions:
-            return None
-        return next(iter(user_sessions.keys()))
+        return self._registry.resolve_default_conversation_ref(user_id)
 
     @staticmethod
     def _normalize_optional_conversation_ref(
         conversation_ref: Optional[str],
     ) -> Optional[str]:
-        if not isinstance(conversation_ref, str):
-            return None
-        normalized = conversation_ref.strip()
-        return normalized or None
+        return normalize_optional_conversation_ref(conversation_ref)
 
     def _register_pending_stop_request(
         self,
@@ -130,13 +111,7 @@ class SessionManager(ConfigSubscriber):
         conversation_ref: Optional[str] = None,
     ) -> None:
         """Store a short-lived stop intent for races before query registration."""
-        normalized_conversation_ref = self._normalize_optional_conversation_ref(
-            conversation_ref
-        )
-        user_pending = self._pending_stop_requests.setdefault(user_id, {})
-        user_pending[normalized_conversation_ref] = (
-            time.monotonic() + _PENDING_STOP_GRACE_SECONDS
-        )
+        self._active_queries.register_pending_stop_request(user_id, conversation_ref)
 
     def _consume_pending_stop_request(
         self,
@@ -144,48 +119,16 @@ class SessionManager(ConfigSubscriber):
         conversation_ref: Optional[str] = None,
     ) -> bool:
         """Consume a pending stop request if still valid."""
-        user_pending = self._pending_stop_requests.get(user_id)
-        if not user_pending:
-            return False
-        now = time.monotonic()
-        normalized_conversation_ref = self._normalize_optional_conversation_ref(
-            conversation_ref
+        return self._active_queries.consume_pending_stop_request(
+            user_id,
+            conversation_ref,
         )
-        candidate_keys = [normalized_conversation_ref]
-        if normalized_conversation_ref is not None:
-            candidate_keys.append(None)
-        for pending_key in candidate_keys:
-            expires_at = user_pending.get(pending_key)
-            if expires_at is None:
-                continue
-            if expires_at <= now:
-                user_pending.pop(pending_key, None)
-                continue
-            user_pending.pop(pending_key, None)
-            if not user_pending:
-                self._pending_stop_requests.pop(user_id, None)
-            return True
-        if not user_pending:
-            self._pending_stop_requests.pop(user_id, None)
-        return False
 
     @staticmethod
     def _normalize_frontend_operating_system(
         operating_system: Optional[str],
     ) -> Optional[str]:
-        if not isinstance(operating_system, str):
-            return None
-        normalized = operating_system.strip()
-        return normalized or None
-
-    @staticmethod
-    def _apply_frontend_operating_system_to_session(
-        session: AgentSession,
-        operating_system: str,
-    ) -> None:
-        rendered_prompt = get_system_prompt(operating_system)
-        session.prompt_builder.system_prompt = rendered_prompt
-        session.history.system_prompt = rendered_prompt
+        return SessionConfigService.normalize_frontend_operating_system(operating_system)
 
     def set_frontend_operating_system(
         self,
@@ -197,12 +140,10 @@ class SessionManager(ConfigSubscriber):
         )
         if normalized_operating_system is None:
             return
-        self._frontend_operating_systems[user_id] = normalized_operating_system
-        for _, session in self._iter_user_sessions(user_id):
-            self._apply_frontend_operating_system_to_session(
-                session,
-                normalized_operating_system,
-            )
+        self._config_service.set_frontend_operating_system(
+            user_id,
+            normalized_operating_system,
+        )
 
     def register_active_query_task(
         self,
@@ -213,10 +154,13 @@ class SessionManager(ConfigSubscriber):
         conversation_ref: Optional[str] = None,
     ) -> bool:
         """Track the currently running query task for a user."""
-        normalized_conversation_ref = self._normalize_optional_conversation_ref(
-            conversation_ref
-        )
-        if self._consume_pending_stop_request(user_id, normalized_conversation_ref):
+        normalized_conversation_ref = self._normalize_optional_conversation_ref(conversation_ref)
+        if self._active_queries.register_active_query_task(
+            user_id,
+            task,
+            turn_ref=turn_ref,
+            conversation_ref=normalized_conversation_ref,
+        ):
             logger.info(
                 "[Stop Query] Consumed pending stop request during query registration "
                 "(user_id=%s, turn_ref=%s, conversation_ref=%s)",
@@ -225,8 +169,6 @@ class SessionManager(ConfigSubscriber):
                 normalized_conversation_ref,
             )
             return True
-        user_tasks = self._active_query_tasks.setdefault(user_id, {})
-        user_tasks[task] = (turn_ref, normalized_conversation_ref)
         return False
 
     def clear_active_query_task(
@@ -239,17 +181,7 @@ class SessionManager(ConfigSubscriber):
 
         If ``task`` is provided, clear only when it matches the tracked task.
         """
-        user_tasks = self._active_query_tasks.get(user_id)
-        if not user_tasks:
-            return
-
-        if task is None:
-            self._active_query_tasks.pop(user_id, None)
-            return
-
-        user_tasks.pop(task, None)
-        if not user_tasks:
-            self._active_query_tasks.pop(user_id, None)
+        self._active_queries.clear_active_query_task(user_id, task)
 
     def cancel_active_query_task(
         self,
@@ -263,43 +195,7 @@ class SessionManager(ConfigSubscriber):
             Tuple of ``(turn_ref, conversation_ref)`` when a live task was canceled;
             otherwise ``None``.
         """
-        normalized_conversation_ref = self._normalize_optional_conversation_ref(
-            conversation_ref
-        )
-        user_tasks = self._active_query_tasks.get(user_id)
-        if not user_tasks:
-            self._register_pending_stop_request(user_id, normalized_conversation_ref)
-            return None
-
-        cancelled_entries: list[tuple[str, Optional[str]]] = []
-        for active_task, (turn_ref, conversation_ref) in list(user_tasks.items()):
-            if active_task.done():
-                user_tasks.pop(active_task, None)
-                continue
-            if (
-                normalized_conversation_ref is not None
-                and conversation_ref != normalized_conversation_ref
-            ):
-                continue
-            active_task.cancel()
-            user_tasks.pop(active_task, None)
-            cancelled_entries.append((turn_ref, conversation_ref))
-
-        if not user_tasks:
-            self._active_query_tasks.pop(user_id, None)
-
-        if not cancelled_entries:
-            self._register_pending_stop_request(user_id, normalized_conversation_ref)
-            return None
-        if normalized_conversation_ref is None:
-            self._pending_stop_requests.pop(user_id, None)
-        else:
-            pending = self._pending_stop_requests.get(user_id)
-            if pending is not None:
-                pending.pop(normalized_conversation_ref, None)
-                if not pending:
-                    self._pending_stop_requests.pop(user_id, None)
-        return cancelled_entries[-1]
+        return self._active_queries.cancel_active_query_task(user_id, conversation_ref)
 
     def has_active_query_task(
         self,
@@ -307,26 +203,7 @@ class SessionManager(ConfigSubscriber):
         conversation_ref: Optional[str] = None,
     ) -> bool:
         """Return True when at least one matching active query task is still running."""
-        user_tasks = self._active_query_tasks.get(user_id)
-        if not user_tasks:
-            return False
-        normalized_conversation_ref = self._normalize_optional_conversation_ref(
-            conversation_ref
-        )
-        for task in list(user_tasks.keys()):
-            if task.done():
-                user_tasks.pop(task, None)
-                continue
-            _, task_conversation_ref = user_tasks[task]
-            if (
-                normalized_conversation_ref is not None
-                and task_conversation_ref != normalized_conversation_ref
-            ):
-                continue
-            return True
-        if not user_tasks:
-            self._active_query_tasks.pop(user_id, None)
-        return False
+        return self._active_queries.has_active_query_task(user_id, conversation_ref)
 
     async def _get_user_lock(self, user_id: str) -> asyncio.Lock:
         """
@@ -340,10 +217,7 @@ class SessionManager(ConfigSubscriber):
         Returns:
             Async lock for this user
         """
-        async with self._locks_lock:
-            if user_id not in self._user_locks:
-                self._user_locks[user_id] = asyncio.Lock()
-            return self._user_locks[user_id]
+        return await self._registry.get_user_lock(user_id)
 
     @staticmethod
     def _assemble_runtime_session_config(config: AppConfig) -> AppConfig:
@@ -378,7 +252,7 @@ class SessionManager(ConfigSubscriber):
         normalized_conversation_ref = self._normalize_optional_conversation_ref(
             conversation_ref
         )
-        existing_session = self.get_session(
+        existing_session = self._registry.get_session(
             user_id,
             conversation_ref=normalized_conversation_ref,
         )
@@ -389,7 +263,7 @@ class SessionManager(ConfigSubscriber):
         user_lock = await self._get_user_lock(user_id)
         async with user_lock:
             # Double-check: another task might have created it while we waited
-            existing_session = self.get_session(
+            existing_session = self._registry.get_session(
                 user_id,
                 conversation_ref=normalized_conversation_ref,
             )
@@ -427,14 +301,15 @@ class SessionManager(ConfigSubscriber):
                         runtime.active_conversation_ref = normalized_conversation_ref
                 operating_system = self._frontend_operating_systems.get(user_id)
                 if operating_system:
-                    self._apply_frontend_operating_system_to_session(
+                    self._config_service.apply_frontend_operating_system_to_session(
                         session,
                         operating_system,
                     )
-                self.active_sessions.setdefault(user_id, {})[
-                    normalized_conversation_ref
-                ] = session
-                self._latest_conversation_refs[user_id] = normalized_conversation_ref
+                self._registry.store_session(
+                    user_id,
+                    session,
+                    conversation_ref=normalized_conversation_ref,
+                )
                 logger.info(
                     "Successfully created session for user %s (conversation_ref=%s)",
                     user_id,
@@ -465,24 +340,7 @@ class SessionManager(ConfigSubscriber):
         Returns:
             AgentSession if exists, None otherwise
         """
-        user_sessions = self._get_user_sessions(user_id)
-        if not user_sessions:
-            return None
-
-        normalized_conversation_ref = self._normalize_optional_conversation_ref(
-            conversation_ref
-        )
-        if (
-            normalized_conversation_ref is not None
-            and normalized_conversation_ref in user_sessions
-        ):
-            return user_sessions[normalized_conversation_ref]
-
-        if normalized_conversation_ref is not None:
-            return None
-
-        fallback_conversation_ref = self._resolve_default_conversation_ref(user_id)
-        return user_sessions.get(fallback_conversation_ref)
+        return self._registry.get_session(user_id, conversation_ref)
 
     def get_session_for_request_id(
         self,
@@ -528,49 +386,7 @@ class SessionManager(ConfigSubscriber):
         if not updates:
             return
 
-        overrides = self._user_config_overrides.setdefault(user_id, {})
-        changed_override_keys = False
-        for key, value in updates.items():
-            if value is None:
-                continue
-            if overrides.get(key) != value:
-                overrides[key] = value
-                changed_override_keys = True
-
-        user_sessions = self._get_user_sessions(user_id)
-        if not user_sessions:
-            if not changed_override_keys:
-                return
-            logger.info(
-                "[Session Config] Stored user override without active session (user_id=%s, fields=%s)",
-                user_id,
-                len(overrides),
-            )
-            return
-
-        user_lock = await self._get_user_lock(user_id)
-        async with user_lock:
-            user_sessions = self._get_user_sessions(user_id)
-            if not user_sessions:
-                return
-
-            updated_config = self._build_effective_config(user_id)
-            sessions_needing_update = [
-                session
-                for session in user_sessions.values()
-                if session.cfg.model_dump() != updated_config.model_dump()
-            ]
-            if not sessions_needing_update:
-                return
-
-            logger.info(
-                "[Session Config] Session updated (user_id=%s, sessions=%s)",
-                user_id,
-                len(sessions_needing_update),
-            )
-
-            for session in sessions_needing_update:
-                await session.update_config(updated_config)
+        await self._config_service.update_session_config(user_id, updates)
 
     async def end_session(
         self,
@@ -593,7 +409,7 @@ class SessionManager(ConfigSubscriber):
         user_lock = await self._get_user_lock(user_id)
         async with user_lock:
             # Double-check after acquiring lock
-            user_sessions = self._get_user_sessions(user_id)
+            user_sessions = self._registry.get_user_sessions(user_id)
             if not user_sessions:
                 return
 
@@ -639,24 +455,15 @@ class SessionManager(ConfigSubscriber):
                         exc_info=True,
                     )
                 finally:
-                    user_sessions.pop(ref, None)
+                    self._registry.remove_session(user_id, ref)
 
-            if user_sessions:
-                fallback_ref = self._resolve_default_conversation_ref(user_id)
-                self._latest_conversation_refs[user_id] = fallback_ref
+            if self._registry.get_user_sessions(user_id):
                 return
 
-            self.active_sessions.pop(user_id, None)
-            self._latest_conversation_refs.pop(user_id, None)
-            self.clear_active_query_task(user_id)
-            self._pending_stop_requests.pop(user_id, None)
-            self._frontend_operating_systems.pop(user_id, None)
-            self._user_config_overrides.pop(user_id, None)
-            
-            # Clean up lock if no longer needed
-            async with self._locks_lock:
-                if user_id in self._user_locks:
-                    del self._user_locks[user_id]
+            self._registry.clear_user(user_id)
+            self._active_queries.clear_user_state(user_id)
+            self._config_service.clear_user_state(user_id)
+            await self._registry.remove_user_lock(user_id)
 
     async def update_all_sessions_config(self, config: AppConfig):
         """
@@ -673,34 +480,8 @@ class SessionManager(ConfigSubscriber):
         # Global container/config mutation belongs to ConfigurationService/Container.
         # This method only updates currently active sessions.
 
-        # RACE CONDITION FIX: Acquire user locks before updating to prevent
-        # conflicts with end_session which also holds the lock during cleanup
-        errors = []
-        for user_id, _user_sessions in list(self.active_sessions.items()):
-            # Acquire the user lock to serialize with end_session
-            user_lock = await self._get_user_lock(user_id)
-            async with user_lock:
-                # Double-check session still exists (may have been removed while waiting)
-                user_sessions = self._get_user_sessions(user_id)
-                if not user_sessions:
-                    continue
-                
-                try:
-                    updated_config = self._build_effective_config(
-                        user_id,
-                        base_config=config,
-                    )
-                    for session in user_sessions.values():
-                        await session.update_config(updated_config)
-                except Exception as e:
-                    logger.error(
-                        f"Error updating config for user {user_id}'s session: {e}",
-                        exc_info=True,
-                    )
-                    errors.append((user_id, e))
-        
-        if errors:
-            logger.warning(f"Failed to update config for {len(errors)} session(s)")
+        self.config = config
+        await self._config_service.update_all_sessions_config(config)
 
     async def on_config_changed(
         self, old_config: AppConfig, new_config: AppConfig
@@ -715,5 +496,6 @@ class SessionManager(ConfigSubscriber):
             new_config: New configuration
         """
         logger.info("SessionManager received config change notification")
+        self._config_service.set_base_config(new_config)
         await self.update_all_sessions_config(new_config)
     

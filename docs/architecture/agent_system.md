@@ -44,6 +44,9 @@ Frontend settings are sent via `update-settings` and applied to the user session
 
 Recent backend-agent refactors split mutable session/runtime concerns into focused modules:
 
+- `backend/src/agent/session/session_registry.py` — `SessionRegistry` owns conversation-keyed active-session maps, latest-conversation tracking, and per-user locks.
+- `backend/src/agent/session/session_config_service.py` — `SessionConfigService` owns user config overrides, frontend operating-system prompt rewrites, and effective session-config assembly.
+- `backend/src/agent/session/active_query_tracker.py` — `ActiveQueryTracker` owns active query task registration/cancellation plus pending stop-query race guards.
 - `backend/src/agent/session/runtime_state.py` — `SessionRuntimeState` owns screenshot state, resolved-call storage, tool-result storage, current `system_state`, and OCR completion signaling.
 - `backend/src/agent/session/runtime_state.py` also tracks session-scoped background tasks for deterministic shutdown.
 - `backend/src/agent/session/config_runtime.py` — `SessionConfigRuntime` applies live config updates (LLM client, prompt constructor, parser, and loop dependencies) in one place.
