@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 - fix(backend-ocr-startup): update RapidOCR language params to use enum values required by current RapidOCR builds, add OCR readiness-aware startup logging, and cover the new contract with focused backend tests/docs.
+- fix(openai-browser-tool-schema): rewrite grouped browser tool schemas into an OpenAI chat-compatible root-object transport shape before LiteLLM/OpenAI requests so standard OpenAI tool turns no longer fail on root `oneOf` validation.
 
 ### Changed
 - docs(agents): add repo-level critical-thinking guidance, preserve the Linux minimal chat pill screenshot-flicker fix notes, and clarify backend-vs-frontend tool-schema ownership/parity expectations in `AGENTS.md`.

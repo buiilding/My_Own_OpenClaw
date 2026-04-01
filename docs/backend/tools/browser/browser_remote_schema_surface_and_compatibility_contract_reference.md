@@ -65,6 +65,12 @@ Model-facing declaration emission (`build_tool_spec(...)`):
 - emits one `oneOf` branch per action with branch-local required and optional fields only
 - never advertises removed aliases or compatibility-only fields such as `mode`, `format`, `refs`, `interactive`, `compact`, `depth`, `frame`, `target_id`, `target_url`, `input_ref`, `clear_first`, or `script`
 
+OpenAI transport compatibility:
+
+- the canonical backend browser schema intentionally keeps top-level `oneOf`
+- when the active provider uses OpenAI standard `chat.completions`, the provider adapter projects that grouped schema into an OpenAI-compatible root-object schema before the API call
+- runtime browser validation still uses the canonical grouped contract, so transport compatibility does not weaken backend/sidecar enforcement
+
 `execute_remote(...)` behavior:
 
 1. accepts only canonical grouped payloads that validate against `BrowserControlArgs`
