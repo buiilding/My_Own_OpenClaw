@@ -11,6 +11,9 @@ title: "Local-Backend Process Lifecycle, Readiness, and Request-Correlation Refe
 ## Canonical Modules
 
 - `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/local_backend_bridge_request_transport.cjs`
+- `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
+- `frontend/src/main/local_backend_bridge_timeout_policy.cjs`
 - `frontend/src/main/local_backend_bridge_display_bounds.cjs`
 - `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs`
 - `frontend/src/main/runtime_paths.cjs`
@@ -110,7 +113,7 @@ Stderr handling:
 
 ## Request Correlation and Timeout Semantics
 
-`sendRequest(method, params, options)`:
+`local_backend_bridge_request_transport.cjs` owns `sendRequest(method, params, options)` and pending request correlation:
 
 1. hard-requires both `pythonProcess` and `isPythonReady`
 2. creates UUID request id
@@ -170,7 +173,7 @@ Test-backed guarantee:
 
 ## Tool Timeout Tier and Screenshot Wrapper Hook
 
-`execute-tool` timeout tier:
+`local_backend_bridge_timeout_policy.cjs` owns execute-tool timeout tiers:
 
 - `browser` tool: `120000ms`
 - all others: `60000ms`

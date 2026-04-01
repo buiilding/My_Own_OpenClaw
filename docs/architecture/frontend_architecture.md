@@ -54,7 +54,10 @@ frontend/src/
 │   ├── permission_ipc_runtime.cjs         # Permission + sudo IPC registration
 │   ├── main_process_lifecycle_runtime.cjs # app.whenReady/activate/quit lifecycle wiring + shortcut registration
 │   ├── local_backend_supervisor.cjs       # Explicit sidecar subprocess state supervisor (starting/ready/stopping/error)
-│   ├── local_backend_bridge*.cjs          # Main <-> sidecar JSON-RPC bridge
+│   ├── local_backend_bridge.cjs           # Main <-> sidecar bridge composition root (startup, readiness, IPC registration)
+│   ├── local_backend_bridge_request_transport.cjs # Sidecar JSON-RPC request ids, pending map, timeout ownership, and response correlation
+│   ├── local_backend_bridge_execute_tool_runtime.cjs # Execute-tool routing, timeout tier selection, screenshot wrapping, and attachment materialization
+│   ├── local_backend_bridge_timeout_policy.cjs # Shared sidecar request/execute-tool timeout constants and tool timeout selection
 │   ├── wakeword_supervisor.cjs            # Explicit wakeword subprocess state supervisor (starting/ready/stopping/error)
 │   ├── wakeword_bridge.cjs                # Main <-> wakeword subprocess bridge
 │   ├── query_payload_builder.cjs          # System-state/memory XML augmentation for query payload
@@ -75,6 +78,7 @@ frontend/src/
 Current runtime behavior also relies on these explicit seams:
 
 - **Main-process composition is split by role**: `frontend/src/main/index.cjs` composes `main_process_bootstrap_runtime.cjs` (window creation/bootstrap), `main_process_lifecycle_runtime.cjs` (ready/activate/quit), and `surface_runtime.cjs` (window ownership + overlay phase state).
+- **Local sidecar bridge is now split by ownership**: `local_backend_bridge.cjs` keeps process lifecycle + IPC registration, `local_backend_bridge_request_transport.cjs` owns JSON-RPC request correlation/timeouts, and `local_backend_bridge_execute_tool_runtime.cjs` owns execute-tool routing plus screenshot-specific attachment handling.
 - **Global stop shortcut is a dedicated runtime**: `frontend/src/main/agent_stop_shortcut_runtime.cjs` owns per-platform accelerator normalization, fallback registration, and phase gating; `ipc.cjs` projects runtime status back to renderer config/status flows.
 - **VM worker mode is runtime-flagged and run-API backed**: `runtime_mode.cjs` controls `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE` behavior, while `vm_worker_runtime.cjs` polls and relays `/api/runs/*` assignments/events over backend HTTP + existing websocket event observer hooks.
 - **Sidecar browser runtime is feature-pack aware**: `frontend/src/main/python/local_backend.py` and `core/feature_pack_installer.py` support on-demand sidecar runtime dependency install into user-writable site-packages with packaged-app specific failure messaging.

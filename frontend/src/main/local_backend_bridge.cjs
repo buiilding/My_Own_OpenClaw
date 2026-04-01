@@ -1,7 +1,6 @@
 const { spawn } = require('child_process');
 const fs = require('fs');
-const { ipcMain, BrowserWindow, screen } = require('electron');
-const { v4: uuidv4 } = require('uuid');
+const { ipcMain } = require('electron');
 const {
   resolveBackendEndpointCandidates,
   resolveBackendEndpoints,
@@ -11,35 +10,26 @@ const {
   mapSearchMemoryPayload,
   registerMappedRpcHandlers,
 } = require('./local_backend_bridge_rpc_mappers.cjs');
-const { resolveToolArgs } = require('./local_backend_bridge_tool_args.cjs');
 const {
   createWindowResolvers,
-  withHiddenWindowForScreenshot,
 } = require('./local_backend_bridge_windows.cjs');
-const {
-  resolveScreenshotToolDisplayBounds,
-} = require('./local_backend_bridge_display_bounds.cjs');
-const {
-  materializeScreenshotAttachment,
-} = require('./local_backend_bridge_screenshot_attachment.cjs');
 const {
   getErrorMessage,
   shouldForwardStderrLine,
-  toErrorResponse,
   withLocalBackendNodeOptions,
 } = require('./local_backend_bridge_utils.cjs');
 const {
+  createLocalBackendRequestTransport,
+} = require('./local_backend_bridge_request_transport.cjs');
+const {
+  createLocalBackendExecuteToolRuntime,
+} = require('./local_backend_bridge_execute_tool_runtime.cjs');
+const {
   resolveSidecarLaunchTarget,
 } = require('./runtime_paths.cjs');
-const {
-  getActiveDisplayAffinity,
-  resolveActiveSurfaceDisplayAffinityForWindows,
-  toScreenshotDisplayBounds,
-} = require('./display_affinity_runtime.cjs');
 const { createLocalBackendSupervisor } = require('./local_backend_supervisor.cjs');
 
 let pythonProcess = null;
-let pendingRequests = new Map();
 let stdoutBuffer = '';
 let pendingStdoutLines = [];
 let isDrainingStdoutLines = false;
@@ -47,9 +37,6 @@ let readinessCheckCallback = null;
 let readinessCheckToken = 0;
 
 const LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES = 128 * 1024;
-const DEFAULT_REQUEST_TIMEOUT_MS = 60000;
-const DEFAULT_EXECUTE_TOOL_TIMEOUT_MS = 60000;
-const BROWSER_EXECUTE_TOOL_TIMEOUT_MS = 120000;
 const isTestEnv = process.env.NODE_ENV === 'test';
 let runtimeScreenCaptureCapabilityVerifier = async () => ({
   granted: false,
@@ -63,6 +50,12 @@ const localBackendSupervisor = createLocalBackendSupervisor();
 function isBackendReady() {
   return localBackendSupervisor.getSnapshot().ready;
 }
+
+const localBackendRequestTransport = createLocalBackendRequestTransport({
+  getProcess: () => pythonProcess,
+  isBackendReady,
+  getReadinessCallback: () => readinessCheckCallback,
+});
 
 function shouldOffloadJsonParse(line) {
   return Buffer.byteLength(line, 'utf8') >= LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES;
@@ -151,7 +144,7 @@ async function drainStdoutLines(processRef) {
         const response = shouldOffloadJsonParse(line)
           ? await parseJsonInWorker(line)
           : JSON.parse(line);
-        handlePythonResponse(response);
+        localBackendRequestTransport.handlePythonResponse(response);
       } catch (error) {
         console.error('[LocalBackend] Error parsing response:', error, 'Line:', line);
       }
@@ -191,16 +184,6 @@ function markBackendReady(mainWindow) {
   mainWindow?.webContents.send('local-backend-status', { ready: true });
 }
 
-
-function rejectPendingRequests(reason) {
-  const pendingEntries = Array.from(pendingRequests.entries());
-  for (const [requestId, pending] of pendingEntries) {
-    clearTimeout(pending.timeout);
-    pendingRequests.delete(requestId);
-    pending.reject(new Error(reason));
-  }
-}
-
 function resetBackendProcessState({ reason, status = 'stopped' } = {}) {
   pythonProcess = null;
   localBackendSupervisor.clear({
@@ -209,7 +192,7 @@ function resetBackendProcessState({ reason, status = 'stopped' } = {}) {
   });
   readinessCheckCallback = null;
   readinessCheckToken = localBackendSupervisor.getSnapshot().generation;
-  rejectPendingRequests(reason);
+  localBackendRequestTransport.rejectPendingRequests(reason);
   stdoutBuffer = '';
   pendingStdoutLines = [];
   isDrainingStdoutLines = false;
@@ -392,7 +375,7 @@ function startLocalBackend(mainWindow, options = {}) {
 
         try {
           const response = JSON.parse(line);
-          handlePythonResponse(response);
+          localBackendRequestTransport.handlePythonResponse(response);
         } catch (error) {
           console.error('[LocalBackend] Error parsing response:', error, 'Line:', line);
         }
@@ -458,75 +441,12 @@ function startLocalBackend(mainWindow, options = {}) {
   });
 }
 
-function handlePythonResponse(response) {
-  const requestId = response.id;
-  
-  if (readinessCheckCallback && requestId && requestId.startsWith('__readiness_check_')) {
-    readinessCheckCallback(response);
-    return;
-  }
-
-  if (requestId && requestId.startsWith('__readiness_check_')) {
-    return;
-  }
-  
-  if (requestId && pendingRequests.has(requestId)) {
-    const { resolve, reject, timeout } = pendingRequests.get(requestId);
-    clearTimeout(timeout);
-    pendingRequests.delete(requestId);
-    
-    if (response.error) {
-      reject(new Error(response.error.message || 'JSON-RPC error'));
-    } else {
-      resolve(response.result);
-    }
-  } else {
-    console.warn('[LocalBackend] Received response for unknown request:', requestId);
-  }
-}
-
 function sendRequest(method, params = {}, options = {}) {
-  if (!pythonProcess || !isBackendReady()) {
-    throw new Error('Local backend not ready');
-  }
-
-  const requestId = uuidv4();
-  const request = {
-    jsonrpc: '2.0',
-    id: requestId,
-    method: method,
-    params: params,
-  };
-
-  return new Promise((resolve, reject) => {
-    const timeoutMs =
-      typeof options.timeoutMs === 'number' ? options.timeoutMs : DEFAULT_REQUEST_TIMEOUT_MS;
-    const timeout = setTimeout(() => {
-      if (pendingRequests.has(requestId)) {
-        pendingRequests.delete(requestId);
-        reject(new Error('Request timed out'));
-      }
-    }, timeoutMs);
-
-    pendingRequests.set(requestId, { resolve, reject, timeout });
-
-    try {
-      const jsonStr = JSON.stringify(request);
-      pythonProcess.stdin.write(jsonStr + '\n');
-    } catch (error) {
-      clearTimeout(timeout);
-      pendingRequests.delete(requestId);
-      reject(error);
-    }
-  });
+  return localBackendRequestTransport.sendRequest(method, params, options);
 }
 
 async function sendRequestOrError(method, params = {}, options = {}) {
-  try {
-    return await sendRequest(method, params, options);
-  } catch (error) {
-    return toErrorResponse(error);
-  }
+  return localBackendRequestTransport.sendRequestOrError(method, params, options);
 }
 
 async function getSystemStateFromBackend(fields) {
@@ -603,6 +523,15 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     resolveChatWindow,
     resolveResponseWindow,
   } = createWindowResolvers(getWindows);
+  const executeToolRuntime = createLocalBackendExecuteToolRuntime({
+    sendRequest,
+    backendHttpUrl: backendEndpoints.httpUrl,
+    getFrontendConfig,
+    resolveWindows,
+    resolveChatWindow,
+    resolveMainWindow,
+    resolveResponseWindow,
+  });
 
   const [mainWindow] = resolveWindows();
   startLocalBackend(mainWindow, {
@@ -621,131 +550,9 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     ));
   };
 
-  ipcMain.handle('execute-tool', async (event, { toolName, args }) => {
-    try {
-      const timeoutMs =
-        toolName === 'browser'
-          ? BROWSER_EXECUTE_TOOL_TIMEOUT_MS
-          : DEFAULT_EXECUTE_TOOL_TIMEOUT_MS;
-      const normalizedArgs = resolveToolArgs(
-        toolName,
-        args,
-        getFrontendConfig,
-        console.warn,
-        {
-          displayBounds: resolveScreenshotToolDisplayBounds({
-            BrowserWindow,
-            screen,
-            webContents: event?.sender || null,
-            resolveChatWindow,
-            resolveMainWindow,
-            getActiveDisplayAffinity,
-            resolveActiveSurfaceDisplayAffinityForWindows,
-            toScreenshotDisplayBounds,
-          }),
-        },
-      );
-      const runTool = () =>
-        sendRequest('execute_tool', {
-          tool_name: toolName,
-          args: normalizedArgs,
-        }, { timeoutMs });
-      let result = toolName === 'screenshot'
-        ? await withHiddenWindowForScreenshot({
-          platform: process.platform,
-          task: runTool,
-          resolveWindows,
-          resolveChatWindow,
-          resolveResponseWindow,
-        })
-        : await runTool();
-      result = await materializeScreenshotAttachment(result, backendEndpoints.httpUrl, {
-        warn: console.warn,
-        getErrorMessage,
-      });
-      
-      if (result.success === false) {
-        return { success: false, error: result.error };
-      }
-      
-      return {
-        success: true,
-        data: result.data || result,
-      };
-    } catch (error) {
-      console.error(`[LocalBackend] Tool execution failed: ${getErrorMessage(error)}`);
-      return {
-        success: false,
-        error: getErrorMessage(error)
-      };
-    }
-  });
+  ipcMain.handle('execute-tool', executeToolRuntime.executeTool);
 
-  runtimeScreenCaptureCapabilityVerifier = async () => {
-    const cleanupScreenshotPath = async (result) => {
-      const screenshotPath = result?.data?.screenshot_path;
-      if (typeof screenshotPath !== 'string' || !screenshotPath.trim()) {
-        return;
-      }
-      try {
-        await fs.promises.unlink(screenshotPath);
-      } catch (error) {
-        console.warn(
-          `[LocalBackend] Failed to delete screen-capture verification screenshot ${screenshotPath}: ${getErrorMessage(error)}`,
-        );
-      }
-    };
-
-    try {
-      const runTool = () => sendRequest(
-        'execute_tool',
-        {
-          tool_name: 'screenshot',
-          args: {
-            explanation: 'Screen capture permission verification',
-            expectation: 'Permission verification screenshot',
-          },
-        },
-        { timeoutMs: DEFAULT_REQUEST_TIMEOUT_MS },
-      );
-      const result = await withHiddenWindowForScreenshot({
-        platform: process.platform,
-        task: runTool,
-        resolveWindows,
-        resolveChatWindow,
-        resolveResponseWindow,
-      });
-
-      await cleanupScreenshotPath(result);
-
-      if (result?.success === true) {
-        return {
-          granted: true,
-          reason: 'Real screenshot capture succeeded.',
-          details: {
-            capture_backend: result?.data?.capture_meta?.capture_backend || null,
-            capture_meta: result?.data?.capture_meta || null,
-          },
-        };
-      }
-
-      return {
-        granted: false,
-        reason: result?.error || 'Real screenshot capture failed.',
-        details: {
-          result: result || null,
-        },
-      };
-    } catch (error) {
-      return {
-        granted: false,
-        reason: getErrorMessage(error),
-        details: {
-          error: getErrorMessage(error),
-        },
-      };
-    }
-  };
+  runtimeScreenCaptureCapabilityVerifier = executeToolRuntime.createScreenCaptureCapabilityVerifier();
 
   ipcMain.handle('get-system-state', async (event, { fields } = {}) => {
     return getSystemStateFromBackend(fields);
