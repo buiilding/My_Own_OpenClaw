@@ -67,7 +67,7 @@ This reference maps frontend-owned contract boundaries and their paired modules.
 
 1. Keep IPC channel constants single-sourced in `renderer/infrastructure/ipc/channels.ts`.
 2. Keep renderer backend event guards in sync with backend outgoing schema changes.
-3. Keep tool args parity between backend tool schemas and sidecar tool schemas.
+3. Keep tool args parity between backend tool schemas and sidecar tool schemas through explicit parity tests before production; do not make frontend/sidecar code import backend modules to avoid drift.
 4. Update docs in both `frontend/inventory` and `backend/inventory` on contract changes.
 
 ## Related Docs

@@ -88,8 +88,9 @@ There is no browser-specific backend/sidecar schema split anymore.
 
 Practical rule:
 
-- backend and sidecar both import the same pure shared browser contract module
-- sidecar runtime modules never import `backend.src.*`
+- frontend/sidecar code must never import backend code or rely on `backend.src.*`
+- browser schema parity is maintained by keeping backend and sidecar wrappers aligned around the same contract shape without violating that boundary
+- the production safeguard against drift is backend-vs-sidecar schema parity testing before release, not direct frontend imports of backend modules
 
 ## Test-Backed Coverage
 
@@ -99,6 +100,11 @@ Practical rule:
 - canonical-only action set
 - strict field validation and helper lookup behavior
 - sidecar browser schema modules do not import the backend package
+
+Operational expectation:
+
+- if a browser field/action changes, update both sides and rerun parity coverage before shipping
+- do not bypass drift by making sidecar runtime imports reach into backend packages
 
 ## Related Pages
 
