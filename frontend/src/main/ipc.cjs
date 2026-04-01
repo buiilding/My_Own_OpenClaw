@@ -1,4 +1,11 @@
-const { ipcMain, shell, BrowserWindow, screen } = require('electron');
+const {
+  ipcMain,
+  shell,
+  BrowserWindow,
+  screen,
+  clipboard,
+  nativeImage,
+} = require('electron');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const os = require('os');
@@ -54,6 +61,9 @@ const {
   loginOpenAICodexOAuth,
   logoutOpenAICodexOAuth,
 } = require('./openai_codex_oauth.cjs');
+const {
+  registerClipboardImageHandler,
+} = require('./ipc/ipc_clipboard_image.cjs');
 const {
   resolveActiveSurfaceDisplayAffinity,
   setActiveDisplayAffinity,
@@ -585,6 +595,12 @@ function initializeIpc(win, options = {}) {
       setGlobalAgentStopShortcutAccelerator(config.global_agent_stop_shortcut);
     }
     return await persistFrontendConfigToDisk(config);
+  });
+
+  registerClipboardImageHandler({
+    ipcMain,
+    clipboard,
+    nativeImage,
   });
 
   ipcMain.handle('openai-codex-oauth-login', async () => {
