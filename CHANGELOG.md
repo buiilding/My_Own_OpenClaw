@@ -5,7 +5,9 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- refactor(sidecar-browser-runtime): replace the vendored `browser_use` browser stack with a first-party Windie browser runtime built directly on `BrowserController`, add Windie-owned content-extraction and browser-local file helpers, tighten sidecar browser argument validation to the canonical contract at runtime, and remove the old Browser Use/OpenClaw compatibility tests plus vendored sidecar browser payloads.
 - feat(packaging-windows): add a one-command Windows reinstall helper that clears local WindieOS app state, rebuilds the bundled-runtime NSIS installer, reinstalls it silently, and relaunches the packaged app for local testing.
+- tweak(packaging-windows): harden the Windows reinstall helper with Git Bash auto-discovery, symlink/Developer Mode preflight warnings, path-aware WindieOS process shutdown, retrying best-effort app-data cleanup, and `-SkipDataReset` / `-SkipLaunch` switches for faster local test loops.
 - tweak(frontend-dashboard-theme): restyle the dashboard shell and settings surfaces with the minimal chat pill's darker black-glass palette, elevated panel treatment, and white-button accents so the expanded UI feels like the same surface family.
 - feat(web-search): expose one logical backend-owned `web_search` tool whenever the active provider can fulfill it, route tool execution to provider-native search for OpenAI/Gemini or backend Brave Search for other providers, and keep lightweight `search-source` trace rows unchanged.
 - refactor(web-search-source-normalization): centralize backend search-source extraction/deduping in the web-search module so sender only transports normalized source rows instead of re-parsing backend tool result payloads.
