@@ -540,3 +540,37 @@ async def test_send_tools_uses_centralized_search_source_normalization_for_backe
     assert search_events[0].query == "latest windieos news"
     assert search_events[1].provider == "openai"
     assert search_events[1].query == "custom query"
+
+
+@pytest.mark.asyncio
+async def test_send_tools_rejects_bundles_that_include_backend_tools():
+    bundle_id = "bundle-backend-unsupported"
+    parsed_call = ParsedToolCall(
+        tool_name="web_search",
+        parameters={"query": "latest windieos news"},
+        metadata={
+            "bundle_id": bundle_id,
+            "request_id": "req-backend-bundle-1",
+            "tool_call_id": "tool_llm_backend_bundle_1",
+        },
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(parsed_call)
+
+    sender = _build_sender(
+        PreparationResult(
+            resolved_calls=[resolved_call],
+            errors=[],
+            bundle_id=bundle_id,
+        )
+    )
+    session = _DummySession()
+    session.tool_registry.register_tool(_BackendSearchTool())
+
+    emitted = await _collect_emitted_events(sender, [parsed_call], session)
+
+    assert emitted == []
+    assert bundle_id in session.result_storage.bundled_results
+    bundle_result = session.result_storage.bundled_results[bundle_id]
+    assert bundle_result.success is False
+    assert "backend-executed tools" in (bundle_result.error or "")
+
