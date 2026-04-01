@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- fix(sidecar-browser-shared-contract): move the canonical grouped browser contract into a pure shared Python module under `frontend/src/main/python`, make backend browser schema wrappers import that shared contract through a loader instead of the sidecar importing `backend.src.*`, and add a regression check so browser sidecar modules cannot reintroduce backend-package imports.
 - feat(frontend-lazy-conversation-rehydrate): make `Your workspace` chat switching renderer-only, add a renderer-owned conversation/backend sync runtime with `unknown`/`synced`/`fresh-local` state, and lazily rehydrate backend history only before send, replay/edit, or manual compaction instead of on passive chat browsing.
 - feat(frontend-browser-settings): add a dedicated Settings > Browser tab with a persistent `Open Windie Browser` action that reuses the existing browser-automation permission warmup path and shows live readiness/remediation status outside onboarding.
 - refactor(sidecar-browser-runtime): replace the vendored `browser_use` browser stack with a first-party Windie browser runtime built directly on `BrowserController`, add Windie-owned content-extraction and browser-local file helpers, tighten sidecar browser argument validation to the canonical contract at runtime, and remove the old Browser Use/OpenClaw compatibility tests plus vendored sidecar browser payloads.

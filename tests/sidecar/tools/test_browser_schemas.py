@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
@@ -96,3 +98,10 @@ def test_schema_registry_and_validation_reject_removed_aliases() -> None:
     valid, error = validate_browser_args("switch_tab", {"tab_id": "abcd"})
     assert valid is False
     assert error == "Unknown browser action: switch_tab"
+
+
+def test_sidecar_browser_modules_do_not_import_backend_package() -> None:
+    browser_dir = Path(__file__).resolve().parents[3] / "frontend" / "src" / "main" / "python" / "tools" / "browser"
+    for module_name in ("browser_action_contract.py", "schemas.py"):
+        source = (browser_dir / module_name).read_text(encoding="utf-8")
+        assert "backend.src" not in source

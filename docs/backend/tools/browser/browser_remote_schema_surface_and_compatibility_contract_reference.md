@@ -35,9 +35,9 @@ There are no removed-alias actions or compatibility-only browser fields in the b
 
 ## Canonical Schema Source
 
-`browser_control_args_schema.py` is the single browser contract authority.
+`browser_control_args_schema.py` is the backend wrapper around the shared browser contract authority.
 
-It defines:
+The shared contract module defines:
 
 - one strict Pydantic model per action (`extra="forbid"`)
 - one `BrowserActionContract` catalog with action name, args model, runtime action, and connection requirement
@@ -47,7 +47,7 @@ It defines:
 Important boundary:
 
 - backend validation and model-facing schema emission derive from the same action catalog
-- sidecar validation imports this backend contract directly instead of redefining browser schemas locally
+- sidecar validation imports the same shared contract module instead of importing backend code
 
 ## RemoteBrowserTool Runtime Semantics
 
