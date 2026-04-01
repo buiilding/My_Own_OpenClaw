@@ -236,9 +236,17 @@ workspace root:
 The Windows helper stops the installed app, clears WindieOS app data under
 `%APPDATA%`/`%LOCALAPPDATA%`, rebuilds the bundled-runtime NSIS installer, runs
 it silently, and relaunches the installed packaged app. It expects `npm`,
-`bash`, and a Python 3.11 build interpreter to be available; set
+and a Python 3.11 build interpreter to be available; it auto-detects Git Bash
+from standard install locations when `bash` is not already on `PATH`. Set
 `WINDIE_PYTHON_BUILD` explicitly if the default `frontend_jarvis` resolution
-does not match your machine.
+does not match your machine. Useful local-testing switches:
+
+- `-SkipDataReset`: keep `%APPDATA%` / `%LOCALAPPDATA%` state in place.
+- `-SkipLaunch`: build + install without reopening the packaged app.
+
+The script also warns up front when Developer Mode or symlink creation is not
+available, because Electron's Windows packaging helpers can fail later during
+installer creation when symlink privilege is missing.
 
 ### Linux `.deb` install/uninstall
 
