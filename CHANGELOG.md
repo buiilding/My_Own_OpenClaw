@@ -8,6 +8,7 @@ All notable changes to WindieOS will be documented in this file.
 - fix(backend-ocr-startup): update RapidOCR language params to use enum values required by current RapidOCR builds, add OCR readiness-aware startup logging, and cover the new contract with focused backend tests/docs.
 
 ### Changed
+- docs(tool-schema-boundaries): state explicitly that frontend/sidecar code must never import backend code, and that backend-vs-sidecar tool schema drift is prevented by parity tests before production rather than cross-boundary runtime imports.
 - fix(sidecar-browser-shared-contract): move the canonical grouped browser contract into a pure shared Python module under `frontend/src/main/python`, make backend browser schema wrappers import that shared contract through a loader instead of the sidecar importing `backend.src.*`, and add a regression check so browser sidecar modules cannot reintroduce backend-package imports.
 - feat(frontend-lazy-conversation-rehydrate): make `Your workspace` chat switching renderer-only, add a renderer-owned conversation/backend sync runtime with `unknown`/`synced`/`fresh-local` state, and lazily rehydrate backend history only before send, replay/edit, or manual compaction instead of on passive chat browsing.
 - feat(frontend-browser-settings): add a dedicated Settings > Browser tab with a persistent `Open Windie Browser` action that reuses the existing browser-automation permission warmup path and shows live readiness/remediation status outside onboarding.
