@@ -96,6 +96,7 @@ Default section on open: **Chat**.
 - If Windows or another app blocks the selected global stop shortcut, Settings shows either the active fallback binding or a registration-failure warning.
 - **Workspace** section shows the current active workspace and includes a **Change workspace** button that reopens the folder picker.
 - **Onboarding** section includes an **Open onboarding** button that sends you back through the first-run onboarding flow.
+- **Browser** section includes **Open Windie Browser**, which reopens the dedicated browser/profile WindieOS uses for web tasks and sign-in state.
 - TTS toggle (speech replies).
 - Screen selection (active display). Screenshots use this display.
 - Permissions (normal now; system access marked as coming soon).
