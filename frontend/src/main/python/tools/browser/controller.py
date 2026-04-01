@@ -32,6 +32,7 @@ from tools.browser.chrome_launcher import (
     ensure_chrome_with_cdp,
     ChromeLauncherError,
 )
+from tools.browser.action_executor import BrowserActionExecutor
 from tools.browser.enhanced_cdp_pipeline import EnhancedCdpDomPipeline
 from tools.browser.observation_store import BrowserObservationStore
 from tools.browser.ref_registry import RefRegistry
@@ -41,7 +42,6 @@ from tools.browser.role_snapshot import (
     RoleSnapshotOptions,
     build_role_snapshot_from_aria_snapshot,
     get_role_snapshot_stats,
-    parse_role_ref,
 )
 
 logger = logging.getLogger(__name__)
@@ -89,6 +89,7 @@ class BrowserController:
     def __init__(self):
         self._runtime = BrowserSessionRuntime()
         self._observation_store = BrowserObservationStore()
+        self._action_executor = BrowserActionExecutor(self)
         # Compatibility aliases while controller ownership is decomposed.
         self._ref_registry_by_tab = self._observation_store.ref_registry_by_tab
         self._role_refs_by_tab = self._observation_store.role_refs_by_tab
@@ -873,125 +874,47 @@ class BrowserController:
         self, *, snapshots: bool = True, screenshots: bool = True, sources: bool = True
     ) -> Dict[str, Any]:
         """Start Playwright tracing for current context."""
-        if not self._context:
-            raise RuntimeError("Browser not connected")
-        if self._trace_active:
-            return {"success": False, "error": "Trace already active"}
-        try:
-            await self._context.tracing.start(
-                snapshots=snapshots,
-                screenshots=screenshots,
-                sources=sources,
-            )
-            self._trace_active = True
-            return {"success": True}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.trace_start(
+            snapshots=snapshots,
+            screenshots=screenshots,
+            sources=sources,
+        )
 
     async def trace_stop(self) -> Dict[str, Any]:
         """Stop Playwright tracing and return trace zip bytes."""
-        if not self._context:
-            raise RuntimeError("Browser not connected")
-        if not self._trace_active:
-            return {"success": False, "error": "Trace is not active"}
-        trace_path = Path(tempfile.mkdtemp(prefix="windieos_trace_")) / "trace.zip"
-        try:
-            await self._context.tracing.stop(path=str(trace_path))
-            trace_bytes = trace_path.read_bytes()
-            self._trace_active = False
-            return {"success": True, "trace_bytes": trace_bytes}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.trace_stop()
 
     async def get_cookies(self) -> List[Dict[str, Any]]:
         """Get cookies for current context."""
-        if not self._context:
-            raise RuntimeError("Browser not connected")
-        return await self._context.cookies()
+        return await self._action_executor.get_cookies()
 
     async def set_cookies(self, cookies: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Set cookies in current context."""
-        if not self._context:
-            raise RuntimeError("Browser not connected")
-        try:
-            await self._context.add_cookies(cookies)
-            return {"success": True, "count": len(cookies)}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.set_cookies(cookies)
 
     async def clear_cookies(self) -> Dict[str, Any]:
         """Clear cookies in current context."""
-        if not self._context:
-            raise RuntimeError("Browser not connected")
-        try:
-            await self._context.clear_cookies()
-            return {"success": True}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.clear_cookies()
 
     async def get_storage(self, kind: str) -> Dict[str, str]:
         """Get localStorage/sessionStorage key-values for current page."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-        storage_name = "localStorage" if kind == "local" else "sessionStorage"
-        script = f"""
-            () => {{
-                const out = {{}};
-                for (let i = 0; i < window.{storage_name}.length; i++) {{
-                    const key = window.{storage_name}.key(i);
-                    if (key !== null) {{
-                        out[key] = window.{storage_name}.getItem(key) ?? "";
-                    }}
-                }}
-                return out;
-            }}
-        """
-        result = await self._page.evaluate(script)
-        return result if isinstance(result, dict) else {}
+        return await self._action_executor.get_storage(kind)
 
     async def set_storage(self, kind: str, values: Dict[str, str]) -> Dict[str, Any]:
         """Set localStorage/sessionStorage values for current page."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-        storage_name = "localStorage" if kind == "local" else "sessionStorage"
-        script = f"""
-            (vals) => {{
-                for (const [k, v] of Object.entries(vals)) {{
-                    window.{storage_name}.setItem(String(k), String(v));
-                }}
-                return true;
-            }}
-        """
-        await self._page.evaluate(script, values)
-        return {"success": True, "count": len(values)}
+        return await self._action_executor.set_storage(kind, values)
 
     async def clear_storage(self, kind: str) -> Dict[str, Any]:
         """Clear localStorage/sessionStorage for current page."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-        storage_name = "localStorage" if kind == "local" else "sessionStorage"
-        await self._page.evaluate(f"() => window.{storage_name}.clear()")
-        return {"success": True}
+        return await self._action_executor.clear_storage(kind)
 
     async def set_offline(self, offline: bool) -> Dict[str, Any]:
         """Set context offline mode."""
-        if not self._context:
-            raise RuntimeError("Browser not connected")
-        try:
-            await self._context.set_offline(offline)
-            return {"success": True, "offline": offline}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.set_offline(offline)
 
     async def set_headers(self, headers: Dict[str, str]) -> Dict[str, Any]:
         """Set extra HTTP headers for context."""
-        if not self._context:
-            raise RuntimeError("Browser not connected")
-        try:
-            await self._context.set_extra_http_headers(headers)
-            return {"success": True, "header_count": len(headers)}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.set_headers(headers)
 
     async def set_http_credentials(
         self,
@@ -1000,23 +923,11 @@ class BrowserController:
         clear: bool = False,
     ) -> Dict[str, Any]:
         """Set or clear HTTP basic auth credentials."""
-        if not self._context:
-            raise RuntimeError("Browser not connected")
-        try:
-            if clear:
-                await self._context.set_http_credentials(None)
-            else:
-                if username is None or password is None:
-                    return {
-                        "success": False,
-                        "error": "username/password required unless clear=true",
-                    }
-                await self._context.set_http_credentials(
-                    {"username": username, "password": password}
-                )
-            return {"success": True, "cleared": clear}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.set_http_credentials(
+            username=username,
+            password=password,
+            clear=clear,
+        )
 
     async def set_geolocation(
         self,
@@ -1027,45 +938,21 @@ class BrowserController:
         clear: bool = False,
     ) -> Dict[str, Any]:
         """Set or clear context geolocation."""
-        if not self._context:
-            raise RuntimeError("Browser not connected")
-        try:
-            if clear:
-                await self._context.set_geolocation(None)
-                return {"success": True, "cleared": True}
-            if latitude is None or longitude is None:
-                return {
-                    "success": False,
-                    "error": "latitude/longitude required unless clear=true",
-                }
-            geo: Dict[str, Any] = {
-                "latitude": float(latitude),
-                "longitude": float(longitude),
-            }
-            if accuracy is not None:
-                geo["accuracy"] = float(accuracy)
-            await self._context.grant_permissions(["geolocation"])
-            await self._context.set_geolocation(geo)
-            return {"success": True, "geolocation": geo}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.set_geolocation(
+            latitude=latitude,
+            longitude=longitude,
+            accuracy=accuracy,
+            clear=clear,
+        )
 
     async def set_media(
         self, media: Optional[str] = None, color_scheme: Optional[str] = None
     ) -> Dict[str, Any]:
         """Emulate media settings on current page."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-        try:
-            kwargs: Dict[str, Any] = {}
-            if media:
-                kwargs["media"] = media
-            if color_scheme:
-                kwargs["color_scheme"] = color_scheme
-            await self._page.emulate_media(**kwargs)
-            return {"success": True, "media": media, "color_scheme": color_scheme}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.set_media(
+            media=media,
+            color_scheme=color_scheme,
+        )
 
     async def set_timezone(self, timezone: str) -> Dict[str, Any]:
         """
@@ -1073,14 +960,7 @@ class BrowserController:
 
         Playwright requires timezone at context creation time; this is not mutable at runtime.
         """
-        return {
-            "success": False,
-            "error": (
-                "Dynamic timezone updates are not supported for an already-running context. "
-                "Reconnect with a context configured for the desired timezone."
-            ),
-            "requested_timezone": timezone,
-        }
+        return await self._action_executor.set_timezone(timezone)
 
     async def set_locale(self, locale: str) -> Dict[str, Any]:
         """
@@ -1088,14 +968,7 @@ class BrowserController:
 
         Playwright requires locale at context creation time; this is not mutable at runtime.
         """
-        return {
-            "success": False,
-            "error": (
-                "Dynamic locale updates are not supported for an already-running context. "
-                "Reconnect with a context configured for the desired locale."
-            ),
-            "requested_locale": locale,
-        }
+        return await self._action_executor.set_locale(locale)
 
     async def set_device(self, device: str) -> Dict[str, Any]:
         """
@@ -1103,20 +976,7 @@ class BrowserController:
 
         This currently supports viewport changes for common presets.
         """
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-        preset = device.strip().lower()
-        presets: Dict[str, Dict[str, int]] = {
-            "iphone 14": {"width": 390, "height": 844},
-            "iphone 14 pro": {"width": 393, "height": 852},
-            "iphone se": {"width": 375, "height": 667},
-            "pixel 7": {"width": 412, "height": 915},
-            "ipad": {"width": 810, "height": 1080},
-        }
-        target = presets.get(preset)
-        if not target:
-            return {"success": False, "error": f"Unknown device preset: {device}"}
-        return await self.resize_viewport(target["width"], target["height"])
+        return await self._action_executor.set_device(device)
 
     async def get_page_snapshot(
         self,
@@ -1560,31 +1420,7 @@ class BrowserController:
 
     def _resolve_ref_locator(self, ref: str):
         """Resolve both numeric refs and role refs (e.g., e12)."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-
-        role_ref_key = parse_role_ref(ref)
-        if role_ref_key:
-            role_ref = self._get_role_ref(role_ref_key, self._page)
-            if role_ref:
-                try:
-                    frame_selector = self._get_role_frame_selector(self._page)
-                    root = (
-                        self._page.frame_locator(frame_selector)
-                        if frame_selector
-                        else self._page
-                    )
-                    role_locator_kwargs: Dict[str, Any] = {}
-                    if role_ref.name:
-                        role_locator_kwargs["name"] = role_ref.name
-                    locator = root.get_by_role(role_ref.role, **role_locator_kwargs)
-                    if role_ref.nth is not None:
-                        locator = locator.nth(role_ref.nth)
-                    return locator
-                except Exception as e:
-                    logger.debug(f"Role ref resolution failed for {ref}: {e}")
-
-        return self._page.locator(f"[data-windie-ref='{ref}'], [aria-ref='{ref}']")
+        return self._action_executor._resolve_ref_locator(ref)
 
     async def _resolve_click_locator(self, ref: str) -> tuple[Any, Dict[str, Any]]:
         """
@@ -1594,110 +1430,11 @@ class BrowserController:
         candidate or fail with an ambiguity error. This avoids oscillating auto-scroll
         retries across duplicate controls (e.g., sticky headers/footers/carousels).
         """
-        locator = self._resolve_ref_locator(ref)
-        resolution_meta: Dict[str, Any] = {}
-        role_ref_key = parse_role_ref(ref)
-        if not role_ref_key or not self._page:
-            return locator, resolution_meta
-
-        role_ref = self._get_role_ref(role_ref_key, self._page)
-        if role_ref and role_ref.nth is not None:
-            return locator, resolution_meta
-
-        try:
-            count = await locator.count()
-        except Exception:
-            return locator, resolution_meta
-
-        if count <= 1:
-            return locator, resolution_meta
-        resolution_meta["candidate_count"] = count
-
-        viewport_width = 0.0
-        viewport_height = 0.0
-        try:
-            viewport = getattr(self._page, "viewport_size", None)
-            if isinstance(viewport, dict):
-                viewport_width = float(viewport.get("width") or 0.0)
-                viewport_height = float(viewport.get("height") or 0.0)
-        except Exception:
-            viewport_width = 0.0
-            viewport_height = 0.0
-
-        has_viewport = viewport_width > 0 and viewport_height > 0
-        visible_candidates: list[tuple[int, Any]] = []
-        in_viewport_candidates: list[tuple[int, Any]] = []
-        max_probe = min(count, 25)
-        for idx in range(max_probe):
-            candidate = locator.nth(idx)
-            try:
-                if not await candidate.is_visible():
-                    continue
-            except Exception:
-                continue
-
-            visible_candidates.append((idx, candidate))
-            if not has_viewport:
-                continue
-
-            try:
-                box = await candidate.bounding_box()
-                if not isinstance(box, dict):
-                    continue
-                x = float(box.get("x") or 0.0)
-                y = float(box.get("y") or 0.0)
-                w = float(box.get("width") or 0.0)
-                h = float(box.get("height") or 0.0)
-                intersects_viewport = (
-                    w > 0
-                    and h > 0
-                    and x < viewport_width
-                    and y < viewport_height
-                    and (x + w) > 0
-                    and (y + h) > 0
-                )
-                if intersects_viewport:
-                    in_viewport_candidates.append((idx, candidate))
-            except Exception:
-                continue
-
-        if has_viewport and len(in_viewport_candidates) == 1:
-            idx, candidate = in_viewport_candidates[0]
-            resolution_meta["candidate_index"] = idx
-            return candidate, resolution_meta
-
-        if len(visible_candidates) == 1:
-            idx, candidate = visible_candidates[0]
-            resolution_meta["candidate_index"] = idx
-            return candidate, resolution_meta
-
-        if not visible_candidates:
-            return locator, resolution_meta
-
-        visible_count = (
-            len(in_viewport_candidates) if has_viewport else len(visible_candidates)
-        )
-        scope = "in viewport" if has_viewport else "visible"
-        raise RuntimeError(
-            f"Ambiguous role ref '{ref}': matched {count} elements; "
-            f"{visible_count} are {scope}. Take a fresh snapshot and use a more specific ref."
-        )
+        return await self._action_executor._resolve_click_locator(ref)
 
     @staticmethod
     def _is_recoverable_click_error(error_text: str) -> bool:
-        lowered = str(error_text or "").lower()
-        if not lowered:
-            return False
-        recoverable_markers = (
-            "intercepts pointer events",
-            "another element would receive",
-            "outside of the viewport",
-            "not visible",
-            "not stable",
-            "element is detached",
-            "timeout",
-        )
-        return any(marker in lowered for marker in recoverable_markers)
+        return BrowserActionExecutor._is_recoverable_click_error(error_text)
 
     async def _try_select_option_click_fallback(
         self,
@@ -1712,86 +1449,11 @@ class BrowserController:
         This avoids pointer-interception issues on pages that style the select
         control with overlay elements (for example Amazon sort dropdowns).
         """
-        try:
-            select_target = await locator.evaluate(
-                """
-                (el) => {
-                  const tag = (el.tagName || "").toLowerCase();
-                  if (tag === "option") {
-                    const select = el.closest("select");
-                    if (!select) return null;
-                    const selected = select.selectedOptions && select.selectedOptions[0];
-                    const selectedLabel = selected
-                      ? (selected.textContent || "").trim()
-                      : "";
-                    return {
-                      source_tag: "option",
-                      use_ancestor_select: true,
-                      value: String(el.value || ""),
-                      label: (el.textContent || "").trim(),
-                      current_value: String(select.value || ""),
-                      current_label: selectedLabel,
-                    };
-                  }
-                  if (tag === "select") {
-                    const selected = el.selectedOptions && el.selectedOptions[0];
-                    const selectedLabel = selected
-                      ? (selected.textContent || "").trim()
-                      : "";
-                    return {
-                      source_tag: "select",
-                      use_ancestor_select: false,
-                      value: String(el.value || ""),
-                      label: selectedLabel,
-                      current_value: String(el.value || ""),
-                      current_label: selectedLabel,
-                    };
-                  }
-                  return null;
-                }
-                """
-            )
-        except Exception:
-            return None
-
-        if not isinstance(select_target, dict):
-            return None
-
-        source_tag = str(select_target.get("source_tag") or "")
-        target_locator = locator
-        if bool(select_target.get("use_ancestor_select")):
-            target_locator = locator.locator("xpath=ancestor::select[1]")
-
-        current_value = select_target.get("current_value")
-        value = select_target.get("value")
-        label = select_target.get("label")
-        current_label = select_target.get("current_label")
-
-        try:
-            selected: List[str]
-            if isinstance(value, str) and value:
-                selected = await target_locator.select_option(value=value)
-            elif isinstance(current_value, str) and current_value:
-                selected = await target_locator.select_option(value=current_value)
-            elif isinstance(label, str) and label:
-                selected = await target_locator.select_option(label=label)
-            elif isinstance(current_label, str) and current_label:
-                selected = await target_locator.select_option(label=current_label)
-            else:
-                return None
-        except Exception:
-            return None
-
-        return {
-            "success": True,
-            "action": "click",
-            "ref": ref,
-            "forced": True,
-            "strategy": "select_option",
-            "source_tag": source_tag,
-            "selected": selected,
-            **resolution_meta,
-        }
+        return await self._action_executor._try_select_option_click_fallback(
+            locator,
+            ref=ref,
+            resolution_meta=resolution_meta,
+        )
 
     async def click(
         self,
@@ -1800,85 +1462,11 @@ class BrowserController:
         button: str = "left",
     ) -> Dict[str, Any]:
         """Click an element by reference."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-
-        try:
-            locator, resolution_meta = await self._resolve_click_locator(ref)
-        except Exception as resolve_error:
-            return {"success": False, "error": str(resolve_error)}
-
-        default_click_timeout_ms = 2500
-        force_click_timeout_ms = 1500
-
-        try:
-            if double_click:
-                await locator.dblclick(button=button, timeout=default_click_timeout_ms)
-                strategy = "dblclick"
-            else:
-                await locator.click(button=button, timeout=default_click_timeout_ms)
-                strategy = "playwright"
-            return {
-                "success": True,
-                "action": "click",
-                "ref": ref,
-                "strategy": strategy,
-                **resolution_meta,
-            }
-        except Exception as e:
-            error_text = str(e)
-            logger.warning(f"Click failed, retrying with fallback: {error_text}")
-            recoverable = self._is_recoverable_click_error(error_text)
-
-            # Fallback 1: force click to bypass actionability checks.
-            if not double_click and recoverable:
-                if button == "left":
-                    select_fallback_result = (
-                        await self._try_select_option_click_fallback(
-                            locator,
-                            ref=ref,
-                            resolution_meta=resolution_meta,
-                        )
-                    )
-                    if select_fallback_result is not None:
-                        return select_fallback_result
-
-                try:
-                    await locator.click(
-                        button=button,
-                        force=True,
-                        timeout=force_click_timeout_ms,
-                    )
-                    return {
-                        "success": True,
-                        "action": "click",
-                        "ref": ref,
-                        "forced": True,
-                        "strategy": "force",
-                        **resolution_meta,
-                    }
-                except Exception as force_error:
-                    error_text = str(force_error)
-
-                # Fallback 2: DOM click to bypass pointer interception.
-                # Limit to left clicks because DOM click cannot represent right/middle.
-                if button == "left":
-                    try:
-                        await locator.evaluate("el => el.click()")
-                        return {
-                            "success": True,
-                            "action": "click",
-                            "ref": ref,
-                            "forced": True,
-                            "method": "dom",
-                            "strategy": "dom",
-                            **resolution_meta,
-                        }
-                    except Exception as dom_error:
-                        error_text = str(dom_error)
-
-            logger.error(f"Click failed after fallbacks: {error_text}")
-            return {"success": False, "error": error_text}
+        return await self._action_executor.click(
+            ref,
+            double_click=double_click,
+            button=button,
+        )
 
     async def click_coordinates(
         self,
@@ -1918,36 +1506,16 @@ class BrowserController:
         clear_first: bool = True,
     ) -> Dict[str, Any]:
         """Type text into an element."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-
-        try:
-            locator = self._resolve_ref_locator(ref)
-
-            if clear_first:
-                await locator.fill(text)
-            else:
-                await locator.type(text)
-
-            if submit:
-                await locator.press("Enter")
-
-            return {"success": True, "action": "type", "ref": ref, "text": text}
-        except Exception as e:
-            logger.error(f"Type failed: {e}")
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.type_text(
+            ref,
+            text,
+            submit=submit,
+            clear_first=clear_first,
+        )
 
     async def press_key(self, key: str) -> Dict[str, Any]:
         """Press a keyboard key."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-
-        try:
-            await self._page.keyboard.press(key)
-            return {"success": True, "action": "press", "key": key}
-        except Exception as e:
-            logger.error(f"Key press failed: {e}")
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.press_key(key)
 
     async def scroll(
         self,
@@ -1955,23 +1523,7 @@ class BrowserController:
         amount: int = 500,
     ) -> Dict[str, Any]:
         """Scroll the page."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-
-        try:
-            if direction == "down":
-                await self._page.mouse.wheel(0, amount)
-            elif direction == "up":
-                await self._page.mouse.wheel(0, -amount)
-            elif direction == "left":
-                await self._page.mouse.wheel(-amount, 0)
-            elif direction == "right":
-                await self._page.mouse.wheel(amount, 0)
-
-            return {"success": True, "action": "scroll", "direction": direction}
-        except Exception as e:
-            logger.error(f"Scroll failed: {e}")
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.scroll(direction=direction, amount=amount)
 
     async def screenshot(
         self,
@@ -1994,275 +1546,49 @@ class BrowserController:
         Returns:
             Image bytes
         """
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-
-        if full_page and (ref or element):
-            raise ValueError("full_page cannot be combined with ref/element screenshot")
-        if ref and element:
-            raise ValueError("Specify only one of ref or element")
-
-        screenshot_args: Dict[str, Any] = {
-            "type": "jpeg" if image_type == "jpeg" else "png"
-        }
-        if screenshot_args["type"] == "jpeg" and quality is not None:
-            screenshot_args["quality"] = max(1, min(100, int(quality)))
-
-        if ref:
-            locator = self._resolve_ref_locator(ref)
-            return await locator.screenshot(**screenshot_args)
-        if element:
-            locator = self._page.locator(element)
-            return await locator.screenshot(**screenshot_args)
-        return await self._page.screenshot(
+        return await self._action_executor.screenshot(
             full_page=full_page,
-            **screenshot_args,
+            ref=ref,
+            element=element,
+            image_type=image_type,
+            quality=quality,
         )
 
     async def pdf(self) -> bytes:
         """Create a PDF of the current page."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-        return await self._page.pdf(print_background=True)
+        return await self._action_executor.pdf()
 
     async def hover(self, ref: str) -> Dict[str, Any]:
         """Hover on an element by reference."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-        try:
-            locator = self._resolve_ref_locator(ref)
-            await locator.hover()
-            return {"success": True, "action": "hover", "ref": ref}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.hover(ref)
 
     async def drag(self, start_ref: str, end_ref: str) -> Dict[str, Any]:
         """Drag from one referenced element to another."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-        try:
-            start = self._resolve_ref_locator(start_ref)
-            end = self._resolve_ref_locator(end_ref)
-            await start.drag_to(end)
-            return {
-                "success": True,
-                "action": "drag",
-                "start_ref": start_ref,
-                "end_ref": end_ref,
-            }
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.drag(start_ref, end_ref)
 
     async def select_options(self, ref: str, values: List[str]) -> Dict[str, Any]:
         """Select options in a <select> element by reference."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-        try:
-            locator = self._resolve_ref_locator(ref)
-            selected = await locator.select_option(values)
-            return {
-                "success": True,
-                "action": "select",
-                "ref": ref,
-                "selected": selected,
-            }
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.select_options(ref, values)
 
     async def get_dropdown_options(self, ref: str) -> Dict[str, Any]:
         """List options for a dropdown-like element resolved by reference."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-        try:
-            locator = self._resolve_ref_locator(ref)
-            details = await locator.evaluate(
-                """element => {
-                    const select = element.tagName?.toLowerCase() === "select"
-                        ? element
-                        : element.closest?.("select");
-                    if (!select) {
-                        return {
-                            ok: false,
-                            error: "Resolved element is not inside a <select> dropdown",
-                        };
-                    }
-                    return {
-                        ok: true,
-                        options: Array.from(select.options).map((option, index) => ({
-                            index,
-                            text: option.textContent?.trim() || "",
-                            value: option.value ?? "",
-                            selected: Boolean(option.selected),
-                            disabled: Boolean(option.disabled),
-                        })),
-                        selected_value: select.value ?? "",
-                        selected_index: Number.isInteger(select.selectedIndex)
-                            ? select.selectedIndex
-                            : null,
-                    };
-                }"""
-            )
-            if not isinstance(details, dict):
-                return {
-                    "success": False,
-                    "error": "Dropdown inspection returned invalid response",
-                }
-            if not details.get("ok"):
-                return {
-                    "success": False,
-                    "error": str(
-                        details.get(
-                            "error",
-                            "Resolved element is not inside a <select> dropdown",
-                        )
-                    ),
-                }
-            return {
-                "success": True,
-                "action": "dropdown_options",
-                "ref": ref,
-                "options": list(details.get("options") or []),
-                "selected_value": details.get("selected_value"),
-                "selected_index": details.get("selected_index"),
-            }
-        except Exception as e:
-            logger.error(f"Dropdown option lookup failed: {e}")
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.get_dropdown_options(ref)
 
     async def select_dropdown(self, ref: str, text: str) -> Dict[str, Any]:
         """Select an option by visible text or value for a referenced dropdown."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-        try:
-            locator = self._resolve_ref_locator(ref)
-            details = await locator.evaluate(
-                """(element, targetText) => {
-                    const select = element.tagName?.toLowerCase() === "select"
-                        ? element
-                        : element.closest?.("select");
-                    if (!select) {
-                        return {
-                            ok: false,
-                            error: "Resolved element is not inside a <select> dropdown",
-                        };
-                    }
-                    const normalizedTarget = String(targetText ?? "").trim();
-                    const options = Array.from(select.options);
-                    const exactValueMatch = options.find(
-                        option => String(option.value ?? "") === normalizedTarget
-                    );
-                    const exactTextMatch = options.find(
-                        option => (option.textContent?.trim() || "") === normalizedTarget
-                    );
-                    const option = exactValueMatch || exactTextMatch;
-                    if (!option) {
-                        return {
-                            ok: false,
-                            error: `No dropdown option matched '${normalizedTarget}'`,
-                        };
-                    }
-                    select.value = option.value;
-                    option.selected = true;
-                    select.dispatchEvent(new Event("input", { bubbles: true }));
-                    select.dispatchEvent(new Event("change", { bubbles: true }));
-                    return {
-                        ok: true,
-                        selected_value: option.value ?? "",
-                        selected_text: option.textContent?.trim() || "",
-                    };
-                }""",
-                text,
-            )
-            if not isinstance(details, dict):
-                return {
-                    "success": False,
-                    "error": "Dropdown selection returned invalid response",
-                }
-            if not details.get("ok"):
-                return {
-                    "success": False,
-                    "error": str(
-                        details.get(
-                            "error",
-                            "Resolved element is not inside a <select> dropdown",
-                        )
-                    ),
-                }
-            return {
-                "success": True,
-                "action": "select_dropdown",
-                "ref": ref,
-                "selected": [
-                    {
-                        "value": details.get("selected_value", ""),
-                        "text": details.get("selected_text", ""),
-                    }
-                ],
-                "selected_value": details.get("selected_value"),
-                "selected_text": details.get("selected_text"),
-            }
-        except Exception as e:
-            logger.error(f"Dropdown selection failed: {e}")
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.select_dropdown(ref, text)
 
     async def set_input_files(self, ref: str, paths: List[str]) -> Dict[str, Any]:
         """Set file input files by reference."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-        try:
-            locator = self._resolve_ref_locator(ref)
-            await locator.set_input_files(paths)
-            return {"success": True, "action": "upload", "ref": ref, "paths": paths}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.set_input_files(ref, paths)
 
     async def fill_fields(self, fields: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Fill multiple fields by ref."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-
-        filled = 0
-        errors: List[Dict[str, str]] = []
-        for item in fields:
-            ref = item.get("ref")
-            text = item.get("text")
-            if not isinstance(ref, str) or not isinstance(text, str):
-                errors.append(
-                    {
-                        "ref": str(ref),
-                        "error": "Each field must include string ref/text",
-                    }
-                )
-                continue
-
-            result = await self.type_text(
-                ref=ref, text=text, submit=False, clear_first=True
-            )
-            if result.get("success"):
-                filled += 1
-            else:
-                errors.append(
-                    {"ref": ref, "error": str(result.get("error", "fill failed"))}
-                )
-
-        return {
-            "success": len(errors) == 0,
-            "action": "fill",
-            "filled": filled,
-            "errors": errors,
-        }
+        return await self._action_executor.fill_fields(fields)
 
     async def resize_viewport(self, width: int, height: int) -> Dict[str, Any]:
         """Resize viewport dimensions."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-        try:
-            w = max(1, int(width))
-            h = max(1, int(height))
-            await self._page.set_viewport_size({"width": w, "height": h})
-            return {"success": True, "action": "resize", "width": w, "height": h}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.resize_viewport(width, height)
 
     async def wait_for_load(
         self,
@@ -2270,25 +1596,14 @@ class BrowserController:
         timeout: int = 30000,
     ) -> Dict[str, Any]:
         """Wait for page to reach a load state."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-
-        try:
-            await self._page.wait_for_load_state(state, timeout=timeout)
-            return {"success": True, "state": state}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.wait_for_load(
+            state=state,
+            timeout=timeout,
+        )
 
     async def evaluate(self, script: str) -> Any:
         """Evaluate JavaScript in the page."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-
-        try:
-            result = await self._page.evaluate(script)
-            return {"success": True, "result": result}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return await self._action_executor.evaluate(script)
 
     async def close(self) -> None:
         """Close browser connection and cleanup."""

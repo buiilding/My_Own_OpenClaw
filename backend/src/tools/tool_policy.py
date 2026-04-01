@@ -14,6 +14,7 @@ from dataclasses import dataclass
 import logging
 from typing import Any, Dict, List, Optional, Sequence
 
+from backend.src.core.config.domains import browser_runtime_config
 from backend.src.core.utils.coordinate_methods import normalize_coordinate_method
 from backend.src.tools.tool_selection import ToolSelection, load_tool_selection
 from backend.src.tools.tool_specs import get_tool_spec_name
@@ -152,8 +153,8 @@ class ToolPolicy:
 
     def _get_config_disabled_tools(self) -> set[str]:
         disabled: set[str] = set()
-        browser_enabled = getattr(self.config, "browser_automation_enabled", True)
-        if browser_enabled is not True:
+        browser_config = browser_runtime_config(self.config)
+        if browser_config.browser_automation_enabled is not True:
             disabled.add("browser")
         return disabled
 

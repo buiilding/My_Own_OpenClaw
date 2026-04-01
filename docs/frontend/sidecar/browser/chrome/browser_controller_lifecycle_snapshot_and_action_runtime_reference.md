@@ -11,8 +11,11 @@ title: "Browser Controller Lifecycle, Snapshot, and Action Runtime Reference"
 ## Canonical Modules
 
 - `frontend/src/main/python/tools/browser/controller.py`
+- `frontend/src/main/python/tools/browser/action_executor.py`
 - `frontend/src/main/python/tools/browser/observation_store.py`
 - `frontend/src/main/python/tools/browser/session_runtime.py`
+- `frontend/src/main/python/tools/browser/browser_use/browser/navigation_runtime.py`
+- `frontend/src/main/python/tools/browser/browser_use/browser/watchdog_supervisor.py`
 - `frontend/src/main/python/tools/browser/chrome_launcher.py`
 - `frontend/src/main/python/tools/browser/chrome_detection.py`
 - `tests/sidecar/tools/test_browser_controller.py`
@@ -30,6 +33,15 @@ title: "Browser Controller Lifecycle, Snapshot, and Action Runtime Reference"
 - trace/headless flags used by diagnostics and launch helpers
 
 `BrowserController` remains the public execution surface and proxies those fields through the runtime object.
+
+Imperative browser actions now live behind `BrowserActionExecutor`:
+
+- ref resolution / role-ref disambiguation
+- click fallback policy
+- cookie/storage/context mutation
+- input, scroll, screenshot, PDF, dropdown, viewport, and JS-eval actions
+
+`BrowserController` still exposes the same public methods and tool-facing contract, but those methods now delegate instead of owning the action logic directly.
 
 Tab-scoped observation ownership:
 
@@ -95,6 +107,7 @@ State boundaries:
 
 - controller still decides when observers are attached and when events are recorded
 - observation-store owns the underlying tab-scoped data structures and reset behavior
+- action-executor owns imperative page interaction behavior
 
 Observer installation (`_ensure_page_observers`) is one-time per tab and wires:
 
@@ -166,7 +179,7 @@ Ref resolution priority:
 - otherwise prefers exactly one visible candidate
 - if multiple remain, raises explicit ambiguity error with candidate counts
 
-Click strategy in `click(...)`:
+Click strategy in `click(...)` (implemented in `BrowserActionExecutor.click(...)`):
 
 1. default click/dblclick (`timeout=2500ms`)
 2. on recoverable error:
@@ -201,6 +214,22 @@ Context mutation helpers:
 - offline/headers/http credentials/geolocation/media
 - device preset viewport changes
 - timezone/locale return explicit unsupported-at-runtime errors
+
+## `browser_use` Session Runtime Ownership
+
+`browser_use` `BrowserSession` now keeps the public event handlers but delegates two large lifecycle domains:
+
+- `BrowserSessionNavigationRuntime`
+  - navigation to URL
+  - navigation lifecycle waiting
+  - tab create/switch/close handling
+  - focus-change cache clearing and viewport re-application
+  - download tracking
+- `BrowserWatchdogSupervisor`
+  - watchdog attachment
+  - watchdog-reset ownership during session reset
+
+This keeps the event surface stable while reducing the amount of tab/watchdog state owned inline by `session.py`.
 
 ## Cleanup Guarantees (`close`)
 

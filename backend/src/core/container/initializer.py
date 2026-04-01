@@ -12,7 +12,9 @@ class StartupStep:
     """Declarative startup step contract for container-owned runtime services."""
 
     name: str
-    run: Callable[["ContainerInitializer"], Awaitable[None]]
+    initialize: Callable[["ContainerInitializer"], Awaitable[None]]
+    enabled: Optional[Callable[["ContainerInitializer"], bool]] = None
+    on_disabled: Optional[Callable[["ContainerInitializer"], None]] = None
     publish_to_context_factory: Optional[Callable[["ContainerInitializer"], None]] = None
 
 
@@ -47,31 +49,46 @@ class ContainerInitializer:
         - Publishing vision/OCR services into the shared context factory
         """
         # Initialize configuration service (loads config and makes it available)
-        for step in self._startup_steps.values():
-            await step.run(self)
-            if step.publish_to_context_factory is not None:
-                step.publish_to_context_factory(self)
+        for step_name in self._startup_steps:
+            await self._run_startup_step(step_name)
 
         logger.info("Container initialization complete")
 
     def _build_startup_steps(self) -> list[StartupStep]:
         return [
-            StartupStep(name="config_service", run=ContainerInitializer._run_config_service_step),
+            StartupStep(
+                name="config_service",
+                initialize=ContainerInitializer._run_config_service_step,
+            ),
             StartupStep(
                 name="vision_service",
-                run=ContainerInitializer._run_vision_service_step,
+                initialize=ContainerInitializer._run_vision_service_step,
+                enabled=lambda initializer: initializer._should_initialize_vision_service(),
                 publish_to_context_factory=ContainerInitializer._publish_vision_service,
             ),
             StartupStep(
                 name="ocr_service",
-                run=ContainerInitializer._run_ocr_service_step,
+                initialize=ContainerInitializer._run_ocr_service_step,
+                enabled=lambda initializer: initializer._should_initialize_ocr_service(),
+                on_disabled=lambda initializer: initializer._disable_ocr_service(),
                 publish_to_context_factory=ContainerInitializer._publish_ocr_service,
             ),
-            StartupStep(name="embedder", run=ContainerInitializer._run_embedder_step),
+            StartupStep(name="embedder", initialize=ContainerInitializer._run_embedder_step),
         ]
 
     def _get_startup_step(self, name: str) -> StartupStep:
         return self._startup_steps[name]
+
+    async def _run_startup_step(self, name: str) -> None:
+        step = self._get_startup_step(name)
+        if step.enabled is not None and not step.enabled(self):
+            if step.on_disabled is not None:
+                step.on_disabled(self)
+            logger.info("Skipping %s startup step (disabled)", step.name)
+            return
+        await step.initialize(self)
+        if step.publish_to_context_factory is not None:
+            step.publish_to_context_factory(self)
 
     def _should_initialize_vision_service(self) -> bool:
         """Return whether vision startup initialization should run."""
@@ -82,7 +99,7 @@ class ContainerInitializer:
         return self._tool_policy.should_initialize_ocr()
 
     async def _initialize_config_service(self) -> None:
-        await self._get_startup_step("config_service").run(self)
+        await self._run_startup_step("config_service")
 
     async def _run_config_service_step(self) -> None:
         """
@@ -106,7 +123,7 @@ class ContainerInitializer:
             logger.error(f"Failed to initialize configuration service: {e}", exc_info=True)
 
     async def _initialize_vision_service(self) -> None:
-        await self._get_startup_step("vision_service").run(self)
+        await self._run_startup_step("vision_service")
 
     async def _run_vision_service_step(self) -> None:
         """
@@ -118,13 +135,6 @@ class ContainerInitializer:
         The vision service is obtained from the DI container and initialized.
         """
         try:
-            if not self._should_initialize_vision_service():
-                logger.info(
-                    "Skipping vision service startup initialization due to dev tool selection "
-                    "(mouse_control prediction disabled)"
-                )
-                return
-
             # Get vision service from DI container
             vision_service = self.container.vision_service
             
@@ -147,7 +157,7 @@ class ContainerInitializer:
             logger.error(f"Failed to initialize vision service: {e}", exc_info=True)
 
     async def _initialize_embedder(self) -> None:
-        await self._get_startup_step("embedder").run(self)
+        await self._run_startup_step("embedder")
 
     async def _run_embedder_step(self) -> None:
         """
@@ -178,7 +188,7 @@ class ContainerInitializer:
             logger.error(f"Failed to initialize embedder: {e}", exc_info=True)
 
     async def _initialize_ocr_service(self) -> None:
-        await self._get_startup_step("ocr_service").run(self)
+        await self._run_startup_step("ocr_service")
 
     async def _run_ocr_service_step(self) -> None:
         """
@@ -191,16 +201,6 @@ class ContainerInitializer:
                 logger.warning("OCR service not available in DI container")
                 return
 
-            if not self._should_initialize_ocr_service():
-                # Disable OCR service to prevent proactive/lazy OCR engine initialization.
-                if hasattr(ocr_service, "enabled"):
-                    ocr_service.enabled = False
-                logger.info(
-                    "Skipping OCR service startup initialization due to dev tool selection "
-                    "(mouse_control OCR disabled)"
-                )
-                return
-
             await ocr_service.initialize()
             if ocr_service.enabled:
                 logger.info("OCR service initialized successfully")
@@ -211,6 +211,12 @@ class ContainerInitializer:
             logger.warning(f"OCR service dependencies not available: {e}")
         except Exception as e:
             logger.error(f"Failed to initialize OCR service: {e}", exc_info=True)
+
+    def _disable_ocr_service(self) -> None:
+        ocr_service = getattr(self.container, "ocr_service", None)
+        if ocr_service is not None and hasattr(ocr_service, "enabled"):
+            ocr_service.enabled = False
+
 
     def _publish_vision_service(self) -> None:
         context_factory = getattr(self.container, "context_factory", None)

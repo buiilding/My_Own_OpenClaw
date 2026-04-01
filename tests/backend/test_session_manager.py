@@ -63,7 +63,11 @@ def _assign_active_session(
     *,
     conversation_ref: str | None = None,
 ) -> None:
-    manager.active_sessions[user_id] = {conversation_ref: session}
+    manager._registry.store_session(
+        user_id,
+        session,
+        conversation_ref=conversation_ref,
+    )
 
 
 @pytest.mark.asyncio
@@ -118,11 +122,8 @@ async def test_get_session_without_conversation_prefers_latest_named_conversatio
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
     default_session = DummySession("default")
     named_session = DummySession("named")
-    manager.active_sessions["user-1"] = {
-        None: default_session,
-        "conv-a": named_session,
-    }
-    manager._latest_conversation_refs["user-1"] = "conv-a"
+    manager._registry.store_session("user-1", default_session, conversation_ref=None)
+    manager._registry.store_session("user-1", named_session, conversation_ref="conv-a")
 
     assert manager.get_session("user-1") is named_session
 
@@ -273,13 +274,13 @@ async def test_update_session_config_applies_to_future_conversation_sessions() -
 async def test_end_session_removes_session_and_lock() -> None:
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
     session = await manager.get_or_create_session("user-1")
-    assert "user-1" in manager._user_locks
+    assert "user-1" in manager._registry.user_locks
 
     await manager.end_session("user-1")
 
     assert session.cleanup_called is True
-    assert "user-1" not in manager.active_sessions
-    assert "user-1" not in manager._user_locks
+    assert "user-1" not in manager._registry.active_sessions
+    assert "user-1" not in manager._registry.user_locks
 
 
 @pytest.mark.asyncio
@@ -290,8 +291,8 @@ async def test_end_session_still_removes_session_when_cleanup_fails() -> None:
     await manager.end_session("user-1")
 
     assert session.cleanup_called is True
-    assert "user-1" not in manager.active_sessions
-    assert "user-1" not in manager._user_locks
+    assert "user-1" not in manager._registry.active_sessions
+    assert "user-1" not in manager._registry.user_locks
 
 
 @pytest.mark.asyncio
@@ -300,7 +301,7 @@ async def test_end_session_missing_user_is_noop() -> None:
 
     await manager.end_session("missing-user")
 
-    assert manager.active_sessions == {}
+    assert manager._registry.active_sessions == {}
 
 
 @pytest.mark.asyncio
@@ -308,11 +309,8 @@ async def test_end_session_can_remove_one_conversation_without_clearing_others()
     first = DummySession("first")
     second = DummySession("second")
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
-    manager.active_sessions["user-1"] = {
-        "conv-a": first,
-        "conv-b": second,
-    }
-    manager._latest_conversation_refs["user-1"] = "conv-b"
+    manager._registry.store_session("user-1", first, conversation_ref="conv-a")
+    manager._registry.store_session("user-1", second, conversation_ref="conv-b")
 
     await manager.end_session("user-1", conversation_ref="conv-a")
 
@@ -320,7 +318,7 @@ async def test_end_session_can_remove_one_conversation_without_clearing_others()
     assert second.cleanup_called is False
     assert manager.get_session("user-1", conversation_ref="conv-a") is None
     assert manager.get_session("user-1", conversation_ref="conv-b") is second
-    assert "user-1" in manager.active_sessions
+    assert "user-1" in manager._registry.active_sessions
 
 
 @pytest.mark.asyncio
@@ -345,10 +343,8 @@ def test_get_session_for_request_id_resolves_matching_conversation_session() -> 
     session_a = DummySession("session-a")
     session_b = DummySession("session-b")
     session_b.result_futures["req-123"] = object()
-    manager.active_sessions["user-1"] = {
-        "conv-a": session_a,
-        "conv-b": session_b,
-    }
+    manager._registry.store_session("user-1", session_a, conversation_ref="conv-a")
+    manager._registry.store_session("user-1", session_b, conversation_ref="conv-b")
 
     assert manager.get_session_for_request_id("user-1", "req-123") is session_b
     assert manager.get_session_for_request_id("user-1", "missing") is None
@@ -359,10 +355,8 @@ def test_get_session_for_bundle_id_resolves_matching_conversation_session() -> N
     session_a = DummySession("session-a")
     session_b = DummySession("session-b")
     session_a.bundle_futures["bundle-123"] = object()
-    manager.active_sessions["user-1"] = {
-        "conv-a": session_a,
-        "conv-b": session_b,
-    }
+    manager._registry.store_session("user-1", session_a, conversation_ref="conv-a")
+    manager._registry.store_session("user-1", session_b, conversation_ref="conv-b")
 
     assert manager.get_session_for_bundle_id("user-1", "bundle-123") is session_a
     assert manager.get_session_for_bundle_id("user-1", "missing") is None
@@ -410,7 +404,7 @@ async def test_cancel_active_query_task_cancels_all_registered_tasks() -> None:
         assert cancelled == ("turn-2", "conv-2")
         assert first_task.cancelled() is True
         assert second_task.cancelled() is True
-        assert "user-1" not in manager._active_query_tasks
+        assert "user-1" not in manager._active_queries.active_query_tasks
     finally:
         await asyncio.gather(first_task, second_task, return_exceptions=True)
 
@@ -424,7 +418,7 @@ async def test_cancel_active_query_task_sets_pending_stop_and_consumes_late_regi
 
     cancelled = manager.cancel_active_query_task("user-1")
     assert cancelled is None
-    assert manager._pending_stop_requests["user-1"][None] > 0
+    assert manager._active_queries.pending_stop_requests["user-1"][None] > 0
 
     late_query_task = asyncio.create_task(_sleep_forever())
     try:
@@ -438,8 +432,8 @@ async def test_cancel_active_query_task_sets_pending_stop_and_consumes_late_regi
 
         assert consumed_stop is True
         assert late_query_task.cancelled() is False
-        assert "user-1" not in manager._active_query_tasks
-        assert "user-1" not in manager._pending_stop_requests
+        assert "user-1" not in manager._active_queries.active_query_tasks
+        assert "user-1" not in manager._active_queries.pending_stop_requests
     finally:
         if not late_query_task.done():
             late_query_task.cancel()
@@ -449,7 +443,7 @@ async def test_cancel_active_query_task_sets_pending_stop_and_consumes_late_regi
 @pytest.mark.asyncio
 async def test_register_active_query_task_ignores_expired_pending_stop_request() -> None:
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
-    manager._pending_stop_requests["user-1"] = {None: 0.0}
+    manager._active_queries.pending_stop_requests["user-1"] = {None: 0.0}
 
     async def _sleep_forever() -> None:
         await asyncio.sleep(3600)
@@ -465,7 +459,7 @@ async def test_register_active_query_task_ignores_expired_pending_stop_request()
 
         assert consumed_stop is False
         assert manager.has_active_query_task("user-1") is True
-        assert "user-1" not in manager._pending_stop_requests
+        assert "user-1" not in manager._active_queries.pending_stop_requests
     finally:
         manager.clear_active_query_task("user-1", active_task)
         active_task.cancel()
@@ -517,7 +511,7 @@ async def test_pending_stop_request_is_scoped_to_matching_conversation_ref() -> 
 
     cancelled = manager.cancel_active_query_task("user-1", conversation_ref="conv-a")
     assert cancelled is None
-    assert manager._pending_stop_requests["user-1"]["conv-a"] > 0
+    assert manager._active_queries.pending_stop_requests["user-1"]["conv-a"] > 0
 
     query_conv_b = asyncio.create_task(_sleep_forever())
     query_conv_a = asyncio.create_task(_sleep_forever())

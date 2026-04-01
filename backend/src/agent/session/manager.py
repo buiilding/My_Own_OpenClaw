@@ -54,17 +54,6 @@ class SessionManager(ConfigSubscriber):
         )
         self._active_queries = ActiveQueryTracker()
 
-        # Temporary aliases kept during the facade transition so external callers/tests
-        # do not need to know about the extracted internal services.
-        self.active_sessions = self._registry.active_sessions
-        self._user_locks = self._registry.user_locks
-        self._locks_lock = self._registry.locks_lock
-        self._active_query_tasks = self._active_queries.active_query_tasks
-        self._pending_stop_requests = self._active_queries.pending_stop_requests
-        self._frontend_operating_systems = self._config_service.frontend_operating_systems
-        self._latest_conversation_refs = self._registry.latest_conversation_refs
-        self._user_config_overrides = self._config_service.user_config_overrides
-
     def _get_user_sessions(
         self,
         user_id: str,
@@ -299,7 +288,9 @@ class SessionManager(ConfigSubscriber):
                     runtime = getattr(session, "runtime", None)
                     if runtime is not None:
                         runtime.active_conversation_ref = normalized_conversation_ref
-                operating_system = self._frontend_operating_systems.get(user_id)
+                operating_system = self._config_service.frontend_operating_systems.get(
+                    user_id
+                )
                 if operating_system:
                     self._config_service.apply_frontend_operating_system_to_session(
                         session,
