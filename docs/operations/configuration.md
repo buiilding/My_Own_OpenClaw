@@ -195,7 +195,8 @@ When launching Electron (dev or packaged), these env vars can override defaults:
 Default behavior:
 
 - Dev/source runs try the hosted backend first (`https://api.windieos.com`, `wss://api.windieos.com/ws`) and fall back to the local backend (`127.0.0.1:8765`) if the hosted socket is unreachable before connect.
-- Packaged builds use the hosted backend (`https://api.windieos.com`, `wss://api.windieos.com/ws`) unless overridden by `BACKEND_*`, `WINDIE_DEFAULT_BACKEND_*`, or `WINDIE_DEFAULT_PACKAGED_BACKEND_*`.
+- Packaged builds also try the hosted backend first and fall back to the local backend (`127.0.0.1:8765`) before showing a disconnected state, unless `BACKEND_*` explicitly pins a different target.
+- `WINDIE_DEFAULT_BACKEND_*` and `WINDIE_DEFAULT_PACKAGED_BACKEND_*` change the hosted-first default candidate used before any local fallback.
 - Preferred self-hosted dev setup: keep the Cloudflare tunnel service for `api.windieos.com` enabled at startup, but launch the backend manually with `python -m backend.src.main` only when you want the local machine publicly reachable.
 
 For bundled runtime packaging details, see `docs/operations/sidecar_runtime_packaging.md`.
