@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from core.executors import get_interactive_executor
+from tools.path_resolution import resolve_workspace_path
 from tools.filesystem.replace_engine import ReplaceOperation
 from tools.filesystem.replace_engine import apply_patch_chunks
 from tools.filesystem.replace_engine import apply_operations
@@ -26,6 +27,17 @@ logger = logging.getLogger(__name__)
 # Default encoding
 DEFAULT_ENCODING = 'utf-8'
 MAX_REPLACE_NEW_STRING_BYTES = 16 * 1024
+
+
+def _resolve_replace_file_path(raw_file_path: object) -> tuple[Path | None, str | None, str | None]:
+    resolved_path, normalized_input, path_error = resolve_workspace_path(raw_file_path)
+    if path_error:
+        return None, None, "file_path parameter is required"
+    if resolved_path is None:
+        return None, None, "file_path parameter is required"
+    if not normalized_input:
+        return None, None, "file_path parameter is required"
+    return resolved_path, normalized_input, None
 
 
 def _write_file_atomic(path: Path, content: str) -> None:
@@ -75,8 +87,8 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
     Replace text in a file with strict/lenient context-aware matching.
     """
     try:
-        file_path = args.get('file_path')
-        if not isinstance(file_path, str) or not file_path:
+        path, normalized_input, path_error = _resolve_replace_file_path(args.get('file_path'))
+        if path_error is not None or path is None or normalized_input is None:
             return ToolResult.error_result('file_path parameter is required')
 
         patch_chunks, patch_chunks_error = build_patch_chunks(args)
@@ -104,15 +116,12 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
             if payload_error is not None:
                 return ToolResult.error_result(payload_error)
 
-        path = Path(file_path)
-        if not path.is_absolute():
-            return ToolResult.error_result(f'File path must be absolute: {file_path}')
-
         file_exists = path.exists()
         if not file_exists:
             if using_patch_chunks:
                 return ToolResult.error_result(
-                    'File does not exist. patch_chunks updates require an existing file.'
+                    f'File does not exist: {normalized_input} '
+                    f'(resolved to {path}). patch_chunks updates require an existing file.'
                 )
 
             if len(operations) == 1 and _can_create_new_file_from_operation(operations[0]):
@@ -124,18 +133,19 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
                         {
                             'replacements': 1,
                             'is_new_file': True,
-                            'llm_content': f'Created new file: {file_path} with provided content.',
+                            'llm_content': f'Created new file: {path} with provided content.',
                             'matched_spans': [],
                             'operations': [],
-                            'unified_diff': build_unified_diff('', operations[0].new_string, file_path),
+                            'unified_diff': build_unified_diff('', operations[0].new_string, str(path)),
                         }
                     )
                 except OSError as exc:
                     return ToolResult.error_result(f'Failed to create file: {exc}')
 
             return ToolResult.error_result(
-                'File does not exist. To create a file, provide exactly one replacement '
-                "with old_string='' and no context constraints."
+                f'File does not exist: {normalized_input} (resolved to {path}). '
+                "To create a file, provide exactly one replacement with old_string='' "
+                'and no context constraints.'
             )
 
         def _read_file() -> str:
@@ -161,7 +171,7 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
         if apply_error is not None:
             return ToolResult.error_result(apply_error)
 
-        unified_diff = build_unified_diff(normalized_content, new_content, file_path)
+        unified_diff = build_unified_diff(normalized_content, new_content, str(path))
 
         def _write_file() -> None:
             _write_file_atomic(path, new_content)
@@ -176,7 +186,7 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
                 'operations': operation_payloads,
                 'unified_diff': unified_diff,
                 'llm_content': (
-                    f'Successfully modified file: {file_path} '
+                    f'Successfully modified file: {path} '
                     f'({total_replacements} replacement(s)).'
                 ),
             }

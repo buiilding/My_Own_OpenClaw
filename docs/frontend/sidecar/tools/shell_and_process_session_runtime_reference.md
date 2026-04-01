@@ -41,10 +41,11 @@ Entry: `run_shell_command(args: dict)`.
 Validation and defaults:
 
 - `command` must be non-empty
-- `directory` must be absolute if provided; otherwise default is the selected workspace folder from `filesystem_workspace_access` when available, then `Path.home()`
+- `directory` may be omitted, absolute, or relative; omitted and relative values resolve from the selected workspace folder from `filesystem_workspace_access` when available, then `Path.home()`
 - `max_output_tokens` defaults to `10000`; must be positive int
 - `terminate_after_seconds` defaults to `120.0`
 - optional `pty=true` is best-effort (disabled on Windows or missing `pty` module)
+- repository/log search guidance remains model-facing rather than executor-enforced: prefer `rg` and exclude generated directories such as `node_modules`, `frontend/release`, `frontend/python-runtime`, and `.git` unless the user explicitly needs them
 
 Execution transport:
 

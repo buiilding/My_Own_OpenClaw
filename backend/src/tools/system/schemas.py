@@ -15,14 +15,22 @@ def _optional_process_field(description: str):
 class RunShellCommandArgs(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
-    command: str = Field(..., description="Exact command to execute")
+    command: str = Field(
+        ...,
+        description=(
+            "Exact command to execute. For repository or log search, prefer fast targeted "
+            "commands such as rg instead of broad recursive grep, and exclude generated "
+            "directories like node_modules, frontend/release, frontend/python-runtime, and "
+            ".git unless the user explicitly needs them."
+        ),
+    )
     directory: Optional[str] = Field(
         None,
         description=(
-            "(OPTIONAL) The absolute path of the directory to run the command in. "
-            "If not provided, defaults to the user-selected WindieOS workspace folder "
-            "when one is configured, otherwise the OS user home directory. Must be an "
-            "absolute path and must already exist."
+            "(OPTIONAL) Working directory. Absolute paths are allowed, and relative paths "
+            "resolve from the user-selected WindieOS workspace folder when configured, "
+            "otherwise from the OS user home directory. If omitted, WindieOS uses that "
+            "default base directory directly."
         ),
     )
     run_in_background: bool = Field(

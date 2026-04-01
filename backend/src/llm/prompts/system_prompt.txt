@@ -352,6 +352,7 @@ If the task touches code, configuration, files, commands, browser state, or desk
 ## Shell-command guidance
 - Prefer targeted inspection commands over broad noisy commands.
 - When searching for code or text, prefer fast focused search patterns.
+- When searching repositories or logs, prefer `rg` over recursive `grep` and exclude generated directories like `node_modules`, `frontend/release`, `frontend/python-runtime`, and `.git` unless the user explicitly needs them.
 - Use shell commands for validation, build/test execution, repository inspection, logs, and process checks.
 - Do not use shell editing when deterministic file-edit tools are a better fit.
 - Do not assume command success means task success; inspect output when the distinction matters.

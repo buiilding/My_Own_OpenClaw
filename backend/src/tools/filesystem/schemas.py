@@ -14,7 +14,11 @@ class ReadFileArgs(BaseModel):
     
     file_path: str = Field(
         ...,
-        description="The path to the file to read (absolute path)"
+        description=(
+            "Path to the file to read. Absolute paths are allowed, and relative paths "
+            "resolve from the selected workspace folder when available; otherwise they "
+            "resolve from the OS user home directory."
+        ),
     )
     offset: Optional[int] = Field(
         None, ge=0, description="0-based line offset to start reading from (defaults to 0)"
@@ -101,8 +105,10 @@ class ReplaceArgs(BaseModel):
     file_path: str = Field(
         ...,
         description=(
-            "The path to the file to edit (absolute path). If the file does not exist, "
-            "creation is allowed only when exactly one replacement operation has old_string=''."
+            "Path to the file to edit. Absolute paths are allowed, and relative paths resolve "
+            "from the selected workspace folder when available; otherwise they resolve from the "
+            "OS user home directory. If the file does not exist, creation is allowed only when "
+            "exactly one replacement operation has old_string=''."
         )
     )
     old_string: Optional[str] = Field(

@@ -219,7 +219,15 @@ class RunShellCommandArgs(BaseModel):
     """Arguments for shell command tool."""
     model_config = ConfigDict(extra='forbid')
     
-    command: str = Field(..., description="Command to execute")
+    command: str = Field(
+        ...,
+        description=(
+            "Command to execute. For repository or log search, prefer fast targeted commands "
+            "such as rg instead of broad recursive grep, and exclude generated directories like "
+            "node_modules, frontend/release, frontend/python-runtime, and .git unless the user "
+            "explicitly needs them."
+        ),
+    )
     directory: Optional[str] = Field(
         None,
         description=(
@@ -453,7 +461,14 @@ class ReplaceArgs(BaseModel):
     """Arguments for replace tool."""
     model_config = ConfigDict(extra='forbid')
     
-    file_path: str = Field(..., description="Absolute path to the file to modify")
+    file_path: str = Field(
+        ...,
+        description=(
+            "Path to the file to modify. Absolute paths are allowed, and relative paths resolve "
+            "from the selected workspace folder when available; otherwise they resolve from the "
+            "OS user home directory."
+        ),
+    )
     old_string: Optional[str] = Field(
         None,
         description="Single-operation string to search for and replace",

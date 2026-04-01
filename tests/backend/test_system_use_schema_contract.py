@@ -31,6 +31,21 @@ def test_run_shell_command_schema_is_direct_and_requires_explanation():
     assert parameters["required"] == ["command", "run_in_background", "explanation"]
     assert "tool" not in parameters["properties"]
     assert "arguments" not in parameters["properties"]
+    assert "prefer fast targeted commands such as rg" in parameters["properties"]["command"]["description"]
+    assert "relative paths resolve from the user-selected WindieOS workspace folder" in parameters["properties"]["directory"]["description"]
+
+
+def test_filesystem_tool_schemas_describe_workspace_relative_paths():
+    registry = ToolRegistry(config=AppConfig(), cache_manager=CacheManager())
+    declarations = registry.get_function_declarations_filtered(["read_file", "replace"])
+    declarations_by_name = {declaration["name"]: declaration for declaration in declarations}
+
+    assert "relative paths resolve from the selected workspace folder" in (
+        declarations_by_name["read_file"]["parameters"]["properties"]["file_path"]["description"]
+    )
+    assert "relative paths resolve from the selected workspace folder" in (
+        declarations_by_name["replace"]["parameters"]["properties"]["file_path"]["description"]
+    )
 
 
 def test_replace_schema_keeps_batch_and_patch_variants_directly():
