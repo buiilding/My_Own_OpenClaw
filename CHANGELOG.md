@@ -2689,3 +2689,6 @@ Includes the last 300 commits on `main`.
 - frontend transcript persistence now stores `tool-call` rows as assistant tool-call turns instead of `role='tool'` rows, so reopened chats can rehydrate provider-valid assistant `tool_calls` history before tool outputs.
 - fix(frontend-dashboard): stop replaying full dashboard entry animation when restoring the main window from the chat pill to avoid Windows/Electron reopen freezes
 - feat(frontend-settings): add an Onboarding settings tab with a button that returns the user to the first-run onboarding flow
+# Unreleased
+
+- Increased the main-process local sidecar request timeout from 30 seconds to 60 seconds for non-browser tool calls and generic JSON-RPC requests, reducing false timeouts on slower recursive shell/file operations.

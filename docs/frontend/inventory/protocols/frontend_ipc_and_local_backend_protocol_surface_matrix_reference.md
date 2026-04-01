@@ -137,7 +137,7 @@ Transport:
 
 - JSON-RPC 2.0 over `stdin/stdout`, one JSON object per line.
 - Request correlation by UUID `id` in `pendingRequests` map.
-- Default timeout `30000ms`; `execute-tool` for `browser` uses `120000ms`.
+- Default timeout `60000ms`; `execute-tool` for `browser` uses `120000ms`.
 
 ### JSON-RPC Method Map (IPC channel -> method)
 

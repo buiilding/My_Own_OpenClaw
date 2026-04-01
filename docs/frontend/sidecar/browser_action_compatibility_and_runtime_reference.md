@@ -33,7 +33,7 @@ title: "Browser Action Compatibility and Runtime Reference"
 
 1. Renderer invokes `INVOKE_CHANNELS.EXECUTE_TOOL`.
 2. Electron main forwards JSON-RPC `execute_tool`.
-3. Browser tool has extended timeout (`120000ms`; non-browser tools `30000ms`).
+3. Browser tool has extended timeout (`120000ms`; non-browser tools `60000ms`).
 4. Sidecar `LocalBackend._handle_execute_tool` calls `ToolRegistry.execute_tool("browser", args)`.
 5. `browser_tool.execute_browser` applies removed-alias gate, then invokes adapter.
 6. Adapter normalizes and dispatches to runtime provider handlers.
@@ -127,8 +127,8 @@ Core native handler map includes:
 ### Main-process timeout boundaries
 
 - browser `execute-tool`: `120000ms`
-- non-browser `execute-tool`: `30000ms`
-- generic bridge default: `30000ms`
+- non-browser `execute-tool`: `60000ms`
+- generic bridge default: `60000ms`
 
 ### Adapter error code mapping
 
