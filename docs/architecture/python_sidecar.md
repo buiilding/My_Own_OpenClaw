@@ -47,6 +47,7 @@ The bridge:
   in dev logs.
 - Sends `ping` until ready, then marks the sidecar as ready.
 - Uses bounded exponential-backoff retries and stale-callback guards in readiness checks to avoid old timeout callbacks marking restarted processes incorrectly.
+- Workspace-aware path resolution now lives in one shared sidecar helper so shell and filesystem tools resolve relative paths from the same selected workspace base instead of each tool re-implementing permission-state parsing.
 
 ## JSON-RPC Methods
 

@@ -183,6 +183,39 @@ async def test_run_shell_command_resolves_relative_directory_from_selected_works
 
 
 @pytest.mark.asyncio
+async def test_run_shell_command_reports_original_relative_directory_when_missing(monkeypatch, tmp_path):
+    workspace_dir = tmp_path / "workspace"
+    workspace_dir.mkdir()
+    permission_state_path = tmp_path / "permission-state.json"
+    permission_state_path.write_text(
+        (
+            '{'
+            '"version":1,'
+            '"permissions":{"filesystem_workspace_access":{'
+            '"granted":true,'
+            '"selected_paths":["%s"]'
+            '}}'
+            '}'
+        ) % str(workspace_dir),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("WINDIE_PERMISSION_STATE_PATH", str(permission_state_path))
+
+    cmd = f'{sys.executable} -c "import os; print(os.getcwd())"'
+    result = await run_shell_command(
+        {
+            "command": cmd,
+            "directory": "missing-dir",
+            "run_in_background": False,
+            "terminate_after_seconds": 5,
+        }
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "Directory does not exist or is not a directory: missing-dir"
+
+
+@pytest.mark.asyncio
 async def test_run_shell_command_env_override_and_pty_warning():
     cmd = f'{sys.executable} -c "import os; print(os.getenv(\'WINDIE_TEST\'))"'
     result = await run_shell_command(

@@ -3,7 +3,6 @@ Shell Tool - Python implementation with background session support.
 """
 
 import asyncio
-import json
 import logging
 import os
 import platform
@@ -33,6 +32,7 @@ from tools.system.shell_response_payloads import (
     build_background_response,
     build_foreground_response,
 )
+from tools.path_resolution import resolve_workspace_path
 
 logger = logging.getLogger(__name__)
 
@@ -85,66 +85,16 @@ _SUDO_IGNORED_FLAGS_WITH_VALUE = {
     "--type",
     "-C",
 }
-_WORKSPACE_ACCESS_PERMISSION_ID = "filesystem_workspace_access"
-
-
-def _resolve_default_workspace_directory() -> Optional[Path]:
-    permission_state_path = os.environ.get("WINDIE_PERMISSION_STATE_PATH", "").strip()
-    if not permission_state_path:
-        return None
-
-    try:
-        with open(permission_state_path, "r", encoding="utf-8") as handle:
-            raw_state = json.load(handle)
-    except (FileNotFoundError, OSError, ValueError, TypeError):
-        return None
-
-    permissions = raw_state.get("permissions")
-    if not isinstance(permissions, dict):
-        return None
-
-    workspace_entry = permissions.get(_WORKSPACE_ACCESS_PERMISSION_ID)
-    if not isinstance(workspace_entry, dict) or workspace_entry.get("granted") is not True:
-        return None
-
-    selected_paths = workspace_entry.get("selected_paths")
-    if not isinstance(selected_paths, list):
-        return None
-
-    for selected_path in selected_paths:
-        if not isinstance(selected_path, str) or not selected_path.strip():
-            continue
-        workspace_path = Path(selected_path).expanduser()
-        if workspace_path.exists() and workspace_path.is_dir():
-            return workspace_path
-
-    return None
-
-
 def _resolve_shell_working_directory(raw_directory: object) -> Tuple[Optional[Path], Optional[str]]:
-    default_directory = _resolve_default_workspace_directory() or Path.home()
-
-    if raw_directory is None:
-        return default_directory, None
-
-    if not isinstance(raw_directory, str):
+    resolved_path, normalized_input, path_error = resolve_workspace_path(raw_directory)
+    if path_error:
+        return None, "Directory must be a string"
+    if resolved_path is None:
         return None, "Directory must be a string"
 
-    normalized_directory = raw_directory.strip()
-    if not normalized_directory:
-        return default_directory, None
-
-    candidate_path = Path(normalized_directory).expanduser()
-    if not candidate_path.is_absolute():
-        candidate_path = default_directory / candidate_path
-
-    try:
-        resolved_path = candidate_path.resolve(strict=False)
-    except OSError:
-        resolved_path = candidate_path
-
     if not resolved_path.exists() or not resolved_path.is_dir():
-        return None, f"Directory does not exist or is not a directory: {normalized_directory}"
+        requested_directory = normalized_input if normalized_input else str(resolved_path)
+        return None, f"Directory does not exist or is not a directory: {requested_directory}"
 
     return resolved_path, None
 

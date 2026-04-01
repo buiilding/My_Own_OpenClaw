@@ -457,7 +457,8 @@ when required by that tool's schema.
 - **get_system_stats**: System statistics
 - **get_open_windows**: List open windows
 - **open_app**: Launch GUI app detached from sidecar lifecycle with optional window/screenshot verification
-- **run_shell_command**: Execute shell command (supports `yield_after_seconds` + `env` overrides; defaults to the selected workspace folder when one has been opened in WindieOS and otherwise to the user home directory when `directory` is omitted; foreground `llm_content` is truncated by default to ~10,000 tokens with marker support via `max_output_tokens`; use `process` for background sessions)
+- **run_shell_command**: Execute shell command (supports `yield_after_seconds` + `env` overrides; omitted or relative `directory` values resolve from the selected workspace folder when one has been opened in WindieOS and otherwise from the user home directory; foreground `llm_content` is truncated by default to ~10,000 tokens with marker support via `max_output_tokens`; use `process` for background sessions)
+- **read_file**: Read text, PDF, or image files (relative `file_path` values resolve from the selected workspace folder when available and otherwise from the user home directory)
 - **process**: Manage background shell sessions (poll/log/write/kill)
 
 ### Browser Tools
