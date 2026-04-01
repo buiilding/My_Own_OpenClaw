@@ -11,6 +11,13 @@ title: "Permission Manifest, Probe, and IPC Request Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/main/permission_service.cjs`
+- `frontend/src/main/permission_service_runtime.cjs`
+- `frontend/src/main/permission_service_screen_capture.cjs`
+- `frontend/src/main/permission_service_input_control.cjs`
+- `frontend/src/main/permission_service_microphone.cjs`
+- `frontend/src/main/permission_service_automation.cjs`
+- `frontend/src/main/permission_service_workspace.cjs`
+- `frontend/src/main/permission_service_browser.cjs`
 - `frontend/src/main/permission_state_store.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/shared/permissions/permission_manifest.json`
@@ -40,7 +47,11 @@ Permission definition fields cloned by service:
 
 ## Probe Runtime (`permission_service.cjs`)
 
-`runPermissionProbe(permissionId, deps)` is async and dispatches by permission id:
+`runPermissionProbe(permissionId, deps)` is async and dispatches by permission id.
+`permission_service.cjs` now acts as the orchestrator only; per-domain probe/request
+logic lives in the focused permission-service modules listed above.
+
+Current probe ownership:
 
 - `screen_capture`:
   - macOS: uses `systemPreferences.getMediaAccessStatus('screen')`
