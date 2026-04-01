@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ApiClient } from '../../../infrastructure/api/client';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { loadConversationTranscriptMemories } from '../../../infrastructure/transcript/conversationTranscriptLoader';
 import {
   setActiveConversationRef,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
+import {
+  clearConversationBackendSyncState,
+  markConversationBackendStateUnknown,
+} from '../../chat/session/conversationBackendSyncRuntime';
 import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
 import {
   parseMemoriesToMessages,
-  toRehydrateMessagePayload,
 } from '../utils/episodicMemoryUtils';
 import { buildConversationGroups } from '../utils/conversationGroups';
 import {
@@ -156,13 +158,11 @@ function useDashboardConversations({
       });
       const parsedMessages = parseMemoriesToMessages(memories);
 
-      await ApiClient.sendRehydrateConversation(
-        conversationRef,
-        memories.map(toRehydrateMessagePayload),
-      );
-
       setActiveConversationRef(conversationRef);
       updateTranscriptSession(conversationRef, resolvedUserId);
+      if (sessionConversationRef !== conversationRef) {
+        markConversationBackendStateUnknown(conversationRef);
+      }
       setChatActiveConversationRef(conversationRef);
       setChatMessages(parsedMessages, conversationRef);
       setChatIsSending(false, conversationRef);
@@ -242,6 +242,7 @@ function useDashboardConversations({
       setRecentConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
       setSearchedConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
       setPinnedConversationRefs((current) => current.filter((id) => id !== conversationRef));
+      clearConversationBackendSyncState(conversationRef);
       if (sessionConversationRef === conversationRef) {
         resetActiveChatSession({
           conversationRef,

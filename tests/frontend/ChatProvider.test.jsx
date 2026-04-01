@@ -10,6 +10,8 @@ const mockUseChatStream = jest.fn();
 const mockUseToolRunner = jest.fn();
 const mockUseTranscriptSessionInfo = jest.fn();
 const mockBootstrapSession = jest.fn().mockResolvedValue({ conversationRef: null, userId: null });
+const mockInvalidateConversationBackendSyncState = jest.fn();
+const mockIpcOn = jest.fn(() => jest.fn());
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 
 function createInitialStreamTracking() {
@@ -46,6 +48,19 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatSessionBootstr
   useChatSessionBootstrap: () => mockBootstrapSession,
 }));
 
+jest.mock('../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime', () => ({
+  invalidateConversationBackendSyncState: () => mockInvalidateConversationBackendSyncState(),
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
+  IpcBridge: {
+    on: (...args) => mockIpcOn(...args),
+  },
+  ON_CHANNELS: {
+    IPC_STATUS: 'ipc-status',
+  },
+}));
+
 function resetChatStore() {
   useChatStore.setState({
     activeConversationRef: null,
@@ -75,6 +90,9 @@ describe('ChatProvider', () => {
     mockUseToolRunner.mockReset();
     mockUseTranscriptSessionInfo.mockReset();
     mockBootstrapSession.mockClear();
+    mockInvalidateConversationBackendSyncState.mockReset();
+    mockIpcOn.mockReset();
+    mockIpcOn.mockReturnValue(jest.fn());
     resetChatStore();
   });
 
@@ -141,5 +159,24 @@ describe('ChatProvider', () => {
     await waitFor(() => {
       expect(useChatStore.getState().activeConversationRef).toBe('conv-b');
     });
+  });
+
+  test('invalidates lazy backend sync state when transport disconnects', async () => {
+    mockUseTranscriptSessionInfo.mockReturnValue({
+      conversationRef: null,
+      userId: 'peter',
+    });
+
+    render(
+      <ChatProvider enableToolRunner={false} enableTranscript={false}>
+        <div>overlay</div>
+      </ChatProvider>,
+    );
+
+    expect(mockIpcOn).toHaveBeenCalledWith('ipc-status', expect.any(Function));
+    const disconnectListener = mockIpcOn.mock.calls.find(([channel]) => channel === 'ipc-status')?.[1];
+    disconnectListener?.({ isConnected: false });
+
+    expect(mockInvalidateConversationBackendSyncState).toHaveBeenCalledTimes(1);
   });
 });

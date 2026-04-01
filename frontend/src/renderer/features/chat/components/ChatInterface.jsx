@@ -17,13 +17,12 @@ import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
+import { ensureConversationBackendState } from '../session/conversationBackendSyncRuntime';
 import { startNewChatSession } from '../utils/session/newChatSession';
-import { loadConversationTranscriptMemories } from '../../../infrastructure/transcript/conversationTranscriptLoader';
 import {
   getActiveConversationRef,
   getTranscriptSessionInfo,
 } from '../../../infrastructure/transcript/TranscriptWriter';
-import { toRehydrateMessagePayload } from '../../dashboard/utils/episodicMemoryUtils';
 import {
   COMPACTION_THINKING_STATUS,
 } from '../utils/chatStream/chatStreamThinkingStatus';
@@ -325,18 +324,12 @@ function ChatInterface({ focusComposerToken = 0 }) {
     }
     const sessionInfo = getTranscriptSessionInfo();
     const conversationRef = getActiveConversationRef() || sessionInfo?.conversationRef || null;
-    const userId = sessionInfo?.userId || null;
-    if (conversationRef && userId) {
+    if (conversationRef) {
       try {
-        const memories = await loadConversationTranscriptMemories({
-          userId,
+        await ensureConversationBackendState({
           conversationRef,
-          recordKind: 'transcript',
+          userId: sessionInfo?.userId || null,
         });
-        await ApiClient.sendRehydrateConversation(
-          conversationRef,
-          memories.map(toRehydrateMessagePayload),
-        );
       } catch (error) {
         console.warn('[ChatInterface] Failed to rehydrate conversation before compaction:', error);
       }

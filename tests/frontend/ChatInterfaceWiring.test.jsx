@@ -38,6 +38,8 @@ const mockCompactHistory = jest.fn();
 const mockSendQuery = jest.fn();
 const mockSendRehydrateConversation = jest.fn();
 const mockUpdateSettings = jest.fn();
+const mockEnsureConversationBackendState = jest.fn();
+const mockRehydrateConversationBackendState = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
 const mockClearMessages = jest.fn();
 const mockSetMessages = jest.fn();
@@ -108,6 +110,14 @@ jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
     sendRehydrateConversation: (...args) => mockSendRehydrateConversation(...args),
     updateSettings: (...args) => mockUpdateSettings(...args),
   },
+}));
+
+jest.mock('../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime', () => ({
+  ensureConversationBackendState: (...args) => mockEnsureConversationBackendState(...args),
+  rehydrateConversationBackendState: (...args) => mockRehydrateConversationBackendState(...args),
+  markConversationBackendStateFreshLocal: jest.fn(),
+  markConversationBackendStateUnknown: jest.fn(),
+  clearConversationBackendSyncState: jest.fn(),
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
@@ -189,6 +199,10 @@ describe('ChatInterface wiring', () => {
     mockSendQuery.mockClear();
     mockSendRehydrateConversation.mockClear();
     mockUpdateSettings.mockClear();
+    mockEnsureConversationBackendState.mockReset();
+    mockEnsureConversationBackendState.mockResolvedValue(undefined);
+    mockRehydrateConversationBackendState.mockReset();
+    mockRehydrateConversationBackendState.mockResolvedValue(undefined);
     mockClearMessages.mockClear();
     mockSetMessages.mockClear();
     mockUpdateMessage.mockClear();
@@ -636,28 +650,19 @@ describe('ChatInterface wiring', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Run auto compaction' }));
     expect(mockSetThinkingStatus).toHaveBeenCalledWith('Compacting conversation history...');
     expect(mockSetThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-started');
-    expect(mockIpcInvoke).not.toHaveBeenCalledWith(
-      'get-conversation',
-      expect.anything(),
-    );
     await waitFor(() => {
-      expect(mockIpcInvoke).toHaveBeenCalledWith(
-        'get-conversation',
-        expect.objectContaining({
-          userId: 'default_user',
-          conversationId: 'conv_existing',
-          recordKind: 'transcript',
-        }),
-      );
       expect(mockUpdateSettings).toHaveBeenCalledWith({
         model_provider: 'anthropic',
         selected_model_id: 'claude-sonnet-4-5',
       });
-      expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv_existing', []);
+      expect(mockEnsureConversationBackendState).toHaveBeenCalledWith({
+        conversationRef: 'conv_existing',
+        userId: 'default_user',
+      });
       expect(mockCompactHistory).toHaveBeenCalledWith(true, 'conv_existing');
     });
     expect(mockUpdateSettings.mock.invocationCallOrder[0]).toBeLessThan(
-      mockSendRehydrateConversation.mock.invocationCallOrder[0],
+      mockEnsureConversationBackendState.mock.invocationCallOrder[0],
     );
   });
 
@@ -1289,8 +1294,10 @@ describe('ChatInterface wiring', () => {
       conversationRef: 'conv_existing',
       userId: 'default_user',
     }));
-    const sawExpectedRehydrateCall = mockSendRehydrateConversation.mock.calls.some(
-      ([conversationRef, messages]) => conversationRef === 'conv_existing' && Array.isArray(messages) && messages.length === 0,
+    const sawExpectedRehydrateCall = mockRehydrateConversationBackendState.mock.calls.some(
+      ([payload]) => payload?.conversationRef === 'conv_existing'
+        && Array.isArray(payload?.messages)
+        && payload.messages.length === 0,
     );
     expect(sawExpectedRehydrateCall).toBe(true);
     const sawExpectedSendQueryCall = mockSendQuery.mock.calls.some(
@@ -1336,7 +1343,10 @@ describe('ChatInterface wiring', () => {
       conversationRef: 'conv_existing',
       userId: 'default_user',
     }));
-    expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv_existing', []);
+    expect(mockRehydrateConversationBackendState).toHaveBeenCalledWith({
+      conversationRef: 'conv_existing',
+      messages: [],
+    });
     const sawEditedSendQueryCall = mockSendQuery.mock.calls.some(
       ([queryText, conversationRef, screenshotRef, screenshotUrl, screenshotRefs]) => (
         queryText === 'new prompt'

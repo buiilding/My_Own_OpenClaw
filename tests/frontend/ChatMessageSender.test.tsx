@@ -14,6 +14,11 @@ import {
   setActiveConversationRef,
   updateTranscriptSession,
 } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
+import {
+  ensureConversationBackendState,
+  markConversationBackendStateFreshLocal,
+  markConversationBackendStateUnknown,
+} from '../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime';
 
 let mockFrontendConfig: Record<string, unknown> = {
   include_query_screenshot: true,
@@ -36,6 +41,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
     sendQuery: jest.fn(),
     updateSettings: jest.fn(),
+    sendRehydrateConversation: jest.fn(),
   },
 }));
 
@@ -61,6 +67,12 @@ jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWrite
   recordUserMessage: jest.fn(),
 }));
 
+jest.mock('../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime', () => ({
+  ensureConversationBackendState: jest.fn(),
+  markConversationBackendStateFreshLocal: jest.fn(),
+  markConversationBackendStateUnknown: jest.fn(),
+}));
+
 const mockCaptureScreenshotAttachment = captureScreenshotAttachment as jest.MockedFunction<typeof captureScreenshotAttachment>;
 const mockSendQuery = ApiClient.sendQuery as jest.MockedFunction<typeof ApiClient.sendQuery>;
 const mockUpdateSettings = ApiClient.updateSettings as jest.MockedFunction<typeof ApiClient.updateSettings>;
@@ -70,6 +82,9 @@ const mockGetActiveConversationRef = getActiveConversationRef as jest.MockedFunc
 const mockSetActiveConversationRef = setActiveConversationRef as jest.MockedFunction<typeof setActiveConversationRef>;
 const mockUpdateTranscriptSession = updateTranscriptSession as jest.MockedFunction<typeof updateTranscriptSession>;
 const mockGetTranscriptSessionInfo = getTranscriptSessionInfo as jest.MockedFunction<typeof getTranscriptSessionInfo>;
+const mockEnsureConversationBackendState = ensureConversationBackendState as jest.MockedFunction<typeof ensureConversationBackendState>;
+const mockMarkConversationBackendStateFreshLocal = markConversationBackendStateFreshLocal as jest.MockedFunction<typeof markConversationBackendStateFreshLocal>;
+const mockMarkConversationBackendStateUnknown = markConversationBackendStateUnknown as jest.MockedFunction<typeof markConversationBackendStateUnknown>;
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 
 function createInitialStreamTracking() {
@@ -172,6 +187,9 @@ describe('useChatMessageSender', () => {
     mockUpdateTranscriptSession.mockClear();
     mockGetTranscriptSessionInfo.mockClear();
     mockRecordUserMessage.mockClear();
+    mockEnsureConversationBackendState.mockReset();
+    mockMarkConversationBackendStateFreshLocal.mockReset();
+    mockMarkConversationBackendStateUnknown.mockReset();
 
     const streamTracking = createInitialStreamTracking();
     useChatStore.setState({
@@ -226,6 +244,7 @@ describe('useChatMessageSender', () => {
     });
     mockSendQuery.mockResolvedValue(undefined);
     mockUploadArtifactBase64.mockResolvedValue(null);
+    mockEnsureConversationBackendState.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -713,6 +732,10 @@ describe('useChatMessageSender', () => {
         conversationRef: 'conv_existing',
       }),
     );
+    expect(mockEnsureConversationBackendState).toHaveBeenCalledWith({
+      conversationRef: 'conv_existing',
+      userId: null,
+    });
   });
 
   test('hydrates missing conversation ref from main startup snapshot before first send', async () => {
@@ -734,6 +757,7 @@ describe('useChatMessageSender', () => {
 
     expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv-main-snapshot');
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-main-snapshot', 'user-main-snapshot');
+    expect(mockMarkConversationBackendStateUnknown).toHaveBeenCalledWith('conv-main-snapshot');
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
     expect(mockSendQuery.mock.calls[0][1]).toBe('conv-main-snapshot');
   });
@@ -754,6 +778,20 @@ describe('useChatMessageSender', () => {
       expect.objectContaining({
         conversationRef: 'conv_store_active',
       }),
+    );
+  });
+
+  test('marks generated first-send conversations as fresh local before backend sync', async () => {
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+    await sendText(result, 'hello');
+
+    expect(mockMarkConversationBackendStateFreshLocal).toHaveBeenCalledWith('conv_msg-1');
+    expect(mockEnsureConversationBackendState).toHaveBeenCalledWith({
+      conversationRef: 'conv_msg-1',
+      userId: null,
+    });
+    expect(mockEnsureConversationBackendState.mock.invocationCallOrder[0]).toBeLessThan(
+      mockSendQuery.mock.invocationCallOrder[0],
     );
   });
 });
