@@ -2694,4 +2694,5 @@ Includes the last 300 commits on `main`.
 # Unreleased
 
 - Centralized sidecar workspace-aware path resolution so `run_shell_command` and `read_file` now share one relative-path contract rooted at the selected workspace folder (or user home when no workspace is selected), with file/path errors preserving the user-provided input.
+- Extracted chat transcript presentation into a pure message pipeline so hidden tool logs, live explanation rows, action summaries, and response-overlay explanation rows all derive from the same raw transcript state.
 - Increased the main-process local sidecar request timeout from 30 seconds to 60 seconds for non-browser tool calls and generic JSON-RPC requests, reducing false timeouts on slower recursive shell/file operations.

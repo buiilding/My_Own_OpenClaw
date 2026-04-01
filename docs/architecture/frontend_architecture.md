@@ -220,6 +220,7 @@ Primary modules:
 ### Chat Runtime
 
 - `features/chat/stores/chatStore.ts`: canonical chat state + stream tracking.
+- `features/chat/utils/message/messagePresentationPipeline.js`: pure presentation pipeline that derives visible dashboard and overlay message rows from raw transcript state, including hidden-tool explanation rows and collapsed action summaries.
 - `features/chat/hooks/useChatStream.ts`:
  - Stream event routing (`llm-thought`, `streaming-response`, `tool-call`, `tool-output`, `streaming-complete`, etc.).
   - Conversation gating, turn tracking, token-count handling.
