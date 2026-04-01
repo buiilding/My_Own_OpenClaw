@@ -150,14 +150,14 @@ Normalization details:
 
 RapidOCR parameter policy:
 
-- WindieOS leaves RapidOCR defaults intact for detection/classification/recognition settings.
-- Engine creation only overrides `EngineConfig.onnxruntime.use_cuda` so OCR still prefers CUDA first.
-- CPU fallback recreates the engine with the same default RapidOCR settings and `use_cuda=false`.
+- WindieOS uses an explicit quality-first RapidOCR profile instead of bare library defaults.
+- Detection and recognition are pinned to ONNX Runtime `PP-OCRv5` `server` models with `lang_type="ch"`.
+- Engine creation still toggles `EngineConfig.onnxruntime.use_cuda` so OCR prefers CUDA first and falls back to CPU by recreating the same quality-first profile with `use_cuda=false`.
 
 Test-backed behavior:
 
 - base64/data-url decode rules and invalid payload rejection
-- engine creation only overrides the ONNX Runtime CUDA flag
+- engine params pin the quality-first ONNX Runtime PP-OCRv5 server profile
 - CUDA runtime error retry path and non-CUDA error propagation
 - invalid OCR rows are skipped while valid rows remain in output
 

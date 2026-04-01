@@ -45,20 +45,19 @@ def test_build_bbox_list_skips_invalid_polygons():
     assert service._build_bbox_list(boxes) == [(10, 20, 20, 30), (0, 1, 2, 4)]
 
 
-def test_create_engine_only_overrides_onnxruntime_cuda_flag(monkeypatch):
+def test_build_engine_params_selects_quality_first_profile():
     service = OcrService()
-    captured = {}
+    params = service._build_engine_params(use_cuda=True)
 
-    class DummyRapidOCR:
-        def __init__(self, *, params):
-            captured["params"] = params
-
-    monkeypatch.setattr(ocr_service_module, "RapidOCR", DummyRapidOCR)
-
-    service._create_engine(use_cuda=True)
-
-    assert captured["params"] == {"EngineConfig.onnxruntime.use_cuda": True}
-    assert service.use_cuda is True
+    assert params["Det.engine_type"] == ocr_service_module.EngineType.ONNXRUNTIME
+    assert params["Det.lang_type"] == "ch"
+    assert params["Det.model_type"] == ocr_service_module.ModelType.SERVER
+    assert params["Det.ocr_version"] == ocr_service_module.OCRVersion.PPOCRV5
+    assert params["Rec.engine_type"] == ocr_service_module.EngineType.ONNXRUNTIME
+    assert params["Rec.lang_type"] == "ch"
+    assert params["Rec.model_type"] == ocr_service_module.ModelType.SERVER
+    assert params["Rec.ocr_version"] == ocr_service_module.OCRVersion.PPOCRV5
+    assert params["EngineConfig.onnxruntime.use_cuda"] is True
 
 
 def test_normalize_ocr_field_coerces_common_types():
@@ -79,7 +78,7 @@ def test_normalize_ocr_field_handles_numpy_array_if_available():
     assert service._normalize_ocr_field(array) == [1, 2, 3]
 
 
-def test_create_engine_cpu_mode_only_overrides_cuda_flag(monkeypatch):
+def test_create_engine_uses_quality_first_profile(monkeypatch):
     service = OcrService()
     captured = {}
 
@@ -91,7 +90,13 @@ def test_create_engine_cpu_mode_only_overrides_cuda_flag(monkeypatch):
 
     service._create_engine(use_cuda=False)
 
-    assert captured["params"] == {"EngineConfig.onnxruntime.use_cuda": False}
+    assert captured["params"]["Det.engine_type"] == ocr_service_module.EngineType.ONNXRUNTIME
+    assert captured["params"]["Det.model_type"] == ocr_service_module.ModelType.SERVER
+    assert captured["params"]["Det.ocr_version"] == ocr_service_module.OCRVersion.PPOCRV5
+    assert captured["params"]["Rec.engine_type"] == ocr_service_module.EngineType.ONNXRUNTIME
+    assert captured["params"]["Rec.model_type"] == ocr_service_module.ModelType.SERVER
+    assert captured["params"]["Rec.ocr_version"] == ocr_service_module.OCRVersion.PPOCRV5
+    assert captured["params"]["EngineConfig.onnxruntime.use_cuda"] is False
     assert service.use_cuda is False
 
 

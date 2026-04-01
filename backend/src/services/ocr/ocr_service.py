@@ -17,14 +17,20 @@ logger = logging.getLogger(__name__)
 
 OCR_IMPORT_ERROR = None
 try:
-    from rapidocr import RapidOCR
+    from rapidocr import EngineType, ModelType, OCRVersion, RapidOCR
     OCR_AVAILABLE = True
 except ImportError as e:
     RapidOCR = None
+    EngineType = None
+    ModelType = None
+    OCRVersion = None
     OCR_AVAILABLE = False
     OCR_IMPORT_ERROR = str(e)
 except Exception as e:
     RapidOCR = None
+    EngineType = None
+    ModelType = None
+    OCRVersion = None
     OCR_AVAILABLE = False
     OCR_IMPORT_ERROR = f"Unexpected error during import: {e}"
 
@@ -51,9 +57,24 @@ class OcrService:
         if not OCR_AVAILABLE:
             self.enabled = False
 
+    def _build_engine_params(self, use_cuda: bool) -> Dict[str, Any]:
+        # Quality-first RapidOCR profile:
+        # use ONNX Runtime PP-OCRv5 server models for detection + recognition,
+        # while keeping CUDA-first execution and RapidOCR's default classifier path.
+        return {
+            "Det.engine_type": EngineType.ONNXRUNTIME,
+            "Det.lang_type": "ch",
+            "Det.model_type": ModelType.SERVER,
+            "Det.ocr_version": OCRVersion.PPOCRV5,
+            "Rec.engine_type": EngineType.ONNXRUNTIME,
+            "Rec.lang_type": "ch",
+            "Rec.model_type": ModelType.SERVER,
+            "Rec.ocr_version": OCRVersion.PPOCRV5,
+            "EngineConfig.onnxruntime.use_cuda": use_cuda,
+        }
+
     def _create_engine(self, use_cuda: bool) -> None:
-        # Keep RapidOCR defaults for everything except ONNX Runtime CUDA selection.
-        ocr_params = {"EngineConfig.onnxruntime.use_cuda": use_cuda}
+        ocr_params = self._build_engine_params(use_cuda=use_cuda)
         self._ocr_engine = RapidOCR(params=ocr_params)
         self.use_cuda = use_cuda
 
