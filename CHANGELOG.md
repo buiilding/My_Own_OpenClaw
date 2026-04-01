@@ -9,6 +9,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 - feat(frontend-chat-image-copy): add a screenshot right-click context menu in chat with a `Copy image` action, wire it through a new Electron clipboard IPC path, and cover the renderer/preload/main contracts with focused frontend tests.
+- tweak(frontend-chat-image-copy-menu): anchor the screenshot copy menu against the image itself instead of the raw click point, and enlarge the pill padding/width so `Copy image` fits cleanly.
 - docs(tool-schema-boundaries): state explicitly that frontend/sidecar code must never import backend code, and that backend-vs-sidecar tool schema drift is prevented by parity tests before production rather than cross-boundary runtime imports.
 - fix(sidecar-browser-shared-contract): move the canonical grouped browser contract into a pure shared Python module under `frontend/src/main/python`, make backend browser schema wrappers import that shared contract through a loader instead of the sidecar importing `backend.src.*`, and add a regression check so browser sidecar modules cannot reintroduce backend-package imports.
 - feat(frontend-lazy-conversation-rehydrate): make `Your workspace` chat switching renderer-only, add a renderer-owned conversation/backend sync runtime with `unknown`/`synced`/`fresh-local` state, and lazily rehydrate backend history only before send, replay/edit, or manual compaction instead of on passive chat browsing.

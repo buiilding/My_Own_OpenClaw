@@ -17,8 +17,8 @@ const CLOSED_IMAGE_CONTEXT_MENU = Object.freeze({
 function resolveImageContextMenuPosition(x, y) {
   const viewportWidth = typeof window === 'undefined' ? 0 : window.innerWidth;
   const viewportHeight = typeof window === 'undefined' ? 0 : window.innerHeight;
-  const menuWidth = 180;
-  const menuHeight = 56;
+  const menuWidth = 216;
+  const menuHeight = 60;
   const edgePadding = 8;
 
   const clampedX = viewportWidth > 0
@@ -83,10 +83,17 @@ export default function UserMessage({ message }) {
     }
 
     event.preventDefault();
+    const imageBounds = event.currentTarget?.getBoundingClientRect?.();
+    const anchorX = imageBounds
+      ? (imageBounds.right - 16)
+      : event.clientX;
+    const anchorY = imageBounds
+      ? (imageBounds.top + 12)
+      : event.clientY;
     setImageContextMenu({
       open: true,
-      x: event.clientX,
-      y: event.clientY,
+      x: anchorX,
+      y: anchorY,
       src: screenshotSrc,
       isCopying: false,
     });

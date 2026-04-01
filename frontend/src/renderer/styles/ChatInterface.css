@@ -1639,8 +1639,19 @@
   position: fixed;
   top: 0;
   left: 0;
-  min-width: 168px;
+  min-width: 216px;
+  padding: 8px;
+  border-radius: 16px;
   z-index: 140;
+}
+
+.user-image-context-menu .message-dropdown-item {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .user-image-context-menu .message-dropdown-item:disabled {
