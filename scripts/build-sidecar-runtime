@@ -219,6 +219,7 @@ runtime_entries = [
     "python3.dll",
     f"python{sys.version_info.major}{sys.version_info.minor}.dll",
     "DLLs",
+    "Library",
     "Lib",
     "libs",
     "Scripts",
@@ -361,15 +362,20 @@ import pathlib
 import sqlite3
 import ssl
 import sys
+import xml.parsers.expat
 
 import _socket
 import _sqlite3
 import _ssl
+import pyexpat
 
 runtime_root = pathlib.Path(sys.argv[1]).resolve()
 version = f"{sys.version_info.major}.{sys.version_info.minor}"
 expected_prefix = runtime_root
-expected_stdlib = runtime_root / "lib" / f"python{version}"
+if sys.platform == "win32":
+    expected_stdlib = runtime_root / "Lib"
+else:
+    expected_stdlib = runtime_root / "lib" / f"python{version}"
 offenders: list[str] = []
 
 for attribute in ("prefix", "exec_prefix", "base_prefix", "base_exec_prefix"):
@@ -381,8 +387,10 @@ for module_name, module in {
     "_socket": _socket,
     "_ssl": _ssl,
     "_sqlite3": _sqlite3,
+    "pyexpat": pyexpat,
     "ssl": ssl,
     "sqlite3": sqlite3,
+    "xml.parsers.expat": xml.parsers.expat,
 }.items():
     module_path = pathlib.Path(getattr(module, "__file__", "")).resolve()
     if not module_path.is_relative_to(runtime_root):
