@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for sidecar browser schema registry behavior under the shared strict backend-owned browser contract."
+summary: "Deep reference for sidecar browser schema registry behavior under the shared strict browser contract module."
 read_when:
   - When adding/removing browser actions or changing sidecar browser validation rules.
   - When debugging schema parse errors before adapter/runtime execution.
@@ -17,7 +17,7 @@ title: "Schema Registry and Action Validation Boundary Reference"
 
 ## Schema Model Topology
 
-`schemas.py` imports the backend browser contract directly and exposes:
+`schemas.py` re-exports the shared browser contract module and exposes:
 
 - `BrowserControlArgs` discriminated grouped union
 - `BROWSER_SCHEMAS` registry
@@ -88,17 +88,17 @@ There is no browser-specific backend/sidecar schema split anymore.
 
 Practical rule:
 
-- sidecar validation mirrors the backend browser contract exactly
+- backend and sidecar both import the same pure shared browser contract module
+- sidecar runtime modules never import `backend.src.*`
 
 ## Test-Backed Coverage
 
 `tests/sidecar/tools/test_browser_schemas.py` verifies:
 
-- strict grouped contract parity with backend imports
+- strict grouped contract parity with backend wrappers
 - canonical-only action set
 - strict field validation and helper lookup behavior
-
-`tests/sidecar/tools/test_browser_use_tool_parity.py` adds Browser Use parity assertions.
+- sidecar browser schema modules do not import the backend package
 
 ## Related Pages
 

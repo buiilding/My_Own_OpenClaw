@@ -1,12 +1,8 @@
-"""Sidecar browser schemas mirrored directly from the backend contract."""
+"""Sidecar browser schemas re-exported from the shared browser contract."""
 
 from __future__ import annotations
 
-from tools.browser.browser_action_contract import _ensure_repo_root_on_path
-
-_ensure_repo_root_on_path()
-
-from backend.src.tools.browser.schemas import (  # noqa: E402
+from windie_shared.browser_contract import (
     BROWSER_ACTION_CONTRACTS,
     BROWSER_ACTION_CONTRACTS_BY_NAME,
     BROWSER_ACTIONS_REQUIRING_CONNECTION,

@@ -10,6 +10,7 @@ title: "Browser Control Unified Schema Reference"
 
 ## Canonical Modules
 
+- `frontend/src/main/python/windie_shared/browser_contract.py`
 - `backend/src/tools/browser/schema_types.py`
 - `backend/src/tools/browser/browser_control_args_schema.py`
 - `backend/src/tools/browser/schemas.py`
@@ -30,7 +31,7 @@ Action categories:
 
 ## Layer 2: Strict Action Models
 
-`browser_control_args_schema.py` defines one strict model per action with `extra="forbid"`.
+The shared browser contract module defines one strict model per action with `extra="forbid"`.
 
 Examples:
 

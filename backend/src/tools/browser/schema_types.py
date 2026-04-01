@@ -1,52 +1,27 @@
-"""Shared canonical browser literals and action sets."""
+"""Shared canonical browser literals re-exported from the shared browser contract."""
 
 from __future__ import annotations
 
-from typing import Literal, cast, get_args
+from backend.src.tools.browser.shared_contract_loader import ensure_frontend_python_path
 
-BrowserNavigationState = Literal["load", "domcontentloaded", "networkidle", "commit"]
-BrowserMouseButton = Literal["left", "right", "middle"]
-BrowserScrollDirection = Literal["up", "down", "left", "right"]
-BrowserWaitState = Literal["load", "domcontentloaded", "networkidle"]
-BrowserCanonicalAction = Literal[
-    "connect",
-    "status",
-    "profiles",
-    "navigate",
-    "snapshot",
-    "extract",
-    "click",
-    "input",
-    "send_keys",
-    "scroll",
-    "screenshot",
-    "wait",
-    "get_tabs",
-    "switch",
-    "evaluate",
-    "done",
-    "search",
-    "go_back",
-    "search_page",
-    "find_elements",
-    "find_text",
-    "close_tab",
-    "dropdown_options",
-    "select_dropdown",
-    "upload_file",
-    "write_file",
-    "replace_file",
-    "read_file",
-    "read_long_content",
-    "close",
-]
-BrowserCoreAction = BrowserCanonicalAction
+ensure_frontend_python_path()
 
-BROWSER_CANONICAL_ACTIONS = cast(
-    tuple[str, ...],
-    tuple(
-        action
-        for action in get_args(BrowserCanonicalAction)
-        if isinstance(action, str)
-    ),
+from windie_shared.browser_contract import (  # noqa: E402
+    BROWSER_CANONICAL_ACTIONS,
+    BrowserCanonicalAction,
+    BrowserCoreAction,
+    BrowserMouseButton,
+    BrowserNavigationState,
+    BrowserScrollDirection,
+    BrowserWaitState,
 )
+
+__all__ = [
+    "BROWSER_CANONICAL_ACTIONS",
+    "BrowserCanonicalAction",
+    "BrowserCoreAction",
+    "BrowserMouseButton",
+    "BrowserNavigationState",
+    "BrowserScrollDirection",
+    "BrowserWaitState",
+]
