@@ -340,12 +340,28 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     await expectClientEndpoints(handlers, 'wss://windie.example.com/ws', 'https://windie.example.com');
   });
 
-  test('uses hosted backend defaults when app is packaged', async () => {
+  test('uses hosted backend defaults first when app is packaged', async () => {
     const { ws, handlers } = initIpc({ isPackaged: true });
     expect(ws.url).toBe('wss://api.windieos.com/ws');
     expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://api.windieos.com' }));
 
     await expectClientEndpoints(handlers, 'wss://api.windieos.com/ws', 'https://api.windieos.com');
+  });
+
+  test('falls back to the local backend when the packaged hosted default is unreachable before open', async () => {
+    const { handlers } = initIpc({ isPackaged: true });
+    const WebSocketMock = require('ws');
+    const remoteSocket = WebSocketMock.instances[0];
+
+    remoteSocket.handlers.error({ message: 'connect ECONNREFUSED api.windieos.com' });
+
+    const fallbackSocket = WebSocketMock.instances[1];
+    expect(fallbackSocket.url).toBe('ws://127.0.0.1:8765/ws');
+    expect(fallbackSocket.options).toEqual(expect.objectContaining({ origin: 'http://127.0.0.1:8765' }));
+
+    fallbackSocket.triggerOpen();
+
+    await expectClientEndpoints(handlers, 'ws://127.0.0.1:8765/ws', 'http://127.0.0.1:8765');
   });
 
   test('uses packaged default backend env override when app is packaged', async () => {

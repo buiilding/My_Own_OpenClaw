@@ -218,12 +218,6 @@ function resolveBackendEndpointCandidates(env = process.env, options = {}) {
     ]);
   }
 
-  if (options.isPackaged === true) {
-    return dedupeEndpointCandidates([
-      resolveHostedDefaultEndpoints(env),
-    ]);
-  }
-
   return dedupeEndpointCandidates([
     resolveHostedDefaultEndpoints(env),
     resolveLocalFallbackEndpoints(env),

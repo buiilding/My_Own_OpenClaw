@@ -169,7 +169,7 @@ read_when:
 
 2. **Check WebSocket URL**:
    - Dev/source default is `ws://127.0.0.1:8765/ws`
-   - Packaged default is `wss://api.windieos.com/ws`
+   - Packaged apps try `wss://api.windieos.com/ws` first and fall back to `ws://127.0.0.1:8765/ws` if the hosted socket never opens
    - For remote backend, set Electron env vars before launch:
      - `BACKEND_HOST=<backend-ip>` (and optional `BACKEND_PORT`)
      - or `BACKEND_HTTP_URL` / `BACKEND_WS_URL`

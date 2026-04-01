@@ -48,9 +48,13 @@ Defaults when explicit `BACKEND_*` is unset:
     - http: `http://127.0.0.1:8765`
     - ws: `ws://127.0.0.1:8765/ws`
 - Packaged runs:
-  - http: `https://api.windieos.com`
-  - ws: `wss://api.windieos.com/ws`
-  - or `WINDIE_DEFAULT_BACKEND_*` / `WINDIE_DEFAULT_PACKAGED_BACKEND_*` when set
+  - primary hosted candidate:
+    - http: `https://api.windieos.com`
+    - ws: `wss://api.windieos.com/ws`
+    - or `WINDIE_DEFAULT_BACKEND_*` / `WINDIE_DEFAULT_PACKAGED_BACKEND_*` when set
+  - fallback local candidate:
+    - http: `http://127.0.0.1:8765`
+    - ws: `ws://127.0.0.1:8765/ws`
 
 Normalization rules:
 
@@ -70,7 +74,7 @@ Returned object:
 used by the IPC websocket bridge:
 
 - source runs: hosted default first, local fallback second
-- packaged runs: hosted default only
+- packaged runs: hosted default first, local fallback second
 - explicit `BACKEND_*` or host/port overrides collapse the list to the explicit target
 
 ## VM Worker Endpoint Consumption
