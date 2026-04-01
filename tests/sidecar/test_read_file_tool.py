@@ -101,6 +101,37 @@ async def test_read_file_resolves_relative_path_from_home_when_workspace_missing
 
 
 @pytest.mark.asyncio
+async def test_read_file_reports_original_relative_path_when_missing(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+):
+    workspace_dir = tmp_path / "workspace"
+    workspace_dir.mkdir()
+    permission_state_path = tmp_path / "permission-state.json"
+    permission_state_path.write_text(
+        (
+            '{'
+            '"version":1,'
+            '"permissions":{"filesystem_workspace_access":{'
+            '"granted":true,'
+            '"selected_paths":["%s"]'
+            '}}'
+            '}'
+        ) % str(workspace_dir),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("WINDIE_PERMISSION_STATE_PATH", str(permission_state_path))
+
+    result = await read_file({"file_path": "frontend/src/main/missing.cjs"})
+
+    assert result.success is False
+    assert result.error == (
+        f"File not found: frontend/src/main/missing.cjs "
+        f"(resolved to {workspace_dir / 'frontend' / 'src' / 'main' / 'missing.cjs'})"
+    )
+
+
+@pytest.mark.asyncio
 async def test_read_file_respects_offset_and_limit_window(tmp_path: Path):
     target = tmp_path / "window.txt"
     target.write_text("alpha\nbeta\ngamma\ndelta\n", encoding="utf-8")
