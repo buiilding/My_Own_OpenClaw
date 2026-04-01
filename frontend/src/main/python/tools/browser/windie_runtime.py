@@ -6,7 +6,6 @@ import asyncio
 from dataclasses import dataclass
 from datetime import datetime
 import logging
-from pathlib import Path
 import re
 from typing import Any, Awaitable, Callable
 from urllib.parse import quote_plus
@@ -94,13 +93,9 @@ def _normalize_ref(ref: str | None, index: int | None) -> str | None:
     return None
 
 
-def _normalize_upload_path(path: str | None, paths: list[str] | None) -> str | None:
+def _normalize_upload_path(path: str | None) -> str | None:
     if isinstance(path, str) and path.strip():
         return path.strip()
-    if isinstance(paths, list):
-        for candidate in paths:
-            if isinstance(candidate, str) and candidate.strip():
-                return candidate.strip()
     return None
 
 
@@ -251,7 +246,7 @@ class WindieBrowserRuntime:
         result = await self._controller.auto_connect_to_chrome(
             cdp_url="http://127.0.0.1:9333",
             auto_launch=True,
-            headless=bool(args.headless),
+            headless=False,
         )
         return {
             "success": True,
@@ -285,12 +280,12 @@ class WindieBrowserRuntime:
         if args.new_tab:
             result = await self._controller.open_tab(
                 url=args.url,
-                wait_until=args.wait_until,
+                wait_until="load",
             )
         else:
             result = await self._controller.navigate(
                 args.url,
-                wait_until=args.wait_until,
+                wait_until="load",
             )
         if not result.get("success", False):
             raise BrowserActionError(
@@ -302,43 +297,20 @@ class WindieBrowserRuntime:
 
     async def _handle_snapshot(self, args: Any) -> dict[str, Any]:
         page = await self._require_connected_page()
-        wait_result = await self._controller.wait_for_load(args.wait_until)
+        wait_result = await self._controller.wait_for_load("load")
         if not wait_result.get("success", False):
             raise BrowserActionError(
                 code="BROWSER_RUNTIME_ERROR",
                 message=str(wait_result.get("error", "Snapshot wait failed.")),
             )
-
-        format_type = args.format
-        max_chars = args.max_chars
-        refs_mode = args.refs
-        interactive = args.interactive
-        compact = args.compact
-        depth = args.depth
-        if args.mode == "efficient":
-            if format_type == "ai":
-                max_chars = max_chars or DEFAULT_SNAPSHOT_PAGE_LIMIT
-                refs_mode = refs_mode or "role"
-                interactive = True if interactive is None else interactive
-                compact = True if compact is None else compact
-                depth = 4 if depth is None else depth
-            else:
-                max_chars = max_chars or DEFAULT_SNAPSHOT_PAGE_LIMIT
-        else:
-            if format_type == "aria":
-                max_chars = max_chars or DEFAULT_SNAPSHOT_PAGE_LIMIT
-            else:
-                max_chars = max_chars or 12_000
+        capture_limit = min(
+            MAX_SNAPSHOT_WINDOW_CHARS,
+            max(DEFAULT_SNAPSHOT_PAGE_LIMIT, args.offset + args.limit),
+        )
 
         snapshot = await self._controller.get_page_snapshot(
-            format_type=format_type,
-            max_chars=max_chars,
-            refs_mode=refs_mode,
-            interactive=interactive,
-            compact=compact,
-            depth=depth,
-            selector=args.selector,
-            frame_selector=args.frame,
+            format_type="ai",
+            max_chars=capture_limit,
         )
         if hasattr(snapshot, "text"):
             snapshot_text = str(snapshot.text)
@@ -364,7 +336,9 @@ class WindieBrowserRuntime:
 
         offset = args.offset or 0
         limit = _bounded_limit(
-            args.limit, default=max_chars, maximum=MAX_SNAPSHOT_WINDOW_CHARS
+            args.limit,
+            default=DEFAULT_SNAPSHOT_PAGE_LIMIT,
+            maximum=MAX_SNAPSHOT_WINDOW_CHARS,
         )
         if offset + limit > MAX_SNAPSHOT_WINDOW_CHARS:
             raise BrowserActionError(
@@ -374,9 +348,9 @@ class WindieBrowserRuntime:
         total_chars = len(snapshot_text)
         window_start = min(offset, total_chars)
         window_end = min(total_chars, window_start + limit)
-        return {
+        payload = {
             "success": True,
-            "format": format_type,
+            "format": "ai",
             "snapshot": snapshot_text[window_start:window_end],
             "url": url,
             "title": title,
@@ -390,29 +364,38 @@ class WindieBrowserRuntime:
             "has_more": window_end < total_chars,
             "next_offset": window_end if window_end < total_chars else None,
         }
+        if args.include_screenshot:
+            screenshot_bytes = await self._controller.screenshot(image_type="png")
+            screenshot_name = (
+                f"browser-snapshot-{datetime.now().strftime('%Y%m%d-%H%M%S')}.png"
+            )
+            screenshot_path = resolve_browser_path(screenshot_name, ensure_parent=True)
+            screenshot_path.write_bytes(screenshot_bytes)
+            payload["screenshot_path"] = str(screenshot_path)
+            payload["screenshot_content_type"] = "image/png"
+        return payload
 
     async def _handle_extract(self, args: Any) -> dict[str, Any]:
         page = await self._require_connected_page()
-        wait_result = await self._controller.wait_for_load(args.wait_until)
+        wait_result = await self._controller.wait_for_load("load")
         if not wait_result.get("success", False):
             raise BrowserActionError(
                 code="BROWSER_RUNTIME_ERROR",
                 message=str(wait_result.get("error", "Extract wait failed.")),
             )
+        extraction_mode = "structured" if args.output_schema else "focused"
         max_chars = _bounded_limit(
-            args.max_chars,
+            DEFAULT_EXTRACT_CHARS,
             default=DEFAULT_EXTRACT_CHARS,
             maximum=MAX_EXTRACT_CHARS,
         )
         extracted = await extract_page_content(
             page,
             query=args.query,
-            mode=args.mode,
+            mode=extraction_mode,
             extract_links=bool(args.extract_links),
             start_from_char=args.start_from_char,
             max_chars=max_chars,
-            selector=args.selector,
-            frame_selector=args.frame,
         )
         return {
             "success": True,
@@ -463,8 +446,6 @@ class WindieBrowserRuntime:
         clear_first = True
         if isinstance(getattr(args, "clear", None), bool):
             clear_first = bool(args.clear)
-        elif isinstance(getattr(args, "clear_first", None), bool):
-            clear_first = bool(args.clear_first)
         result = await self._controller.type_text(
             ref=ref,
             text=args.text,
@@ -482,8 +463,7 @@ class WindieBrowserRuntime:
 
     async def _handle_send_keys(self, args: Any) -> dict[str, Any]:
         await self._require_connected_page()
-        key_sequence = args.keys or args.key
-        result = await self._controller.press_key(key_sequence)
+        result = await self._controller.press_key(args.keys)
         if not result.get("success", False):
             raise BrowserActionError(
                 code="BROWSER_RUNTIME_ERROR",
@@ -491,7 +471,7 @@ class WindieBrowserRuntime:
             )
         result["success"] = True
         result["action"] = "send_keys"
-        result["keys"] = key_sequence
+        result["keys"] = args.keys
         return result
 
     async def _handle_scroll(self, args: Any) -> dict[str, Any]:
@@ -515,18 +495,12 @@ class WindieBrowserRuntime:
 
     async def _handle_screenshot(self, args: Any) -> dict[str, Any]:
         await self._require_connected_page()
-        image_type = args.type or "png"
         screenshot_bytes = await self._controller.screenshot(
-            full_page=bool(args.full_page),
-            ref=args.ref,
-            element=args.element,
-            image_type=image_type,
-            quality=args.quality,
+            image_type="png",
         )
-        suffix = ".jpg" if image_type == "jpeg" else ".png"
         requested_name = (
             args.file_name
-            or f"browser-screenshot-{datetime.now().strftime('%Y%m%d-%H%M%S')}{suffix}"
+            or f"browser-screenshot-{datetime.now().strftime('%Y%m%d-%H%M%S')}.png"
         )
         output_path = resolve_browser_path(requested_name, ensure_parent=True)
         output_path.write_bytes(screenshot_bytes)
@@ -534,7 +508,7 @@ class WindieBrowserRuntime:
             "success": True,
             "path": str(output_path),
             "file_name": output_path.name,
-            "image_type": image_type,
+            "image_type": "png",
             "bytes": len(screenshot_bytes),
         }
 
@@ -543,7 +517,7 @@ class WindieBrowserRuntime:
             await asyncio.sleep(max(0.0, float(args.seconds)))
             return {"success": True, "seconds": float(args.seconds)}
         await self._require_connected_page()
-        result = await self._controller.wait_for_load(args.state)
+        result = await self._controller.wait_for_load("networkidle")
         if not result.get("success", False):
             raise BrowserActionError(
                 code="BROWSER_RUNTIME_ERROR",
@@ -561,11 +535,11 @@ class WindieBrowserRuntime:
         }
 
     async def _handle_switch(self, args: Any) -> dict[str, Any]:
-        target_id = _normalize_target_id(args.target_id or args.tab_id)
+        target_id = _normalize_target_id(args.tab_id)
         if target_id is None:
             raise BrowserActionError(
                 code="INVALID_ARGUMENT",
-                message="switch requires non-empty 'target_id'.",
+                message="switch requires non-empty 'tab_id'.",
             )
         page = await self._resolve_target_page(target_id)
         self._controller._page = page
@@ -581,8 +555,7 @@ class WindieBrowserRuntime:
 
     async def _handle_evaluate(self, args: Any) -> dict[str, Any]:
         await self._require_connected_page()
-        script = args.script or args.code
-        result = await self._controller.evaluate(script)
+        result = await self._controller.evaluate(args.code)
         if not result.get("success", False):
             raise BrowserActionError(
                 code="BROWSER_RUNTIME_ERROR",
@@ -608,13 +581,8 @@ class WindieBrowserRuntime:
 
     async def _handle_search(self, args: Any) -> dict[str, Any]:
         url = _search_url(args.query, args.engine)
-        if args.new_tab:
-            result = await self._controller.open_tab(
-                url=url, wait_until=args.wait_until
-            )
-        else:
-            await self._require_connected_page()
-            result = await self._controller.navigate(url, wait_until=args.wait_until)
+        await self._require_connected_page()
+        result = await self._controller.navigate(url, wait_until="load")
         if not result.get("success", False):
             raise BrowserActionError(
                 code="BROWSER_RUNTIME_ERROR",
@@ -640,17 +608,15 @@ class WindieBrowserRuntime:
         page = await self._require_connected_page()
         html, _scope = await capture_scoped_html(
             page,
-            selector=args.css_scope or args.selector,
-            frame_selector=args.frame,
+            selector=args.css_scope,
         )
         return html_to_markdown(html, extract_links=False)
 
     async def _handle_search_page(self, args: Any) -> dict[str, Any]:
         content = await self._read_page_markdown(args)
-        pattern = args.pattern or args.query
         matches = _build_search_matches(
             content,
-            pattern=pattern,
+            pattern=args.pattern,
             regex=bool(args.regex),
             case_sensitive=bool(args.case_sensitive),
             context_chars=args.context_chars or 80,
@@ -658,15 +624,14 @@ class WindieBrowserRuntime:
         )
         return {
             "success": True,
-            "pattern": pattern,
+            "pattern": args.pattern,
             "match_count": len(matches),
             "matches": matches,
         }
 
     async def _handle_find_elements(self, args: Any) -> dict[str, Any]:
         page = await self._require_connected_page()
-        root = page.frame_locator(args.frame) if args.frame else page
-        locator = root.locator(args.selector)
+        locator = page.locator(args.selector)
         count = await locator.count()
         limit = min(count, args.max_results or 20)
         elements: list[dict[str, Any]] = []
@@ -692,28 +657,29 @@ class WindieBrowserRuntime:
 
     async def _handle_find_text(self, args: Any) -> dict[str, Any]:
         content = await self._read_page_markdown(args)
-        pattern = args.text or args.pattern
         matches = _build_search_matches(
             content,
-            pattern=pattern,
+            pattern=args.text,
             regex=False,
             case_sensitive=False,
-            context_chars=args.context_chars or 80,
-            max_results=args.max_results or 20,
+            context_chars=80,
+            max_results=20,
         )
         return {
             "success": True,
-            "text": pattern,
+            "text": args.text,
             "match_count": len(matches),
             "matches": matches,
         }
 
     async def _handle_close_tab(self, args: Any) -> dict[str, Any]:
-        target_id = _normalize_target_id(args.target_id or args.tab_id)
-        if target_id is not None:
-            page = await self._resolve_target_page(target_id)
-        else:
-            page = await self._require_connected_page()
+        target_id = _normalize_target_id(args.tab_id)
+        if target_id is None:
+            raise BrowserActionError(
+                code="INVALID_ARGUMENT",
+                message="close_tab requires non-empty 'tab_id'.",
+            )
+        page = await self._resolve_target_page(target_id)
         current_page = getattr(self._controller, "_page", None)
         await page.close()
         context = getattr(self._controller, "_context", None)
@@ -728,7 +694,7 @@ class WindieBrowserRuntime:
 
     async def _handle_dropdown_options(self, args: Any) -> dict[str, Any]:
         await self._require_connected_page()
-        ref = _normalize_ref(args.ref or args.input_ref, args.index)
+        ref = _normalize_ref(args.ref, args.index)
         if ref is None:
             raise BrowserActionError(
                 code="INVALID_ARGUMENT",
@@ -745,7 +711,7 @@ class WindieBrowserRuntime:
 
     async def _handle_select_dropdown(self, args: Any) -> dict[str, Any]:
         await self._require_connected_page()
-        ref = _normalize_ref(args.ref or args.input_ref, args.index)
+        ref = _normalize_ref(args.ref, args.index)
         if ref is None:
             raise BrowserActionError(
                 code="INVALID_ARGUMENT",
@@ -762,17 +728,17 @@ class WindieBrowserRuntime:
 
     async def _handle_upload_file(self, args: Any) -> dict[str, Any]:
         await self._require_connected_page()
-        ref = _normalize_ref(args.input_ref or args.ref, args.index)
+        ref = _normalize_ref(args.ref, args.index)
         if ref is None:
             raise BrowserActionError(
                 code="INVALID_ARGUMENT",
-                message="upload_file requires 'input_ref', 'ref', or 'index'.",
+                message="upload_file requires 'ref' or 'index'.",
             )
-        upload_path = _normalize_upload_path(args.path, args.paths)
+        upload_path = _normalize_upload_path(args.path)
         if upload_path is None:
             raise BrowserActionError(
                 code="INVALID_ARGUMENT",
-                message="upload_file requires non-empty 'path' or 'paths'.",
+                message="upload_file requires non-empty 'path'.",
             )
         result = await self._controller.set_input_files(ref, [upload_path])
         if not result.get("success", False):
@@ -784,14 +750,14 @@ class WindieBrowserRuntime:
         return result
 
     async def _handle_write_file(self, args: Any) -> dict[str, Any]:
-        if not args.path:
+        if not args.file_name:
             raise BrowserActionError(
                 code="INVALID_ARGUMENT",
-                message="write_file requires non-empty 'path'.",
+                message="write_file requires non-empty 'file_name'.",
             )
         resolved, written_chars = write_text(
-            args.path,
-            args.content or "",
+            args.file_name,
+            args.content,
             append=bool(args.append),
             leading_newline=bool(args.leading_newline),
             trailing_newline=bool(args.trailing_newline),
@@ -803,17 +769,21 @@ class WindieBrowserRuntime:
         }
 
     async def _handle_replace_file(self, args: Any) -> dict[str, Any]:
-        if not args.path:
+        if not args.file_name:
             raise BrowserActionError(
                 code="INVALID_ARGUMENT",
-                message="replace_file requires non-empty 'path'.",
+                message="replace_file requires non-empty 'file_name'.",
             )
         if args.old_str is None or args.new_str is None:
             raise BrowserActionError(
                 code="INVALID_ARGUMENT",
                 message="replace_file requires both 'old_str' and 'new_str'.",
             )
-        resolved, replacements = replace_text(args.path, args.old_str, args.new_str)
+        resolved, replacements = replace_text(
+            args.file_name,
+            args.old_str,
+            args.new_str,
+        )
         return {
             "success": True,
             "path": str(resolved),
@@ -821,12 +791,12 @@ class WindieBrowserRuntime:
         }
 
     async def _handle_read_file(self, args: Any) -> dict[str, Any]:
-        if not args.path:
+        if not args.file_name:
             raise BrowserActionError(
                 code="INVALID_ARGUMENT",
-                message="read_file requires non-empty 'path'.",
+                message="read_file requires non-empty 'file_name'.",
             )
-        resolved, content = read_text(args.path)
+        resolved, content = read_text(args.file_name)
         return {
             "success": True,
             "path": str(resolved),

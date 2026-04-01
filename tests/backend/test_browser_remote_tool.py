@@ -1,4 +1,6 @@
-"""Tests for backend browser remote tool and canonical browser contract."""
+"""Tests for the strict grouped browser tool contract."""
+
+from __future__ import annotations
 
 from unittest import mock
 
@@ -6,352 +8,168 @@ import pytest
 from pydantic import ValidationError
 
 from backend.src.tools.browser import RemoteBrowserTool
-from backend.src.tools.browser.openclaw_compat_schema import BrowserOpenClawCompatArgs
 from backend.src.tools.browser.schema_types import BROWSER_CANONICAL_ACTIONS
 from backend.src.tools.browser.schemas import (
+    BROWSER_ACTION_CONTRACTS,
     BrowserClickArgs,
     BrowserControlArgs,
     BrowserEvaluateArgs,
-    BrowserScreenshotArgs,
+    BrowserExtractArgs,
+    BrowserInputArgs,
     BrowserSnapshotArgs,
+    BrowserSwitchArgs,
+    build_browser_tool_parameters_schema,
+    get_browser_schema,
 )
-from backend.src.tools.remote import REMOTE_TOOLS, get_remote_tool
 
 
 class TestRemoteBrowserTool:
-    def test_tool_name(self):
+    def test_tool_registration_metadata(self) -> None:
         tool = RemoteBrowserTool()
         assert tool.name == "browser"
-
-    def test_tool_category(self):
-        from backend.src.tools.categorization import ToolDomain
-
-        tool = RemoteBrowserTool()
-        assert tool.category == ToolDomain.BROWSER
-
-    def test_tool_has_description(self):
-        tool = RemoteBrowserTool()
-        assert len(tool.description) > 40
+        assert tool.args_model is BrowserControlArgs
         assert "browser" in tool.description.lower()
 
-    def test_tool_description_is_concise(self):
-        tool = RemoteBrowserTool()
-        assert "screenshot" in tool.description.lower()
-        assert "pagination" not in tool.description.lower()
+    def test_model_facing_schema_is_grouped_one_of_contract(self) -> None:
+        schema = RemoteBrowserTool().get_json_schema()
+        parameters = schema["parameters"]
 
-    def test_args_model(self):
-        tool = RemoteBrowserTool()
-        assert tool.args_model == BrowserControlArgs
+        assert parameters == build_browser_tool_parameters_schema()
+        assert parameters["type"] == "object"
+        assert parameters["required"] == ["action"]
+        assert parameters["properties"]["action"]["enum"] == list(BROWSER_CANONICAL_ACTIONS)
+        assert len(parameters["oneOf"]) == len(BROWSER_ACTION_CONTRACTS)
 
-    def test_model_facing_schema_uses_canonical_generic_path(self):
-        tool = RemoteBrowserTool()
-        schema = tool.get_json_schema()
+    def test_model_facing_schema_has_no_removed_or_cross_action_fields(self) -> None:
+        schema = RemoteBrowserTool().get_json_schema()["parameters"]
 
-        assert schema["type"] == "function"
-        assert schema["name"] == "browser"
-        assert schema["description"] == tool.description
-        assert "function" not in schema
-
-    def test_model_facing_schema_exposes_canonical_actions_only(self):
-        tool = RemoteBrowserTool()
-        schema = tool.get_json_schema()
-        action_schema = schema["parameters"]["properties"]["action"]
-
-        assert set(action_schema["enum"]) == set(BROWSER_CANONICAL_ACTIONS)
-        assert "type" not in action_schema["enum"]
-        assert "open" not in action_schema["enum"]
-        assert "switch_tab" not in action_schema["enum"]
-        assert "press" not in action_schema["enum"]
-        assert "act" not in action_schema["enum"]
-        assert "write_file" in action_schema["enum"]
-        assert "replace_file" in action_schema["enum"]
-        assert "read_file" in action_schema["enum"]
-
-    def test_model_facing_schema_exposes_only_canonical_fields(self):
-        tool = RemoteBrowserTool()
-        schema = tool.get_json_schema()
-        props = schema["parameters"]["properties"]
-
-        assert "timeoutMs" not in props
-        assert "timeout_ms" not in props
-        assert "promptText" not in props
-        assert "prompt_text" not in props
-        assert "colorScheme" not in props
-        assert "color_scheme" not in props
-        assert "targetId" not in props
-        assert "targetUrl" not in props
-        assert "inputRef" not in props
-        assert "snapshotFormat" not in props
-        assert "cdp_url" not in props
-        assert "profile" not in props
-        assert "node" not in props
-        assert "target" not in props
-        assert "value" not in props
-        assert "mode" in props
-        assert "content" in props
-        assert "path" in props
-        assert "target_id" in props
-        assert "input_ref" in props
-
-    def test_model_facing_schema_uses_args_model_descriptions_directly(self):
-        tool = RemoteBrowserTool()
-        schema = tool.get_json_schema()
-        props = schema["parameters"]["properties"]
-
-        assert props["text"]["description"] == BrowserControlArgs.model_fields["text"].description
+        banned_fields = {
+            "mode",
+            "format",
+            "snapshotFormat",
+            "refs",
+            "interactive",
+            "compact",
+            "depth",
+            "frame",
+            "target_id",
+            "targetId",
+            "target_url",
+            "targetUrl",
+            "input_ref",
+            "inputRef",
+            "clear_first",
+            "script",
+        }
+        for branch in schema["oneOf"]:
+            props = set(branch.get("properties", {}).keys())
+            assert props.isdisjoint(banned_fields)
 
     @pytest.mark.asyncio
-    async def test_execute_remote_returns_remote_result(self):
-        tool = RemoteBrowserTool()
-        mock_ctx = mock.Mock()
-        mock_ctx.session = mock.Mock()
-        mock_ctx.session.metadata = {"request_id": "test-123"}
+    async def test_execute_remote_serializes_canonical_payload(self) -> None:
+        ctx = mock.Mock()
+        ctx.session = mock.Mock()
+        ctx.session.metadata = {"request_id": "browser-123"}
 
-        args = BrowserControlArgs(action="connect")
-        result = await tool.execute_remote(args, mock_ctx)
+        result = await RemoteBrowserTool().execute_remote(
+            BrowserControlArgs.model_validate(
+                {"action": "navigate", "url": "https://example.com", "new_tab": True}
+            ),
+            ctx,
+        )
 
         assert result.is_remote is True
         assert result.tool_name == "browser"
-        assert result.args["action"] == "connect"
-
-    @pytest.mark.asyncio
-    async def test_execute_remote_allows_canonical_actions(self):
-        tool = RemoteBrowserTool()
-        mock_ctx = mock.Mock()
-        mock_ctx.session = mock.Mock()
-        mock_ctx.session.metadata = {"request_id": "canonical-ok"}
-
-        args = BrowserControlArgs(action="navigate", url="https://example.com")
-        result = await tool.execute_remote(args, mock_ctx)
-
-        assert result.is_remote is True
-        assert result.args["action"] == "navigate"
-
-
-class TestBrowserToolRegistry:
-    def test_browser_in_remote_tools(self):
-        assert "browser" in REMOTE_TOOLS
-        assert REMOTE_TOOLS["browser"] == RemoteBrowserTool
-
-    def test_get_remote_tool_returns_browser_tool(self):
-        tool_class = get_remote_tool("browser")
-        assert tool_class == RemoteBrowserTool
+        assert result.request_id == "browser-123"
+        assert result.args == {
+            "action": "navigate",
+            "url": "https://example.com",
+            "new_tab": True,
+        }
 
 
 class TestBrowserControlArgs:
-    def test_connect_action(self):
-        args = BrowserControlArgs(action="connect")
-        assert args.action == "connect"
+    def test_snapshot_defaults_and_window_bounds(self) -> None:
+        args = BrowserControlArgs.model_validate({"action": "snapshot"})
 
-    def test_navigate_action(self):
-        args = BrowserControlArgs(action="navigate", url="https://example.com")
-        assert args.action == "navigate"
-        assert args.url == "https://example.com"
+        assert args.action == "snapshot"
+        assert args.offset == 0
+        assert args.limit == 4000
+        assert args.include_screenshot is False
 
-    def test_status_action(self):
-        args = BrowserControlArgs(action="status")
-        assert args.action == "status"
+        with pytest.raises(ValidationError, match="maximum snapshot window"):
+            BrowserSnapshotArgs(action="snapshot", offset=119_500, limit=1_000)
 
-    def test_search_action(self):
-        args = BrowserControlArgs(action="search", query="pricing tiers")
-        assert args.action == "search"
-        assert args.query == "pricing tiers"
-
-    def test_extract_action(self):
-        args = BrowserControlArgs(
-            action="extract",
-            mode="focused",
-            query="collect pricing tiers",
+    def test_extract_keeps_only_canonical_fields(self) -> None:
+        args = BrowserControlArgs.model_validate(
+            {"action": "extract", "query": "pricing tiers"}
         )
-        assert args.action == "extract"
-        assert args.mode == "focused"
-        assert args.query == "collect pricing tiers"
-        assert args.start_from_char == 0
-        assert args.extract_links is False
+        assert args.model_dump() == {
+            "action": "extract",
+            "query": "pricing tiers",
+            "extract_links": False,
+            "start_from_char": 0,
+            "output_schema": None,
+        }
 
-    def test_click_action(self):
-        args = BrowserControlArgs(action="click", ref="5")
-        assert args.action == "click"
-        assert args.ref == "5"
+    def test_removed_compatibility_fields_fail_validation(self) -> None:
+        with pytest.raises(ValidationError):
+            BrowserControlArgs.model_validate({"action": "snapshot", "mode": "efficient"})
 
-    def test_click_action_with_coordinates(self):
-        args = BrowserControlArgs(action="click", coordinate_x=100, coordinate_y=250)
-        assert args.action == "click"
-        assert args.coordinate_x == 100
-        assert args.coordinate_y == 250
+        with pytest.raises(ValidationError):
+            BrowserControlArgs.model_validate({"action": "snapshot", "format": "aria"})
 
-    def test_click_action_requires_ref_index_or_coordinates(self):
+        with pytest.raises(ValidationError):
+            BrowserControlArgs.model_validate({"action": "extract", "selector": "table"})
+
+        with pytest.raises(ValidationError):
+            BrowserControlArgs.model_validate(
+                {"action": "extract", "wait_until": "networkidle"}
+            )
+
+    def test_removed_alias_actions_are_not_valid(self) -> None:
+        with pytest.raises(ValidationError):
+            BrowserControlArgs.model_validate({"action": "open", "url": "https://example.com"})
+
+        with pytest.raises(ValidationError):
+            BrowserControlArgs.model_validate({"action": "type", "ref": "1", "text": "hello"})
+
+        with pytest.raises(ValidationError):
+            BrowserControlArgs.model_validate({"action": "press", "keys": "Enter"})
+
+        with pytest.raises(ValidationError):
+            BrowserControlArgs.model_validate({"action": "switch_tab", "tab_id": "tab-1"})
+
+    def test_click_requires_ref_index_or_coordinates(self) -> None:
         with pytest.raises(
             ValidationError,
             match="click requires either 'ref'/'index' or both 'coordinate_x' and 'coordinate_y'",
         ):
             BrowserClickArgs(action="click")
 
-    def test_click_action_requires_both_coordinate_axes(self):
-        with pytest.raises(
-            ValidationError,
-            match="click requires both 'coordinate_x' and 'coordinate_y' when using coordinate click",
-        ):
-            BrowserClickArgs(action="click", ref="5", coordinate_x=100)
+    def test_input_and_switch_are_strict(self) -> None:
+        args = BrowserInputArgs(action="input", ref="5", text="hello")
+        assert args.clear is True
+        assert args.submit is False
 
-    def test_removed_type_alias_is_rejected_during_validation(self):
-        with pytest.raises(
-            ValidationError,
-            match="Legacy browser action 'type' has been removed. Use input.",
-        ):
-            BrowserControlArgs(action="type", ref="3", text="Hello", submit=True)
+        with pytest.raises(ValidationError):
+            BrowserInputArgs(action="input", text="hello")
 
-    def test_removed_open_alias_is_rejected_during_validation(self):
-        with pytest.raises(
-            ValidationError,
-            match="Legacy browser action 'open' has been removed. Use navigate.",
-        ):
-            BrowserControlArgs(action="open", url="https://example.com")
+        switch_args = BrowserSwitchArgs(action="switch", tab_id="abcd")
+        assert switch_args.tab_id == "abcd"
 
-    def test_removed_switch_tab_alias_is_rejected_during_validation(self):
-        with pytest.raises(
-            ValidationError,
-            match="Legacy browser action 'switch_tab' has been removed. Use switch.",
-        ):
-            BrowserControlArgs(action="switch_tab", target_id="tab-1")
-
-    def test_removed_press_alias_is_rejected_during_validation(self):
-        with pytest.raises(
-            ValidationError,
-            match="Legacy browser action 'press' has been removed. Use send_keys.",
-        ):
-            BrowserControlArgs(action="press", key="Enter")
-
-    def test_removed_act_alias_is_rejected_during_validation(self):
-        with pytest.raises(
-            ValidationError,
-            match="Legacy browser action 'act' has been removed. Use canonical actions directly.",
-        ):
-            BrowserControlArgs(action="act")
-
-    def test_screenshot_action_supports_file_name(self):
-        args = BrowserControlArgs(action="screenshot", file_name="capture.png")
-        assert args.action == "screenshot"
-        assert args.file_name == "capture.png"
-
-    def test_file_actions_keep_canonical_fields(self):
-        args = BrowserControlArgs(
-            action="write_file",
-            path="/tmp/example.txt",
-            content="hello",
-            append=True,
-        )
-        assert args.path == "/tmp/example.txt"
-        assert args.content == "hello"
-        assert args.append is True
-
-    def test_compatibility_fields_are_not_exposed_on_unified_schema(self):
-        model_fields = BrowserControlArgs.model_fields
-
-        assert "full_page" not in model_fields
-        assert "element" not in model_fields
-        assert "type" not in model_fields
-        assert "quality" not in model_fields
-        assert "timeoutMs" not in model_fields
-        assert "targetId" not in model_fields
-        assert "inputRef" not in model_fields
-
-    def test_evaluate_action_requires_script_or_code(self):
-        with pytest.raises(
-            ValidationError,
-            match="evaluate requires either 'script' or 'code'",
-        ):
+    def test_evaluate_requires_code_only(self) -> None:
+        with pytest.raises(ValidationError):
             BrowserEvaluateArgs(action="evaluate")
 
-    def test_default_values(self):
-        args = BrowserControlArgs(action="snapshot")
-        assert args.format == "ai"
-        assert args.max_chars is None
-        assert args.button == "left"
-        assert args.direction == "down"
-        assert args.amount == 500
+        with pytest.raises(ValidationError):
+            BrowserControlArgs.model_validate({"action": "evaluate", "script": "1 + 1"})
 
-    def test_snapshot_scope_fields_accept_shared_values(self):
-        args = BrowserControlArgs(
-            action="snapshot",
-            refs="role",
-            interactive=True,
-            compact=True,
-            depth=2,
-            selector="#main",
-            frame="iframe#app",
-        )
-        assert args.refs == "role"
-        assert args.interactive is True
-        assert args.compact is True
-        assert args.depth == 2
-        assert args.selector == "#main"
-        assert args.frame == "iframe#app"
+        args = BrowserEvaluateArgs(action="evaluate", code="1 + 1")
+        assert args.code == "1 + 1"
 
-    def test_scroll_action_with_fractional_pages(self):
-        args = BrowserControlArgs(action="scroll", pages=0.5)
-        assert args.pages == 0.5
-
-    def test_openclaw_compat_args_still_available(self):
-        args = BrowserOpenClawCompatArgs(action="status")
-        assert args.action == "status"
-
-
-class TestBrowserSnapshotArgs:
-    def test_snapshot_scope_fields_accept_shared_values(self):
-        args = BrowserSnapshotArgs(
-            action="snapshot",
-            refs="aria",
-            interactive=False,
-            compact=False,
-            depth=1,
-            selector=".content",
-            frame="iframe[data-id='1']",
-        )
-        assert args.refs == "aria"
-        assert args.interactive is False
-        assert args.compact is False
-        assert args.depth == 1
-        assert args.selector == ".content"
-        assert args.frame == "iframe[data-id='1']"
-
-
-class TestOpenClawCompatArgs:
-    def test_act_request_field_removed_from_openclaw_schema(self):
-        assert "request" not in BrowserOpenClawCompatArgs.model_fields
-
-    def test_shared_file_and_target_compat_fields_remain_available(self):
-        args = BrowserOpenClawCompatArgs(
-            action="status",
-            append=True,
-            trailing_newline=True,
-            target="sandbox",
-        )
-        assert args.append is True
-        assert args.trailing_newline is True
-        assert args.target == "sandbox"
-
-    def test_removed_act_alias_is_not_valid_openclaw_action(self):
-        with pytest.raises(ValidationError, match="action"):
-            BrowserOpenClawCompatArgs(action="act")
-
-    def test_removed_type_alias_is_not_valid_openclaw_action(self):
-        with pytest.raises(ValidationError, match="action"):
-            BrowserOpenClawCompatArgs(action="type")
-
-    def test_legacy_open_alias_is_not_valid_openclaw_action(self):
-        with pytest.raises(ValidationError, match="action"):
-            BrowserOpenClawCompatArgs(action="open")
-
-    def test_legacy_switch_tab_alias_is_not_valid_openclaw_action(self):
-        with pytest.raises(ValidationError, match="action"):
-            BrowserOpenClawCompatArgs(action="switch_tab")
-
-
-class TestBrowserScreenshotArgs:
-    def test_screenshot_schema_keeps_shared_image_defaults(self):
-        args = BrowserScreenshotArgs(action="screenshot")
-        assert args.action == "screenshot"
-        assert args.element is None
-        assert args.type == "png"
-        assert args.quality is None
+    def test_schema_registry_only_knows_canonical_actions(self) -> None:
+        assert get_browser_schema("snapshot") is BrowserSnapshotArgs
+        assert get_browser_schema("extract") is BrowserExtractArgs
+        assert get_browser_schema("switch") is BrowserSwitchArgs
+        assert get_browser_schema("switch_tab") is None

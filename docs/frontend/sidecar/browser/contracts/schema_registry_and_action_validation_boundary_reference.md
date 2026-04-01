@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for sidecar browser schema registry behavior: action-model mapping, validation helpers, and boundary split between schema validation, alias policy gates, and adapter/runtime enforcement."
+summary: "Deep reference for sidecar browser schema registry behavior under the shared strict backend-owned browser contract."
 read_when:
-  - When adding/removing browser actions in sidecar schemas or changing sidecar action validation rules.
-  - When debugging schema parse errors vs runtime alias-policy rejections in browser tool execution.
+  - When adding/removing browser actions or changing sidecar browser validation rules.
+  - When debugging schema parse errors before adapter/runtime execution.
 title: "Schema Registry and Action Validation Boundary Reference"
 ---
 
@@ -11,35 +11,31 @@ title: "Schema Registry and Action Validation Boundary Reference"
 ## Canonical Modules
 
 - `frontend/src/main/python/tools/browser/schemas.py`
-- `frontend/src/main/python/tools/browser/openclaw_compat_schema.py`
+- `frontend/src/main/python/tools/browser/browser_action_contract.py`
 - `frontend/src/main/python/tools/browser/browser_tool.py`
 - `tests/sidecar/tools/test_browser_schemas.py`
 
 ## Schema Model Topology
 
-`schemas.py` defines per-action Pydantic models and exposes:
+`schemas.py` imports the backend browser contract directly and exposes:
 
-- `BrowserControlArgs` union
+- `BrowserControlArgs` discriminated grouped union
 - `BROWSER_SCHEMAS` registry
 - `get_browser_schema(action)` helper
 - `validate_browser_args(action, args)` helper
 
 Model policy:
 
-- each model uses `model_config.extra = "ignore"`
+- each action model uses `model_config.extra = "forbid"`
 - required fields and model validators enforce action-level constraints
 
 ## Action Registry Contract (`BROWSER_SCHEMAS`)
 
 Registry includes explicit entries for:
 
-- `connect`, `navigate`, `snapshot`, `extract`, `click`, `type`, `scroll`, `screenshot`, `wait`, `get_tabs`, `evaluate`, `close`
+- the full canonical grouped browser action set
 
-Compatibility actions are injected from `OPENCLAW_COMPAT_ACTIONS` and map to `BrowserOpenClawCompatArgs`.
-
-Important scope note:
-
-- removed aliases (`open`, `switch_tab`, `press`, `act`) are not in sidecar schema action sets and are rejected by browser-tool alias policy.
+Removed aliases and compatibility-only fields are absent from the schema registry entirely.
 
 ## Validation Entry Point Behavior
 
@@ -53,60 +49,58 @@ Important scope note:
 
 ## Important Validators
 
-`BrowserConnectArgs`:
-
-- `cdp_url` must resolve to localhost/127.0.0.1 in user-chrome mode
-
 `BrowserClickArgs`:
 
 - requires `ref/index` or both coordinates
 - rejects single-coordinate payloads
 
+`BrowserInputArgs`, `BrowserDropdownOptionsArgs`, `BrowserSelectDropdownArgs`, `BrowserUploadFileArgs`:
+
+- require `ref` or `index`
+
 `BrowserEvaluateArgs`:
 
-- requires `script` or `code`
+- requires canonical `code`
 
 Additional bounds:
 
 - snapshot paging limits
-- extract query/mode bounds
+- extract query and offset bounds
 - scroll amount/pages bounds
-- type/evaluate length bounds
+- input/evaluate length bounds
 
 ## Runtime Boundary with `browser_tool.py`
 
-`browser_tool.execute_browser(...)` does not rely solely on `validate_browser_args`.
+`browser_tool.execute_browser(...)` validates through `BrowserControlArgs` before adapter dispatch.
 
 Runtime boundary layers:
 
-1. action allowlist + alias policy gates in `browser_tool.py`
-2. adapter normalization/rejection rules in `browser_adapter.py`
-3. runtime provider execution constraints
+1. action allowlist in `browser_tool.py`
+2. strict grouped schema validation in `browser_tool.py`
+3. adapter parameter mapping in `browser_adapter.py`
+4. runtime provider execution constraints
 
-So schema acceptance means only "known shape", not guaranteed execution.
+So schema acceptance means "canonical grouped browser payload"; execution can still fail for runtime reasons.
 
 ## Backend vs Sidecar Validation Split
 
-- backend `BrowserControlArgs` is broad and transport-oriented
-- sidecar schemas + tool/adapter policy are execution gates
+There is no browser-specific backend/sidecar schema split anymore.
 
 Practical rule:
 
-- backend acceptance does not imply sidecar acceptance
+- sidecar validation mirrors the backend browser contract exactly
 
 ## Test-Backed Coverage
 
 `tests/sidecar/tools/test_browser_schemas.py` verifies:
 
-- localhost connect restriction
-- snapshot/extract/click/scroll/evaluate constraints
-- compatibility actions remain wired
-- schema helper lookup/validation behavior
+- strict grouped contract parity with backend imports
+- canonical-only action set
+- strict field validation and helper lookup behavior
 
 `tests/sidecar/tools/test_browser_use_tool_parity.py` adds Browser Use parity assertions.
 
 ## Related Pages
 
 - [Frontend Sidecar Browser Contracts Docs Hub](README.md)
-- [OpenClaw Compatibility Action and Field Surface Reference](openclaw_compat_action_and_field_surface_reference.md)
 - [Browser Adapter Action Routing and Compatibility Semantics Reference](../browser_adapter_action_routing_and_compatibility_semantics_reference.md)

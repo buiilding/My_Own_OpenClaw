@@ -465,7 +465,7 @@ when required by that tool's schema.
 ### Browser Tools
 
 - **browser**: Browser automation and extraction tool (connect/navigation/snapshot/actions/extract); see `docs/browser/browser_control.md` and `docs/browser/browser_control_run.md` for full action contracts and runbook usage.
-- The model-facing `browser` schema exposes canonical browser actions only. Removed alias actions such as `open`, `type`, `press`, `switch_tab`, and `act` are rejected during validation instead of being hidden by a browser-specific schema shaping pass.
+- The model-facing `browser` schema is emitted from one canonical backend action catalog. It stays grouped under `arguments.action`, emits one strict `oneOf` branch per canonical action, and the sidecar imports that same contract directly instead of maintaining a separate browser schema layer.
 
 **Note**: The backend advertises a fixed set of remote tool schemas (LLM-callable). The sidecar may register additional helpers, but only tools listed in `frontend/src/main/python/tools/registry.py` `EXPOSED_TO_BACKEND_TOOLS` are available for LLM tool calling.
 

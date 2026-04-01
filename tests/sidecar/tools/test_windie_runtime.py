@@ -18,8 +18,8 @@ from tools.browser.windie_runtime import (
 
 
 def test_runtime_supported_actions_match_canonical_contract():
-    assert WindieBrowserRuntime.supported_actions() == BROWSER_CANONICAL_ACTIONS
-    assert BROWSER_RUNTIME_ACTIONS == BROWSER_CANONICAL_ACTIONS
+    assert WindieBrowserRuntime.supported_actions() == frozenset(BROWSER_CANONICAL_ACTIONS)
+    assert BROWSER_RUNTIME_ACTIONS == frozenset(BROWSER_CANONICAL_ACTIONS)
 
 
 @pytest.mark.asyncio
@@ -27,7 +27,7 @@ async def test_runtime_execute_adds_default_action_and_native_source():
     runtime = WindieBrowserRuntime(controller=SimpleNamespace())
     runtime._handlers["status"] = mock.AsyncMock(return_value={"success": True})
 
-    result = await runtime.execute(BrowserControlArgs(action="status"))
+    result = await runtime.execute(BrowserControlArgs.model_validate({"action": "status"}))
 
     assert result == {
         "success": True,
