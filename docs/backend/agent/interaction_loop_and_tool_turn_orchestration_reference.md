@@ -20,6 +20,8 @@ title: "Interaction Loop and Tool-Turn Orchestration Reference"
 - `backend/src/agent/llm/event_presenter.py`
 - `backend/src/agent/tools/orchestrator.py`
 - `backend/src/agent/tools/sending/sender.py`
+- `backend/src/agent/tools/sending/execution_envelope.py`
+- `backend/src/agent/tools/sending/execution_lanes.py`
 - `backend/src/agent/tools/processing/processor.py`
 - `backend/src/tools/orchestrator.py`
 - `backend/src/tools/single_tool_execution.py`
@@ -119,6 +121,7 @@ History size is reduced only by compaction; the loop is not stopped by a fixed s
 - multi-tool bundle -> one `ToolBundleEvent`
 - preparation errors -> synthetic failed result storage + `ToolCallEvent` then `ToolOutputEvent` (protocol order preserved)
 - failed bundle preparation still leaves all parsed calls bundle-scoped so wait/process stays on the atomic-bundle path and history can reconcile every staged `tool_call_id`
+- backend-executed tools and synthetic failures now both flow through one execution-envelope helper so call -> auxiliary transparency events -> output ordering stays consistent across lanes
 
 Validated by:
 
