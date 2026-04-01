@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for renderer chat payload surfaces: tool-call/tool-output card rendering, provider-aware markdown normalization (Gemini), optional math rendering, structured-JSON output parsing, screenshot source selection, and transparency section configuration/validation."
+summary: "Deep reference for renderer chat payload surfaces: tool-call/tool-output card rendering, provider-aware transport cleanup plus provider-agnostic math normalization, optional math rendering, structured-JSON output parsing, screenshot source selection, and transparency section configuration/validation."
 read_when:
   - When changing model-facing tool payload display behavior in message rows.
   - When changing system prompt/tool schemas/full-user-message transparency section assembly.
@@ -65,7 +65,8 @@ entries inside `toolCallDetails.tools`)
 Assistant markdown rendering now follows a single contract:
 
 - **Input contract**: model text must resolve to **renderable markdown + optional math**
-- **Provider-aware normalization** happens before markdown parse in `resolveLlmOutputContract(...)`
+- **Provider-aware transport cleanup** happens before markdown parse in `resolveLlmOutputContract(...)`
+- **Provider-agnostic math normalization** converts LaTeX delimiters (`\(...\)` / `\[...\]`) into the dollar-delimited forms consumed by the markdown math renderer
 - **Renderer remains model-agnostic** (`toSanitizedMarkdownHtml`) and receives normalized markdown + `enableMath`
 
 Contract fields:
@@ -75,11 +76,15 @@ Contract fields:
 - `provider` / `modelId`: metadata used for provider-specific normalization
 - `mathEnabled`: boolean toggle for KaTeX-enabled markdown parse
 
-Gemini-specific normalizations:
+Gemini-specific cleanup:
 
 - normalize malformed escaped newlines (`\\n`, `\\r\\n`) into real newlines
-- normalize escaped math delimiters and convert `\\(...\\)` / `\\[...\\]` into `$...$` / `$$...$$`
 - optionally strip accidental wrapper html tokens (for example `<div>`, `<p>`) and map `<br>` to newline
+
+Provider-agnostic math normalization:
+
+- normalize escaped math delimiters and convert `\\(...\\)` / `\\[...\\]` into `$...$` / `$$...$$`
+- skip fenced code blocks so TeX examples remain literal inside markdown code fences
 
 Structured JSON support:
 

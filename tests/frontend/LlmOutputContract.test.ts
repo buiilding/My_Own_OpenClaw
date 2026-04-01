@@ -40,6 +40,43 @@ describe('resolveLlmOutputContract', () => {
     expect(contract.markdown.includes('\nAnd set:')).toBe(true);
   });
 
+  test('normalizes latex delimiters for non-gemini providers', () => {
+    const contract = resolveLlmOutputContract(
+      [
+        'Compare this:',
+        String.raw`\[`,
+        String.raw`\frac{n(n-1)}{2} \le n^2`,
+        String.raw`\]`,
+        '',
+        String.raw`Inline: \(\alpha + \beta\)`,
+      ].join('\n'),
+      { provider: 'openai' },
+    );
+
+    expect(contract.markdown.includes(String.raw`\[`)).toBe(false);
+    expect(contract.markdown.includes(String.raw`\(`)).toBe(false);
+    expect(contract.markdown.includes('$$')).toBe(true);
+    expect(contract.markdown.includes(String.raw`$\alpha + \beta$`)).toBe(true);
+    expect(contract.markdown.includes(String.raw`\frac{n(n-1)}{2} \le n^2`)).toBe(true);
+  });
+
+  test('preserves latex delimiters inside fenced code blocks', () => {
+    const contract = resolveLlmOutputContract(
+      [
+        '```tex',
+        String.raw`\[x^2\]`,
+        '```',
+        '',
+        String.raw`Outside \(\gamma\)`,
+      ].join('\n'),
+      { provider: 'openai' },
+    );
+
+    expect(contract.markdown.includes('```tex')).toBe(true);
+    expect(contract.markdown.includes(String.raw`\[x^2\]`)).toBe(true);
+    expect(contract.markdown.includes(String.raw`Outside $\gamma$`)).toBe(true);
+  });
+
   test('strips accidental wrapper html tokens for gemini outputs', () => {
     const contract = resolveLlmOutputContract(
       '<div><p>Hello world</p></div>',
