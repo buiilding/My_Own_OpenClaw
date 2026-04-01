@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Changed
+- feat(frontend-browser-settings): add a dedicated Settings > Browser tab with a persistent `Open Windie Browser` action that reuses the existing browser-automation permission warmup path and shows live readiness/remediation status outside onboarding.
 - refactor(sidecar-browser-runtime): replace the vendored `browser_use` browser stack with a first-party Windie browser runtime built directly on `BrowserController`, add Windie-owned content-extraction and browser-local file helpers, tighten sidecar browser argument validation to the canonical contract at runtime, and remove the old Browser Use/OpenClaw compatibility tests plus vendored sidecar browser payloads.
 - chore(sidecar-browser-packaging): remove Browser Use-era browser feature-pack markers and sidecar Python dependencies so packaged/browser-install readiness now reflects the Windie-owned runtime's actual module set (`playwright` + `markdownify`).
 - refactor(sidecar-browser-runtime-registry): make the Windie browser runtime declare one explicit supported-action registry, add focused runtime parity coverage against the canonical browser contract, and document the sidecar browser validation/runtime/controller ownership split in a dedicated reference page.

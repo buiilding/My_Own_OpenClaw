@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   X,
+  Globe,
   Settings,
   Database,
   FolderOpen,
   Sparkles,
 } from 'lucide-react';
 import PermissionControlCenter from '../../../permissions/components/PermissionControlCenter';
+import BrowserSettingsTab from './settings/BrowserSettingsTab';
 import GeneralSettingsTab from './settings/GeneralSettingsTab';
 import MemorySettingsTab from './settings/MemorySettingsTab';
 import OnboardingSettingsTab from './settings/OnboardingSettingsTab';
@@ -17,6 +19,7 @@ import '../../../../styles/CloneSettings.css';
 const SETTINGS_TABS = Object.freeze([
   { id: 'general', icon: Settings, label: 'General' },
   { id: 'workspace', icon: FolderOpen, label: 'Workspace' },
+  { id: 'browser', icon: Globe, label: 'Browser' },
   { id: 'memory', icon: Database, label: 'Memory' },
   { id: 'onboarding', icon: Sparkles, label: 'Onboarding' },
 ]);
@@ -56,6 +59,9 @@ function SettingsSection({
     }
     if (activeTab === 'workspace') {
       return <WorkspaceSettingsTab />;
+    }
+    if (activeTab === 'browser') {
+      return <BrowserSettingsTab />;
     }
     if (activeTab === 'onboarding') {
       return <OnboardingSettingsTab />;

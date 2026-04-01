@@ -188,6 +188,30 @@
   opacity: 0.55;
 }
 
+.clone-settings-primary-button {
+  border: 1px solid color-mix(in srgb, white 68%, var(--ui-border-soft) 32%);
+  border-radius: 999px;
+  background: color-mix(in srgb, white 88%, var(--ui-panel-bg) 12%);
+  color: #0f1115;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  min-width: 156px;
+  padding: 7px 14px;
+  transition: transform 140ms ease, opacity 140ms ease;
+}
+
+.clone-settings-primary-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.clone-settings-primary-button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
 .clone-settings-action-status {
   margin: 6px 0 0;
   font-size: 12px;
@@ -358,6 +382,16 @@
   margin: 0;
   font-size: 13px;
   color: var(--ui-text-muted);
+}
+
+.clone-settings-browser-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.clone-settings-browser-status {
+  color: var(--ui-text-primary);
 }
 
 @media (max-width: 860px) {

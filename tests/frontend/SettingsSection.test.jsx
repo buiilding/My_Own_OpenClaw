@@ -11,6 +11,9 @@ import SettingsSection from '../../frontend/src/renderer/features/dashboard/comp
 
 const mockInvoke = jest.fn();
 const mockRestartOnboarding = jest.fn();
+const mockRequestPermission = jest.fn();
+const mockRunPermissionProbe = jest.fn();
+const mockBootstrapPermissions = jest.fn();
 const mockIpcListeners = new Map();
 
 let mockAppConfigContext = {
@@ -18,11 +21,13 @@ let mockAppConfigContext = {
   wakewordSuppressed: false,
   setWakewordEnabled: jest.fn(),
   globalAgentStopShortcutStatus: null,
+  updateConfig: jest.fn(),
 };
 let mockTranscriptSessionInfo = {
   conversationRef: null,
   userId: null,
 };
+let mockPermissionStoreState = {};
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
@@ -55,9 +60,7 @@ jest.mock('../../frontend/src/renderer/features/dashboard/hooks/useTranscriptSes
 }));
 
 jest.mock('../../frontend/src/renderer/features/permissions/stores/permissionStore', () => ({
-  usePermissionStore: (selector) => selector({
-    restartOnboarding: (...args) => mockRestartOnboarding(...args),
-  }),
+  usePermissionStore: (selector) => selector(mockPermissionStoreState),
 }));
 
 describe('SettingsSection', () => {
@@ -91,6 +94,9 @@ describe('SettingsSection', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
     mockRestartOnboarding.mockReset();
+    mockRequestPermission.mockReset();
+    mockRunPermissionProbe.mockReset();
+    mockBootstrapPermissions.mockReset();
     mockIpcListeners.clear();
     mockInvoke.mockImplementation(async (channel) => {
       if (channel === 'check-permission') {
@@ -116,11 +122,46 @@ describe('SettingsSection', () => {
       wakewordSuppressed: false,
       setWakewordEnabled: jest.fn(),
       globalAgentStopShortcutStatus: null,
+      updateConfig: jest.fn(),
     };
     mockTranscriptSessionInfo = {
       conversationRef: null,
       userId: null,
     };
+    mockPermissionStoreState = {
+      bootstrapped: true,
+      isLoading: false,
+      permissions: [
+        {
+          permission_id: 'browser_automation',
+          label: 'Browser automation',
+          access_kind: 'app_capability',
+          grant_action_label: 'Open browser',
+        },
+      ],
+      statusesByPermissionId: {
+        browser_automation: {
+          permission_id: 'browser_automation',
+          status: 'needs-action',
+          granted: false,
+          reason: 'Open the WindieOS browser and sign in with the profile WindieOS should use for browser help.',
+          details: {},
+        },
+      },
+      error: '',
+      restartOnboarding: (...args) => mockRestartOnboarding(...args),
+      bootstrapPermissions: (...args) => mockBootstrapPermissions(...args),
+      requestPermission: (...args) => mockRequestPermission(...args),
+      runPermissionProbe: (...args) => mockRunPermissionProbe(...args),
+    };
+    mockRunPermissionProbe.mockResolvedValue(undefined);
+    mockRequestPermission.mockResolvedValue({
+      permission_id: 'browser_automation',
+      status: 'granted',
+      granted: true,
+      reason: 'WindieOS browser is ready. Sign in with the profile WindieOS should use for browser help.',
+      details: {},
+    });
   });
 
   afterEach(() => {
@@ -293,6 +334,54 @@ describe('SettingsSection', () => {
     renderSettingsSection();
 
     expect(screen.getByTestId('settings-tab-workspace')).toBeInTheDocument();
+  });
+
+  test('renders a browser tab in the settings sidebar', () => {
+    renderSettingsSection();
+
+    expect(screen.getByTestId('settings-tab-browser')).toBeInTheDocument();
+  });
+
+  test('browser tab reuses the browser permission flow and persists enabled state on success', async () => {
+    renderSettingsSection({ initialTab: 'browser' });
+
+    await waitFor(() => {
+      expect(mockRunPermissionProbe).toHaveBeenCalledWith('browser_automation');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open Windie Browser' }));
+
+    await waitFor(() => {
+      expect(mockRequestPermission).toHaveBeenCalledWith('browser_automation');
+      expect(mockAppConfigContext.updateConfig).toHaveBeenCalledWith({
+        browser_automation_enabled: true,
+      });
+    });
+
+    expect(screen.getByText('WindieOS browser is ready. Sign in with the profile WindieOS should use for browser help.')).toBeInTheDocument();
+    expect(screen.getByText('Enabled')).toBeInTheDocument();
+  });
+
+  test('browser tab shows returned failure reason and remediation inline', async () => {
+    mockRequestPermission.mockResolvedValueOnce({
+      permission_id: 'browser_automation',
+      status: 'needs-action',
+      granted: false,
+      reason: 'WindieOS could not open the browser yet. Retry Open browser.',
+      details: {
+        remediation: 'Use the App Management onboarding step first, then retry Open browser.',
+      },
+    });
+
+    renderSettingsSection({ initialTab: 'browser' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open Windie Browser' }));
+
+    expect(await screen.findByText('WindieOS could not open the browser yet. Retry Open browser.')).toBeInTheDocument();
+    expect(screen.getByText('Use the App Management onboarding step first, then retry Open browser.')).toBeInTheDocument();
+    expect(mockAppConfigContext.updateConfig).not.toHaveBeenCalledWith({
+      browser_automation_enabled: true,
+    });
   });
 
   test('workspace tab shows the active workspace and can change it', async () => {
