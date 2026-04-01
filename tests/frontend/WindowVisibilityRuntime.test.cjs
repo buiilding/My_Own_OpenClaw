@@ -237,6 +237,44 @@ describe('window_visibility_runtime showChatWindow', () => {
 });
 
 describe('window_visibility_runtime showMainWindow', () => {
+  test('hides any visible overlay surface before showing the dashboard', () => {
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+      isMaximized: jest.fn(() => false),
+      getSize: jest.fn(() => [1000, 700]),
+      setBounds: jest.fn(),
+      show: jest.fn(),
+      moveTop: jest.fn(),
+      focus: jest.fn(),
+      setOpacity: jest.fn(),
+      restore: jest.fn(),
+      isMinimized: jest.fn(() => false),
+      webContents: {
+        focus: jest.fn(),
+      },
+    };
+    const responseWindow = createWindow({ visible: true });
+    const contextLabelWindow = createWindow({ visible: false });
+    const hideChatWindow = jest.fn();
+
+    const result = showMainWindow(
+      { focus: true },
+      {
+        mainWindow,
+        chatWindow: createWindow({ visible: false }),
+        responseWindow,
+        contextLabelWindow,
+        hideChatWindow,
+        syncWindowDisplayAffinity: jest.fn(),
+      },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(hideChatWindow).toHaveBeenCalledTimes(1);
+    expect(mainWindow.show).toHaveBeenCalledTimes(1);
+  });
+
   test('repositions main window onto target display affinity before showing', () => {
     const mainWindow = {
       isDestroyed: jest.fn(() => false),
