@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import ModelsSection from '../../frontend/src/renderer/features/dashboard/components/sections/ModelsSection';
-import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
 describe('ModelsSection', () => {
   const config = {
@@ -198,5 +198,28 @@ describe('ModelsSection', () => {
         }),
       );
     });
+  });
+
+  test('requests a fresh model catalog when mounted with legacy model payloads', () => {
+    window.ipc = {
+      send: jest.fn(),
+      invoke: jest.fn(),
+      on: jest.fn(() => jest.fn()),
+      once: jest.fn(),
+    };
+    jest.spyOn(IpcBridge, 'send').mockImplementation(() => undefined);
+
+    render(
+      <ModelsSection
+        config={config}
+        availableModels={availableModels}
+        onConfigChange={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(IpcBridge.send.mock.calls).toEqual([
+      [SEND_CHANNELS.TO_BACKEND, { type: 'list-models' }],
+    ]);
   });
 });

@@ -1,6 +1,196 @@
+const MODEL_CARD_FALLBACKS = {
+  'gpt-5': {
+    description: "OpenAI's flagship reasoning model for complex coding, agentic workflows, and multimodal chat.",
+    context: 400000,
+    latency: '~1.5s',
+    strengths: ['Reasoning', 'Code', 'Vision', 'Tools'],
+  },
+  'gpt-5.1': {
+    description: "OpenAI's strongest GPT-5 family model for coding, agents, and deliberate reasoning.",
+    context: 400000,
+    latency: '~1.6s',
+    strengths: ['Reasoning', 'Code', 'Agents', 'Tools'],
+  },
+  'gpt-5-mini': {
+    description: 'A faster, smaller GPT-5 variant tuned for responsive chat, coding, and high-throughput tasks.',
+    context: 400000,
+    latency: '~1.0s',
+    strengths: ['Fast', 'Code', 'Tools', 'General'],
+  },
+  'gpt-4.1': {
+    description: "OpenAI's strongest non-reasoning model with long-context instruction following and tool use.",
+    context: 1047576,
+    latency: '~1.2s',
+    strengths: ['Long Context', 'Tools', 'Vision', 'Reliable'],
+  },
+  'gpt-5.3-codex': {
+    description: "OpenAI's most capable Codex model for long-horizon, agentic coding work.",
+    context: 400000,
+    latency: '~1.6s',
+    strengths: ['Agentic', 'Code', 'Long Horizon', 'Tools'],
+  },
+  'gpt-5.2': {
+    description: 'A high-end GPT-5 reasoning model tuned for professional work with configurable effort levels.',
+    context: 400000,
+    latency: '~1.5s',
+    strengths: ['Reasoning', 'Analysis', 'Code', 'Flexible'],
+  },
+  'gpt-5.2-codex': {
+    description: "OpenAI's GPT-5.2 Codex line optimized for deliberate, long-running coding and tool orchestration.",
+    context: 400000,
+    latency: '~1.5s',
+    strengths: ['Agentic', 'Code', 'Tools', 'Long Horizon'],
+  },
+  'gpt-5.1-codex-max': {
+    description: 'A GPT-5.1 Codex variant optimized for long-running coding tasks and deeper agent execution.',
+    context: 400000,
+    latency: '~1.7s',
+    strengths: ['Agentic', 'Code', 'Long Horizon', 'Reasoning'],
+  },
+  'gpt-5.1-codex-mini': {
+    description: 'A smaller GPT-5.1 Codex variant for faster, cheaper coding assistance and iterative tool use.',
+    context: 400000,
+    latency: '~1.0s',
+    strengths: ['Fast', 'Code', 'Agentic', 'Efficiency'],
+  },
+  'claude-sonnet-4-5-20250929': {
+    description: "Anthropic's Claude Sonnet 4.5 balances strong coding, reasoning, and agent reliability.",
+    context: 200000,
+    latency: '~1.3s',
+    strengths: ['Agents', 'Coding', 'Writing', 'Reliable'],
+  },
+  'claude-opus-4-6': {
+    description: "Anthropic's most capable Claude 4.6 model for difficult coding, analysis, and long-context work.",
+    context: 1000000,
+    latency: '~2.2s',
+    strengths: ['Deep Reasoning', 'Coding', 'Long Context', 'Agents'],
+  },
+  'claude-haiku-4-5-20251001': {
+    description: "Anthropic's fastest Claude 4.5 family model for responsive assistants and lightweight agent tasks.",
+    context: 200000,
+    latency: '~0.9s',
+    strengths: ['Fast', 'Efficiency', 'Agents', 'Writing'],
+  },
+  'claude-sonnet-4-6': {
+    description: 'Claude Sonnet 4.6 pairs frontier reasoning with 1M-token context for serious agent workflows.',
+    context: 1000000,
+    latency: '~1.4s',
+    strengths: ['Long Context', 'Agents', 'Coding', 'Balanced'],
+  },
+  'claude-opus-4-5': {
+    description: 'Claude Opus 4.5 prioritizes maximum capability for demanding coding and reasoning tasks.',
+    context: 200000,
+    latency: '~2.1s',
+    strengths: ['Deep Reasoning', 'Coding', 'Analysis', 'Vision'],
+  },
+  'claude-haiku-4-5': {
+    description: 'Claude Haiku 4.5 emphasizes speed and efficiency while keeping the Claude 4.5 tool-use stack.',
+    context: 200000,
+    latency: '~0.9s',
+    strengths: ['Fast', 'Efficiency', 'Agents', 'Vision'],
+  },
+  'claude-sonnet-4-5': {
+    description: "Claude Sonnet 4.5 is Anthropic's balanced model for coding, reasoning, and agent execution.",
+    context: 200000,
+    latency: '~1.3s',
+    strengths: ['Coding', 'Reasoning', 'Agents', 'Writing'],
+  },
+  'claude-sonnet-4-20250514': {
+    description: 'Claude Sonnet 4 offers strong everyday coding and analysis with dependable tool use.',
+    context: 200000,
+    latency: '~1.3s',
+    strengths: ['Coding', 'Reasoning', 'Agents', 'Balanced'],
+  },
+  'gemini-2.5-flash': {
+    description: 'Faster than Gemini 2.5 Pro and cheaper to run, while keeping 1M-token context for everyday multimodal chat and coding.',
+    context: 1048576,
+    latency: '~1.0s',
+    strengths: ['Fast', 'Multimodal', 'Search', '1M Context'],
+  },
+  'gemini-2.5-pro': {
+    description: 'More capable than Gemini 2.5 Flash for harder reasoning, code, and STEM work, with the same 1M-token context.',
+    context: 1048576,
+    latency: '~1.8s',
+    strengths: ['Reasoning', 'Code', 'Multimodal', '1M Context'],
+  },
+  'gemini-3-pro-preview': {
+    description: 'More capable than Gemini 3 Flash for deeper reasoning, planning, and agent workflows, with 1M-token context.',
+    context: 1048576,
+    latency: '~1.8s',
+    strengths: ['Reasoning', 'Multimodal', 'Agents', '1M Context'],
+  },
+  'gemini-3-flash-preview': {
+    description: 'Faster than Gemini 3 Pro for responsive multimodal tasks and coding, while keeping 1M-token context.',
+    context: 1048576,
+    latency: '~1.0s',
+    strengths: ['Fast', 'Multimodal', 'Code', '1M Context'],
+  },
+  'gemini-3.1-pro-preview': {
+    description: 'A stronger Gemini 3.1 Pro preview for advanced coding, long-context reasoning, and multimodal agent work.',
+    context: 1048576,
+    latency: '~1.7s',
+    strengths: ['Reasoning', 'Code', 'Multimodal', '1M Context'],
+  },
+  'openrouter/auto': {
+    description: "OpenRouter's auto router picks a suitable upstream model automatically for each request.",
+    context: 2000000,
+    latency: '~1.4s',
+    strengths: ['Auto Routing', '2M Context', 'Flexible', 'Breadth'],
+  },
+  'qwen/qwen3-vl-235b-a22b-thinking': {
+    description: 'Qwen3 VL 235B A22B Thinking is a multimodal reasoning model exposed through OpenRouter.',
+    context: 131072,
+    latency: '~2.0s',
+    strengths: ['Multimodal', 'Vision', 'Reasoning', 'UI Tasks'],
+  },
+  'mistral-large-latest': {
+    description: "Mistral's flagship large model for coding, reasoning, and multimodal assistance.",
+    context: 256000,
+    latency: '~1.6s',
+    strengths: ['Coding', 'Reasoning', 'Multimodal', '256k Context'],
+  },
+  'mistral-small-latest': {
+    description: "Mistral's smaller general-purpose model for fast chat, instruction following, and coding support.",
+    context: 128000,
+    latency: '~1.0s',
+    strengths: ['Fast', 'Coding', 'Efficient', '128k Context'],
+  },
+  k2p5: {
+    description: "Moonshot's Kimi K2.5 model is built for agentic coding, multimodal reasoning, and long-context work.",
+    context: 256000,
+    latency: '~1.4s',
+    strengths: ['Agentic', 'Coding', 'Multimodal', '256k Context'],
+  },
+};
+
+function resolveRuntimeModelKey(model) {
+  const runtimeModelId = model?.runtime_model_id || model?.runtimeModelId;
+  if (typeof runtimeModelId === 'string' && runtimeModelId.trim()) {
+    return runtimeModelId.trim();
+  }
+
+  const rawId = model?.id;
+  if (typeof rawId === 'string' && rawId.trim()) {
+    const normalizedId = rawId.trim();
+    const [selectedId] = normalizedId.split('@@');
+    return selectedId;
+  }
+
+  return '';
+}
+
+function getFallbackModelMetadata(model) {
+  const key = resolveRuntimeModelKey(model);
+  return MODEL_CARD_FALLBACKS[key] || null;
+}
+
 function buildModelDescription(model) {
   if (typeof model?.description === 'string' && model.description.trim()) {
     return model.description.trim();
+  }
+  const fallback = getFallbackModelMetadata(model);
+  if (fallback?.description) {
+    return fallback.description;
   }
   const provider = (model?.provider || '').toLowerCase();
   if (provider.includes('openai')) {
@@ -30,6 +220,10 @@ function buildModelDescription(model) {
 function buildModelStrengths(model) {
   if (Array.isArray(model?.strengths) && model.strengths.length > 0) {
     return model.strengths.map((strength) => String(strength));
+  }
+  const fallback = getFallbackModelMetadata(model);
+  if (Array.isArray(fallback?.strengths) && fallback.strengths.length > 0) {
+    return fallback.strengths.map((strength) => String(strength));
   }
   const provider = (model?.provider || '').toLowerCase();
   if (provider.includes('openai')) {
@@ -67,8 +261,9 @@ function formatContextHint(contextHint) {
 }
 
 export function toModelCard(model, isRecommended) {
+  const fallback = getFallbackModelMetadata(model);
   const displayName = model?.display_name || model?.displayName || model?.id || 'unknown-model';
-  const contextHint = model?.context_window || model?.contextWindow || model?.context;
+  const contextHint = model?.context_window || model?.contextWindow || model?.context || fallback?.context;
   const thinkingBadge = typeof model?.supports_thinking === 'boolean'
     ? (model.supports_thinking ? 'Thinking' : 'Non-thinking')
     : null;
@@ -81,7 +276,7 @@ export function toModelCard(model, isRecommended) {
     context: formatContextHint(contextHint),
     inputPrice: model?.input_price || model?.inputPrice || 'Free',
     outputPrice: model?.output_price || model?.outputPrice || 'Free',
-    latency: model?.latency || '~1.5s',
+    latency: model?.latency || fallback?.latency || '~1.5s',
     strengths: buildModelStrengths(model),
     badge,
   };
