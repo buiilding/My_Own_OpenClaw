@@ -50,7 +50,7 @@ import {
 import {
   VISIBLE_ASSISTANT_REPLY_TYPE_SET,
 } from '../utils/state/chatTurnPresentationState';
-import { buildToolLogPresentationMessages } from '../utils/message/toolExplanationMessages';
+import { buildThreadPresentationMessages } from '../utils/message/messagePresentationPipeline';
 import '../../../styles/ChatInterface.css';
 
 function waitForNextPaint() {
@@ -192,7 +192,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
     allowedTypes: VISIBLE_ASSISTANT_REPLY_TYPE_SET,
   });
   const canStop = composerBusy;
-  const renderedMessages = useMemo(() => buildToolLogPresentationMessages(messages, {
+  const renderedMessages = useMemo(() => buildThreadPresentationMessages(messages, {
     showToolLogs,
     isBusy: composerBusy,
   }), [composerBusy, messages, showToolLogs]);
