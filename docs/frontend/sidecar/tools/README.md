@@ -25,6 +25,10 @@ title: "Frontend Sidecar Tools Docs Hub"
 - [Replace Engine Match Modes, Patch Chunks, and Atomic Write Contract Reference](filesystem/replace_engine_match_modes_patch_chunks_and_atomic_write_contract_reference.md)
 - [Frontend Tool Base Interface and Simple Tool Result Contract Reference](contracts/frontend_tool_base_interface_and_simple_tool_result_contract_reference.md)
 
+## Browser Tool Note
+
+The `browser` sidecar tool now runs through a Windie-owned runtime layered directly on `BrowserController`, plus first-party content-extraction and browser-local file helpers. The sidecar no longer ships or routes browser actions through a vendored `browser_use` subtree, and browser action payload validation now happens against the canonical Windie schema at execution time.
+
 ## Code Scope
 
 - `frontend/src/main/python/tools/registry.py`
@@ -42,6 +46,12 @@ title: "Frontend Sidecar Tools Docs Hub"
 - `frontend/src/main/python/tools/system/shell_process_registry.py`
 - `frontend/src/main/python/tools/filesystem/read_file_tool.py`
 - `frontend/src/main/python/tools/filesystem/replace_tool.py`
+- `frontend/src/main/python/tools/browser/browser_tool.py`
+- `frontend/src/main/python/tools/browser/windie_runtime.py`
+- `frontend/src/main/python/tools/browser/content_extraction.py`
+- `frontend/src/main/python/tools/browser/file_store.py`
+- `frontend/src/main/python/tools/browser/controller.py`
+- `frontend/src/main/python/tools/browser/schemas.py`
 - `frontend/src/main/python/tools/filesystem/replace_engine.py`
 - `frontend/src/main/python/tools/filesystem/file_utils.py`
 - `frontend/src/main/python/tools/filesystem/gitignore_utils.py`

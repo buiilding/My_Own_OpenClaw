@@ -33,10 +33,6 @@ pydantic-settings>=2.0.0
 
 # Browser automation
 playwright>=1.40.0
-httpx>=0.28.1
-bubus>=1.5.6
-cdp-use>=1.4.4
-pyotp>=2.9.0
 markdownify>=0.13.1
 
 # Platform-specific window management

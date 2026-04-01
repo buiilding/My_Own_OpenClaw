@@ -12,16 +12,32 @@ from typing import Any, Callable, Dict
 
 from tools.exposed_tool_names import EXPOSED_TO_BACKEND_TOOL_NAMES
 from tools.result import ToolResult
+
 logger = logging.getLogger(__name__)
+
+TOOL_CATALOG: tuple[tuple[str, str, str], ...] = (
+    ("mouse_control", "tools.computer.mouse_tool", "execute_mouse_control"),
+    ("keyboard_control", "tools.computer.keyboard_tool", "execute_keyboard_control"),
+    ("screenshot", "tools.computer.screenshot_tool", "capture_screenshot"),
+    ("scroll_control", "tools.computer.scroll_tool", "execute_scroll_control"),
+    ("read_file", "tools.filesystem.read_file_tool", "read_file"),
+    ("replace", "tools.filesystem.replace_tool", "replace"),
+    ("run_shell_command", "tools.system.shell_tool", "run_shell_command"),
+    ("open_app", "tools.system.open_app_tool", "open_app"),
+    ("process", "tools.system.process_tool", "process_shell_command"),
+    ("get_system_stats", "tools.system.stats_tool", "get_system_stats"),
+    ("wait", "tools.system.wait_tool", "wait"),
+    ("browser", "tools.browser.browser_tool", "execute_browser"),
+)
 
 
 class ToolRegistry:
     """
     Registry for all available tools.
-    
+
     Handles tool registration and execution.
     """
-    
+
     def __init__(self):
         self.tools: Dict[str, Callable[..., Any]] = {}
         self._register_tools()
@@ -32,93 +48,25 @@ class ToolRegistry:
     def reload_tools(self) -> None:
         self.tools.clear()
         self._register_tools()
-    
+
     def _register_tools(self):
         """Register all available tools."""
-        # Computer tools
-        try:
-            from tools.computer.mouse_tool import execute_mouse_control
-            self.tools["mouse_control"] = execute_mouse_control
-        except ImportError as e:
-            logger.warning(f"Failed to import mouse_tool: {e}")
-        
-        try:
-            from tools.computer.keyboard_tool import execute_keyboard_control
-            self.tools["keyboard_control"] = execute_keyboard_control
-        except ImportError as e:
-            logger.warning(f"Failed to import keyboard_tool: {e}")
-        
-        try:
-            from tools.computer.screenshot_tool import capture_screenshot
-            self.tools["screenshot"] = capture_screenshot
-        except ImportError as e:
-            logger.warning(f"Failed to import screenshot_tool: {e}")
-        
-        try:
-            from tools.computer.scroll_tool import execute_scroll_control
-            self.tools["scroll_control"] = execute_scroll_control
-        except ImportError as e:
-            logger.warning(f"Failed to import scroll_tool: {e}")
+        for tool_name, module_name, attr_name in TOOL_CATALOG:
+            try:
+                self.tools[tool_name] = self._build_lazy_tool(
+                    module_name=module_name,
+                    attr_name=attr_name,
+                )
+            except ImportError as e:
+                logger.warning(f"Failed to register {tool_name}: {e}")
 
-        # Filesystem tools
-        try:
-            from tools.filesystem.read_file_tool import read_file
-            self.tools["read_file"] = read_file
-        except ImportError as e:
-            logger.warning(f"Failed to import read_file_tool: {e}")
-        
-        try:
-            from tools.filesystem.replace_tool import replace
-            self.tools["replace"] = replace
-        except ImportError as e:
-            logger.warning(f"Failed to import replace_tool: {e}")
-        
-        # System tools
-        try:
-            from tools.system.shell_tool import run_shell_command
-            self.tools["run_shell_command"] = run_shell_command
-        except ImportError as e:
-            logger.warning(f"Failed to import shell_tool: {e}")
-
-        try:
-            from tools.system.open_app_tool import open_app
-            self.tools["open_app"] = open_app
-        except ImportError as e:
-            logger.warning(f"Failed to import open_app_tool: {e}")
-
-        try:
-            from tools.system.process_tool import process_shell_command
-            self.tools["process"] = process_shell_command
-        except ImportError as e:
-            logger.warning(f"Failed to import process_tool: {e}")
-        
         try:
             from tools.system.window_tool import switch_to_window, get_open_windows
+
             self.tools["switch_tab"] = switch_to_window
             self.tools["get_open_windows"] = get_open_windows
         except ImportError as e:
             logger.warning(f"Failed to import window_tool: {e}")
-        
-        try:
-            from tools.system.stats_tool import get_system_stats
-            self.tools["get_system_stats"] = get_system_stats
-        except ImportError as e:
-            logger.warning(f"Failed to import stats_tool: {e}")
-        
-        try:
-            from tools.system.wait_tool import wait
-            self.tools["wait"] = wait
-        except ImportError as e:
-            logger.warning(f"Failed to import wait_tool: {e}")
-        
-        # Browser tools
-        try:
-            self.tools["browser"] = self._build_lazy_tool(
-                module_name="tools.browser.browser_tool",
-                attr_name="execute_browser",
-            )
-        except ImportError as e:
-            logger.warning(f"Failed to import browser_tool: {e}")
 
         missing_exposed_tools = EXPOSED_TO_BACKEND_TOOL_NAMES - set(self.tools.keys())
         if missing_exposed_tools:
@@ -127,7 +75,9 @@ class ToolRegistry:
                 ", ".join(sorted(missing_exposed_tools)),
             )
 
-        logger.debug(f"Registered {len(self.tools)} tools: {', '.join(self.tools.keys())}")
+        logger.debug(
+            f"Registered {len(self.tools)} tools: {', '.join(self.tools.keys())}"
+        )
 
     @staticmethod
     def get_exposed_tool_names() -> set[str]:
@@ -151,7 +101,9 @@ class ToolRegistry:
         return _lazy_tool
 
     @staticmethod
-    def _extract_failure_payload(result: Dict[str, Any]) -> tuple[str, Dict[str, Any] | None]:
+    def _extract_failure_payload(
+        result: Dict[str, Any]
+    ) -> tuple[str, Dict[str, Any] | None]:
         """Extract the most useful failure message from legacy dict tool results."""
         data = result.get("data")
         payload_data = data if isinstance(data, dict) else None
@@ -174,15 +126,15 @@ class ToolRegistry:
                 return f"Tool execution failed with exit code {exit_code}", payload_data
 
         return "Tool execution failed", payload_data
-    
+
     async def execute_tool(self, tool_name: str, args: Dict[str, Any]) -> ToolResult:
         """
         Execute a tool.
-        
+
         Args:
             tool_name: Name of the tool
             args: Tool arguments
-            
+
         Returns:
             ToolResult object with standardized structure
         """
@@ -193,14 +145,14 @@ class ToolRegistry:
         if not isinstance(args, dict):
             return ToolResult.error_result("Tool args must be an object")
         tool_args = copy.deepcopy(args)
-        
+
         # Execute tool (handle both sync and async)
         try:
             if asyncio.iscoroutinefunction(tool):
                 result = await tool(tool_args)
             else:
                 result = tool(tool_args)
-            
+
             # Convert result to ToolResult if needed
             if isinstance(result, ToolResult):
                 return result
@@ -208,7 +160,9 @@ class ToolRegistry:
                 # Handle legacy dict format
                 if result.get("success") is False:
                     error_message, failure_data = self._extract_failure_payload(result)
-                    return ToolResult(success=False, error=error_message, data=failure_data)
+                    return ToolResult(
+                        success=False, error=error_message, data=failure_data
+                    )
                 else:
                     return ToolResult.success_result(result.get("data", result))
             else:
