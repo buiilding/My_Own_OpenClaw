@@ -23,6 +23,13 @@ from backend.src.core.config.loader import (
     load_api_key_for_provider,
     load_settings_from_file,
 )
+from backend.src.core.config.domains import (
+    browser_runtime_config,
+    memory_config,
+    provider_model_config,
+    security_transport_config,
+    session_runtime_config,
+)
 from backend.src.core.config.manager import ConfigManager, get_config_manager
 from backend.src.core.config.runtime import (
     apply_runtime_policies,
@@ -41,6 +48,11 @@ __all__ = [
     "LMStudioConfig",
     "Preferences",
     "KimiCodingConfig",
+    "provider_model_config",
+    "session_runtime_config",
+    "browser_runtime_config",
+    "memory_config",
+    "security_transport_config",
     "ConfigManager",
     "get_config_manager",
     "load_settings_from_file",

@@ -44,7 +44,8 @@ class ScreenshotManager:
         Raises:
             ValueError: If no active screenshot is available
         """
-        current_screenshot_id = session.get_current_screenshot_id()
+        ocr_state = session.get_ocr_runtime_state()
+        current_screenshot_id = ocr_state.get_current_screenshot_id()
         if current_screenshot_id:
             screenshot_data = session.get_screenshot()
             if screenshot_data:
@@ -129,10 +130,11 @@ class ScreenshotManager:
             request_id: Request ID for logging purposes
         """
         ocr_service = session.ocr_service
+        ocr_state = session.get_ocr_runtime_state()
         if not ocr_service or not ocr_service.enabled:
             # OCR disabled: keep event set so tools don't block unnecessarily.
             session.ocr_completion_event.set()
-            self._cancel_active_ocr_task(session)
+            ocr_state.cancel_active_task()
             return
 
         async def run_ocr_task():
@@ -146,8 +148,8 @@ class ScreenshotManager:
                     # Only store results if this screenshot_id is still current
                     # This prevents race conditions where a new screenshot arrives
                     # while OCR is processing the old one
-                    if session.get_current_screenshot_id() == screenshot_id:
-                        session.set_current_ocr_results(results)
+                    if ocr_state.get_current_screenshot_id() == screenshot_id:
+                        ocr_state.set_results(results)
                         logger.info(f"Proactive OCR completed for screenshot {screenshot_id[:8]} (request {short_id(request_id)})")
                     else:
                         logger.debug(f"OCR completed for outdated screenshot {screenshot_id[:8]}, ignoring results")
@@ -158,12 +160,12 @@ class ScreenshotManager:
                 session.ocr_completion_event.set()
                 current_task = asyncio.current_task()
                 if current_task is not None:
-                    self._clear_active_ocr_task(session, current_task)
+                    ocr_state.clear_active_task(current_task)
 
         # Cancel stale OCR task before scheduling next one.
-        self._cancel_active_ocr_task(session)
+        ocr_state.cancel_active_task()
         task: asyncio.Task[Any] = asyncio.create_task(run_ocr_task())
-        self._set_active_ocr_task(session, task, screenshot_id)
+        ocr_state.set_active_task(task, screenshot_id)
     
     def _generate_screenshot_id(self, screenshot_data: str) -> str:
         """
@@ -179,28 +181,3 @@ class ScreenshotManager:
         # This is sufficient to uniquely identify different screenshots
         sample = screenshot_data[:1024] if len(screenshot_data) > 1024 else screenshot_data
         return hashlib.sha256(sample.encode('utf-8')).hexdigest()[:16]  # 16 chars is sufficient
-
-    @staticmethod
-    def _cancel_active_ocr_task(session: "AgentSession") -> None:
-        cancel = getattr(session, "cancel_active_ocr_task", None)
-        if callable(cancel):
-            cancel()
-
-    @staticmethod
-    def _set_active_ocr_task(
-        session: "AgentSession",
-        task: asyncio.Task[Any],
-        screenshot_id: str,
-    ) -> None:
-        setter = getattr(session, "set_active_ocr_task", None)
-        if callable(setter):
-            setter(task, screenshot_id)
-
-    @staticmethod
-    def _clear_active_ocr_task(
-        session: "AgentSession",
-        task: asyncio.Task[Any],
-    ) -> None:
-        clearer = getattr(session, "clear_active_ocr_task", None)
-        if callable(clearer):
-            clearer(task)

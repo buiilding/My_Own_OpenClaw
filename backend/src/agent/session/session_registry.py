@@ -44,6 +44,9 @@ class SessionRegistry:
     ) -> Iterable[tuple[Optional[str], "AgentSession"]]:
         return tuple(self.get_user_sessions(user_id).items())
 
+    def iter_user_ids(self) -> Iterable[str]:
+        return tuple(self.active_sessions.keys())
+
     def resolve_default_conversation_ref(
         self,
         user_id: str,

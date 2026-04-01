@@ -25,6 +25,7 @@ class DummySession:
         self._active_ocr_task = None
         self._active_ocr_screenshot_id = None
         self.cancel_calls = 0
+        self._ocr_runtime_state = _DummyOcrRuntimeState(self)
 
     def set_current_screenshot(self, screenshot_id, data, capture_meta=None):
         self._current_screenshot_id = screenshot_id
@@ -56,6 +57,29 @@ class DummySession:
             task.cancel()
         self._active_ocr_task = None
         self._active_ocr_screenshot_id = None
+
+    def get_ocr_runtime_state(self):
+        return self._ocr_runtime_state
+
+
+class _DummyOcrRuntimeState:
+    def __init__(self, session: DummySession) -> None:
+        self._session = session
+
+    def get_current_screenshot_id(self):
+        return self._session.get_current_screenshot_id()
+
+    def set_results(self, results):
+        self._session.set_current_ocr_results(results)
+
+    def set_active_task(self, task, screenshot_id):
+        self._session.set_active_ocr_task(task, screenshot_id)
+
+    def clear_active_task(self, task):
+        self._session.clear_active_ocr_task(task)
+
+    def cancel_active_task(self):
+        self._session.cancel_active_ocr_task()
 
 
 @pytest.mark.asyncio

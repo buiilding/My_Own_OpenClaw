@@ -11,6 +11,9 @@ title: "Session Runtime and Config Rewire Reference"
 ## Canonical Modules
 
 - `backend/src/agent/session/manager.py`
+- `backend/src/agent/session/session_registry.py`
+- `backend/src/agent/session/session_config_service.py`
+- `backend/src/agent/session/active_query_tracker.py`
 - `backend/src/agent/session/session.py`
 - `backend/src/agent/session/initializer.py`
 - `backend/src/agent/session/runtime_state.py`
@@ -21,13 +24,21 @@ title: "Session Runtime and Config Rewire Reference"
 
 ## Ownership Boundaries
 
-`SessionManager` owns user-level lifecycle and concurrency:
+`SessionManager` is now the facade only. The actual ownership split is:
 
-- `active_sessions[user_id][conversation_ref]`
-- per-user locks (`_user_locks`)
-- active query task metadata (`_active_query_tasks`)
-- per-user effective-config overrides reused by newly created conversation sessions
-- frontend operating-system overrides captured from websocket handshake and applied to session prompt/history
+- `SessionRegistry`
+  - session map keyed by `(user_id, conversation_ref)`
+  - per-user locks
+  - latest-conversation tracking and cleanup
+- `SessionConfigService`
+  - per-user config overrides
+  - effective-config assembly for new/existing sessions
+  - frontend operating-system prompt rewrites
+- `ActiveQueryTracker`
+  - active task registration
+  - stop-query cancellation / pending-stop consumption
+
+This boundary matters because handlers/services should still depend on `SessionManager`, but runtime ownership should not drift back into one file.
 
 `AgentSession` owns per-session mutable runtime:
 
@@ -41,9 +52,9 @@ title: "Session Runtime and Config Rewire Reference"
 `SessionManager.get_or_create_session(user_id, conversation_ref=...)` uses:
 
 1. fast path without lock when session already cached
-2. per-user lock slow path
+2. `SessionRegistry` per-user lock slow path
 3. double-check after lock acquisition
-4. detached `AppConfig` copy + per-user override merge + runtime normalization
+4. `SessionConfigService` detached `AppConfig` copy + per-user override merge + runtime normalization
 5. factory `create_agent_session(user_id, config)` and cache insert under the requested conversation ref
 6. apply any frontend operating-system override already registered for that user so prompt/history use the frontend OS instead of the backend host OS
 
@@ -54,7 +65,7 @@ Concurrency properties:
 
 ## Active Query Task Tracking
 
-Manager tracks task -> `(turn_ref, conversation_ref)` per user:
+`ActiveQueryTracker` tracks task -> `(turn_ref, conversation_ref)` per user:
 
 - `register_active_query_task(...)`
 - `cancel_active_query_task(...)`
@@ -166,3 +177,4 @@ Validated by:
 2. Mutating session state outside `AgentSession._lock` can introduce cross-turn history corruption.
 3. Forgetting to register long-lived background tasks in `SessionRuntimeState` breaks deterministic cleanup.
 4. New conversation-bound routing must preserve request-id and bundle-id lookup, or frontend tool results can land on the wrong session.
+5. New session-runtime responsibilities should land in `SessionRegistry`, `SessionConfigService`, or `ActiveQueryTracker` first; `SessionManager` should stay a narrow facade.

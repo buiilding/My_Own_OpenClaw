@@ -130,7 +130,7 @@ class SessionConfigService:
     async def update_all_sessions_config(self, config: AppConfig) -> None:
         self.set_base_config(config)
         errors: list[tuple[str, Exception]] = []
-        for user_id, _ in list(self._registry.active_sessions.items()):
+        for user_id in self._registry.iter_user_ids():
             user_lock = await self._registry.get_user_lock(user_id)
             async with user_lock:
                 user_sessions = self._registry.get_user_sessions(user_id)
