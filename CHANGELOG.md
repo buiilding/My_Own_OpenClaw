@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 - refactor(sidecar-browser-runtime): replace the vendored `browser_use` browser stack with a first-party Windie browser runtime built directly on `BrowserController`, add Windie-owned content-extraction and browser-local file helpers, tighten sidecar browser argument validation to the canonical contract at runtime, and remove the old Browser Use/OpenClaw compatibility tests plus vendored sidecar browser payloads.
+- chore(sidecar-browser-packaging): remove Browser Use-era browser feature-pack markers and sidecar Python dependencies so packaged/browser-install readiness now reflects the Windie-owned runtime's actual module set (`playwright` + `markdownify`).
 - feat(packaging-windows): add a one-command Windows reinstall helper that clears local WindieOS app state, rebuilds the bundled-runtime NSIS installer, reinstalls it silently, and relaunches the packaged app for local testing.
 - tweak(packaging-windows): harden the Windows reinstall helper with Git Bash auto-discovery, symlink/Developer Mode preflight warnings, path-aware WindieOS process shutdown, retrying best-effort app-data cleanup, and `-SkipDataReset` / `-SkipLaunch` switches for faster local test loops.
 - tweak(frontend-dashboard-theme): restyle the dashboard shell and settings surfaces with the minimal chat pill's darker black-glass palette, elevated panel treatment, and white-button accents so the expanded UI feels like the same surface family.

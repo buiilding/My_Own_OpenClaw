@@ -23,7 +23,7 @@ _FEATURE_PACK_REQUIREMENTS: Dict[str, str] = {
 }
 
 _FEATURE_PACK_MODULE_MARKERS: Dict[str, Tuple[str, ...]] = {
-    "browser": ("playwright", "cdp_use", "httpx", "pyotp", "markdownify"),
+    "browser": ("playwright", "markdownify"),
 }
 
 
@@ -143,5 +143,5 @@ def build_feature_pack_manual_install_message(feature_pack: str) -> str:
     return (
         "Feature pack installation failed. "
         "Retry with network access or install manually: "
-        f"`{sys.executable} -m pip install --target \"{site_packages}\" -r \"{requirements_path}\"`"
+        f'`{sys.executable} -m pip install --target "{site_packages}" -r "{requirements_path}"`'
     )

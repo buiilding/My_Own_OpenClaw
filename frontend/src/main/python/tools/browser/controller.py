@@ -415,7 +415,9 @@ class BrowserController:
         Raises:
             ConnectionError: If cannot connect or launch Chrome
         """
-        logger.info("Auto-connecting to WindieOS browser at %s (headless=%s)", cdp_url, headless)
+        logger.info(
+            "Auto-connecting to WindieOS browser at %s (headless=%s)", cdp_url, headless
+        )
 
         # Validate CDP URL
         parsed = urlparse(cdp_url)
@@ -1324,7 +1326,7 @@ class BrowserController:
                     indent = "\t" * depth_idx
                     lines.append(f"{indent}<{ancestor_label}>")
 
-                line = self._build_browser_use_like_interactive_line(
+                line = self._build_interactive_snapshot_line(
                     ref=ref,
                     is_new=is_new,
                     tag=tag,
@@ -1346,7 +1348,7 @@ class BrowserController:
 
         # Build snapshot text
         snapshot_text = f"Title: {title}\nURL: {url}\n\n"
-        snapshot_text += "DOM tree (browser-use style):\n"
+        snapshot_text += "DOM tree (interactive snapshot):\n"
         snapshot_text += "\n".join(lines) if lines else "(none found)"
 
         # Truncate if too long
@@ -1360,7 +1362,7 @@ class BrowserController:
             ref_count=len(seen_refs),
         )
 
-    def _build_browser_use_like_interactive_line(
+    def _build_interactive_snapshot_line(
         self,
         *,
         ref: str,
@@ -1372,7 +1374,7 @@ class BrowserController:
         placeholder: str,
         href: str,
     ) -> str:
-        """Format a browser-use-like interactive line with lightweight tag attrs."""
+        """Format an interactive snapshot line with lightweight tag attrs."""
         tag_name = (tag or "element").strip().lower() or "element"
         label = (name or placeholder or "").strip()
         if len(label) > 80:
@@ -1898,6 +1900,36 @@ class BrowserController:
             logger.error(f"Click failed after fallbacks: {error_text}")
             return {"success": False, "error": error_text}
 
+    async def click_coordinates(
+        self,
+        x: int,
+        y: int,
+        double_click: bool = False,
+        button: str = "left",
+    ) -> Dict[str, Any]:
+        """Click absolute viewport coordinates."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+
+        try:
+            if double_click:
+                await self._page.mouse.dblclick(x, y, button=button)
+                strategy = "coordinate_dblclick"
+            else:
+                await self._page.mouse.click(x, y, button=button)
+                strategy = "coordinate_click"
+            return {
+                "success": True,
+                "action": "click",
+                "coordinate_x": x,
+                "coordinate_y": y,
+                "button": button,
+                "strategy": strategy,
+            }
+        except Exception as e:
+            logger.error(f"Coordinate click failed: {e}")
+            return {"success": False, "error": str(e)}
+
     async def type_text(
         self,
         ref: str,
@@ -2091,7 +2123,10 @@ class BrowserController:
                 }"""
             )
             if not isinstance(details, dict):
-                return {"success": False, "error": "Dropdown inspection returned invalid response"}
+                return {
+                    "success": False,
+                    "error": "Dropdown inspection returned invalid response",
+                }
             if not details.get("ok"):
                 return {
                     "success": False,
@@ -2159,7 +2194,10 @@ class BrowserController:
                 text,
             )
             if not isinstance(details, dict):
-                return {"success": False, "error": "Dropdown selection returned invalid response"}
+                return {
+                    "success": False,
+                    "error": "Dropdown selection returned invalid response",
+                }
             if not details.get("ok"):
                 return {
                     "success": False,
