@@ -57,6 +57,7 @@ Default section on open: **Chat**.
 - Full conversation UI.
 - Type and send messages.
 - Shows streaming responses, tool output, and screenshots.
+- Right-click any screenshot shown in the chat thread to open a small context menu with **Copy image**.
 - Mode badge shows **Chat** or **Agent**.
 - The header shows the active workspace. Click it to change the default folder WindieOS uses for file reads, shell commands, and repo-aware work.
 - **New Chat** starts a fresh conversation immediately (new conversation id) and clears the visible timeline.

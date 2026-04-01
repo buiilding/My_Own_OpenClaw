@@ -1,13 +1,29 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import MessageContent from '../../frontend/src/renderer/features/chat/components/MessageContent';
+import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
 jest.mock('../../frontend/src/renderer/infrastructure/markdown', () => ({
   toSanitizedMarkdownHtml: jest.fn((text) => text),
 }));
 
+jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => {
+  const actualModule = jest.requireActual('../../frontend/src/renderer/infrastructure/ipc/bridge');
+  return {
+    ...actualModule,
+    IpcBridge: {
+      ...actualModule.IpcBridge,
+      invoke: jest.fn().mockResolvedValue({ success: true }),
+    },
+  };
+});
+
 describe('MessageContent', () => {
+  beforeEach(() => {
+    IpcBridge.invoke.mockClear();
+  });
+
   test('prefers screenshot URL over inline screenshot data', () => {
     render(
       <MessageContent
@@ -58,6 +74,36 @@ describe('MessageContent', () => {
     const secondImage = screen.getByRole('img', { name: 'User message screenshot 2' });
     expect(firstImage.getAttribute('src')).toBe('https://cdn.example/screenshot-a.png');
     expect(secondImage.getAttribute('src')).toBe('data:image/png;base64,inline-b');
+  });
+
+  test('opens a custom screenshot context menu and copies the image through IPC', async () => {
+    render(
+      <MessageContent
+        message={{
+          sender: 'user',
+          text: 'hello',
+          screenshotUrl: 'https://cdn.example/screenshot.png',
+        }}
+      />,
+    );
+
+    const image = screen.getByRole('img', { name: 'User message screenshot' });
+    fireEvent.contextMenu(image, { clientX: 180, clientY: 120 });
+
+    const copyButton = screen.getByRole('menuitem', { name: 'Copy image' });
+    expect(copyButton).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(copyButton);
+    });
+
+    await waitFor(() => {
+      expect(IpcBridge.invoke).toHaveBeenCalledWith(
+        INVOKE_CHANNELS.COPY_IMAGE_TO_CLIPBOARD,
+        { src: 'https://cdn.example/screenshot.png' },
+      );
+    });
+    expect(screen.queryByRole('menuitem', { name: 'Copy image' })).not.toBeInTheDocument();
   });
 
   test('defaults inline screenshot data URL to jpeg when content type missing', () => {
