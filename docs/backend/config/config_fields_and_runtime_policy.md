@@ -98,12 +98,11 @@ Execution/event semantics for these fields (decision skip reasons, trigger fallb
 | `tts_model_path` | `str \| None` | `None` | Filled at runtime if missing. |
 | `speech_mode_enabled` | `bool` | `false` | User speech output mode control. |
 
-### Security/OCR/WebSocket/Artifacts
+### Security/WebSocket/Artifacts
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `security_limits` | `SecurityLimits` | object | Parser and trust-boundary limits (`max_response_size`, `max_json_size`, nesting depth, timeout caps, etc.). |
-| `ocr_config` | `OCRConfig` | object | OCR thresholds, detection settings, batch profiles, thread policy. |
 | `websocket_max_message_size` | `int` | `10MB` | Guardrail against oversized frame payloads. |
 | `websocket_max_concurrent_tasks` | `int` | `50` | Per-connection task cap in `TaskManager`. |
 | `websocket_receive_timeout` | `float` | `3600.0` | Slowloris protection timeout for receive loop. |

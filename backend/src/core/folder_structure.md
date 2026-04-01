@@ -52,7 +52,7 @@ backend/src/core/
 │
 ├── config/                            # Configuration management system
 │   ├── __init__.py                    # Re-exports config classes and functions
-│   ├── models.py                      # Pydantic models: AppConfig, LLMProviders, SecurityLimits, OCRConfig, etc.
+│   ├── models.py                      # Pydantic models: AppConfig, LLMProviders, SecurityLimits, provider config blocks, etc.
 │   ├── app_config.py                  # APP_CONFIG - default application configuration instance
 │   ├── loader.py                      # load_settings_from_file(), load_api_key_for_provider(), get_default_tts_model_path() - config loading logic
 │   ├── manager.py                     # ConfigManager - manages config lifecycle (load, get, update, reload) with thread safety

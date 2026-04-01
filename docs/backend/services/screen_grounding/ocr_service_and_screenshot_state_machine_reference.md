@@ -14,7 +14,6 @@ title: "OCR Service and Screenshot State-Machine Reference"
 - `backend/src/tools/tool_policy.py`
 - `backend/src/services/ocr/ocr_service.py`
 - `backend/src/services/ocr/helpers.py`
-- `backend/src/services/ocr/runtime_config.py`
 - `backend/src/agent/tools/preparation/screenshot/state.py`
 - `backend/src/agent/tools/preparation/screenshot/manager.py`
 - `backend/src/agent/tools/preparation/ocr/coordinator.py`
@@ -22,7 +21,6 @@ title: "OCR Service and Screenshot State-Machine Reference"
 - `tests/backend/test_screenshot_manager.py`
 - `tests/backend/test_screenshot_state.py`
 - `tests/backend/test_ocr_service.py`
-- `tests/backend/test_ocr_runtime_config.py`
 
 ## Startup Gating and Service Enablement
 
@@ -33,7 +31,7 @@ title: "OCR Service and Screenshot State-Machine Reference"
    - sets `ocr_service.enabled = False` when field exists
    - skips startup engine initialization
 3. if enabled:
-   - runs `ocr_service.initialize(config.ocr_config)`
+   - runs `ocr_service.initialize()`
    - logs whether service remains enabled
 
 Policy source:
@@ -150,21 +148,16 @@ Normalization details:
   - `confidence` (default 0.9 when missing)
   - `bbox` with `x/y/width/height`
 
-Thread/batch parameter selection:
+RapidOCR parameter policy:
 
-- runtime config helper ownership:
-  - `normalized_batch_thresholds(...)`
-  - `resolve_batch_sizes(...)`
-  - `resolve_thread_counts(...)`
-  - `build_ocr_params_payload(...)`
-  - `detect_gpu_memory_gb(...)`
-  - `detect_cpu_cores(...)`
-- `OcrService._build_ocr_params(...)` keeps compatibility wrapper behavior and logging while delegating threshold/thread/payload assembly to `runtime_config.py`
+- WindieOS leaves RapidOCR defaults intact for detection/classification/recognition settings.
+- Engine creation only overrides `EngineConfig.onnxruntime.use_cuda` so OCR still prefers CUDA first.
+- CPU fallback recreates the engine with the same default RapidOCR settings and `use_cuda=false`.
 
 Test-backed behavior:
 
 - base64/data-url decode rules and invalid payload rejection
-- malformed threshold rows ignored; default threshold fallback path
+- engine creation only overrides the ONNX Runtime CUDA flag
 - CUDA runtime error retry path and non-CUDA error propagation
 - invalid OCR rows are skipped while valid rows remain in output
 

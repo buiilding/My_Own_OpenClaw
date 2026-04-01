@@ -7,19 +7,10 @@ import logging
 import threading
 from typing import Any, Dict, List, Optional
 
-from backend.src.core.config.models import OCRConfig
 from backend.src.services.ocr.helpers import (
     decode_screenshot_payload,
     is_cuda_error,
     normalize_ocr_field,
-)
-from backend.src.services.ocr.runtime_config import (
-    build_ocr_params_payload,
-    detect_cpu_cores,
-    detect_gpu_memory_gb,
-    normalized_batch_thresholds,
-    resolve_batch_sizes,
-    resolve_thread_counts,
 )
 
 logger = logging.getLogger(__name__)
@@ -51,99 +42,25 @@ class OcrService:
     Provides an async API for OCR with CUDA/CPU fallback.
     """
 
-    def __init__(self, config: Optional[OCRConfig] = None) -> None:
+    def __init__(self) -> None:
         self.enabled = True
         self._ocr_engine = None
         self.use_cuda = False
         self._init_lock = threading.Lock()
-        self._ocr_config = config
 
         if not OCR_AVAILABLE:
             self.enabled = False
 
-    def _detect_gpu_memory(self) -> Optional[float]:
-        """
-        Detect GPU memory in GB.
-
-        Returns:
-            GPU memory in GB, or None if detection fails
-        """
-        return detect_gpu_memory_gb()
-
-    def _detect_cpu_cores(self) -> int:
-        """
-        Detect number of physical CPU cores.
-
-        Returns:
-            Number of physical CPU cores, or 4 as fallback
-        """
-        return detect_cpu_cores()
-
-    def _build_ocr_params(self, use_cuda: bool) -> Dict[str, Any]:
-        """
-        Build optimized OCR parameters with all configs explicitly set.
-
-        Args:
-            use_cuda: Whether to use CUDA
-
-        Returns:
-            Dictionary of OCR parameters
-        """
-        config = self._ocr_config or OCRConfig()
-
-        gpu_memory_gb = self._detect_gpu_memory() if use_cuda else None
-        cpu_cores = self._detect_cpu_cores()
-        sorted_thresholds = self._normalized_batch_thresholds(config.batch_size_thresholds)
-        rec_batch_num, cls_batch_num = resolve_batch_sizes(
-            use_cuda=use_cuda,
-            gpu_memory_gb=gpu_memory_gb,
-            sorted_thresholds=sorted_thresholds,
-        )
-        intra_op_threads, inter_op_threads = resolve_thread_counts(config, cpu_cores)
-        ocr_params = build_ocr_params_payload(
-            config=config,
-            use_cuda=use_cuda,
-            intra_op_threads=intra_op_threads,
-            inter_op_threads=inter_op_threads,
-            rec_batch_num=rec_batch_num,
-            cls_batch_num=cls_batch_num,
-        )
-
-        if use_cuda and gpu_memory_gb:
-            logger.info(
-                f"[OCR] Hardware detected: GPU {gpu_memory_gb:.1f}GB VRAM, "
-                f"{cpu_cores} CPU cores. Using batch sizes: rec={rec_batch_num}, cls={cls_batch_num}"
-            )
-        else:
-            logger.info(
-                f"[OCR] Hardware detected: CPU only. "
-                f"{cpu_cores} CPU cores. Using batch sizes: rec={rec_batch_num}, cls={cls_batch_num}"
-            )
-
-        return ocr_params
-
-    @staticmethod
-    def _normalized_batch_thresholds(
-        thresholds: List[List[float | int]],
-    ) -> List[tuple[float, int, int]]:
-        """Normalize and sort batch-size thresholds by descending VRAM requirement."""
-        return normalized_batch_thresholds(thresholds)
-
     def _create_engine(self, use_cuda: bool) -> None:
-        ocr_params = self._build_ocr_params(use_cuda=use_cuda)
+        # Keep RapidOCR defaults for everything except ONNX Runtime CUDA selection.
+        ocr_params = {"EngineConfig.onnxruntime.use_cuda": use_cuda}
         self._ocr_engine = RapidOCR(params=ocr_params)
         self.use_cuda = use_cuda
 
-    async def initialize(self, config: Optional[OCRConfig] = None) -> None:
+    async def initialize(self) -> None:
         """
         Initialize the OCR engine.
-
-        Args:
-            config: Optional OCRConfig to apply
         """
-        if config is not None:
-            self._ocr_config = config
-
         if not OCR_AVAILABLE:
             self.enabled = False
             logger.warning(

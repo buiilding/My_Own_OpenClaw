@@ -15,7 +15,6 @@ from backend.src.core.config.models import (
     LLMProviders,
     LMStudioConfig,
     MistralConfig,
-    OCRConfig,
     OllamaConfig,
     OpenAIConfig,
     OpenRouterConfig,
@@ -178,29 +177,6 @@ class TestSecurityLimits:
         assert limits.max_prompt_size == 50 * 1024 * 1024  # 50MB
 
 
-class TestOCRConfig:
-    """Tests for OCRConfig model."""
-
-    def test_default_values(self):
-        config = OCRConfig()
-        assert len(config.batch_size_thresholds) == 4
-        assert config.use_detection is True
-        assert config.use_classification is False
-        assert config.use_recognition is True
-        assert config.text_score_threshold == 0.5
-        assert config.max_side_len == 2000
-        assert config.min_side_len == 30
-
-    def test_batch_size_thresholds_structure(self):
-        config = OCRConfig()
-        # Each threshold should be [min_gpu_memory_gb, rec_batch_num, cls_batch_num]
-        for threshold in config.batch_size_thresholds:
-            assert len(threshold) == 3
-            assert isinstance(threshold[0], float)  # min_gpu_memory_gb
-            assert isinstance(threshold[1], int)  # rec_batch_num
-            assert isinstance(threshold[2], int)  # cls_batch_num
-
-
 class TestAppConfig:
     """Tests for AppConfig model."""
 
@@ -316,7 +292,6 @@ class TestAppConfig:
         config = AppConfig()
         assert isinstance(config.llm_providers, LLMProviders)
         assert isinstance(config.security_limits, SecurityLimits)
-        assert isinstance(config.ocr_config, OCRConfig)
 
     def test_websocket_settings_defaults(self):
         config = AppConfig()

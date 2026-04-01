@@ -10,7 +10,6 @@ Note: Changes require application restart to take effect.
 from backend.src.core.config.models import (
     AppConfig,
     LLMProviders,
-    OCRConfig,
     SecurityLimits,
 )
 
@@ -64,8 +63,6 @@ APP_CONFIG = AppConfig(
     speech_mode_enabled=False,
     # Security limits
     security_limits=SecurityLimits(),
-    # OCR configuration
-    ocr_config=OCRConfig(),
     # WebSocket Settings
     websocket_max_message_size=10 * 1024 * 1024,  # 10MB
     websocket_max_concurrent_tasks=50,

@@ -176,7 +176,7 @@ This includes:
                 )
                 return
 
-            await ocr_service.initialize(self.container.config.ocr_config)
+            await ocr_service.initialize()
             if ocr_service.enabled:
                 logger.info("OCR service initialized successfully")
             else:
