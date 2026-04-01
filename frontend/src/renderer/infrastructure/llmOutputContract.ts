@@ -33,27 +33,56 @@ function mapOutsideFencedCodeBlocks(input: string, transform: (segment: string) 
     .join('');
 }
 
-function normalizeGeminiMathDelimiters(input: string): string {
+function replaceLatexDelimitedMath(
+  input: string,
+  openDelimiter: string,
+  closeDelimiter: string,
+  render: (expression: string) => string,
+): string {
+  let normalized = '';
+  let cursor = 0;
+
+  while (cursor < input.length) {
+    const start = input.indexOf(openDelimiter, cursor);
+    if (start === -1) {
+      normalized += input.slice(cursor);
+      break;
+    }
+
+    const end = input.indexOf(closeDelimiter, start + openDelimiter.length);
+    if (end === -1) {
+      normalized += input.slice(cursor);
+      break;
+    }
+
+    normalized += input.slice(cursor, start);
+    const expression = input.slice(start + openDelimiter.length, end).trim();
+    normalized += expression ? render(expression) : '';
+    cursor = end + closeDelimiter.length;
+  }
+
+  return normalized;
+}
+
+function normalizeLatexMathDelimiters(input: string): string {
   return mapOutsideFencedCodeBlocks(input, (segment) => {
     let normalized = segment;
     normalized = normalized.replace(/\\\\\(/g, '\\(');
     normalized = normalized.replace(/\\\\\)/g, '\\)');
     normalized = normalized.replace(/\\\\\[/g, '\\[');
     normalized = normalized.replace(/\\\\\]/g, '\\]');
-    normalized = normalized.replace(/\\\[([\s\S]*?)\\\]/g, (_, expression: string) => {
-      const trimmed = expression.trim();
-      if (!trimmed) {
-        return '';
-      }
-      return `\n$$\n${trimmed}\n$$\n`;
-    });
-    normalized = normalized.replace(/\\\(([^\\\n]+?)\\\)/g, (_, expression: string) => {
-      const trimmed = expression.trim();
-      if (!trimmed) {
-        return '';
-      }
-      return `$${trimmed}$`;
-    });
+    normalized = replaceLatexDelimitedMath(
+      normalized,
+      '\\[',
+      '\\]',
+      (expression) => `\n$$\n${expression}\n$$\n`,
+    );
+    normalized = replaceLatexDelimitedMath(
+      normalized,
+      '\\(',
+      '\\)',
+      (expression) => `$${expression}$`,
+    );
     return normalized;
   });
 }
@@ -69,13 +98,12 @@ function stripAccidentalHtmlWrappers(input: string): string {
   return normalized;
 }
 
-function normalizeGeminiOutput(input: string, stripAccidentalHtmlTokens: boolean): string {
+function normalizeGeminiTransportArtifacts(input: string, stripAccidentalHtmlTokens: boolean): string {
   let normalized = input.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   normalized = normalized
     .replace(/\\r\\n/g, '\n')
     .replace(/\\n/g, '\n')
     .replace(/\\t/g, '\t');
-  normalized = normalizeGeminiMathDelimiters(normalized);
   if (stripAccidentalHtmlTokens) {
     normalized = stripAccidentalHtmlWrappers(normalized);
   }
@@ -229,8 +257,9 @@ export function resolveLlmOutputContract(
   let markdown = structuredMarkdown || baseText;
 
   if (isGeminiProvider(provider)) {
-    markdown = normalizeGeminiOutput(markdown, stripAccidentalHtmlTokens);
+    markdown = normalizeGeminiTransportArtifacts(markdown, stripAccidentalHtmlTokens);
   }
+  markdown = normalizeLatexMathDelimiters(markdown);
 
   return {
     markdown,
