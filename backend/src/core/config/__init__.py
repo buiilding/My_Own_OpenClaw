@@ -15,7 +15,6 @@ from backend.src.core.config.models import (
     MistralConfig,
     LMStudioConfig,
     Preferences,
-    OCRConfig,
     KimiCodingConfig,
 )
 from backend.src.core.config.loader import (
@@ -41,7 +40,6 @@ __all__ = [
     "MistralConfig",
     "LMStudioConfig",
     "Preferences",
-    "OCRConfig",
     "KimiCodingConfig",
     "ConfigManager",
     "get_config_manager",

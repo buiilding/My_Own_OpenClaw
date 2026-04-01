@@ -120,4 +120,4 @@ def _create_ocr_service(config: AppConfig):
     """Create OCR service with configured settings."""
     from backend.src.services.ocr import OcrService
 
-    return OcrService(config=config.ocr_config)
+    return OcrService()

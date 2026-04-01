@@ -35,16 +35,13 @@ class DummyOcrService:
         self.calls = 0
         self.enabled = True
 
-    async def initialize(self, _cfg):
+    async def initialize(self):
         self.calls += 1
 
 
 def _build_ocr_initializer():
     ocr_service = DummyOcrService()
-    container = SimpleNamespace(
-        ocr_service=ocr_service,
-        config=SimpleNamespace(ocr_config=object()),
-    )
+    container = SimpleNamespace(ocr_service=ocr_service, config=SimpleNamespace())
     return ContainerInitializer(container), ocr_service
 
 

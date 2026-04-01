@@ -34,7 +34,7 @@ The backend reads configuration from `backend/src/core/config/app_config.py` whi
 Example (simplified):
 
 ```python
-from backend.src.core.config.models import AppConfig, LLMProviders, OCRConfig, SecurityLimits
+from backend.src.core.config.models import AppConfig, LLMProviders, SecurityLimits
 from backend.src.core.config.loader import get_default_tts_model_path
 
 APP_CONFIG = AppConfig(
@@ -55,7 +55,6 @@ APP_CONFIG = AppConfig(
     tts_enabled=True,
     tts_model_path=get_default_tts_model_path(),
     security_limits=SecurityLimits(),
-    ocr_config=OCRConfig(),
 )
 ```
 

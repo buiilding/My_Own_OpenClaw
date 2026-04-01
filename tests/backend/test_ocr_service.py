@@ -2,7 +2,6 @@ import base64
 
 import backend.src.services.ocr.ocr_service as ocr_service_module
 import pytest
-from backend.src.core.config.models import OCRConfig
 from backend.src.services.ocr.ocr_service import OcrService, is_cuda_error
 
 
@@ -46,27 +45,20 @@ def test_build_bbox_list_skips_invalid_polygons():
     assert service._build_bbox_list(boxes) == [(10, 20, 20, 30), (0, 1, 2, 4)]
 
 
-def test_build_ocr_params_uses_thresholds_and_thread_config(monkeypatch):
-    config = OCRConfig(
-        batch_size_thresholds=[
-            [16.0, 24, 10],
-            [8.0, 12, 6],
-            [0.0, 6, 4],
-        ],
-        use_cpu_cores_for_threads=True,
-        inter_op_threads_max=6,
-        inter_op_threads_min=3,
-    )
-    service = OcrService(config=config)
-    monkeypatch.setattr(service, "_detect_gpu_memory", lambda: 12.0)
-    monkeypatch.setattr(service, "_detect_cpu_cores", lambda: 10)
+def test_create_engine_only_overrides_onnxruntime_cuda_flag(monkeypatch):
+    service = OcrService()
+    captured = {}
 
-    params = service._build_ocr_params(use_cuda=True)
+    class DummyRapidOCR:
+        def __init__(self, *, params):
+            captured["params"] = params
 
-    assert params["Rec.rec_batch_num"] == 12
-    assert params["Cls.cls_batch_num"] == 6
-    assert params["EngineConfig.onnxruntime.intra_op_num_threads"] == 10
-    assert params["EngineConfig.onnxruntime.inter_op_num_threads"] == 5
+    monkeypatch.setattr(ocr_service_module, "RapidOCR", DummyRapidOCR)
+
+    service._create_engine(use_cuda=True)
+
+    assert captured["params"] == {"EngineConfig.onnxruntime.use_cuda": True}
+    assert service.use_cuda is True
 
 
 def test_normalize_ocr_field_coerces_common_types():
@@ -87,37 +79,20 @@ def test_normalize_ocr_field_handles_numpy_array_if_available():
     assert service._normalize_ocr_field(array) == [1, 2, 3]
 
 
-def test_build_ocr_params_cpu_mode_uses_lowest_batch_threshold(monkeypatch):
-    config = OCRConfig(batch_size_thresholds=[[8.0, 12, 6], [0.0, 5, 3]])
-    service = OcrService(config=config)
-    monkeypatch.setattr(service, "_detect_cpu_cores", lambda: 8)
+def test_create_engine_cpu_mode_only_overrides_cuda_flag(monkeypatch):
+    service = OcrService()
+    captured = {}
 
-    params = service._build_ocr_params(use_cuda=False)
+    class DummyRapidOCR:
+        def __init__(self, *, params):
+            captured["params"] = params
 
-    assert params["Rec.rec_batch_num"] == 5
-    assert params["Cls.cls_batch_num"] == 3
-    assert params["EngineConfig.onnxruntime.use_cuda"] is False
+    monkeypatch.setattr(ocr_service_module, "RapidOCR", DummyRapidOCR)
 
+    service._create_engine(use_cuda=False)
 
-def test_build_ocr_params_uses_sorted_thresholds_when_config_unsorted(monkeypatch):
-    config = OCRConfig(
-        batch_size_thresholds=[
-            [0.0, 5, 3],
-            [16.0, 24, 10],
-            [8.0, 12, 6],
-        ]
-    )
-    service = OcrService(config=config)
-    monkeypatch.setattr(service, "_detect_gpu_memory", lambda: 12.0)
-    monkeypatch.setattr(service, "_detect_cpu_cores", lambda: 8)
-
-    params_gpu = service._build_ocr_params(use_cuda=True)
-    params_cpu = service._build_ocr_params(use_cuda=False)
-
-    assert params_gpu["Rec.rec_batch_num"] == 12
-    assert params_gpu["Cls.cls_batch_num"] == 6
-    assert params_cpu["Rec.rec_batch_num"] == 5
-    assert params_cpu["Cls.cls_batch_num"] == 3
+    assert captured["params"] == {"EngineConfig.onnxruntime.use_cuda": False}
+    assert service.use_cuda is False
 
 
 def test_ensure_engine_initialized_sync_short_circuits_when_engine_exists():

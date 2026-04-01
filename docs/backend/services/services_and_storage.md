@@ -12,7 +12,6 @@ title: "Services and Storage"
 
 - `backend/src/services/artifacts/store.py`
 - `backend/src/services/ocr/ocr_service.py`
-- `backend/src/services/ocr/runtime_config.py`
 - `backend/src/services/vision/vision_service.py`
 - `backend/src/services/vision/coordinates.py`
 - `backend/src/services/vision/providers/*`
@@ -46,8 +45,8 @@ Responsibilities:
 
 Runtime tuning:
 
-- batch/thread sizing from `OCRConfig` via `runtime_config.py`
-- GPU-memory and CPU-core detection feed batch-size/thread calculations
+- WindieOS leaves RapidOCR defaults intact and only toggles ONNX Runtime CUDA on/off
+- startup and runtime still prefer CUDA first, then fall back to CPU on OCR engine errors
 
 ### Vision grounding runtime (`VisionService` + providers)
 
