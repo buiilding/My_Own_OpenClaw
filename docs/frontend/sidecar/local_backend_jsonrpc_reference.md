@@ -11,6 +11,9 @@ title: "Local Backend JSON-RPC Reference"
 ## Core Modules
 
 - Electron bridge: `frontend/src/main/local_backend_bridge.cjs`
+- Request transport: `frontend/src/main/local_backend_bridge_request_transport.cjs`
+- Execute-tool runtime: `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
+- Timeout policy: `frontend/src/main/local_backend_bridge_timeout_policy.cjs`
 - IPC->method mappers: `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - Sidecar service: `frontend/src/main/python/local_backend.py`
 - Sidecar memory handler mixin: `frontend/src/main/python/local_backend_memory_handlers.py`
@@ -92,7 +95,7 @@ Method validation behavior:
 
 Special behavior:
 
-- `execute-tool` timeout is `120000ms` for `browser`, else `60000ms`.
+- `execute-tool` timeout is resolved by `local_backend_bridge_timeout_policy.cjs`: `120000ms` for `browser`, else `60000ms`.
 - screenshot tool path is wrapped by platform screenshot visibility runtime; current main-process runtime behavior is pass-through and Linux hide/show ownership lives in renderer capture orchestration.
 
 ### Mapped handlers (`COMPILED_RPC_HANDLER_DEFINITIONS`)
