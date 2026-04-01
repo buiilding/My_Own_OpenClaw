@@ -1368,7 +1368,7 @@ async function requestFilesystemWorkspaceAccessPermission(permission, deps = {})
   try {
     const result = await dialog.showOpenDialog({
       title: 'Select workspace folder for WindieOS',
-      buttonLabel: 'Grant workspace access',
+      buttonLabel: 'Give folder context',
       properties: ['openDirectory', 'createDirectory'],
     });
 
