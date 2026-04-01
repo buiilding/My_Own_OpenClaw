@@ -120,6 +120,10 @@ class AgentSession:
         """
         return self.runtime.screenshot.get_ocr_results()
 
+    def get_ocr_runtime_state(self):
+        """Return mutable OCR runtime state for the current screenshot."""
+        return self.runtime.screenshot.ocr
+
     def get_current_screenshot_id(self) -> Optional[str]:
         """
         Get the ID of the current screenshot.
