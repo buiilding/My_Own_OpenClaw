@@ -37,6 +37,7 @@ All notable changes to WindieOS will be documented in this file.
 - feat(tool-log-visibility-toggle): add a General settings toggle that hides raw tool-call/tool-output cards by default, replaces live tool rows with subdued explanation text, and collapses completed-loop actions behind a `View actions` summary.
 
 ### Fixed
+- fix(sidecar-runtime-packaging-windows): copy the Windows conda `Library` tree into the bundled sidecar runtime and validate the Windows stdlib/`pyexpat` layout so local Windows packaged builds no longer fail before Electron packaging starts.
 - fix(web-search-native-source-fallback): extract `search-source` URLs from native Gemini/OpenAI answer text when structured provider source metadata is missing, so lightweight `Searching <url>` rows still render before backend tool output.
 - chore(web-search-logging): add a backend completion log for logical `web_search` runs so successful native-provider and Brave search finishes report provider, session, result count, and truncated query text.
 - fix(frontend-web-search-live-state): keep chat sending/thinking state alive for backend-owned `web_search` tool calls that skip frontend execution, so the live response surface does not disappear before later `search-source` or `tool-output` events arrive.
