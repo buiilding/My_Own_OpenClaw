@@ -9,6 +9,10 @@ import {
   setActiveConversationRef,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
+import {
+  markConversationBackendStateFreshLocal,
+  rehydrateConversationBackendState,
+} from '../session/conversationBackendSyncRuntime';
 import { createConversationRef } from '../utils/session/conversationRef';
 import {
   resolveTranscriptMessageType,
@@ -54,7 +58,10 @@ async function runReplayQueryFlow({
   deferredQueryModelConfig,
 }) {
   await replayTranscriptMessages(transcriptMessages, userId, conversationRef);
-  await ApiClient.sendRehydrateConversation(conversationRef, rehydratePayloads);
+  await rehydrateConversationBackendState({
+    conversationRef,
+    messages: rehydratePayloads,
+  });
   if (deferredQueryModelConfig) {
     ApiClient.updateSettings(deferredQueryModelConfig);
   }
@@ -71,6 +78,7 @@ function ensureConversationRef(sessionConversationRef) {
   if (!conversationRef) {
     conversationRef = createConversationRef();
     setActiveConversationRef(conversationRef);
+    markConversationBackendStateFreshLocal(conversationRef);
   }
   return conversationRef;
 }

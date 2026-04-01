@@ -4,6 +4,7 @@ import {
   setActiveConversationRef as setTranscriptConversationRef,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
+import { markConversationBackendStateUnknown } from '../session/conversationBackendSyncRuntime';
 import { useChatStore } from '../stores/chatStore';
 import {
   applyMainSessionSnapshot,
@@ -20,11 +21,13 @@ export function useChatSessionBootstrap() {
       if (!snapshot.conversationRef && !snapshot.userId) {
         return snapshot;
       }
-      return applyMainSessionSnapshot(snapshot, {
+      const appliedSnapshot = applyMainSessionSnapshot(snapshot, {
         setTranscriptConversationRef,
         setChatConversationRef: setChatActiveConversationRef,
         updateTranscriptSession,
       });
+      markConversationBackendStateUnknown(appliedSnapshot.conversationRef);
+      return appliedSnapshot;
     } catch (error) {
       console.warn('[chatSessionBootstrap] Failed to hydrate session snapshot:', error);
       return { conversationRef: null, userId: null };

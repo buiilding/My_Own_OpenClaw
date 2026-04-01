@@ -29,6 +29,11 @@ import {
   resolveConversationRefForSend,
 } from '../session/conversationSessionRuntime';
 import {
+  ensureConversationBackendState,
+  markConversationBackendStateFreshLocal,
+  markConversationBackendStateUnknown,
+} from '../session/conversationBackendSyncRuntime';
+import {
   normalizeAttachmentFilenames,
   normalizeOutgoingPayload,
   type OutgoingUserMessagePayload,
@@ -86,11 +91,13 @@ export function useChatMessageSender(
       if (!snapshot.conversationRef && !snapshot.userId) {
         return null;
       }
-      return applyMainSessionSnapshot(snapshot, {
+      const appliedSnapshot = applyMainSessionSnapshot(snapshot, {
         setTranscriptConversationRef: setActiveConversationRef,
         setChatConversationRef: setChatActiveConversationRef,
         updateTranscriptSession,
-      }).conversationRef;
+      });
+      markConversationBackendStateUnknown(appliedSnapshot.conversationRef);
+      return appliedSnapshot.conversationRef;
     } catch (error) {
       console.warn('[useChatMessageSender] Failed to load startup session snapshot:', error);
       return null;
@@ -118,6 +125,7 @@ export function useChatMessageSender(
     const generatedRef = createConversationRef();
     setActiveConversationRef(generatedRef);
     setChatActiveConversationRef(generatedRef);
+    markConversationBackendStateFreshLocal(generatedRef);
     return generatedRef;
   }, [hydrateSessionFromMainSnapshot, setChatActiveConversationRef]);
 
@@ -140,6 +148,11 @@ export function useChatMessageSender(
 
     const hadUserMessages = hasUserMessages(useChatStore.getState().messages);
     const conversationRef = await ensureConversationRef();
+    const sessionInfo = getTranscriptSessionInfo();
+    await ensureConversationBackendState({
+      conversationRef,
+      userId: sessionInfo.userId,
+    });
     
     // Create user message immediately for instant UI display
     const userMessageId = crypto.randomUUID();
@@ -209,7 +222,6 @@ export function useChatMessageSender(
       screenshots: uploadedScreenshotEntries.length > 0 ? uploadedScreenshotEntries : null,
     }, conversationRef);
 
-    const sessionInfo = getTranscriptSessionInfo();
     const attachmentContext = await buildReadableFileAttachmentContext(readableFiles);
 
     recordUserMessage(text, {

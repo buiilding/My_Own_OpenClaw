@@ -108,6 +108,7 @@ New-chat behavior:
 
 - starting a new chat resets the visible workspace and creates a fresh `conversationRef`
 - it does **not** auto-send `stop-query` for an older in-flight conversation
+- switching to another history row is renderer-only browsing; it swaps transcript/UI state without eagerly rebuilding backend session history
 - late backend events remain conversation-scoped and continue to route into the original workspace/transcript instead of the newly created chat
 - background backend events no longer re-select the active conversation in the renderer; only bootstrap/local-send session projection can move foreground chat focus
 - manual `compact-history` requests are sent with the active `conversationRef`, so dev compaction targets the currently selected conversation instead of an arbitrary fallback session
@@ -125,7 +126,8 @@ New-chat behavior:
 2. `TranscriptWriter` queues failed writes and retries when session info becomes available.
 3. Dashboard sidebar/search open operations fetch transcript windows via sidecar RPC (`list-conversations`, `search-conversations`, `get-conversation`).
    `get-conversation` resume/hydrate paths use `message_index` cursor pagination (`after_message_index`) so large local DB transcripts are fully reloaded instead of capped at one page.
-4. Resume action rehydrates backend context (`rehydrate-conversation`) and replaces in-memory renderer chat state.
+4. Opening a past chat replaces in-memory renderer chat state immediately, but backend conversation history is rehydrated lazily only before the first backend-dependent action for that chat.
+5. Send, replay/edit, and manual compaction all pass through the shared renderer-side conversation/backend sync runtime, which restores backend history on demand and invalidates synced state after backend disconnects.
 
 ### Wakeword/Voice Flow
 

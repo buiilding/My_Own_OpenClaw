@@ -9,6 +9,10 @@ import {
   setActiveConversationRef,
   updateTranscriptSession,
 } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
+import {
+  markConversationBackendStateFreshLocal,
+  rehydrateConversationBackendState,
+} from '../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime';
 
 let mockFrontendConfig = {
   model_provider: 'anthropic',
@@ -23,10 +27,14 @@ jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
 
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
-    sendRehydrateConversation: jest.fn(),
     updateSettings: jest.fn(),
     sendQuery: jest.fn(),
   },
+}));
+
+jest.mock('../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime', () => ({
+  markConversationBackendStateFreshLocal: jest.fn(),
+  rehydrateConversationBackendState: jest.fn(),
 }));
 
 let mockConversationRef = 'conv-existing';
@@ -42,13 +50,14 @@ jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWrite
   updateTranscriptSession: jest.fn(),
 }));
 
-const mockSendRehydrateConversation = ApiClient.sendRehydrateConversation;
 const mockUpdateSettings = ApiClient.updateSettings;
 const mockSendQuery = ApiClient.sendQuery;
 const mockGetActiveConversationRef = getActiveConversationRef;
 const mockGetTranscriptSessionInfo = getTranscriptSessionInfo;
 const mockSetActiveConversationRef = setActiveConversationRef;
 const mockUpdateTranscriptSession = updateTranscriptSession;
+const mockMarkConversationBackendStateFreshLocal = markConversationBackendStateFreshLocal;
+const mockRehydrateConversationBackendState = rehydrateConversationBackendState;
 
 describe('useConversationReplayActions', () => {
   beforeEach(() => {
@@ -67,7 +76,9 @@ describe('useConversationReplayActions', () => {
       }
       return null;
     });
-    mockSendRehydrateConversation.mockResolvedValue(undefined);
+    mockMarkConversationBackendStateFreshLocal.mockReset();
+    mockRehydrateConversationBackendState.mockReset();
+    mockRehydrateConversationBackendState.mockResolvedValue(undefined);
     mockSendQuery.mockResolvedValue(undefined);
   });
 
@@ -119,7 +130,7 @@ describe('useConversationReplayActions', () => {
         recordKind: 'transcript',
       },
     ]);
-    expect(mockSendRehydrateConversation).toHaveBeenCalledTimes(1);
+    expect(mockRehydrateConversationBackendState).toHaveBeenCalledTimes(1);
     expect(mockUpdateSettings).toHaveBeenCalledWith({
       model_provider: 'anthropic',
       selected_model_id: 'claude-sonnet-4-5',

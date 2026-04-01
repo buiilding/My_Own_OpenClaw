@@ -233,9 +233,11 @@ fall back locally when the hosted backend is unreachable.
   - When `system_state` is present, it uses `{ active_window, mouse_position }`.
 
 **`rehydrate-conversation`**
-- Purpose: Restore a transcript snapshot into backend session history when resuming a past conversation.
+- Purpose: Restore a transcript snapshot into backend session history when a renderer action needs prior conversation history in memory.
 - Payload: `{ conversation_ref, rehydrate_mode: "replace", messages: [{ role, content, message_type?, tool_name?, correlation_id?, tool_call_id?, tool_calls?, timestamp?, screenshot_ref?, screenshot? }] }`
 - Notes:
+  - Selecting a chat in `Your workspace` is renderer-only browsing; it does not eagerly send `rehydrate-conversation`.
+  - Renderer sends this lazily before the first backend-dependent action on an existing chat, such as send, replay/edit, or manual compaction.
   - `tool_call_id` and `tool_calls` are optional linkage fields for native tool-calling history.
   - If omitted, backend reconstructs valid tool-call linkage from transcript `message_type` + `correlation_id` and synthesizes missing IDs as needed.
 

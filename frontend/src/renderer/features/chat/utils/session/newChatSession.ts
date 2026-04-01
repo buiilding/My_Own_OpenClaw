@@ -1,5 +1,6 @@
 import type { TokenCounts } from '../../stores/chatStore';
 import { setActiveConversationRef } from '../../../../infrastructure/transcript/TranscriptWriter';
+import { markConversationBackendStateFreshLocal } from '../../session/conversationBackendSyncRuntime';
 import { createConversationRef } from './conversationRef';
 import { resetActiveChatSession } from './resetActiveChatSession';
 
@@ -25,5 +26,6 @@ export const startNewChatSession = ({
 
   const nextConversationRef = createConversationRef();
   setActiveConversationRef(nextConversationRef);
+  markConversationBackendStateFreshLocal(nextConversationRef);
   return nextConversationRef;
 };

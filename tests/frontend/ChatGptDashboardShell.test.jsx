@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 
-import ChatGptDashboardShell from '../../frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell';
+import DashboardShell from '../../frontend/src/renderer/features/dashboard/components/DashboardShell';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 
 const mockListeners = new Map();
@@ -26,7 +26,6 @@ const mockInvoke = jest.fn(async (channel) => {
   }
   return { success: true, data: {} };
 });
-const mockSendRehydrateConversation = jest.fn(async () => undefined);
 const mockSetActiveConversationRef = jest.fn();
 const mockUpdateTranscriptSession = jest.fn();
 let mockSessionInfo = { conversationRef: null, userId: null };
@@ -55,12 +54,6 @@ jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/Me
 jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/UsageSection', () => () => (
   <div data-testid="usage-section-stub">UsageSectionStub</div>
 ));
-
-jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
-  ApiClient: {
-    sendRehydrateConversation: (...args) => mockSendRehydrateConversation(...args),
-  },
-}));
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
   getTranscriptSessionInfo: () => mockSessionInfo,
@@ -98,7 +91,7 @@ describe('ChatGptDashboardShell', () => {
 
   const renderDashboardShell = async () => {
     const view = render(
-      <ChatGptDashboardShell
+      <DashboardShell
         config={{}}
         availableModels={{ local: [], online: [] }}
         onConfigChange={jest.fn()}
@@ -113,7 +106,6 @@ describe('ChatGptDashboardShell', () => {
   beforeEach(() => {
     mockListeners.clear();
     mockInvoke.mockClear();
-    mockSendRehydrateConversation.mockClear();
     mockSetActiveConversationRef.mockClear();
     mockUpdateTranscriptSession.mockClear();
     mockSessionInfo = { conversationRef: null, userId: null };
@@ -233,7 +225,7 @@ describe('ChatGptDashboardShell', () => {
 
   test('vm mode hides sidebar and disables dashboard panel targets', async () => {
     const view = render(
-      <ChatGptDashboardShell
+      <DashboardShell
         config={{}}
         availableModels={{ local: [], online: [] }}
         onConfigChange={jest.fn()}
@@ -291,7 +283,6 @@ describe('ChatGptDashboardShell', () => {
       }),
     );
 
-    expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv-history-1', []);
     expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv-history-1');
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-history-1', 'default_user');
   });
@@ -343,7 +334,6 @@ describe('ChatGptDashboardShell', () => {
         conversationId: 'conv-history-1',
       }),
     );
-    expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv-history-1', []);
     expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv-history-1');
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-history-1', 'default_user');
   });
@@ -740,7 +730,7 @@ describe('ChatGptDashboardShell', () => {
 
     try {
       const { container } = render(
-        <ChatGptDashboardShell
+        <DashboardShell
           config={{}}
           availableModels={{ local: [], online: [] }}
           onConfigChange={jest.fn()}

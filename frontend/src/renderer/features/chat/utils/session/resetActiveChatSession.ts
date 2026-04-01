@@ -3,6 +3,7 @@ import {
   setActiveConversationRef,
   updateTranscriptSession,
 } from '../../../../infrastructure/transcript/TranscriptWriter';
+import { clearConversationBackendSyncState } from '../../session/conversationBackendSyncRuntime';
 
 type ResetActiveChatSessionOptions = {
   conversationRef?: string | null;
@@ -27,6 +28,7 @@ export const resetActiveChatSession = ({
 
   setActiveConversationRef(null);
   updateTranscriptSession(null, userId || undefined);
+  clearConversationBackendSyncState(targetConversationRef);
   clearMessages(targetConversationRef);
   setIsSending(false, targetConversationRef);
   setThinkingStatus(null, targetConversationRef);
