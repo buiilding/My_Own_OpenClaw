@@ -299,6 +299,10 @@ describe('permission_service', () => {
   });
 
   test('filesystem access starts as needs-action and becomes granted after folder picker selection', async () => {
+    const showOpenDialog = jest.fn(async () => ({
+      canceled: false,
+      filePaths: ['/tmp/windieos-workspace'],
+    }));
     const initial = await runPermissionProbe('filesystem_workspace_access', {
       platform: 'linux',
       permissionStateStore,
@@ -313,15 +317,17 @@ describe('permission_service', () => {
         existsSync: jest.fn(() => true),
       },
       dialog: {
-        showOpenDialog: jest.fn(async () => ({
-          canceled: false,
-          filePaths: ['/tmp/windieos-workspace'],
-        })),
+        showOpenDialog,
       },
     });
 
     expect(status.status).toBe('granted');
     expect(status.granted).toBe(true);
+    expect(showOpenDialog).toHaveBeenCalledWith({
+      title: 'Select workspace folder for WindieOS',
+      buttonLabel: 'Give folder context',
+      properties: ['openDirectory', 'createDirectory'],
+    });
 
     const reprobe = await runPermissionProbe('filesystem_workspace_access', {
       platform: 'linux',
