@@ -46,6 +46,7 @@ Responsibilities:
 Runtime tuning:
 
 - WindieOS pins RapidOCR to a quality-first ONNX Runtime PP-OCRv5 server profile for detection and recognition
+- detection/recognition language settings use RapidOCR enum values when available so current library builds accept the startup params without type errors
 - startup and runtime still prefer CUDA first, then fall back to CPU on OCR engine errors
 
 ### Vision grounding runtime (`VisionService` + providers)
