@@ -460,7 +460,7 @@ def test_get_online_models_include_card_metadata_for_demo_catalog():
     assert gemini_flash["output_price"] == "Free"
     assert gemini_flash["latency"] == "~1.0s"
     assert gemini_flash["description"]
-    assert gemini_flash["strengths"] == ["Multimodal", "Fast", "Search", "1M Context"]
+    assert gemini_flash["strengths"] == ["Fast", "Multimodal", "Search", "1M Context"]
 
     assert openrouter_auto["context_window"] == 2000000
     assert openrouter_auto["input_price"] == "Free"

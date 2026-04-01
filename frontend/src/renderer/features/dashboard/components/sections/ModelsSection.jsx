@@ -25,13 +25,14 @@ import { normalizeProviderApiKeys } from './providerApiKeys';
 import { providerApiKeysPropType } from './providerApiKeysPropTypes';
 import { normalizeProviderOAuth } from './providerOAuth';
 import { providerOAuthPropType } from './providerOAuthPropTypes';
-import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 
 function ModelsSection({ config, availableModels, onConfigChange, onClose = () => {} }) {
   const [modelResetWarning, setModelResetWarning] = useState('');
   const [hoveredModel, setHoveredModel] = useState(null);
   const [activeProviderView, setActiveProviderView] = useState(null);
   const warningTimeoutRef = useRef(null);
+  const requestedLegacyCatalogRefreshRef = useRef(false);
 
   const modelMode = config?.model_mode || 'online';
   const selectedModelId = config?.selected_model_id || '';
@@ -119,6 +120,34 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
       },
     });
   }, [onConfigChange, providerOAuth]);
+
+  useEffect(() => {
+    const onlineModels = Array.isArray(availableModels?.online) ? availableModels.online : [];
+    if (modelMode !== 'online' || requestedLegacyCatalogRefreshRef.current || onlineModels.length === 0) {
+      return;
+    }
+
+    const hasLegacyCatalogEntry = onlineModels.some((model) => {
+      if (!model || typeof model !== 'object') {
+        return false;
+      }
+      const hasContext = model.context_window || model.contextWindow || model.context;
+      const hasDescription = typeof model.description === 'string' && model.description.trim().length > 0;
+      return !hasContext || !hasDescription;
+    });
+
+    if (hasLegacyCatalogEntry) {
+      requestedLegacyCatalogRefreshRef.current = true;
+      if (typeof window === 'undefined' || !window.ipc) {
+        return;
+      }
+      try {
+        IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'list-models' });
+      } catch (error) {
+        console.warn('[ModelsSection] Failed to refresh legacy model catalog:', error?.message || error);
+      }
+    }
+  }, [availableModels, modelMode]);
 
   useEffect(() => {
     if (!config) {
