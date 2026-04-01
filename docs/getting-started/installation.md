@@ -227,6 +227,19 @@ npm run package:linux
 
 Build artifacts are written to `frontend/release/`.
 
+For local packaged-app reinstall testing helpers, use the repo scripts from the
+workspace root:
+
+- macOS: `./scripts/reinstall-windieos-macos.sh`
+- Windows (PowerShell): `powershell -ExecutionPolicy Bypass -File .\scripts\reinstall-windieos-windows.ps1`
+
+The Windows helper stops the installed app, clears WindieOS app data under
+`%APPDATA%`/`%LOCALAPPDATA%`, rebuilds the bundled-runtime NSIS installer, runs
+it silently, and relaunches the installed packaged app. It expects `npm`,
+`bash`, and a Python 3.11 build interpreter to be available; set
+`WINDIE_PYTHON_BUILD` explicitly if the default `frontend_jarvis` resolution
+does not match your machine.
+
 ### Linux `.deb` install/uninstall
 
 For Linux package installs from `frontend/release/`:
