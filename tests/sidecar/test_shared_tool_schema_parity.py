@@ -24,6 +24,7 @@ from tools.schemas import (  # noqa: E402
     SwitchTabArgs as SidecarSwitchTabArgs,
     WaitToolArgs as SidecarWaitToolArgs,
 )
+from tools.browser.schemas import BrowserControlArgs as SidecarBrowserControlArgs  # noqa: E402
 
 from backend.src.tools.filesystem.schemas import (
     ReadFileArgs as BackendReadFileArgs,
@@ -46,11 +47,11 @@ from backend.src.tools.system.schemas import (
     ProcessShellCommandArgs as BackendProcessShellCommandArgs,
     RunShellCommandArgs as BackendRunShellCommandArgs,
 )
+from backend.src.tools.browser.schemas import BrowserControlArgs as BackendBrowserControlArgs
 
 
 INTENTIONAL_EXCEPTIONS = frozenset(
     {
-        "browser",
         "mouse_control",
         "screenshot",
         "scroll_control",
@@ -58,6 +59,10 @@ INTENTIONAL_EXCEPTIONS = frozenset(
 )
 
 EXACT_PARITY_TOOLS = {
+    "browser": (
+        BackendBrowserControlArgs,
+        SidecarBrowserControlArgs,
+    ),
     "keyboard_control": (
         BackendKeyboardControlArgs,
         SidecarKeyboardControlArgs,

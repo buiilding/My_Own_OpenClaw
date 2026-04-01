@@ -1,9 +1,9 @@
 ---
-summary: "Deep reference for backend BrowserControlArgs schema layering: canonical/legacy/removed action categories, shared compatibility-field mixins, and action-family field groups."
+summary: "Deep reference for backend BrowserControlArgs schema layering: strict per-action models, grouped discriminated validation, and canonical browser field sets."
 read_when:
-  - When adding/removing browser actions or changing browser compatibility alias semantics in backend schemas.
-  - When debugging why BrowserControlArgs accepts broad payloads while runtime blocks removed aliases.
-title: "Browser Control Unified Schema and Compatibility Field Matrix Reference"
+  - When adding/removing browser actions or changing canonical browser fields in backend schemas.
+  - When debugging why a browser payload fails grouped validation.
+title: "Browser Control Unified Schema Reference"
 ---
 
 # Browser Control Unified Schema and Compatibility Field Matrix Reference
@@ -11,10 +11,7 @@ title: "Browser Control Unified Schema and Compatibility Field Matrix Reference"
 ## Canonical Modules
 
 - `backend/src/tools/browser/schema_types.py`
-- `backend/src/tools/browser/snapshot_scope_fields.py`
-- `backend/src/tools/browser/shared_compat_fields.py`
 - `backend/src/tools/browser/browser_control_args_schema.py`
-- `backend/src/tools/browser/openclaw_compat_schema.py`
 - `backend/src/tools/browser/schemas.py`
 
 ## Layer 1: Literal Type Surface (`schema_types.py`)
@@ -22,7 +19,6 @@ title: "Browser Control Unified Schema and Compatibility Field Matrix Reference"
 Reusable literals define browser vocabulary and field enums:
 
 - navigation state: `load | domcontentloaded | networkidle | commit`
-- snapshot format: `ai | aria`
 - mouse button: `left | right | middle`
 - scroll direction: `up | down | left | right`
 - wait state: `load | domcontentloaded | networkidle`
@@ -30,101 +26,50 @@ Reusable literals define browser vocabulary and field enums:
 Action categories:
 
 - `BrowserCanonicalAction`: canonical runtime actions
-- `BrowserRemovedCompatAction`: `type`, `open`, `switch_tab`, `press`, `act`
-- `BrowserAction`: union of canonical + removed
+- `BROWSER_CANONICAL_ACTIONS`: tuple projection of the canonical action set
 
-Compatibility preference maps:
+## Layer 2: Strict Action Models
 
-- `BROWSER_LEGACY_ACTION_PREFERRED`: empty (no active legacy aliases)
-- `BROWSER_REMOVED_ACTION_PREFERRED`: removed alias migration targets
-- `BROWSER_COMPAT_ACTION_PREFERRED`: merged map used by runtime/tool warnings
+`browser_control_args_schema.py` defines one strict model per action with `extra="forbid"`.
 
-`BrowserOpenClawAction` is a separate compatibility subset and excludes removed aliases.
+Examples:
 
-## Layer 2: Shared Snapshot Scope Aliases (`snapshot_scope_fields.py`)
+- `BrowserSnapshotArgs`: `offset`, `limit`, `include_screenshot`
+- `BrowserExtractArgs`: `query`, `extract_links`, `start_from_char`, `output_schema`
+- `BrowserInputArgs`: `ref/index`, `text`, `clear`, `submit`
+- `BrowserSwitchArgs`: `tab_id`
+- `BrowserEvaluateArgs`: `code`
 
-Reusable fields injected into multiple models:
+There are no compatibility-only browser fields left in any action model.
 
-- `refs`: `role | aria`
-- `interactive`: bool
-- `compact`: bool
-- `depth`: int (`0..20`)
-- `selector`: optional CSS scope
-- `frame`: optional iframe selector scope
-
-## Layer 3: Shared Compatibility Mixins (`shared_compat_fields.py`)
-
-`BrowserSharedCompatFields` contributes non-core aliases reused by:
-
-- `BrowserControlArgs`
-- `BrowserOpenClawCompatArgs`
-
-Families include:
-
-- dialog/wait aliases (`timeoutMs` + `timeout_ms`, `promptText` + `prompt_text`)
-- storage/network/trace fields (`cookies`, `kind`, `values`, `contains`, `filter`, `snapshots`, `screenshots`, `sources`)
-- emulation fields (`offline`/`enabled`, headers, geolocation, media/color/timezone/locale/device)
-- file/text mutation compatibility fields (`append`, `trailing_newline`, `old_str`, `new_str`, `path`, `goal`, `source`, `context`, `keys`, `success`, `files_to_display`)
-- no-op compatibility placeholders (`profile`, `node`, `target`)
-
-`BrowserScreenshotImageFields` centralizes screenshot image options (`element`, `type`, `quality`) reused by:
-
-- `BrowserControlArgs`
-- `BrowserScreenshotArgs`
-
-## Layer 4: Unified Backend Schema (`BrowserControlArgs`)
+## Layer 3: Grouped Backend Schema (`BrowserControlArgs`)
 
 `BrowserControlArgs` is the backend-exposed browser tool args model.
 
 Key characteristics:
 
-- `action: BrowserAction`
-- `model_config.extra = "ignore"`
-- broad optional field superset spanning connect/snapshot/extract/input/tab/file/emulation compatibility fields
-- includes helper signals:
-- `is_legacy` remains for compatibility and is always false while `BROWSER_LEGACY_COMPAT_ACTIONS` is empty
-- `preferred_action` returns migration guidance from `BROWSER_COMPAT_ACTION_PREFERRED`
+- discriminated `RootModel` over the canonical action models
+- action discriminator is `arguments.action`
+- invalid or cross-action fields fail immediately during validation
 
-Semantic boundary:
+## Layer 4: Action Catalog
 
-- removed aliases remain parseable for clear migration errors at runtime
-- strict execution semantics are enforced by backend remote tool gates and sidecar runtime
-- model-facing declaration shown to tool-calling providers is additionally projected by `RemoteBrowserTool.get_json_schema(...)` and can be narrower than raw `BrowserControlArgs` acceptance surface
+`BROWSER_ACTION_CONTRACTS` is the single browser authority used by backend and sidecar.
 
-## Layer 5: Action-Specific Models (`schemas.py`)
+Each catalog entry defines:
 
-`schemas.py` keeps strict validators available.
+- action name
+- strict args model
+- Browser Use runtime action name
+- whether the action requires an active browser connection
+- whether the action is model-visible
 
-Examples:
+Derived helpers include:
 
-- `BrowserClickArgs`: requires `ref/index` or both coordinates
-- `BrowserEvaluateArgs`: requires `script` or `code`
-- `BrowserSnapshotArgs`: validates offset/limit/mode bounds
-- `BrowserExtractArgs`: validates query/offset/max bounds
-
-## Compatibility Field Matrix (Selected)
-
-Identifier aliases:
-
-- `target_id` + `targetId`
-- `target_url` + `targetUrl`
-- `input_ref` + `inputRef`
-- `color_scheme` + `colorScheme`
-
-Snapshot compatibility:
-
-- canonical fields: `format`, `offset`, `limit`, `refs`, `interactive`, `compact`, `depth`, `selector`, `frame`
-- alias: `snapshotFormat`
-
-Connect/snapshot/extract compatibility mode field:
-
-- `mode` includes compatibility literals for these action families
-
-## OpenClaw Compatibility Model (`BrowserOpenClawCompatArgs`)
-
-Separate compatibility model keeps OpenClaw field/action vocabulary with `extra="ignore"`.
-
-It is used for compatibility modeling/tests while unified `BrowserControlArgs` remains main backend transport contract.
+- `BROWSER_SCHEMAS`
+- `BROWSER_RUNTIME_ACTIONS`
+- `BROWSER_ACTIONS_REQUIRING_CONNECTION`
+- `build_browser_tool_parameters_schema()`
 
 ## Remote Payload Implication
 
@@ -135,28 +80,27 @@ It is used for compatibility modeling/tests while unified `BrowserControlArgs` r
 Consequences:
 
 - defaults/`None` values are omitted from transport payloads
-- sidecar defaults/normalization behavior matters for omitted fields
+- sidecar receives only canonical per-action fields
 
 ## Model-Facing Projection Nuance
 
-`RemoteBrowserTool.get_json_schema(...)` applies a declaration projection layer on top of `BrowserControlArgs`:
+`build_browser_tool_parameters_schema()` emits:
 
-- action enum is narrowed to canonical non-file-edit actions
-- removed aliases are excluded from model-facing enum (still runtime-parseable for migration error handling)
-- selected compatibility/camelCase and legacy file-edit payload keys are removed from model-facing `properties`
+- top-level grouped `browser` parameters object
+- `action` enum covering the canonical browser action set
+- one `oneOf` branch per action with only that action’s fields
 
-This means provider tool-call generation surface can be narrower than backend parse-time compatibility acceptance.
+No branch includes removed alias fields or compatibility-only fields.
 
 ## Test-Backed Anchors
 
 `tests/backend/test_browser_remote_tool.py` asserts:
 
 - `RemoteBrowserTool.args_model == BrowserControlArgs`
-- unified schema accepts canonical + compatibility action samples
-- action-specific models remain usable
-- compatibility model remains importable/usable
-- model-facing action enum excludes removed aliases and file-edit actions
-- model-facing property map hides selected camelCase compatibility fields
+- grouped `oneOf` schema matches the action catalog
+- model-facing action enum is exactly the canonical action set
+- removed fields such as `mode`, `format`, `target_id`, `input_ref`, `clear_first`, and `script` are absent
+- removed actions such as `open`, `type`, `press`, and `switch_tab` fail validation
 
 ## Related Pages
 

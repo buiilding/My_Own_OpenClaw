@@ -34,7 +34,7 @@ async def execute_browser(raw_args: Dict[str, Any]) -> ToolResult:
         )
 
     try:
-        args = BrowserControlArgs(**raw_args)
+        args = BrowserControlArgs.model_validate(raw_args)
     except ValidationError as exc:
         return ToolResult(
             success=False,

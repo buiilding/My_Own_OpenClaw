@@ -1,14 +1,14 @@
 ---
-summary: "Deep backend browser-tool reference for BrowserControlArgs action categories, model-facing schema projection, OpenClaw compatibility-field surfaces, and removed-alias runtime semantics."
+summary: "Deep backend browser-tool reference for the strict grouped browser action catalog, model-facing oneOf schema emission, and canonical runtime payload semantics."
 read_when:
-  - When changing backend browser action literal sets, model-facing browser schema projection, removed-alias policy, or remote browser tool runtime gates.
-  - When debugging backend-accepted browser payloads that are rejected as removed aliases before sidecar execution.
-title: "Browser Remote Schema Surface and Compatibility Contract Reference"
+  - When changing backend browser action literals, grouped browser schema emission, or remote browser payload validation.
+  - When debugging why a browser payload is rejected before sidecar execution.
+title: "Browser Remote Schema Surface Reference"
 ---
 
 # Browser Remote Schema Surface and Compatibility Contract Reference
 
-This page documents backend browser tool contracts in:
+This page documents the canonical backend browser contract in:
 
 - `backend/src/tools/browser/*`
 - `backend/src/tools/remote_tools/browser.py`
@@ -25,66 +25,29 @@ Purpose of lazy export:
 
 - avoid eager remote-tool imports and circular import pressure
 
-## Browser Action Literal Surface
+## Browser Action Surface
 
-`schema_types.py` defines shared literal aliases used by schemas:
+`schema_types.py` defines the canonical grouped browser actions:
 
-- navigation states (`load`, `domcontentloaded`, `networkidle`, `commit`)
-- snapshot formats (`ai`, `aria`)
-- mouse buttons (`left`, `right`, `middle`)
-- scroll directions (`up`, `down`, `left`, `right`)
-- wait states (`load`, `domcontentloaded`, `networkidle`)
+- `connect`, `status`, `profiles`, `navigate`, `snapshot`, `extract`, `click`, `input`, `send_keys`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch`, `evaluate`, `done`, `search`, `go_back`, `search_page`, `find_elements`, `find_text`, `close_tab`, `dropdown_options`, `select_dropdown`, `upload_file`, `write_file`, `replace_file`, `read_file`, `read_long_content`, `close`
 
-Action categories:
+There are no removed-alias actions or compatibility-only browser fields in the backend contract anymore.
 
-- canonical actions: `connect`, `status`, `profiles`, `navigate`, `snapshot`, `extract`, `click`, `input`, `send_keys`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch`, `evaluate`, `done`, `search`, `go_back`, `search_page`, `find_elements`, `find_text`, `close_tab`, `dropdown_options`, `select_dropdown`, `upload_file`, `write_file`, `replace_file`, `read_file`, `read_long_content`, `close`
-- removed aliases (still parseable for migration errors): `type`, `open`, `switch_tab`, `press`, `act`
+## Canonical Schema Source
 
-`BrowserOpenClawAction` intentionally excludes removed aliases.
+`browser_control_args_schema.py` is the single browser contract authority.
 
-Important distinction:
+It defines:
 
-- this section is the full `BrowserControlArgs` acceptance/action surface
-- model-facing function declaration is further narrowed by `RemoteBrowserTool.get_json_schema(...)`
-
-## Unified Base Schema (`BrowserControlArgs`)
-
-`BrowserControlArgs` (`browser_control_args_schema.py`) is the base backend parse model used by `RemoteBrowserTool`.
-
-Design characteristics:
-
-- single unified model with `action: BrowserAction`
-- `model_config.extra = "ignore"`
-- broad field superset across canonical and compatibility action families
-- includes compatibility aliases (`targetId`, `targetUrl`, `snapshotFormat`, `inputRef`, etc.)
-
-Compatibility field layers:
-
-- inherits `BrowserSharedCompatFields` (dialog/network/storage/emulation alias groups)
-- inherits `BrowserScreenshotImageFields` (`element`, `type`, `quality`)
-- reuses snapshot scope aliases from `snapshot_scope_fields.py` (`refs`, `interactive`, `compact`, `depth`, `selector`, `frame`)
+- one strict Pydantic model per action (`extra="forbid"`)
+- one `BrowserActionContract` catalog with action name, args model, runtime action, and connection requirement
+- one discriminated `BrowserControlArgs` union for grouped validation
+- one `build_browser_tool_parameters_schema()` helper for model-facing schema emission
 
 Important boundary:
 
-- unified model intentionally accepts broad payloads
-- action-specific strictness is enforced later in sidecar adapter/runtime boundaries
-- model-facing declaration exposure is further narrowed by `RemoteBrowserTool.get_json_schema(...)`
-
-## Action-Specific Validator Models
-
-`schemas.py` contains stricter per-action models.
-
-Examples:
-
-- `BrowserClickArgs` requires either `ref/index` or coordinate pair
-- `BrowserEvaluateArgs` requires `script` or `code`
-- `BrowserSnapshotArgs` validates paging and snapshot mode/format bounds
-
-## OpenClaw Compatibility Model
-
-`BrowserOpenClawCompatArgs` in `openclaw_compat_schema.py` keeps compatibility action and field vocabulary with `extra="ignore"`.
-
-It exists for compatibility modeling and tests while `RemoteBrowserTool` accepts unified `BrowserControlArgs`.
+- backend validation and model-facing schema emission derive from the same action catalog
+- sidecar validation imports this backend contract directly instead of redefining browser schemas locally
 
 ## RemoteBrowserTool Runtime Semantics
 
@@ -93,64 +56,39 @@ It exists for compatibility modeling and tests while `RemoteBrowserTool` accepts
 - `name = "browser"`
 - `args_model = BrowserControlArgs`
 - `category = ToolDomain.BROWSER`
-- description focuses on canonical action workflow and compatibility notes
+- description focuses on canonical action workflow
 
-Model-facing declaration projection (`get_json_schema(...)`):
+Model-facing declaration emission (`build_tool_spec(...)`):
 
-- starts from base schema (`super().get_json_schema()`) and deep-copies
-- rewrites `action` enum to canonical non-file-edit action set:
-  - keeps canonical runtime + helper actions
-  - excludes removed aliases (`type`, `open`, `switch_tab`, `press`, `act`)
-  - excludes file-edit browser actions (`write_file`, `replace_file`, `read_file`)
-- removes selected compatibility/camelCase/legacy-edit properties from model-facing properties:
-  - `timeoutMs`, `promptText`, `colorScheme`, `targetId`, `targetUrl`, `inputRef`, `snapshotFormat`
-  - `content`, `append`, `trailing_newline`, `leading_newline`, `old_str`, `new_str`
-
-Runtime gating still applies after declaration projection:
+- emits one grouped `browser` tool
+- keeps top-level `action` enum for the full canonical action set
+- emits one `oneOf` branch per action with branch-local required and optional fields only
+- never advertises removed aliases or compatibility-only fields such as `mode`, `format`, `refs`, `interactive`, `compact`, `depth`, `frame`, `target_id`, `target_url`, `input_ref`, `clear_first`, or `script`
 
 `execute_remote(...)` behavior:
 
-1. removed aliases (`type`, `open`, `switch_tab`, `press`, `act`) are rejected immediately with migration errors
-2. removed-alias blocks emit structured warning metadata:
-- `legacy_action`
-- `preferred_action`
-- `legacy_action_blocked`
-- `legacy_action_gate`
-3. accepted payloads return `RemoteToolResult` with:
-- `tool_name = "browser"`
-- `args = args.model_dump(exclude_defaults=True, exclude_none=True)`
+1. accepts only canonical grouped payloads that validate against `BrowserControlArgs`
+2. serializes `args.model_dump(exclude_defaults=True, exclude_none=True)` to the sidecar
+3. preserves only canonical per-action fields in the remote payload
 
 ## Backend vs Runtime Enforcement Boundary
 
-Backend effective behavior has two layers:
+Backend and sidecar now share the same grouped browser contract.
 
-1. model-facing declaration (projected/narrowed by `RemoteBrowserTool.get_json_schema(...)`)
-2. runtime parsing/validation (`BrowserControlArgs` + removed-alias gate)
+Practical rule:
 
-Manual/direct payloads can still hit the broader runtime parse boundary even when model-facing declaration omits those fields/actions.
-
-Implication:
-
-- payload can parse under backend model but still fail at sidecar adapter/runtime boundaries
-
-Cross-layer debugging rule:
-
-1. validate backend parse (`BrowserControlArgs`)
-2. inspect backend runtime alias-gate decision (removed alias)
-3. inspect sidecar adapter/runtime normalization if request was forwarded
+1. if the backend accepts a browser payload, the sidecar schema layer accepts the same grouped action shape
+2. adapter/runtime errors are operational failures, not compatibility-cleanup failures
 
 ## Test-Backed Contracts
 
 `tests/backend/test_browser_remote_tool.py` covers:
 
 - browser tool registration and lookup behavior
-- remote payload emission semantics
-- unified schema defaults/aliases
-- canonical + compatibility action parsing coverage
-- model-facing action projection excludes removed aliases and browser file-edit actions
-- model-facing property projection hides selected camelCase compatibility fields while keeping snake_case canonical fields
-- removed-alias policy behavior
-- OpenClaw compatibility model availability
+- model-facing grouped `oneOf` schema emission
+- canonical-only action enum and branch-local field exposure
+- strict grouped validation for removed fields and removed actions
+- remote payload emission semantics for canonical grouped actions
 
 ## Related Docs
 
@@ -158,5 +96,4 @@ Cross-layer debugging rule:
 - [Browser Control Unified Schema and Compatibility Field Matrix Reference](schema/browser_control_unified_schema_and_compatibility_field_matrix_reference.md)
 - [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
 - [Sidecar Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference](../../../frontend/sidecar/browser/browser_runtime_provider_vendoring_and_native_handler_bridge_reference.md)
-- [Sidecar Browser Adapter Action Routing and Compatibility Semantics Reference](../../../frontend/sidecar/browser/browser_adapter_action_routing_and_compatibility_semantics_reference.md)
-- [Detailed Browser Action Compatibility and Runtime Reference](../../../frontend/sidecar/browser_action_compatibility_and_runtime_reference.md)
+- [Sidecar Browser Adapter Action Routing Reference](../../../frontend/sidecar/browser/browser_adapter_action_routing_and_compatibility_semantics_reference.md)

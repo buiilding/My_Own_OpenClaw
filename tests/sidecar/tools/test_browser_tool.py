@@ -63,9 +63,7 @@ def _connected_controller() -> SimpleNamespace:
         screenshot=mock.AsyncMock(return_value=b"png-bytes"),
         get_tabs=mock.AsyncMock(return_value=[]),
         evaluate=mock.AsyncMock(return_value={"success": True, "result": {"ok": True}}),
-        get_dropdown_options=mock.AsyncMock(
-            return_value={"success": True, "options": []}
-        ),
+        get_dropdown_options=mock.AsyncMock(return_value={"success": True, "options": []}),
         select_dropdown=mock.AsyncMock(return_value={"success": True}),
         set_input_files=mock.AsyncMock(return_value={"success": True}),
         _ensure_page_observers=lambda page: None,
@@ -76,7 +74,7 @@ def _connected_controller() -> SimpleNamespace:
 
 
 @pytest.mark.asyncio
-async def test_connect_executes_through_runtime():
+async def test_connect_executes_through_runtime() -> None:
     controller = _connected_controller()
     controller.is_connected = False
     controller.auto_connect_to_chrome.return_value = {
@@ -90,25 +88,29 @@ async def test_connect_executes_through_runtime():
     with mock.patch(
         "tools.browser.browser_tool.get_browser_controller", return_value=controller
     ):
-        result = await execute_browser({"action": "connect", "headless": False})
+        result = await execute_browser({"action": "connect"})
 
     assert result.success is True
     assert result.data["mode"] == "user_chrome"
-    controller.auto_connect_to_chrome.assert_awaited_once()
+    controller.auto_connect_to_chrome.assert_awaited_once_with(
+        cdp_url="http://127.0.0.1:9333",
+        auto_launch=True,
+        headless=False,
+    )
 
 
 @pytest.mark.asyncio
-async def test_removed_alias_returns_invalid_argument_error():
-    with mock.patch("tools.browser.browser_tool.get_browser_controller"):
-        result = await execute_browser({"action": "open", "url": "https://example.com"})
+async def test_strict_validation_blocks_runtime_execution() -> None:
+    with mock.patch("tools.browser.browser_tool.get_browser_controller") as get_controller:
+        result = await execute_browser({"action": "snapshot", "format": "aria"})
 
     assert result.success is False
-    assert "Legacy browser action 'open'" in (result.error or "")
-    assert result.data == {"error_code": "INVALID_ARGUMENT"}
+    assert "format" in (result.error or "")
+    get_controller.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_search_dispatches_to_navigation():
+async def test_search_dispatches_to_navigation() -> None:
     controller = _connected_controller()
 
     with mock.patch(
@@ -124,7 +126,7 @@ async def test_search_dispatches_to_navigation():
 
 
 @pytest.mark.asyncio
-async def test_not_connected_runtime_error_preserves_code():
+async def test_not_connected_runtime_error_preserves_code() -> None:
     controller = _connected_controller()
     controller.is_connected = False
     controller._page = None
@@ -136,8 +138,6 @@ async def test_not_connected_runtime_error_preserves_code():
         result = await execute_browser({"action": "status"})
 
     assert result.success is True
-    status = result.data
-    assert status["connected"] is True or status["connected"] is False
 
     with mock.patch(
         "tools.browser.browser_tool.get_browser_controller", return_value=controller
@@ -146,3 +146,12 @@ async def test_not_connected_runtime_error_preserves_code():
 
     assert failed.success is False
     assert failed.data == {"error_code": "BROWSER_NOT_CONNECTED", "action": "find_text"}
+
+
+@pytest.mark.asyncio
+async def test_removed_alias_returns_invalid_argument_error() -> None:
+    with mock.patch("tools.browser.browser_tool.get_browser_controller"):
+        result = await execute_browser({"action": "open", "url": "https://example.com"})
+
+    assert result.success is False
+    assert "open" in (result.error or "")

@@ -41,14 +41,9 @@ class TestBrowserToolRegistration:
                 "url": "https://example.com",
             }
             mock_get.return_value = mock_controller
-
-            result = await registry.execute_tool(
-                "browser",
-                {
-                    "action": "connect",
-                },
-            )
-
+            result = await registry.execute_tool("browser", {
+                "action": "connect",
+            })
             assert result.success is True
             assert result.data["mode"] == "user_chrome"
             mock_controller.auto_connect_to_chrome.assert_awaited_once()
