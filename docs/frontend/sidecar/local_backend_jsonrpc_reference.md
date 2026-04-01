@@ -92,7 +92,7 @@ Method validation behavior:
 
 Special behavior:
 
-- `execute-tool` timeout is `120000ms` for `browser`, else `30000ms`.
+- `execute-tool` timeout is `120000ms` for `browser`, else `60000ms`.
 - screenshot tool path is wrapped by platform screenshot visibility runtime; current main-process runtime behavior is pass-through and Linux hide/show ownership lives in renderer capture orchestration.
 
 ### Mapped handlers (`COMPILED_RPC_HANDLER_DEFINITIONS`)
@@ -205,7 +205,7 @@ Failure handling:
 
 Main bridge defaults:
 
-- request timeout: `30000ms` (or per-request override)
+- request timeout: `60000ms` (or per-request override)
 - on timeout: pending entry removed and promise rejected
 - on subprocess exit/error: all pending requests rejected, ready state reset
 

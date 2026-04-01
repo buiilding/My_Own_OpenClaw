@@ -22,7 +22,7 @@ Request path for browser actions:
 Main-process timeout behavior:
 
 - browser tool timeout: `120000ms`
-- other tools default timeout: `30000ms`
+- other tools default timeout: `60000ms`
 
 ## Sidecar Tool Registration Surface
 

@@ -47,6 +47,9 @@ let readinessCheckCallback = null;
 let readinessCheckToken = 0;
 
 const LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES = 128 * 1024;
+const DEFAULT_REQUEST_TIMEOUT_MS = 60000;
+const DEFAULT_EXECUTE_TOOL_TIMEOUT_MS = 60000;
+const BROWSER_EXECUTE_TOOL_TIMEOUT_MS = 120000;
 const isTestEnv = process.env.NODE_ENV === 'test';
 let runtimeScreenCaptureCapabilityVerifier = async () => ({
   granted: false,
@@ -496,7 +499,8 @@ function sendRequest(method, params = {}, options = {}) {
   };
 
   return new Promise((resolve, reject) => {
-    const timeoutMs = typeof options.timeoutMs === 'number' ? options.timeoutMs : 30000;
+    const timeoutMs =
+      typeof options.timeoutMs === 'number' ? options.timeoutMs : DEFAULT_REQUEST_TIMEOUT_MS;
     const timeout = setTimeout(() => {
       if (pendingRequests.has(requestId)) {
         pendingRequests.delete(requestId);
@@ -619,7 +623,10 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
 
   ipcMain.handle('execute-tool', async (event, { toolName, args }) => {
     try {
-      const timeoutMs = toolName === 'browser' ? 120000 : 30000;
+      const timeoutMs =
+        toolName === 'browser'
+          ? BROWSER_EXECUTE_TOOL_TIMEOUT_MS
+          : DEFAULT_EXECUTE_TOOL_TIMEOUT_MS;
       const normalizedArgs = resolveToolArgs(
         toolName,
         args,
@@ -699,7 +706,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
             expectation: 'Permission verification screenshot',
           },
         },
-        { timeoutMs: 30000 },
+        { timeoutMs: DEFAULT_REQUEST_TIMEOUT_MS },
       );
       const result = await withHiddenWindowForScreenshot({
         platform: process.platform,

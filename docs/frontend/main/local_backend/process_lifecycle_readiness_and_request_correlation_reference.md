@@ -116,7 +116,7 @@ Stderr handling:
 2. creates UUID request id
 3. stores `pendingRequests[requestId] = { resolve, reject, timeout }`
 4. writes one JSON line to stdin
-5. timeout defaults to `30000ms` unless `options.timeoutMs` provided
+5. timeout defaults to `60000ms` unless `options.timeoutMs` provided
 
 Timeout behavior:
 
@@ -173,7 +173,7 @@ Test-backed guarantee:
 `execute-tool` timeout tier:
 
 - `browser` tool: `120000ms`
-- all others: `30000ms`
+- all others: `60000ms`
 
 Screenshot path:
 
