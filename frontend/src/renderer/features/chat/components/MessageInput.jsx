@@ -9,12 +9,9 @@ import {
   Square,
   X,
 } from 'lucide-react';
-import { useTranscription } from '../hooks/useTranscription';
-import { buildOutgoingMessage } from '../utils/message/messageInput';
+import { useChatComposerDraft } from '../hooks/useChatComposerDraft';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import VoiceStatus from '../../voice/components/VoiceStatus';
-import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
-import { parseSelectedComposerFiles } from '../utils/fileAttachmentUtils';
 import { resolveReadableFileTypeLabel } from '../utils/composerAttachmentPresentation';
 import {
   useClosePlusMenuOnSending,
@@ -32,97 +29,38 @@ function MessageInput({
   focusRequestToken = 0,
 }) {
   const textareaRef = useRef(null);
-  const attachmentInputRef = useRef(null);
   const lastHandledFocusRequestRef = useRef(focusRequestToken);
   const plusMenuRef = useRef(null);
   const [plusMenuOpen, setPlusMenuOpen] = useState(false);
-  const [clipboardImages, setClipboardImages] = useState([]);
-  const [selectedReadableFiles, setSelectedReadableFiles] = useState([]);
   const {
+    attachmentInputRef,
+    clipboardImages,
+    selectedReadableFiles,
     inputValue,
-    setInputValue,
     getInputValue,
     updateTranscription,
-    resetTranscription,
     handleInputChange,
-    handlePaste,
-  } = useTranscription();
-
-  const submitMessageValue = (nextInputValue) => {
-    const outgoingMessage = buildOutgoingMessage(
-      nextInputValue,
-      isSending,
-      clipboardImages,
-      selectedReadableFiles,
-    );
-    if (outgoingMessage) {
-      onSendMessage(outgoingMessage);
-      setInputValue('');
-      resetTranscription();
-      setClipboardImages([]);
-      setSelectedReadableFiles([]);
-      if (attachmentInputRef.current) {
-        attachmentInputRef.current.value = '';
-      }
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-      }
-    }
-  };
+    submitMessageValue,
+    setClipboardImages,
+    setSelectedReadableFiles,
+    handleComposerPaste,
+    handleAttachmentSelection,
+  } = useChatComposerDraft({
+    isSubmitBlocked: isSending,
+    onSendMessage,
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    submitMessageValue(inputValue);
+    void submitMessageValue(inputValue);
   };
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
-      submitMessageValue(inputValue);
+      void submitMessageValue(inputValue);
     }
   };
-
-  const handleComposerPaste = useCallback(async (event) => {
-    const clipboardItems = event.clipboardData?.items || [];
-    const hasImageItems = Array.from(clipboardItems).some((item) => item?.type?.startsWith('image/'));
-    if (!hasImageItems) {
-      handlePaste(event);
-      return;
-    }
-
-    event.preventDefault();
-    try {
-      const parsedImages = await parseClipboardImageItems(clipboardItems);
-      if (parsedImages.length > 0) {
-        setClipboardImages((previous) => [...previous, ...parsedImages]);
-      }
-    } catch (error) {
-      console.warn('[MessageInput] Failed to parse pasted image:', error);
-    }
-  }, [handlePaste]);
-
-  const handleAttachmentSelection = useCallback(async (event) => {
-    const fileList = event?.target?.files || [];
-    if (!fileList || fileList.length === 0) {
-      return;
-    }
-
-    try {
-      const parsedAttachments = await parseSelectedComposerFiles(fileList);
-      if (parsedAttachments.imageAttachments.length > 0) {
-        setClipboardImages((previous) => [...previous, ...parsedAttachments.imageAttachments]);
-      }
-      if (parsedAttachments.readableFiles.length > 0) {
-        setSelectedReadableFiles((previous) => [...previous, ...parsedAttachments.readableFiles]);
-      }
-    } catch (error) {
-      console.warn('[MessageInput] Failed to parse selected attachments:', error);
-    } finally {
-      if (event?.target) {
-        event.target.value = '';
-      }
-    }
-  }, []);
 
   const resizeTextarea = useCallback(() => {
     if (!textareaRef.current) {
@@ -159,7 +97,7 @@ function MessageInput({
       updateTranscription(text);
     },
     () => {
-      submitMessageValue(getInputValue());
+      void submitMessageValue(getInputValue());
     },
   );
 

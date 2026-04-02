@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
+import { useChatComposerDraft } from '../hooks/useChatComposerDraft';
 import { useCurrentTurnPresentationState } from '../hooks/useCurrentTurnPresentationState';
 import { useResponseOverlayPhase } from '../hooks/useResponseOverlayPhase';
-import { useTranscription } from '../hooks/useTranscription';
 import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import {
   useChatboxDragWindowBindings,
@@ -24,9 +24,6 @@ import {
   startChatboxDrag,
   stopChatboxDrag,
 } from '../utils/chatbox/chatboxPillLayout';
-import { buildOutgoingMessage } from '../utils/message/messageInput';
-import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
-import { parseSelectedComposerFiles } from '../utils/fileAttachmentUtils';
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStream/chatStreamThinkingStatus';
 import {
   AttachmentIcon,
@@ -61,10 +58,7 @@ function ChatBox() {
   });
   const overlayPhase = useResponseOverlayPhase();
   const [wakewordSttSessionActive, setWakewordSttSessionActive] = useState(false);
-  const [clipboardImages, setClipboardImages] = useState([]);
-  const [selectedReadableFiles, setSelectedReadableFiles] = useState([]);
   const inputRef = useRef(null);
-  const attachmentInputRef = useRef(null);
   const pillRef = useRef(null);
   const sendButtonRef = useRef(null);
   const loopInteractionLockedRef = useRef(false);
@@ -80,14 +74,27 @@ function ChatBox() {
   });
   const devUiEnabled = isDevUiEnabled();
   const {
+    attachmentInputRef,
+    clipboardImages,
+    selectedReadableFiles,
     inputValue,
     setInputValue,
-    getInputValue,
     updateTranscription,
     resetTranscription,
     handleInputChange,
-    handlePaste,
-  } = useTranscription();
+    handleComposerPaste,
+    handleAttachmentSelection,
+    submitMessageValue,
+    setClipboardImages,
+    setSelectedReadableFiles,
+    hasAttachments,
+  } = useChatComposerDraft({
+    isSubmitBlocked: loopInteractionLocked,
+    onSendMessage: sendMessage,
+    onBeforeSend: () => {
+      setWakewordSttSessionActive(false);
+    },
+  });
 
   const focusInput = useCallback(() => {
     if (loopInteractionLockedRef.current) {
@@ -235,42 +242,10 @@ function ChatBox() {
     },
   );
 
-  const handleSend = useCallback(async () => {
-    const outgoingMessage = buildOutgoingMessage(
-      getInputValue(),
-      loopInteractionLocked,
-      clipboardImages,
-      selectedReadableFiles,
-    );
-    if (!outgoingMessage) {
-      return;
-    }
-    setWakewordSttSessionActive(false);
-    resetTranscription();
-    setInputValue('');
-    setClipboardImages([]);
-    setSelectedReadableFiles([]);
-    if (attachmentInputRef.current) {
-      attachmentInputRef.current.value = '';
-    }
-    if (inputRef.current) {
-      inputRef.current.style.height = 'auto';
-    }
-    await sendMessage(outgoingMessage);
-  }, [
-    clipboardImages,
-    getInputValue,
-    loopInteractionLocked,
-    resetTranscription,
-    selectedReadableFiles,
-    sendMessage,
-    setInputValue,
-  ]);
-
   const handleSubmit = useCallback((event) => {
     event.preventDefault();
-    void handleSend();
-  }, [handleSend]);
+    void submitMessageValue(inputValue);
+  }, [inputValue, submitMessageValue]);
 
   const handleOpenConfig = useCallback(async () => {
     if (loopInteractionLocked) {
@@ -298,57 +273,12 @@ function ChatBox() {
     }
   }, [loopInteractionLocked]);
 
-  const handleComposerPaste = useCallback(async (event) => {
-    if (loopInteractionLocked) {
-      return;
-    }
-    const clipboardItems = event.clipboardData?.items || [];
-    const hasImageItems = Array.from(clipboardItems).some((item) => item?.type?.startsWith('image/'));
-    if (!hasImageItems) {
-      handlePaste(event);
-      return;
-    }
-    try {
-      const parsedImages = await parseClipboardImageItems(clipboardItems);
-      if (parsedImages.length === 0) {
-        return;
-      }
-      event.preventDefault();
-      setClipboardImages((previous) => [...previous, ...parsedImages]);
-    } catch (error) {
-      console.warn('[ChatBox] Failed to parse pasted image:', error);
-    }
-  }, [handlePaste, loopInteractionLocked]);
-
-  const handleAttachmentSelection = useCallback(async (event) => {
-    const fileList = event?.target?.files || [];
-    if (!fileList || fileList.length === 0) {
-      return;
-    }
-
-    try {
-      const parsedAttachments = await parseSelectedComposerFiles(fileList);
-      if (parsedAttachments.imageAttachments.length > 0) {
-        setClipboardImages((previous) => [...previous, ...parsedAttachments.imageAttachments]);
-      }
-      if (parsedAttachments.readableFiles.length > 0) {
-        setSelectedReadableFiles((previous) => [...previous, ...parsedAttachments.readableFiles]);
-      }
-    } catch (error) {
-      console.warn('[ChatBox] Failed to parse selected attachments:', error);
-    } finally {
-      if (event?.target) {
-        event.target.value = '';
-      }
-    }
-  }, []);
-
   const handleComposerKeyDown = useCallback((event) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
-      void handleSend();
+      void submitMessageValue(inputValue);
     }
-  }, [handleSend]);
+  }, [inputValue, submitMessageValue]);
 
   const handleConfigToggle = useCallback((key, nextValue, options = {}) => {
     if (loopInteractionLocked) {
@@ -423,7 +353,7 @@ function ChatBox() {
     event.preventDefault();
     event.stopPropagation();
   }, []);
-  const hasAttachmentPreview = clipboardImages.length > 0 || selectedReadableFiles.length > 0;
+  const hasAttachmentPreview = hasAttachments;
 
   useChatboxVisualAnchorBindings(hasAttachmentPreview);
 
@@ -469,7 +399,9 @@ function ChatBox() {
             data-testid="chatbox-attachment-input"
             style={{ display: 'none' }}
             onChange={(event) => {
-              void handleAttachmentSelection(event);
+              void handleAttachmentSelection(event).catch((error) => {
+                console.warn('[ChatBox] Failed to parse selected attachments:', error);
+              });
             }}
           />
           <ChatBoxImagePreviewRow
@@ -522,7 +454,11 @@ function ChatBox() {
                 ref={inputRef}
                 value={inputValue}
                 onChange={handleInputChange}
-                onPaste={handleComposerPaste}
+                onPaste={(event) => {
+                  void handleComposerPaste(event).catch((error) => {
+                    console.warn('[ChatBox] Failed to parse pasted image:', error);
+                  });
+                }}
                 onKeyDown={handleComposerKeyDown}
                 placeholder="Ask me anything..."
                 className="chatbox-input"
@@ -558,7 +494,7 @@ function ChatBox() {
               title="Send message"
               disabled={(
                 loopInteractionLocked
-                || (!inputValue.trim() && clipboardImages.length === 0 && selectedReadableFiles.length === 0)
+                || (!inputValue.trim() && !hasAttachments)
               )}
             >
               <SendIcon />
