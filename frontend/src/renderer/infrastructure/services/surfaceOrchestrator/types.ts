@@ -13,7 +13,12 @@ export const SURFACE_PHASE = Object.freeze({
 export type SurfacePhase = (typeof SURFACE_PHASE)[keyof typeof SURFACE_PHASE];
 
 export type SurfaceTransitionSource = 'tool-runner' | 'system-capture';
-export type HiddenSurface = 'none' | 'chatbox' | 'main-window';
+export type HiddenSurface =
+  | 'none'
+  | 'chatbox'
+  | 'chatbox-response'
+  | 'response'
+  | 'main-window';
 
 export type ToolSurfacePreparation = {
   canExecute: boolean;

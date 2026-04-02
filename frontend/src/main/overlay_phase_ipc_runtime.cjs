@@ -31,7 +31,9 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     resizeChatWindowForVisualAnchorHeight,
     getResponseWindowBounds,
     setResponseOverlayVisibilityState,
+    broadcastResponseOverlayVisibility = () => {},
     showResponseWindowWhenChatVisible,
+    showResponseWindowInactive,
     setActiveDisplayAffinity = () => {},
     showChatWindow,
     hideChatWindow,
@@ -137,6 +139,9 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
       getWindows,
       hideChatWindow,
       hideMainWindow,
+      responseWindow: getWindows().responseWindow,
+      contextLabelWindow: getWindows().contextLabelWindow,
+      broadcastResponseOverlayVisibility,
     });
   });
 
@@ -144,6 +149,11 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     return handleRestoreSurfaceAfterScreenshot(options, {
       showChatWindow,
       showMainWindow: (showOptions = {}) => deps.showMainWindow?.(showOptions),
+      showResponseWindowInactive,
+      ensureResponseOverlayFallbackBounds: deps.ensureResponseOverlayFallbackBounds,
+      setResponseOverlayVisibilityState,
+      syncContextLabelWindowVisibility,
+      responseWindow: getWindows().responseWindow,
     });
   });
 }
