@@ -38,6 +38,7 @@ Single entrypoint for future work. Use this page first.
 - `windieos_dashboard_tool_trace_toggle_plan_2026-03-02.md`
 - `windieos_refactor_plan_2026-02-23.md`
 - `windieos_conversation_history_compaction_plan_2026-02-24.md`
+- `windieos_frontend_chat_surface_refactor_plan_2026-04-01.md`
 
 ## Scope Rules
 
