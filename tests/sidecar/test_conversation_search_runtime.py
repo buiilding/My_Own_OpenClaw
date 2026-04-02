@@ -160,6 +160,7 @@ async def test_fetch_conversation_summaries_assigns_pending_when_title_missing(m
             "title": "alpha from db",
             "title_source": "heuristic",
             "title_locked": 0,
+            "is_pinned": 1,
             "model_id": "gpt-5-mini",
             "model_provider": "openai",
         },
@@ -171,6 +172,7 @@ async def test_fetch_conversation_summaries_assigns_pending_when_title_missing(m
             "title": None,
             "title_source": None,
             "title_locked": 0,
+            "is_pinned": 0,
             "first_user_content": "Draft release checklist for beta launch",
             "model_id": "gpt-5-mini",
             "model_provider": "openai",
@@ -202,6 +204,7 @@ async def test_fetch_conversation_summaries_assigns_pending_when_title_missing(m
     assert set(summaries.keys()) == {"conv_alpha", "thread-beta"}
     assert summaries["conv_alpha"]["title"] == "Alpha title"
     assert summaries["conv_alpha"]["title_source"] == "model"
+    assert summaries["conv_alpha"]["is_pinned"] is True
     assert summaries["conv_alpha"]["is_resumable"] is True
     assert summaries["thread-beta"]["title"] == "Draft release checklist for beta launch"
     assert summaries["thread-beta"]["title_source"] == "heuristic"

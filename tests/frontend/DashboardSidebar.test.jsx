@@ -114,11 +114,11 @@ describe('DashboardSidebar collapsed header controls', () => {
     expect(onOpenSettings).toHaveBeenCalledWith('general');
   });
 
-  test('shows empty-state copy when chat list is empty and transport is connected', () => {
+  test('shows recent-chat error copy when chat list is empty and transport is connected', () => {
     render(<DashboardSidebar {...buildProps({ sidebarOpen: true, recentConversationsError: 'Local backend not ready' })} />);
 
-    expect(screen.getByText('No chats yet.')).toBeInTheDocument();
-    expect(screen.queryByText('Unable to load chats.')).not.toBeInTheDocument();
+    expect(screen.getByText('Local backend not ready')).toBeInTheDocument();
+    expect(screen.queryByText('No chats yet.')).not.toBeInTheDocument();
   });
 
   test('shows load error copy when chat list is empty and transport is disconnected', () => {

@@ -74,10 +74,11 @@ async def _insert_conversation_title(db_path: Path, **payload: Any) -> None:
                 title,
                 source,
                 is_locked,
+                is_pinned,
                 created_at,
                 updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
                 payload["user_id"],
@@ -85,6 +86,7 @@ async def _insert_conversation_title(db_path: Path, **payload: Any) -> None:
                 payload["title"],
                 payload.get("source", "heuristic"),
                 payload.get("is_locked", 0),
+                payload.get("is_pinned", 0),
                 payload.get("created_at", "2026-02-01T00:00:00+00:00"),
                 payload.get("updated_at", "2026-02-01T00:00:00+00:00"),
             ),
@@ -106,6 +108,7 @@ async def test_fetch_transcript_conversation_rows_uses_transcript_scope_and_orde
     assert "WHERE user_id = ? AND record_kind = 'transcript'" in cursor.last_query
     assert "ORDER BY last_timestamp DESC" in cursor.last_query
     assert cursor.last_params == (
+        "user-1",
         "user-1",
         "user-1",
         "user-1",
@@ -139,6 +142,7 @@ async def test_build_conversation_list_results_filters_blank_titles_and_defaults
             "title": "db title",
             "title_source": "heuristic",
             "title_locked": 0,
+            "is_pinned": 1,
             "model_id": "gpt-5-mini",
             "model_provider": "openai",
         },
@@ -151,6 +155,7 @@ async def test_build_conversation_list_results_filters_blank_titles_and_defaults
             "title": None,
             "title_source": None,
             "title_locked": 0,
+            "is_pinned": 0,
             "model_id": "gpt-5-mini",
             "model_provider": "openai",
         },
@@ -166,6 +171,7 @@ async def test_build_conversation_list_results_filters_blank_titles_and_defaults
     assert results[0]["conversation_id"] == "conv_visible"
     assert results[0]["title"] == "Visible title"
     assert results[0]["title_source"] == "model"
+    assert results[0]["is_pinned"] is True
     assert results[0]["is_resumable"] is True
 
 
@@ -205,6 +211,7 @@ async def test_list_transcript_conversations_returns_newest_first_with_titles(tm
         user_id="user-1",
         conversation_id="conv_new",
         title="New title",
+        is_pinned=1,
     )
 
     conversations = await runtime.list_transcript_conversations(
@@ -215,5 +222,6 @@ async def test_list_transcript_conversations_returns_newest_first_with_titles(tm
 
     assert [row["conversation_id"] for row in conversations] == ["conv_new", "conv_old"]
     assert conversations[0]["title"] == "New title"
+    assert conversations[0]["is_pinned"] is True
     assert conversations[0]["model_id"] == "gpt-5"
     assert conversations[0]["model_provider"] == "openai"

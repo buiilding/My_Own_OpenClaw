@@ -307,6 +307,15 @@ function ChatInterface({ focusComposerToken = 0, onOpenModels = undefined }) {
     });
   }, [speechModeEnabled, updateConfig]);
 
+  const handleToggleVoiceMode = useCallback(() => {
+    if (typeof updateConfig !== 'function') {
+      return;
+    }
+    updateConfig({
+      voice_mode_enabled: !voiceModeEnabled,
+    });
+  }, [updateConfig, voiceModeEnabled]);
+
   const handleChangeWorkspace = useCallback(async () => {
     try {
       const result = await requestActiveWorkspaceSelection();
@@ -476,6 +485,7 @@ function ChatInterface({ focusComposerToken = 0, onOpenModels = undefined }) {
             onSendMessage={sendMessage}
             isSending={composerBusy}
             voiceModeEnabled={voiceModeEnabled}
+            onToggleVoiceMode={handleToggleVoiceMode}
             onStopResponse={handleStopQuery}
             isCentered
             focusRequestToken={focusComposerToken}
@@ -502,6 +512,7 @@ function ChatInterface({ focusComposerToken = 0, onOpenModels = undefined }) {
             onSendMessage={sendMessage}
             isSending={composerBusy}
             voiceModeEnabled={voiceModeEnabled}
+            onToggleVoiceMode={handleToggleVoiceMode}
             onStopResponse={handleStopQuery}
             focusRequestToken={focusComposerToken}
           />

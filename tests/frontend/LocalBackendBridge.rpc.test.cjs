@@ -580,7 +580,7 @@ describe('local_backend_bridge RPC handlers', () => {
     );
   });
 
-  test('passes packaged hosted backend default URL to Python sidecar env', () => {
+  test('passes packaged hosted backend default URL and fallback to Python sidecar env', () => {
     const { spawn } = initBridge({ isPackaged: true });
     markReady();
 
@@ -590,10 +590,10 @@ describe('local_backend_bridge RPC handlers', () => {
       expect.objectContaining({
         env: expect.objectContaining({
           WINDIE_BACKEND_HTTP_URL: 'https://api.windieos.com',
+          WINDIE_BACKEND_FALLBACK_HTTP_URL: 'http://127.0.0.1:8765',
         }),
       }),
     );
-    expect(spawn.mock.calls[0][2].env.WINDIE_BACKEND_FALLBACK_HTTP_URL).toBeUndefined();
   });
 
   test('adds --no-deprecation to Node options for local backend subprocesses', () => {
@@ -795,6 +795,27 @@ describe('local_backend_bridge RPC handlers', () => {
     });
 
     await expectResolvedSuccess(stdoutHandler, promise, { conversations: [] });
+  });
+
+  test('update-conversation-metadata handler maps payload keys to backend params', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['update-conversation-metadata'](null, {
+      userId: 'u-1',
+      conversationId: 'conv-123',
+      title: 'Pinned title',
+      pinned: true,
+    });
+
+    expectLastRequestWith('update_conversation_metadata', {
+      user_id: 'u-1',
+      conversation_id: 'conv-123',
+      title: 'Pinned title',
+      pinned: true,
+    });
+
+    await expectResolvedSuccess(stdoutHandler, promise, { conversation: { conversation_id: 'conv-123' } });
   });
 
   test('list-conversations handler safely handles non-object payloads', async () => {

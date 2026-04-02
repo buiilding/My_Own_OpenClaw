@@ -22,6 +22,7 @@ type SharedChannelRegistry = {
     SEARCH_MEMORY: 'search-memory';
     SEARCH_CONVERSATIONS: 'search-conversations';
     LIST_CONVERSATIONS: 'list-conversations';
+    UPDATE_CONVERSATION_METADATA: 'update-conversation-metadata';
     LIST_EPISODIC_MEMORIES: 'list-episodic-memories';
     GET_CONVERSATION: 'get-conversation';
     LIST_SEMANTIC_MEMORIES: 'list-semantic-memories';

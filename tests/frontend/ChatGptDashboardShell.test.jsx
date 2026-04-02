@@ -83,6 +83,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     LIST_CONVERSATIONS: 'list-conversations',
+    UPDATE_CONVERSATION_METADATA: 'update-conversation-metadata',
     GET_CONVERSATION: 'get-conversation',
     SEARCH_CONVERSATIONS: 'search-conversations',
     DELETE_CONVERSATION: 'delete-conversation',
@@ -463,6 +464,111 @@ describe('ChatGptDashboardShell', () => {
     } finally {
       confirmSpy.mockRestore();
     }
+  });
+
+  test('rename action from conversation kebab menu persists metadata update', async () => {
+    const nowIso = new Date().toISOString();
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-conversations') {
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-rename-1',
+                record_kind: 'transcript',
+                last_timestamp: nowIso,
+                title: 'Old title',
+                is_pinned: false,
+              },
+            ],
+          },
+        };
+      }
+      if (channel === 'update-conversation-metadata') {
+        return {
+          success: true,
+          data: {
+            conversation: {
+              conversation_id: 'conv-rename-1',
+              title: 'New title',
+              is_pinned: false,
+            },
+          },
+        };
+      }
+      return { success: true, data: {} };
+    });
+
+    const promptSpy = jest.spyOn(window, 'prompt').mockReturnValue('New title');
+    try {
+      await renderDashboardShell();
+
+      fireEvent.click(await screen.findByRole('button', { name: /Conversation actions for Old title/i }));
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Rename' }));
+      await flushMicrotasks();
+
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'update-conversation-metadata',
+        expect.objectContaining({
+          userId: 'default_user',
+          conversationId: 'conv-rename-1',
+          title: 'New title',
+        }),
+      );
+    } finally {
+      promptSpy.mockRestore();
+    }
+  });
+
+  test('pin action from conversation kebab menu persists metadata update', async () => {
+    const nowIso = new Date().toISOString();
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-conversations') {
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-pin-1',
+                record_kind: 'transcript',
+                last_timestamp: nowIso,
+                title: 'Pin me',
+                is_pinned: false,
+              },
+            ],
+          },
+        };
+      }
+      if (channel === 'update-conversation-metadata') {
+        return {
+          success: true,
+          data: {
+            conversation: {
+              conversation_id: 'conv-pin-1',
+              title: 'Pin me',
+              is_pinned: true,
+            },
+          },
+        };
+      }
+      return { success: true, data: {} };
+    });
+
+    await renderDashboardShell();
+
+    fireEvent.click(await screen.findByRole('button', { name: /Conversation actions for Pin me/i }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Pin chat' }));
+    await flushMicrotasks();
+
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'update-conversation-metadata',
+      expect.objectContaining({
+        userId: 'default_user',
+        conversationId: 'conv-pin-1',
+        pinned: true,
+      }),
+    );
   });
 
   test('reloads recent chats when transcript session user id becomes available', async () => {

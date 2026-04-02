@@ -279,6 +279,39 @@ class LocalBackendMemoryHandlersMixin:
             }
 
     @requires_memory_store
+    async def _handle_update_conversation_metadata(
+        self,
+        conversation_id: Optional[str] = None,
+        user_id: str = "default_user",
+        title: Optional[str] = None,
+        pinned: Optional[bool] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """Persist conversation metadata such as title and pin state."""
+        try:
+            if not conversation_id or not str(conversation_id).strip():
+                raise ValueError("conversation_id is required")
+
+            conversation = await self.memory_store.update_conversation_metadata(
+                user_id=user_id,
+                conversation_id=str(conversation_id).strip(),
+                title=title,
+                pinned=pinned,
+            )
+            return {
+                "success": True,
+                "data": {
+                    "conversation": conversation,
+                },
+            }
+        except Exception as e:
+            logger.error(f"Conversation metadata update failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+    @requires_memory_store
     async def _handle_list_episodic_memories(
         self,
         user_id: str = "default_user",

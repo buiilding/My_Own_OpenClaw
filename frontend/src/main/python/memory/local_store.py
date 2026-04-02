@@ -46,6 +46,9 @@ from memory.conversation_semanticization_runtime import (
     semantic_summary_exists as check_semantic_summary_exists,
 )
 from memory.conversation_search_runtime import search_transcript_conversations
+from memory.conversation_title_helpers import fetch_pending_title_input
+from memory.conversation_title_helpers import lookup_conversation_metadata_state
+from memory.conversation_titles import derive_pending_conversation_title
 from memory.conversation_title_runtime import cancel_title_generation_tasks
 from memory.conversation_title_runtime import ensure_title_generation_runtime_state
 from memory.conversation_title_runtime import generate_conversation_title_and_persist
@@ -1461,6 +1464,115 @@ class LocalMemoryStore:
             user_id=user_id,
             limit=limit,
         )
+
+    async def update_conversation_metadata(
+        self,
+        *,
+        user_id: str,
+        conversation_id: str,
+        title: Optional[str] = None,
+        pinned: Optional[bool] = None,
+    ) -> Dict[str, Any]:
+        normalized_conversation_id = (
+            conversation_id.strip()
+            if isinstance(conversation_id, str) and conversation_id.strip()
+            else ""
+        )
+        if not normalized_conversation_id:
+            raise ValueError("conversation_id is required")
+
+        normalized_title = None
+        if title is not None:
+            normalized_title = title.strip()
+            if not normalized_title:
+                raise ValueError("title cannot be empty")
+
+        normalized_pinned = None if pinned is None else bool(pinned)
+        if normalized_title is None and normalized_pinned is None:
+            raise ValueError("At least one metadata field must be provided")
+
+        if aiosqlite is None:
+            raise ImportError("aiosqlite is not installed. Install with: pip install aiosqlite")
+
+        now_iso = datetime.now(timezone.utc).isoformat()
+
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            cursor = await conn.cursor()
+            current_title, current_source, current_locked, current_pinned = (
+                await lookup_conversation_metadata_state(
+                    cursor=cursor,
+                    user_id=user_id,
+                    conversation_id=normalized_conversation_id,
+                )
+            )
+
+            title_source = current_source or "pending"
+            if normalized_title is not None:
+                resolved_title = normalized_title
+                title_source = "manual"
+                is_locked = True
+            else:
+                resolved_title = current_title
+                is_locked = current_locked
+                if not resolved_title:
+                    pending_title = derive_pending_conversation_title(
+                        await fetch_pending_title_input(
+                            cursor=cursor,
+                            user_id=user_id,
+                            conversation_id=normalized_conversation_id,
+                        )
+                    )
+                    if pending_title:
+                        resolved_title = pending_title
+                        title_source = "heuristic"
+                    else:
+                        resolved_title = "New chat"
+                        title_source = "pending"
+
+            resolved_pinned = current_pinned if normalized_pinned is None else normalized_pinned
+
+            await cursor.execute(
+                """
+                INSERT INTO conversation_titles (
+                    user_id,
+                    conversation_id,
+                    title,
+                    source,
+                    is_locked,
+                    is_pinned,
+                    created_at,
+                    updated_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(user_id, conversation_id)
+                DO UPDATE SET
+                    title = excluded.title,
+                    source = excluded.source,
+                    is_locked = excluded.is_locked,
+                    is_pinned = excluded.is_pinned,
+                    updated_at = excluded.updated_at
+            """,
+                (
+                    user_id,
+                    normalized_conversation_id,
+                    resolved_title,
+                    title_source,
+                    1 if is_locked else 0,
+                    1 if resolved_pinned else 0,
+                    now_iso,
+                    now_iso,
+                ),
+            )
+            await conn.commit()
+
+        return {
+            "conversation_id": normalized_conversation_id,
+            "title": resolved_title,
+            "title_source": title_source,
+            "is_pinned": bool(resolved_pinned),
+            "is_locked": bool(is_locked),
+        }
 
     async def search_conversations(
         self,

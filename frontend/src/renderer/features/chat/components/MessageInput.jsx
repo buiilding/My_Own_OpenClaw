@@ -24,6 +24,7 @@ function MessageInput({
   onSendMessage,
   isSending,
   voiceModeEnabled = false,
+  onToggleVoiceMode = undefined,
   onStopResponse = undefined,
   isCentered = false,
   focusRequestToken = 0,
@@ -228,7 +229,15 @@ function MessageInput({
             />
 
             <div className="message-input-right-actions">
-              <button type="button" className="message-icon-btn" aria-label="Voice input" data-testid="voice-btn" disabled={isSending}>
+              <button
+                type="button"
+                className={`message-icon-btn${voiceModeEnabled ? ' is-enabled' : ''}`}
+                aria-label={voiceModeEnabled ? 'Disable voice input' : 'Enable voice input'}
+                aria-pressed={voiceModeEnabled}
+                data-testid="voice-btn"
+                disabled={isSending || typeof onToggleVoiceMode !== 'function'}
+                onClick={() => onToggleVoiceMode?.()}
+              >
                 <Mic size={18} />
               </button>
               {isSending ? (
@@ -272,6 +281,7 @@ MessageInput.propTypes = {
   onSendMessage: PropTypes.func.isRequired,
   isSending: PropTypes.bool,
   voiceModeEnabled: PropTypes.bool,
+  onToggleVoiceMode: PropTypes.func,
   onStopResponse: PropTypes.func,
   isCentered: PropTypes.bool,
   focusRequestToken: PropTypes.number,
