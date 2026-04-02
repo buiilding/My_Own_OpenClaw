@@ -8,6 +8,7 @@ All notable changes to WindieOS will be documented in this file.
 - fix(backend-ocr-startup): update RapidOCR language params to use enum values required by current RapidOCR builds, add OCR readiness-aware startup logging, and cover the new contract with focused backend tests/docs.
 
 ### Changed
+- docs(agents): add repo-level critical-thinking guidance, preserve the Linux minimal chat pill screenshot-flicker fix notes, and clarify backend-vs-frontend tool-schema ownership/parity expectations in `AGENTS.md`.
 - feat(frontend-chat-image-copy): add a screenshot right-click context menu in chat with a `Copy image` action, wire it through a new Electron clipboard IPC path, and cover the renderer/preload/main contracts with focused frontend tests.
 - tweak(frontend-chat-image-copy-menu): anchor the screenshot copy menu against the image itself instead of the raw click point, and enlarge the pill padding/width so `Copy image` fits cleanly.
 - fix(frontend-chat-image-copy-menu-position): replace the overcomplicated viewport-positioned screenshot menu with a simple menu rendered directly inside the clicked image container at the top-right corner.
