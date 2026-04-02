@@ -1,4 +1,10 @@
-import { Brain, ChevronDown, Volume2, Workflow } from 'lucide-react';
+import {
+  Brain,
+  ChevronDown,
+  Cpu,
+  Volume2,
+  Workflow,
+} from 'lucide-react';
 import MainWindowControls from '../../../components/MainWindowControls';
 import { formatProviderLabel } from '../utils/chatModelOptions';
 
@@ -11,7 +17,7 @@ function renderModelLabel(label, supportsThinking) {
   );
 }
 
-function ChatInterfaceHeaderControls({
+export default function ChatInterfaceHeaderControls({
   vmModeEnabled,
   providerMenuRef,
   modelMenuRef,
@@ -31,8 +37,10 @@ function ChatInterfaceHeaderControls({
   selectedReasoningModeLabel,
   reasoningModeOptions,
   speechModeEnabled,
+  modelSettingsSummary,
   activeWorkspaceName,
   activeWorkspacePath,
+  handleOpenModels,
   handleChangeWorkspace,
   devUiEnabled,
   handleProviderSelect,
@@ -47,6 +55,7 @@ function ChatInterfaceHeaderControls({
   const headerSubtitle = activeWorkspaceName
     ? `Working in ${activeWorkspaceName}`
     : 'Compose here, then hand off desktop execution when needed.';
+  const showModelSettingsShortcut = typeof handleOpenModels === 'function';
 
   return (
     <header className="chat-header">
@@ -59,122 +68,128 @@ function ChatInterfaceHeaderControls({
           </div>
           <p className="chat-header-subtitle">{headerSubtitle}</p>
         </div>
-        <div className="chat-model-row">
-          <div className="chat-provider-dropdown" ref={providerMenuRef}>
-            <button
-              type="button"
-              className="chat-provider-selector"
-              aria-label="Provider selector"
-              aria-expanded={providerMenuOpen}
-              onClick={() => {
-                setProviderMenuOpen((current) => !current);
-                setModelMenuOpen(false);
-                setReasoningModeMenuOpen(false);
-              }}
-            >
-              <span>{providerLabel}</span>
-              <ChevronDown size={16} />
-            </button>
-            {providerMenuOpen ? (
-              <div className="chat-provider-menu" role="menu">
-                {providerOptions.length > 0 ? (
-                  providerOptions.map((provider) => (
-                    <button
-                      key={provider}
-                      type="button"
-                      className="chat-provider-menu-item"
-                      role="menuitem"
-                      onClick={() => {
-                        handleProviderSelect(provider);
-                      }}
-                    >
-                      <span>{formatProviderLabel(provider)}</span>
-                    </button>
-                  ))
-                ) : (
-                  <div className="chat-provider-menu-item" aria-disabled="true">
-                    <span>No providers available</span>
-                  </div>
-                )}
-              </div>
-            ) : null}
-          </div>
-          <div className="chat-model-dropdown" ref={modelMenuRef}>
-            <button
-              type="button"
-              className="chat-model-selector"
-              aria-label="Model selector"
-              aria-expanded={modelMenuOpen}
-              onClick={() => {
-                setModelMenuOpen((current) => !current);
-                setProviderMenuOpen(false);
-                setReasoningModeMenuOpen(false);
-              }}
-            >
-              {renderModelLabel(modelLabelBase, selectedModelOption?.supportsThinking)}
-              <ChevronDown size={16} />
-            </button>
-            {modelMenuOpen ? (
-              <div className="chat-model-menu" role="menu">
-                {modelOptions.length > 0 ? (
-                  modelOptions.map((option) => (
-                    <button
-                      key={`${option.provider || 'unknown'}:${option.id}`}
-                      type="button"
-                      className="chat-model-menu-item"
-                      role="menuitem"
-                      onClick={() => {
-                        handleModelSelect(option);
-                      }}
-                    >
-                      {renderModelLabel(option.label || option.id, option.supportsThinking)}
-                    </button>
-                  ))
-                ) : (
-                  <div className="chat-model-menu-item" aria-disabled="true">
-                    <span>No models available</span>
-                  </div>
-                )}
-              </div>
-            ) : null}
-          </div>
-          {showReasoningModeSelector ? (
-            <div className="chat-reasoning-mode-dropdown" ref={reasoningModeMenuRef}>
+
+        {showModelSettingsShortcut ? null : (
+          <div className="chat-model-row">
+            <div className="chat-provider-dropdown" ref={providerMenuRef}>
               <button
                 type="button"
-                className="chat-reasoning-mode-selector"
-                aria-label="Reasoning mode selector"
-                aria-expanded={reasoningModeMenuOpen}
+                className="chat-provider-selector"
+                aria-label="Provider selector"
+                aria-expanded={providerMenuOpen}
                 onClick={() => {
-                  setReasoningModeMenuOpen((current) => !current);
-                  setProviderMenuOpen(false);
+                  setProviderMenuOpen((current) => !current);
                   setModelMenuOpen(false);
+                  setReasoningModeMenuOpen(false);
                 }}
               >
-                <span>{selectedReasoningModeLabel || 'Reasoning'}</span>
+                <span>{providerLabel}</span>
                 <ChevronDown size={16} />
               </button>
-              {reasoningModeMenuOpen ? (
-                <div className="chat-reasoning-mode-menu" role="menu">
-                  {reasoningModeOptions.map((option) => (
-                    <button
-                      key={`${option.mode}:${option.modelId}`}
-                      type="button"
-                      className="chat-reasoning-mode-menu-item"
-                      role="menuitem"
-                      onClick={() => {
-                        handleReasoningModeSelect(option.mode);
-                      }}
-                    >
-                      <span>{option.label}</span>
-                    </button>
-                  ))}
+              {providerMenuOpen ? (
+                <div className="chat-provider-menu" role="menu">
+                  {providerOptions.length > 0 ? (
+                    providerOptions.map((provider) => (
+                      <button
+                        key={provider}
+                        type="button"
+                        className="chat-provider-menu-item"
+                        role="menuitem"
+                        onClick={() => {
+                          handleProviderSelect(provider);
+                        }}
+                      >
+                        <span>{formatProviderLabel(provider)}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="chat-provider-menu-item" aria-disabled="true">
+                      <span>No providers available</span>
+                    </div>
+                  )}
                 </div>
               ) : null}
             </div>
-          ) : null}
-        </div>
+
+            <div className="chat-model-dropdown" ref={modelMenuRef}>
+              <button
+                type="button"
+                className="chat-model-selector"
+                aria-label="Model selector"
+                aria-expanded={modelMenuOpen}
+                onClick={() => {
+                  setModelMenuOpen((current) => !current);
+                  setProviderMenuOpen(false);
+                  setReasoningModeMenuOpen(false);
+                }}
+              >
+                {renderModelLabel(modelLabelBase, selectedModelOption?.supportsThinking)}
+                <ChevronDown size={16} />
+              </button>
+              {modelMenuOpen ? (
+                <div className="chat-model-menu" role="menu">
+                  {modelOptions.length > 0 ? (
+                    modelOptions.map((option) => (
+                      <button
+                        key={`${option.provider || 'unknown'}:${option.id}`}
+                        type="button"
+                        className="chat-model-menu-item"
+                        role="menuitem"
+                        onClick={() => {
+                          handleModelSelect(option);
+                        }}
+                      >
+                        {renderModelLabel(option.label || option.id, option.supportsThinking)}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="chat-model-menu-item" aria-disabled="true">
+                      <span>No models available</span>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </div>
+
+            {showReasoningModeSelector ? (
+              <div className="chat-reasoning-mode-dropdown" ref={reasoningModeMenuRef}>
+                <button
+                  type="button"
+                  className="chat-reasoning-mode-selector"
+                  aria-label="Reasoning mode selector"
+                  aria-expanded={reasoningModeMenuOpen}
+                  onClick={() => {
+                    setReasoningModeMenuOpen((current) => !current);
+                    setProviderMenuOpen(false);
+                    setModelMenuOpen(false);
+                  }}
+                >
+                  <span>{selectedReasoningModeLabel || 'Reasoning'}</span>
+                  <ChevronDown size={16} />
+                </button>
+                {reasoningModeMenuOpen ? (
+                  <div className="chat-reasoning-mode-menu" role="menu">
+                    {reasoningModeOptions.map((option) => (
+                      <button
+                        key={`${option.mode}:${option.modelId}`}
+                        type="button"
+                        className="chat-reasoning-mode-menu-item"
+                        role="menuitem"
+                        onClick={() => {
+                          handleReasoningModeSelect(option.mode);
+                        }}
+                      >
+                        <span>{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        )}
       </div>
+
       <div className="chat-meta">
         {!vmModeEnabled ? (
           <MainWindowControls
@@ -183,7 +198,26 @@ function ChatInterfaceHeaderControls({
             onClose={handleWindowClose}
           />
         ) : null}
+
         <div className="chat-utility-controls">
+          {showModelSettingsShortcut ? (
+            <button
+              type="button"
+              className="chat-model-summary-button"
+              aria-label="Open model settings"
+              title={modelSettingsSummary}
+              onClick={handleOpenModels}
+            >
+              <span className="chat-model-summary-icon" aria-hidden="true">
+                <Cpu size={16} />
+              </span>
+              <span className="chat-model-summary-copy">
+                <span className="chat-model-summary-label">Model</span>
+                <span className="chat-model-summary-value">{modelSettingsSummary}</span>
+              </span>
+            </button>
+          ) : null}
+
           <button
             type="button"
             className={`chat-active-workspace-chip chat-active-workspace-button${
@@ -200,6 +234,7 @@ function ChatInterfaceHeaderControls({
               {activeWorkspaceName || 'Set workspace'}
             </span>
           </button>
+
           <button
             type="button"
             className={`chat-top-icon-btn${speechModeEnabled ? ' is-enabled' : ''}`}
@@ -209,6 +244,7 @@ function ChatInterfaceHeaderControls({
           >
             <Volume2 size={18} />
           </button>
+
           {devUiEnabled ? (
             <button
               type="button"
@@ -225,5 +261,3 @@ function ChatInterfaceHeaderControls({
     </header>
   );
 }
-
-export default ChatInterfaceHeaderControls;
