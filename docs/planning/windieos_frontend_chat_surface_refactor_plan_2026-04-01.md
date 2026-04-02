@@ -19,6 +19,15 @@ Refactor the WindieOS frontend so the product feels like one clean, standard, ch
 
 The end state should reduce surface-specific quirks, remove avoidable platform divergence, and make dashboard, pill, and overlay behavior predictable during normal chat, screenshot capture, and computer-use loops.
 
+This refactor is feature-preserving. The goal is to reach the target UX by:
+
+- adding missing capabilities
+- fixing bugs and behavioral mismatches
+- refactoring and unifying existing implementations
+- improving existing features where they are awkward, inconsistent, or duplicated
+
+It is not a feature-removal initiative. Existing user-facing features should remain available unless a separate explicit product decision says otherwise.
+
 ## Confirmed Product Direction
 
 The intended UX is:
@@ -32,6 +41,11 @@ The intended UX is:
    - before screenshot-driven computer-use work, hide the dashboard
    - hand off to the minimal chat pill state
    - keep the agent loop projected from that pill/overlay state until completion
+
+5. Preserve existing features while doing the refactor:
+   - do not remove current frontend capabilities just to simplify implementation
+   - if an existing feature fits awkwardly in the new surface model, rework it instead of deleting it
+   - prefer shared implementation and clearer UX over capability reduction
 
 ## Core Mental Model
 
@@ -306,6 +320,13 @@ The current architecture already has pieces of this split, but the behavior stil
 - the pill still behaves like a special overlay widget rather than the desktop-hosted chat composer
 - dashboard simplification toward a standard LLM app layout is not complete
 
+The implementation strategy should therefore be:
+
+- preserve current feature coverage
+- move duplicate or divergent behavior behind shared contracts
+- improve confusing UX by restructuring or reskinning features instead of removing them
+- treat missing parity as a bug/refactor problem, not as justification to shrink the product surface
+
 ## Acceptance Criteria
 
 The refactor is complete when all of the following are true:
@@ -322,6 +343,7 @@ The refactor is complete when all of the following are true:
 10. During active loop phases, pill and response overlay are click-through/non-focusable.
 11. After loop completion/error/cancel/recovery, pill and response overlay become interactive again.
 12. Tool activity is treated as response activity for surface transitions.
+13. Existing frontend features remain available after the refactor, even when their implementation or presentation is reorganized.
 
 ## Relationship to Existing Plans
 
