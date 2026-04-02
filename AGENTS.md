@@ -163,6 +163,29 @@ Avoid “AI slop” UI. Be opinionated + distinctive.
 ### committer
 - Commit helper (PATH). Stages only listed paths; required here. If `committer` is unavailable on PATH, use `./scripts/committer` directly (executable).
 
+## Critical Thinking
+- Fix root cause (not band-aid).
+- Unsure: read more code; if still stuck, ask w/ short options.
+- Conflicts: call out; pick safer path.
+- Unrecognized changes: assume other agent; keep going; focus your changes. If it causes issues, stop + ask user.
+- Leave breadcrumb notes in thread.
+- Prefer simple, intuitive implementations. 
+
+## WindieOS Minimal Chat Pill Note
+- Linux double-flicker after screenshot: root cause was overlay awaiting state not latched across cross-window phase timing (plus pre-hide show flash path).
+- Stable fix contract:
+- collapse path hide-only (`hide-chatbox`; no pre-hide `show-chatbox`).
+- await indicator latch from shared `response-overlay-phase` (`tool-call|tool-output|awaiting-first-chunk`) and keep through transient `idle`.
+- clear latch on `streaming|complete|error` or when response content is visible.
+- typing indicator should be mounted in stable awaiting shell; no await<->response animation in minimal pill loop.
+
+## WindieOS tool schema note
+- Backend is in charge of model-facing tool schema
+- Frontend has a tool schema but its for tool executions, and the tool schema is simpler since the sidecar is a dumb executor (no ocr, no vision, no web_search, just click at a coordinate, some tools or functions of a tool are executed in the backend and brought its output for frontend to execute). Ex:
+- click_ocr ("file") backend sends "file" text coordinate to frontend to click
+- frontend: click : (100,200)
+- the best way to ensure parity is through parity tests, frontend is not supposed to use code from backend.
+
 Do:
 - Typography: pick a real font; avoid Inter/Roboto/Arial/system defaults.
 - Theme: commit to a palette; use CSS vars; bold accents > timid gradients.
