@@ -256,8 +256,10 @@ function DashboardSidebar({
                 </>
               ) : isLoadingRecentConversations ? (
                 <div className="cg-chat-list-state">Loading chats...</div>
-              ) : recentConversationsError && !isTransportConnected ? (
-                <div className="cg-chat-list-state">Unable to load chats.</div>
+              ) : recentConversationsError ? (
+                <div className="cg-chat-list-state">
+                  {isTransportConnected ? recentConversationsError : 'Unable to load chats.'}
+                </div>
               ) : (
                 <div className="cg-chat-list-state">No chats yet.</div>
               )}

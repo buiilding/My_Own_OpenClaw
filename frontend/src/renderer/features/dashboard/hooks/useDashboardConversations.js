@@ -16,10 +16,27 @@ import {
 import { buildConversationGroups } from '../utils/conversationGroups';
 import {
   normalizeRecentConversations,
-  prunePinnedConversationRefs,
   resolveRecentConversationsRetryDelayMs,
   shouldRetryRecentConversationsLoad,
 } from '../utils/dashboardConversationLoad';
+
+function normalizeConversationPinned(value) {
+  return value === true || value === 1;
+}
+
+function mergeUpdatedConversation(currentList, updatedConversation) {
+  if (!updatedConversation?.conversation_id) {
+    return currentList;
+  }
+  return currentList.map((item) => (
+    item?.conversation_id === updatedConversation.conversation_id
+      ? {
+        ...item,
+        ...updatedConversation,
+      }
+      : item
+  ));
+}
 
 function useDashboardConversations({
   resolvedUserId,
@@ -37,7 +54,6 @@ function useDashboardConversations({
   const [isSearchingConversations, setIsSearchingConversations] = useState(false);
   const [searchConversationsError, setSearchConversationsError] = useState('');
   const [recentConversations, setRecentConversations] = useState([]);
-  const [pinnedConversationRefs, setPinnedConversationRefs] = useState([]);
   const [isLoadingRecentConversations, setIsLoadingRecentConversations] = useState(false);
   const [recentConversationsError, setRecentConversationsError] = useState('');
   const pendingTitlePollTimersRef = useRef(new Map());
@@ -77,7 +93,6 @@ function useDashboardConversations({
 
         recentConversationsRetryAttemptRef.current = 0;
         setRecentConversations(list);
-        setPinnedConversationRefs((current) => prunePinnedConversationRefs(current, list));
 
         return list;
       } catch (error) {
@@ -178,7 +193,7 @@ function useDashboardConversations({
     setChatThinkingStatus,
   ]);
 
-  const handleRenameConversation = useCallback((conversation) => {
+  const handleRenameConversation = useCallback(async (conversation) => {
     const conversationRef = conversation?.conversation_id;
     if (!conversationRef) {
       return;
@@ -194,30 +209,49 @@ function useDashboardConversations({
     if (!nextTitle || nextTitle === currentTitle) {
       return;
     }
-    setRecentConversations((current) => current.map((item) => (
-      item?.conversation_id === conversationRef
-        ? { ...item, title: nextTitle }
-        : item
-    )));
-    setSearchedConversations((current) => current.map((item) => (
-      item?.conversation_id === conversationRef
-        ? { ...item, title: nextTitle }
-        : item
-    )));
-  }, []);
+    setRecentConversationsError('');
+    try {
+      const result = await IpcBridge.invoke(INVOKE_CHANNELS.UPDATE_CONVERSATION_METADATA, {
+        userId: resolvedUserId,
+        conversationId: conversationRef,
+        title: nextTitle,
+      });
+      if (!result || result.success === false) {
+        throw new Error(result?.error || 'Failed to rename chat');
+      }
+      const updatedConversation = result?.data?.conversation;
+      setRecentConversations((current) => mergeUpdatedConversation(current, updatedConversation));
+      setSearchedConversations((current) => mergeUpdatedConversation(current, updatedConversation));
+    } catch (error) {
+      setRecentConversationsError(error?.message || 'Failed to rename chat');
+    }
+  }, [resolvedUserId]);
 
-  const handleTogglePinConversation = useCallback((conversation) => {
+  const handleTogglePinConversation = useCallback(async (conversation) => {
     const conversationRef = conversation?.conversation_id;
     if (!conversationRef) {
       return;
     }
-    setPinnedConversationRefs((current) => {
-      if (current.includes(conversationRef)) {
-        return current.filter((id) => id !== conversationRef);
+    const nextPinned = !normalizeConversationPinned(
+      conversation?.isPinned ?? conversation?.is_pinned,
+    );
+    setRecentConversationsError('');
+    try {
+      const result = await IpcBridge.invoke(INVOKE_CHANNELS.UPDATE_CONVERSATION_METADATA, {
+        userId: resolvedUserId,
+        conversationId: conversationRef,
+        pinned: nextPinned,
+      });
+      if (!result || result.success === false) {
+        throw new Error(result?.error || 'Failed to update pinned chat');
       }
-      return [conversationRef, ...current];
-    });
-  }, []);
+      const updatedConversation = result?.data?.conversation;
+      setRecentConversations((current) => mergeUpdatedConversation(current, updatedConversation));
+      setSearchedConversations((current) => mergeUpdatedConversation(current, updatedConversation));
+    } catch (error) {
+      setRecentConversationsError(error?.message || 'Failed to update pinned chat');
+    }
+  }, [resolvedUserId]);
 
   const handleDeleteConversation = useCallback(async (conversation) => {
     const conversationRef = conversation?.conversation_id;
@@ -269,18 +303,16 @@ function useDashboardConversations({
 
   const recentConversationGroups = useMemo(() => (
     buildConversationGroups(recentConversations, {
-      pinnedConversationRefs,
       keyPrefix: 'conversation',
     })
-  ), [pinnedConversationRefs, recentConversations]);
+  ), [recentConversations]);
 
   const searchedConversationGroups = useMemo(() => (
     buildConversationGroups(searchedConversations, {
-      pinnedConversationRefs,
       keyPrefix: 'search-conversation',
       includeSearchMetadata: true,
     })
-  ), [pinnedConversationRefs, searchedConversations]);
+  ), [searchedConversations]);
 
   const resetSearch = useCallback(() => {
     setSearchQuery('');
@@ -416,7 +448,6 @@ function useDashboardConversations({
     isSearchingConversations,
     searchConversationsError,
     recentConversations,
-    pinnedConversationRefs,
     isLoadingRecentConversations,
     recentConversationsError,
     loadRecentConversations,

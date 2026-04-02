@@ -62,13 +62,16 @@ describe('MessageInput', () => {
     };
   }
 
-  test('submits trimmed message text', () => {
+  test('submits trimmed message text', async () => {
     const onSendMessage = jest.fn();
     render(<MessageInput onSendMessage={onSendMessage} isSending={false} />);
 
     const input = screen.getByLabelText('Type your message');
     fireEvent.change(input, { target: { value: '  hello world  ', selectionStart: 13 } });
-    fireEvent.submit(input.closest('form'));
+    await act(async () => {
+      fireEvent.submit(input.closest('form'));
+      await Promise.resolve();
+    });
 
     expect(onSendMessage).toHaveBeenCalledWith('hello world');
     expect(input.value).toBe('');
@@ -111,7 +114,7 @@ describe('MessageInput', () => {
     expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
   });
 
-  test('auto-sends latest transcription when utterance ends in voice mode', () => {
+  test('auto-sends latest transcription when utterance ends in voice mode', async () => {
     const onSendMessage = jest.fn();
     render(<MessageInput onSendMessage={onSendMessage} isSending={false} voiceModeEnabled />);
 
@@ -124,8 +127,9 @@ describe('MessageInput', () => {
     });
     expect(input.value).toBe('hello from voice');
 
-    act(() => {
+    await act(async () => {
       lastOnUtteranceEnd();
+      await Promise.resolve();
     });
 
     expect(onSendMessage).toHaveBeenCalledWith('hello from voice');
@@ -145,7 +149,10 @@ describe('MessageInput', () => {
     expect(screen.getByAltText(/Pasted image preview/i)).toBeInTheDocument();
 
     fireEvent.change(input, { target: { value: '  analyze this  ', selectionStart: 14 } });
-    fireEvent.submit(input.closest('form'));
+    await act(async () => {
+      fireEvent.submit(input.closest('form'));
+      await Promise.resolve();
+    });
 
     const [firstCallPayload] = onSendMessage.mock.calls[0] || [];
     expect(firstCallPayload?.text === 'analyze this').toBe(true);
@@ -329,5 +336,23 @@ describe('MessageInput', () => {
 
     expect(screen.queryByTestId('thinking-mode-btn')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Close thinking mode')).not.toBeInTheDocument();
+  });
+
+  test('voice button toggles voice mode when handler is provided', () => {
+    const onToggleVoiceMode = jest.fn();
+    render(
+      <MessageInput
+        onSendMessage={jest.fn()}
+        isSending={false}
+        voiceModeEnabled={false}
+        onToggleVoiceMode={onToggleVoiceMode}
+      />,
+    );
+
+    const voiceButton = screen.getByRole('button', { name: 'Enable voice input' });
+    expect(voiceButton).toBeEnabled();
+
+    fireEvent.click(voiceButton);
+    expect(onToggleVoiceMode).toHaveBeenCalledTimes(1);
   });
 });

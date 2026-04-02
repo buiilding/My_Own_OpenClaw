@@ -265,6 +265,11 @@ async def fetch_conversation_summaries(
                  LIMIT 1
                ) AS title_locked,
                (
+                 SELECT is_pinned FROM conversation_titles ct
+                 WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
+                 LIMIT 1
+               ) AS is_pinned,
+               (
                  SELECT content FROM memories m2
                  WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
                    AND m2.record_kind = 'transcript'
@@ -303,6 +308,7 @@ async def fetch_conversation_summaries(
             user_id,
             user_id,
             user_id,
+            user_id,
             *normalized_ids,
         ),
     )
@@ -325,6 +331,7 @@ async def fetch_conversation_summaries(
             "model_provider": row["model_provider"],
             "title": normalized_title,
             "title_source": title_source or ("model" if normalized_title != "New chat" else "pending"),
+            "is_pinned": bool(row["is_pinned"]),
             "is_resumable": bool(
                 isinstance(conversation_id, str)
                 and conversation_id.startswith("conv_")

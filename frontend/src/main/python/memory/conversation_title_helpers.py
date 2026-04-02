@@ -39,9 +39,23 @@ async def lookup_conversation_title_state(
     user_id: str,
     conversation_id: str,
 ) -> Tuple[Optional[str], Optional[str], bool]:
+    title, source, is_locked, _is_pinned = await lookup_conversation_metadata_state(
+        cursor=cursor,
+        user_id=user_id,
+        conversation_id=conversation_id,
+    )
+    return title, source, is_locked
+
+
+async def lookup_conversation_metadata_state(
+    *,
+    cursor,
+    user_id: str,
+    conversation_id: str,
+) -> Tuple[Optional[str], Optional[str], bool, bool]:
     await cursor.execute(
         """
-        SELECT title, source, is_locked
+        SELECT title, source, is_locked, is_pinned
         FROM conversation_titles
         WHERE user_id = ? AND conversation_id = ?
     """,
@@ -49,12 +63,13 @@ async def lookup_conversation_title_state(
     )
     row = await cursor.fetchone()
     if not row:
-        return None, None, False
+        return None, None, False, False
 
     title = (row["title"] or "").strip() or None
     source = (row["source"] or "").strip() or None
     is_locked = bool(row["is_locked"])
-    return title, source, is_locked
+    is_pinned = bool(row["is_pinned"])
+    return title, source, is_locked, is_pinned
 
 
 async def fetch_title_generation_inputs(
