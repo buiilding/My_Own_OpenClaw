@@ -60,15 +60,15 @@ export function useChatboxDragWindowBindings(handleDragMove, stopDragging) {
   }, [handleDragMove, stopDragging]);
 }
 
-export function useChatboxVisualAnchorBindings(hasImagePreview) {
+export function useChatboxVisualAnchorBindings(measuredComposerHeight) {
   useEffect(() => {
-    const nextAnchorHeight = resolveChatboxVisualAnchorHeight(hasImagePreview);
+    const nextAnchorHeight = resolveChatboxVisualAnchorHeight(measuredComposerHeight);
     IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, {
       height: nextAnchorHeight,
     }).catch((error) => {
       console.warn('[ChatBox] Failed to sync visual anchor height:', error);
     });
-  }, [hasImagePreview]);
+  }, [measuredComposerHeight]);
 
   useEffect(() => {
     return () => {

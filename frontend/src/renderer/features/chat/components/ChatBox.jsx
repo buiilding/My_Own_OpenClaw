@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useChatComposerDraft } from '../hooks/useChatComposerDraft';
@@ -11,16 +11,13 @@ import {
   useChatboxVisualAnchorBindings,
   useChatboxWakewordSttTriggerBinding,
 } from '../hooks/useChatBoxBindings';
-import { useTextareaAutoResize } from '../hooks/useMessageInputUiBindings';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import {
-  buildChatboxPillClipPath,
   createChatboxDragState,
   getChatboxDragTarget,
-  getChatboxPillClipHeight,
   startChatboxDrag,
   stopChatboxDrag,
 } from '../utils/chatbox/chatboxPillLayout';
@@ -34,7 +31,7 @@ import {
   SettingsIcon,
   SoundIcon,
 } from './chatbox/ChatBoxIcons';
-import ChatBoxImagePreviewRow from './chatbox/ChatBoxImagePreviewRow';
+import ChatComposerSurface from './ChatComposerSurface';
 
 function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
   if (typeof updateConfig !== 'function') {
@@ -58,9 +55,9 @@ function ChatBox() {
   });
   const overlayPhase = useResponseOverlayPhase();
   const [wakewordSttSessionActive, setWakewordSttSessionActive] = useState(false);
+  const [composerSurfaceHeight, setComposerSurfaceHeight] = useState(0);
   const inputRef = useRef(null);
   const pillRef = useRef(null);
-  const sendButtonRef = useRef(null);
   const loopInteractionLockedRef = useRef(false);
   const dragStateRef = useRef(createChatboxDragState());
   const chatboxHitTestActiveRef = useRef(null);
@@ -131,79 +128,6 @@ function ChatBox() {
     }
     inputRef.current?.blur();
   }, [loopInteractionLocked]);
-
-  const resizeComposer = useCallback(() => {
-    if (!inputRef.current) {
-      return;
-    }
-    inputRef.current.style.height = 'auto';
-    inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 128)}px`;
-  }, []);
-
-  useTextareaAutoResize(inputValue, resizeComposer);
-
-  const syncCloseButtonAnchor = useCallback(() => {
-    const pillElement = pillRef.current;
-    const sendButtonElement = sendButtonRef.current;
-    if (!pillElement || !sendButtonElement) {
-      return;
-    }
-
-    const pillRect = pillElement.getBoundingClientRect();
-    const sendRect = sendButtonElement.getBoundingClientRect();
-    if (pillRect.width <= 0 || sendRect.width <= 0) {
-      return;
-    }
-
-    const pillWidth = Math.max(
-      Math.round(Number(pillElement.offsetWidth) || 0),
-      Math.round(Number(pillRect.width) || 0),
-    );
-    const pillHeight = Math.max(
-      Math.round(Number(pillElement.offsetHeight) || 0),
-      Math.round(Number(pillRect.height) || 0),
-    );
-    if (pillWidth <= 0 || pillHeight <= 0) {
-      return;
-    }
-
-    const centerX = Math.round((sendRect.left - pillRect.left) + (sendRect.width / 2));
-    pillElement.style.setProperty('--chatbox-close-center-x', `${centerX}px`);
-    const clipPath = buildChatboxPillClipPath({
-      width: pillWidth,
-      height: getChatboxPillClipHeight(pillHeight),
-      centerX,
-    });
-    pillElement.style.setProperty('--chatbox-pill-clip-path', clipPath);
-  }, []);
-
-  useLayoutEffect(() => {
-    syncCloseButtonAnchor();
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', syncCloseButtonAnchor);
-    }
-
-    let resizeObserver = null;
-    if (typeof ResizeObserver === 'function') {
-      resizeObserver = new ResizeObserver(() => {
-        syncCloseButtonAnchor();
-      });
-      if (pillRef.current) {
-        resizeObserver.observe(pillRef.current);
-      }
-      if (sendButtonRef.current) {
-        resizeObserver.observe(sendButtonRef.current);
-      }
-    }
-
-    return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('resize', syncCloseButtonAnchor);
-      }
-      resizeObserver?.disconnect();
-    };
-  }, [syncCloseButtonAnchor, devUiEnabled]);
 
   const setChatboxHitTestActive = useCallback((active) => {
     const nextActive = active === true;
@@ -345,7 +269,7 @@ function ChatBox() {
     );
   }, [loopInteractionLocked]);
 
-  const handlePillClickCapture = useCallback((event) => {
+  const handleSurfaceClickCapture = useCallback((event) => {
     if (!dragStateRef.current.didDrag) {
       return;
     }
@@ -353,71 +277,64 @@ function ChatBox() {
     event.preventDefault();
     event.stopPropagation();
   }, []);
-  const hasAttachmentPreview = hasAttachments;
 
-  useChatboxVisualAnchorBindings(hasAttachmentPreview);
+  useChatboxVisualAnchorBindings(composerSurfaceHeight);
 
   return (
     <div
-      className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasAttachmentPreview ? ' with-preview' : ''}${loopInteractionLocked ? ' loop-active' : ''}`}
+      className={`chatbox-shell-wrap chatbox-input-shell-wrap${loopInteractionLocked ? ' loop-active' : ''}`}
     >
-      <div className="chatbox-shell">
-        <form
-          ref={pillRef}
-          className={`chatbox-pill${hasAttachmentPreview ? ' with-preview' : ''}`}
-          onSubmit={handleSubmit}
-          onMouseDown={handlePillMouseDown}
-          onClickCapture={handlePillClickCapture}
-          onMouseEnter={() => {
-            if (!loopInteractionLockedRef.current) {
-              setChatboxHitTestActive(true);
-            }
-          }}
-          onMouseMove={() => {
-            if (!loopInteractionLockedRef.current) {
-              setChatboxHitTestActive(true);
-            }
-          }}
-          onMouseLeave={() => {
-            setChatboxHitTestActive(false);
-          }}
-        >
-          <button
-            type="button"
-            className="chatbox-close-badge"
-            onClick={handleHideChatbox}
-            aria-label="Hide chat pill"
-            title="Hide chat pill"
-            disabled={loopInteractionLocked}
-          >
-            <CloseIcon />
-          </button>
-          <input
-            ref={attachmentInputRef}
-            type="file"
-            multiple
-            data-testid="chatbox-attachment-input"
-            style={{ display: 'none' }}
-            onChange={(event) => {
-              void handleAttachmentSelection(event).catch((error) => {
-                console.warn('[ChatBox] Failed to parse selected attachments:', error);
-              });
-            }}
-          />
-          <ChatBoxImagePreviewRow
-            clipboardImages={clipboardImages}
-            readableFiles={selectedReadableFiles}
-            onRemoveImage={(id) => {
-              setClipboardImages((previous) => previous.filter((image) => image.id !== id));
-            }}
-            onRemoveFile={(id) => {
-              setSelectedReadableFiles((previous) => previous.filter((file) => file.id !== id));
-            }}
-          />
-          <div className="chatbox-main-row">
+      <ChatComposerSurface
+        surfaceRef={pillRef}
+        textareaRef={inputRef}
+        attachmentInputRef={attachmentInputRef}
+        attachmentInputTestId="chatbox-attachment-input"
+        onAttachmentSelection={(event) => {
+          void handleAttachmentSelection(event).catch((error) => {
+            console.warn('[ChatBox] Failed to parse selected attachments:', error);
+          });
+        }}
+        onSubmit={handleSubmit}
+        onMouseDown={handlePillMouseDown}
+        onClickCapture={handleSurfaceClickCapture}
+        onMouseEnter={() => {
+          if (!loopInteractionLockedRef.current) {
+            setChatboxHitTestActive(true);
+          }
+        }}
+        onMouseMove={() => {
+          if (!loopInteractionLockedRef.current) {
+            setChatboxHitTestActive(true);
+          }
+        }}
+        onMouseLeave={() => {
+          setChatboxHitTestActive(false);
+        }}
+        inputValue={inputValue}
+        onInputChange={handleInputChange}
+        onPaste={(event) => {
+          void handleComposerPaste(event).catch((error) => {
+            console.warn('[ChatBox] Failed to parse pasted image:', error);
+          });
+        }}
+        onKeyDown={handleComposerKeyDown}
+        placeholder="Ask me anything..."
+        inputId="chatbox-input"
+        inputAriaLabel="Type your message"
+        disabled={loopInteractionLocked}
+        clipboardImages={clipboardImages}
+        readableFiles={selectedReadableFiles}
+        onRemoveImage={(id) => {
+          setClipboardImages((previous) => previous.filter((image) => image.id !== id));
+        }}
+        onRemoveFile={(id) => {
+          setSelectedReadableFiles((previous) => previous.filter((file) => file.id !== id));
+        }}
+        leadingActions={(
+          <>
             <button
               type="button"
-              className="chatbox-icon chatbox-config"
+              className="message-icon-btn chatbox-icon chatbox-config"
               onClick={handleOpenConfig}
               aria-label="Open config"
               title="Open config"
@@ -428,7 +345,7 @@ function ChatBox() {
             {devUiEnabled ? (
               <button
                 type="button"
-                className="chatbox-icon chatbox-dev-compact"
+                className="message-icon-btn chatbox-icon chatbox-dev-compact"
                 onClick={handleDevAutoCompaction}
                 aria-label="Run auto compaction"
                 title="Run auto compaction"
@@ -439,7 +356,7 @@ function ChatBox() {
             ) : null}
             <button
               type="button"
-              className="chatbox-icon chatbox-attach"
+              className="message-icon-btn chatbox-icon chatbox-attach"
               onClick={() => {
                 attachmentInputRef.current?.click();
               }}
@@ -449,26 +366,13 @@ function ChatBox() {
             >
               <AttachmentIcon />
             </button>
-            <div className="chatbox-input-wrap">
-              <textarea
-                ref={inputRef}
-                value={inputValue}
-                onChange={handleInputChange}
-                onPaste={(event) => {
-                  void handleComposerPaste(event).catch((error) => {
-                    console.warn('[ChatBox] Failed to parse pasted image:', error);
-                  });
-                }}
-                onKeyDown={handleComposerKeyDown}
-                placeholder="Ask me anything..."
-                className="chatbox-input"
-                disabled={loopInteractionLocked}
-                rows={1}
-              />
-            </div>
+          </>
+        )}
+        trailingActions={(
+          <>
             <button
               type="button"
-              className={`chatbox-icon chatbox-screenshot${includeQueryScreenshot ? ' is-enabled' : ''}`}
+              className={`message-icon-btn chatbox-icon chatbox-screenshot${includeQueryScreenshot ? ' is-enabled' : ''}`}
               aria-label="Toggle auto screenshot"
               title={includeQueryScreenshot ? 'Disable auto screenshot' : 'Enable auto screenshot'}
               onClick={handleToggleQueryScreenshot}
@@ -478,8 +382,8 @@ function ChatBox() {
             </button>
             <button
               type="button"
-              className={`chatbox-icon chatbox-tts${speechModeEnabled ? ' is-enabled' : ''}`}
-              aria-label="Toggle text-to-speech"
+              className={`message-icon-btn chatbox-icon chatbox-tts${speechModeEnabled ? ' is-enabled' : ''}`}
+              aria-label={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
               title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
               onClick={handleToggleSpeechMode}
               disabled={loopInteractionLocked}
@@ -487,9 +391,18 @@ function ChatBox() {
               <SoundIcon />
             </button>
             <button
-              ref={sendButtonRef}
+              type="button"
+              className="message-icon-btn chatbox-icon chatbox-hide"
+              onClick={handleHideChatbox}
+              aria-label="Hide chat pill"
+              title="Hide chat pill"
+              disabled={loopInteractionLocked}
+            >
+              <CloseIcon />
+            </button>
+            <button
               type="submit"
-              className="chatbox-icon chatbox-send"
+              className="message-send-btn chatbox-send"
               aria-label="Send message"
               title="Send message"
               disabled={(
@@ -499,9 +412,12 @@ function ChatBox() {
             >
               <SendIcon />
             </button>
-          </div>
-        </form>
-      </div>
+          </>
+        )}
+        surfaceClassName="chatbox-pill"
+        onSurfaceHeightChange={setComposerSurfaceHeight}
+        maxTextareaHeight={200}
+      />
     </div>
   );
 }

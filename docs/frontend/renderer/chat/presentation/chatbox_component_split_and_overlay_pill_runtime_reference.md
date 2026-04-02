@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for chatbox overlay component split and runtime contracts across `ChatBox`, `ChatBoxResponse`, and `components/chatbox/*` helpers."
+summary: "Deep reference for chatbox overlay component split and runtime contracts across `ChatBox`, `ChatComposerSurface`, `ChatBoxResponse`, and `components/chatbox/*` helpers."
 read_when:
   - When changing `ChatBox.jsx`, `ChatBoxResponse.jsx`, or the extracted `components/chatbox/*` helper modules.
   - When debugging overlay pill drag/focus behavior, screenshot preview lane state, or response-overlay resize/report timing.
@@ -11,10 +11,10 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
+- `frontend/src/renderer/features/chat/components/ChatComposerSurface.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxIcons.jsx`
-- `frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatBoxBindings.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`
@@ -27,13 +27,12 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 
 ## Component-Split Boundary
 
-Chatbox support modules moved under `components/chatbox/`:
+Chatbox support modules now split between:
 
 - icon render-only exports (`ChatBoxIcons.jsx`)
-- preview-row render-only component (`ChatBoxImagePreviewRow.jsx`)
+- shared composer render/layout (`ChatComposerSurface.jsx`)
 
-`ChatBox.jsx` and `ChatBoxResponse.jsx` stay as orchestration components; presentational helpers are
-kept side-by-side in the `chatbox/` subfolder.
+`ChatBox.jsx` and `ChatBoxResponse.jsx` stay as orchestration components.
 
 Current-turn presentation ownership moved to shared chat hooks/state:
 
@@ -67,19 +66,19 @@ Current-turn presentation ownership moved to shared chat hooks/state:
 - absolute move dispatch:
   - `IpcBridge.send("move-chatbox-to", { x, y })`
 
-### Screenshot Preview Lane and Visual Anchor
+### Shared Composer Surface and Visual Anchor
 
-- screenshot button captures via `captureScreenshotAttachment({ waitSeconds: 0 })`
-- captured image is normalized into preview row entries using
-  `createClipboardScreenshotImage(...)`
-- preview lane state (`with-preview`) is driven only by image count
-- visual-anchor IPC sync:
-  - preview off -> `height: 64`
-  - preview on -> `height: 116`
+- screenshot button toggles `include_query_screenshot` in frontend config
+- explicit and pasted attachments flow through the shared composer draft state and render through the
+  shared preview rows
+- input surface and preview-row markup are now shared with dashboard `MessageInput`
+- visual-anchor IPC sync is driven by the measured shared composer surface height, with `64px`
+  remaining the compact minimum
 - unmount resets anchor to compact height
 
 No renderer-driven `set-chatbox-size` resizing occurs in this component.
-Main-process chat window height now tracks the compact-vs-preview visual-anchor state so the idle overlay hit area stays tight to the visible pill instead of keeping the old taller transparent frame.
+Main-process chat window height now tracks measured composer-height updates so the idle overlay hit
+area stays tight to the visible pill instead of relying on the old compact-vs-preview shell states.
 
 ### Optional Dev Compaction Control
 
@@ -147,8 +146,10 @@ Closeability:
 
 1. Reintroducing imports from removed legacy helper paths outside `components/chatbox/*`.
 2. Mixing `isSending` and overlay-phase locking policies outside `useCurrentTurnPresentationState(...)`.
-3. Re-adding renderer-driven `set-chatbox-size` logic in `ChatBox` can reintroduce startup flicker.
-4. Changing response selection bounds (latest-after-user scan) can leak stale assistant rows into
+3. Reintroducing overlay-only composer geometry or clip-path shaping can re-create visual drift with
+   dashboard `MessageInput`.
+4. Re-adding renderer-driven `set-chatbox-size` logic in `ChatBox` can reintroduce startup flicker.
+5. Changing response selection bounds (latest-after-user scan) can leak stale assistant rows into
    overlay response state.
 
 ## Related Docs

@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for chatbox overlay renderer behavior: input/send lifecycle, click-through toggling, drag movement IPC, and fixed-size preview-lane behavior."
+summary: "Deep reference for chatbox overlay renderer behavior: shared composer surface, input/send lifecycle, click-through toggling, drag movement IPC, and measured anchor-height sync."
 read_when:
   - When changing `ChatBox.jsx` interaction rules or overlay input behavior.
   - When debugging chatbox focus/click-through drift, drag positioning, or startup/attachment flicker.
@@ -14,7 +14,7 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatBoxBindings.js`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxIcons.jsx`
-- `frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx`
+- `frontend/src/renderer/features/chat/components/ChatComposerSurface.jsx`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
@@ -53,7 +53,7 @@ This keeps overlay window lightweight:
 - explicit focus lifecycle (`chatbox-focus` + mount focus)
 - wakeword STT trigger channel handling (`wakeword-stt-trigger`)
 - global drag window listeners (`mousemove`/`mouseup`/`blur`)
-- visual-anchor IPC sync and compact-height cleanup on unmount
+- measured visual-anchor IPC sync and compact-height cleanup on unmount
 
 Resulting behavior in `useChatMessageSender`:
 
@@ -121,17 +121,15 @@ Non-listeners:
 
 This is required after main-process `showChatWindow({ focus: true })`.
 
-## Fixed Size Contract
+## Composer Surface Contract
 
 - chat overlay window dimensions are fixed in main runtime (`createChatWindow`).
 - `ChatBox.jsx` no longer emits renderer-driven resize IPC for preview or startup transitions; deprecated `set-chatbox-size` channel has been removed from preload/channel contracts.
-- main process now keeps the compact chat window frame aligned to the visible shell height and expands that frame only when the preview visual-anchor height switches to the `with-preview` state, so the idle pill does not retain an oversized transparent hitbox above it.
-- idle chatbox hover now reports a dedicated main-process hit-test state, allowing the transparent overlay window to stay click-through outside the visible pill shape while preserving direct interaction over the pill and close bump.
-- attachment preview uses an always-mounted preview row with class toggle (`has-items`) and opacity/translate animation.
-- non-dashboard input pill now has two fixed CSS states (no live resize IPC):
-  - default compact pill: no `with-preview` class (`64px` shell / `56px` pill)
-  - preview-expanded pill: `with-preview` on shell/pill while image attachments exist
-- compact default state centers the main control row vertically within the pill; preview-expanded state keeps controls anchored lower beneath the preview lane.
+- `ChatBox.jsx` now renders the same shared composer surface as the dashboard input instead of a separate notch/clip-path pill implementation.
+- main process keeps the compact chat window frame aligned to the visible shell height and now follows measured composer-height updates from the renderer instead of toggling between compact and preview-only shell states.
+- idle chatbox hover now reports a dedicated main-process hit-test state, allowing the transparent overlay window to stay click-through outside the visible pill shape while preserving direct interaction over the visible composer surface.
+- attachment preview now uses the same preview-row markup and sizing rules as the dashboard composer.
+- default compact visual anchor remains `64px`, and larger values are derived from the measured shared composer surface height plus wrapper padding.
 - response/typing/context-label overlays in main process use a compact visual anchor height so their vertical position follows the visible compact pill baseline instead of the full transparent chat window height.
 - response/typing overlay uses a tighter chat-to-response vertical gap (`2px` in current non-dashboard main runtime) to keep the response pill visually near the chat pill.
 - response overlay content now stays inside one fixed response frame (`236px`) instead of stepping the overlay height while tokens stream.
@@ -196,7 +194,7 @@ Loop watchdog behavior:
 
 `ChatBoxOverlayMouseIgnore` now includes explicit anti-regression coverage for:
 
-- startup compact-class stability (no delayed `with-preview` flip when no images exist)
+- startup shared-surface stability (no delayed overlay-only geometry/class flip when no attachments exist)
 - camera-toggle enabled/disabled styling and config writes without creating preview items
 - drag-from-input and drag-from-button behavior after the shared `5px` threshold
 - normal button clicks still firing when no drag threshold crossing occurs
@@ -218,6 +216,6 @@ If drag movement is jittery or ignored:
 If chatbox flickers on startup or image insert:
 
 1. confirm `ChatBox.jsx` only toggles preview row classes and does not attempt runtime window-size mutation
-2. confirm shell/pill class toggles between compact default and `with-preview` while images are present
-3. confirm preview row class toggles between `chatbox-image-preview-row` and `... has-items`
-4. verify fixed overlay dimensions in `main_window_runtime.cjs` match CSS fixed shell/pill heights
+2. confirm measured `set-chatbox-visual-anchor-height` payloads change when multiline input or attachment previews increase composer height
+3. confirm the overlay pill uses the shared composer shell (`message-input-form`) and does not set a custom clip-path or notch shape
+4. verify fixed overlay dimensions in `main_window_runtime.cjs` still align to the measured anchor height contract

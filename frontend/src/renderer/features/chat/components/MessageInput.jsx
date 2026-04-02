@@ -2,23 +2,20 @@ import { useCallback, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   ArrowUp,
-  FileText,
-  Image,
   Mic,
   Plus,
   Square,
-  X,
+  Image,
 } from 'lucide-react';
 import { useChatComposerDraft } from '../hooks/useChatComposerDraft';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import VoiceStatus from '../../voice/components/VoiceStatus';
-import { resolveReadableFileTypeLabel } from '../utils/composerAttachmentPresentation';
 import {
   useClosePlusMenuOnSending,
   useComposerFocusRequest,
   useDismissPlusMenu,
-  useTextareaAutoResize,
 } from '../hooks/useMessageInputUiBindings';
+import ChatComposerSurface from './ChatComposerSurface';
 
 function MessageInput({
   onSendMessage,
@@ -63,14 +60,6 @@ function MessageInput({
     }
   };
 
-  const resizeTextarea = useCallback(() => {
-    if (!textareaRef.current) {
-      return;
-    }
-    textareaRef.current.style.height = 'auto';
-    textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
-  }, []);
-
   const handleFocusRequest = useCallback((nextFocusRequestToken) => {
     if (nextFocusRequestToken === lastHandledFocusRequestRef.current) {
       return;
@@ -84,7 +73,6 @@ function MessageInput({
     textareaRef.current.setSelectionRange(textLength, textLength);
   }, [isSending]);
 
-  useTextareaAutoResize(inputValue, resizeTextarea);
   useDismissPlusMenu(plusMenuRef, setPlusMenuOpen);
   useClosePlusMenuOnSending(isSending, setPlusMenuOpen);
   useComposerFocusRequest({
@@ -112,123 +100,68 @@ function MessageInput({
         />
       ) : null}
       <div className={`message-input-container${isCentered ? ' message-input-centered' : ''}`}>
-        <form onSubmit={handleSubmit} className="message-input-form" data-testid="composer-container">
-          {clipboardImages.length > 0 ? (
-            <div className="message-image-preview-row">
-              {clipboardImages.map((clipboardImage, index) => (
-                <div className="message-image-preview-card" key={clipboardImage.id || index}>
-                  <img
-                    src={clipboardImage.previewUrl}
-                    alt={`Pasted image preview ${index + 1}`}
-                    className="message-image-preview-thumb"
-                  />
+        <ChatComposerSurface
+          textareaRef={textareaRef}
+          attachmentInputRef={attachmentInputRef}
+          attachmentInputTestId="attachment-input"
+          onAttachmentSelection={(event) => {
+            void handleAttachmentSelection(event);
+          }}
+          onSubmit={handleSubmit}
+          inputValue={inputValue}
+          onInputChange={handleInputChange}
+          onPaste={handleComposerPaste}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask anything"
+          inputAriaLabel="Type your message"
+          disabled={isSending}
+          clipboardImages={clipboardImages}
+          readableFiles={selectedReadableFiles}
+          onRemoveImage={(id) => {
+            setClipboardImages((previous) => (
+              previous.filter((image) => image.id !== id)
+            ));
+          }}
+          onRemoveFile={(id) => {
+            setSelectedReadableFiles((previous) => (
+              previous.filter((entry) => entry.id !== id)
+            ));
+          }}
+          leadingActions={(
+            <div className="message-action-dropdown" ref={plusMenuRef}>
+              <button
+                type="button"
+                className="message-icon-btn"
+                aria-label="Add attachment"
+                data-testid="plus-btn"
+                aria-expanded={plusMenuOpen}
+                disabled={isSending}
+                onClick={() => {
+                  setPlusMenuOpen((current) => !current);
+                }}
+              >
+                <Plus size={18} />
+              </button>
+              {plusMenuOpen && !isSending ? (
+                <div className="message-dropdown-menu message-add-photos-under-pill" role="menu">
                   <button
                     type="button"
-                    className="message-image-preview-remove"
-                    aria-label={`Remove pasted image ${index + 1}`}
+                    className="message-dropdown-item"
+                    role="menuitem"
                     onClick={() => {
-                      setClipboardImages((previous) => (
-                        previous.filter((image) => image.id !== clipboardImage.id)
-                      ));
+                      setPlusMenuOpen(false);
+                      attachmentInputRef.current?.click();
                     }}
                   >
-                    <X size={13} />
+                    <Image size={16} />
+                    <span>Add photos & files</span>
                   </button>
                 </div>
-              ))}
+              ) : null}
             </div>
-          ) : null}
-          {selectedReadableFiles.length > 0 ? (
-            <div className="message-file-preview-row">
-              {selectedReadableFiles.map((file, index) => (
-                <div className="message-file-preview-card" key={file.id || `${file.filename}-${index}`}>
-                  <div className="message-file-preview-icon" aria-hidden="true">
-                    <FileText size={16} />
-                  </div>
-                  <div className="message-file-preview-meta">
-                    <span className="message-file-preview-name" title={file.filename}>{file.filename}</span>
-                    <span className="message-file-preview-type">{resolveReadableFileTypeLabel(file.filename)}</span>
-                  </div>
-                  <button
-                    type="button"
-                    className="message-file-preview-remove"
-                    aria-label={`Remove attached file ${index + 1}`}
-                    onClick={() => {
-                      setSelectedReadableFiles((previous) => (
-                        previous.filter((entry) => entry.id !== file.id)
-                      ));
-                    }}
-                  >
-                    <X size={13} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          <input
-            ref={attachmentInputRef}
-            type="file"
-            multiple
-            data-testid="attachment-input"
-            style={{ display: 'none' }}
-            onChange={(event) => {
-              void handleAttachmentSelection(event);
-            }}
-          />
-
-          <div className="message-input-row">
-            <div className="message-input-left-actions">
-              <div className="message-action-dropdown" ref={plusMenuRef}>
-                <button
-                  type="button"
-                  className="message-icon-btn"
-                  aria-label="Add attachment"
-                  data-testid="plus-btn"
-                  aria-expanded={plusMenuOpen}
-                  disabled={isSending}
-                  onClick={() => {
-                    setPlusMenuOpen((current) => !current);
-                  }}
-                >
-                  <Plus size={18} />
-                </button>
-                {plusMenuOpen && !isSending ? (
-                  <div className="message-dropdown-menu message-add-photos-under-pill" role="menu">
-                    <button
-                      type="button"
-                      className="message-dropdown-item"
-                      role="menuitem"
-                      onClick={() => {
-                        setPlusMenuOpen(false);
-                        attachmentInputRef.current?.click();
-                      }}
-                    >
-                      <Image size={16} />
-                      <span>Add photos & files</span>
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            <label htmlFor="chat-input" className="visually-hidden">Type your message</label>
-            <textarea
-              ref={textareaRef}
-              id="chat-input"
-              value={inputValue}
-              onChange={handleInputChange}
-              onPaste={handleComposerPaste}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask anything"
-              disabled={isSending}
-              className="message-input"
-              rows={1}
-              style={{ minHeight: '24px', maxHeight: '200px' }}
-              aria-label="Type your message"
-            />
-
-            <div className="message-input-right-actions">
+          )}
+          trailingActions={(
+            <>
               <button
                 type="button"
                 className={`message-icon-btn${voiceModeEnabled ? ' is-enabled' : ''}`}
@@ -265,9 +198,11 @@ function MessageInput({
                   <ArrowUp size={16} strokeWidth={2.5} />
                 </button>
               )}
-            </div>
-          </div>
-        </form>
+            </>
+          )}
+          formTestId="composer-container"
+          maxTextareaHeight={200}
+        />
 
         {!isCentered ? (
           <p className="message-input-disclaimer">WindieOS can make mistakes. Check important info.</p>

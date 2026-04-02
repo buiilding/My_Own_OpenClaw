@@ -232,17 +232,11 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('camera toggle starts enabled by default and does not create a preview row when clicked', async () => {
-    const { container } = render(<ChatBox />);
-    const shellWrap = container.querySelector('.chatbox-input-shell-wrap');
-    const pill = container.querySelector('.chatbox-pill');
-    const previewRow = container.querySelector('.chatbox-image-preview-row');
+    render(<ChatBox />);
     const cameraButton = screen.getByRole('button', { name: 'Toggle auto screenshot' });
 
     expect(cameraButton.classList.contains('is-enabled')).toBe(true);
-    expect(shellWrap?.classList.contains('with-preview')).toBe(false);
-    expect(pill?.classList.contains('with-preview')).toBe(false);
-    expect(previewRow).toBeTruthy();
-    expect(previewRow.classList.contains('has-items')).toBe(false);
+    expect(screen.queryByAltText(/Pasted image preview/i)).not.toBeInTheDocument();
 
     await act(async () => {
       fireEvent.click(cameraButton);
@@ -250,23 +244,19 @@ describe('ChatBox overlay mouse ignore', () => {
     });
 
     expect(mockUpdateConfig).toHaveBeenCalledWith({ include_query_screenshot: false });
-    expect(shellWrap?.classList.contains('with-preview')).toBe(false);
-    expect(pill?.classList.contains('with-preview')).toBe(false);
-    expect(previewRow.classList.contains('has-items')).toBe(false);
-    expect(screen.queryByRole('button', { name: /Remove screenshot/i })).not.toBeInTheDocument();
+    expect(screen.queryByAltText(/Pasted image preview/i)).not.toBeInTheDocument();
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
 
-  test('keeps compact non-preview classes stable on startup without delayed flips', async () => {
+  test('uses the shared composer shell without overlay-only preview geometry', async () => {
     jest.useFakeTimers();
     const { container } = render(<ChatBox />);
-    const shellWrap = container.querySelector('.chatbox-input-shell-wrap');
     const pill = container.querySelector('.chatbox-pill');
-    const previewRow = container.querySelector('.chatbox-image-preview-row');
+    const textarea = screen.getByPlaceholderText('Ask me anything...');
 
-    expect(shellWrap?.classList.contains('with-preview')).toBe(false);
-    expect(pill?.classList.contains('with-preview')).toBe(false);
-    expect(previewRow?.classList.contains('has-items')).toBe(false);
+    expect(pill?.classList.contains('message-input-form')).toBe(true);
+    expect(pill?.style.getPropertyValue('--chatbox-pill-clip-path')).toBe('');
+    expect(textarea.classList.contains('message-input')).toBe(true);
 
     await act(async () => {
       await Promise.resolve();
@@ -275,9 +265,7 @@ describe('ChatBox overlay mouse ignore', () => {
       jest.runOnlyPendingTimers();
     });
 
-    expect(shellWrap?.classList.contains('with-preview')).toBe(false);
-    expect(pill?.classList.contains('with-preview')).toBe(false);
-    expect(previewRow?.classList.contains('has-items')).toBe(false);
+    expect(pill?.style.getPropertyValue('--chatbox-pill-clip-path')).toBe('');
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
 
@@ -333,7 +321,7 @@ describe('ChatBox overlay mouse ignore', () => {
 
     expect(screen.getByRole('button', { name: 'Open config' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Hide chat pill' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Enable text-to-speech' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Toggle auto screenshot' })).toBeDisabled();
     expect(screen.getByPlaceholderText('Ask me anything...')).toBeDisabled();
 
@@ -497,6 +485,68 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(input).toHaveValue('');
   });
 
+  test('reports measured anchor height changes when multiline composer height grows', async () => {
+    let measuredHeight = 56;
+    const rectSpy = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function mockRect() {
+      if (this.classList?.contains('chatbox-pill')) {
+        return {
+          width: 520,
+          height: measuredHeight,
+          top: 0,
+          left: 0,
+          right: 520,
+          bottom: measuredHeight,
+          x: 0,
+          y: 0,
+          toJSON: () => ({}),
+        };
+      }
+      return {
+        width: 0,
+        height: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      };
+    });
+
+    render(<ChatBox />);
+    const input = screen.getByPlaceholderText('Ask me anything...');
+
+    expect(mockInvoke.mock.calls.some(
+      ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 64,
+    )).toBe(true);
+
+    measuredHeight = 132;
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'hello\n\n\n\n', selectionStart: 9 } });
+    });
+
+    expect(mockInvoke.mock.calls.some(
+      ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 140,
+    )).toBe(true);
+
+    rectSpy.mockRestore();
+  });
+
+  test('keeps the same rounded shared shell when blank lines increase', () => {
+    const { container } = render(<ChatBox />);
+    const input = screen.getByPlaceholderText('Ask me anything...');
+    const pill = container.querySelector('.chatbox-pill');
+
+    fireEvent.change(input, { target: { value: 'hello\n\n\n', selectionStart: 8 } });
+    expect(pill?.classList.contains('message-input-form')).toBe(true);
+    expect(pill?.style.getPropertyValue('--chatbox-pill-clip-path')).toBe('');
+
+    fireEvent.change(input, { target: { value: 'hello\n\n\n\n', selectionStart: 9 } });
+    expect(pill?.classList.contains('message-input-form')).toBe(true);
+    expect(pill?.style.getPropertyValue('--chatbox-pill-clip-path')).toBe('');
+  });
+
   test('accepts pasted images and sends them through the shared outgoing payload contract', async () => {
     render(<ChatBox />);
     const input = screen.getByPlaceholderText('Ask me anything...');
@@ -609,7 +659,7 @@ describe('ChatBox overlay mouse ignore', () => {
   test('text-to-speech button toggles speech mode config', () => {
     render(<ChatBox />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Toggle text-to-speech' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enable text-to-speech' }));
     expect(mockUpdateConfig).toHaveBeenCalledWith({ speech_mode_enabled: true });
   });
 
