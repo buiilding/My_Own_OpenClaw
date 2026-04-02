@@ -1344,16 +1344,6 @@
 }
 
 .user-screenshot-container {
-  display: inline-flex;
-  align-items: flex-start;
-  gap: 10px;
-  width: auto;
-  max-width: min(460px, 100%);
-  overflow: visible;
-  background: transparent;
-}
-
-.user-screenshot-frame {
   width: min(380px, 42vw);
   max-width: min(380px, 100%);
   border-radius: 10px;
@@ -1379,7 +1369,7 @@
   min-height: 56px;
 }
 
-.user-screenshot-frame .user-screenshot-image {
+.user-screenshot-container .user-screenshot-image {
   width: 100%;
   max-height: 220px;
   margin-top: 0;
@@ -1389,7 +1379,7 @@
 }
 
 @media (max-width: 980px) {
-  .user-screenshot-frame {
+  .user-screenshot-container {
     width: min(300px, 76vw);
   }
 }
@@ -1643,32 +1633,6 @@
   -webkit-backdrop-filter: blur(var(--ui-backdrop-blur));
   padding: 6px;
   z-index: 60;
-}
-
-.user-screenshot-copy-button {
-  min-width: 72px;
-  min-height: 36px;
-  border: 1px solid var(--ui-border-soft);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--ui-text-primary);
-  padding: 0 14px;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1;
-  cursor: pointer;
-  white-space: nowrap;
-  align-self: flex-start;
-  margin-top: 10px;
-}
-
-.user-screenshot-copy-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.user-screenshot-copy-button:disabled {
-  opacity: 0.7;
-  cursor: progress;
 }
 
 .message-add-photos-under-pill {
