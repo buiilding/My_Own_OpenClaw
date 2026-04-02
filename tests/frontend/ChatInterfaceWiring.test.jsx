@@ -1015,7 +1015,10 @@ describe('ChatInterface wiring', () => {
   test('renders welcome empty state when there are no messages', () => {
     render(<ChatInterface />);
     expect(screen.getByTestId('chat-empty-state')).toBeInTheDocument();
-    expect(screen.getByText('Welcome to WindieOS Demo')).toBeInTheDocument();
+    expect(screen.getByText('What can WindieOS help you do?')).toBeInTheDocument();
+    expect(
+      screen.getByText('Ask a question, describe a task, or attach files to give the agent context.'),
+    ).toBeInTheDocument();
   });
 
   test('stop response handler sends stop-query while stream is active', () => {

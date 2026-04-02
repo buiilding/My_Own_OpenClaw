@@ -10,6 +10,7 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+- refactor(frontend-chat-dashboard-surface): restyle the dashboard chat header into a lighter utility bar with compact model controls and replace the old demo-style empty state with a conventional first-message chat prompt.
 - refactor(frontend-chat-composer-contract): move dashboard and desktop-pill draft state, pasted-image handling, selected-file handling, and attachment-only send gating behind one shared renderer composer hook so both surfaces now share the same composer-state contract instead of duplicating send-draft logic.
 - docs(agents): add repo-level critical-thinking guidance, preserve the Linux minimal chat pill screenshot-flicker fix notes, and clarify backend-vs-frontend tool-schema ownership/parity expectations in `AGENTS.md`.
 - feat(frontend-chat-image-copy): add a screenshot right-click context menu in chat with a `Copy image` action, wire it through a new Electron clipboard IPC path, and cover the renderer/preload/main contracts with focused frontend tests.

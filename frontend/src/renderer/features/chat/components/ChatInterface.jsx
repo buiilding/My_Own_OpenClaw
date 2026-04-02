@@ -460,7 +460,11 @@ function ChatInterface({ focusComposerToken = 0 }) {
 
       {renderedMessages.length === 0 ? (
         <div className="chat-empty-state" data-testid="chat-empty-state">
-          <h1 className="chat-empty-title">Welcome to WindieOS Demo</h1>
+          <span className="chat-empty-eyebrow">New conversation</span>
+          <h1 className="chat-empty-title">What can WindieOS help you do?</h1>
+          <p className="chat-empty-copy">
+            Ask a question, describe a task, or attach files to give the agent context.
+          </p>
           <MessageInput
             onSendMessage={sendMessage}
             isSending={composerBusy}
