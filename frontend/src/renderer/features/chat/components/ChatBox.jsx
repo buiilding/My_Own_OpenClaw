@@ -11,6 +11,7 @@ import {
   useChatboxVisualAnchorBindings,
   useChatboxWakewordSttTriggerBinding,
 } from '../hooks/useChatBoxBindings';
+import { useTextareaAutoResize } from '../hooks/useMessageInputUiBindings';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
@@ -25,8 +26,10 @@ import {
 } from '../utils/chatbox/chatboxPillLayout';
 import { buildOutgoingMessage } from '../utils/message/messageInput';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
+import { parseSelectedComposerFiles } from '../utils/fileAttachmentUtils';
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStream/chatStreamThinkingStatus';
 import {
+  AttachmentIcon,
   CompactIcon,
   CloseIcon,
   ScreenshotIcon,
@@ -59,7 +62,9 @@ function ChatBox() {
   const overlayPhase = useResponseOverlayPhase();
   const [wakewordSttSessionActive, setWakewordSttSessionActive] = useState(false);
   const [clipboardImages, setClipboardImages] = useState([]);
+  const [selectedReadableFiles, setSelectedReadableFiles] = useState([]);
   const inputRef = useRef(null);
+  const attachmentInputRef = useRef(null);
   const pillRef = useRef(null);
   const sendButtonRef = useRef(null);
   const loopInteractionLockedRef = useRef(false);
@@ -81,6 +86,7 @@ function ChatBox() {
     updateTranscription,
     resetTranscription,
     handleInputChange,
+    handlePaste,
   } = useTranscription();
 
   const focusInput = useCallback(() => {
@@ -89,6 +95,8 @@ function ChatBox() {
       return;
     }
     inputRef.current?.focus();
+    const textLength = inputRef.current?.value?.length || 0;
+    inputRef.current?.setSelectionRange?.(textLength, textLength);
   }, []);
 
   useChatboxFocusBindings(focusInput);
@@ -116,6 +124,16 @@ function ChatBox() {
     }
     inputRef.current?.blur();
   }, [loopInteractionLocked]);
+
+  const resizeComposer = useCallback(() => {
+    if (!inputRef.current) {
+      return;
+    }
+    inputRef.current.style.height = 'auto';
+    inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 128)}px`;
+  }, []);
+
+  useTextareaAutoResize(inputValue, resizeComposer);
 
   const syncCloseButtonAnchor = useCallback(() => {
     const pillElement = pillRef.current;
@@ -218,7 +236,12 @@ function ChatBox() {
   );
 
   const handleSend = useCallback(async () => {
-    const outgoingMessage = buildOutgoingMessage(getInputValue(), loopInteractionLocked, clipboardImages);
+    const outgoingMessage = buildOutgoingMessage(
+      getInputValue(),
+      loopInteractionLocked,
+      clipboardImages,
+      selectedReadableFiles,
+    );
     if (!outgoingMessage) {
       return;
     }
@@ -226,8 +249,23 @@ function ChatBox() {
     resetTranscription();
     setInputValue('');
     setClipboardImages([]);
+    setSelectedReadableFiles([]);
+    if (attachmentInputRef.current) {
+      attachmentInputRef.current.value = '';
+    }
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+    }
     await sendMessage(outgoingMessage);
-  }, [clipboardImages, getInputValue, loopInteractionLocked, resetTranscription, sendMessage, setInputValue]);
+  }, [
+    clipboardImages,
+    getInputValue,
+    loopInteractionLocked,
+    resetTranscription,
+    selectedReadableFiles,
+    sendMessage,
+    setInputValue,
+  ]);
 
   const handleSubmit = useCallback((event) => {
     event.preventDefault();
@@ -264,8 +302,14 @@ function ChatBox() {
     if (loopInteractionLocked) {
       return;
     }
+    const clipboardItems = event.clipboardData?.items || [];
+    const hasImageItems = Array.from(clipboardItems).some((item) => item?.type?.startsWith('image/'));
+    if (!hasImageItems) {
+      handlePaste(event);
+      return;
+    }
     try {
-      const parsedImages = await parseClipboardImageItems(event.clipboardData?.items || []);
+      const parsedImages = await parseClipboardImageItems(clipboardItems);
       if (parsedImages.length === 0) {
         return;
       }
@@ -274,7 +318,37 @@ function ChatBox() {
     } catch (error) {
       console.warn('[ChatBox] Failed to parse pasted image:', error);
     }
-  }, [loopInteractionLocked]);
+  }, [handlePaste, loopInteractionLocked]);
+
+  const handleAttachmentSelection = useCallback(async (event) => {
+    const fileList = event?.target?.files || [];
+    if (!fileList || fileList.length === 0) {
+      return;
+    }
+
+    try {
+      const parsedAttachments = await parseSelectedComposerFiles(fileList);
+      if (parsedAttachments.imageAttachments.length > 0) {
+        setClipboardImages((previous) => [...previous, ...parsedAttachments.imageAttachments]);
+      }
+      if (parsedAttachments.readableFiles.length > 0) {
+        setSelectedReadableFiles((previous) => [...previous, ...parsedAttachments.readableFiles]);
+      }
+    } catch (error) {
+      console.warn('[ChatBox] Failed to parse selected attachments:', error);
+    } finally {
+      if (event?.target) {
+        event.target.value = '';
+      }
+    }
+  }, []);
+
+  const handleComposerKeyDown = useCallback((event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      void handleSend();
+    }
+  }, [handleSend]);
 
   const handleConfigToggle = useCallback((key, nextValue, options = {}) => {
     if (loopInteractionLocked) {
@@ -349,18 +423,18 @@ function ChatBox() {
     event.preventDefault();
     event.stopPropagation();
   }, []);
-  const hasImagePreview = clipboardImages.length > 0;
+  const hasAttachmentPreview = clipboardImages.length > 0 || selectedReadableFiles.length > 0;
 
-  useChatboxVisualAnchorBindings(hasImagePreview);
+  useChatboxVisualAnchorBindings(hasAttachmentPreview);
 
   return (
     <div
-      className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasImagePreview ? ' with-preview' : ''}${loopInteractionLocked ? ' loop-active' : ''}`}
+      className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasAttachmentPreview ? ' with-preview' : ''}${loopInteractionLocked ? ' loop-active' : ''}`}
     >
       <div className="chatbox-shell">
         <form
           ref={pillRef}
-          className={`chatbox-pill${hasImagePreview ? ' with-preview' : ''}`}
+          className={`chatbox-pill${hasAttachmentPreview ? ' with-preview' : ''}`}
           onSubmit={handleSubmit}
           onMouseDown={handlePillMouseDown}
           onClickCapture={handlePillClickCapture}
@@ -388,10 +462,24 @@ function ChatBox() {
           >
             <CloseIcon />
           </button>
+          <input
+            ref={attachmentInputRef}
+            type="file"
+            multiple
+            data-testid="chatbox-attachment-input"
+            style={{ display: 'none' }}
+            onChange={(event) => {
+              void handleAttachmentSelection(event);
+            }}
+          />
           <ChatBoxImagePreviewRow
             clipboardImages={clipboardImages}
+            readableFiles={selectedReadableFiles}
             onRemoveImage={(id) => {
               setClipboardImages((previous) => previous.filter((image) => image.id !== id));
+            }}
+            onRemoveFile={(id) => {
+              setSelectedReadableFiles((previous) => previous.filter((file) => file.id !== id));
             }}
           />
           <div className="chatbox-main-row">
@@ -417,16 +505,29 @@ function ChatBox() {
                 <CompactIcon />
               </button>
             ) : null}
+            <button
+              type="button"
+              className="chatbox-icon chatbox-attach"
+              onClick={() => {
+                attachmentInputRef.current?.click();
+              }}
+              aria-label="Add attachment"
+              title="Add attachment"
+              disabled={loopInteractionLocked}
+            >
+              <AttachmentIcon />
+            </button>
             <div className="chatbox-input-wrap">
-              <input
+              <textarea
                 ref={inputRef}
-                type="text"
                 value={inputValue}
                 onChange={handleInputChange}
                 onPaste={handleComposerPaste}
+                onKeyDown={handleComposerKeyDown}
                 placeholder="Ask me anything..."
                 className="chatbox-input"
                 disabled={loopInteractionLocked}
+                rows={1}
               />
             </div>
             <button
@@ -455,7 +556,10 @@ function ChatBox() {
               className="chatbox-icon chatbox-send"
               aria-label="Send message"
               title="Send message"
-              disabled={loopInteractionLocked || !inputValue.trim()}
+              disabled={(
+                loopInteractionLocked
+                || (!inputValue.trim() && clipboardImages.length === 0 && selectedReadableFiles.length === 0)
+              )}
             >
               <SendIcon />
             </button>

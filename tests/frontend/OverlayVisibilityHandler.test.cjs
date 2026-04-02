@@ -148,7 +148,7 @@ describe('overlay_visibility_handler', () => {
     const showChatWindow = jest.fn().mockReturnValue({ success: true });
 
     const result = handleRestoreSurfaceAfterScreenshot(
-      { hiddenSurface: 'chatbox' },
+      { hiddenSurface: 'chatbox-response' },
       { showChatWindow },
     );
 
@@ -158,6 +158,48 @@ describe('overlay_visibility_handler', () => {
       restoreResponseOverlay: true,
       targetDisplayAffinity: null,
     });
+  });
+
+  test('restore-surface-after-screenshot restores chatbox without response overlay when only the pill was hidden', () => {
+    const showChatWindow = jest.fn().mockReturnValue({ success: true });
+
+    const result = handleRestoreSurfaceAfterScreenshot(
+      { hiddenSurface: 'chatbox' },
+      { showChatWindow },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(showChatWindow).toHaveBeenCalledWith({
+      focus: false,
+      restoreResponseOverlay: false,
+      targetDisplayAffinity: null,
+    });
+  });
+
+  test('restore-surface-after-screenshot restores response overlay only when it was the only hidden surface', () => {
+    const showResponseWindowInactive = jest.fn();
+    const ensureResponseOverlayFallbackBounds = jest.fn();
+    const setResponseOverlayVisibilityState = jest.fn();
+    const syncContextLabelWindowVisibility = jest.fn();
+
+    const result = handleRestoreSurfaceAfterScreenshot(
+      { hiddenSurface: 'response' },
+      {
+        responseWindow: {
+          isDestroyed: () => false,
+        },
+        showResponseWindowInactive,
+        ensureResponseOverlayFallbackBounds,
+        setResponseOverlayVisibilityState,
+        syncContextLabelWindowVisibility,
+      },
+    );
+
+    expect(result).toEqual({ success: true, restored: true });
+    expect(setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
+    expect(ensureResponseOverlayFallbackBounds).toHaveBeenCalledTimes(1);
+    expect(showResponseWindowInactive).toHaveBeenCalledTimes(1);
+    expect(syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
   test('restore-surface-after-screenshot restores dashboard when needed', () => {
@@ -217,6 +259,94 @@ describe('overlay_visibility_handler', () => {
     expect(hideMainWindow).not.toHaveBeenCalled();
     expect(waitInMain).toHaveBeenNthCalledWith(1, 2000);
     expect(waitInMain).toHaveBeenNthCalledWith(2, 120);
+  });
+
+  test('prepare-surface-for-screenshot preserves chatbox-plus-response visibility shape', async () => {
+    const hideChatWindow = jest.fn().mockReturnValue({ success: true, hidden: true });
+    const hideMainWindow = jest.fn().mockResolvedValue({ success: true, hidden: true });
+    const waitInMain = jest.fn().mockResolvedValue(undefined);
+    const event = {
+      sender: { id: 'chat-webcontents' },
+    };
+    const getWindows = () => ({
+      chatWindow: {
+        isDestroyed: () => false,
+        isVisible: () => true,
+        webContents: event.sender,
+      },
+      responseWindow: {
+        isDestroyed: () => false,
+        isVisible: () => true,
+        webContents: { id: 'response-webcontents' },
+      },
+      mainWindow: {
+        isDestroyed: () => false,
+        isVisible: () => false,
+        webContents: { id: 'main-webcontents' },
+      },
+    });
+
+    const result = await handlePrepareSurfaceForScreenshot(
+      event,
+      { waitMs: 0, settleMs: 120 },
+      { getWindows, hideChatWindow, hideMainWindow, waitInMain },
+    );
+
+    expect(result.hiddenSurface).toBe('chatbox-response');
+    expect(hideChatWindow).toHaveBeenCalledTimes(1);
+    expect(hideMainWindow).not.toHaveBeenCalled();
+  });
+
+  test('prepare-surface-for-screenshot can hide response overlay without chatbox visibility', async () => {
+    const hideChatWindow = jest.fn().mockReturnValue({ success: true, hidden: true });
+    const hideMainWindow = jest.fn().mockResolvedValue({ success: true, hidden: true });
+    const waitInMain = jest.fn().mockResolvedValue(undefined);
+    const responseWindow = {
+      isDestroyed: () => false,
+      isVisible: () => true,
+      hide: jest.fn(),
+      webContents: { id: 'response-webcontents' },
+    };
+    const contextLabelWindow = {
+      isDestroyed: () => false,
+      isVisible: () => true,
+      hide: jest.fn(),
+    };
+    const broadcastResponseOverlayVisibility = jest.fn();
+
+    const result = await handlePrepareSurfaceForScreenshot(
+      { sender: responseWindow.webContents },
+      { waitMs: 0, settleMs: 120 },
+      {
+        getWindows: () => ({
+          chatWindow: {
+            isDestroyed: () => false,
+            isVisible: () => false,
+            webContents: { id: 'chat-webcontents' },
+          },
+          responseWindow,
+          contextLabelWindow,
+          mainWindow: {
+            isDestroyed: () => false,
+            isVisible: () => false,
+            webContents: { id: 'main-webcontents' },
+          },
+        }),
+        hideChatWindow,
+        hideMainWindow,
+        waitInMain,
+        responseWindow,
+        contextLabelWindow,
+        broadcastResponseOverlayVisibility,
+      },
+    );
+
+    expect(result.hiddenSurface).toBe('response');
+    expect(responseWindow.hide).toHaveBeenCalledTimes(1);
+    expect(contextLabelWindow.hide).toHaveBeenCalledTimes(1);
+    expect(broadcastResponseOverlayVisibility).toHaveBeenCalledWith(false);
+    expect(hideChatWindow).not.toHaveBeenCalled();
+    expect(hideMainWindow).not.toHaveBeenCalled();
   });
 
   test('prepare-surface-for-screenshot hides the dashboard surface when sender is main window', async () => {
