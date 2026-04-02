@@ -1,6 +1,7 @@
 const {
   ipcMain,
   shell,
+  Menu,
   BrowserWindow,
   screen,
   clipboard,
@@ -64,6 +65,9 @@ const {
 const {
   registerClipboardImageHandler,
 } = require('./ipc/ipc_clipboard_image.cjs');
+const {
+  registerImageContextMenuHandler,
+} = require('./ipc/ipc_image_context_menu.cjs');
 const {
   resolveActiveSurfaceDisplayAffinity,
   setActiveDisplayAffinity,
@@ -599,6 +603,13 @@ function initializeIpc(win, options = {}) {
 
   registerClipboardImageHandler({
     ipcMain,
+    clipboard,
+    nativeImage,
+  });
+  registerImageContextMenuHandler({
+    ipcMain,
+    Menu,
+    BrowserWindow,
     clipboard,
     nativeImage,
   });

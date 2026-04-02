@@ -33,6 +33,7 @@ type SharedChannelRegistry = {
     STORE_TRANSCRIPT: 'store-transcript';
     GET_CLIENT_USER_ID: 'get-client-user-id';
     COPY_IMAGE_TO_CLIPBOARD: 'copy-image-to-clipboard';
+    SHOW_IMAGE_CONTEXT_MENU: 'show-image-context-menu';
     SET_CHATBOX_VISUAL_ANCHOR_HEIGHT: 'set-chatbox-visual-anchor-height';
     SET_CHATBOX_HIT_TEST_ACTIVE: 'set-chatbox-hit-test-active';
     SET_RESPONSEBOX_SIZE: 'set-responsebox-size';
