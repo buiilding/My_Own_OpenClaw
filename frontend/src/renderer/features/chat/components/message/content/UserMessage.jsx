@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   resolveMessageScreenshotSrcList,
@@ -6,80 +6,19 @@ import {
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
 import MarkdownMessage from './MarkdownMessage';
 
-const CLOSED_IMAGE_CONTEXT_MENU = Object.freeze({
-  open: false,
-  src: null,
-  isCopying: false,
-});
-
 export default function UserMessage({ message }) {
   const screenshotSources = resolveMessageScreenshotSrcList(message);
   const attachmentFilenames = Array.isArray(message.attachmentFilenames)
     ? message.attachmentFilenames.filter((filename) => typeof filename === 'string' && filename.length > 0)
     : [];
-  const [imageContextMenu, setImageContextMenu] = useState(CLOSED_IMAGE_CONTEXT_MENU);
-  const imageContextMenuRef = useRef(null);
+  const [copyingScreenshotSrc, setCopyingScreenshotSrc] = useState(null);
 
-  const closeImageContextMenu = useCallback(() => {
-    setImageContextMenu((currentState) => (currentState.open ? CLOSED_IMAGE_CONTEXT_MENU : currentState));
-  }, []);
-
-  useEffect(() => {
-    if (!imageContextMenu.open) {
-      return undefined;
-    }
-
-    const handlePointerDown = (event) => {
-      if (imageContextMenuRef.current?.contains(event.target)) {
-        return;
-      }
-      closeImageContextMenu();
-    };
-
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        closeImageContextMenu();
-      }
-    };
-
-    window.addEventListener('mousedown', handlePointerDown, true);
-    window.addEventListener('scroll', closeImageContextMenu, true);
-    window.addEventListener('resize', closeImageContextMenu);
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('mousedown', handlePointerDown, true);
-      window.removeEventListener('scroll', closeImageContextMenu, true);
-      window.removeEventListener('resize', closeImageContextMenu);
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [closeImageContextMenu, imageContextMenu.open]);
-
-  const handleScreenshotContextMenu = useCallback((event, screenshotSrc) => {
-    if (typeof screenshotSrc !== 'string' || screenshotSrc.trim().length === 0) {
-      return;
-    }
-
-    event.preventDefault();
-    setImageContextMenu({
-      open: true,
-      src: screenshotSrc,
-      isCopying: false,
-    });
-  }, []);
-
-  const handleCopyImage = useCallback(async () => {
-    const imageSrc = imageContextMenu.src;
+  const handleCopyImage = useCallback(async (imageSrc) => {
     if (typeof imageSrc !== 'string' || imageSrc.trim().length === 0) {
-      closeImageContextMenu();
       return;
     }
 
-    setImageContextMenu((currentState) => (
-      currentState.open
-        ? { ...currentState, isCopying: true }
-        : currentState
-    ));
+    setCopyingScreenshotSrc(imageSrc);
 
     try {
       const copyResult = await IpcBridge.invoke(INVOKE_CHANNELS.COPY_IMAGE_TO_CLIPBOARD, {
@@ -91,9 +30,9 @@ export default function UserMessage({ message }) {
     } catch (error) {
       console.warn('[UserMessage] Failed to copy image to clipboard:', error);
     } finally {
-      closeImageContextMenu();
+      setCopyingScreenshotSrc((currentSrc) => (currentSrc === imageSrc ? null : currentSrc));
     }
-  }, [closeImageContextMenu, imageContextMenu.src]);
+  }, []);
 
   return (
     <div className="user-message-container">
@@ -110,32 +49,24 @@ export default function UserMessage({ message }) {
         <div className="user-screenshot-gallery">
           {screenshotSources.map((screenshotSrc, index) => (
             <div className="user-screenshot-container" key={`${screenshotSrc}-${index}`}>
-              <img
-                src={screenshotSrc}
-                alt={screenshotSources.length > 1 ? `User message screenshot ${index + 1}` : 'User message screenshot'}
-                className="user-screenshot-image"
-                loading="lazy"
-                onContextMenu={(event) => handleScreenshotContextMenu(event, screenshotSrc)}
-              />
-              {imageContextMenu.open && imageContextMenu.src === screenshotSrc ? (
-                <div
-                  ref={imageContextMenuRef}
-                  className="message-dropdown-menu user-image-context-menu"
-                  role="menu"
-                >
-                  <button
-                    type="button"
-                    className="message-dropdown-item"
-                    role="menuitem"
-                    onClick={() => {
-                      void handleCopyImage();
-                    }}
-                    disabled={imageContextMenu.isCopying}
-                  >
-                    <span>{imageContextMenu.isCopying ? 'Copying image...' : 'Copy image'}</span>
-                  </button>
-                </div>
-              ) : null}
+              <div className="user-screenshot-frame">
+                <img
+                  src={screenshotSrc}
+                  alt={screenshotSources.length > 1 ? `User message screenshot ${index + 1}` : 'User message screenshot'}
+                  className="user-screenshot-image"
+                  loading="lazy"
+                />
+              </div>
+              <button
+                type="button"
+                className="user-screenshot-copy-button"
+                onClick={() => {
+                  void handleCopyImage(screenshotSrc);
+                }}
+                disabled={copyingScreenshotSrc === screenshotSrc}
+              >
+                {copyingScreenshotSrc === screenshotSrc ? 'Copying...' : 'Copy'}
+              </button>
             </div>
           ))}
         </div>

@@ -76,7 +76,7 @@ describe('MessageContent', () => {
     expect(secondImage.getAttribute('src')).toBe('data:image/png;base64,inline-b');
   });
 
-  test('opens a custom screenshot context menu and copies the image through IPC', async () => {
+  test('renders a copy button next to user screenshots and copies through IPC', async () => {
     render(
       <MessageContent
         message={{
@@ -87,10 +87,7 @@ describe('MessageContent', () => {
       />,
     );
 
-    const image = screen.getByRole('img', { name: 'User message screenshot' });
-    fireEvent.contextMenu(image, { clientX: 180, clientY: 120 });
-
-    const copyButton = screen.getByRole('menuitem', { name: 'Copy image' });
+    const copyButton = screen.getByRole('button', { name: 'Copy' });
     expect(copyButton).toBeInTheDocument();
 
     await act(async () => {
@@ -103,7 +100,7 @@ describe('MessageContent', () => {
         { src: 'https://cdn.example/screenshot.png' },
       );
     });
-    expect(screen.queryByRole('menuitem', { name: 'Copy image' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Copy' })).toBeInTheDocument();
   });
 
   test('defaults inline screenshot data URL to jpeg when content type missing', () => {
