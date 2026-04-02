@@ -8,31 +8,9 @@ import MarkdownMessage from './MarkdownMessage';
 
 const CLOSED_IMAGE_CONTEXT_MENU = Object.freeze({
   open: false,
-  x: 0,
-  y: 0,
   src: null,
   isCopying: false,
 });
-
-function resolveImageContextMenuPosition(x, y) {
-  const viewportWidth = typeof window === 'undefined' ? 0 : window.innerWidth;
-  const viewportHeight = typeof window === 'undefined' ? 0 : window.innerHeight;
-  const menuWidth = 216;
-  const menuHeight = 60;
-  const edgePadding = 8;
-
-  const clampedX = viewportWidth > 0
-    ? Math.max(edgePadding, Math.min(x, viewportWidth - menuWidth - edgePadding))
-    : x;
-  const clampedY = viewportHeight > 0
-    ? Math.max(edgePadding, Math.min(y, viewportHeight - menuHeight - edgePadding))
-    : y;
-
-  return {
-    left: clampedX,
-    top: clampedY,
-  };
-}
 
 export default function UserMessage({ message }) {
   const screenshotSources = resolveMessageScreenshotSrcList(message);
@@ -83,17 +61,8 @@ export default function UserMessage({ message }) {
     }
 
     event.preventDefault();
-    const imageBounds = event.currentTarget?.getBoundingClientRect?.();
-    const anchorX = imageBounds
-      ? (imageBounds.right - 16)
-      : event.clientX;
-    const anchorY = imageBounds
-      ? (imageBounds.top + 12)
-      : event.clientY;
     setImageContextMenu({
       open: true,
-      x: anchorX,
-      y: anchorY,
       src: screenshotSrc,
       isCopying: false,
     });
@@ -126,11 +95,6 @@ export default function UserMessage({ message }) {
     }
   }, [closeImageContextMenu, imageContextMenu.src]);
 
-  const imageContextMenuPosition = resolveImageContextMenuPosition(
-    imageContextMenu.x,
-    imageContextMenu.y,
-  );
-
   return (
     <div className="user-message-container">
       {attachmentFilenames.length > 0 ? (
@@ -153,31 +117,30 @@ export default function UserMessage({ message }) {
                 loading="lazy"
                 onContextMenu={(event) => handleScreenshotContextMenu(event, screenshotSrc)}
               />
+              {imageContextMenu.open && imageContextMenu.src === screenshotSrc ? (
+                <div
+                  ref={imageContextMenuRef}
+                  className="message-dropdown-menu user-image-context-menu"
+                  role="menu"
+                >
+                  <button
+                    type="button"
+                    className="message-dropdown-item"
+                    role="menuitem"
+                    onClick={() => {
+                      void handleCopyImage();
+                    }}
+                    disabled={imageContextMenu.isCopying}
+                  >
+                    <span>{imageContextMenu.isCopying ? 'Copying image...' : 'Copy image'}</span>
+                  </button>
+                </div>
+              ) : null}
             </div>
           ))}
         </div>
       ) : null}
       <MarkdownMessage text={message.text} sender="user" />
-      {imageContextMenu.open ? (
-        <div
-          ref={imageContextMenuRef}
-          className="message-dropdown-menu user-image-context-menu"
-          role="menu"
-          style={imageContextMenuPosition}
-        >
-          <button
-            type="button"
-            className="message-dropdown-item"
-            role="menuitem"
-            onClick={() => {
-              void handleCopyImage();
-            }}
-            disabled={imageContextMenu.isCopying}
-          >
-            <span>{imageContextMenu.isCopying ? 'Copying image...' : 'Copy image'}</span>
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }
