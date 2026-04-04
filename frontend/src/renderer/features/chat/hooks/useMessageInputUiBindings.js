@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 
 export function useTextareaAutoResize(inputValue, resizeTextarea) {
-  useEffect(() => {
+  useLayoutEffect(() => {
     resizeTextarea();
   }, [inputValue, resizeTextarea]);
 }
