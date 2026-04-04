@@ -45,6 +45,7 @@ Provider selection policy:
 
 - `speech_provider="local"` uses the existing Piper-based local synthesis path
 - `speech_provider="elevenlabs"` uses ElevenLabs websocket streaming with the same frontend audio-chunk contract
+- ElevenLabs authentication is resolved from the environment variable named by `elevenlabs_api_key_env` (default `ELEVENLABS_API_KEY`); the secret is not stored in backend config
 - if ElevenLabs cannot initialize, the API layer falls back to the local provider so speech does not silently disappear
 
 ## Query-Time TTS Path

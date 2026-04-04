@@ -21,6 +21,11 @@ user session (applies on next query). Speech backend selection stays backend-own
 the frontend can enable or disable speech playback for the session, but it does not
 choose `local` versus `elevenlabs`.
 
+Important secret-handling rule:
+- `AppConfig` stores defaults, runtime policy, and env-var names.
+- Provider secrets such as `OPENAI_API_KEY` and `ELEVENLABS_API_KEY` are read from the process environment at runtime.
+- Do not place real API keys in `app_config.py`.
+
 Runtime normalization logic is centralized in `backend/src/core/config/runtime.py`
 so loader/manager/service paths apply the same policy sequence.
 
@@ -79,6 +84,11 @@ API keys are loaded from environment variables defined in `backend/src/core/conf
 - `KIMICODE_API_KEY` (legacy fallback for Kimi Coding)
 - `BRAVE_SEARCH_API_KEY` (backend fallback for logical `web_search` when the active provider lacks native web retrieval)
 - `ELEVENLABS_API_KEY` (default speech provider authentication)
+
+ElevenLabs note:
+- `speech_provider` and the default ElevenLabs voice/model/output settings live in backend config.
+- `elevenlabs_api_key_env` stores only the environment variable name to read for auth.
+- The actual ElevenLabs secret must be provided through `ELEVENLABS_API_KEY` in the environment.
 
 ### Web Search Capability Routing
 
