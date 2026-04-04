@@ -12,6 +12,7 @@ const DEFAULT_FRONTEND_CONFIG = {
   interaction_mode: 'agent',
   voice_mode_enabled: false,
   speech_mode_enabled: false,
+  wakeword_enabled: true,
   wakeword_stt_enabled: false,
   agent_full_sudo_enabled: false,
   show_tool_logs: false,
@@ -85,6 +86,19 @@ describe('configStorage', () => {
       ...DEFAULT_FRONTEND_CONFIG,
       speech_mode_enabled: true,
       voice_mode_enabled: true,
+    });
+  });
+
+  test('loadConfigFromStorage preserves stored wakeword_enabled value', () => {
+    localStorage.setItem(
+      CONFIG_KEY,
+      JSON.stringify({ wakeword_enabled: false }),
+    );
+
+    const result = loadConfigFromStorage();
+    expect(result).toEqual({
+      ...DEFAULT_FRONTEND_CONFIG,
+      wakeword_enabled: false,
     });
   });
 

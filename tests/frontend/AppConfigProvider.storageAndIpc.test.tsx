@@ -154,6 +154,18 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     );
   });
 
+  test('derives wakewordEnabled from persisted frontend config', () => {
+    mockLoadConfigFromStorage.mockReturnValue({
+      voice_mode_enabled: false,
+      wakeword_enabled: false,
+    });
+
+    const { result } = renderAppConfigContext();
+
+    expect(result.current.wakewordEnabled).toBe(false);
+    expect(result.current.wakewordActive).toBe(false);
+  });
+
   test('updates transcript session when client user id resolves', async () => {
     setClientUserIdResponse({ userId: 'client-user-1' });
 
@@ -319,6 +331,34 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       wakewordHandler?.({ enabled: 'yes' });
     });
     expect(result.current.wakewordActive).toBe(false);
+  });
+
+  test('setWakewordEnabled persists through config storage and backend sync', async () => {
+    const { result } = renderAppConfigContext();
+
+    act(() => {
+      result.current.setWakewordEnabled(false);
+    });
+    await flushAsyncEffects();
+
+    expect(result.current.wakewordEnabled).toBe(false);
+    expect(mockSaveConfigToStorage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        wakeword_enabled: false,
+      }),
+      expect.any(Number),
+    );
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG,
+      expect.objectContaining({
+        wakeword_enabled: false,
+      }),
+    );
+    expect(ApiClient.updateSettings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        wakeword_enabled: false,
+      }),
+    );
   });
 
   test('warns when disk config load fails', async () => {

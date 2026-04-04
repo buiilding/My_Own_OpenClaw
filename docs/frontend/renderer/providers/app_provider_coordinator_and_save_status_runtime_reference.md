@@ -67,7 +67,7 @@ State fields:
 
 - `config`
 - `availableModels` (`local`, `online`)
-- `wakewordEnabled`
+- derived `wakewordEnabled = config.wakeword_enabled !== false`
 - `wakewordSuppressed`
 - derived `wakewordActive = wakewordEnabled && !wakewordSuppressed`
 
@@ -75,7 +75,7 @@ Callback API:
 
 - `updateConfig(newConfig)`
 - `registerSaveStatusCallback(callback)`
-- `setWakewordEnabled(boolean)`
+- `setWakewordEnabled(boolean)` -> delegates to `updateConfig({ wakeword_enabled })`
 
 ## Startup and Sync Sources
 
@@ -115,6 +115,11 @@ One-time model-list request guard:
 4. persist localStorage
 5. async save to disk via IPC invoke
 6. send backend `update-settings` via `ApiClient.updateSettings`
+
+Shared commit path:
+
+- disk-load reconcile, runtime fallback config writes, and explicit `updateConfig(...)` calls all flow through the same apply/commit helper path
+- browser `storage` sync reuses the same apply path but skips disk/backend side effects
 
 ## AppStatusProvider Save-State Machine
 

@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 const {
+  hideChatWindow,
   hideMainWindow,
   showMainWindow,
   showChatWindow,
@@ -486,6 +487,29 @@ describe('window_visibility_runtime showMainWindow', () => {
     expect(mainWindow.moveTop).not.toHaveBeenCalled();
     expect(mainWindow.focus).not.toHaveBeenCalled();
     expect(mainWindow.webContents.focus).not.toHaveBeenCalled();
+  });
+});
+
+describe('window_visibility_runtime hideChatWindow', () => {
+  test('hides response-only overlay surfaces even when the chat window is unavailable', () => {
+    const responseWindow = createWindow({ visible: true });
+    const contextLabelWindow = createWindow({ visible: true });
+    const broadcastResponseOverlayVisibility = jest.fn();
+    const syncWakewordToggleForChatVisibility = jest.fn();
+
+    const result = hideChatWindow({
+      chatWindow: null,
+      responseWindow,
+      contextLabelWindow,
+      broadcastResponseOverlayVisibility,
+      syncWakewordToggleForChatVisibility,
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(responseWindow.hide).toHaveBeenCalledTimes(1);
+    expect(contextLabelWindow.hide).toHaveBeenCalledTimes(1);
+    expect(broadcastResponseOverlayVisibility).toHaveBeenCalledWith(false);
+    expect(syncWakewordToggleForChatVisibility).toHaveBeenCalledTimes(1);
   });
 });
 
