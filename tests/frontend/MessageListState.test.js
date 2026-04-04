@@ -4,12 +4,13 @@ import {
   shouldRenderUserActions,
 } from '../../frontend/src/renderer/features/chat/utils/message/messageListState';
 import { resolveCurrentTurnPresentationState } from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';
+import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/features/chat/utils/overlay/overlayTurnLifecycleContract';
 
 describe('messageListState', () => {
   test('awaiting-dot target picks latest user row only while awaiting reply', () => {
     const awaitingState = resolveCurrentTurnPresentationState({
       phase: 'idle',
-      isSending: true,
+      lifecycle: OVERLAY_TURN_LIFECYCLE.PREFLIGHT,
       messages: [
         { id: 'assistant-1', sender: 'assistant' },
         { id: 'user-1', sender: 'user' },
@@ -21,7 +22,7 @@ describe('messageListState', () => {
 
     const notAwaitingState = resolveCurrentTurnPresentationState({
       phase: 'complete',
-      isSending: false,
+      lifecycle: OVERLAY_TURN_LIFECYCLE.TERMINAL,
       messages: [{ id: 'user-1', sender: 'user' }],
     });
     expect(notAwaitingState.awaitingDotTargetMessageId).toBeNull();

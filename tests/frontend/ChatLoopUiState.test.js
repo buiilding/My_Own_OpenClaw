@@ -3,12 +3,12 @@ import {
   isChatLoopBusy,
   resolveChatLoopUiState,
 } from '../../frontend/src/renderer/features/chat/utils/state/chatLoopUiState';
+import { OVERLAY_TURN_LIFECYCLE } from '../../frontend/src/renderer/features/chat/utils/overlay/overlayTurnLifecycleContract';
 
 describe('chatLoopUiState', () => {
-  test('treats local send latch as awaiting reply', () => {
+  test('treats preflight lifecycle as awaiting reply', () => {
     const loopUiState = resolveChatLoopUiState({
-      phase: 'idle',
-      isSending: true,
+      lifecycle: OVERLAY_TURN_LIFECYCLE.PREFLIGHT,
       hasVisibleReply: false,
     });
 
@@ -19,8 +19,7 @@ describe('chatLoopUiState', () => {
 
   test('keeps streaming without a visible assistant reply in awaiting state', () => {
     const loopUiState = resolveChatLoopUiState({
-      phase: 'streaming',
-      isSending: false,
+      lifecycle: OVERLAY_TURN_LIFECYCLE.ACTIVE,
       hasVisibleReply: false,
     });
 
@@ -29,8 +28,7 @@ describe('chatLoopUiState', () => {
 
   test('switches streaming with a visible assistant reply into active response state', () => {
     const loopUiState = resolveChatLoopUiState({
-      phase: 'streaming',
-      isSending: false,
+      lifecycle: OVERLAY_TURN_LIFECYCLE.ACTIVE,
       hasVisibleReply: true,
     });
 
@@ -41,8 +39,7 @@ describe('chatLoopUiState', () => {
 
   test('returns to idle on terminal phases', () => {
     const loopUiState = resolveChatLoopUiState({
-      phase: 'complete',
-      isSending: false,
+      lifecycle: OVERLAY_TURN_LIFECYCLE.TERMINAL,
       hasVisibleReply: true,
     });
 
@@ -50,10 +47,9 @@ describe('chatLoopUiState', () => {
     expect(isChatLoopBusy(loopUiState)).toBe(false);
   });
 
-  test('keeps terminal complete phase in awaiting state when a new send is already staged', () => {
+  test('treats awaiting lifecycle as awaiting reply', () => {
     const loopUiState = resolveChatLoopUiState({
-      phase: 'complete',
-      isSending: true,
+      lifecycle: OVERLAY_TURN_LIFECYCLE.AWAITING,
       hasVisibleReply: false,
     });
 
@@ -61,10 +57,9 @@ describe('chatLoopUiState', () => {
     expect(isChatLoopBusy(loopUiState)).toBe(true);
   });
 
-  test('keeps terminal complete phase idle when stale send latch still has a visible reply', () => {
+  test('keeps idle lifecycle idle even when a stale visible reply exists', () => {
     const loopUiState = resolveChatLoopUiState({
-      phase: 'complete',
-      isSending: true,
+      lifecycle: OVERLAY_TURN_LIFECYCLE.IDLE,
       hasVisibleReply: true,
     });
 
@@ -72,12 +67,10 @@ describe('chatLoopUiState', () => {
     expect(isChatLoopBusy(loopUiState)).toBe(false);
   });
 
-  test('forces idle when transport is disconnected', () => {
+  test('falls back to idle for unknown lifecycle values', () => {
     const loopUiState = resolveChatLoopUiState({
-      phase: 'tool-call',
-      isSending: true,
+      lifecycle: 'unknown',
       hasVisibleReply: false,
-      transportConnected: false,
     });
 
     expect(loopUiState).toBe('idle');

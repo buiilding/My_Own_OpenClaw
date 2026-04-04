@@ -12,8 +12,10 @@ title: "Response Overlay Utility Contract Reference"
 
 - `frontend/src/shared/response_overlay_phase_contract.json`
 - `frontend/src/shared/response_overlay_layout_contract.json`
+- `frontend/src/shared/overlay_turn_lifecycle_contract.json`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutContract.js`
+- `frontend/src/renderer/features/chat/utils/overlay/overlayTurnLifecycleContract.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
@@ -74,6 +76,33 @@ Important behavior:
 - when last subscriber unsubscribes, listener cleanup resets snapshot back to `idle`
 
 `useResponseOverlayPhase()` exposes this state via `useSyncExternalStore`, so both `ChatBox` and `ChatBoxResponse` share one transport subscription surface.
+
+## Turn Lifecycle Contract
+
+Shared lifecycle source of truth:
+
+- `frontend/src/shared/overlay_turn_lifecycle_contract.json`
+
+Renderer adapters:
+
+- `overlayTurnLifecycleContract.js` exposes lifecycle constants:
+  - `IDLE`
+  - `PREFLIGHT`
+  - `AWAITING`
+  - `ACTIVE`
+  - `TERMINAL`
+- `overlayTurnLifecycleState.js` resolves renderer-local send state plus main-process overlay phase into one canonical lifecycle.
+
+Important behavior:
+
+- renderer-local `isSending` is treated as `preflight` until the main-process phase advances
+- `awaiting-first-chunk` resolves to `awaiting`
+- `streaming` / `tool-call` / `tool-output` resolve to `active`
+- `complete` / `error` resolve to `terminal` unless a newer send has already staged locally, in which case the lifecycle stays `preflight`
+
+Purpose:
+
+- keep `useCurrentTurnPresentationState`, `ChatBox`, `ChatInterface`, and `ChatBoxResponse` on one shared turn-lifecycle contract instead of each reducing `phase + isSending` independently
 
 ## Layout-Mode Resolver Contract
 

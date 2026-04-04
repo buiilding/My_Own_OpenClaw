@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import {
+  findLatestVisibleAssistantReply,
   resolveCurrentTurnPresentationState,
 } from '../utils/state/chatTurnPresentationState';
-import { useChatLoopTransportState } from './useChatLoopUiState';
+import { useOverlayTurnLifecycle } from './useOverlayTurnLifecycle';
 
 export function useCurrentTurnPresentationState({
   phase,
@@ -11,48 +12,40 @@ export function useCurrentTurnPresentationState({
   dismissedResponseId = null,
   allowedTypes,
 }) {
-  const optimisticPresentationState = useMemo(() => resolveCurrentTurnPresentationState({
-    phase,
-    isSending,
+  const activeResponse = useMemo(() => findLatestVisibleAssistantReply(
     messages,
-    dismissedResponseId,
     allowedTypes,
-    transportConnected: true,
-  }), [
+  ), [
     allowedTypes,
-    dismissedResponseId,
-    isSending,
     messages,
-    phase,
   ]);
+  const hasVisibleReply = Boolean(activeResponse);
 
-  const loopTransportState = useChatLoopTransportState({
-    snapshotSignature: [
-      phase || 'idle',
-      isSending ? '1' : '0',
-      optimisticPresentationState.hasVisibleReply ? '1' : '0',
-    ].join('|'),
-    isBusy: optimisticPresentationState.isBusy,
+  const overlayTurnLifecycleState = useOverlayTurnLifecycle({
+    phase,
+    isSending,
+    hasVisibleReply,
   });
 
   const presentationState = useMemo(() => resolveCurrentTurnPresentationState({
     phase,
-    isSending,
+    lifecycle: overlayTurnLifecycleState.lifecycle,
     messages,
     dismissedResponseId,
     allowedTypes,
-    transportConnected: loopTransportState.isPresentationTransportConnected,
+    activeResponse,
   }), [
     allowedTypes,
+    activeResponse,
     dismissedResponseId,
-    isSending,
-    loopTransportState.isPresentationTransportConnected,
     messages,
     phase,
+    overlayTurnLifecycleState.lifecycle,
   ]);
 
   return {
     ...presentationState,
-    isTransportConnected: loopTransportState.isTransportConnected,
+    isTransportConnected: overlayTurnLifecycleState.isTransportConnected,
+    overlayTurnLifecycle: overlayTurnLifecycleState.lifecycle,
   };
 }
