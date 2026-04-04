@@ -27,15 +27,12 @@ export function createDefaultTestAppConfig(): TestAppConfig {
 }
 
 function createDefaultAvailableModels(config: TestAppConfig): TestAvailableModels {
-  const isGemini = config.model_provider === 'gemini' && config.selected_model_id.startsWith('gemini-');
   return {
     local: [],
     online: [
       {
         id: config.selected_model_id,
         provider: config.model_provider,
-        supports_thinking: isGemini,
-        supports_thinking_text_stream: true,
       },
     ],
   };

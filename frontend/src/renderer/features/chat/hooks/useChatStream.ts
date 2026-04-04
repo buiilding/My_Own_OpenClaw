@@ -242,17 +242,11 @@ export function useChatStream(enableTranscript: boolean = true) {
     persistThinkingForTurn,
   });
 
-  const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    processStreamingComplete(event, conversationRef);
-  }, [
-    processStreamingComplete,
+  const handleStreamingComplete = useTurnScopedBackendEventHandler<StreamingCompleteEvent>({
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
-  ]);
+    onEvent: processStreamingComplete,
+  });
 
   const {
     handleError,

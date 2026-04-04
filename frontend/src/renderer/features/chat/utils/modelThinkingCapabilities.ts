@@ -19,13 +19,9 @@ export function resolveThinkingCapabilities(
     (model) => model?.id === normalizedModelId && model?.provider === normalizedProvider,
   ) || allModels.find((model) => model?.id === normalizedModelId);
 
-  const inferredGeminiThinkingModel = (
-    normalizedProvider === 'gemini'
-    && normalizedModelId.toLowerCase().startsWith('gemini-')
-  );
   const supportsThinking = typeof selectedModel?.supports_thinking === 'boolean'
     ? selectedModel.supports_thinking
-    : inferredGeminiThinkingModel;
+    : false;
 
   const supportsThinkingTextStream = (
     typeof selectedModel?.supports_thinking_text_stream === 'boolean'
