@@ -44,21 +44,9 @@ function ChatInterfaceHeaderControls({
   handleWindowToggleMaximize,
   handleWindowClose,
 }) {
-  const headerSubtitle = activeWorkspaceName
-    ? `Working in ${activeWorkspaceName}`
-    : 'Compose here, then hand off desktop execution when needed.';
-
   return (
     <header className="chat-header">
       <div className="chat-title-block">
-        <div className="chat-header-copy">
-          <span className="chat-header-eyebrow">Primary chat</span>
-          <div className="chat-header-title-row">
-            <span className="chat-header-title">Current conversation</span>
-            <span className="chat-header-sync-badge">Desktop synced</span>
-          </div>
-          <p className="chat-header-subtitle">{headerSubtitle}</p>
-        </div>
         <div className="chat-model-row">
           <div className="chat-provider-dropdown" ref={providerMenuRef}>
             <button
