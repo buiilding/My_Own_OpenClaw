@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { IpcBridge, SEND_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { float32ToPcm16, normalizeScriptProcessorChunkSize } from '../utils/audioEncoding';
 import {
   cleanupAudioCaptureNodes,
@@ -9,8 +9,6 @@ import {
 import { createAudioCaptureProcessorNode } from '../utils/audioProcessorNode';
 import {
   getChunkSizeWarning,
-  isWithinCooldown,
-  resolveConfidence,
 } from '../utils/wakewordEventUtils';
 import {
   clearWakewordCaptureGuard,
@@ -20,6 +18,7 @@ import {
 } from '../utils/wakewordCaptureGuard';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
+import { useWakewordBridgeEvents } from './useWakewordBridgeEvents';
 
 const WAKEWORD_COOLDOWN_MS = 2000;
 const CAPTURE_RETRY_DELAY_MS = 3000;
@@ -280,72 +279,17 @@ export function useWakewordDetection(
     sourceNodeRef,
   ]);
 
-  // Handle wakeword detection/status from main process
-  useEffect(() => {
-    const unsubscribe = IpcBridge.on(ON_CHANNELS.WAKEWORD_DETECTED, (data: any) => {
-      const now = Date.now();
-      const confidence = resolveConfidence(data?.confidence);
-      if (confidence === null) {
-        console.warn('[Wakeword] Invalid confidence value in detection event');
-        return;
-      }
-      const confidenceText = confidence.toFixed(4);
-      
-      // Cooldown check to prevent multiple rapid detections
-      if (isWithinCooldown(now, lastDetectionRef.current, WAKEWORD_COOLDOWN_MS)) {
-        return;
-      }
-
-      console.log(`[Wakeword] Detection event: model=${data.model}, confidence=${confidenceText}, threshold=${threshold}`);
-      
-      if (confidence >= threshold) {
-        lastDetectionRef.current = now;
-        console.log(`[Wakeword] *** DETECTED *** ${data.model} (confidence: ${confidenceText})`);
-        
-        // Immediately disable wakeword processing to prevent buffered chunks from triggering again
-        requestWakewordDisable();
-        
-        if (onWakewordDetectedRef.current) {
-          onWakewordDetectedRef.current({
-            model: data.model,
-            confidence,
-            score: data.score,
-          });
-        } else {
-          console.warn('[Wakeword] No callback provided');
-        }
-      } else {
-        console.log(`[Wakeword] Below threshold (${confidenceText} < ${threshold})`);
-      }
-    });
-
-    // Listen for wakeword service status - only log when state actually changes
-    const statusUnsubscribe = IpcBridge.on(ON_CHANNELS.WAKEWORD_STATUS, (status: any) => {
-      setIsReady(prevReady => {
-        if (prevReady !== status.ready) {
-          console.log(`[Wakeword] Service status: ready=${status.ready}, error=${status.error || 'none'}`);
-        }
-        return status.ready;
-      });
-      if (status.error) {
-        if (enabled) {
-          console.error('[Wakeword] Service error:', status.error);
-          setError(status.error);
-        } else {
-          setError(null);
-        }
-      } else {
-        if (!localCaptureErrorRef.current) {
-          setError(null);
-        }
-      }
-    });
-
-    return () => {
-      unsubscribe?.();
-      statusUnsubscribe?.();
-    };
-  }, [enabled, onWakewordDetectedRef, requestWakewordDisable, threshold]);
+  useWakewordBridgeEvents({
+    enabled,
+    threshold,
+    cooldownMs: WAKEWORD_COOLDOWN_MS,
+    lastDetectionRef,
+    localCaptureErrorRef,
+    onWakewordDetectedRef,
+    requestWakewordDisable,
+    setIsReady,
+    setError,
+  });
 
   // Start/stop audio capture based on enabled state
   useEffect(() => {

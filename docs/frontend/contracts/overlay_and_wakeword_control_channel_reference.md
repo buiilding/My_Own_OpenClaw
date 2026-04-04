@@ -40,11 +40,14 @@ Emit points:
 
 - `showChatWindow()` -> sends `{ enabled: false }` (suppress wakeword while chat overlay is shown)
 - `hideChatWindow()` -> sends `{ enabled: true }` (re-enable wakeword when overlay hidden)
-- app startup currently sends initial disabled state
+- renderer startup seeds suppression from the current surface before the first visibility event:
+  - main dashboard starts unsuppressed
+  - overlay views start suppressed
 
 Primary renderer consumer:
 
 - `AppConfigProvider` listens on `ON_CHANNELS.WAKEWORD_TOGGLE`
+- persisted preference comes from `config.wakeword_enabled`
 - updates `wakewordSuppressed = !enabled`
 - effective wakeword runtime state is `wakewordActive = wakewordEnabled && !wakewordSuppressed`
 
@@ -121,6 +124,7 @@ Consumer:
 Channel emissions are tied to window orchestration:
 
 - `showChatWindow` and `hideChatWindow` control both overlay windows and wakeword suppression
+- overlay teardown hides any live overlay surface even if the chat pill window is absent
 - response overlay phase callback (`applyResponseOverlayPhase`) coordinates window visibility plus visibility broadcasts
 
 This means channel behavior depends on both backend stream state (`ipc.cjs`) and local overlay-window state (`index.cjs`).

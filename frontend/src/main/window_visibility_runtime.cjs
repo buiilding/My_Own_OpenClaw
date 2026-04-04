@@ -151,18 +151,17 @@ function hideChatWindow(deps = {}) {
     getResponseOverlayPhase = () => null,
   } = deps;
 
-  if (!chatWindow || chatWindow.isDestroyed()) {
+  const overlayWindowsAvailable = (
+    safeWindowVisible(chatWindow) !== null
+    || safeWindowVisible(responseWindow) !== null
+    || safeWindowVisible(contextLabelWindow) !== null
+  );
+  if (!overlayWindowsAvailable) {
     return { success: false, reason: 'Chat window not available' };
   }
-  if (chatWindow.isVisible()) {
-    chatWindow.hide();
-  }
-  if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
-    responseWindow.hide();
-  }
-  if (contextLabelWindow && !contextLabelWindow.isDestroyed() && contextLabelWindow.isVisible()) {
-    contextLabelWindow.hide();
-  }
+  hideWindowIfVisible(chatWindow);
+  hideWindowIfVisible(responseWindow);
+  hideWindowIfVisible(contextLabelWindow);
   broadcastResponseOverlayVisibility(false);
   syncWakewordToggleForChatVisibility();
   logChatPillMainTrace({
@@ -181,6 +180,14 @@ function safeWindowVisible(win) {
     return null;
   }
   return typeof win.isVisible === 'function' ? Boolean(win.isVisible()) : null;
+}
+
+function hideWindowIfVisible(targetWindow) {
+  if (safeWindowVisible(targetWindow) !== true || typeof targetWindow.hide !== 'function') {
+    return false;
+  }
+  targetWindow.hide();
+  return true;
 }
 
 function invalidateWindowRenderer(targetWindow) {

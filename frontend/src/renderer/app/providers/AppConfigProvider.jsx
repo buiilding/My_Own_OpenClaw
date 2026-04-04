@@ -29,6 +29,10 @@ function resolveInitialWakewordSuppressed() {
   return Boolean(view);
 }
 
+function isWakewordEnabledInConfig(config) {
+  return config?.wakeword_enabled !== false;
+}
+
 function logConfigInfo(message, ...args) {
   if (
     typeof process !== 'undefined' &&
@@ -57,7 +61,6 @@ export function AppConfigProvider({ children }) {
     return storedConfig;
   });
   const [availableModels, setAvailableModels] = useState({ local: [], online: [] });
-  const [wakewordEnabled, setWakewordEnabled] = useState(true);
   const [wakewordSuppressed, setWakewordSuppressed] = useState(resolveInitialWakewordSuppressed);
   const [globalAgentStopShortcutStatus, setGlobalAgentStopShortcutStatus] = useState(null);
 
@@ -83,6 +86,49 @@ export function AppConfigProvider({ children }) {
       mergeFrontendProviderConfig(configRef.current, filterFrontendConfig(incomingConfig)),
     );
   }, [configRef]);
+
+  const commitFrontendConfig = useCallback((nextConfig, previousConfig, options = {}) => {
+    const {
+      notifySaving = false,
+      persistToDisk = true,
+      syncBackend = true,
+    } = options;
+
+    if (notifySaving && saveStatusCallbackRef.current) {
+      saveStatusCallbackRef.current();
+    }
+
+    saveConfigToStorage(nextConfig, Date.now());
+    if (persistToDisk) {
+      IpcBridge.invoke(INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG, nextConfig).catch((error) => {
+        console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
+      });
+    }
+
+    if (!syncBackend) {
+      return;
+    }
+
+    const immediateBackendConfig = buildImmediateBackendConfig(nextConfig);
+    if (immediateBackendConfig && hasImmediateBackendConfigChanges(previousConfig, nextConfig)) {
+      ApiClient.updateSettings(immediateBackendConfig);
+    }
+  }, [saveStatusCallbackRef]);
+
+  const applyResolvedConfig = useCallback((nextConfig, options = {}) => {
+    const previousConfig = configRef.current;
+    const didApplyConfig = applyConfigIfChanged(nextConfig, configRef, setConfig);
+    if (!didApplyConfig) {
+      return false;
+    }
+
+    commitFrontendConfig(nextConfig, previousConfig, options);
+    return true;
+  }, [commitFrontendConfig, configRef]);
+
+  const applyFrontendConfigPatch = useCallback((incomingConfig, options = {}) => {
+    return applyResolvedConfig(buildMergedFrontendConfig(incomingConfig), options);
+  }, [applyResolvedConfig, buildMergedFrontendConfig]);
 
   const registerSaveStatusCallback = useCallback((callback) => {
     saveStatusCallbackRef.current = typeof callback === 'function' ? callback : null;
@@ -117,16 +163,9 @@ export function AppConfigProvider({ children }) {
       fallbackAccelerator
       && configRef.current?.global_agent_stop_shortcut !== fallbackAccelerator
     ) {
-      const fallbackConfig = buildMergedFrontendConfig({
+      applyFrontendConfigPatch({
         global_agent_stop_shortcut: fallbackAccelerator,
       });
-      const didApplyFallbackConfig = applyConfigIfChanged(fallbackConfig, configRef, setConfig);
-      if (didApplyFallbackConfig) {
-        saveConfigToStorage(fallbackConfig, Date.now());
-        IpcBridge.invoke(INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG, fallbackConfig).catch((error) => {
-          console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
-        });
-      }
     }
 
     const userId = extractTranscriptUserId(data);
@@ -138,7 +177,7 @@ export function AppConfigProvider({ children }) {
       syncCurrentConfigToBackend();
     }
   }, [
-    buildMergedFrontendConfig,
+    applyFrontendConfigPatch,
     configRef,
     globalAgentStopShortcutStatusRef,
     syncCurrentConfigToBackend,
@@ -185,16 +224,7 @@ export function AppConfigProvider({ children }) {
         return;
       }
       const filteredConfig = buildMergedFrontendConfig(diskConfig);
-      const previousConfig = configRef.current;
-      const didApplyConfig = applyConfigIfChanged(filteredConfig, configRef, setConfig);
-      if (!didApplyConfig) {
-        return;
-      }
-      saveConfigToStorage(filteredConfig, Date.now());
-      const immediateBackendConfig = buildImmediateBackendConfig(filteredConfig);
-      if (immediateBackendConfig && hasImmediateBackendConfigChanges(previousConfig, filteredConfig)) {
-        ApiClient.updateSettings(immediateBackendConfig);
-      }
+      applyResolvedConfig(filteredConfig, { persistToDisk: false });
     }).catch((error) => {
       console.warn('[Config] Failed to load config from disk:', error?.message || error);
     });
@@ -202,7 +232,7 @@ export function AppConfigProvider({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [buildMergedFrontendConfig, configRef]);
+  }, [applyResolvedConfig, buildMergedFrontendConfig]);
 
   useEffect(() => {
     const handleStorage = (event) => {
@@ -219,39 +249,40 @@ export function AppConfigProvider({ children }) {
       }
 
       const filteredConfig = buildMergedFrontendConfig(syncedConfig);
-      applyConfigIfChanged(filteredConfig, configRef, setConfig);
+      applyResolvedConfig(filteredConfig, {
+        persistToDisk: false,
+        syncBackend: false,
+      });
     };
 
     window.addEventListener('storage', handleStorage);
     return () => {
       window.removeEventListener('storage', handleStorage);
     };
-  }, [buildMergedFrontendConfig, configRef]);
+  }, [applyResolvedConfig, buildMergedFrontendConfig]);
 
   const updateConfig = useCallback((newConfig) => {
-    const filteredConfig = buildMergedFrontendConfig(newConfig);
-    const previousConfig = configRef.current;
-    const didApplyConfig = applyConfigIfChanged(filteredConfig, configRef, setConfig);
+    const didApplyConfig = applyFrontendConfigPatch(newConfig, {
+      notifySaving: true,
+      persistToDisk: true,
+    });
     if (!didApplyConfig) {
       logConfigInfo('[Settings Update] No changes detected, skipping save');
-      return;
-    }
-
-    if (saveStatusCallbackRef.current) {
-      saveStatusCallbackRef.current();
+      return false;
     }
 
     logConfigInfo('[Settings Update] Updating config and saving to localStorage...');
-    saveConfigToStorage(filteredConfig, Date.now());
     logConfigInfo('[Settings Update] Config saved to localStorage');
-    IpcBridge.invoke(INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG, filteredConfig).catch((error) => {
-      console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
+    return true;
+  }, [applyFrontendConfigPatch]);
+
+  const setWakewordEnabled = useCallback((enabled) => {
+    updateConfig({
+      wakeword_enabled: enabled === true,
     });
-    const immediateBackendConfig = buildImmediateBackendConfig(filteredConfig);
-    if (immediateBackendConfig && hasImmediateBackendConfigChanges(previousConfig, filteredConfig)) {
-      ApiClient.updateSettings(immediateBackendConfig);
-    }
-  }, [buildMergedFrontendConfig, configRef]);
+  }, [updateConfig]);
+
+  const wakewordEnabled = isWakewordEnabledInConfig(config);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.WAKEWORD_TOGGLE, (data) => {
@@ -280,6 +311,7 @@ export function AppConfigProvider({ children }) {
     wakewordEnabled,
     wakewordSuppressed,
     updateConfig,
+    setWakewordEnabled,
     registerSaveStatusCallback,
     globalAgentStopShortcutStatus,
   ]);

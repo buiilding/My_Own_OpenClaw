@@ -11,6 +11,7 @@ title: "Wakeword Detection IPC Capture and Cooldown Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
+- `frontend/src/renderer/features/voice/hooks/useWakewordBridgeEvents.ts`
 - `frontend/src/renderer/app/WakewordController.jsx`
 - `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
 - `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
@@ -28,7 +29,7 @@ title: "Wakeword Detection IPC Capture and Cooldown Reference"
 
 `wakewordActive` is computed in `AppConfigProvider`:
 
-- `wakewordEnabled` (user preference)
+- `wakewordEnabled` (persisted `config.wakeword_enabled` user preference)
 - `wakewordSuppressed` (runtime suppression from `wakeword-toggle` channel)
 - `wakewordActive = wakewordEnabled && !wakewordSuppressed`
 
@@ -57,6 +58,8 @@ Renderer subscribe channels used:
 - `wakeword-detected`
 - `wakeword-status`
 
+`useWakewordBridgeEvents` owns renderer subscription/update policy for these channels.
+`useWakewordDetection` owns capture lifecycle and enable/disable orchestration.
 The hook requests enable on startup to obtain/refresh readiness status.
 
 ## Readiness-Gated Capture Lifecycle

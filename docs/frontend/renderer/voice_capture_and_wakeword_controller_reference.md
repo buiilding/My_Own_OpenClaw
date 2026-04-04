@@ -16,6 +16,7 @@ title: "Voice Capture and Wakeword Controller Reference"
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/hooks/useTranscription.ts`
 - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
+- `frontend/src/renderer/features/voice/hooks/useWakewordBridgeEvents.ts`
 - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
 - `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
@@ -118,7 +119,7 @@ This is why partial real-time updates can overwrite earlier draft text but prese
 
 Hook startup:
 
-1. subscribe `wakeword-detected` + `wakeword-status`
+1. `useWakewordBridgeEvents` subscribes `wakeword-detected` + `wakeword-status`
 2. send `wakeword-enable` to request service activation/status
 3. start microphone capture only when `enabled && isReady`
 
