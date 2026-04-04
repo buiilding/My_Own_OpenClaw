@@ -31,7 +31,6 @@ Detailed registry behavior:
 
 ### Computer tools
 
-- `computer_use` (unified router)
 - `mouse_control`
 - `keyboard_control`
 - `screenshot`
@@ -54,7 +53,6 @@ Deep runtime reference:
 
 ### System tools
 
-- `system_use` (unified router)
 - `open_app`
 - `run_shell_command`
 - `process`
@@ -76,6 +74,12 @@ Deep runtime reference:
 
 - `browser`
 
+Current runtime note:
+
+- the live sidecar registry exposes 14 direct tool names
+- `computer_use` and `system_use` are not registered sidecar tools in `frontend/src/main/python/tools/registry.py`
+- wrapper-shaped artifacts still exist under `model-facing/`, but they are not part of the current sidecar execution path
+
 ## Schema Definitions and Validation Boundary
 
 `tools/schemas.py` defines Pydantic arg models for tool parameters.
@@ -91,22 +95,20 @@ Schema classes include validation rules such as:
 Current runtime boundary:
 
 - `ToolRegistry.execute_tool` does not instantiate these schema models before invoking tools.
-- `ToolRegistry` validates envelope shape for unified wrappers before delegation:
-  - `computer_use`: requires `tool` + required `metadata` + object `arguments`
-  - `system_use`: requires valid `tool` + object `arguments` + top-level non-empty `explanation`
-    - explanation resolution is trim-normalized; whitespace-only values are treated as missing
-    - when explanation resolves, delegated concrete args receive injected `explanation`
-    - wrapper scope is limited to `run_shell_command|replace|read_file|get_system_stats|get_open_windows`; `open_app` and `process` remain direct-only tools
-- Backend `ToolPreparer` now performs authoritative pre-dispatch validation for model-emitted tool args and resolved computer-use executor payloads before any frontend execution request is sent.
-- Sidecar still keeps lightweight wrapper-envelope validation plus concrete tool runtime checks as defense in depth.
+- `ToolRegistry.execute_tool` currently performs only registry-level dispatch checks:
+  - tool name must exist in the in-memory registry
+  - `args` must be an object
+  - args are deep-copied before tool invocation
+- no wrapper-envelope validation path exists in the current sidecar registry implementation
+- runtime argument enforcement is therefore owned by the concrete tool implementation, not by a sidecar wrapper router
 
 Implication:
 
-- schema-only changes still do not automatically enforce runtime behavior inside the sidecar registry, but malformed backend-dispatched tool payloads should now fail closed in backend preparation before reaching frontend execution.
+- schema-only changes still do not automatically enforce runtime behavior inside the sidecar registry.
 
 ## Backend Compatibility Constraint
 
-`EXPOSED_TO_BACKEND_TOOLS` in sidecar registry defines expected parity with backend remote tool schemas.
+`EXPOSED_TO_BACKEND_TOOL_NAMES` in `frontend/src/main/python/tools/exposed_tool_names.py` defines expected parity with backend remote tool schemas.
 
 If missing, sidecar logs warnings and tools may fail at runtime when backend emits calls.
 

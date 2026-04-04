@@ -30,8 +30,13 @@ This guide documents the current tool API and registration flow.
 
 - Sidecar tool registry: `frontend/src/main/python/tools/registry.py`
 - Tool implementations: `frontend/src/main/python/tools/`
-- LLM-callable sidecar tool allowlist:
-  `frontend/src/main/python/tools/registry.py` (`EXPOSED_TO_BACKEND_TOOLS`)
+- Exposed direct-tool set for backend parity:
+  `frontend/src/main/python/tools/exposed_tool_names.py` (`EXPOSED_TO_BACKEND_TOOL_NAMES`)
+
+Current runtime note:
+
+- the live backend and sidecar registries expose direct tool names only
+- repo-local `model-facing/tool_schema.txt` still documents unified `computer_use` and `system_use` envelopes, but those wrapper names are not current backend or sidecar registry entries
 
 ## Current SDK Pattern
 
@@ -144,8 +149,8 @@ async def execute_my_remote_tool(args: dict[str, Any]) -> dict[str, Any]:
 ### 5. Register sidecar handler + exposure
 
 In `frontend/src/main/python/tools/registry.py`:
-- Register function in `ToolRegistry._register_tools()`.
-- Add tool name to `EXPOSED_TO_BACKEND_TOOLS` if it should be LLM-callable.
+- Add the tool to `TOOL_CATALOG` (or the explicit `switch_tab` / `get_open_windows` registration path when appropriate).
+- Add tool name to `frontend/src/main/python/tools/exposed_tool_names.py` if it should be LLM-callable from the backend.
 
 ### 6. Validate drift contract
 
@@ -195,7 +200,11 @@ For computer-use flows, screenshot capture is orchestrated by frontend runtime s
 
 ## Backend-Only Tools
 
-The default runtime currently auto-registers remote tools for LLM calling. Backend-only tools are possible, but require explicit wiring where `ToolRegistry` is constructed/initialized and `register_tool()` is called.
+The default runtime auto-registers remote tools for LLM calling and separately registers backend-owned tools in `backend/src/tools/registry.py` (`_register_backend_tools()`).
+
+Current example:
+
+- `web_search` is backend-owned and does not participate in sidecar parity tests.
 
 If you add backend-only tools, document the wiring point in the same PR.
 
@@ -204,7 +213,7 @@ If you add backend-only tools, document the wiring point in the same PR.
 ### Tool not visible to model
 
 1. Confirm backend stub is present in `backend/src/tools/tool_catalog.py` and `backend/src/tools/remote.py` exports.
-2. Confirm sidecar tool is listed in `EXPOSED_TO_BACKEND_TOOLS`.
+2. Confirm sidecar tool is listed in `frontend/src/main/python/tools/exposed_tool_names.py`.
 3. Confirm handler is registered in sidecar `ToolRegistry`.
 4. Run remote contract test.
 

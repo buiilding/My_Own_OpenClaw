@@ -12,6 +12,7 @@ This page covers backend tool registry internals in:
 
 - `backend/src/tools/registry.py`
 - `backend/src/tools/schema_registry.py`
+- `backend/src/tools/tool_catalog.py`
 - `backend/src/tools/remote.py`
 - `backend/src/tools/remote_tools/*`
 - `tests/backend/test_tool_registry_schema.py`
@@ -22,7 +23,7 @@ This page covers backend tool registry internals in:
 
 Backend mostly provides tool schemas and waits for frontend-executed results.
 
-`ToolRegistry` is therefore a schema + metadata registry for remote tool stubs, not a local executor for most user-visible tools.
+`ToolRegistry` is therefore a schema + metadata registry for remote tool stubs, plus a small backend-only registry path for tools such as `web_search`.
 
 ## ToolRegistry Construction
 
@@ -33,6 +34,7 @@ Constructor responsibilities:
 3. create `SchemaRegistry(cache_manager=...)`
 4. create/use `ContextFactory`
 5. register all remote tools from `get_all_remote_tool_classes()`
+6. register backend-owned tools from `_register_backend_tools()`
 
 ContextFactory behavior:
 
@@ -55,6 +57,7 @@ The catalog owns:
 - the import path/class name used to instantiate the stub
 - whether the tool is model-visible directly
 - the canonical flat tool spec built from the tool class
+- concrete direct-tool names only; it does not declare wrapper names such as `computer_use` or `system_use`
 
 `backend/src/tools/tool_catalog.py` now owns the built tool-spec layer as well as the name->class lookup helpers used by the backend public remote-tool exports.
 
@@ -72,22 +75,28 @@ Catalog-driven runtime helpers also power:
 - model-facing surface resolution in `ToolRegistry`
 - sidecar exposed-tool parity in `frontend/src/main/python/tools/registry.py`
 
+Wrapper artifact note:
+
+- repo-local `model-facing/tool_schema.txt` still contains unified `computer_use` and `system_use` envelope schemas
+- those wrapper names are not part of `backend/src/tools/tool_catalog.py`, are not returned by `get_all_remote_tool_classes()`, and are not included in backend/sidecar remote parity tests
+
 ## Declaration and Capability APIs
 
 `ToolRegistry` declaration APIs:
 
-- `get_function_declarations()` -> all registered model-visible tools in catalog order
+- `get_function_declarations()` -> all registered model-visible tools in catalog order, plus backend-owned `web_search` when registered
 - `get_function_declarations_filtered(tool_names)` -> subset by requested name list
 
 Ordering behavior:
 
-- full declaration generation follows the catalog-defined model-visible order, not raw registration order
+- full declaration generation follows the catalog-defined remote-tool order, then appends backend-only `web_search`
 - filtered declaration generation preserves caller-provided tool-name order while skipping missing or unregistered names
 
 Assembly behavior:
 
 - each registered tool is paired with a canonical flat tool spec built once at registration time
 - browser now follows the same generic schema path as every other registered backend tool
+- no wrapper-synthesis or post-hoc replacement step exists in the current registry implementation
 - non-catalog test/helper tools registered directly into `ToolRegistry` still pass through as direct schemas when explicitly requested
 
 Capabilities API:
@@ -185,6 +194,11 @@ Operational impact of drift:
 
 - LLM can call a backend-advertised tool that frontend cannot execute
 - or sidecar supports a tool never surfaced to model schema generation
+
+Intentional exclusions from this parity guard:
+
+- backend-only `web_search`
+- repo-local wrapper reference artifacts `computer_use` and `system_use`
 
 Field-level shared-schema guard:
 

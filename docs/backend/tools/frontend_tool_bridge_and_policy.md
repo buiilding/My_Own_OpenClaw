@@ -43,6 +43,12 @@ Backend exports remote tool classes for schemas/capabilities such as:
 
 These map to sidecar runtime implementations in `frontend/src/main/python/tools/*`.
 
+Current runtime note:
+
+- this remote bridge is direct-name based; the live backend catalog and live sidecar exposed-tool set both use concrete tool names such as `mouse_control` and `run_shell_command`
+- repo-local wrapper artifacts `computer_use` and `system_use` still exist under `model-facing/`, but they are not registered remote tool names in the current bridge
+- backend-owned `web_search` is outside this frontend bridge because it never dispatches to the sidecar
+
 ## Policy and Filtering
 
 Policy service:
@@ -68,7 +74,7 @@ Tool names expected by backend schemas and sidecar runtime must remain synchroni
 
 Sidecar explicitly tracks backend-exposed tool names in:
 
-- `frontend/src/main/python/tools/registry.py:EXPOSED_TO_BACKEND_TOOLS`
+- `frontend/src/main/python/tools/exposed_tool_names.py:EXPOSED_TO_BACKEND_TOOL_NAMES`
 
 Mismatch symptoms:
 

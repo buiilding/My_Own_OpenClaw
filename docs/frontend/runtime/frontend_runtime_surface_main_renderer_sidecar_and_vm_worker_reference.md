@@ -118,10 +118,9 @@ Send pipeline details:
 
 Tool exposure boundary is defined in `tools/registry.py`:
 
-- `EXPOSED_TO_BACKEND_TOOLS` list is the model-facing sidecar tool surface contract
-- unified wrappers are first-class:
-  - `computer_use` -> routes to concrete computer subtools with strict metadata validation
-  - `system_use` -> routes to shell/filesystem/system subtools with top-level explanation contract
+- `frontend/src/main/python/tools/exposed_tool_names.py:EXPOSED_TO_BACKEND_TOOL_NAMES` defines the sidecar direct-tool exposure contract used for backend parity
+- the current live sidecar registry exposes concrete tool names only
+- repo-local `model-facing/tool_schema.txt` still contains unified `computer_use` and `system_use` wrapper artifacts, but those names are not registered in the live sidecar runtime
 - registry reload path exists for post-install browser tool availability (`reload_tools`)
 
 ## Why This Surface Matters
