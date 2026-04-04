@@ -10,7 +10,10 @@ import pytest
 from backend.src.core.events.streaming_events import ChunkEvent, ThinkingEvent
 from backend.src.llm.providers.online import OnlineLLMProvider
 from backend.src.llm.providers.openai import OpenAIProvider
-from backend.src.llm.providers.openai_responses_input import build_openai_responses_tools
+from backend.src.llm.providers.openai_responses_input import (
+    build_openai_reasoning_config,
+    build_openai_responses_tools,
+)
 from backend.src.llm.providers.openai_responses_runtime import (
     build_openai_responses_input,
     stream_openai_responses_events,
@@ -200,6 +203,75 @@ def test_openai_provider_build_request_params_preserves_plain_object_tool_schema
     )
 
     assert params["tools"][0]["function"]["parameters"] == plain_parameters
+
+
+def test_openai_transports_share_root_union_schema_compatibility():
+    provider = OpenAIProvider(api_key="test-key")
+    union_parameters = {
+        "type": "object",
+        "description": "Grouped tool with action-specific branches.",
+        "properties": {
+            "action": {
+                "type": "string",
+                "enum": ["navigate", "search"],
+            }
+        },
+        "required": ["action"],
+        "oneOf": [
+            {
+                "type": "object",
+                "properties": {
+                    "action": {"type": "string", "enum": ["navigate"]},
+                    "url": {"type": "string", "description": "URL to open."},
+                },
+            },
+            {
+                "type": "object",
+                "properties": {
+                    "action": {"type": "string", "enum": ["search"]},
+                    "query": {"type": "string", "description": "Query to search."},
+                },
+            },
+        ],
+    }
+
+    chat_params = provider._build_request_params(
+        "gpt-5.4@@gpt-5-4-none-thinking",
+        [{"role": "user", "content": "hi"}],
+        tools=[
+            {
+                "type": "function",
+                "name": "test_tool",
+                "description": "Tool with root union parameters.",
+                "parameters": union_parameters,
+            }
+        ],
+    )
+    responses_tools = build_openai_responses_tools(
+        [
+            {
+                "type": "function",
+                "name": "test_tool",
+                "description": "Tool with root union parameters.",
+                "parameters": union_parameters,
+            }
+        ]
+    )
+
+    chat_parameters = chat_params["tools"][0]["function"]["parameters"]
+    responses_parameters = responses_tools[0]["parameters"]
+
+    assert chat_parameters == responses_parameters
+    assert chat_parameters["type"] == "object"
+    assert "oneOf" not in chat_parameters
+    assert "url" in chat_parameters["properties"]
+    assert "query" in chat_parameters["properties"]
+    assert "runtime validation" in chat_parameters["description"]
+
+
+def test_openai_reasoning_config_requires_explicit_reasoning_metadata():
+    with pytest.raises(ValueError, match="requires explicit reasoning_mode metadata"):
+        build_openai_reasoning_config("legacy-openai-model")
 
 
 @pytest.mark.asyncio
