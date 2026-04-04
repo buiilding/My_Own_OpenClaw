@@ -56,6 +56,36 @@ User experience target:
 - Keep modules focused; split large files when it improves clarity/testability.
 - When modifying code, do not keep backward compatibility, remove anything unused.
 
+## Refactor Posture
+
+- Do not treat the requested feature or bug as the only goal. Treat the touched codepath as your responsibility while you are in it.
+- Before coding, inspect the surrounding module and ask whether the task is being made harder by duplication, dead code, unclear ownership, leaky abstractions, misleading names, or missing tests.
+- Prefer the clean local design over the smallest patch when the refactor is bounded and makes the implementation simpler, clearer, or easier to test.
+- Do not stack a workaround on top of messy code if a small refactor can remove the mess.
+- Leave every touched area better than you found it: remove unused code, delete dead branches, collapse duplication, extract helpers, tighten interfaces/types, and rename misleading symbols when those changes directly support the task.
+- Do not preserve backward-compatibility shims, temporary branches, legacy indirection, or unused abstractions unless the user explicitly asks for compatibility or there is a verified dependency on them.
+- Prefer deleting or simplifying code over adding more code.
+
+### Refactor Triggers
+
+- Stop and refactor before adding new logic when the change would otherwise duplicate existing behavior.
+- Stop and refactor before adding new logic when the change would otherwise add special-case conditionals to an already confusing flow.
+- Stop and refactor before adding new logic when the change would otherwise extend a large mixed-responsibility function or component.
+- Stop and refactor before adding new logic when tests are awkward because responsibilities are poorly separated.
+- If you need a long comment to justify the patch shape, the design likely needs cleanup first.
+
+### Scope Control
+
+- Keep refactors local and goal-directed. Prefer small structural cleanups in the same codepath over broad speculative rewrites.
+- If the better fix requires a wider redesign, do the bounded cleanup that removes the immediate hazard, then explicitly note the remaining refactor seam and why you stopped there.
+- Escalate to the user instead of silently widening scope when the cleanup would cross subsystem boundaries, change public contracts, or require a large multi-file rewrite.
+
+### Completion Criteria
+
+- A task is not complete if the code works but the touched path is now more duplicated, more coupled, or harder to reason about without a clear reason.
+- Before finishing, verify: did I remove at least as much complexity as I added? did I improve the surrounding design where I touched it? do tests cover the cleaned-up behavior and boundaries?
+- In the final summary, briefly call out any meaningful refactor performed and any important debt intentionally left behind.
+
 ## Docs
 - Start: run docs list (`docs:list` script, or `./bin/docs-list` here if present; fallback: `node scripts/docs-list.js`; ignore if not installed); open docs before coding.
 - Follow links until domain makes sense; honor `Read when` hints.
@@ -98,14 +128,13 @@ User experience target:
 - Dependency patching (overrides/patches/vendored changes) requires explicit approval.
 - When answering questions, verify in code first; avoid guessing.
 - If unrelated changes from other agents are present, continue with your scoped task and report only the files/behavior you changed.
+- frontend and sidecar will never be able to touch or inspect the backend code so shouldnt propose changes that import backend code to do things like tool schema parity. best effort right now is tests and making sure they dont drift from each other.
 
 ### Explanation Style
 
 - When the user asks architectural or product-flow questions, answer in a conceptual, system-level manner first.
 - Describe how the runtime works, where a change fits in the flow, what boundaries would change, and why.
-- Do not lead with file paths, symbol names, or implementation breadcrumbs unless the user explicitly asks for them.
-- If code was inspected, use that to make the explanation accurate, but present the answer as an integration narrative rather than a file tour.
-- After the conceptual explanation is clear, optionally add implementation detail or file-level pointers only if the user asks for them.
+- Do not mention file paths, symbol names, or implementation breadcrumbs unless the user explicitly asks for them.
 
 ### Frontend Wiring Protocol
 
@@ -114,14 +143,12 @@ User experience target:
 - Declare phase invariants explicitly (expected focus owner, overlay visibility, click-through mode, stop interactivity, capture timing).
 - Centralize cross-process surface control in one orchestrator/module; avoid duplicated toggles across renderer/main/sidecar.
 - Add deterministic transition logging for each phase change (turn/tool correlation id + before/after state snapshot).
-- Prefer fail-safe retries for focus/surface prep with bounded attempts and explicit terminal errors.
 - Keep dev/prod gating explicit and test both paths when behavior differs by mode.
 - Add scenario tests for race-prone flows (tool execution start/stop, screenshot hide/show, focus verification, resume after failure).
 - If requirements conflict or timing semantics are ambiguous, stop and resolve spec conflicts before implementation.
 - Never generate a new conversation ref during first-send/startup until all three are checked: transcript session, chat store active ref, main-process session snapshot.
 - Closing dashboard must not reset chat continuity; chat pill send path must continue the active conversation if main process still has one.
 - `local-user-message` screenshot attachment contract: optimistic user row + dashboard replay must render `screenshotRef/screenshotUrl` immediately when provided; no UI-only drops.
-- Overlay startup contract: first query in minimal chat pill must show awaiting/response phases without needing a second send; phase listeners must be resilient to late mount timing.
 - Any change touching chat-pill send/session/overlay startup behavior requires regression tests in same PR (`ChatMessageSender`, `ChatProvider`, `IpcMainBridge` minimum).
 
 ## Git
@@ -164,7 +191,7 @@ Avoid “AI slop” UI. Be opinionated + distinctive.
 - Commit helper (PATH). Stages only listed paths; required here. If `committer` is unavailable on PATH, use `./scripts/committer` directly (executable).
 
 ## Critical Thinking
-- Fix root cause (not band-aid).
+- Fix root cause, not symptoms. If the root cause is local design debt, refactor the local design instead of adding a workaround.
 - Unsure: read more code; if still stuck, ask w/ short options.
 - Conflicts: call out; pick safer path.
 - Unrecognized changes: assume other agent; keep going; focus your changes. If it causes issues, stop + ask user.
