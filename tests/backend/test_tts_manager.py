@@ -14,7 +14,7 @@ class _FakeSpeechService:
 
 
 @pytest.mark.asyncio
-async def test_initialize_if_enabled_uses_selected_local_provider(monkeypatch):
+async def test_initialize_if_enabled_uses_default_elevenlabs_provider(monkeypatch):
     created = []
 
     def _fake_create_speech_service(config):
@@ -30,7 +30,7 @@ async def test_initialize_if_enabled_uses_selected_local_provider(monkeypatch):
     manager = TTSManager()
     service = await manager.initialize_if_enabled(AppConfig(speech_mode_enabled=True))
 
-    assert created[0][0] == "local"
+    assert created[0][0] == "elevenlabs"
     assert service is created[0][1]
     assert service.initialize_calls == 1
 

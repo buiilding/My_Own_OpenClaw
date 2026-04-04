@@ -300,7 +300,7 @@ class AppConfig(BaseModel):
     # tts_enabled is always True by default (hardcoded, not configurable via config file)
     # Only changeable by modifying this default value in code
     tts_enabled: bool = True
-    speech_provider: Literal["local", "elevenlabs"] = "local"
+    speech_provider: Literal["local", "elevenlabs"] = "elevenlabs"
     tts_model_path: Optional[str] = None
     speech_mode_enabled: bool = False
     elevenlabs_api_key_env: str = "ELEVENLABS_API_KEY"

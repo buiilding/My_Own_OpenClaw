@@ -26,6 +26,7 @@ Current runtime policies:
 - `tts_enabled` is forced to `true` during runtime config assembly.
 - If `tts_model_path` is unset, backend fills an OS-default path via `get_default_tts_model_path()`.
 - TTS audio streaming still depends on `speech_mode_enabled` at request time.
+- `speech_provider` defaults to `elevenlabs`; the API layer falls back to local Piper if ElevenLabs cannot initialize.
 
 ## Backend Configuration (Python)
 
@@ -49,6 +50,7 @@ APP_CONFIG = AppConfig(
     embedding_model="all-MiniLM-L6-v2",
     voice_mode_enabled=False,
     speech_mode_enabled=False,
+    speech_provider="elevenlabs",
     include_query_screenshot=True,
     vision_model_name="OpenGVLab/InternVL3_5-4B",
     wakeword_enabled=True,
@@ -74,6 +76,7 @@ API keys are loaded from environment variables defined in `backend/src/core/conf
 - `KIMI_API_KEY` (Kimi Coding)
 - `KIMICODE_API_KEY` (legacy fallback for Kimi Coding)
 - `BRAVE_SEARCH_API_KEY` (backend fallback for logical `web_search` when the active provider lacks native web retrieval)
+- `ELEVENLABS_API_KEY` (default speech provider authentication)
 
 ### Web Search Capability Routing
 
@@ -115,7 +118,7 @@ Runtime compatibility note:
 Important execution knobs in `AppConfig` (`backend/src/core/config/models.py`) include:
 - `interaction_mode` (`chat` or `agent`) controls tool allowlist behavior.
 - history reduction is compaction-only; there is no message-count pruning or loop-step cap in config.
-- `voice_mode_enabled`, `speech_mode_enabled`, and `include_query_screenshot` shape chat UX behavior.
+- `voice_mode_enabled`, `speech_mode_enabled`, `speech_provider`, and `include_query_screenshot` shape chat UX behavior.
 
 ## Frontend Configuration (Local)
 
@@ -131,6 +134,7 @@ The frontend only persists these fields:
 - `interaction_mode`
 - `voice_mode_enabled`
 - `speech_mode_enabled`
+- `speech_provider`
 - `include_query_screenshot` (defaults to `true`; controls whether user queries include screenshot image context)
 
 ### Storage Locations
