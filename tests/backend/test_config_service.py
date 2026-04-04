@@ -175,7 +175,7 @@ class TestConfigurationService:
         
         result = service.get_config_value("llm_providers.openai.model")
         
-        assert result == "gpt-5.1"
+        assert result == "gpt-5.4"
 
     def test_get_config_value_with_default(self, service):
         mock_config = AppConfig()

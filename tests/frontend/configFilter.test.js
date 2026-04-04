@@ -7,7 +7,7 @@ describe('configFilter', () => {
     const filtered = filterFrontendConfig({
       model_mode: 'online',
       model_provider: 'openai',
-      selected_model_id: 'gpt-5.1',
+      selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
       voice_mode_enabled: false,
       speech_mode_enabled: true,
       wakeword_stt_enabled: true,
@@ -28,7 +28,7 @@ describe('configFilter', () => {
     expect(filtered).toEqual({
       model_mode: 'online',
       model_provider: 'openai',
-      selected_model_id: 'gpt-5.1',
+      selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
       voice_mode_enabled: false,
       speech_mode_enabled: true,
       wakeword_stt_enabled: true,

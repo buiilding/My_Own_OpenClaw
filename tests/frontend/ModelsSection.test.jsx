@@ -6,7 +6,7 @@ import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../frontend/src/re
 describe('ModelsSection', () => {
   const config = {
     model_mode: 'online',
-    selected_model_id: 'gpt-5.1',
+    selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
     model_provider: 'openai',
     interaction_mode: 'agent',
     speech_mode_enabled: false,
@@ -32,8 +32,8 @@ describe('ModelsSection', () => {
   const availableModels = {
     local: [],
     online: [
-      { id: 'gpt-5.1', provider: 'openai' },
-      { id: 'gpt-4.1', provider: 'openai' },
+      { id: 'gpt-5.4@@gpt-5-4-none-thinking', provider: 'openai', display_name: 'GPT-5.4 None' },
+      { id: 'gpt-5.4@@gpt-5-4-high-thinking', provider: 'openai', display_name: 'GPT-5.4 High' },
       { id: 'claude-3-7-sonnet', provider: 'anthropic' },
     ],
   };
@@ -65,12 +65,12 @@ describe('ModelsSection', () => {
 
     expect(screen.getByRole('button', { name: 'Show openai models' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Show anthropic models' })).toBeInTheDocument();
-    expect(screen.queryByText('gpt-4.1')).not.toBeInTheDocument();
+    expect(screen.queryByText('GPT-5.4 High')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Show openai models' }));
 
-    expect(screen.getByRole('button', { name: /gpt-5\.1/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /gpt-4\.1/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /gpt-5\.4 none/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /gpt-5\.4 high/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /claude-3-7-sonnet/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Back to providers' })).toBeInTheDocument();
   });

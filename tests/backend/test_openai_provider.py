@@ -48,7 +48,7 @@ async def test_openai_provider_routes_thinking_completion_to_responses_runtime(m
     monkeypatch.setattr(OnlineLLMProvider, "get_completion", unexpected_standard_completion)
 
     response = await provider.get_completion(
-        model="gpt-5.2@@gpt-5-2-thinking",
+        model="gpt-5.4@@gpt-5-4-high-thinking",
         messages=[{"role": "user", "content": "hi"}],
     )
 
@@ -56,7 +56,7 @@ async def test_openai_provider_routes_thinking_completion_to_responses_runtime(m
 
 
 @pytest.mark.asyncio
-async def test_openai_provider_routes_nonthinking_completion_to_standard_runtime(monkeypatch):
+async def test_openai_provider_routes_unknown_completion_to_standard_runtime(monkeypatch):
     provider = OpenAIProvider(api_key="test-key")
 
     async def fake_standard_completion(self, *args, **kwargs):
@@ -66,7 +66,7 @@ async def test_openai_provider_routes_nonthinking_completion_to_standard_runtime
     monkeypatch.setattr(OnlineLLMProvider, "get_completion", fake_standard_completion)
 
     response = await provider.get_completion(
-        model="gpt-5@@gpt-5-nonthinking",
+        model="legacy-openai-model",
         messages=[{"role": "user", "content": "hi"}],
     )
 
@@ -95,7 +95,7 @@ async def test_openai_provider_routes_thinking_stream_to_responses_runtime(monke
 
     events = await _collect_events(
         provider._stream_internal(
-            model="gpt-5.2@@gpt-5-2-thinking",
+            model="gpt-5.4@@gpt-5-4-high-thinking",
             messages=[{"role": "user", "content": "hi"}],
         )
     )
@@ -104,7 +104,7 @@ async def test_openai_provider_routes_thinking_stream_to_responses_runtime(monke
 
 
 @pytest.mark.asyncio
-async def test_openai_provider_routes_nonthinking_stream_to_standard_runtime(monkeypatch):
+async def test_openai_provider_routes_unknown_stream_to_standard_runtime(monkeypatch):
     provider = OpenAIProvider(api_key="test-key")
 
     async def fake_standard_stream(self, *args, **kwargs):
@@ -115,7 +115,7 @@ async def test_openai_provider_routes_nonthinking_stream_to_standard_runtime(mon
 
     events = await _collect_events(
         provider._stream_internal(
-            model="gpt-5@@gpt-5-nonthinking",
+            model="legacy-openai-model",
             messages=[{"role": "user", "content": "hi"}],
         )
     )
@@ -128,7 +128,7 @@ def test_openai_provider_build_request_params_rewrites_root_oneof_tool_schema():
     browser_parameters = build_browser_tool_parameters_schema()
 
     params = provider._build_request_params(
-        "gpt-5@@gpt-5-nonthinking",
+        "gpt-5.4@@gpt-5-4-none-thinking",
         [{"role": "user", "content": "hi"}],
         tools=[
             {
@@ -165,7 +165,7 @@ def test_openai_provider_build_request_params_preserves_plain_object_tool_schema
     }
 
     params = provider._build_request_params(
-        "gpt-5@@gpt-5-nonthinking",
+        "gpt-5.4@@gpt-5-4-none-thinking",
         [{"role": "user", "content": "hi"}],
         tools=[
             {
@@ -228,7 +228,7 @@ async def test_openai_responses_stream_emits_provider_native_reasoning_and_captu
     events = await _collect_events(
         stream_openai_responses_events(
             provider,
-            model="gpt-5.2@@gpt-5-2-thinking",
+            model="gpt-5.4@@gpt-5-4-high-thinking",
             messages=[{"role": "user", "content": "hi"}],
             tools=[
                 {
@@ -317,7 +317,7 @@ async def test_openai_responses_stream_handles_enum_typed_events(
     events = await _collect_events(
         stream_openai_responses_events(
             provider,
-            model="gpt-5.3-codex@@gpt-5-3-codex-fast-thinking",
+            model="gpt-5.4@@gpt-5-4-high-thinking",
             messages=[{"role": "user", "content": "hi"}],
         )
     )

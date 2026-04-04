@@ -25,7 +25,7 @@ def _default_artifact_store_path() -> str:
 class OpenAIConfig(BaseModel):
     """Configuration for OpenAI provider."""
 
-    model: str = "gpt-5.1"
+    model: str = "gpt-5.4"
     api_key_env: str = "OPENAI_API_KEY"
 
 
@@ -213,7 +213,7 @@ class AppConfig(BaseModel):
     # LLM Settings
     model_mode: Literal["local", "online"] = "online"
     model_provider: str = "openai"  # Default provider
-    selected_model_id: str = "gpt-5@@gpt-5-nonthinking"
+    selected_model_id: str = "gpt-5.4@@gpt-5-4-none-thinking"
     llm_timeout: int = 300
     query_timeout: int = 600  # New field for query timeout
     debug_litellm: bool = False  # Enable LiteLLM debug logging

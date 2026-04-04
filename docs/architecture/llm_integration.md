@@ -17,7 +17,7 @@ System prompt note:
 
 ### Cloud Providers
 
-- **OpenAI**: GPT-5, GPT-4.1, GPT-4o, and other OpenAI models
+- **OpenAI**: GPT-5.4 with configurable reasoning effort (`none`, `low`, `medium`, `high`, `xhigh`)
 - **Anthropic**: Claude 4/3.5 families (Opus, Sonnet, Haiku)
 - **Gemini**: Gemini 2.5 and Gemini 3 preview models
 - **Kimi Code**: Kimi for Coding (OpenAI-compatible)
@@ -86,9 +86,9 @@ from backend.src.core.config.models import (
 APP_CONFIG = AppConfig(
     model_provider="openai",
     model_mode="online",
-    selected_model_id="gpt-5@@gpt-5-nonthinking",
+    selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
     llm_providers=LLMProviders(
-        openai=OpenAIConfig(model="gpt-5.1"),
+        openai=OpenAIConfig(model="gpt-5.4"),
         anthropic=AnthropicConfig(model="claude-sonnet-4-5-20250929"),
         gemini=GeminiConfig(model="gemini-2.5-flash"),
         ollama=OllamaConfig(base_url="http://localhost:11434/v1"),
@@ -122,13 +122,13 @@ llm_client = get_llm_client(config)
 
 # Non-streaming
 response = await llm_client.get_completion(
-    model="gpt-5.1",
+    model="gpt-5.4",
     messages=[{"role": "user", "content": "Hello"}]
 )
 
 # Streaming
 async for chunk in llm_client.get_completion_stream(
-    model="gpt-5.1",
+    model="gpt-5.4",
     messages=[{"role": "user", "content": "Hello"}]
 ):
     print(chunk.content)
@@ -212,7 +212,7 @@ This enables follow-up turns that continue after tool execution without text-JSO
 
 ### OpenAI
 
-**Models**: `gpt-5.2`, `gpt-5.1`, `gpt-5-mini`, `gpt-5-nano`, `gpt-4.1`, `gpt-4.1-mini`, `gpt-4o`, `gpt-4o-mini`
+**Models**: `gpt-5.4` exposed as reasoning presets for `none`, `low`, `medium`, `high`, and `xhigh`
 
 **Configuration**:
 ```python
@@ -220,9 +220,9 @@ from backend.src.core.config.models import AppConfig, LLMProviders, OpenAIConfig
 
 APP_CONFIG = AppConfig(
     model_provider="openai",
-    selected_model_id="gpt-5@@gpt-5-nonthinking",
+    selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
     llm_providers=LLMProviders(
-        openai=OpenAIConfig(model="gpt-5.1", api_key_env="OPENAI_API_KEY"),
+        openai=OpenAIConfig(model="gpt-5.4", api_key_env="OPENAI_API_KEY"),
     ),
 )
 ```
@@ -230,7 +230,8 @@ APP_CONFIG = AppConfig(
 **Features**:
 - Streaming responses
 - Token usage tracking
-- Thinking-capable presets use the OpenAI Responses API instead of generic chat-completions delta listening
+- All curated OpenAI GPT-5.4 presets use the OpenAI Responses API
+- Reasoning effort is preset-scoped and maps to `none`, `low`, `medium`, `high`, or `xhigh`
 - Provider-native reasoning summary/text stream events are forwarded as `ThinkingEvent` when the model exposes them
 
 ### Anthropic
@@ -437,7 +438,7 @@ All providers support streaming:
 from backend.src.core.events.streaming_events import ChunkEvent, ThinkingEvent, ErrorEvent
 
 async for event in llm_client.get_completion_stream(
-    model="gpt-5.1",
+    model="gpt-5.4",
     messages=messages
 ):
     if isinstance(event, ChunkEvent):
@@ -597,7 +598,7 @@ async def test_llm_integration():
     client = get_llm_client(config)
     
     response = await client.get_completion(
-        model="gpt-5.1",
+        model="gpt-5.4",
         messages=[{"role": "user", "content": "Hello"}]
     )
     

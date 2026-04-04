@@ -1,12 +1,13 @@
 import { normalizeProvider } from './session/transcriptMessagePayload';
 import { getCurrentModels } from '../../dashboard/utils/modelSelectionUtils';
 
-const REASONING_MODE_ORDER = ['low', 'medium', 'high', 'extra_high'];
+const REASONING_MODE_ORDER = ['none', 'low', 'medium', 'high', 'xhigh'];
 const REASONING_MODE_LABELS = Object.freeze({
+  none: 'None',
   low: 'Low',
   medium: 'Medium',
   high: 'High',
-  extra_high: 'Extra High',
+  xhigh: 'Extra High',
 });
 
 function normalizeString(value) {
@@ -37,16 +38,19 @@ function sanitizeModelDisplayLabel(displayName) {
 function resolveReasoningModeFromText(value) {
   const normalized = normalizeString(value).toLowerCase();
   if (!normalized) {
-    return 'medium';
+    return 'none';
   }
   if (normalized.includes('extra high') || normalized.includes('extra-high') || normalized.includes('xhigh')) {
-    return 'extra_high';
+    return 'xhigh';
   }
   if (/\bhigh\b/.test(normalized)) {
     return 'high';
   }
   if (/\bmax\b/.test(normalized)) {
-    return 'extra_high';
+    return 'xhigh';
+  }
+  if (/\bnone\b/.test(normalized)) {
+    return 'none';
   }
   if (/\blow\b/.test(normalized) || normalized.includes('minimal') || /\bnone\b/.test(normalized)) {
     return 'low';
@@ -99,6 +103,7 @@ function buildReasoningModeOptionsFromVariants(variants, configuredModelId) {
 
 function deriveModelLabelFromVariants(variants, fallbackModelId) {
   const preferredVariant = variants.find((variant) => variant.supportsThinking !== true)
+    || variants.find((variant) => resolveVariantReasoningMode(variant) === 'none')
     || variants.find((variant) => resolveVariantReasoningMode(variant) === 'medium')
     || variants[0];
   const rawLabel = normalizeString(preferredVariant?.displayName) || normalizeString(fallbackModelId);
@@ -175,10 +180,14 @@ export function buildChatModelOptions({
     const selectedRuntimeVariant = group.variants.find(
       (variant) => variant.runtimeModelId === configuredModelId,
     );
+    const noneReasoningVariant = group.variants.find(
+      (variant) => resolveVariantReasoningMode(variant) === 'none',
+    );
     const mediumReasoningVariant = reasoningModeOptions.find((option) => option.mode === 'medium');
     const nonThinkingVariant = group.variants.find((variant) => variant.supportsThinking !== true);
     const defaultVariant = selectedVariant
       || selectedRuntimeVariant
+      || noneReasoningVariant
       || (mediumReasoningVariant
         ? group.variants.find((variant) => variant.id === mediumReasoningVariant.modelId)
         : null)
@@ -272,6 +281,10 @@ export function resolveSelectedReasoningMode(modelOption, configuredModelId) {
   if (exact) {
     return exact.mode;
   }
+  const none = reasoningModes.find((option) => option.mode === 'none');
+  if (none) {
+    return none.mode;
+  }
   const medium = reasoningModes.find((option) => option.mode === 'medium');
   return (medium || reasoningModes[0]).mode;
 }
@@ -286,6 +299,10 @@ export function resolveModelIdForReasoningMode(modelOption, mode) {
   const exact = reasoningModes.find((option) => option.mode === mode);
   if (exact) {
     return exact.modelId;
+  }
+  const none = reasoningModes.find((option) => option.mode === 'none');
+  if (none) {
+    return none.modelId;
   }
   const medium = reasoningModes.find((option) => option.mode === 'medium');
   return (medium || reasoningModes[0]).modelId;

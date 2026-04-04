@@ -19,7 +19,7 @@ APP_CONFIG = AppConfig(
     # LLM Settings
     model_mode="online",
     model_provider="openai",
-    selected_model_id="gpt-5@@gpt-5-nonthinking",
+    selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
     llm_timeout=300,
     query_timeout=600,
     debug_litellm=False,

@@ -12,7 +12,7 @@ def test_web_search_capabilities_prefer_openai_native_support(monkeypatch):
     monkeypatch.delenv("BRAVE_SEARCH_API_KEY", raising=False)
     config = AppConfig(
         model_provider="openai",
-        selected_model_id="gpt-5@@gpt-5-nonthinking",
+        selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
     )
 
     assert resolve_web_search_execution_mode(config) == "native-openai"

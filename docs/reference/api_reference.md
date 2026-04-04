@@ -554,7 +554,7 @@ Update application configuration.
 {
   "model_mode": "online" | "local",
   "model_provider": "openai" | "anthropic" | ...,
-  "selected_model_id": "gpt-5@@gpt-5-nonthinking",
+  "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
   "interaction_mode": "chat" | "agent",
   "voice_mode_enabled": true | false,
   "speech_mode_enabled": true | false,
@@ -580,7 +580,7 @@ Payload shape is validated at message-parse time; value semantics are validated 
   "payload": {
     "model_mode": "online",
     "model_provider": "openai",
-    "selected_model_id": "gpt-5@@gpt-5-nonthinking",
+    "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
     "interaction_mode": "chat",
     "voice_mode_enabled": false,
     "speech_mode_enabled": true,
@@ -958,7 +958,7 @@ Response to load-settings request.
   "config": {
     "model_mode": "online",
     "model_provider": "openai",
-    "selected_model_id": "gpt-5@@gpt-5-nonthinking",
+    "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
     "interaction_mode": "chat",
     "voice_mode_enabled": false,
     "speech_mode_enabled": true,
@@ -981,7 +981,7 @@ Response to load-settings request.
     "config": {
       "model_mode": "online",
       "model_provider": "openai",
-      "selected_model_id": "gpt-5@@gpt-5-nonthinking",
+      "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
       "interaction_mode": "chat",
       "voice_mode_enabled": false,
       "speech_mode_enabled": true,
@@ -1040,16 +1040,18 @@ Response to list-models request.
   ],
   "online": [
     {
-      "id": "gpt-5.1",
+      "id": "gpt-5.4@@gpt-5-4-none-thinking",
       "provider": "openai",
-      "display_name": "openai/gpt-5.1",
-      "supports_thinking": false,
+      "runtime_model_id": "gpt-5.4",
+      "display_name": "GPT-5.4 None",
+      "supports_thinking": true,
+      "reasoning_mode": "none",
       "context_window": 400000,
-      "description": "OpenAI's strongest GPT-5 family model for coding, agents, and deliberate reasoning.",
+      "description": "OpenAI's GPT-5.4 reasoning model with configurable effort from none through xhigh.",
       "strengths": ["Reasoning", "Code", "Agents", "Tools"],
       "input_price": "Free",
       "output_price": "Free",
-      "latency": "~1.6s"
+      "latency": "~1.4s"
     },
     {
       "id": "claude-sonnet-4-5-20250929",
@@ -1089,16 +1091,18 @@ Response to list-models request.
     ],
     "online": [
       {
-        "id": "gpt-5.1",
+        "id": "gpt-5.4@@gpt-5-4-none-thinking",
         "provider": "openai",
-        "display_name": "openai/gpt-5.1",
-        "supports_thinking": false,
+        "runtime_model_id": "gpt-5.4",
+        "display_name": "GPT-5.4 None",
+        "supports_thinking": true,
+        "reasoning_mode": "none",
         "context_window": 400000,
-        "description": "OpenAI's strongest GPT-5 family model for coding, agents, and deliberate reasoning.",
+        "description": "OpenAI's GPT-5.4 reasoning model with configurable effort from none through xhigh.",
         "strengths": ["Reasoning", "Code", "Agents", "Tools"],
         "input_price": "Free",
         "output_price": "Free",
-        "latency": "~1.6s"
+        "latency": "~1.4s"
       },
       {
         "id": "claude-sonnet-4-5-20250929",

@@ -274,7 +274,7 @@ class TokenService:
         Resolve model max input context tokens from LiteLLM model metadata.
 
         Args:
-            model: Canonical model identifier (for example `openai/gpt-5.1`)
+            model: Canonical model identifier (for example `openai/gpt-5.4`)
 
         Returns:
             Maximum input context length if available, otherwise None.

@@ -23,7 +23,7 @@ import {
 let mockFrontendConfig: Record<string, unknown> = {
   include_query_screenshot: true,
   model_provider: 'openai',
-  selected_model_id: 'gpt-5@@gpt-5-nonthinking',
+  selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
 };
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
@@ -180,7 +180,7 @@ describe('useChatMessageSender', () => {
     mockFrontendConfig = {
       include_query_screenshot: true,
       model_provider: 'openai',
-      selected_model_id: 'gpt-5@@gpt-5-nonthinking',
+      selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
     };
     mockGetActiveConversationRef.mockClear();
     mockSetActiveConversationRef.mockClear();
