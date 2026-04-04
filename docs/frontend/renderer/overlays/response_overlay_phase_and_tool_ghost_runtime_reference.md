@@ -50,6 +50,7 @@ Selection logic:
 1. `useCurrentTurnPresentationState(...)` resolves loop state and latest visible assistant reply for compact/awaiting behavior.
 2. `resolveChatPillViewIntent(...)` uses the response-overlay entry list to resolve overlay visibility.
 3. `showResponse` is true when current-turn entry list is non-empty and not dismissed, even when latest entry is a `tool-explanation`.
+4. during `preflight` / `awaiting` lifecycle only, a still-mounted prior visible response with the same entry id is treated as stale so the typing indicator can appear immediately for the new turn before the response window's local message store catches up.
 
 Closeability:
 
@@ -74,6 +75,7 @@ Modes:
 - `showAwaitingReply`:
   - no visible response-entry list
   - and current-turn presentation state reports awaiting-reply mode
+  - or the only visible response entry is the stale prior-turn response during `preflight` / `awaiting`
 
 Contract ownership:
 

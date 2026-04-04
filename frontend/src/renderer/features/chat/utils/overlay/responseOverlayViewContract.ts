@@ -1,7 +1,12 @@
 import { RESPONSE_OVERLAY_LAYOUT_MODE, resolveResponseOverlayLayoutMode } from './responseOverlayLayoutMode';
+import { OVERLAY_TURN_LIFECYCLE } from './overlayTurnLifecycleContract';
 
 type CurrentTurnPresentationStateLike = {
   showChatboxAwaitingReply?: boolean;
+  overlayTurnLifecycle?: string;
+  visibleResponse?: {
+    id?: string | null;
+  } | null;
 };
 
 type ResponseOverlayEntryLike = {
@@ -20,8 +25,24 @@ export function resolveResponseOverlayViewContract({
   const latestResponseOverlayEntryId = responseOverlayEntries.length > 0
     ? responseOverlayEntries[responseOverlayEntries.length - 1].id || null
     : null;
-  const showResponse = responseOverlayEntries.length > 0 && latestResponseOverlayEntryId !== dismissedResponseId;
-  const showAwaitingReply = !showResponse && currentTurnPresentationState.showChatboxAwaitingReply === true;
+  const awaitingReply = currentTurnPresentationState.showChatboxAwaitingReply === true;
+  const overlayTurnLifecycle = currentTurnPresentationState.overlayTurnLifecycle;
+  const visibleResponseId = currentTurnPresentationState.visibleResponse?.id || null;
+  const isStaleVisibleResponseDuringAwaiting = (
+    awaitingReply
+    && (
+      overlayTurnLifecycle === OVERLAY_TURN_LIFECYCLE.PREFLIGHT
+      || overlayTurnLifecycle === OVERLAY_TURN_LIFECYCLE.AWAITING
+    )
+    && visibleResponseId !== null
+    && latestResponseOverlayEntryId === visibleResponseId
+  );
+  const showResponse = (
+    responseOverlayEntries.length > 0
+    && latestResponseOverlayEntryId !== dismissedResponseId
+    && !isStaleVisibleResponseDuringAwaiting
+  );
+  const showAwaitingReply = !showResponse && awaitingReply;
   const overlayLayoutMode = resolveResponseOverlayLayoutMode({
     showResponse,
     showAwaitingReply,

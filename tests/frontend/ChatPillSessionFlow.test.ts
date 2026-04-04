@@ -71,4 +71,28 @@ describe('chatPillSessionFlow', () => {
       isVisible: true,
     });
   });
+
+  test('prefers awaiting layout over a stale prior response during new-turn handoff', () => {
+    const viewIntent = resolveChatPillViewIntent({
+      messages: [
+        { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-user' },
+        { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant', type: 'llm-text' },
+      ],
+      currentTurnPresentationState: {
+        activeResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
+        visibleResponse: { id: 'assistant-1', sender: 'assistant', text: 'reply', turnRef: 'turn-assistant' },
+        overlayTurnLifecycle: 'awaiting',
+        showChatboxAwaitingReply: true,
+      },
+      responseOverlayEntries: [{ id: 'assistant-1' }],
+    });
+
+    expect(viewIntent).toMatchObject({
+      turnId: 'turn-assistant',
+      showResponse: false,
+      showAwaitingReply: true,
+      overlayLayoutMode: 'awaiting-typing',
+      isVisible: true,
+    });
+  });
 });
