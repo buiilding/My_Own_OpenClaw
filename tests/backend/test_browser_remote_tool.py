@@ -10,7 +10,6 @@ from pydantic import ValidationError
 from backend.src.tools.browser import RemoteBrowserTool
 from backend.src.tools.browser.schema_types import BROWSER_CANONICAL_ACTIONS
 from backend.src.tools.browser.schemas import (
-    BROWSER_ACTION_CONTRACTS,
     BrowserClickArgs,
     BrowserControlArgs,
     BrowserEvaluateArgs,
@@ -30,15 +29,19 @@ class TestRemoteBrowserTool:
         assert tool.args_model is BrowserControlArgs
         assert "browser" in tool.description.lower()
 
-    def test_model_facing_schema_is_grouped_one_of_contract(self) -> None:
+    def test_model_facing_schema_is_grouped_root_object_contract(self) -> None:
         schema = RemoteBrowserTool().get_json_schema()
         parameters = schema["parameters"]
 
         assert parameters == build_browser_tool_parameters_schema()
         assert parameters["type"] == "object"
         assert parameters["required"] == ["action"]
+        assert parameters["additionalProperties"] is False
         assert parameters["properties"]["action"]["enum"] == list(BROWSER_CANONICAL_ACTIONS)
-        assert len(parameters["oneOf"]) == len(BROWSER_ACTION_CONTRACTS)
+        assert "oneOf" not in parameters
+        assert "url" in parameters["properties"]
+        assert "query" in parameters["properties"]
+        assert "text" in parameters["properties"]
 
     def test_model_facing_schema_has_no_removed_or_cross_action_fields(self) -> None:
         schema = RemoteBrowserTool().get_json_schema()["parameters"]
@@ -61,9 +64,15 @@ class TestRemoteBrowserTool:
             "clear_first",
             "script",
         }
-        for branch in schema["oneOf"]:
-            props = set(branch.get("properties", {}).keys())
-            assert props.isdisjoint(banned_fields)
+        props = set(schema.get("properties", {}).keys())
+        assert props.isdisjoint(banned_fields)
+
+    def test_model_facing_schema_merges_shared_property_variants_without_root_union(self) -> None:
+        schema = RemoteBrowserTool().get_json_schema()["parameters"]
+
+        text_schema = schema["properties"]["text"]
+        assert "anyOf" in text_schema
+        assert "oneOf" not in schema
 
     @pytest.mark.asyncio
     async def test_execute_remote_serializes_canonical_payload(self) -> None:

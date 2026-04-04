@@ -10,6 +10,7 @@ import pytest
 from backend.src.core.events.streaming_events import ChunkEvent, ThinkingEvent
 from backend.src.llm.providers.online import OnlineLLMProvider
 from backend.src.llm.providers.openai import OpenAIProvider
+from backend.src.llm.providers.openai_responses_input import build_openai_responses_tools
 from backend.src.llm.providers.openai_responses_runtime import (
     build_openai_responses_input,
     stream_openai_responses_events,
@@ -123,7 +124,7 @@ async def test_openai_provider_routes_unknown_stream_to_standard_runtime(monkeyp
     assert [event.content for event in events] == ["fallback"]
 
 
-def test_openai_provider_build_request_params_rewrites_root_oneof_tool_schema():
+def test_openai_provider_build_request_params_preserves_browser_root_object_tool_schema():
     provider = OpenAIProvider(api_key="test-key")
     browser_parameters = build_browser_tool_parameters_schema()
 
@@ -142,18 +143,40 @@ def test_openai_provider_build_request_params_rewrites_root_oneof_tool_schema():
 
     tool_parameters = params["tools"][0]["function"]["parameters"]
     assert tool_parameters["type"] == "object"
+    assert tool_parameters == browser_parameters
     assert "oneOf" not in tool_parameters
     assert "anyOf" not in tool_parameters
     assert "action" in tool_parameters["properties"]
     assert "url" in tool_parameters["properties"]
     assert "query" in tool_parameters["properties"]
     assert "text" in tool_parameters["properties"]
-    assert "Action-specific field requirements are enforced by runtime validation." in (
-        tool_parameters["description"]
+    assert "Action-specific field requirements are enforced by runtime validation." in tool_parameters["description"]
+
+
+def test_openai_responses_tools_preserve_browser_root_object_tool_schema():
+    browser_parameters = build_browser_tool_parameters_schema()
+
+    tools = build_openai_responses_tools(
+        [
+            {
+                "type": "function",
+                "name": "browser",
+                "description": "Grouped browser control tool.",
+                "parameters": browser_parameters,
+            }
+        ]
     )
 
-    # Keep the canonical backend browser contract unchanged.
-    assert "oneOf" in browser_parameters
+    assert tools == [
+        {
+            "type": "function",
+            "name": "browser",
+            "description": "Grouped browser control tool.",
+            "parameters": browser_parameters,
+            "strict": False,
+        }
+    ]
+    assert "oneOf" not in tools[0]["parameters"]
 
 
 def test_openai_provider_build_request_params_preserves_plain_object_tool_schema():

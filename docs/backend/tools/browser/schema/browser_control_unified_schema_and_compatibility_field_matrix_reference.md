@@ -89,16 +89,17 @@ Consequences:
 
 - top-level grouped `browser` parameters object
 - `action` enum covering the canonical browser action set
-- one `oneOf` branch per action with only that action’s fields
+- one root-object property set merged from the canonical action models
+- no top-level schema combinators; action-specific field requirements stay enforced by runtime validation
 
-No branch includes removed alias fields or compatibility-only fields.
+The root object includes no removed alias fields or compatibility-only fields.
 
 ## Test-Backed Anchors
 
 `tests/backend/test_browser_remote_tool.py` asserts:
 
 - `RemoteBrowserTool.args_model == BrowserControlArgs`
-- grouped `oneOf` schema matches the action catalog
+- grouped root-object schema matches the action catalog
 - model-facing action enum is exactly the canonical action set
 - removed fields such as `mode`, `format`, `target_id`, `input_ref`, `clear_first`, and `script` are absent
 - removed actions such as `open`, `type`, `press`, and `switch_tab` fail validation

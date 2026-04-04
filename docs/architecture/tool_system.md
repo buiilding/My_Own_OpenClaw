@@ -79,7 +79,7 @@ Catalog-driven declaration contract:
 - prompt-time filtering, parser whitelists, transparency payloads, and sidecar exposed-tool parity all consume the same direct tool names
 - browser now uses the same generic schema generation path as every other backend-exposed tool; there is no browser-only schema rewriter
 - provider adapters convert the internal flat tool spec into nested provider transport formats when needed
-- OpenAI `chat.completions` transport applies an additional compatibility projection for grouped schemas such as `browser`, removing unsupported root combinators (for example top-level `oneOf`) while preserving the canonical backend contract and runtime validation
+- grouped tools such as `browser` must emit provider-safe root-object schemas directly; OpenAI compatibility should not depend on browser-specific post-hoc schema rewrites
 
 Boundary rule:
 
@@ -478,7 +478,7 @@ when required by that tool's schema.
 ### Browser Tools
 
 - **browser**: Browser automation and extraction tool (connect/navigation/snapshot/actions/extract); see `docs/browser/browser_control.md` and `docs/browser/browser_control_run.md` for full action contracts and runbook usage.
-- The model-facing `browser` schema is emitted from one canonical backend action catalog. It stays grouped under `arguments.action`, emits one strict `oneOf` branch per canonical action, and the sidecar imports that same contract directly instead of maintaining a separate browser schema layer.
+- The model-facing `browser` schema is emitted from one canonical backend action catalog. It stays grouped under `arguments.action`, exposes one root object with merged canonical action fields, and relies on runtime discriminated-union validation to enforce action-specific requirements without top-level schema combinators.
 
 **Note**: The backend advertises a fixed set of remote tool schemas (LLM-callable). The sidecar may register additional helpers, but only tools listed in `frontend/src/main/python/tools/registry.py` `EXPOSED_TO_BACKEND_TOOLS` are available for LLM tool calling.
 
