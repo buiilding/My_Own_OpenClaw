@@ -7,7 +7,11 @@ from typing import Any, AsyncGenerator
 
 import pytest
 
-from backend.src.core.events.streaming_events import ChunkEvent, ThinkingEvent
+from backend.src.core.events.streaming_events import (
+    ChunkEvent,
+    SearchSourceEvent,
+    ThinkingEvent,
+)
 from backend.src.llm.providers.online import OnlineLLMProvider
 from backend.src.llm.providers.openai import OpenAIProvider
 from backend.src.llm.providers.openai_responses_input import (
@@ -422,6 +426,107 @@ async def test_openai_responses_stream_handles_enum_typed_events(
     assert events[1].content == "visible"
     assert provider.get_last_stream_response_payload() == {
         "content": "visible",
+        "finish_reason": "completed",
+    }
+
+
+@pytest.mark.asyncio
+async def test_openai_responses_stream_emits_search_sources_before_final_payload(
+    monkeypatch,
+):
+    provider = OpenAIProvider(api_key="test-key")
+
+    async def fake_stream():
+        yield {
+            "type": "response.output_item.done",
+            "item": {
+                "type": "web_search_call",
+                "query": "latest windieos news",
+                "action": {
+                    "sources": [
+                        {"url": "https://example.com/a", "title": "Example A"},
+                        {"url": "https://example.com/b", "title": "Example B"},
+                    ]
+                },
+            },
+        }
+        yield {
+            "type": "response.output_text.delta",
+            "delta": "visible text",
+        }
+        yield {
+            "type": "response.completed",
+            "response": {
+                "output_text": "visible text",
+                "output": [
+                    {
+                        "type": "web_search_call",
+                        "query": "latest windieos news",
+                        "action": {
+                            "sources": [
+                                {"url": "https://example.com/a", "title": "Example A"},
+                                {"url": "https://example.com/b", "title": "Example B"},
+                            ]
+                        },
+                    },
+                    {
+                        "type": "message",
+                        "content": [{"type": "output_text", "text": "visible text"}],
+                    },
+                ],
+                "status": "completed",
+                "usage": {
+                    "prompt_tokens": 4,
+                    "completion_tokens": 3,
+                    "total_tokens": 7,
+                },
+            },
+        }
+
+    async def fake_aresponses(**kwargs):
+        _ = kwargs
+        return fake_stream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
+
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.4@@gpt-5-4-high-thinking",
+            messages=[{"role": "user", "content": "hi"}],
+        )
+    )
+
+    assert [type(event).__name__ for event in events] == [
+        "SearchSourceEvent",
+        "SearchSourceEvent",
+        "ChunkEvent",
+    ]
+    assert [event.url for event in events if isinstance(event, SearchSourceEvent)] == [
+        "https://example.com/a",
+        "https://example.com/b",
+    ]
+    assert provider.get_last_stream_response_payload() == {
+        "content": "visible text",
+        "web_search_sources": [
+            {
+                "url": "https://example.com/a",
+                "title": "Example A",
+                "provider": "openai",
+                "query": "latest windieos news",
+                "rank": 1,
+            },
+            {
+                "url": "https://example.com/b",
+                "title": "Example B",
+                "provider": "openai",
+                "query": "latest windieos news",
+                "rank": 2,
+            },
+        ],
         "finish_reason": "completed",
     }
 

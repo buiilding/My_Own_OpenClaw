@@ -10,6 +10,7 @@ from backend.src.core.events.streaming_events import (
     ChunkEvent,
     ErrorEvent,
     FullResponseEvent,
+    SearchSourceEvent,
     ThinkingEvent,
 )
 from backend.src.core.infrastructure.exceptions import LLMAPIError
@@ -38,7 +39,7 @@ def apply_stream_event(
     """
     if isinstance(event, ChunkEvent):
         return full_text + event.content, event
-    if isinstance(event, (ThinkingEvent, ErrorEvent)):
+    if isinstance(event, (ThinkingEvent, ErrorEvent, SearchSourceEvent)):
         return full_text, event
     if isinstance(event, FullResponseEvent):
         # LLM client may emit full response directly (e.g., mock client).
