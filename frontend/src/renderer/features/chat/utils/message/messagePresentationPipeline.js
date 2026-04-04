@@ -20,6 +20,187 @@ function normalizeText(value) {
   return trimmed.length > 0 ? value : null;
 }
 
+function normalizeInlineText(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function readFirstNormalizedText(candidates) {
+  for (const candidate of candidates) {
+    const normalized = normalizeInlineText(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+  return null;
+}
+
+function readWebSearchActionLike(message) {
+  const candidates = [
+    message?.toolOutputDetails?.metadata?.web_search_action,
+    message?.toolOutputDetails?.metadata?.action,
+    message?.toolOutputDetails?.action,
+  ];
+  for (const candidate of candidates) {
+    if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+function readWebSearchQueryFromAction(action) {
+  if (!action || typeof action !== 'object' || Array.isArray(action)) {
+    return null;
+  }
+  const queries = Array.isArray(action.queries) ? action.queries : [];
+  return readFirstNormalizedText([
+    action.query,
+    queries[0],
+  ]);
+}
+
+function formatWebSearchCompletionText(action, fallbackQuery) {
+  const actionType = normalizeInlineText(action?.type);
+  if (actionType === 'open_page') {
+    const url = normalizeInlineText(action?.url);
+    if (url) {
+      return url;
+    }
+  }
+  if (actionType === 'find_in_page') {
+    const pattern = normalizeInlineText(action?.pattern);
+    const url = normalizeInlineText(action?.url);
+    if (pattern && url) {
+      return `'${pattern}' in ${url}`;
+    }
+    if (pattern) {
+      return `'${pattern}'`;
+    }
+    if (url) {
+      return url;
+    }
+  }
+
+  const resolvedQuery = readFirstNormalizedText([
+    readWebSearchQueryFromAction(action),
+    fallbackQuery,
+  ]);
+  if (resolvedQuery) {
+    return `Searched web for ${resolvedQuery}`;
+  }
+  return 'Searched the web';
+}
+
+function readMessageCorrelationId(message) {
+  return readFirstNormalizedText([
+    message?.correlationId,
+    message?.toolCallDetails?.correlation_id,
+    message?.toolCallDetails?.request_id,
+    message?.toolOutputDetails?.request_id,
+    message?.toolOutputDetails?.metadata?.request_id,
+  ]);
+}
+
+function readToolName(message) {
+  return readFirstNormalizedText([
+    message?.toolName,
+    message?.modelFacingToolCall?.name,
+    message?.toolCallDetails?.tool_name,
+    message?.toolOutputDetails?.tool_name,
+  ]);
+}
+
+function isWebSearchToolMessage(message) {
+  return readToolName(message) === 'web_search';
+}
+
+function readWebSearchQueryFromMessage(message) {
+  return readFirstNormalizedText([
+    message?.modelFacingToolCall?.arguments?.query,
+    message?.toolCallDetails?.parameters?.query,
+    message?.toolOutputDetails?.metadata?.web_search_query,
+    message?.toolOutputDetails?.metadata?.query,
+    readWebSearchQueryFromAction(readWebSearchActionLike(message)),
+  ]);
+}
+
+function buildWebSearchRenderContext(messages, lowerBound) {
+  const queryByCorrelationId = new Map();
+  const completionTextByCorrelationId = new Map();
+
+  for (let index = lowerBound; index < messages.length; index += 1) {
+    const message = messages[index];
+    if (message?.sender !== 'assistant' || message?.type !== 'tool-call' || !isWebSearchToolMessage(message)) {
+      continue;
+    }
+    const correlationId = readMessageCorrelationId(message);
+    const query = readWebSearchQueryFromMessage(message);
+    if (correlationId && query) {
+      queryByCorrelationId.set(correlationId, query);
+    }
+  }
+
+  for (let index = lowerBound; index < messages.length; index += 1) {
+    const message = messages[index];
+    if (message?.sender !== 'assistant' || message?.type !== 'tool-output' || !isWebSearchToolMessage(message)) {
+      continue;
+    }
+    const correlationId = readMessageCorrelationId(message);
+    if (!correlationId) {
+      continue;
+    }
+    const fallbackQuery = readFirstNormalizedText([
+      readWebSearchQueryFromMessage(message),
+      queryByCorrelationId.get(correlationId),
+    ]);
+    completionTextByCorrelationId.set(
+      correlationId,
+      formatWebSearchCompletionText(readWebSearchActionLike(message), fallbackQuery),
+    );
+  }
+
+  return {
+    completionTextByCorrelationId,
+    queryByCorrelationId,
+  };
+}
+
+function collectDerivedToolTexts(message, webSearchContext) {
+  if (message?.type === 'tool-call') {
+    if (isWebSearchToolMessage(message)) {
+      const correlationId = readMessageCorrelationId(message);
+      if (
+        correlationId
+        && webSearchContext.completionTextByCorrelationId.has(correlationId)
+      ) {
+        return [];
+      }
+      return ['Searching the web'];
+    }
+    return collectToolExplanationTexts(message);
+  }
+
+  if (message?.type === 'tool-output' && isWebSearchToolMessage(message)) {
+    const correlationId = readMessageCorrelationId(message);
+    if (correlationId) {
+      const completionText = webSearchContext.completionTextByCorrelationId.get(correlationId);
+      return completionText ? [completionText] : [];
+    }
+    return [
+      formatWebSearchCompletionText(
+        readWebSearchActionLike(message),
+        readWebSearchQueryFromMessage(message),
+      ),
+    ];
+  }
+
+  return [];
+}
+
 function hasIncompleteAssistantReplyAfterIndex(messages, lowerBound) {
   if (!Array.isArray(messages)) {
     return false;
@@ -76,12 +257,8 @@ function buildToolActionsSummaryMessage(pendingSummary, summaryIndex) {
   };
 }
 
-function queueToolMessageEntries(entries, message) {
-  if (message?.type !== 'tool-call') {
-    return;
-  }
-
-  const explanationEntries = collectToolExplanationTexts(message);
+function queueToolMessageEntries(entries, message, webSearchContext) {
+  const explanationEntries = collectDerivedToolTexts(message, webSearchContext);
   explanationEntries.forEach((explanation, explanationIndex) => {
     entries.push(buildToolExplanationMessage(message, explanation, explanationIndex));
   });
@@ -94,6 +271,7 @@ export function buildCurrentTurnResponseOverlayEntries(messages) {
 
   const lastUserIndex = findLastUserIndex(messages);
   const lowerBound = lastUserIndex >= 0 ? lastUserIndex + 1 : 0;
+  const webSearchContext = buildWebSearchRenderContext(messages, lowerBound);
   const entries = [];
 
   for (let index = lowerBound; index < messages.length; index += 1) {
@@ -120,7 +298,7 @@ export function buildCurrentTurnResponseOverlayEntries(messages) {
       continue;
     }
 
-    queueToolMessageEntries(entries, message);
+    queueToolMessageEntries(entries, message, webSearchContext);
   }
 
   return entries;
@@ -139,6 +317,7 @@ export function buildThreadPresentationMessages(
     const lastUserIndex = findLastUserIndex(messages);
     return lastUserIndex >= 0 ? lastUserIndex + 1 : 0;
   })();
+  const webSearchContext = buildWebSearchRenderContext(messages, activeSegmentLowerBound);
   const keepActiveSegmentExpanded = (
     isBusy
     || hasIncompleteAssistantReplyAfterIndex(messages, activeSegmentLowerBound)
@@ -178,12 +357,8 @@ export function buildThreadPresentationMessages(
       return;
     }
 
-    if (message?.type === 'tool-output') {
-      return;
-    }
-
-    if (message?.type === 'tool-call') {
-      const explanations = collectToolExplanationTexts(message);
+    if (message?.type === 'tool-call' || message?.type === 'tool-output') {
+      const explanations = collectDerivedToolTexts(message, webSearchContext);
       if (explanations.length === 0) {
         return;
       }
