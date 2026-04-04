@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Added
+- docs(agents): add explicit refactor-posture guidance so agents clean up bounded local design debt, refactor instead of stacking workarounds, and use clear triggers/scope limits/completion criteria while working.
 - chore(repo-assets): add the captured Amazon screenshot artifact used while validating the direct OCR/text-grounding SDK flow against a real `Search Amazon` example.
 - feat(backend-sdk-perception): add direct `/api/sdk/*` OCR and vision REST routes for SDK consumers, including inline-image/artifact input resolution, OCR candidate/resolve flows, saved overlay artifacts, and direct vision locate/describe helpers backed by the current backend services; cover the new surface with focused backend route tests and API/docs updates.
 
