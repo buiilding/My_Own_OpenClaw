@@ -30,6 +30,7 @@ title: "Frontend Config Filter, Storage, and Provider Merge Runtime Reference"
 - `interaction_mode`
 - `voice_mode_enabled`
 - `speech_mode_enabled`
+- `wakeword_enabled`
 - `wakeword_stt_enabled`
 - `agent_full_sudo_enabled`
 - `browser_automation_enabled`
@@ -63,6 +64,7 @@ Default config surface:
 - `interaction_mode: "agent"`
 - `voice_mode_enabled: false`
 - `speech_mode_enabled: false`
+- `wakeword_enabled: true`
 - `wakeword_stt_enabled: false`
 - `agent_full_sudo_enabled: false`
 - `browser_automation_enabled: false`
