@@ -26,10 +26,6 @@ export default function MessageContent({ message }) {
     return <ToolExplanationMessage message={message} />;
   }
 
-  if (message.type === 'search-source') {
-    return <ToolExplanationMessage message={message} />;
-  }
-
   if (message.type === 'tool-actions-summary') {
     return <ToolActionsSummaryMessage message={message} />;
   }

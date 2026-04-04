@@ -265,60 +265,6 @@ describe('useChatStreamToolHandlers', () => {
     expect(mockRecordToolMessage).not.toHaveBeenCalled();
   });
 
-  test('records lightweight search-source rows as assistant transcript entries', () => {
-    const addMessage = jest.fn();
-    const recordTrackingEvent = jest.fn();
-
-    const { result } = renderHook(() => useChatStreamToolHandlers({
-      enableTranscript: true,
-      addMessage,
-      setIsSending: jest.fn(),
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
-      modelContextRef: {
-        current: {
-          modelId: 'model-search',
-          modelProvider: 'openai',
-        },
-      },
-      recordTrackingEvent,
-    }));
-
-    act(() => {
-      result.current.handleSearchSource({
-        type: 'search-source',
-        turn_ref: 'turn-search-1',
-        conversation_ref: 'conversation-search-1',
-        user_id: 'user-search-1',
-        payload: {
-          url: 'https://example.com/source',
-          provider: 'openai',
-        },
-      } as any, 'conversation-search-1');
-    });
-
-    expect(addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'search-source',
-        text: 'Searching https://example.com/source',
-      }),
-      'conversation-search-1',
-    );
-    expect(recordTrackingEvent).toHaveBeenCalledWith(
-      'search-source',
-      'turn-search-1',
-      { phase: 'tool-output' },
-      'conversation-search-1',
-    );
-    expect(mockRecordAssistantMessage).toHaveBeenCalledWith(
-      'Searching https://example.com/source',
-      expect.objectContaining({
-        messageType: 'search-source',
-        conversationRef: 'conversation-search-1',
-      }),
-    );
-  });
-
   test('keeps sending/thinking state alive for backend-owned tool calls that skip frontend execution', () => {
     const addMessage = jest.fn();
     const setIsSending = jest.fn();

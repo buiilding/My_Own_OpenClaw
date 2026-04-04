@@ -1,10 +1,8 @@
 import { useCallback } from 'react';
 import { recordToolMessage } from '../../../../infrastructure/transcript/TranscriptWriter';
-import { recordAssistantMessage } from '../../../../infrastructure/transcript/TranscriptWriter';
 import { type ChatMessage } from '../../stores/chatStore';
 import {
   type BackendEventType,
-  type SearchSourceEvent,
   type ToolBundleEvent,
   type ToolCallEvent,
   type ToolOutputEvent,
@@ -16,7 +14,6 @@ import {
   buildToolBundleMessage,
   buildToolCallMessage,
   buildToolOutputMessage,
-  buildSearchSourceMessage,
 } from '../../utils/chatStream/chatStreamToolMessages';
 import {
   buildToolBundleMessageState,
@@ -181,36 +178,9 @@ export function useChatStreamToolHandlers({
     recordTrackingEvent,
   ]);
 
-  const handleSearchSource = useCallback((event: SearchSourceEvent, conversationRef?: string | null) => {
-    const url = typeof event.payload?.url === 'string' ? event.payload.url.trim() : '';
-    if (!url) {
-      return;
-    }
-    const modelContext = modelContextRef.current;
-    const message = buildSearchSourceMessage(event, modelContext);
-    addMessage(message, conversationRef);
-    recordTrackingEvent('search-source', event.turn_ref, { phase: 'tool-output' }, conversationRef);
-
-    if (enableTranscript) {
-      recordAssistantMessage(message.text, {
-        messageType: 'search-source',
-        conversationRef: event.conversation_ref,
-        userId: event.user_id,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
-      });
-    }
-  }, [
-    addMessage,
-    enableTranscript,
-    modelContextRef,
-    recordTrackingEvent,
-  ]);
-
   return {
     handleToolCall,
     handleToolOutput,
     handleToolBundle,
-    handleSearchSource,
   };
 }

@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from backend.src.agent.tools.preparation.preparer import PreparationResult
 from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
 from backend.src.agent.tools.sending.sender import ToolSender
-from backend.src.core.events.streaming_events import SearchSourceEvent, ToolBundleEvent, ToolCallEvent, ToolOutputEvent
+from backend.src.core.events.streaming_events import ToolBundleEvent, ToolCallEvent, ToolOutputEvent
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.llm.parser_types import ParsedToolCall
 from backend.src.sdk.tool import Tool
@@ -467,7 +467,7 @@ class _BackendSearchToolWithDuplicateResults(Tool[_BackendSearchArgs]):
 
 
 @pytest.mark.asyncio
-async def test_send_tools_executes_backend_tool_and_emits_search_source_rows():
+async def test_send_tools_executes_backend_tool_with_standard_tool_call_and_output_only():
     request_id = "req-web-search-1"
     parsed_call = ParsedToolCall(
         tool_name="web_search",
@@ -492,22 +492,18 @@ async def test_send_tools_executes_backend_tool_and_emits_search_source_rows():
 
     assert [type(event).__name__ for event in emitted] == [
         "ToolCallEvent",
-        "SearchSourceEvent",
-        "SearchSourceEvent",
         "ToolOutputEvent",
     ]
     assert isinstance(emitted[0], ToolCallEvent)
     assert emitted[0].metadata["skip_frontend_execution"] is True
-    assert isinstance(emitted[1], SearchSourceEvent)
-    assert emitted[1].url == "https://example.com/a"
-    assert isinstance(emitted[3], ToolOutputEvent)
-    assert emitted[3].output == "search results"
+    assert isinstance(emitted[1], ToolOutputEvent)
+    assert emitted[1].output == "search results"
     assert request_id in session.pending_results
     assert session.pending_results[request_id].data["provider"] == "brave"
 
 
 @pytest.mark.asyncio
-async def test_send_tools_uses_centralized_search_source_normalization_for_backend_search():
+async def test_send_tools_keeps_duplicate_search_results_inside_tool_output_only():
     request_id = "req-web-search-dedupe-1"
     parsed_call = ParsedToolCall(
         tool_name="web_search",
@@ -530,16 +526,12 @@ async def test_send_tools_uses_centralized_search_source_normalization_for_backe
     session.tool_registry.register_tool(_BackendSearchToolWithDuplicateResults())
     emitted = await _collect_emitted_events(sender, [parsed_call], session)
 
-    search_events = [event for event in emitted if isinstance(event, SearchSourceEvent)]
-    assert len(search_events) == 2
-    assert [event.url for event in search_events] == [
-        "https://example.com/a",
-        "https://example.com/b",
+    assert [type(event).__name__ for event in emitted] == [
+        "ToolCallEvent",
+        "ToolOutputEvent",
     ]
-    assert search_events[0].provider == "brave"
-    assert search_events[0].query == "latest windieos news"
-    assert search_events[1].provider == "openai"
-    assert search_events[1].query == "custom query"
+    assert session.pending_results[request_id].data["results"][0]["url"] == "https://example.com/a"
+    assert session.pending_results[request_id].data["results"][2]["url"] == "https://example.com/b"
 
 
 @pytest.mark.asyncio
@@ -573,4 +565,3 @@ async def test_send_tools_rejects_bundles_that_include_backend_tools():
     bundle_result = session.result_storage.bundled_results[bundle_id]
     assert bundle_result.success is False
     assert "backend-executed tools" in (bundle_result.error or "")
-

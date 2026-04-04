@@ -9,7 +9,6 @@ export type BackendEventType =
   | 'context-compaction-failed'
   | 'tool-call'
   | 'tool-output'
-  | 'search-source'
   | 'tool-bundle'
   | 'local-user-message'
   | 'system-prompt'
@@ -104,13 +103,6 @@ export type ToolOutputEvent = BackendEventBase<'tool-output', {
   metadata?: Record<string, unknown>;
   request_id?: string;
 }>;
-export type SearchSourceEvent = BackendEventBase<'search-source', {
-  url?: string;
-  title?: string | null;
-  provider?: string;
-  query?: string | null;
-  rank?: number | null;
-}>;
 export type ToolBundleEvent = BackendEventBase<'tool-bundle', {
   bundle_id?: string;
   tools?: Array<{
@@ -175,7 +167,6 @@ export type BackendEvent =
   | ContextCompactionFailedEvent
   | ToolCallEvent
   | ToolOutputEvent
-  | SearchSourceEvent
   | ToolBundleEvent
   | LocalUserMessageEvent
   | SystemPromptEvent
@@ -195,7 +186,6 @@ const BACKEND_EVENT_TYPES = new Set<BackendEventType>([
   'context-compaction-failed',
   'tool-call',
   'tool-output',
-  'search-source',
   'tool-bundle',
   'local-user-message',
   'system-prompt',

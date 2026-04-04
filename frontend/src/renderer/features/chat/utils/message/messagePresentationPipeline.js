@@ -77,24 +77,6 @@ function buildToolActionsSummaryMessage(pendingSummary, summaryIndex) {
 }
 
 function queueToolMessageEntries(entries, message) {
-  if (message?.type === 'search-source') {
-    const entryText = normalizeText(message.text);
-    if (!entryText) {
-      return;
-    }
-    entries.push({
-      id: message.id,
-      type: 'tool-explanation',
-      text: message.text,
-      sourceEventType: message.sourceEventType || null,
-      sourceChannel: message.sourceChannel || null,
-      modelId: message.modelId || null,
-      modelProvider: message.modelProvider || null,
-      isComplete: message.isComplete === true,
-    });
-    return;
-  }
-
   if (message?.type !== 'tool-call') {
     return;
   }

@@ -47,16 +47,10 @@ describe('chatBoxResponseState', () => {
     })).toBe('unknown-source · unknown');
   });
 
-  test('buildCurrentTurnResponseOverlayEntries includes lightweight search-source rows', () => {
+  test('buildCurrentTurnResponseOverlayEntries ignores non-tool explanatory rows without tool-call content', () => {
     expect(buildCurrentTurnResponseOverlayEntries([
       { id: 'user-1', sender: 'user', text: 'find the answer' },
-      { id: 'search-1', sender: 'assistant', type: 'search-source', text: 'Searching https://example.com' },
-    ])).toEqual([
-      expect.objectContaining({
-        id: 'search-1',
-        type: 'tool-explanation',
-        text: 'Searching https://example.com',
-      }),
-    ]);
+      { id: 'assistant-1', sender: 'assistant', type: 'tool-explanation', text: 'Searching https://example.com' },
+    ])).toEqual([]);
   });
 });
