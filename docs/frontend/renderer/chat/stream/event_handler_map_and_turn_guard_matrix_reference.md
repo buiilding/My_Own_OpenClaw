@@ -47,7 +47,9 @@ The map performs one additional pre-handler guard:
 
 ## Active-Turn Guard Matrix
 
-Most handlers in `useChatStream` share the same stale-turn condition:
+`useChatStream` applies one shared stale-turn condition through
+`useTurnScopedBackendEventHandler(...)` for every mutable event family except
+`local-user-message`:
 
 - if event has `turn_ref`
 - and target workspace has active turn
@@ -79,6 +81,12 @@ Guarded events:
 - `memory-store`
 - `token-count`
 - `error`
+
+Wrapper guarantee:
+
+- the shared turn-scoped wrapper keeps callback identity stable across rerenders
+  while reading the latest handler logic, so `useChatStream` does not resubscribe
+  the backend listener when config/model metadata changes.
 
 Unguarded event:
 
