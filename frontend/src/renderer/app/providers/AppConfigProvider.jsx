@@ -21,6 +21,14 @@ import {
 
 const LIST_MODELS_REQUEST_GUARD_KEY = '__windie_models_list_requested__';
 
+function resolveInitialWakewordSuppressed() {
+  if (typeof window === 'undefined') {
+    return true;
+  }
+  const view = new URLSearchParams(window.location.search).get('view');
+  return Boolean(view);
+}
+
 function logConfigInfo(message, ...args) {
   if (
     typeof process !== 'undefined' &&
@@ -50,7 +58,7 @@ export function AppConfigProvider({ children }) {
   });
   const [availableModels, setAvailableModels] = useState({ local: [], online: [] });
   const [wakewordEnabled, setWakewordEnabled] = useState(true);
-  const [wakewordSuppressed, setWakewordSuppressed] = useState(true);
+  const [wakewordSuppressed, setWakewordSuppressed] = useState(resolveInitialWakewordSuppressed);
   const [globalAgentStopShortcutStatus, setGlobalAgentStopShortcutStatus] = useState(null);
 
   const settingsHandlers = useSettingsManagement(setAvailableModels);

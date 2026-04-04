@@ -10,6 +10,7 @@ All notable changes to WindieOS will be documented in this file.
 - feat(backend-sdk-perception): add direct `/api/sdk/*` OCR and vision REST routes for SDK consumers, including inline-image/artifact input resolution, OCR candidate/resolve flows, saved overlay artifacts, and direct vision locate/describe helpers backed by the current backend services; cover the new surface with focused backend route tests and API/docs updates.
 
 ### Fixed
+- fix(frontend-wakeword-startup-arming): seed renderer wakeword suppression from the current surface so the dashboard starts listening immediately when the chat pill is hidden, preserve suppressed startup on overlay views, add focused provider regression coverage, and document the startup contract.
 - fix(backend-tts-audio-delivery-priority): prioritize backend `audio-chunk` websocket sends ahead of normal tool/UI events so completed spoken sentences are no longer delayed behind tool-call/tool-output traffic; add focused sender regression coverage and document the delivery contract.
 - fix(web-search-tool-trace-ui): remove the standalone `Searching <url>` `search-source` rows so backend and provider-native web search now appear in WindieOS as normal tool-call plus tool-output activity; keep only a legacy rehydrate skip for old stored trace rows.
 - fix(frontend-chat-pill-toggle-hover-state): keep the minimal chat pill screenshot and text-to-speech icons blue while enabled even on hover, and document the current pill control inventory including the text-to-speech toggle in the frontend overlay docs.

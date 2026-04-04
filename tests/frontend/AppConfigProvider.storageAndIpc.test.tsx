@@ -287,22 +287,38 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
   });
 
+  test('starts wakeword active on the main dashboard before the first visibility sync arrives', () => {
+    const { result } = renderAppConfigContext();
+
+    expect(result.current.wakewordSuppressed).toBe(false);
+    expect(result.current.wakewordActive).toBe(true);
+  });
+
+  test('starts wakeword suppressed on overlay renderer views', () => {
+    window.history.pushState({}, '', '/?view=chatbox');
+
+    const { result } = renderAppConfigContext();
+
+    expect(result.current.wakewordSuppressed).toBe(true);
+    expect(result.current.wakewordActive).toBe(false);
+  });
+
   test('wakeword toggle events update wakewordActive state only for boolean payloads', () => {
     const { result } = renderAppConfigContext();
-    expect(result.current.wakewordActive).toBe(false);
+    expect(result.current.wakewordActive).toBe(true);
 
     const wakewordHandler = getBackendHandler(ON_CHANNELS.WAKEWORD_TOGGLE);
     expect(wakewordHandler).toEqual(expect.any(Function));
 
     act(() => {
-      wakewordHandler?.({ enabled: true });
+      wakewordHandler?.({ enabled: false });
     });
-    expect(result.current.wakewordActive).toBe(true);
+    expect(result.current.wakewordActive).toBe(false);
 
     act(() => {
       wakewordHandler?.({ enabled: 'yes' });
     });
-    expect(result.current.wakewordActive).toBe(true);
+    expect(result.current.wakewordActive).toBe(false);
   });
 
   test('warns when disk config load fails', async () => {

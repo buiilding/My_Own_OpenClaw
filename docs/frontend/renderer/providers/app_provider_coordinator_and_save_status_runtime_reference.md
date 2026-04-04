@@ -82,11 +82,12 @@ Callback API:
 Initialization/sync inputs:
 
 1. localStorage (`loadConfigFromStorage`) as initial state seed
-2. backend stream listener for `models-listed`
-3. IPC status events (`ipc-status`) for transcript user and backend HTTP URL snapshot
-4. initial `get-client-user-id` invoke for startup snapshot
-5. disk config load (`load-frontend-config`) merge path
-6. browser `storage` event cross-window sync
+2. renderer view (`window.location.search`) for initial wakeword suppression seed
+3. backend stream listener for `models-listed`
+4. IPC status events (`ipc-status`) for transcript user and backend HTTP URL snapshot
+5. initial `get-client-user-id` invoke for startup snapshot
+6. disk config load (`load-frontend-config`) merge path
+7. browser `storage` event cross-window sync
 
 One-time model-list request guard:
 
