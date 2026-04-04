@@ -8,7 +8,12 @@ read_when:
 
 ## Overview
 
-The Tool System enables WindieOS to interact with the computer through a set of specialized tools. Most tools are still executed in the frontend Python sidecar, but WindieOS now also supports backend-executed tools and provider-native capabilities when the transport requires it.
+The Tool System enables WindieOS to interact with the computer through a set of specialized tools. Most tools are executed in the frontend Python sidecar, while backend-owned tools such as `web_search` execute entirely in backend Python.
+
+Current runtime note:
+
+- the live backend registry and the live sidecar registry both use direct tool names such as `mouse_control` and `run_shell_command`
+- the repo also contains wrapper-shaped reference artifacts for `computer_use` and `system_use` under `model-facing/`, but those names are not registered by `backend/src/tools/registry.py` or `frontend/src/main/python/tools/registry.py`
 
 For planned schema-ownership migration (frontend-sourced runtime tool catalogs), see `docs/adr/005-frontend-tool-schema-source-of-truth.md`.
 
@@ -71,6 +76,8 @@ Most tools are executed on the frontend Python sidecar:
 - **Additional System Tools**: `open_app`, `process`
 - **Browser Tools**: `browser`
 
+This is the live remote tool surface today: 14 direct remote tools shared across the backend catalog and sidecar exposed-tool set.
+
 Catalog-driven declaration contract:
 
 - backend `backend/src/tools/tool_catalog.py` is the source of truth for backend-registered remote tools and model visibility
@@ -86,6 +93,11 @@ Boundary rule:
 - frontend/sidecar Python must never import backend Python modules or depend on `backend.src.*` at runtime
 - frontend and backend schema pairing must stay import-independent across that boundary
 - drift prevention comes from explicit backend-vs-sidecar schema parity tests run before production, not from cross-boundary runtime imports
+
+Wrapper reference artifact note:
+
+- `model-facing/tool_schema.txt` still contains unified `computer_use` and `system_use` envelope schemas
+- current runtime does not load those wrapper schemas into `ToolRegistry`; `backend/src/llm/prompts/prompts.py` loads `backend/src/llm/prompts/system_prompt.txt`, and the live tool declarations come from `backend/src/tools/tool_catalog.py` plus backend-registered tools such as `web_search`
 
 ### Backend-Executed Tools
 
@@ -106,6 +118,12 @@ The backend:
 - Executes backend-owned tools directly when a tool declares backend execution
 - Augments backend-owned `web_search` executions with provider-native capabilities when supported
 - Keeps tool schemas focused on action/parameter contracts while placing cross-tool operational strategy (grounding, timing, verification, sequencing) in the global system prompt
+
+Current live model-facing tool count:
+
+- 14 direct remote tools from `backend/src/tools/tool_catalog.py`
+- 1 backend-owned logical tool, `web_search`
+- total: 15 live runtime tool schemas
 
 ## Tool Execution Flow
 
@@ -163,6 +181,7 @@ Direct tool contract before execution:
 - model-facing tool names are already the execution-facing tool names
 - no wrapper-envelope normalization happens in parser, registry, or sidecar routing
 - each direct tool validates its own arguments through its Pydantic schema and sidecar runtime
+- unified `computer_use` and `system_use` wrapper names remain repo-local reference artifacts, not registered runtime tool names
 
 ### 3. Tool Execution
 
@@ -293,9 +312,9 @@ Tools are automatically registered:
 
 1. **Backend remote stubs**: Declared once in `backend/src/tools/tool_catalog.py`, instantiated by `backend/src/tools/registry.py`, and re-exported through `backend/src/tools/remote.py`.
 2. **Sidecar executors**: Registered in `frontend/src/main/python/tools/registry.py`.
-3. **LLM-callable sidecar subset**: Explicitly declared in sidecar `EXPOSED_TO_BACKEND_TOOLS`.
-4. **Backend-only tools**: Require explicit `register_tool()` wiring; not auto-discovered by default runtime.
-   - `web_search` is the first backend-owned logical tool and can be fulfilled either by provider-native search or a backend Brave Search fallback.
+3. **LLM-callable sidecar subset**: Explicitly declared in `frontend/src/main/python/tools/exposed_tool_names.py` as `EXPOSED_TO_BACKEND_TOOL_NAMES`.
+4. **Backend-only tools**: Explicitly wired in `backend/src/tools/registry.py:_register_backend_tools()`.
+   - `web_search` is the current backend-owned logical tool and can be fulfilled either by provider-native search or a backend Brave Search fallback.
 
 ## Coordinate Resolution
 
@@ -480,7 +499,7 @@ when required by that tool's schema.
 - **browser**: Browser automation and extraction tool (connect/navigation/snapshot/actions/extract); see `docs/browser/browser_control.md` and `docs/browser/browser_control_run.md` for full action contracts and runbook usage.
 - The model-facing `browser` schema is emitted from one canonical backend action catalog. It stays grouped under `arguments.action`, exposes one root object with merged canonical action fields, and relies on runtime discriminated-union validation to enforce action-specific requirements without top-level schema combinators.
 
-**Note**: The backend advertises a fixed set of remote tool schemas (LLM-callable). The sidecar may register additional helpers, but only tools listed in `frontend/src/main/python/tools/registry.py` `EXPOSED_TO_BACKEND_TOOLS` are available for LLM tool calling.
+**Note**: The backend advertises a fixed set of remote tool schemas (LLM-callable). The sidecar may register additional helpers, but only tools listed in `frontend/src/main/python/tools/exposed_tool_names.py` `EXPOSED_TO_BACKEND_TOOL_NAMES` are available for LLM tool calling.
 
 ## Security
 
@@ -556,7 +575,7 @@ async def test_tool_execution_flow():
 1. Create tool class inheriting from `Tool`
 2. Add the remote stub entry in `backend/src/tools/tool_catalog.py`
 3. Add sidecar implementation + sidecar registry wiring
-4. Keep `EXPOSED_TO_BACKEND_TOOLS` in sync for LLM-callable tools
+4. Keep `frontend/src/main/python/tools/exposed_tool_names.py` in sync for LLM-callable tools
 
 ---
 
