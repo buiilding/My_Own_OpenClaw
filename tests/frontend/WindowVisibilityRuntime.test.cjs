@@ -252,6 +252,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       isMinimized: jest.fn(() => false),
       webContents: {
         focus: jest.fn(),
+        invalidate: jest.fn(),
       },
     };
     const responseWindow = createWindow({ visible: true });
@@ -290,6 +291,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       isMinimized: jest.fn(() => false),
       webContents: {
         focus: jest.fn(),
+        invalidate: jest.fn(),
       },
     };
     const syncWindowDisplayAffinity = jest.fn();
@@ -325,6 +327,7 @@ describe('window_visibility_runtime showMainWindow', () => {
     expect(mainWindow.moveTop).toHaveBeenCalledTimes(1);
     expect(mainWindow.focus).toHaveBeenCalledTimes(1);
     expect(mainWindow.webContents.focus).toHaveBeenCalledTimes(1);
+    expect(mainWindow.webContents.invalidate.mock.calls).toHaveLength(1);
   });
 
   test('repositions hidden main window onto stored active display affinity when no explicit target is provided', () => {
@@ -342,6 +345,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       isMinimized: jest.fn(() => false),
       webContents: {
         focus: jest.fn(),
+        invalidate: jest.fn(),
       },
     };
     const syncWindowDisplayAffinity = jest.fn();
@@ -380,6 +384,7 @@ describe('window_visibility_runtime showMainWindow', () => {
     expect(mainWindow.moveTop).toHaveBeenCalledTimes(1);
     expect(mainWindow.focus).toHaveBeenCalledTimes(1);
     expect(mainWindow.webContents.focus).toHaveBeenCalledTimes(1);
+    expect(mainWindow.webContents.invalidate.mock.calls).toHaveLength(1);
   });
 
   test('uses target display work area instead of native maximize when opening from another monitor maximized', () => {

@@ -760,6 +760,33 @@ describe('ChatGptDashboardShell', () => {
     }
   });
 
+  test('replays dashboard wake animation when the main window is reopened to a target', async () => {
+    jest.useFakeTimers();
+
+    try {
+      const { container } = await renderDashboardShell();
+      const shell = container.querySelector('.cg-dashboard-shell');
+
+      act(() => {
+        jest.advanceTimersByTime(421);
+      });
+      expect(shell.className).not.toContain('cg-dashboard-shell-opening');
+
+      act(() => {
+        const listener = mockListeners.get('main-window-open-target');
+        listener?.({ target: 'chat' });
+      });
+      expect(shell.className).toContain('cg-dashboard-shell-opening');
+
+      act(() => {
+        jest.advanceTimersByTime(421);
+      });
+      expect(shell.className).not.toContain('cg-dashboard-shell-opening');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test('search chats opens modal, filters list, and opens selected conversation', async () => {
     jest.useFakeTimers();
     const nowIso = new Date().toISOString();

@@ -183,6 +183,19 @@ function safeWindowVisible(win) {
   return typeof win.isVisible === 'function' ? Boolean(win.isVisible()) : null;
 }
 
+function invalidateWindowRenderer(targetWindow) {
+  const webContents = targetWindow?.webContents;
+  if (
+    !webContents
+    || typeof webContents !== 'object'
+    || (typeof webContents.isDestroyed === 'function' && webContents.isDestroyed())
+    || typeof webContents.invalidate !== 'function'
+  ) {
+    return;
+  }
+  webContents.invalidate();
+}
+
 async function hideMainWindow(options = {}, deps = {}) {
   const {
     mainWindow,
@@ -282,6 +295,7 @@ function showMainWindow(options = {}, deps = {}) {
   if (focus) {
     activateWindowForInteraction(mainWindow);
   }
+  invalidateWindowRenderer(mainWindow);
   return { success: true };
 }
 
