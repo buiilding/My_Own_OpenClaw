@@ -47,7 +47,6 @@ async def init_episodic_schema(db_path: str) -> None:
                 title TEXT NOT NULL,
                 source TEXT NOT NULL DEFAULT 'heuristic',
                 is_locked INTEGER NOT NULL DEFAULT 0,
-                is_pinned INTEGER NOT NULL DEFAULT 0,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
                 PRIMARY KEY (user_id, conversation_id)
@@ -218,21 +217,6 @@ async def init_episodic_schema(db_path: str) -> None:
             except Exception as exc:
                 logger.warning(
                     "Failed to add screenshot column: %s", exc
-                )
-
-        # Add is_pinned column if it doesn't exist (migration)
-        try:
-            await cursor.execute("SELECT is_pinned FROM conversation_titles LIMIT 1")
-        except Exception:
-            try:
-                await cursor.execute(
-                    "ALTER TABLE conversation_titles ADD COLUMN is_pinned INTEGER NOT NULL DEFAULT 0"
-                )
-                await conn.commit()
-                logger.info("Added is_pinned column to conversation_titles table")
-            except Exception as exc:
-                logger.warning(
-                    "Failed to add is_pinned column: %s", exc
                 )
 
         await cursor.execute(

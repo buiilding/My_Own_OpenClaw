@@ -33,7 +33,6 @@ class DummyMemoryStore:
         self.deleted_episodic_calls = []
         self.cleared_local_memory_calls = []
         self.cleared_chat_history_calls = []
-        self.updated_conversation_metadata_calls = []
         self.delete_semantic_return = True
         self.delete_episodic_return = True
         self.clear_local_memory_return = {
@@ -70,19 +69,6 @@ class DummyMemoryStore:
         value = self.next_index
         self.next_index += 1
         return value
-
-    async def update_conversation_metadata(self, *, user_id, conversation_id, title=None, pinned=None):
-        self.updated_conversation_metadata_calls.append({
-            "user_id": user_id,
-            "conversation_id": conversation_id,
-            "title": title,
-            "pinned": pinned,
-        })
-        return {
-            "conversation_id": conversation_id,
-            "title": title or "Existing title",
-            "is_pinned": bool(pinned),
-        }
 
     async def get_episodic_memories_by_conversation(
         self,
@@ -724,7 +710,6 @@ def test_initialize_methods_keeps_memory_handlers_registered():
         "store_memory",
         "search_conversations",
         "list_conversations",
-        "update_conversation_metadata",
         "list_episodic_memories",
         "get_conversation",
         "list_semantic_memories",
@@ -773,34 +758,6 @@ async def test_handle_search_conversations_returns_matches():
     assert result["data"]["count"] == 1
     assert result["data"]["conversations"][0]["conversation_id"] == "conv-2"
     assert backend.memory_store.search_conversation_calls == [("user-1", "vietnamese lawyer", 25)]
-
-
-@pytest.mark.asyncio
-async def test_handle_update_conversation_metadata_returns_updated_row():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStore()
-
-    result = await backend._handle_update_conversation_metadata(
-        conversation_id="conv-2",
-        user_id="user-1",
-        title="Renamed thread",
-        pinned=True,
-    )
-
-    assert result["success"] is True
-    assert result["data"]["conversation"] == {
-        "conversation_id": "conv-2",
-        "title": "Renamed thread",
-        "is_pinned": True,
-    }
-    assert backend.memory_store.updated_conversation_metadata_calls == [
-        {
-            "user_id": "user-1",
-            "conversation_id": "conv-2",
-            "title": "Renamed thread",
-            "pinned": True,
-        }
-    ]
 
 
 @pytest.mark.asyncio

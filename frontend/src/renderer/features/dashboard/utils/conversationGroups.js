@@ -31,19 +31,6 @@ function normalizeMatchedRole(role) {
   return role;
 }
 
-function isConversationPinned(conversation) {
-  if (!conversation || typeof conversation !== 'object') {
-    return false;
-  }
-  if (conversation.isPinned === true) {
-    return true;
-  }
-  if (conversation.is_pinned === true || conversation.is_pinned === 1) {
-    return true;
-  }
-  return false;
-}
-
 function buildConversationGroups(conversations, options = {}) {
   const {
     pinnedConversationRefs = [],
@@ -67,7 +54,7 @@ function buildConversationGroups(conversations, options = {}) {
       key: conversation?.conversation_id || `${keyPrefix}-${index}`,
       title: resolvedTitle || 'New chat',
       conversation,
-      isPinned: pinnedSet.has(conversation?.conversation_id) || isConversationPinned(conversation),
+      isPinned: pinnedSet.has(conversation?.conversation_id),
     };
 
     if (includeSearchMetadata) {

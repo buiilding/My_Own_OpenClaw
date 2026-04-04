@@ -49,13 +49,6 @@ DashboardModal.propTypes = {
 
 const DASHBOARD_OPEN_ANIMATION_MS = 420;
 const DASHBOARD_SCROLL_LOCK_CLASS = 'cg-scroll-locked';
-const DASHBOARD_PANEL = Object.freeze({
-  SEARCH: 'search',
-  SETTINGS: 'settings',
-  MODELS: 'models',
-  MEMORY: 'memory',
-  USAGE: 'usage',
-});
 
 function DashboardShell({
   config,
@@ -65,17 +58,16 @@ function DashboardShell({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [dashboardOpening, setDashboardOpening] = useState(true);
-  const [activePanel, setActivePanel] = useState(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsInitialTab, setSettingsInitialTab] = useState('general');
+  const [modelsOpen, setModelsOpen] = useState(false);
+  const [memoryOpen, setMemoryOpen] = useState(false);
+  const [usageOpen, setUsageOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [isTransportConnected, setIsTransportConnected] = useState(true);
   const [composerFocusToken, setComposerFocusToken] = useState(0);
   const sessionInfo = useTranscriptSessionInfo();
   const resolvedUserId = sessionInfo.userId || DEFAULT_USER_ID;
-  const searchOpen = activePanel === DASHBOARD_PANEL.SEARCH;
-  const settingsOpen = activePanel === DASHBOARD_PANEL.SETTINGS;
-  const modelsOpen = activePanel === DASHBOARD_PANEL.MODELS;
-  const memoryOpen = activePanel === DASHBOARD_PANEL.MEMORY;
-  const usageOpen = activePanel === DASHBOARD_PANEL.USAGE;
 
   const setChatMessages = useChatStore((state) => state.setMessages);
   const clearChatMessages = useChatStore((state) => state.clearMessages);
@@ -111,28 +103,32 @@ function DashboardShell({
   });
 
   const closeAllPanels = useCallback(() => {
-    setActivePanel(null);
+    setSettingsOpen(false);
+    setModelsOpen(false);
+    setMemoryOpen(false);
+    setUsageOpen(false);
+    setSearchOpen(false);
   }, []);
 
   const openSettings = useCallback((tab = 'general') => {
     closeAllPanels();
     setSettingsInitialTab(tab);
-    setActivePanel(DASHBOARD_PANEL.SETTINGS);
+    setSettingsOpen(true);
   }, [closeAllPanels]);
 
   const openModels = useCallback(() => {
     closeAllPanels();
-    setActivePanel(DASHBOARD_PANEL.MODELS);
+    setModelsOpen(true);
   }, [closeAllPanels]);
 
   const openMemory = useCallback(() => {
     closeAllPanels();
-    setActivePanel(DASHBOARD_PANEL.MEMORY);
+    setMemoryOpen(true);
   }, [closeAllPanels]);
 
   const openUsage = useCallback(() => {
     closeAllPanels();
-    setActivePanel(DASHBOARD_PANEL.USAGE);
+    setUsageOpen(true);
   }, [closeAllPanels]);
 
   const handleExpandSidebar = useCallback(() => {
@@ -166,7 +162,7 @@ function DashboardShell({
   const handleOpenSearch = useCallback(() => {
     closeAllPanels();
     resetSearch();
-    setActivePanel(DASHBOARD_PANEL.SEARCH);
+    setSearchOpen(true);
   }, [closeAllPanels, resetSearch]);
 
   const openConversationFromDashboard = useCallback((conversation) => {
@@ -308,9 +304,7 @@ function DashboardShell({
         <>
           <SearchChatsModal
             isOpen={searchOpen}
-            onClose={() => setActivePanel((current) => (
-              current === DASHBOARD_PANEL.SEARCH ? null : current
-            ))}
+            onClose={() => setSearchOpen(false)}
             onStartNewChat={handleStartNewChat}
             onOpenConversation={openConversationFromDashboard}
             query={searchQuery}
@@ -322,49 +316,32 @@ function DashboardShell({
             activeConversationRef={sessionInfo.conversationRef || null}
           />
 
-          <DashboardModal
-            isOpen={memoryOpen}
-            onClose={() => setActivePanel((current) => (
-              current === DASHBOARD_PANEL.MEMORY ? null : current
-            ))}
-          >
+          <DashboardModal isOpen={memoryOpen} onClose={() => setMemoryOpen(false)}>
             <div className="cg-panel-wrapper">
-              <MemorySection onClose={() => setActivePanel(null)} />
+              <MemorySection onClose={() => setMemoryOpen(false)} />
             </div>
           </DashboardModal>
 
-          <DashboardModal
-            isOpen={modelsOpen}
-            onClose={() => setActivePanel((current) => (
-              current === DASHBOARD_PANEL.MODELS ? null : current
-            ))}
-          >
+          <DashboardModal isOpen={modelsOpen} onClose={() => setModelsOpen(false)}>
             <div className="cg-panel-wrapper">
               <ModelsSection
                 config={config}
                 availableModels={availableModels}
                 onConfigChange={onConfigChange}
-                onClose={() => setActivePanel(null)}
+                onClose={() => setModelsOpen(false)}
               />
             </div>
           </DashboardModal>
 
-          <DashboardModal
-            isOpen={usageOpen}
-            onClose={() => setActivePanel((current) => (
-              current === DASHBOARD_PANEL.USAGE ? null : current
-            ))}
-          >
+          <DashboardModal isOpen={usageOpen} onClose={() => setUsageOpen(false)}>
             <div className="cg-panel-wrapper">
-              <UsageSection onClose={() => setActivePanel(null)} />
+              <UsageSection onClose={() => setUsageOpen(false)} />
             </div>
           </DashboardModal>
 
           <DashboardModal
             isOpen={settingsOpen}
-            onClose={() => setActivePanel((current) => (
-              current === DASHBOARD_PANEL.SETTINGS ? null : current
-            ))}
+            onClose={() => setSettingsOpen(false)}
             className="cg-modal-settings"
           >
             <div className="cg-panel-wrapper">
@@ -372,7 +349,7 @@ function DashboardShell({
                 config={config}
                 onConfigChange={onConfigChange}
                 initialTab={settingsInitialTab}
-                onClose={() => setActivePanel(null)}
+                onClose={() => setSettingsOpen(false)}
                 onChatsCleared={handleChatsCleared}
               />
             </div>

@@ -60,7 +60,14 @@ export default function ChatInterfaceHeaderControls({
   return (
     <header className="chat-header">
       <div className="chat-title-block">
-        <p className="chat-header-subtitle">{headerSubtitle}</p>
+        <div className="chat-header-copy">
+          <span className="chat-header-eyebrow">Primary chat</span>
+          <div className="chat-header-title-row">
+            <span className="chat-header-title">Current conversation</span>
+            <span className="chat-header-sync-badge">Desktop synced</span>
+          </div>
+          <p className="chat-header-subtitle">{headerSubtitle}</p>
+        </div>
 
         {showModelSettingsShortcut ? null : (
           <div className="chat-model-row">
@@ -69,7 +76,6 @@ export default function ChatInterfaceHeaderControls({
                 type="button"
                 className="chat-provider-selector"
                 aria-label="Provider selector"
-                aria-controls="chat-provider-popover"
                 aria-expanded={providerMenuOpen}
                 onClick={() => {
                   setProviderMenuOpen((current) => !current);
@@ -81,17 +87,14 @@ export default function ChatInterfaceHeaderControls({
                 <ChevronDown size={16} />
               </button>
               {providerMenuOpen ? (
-                <div
-                  id="chat-provider-popover"
-                  className="chat-provider-menu"
-                  aria-label="Provider options"
-                >
+                <div className="chat-provider-menu" role="menu">
                   {providerOptions.length > 0 ? (
                     providerOptions.map((provider) => (
                       <button
                         key={provider}
                         type="button"
                         className="chat-provider-menu-item"
+                        role="menuitem"
                         onClick={() => {
                           handleProviderSelect(provider);
                         }}
@@ -113,7 +116,6 @@ export default function ChatInterfaceHeaderControls({
                 type="button"
                 className="chat-model-selector"
                 aria-label="Model selector"
-                aria-controls="chat-model-popover"
                 aria-expanded={modelMenuOpen}
                 onClick={() => {
                   setModelMenuOpen((current) => !current);
@@ -125,17 +127,14 @@ export default function ChatInterfaceHeaderControls({
                 <ChevronDown size={16} />
               </button>
               {modelMenuOpen ? (
-                <div
-                  id="chat-model-popover"
-                  className="chat-model-menu"
-                  aria-label="Model options"
-                >
+                <div className="chat-model-menu" role="menu">
                   {modelOptions.length > 0 ? (
                     modelOptions.map((option) => (
                       <button
                         key={`${option.provider || 'unknown'}:${option.id}`}
                         type="button"
                         className="chat-model-menu-item"
+                        role="menuitem"
                         onClick={() => {
                           handleModelSelect(option);
                         }}
@@ -158,7 +157,6 @@ export default function ChatInterfaceHeaderControls({
                   type="button"
                   className="chat-reasoning-mode-selector"
                   aria-label="Reasoning mode selector"
-                  aria-controls="chat-reasoning-popover"
                   aria-expanded={reasoningModeMenuOpen}
                   onClick={() => {
                     setReasoningModeMenuOpen((current) => !current);
@@ -170,16 +168,13 @@ export default function ChatInterfaceHeaderControls({
                   <ChevronDown size={16} />
                 </button>
                 {reasoningModeMenuOpen ? (
-                  <div
-                    id="chat-reasoning-popover"
-                    className="chat-reasoning-mode-menu"
-                    aria-label="Reasoning mode options"
-                  >
+                  <div className="chat-reasoning-mode-menu" role="menu">
                     {reasoningModeOptions.map((option) => (
                       <button
                         key={`${option.mode}:${option.modelId}`}
                         type="button"
                         className="chat-reasoning-mode-menu-item"
+                        role="menuitem"
                         onClick={() => {
                           handleReasoningModeSelect(option.mode);
                         }}
