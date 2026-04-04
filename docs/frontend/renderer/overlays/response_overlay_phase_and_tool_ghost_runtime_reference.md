@@ -12,6 +12,9 @@ title: "Response Overlay Phase Runtime Reference"
 
 - `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`
+- `frontend/src/renderer/features/chat/hooks/useResponseOverlayWindowSync.js`
+- `frontend/src/renderer/features/chat/hooks/useResponseOverlayScrollState.js`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/chatPill/chatPillSessionFlow.ts`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
@@ -85,6 +88,9 @@ Contract ownership:
   - `showAwaitingReply`
   - overlay layout mode (`hidden` / `awaiting-typing` / `response`)
 - `resolveChatPillViewIntent(...)` layers turn-id selection on top of that contract for renderer trace/debug output.
+- `useResponseOverlayViewModel(...)` owns the renderer-side composition boundary: current-turn presentation state, response-entry derivation, rendered markdown payloads, closeability, and stale-response suppression during preflight/awaiting.
+- `useResponseOverlayWindowSync(...)` owns response-window sizing IPC and visibility re-report behavior.
+- `useResponseOverlayScrollState(...)` owns fixed-height transcript scroll pinning and overflow affordance state.
 
 Rendering:
 

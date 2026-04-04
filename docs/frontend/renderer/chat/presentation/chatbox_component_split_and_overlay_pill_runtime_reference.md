@@ -106,6 +106,7 @@ Closeability:
 
 - phase input from `useResponseOverlayPhase()`
 - surface state is derived through `useCurrentTurnPresentationState(...)`
+- `ChatBoxResponse.jsx` now delegates current-turn/view-intent composition to `useResponseOverlayViewModel(...)`, response-window sizing IPC to `useResponseOverlayWindowSync(...)`, and fixed-height transcript scroll behavior to `useResponseOverlayScrollState(...)`
 - awaiting indicator and response pill are mutually controlled by that state projection
 
 ### Response Render and Formatting
