@@ -8,7 +8,13 @@ read_when:
 
 ## Overview
 
-WindieOS uses a multi-layered communication architecture with WebSocket for backend communication and IPC for Electron process communication.
+WindieOS uses a multi-layered communication architecture with:
+
+- IPC between renderer and Electron main
+- JSON-RPC between Electron main and the local Python sidecar
+- WebSocket and HTTP between the client runtime and the backend control plane
+
+The default product topology is remote-first: the app and SDK talk to the hosted backend for orchestration and perception, while the sidecar performs local execution on the user's computer.
 
 ## Communication Layers
 
@@ -27,7 +33,7 @@ WindieOS uses a multi-layered communication architecture with WebSocket for back
 │  │  - IPC Bridge (ipc.cjs)                            │  │
 │  │  - WebSocket Client                                 │  │
 │  └───────────────────────────────────────────────────┘  │
-│        ↕ WebSocket (default remote-first, local fallback in dev) │
+│        ↕ WebSocket / HTTP (hosted-first, local fallback when explicitly provisioned) │
 │  ┌───────────────────────────────────────────────────┐  │
 │  │  Python Backend (FastAPI)                          │  │
 │  │  - WebSocket Routes                                 │  │
@@ -155,6 +161,16 @@ The resolved HTTP URL is also passed to the Python sidecar as `WINDIE_BACKEND_HT
 For source runs that use the hosted-first default, Electron also passes
 `WINDIE_BACKEND_FALLBACK_HTTP_URL=http://127.0.0.1:8765` so sidecar HTTP clients can
 fall back locally when the hosted backend is unreachable.
+
+### SDK Routing Model
+
+The SDK should follow the same transport split:
+
+- **Hosted backend calls** for `/ws`, `/api/artifacts/*`, `/api/sdk/*`, and other backend-owned APIs
+- **Local sidecar calls** for screenshots, clicks, typing, browser/runtime actions, local files, and local processes
+- **Hybrid operations** when one user-facing action needs both, such as screenshot locally -> OCR remotely -> click locally
+
+This keeps the backend as the hosted control plane and prevents SDK consumers from needing a locally running backend just to access OCR or prediction.
 
 ### Message Format
 

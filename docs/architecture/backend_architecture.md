@@ -12,6 +12,22 @@ See also: [Backend Functionality Map](../backend/README.md) for implementation-l
 
 The backend is built using Python 3.11 with FastAPI, following clean architecture principles. It uses dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR) instead of plugins.
 
+In the intended product topology, the backend is the hosted control plane for WindieOS clients and SDK consumers. It owns cloud or coordinator responsibilities such as:
+
+- OCR and visual grounding
+- agent orchestration
+- artifact storage and retrieval
+- session state and tracing
+- hosted REST and WebSocket APIs
+
+The backend is not the local machine executor. Mouse, keyboard, screenshots, browser/runtime control, and local filesystem/process operations stay in the sidecar on the user's computer.
+
+Open-source client distributions should assume:
+
+- the SDK calls this backend over HTTP/WebSocket
+- the sidecar performs local execution
+- end users are not expected to run backend services themselves just to use OCR, prediction, or hosted agent features
+
 ## Core Runtime Refactors (2026-02-11)
 
 To reduce feature-change friction in `backend/src/core`, runtime internals were split into smaller seams:
@@ -53,6 +69,7 @@ Current backend runtime wiring also includes:
 
 - **Runs API routes are first-class app routes**: `backend/src/api/routes/__init__.py` registers `runs.router` beside websocket/artifact/memory routes, so `/api/runs/*` is part of canonical app assembly (`backend/src/api/app_assembly.py`).
 - **SDK perception routes are first-class app routes**: `backend/src/api/routes/sdk/router.py` registers direct OCR/text-grounding and vision/prediction APIs under `/api/sdk/*`, exposing backend-owned perception capabilities without routing through the agent loop.
+- **SDK perception routes are meant for direct hosted consumption**: clients upload artifacts or send inline images, call `/api/sdk/*`, then combine the returned grounding data with local sidecar actions. They should not need to instantiate backend OCR/vision services locally to use these APIs.
 - **Query execution helper split is now structural**: `backend/src/api/services/query_execution_support/*` owns screenshot/input resolution, completion backfill, post-terminal filtering, and cancellation cleanup used by `QueryExecutionService`.
 - **OpenAI native reasoning path is provider-owned**: `backend/src/llm/providers/openai.py` routes reasoning-enabled models through `openai_responses_runtime.py` (`litellm.aresponses`) while non-reasoning models keep the shared online provider path.
 - **VM run control service is app-state scoped and in-memory**: `backend/src/api/routes/runs/support.py` lazily creates `VmRunControlService` on `app.state` with optional API-key protection via `x-windie-runs-key`.

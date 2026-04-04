@@ -135,8 +135,9 @@ export BACKEND_WS_URL="ws://192.168.1.50:8765/ws"
 
 Default fallback behavior:
 
-- Dev/source runs fallback to local backend `http://127.0.0.1:8765` and `ws://127.0.0.1:8765/ws`.
-- Packaged app runs fallback to hosted backend `https://api.windieos.com` and `wss://api.windieos.com/ws`.
+- Dev/source runs and packaged app runs both use hosted-first endpoint candidates: `https://api.windieos.com` and `wss://api.windieos.com/ws`.
+- If the hosted backend is unreachable before the socket opens, the app falls back to local backend candidates `http://127.0.0.1:8765` and `ws://127.0.0.1:8765/ws`.
+- Setting explicit `BACKEND_*` or `BACKEND_HOST`/`BACKEND_PORT` overrides this hosted-first candidate list.
 
 #### Configuration Locations
 
@@ -145,9 +146,9 @@ There is no YAML config file. Configuration is split between:
 - **Backend**: `backend/src/core/config/app_config.py` (edit + restart)
 - **Frontend**: `frontend-config.json` stored in Electron user data (saved by the UI)
 
-## Hosted Backend (Planned)
+## Hosted Backend
 
-When the hosted backend is available, installation adds:
+The intended product topology uses a hosted backend with a local sidecar. In that mode, installation can add:
 - **Login**: OAuth or email/password.
 - **Secure token storage** in OS keychain.
 - **Plan selection** and billing portal access.

@@ -220,8 +220,9 @@ Read the file README.md
 
 ### Connection Issues
 
-1. **Check Backend is Running**:
-   - Look for "Application startup complete" in backend logs
+1. **Check Which Backend Mode You Expect**:
+   - Hosted mode: verify the app can reach `https://api.windieos.com` / `wss://api.windieos.com/ws`
+   - Local/self-hosted mode: verify your backend process is running and reachable
 
 2. **Check WebSocket Connection**:
    - Look for connection status in UI
