@@ -232,6 +232,8 @@ APP_CONFIG = AppConfig(
 - Token usage tracking
 - All curated OpenAI GPT-5.4 presets use the OpenAI Responses API
 - Reasoning effort is preset-scoped and maps to `none`, `low`, `medium`, `high`, or `xhigh`
+- OpenAI chat-completions and Responses transports now share one schema-compatibility preparation layer for model-facing function tools
+- OpenAI Responses reasoning config is fail-closed: curated thinking presets must carry explicit `reasoning_mode` metadata instead of relying on display-name inference
 - Provider-native reasoning summary/text stream events are forwarded as `ThinkingEvent` when the model exposes them
 
 ### Anthropic

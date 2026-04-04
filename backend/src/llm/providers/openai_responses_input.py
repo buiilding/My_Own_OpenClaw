@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-import copy
 import json
 from typing import Any, Dict, List, Optional
 
 from backend.src.core.types.schemas import LLMMessage
 from backend.src.llm.models.models_config import resolve_model_preset, resolve_runtime_model_id
+from backend.src.llm.providers.openai_tool_prep import (
+    build_openai_responses_tools as build_openai_transport_responses_tools,
+)
 from backend.src.llm.providers.response_parsing import get_value
 from backend.src.tools.tool_specs import (
-    is_function_tool_spec,
     to_litellm_tool_choice,
 )
 
@@ -121,25 +122,10 @@ def build_openai_responses_tools(
     *,
     native_web_search_enabled: bool = False,
 ) -> Optional[List[Dict[str, Any]]]:
-    normalized: List[Dict[str, Any]] = []
-    if tools is not None:
-        for tool in tools:
-            if not is_function_tool_spec(tool):
-                continue
-            normalized.append(
-                {
-                    "type": "function",
-                    "name": tool.get("name"),
-                    "description": tool.get("description"),
-                    "parameters": copy.deepcopy(tool.get("parameters")),
-                    "strict": bool(tool.get("strict", False)),
-                }
-            )
-    if native_web_search_enabled:
-        normalized.append({"type": "web_search"})
-    if not normalized:
-        return None
-    return normalized
+    return build_openai_transport_responses_tools(
+        tools,
+        native_web_search_enabled=native_web_search_enabled,
+    )
 
 
 def build_openai_responses_tool_choice(tool_choice: Any) -> Any:
@@ -156,22 +142,10 @@ def build_openai_reasoning_config(model_id: str) -> Dict[str, str]:
     explicit_mode = str((preset or {}).get("reasoning_mode") or "").strip().lower()
     if explicit_mode in {"none", "minimal", "low", "medium", "high", "xhigh"}:
         return {"effort": explicit_mode, "summary": "detailed"}
-
-    display_name = str((preset or {}).get("display_name") or model_id).lower()
-    effort = "medium"
-    if "extra high" in display_name or "xhigh" in display_name:
-        effort = "xhigh"
-    elif "medium" in display_name:
-        effort = "medium"
-    elif "high" in display_name:
-        effort = "high"
-    elif "low" in display_name or "mini" in display_name:
-        effort = "low"
-    elif "none" in display_name:
-        effort = "none"
-    elif "minimal" in display_name:
-        effort = "minimal"
-    return {"effort": effort, "summary": "detailed"}
+    raise ValueError(
+        "OpenAI Responses reasoning config requires explicit reasoning_mode metadata "
+        f"for model '{model_id}'."
+    )
 
 
 def build_openai_responses_params(

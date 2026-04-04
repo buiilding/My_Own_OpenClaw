@@ -43,6 +43,7 @@ The shared contract module defines:
 - one `BrowserActionContract` catalog with action name, args model, runtime action, and connection requirement
 - one discriminated `BrowserControlArgs` union for grouped validation
 - one `build_browser_tool_parameters_schema()` helper for model-facing schema emission
+- implementation is split internally into action models, action catalog, and model-facing schema builder modules while keeping `windie_shared.browser_contract` as the stable import surface for backend and sidecar re-export wrappers
 
 Important boundary:
 

@@ -57,28 +57,15 @@ function normalizeReasoningMode(value) {
   return normalized;
 }
 
-function resolveReasoningModeFromText(value) {
-  const normalized = normalizeReasoningMode(value);
-  if (!normalized) {
-    return 'none';
-  }
-  if (/\bmax\b/.test(normalized)) {
-    return 'xhigh';
-  }
-  if (REASONING_MODE_ORDER.includes(normalized)) {
-    return normalized;
-  }
-  return 'medium';
-}
-
 function resolveVariantReasoningMode(variant) {
   const explicitReasoningMode = normalizeReasoningMode(variant?.reasoningMode);
   if (explicitReasoningMode) {
     return explicitReasoningMode;
   }
-  const displayName = normalizeString(variant?.displayName);
-  const modelId = normalizeString(variant?.id);
-  return resolveReasoningModeFromText(displayName || modelId);
+  if (variant?.supportsThinking !== true) {
+    return 'none';
+  }
+  return '';
 }
 
 function getReasoningSortIndex(mode) {
@@ -86,21 +73,20 @@ function getReasoningSortIndex(mode) {
   return index >= 0 ? index : REASONING_MODE_ORDER.length;
 }
 
-function buildReasoningModeOptionsFromVariants(variants, configuredModelId, explicitReasoningModes, defaultModelId) {
+function buildReasoningModeOptionsFromVariants(
+  variants,
+  explicitReasoningModes,
+  defaultModelId,
+) {
   const modeMap = new Map();
-  const configuredId = normalizeString(configuredModelId);
   const normalizedDefaultModelId = normalizeString(defaultModelId);
-  const nonThinkingVariant = variants.find((variant) => variant.supportsThinking !== true);
 
   variants.forEach((variant) => {
-    const explicitReasoningMode = normalizeReasoningMode(variant?.reasoningMode);
-    if (variant.supportsThinking !== true && !explicitReasoningMode) {
+    const mode = resolveVariantReasoningMode(variant);
+    if (!mode) {
       return;
     }
-    const mode = explicitReasoningMode || resolveVariantReasoningMode(variant);
-    const existing = modeMap.get(mode);
-    const isConfiguredVariant = configuredId && variant.id === configuredId;
-    if (!existing || isConfiguredVariant) {
+    if (!modeMap.has(mode)) {
       modeMap.set(mode, {
         mode,
         label: REASONING_MODE_LABELS[mode] || mode,
@@ -108,14 +94,6 @@ function buildReasoningModeOptionsFromVariants(variants, configuredModelId, expl
       });
     }
   });
-
-  if (!modeMap.has('none') && nonThinkingVariant) {
-    modeMap.set('none', {
-      mode: 'none',
-      label: REASONING_MODE_LABELS.none,
-      modelId: nonThinkingVariant.id,
-    });
-  }
 
   const backendOrderedModes = Array.isArray(explicitReasoningModes)
     ? explicitReasoningModes.map((mode) => normalizeReasoningMode(mode)).filter(Boolean)
@@ -141,17 +119,20 @@ function buildReasoningModeOptionsFromVariants(variants, configuredModelId, expl
   return options;
 }
 
-function deriveModelLabelFromVariants(variants, fallbackModelId, familyLabel, defaultModelId) {
+function findVariantByModelId(variants, modelId) {
+  const normalizedModelId = normalizeString(modelId);
+  if (!normalizedModelId) {
+    return null;
+  }
+  return variants.find((variant) => variant.id === normalizedModelId) || null;
+}
+
+function deriveModelLabelFromVariants(variants, fallbackModelId, familyLabel, defaultVariant) {
   const explicitFamilyLabel = normalizeString(familyLabel);
   if (explicitFamilyLabel) {
     return explicitFamilyLabel;
   }
-  const normalizedDefaultModelId = normalizeString(defaultModelId);
-  const preferredVariant = variants.find((variant) => variant.id === normalizedDefaultModelId)
-    || variants.find((variant) => variant.supportsThinking !== true)
-    || variants.find((variant) => resolveVariantReasoningMode(variant) === 'none')
-    || variants.find((variant) => resolveVariantReasoningMode(variant) === 'medium')
-    || variants[0];
+  const preferredVariant = defaultVariant || variants[0];
   const rawLabel = normalizeString(preferredVariant?.displayName) || normalizeString(fallbackModelId);
   return sanitizeModelDisplayLabel(rawLabel) || rawLabel || normalizeString(fallbackModelId);
 }
@@ -248,7 +229,6 @@ export function buildChatModelOptions({
   for (const group of groups.values()) {
     const reasoningModeOptions = buildReasoningModeOptionsFromVariants(
       group.variants,
-      configuredModelId,
       group.reasoningModes,
       group.defaultModelId,
     );
@@ -256,8 +236,9 @@ export function buildChatModelOptions({
     const selectedRuntimeVariant = group.variants.find(
       (variant) => variant.runtimeModelId === configuredModelId,
     );
-    const explicitDefaultVariant = group.variants.find(
-      (variant) => variant.id === group.defaultModelId,
+    const explicitDefaultVariant = findVariantByModelId(group.variants, group.defaultModelId);
+    const defaultReasoningVariant = reasoningModeOptions.find(
+      (option) => option.mode === group.defaultReasoningMode,
     );
     const noneReasoningVariant = reasoningModeOptions.find(
       (option) => option.mode === 'none',
@@ -267,11 +248,14 @@ export function buildChatModelOptions({
     const defaultVariant = selectedVariant
       || selectedRuntimeVariant
       || explicitDefaultVariant
+      || (defaultReasoningVariant
+        ? findVariantByModelId(group.variants, defaultReasoningVariant.modelId)
+        : null)
       || (noneReasoningVariant
-        ? group.variants.find((variant) => variant.id === noneReasoningVariant.modelId)
+        ? findVariantByModelId(group.variants, noneReasoningVariant.modelId)
         : null)
       || (mediumReasoningVariant
-        ? group.variants.find((variant) => variant.id === mediumReasoningVariant.modelId)
+        ? findVariantByModelId(group.variants, mediumReasoningVariant.modelId)
         : null)
       || nonThinkingVariant
       || group.variants[0];
@@ -281,7 +265,7 @@ export function buildChatModelOptions({
       group.variants,
       fallbackModelId,
       group.familyLabel,
-      group.defaultModelId,
+      defaultVariant,
     );
     const supportsThinking = group.variants.some((variant) => variant.supportsThinking === true);
     options.push({

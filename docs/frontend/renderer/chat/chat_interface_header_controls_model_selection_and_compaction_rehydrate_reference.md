@@ -74,6 +74,7 @@ Model dropdown:
 - toggles model menu and closes provider menu
 - renders one base entry per runtime model (for example one `GPT-5.3 Codex` instead of separate `Low/High` rows)
 - `handleModelSelect(option)` writes both `selected_model_id` and provider fallback (`option.provider || configuredProvider`)
+- grouping/label/default selection should prefer backend family metadata (`family_id`, `family_label`, `default_model_id`, `default_reasoning_mode`, `reasoning_modes`) when present instead of reconstructing families from display-name text
 - when the selected model exposes multiple reasoning levels, model selection preserves the current reasoning mode when possible (fallback: `medium`, then first available)
 - backend session model selection is synced only when the next send/replay query is dispatched
 
@@ -81,7 +82,8 @@ Reasoning mode dropdown (conditional):
 
 - shown only when the selected model has more than one reasoning mode variant
 - options are normalized to `Low`, `Medium`, `High`, `Extra High`
-- currently used by model families that expose multiple reasoning variants (for example OpenAI Codex, Anthropic, Gemini)
+- currently used by model families that expose multiple reasoning variants (for example OpenAI GPT-5.4, Anthropic, Gemini)
+- renderer-side reasoning variant discovery should come from backend family metadata first; display-name heuristics are only a label fallback and must not invent missing reasoning modes
 - selecting a reasoning mode updates `selected_model_id` to the matching model variant id for the same runtime model family
 
 Window controls:

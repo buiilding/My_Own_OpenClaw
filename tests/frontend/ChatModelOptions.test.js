@@ -213,6 +213,32 @@ describe('chatModelOptions', () => {
     ]);
   });
 
+  test('does not infer reasoning modes from display labels when metadata is missing', () => {
+    const options = buildChatModelOptions({
+      availableModelPool: [
+        {
+          id: 'custom-openai-high',
+          provider: 'openai',
+          runtime_model_id: 'custom-openai',
+          display_name: 'Custom OpenAI High',
+          supports_thinking: true,
+        },
+      ],
+      configuredProvider: 'openai',
+      configuredModelId: 'custom-openai-high',
+    });
+
+    expect(options).toHaveLength(1);
+    expect(options[0]).toMatchObject({
+      id: 'custom-openai-high',
+      runtimeModelId: 'custom-openai',
+      label: 'Custom OpenAI',
+      defaultReasoningMode: null,
+      reasoningModeOptions: [],
+    });
+    expect(resolveSelectedReasoningMode(options[0], 'custom-openai-high')).toBeNull();
+  });
+
   test('prefers backend family metadata and injects none mode for non-thinking defaults', () => {
     const availableModelPool = [
       {
