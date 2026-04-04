@@ -19,8 +19,15 @@ describe('chatBoxState', () => {
   });
 
   test('resolveChatboxVisualAnchorHeight switches by preview mode', () => {
-    expect(resolveChatboxVisualAnchorHeight(false)).toBe(CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT);
-    expect(resolveChatboxVisualAnchorHeight(true)).toBe(116);
+    expect(resolveChatboxVisualAnchorHeight({ hasImagePreview: false })).toBe(CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT);
+    expect(resolveChatboxVisualAnchorHeight({ hasImagePreview: true })).toBe(116);
+  });
+
+  test('resolveChatboxVisualAnchorHeight derives anchor height from measured shell height', () => {
+    expect(resolveChatboxVisualAnchorHeight({
+      hasImagePreview: false,
+      shellHeight: 94,
+    })).toBe(88);
   });
 
   test('createClipboardScreenshotImage builds deterministic screenshot attachment payload', () => {

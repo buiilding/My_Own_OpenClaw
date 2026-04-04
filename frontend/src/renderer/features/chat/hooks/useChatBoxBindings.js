@@ -60,15 +60,51 @@ export function useChatboxDragWindowBindings(handleDragMove, stopDragging) {
   }, [handleDragMove, stopDragging]);
 }
 
-export function useChatboxVisualAnchorBindings(hasImagePreview) {
+export function useChatboxVisualAnchorBindings({
+  shellRef,
+  hasImagePreview,
+}) {
   useEffect(() => {
-    const nextAnchorHeight = resolveChatboxVisualAnchorHeight(hasImagePreview);
-    IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, {
-      height: nextAnchorHeight,
-    }).catch((error) => {
-      console.warn('[ChatBox] Failed to sync visual anchor height:', error);
+    let cancelled = false;
+    let lastReportedHeight = null;
+    const shellElement = shellRef?.current || null;
+
+    const reportAnchorHeight = () => {
+      const nextAnchorHeight = resolveChatboxVisualAnchorHeight({
+        hasImagePreview,
+        shellHeight: shellElement?.offsetHeight ?? null,
+      });
+      if (nextAnchorHeight === lastReportedHeight) {
+        return;
+      }
+      lastReportedHeight = nextAnchorHeight;
+      IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, {
+        height: nextAnchorHeight,
+      }).catch((error) => {
+        if (!cancelled) {
+          console.warn('[ChatBox] Failed to sync visual anchor height:', error);
+        }
+      });
+    };
+
+    reportAnchorHeight();
+
+    if (!shellElement || typeof ResizeObserver !== 'function') {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      reportAnchorHeight();
     });
-  }, [hasImagePreview]);
+    resizeObserver.observe(shellElement);
+
+    return () => {
+      cancelled = true;
+      resizeObserver.disconnect();
+    };
+  }, [hasImagePreview, shellRef]);
 
   useEffect(() => {
     return () => {

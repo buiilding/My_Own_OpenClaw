@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-chat-pill-multiline-anchor): make the minimal chat pill report measured shell height through the shared visual-anchor contract so Shift+Enter composer growth expands the lower pill body, moves the chat/response overlay stack upward together, and preserves the top bump/close-button silhouette.
 - fix(frontend-overlay-send-runtime): stop macOS chat-pill send flicker by skipping blur-only pre-query demotion, show the awaiting typing overlay immediately by warm-loading the response renderer, and restore deterministic local screenshot-url hydration plus shared compact overlay sizing contracts across main/renderer send paths.
 - fix(frontend-dashboard-reopen-render): force a dashboard wake-up layout pass and main-window renderer invalidation when reopening the hidden main dashboard from the minimal chat pill, so the sidebar/main content repaint fully instead of coming back partially rendered.
 - fix(backend-ocr-startup): update RapidOCR language params to use enum values required by current RapidOCR builds, add OCR readiness-aware startup logging, and cover the new contract with focused backend tests/docs.
