@@ -37,7 +37,8 @@ body {
 .chatbox-input-shell-wrap .chatbox-shell {
   min-height: var(--chatbox-fixed-shell-height);
   height: auto;
-  padding-top: 0;
+  box-sizing: border-box;
+  padding-top: var(--chatbox-bump-height);
   display: flex;
   align-items: flex-end;
 }

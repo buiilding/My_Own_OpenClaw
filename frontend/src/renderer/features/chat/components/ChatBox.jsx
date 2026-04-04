@@ -62,6 +62,11 @@ function ChatBox() {
   const pillRef = useRef(null);
   const shellRef = useRef(null);
   const sendButtonRef = useRef(null);
+  const closeButtonAnchorFrameRef = useRef(null);
+  const closeButtonAnchorSnapshotRef = useRef({
+    clipPath: null,
+    centerX: null,
+  });
   const loopInteractionLockedRef = useRef(false);
   const dragStateRef = useRef(createChatboxDragState());
   const chatboxHitTestActiveRef = useRef(null);
@@ -169,42 +174,59 @@ function ChatBox() {
     }
 
     const centerX = Math.round((sendRect.left - pillRect.left) + (sendRect.width / 2));
-    pillElement.style.setProperty('--chatbox-close-center-x', `${centerX}px`);
     const clipPath = buildChatboxPillClipPath({
       width: pillWidth,
       height: getChatboxPillClipHeight(pillHeight),
       centerX,
     });
-    pillElement.style.setProperty('--chatbox-pill-clip-path', clipPath);
+    if (closeButtonAnchorSnapshotRef.current.centerX !== centerX) {
+      pillElement.style.setProperty('--chatbox-close-center-x', `${centerX}px`);
+      closeButtonAnchorSnapshotRef.current.centerX = centerX;
+    }
+    if (closeButtonAnchorSnapshotRef.current.clipPath !== clipPath) {
+      pillElement.style.setProperty('--chatbox-pill-clip-path', clipPath);
+      closeButtonAnchorSnapshotRef.current.clipPath = clipPath;
+    }
   }, []);
 
+  const scheduleCloseButtonAnchorSync = useCallback(() => {
+    if (closeButtonAnchorFrameRef.current !== null) {
+      window.cancelAnimationFrame(closeButtonAnchorFrameRef.current);
+    }
+    closeButtonAnchorFrameRef.current = window.requestAnimationFrame(() => {
+      closeButtonAnchorFrameRef.current = null;
+      syncCloseButtonAnchor();
+    });
+  }, [syncCloseButtonAnchor]);
+
   useLayoutEffect(() => {
-    syncCloseButtonAnchor();
+    scheduleCloseButtonAnchorSync();
 
     if (typeof window !== 'undefined') {
-      window.addEventListener('resize', syncCloseButtonAnchor);
+      window.addEventListener('resize', scheduleCloseButtonAnchorSync);
     }
 
     let resizeObserver = null;
     if (typeof ResizeObserver === 'function') {
       resizeObserver = new ResizeObserver(() => {
-        syncCloseButtonAnchor();
+        scheduleCloseButtonAnchorSync();
       });
       if (pillRef.current) {
         resizeObserver.observe(pillRef.current);
-      }
-      if (sendButtonRef.current) {
-        resizeObserver.observe(sendButtonRef.current);
       }
     }
 
     return () => {
       if (typeof window !== 'undefined') {
-        window.removeEventListener('resize', syncCloseButtonAnchor);
+        window.removeEventListener('resize', scheduleCloseButtonAnchorSync);
+      }
+      if (closeButtonAnchorFrameRef.current !== null) {
+        window.cancelAnimationFrame(closeButtonAnchorFrameRef.current);
+        closeButtonAnchorFrameRef.current = null;
       }
       resizeObserver?.disconnect();
     };
-  }, [syncCloseButtonAnchor, devUiEnabled]);
+  }, [scheduleCloseButtonAnchorSync, devUiEnabled]);
 
   const setChatboxHitTestActive = useCallback((active) => {
     const nextActive = active === true;
