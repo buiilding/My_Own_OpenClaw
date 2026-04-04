@@ -83,6 +83,10 @@ Allowed fields (derived from model fields):
 - `provider_api_keys`
 - `provider_oauth`
 
+Intentionally excluded backend-owned runtime policy:
+
+- `speech_provider`
+
 `validate_frontend_config(settings)` behavior:
 
 - non-dict input -> `ValidationError`

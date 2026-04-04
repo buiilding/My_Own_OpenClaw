@@ -38,7 +38,6 @@ const DEFAULT_FRONTEND_CONFIG = {
   interaction_mode: 'agent',
   voice_mode_enabled: false,
   speech_mode_enabled: false,
-  speech_provider: 'elevenlabs',
   wakeword_enabled: true,
   wakeword_stt_enabled: false,
   agent_full_sudo_enabled: false,
@@ -105,6 +104,19 @@ function normalizeProviderOAuth(overrides = null) {
   return normalized;
 }
 
+function filterKnownFrontendConfigFields(overrides = null) {
+  const source = toPlainRecord(overrides);
+  const filtered = {};
+
+  for (const key of Object.keys(DEFAULT_FRONTEND_CONFIG)) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      filtered[key] = source[key];
+    }
+  }
+
+  return filtered;
+}
+
 function normalizeSelectedModelId(overrides = {}) {
   const selectedModelId = typeof overrides.selected_model_id === 'string'
     ? overrides.selected_model_id.trim()
@@ -117,16 +129,17 @@ function normalizeSelectedModelId(overrides = {}) {
 }
 
 function buildFrontendConfig(overrides = {}) {
-  const normalizedSelectedModelId = normalizeSelectedModelId(overrides);
+  const filteredOverrides = filterKnownFrontendConfigFields(overrides);
+  const normalizedSelectedModelId = normalizeSelectedModelId(filteredOverrides);
   return {
     ...DEFAULT_FRONTEND_CONFIG,
-    ...overrides,
+    ...filteredOverrides,
     selected_model_id: normalizedSelectedModelId,
     global_agent_stop_shortcut: normalizeGlobalAgentStopShortcutAccelerator(
-      overrides.global_agent_stop_shortcut,
+      filteredOverrides.global_agent_stop_shortcut,
     ),
-    provider_api_keys: normalizeProviderApiKeys(overrides.provider_api_keys),
-    provider_oauth: normalizeProviderOAuth(overrides.provider_oauth),
+    provider_api_keys: normalizeProviderApiKeys(filteredOverrides.provider_api_keys),
+    provider_oauth: normalizeProviderOAuth(filteredOverrides.provider_oauth),
   };
 }
 
@@ -185,12 +198,13 @@ export function saveConfigToStorage(config, version = null) {
       console.warn('[ConfigStorage] Attempted to save invalid config:', config);
       return false;
     }
-    
+
+    const normalizedConfig = buildFrontendConfig(config);
     const configVersion = version !== null ? version : Date.now();
-    
-    localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
+
+    localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(normalizedConfig));
     localStorage.setItem(CONFIG_VERSION_KEY, configVersion.toString());
-    
+
     return true;
   } catch (error) {
     console.error('[ConfigStorage] Failed to save config to localStorage:', error);

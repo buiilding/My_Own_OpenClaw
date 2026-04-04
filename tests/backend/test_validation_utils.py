@@ -174,3 +174,14 @@ def test_validate_frontend_config_trims_model_fields() -> None:
         validated["selected_model_id"]
         == "gemini-3-flash-preview@@gemini-3-flash-thinking"
     )
+
+
+def test_validate_frontend_config_ignores_backend_owned_speech_provider() -> None:
+    validated = validate_frontend_config(
+        {
+            "speech_provider": "local",
+            "speech_mode_enabled": True,
+        }
+    )
+
+    assert validated == {"speech_mode_enabled": True}

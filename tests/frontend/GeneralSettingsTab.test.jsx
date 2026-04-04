@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
   useAppConfigContext: () => ({
@@ -22,13 +22,12 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 import GeneralSettingsTab from '../../frontend/src/renderer/features/dashboard/components/sections/settings/GeneralSettingsTab';
 
 describe('GeneralSettingsTab', () => {
-  test('speech engine selector updates speech_provider separately from speech on/off', () => {
+  test('does not render backend-owned speech provider controls', () => {
     const onConfigChange = jest.fn();
 
     render(
       <GeneralSettingsTab
         config={{
-          speech_provider: 'local',
           wakeword_stt_enabled: false,
           agent_full_sudo_enabled: false,
           show_tool_logs: false,
@@ -38,10 +37,7 @@ describe('GeneralSettingsTab', () => {
       />,
     );
 
-    fireEvent.change(screen.getByDisplayValue('Local'), {
-      target: { value: 'elevenlabs' },
-    });
-
-    expect(onConfigChange).toHaveBeenCalledWith({ speech_provider: 'elevenlabs' });
+    expect(screen.queryByText('Speech engine')).not.toBeInTheDocument();
+    expect(screen.queryByText('Text-to-speech name')).not.toBeInTheDocument();
   });
 });
