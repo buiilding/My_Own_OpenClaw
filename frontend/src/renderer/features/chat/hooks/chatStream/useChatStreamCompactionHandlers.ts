@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import type {
   BackendEvent,
   BackendEventType,
@@ -13,6 +12,7 @@ import {
   COMPACTION_FAILED_THINKING_STATUS,
 } from '../../utils/chatStream/chatStreamThinkingStatus';
 import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
+import { useTurnScopedBackendEventHandler } from './useTurnScopedBackendEventHandler';
 
 type ResolveTargetConversationRef = (event: BackendEvent) => string | null;
 
@@ -74,92 +74,71 @@ export function useChatStreamCompactionHandlers({
   setCompactionDebugInfo: SetCompactionDebugInfo;
   recordTrackingEvent: RecordTrackingEvent;
 }) {
-  const handleContextCompactionStarted = useCallback((event: ContextCompactionStartedEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    setThinkingStatus(COMPACTION_THINKING_STATUS, conversationRef);
-    setThinkingSourceEventType('context-compaction-started', conversationRef);
-    setCompactionDebugInfo(null, conversationRef);
-    recordTrackingEvent('context-compaction-started', event.turn_ref, {}, conversationRef);
-  }, [
-    recordTrackingEvent,
+  const handleContextCompactionStarted = useTurnScopedBackendEventHandler<ContextCompactionStartedEvent>({
     resolveTargetConversationRef,
-    setCompactionDebugInfo,
-    setThinkingSourceEventType,
-    setThinkingStatus,
     shouldIgnoreForStaleTurn,
-  ]);
+    onEvent: (event, conversationRef) => {
+      setThinkingStatus(COMPACTION_THINKING_STATUS, conversationRef);
+      setThinkingSourceEventType('context-compaction-started', conversationRef);
+      setCompactionDebugInfo(null, conversationRef);
+      recordTrackingEvent('context-compaction-started', event.turn_ref, {}, conversationRef);
+    },
+  });
 
-  const handleContextCompactionCompleted = useCallback((event: ContextCompactionCompletedEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    const skippedReason = (
-      typeof event.payload?.skipped_reason === 'string'
-        ? event.payload.skipped_reason.trim()
-        : ''
-    );
-    setThinkingStatus(
-      skippedReason
-        ? COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS
-        : COMPACTION_COMPLETED_THINKING_STATUS,
-      conversationRef,
-    );
-    setThinkingSourceEventType('context-compaction-completed', conversationRef);
-    setCompactionDebugInfo({
-      reason: typeof event.payload?.reason === 'string' ? event.payload.reason : null,
-      strategy: typeof event.payload?.strategy === 'string' ? event.payload.strategy : null,
-      beforeTokens: typeof event.payload?.before_tokens === 'number' ? event.payload.before_tokens : null,
-      afterTokens: typeof event.payload?.after_tokens === 'number' ? event.payload.after_tokens : null,
-      removedMessages: typeof event.payload?.removed_messages === 'number' ? event.payload.removed_messages : null,
-      summaryPreview: typeof event.payload?.summary_preview === 'string' ? event.payload.summary_preview : null,
-      summaryText: typeof event.payload?.summary_text === 'string' ? event.payload.summary_text : null,
-      replacementHistoryPreview: Array.isArray(event.payload?.replacement_history_preview)
-        ? event.payload.replacement_history_preview.map((entry) => ({
-          role: typeof entry?.role === 'string' ? entry.role : null,
-          messageType: typeof entry?.message_type === 'string' ? entry.message_type : null,
-          content: typeof entry?.content === 'string' ? entry.content : null,
-          toolName: typeof entry?.tool_name === 'string' ? entry.tool_name : null,
-          toolCallId: typeof entry?.tool_call_id === 'string' ? entry.tool_call_id : null,
-        }))
-        : [],
-      skippedReason: skippedReason || null,
-    }, conversationRef);
-    recordTrackingEvent('context-compaction-completed', event.turn_ref, {}, conversationRef);
-  }, [
-    recordTrackingEvent,
+  const handleContextCompactionCompleted = useTurnScopedBackendEventHandler<ContextCompactionCompletedEvent>({
     resolveTargetConversationRef,
-    setCompactionDebugInfo,
-    setThinkingSourceEventType,
-    setThinkingStatus,
     shouldIgnoreForStaleTurn,
-  ]);
+    onEvent: (event, conversationRef) => {
+      const skippedReason = (
+        typeof event.payload?.skipped_reason === 'string'
+          ? event.payload.skipped_reason.trim()
+          : ''
+      );
+      setThinkingStatus(
+        skippedReason
+          ? COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS
+          : COMPACTION_COMPLETED_THINKING_STATUS,
+        conversationRef,
+      );
+      setThinkingSourceEventType('context-compaction-completed', conversationRef);
+      setCompactionDebugInfo({
+        reason: typeof event.payload?.reason === 'string' ? event.payload.reason : null,
+        strategy: typeof event.payload?.strategy === 'string' ? event.payload.strategy : null,
+        beforeTokens: typeof event.payload?.before_tokens === 'number' ? event.payload.before_tokens : null,
+        afterTokens: typeof event.payload?.after_tokens === 'number' ? event.payload.after_tokens : null,
+        removedMessages: typeof event.payload?.removed_messages === 'number' ? event.payload.removed_messages : null,
+        summaryPreview: typeof event.payload?.summary_preview === 'string' ? event.payload.summary_preview : null,
+        summaryText: typeof event.payload?.summary_text === 'string' ? event.payload.summary_text : null,
+        replacementHistoryPreview: Array.isArray(event.payload?.replacement_history_preview)
+          ? event.payload.replacement_history_preview.map((entry) => ({
+            role: typeof entry?.role === 'string' ? entry.role : null,
+            messageType: typeof entry?.message_type === 'string' ? entry.message_type : null,
+            content: typeof entry?.content === 'string' ? entry.content : null,
+            toolName: typeof entry?.tool_name === 'string' ? entry.tool_name : null,
+            toolCallId: typeof entry?.tool_call_id === 'string' ? entry.tool_call_id : null,
+          }))
+          : [],
+        skippedReason: skippedReason || null,
+      }, conversationRef);
+      recordTrackingEvent('context-compaction-completed', event.turn_ref, {}, conversationRef);
+    },
+  });
 
-  const handleContextCompactionFailed = useCallback((event: ContextCompactionFailedEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    const errorText = (
-      typeof event.payload?.error === 'string'
-        ? event.payload.error.trim()
-        : ''
-    );
-    setThinkingStatus(errorText || COMPACTION_FAILED_THINKING_STATUS, conversationRef);
-    setThinkingSourceEventType('context-compaction-failed', conversationRef);
-    setCompactionDebugInfo(null, conversationRef);
-    recordTrackingEvent('context-compaction-failed', event.turn_ref, {}, conversationRef);
-  }, [
-    recordTrackingEvent,
+  const handleContextCompactionFailed = useTurnScopedBackendEventHandler<ContextCompactionFailedEvent>({
     resolveTargetConversationRef,
-    setCompactionDebugInfo,
-    setThinkingSourceEventType,
-    setThinkingStatus,
     shouldIgnoreForStaleTurn,
-  ]);
+    onEvent: (event, conversationRef) => {
+      const errorText = (
+        typeof event.payload?.error === 'string'
+          ? event.payload.error.trim()
+          : ''
+      );
+      setThinkingStatus(errorText || COMPACTION_FAILED_THINKING_STATUS, conversationRef);
+      setThinkingSourceEventType('context-compaction-failed', conversationRef);
+      setCompactionDebugInfo(null, conversationRef);
+      recordTrackingEvent('context-compaction-failed', event.turn_ref, {}, conversationRef);
+    },
+  });
 
   return {
     handleContextCompactionStarted,

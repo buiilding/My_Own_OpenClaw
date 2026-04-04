@@ -1,7 +1,7 @@
 import { resolveThinkingCapabilities } from '../../frontend/src/renderer/features/chat/utils/modelThinkingCapabilities';
 
 describe('modelThinkingCapabilities', () => {
-  test('infers Gemini thinking support and thought-text streaming when capability flags are absent', () => {
+  test('does not infer thinking support when model metadata omits capability flags', () => {
     expect(
       resolveThinkingCapabilities(
         'gemini-2.5-pro',
@@ -9,8 +9,8 @@ describe('modelThinkingCapabilities', () => {
         { local: [], online: [{ id: 'gemini-2.5-pro', provider: 'gemini' }] },
       ),
     ).toEqual({
-      supportsThinking: true,
-      supportsThinkingTextStream: true,
+      supportsThinking: false,
+      supportsThinkingTextStream: false,
     });
   });
 

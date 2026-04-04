@@ -90,7 +90,7 @@ Workspace identity state:
 - source set is merged `availableModels.local + availableModels.online`
 - primary match: `{id, provider}`
 - fallback match: `id` only
-- fallback heuristic for Gemini: provider `gemini` + model id prefix `gemini-` implies `supportsThinking=true` when catalog flags are absent
+- renderer does not infer provider capabilities; thinking support comes only from backend model-catalog metadata
 
 Resulting policy:
 
@@ -175,7 +175,7 @@ Handler composition boundary:
 - error/memory-store/token-count terminal behaviors are delegated to `useChatStreamTerminalHandlers`
 - tool-call/tool-output/tool-bundle handling is delegated to `useChatStreamToolHandlers`
 - streaming-complete finalization and transcript write side effects are delegated to `useChatStreamCompletionHandler`
-- turn-scoped wrapper callbacks for tool/memory/token/error/local-user events are centralized in `useTurnScopedBackendEventHandler`, with optional `skipStaleTurnGate` for `local-user-message` passthrough behavior.
+- turn-scoped wrapper callbacks for completion, tool, metadata, compaction, memory, token, error, and local-user events are centralized in `useTurnScopedBackendEventHandler`, with optional `skipStaleTurnGate` for `local-user-message` passthrough behavior.
 
 Turn guard + error suppression matrix:
 

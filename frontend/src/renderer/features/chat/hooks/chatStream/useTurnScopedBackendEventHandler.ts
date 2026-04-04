@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import type { BackendEvent } from '../../../../types/backendEvents';
+import { useLatestRef } from '../../../../infrastructure/hooks/useLatestRef';
 
 type UseTurnScopedBackendEventHandlerOptions<TEvent extends BackendEvent> = {
   resolveTargetConversationRef: (event: TEvent) => string | null;
@@ -14,11 +15,20 @@ export const useTurnScopedBackendEventHandler = <TEvent extends BackendEvent>({
   onEvent,
   skipStaleTurnGate = false,
 }: UseTurnScopedBackendEventHandlerOptions<TEvent>) => {
+  const resolveTargetConversationRefRef = useLatestRef(resolveTargetConversationRef);
+  const shouldIgnoreForStaleTurnRef = useLatestRef(shouldIgnoreForStaleTurn);
+  const onEventRef = useLatestRef(onEvent);
+
   return useCallback((event: TEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (!skipStaleTurnGate && shouldIgnoreForStaleTurn(event, conversationRef)) {
+    const conversationRef = resolveTargetConversationRefRef.current(event);
+    if (!skipStaleTurnGate && shouldIgnoreForStaleTurnRef.current(event, conversationRef)) {
       return;
     }
-    onEvent(event, conversationRef);
-  }, [onEvent, resolveTargetConversationRef, shouldIgnoreForStaleTurn, skipStaleTurnGate]);
+    onEventRef.current(event, conversationRef);
+  }, [
+    onEventRef,
+    resolveTargetConversationRefRef,
+    shouldIgnoreForStaleTurnRef,
+    skipStaleTurnGate,
+  ]);
 };

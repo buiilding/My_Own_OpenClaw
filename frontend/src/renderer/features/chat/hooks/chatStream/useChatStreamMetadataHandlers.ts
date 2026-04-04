@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import type {
   AssistantMessageFullEvent,
   BackendEvent,
@@ -14,6 +13,7 @@ import {
 } from '../../utils/chatStream/chatStreamMessageUpdates';
 import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
 import type { ChatMessage } from '../../stores/chatStore';
+import { useTurnScopedBackendEventHandler } from './useTurnScopedBackendEventHandler';
 
 type ResolveTargetConversationRef = (event: BackendEvent) => string | null;
 
@@ -55,69 +55,49 @@ export function useChatStreamMetadataHandlers({
   updateLastAssistantLlmTextMessage: UpdateLastAssistantLlmTextMessage;
   recordTrackingEvent: RecordTrackingEvent;
 }) {
-  const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    updateLastMessageBySender('user', {
-      systemPrompt: buildSystemPromptUpdate(event.payload),
-    }, event.turn_ref || undefined, conversationRef);
-    recordTrackingEvent('system-prompt', event.turn_ref, {}, conversationRef);
-  }, [
-    recordTrackingEvent,
+  const handleSystemPrompt = useTurnScopedBackendEventHandler<SystemPromptEvent>({
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
-    updateLastMessageBySender,
-  ]);
+    onEvent: (event, conversationRef) => {
+      updateLastMessageBySender('user', {
+        systemPrompt: buildSystemPromptUpdate(event.payload),
+      }, event.turn_ref || undefined, conversationRef);
+      recordTrackingEvent('system-prompt', event.turn_ref, {}, conversationRef);
+    },
+  });
 
-  const handleUserMessageFull = useCallback((event: UserMessageFullEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    updateLastMessageBySender('user', {
-      fullUserMessage: buildUserMessageFullUpdate(event.payload),
-    }, event.turn_ref || undefined, conversationRef);
-    recordTrackingEvent('user-message-full', event.turn_ref, {}, conversationRef);
-  }, [
-    recordTrackingEvent,
+  const handleUserMessageFull = useTurnScopedBackendEventHandler<UserMessageFullEvent>({
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
-    updateLastMessageBySender,
-  ]);
+    onEvent: (event, conversationRef) => {
+      updateLastMessageBySender('user', {
+        fullUserMessage: buildUserMessageFullUpdate(event.payload),
+      }, event.turn_ref || undefined, conversationRef);
+      recordTrackingEvent('user-message-full', event.turn_ref, {}, conversationRef);
+    },
+  });
 
-  const handleAssistantMessageFull = useCallback((event: AssistantMessageFullEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    updateLastAssistantLlmTextMessage({
-      fullAssistantMessage: buildAssistantMessageFullUpdate(event.payload),
-    }, event.turn_ref || undefined, conversationRef);
-    recordTrackingEvent('assistant-message-full', event.turn_ref, {}, conversationRef);
-  }, [
-    recordTrackingEvent,
+  const handleAssistantMessageFull = useTurnScopedBackendEventHandler<AssistantMessageFullEvent>({
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
-    updateLastAssistantLlmTextMessage,
-  ]);
+    onEvent: (event, conversationRef) => {
+      updateLastAssistantLlmTextMessage({
+        fullAssistantMessage: buildAssistantMessageFullUpdate(event.payload),
+      }, event.turn_ref || undefined, conversationRef);
+      recordTrackingEvent('assistant-message-full', event.turn_ref, {}, conversationRef);
+    },
+  });
 
-  const handleToolSchemas = useCallback((event: ToolSchemasEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    updateLastMessageBySender('user', {
-      toolSchemas: event.payload?.tool_schemas,
-    }, event.turn_ref || undefined, conversationRef);
-    recordTrackingEvent('tool-schemas', event.turn_ref, {}, conversationRef);
-  }, [
-    recordTrackingEvent,
+  const handleToolSchemas = useTurnScopedBackendEventHandler<ToolSchemasEvent>({
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
-    updateLastMessageBySender,
-  ]);
+    onEvent: (event, conversationRef) => {
+      updateLastMessageBySender('user', {
+        toolSchemas: event.payload?.tool_schemas,
+      }, event.turn_ref || undefined, conversationRef);
+      recordTrackingEvent('tool-schemas', event.turn_ref, {}, conversationRef);
+    },
+  });
 
   return {
     handleSystemPrompt,

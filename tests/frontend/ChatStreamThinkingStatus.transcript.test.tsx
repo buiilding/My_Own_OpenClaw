@@ -423,7 +423,7 @@ describe('useChatStream transcript + event filtering', () => {
         type: 'llm-text',
       }),
     );
-    expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-stale', undefined);
+    expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-active', undefined);
   });
 
   test('tracks stale memory-store events in their own workspace without switching active transcript', async () => {
@@ -446,7 +446,7 @@ describe('useChatStream transcript + event filtering', () => {
 
     const staleTracking = useChatStore.getState().getWorkspaceState('conv-stale').streamTracking;
     expect(staleTracking.lastEventType).toBe('memory-store');
-    expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-stale', undefined);
+    expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-active', undefined);
   });
 
   test('still processes events that omit conversation_ref for compatibility', () => {
