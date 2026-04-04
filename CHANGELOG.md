@@ -6,7 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 - fix(backend-ocr-startup): update RapidOCR language params to use enum values required by current RapidOCR builds, add OCR readiness-aware startup logging, and cover the new contract with focused backend tests/docs.
-- fix(openai-browser-tool-schema): rewrite grouped browser tool schemas into an OpenAI chat-compatible root-object transport shape before LiteLLM/OpenAI requests so standard OpenAI tool turns no longer fail on root `oneOf` validation.
+- fix(browser-model-facing-schema): rebuild the grouped browser tool schema as a canonical root object with merged action fields so both OpenAI chat-completions and Responses transports accept it without top-level-union rewrites, while strict runtime discriminated-union validation still enforces action-specific requirements.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed

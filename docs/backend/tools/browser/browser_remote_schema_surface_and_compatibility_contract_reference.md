@@ -1,5 +1,5 @@
 ---
-summary: "Deep backend browser-tool reference for the strict grouped browser action catalog, model-facing oneOf schema emission, and canonical runtime payload semantics."
+summary: "Deep backend browser-tool reference for the strict grouped browser action catalog, model-facing root-object schema emission, and canonical runtime payload semantics."
 read_when:
   - When changing backend browser action literals, grouped browser schema emission, or remote browser payload validation.
   - When debugging why a browser payload is rejected before sidecar execution.
@@ -62,14 +62,14 @@ Model-facing declaration emission (`build_tool_spec(...)`):
 
 - emits one grouped `browser` tool
 - keeps top-level `action` enum for the full canonical action set
-- emits one `oneOf` branch per action with branch-local required and optional fields only
+- emits one root object containing only canonical browser fields gathered from the action catalog
 - never advertises removed aliases or compatibility-only fields such as `mode`, `format`, `refs`, `interactive`, `compact`, `depth`, `frame`, `target_id`, `target_url`, `input_ref`, `clear_first`, or `script`
+- keeps action-specific required-field enforcement in runtime discriminated-union validation instead of a top-level schema combinator
 
 OpenAI transport compatibility:
 
-- the canonical backend browser schema intentionally keeps top-level `oneOf`
-- when the active provider uses OpenAI standard `chat.completions`, the provider adapter projects that grouped schema into an OpenAI-compatible root-object schema before the API call
-- runtime browser validation still uses the canonical grouped contract, so transport compatibility does not weaken backend/sidecar enforcement
+- the canonical backend browser schema now emits an OpenAI-safe root object directly, so both chat-completions and Responses transports can forward it without browser-specific schema projection
+- runtime browser validation still uses the canonical grouped discriminated union, so transport compatibility does not weaken backend/sidecar enforcement
 
 `execute_remote(...)` behavior:
 
@@ -91,8 +91,8 @@ Practical rule:
 `tests/backend/test_browser_remote_tool.py` covers:
 
 - browser tool registration and lookup behavior
-- model-facing grouped `oneOf` schema emission
-- canonical-only action enum and branch-local field exposure
+- model-facing grouped root-object schema emission
+- canonical-only action enum and canonical field exposure
 - strict grouped validation for removed fields and removed actions
 - remote payload emission semantics for canonical grouped actions
 

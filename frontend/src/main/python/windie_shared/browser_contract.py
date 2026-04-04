@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass
 from typing import Annotated, Any, Literal, Optional, cast, get_args
 
@@ -646,24 +647,98 @@ def _clean_action_schema(model: type[BrowserActionArgsBase]) -> dict[str, Any]:
     return cleaned_schema
 
 
+def _schema_without_description(schema: dict[str, Any]) -> dict[str, Any]:
+    stripped = copy.deepcopy(schema)
+    stripped.pop("description", None)
+    return stripped
+
+
+def _combine_schema_descriptions(*schemas: dict[str, Any]) -> str | None:
+    descriptions: list[str] = []
+    for schema in schemas:
+        description = schema.get("description")
+        if isinstance(description, str) and description not in descriptions:
+            descriptions.append(description)
+    if not descriptions:
+        return None
+    return " / ".join(descriptions)
+
+
+def _merge_property_schema(
+    existing: dict[str, Any],
+    incoming: dict[str, Any],
+) -> dict[str, Any]:
+    existing_without_description = _schema_without_description(existing)
+    incoming_without_description = _schema_without_description(incoming)
+
+    if existing_without_description == incoming_without_description:
+        merged = existing_without_description
+        description = _combine_schema_descriptions(existing, incoming)
+        if description is not None:
+            merged["description"] = description
+        return merged
+
+    merged_options: list[dict[str, Any]] = []
+    for schema in (existing, incoming):
+        if isinstance(schema.get("anyOf"), list):
+            candidates = [
+                candidate
+                for candidate in schema["anyOf"]
+                if isinstance(candidate, dict)
+            ]
+        else:
+            candidates = [schema]
+
+        for candidate in candidates:
+            candidate_without_description = _schema_without_description(candidate)
+            if any(
+                _schema_without_description(option) == candidate_without_description
+                for option in merged_options
+            ):
+                continue
+            merged_options.append(copy.deepcopy(candidate))
+
+    merged: dict[str, Any] = {"anyOf": merged_options}
+    description = _combine_schema_descriptions(existing, incoming)
+    if description is not None:
+        merged["description"] = description
+    return merged
+
+
 def build_browser_tool_parameters_schema() -> dict[str, Any]:
-    one_of = [
-        _clean_action_schema(cast(type[BrowserActionArgsBase], contract.args_model))
-        for contract in BROWSER_ACTION_CONTRACTS
-        if contract.model_visible
-    ]
+    properties: dict[str, Any] = {
+        "action": {
+            "type": "string",
+            "enum": list(BROWSER_MODEL_VISIBLE_ACTIONS),
+            "description": "Canonical browser action to perform.",
+        }
+    }
+    for contract in BROWSER_ACTION_CONTRACTS:
+        if not contract.model_visible:
+            continue
+
+        action_schema = _clean_action_schema(
+            cast(type[BrowserActionArgsBase], contract.args_model)
+        )
+        for property_name, property_schema in action_schema.get("properties", {}).items():
+            if property_name == "action" or not isinstance(property_schema, dict):
+                continue
+            existing = properties.get(property_name)
+            if not isinstance(existing, dict):
+                properties[property_name] = copy.deepcopy(property_schema)
+                continue
+            properties[property_name] = _merge_property_schema(existing, property_schema)
+
     return {
         "type": "object",
-        "description": "Canonical grouped browser action payload.",
-        "properties": {
-            "action": {
-                "type": "string",
-                "enum": list(BROWSER_MODEL_VISIBLE_ACTIONS),
-                "description": "Canonical browser action to perform.",
-            }
-        },
+        "description": (
+            "Canonical grouped browser action payload. "
+            "Provide the fields for the selected action only. "
+            "Action-specific field requirements are enforced by runtime validation."
+        ),
+        "properties": properties,
         "required": ["action"],
-        "oneOf": one_of,
+        "additionalProperties": False,
     }
 
 

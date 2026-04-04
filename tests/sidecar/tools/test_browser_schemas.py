@@ -29,11 +29,15 @@ from tools.browser.schemas import (
 
 
 def test_sidecar_browser_control_args_reuses_backend_model() -> None:
+    schema = sidecar_build_browser_tool_parameters_schema()
+
     assert BrowserControlArgs is BackendBrowserControlArgs
-    assert (
-        sidecar_build_browser_tool_parameters_schema()
-        == build_browser_tool_parameters_schema()
-    )
+    assert schema == build_browser_tool_parameters_schema()
+    assert schema["type"] == "object"
+    assert schema["additionalProperties"] is False
+    assert "oneOf" not in schema
+    assert "url" in schema["properties"]
+    assert "text" in schema["properties"]
 
 
 def test_sidecar_action_contract_is_canonical_only() -> None:

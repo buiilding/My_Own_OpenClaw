@@ -99,7 +99,7 @@ Any legacy or malformed shape fails closed with `LLMAPIError`.
 Provider-specific compatibility note:
 
 - OpenAI standard `chat.completions` tool transport rejects top-level schema combinators in `function.parameters` (`oneOf`, `anyOf`, `allOf`, `enum`, `not`) even when the root schema is an object.
-- `OpenAIProvider._apply_provider_request_params(...)` rewrites affected grouped tool schemas into an OpenAI-compatible root object before the request is sent, while runtime Pydantic validation still enforces the exact action-specific payload after the model emits a tool call.
+- model-facing grouped tools should avoid those root combinators by construction; runtime Pydantic validation still enforces the exact action-specific payload after the model emits a tool call.
 
 ## Non-Stream Completion Error Mapping
 
