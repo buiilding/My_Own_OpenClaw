@@ -14,6 +14,7 @@ from backend.src.core.events.streaming_events import (
     ChunkEvent,
     ErrorEvent,
     FullResponseEvent,
+    SearchSourceEvent,
     ThinkingEvent,
 )
 from backend.src.core.infrastructure.exceptions import LLMAPIError
@@ -31,6 +32,13 @@ def test_apply_stream_event_updates_text_and_emission_contract():
     text, emitted = apply_stream_event(ErrorEvent(content="err"), text)
     assert text == "hello"
     assert isinstance(emitted, ErrorEvent)
+
+    text, emitted = apply_stream_event(
+        SearchSourceEvent(url="https://example.com", provider="openai"),
+        text,
+    )
+    assert text == "hello"
+    assert isinstance(emitted, SearchSourceEvent)
 
     text, emitted = apply_stream_event(FullResponseEvent(content="final"), text)
     assert text == "final"

@@ -9,6 +9,7 @@ from backend.src.core.events.streaming_events import (
     AssistantMessageFullEvent,
     ErrorEvent,
     FullResponseEvent,
+    SearchSourceEvent,
     StreamingCompleteEvent,
     ToolCallEvent,
     ToolOutputEvent,
@@ -109,6 +110,26 @@ class _FakeEventPresenter:
         if False:
             yield None
 
+    async def present_search_sources(self, sources):
+        if not isinstance(sources, list):
+            return
+        for source in sources:
+            if not isinstance(source, dict):
+                continue
+            url = source.get("url")
+            provider = source.get("provider")
+            if not isinstance(url, str) or not url.strip():
+                continue
+            if not isinstance(provider, str) or not provider.strip():
+                continue
+            yield SearchSourceEvent(
+                url=url.strip(),
+                provider=provider.strip(),
+                title=source.get("title"),
+                query=source.get("query"),
+                rank=source.get("rank"),
+            )
+
     async def present_assistant_message(self, content):
         yield AssistantMessageFullEvent(content=content)
 
@@ -208,6 +229,43 @@ class _ErrorOnlyLLMHandler:
         return {"content": "Recovered and sending corrected tool call."}
 
 
+class _StreamingSearchLLMHandler:
+    async def get_response(
+        self,
+        prompt,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        _ = (prompt, tools, tool_choice, parallel_tool_calls)
+        yield SearchSourceEvent(
+            url="https://example.com/a",
+            provider="openai",
+            query="latest windieos news",
+            rank=1,
+        )
+        yield FullResponseEvent(content="Final answer after searching.")
+
+    def get_last_response_payload(self):
+        return {
+            "content": "Final answer after searching.",
+            "web_search_sources": [
+                {
+                    "url": "https://example.com/a",
+                    "provider": "openai",
+                    "query": "latest windieos news",
+                    "rank": 1,
+                },
+                {
+                    "url": "https://example.com/b",
+                    "provider": "openai",
+                    "query": "latest windieos news",
+                    "rank": 2,
+                },
+            ],
+        }
+
+
 @pytest.mark.asyncio
 async def test_interaction_loop_recovers_after_stream_tool_call_format_error():
     stored_messages = []
@@ -249,6 +307,27 @@ async def test_interaction_loop_recovers_after_stream_tool_call_format_error():
     assert fallback_output.metadata["llm_tool_call_validation_failed"] is True
     assert "retry_guidance: retry the same tool with smaller argument payload chunks." in fallback_output.output
     assert "target_file: index.html" in fallback_output.output
+
+
+@pytest.mark.asyncio
+async def test_interaction_loop_dedupes_live_streamed_search_sources_from_final_payload():
+    session = _FakeSession([])
+    loop = InteractionLoop(
+        session=session,
+        prompt_coordinator=_FakePromptCoordinator(),
+        llm_handler=_StreamingSearchLLMHandler(),
+        tool_executor=_FakeToolExecutor(),
+        event_presenter=_FakeEventPresenter(),
+    )
+
+    events = [event async for event in loop.run_loop()]
+
+    search_events = [event for event in events if isinstance(event, SearchSourceEvent)]
+    assert [event.url for event in search_events] == [
+        "https://example.com/a",
+        "https://example.com/b",
+    ]
+    assert session.history.assistant_messages[-1][0] == "Final answer after searching."
 
 
 class _FatalErrorOnlyLLMHandler:

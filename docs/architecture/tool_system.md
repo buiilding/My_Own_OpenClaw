@@ -107,6 +107,7 @@ Some logical tools are fulfilled entirely in the backend and never go through th
 - OpenAI and Gemini fulfill that tool by making a backend-owned provider-native web search request when the tool is called.
 - Other providers use a backend-executed Brave Search fallback when `BRAVE_SEARCH_API_KEY` is configured.
 - The frontend receives lightweight `search-source` trace events and renders rows like `Searching https://...` when a concrete source URL is known.
+- For OpenAI Responses native web search, WindieOS now emits those `search-source` rows as soon as the streamed Responses output-item exposes source URLs, instead of waiting for the final completed payload.
 
 ### Backend Responsibilities
 
