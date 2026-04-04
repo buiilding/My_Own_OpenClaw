@@ -35,6 +35,7 @@ class FrontendConfigPatch(BaseModel):
     interaction_mode: Optional[Literal["chat", "agent"]] = None
     voice_mode_enabled: Optional[bool] = None
     speech_mode_enabled: Optional[bool] = None
+    speech_provider: Optional[Literal["local", "elevenlabs"]] = None
     wakeword_stt_enabled: Optional[bool] = None
     agent_full_sudo_enabled: Optional[bool] = None
     browser_automation_enabled: Optional[bool] = None

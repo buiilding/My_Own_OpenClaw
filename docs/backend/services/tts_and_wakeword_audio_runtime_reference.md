@@ -17,6 +17,9 @@ title: "TTS and Wakeword Audio Runtime Reference"
 - `backend/src/api/processing/tts/processor.py`
 - `backend/src/api/services/tts_session.py`
 - `backend/src/core/services/tts_service.py`
+- `backend/src/core/services/elevenlabs_tts_service.py`
+- `backend/src/core/services/speech_service.py`
+- `backend/src/core/services/speech_service_factory.py`
 - `backend/src/core/services/tts_cuda.py`
 - `backend/src/core/services/tts_worker.py`
 - `backend/src/core/services/tts_buffer.py`
@@ -33,8 +36,15 @@ Key distinction:
 
 - `tts_enabled` is runtime-normalized to `true` by config policy (`assemble_runtime_config` / `apply_runtime_policies`)
 - `speech_mode_enabled` is the real per-session gate for whether TTS is used during query/wakeword flows
+- `speech_provider` selects which speech backend handles streamed text (`local` Piper or `elevenlabs`)
 
 Session creation/update path (`SessionManager`) always re-applies runtime policies, so frontend config patches can toggle `speech_mode_enabled`, but cannot disable backend TTS runtime capability globally.
+
+Provider selection policy:
+
+- `speech_provider="local"` uses the existing Piper-based local synthesis path
+- `speech_provider="elevenlabs"` uses ElevenLabs websocket streaming with the same frontend audio-chunk contract
+- if ElevenLabs cannot initialize, the API layer falls back to the local provider so speech does not silently disappear
 
 ## Query-Time TTS Path
 
@@ -107,6 +117,21 @@ Helper boundary:
 - `tts_cuda.is_cuda_error(...)` is the classification predicate for GPU-failure fallback decisions in TTS paths.
 - `tts_cuda.format_truncated_error(...)` keeps fallback logs bounded (default 200 chars) before warning/error emission.
 - OCR uses a separate CUDA helper surface (`services/ocr/helpers.py`) and should not be assumed identical.
+
+## ElevenLabs Runtime Internals
+
+`ElevenLabsTTSService` keeps the same high-level contract as the local provider:
+
+1. buffer streamed text into sentence-like chunks
+2. send committed chunks to ElevenLabs over one websocket session per request
+3. receive incremental audio back as base64 PCM chunks
+4. emit the same `audio-chunk` payload shape used by the local provider
+
+Important behavior:
+
+- the provider is fed partial text during the live LLM stream; it does not wait for the full assistant response
+- `flush()` sends the final buffered text and closes the generation with EOS so tail audio is not lost
+- frontend playback remains provider-agnostic because both providers emit the same normalized payload fields
 
 ## Outbound Audio Chunk Contract (Runtime)
 

@@ -59,8 +59,14 @@ APP_CONFIG = AppConfig(
     ],
     # TTS Settings
     tts_enabled=True,
+    speech_provider="local",
     tts_model_path=None,
     speech_mode_enabled=False,
+    elevenlabs_api_key_env="ELEVENLABS_API_KEY",
+    elevenlabs_voice_id="EXAVITQu4vr4xnSDxMaL",
+    elevenlabs_model_id="eleven_flash_v2_5",
+    elevenlabs_output_format="pcm_16000",
+    elevenlabs_chunk_length_schedule=[50, 80, 120, 160],
     # Security limits
     security_limits=SecurityLimits(),
     # WebSocket Settings

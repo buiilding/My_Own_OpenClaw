@@ -129,6 +129,14 @@ def test_load_settings_forces_tts_enabled(monkeypatch):
     assert cfg.tts_model_path == "/tmp/tts.onnx"
 
 
+def test_load_settings_keeps_default_local_speech_provider(monkeypatch):
+    _set_disabled_tts_module_state(monkeypatch)
+
+    cfg = load_settings_from_file()
+
+    assert cfg.speech_provider == "local"
+
+
 def test_get_default_tts_model_path_windows_uses_appdata(monkeypatch):
     monkeypatch.setattr(
         loader,

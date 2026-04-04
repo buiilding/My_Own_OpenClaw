@@ -1,4 +1,5 @@
 """Tests for configuration models."""
+
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -222,7 +223,13 @@ class TestAppConfig:
         assert config.wakeword_phrase == "hey jarvis"
         assert len(config.wakeword_greetings) == 5
         assert config.tts_enabled is True
+        assert config.speech_provider == "local"
         assert config.speech_mode_enabled is False
+        assert config.elevenlabs_api_key_env == "ELEVENLABS_API_KEY"
+        assert config.elevenlabs_voice_id == "EXAVITQu4vr4xnSDxMaL"
+        assert config.elevenlabs_model_id == "eleven_flash_v2_5"
+        assert config.elevenlabs_output_format == "pcm_16000"
+        assert config.elevenlabs_chunk_length_schedule == [50, 80, 120, 160]
         assert config.artifact_store_path.endswith("artifacts")
         assert "windieos-artifacts" not in config.artifact_store_path
 
@@ -232,7 +239,9 @@ class TestAppConfig:
             "os",
             SimpleNamespace(
                 name="nt",
-                getenv=lambda key: "C:/Users/test/AppData/Roaming" if key == "APPDATA" else None,
+                getenv=lambda key: (
+                    "C:/Users/test/AppData/Roaming" if key == "APPDATA" else None
+                ),
             ),
         )
 
@@ -240,7 +249,9 @@ class TestAppConfig:
 
         assert path == "C:/Users/test/AppData/Roaming/DesktopAssistant/artifacts"
 
-    def test_default_artifact_store_path_linux_uses_xdg_style_location(self, monkeypatch):
+    def test_default_artifact_store_path_linux_uses_xdg_style_location(
+        self, monkeypatch
+    ):
         monkeypatch.setattr(
             config_models,
             "os",
@@ -254,7 +265,9 @@ class TestAppConfig:
         assert path == "/home/test/.config/DesktopAssistant/artifacts"
 
     def test_llm_model_property_online(self):
-        config = AppConfig(model_mode="online", model_provider="openai", selected_model_id="gpt-4")
+        config = AppConfig(
+            model_mode="online", model_provider="openai", selected_model_id="gpt-4"
+        )
         assert config.llm_model == "openai/gpt-4"
 
     def test_llm_model_property_local(self):

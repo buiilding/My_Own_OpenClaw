@@ -8,7 +8,7 @@ from typing import Optional
 from backend.src.api.processing.tts.manager import TTSManager
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.core.config import AppConfig
-from backend.src.core.services.tts_service import TTSService
+from backend.src.core.services.speech_service import SpeechService
 
 
 class TTSSession:
@@ -25,7 +25,7 @@ class TTSSession:
         self._config = config
         self._websocket = websocket
         self._msg_id = msg_id
-        self.service: Optional[TTSService] = None
+        self.service: Optional[SpeechService] = None
         self.audio_task: Optional[asyncio.Task] = None
 
     async def __aenter__(self) -> "TTSSession":

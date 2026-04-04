@@ -3,6 +3,7 @@ Container Factory Functions.
 
 Factory functions for creating application components.
 """
+
 import logging
 from typing import Optional
 
@@ -61,7 +62,7 @@ def _create_tool_orchestrator(tool_registry, config: AppConfig, context_factory)
 def _create_embedder(config: AppConfig, cache_manager) -> Optional[EmbeddingProvider]:
     """
     Create embedding provider if memory is enabled.
-    
+
     Args:
         config: Application configuration
         cache_manager: CacheManager instance (injected via DI)
@@ -104,9 +105,9 @@ def _create_embedder(config: AppConfig, cache_manager) -> Optional[EmbeddingProv
 
 def _create_tts_service(config: AppConfig):
     """Create TTS service."""
-    from backend.src.core.services.tts_service import TTSService
+    from backend.src.core.services.speech_service_factory import create_speech_service
 
-    return TTSService(config)
+    return create_speech_service(config)
 
 
 def _create_vision_service(config: AppConfig):

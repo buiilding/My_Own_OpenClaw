@@ -3,6 +3,7 @@ Stream Pipeline for Query Handler.
 
 Orchestrates event processing through composable stages.
 """
+
 import asyncio
 import logging
 from typing import Optional, Set
@@ -13,7 +14,7 @@ from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.api.transport.sender import TransportSender
 from backend.src.api.processing.tts.processor import TTSProcessor
 from backend.src.core.events.streaming_events import AgentStreamingEvent
-from backend.src.core.services.tts_service import TTSService
+from backend.src.core.services.speech_service import SpeechService
 
 logger = logging.getLogger(__name__)
 
@@ -21,16 +22,16 @@ logger = logging.getLogger(__name__)
 class StreamPipeline:
     """
     Linear event processing pipeline.
-    
+
     IMPORTANT: StreamPipeline must remain stateless.
     All per-stream state lives in processors (e.g., TTSProcessor).
-    
+
     Why this matters:
     - Pipelines that grow state turn into god objects
     - Debugging streaming systems with hidden pipeline state is miserable
     - This design keeps the pipeline as stateless glue between components
     """
-    
+
     def __init__(
         self,
         tts_processor: TTSProcessor,
@@ -39,7 +40,7 @@ class StreamPipeline:
     ):
         """
         Initialize the stream pipeline.
-        
+
         Args:
             tts_processor: TTS processor for audio filtering
             response_formatter: Response formatter for WebSocket messages
@@ -56,7 +57,7 @@ class StreamPipeline:
     async def _run_tts_event(
         self,
         event: AgentStreamingEvent,
-        tts_service: TTSService,
+        tts_service: SpeechService,
     ) -> None:
         """
         Execute one TTS processing step with failure isolation.
@@ -72,25 +73,25 @@ class StreamPipeline:
     def _on_tts_task_done(self, task: asyncio.Task) -> None:
         """Drop completed TTS tasks from the pending set."""
         self._pending_tts_tasks.discard(task)
-    
+
     async def process(
-        self, 
-        event: AgentStreamingEvent, 
-        tts_service: Optional[TTSService],
+        self,
+        event: AgentStreamingEvent,
+        tts_service: Optional[SpeechService],
         msg_id: str,
         context: Optional[dict] = None,
     ) -> None:
         """
         Process a single event through the pipeline stages.
-        
+
         LATENCY OPTIMIZATION: TTS processing is decoupled from text response.
         Text is sent immediately to the frontend, while TTS processing runs
         concurrently. This prevents TTS buffering/lag from blocking text display.
-        
+
         IMPORTANT: This method must be awaited serially per query.
         Parallel calls are undefined and will break ordering guarantees.
         The pipeline owns ordering guarantees - do not attempt to parallelize.
-        
+
         Args:
             event: Agent streaming event to process
             tts_service: TTS service instance (may be None if TTS disabled)
@@ -107,9 +108,11 @@ class StreamPipeline:
             except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
                 # Connection closed - log and re-raise to stop streaming
                 # Query handler will catch and handle appropriately
-                logger.debug(f"Transport send failed (connection closed), stopping stream: {e}")
+                logger.debug(
+                    f"Transport send failed (connection closed), stopping stream: {e}"
+                )
                 raise
-        
+
         # Stage 3: TTS processing (runs concurrently, doesn't block text)
         # Fork TTS processing into background task to avoid blocking text response
         # Isolated: TTS failure should not block formatting/transport
@@ -120,20 +123,20 @@ class StreamPipeline:
             task = asyncio.create_task(self._run_tts_event(event, tts_service))
             self._pending_tts_tasks.add(task)
             task.add_done_callback(self._on_tts_task_done)
-    
+
     async def wait_for_pending_tts(self) -> None:
         """
         Wait for all pending TTS tasks to complete.
-        
+
         TTS STREAMING RACE FIX: This method must be called before flush() to ensure
         all TTS processing completes before the end-of-stream sentinel is inserted.
         This prevents audio loss where the last chunk of text is cut off.
-        
+
         Should be called after the event loop completes but before tts_service.flush().
         """
         if not self._pending_tts_tasks:
             return
-        
+
         # Wait for all pending tasks to complete
         # Use gather with return_exceptions=True to handle individual task failures
         # gracefully (one task failing shouldn't block others)
