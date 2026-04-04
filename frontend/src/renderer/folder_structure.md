@@ -38,11 +38,10 @@ frontend/src/renderer/
 │   ├── chat/                            # Chat feature module
 │   │   ├── components/                  # Chat UI components
 │   │   │   ├── ChatBox.jsx              # ChatBox - Floating quick chat overlay UI (new-chat + stop controls)
-│   │   │   ├── ChatComposerSurface.jsx  # ChatComposerSurface - Shared dashboard/overlay composer shell, preview rows, and multiline sizing
 │   │   │   ├── ChatBoxResponse.jsx      # ChatBoxResponse - Response overlay (awaiting/thinking/response/tool-ghost modes)
 │   │   │   ├── ChatInterface.jsx        # ChatInterface - Main chat orchestrator (composes MessageList + MessageInput; includes new-chat + stop controls)
 │   │   │   ├── MessageContent.jsx       # MessageContent - Renders message body by type
-│   │   │   ├── MessageInput.jsx         # MessageInput - Dashboard wrapper around the shared chat composer surface
+│   │   │   ├── MessageInput.jsx         # MessageInput - Input field with voice transcription support
 │   │   │   ├── MessageList.jsx          # MessageList - Renders messages with transparency sections
 │   │   │   ├── message/                 # Message-specific subcomponents
 │   │   │   │   ├── MessageTransparencySections.jsx # MessageTransparencySections - Renders transparency panels

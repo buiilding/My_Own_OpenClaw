@@ -51,7 +51,6 @@ import {
   VISIBLE_ASSISTANT_REPLY_TYPE_SET,
 } from '../utils/state/chatTurnPresentationState';
 import { buildThreadPresentationMessages } from '../utils/message/messagePresentationPipeline';
-import '../../../styles/ChatComposer.css';
 import '../../../styles/ChatInterface.css';
 
 function waitForNextPaint() {
