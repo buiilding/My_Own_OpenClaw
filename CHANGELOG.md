@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-dashboard-reopen-render): force a dashboard wake-up layout pass and main-window renderer invalidation when reopening the hidden main dashboard from the minimal chat pill, so the sidebar/main content repaint fully instead of coming back partially rendered.
 - fix(backend-ocr-startup): update RapidOCR language params to use enum values required by current RapidOCR builds, add OCR readiness-aware startup logging, and cover the new contract with focused backend tests/docs.
 - fix(browser-model-facing-schema): rebuild the grouped browser tool schema as a canonical root object with merged action fields so both OpenAI chat-completions and Responses transports accept it without top-level-union rewrites, while strict runtime discriminated-union validation still enforces action-specific requirements.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.

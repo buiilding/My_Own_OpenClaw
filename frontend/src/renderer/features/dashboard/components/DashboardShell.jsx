@@ -50,6 +50,26 @@ DashboardModal.propTypes = {
 const DASHBOARD_OPEN_ANIMATION_MS = 420;
 const DASHBOARD_SCROLL_LOCK_CLASS = 'cg-scroll-locked';
 
+function requestDashboardLayoutPass() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const dispatchResize = () => {
+    window.dispatchEvent(new Event('resize'));
+  };
+
+  if (typeof window.requestAnimationFrame === 'function') {
+    window.requestAnimationFrame(() => {
+      dispatchResize();
+      window.requestAnimationFrame(dispatchResize);
+    });
+    return;
+  }
+
+  window.setTimeout(dispatchResize, 0);
+}
+
 function DashboardShell({
   config,
   availableModels,
@@ -204,6 +224,11 @@ function DashboardShell({
     };
   }, [dashboardOpening]);
 
+  const wakeDashboardShell = useCallback(() => {
+    setDashboardOpening(true);
+    requestDashboardLayoutPass();
+  }, []);
+
   useEffect(() => {
     const rootElement = document.getElementById('root');
     const scrollLockTargets = [document.documentElement, document.body, rootElement].filter(Boolean);
@@ -219,6 +244,7 @@ function DashboardShell({
       return undefined;
     }
     const removeListener = IpcBridge.on(ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET, (payload) => {
+      wakeDashboardShell();
       const target = typeof payload?.target === 'string' ? payload.target : '';
       if (target === 'chat') {
         handleChatSurface({ focusComposer: true });
@@ -240,7 +266,7 @@ function DashboardShell({
     return () => {
       removeListener?.();
     };
-  }, [handleChatSurface, openMemory, openModels, openSettings, vmModeEnabled]);
+  }, [handleChatSurface, openMemory, openModels, openSettings, vmModeEnabled, wakeDashboardShell]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.IPC_STATUS, (payload) => {
