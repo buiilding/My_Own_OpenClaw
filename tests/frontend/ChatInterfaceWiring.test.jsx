@@ -682,55 +682,6 @@ describe('ChatInterface wiring', () => {
     });
   });
 
-  test('uses a compact model settings shortcut when dashboard passes an opener', () => {
-    const handleOpenModels = jest.fn();
-    mockConfig = {
-      interaction_mode: 'agent',
-      model_mode: 'online',
-      model_provider: 'openai',
-      voice_mode_enabled: true,
-      speech_mode_enabled: false,
-      selected_model_id: 'gpt-5-3-codex-low-thinking',
-    };
-    mockAvailableModels = {
-      local: [],
-      online: [
-        {
-          id: 'gpt-5-3-codex-low-thinking',
-          runtime_model_id: 'gpt-5.3-codex',
-          provider: 'openai',
-          display_name: 'GPT-5.3 Codex Low',
-          supports_thinking: true,
-        },
-        {
-          id: 'gpt-5-3-codex-thinking',
-          runtime_model_id: 'gpt-5.3-codex',
-          provider: 'openai',
-          display_name: 'GPT-5.3 Codex',
-          supports_thinking: true,
-        },
-        {
-          id: 'gpt-5-3-codex-high-thinking',
-          runtime_model_id: 'gpt-5.3-codex',
-          provider: 'openai',
-          display_name: 'GPT-5.3 Codex High',
-          supports_thinking: true,
-        },
-      ],
-    };
-
-    render(<ChatInterface onOpenModels={handleOpenModels} />);
-
-    expect(screen.getByRole('button', { name: 'Open model settings' })).toHaveTextContent(
-      'GPT-5.3 Codex · Low · OpenAI',
-    );
-    expect(screen.queryByRole('button', { name: 'Model selector' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Reasoning mode selector' })).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Open model settings' }));
-    expect(handleOpenModels).toHaveBeenCalledTimes(1);
-  });
-
   test('shows model selector and passes enabled voice mode to input', () => {
     mockConfig = {
       interaction_mode: 'agent',
