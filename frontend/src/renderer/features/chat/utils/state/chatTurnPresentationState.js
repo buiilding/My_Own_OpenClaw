@@ -3,6 +3,7 @@ import {
   isChatLoopBusy,
   resolveChatLoopUiState,
 } from './chatLoopUiState';
+import { OVERLAY_TURN_LIFECYCLE } from '../overlay/overlayTurnLifecycleContract';
 
 const CHATBOX_SURFACE_STATE = Object.freeze({
   COMPACT: 'compact',
@@ -23,7 +24,7 @@ function findLastUserIndex(messages) {
   return -1;
 }
 
-function findLatestVisibleAssistantReply(
+export function findLatestVisibleAssistantReply(
   messages,
   allowedTypes = DEFAULT_VISIBLE_ASSISTANT_REPLY_TYPES,
 ) {
@@ -89,10 +90,9 @@ function shouldShowChatboxResponse(surfaceState) {
 }
 
 export function resolveCurrentTurnPresentationState({
-  phase,
-  isSending,
+  phase = null,
+  lifecycle = OVERLAY_TURN_LIFECYCLE.IDLE,
   messages,
-  transportConnected = true,
   dismissedResponseId = null,
   allowedTypes = DEFAULT_VISIBLE_ASSISTANT_REPLY_TYPES,
   activeResponse: providedActiveResponse,
@@ -101,10 +101,9 @@ export function resolveCurrentTurnPresentationState({
     ?? findLatestVisibleAssistantReply(messages, allowedTypes);
   const hasVisibleReply = hasVisibleChatTurnReply(activeResponse);
   const loopUiState = resolveChatLoopUiState({
+    lifecycle,
     phase,
-    isSending,
     hasVisibleReply,
-    transportConnected,
   });
   const showAssistantAwaitingDot = (
     isChatLoopAwaitingReply(loopUiState)

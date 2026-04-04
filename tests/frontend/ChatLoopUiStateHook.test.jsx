@@ -2,6 +2,7 @@ import React from 'react';
 import { act, render, screen } from '@testing-library/react';
 import { useChatLoopTransportState } from '../../frontend/src/renderer/features/chat/hooks/useChatLoopUiState';
 import { resolveChatLoopUiState } from '../../frontend/src/renderer/features/chat/utils/state/chatLoopUiState';
+import { resolveOverlayTurnLifecycle } from '../../frontend/src/renderer/features/chat/utils/state/overlayTurnLifecycleState';
 
 const mockListeners = new Map();
 const mockInvoke = jest.fn();
@@ -30,22 +31,29 @@ function LoopStateProbe({
   hasVisibleReply = false,
   recoveryWatchdogMs = 60,
 }) {
-  const optimisticLoopUiState = resolveChatLoopUiState({
+  const optimisticLifecycle = resolveOverlayTurnLifecycle({
     phase,
     isSending,
     hasVisibleReply,
-    transportConnected: true,
+  });
+  const optimisticLoopUiState = resolveChatLoopUiState({
+    lifecycle: optimisticLifecycle,
+    hasVisibleReply,
   });
   const transportState = useChatLoopTransportState({
     snapshotSignature: `${phase || 'idle'}|${isSending ? '1' : '0'}|${hasVisibleReply ? '1' : '0'}`,
     isBusy: optimisticLoopUiState !== 'idle',
     recoveryWatchdogMs,
   });
-  const loopUiState = resolveChatLoopUiState({
+  const lifecycle = resolveOverlayTurnLifecycle({
     phase,
     isSending,
     hasVisibleReply,
     transportConnected: transportState.isPresentationTransportConnected,
+  });
+  const loopUiState = resolveChatLoopUiState({
+    lifecycle,
+    hasVisibleReply,
   });
   const {
     isTransportConnected,

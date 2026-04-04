@@ -1,0 +1,23 @@
+{
+  "states": [
+    "idle",
+    "preflight",
+    "awaiting",
+    "active",
+    "terminal"
+  ],
+  "phase_groups": {
+    "awaiting": [
+      "awaiting-first-chunk"
+    ],
+    "active": [
+      "streaming",
+      "tool-call",
+      "tool-output"
+    ],
+    "terminal": [
+      "complete",
+      "error"
+    ]
+  }
+}

@@ -39,6 +39,7 @@ function CurrentTurnPresentationProbe({
   return (
     <div
       data-testid="current-turn-presentation-probe"
+      data-overlay-turn-lifecycle={state.overlayTurnLifecycle}
       data-loop-ui-state={state.loopUiState}
       data-has-visible-reply={state.hasVisibleReply ? '1' : '0'}
       data-show-awaiting-dot={state.showAssistantAwaitingDot ? '1' : '0'}
@@ -70,6 +71,7 @@ describe('useCurrentTurnPresentationState', () => {
       />,
     );
 
+    expect(screen.getByTestId('current-turn-presentation-probe').dataset.overlayTurnLifecycle).toBe('active');
     expect(screen.getByTestId('current-turn-presentation-probe').dataset.loopUiState).toBe('awaiting-reply');
     expect(screen.getByTestId('current-turn-presentation-probe').dataset.hasVisibleReply).toBe('0');
     expect(screen.getByTestId('current-turn-presentation-probe').dataset.showAwaitingDot).toBe('1');
@@ -89,6 +91,7 @@ describe('useCurrentTurnPresentationState', () => {
       />,
     );
 
+    expect(screen.getByTestId('current-turn-presentation-probe').dataset.overlayTurnLifecycle).toBe('active');
     expect(screen.getByTestId('current-turn-presentation-probe').dataset.loopUiState).toBe('active-response');
     expect(screen.getByTestId('current-turn-presentation-probe').dataset.hasVisibleReply).toBe('1');
     expect(screen.getByTestId('current-turn-presentation-probe').dataset.showAwaitingDot).toBe('0');
@@ -109,6 +112,7 @@ describe('useCurrentTurnPresentationState', () => {
       />,
     );
 
+    expect(screen.getByTestId('current-turn-presentation-probe').dataset.overlayTurnLifecycle).toBe('preflight');
     expect(screen.getByTestId('current-turn-presentation-probe').dataset.loopUiState).toBe('awaiting-reply');
     expect(screen.getByTestId('current-turn-presentation-probe').dataset.showAwaitingDot).toBe('1');
     expect(screen.getByTestId('current-turn-presentation-probe').dataset.showChatboxAwaiting).toBe('1');

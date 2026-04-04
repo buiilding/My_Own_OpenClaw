@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for shared chat loop UI state resolution: phase/send/reply projection, transport-disconnect recovery watchdog behavior, and dashboard/chatbox surface consumers."
+summary: "Deep reference for shared chat loop UI state resolution: overlay-turn lifecycle projection, transport-disconnect recovery watchdog behavior, and dashboard/chatbox surface consumers."
 read_when:
-  - When changing `useChatLoopUiState`, `chatLoopUiState`, or stream-phase-to-UI mapping behavior.
+  - When changing `useChatLoopUiState`, `useOverlayTurnLifecycle`, `chatLoopUiState`, or stream-phase-to-UI mapping behavior.
   - When debugging stuck stop buttons, chatbox loop locks, or reconnect races after missing terminal events.
 title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 ---
@@ -10,8 +10,12 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 
 ## Canonical Modules
 
+- `frontend/src/shared/overlay_turn_lifecycle_contract.json`
+- `frontend/src/renderer/features/chat/utils/overlay/overlayTurnLifecycleContract.js`
+- `frontend/src/renderer/features/chat/utils/state/overlayTurnLifecycleState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatLoopUiState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
+- `frontend/src/renderer/features/chat/hooks/useOverlayTurnLifecycle.js`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
@@ -20,6 +24,49 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `tests/frontend/ChatLoopUiState.test.js`
 - `tests/frontend/ChatLoopUiStateHook.test.jsx`
+- `tests/frontend/OverlayTurnLifecycle.test.js`
+
+## Overlay Turn Lifecycle Contract
+
+Shared lifecycle source of truth:
+
+- `frontend/src/shared/overlay_turn_lifecycle_contract.json`
+
+Public lifecycle states:
+
+- `idle`
+- `preflight`
+- `awaiting`
+- `active`
+- `terminal`
+
+`resolveOverlayTurnLifecycle(...)` input fields:
+
+- `phase` (response-overlay phase vocabulary)
+- `isSending` (renderer-local send/preflight latch)
+- `hasVisibleReply`
+- `transportConnected` (default `true`)
+
+Resolution precedence:
+
+1. transport disconnected => `idle`
+2. terminal phase (`complete`/`error`) with a newly staged local send and no visible reply => `preflight`
+3. terminal phase without a staged local send => `terminal`
+4. `awaiting-first-chunk` => `awaiting`
+5. `streaming` / `tool-call` / `tool-output` => `active`
+6. local send latch before main-phase advancement => `preflight`
+7. otherwise => `idle`
+
+Busy lifecycle states:
+
+- `preflight`
+- `awaiting`
+- `active`
+
+Awaiting lifecycle states:
+
+- `preflight`
+- `awaiting`
 
 ## Base UI-State Contract (`chatLoopUiState.js`)
 
@@ -31,21 +78,18 @@ Public states:
 
 `resolveChatLoopUiState(...)` input fields:
 
-- `phase` (response-overlay phase vocabulary)
-- `isSending` (local send latch)
+- `lifecycle` (`idle | preflight | awaiting | active | terminal`)
+- `phase` (response-overlay phase vocabulary; retained only for tool-phase surface intent)
 - `hasVisibleReply`
-- `transportConnected` (default `true`)
 
 Resolution precedence:
 
-1. transport disconnected => force `idle`
-2. terminal phase (`complete`/`error`) => force `idle`
-3. local send latch => `awaiting-reply`
-4. awaiting-phase predicates (`awaiting-first-chunk`, overlay awaiting-reply phases) => `awaiting-reply`
-5. `streaming` with no visible assistant reply => `awaiting-reply`
-6. `streaming` with visible assistant reply => `active-response`
-7. other active-loop phases (`tool-call`/`tool-output`) => `active-response`
-8. otherwise => `idle`
+1. `idle` / `terminal` lifecycle => `idle`
+2. `preflight` / `awaiting` lifecycle => `awaiting-reply`
+3. `active` lifecycle during tool-awaiting phases (`tool-call` / `tool-output`) => `awaiting-reply`
+4. other `active` lifecycle with no visible assistant reply => `awaiting-reply`
+5. other `active` lifecycle with visible assistant reply => `active-response`
+6. otherwise => `idle`
 
 Helper predicates:
 
@@ -112,6 +156,8 @@ Default watchdog timeout is `3500ms` and is configurable through `recoveryWatchd
 
 It does not mutate stream tracking or backend query state; it is UI projection only.
 
+`useOverlayTurnLifecycle(...)` composes that transport projection with the shared lifecycle resolver so current-turn presentation consumers no longer each reduce `phase + isSending` separately.
+
 ## Surface Consumers
 
 `ChatInterface.jsx`:
@@ -127,7 +173,7 @@ It does not mutate stream tracking or backend query state; it is UI projection o
 
 `ChatBoxResponse.jsx`:
 
-- consumes `useCurrentTurnPresentationState(...)`, which layers current-turn assistant-reply detection on top of `useChatLoopUiState(...)`
+- consumes `useCurrentTurnPresentationState(...)`, which layers current-turn assistant-reply detection on top of `useOverlayTurnLifecycle(...)` and `useChatLoopUiState(...)`
 - uses the derived chatbox surface state:
   - `compact`
   - `awaiting-reply`
@@ -137,9 +183,16 @@ It does not mutate stream tracking or backend query state; it is UI projection o
 
 `tests/frontend/ChatLoopUiState.test.js` validates:
 
-- local send latch maps to `awaiting-reply`
-- streaming with/without visible reply splits into `active-response` vs `awaiting-reply`
-- terminal phases force `idle` even if send latch is stale
+- lifecycle-to-loop-ui mapping (`preflight/awaiting/active/terminal`)
+- visible-reply split inside the `active` lifecycle
+- terminal and idle lifecycles stay non-busy
+
+`tests/frontend/OverlayTurnLifecycle.test.js` validates:
+
+- local send latch maps to `preflight`
+- main awaiting phase maps to `awaiting`
+- active backend phases map to `active`
+- terminal phase + newly staged send stays `preflight`
 - disconnected transport forces `idle`
 
 `tests/frontend/ChatLoopUiStateHook.test.jsx` validates:
@@ -152,9 +205,9 @@ It does not mutate stream tracking or backend query state; it is UI projection o
 
 ## Drift Hotspots
 
-1. Changing phase predicates in `streamPhaseState` without updating `chatLoopUiState` can desync stop-button and overlay states.
+1. Changing phase groups in `overlay_turn_lifecycle_contract.json` without updating the renderer lifecycle resolver can desync preflight/awaiting/active transitions.
 2. Removing snapshot-signature progress detection can cause false watchdog idle resets during valid reconnect recovery.
-3. Treating transport disconnection as non-terminal in UI projection can leave dashboard/chatbox permanently loop-locked after backend outages.
+3. Treating transport disconnection as non-terminal in lifecycle projection can leave dashboard/chatbox permanently loop-locked after backend outages.
 
 ## Related Pages
 
