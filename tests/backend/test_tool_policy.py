@@ -171,7 +171,7 @@ def test_filter_tool_schemas_exposes_web_search_for_native_capable_provider():
         config=AppConfig(
             interaction_mode="chat",
             model_provider="openai",
-            selected_model_id="gpt-5@@gpt-5-nonthinking",
+            selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
         ),
         selection=None,
     )

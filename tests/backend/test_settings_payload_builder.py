@@ -20,7 +20,7 @@ def test_build_frontend_settings_payload_returns_empty_for_none() -> None:
 def test_build_frontend_settings_payload_includes_only_frontend_owned_fields() -> None:
     config = SimpleNamespace(
         model_provider="openai",
-        selected_model_id="gpt-5.1",
+        selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
         provider_api_keys=_DumpableValue({"openai": {"enabled": True, "api_key": "sk"}}),
         interaction_mode="chat",
         unrelated_internal_field="ignore-me",
@@ -32,7 +32,7 @@ def test_build_frontend_settings_payload_includes_only_frontend_owned_fields() -
         "interaction_mode": "chat",
         "model_provider": "openai",
         "provider_api_keys": {"openai": {"enabled": True, "api_key": "sk"}},
-        "selected_model_id": "gpt-5.1",
+        "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
     }
     assert "unrelated_internal_field" not in payload
 

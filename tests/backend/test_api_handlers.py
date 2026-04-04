@@ -1413,7 +1413,7 @@ async def test_update_settings_handler_updates_session():
         user_id="user_1",
         payload={
             "model_provider": "openai",
-            "selected_model_id": "gpt-5.1",
+            "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
             "wakeword_stt_enabled": True,
             "agent_full_sudo_enabled": True,
             "provider_api_keys": {

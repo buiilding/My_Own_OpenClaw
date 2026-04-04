@@ -117,7 +117,7 @@ def test_validate_frontend_config_allows_subset_and_validates_values():
 
     payload = {
         "model_mode": "online",
-        "selected_model_id": "gpt-5.1",
+        "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
         "voice_mode_enabled": False,
         "wakeword_stt_enabled": True,
         "agent_full_sudo_enabled": True,

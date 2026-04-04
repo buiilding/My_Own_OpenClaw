@@ -19,67 +19,68 @@ describe('chatModelOptions', () => {
   test('selects available model pool by mode', () => {
     const availableModels = {
       local: [{ id: 'llama-3.2' }],
-      online: [{ id: 'gpt-5' }],
+      online: [{ id: 'gpt-5.4@@gpt-5-4-none-thinking' }],
     };
     expect(getAvailableModelPool(availableModels, 'local')).toEqual([{ id: 'llama-3.2' }]);
-    expect(getAvailableModelPool(availableModels, 'online')).toEqual([{ id: 'gpt-5' }]);
+    expect(getAvailableModelPool(availableModels, 'online')).toEqual([{ id: 'gpt-5.4@@gpt-5-4-none-thinking' }]);
   });
 
   test('builds deduplicated base model options with provider filtering and selected runtime priority', () => {
     const availableModelPool = [
       {
-        id: 'gpt-5-3-codex-low-thinking',
+        id: 'gpt-5.4@@gpt-5-4-none-thinking',
         provider: 'openai',
-        runtime_model_id: 'gpt-5.3-codex',
-        display_name: 'GPT-5.3 Codex Low',
+        runtime_model_id: 'gpt-5.4',
+        display_name: 'GPT-5.4 None',
         supports_thinking: true,
+        reasoning_mode: 'none',
       },
       {
-        id: 'gpt-5-3-codex-thinking',
+        id: 'gpt-5.4@@gpt-5-4-medium-thinking',
         provider: 'openai',
-        runtime_model_id: 'gpt-5.3-codex',
-        display_name: 'GPT-5.3 Codex',
+        runtime_model_id: 'gpt-5.4',
+        display_name: 'GPT-5.4 Medium',
         supports_thinking: true,
+        reasoning_mode: 'medium',
       },
       {
-        id: 'gpt-5-3-codex-high-thinking',
+        id: 'gpt-5.4@@gpt-5-4-high-thinking',
         provider: 'openai',
-        runtime_model_id: 'gpt-5.3-codex',
-        display_name: 'GPT-5.3 Codex High',
+        runtime_model_id: 'gpt-5.4',
+        display_name: 'GPT-5.4 High',
         supports_thinking: true,
+        reasoning_mode: 'high',
       },
-      { id: 'gpt-5', provider: 'openai', runtime_model_id: 'gpt-5-runtime', display_name: 'GPT-5' },
       { id: 'claude-3', provider: 'anthropic', runtime_model_id: 'claude-3-runtime' },
     ];
 
     const options = buildChatModelOptions({
       availableModelPool,
       configuredProvider: 'openai',
-      configuredModelId: 'gpt-5.3-codex',
+      configuredModelId: 'gpt-5.4',
     });
 
-    expect(options).toHaveLength(2);
-    expect(options[0]?.label).toBe('GPT-5.3 Codex');
-    expect(options[0]?.runtimeModelId).toBe('gpt-5.3-codex');
+    expect(options).toHaveLength(1);
+    expect(options[0]?.label).toBe('GPT-5.4');
+    expect(options[0]?.runtimeModelId).toBe('gpt-5.4');
     expect(options[0]?.reasoningModeOptions.map((option) => option.mode)).toEqual([
-      'low',
+      'none',
       'medium',
       'high',
     ]);
-    expect(options[1]?.label).toBe('GPT-5');
   });
 
   test('injects configured model when unavailable in current pool', () => {
     const options = buildChatModelOptions({
-      availableModelPool: [{ id: 'gpt-5-mini', provider: 'openai' }],
+      availableModelPool: [{ id: 'gpt-5.4@@gpt-5-4-medium-thinking', provider: 'openai' }],
       configuredProvider: 'openai',
-      configuredModelId: 'gpt-5',
+      configuredModelId: 'gpt-5.4@@gpt-5-4-none-thinking',
     });
 
     expect(options[0]).toMatchObject({
-      id: 'gpt-5',
+      id: 'gpt-5.4@@gpt-5-4-none-thinking',
       provider: 'openai',
-      label: 'gpt-5',
+      label: 'gpt-5.4@@gpt-5-4-none-thinking',
       supportsThinking: false,
     });
   });
@@ -98,33 +99,43 @@ describe('chatModelOptions', () => {
 
   test('resolves provider-specific models and selected option fallback', () => {
     const pool = [
-      { id: 'gpt-5', provider: 'openai' },
+      { id: 'gpt-5.4@@gpt-5-4-none-thinking', provider: 'openai' },
       { id: 'claude-3', provider: 'anthropic' },
     ];
-    expect(resolveProviderModels(pool, 'openai')).toEqual([{ id: 'gpt-5', provider: 'openai' }]);
+    expect(resolveProviderModels(pool, 'openai')).toEqual([{ id: 'gpt-5.4@@gpt-5-4-none-thinking', provider: 'openai' }]);
 
     const modelOptions = [
-      { id: 'gpt-5-mini', runtimeModelId: 'gpt-5-mini-runtime', reasoningModeOptions: [] },
+      { id: 'gemini-2.5-flash', runtimeModelId: 'gemini-2.5-flash', reasoningModeOptions: [] },
       {
-        id: 'gpt-5-thinking-medium',
-        runtimeModelId: 'gpt-5-runtime',
+        id: 'gpt-5.4@@gpt-5-4-none-thinking',
+        runtimeModelId: 'gpt-5.4',
         reasoningModeOptions: [
-          { mode: 'low', label: 'Low', modelId: 'gpt-5-thinking-low' },
-          { mode: 'medium', label: 'Medium', modelId: 'gpt-5-thinking-medium' },
-          { mode: 'high', label: 'High', modelId: 'gpt-5-thinking-high' },
+          { mode: 'none', label: 'None', modelId: 'gpt-5.4@@gpt-5-4-none-thinking' },
+          { mode: 'low', label: 'Low', modelId: 'gpt-5.4@@gpt-5-4-low-thinking' },
+          { mode: 'medium', label: 'Medium', modelId: 'gpt-5.4@@gpt-5-4-medium-thinking' },
+          { mode: 'high', label: 'High', modelId: 'gpt-5.4@@gpt-5-4-high-thinking' },
+          { mode: 'xhigh', label: 'Extra High', modelId: 'gpt-5.4@@gpt-5-4-extra-high-thinking' },
         ],
       },
     ];
-    expect(resolveSelectedModelOption(modelOptions, 'gpt-5-runtime')).toEqual(modelOptions[1]);
+    expect(resolveSelectedModelOption(modelOptions, 'gpt-5.4')).toEqual(modelOptions[1]);
     expect(resolveSelectedModelOption(modelOptions, 'missing')).toEqual(modelOptions[0]);
-    expect(resolveSelectedReasoningMode(modelOptions[1], 'gpt-5-thinking-high')).toBe('high');
-    expect(resolveSelectedReasoningMode(modelOptions[1], 'missing')).toBe('medium');
-    expect(resolveModelIdForReasoningMode(modelOptions[1], 'low')).toBe('gpt-5-thinking-low');
-    expect(resolveModelIdForReasoningMode(modelOptions[1], 'extra_high')).toBe('gpt-5-thinking-medium');
+    expect(resolveSelectedReasoningMode(modelOptions[1], 'gpt-5.4@@gpt-5-4-high-thinking')).toBe('high');
+    expect(resolveSelectedReasoningMode(modelOptions[1], 'missing')).toBe('none');
+    expect(resolveModelIdForReasoningMode(modelOptions[1], 'low')).toBe('gpt-5.4@@gpt-5-4-low-thinking');
+    expect(resolveModelIdForReasoningMode(modelOptions[1], 'xhigh')).toBe('gpt-5.4@@gpt-5-4-extra-high-thinking');
   });
 
   test('builds reasoning modes from explicit reasoning_mode metadata', () => {
     const availableModelPool = [
+      {
+        id: 'gemini-3-1-pro-none',
+        provider: 'gemini',
+        runtime_model_id: 'gemini-3.1-pro-preview',
+        display_name: 'Gemini 3.1 Pro',
+        supports_thinking: true,
+        reasoning_mode: 'none',
+      },
       {
         id: 'gemini-3-1-pro-low',
         provider: 'gemini',
@@ -149,6 +160,14 @@ describe('chatModelOptions', () => {
         supports_thinking: true,
         reasoning_mode: 'high',
       },
+      {
+        id: 'gemini-3-1-pro-xhigh',
+        provider: 'gemini',
+        runtime_model_id: 'gemini-3.1-pro-preview',
+        display_name: 'Gemini 3.1 Pro',
+        supports_thinking: true,
+        reasoning_mode: 'xhigh',
+      },
     ];
 
     const options = buildChatModelOptions({
@@ -159,9 +178,11 @@ describe('chatModelOptions', () => {
 
     expect(options).toHaveLength(1);
     expect(options[0]?.reasoningModeOptions.map((option) => option.mode)).toEqual([
+      'none',
       'low',
       'medium',
       'high',
+      'xhigh',
     ]);
   });
 });

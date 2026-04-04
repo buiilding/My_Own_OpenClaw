@@ -40,7 +40,7 @@ from backend.src.core.config.loader import get_default_tts_model_path
 APP_CONFIG = AppConfig(
     model_mode="online",
     model_provider="openai",
-    selected_model_id="gpt-5@@gpt-5-nonthinking",
+    selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
     interaction_mode="agent",
     llm_timeout=300,
     query_timeout=600,

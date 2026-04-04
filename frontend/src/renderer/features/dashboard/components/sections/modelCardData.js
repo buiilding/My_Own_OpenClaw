@@ -1,57 +1,9 @@
 const MODEL_CARD_FALLBACKS = {
-  'gpt-5': {
-    description: "OpenAI's flagship reasoning model for complex coding, agentic workflows, and multimodal chat.",
+  'gpt-5.4': {
+    description: "OpenAI's GPT-5.4 reasoning model with configurable effort from none through xhigh.",
     context: 400000,
-    latency: '~1.5s',
-    strengths: ['Reasoning', 'Code', 'Vision', 'Tools'],
-  },
-  'gpt-5.1': {
-    description: "OpenAI's strongest GPT-5 family model for coding, agents, and deliberate reasoning.",
-    context: 400000,
-    latency: '~1.6s',
+    latency: '~1.4s',
     strengths: ['Reasoning', 'Code', 'Agents', 'Tools'],
-  },
-  'gpt-5-mini': {
-    description: 'A faster, smaller GPT-5 variant tuned for responsive chat, coding, and high-throughput tasks.',
-    context: 400000,
-    latency: '~1.0s',
-    strengths: ['Fast', 'Code', 'Tools', 'General'],
-  },
-  'gpt-4.1': {
-    description: "OpenAI's strongest non-reasoning model with long-context instruction following and tool use.",
-    context: 1047576,
-    latency: '~1.2s',
-    strengths: ['Long Context', 'Tools', 'Vision', 'Reliable'],
-  },
-  'gpt-5.3-codex': {
-    description: "OpenAI's most capable Codex model for long-horizon, agentic coding work.",
-    context: 400000,
-    latency: '~1.6s',
-    strengths: ['Agentic', 'Code', 'Long Horizon', 'Tools'],
-  },
-  'gpt-5.2': {
-    description: 'A high-end GPT-5 reasoning model tuned for professional work with configurable effort levels.',
-    context: 400000,
-    latency: '~1.5s',
-    strengths: ['Reasoning', 'Analysis', 'Code', 'Flexible'],
-  },
-  'gpt-5.2-codex': {
-    description: "OpenAI's GPT-5.2 Codex line optimized for deliberate, long-running coding and tool orchestration.",
-    context: 400000,
-    latency: '~1.5s',
-    strengths: ['Agentic', 'Code', 'Tools', 'Long Horizon'],
-  },
-  'gpt-5.1-codex-max': {
-    description: 'A GPT-5.1 Codex variant optimized for long-running coding tasks and deeper agent execution.',
-    context: 400000,
-    latency: '~1.7s',
-    strengths: ['Agentic', 'Code', 'Long Horizon', 'Reasoning'],
-  },
-  'gpt-5.1-codex-mini': {
-    description: 'A smaller GPT-5.1 Codex variant for faster, cheaper coding assistance and iterative tool use.',
-    context: 400000,
-    latency: '~1.0s',
-    strengths: ['Fast', 'Code', 'Agentic', 'Efficiency'],
   },
   'claude-sonnet-4-5-20250929': {
     description: "Anthropic's Claude Sonnet 4.5 balances strong coding, reasoning, and agent reliability.",

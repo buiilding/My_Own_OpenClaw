@@ -19,7 +19,7 @@ let mockConfig = {
   speech_mode_enabled: false,
   show_tool_logs: false,
   model_provider: 'openai',
-  selected_model_id: 'gpt-5@@gpt-5-nonthinking',
+  selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
 };
 let mockAvailableModels = {
   local: [],
@@ -183,7 +183,7 @@ describe('ChatInterface wiring', () => {
       speech_mode_enabled: false,
       show_tool_logs: false,
       model_provider: 'openai',
-      selected_model_id: 'gpt-5@@gpt-5-nonthinking',
+      selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
     };
     mockAvailableModels = {
       local: [],
@@ -714,7 +714,7 @@ describe('ChatInterface wiring', () => {
       interaction_mode: 'chat',
       model_mode: 'online',
       model_provider: 'openai',
-      selected_model_id: 'gpt-5.1',
+      selected_model_id: 'gpt-5.4',
       voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
@@ -722,19 +722,20 @@ describe('ChatInterface wiring', () => {
       local: [],
       online: [
         {
-          id: 'gpt-5.1@@gpt-5-1-high-thinking',
-          runtime_model_id: 'gpt-5.1',
+          id: 'gpt-5.4@@gpt-5-4-high-thinking',
+          runtime_model_id: 'gpt-5.4',
           provider: 'openai',
-          display_name: 'GPT-5.1 High',
+          display_name: 'GPT-5.4 High',
           supports_thinking: true,
+          reasoning_mode: 'high',
         },
       ],
     };
 
     render(<ChatInterface />);
 
-    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('GPT-5.1');
-    expect(screen.getByRole('button', { name: 'Model selector' })).not.toHaveTextContent('gpt-5.1');
+    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('GPT-5.4');
+    expect(screen.getByRole('button', { name: 'Model selector' })).not.toHaveTextContent('gpt-5.4');
   });
 
   test('deduplicates model dropdown entries to one base model and shows reasoning mode selector when supported', () => {
@@ -742,7 +743,7 @@ describe('ChatInterface wiring', () => {
       interaction_mode: 'chat',
       model_mode: 'online',
       model_provider: 'openai',
-      selected_model_id: 'gpt-5-3-codex-low-thinking',
+      selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
       voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
@@ -750,44 +751,47 @@ describe('ChatInterface wiring', () => {
       local: [],
       online: [
         {
-          id: 'gpt-5-3-codex-low-thinking',
-          runtime_model_id: 'gpt-5.3-codex',
+          id: 'gpt-5.4@@gpt-5-4-none-thinking',
+          runtime_model_id: 'gpt-5.4',
           provider: 'openai',
-          display_name: 'GPT-5.3 Codex Low',
+          display_name: 'GPT-5.4 None',
           supports_thinking: true,
+          reasoning_mode: 'none',
         },
         {
-          id: 'gpt-5-3-codex-thinking',
-          runtime_model_id: 'gpt-5.3-codex',
+          id: 'gpt-5.4@@gpt-5-4-medium-thinking',
+          runtime_model_id: 'gpt-5.4',
           provider: 'openai',
-          display_name: 'GPT-5.3 Codex',
+          display_name: 'GPT-5.4 Medium',
           supports_thinking: true,
+          reasoning_mode: 'medium',
         },
         {
-          id: 'gpt-5-3-codex-high-thinking',
-          runtime_model_id: 'gpt-5.3-codex',
+          id: 'gpt-5.4@@gpt-5-4-high-thinking',
+          runtime_model_id: 'gpt-5.4',
           provider: 'openai',
-          display_name: 'GPT-5.3 Codex High',
+          display_name: 'GPT-5.4 High',
           supports_thinking: true,
+          reasoning_mode: 'high',
         },
       ],
     };
 
     render(<ChatInterface />);
 
-    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('GPT-5.3 Codex');
-    expect(screen.getByRole('button', { name: 'Reasoning mode selector' })).toHaveTextContent('Low');
+    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('GPT-5.4');
+    expect(screen.getByRole('button', { name: 'Reasoning mode selector' })).toHaveTextContent('None');
 
     fireEvent.click(screen.getByRole('button', { name: 'Model selector' }));
-    expect(screen.getAllByRole('menuitem', { name: 'GPT-5.3 Codex' })).toHaveLength(1);
+    expect(screen.getAllByRole('menuitem', { name: 'GPT-5.4' })).toHaveLength(1);
   });
 
   test('does not show reasoning mode selector for models without multiple reasoning levels', () => {
     mockConfig = {
       interaction_mode: 'chat',
       model_mode: 'online',
-      model_provider: 'openai',
-      selected_model_id: 'gpt-4-1',
+      model_provider: 'anthropic',
+      selected_model_id: 'claude-haiku-4-5',
       voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
@@ -795,10 +799,10 @@ describe('ChatInterface wiring', () => {
       local: [],
       online: [
         {
-          id: 'gpt-4-1',
-          runtime_model_id: 'gpt-4.1',
-          provider: 'openai',
-          display_name: 'GPT-4.1',
+          id: 'claude-haiku-4-5',
+          runtime_model_id: 'claude-haiku-4-5',
+          provider: 'anthropic',
+          display_name: 'Claude Haiku 4.5',
           supports_thinking: false,
         },
       ],
@@ -835,7 +839,7 @@ describe('ChatInterface wiring', () => {
       online: [
         { id: 'gemini-3.1-pro-preview', provider: 'gemini' },
         { id: 'gemini-2.5-flash', provider: 'gemini' },
-        { id: 'gpt-5.1', provider: 'openai' },
+        { id: 'gpt-5.4@@gpt-5-4-none-thinking', provider: 'openai' },
       ],
     };
 
@@ -844,7 +848,7 @@ describe('ChatInterface wiring', () => {
 
     expect(screen.getByRole('menuitem', { name: 'gemini-3.1-pro-preview' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'gemini-2.5-flash' })).toBeInTheDocument();
-    expect(screen.queryByRole('menuitem', { name: 'gpt-5.1' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'gpt-5.4@@gpt-5-4-none-thinking' })).not.toBeInTheDocument();
   });
 
   test('selecting a model updates config with model id and provider', () => {
@@ -879,7 +883,7 @@ describe('ChatInterface wiring', () => {
       interaction_mode: 'chat',
       model_mode: 'online',
       model_provider: 'openai',
-      selected_model_id: 'gpt-5-3-codex-low-thinking',
+      selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
       voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
@@ -887,25 +891,28 @@ describe('ChatInterface wiring', () => {
       local: [],
       online: [
         {
-          id: 'gpt-5-3-codex-low-thinking',
-          runtime_model_id: 'gpt-5.3-codex',
+          id: 'gpt-5.4@@gpt-5-4-none-thinking',
+          runtime_model_id: 'gpt-5.4',
           provider: 'openai',
-          display_name: 'GPT-5.3 Codex Low',
+          display_name: 'GPT-5.4 None',
           supports_thinking: true,
+          reasoning_mode: 'none',
         },
         {
-          id: 'gpt-5-3-codex-thinking',
-          runtime_model_id: 'gpt-5.3-codex',
+          id: 'gpt-5.4@@gpt-5-4-medium-thinking',
+          runtime_model_id: 'gpt-5.4',
           provider: 'openai',
-          display_name: 'GPT-5.3 Codex',
+          display_name: 'GPT-5.4 Medium',
           supports_thinking: true,
+          reasoning_mode: 'medium',
         },
         {
-          id: 'gpt-5-3-codex-high-thinking',
-          runtime_model_id: 'gpt-5.3-codex',
+          id: 'gpt-5.4@@gpt-5-4-high-thinking',
+          runtime_model_id: 'gpt-5.4',
           provider: 'openai',
-          display_name: 'GPT-5.3 Codex High',
+          display_name: 'GPT-5.4 High',
           supports_thinking: true,
+          reasoning_mode: 'high',
         },
       ],
     };
@@ -915,7 +922,7 @@ describe('ChatInterface wiring', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: 'High' }));
 
     expect(mockUpdateConfig).toHaveBeenCalledWith({
-      selected_model_id: 'gpt-5-3-codex-high-thinking',
+      selected_model_id: 'gpt-5.4@@gpt-5-4-high-thinking',
       model_provider: 'openai',
     });
   });

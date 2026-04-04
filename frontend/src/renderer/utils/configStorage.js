@@ -34,7 +34,7 @@ const DEFAULT_PROVIDER_OAUTH = {
 const DEFAULT_FRONTEND_CONFIG = {
   model_mode: 'online',
   model_provider: 'openai',
-  selected_model_id: 'gpt-5@@gpt-5-nonthinking',
+  selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
   interaction_mode: 'agent',
   voice_mode_enabled: false,
   speech_mode_enabled: false,

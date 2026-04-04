@@ -153,18 +153,24 @@ def build_openai_responses_tool_choice(tool_choice: Any) -> Any:
 
 def build_openai_reasoning_config(model_id: str) -> Dict[str, str]:
     preset = resolve_model_preset(model_id)
+    explicit_mode = str((preset or {}).get("reasoning_mode") or "").strip().lower()
+    if explicit_mode in {"none", "minimal", "low", "medium", "high", "xhigh"}:
+        return {"effort": explicit_mode, "summary": "detailed"}
+
     display_name = str((preset or {}).get("display_name") or model_id).lower()
     effort = "medium"
     if "extra high" in display_name or "xhigh" in display_name:
         effort = "xhigh"
+    elif "medium" in display_name:
+        effort = "medium"
     elif "high" in display_name:
         effort = "high"
     elif "low" in display_name or "mini" in display_name:
         effort = "low"
-    elif "minimal" in display_name:
-        effort = "minimal"
     elif "none" in display_name:
         effort = "none"
+    elif "minimal" in display_name:
+        effort = "minimal"
     return {"effort": effort, "summary": "detailed"}
 
 

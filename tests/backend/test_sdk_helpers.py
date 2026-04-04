@@ -79,10 +79,13 @@ async def test_extract_response_returns_default_when_no_events_or_assistant_text
 
 
 def test_override_model_id_returns_new_config_without_mutating_original():
-    original = AppConfig(selected_model_id="gpt-5.1", model_provider="openai")
+    original = AppConfig(
+        selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
+        model_provider="openai",
+    )
 
     updated = override_model_id(original, "k2p5")
 
     assert updated.selected_model_id == "k2p5"
-    assert original.selected_model_id == "gpt-5.1"
+    assert original.selected_model_id == "gpt-5.4@@gpt-5-4-none-thinking"
     assert updated.model_provider == original.model_provider

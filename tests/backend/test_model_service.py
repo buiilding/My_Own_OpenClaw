@@ -320,8 +320,8 @@ def test_get_all_online_models_provider_first_entries_are_consumer_defaults():
         if provider and provider not in first_by_provider:
             first_by_provider[provider] = model
 
-    assert first_by_provider["openai"]["runtime_model_id"] == "gpt-5"
-    assert first_by_provider["openai"]["supports_thinking"] is False
+    assert first_by_provider["openai"]["runtime_model_id"] == "gpt-5.4"
+    assert first_by_provider["openai"]["supports_thinking"] is True
     assert (
         first_by_provider["anthropic"]["runtime_model_id"]
         == "claude-sonnet-4-5-20250929"
@@ -370,23 +370,23 @@ def test_get_all_online_models_marks_gemini_3_flash_preview_as_thinking_text_str
     assert gemini_3_flash_preview.get("supports_thinking_text_stream") is True
 
 
-def test_get_all_online_models_marks_openai_gpt_5_2_as_thinking_text_stream_capable():
+def test_get_all_online_models_marks_openai_gpt_5_4_as_thinking_text_stream_capable():
     service = ModelService(AppConfig())
     models = service.get_all_online_models()
 
-    gpt_5_2 = next(
+    gpt_5_4 = next(
         (
             model
             for model in models
             if model.get("provider") == "openai"
-            and model.get("runtime_model_id") == "gpt-5.2"
+            and model.get("runtime_model_id") == "gpt-5.4"
             and model.get("supports_thinking") is True
         ),
         None,
     )
-    assert gpt_5_2 is not None
-    assert gpt_5_2.get("supports_thinking") is True
-    assert gpt_5_2.get("supports_thinking_text_stream") is True
+    assert gpt_5_4 is not None
+    assert gpt_5_4.get("supports_thinking") is True
+    assert gpt_5_4.get("supports_thinking_text_stream") is True
 
 
 def test_get_all_online_models_marks_gemini_3_1_pro_preview_as_non_thinking():

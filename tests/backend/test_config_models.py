@@ -35,7 +35,7 @@ class TestOpenAIConfig:
 
     def test_default_values(self):
         config = OpenAIConfig()
-        assert config.model == "gpt-5.1"
+        assert config.model == "gpt-5.4"
         assert config.api_key_env == "OPENAI_API_KEY"
 
     def test_custom_values(self):
@@ -191,7 +191,7 @@ class TestAppConfig:
         config = AppConfig()
         assert config.model_mode == "online"
         assert config.model_provider == "openai"
-        assert config.selected_model_id == "gpt-5@@gpt-5-nonthinking"
+        assert config.selected_model_id == "gpt-5.4@@gpt-5-4-none-thinking"
         assert config.llm_timeout == 300
         assert config.query_timeout == 600
         assert config.debug_litellm is False

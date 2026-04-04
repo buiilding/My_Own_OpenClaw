@@ -18,7 +18,7 @@ def test_web_search_tool_build_request_params_sanitizes_domains_and_bounds_count
     params = WebSearchTool._build_request_params(
         WebSearchArgs(
             query="windieos latest",
-            count=99,
+            count=10,
             domains=[" https://example.com ", "bad domain", "sub.example.org"],
             recency_days=3,
         )
@@ -32,6 +32,10 @@ def test_web_search_tool_build_request_params_sanitizes_domains_and_bounds_count
 @pytest.mark.asyncio
 async def test_web_search_tool_returns_normalized_brave_results(monkeypatch):
     tool = WebSearchTool()
+    config = AppConfig(
+        model_provider="anthropic",
+        selected_model_id="claude-sonnet-4-20250514",
+    )
 
     monkeypatch.setattr(tool, "_resolve_api_key", lambda ctx: "test-brave-key")
 
@@ -60,7 +64,7 @@ async def test_web_search_tool_returns_normalized_brave_results(monkeypatch):
 
     result = await tool.run(
         WebSearchArgs(query="windieos latest", count=2),
-        _build_tool_context(),
+        _build_tool_context(config=config),
     )
 
     assert result.success is True
@@ -90,10 +94,14 @@ async def test_web_search_tool_returns_normalized_brave_results(monkeypatch):
 @pytest.mark.asyncio
 async def test_web_search_tool_reports_missing_backend_configuration():
     tool = WebSearchTool()
+    config = AppConfig(
+        model_provider="anthropic",
+        selected_model_id="claude-sonnet-4-20250514",
+    )
 
     result = await tool.run(
         WebSearchArgs(query="windieos latest"),
-        _build_tool_context(),
+        _build_tool_context(config=config),
     )
 
     assert result.success is False
@@ -103,6 +111,10 @@ async def test_web_search_tool_reports_missing_backend_configuration():
 @pytest.mark.asyncio
 async def test_web_search_tool_maps_brave_runtime_failures_to_tool_errors(monkeypatch):
     tool = WebSearchTool()
+    config = AppConfig(
+        model_provider="anthropic",
+        selected_model_id="claude-sonnet-4-20250514",
+    )
 
     monkeypatch.setattr(tool, "_resolve_api_key", lambda ctx: "test-brave-key")
 
@@ -114,7 +126,7 @@ async def test_web_search_tool_maps_brave_runtime_failures_to_tool_errors(monkey
 
     result = await tool.run(
         WebSearchArgs(query="windieos latest"),
-        _build_tool_context(),
+        _build_tool_context(config=config),
     )
 
     assert result.success is False
@@ -126,7 +138,7 @@ async def test_web_search_tool_routes_to_openai_native_search(monkeypatch):
     tool = WebSearchTool()
     config = AppConfig(
         model_provider="openai",
-        selected_model_id="gpt-5@@gpt-5-nonthinking",
+        selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
     )
 
     class _DummyLLMClient:
@@ -278,7 +290,7 @@ async def test_web_search_tool_prefers_live_session_config_over_stale_context_co
     tool = WebSearchTool()
     stale_config = AppConfig(
         model_provider="openai",
-        selected_model_id="gpt-5@@gpt-5-nonthinking",
+        selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
     )
     live_session_config = AppConfig(
         model_provider="gemini",
