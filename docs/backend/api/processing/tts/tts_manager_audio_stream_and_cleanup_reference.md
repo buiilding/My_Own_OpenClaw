@@ -60,6 +60,12 @@ This is the API-layer gate used by both query and wakeword flows.
   - `id: <turn_ref>`
   - `payload: <audio chunk dict>`
 
+Delivery priority:
+
+- `audio-chunk` messages share the same websocket sender as normal backend events
+- the sender queue prioritizes `audio-chunk` messages ahead of ordinary UI/tool events
+- this keeps completed spoken sentences from sitting behind tool-call/tool-output traffic once synthesis is ready
+
 Disconnect behavior:
 
 - on `RuntimeError` or `ConnectionError`, logs debug and breaks loop

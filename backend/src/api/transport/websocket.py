@@ -19,6 +19,10 @@ _SENDER_STOPPED_MESSAGE = "WebSocket sender stopped"
 _WS_MSG_JSON = "json"
 _WS_MSG_TEXT = "text"
 _WS_MSG_CLOSE = "close"
+_QUEUE_PRIORITY_AUDIO = 0
+_QUEUE_PRIORITY_DEFAULT = 1
+_QUEUE_PRIORITY_CLOSE = 2
+_AUDIO_CHUNK_TYPE = "audio-chunk"
 
 
 class SafeWebSocket:
@@ -54,11 +58,14 @@ class SafeWebSocket:
 
         self._websocket = websocket
         # Bounded queue adds backpressure and prevents unbounded memory growth.
-        self._send_queue: asyncio.Queue = asyncio.Queue(maxsize=max_queue_size)
+        self._send_queue: asyncio.PriorityQueue = asyncio.PriorityQueue(
+            maxsize=max_queue_size
+        )
         self._sender_task: Optional[asyncio.Task] = None
         self._closed = False
         self._sender_error: Optional[Exception] = None
         self._close_event = asyncio.Event()
+        self._enqueue_sequence = 0
 
     @staticmethod
     def _resolve_sender_exception(exc: Optional[Exception] = None) -> Exception:
@@ -89,10 +96,22 @@ class SafeWebSocket:
         """
         while True:
             try:
-                _msg_type, _data, _mode, future = self._send_queue.get_nowait()
+                _priority, _sequence, _msg_type, _data, _mode, future = self._send_queue.get_nowait()
             except asyncio.QueueEmpty:
                 break
             self._set_future_exception(future, exc)
+
+    @staticmethod
+    def _resolve_queue_priority(
+        *,
+        msg_type: str,
+        data: Any,
+    ) -> int:
+        if msg_type == _WS_MSG_CLOSE:
+            return _QUEUE_PRIORITY_CLOSE
+        if msg_type == _WS_MSG_JSON and isinstance(data, dict) and data.get("type") == _AUDIO_CHUNK_TYPE:
+            return _QUEUE_PRIORITY_AUDIO
+        return _QUEUE_PRIORITY_DEFAULT
 
     def _mark_sender_error(
         self,
@@ -121,8 +140,18 @@ class SafeWebSocket:
                 raise self._resolve_sender_exception(self._sender_error)
 
             try:
+                msg_type, data, mode, future = item
+                queue_item = (
+                    self._resolve_queue_priority(msg_type=msg_type, data=data),
+                    self._enqueue_sequence,
+                    msg_type,
+                    data,
+                    mode,
+                    future,
+                )
+                self._enqueue_sequence += 1
                 await asyncio.wait_for(
-                    self._send_queue.put(item),
+                    self._send_queue.put(queue_item),
                     timeout=_QUEUE_PUT_TIMEOUT_SECONDS,
                 )
                 return
@@ -144,7 +173,7 @@ class SafeWebSocket:
         """
         try:
             while True:
-                msg_type, data, mode, future = await self._send_queue.get()
+                _priority, _sequence, msg_type, data, mode, future = await self._send_queue.get()
 
                 try:
                     should_stop = False

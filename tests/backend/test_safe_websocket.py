@@ -148,6 +148,29 @@ async def test_safe_websocket_send_json_forwards_custom_mode() -> None:
 
 
 @pytest.mark.asyncio
+async def test_safe_websocket_prioritizes_audio_chunks_over_normal_json_messages() -> None:
+    raw = FakeRawWebSocket(send_delay=0.05)
+    safe = SafeWebSocket(raw, max_queue_size=8)
+
+    first = asyncio.create_task(safe.send_json({"type": "tool-call", "payload": {"step": 1}}))
+    await asyncio.sleep(0.005)
+    second = asyncio.create_task(safe.send_json({"type": "tool-output", "payload": {"step": 2}}))
+    await asyncio.sleep(0.005)
+    third = asyncio.create_task(
+        safe.send_json({"type": "audio-chunk", "payload": {"audio": "abc", "sample_rate": 16000}})
+    )
+
+    await asyncio.gather(first, second, third)
+
+    assert [data["type"] for data, _ in raw.sent_json] == [
+        "tool-call",
+        "audio-chunk",
+        "tool-output",
+    ]
+    await safe.close()
+
+
+@pytest.mark.asyncio
 async def test_safe_websocket_accept_delegates_to_raw_socket() -> None:
     raw = FakeRawWebSocket()
     safe = SafeWebSocket(raw, max_queue_size=2)
