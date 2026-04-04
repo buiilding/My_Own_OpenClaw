@@ -43,11 +43,6 @@ async def fetch_transcript_conversation_rows(
                  LIMIT 1
                ) as title_locked,
                (
-                 SELECT is_pinned FROM conversation_titles ct
-                 WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
-                 LIMIT 1
-               ) as is_pinned,
-               (
                  SELECT content FROM memories m2
                  WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
                    AND m2.record_kind = 'transcript'
@@ -78,7 +73,7 @@ async def fetch_transcript_conversation_rows(
         ORDER BY last_timestamp DESC
         LIMIT ?
     """,
-        (user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, limit),
+        (user_id, user_id, user_id, user_id, user_id, user_id, user_id, limit),
     )
     return await cursor.fetchall()
 
@@ -107,7 +102,6 @@ async def build_conversation_list_results(
             "model_provider": row["model_provider"],
             "title": title.strip(),
             "title_source": title_source or "model",
-            "is_pinned": bool(row["is_pinned"]),
             "is_resumable": bool(
                 isinstance(conversation_id, str)
                 and conversation_id.startswith("conv_")

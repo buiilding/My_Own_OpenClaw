@@ -26,16 +26,11 @@ function SearchChatsModal({
   activeConversationRef,
 }) {
   const inputRef = useRef(null);
-  const lastFocusedElementRef = useRef(null);
 
   useEffect(() => {
     if (!isOpen) {
       return undefined;
     }
-
-    lastFocusedElementRef.current = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
 
     const timer = window.setTimeout(() => {
       inputRef.current?.focus();
@@ -51,7 +46,6 @@ function SearchChatsModal({
     return () => {
       window.clearTimeout(timer);
       window.removeEventListener('keydown', handleEscape);
-      lastFocusedElementRef.current?.focus?.();
     };
   }, [isOpen, onClose]);
 
@@ -76,7 +70,6 @@ function SearchChatsModal({
       <div
         className="cg-search-modal"
         role="dialog"
-        aria-modal="true"
         aria-label="Search chats"
         onMouseDown={(event) => {
           event.stopPropagation();

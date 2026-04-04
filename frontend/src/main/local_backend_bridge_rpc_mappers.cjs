@@ -159,16 +159,6 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
     }),
   },
   {
-    channel: 'update-conversation-metadata',
-    method: 'update_conversation_metadata',
-    mapParams: createPayloadMapper({
-      user_id: 'userId',
-      conversation_id: ({ conversationId }) => conversationId ?? null,
-      title: 'title',
-      pinned: 'pinned',
-    }),
-  },
-  {
     channel: 'list-episodic-memories',
     method: 'list_episodic_memories',
     mapParams: createPayloadMapper({

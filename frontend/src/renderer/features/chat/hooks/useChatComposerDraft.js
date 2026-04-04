@@ -32,15 +32,6 @@ export function useChatComposerDraft({
     }
   }, [resetTranscription, setInputValue]);
 
-  const restoreDraft = useCallback((draftSnapshot) => {
-    setInputValue(typeof draftSnapshot?.inputValue === 'string' ? draftSnapshot.inputValue : '');
-    setClipboardImages(Array.isArray(draftSnapshot?.clipboardImages) ? draftSnapshot.clipboardImages : []);
-    setSelectedReadableFiles(Array.isArray(draftSnapshot?.selectedReadableFiles) ? draftSnapshot.selectedReadableFiles : []);
-    if (attachmentInputRef.current) {
-      attachmentInputRef.current.value = '';
-    }
-  }, [setInputValue]);
-
   const submitMessageValue = useCallback(async (nextInputValue) => {
     const outgoingMessage = buildOutgoingMessage(
       nextInputValue,
@@ -52,32 +43,16 @@ export function useChatComposerDraft({
       return false;
     }
 
-    const draftSnapshot = {
-      inputValue: typeof nextInputValue === 'string' ? nextInputValue : inputValue,
-      clipboardImages,
-      selectedReadableFiles,
-    };
-
     onBeforeSend?.();
-    try {
-      const sendResult = onSendMessage(outgoingMessage);
-      if (sendResult && typeof sendResult.then === 'function') {
-        await sendResult;
-      }
-      clearDraft();
-      return true;
-    } catch (error) {
-      restoreDraft(draftSnapshot);
-      throw error;
-    }
+    clearDraft();
+    await onSendMessage(outgoingMessage);
+    return true;
   }, [
     clearDraft,
     clipboardImages,
-    inputValue,
     isSubmitBlocked,
     onBeforeSend,
     onSendMessage,
-    restoreDraft,
     selectedReadableFiles,
   ]);
 
@@ -130,8 +105,6 @@ export function useChatComposerDraft({
     handleComposerPaste,
     handleAttachmentSelection,
     submitMessageValue,
-    clearDraft,
-    restoreDraft,
     setClipboardImages,
     setSelectedReadableFiles,
     hasAttachments: clipboardImages.length > 0 || selectedReadableFiles.length > 0,

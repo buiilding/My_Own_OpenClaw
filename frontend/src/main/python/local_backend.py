@@ -147,10 +147,6 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         self.protocol.register_method("store_memory", self._handle_store_memory)
         self.protocol.register_method("search_conversations", self._handle_search_conversations)
         self.protocol.register_method("list_conversations", self._handle_list_conversations)
-        self.protocol.register_method(
-            "update_conversation_metadata",
-            self._handle_update_conversation_metadata,
-        )
         self.protocol.register_method("list_episodic_memories", self._handle_list_episodic_memories)
         self.protocol.register_method("get_conversation", self._handle_get_conversation)
         self.protocol.register_method("list_semantic_memories", self._handle_list_semantic_memories)

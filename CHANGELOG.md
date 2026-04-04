@@ -5,14 +5,12 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
-- fix(frontend-chat-metadata-and-composer): persist dashboard conversation rename/pin metadata through a new sidecar IPC/update path, restore shared composer drafts after failed sends instead of dropping user input, surface recent-chat load errors instead of the empty state, and turn the dashboard voice button into a real config toggle.
 - fix(backend-ocr-startup): update RapidOCR language params to use enum values required by current RapidOCR builds, add OCR readiness-aware startup logging, and cover the new contract with focused backend tests/docs.
 - fix(openai-browser-tool-schema): rewrite grouped browser tool schemas into an OpenAI chat-compatible root-object transport shape before LiteLLM/OpenAI requests so standard OpenAI tool turns no longer fail on root `oneOf` validation.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
-- refactor(frontend-dashboard-panel-state): replace the dashboard's scattered overlay booleans with one explicit active-panel state, derive recent/search pin grouping from canonical persisted conversation metadata, and simplify chat-header selector semantics plus search-modal focus restoration.
-- refactor(frontend-chat-dashboard-surface): restyle the dashboard chat header into a lighter utility bar, replace the old demo-style empty state with a conventional first-message chat prompt, route dashboard model selection through the existing Models surface instead of duplicating inline model menus in the primary chat flow, and remove extra dashboard header wayfinding copy so the primary chat surface stays quieter.
+- refactor(frontend-chat-dashboard-surface): restyle the dashboard chat header into a lighter utility bar, replace the old demo-style empty state with a conventional first-message chat prompt, and route dashboard model selection through the existing Models surface instead of duplicating inline model menus in the primary chat flow.
 - refactor(frontend-chat-composer-contract): move dashboard and desktop-pill draft state, pasted-image handling, selected-file handling, and attachment-only send gating behind one shared renderer composer hook so both surfaces now share the same composer-state contract instead of duplicating send-draft logic.
 - docs(agents): add repo-level critical-thinking guidance, preserve the Linux minimal chat pill screenshot-flicker fix notes, and clarify backend-vs-frontend tool-schema ownership/parity expectations in `AGENTS.md`.
 - feat(frontend-chat-image-copy): add a screenshot right-click context menu in chat with a `Copy image` action, wire it through a new Electron clipboard IPC path, and cover the renderer/preload/main contracts with focused frontend tests.

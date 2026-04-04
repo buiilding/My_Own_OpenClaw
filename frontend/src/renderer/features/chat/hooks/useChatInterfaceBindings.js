@@ -39,19 +39,9 @@ export function useChatInterfaceMenuDismiss({
         setReasoningModeMenuOpen(false);
       }
     };
-    const handleKeyDown = (event) => {
-      if (event.key !== 'Escape') {
-        return;
-      }
-      setProviderMenuOpen(false);
-      setModelMenuOpen(false);
-      setReasoningModeMenuOpen(false);
-    };
     window.addEventListener('mousedown', handlePointerDown);
-    window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('mousedown', handlePointerDown);
-      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [
     modelMenuRef,
