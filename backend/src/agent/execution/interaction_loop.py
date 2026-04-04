@@ -230,13 +230,6 @@ class InteractionLoop:
             parsed_response = self._to_parsed_response(normalized_response)
             llm_response_text = parsed_response.text_content
 
-            async for event in self.event_presenter.present_search_sources(
-                normalized_response.get("web_search_sources")
-                if isinstance(normalized_response, dict)
-                else None
-            ):
-                yield event
-
             if llm_response_text:
                 async for event in self.event_presenter.present_assistant_message(
                     llm_response_text

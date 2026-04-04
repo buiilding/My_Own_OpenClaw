@@ -18,7 +18,6 @@ import {
   type ToolBundleEvent,
   type LocalUserMessageEvent,
   type MemoryStoreEvent,
-  type SearchSourceEvent,
   type TokenCountEvent,
   type ErrorEvent,
   isBackendEvent,
@@ -173,7 +172,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleToolCall,
     handleToolOutput,
     handleToolBundle,
-    handleSearchSource,
   } = useChatStreamToolHandlers({
     enableTranscript,
     addMessage,
@@ -223,12 +221,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
     onEvent: handleToolBundle,
-  });
-
-  const handleSearchSourceEvent = useTurnScopedBackendEventHandler<SearchSourceEvent>({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
-    onEvent: handleSearchSource,
   });
 
   const handleLocalUserMessageEvent = useTurnScopedBackendEventHandler<LocalUserMessageEvent>({
@@ -303,7 +295,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleContextCompactionFailed,
     handleToolCall: handleToolCallEvent,
     handleToolOutput: handleToolOutputEvent,
-    handleSearchSource: handleSearchSourceEvent,
     handleToolBundle: handleToolBundleEvent,
     handleSystemPrompt,
     handleLocalUserMessage: handleLocalUserMessageEvent,
@@ -322,7 +313,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleContextCompactionFailed,
     handleToolCallEvent,
     handleToolOutputEvent,
-    handleSearchSourceEvent,
     handleToolBundleEvent,
     handleSystemPrompt,
     handleLocalUserMessageEvent,

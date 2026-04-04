@@ -106,7 +106,7 @@ Some logical tools are fulfilled entirely in the backend and never go through th
 - The agent always sees one logical `web_search` tool when the active backend can fulfill it.
 - OpenAI and Gemini fulfill that tool by making a backend-owned provider-native web search request when the tool is called.
 - Other providers use a backend-executed Brave Search fallback when `BRAVE_SEARCH_API_KEY` is configured.
-- The frontend receives lightweight `search-source` trace events and renders rows like `Searching https://...` when a concrete source URL is known.
+- WindieOS presents web search like any other tool: the model emits a tool call, the backend executes the search, and the UI renders the normal tool-output result without separate source-trace rows.
 
 ### Backend Responsibilities
 
@@ -188,7 +188,7 @@ Direct tool contract before execution:
 Tool calls are sent by the agent tool sender. Execution now has two lanes:
 
 - Frontend lane: the backend emits a `tool-call` or `tool-bundle` event and the frontend sidecar executes the tool.
-- Backend lane: the backend validates args, creates tool context, executes the tool immediately, emits any lightweight transparency events (for example `search-source`), then emits the corresponding `tool-output`.
+- Backend lane: the backend validates args, creates tool context, executes the tool immediately, then emits the corresponding `tool-output`.
 
 **ToolResultOrchestrator** (`tools/orchestrator.py`) waits for frontend results and assembles `ToolResult` objects:
 

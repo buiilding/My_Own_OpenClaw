@@ -10,7 +10,6 @@ from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
     AssistantMessageFullEvent,
     ErrorEvent,
-    SearchSourceEvent,
     StreamingCompleteEvent,
     SystemPromptEvent,
     ToolSchemasEvent,
@@ -117,39 +116,6 @@ class EventPresenter:
             AssistantMessageFullEvent
         """
         yield AssistantMessageFullEvent(content=content)
-
-    async def present_search_sources(
-        self,
-        sources: Optional[List[Dict[str, object]]],
-    ) -> AsyncGenerator[AgentStreamingEvent, None]:
-        """Present lightweight source-discovery events for web-search traces."""
-        if not isinstance(sources, list):
-            return
-
-        seen_urls: set[str] = set()
-        for source in sources:
-            if not isinstance(source, dict):
-                continue
-            url = source.get("url")
-            provider = source.get("provider")
-            if not isinstance(url, str) or not url.strip():
-                continue
-            normalized_url = url.strip()
-            if normalized_url in seen_urls:
-                continue
-            seen_urls.add(normalized_url)
-            if not isinstance(provider, str) or not provider.strip():
-                continue
-            title = source.get("title")
-            query = source.get("query")
-            rank = source.get("rank")
-            yield SearchSourceEvent(
-                url=normalized_url,
-                provider=provider.strip(),
-                title=title if isinstance(title, str) and title.strip() else None,
-                query=query if isinstance(query, str) and query.strip() else None,
-                rank=rank if isinstance(rank, int) else None,
-            )
 
     async def present_completion(
         self,

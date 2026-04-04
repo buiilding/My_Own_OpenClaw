@@ -44,7 +44,7 @@ describe('messagePresentationPipeline', () => {
     ]);
   });
 
-  test('buildCurrentTurnResponseOverlayEntries includes live tool explanations and search-source rows', () => {
+  test('buildCurrentTurnResponseOverlayEntries includes live tool explanations only for tool calls', () => {
     const entries = buildCurrentTurnResponseOverlayEntries([
       { id: 'user-1', sender: 'user', text: 'Find OCR code' },
       {
@@ -59,12 +59,6 @@ describe('messagePresentationPipeline', () => {
           },
         },
       },
-      {
-        id: 'search-1',
-        sender: 'assistant',
-        type: 'search-source',
-        text: 'Searching https://example.com',
-      },
     ]);
 
     expect(entries).toEqual([
@@ -72,11 +66,6 @@ describe('messagePresentationPipeline', () => {
         id: 'tool-call-1:tool-explanation:0',
         type: 'tool-explanation',
         text: 'Search Python files for OCR-related code.',
-      }),
-      expect.objectContaining({
-        id: 'search-1',
-        type: 'tool-explanation',
-        text: 'Searching https://example.com',
       }),
     ]);
   });

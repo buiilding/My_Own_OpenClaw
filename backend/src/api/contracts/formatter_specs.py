@@ -28,7 +28,6 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
         ContextCompactionStartedEvent,
         ErrorEvent,
         MemoryStoreEvent,
-        SearchSourceEvent,
         StreamingCompleteEvent,
         SystemPromptEvent,
         ThinkingEvent,
@@ -76,12 +75,6 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
             StreamingEventType.TOOL_OUTPUT.value,
             formatter_module.ToolOutputEventFormatter,
             OutgoingMessageType.TOOL_OUTPUT,
-        ),
-        (
-            SearchSourceEvent,
-            StreamingEventType.SEARCH_SOURCE.value,
-            formatter_module.SearchSourceEventFormatter,
-            OutgoingMessageType.SEARCH_SOURCE,
         ),
         (
             SystemPromptEvent,

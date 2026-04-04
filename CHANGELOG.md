@@ -10,6 +10,7 @@ All notable changes to WindieOS will be documented in this file.
 - feat(backend-sdk-perception): add direct `/api/sdk/*` OCR and vision REST routes for SDK consumers, including inline-image/artifact input resolution, OCR candidate/resolve flows, saved overlay artifacts, and direct vision locate/describe helpers backed by the current backend services; cover the new surface with focused backend route tests and API/docs updates.
 
 ### Fixed
+- fix(web-search-tool-trace-ui): remove the standalone `Searching <url>` `search-source` rows so backend and provider-native web search now appear in WindieOS as normal tool-call plus tool-output activity; keep only a legacy rehydrate skip for old stored trace rows.
 - fix(frontend-chat-pill-toggle-hover-state): keep the minimal chat pill screenshot and text-to-speech icons blue while enabled even on hover, and document the current pill control inventory including the text-to-speech toggle in the frontend overlay docs.
 - fix(frontend-chat-pill-composer-region-split): keep the minimal chat pill textarea in its own upper in-flow region above the anchored controls row so multiline `Shift+Enter` growth lifts the pill top and close bump again while the lower action buttons remain fixed.
 - fix(frontend-chat-pill-anchored-action-row): refactor the minimal chat pill so the bottom action row is explicitly anchored inside the pill and the pill reserves that row's measured height as bottom padding, making multiline `Shift+Enter` growth expand the upper body instead of letting the action row drift during early resize passes.

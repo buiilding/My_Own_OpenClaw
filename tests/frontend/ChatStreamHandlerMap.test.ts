@@ -10,7 +10,6 @@ const EVENT_TYPES: BackendEventType[] = [
   'context-compaction-failed',
   'tool-call',
   'tool-output',
-  'search-source',
   'tool-bundle',
   'system-prompt',
   'local-user-message',
@@ -31,7 +30,6 @@ type HandlerName =
   | 'handleContextCompactionFailed'
   | 'handleToolCall'
   | 'handleToolOutput'
-  | 'handleSearchSource'
   | 'handleToolBundle'
   | 'handleSystemPrompt'
   | 'handleLocalUserMessage'
@@ -52,7 +50,6 @@ function buildHandlers(): Record<HandlerName, jest.Mock<void, [unknown]>> {
     handleContextCompactionFailed: jest.fn(),
     handleToolCall: jest.fn(),
     handleToolOutput: jest.fn(),
-    handleSearchSource: jest.fn(),
     handleToolBundle: jest.fn(),
     handleSystemPrompt: jest.fn(),
     handleLocalUserMessage: jest.fn(),
@@ -87,7 +84,6 @@ describe('chatStreamHandlerMap', () => {
       { type: 'context-compaction-failed', handlerName: 'handleContextCompactionFailed' },
       { type: 'tool-call', handlerName: 'handleToolCall' },
       { type: 'tool-output', handlerName: 'handleToolOutput' },
-      { type: 'search-source', handlerName: 'handleSearchSource' },
       { type: 'tool-bundle', handlerName: 'handleToolBundle' },
       { type: 'system-prompt', handlerName: 'handleSystemPrompt' },
       { type: 'local-user-message', handlerName: 'handleLocalUserMessage' },

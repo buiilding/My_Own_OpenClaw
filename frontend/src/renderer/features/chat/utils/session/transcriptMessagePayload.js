@@ -34,6 +34,7 @@ export function resolveTranscriptMessageType(message) {
 }
 
 export function toRehydratePayload(message) {
+  // Legacy `search-source` rows should stay out of rehydrated history.
   if (message?.type === 'search-source') {
     return null;
   }

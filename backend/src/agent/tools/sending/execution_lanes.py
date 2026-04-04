@@ -2,12 +2,8 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
 from backend.src.agent.tools.sending.execution_envelope import ToolExecutionEnvelope
-from backend.src.core.events.streaming_events import SearchSourceEvent
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.sdk.tool import Tool
-from backend.src.tools.web_search.source_normalization import (
-    extract_tool_result_web_search_sources,
-)
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -131,25 +127,6 @@ def build_preparation_failure_lane(
         result=synthetic_result,
     )
     return request_id, synthetic_result, envelope
-
-
-def build_search_source_events(result: ToolResult) -> List[SearchSourceEvent]:
-    data = result.data if isinstance(result.data, dict) else None
-    normalized_sources = extract_tool_result_web_search_sources(data)
-    events: List[SearchSourceEvent] = []
-    for source in normalized_sources:
-        events.append(
-            SearchSourceEvent(
-                url=source["url"],
-                title=source.get("title"),
-                provider=source["provider"],
-                query=source.get("query"),
-                rank=source.get("rank"),
-            )
-        )
-    return events
-
-
 def build_backend_execution_lane(
     *,
     resolved_call: Any,
@@ -166,7 +143,6 @@ def build_backend_execution_lane(
         request_id=request_id,
         metadata=backend_metadata,
         result=result,
-        auxiliary_events=build_search_source_events(result),
     )
 
 
