@@ -299,6 +299,26 @@ describe('useChatMessageSender', () => {
     );
   });
 
+  test('overlay-chatbox primes response overlay awaiting immediately on send', async () => {
+    const { result } = renderSender({ senderSurface: 'overlay-chatbox' });
+    await sendText(result, 'hello');
+
+    expect((window as any).ipc.invoke).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.PRIME_RESPONSE_OVERLAY_AWAITING,
+      undefined,
+    );
+  });
+
+  test('main-window sends do not prime response overlay awaiting', async () => {
+    const { result } = renderSender({ senderSurface: 'main-window' });
+    await sendText(result, 'hello');
+
+    expect((window as any).ipc.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.PRIME_RESPONSE_OVERLAY_AWAITING,
+      expect.anything(),
+    );
+  });
+
   test('continues send flow when overlay return-to-chatbox invoke fails', async () => {
     (window as any).ipc.invoke = jest.fn().mockRejectedValue(new Error('show-failed'));
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);

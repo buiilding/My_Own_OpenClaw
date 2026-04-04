@@ -14,6 +14,7 @@ const { getSystemState, searchMemory, storeMemory } = require('./local_backend_b
 const {
   resolveBackendEndpointCandidates,
   resolveBackendEndpoints,
+  resolvePreferredArtifactHttpUrl,
 } = require('./backend_endpoints.cjs');
 const {
   loadFrontendConfigFromDisk,
@@ -44,6 +45,10 @@ const {
   prepareAutomatedQueryPayload,
   prepareRendererQueryPayload,
 } = require('./ipc/ipc_query_runtime.cjs');
+const {
+  handleRendererQuerySendFailure,
+  prepareRendererQuerySend,
+} = require('./ipc/ipc_query_send_runtime.cjs');
 const {
   trackRendererWindow: trackRendererWindowRuntime,
   broadcastToRenderers: broadcastToRenderersRuntime,
@@ -587,6 +592,18 @@ function initializeIpc(win, options = {}) {
     };
   });
 
+  ipcMain.handle('prime-response-overlay-awaiting', async () => {
+    const currentPhase = responseOverlayPhaseState.getPhase();
+    if (
+      currentPhase !== 'streaming'
+      && currentPhase !== 'tool-call'
+      && currentPhase !== 'tool-output'
+    ) {
+      setResponseOverlayPhase('awaiting-first-chunk', 'renderer-send-preflight');
+    }
+    return { success: true };
+  });
+
   ipcMain.handle('upload-artifact', async (_event, payload) => {
     return uploadArtifact({
       ...(payload || {}),
@@ -666,7 +683,7 @@ function initializeIpc(win, options = {}) {
 
   ipcMain.on('to-backend', async (event, message = {}) => {
     const type = typeof message?.type === 'string' ? message.type : null;
-    const payload = (
+    let payload = (
       message?.payload
       && typeof message.payload === 'object'
       && !Array.isArray(message.payload)
@@ -698,82 +715,49 @@ function initializeIpc(win, options = {}) {
     let queryMessageId = null;
     let queryUsedInitialContext = false;
 
-    // Build complete user message content with system state and memories
-    // System context MUST be retrieved - never skip it
     if (type === 'query') {
-      await runBeforeOverlayQueryCapture({
-        webContents: event.sender,
-        onBeforeOverlayQueryCapture,
-        log,
-      });
-      const preparedQuery = prepareRendererQueryPayload(
+      const preparedQuery = await prepareRendererQuerySend({
+        event,
         payload,
         currentConversationRef,
-        resolveConversationRefFromPayload,
-      );
-      const {
-        payload: preparedPayload,
-        attachmentContext,
-        conversationRef,
-        memoryRetrievalEnabled,
-      } = preparedQuery;
-      Object.keys(payload).forEach((key) => {
-        delete payload[key];
-      });
-      Object.assign(payload, preparedPayload);
-      currentConversationRef = conversationRef;
-      queryMessageId = uuidv4();
-      logChatPillMainTrace({
-        source: 'ipc',
-        action: 'query-send-accepted',
-        turnId: queryMessageId,
-      });
-      setResponseOverlayPhase('awaiting-first-chunk', 'query');
-      const { mainWindow, chatWindow } = getWindows();
-      setActiveDisplayAffinity(resolveActiveSurfaceDisplayAffinity({
-        BrowserWindow,
-        screen,
-        webContents: event.sender,
-        chatWindow,
-        mainWindow,
-      }));
-      const localUserMessage = broadcastLocalUserMessageRuntime({
-        sourceWebContents: event.sender,
-        payload,
-        queryMessageId,
-        conversationRef,
         currentSessionId,
         currentServerUserId,
         currentUserId,
-        backendHttpUrl: BACKEND_HTTP_URL,
-        buildLocalUserMessage,
-        broadcastToRenderers: ({ channel, payload: messagePayload, sourceWebContents }) => {
-          broadcastToRenderers(channel, messagePayload, sourceWebContents);
+        backendHttpUrl: resolvePreferredArtifactHttpUrl(
+          BACKEND_HTTP_URL,
+          BACKEND_ENDPOINT_CANDIDATES,
+        ),
+        isFirstQuery,
+        deps: {
+          BrowserWindow,
+          screen,
+          runBeforeOverlayQueryCapture,
+          onBeforeOverlayQueryCapture,
+          log,
+          prepareRendererQueryPayload,
+          resolveConversationRefFromPayload,
+          uuidGenerator: uuidv4,
+          logChatPillMainTrace,
+          setResponseOverlayPhase,
+          getWindows,
+          setActiveDisplayAffinity,
+          resolveActiveSurfaceDisplayAffinity,
+          broadcastLocalUserMessageRuntime,
+          buildLocalUserMessage,
+          broadcastToRenderers,
+          ipcEventReplayState,
+          buildQueryPayload,
+          buildQueryPayloadContent,
+          getSystemState,
+          searchMemory,
+          generateUserId,
+          osUserInfo: () => os.userInfo(),
         },
       });
-      ipcEventReplayState.startTurn(queryMessageId, localUserMessage);
-      const contextType = isFirstQuery ? 'initial' : 'sequential';
-      queryUsedInitialContext = contextType === 'initial';
-      const preparedContent = await buildQueryPayload({
-        basePayload: payload,
-        text: payload.text,
-        conversationRef,
-        attachmentContext,
-        memoryRetrievalEnabled,
-        currentUserId,
-        isFirstQuery,
-        buildQueryPayloadContent,
-        getSystemState,
-        searchMemory,
-        generateUserId,
-        osUserInfo: () => os.userInfo(),
-        uuidGenerator: uuidv4,
-        log,
-      });
-      Object.keys(payload).forEach((key) => {
-        delete payload[key];
-      });
-      Object.assign(payload, preparedContent.payload);
+      payload = preparedQuery.payload;
+      currentConversationRef = preparedQuery.conversationRef;
+      queryMessageId = preparedQuery.queryMessageId;
+      queryUsedInitialContext = preparedQuery.queryUsedInitialContext;
       log('Complete user message built successfully');
     }
 
@@ -782,17 +766,20 @@ function initializeIpc(win, options = {}) {
     
     const messageId = sendMessageToBackend(type, payload, queryMessageId);
     if (!messageId && type === 'query') {
-      ipcEventReplayState.clear();
-      broadcastQuerySendFailureRuntime({
+      handleRendererQuerySendFailure({
+        payload,
         queryMessageId,
-        conversationRef: resolveConversationRefFromPayload(payload, currentConversationRef),
         currentSessionId,
         currentServerUserId,
         currentUserId,
-        buildQuerySendFailure,
-        setResponseOverlayPhase,
-        broadcastToRenderers: ({ channel, payload: messagePayload, sourceWebContents }) => {
-          broadcastToRenderers(channel, messagePayload, sourceWebContents);
+        currentConversationRef,
+        deps: {
+          resolveConversationRefFromPayload,
+          ipcEventReplayState,
+          broadcastQuerySendFailureRuntime,
+          buildQuerySendFailure,
+          setResponseOverlayPhase,
+          broadcastToRenderers,
         },
       });
     } else if (type === 'query' && queryUsedInitialContext) {

@@ -13,6 +13,7 @@ title: "Query Payload and Relay Reference"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
+- `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
@@ -88,6 +89,9 @@ Main broadcasts synthetic `local-user-message` to renderer via `from-backend` ch
 
 - includes `turn_ref` (query message id)
 - includes screenshot refs/urls when present
+- when renderer only provides `screenshot_ref`, main derives `screenshot_url` from the preferred artifact HTTP base:
+  - prefer loopback/local artifact base when hosted backend is primary and local fallback is available
+  - otherwise fall back to the active backend HTTP URL
 - includes `attachment_filenames` when renderer supplied picker/clipboard attachment names
 - includes session/user/conversation context fields
 - uses `broadcastLocalUserMessage` in `ipc_query_broadcast.cjs` with shape builder from `ipc_query_events.cjs`
@@ -223,4 +227,5 @@ If renderer shows user message but backend never streams:
 For module ownership details of query/local synthetic event broadcasters and renderer-window fan-out, see [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md).
 For replay and transcript session-sync normalization details, see [IPC Event Replay and Transcript Session Sync Reference](ipc_event_replay_and_transcript_session_sync_reference.md).
 For helper-level contracts (`prepareRendererQueryPayload`, `buildQueryPayload`, `prepareAutomatedQueryPayload`, `applyTranscriptSessionSync`), see [IPC Query Runtime and Transcript Sync Helper Reference](ipc_query_runtime_and_transcript_sync_helper_reference.md).
+For the extracted renderer query-send orchestration helper, see `frontend/src/main/ipc/ipc_query_send_runtime.cjs`.
 For full pairing/grouping details behind `<episodic_memory>` content generation, see [Memory Search Grouping and Transcript Pair Synthesis Contract Reference](../sidecar/memory/memory_search_grouping_and_transcript_pair_synthesis_contract_reference.md).

@@ -22,8 +22,18 @@ async function prepareOverlayQueryCaptureFocus({
   chatWindow,
   responseWindow,
   mainWindow,
+  platform = process.platform,
   waitMs = 120,
 }) {
+  if (platform === 'darwin') {
+    return {
+      restoredExternalFocus: false,
+      demotedOverlayFocus: false,
+      externalFocusActive: false,
+      canVerifyExternalFocus: false,
+    };
+  }
+
   if (chatWindow && !chatWindow.isDestroyed() && typeof chatWindow.blur === 'function') {
     chatWindow.blur();
   }
@@ -340,8 +350,9 @@ function createResponseWindow({
     enableDebugToolScreenshot,
   });
 
+  ensureResponseRendererLoaded();
+
   if (enableOsToolGhostDebug) {
-    ensureResponseRendererLoaded();
     setResponseOverlayVisible(true);
     positionResponseWindow();
     showResponseWindowInactive();

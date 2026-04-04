@@ -84,6 +84,7 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
       responseWindow,
       mainWindow,
       externalFocusTracker,
+      platform: 'linux',
       waitMs: 0,
     });
 
@@ -110,6 +111,7 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
 
     const result = await prepareOverlayQueryCaptureFocus({
       externalFocusTracker,
+      platform: 'linux',
       waitMs: 0,
     });
 
@@ -135,6 +137,7 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
     try {
       const pending = prepareOverlayQueryCaptureFocus({
         externalFocusTracker,
+        platform: 'linux',
         waitMs: 25,
       });
       jest.advanceTimersByTime(25);
@@ -179,6 +182,7 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
       responseWindow,
       chatWindow,
       externalFocusTracker,
+      platform: 'linux',
       waitMs: 0,
       skipDemotion: true,
     });
@@ -188,6 +192,30 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
     expect(typeof responseWindow.blur).toBe('undefined');
     expect(typeof chatWindow.blur).toBe('undefined');
     expect(externalFocusTracker.canTrackExternalFocus).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      restoredExternalFocus: false,
+      demotedOverlayFocus: false,
+      externalFocusActive: false,
+      canVerifyExternalFocus: false,
+    });
+  });
+
+  test('skips blur-only capture prep on macOS to avoid overlay handoff flicker', async () => {
+    const chatWindow = createFocusableWindow();
+    const responseWindow = createFocusableWindow();
+    const mainWindow = createFocusableWindow();
+
+    const result = await prepareOverlayQueryCaptureFocus({
+      chatWindow,
+      responseWindow,
+      mainWindow,
+      platform: 'darwin',
+      waitMs: 25,
+    });
+
+    expect(chatWindow.blur).not.toHaveBeenCalled();
+    expect(responseWindow.blur).not.toHaveBeenCalled();
+    expect(mainWindow.blur).not.toHaveBeenCalled();
     expect(result).toEqual({
       restoredExternalFocus: false,
       demotedOverlayFocus: false,
@@ -399,16 +427,16 @@ describe('main_window_runtime createResponseWindow', () => {
     return { deps, handlers, responseWindow };
   }
 
-  test('defers response overlay renderer load until first show event in normal mode', () => {
+  test('eager-loads response overlay renderer in normal mode so awaiting UI is ready before first show', () => {
     const { deps, handlers, responseWindow } = createDeps({ enableOsToolGhostDebug: false });
 
     createResponseWindow(deps);
-    expect(responseWindow.loadURL).not.toHaveBeenCalled();
+    expect(responseWindow.loadURL).toHaveBeenCalledTimes(1);
+    expect(responseWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('view=chatbox-response'));
     expect(responseWindow.loadFile).not.toHaveBeenCalled();
 
     handlers.show();
     expect(responseWindow.loadURL).toHaveBeenCalledTimes(1);
-    expect(responseWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('view=chatbox-response'));
     expect(deps.syncWindowDisplayAffinity).not.toHaveBeenCalled();
 
     handlers.show();

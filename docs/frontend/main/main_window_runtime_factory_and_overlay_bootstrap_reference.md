@@ -92,7 +92,7 @@ Creation behavior:
 
 - builds overlay window (default hidden, height `1` unless debug mode)
 - loads:
-  - `view=chatbox-response` (normal mode; lazy-loaded on first show)
+  - `view=chatbox-response` (normal mode; eager-loaded while hidden so awaiting UI is ready before first show)
   - debug view (ghost overlay mode) when `enableOsToolGhostDebug=true`
 - syncs response overlay visibility state via injected setters
 - applies content protection and topmost/workspace visibility policy through shared runtime helpers, with macOS overlay panels avoiding explicit `setVisibleOnAllWorkspaces(...)` calls

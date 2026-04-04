@@ -224,7 +224,34 @@ function resolveBackendEndpointCandidates(env = process.env, options = {}) {
   ]);
 }
 
+function isLoopbackHttpUrl(url) {
+  const normalized = normalizeUrl(url, ['http:', 'https:']);
+  if (!normalized) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(normalized);
+    return parsed.hostname === '127.0.0.1' || parsed.hostname === 'localhost';
+  } catch {
+    return false;
+  }
+}
+
+function resolvePreferredArtifactHttpUrl(activeHttpUrl, endpointCandidates = []) {
+  const loopbackCandidate = Array.isArray(endpointCandidates)
+    ? endpointCandidates.find((candidate) => isLoopbackHttpUrl(candidate?.httpUrl))
+    : null;
+
+  return (
+    normalizeUrl(loopbackCandidate?.httpUrl, ['http:', 'https:'])
+    || normalizeUrl(activeHttpUrl, ['http:', 'https:'])
+    || resolveLocalFallbackEndpoints({}).httpUrl
+  );
+}
+
 module.exports = {
+  resolvePreferredArtifactHttpUrl,
   resolveBackendEndpointCandidates,
   resolveBackendEndpoints,
 };

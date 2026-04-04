@@ -26,10 +26,11 @@ import {
   logRendererResponseSurfaceTrace,
 } from '../utils/chatStream/chatStreamDebugTrace';
 import { resolveChatPillViewIntent } from '../utils/chatPill/chatPillSessionFlow';
+import { RESPONSE_OVERLAY_LAYOUT } from '../utils/overlay/responseOverlayLayoutContract';
 
-const RESPONSE_FIXED_HEIGHT = 236;
+const RESPONSE_FIXED_HEIGHT = RESPONSE_OVERLAY_LAYOUT.RESPONSE_FIXED_HEIGHT;
 const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;
-const TYPING_FRAME_HEIGHT = 24;
+const TYPING_FRAME_HEIGHT = RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT;
 
 function createHiddenFrameState() {
   return {
@@ -411,7 +412,12 @@ function ChatBoxResponse() {
   }
 
   return (
-    <div className={`chatbox-shell-wrap chatbox-response-shell-wrap${showResponse ? ' has-response-pill' : ''}${showAwaitingReply && !showResponse ? ' awaiting-only' : ''}`}>
+    <div
+      className={`chatbox-shell-wrap chatbox-response-shell-wrap${showResponse ? ' has-response-pill' : ''}${showAwaitingReply && !showResponse ? ' awaiting-only' : ''}`}
+      style={{
+        '--chatbox-awaiting-frame-height': `${TYPING_FRAME_HEIGHT}px`,
+      }}
+    >
       <div className="chatbox-shell" ref={shellRef}>
         {showResponse ? (
           <div
