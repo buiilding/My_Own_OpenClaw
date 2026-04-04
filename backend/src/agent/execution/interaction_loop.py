@@ -33,7 +33,6 @@ from backend.src.core.events.streaming_events import (
     ContextCompactionStartedEvent,
     ErrorEvent,
     FullResponseEvent,
-    SearchSourceEvent,
     ToolCallEvent,
     ToolOutputEvent,
 )
@@ -169,7 +168,6 @@ class InteractionLoop:
             llm_response_text = ""
             llm_error_event_content = None
             llm_error_event_metadata = None
-            streamed_search_source_urls: set[str] = set()
             try:
                 async for event in self.llm_handler.get_response(
                     prompt,
@@ -183,10 +181,6 @@ class InteractionLoop:
                             else None
                         )
                         continue
-                    if isinstance(event, SearchSourceEvent):
-                        normalized_url = event.url.strip()
-                        if normalized_url:
-                            streamed_search_source_urls.add(normalized_url)
                     yield event
                     if isinstance(event, FullResponseEvent):
                         llm_response_text = event.content
@@ -236,24 +230,10 @@ class InteractionLoop:
             parsed_response = self._to_parsed_response(normalized_response)
             llm_response_text = parsed_response.text_content
 
-            search_sources = (
+            async for event in self.event_presenter.present_search_sources(
                 normalized_response.get("web_search_sources")
                 if isinstance(normalized_response, dict)
                 else None
-            )
-            if isinstance(search_sources, list) and streamed_search_source_urls:
-                search_sources = [
-                    source
-                    for source in search_sources
-                    if (
-                        not isinstance(source, dict)
-                        or not isinstance(source.get("url"), str)
-                        or source.get("url").strip() not in streamed_search_source_urls
-                    )
-                ]
-
-            async for event in self.event_presenter.present_search_sources(
-                search_sources
             ):
                 yield event
 
