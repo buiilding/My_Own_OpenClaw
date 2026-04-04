@@ -29,20 +29,10 @@ const mockInvoke = jest.fn(async (channel) => {
 const mockSetActiveConversationRef = jest.fn();
 const mockUpdateTranscriptSession = jest.fn();
 let mockSessionInfo = { conversationRef: null, userId: null };
-let latestChatInterfaceProps = null;
 
-jest.mock('../../frontend/src/renderer/features/chat/components/ChatInterface', () => (props) => {
-  latestChatInterfaceProps = props;
-  return (
-    <button
-      type="button"
-      data-testid="chat-interface-stub"
-      onClick={() => props.onOpenModels?.()}
-    >
-      ChatInterfaceStub
-    </button>
-  );
-});
+jest.mock('../../frontend/src/renderer/features/chat/components/ChatInterface', () => () => (
+  <div data-testid="chat-interface-stub">ChatInterfaceStub</div>
+));
 
 jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/SettingsSection', () => (props) => (
   <div data-testid="settings-section-stub">
@@ -118,7 +108,6 @@ describe('ChatGptDashboardShell', () => {
     mockInvoke.mockClear();
     mockSetActiveConversationRef.mockClear();
     mockUpdateTranscriptSession.mockClear();
-    latestChatInterfaceProps = null;
     mockSessionInfo = { conversationRef: null, userId: null };
     useChatStore.setState({
       isSending: false,
@@ -194,15 +183,6 @@ describe('ChatGptDashboardShell', () => {
     await renderDashboardShell();
 
     fireEvent.click(screen.getByRole('button', { name: 'Models' }));
-
-    expect(screen.getByTestId('models-section-stub')).toBeInTheDocument();
-  });
-
-  test('passes dashboard model opener into the primary chat surface', async () => {
-    await renderDashboardShell();
-
-    expect(typeof latestChatInterfaceProps?.onOpenModels).toBe('function');
-    fireEvent.click(screen.getByTestId('chat-interface-stub'));
 
     expect(screen.getByTestId('models-section-stub')).toBeInTheDocument();
   });

@@ -70,7 +70,7 @@ function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   );
 }
 
-function ChatInterface({ focusComposerToken = 0, onOpenModels = undefined }) {
+function ChatInterface({ focusComposerToken = 0 }) {
   const vmModeEnabled = isVmModeEnabled();
 
   const {
@@ -229,11 +229,6 @@ function ChatInterface({ focusComposerToken = 0, onOpenModels = undefined }) {
     || ''
   );
   const showReasoningModeSelector = reasoningModeOptions.length > 1;
-  const modelSettingsSummary = [
-    modelLabelBase,
-    showReasoningModeSelector ? (selectedReasoningModeLabel || 'Standard') : null,
-    providerLabel,
-  ].filter(Boolean).join(' · ');
   const devUiEnabled = isDevUiEnabled();
   const [providerMenuOpen, setProviderMenuOpen] = useState(false);
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
@@ -444,10 +439,8 @@ function ChatInterface({ focusComposerToken = 0, onOpenModels = undefined }) {
         selectedReasoningModeLabel={selectedReasoningModeLabel}
         reasoningModeOptions={reasoningModeOptions}
         speechModeEnabled={speechModeEnabled}
-        modelSettingsSummary={modelSettingsSummary}
         activeWorkspaceName={activeWorkspace.activeWorkspaceName}
         activeWorkspacePath={activeWorkspace.activeWorkspacePath}
-        handleOpenModels={onOpenModels}
         handleChangeWorkspace={handleChangeWorkspace}
         devUiEnabled={devUiEnabled}
         handleProviderSelect={handleProviderSelect}
