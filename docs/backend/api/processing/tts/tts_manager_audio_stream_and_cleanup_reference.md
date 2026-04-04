@@ -22,6 +22,8 @@ title: "TTS Manager Audio Stream and Cleanup Reference"
 `TTSManager.initialize_if_enabled(config)`:
 
 - creates `TTSService` only when `config.speech_mode_enabled` is true
+- selects the concrete provider from `config.speech_provider`
+- falls back to the local provider if ElevenLabs cannot initialize cleanly
 - calls `tts_service.initialize()`
 - returns `None` when speech mode disabled
 

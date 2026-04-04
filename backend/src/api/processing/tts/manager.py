@@ -3,6 +3,7 @@ TTS Manager for Query Handler.
 
 Manages TTS (Text-to-Speech) lifecycle during query processing.
 """
+
 import asyncio
 import logging
 from typing import Any, Dict, Optional, Union
@@ -11,17 +12,23 @@ from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.core.config import AppConfig
 from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent
+from backend.src.core.services.speech_service import SpeechService
+from backend.src.core.services.speech_service_factory import create_speech_service
 from backend.src.core.types import StreamingEventType
 from backend.src.core.services.tts_service import TTSService
 
 logger = logging.getLogger(__name__)
 
 # Constants
-TTS_FLUSH_WAIT_TIME = 0.5  # Seconds to wait for TTS service to finish processing after flush
+TTS_FLUSH_WAIT_TIME = (
+    0.5  # Seconds to wait for TTS service to finish processing after flush
+)
 # REDUCED from 1.0s to 0.5s - hardcoded latency was adding unnecessary delay to every query
 # The TTS service flush() already includes a 0.5s wait, so this additional wait is minimal
 AUDIO_TASK_TIMEOUT = 5.0  # Seconds to wait for audio streaming task to complete
-AUDIO_TASK_CANCELLATION_WAIT = 0.5  # Seconds to wait for audio task cancellation to propagate
+AUDIO_TASK_CANCELLATION_WAIT = (
+    0.5  # Seconds to wait for audio task cancellation to propagate
+)
 
 
 class TTSManager:
@@ -29,7 +36,7 @@ class TTSManager:
     Manages TTS initialization, streaming, and cleanup for query handlers.
     """
 
-    async def initialize_if_enabled(self, config: AppConfig) -> Optional[TTSService]:
+    async def initialize_if_enabled(self, config: AppConfig) -> Optional[SpeechService]:
         """
         Initialize TTS service if enabled in config.
 
@@ -40,16 +47,25 @@ class TTSManager:
             TTSService instance if enabled, None otherwise
         """
         if config.speech_mode_enabled:
-            tts_service = TTSService(config)
+            tts_service = create_speech_service(config)
             await tts_service.initialize()
+            if config.speech_provider == "elevenlabs" and not getattr(
+                tts_service, "running", False
+            ):
+                logger.warning(
+                    "ElevenLabs speech provider unavailable. Falling back to local speech service."
+                )
+                local_tts_service = TTSService(config)
+                await local_tts_service.initialize()
+                return local_tts_service
             return tts_service
         return None
 
     async def start_streaming_task(
-        self, 
-        tts_service: TTSService, 
+        self,
+        tts_service: SpeechService,
         websocket: WebSocketSender,  # Fixes Point #7: Uses Protocol
-        msg_id: str
+        msg_id: str,
     ) -> asyncio.Task:
         """
         Start background task to stream audio chunks to WebSocket.
@@ -65,7 +81,9 @@ class TTSManager:
         return asyncio.create_task(self._stream_audio(tts_service, websocket, msg_id))
 
     async def process_event(
-        self, tts_service: Optional[TTSService], event: Union[StreamingEvent, Dict[str, Any]]
+        self,
+        tts_service: Optional[SpeechService],
+        event: Union[StreamingEvent, Dict[str, Any]],
     ) -> None:
         """
         Process an event for TTS (extract text chunks).
@@ -76,7 +94,7 @@ class TTSManager:
         """
         if not tts_service:
             return
-            
+
         # Use isinstance check for type safety
         if isinstance(event, ChunkEvent):
             await tts_service.process_text(event.content)
@@ -88,7 +106,7 @@ class TTSManager:
             await tts_service.process_text(event.get("content", ""))
 
     async def cleanup(
-        self, tts_service: Optional[TTSService], audio_task: Optional[asyncio.Task]
+        self, tts_service: Optional[SpeechService], audio_task: Optional[asyncio.Task]
     ) -> None:
         """
         Clean up TTS service and audio streaming task.
@@ -117,16 +135,18 @@ class TTSManager:
                     audio_task.cancel()
                 try:
                     # Wait briefly for cancellation to propagate
-                    await asyncio.wait_for(audio_task, timeout=AUDIO_TASK_CANCELLATION_WAIT)
+                    await asyncio.wait_for(
+                        audio_task, timeout=AUDIO_TASK_CANCELLATION_WAIT
+                    )
                 except (asyncio.TimeoutError, asyncio.CancelledError):
                     pass
 
     async def _stream_audio(
-        self, tts_service: TTSService, websocket: WebSocketSender, msg_id: str
+        self, tts_service: SpeechService, websocket: WebSocketSender, msg_id: str
     ) -> None:
         """
         Stream audio chunks from TTS service to WebSocket.
-        
+
         Fixes Point #1: Uses WebSocketSender protocol.
         Since SafeWebSocket implements this protocol using a Lock,
         this is now thread-safe relative to the main handler loop.

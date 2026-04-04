@@ -3,6 +3,7 @@ Configuration Models.
 
 This module contains Pydantic models for the application configuration.
 """
+
 import os
 import platform
 from pathlib import Path
@@ -19,8 +20,11 @@ def _default_artifact_store_path() -> str:
 
     home_dir = Path.home()
     if os.name == "posix" and platform.system() == "Darwin":
-        return str(home_dir / "Library" / "Application Support" / app_name / "artifacts")
+        return str(
+            home_dir / "Library" / "Application Support" / app_name / "artifacts"
+        )
     return str(home_dir / ".config" / app_name / "artifacts")
+
 
 class OpenAIConfig(BaseModel):
     """Configuration for OpenAI provider."""
@@ -125,7 +129,9 @@ class ProviderApiKeys(BaseModel):
     mistral: ProviderApiKeyOverride = Field(default_factory=ProviderApiKeyOverride)
     kimi_coding: ProviderApiKeyOverride = Field(default_factory=ProviderApiKeyOverride)
 
-    def get_provider_override(self, provider_name: str) -> Optional[ProviderApiKeyOverride]:
+    def get_provider_override(
+        self, provider_name: str
+    ) -> Optional[ProviderApiKeyOverride]:
         """Resolve provider override config with provider alias normalization."""
         normalized = provider_name.lower().replace("-", "_")
         if normalized == "kimi_code":
@@ -161,24 +167,46 @@ class Preferences(BaseModel):
 
 class SecurityLimits(BaseModel):
     """Security limits for trust boundaries."""
-    
+
     # Parser limits
-    max_response_size: int = Field(default=10 * 1024 * 1024, description="Max LLM response size (10MB)")
-    max_json_size: int = Field(default=1 * 1024 * 1024, description="Max JSON object size (1MB)")
-    max_json_nesting_depth: int = Field(default=100, description="Max JSON nesting depth")
+    max_response_size: int = Field(
+        default=10 * 1024 * 1024, description="Max LLM response size (10MB)"
+    )
+    max_json_size: int = Field(
+        default=1 * 1024 * 1024, description="Max JSON object size (1MB)"
+    )
+    max_json_nesting_depth: int = Field(
+        default=100, description="Max JSON nesting depth"
+    )
     max_tool_name_length: int = Field(default=256, description="Max tool name length")
-    max_parameter_count: int = Field(default=100, description="Max parameters per tool call")
-    max_parameter_value_size: int = Field(default=64 * 1024, description="Max parameter value size (64KB)")
-    max_tool_calls_per_response: int = Field(default=50, description="Max tool calls per response")
-    
+    max_parameter_count: int = Field(
+        default=100, description="Max parameters per tool call"
+    )
+    max_parameter_value_size: int = Field(
+        default=64 * 1024, description="Max parameter value size (64KB)"
+    )
+    max_tool_calls_per_response: int = Field(
+        default=50, description="Max tool calls per response"
+    )
+
     # Parser timeouts
-    parse_timeout_seconds: float = Field(default=5.0, description="Parser timeout (seconds)")
-    json_load_timeout_seconds: float = Field(default=2.0, description="JSON load timeout (seconds)")
-    
+    parse_timeout_seconds: float = Field(
+        default=5.0, description="Parser timeout (seconds)"
+    )
+    json_load_timeout_seconds: float = Field(
+        default=2.0, description="JSON load timeout (seconds)"
+    )
+
     # Prompt constructor limits
-    max_message_history_size: int = Field(default=1000, description="Max messages in history")
-    max_message_content_size: int = Field(default=1 * 1024 * 1024, description="Max message content size (1MB)")
-    max_prompt_size: int = Field(default=50 * 1024 * 1024, description="Max total prompt size (50MB)")
+    max_message_history_size: int = Field(
+        default=1000, description="Max messages in history"
+    )
+    max_message_content_size: int = Field(
+        default=1 * 1024 * 1024, description="Max message content size (1MB)"
+    )
+    max_prompt_size: int = Field(
+        default=50 * 1024 * 1024, description="Max total prompt size (50MB)"
+    )
 
 
 _DEFAULT_TOOL_ALLOWLIST_BY_INTERACTION_MODE: dict[str, set[str]] = {
@@ -205,9 +233,7 @@ class AppConfig(BaseModel):
     """Main application configuration model (immutable)."""
 
     model_config = ConfigDict(
-        extra="ignore", 
-        protected_namespaces=(),
-        frozen=True  # Make config immutable
+        extra="ignore", protected_namespaces=(), frozen=True  # Make config immutable
     )
 
     # LLM Settings
@@ -242,10 +268,12 @@ class AppConfig(BaseModel):
     # This section is largely redundant as tools execute on the frontend
     # but kept for backend-specific tool configurations if any
     brave_search: BraveSearchConfig = Field(default_factory=BraveSearchConfig)
-    
+
     # Vision Model Settings
-    vision_model_name: Optional[str] = "OpenGVLab/InternVL3_5-4B"  # Defaults to "OpenGVLab/InternVL3_5-4B" if None
-    
+    vision_model_name: Optional[str] = (
+        "OpenGVLab/InternVL3_5-4B"  # Defaults to "OpenGVLab/InternVL3_5-4B" if None
+    )
+
     # Voice Mode Settings
     voice_mode_enabled: bool = False
     wakeword_stt_enabled: bool = False
@@ -258,53 +286,63 @@ class AppConfig(BaseModel):
     # Wakeword Settings
     wakeword_enabled: bool = True
     wakeword_phrase: str = "hey jarvis"
-    wakeword_greetings: List[str] = Field(default_factory=lambda: [
-        "Hello! I'm listening.",
-        "Hi there! How can I help you?",
-        "Yes? I'm here to assist.",
-        "Good day! What can I do for you?",
-        "Hello! Ready to help."
-    ])
+    wakeword_greetings: List[str] = Field(
+        default_factory=lambda: [
+            "Hello! I'm listening.",
+            "Hi there! How can I help you?",
+            "Yes? I'm here to assist.",
+            "Good day! What can I do for you?",
+            "Hello! Ready to help.",
+        ]
+    )
 
     # TTS Settings
     # tts_enabled is always True by default (hardcoded, not configurable via config file)
     # Only changeable by modifying this default value in code
     tts_enabled: bool = True
+    speech_provider: Literal["local", "elevenlabs"] = "local"
     tts_model_path: Optional[str] = None
     speech_mode_enabled: bool = False
+    elevenlabs_api_key_env: str = "ELEVENLABS_API_KEY"
+    elevenlabs_voice_id: str = "EXAVITQu4vr4xnSDxMaL"
+    elevenlabs_model_id: str = "eleven_flash_v2_5"
+    elevenlabs_output_format: str = "pcm_16000"
+    elevenlabs_chunk_length_schedule: List[int] = Field(
+        default_factory=lambda: [50, 80, 120, 160]
+    )
 
     # This field is populated at runtime, not loaded from config file
     api_key: Optional[str] = None
 
     # Security limits
     security_limits: SecurityLimits = Field(default_factory=SecurityLimits)
-    
+
     # WebSocket Settings
     websocket_max_message_size: int = Field(
         default=10 * 1024 * 1024,  # 10MB
-        description="Maximum WebSocket message size to prevent memory exhaustion attacks"
+        description="Maximum WebSocket message size to prevent memory exhaustion attacks",
     )
     websocket_max_concurrent_tasks: int = Field(
         default=50,
-        description="Maximum concurrent tasks per WebSocket connection to prevent DoS"
+        description="Maximum concurrent tasks per WebSocket connection to prevent DoS",
     )
     websocket_receive_timeout: float = Field(
         default=3600.0,  # 1 hour
-        description="Timeout for WebSocket receive operations (seconds)"
+        description="Timeout for WebSocket receive operations (seconds)",
     )
     websocket_task_cancellation_timeout: float = Field(
         default=5.0,
-        description="Timeout for waiting for tasks to cancel on disconnect (seconds)"
+        description="Timeout for waiting for tasks to cancel on disconnect (seconds)",
     )
 
     # Artifact Settings (HTTP storage for large blobs)
     artifact_store_path: str = Field(
         default_factory=_default_artifact_store_path,
-        description="Local directory for uploaded artifacts"
+        description="Local directory for uploaded artifacts",
     )
     artifact_max_bytes: int = Field(
         default=25 * 1024 * 1024,  # 25MB
-        description="Maximum artifact size accepted by HTTP upload"
+        description="Maximum artifact size accepted by HTTP upload",
     )
 
     @property

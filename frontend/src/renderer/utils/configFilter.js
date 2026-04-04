@@ -13,6 +13,7 @@ const FRONTEND_CONFIG_FIELDS = [
   'interaction_mode',
   'voice_mode_enabled',
   'speech_mode_enabled',
+  'speech_provider',
   'wakeword_enabled',
   'wakeword_stt_enabled',
   'agent_full_sudo_enabled',

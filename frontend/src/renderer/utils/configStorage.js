@@ -38,6 +38,7 @@ const DEFAULT_FRONTEND_CONFIG = {
   interaction_mode: 'agent',
   voice_mode_enabled: false,
   speech_mode_enabled: false,
+  speech_provider: 'local',
   wakeword_enabled: true,
   wakeword_stt_enabled: false,
   agent_full_sudo_enabled: false,

@@ -12,6 +12,7 @@ const DEFAULT_FRONTEND_CONFIG = {
   interaction_mode: 'agent',
   voice_mode_enabled: false,
   speech_mode_enabled: false,
+  speech_provider: 'local',
   wakeword_enabled: true,
   wakeword_stt_enabled: false,
   agent_full_sudo_enabled: false,
@@ -86,6 +87,18 @@ describe('configStorage', () => {
       ...DEFAULT_FRONTEND_CONFIG,
       speech_mode_enabled: true,
       voice_mode_enabled: true,
+    });
+  });
+
+  test('loadConfigFromStorage preserves stored speech_provider value', () => {
+    localStorage.setItem(
+      CONFIG_KEY,
+      JSON.stringify({ speech_provider: 'elevenlabs' }),
+    );
+
+    expect(loadConfigFromStorage()).toEqual({
+      ...DEFAULT_FRONTEND_CONFIG,
+      speech_provider: 'elevenlabs',
     });
   });
 
