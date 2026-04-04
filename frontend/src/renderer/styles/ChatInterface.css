@@ -17,9 +17,11 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 16px 4px;
+  padding: 0 16px 10px;
   border-bottom: 1px solid var(--ui-border-subtle);
   -webkit-app-region: drag;
+  background:
+    linear-gradient(180deg, rgba(20, 30, 38, 0.82) 0%, rgba(20, 30, 38, 0.56) 58%, rgba(20, 30, 38, 0) 100%);
 }
 
 .chat-connection-warning {
@@ -36,14 +38,24 @@
 
 .chat-title-block {
   min-width: 0;
-  padding-top: 30px;
+  padding-top: 26px;
   padding-bottom: 0;
   -webkit-app-region: no-drag;
 }
+
+.chat-header-subtitle {
+  margin: 0;
+  color: var(--ui-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+  margin-bottom: 14px;
+}
+
 .chat-model-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .chat-meta {
@@ -69,13 +81,13 @@
 }
 
 .chat-provider-selector {
-  border: none;
-  background: transparent;
+  border: 1px solid var(--ui-border-soft);
+  background: rgba(255, 255, 255, 0.02);
   color: var(--ui-text-primary);
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 18px;
-  font-weight: 550;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 540;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -84,6 +96,7 @@
 
 .chat-provider-selector:hover {
   background: var(--ui-hover-bg);
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 .chat-provider-selector svg {
@@ -91,13 +104,13 @@
 }
 
 .chat-model-selector {
-  border: none;
-  background: transparent;
+  border: 1px solid var(--ui-border-soft);
+  background: rgba(255, 255, 255, 0.02);
   color: var(--ui-text-primary);
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 18px;
-  font-weight: 550;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 540;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -106,6 +119,7 @@
 
 .chat-model-selector:hover {
   background: var(--ui-hover-bg);
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 .chat-model-selector svg {
@@ -113,12 +127,12 @@
 }
 
 .chat-reasoning-mode-selector {
-  border: none;
-  background: transparent;
+  border: 1px solid var(--ui-border-soft);
+  background: rgba(255, 255, 255, 0.02);
   color: var(--ui-text-primary);
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 16px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 14px;
   font-weight: 520;
   cursor: pointer;
   display: flex;
@@ -128,6 +142,7 @@
 
 .chat-reasoning-mode-selector:hover {
   background: var(--ui-hover-bg);
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 .chat-reasoning-mode-selector svg {
@@ -415,18 +430,37 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
-  padding: 31vh 16px 0;
+  padding: 48px 16px 56px;
+}
+
+.chat-empty-eyebrow {
+  color: rgba(171, 198, 184, 0.78);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .chat-empty-title {
-  margin: -12px 0 44px;
+  margin: 14px 0 14px;
   color: var(--ui-text-primary);
-  font-size: 30px;
-  font-weight: 400;
-  letter-spacing: 0;
+  font-size: 38px;
+  font-weight: 430;
+  letter-spacing: -0.025em;
   line-height: 1.2;
+  text-align: center;
+  max-width: 14ch;
+}
+
+.chat-empty-copy {
+  max-width: 34rem;
+  margin: 0 0 34px;
+  color: var(--ui-text-muted);
+  font-size: 15px;
+  line-height: 1.6;
+  text-align: center;
 }
 
 .message-list {
@@ -1560,13 +1594,19 @@
   }
 
   .chat-header {
-    padding: 0 12px 4px;
+    padding: 0 12px 8px;
   }
 
   .chat-title-block {
     padding-top: 20px;
     padding-bottom: 0;
   }
+
+  .chat-header-subtitle {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
   .chat-meta {
     gap: 6px;
     margin-right: -12px;
@@ -1577,19 +1617,25 @@
   }
 
   .chat-empty-state {
-    padding-top: 24vh;
+    justify-content: flex-start;
+    padding-top: 22vh;
   }
 
   .chat-provider-selector,
-  .chat-model-selector {
+  .chat-model-selector,
+  .chat-reasoning-mode-selector {
     padding: 8px 11px;
-    font-size: 16px;
-    border-radius: 9px;
+    font-size: 13px;
   }
 
   .chat-empty-title {
     font-size: 30px;
-    margin-bottom: 30px;
+    margin-bottom: 12px;
+  }
+
+  .chat-empty-copy {
+    font-size: 14px;
+    margin-bottom: 28px;
   }
 
 }
