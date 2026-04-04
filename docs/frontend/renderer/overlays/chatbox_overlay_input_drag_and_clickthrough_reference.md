@@ -61,6 +61,16 @@ Resulting behavior in `useChatMessageSender`:
 - screenshot capture path remains enabled by default unless config disables it
 - send flow can invoke `show-chatbox` (focus false) for non-main surfaces when policy allows
 
+Minimal pill control inventory in current production `ChatBox`:
+
+- protruding close badge hides the chat pill
+- settings button opens the dashboard/chat surface via `show-main-window`
+- attachment button opens the native file picker for image/file attachments
+- screenshot button toggles overlay auto screenshot (`include_query_screenshot`)
+- sound button toggles text-to-speech replies (`speech_mode_enabled`)
+- send button submits the current text/attachment payload
+- when `dev_ui=1`, an additional `Run auto compaction` button appears between settings and attachments
+
 Chatbox camera-toggle behavior:
 
 - the camera button no longer captures immediately into the preview lane
@@ -79,6 +89,7 @@ Send sequence in chatbox component:
 Right-side action button parity with dashboard composer:
 
 - camera button toggles overlay auto screenshot on/off instead of inserting a screenshot preview
+- sound button toggles text-to-speech on/off for overlay-originated turns and uses the same enabled-state styling pattern as the dashboard speech toggle
 - send button (`ArrowUp`) remains mounted at all times
 - during active loop phases, the send button is disabled instead of becoming a local stop affordance
 - active loop lock disables input, settings, screenshot, TTS, dev compaction, drag, and input auto-focus until the loop exits
