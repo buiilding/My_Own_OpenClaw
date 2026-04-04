@@ -297,11 +297,7 @@ function DashboardShell({
           ? ''
           : (sidebarOpen ? '' : ' cg-main-content-collapsed')
       }`.trim()}>
-        <ChatInterface
-          sidebarOpen={sidebarOpen}
-          focusComposerToken={composerFocusToken}
-          onOpenModels={vmModeEnabled ? undefined : openModels}
-        />
+        <ChatInterface sidebarOpen={sidebarOpen} focusComposerToken={composerFocusToken} />
       </main>
 
       {!vmModeEnabled ? (
