@@ -18,6 +18,8 @@ def test_create_api_app_registers_shared_routes():
     assert "/ws" in registered_paths
     assert "/api/artifacts/" in registered_paths
     assert "/api/artifacts/{artifact_id}" in registered_paths
+    assert "/api/sdk/ocr/run" in registered_paths
+    assert "/api/sdk/vision/locate" in registered_paths
     assert "/api/embeddings/" in registered_paths
     assert "/api/semantic/summarize" in registered_paths
 
@@ -46,4 +48,3 @@ def test_create_api_app_allows_cors_override():
 
     assert len(cors_middleware) == 1
     assert cors_middleware[0].kwargs["allow_origins"] == ["https://example.com"]
-

@@ -146,6 +146,33 @@ class ArtifactStore:
             path=path,
         )
 
+    def save_bytes(self, data: bytes, *, content_type: str) -> ArtifactMeta:
+        """Persist generated artifact bytes (for example overlay images)."""
+        normalized_content_type = content_type.split(";", 1)[0].strip().lower()
+        ext = _CONTENT_TYPE_TO_EXT.get(normalized_content_type)
+        if not ext:
+            raise HTTPException(status_code=415, detail="Unsupported content type")
+
+        size = len(data)
+        if size > self.max_bytes:
+            raise HTTPException(status_code=413, detail="Artifact too large")
+
+        artifact_id = f"{uuid4().hex}.{ext}"
+        path = self.base_dir / artifact_id
+        try:
+            path.write_bytes(data)
+        except Exception as exc:
+            self._cleanup_partial_upload(path)
+            raise HTTPException(status_code=500, detail="Artifact upload failed") from exc
+
+        return ArtifactMeta(
+            artifact_id=artifact_id,
+            content_type=_EXT_TO_CONTENT_TYPE[ext],
+            size_bytes=size,
+            sha256=hashlib.sha256(data).hexdigest(),
+            path=path,
+        )
+
     def load_base64(self, artifact_id: str) -> str:
         """Load artifact bytes and return base64-encoded string."""
         import base64

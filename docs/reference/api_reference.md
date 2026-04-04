@@ -131,6 +131,165 @@ Upload an artifact (multipart/form-data).
 
 Fetch an artifact by ID (binary response).
 
+## HTTP Endpoints (SDK Perception)
+
+These REST endpoints expose backend-owned perception and grounding capabilities directly for SDK consumers.
+They bypass the agent loop and operate on either uploaded artifact IDs or inline base64 image payloads.
+
+Shared image input shape:
+
+```json
+{
+  "image": {
+    "artifact_id": "optional-uploaded-image.png",
+    "image_base64": "optional-inline-base64-or-data-url"
+  }
+}
+```
+
+Exactly one of `artifact_id` or `image_base64` is required.
+
+### POST `/api/sdk/ocr/run`
+
+Run OCR on the provided image and return normalized OCR rows.
+
+**Request**:
+```json
+{
+  "image": { "artifact_id": "shot.png" }
+}
+```
+
+**Response**:
+```json
+{
+  "image": {
+    "source_id": "shot.png",
+    "artifact_id": "shot.png",
+    "content_type": "image/png",
+    "width": 1440,
+    "height": 900
+  },
+  "results": [
+    {
+      "id": "0",
+      "text": "Search Amazon",
+      "confidence": 0.99,
+      "bbox": { "x": 500, "y": 216, "width": 174, "height": 36 },
+      "center": { "x": 587, "y": 234 },
+      "candidate_id": "ocr_deadbeef1234",
+      "score": null
+    }
+  ]
+}
+```
+
+### POST `/api/sdk/ocr/find-text`
+
+Return OCR rows whose fuzzy match score meets the requested threshold.
+
+**Request**:
+```json
+{
+  "image": { "artifact_id": "shot.png" },
+  "text": "Search Amazon",
+  "threshold": 0.8,
+  "max_results": 10
+}
+```
+
+### POST `/api/sdk/ocr/find-text-candidates`
+
+Return ranked OCR candidate rows for a query, including lower-scoring fuzzy matches.
+This is the disambiguation-friendly companion to `find-text`.
+
+### POST `/api/sdk/ocr/resolve-text`
+
+Resolve one OCR text query to a single actionable target. Current semantics match WindieOS’s internal OCR grounding path: the returned click point is the center of the matched OCR bounding box.
+
+**Success response**:
+```json
+{
+  "image": { "source_id": "shot.png", "artifact_id": "shot.png", "content_type": "image/png", "width": 1440, "height": 900 },
+  "query": "Search Amazon",
+  "threshold": 0.8,
+  "match": {
+    "id": "0",
+    "text": "Search Amazon",
+    "confidence": 0.99,
+    "bbox": { "x": 500, "y": 216, "width": 174, "height": 36 },
+    "center": { "x": 587, "y": 234 },
+    "candidate_id": "ocr_deadbeef1234",
+    "score": 1.0
+  }
+}
+```
+
+**Failure behavior**:
+- ambiguous text matches return `409`
+- missing text returns `404`
+- error payload includes `resolver_payload` when the backend can surface candidate choices
+
+### POST `/api/sdk/ocr/resolve-candidate`
+
+Resolve a previously returned OCR `candidate_id` to its exact bbox and center in the provided image.
+
+### POST `/api/sdk/ocr/overlay`
+
+Render OCR annotations onto the source image and save the overlay as a first-class artifact.
+
+**Response**:
+```json
+{
+  "image": {
+    "source_id": "shot.png",
+    "artifact_id": "shot.png",
+    "content_type": "image/png",
+    "width": 1440,
+    "height": 900
+  },
+  "artifact_id": "overlay.png",
+  "content_type": "image/png",
+  "size_bytes": 34567,
+  "sha256": "hex",
+  "url": "http://127.0.0.1:8765/api/artifacts/overlay.png",
+  "annotation_count": 3
+}
+```
+
+### POST `/api/sdk/vision/locate`
+
+Use the configured vision grounding model to predict one visual target point from a natural-language description.
+
+**Request**:
+```json
+{
+  "image": { "artifact_id": "shot.png" },
+  "description": "orange search button on the right side of the search bar"
+}
+```
+
+### POST `/api/sdk/vision/locate-all`
+
+Return a ranked list of visual matches. Current backend support returns the best predicted match as a one-item list.
+
+### POST `/api/sdk/vision/describe`
+
+Describe the full image or an optional cropped region for automation/debugging. When `region` is present, the backend crops before passing the image to the vision model.
+
+**Request**:
+```json
+{
+  "image": { "artifact_id": "shot.png" },
+  "region": { "x": 20, "y": 10, "width": 300, "height": 90 }
+}
+```
+
+### POST `/api/sdk/vision/overlay`
+
+Render predicted points and/or regions onto the source image and save the overlay as an artifact.
+This is intended for SDK inspectors and debugging tools.
+
 ## HTTP Endpoints (Runs / VM Control)
 
 These endpoints provide a hosted control-plane contract for web dashboards that drive VM-backed Windie execution.

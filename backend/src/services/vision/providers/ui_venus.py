@@ -164,6 +164,21 @@ class VenusVisionModel(InternVLModel):
                 instruction
             )
 
+    async def answer_question_about_image(
+        self,
+        image_b64: str,
+        prompt: str,
+    ) -> Optional[str]:
+        """Answer a generic prompt about an image."""
+        async with self._inference_lock:
+            loop = asyncio.get_running_loop()
+            return await loop.run_in_executor(
+                None,
+                self._answer_sync,
+                image_b64,
+                prompt,
+            )
+
     def _predict_sync(
         self, image_b64: str, instruction: str
     ) -> Optional[Tuple[int, int]]:
@@ -246,4 +261,53 @@ class VenusVisionModel(InternVLModel):
             logger.error(
                 f"[Timing] Venus vision prediction failed after {vision_prediction_time:.3f}s: {e}"
             )
+            return None
+
+    def _answer_sync(
+        self,
+        image_b64: str,
+        prompt: str,
+    ) -> Optional[str]:
+        if not prompt:
+            raise ValueError("prompt is required")
+        if not getattr(self, "processor", None):
+            raise RuntimeError("Vision processor not initialized for Venus model")
+
+        try:
+            img_bytes = base64.b64decode(image_b64)
+            image = Image.open(BytesIO(img_bytes))
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "image"},
+                        {"type": "text", "text": prompt.strip()},
+                    ],
+                }
+            ]
+            text = self.processor.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+            )
+            inputs = self.processor(
+                text=[text],
+                images=[image],
+                return_tensors="pt",
+            )
+            inputs = inputs.to(resolve_model_device(self.model))
+
+            with torch.no_grad():
+                output_ids = self.model.generate(
+                    **inputs,
+                    max_new_tokens=256,
+                    do_sample=False,
+                    temperature=0.0,
+                    use_cache=True,
+                )
+            output_text = self._decode_generated_text(output_ids, inputs)
+            normalized = str(output_text or "").strip()
+            return normalized or None
+        except Exception as exc:
+            logger.error("Venus image-question answering failed: %s", exc)
             return None

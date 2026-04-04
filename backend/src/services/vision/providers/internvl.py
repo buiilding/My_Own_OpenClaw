@@ -268,6 +268,21 @@ class InternVLModel(BaseVisionModel):
                 instruction
             )
 
+    async def answer_question_about_image(
+        self,
+        image_b64: str,
+        prompt: str,
+    ) -> Optional[str]:
+        """Answer a generic prompt about an image."""
+        async with self._inference_lock:
+            loop = asyncio.get_running_loop()
+            return await loop.run_in_executor(
+                None,
+                self._answer_sync,
+                image_b64,
+                prompt,
+            )
+
     def _resolve_model_dtype(self):
         """Resolve inference dtype from loader metadata or model parameters."""
         return resolve_model_dtype(
@@ -490,6 +505,56 @@ class InternVLModel(BaseVisionModel):
             self._log_failure_context(
                 error=error,
                 elapsed_seconds=vision_prediction_time,
+                width=width,
+                height=height,
+                model_device=model_device,
+            )
+            return None
+
+    def _answer_sync(
+        self,
+        image_b64: str,
+        prompt: str,
+    ) -> Optional[str]:
+        """Synchronous image-question answering path for direct SDK APIs."""
+        if not prompt:
+            raise ValueError("prompt is required")
+
+        width: Optional[int] = None
+        height: Optional[int] = None
+        model_device: Optional[Any] = None
+        try:
+            model_device = resolve_model_device(self.model)
+            img_bytes = base64.b64decode(image_b64)
+            image = Image.open(BytesIO(img_bytes))
+            width, height = image.size
+
+            pixel_values, num_patches_list = self._images_to_pixel_values(
+                [image], input_size=448, max_num=12
+            )
+            if pixel_values is None:
+                return None
+
+            model_dtype = self._resolve_model_dtype()
+            pixel_values = pixel_values.to(model_dtype).to(model_device)
+            generation_config = {
+                "max_new_tokens": 256,
+                "do_sample": False,
+                "temperature": 0.0,
+            }
+            output_text = self._run_chat_with_fallbacks(
+                pixel_values=pixel_values,
+                question=prompt.strip(),
+                num_patches_list=num_patches_list,
+                generation_config=generation_config,
+                model_device=model_device,
+            )
+            normalized = str(output_text or "").strip()
+            return normalized or None
+        except Exception as error:
+            self._log_failure_context(
+                error=error,
+                elapsed_seconds=0.0,
                 width=width,
                 height=height,
                 model_device=model_device,
