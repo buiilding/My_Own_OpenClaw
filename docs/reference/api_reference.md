@@ -8,18 +8,30 @@ read_when:
 
 ## Overview
 
-Desktop Assistant uses a WebSocket-based API for real-time communication between the frontend and backend. All messages follow a consistent format with type-based routing.
+Desktop Assistant uses a hosted backend control plane with:
+
+- WebSocket for real-time agent/session communication
+- HTTP for artifacts, SDK perception APIs, and memory services
+
+The intended SDK split is:
+
+- call the backend for backend-owned capabilities such as OCR, vision/prediction, artifacts, and agent APIs
+- call the local sidecar for machine-touching capabilities such as screenshot, click, type, browser/runtime control, files, and processes
+
+SDK consumers should not need to start a local backend process just to use hosted OCR or prediction routes.
 
 Backend message dispatch is handled by `MessageHandlerRegistry` in `backend/src/api/infrastructure/registry.py`.
 
 ## WebSocket Endpoint
 
-**URL**: default `ws://127.0.0.1:8765/ws`
+**URL**: hosted default `wss://api.windieos.com/ws`
 
 Electron clients may override this via:
 - `BACKEND_WS_URL` (explicit WebSocket URL)
 - `BACKEND_HTTP_URL` (WebSocket derived as `/ws`)
 - `BACKEND_HOST` + `BACKEND_PORT`
+
+Local development or self-hosted deployments may use `ws://127.0.0.1:8765/ws`.
 
 **Protocol**: WebSocket (RFC 6455)
 
@@ -53,7 +65,9 @@ Handshake validation behavior:
 
 ## HTTP Endpoints (Memory)
 
-These REST endpoints live on the same FastAPI server as the WebSocket (default `http://127.0.0.1:8765`). They are used by the Python sidecar for embeddings and semantic summarization.
+These REST endpoints live on the same FastAPI server as the WebSocket. In the default product topology that means the hosted backend at `https://api.windieos.com`; local or self-hosted deployments may instead use `http://127.0.0.1:8765`.
+
+They are used by the Python sidecar for embeddings and semantic summarization.
 
 ### POST `/api/embeddings/`
 
@@ -135,6 +149,14 @@ Fetch an artifact by ID (binary response).
 
 These REST endpoints expose backend-owned perception and grounding capabilities directly for SDK consumers.
 They bypass the agent loop and operate on either uploaded artifact IDs or inline base64 image payloads.
+The intended usage pattern is:
+
+1. capture or provide an image locally
+2. upload it to `/api/artifacts/` or send it inline
+3. call `/api/sdk/ocr/*` or `/api/sdk/vision/*`
+4. use the returned bbox/center/candidate data to drive a local sidecar action if needed
+
+These routes are for hosted backend use. They are not meant to require SDK consumers to spin up a local backend process just to resolve OCR or prediction.
 
 Shared image input shape:
 

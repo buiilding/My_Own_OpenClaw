@@ -10,6 +10,14 @@ read_when:
 
 The Electron app spawns a **local Python sidecar** that executes tools, captures system state, and manages local memory. It communicates with the Electron main process over **JSON-RPC 2.0 via stdin/stdout**.
 
+The sidecar is the local execution runtime, not a replacement backend. Its role in the product boundary is:
+
+- execute actions that must happen on the user's machine
+- expose local tool APIs to the UI and SDK
+- call the hosted backend when it needs backend-owned services such as embeddings, semantic summarization, OCR, or vision grounding
+
+The intended open-source distribution is UI + sidecar + SDK. Users should not need to run backend services locally in order to use hosted OCR, prediction, or agent APIs.
+
 Release contract:
 - End users do not need Python preinstalled.
 - Installer ships a bundled runtime under `resources/python-runtime`.
@@ -88,7 +96,7 @@ Local memory is implemented in the sidecar:
 - SQLite + FAISS in `frontend/src/main/python/memory/local_store.py`
 - Summarization worker in `frontend/src/main/python/memory/summarizer.py`
 - Uses backend `/api/embeddings` and `/api/semantic/summarize` APIs
-- Backend base URL comes from `WINDIE_BACKEND_HTTP_URL` (set by Electron main process), then `BACKEND_HTTP_URL`, then default `http://127.0.0.1:8765`
+- Backend base URL comes from `WINDIE_BACKEND_HTTP_URL` (normally injected by Electron main from the hosted-first endpoint resolver), then `BACKEND_HTTP_URL`, then default `http://127.0.0.1:8765`
 - Sidecar backend-backed HTTP clients treat retryable hosted `5xx` responses (for example Cloudflare tunnel `530`) like transport failures and fall back to the next configured backend URL, so local memory/title/summarization calls can keep working when the hosted endpoint is degraded.
 - Summarizer runs on a fixed interval, deduplicates via summary hashes, and updates `watermark_state.json` safely on shutdown
 - Pending summarization cadence is turn-based: watermark pending count increments
@@ -113,6 +121,7 @@ Wakeword detection runs as a separate Python subprocess:
 
 - Runtime build prefetches wakeword models into bundled runtime and verifies required model markers.
 - Runtime bundles browser Python dependencies, but does not preinstall Playwright Chromium.
+- Runtime packaging should assume a hosted backend is available for backend-owned APIs; bundling the sidecar does not imply bundling a local backend.
 - Build is idempotent for bundled assets:
   - If wakeword model assets already exist, prefetch download is skipped.
 - Packaged app disables browser feature-pack runtime auto-install and expects the full sidecar runtime deps to be bundled.
