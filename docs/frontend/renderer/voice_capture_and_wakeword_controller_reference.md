@@ -45,6 +45,7 @@ They share microphone primitives but have different transport paths:
 - `config.voice_mode_enabled`: controls `MessageInput` transcription hook enable flag
 - `wakewordEnabled`: persisted wakeword preference from settings UI
 - `wakewordSuppressed`: temporary runtime suppression from main-process `wakeword-toggle`
+  - seeded from renderer surface on startup: main dashboard starts unsuppressed, overlay views start suppressed
 - `wakewordActive = wakewordEnabled && !wakewordSuppressed`: input to `WakewordController`
 
 `WakewordController` is always mounted under `App`, but the hook is inert when `wakewordActive` is false.
