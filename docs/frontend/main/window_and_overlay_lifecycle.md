@@ -226,6 +226,7 @@ Main bridge fanout channel (`ipc.cjs`):
 
 - uses a compact default overlay height in main and resizes the chat window only through the existing visual-anchor IPC contract (no renderer-driven freeform resize IPC)
 - keeps preview lane always mounted and toggles animated visibility on image attach/remove
+- current production control set is: close badge, settings button, attachment button, screenshot toggle, text-to-speech toggle, and send button; `dev_ui=1` adds a compaction button
 - uses deterministic class-based layout states: compact default pill (`64px` shell / `56px` pill) and fixed expanded `with-preview` pill while image attachments exist
 - reports chat visual anchor height via IPC from the live shell height (`64` compact fallback / `116` preview fallback), so multiline composer growth and preview mode both re-anchor the chat/response stack upward while keeping the pill bottom-grounded
 - main-process overlay phase handler owns click-through + `focusable=false` during active loop phases; renderer no longer toggles overlay interactivity directly
