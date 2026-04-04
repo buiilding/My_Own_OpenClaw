@@ -30,6 +30,7 @@ Frontend-managed settings are filtered through `filterFrontendConfig(...)`:
 - `interaction_mode`
 - `voice_mode_enabled`
 - `speech_mode_enabled`
+- `wakeword_enabled`
 - `wakeword_stt_enabled`
 - `agent_full_sudo_enabled`
 - `browser_automation_enabled`
@@ -61,6 +62,7 @@ Responsibilities:
 - merge disk/local updates with current in-memory config
 - persist updates to localStorage and disk
 - publish `update-settings` through `ApiClient`
+- derive the wakeword preference from persisted `config.wakeword_enabled`
 
 Important guardrails:
 
