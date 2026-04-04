@@ -3,16 +3,16 @@
 }
 
 .chatbox-response-shell-wrap.awaiting-only {
-  height: 24px;
-  min-height: 24px;
-  max-height: 24px;
+  height: var(--chatbox-awaiting-frame-height, 24px);
+  min-height: var(--chatbox-awaiting-frame-height, 24px);
+  max-height: var(--chatbox-awaiting-frame-height, 24px);
   overflow: hidden;
 }
 
 .chatbox-response-shell-wrap.awaiting-only .chatbox-shell {
-  height: 24px;
-  min-height: 24px;
-  max-height: 24px;
+  height: var(--chatbox-awaiting-frame-height, 24px);
+  min-height: var(--chatbox-awaiting-frame-height, 24px);
+  max-height: var(--chatbox-awaiting-frame-height, 24px);
   gap: 0;
 }
 
@@ -20,10 +20,10 @@
   display: flex;
   align-items: flex-end;
   align-self: flex-start;
-  flex: 0 0 24px;
-  height: 24px;
-  min-height: 24px;
-  max-height: 24px;
+  flex: 0 0 var(--chatbox-awaiting-frame-height, 24px);
+  height: var(--chatbox-awaiting-frame-height, 24px);
+  min-height: var(--chatbox-awaiting-frame-height, 24px);
+  max-height: var(--chatbox-awaiting-frame-height, 24px);
   overflow: hidden;
 }
 
@@ -101,6 +101,7 @@
   border-radius: 999px;
   background: var(--ui-panel-bg);
   border: 1px solid var(--ui-border-soft);
+  transform: translate(1px, 0);
 }
 
 .chatbox-typing-indicator span {

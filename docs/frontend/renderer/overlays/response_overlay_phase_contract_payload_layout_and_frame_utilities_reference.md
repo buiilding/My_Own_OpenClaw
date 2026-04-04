@@ -11,7 +11,9 @@ title: "Response Overlay Utility Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/shared/response_overlay_phase_contract.json`
+- `frontend/src/shared/response_overlay_layout_contract.json`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`
+- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutContract.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
@@ -86,6 +88,27 @@ Important behavior:
 This classification feeds `set-responsebox-size` payload shape in `ChatBoxResponse`:
 
 - `awaiting-typing` maps to compact-hover behavior and fixed typing frame height.
+
+## Layout Constant Contract
+
+Shared layout source of truth:
+
+- `frontend/src/shared/response_overlay_layout_contract.json`
+
+Renderer adapter:
+
+- `responseOverlayLayoutContract.js` exposes:
+  - `RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT`
+  - `RESPONSE_OVERLAY_LAYOUT.RESPONSE_FIXED_HEIGHT`
+
+Current fixed values:
+
+- awaiting typing frame height: `24`
+- response frame height: `236`
+
+Purpose:
+
+- keep renderer CSS/JS and main-process compact restore logic aligned on one set of response-overlay size constants instead of duplicating raw numbers across windows and tests
 
 ## Frame Measurement Contract
 

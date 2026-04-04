@@ -190,6 +190,14 @@ export function useChatMessageSender(
     setIsSending(true, conversationRef);
     setThinkingStatus(null, conversationRef);
 
+    if (senderSurface === 'overlay-chatbox') {
+      try {
+        await IpcBridge.invoke(INVOKE_CHANNELS.PRIME_RESPONSE_OVERLAY_AWAITING);
+      } catch (error) {
+        console.warn('[useChatMessageSender] Failed to prime response overlay awaiting state:', error);
+      }
+    }
+
     if (shouldReturnToChatboxOnSend) {
       try {
         await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
@@ -267,6 +275,7 @@ export function useChatMessageSender(
     setIsSending,
     setThinkingStatus,
     stopPlayback,
+    senderSurface,
     shouldReturnToChatboxOnSend,
     sendLifecycle,
     ensureConversationRef,

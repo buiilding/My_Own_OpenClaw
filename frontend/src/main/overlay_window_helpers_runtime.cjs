@@ -1,6 +1,10 @@
 const { setOverlayAlwaysOnTop } = require('./overlay_topmost_runtime.cjs');
+const responseOverlayLayoutContract = require('../shared/response_overlay_layout_contract.json');
 
 const CHAT_WINDOW_FRAME_HEIGHT_PADDING = 6;
+const RESPONSE_OVERLAY_AWAITING_FRAME_HEIGHT = (
+  Number(responseOverlayLayoutContract?.awaiting_frame_height) || 24
+);
 
 function createOverlayWindowHelpersRuntime(deps = {}) {
   const {
@@ -241,7 +245,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     const width = Math.max(1, currentWidth || defaultWidth);
     // Keep compact awaiting typing overlays from being forced to taller fallback
     // bounds during hide/show restore races.
-    const height = Math.max(24, currentHeight || 0);
+    const height = Math.max(RESPONSE_OVERLAY_AWAITING_FRAME_HEIGHT, currentHeight || 0);
     const bounds = getResponseWindowBounds(width, height);
     responseWindow.setBounds(bounds, false);
   }
