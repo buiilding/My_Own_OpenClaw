@@ -60,6 +60,7 @@ function ChatBox() {
   const [wakewordSttSessionActive, setWakewordSttSessionActive] = useState(false);
   const inputRef = useRef(null);
   const pillRef = useRef(null);
+  const shellRef = useRef(null);
   const sendButtonRef = useRef(null);
   const loopInteractionLockedRef = useRef(false);
   const dragStateRef = useRef(createChatboxDragState());
@@ -355,13 +356,16 @@ function ChatBox() {
   }, []);
   const hasAttachmentPreview = hasAttachments;
 
-  useChatboxVisualAnchorBindings(hasAttachmentPreview);
+  useChatboxVisualAnchorBindings({
+    shellRef,
+    hasImagePreview: hasAttachmentPreview,
+  });
 
   return (
     <div
       className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasAttachmentPreview ? ' with-preview' : ''}${loopInteractionLocked ? ' loop-active' : ''}`}
     >
-      <div className="chatbox-shell">
+      <div className="chatbox-shell" ref={shellRef}>
         <form
           ref={pillRef}
           className={`chatbox-pill${hasAttachmentPreview ? ' with-preview' : ''}`}

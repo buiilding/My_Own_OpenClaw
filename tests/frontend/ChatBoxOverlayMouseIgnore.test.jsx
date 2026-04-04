@@ -27,6 +27,8 @@ const mockSetThinkingSourceEventType = jest.fn();
 const mockSetIsSending = jest.fn();
 const mockUpdateStreamTracking = jest.fn();
 const originalFileReader = global.FileReader;
+const originalResizeObserver = global.ResizeObserver;
+const resizeObserverInstances = [];
 
 const setWindowScreenPosition = (x, y) => {
   Object.defineProperty(window, 'screenX', {
@@ -183,11 +185,23 @@ describe('ChatBox overlay mouse ignore', () => {
     mockChatState.isSending = false;
     mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
+    resizeObserverInstances.length = 0;
+    global.ResizeObserver = class ResizeObserver {
+      constructor(callback) {
+        this.callback = callback;
+        resizeObserverInstances.push(this);
+      }
+
+      observe() {}
+
+      disconnect() {}
+    };
   });
 
   afterEach(() => {
     jest.useRealTimers();
     global.FileReader = originalFileReader;
+    global.ResizeObserver = originalResizeObserver;
   });
 
   test('does not manage overlay click-through from the renderer and avoids live window resize', () => {
@@ -199,6 +213,28 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(sawRendererMouseToggle).toBe(false);
     expect(mockInvoke.mock.calls.some(
       ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 64,
+    )).toBe(true);
+    expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
+  });
+
+  test('reports multiline shell growth through visual anchor height updates', async () => {
+    const { container } = render(<ChatBox />);
+    const shell = container.querySelector('.chatbox-shell');
+
+    expect(shell).toBeTruthy();
+
+    Object.defineProperty(shell, 'offsetHeight', {
+      configurable: true,
+      value: 94,
+    });
+
+    await act(async () => {
+      resizeObserverInstances.forEach((observer) => observer.callback());
+      await Promise.resolve();
+    });
+
+    expect(mockInvoke.mock.calls.some(
+      ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 88,
     )).toBe(true);
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
