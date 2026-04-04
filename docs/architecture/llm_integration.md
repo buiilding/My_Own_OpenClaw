@@ -235,7 +235,6 @@ APP_CONFIG = AppConfig(
 - OpenAI chat-completions and Responses transports now share one schema-compatibility preparation layer for model-facing function tools
 - OpenAI Responses reasoning config is fail-closed: curated thinking presets must carry explicit `reasoning_mode` metadata instead of relying on display-name inference
 - Provider-native reasoning summary/text stream events are forwarded as `ThinkingEvent` when the model exposes them
-- OpenAI Responses native web-search stream items can also emit lightweight `search-source` events before `response.completed` when the streamed output item already exposes source URLs; final payload extraction remains a fallback/dedupe path
 
 ### Anthropic
 

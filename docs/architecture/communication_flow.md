@@ -288,11 +288,6 @@ Identity notes:
 - Payload: `{ tool_name, success, output, execution_time?, error?, screenshot?, metadata? }`
 - Usage: Tool execution complete
 
-**`search-source`**
-- Purpose: Lightweight web-search source trace event
-- Payload: `{ url, provider, title?, query?, rank? }`
-- Usage: Render rows like `Searching https://...` as soon as a backend search path or provider-native stream reveals a concrete source URL
-
 **`llm-thought`**
 - Purpose: LLM thinking tokens from providers/models that expose reasoning deltas (for example Gemini and Kimi Coding).
 - Payload: `{ status: string }`
