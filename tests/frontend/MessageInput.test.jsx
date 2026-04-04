@@ -114,13 +114,6 @@ describe('MessageInput', () => {
     expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
   });
 
-  test('renders the shared composer shell classes', () => {
-    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
-
-    expect(screen.getByTestId('composer-container').classList.contains('message-input-form')).toBe(true);
-    expect(screen.getByLabelText('Type your message').classList.contains('message-input')).toBe(true);
-  });
-
   test('auto-sends latest transcription when utterance ends in voice mode', async () => {
     const onSendMessage = jest.fn();
     render(<MessageInput onSendMessage={onSendMessage} isSending={false} voiceModeEnabled />);

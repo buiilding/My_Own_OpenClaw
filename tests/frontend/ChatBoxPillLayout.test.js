@@ -1,6 +1,8 @@
 import {
+  buildChatboxPillClipPath,
   createChatboxDragState,
   getChatboxDragTarget,
+  getChatboxPillClipHeight,
   startChatboxDrag,
   stopChatboxDrag,
 } from '../../frontend/src/renderer/features/chat/utils/chatbox/chatboxPillLayout';
@@ -77,5 +79,17 @@ describe('chatbox pill layout utils', () => {
     expect(dragState.isDragging).toBe(false);
     expect(dragState.lastTargetX).toBeNull();
     expect(dragState.lastTargetY).toBeNull();
+  });
+
+  test('builds a clip path string and height helper for the close badge bump', () => {
+    const clipPath = buildChatboxPillClipPath({
+      width: 240,
+      height: getChatboxPillClipHeight(50),
+      centerX: 180,
+    });
+
+    expect(clipPath.startsWith('path("M ')).toBe(true);
+    expect(clipPath.endsWith('Z")')).toBe(true);
+    expect(getChatboxPillClipHeight(50)).toBe(64);
   });
 });

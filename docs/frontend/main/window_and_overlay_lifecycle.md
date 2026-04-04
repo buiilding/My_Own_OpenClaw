@@ -224,9 +224,10 @@ Main bridge fanout channel (`ipc.cjs`):
 
 ### Chat overlay (`ChatBox.jsx`)
 
-- uses the shared renderer composer surface used by dashboard `MessageInput`, so multiline growth and attachment layout stay visually aligned across both chat entry points
-- keeps a compact default overlay anchor height in main and expands the chat window from measured shared-composer height updates (no renderer-driven freeform resize IPC)
-- reports chat visual anchor height with a compact minimum of `64px`, then grows from measured composer height so response/context overlays re-anchor upward as the surface expands
+- uses a compact default overlay height in main and only expands the chat window when preview-mode visual anchor height is reported (no renderer-driven freeform resize IPC)
+- keeps preview lane always mounted and toggles animated visibility on image attach/remove
+- uses deterministic class-based layout states: compact default pill (`64px` shell / `56px` pill) and fixed expanded `with-preview` pill while image attachments exist
+- reports chat visual anchor height (`64` compact / `116` with-preview) via IPC so response/context overlays re-anchor upward when preview mode is active
 - main-process overlay phase handler owns click-through + `focusable=false` during active loop phases; renderer no longer toggles overlay interactivity directly
 - listens for `chatbox-focus` to focus input when unlocked; renderer no longer re-focuses on generic window/tab visibility events
 - sends `MOVE_CHATBOX_TO` while dragging
