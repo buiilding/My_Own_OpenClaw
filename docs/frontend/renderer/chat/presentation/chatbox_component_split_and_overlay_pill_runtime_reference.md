@@ -139,7 +139,7 @@ Closeability:
 `ChatBoxResponse.state.test.jsx` validates:
 
 - awaiting indicator transitions across overlay phases
-- stale-response hide and same-id token unlock behavior
+- stale prior-response suppression during new-turn preflight without regressing current-turn tool-phase transcript visibility
 - closeability matrix for incomplete/error responses
 - fixed response height and overlay re-report after visibility restore
 

@@ -21,6 +21,7 @@ describe('responseOverlayViewContract', () => {
     expect(resolveResponseOverlayViewContract({
       currentTurnPresentationState: {
         showChatboxAwaitingReply: true,
+        visibleResponse: null,
       },
       responseOverlayEntries: [],
       dismissedResponseId: null,
@@ -29,6 +30,46 @@ describe('responseOverlayViewContract', () => {
       showResponse: false,
       showAwaitingReply: true,
       overlayLayoutMode: 'awaiting-typing',
+      isVisible: true,
+    });
+  });
+
+  test('prefers awaiting typing over a stale visible response during new-turn preflight', () => {
+    expect(resolveResponseOverlayViewContract({
+      currentTurnPresentationState: {
+        showChatboxAwaitingReply: true,
+        overlayTurnLifecycle: 'awaiting',
+        visibleResponse: {
+          id: 'assistant-1',
+        },
+      },
+      responseOverlayEntries: [{ id: 'assistant-1' }],
+      dismissedResponseId: null,
+    })).toMatchObject({
+      latestResponseOverlayEntryId: 'assistant-1',
+      showResponse: false,
+      showAwaitingReply: true,
+      overlayLayoutMode: 'awaiting-typing',
+      isVisible: true,
+    });
+  });
+
+  test('keeps the current-turn response visible during active tool phases', () => {
+    expect(resolveResponseOverlayViewContract({
+      currentTurnPresentationState: {
+        showChatboxAwaitingReply: true,
+        overlayTurnLifecycle: 'active',
+        visibleResponse: {
+          id: 'assistant-1',
+        },
+      },
+      responseOverlayEntries: [{ id: 'assistant-1' }],
+      dismissedResponseId: null,
+    })).toMatchObject({
+      latestResponseOverlayEntryId: 'assistant-1',
+      showResponse: true,
+      showAwaitingReply: false,
+      overlayLayoutMode: 'response',
       isVisible: true,
     });
   });
