@@ -170,7 +170,7 @@ Capabilities:
 
 - Message send pipeline supports typed payload normalization and optional screenshot artifact upload.
 - Streaming pipeline handles thought/chunk/complete/error/tool/context-compaction event families.
-- Stream tracking enforces stale-turn tool cancellation semantics.
+- Shared turn-scoped stream guards reject stale reply, metadata, compaction, terminal, and tool packets per workspace; tool runner reuses the same handoff semantics for stale-turn cancellation.
 - Tool runner executes single and bundle tool requests and posts structured result payloads back to backend.
 - Transcript writer persists user/assistant/tool entries with pending-queue retry semantics.
 - Tool execution service includes capture, artifact upload, formatting, and backend callback fanout.

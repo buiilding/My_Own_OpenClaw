@@ -80,10 +80,14 @@ This is workspace routing, not active-chat filtering. Background conversations k
 
 ## Turn-Scoped Stale Event Guard
 
-Most handlers run through `useTurnScopedBackendEventHandler(...)` with a shared guard:
+All chat-stream handlers except `local-user-message` run through
+`useTurnScopedBackendEventHandler(...)` with one shared guard contract:
 
 - compare incoming `event.turn_ref` with workspace `streamTracking.activeTurnRef`
 - drop when values differ
+- keep the wrapper callback identity stable across rerenders while reading the latest
+  handler implementation, so model-metadata changes do not force backend listener
+  resubscription
 
 Guard exception:
 
@@ -148,6 +152,7 @@ Dashboard/pill presentation note:
 
 Compaction events:
 
+- run through the shared turn-scoped handler wrapper
 - update thinking status/source with compaction start/success/failure messaging
 
 Tool events:
@@ -158,6 +163,7 @@ Tool events:
 
 Metadata/transparency events (`system-prompt`, `user-message-full`, `assistant-message-full`, `tool-schemas`):
 
+- run through the shared turn-scoped handler wrapper
 - update metadata on existing user/assistant rows
 - no new assistant text rows
 
@@ -165,7 +171,7 @@ Terminal/diagnostic events:
 
 - `token-count`: update token counts
 - `memory-store`: tracking-only side effect in renderer stream handler path
-- `streaming-complete`: persist final thinking text, mark assistant row complete, optionally write assistant transcript row
+- `streaming-complete`: runs through the shared turn-scoped handler wrapper, then persists final thinking text, marks assistant row complete, and optionally writes assistant transcript row
 - `error`: clear sending/thinking, append assistant error row, optionally record transcript error row
 
 ## Loop UI Projection Coupling
