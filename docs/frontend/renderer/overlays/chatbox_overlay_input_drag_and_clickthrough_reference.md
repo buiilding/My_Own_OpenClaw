@@ -126,6 +126,7 @@ This is required after main-process `showChatWindow({ focus: true })`.
 - chat overlay window dimensions are still owned by main runtime (`createChatWindow` + visual-anchor resize helper).
 - `ChatBox.jsx` no longer emits renderer-driven freeform resize IPC for preview/startup transitions; deprecated `set-chatbox-size` channel has been removed from preload/channel contracts.
 - renderer now measures `.chatbox-shell` with `ResizeObserver` and reports the resulting visual-anchor height through `set-chatbox-visual-anchor-height`, so multiline composer growth can enlarge the lower pill body while main keeps the native window bottom-grounded.
+- `.chatbox-shell` reserves explicit top bump headroom, so the protruding close badge stays inside the native overlay window even when multiline composer growth pushes the lower pill body taller.
 - idle chatbox hover now reports a dedicated main-process hit-test state, allowing the transparent overlay window to stay click-through outside the visible pill shape while preserving direct interaction over the pill and close bump.
 - attachment preview uses an always-mounted preview row with class toggle (`has-items`) and opacity/translate animation.
 - non-dashboard input pill still has deterministic CSS baselines and no separate resize channel:
