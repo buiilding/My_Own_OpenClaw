@@ -59,7 +59,7 @@ APP_CONFIG = AppConfig(
     ],
     # TTS Settings
     tts_enabled=True,
-    speech_provider="local",
+    speech_provider="elevenlabs",
     tts_model_path=None,
     speech_mode_enabled=False,
     elevenlabs_api_key_env="ELEVENLABS_API_KEY",

@@ -95,8 +95,13 @@ Execution/event semantics for these fields (decision skip reasons, trigger fallb
 | `wakeword_phrase` | `str` | `"hey jarvis"` | Trigger phrase. |
 | `wakeword_greetings` | `list[str]` | predefined list | Greeting variants. |
 | `tts_enabled` | `bool` | `true` | Runtime policy forcibly keeps this true by default. |
+| `speech_provider` | `"local" \| "elevenlabs"` | `"elevenlabs"` | Default speech backend selection for query and wakeword TTS. |
 | `tts_model_path` | `str \| None` | `None` | Filled at runtime if missing. |
 | `speech_mode_enabled` | `bool` | `false` | User speech output mode control. |
+| `elevenlabs_api_key_env` | `str` | `"ELEVENLABS_API_KEY"` | Environment variable name used for ElevenLabs auth. |
+| `elevenlabs_voice_id` | `str` | `"EXAVITQu4vr4xnSDxMaL"` | Default ElevenLabs voice id. |
+| `elevenlabs_model_id` | `str` | `"eleven_flash_v2_5"` | Default ElevenLabs realtime model. |
+| `elevenlabs_output_format` | `str` | `"pcm_16000"` | Output format used by the ElevenLabs websocket provider. |
 
 ### Security/WebSocket/Artifacts
 
@@ -159,6 +164,7 @@ Allowed patch keys only:
 - `interaction_mode`
 - `voice_mode_enabled`
 - `speech_mode_enabled`
+- `speech_provider`
 - `wakeword_stt_enabled`
 - `agent_full_sudo_enabled`
 - `browser_automation_enabled`

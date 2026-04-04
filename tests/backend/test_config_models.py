@@ -223,7 +223,7 @@ class TestAppConfig:
         assert config.wakeword_phrase == "hey jarvis"
         assert len(config.wakeword_greetings) == 5
         assert config.tts_enabled is True
-        assert config.speech_provider == "local"
+        assert config.speech_provider == "elevenlabs"
         assert config.speech_mode_enabled is False
         assert config.elevenlabs_api_key_env == "ELEVENLABS_API_KEY"
         assert config.elevenlabs_voice_id == "EXAVITQu4vr4xnSDxMaL"
