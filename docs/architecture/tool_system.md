@@ -107,7 +107,6 @@ Some logical tools are fulfilled entirely in the backend and never go through th
 - OpenAI and Gemini fulfill that tool by making a backend-owned provider-native web search request when the tool is called.
 - Other providers use a backend-executed Brave Search fallback when `BRAVE_SEARCH_API_KEY` is configured.
 - WindieOS presents web search like any other tool: the model emits a tool call, the backend executes the search, and the UI renders the normal tool-output result without separate source-trace rows.
-- Chat surfaces may render a generic in-progress status (`Searching the web`) for the active `web_search` tool call and replace it with a completed query summary when the backend tool output arrives; this is still a logical-tool view, not a per-source provider trace.
 
 ### Backend Responsibilities
 
