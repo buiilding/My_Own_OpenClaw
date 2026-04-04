@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- fix(frontend-composer-shift-enter-flicker): switch shared textarea auto-resize to layout-effect timing so multiline `Shift+Enter` growth updates before paint and stops the chat-pill control row from visibly hopping during composer expansion.
 - fix(frontend-chat-pill-close-bump-headroom): reserve explicit shell headroom for the protruding chat-pill close bump during multiline composer growth and coalesce close-bump clip-path sync so repeated `Shift+Enter` resize steps stop clipping the close badge and reduce resize flicker in the pill controls.
 - fix(frontend-response-overlay-preflight-awaiting): make the response overlay prefer the typing indicator during new-turn preflight/awaiting when the only visible content is a stale prior response, while preserving current-turn response/tool transcript visibility once the turn is active.
 - fix(frontend-chat-pill-multiline-anchor): make the minimal chat pill report measured shell height through the shared visual-anchor contract so Shift+Enter composer growth expands the lower pill body, moves the chat/response overlay stack upward together, and preserves the top bump/close-button silhouette.

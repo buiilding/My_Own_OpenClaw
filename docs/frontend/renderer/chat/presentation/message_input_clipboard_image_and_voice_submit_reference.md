@@ -34,7 +34,7 @@ Component-owned state:
 
 UI-effect bindings (`useMessageInputUiBindings`) own:
 
-- textarea auto-resize on input changes
+- textarea auto-resize on input changes via `useLayoutEffect`, so multiline `Shift+Enter` growth updates the composer height before paint instead of showing a one-frame row hop
 - plus-menu outside-click dismissal
 - automatic plus-menu close on send lock (`isSending=true`)
 - focus-request token handling for composer autofocus
