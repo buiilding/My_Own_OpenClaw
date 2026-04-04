@@ -191,6 +191,7 @@ class UpdateSettingsPayload(BaseModel):
     interaction_mode: Optional[str] = None
     voice_mode_enabled: Optional[bool] = None
     speech_mode_enabled: Optional[bool] = None
+    wakeword_enabled: Optional[bool] = None
     wakeword_stt_enabled: Optional[bool] = None
     agent_full_sudo_enabled: Optional[bool] = None
     browser_automation_enabled: Optional[bool] = None

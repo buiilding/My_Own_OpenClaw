@@ -1414,6 +1414,7 @@ async def test_update_settings_handler_updates_session():
         payload={
             "model_provider": "openai",
             "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
+            "wakeword_enabled": False,
             "wakeword_stt_enabled": True,
             "agent_full_sudo_enabled": True,
             "provider_api_keys": {
@@ -1437,6 +1438,7 @@ async def test_update_settings_handler_updates_session():
     assert websocket.sent[0]["type"] == "settings-updated"
     assert "updated_keys" in websocket.sent[0]["payload"]
     assert session_manager.session.updated_configs
+    assert session_manager.session.cfg.wakeword_enabled is False
     assert session_manager.session.cfg.wakeword_stt_enabled is True
     assert session_manager.session.cfg.agent_full_sudo_enabled is True
     assert session_manager.session.cfg.provider_api_keys.openai.enabled is True
@@ -1510,6 +1512,7 @@ async def test_load_settings_handler_returns_frontend_config():
         },
         "selected_model_id": expected_selected_model_id,
         "speech_mode_enabled": False,
+        "wakeword_enabled": True,
         "wakeword_stt_enabled": False,
         "voice_mode_enabled": False,
     }

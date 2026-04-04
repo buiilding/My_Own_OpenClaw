@@ -51,6 +51,30 @@ async def test_parse_and_validate_message_runtime_injects_connection_user_id() -
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_runtime_accepts_update_settings_with_wakeword_enabled() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg-update-settings-wakeword",
+            "type": "update-settings",
+            "payload": {
+                "wakeword_enabled": False,
+            },
+        }
+    )
+    message, error = await parse_and_validate_message_runtime(
+        data=payload,
+        user_id="connection-user",
+        max_message_size=1024 * 1024,
+        json_parse_offload_bytes=64 * 1024,
+        logger=logging.getLogger("test.websocket.message_parse_runtime"),
+    )
+
+    assert error is None
+    assert message is not None
+    assert message.payload.wakeword_enabled is False
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_runtime_forwards_parser_dependencies() -> None:
     captured: dict[str, object] = {}
 
