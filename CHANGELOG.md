@@ -4,6 +4,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Added
+- chore(repo-assets): add the captured Amazon screenshot artifact used while validating the direct OCR/text-grounding SDK flow against a real `Search Amazon` example.
+
 ### Fixed
 - fix(frontend-chat-pill-first-shift-enter-bounce): remove the compact-only vertical-centering override in the minimal chat pill so the control row stays bottom-anchored before and after multiline growth, eliminating the remaining first-`Shift+Enter` jump.
 - fix(frontend-composer-shift-enter-flicker): switch shared textarea auto-resize to layout-effect timing so multiline `Shift+Enter` growth updates before paint and stops the chat-pill control row from visibly hopping during composer expansion.
