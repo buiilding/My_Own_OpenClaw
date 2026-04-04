@@ -37,6 +37,10 @@ Frontend-managed settings are filtered through `filterFrontendConfig(...)`:
 - `provider_api_keys`
 - `provider_oauth`
 
+Backend-owned runtime policy is intentionally excluded from this surface:
+
+- `speech_provider`
+
 `global_agent_stop_shortcut` remains frontend-owned and local-only:
 
 - persisted in localStorage + main-process disk config
@@ -81,6 +85,7 @@ Tracks transient save state machine:
 - stores `desktop-assistant-config`
 - validates shape and clears corrupted payloads
 - includes default frontend config fallback
+- drops deprecated or backend-owned keys before the in-memory config is rebuilt
 
 ### Main-process disk config (`ipc_frontend_config.cjs`)
 

@@ -15,11 +15,7 @@ function GeneralSettingsTab({ config, onConfigChange }) {
     setWakewordEnabled,
     globalAgentStopShortcutStatus,
   } = useAppConfigContext();
-  const [voice, setVoice] = useState('Jenny');
   const [sudoAccessPending, setSudoAccessPending] = useState(false);
-  const speechProvider = config?.speech_provider || 'local';
-  const voiceOptions = speechProvider === 'elevenlabs' ? ['Configured in backend'] : ['Jenny'];
-  const selectedVoiceLabel = voiceOptions.includes(voice) ? voice : voiceOptions[0];
   const wakewordSttEnabled = config?.wakeword_stt_enabled ?? false;
   const agentFullSudoEnabled = config?.agent_full_sudo_enabled ?? false;
   const showToolLogs = config?.show_tool_logs === true;
@@ -79,31 +75,6 @@ function GeneralSettingsTab({ config, onConfigChange }) {
   return (
     <div className="clone-settings-general">
       <h2>General</h2>
-
-      <div className="clone-settings-row clone-settings-row-tts">
-        <span>Speech engine</span>
-        <SelectDropdown
-          value={speechProvider}
-          options={[
-            { value: 'local', label: 'Local' },
-            { value: 'elevenlabs', label: 'ElevenLabs' },
-          ]}
-          onChange={(nextProvider) => {
-            onConfigChange({
-              speech_provider: nextProvider,
-            });
-          }}
-        />
-      </div>
-
-      <div className="clone-settings-row clone-settings-row-tts">
-        <span>Text-to-speech name</span>
-        <SelectDropdown
-          value={selectedVoiceLabel}
-          options={voiceOptions}
-          onChange={setVoice}
-        />
-      </div>
 
       <div className="clone-settings-row clone-settings-row-rich">
         <div>
@@ -214,7 +185,6 @@ function GeneralSettingsTab({ config, onConfigChange }) {
 
 GeneralSettingsTab.propTypes = {
   config: PropTypes.shape({
-    speech_provider: PropTypes.oneOf(['local', 'elevenlabs']),
     wakeword_stt_enabled: PropTypes.bool,
     agent_full_sudo_enabled: PropTypes.bool,
     show_tool_logs: PropTypes.bool,

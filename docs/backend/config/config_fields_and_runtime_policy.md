@@ -95,7 +95,7 @@ Execution/event semantics for these fields (decision skip reasons, trigger fallb
 | `wakeword_phrase` | `str` | `"hey jarvis"` | Trigger phrase. |
 | `wakeword_greetings` | `list[str]` | predefined list | Greeting variants. |
 | `tts_enabled` | `bool` | `true` | Runtime policy forcibly keeps this true by default. |
-| `speech_provider` | `"local" \| "elevenlabs"` | `"elevenlabs"` | Default speech backend selection for query and wakeword TTS. |
+| `speech_provider` | `"local" \| "elevenlabs"` | `"elevenlabs"` | Backend-owned default speech backend selection for query and wakeword TTS. |
 | `tts_model_path` | `str \| None` | `None` | Filled at runtime if missing. |
 | `speech_mode_enabled` | `bool` | `false` | User speech output mode control. |
 | `elevenlabs_api_key_env` | `str` | `"ELEVENLABS_API_KEY"` | Environment variable name used for ElevenLabs auth. |
@@ -164,13 +164,14 @@ Allowed patch keys only:
 - `interaction_mode`
 - `voice_mode_enabled`
 - `speech_mode_enabled`
-- `speech_provider`
 - `wakeword_stt_enabled`
 - `agent_full_sudo_enabled`
 - `browser_automation_enabled`
 - `include_query_screenshot`
 - `provider_api_keys`
 - `provider_oauth` (currently `openai_codex`)
+
+Backend-owned config remains outside this patch surface, including `speech_provider`.
 
 Behavior:
 

@@ -12,7 +12,6 @@ const DEFAULT_FRONTEND_CONFIG = {
   interaction_mode: 'agent',
   voice_mode_enabled: false,
   speech_mode_enabled: false,
-  speech_provider: 'elevenlabs',
   wakeword_enabled: true,
   wakeword_stt_enabled: false,
   agent_full_sudo_enabled: false,
@@ -90,7 +89,7 @@ describe('configStorage', () => {
     });
   });
 
-  test('loadConfigFromStorage preserves stored speech_provider value', () => {
+  test('loadConfigFromStorage drops deprecated renderer-owned speech_provider values', () => {
     localStorage.setItem(
       CONFIG_KEY,
       JSON.stringify({ speech_provider: 'elevenlabs' }),
@@ -98,7 +97,6 @@ describe('configStorage', () => {
 
     expect(loadConfigFromStorage()).toEqual({
       ...DEFAULT_FRONTEND_CONFIG,
-      speech_provider: 'elevenlabs',
     });
   });
 
@@ -218,6 +216,16 @@ describe('configStorage', () => {
     expect(ok).toBe(true);
     expect(JSON.parse(localStorage.getItem(CONFIG_KEY))).toEqual(DEFAULT_FRONTEND_CONFIG);
     expect(localStorage.getItem(VERSION_KEY)).toBe('123');
+  });
+
+  test('saveConfigToStorage drops backend-owned speech provider values', () => {
+    const ok = saveConfigToStorage({
+      ...DEFAULT_FRONTEND_CONFIG,
+      speech_provider: 'local',
+    }, 123);
+
+    expect(ok).toBe(true);
+    expect(JSON.parse(localStorage.getItem(CONFIG_KEY))).toEqual(DEFAULT_FRONTEND_CONFIG);
   });
 
   test('saveConfigToStorage uses Date.now when version omitted', () => {

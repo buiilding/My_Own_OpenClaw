@@ -38,6 +38,10 @@ title: "Frontend Config Filter, Storage, and Provider Merge Runtime Reference"
 - `provider_api_keys`
 - `provider_oauth`
 
+Intentionally excluded backend-owned speech runtime policy:
+
+- `speech_provider`
+
 `filterFrontendConfig(config)` behavior:
 
 - non-object input -> `{}`
@@ -73,8 +77,9 @@ Default config surface:
 Load semantics (`loadConfigFromStorage`):
 
 - missing key -> fresh default object
-- parsed object -> merged over defaults
+- parsed object -> known frontend fields merged over defaults
 - invalid JSON / non-object payload -> clear keys + return defaults
+- deprecated or backend-owned keys are dropped during normalization instead of being re-saved or re-synced
 
 Save semantics (`saveConfigToStorage`):
 

@@ -17,7 +17,9 @@ Backend config is loaded **at startup**. It can be updated or reloaded in memory
 via `ConfigManager`, but changes are **not persisted** (edit `app_config.py` and
 restart to make permanent changes). Frontend config is updated from the UI,
 persisted locally, and sent to the backend via `update-settings` to update the
-user session (applies on next query).
+user session (applies on next query). Speech backend selection stays backend-owned:
+the frontend can enable or disable speech playback for the session, but it does not
+choose `local` versus `elevenlabs`.
 
 Runtime normalization logic is centralized in `backend/src/core/config/runtime.py`
 so loader/manager/service paths apply the same policy sequence.
@@ -122,7 +124,7 @@ Important execution knobs in `AppConfig` (`backend/src/core/config/models.py`) i
 
 ## Frontend Configuration (Local)
 
-The UI stores a minimal settings payload (model selection + interaction mode + voice/screenshot toggles) locally. These values are pushed to the backend via `update-settings` and applied to the user session on the next query.
+The UI stores a minimal settings payload (model selection + interaction mode + voice/screenshot toggles) locally. These values are pushed to the backend via `update-settings` and applied to the user session on the next query. Backend-owned runtime policy such as `speech_provider` is not persisted by the renderer.
 
 ### Stored Fields
 
@@ -134,7 +136,6 @@ The frontend only persists these fields:
 - `interaction_mode`
 - `voice_mode_enabled`
 - `speech_mode_enabled`
-- `speech_provider`
 - `include_query_screenshot` (defaults to `true`; controls whether user queries include screenshot image context)
 
 ### Storage Locations
