@@ -98,7 +98,7 @@ Execution/event semantics for these fields (decision skip reasons, trigger fallb
 | `speech_provider` | `"local" \| "elevenlabs"` | `"elevenlabs"` | Backend-owned default speech backend selection for query and wakeword TTS. |
 | `tts_model_path` | `str \| None` | `None` | Filled at runtime if missing. |
 | `speech_mode_enabled` | `bool` | `false` | User speech output mode control. |
-| `elevenlabs_api_key_env` | `str` | `"ELEVENLABS_API_KEY"` | Environment variable name used for ElevenLabs auth. |
+| `elevenlabs_api_key_env` | `str` | `"ELEVENLABS_API_KEY"` | Environment variable name used for ElevenLabs auth. `AppConfig` stores the env-var name only, not the secret value. |
 | `elevenlabs_voice_id` | `str` | `"EXAVITQu4vr4xnSDxMaL"` | Default ElevenLabs voice id. |
 | `elevenlabs_model_id` | `str` | `"eleven_flash_v2_5"` | Default ElevenLabs realtime model. |
 | `elevenlabs_output_format` | `str` | `"pcm_16000"` | Output format used by the ElevenLabs websocket provider. |
@@ -121,6 +121,12 @@ Artifact compatibility behavior:
 Runtime-only field:
 
 - `api_key`: populated post-load from provider env vars; not persisted in config file.
+
+Speech-provider auth rule:
+
+- `speech_provider` and ElevenLabs runtime defaults are part of backend config policy.
+- the ElevenLabs API key itself is not stored in `app_config.py` or `AppConfig`
+- runtime auth is resolved from the environment variable named by `elevenlabs_api_key_env` (default `ELEVENLABS_API_KEY`)
 
 ## Runtime Normalization Policies
 
