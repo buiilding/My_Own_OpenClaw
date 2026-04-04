@@ -52,6 +52,7 @@ To reduce feature-change friction in `backend/src/api`, WebSocket + semantic API
 Current backend runtime wiring also includes:
 
 - **Runs API routes are first-class app routes**: `backend/src/api/routes/__init__.py` registers `runs.router` beside websocket/artifact/memory routes, so `/api/runs/*` is part of canonical app assembly (`backend/src/api/app_assembly.py`).
+- **SDK perception routes are first-class app routes**: `backend/src/api/routes/sdk/router.py` registers direct OCR/text-grounding and vision/prediction APIs under `/api/sdk/*`, exposing backend-owned perception capabilities without routing through the agent loop.
 - **Query execution helper split is now structural**: `backend/src/api/services/query_execution_support/*` owns screenshot/input resolution, completion backfill, post-terminal filtering, and cancellation cleanup used by `QueryExecutionService`.
 - **OpenAI native reasoning path is provider-owned**: `backend/src/llm/providers/openai.py` routes reasoning-enabled models through `openai_responses_runtime.py` (`litellm.aresponses`) while non-reasoning models keep the shared online provider path.
 - **VM run control service is app-state scoped and in-memory**: `backend/src/api/routes/runs/support.py` lazily creates `VmRunControlService` on `app.state` with optional API-key protection via `x-windie-runs-key`.

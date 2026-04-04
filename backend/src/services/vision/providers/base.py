@@ -57,6 +57,14 @@ class BaseVisionModel:
         """Subclasses must implement model/tokenizer loading."""
         raise NotImplementedError("Subclasses must implement _load()")
 
+    async def answer_question_about_image(
+        self,
+        image_b64: str,
+        prompt: str,
+    ) -> str | None:
+        """Optional generic image-question answering surface for SDK routes."""
+        raise NotImplementedError("Subclasses must implement answer_question_about_image()")
+
 
 def resolve_model_device(model: Any) -> Any:
     """

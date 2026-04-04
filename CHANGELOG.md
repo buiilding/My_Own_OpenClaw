@@ -6,8 +6,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Added
 - chore(repo-assets): add the captured Amazon screenshot artifact used while validating the direct OCR/text-grounding SDK flow against a real `Search Amazon` example.
+- feat(backend-sdk-perception): add direct `/api/sdk/*` OCR and vision REST routes for SDK consumers, including inline-image/artifact input resolution, OCR candidate/resolve flows, saved overlay artifacts, and direct vision locate/describe helpers backed by the current backend services; cover the new surface with focused backend route tests and API/docs updates.
 
 ### Fixed
+- fix(frontend-chat-pill-composer-region-split): keep the minimal chat pill textarea in its own upper in-flow region above the anchored controls row so multiline `Shift+Enter` growth lifts the pill top and close bump again while the lower action buttons remain fixed.
+- fix(frontend-chat-pill-anchored-action-row): refactor the minimal chat pill so the bottom action row is explicitly anchored inside the pill and the pill reserves that row's measured height as bottom padding, making multiline `Shift+Enter` growth expand the upper body instead of letting the action row drift during early resize passes.
+- fix(frontend-chat-pill-anchor-batch): batch chat-pill visual-anchor height sync to one animation-frame commit so the main process repositions the minimal chat pill from the settled shell height instead of transient first-pass multiline measurements, reducing remaining random startup flicker during `Shift+Enter`.
+- fix(frontend-chat-pill-early-multiline-threshold): make the compact non-preview chat pill content-driven from the start instead of waiting for the first multiline steps to outgrow a separate fixed-height shell, reducing the remaining first/second `Shift+Enter` bounce while preserving the preview-expanded sizing contract.
 - fix(frontend-chat-pill-first-shift-enter-bounce): remove the compact-only vertical-centering override in the minimal chat pill so the control row stays bottom-anchored before and after multiline growth, eliminating the remaining first-`Shift+Enter` jump.
 - fix(frontend-composer-shift-enter-flicker): switch shared textarea auto-resize to layout-effect timing so multiline `Shift+Enter` growth updates before paint and stops the chat-pill control row from visibly hopping during composer expansion.
 - fix(frontend-chat-pill-close-bump-headroom): reserve explicit shell headroom for the protruding chat-pill close bump during multiline composer growth and coalesce close-bump clip-path sync so repeated `Shift+Enter` resize steps stop clipping the close badge and reduce resize flicker in the pill controls.
