@@ -304,18 +304,18 @@ export function buildChatModelOptions({
     if (selectedIndex > 0) {
       const [selectedOption] = options.splice(selectedIndex, 1);
       options.unshift(selectedOption);
-    } else if (selectedIndex < 0) {
-      options.unshift({
-        id: configuredModelId,
-        runtimeModelId: '',
-        provider: normalizeString(configuredProvider),
-        label: configuredModelId,
-        supportsThinking: false,
-        defaultModelId: configuredModelId,
-        defaultReasoningMode: null,
-        reasoningModeOptions: [],
-      });
     }
+  } else if (configuredModelId && options.length === 0) {
+    options.unshift({
+      id: configuredModelId,
+      runtimeModelId: '',
+      provider: normalizeString(configuredProvider),
+      label: configuredModelId,
+      supportsThinking: false,
+      defaultModelId: configuredModelId,
+      defaultReasoningMode: null,
+      reasoningModeOptions: [],
+    });
   }
 
   return options;

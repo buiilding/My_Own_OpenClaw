@@ -101,6 +101,18 @@ describe('configStorage', () => {
     });
   });
 
+  test('loadConfigFromStorage migrates legacy OpenAI default model ids to GPT-5.4', () => {
+    localStorage.setItem(
+      CONFIG_KEY,
+      JSON.stringify({ selected_model_id: 'gpt-5@@gpt-5-nonthinking' }),
+    );
+
+    expect(loadConfigFromStorage()).toEqual({
+      ...DEFAULT_FRONTEND_CONFIG,
+      selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
+    });
+  });
+
   test('loadConfigFromStorage normalizes provider_api_keys with defaults', () => {
     localStorage.setItem(
       CONFIG_KEY,

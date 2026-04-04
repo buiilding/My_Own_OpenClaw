@@ -70,19 +70,46 @@ describe('chatModelOptions', () => {
     ]);
   });
 
-  test('injects configured model when unavailable in current pool', () => {
+  test('prefers real provider options over unavailable configured model ids', () => {
     const options = buildChatModelOptions({
-      availableModelPool: [{ id: 'gpt-5.4@@gpt-5-4-medium-thinking', provider: 'openai' }],
+      availableModelPool: [{
+        id: 'gpt-5.4@@gpt-5-4-medium-thinking',
+        provider: 'openai',
+        runtime_model_id: 'gpt-5.4',
+        display_name: 'GPT-5.4 Medium',
+        supports_thinking: true,
+        reasoning_mode: 'medium',
+      }],
       configuredProvider: 'openai',
       configuredModelId: 'gpt-5.4@@gpt-5-4-none-thinking',
     });
 
     expect(options[0]).toMatchObject({
-      id: 'gpt-5.4@@gpt-5-4-none-thinking',
+      id: 'gpt-5.4@@gpt-5-4-medium-thinking',
       provider: 'openai',
-      label: 'gpt-5.4@@gpt-5-4-none-thinking',
-      supportsThinking: false,
+      label: 'GPT-5.4',
     });
+  });
+
+  test('injects configured model only when there are no available options', () => {
+    const options = buildChatModelOptions({
+      availableModelPool: [],
+      configuredProvider: 'openai',
+      configuredModelId: 'gpt-5@@gpt-5-nonthinking',
+    });
+
+    expect(options).toEqual([
+      {
+        id: 'gpt-5@@gpt-5-nonthinking',
+        runtimeModelId: '',
+        provider: 'openai',
+        label: 'gpt-5@@gpt-5-nonthinking',
+        supportsThinking: false,
+        defaultModelId: 'gpt-5@@gpt-5-nonthinking',
+        defaultReasoningMode: null,
+        reasoningModeOptions: [],
+      },
+    ]);
   });
 
   test('builds sorted provider options and includes missing configured provider', () => {

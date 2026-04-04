@@ -738,6 +738,43 @@ describe('ChatInterface wiring', () => {
     expect(screen.getByRole('button', { name: 'Model selector' })).not.toHaveTextContent('gpt-5.4');
   });
 
+  test('renders GPT-5.4 instead of stale unavailable legacy OpenAI ids when curated options exist', () => {
+    mockConfig = {
+      interaction_mode: 'chat',
+      model_mode: 'online',
+      model_provider: 'openai',
+      selected_model_id: 'gpt-5@@gpt-5-nonthinking',
+      voice_mode_enabled: false,
+      speech_mode_enabled: false,
+    };
+    mockAvailableModels = {
+      local: [],
+      online: [
+        {
+          id: 'gpt-5.4@@gpt-5-4-none-thinking',
+          runtime_model_id: 'gpt-5.4',
+          provider: 'openai',
+          display_name: 'GPT-5.4 None',
+          supports_thinking: true,
+          reasoning_mode: 'none',
+        },
+        {
+          id: 'gpt-5.4@@gpt-5-4-high-thinking',
+          runtime_model_id: 'gpt-5.4',
+          provider: 'openai',
+          display_name: 'GPT-5.4 High',
+          supports_thinking: true,
+          reasoning_mode: 'high',
+        },
+      ],
+    };
+
+    render(<ChatInterface />);
+
+    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('GPT-5.4');
+    expect(screen.getByRole('button', { name: 'Model selector' })).not.toHaveTextContent('gpt-5@@gpt-5-nonthinking');
+  });
+
   test('deduplicates model dropdown entries to one base model and shows reasoning mode selector when supported', () => {
     mockConfig = {
       interaction_mode: 'chat',

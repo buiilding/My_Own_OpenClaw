@@ -48,6 +48,11 @@ const DEFAULT_FRONTEND_CONFIG = {
   provider_oauth: DEFAULT_PROVIDER_OAUTH,
 };
 
+const LEGACY_MODEL_ID_MIGRATIONS = Object.freeze({
+  'gpt-5': 'gpt-5.4@@gpt-5-4-none-thinking',
+  'gpt-5@@gpt-5-nonthinking': 'gpt-5.4@@gpt-5-4-none-thinking',
+});
+
 function normalizeProviderApiKeys(overrides = null) {
   const source = toPlainRecord(overrides);
 
@@ -98,10 +103,23 @@ function normalizeProviderOAuth(overrides = null) {
   return normalized;
 }
 
+function normalizeSelectedModelId(overrides = {}) {
+  const selectedModelId = typeof overrides.selected_model_id === 'string'
+    ? overrides.selected_model_id.trim()
+    : '';
+  if (!selectedModelId) {
+    return DEFAULT_FRONTEND_CONFIG.selected_model_id;
+  }
+
+  return LEGACY_MODEL_ID_MIGRATIONS[selectedModelId] || selectedModelId;
+}
+
 function buildFrontendConfig(overrides = {}) {
+  const normalizedSelectedModelId = normalizeSelectedModelId(overrides);
   return {
     ...DEFAULT_FRONTEND_CONFIG,
     ...overrides,
+    selected_model_id: normalizedSelectedModelId,
     global_agent_stop_shortcut: normalizeGlobalAgentStopShortcutAccelerator(
       overrides.global_agent_stop_shortcut,
     ),
