@@ -29,16 +29,15 @@ function sanitizeModelDisplayLabel(displayName) {
   }
   const cleanedLabel = rawLabel
     .replace(/\b(extra[\s-]*high|xhigh|high|medium|low|minimal|none)\b/ig, ' ')
-    .replace(/\b(fast|spark)\b/ig, ' ')
     .replace(/\s+/g, ' ')
     .trim();
   return cleanedLabel || rawLabel;
 }
 
-function resolveReasoningModeFromText(value) {
+function normalizeReasoningMode(value) {
   const normalized = normalizeString(value).toLowerCase();
   if (!normalized) {
-    return 'none';
+    return '';
   }
   if (normalized.includes('extra high') || normalized.includes('extra-high') || normalized.includes('xhigh')) {
     return 'xhigh';
@@ -46,25 +45,36 @@ function resolveReasoningModeFromText(value) {
   if (/\bhigh\b/.test(normalized)) {
     return 'high';
   }
-  if (/\bmax\b/.test(normalized)) {
-    return 'xhigh';
-  }
   if (/\bnone\b/.test(normalized)) {
     return 'none';
   }
-  if (/\blow\b/.test(normalized) || normalized.includes('minimal') || /\bnone\b/.test(normalized)) {
+  if (/\blow\b/.test(normalized) || normalized.includes('minimal')) {
     return 'low';
   }
   if (/\bmedium\b/.test(normalized)) {
     return 'medium';
   }
+  return normalized;
+}
+
+function resolveReasoningModeFromText(value) {
+  const normalized = normalizeReasoningMode(value);
+  if (!normalized) {
+    return 'none';
+  }
+  if (/\bmax\b/.test(normalized)) {
+    return 'xhigh';
+  }
+  if (REASONING_MODE_ORDER.includes(normalized)) {
+    return normalized;
+  }
   return 'medium';
 }
 
 function resolveVariantReasoningMode(variant) {
-  const explicitReasoningMode = normalizeString(variant?.reasoningMode).toLowerCase();
+  const explicitReasoningMode = normalizeReasoningMode(variant?.reasoningMode);
   if (explicitReasoningMode) {
-    return resolveReasoningModeFromText(explicitReasoningMode);
+    return explicitReasoningMode;
   }
   const displayName = normalizeString(variant?.displayName);
   const modelId = normalizeString(variant?.id);
@@ -76,15 +86,18 @@ function getReasoningSortIndex(mode) {
   return index >= 0 ? index : REASONING_MODE_ORDER.length;
 }
 
-function buildReasoningModeOptionsFromVariants(variants, configuredModelId) {
+function buildReasoningModeOptionsFromVariants(variants, configuredModelId, explicitReasoningModes, defaultModelId) {
   const modeMap = new Map();
   const configuredId = normalizeString(configuredModelId);
+  const normalizedDefaultModelId = normalizeString(defaultModelId);
+  const nonThinkingVariant = variants.find((variant) => variant.supportsThinking !== true);
 
   variants.forEach((variant) => {
-    if (variant.supportsThinking !== true) {
+    const explicitReasoningMode = normalizeReasoningMode(variant?.reasoningMode);
+    if (variant.supportsThinking !== true && !explicitReasoningMode) {
       return;
     }
-    const mode = resolveVariantReasoningMode(variant);
+    const mode = explicitReasoningMode || resolveVariantReasoningMode(variant);
     const existing = modeMap.get(mode);
     const isConfiguredVariant = configuredId && variant.id === configuredId;
     if (!existing || isConfiguredVariant) {
@@ -96,13 +109,46 @@ function buildReasoningModeOptionsFromVariants(variants, configuredModelId) {
     }
   });
 
-  return [...modeMap.values()].sort(
-    (left, right) => getReasoningSortIndex(left.mode) - getReasoningSortIndex(right.mode),
-  );
+  if (!modeMap.has('none') && nonThinkingVariant) {
+    modeMap.set('none', {
+      mode: 'none',
+      label: REASONING_MODE_LABELS.none,
+      modelId: nonThinkingVariant.id,
+    });
+  }
+
+  const backendOrderedModes = Array.isArray(explicitReasoningModes)
+    ? explicitReasoningModes.map((mode) => normalizeReasoningMode(mode)).filter(Boolean)
+    : [];
+  const orderedModes = backendOrderedModes.length > 0
+    ? backendOrderedModes
+    : [...modeMap.keys()].sort(
+      (left, right) => getReasoningSortIndex(left) - getReasoningSortIndex(right),
+    );
+
+  const options = orderedModes
+    .map((mode) => modeMap.get(mode))
+    .filter(Boolean);
+
+  if (options.length === 0 && normalizedDefaultModelId) {
+    return [{
+      mode: 'none',
+      label: REASONING_MODE_LABELS.none,
+      modelId: normalizedDefaultModelId,
+    }];
+  }
+
+  return options;
 }
 
-function deriveModelLabelFromVariants(variants, fallbackModelId) {
-  const preferredVariant = variants.find((variant) => variant.supportsThinking !== true)
+function deriveModelLabelFromVariants(variants, fallbackModelId, familyLabel, defaultModelId) {
+  const explicitFamilyLabel = normalizeString(familyLabel);
+  if (explicitFamilyLabel) {
+    return explicitFamilyLabel;
+  }
+  const normalizedDefaultModelId = normalizeString(defaultModelId);
+  const preferredVariant = variants.find((variant) => variant.id === normalizedDefaultModelId)
+    || variants.find((variant) => variant.supportsThinking !== true)
     || variants.find((variant) => resolveVariantReasoningMode(variant) === 'none')
     || variants.find((variant) => resolveVariantReasoningMode(variant) === 'medium')
     || variants[0];
@@ -110,8 +156,8 @@ function deriveModelLabelFromVariants(variants, fallbackModelId) {
   return sanitizeModelDisplayLabel(rawLabel) || rawLabel || normalizeString(fallbackModelId);
 }
 
-function buildModelGroupKey(provider, runtimeModelId) {
-  return `${normalizeProvider(provider)}::${runtimeModelId}`;
+function buildModelGroupKey(provider, runtimeModelId, familyId) {
+  return normalizeString(familyId) || `${normalizeProvider(provider)}::${runtimeModelId}`;
 }
 
 export function formatProviderLabel(providerValue) {
@@ -157,10 +203,20 @@ export function buildChatModelOptions({
       return;
     }
     const runtimeModelId = normalizeString(model?.runtime_model_id || modelId);
-    const groupKey = buildModelGroupKey(provider, runtimeModelId);
+    const familyId = normalizeString(model?.family_id);
+    const familyLabel = normalizeString(model?.family_label);
+    const defaultModelId = normalizeString(model?.default_model_id);
+    const defaultReasoningMode = normalizeReasoningMode(model?.default_reasoning_mode);
+    const reasoningModes = Array.isArray(model?.reasoning_modes) ? model.reasoning_modes : [];
+    const groupKey = buildModelGroupKey(provider, runtimeModelId, familyId);
     const group = groups.get(groupKey) || {
+      familyId,
+      familyLabel,
       provider,
       runtimeModelId,
+      defaultModelId,
+      defaultReasoningMode,
+      reasoningModes,
       variants: [],
     };
     group.variants.push({
@@ -171,23 +227,49 @@ export function buildChatModelOptions({
       supportsThinking: model?.supports_thinking === true,
       reasoningMode: normalizeString(model?.reasoning_mode),
     });
+    if (!group.familyId && familyId) {
+      group.familyId = familyId;
+    }
+    if (!group.familyLabel && familyLabel) {
+      group.familyLabel = familyLabel;
+    }
+    if (!group.defaultModelId && defaultModelId) {
+      group.defaultModelId = defaultModelId;
+    }
+    if (!group.defaultReasoningMode && defaultReasoningMode) {
+      group.defaultReasoningMode = defaultReasoningMode;
+    }
+    if (group.reasoningModes.length === 0 && reasoningModes.length > 0) {
+      group.reasoningModes = reasoningModes;
+    }
     groups.set(groupKey, group);
   });
 
   for (const group of groups.values()) {
-    const reasoningModeOptions = buildReasoningModeOptionsFromVariants(group.variants, configuredModelId);
+    const reasoningModeOptions = buildReasoningModeOptionsFromVariants(
+      group.variants,
+      configuredModelId,
+      group.reasoningModes,
+      group.defaultModelId,
+    );
     const selectedVariant = group.variants.find((variant) => variant.id === configuredModelId);
     const selectedRuntimeVariant = group.variants.find(
       (variant) => variant.runtimeModelId === configuredModelId,
     );
-    const noneReasoningVariant = group.variants.find(
-      (variant) => resolveVariantReasoningMode(variant) === 'none',
+    const explicitDefaultVariant = group.variants.find(
+      (variant) => variant.id === group.defaultModelId,
+    );
+    const noneReasoningVariant = reasoningModeOptions.find(
+      (option) => option.mode === 'none',
     );
     const mediumReasoningVariant = reasoningModeOptions.find((option) => option.mode === 'medium');
     const nonThinkingVariant = group.variants.find((variant) => variant.supportsThinking !== true);
     const defaultVariant = selectedVariant
       || selectedRuntimeVariant
-      || noneReasoningVariant
+      || explicitDefaultVariant
+      || (noneReasoningVariant
+        ? group.variants.find((variant) => variant.id === noneReasoningVariant.modelId)
+        : null)
       || (mediumReasoningVariant
         ? group.variants.find((variant) => variant.id === mediumReasoningVariant.modelId)
         : null)
@@ -195,14 +277,22 @@ export function buildChatModelOptions({
       || group.variants[0];
 
     const fallbackModelId = defaultVariant?.id || group.runtimeModelId || '';
-    const label = deriveModelLabelFromVariants(group.variants, fallbackModelId);
+    const label = deriveModelLabelFromVariants(
+      group.variants,
+      fallbackModelId,
+      group.familyLabel,
+      group.defaultModelId,
+    );
     const supportsThinking = group.variants.some((variant) => variant.supportsThinking === true);
     options.push({
       id: fallbackModelId,
+      familyId: group.familyId || buildModelGroupKey(group.provider, group.runtimeModelId),
       runtimeModelId: group.runtimeModelId,
       provider: group.provider,
       label,
       supportsThinking,
+      defaultModelId: group.defaultModelId || fallbackModelId,
+      defaultReasoningMode: group.defaultReasoningMode || (reasoningModeOptions[0]?.mode || null),
       reasoningModeOptions,
     });
   }
@@ -221,6 +311,8 @@ export function buildChatModelOptions({
         provider: normalizeString(configuredProvider),
         label: configuredModelId,
         supportsThinking: false,
+        defaultModelId: configuredModelId,
+        defaultReasoningMode: null,
         reasoningModeOptions: [],
       });
     }
@@ -281,6 +373,10 @@ export function resolveSelectedReasoningMode(modelOption, configuredModelId) {
   if (exact) {
     return exact.mode;
   }
+  const defaultReasoningMode = normalizeReasoningMode(modelOption?.defaultReasoningMode);
+  if (defaultReasoningMode && reasoningModes.some((option) => option.mode === defaultReasoningMode)) {
+    return defaultReasoningMode;
+  }
   const none = reasoningModes.find((option) => option.mode === 'none');
   if (none) {
     return none.mode;
@@ -299,6 +395,10 @@ export function resolveModelIdForReasoningMode(modelOption, mode) {
   const exact = reasoningModes.find((option) => option.mode === mode);
   if (exact) {
     return exact.modelId;
+  }
+  const defaultModelId = normalizeString(modelOption?.defaultModelId);
+  if (defaultModelId) {
+    return defaultModelId;
   }
   const none = reasoningModes.find((option) => option.mode === 'none');
   if (none) {

@@ -16,6 +16,7 @@ from backend.src.core.config import AppConfig
 from backend.src.llm.models.models_config import (
     LOCAL_VISION_MODELS,
     ONLINE_MODELS,
+    REASONING_MODE_ORDER,
     THINKING_TEXT_STREAM_UNSUPPORTED_MODELS,
     get_model_card_metadata,
 )
@@ -28,6 +29,196 @@ if TYPE_CHECKING:
     from backend.src.llm.providers.base import LLMProvider
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_string(value: Any) -> str:
+    return str(value or "").strip()
+
+
+def _reasoning_mode_sort_key(mode: str) -> tuple[int, str]:
+    try:
+        return (REASONING_MODE_ORDER.index(mode), mode)
+    except ValueError:
+        return (len(REASONING_MODE_ORDER), mode)
+
+
+def _resolve_entry_reasoning_mode(model: Dict[str, Any]) -> Optional[str]:
+    reasoning_mode = _normalize_string(model.get("reasoning_mode")).lower()
+    return reasoning_mode or None
+
+
+def _sanitize_family_label(value: str) -> str:
+    import re
+
+    raw_label = _normalize_string(value)
+    if not raw_label:
+        return raw_label
+    cleaned = re.sub(
+        r"\b(extra[\s-]*high|xhigh|high|medium|low|minimal|none)\b",
+        " ",
+        raw_label,
+        flags=re.IGNORECASE,
+    )
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned or raw_label
+
+
+def _select_default_family_model(
+    models: Sequence[Dict[str, Any]],
+) -> Optional[Dict[str, Any]]:
+    if not models:
+        return None
+
+    non_thinking_model = next(
+        (model for model in models if model.get("supports_thinking") is not True),
+        None,
+    )
+    if non_thinking_model is not None:
+        return non_thinking_model
+
+    none_reasoning_model = next(
+        (
+            model
+            for model in models
+            if _resolve_entry_reasoning_mode(model) == "none"
+        ),
+        None,
+    )
+    if none_reasoning_model is not None:
+        return none_reasoning_model
+
+    medium_reasoning_model = next(
+        (
+            model
+            for model in models
+            if _resolve_entry_reasoning_mode(model) == "medium"
+        ),
+        None,
+    )
+    if medium_reasoning_model is not None:
+        return medium_reasoning_model
+
+    return models[0]
+
+
+def _collect_family_reasoning_modes(
+    models: Sequence[Dict[str, Any]],
+    *,
+    default_model: Optional[Dict[str, Any]],
+) -> List[str]:
+    modes: set[str] = set()
+    for model in models:
+        if model.get("supports_thinking") is not True:
+            continue
+        reasoning_mode = _resolve_entry_reasoning_mode(model)
+        if not reasoning_mode:
+            continue
+        modes.add(reasoning_mode)
+
+    if (
+        default_model is not None
+        and default_model.get("supports_thinking") is not True
+        and "none" not in modes
+    ):
+        default_model_id = _normalize_string(default_model.get("id"))
+        if default_model_id:
+            modes.add("none")
+
+    return sorted(modes, key=_reasoning_mode_sort_key)
+
+
+def _derive_family_label(
+    models: Sequence[Dict[str, Any]],
+    *,
+    default_model: Optional[Dict[str, Any]],
+) -> str:
+    explicit_label = next(
+        (
+            _normalize_string(model.get("family_label"))
+            for model in models
+            if _normalize_string(model.get("family_label"))
+        ),
+        "",
+    )
+    if explicit_label:
+        return explicit_label
+
+    fallback_source = default_model or (models[0] if models else None)
+    raw_label = _normalize_string((fallback_source or {}).get("display_name"))
+    if raw_label:
+        return _sanitize_family_label(raw_label)
+
+    runtime_model_id = _normalize_string((fallback_source or {}).get("runtime_model_id"))
+    return runtime_model_id
+
+
+def _enrich_catalog_with_family_metadata(
+    models: Sequence[Dict[str, Any]],
+) -> Tuple[Dict[str, Any], ...]:
+    grouped_models: Dict[tuple[str, str], List[Dict[str, Any]]] = {}
+    for model in models:
+        provider = _normalize_string(model.get("provider"))
+        runtime_model_id = _normalize_string(
+            model.get("runtime_model_id") or model.get("id")
+        )
+        if not provider or not runtime_model_id:
+            continue
+        grouped_models.setdefault((provider, runtime_model_id), []).append(model)
+
+    enriched: List[Dict[str, Any]] = []
+    for model in models:
+        provider = _normalize_string(model.get("provider"))
+        runtime_model_id = _normalize_string(
+            model.get("runtime_model_id") or model.get("id")
+        )
+        group = grouped_models.get((provider, runtime_model_id), [model])
+        default_model = _select_default_family_model(group)
+        family_label = _derive_family_label(group, default_model=default_model)
+        reasoning_modes = _collect_family_reasoning_modes(
+            group,
+            default_model=default_model,
+        )
+        family_id = f"{provider}::{runtime_model_id}"
+        default_model_id = _normalize_string((default_model or {}).get("id"))
+        default_reasoning_mode = _resolve_entry_reasoning_mode(default_model or {})
+        if (
+            default_model is not None
+            and default_model.get("supports_thinking") is not True
+            and "none" in reasoning_modes
+        ):
+            default_reasoning_mode = "none"
+
+        entry = dict(model)
+        entry["family_id"] = family_id
+        if family_label:
+            entry["family_label"] = family_label
+        entry["reasoning_modes"] = list(reasoning_modes)
+        if default_reasoning_mode:
+            entry["default_reasoning_mode"] = default_reasoning_mode
+        if default_model_id:
+            entry["default_model_id"] = default_model_id
+        capabilities = entry.get("capabilities")
+        if not isinstance(capabilities, dict):
+            capabilities = {
+                "supports_codex_oauth": bool(entry.get("supports_codex_oauth")),
+                "supports_native_web_search": bool(
+                    entry.get("supports_native_web_search")
+                ),
+            }
+        else:
+            capabilities = {
+                "supports_codex_oauth": bool(capabilities.get("supports_codex_oauth")),
+                "supports_native_web_search": bool(
+                    capabilities.get("supports_native_web_search")
+                ),
+            }
+        entry["capabilities"] = capabilities
+        entry["supports_codex_oauth"] = bool(capabilities["supports_codex_oauth"])
+        entry["supports_native_web_search"] = bool(
+            capabilities["supports_native_web_search"]
+        )
+        enriched.append(entry)
+    return tuple(enriched)
 
 
 def _build_catalog(
@@ -91,7 +282,7 @@ def _build_catalog(
             ):
                 entry["supports_thinking_text_stream"] = True
             models.append(entry)
-    return tuple(models)
+    return _enrich_catalog_with_family_metadata(models)
 
 
 def _copy_catalog(catalog: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:

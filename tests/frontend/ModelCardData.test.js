@@ -31,18 +31,18 @@ describe('modelCardData', () => {
     });
   });
 
-  test('toModelCard falls back to free demo pricing and gemini provider heuristics', () => {
+  test('toModelCard falls back to generic provider heuristics when backend metadata is absent', () => {
     const card = toModelCard({
       id: 'gemini-3-flash-preview@@gemini-3-flash-high-thinking',
       provider: 'gemini',
     }, true);
 
-    expect(card.description).toBe('Faster than Gemini 3 Pro for responsive multimodal tasks and coding, while keeping 1M-token context.');
-    expect(card.context).toBe('1,048,576 tokens');
+    expect(card.description).toBe('Powerful model family with native multimodal understanding.');
+    expect(card.context).toBe('Context unknown');
     expect(card.inputPrice).toBe('Free');
     expect(card.outputPrice).toBe('Free');
-    expect(card.latency).toBe('~1.0s');
-    expect(card.strengths).toEqual(['Fast', 'Multimodal', 'Code', '1M Context']);
+    expect(card.latency).toBe('~1.5s');
+    expect(card.strengths).toEqual(['Multimodal', 'Search', 'Code', 'Efficiency']);
     expect(card.badge).toBe('Recommended');
   });
 

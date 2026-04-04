@@ -13,34 +13,20 @@ from pathlib import Path
 import platform
 
 from backend.src.core.config.models import AppConfig
-from backend.src.llm.models.models_config import resolve_runtime_model_id
+from backend.src.llm.models.models_config import supports_model_capability
 from backend.src.core.config.runtime import (
     assemble_runtime_config,
 )
 
 logger = logging.getLogger(__name__)
 
-OPENAI_CODEX_RUNTIME_MODEL_IDS = {
-    "gpt-5.3-codex",
-    "gpt-5.3-codex-spark",
-    "gpt-5.2-codex",
-    "gpt-5.1-codex",
-    "gpt-5.1-codex-mini",
-    "gpt-5.1-codex-max",
-}
-
 
 def _openai_model_supports_codex_oauth(selected_model_id: str) -> bool:
-    if not isinstance(selected_model_id, str):
-        return False
-    runtime_model_id = resolve_runtime_model_id(selected_model_id).strip().lower()
-    if not runtime_model_id:
-        return False
-    if "/" in runtime_model_id:
-        _, runtime_model_id = runtime_model_id.split("/", 1)
-    if runtime_model_id in OPENAI_CODEX_RUNTIME_MODEL_IDS:
-        return True
-    return runtime_model_id.startswith("gpt-5.") and "codex" in runtime_model_id
+    return supports_model_capability(
+        model_id=selected_model_id,
+        provider_name="openai",
+        capability_name="supports_codex_oauth",
+    )
 
 
 def _resolve_openai_codex_oauth_access_token(cfg: AppConfig) -> str | None:

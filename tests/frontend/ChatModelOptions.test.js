@@ -185,4 +185,69 @@ describe('chatModelOptions', () => {
       'xhigh',
     ]);
   });
+
+  test('prefers backend family metadata and injects none mode for non-thinking defaults', () => {
+    const availableModelPool = [
+      {
+        id: 'claude-sonnet-4-5-base',
+        provider: 'anthropic',
+        runtime_model_id: 'claude-sonnet-4-5-20250929',
+        family_id: 'anthropic::claude-sonnet-4-5-20250929',
+        family_label: 'Claude Sonnet 4.5',
+        default_model_id: 'claude-sonnet-4-5-base',
+        default_reasoning_mode: 'none',
+        reasoning_modes: ['none', 'low', 'high'],
+        display_name: 'Claude Sonnet 4.5',
+        supports_thinking: false,
+      },
+      {
+        id: 'claude-sonnet-4-5-low',
+        provider: 'anthropic',
+        runtime_model_id: 'claude-sonnet-4-5-20250929',
+        family_id: 'anthropic::claude-sonnet-4-5-20250929',
+        family_label: 'Claude Sonnet 4.5',
+        default_model_id: 'claude-sonnet-4-5-base',
+        default_reasoning_mode: 'none',
+        reasoning_modes: ['none', 'low', 'high'],
+        display_name: 'Claude Sonnet 4.5 Low',
+        supports_thinking: true,
+        reasoning_mode: 'low',
+      },
+      {
+        id: 'claude-sonnet-4-5-high',
+        provider: 'anthropic',
+        runtime_model_id: 'claude-sonnet-4-5-20250929',
+        family_id: 'anthropic::claude-sonnet-4-5-20250929',
+        family_label: 'Claude Sonnet 4.5',
+        default_model_id: 'claude-sonnet-4-5-base',
+        default_reasoning_mode: 'none',
+        reasoning_modes: ['none', 'low', 'high'],
+        display_name: 'Claude Sonnet 4.5 High',
+        supports_thinking: true,
+        reasoning_mode: 'high',
+      },
+    ];
+
+    const options = buildChatModelOptions({
+      availableModelPool,
+      configuredProvider: 'anthropic',
+      configuredModelId: 'claude-sonnet-4-5-base',
+    });
+
+    expect(options).toHaveLength(1);
+    expect(options[0]).toMatchObject({
+      id: 'claude-sonnet-4-5-base',
+      familyId: 'anthropic::claude-sonnet-4-5-20250929',
+      label: 'Claude Sonnet 4.5',
+      defaultModelId: 'claude-sonnet-4-5-base',
+      defaultReasoningMode: 'none',
+    });
+    expect(options[0]?.reasoningModeOptions).toEqual([
+      { mode: 'none', label: 'None', modelId: 'claude-sonnet-4-5-base' },
+      { mode: 'low', label: 'Low', modelId: 'claude-sonnet-4-5-low' },
+      { mode: 'high', label: 'High', modelId: 'claude-sonnet-4-5-high' },
+    ]);
+    expect(resolveSelectedReasoningMode(options[0], 'claude-sonnet-4-5-base')).toBe('none');
+    expect(resolveModelIdForReasoningMode(options[0], 'missing')).toBe('claude-sonnet-4-5-base');
+  });
 });
