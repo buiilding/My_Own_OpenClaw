@@ -29,7 +29,7 @@ System prompt note:
 - **Ollama**: Local model execution
 - **LM Studio**: Local model server
 
-Curated online model IDs live in `backend/src/llm/models/models_config.py` and are returned by `list-models`. Local model lists come from the running Ollama/LM Studio servers.
+Curated online model IDs live in `backend/src/llm/models/models_config.py` and are returned by `list-models`. The backend catalog is the source of truth for family labels, reasoning modes/defaults, dashboard card metadata, and provider capability flags such as native web-search or Codex OAuth support. Local model lists come from the running Ollama/LM Studio servers.
 
 ## LLM Client Architecture
 

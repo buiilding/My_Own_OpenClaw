@@ -3,11 +3,20 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 
 def _slugify(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+
+
+def _normalize_provider_name(provider_name: str | None) -> str:
+    if not isinstance(provider_name, str):
+        return ""
+    normalized = provider_name.strip().lower().replace("_", "-")
+    if normalized == "google":
+        return "gemini"
+    return normalized
 
 
 def _variant(
@@ -43,6 +52,7 @@ def _variant(
 LOW_THINKING_BUDGET_TOKENS = 4096
 DEFAULT_THINKING_BUDGET_TOKENS = 16384
 HIGH_THINKING_BUDGET_TOKENS = 32768
+REASONING_MODE_ORDER: Tuple[str, ...] = ("none", "low", "medium", "high", "xhigh")
 
 
 def _card_metadata(
@@ -51,10 +61,11 @@ def _card_metadata(
     description: str,
     strengths: List[str],
     latency: str,
+    family_label: Optional[str] = None,
     input_price: str = "Free",
     output_price: str = "Free",
 ) -> Dict[str, Any]:
-    return {
+    metadata = {
         "context_window": context_window,
         "description": description,
         "strengths": list(strengths),
@@ -62,6 +73,9 @@ def _card_metadata(
         "input_price": input_price,
         "output_price": output_price,
     }
+    if isinstance(family_label, str) and family_label.strip():
+        metadata["family_label"] = family_label.strip()
+    return metadata
 
 
 MODEL_CARD_METADATA_BY_RUNTIME_ID: Dict[str, Dict[str, Any]] = {
@@ -70,6 +84,7 @@ MODEL_CARD_METADATA_BY_RUNTIME_ID: Dict[str, Dict[str, Any]] = {
         description="OpenAI's GPT-5.4 reasoning model with configurable effort from none through xhigh.",
         strengths=["Reasoning", "Code", "Agents", "Tools"],
         latency="~1.4s",
+        family_label="GPT-5.4",
     ),
     "claude-sonnet-4-5-20250929": _card_metadata(
         context_window=200000,
@@ -181,34 +196,114 @@ MODEL_CARD_METADATA_BY_RUNTIME_ID: Dict[str, Dict[str, Any]] = {
     ),
 }
 
+MODEL_CAPABILITIES_BY_PROVIDER_RUNTIME_ID: Dict[Tuple[str, str], Dict[str, bool]] = {
+    ("openai", "gpt-5.4"): {
+        "supports_native_web_search": True,
+    },
+    ("gemini", "gemini-2.5-flash"): {
+        "supports_native_web_search": True,
+    },
+    ("gemini", "gemini-2.5-pro"): {
+        "supports_native_web_search": True,
+    },
+    ("gemini", "gemini-3-pro-preview"): {
+        "supports_native_web_search": True,
+    },
+    ("gemini", "gemini-3-flash-preview"): {
+        "supports_native_web_search": True,
+    },
+    ("gemini", "gemini-3.1-pro-preview"): {
+        "supports_native_web_search": True,
+    },
+    ("openai", "gpt-5.3-codex"): {
+        "supports_codex_oauth": True,
+    },
+    ("openai", "gpt-5.3-codex-spark"): {
+        "supports_codex_oauth": True,
+    },
+    ("openai", "gpt-5.2-codex"): {
+        "supports_codex_oauth": True,
+    },
+    ("openai", "gpt-5.1-codex"): {
+        "supports_codex_oauth": True,
+    },
+    ("openai", "gpt-5.1-codex-mini"): {
+        "supports_codex_oauth": True,
+    },
+    ("openai", "gpt-5.1-codex-max"): {
+        "supports_codex_oauth": True,
+    },
+}
+
+
+def _candidate_runtime_metadata_ids(
+    provider_name: str,
+    runtime_model_id: str,
+) -> List[str]:
+    normalized_provider = _normalize_provider_name(provider_name)
+    normalized_runtime_model_id = str(runtime_model_id or "").strip()
+    candidates: List[str] = []
+    if normalized_runtime_model_id:
+        candidates.append(normalized_runtime_model_id)
+    if (
+        normalized_provider
+        and normalized_runtime_model_id
+        and not normalized_runtime_model_id.startswith(f"{normalized_provider}/")
+    ):
+        candidates.append(f"{normalized_provider}/{normalized_runtime_model_id}")
+    if "/" in normalized_runtime_model_id:
+        _, stripped_runtime_model_id = normalized_runtime_model_id.split("/", 1)
+        if stripped_runtime_model_id:
+            candidates.append(stripped_runtime_model_id)
+    deduped: List[str] = []
+    for candidate in candidates:
+        if candidate and candidate not in deduped:
+            deduped.append(candidate)
+    return deduped
+
+
+def get_model_catalog_metadata(
+    provider_name: str,
+    runtime_model_id: str,
+) -> Dict[str, Any]:
+    normalized_provider = _normalize_provider_name(provider_name)
+    candidates = _candidate_runtime_metadata_ids(provider_name, runtime_model_id)
+
+    metadata: Dict[str, Any] = {}
+    for candidate in candidates:
+        if candidate in MODEL_CARD_METADATA_BY_RUNTIME_ID:
+            metadata.update(dict(MODEL_CARD_METADATA_BY_RUNTIME_ID[candidate]))
+            break
+
+    capability_defaults = {
+        "supports_codex_oauth": False,
+        "supports_native_web_search": False,
+    }
+    for candidate in candidates:
+        capabilities = MODEL_CAPABILITIES_BY_PROVIDER_RUNTIME_ID.get(
+            (normalized_provider, candidate)
+        )
+        if capabilities:
+            capability_defaults.update(dict(capabilities))
+            break
+
+    metadata.setdefault("input_price", "Free")
+    metadata.setdefault("output_price", "Free")
+    metadata.setdefault("capabilities", dict(capability_defaults))
+    metadata.setdefault(
+        "supports_codex_oauth", bool(capability_defaults["supports_codex_oauth"])
+    )
+    metadata.setdefault(
+        "supports_native_web_search",
+        bool(capability_defaults["supports_native_web_search"]),
+    )
+    return metadata
+
 
 def get_model_card_metadata(
     provider_name: str, runtime_model_id: str
 ) -> Dict[str, Any]:
-    if not isinstance(runtime_model_id, str):
-        return {"input_price": "Free", "output_price": "Free"}
-
-    normalized_runtime_model_id = runtime_model_id.strip()
-    if not normalized_runtime_model_id:
-        return {"input_price": "Free", "output_price": "Free"}
-
-    metadata = dict(
-        MODEL_CARD_METADATA_BY_RUNTIME_ID.get(normalized_runtime_model_id, {})
-    )
-    if not metadata and isinstance(provider_name, str):
-        normalized_provider_name = provider_name.strip().lower()
-        if (
-            normalized_provider_name == "openrouter"
-            and not normalized_runtime_model_id.startswith("openrouter/")
-        ):
-            scoped_runtime_model_id = f"openrouter/{normalized_runtime_model_id}"
-            metadata = dict(
-                MODEL_CARD_METADATA_BY_RUNTIME_ID.get(scoped_runtime_model_id, {})
-            )
-
-    metadata.setdefault("input_price", "Free")
-    metadata.setdefault("output_price", "Free")
-    return metadata
+    return get_model_catalog_metadata(provider_name, runtime_model_id)
 
 
 OPENAI_PRESETS: List[Dict[str, Any]] = [
@@ -754,6 +849,72 @@ def resolve_provider_thinking_budget_tokens(
         if isinstance(value, int) and value > 0:
             return value
     return None
+
+
+def resolve_model_capabilities(
+    *,
+    model_id: str,
+    provider_name: str,
+) -> Dict[str, bool]:
+    if not isinstance(model_id, str) or not isinstance(provider_name, str):
+        return {
+            "supports_codex_oauth": False,
+            "supports_native_web_search": False,
+        }
+
+    normalized_model_id = model_id.strip()
+    candidate_model_ids = [normalized_model_id]
+    if "@@" in normalized_model_id:
+        selected_model_id, _ = normalized_model_id.split("@@", 1)
+        if selected_model_id:
+            candidate_model_ids.insert(0, selected_model_id)
+
+    resolved = {
+        "supports_codex_oauth": False,
+        "supports_native_web_search": False,
+    }
+    for candidate_model_id in candidate_model_ids:
+        runtime_model_id = resolve_runtime_model_id(candidate_model_id)
+        metadata = get_model_catalog_metadata(provider_name, runtime_model_id)
+        capabilities = metadata.get("capabilities")
+        if isinstance(capabilities, dict):
+            candidate_capabilities = {
+                "supports_codex_oauth": bool(
+                    capabilities.get("supports_codex_oauth")
+                ),
+                "supports_native_web_search": bool(
+                    capabilities.get("supports_native_web_search")
+                ),
+            }
+        else:
+            candidate_capabilities = {
+                "supports_codex_oauth": bool(metadata.get("supports_codex_oauth")),
+                "supports_native_web_search": bool(
+                    metadata.get("supports_native_web_search")
+                ),
+            }
+        resolved["supports_codex_oauth"] = (
+            resolved["supports_codex_oauth"]
+            or candidate_capabilities["supports_codex_oauth"]
+        )
+        resolved["supports_native_web_search"] = (
+            resolved["supports_native_web_search"]
+            or candidate_capabilities["supports_native_web_search"]
+        )
+    return resolved
+
+
+def supports_model_capability(
+    *,
+    model_id: str,
+    provider_name: str,
+    capability_name: str,
+) -> bool:
+    capabilities = resolve_model_capabilities(
+        model_id=model_id,
+        provider_name=provider_name,
+    )
+    return bool(capabilities.get(str(capability_name or "").strip(), False))
 
 
 def resolve_runtime_model_id(model_id: str) -> str:

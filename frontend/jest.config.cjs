@@ -16,6 +16,10 @@ module.exports = {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: babelConfig }],
   },
   transformIgnorePatterns: ['/node_modules/(?!marked|marked-katex-extension)'],
+  modulePathIgnorePatterns: [
+    '<rootDir>/frontend/python-runtime',
+    '<rootDir>/frontend/release',
+  ],
   moduleDirectories: ['node_modules', '<rootDir>/frontend/node_modules'],
   moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'cjs', 'json'],
   moduleNameMapper: {

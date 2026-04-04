@@ -387,6 +387,17 @@ def test_get_all_online_models_marks_openai_gpt_5_4_as_thinking_text_stream_capa
     assert gpt_5_4 is not None
     assert gpt_5_4.get("supports_thinking") is True
     assert gpt_5_4.get("supports_thinking_text_stream") is True
+    assert gpt_5_4.get("family_id") == "openai::gpt-5.4"
+    assert gpt_5_4.get("family_label") == "GPT-5.4"
+    assert gpt_5_4.get("default_model_id") == "gpt-5.4@@gpt-5-4-none-thinking"
+    assert gpt_5_4.get("default_reasoning_mode") == "none"
+    assert gpt_5_4.get("reasoning_modes") == ["none", "low", "medium", "high", "xhigh"]
+    assert gpt_5_4.get("supports_native_web_search") is True
+    assert gpt_5_4.get("supports_codex_oauth") is False
+    assert gpt_5_4.get("capabilities") == {
+        "supports_codex_oauth": False,
+        "supports_native_web_search": True,
+    }
 
 
 def test_get_all_online_models_marks_gemini_3_1_pro_preview_as_non_thinking():
@@ -406,6 +417,9 @@ def test_get_all_online_models_marks_gemini_3_1_pro_preview_as_non_thinking():
     assert gemini_3_1 is not None
     assert gemini_3_1.get("supports_thinking") is False
     assert gemini_3_1.get("supports_thinking_text_stream") is None
+    assert gemini_3_1.get("default_reasoning_mode") == "none"
+    assert gemini_3_1.get("reasoning_modes") == ["none", "low", "high"]
+    assert gemini_3_1.get("supports_native_web_search") is True
 
 
 def test_get_all_online_models_marks_openrouter_qwen3_vl_as_thinking_text_stream_capable():

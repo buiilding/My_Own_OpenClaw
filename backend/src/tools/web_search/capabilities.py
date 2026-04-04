@@ -6,13 +6,9 @@ import os
 from typing import Literal, Optional
 
 from backend.src.core.config.models import AppConfig
-from backend.src.llm.models.models_config import resolve_runtime_model_id
+from backend.src.llm.models.models_config import supports_model_capability
 
 WebSearchExecutionMode = Literal["native-openai", "native-gemini", "backend-brave"]
-
-_OPENAI_NATIVE_MODEL_PREFIXES = ("gpt-4.1", "gpt-5")
-_GEMINI_NATIVE_MODEL_PREFIXES = ("gemini-",)
-
 
 def _normalize_provider_name(provider_name: str | None) -> str:
     if not isinstance(provider_name, str):
@@ -23,23 +19,17 @@ def _normalize_provider_name(provider_name: str | None) -> str:
     return normalized
 
 
-def _runtime_model_component(model_id: str | None) -> str:
-    if not isinstance(model_id, str):
-        return ""
-    runtime_model_id = resolve_runtime_model_id(model_id).strip().lower()
-    if "/" in runtime_model_id:
-        _, runtime_model_id = runtime_model_id.split("/", 1)
-    return runtime_model_id
-
-
 def supports_openai_native_web_search(
     provider_name: str | None,
     model_id: str | None,
 ) -> bool:
     if _normalize_provider_name(provider_name) != "openai":
         return False
-    runtime_model_id = _runtime_model_component(model_id)
-    return runtime_model_id.startswith(_OPENAI_NATIVE_MODEL_PREFIXES)
+    return supports_model_capability(
+        model_id=str(model_id or ""),
+        provider_name="openai",
+        capability_name="supports_native_web_search",
+    )
 
 
 def supports_gemini_native_web_search(
@@ -48,8 +38,11 @@ def supports_gemini_native_web_search(
 ) -> bool:
     if _normalize_provider_name(provider_name) != "gemini":
         return False
-    runtime_model_id = _runtime_model_component(model_id)
-    return runtime_model_id.startswith(_GEMINI_NATIVE_MODEL_PREFIXES)
+    return supports_model_capability(
+        model_id=str(model_id or ""),
+        provider_name="gemini",
+        capability_name="supports_native_web_search",
+    )
 
 
 def has_brave_search_api_key(cfg: AppConfig) -> bool:
