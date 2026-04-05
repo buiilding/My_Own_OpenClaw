@@ -38,6 +38,14 @@ This lets `InteractionLoop` consume provider-native `tool_calls` without running
 - converts each call via `to_parsed_tool_call(...)`
 - sets `has_tool_calls = len(parsed_tool_calls) > 0`
 
+Provider-normalized built-in note:
+
+- provider-normalized tool calls no longer have to be function tools only
+- OpenAI Responses-native `computer_call` items are normalized upstream into canonical `tool_calls` rows with:
+  - `name = "computer"`
+  - `arguments = {"actions": [...]}`
+- the bridge treats these like any other canonical native tool call: it preserves the model-facing payload in metadata and passes the logical tool name downstream unchanged
+
 ## Single Tool-Call Normalization
 
 `to_parsed_tool_call(...)` fail-closes malformed payload fields:
@@ -62,6 +70,7 @@ Metadata precedence nuance:
 
 - provider-level fields (`id` -> `metadata.tool_call_id`, `thought_signature`) are seeded first
 - top-level `arguments.metadata` merge runs after seeding, so overlapping keys in wrapper metadata can override seeded values
+- provider-native built-in calls such as OpenAI `computer` typically arrive without wrapper metadata; in that case the bridge keeps only provider-seeded metadata plus the preserved `model_facing_tool_call`
 
 Deep-copy boundary:
 
@@ -213,6 +222,7 @@ Extraction helpers:
 3. Changing history id fallback format can break downstream assumptions in tool-output correlation/debug tooling.
 4. Modifying recoverable marker heuristics can convert retryable malformed-tool-call events into hard loop aborts.
 5. Re-introducing nested `arguments.explanation` fallback in the bridge without matching parser/sidecar behavior can desync wrapper routing.
+6. Forgetting that canonical native tool calls can include built-in logical names such as `computer` can lead to downstream code that incorrectly assumes every normalized tool call originated from a function tool schema.
 
 ## Related Docs
 
