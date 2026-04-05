@@ -185,7 +185,7 @@ class OpenAIRealtimeTranscriptionSession(TranscriptionProviderSession):
         await connection.send(json.dumps(payload))
 
     def _build_url(self) -> str:
-        return f"{OPENAI_REALTIME_URL}?{urlencode({'model': self._config.openai_realtime_transcription_model})}"
+        return f"{OPENAI_REALTIME_URL}?{urlencode({'model': self._config.openai_realtime_session_model})}"
 
     def _require_connection(self) -> Any:
         if self._connection is None:
