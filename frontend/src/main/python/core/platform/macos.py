@@ -426,15 +426,23 @@ class MacOSWindowManager(BaseWindowManager):
     def _escape_applescript_string(value: str) -> str:
         return str(value).replace("\\", "\\\\").replace('"', '\\"')
 
-    def _raise_window_via_applescript(self, app_name: str, window_name: str) -> bool:
+    def _raise_window_via_applescript(
+        self,
+        app_name: str,
+        window_name: str,
+        *,
+        match_index: int = 1,
+    ) -> bool:
         escaped_app_name = self._escape_applescript_string(app_name)
         escaped_window_name = self._escape_applescript_string(window_name)
+        normalized_match_index = max(1, int(match_index or 1))
         script = f'''
 tell application "System Events"
     tell process "{escaped_app_name}"
-        if exists (first window whose name is "{escaped_window_name}") then
+        set matchingWindows to every window whose name is "{escaped_window_name}"
+        if (count of matchingWindows) >= {normalized_match_index} then
             set frontmost to true
-            set targetWindow to first window whose name is "{escaped_window_name}"
+            set targetWindow to item {normalized_match_index} of matchingWindows
             try
                 perform action "AXRaise" of targetWindow
             end try
@@ -566,24 +574,41 @@ return "false"
 
         return None
     
-    def switch_to_window(self, window_title: str) -> bool:
-        """Switch to a window by title."""
+    def switch_to_window(self, window_target: str | dict) -> bool:
+        """Switch to a window by title or resolved window record."""
         if not self._available:
             return False
 
         try:
             target_window = None
-            normalized_requested_title = window_title.lower()
-            candidate_windows = self._list_user_window_records()
-            if not candidate_windows:
-                candidate_windows = self._list_running_app_records()
-            for window in candidate_windows:
-                if (
-                    normalized_requested_title in window["title"].lower()
-                    or normalized_requested_title in window["app_name"].lower()
-                ):
-                    target_window = window
-                    break
+            if isinstance(window_target, Mapping):
+                target_title = str(window_target.get("title") or "").strip()
+                target_app_name = str(window_target.get("app_name") or "").strip()
+                target_window = {
+                    "title": target_title or target_app_name,
+                    "hwnd": window_target.get("hwnd"),
+                    "app_name": target_app_name or target_title,
+                    "window_name": str(
+                        window_target.get("window_name")
+                        or target_title
+                        or target_app_name
+                    ).strip(),
+                    "_switch_duplicate_index": int(
+                        window_target.get("_switch_duplicate_index") or 1
+                    ),
+                }
+            else:
+                normalized_requested_title = str(window_target or "").lower()
+                candidate_windows = self._list_user_window_records()
+                if not candidate_windows:
+                    candidate_windows = self._list_running_app_records()
+                for window in candidate_windows:
+                    if (
+                        normalized_requested_title in window["title"].lower()
+                        or normalized_requested_title in window["app_name"].lower()
+                    ):
+                        target_window = window
+                        break
 
             if not target_window:
                 return False
@@ -600,6 +625,7 @@ return "false"
                     raised_window = self._raise_window_via_applescript(
                         target_window["app_name"],
                         target_window["window_name"],
+                        match_index=int(target_window.get("_switch_duplicate_index") or 1),
                     )
                     if not raised_window and target_window["window_name"] != target_window["app_name"]:
                         logger.info(

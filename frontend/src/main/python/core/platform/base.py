@@ -28,12 +28,12 @@ class BaseWindowManager(ABC):
         pass
     
     @abstractmethod
-    def switch_to_window(self, window_title: str) -> bool:
+    def switch_to_window(self, window_target: str | dict) -> bool:
         """
-        Switch to a window by title.
+        Switch to a window by title or a resolved window record.
         
         Args:
-            window_title: Title of the window to switch to
+            window_target: Window title or resolved window record to switch to
             
         Returns:
             True if successful, False otherwise

@@ -96,14 +96,30 @@ class LinuxWindowManager(BaseWindowManager):
         
         return None
     
-    def switch_to_window(self, window_title: str) -> bool:
-        """Switch to a window by title."""
+    def switch_to_window(self, window_target: str | dict) -> bool:
+        """Switch to a window by title or resolved window record."""
         if not self._available:
             return False
 
         try:
             windows = self.get_windows()
-            target = self._select_best_match(windows, window_title)
+            target = None
+            if isinstance(window_target, dict):
+                requested_hwnd = window_target.get("hwnd")
+                if requested_hwnd is not None:
+                    target = next(
+                        (
+                            window
+                            for window in windows
+                            if str(window.get("hwnd")) == str(requested_hwnd)
+                        ),
+                        None,
+                    )
+                if target is None:
+                    requested_title = str(window_target.get("title") or "").strip()
+                    target = self._select_best_match(windows, requested_title)
+            else:
+                target = self._select_best_match(windows, str(window_target or ""))
             if not target:
                 return False
 

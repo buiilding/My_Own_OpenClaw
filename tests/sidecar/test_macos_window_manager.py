@@ -495,7 +495,7 @@ def test_macos_window_manager_switch_to_window_accepts_app_level_match_when_acti
         ],
     )
 
-    def fake_raise(self, _app_name, _window_name):
+    def fake_raise(self, _app_name, _window_name, *, match_index=1):
         return True
 
     monkeypatch.setattr(MacOSWindowManager, "_raise_window_via_applescript", fake_raise)
@@ -509,6 +509,67 @@ def test_macos_window_manager_switch_to_window_accepts_app_level_match_when_acti
 
     assert manager.switch_to_window("finder") is True
     assert target.activated is True
+
+
+def test_macos_window_manager_switch_to_window_uses_duplicate_index_for_resolved_window(monkeypatch):
+    target = _FakeApp("Google Chrome", pid=111)
+    _install_fake_appkit(
+        monkeypatch,
+        apps=[target],
+        active_app={"NSApplicationName": "Terminal"},
+    )
+    _install_fake_application_services(monkeypatch, trusted=False)
+    _install_fake_quartz(
+        monkeypatch,
+        all_windows=[
+            {
+                "owner": "Google Chrome",
+                "name": "New Tab - Google Chrome",
+                "layer": 0,
+                "alpha": 1,
+                "id": 10,
+            },
+            {
+                "owner": "Google Chrome",
+                "name": "New Tab - Google Chrome",
+                "layer": 0,
+                "alpha": 1,
+                "id": 11,
+            },
+        ],
+        on_screen_windows=[
+            {
+                "owner": "Google Chrome",
+                "name": "New Tab - Google Chrome",
+                "layer": 0,
+                "alpha": 1,
+                "id": 11,
+            },
+        ],
+    )
+    run_calls = []
+
+    def fake_run(cmd, **_kwargs):
+        run_calls.append(cmd)
+        return SimpleNamespace(returncode=0, stdout="true\n")
+
+    monkeypatch.setattr("core.platform.macos.subprocess.run", fake_run)
+    monkeypatch.setattr("core.platform.macos.time.sleep", lambda *_args, **_kwargs: None)
+    manager = MacOSWindowManager()
+
+    assert (
+        manager.switch_to_window(
+            {
+                "title": "New Tab - Google Chrome",
+                "app_name": "Google Chrome",
+                "_switch_duplicate_index": 2,
+            }
+        )
+        is True
+    )
+    assert target.activated is True
+    assert len(run_calls) == 1
+    assert "item 2 of matchingWindows" in run_calls[0][2]
 
 
 def test_macos_window_manager_switch_to_window_returns_false_when_missing(monkeypatch):
