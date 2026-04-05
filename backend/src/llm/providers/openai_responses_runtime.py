@@ -33,6 +33,7 @@ _REASONING_EVENT_TYPES = {
 _OUTPUT_TEXT_EVENT_TYPE = "response.output_text.delta"
 _OUTPUT_ITEM_DONE_EVENT_TYPE = "response.output_item.done"
 _COMPLETED_EVENT_TYPE = "response.completed"
+_INCOMPLETE_EVENT_TYPE = "response.incomplete"
 
 
 def _build_reasoning_responses_params(
@@ -247,7 +248,10 @@ def _maybe_extract_final_response_payload(
     *,
     model: str,
 ) -> Optional[NormalizedLLMResponse]:
-    if normalize_openai_stream_event_type(event) != _COMPLETED_EVENT_TYPE:
+    if normalize_openai_stream_event_type(event) not in {
+        _COMPLETED_EVENT_TYPE,
+        _INCOMPLETE_EVENT_TYPE,
+    }:
         return None
     response = get_value(event, "response")
     if response is None:

@@ -221,6 +221,10 @@ This enables follow-up turns that continue after tool execution without text-JSO
 
 **Models**: `gpt-5.4` exposed as reasoning presets for `none`, `low`, `medium`, `high`, and `xhigh`
 
+Native web-search runtime note:
+- For OpenAI models that advertise native web-search support, WindieOS now attaches OpenAI Responses `web_search` directly to the main agent request instead of exposing backend logical `web_search` as a model-facing function tool.
+- This matches Codex-style behavior: the same OpenAI turn can browse natively, stream search-progress events, and return normalized source metadata without a second backend-owned LLM sub-call.
+
 **Configuration**:
 ```python
 from backend.src.core.config.models import AppConfig, LLMProviders, OpenAIConfig

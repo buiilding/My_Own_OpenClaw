@@ -11,6 +11,7 @@ from backend.src.core.events.streaming_events import (
     FullResponseEvent,
     ThinkingEvent,
     TokenCountEvent,
+    WebSearchProgressEvent,
 )
 from backend.src.core.infrastructure.exceptions import LLMAPIError
 
@@ -35,6 +36,17 @@ class _FakeSession:
     cfg = _FakeConfig()
     history = _FakeHistory()
     session_id = "session-test"
+
+
+class _OpenAINativeWebSearchConfig:
+    selected_model_id = "gpt-5.4@@gpt-5-4-medium-thinking"
+    model_provider = "openai"
+
+
+class _OpenAINativeWebSearchSession:
+    cfg = _OpenAINativeWebSearchConfig()
+    history = _FakeHistory()
+    session_id = "session-openai-native-search"
 
 
 class _KimiConfig:
@@ -209,6 +221,29 @@ class _MissingUsageLLMClient:
         parallel_tool_calls=None,
     ):
         yield ChunkEvent(content="visible")
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+
+class _OpenAINativeWebSearchLLMClient:
+    def __init__(self):
+        self.native_web_search_enabled = None
+
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+        prompt_cache_key=None,
+        native_web_search_enabled=None,
+    ):
+        _ = (model, messages, tools, tool_choice, parallel_tool_calls, prompt_cache_key)
+        self.native_web_search_enabled = native_web_search_enabled
+        yield WebSearchProgressEvent(text="Searched openai.com")
+        yield ChunkEvent(content="final")
 
     def get_last_stream_cache_diagnostics(self):
         return None
@@ -522,6 +557,22 @@ async def test_token_count_falls_back_to_estimate_when_provider_usage_missing(mo
     assert token_event.cached_tokens is None
     assert token_event.cache_hit is None
     assert token_event.cache_status is None
+
+
+@pytest.mark.asyncio
+async def test_openai_main_turn_enables_native_web_search_when_supported(monkeypatch):
+    _patch_fake_token_service(monkeypatch)
+    llm_client = _OpenAINativeWebSearchLLMClient()
+    processor = LLMStreamProcessor(
+        llm_client=llm_client,
+        session=_OpenAINativeWebSearchSession(),
+    )
+
+    events = await _collect_response_events(processor)
+
+    assert llm_client.native_web_search_enabled is True
+    assert any(isinstance(event, WebSearchProgressEvent) for event in events)
+    assert any(isinstance(event, ChunkEvent) and event.content == "final" for event in events)
 
 
 @pytest.mark.asyncio

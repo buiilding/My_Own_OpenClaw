@@ -30,6 +30,9 @@ from backend.src.core.infrastructure.exceptions import LLMAPIError, LLMRateLimit
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.llm.request_kwargs import build_tool_transport_kwargs
 from backend.src.services.token_service import get_token_service
+from backend.src.tools.web_search.capabilities import (
+    should_enable_openai_native_web_search_main_request,
+)
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -92,6 +95,11 @@ class LLMStreamProcessor:
             prompt=prompt,
             tools=tools,
         )
+        native_web_search_enabled = (
+            True
+            if should_enable_openai_native_web_search_main_request(self.session.cfg)
+            else None
+        )
         request_kwargs = self._build_completion_request_kwargs(
             model_id=model_id,
             prompt=prompt,
@@ -99,7 +107,7 @@ class LLMStreamProcessor:
             tool_choice=tool_choice,
             parallel_tool_calls=parallel_tool_calls,
             prompt_cache_key=prompt_cache_key,
-            native_web_search_enabled=False,
+            native_web_search_enabled=native_web_search_enabled,
             previous_response_id=previous_response_id,
         )
         self._last_response_payload = None
@@ -247,7 +255,7 @@ class LLMStreamProcessor:
         tool_choice: Optional[Any],
         parallel_tool_calls: Optional[bool],
         prompt_cache_key: Optional[str],
-        native_web_search_enabled: bool,
+        native_web_search_enabled: Optional[bool],
         previous_response_id: Optional[str],
     ) -> Dict[str, Any]:
         """Build shared completion transport kwargs for stream and non-stream calls."""

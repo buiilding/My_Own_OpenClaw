@@ -1,4 +1,4 @@
-"""Capability helpers for logical `web_search` routing."""
+"""Capability helpers for web-search routing and provider-native enablement."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from backend.src.core.config.models import AppConfig
 from backend.src.llm.models.models_config import supports_model_capability
 
 WebSearchExecutionMode = Literal["native-openai", "native-gemini", "backend-brave"]
+
 
 def _normalize_provider_name(provider_name: str | None) -> str:
     if not isinstance(provider_name, str):
@@ -72,5 +73,11 @@ def should_enable_native_web_search(cfg: AppConfig) -> bool:
     return resolve_web_search_execution_mode(cfg) in {"native-openai", "native-gemini"}
 
 
+def should_enable_openai_native_web_search_main_request(cfg: AppConfig) -> bool:
+    """Return whether the main OpenAI Responses request should expose native web search."""
+    return resolve_web_search_execution_mode(cfg) == "native-openai"
+
+
 def should_expose_backend_web_search_tool(cfg: AppConfig) -> bool:
-    return resolve_web_search_execution_mode(cfg) is not None
+    """Return whether the backend logical `web_search` tool should be model-visible."""
+    return resolve_web_search_execution_mode(cfg) in {"native-gemini", "backend-brave"}
