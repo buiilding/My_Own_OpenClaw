@@ -35,7 +35,7 @@ Current runtime policies:
 - If `tts_model_path` is unset, backend fills an OS-default path via `get_default_tts_model_path()`.
 - TTS audio streaming still depends on `speech_mode_enabled` at request time.
 - `speech_provider` defaults to `elevenlabs`; the API layer falls back to local Piper if ElevenLabs cannot initialize.
-- `stt_provider` defaults to `nova`; the backend-owned `/ws/transcription` gateway proxies to Nova or translates to OpenAI Realtime without exposing provider choice to the renderer.
+- `stt_provider` defaults to `openai`; the backend-owned `/ws/transcription` gateway can still proxy to Nova or translate to OpenAI Realtime without exposing provider choice to the renderer.
 
 ## Backend Configuration (Python)
 
@@ -58,7 +58,7 @@ APP_CONFIG = AppConfig(
     memory_enabled=True,
     embedding_model="all-MiniLM-L6-v2",
     speech_mode_enabled=False,
-    stt_provider="nova",
+    stt_provider="openai",
     speech_provider="elevenlabs",
     include_query_screenshot=True,
     vision_model_name="OpenGVLab/InternVL3_5-4B",
@@ -88,7 +88,7 @@ API keys are loaded from environment variables defined in `backend/src/core/conf
 - `ELEVENLABS_API_KEY` (default speech provider authentication)
 
 ElevenLabs note:
-- `speech_provider` and the default ElevenLabs voice/model/output settings live in backend config.
+- `speech_provider` and the default ElevenLabs voice/model/output/streaming settings live in backend config.
 - `elevenlabs_api_key_env` stores only the environment variable name to read for auth.
 - The actual ElevenLabs secret must be provided through `ELEVENLABS_API_KEY` in the environment.
 

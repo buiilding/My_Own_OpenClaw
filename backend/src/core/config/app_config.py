@@ -44,7 +44,7 @@ APP_CONFIG = AppConfig(
     vision_model_name="OpenGVLab/InternVL3_5-4B",
     # Voice Mode Settings
     wakeword_stt_enabled=False,
-    stt_provider="nova",
+    stt_provider="openai",
     stt_language="en",
     nova_voice_gateway_url="ws://127.0.0.1:5026",
     openai_realtime_transcription_model="gpt-4o-mini-transcribe",
@@ -72,6 +72,8 @@ APP_CONFIG = AppConfig(
     elevenlabs_voice_id="EXAVITQu4vr4xnSDxMaL",
     elevenlabs_model_id="eleven_flash_v2_5",
     elevenlabs_output_format="pcm_16000",
+    elevenlabs_auto_mode=True,
+    elevenlabs_inactivity_timeout=60,
     elevenlabs_chunk_length_schedule=[50, 80, 120, 160],
     # Security limits
     security_limits=SecurityLimits(),

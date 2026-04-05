@@ -124,15 +124,16 @@ Helper boundary:
 
 `ElevenLabsTTSService` keeps the same high-level contract as the local provider:
 
-1. buffer streamed text into sentence-like chunks
-2. send committed chunks to ElevenLabs over one websocket session per request
+1. defer websocket initialization until the first speakable text chunk for the request
+2. send incremental plain-text chunks to ElevenLabs over one websocket session per request
 3. receive incremental audio back as base64 PCM chunks
 4. emit the same `audio-chunk` payload shape used by the local provider
 
 Important behavior:
 
 - the provider is fed partial text during the live LLM stream; it does not wait for the full assistant response
-- `flush()` sends the final buffered text and closes the generation with EOS so tail audio is not lost
+- websocket sessions default to `auto_mode=true` and `inactivity_timeout=60` so ElevenLabs handles low-latency chunking while keeping slow first-token turns alive longer
+- `flush()` closes the generation with `flush: true` so tail audio is not lost at end-of-turn
 - frontend playback remains provider-agnostic because both providers emit the same normalized payload fields
 
 ## Outbound Audio Chunk Contract (Runtime)
