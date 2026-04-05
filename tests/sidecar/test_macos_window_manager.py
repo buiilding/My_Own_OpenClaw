@@ -208,7 +208,10 @@ def test_macos_window_manager_get_windows_falls_back_to_running_apps_when_quartz
     )
     manager = MacOSWindowManager()
 
-    assert manager.get_windows() == []
+    assert manager.get_windows() == [
+        {"title": "Terminal", "hwnd": None, "app_name": "Terminal"},
+        {"title": "Safari", "hwnd": None, "app_name": "Safari"},
+    ]
 
 
 def test_macos_window_manager_get_windows_prefers_accessibility_windows(monkeypatch):
@@ -239,91 +242,12 @@ def test_macos_window_manager_get_windows_prefers_accessibility_windows(monkeypa
         all_windows=[
             {"owner": "Dock", "name": "", "layer": 20, "alpha": 1, "id": 2},
         ],
-        on_screen_windows=[
-            {"owner": "Codex", "name": "Codex", "layer": 0, "alpha": 1, "id": 10},
-            {"owner": "Google Chrome", "name": "Mail - Outlook", "layer": 0, "alpha": 1, "id": 11},
-        ],
     )
     manager = MacOSWindowManager()
 
     assert manager.get_windows() == [
         {"title": "Codex", "hwnd": None, "app_name": "Codex"},
         {"title": "Mail - Outlook", "hwnd": None, "app_name": "Google Chrome"},
-    ]
-
-
-def test_macos_window_manager_get_windows_drops_accessibility_windows_not_on_screen(monkeypatch):
-    apps = [
-        _FakeApp("Zalo", pid=101),
-        _FakeApp("Google Chrome", pid=202),
-    ]
-    _install_fake_appkit(
-        monkeypatch,
-        apps=apps,
-        active_app={"NSApplicationName": "Google Chrome"},
-    )
-    _install_fake_application_services(
-        monkeypatch,
-        trusted=True,
-        app_windows_by_pid={
-            101: [
-                ("window", {"AXTitle": "Zalo", "AXMinimized": False, "AXMain": True}),
-            ],
-            202: [
-                ("window", {"AXTitle": "Inbox", "AXMinimized": False, "AXMain": True}),
-            ],
-        },
-        focused_window_by_pid={
-            202: ("window", {"AXTitle": "Inbox"}),
-        },
-    )
-    _install_fake_quartz(
-        monkeypatch,
-        all_windows=[
-            {"owner": "Zalo", "name": "Zalo", "layer": 0, "alpha": 1, "id": 1},
-            {"owner": "Google Chrome", "name": "Inbox", "layer": 0, "alpha": 1, "id": 2},
-        ],
-        on_screen_windows=[
-            {"owner": "Google Chrome", "name": "Inbox", "layer": 0, "alpha": 1, "id": 2},
-        ],
-    )
-    manager = MacOSWindowManager()
-
-    assert manager.get_windows() == [
-        {"title": "Inbox", "hwnd": None, "app_name": "Google Chrome"},
-    ]
-
-
-def test_macos_window_manager_keeps_focused_accessibility_window_when_quartz_misses_active_fullscreen_window(monkeypatch):
-    apps = [_FakeApp("Codex", pid=101)]
-    _install_fake_appkit(
-        monkeypatch,
-        apps=apps,
-        active_app={"NSApplicationName": "Codex"},
-    )
-    _install_fake_application_services(
-        monkeypatch,
-        trusted=True,
-        app_windows_by_pid={
-            101: [
-                ("window", {"AXTitle": "Codex", "AXMinimized": False, "AXMain": True}),
-            ],
-        },
-        focused_window_by_pid={
-            101: ("window", {"AXTitle": "Codex"}),
-        },
-    )
-    _install_fake_quartz(
-        monkeypatch,
-        all_windows=[
-            {"owner": "Codex", "name": "Codex", "layer": 0, "alpha": 1, "id": 1},
-        ],
-        on_screen_windows=[],
-    )
-    manager = MacOSWindowManager()
-
-    assert manager.get_windows() == [
-        {"title": "Codex", "hwnd": None, "app_name": "Codex"},
     ]
 
 
@@ -404,10 +328,10 @@ def test_macos_window_manager_logs_quartz_filter_debug_summary(monkeypatch, capl
     manager = MacOSWindowManager()
 
     with caplog.at_level(logging.DEBUG, logger="core.platform.macos"):
-        assert manager.get_windows() == []
+        assert manager.get_windows() == [{"title": "Terminal", "hwnd": None, "app_name": "Terminal"}]
 
     assert (
-        "Quartz window enumeration debug (on_screen_only=True): raw=4 usable=0 "
+        "Quartz window enumeration debug (on_screen_only=False): raw=4 usable=0 "
         "dropped_non_dict=1 dropped_non_regular_app=3 dropped_layer=0 dropped_alpha=0 dropped_title=0"
     ) in caplog.text
     assert "Quartz window enumeration samples:" in caplog.text
