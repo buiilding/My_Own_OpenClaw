@@ -155,7 +155,7 @@ Handler map (`BackendEventType` -> behavior):
 - `context-compaction-failed`: replaces compaction thinking with terminal failure text (backend error string when available, otherwise `Conversation compaction failed.`) and marks source as `context-compaction-failed`
 - `tool-call`: append assistant tool-call row and transcript tool-call row
 - `tool-output`: append assistant tool-output row with screenshot/tool metadata and transcript tool-output row
-- `tool-bundle`: append bundle call row
+- `tool-bundle`: append bundle call row and persist a transcript `tool-bundle` trace row so later transcript loads can reconstruct the bundle call card without reclassifying it as a normal executable tool-call
 - `system-prompt`: annotate last user message with system prompt + tool schema snapshot
 - `user-message-full`: annotate user message with full payload metadata
 - `assistant-message-full`: annotate latest assistant `llm-text` message
@@ -196,6 +196,7 @@ Tool-specific handler extraction (`useChatStreamToolHandlers`) ownership:
 - clears transient thinking status/source before each tool event
 - converts backend tool payloads into chat rows via `chatStreamToolMessages.ts`
 - records transcript tool rows with model metadata from `modelContextRef`
+- persists bundle-call rows as `messageType='tool-bundle'` so replay/rehydrate can preserve bundle provenance instead of degrading them into generic `tool-call` rows
 - resolves tool-output correlation id fallback via `resolveToolOutputCorrelationId(...)`
 - normalizes screenshot attachment from `payload.screenshot_ref`
 

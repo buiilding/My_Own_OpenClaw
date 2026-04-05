@@ -30,6 +30,9 @@ export function resolveTranscriptMessageType(message) {
   if (message.sender === 'user') {
     return 'user';
   }
+  if (message.type === 'tool-call' && normalizeOptionalString(message.sourceEventType) === 'tool-bundle') {
+    return 'tool-bundle';
+  }
   return message.type || 'llm-text';
 }
 
