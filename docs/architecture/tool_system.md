@@ -102,14 +102,13 @@ Wrapper reference artifact note:
 
 ### Backend-Executed Tools
 
-Some logical tools are fulfilled entirely in the backend and never go through the sidecar. Current v1 support is `web_search`:
+Some logical tools are fulfilled entirely in the backend and never go through the sidecar. Current v1 support is `web_search`, but the execution path now depends on provider:
 
-- The agent always sees one logical `web_search` tool when the active backend can fulfill it.
-- OpenAI and Gemini fulfill that tool by making a backend-owned provider-native web search request when the tool is called.
-- Other providers use a backend-executed Brave Search fallback when `BRAVE_SEARCH_API_KEY` is configured.
-- Brave and Gemini still surface `web_search` like any other backend tool: the model emits a tool call, the backend executes the search, and the UI renders the final tool-output result.
-- OpenAI native `web_search` now also streams lightweight progress rows (`web-search-progress` -> transient renderer `search-source` messages) while the backend-owned search is still running, then ends with the normal `tool-call` + `tool-output` pair once the logical tool result is ready.
-- OpenAI native `computer` uses the same pattern at a different boundary: the model sees one logical provider-native tool call, the backend expands that call into an internal desktop-action bundle, the frontend still executes the bundle through the shared bundle path, and the final screenshot/image output remains the existing bundle capture output.
+- OpenAI-capable sessions do not expose backend `web_search` to the model. Instead, the main OpenAI Responses request includes native `web_search` directly, so the same agent turn performs the search without a second backend-owned LLM sub-call.
+- Gemini and Brave-backed sessions still expose logical backend `web_search`: the model emits a tool call, the backend fulfills it, and the UI renders the final tool-output result.
+- Brave remains the backend fallback when `BRAVE_SEARCH_API_KEY` is configured for providers without native search.
+- OpenAI native `web_search` still streams lightweight progress rows (`web-search-progress` -> transient renderer `search-source` messages), but those progress events now come from the main LLM turn rather than a backend logical tool execution.
+- OpenAI native `computer` uses a similar provider-boundary projection: the model sees one provider-native `computer` tool call, the backend expands that call into internal desktop-action bundles, and the frontend still executes the bundle through the shared path.
 
 ### Backend Responsibilities
 
@@ -119,14 +118,14 @@ The backend:
 - Resolves coordinates and screenshots with frame-local metadata (`capture_meta` + internal frame identity)
 - Waits for results from the frontend sidecar for frontend-executed tools
 - Executes backend-owned tools directly when a tool declares backend execution
-- Augments backend-owned `web_search` executions with provider-native capabilities when supported
+- Augments provider-native web-search responses with normalized source/progress metadata
 - Keeps tool schemas focused on action/parameter contracts while placing cross-tool operational strategy (grounding, timing, verification, sequencing) in the global system prompt
 
 Current live model-facing tool count:
 
 - 14 direct remote tools from `backend/src/tools/tool_catalog.py`
-- 1 backend-owned logical tool, `web_search`
-- total: 15 live runtime tool schemas
+- optional backend-owned logical `web_search` for Gemini/Brave-backed sessions
+- OpenAI-native sessions expose 14 live runtime tool schemas and add provider-native `web_search` directly at the OpenAI transport layer
 
 OpenAI projection note:
 

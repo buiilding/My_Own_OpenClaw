@@ -202,6 +202,57 @@ async def test_openai_responses_runtime_emits_web_search_progress_events(monkeyp
     assert all(event.request_id == "req-openai-search-1" for event in events)
 
 
+@pytest.mark.asyncio
+async def test_openai_responses_runtime_accepts_incomplete_terminal_payload(monkeypatch):
+    provider = OpenAIProvider(api_key="test-key")
+
+    class _FakeResponsesStream:
+        def __aiter__(self):
+            async def iterator():
+                yield {
+                    "type": "response.incomplete",
+                    "response": {
+                        "output": [
+                            {
+                                "type": "message",
+                                "content": [
+                                    {
+                                        "type": "output_text",
+                                        "text": "partial but valid",
+                                    }
+                                ],
+                            }
+                        ],
+                        "status": "incomplete",
+                    },
+                }
+
+            return iterator()
+
+    async def fake_aresponses(**_kwargs):
+        return _FakeResponsesStream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
+
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.4@@gpt-5-4-none-thinking",
+            messages=[{"role": "user", "content": "Search the web"}],
+            native_web_search_enabled=True,
+        )
+    )
+
+    assert events == []
+    assert provider.get_last_stream_response_payload() == {
+        "content": "partial but valid",
+        "finish_reason": "incomplete",
+    }
+
+
 def test_openai_provider_build_request_params_preserves_browser_root_object_tool_schema():
     provider = OpenAIProvider(api_key="test-key")
     browser_parameters = build_browser_tool_parameters_schema()
