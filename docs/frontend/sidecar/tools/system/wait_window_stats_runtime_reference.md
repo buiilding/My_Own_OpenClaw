@@ -88,7 +88,7 @@ Input:
 Semantics:
 
 - pulls open user-facing windows from the platform manager while filtering out background/helper windows
-- on macOS, prefers Accessibility window enumeration for regular GUI apps and uses Quartz only as a per-app fallback when Accessibility returns no usable windows
+- on macOS, only returns windows corroborated as currently on-screen; Accessibility window rows are filtered against on-screen Quartz visibility, with an active focused-window fallback for maximized/full-screen cases Quartz can miss, and Quartz remains the per-app fallback when Accessibility exposes no visible window
 - formats entries as `app_name: title` when both exist and differ; otherwise uses whichever one is available
 - removes empty entries and dedupes case-insensitively by the final displayed string while preserving first-seen order
 - optional filter is case-insensitive substring match against the displayed app/window name and its raw app/title parts
