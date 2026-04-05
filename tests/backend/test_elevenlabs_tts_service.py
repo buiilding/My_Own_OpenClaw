@@ -82,11 +82,14 @@ async def test_elevenlabs_tts_service_streams_incremental_text_chunks_and_flush(
         == "wss://api.elevenlabs.io/v1/text-to-speech/"
         "EXAVITQu4vr4xnSDxMaL/stream-input"
         "?model_id=eleven_flash_v2_5&output_format=pcm_16000"
-        "&auto_mode=true&inactivity_timeout=60"
+        "&auto_mode=false&inactivity_timeout=60"
     )
     assert fake_websocket.sent_messages[0]["text"] == " "
+    assert fake_websocket.sent_messages[0]["generation_config"] == {
+        "chunk_length_schedule": [50, 80, 120, 160]
+    }
     assert fake_websocket.sent_messages[1]["text"] == "Hello "
-    assert "try_trigger_generation" not in fake_websocket.sent_messages[1]
+    assert fake_websocket.sent_messages[1]["try_trigger_generation"] is True
     assert fake_websocket.sent_messages[2]["text"] == "world. "
     assert fake_websocket.sent_messages[3]["text"] == "trailing "
 
@@ -112,7 +115,7 @@ async def test_elevenlabs_tts_service_skips_initialize_without_api_key(monkeypat
 
 
 @pytest.mark.asyncio
-async def test_elevenlabs_tts_service_keeps_manual_generation_controls_when_auto_mode_disabled(
+async def test_elevenlabs_tts_service_uses_auto_mode_when_enabled(
     monkeypatch,
 ):
     fake_websocket = _FakeWebSocket()
@@ -126,7 +129,7 @@ async def test_elevenlabs_tts_service_keeps_manual_generation_controls_when_auto
     service = ElevenLabsTTSService(
         AppConfig(
             speech_provider="elevenlabs",
-            elevenlabs_auto_mode=False,
+            elevenlabs_auto_mode=True,
             elevenlabs_inactivity_timeout=120,
         )
     )
@@ -138,9 +141,7 @@ async def test_elevenlabs_tts_service_keeps_manual_generation_controls_when_auto
         == "wss://api.elevenlabs.io/v1/text-to-speech/"
         "EXAVITQu4vr4xnSDxMaL/stream-input"
         "?model_id=eleven_flash_v2_5&output_format=pcm_16000"
-        "&auto_mode=false&inactivity_timeout=120"
+        "&auto_mode=true&inactivity_timeout=120"
     )
-    assert fake_websocket.sent_messages[0]["generation_config"] == {
-        "chunk_length_schedule": [50, 80, 120, 160]
-    }
-    assert fake_websocket.sent_messages[1]["try_trigger_generation"] is True
+    assert "generation_config" not in fake_websocket.sent_messages[0]
+    assert "try_trigger_generation" not in fake_websocket.sent_messages[1]

@@ -230,7 +230,7 @@ class TestAppConfig:
         assert config.elevenlabs_voice_id == "EXAVITQu4vr4xnSDxMaL"
         assert config.elevenlabs_model_id == "eleven_flash_v2_5"
         assert config.elevenlabs_output_format == "pcm_16000"
-        assert config.elevenlabs_auto_mode is True
+        assert config.elevenlabs_auto_mode is False
         assert config.elevenlabs_inactivity_timeout == 60
         assert config.elevenlabs_chunk_length_schedule == [50, 80, 120, 160]
         assert config.artifact_store_path.endswith("artifacts")

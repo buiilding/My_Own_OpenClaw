@@ -132,7 +132,7 @@ Helper boundary:
 Important behavior:
 
 - the provider is fed partial text during the live LLM stream; it does not wait for the full assistant response
-- websocket sessions default to `auto_mode=true` and `inactivity_timeout=60` so ElevenLabs handles low-latency chunking while keeping slow first-token turns alive longer
+- websocket sessions keep `inactivity_timeout=60` by default, but leave `auto_mode` off for the live assistant path so WindieOS can keep manually triggering generation on small incremental chunks
 - `flush()` closes the generation with `flush: true` so tail audio is not lost at end-of-turn
 - frontend playback remains provider-agnostic because both providers emit the same normalized payload fields
 
