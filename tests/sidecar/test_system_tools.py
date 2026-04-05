@@ -208,12 +208,12 @@ async def test_get_open_windows_preserves_duplicate_display_names(monkeypatch):
 
     assert result["success"] is True
     assert result["data"]["windows"] == [
-        "Google Chrome: New Tab - Google Chrome",
-        "Google Chrome: New Tab - Google Chrome",
+        "Google Chrome: New Tab - Google Chrome (1)",
+        "Google Chrome: New Tab - Google Chrome (2)",
     ]
     assert result["data"]["llm_content"] == (
-        "- Google Chrome: New Tab - Google Chrome\n"
-        "- Google Chrome: New Tab - Google Chrome"
+        "- Google Chrome: New Tab - Google Chrome (1)\n"
+        "- Google Chrome: New Tab - Google Chrome (2)"
     )
 
 
