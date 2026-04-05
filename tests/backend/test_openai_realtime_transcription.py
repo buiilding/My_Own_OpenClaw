@@ -47,7 +47,7 @@ async def test_openai_realtime_connect_includes_model_query_param_and_session_up
 
     assert (
         captured["url"]
-        == f"{OPENAI_REALTIME_URL}?model=gpt-4o-mini-transcribe"
+        == f"{OPENAI_REALTIME_URL}?model=gpt-realtime-1.5"
     )
     assert captured["extra_headers"] == {
         "Authorization": "Bearer test-openai-key",
@@ -64,7 +64,7 @@ async def test_openai_realtime_connect_includes_model_query_param_and_session_up
                             "rate": 24000,
                         },
                         "transcription": {
-                            "model": "gpt-4o-mini-transcribe",
+                            "model": "gpt-4o-transcribe",
                             "language": "en",
                         },
                         "turn_detection": {
