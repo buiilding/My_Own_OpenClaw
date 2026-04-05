@@ -287,7 +287,7 @@ class TestAppConfig:
             "keyboard_control",
             "screenshot",
             "scroll_control",
-            "switch_tab",
+            "switch_window",
             "wait",
             "run_shell_command",
             "replace",

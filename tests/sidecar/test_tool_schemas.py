@@ -217,7 +217,7 @@ def test_wait_tool_schema_requires_seconds():
     assert args.seconds == 1.5
 
 
-def test_switch_tab_schema_supports_match_mode():
+def test_switch_window_schema_supports_match_mode():
     args = SwitchTabArgs(tab_name="Terminal", match_mode="contains", explanation=EXPLANATION)
     assert args.match_mode == "contains"
 

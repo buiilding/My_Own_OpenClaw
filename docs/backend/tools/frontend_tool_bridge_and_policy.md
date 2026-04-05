@@ -35,7 +35,7 @@ Responsibilities:
 Backend exports remote tool classes for schemas/capabilities such as:
 
 - mouse, keyboard, screenshot, scroll
-- switch_tab, wait
+- switch_window, wait
 - get_open_windows, get_system_stats
 - open_app, run_shell_command, process
 - read_file, replace

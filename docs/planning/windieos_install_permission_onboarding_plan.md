@@ -30,7 +30,7 @@ Permission collection must be explicit and auditable:
 ## Current Capability Surface (Baseline)
 
 Current backend-exposed sidecar tool set (source: `frontend/src/main/python/tools/registry.py`):
-- Computer control: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`
+- Computer control: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_window`, `wait`
 - Filesystem: `read_file`, `replace`
 - System: `get_open_windows`, `get_system_stats`, `run_shell_command`, `process`
 - Browser: `browser`
@@ -58,7 +58,7 @@ Suggested initial permissions:
   - Unlocks: `screenshot`, computer-use post-action capture.
 - `input_control_accessibility`:
   - Needed for mouse/keyboard/scroll/window automation.
-  - Unlocks: `mouse_control`, `keyboard_control`, `scroll_control`, `switch_tab`.
+  - Unlocks: `mouse_control`, `keyboard_control`, `scroll_control`, `switch_window`.
 - `microphone`:
   - Needed for wakeword/voice mode.
   - Unlocks: voice pipeline features.

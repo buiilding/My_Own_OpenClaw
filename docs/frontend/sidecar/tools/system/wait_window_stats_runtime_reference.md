@@ -2,7 +2,7 @@
 summary: "Deep reference for sidecar wait/window/stats tools: non-blocking wait semantics, platform window manager matching/activation behavior, and async system metrics collection contracts."
 read_when:
   - When changing window-targeting logic, platform adapter behavior, or tool error-message contracts for system tools.
-  - When debugging `switch_tab` misses, `get_open_windows` filtering output, or `get_system_stats` dependency/runtime failures.
+  - When debugging `switch_window` misses, `get_open_windows` filtering output, or `get_system_stats` dependency/runtime failures.
 title: "Wait, Window, and Stats Runtime Reference"
 ---
 
@@ -24,7 +24,7 @@ This page documents sidecar system tools implemented in:
 Registry names:
 
 - `wait` -> `wait_tool.wait`
-- `switch_tab` -> `window_tool.switch_to_window`
+- `switch_window` -> `window_tool.switch_to_window`
 - `get_open_windows` -> `window_tool.get_open_windows`
 - `get_system_stats` -> `stats_tool.get_system_stats`
 - `open_app` -> `open_app_tool.open_app`
@@ -58,7 +58,7 @@ Test-backed semantics:
 - non-integer values preserve decimal formatting (for example `2.5`)
 - invalid type or negative values return canonical error text
 
-## Window Tools (`switch_tab`, `get_open_windows`)
+## Window Tools (`switch_window`, `get_open_windows`)
 
 ### Shared runtime model
 
@@ -66,7 +66,7 @@ Test-backed semantics:
 - first use resolves platform implementation through `core.platform.WindowManager`
 - window operations execute inside a thread executor
 
-### `switch_tab` behavior
+### `switch_window` behavior
 
 Input:
 
@@ -80,7 +80,7 @@ Semantics:
 - otherwise delegates to `manager.switch_to_window(tab_name)`
 - on macOS, app-level entries from `get_open_windows` now verify success by active app match when the target entry is the app name rather than a specific window title, so entries like `Finder` do not fail just because the focused Finder window title is `Downloads`
 - `False` return becomes a user-facing guidance error that recommends using exact title from `get_open_windows`
-- unexpected exceptions are wrapped as `Tab switching operation failed: ...`
+- unexpected exceptions are wrapped as `Window switching operation failed: ...`
 
 ### `get_open_windows` behavior
 

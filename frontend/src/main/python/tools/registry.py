@@ -63,7 +63,7 @@ class ToolRegistry:
         try:
             from tools.system.window_tool import switch_to_window, get_open_windows
 
-            self.tools["switch_tab"] = switch_to_window
+            self.tools["switch_window"] = switch_to_window
             self.tools["get_open_windows"] = get_open_windows
         except ImportError as e:
             logger.warning(f"Failed to import window_tool: {e}")

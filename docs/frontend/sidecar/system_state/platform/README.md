@@ -2,7 +2,7 @@
 summary: "Sidecar system-state platform docs sub-hub for probe-layer vs adapter-layer responsibilities, per-OS dependency requirements, and focus-switch matching semantics."
 read_when:
   - When changing `frontend/src/main/python/core/platform/*` or `core/system_state.py` platform behavior.
-  - When debugging OS-specific drift between `get_system_state` capture outputs and `switch_tab` window-activation behavior.
+  - When debugging OS-specific drift between `get_system_state` capture outputs and `switch_window` window-activation behavior.
 title: "Sidecar System-State Platform Docs Hub"
 ---
 

@@ -64,7 +64,7 @@ When `name == "computer_use"`:
   - `keyboard_control`
   - `screenshot`
   - `scroll_control`
-  - `switch_tab`
+  - `switch_window`
   - `wait`
 - trimmed mapped subtool becomes returned concrete `tool_name`
 - `args.arguments`:

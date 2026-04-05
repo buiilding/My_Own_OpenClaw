@@ -93,7 +93,7 @@ async def test_switch_to_window_handles_exceptions(monkeypatch):
     result = await window_tool.switch_to_window({"tab_name": "Terminal"})
 
     assert result["success"] is False
-    assert "Tab switching operation failed" in result["error"]
+    assert "Window switching operation failed" in result["error"]
 
 
 @pytest.mark.asyncio

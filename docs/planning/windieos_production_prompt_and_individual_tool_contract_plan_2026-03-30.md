@@ -85,7 +85,7 @@ Computer/domain tools become direct tools such as:
 - `keyboard_control`
 - `screenshot`
 - `scroll_control`
-- `switch_tab`
+- `switch_window`
 - `wait`
 - `run_shell_command`
 - `replace`

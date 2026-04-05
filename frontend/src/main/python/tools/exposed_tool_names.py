@@ -6,7 +6,7 @@ EXPOSED_TO_BACKEND_TOOL_NAMES = frozenset(
         "keyboard_control",
         "screenshot",
         "scroll_control",
-        "switch_tab",
+        "switch_window",
         "wait",
         "get_open_windows",
         "get_system_stats",

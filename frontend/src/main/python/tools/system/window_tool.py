@@ -166,7 +166,7 @@ async def switch_to_window(args: Dict[str, Any]) -> Dict[str, Any]:
             return {
                 "success": False,
                 "error": (
-                    f"Could not find or switch to window/tab with name: {tab_name}. "
+                    f"Could not find or switch to window with name: {tab_name}. "
                     "Use the app/window name from get_open_windows output for best results."
                 ),
             }
@@ -175,13 +175,13 @@ async def switch_to_window(args: Dict[str, Any]) -> Dict[str, Any]:
             "success": True,
             "data": {
                 "tab_name": resolved_title,
-                "llm_content": f"Successfully switched to tab '{resolved_title}'",
-                "return_display": f"Successfully switched to tab '{resolved_title}'",
+                "llm_content": f"Successfully switched to window '{resolved_title}'",
+                "return_display": f"Successfully switched to window '{resolved_title}'",
             },
         }
     except Exception as e:
         logger.error(f"Error switching to window: {e}", exc_info=True)
-        return {"success": False, "error": f"Tab switching operation failed: {str(e)}"}
+        return {"success": False, "error": f"Window switching operation failed: {str(e)}"}
 
 
 async def get_open_windows(args: Dict[str, Any]) -> Dict[str, Any]:

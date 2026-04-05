@@ -147,23 +147,23 @@ describe('useToolRunner event handling', () => {
     );
   });
 
-  test('hides and restores the active surface for switch_tab tool-call when dashboard is closed', async () => {
+  test('hides and restores the active surface for switch_window tool-call when dashboard is closed', async () => {
     renderToolRunner(true);
 
     await emitBackendEventAsync({
       type: 'tool-call',
-      id: 'event-switch-tab',
+      id: 'event-switch-window',
       payload: {
-        tool_name: 'switch_tab',
+        tool_name: 'switch_window',
         parameters: { tab_name: 'Editor' },
-        request_id: 'req-switch-tab',
+        request_id: 'req-switch-window',
       },
     });
 
     expect(mockExecuteTool).toHaveBeenCalledWith(
-      'switch_tab',
+      'switch_window',
       { tab_name: 'Editor' },
-      { correlationId: 'req-switch-tab', skipAutoCapture: false },
+      { correlationId: 'req-switch-window', skipAutoCapture: false },
     );
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toEqual([
@@ -341,24 +341,24 @@ describe('useToolRunner event handling', () => {
     );
   });
 
-  test('hides and restores the active surface for switch_tab-only bundles without focus verification', async () => {
+  test('hides and restores the active surface for switch_window-only bundles without focus verification', async () => {
     renderToolRunner(true);
 
     await emitBackendEventAsync({
       type: 'tool-bundle',
       payload: {
-        bundle_id: 'bundle-switch-tab',
+        bundle_id: 'bundle-switch-window',
         tools: [
-          { name: 'switch_tab', args: { tab_name: 'Editor' } },
+          { name: 'switch_window', args: { tab_name: 'Editor' } },
         ],
       },
     });
 
     expect(mockExecuteToolBundle).toHaveBeenCalledWith(
       [
-        { toolName: 'switch_tab', args: { tab_name: 'Editor' } },
+        { toolName: 'switch_window', args: { tab_name: 'Editor' } },
       ],
-      'bundle-switch-tab',
+      'bundle-switch-window',
     );
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toEqual([
