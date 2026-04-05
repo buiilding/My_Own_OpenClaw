@@ -43,7 +43,6 @@ APP_CONFIG = AppConfig(
     # Vision Model Settings (UI grounding / Venus)
     vision_model_name="OpenGVLab/InternVL3_5-4B",
     # Voice Mode Settings
-    voice_mode_enabled=False,
     wakeword_stt_enabled=False,
     stt_provider="nova",
     stt_language="en",

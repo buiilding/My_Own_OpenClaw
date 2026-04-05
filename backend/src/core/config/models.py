@@ -275,7 +275,6 @@ class AppConfig(BaseModel):
     )
 
     # Voice Mode Settings
-    voice_mode_enabled: bool = False
     wakeword_stt_enabled: bool = False
     stt_provider: Literal["nova", "openai"] = "nova"
     stt_language: str = "en"

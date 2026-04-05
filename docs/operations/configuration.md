@@ -57,7 +57,6 @@ APP_CONFIG = AppConfig(
     llm_providers=LLMProviders(),
     memory_enabled=True,
     embedding_model="all-MiniLM-L6-v2",
-    voice_mode_enabled=False,
     speech_mode_enabled=False,
     stt_provider="nova",
     speech_provider="elevenlabs",
@@ -133,7 +132,7 @@ Runtime compatibility note:
 Important execution knobs in `AppConfig` (`backend/src/core/config/models.py`) include:
 - `interaction_mode` (`chat` or `agent`) controls tool allowlist behavior.
 - history reduction is compaction-only; there is no message-count pruning or loop-step cap in config.
-- `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_enabled`, `stt_provider`, `speech_provider`, and `include_query_screenshot` shape chat UX behavior.
+- `speech_mode_enabled`, `wakeword_enabled`, `stt_provider`, `speech_provider`, and `include_query_screenshot` shape chat UX behavior.
 
 ## Frontend Configuration (Local)
 
@@ -147,7 +146,6 @@ The frontend only persists these fields:
 - `model_provider`
 - `selected_model_id`
 - `interaction_mode`
-- `voice_mode_enabled`
 - `speech_mode_enabled`
 - `wakeword_enabled`
 - `include_query_screenshot` (defaults to `true`; controls whether user queries include screenshot image context)

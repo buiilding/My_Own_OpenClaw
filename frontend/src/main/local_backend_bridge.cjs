@@ -184,6 +184,15 @@ function markBackendReady(mainWindow) {
   mainWindow?.webContents.send('local-backend-status', { ready: true });
 }
 
+function buildLocalBackendStatusPayload() {
+  const snapshot = localBackendSupervisor.getSnapshot();
+  return {
+    ready: snapshot.ready === true,
+    status: typeof snapshot.status === 'string' ? snapshot.status : 'stopped',
+    error: typeof snapshot.lastError === 'string' ? snapshot.lastError : '',
+  };
+}
+
 function resetBackendProcessState({ reason, status = 'stopped' } = {}) {
   pythonProcess = null;
   localBackendSupervisor.clear({
@@ -551,6 +560,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   };
 
   ipcMain.handle('execute-tool', executeToolRuntime.executeTool);
+  ipcMain.handle('get-local-backend-status', async () => buildLocalBackendStatusPayload());
 
   runtimeScreenCaptureCapabilityVerifier = executeToolRuntime.createScreenCaptureCapabilityVerifier();
 

@@ -178,7 +178,6 @@ function ChatInterface({ focusComposerToken = 0 }) {
     };
   }, []);
 
-  const voiceModeEnabled = config?.voice_mode_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const showToolLogs = config?.show_tool_logs === true;
   const {
@@ -464,7 +463,6 @@ function ChatInterface({ focusComposerToken = 0 }) {
           <MessageInput
             onSendMessage={sendMessage}
             isSending={composerBusy}
-            voiceModeEnabled={voiceModeEnabled}
             onStopResponse={handleStopQuery}
             isCentered
             focusRequestToken={focusComposerToken}
@@ -490,7 +488,6 @@ function ChatInterface({ focusComposerToken = 0 }) {
           <MessageInput
             onSendMessage={sendMessage}
             isSending={composerBusy}
-            voiceModeEnabled={voiceModeEnabled}
             onStopResponse={handleStopQuery}
             focusRequestToken={focusComposerToken}
           />

@@ -86,7 +86,6 @@ Execution/event semantics for these fields (decision skip reasons, trigger fallb
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `voice_mode_enabled` | `bool` | `false` | Frontend runtime voice mode toggle. |
 | `wakeword_stt_enabled` | `bool` | `false` | Enables post-wakeword speech-to-text handoff in frontend query entry flow. |
 | `stt_provider` | `"nova" \| "openai"` | `"nova"` | Backend-owned transcription provider behind the local `/ws/transcription` route. |
 | `stt_language` | `str` | `"en"` | Default transcription language hint applied by backend-owned STT sessions. |
@@ -175,7 +174,6 @@ Allowed patch keys only:
 - `model_provider`
 - `selected_model_id`
 - `interaction_mode`
-- `voice_mode_enabled`
 - `speech_mode_enabled`
 - `wakeword_enabled`
 - `wakeword_stt_enabled`

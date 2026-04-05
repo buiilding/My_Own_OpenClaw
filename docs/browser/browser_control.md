@@ -98,6 +98,7 @@ Notes:
 - `done` is exposed for parity with Browser Use completion tooling.
 - Browser Use tab IDs are short IDs; when `target_id` is supplied, WindieOS derives a tab ID suffix.
 - Browser Use actions are also supported via `act.request.kind` using the same names.
+- `switch` defaults to visible tab activation, but supports `activate=false` for internal-only target changes so WindieOS can control a different tab without bringing it to the foreground in the user-visible browser window.
 - Overlapping actions now run Browser Use-only semantics at runtime (`snapshot`, `navigate`, `extract`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `evaluate`): compatibility-only fields are rejected (for example `snapshot.format`, `snapshot.snapshotFormat`, `snapshot.wait_until`, `snapshot.mode`, `snapshot.max_chars`, `snapshot.refs`, `snapshot.interactive`, `snapshot.compact`, `snapshot.depth`, `snapshot.selector`, `snapshot.frame`, `extract.mode`, `extract.selector`, `extract.frame`, `wait.state`, `screenshot.full_page`, `screenshot.ref`, `screenshot.element`, `screenshot.type`, `screenshot.quality`).
 - For `click`, `input`, `upload_file`, `dropdown_options`, and `select_dropdown`, WindieOS now preserves role refs such as `e12` through the canonical adapter path. Numeric refs / `index` still use Browser Use-native element indexing; role refs route through controller-backed locator resolution on the exact referenced element.
 
@@ -350,10 +351,22 @@ Switch to a specific tab.
 
 ```json
 {
-  "action": "switch_tab",
-  "target_id": "abc123"
+  "action": "switch",
+  "tab_id": "abc123"
 }
 ```
+
+Optional:
+- `activate`: defaults to `true`. Set `false` to change WindieOS's internal browser-control target without bringing that tab to the foreground in the visible browser window.
+
+### Chat Header Browser Control
+
+The dashboard chat header exposes the same dedicated browser session with a compact control:
+
+- While the local sidecar runtime is still starting, the button stays disabled and waits for the `local-backend-status` ready signal.
+- When disconnected, it shows **Connect browser**.
+- When connected, it shows **Browser Tab: <tab name>**.
+- Opening the carousel shows all current tabs, updates as tabs change, and uses internal-only `switch` calls (`activate=false`) so changing the controlled tab does not visibly switch the browser window for the user.
 
 ### 13. Evaluate
 

@@ -40,7 +40,6 @@ In scope:
 - Natural-language settings edits for frontend-managed fields:
   - `speech_mode_enabled`
   - `include_query_screenshot`
-  - `voice_mode_enabled`
   - (optional) `interaction_mode`
 - Works from both dashboard chat and chat pill.
 - Works from voice transcripts (same text pipeline).

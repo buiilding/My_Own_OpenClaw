@@ -663,7 +663,7 @@ class BrowserController:
             )
         return tabs
 
-    async def switch_tab(self, target_id: str) -> bool:
+    async def switch_tab(self, target_id: str, *, activate: bool = True) -> bool:
         """Switch to a different tab by ID."""
         if not self._context:
             return False
@@ -673,7 +673,8 @@ class BrowserController:
                 self._page = page
                 self._ensure_page_observers(page)
                 _ = self._get_ref_registry(page)
-                await page.bring_to_front()
+                if activate:
+                    await page.bring_to_front()
                 return True
         return False
 

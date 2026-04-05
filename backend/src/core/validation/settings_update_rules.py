@@ -23,7 +23,6 @@ SETTINGS_UPDATE_RULES: dict[str, SettingsUpdateRule] = {
     "model_mode": SettingsUpdateRule((str,), allow_none=True),
     "embedding_model": SettingsUpdateRule((str,), allow_none=True),
     "interaction_mode": SettingsUpdateRule((str,), allow_none=True),
-    "voice_mode_enabled": SettingsUpdateRule((bool,)),
     "browser_automation_enabled": SettingsUpdateRule((bool,)),
     "history_compaction_enabled": SettingsUpdateRule((bool,)),
     "history_compaction_manual_enabled": SettingsUpdateRule((bool,)),

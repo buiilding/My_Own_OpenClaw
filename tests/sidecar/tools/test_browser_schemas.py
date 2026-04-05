@@ -73,6 +73,15 @@ def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
 
     switch_args = BrowserSwitchArgs(action="switch", tab_id="abcd", explanation=EXPLANATION)
     assert switch_args.tab_id == "abcd"
+    assert switch_args.activate is True
+
+    silent_switch_args = BrowserSwitchArgs(
+        action="switch",
+        tab_id="abcd",
+        activate=False,
+        explanation=EXPLANATION,
+    )
+    assert silent_switch_args.activate is False
 
     with pytest.raises(ValidationError):
         BrowserInputArgs(action="input", ref="3", text="hello", clear_first=True, explanation=EXPLANATION)

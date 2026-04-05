@@ -36,7 +36,6 @@ const DEFAULT_FRONTEND_CONFIG = {
   model_provider: 'openai',
   selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
   interaction_mode: 'agent',
-  voice_mode_enabled: false,
   speech_mode_enabled: false,
   wakeword_enabled: true,
   wakeword_stt_enabled: false,

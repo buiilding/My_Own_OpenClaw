@@ -50,7 +50,6 @@ class WakewordService:
             Activation payload dictionary
         """
         return {
-            "voice_mode_enabled": True,
             "speech_mode_enabled": self.config.speech_mode_enabled,
             "greeting": greeting,
             "status": "listening"

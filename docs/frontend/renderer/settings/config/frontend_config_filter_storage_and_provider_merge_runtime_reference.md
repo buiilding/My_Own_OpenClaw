@@ -28,7 +28,6 @@ title: "Frontend Config Filter, Storage, and Provider Merge Runtime Reference"
 - `model_provider`
 - `selected_model_id`
 - `interaction_mode`
-- `voice_mode_enabled`
 - `speech_mode_enabled`
 - `wakeword_enabled`
 - `wakeword_stt_enabled`
@@ -63,7 +62,6 @@ Default config surface:
 - `model_provider: "openai"`
 - `selected_model_id: "gpt-5.4@@gpt-5-4-none-thinking"`
 - `interaction_mode: "agent"`
-- `voice_mode_enabled: false`
 - `speech_mode_enabled: false`
 - `wakeword_enabled: true`
 - `wakeword_stt_enabled: false`

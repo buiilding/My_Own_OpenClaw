@@ -15,7 +15,6 @@ const mockUseChatMessageSender = jest.fn(() => ({
 }));
 let mockConfig = {
   interaction_mode: 'chat',
-  voice_mode_enabled: false,
   speech_mode_enabled: false,
   show_tool_logs: false,
   model_provider: 'openai',
@@ -184,7 +183,6 @@ describe('ChatInterface wiring', () => {
     window.history.replaceState({}, '', '/');
     mockConfig = {
       interaction_mode: 'chat',
-      voice_mode_enabled: false,
       speech_mode_enabled: false,
       show_tool_logs: false,
       model_provider: 'openai',
@@ -645,7 +643,6 @@ describe('ChatInterface wiring', () => {
     mockIsDevUiEnabled.mockReturnValue(true);
     mockConfig = {
       interaction_mode: 'chat',
-      voice_mode_enabled: false,
       speech_mode_enabled: false,
       model_provider: 'anthropic',
       selected_model_id: 'claude-sonnet-4-5',
@@ -687,12 +684,11 @@ describe('ChatInterface wiring', () => {
     });
   });
 
-  test('shows model selector and passes enabled voice mode to input', () => {
+  test('shows model selector and passes composer handlers to input', () => {
     mockConfig = {
       interaction_mode: 'agent',
       model_mode: 'online',
       model_provider: 'openai',
-      voice_mode_enabled: true,
       speech_mode_enabled: false,
       selected_model_id: 'gpt-test-model',
     };
@@ -707,7 +703,6 @@ describe('ChatInterface wiring', () => {
 
     expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('gpt-test-model');
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
-    expect(lastInputProps.voiceModeEnabled).toBe(true);
     expect(lastInputProps.isSending).toBe(false);
     expect(lastInputProps.isCentered).toBe(true);
     expect(typeof lastInputProps.onSendMessage).toBe('function');
@@ -720,7 +715,6 @@ describe('ChatInterface wiring', () => {
       model_mode: 'online',
       model_provider: 'openai',
       selected_model_id: 'gpt-5.4',
-      voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
     mockAvailableModels = {
@@ -749,7 +743,6 @@ describe('ChatInterface wiring', () => {
       model_mode: 'online',
       model_provider: 'openai',
       selected_model_id: 'gpt-5@@gpt-5-nonthinking',
-      voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
     mockAvailableModels = {
@@ -786,7 +779,6 @@ describe('ChatInterface wiring', () => {
       model_mode: 'online',
       model_provider: 'openai',
       selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
-      voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
     mockAvailableModels = {
@@ -834,7 +826,6 @@ describe('ChatInterface wiring', () => {
       model_mode: 'online',
       model_provider: 'anthropic',
       selected_model_id: 'claude-haiku-4-5',
-      voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
     mockAvailableModels = {
@@ -855,7 +846,7 @@ describe('ChatInterface wiring', () => {
     expect(screen.queryByRole('button', { name: 'Reasoning mode selector' })).not.toBeInTheDocument();
   });
 
-  test('falls back to default model label and disabled voice mode when config is missing', () => {
+  test('falls back to default model label when config is missing', () => {
     mockConfig = null;
     mockAvailableModels = { local: [], online: [] };
 
@@ -863,7 +854,6 @@ describe('ChatInterface wiring', () => {
 
     expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('No models available');
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
-    expect(lastInputProps.voiceModeEnabled).toBe(false);
     expect(lastInputProps.isCentered).toBe(true);
   });
 
@@ -873,7 +863,6 @@ describe('ChatInterface wiring', () => {
       model_mode: 'online',
       model_provider: 'gemini',
       selected_model_id: 'gemini-3.1-pro-preview',
-      voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
     mockAvailableModels = {
@@ -899,7 +888,6 @@ describe('ChatInterface wiring', () => {
       model_mode: 'online',
       model_provider: 'gemini',
       selected_model_id: 'gemini-3.1-pro-preview',
-      voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
     mockAvailableModels = {
@@ -926,7 +914,6 @@ describe('ChatInterface wiring', () => {
       model_mode: 'online',
       model_provider: 'openai',
       selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
-      voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
     mockAvailableModels = {
@@ -975,7 +962,6 @@ describe('ChatInterface wiring', () => {
       model_mode: 'online',
       model_provider: 'gemini',
       selected_model_id: 'gemini-3-1-pro-low-thinking',
-      voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
     mockAvailableModels = {
@@ -1043,7 +1029,6 @@ describe('ChatInterface wiring', () => {
       model_mode: 'online',
       model_provider: 'anthropic',
       selected_model_id: 'claude-sonnet-4-5-low-thinking',
-      voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
     mockAvailableModels = {

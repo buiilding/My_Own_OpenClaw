@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   ArrowUp,
@@ -23,7 +23,6 @@ import {
 function MessageInput({
   onSendMessage,
   isSending,
-  voiceModeEnabled = false,
   onStopResponse = undefined,
   isCentered = false,
   focusRequestToken = 0,
@@ -32,13 +31,14 @@ function MessageInput({
   const lastHandledFocusRequestRef = useRef(focusRequestToken);
   const plusMenuRef = useRef(null);
   const [plusMenuOpen, setPlusMenuOpen] = useState(false);
+  const [voiceSessionActive, setVoiceSessionActive] = useState(false);
   const {
     attachmentInputRef,
     clipboardImages,
     selectedReadableFiles,
     inputValue,
-    getInputValue,
     updateTranscription,
+    resetTranscription,
     handleInputChange,
     submitMessageValue,
     setClipboardImages,
@@ -48,6 +48,9 @@ function MessageInput({
   } = useChatComposerDraft({
     isSubmitBlocked: isSending,
     onSendMessage,
+    onBeforeSend: () => {
+      setVoiceSessionActive(false);
+    },
   });
 
   const handleSubmit = (e) => {
@@ -91,21 +94,42 @@ function MessageInput({
     handleFocusRequest,
   });
 
+  useEffect(() => {
+    if (isSending && voiceSessionActive) {
+      setVoiceSessionActive(false);
+    }
+  }, [isSending, voiceSessionActive]);
+
+  const handleVoiceButtonClick = useCallback(() => {
+    if (isSending) {
+      return;
+    }
+
+    setVoiceSessionActive((current) => {
+      if (current) {
+        return false;
+      }
+      resetTranscription();
+      return true;
+    });
+  }, [isSending, resetTranscription]);
+
   const { isConnected, isRecording, error } = useVoiceMode(
-    voiceModeEnabled,
+    voiceSessionActive && !isSending,
     (text) => {
       updateTranscription(text);
     },
     () => {
-      void submitMessageValue(getInputValue());
+      setVoiceSessionActive(false);
     },
   );
 
   return (
     <>
-      {voiceModeEnabled ? (
+      {voiceSessionActive || error ? (
         <VoiceStatus
           error={error}
+          isActive={voiceSessionActive}
           isRecording={isRecording}
           isConnected={isConnected}
         />
@@ -228,7 +252,15 @@ function MessageInput({
             />
 
             <div className="message-input-right-actions">
-              <button type="button" className="message-icon-btn" aria-label="Voice input" data-testid="voice-btn" disabled={isSending}>
+              <button
+                type="button"
+                className={`message-icon-btn${voiceSessionActive ? ' message-icon-btn--active' : ''}`}
+                aria-label={voiceSessionActive ? 'Stop voice input' : 'Start voice input'}
+                aria-pressed={voiceSessionActive}
+                data-testid="voice-btn"
+                disabled={isSending}
+                onClick={handleVoiceButtonClick}
+              >
                 <Mic size={18} />
               </button>
               {isSending ? (
@@ -271,7 +303,6 @@ function MessageInput({
 MessageInput.propTypes = {
   onSendMessage: PropTypes.func.isRequired,
   isSending: PropTypes.bool,
-  voiceModeEnabled: PropTypes.bool,
   onStopResponse: PropTypes.func,
   isCentered: PropTypes.bool,
   focusRequestToken: PropTypes.number,

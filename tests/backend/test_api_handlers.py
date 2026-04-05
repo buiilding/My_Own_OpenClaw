@@ -379,7 +379,7 @@ class DummyWakewordService:
         return "Hello"
 
     def get_activation_payload(self, greeting: str) -> Dict[str, Any]:
-        return {"greeting": greeting, "voice_mode_enabled": True}
+        return {"greeting": greeting}
 
 
 @pytest.mark.asyncio
@@ -1514,7 +1514,6 @@ async def test_load_settings_handler_returns_frontend_config():
         "speech_mode_enabled": False,
         "wakeword_enabled": True,
         "wakeword_stt_enabled": False,
-        "voice_mode_enabled": False,
     }
 
 

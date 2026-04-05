@@ -10,18 +10,37 @@ import {
 import ChatBrowserSessionControl from '../../frontend/src/renderer/features/chat/components/ChatBrowserSessionControl';
 
 const mockInvoke = jest.fn();
+const mockListeners = new Map();
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: (...args) => mockInvoke(...args),
+    on: (channel, listener) => {
+      mockListeners.set(channel, listener);
+      return () => {
+        mockListeners.delete(channel);
+      };
+    },
   },
   INVOKE_CHANNELS: {
     EXECUTE_TOOL: 'execute-tool',
+    GET_LOCAL_BACKEND_STATUS: 'get-local-backend-status',
+  },
+  ON_CHANNELS: {
+    LOCAL_BACKEND_STATUS: 'local-backend-status',
   },
 }));
 
 function createBrowserToolHandler(session) {
   return async (channel, payload = {}) => {
+    if (channel === 'get-local-backend-status') {
+      return {
+        ready: session.localBackendReady !== false,
+        status: session.localBackendReady === false ? 'starting' : 'ready',
+        error: '',
+      };
+    }
+
     expect(channel).toBe('execute-tool');
     expect(payload.toolName).toBe('browser');
 
@@ -105,6 +124,11 @@ function createBrowserToolHandler(session) {
 }
 
 describe('ChatBrowserSessionControl', () => {
+  beforeEach(() => {
+    mockInvoke.mockReset();
+    mockListeners.clear();
+  });
+
   afterEach(() => {
     jest.useRealTimers();
   });
@@ -112,6 +136,7 @@ describe('ChatBrowserSessionControl', () => {
   test('shows connect browser when the browser is disconnected and switches to the active tab label after connecting', async () => {
     const session = {
       connected: false,
+      localBackendReady: true,
       currentTargetId: '',
       tabs: [
         { targetId: 'tab-1', title: 'Docs', url: 'https://docs.windieos.com' },
@@ -135,13 +160,14 @@ describe('ChatBrowserSessionControl', () => {
     });
 
     expect(
-      await screen.findByRole('button', { name: 'Current browsertab: Docs' }),
+      await screen.findByRole('button', { name: 'Browser Tab: Docs' }),
     ).toBeInTheDocument();
   });
 
   test('opens the carousel, switches tabs, and disconnects the browser', async () => {
     const session = {
       connected: true,
+      localBackendReady: true,
       currentTargetId: 'tab-1',
       tabs: [
         { targetId: 'tab-1', title: 'Docs', url: 'https://docs.windieos.com' },
@@ -152,7 +178,7 @@ describe('ChatBrowserSessionControl', () => {
 
     render(<ChatBrowserSessionControl />);
 
-    const currentTabButton = await screen.findByRole('button', { name: 'Current browsertab: Docs' });
+    const currentTabButton = await screen.findByRole('button', { name: 'Browser Tab: Docs' });
     fireEvent.click(currentTabButton);
 
     expect(screen.getByRole('dialog', { name: 'Browser tab carousel' })).toBeInTheDocument();
@@ -165,12 +191,13 @@ describe('ChatBrowserSessionControl', () => {
         args: expect.objectContaining({
           action: 'switch',
           tab_id: 'tab-2',
+          activate: false,
         }),
       }));
     });
 
     expect(
-      await screen.findByRole('button', { name: 'Current browsertab: GitHub' }),
+      await screen.findByRole('button', { name: 'Browser Tab: GitHub' }),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Disconnect browser' }));
@@ -190,6 +217,7 @@ describe('ChatBrowserSessionControl', () => {
 
     const session = {
       connected: true,
+      localBackendReady: true,
       currentTargetId: 'tab-1',
       tabs: [
         { targetId: 'tab-1', title: 'Docs', url: 'https://docs.windieos.com' },
@@ -199,7 +227,7 @@ describe('ChatBrowserSessionControl', () => {
 
     render(<ChatBrowserSessionControl />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Current browsertab: Docs' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Browser Tab: Docs' }));
 
     session.tabs.push({
       targetId: 'tab-2',
@@ -213,7 +241,46 @@ describe('ChatBrowserSessionControl', () => {
     });
 
     expect(
-      await screen.findByRole('button', { name: 'Current browsertab: New pricing tab' }),
+      await screen.findByRole('button', { name: 'Browser Tab: New pricing tab' }),
     ).toBeInTheDocument();
+  });
+
+  test('waits for the local backend ready signal before issuing browser tool calls', async () => {
+    const session = {
+      connected: true,
+      localBackendReady: false,
+      currentTargetId: 'tab-1',
+      tabs: [
+        { targetId: 'tab-1', title: 'Docs', url: 'https://docs.windieos.com' },
+      ],
+    };
+    mockInvoke.mockImplementation(createBrowserToolHandler(session));
+
+    render(<ChatBrowserSessionControl />);
+
+    expect(await screen.findByRole('button', { name: 'Connect browser' })).toBeDisabled();
+    expect(mockInvoke.mock.calls[0]).toEqual(['get-local-backend-status', undefined]);
+    const issuedBrowserToolCall = mockInvoke.mock.calls.some(([channel, payload]) => (
+      channel === 'execute-tool' && payload?.toolName === 'browser'
+    ));
+    if (issuedBrowserToolCall) {
+      throw new Error('Browser tool should not be called before the local backend is ready.');
+    }
+
+    session.localBackendReady = true;
+    await act(async () => {
+      mockListeners.get('local-backend-status')?.({ ready: true });
+    });
+
+    expect(
+      await screen.findByRole('button', { name: 'Browser Tab: Docs' }),
+    ).toBeInTheDocument();
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'execute-tool',
+      expect.objectContaining({
+        toolName: 'browser',
+        args: expect.objectContaining({ action: 'status' }),
+      }),
+    );
   });
 });

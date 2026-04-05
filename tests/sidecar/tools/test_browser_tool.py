@@ -157,3 +157,30 @@ async def test_removed_alias_returns_invalid_argument_error() -> None:
 
     assert result.success is False
     assert "open" in (result.error or "")
+
+
+@pytest.mark.asyncio
+async def test_switch_with_activate_false_keeps_browser_tab_in_background() -> None:
+    controller = _connected_controller()
+    background_page = mock.AsyncMock()
+    background_page.url = "https://example.org"
+    background_page.title = mock.AsyncMock(return_value="Example Org")
+    controller._context = SimpleNamespace(pages=[controller._page, background_page])
+
+    with mock.patch(
+        "tools.browser.browser_tool.get_browser_controller", return_value=controller
+    ):
+        result = await execute_browser(
+            {
+                "action": "switch",
+                "tab_id": str(id(background_page)),
+                "activate": False,
+                "explanation": EXPLANATION,
+            }
+        )
+
+    assert result.success is True
+    assert result.data["target_id"] == str(id(background_page))
+    assert result.data["activated"] is False
+    assert controller._page is background_page
+    background_page.bring_to_front.assert_not_awaited()

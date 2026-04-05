@@ -88,7 +88,7 @@ export function registerAppConfigProviderSuiteLifecycle() {
     loadFrontendConfigResponse = null;
     clientUserIdResponse = null;
 
-    mockLoadConfigFromStorage.mockReturnValue({ voice_mode_enabled: false });
+    mockLoadConfigFromStorage.mockReturnValue({ speech_mode_enabled: false });
     mockUseSettingsManagement.mockReturnValue({
       handleModelsListed: jest.fn(),
     });

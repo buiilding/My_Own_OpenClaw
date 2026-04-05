@@ -42,12 +42,12 @@ def test_validate_settings_update_field_validates_expected_type() -> None:
         calls.append((*args, kwargs))
 
     validate_settings_update_field(
-        key="voice_mode_enabled",
+        key="browser_automation_enabled",
         value=True,
         validate_field=_validate_field,
     )
 
     assert len(calls) == 1
     args, kwargs = calls[0][:-1], calls[0][-1]
-    assert args == (True, "voice_mode_enabled", bool)
+    assert args == (True, "browser_automation_enabled", bool)
     assert kwargs == {"required": False}

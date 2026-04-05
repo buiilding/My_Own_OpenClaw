@@ -545,12 +545,14 @@ class WindieBrowserRuntime:
         self._controller._page = page
         self._controller._ensure_page_observers(page)
         self._controller._get_ref_registry(page)
-        await page.bring_to_front()
+        if bool(getattr(args, "activate", True)):
+            await page.bring_to_front()
         return {
             "success": True,
             "target_id": str(id(page)),
             "title": await page.title(),
             "url": page.url,
+            "activated": bool(getattr(args, "activate", True)),
         }
 
     async def _handle_evaluate(self, args: Any) -> dict[str, Any]:

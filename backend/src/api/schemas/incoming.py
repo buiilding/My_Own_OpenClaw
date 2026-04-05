@@ -189,7 +189,6 @@ class UpdateSettingsPayload(BaseModel):
     model_provider: Optional[str] = None
     selected_model_id: Optional[str] = None
     interaction_mode: Optional[str] = None
-    voice_mode_enabled: Optional[bool] = None
     speech_mode_enabled: Optional[bool] = None
     wakeword_enabled: Optional[bool] = None
     wakeword_stt_enabled: Optional[bool] = None

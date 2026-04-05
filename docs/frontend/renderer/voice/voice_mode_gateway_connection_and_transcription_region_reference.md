@@ -23,15 +23,15 @@ title: "Voice Mode Gateway Connection and Transcription Region Reference"
 
 `MessageInput` owns voice-mode usage:
 
-- calls `useVoiceMode(voiceModeEnabled, onTranscriptionUpdate, onUtteranceEnd)`
-- shows `VoiceStatus` only when voice mode is enabled
+- starts `useVoiceMode(...)` from a local microphone-session toggle instead of persisted config
+- shows `VoiceStatus` while the temporary microphone session is active or when the session reports an error
 
 Submit behavior coupling:
 
 - typed submit path (`Enter` or send button)
-- utterance-end callback path (`submitMessageValue(getInputValue())`)
+- microphone utterance-end callback path (stop dictation session, keep transcript in input)
 
-Both paths share `buildOutgoingMessage(...)` and clear/reset transcription region after send.
+Send paths still share `buildOutgoingMessage(...)` and clear/reset transcription region after send.
 
 ## Gateway WebSocket Lifecycle
 
