@@ -120,3 +120,82 @@ async def test_native_computer_bridge_rejects_modifier_mouse_actions():
 
     assert result.success is False
     assert "Modifier keys on native computer mouse actions" in (result.error or "")
+
+
+@pytest.mark.asyncio
+async def test_native_computer_bridge_accepts_snake_case_scroll_fields():
+    session = _FakeSession()
+    captured_event = None
+
+    async def emit_streaming_event(event):
+        nonlocal captured_event
+        captured_event = event
+        bundle_result = ToolResult(
+            success=True,
+            data={
+                "status": "success",
+                "step_results": [
+                    {
+                        "tool": "scroll_control",
+                        "status": "ok",
+                        "output": "Scrolled down.",
+                    }
+                ],
+            },
+        )
+        session.get_result_storage().store_bundled_result(event.bundle_id, bundle_result)
+        session.get_result_storage().resolve_bundle_future(event.bundle_id, bundle_result)
+
+    ctx = ToolContext(
+        user=UserContext(user_id="test-user"),
+        session=SessionContext(session_id="test-session", created_at=0.0),
+        runtime=ExecutionRuntime(
+            workspace_root="/tmp",
+            services={
+                "session": session,
+                "emit_streaming_event": emit_streaming_event,
+            },
+        ),
+    )
+
+    result = await OpenAINativeComputerTool().run(
+        OpenAIComputerArgs.model_validate(
+            {
+                "actions": [
+                    {
+                        "type": "scroll",
+                        "x": 1208,
+                        "y": 808,
+                        "scroll_x": 0,
+                        "scroll_y": 523,
+                    }
+                ]
+            }
+        ),
+        ctx,
+    )
+
+    assert result.success is True
+    assert captured_event is not None
+    assert captured_event.tools == [
+        {
+            "name": "scroll_control",
+            "args": {
+                "action": "scroll",
+                "x": 1208,
+                "y": 808,
+                "direction": "down",
+                "clicks": 5,
+                "explanation": "Execute OpenAI native computer action 1/1: scroll.",
+            },
+            "metadata": {
+                "provider_native_computer_action": {
+                    "type": "scroll",
+                    "x": 1208,
+                    "y": 808,
+                    "scroll_x": 0,
+                    "scroll_y": 523,
+                }
+            },
+        }
+    ]

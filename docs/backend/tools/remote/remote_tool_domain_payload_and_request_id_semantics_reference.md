@@ -82,6 +82,7 @@ Behavior:
 - `RemoteComputerUseTool` uses `_get_request_id(ctx)` and returns `RemoteToolResult` directly
 - non-unified computer stubs use `_build_remote_result(...)` except request-id override nuance below
 - `category` is `ToolDomain.COMPUTER`
+- `OpenAINativeComputerTool` translates provider-native `computer.actions` into internal bundle steps before frontend dispatch and accepts both OpenAI SDK snake_case scroll fields (`scroll_x`/`scroll_y`) and camelCase variants (`scrollX`/`scrollY`) at that bridge boundary
 
 Nuance:
 
