@@ -108,7 +108,7 @@ Execution/event semantics for these fields (decision skip reasons, trigger fallb
 | `elevenlabs_voice_id` | `str` | `"EXAVITQu4vr4xnSDxMaL"` | Default ElevenLabs voice id. |
 | `elevenlabs_model_id` | `str` | `"eleven_flash_v2_5"` | Default ElevenLabs realtime model. |
 | `elevenlabs_output_format` | `str` | `"pcm_16000"` | Output format used by the ElevenLabs websocket provider. |
-| `elevenlabs_auto_mode` | `bool` | `true` | Enables ElevenLabs websocket `auto_mode` so the provider handles low-latency chunk buffering instead of WindieOS sending manual generation triggers on every chunk. |
+| `elevenlabs_auto_mode` | `bool` | `false` | Optional ElevenLabs websocket `auto_mode`; WindieOS leaves this off by default because its live LLM/TTS path sends small incremental chunks and relies on manual generation triggers instead. |
 | `elevenlabs_inactivity_timeout` | `int` | `60` | ElevenLabs websocket inactivity timeout in seconds for live query/wakeword speech sessions. |
 | `elevenlabs_chunk_length_schedule` | `list[int]` | `[50, 80, 120, 160]` | Manual generation schedule retained for fallback when `elevenlabs_auto_mode` is disabled. |
 

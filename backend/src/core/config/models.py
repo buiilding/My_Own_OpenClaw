@@ -313,7 +313,7 @@ class AppConfig(BaseModel):
     elevenlabs_voice_id: str = "EXAVITQu4vr4xnSDxMaL"
     elevenlabs_model_id: str = "eleven_flash_v2_5"
     elevenlabs_output_format: str = "pcm_16000"
-    elevenlabs_auto_mode: bool = True
+    elevenlabs_auto_mode: bool = False
     elevenlabs_inactivity_timeout: int = 60
     elevenlabs_chunk_length_schedule: List[int] = Field(
         default_factory=lambda: [50, 80, 120, 160]
