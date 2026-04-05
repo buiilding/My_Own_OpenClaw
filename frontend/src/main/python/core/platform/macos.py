@@ -377,8 +377,11 @@ class MacOSWindowManager(BaseWindowManager):
                     )
                 continue
 
-            title = window_name or owner_name
-            if not title:
+            # Quartz fallback should only surface real titled windows. Promoting
+            # unnamed app-owned surfaces (for example background app artifacts or
+            # toolbar/title-strip records) back to the app name creates false
+            # positives in get_open_windows and switch_tab.
+            if not window_name:
                 dropped_title += 1
                 if len(sample_records) < 5:
                     sample_records.append(
@@ -391,10 +394,10 @@ class MacOSWindowManager(BaseWindowManager):
 
             windows.append(
                 {
-                    "title": title,
+                    "title": window_name,
                     "hwnd": window_record.get(self.Quartz.kCGWindowNumber),
-                    "app_name": owner_name or title,
-                    "window_name": window_name or title,
+                    "app_name": owner_name or window_name,
+                    "window_name": window_name,
                 }
             )
             if len(sample_records) < 5:

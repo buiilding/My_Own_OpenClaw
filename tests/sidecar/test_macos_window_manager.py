@@ -184,14 +184,14 @@ def test_macos_window_manager_get_windows_prefers_window_titles(monkeypatch):
         all_windows=[
             {"owner": "Terminal", "name": "Terminal - repo", "layer": 0, "alpha": 1, "id": 1},
             {"owner": "Dock", "name": "", "layer": 20, "alpha": 1, "id": 2},
-            {"owner": "Safari", "name": "", "layer": 0, "alpha": 1, "id": 3},
+            {"owner": "Safari", "name": "Start Page", "layer": 0, "alpha": 1, "id": 3},
         ],
     )
     manager = MacOSWindowManager()
 
     assert manager.get_windows() == [
         {"title": "Terminal - repo", "hwnd": 1, "app_name": "Terminal"},
-        {"title": "Safari", "hwnd": 3, "app_name": "Safari"},
+        {"title": "Start Page", "hwnd": 3, "app_name": "Safari"},
     ]
 
 
@@ -211,6 +211,28 @@ def test_macos_window_manager_get_windows_falls_back_to_running_apps_when_quartz
     assert manager.get_windows() == [
         {"title": "Terminal", "hwnd": None, "app_name": "Terminal"},
         {"title": "Safari", "hwnd": None, "app_name": "Safari"},
+    ]
+
+
+def test_macos_window_manager_get_windows_drops_unnamed_quartz_surfaces(monkeypatch):
+    _install_fake_appkit(
+        monkeypatch,
+        apps=[_FakeApp("Messages"), _FakeApp("Google Chrome")],
+        active_app={"NSApplicationName": "Google Chrome"},
+    )
+    _install_fake_application_services(monkeypatch, trusted=False)
+    _install_fake_quartz(
+        monkeypatch,
+        all_windows=[
+            {"owner": "Messages", "name": "", "layer": 0, "alpha": 1, "id": 1},
+            {"owner": "Messages", "name": "", "layer": 0, "alpha": 1, "id": 2},
+            {"owner": "Google Chrome", "name": "New Tab", "layer": 0, "alpha": 1, "id": 3},
+        ],
+    )
+    manager = MacOSWindowManager()
+
+    assert manager.get_windows() == [
+        {"title": "New Tab", "hwnd": 3, "app_name": "Google Chrome"},
     ]
 
 
