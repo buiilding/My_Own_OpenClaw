@@ -1,4 +1,8 @@
-import { toSanitizedMarkdownHtml } from '../../frontend/src/renderer/infrastructure/markdown';
+import {
+  highlightPlainTextToHtml,
+  highlightSanitizedHtml,
+  toSanitizedMarkdownHtml,
+} from '../../frontend/src/renderer/infrastructure/markdown';
 
 describe('toSanitizedMarkdownHtml', () => {
   test('renders basic markdown', () => {
@@ -50,5 +54,23 @@ describe('toSanitizedMarkdownHtml', () => {
       enableMath: false,
     });
     expect(html.includes('class="katex')).toBe(false);
+  });
+
+  test('highlights rendered markdown text with stable match metadata', () => {
+    const html = toSanitizedMarkdownHtml('Alpha **beta** alpha');
+    const highlighted = highlightSanitizedHtml(html, 'alpha', [4, 9], 9);
+
+    expect(highlighted).toContain('data-thread-find-match-index="4"');
+    expect(highlighted).toContain('data-thread-find-match-index="9"');
+    expect(highlighted).toContain('thread-find-match is-active');
+    expect(highlighted).toContain('<strong>beta</strong>');
+  });
+
+  test('highlights plain text output without dropping escaped characters', () => {
+    const highlighted = highlightPlainTextToHtml('<alpha> beta', 'alpha', [2], 2);
+
+    expect(highlighted).toContain('&lt;');
+    expect(highlighted).toContain('data-thread-find-match-index="2"');
+    expect(highlighted).toContain('thread-find-match is-active');
   });
 });

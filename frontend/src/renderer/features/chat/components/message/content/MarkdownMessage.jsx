@@ -1,26 +1,34 @@
 import { useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { toSanitizedMarkdownHtml } from '../../../../../infrastructure/markdown';
-import { resolveLlmOutputContract } from '../../../../../infrastructure/llmOutputContract';
+import { highlightSanitizedHtml } from '../../../../../infrastructure/markdown';
+import { buildMarkdownRenderModel } from '../../../utils/message/markdownMessageRendering';
 
 export default function MarkdownMessage({
   text,
   sender = 'assistant',
   modelProvider = null,
   modelId = null,
+  findQuery = '',
+  findMatchIndexes = [],
+  activeFindMatchIndex = null,
 }) {
-  const contract = useMemo(
-    () => resolveLlmOutputContract(text ?? '', {
-      provider: sender === 'assistant' ? modelProvider : null,
-      modelId: sender === 'assistant' ? modelId : null,
-      enableMath: sender === 'assistant',
-      stripAccidentalHtmlTokens: sender === 'assistant',
+  const renderModel = useMemo(
+    () => buildMarkdownRenderModel({
+      text,
+      sender,
+      modelProvider,
+      modelId,
     }),
     [text, sender, modelProvider, modelId],
   );
   const html = useMemo(
-    () => toSanitizedMarkdownHtml(contract.markdown, { enableMath: contract.mathEnabled }),
-    [contract.markdown, contract.mathEnabled],
+    () => highlightSanitizedHtml(
+      renderModel.html,
+      findQuery,
+      findMatchIndexes,
+      activeFindMatchIndex,
+    ),
+    [activeFindMatchIndex, findMatchIndexes, findQuery, renderModel.html],
   );
   return (
     <div
@@ -35,4 +43,7 @@ MarkdownMessage.propTypes = {
   sender: PropTypes.oneOf(['user', 'assistant']),
   modelProvider: PropTypes.string,
   modelId: PropTypes.string,
+  findQuery: PropTypes.string,
+  findMatchIndexes: PropTypes.arrayOf(PropTypes.number),
+  activeFindMatchIndex: PropTypes.number,
 };

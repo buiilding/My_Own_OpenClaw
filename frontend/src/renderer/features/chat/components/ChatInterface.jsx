@@ -3,10 +3,12 @@ import { useShallow } from 'zustand/react/shallow';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import ChatInterfaceHeaderControls from './ChatInterfaceHeaderControls';
+import ChatFindBar from './ChatFindBar';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import {
   useChatInterfaceAudioChunkStream,
+  useChatInterfaceFindShortcut,
   useChatInterfaceMenuDismiss,
   useChatInterfaceNewChatEvent,
   useChatInterfaceStopShortcut,
@@ -51,6 +53,7 @@ import {
   VISIBLE_ASSISTANT_REPLY_TYPE_SET,
 } from '../utils/state/chatTurnPresentationState';
 import { buildThreadPresentationMessages } from '../utils/message/messagePresentationPipeline';
+import { buildThreadFindState } from '../utils/message/threadFindState';
 import '../../../styles/ChatInterface.css';
 
 function waitForNextPaint() {
@@ -232,9 +235,15 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const [providerMenuOpen, setProviderMenuOpen] = useState(false);
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
   const [reasoningModeMenuOpen, setReasoningModeMenuOpen] = useState(false);
+  const [findBarOpen, setFindBarOpen] = useState(false);
+  const [findQuery, setFindQuery] = useState('');
+  const [activeFindMatchIndex, setActiveFindMatchIndex] = useState(0);
+  const [findFocusToken, setFindFocusToken] = useState(0);
   const providerMenuRef = useRef(null);
   const modelMenuRef = useRef(null);
   const reasoningModeMenuRef = useRef(null);
+  const findInputRef = useRef(null);
+  const previousFindQueryRef = useRef('');
   const {
     handleWindowMinimize,
     handleWindowToggleMaximize,
@@ -249,6 +258,79 @@ function ChatInterface({ focusComposerToken = 0 }) {
     setModelMenuOpen,
     setReasoningModeMenuOpen,
   });
+
+  const normalizedFindQuery = useMemo(() => findQuery.trim(), [findQuery]);
+  const threadFindState = useMemo(() => buildThreadFindState(renderedMessages, normalizedFindQuery), [
+    normalizedFindQuery,
+    renderedMessages,
+  ]);
+  const totalFindMatches = threadFindState.totalMatches;
+  const resolvedActiveFindMatchIndex = normalizedFindQuery && totalFindMatches > 0
+    ? activeFindMatchIndex
+    : null;
+
+  const handleOpenFind = useCallback(() => {
+    setFindBarOpen(true);
+    setFindFocusToken((current) => current + 1);
+  }, []);
+
+  const handleCloseFind = useCallback(() => {
+    setFindBarOpen(false);
+    setFindQuery('');
+    setActiveFindMatchIndex(0);
+  }, []);
+
+  const handleNextFindMatch = useCallback(() => {
+    if (totalFindMatches <= 0) {
+      return;
+    }
+    setActiveFindMatchIndex((current) => (current + 1) % totalFindMatches);
+  }, [totalFindMatches]);
+
+  const handlePreviousFindMatch = useCallback(() => {
+    if (totalFindMatches <= 0) {
+      return;
+    }
+    setActiveFindMatchIndex((current) => (current - 1 + totalFindMatches) % totalFindMatches);
+  }, [totalFindMatches]);
+
+  useEffect(() => {
+    if (!findBarOpen) {
+      return undefined;
+    }
+
+    const focusInput = () => {
+      findInputRef.current?.focus();
+      findInputRef.current?.select();
+    };
+
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      const frameId = window.requestAnimationFrame(focusInput);
+      return () => {
+        window.cancelAnimationFrame(frameId);
+      };
+    }
+
+    focusInput();
+    return undefined;
+  }, [findBarOpen, findFocusToken]);
+
+  useEffect(() => {
+    if (normalizedFindQuery !== previousFindQueryRef.current) {
+      previousFindQueryRef.current = normalizedFindQuery;
+      setActiveFindMatchIndex(0);
+      return;
+    }
+
+    if (totalFindMatches === 0) {
+      setActiveFindMatchIndex(0);
+      return;
+    }
+
+    setActiveFindMatchIndex((current) => (
+      current >= totalFindMatches ? totalFindMatches - 1 : current
+    ));
+  }, [normalizedFindQuery, totalFindMatches]);
 
   const stopPlayback = useCallback(() => {
     audioPlayerRef.current?.stopPlayback();
@@ -411,6 +493,11 @@ function ChatInterface({ focusComposerToken = 0 }) {
   });
 
   useChatInterfaceNewChatEvent(handleNewChat);
+  useChatInterfaceFindShortcut({
+    isFindOpen: findBarOpen,
+    handleOpenFind,
+    handleCloseFind,
+  });
 
   const { sendMessage } = useChatMessageSender(stopPlayback, {
     senderSurface: 'main-window',
@@ -438,8 +525,10 @@ function ChatInterface({ focusComposerToken = 0 }) {
         selectedReasoningModeLabel={selectedReasoningModeLabel}
         reasoningModeOptions={reasoningModeOptions}
         speechModeEnabled={speechModeEnabled}
+        findBarOpen={findBarOpen}
         activeWorkspaceName={activeWorkspace.activeWorkspaceName}
         activeWorkspacePath={activeWorkspace.activeWorkspacePath}
+        handleOpenFind={handleOpenFind}
         handleChangeWorkspace={handleChangeWorkspace}
         devUiEnabled={devUiEnabled}
         handleProviderSelect={handleProviderSelect}
@@ -451,6 +540,18 @@ function ChatInterface({ focusComposerToken = 0 }) {
         handleWindowToggleMaximize={handleWindowToggleMaximize}
         handleWindowClose={handleWindowClose}
       />
+      {findBarOpen ? (
+        <ChatFindBar
+          query={findQuery}
+          totalMatches={totalFindMatches}
+          activeMatchIndex={totalFindMatches > 0 ? activeFindMatchIndex : 0}
+          inputRef={findInputRef}
+          onQueryChange={setFindQuery}
+          onPreviousMatch={handlePreviousFindMatch}
+          onNextMatch={handleNextFindMatch}
+          onClose={handleCloseFind}
+        />
+      ) : null}
       {isTransportConnected ? null : (
         <div className="chat-connection-warning" role="alert">
           Cannot connect to server right now, try again later.
@@ -477,6 +578,9 @@ function ChatInterface({ focusComposerToken = 0 }) {
             thinkingSourceEventType={thinkingSourceEventType}
             compactionDebugInfo={compactionDebugInfo}
             awaitingDotTargetMessageId={hasLiveToolExplanationMessages ? null : awaitingDotTargetMessageId}
+            findQuery={normalizedFindQuery}
+            messageFindMatchIndexesById={threadFindState.messageMatchIndexesById}
+            activeFindMatchIndex={resolvedActiveFindMatchIndex}
             enableAgentLoopAutoScroll={composerBusy}
             enableAssistantActions
             enableUserActions

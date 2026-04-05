@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
+import HighlightedPlainText from './HighlightedPlainText';
 
-export default function ToolCallMessage({ message }) {
+export default function ToolCallMessage({
+  message,
+  findQuery = '',
+  findMatchIndexes = [],
+  activeFindMatchIndex = null,
+}) {
   const [showDetails, setShowDetails] = useState(false);
   const modelFacingText = typeof message.toolCallDisplayText === 'string' && message.toolCallDisplayText.trim()
     ? message.toolCallDisplayText
@@ -32,7 +38,14 @@ export default function ToolCallMessage({ message }) {
           Details
         </button>
       </div>
-      <pre className="tool-call-content">{modelFacingText}</pre>
+      <HighlightedPlainText
+        as="pre"
+        className="tool-call-content"
+        text={modelFacingText}
+        findQuery={findQuery}
+        findMatchIndexes={findMatchIndexes}
+        activeFindMatchIndex={activeFindMatchIndex}
+      />
       {showDetails ? (
         <div className="tool-details-panel">
           <div className="tool-details-block">
@@ -52,4 +65,7 @@ ToolCallMessage.propTypes = {
     modelFacingToolCall: PropTypes.object,
     toolCallDetails: PropTypes.object,
   }).isRequired,
+  findQuery: PropTypes.string,
+  findMatchIndexes: PropTypes.arrayOf(PropTypes.number),
+  activeFindMatchIndex: PropTypes.number,
 };

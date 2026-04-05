@@ -23,6 +23,9 @@ function MessageList({
   thinkingSourceEventType = null,
   compactionDebugInfo = null,
   awaitingDotTargetMessageId = null,
+  findQuery = '',
+  messageFindMatchIndexesById = {},
+  activeFindMatchIndex = null,
   enableAgentLoopAutoScroll = false,
   enableAssistantActions = false,
   enableUserActions = false,
@@ -79,6 +82,35 @@ function MessageList({
     }
   }, [editingUserMessageId, messages]);
 
+  useEffect(() => {
+    if (activeFindMatchIndex === null || activeFindMatchIndex < 0) {
+      return undefined;
+    }
+
+    const requestScroll = () => {
+      const messageListNode = messageListRef.current;
+      const activeMatchNode = messageListNode?.querySelector(
+        `[data-thread-find-match-index="${activeFindMatchIndex}"]`,
+      );
+      if (activeMatchNode && typeof activeMatchNode.scrollIntoView === 'function') {
+        activeMatchNode.scrollIntoView({
+          block: 'center',
+          inline: 'nearest',
+        });
+      }
+    };
+
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      const frameId = window.requestAnimationFrame(requestScroll);
+      return () => {
+        window.cancelAnimationFrame(frameId);
+      };
+    }
+
+    requestScroll();
+    return undefined;
+  }, [activeFindMatchIndex, messageListRef, messages]);
+
   const conversationToolSchemas = useMemo(() => resolveConversationToolSchemas(messages), [messages]);
 
   const renderedMessages = useMemo(
@@ -89,6 +121,9 @@ function MessageList({
             key={msg.id}
             message={msg}
             conversationToolSchemas={conversationToolSchemas}
+            findQuery={findQuery}
+            findMatchIndexes={messageFindMatchIndexesById[msg.id] || []}
+            activeFindMatchIndex={activeFindMatchIndex}
             enableAssistantActions={enableAssistantActions}
             enableUserActions={enableUserActions}
             disableAssistantActions={disableAssistantActions}
@@ -127,6 +162,9 @@ function MessageList({
     [
       messages,
       conversationToolSchemas,
+      findQuery,
+      messageFindMatchIndexesById,
+      activeFindMatchIndex,
       awaitingDotTargetMessageId,
       enableAssistantActions,
       enableUserActions,
@@ -237,6 +275,9 @@ MessageList.propTypes = {
     skippedReason: PropTypes.string,
   }),
   awaitingDotTargetMessageId: PropTypes.string,
+  findQuery: PropTypes.string,
+  messageFindMatchIndexesById: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.number)),
+  activeFindMatchIndex: PropTypes.number,
   enableAgentLoopAutoScroll: PropTypes.bool,
   enableAssistantActions: PropTypes.bool,
   enableUserActions: PropTypes.bool,

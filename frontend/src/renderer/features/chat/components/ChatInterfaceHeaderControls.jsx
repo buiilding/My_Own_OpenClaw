@@ -1,4 +1,4 @@
-import { Brain, ChevronDown, Volume2, Workflow } from 'lucide-react';
+import { Brain, ChevronDown, Search, Volume2, Workflow } from 'lucide-react';
 import MainWindowControls from '../../../components/MainWindowControls';
 import ChatBrowserSessionControl from './ChatBrowserSessionControl';
 import { formatProviderLabel } from '../utils/chatModelOptions';
@@ -32,8 +32,10 @@ function ChatInterfaceHeaderControls({
   selectedReasoningModeLabel,
   reasoningModeOptions,
   speechModeEnabled,
+  findBarOpen,
   activeWorkspaceName,
   activeWorkspacePath,
+  handleOpenFind,
   handleChangeWorkspace,
   devUiEnabled,
   handleProviderSelect,
@@ -189,6 +191,15 @@ function ChatInterfaceHeaderControls({
             <span className="chat-active-workspace-name">
               {activeWorkspaceName || 'Set workspace'}
             </span>
+          </button>
+          <button
+            type="button"
+            className={`chat-top-icon-btn${findBarOpen ? ' is-enabled' : ''}`}
+            aria-label="Find in conversation"
+            title="Find in conversation"
+            onClick={handleOpenFind}
+          >
+            <Search size={18} />
           </button>
           <button
             type="button"
