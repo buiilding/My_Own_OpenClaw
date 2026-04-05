@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from . import artifacts, runs, sdk, websocket
+from . import artifacts, runs, sdk, transcription, websocket
 from .memory import embeddings, semantic
 
 API_ROUTERS: tuple[APIRouter, ...] = (
     websocket.router,
+    transcription.router,
     runs.router,
     artifacts.router,
     sdk.router,

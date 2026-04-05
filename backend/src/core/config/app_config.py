@@ -45,6 +45,13 @@ APP_CONFIG = AppConfig(
     # Voice Mode Settings
     voice_mode_enabled=False,
     wakeword_stt_enabled=False,
+    stt_provider="nova",
+    stt_language="en",
+    nova_voice_gateway_url="ws://127.0.0.1:5026",
+    openai_realtime_transcription_model="gpt-4o-mini-transcribe",
+    stt_vad_threshold=0.5,
+    stt_vad_prefix_padding_ms=300,
+    stt_vad_silence_duration_ms=500,
     agent_full_sudo_enabled=False,
     browser_automation_enabled=False,
     # Wakeword Settings

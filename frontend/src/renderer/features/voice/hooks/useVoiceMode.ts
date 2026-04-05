@@ -7,6 +7,7 @@ import {
 import { createAudioCaptureProcessorNode } from '../utils/audioProcessorNode';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
+import { buildTranscriptionWebSocketUrl } from '../../../infrastructure/services/BackendEndpointStore';
 
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY_BASE_MS = 1000;
@@ -23,15 +24,16 @@ function getReconnectDelayMs(attempt: number): number {
 
 /**
  * Custom hook for managing voice mode functionality.
- * Connects to Nova-Voice Gateway WebSocket, captures audio, and handles transcription.
+ * Connects to the backend-owned WindieOS transcription WebSocket, captures audio,
+ * and handles transcription.
  * 
  * @param {boolean} enabled - Whether voice mode is enabled
  * @param {Function} onTranscriptionUpdate - Callback when transcription text updates
  * @param {Function} onUtteranceEnd - Callback when utterance ends (silence detected)
- * @param {string} gatewayUrl - Nova-Voice Gateway WebSocket URL (default: ws://localhost:5026)
+ * @param {string} gatewayUrl - Backend transcription WebSocket URL
  * @returns {Object} - Voice mode state and controls
  */
-export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: string, isFinal: boolean) => void, onUtteranceEnd?: () => void, gatewayUrl: string = 'ws://localhost:5026') {
+export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: string, isFinal: boolean) => void, onUtteranceEnd?: () => void, gatewayUrl: string = buildTranscriptionWebSocketUrl()) {
   const [isConnected, setIsConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +69,7 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
     setIsConnected(false);
   }, []);
 
-  // Connect to Nova-Voice Gateway WebSocket
+  // Connect to the backend-owned transcription WebSocket
   const connectWebSocket = useCallback(() => {
     if (websocketRef.current?.readyState === WebSocket.OPEN) {
       return; // Already connected
@@ -78,7 +80,7 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
       websocketRef.current = ws;
 
       ws.onopen = () => {
-        console.log('[VoiceMode] Connected to Nova-Voice Gateway');
+        console.log('[VoiceMode] Connected to backend transcription gateway');
         setIsConnected(true);
         setError(null);
         clearReconnectTimeout();

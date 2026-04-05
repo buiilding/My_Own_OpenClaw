@@ -19,7 +19,8 @@ restart to make permanent changes). Frontend config is updated from the UI,
 persisted locally, and sent to the backend via `update-settings` to update the
 user session (applies on next query). Speech backend selection stays backend-owned:
 the frontend can enable or disable speech playback for the session, but it does not
-choose `local` versus `elevenlabs`.
+choose `local` versus `elevenlabs`. The same rule now applies to transcription:
+the frontend can enable voice mode, but it does not choose `nova` versus `openai`.
 
 Important secret-handling rule:
 - `AppConfig` stores defaults, runtime policy, and env-var names.
@@ -34,6 +35,7 @@ Current runtime policies:
 - If `tts_model_path` is unset, backend fills an OS-default path via `get_default_tts_model_path()`.
 - TTS audio streaming still depends on `speech_mode_enabled` at request time.
 - `speech_provider` defaults to `elevenlabs`; the API layer falls back to local Piper if ElevenLabs cannot initialize.
+- `stt_provider` defaults to `nova`; the backend-owned `/ws/transcription` gateway proxies to Nova or translates to OpenAI Realtime without exposing provider choice to the renderer.
 
 ## Backend Configuration (Python)
 
@@ -57,6 +59,7 @@ APP_CONFIG = AppConfig(
     embedding_model="all-MiniLM-L6-v2",
     voice_mode_enabled=False,
     speech_mode_enabled=False,
+    stt_provider="nova",
     speech_provider="elevenlabs",
     include_query_screenshot=True,
     vision_model_name="OpenGVLab/InternVL3_5-4B",
@@ -130,11 +133,11 @@ Runtime compatibility note:
 Important execution knobs in `AppConfig` (`backend/src/core/config/models.py`) include:
 - `interaction_mode` (`chat` or `agent`) controls tool allowlist behavior.
 - history reduction is compaction-only; there is no message-count pruning or loop-step cap in config.
-- `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_enabled`, `speech_provider`, and `include_query_screenshot` shape chat UX behavior.
+- `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_enabled`, `stt_provider`, `speech_provider`, and `include_query_screenshot` shape chat UX behavior.
 
 ## Frontend Configuration (Local)
 
-The UI stores a minimal settings payload (model selection + interaction mode + voice/wakeword/screenshot toggles) locally. These values are pushed to the backend via `update-settings` and applied to the user session on the next query. Backend-owned runtime policy such as `speech_provider` is not persisted by the renderer.
+The UI stores a minimal settings payload (model selection + interaction mode + voice/wakeword/screenshot toggles) locally. These values are pushed to the backend via `update-settings` and applied to the user session on the next query. Backend-owned runtime policy such as `speech_provider` and `stt_provider` is not persisted by the renderer.
 
 ### Stored Fields
 

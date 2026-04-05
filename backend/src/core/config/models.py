@@ -277,6 +277,13 @@ class AppConfig(BaseModel):
     # Voice Mode Settings
     voice_mode_enabled: bool = False
     wakeword_stt_enabled: bool = False
+    stt_provider: Literal["nova", "openai"] = "nova"
+    stt_language: str = "en"
+    nova_voice_gateway_url: str = "ws://127.0.0.1:5026"
+    openai_realtime_transcription_model: str = "gpt-4o-mini-transcribe"
+    stt_vad_threshold: float = 0.5
+    stt_vad_prefix_padding_ms: int = 300
+    stt_vad_silence_duration_ms: int = 500
     agent_full_sudo_enabled: bool = False
     browser_automation_enabled: bool = False
     include_query_screenshot: bool = True
