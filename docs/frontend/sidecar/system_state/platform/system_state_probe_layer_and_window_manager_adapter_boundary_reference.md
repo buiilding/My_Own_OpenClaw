@@ -2,7 +2,7 @@
 summary: "Deep reference for sidecar platform layering: direct OS probes used by `get_system_state`, separate window-manager adapters used by system tools, and OS-specific dependency/fallback behavior."
 read_when:
   - When changing active-window/window-list collection logic or window-activation matching behavior on Windows/macOS/Linux.
-  - When diagnosing mismatches where `get_system_state` reports one window title surface but `switch_tab` matching/activation behaves differently.
+  - When diagnosing mismatches where `get_system_state` reports one window title surface but `switch_window` matching/activation behaves differently.
 title: "System-State Probe Layer and Window-Manager Adapter Boundary Reference"
 ---
 
@@ -35,7 +35,7 @@ Design goal:
 
 ### Adapter layer (`core/platform/*`)
 
-Used by system tools (`switch_tab`, `get_open_windows`):
+Used by system tools (`switch_window`, `get_open_windows`):
 
 - one `WindowManager` implementation per OS
 - normalized matching and activation behavior live here
@@ -154,7 +154,7 @@ Adapter layer in tools:
 
 When changing platform adapters:
 
-1. validate `switch_tab` and `get_open_windows` behaviors for each OS-specific implementation
+1. validate `switch_window` and `get_open_windows` behaviors for each OS-specific implementation
 2. confirm `get_system_state` window fields still produce expected shape/fallbacks
 3. ensure ambiguity guards remain conservative on Linux matching
 4. verify main bridge still normalizes sidecar success/error responses to renderer expectations

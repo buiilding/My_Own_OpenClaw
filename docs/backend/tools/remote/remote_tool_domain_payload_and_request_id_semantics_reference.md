@@ -72,7 +72,7 @@ Classes:
 - `RemoteKeyboardTool` (`KeyboardControlArgs`)
 - `RemoteScreenshotTool` (`ScreenshotToolArgs`)
 - `RemoteScrollTool` (`ScrollControlArgs`)
-- `RemoteSwitchTabTool` (`SwitchTabArgs`)
+- `RemoteSwitchTabTool` (`SwitchTabArgs`) for the `switch_window` tool
 - `RemoteWaitTool` (`WaitToolArgs`)
 - `RemoteGetOpenWindowsTool` (`GetOpenWindowsArgs`)
 
@@ -91,7 +91,7 @@ Nuance:
 
 `ComputerUseArgs` enforces a strict envelope:
 
-- `tool`: one of `mouse_control|keyboard_control|screenshot|scroll_control|switch_tab|wait`
+- `tool`: one of `mouse_control|keyboard_control|screenshot|scroll_control|switch_window|wait`
 - `metadata`: required `ComputerUseMetadata` object
   - required string fields: `description`, `explanation`, `expectation`
   - each field has `min_length=1`

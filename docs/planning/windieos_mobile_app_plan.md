@@ -50,7 +50,7 @@ Include:
 - Conversation history backed by backend APIs (new REST endpoints required; see Phase 2).
 
 Exclude in V1:
-- Desktop computer-control tool execution (`mouse_control`, `keyboard_control`, `switch_tab`, etc.).
+- Desktop computer-control tool execution (`mouse_control`, `keyboard_control`, `switch_window`, etc.).
 - Local sidecar memory/tool runtime on device.
 - Desktop overlay/chatbox UX.
 

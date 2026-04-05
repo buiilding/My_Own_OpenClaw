@@ -35,7 +35,7 @@ Detailed registry behavior:
 - `keyboard_control`
 - `screenshot`
 - `scroll_control`
-- `switch_tab`
+- `switch_window`
 - `wait`
 
 Deep runtime reference:

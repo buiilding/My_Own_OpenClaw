@@ -104,7 +104,7 @@ _EXECUTOR_MODELS_BY_TOOL: dict[str, type[BaseModel]] = {
     "mouse_control": ExecutorMouseControlArgs,
     "keyboard_control": ExecutorKeyboardControlArgs,
     "scroll_control": ExecutorScrollControlArgs,
-    "switch_tab": ExecutorSwitchTabArgs,
+    "switch_window": ExecutorSwitchTabArgs,
 }
 
 _GROUNDED_SOURCE_FIELDS = (

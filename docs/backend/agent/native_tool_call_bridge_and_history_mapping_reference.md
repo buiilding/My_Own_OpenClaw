@@ -88,7 +88,7 @@ When normalized name is `computer_use`:
   - `keyboard_control`
   - `screenshot`
   - `scroll_control`
-  - `switch_tab`
+  - `switch_window`
   - `wait`
 - valid mapped name -> replace parsed `tool_name` with subtool
 - invalid/missing mapped name -> `tool_name = "invalid_computer_use_tool"`
@@ -107,7 +107,7 @@ Metadata-promotion boundary for unified envelopes:
 
 Direct computer-subtool parity:
 
-- direct native calls named `mouse_control|keyboard_control|screenshot|scroll_control|switch_tab|wait` pass through the same metadata normalization gate.
+- direct native calls named `mouse_control|keyboard_control|screenshot|scroll_control|switch_window|wait` pass through the same metadata normalization gate.
 - missing/invalid metadata in direct computer-subtool calls also resolves to `invalid_computer_use_tool`.
 
 Concrete-argument validation boundary:

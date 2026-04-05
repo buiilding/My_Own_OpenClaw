@@ -46,7 +46,7 @@ This ensures screenshot capture respects the user-selected display in multi-moni
 
 `isComputerUseTool(...)` returns true for:
 
-- known computer-use tools (`mouse_control`, `keyboard_control`, `scroll_control`, `screenshot`, `wait`, `switch_tab`)
+- known computer-use tools (`mouse_control`, `keyboard_control`, `scroll_control`, `screenshot`, `wait`, `switch_window`)
 - `run_shell_command` when `wait > 0`
 
 `ensureAutoCapture(...)` rules:

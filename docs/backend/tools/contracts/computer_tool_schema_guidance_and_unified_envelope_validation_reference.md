@@ -92,7 +92,7 @@ Ownership split:
   - `keyboard_control`
   - `screenshot`
   - `scroll_control`
-  - `switch_tab`
+  - `switch_window`
   - `wait`
 - `metadata`: `ComputerUseMetadata` object with required non-empty strings:
   - `description`
@@ -148,7 +148,7 @@ Unified registration compatibility:
 Registry declaration compatibility:
 
 - `ToolRegistry.get_function_declarations_filtered(["computer_use"])` now replaces the generated declaration with canonical schema from `backend/src/tools/computer/unified_schema.py`.
-- Canonical declaration includes explicit `arguments.oneOf` sub-schemas (`mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`) plus conditional `allOf` requirements.
+- Canonical declaration includes explicit `arguments.oneOf` sub-schemas (`mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_window`, `wait`) plus conditional `allOf` requirements.
 - `metadata` remains required with required nested fields (`description`, `explanation`, `expectation`).
 - Compatibility expansion still allows legacy concrete tool-name parsing internally while preserving strict model-facing unified envelope requirements.
 

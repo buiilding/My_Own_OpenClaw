@@ -217,7 +217,7 @@ _DEFAULT_TOOL_ALLOWLIST_BY_INTERACTION_MODE: dict[str, set[str]] = {
         "keyboard_control",
         "screenshot",
         "scroll_control",
-        "switch_tab",
+        "switch_window",
         "wait",
         "run_shell_command",
         "replace",

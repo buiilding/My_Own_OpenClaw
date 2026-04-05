@@ -281,16 +281,16 @@ describe('ToolExecutionBundleRunner', () => {
 
     const outcome = await runToolBundle([
       { toolName: 'wait', args: { seconds: 1.5 } },
-      { toolName: 'switch_tab', args: { tab_name: 'Target' } },
+      { toolName: 'switch_window', args: { tab_name: 'Target' } },
     ], 'bundle-accumulated-wait');
 
     expect(mockResolvePostActionWaitSeconds).not.toHaveBeenCalled();
     expect(mockEnsureAutoCapture).toHaveBeenCalledWith(
-      'switch_tab',
+      'switch_window',
       { tab_name: 'Target' },
       false,
       { success: true, data: { output: 'switched' } },
-      'bundle-accumulated-wait:step-2:switch_tab',
+      'bundle-accumulated-wait:step-2:switch_window',
       2,
     );
     expect(outcome.totalWaitDelay).toBe(2);

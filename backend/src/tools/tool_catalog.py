@@ -30,7 +30,7 @@ _CATALOG: tuple[ToolCatalogEntry, ...] = (
     ToolCatalogEntry("keyboard_control", "backend.src.tools.remote_tools.computer", "RemoteKeyboardTool"),
     ToolCatalogEntry("screenshot", "backend.src.tools.remote_tools.computer", "RemoteScreenshotTool"),
     ToolCatalogEntry("scroll_control", "backend.src.tools.remote_tools.computer", "RemoteScrollTool"),
-    ToolCatalogEntry("switch_tab", "backend.src.tools.remote_tools.computer", "RemoteSwitchTabTool"),
+    ToolCatalogEntry("switch_window", "backend.src.tools.remote_tools.computer", "RemoteSwitchTabTool"),
     ToolCatalogEntry("wait", "backend.src.tools.remote_tools.computer", "RemoteWaitTool"),
     ToolCatalogEntry("get_open_windows", "backend.src.tools.remote_tools.computer", "RemoteGetOpenWindowsTool"),
     ToolCatalogEntry("get_system_stats", "backend.src.tools.remote_tools.system", "RemoteGetSystemStatsTool"),

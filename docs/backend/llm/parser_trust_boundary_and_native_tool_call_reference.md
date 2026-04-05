@@ -202,7 +202,7 @@ Each includes boundary metadata (`boundary_name="response_parser"` plus optional
   - interaction-loop bridging preserves that logical provider call while the downstream execution layer expands it into the existing internal desktop-action bundle path
   - screenshot/image output for native `computer` turns still comes from the existing bundle capture path rather than a separate provider-native image contract
 - unified native `computer_use` bridge behavior:
-  - maps `arguments.tool` to concrete computer subtool when in allowed set (`mouse_control|keyboard_control|screenshot|scroll_control|switch_tab|wait`)
+  - maps `arguments.tool` to concrete computer subtool when in allowed set (`mouse_control|keyboard_control|screenshot|scroll_control|switch_window|wait`)
   - invalid/unknown mapped subtool becomes `invalid_computer_use_tool`
   - missing/non-dict unified `arguments` becomes `parameters={}`
   - only top-level unified `metadata` is promoted; nested `arguments.metadata` remains in tool parameters
@@ -211,7 +211,7 @@ Each includes boundary metadata (`boundary_name="response_parser"` plus optional
     - required fields: `description`, `explanation`, `expectation`
     - allowed internal passthrough fields: `tool_call_id`, `thought_signature`
     - unexpected metadata keys invalidate the call (`invalid_computer_use_tool`)
-  - direct native computer-subtool names (`mouse_control|keyboard_control|screenshot|scroll_control|switch_tab|wait`) run through the same metadata gate; missing/invalid metadata resolves to `invalid_computer_use_tool`
+  - direct native computer-subtool names (`mouse_control|keyboard_control|screenshot|scroll_control|switch_window|wait`) run through the same metadata gate; missing/invalid metadata resolves to `invalid_computer_use_tool`
 - unified native `system_use` bridge behavior:
   - maps `arguments.tool` to concrete tool (`run_shell_command|replace|read_file|get_system_stats|get_open_windows`) when valid
   - strips nested `arguments.explanation`

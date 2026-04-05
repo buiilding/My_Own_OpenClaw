@@ -65,11 +65,11 @@ Responsibilities:
 - uses shared computer-use tool catalog (`ToolComputerUseCatalog`) so capture policy and surface mode resolution stay aligned
 - catalog contract keeps renderer classification concrete:
   - interactive: `mouse_control`, `keyboard_control`, `scroll_control`, `click`, `type`, `scroll`
-  - capture-only: `screenshot`, `switch_tab`, `wait`
+  - capture-only: `screenshot`, `switch_window`, `wait`
   - excludes unified `computer_use` wrapper from renderer-side mode/capture checks
 - interactive computer-use execution no longer toggles overlay interactivity directly from the renderer; shared overlay phase in main process owns loop-wide click-through + `focusable=false`
 - focus verification retries were removed from renderer-side tool execution prep; orchestrator prep is policy-only and no longer performs external-window restore attempts
-- capture-only computer-use turns (`screenshot`, `switch_tab`, `wait`) use orchestrator capture-visibility transitions (hide-before-capture, show-after, overlap-safe restore)
+- capture-only computer-use turns (`screenshot`, `switch_window`, `wait`) use orchestrator capture-visibility transitions (hide-before-capture, show-after, overlap-safe restore)
 - when a computer-use tool starts while the dashboard is visible, renderer tool prep now hands execution ownership to the minimal chat pill first; the dashboard is hidden, the pill/response overlay surface is restored, and the rest of the tool turn runs exactly under the existing pill contract instead of keeping a dashboard-owned capture path
 - applies the same handoff policy to bundles when bundled steps include interactive/capture-only computer-use actions
 - forwards execution correlation IDs into auto-capture/screenshot lifecycles so capture transition logs and tool timing logs share deterministic ids (single tool: request id, bundle: deterministic step id)

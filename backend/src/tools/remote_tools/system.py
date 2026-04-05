@@ -57,7 +57,7 @@ class RemoteShellTool(RemoteToolBase, Tool[RunShellCommandArgs]):
         "- For detached GUI app launches, prefer open_app instead of run_shell_command.\n"
         "- For shell jobs you need to poll/terminate, keep run_in_background=True and manage via process tool.\n"
         "- After launch, capture a screenshot with wait to verify expected UI state.\n"
-        "- Use get_open_windows + switch_tab for deterministic window focus.\n\n"
+        "- Use get_open_windows + switch_window for deterministic window focus.\n\n"
         "Optional wait parameter: If 'wait' is provided (in seconds), the tool will wait and capture a screenshot "
         "after execution, similar to computer-use tools. This is useful when the command opens a GUI application "
         "or makes visual changes that need to be captured.\n\n"

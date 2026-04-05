@@ -17,7 +17,7 @@ describe('ToolComputerUseCatalog', () => {
 
     expect(CAPTURE_ONLY_COMPUTER_USE_TOOLS).toEqual([
       'screenshot',
-      'switch_tab',
+      'switch_window',
       'wait',
     ]);
   });
@@ -38,7 +38,7 @@ describe('ToolComputerUseCatalog', () => {
       expect.arrayContaining(['mouse_control', 'keyboard_control', 'scroll_control']),
     );
     expect(CAPTURE_ONLY_COMPUTER_USE_TOOLS).toEqual(
-      expect.arrayContaining(['screenshot', 'switch_tab', 'wait']),
+      expect.arrayContaining(['screenshot', 'switch_window', 'wait']),
     );
   });
 });

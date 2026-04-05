@@ -149,7 +149,7 @@ async def execute_my_remote_tool(args: dict[str, Any]) -> dict[str, Any]:
 ### 5. Register sidecar handler + exposure
 
 In `frontend/src/main/python/tools/registry.py`:
-- Add the tool to `TOOL_CATALOG` (or the explicit `switch_tab` / `get_open_windows` registration path when appropriate).
+- Add the tool to `TOOL_CATALOG` (or the explicit `switch_window` / `get_open_windows` registration path when appropriate).
 - Add tool name to `frontend/src/main/python/tools/exposed_tool_names.py` if it should be LLM-callable from the backend.
 
 ### 6. Validate drift contract

@@ -486,7 +486,7 @@ frontend/src/renderer/
 
 9. **Transparency Sections**: Collapsible sections for system prompts, tool schemas, and full messages (debugging/transparency)
 
-10. **Computer-Use Tools**: Automatic screenshot/system state capture for mouse, keyboard, scroll, wait, switch_tab tools
+10. **Computer-Use Tools**: Automatic screenshot/system state capture for mouse, keyboard, scroll, wait, switch_window tools
 
 11. **Bundle Execution**: Atomic tool bundles executed sequentially with fail-fast behavior
 
@@ -589,7 +589,7 @@ Tools that automatically capture screenshots and system state:
 - `scroll_control`
 - `screenshot`
 - `wait`
-- `switch_tab`
+- `switch_window`
 - `run_shell_command` (if `wait` parameter provided)
 
 ### Tool Execution Options

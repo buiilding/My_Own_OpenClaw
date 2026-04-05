@@ -178,11 +178,11 @@ def test_tool_registry_filtered_declarations_include_requested_computer_tools():
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
 
     declarations = registry.get_function_declarations_filtered(
-        ["mouse_control", "keyboard_control", "screenshot", "switch_tab", "wait"]
+        ["mouse_control", "keyboard_control", "screenshot", "switch_window", "wait"]
     )
     names = [d["name"] for d in declarations]
 
-    assert names == ["mouse_control", "keyboard_control", "screenshot", "switch_tab", "wait"]
+    assert names == ["mouse_control", "keyboard_control", "screenshot", "switch_window", "wait"]
 
 
 def test_tool_registry_filtered_declarations_include_requested_system_tools():

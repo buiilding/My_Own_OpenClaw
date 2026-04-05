@@ -71,7 +71,7 @@ For planned schema-ownership migration (frontend-sourced runtime tool catalogs),
 
 Most tools are executed on the frontend Python sidecar:
 
-- **Computer Control Tools**: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`
+- **Computer Control Tools**: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_window`, `wait`
 - **System/Filesystem Tools**: `run_shell_command`, `replace`, `read_file`, `get_system_stats`, `get_open_windows`
 - **Additional System Tools**: `open_app`, `process`
 - **Browser Tools**: `browser`
@@ -465,7 +465,7 @@ No dual-shape fallback is supported in provider transport.
 - **keyboard_control**: Keyboard input
 - **scroll_control**: Scroll actions. Supports `manual`, `ocr`, and `prediction` grounding at the backend preparation layer, then rewrites to concrete `x/y` before sidecar execution. Sidecar scroll execution still consumes manual coordinates only after preparation resolves the target region.
 - **screenshot**: Capture screenshot
-- **switch_tab**: Switch between tabs/windows
+- **switch_window**: Switch between windows
 - **wait**: Pause for a specified duration
 
 ### File System Tools

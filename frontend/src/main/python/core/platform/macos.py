@@ -380,7 +380,7 @@ class MacOSWindowManager(BaseWindowManager):
             # Quartz fallback should only surface real titled windows. Promoting
             # unnamed app-owned surfaces (for example background app artifacts or
             # toolbar/title-strip records) back to the app name creates false
-            # positives in get_open_windows and switch_tab.
+            # positives in get_open_windows and switch_window.
             if not window_name:
                 dropped_title += 1
                 if len(sample_records) < 5:

@@ -63,7 +63,7 @@ The catalog owns:
 
 Current names:
 
-- computer: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`, `get_open_windows`
+- computer: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_window`, `wait`, `get_open_windows`
 - system: `get_system_stats`, `open_app`, `run_shell_command`, `process`
 - filesystem: `read_file`, `replace`
 - browser: `browser`
@@ -204,7 +204,7 @@ Field-level shared-schema guard:
 
 - `tests/sidecar/test_shared_tool_schema_parity.py` compares backend and sidecar
   Pydantic schema contracts for shared non-browser tools where exact parity is
-  expected (`keyboard_control`, `switch_tab`, `wait`, `run_shell_command`,
+  expected (`keyboard_control`, `switch_window`, `wait`, `run_shell_command`,
   `open_app`, `process`, `read_file`, `replace`, `get_open_windows`,
   `get_system_stats`, plus replace support models).
 - the same suite documents intentional exceptions instead of treating them as

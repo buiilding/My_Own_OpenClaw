@@ -78,7 +78,7 @@ describe('toolRunnerSurface helpers', () => {
       resolveBundleSurfaceMode([{ toolName: 'screenshot', args: {} }]),
     ).toBe('screenshot');
     expect(
-      resolveBundleSurfaceMode([{ toolName: 'switch_tab', args: {} }]),
+      resolveBundleSurfaceMode([{ toolName: 'switch_window', args: {} }]),
     ).toBe('screenshot');
     expect(
       resolveBundleSurfaceMode([{ toolName: 'wait', args: { seconds: 2 } }]),
@@ -113,7 +113,7 @@ describe('toolRunnerSurface helpers', () => {
     ).toBe('screenshot');
   });
 
-  test('runs active-surface collapse/restore around switch_tab tool surface preparation', async () => {
+  test('runs active-surface collapse/restore around switch_window tool surface preparation', async () => {
     const preparation = await prepareToolExecutionSurface('screenshot');
     expect(preparation.canExecute).toBe(true);
     await restoreToolExecutionSurface(preparation);

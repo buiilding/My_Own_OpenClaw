@@ -67,7 +67,7 @@ EXACT_PARITY_TOOLS = {
         BackendKeyboardControlArgs,
         SidecarKeyboardControlArgs,
     ),
-    "switch_tab": (
+    "switch_window": (
         BackendSwitchTabArgs,
         SidecarSwitchTabArgs,
     ),

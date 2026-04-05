@@ -9,7 +9,7 @@ _COMPUTER_TOOL_NAMES = [
     "keyboard_control",
     "screenshot",
     "scroll_control",
-    "switch_tab",
+    "switch_window",
     "wait",
 ]
 
@@ -74,6 +74,6 @@ def test_openai_projection_replaces_direct_computer_tools_with_native_computer_a
     assert [schema.get("name") for schema in projected[1:]] == [
         "grounded_mouse_action",
         "grounded_scroll_action",
-        "switch_tab",
+        "switch_window",
         "get_open_windows",
     ]

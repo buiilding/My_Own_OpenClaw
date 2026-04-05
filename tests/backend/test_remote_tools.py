@@ -149,7 +149,7 @@ def test_keyboard_control_accepts_repeat_and_interval_fields():
     assert args.interval_ms == 40
 
 
-def test_switch_tab_accepts_match_mode():
+def test_switch_window_args_accept_match_mode():
     args = SwitchTabArgs(
         tab_name="Canva",
         match_mode="contains",

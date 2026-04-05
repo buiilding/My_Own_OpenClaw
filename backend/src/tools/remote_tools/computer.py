@@ -108,9 +108,9 @@ class RemoteScrollTool(RemoteToolBase, Tool[ScrollControlArgs]):
 
 
 class RemoteSwitchTabTool(RemoteToolBase, Tool[SwitchTabArgs]):
-    name = "switch_tab"
+    name = "switch_window"
     description = (
-        "Switch focus to a specific window/tab by exact title. "
+        "Switch focus to a specific window by exact title. "
         "Get valid titles from get_open_windows and switch by name instead of blind OS-level cycling."
     )
     args_model = SwitchTabArgs
@@ -120,7 +120,7 @@ class RemoteSwitchTabTool(RemoteToolBase, Tool[SwitchTabArgs]):
         return self._build_remote_result(
             args,
             ctx,
-            log_message=f"Remote switch tab tool call: {args.tab_name}",
+            log_message=f"Remote switch window tool call: {args.tab_name}",
         )
 
 
@@ -147,7 +147,7 @@ class RemoteGetOpenWindowsTool(RemoteToolBase, Tool[GetOpenWindowsArgs]):
     name = "get_open_windows"
     description = (
         "Lists all currently open window titles. Use this to check if an app is already open "
-        "before launching a new instance, and as the source of exact target names for switch_tab."
+        "before launching a new instance, and as the source of exact target names for switch_window."
     )
     args_model = GetOpenWindowsArgs
     category = ToolDomain.COMPUTER
@@ -576,6 +576,6 @@ _COMPUTER_USE_MODEL_BY_TOOL = {
     "keyboard_control": RemoteKeyboardTool.args_model,
     "screenshot": RemoteScreenshotTool.args_model,
     "scroll_control": RemoteScrollTool.args_model,
-    "switch_tab": RemoteSwitchTabTool.args_model,
+    "switch_window": RemoteSwitchTabTool.args_model,
     "wait": RemoteWaitTool.args_model,
 }

@@ -29,7 +29,7 @@ Exports:
 Current canonical names:
 
 - interactive: `mouse_control`, `keyboard_control`, `scroll_control`, `click`, `type`, `scroll`
-- capture-only: `screenshot`, `switch_tab`, `wait`
+- capture-only: `screenshot`, `switch_window`, `wait`
 
 Catalog arrays are frozen (`Object.freeze`) to prevent runtime mutation.
 

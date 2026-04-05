@@ -14,7 +14,7 @@ export const INTERACTIVE_COMPUTER_USE_TOOLS = Object.freeze([
 
 export const CAPTURE_ONLY_COMPUTER_USE_TOOLS = Object.freeze([
   'screenshot',
-  'switch_tab',
+  'switch_window',
   'wait',
 ]);
 
