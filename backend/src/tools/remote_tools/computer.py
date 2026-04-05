@@ -292,6 +292,17 @@ def _require_float(value: Any, *, field_name: str) -> float:
     return float(value)
 
 
+def _get_action_payload_value(
+    action_payload: dict[str, Any],
+    *field_names: str,
+    default: Any = None,
+) -> Any:
+    for field_name in field_names:
+        if field_name in action_payload:
+            return action_payload[field_name]
+    return default
+
+
 def _resolve_mouse_button(action_payload: dict[str, Any]) -> str:
     button = action_payload.get("button")
     if not isinstance(button, str) or button not in {"left", "right", "middle"}:
@@ -363,8 +374,16 @@ def _translate_computer_action(
 
     if action_type == "scroll":
         _reject_mouse_modifiers(action_payload)
-        scroll_y = _require_float(action_payload.get("scrollY", 0), field_name="scrollY")
-        scroll_x = _require_float(action_payload.get("scrollX", 0), field_name="scrollX")
+        # OpenAI's Python SDK exposes native computer scroll fields as snake_case
+        # (`scroll_y`/`scroll_x`), while some upstream payloads may still be camelCase.
+        scroll_y = _require_float(
+            _get_action_payload_value(action_payload, "scrollY", "scroll_y", default=0),
+            field_name="scrollY",
+        )
+        scroll_x = _require_float(
+            _get_action_payload_value(action_payload, "scrollX", "scroll_x", default=0),
+            field_name="scrollX",
+        )
         if abs(scroll_x) > abs(scroll_y):
             raise ValueError("Horizontal native computer scroll is not supported yet.")
         if scroll_y == 0:
