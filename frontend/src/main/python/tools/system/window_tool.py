@@ -42,7 +42,6 @@ def _collect_window_display_names(
 ) -> list[str]:
     query = str(filter_text or "").strip().lower()
     display_names: list[str] = []
-    seen: set[str] = set()
 
     for window in windows:
         display_name = _get_window_display_name(window)
@@ -60,10 +59,6 @@ def _collect_window_display_names(
             ).lower()
             if query not in candidate_text:
                 continue
-        normalized_name = display_name.lower()
-        if normalized_name in seen:
-            continue
-        seen.add(normalized_name)
         display_names.append(display_name)
 
     return display_names

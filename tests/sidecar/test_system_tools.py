@@ -195,6 +195,29 @@ async def test_get_open_windows_filters_display_names_case_insensitively(monkeyp
 
 
 @pytest.mark.asyncio
+async def test_get_open_windows_preserves_duplicate_display_names(monkeypatch):
+    manager = FakeWindowManager(
+        windows=[
+            {"title": "New Tab - Google Chrome", "app_name": "Google Chrome"},
+            {"title": "New Tab - Google Chrome", "app_name": "Google Chrome"},
+        ]
+    )
+    monkeypatch.setattr(window_tool, "_window_manager", manager)
+
+    result = await window_tool.get_open_windows({})
+
+    assert result["success"] is True
+    assert result["data"]["windows"] == [
+        "Google Chrome: New Tab - Google Chrome",
+        "Google Chrome: New Tab - Google Chrome",
+    ]
+    assert result["data"]["llm_content"] == (
+        "- Google Chrome: New Tab - Google Chrome\n"
+        "- Google Chrome: New Tab - Google Chrome"
+    )
+
+
+@pytest.mark.asyncio
 async def test_get_open_windows_handles_manager_errors(monkeypatch):
     manager = FakeWindowManager(windows_error=RuntimeError("wm failed"))
     monkeypatch.setattr(window_tool, "_window_manager", manager)
