@@ -65,7 +65,6 @@ Validation scope (`FrontendConfigPatch`):
 - `model_provider`
 - `selected_model_id`
 - `interaction_mode`
-- `voice_mode_enabled`
 - `speech_mode_enabled`
 - `wakeword_enabled`
 - `wakeword_stt_enabled`
@@ -122,7 +121,7 @@ Cancellation source of truth:
 Execution sequence:
 
 1. pick greeting through `WakewordService.select_greeting()`
-2. emit activation payload (`voice_mode_enabled`, `speech_mode_enabled`, status)
+2. emit activation payload (`speech_mode_enabled`, status)
 3. emit greeting text event
 4. if speech enabled via TTS session, synthesize and flush greeting audio
 5. wait for audio stream completion best-effort with timeout guards

@@ -21,7 +21,7 @@ registerAppConfigProviderSuiteLifecycle();
 
 describe('AppConfigProvider storage + IPC status handling', () => {
   test('skips disk-sync writes when disk config matches stored config', async () => {
-    setLoadFrontendConfigResponse({ voice_mode_enabled: false });
+    setLoadFrontendConfigResponse({ speech_mode_enabled: false });
 
     renderAppConfigContext();
     await flushAsyncEffects();
@@ -32,7 +32,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
   test('applies disk config when it differs from stored config', async () => {
     setLoadFrontendConfigResponse({
-      voice_mode_enabled: true,
+      speech_mode_enabled: true,
       selected_model_id: 'model-x',
       model_provider: 'openai',
     });
@@ -42,7 +42,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
     expect(mockSaveConfigToStorage).toHaveBeenCalledWith(
       expect.objectContaining({
-        voice_mode_enabled: true,
+        speech_mode_enabled: true,
         selected_model_id: 'model-x',
         model_provider: 'openai',
       }),
@@ -50,7 +50,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     );
     expect(ApiClient.updateSettings).toHaveBeenCalledWith(
       expect.objectContaining({
-        voice_mode_enabled: true,
+        speech_mode_enabled: true,
       }),
     );
     expect(ApiClient.updateSettings).not.toHaveBeenCalledWith(
@@ -64,7 +64,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     const { result } = renderAppConfigContext();
 
     mockLoadConfigFromStorage.mockReturnValue({
-      voice_mode_enabled: true,
+      speech_mode_enabled: true,
       include_query_screenshot: false,
     });
 
@@ -77,7 +77,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
     expect(result.current.config).toEqual(
       expect.objectContaining({
-        voice_mode_enabled: true,
+        speech_mode_enabled: true,
         include_query_screenshot: false,
       }),
     );
@@ -85,7 +85,6 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
   test('loads provider_api_keys from storage on startup', () => {
     mockLoadConfigFromStorage.mockReturnValue({
-      voice_mode_enabled: false,
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-local-openai' },
       },
@@ -136,7 +135,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     const { result } = renderAppConfigContext();
 
     mockLoadConfigFromStorage.mockReturnValue({
-      voice_mode_enabled: true,
+      speech_mode_enabled: true,
       include_query_screenshot: false,
     });
 
@@ -149,14 +148,13 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
     expect(result.current.config).toEqual(
       expect.objectContaining({
-        voice_mode_enabled: false,
+        speech_mode_enabled: false,
       }),
     );
   });
 
   test('derives wakewordEnabled from persisted frontend config', () => {
     mockLoadConfigFromStorage.mockReturnValue({
-      voice_mode_enabled: false,
       wakeword_enabled: false,
     });
 
@@ -182,7 +180,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     await flushAsyncEffects();
 
     expect(mockApiClientUpdateSettings).toHaveBeenCalledWith(
-      expect.objectContaining({ voice_mode_enabled: false }),
+      expect.objectContaining({ speech_mode_enabled: false }),
     );
   });
 
@@ -232,13 +230,12 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     });
 
     expect(ApiClient.updateSettings).toHaveBeenCalledWith(
-      expect.objectContaining({ voice_mode_enabled: false }),
+      expect.objectContaining({ speech_mode_enabled: false }),
     );
   });
 
   test('does not include local-only tool log visibility in backend sync payloads', async () => {
     mockLoadConfigFromStorage.mockReturnValue({
-      voice_mode_enabled: false,
       show_tool_logs: true,
     });
     setClientUserIdResponse({ userId: 'client-user-1', isConnected: true });
@@ -246,17 +243,11 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     renderAppConfigContext();
     await flushAsyncEffects();
 
-    expect(ApiClient.updateSettings).toHaveBeenCalled();
-    expect(ApiClient.updateSettings).not.toHaveBeenCalledWith(
-      expect.objectContaining({
-        show_tool_logs: true,
-      }),
-    );
+    expect(ApiClient.updateSettings).not.toHaveBeenCalled();
   });
 
   test('does not include deferred model selection in connection sync payloads', async () => {
     mockLoadConfigFromStorage.mockReturnValue({
-      voice_mode_enabled: false,
       model_provider: 'anthropic',
       selected_model_id: 'claude-sonnet-4-5',
     });
@@ -265,12 +256,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     renderAppConfigContext();
     await flushAsyncEffects();
 
-    expect(ApiClient.updateSettings).toHaveBeenCalledWith(
-      expect.not.objectContaining({
-        model_provider: 'anthropic',
-        selected_model_id: 'claude-sonnet-4-5',
-      }),
-    );
+    expect(ApiClient.updateSettings).not.toHaveBeenCalled();
   });
 
   test('does not sync config when IPC status reports disconnected', () => {
@@ -402,7 +388,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
     act(() => {
       result.current.updateConfig({
-        voice_mode_enabled: false,
+        speech_mode_enabled: false,
         selected_model_id: 'model-save-err',
         model_provider: 'openai',
       });

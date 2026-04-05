@@ -100,7 +100,7 @@ describe('AppConfigProvider model + config wiring', () => {
     const { result } = renderAppConfigContext();
 
     act(() => {
-      result.current.updateConfig({ voice_mode_enabled: false });
+      result.current.updateConfig({ speech_mode_enabled: false });
     });
 
     expect(mockSaveConfigToStorage).not.toHaveBeenCalled();
@@ -125,7 +125,7 @@ describe('AppConfigProvider model + config wiring', () => {
 
     act(() => {
       result.current.updateConfig({
-        voice_mode_enabled: false,
+        speech_mode_enabled: false,
         selected_model_id: 'model-y',
         model_provider: 'openai',
       });
@@ -143,7 +143,7 @@ describe('AppConfigProvider model + config wiring', () => {
 
     expect(mockSaveConfigToStorage).toHaveBeenCalledWith(
       expect.objectContaining({
-        voice_mode_enabled: false,
+        speech_mode_enabled: false,
         selected_model_id: 'model-merged',
       }),
       expect.any(Number),

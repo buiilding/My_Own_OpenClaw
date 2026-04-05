@@ -31,7 +31,7 @@ title: "Voice Capture and Wakeword Controller Reference"
 
 Renderer runs two independent voice paths:
 
-1. live voice transcription (`useVoiceMode`) for message input text
+1. live voice transcription (`useVoiceMode`) for temporary composer dictation sessions
 2. passive wakeword detection (`useWakewordDetection`) for "Hey Jarvis" activation
 
 They share microphone primitives but have different transport paths:
@@ -49,7 +49,6 @@ Backend ownership detail:
 
 `AppConfigProvider` owns activation inputs:
 
-- `config.voice_mode_enabled`: controls `MessageInput` transcription hook enable flag
 - `wakewordEnabled`: persisted wakeword preference from settings UI
 - `wakewordSuppressed`: temporary runtime suppression from main-process `wakeword-toggle`
   - seeded from renderer surface on startup: main dashboard starts unsuppressed, overlay views start suppressed
@@ -60,10 +59,21 @@ It also passes `wakewordEnabled` separately so the capture hook can distinguish 
 
 ## Live Transcription Flow (`useVoiceMode`)
 
-`MessageInput` wires `useVoiceMode(voiceModeEnabled, onTranscriptionUpdate, onUtteranceEnd)`:
+Dashboard composer:
+
+- `MessageInput` starts `useVoiceMode(...)` only while its local microphone session state is true
+- clicking the mic button starts or stops that local session
+- utterance end stops the session but leaves transcript text in the composer for manual send/edit
+
+Wakeword chat pill:
+
+- `ChatBox` starts `useVoiceMode(...)` only for a wakeword-triggered follow-up dictation session
+- final/utterance-end messages stop that temporary session without auto-submit
+
+Shared callbacks:
 
 - `onTranscriptionUpdate(text)`: updates transcription region via `useTranscription`
-- `onUtteranceEnd()`: submits current input value immediately (auto-send on silence)
+- `onUtteranceEnd()`: ends the temporary session
 
 Hook lifecycle:
 
@@ -169,7 +179,7 @@ Missing-device guardrails:
 - verify immediate `wakeword-disable` send path
 - missing transcriptions:
 - verify gateway WebSocket open state and `isRecording` transition
-- verify `voice_mode_enabled` true in renderer config
+- verify an active dictation session or wakeword-triggered STT session is running in the renderer
 - no wakeword readiness:
 - inspect `wakeword-status` events reaching renderer
 - verify `wakeword-toggle` suppression is not forcing inactive state

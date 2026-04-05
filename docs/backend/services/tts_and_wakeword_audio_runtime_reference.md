@@ -173,7 +173,6 @@ If `speech_mode_enabled` is true:
 
 `wakeword-activated` payload fields:
 
-- `voice_mode_enabled: true`
 - `speech_mode_enabled: <session config>`
 - `greeting`
 - `status: "listening"`

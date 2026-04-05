@@ -2,7 +2,7 @@
 summary: "Deep reference for MessageInput runtime: text/voice submit paths, clipboard/file attachment parsing and preview contracts, plus/thinking menu behavior, and send-button state guards."
 read_when:
   - When changing `MessageInput.jsx` input/submit behavior, pasted image UX, file-attachment parsing, or voice-mode handoff.
-  - When debugging why submit is blocked, attachment payload is missing, or utterance-end auto-send differs from form submit.
+  - When debugging why submit is blocked, attachment payload is missing, or microphone dictation session behavior differs from form submit.
 title: "MessageInput Clipboard Image and Voice Submit Reference"
 ---
 
@@ -118,18 +118,26 @@ Preview UI:
 
 ## Voice Mode Handoff
 
+`MessageInput` owns a transient microphone session state separate from persisted app config.
+
+Microphone button behavior:
+
+- click `Start voice input` -> enable `useVoiceMode(...)` for one dictation session
+- click `Stop voice input` -> disable live capture but keep any transcribed text in the composer
+- sending a message also ends the active voice session before submit
+
 `useVoiceMode(...)` callbacks:
 
 - transcription updates call `updateTranscription`
-- utterance-end triggers `submitMessageValue(getInputValue())`
+- utterance-end ends the temporary microphone session without auto-submitting
 
 Result:
 
-- voice submit path shares same normalization and send guards as keyboard/form submit.
+- dictated text lands in the same composer state used by typed input and can be edited before send.
 
 Voice status component:
 
-- rendered only when `voiceModeEnabled=true`
+- rendered only while the temporary dictation session is active, or when it ends in an error
 - reflects connection/recording/error state from voice hook
 
 ## Button and Guard Semantics
@@ -170,7 +178,8 @@ The menu does not alter outbound query payload; it only opens the native file-pi
 
 - trimmed send text and whitespace block behavior.
 - `isSending` submit block + stop-button rendering.
-- voice utterance-end submit with latest transcription value.
+- voice button starts and stops a temporary dictation session.
+- utterance-end keeps the latest transcription in the composer without auto-send.
 - pasted-image preview render.
 - pasted-image payload shape passed to `onSendMessage` as `clipboardImages[]`.
 - selected readable-file payload shape passed to `onSendMessage` as `readableFiles[]`.
@@ -180,7 +189,7 @@ The menu does not alter outbound query payload; it only opens the native file-pi
 ## Drift Hotspots
 
 1. Changing data-URL parse helpers without updating clipboard/file attachment utilities can break preview/base64 payload shaping.
-2. Diverging voice submit from form submit path creates inconsistent trim/block behavior.
+2. Re-introducing config-driven microphone enablement can make the button look live while doing nothing.
 3. Removing preview reset after submit can leak stale image/file payloads across messages.
 4. Replacing `buildOutgoingMessage` with ad-hoc payload construction can desync sender hook payload union.
 

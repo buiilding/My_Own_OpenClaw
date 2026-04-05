@@ -737,7 +737,6 @@ Update application configuration.
   "model_provider": "openai" | "anthropic" | ...,
   "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
   "interaction_mode": "chat" | "agent",
-  "voice_mode_enabled": true | false,
   "speech_mode_enabled": true | false,
   "wakeword_enabled": true | false,
   "wakeword_stt_enabled": true | false,
@@ -764,7 +763,6 @@ Payload shape is validated at message-parse time; value semantics are validated 
     "model_provider": "openai",
     "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
     "interaction_mode": "chat",
-    "voice_mode_enabled": false,
     "speech_mode_enabled": true,
     "wakeword_enabled": true,
     "wakeword_stt_enabled": false,
@@ -1143,7 +1141,6 @@ Response to load-settings request.
     "model_provider": "openai",
     "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
     "interaction_mode": "chat",
-    "voice_mode_enabled": false,
     "speech_mode_enabled": true,
     "wakeword_enabled": true,
     "wakeword_stt_enabled": false,
@@ -1167,7 +1164,6 @@ Response to load-settings request.
       "model_provider": "openai",
       "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
       "interaction_mode": "chat",
-      "voice_mode_enabled": false,
       "speech_mode_enabled": true,
       "wakeword_enabled": true,
       "wakeword_stt_enabled": false,
@@ -1425,7 +1421,6 @@ Wakeword activation status emitted before greeting text.
 **Payload**:
 ```json
 {
-  "voice_mode_enabled": true,
   "speech_mode_enabled": true,
   "greeting": "Hello! I'm listening.",
   "status": "listening"
@@ -1438,7 +1433,6 @@ Wakeword activation status emitted before greeting text.
   "id": "123e4567-e89b-12d3-a456-426614174018",
   "type": "wakeword-activated",
   "payload": {
-    "voice_mode_enabled": true,
     "speech_mode_enabled": true,
     "greeting": "Hello! I'm listening.",
     "status": "listening"

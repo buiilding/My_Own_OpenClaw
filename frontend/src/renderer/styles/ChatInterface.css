@@ -460,14 +460,6 @@
   font-weight: 600;
 }
 
-.chat-browser-carousel-slide.is-left {
-  animation: chat-browser-slide-left 170ms ease;
-}
-
-.chat-browser-carousel-slide.is-right {
-  animation: chat-browser-slide-right 170ms ease;
-}
-
 .chat-browser-disconnect-button {
   width: 100%;
   margin-top: 12px;
@@ -492,30 +484,6 @@
 .chat-browser-disconnect-button:disabled {
   cursor: default;
   opacity: 0.68;
-}
-
-@keyframes chat-browser-slide-left {
-  from {
-    opacity: 0;
-    transform: translateX(-14px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes chat-browser-slide-right {
-  from {
-    opacity: 0;
-    transform: translateX(14px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 }
 
 .chat-active-workspace-chip {
@@ -1761,6 +1729,16 @@
 .message-icon-btn:hover {
   background: var(--ui-hover-strong-bg);
   color: var(--ui-text-primary);
+}
+
+.message-icon-btn--active {
+  background: rgba(195, 83, 83, 0.16);
+  color: #f7c9c9;
+}
+
+.message-icon-btn--active:hover {
+  background: rgba(195, 83, 83, 0.22);
+  color: #ffe2e2;
 }
 
 .message-thinking-pill-wrap {

@@ -6,11 +6,13 @@ import MessageInput from '../../frontend/src/renderer/features/chat/components/M
 let mockVoiceState;
 let lastOnTranscriptionUpdate;
 let lastOnUtteranceEnd;
+let lastVoiceEnabled;
 const FILE_READER_DATA_URL = 'data:image/png;base64,ZmFrZS1iYXNlNjQ=';
 const FILE_READER_BASE64 = 'ZmFrZS1iYXNlNjQ=';
 
 jest.mock('../../frontend/src/renderer/features/voice/hooks/useVoiceMode', () => ({
   useVoiceMode: (_enabled, onTranscriptionUpdate, onUtteranceEnd) => {
+    lastVoiceEnabled = _enabled;
     lastOnTranscriptionUpdate = onTranscriptionUpdate;
     lastOnUtteranceEnd = onUtteranceEnd;
     return mockVoiceState;
@@ -29,6 +31,7 @@ describe('MessageInput', () => {
     };
     lastOnTranscriptionUpdate = undefined;
     lastOnUtteranceEnd = undefined;
+    lastVoiceEnabled = undefined;
     global.FileReader = class MockFileReader {
       constructor() {
         this.result = null;
@@ -113,11 +116,14 @@ describe('MessageInput', () => {
 
   test('auto-sends latest transcription when utterance ends in voice mode', () => {
     const onSendMessage = jest.fn();
-    render(<MessageInput onSendMessage={onSendMessage} isSending={false} voiceModeEnabled />);
+    render(<MessageInput onSendMessage={onSendMessage} isSending={false} />);
 
     const input = screen.getByLabelText('Type your message');
+    const voiceButton = screen.getByTestId('voice-btn');
     expect(lastOnTranscriptionUpdate).toEqual(expect.any(Function));
     expect(lastOnUtteranceEnd).toEqual(expect.any(Function));
+
+    fireEvent.click(voiceButton);
 
     act(() => {
       lastOnTranscriptionUpdate('hello from voice', true);
@@ -128,8 +134,29 @@ describe('MessageInput', () => {
       lastOnUtteranceEnd();
     });
 
-    expect(onSendMessage).toHaveBeenCalledWith('hello from voice');
-    expect(input.value).toBe('');
+    expect(onSendMessage).not.toHaveBeenCalled();
+    expect(input.value).toBe('hello from voice');
+    expect(voiceButton).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  test('toggles a transient voice session from the microphone button', () => {
+    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+
+    const voiceButton = screen.getByTestId('voice-btn');
+    expect(lastVoiceEnabled).toBe(false);
+    expect(voiceButton).toHaveAttribute('aria-pressed', 'false');
+    expect(voiceButton).toHaveAttribute('aria-label', 'Start voice input');
+
+    fireEvent.click(voiceButton);
+
+    expect(lastVoiceEnabled).toBe(true);
+    expect(voiceButton).toHaveAttribute('aria-pressed', 'true');
+    expect(voiceButton).toHaveAttribute('aria-label', 'Stop voice input');
+
+    fireEvent.click(voiceButton);
+
+    expect(lastVoiceEnabled).toBe(false);
+    expect(voiceButton).toHaveAttribute('aria-pressed', 'false');
   });
 
   test('shows pasted image preview and sends it with the typed message', async () => {

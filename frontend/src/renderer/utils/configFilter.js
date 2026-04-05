@@ -11,7 +11,6 @@ const FRONTEND_CONFIG_FIELDS = [
   'model_provider',
   'selected_model_id',
   'interaction_mode',
-  'voice_mode_enabled',
   'speech_mode_enabled',
   'wakeword_enabled',
   'wakeword_stt_enabled',

@@ -10,7 +10,6 @@ const DEFAULT_FRONTEND_CONFIG = {
   model_provider: 'openai',
   selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
   interaction_mode: 'agent',
-  voice_mode_enabled: false,
   speech_mode_enabled: false,
   wakeword_enabled: true,
   wakeword_stt_enabled: false,
@@ -75,17 +74,16 @@ describe('configStorage', () => {
     });
   });
 
-  test('loadConfigFromStorage preserves stored voice_mode_enabled value', () => {
+  test('loadConfigFromStorage preserves stored speech_mode_enabled value', () => {
     localStorage.setItem(
       CONFIG_KEY,
-      JSON.stringify({ voice_mode_enabled: true, speech_mode_enabled: true }),
+      JSON.stringify({ speech_mode_enabled: true }),
     );
 
     const result = loadConfigFromStorage();
     expect(result).toEqual({
       ...DEFAULT_FRONTEND_CONFIG,
       speech_mode_enabled: true,
-      voice_mode_enabled: true,
     });
   });
 

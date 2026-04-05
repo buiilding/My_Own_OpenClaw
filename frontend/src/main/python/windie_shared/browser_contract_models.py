@@ -247,6 +247,13 @@ class BrowserGetTabsArgs(BrowserActionArgsBase):
 class BrowserSwitchArgs(BrowserActionArgsBase):
     action: Literal["switch"] = Field(..., description="Switch to an existing tab.")
     tab_id: str = Field(..., description="Tab ID from get_tabs.")
+    activate: bool = Field(
+        True,
+        description=(
+            "Bring the selected browser tab to the foreground. Set to false to switch the "
+            "agent's internal control target without changing the user-visible active tab."
+        ),
+    )
 
 
 class BrowserEvaluateArgs(BrowserActionArgsBase):

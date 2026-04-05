@@ -357,9 +357,9 @@ frontend/src/renderer/
 ### Voice Mode Flow
 
 ```
-1. VOICE MODE ENABLED
+1. MICROPHONE SESSION ACTIVE
    └─> features/chat/components/ChatInterface.jsx
-       └─> config.voice_mode_enabled === true
+       └─> features/chat/components/MessageInput.jsx toggles local dictation state
            ↓
 2. VOICE MODE HOOK
    └─> features/voice/hooks/useVoiceMode.ts
@@ -500,7 +500,7 @@ frontend/src/renderer/
 
 16. **Memory Storage**: IPC integration with Python sidecar for memory operations
 
-17. **Config Filtering**: Frontend only manages subset of config (model_mode, selected_model_id, voice_mode_enabled, etc.)
+17. **Config Filtering**: Frontend only manages subset of config (model_mode, selected_model_id, speech_mode_enabled, wakeword flags, etc.)
 
 18. **Error Boundaries**: React error boundaries prevent full app crashes
 
