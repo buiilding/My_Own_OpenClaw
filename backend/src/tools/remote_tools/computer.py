@@ -146,8 +146,8 @@ class RemoteWaitTool(RemoteToolBase, Tool[WaitToolArgs]):
 class RemoteGetOpenWindowsTool(RemoteToolBase, Tool[GetOpenWindowsArgs]):
     name = "get_open_windows"
     description = (
-        "Lists all currently open window titles. Use this to check if an app is already open "
-        "before launching a new instance, and as the source of exact target names for switch_window."
+        "Lists all currently open windows. Use this to see all open windows on the desktop "
+        "that you could switch focus to, using switch_window"
     )
     args_model = GetOpenWindowsArgs
     category = ToolDomain.COMPUTER
