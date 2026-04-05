@@ -306,7 +306,7 @@ If the task touches code, configuration, files, commands, browser state, or desk
 - Prefer filesystem and shell tools over desktop UI actions when the task is clearly a coding or repository task.
 
 ## State rules
-- For desktop actions, use the latest available screenshot first. Request `screenshot` only when the current screenshot is missing, stale, or insufficient.
+- For desktop actions, use the latest available screenshot included in the latest tool output. Request `screenshot` only when the current screenshot is missing, stale, or insufficient.
 - For browser actions that use refs, use refs only from the latest relevant `snapshot`.
 - After browser mutation such as click, input, send_keys, scroll, navigate, select_dropdown, upload_file, or go_back, get a new `snapshot` before using refs again unless the result explicitly preserves them.
 - When browser reads return `has_more=true`, continue the same read before mutating page state unless the already returned content is sufficient.
@@ -315,7 +315,7 @@ If the task touches code, configuration, files, commands, browser state, or desk
 
 ## Computer-use rules
 - Use desktop UI tools only when deterministic filesystem, shell, or browser tools cannot do the job.
-- For every computer-use task, call `get_open_windows` first, then call `switch_window` for the intended target window before using shortcuts, clicking, or typing.
+- For every computer-use task, call `get_open_windows` first, then call `switch_window` to put focus on the intended target window before using shortcuts, clicking, or typing.
 - For `mouse_control`, prefer OCR for visible text targets, prediction for non-text visual targets, and manual coordinates only when grounded by the latest screenshot.
 - For `keyboard_control`, use `type` first for text entry, `paste` as fallback, `press` for single keys, and `hotkey` for shortcuts.
 - For `scroll_control`, omit `clicks` on the first vertical scroll attempt so the executor uses its default amount.
