@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for transcription-region edit reconciliation: append-vs-replace state machine, input-change/paste offset updates, and MessageInput auto-send/reset coupling."
+summary: "Deep reference for transcription-region edit reconciliation: append-vs-replace state machine, input-change/paste offset updates, and MessageInput composer reset coupling."
 read_when:
   - When changing `useTranscription` text replacement behavior or cursor/selection handling.
   - When debugging duplicated transcript fragments, unexpected region invalidation, or pasted-text offset regressions.
@@ -75,15 +75,22 @@ This preserves replacement targeting only when edit happened outside the live tr
 - `inputValueRef` for stable immediate reads (`getInputValue`)
 - `transcriptionRegionRef` for replacement boundaries
 
-This allows utterance-end callback in `MessageInput` to submit the latest value without waiting for state batching.
+This keeps an immediate latest-value mirror available alongside React state for async consumers that need a stable read without waiting for state batching.
 
 ## MessageInput Coupling
+
+`useChatComposerDraft` wraps `useTranscription` and exposes:
+
+- `inputValue`
+- `updateTranscription`
+- `resetTranscription`
+- `submitMessageValue`
 
 `MessageInput` wires:
 
 - `useVoiceMode(..., onTranscriptionUpdate, onUtteranceEnd)`
 - `onTranscriptionUpdate` -> `updateTranscription(text)`
-- `onUtteranceEnd` -> submit `getInputValue()`
+- `onUtteranceEnd` -> stop the temporary microphone session
 
 After successful send:
 
@@ -96,7 +103,7 @@ This prevents the next utterance from replacing stale region bounds from previou
 
 1. removing active-region replacement causes duplicated transcript text across realtime updates.
 2. failing to invalidate region when editing/pasting inside region causes unexpected overwrite of user-modified text.
-3. dropping `getInputValue()` ref usage can submit stale text on utterance-end events.
+3. removing the immediate `inputValueRef` mirror without auditing async consumers can reintroduce stale-value reads outside React render timing.
 4. skipping region reset after send can apply next utterance to wrong span in emptied/reused input.
 
 ## Related Pages

@@ -1,5 +1,5 @@
 ---
-summary: "Renderer voice runtime reference for live transcription and wakeword detection: config ownership, audio capture, IPC/event wiring, and auto-send behavior."
+summary: "Renderer voice runtime reference for live transcription and wakeword detection: config ownership, audio capture, IPC/event wiring, and temporary dictation-session behavior."
 read_when:
   - When changing renderer voice capture hooks, wakeword controller behavior, or audio encoding.
   - When debugging missing transcriptions, wakeword retriggers, or readiness drift between renderer and main wakeword bridge.
@@ -44,6 +44,7 @@ Backend ownership detail:
 - renderer never chooses the live STT provider
 - backend route `/ws/transcription` owns the app-facing protocol
 - backend config selects `stt_provider="nova"` (proxy to external Nova-Voice) or `stt_provider="openai"` (translate to OpenAI Realtime)
+- when `stt_provider="openai"`, backend connects with `openai_realtime_session_model` and sends `openai_realtime_transcription_model` in `session.update`
 
 ## Config Ownership and Activation Gates
 
@@ -81,7 +82,7 @@ Hook lifecycle:
 2. `onopen` -> send `{"type":"set_langs","source_language":"en","target_language":"en"}`
 3. `status` message -> store `client_id`
 4. `realtime` message -> use `translation` or `text`, push to transcription callback
-5. `utterance_end` message -> call submit callback and send `{"type":"start_over"}`
+5. `utterance_end` message -> call the session-end callback and send `{"type":"start_over"}`
 6. disable/unmount -> stop audio capture + close socket + clear reconnect timers
 
 Gateway endpoint resolution:
