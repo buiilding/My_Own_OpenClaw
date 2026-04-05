@@ -69,127 +69,10 @@ class MacOSWindowManager(BaseWindowManager):
             return result
         return self.ApplicationServices.kAXErrorSuccess, result
 
-    @staticmethod
-    def _normalize_window_match_value(value: Any) -> str:
-        return str(value or "").strip().lower()
-
-    def _get_active_app_name(self) -> str:
-        if not self._available:
-            return ""
-
-        try:
-            workspace = self.NSWorkspace.sharedWorkspace()
-            active_app = workspace.activeApplication() or {}
-            if hasattr(active_app, "get"):
-                return str(active_app.get("NSApplicationName") or "").strip()
-        except Exception:
-            logger.debug("Failed to resolve active macOS app name", exc_info=True)
-        return ""
-
-    def _get_focused_accessibility_window_title(self, app_name: str) -> str:
-        if not self._available or not self._ax_is_trusted() or not app_name:
-            return ""
-
-        workspace = self.NSWorkspace.sharedWorkspace()
-        for running_app in workspace.runningApplications():
-            if running_app.localizedName() != app_name:
-                continue
-            app_ref = self.ApplicationServices.AXUIElementCreateApplication(
-                running_app.processIdentifier()
-            )
-            err, focused_window = self._ax_copy_attribute_value(
-                app_ref,
-                self.ApplicationServices.kAXFocusedWindowAttribute,
-            )
-            if (
-                err != self.ApplicationServices.kAXErrorSuccess
-                or focused_window is None
-            ):
-                return ""
-
-            title_err, title_value = self._ax_copy_attribute_value(
-                focused_window,
-                self.ApplicationServices.kAXTitleAttribute,
-            )
-            if title_err == self.ApplicationServices.kAXErrorSuccess and title_value:
-                return str(title_value).strip()
-            return ""
-        return ""
-
-    def _build_on_screen_window_lookup(
-        self,
-        on_screen_windows: List[dict],
-    ) -> dict[str, dict[str, Any]]:
-        lookup: dict[str, dict[str, Any]] = {}
-        for window in on_screen_windows:
-            app_name = self._normalize_window_match_value(window.get("app_name"))
-            title = self._normalize_window_match_value(window.get("title"))
-            window_name = self._normalize_window_match_value(window.get("window_name"))
-            if not app_name:
-                continue
-            bucket = lookup.setdefault(app_name, {"names": set(), "window_count": 0})
-            bucket["window_count"] += 1
-            names = bucket["names"]
-            if title:
-                names.add(title)
-            if window_name:
-                names.add(window_name)
-            names.add(app_name)
-        return lookup
-
-    def _is_accessibility_window_visible(
-        self,
-        *,
-        app_name: str,
-        title: str,
-        on_screen_lookup: dict[str, dict[str, Any]],
-        active_app_name: str,
-        focused_window_title: str,
-    ) -> bool:
-        normalized_app_name = self._normalize_window_match_value(app_name)
-        normalized_title = self._normalize_window_match_value(title) or normalized_app_name
-        visible_entry = on_screen_lookup.get(normalized_app_name)
-        visible_names = (
-            visible_entry.get("names")
-            if isinstance(visible_entry, dict)
-            else None
-        )
-        visible_window_count = (
-            int(visible_entry.get("window_count") or 0)
-            if isinstance(visible_entry, dict)
-            else 0
-        )
-
-        if visible_names:
-            return (
-                normalized_title in visible_names
-                or visible_window_count == 1
-            )
-
-        # Preserve the active focused window when Quartz on-screen enumeration
-        # misses a maximized/full-screen surface.
-        normalized_active_app = self._normalize_window_match_value(active_app_name)
-        normalized_focused_title = self._normalize_window_match_value(focused_window_title)
-        return (
-            normalized_app_name
-            and normalized_app_name == normalized_active_app
-            and normalized_focused_title
-            and normalized_title == normalized_focused_title
-        )
-
-    def _list_accessibility_window_records(
-        self,
-        *,
-        on_screen_windows: List[dict] | None = None,
-    ) -> List[dict]:
+    def _list_accessibility_window_records(self) -> List[dict]:
         if not self._available or not self._ax_is_trusted():
             return []
 
-        on_screen_lookup = self._build_on_screen_window_lookup(on_screen_windows or [])
-        active_app_name = self._get_active_app_name()
-        focused_window_title = self._get_focused_accessibility_window_title(
-            active_app_name
-        )
         windows: List[dict] = []
         workspace = self.NSWorkspace.sharedWorkspace()
         for app in workspace.runningApplications():
@@ -237,14 +120,6 @@ class MacOSWindowManager(BaseWindowManager):
                     if title_err == self.ApplicationServices.kAXErrorSuccess and title_value
                     else ""
                 )
-                if not self._is_accessibility_window_visible(
-                    app_name=app_name,
-                    title=title or app_name,
-                    on_screen_lookup=on_screen_lookup,
-                    active_app_name=active_app_name,
-                    focused_window_title=focused_window_title,
-                ):
-                    continue
                 main_err, main_value = self._ax_copy_attribute_value(
                     ax_window,
                     self.ApplicationServices.kAXMainAttribute,
@@ -281,10 +156,8 @@ class MacOSWindowManager(BaseWindowManager):
         return windows
 
     def _list_user_window_records(self) -> List[dict]:
-        quartz_windows = self._list_window_records(on_screen_only=True)
-        accessibility_windows = self._list_accessibility_window_records(
-            on_screen_windows=quartz_windows
-        )
+        accessibility_windows = self._list_accessibility_window_records()
+        quartz_windows = self._list_window_records(on_screen_only=False)
 
         if not accessibility_windows:
             return quartz_windows
@@ -615,6 +488,12 @@ return "false"
 
         try:
             window_records = self._list_user_window_records()
+            if not window_records:
+                logger.info(
+                    "Quartz window enumeration returned no usable macOS windows after Accessibility fallback; "
+                    "falling back to running applications",
+                )
+                window_records = self._list_running_app_records()
             return [
                 {
                     "title": window["title"],
