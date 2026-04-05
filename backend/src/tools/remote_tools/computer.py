@@ -146,8 +146,10 @@ class RemoteWaitTool(RemoteToolBase, Tool[WaitToolArgs]):
 class RemoteGetOpenWindowsTool(RemoteToolBase, Tool[GetOpenWindowsArgs]):
     name = "get_open_windows"
     description = (
-        "Lists all currently open windows. Use this to see all open windows on the desktop "
-        "that you could switch focus to, using switch_window"
+        "Lists currently open windows that exist on the desktop and can potentially be focused. "
+        "This does not mean any listed window is currently active or focused. "
+        "Use it to discover candidate windows, then use switch_window to focus the intended one "
+        "before assuming shortcuts, clicking, or typing will land there."
     )
     args_model = GetOpenWindowsArgs
     category = ToolDomain.COMPUTER
