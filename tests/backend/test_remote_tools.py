@@ -13,6 +13,8 @@ from backend.src.tools.remote import (
 )
 from backend.src.tools.computer.schemas import KeyboardControlArgs, MouseControlArgs, ScrollControlArgs, SwitchTabArgs
 
+EXPLANATION = "Advance the active user task."
+
 
 def _make_context(metadata=None):
     return ToolContext(
@@ -30,7 +32,7 @@ def _make_context(metadata=None):
 async def test_remote_tool_uses_request_id_from_session_metadata():
     ctx = _make_context(metadata={"request_id": "req-123"})
     tool = RemoteMouseTool()
-    args = MouseControlArgs(action="click", x=1, y=2)
+    args = MouseControlArgs(action="click", x=1, y=2, explanation=EXPLANATION)
 
     result = await tool.run(args, ctx)
     assert result.is_remote is True
@@ -43,7 +45,7 @@ async def test_remote_tool_generates_request_id_when_missing(monkeypatch):
     monkeypatch.setattr(uuid, "uuid4", lambda: "fixed-uuid")
     ctx = _make_context()
     tool = RemoteMouseTool()
-    args = MouseControlArgs(action="click", x=1, y=2)
+    args = MouseControlArgs(action="click", x=1, y=2, explanation=EXPLANATION)
 
     result = await tool.run(args, ctx)
     assert result.request_id == "fixed-uuid"
@@ -51,15 +53,15 @@ async def test_remote_tool_generates_request_id_when_missing(monkeypatch):
 
 def test_scroll_control_requires_manual_coordinates_when_find_coordinates_by_is_manual():
     with pytest.raises(ValidationError):
-        ScrollControlArgs(action="scroll_down")
+        ScrollControlArgs(action="scroll_down", explanation=EXPLANATION)
 
-    args = ScrollControlArgs(action="scroll_down", x=10, y=20)
+    args = ScrollControlArgs(action="scroll_down", x=10, y=20, explanation=EXPLANATION)
     assert args.x == 10
     assert args.y == 20
 
 
 def test_mouse_control_accepts_button_field():
-    args = MouseControlArgs(action="click", x=10, y=20, button="middle")
+    args = MouseControlArgs(action="click", x=10, y=20, button="middle", explanation=EXPLANATION)
 
     assert args.button == "middle"
 
@@ -69,6 +71,7 @@ def test_scroll_control_accepts_ocr_grounding():
         action="scroll_down",
         find_coordinates_by="ocr",
         ocr_text="Sidebar",
+        explanation=EXPLANATION,
     )
     assert args.find_coordinates_by == "ocr"
     assert args.ocr_text == "Sidebar"
@@ -79,6 +82,7 @@ def test_scroll_control_accepts_prediction_grounding():
         action="scroll_down",
         find_coordinates_by="prediction",
         source_description="the left sidebar list area",
+        explanation=EXPLANATION,
     )
     assert args.find_coordinates_by == "prediction"
     assert args.source_description == "the left sidebar list area"
@@ -86,14 +90,14 @@ def test_scroll_control_accepts_prediction_grounding():
 
 def test_scroll_control_requires_direction_for_scroll_action():
     with pytest.raises(ValidationError):
-        ScrollControlArgs(action="scroll", x=10, y=20)
+        ScrollControlArgs(action="scroll", x=10, y=20, explanation=EXPLANATION)
 
-    args = ScrollControlArgs(action="scroll", x=10, y=20, direction="down")
+    args = ScrollControlArgs(action="scroll", x=10, y=20, direction="down", explanation=EXPLANATION)
     assert args.direction == "down"
 
 
 def test_scroll_control_clicks_is_optional():
-    args = ScrollControlArgs(action="scroll_down", x=10, y=20)
+    args = ScrollControlArgs(action="scroll_down", x=10, y=20, explanation=EXPLANATION)
 
     assert args.clicks is None
 
@@ -103,19 +107,19 @@ def test_keyboard_control_requires_action_specific_fields():
         ValidationError,
         match="text parameter required for type or paste action",
     ):
-        KeyboardControlArgs(action="type")
+        KeyboardControlArgs(action="type", explanation=EXPLANATION)
 
     with pytest.raises(
         ValidationError,
         match="text parameter required for type or paste action",
     ):
-        KeyboardControlArgs(action="paste")
+        KeyboardControlArgs(action="paste", explanation=EXPLANATION)
 
     with pytest.raises(ValidationError, match="key parameter required for press action"):
-        KeyboardControlArgs(action="press")
+        KeyboardControlArgs(action="press", explanation=EXPLANATION)
 
     with pytest.raises(ValidationError, match="keys parameter required for hotkey action"):
-        KeyboardControlArgs(action="hotkey")
+        KeyboardControlArgs(action="hotkey", explanation=EXPLANATION)
 
 
 def test_keyboard_control_rejects_text_over_length_limit():
@@ -123,13 +127,13 @@ def test_keyboard_control_rejects_text_over_length_limit():
         ValidationError,
         match="Text too long: 10001 characters \\(max 10000\\)",
     ):
-        KeyboardControlArgs(action="type", text="x" * 10001)
+        KeyboardControlArgs(action="type", text="x" * 10001, explanation=EXPLANATION)
 
     with pytest.raises(
         ValidationError,
         match="Text too long: 10001 characters \\(max 10000\\)",
     ):
-        KeyboardControlArgs(action="paste", text="x" * 10001)
+        KeyboardControlArgs(action="paste", text="x" * 10001, explanation=EXPLANATION)
 
 
 def test_keyboard_control_accepts_repeat_and_interval_fields():
@@ -138,6 +142,7 @@ def test_keyboard_control_accepts_repeat_and_interval_fields():
         key="enter",
         repeat=3,
         interval_ms=40,
+        explanation=EXPLANATION,
     )
 
     assert args.repeat == 3
@@ -148,6 +153,7 @@ def test_switch_tab_accepts_match_mode():
     args = SwitchTabArgs(
         tab_name="Canva",
         match_mode="contains",
+        explanation=EXPLANATION,
     )
 
     assert args.match_mode == "contains"
@@ -155,12 +161,12 @@ def test_switch_tab_accepts_match_mode():
 
 def test_scroll_control_requires_ocr_target_when_using_ocr():
     with pytest.raises(ValidationError):
-        ScrollControlArgs(action="scroll_down", find_coordinates_by="ocr")
+        ScrollControlArgs(action="scroll_down", find_coordinates_by="ocr", explanation=EXPLANATION)
 
 
 def test_scroll_control_requires_prediction_description_when_using_prediction():
     with pytest.raises(ValidationError):
-        ScrollControlArgs(action="scroll_down", find_coordinates_by="prediction")
+        ScrollControlArgs(action="scroll_down", find_coordinates_by="prediction", explanation=EXPLANATION)
 
 
 def test_remote_tool_result_to_dict():
@@ -181,7 +187,7 @@ def test_remote_tool_result_to_dict():
 def test_remote_tool_build_result_prefers_explicit_request_id_over_context():
     ctx = _make_context(metadata={"request_id": "metadata-id"})
     tool = RemoteMouseTool()
-    args = MouseControlArgs(action="click", x=1, y=2)
+    args = MouseControlArgs(action="click", x=1, y=2, explanation=EXPLANATION)
 
     result = tool._build_remote_result(args, ctx, request_id="explicit-id")
 

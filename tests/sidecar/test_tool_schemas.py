@@ -14,31 +14,42 @@ from tools.schemas import (  # noqa: E402
     ReplaceArgs,
     ReplaceOperationArgs,
     RunShellCommandArgs,
+    ScreenshotToolArgs,
     ScrollControlArgs,
     SwitchTabArgs,
     WaitToolArgs,
 )
 
+EXPLANATION = "Advance the active user task."
+
 
 def test_mouse_control_requires_coordinates_for_all_actions():
     with pytest.raises(ValidationError):
-        MouseControlArgs(action="click")
+        MouseControlArgs(action="click", explanation=EXPLANATION)
 
-    args = MouseControlArgs(action="click", x=1, y=2)
+    args = MouseControlArgs(action="click", x=1, y=2, explanation=EXPLANATION)
     assert args.x == 1
     assert args.y == 2
 
 
 def test_mouse_control_rejects_scroll_action():
     with pytest.raises(ValidationError):
-        MouseControlArgs(action="scroll")
+        MouseControlArgs(action="scroll", explanation=EXPLANATION)
 
 
 def test_mouse_control_drag_requires_destination_coordinates():
     with pytest.raises(ValidationError):
-        MouseControlArgs(action="drag", x=10, y=20)
+        MouseControlArgs(action="drag", x=10, y=20, explanation=EXPLANATION)
 
-    args = MouseControlArgs(action="drag", x=10, y=20, drag_to_x=30, drag_to_y=40, duration=0.5)
+    args = MouseControlArgs(
+        action="drag",
+        x=10,
+        y=20,
+        drag_to_x=30,
+        drag_to_y=40,
+        duration=0.5,
+        explanation=EXPLANATION,
+    )
     assert args.x == 10
     assert args.y == 20
     assert args.drag_to_x == 30
@@ -48,93 +59,99 @@ def test_mouse_control_drag_requires_destination_coordinates():
 
 def test_mouse_control_rejects_unknown_fields():
     with pytest.raises(ValidationError):
-        MouseControlArgs(action="click", x=1, y=2, unknown_field="ignored")
+        MouseControlArgs(action="click", x=1, y=2, explanation=EXPLANATION, unknown_field="ignored")
 
 
 def test_mouse_control_accepts_button_field():
-    args = MouseControlArgs(action="click", x=1, y=2, button="middle")
+    args = MouseControlArgs(action="click", x=1, y=2, button="middle", explanation=EXPLANATION)
 
     assert args.button == "middle"
 
     with pytest.raises(ValidationError):
-        MouseControlArgs(action="click", x=1, y=2, button="primary")
+        MouseControlArgs(action="click", x=1, y=2, button="primary", explanation=EXPLANATION)
 
 
 def test_keyboard_control_validates_action_fields_and_length():
     with pytest.raises(ValidationError):
-        KeyboardControlArgs(action="type")
+        KeyboardControlArgs(action="type", explanation=EXPLANATION)
 
     with pytest.raises(ValidationError):
-        KeyboardControlArgs(action="paste")
+        KeyboardControlArgs(action="paste", explanation=EXPLANATION)
 
     with pytest.raises(ValidationError):
-        KeyboardControlArgs(action="press")
+        KeyboardControlArgs(action="press", explanation=EXPLANATION)
 
     with pytest.raises(ValidationError):
-        KeyboardControlArgs(action="hotkey")
+        KeyboardControlArgs(action="hotkey", explanation=EXPLANATION)
 
     with pytest.raises(ValidationError):
-        KeyboardControlArgs(action="type", text="a" * 10001)
+        KeyboardControlArgs(action="type", text="a" * 10001, explanation=EXPLANATION)
 
     with pytest.raises(ValidationError):
-        KeyboardControlArgs(action="paste", text="a" * 10001)
+        KeyboardControlArgs(action="paste", text="a" * 10001, explanation=EXPLANATION)
 
-    args = KeyboardControlArgs(action="type", text="hello")
+    args = KeyboardControlArgs(action="type", text="hello", explanation=EXPLANATION)
     assert args.text == "hello"
 
-    paste_args = KeyboardControlArgs(action="paste", text="hello")
+    paste_args = KeyboardControlArgs(action="paste", text="hello", explanation=EXPLANATION)
     assert paste_args.text == "hello"
 
 
 def test_keyboard_control_accepts_press_and_hotkey_actions():
-    press_args = KeyboardControlArgs(action="press", key="Enter", repeat=2, interval_ms=25)
+    press_args = KeyboardControlArgs(
+        action="press",
+        key="Enter",
+        repeat=2,
+        interval_ms=25,
+        explanation=EXPLANATION,
+    )
     assert press_args.key == "Enter"
     assert press_args.repeat == 2
     assert press_args.interval_ms == 25
 
-    hotkey_args = KeyboardControlArgs(action="hotkey", keys=["ctrl", "s"], repeat=3)
+    hotkey_args = KeyboardControlArgs(action="hotkey", keys=["ctrl", "s"], repeat=3, explanation=EXPLANATION)
     assert hotkey_args.keys == ["ctrl", "s"]
     assert hotkey_args.repeat == 3
 
 
 def test_keyboard_control_allows_text_length_boundary():
-    args = KeyboardControlArgs(action="type", text="a" * 10000)
+    args = KeyboardControlArgs(action="type", text="a" * 10000, explanation=EXPLANATION)
     assert len(args.text) == 10000
 
-    paste_args = KeyboardControlArgs(action="paste", text="a" * 10000)
+    paste_args = KeyboardControlArgs(action="paste", text="a" * 10000, explanation=EXPLANATION)
     assert len(paste_args.text) == 10000
 
 
 def test_scroll_control_requires_direction_for_scroll_action():
     with pytest.raises(ValidationError):
-        ScrollControlArgs(action="scroll", x=100, y=200)
+        ScrollControlArgs(action="scroll", x=100, y=200, explanation=EXPLANATION)
 
-    args = ScrollControlArgs(action="scroll", x=100, y=200, direction="down")
+    args = ScrollControlArgs(action="scroll", x=100, y=200, direction="down", explanation=EXPLANATION)
     assert args.direction == "down"
 
 
 def test_scroll_control_requires_manual_coordinates_for_all_actions():
     with pytest.raises(ValidationError):
-        ScrollControlArgs(action="scroll_up")
+        ScrollControlArgs(action="scroll_up", explanation=EXPLANATION)
 
     with pytest.raises(ValidationError):
-        ScrollControlArgs(action="scroll_down")
+        ScrollControlArgs(action="scroll_down", explanation=EXPLANATION)
 
-    args = ScrollControlArgs(action="scroll_up", x=10, y=20)
+    args = ScrollControlArgs(action="scroll_up", x=10, y=20, explanation=EXPLANATION)
     assert args.x == 10
     assert args.y == 20
 
 
 def test_scroll_control_scroll_up_down_do_not_require_direction():
-    up_args = ScrollControlArgs(action="scroll_up", x=1, y=2)
-    down_args = ScrollControlArgs(action="scroll_down", x=3, y=4)
+    up_args = ScrollControlArgs(action="scroll_up", x=1, y=2, explanation=EXPLANATION)
+    down_args = ScrollControlArgs(action="scroll_down", x=3, y=4, explanation=EXPLANATION)
 
     assert up_args.direction is None
     assert down_args.direction is None
 
 
 def test_scroll_control_clicks_remains_optional():
-    args = ScrollControlArgs(action="scroll_down", x=3, y=4)
+    args = ScrollControlArgs(action="scroll_down", x=3, y=4, explanation=EXPLANATION)
 
     assert args.clicks is None
 
@@ -156,6 +173,24 @@ def test_replace_args_default_context_and_matching_fields():
 
 def test_shared_direct_tool_schemas_require_explanation():
     with pytest.raises(ValidationError):
+        MouseControlArgs(action="click", x=1, y=2)
+
+    with pytest.raises(ValidationError):
+        KeyboardControlArgs(action="type", text="hello")
+
+    with pytest.raises(ValidationError):
+        ScreenshotToolArgs()
+
+    with pytest.raises(ValidationError):
+        ScrollControlArgs(action="scroll_down", x=1, y=2)
+
+    with pytest.raises(ValidationError):
+        SwitchTabArgs(tab_name="Terminal")
+
+    with pytest.raises(ValidationError):
+        WaitToolArgs(seconds=1.5)
+
+    with pytest.raises(ValidationError):
         ReadFileArgs(file_path="/tmp/a.txt")
 
     with pytest.raises(ValidationError):
@@ -176,18 +211,18 @@ def test_shared_direct_tool_schemas_require_explanation():
 
 def test_wait_tool_schema_requires_seconds():
     with pytest.raises(ValidationError):
-        WaitToolArgs()
+        WaitToolArgs(explanation=EXPLANATION)
 
-    args = WaitToolArgs(seconds=1.5)
+    args = WaitToolArgs(seconds=1.5, explanation=EXPLANATION)
     assert args.seconds == 1.5
 
 
 def test_switch_tab_schema_supports_match_mode():
-    args = SwitchTabArgs(tab_name="Terminal", match_mode="contains")
+    args = SwitchTabArgs(tab_name="Terminal", match_mode="contains", explanation=EXPLANATION)
     assert args.match_mode == "contains"
 
     with pytest.raises(ValidationError):
-        SwitchTabArgs(tab_name="Terminal", match_mode="invalid")
+        SwitchTabArgs(tab_name="Terminal", match_mode="invalid", explanation=EXPLANATION)
 
 
 def test_replace_operation_occurrence_index_must_be_positive():

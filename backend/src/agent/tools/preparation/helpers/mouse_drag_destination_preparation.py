@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from backend.src.core.interfaces.vision import IVisionService
 
 logger = logging.getLogger(__name__)
+_OPENAI_GROUNDED_MOUSE_TOOL_NAME = "grounded_mouse_action"
 
 
 def drag_destination_method(tool_call: ParsedToolCall) -> str:
@@ -36,6 +37,12 @@ def drag_destination_method(tool_call: ParsedToolCall) -> str:
         return CoordinateFindingMethod.MANUAL.value
     if tool_call.parameters.get("action") != "drag":
         return CoordinateFindingMethod.MANUAL.value
+    if tool_call.tool_name == _OPENAI_GROUNDED_MOUSE_TOOL_NAME:
+        if tool_call.parameters.get("drag_to_ocr_text") or tool_call.parameters.get(
+            "drag_to_candidate_id"
+        ):
+            return CoordinateFindingMethod.OCR.value
+        return CoordinateFindingMethod.PREDICTION.value
     return normalize_coordinate_method(
         tool_call.parameters.get("drag_to_find_coordinates_by"),
         default=CoordinateFindingMethod.MANUAL.value,

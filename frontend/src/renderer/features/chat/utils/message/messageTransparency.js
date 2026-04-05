@@ -6,10 +6,15 @@ function isCanonicalToolSchemas(value) {
   return value.every((item) => (
     item
     && typeof item === 'object'
-    && item.type === 'function'
-    && typeof item.name === 'string'
-    && item.parameters
-    && typeof item.parameters === 'object'
+    && (
+      item.type === 'computer'
+      || (
+        item.type === 'function'
+        && typeof item.name === 'string'
+        && item.parameters
+        && typeof item.parameters === 'object'
+      )
+    )
   ));
 }
 

@@ -32,7 +32,7 @@ Returns a required field (`Field(...)`) with canonical description:
 
 - one sentence explaining why the tool call is needed and how it supports the user goal
 
-Used by multiple schema models (`RunShellCommandArgs`, `ReadFileArgs`, `ReplaceArgs`, `GetOpenWindowsArgs`, `GetSystemStatsArgs`).
+Used by multiple schema models (`MouseControlArgs`, `KeyboardControlArgs`, `ScreenshotToolArgs`, `ScrollControlArgs`, `SwitchTabArgs`, `WaitToolArgs`, `RunShellCommandArgs`, `ReadFileArgs`, `ReplaceArgs`, `GetOpenWindowsArgs`, `GetSystemStatsArgs`).
 
 ## `post_action_wait_field(...)` Contract
 

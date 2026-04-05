@@ -159,6 +159,7 @@ class NormalizedLLMResponse(TypedDict):
     content: str
     tool_calls: NotRequired[List[NormalizedToolCall]]
     finish_reason: NotRequired[Optional[str]]
+    response_id: NotRequired[str]
     web_search_sources: NotRequired[List[Dict[str, Any]]]
 
 
@@ -267,10 +268,10 @@ class ToolParameterSchema(TypedDict, total=False):
 
 
 class ToolSchema(TypedDict, total=False):
-    """Canonical internal flat function tool schema."""
+    """Canonical internal model-facing tool schema."""
 
-    type: Literal["function"]
-    name: str
-    description: str
-    strict: bool
-    parameters: Dict[str, Any]
+    type: str
+    name: NotRequired[str]
+    description: NotRequired[str]
+    strict: NotRequired[bool]
+    parameters: NotRequired[Dict[str, Any]]

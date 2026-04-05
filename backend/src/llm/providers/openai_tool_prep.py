@@ -5,7 +5,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Dict, List, Optional
 
-from backend.src.tools.tool_specs import is_function_tool_spec
+from backend.src.tools.tool_specs import is_computer_tool_spec, is_function_tool_spec
 
 _OPENAI_UNSUPPORTED_ROOT_SCHEMA_KEYS = ("oneOf", "anyOf", "allOf", "enum", "not")
 _OPENAI_COMPATIBILITY_NOTE = (
@@ -131,6 +131,9 @@ def build_openai_responses_tools(
     normalized: List[Dict[str, Any]] = []
     if tools is not None:
         for tool in tools:
+            if is_computer_tool_spec(tool):
+                normalized.append({"type": "computer"})
+                continue
             if not is_function_tool_spec(tool):
                 continue
             normalized.append(

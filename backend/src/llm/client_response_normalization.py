@@ -140,4 +140,10 @@ def normalize_response_payload(
             response["finish_reason"],
             model=model,
         )
+    response_id = response.get("response_id")
+    if isinstance(response_id, str) and response_id.strip():
+        normalized["response_id"] = response_id.strip()
+    web_search_sources = response.get("web_search_sources")
+    if isinstance(web_search_sources, list):
+        normalized["web_search_sources"] = copy.deepcopy(web_search_sources)
     return normalized

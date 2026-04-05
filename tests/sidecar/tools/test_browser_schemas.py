@@ -27,6 +27,8 @@ from tools.browser.schemas import (
     validate_browser_args,
 )
 
+EXPLANATION = "Advance the active user task."
+
 
 def test_sidecar_browser_control_args_reuses_backend_model() -> None:
     schema = sidecar_build_browser_tool_parameters_schema()
@@ -51,51 +53,51 @@ def test_sidecar_action_contract_is_canonical_only() -> None:
 
 
 def test_snapshot_schema_is_strict() -> None:
-    args = BrowserSnapshotArgs(action="snapshot")
+    args = BrowserSnapshotArgs(action="snapshot", explanation=EXPLANATION)
     assert args.offset == 0
     assert args.limit == 4000
 
     with pytest.raises(ValidationError):
-        BrowserSnapshotArgs(action="snapshot", mode="efficient")
+        BrowserSnapshotArgs(action="snapshot", mode="efficient", explanation=EXPLANATION)
 
     with pytest.raises(ValidationError):
-        BrowserSnapshotArgs(action="snapshot", format="aria")
+        BrowserSnapshotArgs(action="snapshot", format="aria", explanation=EXPLANATION)
 
 
 def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
-    input_args = BrowserInputArgs(action="input", ref="3", text="hello")
+    input_args = BrowserInputArgs(action="input", ref="3", text="hello", explanation=EXPLANATION)
     assert input_args.clear is True
 
-    find_text_args = BrowserFindTextArgs(action="find_text", text="pricing")
+    find_text_args = BrowserFindTextArgs(action="find_text", text="pricing", explanation=EXPLANATION)
     assert find_text_args.text == "pricing"
 
-    switch_args = BrowserSwitchArgs(action="switch", tab_id="abcd")
+    switch_args = BrowserSwitchArgs(action="switch", tab_id="abcd", explanation=EXPLANATION)
     assert switch_args.tab_id == "abcd"
 
     with pytest.raises(ValidationError):
-        BrowserInputArgs(action="input", ref="3", text="hello", clear_first=True)
+        BrowserInputArgs(action="input", ref="3", text="hello", clear_first=True, explanation=EXPLANATION)
 
     with pytest.raises(ValidationError):
-        BrowserFindTextArgs(action="find_text", pattern="pricing")
+        BrowserFindTextArgs(action="find_text", pattern="pricing", explanation=EXPLANATION)
 
     with pytest.raises(ValidationError):
-        BrowserSwitchArgs(action="switch", target_id="abcd")
+        BrowserSwitchArgs(action="switch", target_id="abcd", explanation=EXPLANATION)
 
 
 def test_click_requires_target() -> None:
     with pytest.raises(ValidationError):
-        BrowserClickArgs(action="click")
+        BrowserClickArgs(action="click", explanation=EXPLANATION)
 
 
 def test_schema_registry_and_validation_reject_removed_aliases() -> None:
     assert get_browser_schema("switch") is BrowserSwitchArgs
     assert get_browser_schema("switch_tab") is None
 
-    valid, error = validate_browser_args("snapshot", {"offset": 10, "limit": 20})
+    valid, error = validate_browser_args("snapshot", {"offset": 10, "limit": 20, "explanation": EXPLANATION})
     assert valid is True
     assert error is None
 
-    valid, error = validate_browser_args("snapshot", {"mode": "efficient"})
+    valid, error = validate_browser_args("snapshot", {"mode": "efficient", "explanation": EXPLANATION})
     assert valid is False
     assert error is not None
 

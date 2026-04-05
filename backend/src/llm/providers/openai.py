@@ -9,6 +9,7 @@ from backend.src.llm.providers.openai_responses_runtime import (
     stream_openai_responses_events,
 )
 from backend.src.llm.providers.openai_tool_prep import make_openai_chat_tools_compatible
+from backend.src.tools.tool_specs import is_computer_tool_spec
 
 logger = logging.getLogger(__name__)
 
@@ -35,9 +36,14 @@ class OpenAIProvider(OnlineLLMProvider):
         cls,
         model: str,
         *,
+        tools: Optional[List[Dict[str, Any]]] = None,
         native_web_search_enabled: bool = False,
     ) -> bool:
-        return cls._uses_native_reasoning_runtime(model) or native_web_search_enabled
+        return (
+            cls._uses_native_reasoning_runtime(model)
+            or native_web_search_enabled
+            or any(is_computer_tool_spec(tool) for tool in tools or [])
+        )
 
     async def get_completion(
         self,
@@ -48,6 +54,7 @@ class OpenAIProvider(OnlineLLMProvider):
         native_web_search_enabled = bool(request_kwargs.get("native_web_search_enabled"))
         if self._uses_responses_runtime(
             model,
+            tools=request_kwargs.get("tools"),
             native_web_search_enabled=native_web_search_enabled,
         ):
             return await get_openai_responses_completion(
@@ -60,6 +67,7 @@ class OpenAIProvider(OnlineLLMProvider):
                 max_output_tokens=request_kwargs.get("max_output_tokens"),
                 native_web_search_enabled=native_web_search_enabled,
                 include_reasoning=self._uses_native_reasoning_runtime(model),
+                previous_response_id=request_kwargs.get("previous_response_id"),
             )
         return await super().get_completion(
             model=model,
@@ -76,6 +84,7 @@ class OpenAIProvider(OnlineLLMProvider):
         native_web_search_enabled = bool(request_kwargs.get("native_web_search_enabled"))
         if self._uses_responses_runtime(
             model,
+            tools=request_kwargs.get("tools"),
             native_web_search_enabled=native_web_search_enabled,
         ):
             async for event in stream_openai_responses_events(
@@ -89,6 +98,7 @@ class OpenAIProvider(OnlineLLMProvider):
                 native_web_search_enabled=native_web_search_enabled,
                 include_reasoning=self._uses_native_reasoning_runtime(model),
                 request_id=request_kwargs.get("request_id"),
+                previous_response_id=request_kwargs.get("previous_response_id"),
             ):
                 yield event
             return

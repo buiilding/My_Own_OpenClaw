@@ -174,6 +174,11 @@ Canonical shape is required in:
 - transparency/event payloads that expose tool schemas
 - provider transport boundaries (validation + forwarding)
 
+OpenAI native built-in exception:
+
+- OpenAI Responses may also receive provider-native built-in tools such as `{ "type": "computer" }`.
+- WindieOS still keeps direct internal tool specs as the canonical backend contract and projects native built-ins only at the provider boundary.
+
 ### Normalized Completion Response
 
 `LiteLLMClient.get_completion_response()` returns:
@@ -181,6 +186,7 @@ Canonical shape is required in:
 - `content: str`
 - `tool_calls?: List[{id: str, name: str, arguments: Dict[str, Any]}]`
 - `finish_reason?: str | None`
+- `response_id?: str`
 
 Notes:
 - `content` is always present (`""` when provider omits text).
@@ -189,6 +195,7 @@ Notes:
 - Runtime behavior: when tool schemas are present for a turn, backend uses non-stream `get_completion_response()` by default, but allows provider/model opt-in for safe stream tool turns. Current opt-in is `kimi-coding`, which streams `ThinkingEvent`/`ChunkEvent` while still finalizing structured `tool_calls` from the stream payload.
 - Safety behavior for streamed tool turns: if streamed tool-call arguments cannot be parsed into valid JSON object arguments, backend emits an error plus synthetic tool output (history + frontend event) and keeps the interaction loop running so the model can self-correct. Backend still aborts turn for non-recoverable/system errors.
 - Tool transparency behavior: ToolCall/ToolBundle frontend events include `metadata.model_facing_tool_call` (when available) with canonical `{id?, name, arguments}` so UI can render the exact model-facing tool call even if execution-time arguments were rewritten (for example coordinate resolution).
+- OpenAI Responses continuation behavior: when a turn ends in tool outputs and the provider returned a `response_id`, WindieOS now continues the loop with `previous_response_id` and only the trailing tool outputs, including `computer_call_output` replay for native OpenAI `computer` turns.
 - Token usage behavior: backend now captures provider usage for both streaming and non-stream turns and emits `token-count` with split fields (`visible_output_tokens`, `thinking_tokens`, `output_tokens_total`) plus `usage_source` (`provider` or `estimated`). For providers exposing cache diagnostics, it also emits `cached_tokens`, `cache_hit`, and `cache_status`.
 - Kimi cache steering: for `kimi-coding`, backend sets a stable `prompt_cache_key` (prefers `conversation_ref`, falls back to `session_id`) to improve automatic context cache hit rates.
 

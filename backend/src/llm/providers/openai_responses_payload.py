@@ -43,6 +43,28 @@ def iter_response_output_items(response: Any) -> Iterable[Any]:
         yield from output
 
 
+def _normalize_computer_actions(raw_actions: Any) -> List[Dict[str, Any]]:
+    if not isinstance(raw_actions, list):
+        return []
+    normalized: List[Dict[str, Any]] = []
+    for action in raw_actions:
+        if isinstance(action, dict):
+            normalized.append(dict(action))
+            continue
+        model_dump = getattr(action, "model_dump", None)
+        if callable(model_dump):
+            dumped = model_dump()
+            if isinstance(dumped, dict):
+                normalized.append(dumped)
+                continue
+        dict_method = getattr(action, "dict", None)
+        if callable(dict_method):
+            dumped = dict_method()
+            if isinstance(dumped, dict):
+                normalized.append(dumped)
+    return normalized
+
+
 def normalize_openai_responses_payload(
     provider: Any,
     response: Any,
@@ -67,52 +89,67 @@ def normalize_openai_responses_payload(
                         message_text_parts.append(text)
             continue
 
-        if item_type != "function_call":
-            continue
-
-        raw_arguments = get_value(item, "arguments")
-        try:
-            arguments = normalize_tool_call_arguments(provider, raw_arguments, model=model)
-        except LLMAPIError as exc:
-            preview = preview_function_arguments(str(raw_arguments or ""))
-            tool_call_id = str(
+        if item_type == "computer_call":
+            call_id = str(
                 get_value(item, "call_id")
                 or get_value(item, "id")
                 or f"tool_call_{len(tool_calls)}"
             )
-            tool_name = str(get_value(item, "name") or "")
-            raw_tool_call_preview = build_raw_tool_call_preview(
-                tool_call_id=tool_call_id,
-                tool_name=tool_name,
-                raw_arguments_preview=preview,
+            raw_actions = get_value(item, "actions")
+            actions = [dict(action) for action in raw_actions] if isinstance(raw_actions, list) else []
+            tool_calls.append(
+                {
+                    "id": call_id,
+                    "name": "computer",
+                    "arguments": {"actions": _normalize_computer_actions(raw_actions)},
+                }
             )
-            raise LLMAPIError(
-                (
-                    f"{_INVALID_OPENAI_RESPONSE}: failed to parse Responses API tool-call arguments "
-                    f"for name={tool_name!r}."
-                ),
-                model=model,
-                metadata={
-                    "llm_tool_call_parse_failed": True,
-                    "llm_tool_call_id": tool_call_id,
-                    "llm_tool_name": tool_name,
-                    "llm_tool_call_raw_tool_call_preview": raw_tool_call_preview,
-                    "llm_tool_call_raw_arguments_preview": preview,
-                    "llm_tool_call_raw_arguments_preview_truncated": preview.endswith("...[truncated]"),
-                },
-            ) from exc
+            continue
 
-        tool_calls.append(
-            {
-                "id": str(
+        if item_type == "function_call":
+            raw_arguments = get_value(item, "arguments")
+            try:
+                arguments = normalize_tool_call_arguments(provider, raw_arguments, model=model)
+            except LLMAPIError as exc:
+                preview = preview_function_arguments(str(raw_arguments or ""))
+                tool_call_id = str(
                     get_value(item, "call_id")
                     or get_value(item, "id")
                     or f"tool_call_{len(tool_calls)}"
-                ),
-                "name": str(get_value(item, "name") or ""),
-                "arguments": arguments,
-            }
-        )
+                )
+                tool_name = str(get_value(item, "name") or "")
+                raw_tool_call_preview = build_raw_tool_call_preview(
+                    tool_call_id=tool_call_id,
+                    tool_name=tool_name,
+                    raw_arguments_preview=preview,
+                )
+                raise LLMAPIError(
+                    (
+                        f"{_INVALID_OPENAI_RESPONSE}: failed to parse Responses API tool-call arguments "
+                        f"for name={tool_name!r}."
+                    ),
+                    model=model,
+                    metadata={
+                        "llm_tool_call_parse_failed": True,
+                        "llm_tool_call_id": tool_call_id,
+                        "llm_tool_name": tool_name,
+                        "llm_tool_call_raw_tool_call_preview": raw_tool_call_preview,
+                        "llm_tool_call_raw_arguments_preview": preview,
+                        "llm_tool_call_raw_arguments_preview_truncated": preview.endswith("...[truncated]"),
+                    },
+                ) from exc
+
+            tool_calls.append(
+                {
+                    "id": str(
+                        get_value(item, "call_id")
+                        or get_value(item, "id")
+                        or f"tool_call_{len(tool_calls)}"
+                    ),
+                    "name": str(get_value(item, "name") or ""),
+                    "arguments": arguments,
+                }
+            )
 
     if message_text_parts:
         content = "".join(message_text_parts)
@@ -130,4 +167,7 @@ def normalize_openai_responses_payload(
     finish_reason = get_value(response, "status")
     if isinstance(finish_reason, str):
         normalized["finish_reason"] = finish_reason
+    response_id = get_value(response, "id")
+    if isinstance(response_id, str) and response_id:
+        normalized["response_id"] = response_id
     return normalized

@@ -222,11 +222,11 @@ def build_browser_tool_parameters_schema() -> dict[str, Any]:
         "type": "object",
         "description": (
             "Canonical grouped browser action payload. "
-            "Provide the fields for the selected action only. "
+            "Provide a top-level explanation and the fields for the selected action only. "
             "Action-specific field requirements are enforced by runtime validation."
         ),
         "properties": properties,
-        "required": ["action"],
+        "required": ["action", "explanation"],
         "additionalProperties": False,
     }
 

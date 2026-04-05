@@ -240,9 +240,10 @@ def test_screenshot_schema_keeps_wait_parity_with_sidecar_display_bounds_extensi
     sidecar_schema = _normalized_model_schema(SidecarScreenshotToolArgs)
 
     assert sidecar_schema["properties"]["wait"] == backend_schema["properties"]["wait"]
+    assert sidecar_schema["properties"]["explanation"] == backend_schema["properties"]["explanation"]
     assert sidecar_schema["additionalProperties"] is False
-    assert set(sidecar_schema["properties"].keys()) == {"display_bounds", "wait"}
-    assert set(backend_schema["properties"].keys()) == {"wait"}
+    assert set(sidecar_schema["properties"].keys()) == {"display_bounds", "explanation", "wait"}
+    assert set(backend_schema["properties"].keys()) == {"explanation", "wait"}
 
 
 def test_mouse_and_scroll_schemas_keep_expected_grounding_abstraction_gap():

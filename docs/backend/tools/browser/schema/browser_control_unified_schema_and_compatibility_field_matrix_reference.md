@@ -89,6 +89,7 @@ Consequences:
 
 - top-level grouped `browser` parameters object
 - `action` enum covering the canonical browser action set
+- required top-level `explanation` shared across canonical browser actions
 - one root-object property set merged from the canonical action models
 - no top-level schema combinators; action-specific field requirements stay enforced by runtime validation
 

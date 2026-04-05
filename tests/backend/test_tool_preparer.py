@@ -8,7 +8,12 @@ from backend.src.agent.tools.preparation.helpers.preparation_helper import (
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
 from backend.src.tools.browser.schemas import BrowserControlArgs
-from backend.src.tools.computer.schemas import KeyboardControlArgs, MouseControlArgs
+from backend.src.tools.computer.schemas import (
+    GroundedMouseActionArgs,
+    GroundedScrollActionArgs,
+    KeyboardControlArgs,
+    MouseControlArgs,
+)
 from backend.src.tools.system.schemas import GetOpenWindowsArgs
 
 
@@ -143,6 +148,68 @@ async def test_prepare_scroll_control_uses_coordinate_resolution(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_prepare_grounded_mouse_action_rewrites_to_executor_tool(monkeypatch):
+    preparer = ToolPreparer(object(), object(), object())
+    tool_call = ParsedToolCall(
+        tool_name="grounded_mouse_action",
+        parameters={
+            "action": "click",
+            "ocr_text": "Submit",
+            "explanation": "Click the submit button.",
+        },
+        raw_call="{}",
+    )
+
+    async def fake_resolver(*_args, **_kwargs):
+        resolved_call = _args[1]
+        resolved_call.parameters["x"] = 10
+        resolved_call.parameters["y"] = 20
+        resolved_call.tool_name = "mouse_control"
+        resolved_call.parameters.pop("ocr_text", None)
+
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.preparer.resolve_tool_with_coordinates",
+        fake_resolver,
+    )
+
+    events, result = await _collect_preparation(preparer, [tool_call])
+
+    _assert_single_result_with_coordinate_method(events, result, "ocr")
+    assert result.resolved_calls[0].tool_name == "mouse_control"
+
+
+@pytest.mark.asyncio
+async def test_prepare_grounded_scroll_action_rewrites_to_executor_tool(monkeypatch):
+    preparer = ToolPreparer(object(), object(), object())
+    tool_call = ParsedToolCall(
+        tool_name="grounded_scroll_action",
+        parameters={
+            "action": "scroll_down",
+            "source_description": "the main feed",
+            "explanation": "Scroll the feed.",
+        },
+        raw_call="{}",
+    )
+
+    async def fake_resolver(*_args, **_kwargs):
+        resolved_call = _args[1]
+        resolved_call.parameters["x"] = 10
+        resolved_call.parameters["y"] = 20
+        resolved_call.tool_name = "scroll_control"
+        resolved_call.parameters.pop("source_description", None)
+
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.preparer.resolve_tool_with_coordinates",
+        fake_resolver,
+    )
+
+    events, result = await _collect_preparation(preparer, [tool_call])
+
+    _assert_single_result_with_coordinate_method(events, result, "prediction")
+    assert result.resolved_calls[0].tool_name == "scroll_control"
+
+
+@pytest.mark.asyncio
 async def test_prepare_mouse_control_manual_sets_coordinate_method_metadata():
     preparer = ToolPreparer(object(), object(), object())
     tool_call = ParsedToolCall(
@@ -221,6 +288,62 @@ async def test_prepare_single_invalid_mouse_control_tool_returns_preparation_err
     assert "mouse_control call is invalid" in error_message
     assert "action: Field required" in error_message
     assert "request_id" in tool_call.metadata
+
+
+@pytest.mark.asyncio
+async def test_prepare_invalid_grounded_mouse_tool_returns_preparation_error():
+    preparer = ToolPreparer(
+        object(),
+        object(),
+        object(),
+        tool_registry=DummyToolRegistry(
+            {
+                "grounded_mouse_action": _ArgsModelTool(GroundedMouseActionArgs),
+            }
+        ),
+    )
+    tool_call = ParsedToolCall(
+        tool_name="grounded_mouse_action",
+        parameters={"action": "click", "explanation": "Click the button."},
+        raw_call="{}",
+    )
+
+    _events, result = await _collect_preparation(preparer, [tool_call])
+
+    assert result is not None
+    assert result.resolved_calls == []
+    assert len(result.errors) == 1
+    failed_call, error_message = result.errors[0]
+    assert failed_call is tool_call
+    assert "grounded_mouse_action call is invalid" in error_message
+
+
+@pytest.mark.asyncio
+async def test_prepare_invalid_grounded_scroll_tool_returns_preparation_error():
+    preparer = ToolPreparer(
+        object(),
+        object(),
+        object(),
+        tool_registry=DummyToolRegistry(
+            {
+                "grounded_scroll_action": _ArgsModelTool(GroundedScrollActionArgs),
+            }
+        ),
+    )
+    tool_call = ParsedToolCall(
+        tool_name="grounded_scroll_action",
+        parameters={"action": "scroll_down", "explanation": "Scroll."},
+        raw_call="{}",
+    )
+
+    _events, result = await _collect_preparation(preparer, [tool_call])
+
+    assert result is not None
+    assert result.resolved_calls == []
+    assert len(result.errors) == 1
+    failed_call, error_message = result.errors[0]
+    assert failed_call is tool_call
+    assert "grounded_scroll_action call is invalid" in error_message
 
 
 @pytest.mark.asyncio
@@ -454,6 +577,7 @@ async def test_prepare_validates_and_sanitizes_resolved_mouse_payload(monkeypatc
         tool_name="mouse_control",
         parameters={
             "action": "click",
+            "explanation": "Click the submit control.",
             "find_coordinates_by": CoordinateFindingMethod.OCR,
             "ocr_text": "Submit",
         },
@@ -476,6 +600,7 @@ async def test_prepare_validates_and_sanitizes_resolved_mouse_payload(monkeypatc
     assert result.errors == []
     assert result.resolved_calls[0].parameters == {
         "action": "click",
+        "explanation": "Click the submit control.",
         "x": 320,
         "y": 180,
     }

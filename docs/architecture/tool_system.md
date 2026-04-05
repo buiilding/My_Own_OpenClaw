@@ -86,6 +86,7 @@ Catalog-driven declaration contract:
 - prompt-time filtering, parser whitelists, transparency payloads, and sidecar exposed-tool parity all consume the same direct tool names
 - browser now uses the same generic schema generation path as every other backend-exposed tool; there is no browser-only schema rewriter
 - provider adapters convert the internal flat tool spec into nested provider transport formats when needed
+- OpenAI now projects the direct desktop tool family (`mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `wait`) into one provider-native `computer` tool plus OpenAI-only semantic grounded helpers (`grounded_mouse_action`, `grounded_scroll_action`) at the provider boundary; this does not change the canonical internal executor contract or the sidecar-exposed tool set
 - grouped tools such as `browser` must emit provider-safe root-object schemas directly; OpenAI compatibility should not depend on browser-specific post-hoc schema rewrites
 
 Boundary rule:
@@ -108,6 +109,7 @@ Some logical tools are fulfilled entirely in the backend and never go through th
 - Other providers use a backend-executed Brave Search fallback when `BRAVE_SEARCH_API_KEY` is configured.
 - Brave and Gemini still surface `web_search` like any other backend tool: the model emits a tool call, the backend executes the search, and the UI renders the final tool-output result.
 - OpenAI native `web_search` now also streams lightweight progress rows (`web-search-progress` -> transient renderer `search-source` messages) while the backend-owned search is still running, then ends with the normal `tool-call` + `tool-output` pair once the logical tool result is ready.
+- OpenAI native `computer` uses the same pattern at a different boundary: the model sees one logical provider-native tool call, the backend expands that call into an internal desktop-action bundle, the frontend still executes the bundle through the shared bundle path, and the final screenshot/image output remains the existing bundle capture output.
 
 ### Backend Responsibilities
 
@@ -125,6 +127,12 @@ Current live model-facing tool count:
 - 14 direct remote tools from `backend/src/tools/tool_catalog.py`
 - 1 backend-owned logical tool, `web_search`
 - total: 15 live runtime tool schemas
+
+OpenAI projection note:
+
+- On OpenAI turns with native desktop support enabled, the provider-facing tool list differs from the canonical registry list.
+- The model sees native `computer`, the two OpenAI-only grounded helpers, and the remaining direct tools.
+- Non-OpenAI providers continue to see the direct internal tool names unchanged.
 
 ## Tool Execution Flow
 
@@ -420,6 +428,10 @@ Tool schemas use canonical OpenAI/LiteLLM `tools[]` objects:
           "enum": ["click", "double_click", "right_click"],
           "description": "Mouse action to perform"
         },
+        "explanation": {
+          "type": "string",
+          "description": "Why this tool call is needed and how it advances the goal"
+        },
         "x": {
           "type": "integer",
           "description": "X coordinate"
@@ -429,7 +441,7 @@ Tool schemas use canonical OpenAI/LiteLLM `tools[]` objects:
           "description": "Y coordinate"
         }
       },
-      "required": ["action"]
+      "required": ["action", "explanation"]
     }
   }
 }
@@ -463,8 +475,8 @@ No dual-shape fallback is supported in provider transport.
 - **replace**: Replace text in a file (single operation or batched operations)
 
 These tools are exposed to the LLM directly as individual function tools.
-Each direct system tool carries its own top-level fields, including `explanation`
-when required by that tool's schema.
+Direct computer tools and selected system/filesystem tools carry their own
+top-level `explanation` field when required by that tool's schema.
 
 `read_file` behavior:
 - Reads file content as line slices with `offset` (0-based) and `limit`.

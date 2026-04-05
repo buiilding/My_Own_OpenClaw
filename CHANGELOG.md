@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Added
+- feat(openai-native-computer-and-grounded-desktop-tools): project OpenAI desktop turns to native `computer`, add OpenAI-only grounded mouse/scroll helpers for OCR and vision targeting, keep non-OpenAI providers on the existing direct desktop tool contracts, and preserve the current bundle screenshot/image output path by bridging native `computer_call` execution back through the internal bundle runtime; add focused backend/sidecar coverage plus provider/tooling docs for the new contract.
 - feat(backend-stt-provider-gateway): add a backend-owned `/ws/transcription` gateway that keeps one renderer STT protocol while selecting `stt_provider="nova"` or `stt_provider="openai"` in backend config; Nova now proxies to the external Nova-Voice service and OpenAI Realtime is translated behind the same local event contract with focused backend coverage.
 - docs(agents): add explicit refactor-posture guidance so agents clean up bounded local design debt, refactor instead of stacking workarounds, and use clear triggers/scope limits/completion criteria while working.
 - chore(repo-assets): add the captured Amazon screenshot artifact used while validating the direct OCR/text-grounding SDK flow against a real `Search Amazon` example.

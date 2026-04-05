@@ -9,6 +9,8 @@ import pytest
 
 from tools.browser.browser_tool import execute_browser
 
+EXPLANATION = "Advance the active user task."
+
 
 def _connected_controller() -> SimpleNamespace:
     page = mock.AsyncMock()
@@ -88,7 +90,7 @@ async def test_connect_executes_through_runtime() -> None:
     with mock.patch(
         "tools.browser.browser_tool.get_browser_controller", return_value=controller
     ):
-        result = await execute_browser({"action": "connect"})
+        result = await execute_browser({"action": "connect", "explanation": EXPLANATION})
 
     assert result.success is True
     assert result.data["mode"] == "user_chrome"
@@ -102,7 +104,7 @@ async def test_connect_executes_through_runtime() -> None:
 @pytest.mark.asyncio
 async def test_strict_validation_blocks_runtime_execution() -> None:
     with mock.patch("tools.browser.browser_tool.get_browser_controller") as get_controller:
-        result = await execute_browser({"action": "snapshot", "format": "aria"})
+        result = await execute_browser({"action": "snapshot", "format": "aria", "explanation": EXPLANATION})
 
     assert result.success is False
     assert "format" in (result.error or "")
@@ -116,7 +118,7 @@ async def test_search_dispatches_to_navigation() -> None:
     with mock.patch(
         "tools.browser.browser_tool.get_browser_controller", return_value=controller
     ):
-        result = await execute_browser({"action": "search", "query": "pricing tiers"})
+        result = await execute_browser({"action": "search", "query": "pricing tiers", "explanation": EXPLANATION})
 
     assert result.success is True
     controller.navigate.assert_awaited_once()
@@ -135,14 +137,14 @@ async def test_not_connected_runtime_error_preserves_code() -> None:
     with mock.patch(
         "tools.browser.browser_tool.get_browser_controller", return_value=controller
     ):
-        result = await execute_browser({"action": "status"})
+        result = await execute_browser({"action": "status", "explanation": EXPLANATION})
 
     assert result.success is True
 
     with mock.patch(
         "tools.browser.browser_tool.get_browser_controller", return_value=controller
     ):
-        failed = await execute_browser({"action": "find_text", "text": "hello"})
+        failed = await execute_browser({"action": "find_text", "text": "hello", "explanation": EXPLANATION})
 
     assert failed.success is False
     assert failed.data == {"error_code": "BROWSER_NOT_CONNECTED", "action": "find_text"}
@@ -151,7 +153,7 @@ async def test_not_connected_runtime_error_preserves_code() -> None:
 @pytest.mark.asyncio
 async def test_removed_alias_returns_invalid_argument_error() -> None:
     with mock.patch("tools.browser.browser_tool.get_browser_controller"):
-        result = await execute_browser({"action": "open", "url": "https://example.com"})
+        result = await execute_browser({"action": "open", "url": "https://example.com", "explanation": EXPLANATION})
 
     assert result.success is False
     assert "open" in (result.error or "")

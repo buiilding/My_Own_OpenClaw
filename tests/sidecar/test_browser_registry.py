@@ -43,6 +43,7 @@ class TestBrowserToolRegistration:
             mock_get.return_value = mock_controller
             result = await registry.execute_tool("browser", {
                 "action": "connect",
+                "explanation": "Connect the browser for the active task.",
             })
             assert result.success is True
             assert result.data["mode"] == "user_chrome"

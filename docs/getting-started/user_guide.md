@@ -59,6 +59,7 @@ Default section on open: **Chat**.
 - Shows streaming responses, tool output, and screenshots.
 - Right-click any screenshot shown in the chat thread to open a small context menu with **Copy image**.
 - Mode badge shows **Chat** or **Agent**.
+- The header shows a browser control button to the left of the workspace chip. It connects the dedicated Windie browser, shows the current controlled tab when connected, and opens a tab carousel plus disconnect action.
 - The header shows the active workspace. Click it to change the default folder WindieOS uses for file reads, shell commands, and repo-aware work.
 - **New Chat** starts a fresh conversation immediately (new conversation id) and clears the visible timeline.
 - **Stop** cancels the active response/tool run and returns the UI to ready state.

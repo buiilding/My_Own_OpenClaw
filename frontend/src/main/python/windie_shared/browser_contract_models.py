@@ -58,12 +58,17 @@ BROWSER_CANONICAL_ACTIONS = cast(
 )
 
 MAX_BROWSER_TEXT_CHARS = 120_000
+EXPLANATION_FIELD_DESCRIPTION = (
+    "One sentence explanation as to why this tool is being used, "
+    "and how it contributes to the goal."
+)
 
 
 class BrowserActionArgsBase(BaseModel):
     """Strict base model for canonical browser actions."""
 
     model_config = ConfigDict(extra="forbid")
+    explanation: str = Field(..., description=EXPLANATION_FIELD_DESCRIPTION)
 
 
 def _ensure_click_target(
@@ -429,4 +434,3 @@ class BrowserControlArgs(RootModel[BrowserActionUnion]):
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self.root, name)
-

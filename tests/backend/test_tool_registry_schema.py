@@ -232,8 +232,22 @@ def test_tool_registry_mouse_declaration_exposes_direct_action_schema():
 
     parameters = declarations[0]["parameters"]
     assert parameters["properties"]["action"]["type"] == "string"
+    assert parameters["properties"]["explanation"]["type"] == "string"
     assert parameters["properties"]["find_coordinates_by"]["type"] == "string"
+    assert parameters["required"] == ["action", "explanation"]
     assert "metadata" not in parameters["properties"]
+
+
+def test_tool_registry_browser_declaration_requires_explanation():
+    config = AppConfig()
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+
+    declarations = registry.get_function_declarations_filtered(["browser"])
+    assert len(declarations) == 1
+
+    parameters = declarations[0]["parameters"]
+    assert parameters["required"] == ["action", "explanation"]
+    assert parameters["properties"]["explanation"]["type"] == "string"
 
 
 def test_tool_registry_run_shell_declaration_is_direct_and_requires_explanation():
