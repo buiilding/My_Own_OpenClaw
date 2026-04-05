@@ -76,6 +76,7 @@ Semantics:
 
 - missing `tab_name` returns `{success: false, error: "tab_name is required"}`
 - delegates to `manager.switch_to_window(tab_name)`
+- on macOS, app-level entries from `get_open_windows` now verify success by active app match when the target entry is the app name rather than a specific window title, so entries like `Finder` do not fail just because the focused Finder window title is `Downloads`
 - `False` return becomes a user-facing guidance error that recommends using exact title from `get_open_windows`
 - unexpected exceptions are wrapped as `Tab switching operation failed: ...`
 

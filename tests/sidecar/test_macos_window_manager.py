@@ -469,6 +469,48 @@ def test_macos_window_manager_switch_to_window_matches_app_name(monkeypatch):
     assert len(run_calls) == 1
 
 
+def test_macos_window_manager_switch_to_window_accepts_app_level_match_when_active_window_title_differs(monkeypatch):
+    target = _FakeApp("Finder", pid=999)
+    _install_fake_appkit(
+        monkeypatch,
+        apps=[_FakeApp("Terminal"), target],
+        active_app={"NSApplicationName": "Terminal"},
+    )
+    _install_fake_application_services(
+        monkeypatch,
+        trusted=True,
+        app_windows_by_pid={
+            999: [
+                ("window", {"AXTitle": "", "AXMinimized": False, "AXMain": True}),
+            ],
+        },
+    )
+    _install_fake_quartz(
+        monkeypatch,
+        all_windows=[
+            {"owner": "Finder", "name": "Downloads", "layer": 0, "alpha": 1, "id": 10},
+        ],
+        on_screen_windows=[
+            {"owner": "Finder", "name": "Downloads", "layer": 0, "alpha": 1, "id": 10},
+        ],
+    )
+
+    def fake_raise(self, _app_name, _window_name):
+        return True
+
+    monkeypatch.setattr(MacOSWindowManager, "_raise_window_via_applescript", fake_raise)
+    monkeypatch.setattr(
+        MacOSWindowManager,
+        "get_active_window",
+        lambda self: {"title": "Downloads", "hwnd": None, "app_name": "Finder"},
+    )
+    monkeypatch.setattr("core.platform.macos.time.sleep", lambda *_args, **_kwargs: None)
+    manager = MacOSWindowManager()
+
+    assert manager.switch_to_window("finder") is True
+    assert target.activated is True
+
+
 def test_macos_window_manager_switch_to_window_returns_false_when_missing(monkeypatch):
     _install_fake_appkit(
         monkeypatch,

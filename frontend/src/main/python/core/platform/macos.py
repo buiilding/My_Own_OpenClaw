@@ -459,6 +459,8 @@ return "false"
         self,
         target_title: str,
         app_name: str,
+        *,
+        allow_app_level_match: bool = False,
         timeout_seconds: float = 1.0,
         poll_seconds: float = 0.05,
     ) -> bool:
@@ -479,6 +481,8 @@ return "false"
                     normalized_target,
                     normalized_app_name,
                 }:
+                    return True
+                if allow_app_level_match and active_app_name == normalized_app_name:
                     return True
             time.sleep(max(0.0, poll_seconds))
 
@@ -602,9 +606,14 @@ return "false"
                             "AppleScript window raise did not confirm activation for '%s'",
                             target_window["window_name"],
                         )
+                    allow_app_level_match = (
+                        str(target_window.get("window_name") or "").strip().lower()
+                        == str(target_window.get("app_name") or "").strip().lower()
+                    )
                     return self._wait_for_active_window(
                         target_window["title"],
                         target_window["app_name"],
+                        allow_app_level_match=allow_app_level_match,
                     )
         except Exception as e:
             logger.error(f"Error switching to window: {e}", exc_info=True)
