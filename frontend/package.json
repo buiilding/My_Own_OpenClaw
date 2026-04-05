@@ -45,7 +45,6 @@
     "lucide-react": "^0.577.0",
     "marked": "^17.0.4",
     "marked-katex-extension": "^5.1.7",
-    "node-window-manager": "^2.2.4",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

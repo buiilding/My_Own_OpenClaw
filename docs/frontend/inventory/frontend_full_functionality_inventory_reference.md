@@ -42,7 +42,6 @@ Primary files:
 - `frontend/src/main/overlay_signal_runtime.cjs`
 - `frontend/src/main/overlay_window_helpers_runtime.cjs`
 - `frontend/src/main/response_overlay_phase_handler.cjs`
-- `frontend/src/main/external_focus_tracker.cjs`
 - `frontend/src/main/main_window_controls_handler.cjs`
 - `frontend/src/main/display_query_handler.cjs`
 - `frontend/src/main/overlay_topmost_runtime.cjs`
@@ -61,7 +60,7 @@ Functionality:
 - Handles overlay repositioning on display/window changes.
 - Centralizes show/hide/main-window maximize/focus visibility flow in dedicated window visibility runtime helper.
 - Hidden chat/main window show paths reuse stored active display affinity when explicit target display is omitted, preserving monitor continuity for tray/hotkey/startup/lifecycle opens.
-- Tracks external focused window before overlay query capture and restores focus.
+- Keeps overlay query-capture prep blur-only and avoids cross-app focus restoration.
 - Routes screenshot tool execution through platform screenshot visibility runtime wrapper (current main-process behavior is pass-through; Linux hide/show ownership is renderer-side).
 - Registers global wakeword hotkey and open-target window routing.
 - Enables VM-mode renderer query-flag boot and optional VM worker runtime startup from env-gated mode helpers.

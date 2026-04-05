@@ -27,7 +27,6 @@ const {
 
 function createSurfaceRuntime({
   screen,
-  externalFocusTracker,
   getActiveDisplayAffinity,
   setActiveDisplayAffinity,
   syncActiveDisplayAffinityForWindow,
@@ -255,7 +254,6 @@ function createSurfaceRuntime({
       syncChatboxHitTestState,
       setActiveDisplayAffinity,
       getActiveDisplayAffinity,
-      externalFocusTracker,
       getResponseOverlayPhase: () => state.responseOverlayPhase,
     });
   }

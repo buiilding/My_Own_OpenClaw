@@ -98,7 +98,7 @@ Current runtime behavior also relies on these explicit seams:
 3. `ApiClient.sendQuery()` emits `to-backend` IPC message.
 4. Main `ipc.cjs`:
    - Ensures one-time initial settings sync ACK gate.
-   - Runs overlay pre-capture focus handoff for chatbox-surface sends.
+   - Runs blur-only overlay pre-capture prep for chatbox-surface sends.
    - Resolves sender-window display affinity in main (including virtual desktop bounds) and stores it for follow-on tool screenshots when the dashboard renderer is hidden.
    - Emits local synthetic `local-user-message` event to renderer immediately.
    - Calls `buildQueryPayloadContent()` to inject system-context + memory sections.

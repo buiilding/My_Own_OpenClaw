@@ -26,7 +26,7 @@ Responsibilities:
 
 - Creates/manages main window + chat overlay windows.
 - Maintains overlay response phases (`idle`, `awaiting-first-chunk`, `streaming`, tool phases).
-- Tracks and restores external focused window (notably on Windows) for overlay UX.
+- Keeps overlay send/capture prep blur-only and avoids cross-app focus restoration.
 - Registers tray/shortcuts and always-on-top behavior for overlay windows.
 - Delegates BrowserWindow factory/bootstrap helpers to `main_window_runtime.cjs`.
 - Delegates lifecycle listeners/startup wiring to `main_process_lifecycle_runtime.cjs`.

@@ -124,7 +124,6 @@ Loop interactivity and query-capture focus prep are now internal main-process be
 
 Behavior:
 
-- captures previous external focused window snapshot before transition when tracker is available
 - hide main window if visible
 - display target resolution is centralized in `resolveShowTargetDisplayAffinity(...)`:
   - explicit `options.targetDisplayAffinity` wins

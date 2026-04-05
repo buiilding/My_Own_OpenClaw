@@ -8,9 +8,6 @@ dependencies:
   clipboardy:
     specifier: ^3.0.0
     version: 3.0.0
-  node-window-manager:
-    specifier: ^2.2.4
-    version: 2.2.4
   pngjs:
     specifier: ^7.0.0
     version: 7.0.0
@@ -4901,15 +4898,6 @@ packages:
   /node-releases@2.0.27:
     resolution: {integrity: sha512-nmh3lCkYZ3grZvqcCH+fjmQ7X+H0OeZgP40OierEaAptX4XofMh5kwNbWh7lBduUzCcV/8kZ+NDLCwm2iorIlA==}
     dev: true
-
-  /node-window-manager@2.2.4:
-    resolution: {integrity: sha512-Dgq9a7qx6+Gi+BifWM79leteNz76QUtwSsdiqEe7SjvoJsc8TYQsRl1IA5uxqz5iSLeHS1iA/8YI/snoq0DblA==}
-    requiresBuild: true
-    dependencies:
-      extract-file-icon: 0.3.2
-      node-addon-api: 2.0.0
-      node-gyp-build: 4.8.4
-    dev: false
 
   /normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
