@@ -177,7 +177,7 @@ frontend/src/renderer/
 │   ├── services/                         # Business logic services
 │   │   ├── ArtifactImageUtils.ts        # ArtifactImageUtils - Artifact image type/extension normalization
 │   │   ├── ArtifactUploader.ts          # ArtifactUploader - Uploads screenshot artifacts and builds artifact URLs
-│   │   ├── MessageFormatter.ts          # MessageFormatter - Pure functions for formatting tool output with system context XML
+│   │   ├── MessageFormatter.ts          # MessageFormatter - Pure functions for formatting model-facing tool output text
 │   │   ├── ScreenshotAttachmentPipeline.ts # ScreenshotAttachmentPipeline - canonical screenshot capture/materialization/ref fallback service
 │   │   ├── SystemStateCapture.ts        # SystemStateCapture - explicit system-state capture service
 │   │   └── toolExecution/               # toolExecution - Tool execution runtime, payload shaping, and envelope helpers
@@ -337,7 +337,7 @@ frontend/src/renderer/
        ├─> Execute tool via IPC (INVOKE_CHANNELS.EXECUTE_TOOL)
        ├─> Check if computer-use tool (needs screenshot)
        ├─> captureScreenshotAttachment() / captureSystemState() - explicit capture services
-       ├─> formatToolOutputMessage() - Format with system context XML
+       ├─> formatToolOutputMessage() - Format model-facing tool output text
        ├─> Call onToolResult callback (UI update)
        └─> Send tool-result to backend via IPC
            ↓
@@ -632,7 +632,7 @@ Tools that automatically capture screenshots and system state:
 ### Transparency Data
 - `systemPrompt` - System prompt sent to LLM
 - `toolSchemas` - Available tool schemas
-- `fullUserMessage` - Complete user message with system context XML
+- `fullUserMessage` - Complete user message with memory sections and user query
 - `fullAssistantMessage` - Complete assistant response
 
 ---

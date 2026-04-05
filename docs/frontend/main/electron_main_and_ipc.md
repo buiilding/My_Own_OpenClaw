@@ -81,8 +81,8 @@ Module:
 
 Adds backend-facing context before query send:
 
-- system context XML (`active_window`, `mouse_position`, `screen_resolution`, and full windows list for initial turn)
 - episodic and semantic memory sections
+- optional attached-file context
 - user query XML payload
 - runtime-only system state subset (`screen_resolution`) for backend coordinate normalization
 

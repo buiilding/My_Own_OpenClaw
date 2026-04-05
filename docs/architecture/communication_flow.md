@@ -234,6 +234,7 @@ This keeps the backend as the hosted control plane and prevents SDK consumers fr
 - Payload: `{ request_id, success, data?: { llm_content, system_state?: { active_window, mouse_position }, screenshot_ref?, screenshot? }, error? }`
 - Notes:
   - `system_state` is optional; when present, `active_window` and `mouse_position` are required.
+  - `llm_content` is plain model-facing tool text; frontend runtime state does not get serialized into XML inside `llm_content`.
   - `screenshot_ref`/`screenshot` are only sent for computer-use tool results.
   - Automatic screenshot capture is monitor-scoped: Electron main resolves the sender/query display and passes both monitor bounds and virtual desktop bounds so sidecar screenshot capture can crop to one monitor.
 - Response: Acknowledgment

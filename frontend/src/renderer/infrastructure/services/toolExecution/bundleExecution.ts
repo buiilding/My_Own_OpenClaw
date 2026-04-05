@@ -51,9 +51,7 @@ export async function executeToolBundleRuntime(
     const formattingStartTime = performance.now();
     const combinedFormattedMessage = formatBundledToolOutputMessage(
       bundledResults,
-      systemState,
       screenshot,
-      bundleHasComputerTool,
     );
     const formattingTime = (performance.now() - formattingStartTime) / 1000;
     logBundleFormatting(formattingTime);

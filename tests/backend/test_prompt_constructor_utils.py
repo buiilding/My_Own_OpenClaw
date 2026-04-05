@@ -178,10 +178,7 @@ def test_build_prompt_populates_user_message_metadata_from_history():
         history=[
             {
                 "role": MessageRole.USER.value,
-                "content": (
-                    "<system_context><active_window>Editor</active_window></system_context>"
-                    "<user_query>open file</user_query>"
-                ),
+                "content": "<user_query>open file</user_query>",
             }
         ],
         user_query_raw="open file",
@@ -201,8 +198,8 @@ def test_build_prompt_populates_user_message_metadata_from_history():
     assert metadata.user_message_metadata is not None
     assert metadata.user_message_metadata.original_query == "open file"
     assert metadata.user_message_metadata.context_type == "initial"
-    assert metadata.user_message_metadata.active_window == "Editor"
-    assert metadata.user_message_metadata.injected_context == "<system_context><active_window>Editor</active_window></system_context>"
+    assert metadata.user_message_metadata.active_window == "Unknown"
+    assert metadata.user_message_metadata.injected_context == ""
 
 
 def test_build_prompt_sets_sequential_context_when_multiple_user_queries():

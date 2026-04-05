@@ -594,7 +594,7 @@ Send a user query with optional screenshot.
 {
   "text": "User query text",
   "conversation_ref": "conv_123",
-  "content": "<system_context>...</system_context> ...", // Optional, built by Electron main process
+  "content": "<episodic_memory>...</episodic_memory><semantic_memory>...</semantic_memory><user_query>...</user_query>", // Optional, built by Electron main process
   "screenshot": "base64-encoded-screenshot", // Optional (legacy)
   "screenshot_ref": "uuid.jpg", // Preferred
   "system_state_internal": { "screen_resolution": "1920x1080" } // Optional backend-only runtime state
@@ -616,7 +616,7 @@ Send a user query with optional screenshot.
 - `tool-schemas`: Tool schemas for transparency
 - `token-count`: Token usage information
 
-**Note**: The Electron main process enriches `query` payloads by adding `content` (system context + memory + user query).
+**Note**: The Electron main process enriches `query` payloads by adding `content` (memory sections, optional attachment context, and `<user_query>`).
 `conversation_ref` is required and identifies the active transcript/session thread.
 `system_state_internal` is backend-only runtime state and is not model-facing prompt/tool-output content.
 
@@ -866,7 +866,7 @@ Send tool execution result from frontend.
   "request_id": "opaque-request-id-from-tool-call",
   "success": true,
   "data": {
-    "llm_content": "Preformatted tool output",
+    "llm_content": "Preformatted tool output text",
     "screenshot_ref": "uuid.jpg", // Optional, computer-use tools only
     "screenshot": "base64-encoded-screenshot", // Optional legacy fallback, computer-use tools only
     "system_state": { "active_window": "...", "mouse_position": "..." },
@@ -1562,7 +1562,7 @@ Full user message content for transparency display.
   "id": "123e4567-e89b-12d3-a456-426614174020",
   "type": "user-message-full",
   "payload": {
-    "content": "<system_context>...</system_context><user_query>Click submit</user_query>",
+    "content": "<episodic_memory>\nNone\n</episodic_memory>\n\n<semantic_memory>\nNone\n</semantic_memory>\n\n<user_query>\nClick submit\n</user_query>",
     "metadata": {
       "has_screenshot": true,
       "has_memory": true

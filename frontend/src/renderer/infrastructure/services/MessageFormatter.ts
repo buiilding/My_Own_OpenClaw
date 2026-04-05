@@ -1,6 +1,6 @@
 /**
  * Message Formatter Service.
- * Pure functions for formatting tool output messages with system context XML.
+ * Pure functions for formatting tool output messages.
  * No side effects, no React dependencies.
  */
 
@@ -139,44 +139,12 @@ function hasScreenshotData(data: ToolResult['data']): boolean {
   return Boolean(objectData && (objectData.screenshot || objectData.image_data || objectData.screenshot_ref));
 }
 
-function escapeXml(value: unknown): string {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
 /**
- * Format system state as sequential XML (minimal) for tool output
- */
-function formatSequentialStateXml(state: SystemState | null): string {
-  if (!state) {
-    return `<system_context>
-    <os_state>
-        <active_window>Unknown</active_window>
-        <mouse_position>Unknown</mouse_position>
-    </os_state>
-</system_context>`;
-  }
-  
-  return `<system_context>
-    <os_state>
-        <active_window>${escapeXml(state.active_window || 'Unknown')}</active_window>
-        <mouse_position>${escapeXml(state.mouse_position || 'Unknown')}</mouse_position>
-    </os_state>
-</system_context>`;
-}
-
-/**
- * Format complete tool output message with system context XML for backend history
+ * Format complete tool output message for backend history.
  */
 export function formatToolOutputMessage(
   toolName: string,
   result: ToolResult,
-  systemState: SystemState | null,
-  includeSystemContext: boolean = true,
 ): string {
   const parts = [`${toolName} output:`];
   
@@ -189,11 +157,6 @@ export function formatToolOutputMessage(
     parts.push('status: failed');
   }
 
-  if (includeSystemContext) {
-    const systemContextXml = formatSequentialStateXml(systemState);
-    parts.push(systemContextXml);
-  }
-  
   // Add screenshot indicator if screenshot is present
   if (hasScreenshotData(result.data)) {
     parts.push(`State of the screen after ${toolName} was executed:`);
@@ -203,14 +166,12 @@ export function formatToolOutputMessage(
 }
 
 /**
- * Format combined bundled tool output message with system context XML
+ * Format combined bundled tool output message.
  * Combines multiple tool outputs into a single message
  */
 export function formatBundledToolOutputMessage(
   tools: BundledToolResult[],
-  systemState: SystemState | null,
   screenshot: string | null,
-  includeSystemContext: boolean = true,
 ): string {
   const parts = ['Bundled tool execution output:'];
   
@@ -235,11 +196,6 @@ export function formatBundledToolOutputMessage(
     }
   }
   
-  if (includeSystemContext) {
-    const systemContextXml = formatSequentialStateXml(systemState);
-    parts.push('\n' + systemContextXml);
-  }
-
   // Add screenshot indicator if screenshot is present
   if (screenshot) {
     parts.push('\nState of the screen after bundled tools were executed:');

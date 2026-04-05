@@ -54,8 +54,8 @@ Metadata fields:
 - `original_query`: raw user query text
 - `full_content`: latest user message content containing `<user_query>`
 - `context_type`: `initial` or `sequential`
-- `injected_context`: extracted `<system_context>...</system_context>` block
-- `active_window`: extracted `<active_window>` tag content (fallback `Unknown`)
+- `injected_context`: extracted `<system_context>...</system_context>` block, or empty string when current frontend query content does not include one
+- `active_window`: extracted `<active_window>` tag content when present (fallback `Unknown`)
 
 `context_type` logic:
 
@@ -91,8 +91,8 @@ This avoids naive delimiter parsing bugs and constrains extraction work on large
 
 Frontend memory/context block handling:
 
-- constructor treats frontend-provided `<system_context>`, `<episodic_memory>`, and `<semantic_memory>` blocks as opaque pass-through content.
-- transparency extraction only parses specific tags used for UI metadata (`system_context`, `active_window`, `user_query`); it does not parse memory lists into structured backend fields.
+- constructor treats frontend-provided `<episodic_memory>` and `<semantic_memory>` blocks as opaque pass-through content.
+- transparency extraction only parses specific tags used for UI metadata (`system_context`, `active_window`, `user_query`); current frontend query content typically provides only `<user_query>` plus memory sections, so `system_context` / `active_window` metadata are usually empty-or-unknown unless older history is being replayed.
 
 ## First-Turn Prompt/Event Flow
 

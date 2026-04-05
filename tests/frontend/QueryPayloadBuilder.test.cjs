@@ -49,7 +49,7 @@ describe('query_payload_builder', () => {
         semantic_min_score: 0.2,
       },
     );
-    expect(result.content).toContain('<system_context>');
+    expect(result.content).not.toContain('<system_context>');
     expect(result.content).toContain('<episodic_memory>');
     expect(result.content).toContain('- remember &amp; review');
     expect(result.content).toContain('<semantic_memory>');
@@ -85,7 +85,7 @@ describe('query_payload_builder', () => {
       'mouse_position',
       'screen_resolution',
     ]);
-    expect(result.content).toContain('<active_window>Unknown</active_window>');
+    expect(result.content).not.toContain('<system_context>');
     expect(result.content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
     expect(result.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
     expect(result.content).toContain('<user_query>\nfallback\n</user_query>');
@@ -111,7 +111,7 @@ describe('query_payload_builder', () => {
       log: jest.fn(),
     });
 
-    expect(result.content).toContain('<active_window>Editor</active_window>');
+    expect(result.content).not.toContain('<system_context>');
     expect(result.content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
     expect(result.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
     expect(result.runtimeSystemState).toEqual({ screen_resolution: '2560x1440' });
@@ -139,7 +139,7 @@ describe('query_payload_builder', () => {
       log: jest.fn(),
     });
 
-    expect(result.content).toContain('<active_window>Unknown</active_window>');
+    expect(result.content).not.toContain('<system_context>');
     expect(result.content).toContain('<episodic_memory>\n- entry\n</episodic_memory>');
     expect(result.runtimeSystemState).toBeNull();
   });
@@ -173,7 +173,7 @@ describe('query_payload_builder', () => {
     });
 
     expect(searchMemory).not.toHaveBeenCalled();
-    expect(result.content).toContain('<system_context>');
+    expect(result.content).not.toContain('<system_context>');
     expect(result.content).not.toContain('<episodic_memory>');
     expect(result.content).not.toContain('<semantic_memory>');
     expect(result.content).toContain('<user_query>\nno memory injection\n</user_query>');

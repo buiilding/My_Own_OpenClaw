@@ -45,31 +45,6 @@ const SEQUENTIAL_SYSTEM_STATE_FIELDS = Object.freeze([
   'screen_resolution',
 ]);
 
-/**
- * Format system state as initial XML.
- */
-function formatInitialStateXml(state) {
-  return `<system_context>
-    <os_state>
-        <active_window>${escapeXml(state.active_window || 'Unknown')}</active_window>
-        <mouse_position>${escapeXml(state.mouse_position || 'Unknown')}</mouse_position>
-        <screen_resolution>${escapeXml(state.screen_resolution || 'Unknown')}</screen_resolution>
-    </os_state>
-</system_context>`;
-}
-
-/**
- * Format system state as sequential XML (minimal)
- */
-function formatSequentialStateXml(state) {
-  return `<system_context>
-    <os_state>
-        <active_window>${escapeXml(state.active_window || 'Unknown')}</active_window>
-        <mouse_position>${escapeXml(state.mouse_position || 'Unknown')}</mouse_position>
-    </os_state>
-</system_context>`;
-}
-
 function extractQueryRuntimeSystemState(state) {
   if (!state || typeof state !== 'object') {
     return null;
@@ -85,27 +60,10 @@ function extractQueryRuntimeSystemState(state) {
   };
 }
 
-/**
- * Format fallback system state XML
- */
-function formatFallbackStateXml() {
-  return `<system_context>
-    <os_state>
-        <active_window>Unknown</active_window>
-    </os_state>
-</system_context>`;
-}
-
 function getRequestedSystemStateFields(contextType) {
   return contextType === 'initial'
     ? INITIAL_SYSTEM_STATE_FIELDS
     : SEQUENTIAL_SYSTEM_STATE_FIELDS;
-}
-
-function formatContextStateXml(contextType, state) {
-  return contextType === 'initial'
-    ? formatInitialStateXml(state)
-    : formatSequentialStateXml(state);
 }
 
 function logMemoryFailure(memoryData, log) {
@@ -126,17 +84,13 @@ async function resolveSystemStateEnrichment({
   const requestedFields = getRequestedSystemStateFields(contextType);
   try {
     const state = await getSystemState(requestedFields);
-    const systemStateXml = formatContextStateXml(contextType, state);
-    logger('System state added to message');
+    logger('System state captured for backend runtime metadata');
     return {
-      systemStateXml: systemStateXml.trim(),
       runtimeSystemState: extractQueryRuntimeSystemState(state),
     };
   } catch (error) {
-    logger(`ERROR: System state enrichment failed: ${error?.message || 'Unknown error'}`);
-    logger('Using fallback system context');
+    logger(`ERROR: System state capture failed: ${error?.message || 'Unknown error'}`);
     return {
-      systemStateXml: formatFallbackStateXml(),
       runtimeSystemState: null,
     };
   }
@@ -191,7 +145,7 @@ async function buildQueryPayloadContent({
   const shouldInjectMemories = memoryRetrievalEnabled !== false;
 
   try {
-    logger('Building complete user message with system state and memories...');
+    logger('Building complete user message with memories...');
 
     const [stateEnrichment, memories] = await Promise.all([
       resolveSystemStateEnrichment({
@@ -212,7 +166,6 @@ async function buildQueryPayloadContent({
 
     const parts = [];
     const runtimeSystemState = stateEnrichment.runtimeSystemState || null;
-    parts.push(stateEnrichment.systemStateXml);
 
     if (shouldInjectMemories) {
       if (memories) {
@@ -236,9 +189,8 @@ async function buildQueryPayloadContent({
     };
   } catch (error) {
     logger(`ERROR: Failed to build user message: ${error.message}`);
-    logger('Using fallback system context in error handler');
     return {
-      content: `${formatFallbackStateXml()}\n\n<user_query>\n${escapeXml(text)}\n</user_query>`,
+      content: `<user_query>\n${escapeXml(text)}\n</user_query>`,
       runtimeSystemState: null,
     };
   }

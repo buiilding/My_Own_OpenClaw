@@ -128,10 +128,9 @@ Output from `buildQueryPayload(...)`:
 
 `buildQueryPayloadContent(...)` composes:
 
-1. `<system_context>` XML (initial vs sequential field sets)
-2. optional episodic + semantic memory sections (or `None` placeholders) when retrieval injection is enabled
-3. optional `<attached_file_context>` section (hidden non-image file context from renderer-side `read_file`)
-4. `<user_query>` XML block
+1. optional episodic + semantic memory sections (or `None` placeholders) when retrieval injection is enabled
+2. optional `<attached_file_context>` section (hidden non-image file context from renderer-side `read_file`)
+3. `<user_query>` XML block
 
 Memory section formatting contract (`query_payload_builder.cjs`):
 
@@ -158,6 +157,7 @@ System-state field policy:
 Runtime-only extraction:
 
 - only `screen_resolution` currently exported into `runtimeSystemState`
+- active window / mouse position are no longer serialized into model-facing query `content`
 - included as `system_state_internal` for backend runtime normalization, not user-facing prompt content
 
 Failure behavior:
