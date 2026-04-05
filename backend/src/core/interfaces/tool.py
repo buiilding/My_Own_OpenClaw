@@ -107,8 +107,8 @@ class ToolResult:
         """
         Get pre-formatted message for conversation history.
         
-        Frontend tools should pre-format messages with system context XML embedded
-        in llm_content. Backend trusts llm_content when present.
+        Frontend tools should pre-format plain model-facing message text in
+        llm_content. Backend trusts llm_content when present.
         
         Args:
             tool_name: Name of the tool that produced this result (for error messages only)

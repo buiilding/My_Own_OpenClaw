@@ -46,7 +46,7 @@ Current query append path (`AgentExecutor.process_query(...)`):
   - uses the last `<user_query>...</user_query>` match when multiple are present
   - HTML-unescapes extracted text
   - falls back to raw query input if tag missing/empty
-- `<system_context>`, `<episodic_memory>`, and `<semantic_memory>` blocks are preserved inside rendered `content` for model context, but are not separately parsed into structured `episodic_memory` / `semantic_memory` fields on the standard query path
+- `<episodic_memory>` and `<semantic_memory>` blocks are preserved inside rendered `content` for model context, but are not separately parsed into structured `episodic_memory` / `semantic_memory` fields on the standard query path
 - practical result: `StoredMessage.user_query_raw` is reliably populated; `StoredMessage.episodic_memory` and `StoredMessage.semantic_memory` are currently optional and generally unset unless a caller explicitly provides structured values
 
 Session initialization sets system prompt source of truth:
@@ -78,8 +78,8 @@ This makes later iterations cheap and preserves identical tool schema surface ac
 - `original_query`
 - full rendered user content
 - inferred `context_type` (`initial` vs `sequential`)
-- extracted `<system_context>...</system_context>` block
-- extracted `<active_window>` value
+- extracted `<system_context>...</system_context>` block when older history still contains one
+- extracted `<active_window>` value when older history still contains one (fallback `Unknown`)
 
 `InteractionLoop` emits this metadata on first iteration through `EventPresenter.present_prompt_metadata(...)` as:
 

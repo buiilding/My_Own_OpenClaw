@@ -146,7 +146,7 @@ export function useToolRunner(enabled = true) {
       error: failureError,
       data: null,
     };
-    const formattedMessage = formatToolOutputMessage(toolName, result, null, false);
+    const formattedMessage = formatToolOutputMessage(toolName, result);
     addMessage(buildToolOutputMessage({
       toolName,
       result,

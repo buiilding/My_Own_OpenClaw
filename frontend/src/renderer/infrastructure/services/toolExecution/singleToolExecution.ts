@@ -121,8 +121,6 @@ export async function executeSingleTool(
     const formattedMessage = formatToolOutputMessage(
       toolName,
       result,
-      finalSystemState,
-      isComputerTool,
     );
 
     const executionResult: ToolExecutionResult = {
@@ -191,7 +189,7 @@ export async function executeSingleTool(
       result: failure,
       executionTime: errorExecutionTime,
       correlationId: options.correlationId,
-      formattedMessage: formatToolOutputMessage(toolName, failure, null),
+      formattedMessage: formatToolOutputMessage(toolName, failure),
       screenshot: null,
       systemState: null,
     };

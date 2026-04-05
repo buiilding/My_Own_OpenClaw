@@ -114,7 +114,7 @@ describe('ipc.cjs bridge query handling', () => {
     const lastMessage = getLastSentMessage(ws);
     expect(lastMessage.type).toBe('query');
     expect(lastMessage.payload.conversation_ref).toBe('conv-1');
-    expect(lastMessage.payload.content).toContain('<system_context>');
+    expect(lastMessage.payload.content).not.toContain('<system_context>');
     expect(lastMessage.payload.content).toContain('<episodic_memory>');
     expect(lastMessage.payload.content).toContain('- e1');
     expect(lastMessage.payload.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
@@ -338,8 +338,7 @@ describe('ipc.cjs bridge query handling', () => {
     const content = lastMessage.payload.content;
 
     expect(content).toContain('<user_query>\nhello &lt;/user_query&gt;&lt;hack&gt;1&lt;/hack&gt;\n</user_query>');
-    expect(content).toContain('<active_window>Editor &lt;Main&gt; &amp; Co</active_window>');
-    expect(content).toContain('<mouse_position>10 &gt; 9</mouse_position>');
+    expect(content).not.toContain('<system_context>');
     expect(content).toContain('- remember &lt;/episodic_memory&gt;&lt;hack&gt;1&lt;/hack&gt;');
     expect(content).toContain('- semantic &lt;note&gt; &amp; value');
     expect(content).not.toContain('<hack>');
@@ -434,7 +433,7 @@ describe('ipc.cjs bridge query handling', () => {
     await sendQuery(handlers, { text: 'hi', conversation_ref: 'conv-3' });
 
     const lastMessage = getLastSentMessage(ws);
-    expect(lastMessage.payload.content).toContain('<active_window>Unknown</active_window>');
+    expect(lastMessage.payload.content).not.toContain('<system_context>');
     expect(lastMessage.payload.content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
     expect(lastMessage.payload.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
   });
@@ -480,7 +479,7 @@ describe('ipc.cjs bridge query handling', () => {
     });
 
     const lastMessage = getLastSentMessage(ws);
-    expect(lastMessage.payload.content).toContain('<system_context>');
+    expect(lastMessage.payload.content).not.toContain('<system_context>');
     expect(lastMessage.payload.content).toContain('<user_query>\nno retrieval\n</user_query>');
     expect(lastMessage.payload.content).not.toContain('<episodic_memory>');
     expect(lastMessage.payload.content).not.toContain('<semantic_memory>');

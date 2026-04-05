@@ -4,14 +4,12 @@ import {
 } from '../../frontend/src/renderer/infrastructure/services/MessageFormatter';
 
 describe('MessageFormatter', () => {
-  test('formatToolOutputMessage includes Unknown system context values when missing', () => {
+  test('formatToolOutputMessage does not inject system context when state is missing', () => {
     const output = formatToolOutputMessage(
       'read_file',
       { success: true, data: { output: 'ok' } },
-      null,
     );
-    expect(output).toContain('<active_window>Unknown</active_window>');
-    expect(output).toContain('<mouse_position>Unknown</mouse_position>');
+    expect(output).not.toContain('<system_context>');
   });
 
   test('formatToolOutputMessage formats success with llm_content and screenshot indicator', () => {
@@ -24,13 +22,12 @@ describe('MessageFormatter', () => {
           screenshot: 'shot',
         },
       },
-      { active_window: 'App', mouse_position: '1,1' },
     );
 
     expect(output).toContain('read_file output:');
     expect(output).toContain('hello');
     expect(output).toContain('status: successful');
-    expect(output).toContain('<active_window>App</active_window>');
+    expect(output).not.toContain('<system_context>');
     expect(output).toContain('State of the screen after read_file was executed:');
   });
 
@@ -45,7 +42,6 @@ describe('MessageFormatter', () => {
           screenshot_id: 'legacy-shot-id',
         },
       },
-      null,
     );
 
     expect(output).toContain('State of the screen after mouse_control was executed:');
@@ -57,13 +53,12 @@ describe('MessageFormatter', () => {
     const output = formatToolOutputMessage(
       'read_file',
       { success: false, error: 'boom', data: null },
-      null,
     );
     expect(output).toContain('error: boom');
     expect(output).toContain('status: failed');
   });
 
-  test('formatBundledToolOutputMessage includes system context and screenshot indicator', () => {
+  test('formatBundledToolOutputMessage includes screenshot indicator without system context', () => {
     const output = formatBundledToolOutputMessage(
       [
         {
@@ -77,7 +72,6 @@ describe('MessageFormatter', () => {
           error: 'fail',
         },
       ],
-      { active_window: 'App', mouse_position: '2,2' },
       'shot',
     );
 
@@ -86,7 +80,7 @@ describe('MessageFormatter', () => {
     expect(output).toContain('status: successful');
     expect(output).toContain('write_file output:');
     expect(output).toContain('status: failed');
-    expect(output).toContain('<active_window>App</active_window>');
+    expect(output).not.toContain('<system_context>');
     expect(output).toContain('State of the screen after bundled tools were executed:');
   });
 
@@ -94,7 +88,6 @@ describe('MessageFormatter', () => {
     const output = formatToolOutputMessage(
       'read_file',
       { success: true, data: 'raw text' },
-      null,
     );
     expect(output).toContain('raw text');
     expect(output).toContain('status: successful');
@@ -104,7 +97,6 @@ describe('MessageFormatter', () => {
     const output = formatToolOutputMessage(
       'screenshot',
       { success: true, data: { message: 'ok', screenshot: 'shot' } },
-      null,
     );
     expect(output).toContain('ok');
     expect(output).toContain('State of the screen after screenshot was executed:');
@@ -120,7 +112,6 @@ describe('MessageFormatter', () => {
           message: 'from-message',
         },
       },
-      null,
     );
     expect(singleOutput).toContain('from-output');
     expect(singleOutput).not.toContain('from-message');
@@ -137,33 +128,24 @@ describe('MessageFormatter', () => {
         },
       ],
       null,
-      null,
     );
     expect(bundledOutput).toContain('bundle-output');
     expect(bundledOutput).not.toContain('bundle-message');
   });
 
-  test('formatToolOutputMessage fills missing system context fields with Unknown', () => {
+  test('formatToolOutputMessage ignores provided system state', () => {
     const output = formatToolOutputMessage(
       'read_file',
       { success: true, data: { output: 'ok' } },
-      { active_window: 'Browser' },
     );
-    expect(output).toContain('<active_window>Browser</active_window>');
-    expect(output).toContain('<mouse_position>Unknown</mouse_position>');
+    expect(output).not.toContain('<system_context>');
   });
 
-  test('formatToolOutputMessage escapes XML-sensitive system context values', () => {
+  test('formatToolOutputMessage never serializes XML-sensitive system state values', () => {
     const output = formatToolOutputMessage(
       'read_file',
       { success: true, data: { output: 'ok' } },
-      {
-        active_window: 'App <Root> & "Main"',
-        mouse_position: "1 > 0 & 'x'",
-      },
     );
-    expect(output).toContain('<active_window>App &lt;Root&gt; &amp; &quot;Main&quot;</active_window>');
-    expect(output).toContain('<mouse_position>1 &gt; 0 &amp; &apos;x&apos;</mouse_position>');
     expect(output).not.toContain('<Root>');
   });
 
@@ -172,7 +154,6 @@ describe('MessageFormatter', () => {
       [
         { tool_name: 'read_file', success: true, data: { output: 'ok' } },
       ],
-      null,
       null,
     );
     expect(output).not.toContain('State of the screen after bundled tools were executed:');
@@ -189,7 +170,6 @@ describe('MessageFormatter', () => {
           system_state: { active_window: 'App' },
         },
       },
-      null,
     );
     expect(output).toContain('"foo": "bar"');
     expect(output).not.toContain('screenshot');
@@ -206,7 +186,6 @@ describe('MessageFormatter', () => {
           metadata: { foo: 'bar' },
         },
       },
-      null,
     );
     expect(output).toContain('"metadata"');
     expect(output).not.toContain('screenshot_ref');
@@ -223,7 +202,6 @@ describe('MessageFormatter', () => {
           system_state: { active_window: 'App' },
         },
       },
-      null,
     );
     expect(output).toContain('No output');
     expect(output).toContain('status: successful');
@@ -238,7 +216,6 @@ describe('MessageFormatter', () => {
           image_data: 'inline-image',
         },
       },
-      null,
     );
     expect(output).toContain('State of the screen after screenshot was executed:');
   });
@@ -255,7 +232,6 @@ describe('MessageFormatter', () => {
           snapshot: 'Title: Example\n- button "Continue" [ref=e1]',
         },
       },
-      null,
     );
 
     expect(output).toContain('snapshot output:');
@@ -283,7 +259,6 @@ describe('MessageFormatter', () => {
           },
         },
       },
-      null,
     );
 
     expect(output).toContain('wait output:');
@@ -331,7 +306,6 @@ describe('MessageFormatter', () => {
         },
       ],
       null,
-      null,
     );
 
     expect(output).toContain('error: inner-failure');
@@ -352,7 +326,6 @@ describe('MessageFormatter', () => {
           },
         },
       ],
-      null,
       null,
     );
 

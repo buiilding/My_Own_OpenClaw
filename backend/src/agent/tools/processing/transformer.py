@@ -91,7 +91,7 @@ class ResultTransformer:
         screenshot_data = self._extract_screenshot_data(tool_result, artifacts)
 
         # 2. Get pre-formatted message for history
-        # Frontend should pre-format messages with system context XML embedded in llm_content.
+        # Frontend pre-formats llm_content as plain model-facing tool text.
         # format_for_history() accepts whatever the frontend sends - no validation is performed.
         # The frontend is responsible for formatting correctly.
         formatted_message = tool_result.format_for_history(tool_name=tool_name)

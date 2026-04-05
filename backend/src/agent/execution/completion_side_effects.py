@@ -63,7 +63,7 @@ def resolve_raw_user_query(query: str, final_content: str) -> str:
     Resolve user-typed query text from formatted content when possible.
 
     The frontend sends a rich `message_content` envelope that includes
-    `<system_context>`, memory sections, and `<user_query>`. We store
+    memory sections and `<user_query>`. We store
     only the user query text in history metadata/memory events.
     """
     fallback = (query or "").strip()
