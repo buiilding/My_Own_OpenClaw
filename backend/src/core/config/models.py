@@ -279,7 +279,6 @@ class AppConfig(BaseModel):
     stt_provider: Literal["nova", "openai"] = "openai"
     stt_language: str = "en"
     nova_voice_gateway_url: str = "ws://127.0.0.1:5026"
-    openai_realtime_session_model: str = "gpt-realtime-1.5"
     openai_realtime_transcription_model: str = "gpt-4o-transcribe"
     stt_vad_threshold: float = 0.5
     stt_vad_prefix_padding_ms: int = 300

@@ -6,7 +6,6 @@ from collections import defaultdict
 import json
 import logging
 from typing import Any
-from urllib.parse import urlencode
 
 import websockets
 from websockets.exceptions import ConnectionClosed
@@ -173,6 +172,7 @@ class OpenAIRealtimeTranscriptionSession(TranscriptionProviderSession):
             {
                 "type": "session.update",
                 "session": {
+                    "type": "transcription",
                     "audio": {
                         "input": {
                             "format": {
@@ -199,7 +199,7 @@ class OpenAIRealtimeTranscriptionSession(TranscriptionProviderSession):
         await connection.send(json.dumps(payload))
 
     def _build_url(self) -> str:
-        return f"{OPENAI_REALTIME_URL}?{urlencode({'model': self._config.openai_realtime_session_model})}"
+        return f"{OPENAI_REALTIME_URL}?intent=transcription"
 
     def _require_connection(self) -> Any:
         if self._connection is None:

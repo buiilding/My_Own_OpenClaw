@@ -36,7 +36,7 @@ Current runtime policies:
 - TTS audio streaming still depends on `speech_mode_enabled` at request time.
 - `speech_provider` defaults to `elevenlabs`; the API layer falls back to local Piper if ElevenLabs cannot initialize.
 - `stt_provider` defaults to `openai`; the backend-owned `/ws/transcription` gateway can still proxy to Nova or translate to OpenAI Realtime without exposing provider choice to the renderer.
-- OpenAI realtime transcription uses a realtime session model (`gpt-realtime-1.5` by default) for the websocket connection and a separate transcription model (`gpt-4o-transcribe` by default) inside `session.update`.
+- OpenAI realtime transcription connects with OpenAI's transcription-session websocket intent and uses `gpt-4o-transcribe` by default inside `session.update`.
 
 ## Backend Configuration (Python)
 

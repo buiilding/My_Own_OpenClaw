@@ -47,7 +47,6 @@ APP_CONFIG = AppConfig(
     stt_provider="openai",
     stt_language="en",
     nova_voice_gateway_url="ws://127.0.0.1:5026",
-    openai_realtime_session_model="gpt-realtime-1.5",
     openai_realtime_transcription_model="gpt-4o-transcribe",
     stt_vad_threshold=0.5,
     stt_vad_prefix_padding_ms=300,
