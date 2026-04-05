@@ -17,7 +17,7 @@ class _FakeWebSocket:
         message = json.loads(payload)
         self.sent_messages.append(message)
         text = message.get("text")
-        if text == "Hello world. ":
+        if isinstance(text, str) and text.strip():
             await self._incoming.put(
                 json.dumps(
                     {
@@ -53,7 +53,7 @@ class _FakeWebsocketsModule:
 
 
 @pytest.mark.asyncio
-async def test_elevenlabs_tts_service_streams_audio_for_sentence_and_flush(monkeypatch):
+async def test_elevenlabs_tts_service_streams_incremental_text_chunks_and_flush(monkeypatch):
     fake_websocket = _FakeWebSocket()
     fake_module = _FakeWebsocketsModule(fake_websocket)
     monkeypatch.setattr(
@@ -65,7 +65,9 @@ async def test_elevenlabs_tts_service_streams_audio_for_sentence_and_flush(monke
     service = ElevenLabsTTSService(AppConfig(speech_provider="elevenlabs"))
     await service.initialize()
 
-    await service.process_text("Hello world. trailing")
+    await service.process_text("Hello")
+    await service.process_text(" world.")
+    await service.process_text(" trailing")
     audio_iterator = service.stream_audio()
     first_chunk = await audio_iterator.__anext__()
 
@@ -76,14 +78,17 @@ async def test_elevenlabs_tts_service_streams_audio_for_sentence_and_flush(monke
         "channels": 1,
     }
     assert fake_websocket.sent_messages[0]["text"] == " "
-    assert fake_websocket.sent_messages[1]["text"] == "Hello world. "
+    assert fake_websocket.sent_messages[1]["text"] == "Hello "
     assert fake_websocket.sent_messages[1]["try_trigger_generation"] is True
+    assert fake_websocket.sent_messages[2]["text"] == "world. "
+    assert fake_websocket.sent_messages[3]["text"] == "trailing "
 
     await service.flush()
-    assert fake_websocket.sent_messages[2]["text"] == "trailing "
-    assert fake_websocket.sent_messages[3]["text"] == ""
+    assert fake_websocket.sent_messages[4]["text"] == ""
     assert await service.wait_until_finished(timeout=0.1) is True
 
+    assert await audio_iterator.__anext__() == first_chunk
+    assert await audio_iterator.__anext__() == first_chunk
     with pytest.raises(StopAsyncIteration):
         await audio_iterator.__anext__()
 

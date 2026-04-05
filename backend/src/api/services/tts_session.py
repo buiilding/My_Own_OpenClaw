@@ -11,6 +11,57 @@ from backend.src.core.config import AppConfig
 from backend.src.core.services.speech_service import SpeechService
 
 
+class _DeferredSpeechService:
+    """Speech-service proxy that initializes the real backend on first text input."""
+
+    def __init__(self, tts_manager: TTSManager, config: AppConfig) -> None:
+        self._tts_manager = tts_manager
+        self._config = config
+        self._service: Optional[SpeechService] = None
+        self._activation_lock = asyncio.Lock()
+        self._activation_event = asyncio.Event()
+
+    async def _ensure_service(self) -> Optional[SpeechService]:
+        service = self._service
+        if service is not None:
+            return service
+
+        async with self._activation_lock:
+            if self._service is None:
+                self._service = await self._tts_manager.initialize_if_enabled(self._config)
+                self._activation_event.set()
+            return self._service
+
+    async def initialize(self) -> None:
+        """Deferred services initialize on first text chunk."""
+
+    async def shutdown(self) -> None:
+        if self._service is not None:
+            await self._service.shutdown()
+
+    async def process_text(self, text_chunk: str) -> None:
+        service = await self._ensure_service()
+        if service is not None:
+            await service.process_text(text_chunk)
+
+    async def flush(self) -> None:
+        if self._service is not None:
+            await self._service.flush()
+
+    async def wait_until_finished(self, timeout: float = 10.0) -> bool:
+        if self._service is None:
+            return True
+        return await self._service.wait_until_finished(timeout=timeout)
+
+    async def stream_audio(self):
+        if self._service is None:
+            await self._activation_event.wait()
+        if self._service is None:
+            return
+        async for payload in self._service.stream_audio():
+            yield payload
+
+
 class TTSSession:
     """Async context manager for per-request TTS setup/cleanup."""
 
@@ -29,7 +80,12 @@ class TTSSession:
         self.audio_task: Optional[asyncio.Task] = None
 
     async def __aenter__(self) -> "TTSSession":
-        self.service = await self._tts_manager.initialize_if_enabled(self._config)
+        speech_mode_enabled = bool(getattr(self._config, "speech_mode_enabled", False))
+        speech_provider = str(getattr(self._config, "speech_provider", "") or "").strip().lower()
+        if speech_mode_enabled and speech_provider == "elevenlabs":
+            self.service = _DeferredSpeechService(self._tts_manager, self._config)
+        else:
+            self.service = await self._tts_manager.initialize_if_enabled(self._config)
         if self.service is not None:
             self.audio_task = await self._tts_manager.start_streaming_task(
                 self.service,
