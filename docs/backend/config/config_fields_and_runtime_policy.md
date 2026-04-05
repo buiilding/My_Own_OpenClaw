@@ -88,6 +88,13 @@ Execution/event semantics for these fields (decision skip reasons, trigger fallb
 | --- | --- | --- | --- |
 | `voice_mode_enabled` | `bool` | `false` | Frontend runtime voice mode toggle. |
 | `wakeword_stt_enabled` | `bool` | `false` | Enables post-wakeword speech-to-text handoff in frontend query entry flow. |
+| `stt_provider` | `"nova" \| "openai"` | `"nova"` | Backend-owned transcription provider behind the local `/ws/transcription` route. |
+| `stt_language` | `str` | `"en"` | Default transcription language hint applied by backend-owned STT sessions. |
+| `nova_voice_gateway_url` | `str` | `"ws://127.0.0.1:5026"` | External Nova-Voice gateway URL used when `stt_provider="nova"`. |
+| `openai_realtime_transcription_model` | `str` | `"gpt-4o-mini-transcribe"` | Default OpenAI realtime transcription model used when `stt_provider="openai"`. |
+| `stt_vad_threshold` | `float` | `0.5` | Backend-owned server-VAD activation threshold for realtime transcription sessions. |
+| `stt_vad_prefix_padding_ms` | `int` | `300` | Backend-owned VAD prefix padding for realtime transcription sessions. |
+| `stt_vad_silence_duration_ms` | `int` | `500` | Backend-owned silence duration for end-of-turn detection in realtime transcription sessions. |
 | `agent_full_sudo_enabled` | `bool` | `false` | Frontend policy flag controlling agent-level elevated-action allowance. |
 | `browser_automation_enabled` | `bool` | `false` | Frontend feature toggle controlling whether browser tool schemas are exposed to the agent. |
 | `include_query_screenshot` | `bool` | `true` | Controls screenshot attachment behavior for queries. |
@@ -178,7 +185,7 @@ Allowed patch keys only:
 - `provider_api_keys`
 - `provider_oauth` (currently `openai_codex`)
 
-Backend-owned config remains outside this patch surface, including `speech_provider`.
+Backend-owned config remains outside this patch surface, including `speech_provider` and `stt_provider`.
 
 Behavior:
 

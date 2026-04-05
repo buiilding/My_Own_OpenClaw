@@ -136,7 +136,7 @@ Renderer hook guardrails (`useWakewordDetection`):
 `useWakewordDetection` and `useVoiceMode` are independent pipelines:
 
 - wakeword pipeline: local detection bridge + binary audio stream to wakeword subprocess
-- voice mode pipeline: websocket connection to external Nova-Voice gateway
+- voice mode pipeline: websocket connection to backend-owned `/ws/transcription`, which then proxies to Nova-Voice or translates to OpenAI Realtime
 
 Both can coexist, but they use different transport channels and runtime services.
 

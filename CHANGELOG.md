@@ -5,6 +5,7 @@ All notable changes to WindieOS will be documented in this file.
 ## Unreleased
 
 ### Added
+- feat(backend-stt-provider-gateway): add a backend-owned `/ws/transcription` gateway that keeps one renderer STT protocol while selecting `stt_provider="nova"` or `stt_provider="openai"` in backend config; Nova now proxies to the external Nova-Voice service and OpenAI Realtime is translated behind the same local event contract with focused backend coverage.
 - docs(agents): add explicit refactor-posture guidance so agents clean up bounded local design debt, refactor instead of stacking workarounds, and use clear triggers/scope limits/completion criteria while working.
 - chore(repo-assets): add the captured Amazon screenshot artifact used while validating the direct OCR/text-grounding SDK flow against a real `Search Amazon` example.
 - feat(backend-sdk-perception): add direct `/api/sdk/*` OCR and vision REST routes for SDK consumers, including inline-image/artifact input resolution, OCR candidate/resolve flows, saved overlay artifacts, and direct vision locate/describe helpers backed by the current backend services; cover the new surface with focused backend route tests and API/docs updates.
@@ -36,6 +37,7 @@ All notable changes to WindieOS will be documented in this file.
 - fix(frontend-chat-pill-parity): upgrade the desktop chat pill to multiline composer behavior with attachment-capable sends, image/file previews, and attachment-only sends on the shared dashboard send contract; also preserve Linux screenshot restore symmetry across pill-only, pill-plus-response, and response-only overlay states with focused frontend regressions.
 
 ### Changed
+- docs(voice-transcription-boundary): update frontend/backend configuration and voice-runtime docs so transcription is described as a backend-owned gateway contract instead of a renderer-direct Nova dependency, and document the new backend-owned `stt_provider` policy surface.
 - docs(settings-and-wakeword-contracts): refresh API, communication-flow, backend validation, and frontend config-sync references so `wakeword_enabled` is documented as a frontend-owned persisted setting accepted by websocket `update-settings` and returned in `settings-loaded`.
 - docs(settings-and-wakeword-contracts-followup): extend the same `wakeword_enabled` contract refresh across backend protocol inventory, handler/bootstrap references, and operations/configuration docs so the frontend-owned settings surface is described consistently.
 - change(speech-default): switch WindieOS default speech backend from local Piper to ElevenLabs across backend `AppConfig` defaults and frontend persisted config defaults, and refresh config/docs/test expectations to match the new default while preserving API-layer fallback to local speech if ElevenLabs cannot initialize.

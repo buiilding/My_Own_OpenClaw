@@ -16,6 +16,7 @@ def test_create_api_app_registers_shared_routes():
     registered_paths = {route.path for route in app.routes}
 
     assert "/ws" in registered_paths
+    assert "/ws/transcription" in registered_paths
     assert "/api/artifacts/" in registered_paths
     assert "/api/artifacts/{artifact_id}" in registered_paths
     assert "/api/sdk/ocr/run" in registered_paths

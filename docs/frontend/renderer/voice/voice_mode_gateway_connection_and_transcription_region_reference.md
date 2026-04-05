@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for renderer voice-mode transcription: Nova-Voice WebSocket lifecycle, PCM16 framing, reconnect backoff, utterance-end auto-submit, and transcription region replacement rules."
+summary: "Deep reference for renderer voice-mode transcription: backend-owned STT WebSocket lifecycle, PCM16 framing, reconnect backoff, utterance-end auto-submit, and transcription region replacement rules."
 read_when:
   - When changing `useVoiceMode` gateway behavior, microphone capture settings, or audio payload framing.
   - When debugging missing realtime transcript updates, silence auto-submit issues, or repeated reconnect failures.
@@ -37,7 +37,9 @@ Both paths share `buildOutgoingMessage(...)` and clear/reset transcription regio
 
 Default endpoint:
 
-- `ws://localhost:5026`
+- derived from the active backend HTTP endpoint
+- backend path is `/ws/transcription`
+- example local fallback: `ws://127.0.0.1:8765/ws/transcription`
 
 On connect:
 
@@ -50,6 +52,11 @@ Inbound message handling:
 - `status`: cache `client_id`
 - `realtime`: read `translation` fallback to `text`, forward to transcription callback with `is_final` flag
 - `utterance_end`: trigger submit callback, then send `{"type":"start_over"}`
+
+Provider boundary:
+
+- renderer speaks one WindieOS-local protocol only
+- backend proxies that protocol to Nova-Voice or translates it to OpenAI Realtime based on backend config
 
 Reconnect policy:
 
