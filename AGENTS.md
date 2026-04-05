@@ -293,6 +293,7 @@ If requirements conflict or timing semantics are ambiguous, resolve the spec con
 ### Commit Policy
 
 - Commits are pre-authorized for completed work
+- If you change files, commit that work before handing the turn back unless the user explicitly says not to commit
 - Prefer small, frequent commits
 - No amend unless asked
 - After committing, update `CHANGELOG.md`
