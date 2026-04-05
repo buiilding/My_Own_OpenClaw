@@ -1,5 +1,6 @@
 from backend.src.core.config import AppConfig
 from backend.src.core.infrastructure.cache_manager import CacheManager
+from backend.src.tools.provider_projection import project_tool_schemas_for_provider
 from backend.src.tools.registry import ToolRegistry
 
 
@@ -54,3 +55,25 @@ def test_scroll_control_schema_stays_direct_and_requires_direction_for_scroll():
         "scroll_down",
     ]
     assert parameters["properties"]["direction"]["enum"] == ["up", "down", "left", "right"]
+
+
+def test_openai_projection_replaces_direct_computer_tools_with_native_computer_and_grounded_tools():
+    config = AppConfig(model_provider="openai")
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+    direct_schemas = registry.get_function_declarations_filtered(
+        _COMPUTER_TOOL_NAMES + ["get_open_windows"]
+    )
+
+    projected = project_tool_schemas_for_provider(
+        tool_schemas=direct_schemas,
+        tool_registry=registry,
+        config=config,
+    )
+
+    assert projected[0] == {"type": "computer"}
+    assert [schema.get("name") for schema in projected[1:]] == [
+        "grounded_mouse_action",
+        "grounded_scroll_action",
+        "switch_tab",
+        "get_open_windows",
+    ]

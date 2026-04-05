@@ -35,9 +35,20 @@ COORDINATE_RESOLUTION_METHODS = (
     CoordinateFindingMethod.OCR,
     CoordinateFindingMethod.PREDICTION,
 )
+_OPENAI_GROUNDED_TOOL_NAMES = frozenset(
+    {"grounded_mouse_action", "grounded_scroll_action"}
+)
+_EXECUTOR_TOOL_NAME_BY_GROUNDED_TOOL = {
+    "grounded_mouse_action": "mouse_control",
+    "grounded_scroll_action": "scroll_control",
+}
 
 
 def source_coordinate_method(tool_call: ParsedToolCall) -> str:
+    if tool_call.tool_name in _OPENAI_GROUNDED_TOOL_NAMES:
+        if tool_call.parameters.get("ocr_text") or tool_call.parameters.get("candidate_id"):
+            return CoordinateFindingMethod.OCR.value
+        return CoordinateFindingMethod.PREDICTION.value
     return normalize_coordinate_method(
         tool_call.parameters.get("find_coordinates_by"),
         default=CoordinateFindingMethod.MANUAL.value,
@@ -155,6 +166,10 @@ def rewrite_resolved_call_source_to_manual(
     x: int,
     y: int,
 ) -> None:
+    resolved_call.tool_name = _EXECUTOR_TOOL_NAME_BY_GROUNDED_TOOL.get(
+        resolved_call.tool_name,
+        resolved_call.tool_name,
+    )
     resolved_call.parameters["x"] = x
     resolved_call.parameters["y"] = y
     resolved_call.parameters.pop("find_coordinates_by", None)

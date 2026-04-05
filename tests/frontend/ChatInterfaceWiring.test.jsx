@@ -142,6 +142,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     invoke: (...args) => mockIpcInvoke(...args),
   },
   INVOKE_CHANNELS: {
+    EXECUTE_TOOL: 'execute-tool',
     GET_CONVERSATION: 'get-conversation',
     DELETE_CONVERSATION: 'delete-conversation',
     STORE_TRANSCRIPT: 'store-transcript',
@@ -173,6 +174,10 @@ jest.mock('../../frontend/src/renderer/features/chat/components/MessageList', ()
 jest.mock('../../frontend/src/renderer/features/chat/components/MessageInput', () => (props) =>
   mockMessageInput(props),
 );
+
+jest.mock('../../frontend/src/renderer/features/chat/components/ChatBrowserSessionControl', () => () => (
+  <div data-testid="chat-browser-session-control" />
+));
 
 describe('ChatInterface wiring', () => {
   beforeEach(() => {

@@ -1,8 +1,8 @@
-"""
-Pydantic schemas for computer control tools.
-"""
-from typing import List, Literal, Optional
-from pydantic import BaseModel, Field, ConfigDict, model_validator
+"""Pydantic schemas for computer control tools."""
+
+from typing import Any, List, Literal, Optional
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from backend.src.core.types.enums import (
     CoordinateFindingMethod,
@@ -15,7 +15,25 @@ from backend.src.tools.computer.grounding_contract import (
     validate_drag_destination_grounding_fields,
     validate_source_grounding_fields,
 )
-from backend.src.tools.schema_fields import post_action_wait_field
+from backend.src.tools.schema_fields import explanation_field, post_action_wait_field
+
+
+def _has_ocr_target(
+    *,
+    text: Optional[str],
+    candidate_id: Optional[str],
+) -> bool:
+    return bool((text or "").strip() or (candidate_id or "").strip())
+
+
+def _has_prediction_target(description: Optional[str]) -> bool:
+    return bool((description or "").strip())
+
+
+# Scroll direction: vertical (up/down) or horizontal (left/right). Uses vscroll
+# for vertical, hscroll for horizontal.
+ScrollToolDirection = Literal["up", "down", "left", "right"]
+
 
 # --- Mouse Tool Schemas ---
 
@@ -37,6 +55,7 @@ class MouseControlArgs(SourceGroundingArgsMixin, DragDestinationGroundingArgsMix
 
     # Action-specific fields
     duration: float = Field(0.5, description="Duration for drag operations")
+    explanation: str = explanation_field()
     wait: float = post_action_wait_field()
 
     @model_validator(mode='after')
@@ -94,6 +113,7 @@ class KeyboardControlArgs(BaseModel):
         ge=0,
         le=2000,
     )
+    explanation: str = explanation_field()
     wait: float = post_action_wait_field()
 
     @model_validator(mode='after')
@@ -114,12 +134,151 @@ class KeyboardControlArgs(BaseModel):
         return self
 
 
+class GroundedMouseActionArgs(BaseModel):
+    """OpenAI-only semantic mouse tool without manual-coordinate mode."""
+
+    model_config = ConfigDict(extra='forbid')
+
+    action: MouseAction = Field(
+        ...,
+        description=(
+            "Mouse action to perform using OCR or vision grounding. "
+            "Use OCR fields for visible text targets and source_description for non-text targets."
+        ),
+    )
+    button: Literal["left", "right", "middle"] = Field(
+        "left",
+        description="Mouse button for click and double_click actions.",
+    )
+    ocr_text: Optional[str] = Field(
+        None,
+        description="Exact visible text to target via OCR.",
+    )
+    candidate_id: Optional[str] = Field(
+        None,
+        description="Stable OCR candidate id from a previous ambiguity response.",
+    )
+    source_description: Optional[str] = Field(
+        None,
+        description="Detailed visual description for non-text prediction grounding.",
+    )
+    model_name: Optional[str] = Field(
+        None,
+        description="Optional specific vision model override.",
+    )
+    drag_to_ocr_text: Optional[str] = Field(
+        None,
+        description="Exact visible text for the drag destination via OCR.",
+    )
+    drag_to_candidate_id: Optional[str] = Field(
+        None,
+        description="Stable OCR candidate id for the drag destination.",
+    )
+    destination_description: Optional[str] = Field(
+        None,
+        description="Detailed visual description for a non-text drag destination.",
+    )
+    drag_to_model_name: Optional[str] = Field(
+        None,
+        description="Optional specific vision model override for the drag destination.",
+    )
+    duration: float = Field(0.5, description="Duration for drag operations")
+    explanation: str = explanation_field()
+    wait: float = post_action_wait_field()
+
+    @model_validator(mode='after')
+    def validate_grounding_fields(self):
+        source_grounding_choices = int(
+            _has_ocr_target(text=self.ocr_text, candidate_id=self.candidate_id)
+        ) + int(_has_prediction_target(self.source_description))
+        if source_grounding_choices != 1:
+            raise ValueError(
+                "Provide exactly one source grounding path: OCR (ocr_text/candidate_id) or prediction (source_description)"
+            )
+
+        if self.action == MouseAction.DRAG:
+            destination_grounding_choices = int(
+                _has_ocr_target(
+                    text=self.drag_to_ocr_text,
+                    candidate_id=self.drag_to_candidate_id,
+                )
+            ) + int(_has_prediction_target(self.destination_description))
+            if destination_grounding_choices != 1:
+                raise ValueError(
+                    "Drag actions require exactly one destination grounding path: OCR (drag_to_ocr_text/drag_to_candidate_id) or prediction (destination_description)"
+                )
+        return self
+
+
+class GroundedScrollActionArgs(BaseModel):
+    """OpenAI-only semantic scroll tool without manual-coordinate mode."""
+
+    model_config = ConfigDict(extra='forbid')
+
+    action: Literal["scroll", "scroll_up", "scroll_down"] = Field(
+        ...,
+        description="Scroll action to perform against an OCR- or vision-grounded region.",
+    )
+    clicks: Optional[int] = Field(
+        None,
+        description="Optional literal wheel click override for follow-up fine tuning.",
+    )
+    direction: Optional[ScrollToolDirection] = Field(
+        None,
+        description="Direction for scroll action. Required when action is 'scroll'.",
+    )
+    ocr_text: Optional[str] = Field(
+        None,
+        description="Exact visible text to target via OCR.",
+    )
+    candidate_id: Optional[str] = Field(
+        None,
+        description="Stable OCR candidate id from a previous ambiguity response.",
+    )
+    source_description: Optional[str] = Field(
+        None,
+        description="Detailed visual description for non-text prediction grounding.",
+    )
+    model_name: Optional[str] = Field(
+        None,
+        description="Optional specific vision model override.",
+    )
+    explanation: str = explanation_field()
+    wait: float = post_action_wait_field()
+
+    @model_validator(mode='after')
+    def validate_grounding_fields(self):
+        grounding_choices = int(
+            _has_ocr_target(text=self.ocr_text, candidate_id=self.candidate_id)
+        ) + int(_has_prediction_target(self.source_description))
+        if grounding_choices != 1:
+            raise ValueError(
+                "Provide exactly one grounding path: OCR (ocr_text/candidate_id) or prediction (source_description)"
+            )
+        if self.action == "scroll" and not self.direction:
+            raise ValueError("direction required for scroll action")
+        return self
+
+
+class OpenAIComputerArgs(BaseModel):
+    """Opaque OpenAI native computer call payload."""
+
+    model_config = ConfigDict(extra='forbid')
+
+    actions: List[dict[str, Any]] = Field(
+        ...,
+        description="Ordered OpenAI native computer actions to execute.",
+        min_length=1,
+    )
+
+
 # --- Screenshot Tool Schemas ---
 
 class ScreenshotToolArgs(BaseModel):
     """Arguments for screenshot tool."""
     model_config = ConfigDict(extra='ignore')
-    
+
+    explanation: str = explanation_field()
     wait: Optional[float] = Field(
         None,
         description="(OPTIONAL) Delay in seconds before capturing a screenshot. If provided, waits this duration before capture."
@@ -127,9 +286,6 @@ class ScreenshotToolArgs(BaseModel):
 
 
 # --- Scroll Tool Schemas ---
-
-# Scroll direction: vertical (up/down) or horizontal (left/right). Uses vscroll for vertical, hscroll for horizontal.
-ScrollToolDirection = Literal["up", "down", "left", "right"]
 
 class ScrollControlArgs(SourceGroundingArgsMixin):
     model_config = ConfigDict(extra='forbid')
@@ -154,6 +310,7 @@ class ScrollControlArgs(SourceGroundingArgsMixin):
         None,
         description="Direction for scroll action: vertical 'up'|'down', or horizontal 'left'|'right'. Required when action is 'scroll'.",
     )
+    explanation: str = explanation_field()
     wait: float = post_action_wait_field()
 
     @model_validator(mode='after')
@@ -181,6 +338,7 @@ class SwitchTabArgs(BaseModel):
         "exact",
         description="Window title match mode.",
     )
+    explanation: str = explanation_field()
     wait: float = post_action_wait_field()
 
 
@@ -194,4 +352,4 @@ class WaitToolArgs(BaseModel):
         ...,
         description="Number of seconds to wait before capturing a screenshot."
     )
-
+    explanation: str = explanation_field()

@@ -88,6 +88,10 @@ class LLMStreamProcessor:
         model_id = self.session.cfg.selected_model_id
         turn = self._log_prompt_cache_hint(prompt, model_id)
         prompt_cache_key = self._resolve_prompt_cache_key()
+        previous_response_id = self._resolve_previous_response_id(
+            prompt=prompt,
+            tools=tools,
+        )
         request_kwargs = self._build_completion_request_kwargs(
             model_id=model_id,
             prompt=prompt,
@@ -96,6 +100,7 @@ class LLMStreamProcessor:
             parallel_tool_calls=parallel_tool_calls,
             prompt_cache_key=prompt_cache_key,
             native_web_search_enabled=False,
+            previous_response_id=previous_response_id,
         )
         self._last_response_payload = None
         logger.info(
@@ -243,6 +248,7 @@ class LLMStreamProcessor:
         parallel_tool_calls: Optional[bool],
         prompt_cache_key: Optional[str],
         native_web_search_enabled: bool,
+        previous_response_id: Optional[str],
     ) -> Dict[str, Any]:
         """Build shared completion transport kwargs for stream and non-stream calls."""
         request_kwargs: Dict[str, Any] = {
@@ -258,7 +264,28 @@ class LLMStreamProcessor:
                 native_web_search_enabled=native_web_search_enabled,
             )
         )
+        if isinstance(previous_response_id, str) and previous_response_id.strip():
+            request_kwargs["previous_response_id"] = previous_response_id.strip()
         return request_kwargs
+
+    def _resolve_previous_response_id(
+        self,
+        *,
+        prompt: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]],
+    ) -> Optional[str]:
+        if str(self.session.cfg.model_provider or "").strip().lower() != "openai":
+            return None
+        if not tools or not prompt:
+            return None
+        if str(prompt[-1].get("role") or "").strip() != "tool":
+            return None
+        if not isinstance(self._last_response_payload, dict):
+            return None
+        response_id = self._last_response_payload.get("response_id")
+        if not isinstance(response_id, str) or not response_id.strip():
+            return None
+        return response_id.strip()
 
     def _log_prompt_cache_hint(self, prompt: List[LLMMessage], model_id: str) -> int:
         """

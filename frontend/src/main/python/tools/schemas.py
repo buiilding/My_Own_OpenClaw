@@ -8,6 +8,16 @@ from typing import List, Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 
 
+EXPLANATION_FIELD_DESCRIPTION = (
+    "One sentence explanation as to why this tool is being used, "
+    "and how it contributes to the goal."
+)
+
+
+def _explanation_field():
+    return Field(..., description=EXPLANATION_FIELD_DESCRIPTION)
+
+
 # --- Mouse Tool Schemas ---
 
 class MouseControlArgs(BaseModel):
@@ -35,6 +45,7 @@ class MouseControlArgs(BaseModel):
         0.5,
         description="Duration in seconds for drag operations",
     )
+    explanation: str = _explanation_field()
     wait: float = Field(
         0.0,
         description="Delay in seconds before taking a screenshot after tool execution."
@@ -78,6 +89,7 @@ class KeyboardControlArgs(BaseModel):
         le=2000,
         description="Delay between repeats in milliseconds.",
     )
+    explanation: str = _explanation_field()
     wait: float = Field(
         0.0,
         description="Delay in seconds before taking a screenshot after tool execution."
@@ -126,7 +138,8 @@ class DisplayBounds(BaseModel):
 class ScreenshotToolArgs(BaseModel):
     """Arguments for screenshot tool."""
     model_config = ConfigDict(extra='forbid')
-    
+
+    explanation: str = _explanation_field()
     wait: Optional[float] = Field(
         None,
         description="(OPTIONAL) Delay in seconds before capturing a screenshot. If provided, waits this duration before capture."
@@ -164,6 +177,7 @@ class ScrollControlArgs(BaseModel):
         None,
         description="Direction for scroll action: vertical 'up'|'down', or horizontal 'left'|'right'. Required when action is 'scroll'.",
     )
+    explanation: str = _explanation_field()
     wait: float = Field(
         0.0,
         description="Delay in seconds before taking a screenshot after tool execution."
@@ -335,12 +349,13 @@ class ProcessShellCommandArgs(BaseModel):
 class SwitchTabArgs(BaseModel):
     """Arguments for switch tab tool."""
     model_config = ConfigDict(extra='forbid')
-    
+
     tab_name: str = Field(..., description="Name of the tab/window to switch to")
     match_mode: Literal["exact", "contains", "regex"] = Field(
         "exact",
         description="Window title match mode.",
     )
+    explanation: str = _explanation_field()
     wait: float = Field(
         0.0,
         description="Delay in seconds before taking a screenshot after tool execution."
@@ -371,11 +386,12 @@ class GetSystemStatsArgs(BaseModel):
 class WaitToolArgs(BaseModel):
     """Arguments for wait tool."""
     model_config = ConfigDict(extra='forbid')
-    
+
     seconds: float = Field(
         ...,
         description="Number of seconds to wait before capturing a screenshot."
     )
+    explanation: str = _explanation_field()
 
 
 # --- Additional Filesystem Tool Schemas ---

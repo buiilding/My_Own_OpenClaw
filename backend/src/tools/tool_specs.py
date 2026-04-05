@@ -16,6 +16,12 @@ class FunctionToolSpec(TypedDict, total=False):
     parameters: Dict[str, Any]
 
 
+class ComputerToolSpec(TypedDict, total=False):
+    """Canonical internal built-in computer tool contract."""
+
+    type: Literal["computer"]
+
+
 def build_function_tool_spec(
     *,
     name: str,
@@ -50,6 +56,14 @@ def is_function_tool_spec(value: Any) -> bool:
     if strict is not None and not isinstance(strict, bool):
         return False
     return True
+
+
+def build_computer_tool_spec() -> ComputerToolSpec:
+    return {"type": "computer"}
+
+
+def is_computer_tool_spec(value: Any) -> bool:
+    return isinstance(value, dict) and value.get("type") == "computer"
 
 
 def get_tool_spec_name(tool: Dict[str, Any]) -> Optional[str]:

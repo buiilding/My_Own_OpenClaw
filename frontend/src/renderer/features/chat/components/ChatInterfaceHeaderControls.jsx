@@ -1,5 +1,6 @@
 import { Brain, ChevronDown, Volume2, Workflow } from 'lucide-react';
 import MainWindowControls from '../../../components/MainWindowControls';
+import ChatBrowserSessionControl from './ChatBrowserSessionControl';
 import { formatProviderLabel } from '../utils/chatModelOptions';
 
 function renderModelLabel(label, supportsThinking) {
@@ -172,6 +173,7 @@ function ChatInterfaceHeaderControls({
           />
         ) : null}
         <div className="chat-utility-controls">
+          <ChatBrowserSessionControl />
           <button
             type="button"
             className={`chat-active-workspace-chip chat-active-workspace-button${

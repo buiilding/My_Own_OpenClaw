@@ -46,6 +46,7 @@ def _build_reasoning_responses_params(
     max_output_tokens: Optional[int],
     include_reasoning: bool,
     native_web_search_enabled: bool,
+    previous_response_id: Optional[str],
 ) -> Dict[str, Any]:
     return build_openai_responses_params(
         provider,
@@ -57,6 +58,7 @@ def _build_reasoning_responses_params(
         max_output_tokens=max_output_tokens,
         include_reasoning=include_reasoning,
         native_web_search_enabled=native_web_search_enabled,
+        previous_response_id=previous_response_id,
     )
 
 
@@ -71,6 +73,7 @@ async def get_openai_responses_completion(
     max_output_tokens: Optional[int] = None,
     native_web_search_enabled: bool = False,
     include_reasoning: bool = True,
+    previous_response_id: Optional[str] = None,
 ) -> NormalizedLLMResponse:
     params = _build_reasoning_responses_params(
         provider=provider,
@@ -82,6 +85,7 @@ async def get_openai_responses_completion(
         max_output_tokens=max_output_tokens,
         include_reasoning=include_reasoning,
         native_web_search_enabled=native_web_search_enabled,
+        previous_response_id=previous_response_id,
     )
     response = await litellm.aresponses(**params)
     provider._record_usage_from_payload_container(response)
@@ -270,6 +274,7 @@ async def stream_openai_responses_events(
     native_web_search_enabled: bool = False,
     include_reasoning: bool = True,
     request_id: Optional[str] = None,
+    previous_response_id: Optional[str] = None,
 ) -> AsyncGenerator[StreamingEvent, None]:
     params = _build_reasoning_responses_params(
         provider=provider,
@@ -281,6 +286,7 @@ async def stream_openai_responses_events(
         max_output_tokens=max_output_tokens,
         include_reasoning=include_reasoning,
         native_web_search_enabled=native_web_search_enabled,
+        previous_response_id=previous_response_id,
     )
     params["stream"] = True
 

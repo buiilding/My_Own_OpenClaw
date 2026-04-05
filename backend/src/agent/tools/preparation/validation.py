@@ -16,6 +16,7 @@ class ExecutorMouseControlArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     action: str
+    explanation: str
     x: int | None = None
     y: int | None = None
     drag_to_x: int | None = None
@@ -41,6 +42,7 @@ class ExecutorKeyboardControlArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     action: str
+    explanation: str
     text: str | None = None
     key: str | None = None
     keys: list[str] | None = None
@@ -65,6 +67,7 @@ class ExecutorScrollControlArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     action: str
+    explanation: str
     x: int
     y: int
     clicks: int | None = None
@@ -84,6 +87,7 @@ class ExecutorSwitchTabArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     tab_name: str
+    explanation: str
     match_mode: str = "exact"
     wait: float = 0.0
 
@@ -145,6 +149,16 @@ def _has_missing_required_field(exc: ValidationError, field_name: str) -> bool:
     return False
 
 
+def _browser_missing_action(exc: ValidationError) -> bool:
+    if _has_missing_required_field(exc, "action"):
+        return True
+    for error in exc.errors():
+        message = str(error.get("msg", ""))
+        if "Unable to extract tag using discriminator 'action'" in message:
+            return True
+    return False
+
+
 def _build_model_facing_validation_guidance(
     tool_call: ParsedToolCall,
     exc: ValidationError,
@@ -158,7 +172,7 @@ def _build_browser_guidance(
     parameters: dict[str, Any] | None,
     exc: ValidationError,
 ) -> str | None:
-    if _has_missing_required_field(exc, "action"):
+    if _browser_missing_action(exc):
         return (
             "Use the `browser` tool with top-level `action` and the fields required for that action. "
             f"Example: {_BROWSER_ACTION_REPAIR_EXAMPLES['connect']}."
@@ -183,6 +197,8 @@ def validate_parsed_tool_call(
         args_model.model_validate(tool_call.parameters or {})
     except ValidationError as exc:
         details = _format_validation_error(exc)
+        if tool_call.tool_name == _BROWSER_TOOL_NAME and _browser_missing_action(exc):
+            details = "action: Field required"
         guidance = _build_model_facing_validation_guidance(tool_call, exc)
         message = (
             f"{tool_call.tool_name} call is invalid and was rejected before frontend execution. "

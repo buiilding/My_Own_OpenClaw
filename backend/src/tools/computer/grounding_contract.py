@@ -8,8 +8,17 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from backend.src.core.types.enums import CoordinateFindingMethod
 
-SOURCE_GROUNDED_TOOL_NAMES = frozenset({"mouse_control", "scroll_control"})
-DRAG_DESTINATION_GROUNDED_TOOL_NAMES = frozenset({"mouse_control"})
+SOURCE_GROUNDED_TOOL_NAMES = frozenset(
+    {
+        "mouse_control",
+        "scroll_control",
+        "grounded_mouse_action",
+        "grounded_scroll_action",
+    }
+)
+DRAG_DESTINATION_GROUNDED_TOOL_NAMES = frozenset(
+    {"mouse_control", "grounded_mouse_action"}
+)
 
 
 def supports_source_grounding(tool_name: str) -> bool:

@@ -31,6 +31,9 @@ function normalizeToolSchemas(value: unknown): ToolSchema[] | undefined {
     }
 
     const tool = item as { type?: unknown; name?: unknown; parameters?: unknown };
+    if (tool.type === 'computer') {
+      return true;
+    }
     if (tool.type !== 'function') {
       return false;
     }

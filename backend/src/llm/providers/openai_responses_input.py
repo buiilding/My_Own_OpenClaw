@@ -65,6 +65,25 @@ def _normalize_assistant_tool_call_input(tool_call: Dict[str, Any]) -> Dict[str,
     }
 
 
+def _normalize_assistant_computer_call_input(tool_call: Dict[str, Any]) -> Dict[str, Any]:
+    arguments = tool_call.get("arguments")
+    if not isinstance(arguments, dict):
+        function_payload = tool_call.get("function")
+        if isinstance(function_payload, dict):
+            arguments = function_payload.get("arguments")
+    if not isinstance(arguments, dict):
+        arguments = {}
+    actions = arguments.get("actions")
+    if not isinstance(actions, list):
+        actions = []
+    return {
+        "type": "computer_call",
+        "call_id": str(tool_call.get("id") or ""),
+        "actions": actions,
+        "status": "completed",
+    }
+
+
 def _normalize_tool_output_content(content: Any) -> Any:
     normalized = _normalize_message_content_for_input(content)
     if normalized == "":
@@ -72,8 +91,78 @@ def _normalize_tool_output_content(content: Any) -> Any:
     return normalized
 
 
-def build_openai_responses_input(messages: List[LLMMessage]) -> List[Dict[str, Any]]:
+def _extract_first_input_image_url(content: Any) -> Optional[str]:
+    normalized = _normalize_message_content_for_input(content)
+    if not isinstance(normalized, list):
+        return None
+    for item in normalized:
+        if not isinstance(item, dict):
+            continue
+        if item.get("type") != "input_image":
+            continue
+        image_url = item.get("image_url")
+        if isinstance(image_url, str) and image_url:
+            return image_url
+    return None
+
+
+def _normalize_computer_tool_output(content: Any) -> Dict[str, Any]:
+    image_url = _extract_first_input_image_url(content)
+    if not image_url:
+        raise ValueError("computer tool output requires a screenshot image")
+    return {
+        "type": "computer_screenshot",
+        "image_url": image_url,
+        "detail": "original",
+    }
+
+
+def _build_openai_responses_continuation_input(
+    messages: List[LLMMessage],
+) -> List[Dict[str, Any]]:
+    continuation_messages: list[LLMMessage] = []
+    for message in reversed(messages):
+        if str(message.get("role") or "").strip() != "tool":
+            break
+        continuation_messages.append(message)
+    continuation_messages.reverse()
+
+    input_items: List[Dict[str, Any]] = []
+    for message in continuation_messages:
+        tool_call_id = message.get("tool_call_id")
+        if not isinstance(tool_call_id, str) or not tool_call_id.strip():
+            continue
+        if str(message.get("name") or "").strip() == "computer":
+            input_items.append(
+                {
+                    "type": "computer_call_output",
+                    "call_id": tool_call_id.strip(),
+                    "output": _normalize_computer_tool_output(message.get("content")),
+                }
+            )
+            continue
+        input_items.append(
+            {
+                "type": "function_call_output",
+                "call_id": tool_call_id.strip(),
+                "output": _normalize_tool_output_content(message.get("content")),
+                "status": "completed",
+            }
+        )
+    return input_items
+
+
+def build_openai_responses_input(
+    messages: List[LLMMessage],
+    *,
+    previous_response_id: Optional[str] = None,
+) -> List[Dict[str, Any]]:
     """Convert WindieOS chat history to OpenAI Responses input items."""
+    if isinstance(previous_response_id, str) and previous_response_id.strip():
+        continuation_items = _build_openai_responses_continuation_input(messages)
+        if continuation_items:
+            return continuation_items
+
     input_items: List[Dict[str, Any]] = []
     for message in messages:
         role = str(message.get("role") or "").strip()
@@ -99,21 +188,36 @@ def build_openai_responses_input(messages: List[LLMMessage]) -> List[Dict[str, A
                 )
             for tool_call in message.get("tool_calls") or []:
                 if isinstance(tool_call, dict):
-                    input_items.append(_normalize_assistant_tool_call_input(tool_call))
+                    tool_name = str(tool_call.get("name") or "").strip()
+                    if tool_name == "computer":
+                        input_items.append(
+                            _normalize_assistant_computer_call_input(tool_call)
+                        )
+                    else:
+                        input_items.append(_normalize_assistant_tool_call_input(tool_call))
             continue
 
         if role == "tool":
             tool_call_id = message.get("tool_call_id")
             if not isinstance(tool_call_id, str) or not tool_call_id.strip():
                 continue
-            input_items.append(
-                {
-                    "type": "function_call_output",
-                    "call_id": tool_call_id.strip(),
-                    "output": _normalize_tool_output_content(message.get("content")),
-                    "status": "completed",
-                }
-            )
+            if str(message.get("name") or "").strip() == "computer":
+                input_items.append(
+                    {
+                        "type": "computer_call_output",
+                        "call_id": tool_call_id.strip(),
+                        "output": _normalize_computer_tool_output(message.get("content")),
+                    }
+                )
+            else:
+                input_items.append(
+                    {
+                        "type": "function_call_output",
+                        "call_id": tool_call_id.strip(),
+                        "output": _normalize_tool_output_content(message.get("content")),
+                        "status": "completed",
+                    }
+                )
     return input_items
 
 
@@ -159,6 +263,7 @@ def build_openai_responses_params(
     max_output_tokens: Optional[int] = None,
     include_reasoning: bool = True,
     native_web_search_enabled: bool = False,
+    previous_response_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     runtime_model_id = resolve_runtime_model_id(model)
     normalized_messages = provider._normalize_messages_for_provider(
@@ -167,11 +272,16 @@ def build_openai_responses_params(
     )
     params: Dict[str, Any] = {
         "model": provider._get_full_model_string(runtime_model_id),
-        "input": build_openai_responses_input(normalized_messages),
+        "input": build_openai_responses_input(
+            normalized_messages,
+            previous_response_id=previous_response_id,
+        ),
         "api_key": provider.api_key,
         "base_url": provider.base_url,
         "timeout": provider.timeout,
     }
+    if isinstance(previous_response_id, str) and previous_response_id.strip():
+        params["previous_response_id"] = previous_response_id.strip()
     if tools is not None:
         params["tools"] = build_openai_responses_tools(
             tools,

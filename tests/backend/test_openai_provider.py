@@ -16,11 +16,14 @@ from backend.src.llm.providers.online import OnlineLLMProvider
 from backend.src.llm.providers.openai import OpenAIProvider
 from backend.src.llm.providers.openai_responses_input import (
     build_openai_reasoning_config,
+    build_openai_responses_input,
     build_openai_responses_tools,
 )
 from backend.src.llm.providers.openai_responses_runtime import (
-    build_openai_responses_input,
     stream_openai_responses_events,
+)
+from backend.src.llm.providers.openai_responses_payload import (
+    normalize_openai_responses_payload,
 )
 from backend.src.tools.browser.schemas import build_browser_tool_parameters_schema
 from backend.src.tools.web_search.source_normalization import (
@@ -252,6 +255,30 @@ def test_openai_responses_tools_preserve_browser_root_object_tool_schema():
         }
     ]
     assert "oneOf" not in tools[0]["parameters"]
+
+
+def test_openai_responses_tools_passthrough_native_computer_tool():
+    tools = build_openai_responses_tools(
+        [
+            {"type": "computer"},
+            {
+                "type": "function",
+                "name": "browser",
+                "parameters": {"type": "object"},
+            },
+        ]
+    )
+
+    assert tools == [
+        {"type": "computer"},
+        {
+            "type": "function",
+            "name": "browser",
+            "description": None,
+            "parameters": {"type": "object", "properties": {}},
+            "strict": False,
+        },
+    ]
 
 
 def test_openai_provider_build_request_params_preserves_plain_object_tool_schema():
@@ -550,6 +577,148 @@ def test_build_openai_responses_input_accepts_normalized_assistant_tool_calls():
             "status": "completed",
         },
     ]
+
+
+def test_build_openai_responses_input_serializes_computer_calls_and_outputs():
+    messages = [
+        {"role": "system", "content": "You are helpful."},
+        {"role": "user", "content": "Open the app."},
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "comp_1",
+                    "name": "computer",
+                    "arguments": {
+                        "actions": [{"type": "click", "x": 100, "y": 200}],
+                    },
+                }
+            ],
+        },
+        {
+            "role": "tool",
+            "tool_call_id": "comp_1",
+            "name": "computer",
+            "content": [
+                {"type": "text", "text": "Bundle executed successfully."},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": "data:image/png;base64,abc123"},
+                },
+            ],
+        },
+    ]
+
+    assert build_openai_responses_input(messages) == [
+        {
+            "type": "message",
+            "role": "system",
+            "content": "You are helpful.",
+        },
+        {
+            "type": "message",
+            "role": "user",
+            "content": "Open the app.",
+        },
+        {
+            "type": "computer_call",
+            "call_id": "comp_1",
+            "actions": [{"type": "click", "x": 100, "y": 200}],
+            "status": "completed",
+        },
+        {
+            "type": "computer_call_output",
+            "call_id": "comp_1",
+            "output": {
+                "type": "computer_screenshot",
+                "image_url": "data:image/png;base64,abc123",
+                "detail": "original",
+            },
+        },
+    ]
+
+
+def test_build_openai_responses_input_uses_trailing_tool_outputs_for_previous_response():
+    messages = [
+        {"role": "system", "content": "You are helpful."},
+        {"role": "user", "content": "Open the app."},
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "comp_1",
+                    "name": "computer",
+                    "arguments": {
+                        "actions": [{"type": "click", "x": 100, "y": 200}],
+                    },
+                }
+            ],
+        },
+        {
+            "role": "tool",
+            "tool_call_id": "comp_1",
+            "name": "computer",
+            "content": [
+                {"type": "text", "text": "Bundle executed successfully."},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": "data:image/png;base64,abc123"},
+                },
+            ],
+        },
+    ]
+
+    assert build_openai_responses_input(
+        messages,
+        previous_response_id="resp_123",
+    ) == [
+        {
+            "type": "computer_call_output",
+            "call_id": "comp_1",
+            "output": {
+                "type": "computer_screenshot",
+                "image_url": "data:image/png;base64,abc123",
+                "detail": "original",
+            },
+        }
+    ]
+
+
+def test_normalize_openai_responses_payload_reads_computer_calls_and_response_id():
+    provider = OpenAIProvider(api_key="test-key")
+
+    payload = normalize_openai_responses_payload(
+        provider,
+        {
+            "id": "resp_123",
+            "output": [
+                {
+                    "type": "computer_call",
+                    "call_id": "comp_1",
+                    "actions": [{"type": "click", "x": 100, "y": 200}],
+                }
+            ],
+            "status": "completed",
+        },
+        model="gpt-5.4@@gpt-5-4-none-thinking",
+    )
+
+    assert payload == {
+        "content": "",
+        "tool_calls": [
+            {
+                "id": "comp_1",
+                "name": "computer",
+                "arguments": {
+                    "actions": [{"type": "click", "x": 100, "y": 200}],
+                },
+            }
+        ],
+        "finish_reason": "completed",
+        "response_id": "resp_123",
+    }
 
 
 def test_extract_openai_web_search_sources_dedupes_urls_and_preserves_query_order():

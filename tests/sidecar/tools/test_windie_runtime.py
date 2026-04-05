@@ -16,6 +16,8 @@ from tools.browser.windie_runtime import (
     WindieBrowserRuntime,
 )
 
+EXPLANATION = "Advance the active user task."
+
 
 def test_runtime_supported_actions_match_canonical_contract():
     assert WindieBrowserRuntime.supported_actions() == frozenset(BROWSER_CANONICAL_ACTIONS)
@@ -27,7 +29,7 @@ async def test_runtime_execute_adds_default_action_and_native_source():
     runtime = WindieBrowserRuntime(controller=SimpleNamespace())
     runtime._handlers["status"] = mock.AsyncMock(return_value={"success": True})
 
-    result = await runtime.execute(BrowserControlArgs.model_validate({"action": "status"}))
+    result = await runtime.execute(BrowserControlArgs.model_validate({"action": "status", "explanation": EXPLANATION}))
 
     assert result == {
         "success": True,

@@ -28,6 +28,7 @@ from backend.src.core.config import AppConfig
 from backend.src.llm.prompts.prompts import get_system_prompt
 from backend.src.llm.prompts.prompt_metadata import PromptMetadata, UserMessageMetadata
 from backend.src.tools.tool_policy import ToolPolicy
+from backend.src.tools.provider_projection import project_tool_schemas_for_provider
 from backend.src.tools.registry import ToolRegistry
 from backend.src.core.messages.converters import content_to_message_content
 from backend.src.core.messages.structures import StoredMessage
@@ -105,10 +106,22 @@ class PromptConstructor:
                 model_tool_names_getter(),
                 normalize_wrappers=False,
             )
-            return self.tool_registry.get_function_declarations_filtered(filtered_names) or []
+            filtered_schemas = (
+                self.tool_registry.get_function_declarations_filtered(filtered_names) or []
+            )
+            return project_tool_schemas_for_provider(
+                tool_schemas=filtered_schemas,
+                tool_registry=self.tool_registry,
+                config=self.config,
+            )
 
         tool_schemas = self.tool_registry.get_function_declarations() or []
-        return self.tool_policy.filter_tool_schemas(tool_schemas)
+        filtered_schemas = self.tool_policy.filter_tool_schemas(tool_schemas)
+        return project_tool_schemas_for_provider(
+            tool_schemas=filtered_schemas,
+            tool_registry=self.tool_registry,
+            config=self.config,
+        )
 
     def build_prompt(
         self,

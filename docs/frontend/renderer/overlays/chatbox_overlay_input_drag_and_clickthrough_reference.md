@@ -76,7 +76,9 @@ Chatbox camera-toggle behavior:
 - the camera button no longer captures immediately into the preview lane
 - it toggles frontend config `include_query_screenshot`
 - enabled state is blue and defaults to enabled on startup
-- disabled state falls back to the normal icon color
+- enabled hover keeps the icon blue; hover only changes the button background
+- disabled state falls back to the normal white icon color
+- disabled hover keeps the icon white; hover only changes the button background
 - auto-capture happens only when the user sends a message from the overlay and no explicit image attachments were already provided
 
 Send sequence in chatbox component:
@@ -90,6 +92,7 @@ Right-side action button parity with dashboard composer:
 
 - camera button toggles overlay auto screenshot on/off instead of inserting a screenshot preview
 - sound button toggles text-to-speech on/off for overlay-originated turns and uses the same enabled-state styling pattern as the dashboard speech toggle
+- screenshot and sound toggles share the same visual contract: enabled = blue icon at rest and on hover; disabled = white icon at rest and on hover
 - send button (`ArrowUp`) remains mounted at all times
 - during active loop phases, the send button is disabled instead of becoming a local stop affordance
 - active loop lock disables input, settings, screenshot, TTS, dev compaction, drag, and input auto-focus until the loop exits

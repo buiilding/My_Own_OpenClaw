@@ -258,6 +258,9 @@ class LiteLLMClient(LLMClient):
         request_id = request_kwargs.get("request_id")
         if request_id is not None:
             transport_kwargs["request_id"] = request_id
+        previous_response_id = request_kwargs.get("previous_response_id")
+        if previous_response_id is not None:
+            transport_kwargs["previous_response_id"] = previous_response_id
         return transport_kwargs
 
     async def get_completion_response(

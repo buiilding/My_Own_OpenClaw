@@ -230,6 +230,10 @@ class ToolSender:
             result = await result_task
 
         session.register_pending_tool_result(request_id, result)
+        if isinstance(result.metadata, dict) and result.metadata.get(
+            "suppress_wrapper_events"
+        ):
+            return
         execution_lane = build_backend_execution_lane(
             resolved_call=resolved_call,
             request_id=request_id,
