@@ -57,8 +57,18 @@ Shared request kwargs are built once via `_build_completion_request_kwargs(...)`
 - message prompt
 - tool transport kwargs from `build_tool_transport_kwargs(...)`
 - optional `prompt_cache_key` for provider steering
+- optional `previous_response_id` for OpenAI Responses continuation turns
 
 Both stream and non-stream paths use this shared contract.
+
+OpenAI continuation rule:
+
+- `_resolve_previous_response_id(...)` only returns a value when:
+  - provider is OpenAI
+  - tools are enabled for the turn
+  - the prompt currently ends in one or more `role=tool` messages
+  - the previous normalized payload exposed `response_id`
+- this keeps new user turns on the normal full-history path while letting OpenAI Responses continue native tool loops through `previous_response_id`
 
 ## Normalized Response Payload Capture
 
@@ -70,6 +80,11 @@ Both stream and non-stream paths use this shared contract.
 - if client exposes no payload getter, fallback payload is `{"content": full_text}`
 
 `get_last_response_payload()` returns copy to protect internal mutation.
+
+Normalized payload nuance:
+
+- OpenAI Responses payloads can now persist `response_id` in addition to `content`, `tool_calls`, and `finish_reason`
+- this is the token-safe continuation anchor used for later `previous_response_id` tool-output turns
 
 Implementation note:
 
@@ -154,6 +169,7 @@ Output totals:
 2. losing normalized payload capture can break downstream parsed-response tool-call bridge.
 3. removing hash compaction can inflate memory/log cost for image-heavy prompt messages.
 4. changing provider usage precedence can skew token-count transparency and billing telemetry.
+5. changing OpenAI `previous_response_id` gating can accidentally drop full-history context on fresh user turns or break native `computer` / `web_search` continuation loops.
 
 ## Related Pages
 

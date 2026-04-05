@@ -37,6 +37,7 @@ Key nuance:
 
 - Live runtime currently does not call `ResponseParser.parse_response(...)` for tool turns.
 - Tool-call structure validation in this path is enforced by `LiteLLMClient._normalize_response_payload(...)` (non-empty `id`/`name`, dict `arguments`).
+- Provider-native built-ins such as OpenAI Responses `computer_call` are first normalized into canonical `tool_calls[]` rows upstream, then pass through the same interaction-loop bridge as any other normalized tool turn.
 
 ## Parser module path (trust-boundary library)
 
@@ -195,6 +196,11 @@ Each includes boundary metadata (`boundary_name="response_parser"` plus optional
   - carries provider `id` as `metadata.tool_call_id`
   - carries `thought_signature`/`thoughtSignature` when present
   - if `arguments.metadata` exists, merges it into `ParsedToolCall.metadata` and removes it from execution `parameters`
+- provider-native built-in bridge behavior:
+  - normalized built-ins may arrive with logical tool names that do not correspond to registry `function` schemas; current native case is `name="computer"`
+  - OpenAI Responses `computer_call` is normalized upstream into `arguments={"actions":[...]}` and kept as one logical model-facing tool turn
+  - interaction-loop bridging preserves that logical provider call while the downstream execution layer expands it into the existing internal desktop-action bundle path
+  - screenshot/image output for native `computer` turns still comes from the existing bundle capture path rather than a separate provider-native image contract
 - unified native `computer_use` bridge behavior:
   - maps `arguments.tool` to concrete computer subtool when in allowed set (`mouse_control|keyboard_control|screenshot|scroll_control|switch_tab|wait`)
   - invalid/unknown mapped subtool becomes `invalid_computer_use_tool`
@@ -220,6 +226,11 @@ History-call shaping via `tool_call_bridge.to_history_tool_calls(...)`:
 
 This preserves the existing downstream tool pipeline while bypassing parser JSON extraction for native SDK tool-call responses.
 
+Important nuance:
+
+- not every normalized provider tool call is backed by a model-facing `function` schema entry
+- provider-native built-ins can still appear in the normalized `tool_calls[]` payload and must remain bridgeable without being downgraded into synthetic function names
+
 ## Debug Checklist
 
 If tool calls are missing in live runs:
@@ -235,6 +246,7 @@ If parser tests fail on limits/validation:
 3. inspect unified-wrapper compatibility expansion in `ToolCallValidator` (computer + system legacy names)
 4. inspect parser strategy selection (`_should_try_parse_json_response`)
 5. inspect trust-boundary exception metadata and boundary metrics payloads
+6. if OpenAI native `computer` turns regress, inspect the upstream Responses normalization path before changing parser extraction code; the parser library is not the primary ingestion path for those turns
 
 ## Related Pages
 
