@@ -1428,4 +1428,89 @@ describe('ChatInterface wiring', () => {
     );
     expect(sawEditedSendQueryCall).toBe(true);
   });
+
+  test('command+f opens the find bar and focuses the search input', async () => {
+    render(<ChatInterface />);
+
+    const shortcutEvent = new KeyboardEvent('keydown', {
+      key: 'f',
+      metaKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    act(() => {
+      window.dispatchEvent(shortcutEvent);
+    });
+
+    expect(shortcutEvent.defaultPrevented).toBe(true);
+    expect(screen.getByRole('search', { name: 'Find in conversation' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        screen.getByRole('textbox', { name: 'Find in conversation input' }),
+      );
+    });
+  });
+
+  test('find bar computes visible thread matches and wraps next and previous navigation', () => {
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'Alpha beta alpha' },
+      { id: 'assistant-1', sender: 'assistant', text: 'alpha again', type: 'llm-text', isComplete: true },
+    ];
+
+    render(<ChatInterface />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Find in conversation' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Find in conversation input' }), {
+      target: { value: 'alpha' },
+    });
+
+    expect(screen.getByText('1/3')).toBeInTheDocument();
+
+    let lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.findQuery).toBe('alpha');
+    expect(lastMessageListProps.messageFindMatchIndexesById).toEqual({
+      'assistant-1': [2],
+      'user-1': [0, 1],
+    });
+    expect(lastMessageListProps.activeFindMatchIndex).toBe(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next match' }));
+    expect(screen.getByText('2/3')).toBeInTheDocument();
+    lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.activeFindMatchIndex).toBe(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next match' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next match' }));
+    expect(screen.getByText('1/3')).toBeInTheDocument();
+    lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.activeFindMatchIndex).toBe(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Previous match' }));
+    expect(screen.getByText('3/3')).toBeInTheDocument();
+    lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.activeFindMatchIndex).toBe(2);
+  });
+
+  test('closing the find bar clears the active query and match props', () => {
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'Alpha beta alpha' },
+    ];
+
+    render(<ChatInterface />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Find in conversation' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Find in conversation input' }), {
+      target: { value: 'alpha' },
+    });
+
+    expect(screen.getByText('1/2')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close find in conversation' }));
+
+    expect(screen.queryByRole('search', { name: 'Find in conversation' })).not.toBeInTheDocument();
+    const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.findQuery).toBe('');
+    expect(lastMessageListProps.messageFindMatchIndexesById).toEqual({});
+    expect(lastMessageListProps.activeFindMatchIndex).toBeNull();
+  });
 });

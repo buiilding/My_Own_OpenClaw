@@ -1,8 +1,14 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { resolveMessageScreenshotSrc } from '../../../utils/message/messageScreenshots';
+import HighlightedPlainText from './HighlightedPlainText';
 
-export default function ToolOutputMessage({ message }) {
+export default function ToolOutputMessage({
+  message,
+  findQuery = '',
+  findMatchIndexes = [],
+  activeFindMatchIndex = null,
+}) {
   const [showDetails, setShowDetails] = useState(false);
   const screenshotSrc = resolveMessageScreenshotSrc(message);
   const modelFacingOutput = (
@@ -35,7 +41,14 @@ export default function ToolOutputMessage({ message }) {
           Details
         </button>
       </div>
-      <pre className="tool-output-content">{modelFacingOutput}</pre>
+      <HighlightedPlainText
+        as="pre"
+        className="tool-output-content"
+        text={modelFacingOutput}
+        findQuery={findQuery}
+        findMatchIndexes={findMatchIndexes}
+        activeFindMatchIndex={activeFindMatchIndex}
+      />
       {screenshotSrc ? (
         <div className="tool-screenshot-container">
           <div className="tool-screenshot-header">📸 Screenshot After Action</div>
@@ -72,4 +85,7 @@ ToolOutputMessage.propTypes = {
     executionTime: PropTypes.number,
     success: PropTypes.bool,
   }).isRequired,
+  findQuery: PropTypes.string,
+  findMatchIndexes: PropTypes.arrayOf(PropTypes.number),
+  activeFindMatchIndex: PropTypes.number,
 };

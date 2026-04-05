@@ -9,21 +9,54 @@ import ToolExplanationMessage from './message/content/ToolExplanationMessage';
 import ToolOutputMessage from './message/content/ToolOutputMessage';
 import UserMessage from './message/content/UserMessage';
 
-export default function MessageContent({ message }) {
+export default function MessageContent({
+  message,
+  findQuery = '',
+  findMatchIndexes = [],
+  activeFindMatchIndex = null,
+}) {
   if (message.type === 'error') {
-    return <ErrorMessage message={message} />;
+    return (
+      <ErrorMessage
+        message={message}
+        findQuery={findQuery}
+        findMatchIndexes={findMatchIndexes}
+        activeFindMatchIndex={activeFindMatchIndex}
+      />
+    );
   }
 
   if (message.type === 'tool-output') {
-    return <ToolOutputMessage message={message} />;
+    return (
+      <ToolOutputMessage
+        message={message}
+        findQuery={findQuery}
+        findMatchIndexes={findMatchIndexes}
+        activeFindMatchIndex={activeFindMatchIndex}
+      />
+    );
   }
 
   if (message.type === 'tool-call') {
-    return <ToolCallMessage message={message} />;
+    return (
+      <ToolCallMessage
+        message={message}
+        findQuery={findQuery}
+        findMatchIndexes={findMatchIndexes}
+        activeFindMatchIndex={activeFindMatchIndex}
+      />
+    );
   }
 
   if (message.type === 'tool-explanation' || message.type === 'search-source') {
-    return <ToolExplanationMessage message={message} />;
+    return (
+      <ToolExplanationMessage
+        message={message}
+        findQuery={findQuery}
+        findMatchIndexes={findMatchIndexes}
+        activeFindMatchIndex={activeFindMatchIndex}
+      />
+    );
   }
 
   if (message.type === 'tool-actions-summary') {
@@ -31,7 +64,14 @@ export default function MessageContent({ message }) {
   }
 
   if (isUserMessageWithScreenshot(message)) {
-    return <UserMessage message={message} />;
+    return (
+      <UserMessage
+        message={message}
+        findQuery={findQuery}
+        findMatchIndexes={findMatchIndexes}
+        activeFindMatchIndex={activeFindMatchIndex}
+      />
+    );
   }
 
   if (message.sender === 'assistant' && (!message.type || message.type === 'llm-text')) {
@@ -48,6 +88,9 @@ export default function MessageContent({ message }) {
             sender={message.sender}
             modelProvider={message.modelProvider || null}
             modelId={message.modelId || null}
+            findQuery={findQuery}
+            findMatchIndexes={findMatchIndexes}
+            activeFindMatchIndex={activeFindMatchIndex}
           />
         ) : null}
       </div>
@@ -60,6 +103,9 @@ export default function MessageContent({ message }) {
       sender={message.sender}
       modelProvider={message.modelProvider || null}
       modelId={message.modelId || null}
+      findQuery={findQuery}
+      findMatchIndexes={findMatchIndexes}
+      activeFindMatchIndex={activeFindMatchIndex}
     />
   );
 }
@@ -87,4 +133,7 @@ MessageContent.propTypes = {
     thinkingText: PropTypes.string,
     thinkingSourceEventType: PropTypes.string,
   }).isRequired,
+  findQuery: PropTypes.string,
+  findMatchIndexes: PropTypes.arrayOf(PropTypes.number),
+  activeFindMatchIndex: PropTypes.number,
 };

@@ -28,6 +28,7 @@ const allowedTags = [
   'del',
   'em',
   'math',
+  'mark',
   'mi',
   'mn',
   'mo',
@@ -68,6 +69,8 @@ const allowedTags = [
 const allowedAttrs = [
   'aria-hidden',
   'class',
+  'data-thread-find-active',
+  'data-thread-find-match-index',
   'encoding',
   'href',
   'rel',
@@ -149,6 +152,212 @@ function escapeHtml(value: string): string {
 type MarkdownRenderOptions = {
   enableMath?: boolean;
 };
+
+type TextMatch = {
+  end: number;
+  index: number;
+  start: number;
+};
+
+function normalizeFindQuery(query: string): string {
+  return typeof query === 'string' ? query.trim() : '';
+}
+
+function buildHighlightClassName(active: boolean): string {
+  return active ? 'thread-find-match is-active' : 'thread-find-match';
+}
+
+function buildMatchMarkup(content: string, matchIndex: number, active: boolean): string {
+  return [
+    `<mark class="${buildHighlightClassName(active)}"`,
+    ` data-thread-find-match-index="${matchIndex}"`,
+    ` data-thread-find-active="${active ? 'true' : 'false'}">`,
+    content,
+    '</mark>',
+  ].join('');
+}
+
+function createHtmlContainer(sourceHtml: string): HTMLDivElement | null {
+  if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
+    const container = document.createElement('div');
+    container.innerHTML = sourceHtml;
+    return container;
+  }
+
+  if (typeof window !== 'undefined' && typeof window.DOMParser === 'function') {
+    const parser = new window.DOMParser();
+    const parsed = parser.parseFromString(`<div>${sourceHtml}</div>`, 'text/html');
+    return parsed.body.firstElementChild as HTMLDivElement | null;
+  }
+
+  return null;
+}
+
+export function collectTextMatches(text: string, query: string): TextMatch[] {
+  if (typeof text !== 'string' || text.length === 0) {
+    return [];
+  }
+
+  const normalizedQuery = normalizeFindQuery(query);
+  if (!normalizedQuery) {
+    return [];
+  }
+
+  const haystack = text.toLocaleLowerCase();
+  const needle = normalizedQuery.toLocaleLowerCase();
+  const matches: TextMatch[] = [];
+  let cursor = 0;
+
+  while (cursor < haystack.length) {
+    const matchStart = haystack.indexOf(needle, cursor);
+    if (matchStart < 0) {
+      break;
+    }
+    matches.push({
+      index: matches.length,
+      start: matchStart,
+      end: matchStart + needle.length,
+    });
+    cursor = matchStart + Math.max(needle.length, 1);
+  }
+
+  return matches;
+}
+
+export function extractTextFromHtml(html: string): string {
+  if (typeof html !== 'string' || html.length === 0) {
+    return '';
+  }
+
+  const container = createHtmlContainer(html);
+  if (!container) {
+    return html.replace(/<[^>]+>/g, ' ');
+  }
+
+  return container.textContent || '';
+}
+
+export function highlightPlainTextToHtml(
+  text: string,
+  query: string,
+  globalMatchIndexes: number[] = [],
+  activeMatchIndex: number | null = null,
+): string {
+  const normalizedText = typeof text === 'string' ? text : '';
+  const matches = collectTextMatches(normalizedText, query);
+  if (matches.length === 0) {
+    return escapeHtml(normalizedText);
+  }
+
+  let cursor = 0;
+  let html = '';
+
+  matches.forEach((match, localMatchIndex) => {
+    const globalMatchIndex = globalMatchIndexes[localMatchIndex] ?? match.index;
+    const active = activeMatchIndex === globalMatchIndex;
+    if (match.start > cursor) {
+      html += escapeHtml(normalizedText.slice(cursor, match.start));
+    }
+    html += buildMatchMarkup(
+      escapeHtml(normalizedText.slice(match.start, match.end)),
+      globalMatchIndex,
+      active,
+    );
+    cursor = match.end;
+  });
+
+  if (cursor < normalizedText.length) {
+    html += escapeHtml(normalizedText.slice(cursor));
+  }
+
+  return html;
+}
+
+export function highlightSanitizedHtml(
+  html: string,
+  query: string,
+  globalMatchIndexes: number[] = [],
+  activeMatchIndex: number | null = null,
+): string {
+  if (typeof html !== 'string' || html.length === 0) {
+    return '';
+  }
+
+  const normalizedQuery = normalizeFindQuery(query);
+  if (!normalizedQuery) {
+    return html;
+  }
+
+  const container = createHtmlContainer(html);
+  if (!container) {
+    return html;
+  }
+
+  const ownerDocument = container.ownerDocument || document;
+  const walker = ownerDocument.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+  const textNodes: Array<{ end: number; node: Text; start: number }> = [];
+  let currentNode = walker.nextNode();
+  let cursor = 0;
+
+  while (currentNode) {
+    const node = currentNode as Text;
+    const value = node.nodeValue || '';
+    if (value.length > 0) {
+      textNodes.push({
+        node,
+        start: cursor,
+        end: cursor + value.length,
+      });
+      cursor += value.length;
+    }
+    currentNode = walker.nextNode();
+  }
+
+  const matches = collectTextMatches(container.textContent || '', normalizedQuery);
+  if (matches.length === 0) {
+    return html;
+  }
+
+  textNodes.forEach(({ node, start: nodeStart, end: nodeEnd }) => {
+    const nodeValue = node.nodeValue || '';
+    const overlappingMatches = matches.filter((match) => match.start < nodeEnd && match.end > nodeStart);
+    if (overlappingMatches.length === 0 || !node.parentNode) {
+      return;
+    }
+
+    const fragment = ownerDocument.createDocumentFragment();
+    let localCursor = 0;
+
+    overlappingMatches.forEach((match, localMatchIndex) => {
+      const overlapStart = Math.max(0, match.start - nodeStart);
+      const overlapEnd = Math.min(nodeValue.length, match.end - nodeStart);
+      const globalMatchIndex = globalMatchIndexes[match.index] ?? match.index;
+      const active = activeMatchIndex === globalMatchIndex;
+
+      if (overlapStart > localCursor) {
+        fragment.appendChild(ownerDocument.createTextNode(nodeValue.slice(localCursor, overlapStart)));
+      }
+
+      const mark = ownerDocument.createElement('mark');
+      mark.className = buildHighlightClassName(active);
+      mark.setAttribute('data-thread-find-match-index', String(globalMatchIndex));
+      mark.setAttribute('data-thread-find-active', active ? 'true' : 'false');
+      mark.textContent = nodeValue.slice(overlapStart, overlapEnd);
+      fragment.appendChild(mark);
+
+      localCursor = Math.max(localCursor, overlapEnd);
+      void localMatchIndex;
+    });
+
+    if (localCursor < nodeValue.length) {
+      fragment.appendChild(ownerDocument.createTextNode(nodeValue.slice(localCursor)));
+    }
+
+    node.parentNode.replaceChild(fragment, node);
+  });
+
+  return container.innerHTML;
+}
 
 export function toSanitizedMarkdownHtml(markdown: string, options: MarkdownRenderOptions = {}): string {
   const input = markdown.trim();

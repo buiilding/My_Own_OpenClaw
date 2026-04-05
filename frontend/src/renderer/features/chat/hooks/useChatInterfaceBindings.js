@@ -74,6 +74,41 @@ export function useChatInterfaceStopShortcut(canStop, handleStopQuery) {
   }, [canStop, handleStopQuery]);
 }
 
+export function useChatInterfaceFindShortcut({
+  isFindOpen,
+  handleOpenFind,
+  handleCloseFind,
+}) {
+  useEffect(() => {
+    const handleFindShortcut = (event) => {
+      if (event.defaultPrevented) {
+        return;
+      }
+
+      const lowerKey = typeof event.key === 'string' ? event.key.toLowerCase() : '';
+      if ((event.metaKey || event.ctrlKey) && lowerKey === 'f' && !event.altKey) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === 'function') {
+          event.stopImmediatePropagation();
+        }
+        handleOpenFind();
+        return;
+      }
+
+      if (event.key === 'Escape' && isFindOpen) {
+        event.preventDefault();
+        handleCloseFind();
+      }
+    };
+
+    window.addEventListener('keydown', handleFindShortcut);
+    return () => {
+      window.removeEventListener('keydown', handleFindShortcut);
+    };
+  }, [handleCloseFind, handleOpenFind, isFindOpen]);
+}
+
 export function useChatInterfaceNewChatEvent(handleNewChat) {
   useEffect(() => {
     const handleDashboardNewChat = () => {

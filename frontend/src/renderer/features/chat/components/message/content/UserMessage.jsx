@@ -6,7 +6,12 @@ import {
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
 import MarkdownMessage from './MarkdownMessage';
 
-export default function UserMessage({ message }) {
+export default function UserMessage({
+  message,
+  findQuery = '',
+  findMatchIndexes = [],
+  activeFindMatchIndex = null,
+}) {
   const screenshotSources = resolveMessageScreenshotSrcList(message);
   const attachmentFilenames = Array.isArray(message.attachmentFilenames)
     ? message.attachmentFilenames.filter((filename) => typeof filename === 'string' && filename.length > 0)
@@ -51,7 +56,13 @@ export default function UserMessage({ message }) {
           ))}
         </div>
       ) : null}
-      <MarkdownMessage text={message.text} sender="user" />
+      <MarkdownMessage
+        text={message.text}
+        sender="user"
+        findQuery={findQuery}
+        findMatchIndexes={findMatchIndexes}
+        activeFindMatchIndex={activeFindMatchIndex}
+      />
     </div>
   );
 }
@@ -70,4 +81,7 @@ UserMessage.propTypes = {
       screenshotContentType: PropTypes.string,
     })),
   }).isRequired,
+  findQuery: PropTypes.string,
+  findMatchIndexes: PropTypes.arrayOf(PropTypes.number),
+  activeFindMatchIndex: PropTypes.number,
 };

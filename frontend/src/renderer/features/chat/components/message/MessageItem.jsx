@@ -17,6 +17,9 @@ import {
 const MessageItem = memo(function MessageItem({
   message,
   conversationToolSchemas,
+  findQuery,
+  findMatchIndexes,
+  activeFindMatchIndex,
   enableAssistantActions,
   enableUserActions,
   disableAssistantActions,
@@ -42,7 +45,12 @@ const MessageItem = memo(function MessageItem({
           onSubmit={onSubmitUserEdit}
         />
       ) : (
-        <MessageContent message={message} />
+        <MessageContent
+          message={message}
+          findQuery={findQuery}
+          findMatchIndexes={findMatchIndexes}
+          activeFindMatchIndex={activeFindMatchIndex}
+        />
       )}
       <MessageSourceBadge message={message} />
       {shouldRenderAssistantActions(message, enableAssistantActions) ? (
@@ -74,6 +82,9 @@ const MessageItem = memo(function MessageItem({
 MessageItem.propTypes = {
   message: messageShapePropType.isRequired,
   conversationToolSchemas: PropTypes.any,
+  findQuery: PropTypes.string,
+  findMatchIndexes: PropTypes.arrayOf(PropTypes.number),
+  activeFindMatchIndex: PropTypes.number,
   enableAssistantActions: PropTypes.bool,
   enableUserActions: PropTypes.bool,
   disableAssistantActions: PropTypes.bool,
