@@ -94,6 +94,16 @@ class OpenAIRealtimeTranscriptionSession(TranscriptionProviderSession):
                 if not isinstance(event, dict):
                     continue
                 event_type = str(event.get("type") or "")
+                if event_type == "error":
+                    details = event.get("error")
+                    logger.error("OpenAI realtime transcription error event: %s", details)
+                    await send_event(
+                        {
+                            "type": "error",
+                            "message": str(details or "OpenAI realtime transcription error"),
+                        }
+                    )
+                    continue
                 if event_type == "conversation.item.input_audio_transcription.delta":
                     item_id = str(event.get("item_id") or "")
                     delta = str(event.get("delta") or "")
@@ -137,7 +147,12 @@ class OpenAIRealtimeTranscriptionSession(TranscriptionProviderSession):
                             "message": str(details or "OpenAI transcription failed"),
                         }
                     )
-        except ConnectionClosed:
+        except ConnectionClosed as exc:
+            logger.warning(
+                "OpenAI realtime transcription connection closed (code=%s, reason=%s)",
+                getattr(exc, "code", "unknown"),
+                getattr(exc, "reason", ""),
+            )
             return
 
     async def close(self) -> None:
@@ -158,7 +173,6 @@ class OpenAIRealtimeTranscriptionSession(TranscriptionProviderSession):
             {
                 "type": "session.update",
                 "session": {
-                    "type": "transcription",
                     "audio": {
                         "input": {
                             "format": {

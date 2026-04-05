@@ -56,7 +56,6 @@ async def test_openai_realtime_connect_includes_model_query_param_and_session_up
         {
             "type": "session.update",
             "session": {
-                "type": "transcription",
                 "audio": {
                     "input": {
                         "format": {
