@@ -39,9 +39,10 @@ title: "Frontend Config Filter, Storage, and Provider Merge Runtime Reference"
 - `provider_api_keys`
 - `provider_oauth`
 
-Intentionally excluded backend-owned speech runtime policy:
+Intentionally excluded backend-owned speech/transcription runtime policy:
 
 - `speech_provider`
+- `stt_provider`
 
 `filterFrontendConfig(config)` behavior:
 

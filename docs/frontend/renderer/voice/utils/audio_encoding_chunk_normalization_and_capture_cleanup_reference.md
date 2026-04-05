@@ -124,7 +124,7 @@ These helpers keep hook logic declarative and testable.
 
 ## Drift Hotspots
 
-1. changing gateway frame order or endianness breaks Nova-Voice gateway decode.
+1. changing gateway frame order or endianness breaks backend transcription gateway decode and provider adapters downstream.
 2. removing sample-rate prefix cache increases per-chunk allocation pressure.
 3. skipping `onaudioprocess = null` during cleanup can keep callbacks firing on stale nodes.
 4. treating all AudioContext close errors as fatal can create false-negative error telemetry on normal teardown races.
