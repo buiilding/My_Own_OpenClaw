@@ -118,7 +118,7 @@ On close:
 3. backend session context reset
 4. overlay phase -> `idle`
 5. `ipc-status` broadcast disconnected
-6. reconnect scheduled after `5000ms`
+6. reconnect scheduled after `1000ms`
 
 On socket error while open: explicit `ws.close()` to converge into close path.
 
