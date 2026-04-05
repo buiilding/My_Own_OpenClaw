@@ -6,6 +6,7 @@ import {
   type ToolBundleEvent,
   type ToolCallEvent,
   type ToolOutputEvent,
+  type WebSearchProgressEvent,
 } from '../../../../types/backendEvents';
 import {
   formatToolOutputText,
@@ -178,9 +179,47 @@ export function useChatStreamToolHandlers({
     recordTrackingEvent,
   ]);
 
+  const handleWebSearchProgress = useCallback((
+    event: WebSearchProgressEvent,
+    conversationRef?: string | null,
+  ) => {
+    const text = typeof event.payload?.text === 'string' ? event.payload.text.trim() : '';
+    if (!text) {
+      return;
+    }
+    const modelContext = modelContextRef.current;
+    addMessage({
+      id: crypto.randomUUID(),
+      text,
+      sender: 'assistant',
+      type: 'search-source',
+      sourceEventType: 'web-search-progress',
+      sourceChannel: 'from-backend',
+      correlationId: (
+        typeof event.payload?.request_id === 'string' && event.payload.request_id.trim()
+          ? event.payload.request_id.trim()
+          : undefined
+      ),
+      turnRef: event.turn_ref,
+      modelId: modelContext.modelId,
+      modelProvider: modelContext.modelProvider,
+    }, conversationRef);
+    recordTrackingEvent(
+      'web-search-progress',
+      event.turn_ref,
+      { phase: 'tool-call', toolCall: true },
+      conversationRef,
+    );
+  }, [
+    addMessage,
+    modelContextRef,
+    recordTrackingEvent,
+  ]);
+
   return {
     handleToolCall,
     handleToolOutput,
     handleToolBundle,
+    handleWebSearchProgress,
   };
 }

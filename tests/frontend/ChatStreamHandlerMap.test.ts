@@ -11,6 +11,7 @@ const EVENT_TYPES: BackendEventType[] = [
   'tool-call',
   'tool-output',
   'tool-bundle',
+  'web-search-progress',
   'system-prompt',
   'local-user-message',
   'user-message-full',
@@ -31,6 +32,7 @@ type HandlerName =
   | 'handleToolCall'
   | 'handleToolOutput'
   | 'handleToolBundle'
+  | 'handleWebSearchProgress'
   | 'handleSystemPrompt'
   | 'handleLocalUserMessage'
   | 'handleUserMessageFull'
@@ -51,6 +53,7 @@ function buildHandlers(): Record<HandlerName, jest.Mock<void, [unknown]>> {
     handleToolCall: jest.fn(),
     handleToolOutput: jest.fn(),
     handleToolBundle: jest.fn(),
+    handleWebSearchProgress: jest.fn(),
     handleSystemPrompt: jest.fn(),
     handleLocalUserMessage: jest.fn(),
     handleUserMessageFull: jest.fn(),
@@ -85,6 +88,7 @@ describe('chatStreamHandlerMap', () => {
       { type: 'tool-call', handlerName: 'handleToolCall' },
       { type: 'tool-output', handlerName: 'handleToolOutput' },
       { type: 'tool-bundle', handlerName: 'handleToolBundle' },
+      { type: 'web-search-progress', handlerName: 'handleWebSearchProgress' },
       { type: 'system-prompt', handlerName: 'handleSystemPrompt' },
       { type: 'local-user-message', handlerName: 'handleLocalUserMessage' },
       { type: 'user-message-full', handlerName: 'handleUserMessageFull' },

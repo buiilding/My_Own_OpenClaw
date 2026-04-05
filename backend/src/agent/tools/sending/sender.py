@@ -5,11 +5,13 @@ Dispatches prepared tool calls to the correct execution surface:
 - frontend-executed tools emit tool-call / tool-bundle events only
 - backend-executed tools run immediately and emit their own tool-output events
 """
+import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Optional
 
 from backend.src.core.events import AgentStreamingEvent
 from backend.src.core.events.streaming_events import (
+    StreamingEvent,
     ToolBundleEvent,
     ToolCallEvent,
 )
@@ -35,6 +37,7 @@ if TYPE_CHECKING:
     from backend.src.llm.parser_types import ParsedToolCall
 
 logger = logging.getLogger(__name__)
+_BACKEND_TOOL_PROGRESS_POLL_SECONDS = 0.05
 
 
 class ToolSender:
@@ -188,7 +191,43 @@ class ToolSender:
                 return_display=error_msg,
             )
         else:
-            result = await self._run_backend_tool(tool, resolved_call, session)
+            progress_queue: asyncio.Queue[AgentStreamingEvent] = asyncio.Queue()
+
+            async def emit_streaming_event(event: AgentStreamingEvent) -> None:
+                if not isinstance(event, StreamingEvent):
+                    logger.debug(
+                        "Ignoring non-streaming backend tool auxiliary event for %s: %r",
+                        resolved_call.tool_name,
+                        event,
+                    )
+                    return
+                await progress_queue.put(event)
+
+            result_task = asyncio.create_task(
+                self._run_backend_tool(
+                    tool,
+                    resolved_call,
+                    session,
+                    additional_services={
+                        "emit_streaming_event": emit_streaming_event,
+                        "tool_request_id": request_id,
+                    },
+                )
+            )
+
+            while True:
+                if result_task.done() and progress_queue.empty():
+                    break
+                try:
+                    event = await asyncio.wait_for(
+                        progress_queue.get(),
+                        timeout=_BACKEND_TOOL_PROGRESS_POLL_SECONDS,
+                    )
+                except asyncio.TimeoutError:
+                    continue
+                yield event
+
+            result = await result_task
 
         session.register_pending_tool_result(request_id, result)
         execution_lane = build_backend_execution_lane(
@@ -206,6 +245,8 @@ class ToolSender:
         tool: Tool,
         resolved_call: Any,
         session: "AgentSession",
+        *,
+        additional_services: Optional[Dict[str, Any]] = None,
     ) -> ToolResult:
         context_factory = getattr(getattr(session, "tool_registry", None), "context_factory", None)
         if context_factory is None:
@@ -223,6 +264,7 @@ class ToolSender:
                 user_id=getattr(session, "user_id", "default_user"),
                 session_id=getattr(session, "session_id", "default_session"),
                 session_ref=session,
+                additional_services=additional_services,
             )
             raw_result = await tool.run(validated_args, tool_context)
         except Exception as exc:

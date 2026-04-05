@@ -22,7 +22,7 @@ export default function MessageContent({ message }) {
     return <ToolCallMessage message={message} />;
   }
 
-  if (message.type === 'tool-explanation') {
+  if (message.type === 'tool-explanation' || message.type === 'search-source') {
     return <ToolExplanationMessage message={message} />;
   }
 

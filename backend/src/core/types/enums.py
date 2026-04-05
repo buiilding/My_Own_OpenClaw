@@ -42,6 +42,7 @@ class StreamingEventType(str, Enum):
     CONTENT = "content"  # Used internally by LLM client
     MEMORY_STORE = "memory-store"
     TOOL_BUNDLE = "tool-bundle"
+    WEB_SEARCH_PROGRESS = "web_search_progress"
 
 
 class ContentType(str, Enum):

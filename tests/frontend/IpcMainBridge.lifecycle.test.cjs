@@ -180,6 +180,22 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
   });
 
+  test('switches response overlay phase to tool-call when backend emits web-search-progress', () => {
+    const applyResponseOverlayPhase = jest.fn();
+    const { ws } = setupOpenedIpc({ applyResponseOverlayPhase });
+    emitBackendMessage(ws, {
+      type: 'web-search-progress',
+      payload: { request_id: 'req-web-search-progress-1' },
+    });
+
+    expect(applyResponseOverlayPhase).toHaveBeenCalledWith({
+      phase: 'tool-call',
+      source: 'backend',
+      recovery_stage: 'tool-call',
+      correlation_id: 'req-web-search-progress-1',
+    });
+  });
+
   test('preserves active display affinity across backend websocket close', () => {
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(() => 0);
     setActiveDisplayAffinity({

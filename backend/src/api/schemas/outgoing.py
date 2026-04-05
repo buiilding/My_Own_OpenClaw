@@ -104,6 +104,22 @@ class ToolOutputMessage(BaseMessage):
     payload: ToolOutputPayload
 
 
+class WebSearchProgressPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    text: str
+    request_id: Optional[str] = None
+    action_type: Optional[str] = None
+    query: Optional[str] = None
+    url: Optional[str] = None
+    pattern: Optional[str] = None
+
+
+class WebSearchProgressMessage(BaseMessage):
+    type: Literal["web-search-progress"]
+    payload: WebSearchProgressPayload
+
+
 class AudioChunkPayload(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

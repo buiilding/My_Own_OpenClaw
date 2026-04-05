@@ -7,7 +7,11 @@ from typing import Any, AsyncGenerator
 
 import pytest
 
-from backend.src.core.events.streaming_events import ChunkEvent, ThinkingEvent
+from backend.src.core.events.streaming_events import (
+    ChunkEvent,
+    ThinkingEvent,
+    WebSearchProgressEvent,
+)
 from backend.src.llm.providers.online import OnlineLLMProvider
 from backend.src.llm.providers.openai import OpenAIProvider
 from backend.src.llm.providers.openai_responses_input import (
@@ -125,6 +129,74 @@ async def test_openai_provider_routes_unknown_stream_to_standard_runtime(monkeyp
     )
 
     assert [event.content for event in events] == ["fallback"]
+
+
+@pytest.mark.asyncio
+async def test_openai_responses_runtime_emits_web_search_progress_events(monkeypatch):
+    provider = OpenAIProvider(api_key="test-key")
+
+    class _FakeResponsesStream:
+        def __aiter__(self):
+            async def iterator():
+                yield {
+                    "type": "response.output_item.done",
+                    "item": {
+                        "type": "web_search_call",
+                        "action": {
+                            "type": "search",
+                            "sources": [
+                                {"url": "https://www.youtube.com/watch?v=1"},
+                                {"url": "https://facebook.com/example"},
+                            ],
+                        },
+                        "query": "quantivity",
+                    },
+                }
+                yield {
+                    "type": "response.completed",
+                    "response": {
+                        "output": [
+                            {
+                                "type": "message",
+                                "content": [
+                                    {
+                                        "type": "output_text",
+                                        "text": "done",
+                                    }
+                                ],
+                            }
+                        ],
+                        "status": "completed",
+                    },
+                }
+
+            return iterator()
+
+    async def fake_aresponses(**_kwargs):
+        return _FakeResponsesStream()
+
+    monkeypatch.setattr("backend.src.llm.providers.openai_responses_runtime.litellm.aresponses", fake_aresponses)
+
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.4@@gpt-5-4-none-thinking",
+            messages=[{"role": "user", "content": "Search the web"}],
+            native_web_search_enabled=True,
+            request_id="req-openai-search-1",
+        )
+    )
+
+    assert [type(event).__name__ for event in events] == [
+        "WebSearchProgressEvent",
+        "WebSearchProgressEvent",
+    ]
+    assert [event.text for event in events] == [
+        "Searched youtube.com",
+        "Searched facebook.com",
+    ]
+    assert all(isinstance(event, WebSearchProgressEvent) for event in events)
+    assert all(event.request_id == "req-openai-search-1" for event in events)
 
 
 def test_openai_provider_build_request_params_preserves_browser_root_object_tool_schema():

@@ -10,6 +10,7 @@ export type BackendEventType =
   | 'tool-call'
   | 'tool-output'
   | 'tool-bundle'
+  | 'web-search-progress'
   | 'local-user-message'
   | 'system-prompt'
   | 'user-message-full'
@@ -118,6 +119,14 @@ export type ToolBundleEvent = BackendEventBase<'tool-bundle', {
       };
     };
   }>;
+  }>;
+export type WebSearchProgressEvent = BackendEventBase<'web-search-progress', {
+  text?: string;
+  request_id?: string | null;
+  action_type?: string | null;
+  query?: string | null;
+  url?: string | null;
+  pattern?: string | null;
 }>;
 export type LocalUserMessageEvent = BackendEventBase<'local-user-message', {
   text?: string;
@@ -168,6 +177,7 @@ export type BackendEvent =
   | ToolCallEvent
   | ToolOutputEvent
   | ToolBundleEvent
+  | WebSearchProgressEvent
   | LocalUserMessageEvent
   | SystemPromptEvent
   | UserMessageFullEvent
@@ -187,6 +197,7 @@ const BACKEND_EVENT_TYPES = new Set<BackendEventType>([
   'tool-call',
   'tool-output',
   'tool-bundle',
+  'web-search-progress',
   'local-user-message',
   'system-prompt',
   'user-message-full',

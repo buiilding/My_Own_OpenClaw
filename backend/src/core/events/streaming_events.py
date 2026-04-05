@@ -106,6 +106,20 @@ class ToolOutputEvent(StreamingEvent):
 
 
 @dataclass
+class WebSearchProgressEvent(StreamingEvent):
+    """Event emitted while provider-native web search actions are still running."""
+    text: str
+    request_id: Optional[str] = None
+    action_type: Optional[str] = None
+    query: Optional[str] = None
+    url: Optional[str] = None
+    pattern: Optional[str] = None
+
+    def __post_init__(self):
+        self.type = StreamingEventType.WEB_SEARCH_PROGRESS
+
+
+@dataclass
 class SystemPromptEvent(StreamingEvent):
     """Event emitted with full system prompt sent to LLM."""
     content: str
@@ -245,6 +259,7 @@ AgentStreamingEvent = Union[
     StreamingCompleteEvent,
     ToolCallEvent,
     ToolOutputEvent,
+    WebSearchProgressEvent,
     SystemPromptEvent,
     ToolSchemasEvent,
     UserMessageFullEvent,

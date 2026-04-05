@@ -6,6 +6,7 @@ const AGENT_LOOP_AUTO_SCROLL_MESSAGE_TYPES = new Set([
   'tool-output',
   'tool-explanation',
   'tool-actions-summary',
+  'search-source',
 ]);
 
 export function isNearBottom(element) {

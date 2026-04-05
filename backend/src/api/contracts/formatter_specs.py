@@ -37,6 +37,7 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
         ToolOutputEvent,
         ToolSchemasEvent,
         UserMessageFullEvent,
+        WebSearchProgressEvent,
     )
 
     return (
@@ -75,6 +76,12 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
             StreamingEventType.TOOL_OUTPUT.value,
             formatter_module.ToolOutputEventFormatter,
             OutgoingMessageType.TOOL_OUTPUT,
+        ),
+        (
+            WebSearchProgressEvent,
+            StreamingEventType.WEB_SEARCH_PROGRESS.value,
+            formatter_module.WebSearchProgressEventFormatter,
+            OutgoingMessageType.WEB_SEARCH_PROGRESS,
         ),
         (
             SystemPromptEvent,

@@ -40,6 +40,7 @@ Drift on any one surface can silently drop events (`ResponseFormatter.format(...
 - `StreamingCompleteEvent` -> `streaming-complete` -> `streaming-complete` -> `StreamingComplete`
 - `ToolCallEvent` -> `tool_call` -> `tool-call` -> `ToolCallMessage`
 - `ToolOutputEvent` -> `tool_output` -> `tool-output` -> `ToolOutputMessage`
+- `WebSearchProgressEvent` -> `web_search_progress` -> `web-search-progress` -> `WebSearchProgressMessage`
 - `SystemPromptEvent` -> `system_prompt` -> `system-prompt` -> `SystemPromptMessage`
 - `ToolSchemasEvent` -> `tool_schemas` -> `tool-schemas` -> `ToolSchemasMessage`
 - `UserMessageFullEvent` -> `user_message_full` -> `user-message-full` -> `UserMessageFullMessage`
@@ -58,6 +59,7 @@ Important conversion boundary:
 Examples:
 
 - `tool_call` -> `tool-call`
+- `web_search_progress` -> `web-search-progress`
 - `token_count` -> `token-count`
 - `streaming-complete` remains unchanged
 
@@ -83,10 +85,6 @@ These are intentionally not websocket schema message types.
 - `validate_registry_alignment()` coverage for pass/fail paths
 
 `validate_registry_alignment()` in `registry.py` fails fast when contract tables diverge from canonical message-type constant lists.
-
-## Type-Hint Drift Hotspot
-
-`TokenCountEvent` is registered in formatter specs, but `AgentStreamingEvent` union in `streaming_events.py` currently omits it. Runtime dispatch still works because formatter dispatch is dynamic, but strict typing/document assumptions can drift.
 
 ## Debug Checklist
 

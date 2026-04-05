@@ -69,4 +69,30 @@ describe('messagePresentationPipeline', () => {
       }),
     ]);
   });
+
+  test('keeps live search-source rows visible in overlay and hidden-thread presentation', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Search the web' },
+      {
+        id: 'search-1',
+        sender: 'assistant',
+        type: 'search-source',
+        text: 'Searched youtube.com',
+        sourceEventType: 'web-search-progress',
+      },
+    ];
+
+    expect(buildCurrentTurnResponseOverlayEntries(messages)).toEqual([
+      expect.objectContaining({
+        id: 'search-1',
+        type: 'search-source',
+        text: 'Searched youtube.com',
+      }),
+    ]);
+
+    expect(buildThreadPresentationMessages(messages, {
+      showToolLogs: false,
+      isBusy: true,
+    })).toEqual(messages);
+  });
 });

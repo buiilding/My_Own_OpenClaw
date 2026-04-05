@@ -51,6 +51,7 @@ from backend.src.api.schemas.outgoing import (
     UserMessageFullMessage,
     WakewordActivatedMessage,
     WakewordGreetingMessage,
+    WebSearchProgressMessage,
 )
 
 
@@ -86,6 +87,7 @@ OUTGOING_SCHEMA_CONTRACTS: tuple[MessageContract, ...] = (
     MessageContract(OutgoingMessageType.TOOL_CALL, ToolCallMessage),
     MessageContract(OutgoingMessageType.TOOL_BUNDLE, ToolBundleMessage),
     MessageContract(OutgoingMessageType.TOOL_OUTPUT, ToolOutputMessage),
+    MessageContract(OutgoingMessageType.WEB_SEARCH_PROGRESS, WebSearchProgressMessage),
     MessageContract(OutgoingMessageType.AUDIO_CHUNK, AudioChunkMessage),
     MessageContract(OutgoingMessageType.WAKEWORD_ACTIVATED, WakewordActivatedMessage),
     MessageContract(OutgoingMessageType.WAKEWORD_GREETING, WakewordGreetingMessage),

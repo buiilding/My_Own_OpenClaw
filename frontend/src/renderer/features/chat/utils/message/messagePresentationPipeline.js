@@ -77,6 +77,25 @@ function buildToolActionsSummaryMessage(pendingSummary, summaryIndex) {
 }
 
 function queueToolMessageEntries(entries, message) {
+  if (message?.type === 'search-source') {
+    const entryText = normalizeText(message.text);
+    if (!entryText) {
+      return;
+    }
+    entries.push({
+      id: message.id,
+      text: message.text,
+      sender: 'assistant',
+      type: 'search-source',
+      sourceEventType: message.sourceEventType || null,
+      sourceChannel: message.sourceChannel || null,
+      turnRef: message.turnRef,
+      modelId: message.modelId || null,
+      modelProvider: message.modelProvider || null,
+    });
+    return;
+  }
+
   if (message?.type !== 'tool-call') {
     return;
   }
@@ -179,6 +198,12 @@ export function buildThreadPresentationMessages(
     }
 
     if (message?.type === 'tool-output') {
+      return;
+    }
+
+    if (message?.type === 'search-source') {
+      flushPendingSummary();
+      renderedMessages.push(message);
       return;
     }
 

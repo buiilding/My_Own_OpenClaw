@@ -247,7 +247,7 @@ class LiteLLMClient(LLMClient):
         request_kwargs: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Build provider transport kwargs from caller-supplied request options."""
-        return self._build_request_kwargs(
+        transport_kwargs = self._build_request_kwargs(
             tools=request_kwargs.get("tools"),
             tool_choice=request_kwargs.get("tool_choice"),
             parallel_tool_calls=request_kwargs.get("parallel_tool_calls"),
@@ -255,6 +255,10 @@ class LiteLLMClient(LLMClient):
             max_output_tokens=request_kwargs.get("max_output_tokens"),
             native_web_search_enabled=request_kwargs.get("native_web_search_enabled"),
         )
+        request_id = request_kwargs.get("request_id")
+        if request_id is not None:
+            transport_kwargs["request_id"] = request_id
+        return transport_kwargs
 
     async def get_completion_response(
         self,
