@@ -137,12 +137,12 @@ Visibility behavior:
 
 ## Focus and Foreground Behavior
 
-Windows-specific external focus tracking:
+Overlay focus behavior is now the same on every desktop OS:
 
-- before chat overlay focus, app snapshots external focused window id/title via `node-window-manager`
-- pre-capture hook (`prepareOverlayQueryCaptureFocus`) only blurs app windows and waits `120ms`
-- interactive tool-run focus prep now passes `skipDemotion=true`, so overlay focus handoff avoids hide/show demotion flicker and relies on explicit click-through + non-focusable toggles
-- used before overlay query capture path to avoid self-capture interference
+- `prepareOverlayQueryCaptureFocus` only blurs WindieOS windows and waits `120ms`
+- there is no external-app snapshot/restore handoff path in the send/capture runtime
+- interactive tool-run focus prep still passes `skipDemotion=true`, so overlay prep avoids hide/show demotion flicker and relies on explicit click-through + non-focusable toggles
+- the pre-capture hook exists only to reduce self-capture interference before query screenshot/system-state collection
 
 `showChatWindow({focus})` behavior:
 

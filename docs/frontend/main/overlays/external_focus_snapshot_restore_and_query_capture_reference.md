@@ -1,57 +1,27 @@
 ---
-summary: "Deep reference for external focus snapshot/restore in Electron main and pre-capture overlay blur/demotion flow before query screenshot and system-state collection."
+summary: "Deep reference for the current overlay query-capture blur/settle flow before query screenshot and system-state collection."
 read_when:
   - When changing `showChatWindow` focus behavior or overlay query capture timing.
   - When debugging screenshots that capture WindieOS windows instead of target external apps.
-title: "External Focus Snapshot, Restore, and Query-Capture Reference"
+title: "Overlay Query-Capture Blur and Settle Reference"
 ---
 
-# External Focus Snapshot, Restore, and Query-Capture Reference
+# Overlay Query-Capture Blur and Settle Reference
 
 ## Canonical Modules
 
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/external_focus_tracker.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
+- `frontend/src/main/main_window_runtime.cjs`
 
 ## Platform Scope
 
-Native external-window snapshot/restore via `node-window-manager` is active only on Windows (`process.platform === "win32"`).
+Overlay query-capture prep is now platform-consistent:
 
-Non-Windows behavior:
-
-- snapshot/restore helpers return early
-- capture prep now performs overlay demotion fallback (`hide` -> short settle -> `showInactive`) so WindieOS windows do not remain focused before query capture
-
-## Snapshot Contract
-
-`capturePreviousExternalFocusedWindow()` (from `createExternalFocusTracker(...)`):
-
-1. reads active native window via `node-window-manager`
-2. ignores empty titles
-3. ignores titles matching WindieOS app markers:
-   - `"windieos"` (current runtime window-title marker)
-   - `"desktop assistant"` (legacy compatibility marker from older builds)
-4. stores:
-   - external window id
-   - exact title fallback
-
-Called from:
-
-- `showChatWindow(...)` before chat window visibility/focus transitions (including `focus=false`)
-
-## Restore Contract
-
-`restorePreviousExternalFocusedWindow()` (from `createExternalFocusTracker(...)`):
-
-1. enumerates windows from `windowManager.getWindows()`
-2. tries id match first
-3. falls back to exact title match
-4. if match has `bringToTop()`, calls it and returns true
-5. on failure, logs warning and returns false
-
-Restoration is best effort and non-fatal.
+- no native external-window snapshot/restore path
+- no `node-window-manager` dependency
+- send/capture prep is blur-only plus a short settle delay before capture continues
 
 ## Query-Capture Pre-Focus Hook
 
@@ -59,18 +29,15 @@ Restoration is best effort and non-fatal.
 
 1. blur `chatWindow` when available
 2. blur `mainWindow` when available
-3. check `externalFocusTracker.canTrackExternalFocus()` capability
-4. attempt external focus restore when capability is available
-5. when restore is unavailable, demote overlay windows without stealing focus (`responseWindow`, `chatWindow`)
-6. verify restored external focus only when capability + restore both succeed
-7. otherwise wait settle duration (`120ms` default) without verification
+3. blur `responseWindow` when available
+4. wait settle duration (`120ms` default)
 
 This hook is registered into IPC init as `onBeforeOverlayQueryCapture`.
 
 Intent:
 
 - reduce chance of capturing WindieOS overlay/main windows in screenshot query path
-- give compositor/focus stack time to settle before system-state capture runs
+- give compositor/focus stack time to settle before system-state capture runs without trying to foreground another app
 
 ## Integration with Query Send Pipeline
 
@@ -78,26 +45,25 @@ Main process query relay flow calls the hook before capture-enriched query send 
 
 Coupled behavior:
 
-- overlay chat UI can remain visible while focus temporarily hops to external app (or is demoted off overlay windows on non-Windows)
+- overlay chat UI can remain visible without any cross-app focus handoff
 - query-time system state and screenshot capture are less likely to sample WindieOS windows as active
 
 ## Drift Hotspots
 
-1. changing app title markers without keeping the internal title-match helper logic aligned
-2. removing settle delay and causing intermittent self-capture
-3. snapshotting only id without title fallback (window id can be stale)
-4. calling restore before windows are blurred
+1. removing settle delay and causing intermittent self-capture
+2. reintroducing platform-specific focus-restore behavior into the shared send path
+3. changing the blur target list without updating tests/docs for the capture hook
 
 ## Debug Checklist
 
-If overlay captures itself in screenshot path on Windows:
+If overlay captures itself in screenshot path:
 
 1. verify `onBeforeOverlayQueryCapture` callback is wired in IPC init
-2. verify snapshot fields (`lastExternalFocusedWindowId/title`) were populated before focus shift
-3. inspect warnings from restore helper for `node-window-manager` failures
+2. verify the visible WindieOS windows expose `blur()` and the hook is calling them
+3. verify the settle delay is still present in the hook path before capture continues
 
 If chatbox focus behavior regresses after toggle:
 
-1. inspect `showChatWindow({focus:true})` ordering (snapshot then focus)
-2. verify restore only runs in pre-capture hook, not in normal show flow
-3. verify app-window title marker list still matches active app window titles
+1. inspect `showChatWindow({focus:true})` ordering
+2. verify `showChatWindow({focus:false})` still uses non-activating show when available
+3. verify no new external-app focus restore path was introduced into normal show/send flow

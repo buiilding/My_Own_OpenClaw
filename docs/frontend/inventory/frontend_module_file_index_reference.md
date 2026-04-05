@@ -50,7 +50,6 @@ Overlay/window control helpers:
 - `frontend/src/main/response_overlay_phase_handler.cjs`
 - `frontend/src/main/main_window_controls_handler.cjs`
 - `frontend/src/main/display_query_handler.cjs`
-- `frontend/src/main/external_focus_tracker.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 
 Bridge/support modules:

@@ -59,7 +59,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [Shell Tool Chrome Command Test Harness Runtime Reference](main/testing/shell_tool_chrome_command_test_harness_runtime_reference.md)
 - [Mock Memory Seed Script and NPM Entrypoints Reference](main/testing/data_seed/mock_memory_seed_script_and_npm_entrypoints_reference.md)
-- [External Focus Snapshot, Restore, and Query-Capture Reference](main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
+- [Overlay Query-Capture Blur and Settle Reference](main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
 - [Linux Screenshot Window Visibility Runtime Dispatch Reference](main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
 - [Permission Manifest, Probe, and IPC Request Contract Reference](main/permission_manifest_probe_and_request_ipc_reference.md)
 

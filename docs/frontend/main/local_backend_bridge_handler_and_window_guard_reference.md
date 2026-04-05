@@ -26,7 +26,7 @@ This page is the entrypoint for Electron-main local-backend bridge behavior. Det
 
 - [Main Overlay Focus Docs Hub](overlays/README.md)
 - [Linux Screenshot Window Visibility Runtime Dispatch Reference](overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
-- [External Focus Snapshot, Restore, and Query-Capture Reference](overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
+- [Overlay Query-Capture Blur and Settle Reference](overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
 
 ## Bridge Boundary (Condensed)
 

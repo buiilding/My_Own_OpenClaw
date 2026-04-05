@@ -267,7 +267,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Local Backend Bridge Overview + Window Guard Index](../frontend/main/local_backend_bridge_handler_and_window_guard_reference.md)
 - [Frontend Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](../frontend/main/local_backend/process_lifecycle_readiness_and_request_correlation_reference.md)
 - [Frontend Local-Backend RPC Handler Registry and Payload-Mapper Reference](../frontend/main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
-- [Frontend External Focus Snapshot, Restore, and Query-Capture Reference](../frontend/main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
+- [Frontend Overlay Query-Capture Blur and Settle Reference](../frontend/main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
 - [Frontend Linux Screenshot Window Hide and Restore Guard Reference](../frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
 - [Frontend Preload Channel Allowlist + Renderer Bridge Reference](../frontend/preload/preload_channel_allowlist_and_renderer_bridge_reference.md)
 - [Frontend Stream State Machine](../frontend/runtime/stream_event_state_machine.md)

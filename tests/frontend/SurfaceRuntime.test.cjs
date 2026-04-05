@@ -5,7 +5,6 @@ const { createSurfaceRuntime } = require('../../frontend/src/main/surface_runtim
 function createSurfaceDeps() {
   return {
     screen: {},
-    externalFocusTracker: {},
     getActiveDisplayAffinity: jest.fn(() => null),
     setActiveDisplayAffinity: jest.fn(),
     syncActiveDisplayAffinityForWindow: jest.fn(),

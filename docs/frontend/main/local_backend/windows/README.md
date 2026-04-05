@@ -15,7 +15,7 @@ title: "Frontend Main Local-Backend Windows Docs Hub"
 
 - [Frontend Main Local-Backend Docs Hub](../README.md)
 - [Linux Screenshot Window Visibility Runtime Dispatch Reference](../../overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
-- [External Focus Snapshot, Restore, and Query-Capture Reference](../../overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
+- [Overlay Query-Capture Blur and Settle Reference](../../overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
 
 ## Code Scope
 

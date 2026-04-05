@@ -216,7 +216,6 @@ function createChatWindow({
   positionChatWindow,
   hideChatWindow,
   syncWakewordToggleForChatVisibility,
-  externalFocusTracker,
   setChatWindow,
   applyOverlayWindowPolicy = null,
   syncWindowDisplayAffinity = () => {},
@@ -282,15 +281,6 @@ function createChatWindow({
 
   chatWindow.on('move', () => {
     syncWindowDisplayAffinity(chatWindow);
-  });
-
-  chatWindow.on('blur', () => {
-    if (typeof externalFocusTracker?.capturePreviousExternalFocusedWindow !== 'function') {
-      return;
-    }
-    setTimeout(() => {
-      externalFocusTracker.capturePreviousExternalFocusedWindow();
-    }, 30);
   });
 
   return chatWindow;

@@ -50,7 +50,7 @@ Capabilities:
 - Maintains response-overlay phase machine and visibility broadcasts across windows.
 - Maintains overlay bounds, top-most order, click-through policy, and fallback positioning.
 - Supports wakeword hotkey toggle and wakeword STT trigger relays.
-- Preserves/restores external focused window around overlay query capture.
+- Uses blur-only overlay query-capture prep instead of cross-app focus restoration.
 - Gates VM mode/worker mode from env and starts an automated VM worker runtime loop when enabled.
 
 ## 2) Main IPC + Backend Relay

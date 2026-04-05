@@ -33,17 +33,13 @@ function createWindow({
 }
 
 describe('window_visibility_runtime showChatWindow', () => {
-  test('captures previous external focus even when focus is false', () => {
+  test('uses a non-focusing show when focus is false', () => {
     const chatWindow = createWindow({ visible: false });
-    const externalFocusTracker = {
-      capturePreviousExternalFocusedWindow: jest.fn(),
-    };
 
     const result = showChatWindow(
       { focus: false },
       {
         chatWindow,
-        externalFocusTracker,
         syncWindowDisplayAffinity: jest.fn(),
         syncChatboxHitTestState: jest.fn(),
         syncWakewordToggleForChatVisibility: jest.fn(),
@@ -51,7 +47,6 @@ describe('window_visibility_runtime showChatWindow', () => {
     );
 
     expect(result).toEqual({ success: true });
-    expect(externalFocusTracker.capturePreviousExternalFocusedWindow).toHaveBeenCalledTimes(1);
     expect(chatWindow.showInactive).toHaveBeenCalledTimes(1);
     expect(chatWindow.show).not.toHaveBeenCalled();
     expect(chatWindow.focus).not.toHaveBeenCalled();
@@ -63,9 +58,6 @@ describe('window_visibility_runtime showChatWindow', () => {
     const positionChatWindow = jest.fn();
     const setActiveDisplayAffinity = jest.fn();
     const syncChatboxHitTestState = jest.fn();
-    const externalFocusTracker = {
-      capturePreviousExternalFocusedWindow: jest.fn(),
-    };
 
     const result = showChatWindow(
       {
@@ -78,7 +70,6 @@ describe('window_visibility_runtime showChatWindow', () => {
       },
       {
         chatWindow,
-        externalFocusTracker,
         positionChatWindow,
         setActiveDisplayAffinity,
         syncChatboxHitTestState,
@@ -134,15 +125,11 @@ describe('window_visibility_runtime showChatWindow', () => {
     const chatWindow = createWindow({ visible: false });
     chatWindow.showInactive = undefined;
     const syncWindowDisplayAffinity = jest.fn();
-    const externalFocusTracker = {
-      capturePreviousExternalFocusedWindow: jest.fn(),
-    };
 
     const result = showChatWindow(
       { focus: false },
       {
         chatWindow,
-        externalFocusTracker,
         syncWindowDisplayAffinity,
         syncWakewordToggleForChatVisibility: jest.fn(),
       },
@@ -157,22 +144,17 @@ describe('window_visibility_runtime showChatWindow', () => {
   test('still focuses and emits chatbox-focus when focus is true', () => {
     const chatWindow = createWindow({ visible: true });
     const syncWindowDisplayAffinity = jest.fn();
-    const externalFocusTracker = {
-      capturePreviousExternalFocusedWindow: jest.fn(),
-    };
 
     const result = showChatWindow(
       { focus: true },
       {
         chatWindow,
-        externalFocusTracker,
         syncWindowDisplayAffinity,
         syncWakewordToggleForChatVisibility: jest.fn(),
       },
     );
 
     expect(result).toEqual({ success: true });
-    expect(externalFocusTracker.capturePreviousExternalFocusedWindow).toHaveBeenCalledTimes(1);
     expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(chatWindow);
     expect(chatWindow.focus).toHaveBeenCalledTimes(1);
     expect(chatWindow.webContents.send).toHaveBeenCalledWith('chatbox-focus');

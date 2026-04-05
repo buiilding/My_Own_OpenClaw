@@ -62,7 +62,6 @@ describe('main_process_bootstrap_runtime', () => {
         setResponseOverlayVisibilityState: jest.fn(),
         enableContentProtectionSafely: jest.fn(),
         syncWindowDisplayAffinity: jest.fn(),
-        externalFocusTracker: {},
         getState: () => state,
         setMainWindow: jest.fn((nextWindow) => {
           state.windows.mainWindow = nextWindow;

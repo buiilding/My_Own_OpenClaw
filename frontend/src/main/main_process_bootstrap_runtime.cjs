@@ -58,7 +58,6 @@ function createWindowBootstrapRuntime(deps) {
       positionChatWindow: deps.positionChatWindow,
       hideChatWindow: deps.hideChatWindow,
       syncWakewordToggleForChatVisibility: deps.syncWakewordToggleForChatVisibility,
-      externalFocusTracker: deps.externalFocusTracker,
       setChatWindow: deps.setChatWindow,
       applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,

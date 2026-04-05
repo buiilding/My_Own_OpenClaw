@@ -41,7 +41,6 @@ const {
   warmBrowserAutomation,
 } = require('./local_backend_bridge.cjs');
 const { createVmWorkerRuntime } = require('./vm_worker_runtime.cjs');
-const { createExternalFocusTracker } = require('./external_focus_tracker.cjs');
 const {
   createChatWindow: createChatWindowRuntime,
   createMainWindow: createMainWindowRuntime,
@@ -76,12 +75,6 @@ const {
 } = require('./agent_stop_shortcut_runtime.cjs');
 const { createWindowPlatformPolicy } = require('./window_platform_policy.cjs');
 const { createSurfaceRuntime } = require('./surface_runtime.cjs');
-let windowManager = null;
-try {
-  ({ windowManager } = require('node-window-manager'));
-} catch (_error) {
-  windowManager = null;
-}
 
 configureGpuRuntime({ app, env: process.env });
 
@@ -97,7 +90,6 @@ const CONTEXT_LABEL_GAP_ABOVE_CHATBOX = -6;
 const RESPONSE_OVERLAY_CHAT_GAP = 8;
 const CHATBOX_VISUAL_ANCHOR_HEIGHT = 64;
 const RESPONSE_OVERLAY_PHASE = createResponseOverlayPhaseEnum();
-const APP_WINDOW_TITLE_MARKERS = ['desktop assistant', 'windieos'];
 const ENABLE_OS_TOOL_GHOST_DEBUG = process.env.WINDIE_DEBUG_GHOST_OVERLAY === '1';
 const ENABLE_DEV_TRANSPARENCY_UI = process.env.WINDIE_DEV_UI === '1';
 const ENABLE_DEBUG_STREAM_TRACE = process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
@@ -120,19 +112,12 @@ const agentStopShortcutRuntime = initializeAgentStopShortcutRuntime({
   warn: console.warn,
 });
 updateGlobalAgentStopShortcutStatus(agentStopShortcutRuntime.getStatus());
-const externalFocusTracker = createExternalFocusTracker({
-  getPlatform: () => process.platform,
-  windowManager,
-  appWindowTitleMarkers: APP_WINDOW_TITLE_MARKERS,
-  warn: (...args) => console.warn(...args),
-});
 const windowPlatformPolicy = createWindowPlatformPolicy({
   platform: process.platform,
   warn: console.warn,
 });
 const surfaceRuntime = createSurfaceRuntime({
   screen,
-  externalFocusTracker,
   getActiveDisplayAffinity: getActiveDisplayAffinityRuntime,
   setActiveDisplayAffinity: setActiveDisplayAffinityRuntime,
   syncActiveDisplayAffinityForWindow: syncActiveDisplayAffinityForWindowRuntime,
@@ -212,7 +197,6 @@ const {
   enableContentProtectionSafely: surfaceRuntime.enableContentProtectionSafely,
   applyOverlayWindowPolicy: surfaceRuntime.applyOverlayWindowPolicy,
   syncWindowDisplayAffinity: surfaceRuntime.syncWindowDisplayAffinity,
-  externalFocusTracker,
   getState: surfaceRuntime.getState,
   setMainWindow: surfaceRuntime.setMainWindow,
   setChatWindow: surfaceRuntime.setChatWindow,
