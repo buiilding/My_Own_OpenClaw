@@ -219,7 +219,6 @@ class TestAppConfig:
         assert config.provider_oauth.openai_codex.access_token == ""
         assert config.brave_search.api_key_env == "BRAVE_SEARCH_API_KEY"
         assert config.stt_provider == "openai"
-        assert config.openai_realtime_session_model == "gpt-realtime-1.5"
         assert config.openai_realtime_transcription_model == "gpt-4o-transcribe"
         assert config.wakeword_enabled is True
         assert config.wakeword_phrase == "hey jarvis"

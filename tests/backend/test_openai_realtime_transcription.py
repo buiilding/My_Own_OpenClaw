@@ -22,7 +22,7 @@ class _FakeRealtimeConnection:
 
 
 @pytest.mark.asyncio
-async def test_openai_realtime_connect_includes_model_query_param_and_session_update(
+async def test_openai_realtime_connect_uses_transcription_intent_and_session_update(
     monkeypatch,
 ):
     captured: dict[str, object] = {}
@@ -47,7 +47,7 @@ async def test_openai_realtime_connect_includes_model_query_param_and_session_up
 
     assert (
         captured["url"]
-        == f"{OPENAI_REALTIME_URL}?model=gpt-realtime-1.5"
+        == f"{OPENAI_REALTIME_URL}?intent=transcription"
     )
     assert captured["extra_headers"] == {
         "Authorization": "Bearer test-openai-key",
@@ -56,6 +56,7 @@ async def test_openai_realtime_connect_includes_model_query_param_and_session_up
         {
             "type": "session.update",
             "session": {
+                "type": "transcription",
                 "audio": {
                     "input": {
                         "format": {

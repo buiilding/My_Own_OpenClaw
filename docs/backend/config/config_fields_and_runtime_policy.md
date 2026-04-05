@@ -90,7 +90,6 @@ Execution/event semantics for these fields (decision skip reasons, trigger fallb
 | `stt_provider` | `"nova" \| "openai"` | `"openai"` | Backend-owned transcription provider behind the local `/ws/transcription` route. |
 | `stt_language` | `str` | `"en"` | Default transcription language hint applied by backend-owned STT sessions. |
 | `nova_voice_gateway_url` | `str` | `"ws://127.0.0.1:5026"` | External Nova-Voice gateway URL used when `stt_provider="nova"`. |
-| `openai_realtime_session_model` | `str` | `"gpt-realtime-1.5"` | Realtime session model used in the OpenAI websocket URL when `stt_provider="openai"`. |
 | `openai_realtime_transcription_model` | `str` | `"gpt-4o-transcribe"` | Default OpenAI realtime transcription model used when `stt_provider="openai"`. |
 | `stt_vad_threshold` | `float` | `0.5` | Backend-owned server-VAD activation threshold for realtime transcription sessions. |
 | `stt_vad_prefix_padding_ms` | `int` | `300` | Backend-owned VAD prefix padding for realtime transcription sessions. |
