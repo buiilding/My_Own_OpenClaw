@@ -11,6 +11,9 @@ const {
   getActiveDisplayAffinity,
   setActiveDisplayAffinity,
 } = require('../../frontend/src/main/display_affinity_runtime.cjs');
+const {
+  BACKEND_RECONNECT_INTERVAL_MS,
+} = require('../../frontend/src/main/ipc.cjs');
 
 describe('ipc.cjs bridge lifecycle/config', () => {
   registerBridgeSuiteLifecycleHooks();
@@ -207,6 +210,8 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     const { ws } = setupOpenedIpc();
 
     ws.handlers.close();
+
+    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), BACKEND_RECONNECT_INTERVAL_MS);
 
     expect(getActiveDisplayAffinity()).toEqual({
       monitor_id: '2',

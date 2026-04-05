@@ -5,6 +5,9 @@ const {
   primeQueryContext,
   registerBridgeSuiteLifecycleHooks,
 } = require('./__mocks__/ipcMainBridgeHarness.cjs');
+const {
+  BACKEND_RECONNECT_INTERVAL_MS,
+} = require('../../frontend/src/main/ipc.cjs');
 
 describe('ipc.cjs bridge query handling', () => {
   registerBridgeSuiteLifecycleHooks();
@@ -646,7 +649,7 @@ describe('ipc.cjs bridge query handling', () => {
 
       ws.readyState = 3;
       ws.handlers.close();
-      jest.advanceTimersByTime(5000);
+      jest.advanceTimersByTime(BACKEND_RECONNECT_INTERVAL_MS);
 
       const WebSocketMock = require('ws');
       const reconnectedSocket = WebSocketMock.instances[1];

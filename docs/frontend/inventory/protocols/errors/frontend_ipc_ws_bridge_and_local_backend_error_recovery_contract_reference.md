@@ -61,7 +61,7 @@ On websocket close:
 4. preserves active display-affinity cache for reconnect-time monitor continuity
 5. forces overlay phase `idle`
 6. broadcasts `ipc-status` disconnected
-7. schedules reconnect in `5000ms`
+7. schedules reconnect in `1000ms`
 
 On websocket error while open:
 

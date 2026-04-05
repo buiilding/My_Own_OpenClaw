@@ -16,6 +16,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 - fix(openai-stt-transcription-session-connect): stop opening OpenAI STT over the normal `?model=...` realtime websocket path, which creates the wrong session type and rejects transcription updates; connect with `?intent=transcription` instead, remove the now-unused session-model config, and keep focused transcription/config coverage aligned with the working contract validated against OpenAI.
+- fix(frontend-main-backend-reconnect): shorten the Electron main-process backend websocket reconnect delay from 5 seconds to 1 second, export the shared reconnect constant for focused bridge coverage, and update the reconnect lifecycle docs to match the faster retry contract.
 - docs(transient-stt-runtime): update the API and renderer voice references to document the dedicated `/ws/transcription` protocol, the transient composer microphone flow that keeps dictated text for manual send, and the OpenAI realtime session-model vs transcription-model split.
 - docs(repo-instructions-commit-rule): clarify in `AGENTS.md` that file changes should be committed before handing the turn back unless the user explicitly says not to commit.
 - docs(browser-header-runtime): document the shared renderer browser-session/local-backend runtime stores, the header control's startup `Starting browser...` state, internal-only tab switching, live carousel refresh, and the non-flashing tab-switch behavior.

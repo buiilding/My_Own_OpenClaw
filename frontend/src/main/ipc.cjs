@@ -91,10 +91,10 @@ let BACKEND_HTTP_URL = BACKEND_ENDPOINTS.httpUrl;
 let BACKEND_ENDPOINT_CANDIDATES = [BACKEND_ENDPOINTS];
 let activeBackendEndpointIndex = 0;
 const SETTINGS_SYNC_TIMEOUT_MS = 2500;
+const BACKEND_RECONNECT_INTERVAL_MS = 1000;
 let ws = null;
 let rendererWindows = new Set();
 let isConnected = false;
-let reconnectInterval = 5000;
 let isFirstQuery = true;
 let currentUserId = null;
 let currentSessionId = null;
@@ -476,7 +476,7 @@ function connect() {
     log('Disconnected from Python backend. Attempting to reconnect...');
     broadcastConnectionStatus(false);
     ws = null;
-    setTimeout(connect, reconnectInterval);
+    setTimeout(connect, BACKEND_RECONNECT_INTERVAL_MS);
   });
 
   socket.on('error', (error) => {
@@ -895,6 +895,7 @@ async function sendAutomatedQuery(options = {}) {
 }
 
 module.exports = {
+  BACKEND_RECONNECT_INTERVAL_MS,
   getBackendConnectionState,
   getLatestFrontendConfig,
   initializeIpc,

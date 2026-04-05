@@ -79,7 +79,7 @@ On close:
 5. clear turn replay buffer
 6. if the socket never opened and another candidate endpoint exists, promote the next candidate immediately
 7. otherwise broadcast disconnected status
-8. schedule reconnect after `reconnectInterval` (5s)
+8. schedule reconnect after `BACKEND_RECONNECT_INTERVAL_MS` (`1000ms`) so backend restarts are detected quickly
 
 ## Identity and Session Context Tracking
 
