@@ -96,18 +96,33 @@ class WindowsWindowManager(BaseWindowManager):
         
         return None
     
-    def switch_to_window(self, window_title: str) -> bool:
-        """Switch to a window by title."""
+    def switch_to_window(self, window_target: str | dict) -> bool:
+        """Switch to a window by title or resolved window record."""
         if not self._available:
             return False
         
         windows = self.get_windows()
         target = None
-        
-        for window in windows:
-            if window_title.lower() in window["title"].lower():
-                target = window
-                break
+
+        if isinstance(window_target, dict):
+            requested_hwnd = window_target.get("hwnd")
+            if requested_hwnd is not None:
+                for window in windows:
+                    if int(window["hwnd"]) == int(requested_hwnd):
+                        target = window
+                        break
+            if target is None:
+                requested_title = str(window_target.get("title") or "").strip()
+                for window in windows:
+                    if requested_title and requested_title.lower() in window["title"].lower():
+                        target = window
+                        break
+        else:
+            requested_title = str(window_target or "").strip()
+            for window in windows:
+                if requested_title.lower() in window["title"].lower():
+                    target = window
+                    break
         
         if not target:
             return False

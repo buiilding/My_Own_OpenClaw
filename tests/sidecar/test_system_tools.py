@@ -147,6 +147,44 @@ async def test_switch_to_window_supports_regex_match_mode(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_switch_to_window_supports_duplicate_display_labels(monkeypatch):
+    manager = FakeWindowManager(
+        windows=[
+            {
+                "title": "New Tab - Google Chrome",
+                "app_name": "Google Chrome",
+                "hwnd": 11,
+            },
+            {
+                "title": "New Tab - Google Chrome",
+                "app_name": "Google Chrome",
+                "hwnd": 22,
+            },
+        ],
+        switch_result=True,
+    )
+    monkeypatch.setattr(window_tool, "_window_manager", manager)
+
+    result = await window_tool.switch_to_window(
+        {"tab_name": "Google Chrome: New Tab - Google Chrome (2)"}
+    )
+
+    assert result["success"] is True
+    assert result["data"]["tab_name"] == "Google Chrome: New Tab - Google Chrome (2)"
+    assert manager.switch_calls == [
+        {
+            "title": "New Tab - Google Chrome",
+            "app_name": "Google Chrome",
+            "hwnd": 22,
+            "window_name": "New Tab - Google Chrome",
+            "_switch_duplicate_index": 2,
+            "_switch_duplicate_total": 2,
+            "_switch_display_label": "Google Chrome: New Tab - Google Chrome (2)",
+        }
+    ]
+
+
+@pytest.mark.asyncio
 async def test_get_open_windows_prefers_app_names_and_includes_titles(monkeypatch):
     manager = FakeWindowManager(
         windows=[

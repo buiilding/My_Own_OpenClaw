@@ -75,7 +75,9 @@ Input:
 Semantics:
 
 - missing `tab_name` returns `{success: false, error: "tab_name is required"}`
-- delegates to `manager.switch_to_window(tab_name)`
+- exact numbered labels from `get_open_windows` such as `Google Chrome: New Tab - Google Chrome (2)` now resolve back to the selected underlying window instead of collapsing to the raw duplicate title again before activation
+- duplicate-label selection is carried through to the platform window manager as a resolved window record; Windows/Linux prefer the exact window handle when present, and macOS raises the matching duplicate window by ordinal within the app when multiple windows share the same title
+- otherwise delegates to `manager.switch_to_window(tab_name)`
 - on macOS, app-level entries from `get_open_windows` now verify success by active app match when the target entry is the app name rather than a specific window title, so entries like `Finder` do not fail just because the focused Finder window title is `Downloads`
 - `False` return becomes a user-facing guidance error that recommends using exact title from `get_open_windows`
 - unexpected exceptions are wrapped as `Tab switching operation failed: ...`
