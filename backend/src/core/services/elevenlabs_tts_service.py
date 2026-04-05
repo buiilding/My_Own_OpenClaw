@@ -103,7 +103,7 @@ class ElevenLabsTTSService:
         self._processing_complete.clear()
         try:
             if self._websocket is not None:
-                await self._websocket.send(json.dumps({"text": ""}))
+                await self._websocket.send(json.dumps({"text": "", "flush": True}))
             self._eos_sent = True
             await asyncio.wait_for(self._processing_complete.wait(), timeout=5.0)
         except asyncio.TimeoutError:
@@ -141,6 +141,8 @@ class ElevenLabsTTSService:
             {
                 "model_id": self.config.elevenlabs_model_id,
                 "output_format": self.config.elevenlabs_output_format,
+                "auto_mode": str(self.config.elevenlabs_auto_mode).lower(),
+                "inactivity_timeout": self.config.elevenlabs_inactivity_timeout,
             }
         )
         return (
@@ -149,15 +151,17 @@ class ElevenLabsTTSService:
         )
 
     def _build_initial_message(self, api_key: str) -> Dict[str, Any]:
-        return {
+        message: Dict[str, Any] = {
             "text": " ",
-            "generation_config": {
+            "xi_api_key": api_key,
+        }
+        if not self.config.elevenlabs_auto_mode:
+            message["generation_config"] = {
                 "chunk_length_schedule": list(
                     self.config.elevenlabs_chunk_length_schedule
                 ),
-            },
-            "xi_api_key": api_key,
-        }
+            }
+        return message
 
     def _resolve_api_key(self) -> str:
         return os.getenv(self.config.elevenlabs_api_key_env, "").strip()
@@ -188,7 +192,7 @@ class ElevenLabsTTSService:
             return
 
         payload: Dict[str, Any] = {"text": normalized_text}
-        if try_trigger_generation:
+        if try_trigger_generation and not self.config.elevenlabs_auto_mode:
             payload["try_trigger_generation"] = True
         await self._websocket.send(json.dumps(payload))
 

@@ -276,7 +276,7 @@ class AppConfig(BaseModel):
 
     # Voice Mode Settings
     wakeword_stt_enabled: bool = False
-    stt_provider: Literal["nova", "openai"] = "nova"
+    stt_provider: Literal["nova", "openai"] = "openai"
     stt_language: str = "en"
     nova_voice_gateway_url: str = "ws://127.0.0.1:5026"
     openai_realtime_transcription_model: str = "gpt-4o-mini-transcribe"
@@ -313,6 +313,8 @@ class AppConfig(BaseModel):
     elevenlabs_voice_id: str = "EXAVITQu4vr4xnSDxMaL"
     elevenlabs_model_id: str = "eleven_flash_v2_5"
     elevenlabs_output_format: str = "pcm_16000"
+    elevenlabs_auto_mode: bool = True
+    elevenlabs_inactivity_timeout: int = 60
     elevenlabs_chunk_length_schedule: List[int] = Field(
         default_factory=lambda: [50, 80, 120, 160]
     )

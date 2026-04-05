@@ -218,6 +218,8 @@ class TestAppConfig:
         assert config.provider_oauth.openai_codex.connected is False
         assert config.provider_oauth.openai_codex.access_token == ""
         assert config.brave_search.api_key_env == "BRAVE_SEARCH_API_KEY"
+        assert config.stt_provider == "openai"
+        assert config.openai_realtime_transcription_model == "gpt-4o-mini-transcribe"
         assert config.wakeword_enabled is True
         assert config.wakeword_phrase == "hey jarvis"
         assert len(config.wakeword_greetings) == 5
@@ -228,6 +230,8 @@ class TestAppConfig:
         assert config.elevenlabs_voice_id == "EXAVITQu4vr4xnSDxMaL"
         assert config.elevenlabs_model_id == "eleven_flash_v2_5"
         assert config.elevenlabs_output_format == "pcm_16000"
+        assert config.elevenlabs_auto_mode is True
+        assert config.elevenlabs_inactivity_timeout == 60
         assert config.elevenlabs_chunk_length_schedule == [50, 80, 120, 160]
         assert config.artifact_store_path.endswith("artifacts")
         assert "windieos-artifacts" not in config.artifact_store_path

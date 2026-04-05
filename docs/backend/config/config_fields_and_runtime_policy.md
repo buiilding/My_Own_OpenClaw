@@ -87,7 +87,7 @@ Execution/event semantics for these fields (decision skip reasons, trigger fallb
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `wakeword_stt_enabled` | `bool` | `false` | Enables post-wakeword speech-to-text handoff in frontend query entry flow. |
-| `stt_provider` | `"nova" \| "openai"` | `"nova"` | Backend-owned transcription provider behind the local `/ws/transcription` route. |
+| `stt_provider` | `"nova" \| "openai"` | `"openai"` | Backend-owned transcription provider behind the local `/ws/transcription` route. |
 | `stt_language` | `str` | `"en"` | Default transcription language hint applied by backend-owned STT sessions. |
 | `nova_voice_gateway_url` | `str` | `"ws://127.0.0.1:5026"` | External Nova-Voice gateway URL used when `stt_provider="nova"`. |
 | `openai_realtime_transcription_model` | `str` | `"gpt-4o-mini-transcribe"` | Default OpenAI realtime transcription model used when `stt_provider="openai"`. |
@@ -108,6 +108,9 @@ Execution/event semantics for these fields (decision skip reasons, trigger fallb
 | `elevenlabs_voice_id` | `str` | `"EXAVITQu4vr4xnSDxMaL"` | Default ElevenLabs voice id. |
 | `elevenlabs_model_id` | `str` | `"eleven_flash_v2_5"` | Default ElevenLabs realtime model. |
 | `elevenlabs_output_format` | `str` | `"pcm_16000"` | Output format used by the ElevenLabs websocket provider. |
+| `elevenlabs_auto_mode` | `bool` | `true` | Enables ElevenLabs websocket `auto_mode` so the provider handles low-latency chunk buffering instead of WindieOS sending manual generation triggers on every chunk. |
+| `elevenlabs_inactivity_timeout` | `int` | `60` | ElevenLabs websocket inactivity timeout in seconds for live query/wakeword speech sessions. |
+| `elevenlabs_chunk_length_schedule` | `list[int]` | `[50, 80, 120, 160]` | Manual generation schedule retained for fallback when `elevenlabs_auto_mode` is disabled. |
 
 ### Security/WebSocket/Artifacts
 
