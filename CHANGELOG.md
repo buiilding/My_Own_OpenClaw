@@ -249,6 +249,7 @@ Includes the last 147 commits on `main`.
 - refactor(frontend-ipc-settings-memory-admin): move renderer/preload IPC channel names to a shared registry, split Settings into extracted General/Memory tab modules plus a dedicated memory action hook, centralize active-chat reset logic for new-chat/delete/clear flows, and move sidecar bulk memory/chat reset orchestration into `memory/admin.py`.
 
 ### Fixed
+- docs(get-open-windows-focus-clarity): clarify the backend `get_open_windows` tool schema description so listed windows are not implied to be active or focused, and direct callers to use `switch_window` before assuming shortcuts, clicks, or typing will land in that window.
 - docs(get-open-windows-description): update the backend `get_open_windows` tool description so it emphasizes listing switchable desktop windows and points callers at `switch_window` as the follow-up action.
 - docs(system-prompt-computer-use-focus-sequencing): update the live backend system prompt so computer-use tasks must call `get_open_windows` first and `switch_window` to the intended target before using shortcuts, clicking, or typing; also replace stale `switch_tab` desktop-tool wording in the prompt with `switch_window`.
 - refactor(tool-contract-switch-window): rename the desktop window-focus tool from `switch_tab` to `switch_window` across backend catalog exposure, sidecar registration, capture-policy catalogs, and parity/runtime docs so the live contract uses one window-focused name end to end without a legacy alias.
