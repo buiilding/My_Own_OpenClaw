@@ -153,7 +153,7 @@ frontend/src/renderer/
 │       │   └── VoiceStatus.jsx          # VoiceStatus - Displays voice mode status (recording, error, connected)
 │       │
 │       ├── hooks/                       # Voice business logic hooks
-│       │   ├── useVoiceMode.ts          # useVoiceMode - Manages Nova-Voice Gateway WebSocket connection and audio capture
+│       │   ├── useVoiceMode.ts          # useVoiceMode - Manages backend transcription WebSocket connection and audio capture
 │       │   └── useWakewordDetection.ts  # useWakewordDetection - Manages wakeword detection via openWakeWord (audio capture + IPC)
 │       │
 │       └── utils/                       # Voice utility helpers
@@ -363,7 +363,7 @@ frontend/src/renderer/
            ↓
 2. VOICE MODE HOOK
    └─> features/voice/hooks/useVoiceMode.ts
-       ├─> Connect to Nova-Voice Gateway WebSocket (ws://localhost:5026)
+       ├─> Connect to backend transcription WebSocket (/ws/transcription)
        ├─> Request microphone access (getUserMedia)
        ├─> Create AudioContext and ScriptProcessorNode
        ├─> Capture audio chunks (Float32Array → Int16Array)
@@ -490,7 +490,7 @@ frontend/src/renderer/
 
 11. **Bundle Execution**: Atomic tool bundles executed sequentially with fail-fast behavior
 
-12. **Voice Integration**: Nova-Voice Gateway WebSocket for real-time transcription with utterance end detection
+12. **Voice Integration**: Backend-owned transcription WebSocket for real-time transcription with utterance end detection
 
 13. **Wakeword Detection**: openWakeWord integration via Python subprocess with audio chunk streaming
 
@@ -606,8 +606,8 @@ Tools that automatically capture screenshots and system state:
 
 ## Voice Integration
 
-### Voice Mode (Nova-Voice Gateway)
-- WebSocket connection to `ws://localhost:5026`
+### Voice Mode (Backend Transcription Gateway)
+- WebSocket connection to backend `/ws/transcription`
 - Real-time transcription with incremental updates
 - Utterance end detection (silence) triggers auto-send
 - Audio format: 16kHz, mono, Int16Array PCM

@@ -38,9 +38,10 @@ Frontend-managed settings are filtered through `filterFrontendConfig(...)`:
 - `provider_api_keys`
 - `provider_oauth`
 
-Backend-owned runtime policy is intentionally excluded from this surface:
+Backend-owned speech/transcription runtime policy is intentionally excluded from this surface:
 
 - `speech_provider`
+- `stt_provider`
 
 `global_agent_stop_shortcut` remains frontend-owned and local-only:
 
