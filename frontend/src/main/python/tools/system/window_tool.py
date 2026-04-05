@@ -41,7 +41,7 @@ def _collect_window_display_names(
     filter_text: str = "",
 ) -> list[str]:
     query = str(filter_text or "").strip().lower()
-    display_names: list[str] = []
+    base_display_names: list[str] = []
 
     for window in windows:
         display_name = _get_window_display_name(window)
@@ -59,7 +59,26 @@ def _collect_window_display_names(
             ).lower()
             if query not in candidate_text:
                 continue
-        display_names.append(display_name)
+        base_display_names.append(display_name)
+
+    normalized_counts: dict[str, int] = {}
+    for display_name in base_display_names:
+        normalized_name = display_name.lower()
+        normalized_counts[normalized_name] = (
+            normalized_counts.get(normalized_name, 0) + 1
+        )
+
+    display_names: list[str] = []
+    normalized_seen: dict[str, int] = {}
+    for display_name in base_display_names:
+        normalized_name = display_name.lower()
+        total = normalized_counts.get(normalized_name, 0)
+        index = normalized_seen.get(normalized_name, 0) + 1
+        normalized_seen[normalized_name] = index
+        if total > 1:
+            display_names.append(f"{display_name} ({index})")
+        else:
+            display_names.append(display_name)
 
     return display_names
 

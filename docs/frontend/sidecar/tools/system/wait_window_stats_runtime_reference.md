@@ -92,7 +92,7 @@ Semantics:
 - on macOS, prefers Accessibility window enumeration for regular GUI apps and uses Quartz only as a per-app fallback when Accessibility returns no usable windows
 - on macOS, Quartz fallback only keeps titled windows; unnamed app-owned Quartz surfaces are treated as non-user-facing artifacts rather than promoted back to the bare app name
 - formats entries as `app_name: title` when both exist and differ; otherwise uses whichever one is available
-- removes empty entries while preserving one row per underlying window, even when multiple windows share the same final display string
+- removes empty entries while preserving one row per underlying window; duplicate final display strings are suffixed as ` (1)`, ` (2)`, and so on
 - optional filter is case-insensitive substring match against the displayed app/window name and its raw app/title parts
 - `llm_content` is bullet list (`- <name>`) or `No open windows found.`
 
