@@ -10,8 +10,6 @@ from typing import Any, AsyncGenerator, Dict, Optional
 from urllib.parse import urlencode
 
 from backend.src.core.config import AppConfig
-from backend.src.core.services.tts_buffer import SentenceBuffer
-
 logger = logging.getLogger(__name__)
 
 _DEFAULT_SAMPLE_WIDTH = 2
@@ -32,7 +30,6 @@ class ElevenLabsTTSService:
         self.loop: Optional[asyncio.AbstractEventLoop] = None
         self.running = False
         self.audio_queue: Optional[asyncio.Queue] = None
-        self._buffer = SentenceBuffer(max_size=500, logger=logger)
         self._processing_complete: Optional[asyncio.Event] = None
         self._receiver_task: Optional[asyncio.Task] = None
         self._websocket = None
@@ -85,14 +82,12 @@ class ElevenLabsTTSService:
             await self.audio_queue.put(None)
 
     async def process_text(self, text_chunk: str) -> None:
-        """Send complete sentence chunks to ElevenLabs for streaming speech."""
+        """Stream plain-text chunks to ElevenLabs as soon as they are speakable."""
         if not self.running:
             return
         if self._processing_complete:
             self._processing_complete.clear()
-
-        for sentence in self._buffer.append(text_chunk):
-            await self._send_text_chunk(sentence, try_trigger_generation=True)
+        await self._send_text_chunk(text_chunk, try_trigger_generation=True)
 
     async def flush(self) -> None:
         """Flush pending text and close the current websocket generation."""
@@ -104,10 +99,6 @@ class ElevenLabsTTSService:
             except asyncio.TimeoutError:
                 logger.warning("ElevenLabs flush timeout while waiting for final audio")
             return
-
-        remaining_text = self._buffer.flush()
-        if remaining_text:
-            await self._send_text_chunk(remaining_text, try_trigger_generation=True)
 
         self._processing_complete.clear()
         try:

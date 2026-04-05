@@ -56,6 +56,50 @@ async def test_tts_session_enters_and_starts_streaming_when_service_available():
 
 
 @pytest.mark.asyncio
+async def test_tts_session_defers_elevenlabs_initialize_until_first_text_chunk():
+    class _FakeSpeechService:
+        def __init__(self):
+            self.processed = []
+
+        async def initialize(self):
+            return None
+
+        async def shutdown(self):
+            return None
+
+        async def process_text(self, text):
+            self.processed.append(text)
+
+        async def flush(self):
+            return None
+
+        async def wait_until_finished(self, timeout=10.0):  # noqa: ARG002
+            return True
+
+        async def stream_audio(self):
+            if False:
+                yield None
+
+    service = _FakeSpeechService()
+    audio_task = _DummyTask(done=False)
+    manager = _FakeTTSManager(service=service, audio_task=audio_task)
+    config = AppConfig(speech_mode_enabled=True, speech_provider="elevenlabs")
+    websocket = object()
+
+    session = TTSSession(manager, config, websocket, "msg-lazy")
+    await session.__aenter__()
+
+    assert manager.initialize_calls == []
+    assert session.service is not None
+    assert manager.start_calls == [(session.service, websocket, "msg-lazy")]
+
+    await session.service.process_text("hello")
+
+    assert manager.initialize_calls == [config]
+    assert service.processed == ["hello"]
+
+
+@pytest.mark.asyncio
 async def test_tts_session_enter_skips_streaming_when_service_unavailable():
     manager = _FakeTTSManager(service=None, audio_task=None)
     session = TTSSession(manager, AppConfig(), object(), "msg-2")
