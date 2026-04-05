@@ -312,7 +312,7 @@ describe('useChatStream transcript + event filtering', () => {
     expect(transcriptSpies.updateTranscriptSession).not.toHaveBeenCalled();
   });
 
-  test('handles tool-bundle events without persisting bundle tool-call transcript rows', () => {
+  test('handles tool-bundle events and persists bundle transcript rows', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -332,9 +332,17 @@ describe('useChatStream transcript + event filtering', () => {
       expect.objectContaining({
         sender: 'assistant',
         type: 'tool-call',
+        sourceEventType: 'tool-bundle',
       }),
     );
-    expect(transcriptSpies.recordToolMessage).not.toHaveBeenCalled();
+    expect(transcriptSpies.recordToolMessage).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        messageType: 'tool-bundle',
+        toolName: 'tool-bundle',
+        correlationId: 'bundle-1',
+      }),
+    );
   });
 
   test('ignores non-backend events entirely', () => {

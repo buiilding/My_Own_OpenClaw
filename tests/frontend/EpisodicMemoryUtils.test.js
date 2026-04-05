@@ -77,18 +77,42 @@ describe('episodicMemoryUtils', () => {
   test('parseMemoriesToMessages normalizes tool role and tool-bundle message type', () => {
     const memory = {
       id: 'tool-bundle',
-      content: 'bundle issued',
+      content: '{"bundle_id":"bundle-1","tools":[{"name":"keyboard_control","args":{"action":"press","key":"ENTER"}}]}',
       role: 'tool',
       message_type: 'tool-bundle',
+      correlation_id: 'bundle-1',
       metadata: { screenshot: 'tool-shot' },
     };
     expect(parseMemoriesToMessages([memory])).toEqual([
       {
         id: 'tool-bundle-0',
         sender: 'assistant',
-        text: 'bundle issued',
+        text: JSON.stringify({
+          bundle_id: 'bundle-1',
+          tools: [{
+            name: 'keyboard_control',
+            arguments: { action: 'press', key: 'ENTER' },
+            metadata: undefined,
+          }],
+        }, null, 2),
         type: 'tool-call',
-        toolCallDisplayText: 'bundle issued',
+        sourceEventType: 'tool-bundle',
+        correlationId: 'bundle-1',
+        toolCallDisplayText: JSON.stringify({
+          bundle_id: 'bundle-1',
+          tools: [{
+            name: 'keyboard_control',
+            arguments: { action: 'press', key: 'ENTER' },
+            metadata: undefined,
+          }],
+        }, null, 2),
+        toolCallDetails: {
+          bundle_id: 'bundle-1',
+          tools: [{
+            name: 'keyboard_control',
+            args: { action: 'press', key: 'ENTER' },
+          }],
+        },
         isComplete: true,
       },
     ]);

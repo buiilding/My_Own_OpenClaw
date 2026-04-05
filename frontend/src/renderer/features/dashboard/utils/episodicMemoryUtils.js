@@ -8,6 +8,7 @@ import {
 } from '../../../infrastructure/transcript/rehydratePayload';
 import {
   buildToolCallMessageState,
+  buildToolBundleMessageState,
 } from '../../../infrastructure/transcript/toolCallMessageState';
 import {
   resolveScreenshotAttachmentState,
@@ -74,13 +75,24 @@ function parseMemoryContent(memory) {
     const normalizedType = messageType === 'tool-bundle'
       ? 'tool-call'
       : (messageType || (role === 'tool' ? 'tool-output' : 'llm-text'));
-    const normalizedToolCallMessage = normalizedType === 'tool-call' && !isBundleToolCall
-      ? buildToolCallMessageState({
-        rawContent: rawContent || '',
-        rawToolCall: parseToolCallPayload(rawContent || ''),
-      })
+    const parsedBundlePayload = isBundleToolCall
+      ? parseBundleToolPayload(rawContent || '')
+      : null;
+    const normalizedToolCallMessage = normalizedType === 'tool-call'
+      ? (isBundleToolCall
+        ? buildToolBundleMessageState(parsedBundlePayload)
+        : buildToolCallMessageState({
+          rawContent: rawContent || '',
+          rawToolCall: parseToolCallPayload(rawContent || ''),
+        }))
       : null;
     const shouldAttachScreenshot = sender === 'user' || normalizedType === 'tool-output';
+    const correlationId = normalizeOptionalString(
+      memory?.correlation_id
+        || memory?.correlationId
+        || memory?.metadata?.correlation_id
+        || memory?.metadata?.correlationId,
+    );
     return [{
       sender,
       text: normalizedToolCallMessage?.text || rawContent || '(empty)',
@@ -91,6 +103,11 @@ function parseMemoryContent(memory) {
       ...(normalizedToolCallMessage?.modelFacingToolCall
         ? { modelFacingToolCall: normalizedToolCallMessage.modelFacingToolCall }
         : {}),
+      ...(normalizedToolCallMessage?.toolCallDetails
+        ? { toolCallDetails: normalizedToolCallMessage.toolCallDetails }
+        : {}),
+      ...(correlationId ? { correlationId } : {}),
+      ...(isBundleToolCall ? { sourceEventType: 'tool-bundle' } : {}),
       modelProvider,
       modelId,
       screenshot: shouldAttachScreenshot ? screenshotAttachment.screenshot : null,
@@ -120,6 +137,23 @@ function parseMemoryContent(memory) {
   }
 
   return [{ sender: 'assistant', text: content, type: 'llm-text', modelProvider, modelId }];
+}
+
+function parseBundleToolPayload(rawContent) {
+  if (typeof rawContent !== 'string' || !rawContent.trim()) {
+    return undefined;
+  }
+
+  try {
+    const parsed = JSON.parse(rawContent);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch (_error) {
+    return undefined;
+  }
+
+  return undefined;
 }
 
 function resolveTranscriptTransparency(memory) {
@@ -211,6 +245,9 @@ export function parseMemoriesToMessages(memories) {
         type: part.type,
         ...(part.toolCallDisplayText ? { toolCallDisplayText: part.toolCallDisplayText } : {}),
         ...(part.modelFacingToolCall ? { modelFacingToolCall: part.modelFacingToolCall } : {}),
+        ...(part.toolCallDetails ? { toolCallDetails: part.toolCallDetails } : {}),
+        ...(part.sourceEventType ? { sourceEventType: part.sourceEventType } : {}),
+        ...(part.correlationId ? { correlationId: part.correlationId } : {}),
         ...modelFields,
         ...screenshotFields,
         ...transparencyFields,

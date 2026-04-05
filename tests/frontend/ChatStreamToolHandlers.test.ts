@@ -206,7 +206,7 @@ describe('useChatStreamToolHandlers', () => {
     );
   });
 
-  test('handles malformed tool-bundle tools payload with stable empty bundle formatting and no transcript tool-call row', () => {
+  test('handles malformed tool-bundle tools payload with stable empty bundle formatting and persists a transcript bundle row', () => {
     const addMessage = jest.fn();
     const setThinkingStatus = jest.fn();
     const setThinkingSourceEventType = jest.fn();
@@ -261,8 +261,17 @@ describe('useChatStreamToolHandlers', () => {
       'conversation-bundle-1',
     );
 
-    // Bundle orchestration events must not be persisted as executable tool-call transcript rows.
-    expect(mockRecordToolMessage).not.toHaveBeenCalled();
+    expect(mockRecordToolMessage).toHaveBeenCalledWith(
+      JSON.stringify({ bundle_id: 'bundle-1', tools: [] }, null, 2),
+      expect.objectContaining({
+        messageType: 'tool-bundle',
+        toolName: 'tool-bundle',
+        correlationId: 'bundle-1',
+        conversationRef: 'conversation-bundle-1',
+        modelId: 'model-3',
+        modelProvider: 'provider-3',
+      }),
+    );
   });
 
   test('keeps sending/thinking state alive for backend-owned tool calls that skip frontend execution', () => {

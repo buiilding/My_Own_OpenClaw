@@ -23,6 +23,11 @@ describe('transcriptMessagePayload', () => {
     expect(resolveTranscriptMessageType({ sender: 'user', type: 'llm-text' })).toBe('user');
     expect(resolveTranscriptMessageType({ sender: 'assistant' })).toBe('llm-text');
     expect(resolveTranscriptMessageType({ sender: 'assistant', type: 'tool-call' })).toBe('tool-call');
+    expect(resolveTranscriptMessageType({
+      sender: 'assistant',
+      type: 'tool-call',
+      sourceEventType: 'tool-bundle',
+    })).toBe('tool-bundle');
   });
 
   test('toRehydratePayload maps tool metadata only for tool messages', () => {
@@ -68,6 +73,28 @@ describe('transcriptMessagePayload', () => {
       role: 'assistant',
       content: 'hello',
       message_type: 'llm-text',
+      tool_name: null,
+      correlation_id: null,
+      tool_call_id: null,
+      tool_calls: null,
+      timestamp: null,
+      screenshot_ref: null,
+      screenshot: null,
+      transparency: null,
+    });
+  });
+
+  test('toRehydratePayload preserves bundle source rows as tool-bundle instead of tool-call', () => {
+    expect(toRehydratePayload({
+      sender: 'assistant',
+      type: 'tool-call',
+      sourceEventType: 'tool-bundle',
+      text: '{"bundle_id":"bundle-1","tools":[{"name":"keyboard_control","args":{"action":"press","key":"ENTER"}}]}',
+      correlationId: 'bundle-1',
+    })).toEqual({
+      role: 'assistant',
+      content: '{"bundle_id":"bundle-1","tools":[{"name":"keyboard_control","args":{"action":"press","key":"ENTER"}}]}',
+      message_type: 'tool-bundle',
       tool_name: null,
       correlation_id: null,
       tool_call_id: null,

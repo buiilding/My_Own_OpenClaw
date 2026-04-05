@@ -169,10 +169,20 @@ export function useChatStreamToolHandlers({
       { phase: 'tool-call', toolCall: true },
       conversationRef,
     );
-    // Internal bundle orchestration events are not executable tool names.
-    // Keep them out of transcript tool-call rows to avoid rehydrate contamination.
+    if (enableTranscript) {
+      recordToolMessage(toolBundleMessageState.text, {
+        messageType: 'tool-bundle',
+        toolName: 'tool-bundle',
+        correlationId: toolBundleMessageState.correlationId || undefined,
+        conversationRef: event.conversation_ref,
+        userId: event.user_id,
+        modelId: modelContext.modelId,
+        modelProvider: modelContext.modelProvider,
+      });
+    }
   }, [
     addMessage,
+    enableTranscript,
     modelContextRef,
     setThinkingSourceEventType,
     setThinkingStatus,
