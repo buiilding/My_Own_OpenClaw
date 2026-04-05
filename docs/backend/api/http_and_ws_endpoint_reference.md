@@ -13,10 +13,51 @@ title: "HTTP and WebSocket Endpoint Reference"
 Registered by `backend/src/api/routes/__init__.py` and attached in `api/app_assembly.py`:
 
 - WebSocket router (`/ws`)
+- Transcription router (`/ws/transcription`)
 - Runs router (`/api/runs`)
 - Artifact router (`/api/artifacts`)
 - Embeddings router (`/api/embeddings`)
 - Semantic router (`/api/semantic`)
+
+## Dedicated Transcription WebSocket
+
+### `GET /ws/transcription` (WebSocket upgrade)
+
+Owner: `backend/src/api/routes/transcription/router.py:transcription_websocket_endpoint`
+
+Behavior:
+
+- accepts a local STT websocket without the main `/ws` handshake envelope
+- immediately emits `{"type":"status","client_id":"<uuid>"}` after accept
+- routes text control messages to the active provider session
+- routes binary audio frames through `parse_gateway_audio_frame(...)`
+- keeps one renderer protocol while backend chooses `stt_provider="nova"` or `stt_provider="openai"`
+
+Renderer-to-backend messages:
+
+- text control: `set_langs`, `start_over`
+- binary audio frames: gateway-framed PCM16 audio (`sampleRate` metadata prefix + payload)
+
+Backend-to-renderer messages:
+
+- `status`
+- `realtime`
+- `utterance_end`
+- `error`
+
+OpenAI provider note:
+
+- backend opens `wss://api.openai.com/v1/realtime?model=<openai_realtime_session_model>`
+- after connect it sends `session.update`
+- `session.update.session.audio.input.transcription.model` uses `openai_realtime_transcription_model`
+- audio is resampled to `24000` Hz PCM mono before OpenAI append events
+
+Failure behavior:
+
+- invalid control JSON is ignored with warning
+- invalid audio frames are ignored with warning
+- unexpected provider/session failures emit websocket `{ "type": "error", "message": "..." }`
+- disconnect or provider stream completion closes the route and provider session cleanly
 
 ## HTTP Endpoints
 

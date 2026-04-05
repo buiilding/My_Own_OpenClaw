@@ -63,6 +63,54 @@ Handshake validation behavior:
 
 **Handshake Payload**: `{ user_id, device_id, session_id? }`
 
+## Dedicated Transcription WebSocket
+
+Local STT capture uses a separate websocket with a smaller protocol than the main `/ws` agent channel.
+
+**URL**: hosted default `wss://api.windieos.com/ws/transcription`
+
+Electron clients derive this from the active backend HTTP endpoint (`BACKEND_HTTP_URL`) by replacing the path with `/ws/transcription`.
+
+Local development or self-hosted deployments may use `ws://127.0.0.1:8765/ws/transcription`.
+
+**Protocol**: WebSocket (RFC 6455)
+
+**Handshake**: none beyond normal websocket accept
+
+**Renderer -> backend messages**:
+
+- text control:
+  - `{"type":"set_langs","source_language":"en","target_language":"en"}`
+  - `{"type":"start_over"}`
+- binary audio frames:
+  - 4-byte little-endian metadata length
+  - JSON metadata (`{"sampleRate":16000}`)
+  - PCM16 audio payload
+
+**Backend -> renderer messages**:
+
+- `status`
+```json
+{ "type": "status", "client_id": "uuidhex" }
+```
+- `realtime`
+```json
+{ "type": "realtime", "text": "partial or final transcript", "is_final": true | false }
+```
+- `utterance_end`
+```json
+{ "type": "utterance_end" }
+```
+- `error`
+```json
+{ "type": "error", "message": "string" }
+```
+
+Provider note:
+
+- Nova mode proxies to the configured Nova gateway.
+- OpenAI mode connects to the realtime websocket using `openai_realtime_session_model` and then sends `session.update` with `openai_realtime_transcription_model`.
+
 ## HTTP Endpoints (Memory)
 
 These REST endpoints live on the same FastAPI server as the WebSocket. In the default product topology that means the hosted backend at `https://api.windieos.com`; local or self-hosted deployments may instead use `http://127.0.0.1:8765`.

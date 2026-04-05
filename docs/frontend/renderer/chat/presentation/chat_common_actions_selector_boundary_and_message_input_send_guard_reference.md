@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for renderer chat shared action selectors and message-input send guards: store selector boundary, voice/transcription submit handoff, whitespace/isSending normalization, and clipboard-image payload shaping."
+summary: "Deep reference for renderer chat shared action selectors and message-input send guards: store selector boundary, composer submit normalization, whitespace/isSending normalization, and clipboard-image payload shaping."
 read_when:
   - When changing `useChatCommonActions` or re-wiring chat hooks that mutate `chatStore` state.
-  - When debugging dropped message sends, duplicate submit attempts, or voice utterance-end auto-send behavior.
+  - When debugging dropped message sends, duplicate submit attempts, or microphone/transcription behavior around manual send.
 title: "Chat Common Actions Selector Boundary and Message-Input Send Guard Reference"
 ---
 
@@ -58,14 +58,14 @@ Clipboard image validity gate:
 
 `MessageInput.submitMessageValue(...)` only calls `onSendMessage` when `buildOutgoingMessage(...)` returns non-null.
 
-## MessageInput Voice Handoff Contract
+## MessageInput Voice Boundary
 
 In voice mode, `MessageInput` wires:
 
 - `onTranscriptionUpdate` -> `useTranscription.updateTranscription`
-- `onUtteranceEnd` -> `submitMessageValue(getInputValue())`
+- `onUtteranceEnd` -> end the temporary dictation session
 
-So utterance-end submission is governed by the same normalization/send-guard path as manual form submit.
+Manual send paths still call `submitMessageValue(...)`, so dictated text uses the same normalization/send-guard path as typed text once the user explicitly sends it.
 
 ## Store Setter No-Op Semantics (Dependency)
 
@@ -87,7 +87,7 @@ This limits unnecessary updates when stream/send logic repeats identical flags.
   - form submit uses trimmed text
   - whitespace submit blocked
   - `isSending` disables submit path/button
-  - voice utterance-end auto-send path uses latest transcription value
+  - voice utterance-end keeps the latest transcription in the composer without auto-send
   - pasted image preview/send/remove behavior
 - `tests/frontend/ChatStore.test.ts`
   - `setIsSending` and `setThinkingStatus` no-op when unchanged
@@ -96,7 +96,7 @@ This limits unnecessary updates when stream/send logic repeats identical flags.
 
 1. Adding logic to `useChatCommonActions` can silently fork mutation paths between sender and stream hooks.
 2. Bypassing `buildOutgoingMessage` in new input surfaces can reintroduce whitespace sends, duplicate send attempts, or clipboard payload shape drift.
-3. Diverging voice utterance-end send path from form submit path can create inconsistent trim/block behavior.
+3. Reintroducing a separate voice auto-send path would bypass the current composer-first dictation contract and can create inconsistent trim/block behavior.
 
 ## Related Pages
 

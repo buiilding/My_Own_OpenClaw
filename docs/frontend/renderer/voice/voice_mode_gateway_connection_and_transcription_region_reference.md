@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for renderer voice-mode transcription: backend-owned STT WebSocket lifecycle, PCM16 framing, reconnect backoff, utterance-end auto-submit, and transcription region replacement rules."
+summary: "Deep reference for renderer voice-mode transcription: backend-owned STT WebSocket lifecycle, PCM16 framing, reconnect backoff, utterance-end session reset, and transcription region replacement rules."
 read_when:
   - When changing `useVoiceMode` gateway behavior, microphone capture settings, or audio payload framing.
-  - When debugging missing realtime transcript updates, silence auto-submit issues, or repeated reconnect failures.
+  - When debugging missing realtime transcript updates, utterance-end session reset issues, or repeated reconnect failures.
 title: "Voice Mode Gateway Connection and Transcription Region Reference"
 ---
 
@@ -51,12 +51,13 @@ Inbound message handling:
 
 - `status`: cache `client_id`
 - `realtime`: read `translation` fallback to `text`, forward to transcription callback with `is_final` flag
-- `utterance_end`: trigger submit callback, then send `{"type":"start_over"}`
+- `utterance_end`: trigger the caller-owned session-end callback, then send `{"type":"start_over"}`
 
 Provider boundary:
 
 - renderer speaks one WindieOS-local protocol only
 - backend proxies that protocol to Nova-Voice or translates it to OpenAI Realtime based on backend config
+- when OpenAI is selected, backend uses `openai_realtime_session_model` for the websocket URL and `openai_realtime_transcription_model` inside `session.update`
 
 Reconnect policy:
 

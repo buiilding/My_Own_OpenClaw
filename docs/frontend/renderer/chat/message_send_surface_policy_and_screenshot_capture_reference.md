@@ -188,7 +188,7 @@ Fatal failure:
 
 - trimmed send text
 - whitespace/no-send guards
-- voice utterance-end submit path
+- voice utterance-end keeps dictated text in the composer until manual send
 - pasted image preview lifecycle + payload shape + remove action
 - file-picker trigger and selected readable-file payload shape
 

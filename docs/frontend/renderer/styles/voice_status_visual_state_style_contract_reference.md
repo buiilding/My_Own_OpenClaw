@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for voice status banner style states: base/info/error color contracts and iconography classes aligned with recording/connection/error props."
+summary: "Deep reference for voice status banner style states: base/info/error color contracts and iconography classes aligned with active-session, recording, connection, and error props."
 read_when:
   - When changing renderer voice status text/status logic or banner CSS classes.
   - When debugging mismatch between voice runtime state and visible status color/icon treatment.
@@ -23,8 +23,8 @@ This page documents:
 
 Rendering gates:
 
-- returns `null` when not recording and no error exists
-- error state takes precedence over recording/connection state
+- returns `null` when no active session and no error exists
+- error state takes precedence over active-session/recording/connection state
 
 ## Visual Behavior
 
