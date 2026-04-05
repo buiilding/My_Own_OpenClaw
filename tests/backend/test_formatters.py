@@ -7,6 +7,7 @@ from backend.src.api.processing.formatters.chunk import ChunkEventFormatter
 from backend.src.api.processing.formatters.assistant_message import AssistantMessageFullEventFormatter
 from backend.src.api.processing.formatters.complete import StreamingCompleteEventFormatter
 from backend.src.api.processing.formatters.error import ErrorEventFormatter
+from backend.src.api.processing.formatters.web_search_progress import WebSearchProgressEventFormatter
 from backend.src.core.infrastructure.user_facing_errors import (
     INTERNAL_SERVER_ERROR_MESSAGE,
 )
@@ -21,6 +22,7 @@ from backend.src.core.events.streaming_events import (
     ToolCallEvent as ToolCallEventClass,
     ToolOutputEvent as ToolOutputEventClass,
     StreamingCompleteEvent as StreamingCompleteEventClass,
+    WebSearchProgressEvent as WebSearchProgressEventClass,
 )
 
 
@@ -353,6 +355,41 @@ class TestToolCallEventFormatter:
 
         result = formatter.format(event, msg_id)
         assert result is None
+
+
+class TestWebSearchProgressEventFormatter:
+    """Tests for WebSearchProgressEventFormatter."""
+
+    @pytest.fixture
+    def formatter(self):
+        return WebSearchProgressEventFormatter()
+
+    def test_format_success(self, formatter):
+        event = WebSearchProgressEventClass(
+            text="Searched youtube.com",
+            request_id="req-search-1",
+            action_type="search",
+            url="https://youtube.com/watch?v=1",
+            query="quantivity",
+        )
+
+        result = formatter.format(event, "msg-search-1")
+
+        assert result == {
+            "type": "web-search-progress",
+            "id": "msg-search-1",
+            "payload": {
+                "text": "Searched youtube.com",
+                "request_id": "req-search-1",
+                "action_type": "search",
+                "query": "quantivity",
+                "url": "https://youtube.com/watch?v=1",
+                "pattern": None,
+            },
+        }
+
+    def test_format_skips_blank_text(self, formatter):
+        assert formatter.format({"text": "   "}, "msg-search-blank") is None
 
 
 class TestToolOutputEventFormatter:

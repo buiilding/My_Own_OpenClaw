@@ -155,6 +155,17 @@ describe('ipc_overlay_phase_events', () => {
     });
 
     expect(resolveBackendOverlayPhaseTransition({
+      type: 'web-search-progress',
+      payload: { request_id: 'req-search-8' },
+    }, 'streaming')).toEqual({
+      phase: 'tool-call',
+      metadata: {
+        recovery_stage: 'tool-call',
+        correlation_id: 'req-search-8',
+      },
+    });
+
+    expect(resolveBackendOverlayPhaseTransition({
       type: 'tool-output',
       payload: { request_id: 'req-9' },
     }, 'tool-call')).toEqual({

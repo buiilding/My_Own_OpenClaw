@@ -10,6 +10,7 @@ from backend.src.api.processing.formatters.error import ErrorEventFormatter
 from backend.src.api.processing.formatters.complete import StreamingCompleteEventFormatter
 from backend.src.api.processing.formatters.tool_call import ToolCallEventFormatter
 from backend.src.api.processing.formatters.tool_output import ToolOutputEventFormatter
+from backend.src.api.processing.formatters.web_search_progress import WebSearchProgressEventFormatter
 from backend.src.api.processing.formatters.system_prompt import SystemPromptEventFormatter
 from backend.src.api.processing.formatters.tool_schemas import ToolSchemasEventFormatter
 from backend.src.api.processing.formatters.user_message import UserMessageFullEventFormatter
@@ -35,6 +36,7 @@ __all__ = [
     "StreamingCompleteEventFormatter",
     "ToolCallEventFormatter",
     "ToolOutputEventFormatter",
+    "WebSearchProgressEventFormatter",
     "SystemPromptEventFormatter",
     "ToolSchemasEventFormatter",
     "UserMessageFullEventFormatter",

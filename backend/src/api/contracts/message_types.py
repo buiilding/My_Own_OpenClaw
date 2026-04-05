@@ -48,6 +48,7 @@ class OutgoingMessageType:
     TOOL_CALL: Final[str] = "tool-call"
     TOOL_BUNDLE: Final[str] = "tool-bundle"
     TOOL_OUTPUT: Final[str] = "tool-output"
+    WEB_SEARCH_PROGRESS: Final[str] = "web-search-progress"
     AUDIO_CHUNK: Final[str] = "audio-chunk"
     WAKEWORD_ACTIVATED: Final[str] = "wakeword-activated"
     WAKEWORD_GREETING: Final[str] = "wakeword-greeting"
@@ -73,6 +74,7 @@ OUTGOING_SCHEMA_MESSAGE_TYPES: Final[tuple[str, ...]] = (
     OutgoingMessageType.TOOL_CALL,
     OutgoingMessageType.TOOL_BUNDLE,
     OutgoingMessageType.TOOL_OUTPUT,
+    OutgoingMessageType.WEB_SEARCH_PROGRESS,
     OutgoingMessageType.AUDIO_CHUNK,
     OutgoingMessageType.WAKEWORD_ACTIVATED,
     OutgoingMessageType.WAKEWORD_GREETING,

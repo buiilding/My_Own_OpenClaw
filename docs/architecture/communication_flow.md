@@ -192,7 +192,7 @@ This keeps the backend as the hosted control plane and prevents SDK consumers fr
 ```json
 {
   "id": "uuid-v4",
-  "type": "streaming-response|tool-call|tool-output|error|...",
+  "type": "streaming-response|web-search-progress|tool-call|tool-output|error|...",
   "payload": { ... }
 }
 ```
@@ -282,6 +282,14 @@ Identity notes:
 - Purpose: Atomic bundle of tools (single message)
 - Payload: `{ bundle_id, tools: [{ name, args }] }`
 - Usage: Execute tools sequentially and return `tool-bundle-result`
+
+**`web-search-progress`**
+- Purpose: Mid-search progress row for backend-owned OpenAI native `web_search`
+- Payload: `{ text, request_id?, action_type?, query?, url?, pattern? }`
+- Usage: Render transient search trace rows before the final backend `tool-call` / `tool-output`
+- Notes:
+  - Current producer is OpenAI native backend `web_search` only.
+  - Renderer treats these rows as transient UI trace, not transcript history.
 
 **`tool-output`**
 - Purpose: Tool execution result

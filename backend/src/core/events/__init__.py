@@ -25,6 +25,7 @@ from backend.src.core.events.streaming_events import (
     ToolOutputEvent,
     ToolSchemasEvent,
     UserMessageFullEvent,
+    WebSearchProgressEvent,
 )
 
 __all__ = [
@@ -53,4 +54,5 @@ __all__ = [
     "ToolOutputEvent",
     "ToolSchemasEvent",
     "UserMessageFullEvent",
+    "WebSearchProgressEvent",
 ]

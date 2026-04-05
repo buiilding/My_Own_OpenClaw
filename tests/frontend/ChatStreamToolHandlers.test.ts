@@ -331,4 +331,54 @@ describe('useChatStreamToolHandlers', () => {
       'conversation-web-search-1',
     );
   });
+
+  test('adds transient search-source rows for live web-search progress without writing transcript tool rows', () => {
+    const addMessage = jest.fn();
+    const recordTrackingEvent = jest.fn();
+
+    const { result } = renderHook(() => useChatStreamToolHandlers({
+      enableTranscript: true,
+      addMessage,
+      setIsSending: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      modelContextRef: {
+        current: {
+          modelId: 'model-search-1',
+          modelProvider: 'openai',
+        },
+      },
+      recordTrackingEvent,
+    }));
+
+    act(() => {
+      result.current.handleWebSearchProgress({
+        id: 'event-search-progress-1',
+        type: 'web-search-progress',
+        turn_ref: 'turn-search-1',
+        conversation_ref: 'conversation-search-1',
+        payload: {
+          text: 'Searched youtube.com',
+          request_id: 'req-search-1',
+        },
+      } as any, 'conversation-search-1');
+    });
+
+    expect(addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'Searched youtube.com',
+        type: 'search-source',
+        sourceEventType: 'web-search-progress',
+        correlationId: 'req-search-1',
+      }),
+      'conversation-search-1',
+    );
+    expect(recordTrackingEvent).toHaveBeenCalledWith(
+      'web-search-progress',
+      'turn-search-1',
+      { phase: 'tool-call', toolCall: true },
+      'conversation-search-1',
+    );
+    expect(mockRecordToolMessage).not.toHaveBeenCalled();
+  });
 });

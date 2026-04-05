@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import logging
 import os
 import re
@@ -11,6 +12,7 @@ from urllib.parse import urlsplit
 
 import httpx
 
+from backend.src.core.events.streaming_events import ErrorEvent, WebSearchProgressEvent
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
@@ -222,6 +224,29 @@ class WebSearchTool(Tool[WebSearchArgs]):
             return session_cfg
         return ctx.services.get("config")
 
+    @staticmethod
+    def _resolve_stream_event_emitter(ctx: ToolContext) -> Any:
+        emitter = ctx.services.get("emit_streaming_event")
+        return emitter if callable(emitter) else None
+
+    @staticmethod
+    def _resolve_request_id(ctx: ToolContext) -> Optional[str]:
+        request_id = ctx.services.get("tool_request_id")
+        return request_id.strip() if isinstance(request_id, str) and request_id.strip() else None
+
+    @classmethod
+    async def _emit_progress_event(
+        cls,
+        ctx: ToolContext,
+        event: WebSearchProgressEvent,
+    ) -> None:
+        emitter = cls._resolve_stream_event_emitter(ctx)
+        if emitter is None:
+            return
+        emitted = emitter(event)
+        if inspect.isawaitable(emitted):
+            await emitted
+
     @classmethod
     def _log_completion(
         cls,
@@ -242,6 +267,101 @@ class WebSearchTool(Tool[WebSearchArgs]):
         )
 
     @classmethod
+    async def _run_openai_native_search(
+        cls,
+        *,
+        args: WebSearchArgs,
+        ctx: ToolContext,
+    ) -> ToolResult:
+        session = cls._resolve_session(ctx)
+        llm_client = getattr(session, "llm_client", None)
+        config = cls._resolve_runtime_config(ctx)
+        selected_model_id = getattr(config, "selected_model_id", None)
+        if llm_client is None or not isinstance(selected_model_id, str) or not selected_model_id.strip():
+            error_msg = "Provider-native web search is unavailable in the current backend session."
+            return ToolResult(
+                success=False,
+                error=error_msg,
+                llm_content=f"Error: {error_msg}",
+                return_display=error_msg,
+            )
+
+        stream_error_text: Optional[str] = None
+        try:
+            async for event in llm_client.get_completion_stream(
+                model=selected_model_id,
+                messages=_build_native_search_messages(args),
+                native_web_search_enabled=True,
+                max_output_tokens=1200,
+                request_id=cls._resolve_request_id(ctx),
+            ):
+                if isinstance(event, WebSearchProgressEvent):
+                    await cls._emit_progress_event(ctx, event)
+                    continue
+                if isinstance(event, ErrorEvent) and stream_error_text is None:
+                    stream_error_text = str(event.content or "").strip() or "OpenAI native web search failed."
+        except Exception as exc:
+            logger.warning("openai native web search failed: %s", exc)
+            error_msg = f"OpenAI native web search failed: {exc}"
+            return ToolResult(
+                success=False,
+                error=error_msg,
+                llm_content=f"Error: {error_msg}",
+                return_display=error_msg,
+            )
+
+        if stream_error_text:
+            error_msg = f"OpenAI native web search failed: {stream_error_text}"
+            return ToolResult(
+                success=False,
+                error=error_msg,
+                llm_content=f"Error: {error_msg}",
+                return_display=error_msg,
+            )
+
+        response = llm_client.get_last_stream_response_payload()
+        if not isinstance(response, dict):
+            error_msg = "OpenAI native web search failed: missing final response payload."
+            return ToolResult(
+                success=False,
+                error=error_msg,
+                llm_content=f"Error: {error_msg}",
+                return_display=error_msg,
+            )
+
+        results = _normalize_native_search_results(
+            provider_name="openai",
+            query=args.query,
+            raw_sources=response.get("web_search_sources"),
+            count=args.count,
+        )
+        content = str(response.get("content") or "").strip()
+        if not results and content:
+            results = extract_content_web_search_sources(
+                content,
+                provider="openai",
+                query=args.query,
+                count=max(1, min(int(args.count), 10)),
+            )
+        cls._log_completion(
+            ctx=ctx,
+            provider_name="openai",
+            query=args.query,
+            results=results,
+        )
+        llm_content = content or _build_llm_content(args.query, results)
+        return ToolResult(
+            success=True,
+            data={
+                "query": args.query,
+                "provider": "openai",
+                "results": results,
+            },
+            llm_content=llm_content,
+            return_display=llm_content,
+        )
+
+    @classmethod
     async def _run_provider_native_search(
         cls,
         *,
@@ -249,6 +369,9 @@ class WebSearchTool(Tool[WebSearchArgs]):
         ctx: ToolContext,
         provider_name: str,
     ) -> ToolResult:
+        if provider_name == "openai":
+            return await cls._run_openai_native_search(args=args, ctx=ctx)
+
         session = cls._resolve_session(ctx)
         llm_client = getattr(session, "llm_client", None)
         config = cls._resolve_runtime_config(ctx)

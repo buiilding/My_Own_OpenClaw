@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from backend.src.core.config.models import AppConfig
+from backend.src.core.events.streaming_events import WebSearchProgressEvent
 from backend.src.tools.web_search.schemas import WebSearchArgs
 from backend.src.tools.web_search.tool import WebSearchTool
 
@@ -140,10 +141,19 @@ async def test_web_search_tool_routes_to_openai_native_search(monkeypatch):
         model_provider="openai",
         selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
     )
+    emitted_progress = []
 
     class _DummyLLMClient:
-        async def get_completion_response(self, **kwargs):
+        async def get_completion_stream(self, **kwargs):
             assert kwargs["native_web_search_enabled"] is True
+            assert kwargs["request_id"] == "req-openai-web-search-1"
+            emitted_progress.append("stream-started")
+            yield WebSearchProgressEvent(
+                text="Searched example.com",
+                request_id="req-openai-web-search-1",
+            )
+
+        def get_last_stream_response_payload(self):
             return {
                 "content": "Native summary from OpenAI",
                 "web_search_sources": [
@@ -163,9 +173,12 @@ async def test_web_search_tool_routes_to_openai_native_search(monkeypatch):
             }
 
     session = SimpleNamespace(llm_client=_DummyLLMClient())
+    tool_context = _build_tool_context(config=config, session=session)
+    tool_context.services["tool_request_id"] = "req-openai-web-search-1"
+    tool_context.services["emit_streaming_event"] = emitted_progress.append
     result = await tool.run(
         WebSearchArgs(query="windieos latest", count=2),
-        _build_tool_context(config=config, session=session),
+        tool_context,
     )
 
     assert result.success is True
@@ -190,6 +203,9 @@ async def test_web_search_tool_routes_to_openai_native_search(monkeypatch):
         ],
     }
     assert result.llm_content == "Native summary from OpenAI"
+    assert emitted_progress[0] == "stream-started"
+    assert emitted_progress[1].text == "Searched example.com"
+    assert emitted_progress[1].request_id == "req-openai-web-search-1"
 
 
 @pytest.mark.asyncio

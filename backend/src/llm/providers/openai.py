@@ -88,6 +88,7 @@ class OpenAIProvider(OnlineLLMProvider):
                 max_output_tokens=request_kwargs.get("max_output_tokens"),
                 native_web_search_enabled=native_web_search_enabled,
                 include_reasoning=self._uses_native_reasoning_runtime(model),
+                request_id=request_kwargs.get("request_id"),
             ):
                 yield event
             return

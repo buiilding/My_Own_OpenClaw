@@ -16,6 +16,10 @@ const BACKEND_OVERLAY_PHASE_TRANSITIONS = Object.freeze({
     phase: 'tool-call',
     recoveryStage: 'tool-call',
   }),
+  'web-search-progress': Object.freeze({
+    phase: 'tool-call',
+    recoveryStage: 'tool-call',
+  }),
   'tool-output': Object.freeze({
     phase: 'tool-output',
     recoveryStage: 'tool-output',

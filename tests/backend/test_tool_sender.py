@@ -5,7 +5,12 @@ from pydantic import BaseModel
 from backend.src.agent.tools.preparation.preparer import PreparationResult
 from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
 from backend.src.agent.tools.sending.sender import ToolSender
-from backend.src.core.events.streaming_events import ToolBundleEvent, ToolCallEvent, ToolOutputEvent
+from backend.src.core.events.streaming_events import (
+    ToolBundleEvent,
+    ToolCallEvent,
+    ToolOutputEvent,
+    WebSearchProgressEvent,
+)
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.llm.parser_types import ParsedToolCall
 from backend.src.sdk.tool import Tool
@@ -27,15 +32,18 @@ class _DummySyntheticResultFactory:
 
 class _DummyContextFactory:
     @staticmethod
-    def create_tool_context(*, user_id, session_id, session_ref=None, **_kwargs):
+    def create_tool_context(*, user_id, session_id, session_ref=None, additional_services=None, **_kwargs):
+        services = {"config": None}
+        if isinstance(additional_services, dict):
+            services.update(additional_services)
         return type(
             "DummyToolContext",
             (),
             {
                 "user": type("DummyUser", (), {"user_id": user_id})(),
                 "session": type("DummySessionCtx", (), {"session_id": session_id, "metadata": {}})(),
-                "runtime": type("DummyRuntime", (), {"services": {"config": None}})(),
-                "services": {"config": None},
+                "runtime": type("DummyRuntime", (), {"services": services})(),
+                "services": services,
                 "session_ref": session_ref,
             },
         )()
@@ -466,6 +474,32 @@ class _BackendSearchToolWithDuplicateResults(Tool[_BackendSearchArgs]):
         )
 
 
+class _BackendStreamingSearchTool(Tool[_BackendSearchArgs]):
+    name = "web_search"
+    description = "search"
+    args_model = _BackendSearchArgs
+    execution_target = "backend"
+
+    async def run(self, args: _BackendSearchArgs, ctx):  # noqa: ANN001
+        emit_streaming_event = ctx.services.get("emit_streaming_event")
+        if callable(emit_streaming_event):
+            await emit_streaming_event(
+                WebSearchProgressEvent(
+                    text="Searched example.com",
+                    request_id=ctx.services.get("tool_request_id"),
+                    action_type="search",
+                    url="https://example.com/a",
+                    query=args.query,
+                )
+            )
+        return ToolResult(
+            success=True,
+            data={"provider": "openai", "query": args.query, "results": []},
+            llm_content="search results",
+            return_display="search results",
+        )
+
+
 @pytest.mark.asyncio
 async def test_send_tools_executes_backend_tool_with_standard_tool_call_and_output_only():
     request_id = "req-web-search-1"
@@ -500,6 +534,40 @@ async def test_send_tools_executes_backend_tool_with_standard_tool_call_and_outp
     assert emitted[1].output == "search results"
     assert request_id in session.pending_results
     assert session.pending_results[request_id].data["provider"] == "brave"
+
+
+@pytest.mark.asyncio
+async def test_send_tools_emits_backend_tool_progress_before_final_tool_events():
+    request_id = "req-web-search-progress-1"
+    parsed_call = ParsedToolCall(
+        tool_name="web_search",
+        parameters={"query": "latest windieos news"},
+        metadata={
+            "request_id": request_id,
+            "tool_call_id": "tool_llm_web_search_progress_1",
+        },
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(parsed_call)
+
+    sender = _build_sender(
+        PreparationResult(
+            resolved_calls=[resolved_call],
+            errors=[],
+            bundle_id=None,
+        )
+    )
+    session = _DummySession()
+    session.tool_registry.register_tool(_BackendStreamingSearchTool())
+
+    emitted = await _collect_emitted_events(sender, [parsed_call], session)
+
+    assert [type(event).__name__ for event in emitted] == [
+        "WebSearchProgressEvent",
+        "ToolCallEvent",
+        "ToolOutputEvent",
+    ]
+    assert emitted[0].text == "Searched example.com"
+    assert emitted[0].request_id == request_id
 
 
 @pytest.mark.asyncio

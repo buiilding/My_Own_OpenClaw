@@ -18,6 +18,7 @@ import type {
   ToolOutputEvent,
   ToolSchemasEvent,
   UserMessageFullEvent,
+  WebSearchProgressEvent,
 } from '../../../../types/backendEvents';
 import { shouldIgnoreStreamError } from './chatStreamEventUtils';
 
@@ -31,6 +32,7 @@ type ChatStreamEventHandlers = {
   handleToolCall: (event: ToolCallEvent) => void;
   handleToolOutput: (event: ToolOutputEvent) => void;
   handleToolBundle: (event: ToolBundleEvent) => void;
+  handleWebSearchProgress: (event: WebSearchProgressEvent) => void;
   handleSystemPrompt: (event: SystemPromptEvent) => void;
   handleLocalUserMessage: (event: LocalUserMessageEvent) => void;
   handleUserMessageFull: (event: UserMessageFullEvent) => void;
@@ -54,6 +56,7 @@ export function buildChatStreamHandlerMap(
     'tool-call': event => handlers.handleToolCall(event as ToolCallEvent),
     'tool-output': event => handlers.handleToolOutput(event as ToolOutputEvent),
     'tool-bundle': event => handlers.handleToolBundle(event as ToolBundleEvent),
+    'web-search-progress': event => handlers.handleWebSearchProgress(event as WebSearchProgressEvent),
     'system-prompt': event => handlers.handleSystemPrompt(event as SystemPromptEvent),
     'local-user-message': event => handlers.handleLocalUserMessage(event as LocalUserMessageEvent),
     'user-message-full': event => handlers.handleUserMessageFull(event as UserMessageFullEvent),
