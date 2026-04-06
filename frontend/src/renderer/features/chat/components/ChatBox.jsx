@@ -18,6 +18,7 @@ import { ApiClient } from '../../../infrastructure/api/client';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import {
   createChatboxDragState,
+  getChatboxCloseBumpHeight,
   getChatboxDragTarget,
   startChatboxDrag,
   stopChatboxDrag,
@@ -45,6 +46,7 @@ function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
 }
 
 function ChatBox() {
+  const closeBumpHeight = getChatboxCloseBumpHeight();
   const { config, updateConfig } = useAppConfigContext();
   const messages = useChatStore((state) => state.messages);
   const isSending = useChatStore((state) => state.isSending);
@@ -368,6 +370,7 @@ function ChatBox() {
   return (
     <div
       className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasAttachmentPreview ? ' with-preview' : ''}${loopInteractionLocked ? ' loop-active' : ''}`}
+      style={{ '--chatbox-bump-height': `${closeBumpHeight}px` }}
     >
       <div className="chatbox-shell" ref={shellRef}>
         <form

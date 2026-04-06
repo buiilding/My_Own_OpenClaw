@@ -228,8 +228,10 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('does not manage overlay click-through from the renderer and avoids live window resize', () => {
-    render(<ChatBox />);
+    const { container } = render(<ChatBox />);
+    const shellWrap = container.querySelector('.chatbox-input-shell-wrap');
 
+    expect(shellWrap?.style.getPropertyValue('--chatbox-bump-height')).toBe('14px');
     const sawRendererMouseToggle = mockInvoke.mock.calls.some(
       ([channel]) => channel === 'set-overlay-ignore-mouse',
     );
