@@ -78,6 +78,7 @@ async def test_compact_history_handler_rejects_when_query_is_active():
         removed_messages=0,
         summary_text="",
         replacement_history_preview=[],
+        replacement_history_entries=[],
         skip_reason="disabled",
     )
     websocket = _FakeWebSocket()
@@ -128,6 +129,13 @@ async def test_compact_history_handler_emits_started_and_completed_when_applied(
                 content="[[CONTEXT COMPACTION SUMMARY]]\nsummary content",
             ),
         ],
+        replacement_history_entries=[
+            {
+                "role": "assistant",
+                "content": "[[CONTEXT COMPACTION SUMMARY]]\nsummary content",
+                "message_type": "context_compaction",
+            }
+        ],
         skip_reason=None,
     )
     websocket = _FakeWebSocket()
@@ -155,6 +163,7 @@ async def test_compact_history_handler_emits_started_and_completed_when_applied(
     assert websocket.sent[1]["payload"]["removed_messages"] == 7
     assert websocket.sent[1]["payload"]["summary_preview"] == "summary content"
     assert websocket.sent[1]["payload"]["replacement_history_preview"][0]["message_type"] == "context_compaction"
+    assert websocket.sent[1]["payload"]["replacement_history_entries"][0]["message_type"] == "context_compaction"
 
 
 @pytest.mark.asyncio
@@ -177,6 +186,7 @@ async def test_compact_history_handler_does_not_truncate_summary_preview():
         removed_messages=7,
         summary_text=long_summary,
         replacement_history_preview=[],
+        replacement_history_entries=[],
         skip_reason=None,
     )
     websocket = _FakeWebSocket()
@@ -217,6 +227,7 @@ async def test_compact_history_handler_emits_completed_with_skip_reason():
         removed_messages=0,
         summary_text="",
         replacement_history_preview=[],
+        replacement_history_entries=[],
         skip_reason="below-threshold",
     )
     websocket = _FakeWebSocket()
@@ -259,6 +270,7 @@ async def test_compact_history_handler_scopes_active_query_check_and_session_loo
         removed_messages=0,
         summary_text="",
         replacement_history_preview=[],
+        replacement_history_entries=[],
         skip_reason="below-threshold",
     )
     websocket = _FakeWebSocket()

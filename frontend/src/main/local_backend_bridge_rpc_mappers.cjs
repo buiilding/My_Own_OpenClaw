@@ -255,6 +255,8 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
       workspace_name: 'workspaceName',
       transparency: 'transparency',
       structured_payload: 'structuredPayload',
+      record_kind: 'recordKind',
+      rehydrate_entry: 'rehydrateEntry',
     }),
   },
 ];

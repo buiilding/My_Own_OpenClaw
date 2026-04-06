@@ -7,9 +7,14 @@ import {
   readSessionInfoFromStorage,
 } from './sessionInfoStorage';
 import { createTranscriptSessionState } from './sessionInfoState';
+import { buildRehydrateMessagePayload } from './rehydrateMessageState';
 import { normalizeTransparencyData } from './transparencyNormalization';
 import { recordImmediateTranscriptEntry } from './transcriptRecordWrite';
 import { getConversationWorkspaceBinding } from '../workspace/conversationWorkspaceBinding';
+import {
+  appendConversationReplayEntry,
+  ensureConversationReplayStateInitialized,
+} from './conversationReplayState';
 import type {
   SessionInfo,
   TranscriptStructuredToolPayload,
@@ -324,7 +329,7 @@ const storeTranscriptEntry = async (entry: TranscriptEntry) => {
 
   const workspaceBinding = getConversationWorkspaceBinding(info.conversationRef);
 
-  await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
+  const storeResult = await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
     content: entry.content,
     userId: info.userId,
     conversationRef: info.conversationRef,
@@ -342,6 +347,45 @@ const storeTranscriptEntry = async (entry: TranscriptEntry) => {
     ...(entry.structuredPayload ? { structuredPayload: entry.structuredPayload } : {}),
   });
   emitTranscriptEntryStoredEvent(entry, info);
+
+  const messageIndex = typeof storeResult?.data?.message_index === 'number'
+    ? storeResult.data.message_index
+    : null;
+  const replayRehydrateEntry = buildRehydrateMessagePayload({
+    role: entry.role || 'assistant',
+    messageType: entry.messageType || null,
+    rawContent: entry.content,
+    timestamp: entry.timestamp || null,
+    correlationId: entry.correlationId || null,
+    transparency: entry.transparency || null,
+    screenshotAttachment: entry.screenshotRef ? {
+      screenshotRef: entry.screenshotRef,
+      screenshot: null,
+    } : null,
+    structuredPayload: entry.structuredPayload || null,
+    fallbackToolName: entry.toolName || null,
+    fallbackToolCallId: entry.correlationId || null,
+  });
+  const replayInitState = await ensureConversationReplayStateInitialized({
+    conversationRef: info.conversationRef,
+    userId: info.userId,
+    workspacePath: workspaceBinding.workspacePath || null,
+    workspaceName: workspaceBinding.workspaceName || null,
+  });
+  if (replayInitState !== 'bootstrapped') {
+    await appendConversationReplayEntry(
+      {
+        conversationRef: info.conversationRef,
+        userId: info.userId,
+        workspacePath: workspaceBinding.workspacePath || null,
+        workspaceName: workspaceBinding.workspaceName || null,
+      },
+      {
+        messageIndex,
+        rehydrateEntry: replayRehydrateEntry,
+      },
+    );
+  }
 };
 
 const pendingTranscriptMessages = createPendingTranscriptMessages({

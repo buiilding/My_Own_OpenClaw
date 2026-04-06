@@ -18,6 +18,8 @@ except ImportError:
 if TYPE_CHECKING:
     from memory.local_store import LocalMemoryStore
 
+from memory.record_kinds import TRANSCRIPT_RECORD_KIND, TRANSCRIPT_REPLAY_RECORD_KIND
+
 logger = logging.getLogger(__name__)
 
 
@@ -105,9 +107,9 @@ async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[st
         await cursor.execute(
             """
             DELETE FROM memories
-            WHERE user_id = ? AND record_kind = 'transcript'
+            WHERE user_id = ? AND record_kind IN (?, ?)
             """,
-            (user_id,),
+            (user_id, TRANSCRIPT_RECORD_KIND, TRANSCRIPT_REPLAY_RECORD_KIND),
         )
         transcript_deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
         await cursor.execute(

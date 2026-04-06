@@ -135,6 +135,7 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
                         }
                         for entry in result.replacement_history_preview
                     ],
+                    "replacement_history_entries": result.replacement_history_entries,
                     "skipped_reason": None,
                 },
                 context=context,
@@ -154,6 +155,7 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
                 "summary_preview": None,
                 "summary_text": result.summary_text or None,
                 "replacement_history_preview": [],
+                "replacement_history_entries": [],
                 "skipped_reason": result.skip_reason or "not-applied",
             },
             context=context,

@@ -13,6 +13,21 @@ try:
 except ImportError:
     aiosqlite = None
 
+from memory.record_kinds import TRANSCRIPT_RECORD_KIND, TRANSCRIPT_REPLAY_RECORD_KIND
+
+
+_TRANSCRIPT_WINDOW_RECORD_KINDS = {
+    TRANSCRIPT_RECORD_KIND,
+    TRANSCRIPT_REPLAY_RECORD_KIND,
+}
+
+
+def normalize_transcript_window_record_kind(record_kind: Optional[str]) -> str:
+    normalized = (record_kind or TRANSCRIPT_RECORD_KIND).strip().lower()
+    if normalized in _TRANSCRIPT_WINDOW_RECORD_KINDS:
+        return normalized
+    return TRANSCRIPT_RECORD_KIND
+
 
 def conversation_where_clause(conversation_id: Optional[str]) -> Tuple[str, Tuple[Any, ...]]:
     if conversation_id is None:
@@ -46,19 +61,21 @@ async def get_next_message_index_for_conversation(
     episodic_db_path: str,
     user_id: str,
     conversation_id: Optional[str],
+    record_kind: Optional[str] = TRANSCRIPT_RECORD_KIND,
 ) -> int:
     async with _open_episodic_cursor(
         episodic_db_path=episodic_db_path,
         use_row_factory=False,
     ) as cursor:
+        normalized_record_kind = normalize_transcript_window_record_kind(record_kind)
         clause, params = conversation_where_clause(conversation_id)
         await cursor.execute(
             f"""
             SELECT MAX(message_index)
             FROM memories
-            WHERE user_id = ? AND record_kind = 'transcript' AND {clause}
+            WHERE user_id = ? AND record_kind = ? AND {clause}
         """,
-            (user_id, *params),
+            (user_id, normalized_record_kind, *params),
         )
         row = await cursor.fetchone()
         max_index = row[0] if row and row[0] is not None else 0
@@ -80,8 +97,8 @@ async def get_episodic_memories_for_conversation(
         use_row_factory=True,
     ) as cursor:
 
-        _ = record_kind  # API compatibility; transcript is the only supported kind.
-        record_kind_clause = "AND record_kind = 'transcript'"
+        normalized_record_kind = normalize_transcript_window_record_kind(record_kind)
+        record_kind_clause = "AND record_kind = ?"
         conversation_clause, conversation_params = conversation_where_clause(conversation_id)
         pagination_clause = ""
         pagination_params: Tuple[Any, ...] = ()
@@ -99,7 +116,13 @@ async def get_episodic_memories_for_conversation(
             ORDER BY message_index ASC, timestamp ASC
             LIMIT ?
         """,
-            (user_id, *conversation_params, *pagination_params, limit),
+            (
+                user_id,
+                *conversation_params,
+                normalized_record_kind,
+                *pagination_params,
+                limit,
+            ),
         )
 
         rows = await cursor.fetchall()

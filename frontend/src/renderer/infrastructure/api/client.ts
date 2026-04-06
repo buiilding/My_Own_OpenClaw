@@ -20,7 +20,11 @@ type RehydrateConversationEntry = {
   timestamp?: string | null;
   screenshot_ref?: string | null;
   screenshot?: string | null;
+  image_data?: string | string[] | null;
   transparency?: Record<string, unknown> | null;
+  structured_content?: Array<Record<string, unknown>> | null;
+  compaction_facts?: Record<string, unknown> | null;
+  structured_payload?: Record<string, unknown> | null;
 };
 
 export const ApiClient = {

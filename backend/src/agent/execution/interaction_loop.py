@@ -137,6 +137,7 @@ class InteractionLoop:
                                 }
                                 for entry in mid_compaction_result.replacement_history_preview
                             ],
+                            replacement_history_entries=mid_compaction_result.replacement_history_entries,
                             skipped_reason=mid_compaction_result.skip_reason,
                         )
                     except Exception as exc:

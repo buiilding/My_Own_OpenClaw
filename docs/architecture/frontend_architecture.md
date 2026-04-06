@@ -258,6 +258,12 @@ Primary modules:
   - Keeps awaiting typing and response overlay mode selection out of `ChatBoxResponse.jsx`.
 - `features/chat/hooks/useToolRunner.ts`:
   - Executes incoming tool calls/bundles, stale-turn cancellation responses.
+- `features/chat/session/conversationBackendSyncRuntime.ts`:
+  - Rehydrates backend chat state on reconnect/resume.
+  - Now prefers persisted internal replay-state rows over raw transcript rows when a replay snapshot exists, so compacted chats reopen with compacted model history while preserving full UI scrollback.
+- `renderer/infrastructure/transcript/conversationReplayState.ts`:
+  - Maintains the hidden replay-state stream (`transcript_replay`) used only for backend resume.
+  - Mirrors normal transcript writes into replay-state and overwrites replay-state with compacted replacement history when compaction completes.
 - `features/chat/components/ChatInterface.jsx`:
   - Provider + model selectors, stop/new-chat actions, speech toggle, retry/edit message flows.
   - Focused-window `Esc` stop handler wired to the same stop-query path as the stop button.

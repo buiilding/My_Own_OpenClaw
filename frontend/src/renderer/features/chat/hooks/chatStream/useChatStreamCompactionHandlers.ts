@@ -12,6 +12,8 @@ import {
   COMPACTION_FAILED_THINKING_STATUS,
 } from '../../utils/chatStream/chatStreamThinkingStatus';
 import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
+import { getConversationWorkspaceBinding } from '../../../../infrastructure/workspace/conversationWorkspaceBinding';
+import { replaceConversationReplayState } from '../../../../infrastructure/transcript/conversationReplayState';
 import { useTurnScopedBackendEventHandler } from './useTurnScopedBackendEventHandler';
 
 type ResolveTargetConversationRef = (event: BackendEvent) => string | null;
@@ -120,6 +122,27 @@ export function useChatStreamCompactionHandlers({
           : [],
         skippedReason: skippedReason || null,
       }, conversationRef);
+      const replacementHistoryEntries = Array.isArray(event.payload?.replacement_history_entries)
+        ? event.payload.replacement_history_entries
+            .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry))
+        : [];
+      if (!skippedReason && conversationRef && replacementHistoryEntries.length > 0) {
+        const workspaceBinding = getConversationWorkspaceBinding(conversationRef);
+        void replaceConversationReplayState(
+          {
+            conversationRef,
+            userId: event.user_id || 'default_user',
+            workspacePath: workspaceBinding.workspacePath || null,
+            workspaceName: workspaceBinding.workspaceName || null,
+          },
+          replacementHistoryEntries.map((rehydrateEntry, index) => ({
+            messageIndex: index + 1,
+            rehydrateEntry,
+          })),
+        ).catch((error) => {
+          console.warn('[useChatStreamCompactionHandlers] Failed to persist compacted replay state:', error);
+        });
+      }
       recordTrackingEvent('context-compaction-completed', event.turn_ref, {}, conversationRef);
     },
   });

@@ -190,6 +190,26 @@ Current title behavior for transcript chats:
 - Until a saved model title exists, list/search reads derive a temporary heuristic title from the first user message.
 - After the first assistant `llm-text` transcript row is stored, async model title generation can replace that temporary title.
 
+## Chat Transcript vs Replay State
+
+WindieOS now persists two separate conversation representations for chat history:
+
+- `record_kind='transcript'`: append-only raw transcript rows used for user-visible chat scrollback, search, titles, and conversation lists.
+- `record_kind='transcript_replay'`: internal replay-state rows used only to rebuild backend conversation history on reconnect or resume.
+
+Replay-state behavior:
+
+- New transcript writes mirror into replay-state so the backend can resume from a local replay snapshot instead of regenerating from UI-only message rows.
+- History compaction rewrites replay-state only; it does not rewrite or delete the raw transcript.
+- Reopening a chat prefers replay-state when present. Legacy chats without replay-state still fall back to raw transcript replay.
+- Clearing chat history deletes both raw transcript rows and replay-state rows.
+
+Practical effect:
+
+- users can still scroll through the full original transcript
+- the backend can resume from compacted internal history after a previous compaction
+- transcript UI and backend rehydrate source are intentionally no longer the same storage stream
+
 ## User-Facing Reset Controls
 
 Settings now exposes two destructive local-data actions:

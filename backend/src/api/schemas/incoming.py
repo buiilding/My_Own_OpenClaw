@@ -101,8 +101,11 @@ class RehydrateConversationEntry(BaseModel):
     timestamp: Optional[str] = None
     screenshot_ref: Optional[str] = None
     screenshot: Optional[str] = None
+    image_data: Optional[Union[str, List[str]]] = None
     transparency: Optional[Dict[str, Any]] = None
     structured_payload: Optional[Dict[str, Any]] = None
+    structured_content: Optional[List[Dict[str, Any]]] = None
+    compaction_facts: Optional[Dict[str, Any]] = None
 
 
 class RehydrateConversationPayload(BaseModel):

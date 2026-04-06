@@ -208,6 +208,7 @@ class AgentExecutor:
                         }
                         for entry in pre_compaction_result.replacement_history_preview
                     ],
+                    replacement_history_entries=pre_compaction_result.replacement_history_entries,
                     skipped_reason=pre_compaction_result.skip_reason,
                 )
             except Exception as exc:
