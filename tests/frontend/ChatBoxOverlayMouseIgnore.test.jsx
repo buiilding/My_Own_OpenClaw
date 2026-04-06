@@ -212,7 +212,7 @@ describe('ChatBox overlay mouse ignore', () => {
     );
     expect(sawRendererMouseToggle).toBe(false);
     expect(mockInvoke.mock.calls.some(
-      ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 64,
+      ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 96,
     )).toBe(true);
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });

@@ -440,91 +440,99 @@ function ChatBox() {
               setSelectedReadableFiles((previous) => previous.filter((file) => file.id !== id));
             }}
           />
-          <div className="chatbox-main-row">
-            <button
-              type="button"
-              className="chatbox-icon chatbox-config"
-              onClick={handleOpenConfig}
-              aria-label="Open config"
-              title="Open config"
-              disabled={loopInteractionLocked}
-            >
-              <SettingsIcon />
-            </button>
-            {devUiEnabled ? (
-              <button
-                type="button"
-                className="chatbox-icon chatbox-dev-compact"
-                onClick={handleDevAutoCompaction}
-                aria-label="Run auto compaction"
-                title="Run auto compaction"
-                disabled={loopInteractionLocked}
-              >
-                <CompactIcon />
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className="chatbox-icon chatbox-attach"
-              onClick={() => {
-                attachmentInputRef.current?.click();
-              }}
-              aria-label="Add attachment"
-              title="Add attachment"
-              disabled={loopInteractionLocked}
-            >
-              <AttachmentIcon />
-            </button>
-            <div className="chatbox-input-wrap">
-              <textarea
-                ref={inputRef}
-                value={inputValue}
-                onChange={handleInputChange}
-                onPaste={(event) => {
-                  void handleComposerPaste(event).catch((error) => {
-                    console.warn('[ChatBox] Failed to parse pasted image:', error);
-                  });
-                }}
-                onKeyDown={handleComposerKeyDown}
-                placeholder="Ask me anything..."
-                className="chatbox-input"
-                disabled={loopInteractionLocked}
-                rows={1}
-              />
+          <div className="chatbox-composer-stack">
+            <div className="chatbox-composer-region">
+              <div className="chatbox-input-wrap">
+                <textarea
+                  ref={inputRef}
+                  value={inputValue}
+                  onChange={handleInputChange}
+                  onPaste={(event) => {
+                    void handleComposerPaste(event).catch((error) => {
+                      console.warn('[ChatBox] Failed to parse pasted image:', error);
+                    });
+                  }}
+                  onKeyDown={handleComposerKeyDown}
+                  placeholder="Ask me anything..."
+                  className="chatbox-input"
+                  disabled={loopInteractionLocked}
+                  rows={1}
+                />
+              </div>
             </div>
-            <button
-              type="button"
-              className={`chatbox-icon chatbox-screenshot${includeQueryScreenshot ? ' is-enabled' : ''}`}
-              aria-label="Toggle auto screenshot"
-              title={includeQueryScreenshot ? 'Disable auto screenshot' : 'Enable auto screenshot'}
-              onClick={handleToggleQueryScreenshot}
-              disabled={loopInteractionLocked}
-            >
-              <ScreenshotIcon />
-            </button>
-            <button
-              type="button"
-              className={`chatbox-icon chatbox-tts${speechModeEnabled ? ' is-enabled' : ''}`}
-              aria-label="Toggle text-to-speech"
-              title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
-              onClick={handleToggleSpeechMode}
-              disabled={loopInteractionLocked}
-            >
-              <SoundIcon />
-            </button>
-            <button
-              ref={sendButtonRef}
-              type="submit"
-              className="chatbox-icon chatbox-send"
-              aria-label="Send message"
-              title="Send message"
-              disabled={(
-                loopInteractionLocked
-                || (!inputValue.trim() && !hasAttachments)
-              )}
-            >
-              <SendIcon />
-            </button>
+            <div className="chatbox-controls-row">
+              <div className="chatbox-controls-group chatbox-controls-group-start">
+                <button
+                  type="button"
+                  className="chatbox-icon chatbox-config"
+                  onClick={handleOpenConfig}
+                  aria-label="Open config"
+                  title="Open config"
+                  disabled={loopInteractionLocked}
+                >
+                  <SettingsIcon />
+                </button>
+                {devUiEnabled ? (
+                  <button
+                    type="button"
+                    className="chatbox-icon chatbox-dev-compact"
+                    onClick={handleDevAutoCompaction}
+                    aria-label="Run auto compaction"
+                    title="Run auto compaction"
+                    disabled={loopInteractionLocked}
+                  >
+                    <CompactIcon />
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="chatbox-icon chatbox-attach"
+                  onClick={() => {
+                    attachmentInputRef.current?.click();
+                  }}
+                  aria-label="Add attachment"
+                  title="Add attachment"
+                  disabled={loopInteractionLocked}
+                >
+                  <AttachmentIcon />
+                </button>
+              </div>
+              <div className="chatbox-controls-group chatbox-controls-group-end">
+                <button
+                  type="button"
+                  className={`chatbox-icon chatbox-screenshot${includeQueryScreenshot ? ' is-enabled' : ''}`}
+                  aria-label="Toggle auto screenshot"
+                  title={includeQueryScreenshot ? 'Disable auto screenshot' : 'Enable auto screenshot'}
+                  onClick={handleToggleQueryScreenshot}
+                  disabled={loopInteractionLocked}
+                >
+                  <ScreenshotIcon />
+                </button>
+                <button
+                  type="button"
+                  className={`chatbox-icon chatbox-tts${speechModeEnabled ? ' is-enabled' : ''}`}
+                  aria-label="Toggle text-to-speech"
+                  title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
+                  onClick={handleToggleSpeechMode}
+                  disabled={loopInteractionLocked}
+                >
+                  <SoundIcon />
+                </button>
+                <button
+                  ref={sendButtonRef}
+                  type="submit"
+                  className="chatbox-icon chatbox-send"
+                  aria-label="Send message"
+                  title="Send message"
+                  disabled={(
+                    loopInteractionLocked
+                    || (!inputValue.trim() && !hasAttachments)
+                  )}
+                >
+                  <SendIcon />
+                </button>
+              </div>
+            </div>
           </div>
         </form>
       </div>
