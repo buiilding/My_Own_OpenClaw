@@ -1,7 +1,7 @@
 import type { BundleExecutionResult, ToolExecutionResult } from '../../../../infrastructure/services/toolExecution/ToolExecutionService';
+import { buildToolOutputChatMessageState } from '../../../../infrastructure/transcript/toolOutputChatMessageState';
 import type { ChatMessage } from '../../stores/chatStore';
 import { resolveToolCallCorrelationId as resolveSharedToolCallCorrelationId } from '../toolCorrelationIds';
-import { buildToolOutputMessageState } from '../toolOutputMessageState';
 
 export type TranscriptModelContext = {
   modelId: string | null;
@@ -25,7 +25,7 @@ type ToolOutputEnvelopeInput = {
 };
 
 function buildToolOutputEnvelope(result: ToolOutputEnvelopeInput) {
-  return buildToolOutputMessageState({
+  return buildToolOutputChatMessageState({
     outputText: result.formattedMessage,
     sourceEventType: 'tool-runner-result' as const,
     sourceChannel: 'renderer-tool-runner' as const,

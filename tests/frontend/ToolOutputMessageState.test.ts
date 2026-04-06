@@ -1,10 +1,10 @@
-import { buildToolOutputMessageState } from '../../frontend/src/renderer/features/chat/utils/toolOutputMessageState';
+import { buildToolOutputChatMessageState } from '../../frontend/src/renderer/infrastructure/transcript/toolOutputChatMessageState';
 
-describe('toolOutputMessageState', () => {
+describe('toolOutputChatMessageState', () => {
   test('normalizes screenshots and common tool-output fields', () => {
     const uuidSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('tool-output-state-1');
 
-    const message = buildToolOutputMessageState({
+    const message = buildToolOutputChatMessageState({
       outputText: 'clicked',
       sourceEventType: 'tool-output',
       sourceChannel: 'from-backend',
