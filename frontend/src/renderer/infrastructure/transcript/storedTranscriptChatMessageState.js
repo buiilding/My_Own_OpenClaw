@@ -2,6 +2,9 @@ import {
   normalizeOptionalString,
 } from './rehydratePayload';
 import {
+  normalizeToolSchemaList,
+} from './toolSchemaShape';
+import {
   buildStoredTranscriptToolMessageState,
 } from './structuredToolPayload';
 import {
@@ -25,9 +28,7 @@ function buildStoredTranscriptTransparencyFields(part, partCount, transparency) 
   const fields = {};
   const canAttachUserContext = part.sender === 'user' || partCount === 1;
   const systemPrompt = normalizeOptionalString(transparency.systemPrompt);
-  const toolSchemas = (
-    Array.isArray(transparency.toolSchemas) && transparency.toolSchemas.length > 0
-  ) ? transparency.toolSchemas : null;
+  const toolSchemas = normalizeToolSchemaList(transparency.toolSchemas) || null;
 
   if (canAttachUserContext && (systemPrompt || toolSchemas)) {
     fields.systemPrompt = {
