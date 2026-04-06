@@ -1057,17 +1057,21 @@
   align-self: flex-end;
   flex-direction: column;
   align-items: flex-end;
+  max-width: min(540px, calc(100vw - 72px));
   padding: 6px 10px;
   margin: -6px -10px;
 }
 
 .message-user .message-content {
+  width: fit-content;
+  max-width: 100%;
   background: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.08);
   color: #0f172a;
   border-radius: 20px;
   padding: 14px 18px;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+  overflow-wrap: anywhere;
 }
 
 .user-message-editor {
@@ -1939,12 +1943,6 @@
   color: var(--ui-send-text);
 }
 
-.message-input-disclaimer {
-  margin: 8px 0 0;
-  text-align: center;
-  font-size: 12px;
-  color: var(--ui-text-dim);
-}
 
 .transparency-sections {
   margin-top: 12px;
