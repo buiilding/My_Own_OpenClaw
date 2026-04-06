@@ -66,16 +66,9 @@ class StoredMessage:
             return assistant_message
 
         if self.role == MessageRole.TOOL:
-            tool_content: Union[str, MultimodalContent] = (
-                self._build_multimodal_content(
-                    self.content,
-                    self.image_data,
-                )
-            )
-
             tool_message: Dict[str, Any] = {
                 "role": self.role.value,
-                "content": tool_content,
+                "content": self._llm_content(),
                 "tool_call_id": self.tool_call_id or "unknown_tool_call",
             }
             if self.tool_name:
