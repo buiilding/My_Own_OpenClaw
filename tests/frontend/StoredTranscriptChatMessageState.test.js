@@ -106,4 +106,37 @@ describe('storedTranscriptChatMessageState', () => {
     });
     expect(invalidMessages[0].toolSchemas).toBeUndefined();
   });
+
+  test('reuses shared transcript transparency normalization for stored replay fields', () => {
+    const messages = buildStoredTranscriptChatMessages({
+      id: 'tool-output-4',
+      role: 'tool',
+      message_type: 'tool-output',
+      content: 'tool output text',
+      record_kind: 'transcript',
+      metadata: {
+        transparency: {
+          systemPrompt: '  Active: â€œWindieOS â€” READMEâ€\u009d  ',
+          fullUserMessage: {
+            content: '  <user_query>hello</user_query>  ',
+            metadata: { source: 'past-chat' },
+          },
+          fullAssistantMessage: {
+            content: '  <assistant_response>hi</assistant_response>  ',
+          },
+        },
+      },
+    }, 0);
+
+    expect(messages[0].systemPrompt).toEqual({
+      content: 'Active: “WindieOS — README”',
+    });
+    expect(messages[0].fullUserMessage).toEqual({
+      content: '<user_query>hello</user_query>',
+      metadata: { source: 'past-chat' },
+    });
+    expect(messages[0].fullAssistantMessage).toEqual({
+      content: '<assistant_response>hi</assistant_response>',
+    });
+  });
 });
