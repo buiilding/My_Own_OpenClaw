@@ -1,9 +1,6 @@
 import {
-  normalizeOptionalString,
-} from './rehydratePayload';
-import {
-  normalizeToolSchemaList,
-} from './toolSchemaShape';
+  normalizeTransparencyData,
+} from './transparencyNormalization';
 import {
   buildStoredTranscriptToolMessageState,
 } from './structuredToolPayload';
@@ -21,14 +18,15 @@ import {
 } from './storedTranscriptMemoryState';
 
 function buildStoredTranscriptTransparencyFields(part, partCount, transparency) {
-  if (!transparency || typeof transparency !== 'object') {
+  const normalizedTransparency = normalizeTransparencyData(transparency);
+  if (!normalizedTransparency) {
     return {};
   }
 
   const fields = {};
   const canAttachUserContext = part.sender === 'user' || partCount === 1;
-  const systemPrompt = normalizeOptionalString(transparency.systemPrompt);
-  const toolSchemas = normalizeToolSchemaList(transparency.toolSchemas) || null;
+  const systemPrompt = normalizedTransparency.systemPrompt || null;
+  const toolSchemas = normalizedTransparency.toolSchemas || null;
 
   if (canAttachUserContext && (systemPrompt || toolSchemas)) {
     fields.systemPrompt = {
@@ -40,12 +38,8 @@ function buildStoredTranscriptTransparencyFields(part, partCount, transparency) 
     fields.toolSchemas = toolSchemas;
   }
 
-  const fullUserContent = normalizeOptionalString(transparency?.fullUserMessage?.content);
-  const fullUserMetadata = (
-    transparency?.fullUserMessage?.metadata
-    && typeof transparency.fullUserMessage.metadata === 'object'
-    && !Array.isArray(transparency.fullUserMessage.metadata)
-  ) ? transparency.fullUserMessage.metadata : null;
+  const fullUserContent = normalizedTransparency.fullUserMessage?.content || null;
+  const fullUserMetadata = normalizedTransparency.fullUserMessage?.metadata || null;
   if (canAttachUserContext && (fullUserContent || fullUserMetadata)) {
     fields.fullUserMessage = {
       ...(fullUserContent ? { content: fullUserContent } : {}),
@@ -53,7 +47,7 @@ function buildStoredTranscriptTransparencyFields(part, partCount, transparency) 
     };
   }
 
-  const fullAssistantContent = normalizeOptionalString(transparency?.fullAssistantMessage?.content);
+  const fullAssistantContent = normalizedTransparency.fullAssistantMessage?.content || null;
   if (part.sender === 'assistant' && fullAssistantContent) {
     fields.fullAssistantMessage = {
       content: fullAssistantContent,

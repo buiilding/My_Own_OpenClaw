@@ -16,6 +16,7 @@ All notable changes to WindieOS will be documented in this file.
 - feat(openai-native-web-search-progress): stream OpenAI native backend `web_search` progress through a dedicated `web-search-progress` websocket event, surface transient renderer `search-source` rows and overlay tool-call phase activity while the search is still running, and keep the final logical tool result on the existing backend `tool-call` + `tool-output` contract; add focused backend/frontend regressions and contract/doc updates.
 
 ### Fixed
+- refactor(frontend-stored-transcript-transparency): reuse the shared transcript transparency normalizer during stored past-chat message shaping so replay follows the same trimming, mojibake repair, and tool-schema normalization rules as transcript persistence.
 - refactor(frontend-stored-transcript-tool-schemas): normalize stored transparency tool schemas through the shared canonicalizer during past-chat replay so invalid arrays are dropped and flat function schemas replay in the same nested shape as live transcript state.
 - refactor(frontend-tool-schema-types): tighten renderer chat-store, transcript, and message prop contracts to the canonical tool-schema shape so the UI surface no longer advertises `any` for normalized tool schema payloads.
 - refactor(frontend-tool-schema-ingress): normalize live metadata events and transcript transparency snapshots to one canonical nested function-schema shape so stream metadata, transparency sections, and replay storage no longer mix flat and nested tool schema forms.
