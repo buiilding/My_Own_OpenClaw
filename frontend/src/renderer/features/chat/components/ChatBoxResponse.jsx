@@ -20,7 +20,7 @@ function renderResponseEntry(entry, markdownHtml) {
     return null;
   }
 
-  if (entry.type === 'tool-explanation') {
+  if (entry.type === 'tool-explanation' || entry.type === 'search-source') {
     return <div className="chatbox-response-text chatbox-response-plain">{entry.text}</div>;
   }
 
