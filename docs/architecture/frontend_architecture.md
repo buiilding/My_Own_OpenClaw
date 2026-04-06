@@ -264,6 +264,7 @@ Primary modules:
 - `renderer/infrastructure/transcript/conversationReplayState.ts`:
   - Maintains the hidden replay-state stream (`transcript_replay`) used only for backend resume.
   - Mirrors normal transcript writes into replay-state and overwrites replay-state with compacted replacement history when compaction completes.
+  - Owns shared delete semantics so dashboard chat deletion and retry/edit rewind clear replay-state together with raw transcript before rebuilding conversation state.
 - `features/chat/components/ChatInterface.jsx`:
   - Provider + model selectors, stop/new-chat actions, speech toggle, retry/edit message flows.
   - Focused-window `Esc` stop handler wired to the same stop-query path as the stop button.

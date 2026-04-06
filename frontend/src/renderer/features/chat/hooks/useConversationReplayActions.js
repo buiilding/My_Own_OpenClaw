@@ -13,6 +13,7 @@ import {
   setActiveConversationRef,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
+import { deleteConversationStoredState } from '../../../infrastructure/transcript/conversationReplayState';
 import {
   getConversationWorkspaceBinding,
   setConversationWorkspaceBinding,
@@ -36,10 +37,11 @@ async function replayTranscriptMessages(messages, userId, conversationRef) {
 
   const workspaceBinding = getConversationWorkspaceBinding(conversationRef);
 
-  await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
+  await deleteConversationStoredState({
     userId,
-    conversationId: conversationRef,
-    recordKind: 'transcript',
+    conversationRef,
+    workspacePath: workspaceBinding.workspacePath || null,
+    workspaceName: workspaceBinding.workspaceName || null,
   });
 
   for (const message of messages) {

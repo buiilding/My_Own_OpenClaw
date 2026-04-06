@@ -1,6 +1,7 @@
 import {
   appendConversationReplayEntry,
   clearConversationReplayStateCache,
+  deleteConversationStoredState,
   ensureConversationReplayStateInitialized,
   TRANSCRIPT_REPLAY_RECORD_KIND,
 } from '../../frontend/src/renderer/infrastructure/transcript/conversationReplayState';
@@ -97,5 +98,23 @@ describe('conversationReplayState', () => {
         content: 'done',
       }),
     }));
+  });
+
+  test('deletes raw transcript and replay rows together for one conversation', async () => {
+    await deleteConversationStoredState({
+      conversationRef: 'conv-1',
+      userId: 'user-1',
+    });
+
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-conversation', {
+      userId: 'user-1',
+      conversationId: 'conv-1',
+      recordKind: 'transcript',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'delete-conversation', {
+      userId: 'user-1',
+      conversationId: 'conv-1',
+      recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
+    });
   });
 });

@@ -18,6 +18,11 @@ type ReplayStoreContext = {
   workspaceName?: string | null;
 };
 
+type ConversationStateDeleteOptions = {
+  includeTranscript?: boolean;
+  includeReplayState?: boolean;
+};
+
 const initializedReplayConversations = new Set<string>();
 const inFlightReplayInitializations = new Map<string, Promise<ReplayInitState>>();
 
@@ -73,6 +78,29 @@ function resolveStoredReplayMetadata(memory: unknown): Record<string, unknown> {
   return metadata as Record<string, unknown>;
 }
 
+function clearReplayInitialization(
+  conversationRef: string,
+  userId: string,
+): void {
+  initializedReplayConversations.delete(
+    getReplayConversationKey(conversationRef, userId),
+  );
+}
+
+async function deleteConversationRecordKind(
+  context: ReplayStoreContext,
+  recordKind: string,
+): Promise<void> {
+  const result = await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
+    userId: context.userId,
+    conversationId: context.conversationRef,
+    recordKind,
+  });
+  if (!result || result.success === false) {
+    throw new Error(result?.error || `Failed to delete ${recordKind} conversation rows`);
+  }
+}
+
 export function readStoredReplayRehydrateEntry(memory: unknown): Record<string, unknown> | null {
   const metadata = resolveStoredReplayMetadata(memory);
   const candidate = metadata.rehydrate_entry ?? metadata.rehydrateEntry;
@@ -85,6 +113,50 @@ export function readStoredReplayRehydrateEntry(memory: unknown): Record<string, 
 export function clearConversationReplayStateCache(): void {
   initializedReplayConversations.clear();
   inFlightReplayInitializations.clear();
+}
+
+export async function deleteConversationStoredState(
+  context: ReplayStoreContext,
+  {
+    includeTranscript = true,
+    includeReplayState = true,
+  }: ConversationStateDeleteOptions = {},
+): Promise<void> {
+  const normalizedConversationRef = normalizeConversationRef(context.conversationRef);
+  if (!normalizedConversationRef) {
+    return;
+  }
+
+  const normalizedUserId = normalizeUserId(context.userId);
+  clearReplayInitialization(normalizedConversationRef, normalizedUserId);
+
+  const deleteOperations: Promise<void>[] = [];
+  if (includeTranscript) {
+    deleteOperations.push(deleteConversationRecordKind({
+      ...context,
+      conversationRef: normalizedConversationRef,
+      userId: normalizedUserId,
+    }, 'transcript'));
+  }
+  if (includeReplayState) {
+    deleteOperations.push(deleteConversationRecordKind({
+      ...context,
+      conversationRef: normalizedConversationRef,
+      userId: normalizedUserId,
+    }, TRANSCRIPT_REPLAY_RECORD_KIND));
+  }
+
+  const settledDeletes = await Promise.allSettled(deleteOperations);
+  const failures = settledDeletes
+    .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+    .map((result) => result.reason);
+  if (failures.length > 0) {
+    const firstFailure = failures[0];
+    if (firstFailure instanceof Error) {
+      throw firstFailure;
+    }
+    throw new Error('Failed to delete conversation state');
+  }
 }
 
 async function storeReplayRow(
@@ -114,10 +186,9 @@ export async function replaceConversationReplayState(
   context: ReplayStoreContext,
   entries: ReplaySnapshotEntry[],
 ): Promise<void> {
-  await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
-    userId: context.userId,
-    conversationId: context.conversationRef,
-    recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
+  await deleteConversationStoredState(context, {
+    includeTranscript: false,
+    includeReplayState: true,
   });
 
   for (let index = 0; index < entries.length; index += 1) {

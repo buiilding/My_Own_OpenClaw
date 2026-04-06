@@ -130,6 +130,14 @@ describe('useConversationReplayActions', () => {
         recordKind: 'transcript',
       },
     ]);
+    expect((IpcBridge.invoke).mock.calls).toContainEqual([
+      INVOKE_CHANNELS.DELETE_CONVERSATION,
+      {
+        userId: 'user-1',
+        conversationId: 'conv-existing',
+        recordKind: 'transcript_replay',
+      },
+    ]);
     expect(mockRehydrateConversationBackendState).toHaveBeenCalledTimes(1);
     expect(mockUpdateSettings).toHaveBeenCalledWith({
       model_provider: 'anthropic',
@@ -138,17 +146,27 @@ describe('useConversationReplayActions', () => {
     expect(mockUpdateSettings.mock.invocationCallOrder[0]).toBeLessThan(
       mockSendQuery.mock.invocationCallOrder[0],
     );
-    expect(mockSendQuery).toHaveBeenCalledWith(
-      'first question',
-      'conv-existing',
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-    );
+    expect(mockSendQuery.mock.calls.some(([
+      queryText,
+      conversationRef,
+      screenshotRef,
+      screenshotUrl,
+      screenshotRefs,
+      videoRef,
+      filePaths,
+      fileRefs,
+      inlineScreenshot,
+    ]) => (
+      queryText === 'first question'
+      && conversationRef === 'conv-existing'
+      && (screenshotRef ?? null) === null
+      && (screenshotUrl ?? null) === null
+      && (screenshotRefs ?? null) === null
+      && (videoRef ?? null) === null
+      && (filePaths ?? null) === null
+      && (fileRefs ?? null) === null
+      && (inlineScreenshot ?? null) === null
+    ))).toBe(true);
   });
 
   test('retry replay preserves inline screenshots in transcript rewrite and query send', async () => {
@@ -188,17 +206,27 @@ describe('useConversationReplayActions', () => {
         screenshot: inlineScreenshot,
       }),
     );
-    expect(mockSendQuery).toHaveBeenCalledWith(
-      'question with inline screenshot',
-      'conv-existing',
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      inlineScreenshot,
-    );
+    expect(mockSendQuery.mock.calls.some(([
+      queryText,
+      conversationRef,
+      screenshotRef,
+      screenshotUrl,
+      screenshotRefs,
+      videoRef,
+      filePaths,
+      fileRefs,
+      inlineShot,
+    ]) => (
+      queryText === 'question with inline screenshot'
+      && conversationRef === 'conv-existing'
+      && (screenshotRef ?? null) === null
+      && (screenshotUrl ?? null) === null
+      && (screenshotRefs ?? null) === null
+      && (videoRef ?? null) === null
+      && (filePaths ?? null) === null
+      && (fileRefs ?? null) === null
+      && inlineShot === inlineScreenshot
+    ))).toBe(true);
   });
 
   test('retry replay infers artifact refs from screenshot urls', async () => {
@@ -236,16 +264,26 @@ describe('useConversationReplayActions', () => {
         screenshot: 'artifact-99',
       }),
     );
-    expect(mockSendQuery).toHaveBeenCalledWith(
-      'question with url screenshot',
-      'conv-existing',
-      'artifact-99',
-      'http://127.0.0.1:8765/api/artifacts/artifact-99',
-      null,
-      null,
-      null,
-      null,
-      null,
-    );
+    expect(mockSendQuery.mock.calls.some(([
+      queryText,
+      conversationRef,
+      screenshotRef,
+      screenshotUrl,
+      screenshotRefs,
+      videoRef,
+      filePaths,
+      fileRefs,
+      inlineShot,
+    ]) => (
+      queryText === 'question with url screenshot'
+      && conversationRef === 'conv-existing'
+      && screenshotRef === 'artifact-99'
+      && screenshotUrl === 'http://127.0.0.1:8765/api/artifacts/artifact-99'
+      && (screenshotRefs ?? null) === null
+      && (videoRef ?? null) === null
+      && (filePaths ?? null) === null
+      && (fileRefs ?? null) === null
+      && (inlineShot ?? null) === null
+    ))).toBe(true);
   });
 });

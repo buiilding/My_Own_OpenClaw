@@ -201,6 +201,7 @@ Replay-state behavior:
 
 - New transcript writes mirror into replay-state so the backend can resume from a local replay snapshot instead of regenerating from UI-only message rows.
 - History compaction rewrites replay-state only; it does not rewrite or delete the raw transcript.
+- Chat delete and replay/edit rewind flows clear both raw transcript rows and replay-state rows before any transcript rebuild.
 - Reopening a chat prefers replay-state when present. Legacy chats without replay-state still fall back to raw transcript replay.
 - Clearing chat history deletes both raw transcript rows and replay-state rows.
 
