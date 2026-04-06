@@ -91,6 +91,15 @@ describe('chatStreamMessageUpdates', () => {
       content: 'prompt',
       toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
     });
+    expect(
+      buildSystemPromptUpdate({
+        content: 'prompt',
+        tool_schemas: [{ type: 'function', name: 'run_shell_command', parameters: { type: 'object' } }],
+      }),
+    ).toEqual({
+      content: 'prompt',
+      toolSchemas: [{ type: 'function', name: 'run_shell_command', parameters: { type: 'object' } }],
+    });
     expect(buildSystemPromptUpdate({ content: 'prompt', tool_schemas: ['a'] })).toEqual({
       content: 'prompt',
       toolSchemas: undefined,

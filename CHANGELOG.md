@@ -16,6 +16,7 @@ All notable changes to WindieOS will be documented in this file.
 - feat(openai-native-web-search-progress): stream OpenAI native backend `web_search` progress through a dedicated `web-search-progress` websocket event, surface transient renderer `search-source` rows and overlay tool-call phase activity while the search is still running, and keep the final logical tool result on the existing backend `tool-call` + `tool-output` contract; add focused backend/frontend regressions and contract/doc updates.
 
 ### Fixed
+- fix(frontend-tool-schema-normalization): accept both nested OpenAI-style function schemas and flat WindieOS function schemas in stream metadata updates and transparency sections, using one shared frontend validator so valid tool schema rows no longer disappear from the UI.
 - refactor(frontend-assistant-text-chat-state): centralize assistant `llm-text` chat-message wrapping so live stream placeholders/completions and stored transcript assistant text rows share the same base message projection.
 - refactor(frontend-tool-output-chat-state): move shared tool-output chat-message wrapping into transcript infrastructure and reuse it for stored transcript tool-output rows, so live and past-chat tool-output messages share the same base field projection.
 - refactor(frontend-tool-call-chat-state): centralize canonical tool-call chat-message wrapping so live backend tool-call rows and stored transcript tool-call rows share the same display-field projection path.

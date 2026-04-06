@@ -1,6 +1,7 @@
 import type { ToolSchema } from '../../../../types/backendEvents';
 import type { ChatMessage } from '../../stores/chatStore';
 import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
+import { isSupportedToolSchemaList } from '../../../../infrastructure/transcript/toolSchemaShape';
 
 type SystemPromptPayload = {
   content?: unknown;
@@ -21,26 +22,7 @@ type StreamingResponseAction =
   | { type: 'new'; text: string; turnRef?: string };
 
 function normalizeToolSchemas(value: unknown): ToolSchema[] | undefined {
-  if (!Array.isArray(value)) {
-    return undefined;
-  }
-
-  const isCanonicalList = value.every((item) => {
-    if (!item || typeof item !== 'object') {
-      return false;
-    }
-
-    const tool = item as { type?: unknown; name?: unknown; parameters?: unknown };
-    if (tool.type === 'computer') {
-      return true;
-    }
-    if (tool.type !== 'function') {
-      return false;
-    }
-    return typeof tool.name === 'string' && typeof tool.parameters === 'object' && tool.parameters !== null;
-  });
-
-  return isCanonicalList ? (value as ToolSchema[]) : undefined;
+  return isSupportedToolSchemaList(value) ? value : undefined;
 }
 
 function findLastMessage(
