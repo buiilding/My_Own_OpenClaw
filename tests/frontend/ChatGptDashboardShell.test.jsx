@@ -5,7 +5,10 @@ import DashboardShell from '../../frontend/src/renderer/features/dashboard/compo
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { invalidateConversationBackendSyncState } from '../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime';
 import { clearConversationReplayStateCache } from '../../frontend/src/renderer/infrastructure/transcript/conversationReplayState';
-import { clearAllConversationWorkspaceBindings } from '../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding';
+import {
+  clearAllConversationWorkspaceBindings,
+  clearConversationWorkspaceBinding,
+} from '../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding';
 
 const mockListeners = new Map();
 const mockInvoke = jest.fn(async (channel) => {
@@ -108,12 +111,14 @@ jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWork
   return {
     ...actual,
     clearAllConversationWorkspaceBindings: jest.fn(),
+    clearConversationWorkspaceBinding: jest.fn(),
   };
 });
 
 const mockInvalidateConversationBackendSyncState = invalidateConversationBackendSyncState;
 const mockClearConversationReplayStateCache = clearConversationReplayStateCache;
 const mockClearAllConversationWorkspaceBindings = clearAllConversationWorkspaceBindings;
+const mockClearConversationWorkspaceBinding = clearConversationWorkspaceBinding;
 
 describe('ChatGptDashboardShell', () => {
   const flushMicrotasks = async () => {
@@ -144,6 +149,7 @@ describe('ChatGptDashboardShell', () => {
     mockInvalidateConversationBackendSyncState.mockClear();
     mockClearConversationReplayStateCache.mockClear();
     mockClearAllConversationWorkspaceBindings.mockClear();
+    mockClearConversationWorkspaceBinding.mockClear();
     mockSessionInfo = { conversationRef: null, userId: null };
     useChatStore.setState({
       isSending: false,
@@ -498,6 +504,11 @@ describe('ChatGptDashboardShell', () => {
         && payload?.recordKind === 'transcript_replay'
       ))) {
         throw new Error('expected replay rows to be deleted for conv-delete-1');
+      }
+      if (!mockClearConversationWorkspaceBinding.mock.calls.some(([conversationRef]) => (
+        conversationRef === 'conv-delete-1'
+      ))) {
+        throw new Error('expected workspace binding to be cleared for conv-delete-1');
       }
     } finally {
       confirmSpy.mockRestore();
