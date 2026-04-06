@@ -25,6 +25,7 @@ type ConversationStateDeleteOptions = {
 
 const initializedReplayConversations = new Set<string>();
 const inFlightReplayInitializations = new Map<string, Promise<ReplayInitState>>();
+const replayMutationEpochs = new Map<string, number>();
 
 function getReplayConversationKey(conversationRef: string, userId: string): string {
   return `${userId}:${conversationRef}`;
@@ -82,9 +83,14 @@ function clearReplayInitialization(
   conversationRef: string,
   userId: string,
 ): void {
-  initializedReplayConversations.delete(
-    getReplayConversationKey(conversationRef, userId),
-  );
+  const replayKey = getReplayConversationKey(conversationRef, userId);
+  initializedReplayConversations.delete(replayKey);
+  inFlightReplayInitializations.delete(replayKey);
+  replayMutationEpochs.set(replayKey, (replayMutationEpochs.get(replayKey) || 0) + 1);
+}
+
+function getReplayMutationEpoch(replayKey: string): number {
+  return replayMutationEpochs.get(replayKey) || 0;
 }
 
 async function deleteConversationRecordKind(
@@ -113,6 +119,7 @@ export function readStoredReplayRehydrateEntry(memory: unknown): Record<string, 
 export function clearConversationReplayStateCache(): void {
   initializedReplayConversations.clear();
   inFlightReplayInitializations.clear();
+  replayMutationEpochs.clear();
 }
 
 export async function deleteConversationStoredState(
@@ -223,6 +230,7 @@ export async function ensureConversationReplayStateInitialized(
   }
   const normalizedUserId = normalizeUserId(context.userId);
   const replayKey = getReplayConversationKey(normalizedConversationRef, normalizedUserId);
+  const startingMutationEpoch = getReplayMutationEpoch(replayKey);
   if (initializedReplayConversations.has(replayKey)) {
     return 'already-initialized';
   }
@@ -240,6 +248,9 @@ export async function ensureConversationReplayStateInitialized(
       pageSize: 1,
       maxPages: 1,
     });
+    if (getReplayMutationEpoch(replayKey) !== startingMutationEpoch) {
+      return 'empty';
+    }
     if (existingReplayRows.length > 0) {
       initializedReplayConversations.add(replayKey);
       return 'already-initialized';
@@ -250,10 +261,14 @@ export async function ensureConversationReplayStateInitialized(
       conversationRef: normalizedConversationRef,
       recordKind: 'transcript',
     });
+    if (getReplayMutationEpoch(replayKey) !== startingMutationEpoch) {
+      return 'empty';
+    }
     if (transcriptRows.length === 0) {
       return 'empty';
     }
 
+    const rewriteStartingEpoch = getReplayMutationEpoch(replayKey);
     await replaceConversationReplayState(
       {
         ...context,
@@ -265,6 +280,9 @@ export async function ensureConversationReplayStateInitialized(
         rehydrateEntry: toRehydrateMessagePayload(memory),
       })),
     );
+    if (getReplayMutationEpoch(replayKey) !== (rewriteStartingEpoch + 1)) {
+      return 'empty';
+    }
     return 'bootstrapped';
   })();
 
