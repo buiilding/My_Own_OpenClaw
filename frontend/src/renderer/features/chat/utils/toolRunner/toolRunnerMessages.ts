@@ -1,12 +1,7 @@
 import type { BundleExecutionResult, ToolExecutionResult } from '../../../../infrastructure/services/toolExecution/ToolExecutionService';
-import { buildToolOutputChatMessageState } from '../../../../infrastructure/transcript/toolOutputChatMessageState';
 import type { ChatMessage } from '../../stores/chatStore';
 import { resolveToolCallCorrelationId as resolveSharedToolCallCorrelationId } from '../toolCorrelationIds';
-
-export type TranscriptModelContext = {
-  modelId: string | null;
-  modelProvider: string | null;
-};
+import { buildToolOutputEnvelopeMessage, type TranscriptModelContext } from '../toolOutputMessages';
 
 type BundleToolInput = {
   name?: unknown;
@@ -22,10 +17,11 @@ type ToolOutputEnvelopeInput = {
   executionTime: number;
   success: boolean;
   correlationId: string;
+  modelContext: TranscriptModelContext;
 };
 
 function buildToolOutputEnvelope(result: ToolOutputEnvelopeInput) {
-  return buildToolOutputChatMessageState({
+  return buildToolOutputEnvelopeMessage({
     outputText: result.formattedMessage,
     sourceEventType: 'tool-runner-result' as const,
     sourceChannel: 'renderer-tool-runner' as const,
@@ -36,10 +32,14 @@ function buildToolOutputEnvelope(result: ToolOutputEnvelopeInput) {
     executionTime: result.executionTime,
     success: result.success,
     correlationId: result.correlationId,
+    modelContext: result.modelContext,
   });
 }
 
-export function buildToolOutputMessage(result: ToolExecutionResult): ChatMessage {
+export function buildToolOutputMessage(
+  result: ToolExecutionResult,
+  modelContext: TranscriptModelContext = { modelId: null, modelProvider: null },
+): ChatMessage {
   const toolOutputDetails = {
     result: result.result,
     system_state: result.systemState || null,
@@ -57,6 +57,7 @@ export function buildToolOutputMessage(result: ToolExecutionResult): ChatMessage
       executionTime: result.executionTime,
       success: result.result.success,
       correlationId: result.correlationId,
+      modelContext,
     }),
     toolMetadata: result.result.data && typeof result.result.data === 'object'
       ? result.result.data.metadata || null
@@ -66,7 +67,10 @@ export function buildToolOutputMessage(result: ToolExecutionResult): ChatMessage
   };
 }
 
-export function buildBundleOutputMessage(result: BundleExecutionResult): ChatMessage {
+export function buildBundleOutputMessage(
+  result: BundleExecutionResult,
+  modelContext: TranscriptModelContext = { modelId: null, modelProvider: null },
+): ChatMessage {
   const toolOutputDetails = {
     bundled: true,
     results: result.results,
@@ -84,6 +88,7 @@ export function buildBundleOutputMessage(result: BundleExecutionResult): ChatMes
       executionTime: result.totalTime,
       success: isSuccessful,
       correlationId: result.correlationId,
+      modelContext,
     }),
     toolMetadata: {
       bundled: true,
