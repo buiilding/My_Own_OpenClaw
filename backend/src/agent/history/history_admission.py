@@ -2,9 +2,54 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, List, Optional
 
-from backend.src.core.messages.content_blocks import iter_text_content_fragments
+from backend.src.core.messages.content_blocks import (
+    extract_text_from_content_part,
+    iter_text_content_fragments,
+    normalize_content_part_type,
+)
+from backend.src.core.types.schemas import MultimodalContent
+
+
+def normalize_assistant_history_structured_content(
+    content: Any,
+) -> Optional[MultimodalContent]:
+    """Normalize assistant content blocks to replay-safe structured history."""
+    if isinstance(content, str):
+        return None
+
+    items: List[Any]
+    if isinstance(content, dict):
+        items = [content]
+    elif isinstance(content, list):
+        items = list(content)
+    else:
+        return None
+
+    normalized: MultimodalContent = []
+    for item in items:
+        if isinstance(item, str):
+            if item:
+                normalized.append({"type": "output_text", "text": item})
+            continue
+
+        if not isinstance(item, dict):
+            continue
+
+        item_type = normalize_content_part_type(item.get("type"))
+        if item_type in {"text", "output_text"}:
+            text = extract_text_from_content_part(item, include_refusal=False)
+            if text:
+                normalized.append({"type": "output_text", "text": text})
+            continue
+
+        if item_type == "refusal":
+            refusal = extract_text_from_content_part(item, include_refusal=True)
+            if refusal:
+                normalized.append({"type": "refusal", "refusal": refusal})
+
+    return normalized or None
 
 
 def normalize_history_text_content(

@@ -5,6 +5,7 @@ import re
 from typing import Any, Dict, List, Optional, Union
 
 from backend.src.agent.history.history_admission import (
+    normalize_assistant_history_structured_content,
     normalize_history_text_content,
     should_store_assistant_history_message,
 )
@@ -18,6 +19,7 @@ from backend.src.agent.session.message_builders import (
 from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.core.types.schemas import LLMMessage
+
 
 class ConversationHistory:
     """
@@ -41,11 +43,13 @@ class ConversationHistory:
         self.system_prompt: Optional[str] = system_prompt
         self._pending_tool_call_ids: List[str] = []
         self._consume_all_tool_call_ids_on_next_output = False
-        
+
         # Running token count to avoid O(N^2) re-encoding on every turn
         # Updated incrementally when messages are added
         self._cached_token_count: Optional[int] = None
-        self._cached_token_count_model: Optional[str] = None  # Model ID for which count is cached
+        self._cached_token_count_model: Optional[str] = (
+            None  # Model ID for which count is cached
+        )
 
     def add_user_message(
         self,
@@ -88,11 +92,11 @@ class ConversationHistory:
         """
         Add a tool execution result to the conversation history.
         These messages do NOT trigger memory retrieval.
-        
+
         Tool outputs are stored with their screenshots (if available) and included
         in conversation history. Screenshots are automatically converted to multimodal
         format when history is retrieved for LLM consumption.
-        
+
         Frontend pre-formats the model-facing tool message text in `llm_content`.
         Structured runtime state and screenshots travel separately in tool-result payloads.
 
@@ -130,7 +134,7 @@ class ConversationHistory:
         # This avoids O(N) re-counting when multiple tools are called in sequence
         new_message_token_count = 0
         cache_was_valid = (
-            self._cached_token_count is not None 
+            self._cached_token_count is not None
             and self._cached_token_count_model is not None
         )
 
@@ -139,13 +143,14 @@ class ConversationHistory:
         if cache_was_valid:
             # Count tokens for the new message only (O(1) operation)
             from backend.src.services.token_service import get_token_service
+
             token_service = get_token_service()
             for llm_msg in llm_messages:
                 new_message_token_count += token_service.count_message_tokens(
                     llm_msg,
                     self._cached_token_count_model,
                 )
-        
+
         for stored_msg, llm_msg in zip(stored_messages, llm_messages):
             self._append_message(stored_msg, llm_msg)
 
@@ -167,13 +172,15 @@ class ConversationHistory:
             tool_calls: Optional native tool_calls payload for assistant tool turns
         """
         normalized_message = normalize_history_text_content(message)
+        structured_content = normalize_assistant_history_structured_content(message)
         if not should_store_assistant_history_message(
-            normalized_message,
+            message,
             tool_calls=tool_calls,
         ):
             return
         stored_msg = build_assistant_message(
             message=normalized_message,
+            structured_content=structured_content,
             tool_calls=tool_calls,
         )
         self._append_message(stored_msg)
@@ -193,9 +200,9 @@ class ConversationHistory:
             for tool_call_id in tool_call_ids
             if isinstance(tool_call_id, str) and tool_call_id
         ]
-        self._consume_all_tool_call_ids_on_next_output = (
-            bool(consume_all_on_next_output) and bool(self._pending_tool_call_ids)
-        )
+        self._consume_all_tool_call_ids_on_next_output = bool(
+            consume_all_on_next_output
+        ) and bool(self._pending_tool_call_ids)
 
     def finalize_pending_tool_calls_as_cancelled(
         self,
@@ -254,10 +261,9 @@ class ConversationHistory:
 
         # Include system prompt first if stored
         if self.system_prompt:
-            messages.append({
-                "role": MessageRole.SYSTEM.value,
-                "content": self.system_prompt
-            })
+            messages.append(
+                {"role": MessageRole.SYSTEM.value, "content": self.system_prompt}
+            )
 
         # PERFORMANCE OPTIMIZATION: Return cache directly (read-only by contract)
         # This eliminates deep copy overhead on the hot path. If mutation is needed,
@@ -280,33 +286,32 @@ class ConversationHistory:
 
         # Include system prompt first if stored
         if self.system_prompt:
-            messages.append({
-                "role": MessageRole.SYSTEM.value,
-                "content": self.system_prompt
-            })
+            messages.append(
+                {"role": MessageRole.SYSTEM.value, "content": self.system_prompt}
+            )
 
         # Return deep copies to prevent mutable state leakage
         messages.extend(copy.deepcopy(msg) for msg in self._llm_history_cache)
 
         return messages
-    
+
     def get_stored_messages(self) -> List[StoredMessage]:
         """
         Get the current conversation history as StoredMessage objects.
-        
+
         This provides access to message_type and other structured fields
         that are lost when converting to LLMMessage format.
-        
+
         Returns:
             List of StoredMessage objects
         """
         return list(self.history)
-    
+
     @property
     def last_user_query(self) -> Optional[StoredMessage]:
         """
         Get the last user query message.
-        
+
         Returns:
             Last StoredMessage with message_type USER_QUERY, or None if no user queries exist
         """
@@ -319,30 +324,33 @@ class ConversationHistory:
     def get_token_count(self, model_id: str) -> int:
         """
         Get token count for the conversation history.
-        
+
         Maintains a running count to avoid O(N^2) re-encoding on every turn.
         Cache is invalidated when messages are added or history is cleared.
-        
+
         Args:
             model_id: Model ID for token counting (cache is per-model)
-            
+
         Returns:
             Token count for the conversation history
         """
         from backend.src.services.token_service import get_token_service
-        
+
         # Return cached count if available and for the same model
-        if self._cached_token_count is not None and self._cached_token_count_model == model_id:
+        if (
+            self._cached_token_count is not None
+            and self._cached_token_count_model == model_id
+        ):
             return self._cached_token_count
-        
+
         # Compute token count (O(N) operation)
         token_service = get_token_service()
         count = token_service.count_tokens(self.get_history(), model_id)
-        
+
         # Cache the result
         self._cached_token_count = count
         self._cached_token_count_model = model_id
-        
+
         return count
 
     def clear(self) -> None:
@@ -372,17 +380,27 @@ class ConversationHistory:
                 stored_role = MessageRole.ASSISTANT
             else:
                 stored_role = MessageRole.USER
-            normalized_content = normalize_history_text_content(entry.get("content"))
+            raw_content = entry.get("content")
+            normalized_content = normalize_history_text_content(raw_content)
             tool_calls = entry.get("tool_calls")
-            if stored_role == MessageRole.ASSISTANT and not should_store_assistant_history_message(
-                normalized_content,
-                tool_calls=tool_calls,
+            structured_content = None
+            if stored_role == MessageRole.ASSISTANT:
+                structured_content = normalize_assistant_history_structured_content(
+                    raw_content
+                )
+            if (
+                stored_role == MessageRole.ASSISTANT
+                and not should_store_assistant_history_message(
+                    raw_content,
+                    tool_calls=tool_calls,
+                )
             ):
                 continue
             stored_msg = StoredMessage(
                 role=stored_role,
                 content=normalized_content,
                 message_type=message_type,
+                structured_content=structured_content,
                 image_data=entry.get("image_data"),
                 user_query_raw=(
                     self._extract_user_query(normalized_content)

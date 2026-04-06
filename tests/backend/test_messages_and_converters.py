@@ -1,5 +1,9 @@
 from backend.src.core.messages.converters import content_to_message_content
-from backend.src.core.messages.structures import ImageContent, StoredMessage, TextContent
+from backend.src.core.messages.structures import (
+    ImageContent,
+    StoredMessage,
+    TextContent,
+)
 from backend.src.core.types.enums import MessageRole, MessageType
 
 
@@ -115,6 +119,28 @@ def test_stored_message_assistant_tool_calls_normalized_and_named():
         {"id": "call-1", "name": "read_file", "arguments": {"path": "/tmp/a"}},
         {"id": "tool_call_1", "name": "unknown_tool", "arguments": {}},
     ]
+
+
+def test_stored_message_prefers_structured_content_for_assistant_llm_message():
+    message = StoredMessage(
+        role=MessageRole.ASSISTANT,
+        content="Visible answer.Cannot share that.",
+        message_type=MessageType.ASSISTANT_RESPONSE,
+        structured_content=[
+            {"type": "output_text", "text": "Visible answer."},
+            {"type": "refusal", "refusal": "Cannot share that."},
+        ],
+    )
+
+    llm_message = message.to_llm_message()
+
+    assert llm_message == {
+        "role": "assistant",
+        "content": [
+            {"type": "output_text", "text": "Visible answer."},
+            {"type": "refusal", "refusal": "Cannot share that."},
+        ],
+    }
 
 
 def test_stored_message_tool_role_defaults_and_name_passthrough():
