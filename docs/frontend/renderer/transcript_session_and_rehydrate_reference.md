@@ -12,10 +12,13 @@ title: "Transcript Session and Rehydrate Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
+- `frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts`
 - `frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader.js`
 - `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
+- `frontend/src/renderer/infrastructure/transcript/transcriptRecordWrite.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/pendingUserQueue.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/pendingAssistantQueue.ts`
@@ -30,6 +33,7 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
+- `frontend/src/renderer/features/chat/utils/toolOutputTranscriptPersistence.ts`
 - `frontend/src/renderer/features/chat/utils/session/newChatSession.ts`
 - `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
@@ -70,6 +74,11 @@ Session info is persisted/emitted only when changed:
   - supports partial updates (one field may be `undefined`)
 - inbound sync updates apply with rebroadcast disabled to avoid renderer/main loopback storms
 
+Responsibility split:
+
+- `transcriptSessionRuntime.ts` owns session-state bootstrap, storage persistence, browser/main-process sync, and session resolution helpers
+- `TranscriptWriter.ts` remains the public write API and queue coordinator, but no longer embeds the full session runtime implementation inline
+
 Dashboard consumers subscribe via `useSyncExternalStore` (`useTranscriptSessionInfo`) for stable snapshot behavior.
 
 Transcript conversation pagination helper:
@@ -83,6 +92,12 @@ Public writer entrypoints:
 - `recordUserMessage(...)`
 - `recordAssistantMessage(...)`
 - `recordToolMessage(...)`
+
+Shared writer layering:
+
+- `TranscriptWriter.ts` owns public recorder entrypoints, queue coordination, and `transcript-entry-stored` emission
+- `transcriptRecordWrite.ts` owns the empty-text / resolve-session / immediate-write-or-queue decision boundary
+- `transcriptEntryPersistence.ts` owns IPC payload shaping, workspace-binding attachment, replay bootstrap checks, and replay append writes
 
 Each path:
 
@@ -154,8 +169,9 @@ Flush behavior (`flushPendingMessages`):
 
 - updates transcript session identity from accepted backend events
 - records tool-call/tool-output/assistant/error rows
+- routes transcript `tool-output` writes through `toolOutputTranscriptPersistence.ts` so chat-stream and tool-runner use the same transcript payload builder for output details, screenshots, and model metadata
 
-`useToolRunner` records frontend-side tool execution rows.
+`useToolRunner` records frontend-side tool execution rows and uses the same shared tool-output transcript persistence helper as chat-stream tool-output handling.
 
 ## Dashboard Resume and Rehydrate Flow
 
