@@ -41,6 +41,18 @@ def test_preserves_all_images_in_history():
     assert stored[0].image_data == "img-1"
     assert stored[1].image_data == "img-2"
     assert stored[2].image_data == "img-3"
+    assert stored[0].structured_content == [
+        {"type": "text", "text": "one"},
+        {"type": "image_url", "image_url": {"url": "data:image/png;base64,img-1"}},
+    ]
+    assert stored[1].structured_content == [
+        {"type": "text", "text": "two"},
+        {"type": "image_url", "image_url": {"url": "data:image/png;base64,img-2"}},
+    ]
+    assert stored[2].structured_content == [
+        {"type": "text", "text": "three"},
+        {"type": "image_url", "image_url": {"url": "data:image/png;base64,img-3"}},
+    ]
 
     llm_messages = history.get_history()
     assert isinstance(llm_messages[0]["content"], list)
@@ -149,6 +161,10 @@ def test_tool_output_with_staged_tool_call_id_preserves_image_context_without_te
     assert stored[0].content == "tool output"
     assert stored[0].tool_call_id == "call_1"
     assert stored[0].image_data == "img-1"
+    assert stored[0].structured_content == [
+        {"type": "text", "text": "tool output"},
+        {"type": "image_url", "image_url": {"url": "data:image/png;base64,img-1"}},
+    ]
 
     llm_messages = history.get_history()
     assert len(llm_messages) == 1
