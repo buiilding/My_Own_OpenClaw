@@ -1,97 +1,46 @@
 import {
-  normalizeMessageType,
   normalizeOptionalString,
-  normalizeTranscriptTransparency,
 } from '../../../infrastructure/transcript/rehydratePayload';
 import {
   buildRehydrateMessagePayload,
 } from '../../../infrastructure/transcript/rehydrateMessageState';
 import {
   buildStoredTranscriptToolMessageState,
-  readStructuredToolPayload,
 } from '../../../infrastructure/transcript/structuredToolPayload';
 import {
-  resolveScreenshotAttachmentState,
-} from '../../../infrastructure/services/screenshotMessageState';
+  resolveStoredTranscriptMemoryState,
+} from '../../../infrastructure/transcript/storedTranscriptMemoryState';
 
 export const DEFAULT_USER_ID = 'default_user';
 
-function resolveScreenshotAttachment(memory) {
-  const metadata = memory?.metadata || {};
-  return resolveScreenshotAttachmentState({
-    screenshot: memory?.screenshot || metadata.screenshot || null,
-    screenshotRef: (
-      memory?.screenshot_ref
-      || memory?.screenshotRef
-      || metadata.screenshot_ref
-      || metadata.screenshotRef
-      || null
-    ),
-    screenshotUrl: (
-      memory?.screenshot_url
-      || memory?.screenshotUrl
-      || metadata.screenshot_url
-      || metadata.screenshotUrl
-      || null
-    ),
-    screenshotContentType: (
-      memory?.screenshot_content_type
-      || memory?.screenshotContentType
-      || metadata.screenshot_content_type
-      || metadata.screenshotContentType
-      || null
-    ),
-    inferArtifactRefFromScreenshot: memory?.record_kind === 'transcript',
-    preserveInlineScreenshotWithRemote: true,
-    deriveUrlFromRef: false,
-  });
-}
-
-function parseMemoryContent(memory) {
+function parseMemoryContent(memory, normalizedMemory = null) {
   if (!memory) {
     return [];
   }
 
-  const rawContent = memory.content || '';
-  const role = memory.role || memory.metadata?.role;
-  const messageType = memory.message_type || memory.metadata?.message_type;
-  const modelProvider = normalizeOptionalString(
-    memory?.model_provider
-      || memory?.modelProvider
-      || memory?.metadata?.model_provider
-      || memory?.metadata?.modelProvider,
-  );
-  const modelId = normalizeOptionalString(
-    memory?.model_id
-      || memory?.modelId
-      || memory?.metadata?.model_id
-      || memory?.metadata?.modelId,
-  );
-  const screenshotAttachment = resolveScreenshotAttachment(memory);
+  const resolvedMemory = normalizedMemory || resolveStoredTranscriptMemoryState(memory);
+  const {
+    rawContent,
+    role,
+    messageType,
+    modelProvider,
+    modelId,
+    correlationId,
+    structuredToolPayload,
+    screenshotAttachment,
+  } = resolvedMemory;
 
   if (role) {
     const sender = role === 'user' ? 'user' : 'assistant';
     const normalizedType = messageType === 'tool-bundle'
       ? 'tool-call'
       : (messageType || (role === 'tool' ? 'tool-output' : 'llm-text'));
-    const structuredToolPayload = readStructuredToolPayload(
-      memory?.structured_payload,
-      memory?.structuredPayload,
-      memory?.metadata?.structured_payload,
-      memory?.metadata?.structuredPayload,
-    );
     const storedToolMessageState = buildStoredTranscriptToolMessageState({
       messageType,
       rawContent,
       structuredPayload: structuredToolPayload,
     });
     const shouldAttachScreenshot = sender === 'user' || normalizedType === 'tool-output';
-    const correlationId = normalizeOptionalString(
-      memory?.correlation_id
-        || memory?.correlationId
-        || memory?.metadata?.correlation_id
-        || memory?.metadata?.correlationId,
-    );
     return [{
       sender,
       text: storedToolMessageState?.text || rawContent || '(empty)',
@@ -146,15 +95,6 @@ function parseMemoryContent(memory) {
   return [{ sender: 'assistant', text: content, type: 'llm-text', modelProvider, modelId }];
 }
 
-function resolveTranscriptTransparency(memory) {
-  const metadata = (
-    memory?.metadata
-    && typeof memory.metadata === 'object'
-    && !Array.isArray(memory.metadata)
-  ) ? memory.metadata : {};
-  return normalizeTranscriptTransparency(metadata.transparency);
-}
-
 function buildMessageTransparencyFields(part, partCount, transparency) {
   if (!transparency || typeof transparency !== 'object') {
     return {};
@@ -202,8 +142,9 @@ function buildMessageTransparencyFields(part, partCount, transparency) {
 
 export function parseMemoriesToMessages(memories) {
   return memories.flatMap((memory, index) => {
-    const parts = parseMemoryContent(memory);
-    const transparency = resolveTranscriptTransparency(memory);
+    const normalizedMemory = resolveStoredTranscriptMemoryState(memory);
+    const parts = parseMemoryContent(memory, normalizedMemory);
+    const transparency = normalizedMemory.transparency;
     const partCount = parts.length;
     return parts.map((part, partIndex) => {
       const screenshotFields = {};
@@ -250,32 +191,17 @@ export function parseMemoriesToMessages(memories) {
 }
 
 export function toRehydrateMessagePayload(memory) {
-  const metadata = memory?.metadata || {};
-  const role = memory?.role || metadata?.role || 'assistant';
-  const messageType = memory?.message_type || metadata?.message_type || null;
-  const screenshotAttachment = resolveScreenshotAttachment(memory);
-  const transparency = resolveTranscriptTransparency(memory);
-  const structuredToolPayload = readStructuredToolPayload(
-    memory?.structured_payload,
-    memory?.structuredPayload,
-    metadata?.structured_payload,
-    metadata?.structuredPayload,
-  );
+  const normalizedMemory = resolveStoredTranscriptMemoryState(memory);
   return buildRehydrateMessagePayload({
-    role,
-    messageType,
-    rawContent: memory?.content || '',
-    timestamp: memory?.timestamp || null,
-    correlationId: memory?.correlation_id || metadata?.correlation_id || null,
-    transparency,
-    screenshotAttachment,
-    structuredPayload: structuredToolPayload,
-    fallbackToolName: normalizeOptionalString(memory?.tool_name || metadata?.tool_name) || null,
-    fallbackToolCallId: normalizeOptionalString(
-      memory?.tool_call_id
-        || metadata?.tool_call_id
-        || memory?.correlation_id
-        || metadata?.correlation_id,
-    ) || null,
+    role: normalizedMemory.role || 'assistant',
+    messageType: normalizedMemory.messageType,
+    rawContent: normalizedMemory.rawContent,
+    timestamp: normalizedMemory.timestamp,
+    correlationId: normalizedMemory.correlationId,
+    transparency: normalizedMemory.transparency,
+    screenshotAttachment: normalizedMemory.screenshotAttachment,
+    structuredPayload: normalizedMemory.structuredToolPayload,
+    fallbackToolName: normalizedMemory.toolName,
+    fallbackToolCallId: normalizedMemory.toolCallId || normalizedMemory.correlationId,
   });
 }

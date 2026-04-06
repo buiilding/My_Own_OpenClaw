@@ -23,6 +23,7 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush.ts`
 - `frontend/src/renderer/infrastructure/transcript/toolCallMessageState.js`
 - `frontend/src/renderer/infrastructure/transcript/rehydrateMessageState.js`
+- `frontend/src/renderer/infrastructure/transcript/storedTranscriptMemoryState.js`
 - `frontend/src/renderer/infrastructure/services/screenshotMessageState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
@@ -162,6 +163,7 @@ Flush behavior (`flushPendingMessages`):
 2. load selected conversation transcript rows via `loadConversationTranscriptMemories(...)` (cursor-paginated `get-conversation`)
 3. parse rows to chat messages (`parseMemoriesToMessages`)
    - tool-call rows use `buildToolCallMessageState(...)` so replayed chats reconstruct the same display payload used by live tool-call rows
+   - stored transcript field extraction is centralized in `storedTranscriptMemoryState.js` so dashboard replay and backend rehydrate read the same role/message-type/tool/screenshot/transparency inputs from transcript memories
 4. send backend rehydrate payload (`ApiClient.sendRehydrateConversation`)
    - `toRehydrateMessagePayload(...)` appends persisted `transparency` snapshots to rehydrate `content` so resumed/manual compaction runs see saved prompt/tool-schema/full-message context.
    - tool-call rows reuse the same normalized message-state helper before `buildRehydrateToolCall(...)` so transcript/session serialization and dashboard replay cannot drift on tool-call ids or display text
