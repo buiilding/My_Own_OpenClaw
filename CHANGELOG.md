@@ -16,6 +16,7 @@ All notable changes to WindieOS will be documented in this file.
 - feat(openai-native-web-search-progress): stream OpenAI native backend `web_search` progress through a dedicated `web-search-progress` websocket event, surface transient renderer `search-source` rows and overlay tool-call phase activity while the search is still running, and keep the final logical tool result on the existing backend `tool-call` + `tool-output` contract; add focused backend/frontend regressions and contract/doc updates.
 
 ### Fixed
+- refactor(frontend-tool-output-message-state): centralize common live tool-output chat-message shaping so backend stream events and renderer tool-runner results share one screenshot and model-facing output projection path.
 - refactor(frontend-past-chat-message-state): centralize stored transcript memory -> chat message shaping in one transcript helper so dashboard replay no longer owns screenshot/transparency/tool-display projection logic locally.
 - refactor(frontend-stored-transcript-memory): centralize stored transcript memory field extraction in one shared frontend helper so dashboard replay and stored-memory rehydrate stop re-parsing role, tool metadata, screenshots, transparency, and structured payloads separately.
 - refactor(frontend-rehydrate-payload): centralize frontend rehydrate message shaping in one shared transcript helper so live replay and stored-memory replay emit the same tool metadata, screenshot, transparency, and structured-payload contract for backend rehydrate.
