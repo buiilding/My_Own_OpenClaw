@@ -38,22 +38,27 @@ describe('ApiClient.sendQuery', () => {
       ' artifact-main ',
       ' https://cdn.example/shot.png ',
       [' artifact-1 ', '   ', '', 'artifact-2'],
+      null,
+      null,
+      null,
+      null,
+      ' /workspace/WindieOS ',
     );
 
-    expect(mockSend).toHaveBeenCalledWith(
-      SEND_CHANNELS.TO_BACKEND,
-      {
-        type: 'query',
-        payload: expect.objectContaining({
-          text: 'hello',
-          conversation_ref: 'conv-1',
-          screenshot_ref: 'artifact-main',
-          screenshot_url: 'https://cdn.example/shot.png',
-          screenshot_refs: ['artifact-1', 'artifact-2'],
-          memory_retrieval_enabled: false,
-        }),
+    const [channel, message] = mockSend.mock.calls[0];
+    expect(channel).toBe(SEND_CHANNELS.TO_BACKEND);
+    expect(message).toMatchObject({
+      type: 'query',
+      payload: {
+        text: 'hello',
+        conversation_ref: 'conv-1',
+        screenshot_ref: 'artifact-main',
+        screenshot_url: 'https://cdn.example/shot.png',
+        screenshot_refs: ['artifact-1', 'artifact-2'],
+        workspace_path: '/workspace/WindieOS',
+        memory_retrieval_enabled: false,
       },
-    );
+    });
   });
 
   test('drops whitespace-only screenshot refs and urls from query payload', async () => {
@@ -65,20 +70,20 @@ describe('ApiClient.sendQuery', () => {
       ['   ', ''],
     );
 
-    expect(mockSend).toHaveBeenCalledWith(
-      SEND_CHANNELS.TO_BACKEND,
-      {
-        type: 'query',
-        payload: expect.objectContaining({
-          text: 'hello-2',
-          conversation_ref: 'conv-2',
-          screenshot_ref: null,
-          screenshot_url: null,
-          screenshot_refs: null,
-          memory_retrieval_enabled: true,
-        }),
+    const [channel, message] = mockSend.mock.calls[0];
+    expect(channel).toBe(SEND_CHANNELS.TO_BACKEND);
+    expect(message).toMatchObject({
+      type: 'query',
+      payload: {
+        text: 'hello-2',
+        conversation_ref: 'conv-2',
+        screenshot_ref: null,
+        screenshot_url: null,
+        screenshot_refs: null,
+        workspace_path: null,
+        memory_retrieval_enabled: true,
       },
-    );
+    });
   });
 
   test('includes inline screenshot payload when provided', async () => {
@@ -96,17 +101,17 @@ describe('ApiClient.sendQuery', () => {
       inlineScreenshot,
     );
 
-    expect(mockSend).toHaveBeenCalledWith(
-      SEND_CHANNELS.TO_BACKEND,
-      {
-        type: 'query',
-        payload: expect.objectContaining({
-          text: 'hello-inline',
-          conversation_ref: 'conv-inline',
-          screenshot_ref: null,
-          screenshot: inlineScreenshot,
-        }),
+    const [channel, message] = mockSend.mock.calls[0];
+    expect(channel).toBe(SEND_CHANNELS.TO_BACKEND);
+    expect(message).toMatchObject({
+      type: 'query',
+      payload: {
+        text: 'hello-inline',
+        conversation_ref: 'conv-inline',
+        screenshot_ref: null,
+        screenshot: inlineScreenshot,
+        workspace_path: null,
       },
-    );
+    });
   });
 });

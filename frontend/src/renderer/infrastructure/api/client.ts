@@ -42,10 +42,12 @@ export const ApiClient = {
     attachmentContext: string | null = null,
     attachmentFilenames: string[] | null = null,
     screenshot: string | null = null,
+    workspacePath: string | null = null,
   ): Promise<void> => {
     const normalizedScreenshotRef = normalizeNonEmptyString(screenshotRef);
     const normalizedScreenshotUrl = normalizeNonEmptyString(screenshotUrl);
     const normalizedInlineScreenshot = normalizeNonEmptyString(screenshot);
+    const normalizedWorkspacePath = normalizeNonEmptyString(workspacePath);
     const normalizedScreenshotRefs = Array.isArray(screenshotRefs)
       ? screenshotRefs
         .map((ref) => normalizeNonEmptyString(ref))
@@ -75,6 +77,7 @@ export const ApiClient = {
         attachment_filenames: normalizedAttachmentFilenames.length > 0
           ? normalizedAttachmentFilenames
           : null,
+        workspace_path: normalizedWorkspacePath,
         memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
       }
     });
@@ -108,7 +111,8 @@ export const ApiClient = {
 
   sendRehydrateConversation: async (
     conversationRef: string,
-    messages: RehydrateConversationEntry[]
+    messages: RehydrateConversationEntry[],
+    workspacePath: string | null = null,
   ): Promise<void> => {
     IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
       type: 'rehydrate-conversation',
@@ -116,6 +120,7 @@ export const ApiClient = {
         conversation_ref: conversationRef,
         messages,
         rehydrate_mode: 'replace',
+        workspace_path: normalizeNonEmptyString(workspacePath),
       },
     });
   },

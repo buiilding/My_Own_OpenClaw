@@ -88,10 +88,18 @@ This keeps overlay and full interface subscriptions scoped to their rendering ne
 4. set `thinkingStatus=null`
 5. set `tokenCounts=null`
 6. create new `conversationRef` via `createConversationRef()`
-7. persist through `setActiveConversationRef(nextConversationRef)`
+7. snapshot the currently selected workspace into the conversation binding map
+8. persist through `setActiveConversationRef(nextConversationRef)`
 8. return new conversation ref
 
 `createConversationRef()` format is deterministic prefix: `conv_${crypto.randomUUID()}`.
+
+Workspace-binding invariant:
+
+- one chat belongs to exactly one workspace binding
+- multiple chats may share the same workspace binding
+- changing the selected workspace creates a fresh chat instead of mutating the existing chat's binding
+- opening an older chat restores its bound workspace back into the active Electron workspace selection before more sends/tool calls happen
 
 ## Main-Window Call-Site (`ChatInterface`)
 
@@ -106,12 +114,14 @@ So new-chat resets local store regardless, while active backend loop receives st
 
 `ChatGptDashboardShell.handleOpenConversation(...)` flow:
 
-1. send `rehydrate-conversation`
-2. call `setActiveConversationRef(conversationRef)`
-3. call `updateTranscriptSession(conversationRef, sessionInfo.userId || null)`
-4. replace chat store messages with resumed transcript projection
-5. clear sending/thinking flags
-6. close dashboard overlays and keep chat surface active
+1. load transcript rows for the target conversation
+2. recover the conversation's stored workspace binding from transcript/list metadata
+3. push that binding back into Electron's active workspace selection
+4. call `setActiveConversationRef(conversationRef)`
+5. call `updateTranscriptSession(conversationRef, sessionInfo.userId || null)`
+6. replace chat store messages with resumed transcript projection
+7. clear sending/thinking flags
+8. close dashboard overlays and keep chat surface active
 
 This path intentionally does not call `startNewChatSession`; it restores an existing conversation ref.
 

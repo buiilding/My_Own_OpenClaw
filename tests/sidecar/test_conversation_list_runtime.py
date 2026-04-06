@@ -113,6 +113,7 @@ async def test_fetch_transcript_conversation_rows_uses_transcript_scope_and_orde
         "user-1",
         "user-1",
         "user-1",
+        "user-1",
         25,
     )
 
@@ -141,6 +142,7 @@ async def test_build_conversation_list_results_filters_blank_titles_and_defaults
             "title_locked": 0,
             "model_id": "gpt-5-mini",
             "model_provider": "openai",
+            "latest_metadata": '{"workspace_path":"/work/WindieOS","workspace_name":"WindieOS"}',
         },
         {
             "conversation_id": "thread_hidden",
@@ -153,6 +155,7 @@ async def test_build_conversation_list_results_filters_blank_titles_and_defaults
             "title_locked": 0,
             "model_id": "gpt-5-mini",
             "model_provider": "openai",
+            "latest_metadata": None,
         },
     ]
 
@@ -166,6 +169,8 @@ async def test_build_conversation_list_results_filters_blank_titles_and_defaults
     assert results[0]["conversation_id"] == "conv_visible"
     assert results[0]["title"] == "Visible title"
     assert results[0]["title_source"] == "model"
+    assert results[0]["workspace_path"] == "/work/WindieOS"
+    assert results[0]["workspace_name"] == "WindieOS"
     assert results[0]["is_resumable"] is True
 
 
@@ -190,6 +195,7 @@ async def test_list_transcript_conversations_returns_newest_first_with_titles(tm
         user_id="user-1",
         content="new content",
         timestamp="2026-02-02T00:00:00+00:00",
+        metadata='{"workspace_path":"/work/WindieOS","workspace_name":"WindieOS"}',
         conversation_id="conv_new",
         model_id="gpt-5",
         model_provider="openai",
@@ -217,3 +223,5 @@ async def test_list_transcript_conversations_returns_newest_first_with_titles(tm
     assert conversations[0]["title"] == "New title"
     assert conversations[0]["model_id"] == "gpt-5"
     assert conversations[0]["model_provider"] == "openai"
+    assert conversations[0]["workspace_path"] == "/work/WindieOS"
+    assert conversations[0]["workspace_name"] == "WindieOS"

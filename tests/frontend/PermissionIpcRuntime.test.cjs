@@ -1,5 +1,9 @@
 /** @jest-environment node */
 
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
 const {
   initializePermissionHandlersRuntime,
 } = require('../../frontend/src/main/permission_ipc_runtime.cjs');
@@ -35,6 +39,7 @@ describe('permission_ipc_runtime', () => {
     expect(typeof invokeHandlers['check-permission']).toBe('function');
     expect(typeof invokeHandlers['run-permission-probe']).toBe('function');
     expect(typeof invokeHandlers['request-permission']).toBe('function');
+    expect(typeof invokeHandlers['set-active-workspace']).toBe('function');
     expect(invokeHandlers['show-chatbox']).toBeUndefined();
   });
 
@@ -101,12 +106,13 @@ describe('permission_ipc_runtime', () => {
   });
 
   test('emits workspace update after a granted workspace selection request', async () => {
+    const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-workspace-'));
     const emitWorkspaceAccessUpdated = jest.fn();
     const { invokeHandlers } = createRuntime({
       dialog: {
         showOpenDialog: jest.fn(async () => ({
           canceled: false,
-          filePaths: ['D:\\Assistants\\WindieOS_workspace\\windieos'],
+          filePaths: [workspacePath],
         })),
       },
       emitWorkspaceAccessUpdated,
@@ -116,14 +122,67 @@ describe('permission_ipc_runtime', () => {
       permissionId: 'filesystem_workspace_access',
     });
 
-    expect(emitWorkspaceAccessUpdated).toHaveBeenCalledTimes(1);
-    expect(emitWorkspaceAccessUpdated).toHaveBeenCalledWith(expect.objectContaining({
-      permission_id: 'filesystem_workspace_access',
-      granted: true,
-      details: expect.objectContaining({
-        selected_paths: ['D:\\Assistants\\WindieOS_workspace\\windieos'],
+    if (emitWorkspaceAccessUpdated.mock.calls.length !== 1) {
+      throw new Error(`expected 1 workspace update, got ${emitWorkspaceAccessUpdated.mock.calls.length}`);
+    }
+    const emittedStatus = emitWorkspaceAccessUpdated.mock.calls[0][0];
+    if (emittedStatus.permission_id !== 'filesystem_workspace_access') {
+      throw new Error(`unexpected permission id: ${String(emittedStatus.permission_id)}`);
+    }
+    if (emittedStatus.granted !== true) {
+      throw new Error(`expected granted=true, got ${String(emittedStatus.granted)}`);
+    }
+    if (JSON.stringify(emittedStatus.details.selected_paths) !== JSON.stringify([workspacePath])) {
+      throw new Error(`unexpected selected_paths: ${JSON.stringify(emittedStatus.details.selected_paths)}`);
+    }
+    expect(result).toEqual({
+      success: true,
+      data: {
+        status: expect.objectContaining({
+          permission_id: 'filesystem_workspace_access',
+          granted: true,
+        }),
+      },
+    });
+  });
+
+  test('sets the active workspace programmatically for conversation binding', async () => {
+    const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-conversation-workspace-'));
+    const emitWorkspaceAccessUpdated = jest.fn();
+    let storedEntry = null;
+    const permissionStateStore = {
+      get: jest.fn(async () => storedEntry),
+      set: jest.fn(async (_permissionId, entry) => {
+        storedEntry = entry;
+        return storedEntry;
       }),
+      delete: jest.fn(async () => {
+        storedEntry = null;
+        return true;
+      }),
+    };
+    const { invokeHandlers } = createRuntime({
+      permissionStateStore,
+      emitWorkspaceAccessUpdated,
+    });
+
+    const result = await invokeHandlers['set-active-workspace'](null, {
+      workspacePath,
+    });
+
+    expect(permissionStateStore.set).toHaveBeenCalledWith('filesystem_workspace_access', expect.objectContaining({
+      granted: true,
+      source: 'conversation_binding',
+      selected_paths: [workspacePath],
     }));
+    expect(permissionStateStore.delete).not.toHaveBeenCalled();
+    const emittedStatus = emitWorkspaceAccessUpdated.mock.calls[0][0];
+    if (emittedStatus.permission_id !== 'filesystem_workspace_access') {
+      throw new Error(`unexpected permission id: ${String(emittedStatus.permission_id)}`);
+    }
+    if (emittedStatus.granted !== true) {
+      throw new Error(`expected granted=true, got ${String(emittedStatus.granted)}`);
+    }
     expect(result).toEqual({
       success: true,
       data: {

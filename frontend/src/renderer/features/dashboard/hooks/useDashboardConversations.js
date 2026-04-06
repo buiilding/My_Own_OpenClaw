@@ -5,6 +5,11 @@ import {
   setActiveConversationRef,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
+import { setActiveWorkspaceSelection } from '../../../infrastructure/workspace/workspaceAccess';
+import {
+  resolveConversationWorkspaceBinding,
+  setConversationWorkspaceBinding,
+} from '../../../infrastructure/workspace/conversationWorkspaceBinding';
 import {
   clearConversationBackendSyncState,
   markConversationBackendStateUnknown,
@@ -13,7 +18,10 @@ import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChat
 import {
   parseMemoriesToMessages,
 } from '../utils/episodicMemoryUtils';
-import { buildConversationGroups } from '../utils/conversationGroups';
+import {
+  buildConversationGroups,
+  buildWorkspaceConversationGroups,
+} from '../utils/conversationGroups';
 import {
   normalizeRecentConversations,
   prunePinnedConversationRefs,
@@ -156,6 +164,16 @@ function useDashboardConversations({
         conversationRef,
         recordKind: conversation?.record_kind || 'transcript',
       });
+      const workspaceBinding = resolveConversationWorkspaceBinding({
+        conversation,
+        memories,
+      });
+      setConversationWorkspaceBinding(conversationRef, workspaceBinding);
+      try {
+        await setActiveWorkspaceSelection(workspaceBinding.workspacePath || null);
+      } catch (workspaceError) {
+        console.warn('[useDashboardConversations] Failed to sync active workspace:', workspaceError);
+      }
       const parsedMessages = parseMemoriesToMessages(memories);
 
       setActiveConversationRef(conversationRef);
@@ -172,6 +190,7 @@ function useDashboardConversations({
     }
   }, [
     resolvedUserId,
+    sessionConversationRef,
     setChatActiveConversationRef,
     setChatIsSending,
     setChatMessages,
@@ -271,6 +290,12 @@ function useDashboardConversations({
     buildConversationGroups(recentConversations, {
       pinnedConversationRefs,
       keyPrefix: 'conversation',
+    })
+  ), [pinnedConversationRefs, recentConversations]);
+
+  const recentWorkspaceGroups = useMemo(() => (
+    buildWorkspaceConversationGroups(recentConversations, {
+      pinnedConversationRefs,
     })
   ), [pinnedConversationRefs, recentConversations]);
 
@@ -425,6 +450,7 @@ function useDashboardConversations({
     handleTogglePinConversation,
     handleDeleteConversation,
     recentConversationGroups,
+    recentWorkspaceGroups,
     searchedConversationGroups,
     setSearchQuery,
     setRecentConversationsError,

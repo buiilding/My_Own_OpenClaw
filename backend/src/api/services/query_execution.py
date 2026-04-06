@@ -86,6 +86,11 @@ class QueryExecutionService:
             user_id,
             conversation_ref=message.payload.conversation_ref,
         )
+        self._session_manager.set_session_workspace_path(
+            user_id,
+            agent_instance,
+            message.payload.workspace_path,
+        )
         self._apply_query_runtime_system_state(agent_instance, message)
         stream_context = self._build_stream_context(
             agent_instance=agent_instance,

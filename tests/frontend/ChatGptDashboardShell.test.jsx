@@ -76,6 +76,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     GET_CONVERSATION: 'get-conversation',
     SEARCH_CONVERSATIONS: 'search-conversations',
     DELETE_CONVERSATION: 'delete-conversation',
+    SET_ACTIVE_WORKSPACE: 'set-active-workspace',
   },
   ON_CHANNELS: {
     MAIN_WINDOW_OPEN_TARGET: 'main-window-open-target',

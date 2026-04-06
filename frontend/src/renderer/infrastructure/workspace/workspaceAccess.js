@@ -61,3 +61,14 @@ export async function requestActiveWorkspaceSelection() {
     workspace: normalizeActiveWorkspace(status),
   };
 }
+
+export async function setActiveWorkspaceSelection(workspacePath = null) {
+  const result = await IpcBridge.invoke(INVOKE_CHANNELS.SET_ACTIVE_WORKSPACE, {
+    workspacePath: typeof workspacePath === 'string' ? workspacePath : null,
+  });
+  const status = extractWorkspaceStatus(result);
+  return {
+    status,
+    workspace: normalizeActiveWorkspace(status),
+  };
+}

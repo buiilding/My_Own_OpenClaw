@@ -527,6 +527,8 @@ class LocalBackendMemoryHandlersMixin:
         model_provider: Optional[str] = None,
         screenshot: Optional[str] = None,
         timestamp: Optional[str] = None,
+        workspace_path: Optional[str] = None,
+        workspace_name: Optional[str] = None,
         transparency: Optional[Dict[str, Any]] = None,
         structured_payload: Optional[Dict[str, Any]] = None,
         **kwargs,
@@ -551,6 +553,8 @@ class LocalBackendMemoryHandlersMixin:
                     "correlation_id": correlation_id,
                     "model_id": model_id,
                     "model_provider": model_provider,
+                    "workspace_path": workspace_path,
+                    "workspace_name": workspace_name,
                     "structured_payload": structured_payload,
                 },
                 root="store_transcript",
@@ -580,6 +584,10 @@ class LocalBackendMemoryHandlersMixin:
                 metadata["tool_name"] = tool_name
             if normalized_correlation_id:
                 metadata["correlation_id"] = normalized_correlation_id
+            if isinstance(workspace_path, str) and workspace_path.strip():
+                metadata["workspace_path"] = workspace_path.strip()
+            if isinstance(workspace_name, str) and workspace_name.strip():
+                metadata["workspace_name"] = workspace_name.strip()
             normalized_transparency = self._normalize_transcript_transparency(transparency)
             if normalized_transparency is not None:
                 metadata["transparency"] = normalized_transparency

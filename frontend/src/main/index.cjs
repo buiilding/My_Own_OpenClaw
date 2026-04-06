@@ -210,6 +210,9 @@ function broadcastWorkspaceAccessUpdated(status) {
   const workspaceSelection = extractWorkspaceSelection(status);
   const payload = {
     granted: status?.granted === true,
+    source: typeof status?.details?.stored_entry?.source === 'string'
+      ? status.details.stored_entry.source
+      : (typeof status?.source === 'string' ? status.source : ''),
     workspaceName: workspaceSelection?.workspaceName || '',
     workspacePath: workspaceSelection?.workspacePath || '',
     selectedPaths: Array.isArray(workspaceSelection?.selectedPaths)

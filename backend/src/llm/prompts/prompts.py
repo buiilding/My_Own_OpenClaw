@@ -107,7 +107,11 @@ class PromptManager:
         """
         return self.render_system_prompt()
 
-    def render_system_prompt(self, operating_system: Optional[str] = None) -> str:
+    def render_system_prompt(
+        self,
+        operating_system: Optional[str] = None,
+        workspace_path: Optional[str] = None,
+    ) -> str:
         """Render the loaded prompt template for a specific operating system."""
         if self._system_prompt_template is None:
             raise RuntimeError(
@@ -118,11 +122,23 @@ class PromptManager:
             normalized = operating_system.strip()
             if normalized:
                 resolved_operating_system = normalized
-        return self._system_prompt_template.replace("{os}", resolved_operating_system)
+        resolved_workspace_path = "None"
+        if isinstance(workspace_path, str):
+            normalized_workspace_path = workspace_path.strip()
+            if normalized_workspace_path:
+                resolved_workspace_path = normalized_workspace_path
+        return (
+            self._system_prompt_template
+            .replace("{os}", resolved_operating_system)
+            .replace("{workspace_path}", resolved_workspace_path)
+        )
 
 
 # Global accessor function (for backward compatibility)
-def get_system_prompt(operating_system: Optional[str] = None) -> str:
+def get_system_prompt(
+    operating_system: Optional[str] = None,
+    workspace_path: Optional[str] = None,
+) -> str:
     """
     Get system prompt. Assumes PromptManager was initialized at startup.
     
@@ -132,7 +148,7 @@ def get_system_prompt(operating_system: Optional[str] = None) -> str:
     Raises:
         RuntimeError: If PromptManager has not been initialized
     """
-    return PromptManager().render_system_prompt(operating_system)
+    return PromptManager().render_system_prompt(operating_system, workspace_path)
 
 
 # NOTE: Do NOT create a module-level SYSTEM_PROMPT constant.

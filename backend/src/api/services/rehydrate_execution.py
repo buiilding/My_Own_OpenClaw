@@ -37,6 +37,11 @@ class RehydrateExecutionService:
             user_id,
             conversation_ref=payload.conversation_ref,
         )
+        self._session_manager.set_session_workspace_path(
+            user_id,
+            session,
+            payload.workspace_path,
+        )
         artifact_store = self._build_artifact_store(artifact_store_cls)
 
         state = RehydrateNormalizationState()

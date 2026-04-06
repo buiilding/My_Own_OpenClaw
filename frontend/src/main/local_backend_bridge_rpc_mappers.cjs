@@ -251,6 +251,8 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
       model_provider: 'modelProvider',
       screenshot: 'screenshot',
       timestamp: 'timestamp',
+      workspace_path: 'workspacePath',
+      workspace_name: 'workspaceName',
       transparency: 'transparency',
       structured_payload: 'structuredPayload',
     }),

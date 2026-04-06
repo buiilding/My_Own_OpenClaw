@@ -6,3 +6,10 @@ export const conversationGroupsPropType = PropTypes.shape({
   previous7Days: PropTypes.array.isRequired,
   older: PropTypes.array.isRequired,
 }).isRequired;
+
+export const workspaceConversationGroupsPropType = PropTypes.arrayOf(PropTypes.shape({
+  key: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  workspacePath: PropTypes.string.isRequired,
+  items: PropTypes.array.isRequired,
+})).isRequired;

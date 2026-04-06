@@ -18,13 +18,13 @@ def reset_prompt_manager_state():
 
 def test_initialize_loads_and_formats_prompt(tmp_path, monkeypatch):
     prompt_file = tmp_path / "system_prompt.txt"
-    prompt_file.write_text("running on {os}", encoding="utf-8")
+    prompt_file.write_text("running on {os} in {workspace_path}", encoding="utf-8")
     monkeypatch.setattr("backend.src.llm.prompts.prompts.platform.system", lambda: "TestOS")
 
     manager = PromptManager()
     manager.initialize(prompt_file)
 
-    assert manager.system_prompt == "running on TestOS"
+    assert manager.system_prompt == "running on TestOS in None"
 
 
 def test_initialize_concurrent_calls_read_prompt_once(tmp_path, monkeypatch):
@@ -145,25 +145,26 @@ def test_initialize_is_noop_after_first_success(tmp_path, monkeypatch):
 
 def test_get_system_prompt_global_accessor(tmp_path, monkeypatch):
     prompt_file = tmp_path / "system_prompt.txt"
-    prompt_file.write_text("global {os}", encoding="utf-8")
+    prompt_file.write_text("global {os} {workspace_path}", encoding="utf-8")
     monkeypatch.setattr("backend.src.llm.prompts.prompts.platform.system", lambda: "TestOS")
 
     manager = PromptManager()
     manager.initialize(prompt_file)
 
-    assert get_system_prompt() == "global TestOS"
+    assert get_system_prompt() == "global TestOS None"
 
 
 def test_get_system_prompt_renders_explicit_operating_system(tmp_path, monkeypatch):
     prompt_file = tmp_path / "system_prompt.txt"
-    prompt_file.write_text("global {os}", encoding="utf-8")
+    prompt_file.write_text("global {os} {workspace_path}", encoding="utf-8")
     monkeypatch.setattr("backend.src.llm.prompts.prompts.platform.system", lambda: "BackendOS")
 
     manager = PromptManager()
     manager.initialize(prompt_file)
 
-    assert get_system_prompt("macOS") == "global macOS"
-    assert manager.system_prompt == "global BackendOS"
+    assert get_system_prompt("macOS") == "global macOS None"
+    assert get_system_prompt("macOS", "/work/WindieOS") == "global macOS /work/WindieOS"
+    assert manager.system_prompt == "global BackendOS None"
 
 
 def test_repo_system_prompt_includes_tool_strategy_rules():

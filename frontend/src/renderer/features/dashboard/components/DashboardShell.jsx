@@ -107,6 +107,7 @@ function DashboardShell({
     handleTogglePinConversation,
     handleDeleteConversation,
     recentConversationGroups,
+    recentWorkspaceGroups,
     searchedConversationGroups,
     setSearchQuery,
     resetSearch,
@@ -302,12 +303,12 @@ function DashboardShell({
           memoryOpen={memoryOpen}
           usageOpen={usageOpen}
           modelsOpen={modelsOpen}
-          isLoadingRecentConversations={isLoadingRecentConversations}
-          recentConversationsError={recentConversationsError}
-          recentConversationGroups={recentConversationGroups}
-          onOpenConversation={openConversationFromDashboard}
-          onRenameConversation={handleRenameConversation}
-          onTogglePinConversation={handleTogglePinConversation}
+        isLoadingRecentConversations={isLoadingRecentConversations}
+        recentConversationsError={recentConversationsError}
+        recentWorkspaceGroups={recentWorkspaceGroups}
+        onOpenConversation={openConversationFromDashboard}
+        onRenameConversation={handleRenameConversation}
+        onTogglePinConversation={handleTogglePinConversation}
           onDeleteConversation={handleDeleteConversation}
           activeConversationRef={sessionInfo.conversationRef || null}
           isTransportConnected={isTransportConnected}

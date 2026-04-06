@@ -1,4 +1,7 @@
-import { buildConversationGroups } from '../../frontend/src/renderer/features/dashboard/utils/conversationGroups';
+import {
+  buildConversationGroups,
+  buildWorkspaceConversationGroups,
+} from '../../frontend/src/renderer/features/dashboard/utils/conversationGroups';
 
 function isoDaysAgo(days) {
   const date = new Date();
@@ -43,6 +46,45 @@ describe('conversationGroups', () => {
       key: 'search-1',
       snippet: 'hello world',
       matchedRole: 'You',
+    }));
+  });
+
+  test('groups conversations by workspace and sorts pinned chats first within each group', () => {
+    const groups = buildWorkspaceConversationGroups([
+      {
+        conversation_id: 'windie-1',
+        title: 'WindieOS issue',
+        workspace_path: '/work/WindieOS',
+        workspace_name: 'WindieOS',
+        last_timestamp: isoDaysAgo(0),
+      },
+      {
+        conversation_id: 'windie-2',
+        title: 'WindieOS follow-up',
+        workspace_path: '/work/WindieOS',
+        workspace_name: 'WindieOS',
+        last_timestamp: isoDaysAgo(1),
+      },
+      {
+        conversation_id: 'lode-1',
+        title: 'Lodex plan',
+        workspace_path: '/work/Lodex',
+        workspace_name: 'Lodex',
+        last_timestamp: isoDaysAgo(2),
+      },
+    ], {
+      pinnedConversationRefs: ['windie-2'],
+    });
+
+    expect(groups).toHaveLength(2);
+    expect(groups[0]).toEqual(expect.objectContaining({
+      key: '/work/WindieOS',
+      title: 'WindieOS',
+    }));
+    expect(groups[0].items.map((item) => item.key)).toEqual(['windie-2', 'windie-1']);
+    expect(groups[1]).toEqual(expect.objectContaining({
+      key: '/work/Lodex',
+      title: 'Lodex',
     }));
   });
 });

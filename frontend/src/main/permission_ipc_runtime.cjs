@@ -131,6 +131,37 @@ function initializePermissionHandlersRuntime(deps = {}) {
       },
     };
   });
+
+  ipcMain.handle('set-active-workspace', async (_event, options = {}) => {
+    const rawWorkspacePath = typeof options?.workspacePath === 'string'
+      ? options.workspacePath.trim()
+      : '';
+
+    if (rawWorkspacePath) {
+      await resolvedPermissionStateStore.set('filesystem_workspace_access', {
+        granted: true,
+        source: 'conversation_binding',
+        selected_paths: [rawWorkspacePath],
+        details: {
+          selected_paths: [rawWorkspacePath],
+        },
+      });
+    } else {
+      await resolvedPermissionStateStore.delete('filesystem_workspace_access');
+    }
+
+    const status = await runPermissionProbe('filesystem_workspace_access', permissionDeps);
+    if (typeof emitWorkspaceAccessUpdated === 'function') {
+      emitWorkspaceAccessUpdated(status);
+    }
+
+    return {
+      success: true,
+      data: {
+        status,
+      },
+    };
+  });
 }
 
 module.exports = {

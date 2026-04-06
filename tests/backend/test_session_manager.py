@@ -132,7 +132,9 @@ async def test_get_session_without_conversation_prefers_latest_named_conversatio
 async def test_get_or_create_session_applies_handshake_operating_system(monkeypatch) -> None:
     monkeypatch.setattr(
         "backend.src.agent.session.manager.get_system_prompt",
-        lambda operating_system=None: f"prompt:{operating_system}",
+        lambda operating_system=None, workspace_path=None: (
+            f"prompt:{operating_system}:{workspace_path or 'None'}"
+        ),
     )
 
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
@@ -140,15 +142,17 @@ async def test_get_or_create_session_applies_handshake_operating_system(monkeypa
 
     session = await manager.get_or_create_session("user-1")
 
-    assert session.prompt_builder.system_prompt == "prompt:Windows"
-    assert session.history.system_prompt == "prompt:Windows"
+    assert session.prompt_builder.system_prompt == "prompt:Windows:None"
+    assert session.history.system_prompt == "prompt:Windows:None"
 
 
 @pytest.mark.asyncio
 async def test_set_frontend_operating_system_updates_active_session(monkeypatch) -> None:
     monkeypatch.setattr(
         "backend.src.agent.session.manager.get_system_prompt",
-        lambda operating_system=None: f"prompt:{operating_system}",
+        lambda operating_system=None, workspace_path=None: (
+            f"prompt:{operating_system}:{workspace_path or 'None'}"
+        ),
     )
 
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
@@ -157,8 +161,27 @@ async def test_set_frontend_operating_system_updates_active_session(monkeypatch)
 
     manager.set_frontend_operating_system("user-1", "macOS")
 
-    assert session.prompt_builder.system_prompt == "prompt:macOS"
-    assert session.history.system_prompt == "prompt:macOS"
+    assert session.prompt_builder.system_prompt == "prompt:macOS:None"
+    assert session.history.system_prompt == "prompt:macOS:None"
+
+
+@pytest.mark.asyncio
+async def test_set_session_workspace_path_updates_active_prompt(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "backend.src.agent.session.manager.get_system_prompt",
+        lambda operating_system=None, workspace_path=None: (
+            f"prompt:{operating_system or 'BackendOS'}:{workspace_path or 'None'}"
+        ),
+    )
+
+    manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
+    manager.set_frontend_operating_system("user-1", "Linux")
+    session = await manager.get_or_create_session("user-1", conversation_ref="conv-1")
+
+    manager.set_session_workspace_path("user-1", session, "/work/WindieOS")
+
+    assert session.prompt_builder.system_prompt == "prompt:Linux:/work/WindieOS"
+    assert session.history.system_prompt == "prompt:Linux:/work/WindieOS"
 
 
 @pytest.mark.asyncio

@@ -10,7 +10,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import WindieGlyph from '../../../components/WindieGlyph';
-import { conversationGroupsPropType } from './shared/conversationGroupPropTypes';
+import { workspaceConversationGroupsPropType } from './shared/conversationGroupPropTypes';
 import DashboardSidebarNavigation from './sidebar/DashboardSidebarNavigation';
 import DashboardSidebarUserMenu from './sidebar/DashboardSidebarUserMenu';
 import { useDismissOnOutside } from './sidebar/useDismissOnOutside';
@@ -31,7 +31,7 @@ function DashboardSidebar({
   modelsOpen,
   isLoadingRecentConversations,
   recentConversationsError,
-  recentConversationGroups,
+  recentWorkspaceGroups,
   onOpenConversation,
   onRenameConversation,
   onTogglePinConversation,
@@ -44,20 +44,7 @@ function DashboardSidebar({
   const closeConversationMenu = useCallback(() => {
     setOpenConversationMenuKey(null);
   }, []);
-  const hasRecentConversations = (
-    recentConversationGroups.today.length > 0
-    || recentConversationGroups.yesterday.length > 0
-    || recentConversationGroups.previous7Days.length > 0
-    || recentConversationGroups.older.length > 0
-  );
-  const allConversationItems = [
-    ...recentConversationGroups.today,
-    ...recentConversationGroups.yesterday,
-    ...recentConversationGroups.previous7Days,
-    ...recentConversationGroups.older,
-  ];
-  const pinnedConversations = allConversationItems.filter((conversation) => conversation.isPinned);
-  const unpinnedConversations = allConversationItems.filter((conversation) => !conversation.isPinned);
+  const hasRecentConversations = recentWorkspaceGroups.some((group) => group.items.length > 0);
 
   useDismissOnOutside({
     isOpen: Boolean(openConversationMenuKey),
@@ -245,14 +232,17 @@ function DashboardSidebar({
             <div className="cg-chat-list-scroll">
               {hasRecentConversations ? (
                 <>
-                  {pinnedConversations.length > 0 ? (
-                    <div className="cg-chat-list-subheader">Pinned</div>
-                  ) : null}
-                  {pinnedConversations.map((conversation) => renderConversationRow(conversation))}
-                  {pinnedConversations.length > 0 && unpinnedConversations.length > 0 ? (
-                    <div className="cg-chat-list-subheader">Recent</div>
-                  ) : null}
-                  {unpinnedConversations.map((conversation) => renderConversationRow(conversation))}
+                  {recentWorkspaceGroups.map((group) => (
+                    <div key={group.key} className="cg-chat-workspace-group">
+                      <div
+                        className="cg-chat-list-subheader"
+                        title={group.workspacePath || 'No workspace'}
+                      >
+                        {group.title}
+                      </div>
+                      {group.items.map((conversation) => renderConversationRow(conversation))}
+                    </div>
+                  ))}
                 </>
               ) : isLoadingRecentConversations ? (
                 <div className="cg-chat-list-state">Loading chats...</div>
@@ -289,7 +279,7 @@ DashboardSidebar.propTypes = {
   modelsOpen: PropTypes.bool.isRequired,
   isLoadingRecentConversations: PropTypes.bool.isRequired,
   recentConversationsError: PropTypes.string.isRequired,
-  recentConversationGroups: conversationGroupsPropType,
+  recentWorkspaceGroups: workspaceConversationGroupsPropType,
   onOpenConversation: PropTypes.func.isRequired,
   onRenameConversation: PropTypes.func.isRequired,
   onTogglePinConversation: PropTypes.func.isRequired,
