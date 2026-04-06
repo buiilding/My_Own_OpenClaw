@@ -212,7 +212,7 @@ describe('ChatBox overlay mouse ignore', () => {
     );
     expect(sawRendererMouseToggle).toBe(false);
     expect(mockInvoke.mock.calls.some(
-      ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 64,
+      ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 88,
     )).toBe(true);
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
@@ -517,8 +517,11 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('Enter sends while Shift+Enter keeps multiline content in the pill composer', async () => {
-    render(<ChatBox />);
+    const { container } = render(<ChatBox />);
     const input = screen.getByPlaceholderText('Ask me anything...');
+    expect(container.querySelector('.chatbox-composer-stack')).toBeTruthy();
+    expect(container.querySelector('.chatbox-controls-row')).toBeTruthy();
+    expect(container.querySelector('.chatbox-main-row')).toBeNull();
 
     fireEvent.change(input, { target: { value: 'line one', selectionStart: 8 } });
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: true });
