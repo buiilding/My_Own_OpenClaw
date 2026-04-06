@@ -729,6 +729,56 @@ async def test_query_handler_logs_when_active_query_is_cancelled(caplog):
 
 
 @pytest.mark.asyncio
+async def test_query_handler_cancel_without_pending_tool_calls_skips_reconcile_log(caplog):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    started_event = asyncio.Event()
+    pending_history = DummyPendingToolCallHistory(reconciled_count=0)
+    session_manager.session = DummyBlockingAgent(started_event, history=pending_history)
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
+    caplog.set_level(logging.INFO, logger="backend.src.api.handlers.query")
+    caplog.set_level(
+        logging.INFO,
+        logger="backend.src.api.services.query_execution_support.query_execution_cancellation",
+    )
+
+    message = QueryMessage(
+        id="msg_cancelled_2",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "long running query",
+            "conversation_ref": "conv_cancelled_2",
+            "content": "<user_query>long running query</user_query>",
+        },
+    )
+
+    task = asyncio.create_task(handler.handle(message, websocket, "user_1"))
+    await asyncio.wait_for(started_event.wait(), timeout=1.0)
+    canceled = session_manager.cancel_active_query_task("user_1")
+
+    assert canceled == ("msg_cancelled_2", "conv_cancelled_2")
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert pending_history.calls == 1
+    assert any(
+        "[Query Cancelled] Active query task cancelled" in record.message
+        and "turn_ref=msg_cancelled_2" in record.message
+        and "conversation_ref=conv_cancelled_2" in record.message
+        for record in caplog.records
+    )
+    assert not any(
+        "[Query Cancelled] Reconciled" in record.message
+        and "turn_ref=msg_cancelled_2" in record.message
+        and "conversation_ref=conv_cancelled_2" in record.message
+        for record in caplog.records
+    )
+
+
+@pytest.mark.asyncio
 async def test_query_handler_invalid_text():
     websocket = FakeWebSocket()
     handler = QueryMessageHandler(
@@ -1744,6 +1794,63 @@ async def test_rehydrate_handler_rebuilds_tool_linkage_for_resumed_transcript():
     assert second_call["id"] == "call_replace_1"
     assert second_call["name"] == "replace"
     assert entries[4]["tool_call_id"] == "call_replace_1"
+
+
+@pytest.mark.asyncio
+async def test_rehydrate_handler_preserves_supported_ui_transcript_rows():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    handler = RehydrateConversationHandler(session_manager)
+
+    message = RehydrateConversationMessage(
+        id="msg_rehydrate_supported_rows",
+        type="rehydrate-conversation",
+        user_id="user_1",
+        payload={
+            "conversation_ref": "conv_resume_supported_rows",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "See screenshot",
+                    "message_type": "user",
+                    "screenshot": "data:image/png;base64,user-inline",
+                    "timestamp": "2026-02-12T10:00:00Z",
+                },
+                {
+                    "role": "assistant",
+                    "content": "Visible answer.",
+                    "message_type": "llm-text",
+                    "timestamp": "2026-02-12T10:00:01Z",
+                },
+                {
+                    "role": "tool",
+                    "content": "done",
+                    "message_type": "tool-output",
+                    "tool_call_id": "call_1",
+                    "screenshot": "data:image/png;base64,tool-inline",
+                    "timestamp": "2026-02-12T10:00:02Z",
+                },
+            ],
+            "rehydrate_mode": "replace",
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert not websocket.sent
+    assert session_manager.session.rehydrate_calls
+    entries = session_manager.session.rehydrate_calls[0]["entries"]
+    assert entries[0]["content"] == "See screenshot"
+    assert entries[0]["image_data"] == "data:image/png;base64,user-inline"
+    assert entries[1]["content"] == "Visible answer."
+    assert entries[1]["image_data"] is None
+    assert entries[2]["role"] == "assistant"
+    assert entries[2]["message_type"] == "tool-call"
+    assert entries[2]["tool_calls"][0]["id"] == "call_1"
+    assert entries[3]["role"] == "tool"
+    assert entries[3]["content"] == "done"
+    assert entries[3]["tool_call_id"] == "call_1"
+    assert entries[3]["image_data"] == "data:image/png;base64,tool-inline"
 
 
 @pytest.mark.asyncio
