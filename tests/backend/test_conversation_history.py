@@ -260,6 +260,37 @@ def test_add_assistant_message_drops_thinking_only_structured_content():
     assert history.get_stored_messages() == []
 
 
+def test_add_assistant_message_preserves_replay_safe_structured_content():
+    history = ConversationHistory()
+
+    history.add_assistant_message(
+        [
+            {"type": "thinking", "text": "private reasoning"},
+            {"type": "output_text", "text": "Visible answer."},
+            {"type": "refusal", "refusal": "Cannot share that."},
+        ]
+    )
+
+    stored = history.get_stored_messages()
+    assert len(stored) == 1
+    assert stored[0].content == "Visible answer.Cannot share that."
+    assert stored[0].structured_content == [
+        {"type": "output_text", "text": "Visible answer."},
+        {"type": "refusal", "refusal": "Cannot share that."},
+    ]
+
+    llm_messages = history.get_history()
+    assert llm_messages == [
+        {
+            "role": "assistant",
+            "content": [
+                {"type": "output_text", "text": "Visible answer."},
+                {"type": "refusal", "refusal": "Cannot share that."},
+            ],
+        }
+    ]
+
+
 def test_replace_with_entries_rehydrates_order_and_images():
     history = ConversationHistory()
 
@@ -306,7 +337,10 @@ def test_replace_with_entries_recovers_user_query_raw_and_compaction_facts():
                 "content": "browser output",
                 "message_type": "tool_output",
                 "tool_name": "browser",
-                "compaction_facts": {"action": "snapshot", "url": "https://outlook.office.com/mail/"},
+                "compaction_facts": {
+                    "action": "snapshot",
+                    "url": "https://outlook.office.com/mail/",
+                },
             },
         ]
     )
@@ -380,6 +414,19 @@ def test_replace_with_entries_normalizes_structured_assistant_content():
     stored = history.get_stored_messages()
     assert len(stored) == 1
     assert stored[0].content == "Visible answer.Cannot share that."
+    assert stored[0].structured_content == [
+        {"type": "output_text", "text": "Visible answer."},
+        {"type": "refusal", "refusal": "Cannot share that."},
+    ]
+    assert history.get_history() == [
+        {
+            "role": "assistant",
+            "content": [
+                {"type": "output_text", "text": "Visible answer."},
+                {"type": "refusal", "refusal": "Cannot share that."},
+            ],
+        }
+    ]
 
 
 def test_replace_with_entries_drops_empty_assistant_rows_with_only_unsupported_content():

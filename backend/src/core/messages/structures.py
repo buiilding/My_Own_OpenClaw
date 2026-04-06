@@ -4,6 +4,7 @@ Message structures for conversation history.
 This module provides structured message types for handling
 multimodal content and message parsing.
 """
+
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -17,16 +18,18 @@ from backend.src.core.types.schemas import LLMMessage, MultimodalContent
 class StoredMessage:
     """
     Structured representation of a message in conversation history.
-    
+
     Replaces the internal Dict format used in ConversationHistory to provide
     type safety and explicit message type information.
-    
+
     For user query messages, structured components are stored separately to avoid
     destructive data flow (storing rendered XML then parsing it back).
     """
+
     role: MessageRole
     content: str  # Rendered content for backward compatibility and LLM consumption
     message_type: MessageType
+    structured_content: Optional[MultimodalContent] = None
     timestamp: float = field(default_factory=time.time)
     image_data: Optional[Union[str, List[str]]] = None
     # Structured components for user query messages (None for other message types)
@@ -38,7 +41,7 @@ class StoredMessage:
     tool_call_id: Optional[str] = None
     tool_name: Optional[str] = None
     compaction_facts: Optional[Dict[str, Any]] = None
-    
+
     def to_llm_message(self) -> LLMMessage:
         """
         Convert StoredMessage to LLMMessage format for LLM consumption.
@@ -55,7 +58,7 @@ class StoredMessage:
         if self.role == MessageRole.ASSISTANT and self.tool_calls:
             assistant_message: Dict[str, Any] = {
                 "role": self.role.value,
-                "content": self.content,
+                "content": self._llm_content(),
                 "tool_calls": self._normalize_tool_calls(self.tool_calls),
             }
             if self.tool_name:
@@ -63,9 +66,11 @@ class StoredMessage:
             return assistant_message
 
         if self.role == MessageRole.TOOL:
-            tool_content: Union[str, MultimodalContent] = self._build_multimodal_content(
-                self.content,
-                self.image_data,
+            tool_content: Union[str, MultimodalContent] = (
+                self._build_multimodal_content(
+                    self.content,
+                    self.image_data,
+                )
             )
 
             tool_message: Dict[str, Any] = {
@@ -77,14 +82,24 @@ class StoredMessage:
                 tool_message["name"] = self.tool_name
             return tool_message
 
-        message_content = self._build_multimodal_content(self.content, self.image_data)
+        message_content = self._llm_content()
         return {
             "role": self.role.value,
             "content": message_content,
         }
 
+    def _llm_content(self) -> Union[str, MultimodalContent]:
+        """Return provider-facing content while preserving optional structured history."""
+        if self.image_data:
+            return self._build_multimodal_content(self.content, self.image_data)
+        if self.structured_content is not None:
+            return self.structured_content
+        return self.content
+
     @staticmethod
-    def _normalized_image_data(image_data: Optional[Union[str, List[str]]]) -> List[str]:
+    def _normalized_image_data(
+        image_data: Optional[Union[str, List[str]]]
+    ) -> List[str]:
         """Return validated image payload list from a single or multi-image field."""
         if isinstance(image_data, str):
             return [image_data] if image_data else []
@@ -124,9 +139,7 @@ class StoredMessage:
         return multimodal_content
 
     @staticmethod
-    def _normalize_tool_calls(
-        tool_calls: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+    def _normalize_tool_calls(tool_calls: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Normalize assistant tool_calls payload for history serialization."""
         normalized_calls: List[Dict[str, Any]] = []
         for index, call in enumerate(tool_calls):
@@ -158,23 +171,23 @@ class StoredMessage:
 class MessageContent(ABC):
     """
     Abstract base class for message content types.
-    
+
     Replaces MultimodalContentHelper with proper type hierarchy for type safety.
     """
-    
+
     @abstractmethod
     def to_llm_format(self) -> Union[str, MultimodalContent]:
         """Convert to LLMMessage content format."""
         pass
-    
+
     def get_text(self) -> str:
         """Extract text content."""
         return ""
-    
+
     def has_image(self) -> bool:
         """Check if content contains image data."""
         return False
-    
+
     def get_image_urls(self) -> List[str]:
         """Extract image URLs from content."""
         return []
@@ -182,35 +195,35 @@ class MessageContent(ABC):
 
 class TextContent(MessageContent):
     """Text-only message content."""
-    
+
     def __init__(self, text: str):
         self.text = text
-    
+
     def to_llm_format(self) -> str:
         return self.text
-    
+
     def get_text(self) -> str:
         return self.text
 
 
 class ImageContent(MessageContent):
     """Multimodal message content with text and image."""
-    
+
     def __init__(self, text: str, image_url: str):
         self.text = text
         self.image_url = image_url
-    
+
     def to_llm_format(self) -> MultimodalContent:
         return [
             {"type": ContentType.TEXT.value, "text": self.text},
-            {"type": ContentType.IMAGE_URL.value, "image_url": {"url": self.image_url}}
+            {"type": ContentType.IMAGE_URL.value, "image_url": {"url": self.image_url}},
         ]
-    
+
     def get_text(self) -> str:
         return self.text
-    
+
     def has_image(self) -> bool:
         return True
-    
+
     def get_image_urls(self) -> List[str]:
         return [self.image_url]

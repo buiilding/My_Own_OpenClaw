@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.types.enums import MessageRole, MessageType
+from backend.src.core.types.schemas import MultimodalContent
 
 
 def normalize_message_type(
@@ -88,12 +89,14 @@ def build_tool_result_message(
 def build_assistant_message(
     *,
     message: str,
+    structured_content: Optional[MultimodalContent] = None,
     tool_calls: Optional[List[Dict[str, Any]]] = None,
 ) -> StoredMessage:
     return StoredMessage(
         role=MessageRole.ASSISTANT,
         content=message,
         message_type=MessageType.ASSISTANT_RESPONSE,
+        structured_content=structured_content,
         image_data=None,
         tool_calls=tool_calls,
     )
