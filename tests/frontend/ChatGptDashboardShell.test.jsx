@@ -441,6 +441,13 @@ describe('ChatGptDashboardShell', () => {
           recordKind: 'transcript',
         }),
       );
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'delete-conversation',
+        expect.objectContaining({
+          conversationId: 'conv-delete-1',
+          recordKind: 'transcript_replay',
+        }),
+      );
     } finally {
       confirmSpy.mockRestore();
     }

@@ -5,6 +5,7 @@ import {
   setActiveConversationRef,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
+import { deleteConversationStoredState } from '../../../infrastructure/transcript/conversationReplayState';
 import { setActiveWorkspaceSelection } from '../../../infrastructure/workspace/workspaceAccess';
 import {
   resolveConversationWorkspaceBinding,
@@ -249,14 +250,10 @@ function useDashboardConversations({
     }
 
     try {
-      const result = await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
+      await deleteConversationStoredState({
         userId: resolvedUserId,
-        conversationId: conversationRef,
-        recordKind: conversation?.record_kind || 'transcript',
+        conversationRef,
       });
-      if (!result || result.success === false) {
-        throw new Error(result?.error || 'Failed to delete chat');
-      }
 
       setRecentConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
       setSearchedConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));

@@ -1357,6 +1357,11 @@ describe('ChatInterface wiring', () => {
       conversationId: 'conv_existing',
       recordKind: 'transcript',
     });
+    expect(mockIpcInvoke).toHaveBeenCalledWith('delete-conversation', {
+      userId: 'default_user',
+      conversationId: 'conv_existing',
+      recordKind: 'transcript_replay',
+    });
     expect(mockIpcInvoke).toHaveBeenCalledWith('store-transcript', expect.objectContaining({
       content: 'create a dashboard for this',
       role: 'user',
@@ -1405,6 +1410,11 @@ describe('ChatInterface wiring', () => {
       userId: 'default_user',
       conversationId: 'conv_existing',
       recordKind: 'transcript',
+    });
+    expect(mockIpcInvoke).toHaveBeenCalledWith('delete-conversation', {
+      userId: 'default_user',
+      conversationId: 'conv_existing',
+      recordKind: 'transcript_replay',
     });
     expect(mockIpcInvoke).toHaveBeenCalledWith('store-transcript', expect.objectContaining({
       content: 'new prompt',
