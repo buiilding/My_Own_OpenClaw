@@ -85,6 +85,10 @@ from memory.record_kinds import (
     TRANSCRIPT_RECORD_KIND,
     TRANSCRIPT_REPLAY_RECORD_KIND,
 )
+from memory.transcript_embedding_policy import (
+    build_missing_embedding_rows_query,
+    should_embed_episodic_entry,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -352,31 +356,7 @@ class LocalMemoryStore:
 
     @staticmethod
     def _missing_embedding_rows_query(memory_type: str) -> str:
-        """
-        SQL query used for startup backfill scans.
-
-        Episodic policy intentionally excludes low-signal transcript tool chatter
-        so startup does not repeatedly rescan rows that are never embeddable.
-        """
-        if memory_type == "episodic":
-            return """
-                SELECT id, content
-                FROM memories
-                WHERE embedding_id IS NULL
-                  AND (
-                    COALESCE(LOWER(TRIM(record_kind)), '') NOT IN ('transcript', 'transcript_replay')
-                    OR COALESCE(LOWER(TRIM(role)), '') = 'user'
-                    OR (
-                      COALESCE(LOWER(TRIM(role)), '') = 'assistant'
-                      AND COALESCE(LOWER(TRIM(message_type)), '') IN ('', 'llm-text', 'error')
-                    )
-                  )
-            """
-        return """
-            SELECT id, content
-            FROM memories
-            WHERE embedding_id IS NULL
-        """
+        return build_missing_embedding_rows_query(memory_type)
 
     async def _save_faiss_indices(self) -> None:
         """Save both FAISS indices to disk (async operation using global thread pool)."""
@@ -434,28 +414,11 @@ class LocalMemoryStore:
         role: Optional[str],
         message_type: Optional[str],
     ) -> bool:
-        """
-        Determine whether an episodic row should have vector embeddings.
-
-        Transcript storage includes low-signal tool chatter (tool-call JSON, verbose logs).
-        We index user turns and assistant natural-language responses for memory recall.
-        """
-        normalized_kind = (record_kind or "memory").strip().lower()
-        if normalized_kind == TRANSCRIPT_REPLAY_RECORD_KIND:
-            return False
-        if normalized_kind != TRANSCRIPT_RECORD_KIND:
-            return True
-
-        normalized_role = (role or "").strip().lower()
-        normalized_type = (message_type or "").strip().lower()
-
-        if normalized_role == "user":
-            return True
-
-        if normalized_role == "assistant":
-            return normalized_type in ("", "llm-text", "error")
-
-        return False
+        return should_embed_episodic_entry(
+            record_kind=record_kind,
+            role=role,
+            message_type=message_type,
+        )
 
     async def _rebuild_index(self, memory_type: str) -> None:
         """Rebuild FAISS index from database for a given memory type."""

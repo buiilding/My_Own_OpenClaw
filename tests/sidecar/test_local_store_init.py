@@ -8,6 +8,7 @@ import numpy as np
 
 import memory.local_store as local_store_module  # noqa: E402
 from memory.local_store import LocalMemoryStore  # noqa: E402
+from memory.transcript_embedding_policy import should_embed_episodic_entry  # noqa: E402
 
 
 def test_local_memory_store_init_skips_sync_faiss_reads(monkeypatch, tmp_path):
@@ -304,3 +305,31 @@ async def test_sync_vector_mappings_backfill_query_skips_transcript_replay_rows(
     assert embedded_texts == ["assistant text"]
     assert vector_id_to_memory_id == {10: "assistant-turn"}
     assert memory_id_to_vector_id == {"assistant-turn": 10}
+
+
+def test_should_embed_episodic_entry_matches_transcript_policy():
+    assert should_embed_episodic_entry(
+        record_kind="memory",
+        role=None,
+        message_type=None,
+    ) is True
+    assert should_embed_episodic_entry(
+        record_kind="transcript",
+        role="user",
+        message_type="user",
+    ) is True
+    assert should_embed_episodic_entry(
+        record_kind="transcript",
+        role="assistant",
+        message_type="llm-text",
+    ) is True
+    assert should_embed_episodic_entry(
+        record_kind="transcript",
+        role="tool",
+        message_type="tool-output",
+    ) is False
+    assert should_embed_episodic_entry(
+        record_kind="transcript_replay",
+        role="assistant",
+        message_type="llm-text",
+    ) is False
