@@ -2832,3 +2832,4 @@ Includes the last 300 commits on `main`.
 - Increased the main-process local sidecar request timeout from 30 seconds to 60 seconds for non-browser tool calls and generic JSON-RPC requests, reducing false timeouts on slower recursive shell/file operations.
 - docs(architecture): document the SDK/open-source product boundary as hosted backend control plane plus local sidecar execution, and clarify that SDK consumers should not need to run backend services locally for OCR, vision, or agent APIs
 - docs(runtime): align installation, quick-start, API, backend, sidecar, and communication docs with the current hosted-first endpoint resolution and hybrid SDK routing model
+- docs(frontend-overlay-capture-policy): harden frontend docs so macOS/Windows explicitly keep overlay screenshot exclusion on always via `setContentProtection(true)` while overlay windows exist, and never use active-loop-only or capture-time hide/show behavior for the minimal chat pill

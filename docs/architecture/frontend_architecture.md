@@ -195,6 +195,7 @@ Primary modules:
   - Leaves cross-platform overlay policy to `window_platform_policy.cjs` instead of setting topmost/workspace/content-protection flags inline.
 - `main/window_platform_policy.cjs`:
   - Centralizes per-platform `BrowserWindow` policy for overlay topmost level, workspace/fullscreen visibility, content protection, and activation/focus handoff.
+  - Current contract keeps macOS/Windows overlay content protection always enabled while overlay windows exist; it is not toggled only for active-loop phases or capture-time prep.
   - Keeps macOS/Windows/Linux window rules in one place so composition/runtime modules do not duplicate Electron platform conditionals.
 - `main/ipc.cjs`:
   - Single backend WebSocket client lifecycle and reconnect.
@@ -301,7 +302,7 @@ Primary modules:
 - `infrastructure/api/client.ts`: typed backend command emitter.
 - `infrastructure/transcript/TranscriptWriter.ts`: transcript session state + queued persistence.
 - `infrastructure/services/ToolExecutionService.ts`: tool execution/capture bundling.
-- `infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/*`: explicit per-OS screenshot chat-pill policy (Linux hides; Windows/macOS no-op).
+- `infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/*`: explicit per-OS screenshot chat-pill policy (Linux hides; Windows/macOS no-op because overlay exclusion comes from always-on content protection, not capture-time hide/show).
 - `infrastructure/audio/PlayerService.ts`: chunk queue decode/playback.
 
 ## Sidecar Responsibilities (`frontend/src/main/python`)

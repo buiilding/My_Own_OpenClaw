@@ -29,7 +29,8 @@ Any change touching renderer chat loop state, main-process overlay phase handlin
    - after capture: restore chat pill visibility (no focus steal)
 5. Windows/macOS screenshot contract:
    - no renderer hide/show collapse path for capture
-   - rely on content protection policy for protected overlays
+   - rely on always-on overlay content protection policy for protected overlays while the chat/response overlay windows exist
+   - do not scope overlay screenshot exclusion to active-loop phases only
 6. No tab/window refocus recovery hacks in renderer chat-pill runtime.
 7. Overlay geometry is stable.
    - avoid live resize/position churn during stream/token updates
