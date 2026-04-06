@@ -1,3 +1,5 @@
+import type { ToolSchema } from '../../types/backendEvents';
+
 export type SessionInfo = {
   conversationRef: string | null;
   userId: string | null;
@@ -5,7 +7,7 @@ export type SessionInfo = {
 
 export type TranscriptTransparencyData = {
   systemPrompt?: string | null;
-  toolSchemas?: unknown[] | null;
+  toolSchemas?: ToolSchema[] | null;
   fullUserMessage?: {
     content?: string | null;
     metadata?: Record<string, unknown> | null;

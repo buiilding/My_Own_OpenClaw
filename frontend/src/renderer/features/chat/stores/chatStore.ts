@@ -5,6 +5,7 @@
  */
 
 import { create } from 'zustand';
+import type { ToolSchema } from '../../../types/backendEvents';
 import {
   DEFAULT_CHAT_WORKSPACE_REF,
   createInitialStreamTracking,
@@ -66,9 +67,9 @@ export interface ChatMessage {
   actionExplanations?: string[] | null;
   systemPrompt?: {
     content: string;
-    toolSchemas?: any;
+    toolSchemas?: ToolSchema[];
   };
-  toolSchemas?: any;
+  toolSchemas?: ToolSchema[];
   fullUserMessage?: {
     content: string;
     metadata?: Record<string, unknown>;

@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { toolSchemaListPropType } from './toolSchemaPropType';
 
 const messageShapePropType = PropTypes.shape({
   id: PropTypes.string.isRequired,
@@ -29,9 +30,9 @@ const messageShapePropType = PropTypes.shape({
   }),
   systemPrompt: PropTypes.shape({
     content: PropTypes.string,
-    toolSchemas: PropTypes.any,
+    toolSchemas: toolSchemaListPropType,
   }),
-  toolSchemas: PropTypes.any,
+  toolSchemas: toolSchemaListPropType,
 });
 
 export default messageShapePropType;
