@@ -3,9 +3,9 @@ import type {
   ToolCallEvent,
   ToolOutputEvent,
 } from '../../../../types/backendEvents';
+import { buildToolOutputChatMessageState } from '../../../../infrastructure/transcript/toolOutputChatMessageState';
 import type { ChatMessage } from '../../stores/chatStore';
 import { resolveToolOutputCorrelationId } from './chatStreamEventUtils';
-import { buildToolOutputMessageState } from '../toolOutputMessageState';
 import { buildToolCallChatMessageState } from '../../../../infrastructure/transcript/toolCallChatMessageState';
 
 type TranscriptModelContext = {
@@ -58,7 +58,7 @@ export function buildToolOutputMessage(
   screenshotRef: string | null,
   screenshotUrl: string | null,
 ): ChatMessage {
-  return buildToolOutputMessageState({
+  return buildToolOutputChatMessageState({
     outputText,
     sourceEventType: 'tool-output',
     sourceChannel: 'from-backend',

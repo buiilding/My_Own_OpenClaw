@@ -8,6 +8,9 @@ import {
   buildToolCallChatMessageState,
 } from './toolCallChatMessageState';
 import {
+  buildToolOutputChatMessageState,
+} from './toolOutputChatMessageState';
+import {
   resolveStoredTranscriptMemoryState,
 } from './storedTranscriptMemoryState';
 
@@ -164,6 +167,31 @@ export function buildStoredTranscriptChatMessages(memory, index) {
       };
     }
 
+    if (part.type === 'tool-output') {
+      const transparencyFields = buildStoredTranscriptTransparencyFields(part, partCount, transparency);
+      return {
+        ...buildToolOutputChatMessageState({
+          id: messageId,
+          outputText: part.text,
+          screenshot: part.screenshot || null,
+          screenshotRef: part.screenshotRef || null,
+          screenshotUrl: part.screenshotUrl || null,
+          screenshotContentType: part.screenshotContentType || null,
+          correlationId: part.correlationId || null,
+          toolOutputDetails: part.toolOutputDetails || null,
+          modelFacingToolOutput: part.modelFacingToolOutput || null,
+          modelId: part.modelId || null,
+          modelProvider: part.modelProvider || null,
+          isComplete: true,
+          deriveScreenshotUrlFromRef: false,
+          preserveNullAttachmentFields: false,
+          preserveNullToolMetadata: false,
+          preserveNullToolOutputDetails: false,
+        }),
+        ...transparencyFields,
+      };
+    }
+
     const screenshotFields = {};
     if (part.screenshot) {
       screenshotFields.screenshot = part.screenshot;
@@ -184,20 +212,18 @@ export function buildStoredTranscriptChatMessages(memory, index) {
     if (part.modelId) {
       modelFields.modelId = part.modelId;
     }
-      const transparencyFields = buildStoredTranscriptTransparencyFields(part, partCount, transparency);
+    const transparencyFields = buildStoredTranscriptTransparencyFields(part, partCount, transparency);
 
-      return {
-        id: messageId,
-        text: part.text,
-        sender: part.sender,
-        type: part.type,
-        ...(part.modelFacingToolOutput ? { modelFacingToolOutput: part.modelFacingToolOutput } : {}),
-        ...(part.toolOutputDetails ? { toolOutputDetails: part.toolOutputDetails } : {}),
-        ...(part.correlationId ? { correlationId: part.correlationId } : {}),
-        ...modelFields,
-        ...screenshotFields,
-        ...transparencyFields,
-        isComplete: true,
-      };
-    });
+    return {
+      id: messageId,
+      text: part.text,
+      sender: part.sender,
+      type: part.type,
+      ...(part.correlationId ? { correlationId: part.correlationId } : {}),
+      ...modelFields,
+      ...screenshotFields,
+      ...transparencyFields,
+      isComplete: true,
+    };
+  });
 }
