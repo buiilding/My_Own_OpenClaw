@@ -268,6 +268,8 @@ Primary modules:
   - Guards replay bootstrap with per-conversation mutation epochs so async bootstrap work cannot re-seed stale replay rows after delete, rewind, or compaction resets.
 - `features/dashboard/components/DashboardShell.jsx`:
   - Global `Nuke chats` success handling now resets the active chat plus invalidates renderer-side backend-sync, replay-bootstrap, and conversation-workspace-binding caches so no local resume state survives a full transcript wipe.
+- `features/dashboard/hooks/useDashboardConversations.js`:
+  - Single-conversation delete now clears that chat's persisted workspace binding together with transcript/replay state so session-storage workspace metadata does not survive a conversation delete.
 - `features/chat/components/ChatInterface.jsx`:
   - Provider + model selectors, stop/new-chat actions, speech toggle, retry/edit message flows.
   - Focused-window `Esc` stop handler wired to the same stop-query path as the stop button.

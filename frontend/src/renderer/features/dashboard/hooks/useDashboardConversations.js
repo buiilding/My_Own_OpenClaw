@@ -8,6 +8,7 @@ import {
 import { deleteConversationStoredState } from '../../../infrastructure/transcript/conversationReplayState';
 import { setActiveWorkspaceSelection } from '../../../infrastructure/workspace/workspaceAccess';
 import {
+  clearConversationWorkspaceBinding,
   resolveConversationWorkspaceBinding,
   setConversationWorkspaceBinding,
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
@@ -258,6 +259,7 @@ function useDashboardConversations({
       setRecentConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
       setSearchedConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
       setPinnedConversationRefs((current) => current.filter((id) => id !== conversationRef));
+      clearConversationWorkspaceBinding(conversationRef);
       clearConversationBackendSyncState(conversationRef);
       if (sessionConversationRef === conversationRef) {
         resetActiveChatSession({
@@ -275,6 +277,7 @@ function useDashboardConversations({
     }
   }, [
     clearChatMessages,
+    clearConversationWorkspaceBinding,
     resolvedUserId,
     sessionConversationRef,
     setChatActiveConversationRef,
