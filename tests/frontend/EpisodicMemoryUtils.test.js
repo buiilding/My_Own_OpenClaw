@@ -253,6 +253,45 @@ describe('episodicMemoryUtils', () => {
     ]);
   });
 
+  test('parseMemoriesToMessages prefers stored structured payload for tool-output rows', () => {
+    const memory = {
+      id: 'tool-output-structured',
+      content: 'tool output text',
+      role: 'tool',
+      message_type: 'tool-output',
+      correlation_id: 'req-structured-1',
+      metadata: {
+        structured_payload: {
+          kind: 'tool-output',
+          toolCallDetails: {
+            request_id: 'req-structured-1',
+            tool_name: 'read_file',
+            success: true,
+            output: 'tool output text',
+          },
+        },
+      },
+    };
+
+    expect(parseMemoriesToMessages([memory])).toEqual([
+      {
+        id: 'tool-output-structured-0',
+        sender: 'assistant',
+        text: 'tool output text',
+        type: 'tool-output',
+        correlationId: 'req-structured-1',
+        modelFacingToolOutput: 'tool output text',
+        toolOutputDetails: {
+          request_id: 'req-structured-1',
+          tool_name: 'read_file',
+          success: true,
+          output: 'tool output text',
+        },
+        isComplete: true,
+      },
+    ]);
+  });
+
   test('parseMemoriesToMessages falls back to assistant llm-text for generic content', () => {
     expect(parseMemoriesToMessages([{ id: 'plain', content: 'plain message' }])).toEqual([
       {

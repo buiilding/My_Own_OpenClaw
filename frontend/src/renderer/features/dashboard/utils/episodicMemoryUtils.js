@@ -8,9 +8,9 @@ import {
 } from '../../../infrastructure/transcript/rehydratePayload';
 import {
   buildToolCallMessageState,
-  buildToolBundleMessageState,
 } from '../../../infrastructure/transcript/toolCallMessageState';
 import {
+  buildStoredTranscriptToolMessageState,
   buildStructuredToolPayload,
   readStructuredToolPayload,
 } from '../../../infrastructure/transcript/structuredToolPayload';
@@ -75,7 +75,6 @@ function parseMemoryContent(memory) {
 
   if (role) {
     const sender = role === 'user' ? 'user' : 'assistant';
-    const isBundleToolCall = messageType === 'tool-bundle';
     const normalizedType = messageType === 'tool-bundle'
       ? 'tool-call'
       : (messageType || (role === 'tool' ? 'tool-output' : 'llm-text'));
@@ -85,38 +84,11 @@ function parseMemoryContent(memory) {
       memory?.metadata?.structured_payload,
       memory?.metadata?.structuredPayload,
     );
-    const parsedBundlePayload = isBundleToolCall
-      ? (
-        structuredToolPayload?.kind === 'tool-bundle'
-          ? {
-            ...(structuredToolPayload.toolCallDetails || {}),
-            ...(structuredToolPayload.toolCalls
-              ? { tools: structuredToolPayload.toolCalls.map((tool) => ({
-                ...(tool.name ? { name: tool.name } : {}),
-                args: (
-                  tool.arguments
-                  && typeof tool.arguments === 'object'
-                  && !Array.isArray(tool.arguments)
-                ) ? { ...tool.arguments } : {},
-                ...(tool.metadata ? { metadata: tool.metadata } : {}),
-              })) }
-              : {}),
-          }
-          : parseBundleToolPayload(rawContent || '')
-      )
-      : null;
-    const normalizedToolCallMessage = normalizedType === 'tool-call'
-      ? (isBundleToolCall
-        ? buildToolBundleMessageState(parsedBundlePayload)
-        : buildToolCallMessageState({
-          rawContent: rawContent || '',
-          rawToolCall: (
-            structuredToolPayload?.kind === 'tool-call'
-              ? structuredToolPayload.toolCall
-              : parseToolCallPayload(rawContent || '')
-          ),
-        }))
-      : null;
+    const storedToolMessageState = buildStoredTranscriptToolMessageState({
+      messageType,
+      rawContent,
+      structuredPayload: structuredToolPayload,
+    });
     const shouldAttachScreenshot = sender === 'user' || normalizedType === 'tool-output';
     const correlationId = normalizeOptionalString(
       memory?.correlation_id
@@ -126,19 +98,27 @@ function parseMemoryContent(memory) {
     );
     return [{
       sender,
-      text: normalizedToolCallMessage?.text || rawContent || '(empty)',
-      type: normalizedType,
-      ...(normalizedType === 'tool-call'
-        ? { toolCallDisplayText: normalizedToolCallMessage?.toolCallDisplayText || rawContent || '(empty)' }
+      text: storedToolMessageState?.text || rawContent || '(empty)',
+      type: storedToolMessageState?.type || normalizedType,
+      ...(storedToolMessageState?.toolCallDisplayText
+        ? { toolCallDisplayText: storedToolMessageState.toolCallDisplayText }
         : {}),
-      ...(normalizedToolCallMessage?.modelFacingToolCall
-        ? { modelFacingToolCall: normalizedToolCallMessage.modelFacingToolCall }
+      ...(storedToolMessageState?.modelFacingToolCall
+        ? { modelFacingToolCall: storedToolMessageState.modelFacingToolCall }
         : {}),
-      ...(normalizedToolCallMessage?.toolCallDetails
-        ? { toolCallDetails: normalizedToolCallMessage.toolCallDetails }
+      ...(storedToolMessageState?.toolCallDetails
+        ? { toolCallDetails: storedToolMessageState.toolCallDetails }
+        : {}),
+      ...(storedToolMessageState?.modelFacingToolOutput
+        ? { modelFacingToolOutput: storedToolMessageState.modelFacingToolOutput }
+        : {}),
+      ...(storedToolMessageState?.toolOutputDetails
+        ? { toolOutputDetails: storedToolMessageState.toolOutputDetails }
         : {}),
       ...(correlationId ? { correlationId } : {}),
-      ...(isBundleToolCall ? { sourceEventType: 'tool-bundle' } : {}),
+      ...(storedToolMessageState?.sourceEventType
+        ? { sourceEventType: storedToolMessageState.sourceEventType }
+        : {}),
       modelProvider,
       modelId,
       screenshot: shouldAttachScreenshot ? screenshotAttachment.screenshot : null,
@@ -168,23 +148,6 @@ function parseMemoryContent(memory) {
   }
 
   return [{ sender: 'assistant', text: content, type: 'llm-text', modelProvider, modelId }];
-}
-
-function parseBundleToolPayload(rawContent) {
-  if (typeof rawContent !== 'string' || !rawContent.trim()) {
-    return undefined;
-  }
-
-  try {
-    const parsed = JSON.parse(rawContent);
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      return parsed;
-    }
-  } catch (_error) {
-    return undefined;
-  }
-
-  return undefined;
 }
 
 function resolveTranscriptTransparency(memory) {
@@ -277,6 +240,8 @@ export function parseMemoriesToMessages(memories) {
         ...(part.toolCallDisplayText ? { toolCallDisplayText: part.toolCallDisplayText } : {}),
         ...(part.modelFacingToolCall ? { modelFacingToolCall: part.modelFacingToolCall } : {}),
         ...(part.toolCallDetails ? { toolCallDetails: part.toolCallDetails } : {}),
+        ...(part.modelFacingToolOutput ? { modelFacingToolOutput: part.modelFacingToolOutput } : {}),
+        ...(part.toolOutputDetails ? { toolOutputDetails: part.toolOutputDetails } : {}),
         ...(part.sourceEventType ? { sourceEventType: part.sourceEventType } : {}),
         ...(part.correlationId ? { correlationId: part.correlationId } : {}),
         ...modelFields,
