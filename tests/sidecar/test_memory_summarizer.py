@@ -197,6 +197,46 @@ async def test_summarizer_marks_low_signal_batches_processed_without_storing_sem
 
 
 @pytest.mark.asyncio
+async def test_summarizer_marks_explicit_no_durable_memory_batches_processed_without_storing_semantic_row():
+    memories = [
+        {
+            "id": "1",
+            "content": "User: hi\nAssistant: Hello!",
+            "timestamp": "2026-02-12T10:00:00Z",
+            "record_kind": "interaction",
+        }
+    ]
+    memory_store = FakeMemoryStore(memories)
+
+    class NoDurableMemorySemanticClient:
+        async def summarize(self, conversations, user_id):
+            return "NONE", []
+
+    summarizer = MemorySummarizer(
+        memory_store=memory_store,
+        semantic_client=NoDurableMemorySemanticClient(),
+        settings=SummarizerSettings(min_batch_size=1, min_batch_size_idle=1),
+    )
+
+    summarized = await summarizer._summarize_conversation_batch(
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+
+    assert summarized == 1
+    assert memory_store.add_calls == []
+    assert len(memory_store.mark_calls) == 1
+    assert memory_store.mark_calls[0]["memory_ids"] == ["1"]
+    assert (
+        memory_store.mark_calls[0]["metadata_patch"]["semantic_status"]
+        == "skipped_no_durable_memory"
+    )
+    assert memory_store.mark_calls[0]["metadata_patch"]["semantic_durable_fact_count"] == 0
+    assert memory_store.mark_calls[0]["metadata_patch"]["semantic_skipped_fact_count"] == 0
+    assert "semantic_summary_hash" in memory_store.mark_calls[0]["metadata_patch"]
+
+
+@pytest.mark.asyncio
 async def test_summarizer_continues_when_one_user_batch_fails(monkeypatch):
     memory_store = FakeCycleMemoryStore()
     semantic_client = FakeSemanticClient()

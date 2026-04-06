@@ -4,13 +4,17 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from memory.operations import (  # noqa: E402
-    build_store_memory_response_data,
+    build_semanticization_metadata,
     build_completed_turn_memory_metadata,
+    build_store_memory_response_data,
+    classify_semantic_summarization_result,
     filter_results_by_min_score,
     format_interaction_memory,
     group_memory_texts,
     is_durable_semantic_text,
     normalize_and_store_completed_turn_memory,
+    normalize_semantic_fact_list,
+    normalize_semantic_summary,
     normalize_search_memory_payload,
     normalize_search_memory_selection,
     normalize_store_memory_payload,
@@ -178,6 +182,80 @@ def test_build_store_memory_response_data():
         "memory_type": "episodic",
         "message": "Stored episodic memory",
     }
+
+
+def test_normalize_semantic_summary_clears_explicit_no_durable_markers():
+    assert normalize_semantic_summary("NONE") == ""
+    assert normalize_semantic_summary("No durable facts.") == ""
+    assert normalize_semantic_summary("User prefers terminal workflows.") == (
+        "User prefers terminal workflows."
+    )
+
+
+def test_normalize_semantic_fact_list_dedupes_and_strips():
+    assert normalize_semantic_fact_list(
+        [" uses Codex heavily ", "Uses Codex heavily", "", None]
+    ) == ["uses Codex heavily"]
+
+
+def test_classify_semantic_summarization_result_marks_stored_when_durable_facts_exist():
+    result = classify_semantic_summarization_result(
+        "User workflow details.",
+        ["Uses Linux daily", "Prefers terminal tools"],
+    )
+
+    assert result == {
+        "summary": "User workflow details.",
+        "facts": ["Uses Linux daily", "Prefers terminal tools"],
+        "durable_facts": ["Uses Linux daily", "Prefers terminal tools"],
+        "status": "stored",
+    }
+
+
+def test_classify_semantic_summarization_result_marks_no_durable_memory_explicitly():
+    result = classify_semantic_summarization_result("NONE", [])
+
+    assert result == {
+        "summary": "",
+        "facts": [],
+        "durable_facts": [],
+        "status": "skipped_no_durable_memory",
+    }
+
+
+def test_classify_semantic_summarization_result_marks_low_signal_when_only_filtered_facts_exist():
+    result = classify_semantic_summarization_result(
+        "No durable memory",
+        [
+            "No user preferences stated",
+            "User initiated contact with a casual greeting",
+        ],
+    )
+
+    assert result == {
+        "summary": "",
+        "facts": [
+            "No user preferences stated",
+            "User initiated contact with a casual greeting",
+        ],
+        "durable_facts": [],
+        "status": "skipped_low_signal",
+    }
+
+
+def test_build_semanticization_metadata_shapes_runtime_patch():
+    metadata = build_semanticization_metadata(
+        status="skipped_no_durable_memory",
+        summary_hash="hash-123",
+        durable_fact_count=0,
+        skipped_fact_count=2,
+    )
+
+    assert metadata["semantic_status"] == "skipped_no_durable_memory"
+    assert metadata["semantic_summary_hash"] == "hash-123"
+    assert metadata["semantic_durable_fact_count"] == 0
+    assert metadata["semantic_skipped_fact_count"] == 2
+    assert "semantic_processed_at" in metadata
 
 
 class _DummyStore:
