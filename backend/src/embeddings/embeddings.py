@@ -15,6 +15,24 @@ from backend.src.core.interfaces.embedding import EmbeddingProvider
 
 logger = logging.getLogger(__name__)
 
+CUDA_ERROR_KEYWORDS = (
+    "CUBLAS_STATUS_ALLOC_FAILED",
+    "CUDA out of memory",
+    "CUDA error",
+    "cuda error",
+    "cublas",
+    "cudnn",
+    "CUDNN_STATUS",
+    "CUBLAS_STATUS",
+    "out of memory",
+)
+
+
+def is_cuda_error(error: Exception) -> bool:
+    """Return True when an embedding failure looks CUDA-related."""
+    error_message = str(error)
+    return any(keyword in error_message for keyword in CUDA_ERROR_KEYWORDS)
+
 class SentenceTransformerProvider(EmbeddingProvider):
     """
     Local embedding provider using SentenceTransformers.
@@ -70,15 +88,59 @@ class SentenceTransformerProvider(EmbeddingProvider):
             # Double-check after acquiring lock (another call may have initialized)
             if self._initialized:
                 return
-            
+
             logger.info(f"Loading embedding model: {self._model_name} on {self._device}")
-            # Offload model loading to thread pool (or run inline under pytest)
-            self.model = await self._run_blocking(
-                lambda: SentenceTransformer(self._model_name, device=self._device)
-            )
-            self._dimension = self.model.get_sentence_embedding_dimension()
-            self._initialized = True
+            await self._load_model(self._device)
             logger.info(f"Embedding model loaded: dimension={self._dimension}")
+
+    async def _load_model(self, device: str) -> None:
+        """Load or reload the sentence transformer on the requested device."""
+        model = await self._run_blocking(
+            lambda: SentenceTransformer(self._model_name, device=device)
+        )
+        self.model = model
+        self._device = device
+        self._dimension = model.get_sentence_embedding_dimension()
+        self._initialized = True
+
+    async def _reload_with_cpu(self) -> None:
+        """Reload the embedding model on CPU after a CUDA runtime failure."""
+        async with self._init_lock:
+            if self._device == "cpu" and self.model is not None:
+                return
+
+            self._clear_cuda_cache_best_effort()
+            logger.warning(
+                "Embedding model hit a CUDA runtime failure. Reloading %s on CPU.",
+                self._model_name,
+            )
+            await self._load_model("cpu")
+            logger.info("Embedding model reloaded with CPU fallback")
+
+    @staticmethod
+    def _clear_cuda_cache_best_effort() -> None:
+        try:
+            import torch
+
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+        except Exception:
+            return
+
+    async def _encode_with_runtime_fallback(self, encode_fn, *, operation: str):
+        try:
+            return await self._run_blocking(encode_fn)
+        except Exception as error:
+            if self._device != "cuda" or not is_cuda_error(error):
+                raise
+
+            logger.warning(
+                "Embedding %s failed on CUDA. Retrying with CPU fallback. Error: %s",
+                operation,
+                error,
+            )
+            await self._reload_with_cpu()
+            return await self._run_blocking(encode_fn)
 
     def _ensure_initialized(self) -> None:
         """Ensure model is initialized, raising error if not."""
@@ -104,18 +166,18 @@ class SentenceTransformerProvider(EmbeddingProvider):
             if cached_embedding is not None:
                 return cached_embedding
             
-            # Offload blocking encode operation to thread pool
-            embedding = await self._run_blocking(
-                lambda: self.model.encode(text, convert_to_numpy=True)
+            embedding = await self._encode_with_runtime_fallback(
+                lambda: self.model.encode(text, convert_to_numpy=True),
+                operation="text",
             )
             
             # Cache it
             self._cache_manager.embeddings.set(cache_key, embedding)
             return embedding
         else:
-            # Offload blocking encode operation to thread pool
-            return await self._run_blocking(
-                lambda: self.model.encode(text, convert_to_numpy=True)
+            return await self._encode_with_runtime_fallback(
+                lambda: self.model.encode(text, convert_to_numpy=True),
+                operation="text",
             )
 
     async def embed_batch(self, texts: List[str]) -> List[np.ndarray]:
@@ -145,9 +207,9 @@ class SentenceTransformerProvider(EmbeddingProvider):
             
             # Generate embeddings for uncached texts
             if texts_to_encode:
-                # Offload blocking encode operation to thread pool
-                new_embeddings = await self._run_blocking(
-                    lambda: self.model.encode(texts_to_encode, convert_to_numpy=True)
+                new_embeddings = await self._encode_with_runtime_fallback(
+                    lambda: self.model.encode(texts_to_encode, convert_to_numpy=True),
+                    operation="batch",
                 )
                 
                 # Cache new embeddings
@@ -163,9 +225,9 @@ class SentenceTransformerProvider(EmbeddingProvider):
             embeddings.sort(key=lambda x: x[0])
             return [emb for _, emb in embeddings]
         else:
-            # Offload blocking encode operation to thread pool
-            embeddings = await self._run_blocking(
-                lambda: self.model.encode(texts, convert_to_numpy=True)
+            embeddings = await self._encode_with_runtime_fallback(
+                lambda: self.model.encode(texts, convert_to_numpy=True),
+                operation="batch",
             )
             return [e for e in embeddings]
 

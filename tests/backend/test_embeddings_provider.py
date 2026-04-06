@@ -40,6 +40,27 @@ class DummyModel:
         return np.array([len(texts)] * 3, dtype=np.float32)
 
 
+class DummyFallbackModel:
+    instances = []
+
+    def __init__(self, name, device="cpu"):
+        self.name = name
+        self.device = device
+        self.encode_calls = []
+        DummyFallbackModel.instances.append(self)
+
+    def get_sentence_embedding_dimension(self):
+        return 3
+
+    def encode(self, texts, convert_to_numpy=True):
+        self.encode_calls.append(texts)
+        if self.device == "cuda":
+            raise RuntimeError("CUDA error: CUBLAS_STATUS_ALLOC_FAILED")
+        if isinstance(texts, list):
+            return np.array([[len(text)] * 3 for text in texts], dtype=np.float32)
+        return np.array([len(texts)] * 3, dtype=np.float32)
+
+
 @pytest.mark.asyncio
 async def test_provider_initialization_and_dimension(monkeypatch):
     monkeypatch.setattr(embeddings_module, "SentenceTransformer", DummyModel)
@@ -82,3 +103,35 @@ async def test_embed_batch_mixes_cached_and_new(monkeypatch):
 
     assert np.array_equal(embeddings[0], cached)
     assert np.array_equal(embeddings[1], np.array([2.0, 2.0, 2.0], dtype=np.float32))
+
+
+@pytest.mark.asyncio
+async def test_embed_text_reloads_with_cpu_after_cuda_runtime_failure(monkeypatch):
+    DummyFallbackModel.instances = []
+    monkeypatch.setattr(embeddings_module, "SentenceTransformer", DummyFallbackModel)
+    cache_manager = DummyCacheManager()
+    provider = SentenceTransformerProvider(device="cuda", cache_manager=cache_manager)
+    await provider.initialize()
+
+    embedding = await provider.embed_text("hello")
+
+    assert np.array_equal(embedding, np.array([5.0, 5.0, 5.0], dtype=np.float32))
+    assert provider.model is not None
+    assert provider.model.device == "cpu"
+    assert [model.device for model in DummyFallbackModel.instances] == ["cuda", "cpu"]
+
+
+@pytest.mark.asyncio
+async def test_embed_batch_reloads_with_cpu_after_cuda_runtime_failure(monkeypatch):
+    DummyFallbackModel.instances = []
+    monkeypatch.setattr(embeddings_module, "SentenceTransformer", DummyFallbackModel)
+    provider = SentenceTransformerProvider(device="cuda")
+    await provider.initialize()
+
+    embeddings = await provider.embed_batch(["a", "bb"])
+
+    assert np.array_equal(embeddings[0], np.array([1.0, 1.0, 1.0], dtype=np.float32))
+    assert np.array_equal(embeddings[1], np.array([2.0, 2.0, 2.0], dtype=np.float32))
+    assert provider.model is not None
+    assert provider.model.device == "cpu"
+    assert [model.device for model in DummyFallbackModel.instances] == ["cuda", "cpu"]
