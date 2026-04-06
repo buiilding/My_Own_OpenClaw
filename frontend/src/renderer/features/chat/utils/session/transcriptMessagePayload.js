@@ -6,7 +6,11 @@ import {
 } from '../../../../infrastructure/transcript/rehydratePayload';
 import {
   buildToolCallMessageState,
+  buildToolBundleMessageState,
 } from '../../../../infrastructure/transcript/toolCallMessageState';
+import {
+  buildStructuredToolPayload,
+} from '../../../../infrastructure/transcript/structuredToolPayload';
 
 const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output']);
 
@@ -58,6 +62,15 @@ export function toRehydratePayload(message) {
       && !Array.isArray(message.toolCallDetails)
     ) ? message.toolCallDetails : null,
   });
+  const normalizedToolBundleMessage = messageType === 'tool-bundle'
+    ? buildToolBundleMessageState(
+      (
+        message?.toolCallDetails
+        && typeof message.toolCallDetails === 'object'
+        && !Array.isArray(message.toolCallDetails)
+      ) ? message.toolCallDetails : null,
+    )
+    : null;
   const toolCall = buildRehydrateToolCall({
     parsedToolCall: normalizedToolCallMessage.modelFacingToolCall,
     fallbackToolName: normalizeOptionalString(message?.toolName) || null,
@@ -83,6 +96,16 @@ export function toRehydratePayload(message) {
       fallbackToolCallId: normalizeOptionalString(message.correlationId) || toolCall?.id || null,
     })
     : null;
+  const structuredPayload = buildStructuredToolPayload({
+    kind: messageType,
+    toolCall: normalizedToolCallMessage.modelFacingToolCall,
+    toolCalls: normalizedToolBundleMessage?.toolCalls || null,
+    toolCallDetails: (
+      message?.toolCallDetails
+      && typeof message.toolCallDetails === 'object'
+      && !Array.isArray(message.toolCallDetails)
+    ) ? message.toolCallDetails : null,
+  });
 
   return {
     role,
@@ -96,5 +119,6 @@ export function toRehydratePayload(message) {
     screenshot_ref: typeof message.screenshotRef === 'string' ? message.screenshotRef : null,
     screenshot: null,
     transparency,
+    structured_payload: structuredPayload,
   };
 }

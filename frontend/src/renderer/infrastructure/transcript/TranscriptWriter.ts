@@ -11,6 +11,7 @@ import { normalizeTransparencyData } from './transparencyNormalization';
 import { recordImmediateTranscriptEntry } from './transcriptRecordWrite';
 import type {
   SessionInfo,
+  TranscriptStructuredToolPayload,
   TranscriptTransparencyData,
   TranscriptEntry,
 } from './types';
@@ -130,6 +131,7 @@ type TranscriptRecordContextOptions = TranscriptSessionResolveOptions & {
   modelProvider?: string | null;
   screenshotRef?: string | null;
   transparency?: TranscriptTransparencyData | null;
+  structuredPayload?: TranscriptStructuredToolPayload | null;
 };
 
 const resolveSessionInfoFromOptions = (
@@ -284,6 +286,7 @@ export const recordToolMessage = (
     modelProvider: options.modelProvider,
     screenshotRef: options.screenshotRef,
     transparency: normalizeTransparencyData(options.transparency),
+    structuredPayload: options.structuredPayload,
   };
   const queueForRetry = () => pendingTranscriptMessages.queueToolMessageForRetry(text, retryOptions);
   recordImmediateTranscriptEntry({
@@ -300,6 +303,7 @@ export const recordToolMessage = (
       modelProvider: options.modelProvider,
       screenshotRef: options.screenshotRef,
       transparency: retryOptions.transparency,
+      structuredPayload: retryOptions.structuredPayload,
       conversationRef: info.conversationRef,
       userId: info.userId,
     }),
@@ -330,6 +334,7 @@ const storeTranscriptEntry = async (entry: TranscriptEntry) => {
     screenshot: entry.screenshotRef,
     timestamp: entry.timestamp,
     ...(entry.transparency ? { transparency: entry.transparency } : {}),
+    ...(entry.structuredPayload ? { structuredPayload: entry.structuredPayload } : {}),
   });
   emitTranscriptEntryStoredEvent(entry, info);
 };

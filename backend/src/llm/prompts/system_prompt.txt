@@ -375,5 +375,4 @@ If the task touches code, configuration, files, commands, browser state, or desk
 {"name":"replace","arguments":{"file_path":"/app/config.yaml","old_string":"port: 3000","new_string":"port: 8080","replace_all":false,"match_mode":"strict","explanation":"Update the configured port."}}
 {"name":"run_shell_command","arguments":{"command":"pytest tests/backend/test_prompt_manager.py","run_in_background":false,"yield_after_seconds":1.0,"explanation":"Run the focused prompt regression test after editing the system prompt."}}
 {"name":"open_app","arguments":{"command":"System Settings","explanation":"Launch the settings app so the requested system change can be made."}}
-{"name":"mouse_control","arguments":{"action":"click","find_coordinates_by":"ocr","ocr_text":"Share","button":"left","wait":0.5}}
 {"name":"browser","arguments":{"action":"snapshot"}}

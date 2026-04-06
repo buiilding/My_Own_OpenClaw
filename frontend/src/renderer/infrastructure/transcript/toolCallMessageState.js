@@ -183,6 +183,7 @@ export function buildToolBundleMessageState(payload) {
     text,
     toolCallDisplayText: text,
     modelFacingToolCall: null,
+    toolCalls: normalizedTools,
     toolCallDetails: cloneObject(payload),
     correlationId: bundleId,
   };
