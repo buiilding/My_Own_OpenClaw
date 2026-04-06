@@ -13,6 +13,8 @@ from core.unicode_sanitizer import sanitize_surrogates_in_text
 
 logger = logging.getLogger(__name__)
 
+EMBEDDING_TEXT_MAX_LENGTH = 8192
+
 
 class RemoteEmbeddingClient(RemoteApiClientBase):
     """
@@ -49,6 +51,13 @@ class RemoteEmbeddingClient(RemoteApiClientBase):
             await self.initialize()
 
         sanitized_text = sanitize_surrogates_in_text(text)
+        if len(sanitized_text) > EMBEDDING_TEXT_MAX_LENGTH:
+            logger.warning(
+                "Embedding text truncated from %s to %s characters before request",
+                len(sanitized_text),
+                EMBEDDING_TEXT_MAX_LENGTH,
+            )
+            sanitized_text = sanitized_text[:EMBEDDING_TEXT_MAX_LENGTH]
         payload = {
             "text": sanitized_text,
             "model_name": "default"

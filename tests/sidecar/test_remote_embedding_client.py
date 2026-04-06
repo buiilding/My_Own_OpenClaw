@@ -207,6 +207,18 @@ async def test_embed_text_sanitizes_lone_surrogates_in_payload():
     assert session.last_post[1]["text"] == "broken�text"
 
 
+@pytest.mark.asyncio
+async def test_embed_text_truncates_payload_to_backend_limit():
+    response = DummyResponse(200, json_data={"embedding": [0.25]})
+    session = DummySession(response)
+    client = RemoteEmbeddingClient()
+    client._session = session
+
+    await client.embed_text("a" * 9000)
+
+    assert len(session.last_post[1]["text"]) == remote_embedding_client_module.EMBEDDING_TEXT_MAX_LENGTH
+
+
 def test_dimension_property_returns_expected_default():
     client = RemoteEmbeddingClient()
 
