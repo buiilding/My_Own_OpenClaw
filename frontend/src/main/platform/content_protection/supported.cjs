@@ -22,6 +22,9 @@ module.exports = function enableSupportedContentProtection({
   }
 
   try {
+    // macOS/Windows overlay capture exclusion is a window-policy contract:
+    // keep protection enabled while the overlay window exists instead of
+    // toggling it only for active-loop phases or capture-time prep.
     targetWindow.setContentProtection(true);
   } catch (error) {
     warn(
