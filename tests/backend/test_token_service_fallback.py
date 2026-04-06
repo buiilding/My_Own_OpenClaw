@@ -1,6 +1,6 @@
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-import threading
 
 import litellm
 
@@ -51,7 +51,10 @@ def test_count_tokens_fallback_handles_object_messages(monkeypatch):
             role="assistant",
             content=[
                 {"type": "text", "text": "abcdefgh"},
-                {"type": "image_url", "image_url": {"url": "data:image/png;base64,AAA"}},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": "data:image/png;base64,AAA"},
+                },
             ],
         ),
     ]
@@ -81,6 +84,21 @@ def test_count_tokens_fallback_handles_output_text_parts(monkeypatch):
             "role": "assistant",
             "content": [
                 {"type": "output_text", "text": "abcdefgh"},
+                {"type": "image_url", "image_url": {"url": "ignored"}},
+            ],
+        },
+    ]
+
+    assert TokenService.count_tokens(messages) == 2
+
+
+def test_count_tokens_fallback_handles_refusal_parts(monkeypatch):
+    _patch_token_counter_to_raise(monkeypatch)
+    messages = [
+        {
+            "role": "assistant",
+            "content": [
+                {"type": "refusal", "refusal": "abcdefgh"},
                 {"type": "image_url", "image_url": {"url": "ignored"}},
             ],
         },
@@ -195,7 +213,9 @@ def test_count_tokens_strips_whitespace_from_dict_role(monkeypatch):
     assert captured["messages"] == [{"role": "assistant", "content": "hello"}]
 
 
-def test_count_tokens_normalizes_object_message_with_blank_role_and_none_content(monkeypatch):
+def test_count_tokens_normalizes_object_message_with_blank_role_and_none_content(
+    monkeypatch,
+):
     captured = _patch_token_counter_capture(monkeypatch, return_value=1)
 
     token_count = TokenService.count_tokens(

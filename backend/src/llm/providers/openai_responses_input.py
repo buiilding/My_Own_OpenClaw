@@ -5,8 +5,16 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, List, Optional
 
+from backend.src.core.messages.content_blocks import (
+    TEXT_CONTENT_PART_TYPES,
+    extract_text_from_content_part,
+    normalize_content_part_type,
+)
 from backend.src.core.types.schemas import LLMMessage
-from backend.src.llm.models.models_config import resolve_model_preset, resolve_runtime_model_id
+from backend.src.llm.models.models_config import (
+    resolve_model_preset,
+    resolve_runtime_model_id,
+)
 from backend.src.llm.providers.openai_tool_prep import (
     build_openai_responses_tools as build_openai_transport_responses_tools,
 )
@@ -19,15 +27,15 @@ def _normalize_text_block(
     *,
     output_type: str,
 ) -> Optional[Dict[str, Any]]:
-    text = get_value(item, "text") or get_value(item, "content")
-    if isinstance(text, str) and text:
+    text = extract_text_from_content_part(item, include_refusal=False)
+    if text:
         return {"type": output_type, "text": text}
     return None
 
 
 def _normalize_refusal_block(item: Any) -> Optional[Dict[str, Any]]:
-    refusal = get_value(item, "refusal") or get_value(item, "text")
-    if isinstance(refusal, str) and refusal:
+    refusal = extract_text_from_content_part(item, include_refusal=True)
+    if refusal:
         return {"type": "refusal", "refusal": refusal}
     return None
 
@@ -51,8 +59,8 @@ def _normalize_message_content_for_input(content: Any) -> Any:
 
     normalized: List[Dict[str, Any]] = []
     for item in content:
-        item_type = get_value(item, "type")
-        if item_type in {"text", "input_text", "output_text"}:
+        item_type = normalize_content_part_type(get_value(item, "type"))
+        if item_type in TEXT_CONTENT_PART_TYPES:
             normalized_block = _normalize_text_block(item, output_type="input_text")
             if normalized_block is not None:
                 normalized.append(normalized_block)
@@ -71,7 +79,7 @@ def _normalize_assistant_message_content(content: Any) -> Any:
 
     normalized: List[Dict[str, Any]] = []
     for item in content:
-        item_type = str(get_value(item, "type") or "").strip()
+        item_type = normalize_content_part_type(get_value(item, "type"))
         if item_type in {"text", "output_text"}:
             normalized_block = _normalize_text_block(item, output_type="output_text")
             if normalized_block is not None:
@@ -91,7 +99,9 @@ def _validate_message_item_content(
     if isinstance(content, str):
         return
     if not isinstance(content, list):
-        raise ValueError(f"OpenAI Responses {role} history content must be string or list")
+        raise ValueError(
+            f"OpenAI Responses {role} history content must be string or list"
+        )
     if not content:
         raise ValueError(f"OpenAI Responses {role} history content must not be empty")
 
@@ -102,7 +112,9 @@ def _validate_message_item_content(
 
     for item in content:
         if not isinstance(item, dict):
-            raise ValueError(f"OpenAI Responses {role} history content block must be object")
+            raise ValueError(
+                f"OpenAI Responses {role} history content block must be object"
+            )
         item_type = str(item.get("type") or "").strip()
         if item_type not in allowed_types:
             raise ValueError(
@@ -116,14 +128,21 @@ def _validate_openai_responses_input_items(input_items: List[Dict[str, Any]]) ->
         if item_type == "message":
             role = str(item.get("role") or "").strip()
             if role not in {"system", "user", "assistant"}:
-                raise ValueError(f"OpenAI Responses message role '{role}' is not supported")
+                raise ValueError(
+                    f"OpenAI Responses message role '{role}' is not supported"
+                )
             _validate_message_item_content(
                 role=role,
                 content=item.get("content"),
             )
             continue
 
-        if item_type in {"function_call", "computer_call", "function_call_output", "computer_call_output"}:
+        if item_type in {
+            "function_call",
+            "computer_call",
+            "function_call_output",
+            "computer_call_output",
+        }:
             call_id = str(item.get("call_id") or "").strip()
             if not call_id:
                 raise ValueError(
@@ -156,7 +175,9 @@ def _normalize_assistant_tool_call_input(tool_call: Dict[str, Any]) -> Dict[str,
     }
 
 
-def _normalize_assistant_computer_call_input(tool_call: Dict[str, Any]) -> Dict[str, Any]:
+def _normalize_assistant_computer_call_input(
+    tool_call: Dict[str, Any]
+) -> Dict[str, Any]:
     arguments = tool_call.get("arguments")
     if not isinstance(arguments, dict):
         function_payload = tool_call.get("function")
@@ -263,7 +284,9 @@ def build_openai_responses_input(
                 {
                     "type": "message",
                     "role": role,
-                    "content": _normalize_message_content_for_input(message.get("content")),
+                    "content": _normalize_message_content_for_input(
+                        message.get("content")
+                    ),
                 }
             )
             continue
@@ -287,7 +310,9 @@ def build_openai_responses_input(
                             _normalize_assistant_computer_call_input(tool_call)
                         )
                     else:
-                        input_items.append(_normalize_assistant_tool_call_input(tool_call))
+                        input_items.append(
+                            _normalize_assistant_tool_call_input(tool_call)
+                        )
             continue
 
         if role == "tool":
@@ -299,7 +324,9 @@ def build_openai_responses_input(
                     {
                         "type": "computer_call_output",
                         "call_id": tool_call_id.strip(),
-                        "output": _normalize_computer_tool_output(message.get("content")),
+                        "output": _normalize_computer_tool_output(
+                            message.get("content")
+                        ),
                     }
                 )
             else:
@@ -307,7 +334,9 @@ def build_openai_responses_input(
                     {
                         "type": "function_call_output",
                         "call_id": tool_call_id.strip(),
-                        "output": _normalize_tool_output_content(message.get("content")),
+                        "output": _normalize_tool_output_content(
+                            message.get("content")
+                        ),
                         "status": "completed",
                     }
                 )

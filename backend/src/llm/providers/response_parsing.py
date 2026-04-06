@@ -8,6 +8,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from backend.src.core.infrastructure.exceptions import LLMAPIError
+from backend.src.core.messages.content_blocks import iter_text_content_fragments
 from backend.src.core.types.schemas import NormalizedLLMResponse
 from backend.src.llm.providers.thinking_extraction import (
     extract_tagged_thinking_from_content,
@@ -17,7 +18,9 @@ from backend.src.llm.providers.thinking_extraction import (
 logger = logging.getLogger(__name__)
 
 
-def _extract_thought_signature(raw_tool_call: Any, function_payload: Any) -> Optional[str]:
+def _extract_thought_signature(
+    raw_tool_call: Any, function_payload: Any
+) -> Optional[str]:
     """Extract optional Gemini thought signature from tool-call payloads."""
     for source in (function_payload, raw_tool_call):
         if source is None:
@@ -72,7 +75,11 @@ def extract_stream_delta(chunk: Any) -> Optional[Any]:
     """Extract stream delta payload from one LiteLLM stream chunk."""
     if not chunk:
         return None
-    choices = chunk.get("choices") if isinstance(chunk, dict) else getattr(chunk, "choices", None)
+    choices = (
+        chunk.get("choices")
+        if isinstance(chunk, dict)
+        else getattr(chunk, "choices", None)
+    )
     first_choice = first_item(choices)
     if not first_choice:
         return None
@@ -85,7 +92,11 @@ def extract_stream_finish_reason(chunk: Any) -> Optional[str]:
     """Extract finish_reason from a stream chunk when present."""
     if not chunk:
         return None
-    choices = chunk.get("choices") if isinstance(chunk, dict) else getattr(chunk, "choices", None)
+    choices = (
+        chunk.get("choices")
+        if isinstance(chunk, dict)
+        else getattr(chunk, "choices", None)
+    )
     first_choice = first_item(choices)
     if first_choice is None:
         return None
@@ -195,26 +206,22 @@ def extract_message_content(message: Any) -> str:
         return content
 
     if isinstance(content, list):
-        text_parts: List[str] = []
-        for item in content:
-            item_type = get_value(item, "type")
-            if item_type not in (None, "text", "output_text"):
-                continue
-            text_value = get_value(item, "text") or get_value(item, "content")
-            if isinstance(text_value, str):
-                if text_value:
-                    text_parts.append(text_value)
-                continue
-            if isinstance(text_value, dict):
-                nested_text = text_value.get("text") or text_value.get("content")
-                if isinstance(nested_text, str) and nested_text:
-                    text_parts.append(nested_text)
-        return "".join(text_parts)
+        return "".join(
+            iter_text_content_fragments(
+                content,
+                include_refusal=True,
+                stringify_scalars=False,
+            )
+        )
 
     if isinstance(content, dict):
-        text_value = content.get("text") or content.get("content")
-        if isinstance(text_value, str):
-            return text_value
+        return "".join(
+            iter_text_content_fragments(
+                content,
+                include_refusal=True,
+                stringify_scalars=False,
+            )
+        )
 
     return str(content)
 

@@ -19,11 +19,11 @@ from backend.src.llm.providers.openai_responses_input import (
     build_openai_responses_input,
     build_openai_responses_tools,
 )
-from backend.src.llm.providers.openai_responses_runtime import (
-    stream_openai_responses_events,
-)
 from backend.src.llm.providers.openai_responses_payload import (
     normalize_openai_responses_payload,
+)
+from backend.src.llm.providers.openai_responses_runtime import (
+    stream_openai_responses_events,
 )
 from backend.src.tools.browser.schemas import build_browser_tool_parameters_schema
 from backend.src.tools.web_search.source_normalization import (
@@ -41,7 +41,9 @@ async def _collect_events(
 
 
 @pytest.mark.asyncio
-async def test_openai_provider_routes_thinking_completion_to_responses_runtime(monkeypatch):
+async def test_openai_provider_routes_thinking_completion_to_responses_runtime(
+    monkeypatch,
+):
     provider = OpenAIProvider(api_key="test-key")
 
     async def fake_responses_completion(*args, **kwargs):
@@ -56,7 +58,9 @@ async def test_openai_provider_routes_thinking_completion_to_responses_runtime(m
         "backend.src.llm.providers.openai.get_openai_responses_completion",
         fake_responses_completion,
     )
-    monkeypatch.setattr(OnlineLLMProvider, "get_completion", unexpected_standard_completion)
+    monkeypatch.setattr(
+        OnlineLLMProvider, "get_completion", unexpected_standard_completion
+    )
 
     response = await provider.get_completion(
         model="gpt-5.4@@gpt-5-4-high-thinking",
@@ -67,7 +71,9 @@ async def test_openai_provider_routes_thinking_completion_to_responses_runtime(m
 
 
 @pytest.mark.asyncio
-async def test_openai_provider_routes_unknown_completion_to_standard_runtime(monkeypatch):
+async def test_openai_provider_routes_unknown_completion_to_standard_runtime(
+    monkeypatch,
+):
     provider = OpenAIProvider(api_key="test-key")
 
     async def fake_standard_completion(self, *args, **kwargs):
@@ -102,7 +108,9 @@ async def test_openai_provider_routes_thinking_stream_to_responses_runtime(monke
         "backend.src.llm.providers.openai.stream_openai_responses_events",
         fake_responses_stream,
     )
-    monkeypatch.setattr(OnlineLLMProvider, "_stream_internal", unexpected_standard_stream)
+    monkeypatch.setattr(
+        OnlineLLMProvider, "_stream_internal", unexpected_standard_stream
+    )
 
     events = await _collect_events(
         provider._stream_internal(
@@ -178,7 +186,10 @@ async def test_openai_responses_runtime_emits_web_search_progress_events(monkeyp
     async def fake_aresponses(**_kwargs):
         return _FakeResponsesStream()
 
-    monkeypatch.setattr("backend.src.llm.providers.openai_responses_runtime.litellm.aresponses", fake_aresponses)
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
 
     events = await _collect_events(
         stream_openai_responses_events(
@@ -203,7 +214,9 @@ async def test_openai_responses_runtime_emits_web_search_progress_events(monkeyp
 
 
 @pytest.mark.asyncio
-async def test_openai_responses_runtime_accepts_incomplete_terminal_payload(monkeypatch):
+async def test_openai_responses_runtime_accepts_incomplete_terminal_payload(
+    monkeypatch,
+):
     provider = OpenAIProvider(api_key="test-key")
 
     class _FakeResponsesStream:
@@ -279,7 +292,10 @@ def test_openai_provider_build_request_params_preserves_browser_root_object_tool
     assert "url" in tool_parameters["properties"]
     assert "query" in tool_parameters["properties"]
     assert "text" in tool_parameters["properties"]
-    assert "Action-specific field requirements are enforced by runtime validation." in tool_parameters["description"]
+    assert (
+        "Action-specific field requirements are enforced by runtime validation."
+        in tool_parameters["description"]
+    )
 
 
 def test_openai_responses_tools_preserve_browser_root_object_tool_schema():
@@ -452,7 +468,7 @@ async def test_openai_responses_stream_emits_provider_native_reasoning_and_captu
                         "type": "function_call",
                         "call_id": "call_1",
                         "name": "browser",
-                        "arguments": "{\"action\":\"snapshot\"}",
+                        "arguments": '{"action":"snapshot"}',
                     },
                 ],
                 "status": "completed",
@@ -468,7 +484,10 @@ async def test_openai_responses_stream_emits_provider_native_reasoning_and_captu
         _ = kwargs
         return fake_stream()
 
-    monkeypatch.setattr("backend.src.llm.providers.openai_responses_runtime.litellm.aresponses", fake_aresponses)
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
 
     events = await _collect_events(
         stream_openai_responses_events(
@@ -589,7 +608,7 @@ def test_build_openai_responses_input_accepts_normalized_assistant_tool_calls():
                     "type": "function",
                     "function": {
                         "name": "mouse_control",
-                        "arguments": "{\"action\":\"drag\",\"x\":100,\"y\":200}",
+                        "arguments": '{"action":"drag","x":100,"y":200}',
                     },
                 }
             ],
@@ -618,7 +637,7 @@ def test_build_openai_responses_input_accepts_normalized_assistant_tool_calls():
             "type": "function_call",
             "call_id": "call_1",
             "name": "mouse_control",
-            "arguments": "{\"action\":\"drag\",\"x\":100,\"y\":200}",
+            "arguments": '{"action":"drag","x":100,"y":200}',
             "status": "completed",
         },
         {
@@ -836,6 +855,30 @@ def test_normalize_openai_responses_payload_reads_computer_calls_and_response_id
         "finish_reason": "completed",
         "response_id": "resp_123",
     }
+
+
+def test_normalize_openai_responses_payload_preserves_refusal_text():
+    provider = OpenAIProvider(api_key="test-key")
+
+    payload = normalize_openai_responses_payload(
+        provider,
+        {
+            "output": [
+                {
+                    "type": "message",
+                    "content": [
+                        {"type": "output_text", "text": "I cannot do that. "},
+                        {"type": "refusal", "refusal": "This request is disallowed."},
+                    ],
+                }
+            ],
+            "status": "completed",
+        },
+        model="gpt-5.4@@gpt-5-4-none-thinking",
+    )
+
+    assert payload["content"] == "I cannot do that. This request is disallowed."
+    assert payload["finish_reason"] == "completed"
 
 
 def test_extract_openai_web_search_sources_dedupes_urls_and_preserves_query_order():
