@@ -460,8 +460,8 @@ body {
 
 .chatbox-close-badge {
   position: absolute;
-  right: 14px;
-  top: -12px;
+  right: 18px;
+  top: -16px;
   width: var(--chatbox-close-button-size);
   height: var(--chatbox-close-button-size);
   border: 0;
