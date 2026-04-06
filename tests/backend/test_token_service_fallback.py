@@ -74,6 +74,21 @@ def test_count_tokens_fallback_handles_dict_and_input_text_parts(monkeypatch):
     assert TokenService.count_tokens(messages) == 3
 
 
+def test_count_tokens_fallback_handles_output_text_parts(monkeypatch):
+    _patch_token_counter_to_raise(monkeypatch)
+    messages = [
+        {
+            "role": "assistant",
+            "content": [
+                {"type": "output_text", "text": "abcdefgh"},
+                {"type": "image_url", "image_url": {"url": "ignored"}},
+            ],
+        },
+    ]
+
+    assert TokenService.count_tokens(messages) == 2
+
+
 def test_count_tokens_fallback_counts_text_part_content_key(monkeypatch):
     _patch_token_counter_to_raise(monkeypatch)
     messages = [

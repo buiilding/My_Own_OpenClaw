@@ -11,9 +11,36 @@ from backend.src.llm.providers.openai_tool_prep import (
     build_openai_responses_tools as build_openai_transport_responses_tools,
 )
 from backend.src.llm.providers.response_parsing import get_value
-from backend.src.tools.tool_specs import (
-    to_litellm_tool_choice,
-)
+from backend.src.tools.tool_specs import to_litellm_tool_choice
+
+
+def _normalize_text_block(
+    item: Any,
+    *,
+    output_type: str,
+) -> Optional[Dict[str, Any]]:
+    text = get_value(item, "text") or get_value(item, "content")
+    if isinstance(text, str) and text:
+        return {"type": output_type, "text": text}
+    return None
+
+
+def _normalize_refusal_block(item: Any) -> Optional[Dict[str, Any]]:
+    refusal = get_value(item, "refusal") or get_value(item, "text")
+    if isinstance(refusal, str) and refusal:
+        return {"type": "refusal", "refusal": refusal}
+    return None
+
+
+def _normalize_image_block(item: Any) -> Optional[Dict[str, Any]]:
+    image_url = get_value(item, "image_url")
+    if isinstance(image_url, dict):
+        url = image_url.get("url")
+    else:
+        url = image_url or get_value(item, "url")
+    if isinstance(url, str) and url:
+        return {"type": "input_image", "image_url": url}
+    return None
 
 
 def _normalize_message_content_for_input(content: Any) -> Any:
@@ -25,18 +52,34 @@ def _normalize_message_content_for_input(content: Any) -> Any:
     normalized: List[Dict[str, Any]] = []
     for item in content:
         item_type = get_value(item, "type")
-        if item_type == "text":
-            text = get_value(item, "text")
-            if isinstance(text, str):
-                normalized.append({"type": "input_text", "text": text})
-        elif item_type == "image_url":
-            image_url = get_value(item, "image_url")
-            if isinstance(image_url, dict):
-                url = image_url.get("url")
-            else:
-                url = get_value(image_url, "url")
-            if isinstance(url, str) and url:
-                normalized.append({"type": "input_image", "image_url": url})
+        if item_type in {"text", "input_text", "output_text"}:
+            normalized_block = _normalize_text_block(item, output_type="input_text")
+            if normalized_block is not None:
+                normalized.append(normalized_block)
+        elif item_type in {"image_url", "input_image"}:
+            normalized_block = _normalize_image_block(item)
+            if normalized_block is not None:
+                normalized.append(normalized_block)
+    return normalized or ""
+
+
+def _normalize_assistant_message_content(content: Any) -> Any:
+    if isinstance(content, str):
+        return content
+    if not isinstance(content, list):
+        return str(content) if content is not None else ""
+
+    normalized: List[Dict[str, Any]] = []
+    for item in content:
+        item_type = str(get_value(item, "type") or "").strip()
+        if item_type in {"text", "output_text"}:
+            normalized_block = _normalize_text_block(item, output_type="output_text")
+            if normalized_block is not None:
+                normalized.append(normalized_block)
+        elif item_type == "refusal":
+            normalized_block = _normalize_refusal_block(item)
+            if normalized_block is not None:
+                normalized.append(normalized_block)
     return normalized or ""
 
 
@@ -178,12 +221,13 @@ def build_openai_responses_input(
 
         if role == "assistant":
             content = message.get("content")
-            if content not in (None, "", []):
+            normalized_content = _normalize_assistant_message_content(content)
+            if normalized_content not in (None, "", []):
                 input_items.append(
                     {
                         "type": "message",
                         "role": "assistant",
-                        "content": _normalize_message_content_for_input(content),
+                        "content": normalized_content,
                     }
                 )
             for tool_call in message.get("tool_calls") or []:
