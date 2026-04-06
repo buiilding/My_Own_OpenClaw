@@ -96,7 +96,7 @@ Streaming append/new split:
 
 Metadata normalization:
 
-- `buildSystemPromptUpdate` validates `tool_schemas` shape before storing.
+- `buildSystemPromptUpdate` and `buildToolSchemasUpdate` normalize supported `tool_schemas` into the canonical nested function-schema shape before storing.
 - `buildUserMessageFullUpdate` and `buildAssistantMessageFullUpdate` coerce non-string content to empty string.
 - text repair/sanitization for stream chunks and transparency payload text is centralized in `incomingTextNormalization.ts` (mojibake repair + lone-surrogate replacement), shared with `TranscriptWriter`.
 

@@ -1,7 +1,7 @@
 import type { ToolSchema } from '../../../../types/backendEvents';
 import type { ChatMessage } from '../../stores/chatStore';
 import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
-import { isSupportedToolSchemaList } from '../../../../infrastructure/transcript/toolSchemaShape';
+import { normalizeToolSchemaList } from '../../../../infrastructure/transcript/toolSchemaShape';
 
 type SystemPromptPayload = {
   content?: unknown;
@@ -22,7 +22,13 @@ type StreamingResponseAction =
   | { type: 'new'; text: string; turnRef?: string };
 
 function normalizeToolSchemas(value: unknown): ToolSchema[] | undefined {
-  return isSupportedToolSchemaList(value) ? value : undefined;
+  return normalizeToolSchemaList(value);
+}
+
+export function buildToolSchemasUpdate(payload: { tool_schemas?: unknown } | null | undefined) {
+  return {
+    toolSchemas: normalizeToolSchemas(payload?.tool_schemas),
+  };
 }
 
 function findLastMessage(

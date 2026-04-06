@@ -1,3 +1,5 @@
+import { normalizeToolSchemaList } from './toolSchemaShape';
+
 function normalizeOptionalString(value) {
   if (typeof value !== 'string') {
     return null;
@@ -23,11 +25,13 @@ function resolveTransparencyToolSchemas(
   primaryToolSchemas,
   fallbackToolSchemas,
 ) {
-  if (Array.isArray(primaryToolSchemas) && primaryToolSchemas.length > 0) {
-    return primaryToolSchemas;
+  const normalizedPrimary = normalizeToolSchemaList(primaryToolSchemas);
+  if (normalizedPrimary && normalizedPrimary.length > 0) {
+    return normalizedPrimary;
   }
-  if (Array.isArray(fallbackToolSchemas) && fallbackToolSchemas.length > 0) {
-    return fallbackToolSchemas;
+  const normalizedFallback = normalizeToolSchemaList(fallbackToolSchemas);
+  if (normalizedFallback && normalizedFallback.length > 0) {
+    return normalizedFallback;
   }
   return null;
 }

@@ -1,5 +1,6 @@
 import type { ChatMessage } from '../../stores/chatStore';
 import type { TranscriptTransparencyData } from '../../../../infrastructure/transcript/types';
+import { normalizeToolSchemaList } from '../../../../infrastructure/transcript/toolSchemaShape';
 
 function resolveUserMessageForTurn(
   messages: ChatMessage[],
@@ -40,8 +41,9 @@ export function buildAssistantTranscriptTransparency(
         ? userMessageForTurn.systemPrompt.toolSchemas
         : null
   );
-  if (Array.isArray(toolSchemas) && toolSchemas.length > 0) {
-    transparency.toolSchemas = toolSchemas;
+  const normalizedToolSchemas = normalizeToolSchemaList(toolSchemas);
+  if (normalizedToolSchemas && normalizedToolSchemas.length > 0) {
+    transparency.toolSchemas = normalizedToolSchemas;
   }
 
   const fullUserContent = (

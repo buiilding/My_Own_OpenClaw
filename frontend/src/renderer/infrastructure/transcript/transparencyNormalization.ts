@@ -1,4 +1,5 @@
 import { normalizeOptionalIncomingText } from '../text/incomingTextNormalization';
+import { normalizeToolSchemaList } from './toolSchemaShape';
 import type { TranscriptTransparencyData } from './types';
 
 const normalizeOptionalString = (value: unknown): string | null => {
@@ -18,8 +19,9 @@ export const normalizeTransparencyData = (
     normalized.systemPrompt = systemPrompt;
   }
 
-  if (Array.isArray(transparency.toolSchemas) && transparency.toolSchemas.length > 0) {
-    normalized.toolSchemas = [...transparency.toolSchemas];
+  const toolSchemas = normalizeToolSchemaList(transparency.toolSchemas);
+  if (toolSchemas && toolSchemas.length > 0) {
+    normalized.toolSchemas = toolSchemas;
   }
 
   const fullUserContent = normalizeOptionalString(transparency.fullUserMessage?.content);

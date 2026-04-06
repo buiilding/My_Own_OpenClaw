@@ -46,8 +46,9 @@ Early-return rules:
 
 ### `toolSchemas`
 
-- retained only when input is a non-empty array
-- shallow-cloned (`[...]`) to avoid aliasing caller-owned arrays
+- retained only when input is a non-empty array of supported tool schemas
+- supported function schemas are normalized to the canonical nested shape `{ type: 'function', function: { name, parameters, ... } }`
+- computer schemas are shallow-cloned as-is
 
 ### `fullUserMessage`
 

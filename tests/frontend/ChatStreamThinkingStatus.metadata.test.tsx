@@ -28,7 +28,7 @@ describe('useChatStream message metadata handling', () => {
     const userMessage = useChatStore.getState().messages[0];
     expect(userMessage.systemPrompt).toEqual({
       content: 'prompt text',
-      toolSchemas: [{ type: 'function', name: 'tool-a', parameters: { type: 'object' } }],
+      toolSchemas: [{ type: 'function', function: { name: 'tool-a', parameters: { type: 'object' } } }],
     });
   });
 
@@ -106,7 +106,7 @@ describe('useChatStream message metadata handling', () => {
 
     expect(useChatStore.getState().messages[0].toolSchemas).toBeUndefined();
     expect(useChatStore.getState().messages[2].toolSchemas).toEqual([
-      { type: 'function', name: 'tool-x', parameters: { type: 'object' } },
+      { type: 'function', function: { name: 'tool-x', parameters: { type: 'object' } } },
     ]);
   });
 

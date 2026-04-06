@@ -98,7 +98,7 @@ describe('chatStreamMessageUpdates', () => {
       }),
     ).toEqual({
       content: 'prompt',
-      toolSchemas: [{ type: 'function', name: 'run_shell_command', parameters: { type: 'object' } }],
+      toolSchemas: [{ type: 'function', function: { name: 'run_shell_command', parameters: { type: 'object' } } }],
     });
     expect(buildSystemPromptUpdate({ content: 'prompt', tool_schemas: ['a'] })).toEqual({
       content: 'prompt',

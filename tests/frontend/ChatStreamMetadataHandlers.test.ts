@@ -36,7 +36,7 @@ describe('useChatStreamMetadataHandlers', () => {
       result.current.handleToolSchemas({
         type: 'tool-schemas',
         turn_ref: 'turn-1',
-        payload: { tool_schemas: [{ name: 'tool-a' }] },
+        payload: { tool_schemas: [{ type: 'function', name: 'tool-a', parameters: { type: 'object' } }] },
       } as any);
     });
 
@@ -44,7 +44,9 @@ describe('useChatStreamMetadataHandlers', () => {
     expect(updateLastAssistantLlmTextMessage).toHaveBeenCalledTimes(1);
     expect(updateLastMessageBySender).toHaveBeenLastCalledWith(
       'user',
-      expect.objectContaining({ toolSchemas: [{ name: 'tool-a' }] }),
+      expect.objectContaining({
+        toolSchemas: [{ type: 'function', function: { name: 'tool-a', parameters: { type: 'object' } } }],
+      }),
       'turn-1',
       'conversation-1',
     );
