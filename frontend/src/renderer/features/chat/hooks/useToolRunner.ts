@@ -15,8 +15,8 @@ import { useToolRunnerBackendListener } from './useToolRunnerBackendListener';
 import {
   mapBundleTools,
   resolveToolCallCorrelationId,
-  type TranscriptModelContext,
 } from '../utils/toolRunner/toolRunnerMessages';
+import type { TranscriptModelContext } from '../utils/transcriptModelContext';
 import {
   buildBundleSurfaceFailureEnvelope,
   buildStaleBundleResultEnvelope,

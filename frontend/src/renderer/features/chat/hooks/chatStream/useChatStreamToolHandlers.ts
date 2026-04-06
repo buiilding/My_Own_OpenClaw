@@ -28,6 +28,7 @@ import {
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
 } from '../../utils/chatStream/chatStreamEventUtils';
+import { recordToolOutputTranscriptMessage } from '../../utils/toolOutputTranscriptPersistence';
 
 type MinimalModelContext = {
   modelId: string | null;
@@ -147,25 +148,22 @@ export function useChatStreamToolHandlers({
     recordTrackingEvent('tool-output', event.turn_ref, { toolOutput: true }, conversationRef);
 
     const correlationId = resolveToolOutputCorrelationId(event.payload, event.id) || undefined;
+    const toolOutputDetails = (
+      event.payload && typeof event.payload === 'object' && !Array.isArray(event.payload)
+        ? event.payload
+        : null
+    );
 
     if (enableTranscript) {
-      recordToolMessage(outputText, {
-        messageType: 'tool-output',
+      recordToolOutputTranscriptMessage({
+        text: outputText,
         toolName: event.payload?.tool_name,
         correlationId,
         conversationRef: event.conversation_ref,
         userId: event.user_id,
         screenshotRef,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
-        structuredPayload: buildStructuredToolPayload({
-          kind: 'tool-output',
-          toolCallDetails: (
-            event.payload && typeof event.payload === 'object' && !Array.isArray(event.payload)
-              ? event.payload
-              : null
-          ),
-        }),
+        modelContext,
+        toolOutputDetails,
       });
     }
   }, [

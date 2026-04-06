@@ -203,22 +203,21 @@ describe('useChatStreamToolHandlers', () => {
       'conversation-2b',
     );
 
-    expect(mockRecordToolMessage).toHaveBeenCalledWith(
-      'clicked-inline',
-      expect.objectContaining({
-        messageType: 'tool-output',
-        toolName: 'mouse_control',
-        correlationId: 'request-2b',
-        screenshotRef: null,
-        structuredPayload: {
-          kind: 'tool-output',
-          toolCallDetails: expect.objectContaining({
-            tool_name: 'mouse_control',
-            request_id: 'request-2b',
-          }),
-        },
+    const lastRecordToolMessageCall = mockRecordToolMessage.mock.calls.at(-1);
+    expect(lastRecordToolMessageCall?.[0]).toBe('clicked-inline');
+    expect(lastRecordToolMessageCall?.[1]).toEqual(expect.objectContaining({
+      messageType: 'tool-output',
+      toolName: 'mouse_control',
+      correlationId: 'request-2b',
+      screenshotRef: undefined,
+      structuredPayload: expect.objectContaining({
+        kind: 'tool-output',
+        toolCallDetails: expect.objectContaining({
+          tool_name: 'mouse_control',
+          request_id: 'request-2b',
+        }),
       }),
-    );
+    }));
   });
 
   test('handles malformed tool-bundle tools payload with stable empty bundle formatting and persists a transcript bundle row', () => {

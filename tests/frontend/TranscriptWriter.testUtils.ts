@@ -18,6 +18,8 @@ type StoreTranscriptPayload = {
   timestamp?: string;
   transparency?: Record<string, unknown>;
   structuredPayload?: Record<string, unknown> | null;
+  workspacePath?: string | null;
+  workspaceName?: string | null;
 };
 
 export function loadTranscriptWriter() {
@@ -36,12 +38,26 @@ export function loadTranscriptWriter() {
     SEND_CHANNELS: { TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync' },
     ON_CHANNELS: { TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync' },
   }));
+  jest.doMock('../../frontend/src/renderer/infrastructure/transcript/conversationReplayState', () => ({
+    ensureConversationReplayStateInitialized: jest.fn().mockResolvedValue('bootstrapped'),
+    appendConversationReplayEntry: jest.fn(),
+  }));
+  jest.doMock('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding', () => ({
+    getConversationWorkspaceBinding: jest.fn(() => ({
+      workspacePath: null,
+      workspaceName: null,
+    })),
+  }));
 
   const writer = require('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter') as TranscriptWriterModule;
   return { writer, invokeMock, sendMock, onMock, onHandlers };
 }
 
 export async function flushMicrotasks() {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
   await Promise.resolve();
   await Promise.resolve();
   await Promise.resolve();
@@ -58,7 +74,7 @@ export function registerTranscriptWriterSuiteLifecycle() {
 export function createStoreTranscriptPayload(
   overrides: Partial<StoreTranscriptPayload> & Pick<StoreTranscriptPayload, 'content' | 'role' | 'messageType'>,
 ): StoreTranscriptPayload {
-  return {
+  const payload: StoreTranscriptPayload = {
     content: overrides.content,
     userId: undefined,
     conversationRef: undefined,
@@ -70,9 +86,14 @@ export function createStoreTranscriptPayload(
     modelProvider: undefined,
     screenshot: undefined,
     timestamp: undefined,
-    structuredPayload: undefined,
+    workspacePath: null,
+    workspaceName: null,
     ...overrides,
   };
+  if (overrides.structuredPayload !== undefined) {
+    payload.structuredPayload = overrides.structuredPayload;
+  }
+  return payload;
 }
 
 export function expectStoreTranscriptCall(

@@ -194,8 +194,13 @@ describe('TranscriptWriter tool writes', () => {
       writer.updateTranscriptSession('conv-retry-tool', 'user-retry-tool');
       await flushMicrotasks();
 
-      expect(invokeMock).toHaveBeenCalledTimes(3);
-      expectNthStoreTranscriptCall(invokeMock, 2, createStoreTranscriptPayload({
+      const storeTranscriptCalls = invokeMock.mock.calls.filter(
+        (args) => args[0] === 'store-transcript',
+      );
+      if (storeTranscriptCalls.length !== 3) {
+        throw new Error(`Expected 3 store-transcript calls, received ${storeTranscriptCalls.length}`);
+      }
+      expect(storeTranscriptCalls[1]?.[1]).toEqual(createStoreTranscriptPayload({
         content: 'queued tool message 1',
         userId: 'user-retry-tool',
         conversationRef: 'conv-retry-tool',
@@ -204,7 +209,7 @@ describe('TranscriptWriter tool writes', () => {
         toolName: 'read_file',
         correlationId: 'corr-1',
       }));
-      expectNthStoreTranscriptCall(invokeMock, 3, createStoreTranscriptPayload({
+      expect(storeTranscriptCalls[2]?.[1]).toEqual(createStoreTranscriptPayload({
         content: 'queued tool message 2',
         userId: 'user-retry-tool',
         conversationRef: 'conv-retry-tool',

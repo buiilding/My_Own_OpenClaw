@@ -4,14 +4,12 @@ import type {
   ToolExecutionResult,
 } from '../../../../infrastructure/services/toolExecution/ToolExecutionService';
 import { formatToolOutputMessage } from '../../../../infrastructure/services/MessageFormatter';
-import { recordToolMessage } from '../../../../infrastructure/transcript/TranscriptWriter';
-import { buildStructuredToolPayload } from '../../../../infrastructure/transcript/structuredToolPayload';
 import {
   buildBundleOutputMessage,
   buildToolOutputMessage,
-  buildTranscriptMetadata,
-  type TranscriptModelContext,
 } from './toolRunnerMessages';
+import type { TranscriptModelContext } from '../transcriptModelContext';
+import { recordToolOutputTranscriptMessage } from '../toolOutputTranscriptPersistence';
 
 type PersistResultOptions = {
   shouldAcceptExecutionResult: (correlationId: string | null | undefined) => boolean;
@@ -29,28 +27,21 @@ function persistAcceptedToolMessage(
 ): void {
   const { addMessage, modelContextRef } = options;
   addMessage(buildToolOutputMessage(result), conversationRef);
-  recordToolMessage(
-    result.formattedMessage,
-    {
-      ...buildTranscriptMetadata(
-        result.toolName,
-        result.correlationId,
-        result.screenshotRef ?? null,
-        modelContextRef.current,
-      ),
-      structuredPayload: buildStructuredToolPayload({
-        kind: 'tool-output',
-        toolCallDetails: {
-          result: result.result,
-          system_state: result.systemState || null,
-          correlation_id: result.correlationId,
-          tool_name: result.toolName,
-          execution_time: result.executionTime,
-        },
-      }),
-      conversationRef: conversationRef || undefined,
+  recordToolOutputTranscriptMessage({
+    text: result.formattedMessage,
+    toolName: result.toolName,
+    correlationId: result.correlationId,
+    screenshotRef: result.screenshotRef ?? null,
+    conversationRef,
+    modelContext: modelContextRef.current,
+    toolOutputDetails: {
+      result: result.result,
+      system_state: result.systemState || null,
+      correlation_id: result.correlationId,
+      tool_name: result.toolName,
+      execution_time: result.executionTime,
     },
-  );
+  });
 }
 
 export function persistToolRunnerToolResult(
@@ -85,27 +76,20 @@ export function persistToolRunnerBundleResult(
   }
   const conversationRef = resolveExecutionConversationRef(result.correlationId);
   addMessage(buildBundleOutputMessage(result), conversationRef);
-  recordToolMessage(
-    result.formattedMessage,
-    {
-      ...buildTranscriptMetadata(
-        'bundled_tools',
-        result.correlationId,
-        result.screenshotRef ?? null,
-        modelContextRef.current,
-      ),
-      structuredPayload: buildStructuredToolPayload({
-        kind: 'tool-output',
-        toolCallDetails: {
-          bundled: true,
-          results: result.results,
-          correlation_id: result.correlationId,
-          execution_time_total: result.totalTime,
-        },
-      }),
-      conversationRef: conversationRef || undefined,
+  recordToolOutputTranscriptMessage({
+    text: result.formattedMessage,
+    toolName: 'bundled_tools',
+    correlationId: result.correlationId,
+    screenshotRef: result.screenshotRef ?? null,
+    conversationRef,
+    modelContext: modelContextRef.current,
+    toolOutputDetails: {
+      bundled: true,
+      results: result.results,
+      correlation_id: result.correlationId,
+      execution_time_total: result.totalTime,
     },
-  );
+  });
 }
 
 type PersistSurfaceFailureOptions = Pick<PersistResultOptions, 'addMessage' | 'modelContextRef'> & {

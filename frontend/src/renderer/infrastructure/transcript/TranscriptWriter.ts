@@ -1,20 +1,10 @@
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import { createPendingTranscriptMessages } from './pending/pendingTranscriptMessages';
-import { extractTranscriptSessionSyncPayload } from './sessionSyncPayload';
-import {
-  emitSessionUpdateEvent,
-  persistSessionInfoToStorage,
-  readSessionInfoFromStorage,
-} from './sessionInfoStorage';
-import { createTranscriptSessionState } from './sessionInfoState';
-import { buildRehydrateMessagePayload } from './rehydrateMessageState';
 import { normalizeTransparencyData } from './transparencyNormalization';
 import { recordImmediateTranscriptEntry } from './transcriptRecordWrite';
 import { getConversationWorkspaceBinding } from '../workspace/conversationWorkspaceBinding';
-import {
-  appendConversationReplayEntry,
-  ensureConversationReplayStateInitialized,
-} from './conversationReplayState';
+import { createTranscriptSessionRuntime, type TranscriptSessionResolveOptions } from './transcriptSessionRuntime';
+import { storeTranscriptEntry as persistTranscriptEntry } from './transcriptEntryPersistence';
 import type {
   SessionInfo,
   TranscriptStructuredToolPayload,
@@ -22,88 +12,18 @@ import type {
   TranscriptEntry,
 } from './types';
 
-const sessionState = createTranscriptSessionState(readSessionInfoFromStorage);
-
-const sessionInfoChanged = (previous: SessionInfo, next: SessionInfo): boolean => (
-  previous.conversationRef !== next.conversationRef
-  || previous.userId !== next.userId
-);
-
-const persistAndEmitSessionInfoIfChanged = (previous: SessionInfo, next: SessionInfo) => {
-  if (!sessionInfoChanged(previous, next)) {
-    return;
-  }
-  persistSessionInfoToStorage(next);
-  emitSessionUpdateEvent(next);
-};
-
-const syncSessionInfoToMainProcess = (info: SessionInfo) => {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  try {
-    IpcBridge.send(SEND_CHANNELS.TRANSCRIPT_SESSION_SYNC, {
-      conversationRef: info.conversationRef,
-      userId: info.userId,
-    });
-  } catch (error) {
-    console.warn('[TranscriptWriter] Failed to sync transcript session to main process:', error);
-  }
-};
-
-const applyTranscriptSessionUpdate = (
-  conversationRef: string | null | undefined,
-  userId: string | null | undefined,
-  options: {
-    syncToMainProcess?: boolean;
-  } = {},
-): SessionInfo => {
-  const { syncToMainProcess = true } = options;
-  const previousInfo = sessionState.get();
-  const nextInfo = sessionState.update(conversationRef, userId);
-  persistAndEmitSessionInfoIfChanged(previousInfo, nextInfo);
-  if (syncToMainProcess) {
-    syncSessionInfoToMainProcess(nextInfo);
-  }
-  void flushPendingMessages();
-  return nextInfo;
-};
-
-let transcriptSessionSyncSubscribed = false;
-
-const subscribeToTranscriptSessionSync = () => {
-  if (transcriptSessionSyncSubscribed || typeof window === 'undefined') {
-    return;
-  }
-
-  transcriptSessionSyncSubscribed = true;
-  try {
-    IpcBridge.on(ON_CHANNELS.TRANSCRIPT_SESSION_SYNC, (payload) => {
-      const normalized = extractTranscriptSessionSyncPayload(payload);
-      if (!normalized) {
-        return;
-      }
-      applyTranscriptSessionUpdate(
-        normalized.conversationRef,
-        normalized.userId,
-        { syncToMainProcess: false },
-      );
-    });
-  } catch (error) {
-    transcriptSessionSyncSubscribed = false;
-    console.warn('[TranscriptWriter] Failed to subscribe to transcript session sync channel:', error);
-  }
-};
-
-subscribeToTranscriptSessionSync();
-
 const flushPendingMessages = async () => {
   if (!pendingTranscriptMessages.hasPendingEntries()) {
     return;
   }
-  await pendingTranscriptMessages.flushPendingMessages(sessionState.get());
+  await pendingTranscriptMessages.flushPendingMessages(sessionRuntime.getTranscriptSessionInfo());
 };
+
+const sessionRuntime = createTranscriptSessionRuntime({
+  onSessionUpdated: () => {
+    void flushPendingMessages();
+  },
+});
 
 const emitTranscriptEntryStoredEvent = (
   entry: TranscriptEntry,
@@ -126,12 +46,6 @@ const emitTranscriptEntryStoredEvent = (
   }));
 };
 
-type TranscriptSessionResolveOptions = {
-  conversationRef?: string | null;
-  sessionId?: string | null;
-  userId?: string | null;
-};
-
 type TranscriptRecordContextOptions = TranscriptSessionResolveOptions & {
   modelId?: string | null;
   modelProvider?: string | null;
@@ -142,24 +56,12 @@ type TranscriptRecordContextOptions = TranscriptSessionResolveOptions & {
 
 const resolveSessionInfoFromOptions = (
   options: TranscriptSessionResolveOptions,
-): SessionInfo => {
-  return sessionState.resolve({
-    conversationRef: options.conversationRef ?? options.sessionId ?? null,
-    userId: options.userId ?? null,
-  });
-};
+) => sessionRuntime.resolveSessionInfoFromOptions(options);
 
 const resolveSessionInfoOrQueue = (
   options: TranscriptSessionResolveOptions,
   queueForRetry: () => void,
-): SessionInfo | null => {
-  const info = resolveSessionInfoFromOptions(options);
-  if (!info.conversationRef || !info.userId) {
-    queueForRetry();
-    return null;
-  }
-  return info;
-};
+) => sessionRuntime.resolveSessionInfoOrQueue(options, queueForRetry);
 
 const storeImmediateTranscriptEntryWithRetry = (
   entry: TranscriptEntry,
@@ -176,20 +78,18 @@ export const updateTranscriptSession = (
   conversationRef?: string | null,
   userId?: string | null,
 ) => {
-  applyTranscriptSessionUpdate(conversationRef, userId, { syncToMainProcess: true });
+  sessionRuntime.applyTranscriptSessionUpdate(conversationRef, userId, { syncToMainProcess: true });
 };
 
 export const setActiveConversationRef = (conversationRef: string | null) => {
-  applyTranscriptSessionUpdate(conversationRef, undefined, { syncToMainProcess: true });
+  sessionRuntime.applyTranscriptSessionUpdate(conversationRef, undefined, { syncToMainProcess: true });
 };
 
 export const getActiveConversationRef = (): string | null => {
-  return sessionState.get().conversationRef;
+  return sessionRuntime.getActiveConversationRef();
 };
 
-export const getTranscriptSessionInfo = (): SessionInfo => {
-  return sessionState.get();
-};
+export const getTranscriptSessionInfo = () => sessionRuntime.getTranscriptSessionInfo();
 
 export const recordUserMessage = (
   text: string,
@@ -319,73 +219,15 @@ export const recordToolMessage = (
 };
 
 const storeTranscriptEntry = async (entry: TranscriptEntry) => {
-  const info = sessionState.resolve({
-    conversationRef: entry.conversationRef ?? null,
-    userId: entry.userId ?? null,
+  await persistTranscriptEntry(entry, {
+    resolveSessionInfoForEntry: (targetEntry) => resolveSessionInfoFromOptions({
+      conversationRef: targetEntry.conversationRef ?? null,
+      userId: targetEntry.userId ?? null,
+    }),
+    invokeStoreTranscript: (payload) => IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, payload),
+    resolveWorkspaceBinding: (conversationRef) => getConversationWorkspaceBinding(conversationRef),
+    emitStoredEvent: emitTranscriptEntryStoredEvent,
   });
-  if (!info.conversationRef || !info.userId) {
-    return;
-  }
-
-  const workspaceBinding = getConversationWorkspaceBinding(info.conversationRef);
-
-  const storeResult = await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
-    content: entry.content,
-    userId: info.userId,
-    conversationRef: info.conversationRef,
-    role: entry.role,
-    messageType: entry.messageType,
-    toolName: entry.toolName,
-    correlationId: entry.correlationId,
-    modelId: entry.modelId,
-    modelProvider: entry.modelProvider,
-    screenshot: entry.screenshotRef,
-    timestamp: entry.timestamp,
-    workspacePath: workspaceBinding.workspacePath || null,
-    workspaceName: workspaceBinding.workspaceName || null,
-    ...(entry.transparency ? { transparency: entry.transparency } : {}),
-    ...(entry.structuredPayload ? { structuredPayload: entry.structuredPayload } : {}),
-  });
-  emitTranscriptEntryStoredEvent(entry, info);
-
-  const messageIndex = typeof storeResult?.data?.message_index === 'number'
-    ? storeResult.data.message_index
-    : null;
-  const replayRehydrateEntry = buildRehydrateMessagePayload({
-    role: entry.role || 'assistant',
-    messageType: entry.messageType || null,
-    rawContent: entry.content,
-    timestamp: entry.timestamp || null,
-    correlationId: entry.correlationId || null,
-    transparency: entry.transparency || null,
-    screenshotAttachment: entry.screenshotRef ? {
-      screenshotRef: entry.screenshotRef,
-      screenshot: null,
-    } : null,
-    structuredPayload: entry.structuredPayload || null,
-    fallbackToolName: entry.toolName || null,
-    fallbackToolCallId: entry.correlationId || null,
-  });
-  const replayInitState = await ensureConversationReplayStateInitialized({
-    conversationRef: info.conversationRef,
-    userId: info.userId,
-    workspacePath: workspaceBinding.workspacePath || null,
-    workspaceName: workspaceBinding.workspaceName || null,
-  });
-  if (replayInitState !== 'bootstrapped') {
-    await appendConversationReplayEntry(
-      {
-        conversationRef: info.conversationRef,
-        userId: info.userId,
-        workspacePath: workspaceBinding.workspacePath || null,
-        workspaceName: workspaceBinding.workspaceName || null,
-      },
-      {
-        messageIndex,
-        rehydrateEntry: replayRehydrateEntry,
-      },
-    );
-  }
 };
 
 const pendingTranscriptMessages = createPendingTranscriptMessages({
