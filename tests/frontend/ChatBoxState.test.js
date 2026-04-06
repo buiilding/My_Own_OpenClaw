@@ -20,7 +20,7 @@ describe('chatBoxState', () => {
 
   test('resolveChatboxVisualAnchorHeight switches by preview mode', () => {
     expect(resolveChatboxVisualAnchorHeight({ hasImagePreview: false })).toBe(CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT);
-    expect(resolveChatboxVisualAnchorHeight({ hasImagePreview: true })).toBe(116);
+    expect(resolveChatboxVisualAnchorHeight({ hasImagePreview: true })).toBe(148);
   });
 
   test('resolveChatboxVisualAnchorHeight derives anchor height from measured shell height', () => {

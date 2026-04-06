@@ -21,22 +21,21 @@ describe('overlay_window_helpers_runtime', () => {
       contextLabelHeight: 26,
       contextLabelOffsetX: 14,
       contextLabelGapAboveChatbox: -6,
-      chatVisualAnchorHeight: 64,
+      chatVisualAnchorHeight: 96,
     });
 
     runtime.getResponseWindowBounds(400, 200);
 
-    expect(getOverlayResponseWindowBounds).toHaveBeenCalledWith(
+    const [firstCall] = getOverlayResponseWindowBounds.mock.calls[0] || [];
+    expect(firstCall.width).toBe(400);
+    expect(firstCall.height).toBe(200);
+    expect(firstCall.gap).toBe(10);
+    expect(firstCall.chatBounds).toEqual(
       expect.objectContaining({
-        width: 400,
-        height: 200,
-        gap: 10,
-        chatBounds: expect.objectContaining({
-          x: 200,
-          width: 520,
-          height: 64,
-          y: 752,
-        }),
+        x: 200,
+        y: 720,
+        width: 520,
+        height: 96,
       }),
     );
   });
@@ -59,20 +58,19 @@ describe('overlay_window_helpers_runtime', () => {
       contextLabelHeight: 26,
       contextLabelOffsetX: 14,
       contextLabelGapAboveChatbox: -6,
-      chatVisualAnchorHeight: 64,
+      chatVisualAnchorHeight: 96,
     });
 
     const bounds = runtime.getContextLabelWindowBounds();
 
     expect(bounds).toEqual({ x: 111, y: 222, width: 280, height: 26 });
-    expect(getOverlayContextLabelWindowBounds).toHaveBeenCalledWith(
+    const [firstCall] = getOverlayContextLabelWindowBounds.mock.calls[0] || [];
+    expect(firstCall.chatBounds).toEqual(
       expect.objectContaining({
-        chatBounds: expect.objectContaining({
-          x: 100,
-          width: 520,
-          height: 64,
-          y: 732,
-        }),
+        x: 100,
+        y: 700,
+        width: 520,
+        height: 96,
       }),
     );
   });
@@ -94,7 +92,7 @@ describe('overlay_window_helpers_runtime', () => {
       contextLabelHeight: 26,
       contextLabelOffsetX: 14,
       contextLabelGapAboveChatbox: -6,
-      chatVisualAnchorHeight: 64,
+      chatVisualAnchorHeight: 96,
       responseGap: 2,
     });
 
@@ -127,7 +125,7 @@ describe('overlay_window_helpers_runtime', () => {
       contextLabelHeight: 26,
       contextLabelOffsetX: 14,
       contextLabelGapAboveChatbox: -6,
-      chatVisualAnchorHeight: 64,
+      chatVisualAnchorHeight: 96,
       getChatVisualAnchorHeight,
     });
 
@@ -146,7 +144,7 @@ describe('overlay_window_helpers_runtime', () => {
   });
 
   test('resizes chat window frame to match compact and preview visual shell heights', () => {
-    let currentHeight = 70;
+    let currentHeight = 102;
     const chatWindow = {
       isDestroyed: jest.fn(() => false),
       getSize: jest.fn(() => [520, currentHeight]),
@@ -168,13 +166,13 @@ describe('overlay_window_helpers_runtime', () => {
       contextLabelGapAboveChatbox: -6,
     });
 
-    expect(runtime.resizeChatWindowForVisualAnchorHeight(64)).toBe(false);
-    expect(runtime.resizeChatWindowForVisualAnchorHeight(116)).toBe(true);
+    expect(runtime.resizeChatWindowForVisualAnchorHeight(96)).toBe(false);
+    expect(runtime.resizeChatWindowForVisualAnchorHeight(148)).toBe(true);
     expect(chatWindow.setBounds).toHaveBeenCalledWith({
       x: 300,
       y: 800,
       width: 520,
-      height: 122,
+      height: 154,
     }, false);
   });
 

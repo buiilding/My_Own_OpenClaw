@@ -266,7 +266,7 @@ describe('main_window_runtime createChatWindow', () => {
 
     const options = deps.BrowserWindow.mock.calls[0][0];
     expect(options.width).toBe(520);
-    expect(options.height).toBe(70);
+    expect(options.height).toBe(102);
     expect(options.resizable).toBe(false);
   });
 

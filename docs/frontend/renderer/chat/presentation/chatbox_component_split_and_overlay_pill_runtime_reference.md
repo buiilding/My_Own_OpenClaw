@@ -74,12 +74,13 @@ Current-turn presentation ownership moved to shared chat hooks/state:
   `createClipboardScreenshotImage(...)`
 - preview lane state (`with-preview`) is driven only by image count
 - visual-anchor IPC sync:
-  - preview off -> `height: 64`
-  - preview on -> `height: 116`
+  - preview off -> `height: 96`
+  - preview on -> `height: 148`
 - unmount resets anchor to compact height
 
 No renderer-driven `set-chatbox-size` resizing occurs in this component.
 Main-process chat window height now tracks the compact-vs-preview visual-anchor state so the idle overlay hit area stays tight to the visible pill instead of keeping the old taller transparent frame.
+- the composer layout now renders as a stacked text region over a fixed controls rail, so multiline growth does not reflow the icon/buttons row.
 
 ### Optional Dev Compaction Control
 

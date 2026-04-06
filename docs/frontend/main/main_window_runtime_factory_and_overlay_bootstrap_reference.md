@@ -76,7 +76,7 @@ This keeps overlay query-capture prep blur-only and avoids hide/show demotion ch
 
 Creation behavior:
 
-- builds overlay window (`520x116`)
+- builds overlay window (`520x102`)
 - positions via injected `positionChatWindow`
 - lazily loads renderer route `view=chatbox` on first `show` event
 - syncs wakeword toggle on show/hide

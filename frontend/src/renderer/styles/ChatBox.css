@@ -22,10 +22,12 @@ body {
 
 .chatbox-input-shell-wrap {
   --chatbox-bump-height: 14px;
-  --chatbox-fixed-shell-height: 70px;
-  --chatbox-fixed-pill-height: 56px;
+  --chatbox-fixed-shell-height: 102px;
+  --chatbox-fixed-pill-height: 88px;
   --chatbox-fixed-pill-padding: 8px 12px 8px;
   --chatbox-preview-track-height: 46px;
+  --chatbox-controls-row-height: 36px;
+  --chatbox-composer-min-height: 28px;
   position: fixed;
   left: 50%;
   bottom: 0;
@@ -53,9 +55,9 @@ body {
 }
 
 .chatbox-input-shell-wrap.with-preview {
-  --chatbox-fixed-shell-height: 122px;
-  --chatbox-fixed-pill-height: 108px;
-  --chatbox-fixed-pill-padding: 58px 12px 8px;
+  --chatbox-fixed-shell-height: 154px;
+  --chatbox-fixed-pill-height: 140px;
+  --chatbox-fixed-pill-padding: 60px 12px 8px;
 }
 
 .chatbox-input-shell-wrap .chatbox-image-preview-row {
@@ -176,18 +178,43 @@ body {
   pointer-events: none;
 }
 
-.chatbox-main-row {
+.chatbox-composer-stack {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
   gap: 8px;
-  min-height: 36px;
-  margin-top: auto;
+  min-height: calc(var(--chatbox-composer-min-height) + var(--chatbox-controls-row-height) + 8px);
   position: relative;
   z-index: 1;
 }
 
+.chatbox-composer-region {
+  min-height: var(--chatbox-composer-min-height);
+  display: flex;
+  align-items: flex-end;
+}
+
+.chatbox-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--chatbox-controls-row-height);
+  position: relative;
+}
+
+.chatbox-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.chatbox-controls-group-end {
+  margin-left: auto;
+}
+
 .chatbox-input-wrap {
-  flex: 1;
+  width: 100%;
   min-width: 0;
   display: flex;
   align-items: flex-end;
@@ -202,12 +229,12 @@ body {
   font-size: 14px;
   line-height: 1.4;
   outline: none;
-  min-height: 34px;
+  min-height: var(--chatbox-composer-min-height);
   max-height: 128px;
-  padding: 7px 10px 5px;
+  padding: 0;
   resize: none;
   overflow-y: auto;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 }
 
 .chatbox-input::placeholder {
