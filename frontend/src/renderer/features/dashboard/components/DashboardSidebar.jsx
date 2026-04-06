@@ -240,7 +240,9 @@ function DashboardSidebar({
                       >
                         {group.title}
                       </div>
-                      {group.items.map((conversation) => renderConversationRow(conversation))}
+                      <div className="cg-chat-workspace-items">
+                        {group.items.map((conversation) => renderConversationRow(conversation))}
+                      </div>
                     </div>
                   ))}
                 </>
