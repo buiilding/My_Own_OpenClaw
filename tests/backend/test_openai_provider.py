@@ -476,6 +476,78 @@ async def test_openai_responses_runtime_accepts_incomplete_terminal_payload(
     }
 
 
+@pytest.mark.asyncio
+async def test_openai_responses_runtime_recovers_missing_final_payload_when_text_streamed(
+    monkeypatch,
+):
+    provider = OpenAIProvider(api_key="test-key")
+
+    async def fake_stream():
+        yield {
+            "type": "response.output_text.delta",
+            "delta": "partial text",
+            "response_id": "resp_123",
+        }
+
+    async def fake_aresponses(**_kwargs):
+        return fake_stream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
+
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.4@@gpt-5-4-none-thinking",
+            messages=[{"role": "user", "content": "hi"}],
+        )
+    )
+
+    assert [type(event).__name__ for event in events] == ["ChunkEvent"]
+    assert events[0].content == "partial text"
+    assert provider.get_last_stream_response_payload() == {
+        "content": "partial text",
+        "finish_reason": "incomplete",
+        "response_id": "resp_123",
+    }
+
+
+@pytest.mark.asyncio
+async def test_openai_responses_runtime_still_fails_missing_final_payload_without_text(
+    monkeypatch,
+):
+    provider = OpenAIProvider(api_key="test-key")
+
+    async def fake_stream():
+        yield {
+            "type": "response.reasoning_text.delta",
+            "delta": "thinking only",
+            "response_id": "resp_456",
+        }
+
+    async def fake_aresponses(**_kwargs):
+        return fake_stream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
+
+    with pytest.raises(
+        Exception,
+        match="stream completed without a final response payload",
+    ):
+        await _collect_events(
+            stream_openai_responses_events(
+                provider,
+                model="gpt-5.4@@gpt-5-4-none-thinking",
+                messages=[{"role": "user", "content": "hi"}],
+            )
+        )
+
+
 def test_openai_provider_build_request_params_preserves_browser_root_object_tool_schema():
     provider = OpenAIProvider(api_key="test-key")
     browser_parameters = build_browser_tool_parameters_schema()
