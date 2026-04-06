@@ -43,11 +43,19 @@ When `include_tools=True`:
 
 - constructor pulls declarations from `ToolRegistry.get_function_declarations()`
 - applies `ToolPolicy.from_config(config).filter_tool_schemas(...)`
+- computes `prompt_messages` first, then applies provider projection against the prompt that will actually be sent for this query
 - returns filtered schemas for:
   - native LLM tools parameter
   - transparency event emission
 
 This keeps model-visible tool surface policy-driven instead of callsite-driven.
+
+OpenAI native computer projection nuance:
+
+- tool schemas are rebuilt per new user query, not once for the whole conversation
+- OpenAI native `computer` projection is decided from the current query's `prompt_messages`
+- if those prompt messages contain more than one user/system image input overall, constructor returns the direct desktop function tools for that request instead of the provider-native `computer` tool
+- later queries re-evaluate the same rule from their own prompt history, so native `computer` can return after image-heavy turns fall out of the prompt and can be disabled again by future multi-image turns
 
 ## User Message Metadata Extraction
 
