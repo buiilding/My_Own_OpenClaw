@@ -127,6 +127,20 @@ def test_parse_summarization_response_extracts_summary_and_facts() -> None:
     assert facts == ["Uses Linux daily", "Prefers terminal tools"]
 
 
+def test_parse_summarization_response_extracts_bold_fact_label() -> None:
+    text = (
+        "**SUMMARY:** User prefers Python workflows.\n\n"
+        "**FACTS:**\n"
+        "- Uses Linux daily\n"
+        "- Prefers terminal tools\n"
+    )
+
+    summary, facts = semantic_routes._parse_summarization_response(text)
+
+    assert "prefers Python" in summary
+    assert facts == ["Uses Linux daily", "Prefers terminal tools"]
+
+
 def test_extract_fallback_facts_filters_short_lines() -> None:
     text = "- ok\n- uses codex heavily\n- x\n* likes shell scripts"
 
