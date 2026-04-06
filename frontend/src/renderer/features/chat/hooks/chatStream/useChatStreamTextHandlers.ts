@@ -8,6 +8,7 @@ import {
 } from '../../utils/chatStream/chatStreamMessageUpdates';
 import { GENERIC_THINKING_STATUS } from '../../utils/chatStream/chatStreamThinkingStatus';
 import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
+import { buildAssistantTextChatMessageState } from '../../../../infrastructure/transcript/assistantTextChatMessageState';
 
 type UseChatStreamTextHandlersOptions = {
   addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
@@ -68,19 +69,17 @@ export const useChatStreamTextHandlers = ({
         ...modelMetadata,
       }, conversationRef);
     } else if (nextThinkingStatus.trim()) {
-      const placeholderAssistantMessage: ChatMessage = {
-        id: crypto.randomUUID(),
+      const placeholderAssistantMessage: ChatMessage = buildAssistantTextChatMessageState({
         text: '',
-        sender: 'assistant',
         isComplete: false,
-        type: 'llm-text',
         sourceEventType: 'streaming-response',
         sourceChannel: 'from-backend',
         turnRef,
+        modelId: modelContext.modelId,
+        modelProvider: modelContext.modelProvider,
         thinkingText: nextThinkingStatus,
         thinkingSourceEventType: 'llm-thought',
-        ...modelMetadata,
-      };
+      });
       addMessage(placeholderAssistantMessage, conversationRef);
     }
 
@@ -116,17 +115,15 @@ export const useChatStreamTextHandlers = ({
         ...modelMetadata,
       }, conversationRef);
     } else {
-      const newMessage: ChatMessage = {
-        id: crypto.randomUUID(),
+      const newMessage: ChatMessage = buildAssistantTextChatMessageState({
         text: action.text,
-        sender: 'assistant',
         isComplete: false,
-        type: 'llm-text',
         sourceEventType: 'streaming-response',
         sourceChannel: 'from-backend',
         turnRef: action.turnRef,
-        ...modelMetadata,
-      };
+        modelId: modelContext.modelId,
+        modelProvider: modelContext.modelProvider,
+      });
       addMessage(newMessage, conversationRef);
     }
 

@@ -11,6 +11,9 @@ import {
   buildToolOutputChatMessageState,
 } from './toolOutputChatMessageState';
 import {
+  buildAssistantTextChatMessageState,
+} from './assistantTextChatMessageState';
+import {
   resolveStoredTranscriptMemoryState,
 } from './storedTranscriptMemoryState';
 
@@ -213,6 +216,19 @@ export function buildStoredTranscriptChatMessages(memory, index) {
       modelFields.modelId = part.modelId;
     }
     const transparencyFields = buildStoredTranscriptTransparencyFields(part, partCount, transparency);
+
+    if (part.sender === 'assistant' && part.type === 'llm-text') {
+      return {
+        ...buildAssistantTextChatMessageState({
+          id: messageId,
+          text: part.text,
+          modelId: part.modelId || null,
+          modelProvider: part.modelProvider || null,
+          isComplete: true,
+        }),
+        ...transparencyFields,
+      };
+    }
 
     return {
       id: messageId,
