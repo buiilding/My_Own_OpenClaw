@@ -63,4 +63,47 @@ describe('storedTranscriptChatMessageState', () => {
       },
     ]);
   });
+
+  test('normalizes stored transparency tool schemas to canonical nested shape and drops invalid arrays', () => {
+    const normalizedMessages = buildStoredTranscriptChatMessages({
+      id: 'tool-output-2',
+      role: 'tool',
+      message_type: 'tool-output',
+      content: 'tool output text',
+      record_kind: 'transcript',
+      metadata: {
+        transparency: {
+          systemPrompt: 'System prompt text',
+          toolSchemas: [{ type: 'function', name: 'read_file', parameters: { type: 'object' } }],
+        },
+      },
+    }, 0);
+
+    expect(normalizedMessages[0].systemPrompt).toEqual({
+      content: 'System prompt text',
+      toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
+    });
+    expect(normalizedMessages[0].toolSchemas).toEqual([
+      { type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } },
+    ]);
+
+    const invalidMessages = buildStoredTranscriptChatMessages({
+      id: 'tool-output-3',
+      role: 'tool',
+      message_type: 'tool-output',
+      content: 'tool output text',
+      record_kind: 'transcript',
+      metadata: {
+        transparency: {
+          systemPrompt: 'System prompt text',
+          toolSchemas: [{ name: 'bad-tool' }],
+        },
+      },
+    }, 0);
+
+    expect(invalidMessages[0].systemPrompt).toEqual({
+      content: 'System prompt text',
+    });
+    expect(invalidMessages[0].toolSchemas).toBeUndefined();
+  });
 });
