@@ -104,6 +104,7 @@ let latestFrontendConfig = null;
 let hasAttemptedInitialSettingsSync = false;
 let pendingSettingsSyncPromise = null;
 const pendingSettingsSyncs = new Map();
+let hasPendingListModelsRequest = false;
 const backendMessageObservers = new Set();
 let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
@@ -281,6 +282,21 @@ function broadcastConnectionStatus(connected) {
   broadcastToRenderers('ipc-status', buildIpcStatusPayload(connected));
 }
 
+function queueListModelsRequest() {
+  hasPendingListModelsRequest = true;
+}
+
+function flushPendingListModelsRequest() {
+  if (!hasPendingListModelsRequest) {
+    return;
+  }
+  const msgId = sendMessageToBackend('list-models', {});
+  if (!msgId) {
+    return;
+  }
+  hasPendingListModelsRequest = false;
+}
+
 function sendSettingsUpdate(config, source = 'renderer') {
   const backendConfig = buildBackendSettingsPayload(config);
   if (!backendConfig) {
@@ -418,6 +434,7 @@ function connect() {
       log(`Handshake sent with user_id: ${currentUserId}`);
       // Broadcast connection status after handshake send to reduce startup races.
       broadcastConnectionStatus(true);
+      flushPendingListModelsRequest();
     } catch (error) {
       log(`Error sending handshake: ${error}`);
     }
@@ -696,6 +713,12 @@ function initializeIpc(win, options = {}) {
 
     if (type === 'update-settings') {
       sendSettingsUpdate(payload, 'renderer-update');
+      return;
+    }
+
+    if (type === 'list-models' && (!isConnected || !ws || ws.readyState !== WebSocket.OPEN)) {
+      queueListModelsRequest();
+      log('Queued list-models request until backend websocket is connected.');
       return;
     }
 
