@@ -21,6 +21,27 @@ class TextContent(TypedDict):
     text: str
 
 
+class InputTextContent(TypedDict):
+    """Input-text content block used by OpenAI Responses history/items."""
+
+    type: Literal["input_text"]
+    text: str
+
+
+class OutputTextContent(TypedDict):
+    """Output-text content block used by OpenAI Responses assistant history/items."""
+
+    type: Literal["output_text"]
+    text: str
+
+
+class RefusalContent(TypedDict):
+    """Assistant refusal block used by OpenAI Responses history/items."""
+
+    type: Literal["refusal"]
+    refusal: str
+
+
 class ImageContent(TypedDict):
     """Image content in a multimodal message."""
 
@@ -28,7 +49,13 @@ class ImageContent(TypedDict):
     image_url: Dict[str, str]  # {"url": "data:image/..."}
 
 
-MultimodalContent = List[Union[TextContent, ImageContent]]
+TextLikeContent = Union[
+    TextContent,
+    InputTextContent,
+    OutputTextContent,
+    RefusalContent,
+]
+MultimodalContent = List[Union[TextLikeContent, ImageContent]]
 
 
 class NormalizedToolCall(TypedDict):

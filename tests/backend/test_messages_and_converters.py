@@ -80,6 +80,19 @@ def test_content_to_message_content_without_image():
     assert converted.get_text() == "only text"
 
 
+def test_content_to_message_content_supports_openai_responses_text_blocks():
+    content = [
+        {"type": "output_text", "text": "visible"},
+        {"type": "refusal", "refusal": "cannot comply"},
+        {"type": "input_text", "text": "ignored no longer special"},
+    ]
+
+    converted = content_to_message_content(content)
+
+    assert isinstance(converted, TextContent)
+    assert converted.get_text() == "visible cannot comply ignored no longer special"
+
+
 def test_stored_message_assistant_tool_calls_normalized_and_named():
     message = StoredMessage(
         role=MessageRole.ASSISTANT,

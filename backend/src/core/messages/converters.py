@@ -27,8 +27,15 @@ def content_to_message_content(content: Union[str, MultimodalContent]) -> Messag
         image_urls = []
         for part in content:
             if isinstance(part, dict):
-                if part.get("type") == ContentType.TEXT.value:
-                    text_parts.append(part.get("text", ""))
+                part_type = part.get("type")
+                if part_type in {
+                    ContentType.TEXT.value,
+                    "input_text",
+                    "output_text",
+                }:
+                    text_parts.append(part.get("text", "") or part.get("content", ""))
+                elif part_type == "refusal":
+                    text_parts.append(part.get("refusal", "") or part.get("text", ""))
                 elif part.get("type") == ContentType.IMAGE_URL.value:
                     image_url_dict = part.get("image_url", {})
                     if isinstance(image_url_dict, dict):
