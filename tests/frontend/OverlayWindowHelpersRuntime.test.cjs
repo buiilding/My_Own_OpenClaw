@@ -255,15 +255,22 @@ describe('overlay_window_helpers_runtime', () => {
   });
 
   test('keeps the dragged bottom edge fixed when the pill height grows', () => {
+    let currentX = 2100;
+    let currentY = 120;
     let currentHeight = 116;
     const chatWindow = {
       isDestroyed: jest.fn(() => false),
       getSize: jest.fn(() => [520, currentHeight]),
-      getBounds: jest.fn(() => ({ x: 400, y: 500, width: 520, height: currentHeight })),
+      getBounds: jest.fn(() => ({ x: currentX, y: currentY, width: 520, height: currentHeight })),
       setBounds: jest.fn((bounds) => {
+        currentX = bounds.x;
+        currentY = bounds.y;
         currentHeight = bounds.height;
       }),
-      setPosition: jest.fn(),
+      setPosition: jest.fn((x, y) => {
+        currentX = x;
+        currentY = y;
+      }),
     };
     const runtime = createOverlayWindowHelpersRuntime({
       screen: {},
