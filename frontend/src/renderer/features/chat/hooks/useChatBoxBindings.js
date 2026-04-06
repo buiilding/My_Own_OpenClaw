@@ -67,9 +67,11 @@ export function useChatboxVisualAnchorBindings({
   useEffect(() => {
     let cancelled = false;
     let lastReportedHeight = null;
+    let scheduledFrame = null;
     const shellElement = shellRef?.current || null;
 
-    const reportAnchorHeight = () => {
+    const commitAnchorHeight = () => {
+      scheduledFrame = null;
       const nextAnchorHeight = resolveChatboxVisualAnchorHeight({
         hasImagePreview,
         shellHeight: shellElement?.offsetHeight ?? null,
@@ -87,21 +89,47 @@ export function useChatboxVisualAnchorBindings({
       });
     };
 
-    reportAnchorHeight();
+    const scheduleAnchorHeightReport = () => {
+      if (cancelled) {
+        return;
+      }
+      if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+        commitAnchorHeight();
+        return;
+      }
+      if (scheduledFrame !== null) {
+        window.cancelAnimationFrame?.(scheduledFrame);
+      }
+      scheduledFrame = window.requestAnimationFrame(() => {
+        if (!cancelled) {
+          commitAnchorHeight();
+        }
+      });
+    };
+
+    commitAnchorHeight();
 
     if (!shellElement || typeof ResizeObserver !== 'function') {
       return () => {
         cancelled = true;
+        if (scheduledFrame !== null) {
+          window.cancelAnimationFrame?.(scheduledFrame);
+          scheduledFrame = null;
+        }
       };
     }
 
     const resizeObserver = new ResizeObserver(() => {
-      reportAnchorHeight();
+      scheduleAnchorHeightReport();
     });
     resizeObserver.observe(shellElement);
 
     return () => {
       cancelled = true;
+      if (scheduledFrame !== null) {
+        window.cancelAnimationFrame?.(scheduledFrame);
+        scheduledFrame = null;
+      }
       resizeObserver.disconnect();
     };
   }, [hasImagePreview, shellRef]);
