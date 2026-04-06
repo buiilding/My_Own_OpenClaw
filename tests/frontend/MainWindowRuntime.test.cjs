@@ -31,6 +31,21 @@ describe('main_window_runtime enableContentProtectionSafely', () => {
     expect(targetWindow.setContentProtection).toHaveBeenCalledWith(true);
   });
 
+  test('can disable content protection on Windows', () => {
+    const targetWindow = {
+      setContentProtection: jest.fn(),
+    };
+
+    enableContentProtectionSafely({
+      targetWindow,
+      platform: 'win32',
+      windowLabel: 'chat box',
+      enabled: false,
+    });
+
+    expect(targetWindow.setContentProtection).toHaveBeenCalledWith(false);
+  });
+
   test('skips content protection on Linux', () => {
     const targetWindow = {
       setContentProtection: jest.fn(),
@@ -218,6 +233,8 @@ describe('main_window_runtime createChatWindow', () => {
       syncWakewordToggleForChatVisibility: jest.fn(),
       setChatWindow: jest.fn(),
       applyOverlayWindowPolicy: jest.fn(),
+      applyContentProtection: jest.fn(),
+      overlayContentProtectionEnabled: false,
       syncWindowDisplayAffinity: jest.fn(),
       ...overrides,
     };
@@ -253,7 +270,7 @@ describe('main_window_runtime createChatWindow', () => {
     expect(options.resizable).toBe(false);
   });
 
-  test('keeps chat overlay hidden from system screenshots', () => {
+  test('leaves chat overlay unprotected while idle by default', () => {
     const { deps, chatWindow } = createDeps({ platform: 'win32' });
 
     createChatWindow(deps);
@@ -261,6 +278,26 @@ describe('main_window_runtime createChatWindow', () => {
     expect(deps.applyOverlayWindowPolicy).toHaveBeenCalledWith({
       targetWindow: chatWindow,
       windowLabel: 'chat box',
+    });
+    expect(deps.applyContentProtection).toHaveBeenCalledWith({
+      targetWindow: chatWindow,
+      windowLabel: 'chat box',
+      enabled: false,
+    });
+  });
+
+  test('enables chat overlay content protection when created during active loop', () => {
+    const { deps, chatWindow } = createDeps({
+      platform: 'win32',
+      overlayContentProtectionEnabled: true,
+    });
+
+    createChatWindow(deps);
+
+    expect(deps.applyContentProtection).toHaveBeenCalledWith({
+      targetWindow: chatWindow,
+      windowLabel: 'chat box',
+      enabled: true,
     });
   });
 
@@ -365,6 +402,8 @@ describe('main_window_runtime createResponseWindow', () => {
       syncContextLabelWindowVisibility: jest.fn(),
       setResponseWindow: jest.fn(),
       applyOverlayWindowPolicy: jest.fn(),
+      applyContentProtection: jest.fn(),
+      overlayContentProtectionEnabled: false,
       syncWindowDisplayAffinity: jest.fn(),
       ...overrides,
     };
@@ -439,6 +478,11 @@ describe('main_window_runtime createResponseWindow', () => {
       targetWindow: responseWindow,
       windowLabel: 'response overlay',
     });
+    expect(deps.applyContentProtection).toHaveBeenCalledWith({
+      targetWindow: responseWindow,
+      windowLabel: 'response overlay',
+      enabled: false,
+    });
   });
 
   test('pins response overlay across workspaces and fullscreen spaces on mac', () => {
@@ -449,6 +493,21 @@ describe('main_window_runtime createResponseWindow', () => {
     expect(deps.applyOverlayWindowPolicy).toHaveBeenCalledWith({
       targetWindow: responseWindow,
       windowLabel: 'response overlay',
+    });
+  });
+
+  test('enables response overlay content protection when created during active loop', () => {
+    const { deps, responseWindow } = createDeps({
+      platform: 'darwin',
+      overlayContentProtectionEnabled: true,
+    });
+
+    createResponseWindow(deps);
+
+    expect(deps.applyContentProtection).toHaveBeenCalledWith({
+      targetWindow: responseWindow,
+      windowLabel: 'response overlay',
+      enabled: true,
     });
   });
 });

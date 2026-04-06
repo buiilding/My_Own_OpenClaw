@@ -39,11 +39,13 @@ function createWindowPlatformPolicy({
   function applyContentProtection({
     targetWindow,
     windowLabel = 'window',
+    enabled = true,
   } = {}) {
     const runtime = createContentProtectionRuntime(platform);
     runtime({
       targetWindow,
       windowLabel,
+      enabled,
       warn,
     });
   }
@@ -52,10 +54,6 @@ function createWindowPlatformPolicy({
     targetWindow,
     windowLabel = 'overlay window',
   } = {}) {
-    applyContentProtection({
-      targetWindow,
-      windowLabel,
-    });
     setOverlayAlwaysOnTop({
       targetWindow,
       platform,

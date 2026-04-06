@@ -1,4 +1,12 @@
 function createWindowBootstrapRuntime(deps) {
+  function syncCurrentOverlayPhase() {
+    const state = deps.getState();
+    const currentPhase = state?.responseOverlayPhase || 'idle';
+    if (typeof state?.applyResponseOverlayPhase === 'function') {
+      state.applyResponseOverlayPhase({ phase: currentPhase });
+    }
+  }
+
   function createWindow() {
     const state = deps.getState();
     const mainWindow = deps.createMainWindowRuntime({
@@ -47,6 +55,7 @@ function createWindowBootstrapRuntime(deps) {
   }
 
   function createChatWindow() {
+    const state = deps.getState();
     const chatWindow = deps.createChatWindowRuntime({
       BrowserWindow: deps.BrowserWindow,
       path: deps.path,
@@ -60,13 +69,19 @@ function createWindowBootstrapRuntime(deps) {
       syncWakewordToggleForChatVisibility: deps.syncWakewordToggleForChatVisibility,
       setChatWindow: deps.setChatWindow,
       applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
+      applyContentProtection: deps.enableContentProtectionSafely,
+      overlayContentProtectionEnabled: state?.responseOverlayPhase !== 'idle'
+        && state?.responseOverlayPhase !== 'complete'
+        && state?.responseOverlayPhase !== 'error',
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
     });
     deps.setChatWindow(chatWindow);
+    syncCurrentOverlayPhase();
     return chatWindow;
   }
 
   function createResponseWindow() {
+    const state = deps.getState();
     const responseWindow = deps.createResponseWindowRuntime({
       BrowserWindow: deps.BrowserWindow,
       path: deps.path,
@@ -86,9 +101,14 @@ function createWindowBootstrapRuntime(deps) {
       syncContextLabelWindowVisibility: deps.syncContextLabelWindowVisibility,
       setResponseWindow: deps.setResponseWindow,
       applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
+      applyContentProtection: deps.enableContentProtectionSafely,
+      overlayContentProtectionEnabled: state?.responseOverlayPhase !== 'idle'
+        && state?.responseOverlayPhase !== 'complete'
+        && state?.responseOverlayPhase !== 'error',
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
     });
     deps.setResponseWindow(responseWindow);
+    syncCurrentOverlayPhase();
     return responseWindow;
   }
 

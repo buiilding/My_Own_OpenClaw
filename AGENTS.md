@@ -374,8 +374,8 @@ Stable fix contract:
 * mount the typing indicator in a stable awaiting shell
 * do not animate awaiting-to-response transitions in the minimal pill loop
 * Linux is the only OS that should hide WindieOS overlay surfaces for screenshot capture and restore them after capture
-* Windows and macOS must not add capture-time hide/show or active-loop-only screenshot hiding for the minimal chat pill or response overlay
-* Windows and macOS should rely on always-on overlay `setContentProtection(true)` while those overlay windows exist
+* Windows and macOS must not add capture-time hide/show for the minimal chat pill or response overlay
+* Windows and macOS should enable overlay `setContentProtection(true)` only during active loop phases (`awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`) and disable it again for idle and terminal phases
 
 ## Frontend Aesthetics
 

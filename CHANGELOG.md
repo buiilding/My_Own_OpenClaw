@@ -2835,3 +2835,4 @@ Includes the last 300 commits on `main`.
 - docs(frontend-overlay-capture-policy): harden frontend docs so macOS/Windows explicitly keep overlay screenshot exclusion on always via `setContentProtection(true)` while overlay windows exist, and never use active-loop-only or capture-time hide/show behavior for the minimal chat pill
 - docs(agents): add the minimal chat pill screenshot policy note so AGENTS.md explicitly keeps Linux hide/restore separate from always-on macOS/Windows content protection
 - test(frontend-overlay-capture-policy): lock overlay phase handling to interactivity/visibility only so macOS and Windows do not drift toward phase-scoped content-protection toggles for chat or response overlays
+- feat(frontend-overlay-capture-policy): make macOS and Windows overlay `setContentProtection(...)` phase-driven so chat/response overlays are protected only during active loop phases and remain visible in screenshots while idle or terminal

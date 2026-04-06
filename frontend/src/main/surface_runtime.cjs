@@ -315,6 +315,9 @@ function createSurfaceRuntime({
       getResponseOverlayPhase: () => state.responseOverlayPhase,
       getChatboxHitTestActive: () => state.chatboxHitTestActive,
       setResponseOverlayVisibilityState,
+      applyOverlayContentProtection: (options = {}) => {
+        windowPlatformPolicy.applyContentProtection(options);
+      },
       responseWindow: state.responseWindow,
       chatWindow: state.chatWindow,
       contextLabelWindow: state.contextLabelWindow,

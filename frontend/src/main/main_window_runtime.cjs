@@ -60,6 +60,7 @@ function enableContentProtectionSafely({
   targetWindow,
   platform,
   windowLabel,
+  enabled = true,
   warn = console.warn,
 }) {
   const policy = createWindowPlatformPolicy({
@@ -69,6 +70,7 @@ function enableContentProtectionSafely({
   policy.applyContentProtection({
     targetWindow,
     windowLabel,
+    enabled,
   });
 }
 
@@ -218,6 +220,8 @@ function createChatWindow({
   syncWakewordToggleForChatVisibility,
   setChatWindow,
   applyOverlayWindowPolicy = null,
+  applyContentProtection = null,
+  overlayContentProtectionEnabled = false,
   syncWindowDisplayAffinity = () => {},
   resolveAppIconPath = resolveAppIconPathRuntime,
   resolveAppIcon = resolveAppIconNativeImage,
@@ -226,6 +230,9 @@ function createChatWindow({
   const applyOverlayPolicy = typeof applyOverlayWindowPolicy === 'function'
     ? applyOverlayWindowPolicy
     : createWindowPlatformPolicy({ platform, warn }).applyOverlayWindowPolicy;
+  const applyContentProtectionPolicy = typeof applyContentProtection === 'function'
+    ? applyContentProtection
+    : createWindowPlatformPolicy({ platform, warn }).applyContentProtection;
   const appIcon = resolveAppIcon({
     resolveAppIconPath,
     warn,
@@ -243,6 +250,11 @@ function createChatWindow({
   applyOverlayPolicy({
     targetWindow: chatWindow,
     windowLabel: 'chat box',
+  });
+  applyContentProtectionPolicy({
+    targetWindow: chatWindow,
+    windowLabel: 'chat box',
+    enabled: overlayContentProtectionEnabled === true,
   });
   chatWindow.setIgnoreMouseEvents(false);
   positionChatWindow();
@@ -303,6 +315,8 @@ function createResponseWindow({
   syncContextLabelWindowVisibility,
   setResponseWindow,
   applyOverlayWindowPolicy = null,
+  applyContentProtection = null,
+  overlayContentProtectionEnabled = false,
   resolveAppIconPath = resolveAppIconPathRuntime,
   resolveAppIcon = resolveAppIconNativeImage,
   warn = console.warn,
@@ -310,6 +324,9 @@ function createResponseWindow({
   const applyOverlayPolicy = typeof applyOverlayWindowPolicy === 'function'
     ? applyOverlayWindowPolicy
     : createWindowPlatformPolicy({ platform, warn }).applyOverlayWindowPolicy;
+  const applyContentProtectionPolicy = typeof applyContentProtection === 'function'
+    ? applyContentProtection
+    : createWindowPlatformPolicy({ platform, warn }).applyContentProtection;
   const appIcon = resolveAppIcon({
     resolveAppIconPath,
     warn,
@@ -328,6 +345,11 @@ function createResponseWindow({
   applyOverlayPolicy({
     targetWindow: responseWindow,
     windowLabel: 'response overlay',
+  });
+  applyContentProtectionPolicy({
+    targetWindow: responseWindow,
+    windowLabel: 'response overlay',
+    enabled: overlayContentProtectionEnabled === true,
   });
 
   const ensureResponseRendererLoaded = createLazyRendererViewLoader({
