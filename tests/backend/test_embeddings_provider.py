@@ -135,3 +135,33 @@ async def test_embed_batch_reloads_with_cpu_after_cuda_runtime_failure(monkeypat
     assert provider.model is not None
     assert provider.model.device == "cpu"
     assert [model.device for model in DummyFallbackModel.instances] == ["cuda", "cpu"]
+
+
+@pytest.mark.asyncio
+async def test_recover_from_cuda_runtime_failure_reloads_with_cpu(monkeypatch):
+    DummyFallbackModel.instances = []
+    monkeypatch.setattr(embeddings_module, "SentenceTransformer", DummyFallbackModel)
+    provider = SentenceTransformerProvider(device="cuda")
+    await provider.initialize()
+
+    recovered = await provider.recover_from_cuda_runtime_failure(
+        RuntimeError("CUDA error: CUBLAS_STATUS_ALLOC_FAILED")
+    )
+
+    assert recovered is True
+    assert provider.model is not None
+    assert provider.model.device == "cpu"
+    assert [model.device for model in DummyFallbackModel.instances] == ["cuda", "cpu"]
+
+
+@pytest.mark.asyncio
+async def test_recover_from_cuda_runtime_failure_ignores_non_cuda_errors(monkeypatch):
+    monkeypatch.setattr(embeddings_module, "SentenceTransformer", DummyModel)
+    provider = SentenceTransformerProvider(device="cpu")
+    await provider.initialize()
+
+    recovered = await provider.recover_from_cuda_runtime_failure(RuntimeError("boom"))
+
+    assert recovered is False
+    assert provider.model is not None
+    assert provider.model.device == "cpu"
