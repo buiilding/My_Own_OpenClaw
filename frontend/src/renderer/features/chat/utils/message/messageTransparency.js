@@ -1,15 +1,13 @@
-import { isSupportedToolSchemaList } from '../../../../infrastructure/transcript/toolSchemaShape';
-
-function isCanonicalToolSchemas(value) {
-  return isSupportedToolSchemaList(value);
-}
+import { normalizeToolSchemaList } from '../../../../infrastructure/transcript/toolSchemaShape';
 
 function resolveMessageToolSchemas(message) {
-  if (isCanonicalToolSchemas(message?.toolSchemas)) {
-    return message.toolSchemas;
+  const toolSchemas = normalizeToolSchemaList(message?.toolSchemas);
+  if (toolSchemas) {
+    return toolSchemas;
   }
-  if (isCanonicalToolSchemas(message?.systemPrompt?.toolSchemas)) {
-    return message.systemPrompt.toolSchemas;
+  const systemPromptToolSchemas = normalizeToolSchemaList(message?.systemPrompt?.toolSchemas);
+  if (systemPromptToolSchemas) {
+    return systemPromptToolSchemas;
   }
   return null;
 }
@@ -31,9 +29,7 @@ export function resolveConversationToolSchemas(messages) {
 
 export function buildTransparencySectionConfigs(message, options = {}) {
   const sections = [];
-  const conversationToolSchemas = isCanonicalToolSchemas(options.conversationToolSchemas)
-    ? options.conversationToolSchemas
-    : null;
+  const conversationToolSchemas = normalizeToolSchemaList(options.conversationToolSchemas) || null;
 
   if (message.systemPrompt) {
     sections.push({

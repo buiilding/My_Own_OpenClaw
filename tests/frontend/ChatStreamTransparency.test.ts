@@ -30,7 +30,10 @@ describe('buildAssistantTranscriptTransparency', () => {
       createUserMessage({
         id: 'user-current',
         turnRef: 'turn-1',
-        systemPrompt: { content: ' system prompt ', toolSchemas: [{ name: 'read_file' }] },
+        systemPrompt: {
+          content: ' system prompt ',
+          toolSchemas: [{ type: 'function', name: 'read_file', parameters: { type: 'object' } }],
+        },
         fullUserMessage: { content: ' full user ', metadata: { source: 'manual' } },
       }),
       createAssistantMessage({ id: 'assistant-1', turnRef: 'turn-1' }),
@@ -47,7 +50,7 @@ describe('buildAssistantTranscriptTransparency', () => {
 
     expect(transparency).toEqual({
       systemPrompt: 'system prompt',
-      toolSchemas: [{ name: 'read_file' }],
+      toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
       fullUserMessage: {
         content: 'full user',
         metadata: { source: 'manual' },
@@ -60,10 +63,10 @@ describe('buildAssistantTranscriptTransparency', () => {
     const messages: ChatMessage[] = [
       createUserMessage({
         turnRef: 'turn-2',
-        toolSchemas: [{ name: 'from-user' }],
+        toolSchemas: [{ type: 'function', name: 'from-user', parameters: { type: 'object' } }],
         systemPrompt: {
           content: 'prompt',
-          toolSchemas: [{ name: 'from-system' }],
+          toolSchemas: [{ type: 'function', function: { name: 'from-system', parameters: { type: 'object' } } }],
         },
       }),
     ];
@@ -74,7 +77,9 @@ describe('buildAssistantTranscriptTransparency', () => {
       'turn-2',
     );
 
-    expect(transparency?.toolSchemas).toEqual([{ name: 'from-user' }]);
+    expect(transparency?.toolSchemas).toEqual([
+      { type: 'function', function: { name: 'from-user', parameters: { type: 'object' } } },
+    ]);
   });
 
   test('returns undefined when no useful transparency fields are available', () => {

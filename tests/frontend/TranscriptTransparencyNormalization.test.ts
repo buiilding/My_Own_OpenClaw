@@ -10,7 +10,7 @@ describe('normalizeTransparencyData', () => {
   test('normalizes and trims transparency content fields', () => {
     const normalized = normalizeTransparencyData({
       systemPrompt: '  system prompt  ',
-      toolSchemas: [{ name: 'read_file' }],
+      toolSchemas: [{ type: 'function', name: 'read_file', parameters: { type: 'object' } }],
       fullUserMessage: {
         content: '  user text  ',
         metadata: { source: 'manual' },
@@ -22,7 +22,7 @@ describe('normalizeTransparencyData', () => {
 
     expect(normalized).toEqual({
       systemPrompt: 'system prompt',
-      toolSchemas: [{ name: 'read_file' }],
+      toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
       fullUserMessage: {
         content: 'user text',
         metadata: { source: 'manual' },

@@ -9,6 +9,7 @@ import type {
 import {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,
+  buildToolSchemasUpdate,
   buildUserMessageFullUpdate,
 } from '../../utils/chatStream/chatStreamMessageUpdates';
 import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
@@ -93,7 +94,7 @@ export function useChatStreamMetadataHandlers({
     shouldIgnoreForStaleTurn,
     onEvent: (event, conversationRef) => {
       updateLastMessageBySender('user', {
-        toolSchemas: event.payload?.tool_schemas,
+        ...buildToolSchemasUpdate(event.payload),
       }, event.turn_ref || undefined, conversationRef);
       recordTrackingEvent('tool-schemas', event.turn_ref, {}, conversationRef);
     },
