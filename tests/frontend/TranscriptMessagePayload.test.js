@@ -172,6 +172,30 @@ describe('transcriptMessagePayload', () => {
     });
   });
 
+  test('toRehydratePayload preserves inline screenshots and infers refs from screenshot urls', () => {
+    const inlineScreenshot = 'A'.repeat(256);
+
+    expect(toRehydratePayload({
+      sender: 'assistant',
+      type: 'tool-output',
+      text: 'tool output',
+      screenshot: inlineScreenshot,
+    })).toEqual(expect.objectContaining({
+      screenshot_ref: null,
+      screenshot: inlineScreenshot,
+    }));
+
+    expect(toRehydratePayload({
+      sender: 'assistant',
+      type: 'tool-output',
+      text: 'tool output',
+      screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-77',
+    })).toEqual(expect.objectContaining({
+      screenshot_ref: 'artifact-77',
+      screenshot: null,
+    }));
+  });
+
   test('toRehydratePayload skips lightweight search-source transcript rows', () => {
     expect(toRehydratePayload({
       sender: 'assistant',

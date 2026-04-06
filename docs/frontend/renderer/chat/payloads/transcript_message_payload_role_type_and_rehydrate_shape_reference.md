@@ -73,12 +73,14 @@ rehydrate flows use one canonical contract for:
 - `correlation_id` (tool role only)
 - `timestamp`
 - `screenshot_ref`
-- `screenshot` (always `null`)
+- `screenshot`
 
 Normalization details:
 
 - text defaults to empty string
-- screenshot refs only preserved when string
+- screenshot attachments are normalized through `screenshotMessageState.js`
+- artifact refs are inferred from stored artifact URLs when possible
+- inline screenshots are preserved when no artifact ref exists
 - non-tool roles force `tool_name`/`correlation_id` to `null`
 
 ## Call-Site Usage
@@ -86,7 +88,9 @@ Normalization details:
 `ChatInterface` edit/retry paths use these helpers when rebuilding transcript rows and backend rehydrate payloads:
 
 - transcript rewrite loop uses `resolveTranscriptRole` + `resolveTranscriptMessageType`
+- replay screenshot rewrite uses `resolveStoredTranscriptScreenshotValue(...)` so stored transcript rows keep either the artifact ref or the inline screenshot payload
 - backend rehydrate request uses `preservedMessages.map(toRehydratePayload)`
+- backend resend query uses normalized screenshot fields so retry/edit paths do not drop inline screenshots that were never materialized as artifact refs
 
 This ensures restored history aligns with message-role/type semantics used elsewhere.
 

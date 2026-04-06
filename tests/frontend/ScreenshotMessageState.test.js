@@ -4,7 +4,9 @@ import {
   buildRemoteScreenshotAttachments,
   inferArtifactRefFromUrl,
   parseInlineScreenshotPayload,
+  resolveReplayScreenshotState,
   resolveScreenshotAttachmentState,
+  resolveStoredTranscriptScreenshotValue,
 } from '../../frontend/src/renderer/infrastructure/services/screenshotMessageState';
 
 describe('screenshotMessageState', () => {
@@ -83,6 +85,24 @@ describe('screenshotMessageState', () => {
       screenshotContentType: null,
       hasRemoteScreenshot: true,
     });
+  });
+
+  test('resolveReplayScreenshotState keeps inline screenshots when no remote ref exists', () => {
+    const inlineScreenshot = 'A'.repeat(256);
+    expect(resolveReplayScreenshotState({
+      screenshot: inlineScreenshot,
+    })).toEqual({
+      screenshot: inlineScreenshot,
+      screenshotRef: null,
+      screenshotUrl: null,
+      screenshotContentType: null,
+    });
+  });
+
+  test('resolveStoredTranscriptScreenshotValue infers artifact refs from screenshot urls', () => {
+    expect(resolveStoredTranscriptScreenshotValue({
+      screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-91',
+    })).toBe('artifact-91');
   });
 
   test('inferArtifactRefFromUrl extracts artifact ids from backend urls', () => {

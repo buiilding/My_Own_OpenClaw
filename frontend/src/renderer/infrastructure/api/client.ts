@@ -41,9 +41,11 @@ export const ApiClient = {
     captureMeta: CaptureMeta | null = null,
     attachmentContext: string | null = null,
     attachmentFilenames: string[] | null = null,
+    screenshot: string | null = null,
   ): Promise<void> => {
     const normalizedScreenshotRef = normalizeNonEmptyString(screenshotRef);
     const normalizedScreenshotUrl = normalizeNonEmptyString(screenshotUrl);
+    const normalizedInlineScreenshot = normalizeNonEmptyString(screenshot);
     const normalizedScreenshotRefs = Array.isArray(screenshotRefs)
       ? screenshotRefs
         .map((ref) => normalizeNonEmptyString(ref))
@@ -61,6 +63,7 @@ export const ApiClient = {
         text,
         conversation_ref: conversationRef,
         screenshot_ref: normalizedScreenshotRef,  // Optional screenshot reference
+        screenshot: normalizedInlineScreenshot,
         screenshot_url: normalizedScreenshotUrl, // UI/local echo hint; stripped before backend send
         screenshot_refs: normalizedScreenshotRefs.length > 0 ? normalizedScreenshotRefs : null,
         capture_meta: captureMeta,

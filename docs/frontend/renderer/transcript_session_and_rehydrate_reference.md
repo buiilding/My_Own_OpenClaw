@@ -93,7 +93,9 @@ Stored fields include:
 - `toolName`, `correlationId` (tool rows)
 - `conversationRef`, `userId`
 - optional `modelId`, `modelProvider`, `timestamp`
-- screenshot ref under IPC key `screenshot`
+- screenshot attachment under IPC key `screenshot`
+  - persisted as artifact ref when available
+  - otherwise persisted as inline screenshot payload for replay-safe rows that do not have a stored artifact ref
 - optional `transparency` object snapshot (when available on assistant turns):
   - `systemPrompt`
   - `toolSchemas`
@@ -175,6 +177,9 @@ Replay rehydrate must keep prior context stable.
 - Keep valid tool history pairs (`tool-call` + matching `tool-output`).
 - Remove only orphan tool rows (call without output, output without call).
 - Pairing/correlation normalization for this pruning path is centralized in `features/chat/utils/conversationReplayToolMessages.js` so edit+resend and try-again flows share one replay contract.
+- Replay screenshot normalization is centralized in `screenshotMessageState.js` so edit+resend and try-again:
+  - preserve inline screenshot payloads when no artifact ref exists
+  - infer artifact refs from stored artifact URLs before transcript rewrite or backend query resend
 - Backend rehydrate also repairs malformed old transcript rows by:
   - converting old `role=tool + message_type=tool-call` rows into assistant tool-call turns
   - reusing explicit `tool_call_id` values when tool outputs arrive out of order

@@ -11,6 +11,9 @@ import {
 import {
   buildStructuredToolPayload,
 } from '../../../../infrastructure/transcript/structuredToolPayload';
+import {
+  resolveReplayScreenshotState,
+} from '../../../../infrastructure/services/screenshotMessageState';
 
 const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output']);
 
@@ -83,6 +86,14 @@ export function toRehydratePayload(message) {
     ? (normalizeOptionalString(message.toolName) || toolCall?.name || null)
     : null;
   const transparency = buildTranscriptTransparencyFromChatMessage(message);
+  const screenshotAttachment = resolveReplayScreenshotState({
+    screenshot: typeof message?.screenshot === 'string' ? message.screenshot : null,
+    screenshotRef: typeof message?.screenshotRef === 'string' ? message.screenshotRef : null,
+    screenshotUrl: typeof message?.screenshotUrl === 'string' ? message.screenshotUrl : null,
+    screenshotContentType: typeof message?.screenshotContentType === 'string'
+      ? message.screenshotContentType
+      : null,
+  });
   const content = resolveRehydrateContent({
     role,
     messageType,
@@ -118,8 +129,8 @@ export function toRehydratePayload(message) {
     tool_call_id: toolCallId,
     tool_calls: normalizedToolCall ? [normalizedToolCall] : null,
     timestamp: message.timestamp || null,
-    screenshot_ref: typeof message.screenshotRef === 'string' ? message.screenshotRef : null,
-    screenshot: null,
+    screenshot_ref: screenshotAttachment.screenshotRef,
+    screenshot: screenshotAttachment.screenshot,
     transparency,
     structured_payload: structuredPayload,
   };
