@@ -51,6 +51,9 @@ export function useResponseOverlayViewModel({
       if (entry?.type === 'llm-text' || entry?.type === 'error') {
         return entry;
       }
+      if (typeof entry?.sourceEventType === 'string' && entry.sourceEventType.trim()) {
+        return entry;
+      }
     }
     return null;
   }, [responseOverlayEntries]);

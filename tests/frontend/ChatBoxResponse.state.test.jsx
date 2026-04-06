@@ -216,6 +216,37 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
+  test('shows live web-search progress rows before the first llm-text arrives', async () => {
+    setChatState([
+      { id: 'user-1', text: 'search for this', sender: 'user' },
+      {
+        id: 'search-1',
+        text: 'Searched youtube.com',
+        sender: 'assistant',
+        type: 'search-source',
+        sourceEventType: 'web-search-progress',
+        sourceChannel: 'from-backend',
+      },
+      {
+        id: 'search-2',
+        text: 'Searched ncbi.nlm.nih.gov',
+        sender: 'assistant',
+        type: 'search-source',
+        sourceEventType: 'web-search-progress',
+        sourceChannel: 'from-backend',
+      },
+    ]);
+
+    render(<ChatBoxResponse />);
+    emitOverlayPhase('tool-call');
+
+    await waitFor(() => {
+      expect(screen.getByText('Searched youtube.com')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Searched ncbi.nlm.nih.gov')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+  });
+
   test('incomplete llm response is visible but not closeable', async () => {
     setChatState([
       { id: 'user-1', text: 'question', sender: 'user' },

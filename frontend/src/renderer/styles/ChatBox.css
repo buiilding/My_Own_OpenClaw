@@ -615,7 +615,8 @@ body {
   padding-right: 22px;
 }
 
-.chatbox-response-entry-tool-explanation .chatbox-response-text {
+.chatbox-response-entry-tool-explanation .chatbox-response-text,
+.chatbox-response-entry-search-source .chatbox-response-text {
   color: var(--ui-text-secondary);
 }
 

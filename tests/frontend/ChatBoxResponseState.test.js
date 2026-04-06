@@ -20,10 +20,11 @@ describe('chatBoxResponseState', () => {
     expect(normalizeThinkingText(null)).toBe('');
   });
 
-  test('shouldRenderResponseMarkdown excludes tool-call and error response types', () => {
+  test('shouldRenderResponseMarkdown excludes non-llm overlay entry types', () => {
     expect(shouldRenderResponseMarkdown(null)).toBe(false);
     expect(shouldRenderResponseMarkdown({ type: 'tool-call' })).toBe(false);
     expect(shouldRenderResponseMarkdown({ type: 'error' })).toBe(false);
+    expect(shouldRenderResponseMarkdown({ type: 'search-source' })).toBe(false);
     expect(shouldRenderResponseMarkdown({ type: 'llm-text' })).toBe(true);
   });
 
