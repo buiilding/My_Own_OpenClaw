@@ -132,12 +132,13 @@ body {
 
 .chatbox-pill {
   --chatbox-close-center-x: calc(100% - 28px);
+  --chatbox-close-offset-x: 24px;
   --chatbox-close-button-size: 18px;
-  --chatbox-close-bump-width: 48px;
+  --chatbox-close-bump-width: 36px;
   border-radius: 26px;
   border: 1px solid var(--ui-border);
   background: var(--ui-panel-bg);
-  box-shadow: var(--ui-shadow);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
   backdrop-filter: blur(var(--ui-backdrop-blur));
   -webkit-backdrop-filter: blur(var(--ui-backdrop-blur));
   display: flex;
@@ -161,13 +162,13 @@ body {
   content: '';
   position: absolute;
   top: calc(var(--chatbox-bump-height) * -1);
-  left: calc(var(--chatbox-close-center-x) - (var(--chatbox-close-bump-width) / 2));
+  left: calc(var(--chatbox-close-center-x) - var(--chatbox-close-offset-x) - (var(--chatbox-close-bump-width) / 2));
   width: var(--chatbox-close-bump-width);
-  height: calc(var(--chatbox-bump-height) + 12px);
-  border-radius: 999px 999px 16px 16px;
+  height: calc(var(--chatbox-bump-height) + 8px);
+  border-radius: 999px 999px 12px 12px;
   border: 1px solid var(--ui-border);
   background: var(--ui-panel-bg);
-  box-shadow: var(--ui-shadow);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(var(--ui-backdrop-blur));
   -webkit-backdrop-filter: blur(var(--ui-backdrop-blur));
   z-index: 0;
@@ -479,7 +480,7 @@ body {
 
 .chatbox-close-badge {
   position: absolute;
-  left: calc(var(--chatbox-close-center-x) - (var(--chatbox-close-button-size) / 2) - 24px);
+  left: calc(var(--chatbox-close-center-x) - (var(--chatbox-close-button-size) / 2) - var(--chatbox-close-offset-x));
   top: calc((var(--chatbox-bump-height) * -1));
   width: var(--chatbox-close-button-size);
   height: var(--chatbox-close-button-size);
