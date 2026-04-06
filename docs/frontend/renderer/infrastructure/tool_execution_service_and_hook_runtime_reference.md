@@ -11,6 +11,8 @@ title: "Tool Execution Service and Hook Runtime Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
+- `frontend/src/renderer/features/chat/utils/transcriptModelContext.ts`
+- `frontend/src/renderer/features/chat/utils/toolOutputTranscriptPersistence.ts`
 - `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerMessages.ts`
 - `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerResultPersistence.ts`
 - `frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionService.ts`
@@ -92,6 +94,7 @@ Model metadata capture:
 
 - hook keeps latest `{modelId, modelProvider}` in mutable ref
 - callback metadata uses latest values without recreating service instance
+- the shared model metadata base lives in `transcriptModelContext.ts`, which is also consumed by chat-stream tool-output persistence helpers
 
 ## Single Tool Execution (`ToolExecutionService.executeTool`)
 
@@ -157,6 +160,12 @@ Failure message behavior:
   - `toolName`
   - `correlationId`
   - model id/provider snapshot
+
+Transcript persistence split:
+
+- `toolRunnerMessages.ts` owns chat-row and transcript-metadata projection for frontend-executed tool results
+- `toolRunnerResultPersistence.ts` owns append/store orchestration for single-tool, bundle, and surface-failure result paths
+- transcript `tool-output` rows are written through `toolOutputTranscriptPersistence.ts`, which is shared with backend-stream `tool-output` handling so `structuredPayload.toolCallDetails` and screenshot/model metadata fields stay aligned
 
 ## Backend Envelope Shapes from Service
 

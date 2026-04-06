@@ -19,6 +19,9 @@ title: "Frontend Renderer Transcript Docs Hub"
 ## Code Scope
 
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
+- `frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts`
+- `frontend/src/renderer/infrastructure/transcript/transcriptRecordWrite.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages.ts`

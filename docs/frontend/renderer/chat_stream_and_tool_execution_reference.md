@@ -34,8 +34,12 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamThinkingStatus.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTypes.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamBackendIngress.ts`
+- `frontend/src/renderer/features/chat/utils/transcriptModelContext.ts`
+- `frontend/src/renderer/features/chat/utils/toolOutputTranscriptPersistence.ts`
 - `frontend/src/renderer/features/chat/utils/modelThinkingCapabilities.ts`
 - `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerSurface.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerMessages.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerResultPersistence.ts`
 - `frontend/src/renderer/infrastructure/hooks/useLatestRef.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionBundleRunner.ts`
@@ -200,6 +204,13 @@ Tool-specific handler extraction (`useChatStreamToolHandlers`) ownership:
 - stores a typed transcript `structured_payload` for tool rows (single call, bundle call, and tool output details) so past-chat rendering can restore tool-call cards and tool-output details from structured data, and backend rehydrate can prefer the same payload over reparsing display JSON
 - resolves tool-output correlation id fallback via `resolveToolOutputCorrelationId(...)`
 - normalizes screenshot attachment from `payload.screenshot_ref`
+- routes transcript `tool-output` writes through `toolOutputTranscriptPersistence.ts` so backend-stream and frontend-executed tool outputs share one output-detail persistence contract
+
+Model metadata contract:
+
+- `transcriptModelContext.ts` owns the shared `{ modelId, modelProvider }` base used by transcript tool-output helpers
+- `chatStreamTypes.ts` extends that base with chat-stream-only thinking capability flags
+- tool-runner/tool-output helpers consume the shared base directly so transcript model metadata shape no longer drifts between the two codepaths
 
 Streaming-complete transcript write nuance:
 
@@ -234,6 +245,12 @@ Correlation tracking:
 - hook tracks correlation IDs to `{turnRef, conversationRef}`
 - drops late/foreign callback results using target workspace stream phase/turn checks before UI append/backend relay
 - removes correlation tracking after backend send
+
+Transcript persistence contract:
+
+- `toolRunnerResultPersistence.ts` owns chat-row append + transcript-write orchestration for frontend-executed tools
+- transcript `tool-output` row construction is delegated to `toolOutputTranscriptPersistence.ts`, matching the same helper used by `useChatStreamToolHandlers`
+- this keeps `structuredPayload.toolCallDetails`, screenshot-ref handling, and model metadata aligned between backend-streamed and frontend-executed tool outputs
 
 Surface preparation contract (`toolRunnerSurface.ts`):
 
