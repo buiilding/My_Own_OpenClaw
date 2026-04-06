@@ -576,22 +576,75 @@ class TestBrowserControllerActions:
     async def test_wait_for_load(self):
         """Test waiting for load."""
         result = await self.controller.wait_for_load("networkidle")
-        
+
         assert result["success"] is True
         self.controller._page.wait_for_load_state.assert_called_with(
             "networkidle",
             timeout=30000,
         )
-    
+
     @pytest.mark.asyncio
     async def test_evaluate(self):
         """Test JavaScript evaluation."""
         self.controller._page.evaluate.return_value = {"data": "value"}
-        
+
         result = await self.controller.evaluate("window.location.href")
-        
+
         assert result["success"] is True
         assert result["result"] == {"data": "value"}
+
+    @pytest.mark.asyncio
+    async def test_get_status_switches_to_remaining_live_tab_when_active_page_is_closed(self):
+        """Closed active pages should not break status polling."""
+        closed_page = mock.MagicMock()
+        closed_page.is_closed.return_value = True
+        closed_page.title = mock.AsyncMock(side_effect=AssertionError("closed page title should not be read"))
+        closed_page.url = "https://closed.example.com"
+
+        live_page = mock.MagicMock()
+        live_page.is_closed.return_value = False
+        live_page.title = mock.AsyncMock(return_value="Live tab")
+        live_page.url = "https://example.com/live"
+
+        self.controller._page = closed_page
+        self.controller._context.pages = [closed_page, live_page]
+        self.controller._mode = "user_chrome"
+
+        status = await self.controller.get_status()
+
+        assert status["connected"] is True
+        assert status["target_id"] == str(id(live_page))
+        assert status["title"] == "Live tab"
+        assert status["url"] == "https://example.com/live"
+        assert status["tab_count"] == 1
+        assert self.controller._page is live_page
+        closed_page.title.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_get_tabs_filters_closed_pages(self):
+        """Closed Playwright pages should be omitted from tab snapshots."""
+        closed_page = mock.MagicMock()
+        closed_page.is_closed.return_value = True
+        closed_page.title = mock.AsyncMock(side_effect=AssertionError("closed page title should not be read"))
+        closed_page.url = "https://closed.example.com"
+
+        live_page = mock.MagicMock()
+        live_page.is_closed.return_value = False
+        live_page.title = mock.AsyncMock(return_value="Live tab")
+        live_page.url = "https://example.com/live"
+
+        self.controller._context.pages = [closed_page, live_page]
+
+        tabs = await self.controller.get_tabs()
+
+        assert tabs == [
+            BrowserTab(
+                target_id=str(id(live_page)),
+                title="Live tab",
+                url="https://example.com/live",
+            )
+        ]
+        closed_page.title.assert_not_awaited()
 
 
 class TestBrowserControllerSnapshot:
