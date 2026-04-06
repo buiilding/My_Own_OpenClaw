@@ -23,6 +23,13 @@ def _validate_correlation_ref(value: str, *, field_name: str) -> str:
     return normalized
 
 
+def _validate_optional_workspace_path(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    normalized = value.strip()
+    return normalized or None
+
+
 from backend.src.api.schemas.common import BaseMessage
 
 
@@ -42,11 +49,17 @@ class QueryPayload(BaseModel):
     screenshot_refs: Optional[List[str]] = None
     capture_meta: Optional[Dict[str, Any]] = None
     system_state_internal: Optional[Dict[str, Any]] = None
+    workspace_path: Optional[str] = None
 
     @field_validator("conversation_ref")
     @classmethod
     def validate_conversation_ref(cls, value: str) -> str:
         return _validate_conversation_ref(value)
+
+    @field_validator("workspace_path")
+    @classmethod
+    def validate_workspace_path(cls, value: Optional[str]) -> Optional[str]:
+        return _validate_optional_workspace_path(value)
 
 
 class QueryMessage(BaseMessage):
@@ -100,11 +113,17 @@ class RehydrateConversationPayload(BaseModel):
     conversation_ref: str
     messages: List[RehydrateConversationEntry]
     rehydrate_mode: Literal["replace"]
+    workspace_path: Optional[str] = None
 
     @field_validator("conversation_ref")
     @classmethod
     def validate_conversation_ref(cls, value: str) -> str:
         return _validate_conversation_ref(value)
+
+    @field_validator("workspace_path")
+    @classmethod
+    def validate_workspace_path(cls, value: Optional[str]) -> Optional[str]:
+        return _validate_optional_workspace_path(value)
 
 
 class RehydrateConversationMessage(BaseMessage):

@@ -9,6 +9,7 @@ import {
 import { createTranscriptSessionState } from './sessionInfoState';
 import { normalizeTransparencyData } from './transparencyNormalization';
 import { recordImmediateTranscriptEntry } from './transcriptRecordWrite';
+import { getConversationWorkspaceBinding } from '../workspace/conversationWorkspaceBinding';
 import type {
   SessionInfo,
   TranscriptStructuredToolPayload,
@@ -321,6 +322,8 @@ const storeTranscriptEntry = async (entry: TranscriptEntry) => {
     return;
   }
 
+  const workspaceBinding = getConversationWorkspaceBinding(info.conversationRef);
+
   await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
     content: entry.content,
     userId: info.userId,
@@ -333,6 +336,8 @@ const storeTranscriptEntry = async (entry: TranscriptEntry) => {
     modelProvider: entry.modelProvider,
     screenshot: entry.screenshotRef,
     timestamp: entry.timestamp,
+    workspacePath: workspaceBinding.workspacePath || null,
+    workspaceName: workspaceBinding.workspaceName || null,
     ...(entry.transparency ? { transparency: entry.transparency } : {}),
     ...(entry.structuredPayload ? { structuredPayload: entry.structuredPayload } : {}),
   });

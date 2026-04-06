@@ -50,6 +50,11 @@ import {
   requestActiveWorkspaceSelection,
 } from '../../../infrastructure/workspace/workspaceAccess';
 import {
+  areWorkspaceBindingsEqual,
+  getConversationWorkspaceBinding,
+  workspaceSelectionToBinding,
+} from '../../../infrastructure/workspace/conversationWorkspaceBinding';
+import {
   VISIBLE_ASSISTANT_REPLY_TYPE_SET,
 } from '../utils/state/chatTurnPresentationState';
 import { buildThreadPresentationMessages } from '../utils/message/messagePresentationPipeline';
@@ -105,6 +110,20 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const activeWorkspaceRef = useRef(activeWorkspace);
   const workspaceRefreshRequestIdRef = useRef(0);
   const workspaceSelectionVersionRef = useRef(0);
+  const startWorkspaceBoundNewChat = useCallback((workspace) => {
+    return startNewChatSession({
+      clearMessages,
+      setIsSending,
+      setThinkingStatus,
+      setTokenCounts,
+      workspace,
+    });
+  }, [
+    clearMessages,
+    setIsSending,
+    setThinkingStatus,
+    setTokenCounts,
+  ]);
 
   useEffect(() => {
     audioPlayerRef.current = new PlayerService();
@@ -162,10 +181,22 @@ function ChatInterface({ focusComposerToken = 0 }) {
     const removeWorkspaceAccessUpdated = IpcBridge.on(
       ON_CHANNELS.WORKSPACE_ACCESS_UPDATED,
       (payload = {}) => {
-        applyActiveWorkspace({
+        const nextWorkspace = {
           activeWorkspaceName: typeof payload?.workspaceName === 'string' ? payload.workspaceName : '',
           activeWorkspacePath: typeof payload?.workspacePath === 'string' ? payload.workspacePath : '',
-        }, { markSelectionChange: true });
+        };
+        applyActiveWorkspace(nextWorkspace, { markSelectionChange: true });
+
+        if (payload?.source !== 'workspace_picker') {
+          return;
+        }
+
+        const currentBinding = getConversationWorkspaceBinding(getActiveConversationRef());
+        const nextBinding = workspaceSelectionToBinding(nextWorkspace);
+        if (areWorkspaceBindingsEqual(currentBinding, nextBinding)) {
+          return;
+        }
+        startWorkspaceBoundNewChat(nextWorkspace);
       },
     );
 
@@ -179,7 +210,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
       removeWorkspaceAccessUpdated?.();
       window.removeEventListener('focus', handleWindowFocus);
     };
-  }, []);
+  }, [startWorkspaceBoundNewChat]);
 
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const showToolLogs = config?.show_tool_logs === true;
@@ -361,18 +392,8 @@ function ChatInterface({ focusComposerToken = 0 }) {
   useChatInterfaceStopShortcut(canStop, handleStopQuery);
 
   const handleNewChat = useCallback(() => {
-    startNewChatSession({
-      clearMessages,
-      setIsSending,
-      setThinkingStatus,
-      setTokenCounts,
-    });
-  }, [
-    clearMessages,
-    setIsSending,
-    setThinkingStatus,
-    setTokenCounts,
-  ]);
+    startWorkspaceBoundNewChat(activeWorkspaceRef.current);
+  }, [startWorkspaceBoundNewChat]);
 
   const handleToggleSpeechMode = useCallback(() => {
     if (typeof updateConfig !== 'function') {

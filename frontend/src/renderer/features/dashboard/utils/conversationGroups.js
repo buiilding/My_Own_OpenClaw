@@ -31,6 +31,30 @@ function normalizeMatchedRole(role) {
   return role;
 }
 
+function normalizeWorkspaceGroupKey(conversation) {
+  const workspacePath = typeof conversation?.workspace_path === 'string'
+    ? conversation.workspace_path.trim()
+    : '';
+  return workspacePath || '__no_workspace__';
+}
+
+function normalizeWorkspaceGroupTitle(conversation) {
+  const workspaceName = typeof conversation?.workspace_name === 'string'
+    ? conversation.workspace_name.trim()
+    : '';
+  if (workspaceName) {
+    return workspaceName;
+  }
+  const workspacePath = typeof conversation?.workspace_path === 'string'
+    ? conversation.workspace_path.trim()
+    : '';
+  if (!workspacePath) {
+    return 'No workspace';
+  }
+  const segments = workspacePath.replace(/[\\/]+$/, '').split(/[\\/]/).filter(Boolean);
+  return segments[segments.length - 1] || workspacePath;
+}
+
 function buildConversationGroups(conversations, options = {}) {
   const {
     pinnedConversationRefs = [],
@@ -80,4 +104,52 @@ function buildConversationGroups(conversations, options = {}) {
   return groups;
 }
 
-export { buildConversationGroups };
+function buildWorkspaceConversationGroups(conversations, options = {}) {
+  const { pinnedConversationRefs = [] } = options;
+  const pinnedSet = new Set(pinnedConversationRefs);
+  const groupsByKey = new Map();
+
+  conversations.forEach((conversation, index) => {
+    const groupKey = normalizeWorkspaceGroupKey(conversation);
+    const timestampValue = Date.parse(conversation?.last_timestamp || '');
+    const item = {
+      key: conversation?.conversation_id || `workspace-conversation-${index}`,
+      title: typeof conversation?.title === 'string' && conversation.title.trim()
+        ? conversation.title.trim()
+        : 'New chat',
+      conversation,
+      isPinned: pinnedSet.has(conversation?.conversation_id),
+      timestampValue: Number.isNaN(timestampValue) ? 0 : timestampValue,
+    };
+
+    if (!groupsByKey.has(groupKey)) {
+      groupsByKey.set(groupKey, {
+        key: groupKey,
+        title: normalizeWorkspaceGroupTitle(conversation),
+        workspacePath: typeof conversation?.workspace_path === 'string'
+          ? conversation.workspace_path.trim()
+          : '',
+        items: [],
+        latestTimestampValue: item.timestampValue,
+      });
+    }
+
+    const group = groupsByKey.get(groupKey);
+    group.items.push(item);
+    group.latestTimestampValue = Math.max(group.latestTimestampValue, item.timestampValue);
+  });
+
+  return Array.from(groupsByKey.values())
+    .map((group) => ({
+      ...group,
+      items: group.items.sort((left, right) => {
+        if (left.isPinned !== right.isPinned) {
+          return left.isPinned ? -1 : 1;
+        }
+        return right.timestampValue - left.timestampValue;
+      }),
+    }))
+    .sort((left, right) => right.latestTimestampValue - left.latestTimestampValue);
+}
+
+export { buildConversationGroups, buildWorkspaceConversationGroups };

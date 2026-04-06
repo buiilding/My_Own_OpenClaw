@@ -1,6 +1,11 @@
 import { ApiClient } from '../../../infrastructure/api/client';
 import { loadConversationTranscriptMemories } from '../../../infrastructure/transcript/conversationTranscriptLoader';
 import {
+  getConversationWorkspaceBinding,
+  resolveConversationWorkspaceBinding,
+  setConversationWorkspaceBinding,
+} from '../../../infrastructure/workspace/conversationWorkspaceBinding';
+import {
   DEFAULT_USER_ID,
   toRehydrateMessagePayload,
 } from '../../dashboard/utils/episodicMemoryUtils';
@@ -149,10 +154,13 @@ export async function ensureConversationBackendState({
       conversationRef: normalizedConversationRef,
       recordKind,
     });
+    const resolvedBinding = resolveConversationWorkspaceBinding({ memories });
+    setConversationWorkspaceBinding(normalizedConversationRef, resolvedBinding);
     if (memories.length > 0) {
       await ApiClient.sendRehydrateConversation(
         normalizedConversationRef,
         memories.map(toRehydrateMessagePayload),
+        getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
       );
     }
     if (startingEpoch === connectionEpoch) {
@@ -180,7 +188,11 @@ export async function rehydrateConversationBackendState({
   }
 
   const startingEpoch = connectionEpoch;
-  await ApiClient.sendRehydrateConversation(normalizedConversationRef, messages);
+  await ApiClient.sendRehydrateConversation(
+    normalizedConversationRef,
+    messages,
+    getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
+  );
   if (startingEpoch === connectionEpoch) {
     markConversationBackendStateSynced(normalizedConversationRef);
   }

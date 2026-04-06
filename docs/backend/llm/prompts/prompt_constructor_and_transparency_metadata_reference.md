@@ -30,6 +30,13 @@ title: "Prompt Constructor and Transparency Metadata Reference"
 
 `PromptMetadata` is a typed dataclass, replacing dict-shaped metadata plumbing.
 
+Session-scoped system prompt context:
+
+- the backend system prompt template now renders both `{os}` and `{workspace_path}`
+- frontend OS remains user-scoped session context
+- `workspace_path` is conversation-scoped context supplied on query/rehydrate payloads
+- prompt rendering happens when the active session is prepared for a conversation request, so two sessions for the same user can carry different workspace bindings without mutating each other
+
 ## Tool Schema Policy Boundary
 
 When `include_tools=True`:

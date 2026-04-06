@@ -49,6 +49,7 @@
     "CHECK_PERMISSION": "check-permission",
     "RUN_PERMISSION_PROBE": "run-permission-probe",
     "REQUEST_PERMISSION": "request-permission",
+    "SET_ACTIVE_WORKSPACE": "set-active-workspace",
     "WINDOW_MINIMIZE": "window-minimize",
     "WINDOW_TOGGLE_MAXIMIZE": "window-toggle-maximize",
     "WINDOW_CLOSE": "window-close",

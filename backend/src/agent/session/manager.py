@@ -48,8 +48,9 @@ class SessionManager(ConfigSubscriber):
             assemble_runtime_session_config=lambda cfg: self._assemble_runtime_session_config(
                 cfg
             ),
-            render_system_prompt=lambda operating_system=None: get_system_prompt(
-                operating_system
+            render_system_prompt=lambda operating_system=None, workspace_path=None: get_system_prompt(
+                operating_system,
+                workspace_path,
             ),
         )
         self._active_queries = ActiveQueryTracker()
@@ -132,6 +133,18 @@ class SessionManager(ConfigSubscriber):
         self._config_service.set_frontend_operating_system(
             user_id,
             normalized_operating_system,
+        )
+
+    def set_session_workspace_path(
+        self,
+        user_id: str,
+        session: AgentSession,
+        workspace_path: Optional[str],
+    ) -> None:
+        self._config_service.apply_prompt_context_to_session(
+            session,
+            operating_system=self._config_service.frontend_operating_systems.get(user_id),
+            workspace_path=workspace_path,
         )
 
     def register_active_query_task(

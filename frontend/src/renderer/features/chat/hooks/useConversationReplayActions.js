@@ -14,6 +14,10 @@ import {
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
 import {
+  getConversationWorkspaceBinding,
+  setConversationWorkspaceBinding,
+} from '../../../infrastructure/workspace/conversationWorkspaceBinding';
+import {
   markConversationBackendStateFreshLocal,
   rehydrateConversationBackendState,
 } from '../session/conversationBackendSyncRuntime';
@@ -29,6 +33,8 @@ async function replayTranscriptMessages(messages, userId, conversationRef) {
   if (!userId) {
     return;
   }
+
+  const workspaceBinding = getConversationWorkspaceBinding(conversationRef);
 
   await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
     userId,
@@ -53,6 +59,8 @@ async function replayTranscriptMessages(messages, userId, conversationRef) {
       correlationId: message.correlationId || null,
       screenshot: storedScreenshot,
       timestamp: message.timestamp || null,
+      workspacePath: workspaceBinding.workspacePath || null,
+      workspaceName: workspaceBinding.workspaceName || null,
     });
   }
 }
@@ -67,6 +75,7 @@ async function runReplayQueryFlow({
   screenshotUrl,
   screenshot,
   deferredQueryModelConfig,
+  workspacePath,
 }) {
   await replayTranscriptMessages(transcriptMessages, userId, conversationRef);
   await rehydrateConversationBackendState({
@@ -86,6 +95,7 @@ async function runReplayQueryFlow({
     null,
     null,
     screenshot || null,
+    workspacePath || null,
   );
 }
 
@@ -94,6 +104,7 @@ function ensureConversationRef(sessionConversationRef) {
   if (!conversationRef) {
     conversationRef = createConversationRef();
     setActiveConversationRef(conversationRef);
+    setConversationWorkspaceBinding(conversationRef, null);
     markConversationBackendStateFreshLocal(conversationRef);
   }
   return conversationRef;
@@ -115,6 +126,7 @@ async function executeReplayAction({
   deferredQueryModelConfig,
 }) {
   const conversationRef = ensureConversationRef(sessionInfo.conversationRef);
+  const workspaceBinding = getConversationWorkspaceBinding(conversationRef);
   updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
 
   setMessages(replayMessages, conversationRef);
@@ -137,6 +149,7 @@ async function executeReplayAction({
       screenshotUrl: screenshotUrl || null,
       screenshot: screenshot || null,
       deferredQueryModelConfig,
+      workspacePath: workspaceBinding.workspacePath || null,
     });
   } catch (error) {
     console.error(`[ChatInterface] ${errorPrefix}:`, error);

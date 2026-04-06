@@ -23,7 +23,7 @@ class SessionConfigService:
         base_config: AppConfig,
         registry: "SessionRegistry",
         assemble_runtime_session_config: Callable[[AppConfig], AppConfig],
-        render_system_prompt: Callable[[Optional[str]], str],
+        render_system_prompt: Callable[[Optional[str], Optional[str]], str],
     ) -> None:
         self._base_config = base_config
         self._registry = registry
@@ -65,7 +65,37 @@ class SessionConfigService:
         session: "AgentSession",
         operating_system: str,
     ) -> None:
-        rendered_prompt = self._render_system_prompt(operating_system)
+        runtime = getattr(session, "runtime", None)
+        self.apply_prompt_context_to_session(
+            session,
+            operating_system=operating_system,
+            workspace_path=getattr(runtime, "workspace_path", None),
+        )
+
+    @staticmethod
+    def normalize_workspace_path(
+        workspace_path: Optional[str],
+    ) -> Optional[str]:
+        if not isinstance(workspace_path, str):
+            return None
+        normalized = workspace_path.strip()
+        return normalized or None
+
+    def apply_prompt_context_to_session(
+        self,
+        session: "AgentSession",
+        *,
+        operating_system: Optional[str],
+        workspace_path: Optional[str],
+    ) -> None:
+        normalized_workspace_path = self.normalize_workspace_path(workspace_path)
+        rendered_prompt = self._render_system_prompt(
+            operating_system,
+            normalized_workspace_path,
+        )
+        runtime = getattr(session, "runtime", None)
+        if runtime is not None:
+            runtime.workspace_path = normalized_workspace_path
         session.prompt_builder.system_prompt = rendered_prompt
         session.history.system_prompt = rendered_prompt
 

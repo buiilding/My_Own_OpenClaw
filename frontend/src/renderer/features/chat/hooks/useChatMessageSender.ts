@@ -46,6 +46,12 @@ import {
 import { resolveQueryScreenshotArtifacts } from '../utils/messageSender/queryScreenshotPipeline';
 import { resolveChatPillSendLifecycle } from '../utils/chatPill/chatPillSessionFlow';
 import { logRendererChatPillTrace } from '../utils/chatStream/chatStreamDebugTrace';
+import { fetchActiveWorkspaceSelection } from '../../../infrastructure/workspace/workspaceAccess';
+import {
+  getConversationWorkspaceBinding,
+  setConversationWorkspaceBinding,
+  workspaceSelectionToBinding,
+} from '../../../infrastructure/workspace/conversationWorkspaceBinding';
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
@@ -129,6 +135,23 @@ export function useChatMessageSender(
     return generatedRef;
   }, [hydrateSessionFromMainSnapshot, setChatActiveConversationRef]);
 
+  const ensureConversationWorkspaceBinding = useCallback(async (conversationRef: string) => {
+    const existingBinding = getConversationWorkspaceBinding(conversationRef);
+    if (existingBinding.workspacePath) {
+      return existingBinding;
+    }
+
+    try {
+      const selection = await fetchActiveWorkspaceSelection();
+      return setConversationWorkspaceBinding(
+        conversationRef,
+        workspaceSelectionToBinding(selection.workspace),
+      );
+    } catch (_error) {
+      return setConversationWorkspaceBinding(conversationRef, null);
+    }
+  }, []);
+
   const sendMessage = useCallback(async (payload: OutgoingUserMessagePayload) => {
     const normalizedPayload = normalizeOutgoingPayload(payload);
     if (!normalizedPayload) {
@@ -148,6 +171,7 @@ export function useChatMessageSender(
 
     const hadUserMessages = hasUserMessages(useChatStore.getState().messages);
     const conversationRef = await ensureConversationRef();
+    const workspaceBinding = await ensureConversationWorkspaceBinding(conversationRef);
     const sessionInfo = getTranscriptSessionInfo();
     await ensureConversationBackendState({
       conversationRef,
@@ -254,6 +278,8 @@ export function useChatMessageSender(
         captureMeta,
         attachmentContext,
         attachmentFilenames.length > 0 ? attachmentFilenames : null,
+        null,
+        workspaceBinding.workspacePath || null,
       );
       logRendererChatPillTrace({
         source: 'renderer-send',
@@ -279,6 +305,7 @@ export function useChatMessageSender(
     shouldReturnToChatboxOnSend,
     sendLifecycle,
     ensureConversationRef,
+    ensureConversationWorkspaceBinding,
     config,
   ]);
 

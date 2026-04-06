@@ -4,6 +4,7 @@ Shared conversation-list runtime helpers for LocalMemoryStore transcript windows
 
 from __future__ import annotations
 
+import json
 from typing import Any, Dict, List
 
 from memory.conversation_title_helpers import ensure_conversation_title_from_row
@@ -66,14 +67,22 @@ async def fetch_transcript_conversation_rows(
                    AND m2.model_provider IS NOT NULL AND m2.model_provider != ''
                  ORDER BY m2.timestamp DESC, m2.message_index DESC
                  LIMIT 1
-               ) as model_provider
+               ) as model_provider,
+               (
+                 SELECT metadata FROM memories m2
+                 WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
+                   AND m2.record_kind = 'transcript'
+                   AND m2.metadata IS NOT NULL AND m2.metadata != ''
+                 ORDER BY m2.timestamp DESC, m2.message_index DESC
+                 LIMIT 1
+               ) as latest_metadata
         FROM memories
         WHERE user_id = ? AND record_kind = 'transcript'
         GROUP BY conversation_id
         ORDER BY last_timestamp DESC
         LIMIT ?
     """,
-        (user_id, user_id, user_id, user_id, user_id, user_id, user_id, limit),
+        (user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, limit),
     )
     return await cursor.fetchall()
 
@@ -87,6 +96,12 @@ async def build_conversation_list_results(
     results: List[Dict[str, Any]] = []
     for row in rows:
         conversation_id = row["conversation_id"]
+        try:
+            latest_metadata = json.loads(row["latest_metadata"]) if row["latest_metadata"] else {}
+        except (TypeError, ValueError):
+            latest_metadata = {}
+        if not isinstance(latest_metadata, dict):
+            latest_metadata = {}
         title, title_source = await ensure_conversation_title_from_row(
             cursor=cursor, user_id=user_id, row=row
         )
@@ -102,6 +117,8 @@ async def build_conversation_list_results(
             "model_provider": row["model_provider"],
             "title": title.strip(),
             "title_source": title_source or "model",
+            "workspace_path": latest_metadata.get("workspace_path") or "",
+            "workspace_name": latest_metadata.get("workspace_name") or "",
             "is_resumable": bool(
                 isinstance(conversation_id, str)
                 and conversation_id.startswith("conv_")

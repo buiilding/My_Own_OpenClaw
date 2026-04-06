@@ -1,6 +1,10 @@
 import type { TokenCounts } from '../../stores/chatStore';
 import { setActiveConversationRef } from '../../../../infrastructure/transcript/TranscriptWriter';
 import { markConversationBackendStateFreshLocal } from '../../session/conversationBackendSyncRuntime';
+import {
+  setConversationWorkspaceBinding,
+  workspaceSelectionToBinding,
+} from '../../../../infrastructure/workspace/conversationWorkspaceBinding';
 import { createConversationRef } from './conversationRef';
 import { resetActiveChatSession } from './resetActiveChatSession';
 
@@ -9,6 +13,10 @@ type NewChatSessionOptions = {
   setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
   setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
   setTokenCounts: (counts: TokenCounts | null, conversationRef?: string | null) => void;
+  workspace?: {
+    activeWorkspaceName?: string | null;
+    activeWorkspacePath?: string | null;
+  } | null;
 };
 
 export const startNewChatSession = ({
@@ -16,6 +24,7 @@ export const startNewChatSession = ({
   setIsSending,
   setThinkingStatus,
   setTokenCounts,
+  workspace,
 }: NewChatSessionOptions): string => {
   resetActiveChatSession({
     clearMessages,
@@ -26,6 +35,7 @@ export const startNewChatSession = ({
 
   const nextConversationRef = createConversationRef();
   setActiveConversationRef(nextConversationRef);
+  setConversationWorkspaceBinding(nextConversationRef, workspaceSelectionToBinding(workspace));
   markConversationBackendStateFreshLocal(nextConversationRef);
   return nextConversationRef;
 };
