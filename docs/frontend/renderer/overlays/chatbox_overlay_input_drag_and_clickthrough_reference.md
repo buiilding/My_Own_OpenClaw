@@ -144,10 +144,10 @@ This is required after main-process `showChatWindow({ focus: true })`.
 - idle chatbox hover now reports a dedicated main-process hit-test state, allowing the transparent overlay window to stay click-through outside the visible pill shape while preserving direct interaction over the pill and close bump.
 - attachment preview uses an always-mounted preview row with class toggle (`has-items`) and opacity/translate animation.
 - non-dashboard input pill still has deterministic CSS baselines and no separate resize channel:
-  - default compact pill: no `with-preview` class (`88px` anchor fallback / compact stacked pill)
-  - preview-expanded pill: `with-preview` on shell/pill while image attachments exist (`140px` anchor fallback)
+  - default compact pill: no `with-preview` class (`64px` anchor fallback / `56px` pill)
+  - preview-expanded pill: `with-preview` on shell/pill while image attachments exist (`116px` anchor fallback)
   - multiline composer growth can exceed those fallback heights because the measured shell height becomes the live visual anchor
-- compact/default and multiline states keep the controls in a dedicated bottom rail under the composer text region so `Shift+Enter` growth does not reflow or flicker the icon row.
+- multiline resize reporting is batched to one animation-frame commit so the main process repositions the pill from the settled shell height instead of intermediate `ResizeObserver` steps.
 - manual drag persistence now stores the dragged bottom edge rather than the raw overlay top-left `y`, so vertical dragging still works while multiline/preview growth continues to move upward from the same visual baseline.
 - response/typing/context-label overlays in main process use the reported chat visual anchor height so their vertical position follows the visible pill baseline instead of the full transparent chat window height.
 - response/typing overlay uses a tighter chat-to-response vertical gap (`2px` in current non-dashboard main runtime) to keep the response pill visually near the chat pill.

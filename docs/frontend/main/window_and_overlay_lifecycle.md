@@ -228,9 +228,9 @@ Main bridge fanout channel (`ipc.cjs`):
 - keeps preview lane always mounted and toggles animated visibility on image attach/remove
 - current production control set is: close badge, settings button, attachment button, screenshot toggle, text-to-speech toggle, and send button; `dev_ui=1` adds a compaction button
 - screenshot and text-to-speech toggles share one icon-color contract: enabled stays blue both at rest and on hover, while disabled stays white both at rest and on hover
-- uses deterministic class-based layout states: compact default pill (`88px` anchor fallback) and fixed expanded `with-preview` pill while image attachments exist (`140px` anchor fallback)
-- the pill body uses a compact stacked layout: textarea region above a fixed controls rail, so multiline `Shift+Enter` growth does not move the icon row
-- reports chat visual anchor height via IPC from the live shell height (`88` compact fallback / `140` preview fallback), so multiline composer growth and preview mode both re-anchor the chat/response stack upward while keeping the pill bottom-grounded
+- uses deterministic class-based layout states: compact default pill (`64px` anchor fallback / `56px` pill) and fixed expanded `with-preview` pill while image attachments exist
+- reports chat visual anchor height via IPC from the live shell height (`64` compact fallback / `116` preview fallback), so multiline composer growth and preview mode both re-anchor the chat/response stack upward while keeping the pill bottom-grounded
+- renderer batches resize-driven anchor reports to one animation-frame commit so the main process repositions from settled multiline shell height instead of intermediate resize measurements
 - main-process overlay phase handler owns click-through + `focusable=false` during active loop phases; renderer no longer toggles overlay interactivity directly
 - listens for `chatbox-focus` to focus input when unlocked; renderer no longer re-focuses on generic window/tab visibility events
 - sends `MOVE_CHATBOX_TO` while dragging

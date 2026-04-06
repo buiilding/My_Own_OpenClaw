@@ -28,7 +28,11 @@ const mockSetIsSending = jest.fn();
 const mockUpdateStreamTracking = jest.fn();
 const originalFileReader = global.FileReader;
 const originalResizeObserver = global.ResizeObserver;
+const originalRequestAnimationFrame = window.requestAnimationFrame;
+const originalCancelAnimationFrame = window.cancelAnimationFrame;
 const resizeObserverInstances = [];
+const requestAnimationFrameCallbacks = new Map();
+let nextAnimationFrameId = 1;
 
 const setWindowScreenPosition = (x, y) => {
   Object.defineProperty(window, 'screenX', {
@@ -64,6 +68,13 @@ function buildImagePasteEvent(itemCount = 1) {
       })),
     },
   };
+}
+
+async function flushAnimationFrames() {
+  const queuedCallbacks = Array.from(requestAnimationFrameCallbacks.values());
+  requestAnimationFrameCallbacks.clear();
+  queuedCallbacks.forEach((callback) => callback(0));
+  await Promise.resolve();
 }
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
@@ -186,6 +197,8 @@ describe('ChatBox overlay mouse ignore', () => {
     mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
     resizeObserverInstances.length = 0;
+    requestAnimationFrameCallbacks.clear();
+    nextAnimationFrameId = 1;
     global.ResizeObserver = class ResizeObserver {
       constructor(callback) {
         this.callback = callback;
@@ -196,12 +209,22 @@ describe('ChatBox overlay mouse ignore', () => {
 
       disconnect() {}
     };
+    window.requestAnimationFrame = (callback) => {
+      const id = nextAnimationFrameId += 1;
+      requestAnimationFrameCallbacks.set(id, callback);
+      return id;
+    };
+    window.cancelAnimationFrame = (id) => {
+      requestAnimationFrameCallbacks.delete(id);
+    };
   });
 
   afterEach(() => {
     jest.useRealTimers();
     global.FileReader = originalFileReader;
     global.ResizeObserver = originalResizeObserver;
+    window.requestAnimationFrame = originalRequestAnimationFrame;
+    window.cancelAnimationFrame = originalCancelAnimationFrame;
   });
 
   test('does not manage overlay click-through from the renderer and avoids live window resize', () => {
@@ -212,7 +235,7 @@ describe('ChatBox overlay mouse ignore', () => {
     );
     expect(sawRendererMouseToggle).toBe(false);
     expect(mockInvoke.mock.calls.some(
-      ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 88,
+      ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 64,
     )).toBe(true);
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
@@ -222,20 +245,29 @@ describe('ChatBox overlay mouse ignore', () => {
     const shell = container.querySelector('.chatbox-shell');
 
     expect(shell).toBeTruthy();
+    mockInvoke.mockClear();
 
     Object.defineProperty(shell, 'offsetHeight', {
       configurable: true,
-      value: 94,
+      value: 90,
     });
 
     await act(async () => {
       resizeObserverInstances.forEach((observer) => observer.callback());
+      Object.defineProperty(shell, 'offsetHeight', {
+        configurable: true,
+        value: 94,
+      });
+      resizeObserverInstances.forEach((observer) => observer.callback());
+      await flushAnimationFrames();
       await Promise.resolve();
     });
 
-    expect(mockInvoke.mock.calls.some(
-      ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 88,
-    )).toBe(true);
+    const anchorHeightCalls = mockInvoke.mock.calls.filter(
+      ([channel]) => channel === 'set-chatbox-visual-anchor-height',
+    );
+    expect(anchorHeightCalls).toHaveLength(1);
+    expect(anchorHeightCalls[0]?.[1]?.height).toBe(88);
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
 
@@ -517,11 +549,8 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('Enter sends while Shift+Enter keeps multiline content in the pill composer', async () => {
-    const { container } = render(<ChatBox />);
+    render(<ChatBox />);
     const input = screen.getByPlaceholderText('Ask me anything...');
-    expect(container.querySelector('.chatbox-composer-stack')).toBeTruthy();
-    expect(container.querySelector('.chatbox-controls-row')).toBeTruthy();
-    expect(container.querySelector('.chatbox-main-row')).toBeNull();
 
     fireEvent.change(input, { target: { value: 'line one', selectionStart: 8 } });
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: true });
