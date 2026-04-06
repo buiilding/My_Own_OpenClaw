@@ -1,17 +1,13 @@
 import {
-  buildRehydrateToolCall,
   normalizeMessageType,
   normalizeOptionalString,
   normalizeTranscriptTransparency,
-  parseToolCallPayload,
-  resolveRehydrateContent,
 } from '../../../infrastructure/transcript/rehydratePayload';
 import {
-  buildToolCallMessageState,
-} from '../../../infrastructure/transcript/toolCallMessageState';
+  buildRehydrateMessagePayload,
+} from '../../../infrastructure/transcript/rehydrateMessageState';
 import {
   buildStoredTranscriptToolMessageState,
-  buildStructuredToolPayload,
   readStructuredToolPayload,
 } from '../../../infrastructure/transcript/structuredToolPayload';
 import {
@@ -257,7 +253,6 @@ export function toRehydrateMessagePayload(memory) {
   const metadata = memory?.metadata || {};
   const role = memory?.role || metadata?.role || 'assistant';
   const messageType = memory?.message_type || metadata?.message_type || null;
-  const normalizedMessageType = normalizeMessageType(messageType);
   const screenshotAttachment = resolveScreenshotAttachment(memory);
   const transparency = resolveTranscriptTransparency(memory);
   const structuredToolPayload = readStructuredToolPayload(
@@ -266,66 +261,21 @@ export function toRehydrateMessagePayload(memory) {
     metadata?.structured_payload,
     metadata?.structuredPayload,
   );
-  const parsedToolCall = normalizedMessageType === 'tool-call'
-    ? (
-      structuredToolPayload?.kind === 'tool-call'
-        ? structuredToolPayload.toolCall
-        : buildToolCallMessageState({
-          rawContent: memory?.content || '',
-          rawToolCall: parseToolCallPayload(memory?.content || ''),
-          fallbackToolName: normalizeOptionalString(memory?.tool_name || metadata?.tool_name) || null,
-          fallbackToolCallId: normalizeOptionalString(
-            memory?.tool_call_id
-              || metadata?.tool_call_id
-              || memory?.correlation_id
-              || metadata?.correlation_id,
-          ) || null,
-        }).modelFacingToolCall
-    )
-    : null;
-  const resolvedToolCallId = normalizeOptionalString(
-    memory?.tool_call_id
-      || metadata?.tool_call_id
-      || memory?.correlation_id
-      || metadata?.correlation_id
-      || parsedToolCall?.id,
-  );
-  const resolvedToolName = normalizeOptionalString(
-    memory?.tool_name
-      || metadata?.tool_name
-      || parsedToolCall?.name,
-  );
-  const normalizedToolCall = normalizedMessageType === 'tool-call'
-    ? buildRehydrateToolCall({
-      parsedToolCall,
-      fallbackToolName: resolvedToolName,
-      fallbackToolCallId: resolvedToolCallId,
-    })
-    : null;
-  const content = resolveRehydrateContent(
-    {
-      role,
-      messageType,
-      content: memory?.content || '',
-      transparency,
-    },
-  );
-
-  return {
+  return buildRehydrateMessagePayload({
     role,
-    content,
-    message_type: messageType,
-    tool_name: resolvedToolName,
-    correlation_id: memory?.correlation_id || metadata?.correlation_id || null,
-    tool_call_id: resolvedToolCallId,
-    tool_calls: normalizedToolCall ? [normalizedToolCall] : null,
+    messageType,
+    rawContent: memory?.content || '',
     timestamp: memory?.timestamp || null,
-    screenshot_ref: screenshotAttachment.screenshotRef,
-    screenshot: screenshotAttachment.screenshot,
+    correlationId: memory?.correlation_id || metadata?.correlation_id || null,
     transparency,
-    structured_payload: structuredToolPayload || buildStructuredToolPayload({
-      kind: normalizedMessageType,
-      toolCall: parsedToolCall,
-    }),
-  };
+    screenshotAttachment,
+    structuredPayload: structuredToolPayload,
+    fallbackToolName: normalizeOptionalString(memory?.tool_name || metadata?.tool_name) || null,
+    fallbackToolCallId: normalizeOptionalString(
+      memory?.tool_call_id
+        || metadata?.tool_call_id
+        || memory?.correlation_id
+        || metadata?.correlation_id,
+    ) || null,
+  });
 }
