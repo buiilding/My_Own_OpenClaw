@@ -7,29 +7,48 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 from backend.src.agent.history.history_admission import (
+    normalize_history_structured_content,
     normalize_history_text_content,
     should_store_assistant_history_message,
+)
+from backend.src.api.services.rehydrate_tool_call_normalization import (
+    extract_thought_signature as extract_thought_signature_helper,
+)
+from backend.src.api.services.rehydrate_tool_call_normalization import (
+    extract_tool_call_details as extract_tool_call_details_helper,
+)
+from backend.src.api.services.rehydrate_tool_call_normalization import (
+    normalize_tool_calls as normalize_tool_calls_helper,
 )
 from backend.src.api.services.rehydrate_tool_linkage_repair import (
     RehydrateToolLinkageState,
 )
-from backend.src.api.services.rehydrate_tool_call_normalization import (
-    extract_thought_signature as extract_thought_signature_helper,
-    extract_tool_call_details as extract_tool_call_details_helper,
-    normalize_tool_calls as normalize_tool_calls_helper,
-)
 from backend.src.api.services.rehydrate_transparency_resolution import (
     extract_system_prompt_from_transparency as extract_system_prompt_from_transparency_helper,
+)
+from backend.src.api.services.rehydrate_transparency_resolution import (
     normalize_optional_string as normalize_optional_string_helper,
+)
+from backend.src.api.services.rehydrate_transparency_resolution import (
     normalize_transparency as normalize_transparency_helper,
+)
+from backend.src.api.services.rehydrate_transparency_resolution import (
     resolve_rehydrated_content as resolve_rehydrated_content_helper,
+)
+from backend.src.api.services.rehydrate_transparency_resolution import (
     resolve_transparency_content as resolve_transparency_content_helper,
 )
 
-_TOOL_CALL_MESSAGE_TYPES = frozenset({"tool-call", "tool_call", "tool-bundle", "tool_bundle"})
-_TOOL_OUTPUT_MESSAGE_TYPES = frozenset({"tool-output", "tool_output", "tool-result", "tool_result"})
+_TOOL_CALL_MESSAGE_TYPES = frozenset(
+    {"tool-call", "tool_call", "tool-bundle", "tool_bundle"}
+)
+_TOOL_OUTPUT_MESSAGE_TYPES = frozenset(
+    {"tool-output", "tool_output", "tool-result", "tool_result"}
+)
 _INTERNAL_BUNDLE_MESSAGE_TYPES = frozenset({"tool-bundle", "tool_bundle"})
-_INTERNAL_BUNDLE_TOOL_NAMES = frozenset({"tool-bundle", "tool_bundle", "bundled_tools", "bundled-tools"})
+_INTERNAL_BUNDLE_TOOL_NAMES = frozenset(
+    {"tool-bundle", "tool_bundle", "bundled_tools", "bundled-tools"}
+)
 
 
 @dataclass(slots=True)
@@ -111,7 +130,9 @@ class RehydrateEntryNormalizer:
         if not isinstance(structured_payload, dict):
             return []
 
-        normalized_tool_calls = self.normalize_tool_calls(structured_payload.get("toolCalls"))
+        normalized_tool_calls = self.normalize_tool_calls(
+            structured_payload.get("toolCalls")
+        )
         if normalized_tool_calls:
             return normalized_tool_calls
 
@@ -161,7 +182,9 @@ class RehydrateEntryNormalizer:
             return [assistant_entry], None
 
         if normalized_message_type in _TOOL_CALL_MESSAGE_TYPES:
-            structured_tool_calls = self.extract_structured_tool_calls(structured_payload)
+            structured_tool_calls = self.extract_structured_tool_calls(
+                structured_payload
+            )
             if structured_tool_calls:
                 structured_tool_call = structured_tool_calls[0]
                 call_name = structured_tool_call["name"]
@@ -169,11 +192,15 @@ class RehydrateEntryNormalizer:
                 parsed_call_id = structured_tool_call["id"]
                 thought_signature = self.extract_thought_signature(structured_tool_call)
             else:
-                call_name, call_arguments, parsed_call_id, thought_signature = self.extract_tool_call_details(
-                    content=content,
-                    fallback_tool_name=normalized_tool_name,
+                call_name, call_arguments, parsed_call_id, thought_signature = (
+                    self.extract_tool_call_details(
+                        content=content,
+                        fallback_tool_name=normalized_tool_name,
+                    )
                 )
-            call_id = message_tool_call_id or parsed_call_id or f"rehydrate_tool_call_{index}"
+            call_id = (
+                message_tool_call_id or parsed_call_id or f"rehydrate_tool_call_{index}"
+            )
             state.add_pending_tool_call_ids([call_id])
             return (
                 [
@@ -191,11 +218,16 @@ class RehydrateEntryNormalizer:
                 call_id,
             )
 
-        if entry.role == "tool" or normalized_message_type in _TOOL_OUTPUT_MESSAGE_TYPES:
+        if (
+            entry.role == "tool"
+            or normalized_message_type in _TOOL_OUTPUT_MESSAGE_TYPES
+        ):
             call_id = message_tool_call_id
             consumed_pending_tool_call_id: Optional[str] = None
             if call_id is not None:
-                consumed_pending_tool_call_id = state.consume_pending_tool_call_id(call_id)
+                consumed_pending_tool_call_id = state.consume_pending_tool_call_id(
+                    call_id
+                )
             elif state.pending_tool_call_ids:
                 consumed_pending_tool_call_id = state.consume_pending_tool_call_id()
                 call_id = consumed_pending_tool_call_id
@@ -204,9 +236,11 @@ class RehydrateEntryNormalizer:
 
             entries: List[Dict[str, Any]] = []
             if call_id not in state.known_tool_call_ids:
-                call_name, call_arguments, _, thought_signature = self.extract_tool_call_details(
-                    content=content,
-                    fallback_tool_name=normalized_tool_name,
+                call_name, call_arguments, _, thought_signature = (
+                    self.extract_tool_call_details(
+                        content=content,
+                        fallback_tool_name=normalized_tool_name,
+                    )
                 )
                 entries.append(
                     self.build_assistant_tool_call_entry(
@@ -246,6 +280,11 @@ class RehydrateEntryNormalizer:
             "timestamp": entry.timestamp,
             "image_data": image_data,
         }
+        structured_content = normalize_history_structured_content(
+            content, role=entry.role
+        )
+        if structured_content is not None:
+            hydrated_entry["structured_content"] = structured_content
         normalized_tool_calls = self.extract_structured_tool_calls(structured_payload)
         if not normalized_tool_calls:
             normalized_tool_calls = self.normalize_tool_calls(entry.tool_calls)
@@ -289,6 +328,10 @@ class RehydrateEntryNormalizer:
         return {
             "role": "assistant",
             "content": normalized_content,
+            "structured_content": normalize_history_structured_content(
+                content,
+                role="assistant",
+            ),
             "message_type": "llm-text",
             "tool_name": None,
             "correlation_id": None,
@@ -303,7 +346,9 @@ class RehydrateEntryNormalizer:
         return message_type.strip().lower().replace("_", "-")
 
     @classmethod
-    def normalize_stored_message_type(cls, message_type: Optional[str]) -> Optional[str]:
+    def normalize_stored_message_type(
+        cls, message_type: Optional[str]
+    ) -> Optional[str]:
         normalized = cls.normalize_message_type(message_type)
         if normalized in {"context-compaction", "context-summary"}:
             return "context-compaction"
@@ -411,6 +456,10 @@ class RehydrateEntryNormalizer:
         return {
             "role": "assistant",
             "content": normalized_content,
+            "structured_content": normalize_history_structured_content(
+                content,
+                role="assistant",
+            ),
             "message_type": message_type,
             "tool_name": call_name,
             "correlation_id": call_id,

@@ -322,6 +322,48 @@ def test_replace_with_entries_rehydrates_order_and_images():
     assert stored[1].image_data == "img-2"
 
 
+def test_replace_with_entries_preserves_structured_tool_content_for_llm_replay():
+    history = ConversationHistory()
+
+    history.replace_with_entries(
+        [
+            {
+                "role": "tool",
+                "content": [
+                    {"type": "output_text", "text": "Tool said hello."},
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": "data:image/png;base64,abc123"},
+                    },
+                ],
+                "message_type": "tool-output",
+                "tool_call_id": "call_1",
+            },
+        ]
+    )
+
+    stored = history.get_stored_messages()
+    assert len(stored) == 1
+    assert stored[0].content == "Tool said hello."
+    assert stored[0].structured_content == [
+        {"type": "output_text", "text": "Tool said hello."},
+        {"type": "image_url", "image_url": {"url": "data:image/png;base64,abc123"}},
+    ]
+    assert history.get_history() == [
+        {
+            "role": "tool",
+            "content": [
+                {"type": "output_text", "text": "Tool said hello."},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": "data:image/png;base64,abc123"},
+                },
+            ],
+            "tool_call_id": "call_1",
+        }
+    ]
+
+
 def test_replace_with_entries_recovers_user_query_raw_and_compaction_facts():
     history = ConversationHistory()
 

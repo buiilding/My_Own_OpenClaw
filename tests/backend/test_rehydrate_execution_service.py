@@ -137,7 +137,9 @@ async def test_execute_raises_when_artifact_store_unavailable_for_screenshot_ref
     )
 
     with pytest.raises(ValueError, match="artifact store unavailable"):
-        await service.execute(message, "user-1", artifact_store_cls=_FailingArtifactStore)
+        await service.execute(
+            message, "user-1", artifact_store_cls=_FailingArtifactStore
+        )
 
 
 @pytest.mark.asyncio
@@ -342,7 +344,9 @@ def test_normalize_rehydrated_entry_reuses_pending_tool_call_id_for_tool_output(
         correlation_id=None,
         tool_call_id=None,
         timestamp="2026-02-26T00:00:00Z",
-        tool_calls=[{"id": "call-1", "name": "read_file", "arguments": {"path": "/tmp/a.txt"}}],
+        tool_calls=[
+            {"id": "call-1", "name": "read_file", "arguments": {"path": "/tmp/a.txt"}}
+        ],
     )
     entries, pending = service._normalize_rehydrated_entry(
         entry=assistant_entry,
@@ -409,6 +413,9 @@ def test_normalize_rehydrated_entry_preserves_structured_assistant_text_content(
         {
             "role": "assistant",
             "content": "Visible answer.",
+            "structured_content": [
+                {"type": "output_text", "text": "Visible answer."},
+            ],
             "message_type": "assistant-message",
             "tool_name": None,
             "correlation_id": None,
@@ -448,6 +455,56 @@ def test_normalize_rehydrated_entry_drops_assistant_rows_with_only_thinking_cont
     assert pending is None
 
 
+def test_normalize_rehydrated_entry_preserves_structured_tool_content():
+    service = RehydrateExecutionService(_FakeSessionManager())
+    known_tool_call_ids = {"call-1"}
+    entry = SimpleNamespace(
+        role="tool",
+        content=[
+            {"type": "output_text", "text": "done"},
+            {
+                "type": "image_url",
+                "image_url": {"url": "data:image/png;base64,abc123"},
+            },
+        ],
+        message_type="tool-output",
+        tool_name="read_file",
+        correlation_id=None,
+        tool_call_id="call-1",
+        timestamp="2026-02-26T00:00:01Z",
+        tool_calls=None,
+    )
+
+    entries, pending = service._normalize_rehydrated_entry(
+        entry=entry,
+        index=23,
+        image_data=None,
+        known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_id="call-1",
+        transparency=None,
+    )
+
+    assert entries == [
+        {
+            "role": "tool",
+            "content": [
+                {"type": "output_text", "text": "done"},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": "data:image/png;base64,abc123"},
+                },
+            ],
+            "message_type": "tool-output",
+            "tool_name": "read_file",
+            "correlation_id": None,
+            "timestamp": "2026-02-26T00:00:01Z",
+            "image_data": None,
+            "tool_call_id": "call-1",
+        }
+    ]
+    assert pending is None
+
+
 def test_normalize_rehydrated_entry_consumes_matching_pending_tool_call_id():
     service = RehydrateExecutionService(_FakeSessionManager())
     known_tool_call_ids = {"call-1", "call-2"}
@@ -482,9 +539,11 @@ def test_normalize_rehydrated_entry_consumes_matching_pending_tool_call_id():
 
 def test_extract_tool_call_details_reads_arguments_alias_field():
     service = RehydrateExecutionService(_FakeSessionManager())
-    tool_name, arguments, tool_call_id, thought_signature = service._extract_tool_call_details(
-        content='{"name":"replace","arguments":{"path":"/tmp/a.txt"}}',
-        fallback_tool_name="fallback_tool",
+    tool_name, arguments, tool_call_id, thought_signature = (
+        service._extract_tool_call_details(
+            content='{"name":"replace","arguments":{"path":"/tmp/a.txt"}}',
+            fallback_tool_name="fallback_tool",
+        )
     )
 
     assert tool_name == "replace"
@@ -496,18 +555,22 @@ def test_extract_tool_call_details_reads_arguments_alias_field():
 def test_extract_tool_call_details_falls_back_for_invalid_payload_shapes():
     service = RehydrateExecutionService(_FakeSessionManager())
 
-    tool_name, arguments, tool_call_id, thought_signature = service._extract_tool_call_details(
-        content='["not", "a", "dict"]',
-        fallback_tool_name="fallback_tool",
+    tool_name, arguments, tool_call_id, thought_signature = (
+        service._extract_tool_call_details(
+            content='["not", "a", "dict"]',
+            fallback_tool_name="fallback_tool",
+        )
     )
     assert tool_name == "fallback_tool"
     assert arguments == {}
     assert tool_call_id is None
     assert thought_signature is None
 
-    tool_name, arguments, tool_call_id, thought_signature = service._extract_tool_call_details(
-        content="not-json",
-        fallback_tool_name=None,
+    tool_name, arguments, tool_call_id, thought_signature = (
+        service._extract_tool_call_details(
+            content="not-json",
+            fallback_tool_name=None,
+        )
     )
     assert tool_name == "unknown_tool"
     assert arguments == {}
@@ -724,8 +787,16 @@ async def test_execute_repairs_multi_tool_turn_with_one_missing_output():
                 "content": "",
                 "message_type": "assistant-message",
                 "tool_calls": [
-                    {"id": "call-1", "name": "run_shell_command", "arguments": {"command": "pwd"}},
-                    {"id": "call-2", "name": "read_file", "arguments": {"file_path": "/tmp/a.txt"}},
+                    {
+                        "id": "call-1",
+                        "name": "run_shell_command",
+                        "arguments": {"command": "pwd"},
+                    },
+                    {
+                        "id": "call-2",
+                        "name": "read_file",
+                        "arguments": {"file_path": "/tmp/a.txt"},
+                    },
                 ],
             },
             {
@@ -747,6 +818,15 @@ async def test_execute_repairs_multi_tool_turn_with_one_missing_output():
 
 
 def test_normalize_stored_message_type_collapses_context_summary_variants():
-    assert RehydrateExecutionService._normalize_stored_message_type("context_summary") == "context-compaction"
-    assert RehydrateExecutionService._normalize_stored_message_type("context-compaction") == "context-compaction"
-    assert RehydrateExecutionService._normalize_stored_message_type("assistant-message") == "assistant-message"
+    assert (
+        RehydrateExecutionService._normalize_stored_message_type("context_summary")
+        == "context-compaction"
+    )
+    assert (
+        RehydrateExecutionService._normalize_stored_message_type("context-compaction")
+        == "context-compaction"
+    )
+    assert (
+        RehydrateExecutionService._normalize_stored_message_type("assistant-message")
+        == "assistant-message"
+    )

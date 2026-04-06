@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from backend.src.agent.history.history_admission import (
     normalize_assistant_history_structured_content,
+    normalize_history_structured_content,
     normalize_history_text_content,
     should_store_assistant_history_message,
 )
@@ -380,14 +381,13 @@ class ConversationHistory:
                 stored_role = MessageRole.ASSISTANT
             else:
                 stored_role = MessageRole.USER
-            raw_content = entry.get("content")
+            raw_content = entry.get("structured_content", entry.get("content"))
             normalized_content = normalize_history_text_content(raw_content)
             tool_calls = entry.get("tool_calls")
-            structured_content = None
-            if stored_role == MessageRole.ASSISTANT:
-                structured_content = normalize_assistant_history_structured_content(
-                    raw_content
-                )
+            structured_content = normalize_history_structured_content(
+                raw_content,
+                role=stored_role.value,
+            )
             if (
                 stored_role == MessageRole.ASSISTANT
                 and not should_store_assistant_history_message(
