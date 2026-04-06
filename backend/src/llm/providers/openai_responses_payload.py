@@ -5,10 +5,13 @@ from __future__ import annotations
 from typing import Any, Dict, Iterable, List
 
 from backend.src.core.infrastructure.exceptions import LLMAPIError
+from backend.src.core.messages.content_blocks import iter_text_content_fragments
 from backend.src.core.types.schemas import NormalizedLLMResponse
 from backend.src.core.utils.raw_tool_call_preview import build_raw_tool_call_preview
 from backend.src.llm.providers.response_parsing import get_value
-from backend.src.tools.web_search.source_normalization import extract_openai_web_search_sources
+from backend.src.tools.web_search.source_normalization import (
+    extract_openai_web_search_sources,
+)
 
 _INVALID_OPENAI_RESPONSE = "Invalid response from OpenAI"
 _FUNCTION_CALL_ARGUMENTS_PREVIEW_CHARS = 4000
@@ -29,7 +32,9 @@ def preview_function_arguments(raw_arguments: str) -> str:
     return f"{payload[:_FUNCTION_CALL_ARGUMENTS_PREVIEW_CHARS]}...[truncated]"
 
 
-def normalize_tool_call_arguments(provider: Any, raw_arguments: Any, *, model: str) -> Dict[str, Any]:
+def normalize_tool_call_arguments(
+    provider: Any, raw_arguments: Any, *, model: str
+) -> Dict[str, Any]:
     return provider._normalize_tool_arguments(
         raw_arguments,
         model=model,
@@ -79,14 +84,13 @@ def normalize_openai_responses_payload(
         item_type = str(get_value(item, "type") or "").strip()
         if item_type == "message":
             content = get_value(item, "content")
-            if isinstance(content, list):
-                for block in content:
-                    block_type = str(get_value(block, "type") or "").strip()
-                    if block_type not in {"output_text", "text"}:
-                        continue
-                    text = get_value(block, "text") or get_value(block, "content")
-                    if isinstance(text, str) and text:
-                        message_text_parts.append(text)
+            message_text_parts.extend(
+                iter_text_content_fragments(
+                    content,
+                    include_refusal=True,
+                    stringify_scalars=False,
+                )
+            )
             continue
 
         if item_type == "computer_call":
@@ -96,7 +100,11 @@ def normalize_openai_responses_payload(
                 or f"tool_call_{len(tool_calls)}"
             )
             raw_actions = get_value(item, "actions")
-            actions = [dict(action) for action in raw_actions] if isinstance(raw_actions, list) else []
+            actions = (
+                [dict(action) for action in raw_actions]
+                if isinstance(raw_actions, list)
+                else []
+            )
             tool_calls.append(
                 {
                     "id": call_id,
@@ -109,7 +117,9 @@ def normalize_openai_responses_payload(
         if item_type == "function_call":
             raw_arguments = get_value(item, "arguments")
             try:
-                arguments = normalize_tool_call_arguments(provider, raw_arguments, model=model)
+                arguments = normalize_tool_call_arguments(
+                    provider, raw_arguments, model=model
+                )
             except LLMAPIError as exc:
                 preview = preview_function_arguments(str(raw_arguments or ""))
                 tool_call_id = str(
@@ -135,7 +145,9 @@ def normalize_openai_responses_payload(
                         "llm_tool_name": tool_name,
                         "llm_tool_call_raw_tool_call_preview": raw_tool_call_preview,
                         "llm_tool_call_raw_arguments_preview": preview,
-                        "llm_tool_call_raw_arguments_preview_truncated": preview.endswith("...[truncated]"),
+                        "llm_tool_call_raw_arguments_preview_truncated": preview.endswith(
+                            "...[truncated]"
+                        ),
                     },
                 ) from exc
 

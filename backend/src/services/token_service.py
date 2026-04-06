@@ -11,6 +11,7 @@ from typing import Any, Dict, Iterable, Optional
 
 import litellm
 
+from backend.src.core.messages.content_blocks import extract_text_from_content_part
 from backend.src.core.messages.tool_call_thought_signature import (
     apply_tool_call_thought_signature,
     extract_tool_call_thought_signature,
@@ -110,7 +111,9 @@ def _normalize_assistant_tool_calls(tool_calls: Any) -> Optional[list[Dict[str, 
             continue
 
         # Canonical shape: {"id", "type":"function", "function": {"name", "arguments"}}
-        if raw_call.get("type") == "function" and isinstance(raw_call.get("function"), dict):
+        if raw_call.get("type") == "function" and isinstance(
+            raw_call.get("function"), dict
+        ):
             function_block = dict(raw_call["function"])
             function_name = function_block.get("name")
             if not isinstance(function_name, str) or not function_name.strip():
@@ -178,29 +181,19 @@ def _extract_text_char_count(content: Any) -> int:
 
 def _extract_text_char_count_from_part(item: Any) -> int:
     """Count text characters from one multimodal content part."""
-    if not isinstance(item, dict):
-        return 0
-
-    part_type = item.get("type")
-    if part_type not in {"text", "input_text", "output_text"}:
-        return 0
-
-    text = item.get("text")
-    if isinstance(text, str):
-        return len(text)
-
-    # Some adapters use "content" for text payload in text parts.
-    content = item.get("content")
-    if isinstance(content, str):
-        return len(content)
-    return 0
+    text = extract_text_from_content_part(item, include_refusal=True)
+    return len(text) if text else 0
 
 
 def _fallback_token_estimate(messages: Iterable[Any]) -> int:
     """Estimate token count from text content when LiteLLM counting fails."""
     total_chars = 0
     for msg in messages:
-        content = msg.get("content", "") if isinstance(msg, dict) else getattr(msg, "content", "")
+        content = (
+            msg.get("content", "")
+            if isinstance(msg, dict)
+            else getattr(msg, "content", "")
+        )
         total_chars += _extract_text_char_count(content)
     return total_chars // 4
 
@@ -208,7 +201,7 @@ def _fallback_token_estimate(messages: Iterable[Any]) -> int:
 class TokenService:
     """
     Service for counting tokens in conversation messages.
-    
+
     PERFORMANCE NOTE: Message list conversion happens on every call. For large
     contexts, consider caching converted message lists if the same messages
     are counted multiple times. litellm.token_counter should handle tokenizer
@@ -246,11 +239,13 @@ class TokenService:
             token_count = litellm.token_counter(
                 model=normalized_model,
                 messages=litellm_messages,
-                use_default_image_token_count=True  # Enable image token counting
+                use_default_image_token_count=True,  # Enable image token counting
             )
             return token_count
         except Exception:
-            logger.exception("Failed to count tokens via litellm; using fallback estimation")
+            logger.exception(
+                "Failed to count tokens via litellm; using fallback estimation"
+            )
             # Roughly 4 characters per token for English text.
             return _fallback_token_estimate(message_list)
 
@@ -306,6 +301,7 @@ class TokenService:
 # Global instance
 _token_service: Optional[TokenService] = None
 _token_service_lock = Lock()
+
 
 def get_token_service() -> TokenService:
     """Get the global token service instance."""
