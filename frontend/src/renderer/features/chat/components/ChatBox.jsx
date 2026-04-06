@@ -17,10 +17,8 @@ import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import {
-  buildChatboxPillClipPath,
   createChatboxDragState,
   getChatboxDragTarget,
-  getChatboxPillClipHeight,
   startChatboxDrag,
   stopChatboxDrag,
 } from '../utils/chatbox/chatboxPillLayout';
@@ -63,10 +61,7 @@ function ChatBox() {
   const shellRef = useRef(null);
   const sendButtonRef = useRef(null);
   const closeButtonAnchorFrameRef = useRef(null);
-  const closeButtonAnchorSnapshotRef = useRef({
-    clipPath: null,
-    centerX: null,
-  });
+  const closeButtonAnchorSnapshotRef = useRef({ centerX: null });
   const loopInteractionLockedRef = useRef(false);
   const dragStateRef = useRef(createChatboxDragState());
   const chatboxHitTestActiveRef = useRef(null);
@@ -165,27 +160,14 @@ function ChatBox() {
       Math.round(Number(pillElement.offsetWidth) || 0),
       Math.round(Number(pillRect.width) || 0),
     );
-    const pillHeight = Math.max(
-      Math.round(Number(pillElement.offsetHeight) || 0),
-      Math.round(Number(pillRect.height) || 0),
-    );
-    if (pillWidth <= 0 || pillHeight <= 0) {
+    if (pillWidth <= 0) {
       return;
     }
 
     const centerX = Math.round((sendRect.left - pillRect.left) + (sendRect.width / 2));
-    const clipPath = buildChatboxPillClipPath({
-      width: pillWidth,
-      height: getChatboxPillClipHeight(pillHeight),
-      centerX,
-    });
     if (closeButtonAnchorSnapshotRef.current.centerX !== centerX) {
       pillElement.style.setProperty('--chatbox-close-center-x', `${centerX}px`);
       closeButtonAnchorSnapshotRef.current.centerX = centerX;
-    }
-    if (closeButtonAnchorSnapshotRef.current.clipPath !== clipPath) {
-      pillElement.style.setProperty('--chatbox-pill-clip-path', clipPath);
-      closeButtonAnchorSnapshotRef.current.clipPath = clipPath;
     }
   }, []);
 
