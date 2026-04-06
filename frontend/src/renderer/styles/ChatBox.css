@@ -24,7 +24,7 @@ body {
   --chatbox-bump-height: 0px;
   --chatbox-fixed-shell-height: 56px;
   --chatbox-fixed-pill-height: 56px;
-  --chatbox-fixed-pill-padding: 8px 12px 8px;
+  --chatbox-fixed-pill-padding: calc(8px + var(--chatbox-bump-height)) 12px 8px;
   --chatbox-preview-track-height: 46px;
   position: fixed;
   left: 50%;
@@ -35,7 +35,7 @@ body {
 }
 
 .chatbox-input-shell-wrap .chatbox-shell {
-  min-height: var(--chatbox-fixed-shell-height);
+  min-height: calc(var(--chatbox-fixed-shell-height) + var(--chatbox-bump-height));
   height: auto;
   box-sizing: border-box;
   padding-top: var(--chatbox-bump-height);
@@ -45,22 +45,23 @@ body {
 
 .chatbox-input-shell-wrap .chatbox-pill {
   height: auto;
-  min-height: var(--chatbox-fixed-pill-height);
+  min-height: calc(var(--chatbox-fixed-pill-height) + var(--chatbox-bump-height));
   padding: var(--chatbox-fixed-pill-padding);
   gap: 8px;
   justify-content: flex-end;
   transition: min-height 150ms ease, padding 150ms ease;
+  margin-top: calc(-1 * var(--chatbox-bump-height));
 }
 
 .chatbox-input-shell-wrap.with-preview {
   --chatbox-fixed-shell-height: 108px;
   --chatbox-fixed-pill-height: 108px;
-  --chatbox-fixed-pill-padding: 58px 12px 8px;
+  --chatbox-fixed-pill-padding: calc(58px + var(--chatbox-bump-height)) 12px 8px;
 }
 
 .chatbox-input-shell-wrap .chatbox-image-preview-row {
   position: absolute;
-  top: 10px;
+  top: calc(10px + var(--chatbox-bump-height));
   left: 12px;
   right: 12px;
   min-height: var(--chatbox-preview-track-height);
@@ -132,6 +133,9 @@ body {
 
 .chatbox-pill {
   --chatbox-close-button-size: 18px;
+  --chatbox-close-center-x: calc(100% - 60px);
+  --chatbox-bump-shoulder-width: 26px;
+  --chatbox-bump-half-width: 18px;
   border-radius: 26px;
   border: 1px solid var(--ui-border);
   background: var(--ui-panel-bg);
@@ -146,13 +150,40 @@ body {
   min-height: 52px;
   margin: 0;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
   isolation: isolate;
   cursor: default;
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
+  clip-path: polygon(
+    0 calc(var(--chatbox-bump-height) + 26px),
+    2px calc(var(--chatbox-bump-height) + 18px),
+    8px calc(var(--chatbox-bump-height) + 10px),
+    18px calc(var(--chatbox-bump-height) + 2px),
+    26px var(--chatbox-bump-height),
+    calc(var(--chatbox-close-center-x) - var(--chatbox-bump-shoulder-width)) var(--chatbox-bump-height),
+    calc(var(--chatbox-close-center-x) - var(--chatbox-bump-half-width)) 3px,
+    var(--chatbox-close-center-x) 0,
+    calc(var(--chatbox-close-center-x) + var(--chatbox-bump-half-width)) 3px,
+    calc(var(--chatbox-close-center-x) + var(--chatbox-bump-shoulder-width)) var(--chatbox-bump-height),
+    calc(100% - 26px) var(--chatbox-bump-height),
+    calc(100% - 18px) calc(var(--chatbox-bump-height) + 2px),
+    calc(100% - 8px) calc(var(--chatbox-bump-height) + 10px),
+    calc(100% - 2px) calc(var(--chatbox-bump-height) + 18px),
+    100% calc(var(--chatbox-bump-height) + 26px),
+    100% calc(100% - 26px),
+    calc(100% - 2px) calc(100% - 18px),
+    calc(100% - 8px) calc(100% - 10px),
+    calc(100% - 18px) calc(100% - 2px),
+    calc(100% - 26px) 100%,
+    26px 100%,
+    18px calc(100% - 2px),
+    8px calc(100% - 10px),
+    2px calc(100% - 18px),
+    0 calc(100% - 26px)
+  );
 }
 
 .chatbox-main-row {
@@ -460,8 +491,8 @@ body {
 
 .chatbox-close-badge {
   position: absolute;
-  right: 42px;
-  top: -16px;
+  left: var(--chatbox-close-center-x);
+  top: 0;
   width: var(--chatbox-close-button-size);
   height: var(--chatbox-close-button-size);
   border: 0;
@@ -474,6 +505,7 @@ body {
   padding: 0;
   cursor: pointer;
   z-index: 2;
+  transform: translateX(-50%);
   transition: color 140ms ease, background 140ms ease;
 }
 
