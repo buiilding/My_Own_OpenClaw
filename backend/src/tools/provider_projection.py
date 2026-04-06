@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
+from backend.src.core.messages.content_blocks import normalize_content_part_type
 from backend.src.tools.tool_specs import build_computer_tool_spec
 
 _OPENAI_PROVIDER = "openai"
@@ -25,13 +26,41 @@ def should_project_openai_native_computer(config: Any) -> bool:
     return provider_name == _OPENAI_PROVIDER
 
 
+def _count_openai_input_images(prompt_messages: List[Dict[str, Any]] | None) -> int:
+    if not isinstance(prompt_messages, list):
+        return 0
+
+    image_count = 0
+    for message in prompt_messages:
+        if not isinstance(message, dict):
+            continue
+        role = str(message.get("role") or "").strip()
+        if role not in {"system", "user"}:
+            continue
+        content = message.get("content")
+        if not isinstance(content, list):
+            continue
+        for item in content:
+            if not isinstance(item, dict):
+                continue
+            if normalize_content_part_type(item.get("type")) in {
+                "image_url",
+                "input_image",
+            }:
+                image_count += 1
+    return image_count
+
+
 def project_tool_schemas_for_provider(
     *,
     tool_schemas: List[Dict[str, Any]],
     tool_registry: Any | None,
     config: Any,
+    prompt_messages: List[Dict[str, Any]] | None = None,
 ) -> List[Dict[str, Any]]:
     if not should_project_openai_native_computer(config):
+        return list(tool_schemas)
+    if _count_openai_input_images(prompt_messages) > 1:
         return list(tool_schemas)
 
     names = [

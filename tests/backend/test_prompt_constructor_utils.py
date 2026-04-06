@@ -264,3 +264,57 @@ def test_build_prompt_allowlisting_read_file_yields_single_direct_schema():
     assert [schema["name"] for schema in schemas] == ["read_file"]
     parameters = schemas[0]["parameters"]
     assert "file_path" in parameters["properties"]
+
+
+def test_build_prompt_keeps_direct_computer_tools_for_openai_multi_image_history():
+    config = AppConfig(
+        model_provider="openai",
+        tool_allowlist=[
+            "mouse_control",
+            "keyboard_control",
+            "screenshot",
+            "scroll_control",
+            "switch_window",
+            "wait",
+        ],
+    )
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+    constructor = PromptConstructor(
+        tool_registry=registry,
+        config=config,
+        system_prompt="system",
+    )
+    history = DummyHistory(
+        history=[
+            {
+                "role": MessageRole.USER.value,
+                "content": [
+                    {"type": "text", "text": "compare these screenshots"},
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": "data:image/png;base64,AAA"},
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": "data:image/png;base64,BBB"},
+                    },
+                ],
+            }
+        ],
+        user_query_raw="compare these screenshots",
+        message_types=[MessageType.USER_QUERY],
+    )
+
+    _prompt_messages, schemas, _metadata = constructor.build_prompt(
+        history,
+        include_tools=True,
+    )
+
+    assert [schema["name"] for schema in schemas] == [
+        "mouse_control",
+        "keyboard_control",
+        "screenshot",
+        "scroll_control",
+        "switch_window",
+        "wait",
+    ]

@@ -178,6 +178,7 @@ OpenAI native built-in exception:
 
 - OpenAI Responses may also receive provider-native built-in tools such as `{ "type": "computer" }`.
 - WindieOS still keeps direct internal tool specs as the canonical backend contract and projects native built-ins only at the provider boundary.
+- Projection guard: when the prompt history already contains more than one user/system image input, WindieOS keeps the direct desktop function tools for that request instead of projecting OpenAI's native `computer` tool, because the Responses computer contract rejects multi-image inputs.
 
 ### Normalized Completion Response
 

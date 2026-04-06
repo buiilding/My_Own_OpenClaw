@@ -98,7 +98,11 @@ class PromptConstructor:
         self.limits = config.security_limits
         self.tool_policy = ToolPolicy.from_config(config)
 
-    def _get_filtered_tool_schemas(self) -> List[Dict[str, Any]]:
+    def _get_filtered_tool_schemas(
+        self,
+        *,
+        prompt_messages: Optional[List[LLMMessage]] = None,
+    ) -> List[Dict[str, Any]]:
         """Return tool schemas filtered by centralized tool policy."""
         model_tool_names_getter = getattr(self.tool_registry, "get_model_tool_names", None)
         if callable(model_tool_names_getter):
@@ -113,6 +117,7 @@ class PromptConstructor:
                 tool_schemas=filtered_schemas,
                 tool_registry=self.tool_registry,
                 config=self.config,
+                prompt_messages=prompt_messages,
             )
 
         tool_schemas = self.tool_registry.get_function_declarations() or []
@@ -121,6 +126,7 @@ class PromptConstructor:
             tool_schemas=filtered_schemas,
             tool_registry=self.tool_registry,
             config=self.config,
+            prompt_messages=prompt_messages,
         )
 
     def build_prompt(
@@ -151,12 +157,12 @@ class PromptConstructor:
         Raises:
             InputSizeLimitError: If any size limit is exceeded
         """
-        # Get tool schemas if needed
+        prompt_messages = self._get_prompt_messages(stored_messages)
         tool_schemas = []
         if include_tools:
-            tool_schemas = self._get_filtered_tool_schemas()
-
-        prompt_messages = self._get_prompt_messages(stored_messages)
+            tool_schemas = self._get_filtered_tool_schemas(
+                prompt_messages=prompt_messages,
+            )
         user_message_metadata = self._build_user_message_metadata(
             stored_messages,
             prompt_messages,
