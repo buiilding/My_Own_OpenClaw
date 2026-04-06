@@ -163,6 +163,7 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 
 - Yes.
 - The semantic summarizer now rejects low-value outputs such as greetings, transient UI/app state, and runtime/tool-error facts.
+- An explicit backend result of `SUMMARY: NONE` with no extracted facts is treated as a valid "no durable memory" outcome, and the source episodic rows are marked processed without creating a semantic-memory row.
 - Rejected batches do not create semantic-memory rows.
 - Rejected episodic interaction rows are still marked as processed so the same low-signal batch does not loop forever.
 

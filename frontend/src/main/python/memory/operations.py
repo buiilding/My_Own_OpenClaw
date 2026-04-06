@@ -5,6 +5,7 @@ Shared memory request/response helpers for sidecar services.
 from __future__ import annotations
 
 import re
+from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from core.unicode_sanitizer import sanitize_surrogates_in_text
@@ -22,6 +23,9 @@ _NO_DURABLE_MEMORY_MARKERS = {
     "no durable facts",
     "nothing durable",
 }
+SEMANTIC_STATUS_STORED = "stored"
+SEMANTIC_STATUS_SKIPPED_LOW_SIGNAL = "skipped_low_signal"
+SEMANTIC_STATUS_SKIPPED_NO_DURABLE_MEMORY = "skipped_no_durable_memory"
 _LOW_SIGNAL_SEMANTIC_FACT_PATTERNS = (
     re.compile(r"\bno (?:user )?preferences?\b", re.IGNORECASE),
     re.compile(r"\bno key facts?\b", re.IGNORECASE),
@@ -39,6 +43,94 @@ _LOW_SIGNAL_SEMANTIC_FACT_PATTERNS = (
     re.compile(r"\boperation timed out\b", re.IGNORECASE),
     re.compile(r"\bcannot connect\b", re.IGNORECASE),
 )
+
+
+def normalize_semantic_summary(summary: Any) -> str:
+    """Normalize backend summary text and collapse explicit no-memory markers."""
+    normalized = sanitize_surrogates_in_text(str(summary or "")).strip()
+    if not normalized:
+        return ""
+    lowered = normalized.lower().rstrip(".!")
+    if lowered in _NO_DURABLE_MEMORY_MARKERS:
+        return ""
+    return normalized
+
+
+def normalize_semantic_fact_list(facts: Any) -> List[str]:
+    """Normalize, dedupe, and preserve order for semantic fact lists."""
+    if not isinstance(facts, Iterable) or isinstance(facts, (str, bytes, dict)):
+        return []
+
+    normalized: List[str] = []
+    seen: set[str] = set()
+    for fact in facts:
+        cleaned = sanitize_surrogates_in_text(str(fact or "")).strip()
+        if not cleaned:
+            continue
+        dedupe_key = cleaned.lower()
+        if dedupe_key in seen:
+            continue
+        seen.add(dedupe_key)
+        normalized.append(cleaned)
+    return normalized
+
+
+def is_explicit_no_durable_memory_result(summary: Any, facts: Any) -> bool:
+    """Return True when the summarizer explicitly reported no durable memory."""
+    normalized_summary = sanitize_surrogates_in_text(str(summary or "")).strip()
+    lowered = normalized_summary.lower().rstrip(".!")
+    return lowered in _NO_DURABLE_MEMORY_MARKERS and not normalize_semantic_fact_list(facts)
+
+
+def filter_durable_semantic_facts(facts: Iterable[str]) -> List[str]:
+    """Drop low-signal facts and keep only durable semantic facts."""
+    return [fact for fact in facts if not _is_low_signal_semantic_fact(fact)]
+
+
+def classify_semantic_summarization_result(
+    summary: Any,
+    facts: Any,
+) -> Dict[str, Any]:
+    """
+    Normalize and classify semantic summarization output.
+
+    Returns normalized summary/facts plus a status that the summarizer can persist.
+    """
+    explicit_no_durable = is_explicit_no_durable_memory_result(summary, facts)
+    normalized_summary = normalize_semantic_summary(summary)
+    normalized_facts = normalize_semantic_fact_list(facts)
+    durable_facts = filter_durable_semantic_facts(normalized_facts)
+
+    if durable_facts:
+        status = SEMANTIC_STATUS_STORED
+    elif explicit_no_durable:
+        status = SEMANTIC_STATUS_SKIPPED_NO_DURABLE_MEMORY
+    else:
+        status = SEMANTIC_STATUS_SKIPPED_LOW_SIGNAL
+
+    return {
+        "summary": normalized_summary,
+        "facts": normalized_facts,
+        "durable_facts": durable_facts,
+        "status": status,
+    }
+
+
+def build_semanticization_metadata(
+    *,
+    status: str,
+    summary_hash: str,
+    durable_fact_count: int = 0,
+    skipped_fact_count: int = 0,
+) -> Dict[str, Any]:
+    """Build the metadata patch persisted when episodic rows are semanticized."""
+    return {
+        "semantic_status": status,
+        "semantic_summary_hash": summary_hash,
+        "semantic_processed_at": datetime.now(timezone.utc).isoformat(),
+        "semantic_durable_fact_count": durable_fact_count,
+        "semantic_skipped_fact_count": skipped_fact_count,
+    }
 
 
 def build_memory_filters(memory_type: Optional[str]) -> Dict[str, str]:
