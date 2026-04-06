@@ -15,9 +15,11 @@ from backend.src.agent.tools.preparation.helpers.coordinate_contract import (
     normalize_to_display_space,
 )
 from backend.src.agent.tools.preparation.helpers.coordinate_resolution_helper import resolve_coordinates
+from backend.src.agent.tools.preparation.helpers.source_coordinate_method import (
+    infer_source_coordinate_method,
+)
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.types.enums import CoordinateFindingMethod
-from backend.src.core.utils.coordinate_methods import normalize_coordinate_method
 from backend.src.llm.parser_types import ParsedToolCall
 from backend.src.tools.computer.grounding_contract import supports_source_grounding
 
@@ -35,9 +37,6 @@ COORDINATE_RESOLUTION_METHODS = (
     CoordinateFindingMethod.OCR,
     CoordinateFindingMethod.PREDICTION,
 )
-_OPENAI_GROUNDED_TOOL_NAMES = frozenset(
-    {"grounded_mouse_action", "grounded_scroll_action"}
-)
 _EXECUTOR_TOOL_NAME_BY_GROUNDED_TOOL = {
     "grounded_mouse_action": "mouse_control",
     "grounded_scroll_action": "scroll_control",
@@ -45,14 +44,7 @@ _EXECUTOR_TOOL_NAME_BY_GROUNDED_TOOL = {
 
 
 def source_coordinate_method(tool_call: ParsedToolCall) -> str:
-    if tool_call.tool_name in _OPENAI_GROUNDED_TOOL_NAMES:
-        if tool_call.parameters.get("ocr_text") or tool_call.parameters.get("candidate_id"):
-            return CoordinateFindingMethod.OCR.value
-        return CoordinateFindingMethod.PREDICTION.value
-    return normalize_coordinate_method(
-        tool_call.parameters.get("find_coordinates_by"),
-        default=CoordinateFindingMethod.MANUAL.value,
-    )
+    return infer_source_coordinate_method(tool_call)
 
 
 def tool_call_needs_source_coordinate_resolution(tool_call: ParsedToolCall) -> bool:
