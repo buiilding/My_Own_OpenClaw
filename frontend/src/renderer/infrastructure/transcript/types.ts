@@ -15,6 +15,13 @@ export type TranscriptTransparencyData = {
   } | null;
 };
 
+export type TranscriptStructuredToolPayload = {
+  kind: 'tool-call' | 'tool-bundle' | 'tool-output';
+  toolCall?: Record<string, unknown> | null;
+  toolCalls?: Record<string, unknown>[] | null;
+  toolCallDetails?: Record<string, unknown> | null;
+};
+
 export type PendingUserMessage = {
   text: string;
   screenshotRef?: string | null;
@@ -33,6 +40,7 @@ export type PendingToolMessage = {
   modelProvider?: string | null;
   screenshotRef?: string | null;
   transparency?: TranscriptTransparencyData | null;
+  structuredPayload?: TranscriptStructuredToolPayload | null;
 };
 
 export type PendingAssistantMessage = {
@@ -42,6 +50,7 @@ export type PendingAssistantMessage = {
   modelProvider?: string | null;
   screenshotRef?: string | null;
   transparency?: TranscriptTransparencyData | null;
+  structuredPayload?: TranscriptStructuredToolPayload | null;
 };
 
 export type TranscriptEntry = {

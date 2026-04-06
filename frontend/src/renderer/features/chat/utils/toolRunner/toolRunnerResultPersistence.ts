@@ -4,6 +4,7 @@ import type {
   ToolExecutionResult,
 } from '../../../../infrastructure/services/toolExecution/ToolExecutionService';
 import { recordToolMessage } from '../../../../infrastructure/transcript/TranscriptWriter';
+import { buildStructuredToolPayload } from '../../../../infrastructure/transcript/structuredToolPayload';
 import {
   buildBundleOutputMessage,
   buildToolOutputMessage,
@@ -42,6 +43,16 @@ export function persistToolRunnerToolResult(
         result.screenshotRef ?? null,
         modelContextRef.current,
       ),
+      structuredPayload: buildStructuredToolPayload({
+        kind: 'tool-output',
+        toolCallDetails: {
+          result: result.result,
+          system_state: result.systemState || null,
+          correlation_id: result.correlationId,
+          tool_name: result.toolName,
+          execution_time: result.executionTime,
+        },
+      }),
       conversationRef: conversationRef || undefined,
     },
   );
@@ -71,6 +82,15 @@ export function persistToolRunnerBundleResult(
         result.screenshotRef ?? null,
         modelContextRef.current,
       ),
+      structuredPayload: buildStructuredToolPayload({
+        kind: 'tool-output',
+        toolCallDetails: {
+          bundled: true,
+          results: result.results,
+          correlation_id: result.correlationId,
+          execution_time_total: result.totalTime,
+        },
+      }),
       conversationRef: conversationRef || undefined,
     },
   );

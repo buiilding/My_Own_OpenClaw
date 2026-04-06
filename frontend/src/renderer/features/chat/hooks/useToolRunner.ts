@@ -9,6 +9,7 @@ import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { ToolExecutionService, type ToolExecutionResult, type BundleExecutionResult } from '../../../infrastructure/services/toolExecution/ToolExecutionService';
 import { useChatStore } from '../stores/chatStore';
 import { recordToolMessage } from '../../../infrastructure/transcript/TranscriptWriter';
+import { buildStructuredToolPayload } from '../../../infrastructure/transcript/structuredToolPayload';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { type ToolBundleEvent, type ToolCallEvent } from '../../../types/backendEvents';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
@@ -168,6 +169,15 @@ export function useToolRunner(enabled = true) {
           null,
           modelContextRef.current,
         ),
+        structuredPayload: buildStructuredToolPayload({
+          kind: 'tool-output',
+          toolCallDetails: {
+            result,
+            correlation_id: correlationId,
+            tool_name: toolName,
+            execution_time: 0,
+          },
+        }),
         conversationRef: conversationRef || undefined,
       },
     );

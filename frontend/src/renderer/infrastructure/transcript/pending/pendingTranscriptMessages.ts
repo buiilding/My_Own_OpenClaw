@@ -8,6 +8,7 @@ import type {
   PendingUserMessage,
   SessionInfo,
   TranscriptEntry,
+  TranscriptStructuredToolPayload,
   TranscriptTransparencyData,
 } from '../types';
 
@@ -42,6 +43,7 @@ type ToolRetryOptions = {
   modelProvider?: string | null;
   screenshotRef?: string | null;
   transparency?: TranscriptTransparencyData | null;
+  structuredPayload?: TranscriptStructuredToolPayload | null;
 };
 
 type PendingTranscriptMessages = {
@@ -94,6 +96,7 @@ export function createPendingTranscriptMessages({
         modelProvider: message.modelProvider,
         screenshotRef: message.screenshotRef,
         transparency: message.transparency,
+        structuredPayload: message.structuredPayload,
       }),
       requeue: (messages) => requeuePending(messages, pendingUserQueue.enqueue),
       category: 'user',
@@ -192,6 +195,7 @@ export function createPendingTranscriptMessages({
         modelProvider: options.modelProvider,
         screenshotRef: options.screenshotRef,
         transparency: options.transparency,
+        structuredPayload: options.structuredPayload,
       });
     },
   };

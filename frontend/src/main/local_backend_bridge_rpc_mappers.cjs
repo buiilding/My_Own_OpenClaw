@@ -252,6 +252,7 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
       screenshot: 'screenshot',
       timestamp: 'timestamp',
       transparency: 'transparency',
+      structured_payload: 'structuredPayload',
     }),
   },
 ];

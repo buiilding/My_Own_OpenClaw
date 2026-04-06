@@ -62,6 +62,21 @@ class LocalBackendMemoryHandlersMixin:
         return dict(sanitized_transparency)
 
     @staticmethod
+    def _normalize_transcript_structured_payload(
+        structured_payload: Optional[Dict[str, Any]],
+    ) -> Optional[Dict[str, Any]]:
+        """Validate transcript structured payload is JSON-serializable object data."""
+        if not isinstance(structured_payload, dict):
+            return None
+        sanitized_payload = sanitize_surrogates(structured_payload)
+        try:
+            json.dumps(sanitized_payload)
+        except (TypeError, ValueError):
+            logger.warning("Dropping non-serializable transcript structured payload")
+            return None
+        return dict(sanitized_payload)
+
+    @staticmethod
     def _is_semantic_transcript_candidate(
         role: Optional[str],
         message_type: Optional[str],
@@ -513,6 +528,7 @@ class LocalBackendMemoryHandlersMixin:
         screenshot: Optional[str] = None,
         timestamp: Optional[str] = None,
         transparency: Optional[Dict[str, Any]] = None,
+        structured_payload: Optional[Dict[str, Any]] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """Store a transcript entry with selective embeddings for recall/summarization."""
@@ -566,6 +582,11 @@ class LocalBackendMemoryHandlersMixin:
             normalized_transparency = self._normalize_transcript_transparency(transparency)
             if normalized_transparency is not None:
                 metadata["transparency"] = normalized_transparency
+            normalized_structured_payload = self._normalize_transcript_structured_payload(
+                structured_payload
+            )
+            if normalized_structured_payload is not None:
+                metadata["structured_payload"] = normalized_structured_payload
 
             if message_index is None:
                 message_index = await self.memory_store.get_next_message_index(

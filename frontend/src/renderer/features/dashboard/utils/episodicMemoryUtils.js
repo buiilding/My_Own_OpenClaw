@@ -11,6 +11,10 @@ import {
   buildToolBundleMessageState,
 } from '../../../infrastructure/transcript/toolCallMessageState';
 import {
+  buildStructuredToolPayload,
+  readStructuredToolPayload,
+} from '../../../infrastructure/transcript/structuredToolPayload';
+import {
   resolveScreenshotAttachmentState,
 } from '../../../infrastructure/services/screenshotMessageState';
 
@@ -75,15 +79,42 @@ function parseMemoryContent(memory) {
     const normalizedType = messageType === 'tool-bundle'
       ? 'tool-call'
       : (messageType || (role === 'tool' ? 'tool-output' : 'llm-text'));
+    const structuredToolPayload = readStructuredToolPayload(
+      memory?.structured_payload,
+      memory?.structuredPayload,
+      memory?.metadata?.structured_payload,
+      memory?.metadata?.structuredPayload,
+    );
     const parsedBundlePayload = isBundleToolCall
-      ? parseBundleToolPayload(rawContent || '')
+      ? (
+        structuredToolPayload?.kind === 'tool-bundle'
+          ? {
+            ...(structuredToolPayload.toolCallDetails || {}),
+            ...(structuredToolPayload.toolCalls
+              ? { tools: structuredToolPayload.toolCalls.map((tool) => ({
+                ...(tool.name ? { name: tool.name } : {}),
+                args: (
+                  tool.arguments
+                  && typeof tool.arguments === 'object'
+                  && !Array.isArray(tool.arguments)
+                ) ? { ...tool.arguments } : {},
+                ...(tool.metadata ? { metadata: tool.metadata } : {}),
+              })) }
+              : {}),
+          }
+          : parseBundleToolPayload(rawContent || '')
+      )
       : null;
     const normalizedToolCallMessage = normalizedType === 'tool-call'
       ? (isBundleToolCall
         ? buildToolBundleMessageState(parsedBundlePayload)
         : buildToolCallMessageState({
           rawContent: rawContent || '',
-          rawToolCall: parseToolCallPayload(rawContent || ''),
+          rawToolCall: (
+            structuredToolPayload?.kind === 'tool-call'
+              ? structuredToolPayload.toolCall
+              : parseToolCallPayload(rawContent || '')
+          ),
         }))
       : null;
     const shouldAttachScreenshot = sender === 'user' || normalizedType === 'tool-output';
@@ -264,18 +295,28 @@ export function toRehydrateMessagePayload(memory) {
   const normalizedMessageType = normalizeMessageType(messageType);
   const screenshotAttachment = resolveScreenshotAttachment(memory);
   const transparency = resolveTranscriptTransparency(memory);
+  const structuredToolPayload = readStructuredToolPayload(
+    memory?.structured_payload,
+    memory?.structuredPayload,
+    metadata?.structured_payload,
+    metadata?.structuredPayload,
+  );
   const parsedToolCall = normalizedMessageType === 'tool-call'
-    ? buildToolCallMessageState({
-      rawContent: memory?.content || '',
-      rawToolCall: parseToolCallPayload(memory?.content || ''),
-      fallbackToolName: normalizeOptionalString(memory?.tool_name || metadata?.tool_name) || null,
-      fallbackToolCallId: normalizeOptionalString(
-        memory?.tool_call_id
-          || metadata?.tool_call_id
-          || memory?.correlation_id
-          || metadata?.correlation_id,
-      ) || null,
-    }).modelFacingToolCall
+    ? (
+      structuredToolPayload?.kind === 'tool-call'
+        ? structuredToolPayload.toolCall
+        : buildToolCallMessageState({
+          rawContent: memory?.content || '',
+          rawToolCall: parseToolCallPayload(memory?.content || ''),
+          fallbackToolName: normalizeOptionalString(memory?.tool_name || metadata?.tool_name) || null,
+          fallbackToolCallId: normalizeOptionalString(
+            memory?.tool_call_id
+              || metadata?.tool_call_id
+              || memory?.correlation_id
+              || metadata?.correlation_id,
+          ) || null,
+        }).modelFacingToolCall
+    )
     : null;
   const resolvedToolCallId = normalizeOptionalString(
     memory?.tool_call_id
@@ -317,5 +358,9 @@ export function toRehydrateMessagePayload(memory) {
     screenshot_ref: screenshotAttachment.screenshotRef,
     screenshot: screenshotAttachment.screenshot,
     transparency,
+    structured_payload: structuredToolPayload || buildStructuredToolPayload({
+      kind: normalizedMessageType,
+      toolCall: parsedToolCall,
+    }),
   };
 }

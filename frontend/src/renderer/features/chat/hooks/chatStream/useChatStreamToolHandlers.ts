@@ -21,6 +21,9 @@ import {
   buildToolCallMessageState,
 } from '../../../../infrastructure/transcript/toolCallMessageState';
 import {
+  buildStructuredToolPayload,
+} from '../../../../infrastructure/transcript/structuredToolPayload';
+import {
   buildScreenshotAttachment,
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
@@ -62,6 +65,7 @@ export function useChatStreamToolHandlers({
     event: ToolCallEvent | ToolBundleEvent,
     toolName: string,
     correlationId: string | null | undefined,
+    structuredPayload: Record<string, unknown> | null,
   ) => {
     if (!enableTranscript) {
       return;
@@ -75,6 +79,7 @@ export function useChatStreamToolHandlers({
       userId: event.user_id,
       modelId: modelContext.modelId,
       modelProvider: modelContext.modelProvider,
+      structuredPayload,
     });
   }, [enableTranscript, modelContextRef]);
 
@@ -104,6 +109,15 @@ export function useChatStreamToolHandlers({
       event,
       event.payload?.tool_name || '',
       toolCallMessageState.correlationId,
+      buildStructuredToolPayload({
+        kind: 'tool-call',
+        toolCall: toolCallMessageState.modelFacingToolCall,
+        toolCallDetails: (
+          event.payload && typeof event.payload === 'object' && !Array.isArray(event.payload)
+            ? event.payload
+            : null
+        ),
+      }),
     );
   }, [
     addMessage,
@@ -144,6 +158,14 @@ export function useChatStreamToolHandlers({
         screenshotRef,
         modelId: modelContext.modelId,
         modelProvider: modelContext.modelProvider,
+        structuredPayload: buildStructuredToolPayload({
+          kind: 'tool-output',
+          toolCallDetails: (
+            event.payload && typeof event.payload === 'object' && !Array.isArray(event.payload)
+              ? event.payload
+              : null
+          ),
+        }),
       });
     }
   }, [
@@ -178,6 +200,15 @@ export function useChatStreamToolHandlers({
         userId: event.user_id,
         modelId: modelContext.modelId,
         modelProvider: modelContext.modelProvider,
+        structuredPayload: buildStructuredToolPayload({
+          kind: 'tool-bundle',
+          toolCalls: toolBundleMessageState.toolCalls,
+          toolCallDetails: (
+            event.payload && typeof event.payload === 'object' && !Array.isArray(event.payload)
+              ? event.payload
+              : null
+          ),
+        }),
       });
     }
   }, [
