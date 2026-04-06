@@ -87,6 +87,9 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
     (user turns + assistant `llm-text` / `error` turns).
   - Tool-call/tool-bundle transcript rows remain unembedded to avoid low-signal
     JSON chatter in episodic retrieval.
+  - Tool-related transcript rows can carry a typed metadata `structured_payload`
+    snapshot so replay and rehydrate can recover tool semantics without reparsing
+    the user-facing display text.
   - On startup, sidecar backfills missing embeddings for existing transcript
     semantic-candidate rows.
   - On retrieval, top-ranked episodic transcript user hits are enriched with the

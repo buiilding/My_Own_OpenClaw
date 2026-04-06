@@ -195,6 +195,54 @@ def test_normalize_rehydrated_tool_output_injects_synthetic_tool_call_entry():
     assert known_tool_call_ids == {"rehydrate_tool_call_7"}
 
 
+def test_normalize_rehydrated_entry_prefers_structured_payload_for_tool_call_rows():
+    service = RehydrateExecutionService(_FakeSessionManager())
+    known_tool_call_ids = set()
+    entry = SimpleNamespace(
+        role="assistant",
+        content="not valid json",
+        message_type="tool-call",
+        tool_name="ignored-fallback",
+        correlation_id=None,
+        tool_call_id=None,
+        timestamp="2026-02-26T00:00:00Z",
+        tool_calls=None,
+        structured_payload={
+            "kind": "tool-call",
+            "toolCall": {
+                "id": "call-structured-1",
+                "name": "open_url",
+                "arguments": {"url": "https://example.com"},
+                "thought_signature": "sig-structured-1",
+            },
+        },
+    )
+
+    entries, pending = service._normalize_rehydrated_entry(
+        entry=entry,
+        index=8,
+        image_data=None,
+        known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_id=None,
+        transparency=None,
+    )
+
+    assert len(entries) == 1
+    normalized_entry = entries[0]
+    assert normalized_entry["role"] == "assistant"
+    assert normalized_entry["tool_calls"] == [
+        {
+            "id": "call-structured-1",
+            "name": "open_url",
+            "arguments": {"url": "https://example.com"},
+            "thought_signature": "sig-structured-1",
+        }
+    ]
+    assert normalized_entry["correlation_id"] == "call-structured-1"
+    assert pending == "call-structured-1"
+    assert known_tool_call_ids == {"call-structured-1"}
+
+
 def test_normalize_rehydrated_entry_sanitizes_internal_tool_bundle_call_trace():
     service = RehydrateExecutionService(_FakeSessionManager())
     known_tool_call_ids = set()

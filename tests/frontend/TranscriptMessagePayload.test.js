@@ -61,6 +61,21 @@ describe('transcriptMessagePayload', () => {
       screenshot_ref: 'artifact://image-1',
       screenshot: null,
       transparency: null,
+      structured_payload: {
+        kind: 'tool-call',
+        toolCall: {
+          id: 'call-1',
+          name: 'browser.open',
+          arguments: { action: 'snapshot' },
+          thought_signature: 'sig-1',
+        },
+        toolCalls: [{
+          id: 'call-1',
+          name: 'browser.open',
+          arguments: { action: 'snapshot' },
+          thought_signature: 'sig-1',
+        }],
+      },
     });
 
     expect(toRehydratePayload({
@@ -81,6 +96,7 @@ describe('transcriptMessagePayload', () => {
       screenshot_ref: null,
       screenshot: null,
       transparency: null,
+      structured_payload: null,
     });
   });
 
@@ -91,6 +107,10 @@ describe('transcriptMessagePayload', () => {
       sourceEventType: 'tool-bundle',
       text: '{"bundle_id":"bundle-1","tools":[{"name":"keyboard_control","args":{"action":"press","key":"ENTER"}}]}',
       correlationId: 'bundle-1',
+      toolCallDetails: {
+        bundle_id: 'bundle-1',
+        tools: [{ name: 'keyboard_control', args: { action: 'press', key: 'ENTER' } }],
+      },
     })).toEqual({
       role: 'assistant',
       content: '{"bundle_id":"bundle-1","tools":[{"name":"keyboard_control","args":{"action":"press","key":"ENTER"}}]}',
@@ -103,6 +123,17 @@ describe('transcriptMessagePayload', () => {
       screenshot_ref: null,
       screenshot: null,
       transparency: null,
+      structured_payload: {
+        kind: 'tool-bundle',
+        toolCalls: [{
+          name: 'keyboard_control',
+          arguments: { action: 'press', key: 'ENTER' },
+        }],
+        toolCallDetails: {
+          bundle_id: 'bundle-1',
+          tools: [{ name: 'keyboard_control', args: { action: 'press', key: 'ENTER' } }],
+        },
+      },
     });
   });
 
@@ -137,6 +168,7 @@ describe('transcriptMessagePayload', () => {
           metadata: { source: 'user-message-full' },
         },
       },
+      structured_payload: null,
     });
   });
 

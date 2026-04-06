@@ -81,6 +81,7 @@ describe('useChatStreamToolHandlers', () => {
         messageType: 'tool-output',
         correlationId: 'event-tool-output',
         conversationRef: 'conversation-1',
+        structuredPayload: null,
       }),
     );
   });
@@ -141,6 +142,13 @@ describe('useChatStreamToolHandlers', () => {
         toolName: 'mouse_control',
         correlationId: 'request-2',
         screenshotRef: 'artifact-shot-2',
+        structuredPayload: {
+          kind: 'tool-output',
+          toolCallDetails: expect.objectContaining({
+            tool_name: 'mouse_control',
+            request_id: 'request-2',
+          }),
+        },
       }),
     );
   });
@@ -202,6 +210,13 @@ describe('useChatStreamToolHandlers', () => {
         toolName: 'mouse_control',
         correlationId: 'request-2b',
         screenshotRef: null,
+        structuredPayload: {
+          kind: 'tool-output',
+          toolCallDetails: expect.objectContaining({
+            tool_name: 'mouse_control',
+            request_id: 'request-2b',
+          }),
+        },
       }),
     );
   });
@@ -270,6 +285,14 @@ describe('useChatStreamToolHandlers', () => {
         conversationRef: 'conversation-bundle-1',
         modelId: 'model-3',
         modelProvider: 'provider-3',
+        structuredPayload: {
+          kind: 'tool-bundle',
+          toolCalls: [],
+          toolCallDetails: {
+            bundle_id: 'bundle-1',
+            tools: null,
+          },
+        },
       }),
     );
   });

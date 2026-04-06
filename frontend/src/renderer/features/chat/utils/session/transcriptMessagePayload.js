@@ -98,7 +98,9 @@ export function toRehydratePayload(message) {
     : null;
   const structuredPayload = buildStructuredToolPayload({
     kind: messageType,
-    toolCall: normalizedToolCallMessage.modelFacingToolCall,
+    toolCall: messageType === 'tool-call'
+      ? normalizedToolCallMessage.modelFacingToolCall
+      : null,
     toolCalls: normalizedToolBundleMessage?.toolCalls || null,
     toolCallDetails: (
       message?.toolCallDetails

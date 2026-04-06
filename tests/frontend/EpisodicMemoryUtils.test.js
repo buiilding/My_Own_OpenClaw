@@ -143,6 +143,97 @@ describe('episodicMemoryUtils', () => {
     ]);
   });
 
+  test('parseMemoriesToMessages prefers stored structured payload for tool-call rows', () => {
+    const memory = {
+      id: 'assistant-tool-call-structured',
+      content: 'malformed legacy display payload',
+      role: 'assistant',
+      message_type: 'tool-call',
+      metadata: {
+        structured_payload: {
+          kind: 'tool-call',
+          toolCall: {
+            id: 'call-structured-1',
+            name: 'browser',
+            arguments: { action: 'snapshot' },
+          },
+        },
+      },
+    };
+
+    expect(parseMemoriesToMessages([memory])).toEqual([
+      {
+        id: 'assistant-tool-call-structured-0',
+        sender: 'assistant',
+        text: 'malformed legacy display payload',
+        type: 'tool-call',
+        toolCallDisplayText: 'malformed legacy display payload',
+        modelFacingToolCall: {
+          id: 'call-structured-1',
+          name: 'browser',
+          arguments: { action: 'snapshot' },
+        },
+        isComplete: true,
+      },
+    ]);
+  });
+
+  test('parseMemoriesToMessages prefers stored structured payload for tool-bundle rows', () => {
+    const memory = {
+      id: 'tool-bundle-structured',
+      content: 'legacy bundle text',
+      role: 'tool',
+      message_type: 'tool-bundle',
+      correlation_id: 'bundle-structured-1',
+      metadata: {
+        structured_payload: {
+          kind: 'tool-bundle',
+          toolCalls: [{
+            name: 'keyboard_control',
+            arguments: { action: 'press', key: 'ENTER' },
+          }],
+          toolCallDetails: {
+            bundle_id: 'bundle-structured-1',
+          },
+        },
+      },
+    };
+
+    expect(parseMemoriesToMessages([memory])).toEqual([
+      {
+        id: 'tool-bundle-structured-0',
+        sender: 'assistant',
+        text: JSON.stringify({
+          bundle_id: 'bundle-structured-1',
+          tools: [{
+            name: 'keyboard_control',
+            arguments: { action: 'press', key: 'ENTER' },
+            metadata: undefined,
+          }],
+        }, null, 2),
+        type: 'tool-call',
+        sourceEventType: 'tool-bundle',
+        correlationId: 'bundle-structured-1',
+        toolCallDisplayText: JSON.stringify({
+          bundle_id: 'bundle-structured-1',
+          tools: [{
+            name: 'keyboard_control',
+            arguments: { action: 'press', key: 'ENTER' },
+            metadata: undefined,
+          }],
+        }, null, 2),
+        toolCallDetails: {
+          bundle_id: 'bundle-structured-1',
+          tools: [{
+            name: 'keyboard_control',
+            args: { action: 'press', key: 'ENTER' },
+          }],
+        },
+        isComplete: true,
+      },
+    ]);
+  });
+
   test('parseMemoriesToMessages keeps screenshot for tool-output role messages', () => {
     const memory = {
       id: 'tool-output',
@@ -359,6 +450,64 @@ describe('episodicMemoryUtils', () => {
         thought_signature: 'sig_abc',
       },
     ]);
+    expect(payload.structured_payload).toEqual({
+      kind: 'tool-call',
+      toolCall: {
+        id: 'call_123',
+        name: 'mouse_control',
+        arguments: { action: 'click', x: 100, y: 200 },
+        thought_signature: 'sig_abc',
+      },
+      toolCalls: [
+        {
+          id: 'call_123',
+          name: 'mouse_control',
+          arguments: { action: 'click', x: 100, y: 200 },
+          thought_signature: 'sig_abc',
+        },
+      ],
+    });
+  });
+
+  test('toRehydrateMessagePayload prefers stored structured payload for malformed tool-call content', () => {
+    const payload = toRehydrateMessagePayload({
+      role: 'assistant',
+      message_type: 'tool-call',
+      content: 'not json',
+      metadata: {
+        structured_payload: {
+          kind: 'tool-call',
+          toolCall: {
+            id: 'call-structured-2',
+            name: 'open_url',
+            arguments: { url: 'https://example.com' },
+          },
+        },
+      },
+    });
+
+    expect(payload.tool_calls).toEqual([
+      {
+        id: 'call-structured-2',
+        name: 'open_url',
+        arguments: { url: 'https://example.com' },
+      },
+    ]);
+    expect(payload.structured_payload).toEqual({
+      kind: 'tool-call',
+      toolCall: {
+        id: 'call-structured-2',
+        name: 'open_url',
+        arguments: { url: 'https://example.com' },
+      },
+      toolCalls: [
+        {
+          id: 'call-structured-2',
+          name: 'open_url',
+          arguments: { url: 'https://example.com' },
+        },
+      ],
+    });
   });
 
   test('toRehydrateMessagePayload keeps content unchanged when transparency metadata is absent', () => {
@@ -368,5 +517,6 @@ describe('episodicMemoryUtils', () => {
       metadata: {},
     });
     expect(payload.content).toBe('plain content');
+    expect(payload.structured_payload).toBeNull();
   });
 });
