@@ -204,6 +204,7 @@ Replay-state behavior:
 - Chat delete and replay/edit rewind flows clear both raw transcript rows and replay-state rows before any transcript rebuild.
 - Reopening a chat prefers replay-state when present. Legacy chats without replay-state still fall back to raw transcript replay.
 - Clearing chat history deletes both raw transcript rows and replay-state rows.
+- After a global chat-history wipe, the renderer also drops its replay bootstrap cache, backend sync cache, and per-conversation workspace bindings so resume state cannot survive the underlying storage reset.
 
 Practical effect:
 
