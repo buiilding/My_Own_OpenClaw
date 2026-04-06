@@ -292,9 +292,6 @@ function MessageInput({
           </div>
         </form>
 
-        {!isCentered ? (
-          <p className="message-input-disclaimer">WindieOS can make mistakes. Check important info.</p>
-        ) : null}
       </div>
     </>
   );
