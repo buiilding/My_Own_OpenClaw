@@ -217,7 +217,21 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     assert "Do not claim a code change works unless you have some direct evidence" in content
     assert "Use fast focused search commands when inspecting repositories or logs." in content
     assert "prefer `rg` over recursive `grep`" in content
+    assert "Seeing a browser window in screenshots or open windows does not mean the `browser` tool can control that browser instance." in content
+    assert "If a browser-related request includes an attached image or screenshot that grounds the currently visible browser UI, prefer desktop UI tools first unless the image is clearly content to use inside a web workflow." in content
+    assert "`browser.connect` attaches only to the dedicated Windie browser instance/profile and does not attach to arbitrary user Chrome windows or other browser instances." in content
+    assert "Before doing anything after `browser.connect`, call `get_tabs` first unless the latest browser tool output already gives a current tab list." in content
     assert '"name":"run_shell_command"' in content
     assert '"name":"open_app"' in content
-    assert '"name":"mouse_control"' in content
     assert '"name":"browser"' in content
+
+
+def test_model_facing_system_prompt_includes_browser_scope_rules():
+    prompt_file = Path(__file__).resolve().parents[2] / "model-facing/system_prompt.txt"
+    content = prompt_file.read_text(encoding="utf-8")
+
+    assert "Seeing a browser window in screenshots or open windows does not mean the `browser` tool can control that browser instance." in content
+    assert "If a browser-related request includes an attached image or screenshot that grounds the currently visible browser UI, prefer `computer_use` first unless the image is clearly content to use inside a website workflow." in content
+    assert "Treat an attached image or screenshot of browser UI as visible desktop/browser-window evidence, not as proof that the `browser` tool is already connected to or can control that browser instance." in content
+    assert "`browser.connect` only attaches to that dedicated Windie browser instance/profile. It does not attach to arbitrary user Chrome windows or other browser instances." in content
+    assert "Treat the current browser context as unknown until `connect` succeeds and the current tabs have been read." in content
