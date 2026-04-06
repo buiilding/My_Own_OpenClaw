@@ -357,6 +357,13 @@ class BrowserController:
             except Exception as e:
                 logger.debug(f"Failed to record failed request: {e}")
 
+        def _on_close() -> None:
+            try:
+                if self._page is page:
+                    self._page = None
+            except Exception as e:
+                logger.debug(f"Failed to update closed page state: {e}")
+
         on_method = getattr(page, "on", None)
         if not callable(on_method) or inspect.iscoroutinefunction(on_method):
             return
@@ -367,6 +374,64 @@ class BrowserController:
         on_method("request", _on_request)
         on_method("response", _on_response)
         on_method("requestfailed", _on_request_failed)
+        on_method("close", _on_close)
+
+    def _is_page_closed(self, page: Optional[Page]) -> bool:
+        if page is None:
+            return True
+
+        is_closed = getattr(page, "is_closed", None)
+        if not callable(is_closed):
+            return False
+
+        try:
+            result = is_closed()
+            if inspect.isawaitable(result):
+                close = getattr(result, "close", None)
+                if callable(close):
+                    close()
+                return False
+            return bool(result)
+        except Exception:
+            return True
+
+    def _get_open_pages(self) -> List[Page]:
+        context = self._context
+        if context is None:
+            return []
+
+        try:
+            pages = list(context.pages or [])
+        except Exception:
+            return []
+
+        return [page for page in pages if not self._is_page_closed(page)]
+
+    def _sync_active_page(self) -> Optional[Page]:
+        if self._is_page_closed(self._page):
+            self._page = None
+
+        open_pages = self._get_open_pages()
+        for page in open_pages:
+            self._ensure_page_observers(page)
+
+        if self._page is None and open_pages:
+            self._page = open_pages[0]
+        elif self._page is not None and self._page not in open_pages:
+            self._page = open_pages[0] if open_pages else None
+
+        return self._page
+
+    async def _get_page_title(self, page: Optional[Page]) -> str:
+        if page is None or self._is_page_closed(page):
+            return ""
+
+        try:
+            return await page.title()
+        except Exception:
+            if self._is_page_closed(page):
+                return ""
+            raise
 
     def _store_role_refs(
         self,
@@ -648,16 +713,17 @@ class BrowserController:
 
     async def get_tabs(self) -> List[BrowserTab]:
         """Get list of open tabs."""
-        if not self._context:
+        open_pages = self._get_open_pages()
+        if not open_pages:
             return []
 
         tabs = []
-        for page in self._context.pages:
+        for page in open_pages:
             self._ensure_page_observers(page)
             tabs.append(
                 BrowserTab(
                     target_id=str(id(page)),  # Simple ID for now
-                    title=await page.title(),
+                    title=await self._get_page_title(page),
                     url=page.url,
                 )
             )
@@ -751,23 +817,25 @@ class BrowserController:
 
     async def get_status(self) -> Dict[str, Any]:
         """Get current browser session status."""
-        if not self.is_connected:
+        page = self._sync_active_page()
+        open_pages = self._get_open_pages()
+
+        if page is None:
             return {
                 "connected": False,
                 "mode": self._mode,
                 "url": "",
                 "title": "",
-                "tab_count": len(self._context.pages) if self._context else 0,
+                "tab_count": len(open_pages),
             }
 
-        assert self._page is not None
         return {
             "connected": True,
             "mode": self._mode,
-            "url": self._page.url,
-            "title": await self._page.title(),
-            "tab_count": len(self._context.pages) if self._context else 0,
-            "target_id": str(id(self._page)),
+            "url": page.url,
+            "title": await self._get_page_title(page),
+            "tab_count": len(open_pages),
+            "target_id": str(id(page)),
         }
 
     def get_console_messages(

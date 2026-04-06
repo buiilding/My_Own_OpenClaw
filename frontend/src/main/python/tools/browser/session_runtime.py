@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
@@ -27,7 +28,23 @@ class BrowserSessionRuntime:
 
     @property
     def is_connected(self) -> bool:
-        return self.context is not None and self.page is not None
+        if self.context is None or self.page is None:
+            return False
+
+        is_closed = getattr(self.page, "is_closed", None)
+        if callable(is_closed):
+            try:
+                result = is_closed()
+                if inspect.isawaitable(result):
+                    close = getattr(result, "close", None)
+                    if callable(close):
+                        close()
+                    return True
+                return not bool(result)
+            except Exception:
+                return False
+
+        return True
 
     @property
     def current_url(self) -> str:
