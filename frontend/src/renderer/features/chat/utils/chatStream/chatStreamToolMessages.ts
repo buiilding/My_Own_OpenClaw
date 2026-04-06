@@ -3,9 +3,9 @@ import type {
   ToolCallEvent,
   ToolOutputEvent,
 } from '../../../../types/backendEvents';
-import { buildMessageScreenshotState } from '../../../../infrastructure/services/screenshotMessageState';
 import type { ChatMessage } from '../../stores/chatStore';
 import { resolveToolOutputCorrelationId } from './chatStreamEventUtils';
+import { buildToolOutputMessageState } from '../toolOutputMessageState';
 
 type TranscriptModelContext = {
   modelId: string | null;
@@ -63,28 +63,18 @@ export function buildToolOutputMessage(
   screenshotRef: string | null,
   screenshotUrl: string | null,
 ): ChatMessage {
-  const screenshotState = buildMessageScreenshotState({
+  return buildToolOutputMessageState({
+    outputText,
+    sourceEventType: 'tool-output',
+    sourceChannel: 'from-backend',
     screenshot,
     screenshotRef,
     screenshotUrl,
-  });
-  return {
-    id: crypto.randomUUID(),
-    text: outputText,
-    sender: 'assistant',
-    type: 'tool-output',
-    sourceEventType: 'tool-output',
-    sourceChannel: 'from-backend',
-    screenshot: screenshotState.screenshot,
-    screenshotRef: screenshotState.screenshotRef,
-    screenshotUrl: screenshotState.screenshotUrl,
-    screenshotContentType: screenshotState.screenshotContentType,
     toolMetadata: event.payload?.metadata,
     toolName: event.payload?.tool_name,
     executionTime: event.payload?.execution_time,
     success: event.payload?.success,
     correlationId: resolveToolOutputCorrelationId(event.payload, event.id),
-    modelFacingToolOutput: outputText,
     toolOutputDetails: (
       event.payload && typeof event.payload === 'object'
         ? { ...event.payload }
@@ -93,5 +83,5 @@ export function buildToolOutputMessage(
     turnRef: event.turn_ref,
     modelId: modelContext.modelId,
     modelProvider: modelContext.modelProvider,
-  };
+  });
 }

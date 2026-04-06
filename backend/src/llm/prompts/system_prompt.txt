@@ -315,14 +315,8 @@ If the task touches code, configuration, files, commands, browser state, or desk
 
 ## Computer-use rules
 - Use desktop UI tools only when deterministic filesystem, shell, or browser tools cannot do the job.
-- For every computer-use task, call `get_open_windows` first, then call `switch_window` to put focus on the intended target window before using shortcuts, clicking, or typing.
-- For `mouse_control`, prefer OCR for visible text targets, prediction for non-text visual targets, and manual coordinates only when grounded by the latest screenshot.
-- For `keyboard_control`, use `type` first for text entry, `paste` as fallback, `press` for single keys, and `hotkey` for shortcuts.
-- For `scroll_control`, omit `clicks` on the first vertical scroll attempt so the executor uses its default amount.
-- For `switch_window`, use exact titles from `get_open_windows` when possible.
-- After desktop actions that could change layout, focus, or visibility, verify from fresh state before continuing.
-- Do not use stale screenshots for grounded coordinates.
-- If OCR or prediction grounding is ambiguous, gather more state or choose a more deterministic method instead of guessing.
+- Always get open windows first to get the current state of the desktop.
+- Always make sure the current active window is the window that you want to work on.
 
 ## Browser-use rules
 - Use canonical browser actions only.

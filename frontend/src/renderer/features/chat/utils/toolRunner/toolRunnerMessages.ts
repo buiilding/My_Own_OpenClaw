@@ -1,7 +1,7 @@
 import type { BundleExecutionResult, ToolExecutionResult } from '../../../../infrastructure/services/toolExecution/ToolExecutionService';
-import { buildMessageScreenshotState } from '../../../../infrastructure/services/screenshotMessageState';
 import type { ChatMessage } from '../../stores/chatStore';
 import { resolveToolCallCorrelationId as resolveSharedToolCallCorrelationId } from '../toolCorrelationIds';
+import { buildToolOutputMessageState } from '../toolOutputMessageState';
 
 export type TranscriptModelContext = {
   modelId: string | null;
@@ -25,28 +25,18 @@ type ToolOutputEnvelopeInput = {
 };
 
 function buildToolOutputEnvelope(result: ToolOutputEnvelopeInput) {
-  const screenshotState = buildMessageScreenshotState({
+  return buildToolOutputMessageState({
+    outputText: result.formattedMessage,
+    sourceEventType: 'tool-runner-result' as const,
+    sourceChannel: 'renderer-tool-runner' as const,
     screenshot: result.screenshot,
     screenshotRef: result.screenshotRef,
     screenshotUrl: result.screenshotUrl,
     screenshotContentType: result.screenshotContentType,
-  });
-  return {
-    id: crypto.randomUUID(),
-    text: result.formattedMessage,
-    sender: 'assistant' as const,
-    type: 'tool-output' as const,
-    sourceEventType: 'tool-runner-result' as const,
-    sourceChannel: 'renderer-tool-runner' as const,
-    screenshot: screenshotState.screenshot,
-    screenshotRef: screenshotState.screenshotRef,
-    screenshotUrl: screenshotState.screenshotUrl,
-    screenshotContentType: screenshotState.screenshotContentType,
     executionTime: result.executionTime,
     success: result.success,
     correlationId: result.correlationId,
-    modelFacingToolOutput: result.formattedMessage,
-  };
+  });
 }
 
 export function buildToolOutputMessage(result: ToolExecutionResult): ChatMessage {
