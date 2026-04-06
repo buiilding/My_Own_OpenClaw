@@ -4,6 +4,10 @@ import copy
 import re
 from typing import Any, Dict, List, Optional, Union
 
+from backend.src.agent.history.history_admission import (
+    normalize_history_text_content,
+    should_store_assistant_history_message,
+)
 from backend.src.agent.session.message_builders import (
     build_assistant_message,
     build_tool_output_message,
@@ -152,7 +156,7 @@ class ConversationHistory:
 
     def add_assistant_message(
         self,
-        message: str,
+        message: Any,
         tool_calls: Optional[List[Dict[str, Any]]] = None,
     ) -> None:
         """
@@ -162,7 +166,16 @@ class ConversationHistory:
             message: Assistant response text
             tool_calls: Optional native tool_calls payload for assistant tool turns
         """
-        stored_msg = build_assistant_message(message=message, tool_calls=tool_calls)
+        normalized_message = normalize_history_text_content(message)
+        if not should_store_assistant_history_message(
+            normalized_message,
+            tool_calls=tool_calls,
+        ):
+            return
+        stored_msg = build_assistant_message(
+            message=normalized_message,
+            tool_calls=tool_calls,
+        )
         self._append_message(stored_msg)
         # Invalidate token count cache (new message added)
         self._invalidate_token_cache()
@@ -359,19 +372,26 @@ class ConversationHistory:
                 stored_role = MessageRole.ASSISTANT
             else:
                 stored_role = MessageRole.USER
+            normalized_content = normalize_history_text_content(entry.get("content"))
+            tool_calls = entry.get("tool_calls")
+            if stored_role == MessageRole.ASSISTANT and not should_store_assistant_history_message(
+                normalized_content,
+                tool_calls=tool_calls,
+            ):
+                continue
             stored_msg = StoredMessage(
                 role=stored_role,
-                content=str(entry.get("content") or ""),
+                content=normalized_content,
                 message_type=message_type,
                 image_data=entry.get("image_data"),
                 user_query_raw=(
-                    self._extract_user_query(str(entry.get("content") or ""))
+                    self._extract_user_query(normalized_content)
                     if message_type == MessageType.USER_QUERY
                     else None
                 ),
                 tool_call_id=entry.get("tool_call_id"),
                 tool_name=entry.get("tool_name") or entry.get("name"),
-                tool_calls=entry.get("tool_calls"),
+                tool_calls=tool_calls,
                 compaction_facts=entry.get("compaction_facts"),
             )
             stored_messages.append(stored_msg)

@@ -248,6 +248,18 @@ def test_tool_output_incrementally_updates_token_cache(monkeypatch):
     assert service.count_tokens_calls == 1
 
 
+def test_add_assistant_message_drops_thinking_only_structured_content():
+    history = ConversationHistory()
+
+    history.add_assistant_message(
+        [
+            {"type": "thinking", "text": "private reasoning"},
+        ]
+    )
+
+    assert history.get_stored_messages() == []
+
+
 def test_replace_with_entries_rehydrates_order_and_images():
     history = ConversationHistory()
 
@@ -346,6 +358,46 @@ def test_replace_with_entries_preserves_assistant_tool_call_rows():
     assert len(normalized) == 2
     assert normalized[0]["role"] == "assistant"
     assert normalized[1]["role"] == "tool"
+
+
+def test_replace_with_entries_normalizes_structured_assistant_content():
+    history = ConversationHistory()
+
+    history.replace_with_entries(
+        [
+            {
+                "role": "assistant",
+                "content": [
+                    {"type": "thinking", "text": "private reasoning"},
+                    {"type": "output_text", "text": "Visible answer."},
+                    {"type": "refusal", "refusal": "Cannot share that."},
+                ],
+                "message_type": "llm-text",
+            },
+        ]
+    )
+
+    stored = history.get_stored_messages()
+    assert len(stored) == 1
+    assert stored[0].content == "Visible answer.Cannot share that."
+
+
+def test_replace_with_entries_drops_empty_assistant_rows_with_only_unsupported_content():
+    history = ConversationHistory()
+
+    history.replace_with_entries(
+        [
+            {
+                "role": "assistant",
+                "content": [
+                    {"type": "thinking", "text": "private reasoning"},
+                ],
+                "message_type": "llm-text",
+            },
+        ]
+    )
+
+    assert history.get_stored_messages() == []
 
 
 def test_replace_with_stored_messages_replaces_history_atomically():

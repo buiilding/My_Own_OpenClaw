@@ -47,8 +47,8 @@ def resolve_rehydrated_content(
     normalized_message_type: str,
     raw_content: Any,
     transparency: Optional[Dict[str, Any]],
-) -> str:
-    base_content = raw_content if isinstance(raw_content, str) else ""
+) -> Any:
+    base_content = raw_content if raw_content is not None else ""
     if not isinstance(transparency, dict):
         return base_content
 

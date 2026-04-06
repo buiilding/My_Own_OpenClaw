@@ -107,6 +107,13 @@ Error handling:
 
 History size is reduced only by compaction; the loop is not stopped by a fixed step budget.
 
+Turn-commit policy:
+
+- final assistant turns commit only replay-safe text; if model text is empty, loop resolves the deterministic fallback first, emits it, then commits that fallback text
+- assistant tool turns commit the assistant row plus staged `tool_call_id`s together before execution so cancellation can still reconcile tool outputs
+- query cancellation does not synthesize assistant text; it only reconciles pending `role='tool'` rows for already-committed assistant tool-call turns
+- unsupported assistant-only structured blocks (for example stray reasoning/thinking fragments from partial transcript state) are dropped at history-admission boundaries instead of being replayed back to providers
+
 ## Tool-Turn Lifecycle
 
 ### Send phase

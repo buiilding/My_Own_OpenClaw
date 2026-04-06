@@ -6,6 +6,10 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
+from backend.src.agent.history.history_admission import (
+    normalize_history_text_content,
+    should_store_assistant_history_message,
+)
 from backend.src.api.services.rehydrate_tool_linkage_repair import (
     RehydrateToolLinkageState,
 )
@@ -235,7 +239,7 @@ class RehydrateEntryNormalizer:
 
         hydrated_entry: Dict[str, Any] = {
             "role": entry.role,
-            "content": content,
+            "content": normalize_history_text_content(content),
             "message_type": stored_message_type,
             "tool_name": normalized_tool_name,
             "correlation_id": correlation_id,
@@ -251,6 +255,12 @@ class RehydrateEntryNormalizer:
                 [tool_call["id"] for tool_call in normalized_tool_calls]
             )
             return [hydrated_entry], normalized_tool_calls[-1]["id"]
+
+        if entry.role == "assistant" and not should_store_assistant_history_message(
+            hydrated_entry["content"],
+            tool_calls=normalized_tool_calls,
+        ):
+            return [], None
 
         return [hydrated_entry], None
 
@@ -273,7 +283,7 @@ class RehydrateEntryNormalizer:
         timestamp: Optional[str],
         image_data: Optional[str],
     ) -> Optional[Dict[str, Any]]:
-        normalized_content = content if isinstance(content, str) else ""
+        normalized_content = normalize_history_text_content(content)
         if not normalized_content.strip() and image_data is None:
             return None
         return {
@@ -353,7 +363,7 @@ class RehydrateEntryNormalizer:
         normalized_message_type: str,
         raw_content: Any,
         transparency: Optional[Dict[str, Any]],
-    ) -> str:
+    ) -> Any:
         _ = self
         return resolve_rehydrated_content_helper(
             role=role,
@@ -380,7 +390,7 @@ class RehydrateEntryNormalizer:
     @staticmethod
     def build_assistant_tool_call_entry(
         *,
-        content: str,
+        content: Any,
         call_id: str,
         call_name: str,
         call_arguments: Dict[str, Any],
@@ -397,9 +407,10 @@ class RehydrateEntryNormalizer:
         if thought_signature is not None:
             tool_call_payload["thought_signature"] = thought_signature
 
+        normalized_content = normalize_history_text_content(content)
         return {
             "role": "assistant",
-            "content": content,
+            "content": normalized_content,
             "message_type": message_type,
             "tool_name": call_name,
             "correlation_id": call_id,
