@@ -159,7 +159,20 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       )
     );
     const { x, y } = canUseManualPosition
-      ? manualChatWindowPosition
+      ? (() => {
+        const anchoredBounds = getOverlayChatWindowBounds({
+          screen,
+          width,
+          height,
+          displayAffinity: getActiveDisplayAffinity(),
+          targetX: manualChatWindowPosition.x,
+        });
+        const bottomY = Math.round(Number(manualChatWindowPosition.bottomY) || 0);
+        return {
+          x: Math.round(anchoredBounds.x),
+          y: bottomY - height,
+        };
+      })()
       : getChatWindowBounds(width, height);
     chatWindow.setPosition(x, y, false);
     positionResponseWindow();
@@ -220,9 +233,21 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     if (!Number.isFinite(x) || !Number.isFinite(y)) {
       return false;
     }
+    const chatWindow = getChatWindow();
+    const [, currentHeightRaw] = chatWindow
+      && !chatWindow.isDestroyed?.()
+      && typeof chatWindow.getSize === 'function'
+      ? chatWindow.getSize()
+      : [];
+    const currentHeight = Math.max(
+      1,
+      Number.isFinite(chatWindowHeightOverride)
+        ? chatWindowHeightOverride
+        : Math.round(Number(currentHeightRaw) || 0),
+    );
     manualChatWindowPosition = {
       x,
-      y,
+      bottomY: y + currentHeight,
       monitorId: typeof position.monitorId === 'string'
         ? position.monitorId
         : getActiveMonitorId(),

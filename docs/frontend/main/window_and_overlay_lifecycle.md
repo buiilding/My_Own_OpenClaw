@@ -96,7 +96,7 @@ Position helpers in `surface_runtime.cjs` (via `overlay_window_helpers_runtime.c
 - anchored to primary display work area
 - centered horizontally
 - margin-bottom of `24px`
-- manual drag preserves horizontal placement and display affinity, but repositioning always re-anchors the pill to that display's bottom work area instead of persisting a raw screen `y`
+- manual drag preserves horizontal placement, vertical placement, and display affinity by storing the dragged bottom edge instead of a raw top `y`, so later pill-height changes keep the visible baseline fixed and grow upward
 - `getResponseWindowBounds(width, height)`:
 - centered to current chat window width
 - rendered above chat window with tight runtime gap (`8px` in current non-dashboard config)
