@@ -1,4 +1,5 @@
 import { normalizeToolSchemaList } from './toolSchemaShape';
+import { normalizeTransparencyData } from './transparencyNormalization';
 
 function normalizeOptionalString(value) {
   if (typeof value !== 'string') {
@@ -21,68 +22,8 @@ function cloneObject(value) {
   return { ...value };
 }
 
-function resolveTransparencyToolSchemas(
-  primaryToolSchemas,
-  fallbackToolSchemas,
-) {
-  const normalizedPrimary = normalizeToolSchemaList(primaryToolSchemas);
-  if (normalizedPrimary && normalizedPrimary.length > 0) {
-    return normalizedPrimary;
-  }
-  const normalizedFallback = normalizeToolSchemaList(fallbackToolSchemas);
-  if (normalizedFallback && normalizedFallback.length > 0) {
-    return normalizedFallback;
-  }
-  return null;
-}
-
-function normalizeFullMessagePayload(rawMessage) {
-  if (!rawMessage || typeof rawMessage !== 'object' || Array.isArray(rawMessage)) {
-    return null;
-  }
-  const content = normalizeOptionalString(rawMessage.content);
-  const metadata = cloneObject(rawMessage.metadata);
-  if (!content && !metadata) {
-    return null;
-  }
-  return {
-    ...(content ? { content } : {}),
-    ...(metadata ? { metadata } : {}),
-  };
-}
-
 export function normalizeTranscriptTransparency(rawTransparency) {
-  if (!rawTransparency || typeof rawTransparency !== 'object' || Array.isArray(rawTransparency)) {
-    return null;
-  }
-
-  const transparency = {};
-  const systemPrompt = normalizeOptionalString(rawTransparency.systemPrompt);
-  if (systemPrompt) {
-    transparency.systemPrompt = systemPrompt;
-  }
-
-  const toolSchemas = resolveTransparencyToolSchemas(
-    rawTransparency.toolSchemas,
-    null,
-  );
-  if (toolSchemas) {
-    transparency.toolSchemas = toolSchemas;
-  }
-
-  const fullUserMessage = normalizeFullMessagePayload(rawTransparency.fullUserMessage);
-  if (fullUserMessage) {
-    transparency.fullUserMessage = fullUserMessage;
-  }
-
-  const fullAssistantContent = normalizeOptionalString(rawTransparency?.fullAssistantMessage?.content);
-  if (fullAssistantContent) {
-    transparency.fullAssistantMessage = {
-      content: fullAssistantContent,
-    };
-  }
-
-  return Object.keys(transparency).length > 0 ? transparency : null;
+  return normalizeTransparencyData(rawTransparency);
 }
 
 export function buildTranscriptTransparencyFromChatMessage(message) {
@@ -90,31 +31,29 @@ export function buildTranscriptTransparencyFromChatMessage(message) {
     return null;
   }
 
-  const systemPromptContent = normalizeOptionalString(message?.systemPrompt?.content);
-  const toolSchemas = resolveTransparencyToolSchemas(
-    message?.toolSchemas,
-    message?.systemPrompt?.toolSchemas,
-  );
-  const fullUserMessage = normalizeFullMessagePayload(message?.fullUserMessage);
-  const fullAssistantContent = normalizeOptionalString(message?.fullAssistantMessage?.content);
+  const toolSchemas = normalizeToolSchemaList(message?.toolSchemas)
+    || normalizeToolSchemaList(message?.systemPrompt?.toolSchemas)
+    || undefined;
 
-  const transparency = {};
-  if (systemPromptContent) {
-    transparency.systemPrompt = systemPromptContent;
-  }
-  if (toolSchemas) {
-    transparency.toolSchemas = toolSchemas;
-  }
-  if (fullUserMessage) {
-    transparency.fullUserMessage = fullUserMessage;
-  }
-  if (fullAssistantContent) {
-    transparency.fullAssistantMessage = {
-      content: fullAssistantContent,
-    };
-  }
-
-  return Object.keys(transparency).length > 0 ? transparency : null;
+  return normalizeTransparencyData({
+    systemPrompt: message?.systemPrompt?.content,
+    ...(toolSchemas ? { toolSchemas } : {}),
+    fullUserMessage: (
+      message?.fullUserMessage
+      && typeof message.fullUserMessage === 'object'
+      && !Array.isArray(message.fullUserMessage)
+    ) ? {
+      content: message.fullUserMessage.content,
+      metadata: cloneObject(message.fullUserMessage.metadata),
+    } : undefined,
+    fullAssistantMessage: (
+      message?.fullAssistantMessage
+      && typeof message.fullAssistantMessage === 'object'
+      && !Array.isArray(message.fullAssistantMessage)
+    ) ? {
+      content: message.fullAssistantMessage.content,
+    } : undefined,
+  });
 }
 
 export function resolveRehydrateContent({
