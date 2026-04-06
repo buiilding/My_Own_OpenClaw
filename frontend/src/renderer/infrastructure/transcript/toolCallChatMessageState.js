@@ -1,0 +1,31 @@
+export function buildToolCallChatMessageState({
+  id,
+  text,
+  toolCallDisplayText = null,
+  modelFacingToolCall = null,
+  toolCallDetails = null,
+  correlationId = null,
+  sourceEventType = null,
+  sourceChannel = null,
+  turnRef = null,
+  modelId = null,
+  modelProvider = null,
+  isComplete = null,
+}) {
+  return {
+    id: id || crypto.randomUUID(),
+    text,
+    sender: 'assistant',
+    type: 'tool-call',
+    ...(toolCallDisplayText ? { toolCallDisplayText } : {}),
+    ...(modelFacingToolCall ? { modelFacingToolCall } : {}),
+    ...(toolCallDetails ? { toolCallDetails } : {}),
+    ...(correlationId ? { correlationId } : {}),
+    ...(sourceEventType ? { sourceEventType } : {}),
+    ...(sourceChannel ? { sourceChannel } : {}),
+    ...(turnRef ? { turnRef } : {}),
+    ...(modelId ? { modelId } : {}),
+    ...(modelProvider ? { modelProvider } : {}),
+    ...(isComplete !== null && isComplete !== undefined ? { isComplete } : {}),
+  };
+}

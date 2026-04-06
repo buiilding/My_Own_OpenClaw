@@ -6,6 +6,7 @@ import type {
 import type { ChatMessage } from '../../stores/chatStore';
 import { resolveToolOutputCorrelationId } from './chatStreamEventUtils';
 import { buildToolOutputMessageState } from '../toolOutputMessageState';
+import { buildToolCallChatMessageState } from '../../../../infrastructure/transcript/toolCallChatMessageState';
 
 type TranscriptModelContext = {
   modelId: string | null;
@@ -17,21 +18,18 @@ export function buildToolCallMessage(
   messageState: Pick<ChatMessage, 'text' | 'toolCallDisplayText' | 'modelFacingToolCall' | 'toolCallDetails' | 'correlationId'>,
   modelContext: TranscriptModelContext,
 ): ChatMessage {
-  return {
-    id: crypto.randomUUID(),
+  return buildToolCallChatMessageState({
     text: messageState.text,
     toolCallDisplayText: messageState.toolCallDisplayText,
-    sender: 'assistant',
-    type: 'tool-call',
-    sourceEventType: 'tool-call',
-    sourceChannel: 'from-backend',
     modelFacingToolCall: messageState.modelFacingToolCall ?? null,
     toolCallDetails: messageState.toolCallDetails ?? null,
-    correlationId: messageState.correlationId ?? undefined,
+    correlationId: messageState.correlationId ?? null,
+    sourceEventType: 'tool-call',
+    sourceChannel: 'from-backend',
     turnRef: event.turn_ref,
     modelId: modelContext.modelId,
     modelProvider: modelContext.modelProvider,
-  };
+  });
 }
 
 export function buildToolBundleMessage(
@@ -39,20 +37,17 @@ export function buildToolBundleMessage(
   messageState: Pick<ChatMessage, 'text' | 'toolCallDisplayText' | 'toolCallDetails' | 'correlationId'>,
   modelContext: TranscriptModelContext,
 ): ChatMessage {
-  return {
-    id: crypto.randomUUID(),
+  return buildToolCallChatMessageState({
     text: messageState.text,
     toolCallDisplayText: messageState.toolCallDisplayText,
-    sender: 'assistant',
-    type: 'tool-call',
+    toolCallDetails: messageState.toolCallDetails ?? null,
+    correlationId: messageState.correlationId ?? null,
     sourceEventType: 'tool-bundle',
     sourceChannel: 'from-backend',
-    toolCallDetails: messageState.toolCallDetails ?? null,
-    correlationId: messageState.correlationId ?? undefined,
     turnRef: event.turn_ref,
     modelId: modelContext.modelId,
     modelProvider: modelContext.modelProvider,
-  };
+  });
 }
 
 export function buildToolOutputMessage(

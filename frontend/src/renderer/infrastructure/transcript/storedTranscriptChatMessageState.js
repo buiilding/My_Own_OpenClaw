@@ -5,6 +5,9 @@ import {
   buildStoredTranscriptToolMessageState,
 } from './structuredToolPayload';
 import {
+  buildToolCallChatMessageState,
+} from './toolCallChatMessageState';
+import {
   resolveStoredTranscriptMemoryState,
 } from './storedTranscriptMemoryState';
 
@@ -141,6 +144,26 @@ export function buildStoredTranscriptChatMessages(memory, index) {
   const partCount = parts.length;
 
   return parts.map((part, partIndex) => {
+    const messageId = `${memory?.id || index}-${partIndex}`;
+    if (part.type === 'tool-call') {
+      const transparencyFields = buildStoredTranscriptTransparencyFields(part, partCount, transparency);
+      return {
+        ...buildToolCallChatMessageState({
+          id: messageId,
+          text: part.text,
+          toolCallDisplayText: part.toolCallDisplayText || null,
+          modelFacingToolCall: part.modelFacingToolCall || null,
+          toolCallDetails: part.toolCallDetails || null,
+          correlationId: part.correlationId || null,
+          sourceEventType: part.sourceEventType || null,
+          modelId: part.modelId || null,
+          modelProvider: part.modelProvider || null,
+          isComplete: true,
+        }),
+        ...transparencyFields,
+      };
+    }
+
     const screenshotFields = {};
     if (part.screenshot) {
       screenshotFields.screenshot = part.screenshot;
@@ -161,24 +184,20 @@ export function buildStoredTranscriptChatMessages(memory, index) {
     if (part.modelId) {
       modelFields.modelId = part.modelId;
     }
-    const transparencyFields = buildStoredTranscriptTransparencyFields(part, partCount, transparency);
+      const transparencyFields = buildStoredTranscriptTransparencyFields(part, partCount, transparency);
 
-    return {
-      id: `${memory?.id || index}-${partIndex}`,
-      text: part.text,
-      sender: part.sender,
-      type: part.type,
-      ...(part.toolCallDisplayText ? { toolCallDisplayText: part.toolCallDisplayText } : {}),
-      ...(part.modelFacingToolCall ? { modelFacingToolCall: part.modelFacingToolCall } : {}),
-      ...(part.toolCallDetails ? { toolCallDetails: part.toolCallDetails } : {}),
-      ...(part.modelFacingToolOutput ? { modelFacingToolOutput: part.modelFacingToolOutput } : {}),
-      ...(part.toolOutputDetails ? { toolOutputDetails: part.toolOutputDetails } : {}),
-      ...(part.sourceEventType ? { sourceEventType: part.sourceEventType } : {}),
-      ...(part.correlationId ? { correlationId: part.correlationId } : {}),
-      ...modelFields,
-      ...screenshotFields,
-      ...transparencyFields,
-      isComplete: true,
-    };
-  });
+      return {
+        id: messageId,
+        text: part.text,
+        sender: part.sender,
+        type: part.type,
+        ...(part.modelFacingToolOutput ? { modelFacingToolOutput: part.modelFacingToolOutput } : {}),
+        ...(part.toolOutputDetails ? { toolOutputDetails: part.toolOutputDetails } : {}),
+        ...(part.correlationId ? { correlationId: part.correlationId } : {}),
+        ...modelFields,
+        ...screenshotFields,
+        ...transparencyFields,
+        isComplete: true,
+      };
+    });
 }
