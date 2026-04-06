@@ -48,9 +48,9 @@ describe('transcriptMessagePayload', () => {
       role: 'assistant',
       content: 'open browser',
       message_type: 'tool-call',
-      tool_name: null,
-      correlation_id: null,
-      tool_call_id: null,
+      tool_name: 'browser.open',
+      correlation_id: 'corr-1',
+      tool_call_id: 'corr-1',
       tool_calls: [{
         id: 'call-1',
         name: 'browser.open',
@@ -135,6 +135,26 @@ describe('transcriptMessagePayload', () => {
         },
       },
     });
+  });
+
+  test('toRehydratePayload keeps assistant tool-call metadata aligned with stored-memory rehydrate payloads', () => {
+    expect(toRehydratePayload({
+      sender: 'assistant',
+      type: 'tool-call',
+      text: 'not valid json',
+      correlationId: 'call-live-1',
+      toolName: 'browser.snapshot',
+    })).toEqual(expect.objectContaining({
+      tool_name: 'browser.snapshot',
+      correlation_id: 'call-live-1',
+      tool_call_id: 'call-live-1',
+      tool_calls: [{
+        id: 'call-live-1',
+        name: 'browser.snapshot',
+        arguments: {},
+        thought_signature: undefined,
+      }],
+    }));
   });
 
   test('toRehydratePayload restores full message content and sends transparency metadata', () => {

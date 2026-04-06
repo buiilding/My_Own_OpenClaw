@@ -69,8 +69,9 @@ rehydrate flows use one canonical contract for:
 - `role`
 - `content`
 - `message_type`
-- `tool_name` (tool role only)
-- `correlation_id` (tool role only)
+- `tool_name` (tool outputs and tool-call rows)
+- `correlation_id` (tool outputs and tool-call rows)
+- `tool_call_id` (tool outputs and tool-call rows when resolvable)
 - `timestamp`
 - `screenshot_ref`
 - `screenshot`
@@ -89,6 +90,7 @@ Normalization details:
 
 - transcript rewrite loop uses `resolveTranscriptRole` + `resolveTranscriptMessageType`
 - replay screenshot rewrite uses `resolveStoredTranscriptScreenshotValue(...)` so stored transcript rows keep either the artifact ref or the inline screenshot payload
+- final payload shaping uses the shared `rehydrateMessageState.js` helper so live replay and stored-memory replay emit the same tool metadata contract
 - backend rehydrate request uses `preservedMessages.map(toRehydratePayload)`
 - backend resend query uses normalized screenshot fields so retry/edit paths do not drop inline screenshots that were never materialized as artifact refs
 

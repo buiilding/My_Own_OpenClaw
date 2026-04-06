@@ -1,16 +1,13 @@
 import {
-  buildRehydrateToolCall,
   buildTranscriptTransparencyFromChatMessage,
   normalizeOptionalString,
-  resolveRehydrateContent,
 } from '../../../../infrastructure/transcript/rehydratePayload';
 import {
-  buildToolCallMessageState,
   buildToolBundleMessageState,
 } from '../../../../infrastructure/transcript/toolCallMessageState';
 import {
-  buildStructuredToolPayload,
-} from '../../../../infrastructure/transcript/structuredToolPayload';
+  buildRehydrateMessagePayload,
+} from '../../../../infrastructure/transcript/rehydrateMessageState';
 import {
   resolveReplayScreenshotState,
 } from '../../../../infrastructure/services/screenshotMessageState';
@@ -50,21 +47,6 @@ export function toRehydratePayload(message) {
   }
   const role = resolveTranscriptRole(message);
   const messageType = resolveTranscriptMessageType(message);
-  const normalizedToolCallMessage = buildToolCallMessageState({
-    rawContent: typeof message?.text === 'string' ? message.text : null,
-    rawToolCall: (
-      message?.modelFacingToolCall
-      && typeof message.modelFacingToolCall === 'object'
-      && !Array.isArray(message.modelFacingToolCall)
-    ) ? message.modelFacingToolCall : null,
-    fallbackToolName: normalizeOptionalString(message?.toolName) || null,
-    fallbackToolCallId: normalizeOptionalString(message?.correlationId) || null,
-    toolCallDetails: (
-      message?.toolCallDetails
-      && typeof message.toolCallDetails === 'object'
-      && !Array.isArray(message.toolCallDetails)
-    ) ? message.toolCallDetails : null,
-  });
   const normalizedToolBundleMessage = messageType === 'tool-bundle'
     ? buildToolBundleMessageState(
       (
@@ -73,17 +55,6 @@ export function toRehydratePayload(message) {
         && !Array.isArray(message.toolCallDetails)
       ) ? message.toolCallDetails : null,
     )
-    : null;
-  const toolCall = buildRehydrateToolCall({
-    parsedToolCall: normalizedToolCallMessage.modelFacingToolCall,
-    fallbackToolName: normalizeOptionalString(message?.toolName) || null,
-    fallbackToolCallId: normalizeOptionalString(message?.correlationId) || null,
-  });
-  const toolCallId = role === 'tool'
-    ? (normalizeOptionalString(message.correlationId) || toolCall?.id || null)
-    : null;
-  const toolName = role === 'tool'
-    ? (normalizeOptionalString(message.toolName) || toolCall?.name || null)
     : null;
   const transparency = buildTranscriptTransparencyFromChatMessage(message);
   const screenshotAttachment = resolveReplayScreenshotState({
@@ -94,24 +65,21 @@ export function toRehydratePayload(message) {
       ? message.screenshotContentType
       : null,
   });
-  const content = resolveRehydrateContent({
+  return buildRehydrateMessagePayload({
     role,
     messageType,
-    content: message.text || '',
+    rawContent: message.text || '',
+    timestamp: message.timestamp || null,
+    correlationId: normalizeOptionalString(message?.correlationId) || null,
     transparency,
-  });
-  const normalizedToolCall = messageType === 'tool-call'
-    ? buildRehydrateToolCall({
-      parsedToolCall: toolCall,
-      fallbackToolName: normalizeOptionalString(message.toolName) || toolCall?.name || null,
-      fallbackToolCallId: normalizeOptionalString(message.correlationId) || toolCall?.id || null,
-    })
-    : null;
-  const structuredPayload = buildStructuredToolPayload({
-    kind: messageType,
-    toolCall: messageType === 'tool-call'
-      ? normalizedToolCallMessage.modelFacingToolCall
-      : null,
+    screenshotAttachment,
+    rawToolCall: (
+      message?.modelFacingToolCall
+      && typeof message.modelFacingToolCall === 'object'
+      && !Array.isArray(message.modelFacingToolCall)
+    ) ? message.modelFacingToolCall : null,
+    fallbackToolName: normalizeOptionalString(message?.toolName) || null,
+    fallbackToolCallId: normalizeOptionalString(message?.correlationId) || null,
     toolCalls: normalizedToolBundleMessage?.toolCalls || null,
     toolCallDetails: (
       message?.toolCallDetails
@@ -119,19 +87,4 @@ export function toRehydratePayload(message) {
       && !Array.isArray(message.toolCallDetails)
     ) ? message.toolCallDetails : null,
   });
-
-  return {
-    role,
-    content,
-    message_type: messageType,
-    tool_name: toolName,
-    correlation_id: role === 'tool' ? (message.correlationId || null) : null,
-    tool_call_id: toolCallId,
-    tool_calls: normalizedToolCall ? [normalizedToolCall] : null,
-    timestamp: message.timestamp || null,
-    screenshot_ref: screenshotAttachment.screenshotRef,
-    screenshot: screenshotAttachment.screenshot,
-    transparency,
-    structured_payload: structuredPayload,
-  };
 }
