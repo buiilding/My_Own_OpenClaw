@@ -79,8 +79,8 @@ Module:
 
 Core loop behavior:
 
-- periodic wake-up interval
-- checks watermark/pending-message thresholds
+- immediate startup wake plus periodic wake-up interval
+- checks unsemanticized interaction backlog and idle state
 - finds user IDs and conversations with unsemanticized episodic memories
 - batches conversations, builds chunks, and requests semantic summarization
 - writes semantic memory entry and marks source episodic memories semanticized
@@ -98,7 +98,7 @@ Operational controls (from `SummarizerSettings`):
 1. Sidecar initializes local memory store.
 2. Remote embedding client is initialized.
 3. SQLite schemas and FAISS indices are loaded/synced.
-4. Summarizer starts background task loop.
+4. Summarizer starts background task loop and triggers an immediate first pass.
 5. New memory writes update watermark and notify summarizer.
 
 ## Failure Modes and Recovery

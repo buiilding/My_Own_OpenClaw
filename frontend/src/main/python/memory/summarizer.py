@@ -50,7 +50,7 @@ class SummarizerSettings:
     interval_seconds: int = 60
     idle_seconds: int = 120
     min_batch_size: int = 6
-    min_batch_size_idle: int = 3
+    min_batch_size_idle: int = 1
     max_batch_size: int = 30
     min_memory_age_seconds: int = 45
     max_summaries_per_cycle: int = 3
@@ -73,6 +73,7 @@ class MemorySummarizer:
         self.settings = settings or SummarizerSettings()
 
         self._shutdown_event = asyncio.Event()
+        self._wake_event = asyncio.Event()
         self._task: Optional[asyncio.Task] = None
         self._lock = asyncio.Lock()
         self._backoff_seconds = 0
@@ -83,15 +84,18 @@ class MemorySummarizer:
         if user_id:
             self._known_user_ids.add(user_id)
         self._last_activity_at = datetime.now(timezone.utc)
+        self._wake_event.set()
 
     async def start(self) -> None:
         if self._task and not self._task.done():
             return
         await self.semantic_client.initialize()
+        self._wake_event.set()
         self._task = asyncio.create_task(self._run_loop(), name="memory-summarizer")
 
     async def stop(self) -> None:
         self._shutdown_event.set()
+        self._wake_event.set()
         if self._task:
             self._task.cancel()
             try:
@@ -114,10 +118,24 @@ class MemorySummarizer:
         wait_seconds = self.settings.interval_seconds
         if self._backoff_seconds:
             wait_seconds = max(wait_seconds, self._backoff_seconds)
+        shutdown_task = asyncio.create_task(self._shutdown_event.wait())
+        wake_task = asyncio.create_task(self._wake_event.wait())
         try:
-            await asyncio.wait_for(self._shutdown_event.wait(), timeout=wait_seconds)
-        except asyncio.TimeoutError:
-            return
+            done, pending = await asyncio.wait(
+                {shutdown_task, wake_task},
+                timeout=wait_seconds,
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            if wake_task in done:
+                self._wake_event.clear()
+            for task in pending:
+                task.cancel()
+            if pending:
+                await asyncio.gather(*pending, return_exceptions=True)
+        finally:
+            for task in (shutdown_task, wake_task):
+                if not task.done():
+                    task.cancel()
 
     async def _maybe_summarize(self) -> None:
         if self._lock.locked():
@@ -191,7 +209,10 @@ class MemorySummarizer:
             )
             return False
 
-        return pending >= self.settings.min_batch_size
+        if pending >= self.settings.min_batch_size:
+            return True
+
+        return pending >= self.settings.min_batch_size_idle and self._is_idle()
 
     def _is_idle(self) -> bool:
         if not self._last_activity_at:
@@ -210,12 +231,11 @@ class MemorySummarizer:
                 ordered_user_ids.append(user_id)
                 seen.add(user_id)
 
-        if ordered_user_ids:
-            return ordered_user_ids
-
         try:
-            # Cold-start fallback: process only the most recent user id.
-            discovered = await self.memory_store.get_user_ids_with_unsemanticized_memories(limit=1)
+            discovery_limit = max(self.settings.max_conversations_per_cycle, 1)
+            discovered = await self.memory_store.get_user_ids_with_unsemanticized_memories(
+                limit=discovery_limit
+            )
             for user_id in discovered:
                 if user_id and user_id not in seen:
                     ordered_user_ids.append(user_id)

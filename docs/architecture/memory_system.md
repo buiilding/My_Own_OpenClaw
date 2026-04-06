@@ -103,7 +103,7 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 - Calls backend `/api/semantic/summarize` via `RemoteSemanticClient`
 
 **Behavior notes**:
-- Runs on a fixed interval; summarization only proceeds when unsemanticized episodic interaction rows reach the configured threshold (`min_batch_size`, default `6`).
+- Runs an immediate startup pass, then continues on a fixed interval; summarization proceeds immediately for large backlogs (`min_batch_size`, default `6`) and for smaller idle backlogs (`min_batch_size_idle`, default `1`) when age checks pass.
 - Deduplicates summaries using a `summary_hash` over source memory IDs.
 - Marks episodic memories as semanticized only after a successful summary write.
 - Uses `watermark_state.json` to track progress and resumes safely after restarts.
@@ -129,15 +129,17 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 
 #### Does idle mode trigger summarization?
 
-- No.
-- Run gate only checks unsemanticized interaction-row count (`count >= min_batch_size`, default `6`).
+- Yes.
+- Run gate checks unsemanticized interaction-row count with two paths:
+  - immediate run when `count >= min_batch_size` (`6`)
+  - idle run when `count >= min_batch_size_idle` (`1`) and the summarizer has been idle long enough
 - Batch gate still applies after run gate: a conversation batch is summarized only if batch size and age checks pass.
 - Batch gate defaults:
   - Immediate summarize when batch size `>= min_batch_size` (`6`).
-  - Otherwise requires `>= min_batch_size_idle` (`3`) plus age checks.
+  - Otherwise requires `>= min_batch_size_idle` (`1`) plus age checks.
 - Effective behavior:
   - active/high-volume conversations summarize at 6 rows.
-  - lower-volume conversations can summarize at 3 rows after idle/age checks.
+  - lower-volume conversations can summarize at 1 row after idle/age checks.
 
 #### If there are 10 unsemanticized interaction rows, are exactly those 10 rows sent to one prompt?
 
@@ -167,8 +169,8 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 #### Idle-trigger removal status
 
 - Implemented.
-- Summarization runs only when unsemanticized interaction-row count reaches threshold.
-- With current defaults, at least 6 unsemanticized interaction rows are required even after long idle periods.
+- Summarization can run for both high-volume and idle low-volume backlogs.
+- With current defaults, aged single-turn conversations are eligible once the summarizer is idle and the memory-age checks pass.
 
 ### MemoryTool
 
