@@ -343,16 +343,29 @@ body.cg-scroll-locked,
 .cg-chat-list-scroll {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
   padding-right: 4px;
 }
 
+.cg-chat-workspace-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .cg-chat-list-subheader {
-  padding: 8px 10px 4px;
+  padding: 8px 10px 2px;
   font-size: 11px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ui-text-muted);
+}
+
+.cg-chat-workspace-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 16px;
 }
 
 .cg-chat-item-row {
