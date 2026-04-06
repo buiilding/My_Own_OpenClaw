@@ -157,3 +157,31 @@ export function buildMessageScreenshotState({
       : attachment.screenshotContentType,
   };
 }
+
+export function resolveReplayScreenshotState({
+  screenshot = null,
+  screenshotRef = null,
+  screenshotUrl = null,
+  screenshotContentType = null,
+}) {
+  const attachment = resolveScreenshotAttachmentState({
+    screenshot,
+    screenshotRef,
+    screenshotUrl,
+    screenshotContentType,
+    inferArtifactRefFromScreenshot: true,
+    preserveInlineScreenshotWithRemote: false,
+  });
+
+  return {
+    screenshot: attachment.screenshot,
+    screenshotRef: attachment.screenshotRef,
+    screenshotUrl: attachment.screenshotUrl,
+    screenshotContentType: attachment.screenshotContentType,
+  };
+}
+
+export function resolveStoredTranscriptScreenshotValue(input) {
+  const attachment = resolveReplayScreenshotState(input || {});
+  return attachment.screenshotRef || attachment.screenshot || null;
+}

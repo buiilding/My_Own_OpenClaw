@@ -1,6 +1,10 @@
 import { useCallback } from 'react';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import {
+  resolveReplayScreenshotState,
+  resolveStoredTranscriptScreenshotValue,
+} from '../../../infrastructure/services/screenshotMessageState';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { buildDeferredQueryModelConfig } from '../../../app/providers/appConfigBackendSync';
 import {
@@ -33,6 +37,12 @@ async function replayTranscriptMessages(messages, userId, conversationRef) {
   });
 
   for (const message of messages) {
+    const storedScreenshot = resolveStoredTranscriptScreenshotValue({
+      screenshot: message.screenshot || null,
+      screenshotRef: message.screenshotRef || null,
+      screenshotUrl: message.screenshotUrl || null,
+      screenshotContentType: message.screenshotContentType || null,
+    });
     await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
       content: message.text,
       userId,
@@ -41,7 +51,7 @@ async function replayTranscriptMessages(messages, userId, conversationRef) {
       messageType: resolveTranscriptMessageType(message),
       toolName: message.toolName || null,
       correlationId: message.correlationId || null,
-      screenshot: message.screenshotRef || null,
+      screenshot: storedScreenshot,
       timestamp: message.timestamp || null,
     });
   }
@@ -55,6 +65,7 @@ async function runReplayQueryFlow({
   queryText,
   screenshotRef,
   screenshotUrl,
+  screenshot,
   deferredQueryModelConfig,
 }) {
   await replayTranscriptMessages(transcriptMessages, userId, conversationRef);
@@ -70,6 +81,11 @@ async function runReplayQueryFlow({
     conversationRef,
     screenshotRef || null,
     screenshotUrl || null,
+    null,
+    null,
+    null,
+    null,
+    screenshot || null,
   );
 }
 
@@ -90,6 +106,7 @@ async function executeReplayAction({
   queryText,
   screenshotRef,
   screenshotUrl,
+  screenshot,
   setMessages,
   setThinkingStatus,
   setThinkingSourceEventType,
@@ -118,6 +135,7 @@ async function executeReplayAction({
       queryText,
       screenshotRef: screenshotRef || null,
       screenshotUrl: screenshotUrl || null,
+      screenshot: screenshot || null,
       deferredQueryModelConfig,
     });
   } catch (error) {
@@ -160,13 +178,20 @@ export function useConversationReplayActions({
     const replayConversation = [...replayContextMessages, editUserMessage];
     const preservedPayloads = replayContextMessages.map(toRehydratePayload).filter(Boolean);
     const sessionInfo = getTranscriptSessionInfo();
+    const replayScreenshot = resolveReplayScreenshotState({
+      screenshot: editUserMessage.screenshot || null,
+      screenshotRef: editUserMessage.screenshotRef || null,
+      screenshotUrl: editUserMessage.screenshotUrl || null,
+      screenshotContentType: editUserMessage.screenshotContentType || null,
+    });
     await executeReplayAction({
       sessionInfo,
       replayMessages: replayConversation,
       preservedPayloads,
       queryText: normalizedEditedText,
-      screenshotRef: editUserMessage.screenshotRef,
-      screenshotUrl: editUserMessage.screenshotUrl,
+      screenshotRef: replayScreenshot.screenshotRef,
+      screenshotUrl: replayScreenshot.screenshotUrl,
+      screenshot: replayScreenshot.screenshot,
       setMessages,
       setThinkingStatus,
       setThinkingSourceEventType,
@@ -203,13 +228,20 @@ export function useConversationReplayActions({
       .map(toRehydratePayload)
       .filter(Boolean);
     const sessionInfo = getTranscriptSessionInfo();
+    const replayScreenshot = resolveReplayScreenshotState({
+      screenshot: retryUserMessage.screenshot || null,
+      screenshotRef: retryUserMessage.screenshotRef || null,
+      screenshotUrl: retryUserMessage.screenshotUrl || null,
+      screenshotContentType: retryUserMessage.screenshotContentType || null,
+    });
     await executeReplayAction({
       sessionInfo,
       replayMessages: replayContextMessages,
       preservedPayloads,
       queryText: retryUserMessage.text,
-      screenshotRef: retryUserMessage.screenshotRef,
-      screenshotUrl: retryUserMessage.screenshotUrl,
+      screenshotRef: replayScreenshot.screenshotRef,
+      screenshotUrl: replayScreenshot.screenshotUrl,
+      screenshot: replayScreenshot.screenshot,
       setMessages,
       setThinkingStatus,
       setThinkingSourceEventType,

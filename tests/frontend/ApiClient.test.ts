@@ -80,4 +80,33 @@ describe('ApiClient.sendQuery', () => {
       },
     );
   });
+
+  test('includes inline screenshot payload when provided', async () => {
+    const inlineScreenshot = 'A'.repeat(256);
+
+    await ApiClient.sendQuery(
+      'hello-inline',
+      'conv-inline',
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      inlineScreenshot,
+    );
+
+    expect(mockSend).toHaveBeenCalledWith(
+      SEND_CHANNELS.TO_BACKEND,
+      {
+        type: 'query',
+        payload: expect.objectContaining({
+          text: 'hello-inline',
+          conversation_ref: 'conv-inline',
+          screenshot_ref: null,
+          screenshot: inlineScreenshot,
+        }),
+      },
+    );
+  });
 });

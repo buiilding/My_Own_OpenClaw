@@ -143,6 +143,109 @@ describe('useConversationReplayActions', () => {
       'conv-existing',
       null,
       null,
+      null,
+      null,
+      null,
+      null,
+      null,
+    );
+  });
+
+  test('retry replay preserves inline screenshots in transcript rewrite and query send', async () => {
+    const inlineScreenshot = 'A'.repeat(256);
+    const messages = [
+      {
+        id: 'user-inline',
+        sender: 'user',
+        text: 'question with inline screenshot',
+        screenshot: inlineScreenshot,
+        screenshotRef: null,
+        screenshotUrl: null,
+      },
+      {
+        id: 'assistant-inline',
+        sender: 'assistant',
+        text: 'answer',
+      },
+    ];
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      setIsSending: jest.fn(),
+    }));
+
+    await act(async () => {
+      await result.current.handleTryAgainFromAssistant('assistant-inline');
+    });
+
+    expect((IpcBridge.invoke)).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.STORE_TRANSCRIPT,
+      expect.objectContaining({
+        content: 'question with inline screenshot',
+        screenshot: inlineScreenshot,
+      }),
+    );
+    expect(mockSendQuery).toHaveBeenCalledWith(
+      'question with inline screenshot',
+      'conv-existing',
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      inlineScreenshot,
+    );
+  });
+
+  test('retry replay infers artifact refs from screenshot urls', async () => {
+    const messages = [
+      {
+        id: 'user-url',
+        sender: 'user',
+        text: 'question with url screenshot',
+        screenshotRef: null,
+        screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-99',
+      },
+      {
+        id: 'assistant-url',
+        sender: 'assistant',
+        text: 'answer',
+      },
+    ];
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      setIsSending: jest.fn(),
+    }));
+
+    await act(async () => {
+      await result.current.handleTryAgainFromAssistant('assistant-url');
+    });
+
+    expect((IpcBridge.invoke)).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.STORE_TRANSCRIPT,
+      expect.objectContaining({
+        content: 'question with url screenshot',
+        screenshot: 'artifact-99',
+      }),
+    );
+    expect(mockSendQuery).toHaveBeenCalledWith(
+      'question with url screenshot',
+      'conv-existing',
+      'artifact-99',
+      'http://127.0.0.1:8765/api/artifacts/artifact-99',
+      null,
+      null,
+      null,
+      null,
+      null,
     );
   });
 });
