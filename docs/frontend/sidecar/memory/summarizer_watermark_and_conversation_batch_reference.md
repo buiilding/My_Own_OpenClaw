@@ -32,7 +32,7 @@ Dev toggle:
 - `interval_seconds=60`
 - `idle_seconds=120`
 - `min_batch_size=6`
-- `min_batch_size_idle=3`
+- `min_batch_size_idle=1`
 - `max_batch_size=30`
 - `min_memory_age_seconds=45`
 - `max_summaries_per_cycle=3`
@@ -43,15 +43,16 @@ Dev toggle:
 
 Loop behavior:
 
-- `_run_loop()` waits `interval_seconds` (or active backoff) between attempts
+- `_run_loop()` performs an immediate wake on startup/new memory, then waits `interval_seconds` (or active backoff) between attempts
 - `_maybe_summarize()` is lock-guarded to avoid concurrent cycles
 - backoff doubles on cycle-level failure until max, resets after successful cycle
 
 ## Run Gate and Watermark State
 
-Cycle entry checks DB state and requires:
+Cycle entry checks DB state and requires either:
 
-- `count_unsemanticized_interaction_memories() >= min_batch_size`
+- `count_unsemanticized_interaction_memories() >= min_batch_size`, or
+- `count_unsemanticized_interaction_memories() >= min_batch_size_idle` while summarizer activity is idle
 
 Watermark lifecycle:
 
@@ -69,7 +70,7 @@ Watermark storage:
 User selection in `_get_user_ids_with_work()`:
 
 - preferred source: `_known_user_ids` (populated by `notify_new_memory(user_id)`)
-- cold-start fallback: DB discovery limited to newest one user (`get_user_ids_with_unsemanticized_memories(limit=1)`)
+- DB discovery augments known IDs up to `max_conversations_per_cycle`
 
 Conversation selection:
 
@@ -133,10 +134,11 @@ Chunking:
 
 - interaction rows are used to build semantic request chunks
 - one user batch failure does not prevent processing remaining users
-- known-user preference skips cold-start discovery query
-- cold-start discovery limits to one user
+- known-user activity is merged with discovered backlog users
+- cold-start discovery returns the current backlog window of users
 - mixed timezone timestamp parsing remains stable
-- interaction-row threshold gate for `_should_run()`
+- idle low-volume run gating for `_should_run()`
+- summarizer performs an immediate startup cycle
 
 ## Drift Hotspots
 

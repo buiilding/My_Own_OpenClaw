@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 
 import pytest
@@ -43,6 +44,14 @@ class FakeMemoryStore:
 class FakeSemanticClient:
     def __init__(self):
         self.requests = []
+        self.initialized = False
+        self.closed = False
+
+    async def initialize(self):
+        self.initialized = True
+
+    async def close(self):
+        self.closed = True
 
     async def summarize(self, conversations, user_id):
         self.requests.append({"conversations": conversations, "user_id": user_id})
@@ -92,7 +101,7 @@ def test_summarizer_settings_defaults_favor_small_idle_batches_and_higher_cycle_
     settings = SummarizerSettings()
 
     assert settings.min_batch_size == 6
-    assert settings.min_batch_size_idle == 3
+    assert settings.min_batch_size_idle == 1
     assert settings.max_summaries_per_cycle == 3
 
 
@@ -226,7 +235,7 @@ async def test_summarizer_continues_when_one_user_batch_fails(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_user_ids_with_work_prefers_known_ids_and_skips_discovery():
+async def test_get_user_ids_with_work_merges_known_ids_with_discovered_work():
     memory_store = FakeUserIdMemoryStore(["stale-a", "stale-b"])
     summarizer = MemorySummarizer(
         memory_store=memory_store,
@@ -236,12 +245,12 @@ async def test_get_user_ids_with_work_prefers_known_ids_and_skips_discovery():
 
     user_ids = await summarizer._get_user_ids_with_work()
 
-    assert user_ids == ["current-user"]
-    assert memory_store.discovery_calls == []
+    assert user_ids == ["current-user", "stale-a", "stale-b"]
+    assert memory_store.discovery_calls == [summarizer.settings.max_conversations_per_cycle]
 
 
 @pytest.mark.asyncio
-async def test_get_user_ids_with_work_cold_start_discovers_only_one_user():
+async def test_get_user_ids_with_work_cold_start_discovers_recent_users():
     memory_store = FakeUserIdMemoryStore(["first-user", "second-user"])
     summarizer = MemorySummarizer(
         memory_store=memory_store,
@@ -250,8 +259,8 @@ async def test_get_user_ids_with_work_cold_start_discovers_only_one_user():
 
     user_ids = await summarizer._get_user_ids_with_work()
 
-    assert user_ids == ["first-user"]
-    assert memory_store.discovery_calls == [1]
+    assert user_ids == ["first-user", "second-user"]
+    assert memory_store.discovery_calls == [summarizer.settings.max_conversations_per_cycle]
 
 
 @pytest.mark.asyncio
@@ -290,8 +299,26 @@ async def test_should_summarize_batch_handles_naive_timestamp_without_error():
 
 
 @pytest.mark.asyncio
-async def test_should_run_requires_unsemanticized_interaction_threshold_when_below_min_batch_size():
-    memory_store = FakeShouldRunMemoryStore(unsemanticized_count=5)
+async def test_should_summarize_batch_allows_aged_singletons_at_idle_floor():
+    summarizer = MemorySummarizer(
+        memory_store=FakeUserIdMemoryStore([]),
+        semantic_client=FakeSemanticClient(),
+        settings=SummarizerSettings(
+            min_batch_size=10,
+            min_batch_size_idle=1,
+            idle_seconds=0,
+            min_memory_age_seconds=0,
+        ),
+    )
+
+    memories = [{"id": "1", "timestamp": "2026-02-12T10:00:00Z", "content": "hello"}]
+
+    assert summarizer._should_summarize_batch(memories) is True
+
+
+@pytest.mark.asyncio
+async def test_should_run_allows_idle_low_volume_backlog():
+    memory_store = FakeShouldRunMemoryStore(unsemanticized_count=1)
     summarizer = MemorySummarizer(
         memory_store=memory_store,
         semantic_client=FakeSemanticClient(),
@@ -299,7 +326,7 @@ async def test_should_run_requires_unsemanticized_interaction_threshold_when_bel
 
     should_run = await summarizer._should_run()
 
-    assert should_run is False
+    assert should_run is True
     assert memory_store.count_calls == 1
 
 
@@ -315,3 +342,44 @@ async def test_should_run_when_unsemanticized_interactions_reach_min_batch_size(
 
     assert should_run is True
     assert memory_store.count_calls == 1
+
+
+@pytest.mark.asyncio
+async def test_should_run_stays_blocked_for_fresh_low_volume_work():
+    memory_store = FakeShouldRunMemoryStore(unsemanticized_count=1)
+    summarizer = MemorySummarizer(
+        memory_store=memory_store,
+        semantic_client=FakeSemanticClient(),
+    )
+    summarizer.notify_new_memory("user-1")
+
+    should_run = await summarizer._should_run()
+
+    assert should_run is False
+    assert memory_store.count_calls == 1
+
+
+@pytest.mark.asyncio
+async def test_start_triggers_immediate_cycle_without_waiting_full_interval(monkeypatch):
+    memory_store = FakeShouldRunMemoryStore(unsemanticized_count=0)
+    semantic_client = FakeSemanticClient()
+    summarizer = MemorySummarizer(
+        memory_store=memory_store,
+        semantic_client=semantic_client,
+        settings=SummarizerSettings(interval_seconds=3600),
+    )
+
+    cycle_calls = []
+
+    async def fake_maybe_summarize():
+        cycle_calls.append("run")
+        summarizer._shutdown_event.set()
+
+    monkeypatch.setattr(summarizer, "_maybe_summarize", fake_maybe_summarize)
+
+    await summarizer.start()
+    await asyncio.wait_for(summarizer._task, timeout=0.2)
+    await summarizer.stop()
+
+    assert semantic_client.initialized is True
+    assert cycle_calls == ["run"]
