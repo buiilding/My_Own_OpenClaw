@@ -8,6 +8,7 @@ import { buildAssistantTranscriptTransparency } from '../../utils/chatStream/cha
 import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
 import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
 import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
+import { buildAssistantTextChatMessageState } from '../../../../infrastructure/transcript/assistantTextChatMessageState';
 
 type UseChatStreamCompletionHandlerOptions = {
   addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
@@ -77,18 +78,15 @@ export const useChatStreamCompletionHandler = ({
         });
       }
     } else if (completionText) {
-      const newMessage: ChatMessage = {
-        id: crypto.randomUUID(),
+      const newMessage: ChatMessage = buildAssistantTextChatMessageState({
         text: completionText,
-        sender: 'assistant',
         isComplete: true,
-        type: 'llm-text',
         sourceEventType: 'streaming-complete',
         sourceChannel: 'from-backend',
         turnRef: event.turn_ref || undefined,
         modelId: modelContext.modelId,
         modelProvider: modelContext.modelProvider,
-      };
+      });
       addMessage(newMessage, conversationRef);
       if (enableTranscript) {
         recordAssistantMessage(completionText, {
