@@ -379,6 +379,75 @@ def test_normalize_rehydrated_entry_reuses_pending_tool_call_id_for_tool_output(
     assert pending is None
 
 
+def test_normalize_rehydrated_entry_preserves_structured_assistant_text_content():
+    service = RehydrateExecutionService(_FakeSessionManager())
+    known_tool_call_ids = set()
+    entry = SimpleNamespace(
+        role="assistant",
+        content=[
+            {"type": "thinking", "text": "private reasoning"},
+            {"type": "output_text", "text": "Visible answer."},
+        ],
+        message_type="assistant-message",
+        tool_name=None,
+        correlation_id=None,
+        tool_call_id=None,
+        timestamp="2026-02-26T00:00:00Z",
+        tool_calls=None,
+    )
+
+    entries, pending = service._normalize_rehydrated_entry(
+        entry=entry,
+        index=21,
+        image_data=None,
+        known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_id=None,
+        transparency=None,
+    )
+
+    assert entries == [
+        {
+            "role": "assistant",
+            "content": "Visible answer.",
+            "message_type": "assistant-message",
+            "tool_name": None,
+            "correlation_id": None,
+            "timestamp": "2026-02-26T00:00:00Z",
+            "image_data": None,
+        }
+    ]
+    assert pending is None
+
+
+def test_normalize_rehydrated_entry_drops_assistant_rows_with_only_thinking_content():
+    service = RehydrateExecutionService(_FakeSessionManager())
+    known_tool_call_ids = set()
+    entry = SimpleNamespace(
+        role="assistant",
+        content=[
+            {"type": "thinking", "text": "private reasoning"},
+        ],
+        message_type="assistant-message",
+        tool_name=None,
+        correlation_id=None,
+        tool_call_id=None,
+        timestamp="2026-02-26T00:00:00Z",
+        tool_calls=None,
+    )
+
+    entries, pending = service._normalize_rehydrated_entry(
+        entry=entry,
+        index=22,
+        image_data=None,
+        known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_id=None,
+        transparency=None,
+    )
+
+    assert entries == []
+    assert pending is None
+
+
 def test_normalize_rehydrated_entry_consumes_matching_pending_tool_call_id():
     service = RehydrateExecutionService(_FakeSessionManager())
     known_tool_call_ids = {"call-1", "call-2"}

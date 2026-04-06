@@ -238,28 +238,20 @@ class InteractionLoop:
 
             # Step 4: Decision - final answer or tools?
             if not parsed_response.has_tool_calls:
-                if not llm_response_text.strip():
-                    llm_response_text = self._build_empty_final_response_fallback()
+                llm_response_text, emit_backfill_message = self._resolve_final_assistant_turn_text(
+                    llm_response_text
+                )
+                if emit_backfill_message:
                     async for event in self.event_presenter.present_assistant_message(
                         llm_response_text
                     ):
                         yield event
-                # Final answer - update history and present completion
                 self.session.history.add_assistant_message(llm_response_text)
                 async for event in self.event_presenter.present_completion(
                     llm_response_text
                 ):
                     yield event
                 return
-
-            # Check if this is the final iteration and we're executing tools
-            # Tool execution continues until the model returns a final answer or errors.
-
-            # Add assistant message with tool calls to history (context is king!)
-            self.session.history.add_assistant_message(
-                llm_response_text,
-                tool_calls=self._to_history_tool_calls(parsed_response.tool_calls),
-            )
 
             # Execute tools (yields execution-time events)
             # BUNDLE EXECUTION FIX: Wait for bundle results before processing next response.
@@ -270,12 +262,10 @@ class InteractionLoop:
             # execute() raises an exception or client disconnects (GeneratorExit)
             results_processed = False
             try:
-                # Check if this is a bundle before executing
-                is_bundle = tool_execution_policy.is_bundle(len(parsed_response.tool_calls))
-                tool_call_ids = self._extract_tool_call_ids(parsed_response.tool_calls)
-                self.session.history.stage_tool_call_ids(
-                    tool_call_ids,
-                    consume_all_on_next_output=is_bundle,
+                is_bundle = self._commit_assistant_tool_turn(
+                    llm_response_text=llm_response_text,
+                    parsed_response=parsed_response,
+                    tool_execution_policy=tool_execution_policy,
                 )
                 
                 # Yield all resolution events (ToolBundleEvent or ToolCallEvent)
@@ -318,6 +308,36 @@ class InteractionLoop:
                             f"Error during tool result cleanup: {cleanup_error}",
                             exc_info=True
                         )
+
+    def _resolve_final_assistant_turn_text(
+        self,
+        llm_response_text: str,
+    ) -> tuple[str, bool]:
+        """Return final assistant text plus whether a fallback message must be emitted."""
+        final_response_text = llm_response_text
+        if not final_response_text.strip():
+            final_response_text = self._build_empty_final_response_fallback()
+            return final_response_text, True
+        return final_response_text, False
+
+    def _commit_assistant_tool_turn(
+        self,
+        *,
+        llm_response_text: str,
+        parsed_response: ParsedResponse,
+        tool_execution_policy: ToolExecutionPolicy,
+    ) -> bool:
+        """Persist the assistant tool-call turn and stage tool ids for outputs."""
+        self.session.history.add_assistant_message(
+            llm_response_text,
+            tool_calls=self._to_history_tool_calls(parsed_response.tool_calls),
+        )
+        is_bundle = tool_execution_policy.is_bundle(len(parsed_response.tool_calls))
+        self.session.history.stage_tool_call_ids(
+            self._extract_tool_call_ids(parsed_response.tool_calls),
+            consume_all_on_next_output=is_bundle,
+        )
+        return is_bundle
 
     async def _emit_error_and_record(
         self, error_msg: str

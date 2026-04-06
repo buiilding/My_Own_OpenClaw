@@ -83,6 +83,54 @@ def _normalize_assistant_message_content(content: Any) -> Any:
     return normalized or ""
 
 
+def _validate_message_item_content(
+    *,
+    role: str,
+    content: Any,
+) -> None:
+    if isinstance(content, str):
+        return
+    if not isinstance(content, list):
+        raise ValueError(f"OpenAI Responses {role} history content must be string or list")
+    if not content:
+        raise ValueError(f"OpenAI Responses {role} history content must not be empty")
+
+    if role == "assistant":
+        allowed_types = {"output_text", "refusal"}
+    else:
+        allowed_types = {"input_text", "input_image"}
+
+    for item in content:
+        if not isinstance(item, dict):
+            raise ValueError(f"OpenAI Responses {role} history content block must be object")
+        item_type = str(item.get("type") or "").strip()
+        if item_type not in allowed_types:
+            raise ValueError(
+                f"OpenAI Responses {role} history content type '{item_type}' is not supported"
+            )
+
+
+def _validate_openai_responses_input_items(input_items: List[Dict[str, Any]]) -> None:
+    for item in input_items:
+        item_type = str(item.get("type") or "").strip()
+        if item_type == "message":
+            role = str(item.get("role") or "").strip()
+            if role not in {"system", "user", "assistant"}:
+                raise ValueError(f"OpenAI Responses message role '{role}' is not supported")
+            _validate_message_item_content(
+                role=role,
+                content=item.get("content"),
+            )
+            continue
+
+        if item_type in {"function_call", "computer_call", "function_call_output", "computer_call_output"}:
+            call_id = str(item.get("call_id") or "").strip()
+            if not call_id:
+                raise ValueError(
+                    f"OpenAI Responses item '{item_type}' is missing required call_id"
+                )
+
+
 def _normalize_assistant_tool_call_input(tool_call: Dict[str, Any]) -> Dict[str, Any]:
     function_payload = tool_call.get("function")
     if isinstance(function_payload, dict):
@@ -204,6 +252,7 @@ def build_openai_responses_input(
     if isinstance(previous_response_id, str) and previous_response_id.strip():
         continuation_items = _build_openai_responses_continuation_input(messages)
         if continuation_items:
+            _validate_openai_responses_input_items(continuation_items)
             return continuation_items
 
     input_items: List[Dict[str, Any]] = []
@@ -262,6 +311,7 @@ def build_openai_responses_input(
                         "status": "completed",
                     }
                 )
+    _validate_openai_responses_input_items(input_items)
     return input_items
 
 
