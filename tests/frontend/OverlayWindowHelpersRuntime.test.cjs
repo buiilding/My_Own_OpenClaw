@@ -143,8 +143,8 @@ describe('overlay_window_helpers_runtime', () => {
     );
   });
 
-  test('resizes chat window frame to match compact and preview visual shell heights', () => {
-    let currentHeight = 102;
+  test('keeps chat window frame preallocated above compact and preview anchor heights', () => {
+    let currentHeight = 220;
     const chatWindow = {
       isDestroyed: jest.fn(() => false),
       getSize: jest.fn(() => [520, currentHeight]),
@@ -167,13 +167,8 @@ describe('overlay_window_helpers_runtime', () => {
     });
 
     expect(runtime.resizeChatWindowForVisualAnchorHeight(96)).toBe(false);
-    expect(runtime.resizeChatWindowForVisualAnchorHeight(148)).toBe(true);
-    expect(chatWindow.setBounds).toHaveBeenCalledWith({
-      x: 300,
-      y: 800,
-      width: 520,
-      height: 154,
-    }, false);
+    expect(runtime.resizeChatWindowForVisualAnchorHeight(148)).toBe(false);
+    expect(chatWindow.setBounds).not.toHaveBeenCalled();
   });
 
   test('keeps compact fallback response height at 24px instead of inflating to 42px', () => {
@@ -257,7 +252,7 @@ describe('overlay_window_helpers_runtime', () => {
   test('keeps the dragged bottom edge fixed when the pill height grows', () => {
     let currentX = 2100;
     let currentY = 120;
-    let currentHeight = 116;
+    let currentHeight = 220;
     const chatWindow = {
       isDestroyed: jest.fn(() => false),
       getSize: jest.fn(() => [520, currentHeight]),
@@ -291,17 +286,14 @@ describe('overlay_window_helpers_runtime', () => {
 
     runtime.setManualChatWindowPosition({ x: 2100, y: 120 });
     runtime.positionChatWindow();
-    expect(runtime.setChatWindowBoundsForVisualAnchorHeight(140)).toBe(true);
+    runtime.setChatWindowBoundsForVisualAnchorHeight(140);
 
     expect(chatWindow.setPosition.mock.calls).toEqual([
       [2100, 120, false],
     ]);
-    expect(chatWindow.setBounds).toHaveBeenLastCalledWith({
-      x: 2100,
-      y: 90,
-      width: 520,
-      height: 146,
-    }, false);
+    if (chatWindow.setBounds.mock.calls.length !== 0) {
+      throw new Error(`Expected no setBounds calls, received ${chatWindow.setBounds.mock.calls.length}`);
+    }
   });
 
   test('ignores manually dragged chat window position when monitor affinity changes', () => {

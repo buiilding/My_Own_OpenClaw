@@ -137,9 +137,9 @@ This is required after main-process `showChatWindow({ focus: true })`.
 
 ## Fixed Size Contract
 
-- chat overlay window dimensions are still owned by main runtime (`createChatWindow` + visual-anchor resize helper).
+- chat overlay window dimensions are still owned by main runtime (`createChatWindow`), but the native frame is now preallocated instead of resizing on each multiline anchor update.
 - `ChatBox.jsx` no longer emits renderer-driven freeform resize IPC for preview/startup transitions; deprecated `set-chatbox-size` channel has been removed from preload/channel contracts.
-- renderer now measures `.chatbox-shell` with `ResizeObserver` and reports the resulting visual-anchor height through `set-chatbox-visual-anchor-height`, so multiline composer growth can enlarge the lower pill body while main keeps the native window bottom-grounded.
+- renderer now measures `.chatbox-shell` with `ResizeObserver` and reports the resulting visual-anchor height through `set-chatbox-visual-anchor-height`, so multiline composer growth can enlarge the lower pill body while main re-anchors response/context overlays without resizing the native chat window itself.
 - `.chatbox-shell` reserves explicit top bump headroom, so the protruding close badge stays inside the native overlay window even when multiline composer growth pushes the lower pill body taller.
 - idle chatbox hover now reports a dedicated main-process hit-test state, allowing the transparent overlay window to stay click-through outside the visible pill shape while preserving direct interaction over the pill and close bump.
 - attachment preview uses an always-mounted preview row with class toggle (`has-items`) and opacity/translate animation.
@@ -147,7 +147,7 @@ This is required after main-process `showChatWindow({ focus: true })`.
   - default compact pill: no `with-preview` class (`64px` anchor fallback / `56px` pill)
   - preview-expanded pill: `with-preview` on shell/pill while image attachments exist (`116px` anchor fallback)
   - multiline composer growth can exceed those fallback heights because the measured shell height becomes the live visual anchor
-- multiline resize reporting is batched to one animation-frame commit so the main process sees the settled shell height instead of intermediate `ResizeObserver` steps, and main applies the resulting chat-window bounds in one bottom-anchored update.
+- multiline resize reporting is batched to one animation-frame commit so the main process sees the settled shell height instead of intermediate `ResizeObserver` steps, and main uses that anchor only for overlay re-positioning while the native chat frame stays fixed.
 - manual drag persistence now stores the dragged bottom edge rather than the raw overlay top-left `y`, so vertical dragging still works while multiline/preview growth continues to move upward from the same visual baseline.
 - response/typing/context-label overlays in main process use the reported chat visual anchor height so their vertical position follows the visible pill baseline instead of the full transparent chat window height.
 - response/typing overlay uses a tighter chat-to-response vertical gap (`2px` in current non-dashboard main runtime) to keep the response pill visually near the chat pill.
