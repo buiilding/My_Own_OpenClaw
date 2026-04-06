@@ -7,6 +7,7 @@ from typing import Any, List
 
 from fastapi import HTTPException
 
+from backend.src.embeddings.embeddings import is_cuda_error
 from .models import EmbeddingResponse
 
 
@@ -28,7 +29,11 @@ async def generate_embedding_response(
     """Generate one embedding response from the provider."""
     embedding_start_time = time.perf_counter()
 
-    embedding = await embedding_provider.embed_text(request_text)
+    embedding = await embed_text_with_runtime_recovery(
+        text=request_text,
+        embedding_provider=embedding_provider,
+        logger=logger,
+    )
     embedding_time = time.perf_counter() - embedding_start_time
 
     embedding_list = embedding_to_list(embedding)
@@ -48,12 +53,46 @@ async def generate_embedding_response(
 
 async def resolve_health_payload(*, embedding_provider: Any, healthy_payload_fn: Any) -> dict[str, Any]:
     """Run live provider probe and build health payload."""
-    test_embedding = await embedding_provider.embed_text("test")
+    test_embedding = await embed_text_with_runtime_recovery(
+        text="test",
+        embedding_provider=embedding_provider,
+        logger=None,
+    )
     dimension = len(embedding_to_list(test_embedding))
     return healthy_payload_fn(
         model_name=getattr(embedding_provider, "model_name", "unknown"),
         dimension=dimension,
     )
+
+
+async def embed_text_with_runtime_recovery(
+    *,
+    text: str,
+    embedding_provider: Any,
+    logger: Any | None,
+) -> Any:
+    """
+    Run one embedding request with a provider-assisted CUDA -> CPU recovery retry.
+
+    The provider already attempts runtime recovery internally, but the HTTP route
+    adds one outer retry so transient CUDA allocator failures do not leak as 500s
+    when the provider can recover on CPU.
+    """
+    try:
+        return await embedding_provider.embed_text(text)
+    except Exception as error:
+        recover = getattr(embedding_provider, "recover_from_cuda_runtime_failure", None)
+        if (
+            not is_cuda_error(error)
+            or not callable(recover)
+            or not await recover(error)
+        ):
+            raise
+        if logger is not None:
+            logger.warning(
+                "Embedding provider hit a CUDA runtime failure. Retrying embedding on CPU fallback."
+            )
+        return await embedding_provider.embed_text(text)
 
 
 def raise_embedding_error(*, error: Exception, logger: Any, started_at: float) -> None:

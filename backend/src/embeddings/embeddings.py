@@ -117,6 +117,18 @@ class SentenceTransformerProvider(EmbeddingProvider):
             await self._load_model("cpu")
             logger.info("Embedding model reloaded with CPU fallback")
 
+    async def recover_from_cuda_runtime_failure(self, error: Exception) -> bool:
+        """
+        Best-effort public recovery hook for callers that want one outer retry.
+
+        Returns True when the provider handled the failure by reloading on CPU and
+        the caller should retry the embedding operation once.
+        """
+        if self._device != "cuda" or not is_cuda_error(error):
+            return False
+        await self._reload_with_cpu()
+        return True
+
     @staticmethod
     def _clear_cuda_cache_best_effort() -> None:
         try:
