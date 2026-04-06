@@ -224,14 +224,14 @@ Main bridge fanout channel (`ipc.cjs`):
 
 ### Chat overlay (`ChatBox.jsx`)
 
-- uses a compact default overlay height in main and resizes the chat window only through the existing visual-anchor IPC contract (no renderer-driven freeform resize IPC)
+- uses a preallocated chat overlay frame in main, and visual-anchor IPC only re-anchors response/context surfaces instead of resizing the native chat window during multiline typing (no renderer-driven freeform resize IPC)
 - keeps preview lane always mounted and toggles animated visibility on image attach/remove
 - current production control set is: close badge, settings button, attachment button, screenshot toggle, text-to-speech toggle, and send button; `dev_ui=1` adds a compaction button
 - screenshot and text-to-speech toggles share one icon-color contract: enabled stays blue both at rest and on hover, while disabled stays white both at rest and on hover
 - uses deterministic class-based layout states: compact default pill (`64px` anchor fallback / `56px` pill) and fixed expanded `with-preview` pill while image attachments exist
-- reports chat visual anchor height via IPC from the live shell height (`64` compact fallback / `116` preview fallback), so multiline composer growth and preview mode both re-anchor the chat/response stack upward while keeping the pill bottom-grounded
+- reports chat visual anchor height via IPC from the live shell height (`64` compact fallback / `116` preview fallback), so multiline composer growth and preview mode both re-anchor the chat/response stack upward while keeping the visible pill bottom-grounded inside the fixed native frame
 - renderer batches resize-driven anchor reports to one animation-frame commit so the main process sees the settled multiline shell height instead of intermediate resize measurements
-- main applies chat-window height and y-position together in one bottom-anchored bounds update when visual-anchor height changes, avoiding the extra resize-then-reposition hop that can make pill controls appear to flicker during multiline growth
+- main no longer resizes the native chat window on visual-anchor updates; only response/context overlay positioning follows the updated anchor
 - main-process overlay phase handler owns click-through + `focusable=false` during active loop phases; renderer no longer toggles overlay interactivity directly
 - listens for `chatbox-focus` to focus input when unlocked; renderer no longer re-focuses on generic window/tab visibility events
 - sends `MOVE_CHATBOX_TO` while dragging

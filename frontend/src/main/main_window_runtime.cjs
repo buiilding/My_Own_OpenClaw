@@ -16,7 +16,7 @@ const {
 } = require('./window_platform_policy.cjs');
 
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
-const CHATBOX_OVERLAY_FIXED_HEIGHT = 102;
+const CHATBOX_OVERLAY_FIXED_HEIGHT = 220;
 
 async function prepareOverlayQueryCaptureFocus({
   chatWindow,

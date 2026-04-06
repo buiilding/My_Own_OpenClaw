@@ -2,6 +2,7 @@ const { setOverlayAlwaysOnTop } = require('./overlay_topmost_runtime.cjs');
 const responseOverlayLayoutContract = require('../shared/response_overlay_layout_contract.json');
 
 const CHAT_WINDOW_FRAME_HEIGHT_PADDING = 6;
+const CHAT_WINDOW_FIXED_FRAME_HEIGHT = 220;
 const RESPONSE_OVERLAY_AWAITING_FRAME_HEIGHT = (
   Number(responseOverlayLayoutContract?.awaiting_frame_height) || 24
 );
@@ -77,7 +78,10 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
 
   function getChatWindowFrameHeightForVisualAnchorHeight(anchorHeight) {
     const normalizedAnchorHeight = Math.max(1, Math.round(Number(anchorHeight) || 0));
-    return normalizedAnchorHeight + CHAT_WINDOW_FRAME_HEIGHT_PADDING;
+    return Math.max(
+      CHAT_WINDOW_FIXED_FRAME_HEIGHT,
+      normalizedAnchorHeight + CHAT_WINDOW_FRAME_HEIGHT_PADDING,
+    );
   }
 
   function resolveChatWindowPositionForHeight(width, height) {

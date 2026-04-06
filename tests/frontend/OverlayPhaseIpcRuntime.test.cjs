@@ -101,7 +101,7 @@ describe('overlay_phase_ipc_runtime', () => {
     const positionContextLabelWindow = jest.fn();
     const syncContextLabelWindowVisibility = jest.fn();
     const setChatVisualAnchorHeight = jest.fn(() => true);
-    const setChatWindowBoundsForVisualAnchorHeight = jest.fn(() => true);
+    const setChatWindowBoundsForVisualAnchorHeight = jest.fn(() => false);
     const resizeChatWindowForVisualAnchorHeight = jest.fn(() => false);
     const { invokeHandlers } = createRuntime({
       positionChatWindow,
@@ -121,11 +121,11 @@ describe('overlay_phase_ipc_runtime', () => {
       changed: true,
     });
     expect(setChatVisualAnchorHeight).toHaveBeenCalledWith(116);
-    expect(setChatWindowBoundsForVisualAnchorHeight).toHaveBeenCalledWith(116);
+    expect(setChatWindowBoundsForVisualAnchorHeight).not.toHaveBeenCalled();
     expect(resizeChatWindowForVisualAnchorHeight).not.toHaveBeenCalled();
     expect(positionChatWindow).not.toHaveBeenCalled();
-    expect(positionResponseWindow).not.toHaveBeenCalled();
-    expect(positionContextLabelWindow).not.toHaveBeenCalled();
+    expect(positionResponseWindow).toHaveBeenCalledTimes(1);
+    expect(positionContextLabelWindow).toHaveBeenCalledTimes(1);
     expect(syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 

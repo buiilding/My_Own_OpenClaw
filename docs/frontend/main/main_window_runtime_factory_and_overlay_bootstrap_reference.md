@@ -76,7 +76,7 @@ This keeps overlay query-capture prep blur-only and avoids hide/show demotion ch
 
 Creation behavior:
 
-- builds overlay window (`520x102`)
+- builds chat overlay window with a preallocated transparent frame (`520x220`) so multiline pill growth does not need native window resizes during typing
 - positions via injected `positionChatWindow`
 - lazily loads renderer route `view=chatbox` on first `show` event
 - syncs wakeword toggle on show/hide
