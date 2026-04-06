@@ -14,6 +14,7 @@ describe('main_process_bootstrap_runtime', () => {
         contextLabelWindow: null,
       },
       vmWorkerRuntime: null,
+      responseOverlayPhase: 'idle',
       applyResponseOverlayPhase: jest.fn(),
       setResponseOverlayVisible: jest.fn(),
     };
@@ -123,10 +124,30 @@ describe('main_process_bootstrap_runtime', () => {
     expect(state.windows.responseWindow).toEqual({ id: 'response-window' });
     expect(deps.createChatWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
+      overlayContentProtectionEnabled: false,
     }));
     expect(deps.createResponseWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
+      overlayContentProtectionEnabled: false,
     }));
     expect(deps.createTrayRuntime).toHaveBeenCalled();
+    expect(state.applyResponseOverlayPhase).toHaveBeenCalledWith({ phase: 'idle' });
+  });
+
+  test('recreated overlays inherit active-loop content protection state', () => {
+    const { deps, state } = createDeps();
+    state.responseOverlayPhase = 'tool-call';
+    const runtime = createWindowBootstrapRuntime(deps);
+
+    runtime.createChatWindow();
+    runtime.createResponseWindow();
+
+    expect(deps.createChatWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
+      overlayContentProtectionEnabled: true,
+    }));
+    expect(deps.createResponseWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
+      overlayContentProtectionEnabled: true,
+    }));
+    expect(state.applyResponseOverlayPhase).toHaveBeenCalledWith({ phase: 'tool-call' });
   });
 });

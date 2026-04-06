@@ -6,7 +6,7 @@ const {
 } = require('../../frontend/src/main/window_platform_policy.cjs');
 
 describe('window_platform_policy', () => {
-  test('applies overlay content protection and mac panel policy through one helper', () => {
+  test('applies mac overlay topmost/workspace policy without forcing content protection', () => {
     const targetWindow = {
       setContentProtection: jest.fn(),
       setAlwaysOnTop: jest.fn(),
@@ -22,9 +22,27 @@ describe('window_platform_policy', () => {
       windowLabel: 'chat box',
     });
 
-    expect(targetWindow.setContentProtection).toHaveBeenCalledWith(true);
+    expect(targetWindow.setContentProtection).not.toHaveBeenCalled();
     expect(targetWindow.setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver');
     expect(targetWindow.setVisibleOnAllWorkspaces).not.toHaveBeenCalled();
+  });
+
+  test('applies content protection explicitly when requested', () => {
+    const targetWindow = {
+      setContentProtection: jest.fn(),
+    };
+    const policy = createWindowPlatformPolicy({
+      platform: 'darwin',
+      warn: jest.fn(),
+    });
+
+    policy.applyContentProtection({
+      targetWindow,
+      windowLabel: 'chat box',
+      enabled: true,
+    });
+
+    expect(targetWindow.setContentProtection).toHaveBeenCalledWith(true);
   });
 
   test('activates the native window and its webContents together', () => {

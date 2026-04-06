@@ -21,6 +21,7 @@ describe('response_overlay_phase_handler', () => {
       ENABLE_OS_TOOL_GHOST_DEBUG: false,
       RESPONSE_OVERLAY_PHASE: PHASE,
       setResponseOverlayPhase: jest.fn(),
+      applyOverlayContentProtection: jest.fn(),
       getResponseOverlayVisible: jest.fn().mockReturnValue(false),
       setResponseOverlayVisibilityState: jest.fn(),
       responseWindow: {
@@ -29,14 +30,12 @@ describe('response_overlay_phase_handler', () => {
         hide: jest.fn(),
         setIgnoreMouseEvents: jest.fn(),
         setFocusable: jest.fn(),
-        setContentProtection: jest.fn(),
       },
       chatWindow: {
         isDestroyed: jest.fn().mockReturnValue(false),
         isVisible: jest.fn().mockReturnValue(true),
         setIgnoreMouseEvents: jest.fn(),
         setFocusable: jest.fn(),
-        setContentProtection: jest.fn(),
       },
       getChatboxHitTestActive: jest.fn(() => false),
       ensureResponseOverlayFallbackBounds: jest.fn(),
@@ -80,6 +79,16 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.IDLE);
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
     expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
+    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(1, {
+      targetWindow: deps.chatWindow,
+      windowLabel: 'chat box',
+      enabled: false,
+    });
+    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(2, {
+      targetWindow: deps.responseWindow,
+      windowLabel: 'response overlay',
+      enabled: false,
+    });
     expect(deps.chatWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
     expect(deps.responseWindow.setFocusable).toHaveBeenCalledWith(true);
   });
@@ -103,6 +112,16 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
     expect(deps.ensureResponseOverlayFallbackBounds).toHaveBeenCalledTimes(1);
     expect(deps.showResponseWindowWhenChatVisible).toHaveBeenCalledTimes(1);
+    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(1, {
+      targetWindow: deps.chatWindow,
+      windowLabel: 'chat box',
+      enabled: true,
+    });
+    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(2, {
+      targetWindow: deps.responseWindow,
+      windowLabel: 'response overlay',
+      enabled: true,
+    });
     expect(deps.chatWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
     expect(deps.responseWindow.setFocusable).toHaveBeenCalledWith(false);
   });
@@ -140,6 +159,16 @@ describe('response_overlay_phase_handler', () => {
     handleResponseOverlayPhaseEvent({ phase: PHASE.ERROR }, deps);
 
     expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
+    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(1, {
+      targetWindow: deps.chatWindow,
+      windowLabel: 'chat box',
+      enabled: false,
+    });
+    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(2, {
+      targetWindow: deps.responseWindow,
+      windowLabel: 'response overlay',
+      enabled: false,
+    });
     expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
@@ -162,14 +191,32 @@ describe('response_overlay_phase_handler', () => {
     expect(hiddenChatDeps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
-  test('phase changes do not toggle overlay content protection', () => {
+  test('phase changes toggle overlay content protection with active loop state', () => {
     const deps = createDeps();
 
     handleResponseOverlayPhaseEvent({ phase: PHASE.STREAMING }, deps);
     handleResponseOverlayPhaseEvent({ phase: PHASE.COMPLETE }, deps);
     handleResponseOverlayPhaseEvent({ phase: PHASE.IDLE }, deps);
 
-    expect(deps.chatWindow.setContentProtection).not.toHaveBeenCalled();
-    expect(deps.responseWindow.setContentProtection).not.toHaveBeenCalled();
+    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(1, {
+      targetWindow: deps.chatWindow,
+      windowLabel: 'chat box',
+      enabled: true,
+    });
+    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(2, {
+      targetWindow: deps.responseWindow,
+      windowLabel: 'response overlay',
+      enabled: true,
+    });
+    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(3, {
+      targetWindow: deps.chatWindow,
+      windowLabel: 'chat box',
+      enabled: false,
+    });
+    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(4, {
+      targetWindow: deps.responseWindow,
+      windowLabel: 'response overlay',
+      enabled: false,
+    });
   });
 });

@@ -60,6 +60,28 @@ function syncOverlayLoopInteractivity(active, deps = {}) {
   }
 }
 
+function syncOverlayContentProtection(enabled, deps = {}) {
+  const {
+    chatWindow,
+    responseWindow,
+    applyOverlayContentProtection = () => {},
+  } = deps;
+
+  for (const [targetWindow, windowLabel] of [
+    [chatWindow, 'chat box'],
+    [responseWindow, 'response overlay'],
+  ]) {
+    if (!targetWindow || targetWindow.isDestroyed()) {
+      continue;
+    }
+    applyOverlayContentProtection({
+      targetWindow,
+      windowLabel,
+      enabled,
+    });
+  }
+}
+
 function applyResponseOverlayWindowMode(mode, deps = {}) {
   const {
     setResponseOverlayVisibilityState = () => {},
@@ -161,6 +183,11 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     contextLabelWindow,
     getChatboxHitTestActive,
     warn,
+  });
+  syncOverlayContentProtection(windowMode === RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP, {
+    chatWindow,
+    responseWindow,
+    applyOverlayContentProtection: deps.applyOverlayContentProtection,
   });
   applyResponseOverlayWindowMode(windowMode, {
     getResponseOverlayVisible,
