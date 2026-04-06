@@ -127,6 +127,34 @@ def _normalize_source_label(url: str) -> str:
     return hostname or url.strip()
 
 
+def _truncate_progress_label(text: str, *, max_chars: int = 96) -> str:
+    normalized = " ".join(text.split()).strip()
+    if len(normalized) <= max_chars:
+        return normalized
+    return f"{normalized[: max_chars - 3].rstrip()}..."
+
+
+def _build_progress_url_label(
+    url: str,
+    *,
+    source: Any = None,
+) -> str:
+    hostname = _normalize_source_label(url)
+    title = get_value(source, "title")
+    if isinstance(title, str) and title.strip():
+        normalized_title = _truncate_progress_label(title)
+        if normalized_title.lower() != hostname.lower():
+            return f"{normalized_title} ({hostname})"
+
+    parsed = urlsplit(url)
+    path = parsed.path.strip("/")
+    if path:
+        path_label = _truncate_progress_label(path, max_chars=56)
+        return f"{hostname}/{path_label}"
+
+    return hostname
+
+
 def _extract_web_search_context(
     event: Any,
 ) -> Optional[tuple[str, Any, Any, Optional[str], Optional[str], Optional[str]]]:
@@ -238,7 +266,7 @@ def _build_web_search_progress_events(
                 )
                 normalized_url = url.strip()
                 append_progress(
-                    text=f"Searched {_normalize_source_label(normalized_url)}",
+                    text=f"Searched {_build_progress_url_label(normalized_url, source=raw_source)}",
                     key=f"search-source:{normalized_url}",
                     query=normalized_query,
                     url=normalized_url,
@@ -268,10 +296,9 @@ def _build_web_search_progress_events(
                 query=item_query,
             )
         elif event_type == _WEB_SEARCH_SEARCHING_EVENT_TYPE:
-            status_key = item_id or action_type or "web-search"
             append_progress(
                 text="Searching web",
-                key=f"search-status:{status_key}",
+                key="search-status:web-search",
             )
         return progress_events
 
@@ -280,7 +307,7 @@ def _build_web_search_progress_events(
         if isinstance(raw_url, str) and raw_url.strip():
             normalized_url = raw_url.strip()
             append_progress(
-                text=f"Opened {_normalize_source_label(normalized_url)}",
+                text=f"Opened {_build_progress_url_label(normalized_url)}",
                 key=f"open-page:{normalized_url}",
                 url=normalized_url,
             )
@@ -297,9 +324,9 @@ def _build_web_search_progress_events(
                 else None
             )
             text = (
-                f"Searched {_normalize_source_label(normalized_url)} for {normalized_pattern}"
+                f"Searched {_build_progress_url_label(normalized_url)} for {normalized_pattern}"
                 if normalized_pattern
-                else f"Searched {_normalize_source_label(normalized_url)}"
+                else f"Searched {_build_progress_url_label(normalized_url)}"
             )
             append_progress(
                 text=text,
