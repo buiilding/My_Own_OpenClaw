@@ -7,6 +7,7 @@ import type {
 import { recordToolMessage } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
 import {
   persistToolRunnerBundleResult,
+  persistToolRunnerSurfaceFailureResult,
   persistToolRunnerToolResult,
 } from '../../frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerResultPersistence';
 
@@ -75,6 +76,32 @@ describe('toolRunnerResultPersistence', () => {
         toolName: 'bundled_tools',
         correlationId: 'bundle-1',
         conversationRef: 'conv-1',
+        modelId: 'gpt-5',
+        modelProvider: 'openai',
+      }),
+    );
+  });
+
+  test('persists surface failure result to message store and transcript', () => {
+    persistToolRunnerSurfaceFailureResult(
+      'read_file',
+      'req-fail',
+      'surface unavailable',
+      {
+        addMessage,
+        conversationRef: 'conv-2',
+        modelContextRef,
+      },
+    );
+
+    expect(addMessage).toHaveBeenCalledTimes(1);
+    expect(addMessage.mock.calls[0][1]).toBe('conv-2');
+    expect(recordToolMessage).toHaveBeenCalledWith(
+      expect.stringContaining('status: failed'),
+      expect.objectContaining({
+        toolName: 'read_file',
+        correlationId: 'req-fail',
+        conversationRef: 'conv-2',
         modelId: 'gpt-5',
         modelProvider: 'openai',
       }),

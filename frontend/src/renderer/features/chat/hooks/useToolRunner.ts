@@ -8,15 +8,11 @@ import { useCallback, useEffect, useRef } from 'react';
 import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { ToolExecutionService, type ToolExecutionResult, type BundleExecutionResult } from '../../../infrastructure/services/toolExecution/ToolExecutionService';
 import { useChatStore } from '../stores/chatStore';
-import { recordToolMessage } from '../../../infrastructure/transcript/TranscriptWriter';
-import { buildStructuredToolPayload } from '../../../infrastructure/transcript/structuredToolPayload';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { type ToolBundleEvent, type ToolCallEvent } from '../../../types/backendEvents';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 import { useToolRunnerBackendListener } from './useToolRunnerBackendListener';
 import {
-  buildToolOutputMessage,
-  buildTranscriptMetadata,
   mapBundleTools,
   resolveToolCallCorrelationId,
   type TranscriptModelContext,
@@ -28,7 +24,6 @@ import {
   buildSurfaceFailureError,
   buildToolSurfaceFailureEnvelope,
 } from '../utils/toolRunner/toolRunnerFailureContracts';
-import { formatToolOutputMessage } from '../../../infrastructure/services/MessageFormatter';
 import {
   ensureToolExecutionSurface,
   prepareToolExecutionSurface,
@@ -58,6 +53,7 @@ import {
 } from '../utils/toolRunner/toolRunnerExecutionState';
 import {
   persistToolRunnerBundleResult,
+  persistToolRunnerSurfaceFailureResult,
   persistToolRunnerToolResult,
 } from '../utils/toolRunner/toolRunnerResultPersistence';
 
@@ -142,45 +138,11 @@ export function useToolRunner(enabled = true) {
     failureError: string,
     conversationRef: string | null,
   ) => {
-    const result = {
-      success: false,
-      error: failureError,
-      data: null,
-    };
-    const formattedMessage = formatToolOutputMessage(toolName, result);
-    addMessage(buildToolOutputMessage({
-      toolName,
-      result,
-      executionTime: 0,
-      correlationId,
-      formattedMessage,
-      screenshot: null,
-      screenshotRef: null,
-      screenshotUrl: null,
-      screenshotContentType: null,
-      systemState: null,
-    }), conversationRef);
-    recordToolMessage(
-      formattedMessage,
-      {
-        ...buildTranscriptMetadata(
-          toolName,
-          correlationId,
-          null,
-          modelContextRef.current,
-        ),
-        structuredPayload: buildStructuredToolPayload({
-          kind: 'tool-output',
-          toolCallDetails: {
-            result,
-            correlation_id: correlationId,
-            tool_name: toolName,
-            execution_time: 0,
-          },
-        }),
-        conversationRef: conversationRef || undefined,
-      },
-    );
+    persistToolRunnerSurfaceFailureResult(toolName, correlationId, failureError, {
+      addMessage,
+      conversationRef,
+      modelContextRef,
+    });
   }, [addMessage, modelContextRef]);
 
   useEffect(() => {
