@@ -17,6 +17,7 @@ type StoreTranscriptPayload = {
   screenshot?: string;
   timestamp?: string;
   transparency?: Record<string, unknown>;
+  structuredPayload?: Record<string, unknown> | null;
 };
 
 export function loadTranscriptWriter() {
@@ -69,6 +70,7 @@ export function createStoreTranscriptPayload(
     modelProvider: undefined,
     screenshot: undefined,
     timestamp: undefined,
+    structuredPayload: undefined,
     ...overrides,
   };
 }

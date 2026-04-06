@@ -23,6 +23,13 @@ describe('TranscriptWriter tool writes', () => {
       modelId: 'model-a',
       modelProvider: 'provider-a',
       screenshotRef: 'artifact-1',
+      structuredPayload: {
+        kind: 'tool-output',
+        toolCallDetails: {
+          request_id: 'corr-1',
+          output: 'tool output',
+        },
+      },
     });
     await Promise.resolve();
 
@@ -37,6 +44,13 @@ describe('TranscriptWriter tool writes', () => {
       modelId: 'model-a',
       modelProvider: 'provider-a',
       screenshot: 'artifact-1',
+      structuredPayload: {
+        kind: 'tool-output',
+        toolCallDetails: {
+          request_id: 'corr-1',
+          output: 'tool output',
+        },
+      },
     }));
   });
 
@@ -100,6 +114,15 @@ describe('TranscriptWriter tool writes', () => {
       modelId: 'model-z',
       modelProvider: 'provider-z',
       screenshotRef: 'artifact-tool',
+      structuredPayload: {
+        kind: 'tool-call',
+        toolCall: {
+          name: 'mouse_control',
+          arguments: {
+            action: 'move',
+          },
+        },
+      },
     });
     await Promise.resolve();
 
@@ -119,6 +142,15 @@ describe('TranscriptWriter tool writes', () => {
       modelId: 'model-z',
       modelProvider: 'provider-z',
       screenshot: 'artifact-tool',
+      structuredPayload: {
+        kind: 'tool-call',
+        toolCall: {
+          name: 'mouse_control',
+          arguments: {
+            action: 'move',
+          },
+        },
+      },
     }));
   });
 
@@ -136,6 +168,13 @@ describe('TranscriptWriter tool writes', () => {
         messageType: 'tool-output',
         toolName: 'read_file',
         correlationId: 'corr-2',
+        structuredPayload: {
+          kind: 'tool-output',
+          toolCallDetails: {
+            request_id: 'corr-2',
+            output: 'queued tool message 2',
+          },
+        },
       });
 
       writer.updateTranscriptSession('conv-retry-tool', 'user-retry-tool');
@@ -173,6 +212,13 @@ describe('TranscriptWriter tool writes', () => {
         messageType: 'tool-output',
         toolName: 'read_file',
         correlationId: 'corr-2',
+        structuredPayload: {
+          kind: 'tool-output',
+          toolCallDetails: {
+            request_id: 'corr-2',
+            output: 'queued tool message 2',
+          },
+        },
       }));
     });
   });

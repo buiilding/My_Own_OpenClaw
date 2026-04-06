@@ -68,4 +68,5 @@ export type TranscriptEntry = {
   modelProvider?: string | null;
   screenshotRef?: string | null;
   transparency?: TranscriptTransparencyData | null;
+  structuredPayload?: TranscriptStructuredToolPayload | null;
 };

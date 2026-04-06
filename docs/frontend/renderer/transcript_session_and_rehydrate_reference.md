@@ -94,6 +94,7 @@ Stored fields include:
 
 - `content`, `role`, `messageType`
 - `toolName`, `correlationId` (tool rows)
+- `structuredPayload` for tool rows so queued retries and later transcript rehydrate preserve model-facing call/output details
 - `conversationRef`, `userId`
 - optional `modelId`, `modelProvider`, `timestamp`
 - screenshot attachment under IPC key `screenshot`

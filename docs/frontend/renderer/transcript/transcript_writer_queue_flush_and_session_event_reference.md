@@ -138,6 +138,7 @@ Payload defaults:
 
 - assistant default `messageType` is `llm-text`
 - tool rows include optional `toolName`/`correlationId`
+- tool rows preserve optional `structuredPayload` metadata through both immediate writes and queued flush retries so replay can rebuild tool-call/tool-output cards from stored transcript rows
 - screenshot ref is passed under IPC field `screenshot`
 - assistant/user/tool rows can include optional `transparency` metadata; writer normalizes and prunes empty snapshots through `normalizeTransparencyData(...)` before queue/persistence mapping.
 - successful writes dispatch `window` custom event `transcript-entry-stored` with persisted identity + row metadata
