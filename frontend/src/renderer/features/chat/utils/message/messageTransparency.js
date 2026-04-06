@@ -1,21 +1,7 @@
-function isCanonicalToolSchemas(value) {
-  if (!Array.isArray(value)) {
-    return false;
-  }
+import { isSupportedToolSchemaList } from '../../../../infrastructure/transcript/toolSchemaShape';
 
-  return value.every((item) => (
-    item
-    && typeof item === 'object'
-    && (
-      item.type === 'computer'
-      || (
-        item.type === 'function'
-        && typeof item.name === 'string'
-        && item.parameters
-        && typeof item.parameters === 'object'
-      )
-    )
-  ));
+function isCanonicalToolSchemas(value) {
+  return isSupportedToolSchemaList(value);
 }
 
 function resolveMessageToolSchemas(message) {

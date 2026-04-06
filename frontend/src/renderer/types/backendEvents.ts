@@ -36,7 +36,11 @@ export type ToolSchema = {
   description?: string;
   strict?: boolean;
   parameters?: Record<string, unknown>;
-};
+  function?: {
+    name?: string;
+    parameters?: Record<string, unknown>;
+  } & Record<string, unknown>;
+} & Record<string, unknown>;
 
 export type LlmThoughtEvent = BackendEventBase<'llm-thought', { status?: string }>;
 export type StreamingResponseEvent = BackendEventBase<'streaming-response', { text?: string }>;
