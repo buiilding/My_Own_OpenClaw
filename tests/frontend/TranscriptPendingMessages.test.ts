@@ -8,21 +8,41 @@ const readySession: SessionInfo = {
 
 describe('pendingTranscriptMessages', () => {
   test('flushes queued entries in user -> assistant -> tool order', async () => {
-    const storedRoles: string[] = [];
+    const storedEntries: TranscriptEntry[] = [];
     const manager = createPendingTranscriptMessages({
       storeTranscriptEntry: async (entry: TranscriptEntry) => {
-        storedRoles.push(entry.role);
+        storedEntries.push(entry);
       },
       warn: jest.fn(),
     });
 
-    manager.queueToolMessageForRetry('tool output', { messageType: 'tool-output', toolName: 'screenshot' });
+    manager.queueToolMessageForRetry('tool output', {
+      messageType: 'tool-output',
+      toolName: 'screenshot',
+      structuredPayload: {
+        kind: 'tool-output',
+        toolCallDetails: {
+          request_id: 'tool-1',
+          output: 'tool output',
+        },
+      },
+    });
     manager.queueAssistantMessageForRetry('assistant text', { messageType: 'llm-text' });
     manager.queueUserMessageForRetry('user text');
 
     await manager.flushPendingMessages(readySession);
 
-    expect(storedRoles).toEqual(['user', 'assistant', 'tool']);
+    expect(storedEntries.map((entry) => entry.role)).toEqual(['user', 'assistant', 'tool']);
+    expect(storedEntries[2]).toEqual(expect.objectContaining({
+      content: 'tool output',
+      structuredPayload: {
+        kind: 'tool-output',
+        toolCallDetails: {
+          request_id: 'tool-1',
+          output: 'tool output',
+        },
+      },
+    }));
     expect(manager.hasPendingEntries()).toBe(false);
   });
 
