@@ -131,6 +131,9 @@ OpenAI projection note:
 
 - On OpenAI turns with native desktop support enabled, the provider-facing tool list differs from the canonical registry list.
 - The model sees native `computer`, the two OpenAI-only grounded helpers, and the remaining direct tools.
+- That provider-facing list is rebuilt on every new query.
+- If the prompt for a given query contains more than one user/system image input overall, WindieOS skips native `computer` projection for that request and exposes the direct desktop tools instead.
+- Later queries re-evaluate the same prompt-based rule, so native `computer` can return when the prompt becomes eligible again and can be disabled again by later multi-image prompts.
 - Non-OpenAI providers continue to see the direct internal tool names unchanged.
 
 ## Tool Execution Flow
