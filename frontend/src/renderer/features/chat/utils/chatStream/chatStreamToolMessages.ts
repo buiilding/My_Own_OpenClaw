@@ -3,15 +3,10 @@ import type {
   ToolCallEvent,
   ToolOutputEvent,
 } from '../../../../types/backendEvents';
-import { buildToolOutputChatMessageState } from '../../../../infrastructure/transcript/toolOutputChatMessageState';
 import type { ChatMessage } from '../../stores/chatStore';
 import { resolveToolOutputCorrelationId } from './chatStreamEventUtils';
 import { buildToolCallChatMessageState } from '../../../../infrastructure/transcript/toolCallChatMessageState';
-
-type TranscriptModelContext = {
-  modelId: string | null;
-  modelProvider: string | null;
-};
+import { buildToolOutputEnvelopeMessage, type TranscriptModelContext } from '../toolOutputMessages';
 
 export function buildToolCallMessage(
   event: ToolCallEvent,
@@ -58,10 +53,10 @@ export function buildToolOutputMessage(
   screenshotRef: string | null,
   screenshotUrl: string | null,
 ): ChatMessage {
-  return buildToolOutputChatMessageState({
+  return buildToolOutputEnvelopeMessage({
     outputText,
-    sourceEventType: 'tool-output',
-    sourceChannel: 'from-backend',
+    sourceEventType: 'tool-output' as const,
+    sourceChannel: 'from-backend' as const,
     screenshot,
     screenshotRef,
     screenshotUrl,
@@ -76,7 +71,6 @@ export function buildToolOutputMessage(
         : null
     ),
     turnRef: event.turn_ref,
-    modelId: modelContext.modelId,
-    modelProvider: modelContext.modelProvider,
+    modelContext,
   });
 }
