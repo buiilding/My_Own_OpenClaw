@@ -58,6 +58,26 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(handshake.user_id).toBe('bad_user_');
   });
 
+  test('queues list-models requests made before websocket open and flushes them after connect', async () => {
+    const bridge = initIpc();
+
+    await bridge.handlers['to-backend']({ sender: null }, { type: 'list-models' });
+
+    expect(bridge.ws.sent).toHaveLength(0);
+
+    bridge.ws.triggerOpen();
+
+    expect(bridge.ws.sent).toHaveLength(2);
+    expect(JSON.parse(bridge.ws.sent[0])).toEqual(expect.objectContaining({
+      type: 'handshake',
+    }));
+    expect(JSON.parse(bridge.ws.sent[1])).toEqual(expect.objectContaining({
+      type: 'list-models',
+      payload: {},
+      user_id: 'bad_user_',
+    }));
+  });
+
   test('exposes current conversation and session metadata in get-client-user-id snapshot', async () => {
     const { handlers, ws } = setupOpenedIpc();
     emitBackendMessage(ws, {
