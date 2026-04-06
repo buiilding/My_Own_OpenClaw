@@ -65,7 +65,7 @@ class DummyMemoryStore:
             }
         ]
 
-    async def get_next_message_index(self, user_id, conversation_id):
+    async def get_next_message_index(self, user_id, conversation_id, record_kind="transcript"):
         value = self.next_index
         self.next_index += 1
         return value

@@ -26,6 +26,7 @@ from core.unicode_sanitizer import (
     sanitize_surrogates_in_text,
 )
 from memory.record_kinds import TRANSCRIPT_RECORD_KIND, TRANSCRIPT_REPLAY_RECORD_KIND
+from memory.transcript_embedding_policy import is_semantic_transcript_candidate
 
 logger = logging.getLogger(__name__)
 
@@ -83,16 +84,7 @@ class LocalBackendMemoryHandlersMixin:
         message_type: Optional[str],
     ) -> bool:
         """Return True when a transcript entry should be embedded/summarized."""
-        normalized_role = (role or "").strip().lower()
-        normalized_type = (message_type or "").strip().lower()
-
-        if normalized_role == "user":
-            return True
-
-        if normalized_role == "assistant":
-            return normalized_type in ("", "llm-text", "error")
-
-        return False
+        return is_semantic_transcript_candidate(role, message_type)
 
     @staticmethod
     def _memory_store_not_initialized_response() -> Dict[str, Any]:
