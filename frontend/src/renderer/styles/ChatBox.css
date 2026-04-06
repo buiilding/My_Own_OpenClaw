@@ -134,6 +134,8 @@ body {
 .chatbox-pill {
   --chatbox-close-button-size: 18px;
   --chatbox-close-center-x: calc(100% - 60px);
+  --chatbox-close-offset-x: 18px;
+  --chatbox-close-anchor-x: calc(var(--chatbox-close-center-x) - var(--chatbox-close-offset-x));
   --chatbox-bump-shift-x: 24px;
   --chatbox-bump-shoulder-width: 26px;
   --chatbox-bump-half-width: 18px;
@@ -164,11 +166,11 @@ body {
     8px calc(var(--chatbox-bump-height) + 10px),
     18px calc(var(--chatbox-bump-height) + 2px),
     26px var(--chatbox-bump-height),
-    calc(var(--chatbox-close-center-x) - var(--chatbox-bump-shoulder-width) - var(--chatbox-bump-shift-x)) var(--chatbox-bump-height),
-    calc(var(--chatbox-close-center-x) - var(--chatbox-bump-half-width) - var(--chatbox-bump-shift-x)) 3px,
-    calc(var(--chatbox-close-center-x) - var(--chatbox-bump-shift-x)) 0,
-    calc(var(--chatbox-close-center-x) + var(--chatbox-bump-half-width) - var(--chatbox-bump-shift-x)) 3px,
-    calc(var(--chatbox-close-center-x) + var(--chatbox-bump-shoulder-width) - var(--chatbox-bump-shift-x)) var(--chatbox-bump-height),
+    calc(var(--chatbox-close-anchor-x) - var(--chatbox-bump-shoulder-width) - var(--chatbox-bump-shift-x)) var(--chatbox-bump-height),
+    calc(var(--chatbox-close-anchor-x) - var(--chatbox-bump-half-width) - var(--chatbox-bump-shift-x)) 3px,
+    calc(var(--chatbox-close-anchor-x) - var(--chatbox-bump-shift-x)) 0,
+    calc(var(--chatbox-close-anchor-x) + var(--chatbox-bump-half-width) - var(--chatbox-bump-shift-x)) 3px,
+    calc(var(--chatbox-close-anchor-x) + var(--chatbox-bump-shoulder-width) - var(--chatbox-bump-shift-x)) var(--chatbox-bump-height),
     calc(100% - 26px) var(--chatbox-bump-height),
     calc(100% - 18px) calc(var(--chatbox-bump-height) + 2px),
     calc(100% - 8px) calc(var(--chatbox-bump-height) + 10px),
@@ -492,7 +494,7 @@ body {
 
 .chatbox-close-badge {
   position: absolute;
-  left: var(--chatbox-close-center-x);
+  left: var(--chatbox-close-anchor-x);
   top: 0;
   width: var(--chatbox-close-button-size);
   height: var(--chatbox-close-button-size);
