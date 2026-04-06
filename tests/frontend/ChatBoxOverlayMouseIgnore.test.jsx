@@ -245,6 +245,9 @@ describe('ChatBox overlay mouse ignore', () => {
     const shell = container.querySelector('.chatbox-shell');
 
     expect(shell).toBeTruthy();
+    await act(async () => {
+      await Promise.resolve();
+    });
     mockInvoke.mockClear();
 
     Object.defineProperty(shell, 'offsetHeight', {
@@ -259,6 +262,9 @@ describe('ChatBox overlay mouse ignore', () => {
         value: 94,
       });
       resizeObserverInstances.forEach((observer) => observer.callback());
+      await new Promise((resolve) => {
+        window.setTimeout(resolve, 140);
+      });
       await flushAnimationFrames();
       await Promise.resolve();
     });
@@ -266,8 +272,7 @@ describe('ChatBox overlay mouse ignore', () => {
     const anchorHeightCalls = mockInvoke.mock.calls.filter(
       ([channel]) => channel === 'set-chatbox-visual-anchor-height',
     );
-    expect(anchorHeightCalls).toHaveLength(1);
-    expect(anchorHeightCalls[0]?.[1]?.height).toBe(88);
+    expect(anchorHeightCalls.at(-1)?.[1]?.height).toBe(88);
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
 

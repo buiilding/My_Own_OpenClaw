@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT, resolveChatboxVisualAnchorHeight } from '../utils/state/chatBoxState';
 
+const CHATBOX_VISUAL_ANCHOR_RESIZE_SETTLE_MS = 120;
+
 export function useChatboxFocusBindings(focusInput) {
   useEffect(() => {
     focusInput();
@@ -68,6 +70,7 @@ export function useChatboxVisualAnchorBindings({
     let cancelled = false;
     let lastReportedHeight = null;
     let scheduledFrame = null;
+    let scheduledTimeout = null;
     const shellElement = shellRef?.current || null;
 
     const commitAnchorHeight = () => {
@@ -93,18 +96,34 @@ export function useChatboxVisualAnchorBindings({
       if (cancelled) {
         return;
       }
-      if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
-        commitAnchorHeight();
+
+      const queueCommit = () => {
+        if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+          commitAnchorHeight();
+          return;
+        }
+        if (scheduledFrame !== null) {
+          window.cancelAnimationFrame?.(scheduledFrame);
+        }
+        scheduledFrame = window.requestAnimationFrame(() => {
+          if (!cancelled) {
+            commitAnchorHeight();
+          }
+        });
+      };
+
+      if (CHATBOX_VISUAL_ANCHOR_RESIZE_SETTLE_MS <= 0) {
+        queueCommit();
         return;
       }
-      if (scheduledFrame !== null) {
-        window.cancelAnimationFrame?.(scheduledFrame);
+
+      if (scheduledTimeout !== null) {
+        window.clearTimeout?.(scheduledTimeout);
       }
-      scheduledFrame = window.requestAnimationFrame(() => {
-        if (!cancelled) {
-          commitAnchorHeight();
-        }
-      });
+      scheduledTimeout = window.setTimeout(() => {
+        scheduledTimeout = null;
+        queueCommit();
+      }, CHATBOX_VISUAL_ANCHOR_RESIZE_SETTLE_MS);
     };
 
     commitAnchorHeight();
@@ -112,6 +131,10 @@ export function useChatboxVisualAnchorBindings({
     if (!shellElement || typeof ResizeObserver !== 'function') {
       return () => {
         cancelled = true;
+        if (scheduledTimeout !== null) {
+          window.clearTimeout?.(scheduledTimeout);
+          scheduledTimeout = null;
+        }
         if (scheduledFrame !== null) {
           window.cancelAnimationFrame?.(scheduledFrame);
           scheduledFrame = null;
@@ -126,6 +149,10 @@ export function useChatboxVisualAnchorBindings({
 
     return () => {
       cancelled = true;
+      if (scheduledTimeout !== null) {
+        window.clearTimeout?.(scheduledTimeout);
+        scheduledTimeout = null;
+      }
       if (scheduledFrame !== null) {
         window.cancelAnimationFrame?.(scheduledFrame);
         scheduledFrame = null;

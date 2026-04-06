@@ -133,13 +133,13 @@ body {
 .chatbox-pill {
   --chatbox-close-center-x: calc(100% - 28px);
   --chatbox-close-button-size: 18px;
-  --chatbox-pill-clip-path: inset(0 round 26px);
+  --chatbox-close-bump-width: 48px;
   border-radius: 26px;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-panel-bg);
+  box-shadow: var(--ui-shadow);
+  backdrop-filter: blur(var(--ui-backdrop-blur));
+  -webkit-backdrop-filter: blur(var(--ui-backdrop-blur));
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -161,17 +161,15 @@ body {
   content: '';
   position: absolute;
   top: calc(var(--chatbox-bump-height) * -1);
-  right: 0;
-  bottom: 0;
-  left: 0;
-  border-radius: 26px;
+  left: calc(var(--chatbox-close-center-x) - (var(--chatbox-close-bump-width) / 2));
+  width: var(--chatbox-close-bump-width);
+  height: calc(var(--chatbox-bump-height) + 12px);
+  border-radius: 999px 999px 16px 16px;
   border: 1px solid var(--ui-border);
   background: var(--ui-panel-bg);
   box-shadow: var(--ui-shadow);
   backdrop-filter: blur(var(--ui-backdrop-blur));
   -webkit-backdrop-filter: blur(var(--ui-backdrop-blur));
-  clip-path: var(--chatbox-pill-clip-path);
-  -webkit-clip-path: var(--chatbox-pill-clip-path);
   z-index: 0;
   pointer-events: none;
 }
