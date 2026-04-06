@@ -281,6 +281,7 @@ function initializeMainProcessIpc() {
       syncWindowDisplayAffinity: surfaceRuntime.syncWindowDisplayAffinity,
       setManualChatWindowPosition,
       setChatVisualAnchorHeight: surfaceRuntime.setChatVisualAnchorHeight,
+      setChatWindowBoundsForVisualAnchorHeight: surfaceRuntime.overlayHelpers.setChatWindowBoundsForVisualAnchorHeight,
       setChatboxHitTestActive: surfaceRuntime.setChatboxHitTestActive,
       resizeChatWindowForVisualAnchorHeight: surfaceRuntime.overlayHelpers.resizeChatWindowForVisualAnchorHeight,
       getResponseWindowBounds,

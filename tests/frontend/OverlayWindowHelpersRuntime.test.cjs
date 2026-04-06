@@ -284,13 +284,17 @@ describe('overlay_window_helpers_runtime', () => {
 
     runtime.setManualChatWindowPosition({ x: 2100, y: 120 });
     runtime.positionChatWindow();
-    runtime.resizeChatWindowForVisualAnchorHeight(140);
-    runtime.positionChatWindow();
+    expect(runtime.setChatWindowBoundsForVisualAnchorHeight(140)).toBe(true);
 
     expect(chatWindow.setPosition.mock.calls).toEqual([
       [2100, 120, false],
-      [2100, 90, false],
     ]);
+    expect(chatWindow.setBounds).toHaveBeenLastCalledWith({
+      x: 2100,
+      y: 90,
+      width: 520,
+      height: 146,
+    }, false);
   });
 
   test('ignores manually dragged chat window position when monitor affinity changes', () => {

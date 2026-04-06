@@ -80,6 +80,35 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     return normalizedAnchorHeight + CHAT_WINDOW_FRAME_HEIGHT_PADDING;
   }
 
+  function resolveChatWindowPositionForHeight(width, height) {
+    const activeMonitorId = getActiveMonitorId();
+    const canUseManualPosition = Boolean(
+      manualChatWindowPosition
+      && (
+        !activeMonitorId
+        || !manualChatWindowPosition.monitorId
+        || manualChatWindowPosition.monitorId === activeMonitorId
+      )
+    );
+
+    if (canUseManualPosition) {
+      const anchoredBounds = getOverlayChatWindowBounds({
+        screen,
+        width,
+        height,
+        displayAffinity: getActiveDisplayAffinity(),
+        targetX: manualChatWindowPosition.x,
+      });
+      const bottomY = Math.round(Number(manualChatWindowPosition.bottomY) || 0);
+      return {
+        x: Math.round(anchoredBounds.x),
+        y: bottomY - height,
+      };
+    }
+
+    return getChatWindowBounds(width, height);
+  }
+
   function getResponseWindowBounds(width, height, options = {}) {
     const chatWindow = getChatWindow();
     const chatBounds = chatWindow
@@ -149,31 +178,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
         ? chatWindowHeightOverride
         : Math.round(Number(currentHeight) || 0),
     );
-    const activeMonitorId = getActiveMonitorId();
-    const canUseManualPosition = Boolean(
-      manualChatWindowPosition
-      && (
-        !activeMonitorId
-        || !manualChatWindowPosition.monitorId
-        || manualChatWindowPosition.monitorId === activeMonitorId
-      )
-    );
-    const { x, y } = canUseManualPosition
-      ? (() => {
-        const anchoredBounds = getOverlayChatWindowBounds({
-          screen,
-          width,
-          height,
-          displayAffinity: getActiveDisplayAffinity(),
-          targetX: manualChatWindowPosition.x,
-        });
-        const bottomY = Math.round(Number(manualChatWindowPosition.bottomY) || 0);
-        return {
-          x: Math.round(anchoredBounds.x),
-          y: bottomY - height,
-        };
-      })()
-      : getChatWindowBounds(width, height);
+    const { x, y } = resolveChatWindowPositionForHeight(width, height);
     chatWindow.setPosition(x, y, false);
     positionResponseWindow();
     positionContextLabelWindow();
@@ -217,6 +222,81 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     if (typeof chatWindow.setSize === 'function') {
       chatWindow.setSize(width, nextHeight, false);
       chatWindowHeightOverride = nextHeight;
+      return true;
+    }
+
+    return false;
+  }
+
+  function setChatWindowBoundsForVisualAnchorHeight(anchorHeight) {
+    const chatWindow = getChatWindow();
+    if (
+      !chatWindow
+      || chatWindow.isDestroyed?.()
+      || typeof chatWindow.getSize !== 'function'
+    ) {
+      return false;
+    }
+
+    const [widthRaw, currentHeightRaw] = chatWindow.getSize();
+    const width = Math.max(1, Math.round(Number(widthRaw) || 0));
+    const nextHeight = getChatWindowFrameHeightForVisualAnchorHeight(anchorHeight);
+    const nextBounds = resolveChatWindowPositionForHeight(width, nextHeight);
+
+    if (typeof chatWindow.setBounds === 'function' && typeof chatWindow.getBounds === 'function') {
+      const currentBounds = chatWindow.getBounds();
+      const normalizedCurrentBounds = {
+        x: Math.round(Number(currentBounds?.x) || 0),
+        y: Math.round(Number(currentBounds?.y) || 0),
+        width: Math.max(1, Math.round(Number(currentBounds?.width) || width)),
+        height: Math.max(
+          1,
+          Number.isFinite(chatWindowHeightOverride)
+            ? chatWindowHeightOverride
+            : Math.round(Number(currentBounds?.height) || currentHeightRaw || 0),
+        ),
+      };
+      const targetBounds = {
+        x: Math.round(nextBounds.x),
+        y: Math.round(nextBounds.y),
+        width,
+        height: nextHeight,
+      };
+
+      if (
+        normalizedCurrentBounds.x === targetBounds.x
+        && normalizedCurrentBounds.y === targetBounds.y
+        && normalizedCurrentBounds.width === targetBounds.width
+        && normalizedCurrentBounds.height === targetBounds.height
+      ) {
+        return false;
+      }
+
+      chatWindow.setBounds(targetBounds, false);
+      chatWindowHeightOverride = nextHeight;
+      positionResponseWindow();
+      positionContextLabelWindow();
+      return true;
+    }
+
+    const currentHeight = Math.max(
+      1,
+      Number.isFinite(chatWindowHeightOverride)
+        ? chatWindowHeightOverride
+        : Math.round(Number(currentHeightRaw) || 0),
+    );
+    if (currentHeight === nextHeight) {
+      return false;
+    }
+
+    if (typeof chatWindow.setSize === 'function') {
+      chatWindow.setSize(width, nextHeight, false);
+      chatWindowHeightOverride = nextHeight;
+      if (typeof chatWindow.setPosition === 'function') {
+        chatWindow.setPosition(Math.round(nextBounds.x), Math.round(nextBounds.y), false);
+      }
+      positionResponseWindow();
+      positionContextLabelWindow();
       return true;
     }
 
@@ -384,6 +464,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     ensureResponseOverlayFallbackBounds,
     positionChatWindow,
     resizeChatWindowForVisualAnchorHeight,
+    setChatWindowBoundsForVisualAnchorHeight,
     setManualChatWindowPosition,
     getChatWindowBounds,
     getResponseWindowBounds,
