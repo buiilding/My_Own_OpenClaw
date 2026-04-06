@@ -36,7 +36,7 @@ The intended UX is:
 2. Make the desktop chat pill behave like the dashboard chat pill/composer, only rendered as a desktop overlay.
 3. Keep platform-specific screenshot visibility behavior explicit and minimal:
    - Linux hides WindieOS overlay surfaces for screenshot capture, then restores them after capture.
-   - Windows and macOS never do hide/show, disappear/reappear, or capture-time restoration cycles.
+   - Windows and macOS never do hide/show, disappear/reappear, or capture-time restoration cycles, and the overlay screenshot-exclusion contract comes from always-on `setContentProtection(true)` while those overlay windows exist.
 4. During computer-use, dashboard ownership is temporary:
    - before screenshot-driven computer-use work, hide the dashboard
    - hand off to the minimal chat pill state
@@ -218,6 +218,7 @@ On Windows and macOS:
 - do not hide the response overlay for screenshot capture
 - do not do capture-time disappear/reappear behavior
 - do not do hide/show restoration cycles tied to screenshot capture
+- do not scope overlay screenshot exclusion to active-loop phases only; keep it tied to window policy (`setContentProtection(true)`) instead
 
 These platforms should keep screenshot visibility handling as a no-op unless a future explicit product requirement says otherwise.
 
@@ -336,7 +337,7 @@ The refactor is complete when all of the following are true:
 3. Dashboard and pill share the same conversation/session identity at all times.
 4. During computer-use, the dashboard hands off to the minimal pill before screenshot-driven capture/execution.
 5. On Linux, screenshot capture hides pill and response overlay, waits for settle, and restores the exact previous overlay state after capture.
-6. On Windows and macOS, screenshot capture performs no overlay hide/show or disappear/reappear cycle.
+6. On Windows and macOS, screenshot capture performs no overlay hide/show or disappear/reappear cycle, and overlay screenshot exclusion comes from always-on window content protection.
 7. On Windows and macOS, the pill stays visible through the active loop.
 8. The pill shows awaiting/typing state before first visible assistant activity.
 9. The response overlay takes over visible response projection once text or tool activity begins.

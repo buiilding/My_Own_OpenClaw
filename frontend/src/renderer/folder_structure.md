@@ -496,7 +496,7 @@ frontend/src/renderer/
 
 14. **Audio Playback**: Queue-based audio player for TTS chunks from backend
 
-15. **Window Management**: Linux-only chat-pill hide modules avoid screenshot self-capture; Windows/macOS rely on Electron content protection for protected overlays; chat box overlay is click-through by default
+15. **Window Management**: Linux-only chat-pill hide modules avoid screenshot self-capture; Windows/macOS rely on always-on Electron content protection for protected overlays rather than active-loop-only or capture-time hide/show behavior; chat box overlay is click-through by default
 
 16. **Memory Storage**: IPC integration with Python sidecar for memory operations
 
