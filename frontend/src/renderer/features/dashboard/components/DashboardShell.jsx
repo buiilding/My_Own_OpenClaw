@@ -13,6 +13,9 @@ import { useDashboardConversations } from '../hooks/useDashboardConversations';
 import MemorySection from './sections/MemorySection';
 import SearchChatsModal from './SearchChatsModal';
 import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
+import { invalidateConversationBackendSyncState } from '../../chat/session/conversationBackendSyncRuntime';
+import { clearConversationReplayStateCache } from '../../../infrastructure/transcript/conversationReplayState';
+import { clearAllConversationWorkspaceBindings } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) {
@@ -201,6 +204,9 @@ function DashboardShell({
       setTokenCounts: setChatTokenCounts,
       setChatActiveConversationRef,
     });
+    invalidateConversationBackendSyncState();
+    clearConversationReplayStateCache();
+    clearAllConversationWorkspaceBindings();
     await loadRecentConversations();
   }, [
     clearChatMessages,

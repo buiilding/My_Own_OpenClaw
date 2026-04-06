@@ -136,6 +136,11 @@ export function clearConversationWorkspaceBinding(conversationRef) {
   writeStoredBindings(bindingCache);
 }
 
+export function clearAllConversationWorkspaceBindings() {
+  bindingCache = {};
+  writeStoredBindings(bindingCache);
+}
+
 export function resolveConversationWorkspaceBinding({
   conversation = null,
   memories = [],

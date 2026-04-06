@@ -3,6 +3,9 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 
 import DashboardShell from '../../frontend/src/renderer/features/dashboard/components/DashboardShell';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import { invalidateConversationBackendSyncState } from '../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime';
+import { clearConversationReplayStateCache } from '../../frontend/src/renderer/infrastructure/transcript/conversationReplayState';
+import { clearAllConversationWorkspaceBindings } from '../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding';
 
 const mockListeners = new Map();
 const mockInvoke = jest.fn(async (channel) => {
@@ -83,6 +86,35 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
+jest.mock('../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime', () => {
+  const actual = jest.requireActual('../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime');
+  return {
+    ...actual,
+    clearConversationBackendSyncState: jest.fn(),
+    invalidateConversationBackendSyncState: jest.fn(),
+  };
+});
+
+jest.mock('../../frontend/src/renderer/infrastructure/transcript/conversationReplayState', () => {
+  const actual = jest.requireActual('../../frontend/src/renderer/infrastructure/transcript/conversationReplayState');
+  return {
+    ...actual,
+    clearConversationReplayStateCache: jest.fn(),
+  };
+});
+
+jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding', () => {
+  const actual = jest.requireActual('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding');
+  return {
+    ...actual,
+    clearAllConversationWorkspaceBindings: jest.fn(),
+  };
+});
+
+const mockInvalidateConversationBackendSyncState = invalidateConversationBackendSyncState;
+const mockClearConversationReplayStateCache = clearConversationReplayStateCache;
+const mockClearAllConversationWorkspaceBindings = clearAllConversationWorkspaceBindings;
+
 describe('ChatGptDashboardShell', () => {
   const flushMicrotasks = async () => {
     await act(async () => {
@@ -109,6 +141,9 @@ describe('ChatGptDashboardShell', () => {
     mockInvoke.mockClear();
     mockSetActiveConversationRef.mockClear();
     mockUpdateTranscriptSession.mockClear();
+    mockInvalidateConversationBackendSyncState.mockClear();
+    mockClearConversationReplayStateCache.mockClear();
+    mockClearAllConversationWorkspaceBindings.mockClear();
     mockSessionInfo = { conversationRef: null, userId: null };
     useChatStore.setState({
       isSending: false,
@@ -284,8 +319,16 @@ describe('ChatGptDashboardShell', () => {
       }),
     );
 
-    expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv-history-1');
-    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-history-1', 'default_user');
+    if (!mockSetActiveConversationRef.mock.calls.some(([conversationRef]) => (
+      conversationRef === 'conv-history-1'
+    ))) {
+      throw new Error('expected active conversation ref to switch to conv-history-1');
+    }
+    if (!mockUpdateTranscriptSession.mock.calls.some(([conversationRef, userId]) => (
+      conversationRef === 'conv-history-1' && userId === 'default_user'
+    ))) {
+      throw new Error('expected transcript session to switch to conv-history-1');
+    }
   });
 
   test('allows switching history while another loop is active', async () => {
@@ -335,8 +378,16 @@ describe('ChatGptDashboardShell', () => {
         conversationId: 'conv-history-1',
       }),
     );
-    expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv-history-1');
-    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-history-1', 'default_user');
+    if (!mockSetActiveConversationRef.mock.calls.some(([conversationRef]) => (
+      conversationRef === 'conv-history-1'
+    ))) {
+      throw new Error('expected active conversation ref to switch during active loop');
+    }
+    if (!mockUpdateTranscriptSession.mock.calls.some(([conversationRef, userId]) => (
+      conversationRef === 'conv-history-1' && userId === 'default_user'
+    ))) {
+      throw new Error('expected transcript session to switch during active loop');
+    }
   });
 
   test('highlights active conversation row in sidebar history', async () => {
@@ -434,20 +485,20 @@ describe('ChatGptDashboardShell', () => {
       fireEvent.click(await screen.findByRole('button', { name: /Conversation actions for Mission Today/i }));
       fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
       await flushMicrotasks();
-      expect(mockInvoke).toHaveBeenCalledWith(
-        'delete-conversation',
-        expect.objectContaining({
-          conversationId: 'conv-delete-1',
-          recordKind: 'transcript',
-        }),
-      );
-      expect(mockInvoke).toHaveBeenCalledWith(
-        'delete-conversation',
-        expect.objectContaining({
-          conversationId: 'conv-delete-1',
-          recordKind: 'transcript_replay',
-        }),
-      );
+      if (!mockInvoke.mock.calls.some(([channel, payload]) => (
+        channel === 'delete-conversation'
+        && payload?.conversationId === 'conv-delete-1'
+        && payload?.recordKind === 'transcript'
+      ))) {
+        throw new Error('expected transcript rows to be deleted for conv-delete-1');
+      }
+      if (!mockInvoke.mock.calls.some(([channel, payload]) => (
+        channel === 'delete-conversation'
+        && payload?.conversationId === 'conv-delete-1'
+        && payload?.recordKind === 'transcript_replay'
+      ))) {
+        throw new Error('expected replay rows to be deleted for conv-delete-1');
+      }
     } finally {
       confirmSpy.mockRestore();
     }
@@ -680,8 +731,15 @@ describe('ChatGptDashboardShell', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Trigger chats cleared' }));
     await flushMicrotasks();
 
-    expect(mockSetActiveConversationRef).toHaveBeenCalledWith(null);
-    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(null, 'user-live');
+    expect(mockSetActiveConversationRef.mock.calls.some(([conversationRef]) => (
+      conversationRef === null
+    ))).toBe(true);
+    expect(mockUpdateTranscriptSession.mock.calls.some(([conversationRef, userId]) => (
+      conversationRef === null && userId === 'user-live'
+    ))).toBe(true);
+    expect(mockInvalidateConversationBackendSyncState.mock.calls.length).toBe(1);
+    expect(mockClearConversationReplayStateCache.mock.calls.length).toBe(1);
+    expect(mockClearAllConversationWorkspaceBindings.mock.calls.length).toBe(1);
     expect(mockInvoke).toHaveBeenCalledWith(
       'list-conversations',
       expect.objectContaining({ userId: 'user-live' }),
