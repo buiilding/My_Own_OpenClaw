@@ -1,10 +1,6 @@
 import { buildToolOutputChatMessageState } from '../../../infrastructure/transcript/toolOutputChatMessageState';
 import type { ChatMessage } from '../stores/chatStore';
-
-export type TranscriptModelContext = {
-  modelId: string | null;
-  modelProvider: string | null;
-};
+import type { TranscriptModelContext } from './transcriptModelContext';
 
 type BuildToolOutputEnvelopeInput = {
   outputText: string;

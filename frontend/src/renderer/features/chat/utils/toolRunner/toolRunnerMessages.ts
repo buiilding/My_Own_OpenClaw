@@ -1,7 +1,8 @@
 import type { BundleExecutionResult, ToolExecutionResult } from '../../../../infrastructure/services/toolExecution/ToolExecutionService';
 import type { ChatMessage } from '../../stores/chatStore';
 import { resolveToolCallCorrelationId as resolveSharedToolCallCorrelationId } from '../toolCorrelationIds';
-import { buildToolOutputEnvelopeMessage, type TranscriptModelContext } from '../toolOutputMessages';
+import { buildToolOutputEnvelopeMessage } from '../toolOutputMessages';
+import type { TranscriptModelContext } from '../transcriptModelContext';
 
 type BundleToolInput = {
   name?: unknown;
