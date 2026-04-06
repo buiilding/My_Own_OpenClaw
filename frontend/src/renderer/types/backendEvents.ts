@@ -68,6 +68,7 @@ export type ContextCompactionCompletedEvent = BackendEventBase<'context-compacti
     tool_name?: string | null;
     tool_call_id?: string | null;
   }> | null;
+  replacement_history_entries?: Array<Record<string, unknown>> | null;
   skipped_reason?: string | null;
 }>;
 export type ContextCompactionFailedEvent = BackendEventBase<'context-compaction-failed', {

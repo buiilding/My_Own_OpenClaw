@@ -32,14 +32,16 @@ describe('conversationBackendSyncRuntime', () => {
 
   test('lazy rehydrates an unknown existing conversation once and then treats it as synced', async () => {
     markConversationBackendStateUnknown('conv-existing');
-    mockLoadConversationTranscriptMemories.mockResolvedValue([
-      {
-        role: 'user',
-        content: 'hello',
-        message_type: 'user',
-        metadata: {},
-      } as any,
-    ]);
+    mockLoadConversationTranscriptMemories
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          role: 'user',
+          content: 'hello',
+          message_type: 'user',
+          metadata: {},
+        } as any,
+      ]);
 
     await ensureConversationBackendState({
       conversationRef: 'conv-existing',
@@ -50,7 +52,7 @@ describe('conversationBackendSyncRuntime', () => {
       userId: 'user-1',
     });
 
-    expect(mockLoadConversationTranscriptMemories).toHaveBeenCalledTimes(1);
+    expect(mockLoadConversationTranscriptMemories).toHaveBeenCalledTimes(2);
     expect(mockSendRehydrateConversation).toHaveBeenCalledTimes(1);
     expect(mockSendRehydrateConversation).toHaveBeenCalledWith(
       'conv-existing',
@@ -61,8 +63,42 @@ describe('conversationBackendSyncRuntime', () => {
           message_type: 'user',
         }),
       ],
+      null,
     );
     expect(getConversationBackendSyncState('conv-existing')).toBe('synced');
+  });
+
+  test('prefers persisted replay state when available', async () => {
+    markConversationBackendStateUnknown('conv-replay-preferred');
+    mockLoadConversationTranscriptMemories.mockResolvedValueOnce([
+      {
+        metadata: {
+          rehydrate_entry: {
+            role: 'assistant',
+            content: 'compacted replay',
+            message_type: 'context_compaction',
+          },
+        },
+      } as any,
+    ]);
+
+    await ensureConversationBackendState({
+      conversationRef: 'conv-replay-preferred',
+      userId: 'user-1',
+    });
+
+    expect(mockLoadConversationTranscriptMemories).toHaveBeenCalledTimes(1);
+    expect(mockSendRehydrateConversation).toHaveBeenCalledWith(
+      'conv-replay-preferred',
+      [
+        expect.objectContaining({
+          role: 'assistant',
+          content: 'compacted replay',
+          message_type: 'context_compaction',
+        }),
+      ],
+      null,
+    );
   });
 
   test('skips transcript loading and backend rehydrate for fresh local conversations', async () => {
@@ -84,20 +120,31 @@ describe('conversationBackendSyncRuntime', () => {
       messages: [],
     });
 
-    expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv-replay', []);
+    expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv-replay', [], null);
     expect(getConversationBackendSyncState('conv-replay')).toBe('synced');
   });
 
   test('invalidating sync state forces a later ensure to rehydrate again', async () => {
     markConversationBackendStateUnknown('conv-reconnect');
-    mockLoadConversationTranscriptMemories.mockResolvedValue([
-      {
-        role: 'assistant',
-        content: 'previous answer',
-        message_type: 'llm-text',
-        metadata: {},
-      } as any,
-    ]);
+    mockLoadConversationTranscriptMemories
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          role: 'assistant',
+          content: 'previous answer',
+          message_type: 'llm-text',
+          metadata: {},
+        } as any,
+      ])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          role: 'assistant',
+          content: 'previous answer',
+          message_type: 'llm-text',
+          metadata: {},
+        } as any,
+      ]);
 
     await ensureConversationBackendState({
       conversationRef: 'conv-reconnect',

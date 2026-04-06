@@ -62,4 +62,5 @@ class CompactionResult:
     removed_messages: int
     summary_text: str
     replacement_history_preview: List[CompactionReplacementMessagePreview]
+    replacement_history_entries: List[dict]
     skip_reason: Optional[str] = None

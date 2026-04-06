@@ -25,6 +25,7 @@ from core.unicode_sanitizer import (
     sanitize_surrogates,
     sanitize_surrogates_in_text,
 )
+from memory.record_kinds import TRANSCRIPT_RECORD_KIND, TRANSCRIPT_REPLAY_RECORD_KIND
 
 logger = logging.getLogger(__name__)
 
@@ -531,10 +532,20 @@ class LocalBackendMemoryHandlersMixin:
         workspace_name: Optional[str] = None,
         transparency: Optional[Dict[str, Any]] = None,
         structured_payload: Optional[Dict[str, Any]] = None,
+        record_kind: Optional[str] = TRANSCRIPT_RECORD_KIND,
+        rehydrate_entry: Optional[Dict[str, Any]] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """Store a transcript entry with selective embeddings for recall/summarization."""
-        if not content:
+        normalized_record_kind = (
+            TRANSCRIPT_REPLAY_RECORD_KIND
+            if str(record_kind or "").strip().lower() == TRANSCRIPT_REPLAY_RECORD_KIND
+            else TRANSCRIPT_RECORD_KIND
+        )
+        normalized_rehydrate_entry = self._normalize_transcript_structured_payload(
+            rehydrate_entry
+        )
+        if not content and normalized_record_kind != TRANSCRIPT_REPLAY_RECORD_KIND:
             return {
                 "success": False,
                 "error": "Content is required"
@@ -555,7 +566,9 @@ class LocalBackendMemoryHandlersMixin:
                     "model_provider": model_provider,
                     "workspace_path": workspace_path,
                     "workspace_name": workspace_name,
+                    "record_kind": normalized_record_kind,
                     "structured_payload": structured_payload,
+                    "rehydrate_entry": rehydrate_entry,
                 },
                 root="store_transcript",
             )
@@ -564,8 +577,12 @@ class LocalBackendMemoryHandlersMixin:
                     "Lone surrogate detected in transcript payload fields: %s",
                     ", ".join(surrogate_paths),
                 )
-            content = sanitize_surrogates_in_text(content)
-            record_kind = "transcript"
+            stored_content = sanitize_surrogates_in_text(content)
+            if (
+                not stored_content
+                and normalized_record_kind == TRANSCRIPT_REPLAY_RECORD_KIND
+            ):
+                stored_content = "[internal replay entry]"
             conversation_id = conversation_ref or session_id
             normalized_correlation_id = None
             if isinstance(correlation_id, str):
@@ -574,7 +591,7 @@ class LocalBackendMemoryHandlersMixin:
                     normalized_correlation_id = trimmed_correlation_id
             metadata = {
                 "type": "episodic",
-                "record_kind": record_kind,
+                "record_kind": normalized_record_kind,
             }
             if role:
                 metadata["role"] = role
@@ -596,20 +613,27 @@ class LocalBackendMemoryHandlersMixin:
             )
             if normalized_structured_payload is not None:
                 metadata["structured_payload"] = normalized_structured_payload
+            if normalized_rehydrate_entry is not None:
+                metadata["rehydrate_entry"] = normalized_rehydrate_entry
 
             if message_index is None:
                 message_index = await self.memory_store.get_next_message_index(
-                    user_id, conversation_id
+                    user_id,
+                    conversation_id,
+                    record_kind=normalized_record_kind,
                 )
 
-            semantic_candidate = self._is_semantic_transcript_candidate(role, message_type)
+            semantic_candidate = (
+                normalized_record_kind == TRANSCRIPT_RECORD_KIND
+                and self._is_semantic_transcript_candidate(role, message_type)
+            )
 
             memory_id = await self.memory_store.add(
-                content,
+                stored_content,
                 user_id,
                 metadata,
                 conversation_id=conversation_id,
-                record_kind=record_kind,
+                record_kind=normalized_record_kind,
                 role=role,
                 message_index=message_index,
                 message_type=message_type,
@@ -627,7 +651,7 @@ class LocalBackendMemoryHandlersMixin:
                 "data": {
                     "memory_id": memory_id,
                     "message_index": message_index,
-                    "record_kind": record_kind,
+                    "record_kind": normalized_record_kind,
                     "semantic_candidate": semantic_candidate,
                 }
             }

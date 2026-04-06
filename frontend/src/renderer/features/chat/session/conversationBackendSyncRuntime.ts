@@ -1,6 +1,10 @@
 import { ApiClient } from '../../../infrastructure/api/client';
 import { loadConversationTranscriptMemories } from '../../../infrastructure/transcript/conversationTranscriptLoader';
 import {
+  readStoredReplayRehydrateEntry,
+  TRANSCRIPT_REPLAY_RECORD_KIND,
+} from '../../../infrastructure/transcript/conversationReplayState';
+import {
   getConversationWorkspaceBinding,
   resolveConversationWorkspaceBinding,
   setConversationWorkspaceBinding,
@@ -149,17 +153,27 @@ export async function ensureConversationBackendState({
 
   const startingEpoch = connectionEpoch;
   const ensurePromise = (async () => {
-    const memories = await loadConversationTranscriptMemories({
+    const replayMemories = await loadConversationTranscriptMemories({
       userId: resolveUserId(userId),
       conversationRef: normalizedConversationRef,
-      recordKind,
+      recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
     });
+    const memories = replayMemories.length > 0
+      ? replayMemories
+      : await loadConversationTranscriptMemories({
+        userId: resolveUserId(userId),
+        conversationRef: normalizedConversationRef,
+        recordKind,
+      });
     const resolvedBinding = resolveConversationWorkspaceBinding({ memories });
     setConversationWorkspaceBinding(normalizedConversationRef, resolvedBinding);
     if (memories.length > 0) {
+      const rehydrateMessages = replayMemories.length > 0
+        ? memories.map((memory) => readStoredReplayRehydrateEntry(memory) || toRehydrateMessagePayload(memory))
+        : memories.map(toRehydrateMessagePayload);
       await ApiClient.sendRehydrateConversation(
         normalizedConversationRef,
-        memories.map(toRehydrateMessagePayload),
+        rehydrateMessages,
         getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
       );
     }

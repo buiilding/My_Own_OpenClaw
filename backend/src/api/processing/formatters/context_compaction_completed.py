@@ -62,6 +62,7 @@ class ContextCompactionCompletedEventFormatter(EventFormatter):
                 "summary_preview": event_dict.get("summary_preview"),
                 "summary_text": event_dict.get("summary_text"),
                 "replacement_history_preview": event_dict.get("replacement_history_preview"),
+                "replacement_history_entries": event_dict.get("replacement_history_entries"),
                 "skipped_reason": event_dict.get("skipped_reason"),
             },
         }

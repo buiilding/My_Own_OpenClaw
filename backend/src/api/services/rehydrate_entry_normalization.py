@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from backend.src.agent.history.history_admission import (
     normalize_history_structured_content,
@@ -147,7 +147,7 @@ class RehydrateEntryNormalizer:
         *,
         entry: Any,
         index: int,
-        image_data: Optional[str],
+        image_data: Optional[Union[str, List[str]]],
         transparency: Optional[Dict[str, Any]],
         state: RehydrateNormalizationState,
     ) -> tuple[List[Dict[str, Any]], Optional[str]]:
@@ -160,10 +160,13 @@ class RehydrateEntryNormalizer:
         structured_payload = self.normalize_structured_payload(
             getattr(entry, "structured_payload", None)
         )
+        raw_content = getattr(entry, "structured_content", None)
+        if raw_content is None:
+            raw_content = entry.content
         content = self.resolve_rehydrated_content(
             role=entry.role,
             normalized_message_type=normalized_message_type,
-            raw_content=entry.content,
+            raw_content=raw_content,
             transparency=transparency,
         )
 
@@ -280,6 +283,9 @@ class RehydrateEntryNormalizer:
             "timestamp": entry.timestamp,
             "image_data": image_data,
         }
+        compaction_facts = getattr(entry, "compaction_facts", None)
+        if isinstance(compaction_facts, dict) and compaction_facts:
+            hydrated_entry["compaction_facts"] = dict(compaction_facts)
         structured_content = normalize_history_structured_content(
             content, role=entry.role
         )
@@ -320,7 +326,7 @@ class RehydrateEntryNormalizer:
         *,
         content: Any,
         timestamp: Optional[str],
-        image_data: Optional[str],
+        image_data: Optional[Union[str, List[str]]],
     ) -> Optional[Dict[str, Any]]:
         normalized_content = normalize_history_text_content(content)
         if not normalized_content.strip() and image_data is None:
@@ -442,7 +448,7 @@ class RehydrateEntryNormalizer:
         thought_signature: Optional[str],
         message_type: Optional[str],
         timestamp: Optional[str],
-        image_data: Optional[str],
+        image_data: Optional[Union[str, List[str]]],
     ) -> Dict[str, Any]:
         tool_call_payload: Dict[str, Any] = {
             "id": call_id,

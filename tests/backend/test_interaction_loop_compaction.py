@@ -74,6 +74,13 @@ class _FakeCompactionEngine:
                     content="[[CONTEXT COMPACTION SUMMARY]]\nsummary text",
                 )
             ],
+            replacement_history_entries=[
+                {
+                    "role": "assistant",
+                    "content": "[[CONTEXT COMPACTION SUMMARY]]\nsummary text",
+                    "message_type": "context_compaction",
+                }
+            ],
             skip_reason=None,
         )
 
@@ -167,3 +174,10 @@ async def test_interaction_loop_runs_mid_turn_compaction_before_second_sampling(
         event for event in events if isinstance(event, ContextCompactionCompletedEvent)
     )
     assert completed_event.summary_preview == "summary text"
+    assert completed_event.replacement_history_entries == [
+        {
+            "role": "assistant",
+            "content": "[[CONTEXT COMPACTION SUMMARY]]\nsummary text",
+            "message_type": "context_compaction",
+        }
+    ]

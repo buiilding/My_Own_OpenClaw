@@ -7,8 +7,25 @@ import {
   COMPACTION_THINKING_STATUS,
 } from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamThinkingStatus';
 
+const mockReplaceConversationReplayState = jest.fn(() => Promise.resolve());
+
+jest.mock('../../frontend/src/renderer/infrastructure/transcript/conversationReplayState', () => ({
+  replaceConversationReplayState: (...args: any[]) => mockReplaceConversationReplayState(...args),
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding', () => ({
+  getConversationWorkspaceBinding: jest.fn(() => ({
+    workspacePath: '/workspace',
+    workspaceName: 'WindieOS',
+  })),
+}));
+
 describe('useChatStreamCompactionHandlers', () => {
-  test('updates thinking state for compaction lifecycle events', () => {
+  beforeEach(() => {
+    mockReplaceConversationReplayState.mockClear();
+  });
+
+  test('updates thinking state for compaction lifecycle events', async () => {
     const resolveTargetConversationRef = jest.fn(() => 'conversation-1');
     const shouldIgnoreForStaleTurn = jest.fn(() => false);
     const setThinkingStatus = jest.fn();
@@ -25,7 +42,7 @@ describe('useChatStreamCompactionHandlers', () => {
       recordTrackingEvent,
     }));
 
-    act(() => {
+    await act(async () => {
       result.current.handleContextCompactionStarted({
         type: 'context-compaction-started',
         turn_ref: 'turn-1',
@@ -33,6 +50,7 @@ describe('useChatStreamCompactionHandlers', () => {
       result.current.handleContextCompactionCompleted({
         type: 'context-compaction-completed',
         turn_ref: 'turn-1',
+        user_id: 'user-1',
         payload: {
           skipped_reason: '',
           summary_text: 'full compacted history',
@@ -46,6 +64,18 @@ describe('useChatStreamCompactionHandlers', () => {
               role: 'user',
               message_type: 'user_query',
               content: 'latest question',
+            },
+          ],
+          replacement_history_entries: [
+            {
+              role: 'assistant',
+              content: '[[CONTEXT COMPACTION SUMMARY]]\nfull compacted history',
+              message_type: 'context_compaction',
+            },
+            {
+              role: 'user',
+              content: 'latest question',
+              message_type: 'user_query',
             },
           ],
         },
@@ -83,6 +113,23 @@ describe('useChatStreamCompactionHandlers', () => {
     );
     expect(setCompactionDebugInfo).toHaveBeenNthCalledWith(4, null, 'conversation-1');
     expect(recordTrackingEvent).toHaveBeenCalledTimes(4);
+    expect(mockReplaceConversationReplayState).toHaveBeenCalledTimes(1);
+    expect(mockReplaceConversationReplayState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conversationRef: 'conversation-1',
+        userId: 'user-1',
+      }),
+      [
+        expect.objectContaining({
+          messageIndex: 1,
+          rehydrateEntry: expect.objectContaining({ message_type: 'context_compaction' }),
+        }),
+        expect.objectContaining({
+          messageIndex: 2,
+          rehydrateEntry: expect.objectContaining({ message_type: 'user_query' }),
+        }),
+      ],
+    );
   });
 
   test('ignores stale-turn events', () => {

@@ -116,6 +116,7 @@ class CompactionEngine:
                 removed_messages=0,
                 summary_text="",
                 replacement_history_preview=[],
+                replacement_history_entries=[],
                 skip_reason=active_decision.skip_reason,
             )
 
@@ -134,6 +135,7 @@ class CompactionEngine:
                 removed_messages=0,
                 summary_text="",
                 replacement_history_preview=[],
+                replacement_history_entries=[],
                 skip_reason="insufficient-history",
             )
 
@@ -149,6 +151,9 @@ class CompactionEngine:
         )
         replacement_messages = [summary_message, *compaction_input.keep_tail_messages]
         replacement_history_preview = self._build_replacement_history_preview(
+            replacement_messages
+        )
+        replacement_history_entries = self._build_replacement_history_entries(
             replacement_messages
         )
         self._session.history.replace_with_stored_messages(replacement_messages)
@@ -174,6 +179,7 @@ class CompactionEngine:
             removed_messages=removed_messages,
             summary_text=strategy_output.summary_text,
             replacement_history_preview=replacement_history_preview,
+            replacement_history_entries=replacement_history_entries,
             skip_reason=None,
         )
 
@@ -191,6 +197,27 @@ class CompactionEngine:
             )
             for message in replacement_messages
         ]
+
+    @staticmethod
+    def _build_replacement_history_entries(
+        replacement_messages: List[StoredMessage],
+    ) -> List[dict]:
+        entries: List[dict] = []
+        for message in replacement_messages:
+            entry = {
+                "role": message.role.value,
+                "content": message.content,
+                "message_type": message.message_type.value,
+                "tool_name": message.tool_name,
+                "tool_call_id": message.tool_call_id,
+                "tool_calls": message.tool_calls,
+                "image_data": message.image_data,
+                "compaction_facts": message.compaction_facts,
+            }
+            if message.structured_content is not None:
+                entry["structured_content"] = message.structured_content
+            entries.append(entry)
+        return entries
 
     def _build_compaction_input(
         self,

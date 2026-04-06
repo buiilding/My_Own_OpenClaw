@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
 
 from backend.src.api.schema import RehydrateConversationMessage
 from backend.src.api.services.rehydrate_entry_normalization import (
@@ -61,6 +61,7 @@ class RehydrateExecutionService:
 
             image_data = self._resolve_image_data(
                 artifact_store=artifact_store,
+                entry=entry,
                 screenshot=entry.screenshot,
                 screenshot_ref=entry.screenshot_ref,
                 index=index,
@@ -93,7 +94,7 @@ class RehydrateExecutionService:
         *,
         entry: Any,
         index: int,
-        image_data: Optional[str],
+        image_data: Optional[Union[str, List[str]]],
         known_tool_call_ids: set[str],
         pending_tool_call_id: Optional[str],
         transparency: Optional[Dict[str, Any]],
@@ -147,10 +148,22 @@ class RehydrateExecutionService:
         self,
         *,
         artifact_store: Optional[ArtifactStore],
+        entry: Any,
         screenshot: Optional[str],
         screenshot_ref: Optional[str],
         index: int,
-    ) -> Optional[str]:
+    ) -> Optional[Union[str, List[str]]]:
+        direct_image_data = getattr(entry, "image_data", None)
+        if isinstance(direct_image_data, str) and direct_image_data:
+            return direct_image_data
+        if isinstance(direct_image_data, list):
+            normalized_images = [
+                image
+                for image in direct_image_data
+                if isinstance(image, str) and image
+            ]
+            if normalized_images:
+                return normalized_images
         if screenshot:
             return screenshot
         if not screenshot_ref:

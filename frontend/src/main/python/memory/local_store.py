@@ -81,6 +81,10 @@ from memory.sqlite_store import (
 )
 from memory.watermark_state import WatermarkStateStore
 from memory.operations import format_interaction_memory
+from memory.record_kinds import (
+    TRANSCRIPT_RECORD_KIND,
+    TRANSCRIPT_REPLAY_RECORD_KIND,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -437,7 +441,9 @@ class LocalMemoryStore:
         We index user turns and assistant natural-language responses for memory recall.
         """
         normalized_kind = (record_kind or "memory").strip().lower()
-        if normalized_kind != "transcript":
+        if normalized_kind == TRANSCRIPT_REPLAY_RECORD_KIND:
+            return False
+        if normalized_kind != TRANSCRIPT_RECORD_KIND:
             return True
 
         normalized_role = (role or "").strip().lower()
@@ -602,7 +608,7 @@ class LocalMemoryStore:
         # Convert string to enum for type safety
         memory_type = self._normalize_memory_type(memory_type_str)
 
-        if record_kind == "transcript" and memory_type != "episodic":
+        if record_kind in {TRANSCRIPT_RECORD_KIND, TRANSCRIPT_REPLAY_RECORD_KIND} and memory_type != "episodic":
             memory_type = "episodic"
 
         (
@@ -694,7 +700,7 @@ class LocalMemoryStore:
         normalized_message_type = (message_type or "").strip().lower().replace("_", "-")
         if (
             memory_type == "episodic"
-            and record_kind == "transcript"
+            and record_kind == TRANSCRIPT_RECORD_KIND
             and conversation_id
             and role == "assistant"
             and normalized_message_type == "llm-text"
@@ -1450,7 +1456,7 @@ class LocalMemoryStore:
         Args:
             user_id: User identifier
             limit: Maximum number of conversations to return
-            record_kind: Optional filter. Transcript-only; non-transcript values are ignored.
+            record_kind: Optional transcript-family filter.
 
         Returns:
             List of conversation summaries with timestamps and entry counts
@@ -1744,8 +1750,12 @@ class LocalMemoryStore:
         Returns:
             Number of rows deleted.
         """
-        normalized_record_kind = "transcript"
-        record_kind_clause = "AND record_kind = 'transcript'"
+        normalized_record_kind = (
+            TRANSCRIPT_REPLAY_RECORD_KIND
+            if str(record_kind or "").strip().lower() == TRANSCRIPT_REPLAY_RECORD_KIND
+            else TRANSCRIPT_RECORD_KIND
+        )
+        record_kind_clause = "AND record_kind = ?"
         conversation_clause, conversation_params = self._conversation_where_clause(
             conversation_id
         )
@@ -1754,7 +1764,7 @@ class LocalMemoryStore:
 
         async with aiosqlite.connect(self.episodic_db_path) as conn:
             cursor = await conn.cursor()
-            select_params = (user_id, *conversation_params)
+            select_params = (user_id, *conversation_params, normalized_record_kind)
             await cursor.execute(
                 f"""
                 SELECT id, embedding_id
@@ -1788,7 +1798,10 @@ class LocalMemoryStore:
             )
 
             deleted_count = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
-            if conversation_id is not None:
+            if (
+                conversation_id is not None
+                and normalized_record_kind == TRANSCRIPT_RECORD_KIND
+            ):
                 await cursor.execute(
                     """
                     DELETE FROM conversation_titles
@@ -1887,7 +1900,10 @@ class LocalMemoryStore:
         )
 
     async def get_next_message_index(
-        self, user_id: str, conversation_id: Optional[str]
+        self,
+        user_id: str,
+        conversation_id: Optional[str],
+        record_kind: Optional[str] = TRANSCRIPT_RECORD_KIND,
     ) -> int:
         """
         Get the next message index for a transcript conversation.
@@ -1896,6 +1912,7 @@ class LocalMemoryStore:
             episodic_db_path=self.episodic_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
+            record_kind=record_kind,
         )
 
     async def get_episodic_memories_by_conversation(

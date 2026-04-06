@@ -24,10 +24,14 @@ class _FakeSessionManager:
         self.config = SimpleNamespace()
         self.session = _FakeSession()
         self.requested_users = []
+        self.workspace_updates = []
 
     async def get_or_create_session(self, user_id, conversation_ref=None):
         self.requested_users.append((user_id, conversation_ref))
         return self.session
+
+    def set_session_workspace_path(self, user_id, session, workspace_path):
+        self.workspace_updates.append((user_id, session, workspace_path))
 
 
 class _TrackingArtifactStore:

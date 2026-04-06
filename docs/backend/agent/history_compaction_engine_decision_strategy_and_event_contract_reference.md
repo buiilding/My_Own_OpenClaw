@@ -154,7 +154,7 @@ Auto-pre flow (`AgentExecutor.process_query`):
 - includes pending enriched user message text in projected token estimate
 - emits:
   - `context-compaction-started` when decision requires compaction
-  - `context-compaction-completed` on success (with full `summary_preview`, `summary_text`, dev-only `replacement_history_preview`, and `skipped_reason`)
+  - `context-compaction-completed` on success (with full `summary_preview`, `summary_text`, dev-only `replacement_history_preview`, replay-safe `replacement_history_entries`, and `skipped_reason`)
   - `context-compaction-failed` on exception
 
 Auto-mid flow (`InteractionLoop.run_loop`):
@@ -168,6 +168,8 @@ Manual flow (`CompactHistoryHandler`):
 - otherwise runs `session.run_history_compaction(reason="manual", force=payload.force)`
 - emits started only when decision should run
 - always ends with completed payload (applied stats or `skipped_reason`)
+
+`replacement_history_entries` contains replay-safe history rows derived from the backend `StoredMessage` replacement history. Frontend persistence uses this payload to overwrite the hidden replay-state stream without mutating the user-visible raw transcript.
 
 ## Session Locking and Safety
 
