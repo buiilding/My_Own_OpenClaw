@@ -551,6 +551,7 @@ class LocalBackendMemoryHandlersMixin:
                     "correlation_id": correlation_id,
                     "model_id": model_id,
                     "model_provider": model_provider,
+                    "structured_payload": structured_payload,
                 },
                 root="store_transcript",
             )
