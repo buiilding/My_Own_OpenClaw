@@ -161,16 +161,29 @@ body {
 .chatbox-pill::before {
   content: '';
   position: absolute;
-  top: calc(var(--chatbox-bump-height) * -1);
+  top: calc((var(--chatbox-bump-height) * -1) + 3px);
   left: calc(var(--chatbox-close-center-x) - var(--chatbox-close-offset-x) - (var(--chatbox-close-bump-width) / 2));
   width: var(--chatbox-close-bump-width);
-  height: calc(var(--chatbox-bump-height) + 8px);
-  border-radius: 999px 999px 12px 12px;
+  height: calc(var(--chatbox-bump-height) + 5px);
+  border-radius: 999px 999px 0 0;
   border: 1px solid var(--ui-border);
+  border-bottom: 0;
   background: var(--ui-panel-bg);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(var(--ui-backdrop-blur));
   -webkit-backdrop-filter: blur(var(--ui-backdrop-blur));
+  z-index: 0;
+  pointer-events: none;
+}
+
+.chatbox-pill::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: calc(var(--chatbox-close-center-x) - var(--chatbox-close-offset-x) - ((var(--chatbox-close-bump-width) - 4px) / 2));
+  width: calc(var(--chatbox-close-bump-width) - 4px);
+  height: 10px;
+  background: var(--ui-panel-bg);
+  border-radius: 10px 10px 0 0;
   z-index: 0;
   pointer-events: none;
 }
