@@ -32,6 +32,14 @@ _REASONING_EVENT_TYPES = {
 }
 _OUTPUT_TEXT_EVENT_TYPE = "response.output_text.delta"
 _OUTPUT_ITEM_DONE_EVENT_TYPE = "response.output_item.done"
+_WEB_SEARCH_IN_PROGRESS_EVENT_TYPE = "response.web_search_call.in_progress"
+_WEB_SEARCH_SEARCHING_EVENT_TYPE = "response.web_search_call.searching"
+_WEB_SEARCH_COMPLETED_EVENT_TYPE = "response.web_search_call.completed"
+_WEB_SEARCH_PROGRESS_EVENT_TYPES = {
+    _WEB_SEARCH_IN_PROGRESS_EVENT_TYPE,
+    _WEB_SEARCH_SEARCHING_EVENT_TYPE,
+    _WEB_SEARCH_COMPLETED_EVENT_TYPE,
+}
 _COMPLETED_EVENT_TYPE = "response.completed"
 _INCOMPLETE_EVENT_TYPE = "response.incomplete"
 
@@ -119,26 +127,73 @@ def _normalize_source_label(url: str) -> str:
     return hostname or url.strip()
 
 
+def _extract_web_search_context(
+    event: Any,
+) -> Optional[tuple[str, Any, Any, Optional[str], Optional[str], Optional[str]]]:
+    event_type = normalize_openai_stream_event_type(event)
+    if event_type == _OUTPUT_ITEM_DONE_EVENT_TYPE:
+        item = get_value(event, "item")
+    elif event_type in _WEB_SEARCH_PROGRESS_EVENT_TYPES:
+        item = event
+    else:
+        return None
+
+    item_type = str(get_value(item, "type") or "").strip()
+    if event_type not in _WEB_SEARCH_PROGRESS_EVENT_TYPES and item_type != "web_search_call":
+        return None
+
+    action = get_value(item, "action")
+    if action is None:
+        action = get_value(event, "action")
+    action_type = str(get_value(action, "type") or "").strip() or None
+
+    raw_query = (
+        get_value(item, "query")
+        or get_value(action, "query")
+        or get_value(event, "query")
+    )
+    query = raw_query.strip() if isinstance(raw_query, str) and raw_query.strip() else None
+
+    raw_item_id = (
+        get_value(event, "item_id")
+        or get_value(item, "item_id")
+        or get_value(item, "call_id")
+        or get_value(item, "id")
+    )
+    item_id = (
+        raw_item_id.strip()
+        if isinstance(raw_item_id, str) and raw_item_id.strip()
+        else None
+    )
+    return event_type, item, action, action_type, query, item_id
+
+
+def _extract_web_search_sources(
+    *,
+    event: Any,
+    item: Any,
+    action: Any,
+) -> list[Any]:
+    for candidate in (
+        get_value(action, "sources"),
+        get_value(item, "sources"),
+        get_value(event, "sources"),
+    ):
+        if isinstance(candidate, list):
+            return candidate
+    return []
+
+
 def _build_web_search_progress_events(
     event: Any,
     *,
     request_id: Optional[str],
     emitted_keys: set[str],
 ) -> list[WebSearchProgressEvent]:
-    if normalize_openai_stream_event_type(event) != _OUTPUT_ITEM_DONE_EVENT_TYPE:
+    context = _extract_web_search_context(event)
+    if context is None:
         return []
-
-    item = get_value(event, "item")
-    if item is None or str(get_value(item, "type") or "").strip() != "web_search_call":
-        return []
-
-    action = get_value(item, "action")
-    if action is None:
-        return []
-
-    action_type = str(get_value(action, "type") or "").strip() or None
-    item_query = get_value(item, "query")
-    item_query = item_query.strip() if isinstance(item_query, str) and item_query.strip() else None
+    event_type, item, action, action_type, item_query, item_id = context
     progress_events: list[WebSearchProgressEvent] = []
 
     def append_progress(
@@ -164,9 +219,13 @@ def _build_web_search_progress_events(
             )
         )
 
-    if action_type == "search":
-        raw_sources = get_value(action, "sources")
-        if isinstance(raw_sources, list) and raw_sources:
+    raw_sources = _extract_web_search_sources(
+        event=event,
+        item=item,
+        action=action,
+    )
+    if action_type == "search" or event_type in _WEB_SEARCH_PROGRESS_EVENT_TYPES:
+        if raw_sources:
             for raw_source in raw_sources:
                 url = get_value(raw_source, "url") or get_value(raw_source, "uri")
                 if not isinstance(url, str) or not url.strip():
@@ -198,10 +257,21 @@ def _build_web_search_progress_events(
                     query=normalized_query,
                 )
         elif item_query:
+            progress_verb = (
+                "Searching"
+                if event_type == _WEB_SEARCH_SEARCHING_EVENT_TYPE
+                else "Searched"
+            )
             append_progress(
-                text=f"Searched web for {item_query}",
+                text=f"{progress_verb} web for {item_query}",
                 key=f"search-query:{item_query}",
                 query=item_query,
+            )
+        elif event_type == _WEB_SEARCH_SEARCHING_EVENT_TYPE:
+            status_key = item_id or action_type or "web-search"
+            append_progress(
+                text="Searching web",
+                key=f"search-status:{status_key}",
             )
         return progress_events
 

@@ -214,6 +214,152 @@ async def test_openai_responses_runtime_emits_web_search_progress_events(monkeyp
 
 
 @pytest.mark.asyncio
+async def test_openai_responses_runtime_emits_early_web_search_source_events(monkeypatch):
+    provider = OpenAIProvider(api_key="test-key")
+
+    class _FakeResponsesStream:
+        def __aiter__(self):
+            async def iterator():
+                yield {
+                    "type": "response.web_search_call.searching",
+                    "item_id": "web-search-call-1",
+                    "query": "quantivity",
+                    "sources": [
+                        {"url": "https://www.youtube.com/watch?v=1"},
+                    ],
+                }
+                yield {
+                    "type": "response.web_search_call.in_progress",
+                    "item_id": "web-search-call-1",
+                    "query": "quantivity",
+                    "sources": [
+                        {"url": "https://www.youtube.com/watch?v=1"},
+                        {"url": "https://facebook.com/example"},
+                    ],
+                }
+                yield {
+                    "type": "response.output_item.done",
+                    "item": {
+                        "type": "web_search_call",
+                        "action": {
+                            "type": "search",
+                            "sources": [
+                                {"url": "https://www.youtube.com/watch?v=1"},
+                                {"url": "https://facebook.com/example"},
+                            ],
+                        },
+                        "query": "quantivity",
+                    },
+                }
+                yield {
+                    "type": "response.completed",
+                    "response": {
+                        "output": [
+                            {
+                                "type": "message",
+                                "content": [
+                                    {
+                                        "type": "output_text",
+                                        "text": "done",
+                                    }
+                                ],
+                            }
+                        ],
+                        "status": "completed",
+                    },
+                }
+
+            return iterator()
+
+    async def fake_aresponses(**_kwargs):
+        return _FakeResponsesStream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
+
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.4@@gpt-5-4-none-thinking",
+            messages=[{"role": "user", "content": "Search the web"}],
+            native_web_search_enabled=True,
+            request_id="req-openai-search-2",
+        )
+    )
+
+    assert [type(event).__name__ for event in events] == [
+        "WebSearchProgressEvent",
+        "WebSearchProgressEvent",
+    ]
+    assert [event.text for event in events] == [
+        "Searched youtube.com",
+        "Searched facebook.com",
+    ]
+    assert [event.url for event in events] == [
+        "https://www.youtube.com/watch?v=1",
+        "https://facebook.com/example",
+    ]
+    assert all(event.request_id == "req-openai-search-2" for event in events)
+
+
+@pytest.mark.asyncio
+async def test_openai_responses_runtime_emits_searching_status_before_sources(monkeypatch):
+    provider = OpenAIProvider(api_key="test-key")
+
+    class _FakeResponsesStream:
+        def __aiter__(self):
+            async def iterator():
+                yield {
+                    "type": "response.web_search_call.searching",
+                    "item_id": "web-search-call-2",
+                    "query": "history of arab",
+                }
+                yield {
+                    "type": "response.completed",
+                    "response": {
+                        "output": [
+                            {
+                                "type": "message",
+                                "content": [
+                                    {
+                                        "type": "output_text",
+                                        "text": "done",
+                                    }
+                                ],
+                            }
+                        ],
+                        "status": "completed",
+                    },
+                }
+
+            return iterator()
+
+    async def fake_aresponses(**_kwargs):
+        return _FakeResponsesStream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
+
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.4@@gpt-5-4-none-thinking",
+            messages=[{"role": "user", "content": "Search the web"}],
+            native_web_search_enabled=True,
+            request_id="req-openai-search-3",
+        )
+    )
+
+    assert [type(event).__name__ for event in events] == ["WebSearchProgressEvent"]
+    assert events[0].text == "Searching web for history of arab"
+    assert events[0].request_id == "req-openai-search-3"
+
+
+@pytest.mark.asyncio
 async def test_openai_responses_runtime_accepts_incomplete_terminal_payload(
     monkeypatch,
 ):
