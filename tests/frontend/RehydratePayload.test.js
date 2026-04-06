@@ -49,6 +49,32 @@ describe('rehydratePayload helpers', () => {
     });
   });
 
+  test('reuses shared transparency normalization for chat-message payloads', () => {
+    expect(buildTranscriptTransparencyFromChatMessage({
+      systemPrompt: {
+        content: '  Active: â€œWindieOS â€” READMEâ€\u009d  ',
+        toolSchemas: [{ type: 'function', name: 'browser', parameters: { type: 'object' } }],
+      },
+      fullUserMessage: {
+        content: '  <full-user/>  ',
+        metadata: { source: 'chat-message' },
+      },
+      fullAssistantMessage: {
+        content: '  <full-assistant/>  ',
+      },
+    })).toEqual({
+      systemPrompt: 'Active: “WindieOS — README”',
+      toolSchemas: [{ type: 'function', function: { name: 'browser', parameters: { type: 'object' } } }],
+      fullUserMessage: {
+        content: '<full-user/>',
+        metadata: { source: 'chat-message' },
+      },
+      fullAssistantMessage: {
+        content: '<full-assistant/>',
+      },
+    });
+  });
+
   test('resolveRehydrateContent prefers full payloads for user and assistant llm-text', () => {
     const transparency = {
       fullUserMessage: {
