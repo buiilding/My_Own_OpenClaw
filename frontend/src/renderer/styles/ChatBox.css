@@ -134,7 +134,7 @@ body {
 .chatbox-pill {
   --chatbox-close-button-size: 18px;
   --chatbox-close-center-x: calc(100% - 60px);
-  --chatbox-bump-shift-x: 12px;
+  --chatbox-bump-shift-x: 24px;
   --chatbox-bump-shoulder-width: 26px;
   --chatbox-bump-half-width: 18px;
   border-radius: 26px;
