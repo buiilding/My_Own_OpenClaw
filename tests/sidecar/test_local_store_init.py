@@ -231,3 +231,76 @@ async def test_sync_vector_mappings_backfill_query_skips_non_embeddable_transcri
         ("tool-call-1", None),
         ("user-turn-1", 41),
     ]
+
+
+@pytest.mark.asyncio
+async def test_sync_vector_mappings_backfill_query_skips_transcript_replay_rows(
+    monkeypatch,
+    tmp_path,
+):
+    if local_store_module.faiss is None or local_store_module.aiosqlite is None:
+        pytest.skip("LocalMemoryStore runtime dependencies are unavailable")
+
+    db_path = tmp_path / "episodic.db"
+    async with local_store_module.aiosqlite.connect(db_path) as conn:
+        await conn.execute(
+            """
+            CREATE TABLE memories (
+                id TEXT PRIMARY KEY,
+                content TEXT,
+                embedding_id INTEGER,
+                record_kind TEXT,
+                role TEXT,
+                message_type TEXT
+            )
+            """
+        )
+        await conn.executemany(
+            """
+            INSERT INTO memories (id, content, embedding_id, record_kind, role, message_type)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            [
+                ("replay-tool-output", "very long replay payload", None, "transcript_replay", "tool", "tool-output"),
+                ("assistant-turn", "assistant text", None, "transcript", "assistant", "llm-text"),
+            ],
+        )
+        await conn.commit()
+
+    embedded_texts = []
+
+    async def _embed_text(text):
+        embedded_texts.append(text)
+        return np.array([1.0, 0.0], dtype=np.float32)
+
+    store = LocalMemoryStore.__new__(LocalMemoryStore)
+    store.embedder = types.SimpleNamespace(embed_text=_embed_text)
+
+    monkeypatch.setattr(local_store_module.faiss, "normalize_L2", lambda _vector: None)
+
+    class _Index:
+        def __init__(self):
+            self.vectors = []
+
+        def add(self, vector):
+            self.vectors.append(vector)
+
+    index = _Index()
+    vector_id_to_memory_id = {}
+    memory_id_to_vector_id = {}
+
+    next_vector_id, embedded_count = await LocalMemoryStore._sync_vector_mappings_for_db(
+        store,
+        memory_type="episodic",
+        db_path=str(db_path),
+        index=index,
+        vector_id_to_memory_id=vector_id_to_memory_id,
+        memory_id_to_vector_id=memory_id_to_vector_id,
+        next_vector_id=10,
+    )
+
+    assert embedded_count == 1
+    assert next_vector_id == 11
+    assert embedded_texts == ["assistant text"]
+    assert vector_id_to_memory_id == {10: "assistant-turn"}
+    assert memory_id_to_vector_id == {"assistant-turn": 10}

@@ -364,7 +364,7 @@ class LocalMemoryStore:
                 FROM memories
                 WHERE embedding_id IS NULL
                   AND (
-                    COALESCE(LOWER(TRIM(record_kind)), '') != 'transcript'
+                    COALESCE(LOWER(TRIM(record_kind)), '') NOT IN ('transcript', 'transcript_replay')
                     OR COALESCE(LOWER(TRIM(role)), '') = 'user'
                     OR (
                       COALESCE(LOWER(TRIM(role)), '') = 'assistant'
