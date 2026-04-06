@@ -28,6 +28,7 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     setManualChatWindowPosition,
     setChatVisualAnchorHeight,
     setChatboxHitTestActive = () => false,
+    setChatWindowBoundsForVisualAnchorHeight,
     resizeChatWindowForVisualAnchorHeight,
     getResponseWindowBounds,
     setResponseOverlayVisibilityState,
@@ -44,6 +45,7 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
   ipcMain.handle('set-chatbox-visual-anchor-height', async (_event, args = {}) => {
     return handleSetChatboxVisualAnchorHeight(args, {
       setChatVisualAnchorHeight,
+      setChatWindowBoundsForVisualAnchorHeight,
       resizeChatWindowForVisualAnchorHeight,
       positionChatWindow,
       positionResponseWindow,
