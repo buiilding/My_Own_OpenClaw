@@ -119,6 +119,32 @@ def _maybe_build_chunk_event(event: Any) -> Optional[ChunkEvent]:
     return None
 
 
+def _maybe_extract_response_id(event: Any) -> Optional[str]:
+    response = get_value(event, "response")
+    response_id = None
+    if response is not None:
+        response_id = get_value(response, "id")
+    if response_id is None:
+        response_id = get_value(event, "response_id")
+    if isinstance(response_id, str) and response_id.strip():
+        return response_id.strip()
+    return None
+
+
+def _build_fallback_stream_response_payload(
+    *,
+    content: str,
+    response_id: Optional[str],
+) -> NormalizedLLMResponse:
+    fallback_payload: NormalizedLLMResponse = {
+        "content": content,
+        "finish_reason": "incomplete",
+    }
+    if isinstance(response_id, str) and response_id.strip():
+        fallback_payload["response_id"] = response_id.strip()
+    return fallback_payload
+
+
 def _normalize_source_label(url: str) -> str:
     parsed = urlsplit(url)
     hostname = (parsed.netloc or parsed.path or "").strip().lower()
@@ -394,8 +420,14 @@ async def stream_openai_responses_events(
     stream = await litellm.aresponses(**params)
     final_response_payload: Optional[NormalizedLLMResponse] = None
     emitted_web_search_progress_keys: set[str] = set()
+    accumulated_text = ""
+    last_response_id: Optional[str] = None
 
     async for event in stream:
+        extracted_response_id = _maybe_extract_response_id(event)
+        if extracted_response_id is not None:
+            last_response_id = extracted_response_id
+
         reasoning_event = _maybe_build_reasoning_event(event)
         if reasoning_event is not None:
             yield reasoning_event
@@ -403,6 +435,7 @@ async def stream_openai_responses_events(
 
         chunk_event = _maybe_build_chunk_event(event)
         if chunk_event is not None:
+            accumulated_text += chunk_event.content
             yield chunk_event
             continue
 
@@ -422,6 +455,13 @@ async def stream_openai_responses_events(
             final_response_payload = final_payload
 
     if final_response_payload is None:
+        if accumulated_text.strip():
+            fallback_payload = _build_fallback_stream_response_payload(
+                content=accumulated_text,
+                response_id=last_response_id,
+            )
+            provider._set_last_stream_response_payload(fallback_payload)
+            return
         raise LLMAPIError(
             f"{_INVALID_OPENAI_RESPONSE}: stream completed without a final response payload",
             model=model,
