@@ -117,4 +117,49 @@ describe('conversationReplayState', () => {
       recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
     });
   });
+
+  test('stale replay bootstrap does not rewrite replay rows after conversation state is cleared', async () => {
+    let resolveReplayLookup: ((value: any[]) => void) | null = null;
+    mockLoadConversationTranscriptMemories
+      .mockImplementationOnce(() => new Promise((resolve) => {
+        resolveReplayLookup = resolve;
+      }))
+      .mockResolvedValueOnce([
+        {
+          role: 'user',
+          content: 'hello',
+          message_type: 'user',
+          message_index: 1,
+          metadata: {},
+        } as any,
+      ]);
+
+    const initializationPromise = ensureConversationReplayStateInitialized({
+      conversationRef: 'conv-1',
+      userId: 'user-1',
+    });
+
+    await Promise.resolve();
+
+    await deleteConversationStoredState({
+      conversationRef: 'conv-1',
+      userId: 'user-1',
+    });
+
+    resolveReplayLookup?.([]);
+
+    await expect(initializationPromise).resolves.toBe('empty');
+
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-conversation', {
+      userId: 'user-1',
+      conversationId: 'conv-1',
+      recordKind: 'transcript',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'delete-conversation', {
+      userId: 'user-1',
+      conversationId: 'conv-1',
+      recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
+    });
+    expect(mockInvoke).toHaveBeenCalledTimes(2);
+  });
 });
