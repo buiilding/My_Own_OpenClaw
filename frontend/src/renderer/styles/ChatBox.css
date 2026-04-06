@@ -21,8 +21,8 @@ body {
 }
 
 .chatbox-input-shell-wrap {
-  --chatbox-bump-height: 14px;
-  --chatbox-fixed-shell-height: 70px;
+  --chatbox-bump-height: 0px;
+  --chatbox-fixed-shell-height: 56px;
   --chatbox-fixed-pill-height: 56px;
   --chatbox-fixed-pill-padding: 8px 12px 8px;
   --chatbox-preview-track-height: 46px;
@@ -53,7 +53,7 @@ body {
 }
 
 .chatbox-input-shell-wrap.with-preview {
-  --chatbox-fixed-shell-height: 122px;
+  --chatbox-fixed-shell-height: 108px;
   --chatbox-fixed-pill-height: 108px;
   --chatbox-fixed-pill-padding: 58px 12px 8px;
 }
@@ -131,11 +131,7 @@ body {
 }
 
 .chatbox-pill {
-  --chatbox-close-center-x: calc(100% - 28px);
-  --chatbox-close-offset-x: 24px;
   --chatbox-close-button-size: 18px;
-  --chatbox-close-bump-width: 58px;
-  --chatbox-close-bump-overlap: 14px;
   border-radius: 26px;
   border: 1px solid var(--ui-border);
   background: var(--ui-panel-bg);
@@ -157,36 +153,6 @@ body {
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
-}
-
-.chatbox-pill::before {
-  content: '';
-  position: absolute;
-  top: calc((var(--chatbox-bump-height) * -1) + 2px);
-  left: calc(var(--chatbox-close-center-x) - var(--chatbox-close-offset-x) - (var(--chatbox-close-bump-width) / 2));
-  width: var(--chatbox-close-bump-width);
-  height: calc(var(--chatbox-bump-height) + var(--chatbox-close-bump-overlap));
-  border-radius: 22px 22px 0 0;
-  border: 1px solid var(--ui-border);
-  border-bottom: 0;
-  background: var(--ui-panel-bg);
-  backdrop-filter: blur(var(--ui-backdrop-blur));
-  -webkit-backdrop-filter: blur(var(--ui-backdrop-blur));
-  z-index: 0;
-  pointer-events: none;
-}
-
-.chatbox-pill::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: calc(var(--chatbox-close-center-x) - var(--chatbox-close-offset-x) - 20px);
-  width: 40px;
-  height: 16px;
-  background: var(--ui-panel-bg);
-  border-radius: 16px 16px 0 0;
-  z-index: 0;
-  pointer-events: none;
 }
 
 .chatbox-main-row {
@@ -494,8 +460,8 @@ body {
 
 .chatbox-close-badge {
   position: absolute;
-  left: calc(var(--chatbox-close-center-x) - (var(--chatbox-close-button-size) / 2) - var(--chatbox-close-offset-x));
-  top: calc((var(--chatbox-bump-height) * -1) + 2px);
+  right: 14px;
+  top: -12px;
   width: var(--chatbox-close-button-size);
   height: var(--chatbox-close-button-size);
   border: 0;
