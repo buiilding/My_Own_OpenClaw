@@ -77,3 +77,37 @@ def test_openai_projection_replaces_direct_computer_tools_with_native_computer_a
         "switch_window",
         "get_open_windows",
     ]
+
+
+def test_openai_projection_keeps_direct_computer_tools_when_prompt_has_multiple_images():
+    config = AppConfig(model_provider="openai")
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+    direct_schemas = registry.get_function_declarations_filtered(
+        _COMPUTER_TOOL_NAMES + ["get_open_windows"]
+    )
+
+    projected = project_tool_schemas_for_provider(
+        tool_schemas=direct_schemas,
+        tool_registry=registry,
+        config=config,
+        prompt_messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "compare these"},
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": "data:image/png;base64,AAA"},
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": "data:image/png;base64,BBB"},
+                    },
+                ],
+            }
+        ],
+    )
+
+    assert [schema.get("name") for schema in projected] == _COMPUTER_TOOL_NAMES + [
+        "get_open_windows"
+    ]
