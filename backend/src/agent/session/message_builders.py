@@ -31,6 +31,18 @@ def normalize_message_type(
     return MessageType.USER_QUERY
 
 
+def _build_structured_multimodal_content(
+    *,
+    text: str,
+    image_data: Optional[Union[str, List[str]]],
+) -> Optional[MultimodalContent]:
+    """Build structured multimodal content when image payloads are present."""
+    normalized_image_data = StoredMessage._normalized_image_data(image_data)
+    if not normalized_image_data:
+        return None
+    return StoredMessage._build_multimodal_content(text, normalized_image_data)
+
+
 def build_user_message(
     *,
     content: str,
@@ -43,6 +55,10 @@ def build_user_message(
         role=MessageRole.USER,
         content=content,
         message_type=MessageType.USER_QUERY,
+        structured_content=_build_structured_multimodal_content(
+            text=content,
+            image_data=image_data,
+        ),
         image_data=image_data,
         episodic_memory=episodic_memory,
         semantic_memory=semantic_memory,
@@ -61,6 +77,10 @@ def build_tool_output_message(
         role=MessageRole.USER,
         content=message,
         message_type=MessageType.TOOL_OUTPUT,
+        structured_content=_build_structured_multimodal_content(
+            text=message,
+            image_data=image_data,
+        ),
         image_data=image_data,
         tool_name=tool_name,
         compaction_facts=compaction_facts,
@@ -79,6 +99,10 @@ def build_tool_result_message(
         role=MessageRole.TOOL,
         content=message,
         message_type=MessageType.TOOL_OUTPUT,
+        structured_content=_build_structured_multimodal_content(
+            text=message,
+            image_data=image_data,
+        ),
         image_data=image_data,
         tool_call_id=tool_call_id,
         tool_name=tool_name,
