@@ -11,6 +11,7 @@ _original_deps = install_route_deps_shim()
 
 from backend.src.api.routes.memory.semantic.parser import (
     extract_fallback_facts,
+    is_explicit_no_durable_memory_result,
     parse_summarization_response,
 )
 from backend.src.api.routes.memory.semantic.service import (
@@ -92,8 +93,62 @@ def test_parse_summarization_response_supports_numbered_fact_lists() -> None:
     ]
 
 
+def test_parse_summarization_response_supports_bold_markdown_labels() -> None:
+    text = (
+        "**SUMMARY:** User workflow preferences and environment.\n\n"
+        "**FACTS:**\n"
+        "- Uses Linux daily\n"
+        "- Prefers terminal-first workflows\n"
+    )
+
+    summary, facts = parse_summarization_response(text)
+
+    assert summary == "User workflow preferences and environment."
+    assert facts == [
+        "Uses Linux daily",
+        "Prefers terminal-first workflows",
+    ]
+
+
+def test_parse_summarization_response_supports_fenced_blocks_and_fact_prefixes() -> None:
+    text = (
+        "```markdown\n"
+        "SUMMARY: Durable user details.\n\n"
+        "FACTS:\n"
+        "Fact 1: Uses Codex heavily\n"
+        "Fact 2: Prefers shell scripts\n"
+        "```\n"
+    )
+
+    summary, facts = parse_summarization_response(text)
+
+    assert summary == "Durable user details."
+    assert facts == ["Uses Codex heavily", "Prefers shell scripts"]
+
+
+def test_is_explicit_no_durable_memory_result_accepts_none_markers() -> None:
+    assert is_explicit_no_durable_memory_result("NONE", []) is True
+    assert is_explicit_no_durable_memory_result("No durable facts.", []) is True
+    assert is_explicit_no_durable_memory_result("NONE", ["fact"]) is False
+    assert is_explicit_no_durable_memory_result("User preferences.", []) is False
+
+
 def test_extract_fallback_facts_supports_numbered_and_bulleted_items() -> None:
     text = "1. ok\n2. uses codex heavily\n3) likes shell scripts\n- x"
+
+    facts = extract_fallback_facts(text)
+
+    assert facts == ["uses codex heavily", "likes shell scripts"]
+
+
+def test_extract_fallback_facts_supports_fact_prefixes_and_fenced_blocks() -> None:
+    text = (
+        "```text\n"
+        "Fact 1: uses codex heavily\n"
+        "Fact 2: likes shell scripts\n"
+        "Fact 3: ok\n"
+        "```\n"
+    )
 
     facts = extract_fallback_facts(text)
 
@@ -106,6 +161,19 @@ def test_parse_title_response_normalizes_heading_and_trailing_punctuation() -> N
     )
 
     assert parsed == "Plan migration milestones"
+
+
+def test_build_prompt_explicitly_requires_summary_none_for_no_durable_memory() -> None:
+    prompt = SemanticSummarizationService._build_prompt(
+        ["User: hi\nAssistant: Hello there."]
+    )
+
+    assert (
+        "If the gathered episodic memories contain no durable semantic facts worth storing: "
+        "return exactly this format and nothing else:"
+    ) in prompt
+    assert "SUMMARY: NONE" in prompt
+    assert "FACTS:" in prompt
 
 
 @pytest.mark.asyncio
@@ -150,6 +218,53 @@ async def test_summarize_falls_back_when_parser_returns_empty_fields() -> None:
 
     assert summary == "Unstructured memory output from model"
     assert facts == ["fallback fact"]
+
+
+@pytest.mark.asyncio
+async def test_summarize_logs_response_excerpt_when_fact_parsing_fails(caplog) -> None:
+    llm_client = FakeLLMClient("No structured facts returned by the model")
+    service, _ = _build_service(
+        llm_client=llm_client,
+        parse_response_fn=lambda _text: ("summary", []),
+        fallback_facts_fn=lambda _text: [],
+    )
+    container = SimpleNamespace(config=_config(model_mode="local"))
+
+    with caplog.at_level("WARNING", logger="backend.src.api.routes.memory.semantic.service"):
+        summary, facts = await service.summarize(
+            conversations=["User: remember this detail"],
+            user_id="user-4",
+            container=container,
+            session_manager=FakeSessionManager(),
+        )
+
+    assert summary == "summary"
+    assert facts == []
+    assert "Failed to extract facts from LLM response. Response excerpt:" in caplog.text
+    assert "No structured facts returned by the model" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_summarize_treats_summary_none_with_no_facts_as_valid_empty_result(caplog) -> None:
+    llm_client = FakeLLMClient("SUMMARY: NONE\n\nFACTS:\n")
+    service, _ = _build_service(
+        llm_client=llm_client,
+        parse_response_fn=lambda _text: ("NONE", []),
+        fallback_facts_fn=lambda _text: ["should not be used"],
+    )
+    container = SimpleNamespace(config=_config(model_mode="local"))
+
+    with caplog.at_level("WARNING", logger="backend.src.api.routes.memory.semantic.service"):
+        summary, facts = await service.summarize(
+            conversations=["User: hello"],
+            user_id="user-5",
+            container=container,
+            session_manager=FakeSessionManager(),
+        )
+
+    assert summary == "NONE"
+    assert facts == []
+    assert "Failed to extract facts from LLM response" not in caplog.text
 
 
 @pytest.mark.asyncio

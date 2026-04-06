@@ -8,6 +8,9 @@ from typing import Any, Callable, List, Optional, Tuple
 
 from fastapi import HTTPException
 
+from backend.src.api.routes.memory.semantic.parser import (
+    is_explicit_no_durable_memory_result,
+)
 from backend.src.core.types.schemas import LLMMessage
 
 logger = logging.getLogger(__name__)
@@ -17,6 +20,12 @@ FALLBACK_TITLE = "New chat"
 TITLE_MAX_CHARS = 48
 TITLE_MAX_WORDS = 6
 
+
+def _response_log_excerpt(response_text: str, *, limit: int = 500) -> str:
+    normalized = re.sub(r"\s+", " ", (response_text or "")).strip()
+    if len(normalized) <= limit:
+        return normalized
+    return normalized[: limit - 3].rstrip() + "..."
 
 class SemanticSummarizationService:
     """Runs semantic summarization using session-aware model config."""
@@ -65,12 +74,20 @@ class SemanticSummarizationService:
             )
 
             summary, facts = self._parse_response(response_text)
+            if is_explicit_no_durable_memory_result(summary, facts):
+                return summary, facts
             if not summary:
-                logger.warning("Failed to extract summary from LLM response, using fallback")
+                logger.warning(
+                    "Failed to extract summary from LLM response, using fallback. Response excerpt: %s",
+                    _response_log_excerpt(response_text),
+                )
                 summary = response_text[:FALLBACK_SUMMARY_LENGTH].strip() or "Summary extraction failed"
 
             if not facts:
-                logger.warning("Failed to extract facts from LLM response")
+                logger.warning(
+                    "Failed to extract facts from LLM response. Response excerpt: %s",
+                    _response_log_excerpt(response_text),
+                )
                 facts = self._extract_fallback_facts(response_text)
 
             return summary, facts
@@ -185,7 +202,7 @@ Conversation History:
 
 Provide a structured summary with:
 - If there is durable memory: a brief overall summary (1-2 sentences) and a list of durable facts
-- If there is no durable memory worth storing: return exactly:
+- If the gathered episodic memories contain no durable semantic facts worth storing: return exactly this format and nothing else:
 SUMMARY: NONE
 
 FACTS:
