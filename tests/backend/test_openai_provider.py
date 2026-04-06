@@ -630,6 +630,72 @@ def test_build_openai_responses_input_accepts_normalized_assistant_tool_calls():
     ]
 
 
+def test_build_openai_responses_input_normalizes_assistant_history_to_output_text():
+    messages = [
+        {"role": "system", "content": "You are helpful."},
+        {"role": "user", "content": "What happened?"},
+        {
+            "role": "assistant",
+            "content": [
+                {"type": "text", "text": "I opened the window."},
+                {"type": "refusal", "refusal": "I cannot access that credential."},
+                {"type": "thinking", "text": "private reasoning"},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": "data:image/png;base64,ignored"},
+                },
+            ],
+        },
+    ]
+
+    assert build_openai_responses_input(messages) == [
+        {
+            "type": "message",
+            "role": "system",
+            "content": "You are helpful.",
+        },
+        {
+            "type": "message",
+            "role": "user",
+            "content": "What happened?",
+        },
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": [
+                {"type": "output_text", "text": "I opened the window."},
+                {"type": "refusal", "refusal": "I cannot access that credential."},
+            ],
+        },
+    ]
+
+
+def test_build_openai_responses_input_skips_assistant_messages_with_only_unsupported_blocks():
+    messages = [
+        {"role": "system", "content": "You are helpful."},
+        {"role": "user", "content": "Continue."},
+        {
+            "role": "assistant",
+            "content": [
+                {"type": "thinking", "text": "private reasoning"},
+            ],
+        },
+    ]
+
+    assert build_openai_responses_input(messages) == [
+        {
+            "type": "message",
+            "role": "system",
+            "content": "You are helpful.",
+        },
+        {
+            "type": "message",
+            "role": "user",
+            "content": "Continue.",
+        },
+    ]
+
+
 def test_build_openai_responses_input_serializes_computer_calls_and_outputs():
     messages = [
         {"role": "system", "content": "You are helpful."},

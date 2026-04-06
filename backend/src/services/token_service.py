@@ -182,7 +182,7 @@ def _extract_text_char_count_from_part(item: Any) -> int:
         return 0
 
     part_type = item.get("type")
-    if part_type not in {"text", "input_text"}:
+    if part_type not in {"text", "input_text", "output_text"}:
         return 0
 
     text = item.get("text")
