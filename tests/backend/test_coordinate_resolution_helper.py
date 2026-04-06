@@ -121,3 +121,31 @@ async def test_resolve_coordinates_prediction_path_keeps_none_when_provider_unav
     assert (x, y) == (1, 2)
     assert resolver.calls[0][3] is None
     assert resolver.calls[0][4] == "shot-3"
+
+
+@pytest.mark.asyncio
+async def test_resolve_coordinates_grounded_mouse_action_infers_ocr_without_raw_method():
+    tool_call = SimpleNamespace(
+        tool_name="grounded_mouse_action",
+        parameters={"ocr_text": "Submit"},
+    )
+    session = object()
+    ocr = _FakeOcrCoordinator(results=[{"text": "Submit"}])
+    resolver = _FakeCoordinateResolver(return_xy=(75, 125))
+
+    x, y = await resolve_coordinates(
+        tool_call=tool_call,
+        session=session,
+        screenshot_data="shot-data",
+        screenshot_id="shot-4",
+        ocr_coordinator=ocr,
+        coordinate_resolver=resolver,
+        vision_service=None,
+        vision_service_provider=lambda _session: "unused",
+        context_id="request-2",
+    )
+
+    assert (x, y) == (75, 125)
+    assert ocr.calls == [(session, "shot-data", "shot-4")]
+    assert resolver.calls[0][2] == [{"text": "Submit"}]
+    assert resolver.calls[0][4] == "shot-4"

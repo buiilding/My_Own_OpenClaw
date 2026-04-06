@@ -8,6 +8,9 @@ import logging
 import time
 from typing import Optional, Tuple, TYPE_CHECKING
 
+from backend.src.agent.tools.preparation.helpers.source_coordinate_method import (
+    infer_source_coordinate_method,
+)
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.types.enums import CoordinateFindingMethod
 
@@ -58,9 +61,11 @@ async def resolve_coordinates(
     Raises:
         Exception: If coordinate resolution fails
     """
+    method = infer_source_coordinate_method(tool_call)
+
     # 2. Get OCR results if needed
     ocr_results = None
-    if tool_call.parameters.get("find_coordinates_by") == CoordinateFindingMethod.OCR:
+    if method == CoordinateFindingMethod.OCR:
         ocr_start_time = time.perf_counter()
         ocr_results = await ocr_coordinator.get_ocr_results(
             session, screenshot_data, screenshot_id
@@ -74,7 +79,7 @@ async def resolve_coordinates(
     
     # 3. Get vision service if needed
     effective_vision_service = vision_service
-    if tool_call.parameters.get("find_coordinates_by") == CoordinateFindingMethod.PREDICTION:
+    if method == CoordinateFindingMethod.PREDICTION:
         if not effective_vision_service:
             effective_vision_service = vision_service_provider(session)
         if not effective_vision_service:
@@ -94,7 +99,7 @@ async def resolve_coordinates(
     coord_resolve_time = time.perf_counter() - coord_resolve_start_time
     logger.info(
         f"[Timing] Coordinate resolution took {coord_resolve_time:.3f}s "
-        f"(context_id={short_id(context_id)}, method={tool_call.parameters.get('find_coordinates_by')})"
+        f"(context_id={short_id(context_id)}, method={method})"
     )
     
     return x, y
