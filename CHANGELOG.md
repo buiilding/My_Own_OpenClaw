@@ -16,6 +16,7 @@ All notable changes to WindieOS will be documented in this file.
 - feat(openai-native-web-search-progress): stream OpenAI native backend `web_search` progress through a dedicated `web-search-progress` websocket event, surface transient renderer `search-source` rows and overlay tool-call phase activity while the search is still running, and keep the final logical tool result on the existing backend `tool-call` + `tool-output` contract; add focused backend/frontend regressions and contract/doc updates.
 
 ### Fixed
+- fix(frontend-chat-pill-rounder-sides): increase the minimal chat pill side radius and smooth the custom shell contour so the left and right ends read rounder without changing the top close bump contract.
 - fix(frontend-chat-pill-close-alignment): decouple the minimal chat pill close button from the shell contour anchor so the `x` can be centered on the existing top bump without moving the bump itself.
 - fix(frontend-chat-pill-close-anchor-offset): move the minimal chat pill close anchor further left again so the close control sits more clearly inside the top bump.
 - fix(frontend-chat-pill-close-anchor): move the minimal chat pill close control and its integrated shell anchor further left so the close affordance no longer hugs the far-right edge.
