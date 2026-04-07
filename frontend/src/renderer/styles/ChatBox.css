@@ -140,7 +140,7 @@ body {
   --chatbox-close-button-x: calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shift-x));
   --chatbox-bump-shoulder-width: 26px;
   --chatbox-bump-half-width: 18px;
-  border-radius: 26px;
+  border-radius: 32px;
   border: 1px solid var(--ui-border);
   background: var(--ui-panel-bg);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
@@ -162,31 +162,31 @@ body {
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   clip-path: polygon(
-    0 calc(var(--chatbox-bump-height) + 26px),
-    2px calc(var(--chatbox-bump-height) + 18px),
-    8px calc(var(--chatbox-bump-height) + 10px),
-    18px calc(var(--chatbox-bump-height) + 2px),
-    26px var(--chatbox-bump-height),
+    0 calc(var(--chatbox-bump-height) + 32px),
+    3px calc(var(--chatbox-bump-height) + 22px),
+    10px calc(var(--chatbox-bump-height) + 12px),
+    22px calc(var(--chatbox-bump-height) + 3px),
+    32px var(--chatbox-bump-height),
     calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shoulder-width) - var(--chatbox-bump-shift-x)) var(--chatbox-bump-height),
     calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-half-width) - var(--chatbox-bump-shift-x)) 3px,
     calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shift-x)) 0,
     calc(var(--chatbox-close-contour-x) + var(--chatbox-bump-half-width) - var(--chatbox-bump-shift-x)) 3px,
     calc(var(--chatbox-close-contour-x) + var(--chatbox-bump-shoulder-width) - var(--chatbox-bump-shift-x)) var(--chatbox-bump-height),
-    calc(100% - 26px) var(--chatbox-bump-height),
-    calc(100% - 18px) calc(var(--chatbox-bump-height) + 2px),
-    calc(100% - 8px) calc(var(--chatbox-bump-height) + 10px),
-    calc(100% - 2px) calc(var(--chatbox-bump-height) + 18px),
-    100% calc(var(--chatbox-bump-height) + 26px),
-    100% calc(100% - 26px),
-    calc(100% - 2px) calc(100% - 18px),
-    calc(100% - 8px) calc(100% - 10px),
-    calc(100% - 18px) calc(100% - 2px),
-    calc(100% - 26px) 100%,
-    26px 100%,
-    18px calc(100% - 2px),
-    8px calc(100% - 10px),
-    2px calc(100% - 18px),
-    0 calc(100% - 26px)
+    calc(100% - 32px) var(--chatbox-bump-height),
+    calc(100% - 22px) calc(var(--chatbox-bump-height) + 3px),
+    calc(100% - 10px) calc(var(--chatbox-bump-height) + 12px),
+    calc(100% - 3px) calc(var(--chatbox-bump-height) + 22px),
+    100% calc(var(--chatbox-bump-height) + 32px),
+    100% calc(100% - 32px),
+    calc(100% - 3px) calc(100% - 22px),
+    calc(100% - 10px) calc(100% - 12px),
+    calc(100% - 22px) calc(100% - 3px),
+    calc(100% - 32px) 100%,
+    32px 100%,
+    22px calc(100% - 3px),
+    10px calc(100% - 12px),
+    3px calc(100% - 22px),
+    0 calc(100% - 32px)
   );
 }
 
