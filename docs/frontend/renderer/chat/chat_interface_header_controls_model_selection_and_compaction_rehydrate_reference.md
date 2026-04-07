@@ -114,14 +114,13 @@ Failure behavior:
 
 - pre-rehydrate load/send errors are warning-logged and do not block the compaction request
 
-## Connection Warning Contract
+## Disconnect Feedback Contract
 
 When `useChatLoopUiState` reports disconnected transport:
 
-- `ChatInterface` renders alert banner:
-  - `Cannot connect to server right now, try again later.`
-
-Banner is removed automatically when transport reconnects.
+- `ChatInterface` does not render a pre-send warning banner in the thread or composer
+- send remains available
+- a failed send is surfaced by the normal assistant error-message path after the user submits
 
 ## Test-Backed Invariants
 
@@ -130,7 +129,7 @@ Banner is removed automatically when transport reconnects.
 - sender surface is `main-window`
 - window controls invoke expected IPC channels
 - VM mode hides native window controls
-- disconnected transport renders warning banner
+- disconnected transport does not render a pre-send warning banner
 - speech-mode toggle control remains available
 
 ## Drift Hotspots

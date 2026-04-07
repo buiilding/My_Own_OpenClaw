@@ -114,7 +114,7 @@ describe('MessageInput', () => {
     expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
   });
 
-  test('shows offline composer state without disabling send controls', () => {
+  test('keeps the composer unchanged when transport is disconnected', () => {
     render(
       <MessageInput
         onSendMessage={jest.fn()}
@@ -127,11 +127,9 @@ describe('MessageInput', () => {
       target: { value: 'send anyway', selectionStart: 10 },
     });
 
-    expect(screen.getByTestId('message-input-offline-state')).toHaveTextContent(
-      'Offline: send will fail until the backend reconnects.',
-    );
+    expect(screen.queryByTestId('message-input-offline-state')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Send message' })).toBeEnabled();
-    expect(screen.getByLabelText('Type your message')).toHaveClass('message-input-offline');
+    expect(screen.getByLabelText('Type your message')).toHaveClass('message-input');
   });
 
   test('auto-sends latest transcription when utterance ends in voice mode', () => {

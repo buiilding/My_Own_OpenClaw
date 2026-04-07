@@ -58,6 +58,12 @@ describe('ipc.cjs bridge query handling', () => {
     return localUserMessages[localUserMessages.length - 1][1];
   }
 
+  function getLatestErrorEvent(mainWindow) {
+    const errorEvents = mainWindow.webContents.send.mock.calls
+      .filter(([channel, payload]) => channel === 'from-backend' && payload?.type === 'error');
+    return errorEvents[errorEvents.length - 1]?.[1] || null;
+  }
+
   function expectQueryContentWithEmptyMemories(content, queryText) {
     expect(content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
     expect(content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
@@ -634,7 +640,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('keeps initial query context after transient query send failure', async () => {
-    const { handlers, ws, backendBridge } = await setupQueryBridge({}, {
+    const { handlers, ws, backendBridge, mainWindow } = await setupQueryBridge({}, {
       systemState: {
         active_window: 'App',
         mouse_position: '0,0',
@@ -656,6 +662,12 @@ describe('ipc.cjs bridge query handling', () => {
 
     await sendQuery(handlers, { text: 'first query', conversation_ref: 'conv-a' });
     await sendQuery(handlers, { text: 'second query', conversation_ref: 'conv-a' });
+
+    expect(getLatestErrorEvent(mainWindow)).toEqual(expect.objectContaining({
+      payload: {
+        message: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects.",
+      },
+    }));
 
     expect(backendBridge.getSystemState).toHaveBeenCalledTimes(2);
     expect(backendBridge.getSystemState.mock.calls[0][0]).toEqual([

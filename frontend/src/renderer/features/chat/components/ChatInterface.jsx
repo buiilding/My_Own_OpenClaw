@@ -216,7 +216,6 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const showToolLogs = config?.show_tool_logs === true;
   const {
     isBusy: composerBusy,
-    isTransportConnected,
     awaitingDotTargetMessageId,
   } = useCurrentTurnPresentationState({
     phase: streamPhase,
@@ -573,19 +572,12 @@ function ChatInterface({ focusComposerToken = 0 }) {
           onClose={handleCloseFind}
         />
       ) : null}
-      {isTransportConnected ? null : (
-        <div className="chat-connection-warning" role="alert">
-          Cannot connect to server right now, try again later.
-        </div>
-      )}
-
       {renderedMessages.length === 0 ? (
         <div className="chat-empty-state" data-testid="chat-empty-state">
           <h1 className="chat-empty-title">Welcome to WindieOS Demo</h1>
           <MessageInput
             onSendMessage={sendMessage}
             isSending={composerBusy}
-            isTransportConnected={isTransportConnected}
             onStopResponse={handleStopQuery}
             isCentered
             focusRequestToken={focusComposerToken}
@@ -614,7 +606,6 @@ function ChatInterface({ focusComposerToken = 0 }) {
           <MessageInput
             onSendMessage={sendMessage}
             isSending={composerBusy}
-            isTransportConnected={isTransportConnected}
             onStopResponse={handleStopQuery}
             focusRequestToken={focusComposerToken}
           />

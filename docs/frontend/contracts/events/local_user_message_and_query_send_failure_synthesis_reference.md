@@ -70,7 +70,7 @@ This keeps synthetic event context shape deterministic for renderer filters.
 - `id`: original `queryMessageId`
 - same query context fields (`turn_ref`, `session_id`, `user_id`, `conversation_ref`)
 - payload:
-  - `message: "Unable to send query: backend connection is unavailable."`
+  - `message: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects."`
 
 `broadcastQuerySendFailure(...)` also sets overlay phase to:
 
