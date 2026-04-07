@@ -11,7 +11,12 @@ import {
 } from '../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding';
 
 const mockListeners = new Map();
+const LOCAL_SNAPSHOT_USER_ID = 'local-user';
+let mockClientSnapshot = { isConnected: true, userId: LOCAL_SNAPSHOT_USER_ID };
 const mockInvoke = jest.fn(async (channel) => {
+  if (channel === 'get-client-user-id') {
+    return mockClientSnapshot;
+  }
   if (channel === 'list-conversations') {
     return {
       success: true,
@@ -83,9 +88,11 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     SEARCH_CONVERSATIONS: 'search-conversations',
     DELETE_CONVERSATION: 'delete-conversation',
     SET_ACTIVE_WORKSPACE: 'set-active-workspace',
+    GET_CLIENT_USER_ID: 'get-client-user-id',
   },
   ON_CHANNELS: {
     MAIN_WINDOW_OPEN_TARGET: 'main-window-open-target',
+    IPC_STATUS: 'ipc-status',
   },
 }));
 
@@ -127,6 +134,14 @@ describe('ChatGptDashboardShell', () => {
     });
   };
 
+  const withClientSnapshot = (implementation) => async (...args) => {
+    const [channel] = args;
+    if (channel === 'get-client-user-id') {
+      return mockClientSnapshot;
+    }
+    return implementation(...args);
+  };
+
   const renderDashboardShell = async () => {
     const view = render(
       <DashboardShell
@@ -136,6 +151,7 @@ describe('ChatGptDashboardShell', () => {
       />,
     );
 
+    await flushMicrotasks();
     await flushMicrotasks();
     expect(mockInvoke).toHaveBeenCalled();
     return view;
@@ -150,6 +166,7 @@ describe('ChatGptDashboardShell', () => {
     mockClearConversationReplayStateCache.mockClear();
     mockClearAllConversationWorkspaceBindings.mockClear();
     mockClearConversationWorkspaceBinding.mockClear();
+    mockClientSnapshot = { isConnected: true, userId: LOCAL_SNAPSHOT_USER_ID };
     mockSessionInfo = { conversationRef: null, userId: null };
     useChatStore.setState({
       isSending: false,
@@ -289,7 +306,7 @@ describe('ChatGptDashboardShell', () => {
 
   test('opens recent conversation from sidebar history list', async () => {
     const nowIso = new Date().toISOString();
-    mockInvoke.mockImplementation(async (channel) => {
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
       if (channel === 'list-conversations') {
         return {
           success: true,
@@ -309,7 +326,7 @@ describe('ChatGptDashboardShell', () => {
         return { success: true, data: { memories: [] } };
       }
       return { success: true, data: {} };
-    });
+    }));
 
     await renderDashboardShell();
 
@@ -331,10 +348,44 @@ describe('ChatGptDashboardShell', () => {
       throw new Error('expected active conversation ref to switch to conv-history-1');
     }
     if (!mockUpdateTranscriptSession.mock.calls.some(([conversationRef, userId]) => (
-      conversationRef === 'conv-history-1' && userId === 'default_user'
+      conversationRef === 'conv-history-1' && userId === LOCAL_SNAPSHOT_USER_ID
     ))) {
       throw new Error('expected transcript session to switch to conv-history-1');
     }
+  });
+
+  test('loads recent local chats while transport is disconnected', async () => {
+    const nowIso = new Date().toISOString();
+    mockClientSnapshot = { isConnected: false, userId: LOCAL_SNAPSHOT_USER_ID };
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
+      if (channel === 'get-client-user-id') {
+        return mockClientSnapshot;
+      }
+      if (channel === 'list-conversations') {
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-offline-1',
+                record_kind: 'transcript',
+                last_timestamp: nowIso,
+                title: 'Offline local chat',
+              },
+            ],
+          },
+        };
+      }
+      return { success: true, data: {} };
+    }));
+
+    await renderDashboardShell();
+
+    expect(screen.getByRole('button', { name: 'Offline local chat' })).toBeInTheDocument();
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'list-conversations',
+      expect.objectContaining({ userId: LOCAL_SNAPSHOT_USER_ID }),
+    );
   });
 
   test('allows switching history while another loop is active', async () => {
@@ -348,7 +399,7 @@ describe('ChatGptDashboardShell', () => {
         phase: 'tool-output',
       },
     }));
-    mockInvoke.mockImplementation(async (channel) => {
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
       if (channel === 'list-conversations') {
         return {
           success: true,
@@ -368,7 +419,7 @@ describe('ChatGptDashboardShell', () => {
         return { success: true, data: { memories: [] } };
       }
       return { success: true, data: {} };
-    });
+    }));
 
     await renderDashboardShell();
 
@@ -390,7 +441,7 @@ describe('ChatGptDashboardShell', () => {
       throw new Error('expected active conversation ref to switch during active loop');
     }
     if (!mockUpdateTranscriptSession.mock.calls.some(([conversationRef, userId]) => (
-      conversationRef === 'conv-history-1' && userId === 'default_user'
+      conversationRef === 'conv-history-1' && userId === LOCAL_SNAPSHOT_USER_ID
     ))) {
       throw new Error('expected transcript session to switch during active loop');
     }
@@ -399,7 +450,7 @@ describe('ChatGptDashboardShell', () => {
   test('highlights active conversation row in sidebar history', async () => {
     const nowIso = new Date().toISOString();
     mockSessionInfo = { conversationRef: 'conv-history-1', userId: 'default_user' };
-    mockInvoke.mockImplementation(async (channel) => {
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
       if (channel === 'list-conversations') {
         return {
           success: true,
@@ -419,7 +470,7 @@ describe('ChatGptDashboardShell', () => {
         return { success: true, data: { memories: [] } };
       }
       return { success: true, data: {} };
-    });
+    }));
 
     await renderDashboardShell();
 
@@ -429,7 +480,7 @@ describe('ChatGptDashboardShell', () => {
 
   test('conversation kebab menu shows only rename, pin, and delete actions', async () => {
     const nowIso = new Date().toISOString();
-    mockInvoke.mockImplementation(async (channel) => {
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
       if (channel === 'list-conversations') {
         return {
           success: true,
@@ -446,7 +497,7 @@ describe('ChatGptDashboardShell', () => {
         };
       }
       return { success: true, data: {} };
-    });
+    }));
 
     await renderDashboardShell();
 
@@ -462,7 +513,7 @@ describe('ChatGptDashboardShell', () => {
 
   test('delete action from conversation kebab menu calls delete-conversation', async () => {
     const nowIso = new Date().toISOString();
-    mockInvoke.mockImplementation(async (channel) => {
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
       if (channel === 'list-conversations') {
         return {
           success: true,
@@ -482,7 +533,7 @@ describe('ChatGptDashboardShell', () => {
         return { success: true, data: {} };
       }
       return { success: true, data: {} };
-    });
+    }));
 
     const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
     try {
@@ -522,7 +573,7 @@ describe('ChatGptDashboardShell', () => {
     await flushMicrotasks();
     expect(mockInvoke).toHaveBeenCalledWith(
       'list-conversations',
-      expect.objectContaining({ userId: 'default_user' }),
+      expect.objectContaining({ userId: LOCAL_SNAPSHOT_USER_ID }),
     );
 
     mockInvoke.mockClear();
@@ -542,11 +593,14 @@ describe('ChatGptDashboardShell', () => {
     const nowIso = new Date().toISOString();
     let resolveDefaultUserList;
     mockSessionInfo = { conversationRef: null, userId: null };
-    mockInvoke.mockImplementation(async (channel, payload) => {
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel, payload) => {
+      if (channel === 'get-client-user-id') {
+        return mockClientSnapshot;
+      }
       if (channel !== 'list-conversations') {
         return { success: true, data: {} };
       }
-      if (payload?.userId === 'default_user') {
+      if (payload?.userId === LOCAL_SNAPSHOT_USER_ID) {
         return new Promise((resolve) => {
           resolveDefaultUserList = resolve;
         });
@@ -567,12 +621,12 @@ describe('ChatGptDashboardShell', () => {
         };
       }
       return { success: true, data: { conversations: [] } };
-    });
+    }));
 
     await renderDashboardShell();
     expect(mockInvoke).toHaveBeenCalledWith(
       'list-conversations',
-      expect.objectContaining({ userId: 'default_user' }),
+      expect.objectContaining({ userId: LOCAL_SNAPSHOT_USER_ID }),
     );
 
     mockSessionInfo = { conversationRef: null, userId: 'peter-bui' };
@@ -612,7 +666,7 @@ describe('ChatGptDashboardShell', () => {
   test('reloads recent chats after assistant llm transcript entry is stored', async () => {
     const nowIso = new Date().toISOString();
     let listCallCount = 0;
-    mockInvoke.mockImplementation(async (channel) => {
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
       if (channel === 'list-conversations') {
         listCallCount += 1;
         if (listCallCount === 1) {
@@ -636,7 +690,7 @@ describe('ChatGptDashboardShell', () => {
         };
       }
       return { success: true, data: {} };
-    });
+    }));
 
     await renderDashboardShell();
     expect(screen.getByText('No chats yet.')).toBeInTheDocument();
@@ -652,7 +706,7 @@ describe('ChatGptDashboardShell', () => {
     await flushMicrotasks();
     expect(mockInvoke).toHaveBeenCalledWith(
       'list-conversations',
-      expect.objectContaining({ userId: 'default_user' }),
+      expect.objectContaining({ userId: LOCAL_SNAPSHOT_USER_ID }),
     );
     expect(screen.getByRole('button', { name: 'How are you' })).toBeInTheDocument();
   });
@@ -660,7 +714,7 @@ describe('ChatGptDashboardShell', () => {
   test('shows a new chat after user transcript storage and replaces the temporary title after assistant completion', async () => {
     const nowIso = new Date().toISOString();
     let listCallCount = 0;
-    mockInvoke.mockImplementation(async (channel) => {
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
       if (channel === 'list-conversations') {
         listCallCount += 1;
         if (listCallCount === 1) {
@@ -701,7 +755,7 @@ describe('ChatGptDashboardShell', () => {
         };
       }
       return { success: true, data: {} };
-    });
+    }));
 
     await renderDashboardShell();
     expect(screen.getByText('No chats yet.')).toBeInTheDocument();
@@ -761,7 +815,7 @@ describe('ChatGptDashboardShell', () => {
     jest.useFakeTimers();
     const nowIso = new Date().toISOString();
     let listCallCount = 0;
-    mockInvoke.mockImplementation(async (channel) => {
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
       if (channel === 'list-conversations') {
         listCallCount += 1;
         if (listCallCount === 1) {
@@ -785,7 +839,7 @@ describe('ChatGptDashboardShell', () => {
         };
       }
       return { success: true, data: {} };
-    });
+    }));
 
     try {
       await renderDashboardShell();
@@ -868,7 +922,7 @@ describe('ChatGptDashboardShell', () => {
     jest.useFakeTimers();
     const nowIso = new Date().toISOString();
     try {
-      mockInvoke.mockImplementation(async (channel) => {
+      mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
         if (channel === 'list-conversations') {
           return {
             success: true,
@@ -911,7 +965,7 @@ describe('ChatGptDashboardShell', () => {
           return { success: true, data: { memories: [] } };
         }
         return { success: true, data: {} };
-      });
+      }));
 
       await renderDashboardShell();
 
@@ -930,7 +984,7 @@ describe('ChatGptDashboardShell', () => {
         'search-conversations',
         expect.objectContaining({
           query: 'lawyer',
-          userId: 'default_user',
+          userId: LOCAL_SNAPSHOT_USER_ID,
         }),
       );
       expect(within(dialog).queryByText('Moon Landing Technology Explained')).not.toBeInTheDocument();

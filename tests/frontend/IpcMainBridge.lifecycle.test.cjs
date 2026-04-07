@@ -65,6 +65,16 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(bridge.ws).toBeNull();
   });
 
+  test('exposes a local user id before the backend websocket connects', async () => {
+    const bridge = initIpc();
+
+    const clientInfo = await bridge.handlers['get-client-user-id']();
+    expect(clientInfo).toEqual(expect.objectContaining({
+      userId: 'bad_user_',
+      isConnected: false,
+    }));
+  });
+
   test('sends handshake on websocket open with sanitized user_id', async () => {
     const { ws } = await setupOpenedIpc();
 

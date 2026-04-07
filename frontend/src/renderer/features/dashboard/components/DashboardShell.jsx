@@ -6,7 +6,6 @@ import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure
 import ModelsSection from './sections/ModelsSection';
 import SettingsSection from './sections/SettingsSection';
 import UsageSection from './sections/UsageSection';
-import { DEFAULT_USER_ID } from '../utils/episodicMemoryUtils';
 import DashboardSidebar from './DashboardSidebar';
 import { useTranscriptSessionInfo } from '../hooks/useTranscriptSessionInfo';
 import { useDashboardConversations } from '../hooks/useDashboardConversations';
@@ -88,9 +87,10 @@ function DashboardShell({
   const [usageOpen, setUsageOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isTransportConnected, setIsTransportConnected] = useState(true);
+  const [snapshotUserId, setSnapshotUserId] = useState(null);
   const [composerFocusToken, setComposerFocusToken] = useState(0);
   const sessionInfo = useTranscriptSessionInfo();
-  const resolvedUserId = sessionInfo.userId || DEFAULT_USER_ID;
+  const resolvedUserId = sessionInfo.userId || snapshotUserId || null;
 
   const setChatMessages = useChatStore((state) => state.setMessages);
   const clearChatMessages = useChatStore((state) => state.clearMessages);
@@ -288,6 +288,9 @@ function DashboardShell({
     IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
       .then((payload) => {
         setIsTransportConnected(payload?.isConnected === true);
+        if (typeof payload?.userId === 'string' && payload.userId.trim().length > 0) {
+          setSnapshotUserId(payload.userId.trim());
+        }
       })
       .catch(() => {});
   }, []);

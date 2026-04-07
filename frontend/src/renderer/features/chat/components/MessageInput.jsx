@@ -23,6 +23,7 @@ import {
 function MessageInput({
   onSendMessage,
   isSending,
+  isTransportConnected = true,
   onStopResponse = undefined,
   isCentered = false,
   focusRequestToken = 0,
@@ -136,6 +137,16 @@ function MessageInput({
       ) : null}
       <div className={`message-input-container${isCentered ? ' message-input-centered' : ''}`}>
         <form onSubmit={handleSubmit} className="message-input-form" data-testid="composer-container">
+          {!isTransportConnected ? (
+            <div
+              className="message-input-offline-state"
+              data-testid="message-input-offline-state"
+              role="status"
+              aria-live="polite"
+            >
+              Offline: send will fail until the backend reconnects.
+            </div>
+          ) : null}
           {clipboardImages.length > 0 ? (
             <div className="message-image-preview-row">
               {clipboardImages.map((clipboardImage, index) => (
@@ -245,7 +256,7 @@ function MessageInput({
               onKeyDown={handleKeyDown}
               placeholder="Ask anything"
               disabled={isSending}
-              className="message-input"
+              className={`message-input${!isTransportConnected ? ' message-input-offline' : ''}`}
               rows={1}
               style={{ minHeight: '24px', maxHeight: '200px' }}
               aria-label="Type your message"
@@ -300,6 +311,7 @@ function MessageInput({
 MessageInput.propTypes = {
   onSendMessage: PropTypes.func.isRequired,
   isSending: PropTypes.bool,
+  isTransportConnected: PropTypes.bool,
   onStopResponse: PropTypes.func,
   isCentered: PropTypes.bool,
   focusRequestToken: PropTypes.number,
