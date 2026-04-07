@@ -14,7 +14,7 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts`
-- `frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader.js`
+- `frontend/src/renderer/infrastructure/transcript/localConversationStore.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`

@@ -29,10 +29,10 @@ import {
   resolveConversationRefForSend,
 } from '../session/conversationSessionRuntime';
 import {
-  ensureConversationBackendState,
-  markConversationBackendStateFreshLocal,
-  markConversationBackendStateUnknown,
-} from '../session/conversationBackendSyncRuntime';
+  ensureConversationInferenceSessionHydrated,
+  markConversationInferenceSessionLocalOnly,
+  markConversationInferenceSessionUnknown,
+} from '../session/conversationInferenceSessionRuntime';
 import {
   normalizeAttachmentFilenames,
   normalizeOutgoingPayload,
@@ -102,7 +102,7 @@ export function useChatMessageSender(
         setChatConversationRef: setChatActiveConversationRef,
         updateTranscriptSession,
       });
-      markConversationBackendStateUnknown(appliedSnapshot.conversationRef);
+      markConversationInferenceSessionUnknown(appliedSnapshot.conversationRef);
       return appliedSnapshot.conversationRef;
     } catch (error) {
       console.warn('[useChatMessageSender] Failed to load startup session snapshot:', error);
@@ -131,7 +131,7 @@ export function useChatMessageSender(
     const generatedRef = createConversationRef();
     setActiveConversationRef(generatedRef);
     setChatActiveConversationRef(generatedRef);
-    markConversationBackendStateFreshLocal(generatedRef);
+    markConversationInferenceSessionLocalOnly(generatedRef);
     return generatedRef;
   }, [hydrateSessionFromMainSnapshot, setChatActiveConversationRef]);
 
@@ -173,7 +173,7 @@ export function useChatMessageSender(
     const conversationRef = await ensureConversationRef();
     const workspaceBinding = await ensureConversationWorkspaceBinding(conversationRef);
     const sessionInfo = getTranscriptSessionInfo();
-    await ensureConversationBackendState({
+    await ensureConversationInferenceSessionHydrated({
       conversationRef,
       userId: sessionInfo.userId,
     });

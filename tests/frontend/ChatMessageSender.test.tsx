@@ -15,10 +15,10 @@ import {
   updateTranscriptSession,
 } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
 import {
-  ensureConversationBackendState,
-  markConversationBackendStateFreshLocal,
-  markConversationBackendStateUnknown,
-} from '../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime';
+  ensureConversationInferenceSessionHydrated,
+  markConversationInferenceSessionLocalOnly,
+  markConversationInferenceSessionUnknown,
+} from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
 
 let mockFrontendConfig: Record<string, unknown> = {
   include_query_screenshot: true,
@@ -67,10 +67,10 @@ jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWrite
   recordUserMessage: jest.fn(),
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime', () => ({
-  ensureConversationBackendState: jest.fn(),
-  markConversationBackendStateFreshLocal: jest.fn(),
-  markConversationBackendStateUnknown: jest.fn(),
+jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
+  ensureConversationInferenceSessionHydrated: jest.fn(),
+  markConversationInferenceSessionLocalOnly: jest.fn(),
+  markConversationInferenceSessionUnknown: jest.fn(),
 }));
 
 const mockCaptureScreenshotAttachment = captureScreenshotAttachment as jest.MockedFunction<typeof captureScreenshotAttachment>;
@@ -82,9 +82,9 @@ const mockGetActiveConversationRef = getActiveConversationRef as jest.MockedFunc
 const mockSetActiveConversationRef = setActiveConversationRef as jest.MockedFunction<typeof setActiveConversationRef>;
 const mockUpdateTranscriptSession = updateTranscriptSession as jest.MockedFunction<typeof updateTranscriptSession>;
 const mockGetTranscriptSessionInfo = getTranscriptSessionInfo as jest.MockedFunction<typeof getTranscriptSessionInfo>;
-const mockEnsureConversationBackendState = ensureConversationBackendState as jest.MockedFunction<typeof ensureConversationBackendState>;
-const mockMarkConversationBackendStateFreshLocal = markConversationBackendStateFreshLocal as jest.MockedFunction<typeof markConversationBackendStateFreshLocal>;
-const mockMarkConversationBackendStateUnknown = markConversationBackendStateUnknown as jest.MockedFunction<typeof markConversationBackendStateUnknown>;
+const mockEnsureConversationInferenceSessionHydrated = ensureConversationInferenceSessionHydrated as jest.MockedFunction<typeof ensureConversationInferenceSessionHydrated>;
+const mockMarkConversationInferenceSessionLocalOnly = markConversationInferenceSessionLocalOnly as jest.MockedFunction<typeof markConversationInferenceSessionLocalOnly>;
+const mockMarkConversationInferenceSessionUnknown = markConversationInferenceSessionUnknown as jest.MockedFunction<typeof markConversationInferenceSessionUnknown>;
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 
 function createInitialStreamTracking() {
@@ -187,9 +187,9 @@ describe('useChatMessageSender', () => {
     mockUpdateTranscriptSession.mockClear();
     mockGetTranscriptSessionInfo.mockClear();
     mockRecordUserMessage.mockClear();
-    mockEnsureConversationBackendState.mockReset();
-    mockMarkConversationBackendStateFreshLocal.mockReset();
-    mockMarkConversationBackendStateUnknown.mockReset();
+    mockEnsureConversationInferenceSessionHydrated.mockReset();
+    mockMarkConversationInferenceSessionLocalOnly.mockReset();
+    mockMarkConversationInferenceSessionUnknown.mockReset();
 
     const streamTracking = createInitialStreamTracking();
     useChatStore.setState({
@@ -244,7 +244,7 @@ describe('useChatMessageSender', () => {
     });
     mockSendQuery.mockResolvedValue(undefined);
     mockUploadArtifactBase64.mockResolvedValue(null);
-    mockEnsureConversationBackendState.mockResolvedValue(undefined);
+    mockEnsureConversationInferenceSessionHydrated.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -752,7 +752,7 @@ describe('useChatMessageSender', () => {
         conversationRef: 'conv_existing',
       }),
     );
-    expect(mockEnsureConversationBackendState).toHaveBeenCalledWith({
+    expect(mockEnsureConversationInferenceSessionHydrated).toHaveBeenCalledWith({
       conversationRef: 'conv_existing',
       userId: null,
     });
@@ -777,7 +777,7 @@ describe('useChatMessageSender', () => {
 
     expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv-main-snapshot');
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-main-snapshot', 'user-main-snapshot');
-    expect(mockMarkConversationBackendStateUnknown).toHaveBeenCalledWith('conv-main-snapshot');
+    expect(mockMarkConversationInferenceSessionUnknown).toHaveBeenCalledWith('conv-main-snapshot');
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
     expect(mockSendQuery.mock.calls[0][1]).toBe('conv-main-snapshot');
   });
@@ -805,12 +805,12 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'hello');
 
-    expect(mockMarkConversationBackendStateFreshLocal).toHaveBeenCalledWith('conv_msg-1');
-    expect(mockEnsureConversationBackendState).toHaveBeenCalledWith({
+    expect(mockMarkConversationInferenceSessionLocalOnly).toHaveBeenCalledWith('conv_msg-1');
+    expect(mockEnsureConversationInferenceSessionHydrated).toHaveBeenCalledWith({
       conversationRef: 'conv_msg-1',
       userId: null,
     });
-    expect(mockEnsureConversationBackendState.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(mockEnsureConversationInferenceSessionHydrated.mock.invocationCallOrder[0]).toBeLessThan(
       mockSendQuery.mock.invocationCallOrder[0],
     );
   });

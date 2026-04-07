@@ -6,27 +6,27 @@ import {
   setActiveConversationRef,
   updateTranscriptSession,
 } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
-import { markConversationBackendStateUnknown } from '../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime';
+import { markConversationInferenceSessionUnknown } from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
   setActiveConversationRef: jest.fn(),
   updateTranscriptSession: jest.fn(),
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime', () => ({
-  markConversationBackendStateUnknown: jest.fn(),
+jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
+  markConversationInferenceSessionUnknown: jest.fn(),
 }));
 
 const mockSetActiveConversationRef = setActiveConversationRef as jest.MockedFunction<typeof setActiveConversationRef>;
 const mockUpdateTranscriptSession = updateTranscriptSession as jest.MockedFunction<typeof updateTranscriptSession>;
-const mockMarkConversationBackendStateUnknown = markConversationBackendStateUnknown as jest.MockedFunction<typeof markConversationBackendStateUnknown>;
+const mockMarkConversationInferenceSessionUnknown = markConversationInferenceSessionUnknown as jest.MockedFunction<typeof markConversationInferenceSessionUnknown>;
 
 describe('useChatSessionBootstrap', () => {
   beforeEach(() => {
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     mockSetActiveConversationRef.mockReset();
     mockUpdateTranscriptSession.mockReset();
-    mockMarkConversationBackendStateUnknown.mockReset();
+    mockMarkConversationInferenceSessionUnknown.mockReset();
     useChatStore.setState({ activeConversationRef: null });
     (window as any).ipc = {
       send: jest.fn(),
@@ -58,7 +58,7 @@ describe('useChatSessionBootstrap', () => {
     expect(useChatStore.getState().activeConversationRef).toBe('conv-main-bootstrap');
     expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv-main-bootstrap');
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-main-bootstrap', 'user-main-bootstrap');
-    expect(mockMarkConversationBackendStateUnknown).toHaveBeenCalledWith('conv-main-bootstrap');
+    expect(mockMarkConversationInferenceSessionUnknown).toHaveBeenCalledWith('conv-main-bootstrap');
   });
 
   test('returns null snapshot when main snapshot call fails', async () => {

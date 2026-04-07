@@ -4,9 +4,9 @@ import {
   updateTranscriptSession,
 } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
 import {
-  clearConversationBackendSyncState,
-  markConversationBackendStateFreshLocal,
-} from '../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime';
+  clearConversationInferenceSessionState,
+  markConversationInferenceSessionLocalOnly,
+} from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
 import {
   setConversationWorkspaceBinding,
 } from '../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding';
@@ -16,9 +16,9 @@ jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWrite
   updateTranscriptSession: jest.fn(),
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime', () => ({
-  clearConversationBackendSyncState: jest.fn(),
-  markConversationBackendStateFreshLocal: jest.fn(),
+jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
+  clearConversationInferenceSessionState: jest.fn(),
+  markConversationInferenceSessionLocalOnly: jest.fn(),
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding', () => ({
@@ -34,8 +34,8 @@ describe('startNewChatSession', () => {
     jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('new-chat-ref');
     (setActiveConversationRef as jest.MockedFunction<typeof setActiveConversationRef>).mockReset();
     (updateTranscriptSession as jest.MockedFunction<typeof updateTranscriptSession>).mockReset();
-    (clearConversationBackendSyncState as jest.MockedFunction<typeof clearConversationBackendSyncState>).mockReset();
-    (markConversationBackendStateFreshLocal as jest.MockedFunction<typeof markConversationBackendStateFreshLocal>).mockReset();
+    (clearConversationInferenceSessionState as jest.MockedFunction<typeof clearConversationInferenceSessionState>).mockReset();
+    (markConversationInferenceSessionLocalOnly as jest.MockedFunction<typeof markConversationInferenceSessionLocalOnly>).mockReset();
     (setConversationWorkspaceBinding as jest.MockedFunction<typeof setConversationWorkspaceBinding>).mockReset();
   });
 
@@ -66,6 +66,6 @@ describe('startNewChatSession', () => {
       workspacePath: '/work/WindieOS',
       workspaceName: 'WindieOS',
     });
-    expect(markConversationBackendStateFreshLocal).toHaveBeenCalledWith('conv_new-chat-ref');
+    expect(markConversationInferenceSessionLocalOnly).toHaveBeenCalledWith('conv_new-chat-ref');
   });
 });

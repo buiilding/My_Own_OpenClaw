@@ -133,10 +133,15 @@ New-chat behavior:
 
 1. Renderer writes transcript rows through `INVOKE_CHANNELS.STORE_TRANSCRIPT`.
 2. `TranscriptWriter` queues failed writes and retries when session info becomes available.
-3. Dashboard sidebar/search open operations fetch transcript windows via sidecar RPC (`list-conversations`, `search-conversations`, `get-conversation`).
+3. Renderer-local conversation store helpers fetch transcript windows via sidecar RPC (`list-conversations`, `search-conversations`, `get-conversation`).
    `get-conversation` resume/hydrate paths use `message_index` cursor pagination (`after_message_index`) so large local DB transcripts are fully reloaded instead of capped at one page.
 4. Opening a past chat replaces in-memory renderer chat state immediately, but backend conversation history is rehydrated lazily only before the first backend-dependent action for that chat.
-5. Send, replay/edit, and manual compaction all pass through the shared renderer-side conversation/backend sync runtime, which restores backend history on demand and invalidates synced state after backend disconnects.
+5. Send, replay/edit, and manual compaction all pass through a renderer-side inference-session hydration runtime, which restores backend history on demand from the local transcript and invalidates hydrated state after backend disconnects.
+
+Current ownership boundary:
+
+- frontend + sidecar local store own conversation history, replay state, workspace binding, and history browsing/search
+- backend sessions are disposable inference state that may be rebuilt from the local transcript before a backend-dependent action
 
 ### Wakeword/Voice Flow
 
@@ -207,6 +212,12 @@ Primary modules:
   - Applies the renderer-owned `global_agent_stop_shortcut` preference locally in main while filtering that key out of backend `update-settings` payloads.
   - Query preprocessing + local-user-message synthesis.
   - Artifact upload HTTP helper.
+- `renderer/infrastructure/transcript/localConversationStore.ts`:
+  - Renderer-owned read boundary for locally stored conversations and transcript rows.
+  - Wraps `list-conversations`, `search-conversations`, and paginated `get-conversation` IPC so chat history stays explicitly local-first in renderer code.
+- `renderer/features/chat/session/conversationInferenceSessionRuntime.ts`:
+  - Tracks whether a given conversation needs backend inference-session hydration from local transcript history.
+  - Makes backend state explicitly disposable and rebuildable instead of treating it as conversation truth.
 - `main/local_backend_bridge.cjs`:
   - Sidecar subprocess start/readiness ping/retry and JSON-RPC bridge wiring.
   - Uses `local_backend_supervisor.cjs` to track process identity plus explicit `starting|ready|stopping|error` lifecycle state.
@@ -261,8 +272,8 @@ Primary modules:
   - Keeps awaiting typing and response overlay mode selection out of `ChatBoxResponse.jsx`.
 - `features/chat/hooks/useToolRunner.ts`:
   - Executes incoming tool calls/bundles, stale-turn cancellation responses.
-- `features/chat/session/conversationBackendSyncRuntime.ts`:
-  - Rehydrates backend chat state on reconnect/resume.
+- `features/chat/session/conversationInferenceSessionRuntime.ts`:
+  - Rehydrates disposable backend inference state on reconnect/resume from local transcript history.
   - Now prefers persisted internal replay-state rows over raw transcript rows when a replay snapshot exists, so compacted chats reopen with compacted model history while preserving full UI scrollback.
 - `renderer/infrastructure/transcript/conversationReplayState.ts`:
   - Maintains the hidden replay-state stream (`transcript_replay`) used only for backend resume.
@@ -270,7 +281,7 @@ Primary modules:
   - Owns shared delete semantics so dashboard chat deletion and retry/edit rewind clear replay-state together with raw transcript before rebuilding conversation state.
   - Guards replay bootstrap with per-conversation mutation epochs so async bootstrap work cannot re-seed stale replay rows after delete, rewind, or compaction resets.
 - `features/dashboard/components/DashboardShell.jsx`:
-  - Global `Nuke chats` success handling now resets the active chat plus invalidates renderer-side backend-sync, replay-bootstrap, and conversation-workspace-binding caches so no local resume state survives a full transcript wipe.
+  - Global `Nuke chats` success handling now resets the active chat plus invalidates renderer-side inference-session hydration, replay-bootstrap, and conversation-workspace-binding caches so no local resume state survives a full transcript wipe.
 - `features/dashboard/hooks/useDashboardConversations.js`:
   - Single-conversation delete now clears that chat's persisted workspace binding together with transcript/replay state so session-storage workspace metadata does not survive a conversation delete.
 - `features/chat/components/ChatInterface.jsx`:

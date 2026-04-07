@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 
 import DashboardShell from '../../frontend/src/renderer/features/dashboard/components/DashboardShell';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
-import { invalidateConversationBackendSyncState } from '../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime';
+import { invalidateConversationInferenceSessionState } from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
 import { clearConversationReplayStateCache } from '../../frontend/src/renderer/infrastructure/transcript/conversationReplayState';
 import {
   clearAllConversationWorkspaceBindings,
@@ -96,12 +96,12 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime', () => {
-  const actual = jest.requireActual('../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime');
+jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => {
+  const actual = jest.requireActual('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime');
   return {
     ...actual,
-    clearConversationBackendSyncState: jest.fn(),
-    invalidateConversationBackendSyncState: jest.fn(),
+    clearConversationInferenceSessionState: jest.fn(),
+    invalidateConversationInferenceSessionState: jest.fn(),
   };
 });
 
@@ -122,7 +122,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWork
   };
 });
 
-const mockInvalidateConversationBackendSyncState = invalidateConversationBackendSyncState;
+const mockInvalidateConversationInferenceSessionState = invalidateConversationInferenceSessionState;
 const mockClearConversationReplayStateCache = clearConversationReplayStateCache;
 const mockClearAllConversationWorkspaceBindings = clearAllConversationWorkspaceBindings;
 const mockClearConversationWorkspaceBinding = clearConversationWorkspaceBinding;
@@ -162,7 +162,7 @@ describe('ChatGptDashboardShell', () => {
     mockInvoke.mockClear();
     mockSetActiveConversationRef.mockClear();
     mockUpdateTranscriptSession.mockClear();
-    mockInvalidateConversationBackendSyncState.mockClear();
+    mockInvalidateConversationInferenceSessionState.mockClear();
     mockClearConversationReplayStateCache.mockClear();
     mockClearAllConversationWorkspaceBindings.mockClear();
     mockClearConversationWorkspaceBinding.mockClear();
@@ -802,7 +802,7 @@ describe('ChatGptDashboardShell', () => {
     expect(mockUpdateTranscriptSession.mock.calls.some(([conversationRef, userId]) => (
       conversationRef === null && userId === 'user-live'
     ))).toBe(true);
-    expect(mockInvalidateConversationBackendSyncState.mock.calls.length).toBe(1);
+    expect(mockInvalidateConversationInferenceSessionState.mock.calls.length).toBe(1);
     expect(mockClearConversationReplayStateCache.mock.calls.length).toBe(1);
     expect(mockClearAllConversationWorkspaceBindings.mock.calls.length).toBe(1);
     expect(mockInvoke).toHaveBeenCalledWith(

@@ -1,14 +1,14 @@
 import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
-import { loadConversationTranscriptMemories } from '../../frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader';
+import { loadStoredConversationEntries } from '../../frontend/src/renderer/infrastructure/transcript/localConversationStore';
 import {
-  clearConversationBackendSyncState,
-  ensureConversationBackendState,
-  getConversationBackendSyncState,
-  invalidateConversationBackendSyncState,
-  markConversationBackendStateFreshLocal,
-  markConversationBackendStateUnknown,
-  rehydrateConversationBackendState,
-} from '../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime';
+  clearConversationInferenceSessionState,
+  ensureConversationInferenceSessionHydrated,
+  getConversationInferenceSessionState,
+  invalidateConversationInferenceSessionState,
+  markConversationInferenceSessionLocalOnly,
+  markConversationInferenceSessionUnknown,
+  rehydrateConversationInferenceSession,
+} from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
 
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
@@ -16,23 +16,23 @@ jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   },
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader', () => ({
-  loadConversationTranscriptMemories: jest.fn(),
+jest.mock('../../frontend/src/renderer/infrastructure/transcript/localConversationStore', () => ({
+  loadStoredConversationEntries: jest.fn(),
 }));
 
 const mockSendRehydrateConversation = ApiClient.sendRehydrateConversation as jest.MockedFunction<typeof ApiClient.sendRehydrateConversation>;
-const mockLoadConversationTranscriptMemories = loadConversationTranscriptMemories as jest.MockedFunction<typeof loadConversationTranscriptMemories>;
+const mockLoadStoredConversationEntries = loadStoredConversationEntries as jest.MockedFunction<typeof loadStoredConversationEntries>;
 
-describe('conversationBackendSyncRuntime', () => {
+describe('conversationInferenceSessionRuntime', () => {
   beforeEach(() => {
-    invalidateConversationBackendSyncState();
+    invalidateConversationInferenceSessionState();
     mockSendRehydrateConversation.mockReset();
-    mockLoadConversationTranscriptMemories.mockReset();
+    mockLoadStoredConversationEntries.mockReset();
   });
 
   test('lazy rehydrates an unknown existing conversation once and then treats it as synced', async () => {
-    markConversationBackendStateUnknown('conv-existing');
-    mockLoadConversationTranscriptMemories
+    markConversationInferenceSessionUnknown('conv-existing');
+    mockLoadStoredConversationEntries
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([
         {
@@ -43,16 +43,16 @@ describe('conversationBackendSyncRuntime', () => {
         } as any,
       ]);
 
-    await ensureConversationBackendState({
+    await ensureConversationInferenceSessionHydrated({
       conversationRef: 'conv-existing',
       userId: 'user-1',
     });
-    await ensureConversationBackendState({
+    await ensureConversationInferenceSessionHydrated({
       conversationRef: 'conv-existing',
       userId: 'user-1',
     });
 
-    expect(mockLoadConversationTranscriptMemories).toHaveBeenCalledTimes(2);
+    expect(mockLoadStoredConversationEntries).toHaveBeenCalledTimes(2);
     expect(mockSendRehydrateConversation).toHaveBeenCalledTimes(1);
     expect(mockSendRehydrateConversation).toHaveBeenCalledWith(
       'conv-existing',
@@ -65,12 +65,12 @@ describe('conversationBackendSyncRuntime', () => {
       ],
       null,
     );
-    expect(getConversationBackendSyncState('conv-existing')).toBe('synced');
+    expect(getConversationInferenceSessionState('conv-existing')).toBe('hydrated');
   });
 
   test('prefers persisted replay state when available', async () => {
-    markConversationBackendStateUnknown('conv-replay-preferred');
-    mockLoadConversationTranscriptMemories.mockResolvedValueOnce([
+    markConversationInferenceSessionUnknown('conv-replay-preferred');
+    mockLoadStoredConversationEntries.mockResolvedValueOnce([
       {
         metadata: {
           rehydrate_entry: {
@@ -82,12 +82,12 @@ describe('conversationBackendSyncRuntime', () => {
       } as any,
     ]);
 
-    await ensureConversationBackendState({
+    await ensureConversationInferenceSessionHydrated({
       conversationRef: 'conv-replay-preferred',
       userId: 'user-1',
     });
 
-    expect(mockLoadConversationTranscriptMemories).toHaveBeenCalledTimes(1);
+    expect(mockLoadStoredConversationEntries).toHaveBeenCalledTimes(1);
     expect(mockSendRehydrateConversation).toHaveBeenCalledWith(
       'conv-replay-preferred',
       [
@@ -102,31 +102,31 @@ describe('conversationBackendSyncRuntime', () => {
   });
 
   test('skips transcript loading and backend rehydrate for fresh local conversations', async () => {
-    markConversationBackendStateFreshLocal('conv-fresh');
+    markConversationInferenceSessionLocalOnly('conv-fresh');
 
-    await ensureConversationBackendState({
+    await ensureConversationInferenceSessionHydrated({
       conversationRef: 'conv-fresh',
       userId: 'user-1',
     });
 
-    expect(mockLoadConversationTranscriptMemories).not.toHaveBeenCalled();
+    expect(mockLoadStoredConversationEntries).not.toHaveBeenCalled();
     expect(mockSendRehydrateConversation).not.toHaveBeenCalled();
-    expect(getConversationBackendSyncState('conv-fresh')).toBe('synced');
+    expect(getConversationInferenceSessionState('conv-fresh')).toBe('hydrated');
   });
 
   test('explicit replay rehydrate always sends the backend replacement payload, even when empty', async () => {
-    await rehydrateConversationBackendState({
+    await rehydrateConversationInferenceSession({
       conversationRef: 'conv-replay',
       messages: [],
     });
 
     expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv-replay', [], null);
-    expect(getConversationBackendSyncState('conv-replay')).toBe('synced');
+    expect(getConversationInferenceSessionState('conv-replay')).toBe('hydrated');
   });
 
   test('invalidating sync state forces a later ensure to rehydrate again', async () => {
-    markConversationBackendStateUnknown('conv-reconnect');
-    mockLoadConversationTranscriptMemories
+    markConversationInferenceSessionUnknown('conv-reconnect');
+    mockLoadStoredConversationEntries
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([
         {
@@ -146,15 +146,15 @@ describe('conversationBackendSyncRuntime', () => {
         } as any,
       ]);
 
-    await ensureConversationBackendState({
+    await ensureConversationInferenceSessionHydrated({
       conversationRef: 'conv-reconnect',
       userId: 'user-1',
     });
 
-    invalidateConversationBackendSyncState();
-    markConversationBackendStateUnknown('conv-reconnect');
+    invalidateConversationInferenceSessionState();
+    markConversationInferenceSessionUnknown('conv-reconnect');
 
-    await ensureConversationBackendState({
+    await ensureConversationInferenceSessionHydrated({
       conversationRef: 'conv-reconnect',
       userId: 'user-1',
     });
@@ -163,10 +163,10 @@ describe('conversationBackendSyncRuntime', () => {
   });
 
   test('clearing a conversation removes its sync state record', () => {
-    markConversationBackendStateFreshLocal('conv-clear');
+    markConversationInferenceSessionLocalOnly('conv-clear');
 
-    clearConversationBackendSyncState('conv-clear');
+    clearConversationInferenceSessionState('conv-clear');
 
-    expect(getConversationBackendSyncState('conv-clear')).toBeNull();
+    expect(getConversationInferenceSessionState('conv-clear')).toBeNull();
   });
 });

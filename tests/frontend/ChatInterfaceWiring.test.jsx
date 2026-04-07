@@ -37,8 +37,8 @@ const mockCompactHistory = jest.fn();
 const mockSendQuery = jest.fn();
 const mockSendRehydrateConversation = jest.fn();
 const mockUpdateSettings = jest.fn();
-const mockEnsureConversationBackendState = jest.fn();
-const mockRehydrateConversationBackendState = jest.fn();
+const mockEnsureConversationInferenceSessionHydrated = jest.fn();
+const mockRehydrateConversationInferenceSession = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
 const mockClearMessages = jest.fn();
 const mockSetMessages = jest.fn();
@@ -111,12 +111,12 @@ jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   },
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime', () => ({
-  ensureConversationBackendState: (...args) => mockEnsureConversationBackendState(...args),
-  rehydrateConversationBackendState: (...args) => mockRehydrateConversationBackendState(...args),
-  markConversationBackendStateFreshLocal: jest.fn(),
-  markConversationBackendStateUnknown: jest.fn(),
-  clearConversationBackendSyncState: jest.fn(),
+jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
+  ensureConversationInferenceSessionHydrated: (...args) => mockEnsureConversationInferenceSessionHydrated(...args),
+  rehydrateConversationInferenceSession: (...args) => mockRehydrateConversationInferenceSession(...args),
+  markConversationInferenceSessionLocalOnly: jest.fn(),
+  markConversationInferenceSessionUnknown: jest.fn(),
+  clearConversationInferenceSessionState: jest.fn(),
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
@@ -202,10 +202,10 @@ describe('ChatInterface wiring', () => {
     mockSendQuery.mockClear();
     mockSendRehydrateConversation.mockClear();
     mockUpdateSettings.mockClear();
-    mockEnsureConversationBackendState.mockReset();
-    mockEnsureConversationBackendState.mockResolvedValue(undefined);
-    mockRehydrateConversationBackendState.mockReset();
-    mockRehydrateConversationBackendState.mockResolvedValue(undefined);
+    mockEnsureConversationInferenceSessionHydrated.mockReset();
+    mockEnsureConversationInferenceSessionHydrated.mockResolvedValue(undefined);
+    mockRehydrateConversationInferenceSession.mockReset();
+    mockRehydrateConversationInferenceSession.mockResolvedValue(undefined);
     mockClearMessages.mockClear();
     mockSetMessages.mockClear();
     mockUpdateMessage.mockClear();
@@ -660,14 +660,14 @@ describe('ChatInterface wiring', () => {
         model_provider: 'anthropic',
         selected_model_id: 'claude-sonnet-4-5',
       });
-      expect(mockEnsureConversationBackendState).toHaveBeenCalledWith({
+      expect(mockEnsureConversationInferenceSessionHydrated).toHaveBeenCalledWith({
         conversationRef: 'conv_existing',
         userId: 'default_user',
       });
       expect(mockCompactHistory).toHaveBeenCalledWith(true, 'conv_existing');
     });
     expect(mockUpdateSettings.mock.invocationCallOrder[0]).toBeLessThan(
-      mockEnsureConversationBackendState.mock.invocationCallOrder[0],
+      mockEnsureConversationInferenceSessionHydrated.mock.invocationCallOrder[0],
     );
   });
 
@@ -1372,7 +1372,7 @@ describe('ChatInterface wiring', () => {
       conversationRef: 'conv_existing',
       userId: 'default_user',
     }));
-    const sawExpectedRehydrateCall = mockRehydrateConversationBackendState.mock.calls.some(
+    const sawExpectedRehydrateCall = mockRehydrateConversationInferenceSession.mock.calls.some(
       ([payload]) => payload?.conversationRef === 'conv_existing'
         && Array.isArray(payload?.messages)
         && payload.messages.length === 0,
@@ -1426,7 +1426,7 @@ describe('ChatInterface wiring', () => {
       conversationRef: 'conv_existing',
       userId: 'default_user',
     }));
-    expect(mockRehydrateConversationBackendState).toHaveBeenCalledWith({
+    expect(mockRehydrateConversationInferenceSession).toHaveBeenCalledWith({
       conversationRef: 'conv_existing',
       messages: [],
     });

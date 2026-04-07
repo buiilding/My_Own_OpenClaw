@@ -1,7 +1,7 @@
 ---
 summary: "Renderer infrastructure reference for paginated transcript conversation loading and local display-bounds retrieval used by screenshot tool invocation/capture paths."
 read_when:
-  - When changing `conversationTranscriptLoader.js` pagination behavior for `get-conversation`.
+  - When changing `localConversationStore.ts` pagination behavior for `get-conversation`.
   - When changing `displaySelection.ts` storage/parse validation or screenshot `display_bounds` injection behavior.
 title: "Conversation Transcript Loader and Display-Bounds Storage Reference"
 ---
@@ -10,7 +10,7 @@ title: "Conversation Transcript Loader and Display-Bounds Storage Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader.js`
+- `frontend/src/renderer/infrastructure/transcript/localConversationStore.ts`
 - `frontend/src/renderer/utils/displaySelection.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionInvoker.ts`
 - `frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts`

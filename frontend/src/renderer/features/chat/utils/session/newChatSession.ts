@@ -1,6 +1,6 @@
 import type { TokenCounts } from '../../stores/chatStore';
 import { setActiveConversationRef } from '../../../../infrastructure/transcript/TranscriptWriter';
-import { markConversationBackendStateFreshLocal } from '../../session/conversationBackendSyncRuntime';
+import { markConversationInferenceSessionLocalOnly } from '../../session/conversationInferenceSessionRuntime';
 import {
   setConversationWorkspaceBinding,
   workspaceSelectionToBinding,
@@ -36,6 +36,6 @@ export const startNewChatSession = ({
   const nextConversationRef = createConversationRef();
   setActiveConversationRef(nextConversationRef);
   setConversationWorkspaceBinding(nextConversationRef, workspaceSelectionToBinding(workspace));
-  markConversationBackendStateFreshLocal(nextConversationRef);
+  markConversationInferenceSessionLocalOnly(nextConversationRef);
   return nextConversationRef;
 };

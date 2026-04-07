@@ -10,7 +10,7 @@ const mockUseChatStream = jest.fn();
 const mockUseToolRunner = jest.fn();
 const mockUseTranscriptSessionInfo = jest.fn();
 const mockBootstrapSession = jest.fn().mockResolvedValue({ conversationRef: null, userId: null });
-const mockInvalidateConversationBackendSyncState = jest.fn();
+const mockInvalidateConversationInferenceSessionState = jest.fn();
 const mockIpcOn = jest.fn(() => jest.fn());
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 
@@ -48,8 +48,8 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatSessionBootstr
   useChatSessionBootstrap: () => mockBootstrapSession,
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime', () => ({
-  invalidateConversationBackendSyncState: () => mockInvalidateConversationBackendSyncState(),
+jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
+  invalidateConversationInferenceSessionState: () => mockInvalidateConversationInferenceSessionState(),
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
@@ -90,7 +90,7 @@ describe('ChatProvider', () => {
     mockUseToolRunner.mockReset();
     mockUseTranscriptSessionInfo.mockReset();
     mockBootstrapSession.mockClear();
-    mockInvalidateConversationBackendSyncState.mockReset();
+    mockInvalidateConversationInferenceSessionState.mockReset();
     mockIpcOn.mockReset();
     mockIpcOn.mockReturnValue(jest.fn());
     resetChatStore();
@@ -177,6 +177,6 @@ describe('ChatProvider', () => {
     const disconnectListener = mockIpcOn.mock.calls.find(([channel]) => channel === 'ipc-status')?.[1];
     disconnectListener?.({ isConnected: false });
 
-    expect(mockInvalidateConversationBackendSyncState).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateConversationInferenceSessionState).toHaveBeenCalledTimes(1);
   });
 });

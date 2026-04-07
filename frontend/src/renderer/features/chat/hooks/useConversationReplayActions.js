@@ -19,9 +19,9 @@ import {
   setConversationWorkspaceBinding,
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
 import {
-  markConversationBackendStateFreshLocal,
-  rehydrateConversationBackendState,
-} from '../session/conversationBackendSyncRuntime';
+  markConversationInferenceSessionLocalOnly,
+  rehydrateConversationInferenceSession,
+} from '../session/conversationInferenceSessionRuntime';
 import { createConversationRef } from '../utils/session/conversationRef';
 import {
   resolveTranscriptMessageType,
@@ -80,7 +80,7 @@ async function runReplayQueryFlow({
   workspacePath,
 }) {
   await replayTranscriptMessages(transcriptMessages, userId, conversationRef);
-  await rehydrateConversationBackendState({
+  await rehydrateConversationInferenceSession({
     conversationRef,
     messages: rehydratePayloads,
   });
@@ -107,7 +107,7 @@ function ensureConversationRef(sessionConversationRef) {
     conversationRef = createConversationRef();
     setActiveConversationRef(conversationRef);
     setConversationWorkspaceBinding(conversationRef, null);
-    markConversationBackendStateFreshLocal(conversationRef);
+    markConversationInferenceSessionLocalOnly(conversationRef);
   }
   return conversationRef;
 }
