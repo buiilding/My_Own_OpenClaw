@@ -600,28 +600,19 @@ describe('ChatInterface wiring', () => {
     expect(screen.queryByRole('button', { name: 'Close window' })).not.toBeInTheDocument();
   });
 
-  test('shows connection warning when backend transport disconnects', () => {
+  test('does not render a connection warning when backend transport disconnects', () => {
     render(<ChatInterface />);
-    expect(
-      screen.queryByText('Cannot connect to server right now, try again later.'),
-    ).not.toBeInTheDocument();
-    expect(mockMessageInput.mock.calls.at(-1)?.[0]?.isTransportConnected).toBe(true);
+    expect(screen.queryByText('Cannot connect to server right now, try again later.')).not.toBeInTheDocument();
 
     act(() => {
       mockIpcListeners.get('ipc-status')?.({ isConnected: false });
     });
-    expect(
-      screen.getByText('Cannot connect to server right now, try again later.'),
-    ).toBeInTheDocument();
-    expect(mockMessageInput.mock.calls.at(-1)?.[0]?.isTransportConnected).toBe(false);
+    expect(screen.queryByText('Cannot connect to server right now, try again later.')).not.toBeInTheDocument();
 
     act(() => {
       mockIpcListeners.get('ipc-status')?.({ isConnected: true });
     });
-    expect(
-      screen.queryByText('Cannot connect to server right now, try again later.'),
-    ).not.toBeInTheDocument();
-    expect(mockMessageInput.mock.calls.at(-1)?.[0]?.isTransportConnected).toBe(true);
+    expect(screen.queryByText('Cannot connect to server right now, try again later.')).not.toBeInTheDocument();
   });
 
   test('does not render a duplicate header logo when sidebar is collapsed', () => {

@@ -734,7 +734,7 @@ describe('useChatMessageSender', () => {
       expect.objectContaining({
         sender: 'assistant',
         type: 'error',
-        text: 'Failed to send message. Please try again.',
+        text: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects.",
       }),
     );
   });

@@ -95,7 +95,7 @@ function buildQuerySendFailure({
     id: queryMessageId,
     ...queryContext,
     payload: {
-      message: 'Unable to send query: backend connection is unavailable.',
+      message: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects.",
     },
   };
 }

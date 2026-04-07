@@ -81,7 +81,7 @@ export function useChatMessageSender(
   const appendSendFailureMessage = useCallback((conversationRef?: string | null) => {
     addMessage({
       id: crypto.randomUUID(),
-      text: 'Failed to send message. Please try again.',
+      text: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects.",
       sender: 'assistant',
       type: 'error',
       sourceEventType: 'renderer-compose',
