@@ -140,7 +140,7 @@ body {
   --chatbox-close-button-x: calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shift-x));
   --chatbox-bump-shoulder-width: 26px;
   --chatbox-bump-half-width: 18px;
-  border-radius: 34px;
+  border-radius: 32px;
   border: 1px solid var(--ui-border);
   background: var(--ui-panel-bg);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
@@ -162,51 +162,39 @@ body {
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   clip-path: polygon(
-    0 calc(var(--chatbox-bump-height) + 34px),
-    1px calc(var(--chatbox-bump-height) + 29px),
-    2px calc(var(--chatbox-bump-height) + 24px),
-    5px calc(var(--chatbox-bump-height) + 19px),
-    9px calc(var(--chatbox-bump-height) + 14px),
-    14px calc(var(--chatbox-bump-height) + 9px),
-    19px calc(var(--chatbox-bump-height) + 5px),
-    24px calc(var(--chatbox-bump-height) + 2px),
-    29px calc(var(--chatbox-bump-height) + 1px),
-    34px var(--chatbox-bump-height),
+    0 calc(var(--chatbox-bump-height) + 32px),
+    1px calc(var(--chatbox-bump-height) + 24px),
+    4px calc(var(--chatbox-bump-height) + 16px),
+    9px calc(var(--chatbox-bump-height) + 9px),
+    16px calc(var(--chatbox-bump-height) + 4px),
+    24px calc(var(--chatbox-bump-height) + 1px),
+    32px var(--chatbox-bump-height),
     calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shoulder-width) - var(--chatbox-bump-shift-x)) var(--chatbox-bump-height),
     calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-half-width) - var(--chatbox-bump-shift-x)) 3px,
     calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shift-x)) 0,
     calc(var(--chatbox-close-contour-x) + var(--chatbox-bump-half-width) - var(--chatbox-bump-shift-x)) 3px,
     calc(var(--chatbox-close-contour-x) + var(--chatbox-bump-shoulder-width) - var(--chatbox-bump-shift-x)) var(--chatbox-bump-height),
-    calc(100% - 34px) var(--chatbox-bump-height),
-    calc(100% - 29px) calc(var(--chatbox-bump-height) + 1px),
-    calc(100% - 24px) calc(var(--chatbox-bump-height) + 2px),
-    calc(100% - 19px) calc(var(--chatbox-bump-height) + 5px),
-    calc(100% - 14px) calc(var(--chatbox-bump-height) + 9px),
-    calc(100% - 9px) calc(var(--chatbox-bump-height) + 14px),
-    calc(100% - 5px) calc(var(--chatbox-bump-height) + 19px),
-    calc(100% - 2px) calc(var(--chatbox-bump-height) + 24px),
-    calc(100% - 1px) calc(var(--chatbox-bump-height) + 29px),
-    100% calc(var(--chatbox-bump-height) + 34px),
-    100% calc(100% - 34px),
-    calc(100% - 1px) calc(100% - 29px),
-    calc(100% - 2px) calc(100% - 24px),
-    calc(100% - 5px) calc(100% - 19px),
-    calc(100% - 9px) calc(100% - 14px),
-    calc(100% - 14px) calc(100% - 9px),
-    calc(100% - 19px) calc(100% - 5px),
-    calc(100% - 24px) calc(100% - 2px),
-    calc(100% - 29px) calc(100% - 1px),
-    calc(100% - 34px) 100%,
-    34px 100%,
-    29px calc(100% - 1px),
-    24px calc(100% - 2px),
-    19px calc(100% - 5px),
-    14px calc(100% - 9px),
-    9px calc(100% - 14px),
-    5px calc(100% - 19px),
-    2px calc(100% - 24px),
-    1px calc(100% - 29px),
-    0 calc(100% - 34px)
+    calc(100% - 32px) var(--chatbox-bump-height),
+    calc(100% - 24px) calc(var(--chatbox-bump-height) + 1px),
+    calc(100% - 16px) calc(var(--chatbox-bump-height) + 4px),
+    calc(100% - 9px) calc(var(--chatbox-bump-height) + 9px),
+    calc(100% - 4px) calc(var(--chatbox-bump-height) + 16px),
+    calc(100% - 1px) calc(var(--chatbox-bump-height) + 24px),
+    100% calc(var(--chatbox-bump-height) + 32px),
+    100% calc(100% - 32px),
+    calc(100% - 1px) calc(100% - 24px),
+    calc(100% - 4px) calc(100% - 16px),
+    calc(100% - 9px) calc(100% - 9px),
+    calc(100% - 16px) calc(100% - 4px),
+    calc(100% - 24px) calc(100% - 1px),
+    calc(100% - 32px) 100%,
+    32px 100%,
+    24px calc(100% - 1px),
+    16px calc(100% - 4px),
+    9px calc(100% - 9px),
+    4px calc(100% - 16px),
+    1px calc(100% - 24px),
+    0 calc(100% - 32px)
   );
 }
 
