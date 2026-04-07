@@ -138,8 +138,9 @@ body {
   --chatbox-close-contour-x: calc(var(--chatbox-close-center-x) - var(--chatbox-close-contour-offset-x));
   --chatbox-bump-shift-x: 24px;
   --chatbox-close-button-x: calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shift-x));
-  --chatbox-bump-shoulder-width: 26px;
-  --chatbox-bump-half-width: 18px;
+  --chatbox-bump-shoulder-width: 20px;
+  --chatbox-bump-curve-width: 15px;
+  --chatbox-bump-half-width: 9px;
   border-radius: 32px;
   border: 1px solid var(--ui-border);
   background: var(--ui-panel-bg);
@@ -170,9 +171,11 @@ body {
     24px calc(var(--chatbox-bump-height) + 1px),
     32px var(--chatbox-bump-height),
     calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shoulder-width) - var(--chatbox-bump-shift-x)) var(--chatbox-bump-height),
-    calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-half-width) - var(--chatbox-bump-shift-x)) 3px,
+    calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-curve-width) - var(--chatbox-bump-shift-x)) 5px,
+    calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-half-width) - var(--chatbox-bump-shift-x)) 1px,
     calc(var(--chatbox-close-contour-x) - var(--chatbox-bump-shift-x)) 0,
-    calc(var(--chatbox-close-contour-x) + var(--chatbox-bump-half-width) - var(--chatbox-bump-shift-x)) 3px,
+    calc(var(--chatbox-close-contour-x) + var(--chatbox-bump-half-width) - var(--chatbox-bump-shift-x)) 1px,
+    calc(var(--chatbox-close-contour-x) + var(--chatbox-bump-curve-width) - var(--chatbox-bump-shift-x)) 5px,
     calc(var(--chatbox-close-contour-x) + var(--chatbox-bump-shoulder-width) - var(--chatbox-bump-shift-x)) var(--chatbox-bump-height),
     calc(100% - 32px) var(--chatbox-bump-height),
     calc(100% - 24px) calc(var(--chatbox-bump-height) + 1px),
