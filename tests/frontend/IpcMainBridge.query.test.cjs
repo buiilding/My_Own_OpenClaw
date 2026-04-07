@@ -12,11 +12,20 @@ const {
 describe('ipc.cjs bridge query handling', () => {
   registerBridgeSuiteLifecycleHooks();
 
-  function setupQueryBridge(initOptions = {}, queryContextOptions = undefined) {
+  function beginBackendConnection(bridge, message = { type: 'list-models' }) {
+    const pending = bridge.handlers['to-backend']({ sender: null }, message);
+    const ws = bridge.getWs();
+    expect(ws).not.toBeNull();
+    return { pending, ws };
+  }
+
+  async function setupQueryBridge(initOptions = {}, queryContextOptions = undefined) {
     const bridge = initIpc(initOptions);
-    bridge.ws.triggerOpen();
+    const { pending, ws } = beginBackendConnection(bridge);
+    ws.triggerOpen();
+    await pending;
     primeQueryContext(bridge.backendBridge, queryContextOptions);
-    return bridge;
+    return { ...bridge, ws };
   }
 
   function sendQuery(handlers, payload, sender = null) {
@@ -24,6 +33,19 @@ describe('ipc.cjs bridge query handling', () => {
       type: 'query',
       payload,
     });
+  }
+
+  async function beginQuerySend(bridge, payload, sender = null) {
+    const pending = sendQuery(bridge.handlers, payload, sender);
+    let ws = bridge.getWs();
+    for (let attempt = 0; !ws && attempt < 8; attempt += 1) {
+      await Promise.resolve();
+      ws = bridge.getWs();
+    }
+    if (!ws) {
+      throw new Error('Expected query send to create a backend websocket.');
+    }
+    return { pending, ws };
   }
 
   function getLastSentMessage(ws) {
@@ -52,7 +74,7 @@ describe('ipc.cjs bridge query handling', () => {
 
   test('runs overlay pre-capture hook for chatbox-origin query sends', async () => {
     const onBeforeOverlayQueryCapture = jest.fn().mockResolvedValue(undefined);
-    const { handlers } = setupQueryBridge({ onBeforeOverlayQueryCapture });
+    const { handlers } = await setupQueryBridge({ onBeforeOverlayQueryCapture });
 
     await sendQuery(
       handlers,
@@ -65,7 +87,7 @@ describe('ipc.cjs bridge query handling', () => {
 
   test('skips overlay pre-capture hook for dashboard-origin query sends', async () => {
     const onBeforeOverlayQueryCapture = jest.fn().mockResolvedValue(undefined);
-    const { handlers } = setupQueryBridge({ onBeforeOverlayQueryCapture });
+    const { handlers } = await setupQueryBridge({ onBeforeOverlayQueryCapture });
 
     await sendQuery(
       handlers,
@@ -76,27 +98,28 @@ describe('ipc.cjs bridge query handling', () => {
     expect(onBeforeOverlayQueryCapture).not.toHaveBeenCalled();
   });
 
-  test('emits renderer error event when query send fails due to disconnected backend', async () => {
-    const { handlers, backendBridge, mainWindow } = initIpc();
+  test('opens the backend websocket on the first query when the bridge starts idle', async () => {
+    const bridge = initIpc();
+    const { backendBridge, mainWindow } = bridge;
     primeQueryContext(backendBridge);
 
-    await handlers['to-backend']({ sender: null }, {
-      type: 'query',
-      payload: { text: 'offline query', conversation_ref: 'conv-offline' },
+    const { pending, ws } = await beginQuerySend(bridge, {
+      text: 'first lazy-connect query',
+      conversation_ref: 'conv-lazy-connect',
     });
 
-    const backendEvents = mainWindow.webContents.send.mock.calls
-      .filter(([channel]) => channel === 'from-backend')
-      .map(([, payload]) => payload);
-    const errorEvent = backendEvents.find((eventPayload) => eventPayload?.type === 'error');
+    expect(ws.url).toContain('/ws');
+    ws.triggerOpen();
+    await pending;
 
-    expect(errorEvent).toBeDefined();
-    expect(errorEvent.turn_ref).toBe('uuid-1');
-    expect(errorEvent.payload.message).toContain('backend connection is unavailable');
+    const messageTypes = ws.sent.map((entry) => JSON.parse(entry).type);
+    expect(messageTypes).toEqual(expect.arrayContaining(['handshake', 'query']));
+    const localUserMessage = getLatestLocalUserMessage(mainWindow);
+    expect(localUserMessage.payload.conversation_ref).toBe('conv-lazy-connect');
   });
 
   test('builds full query payload with system state + memories', async () => {
-    const { handlers, ws } = setupQueryBridge({}, {
+    const { handlers, ws } = await setupQueryBridge({}, {
       systemState: {
         active_window: 'App',
         mouse_position: '0,0',
@@ -125,7 +148,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('injects attachment context into backend query content and keeps filenames in local echo only', async () => {
-    const { handlers, ws, mainWindow } = setupQueryBridge({}, {
+    const { handlers, ws, mainWindow } = await setupQueryBridge({}, {
       systemState: {
         active_window: 'App',
         mouse_position: '0,0',
@@ -153,7 +176,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('reuses backend conversation_ref fallback for local echo and outbound query payload', async () => {
-    const { handlers, ws, mainWindow } = setupQueryBridge({}, {
+    const { handlers, ws, mainWindow } = await setupQueryBridge({}, {
       systemState: {
         active_window: 'App',
         mouse_position: '0,0',
@@ -191,7 +214,7 @@ describe('ipc.cjs bridge query handling', () => {
       getBounds: jest.fn(() => ({ x: 2200, y: 80, width: 520, height: 116 })),
     };
 
-    const { handlers, backendBridge } = setupQueryBridge({ chatWindow });
+    const { handlers, backendBridge } = await setupQueryBridge({ chatWindow });
     const electron = require('electron');
     electron.screen.getAllDisplays.mockReturnValue([
       {
@@ -263,7 +286,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('replays in-flight query events to late-mounted renderer windows', async () => {
-    const { handlers, ws, ipc } = setupQueryBridge({}, {
+    const { handlers, ws, ipc } = await setupQueryBridge({}, {
       systemState: {
         active_window: 'App',
         mouse_position: '0,0',
@@ -311,7 +334,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('escapes XML-sensitive query, system state, and memory content', async () => {
-    const { handlers, ws } = setupQueryBridge({}, {
+    const { handlers, ws } = await setupQueryBridge({}, {
       systemState: {
         active_window: 'Editor <Main> & Co',
         mouse_position: '10 > 9',
@@ -345,7 +368,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('strips query screenshot_url before sending to backend', async () => {
-    const { handlers, ws, mainWindow } = setupQueryBridge({}, {
+    const { handlers, ws, mainWindow } = await setupQueryBridge({}, {
       systemState: {
         active_window: 'App',
         mouse_position: '0,0',
@@ -373,7 +396,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('hydrates local-user-message screenshot_url from screenshot_ref when renderer payload omits url', async () => {
-    const { handlers, ws, mainWindow } = setupQueryBridge({}, {
+    const { handlers, ws, mainWindow } = await setupQueryBridge({}, {
       systemState: {
         active_window: 'App',
         mouse_position: '0,0',
@@ -399,7 +422,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('strips tool-bundle-result screenshot_url fields before sending to backend', async () => {
-    const { handlers, ws } = setupQueryBridge();
+    const { handlers, ws } = await setupQueryBridge();
 
     await handlers['to-backend']({ sender: null }, {
       type: 'tool-bundle-result',
@@ -426,7 +449,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('builds query with fallback system context on system state error', async () => {
-    const { handlers, ws } = setupQueryBridge({}, {
+    const { handlers, ws } = await setupQueryBridge({}, {
       systemStateError: new Error('boom'),
     });
 
@@ -439,7 +462,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('builds query with empty memories when search fails', async () => {
-    const { handlers, ws } = setupQueryBridge({}, {
+    const { handlers, ws } = await setupQueryBridge({}, {
       memoryError: new Error('fail'),
     });
 
@@ -451,7 +474,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('builds query with empty memories when search response is malformed', async () => {
-    const { handlers, ws } = setupQueryBridge({}, {
+    const { handlers, ws } = await setupQueryBridge({}, {
       memoryResult: {
         success: true,
         data: {},
@@ -465,7 +488,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('skips memory retrieval search and memory tags when retrieval injection is disabled', async () => {
-    const { handlers, ws, backendBridge } = setupQueryBridge({}, {
+    const { handlers, ws, backendBridge } = await setupQueryBridge({}, {
       memoryResult: {
         success: true,
         data: { memories: { episodic: ['should not appear'], semantic: ['should not appear'] } },
@@ -488,7 +511,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('persists memory-store backend events once in main process before renderer fanout', async () => {
-    const { ws, backendBridge, mainWindow } = setupQueryBridge();
+    const { ws, backendBridge, mainWindow } = await setupQueryBridge();
 
     ws.handlers.message(JSON.stringify({
       type: 'memory-store',
@@ -517,22 +540,27 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('gates first query behind settings-updated ack when frontend config exists', async () => {
-    const { handlers, ws, backendBridge, fs } = initIpc();
+    const bridge = initIpc();
+    const { handlers, backendBridge, fs } = bridge;
     fs.existsSync.mockReturnValue(true);
     fs.promises.readFile.mockResolvedValue(JSON.stringify({
       interaction_mode: 'agent',
       model_mode: 'online',
     }));
-    ws.triggerOpen();
     primeQueryContext(backendBridge);
 
-    const queryPromise = sendQuery(handlers, { text: 'mode check', conversation_ref: 'conv-5' });
+    const { pending: queryPromise, ws } = await beginQuerySend(bridge, {
+      text: 'mode check',
+      conversation_ref: 'conv-5',
+    });
+    ws.triggerOpen();
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(ws.sent.length).toBe(2);
-    const settingsMessage = JSON.parse(ws.sent[1]);
-    expect(settingsMessage.type).toBe('update-settings');
+    const settingsMessage = ws.sent
+      .map((entry) => JSON.parse(entry))
+      .find((entry) => entry.type === 'update-settings');
+    expect(settingsMessage).toBeDefined();
     expect(settingsMessage.payload).toEqual(expect.objectContaining({
       interaction_mode: 'agent',
     }));
@@ -547,14 +575,16 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('waits for pending renderer update-settings ack before sending query', async () => {
-    const { handlers, ws } = setupQueryBridge();
+    const { handlers, ws } = await setupQueryBridge();
 
     await handlers['to-backend']({ sender: null }, {
       type: 'update-settings',
       payload: { interaction_mode: 'agent' },
     });
 
-    const updateSettingsMessage = JSON.parse(ws.sent[1]);
+    const updateSettingsMessage = ws.sent
+      .map((entry) => JSON.parse(entry))
+      .findLast((entry) => entry.type === 'update-settings');
     expect(updateSettingsMessage.type).toBe('update-settings');
 
     const queryPromise = sendQuery(handlers, { text: 'after settings update', conversation_ref: 'conv-6' });
@@ -574,16 +604,20 @@ describe('ipc.cjs bridge query handling', () => {
   test('sends first query after initial settings sync timeout fallback', async () => {
     jest.useFakeTimers();
     try {
-      const { handlers, ws, backendBridge, fs } = initIpc();
+      const bridge = initIpc();
+      const { backendBridge, fs } = bridge;
       fs.existsSync.mockReturnValue(true);
       fs.promises.readFile.mockResolvedValue(JSON.stringify({
         interaction_mode: 'agent',
         model_mode: 'online',
       }));
-      ws.triggerOpen();
       primeQueryContext(backendBridge);
 
-      const queryPromise = sendQuery(handlers, { text: 'timeout fallback query', conversation_ref: 'conv-timeout-1' });
+      const { pending: queryPromise, ws } = await beginQuerySend(bridge, {
+        text: 'timeout fallback query',
+        conversation_ref: 'conv-timeout-1',
+      });
+      ws.triggerOpen();
       await Promise.resolve();
       await Promise.resolve();
 
@@ -600,7 +634,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('keeps initial query context after transient query send failure', async () => {
-    const { handlers, ws, backendBridge } = setupQueryBridge({}, {
+    const { handlers, ws, backendBridge } = await setupQueryBridge({}, {
       systemState: {
         active_window: 'App',
         mouse_position: '0,0',
@@ -639,7 +673,7 @@ describe('ipc.cjs bridge query handling', () => {
   test('reconnect clears stale conversation ref fallback before next query', async () => {
     jest.useFakeTimers();
     try {
-      const { handlers, ws, mainWindow } = setupQueryBridge();
+      const { handlers, ws, mainWindow } = await setupQueryBridge();
 
       ws.handlers.message(JSON.stringify({
         type: 'streaming-response',

@@ -199,6 +199,9 @@ Primary modules:
   - Keeps macOS/Windows/Linux window rules in one place so composition/runtime modules do not duplicate Electron platform conditionals.
 - `main/ipc.cjs`:
   - Single backend WebSocket client lifecycle and reconnect.
+  - Opens the backend socket on demand for backend-bound work instead of at app startup.
+  - Keeps the socket alive through active agent-loop phases, then starts a 30 minute idle grace timer before intentionally closing the connection.
+  - Only auto-reconnects after unexpected closes while the loop or idle grace window still owns the transport.
   - Handshake/user/session/conversation context propagation.
   - Settings sync ACK tracking (`settings-updated`/timeout handling).
   - Applies the renderer-owned `global_agent_stop_shortcut` preference locally in main while filtering that key out of backend `update-settings` payloads.

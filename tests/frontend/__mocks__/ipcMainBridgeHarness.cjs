@@ -17,6 +17,12 @@ jest.mock('ws', () => {
     send(data) {
       this.sent.push(data);
     }
+    close() {
+      this.readyState = WebSocketMock.CLOSED;
+      if (this.handlers.close) {
+        this.handlers.close();
+      }
+    }
     triggerOpen() {
       this.readyState = WebSocketMock.OPEN;
       if (this.handlers.open) {
@@ -161,9 +167,10 @@ function initIpc(options = {}) {
     })),
   });
 
-  const ws = WebSocketMock.instances[0];
+  const getWs = () => WebSocketMock.instances[WebSocketMock.instances.length - 1] || null;
+  const ws = getWs();
 
-  return { handlers, ws, backendBridge, mainWindow, chatWindow, fs, ipc };
+  return { handlers, ws, getWs, backendBridge, mainWindow, chatWindow, fs, ipc };
 }
 
 module.exports = {

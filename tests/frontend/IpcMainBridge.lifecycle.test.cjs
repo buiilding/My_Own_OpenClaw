@@ -13,6 +13,7 @@ const {
 } = require('../../frontend/src/main/display_affinity_runtime.cjs');
 const {
   BACKEND_RECONNECT_INTERVAL_MS,
+  BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
 } = require('../../frontend/src/main/ipc.cjs');
 
 describe('ipc.cjs bridge lifecycle/config', () => {
@@ -22,10 +23,19 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     setActiveDisplayAffinity(null);
   });
 
-  function setupOpenedIpc(options = {}) {
+  function beginBackendConnection(bridge, message = { type: 'list-models' }) {
+    const pending = bridge.handlers['to-backend']({ sender: null }, message);
+    const ws = bridge.getWs();
+    expect(ws).not.toBeNull();
+    return { pending, ws };
+  }
+
+  async function setupOpenedIpc(options = {}) {
     const bridge = initIpc(options);
-    bridge.ws.triggerOpen();
-    return bridge;
+    const { pending, ws } = beginBackendConnection(bridge);
+    ws.triggerOpen();
+    await pending;
+    return { ...bridge, ws };
   }
 
   function emitBackendMessage(ws, payload) {
@@ -49,10 +59,15 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     fs.promises.readFile.mockResolvedValue(content);
   }
 
-  test('sends handshake on websocket open with sanitized user_id', () => {
-    const { ws } = setupOpenedIpc();
+  test('does not create the backend websocket during ipc initialization', () => {
+    const bridge = initIpc();
 
-    expect(ws.sent).toHaveLength(1);
+    expect(bridge.ws).toBeNull();
+  });
+
+  test('sends handshake on websocket open with sanitized user_id', async () => {
+    const { ws } = await setupOpenedIpc();
+
     const handshake = JSON.parse(ws.sent[0]);
     expect(handshake.type).toBe('handshake');
     expect(handshake.user_id).toBe('bad_user_');
@@ -61,17 +76,19 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   test('queues list-models requests made before websocket open and flushes them after connect', async () => {
     const bridge = initIpc();
 
-    await bridge.handlers['to-backend']({ sender: null }, { type: 'list-models' });
+    const pendingRequest = bridge.handlers['to-backend']({ sender: null }, { type: 'list-models' });
 
-    expect(bridge.ws.sent).toHaveLength(0);
+    const pendingSocket = bridge.getWs();
+    expect(pendingSocket.sent).toHaveLength(0);
 
-    bridge.ws.triggerOpen();
+    pendingSocket.triggerOpen();
+    await pendingRequest;
 
-    expect(bridge.ws.sent).toHaveLength(2);
-    expect(JSON.parse(bridge.ws.sent[0])).toEqual(expect.objectContaining({
+    expect(pendingSocket.sent).toHaveLength(2);
+    expect(JSON.parse(pendingSocket.sent[0])).toEqual(expect.objectContaining({
       type: 'handshake',
     }));
-    expect(JSON.parse(bridge.ws.sent[1])).toEqual(expect.objectContaining({
+    expect(JSON.parse(pendingSocket.sent[1])).toEqual(expect.objectContaining({
       type: 'list-models',
       payload: {},
       user_id: 'bad_user_',
@@ -79,7 +96,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   });
 
   test('exposes current conversation and session metadata in get-client-user-id snapshot', async () => {
-    const { handlers, ws } = setupOpenedIpc();
+    const { handlers, ws } = await setupOpenedIpc();
     emitBackendMessage(ws, {
       type: 'streaming-response',
       conversation_ref: 'conv-snapshot-1',
@@ -96,7 +113,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   });
 
   test('includes global stop shortcut status in IPC snapshots after runtime updates', async () => {
-    const { handlers, mainWindow, ipc } = setupOpenedIpc();
+    const { handlers, mainWindow, ipc } = await setupOpenedIpc();
 
     ipc.updateGlobalAgentStopShortcutStatus({
       requestedAccelerator: 'CommandOrControl+Alt+.',
@@ -127,7 +144,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   });
 
   test('keeps dashboard-selected conversation for chat-pill send after dashboard handoff', async () => {
-    const { handlers, ws, mainWindow, backendBridge, ipc } = setupOpenedIpc();
+    const { handlers, ws, mainWindow, backendBridge, ipc } = await setupOpenedIpc();
     primeQueryContext(backendBridge);
 
     const chatPillWindow = {
@@ -173,9 +190,9 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(sentQuery.payload.conversation_ref).toBe('conv-dashboard-selected');
   });
 
-  test('switches response overlay phase to tool-call when backend emits tool-call', () => {
+  test('switches response overlay phase to tool-call when backend emits tool-call', async () => {
     const applyResponseOverlayPhase = jest.fn();
-    const { ws } = setupOpenedIpc({ applyResponseOverlayPhase });
+    const { ws } = await setupOpenedIpc({ applyResponseOverlayPhase });
     emitBackendMessage(ws, { type: 'tool-call', payload: {} });
 
     expect(applyResponseOverlayPhase).toHaveBeenCalledWith({
@@ -185,9 +202,9 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
   });
 
-  test('switches response overlay phase to tool-output after tool-output', () => {
+  test('switches response overlay phase to tool-output after tool-output', async () => {
     const applyResponseOverlayPhase = jest.fn();
-    const { ws } = setupOpenedIpc({ applyResponseOverlayPhase });
+    const { ws } = await setupOpenedIpc({ applyResponseOverlayPhase });
     emitBackendMessage(ws, { type: 'tool-call', payload: {} });
     emitBackendMessage(ws, { type: 'tool-output', payload: {} });
 
@@ -203,9 +220,9 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
   });
 
-  test('switches response overlay phase to tool-call when backend emits web-search-progress', () => {
+  test('switches response overlay phase to tool-call when backend emits web-search-progress', async () => {
     const applyResponseOverlayPhase = jest.fn();
-    const { ws } = setupOpenedIpc({ applyResponseOverlayPhase });
+    const { ws } = await setupOpenedIpc({ applyResponseOverlayPhase });
     emitBackendMessage(ws, {
       type: 'web-search-progress',
       payload: { request_id: 'req-web-search-progress-1' },
@@ -219,7 +236,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
   });
 
-  test('preserves active display affinity across backend websocket close', () => {
+  test('preserves active display affinity across backend websocket close', async () => {
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(() => 0);
     setActiveDisplayAffinity({
       monitor_id: '2',
@@ -227,7 +244,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
       workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
       desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
     });
-    const { ws } = setupOpenedIpc();
+    const { ws } = await setupOpenedIpc();
 
     ws.handlers.close();
 
@@ -242,9 +259,9 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     setTimeoutSpy.mockRestore();
   });
 
-  test('includes overlay recovery metadata for tool-call phase events when available', () => {
+  test('includes overlay recovery metadata for tool-call phase events when available', async () => {
     const applyResponseOverlayPhase = jest.fn();
-    const { ws } = setupOpenedIpc({ applyResponseOverlayPhase });
+    const { ws } = await setupOpenedIpc({ applyResponseOverlayPhase });
     emitBackendMessage(ws, {
       id: 'event-tool-call-1',
       type: 'tool-call',
@@ -270,17 +287,15 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   });
 
   test('ignores malformed to-backend event payloads without crashing', async () => {
-    const { handlers, ws } = setupOpenedIpc();
+    const { handlers, ws } = initIpc();
 
     await handlers['to-backend']({ sender: null });
 
-    expect(ws.sent).toHaveLength(1);
-    const handshake = JSON.parse(ws.sent[0]);
-    expect(handshake.type).toBe('handshake');
+    expect(ws).toBeNull();
   });
 
   test('handles query events with missing payload object without throwing', async () => {
-    const { handlers, ws, backendBridge } = setupOpenedIpc();
+    const { handlers, ws, backendBridge } = await setupOpenedIpc();
     primeQueryContext(backendBridge);
 
     await handlers['to-backend']({ sender: null }, { type: 'query' });
@@ -293,7 +308,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
   test('enables and disables the global stop shortcut based on active loop phases', async () => {
     const setAgentLoopStopShortcutEnabled = jest.fn();
-    const { handlers, ws, backendBridge, mainWindow } = setupOpenedIpc({
+    const { handlers, ws, backendBridge, mainWindow } = await setupOpenedIpc({
       setAgentLoopStopShortcutEnabled,
     });
     primeQueryContext(backendBridge);
@@ -317,7 +332,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
   test('global stop shortcut sends stop-query through the active conversation context', async () => {
     const setAgentLoopStopShortcutEnabled = jest.fn();
-    const { handlers, ws, backendBridge, mainWindow, ipc } = setupOpenedIpc({
+    const { handlers, ws, backendBridge, mainWindow, ipc } = await setupOpenedIpc({
       setAgentLoopStopShortcutEnabled,
     });
     primeQueryContext(backendBridge);
@@ -340,23 +355,26 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     process.env.BACKEND_HOST = '10.0.0.42';
     process.env.BACKEND_PORT = '9001';
 
-    const { ws, handlers } = initIpc();
+    const bridge = initIpc();
+    const { ws } = beginBackendConnection(bridge);
     expect(ws.url).toBe('ws://10.0.0.42:9001/ws');
     expect(ws.options).toEqual(expect.objectContaining({ origin: 'http://10.0.0.42:9001' }));
 
-    await expectClientEndpoints(handlers, 'ws://10.0.0.42:9001/ws', 'http://10.0.0.42:9001');
+    await expectClientEndpoints(bridge.handlers, 'ws://10.0.0.42:9001/ws', 'http://10.0.0.42:9001');
   });
 
   test('uses hosted backend defaults first for customer-mode desktop runs', async () => {
-    const { ws, handlers } = initIpc();
+    const bridge = initIpc();
+    const { ws } = beginBackendConnection(bridge);
     expect(ws.url).toBe('wss://api.windieos.com/ws');
     expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://api.windieos.com' }));
 
-    await expectClientEndpoints(handlers, 'wss://api.windieos.com/ws', 'https://api.windieos.com');
+    await expectClientEndpoints(bridge.handlers, 'wss://api.windieos.com/ws', 'https://api.windieos.com');
   });
 
   test('falls back to the local backend when the hosted default is unreachable before open', async () => {
-    const { handlers } = initIpc();
+    const bridge = initIpc();
+    const { pending } = beginBackendConnection(bridge);
     const WebSocketMock = require('ws');
     const remoteSocket = WebSocketMock.instances[0];
 
@@ -367,30 +385,34 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(fallbackSocket.options).toEqual(expect.objectContaining({ origin: 'http://127.0.0.1:8765' }));
 
     fallbackSocket.triggerOpen();
+    await pending;
 
-    await expectClientEndpoints(handlers, 'ws://127.0.0.1:8765/ws', 'http://127.0.0.1:8765');
+    await expectClientEndpoints(bridge.handlers, 'ws://127.0.0.1:8765/ws', 'http://127.0.0.1:8765');
   });
 
   test('derives websocket URL from BACKEND_HTTP_URL when explicit ws url is absent', async () => {
     process.env.BACKEND_HTTP_URL = 'https://windie.example.com/';
 
-    const { ws, handlers } = initIpc();
+    const bridge = initIpc();
+    const { ws } = beginBackendConnection(bridge);
     expect(ws.url).toBe('wss://windie.example.com/ws');
     expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://windie.example.com' }));
 
-    await expectClientEndpoints(handlers, 'wss://windie.example.com/ws', 'https://windie.example.com');
+    await expectClientEndpoints(bridge.handlers, 'wss://windie.example.com/ws', 'https://windie.example.com');
   });
 
   test('uses hosted backend defaults first when app is packaged', async () => {
-    const { ws, handlers } = initIpc({ isPackaged: true });
+    const bridge = initIpc({ isPackaged: true });
+    const { ws } = beginBackendConnection(bridge);
     expect(ws.url).toBe('wss://api.windieos.com/ws');
     expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://api.windieos.com' }));
 
-    await expectClientEndpoints(handlers, 'wss://api.windieos.com/ws', 'https://api.windieos.com');
+    await expectClientEndpoints(bridge.handlers, 'wss://api.windieos.com/ws', 'https://api.windieos.com');
   });
 
   test('falls back to the local backend when the packaged hosted default is unreachable before open', async () => {
-    const { handlers } = initIpc({ isPackaged: true });
+    const bridge = initIpc({ isPackaged: true });
+    const { pending } = beginBackendConnection(bridge);
     const WebSocketMock = require('ws');
     const remoteSocket = WebSocketMock.instances[0];
 
@@ -401,21 +423,65 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(fallbackSocket.options).toEqual(expect.objectContaining({ origin: 'http://127.0.0.1:8765' }));
 
     fallbackSocket.triggerOpen();
+    await pending;
 
-    await expectClientEndpoints(handlers, 'ws://127.0.0.1:8765/ws', 'http://127.0.0.1:8765');
+    await expectClientEndpoints(bridge.handlers, 'ws://127.0.0.1:8765/ws', 'http://127.0.0.1:8765');
   });
 
   test('uses packaged default backend env override when app is packaged', async () => {
     process.env.WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL = 'https://hosted.windie.example/v1/';
-    const { ws, handlers } = initIpc({ isPackaged: true });
+    const bridge = initIpc({ isPackaged: true });
+    const { ws } = beginBackendConnection(bridge);
     expect(ws.url).toBe('wss://hosted.windie.example/ws');
     expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://hosted.windie.example/v1' }));
 
     await expectClientEndpoints(
-      handlers,
+      bridge.handlers,
       'wss://hosted.windie.example/ws',
       'https://hosted.windie.example/v1',
     );
+  });
+
+  test('closes an idle backend websocket after the 30 minute grace window', async () => {
+    const setTimeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(() => 0);
+    const bridge = initIpc();
+    const { pending, ws } = beginBackendConnection(bridge);
+
+    ws.triggerOpen();
+    await pending;
+
+    const idleTimeoutCall = setTimeoutSpy.mock.calls.find(([, delay]) => (
+      delay === BACKEND_IDLE_DISCONNECT_TIMEOUT_MS
+    ));
+    expect(idleTimeoutCall).toBeDefined();
+
+    idleTimeoutCall[0]();
+
+    expect(ws.readyState).toBe(3);
+    expect(bridge.mainWindow.webContents.send).toHaveBeenCalledWith(
+      'ipc-status',
+      expect.objectContaining({ isConnected: false }),
+    );
+    setTimeoutSpy.mockRestore();
+  });
+
+  test('does not schedule reconnect after the idle timeout closes the websocket', async () => {
+    const setTimeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(() => 0);
+    const bridge = initIpc();
+    const { pending, ws } = beginBackendConnection(bridge);
+
+    ws.triggerOpen();
+    await pending;
+
+    const idleTimeoutCall = setTimeoutSpy.mock.calls.find(([, delay]) => (
+      delay === BACKEND_IDLE_DISCONNECT_TIMEOUT_MS
+    ));
+    expect(idleTimeoutCall).toBeDefined();
+
+    idleTimeoutCall[0]();
+
+    expect(setTimeoutSpy).not.toHaveBeenCalledWith(expect.any(Function), BACKEND_RECONNECT_INTERVAL_MS);
+    setTimeoutSpy.mockRestore();
   });
 
   test('load-frontend-config returns null when file missing', async () => {
