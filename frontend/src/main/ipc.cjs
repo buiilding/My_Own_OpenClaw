@@ -92,6 +92,8 @@ let BACKEND_ENDPOINT_CANDIDATES = [BACKEND_ENDPOINTS];
 let activeBackendEndpointIndex = 0;
 const SETTINGS_SYNC_TIMEOUT_MS = 2500;
 const BACKEND_RECONNECT_INTERVAL_MS = 1000;
+const BACKEND_CONNECT_TIMEOUT_MS = 10000;
+const BACKEND_IDLE_DISCONNECT_TIMEOUT_MS = 30 * 60 * 1000;
 let ws = null;
 let rendererWindows = new Set();
 let isConnected = false;
@@ -106,11 +108,16 @@ let pendingSettingsSyncPromise = null;
 const pendingSettingsSyncs = new Map();
 let hasPendingListModelsRequest = false;
 const backendMessageObservers = new Set();
+const pendingBackendConnectWaiters = new Set();
 let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
 let setAgentLoopStopShortcutEnabled = null;
 let setGlobalAgentStopShortcutAccelerator = null;
 let currentGlobalAgentStopShortcutStatus = null;
+let backendReconnectTimer = null;
+let backendIdleDisconnectTimer = null;
+let shouldMaintainBackendConnection = false;
+let intentionalSocketCloseReason = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 
@@ -259,6 +266,125 @@ function resetBackendSessionState() {
   currentConversationRef = null;
 }
 
+function isActiveBackendLoopPhase(phase) {
+  return (
+    phase === 'awaiting-first-chunk'
+    || phase === 'streaming'
+    || phase === 'tool-call'
+    || phase === 'tool-output'
+  );
+}
+
+function clearBackendReconnectTimer() {
+  if (backendReconnectTimer !== null) {
+    clearTimeout(backendReconnectTimer);
+    backendReconnectTimer = null;
+  }
+}
+
+function scheduleBackendReconnect(delayMs = BACKEND_RECONNECT_INTERVAL_MS) {
+  clearBackendReconnectTimer();
+  backendReconnectTimer = setTimeout(() => {
+    backendReconnectTimer = null;
+    connect();
+  }, delayMs);
+}
+
+function clearBackendIdleDisconnectTimer() {
+  if (backendIdleDisconnectTimer !== null) {
+    clearTimeout(backendIdleDisconnectTimer);
+    backendIdleDisconnectTimer = null;
+  }
+}
+
+function resolvePendingBackendConnectWaiters() {
+  if (pendingBackendConnectWaiters.size === 0) {
+    return;
+  }
+  for (const waiter of pendingBackendConnectWaiters) {
+    clearTimeout(waiter.timeoutId);
+    waiter.resolve(true);
+  }
+  pendingBackendConnectWaiters.clear();
+}
+
+function rejectPendingBackendConnectWaiters(error) {
+  if (pendingBackendConnectWaiters.size === 0) {
+    return;
+  }
+  for (const waiter of pendingBackendConnectWaiters) {
+    clearTimeout(waiter.timeoutId);
+    waiter.reject(error);
+  }
+  pendingBackendConnectWaiters.clear();
+}
+
+function syncBackendIdleDisconnectTimer(reason = 'idle-sync') {
+  clearBackendIdleDisconnectTimer();
+  if (!shouldMaintainBackendConnection) {
+    return;
+  }
+  if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) {
+    return;
+  }
+  if (isActiveBackendLoopPhase(responseOverlayPhaseState.getPhase())) {
+    return;
+  }
+  backendIdleDisconnectTimer = setTimeout(() => {
+    log(`Closing idle backend websocket after ${BACKEND_IDLE_DISCONNECT_TIMEOUT_MS}ms (${reason}).`);
+    intentionalSocketCloseReason = 'idle-timeout';
+    shouldMaintainBackendConnection = false;
+    clearBackendReconnectTimer();
+    clearBackendIdleDisconnectTimer();
+    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+      ws.close();
+    }
+  }, BACKEND_IDLE_DISCONNECT_TIMEOUT_MS);
+}
+
+function noteBackendTraffic(reason = 'traffic') {
+  if (!shouldMaintainBackendConnection) {
+    return;
+  }
+  syncBackendIdleDisconnectTimer(reason);
+}
+
+function ensureBackendConnectionDemand() {
+  shouldMaintainBackendConnection = true;
+  clearBackendReconnectTimer();
+  clearBackendIdleDisconnectTimer();
+}
+
+function waitForBackendConnection(reason = 'request', timeoutMs = BACKEND_CONNECT_TIMEOUT_MS) {
+  if (isConnected && ws && ws.readyState === WebSocket.OPEN) {
+    return Promise.resolve(true);
+  }
+  return new Promise((resolve, reject) => {
+    const waiter = {
+      resolve,
+      reject,
+      timeoutId: setTimeout(() => {
+        pendingBackendConnectWaiters.delete(waiter);
+        reject(new Error(`Timed out connecting to backend for ${reason}.`));
+      }, timeoutMs),
+    };
+    pendingBackendConnectWaiters.add(waiter);
+  });
+}
+
+async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_CONNECT_TIMEOUT_MS) {
+  ensureBackendConnectionDemand();
+  if (isConnected && ws && ws.readyState === WebSocket.OPEN) {
+    syncBackendIdleDisconnectTimer(`ensure:${reason}`);
+    return true;
+  }
+  const waitPromise = waitForBackendConnection(reason, timeoutMs);
+  connect();
+  await waitPromise;
+  syncBackendIdleDisconnectTimer(`connected:${reason}`);
+  return true;
+}
+
 function buildIpcStatusPayload(connected) {
   return {
     isConnected: connected,
@@ -388,9 +514,13 @@ function setResponseOverlayPhase(phase, source = 'ipc', metadata = null) {
       isAgentLoopStopShortcutPhase(responseOverlayPhaseState.getPhase()),
     );
   }
+  syncBackendIdleDisconnectTimer(`phase:${phase}`);
 }
 
 function connect() {
+  if (!shouldMaintainBackendConnection) {
+    return;
+  }
   if (
     ws &&
     (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)
@@ -414,6 +544,7 @@ function connect() {
     resetSettingsSyncState();
     setResponseOverlayPhase('idle', 'ws-open');
     ipcEventReplayState.clear();
+    clearBackendReconnectTimer();
     log('Successfully connected to Python backend.');
 
     // Generate valid user_id (backend rejects 'default_user', empty, or whitespace-only)
@@ -434,9 +565,12 @@ function connect() {
       log(`Handshake sent with user_id: ${currentUserId}`);
       // Broadcast connection status after handshake send to reduce startup races.
       broadcastConnectionStatus(true);
+      resolvePendingBackendConnectWaiters();
+      noteBackendTraffic('ws-open');
       flushPendingListModelsRequest();
     } catch (error) {
       log(`Error sending handshake: ${error}`);
+      rejectPendingBackendConnectWaiters(error);
     }
   });
 
@@ -447,6 +581,7 @@ function connect() {
     try {
       const data = JSON.parse(message);
       ipcEventReplayState.appendForActiveTurn(data);
+      noteBackendTraffic(`message:${data?.type || 'unknown'}`);
       notifyBackendMessageObservers(data);
       processBackendMessageData(data, {
         setCurrentSessionId: (value) => {
@@ -483,17 +618,33 @@ function connect() {
     resetBackendSessionState();
     setResponseOverlayPhase('idle', 'ws-close');
     ipcEventReplayState.clear();
-    if (!opened && advanceToNextBackendEndpoint()) {
+    const closeReason = intentionalSocketCloseReason;
+    intentionalSocketCloseReason = null;
+    clearBackendIdleDisconnectTimer();
+    const shouldReconnect = shouldMaintainBackendConnection && !closeReason;
+    if (!opened && shouldReconnect && advanceToNextBackendEndpoint()) {
       log(`Primary backend unavailable. Falling back to ${BACKEND_URL}.`);
       broadcastConnectionStatus(false);
       ws = null;
-      setTimeout(connect, 0);
+      scheduleBackendReconnect(0);
       return;
     }
-    log('Disconnected from Python backend. Attempting to reconnect...');
+    if (shouldReconnect) {
+      log('Disconnected from Python backend. Attempting to reconnect...');
+    } else {
+      log(`Disconnected from Python backend (${closeReason || 'idle'}).`);
+    }
     broadcastConnectionStatus(false);
     ws = null;
-    setTimeout(connect, BACKEND_RECONNECT_INTERVAL_MS);
+    if (!shouldReconnect && !opened) {
+      rejectPendingBackendConnectWaiters(
+        new Error(`Backend websocket closed before connecting (${closeReason || 'not-demanded'}).`),
+      );
+      return;
+    }
+    if (shouldReconnect) {
+      scheduleBackendReconnect(BACKEND_RECONNECT_INTERVAL_MS);
+    }
   });
 
   socket.on('error', (error) => {
@@ -501,11 +652,14 @@ function connect() {
       return;
     }
     log(`WebSocket error: ${error.message}`);
-    if (!opened && advanceToNextBackendEndpoint()) {
+    if (!opened && shouldMaintainBackendConnection && advanceToNextBackendEndpoint()) {
       log(`Primary backend unavailable. Falling back to ${BACKEND_URL}.`);
       ws = null;
       connect();
       return;
+    }
+    if (!opened && !shouldMaintainBackendConnection) {
+      rejectPendingBackendConnectWaiters(error);
     }
     if (socket.readyState === WebSocket.OPEN) {
       socket.close();
@@ -537,6 +691,7 @@ function sendMessageToBackend(type, payload, messageId = null) {
   try {
     ws.send(JSON.stringify(message));
     // Only log errors, not every message
+    noteBackendTraffic(`send:${type}`);
     return msgId;
   } catch (error) {
     log(`Error sending message to backend: ${error}`);
@@ -567,7 +722,6 @@ function initializeIpc(win, options = {}) {
     : () => ({ mainWindow: win, chatWindow: null });
   rendererWindows = new Set();
   trackRendererWindow(win);
-  connect();
   loadCachedFrontendConfigFromDisk()
     .then((config) => {
       if (!isValidConfigPayload(config)) {
@@ -719,6 +873,11 @@ function initializeIpc(win, options = {}) {
     if (type === 'list-models' && (!isConnected || !ws || ws.readyState !== WebSocket.OPEN)) {
       queueListModelsRequest();
       log('Queued list-models request until backend websocket is connected.');
+      try {
+        await ensureBackendConnection('list-models');
+      } catch (error) {
+        log(`Failed to connect backend for list-models: ${error?.message || error}`);
+      }
       return;
     }
 
@@ -729,10 +888,6 @@ function initializeIpc(win, options = {}) {
     // Only log important message types
     if (type === 'query' || type === 'wakeword-detected') {
       log(`Received ${type} from renderer`);
-      await ensureInitialSettingsSync();
-      if (pendingSettingsSyncPromise) {
-        await pendingSettingsSyncPromise;
-      }
     }
 
     let queryMessageId = null;
@@ -784,10 +939,36 @@ function initializeIpc(win, options = {}) {
       log('Complete user message built successfully');
     }
 
+    const shouldConnectForMessage = (
+      type === 'query'
+      || type === 'wakeword-detected'
+      || type === 'compact-history'
+      || type === 'rehydrate-conversation'
+      || type === 'load-settings'
+    );
+    let backendConnectionReady = true;
+    if (shouldConnectForMessage && (!isConnected || !ws || ws.readyState !== WebSocket.OPEN)) {
+      try {
+        await ensureBackendConnection(type);
+      } catch (error) {
+        backendConnectionReady = false;
+        log(`Failed to connect backend for ${type}: ${error?.message || error}`);
+      }
+    }
+
+    if (backendConnectionReady && (type === 'query' || type === 'wakeword-detected')) {
+      await ensureInitialSettingsSync();
+      if (pendingSettingsSyncPromise) {
+        await pendingSettingsSyncPromise;
+      }
+    }
+
     // System context is now pre-formatted in llm_content by ChatContext.jsx
     // No need to extract or add system_context here - backend expects pre-formatted messages
     
-    const messageId = sendMessageToBackend(type, payload, queryMessageId);
+    const messageId = backendConnectionReady
+      ? sendMessageToBackend(type, payload, queryMessageId)
+      : null;
     if (!messageId && type === 'query') {
       handleRendererQuerySendFailure({
         payload,
@@ -862,8 +1043,13 @@ async function sendAutomatedQuery(options = {}) {
     return { ok: false, error: 'Missing query text' };
   }
 
-  if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) {
-    return { ok: false, error: 'Backend websocket is not connected' };
+  try {
+    await ensureBackendConnection('automated-query');
+  } catch (error) {
+    return {
+      ok: false,
+      error: error?.message || 'Backend websocket is not connected',
+    };
   }
 
   await ensureInitialSettingsSync();
@@ -918,6 +1104,8 @@ async function sendAutomatedQuery(options = {}) {
 }
 
 module.exports = {
+  BACKEND_CONNECT_TIMEOUT_MS,
+  BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
   BACKEND_RECONNECT_INTERVAL_MS,
   getBackendConnectionState,
   getLatestFrontendConfig,

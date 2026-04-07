@@ -127,13 +127,16 @@ The default product topology is remote-first: the app and SDK talk to the hosted
 
 ### Connection Lifecycle
 
-1. **Connection**: Client connects to backend WebSocket (customer-mode source and packaged runs try `wss://api.windieos.com/ws` first and fall back to `ws://127.0.0.1:8765/ws` if the hosted backend is unreachable before the socket opens)
+1. **Connection**: Electron main opens the backend WebSocket on demand instead of at renderer startup. Customer-mode source and packaged runs try `wss://api.windieos.com/ws` first and fall back to `ws://127.0.0.1:8765/ws` if the hosted backend is unreachable before the socket opens.
 2. **Handshake**: Client sends handshake message (backend validates and uses client `user_id`)
    - Electron main also sends the frontend operating-system label so backend session prompt rendering can follow the frontend OS instead of the Python host OS
    - Invalid handshake JSON/schema closes the socket with code `1008` (policy violation)
 3. **Session Creation**: Backend creates session
 4. **Message Loop**: Continuous message exchange
 5. **Disconnection**: Cleanup on disconnect
+   - The main-process bridge keeps the socket alive during active loop phases (`awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`)
+   - After the loop returns to an idle/terminal phase, the bridge keeps the socket for a 30 minute grace window and then closes it intentionally if no further backend activity occurs
+   - Unexpected disconnects only auto-reconnect while a live loop or that grace window still owns the connection; idle intentional closes do not immediately reconnect
 
 ### Parallel HTTP Control Plane (`/api/runs/*`)
 
