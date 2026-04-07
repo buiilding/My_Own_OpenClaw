@@ -56,6 +56,12 @@ function useDashboardConversations({
   const recentConversationLoadInFlightRef = useRef(null);
 
   const loadRecentConversations = useCallback(async () => {
+    if (typeof resolvedUserId !== 'string' || resolvedUserId.trim().length === 0) {
+      setIsLoadingRecentConversations(false);
+      setRecentConversationsError('');
+      return [];
+    }
+
     const activeLoad = recentConversationLoadInFlightRef.current;
     if (activeLoad && activeLoad.userId === resolvedUserId) {
       return activeLoad.promise;
@@ -277,7 +283,6 @@ function useDashboardConversations({
     }
   }, [
     clearChatMessages,
-    clearConversationWorkspaceBinding,
     resolvedUserId,
     sessionConversationRef,
     setChatActiveConversationRef,
@@ -384,6 +389,13 @@ function useDashboardConversations({
 
   useEffect(() => {
     if (!searchOpen) {
+      return undefined;
+    }
+
+    if (typeof resolvedUserId !== 'string' || resolvedUserId.trim().length === 0) {
+      setIsSearchingConversations(false);
+      setSearchConversationsError('');
+      setSearchedConversations([]);
       return undefined;
     }
 

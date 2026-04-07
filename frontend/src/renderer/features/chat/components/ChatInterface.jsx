@@ -585,6 +585,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
           <MessageInput
             onSendMessage={sendMessage}
             isSending={composerBusy}
+            isTransportConnected={isTransportConnected}
             onStopResponse={handleStopQuery}
             isCentered
             focusRequestToken={focusComposerToken}
@@ -613,6 +614,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
           <MessageInput
             onSendMessage={sendMessage}
             isSending={composerBusy}
+            isTransportConnected={isTransportConnected}
             onStopResponse={handleStopQuery}
             focusRequestToken={focusComposerToken}
           />

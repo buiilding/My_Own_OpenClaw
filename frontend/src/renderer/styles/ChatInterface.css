@@ -1639,6 +1639,14 @@
   min-height: 56px;
 }
 
+.message-input-offline-state {
+  padding: 10px 14px 0;
+  color: rgba(248, 180, 158, 0.96);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 .message-image-preview-row {
   padding: 10px 12px 2px;
   display: flex;
@@ -1777,6 +1785,10 @@
 
 .message-input::placeholder {
   color: var(--ui-text-muted);
+}
+
+.message-input-offline::placeholder {
+  color: rgba(248, 180, 158, 0.72);
 }
 
 .message-input-row {

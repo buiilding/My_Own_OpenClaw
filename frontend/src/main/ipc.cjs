@@ -121,6 +121,18 @@ let intentionalSocketCloseReason = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 
+function ensureCurrentUserId() {
+  if (typeof currentUserId === 'string' && currentUserId.trim().length > 0) {
+    return currentUserId;
+  }
+  currentUserId = generateUserId({
+    osUserInfo: () => os.userInfo(),
+    uuidGenerator: uuidv4,
+    log,
+  });
+  return currentUserId;
+}
+
 function resolveFrontendOperatingSystem(platformName = process.platform) {
   switch (platformName) {
     case 'darwin':
@@ -547,12 +559,8 @@ function connect() {
     clearBackendReconnectTimer();
     log('Successfully connected to Python backend.');
 
-    // Generate valid user_id (backend rejects 'default_user', empty, or whitespace-only)
-    currentUserId = generateUserId({
-      osUserInfo: () => os.userInfo(),
-      uuidGenerator: uuidv4,
-      log,
-    });
+    // Generate a stable local user identity before handshake if needed.
+    ensureCurrentUserId();
     
     // Send handshake message as required by the backend server
     const handshakeMessage = {
@@ -722,6 +730,7 @@ function initializeIpc(win, options = {}) {
     : () => ({ mainWindow: win, chatWindow: null });
   rendererWindows = new Set();
   trackRendererWindow(win);
+  ensureCurrentUserId();
   loadCachedFrontendConfigFromDisk()
     .then((config) => {
       if (!isValidConfigPayload(config)) {

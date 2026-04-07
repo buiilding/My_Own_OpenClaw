@@ -605,6 +605,7 @@ describe('ChatInterface wiring', () => {
     expect(
       screen.queryByText('Cannot connect to server right now, try again later.'),
     ).not.toBeInTheDocument();
+    expect(mockMessageInput.mock.calls.at(-1)?.[0]?.isTransportConnected).toBe(true);
 
     act(() => {
       mockIpcListeners.get('ipc-status')?.({ isConnected: false });
@@ -612,6 +613,7 @@ describe('ChatInterface wiring', () => {
     expect(
       screen.getByText('Cannot connect to server right now, try again later.'),
     ).toBeInTheDocument();
+    expect(mockMessageInput.mock.calls.at(-1)?.[0]?.isTransportConnected).toBe(false);
 
     act(() => {
       mockIpcListeners.get('ipc-status')?.({ isConnected: true });
@@ -619,6 +621,7 @@ describe('ChatInterface wiring', () => {
     expect(
       screen.queryByText('Cannot connect to server right now, try again later.'),
     ).not.toBeInTheDocument();
+    expect(mockMessageInput.mock.calls.at(-1)?.[0]?.isTransportConnected).toBe(true);
   });
 
   test('does not render a duplicate header logo when sidebar is collapsed', () => {
