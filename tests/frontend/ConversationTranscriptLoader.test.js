@@ -1,4 +1,4 @@
-import { loadConversationTranscriptMemories } from '../../frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader';
+import { loadStoredConversationEntries } from '../../frontend/src/renderer/infrastructure/transcript/localConversationStore';
 
 const mockInvoke = jest.fn();
 
@@ -7,11 +7,13 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     invoke: (...args) => mockInvoke(...args),
   },
   INVOKE_CHANNELS: {
+    LIST_CONVERSATIONS: 'list-conversations',
+    SEARCH_CONVERSATIONS: 'search-conversations',
     GET_CONVERSATION: 'get-conversation',
   },
 }));
 
-describe('conversationTranscriptLoader', () => {
+describe('localConversationStore', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
   });
@@ -36,7 +38,7 @@ describe('conversationTranscriptLoader', () => {
         },
       });
 
-    const result = await loadConversationTranscriptMemories({
+    const result = await loadStoredConversationEntries({
       userId: 'default_user',
       conversationRef: 'conv_1',
       pageSize: 2,
@@ -66,7 +68,7 @@ describe('conversationTranscriptLoader', () => {
   });
 
   test('returns empty memories without invoking bridge when user or conversation is missing', async () => {
-    const result = await loadConversationTranscriptMemories({
+    const result = await loadStoredConversationEntries({
       userId: '',
       conversationRef: '',
     });

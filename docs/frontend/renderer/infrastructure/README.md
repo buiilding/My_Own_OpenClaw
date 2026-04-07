@@ -42,7 +42,7 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - `frontend/src/renderer/infrastructure/services/ToolExecutionLogger.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/mode.ts`
-- `frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader.js`
+- `frontend/src/renderer/infrastructure/transcript/localConversationStore.ts`
 - `tests/frontend/ToolExecutionService.test.ts`
 - `tests/frontend/ToolExecutionBundleRunner.test.ts`
 - `tests/frontend/ToolExecutionInvoker.test.ts`

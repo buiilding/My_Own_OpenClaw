@@ -5,11 +5,11 @@ import {
   ensureConversationReplayStateInitialized,
   TRANSCRIPT_REPLAY_RECORD_KIND,
 } from '../../frontend/src/renderer/infrastructure/transcript/conversationReplayState';
-import { loadConversationTranscriptMemories } from '../../frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader';
+import { loadStoredConversationEntries } from '../../frontend/src/renderer/infrastructure/transcript/localConversationStore';
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader', () => ({
-  loadConversationTranscriptMemories: jest.fn(),
+jest.mock('../../frontend/src/renderer/infrastructure/transcript/localConversationStore', () => ({
+  loadStoredConversationEntries: jest.fn(),
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
@@ -22,19 +22,19 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-const mockLoadConversationTranscriptMemories = loadConversationTranscriptMemories as jest.MockedFunction<typeof loadConversationTranscriptMemories>;
+const mockLoadStoredConversationEntries = loadStoredConversationEntries as jest.MockedFunction<typeof loadStoredConversationEntries>;
 const mockInvoke = IpcBridge.invoke as jest.MockedFunction<typeof IpcBridge.invoke>;
 
 describe('conversationReplayState', () => {
   beforeEach(() => {
     clearConversationReplayStateCache();
-    mockLoadConversationTranscriptMemories.mockReset();
+    mockLoadStoredConversationEntries.mockReset();
     mockInvoke.mockReset();
     mockInvoke.mockResolvedValue({ success: true, data: {} } as any);
   });
 
   test('bootstraps replay rows from transcript history when replay is missing', async () => {
-    mockLoadConversationTranscriptMemories
+    mockLoadStoredConversationEntries
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([
         {
@@ -120,7 +120,7 @@ describe('conversationReplayState', () => {
 
   test('stale replay bootstrap does not rewrite replay rows after conversation state is cleared', async () => {
     let resolveReplayLookup: ((value: any[]) => void) | null = null;
-    mockLoadConversationTranscriptMemories
+    mockLoadStoredConversationEntries
       .mockImplementationOnce(() => new Promise((resolve) => {
         resolveReplayLookup = resolve;
       }))

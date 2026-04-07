@@ -4,7 +4,7 @@ import {
   setActiveConversationRef as setTranscriptConversationRef,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
-import { markConversationBackendStateUnknown } from '../session/conversationBackendSyncRuntime';
+import { markConversationInferenceSessionUnknown } from '../session/conversationInferenceSessionRuntime';
 import { useChatStore } from '../stores/chatStore';
 import {
   applyMainSessionSnapshot,
@@ -26,7 +26,7 @@ export function useChatSessionBootstrap() {
         setChatConversationRef: setChatActiveConversationRef,
         updateTranscriptSession,
       });
-      markConversationBackendStateUnknown(appliedSnapshot.conversationRef);
+      markConversationInferenceSessionUnknown(appliedSnapshot.conversationRef);
       return appliedSnapshot;
     } catch (error) {
       console.warn('[chatSessionBootstrap] Failed to hydrate session snapshot:', error);

@@ -17,7 +17,7 @@ title: "Chat Interface Header Controls, Model Selection, and Compaction Rehydrat
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
-- `frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader.js`
+- `frontend/src/renderer/infrastructure/transcript/localConversationStore.ts`
 - `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`
 - `tests/frontend/ChatInterfaceWiring.test.jsx`
 

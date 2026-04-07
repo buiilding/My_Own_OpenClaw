@@ -19,7 +19,7 @@ import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
-import { ensureConversationBackendState } from '../session/conversationBackendSyncRuntime';
+import { ensureConversationInferenceSessionHydrated } from '../session/conversationInferenceSessionRuntime';
 import { startNewChatSession } from '../utils/session/newChatSession';
 import {
   getActiveConversationRef,
@@ -428,7 +428,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
     const conversationRef = getActiveConversationRef() || sessionInfo?.conversationRef || null;
     if (conversationRef) {
       try {
-        await ensureConversationBackendState({
+        await ensureConversationInferenceSessionHydrated({
           conversationRef,
           userId: sessionInfo?.userId || null,
         });

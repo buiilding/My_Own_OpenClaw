@@ -1,5 +1,5 @@
 import { ApiClient } from '../../../infrastructure/api/client';
-import { loadConversationTranscriptMemories } from '../../../infrastructure/transcript/conversationTranscriptLoader';
+import { loadStoredConversationEntries } from '../../../infrastructure/transcript/localConversationStore';
 import {
   readStoredReplayRehydrateEntry,
   TRANSCRIPT_REPLAY_RECORD_KIND,
@@ -14,21 +14,25 @@ import {
   toRehydrateMessagePayload,
 } from '../../dashboard/utils/episodicMemoryUtils';
 
-export type ConversationBackendSyncState = 'unknown' | 'synced' | 'fresh-local';
+/**
+ * The backend only owns transient inference state. The frontend/sidecar transcript remains
+ * the source of truth and can rehydrate a disposable backend session on demand.
+ */
+export type ConversationInferenceSessionState = 'unknown' | 'hydrated' | 'local-only';
 
-type EnsureConversationBackendStateOptions = {
+type EnsureConversationInferenceSessionOptions = {
   conversationRef: string | null | undefined;
   userId?: string | null;
   recordKind?: string;
 };
 
-type RehydrateConversationBackendStateOptions = {
+type RehydrateConversationInferenceSessionOptions = {
   conversationRef: string | null | undefined;
   messages: Array<Record<string, unknown>>;
 };
 
 type SyncStateRecord = {
-  state: ConversationBackendSyncState;
+  state: ConversationInferenceSessionState;
   epoch: number;
 };
 
@@ -51,9 +55,9 @@ function resolveUserId(userId: string | null | undefined): string {
   return DEFAULT_USER_ID;
 }
 
-function setConversationBackendSyncState(
+function setConversationInferenceSessionState(
   conversationRef: string,
-  state: ConversationBackendSyncState,
+  state: ConversationInferenceSessionState,
 ): void {
   syncStates.set(conversationRef, {
     state,
@@ -65,9 +69,9 @@ function getEnsureKey(conversationRef: string): string {
   return `${connectionEpoch}:${conversationRef}`;
 }
 
-export function getConversationBackendSyncState(
+export function getConversationInferenceSessionState(
   conversationRef: string | null | undefined,
-): ConversationBackendSyncState | null {
+): ConversationInferenceSessionState | null {
   const normalizedConversationRef = normalizeConversationRef(conversationRef);
   if (!normalizedConversationRef) {
     return null;
@@ -79,37 +83,37 @@ export function getConversationBackendSyncState(
   return entry.state;
 }
 
-export function markConversationBackendStateUnknown(
+export function markConversationInferenceSessionUnknown(
   conversationRef: string | null | undefined,
 ): void {
   const normalizedConversationRef = normalizeConversationRef(conversationRef);
   if (!normalizedConversationRef) {
     return;
   }
-  setConversationBackendSyncState(normalizedConversationRef, 'unknown');
+  setConversationInferenceSessionState(normalizedConversationRef, 'unknown');
 }
 
-export function markConversationBackendStateSynced(
+export function markConversationInferenceSessionHydrated(
   conversationRef: string | null | undefined,
 ): void {
   const normalizedConversationRef = normalizeConversationRef(conversationRef);
   if (!normalizedConversationRef) {
     return;
   }
-  setConversationBackendSyncState(normalizedConversationRef, 'synced');
+  setConversationInferenceSessionState(normalizedConversationRef, 'hydrated');
 }
 
-export function markConversationBackendStateFreshLocal(
+export function markConversationInferenceSessionLocalOnly(
   conversationRef: string | null | undefined,
 ): void {
   const normalizedConversationRef = normalizeConversationRef(conversationRef);
   if (!normalizedConversationRef) {
     return;
   }
-  setConversationBackendSyncState(normalizedConversationRef, 'fresh-local');
+  setConversationInferenceSessionState(normalizedConversationRef, 'local-only');
 }
 
-export function clearConversationBackendSyncState(
+export function clearConversationInferenceSessionState(
   conversationRef: string | null | undefined,
 ): void {
   const normalizedConversationRef = normalizeConversationRef(conversationRef);
@@ -120,28 +124,28 @@ export function clearConversationBackendSyncState(
   inFlightEnsures.delete(getEnsureKey(normalizedConversationRef));
 }
 
-export function invalidateConversationBackendSyncState(): void {
+export function invalidateConversationInferenceSessionState(): void {
   connectionEpoch += 1;
   syncStates.clear();
   inFlightEnsures.clear();
 }
 
-export async function ensureConversationBackendState({
+export async function ensureConversationInferenceSessionHydrated({
   conversationRef,
   userId,
   recordKind = 'transcript',
-}: EnsureConversationBackendStateOptions): Promise<void> {
+}: EnsureConversationInferenceSessionOptions): Promise<void> {
   const normalizedConversationRef = normalizeConversationRef(conversationRef);
   if (!normalizedConversationRef) {
     return;
   }
 
-  const currentState = getConversationBackendSyncState(normalizedConversationRef);
-  if (currentState === 'synced') {
+  const currentState = getConversationInferenceSessionState(normalizedConversationRef);
+  if (currentState === 'hydrated') {
     return;
   }
-  if (currentState === 'fresh-local') {
-    markConversationBackendStateSynced(normalizedConversationRef);
+  if (currentState === 'local-only') {
+    markConversationInferenceSessionHydrated(normalizedConversationRef);
     return;
   }
 
@@ -153,24 +157,24 @@ export async function ensureConversationBackendState({
 
   const startingEpoch = connectionEpoch;
   const ensurePromise = (async () => {
-    const replayMemories = await loadConversationTranscriptMemories({
+    const replayEntries = await loadStoredConversationEntries({
       userId: resolveUserId(userId),
       conversationRef: normalizedConversationRef,
       recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
     });
-    const memories = replayMemories.length > 0
-      ? replayMemories
-      : await loadConversationTranscriptMemories({
+    const transcriptEntries = replayEntries.length > 0
+      ? replayEntries
+      : await loadStoredConversationEntries({
         userId: resolveUserId(userId),
         conversationRef: normalizedConversationRef,
         recordKind,
       });
-    const resolvedBinding = resolveConversationWorkspaceBinding({ memories });
+    const resolvedBinding = resolveConversationWorkspaceBinding({ memories: transcriptEntries });
     setConversationWorkspaceBinding(normalizedConversationRef, resolvedBinding);
-    if (memories.length > 0) {
-      const rehydrateMessages = replayMemories.length > 0
-        ? memories.map((memory) => readStoredReplayRehydrateEntry(memory) || toRehydrateMessagePayload(memory))
-        : memories.map(toRehydrateMessagePayload);
+    if (transcriptEntries.length > 0) {
+      const rehydrateMessages = replayEntries.length > 0
+        ? transcriptEntries.map((entry) => readStoredReplayRehydrateEntry(entry) || toRehydrateMessagePayload(entry))
+        : transcriptEntries.map(toRehydrateMessagePayload);
       await ApiClient.sendRehydrateConversation(
         normalizedConversationRef,
         rehydrateMessages,
@@ -178,7 +182,7 @@ export async function ensureConversationBackendState({
       );
     }
     if (startingEpoch === connectionEpoch) {
-      markConversationBackendStateSynced(normalizedConversationRef);
+      markConversationInferenceSessionHydrated(normalizedConversationRef);
     }
   })();
 
@@ -192,10 +196,10 @@ export async function ensureConversationBackendState({
   }
 }
 
-export async function rehydrateConversationBackendState({
+export async function rehydrateConversationInferenceSession({
   conversationRef,
   messages,
-}: RehydrateConversationBackendStateOptions): Promise<void> {
+}: RehydrateConversationInferenceSessionOptions): Promise<void> {
   const normalizedConversationRef = normalizeConversationRef(conversationRef);
   if (!normalizedConversationRef) {
     return;
@@ -208,6 +212,6 @@ export async function rehydrateConversationBackendState({
     getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
   );
   if (startingEpoch === connectionEpoch) {
-    markConversationBackendStateSynced(normalizedConversationRef);
+    markConversationInferenceSessionHydrated(normalizedConversationRef);
   }
 }

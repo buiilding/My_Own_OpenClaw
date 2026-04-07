@@ -1,6 +1,6 @@
 import { toRehydrateMessagePayload, DEFAULT_USER_ID } from '../../features/dashboard/utils/episodicMemoryUtils';
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
-import { loadConversationTranscriptMemories } from './conversationTranscriptLoader';
+import { loadStoredConversationEntries } from './localConversationStore';
 
 export const TRANSCRIPT_REPLAY_RECORD_KIND = 'transcript_replay';
 
@@ -241,7 +241,7 @@ export async function ensureConversationReplayStateInitialized(
   }
 
   const initializationPromise = (async () => {
-    const existingReplayRows = await loadConversationTranscriptMemories({
+    const existingReplayRows = await loadStoredConversationEntries({
       userId: normalizedUserId,
       conversationRef: normalizedConversationRef,
       recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
@@ -256,7 +256,7 @@ export async function ensureConversationReplayStateInitialized(
       return 'already-initialized';
     }
 
-    const transcriptRows = await loadConversationTranscriptMemories({
+    const transcriptRows = await loadStoredConversationEntries({
       userId: normalizedUserId,
       conversationRef: normalizedConversationRef,
       recordKind: 'transcript',

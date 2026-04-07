@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useChatStream } from '../../features/chat/hooks/useChatStream';
 import { useToolRunner } from '../../features/chat/hooks/useToolRunner';
 import { useChatSessionBootstrap } from '../../features/chat/hooks/useChatSessionBootstrap';
-import { invalidateConversationBackendSyncState } from '../../features/chat/session/conversationBackendSyncRuntime';
+import { invalidateConversationInferenceSessionState } from '../../features/chat/session/conversationInferenceSessionRuntime';
 import { useChatStore } from '../../features/chat/stores/chatStore';
 import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { useTranscriptSessionInfo } from '../../features/dashboard/hooks/useTranscriptSessionInfo';
@@ -35,7 +35,7 @@ export function ChatProvider({ children, enableToolRunner = true, enableTranscri
       if (payload?.isConnected === true) {
         return;
       }
-      invalidateConversationBackendSyncState();
+      invalidateConversationInferenceSessionState();
     });
     return () => {
       removeListener?.();

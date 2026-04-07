@@ -10,9 +10,9 @@ import {
   updateTranscriptSession,
 } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
 import {
-  markConversationBackendStateFreshLocal,
-  rehydrateConversationBackendState,
-} from '../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime';
+  markConversationInferenceSessionLocalOnly,
+  rehydrateConversationInferenceSession,
+} from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
 
 let mockFrontendConfig = {
   model_provider: 'anthropic',
@@ -32,9 +32,9 @@ jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   },
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/session/conversationBackendSyncRuntime', () => ({
-  markConversationBackendStateFreshLocal: jest.fn(),
-  rehydrateConversationBackendState: jest.fn(),
+jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
+  markConversationInferenceSessionLocalOnly: jest.fn(),
+  rehydrateConversationInferenceSession: jest.fn(),
 }));
 
 let mockConversationRef = 'conv-existing';
@@ -56,8 +56,8 @@ const mockGetActiveConversationRef = getActiveConversationRef;
 const mockGetTranscriptSessionInfo = getTranscriptSessionInfo;
 const mockSetActiveConversationRef = setActiveConversationRef;
 const mockUpdateTranscriptSession = updateTranscriptSession;
-const mockMarkConversationBackendStateFreshLocal = markConversationBackendStateFreshLocal;
-const mockRehydrateConversationBackendState = rehydrateConversationBackendState;
+const mockMarkConversationInferenceSessionLocalOnly = markConversationInferenceSessionLocalOnly;
+const mockRehydrateConversationInferenceSession = rehydrateConversationInferenceSession;
 
 describe('useConversationReplayActions', () => {
   beforeEach(() => {
@@ -76,9 +76,9 @@ describe('useConversationReplayActions', () => {
       }
       return null;
     });
-    mockMarkConversationBackendStateFreshLocal.mockReset();
-    mockRehydrateConversationBackendState.mockReset();
-    mockRehydrateConversationBackendState.mockResolvedValue(undefined);
+    mockMarkConversationInferenceSessionLocalOnly.mockReset();
+    mockRehydrateConversationInferenceSession.mockReset();
+    mockRehydrateConversationInferenceSession.mockResolvedValue(undefined);
     mockSendQuery.mockResolvedValue(undefined);
   });
 
@@ -138,7 +138,7 @@ describe('useConversationReplayActions', () => {
         recordKind: 'transcript_replay',
       },
     ]);
-    expect(mockRehydrateConversationBackendState).toHaveBeenCalledTimes(1);
+    expect(mockRehydrateConversationInferenceSession).toHaveBeenCalledTimes(1);
     expect(mockUpdateSettings).toHaveBeenCalledWith({
       model_provider: 'anthropic',
       selected_model_id: 'claude-sonnet-4-5',

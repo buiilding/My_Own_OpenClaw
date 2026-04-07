@@ -18,6 +18,9 @@ All notable changes to WindieOS will be documented in this file.
 ### Fixed
 - fix(frontend-offline-local-chat-history): bootstrap a local main-process user id before websocket connect so dashboard chat history can load from the local transcript store while offline, remove the transient `default_user` dashboard fallback during startup, and surface an explicit offline composer state while preserving the existing immediate disconnected-send failure path; add focused frontend bridge/dashboard/composer coverage for the offline path.
 - fix(frontend-backend-ws-idle-lifecycle): stop opening the main-process backend websocket at app startup, open it on demand for backend-bound work, keep it alive through active loop phases plus a 30 minute idle grace window, and prevent intentional idle closes from auto-reconnecting forever; add focused frontend bridge coverage and update transport docs.
+
+### Changed
+- refactor(frontend-conversation-ownership): add a renderer-local conversation store boundary for transcript reads/search and rename the backend sync layer to an inference-session hydration runtime, making it explicit that frontend/sidecar local transcript state owns chat history while backend sessions are disposable inference state rebuilt on demand.
 - fix(frontend-chat-pill-top-bump-shape): make the minimal chat pill top bump narrower and rounder by tightening the bump width and smoothing the crest contour around the close button.
 - fix(frontend-chat-pill-rounder-sides): increase the minimal chat pill side radius and refine the custom shell contour points so the left and right ends read rounder without making the silhouette look faceted or changing the top close bump contract.
 - fix(frontend-chat-pill-close-alignment): decouple the minimal chat pill close button from the shell contour anchor so the `x` can be centered on the existing top bump without moving the bump itself.

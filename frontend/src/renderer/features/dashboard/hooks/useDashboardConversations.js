@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import { loadConversationTranscriptMemories } from '../../../infrastructure/transcript/conversationTranscriptLoader';
+import {
+  listStoredConversations,
+  loadStoredConversationEntries,
+  searchStoredConversations,
+} from '../../../infrastructure/transcript/localConversationStore';
 import {
   setActiveConversationRef,
   updateTranscriptSession,
@@ -13,9 +16,9 @@ import {
   setConversationWorkspaceBinding,
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
 import {
-  clearConversationBackendSyncState,
-  markConversationBackendStateUnknown,
-} from '../../chat/session/conversationBackendSyncRuntime';
+  clearConversationInferenceSessionState,
+  markConversationInferenceSessionUnknown,
+} from '../../chat/session/conversationInferenceSessionRuntime';
 import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
 import {
   parseMemoriesToMessages,
@@ -75,16 +78,11 @@ function useDashboardConversations({
     const loadMarker = {};
     const requestPromise = (async () => {
       try {
-        const result = await IpcBridge.invoke(INVOKE_CHANNELS.LIST_CONVERSATIONS, {
+        const list = normalizeRecentConversations(await listStoredConversations({
           userId: resolvedUserId,
           limit: 200,
           recordKind: 'transcript',
-        });
-        if (!result || result.success === false) {
-          throw new Error(result?.error || 'Failed to load recent chats');
-        }
-
-        const list = normalizeRecentConversations(result?.data?.conversations);
+        }));
 
         // Ignore stale loads so older responses cannot overwrite newer user/session state.
         if (recentConversationLoadRequestIdRef.current !== requestId) {
@@ -167,7 +165,7 @@ function useDashboardConversations({
     setRecentConversationsError('');
 
     try {
-      const memories = await loadConversationTranscriptMemories({
+      const memories = await loadStoredConversationEntries({
         userId: resolvedUserId,
         conversationRef,
         recordKind: conversation?.record_kind || 'transcript',
@@ -187,7 +185,7 @@ function useDashboardConversations({
       setActiveConversationRef(conversationRef);
       updateTranscriptSession(conversationRef, resolvedUserId);
       if (sessionConversationRef !== conversationRef) {
-        markConversationBackendStateUnknown(conversationRef);
+        markConversationInferenceSessionUnknown(conversationRef);
       }
       setChatActiveConversationRef(conversationRef);
       setChatMessages(parsedMessages, conversationRef);
@@ -266,7 +264,7 @@ function useDashboardConversations({
       setSearchedConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
       setPinnedConversationRefs((current) => current.filter((id) => id !== conversationRef));
       clearConversationWorkspaceBinding(conversationRef);
-      clearConversationBackendSyncState(conversationRef);
+      clearConversationInferenceSessionState(conversationRef);
       if (sessionConversationRef === conversationRef) {
         resetActiveChatSession({
           conversationRef,
@@ -412,7 +410,7 @@ function useDashboardConversations({
       setIsSearchingConversations(true);
       setSearchConversationsError('');
       try {
-        const result = await IpcBridge.invoke(INVOKE_CHANNELS.SEARCH_CONVERSATIONS, {
+        const list = await searchStoredConversations({
           userId: resolvedUserId,
           query: normalizedQuery,
           limit: 60,
@@ -420,13 +418,6 @@ function useDashboardConversations({
         if (isCancelled) {
           return;
         }
-        if (!result || result.success === false) {
-          throw new Error(result?.error || 'Failed to search chats');
-        }
-
-        const list = Array.isArray(result?.data?.conversations)
-          ? result.data.conversations
-          : [];
         setSearchedConversations(list);
       } catch (error) {
         if (isCancelled) {
