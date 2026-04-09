@@ -20,12 +20,7 @@ function buildProps(overrides = {}) {
     modelsOpen: false,
     isLoadingRecentConversations: false,
     recentConversationsError: '',
-    recentConversationGroups: {
-      today: [],
-      yesterday: [],
-      previous7Days: [],
-      older: [],
-    },
+    recentWorkspaceGroups: [],
     onOpenConversation: jest.fn(),
     onRenameConversation: jest.fn(),
     onTogglePinConversation: jest.fn(),

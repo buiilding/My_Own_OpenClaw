@@ -101,7 +101,6 @@ const {
   resetBackendEnv,
   restoreBackendEnv,
   silenceBridgeLogs,
-  registerBridgeSuiteLifecycleHooks,
 } = createBridgeSuiteLifecycle({
   originalEnv: ORIGINAL_ENV,
 });
@@ -115,6 +114,8 @@ const DEFAULT_MEMORY_RESULT = {
   success: true,
   data: { memories: { episodic: [], semantic: [] } },
 };
+
+let lastIpc = null;
 
 function primeQueryContext(backendBridge, options = {}) {
   if (options.systemStateError) {
@@ -150,6 +151,7 @@ function initIpc(options = {}) {
     __dirname,
     '../../../frontend/src/main/ipc.cjs',
   ));
+  lastIpc = ipc;
 
   const mainWindow = {
     on: jest.fn(),
@@ -173,10 +175,29 @@ function initIpc(options = {}) {
   return { handlers, ws, getWs, backendBridge, mainWindow, chatWindow, fs, ipc };
 }
 
+function registerIpcBridgeSuiteLifecycleHooks() {
+  beforeEach(() => {
+    resetBackendEnv();
+    silenceBridgeLogs();
+  });
+
+  afterEach(() => {
+    lastIpc?.shutdownIpcForTests?.();
+    lastIpc = null;
+    const WebSocketMock = require('ws');
+    WebSocketMock.instances.length = 0;
+    jest.restoreAllMocks();
+  });
+
+  afterAll(() => {
+    restoreBackendEnv();
+  });
+}
+
 module.exports = {
   initIpc,
   primeQueryContext,
-  registerBridgeSuiteLifecycleHooks,
+  registerBridgeSuiteLifecycleHooks: registerIpcBridgeSuiteLifecycleHooks,
   resetBackendEnv,
   restoreBackendEnv,
   silenceBridgeLogs,

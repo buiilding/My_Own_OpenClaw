@@ -6,6 +6,9 @@ import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastr
 
 jest.mock('../../frontend/src/renderer/infrastructure/markdown', () => ({
   toSanitizedMarkdownHtml: jest.fn((text) => text),
+  extractTextFromHtml: jest.fn((html) => html),
+  highlightSanitizedHtml: jest.fn((html) => html),
+  highlightPlainTextToHtml: jest.fn((text) => text),
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => {

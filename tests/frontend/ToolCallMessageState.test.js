@@ -109,6 +109,13 @@ describe('toolCallMessageState', () => {
         }],
       }, null, 2),
       modelFacingToolCall: null,
+      toolCalls: [
+        {
+          id: 'call-3',
+          name: 'browser.open',
+          arguments: { url: 'https://example.com' },
+        },
+      ],
       toolCallDetails: {
         bundle_id: 'bundle-1',
         tools: [

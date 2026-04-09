@@ -84,7 +84,11 @@ def _build_mouse_call(
 ) -> tuple[ParsedToolCall, ResolvedToolCall]:
     tool_call = ParsedToolCall(
         tool_name="mouse_control",
-        parameters={"find_coordinates_by": method, **extra_parameters},
+        parameters={
+            "find_coordinates_by": method,
+            "explanation": "Resolve coordinates for executor parity coverage.",
+            **extra_parameters,
+        },
         raw_call="{}",
     )
     return tool_call, ResolvedToolCall.from_parsed_call(tool_call)
@@ -101,6 +105,7 @@ def _build_scroll_call(
         parameters={
             "action": action,
             "find_coordinates_by": method,
+            "explanation": "Resolve scroll coordinates for executor parity coverage.",
             **extra_parameters,
         },
         raw_call="{}",

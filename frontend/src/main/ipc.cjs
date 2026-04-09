@@ -707,6 +707,33 @@ function sendMessageToBackend(type, payload, messageId = null) {
   }
 }
 
+function shutdownIpcForTests() {
+  shouldMaintainBackendConnection = false;
+  intentionalSocketCloseReason = 'test-shutdown';
+  clearBackendReconnectTimer();
+  clearBackendIdleDisconnectTimer();
+  rejectPendingBackendConnectWaiters(new Error('IPC bridge shutdown.'));
+  resetSettingsSyncState();
+  resetBackendSessionState();
+  hasPendingListModelsRequest = false;
+  rendererWindows = new Set();
+  backendMessageObservers.clear();
+  applyResponseOverlayPhase = null;
+  onBeforeOverlayQueryCapture = null;
+  setAgentLoopStopShortcutEnabled = null;
+  setGlobalAgentStopShortcutAccelerator = null;
+  const socket = ws;
+  ws = null;
+  isConnected = false;
+  if (
+    socket
+    && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)
+    && typeof socket.close === 'function'
+  ) {
+    socket.close();
+  }
+}
+
 function initializeIpc(win, options = {}) {
   refreshBackendEndpoints({
     isPackaged: options.isPackaged === true,
@@ -1123,6 +1150,7 @@ module.exports = {
   registerRendererWindow,
   sendAutomatedQuery,
   sendMessageToBackend,
+  shutdownIpcForTests,
   triggerStopQueryFromMain,
   updateGlobalAgentStopShortcutStatus,
 };

@@ -38,10 +38,8 @@ async def _collect_stream_events_for_tool(
         tools=[
             {
                 "type": "function",
-                "function": {
-                    "name": tool_name,
-                    "parameters": {"type": "object"},
-                },
+                "name": tool_name,
+                "parameters": {"type": "object"},
             }
         ],
     )

@@ -217,12 +217,10 @@ describe('ToolExecutionService', () => {
 
     expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
     expect(mockCaptureSystemState).not.toHaveBeenCalled();
-    expect(mockFormatToolOutputMessage).toHaveBeenCalledWith(
-      'mouse_control',
-      expect.objectContaining({ success: true }),
-      { active_window: 'App', mouse_position: '1,1' },
-      true,
-    );
+    const latestToolOutputCall = mockFormatToolOutputMessage.mock.calls.at(-1);
+    expect(latestToolOutputCall?.[0]).toBe('mouse_control');
+    expect(latestToolOutputCall?.[1]).toEqual(expect.objectContaining({ success: true }));
+    expect(latestToolOutputCall).toHaveLength(2);
   });
 
   test('executeTool formats and reports errors', async () => {
@@ -304,15 +302,13 @@ describe('ToolExecutionService', () => {
         }),
       }),
     );
-    expect(mockFormatBundledToolOutputMessage).toHaveBeenCalledWith(
-      [
-        expect.objectContaining({ tool_name: 'read_file', data: { output: 'a' } }),
-        expect.objectContaining({ tool_name: 'mouse_control', data: { output: 'b' } }),
-      ],
-      { active_window: 'App', mouse_position: 'Unknown' },
-      'bundle-shot',
-      true,
-    );
+    const latestBundleOutputCall = mockFormatBundledToolOutputMessage.mock.calls.at(-1);
+    expect(latestBundleOutputCall?.[0]).toEqual([
+      expect.objectContaining({ tool_name: 'read_file', data: { output: 'a' } }),
+      expect.objectContaining({ tool_name: 'mouse_control', data: { output: 'b' } }),
+    ]);
+    expect(latestBundleOutputCall?.[1]).toBe('bundle-shot');
+    expect(latestBundleOutputCall).toHaveLength(2);
     jest.useRealTimers();
   });
 });

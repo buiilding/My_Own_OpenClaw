@@ -9,7 +9,6 @@ import logging
 import inspect
 import tempfile
 import asyncio
-from dataclasses import dataclass, field
 from pathlib import Path
 from datetime import datetime, UTC
 from typing import Any, Dict, List, Optional
@@ -37,6 +36,7 @@ from tools.browser.enhanced_cdp_pipeline import EnhancedCdpDomPipeline
 from tools.browser.observation_store import BrowserObservationStore
 from tools.browser.ref_registry import RefRegistry
 from tools.browser.session_runtime import BrowserSessionRuntime
+from tools.browser.models import BrowserTab, PageSnapshot
 from tools.browser.role_snapshot import (
     RoleRef,
     RoleSnapshotOptions,
@@ -45,37 +45,6 @@ from tools.browser.role_snapshot import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class PageSnapshot:
-    """AI-friendly page snapshot."""
-
-    text: str
-    url: str = ""
-    title: str = ""
-    ref_count: int = 0
-    refs: Dict[str, Dict[str, Any]] = field(default_factory=dict)
-    stats: Optional[Dict[str, int]] = None
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "snapshot": self.text,
-            "url": self.url,
-            "title": self.title,
-            "ref_count": self.ref_count,
-            "refs": self.refs,
-            "stats": self.stats,
-        }
-
-
-@dataclass
-class BrowserTab:
-    """Represents a browser tab."""
-
-    target_id: str
-    title: str
-    url: str
 
 
 class BrowserController:

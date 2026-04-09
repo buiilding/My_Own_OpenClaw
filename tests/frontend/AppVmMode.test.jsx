@@ -7,7 +7,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/runtime/vmMode', () => ({
   isVmModeEnabled: () => true,
 }));
 
-jest.mock('../../frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell', () => (props) => (
+jest.mock('../../frontend/src/renderer/features/dashboard/components/DashboardShell', () => (props) => (
   <div data-testid="dashboard-shell-stub">
     vmModeEnabled:{String(Boolean(props.vmModeEnabled))}
   </div>

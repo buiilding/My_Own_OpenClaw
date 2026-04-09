@@ -86,10 +86,10 @@ class QueryExecutionService:
             user_id,
             conversation_ref=message.payload.conversation_ref,
         )
-        self._session_manager.set_session_workspace_path(
-            user_id,
-            agent_instance,
-            message.payload.workspace_path,
+        self._apply_session_workspace_path(
+            user_id=user_id,
+            agent_instance=agent_instance,
+            workspace_path=message.payload.workspace_path,
         )
         self._apply_query_runtime_system_state(agent_instance, message)
         stream_context = self._build_stream_context(
@@ -215,6 +215,26 @@ class QueryExecutionService:
             "[Timing] Query processing completed in %.3fs (user_id=%s)",
             query_total_time,
             user_id,
+        )
+
+    def _apply_session_workspace_path(
+        self,
+        *,
+        user_id: str,
+        agent_instance: Any,
+        workspace_path: Optional[str],
+    ) -> None:
+        set_workspace_path = getattr(
+            self._session_manager,
+            "set_session_workspace_path",
+            None,
+        )
+        if not callable(set_workspace_path):
+            return
+        set_workspace_path(
+            user_id,
+            agent_instance,
+            workspace_path,
         )
 
     @staticmethod

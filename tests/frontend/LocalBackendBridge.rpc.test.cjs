@@ -590,10 +590,10 @@ describe('local_backend_bridge RPC handlers', () => {
       expect.objectContaining({
         env: expect.objectContaining({
           WINDIE_BACKEND_HTTP_URL: 'https://api.windieos.com',
+          WINDIE_BACKEND_FALLBACK_HTTP_URL: 'http://127.0.0.1:8765',
         }),
       }),
     );
-    expect(spawn.mock.calls[0][2].env.WINDIE_BACKEND_FALLBACK_HTTP_URL).toBeUndefined();
   });
 
   test('adds --no-deprecation to Node options for local backend subprocesses', () => {

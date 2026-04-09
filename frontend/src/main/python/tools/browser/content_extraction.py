@@ -5,7 +5,10 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from markdownify import markdownify as markdownify_html
+try:
+    from markdownify import markdownify as markdownify_html
+except ImportError:  # pragma: no cover - exercised only in stale local envs.
+    markdownify_html = None
 
 MAX_EXTRACT_CHARS = 20_000
 DEFAULT_EXTRACT_CHARS = 4_000
@@ -48,20 +51,46 @@ def _sanitize_markdown(content: str) -> str:
 
 
 def html_to_markdown(html: str, *, extract_links: bool) -> str:
-    markdown = markdownify_html(
-        html,
-        heading_style="ATX",
-        strip=["script", "style"],
-        bullets="-",
-        code_language="",
-        escape_asterisks=False,
-        escape_underscores=False,
-        escape_misc=False,
-        autolinks=extract_links,
-        default_title=False,
-        keep_inline_images_in=[],
-    )
+    if markdownify_html is None:
+        markdown = _fallback_html_to_text(html, extract_links=extract_links)
+    else:
+        markdown = markdownify_html(
+            html,
+            heading_style="ATX",
+            strip=["script", "style"],
+            bullets="-",
+            code_language="",
+            escape_asterisks=False,
+            escape_underscores=False,
+            escape_misc=False,
+            autolinks=extract_links,
+            default_title=False,
+            keep_inline_images_in=[],
+        )
     return _sanitize_markdown(markdown)
+
+
+def _fallback_html_to_text(html: str, *, extract_links: bool) -> str:
+    cleaned = re.sub(
+        r"<(script|style)\b[^>]*>.*?</\1>",
+        " ",
+        html,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if extract_links:
+        cleaned = re.sub(
+            r"<a\b[^>]*href=(['\"])(.*?)\1[^>]*>(.*?)</a>",
+            lambda match: f"{match.group(3)} ({match.group(2)})",
+            cleaned,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+    cleaned = re.sub(r"<br\s*/?>", "\n", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"</(p|div|section|article|li|tr|h[1-6])>", "\n", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"<[^>]+>", " ", cleaned)
+    cleaned = cleaned.replace("&nbsp;", " ")
+    cleaned = re.sub(r"[ \t]+", " ", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
 
 
 def _focused_excerpt(content: str, *, query: str, max_chars: int) -> str:
