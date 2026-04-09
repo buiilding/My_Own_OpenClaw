@@ -171,7 +171,7 @@ function resolveLocalFallbackEndpoints(env) {
   return { httpUrl, wsUrl };
 }
 
-function resolveBackendEndpoints(env = process.env, options = {}) {
+function resolveBackendEndpoints(env = process.env) {
   const explicitHttpUrl = normalizeUrl(env.BACKEND_HTTP_URL, ['http:', 'https:']);
   const explicitWsUrl = normalizeUrl(env.BACKEND_WS_URL, ['ws:', 'wss:']);
 
@@ -179,7 +179,7 @@ function resolveBackendEndpoints(env = process.env, options = {}) {
   let wsUrl = explicitWsUrl;
 
   if (!httpUrl && !wsUrl) {
-    const [fallback] = resolveBackendEndpointCandidates(env, options);
+    const [fallback] = resolveBackendEndpointCandidates(env);
     httpUrl = fallback.httpUrl;
     wsUrl = fallback.wsUrl;
   } else if (httpUrl && !wsUrl) {
@@ -195,7 +195,7 @@ function resolveBackendEndpoints(env = process.env, options = {}) {
   };
 }
 
-function resolveBackendEndpointCandidates(env = process.env, options = {}) {
+function resolveBackendEndpointCandidates(env = process.env) {
   const explicitHttpUrl = normalizeUrl(env.BACKEND_HTTP_URL, ['http:', 'https:']);
   const explicitWsUrl = normalizeUrl(env.BACKEND_WS_URL, ['ws:', 'wss:']);
   const explicitLocalHostOrPort = (

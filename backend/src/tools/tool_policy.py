@@ -14,7 +14,6 @@ from dataclasses import dataclass
 import logging
 from typing import Any, Dict, List, Optional, Sequence
 
-from backend.src.core.config.domains import browser_runtime_config
 from backend.src.core.utils.coordinate_methods import normalize_coordinate_method
 from backend.src.tools.tool_selection import ToolSelection, load_tool_selection
 from backend.src.tools.tool_specs import get_tool_spec_name
@@ -153,14 +152,21 @@ class ToolPolicy:
 
     def _get_config_disabled_tools(self) -> set[str]:
         disabled: set[str] = set()
-        browser_config = browser_runtime_config(self.config)
-        if browser_config.browser_automation_enabled is not True:
+        browser_enabled = self._get_config_value(
+            "browser_automation_enabled",
+            default=False,
+        )
+        if browser_enabled is not True:
             disabled.add("browser")
         return disabled
 
     def _get_interaction_allowlist(self) -> Optional[set[str]]:
         try:
-            allowlist = self.config.get_tool_allowlist()
+            get_tool_allowlist = getattr(self.config, "get_tool_allowlist", None)
+            if callable(get_tool_allowlist):
+                allowlist = get_tool_allowlist()
+            else:
+                allowlist = None
         except Exception:
             return None
         if allowlist is None:
@@ -168,6 +174,11 @@ class ToolPolicy:
         if isinstance(allowlist, (set, list, tuple)):
             return {name for name in allowlist if isinstance(name, str)}
         return None
+
+    def _get_config_value(self, key: str, *, default: Any = None) -> Any:
+        if isinstance(self.config, dict):
+            return self.config.get(key, default)
+        return getattr(self.config, key, default)
 
     def _filter_web_search_names(self, tool_names: Sequence[str]) -> List[str]:
         if should_expose_backend_web_search_tool(self.config):

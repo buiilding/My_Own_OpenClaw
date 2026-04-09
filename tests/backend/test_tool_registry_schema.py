@@ -209,7 +209,8 @@ def test_tool_registry_declarations_follow_model_visible_catalog_order():
 
     declarations = registry.get_function_declarations()
 
-    assert [d["name"] for d in declarations] == get_model_visible_tool_names()
+    expected_names = get_model_visible_tool_names() + ["web_search"]
+    assert [d["name"] for d in declarations] == expected_names
 
 
 def test_tool_registry_filtered_declarations_preserve_requested_order():

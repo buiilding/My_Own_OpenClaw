@@ -44,7 +44,14 @@ describe('permission_ipc_runtime', () => {
   });
 
   test('returns the same canonical probe envelope for single-permission checks', async () => {
-    const { invokeHandlers } = createRuntime();
+    const permissionStateStore = {
+      get: jest.fn(async () => null),
+      set: jest.fn(async (_permissionId, entry) => entry),
+      delete: jest.fn(async () => true),
+    };
+    const { invokeHandlers } = createRuntime({
+      permissionStateStore,
+    });
 
     const checkResult = await invokeHandlers['check-permission'](null, {
       permissionId: 'filesystem_workspace_access',

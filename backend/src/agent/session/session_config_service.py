@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import logging
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
@@ -89,15 +90,48 @@ class SessionConfigService:
         workspace_path: Optional[str],
     ) -> None:
         normalized_workspace_path = self.normalize_workspace_path(workspace_path)
-        rendered_prompt = self._render_system_prompt(
-            operating_system,
-            normalized_workspace_path,
+        rendered_prompt = self._call_render_system_prompt(
+            operating_system=operating_system,
+            workspace_path=normalized_workspace_path,
         )
         runtime = getattr(session, "runtime", None)
         if runtime is not None:
             runtime.workspace_path = normalized_workspace_path
         session.prompt_builder.system_prompt = rendered_prompt
         session.history.system_prompt = rendered_prompt
+
+    def _call_render_system_prompt(
+        self,
+        *,
+        operating_system: Optional[str],
+        workspace_path: Optional[str],
+    ) -> str:
+        try:
+            signature = inspect.signature(self._render_system_prompt)
+        except (TypeError, ValueError):
+            signature = None
+
+        if signature is None:
+            return self._render_system_prompt(operating_system, workspace_path)
+
+        positional_params = [
+            parameter
+            for parameter in signature.parameters.values()
+            if parameter.kind in (
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            )
+        ]
+        has_varargs = any(
+            parameter.kind == inspect.Parameter.VAR_POSITIONAL
+            for parameter in signature.parameters.values()
+        )
+
+        if has_varargs or len(positional_params) >= 2:
+            return self._render_system_prompt(operating_system, workspace_path)
+        if len(positional_params) == 1:
+            return self._render_system_prompt(operating_system)
+        return self._render_system_prompt()
 
     def set_frontend_operating_system(
         self,

@@ -207,10 +207,8 @@ class TestBuildRequestParams:
         tools = [
             {
                 "type": "function",
-                "function": {
-                    "name": "read_file",
-                    "parameters": {"type": "object"},
-                },
+                "name": "read_file",
+                "parameters": {"type": "object"},
             }
         ]
         params = provider._build_request_params(
@@ -221,7 +219,15 @@ class TestBuildRequestParams:
             parallel_tool_calls=True,
         )
 
-        assert params["tools"] == tools
+        assert params["tools"] == [
+            {
+                "type": "function",
+                "function": {
+                    "name": "read_file",
+                    "parameters": {"type": "object"},
+                },
+            }
+        ]
         assert params["tool_choice"] == "auto"
         assert params["parallel_tool_calls"] is True
 
@@ -235,7 +241,7 @@ class TestBuildRequestParams:
             }
         ]
 
-        with pytest.raises(LLMAPIError, match="field 'type' must be 'function'"):
+        with pytest.raises(LLMAPIError, match="expected flat function tool spec"):
             provider._build_request_params("gpt-4", messages, tools=tools)
 
     def test_build_rejects_non_object_tool_entry(self, provider):
@@ -247,16 +253,16 @@ class TestBuildRequestParams:
 
     def test_build_rejects_missing_function_object(self, provider):
         messages = [{"role": "user", "content": "Hello"}]
-        tools = [{"type": "function"}]
+        tools = [{"type": "function", "parameters": {"type": "object"}}]
 
-        with pytest.raises(LLMAPIError, match="missing or invalid 'function' object"):
+        with pytest.raises(LLMAPIError, match="expected flat function tool spec"):
             provider._build_request_params("gpt-4", messages, tools=tools)
 
     def test_build_rejects_missing_function_parameters(self, provider):
         messages = [{"role": "user", "content": "Hello"}]
-        tools = [{"type": "function", "function": {"name": "read_file"}}]
+        tools = [{"type": "function", "name": "read_file"}]
 
-        with pytest.raises(LLMAPIError, match="function.parameters is required"):
+        with pytest.raises(LLMAPIError, match="expected flat function tool spec"):
             provider._build_request_params("gpt-4", messages, tools=tools)
 
     def test_build_rejects_non_object_function_parameters(self, provider):
@@ -264,14 +270,12 @@ class TestBuildRequestParams:
         tools = [
             {
                 "type": "function",
-                "function": {
-                    "name": "read_file",
-                    "parameters": "not-an-object",
-                },
+                "name": "read_file",
+                "parameters": "not-an-object",
             }
         ]
 
-        with pytest.raises(LLMAPIError, match="function.parameters must be an object"):
+        with pytest.raises(LLMAPIError, match="expected flat function tool spec"):
             provider._build_request_params("gpt-4", messages, tools=tools)
 
     def test_build_normalizes_assistant_tool_calls_to_openai_shape(self, provider):

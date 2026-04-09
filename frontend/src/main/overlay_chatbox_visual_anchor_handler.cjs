@@ -6,7 +6,6 @@ function handleSetChatboxVisualAnchorHeight(
 ) {
   const {
     setChatVisualAnchorHeight,
-    positionChatWindow,
     positionResponseWindow,
     positionContextLabelWindow,
     syncContextLabelWindowVisibility,

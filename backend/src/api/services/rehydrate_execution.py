@@ -37,10 +37,10 @@ class RehydrateExecutionService:
             user_id,
             conversation_ref=payload.conversation_ref,
         )
-        self._session_manager.set_session_workspace_path(
-            user_id,
-            session,
-            payload.workspace_path,
+        self._apply_session_workspace_path(
+            user_id=user_id,
+            session=session,
+            workspace_path=payload.workspace_path,
         )
         artifact_store = self._build_artifact_store(artifact_store_cls)
 
@@ -88,6 +88,26 @@ class RehydrateExecutionService:
             system_prompt=rehydrated_system_prompt,
         )
         await session.rehydrate_conversation(payload.conversation_ref, hydrated_entries)
+
+    def _apply_session_workspace_path(
+        self,
+        *,
+        user_id: str,
+        session: Any,
+        workspace_path: Optional[str],
+    ) -> None:
+        set_workspace_path = getattr(
+            self._session_manager,
+            "set_session_workspace_path",
+            None,
+        )
+        if not callable(set_workspace_path):
+            return
+        set_workspace_path(
+            user_id,
+            session,
+            workspace_path,
+        )
 
     def _normalize_rehydrated_entry(
         self,

@@ -31,7 +31,7 @@ function DashboardSidebar({
   modelsOpen,
   isLoadingRecentConversations,
   recentConversationsError,
-  recentWorkspaceGroups,
+  recentWorkspaceGroups = [],
   onOpenConversation,
   onRenameConversation,
   onTogglePinConversation,
@@ -44,7 +44,12 @@ function DashboardSidebar({
   const closeConversationMenu = useCallback(() => {
     setOpenConversationMenuKey(null);
   }, []);
-  const hasRecentConversations = recentWorkspaceGroups.some((group) => group.items.length > 0);
+  const normalizedWorkspaceGroups = Array.isArray(recentWorkspaceGroups)
+    ? recentWorkspaceGroups
+    : [];
+  const hasRecentConversations = normalizedWorkspaceGroups.some(
+    (group) => Array.isArray(group?.items) && group.items.length > 0,
+  );
 
   useDismissOnOutside({
     isOpen: Boolean(openConversationMenuKey),
@@ -232,7 +237,7 @@ function DashboardSidebar({
             <div className="cg-chat-list-scroll">
               {hasRecentConversations ? (
                 <>
-                  {recentWorkspaceGroups.map((group) => (
+                  {normalizedWorkspaceGroups.map((group) => (
                     <div key={group.key} className="cg-chat-workspace-group">
                       <div
                         className="cg-chat-list-subheader"
