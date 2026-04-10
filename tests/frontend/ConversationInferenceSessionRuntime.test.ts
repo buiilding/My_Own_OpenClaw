@@ -70,24 +70,26 @@ describe('conversationInferenceSessionRuntime', () => {
 
   test('prefers persisted replay state when available', async () => {
     markConversationInferenceSessionUnknown('conv-replay-preferred');
-    mockLoadStoredConversationEntries.mockResolvedValueOnce([
-      {
-        metadata: {
-          rehydrate_entry: {
-            role: 'assistant',
-            content: 'compacted replay',
-            message_type: 'context_compaction',
+    mockLoadStoredConversationEntries
+      .mockResolvedValueOnce([
+        {
+          metadata: {
+            rehydrate_entry: {
+              role: 'assistant',
+              content: 'compacted replay',
+              message_type: 'context_compaction',
+            },
           },
-        },
-      } as any,
-    ]);
+        } as any,
+      ])
+      .mockResolvedValueOnce([]);
 
     await ensureConversationInferenceSessionHydrated({
       conversationRef: 'conv-replay-preferred',
       userId: 'user-1',
     });
 
-    expect(mockLoadStoredConversationEntries).toHaveBeenCalledTimes(1);
+    expect(mockLoadStoredConversationEntries).toHaveBeenCalledTimes(2);
     expect(mockSendRehydrateConversation).toHaveBeenCalledWith(
       'conv-replay-preferred',
       [

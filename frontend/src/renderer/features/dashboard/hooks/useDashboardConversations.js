@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   listStoredConversations,
-  loadStoredConversationEntries,
   searchStoredConversations,
 } from '../../../infrastructure/transcript/localConversationStore';
+import { loadLocalConversationSnapshot } from '../../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import {
   setActiveConversationRef,
   updateTranscriptSession,
@@ -12,7 +12,6 @@ import { deleteConversationStoredState } from '../../../infrastructure/transcrip
 import { setActiveWorkspaceSelection } from '../../../infrastructure/workspace/workspaceAccess';
 import {
   clearConversationWorkspaceBinding,
-  resolveConversationWorkspaceBinding,
   setConversationWorkspaceBinding,
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
 import {
@@ -20,9 +19,6 @@ import {
   markConversationInferenceSessionUnknown,
 } from '../../chat/session/conversationInferenceSessionRuntime';
 import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
-import {
-  parseMemoriesToMessages,
-} from '../utils/episodicMemoryUtils';
 import {
   buildConversationGroups,
   buildWorkspaceConversationGroups,
@@ -165,22 +161,19 @@ function useDashboardConversations({
     setRecentConversationsError('');
 
     try {
-      const memories = await loadStoredConversationEntries({
+      const snapshot = await loadLocalConversationSnapshot({
         userId: resolvedUserId,
         conversationRef,
         recordKind: conversation?.record_kind || 'transcript',
-      });
-      const workspaceBinding = resolveConversationWorkspaceBinding({
         conversation,
-        memories,
+        includeParsedMessages: true,
       });
-      setConversationWorkspaceBinding(conversationRef, workspaceBinding);
+      setConversationWorkspaceBinding(conversationRef, snapshot.workspaceBinding);
       try {
-        await setActiveWorkspaceSelection(workspaceBinding.workspacePath || null);
+        await setActiveWorkspaceSelection(snapshot.workspaceBinding.workspacePath || null);
       } catch (workspaceError) {
         console.warn('[useDashboardConversations] Failed to sync active workspace:', workspaceError);
       }
-      const parsedMessages = parseMemoriesToMessages(memories);
 
       setActiveConversationRef(conversationRef);
       updateTranscriptSession(conversationRef, resolvedUserId);
@@ -188,7 +181,7 @@ function useDashboardConversations({
         markConversationInferenceSessionUnknown(conversationRef);
       }
       setChatActiveConversationRef(conversationRef);
-      setChatMessages(parsedMessages, conversationRef);
+      setChatMessages(snapshot.parsedMessages, conversationRef);
       setChatIsSending(false, conversationRef);
       setChatThinkingStatus(null, conversationRef);
     } catch (error) {

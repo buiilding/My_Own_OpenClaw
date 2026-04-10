@@ -1,18 +1,10 @@
 import { ApiClient } from '../../../infrastructure/api/client';
-import { loadStoredConversationEntries } from '../../../infrastructure/transcript/localConversationStore';
-import {
-  readStoredReplayRehydrateEntry,
-  TRANSCRIPT_REPLAY_RECORD_KIND,
-} from '../../../infrastructure/transcript/conversationReplayState';
+import { loadLocalConversationSnapshot } from '../../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import {
   getConversationWorkspaceBinding,
-  resolveConversationWorkspaceBinding,
   setConversationWorkspaceBinding,
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
-import {
-  DEFAULT_USER_ID,
-  toRehydrateMessagePayload,
-} from '../../dashboard/utils/episodicMemoryUtils';
+import { DEFAULT_USER_ID } from '../../dashboard/utils/episodicMemoryUtils';
 
 /**
  * The backend only owns transient inference state. The frontend/sidecar transcript remains
@@ -157,27 +149,17 @@ export async function ensureConversationInferenceSessionHydrated({
 
   const startingEpoch = connectionEpoch;
   const ensurePromise = (async () => {
-    const replayEntries = await loadStoredConversationEntries({
+    const snapshot = await loadLocalConversationSnapshot({
       userId: resolveUserId(userId),
       conversationRef: normalizedConversationRef,
-      recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
+      recordKind,
+      includeReplayState: true,
     });
-    const transcriptEntries = replayEntries.length > 0
-      ? replayEntries
-      : await loadStoredConversationEntries({
-        userId: resolveUserId(userId),
-        conversationRef: normalizedConversationRef,
-        recordKind,
-      });
-    const resolvedBinding = resolveConversationWorkspaceBinding({ memories: transcriptEntries });
-    setConversationWorkspaceBinding(normalizedConversationRef, resolvedBinding);
-    if (transcriptEntries.length > 0) {
-      const rehydrateMessages = replayEntries.length > 0
-        ? transcriptEntries.map((entry) => readStoredReplayRehydrateEntry(entry) || toRehydrateMessagePayload(entry))
-        : transcriptEntries.map(toRehydrateMessagePayload);
+    setConversationWorkspaceBinding(normalizedConversationRef, snapshot.workspaceBinding);
+    if (snapshot.rehydrateMessages.length > 0) {
       await ApiClient.sendRehydrateConversation(
         normalizedConversationRef,
-        rehydrateMessages,
+        snapshot.rehydrateMessages,
         getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
       );
     }
