@@ -7,6 +7,7 @@ import {
   applyMainSessionSnapshot,
   ensureConversationRefForSend,
   hydrateConversationSessionFromMainSnapshot,
+  initializeLocalConversationSession,
   normalizeMainSessionSnapshot,
   resolveConversationRefForSend,
   syncTranscriptSessionFromBackendEvent,
@@ -145,6 +146,23 @@ describe('conversationSessionRuntime', () => {
     });
 
     expect(updateTranscriptSession).toHaveBeenCalledWith(null, undefined);
+  });
+
+  test('initializeLocalConversationSession creates, selects, annotates, and marks a new local conversation', () => {
+    const selectConversationRef = jest.fn();
+    const onConversationCreated = jest.fn();
+    const markConversationInferenceSessionLocalOnly = jest.fn();
+
+    expect(initializeLocalConversationSession({
+      createConversationRef: () => 'conv-local',
+      selectConversationRef,
+      onConversationCreated,
+      markConversationInferenceSessionLocalOnly,
+    })).toBe('conv-local');
+
+    expect(selectConversationRef).toHaveBeenCalledWith('conv-local');
+    expect(onConversationCreated).toHaveBeenCalledWith('conv-local');
+    expect(markConversationInferenceSessionLocalOnly).toHaveBeenCalledWith('conv-local');
   });
 
   test('applyChatConversationProjection promotes normalized transcript conversation refs into chat state', () => {

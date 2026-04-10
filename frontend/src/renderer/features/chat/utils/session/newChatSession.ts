@@ -1,7 +1,10 @@
 import type { TokenCounts } from '../../stores/chatStore';
 import { updateTranscriptSession } from '../../../../infrastructure/transcript/TranscriptWriter';
 import { markConversationInferenceSessionLocalOnly } from '../../session/conversationInferenceSessionRuntime';
-import { applyRendererConversationSelection } from '../../session/conversationSessionRuntime';
+import {
+  applyRendererConversationSelection,
+  initializeLocalConversationSession,
+} from '../../session/conversationSessionRuntime';
 import {
   setConversationWorkspaceBinding,
   workspaceSelectionToBinding,
@@ -34,12 +37,17 @@ export const startNewChatSession = ({
     setTokenCounts,
   });
 
-  const nextConversationRef = createConversationRef();
-  applyRendererConversationSelection({
-    conversationRef: nextConversationRef,
-    updateTranscriptSession,
+  return initializeLocalConversationSession({
+    createConversationRef,
+    selectConversationRef: (conversationRef) => {
+      applyRendererConversationSelection({
+        conversationRef,
+        updateTranscriptSession,
+      });
+    },
+    onConversationCreated: (conversationRef) => {
+      setConversationWorkspaceBinding(conversationRef, workspaceSelectionToBinding(workspace));
+    },
+    markConversationInferenceSessionLocalOnly,
   });
-  setConversationWorkspaceBinding(nextConversationRef, workspaceSelectionToBinding(workspace));
-  markConversationInferenceSessionLocalOnly(nextConversationRef);
-  return nextConversationRef;
 };

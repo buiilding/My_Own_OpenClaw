@@ -102,6 +102,13 @@ type EnsureConversationRefForSendOptions = {
   markConversationInferenceSessionLocalOnly: (conversationRef: string | null) => void;
 };
 
+type InitializeLocalConversationSessionOptions = {
+  createConversationRef: () => string;
+  selectConversationRef: (conversationRef: string) => void;
+  markConversationInferenceSessionLocalOnly: (conversationRef: string | null) => void;
+  onConversationCreated?: ((conversationRef: string) => void) | null;
+};
+
 type ChatConversationProjectionOptions = {
   nextConversationRef: unknown;
   activeConversationRef: unknown;
@@ -155,6 +162,19 @@ export function applyRendererConversationSelection({
 }: RendererConversationSelectionOptions): void {
   updateTranscriptSession(conversationRef, userId ?? undefined);
   setChatConversationRef?.(conversationRef);
+}
+
+export function initializeLocalConversationSession({
+  createConversationRef,
+  selectConversationRef,
+  markConversationInferenceSessionLocalOnly,
+  onConversationCreated,
+}: InitializeLocalConversationSessionOptions): string {
+  const conversationRef = createConversationRef();
+  selectConversationRef(conversationRef);
+  onConversationCreated?.(conversationRef);
+  markConversationInferenceSessionLocalOnly(conversationRef);
+  return conversationRef;
 }
 
 export function applyChatConversationProjection({
@@ -281,9 +301,12 @@ export async function ensureConversationRefForSend({
     return hydratedSnapshot.conversationRef;
   }
 
-  const generatedConversationRef = createConversationRef();
-  setTranscriptConversationRef(generatedConversationRef);
-  setChatConversationRef(generatedConversationRef);
-  markConversationInferenceSessionLocalOnly(generatedConversationRef);
-  return generatedConversationRef;
+  return initializeLocalConversationSession({
+    createConversationRef,
+    selectConversationRef: (conversationRef) => {
+      setTranscriptConversationRef(conversationRef);
+      setChatConversationRef(conversationRef);
+    },
+    markConversationInferenceSessionLocalOnly,
+  });
 }

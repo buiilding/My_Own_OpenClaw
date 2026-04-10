@@ -280,4 +280,41 @@ describe('useConversationReplayActions', () => {
       && (inlineShot ?? null) === null
     ))).toBe(true);
   });
+
+  test('retry replay creates and selects a fresh local conversation when no active session exists', async () => {
+    mockConversationRef = null;
+    jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('replay-ref');
+
+    const messages = [
+      {
+        id: 'user-new',
+        sender: 'user',
+        text: 'brand new question',
+        screenshotRef: null,
+        screenshotUrl: null,
+      },
+      {
+        id: 'assistant-new',
+        sender: 'assistant',
+        text: 'brand new answer',
+      },
+    ];
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      setIsSending: jest.fn(),
+    }));
+
+    await act(async () => {
+      await result.current.handleTryAgainFromAssistant('assistant-new');
+    });
+
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_replay-ref', undefined);
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_replay-ref', 'user-1');
+    expect(mockMarkConversationInferenceSessionLocalOnly).toHaveBeenCalledWith('conv_replay-ref');
+    expect(mockSendQuery.mock.calls[0][1]).toBe('conv_replay-ref');
+  });
 });

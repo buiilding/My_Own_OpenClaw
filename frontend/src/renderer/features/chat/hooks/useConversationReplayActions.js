@@ -21,7 +21,10 @@ import {
   markConversationInferenceSessionLocalOnly,
   rehydrateConversationInferenceSession,
 } from '../session/conversationInferenceSessionRuntime';
-import { applyRendererConversationSelection } from '../session/conversationSessionRuntime';
+import {
+  applyRendererConversationSelection,
+  initializeLocalConversationSession,
+} from '../session/conversationSessionRuntime';
 import { createConversationRef } from '../utils/session/conversationRef';
 import {
   resolveTranscriptMessageType,
@@ -104,13 +107,19 @@ async function runReplayQueryFlow({
 function ensureConversationRef(sessionConversationRef) {
   let conversationRef = getActiveConversationRef() || sessionConversationRef;
   if (!conversationRef) {
-    conversationRef = createConversationRef();
-    applyRendererConversationSelection({
-      conversationRef,
-      updateTranscriptSession,
+    conversationRef = initializeLocalConversationSession({
+      createConversationRef,
+      selectConversationRef: (nextConversationRef) => {
+        applyRendererConversationSelection({
+          conversationRef: nextConversationRef,
+          updateTranscriptSession,
+        });
+      },
+      onConversationCreated: (nextConversationRef) => {
+        setConversationWorkspaceBinding(nextConversationRef, null);
+      },
+      markConversationInferenceSessionLocalOnly,
     });
-    setConversationWorkspaceBinding(conversationRef, null);
-    markConversationInferenceSessionLocalOnly(conversationRef);
   }
   return conversationRef;
 }
