@@ -87,6 +87,53 @@ Required secrets when `run_signing=true`:
   - `APPLE_APP_SPECIFIC_PASSWORD`
   - `APPLE_TEAM_ID`
 
+### macOS Developer ID setup notes
+
+The macOS release path expects a real `Developer ID Application` signing identity,
+not just a downloaded certificate file.
+
+For a first-time Apple Developer setup:
+
+- Create a `Developer ID Application` certificate in Apple Developer Certificates,
+  Identifiers & Profiles.
+- Use the `G2 Sub-CA` option when Apple prompts for the Developer ID intermediary.
+- Generate the CSR locally from Keychain Access:
+  - `Keychain Access` -> `Certificate Assistant` -> `Request a Certificate From a Certificate Authority...`
+- Install the issued certificate into the `login` keychain.
+- Confirm the certificate appears under `login` -> `My Certificates` with its private key attached.
+- Export that identity as a `.p12`; use the exported file path for `CSC_LINK` and the export password for `CSC_KEY_PASSWORD`.
+- If the certificate initially shows as untrusted, install Apple’s `Developer ID - G2` intermediate certificate before retrying signing.
+
+Before running a signed macOS package build, verify the machine sees a valid
+codesigning identity:
+
+```bash
+security find-identity -v -p codesigning
+```
+
+The expected output must include the Developer ID Application identity for the
+current Team ID. If this command reports `0 valid identities found`, Electron
+packaging may silently fall back to ad-hoc signing, which will cause notarization
+to fail with errors such as:
+
+- `The binary is not signed with a valid Developer ID certificate`
+- `The signature does not include a secure timestamp`
+
+When the identity is valid, a signed bundle should show the Developer ID
+authority chain and timestamp:
+
+```bash
+codesign -dv --verbose=4 frontend/release/mac-arm64/WindieOS.app 2>&1 | sed -n '1,40p'
+```
+
+Expected signals:
+
+- `Authority=Developer ID Application: ...`
+- `Authority=Developer ID Certification Authority`
+- `Authority=Apple Root CA`
+- `Timestamp=...`
+- `TeamIdentifier=...`
+
 ## Post-release Checks
 
 - Verify tags exist in the remote.

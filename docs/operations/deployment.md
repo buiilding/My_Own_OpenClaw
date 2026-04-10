@@ -68,6 +68,10 @@ Bundled sidecar-runtime packaging profile:
 
 ### Signing & update channels
 - Signing required before production rollout (macOS notarization, Windows signing).
+- First-time macOS signing machines must have a trusted `Developer ID Application`
+  identity visible to `security find-identity -v -p codesigning`; otherwise
+  `electron-builder` can package successfully but fall back to ad-hoc signing and
+  Apple notarization will reject the bundle.
 - Channels: `canary`, `beta`, `stable`.
 - Rollout: staged rollout by percentage; instant rollback by channel pin.
 
