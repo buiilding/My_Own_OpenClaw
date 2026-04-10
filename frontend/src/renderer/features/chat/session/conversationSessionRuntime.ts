@@ -102,6 +102,12 @@ type EnsureConversationRefForSendOptions = {
   markConversationInferenceSessionLocalOnly: (conversationRef: string | null) => void;
 };
 
+type RendererConversationSessionSnapshotOptions = {
+  transcriptConversationRef: unknown;
+  storeConversationRef: unknown;
+  userId?: unknown;
+};
+
 type InitializeLocalConversationSessionOptions = {
   createConversationRef: () => string;
   selectConversationRef: (conversationRef: string) => void;
@@ -162,6 +168,20 @@ export function applyRendererConversationSelection({
 }: RendererConversationSelectionOptions): void {
   updateTranscriptSession(conversationRef, userId ?? undefined);
   setChatConversationRef?.(conversationRef);
+}
+
+export function resolveRendererConversationSessionSnapshot({
+  transcriptConversationRef,
+  storeConversationRef,
+  userId,
+}: RendererConversationSessionSnapshotOptions): MainSessionSnapshot {
+  return {
+    conversationRef: resolveConversationRefForSend(
+      transcriptConversationRef,
+      storeConversationRef,
+    ).conversationRef,
+    userId: normalizeConversationRef(userId),
+  };
 }
 
 export function initializeLocalConversationSession({

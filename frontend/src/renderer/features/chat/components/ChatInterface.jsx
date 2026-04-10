@@ -20,11 +20,8 @@ import { PlayerService } from '../../../infrastructure/audio/PlayerService';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import { ensureConversationInferenceSessionHydrated } from '../session/conversationInferenceSessionRuntime';
+import { useRendererConversationSessionInfo } from '../session/useRendererConversationSessionInfo';
 import { startNewChatSession } from '../utils/session/newChatSession';
-import {
-  getActiveConversationRef,
-  getTranscriptSessionInfo,
-} from '../../../infrastructure/transcript/TranscriptWriter';
 import {
   COMPACTION_THINKING_STATUS,
 } from '../utils/chatStream/chatStreamThinkingStatus';
@@ -42,7 +39,6 @@ import { useConversationReplayActions } from '../hooks/useConversationReplayActi
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { applyStopQueryUiState } from '../utils/state/stopQueryState';
 import { useCurrentTurnPresentationState } from '../hooks/useCurrentTurnPresentationState';
-import { useTranscriptSessionInfo } from '../../dashboard/hooks/useTranscriptSessionInfo';
 import { isVmModeEnabled } from '../../../infrastructure/runtime/vmMode';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import {
@@ -100,7 +96,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const { config, updateConfig, availableModels } = useAppConfigContext();
-  const transcriptSessionInfo = useTranscriptSessionInfo();
+  const sessionInfo = useRendererConversationSessionInfo();
   const [activeWorkspace, setActiveWorkspace] = useState(() => ({
     activeWorkspaceName: '',
     activeWorkspacePath: '',
@@ -191,7 +187,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
           return;
         }
 
-        const currentBinding = getConversationWorkspaceBinding(getActiveConversationRef());
+        const currentBinding = getConversationWorkspaceBinding(sessionInfo.conversationRef || null);
         const nextBinding = workspaceSelectionToBinding(nextWorkspace);
         if (areWorkspaceBindingsEqual(currentBinding, nextBinding)) {
           return;
@@ -210,7 +206,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
       removeWorkspaceAccessUpdated?.();
       window.removeEventListener('focus', handleWindowFocus);
     };
-  }, [startWorkspaceBoundNewChat]);
+  }, [sessionInfo.conversationRef, startWorkspaceBoundNewChat]);
 
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const showToolLogs = config?.show_tool_logs === true;
@@ -377,14 +373,14 @@ function ChatInterface({ focusComposerToken = 0 }) {
       updateStreamTracking,
     });
     stopPlayback();
-    ApiClient.stopQuery(transcriptSessionInfo.conversationRef || getActiveConversationRef() || null);
+    ApiClient.stopQuery(sessionInfo.conversationRef || null);
   }, [
     composerBusy,
+    sessionInfo.conversationRef,
     setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,
     stopPlayback,
-    transcriptSessionInfo.conversationRef,
     updateStreamTracking,
   ]);
 
@@ -423,20 +419,19 @@ function ChatInterface({ focusComposerToken = 0 }) {
     if (deferredQueryModelConfig) {
       ApiClient.updateSettings(deferredQueryModelConfig);
     }
-    const sessionInfo = getTranscriptSessionInfo();
-    const conversationRef = getActiveConversationRef() || sessionInfo?.conversationRef || null;
+    const conversationRef = sessionInfo.conversationRef || null;
     if (conversationRef) {
       try {
         await ensureConversationInferenceSessionHydrated({
           conversationRef,
-          userId: sessionInfo?.userId || null,
+          userId: sessionInfo.userId || null,
         });
       } catch (error) {
         console.warn('[ChatInterface] Failed to rehydrate conversation before compaction:', error);
       }
     }
     ApiClient.compactHistory(true, conversationRef);
-  }, [config, setThinkingSourceEventType, setThinkingStatus]);
+  }, [config, sessionInfo.conversationRef, sessionInfo.userId, setThinkingSourceEventType, setThinkingStatus]);
 
   const handleProviderSelect = useCallback((provider) => {
     setProviderMenuOpen(false);
@@ -587,7 +582,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
         <>
           <MessageList
             messages={renderedMessages}
-            conversationRef={transcriptSessionInfo.conversationRef || null}
+            conversationRef={sessionInfo.conversationRef || null}
             thinkingStatus={thinkingStatus}
             thinkingSourceEventType={thinkingSourceEventType}
             compactionDebugInfo={compactionDebugInfo}
