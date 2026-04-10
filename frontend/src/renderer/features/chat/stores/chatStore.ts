@@ -171,6 +171,69 @@ interface ChatState {
   clearMessages: (conversationRef?: string | null) => void;
 }
 
+type ProjectedWorkspaceFields = Pick<
+ChatState,
+'messages'
+| 'isSending'
+| 'thinkingStatus'
+| 'thinkingSourceEventType'
+| 'compactionDebugInfo'
+| 'tokenCounts'
+| 'streamTracking'
+>;
+
+function getProjectedWorkspaceFields(workspace: ChatWorkspaceState): ProjectedWorkspaceFields {
+  return {
+    messages: workspace.messages,
+    isSending: workspace.isSending,
+    thinkingStatus: workspace.thinkingStatus,
+    thinkingSourceEventType: workspace.thinkingSourceEventType,
+    compactionDebugInfo: workspace.compactionDebugInfo,
+    tokenCounts: workspace.tokenCounts,
+    streamTracking: workspace.streamTracking,
+  };
+}
+
+function isActiveWorkspaceRef(state: ChatState, workspaceRef: string): boolean {
+  return workspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
+}
+
+function buildWorkspaceUpdate(
+  state: ChatState,
+  workspaceRef: string,
+  workspace: ChatWorkspaceState,
+  extraState: Partial<ChatState> = {},
+): Partial<ChatState> {
+  return {
+    workspaces: {
+      ...state.workspaces,
+      [workspaceRef]: workspace,
+    },
+    ...extraState,
+    ...(isActiveWorkspaceRef(state, workspaceRef) ? getProjectedWorkspaceFields(workspace) : {}),
+  };
+}
+
+function resolveWorkspaceMutationTarget(
+  state: ChatState,
+  conversationRef?: string | null,
+): {
+  normalizedConversationRef: string | null;
+  workspaceRef: string;
+  workspace: ChatWorkspaceState;
+} {
+  const normalizedConversationRef = resolveWorkspaceConversationRef(
+    conversationRef,
+    state.activeConversationRef,
+  );
+  const workspaceRef = resolveChatWorkspaceRef(normalizedConversationRef);
+  return {
+    normalizedConversationRef,
+    workspaceRef,
+    workspace: readWorkspaceState(state, workspaceRef),
+  };
+}
+
 /**
  * Chat store
  * Uses shallow equality for better performance with Zustand
@@ -223,13 +286,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
             ...state.workspaces,
             [nextWorkspaceRef]: nextWorkspace,
           },
-        messages: nextWorkspace.messages,
-        isSending: nextWorkspace.isSending,
-        thinkingStatus: nextWorkspace.thinkingStatus,
-        thinkingSourceEventType: nextWorkspace.thinkingSourceEventType,
-        compactionDebugInfo: nextWorkspace.compactionDebugInfo,
-        tokenCounts: nextWorkspace.tokenCounts,
-        streamTracking: nextWorkspace.streamTracking,
+        ...getProjectedWorkspaceFields(nextWorkspace),
       };
     }),
 
@@ -262,17 +319,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
   // Actions
   addMessage: (message, conversationRef) =>
     set((state) => {
-      const normalizedConversationRef = resolveWorkspaceConversationRef(
-        conversationRef,
-        state.activeConversationRef,
-      );
-      const targetWorkspaceRef = resolveChatWorkspaceRef(normalizedConversationRef);
-      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      const {
+        normalizedConversationRef,
+        workspaceRef,
+        workspace: currentWorkspace,
+      } = resolveWorkspaceMutationTarget(state, conversationRef);
       const nextWorkspace = {
         ...currentWorkspace,
         messages: [...currentWorkspace.messages, message],
       };
-      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
       const nextTurnConversationRefs = (
         message.turnRef && normalizedConversationRef
           ? {
@@ -282,32 +337,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
           : state.turnConversationRefs
       );
 
-      return {
-        workspaces: {
-          ...state.workspaces,
-          [targetWorkspaceRef]: nextWorkspace,
-        },
+      return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
         turnConversationRefs: nextTurnConversationRefs,
-        ...(isActiveWorkspace ? {
-          messages: nextWorkspace.messages,
-          isSending: nextWorkspace.isSending,
-          thinkingStatus: nextWorkspace.thinkingStatus,
-          thinkingSourceEventType: nextWorkspace.thinkingSourceEventType,
-          compactionDebugInfo: nextWorkspace.compactionDebugInfo,
-          tokenCounts: nextWorkspace.tokenCounts,
-          streamTracking: nextWorkspace.streamTracking,
-        } : {}),
-      };
+      });
     }),
 
   updateMessage: (id, updates, conversationRef) =>
     set((state) => {
-      const normalizedConversationRef = resolveWorkspaceConversationRef(
-        conversationRef,
-        state.activeConversationRef,
-      );
-      const targetWorkspaceRef = resolveChatWorkspaceRef(normalizedConversationRef);
-      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      const {
+        normalizedConversationRef,
+        workspaceRef,
+        workspace: currentWorkspace,
+      } = resolveWorkspaceMutationTarget(state, conversationRef);
       const index = currentWorkspace.messages.findIndex((message) => message.id === id);
       if (index === -1) {
         return state;
@@ -316,7 +357,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const nextMessages = [...currentWorkspace.messages];
       nextMessages[index] = { ...nextMessages[index], ...updates };
       const nextWorkspace = { ...currentWorkspace, messages: nextMessages };
-      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
       const nextTurnConversationRefs = (
         typeof updates.turnRef === 'string' && updates.turnRef.length > 0 && normalizedConversationRef
           ? {
@@ -325,14 +365,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
           }
           : state.turnConversationRefs
       );
-      return {
-        workspaces: {
-          ...state.workspaces,
-          [targetWorkspaceRef]: nextWorkspace,
-        },
+      return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
         turnConversationRefs: nextTurnConversationRefs,
-        ...(isActiveWorkspace ? { messages: nextMessages } : {}),
-      };
+      });
     }),
 
   setMessages: (messages, conversationRef) =>
@@ -343,14 +378,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         return state;
       }
       const nextWorkspace = { ...currentWorkspace, messages };
-      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
-      return {
-        workspaces: {
-          ...state.workspaces,
-          [targetWorkspaceRef]: nextWorkspace,
-        },
-        ...(isActiveWorkspace ? { messages } : {}),
-      };
+      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
     }),
 
   setIsSending: (isSending, conversationRef) =>
@@ -361,14 +389,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         return state;
       }
       const nextWorkspace = { ...currentWorkspace, isSending };
-      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
-      return {
-        workspaces: {
-          ...state.workspaces,
-          [targetWorkspaceRef]: nextWorkspace,
-        },
-        ...(isActiveWorkspace ? { isSending } : {}),
-      };
+      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
     }),
 
   setThinkingStatus: (thinkingStatus, conversationRef) =>
@@ -379,14 +400,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         return state;
       }
       const nextWorkspace = { ...currentWorkspace, thinkingStatus };
-      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
-      return {
-        workspaces: {
-          ...state.workspaces,
-          [targetWorkspaceRef]: nextWorkspace,
-        },
-        ...(isActiveWorkspace ? { thinkingStatus } : {}),
-      };
+      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
     }),
 
   setThinkingSourceEventType: (thinkingSourceEventType, conversationRef) =>
@@ -397,14 +411,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         return state;
       }
       const nextWorkspace = { ...currentWorkspace, thinkingSourceEventType };
-      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
-      return {
-        workspaces: {
-          ...state.workspaces,
-          [targetWorkspaceRef]: nextWorkspace,
-        },
-        ...(isActiveWorkspace ? { thinkingSourceEventType } : {}),
-      };
+      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
     }),
 
   setCompactionDebugInfo: (compactionDebugInfo, conversationRef) =>
@@ -415,14 +422,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         return state;
       }
       const nextWorkspace = { ...currentWorkspace, compactionDebugInfo };
-      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
-      return {
-        workspaces: {
-          ...state.workspaces,
-          [targetWorkspaceRef]: nextWorkspace,
-        },
-        ...(isActiveWorkspace ? { compactionDebugInfo } : {}),
-      };
+      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
     }),
 
   setTokenCounts: (tokenCounts, conversationRef) =>
@@ -433,14 +433,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         return state;
       }
       const nextWorkspace = { ...currentWorkspace, tokenCounts };
-      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
-      return {
-        workspaces: {
-          ...state.workspaces,
-          [targetWorkspaceRef]: nextWorkspace,
-        },
-        ...(isActiveWorkspace ? { tokenCounts } : {}),
-      };
+      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
     }),
 
   updateStreamTracking: (updater, conversationRef) =>
@@ -455,14 +448,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         ...currentWorkspace,
         streamTracking: nextStreamTracking,
       };
-      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
-      return {
-        workspaces: {
-          ...state.workspaces,
-          [targetWorkspaceRef]: nextWorkspace,
-        },
-        ...(isActiveWorkspace ? { streamTracking: nextStreamTracking } : {}),
-      };
+      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
     }),
 
   clearMessages: (conversationRef) =>
@@ -476,18 +462,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
         compactionDebugInfo: null,
         streamTracking: createInitialStreamTracking(),
       };
-      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
-      return {
-        workspaces: {
-          ...state.workspaces,
-          [targetWorkspaceRef]: nextWorkspace,
-        },
-        ...(isActiveWorkspace ? {
-          messages: [],
-          thinkingSourceEventType: null,
-          compactionDebugInfo: null,
-          streamTracking: nextWorkspace.streamTracking,
-        } : {}),
-      };
+      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
     }),
 }));
