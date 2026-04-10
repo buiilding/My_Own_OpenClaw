@@ -5,7 +5,6 @@ import {
 } from '../../../infrastructure/transcript/localConversationStore';
 import { loadLocalConversationSnapshot } from '../../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import {
-  setActiveConversationRef,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
 import { deleteConversationStoredState } from '../../../infrastructure/transcript/conversationReplayState';
@@ -18,6 +17,7 @@ import {
   clearConversationInferenceSessionState,
   markConversationInferenceSessionUnknown,
 } from '../../chat/session/conversationInferenceSessionRuntime';
+import { applyRendererConversationSelection } from '../../chat/session/conversationSessionRuntime';
 import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
 import {
   buildConversationGroups,
@@ -175,12 +175,15 @@ function useDashboardConversations({
         console.warn('[useDashboardConversations] Failed to sync active workspace:', workspaceError);
       }
 
-      setActiveConversationRef(conversationRef);
-      updateTranscriptSession(conversationRef, resolvedUserId);
+      applyRendererConversationSelection({
+        conversationRef,
+        userId: resolvedUserId,
+        updateTranscriptSession,
+        setChatConversationRef: setChatActiveConversationRef,
+      });
       if (sessionConversationRef !== conversationRef) {
         markConversationInferenceSessionUnknown(conversationRef);
       }
-      setChatActiveConversationRef(conversationRef);
       setChatMessages(snapshot.parsedMessages, conversationRef);
       setChatIsSending(false, conversationRef);
       setChatThinkingStatus(null, conversationRef);

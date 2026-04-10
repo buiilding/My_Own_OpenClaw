@@ -74,6 +74,13 @@ type SessionProjectionCallbacks = {
   updateTranscriptSession: (conversationRef: string | null, userId: string | null) => void;
 };
 
+type RendererConversationSelectionOptions = {
+  conversationRef: string | null;
+  userId?: string | null;
+  updateTranscriptSession: (conversationRef: string | null, userId?: string | null) => void;
+  setChatConversationRef?: ((conversationRef: string | null) => void) | null;
+};
+
 type HydrateMainSessionSnapshotOptions = SessionProjectionCallbacks & {
   loadMainSessionSnapshot: () => Promise<unknown>;
   markConversationInferenceSessionUnknown?: (conversationRef: string | null) => void;
@@ -106,6 +113,16 @@ export function applyMainSessionSnapshot(
   }
   updateTranscriptSession(snapshot.conversationRef, snapshot.userId);
   return snapshot;
+}
+
+export function applyRendererConversationSelection({
+  conversationRef,
+  userId,
+  updateTranscriptSession,
+  setChatConversationRef,
+}: RendererConversationSelectionOptions): void {
+  updateTranscriptSession(conversationRef, userId ?? undefined);
+  setChatConversationRef?.(conversationRef);
 }
 
 export async function hydrateConversationSessionFromMainSnapshot({

@@ -1,6 +1,5 @@
 import { startNewChatSession } from '../../frontend/src/renderer/features/chat/utils/session/newChatSession';
 import {
-  setActiveConversationRef,
   updateTranscriptSession,
 } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
 import {
@@ -12,7 +11,6 @@ import {
 } from '../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding';
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  setActiveConversationRef: jest.fn(),
   updateTranscriptSession: jest.fn(),
 }));
 
@@ -32,7 +30,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWork
 describe('startNewChatSession', () => {
   beforeEach(() => {
     jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('new-chat-ref');
-    (setActiveConversationRef as jest.MockedFunction<typeof setActiveConversationRef>).mockReset();
     (updateTranscriptSession as jest.MockedFunction<typeof updateTranscriptSession>).mockReset();
     (clearConversationInferenceSessionState as jest.MockedFunction<typeof clearConversationInferenceSessionState>).mockReset();
     (markConversationInferenceSessionLocalOnly as jest.MockedFunction<typeof markConversationInferenceSessionLocalOnly>).mockReset();
@@ -61,7 +58,7 @@ describe('startNewChatSession', () => {
     });
 
     expect(conversationRef).toBe('conv_new-chat-ref');
-    expect(setActiveConversationRef).toHaveBeenCalledWith('conv_new-chat-ref');
+    expect(updateTranscriptSession).toHaveBeenCalledWith('conv_new-chat-ref', undefined);
     expect(setConversationWorkspaceBinding).toHaveBeenCalledWith('conv_new-chat-ref', {
       workspacePath: '/work/WindieOS',
       workspaceName: 'WindieOS',

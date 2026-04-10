@@ -1,4 +1,5 @@
 import {
+  applyRendererConversationSelection,
   EMPTY_MAIN_SESSION_SNAPSHOT,
   applyMainSessionSnapshot,
   ensureConversationRefForSend,
@@ -114,6 +115,32 @@ describe('conversationSessionRuntime', () => {
     expect(setTranscriptConversationRef).not.toHaveBeenCalled();
     expect(setChatConversationRef).not.toHaveBeenCalled();
     expect(updateTranscriptSession).toHaveBeenCalledWith(null, 'user-main');
+  });
+
+  test('applyRendererConversationSelection updates transcript session and optionally projects chat store selection', () => {
+    const updateTranscriptSession = jest.fn();
+    const setChatConversationRef = jest.fn();
+
+    applyRendererConversationSelection({
+      conversationRef: 'conv-selected',
+      userId: 'user-selected',
+      updateTranscriptSession,
+      setChatConversationRef,
+    });
+
+    expect(updateTranscriptSession).toHaveBeenCalledWith('conv-selected', 'user-selected');
+    expect(setChatConversationRef).toHaveBeenCalledWith('conv-selected');
+  });
+
+  test('applyRendererConversationSelection preserves transcript user when user id is omitted', () => {
+    const updateTranscriptSession = jest.fn();
+
+    applyRendererConversationSelection({
+      conversationRef: null,
+      updateTranscriptSession,
+    });
+
+    expect(updateTranscriptSession).toHaveBeenCalledWith(null, undefined);
   });
 
   test('hydrateConversationSessionFromMainSnapshot normalizes, projects, and marks unknown inference state', async () => {

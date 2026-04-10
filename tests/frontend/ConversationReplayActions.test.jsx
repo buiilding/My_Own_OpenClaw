@@ -6,7 +6,6 @@ import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastr
 import {
   getActiveConversationRef,
   getTranscriptSessionInfo,
-  setActiveConversationRef,
   updateTranscriptSession,
 } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
 import {
@@ -44,9 +43,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWrite
     conversationRef: mockConversationRef,
     userId: 'user-1',
   })),
-  setActiveConversationRef: jest.fn((nextRef) => {
-    mockConversationRef = nextRef;
-  }),
   updateTranscriptSession: jest.fn(),
 }));
 
@@ -54,7 +50,6 @@ const mockUpdateSettings = ApiClient.updateSettings;
 const mockSendQuery = ApiClient.sendQuery;
 const mockGetActiveConversationRef = getActiveConversationRef;
 const mockGetTranscriptSessionInfo = getTranscriptSessionInfo;
-const mockSetActiveConversationRef = setActiveConversationRef;
 const mockUpdateTranscriptSession = updateTranscriptSession;
 const mockMarkConversationInferenceSessionLocalOnly = markConversationInferenceSessionLocalOnly;
 const mockRehydrateConversationInferenceSession = rehydrateConversationInferenceSession;
@@ -120,7 +115,6 @@ describe('useConversationReplayActions', () => {
 
     expect(mockGetActiveConversationRef).toHaveBeenCalled();
     expect(mockGetTranscriptSessionInfo).toHaveBeenCalled();
-    expect(mockSetActiveConversationRef).not.toHaveBeenCalled();
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-existing', 'user-1');
     expect((IpcBridge.invoke).mock.calls).toContainEqual([
       INVOKE_CHANNELS.DELETE_CONVERSATION,
