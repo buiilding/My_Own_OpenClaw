@@ -141,4 +141,47 @@ describe('chatStore', () => {
       }),
     );
   });
+
+  test('workspace-targeted mutations do not overwrite the active projected state', () => {
+    useChatStore.getState().addMessage({
+      id: 'stale-workspace-message',
+      text: 'offscreen',
+      sender: 'assistant',
+    }, 'conv-other');
+
+    expect(useChatStore.getState().messages).toEqual([
+      expect.objectContaining({
+        id: 'init-message',
+      }),
+    ]);
+    expect(useChatStore.getState().getWorkspaceState('conv-other').messages).toEqual([
+      expect.objectContaining({
+        id: 'stale-workspace-message',
+        text: 'offscreen',
+      }),
+    ]);
+  });
+
+  test('switching active conversation projects that workspace state into the top-level fields', () => {
+    useChatStore.getState().setIsSending(true, 'conv-other');
+    useChatStore.getState().setThinkingStatus('thinking elsewhere', 'conv-other');
+    useChatStore.getState().addMessage({
+      id: 'other-message',
+      text: 'other workspace',
+      sender: 'assistant',
+    }, 'conv-other');
+
+    useChatStore.getState().setActiveConversationRef('conv-other');
+
+    const state = useChatStore.getState();
+    expect(state.activeConversationRef).toBe('conv-other');
+    expect(state.isSending).toBe(true);
+    expect(state.thinkingStatus).toBe('thinking elsewhere');
+    expect(state.messages).toEqual([
+      expect.objectContaining({
+        id: 'other-message',
+        text: 'other workspace',
+      }),
+    ]);
+  });
 });
