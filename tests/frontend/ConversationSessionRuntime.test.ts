@@ -1,4 +1,6 @@
 import {
+  applyChatConversationProjection,
+  applyEventChatConversationProjection,
   applyTranscriptSessionUserBinding,
   applyRendererConversationSelection,
   EMPTY_MAIN_SESSION_SNAPSHOT,
@@ -143,6 +145,84 @@ describe('conversationSessionRuntime', () => {
     });
 
     expect(updateTranscriptSession).toHaveBeenCalledWith(null, undefined);
+  });
+
+  test('applyChatConversationProjection promotes normalized transcript conversation refs into chat state', () => {
+    const setChatConversationRef = jest.fn();
+
+    expect(applyChatConversationProjection({
+      nextConversationRef: ' conv-session ',
+      activeConversationRef: null,
+      setChatConversationRef,
+    })).toBe('conv-session');
+
+    expect(setChatConversationRef).toHaveBeenCalledWith('conv-session');
+  });
+
+  test('applyChatConversationProjection ignores missing conversation refs and preserves current chat selection', () => {
+    const setChatConversationRef = jest.fn();
+
+    expect(applyChatConversationProjection({
+      nextConversationRef: '   ',
+      activeConversationRef: 'conv-current',
+      setChatConversationRef,
+    })).toBeNull();
+
+    expect(setChatConversationRef).not.toHaveBeenCalled();
+  });
+
+  test('applyChatConversationProjection is a no-op when chat state already matches the requested ref', () => {
+    const setChatConversationRef = jest.fn();
+
+    expect(applyChatConversationProjection({
+      nextConversationRef: ' conv-current ',
+      activeConversationRef: 'conv-current',
+      setChatConversationRef,
+    })).toBe('conv-current');
+
+    expect(setChatConversationRef).not.toHaveBeenCalled();
+  });
+
+  test('applyEventChatConversationProjection only promotes explicit local-user-message refs over an active conversation', () => {
+    const setChatConversationRef = jest.fn();
+
+    expect(applyEventChatConversationProjection({
+      eventType: 'local-user-message',
+      explicitConversationRef: 'conv-next',
+      resolvedConversationRef: ' conv-next ',
+      activeConversationRef: 'conv-current',
+      setChatConversationRef,
+    })).toBe('conv-next');
+
+    expect(setChatConversationRef).toHaveBeenCalledWith('conv-next');
+  });
+
+  test('applyEventChatConversationProjection blocks non-local events from stealing active chat focus', () => {
+    const setChatConversationRef = jest.fn();
+
+    expect(applyEventChatConversationProjection({
+      eventType: 'streaming-response',
+      explicitConversationRef: 'conv-next',
+      resolvedConversationRef: ' conv-next ',
+      activeConversationRef: 'conv-current',
+      setChatConversationRef,
+    })).toBeNull();
+
+    expect(setChatConversationRef).not.toHaveBeenCalled();
+  });
+
+  test('applyEventChatConversationProjection ignores events without explicit conversation identity', () => {
+    const setChatConversationRef = jest.fn();
+
+    expect(applyEventChatConversationProjection({
+      eventType: 'local-user-message',
+      explicitConversationRef: null,
+      resolvedConversationRef: 'conv-next',
+      activeConversationRef: null,
+      setChatConversationRef,
+    })).toBeNull();
+
+    expect(setChatConversationRef).not.toHaveBeenCalled();
   });
 
   test('applyTranscriptSessionUserBinding updates transcript user without changing the conversation ref', () => {
