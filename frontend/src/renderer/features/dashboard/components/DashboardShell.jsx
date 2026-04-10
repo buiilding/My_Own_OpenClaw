@@ -7,12 +7,12 @@ import ModelsSection from './sections/ModelsSection';
 import SettingsSection from './sections/SettingsSection';
 import UsageSection from './sections/UsageSection';
 import DashboardSidebar from './DashboardSidebar';
-import { useTranscriptSessionInfo } from '../hooks/useTranscriptSessionInfo';
 import { useDashboardConversations } from '../hooks/useDashboardConversations';
 import MemorySection from './sections/MemorySection';
 import SearchChatsModal from './SearchChatsModal';
 import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
 import { invalidateConversationInferenceSessionState } from '../../chat/session/conversationInferenceSessionRuntime';
+import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
 import { clearConversationReplayStateCache } from '../../../infrastructure/transcript/conversationReplayState';
 import { clearAllConversationWorkspaceBindings } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
 
@@ -89,7 +89,7 @@ function DashboardShell({
   const [isTransportConnected, setIsTransportConnected] = useState(true);
   const [snapshotUserId, setSnapshotUserId] = useState(null);
   const [composerFocusToken, setComposerFocusToken] = useState(0);
-  const sessionInfo = useTranscriptSessionInfo();
+  const sessionInfo = useRendererConversationSessionInfo();
   const resolvedUserId = sessionInfo.userId || snapshotUserId || null;
 
   const setChatMessages = useChatStore((state) => state.setMessages);

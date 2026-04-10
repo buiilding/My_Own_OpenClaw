@@ -9,6 +9,7 @@ import {
   hydrateConversationSessionFromMainSnapshot,
   initializeLocalConversationSession,
   normalizeMainSessionSnapshot,
+  resolveRendererConversationSessionSnapshot,
   resolveConversationRefForSend,
   syncTranscriptSessionFromBackendEvent,
   shouldProjectSessionConversationRef,
@@ -146,6 +147,28 @@ describe('conversationSessionRuntime', () => {
     });
 
     expect(updateTranscriptSession).toHaveBeenCalledWith(null, undefined);
+  });
+
+  test('resolveRendererConversationSessionSnapshot prefers transcript conversation refs and normalizes user ids', () => {
+    expect(resolveRendererConversationSessionSnapshot({
+      transcriptConversationRef: ' conv-session ',
+      storeConversationRef: 'conv-store',
+      userId: ' user-1 ',
+    })).toEqual({
+      conversationRef: 'conv-session',
+      userId: 'user-1',
+    });
+  });
+
+  test('resolveRendererConversationSessionSnapshot falls back to projected chat conversation refs when transcript session is empty', () => {
+    expect(resolveRendererConversationSessionSnapshot({
+      transcriptConversationRef: null,
+      storeConversationRef: ' conv-store ',
+      userId: null,
+    })).toEqual({
+      conversationRef: 'conv-store',
+      userId: null,
+    });
   });
 
   test('initializeLocalConversationSession creates, selects, annotates, and marks a new local conversation', () => {

@@ -4,6 +4,7 @@ import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useChatComposerDraft } from '../hooks/useChatComposerDraft';
 import { useCurrentTurnPresentationState } from '../hooks/useCurrentTurnPresentationState';
 import { useResponseOverlayPhase } from '../hooks/useResponseOverlayPhase';
+import { useRendererConversationSessionInfo } from '../session/useRendererConversationSessionInfo';
 import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import {
   useChatboxDragWindowBindings,
@@ -50,7 +51,7 @@ function ChatBox() {
   const { config, updateConfig } = useAppConfigContext();
   const messages = useChatStore((state) => state.messages);
   const isSending = useChatStore((state) => state.isSending);
-  const activeConversationRef = useChatStore((state) => state.activeConversationRef);
+  const sessionInfo = useRendererConversationSessionInfo();
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const { sendMessage } = useChatMessageSender(undefined, {
@@ -316,10 +317,10 @@ function ChatBox() {
     }
     setThinkingStatus(COMPACTION_THINKING_STATUS);
     setThinkingSourceEventType('context-compaction-started');
-    ApiClient.compactHistory(true, activeConversationRef || null);
+    ApiClient.compactHistory(true, sessionInfo.conversationRef || null);
   }, [
-    activeConversationRef,
     loopInteractionLocked,
+    sessionInfo.conversationRef,
     setThinkingSourceEventType,
     setThinkingStatus,
   ]);

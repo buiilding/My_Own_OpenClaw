@@ -143,6 +143,13 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender'
   useChatMessageSender: (...args) => mockUseChatMessageSender(...args),
 }));
 
+jest.mock('../../frontend/src/renderer/features/chat/session/useRendererConversationSessionInfo', () => ({
+  useRendererConversationSessionInfo: () => ({
+    conversationRef: mockChatState.activeConversationRef,
+    userId: null,
+  }),
+}));
+
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
     compactHistory: (...args) => mockCompactHistory(...args),

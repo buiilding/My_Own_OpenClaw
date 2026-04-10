@@ -191,6 +191,45 @@ describe('ChatGptDashboardShell', () => {
     expect(screen.getByTestId('chat-interface-stub')).toBeInTheDocument();
   });
 
+  test('keeps sidebar conversation selection from projected chat state when transcript session ref is empty', async () => {
+    mockSessionInfo = { conversationRef: null, userId: LOCAL_SNAPSHOT_USER_ID };
+    useChatStore.setState({ activeConversationRef: 'conv-store-active' });
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
+      if (channel === 'list-conversations') {
+        return {
+          success: true,
+          data: {
+            conversations: [{
+              conversation_id: 'conv-store-active',
+              title: 'Store active chat',
+              updated_at: '2026-04-10T00:00:00.000Z',
+              created_at: '2026-04-10T00:00:00.000Z',
+              record_kind: 'transcript',
+            }],
+          },
+        };
+      }
+      if (channel === 'get-conversation') {
+        return {
+          success: true,
+          data: { memories: [] },
+        };
+      }
+      if (channel === 'search-conversations') {
+        return {
+          success: true,
+          data: { conversations: [] },
+        };
+      }
+      return { success: true, data: {} };
+    }));
+
+    await renderDashboardShell();
+
+    const activeChatButton = screen.getByText('Store active chat').closest('button');
+    expect(activeChatButton.className).toContain('active');
+  });
+
   test('locks document scroll while dashboard shell is mounted', async () => {
     const { unmount } = await renderDashboardShell();
 
