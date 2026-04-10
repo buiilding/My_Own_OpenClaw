@@ -102,6 +102,20 @@ type EnsureConversationRefForSendOptions = {
   markConversationInferenceSessionLocalOnly: (conversationRef: string | null) => void;
 };
 
+type ChatConversationProjectionOptions = {
+  nextConversationRef: unknown;
+  activeConversationRef: unknown;
+  setChatConversationRef: (conversationRef: string) => void;
+};
+
+type EventChatConversationProjectionOptions = {
+  eventType: string;
+  explicitConversationRef: unknown;
+  resolvedConversationRef: unknown;
+  activeConversationRef: unknown;
+  setChatConversationRef: (conversationRef: string) => void;
+};
+
 type TranscriptSessionUserBindingOptions = {
   userId: unknown;
   updateTranscriptSession: TranscriptSessionUpdater;
@@ -141,6 +155,53 @@ export function applyRendererConversationSelection({
 }: RendererConversationSelectionOptions): void {
   updateTranscriptSession(conversationRef, userId ?? undefined);
   setChatConversationRef?.(conversationRef);
+}
+
+export function applyChatConversationProjection({
+  nextConversationRef,
+  activeConversationRef,
+  setChatConversationRef,
+}: ChatConversationProjectionOptions): string | null {
+  const normalizedNextConversationRef = normalizeConversationRef(nextConversationRef);
+  if (!normalizedNextConversationRef) {
+    return null;
+  }
+
+  if (normalizeConversationRef(activeConversationRef) === normalizedNextConversationRef) {
+    return normalizedNextConversationRef;
+  }
+
+  setChatConversationRef(normalizedNextConversationRef);
+  return normalizedNextConversationRef;
+}
+
+export function applyEventChatConversationProjection({
+  eventType,
+  explicitConversationRef,
+  resolvedConversationRef,
+  activeConversationRef,
+  setChatConversationRef,
+}: EventChatConversationProjectionOptions): string | null {
+  const normalizedResolvedConversationRef = normalizeConversationRef(resolvedConversationRef);
+  if (!normalizedResolvedConversationRef) {
+    return null;
+  }
+
+  if (!normalizeConversationRef(explicitConversationRef)) {
+    return null;
+  }
+
+  const normalizedActiveConversationRef = normalizeConversationRef(activeConversationRef);
+  if (normalizedActiveConversationRef === normalizedResolvedConversationRef) {
+    return normalizedResolvedConversationRef;
+  }
+
+  if (eventType !== 'local-user-message' && normalizedActiveConversationRef) {
+    return null;
+  }
+
+  setChatConversationRef(normalizedResolvedConversationRef);
+  return normalizedResolvedConversationRef;
 }
 
 export function applyTranscriptSessionUserBinding({

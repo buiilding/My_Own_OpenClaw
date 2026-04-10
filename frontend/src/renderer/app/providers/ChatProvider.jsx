@@ -6,7 +6,7 @@ import { invalidateConversationInferenceSessionState } from '../../features/chat
 import { useChatStore } from '../../features/chat/stores/chatStore';
 import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { useTranscriptSessionInfo } from '../../features/dashboard/hooks/useTranscriptSessionInfo';
-import { shouldProjectSessionConversationRef } from '../../features/chat/session/conversationSessionRuntime';
+import { applyChatConversationProjection } from '../../features/chat/session/conversationSessionRuntime';
 import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
 
 /**
@@ -14,6 +14,7 @@ import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
  * No business logic - just composition.
  */
 export function ChatProvider({ children, enableToolRunner = true, enableTranscript = true }) {
+  const activeConversationRef = useChatStore((state) => state.activeConversationRef);
   const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const transcriptSessionInfo = useTranscriptSessionInfo();
   const bootstrapSession = useChatSessionBootstrap();
@@ -23,12 +24,12 @@ export function ChatProvider({ children, enableToolRunner = true, enableTranscri
   }, [bootstrapSession]);
 
   useEffect(() => {
-    const conversationRef = transcriptSessionInfo?.conversationRef || null;
-    if (!shouldProjectSessionConversationRef(conversationRef)) {
-      return;
-    }
-    setActiveConversationRef(conversationRef);
-  }, [setActiveConversationRef, transcriptSessionInfo?.conversationRef]);
+    applyChatConversationProjection({
+      nextConversationRef: transcriptSessionInfo?.conversationRef,
+      activeConversationRef,
+      setChatConversationRef: setActiveConversationRef,
+    });
+  }, [activeConversationRef, setActiveConversationRef, transcriptSessionInfo?.conversationRef]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.IPC_STATUS, (payload) => {

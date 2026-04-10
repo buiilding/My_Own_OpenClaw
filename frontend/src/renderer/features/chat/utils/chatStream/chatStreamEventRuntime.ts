@@ -1,5 +1,6 @@
 import { type BackendEvent, type BackendEventType } from '../../../../types/backendEvents';
 import { useChatStore } from '../../stores/chatStore';
+import { applyEventChatConversationProjection } from '../../session/conversationSessionRuntime';
 import { applyTrackingEvent, type StreamTrackingOptions } from './chatStreamTracking';
 import { isStaleTurnForActiveStream } from './chatStreamTurnGuard';
 import {
@@ -31,29 +32,17 @@ export function syncActiveConversationProjection(
   conversationRef: string | null,
   setActiveConversationRef: (conversationRef: string | null) => void,
 ): void {
-  if (!conversationRef) {
-    return;
-  }
-  const explicitConversationRef = resolveEventConversationRef(event);
-  if (!explicitConversationRef) {
-    return;
-  }
-  const rawActiveConversationRef = useChatStore.getState().activeConversationRef;
-  const activeConversationRef = (
-    typeof rawActiveConversationRef === 'string'
-      ? rawActiveConversationRef.trim()
-      : ''
-  ) || null;
-  if (activeConversationRef === conversationRef) {
-    return;
-  }
-  if (event.type !== 'local-user-message' && activeConversationRef) {
-    return;
-  }
+  const { activeConversationRef } = useChatStore.getState();
   // Only user-initiated local sends or an empty renderer session may project a
   // new active conversation. Background stream events must stay scoped to their
   // own workspace instead of stealing foreground chat focus.
-  setActiveConversationRef(conversationRef);
+  applyEventChatConversationProjection({
+    eventType: event.type,
+    explicitConversationRef: resolveEventConversationRef(event),
+    resolvedConversationRef: conversationRef,
+    activeConversationRef,
+    setChatConversationRef: setActiveConversationRef,
+  });
 }
 
 export function shouldIgnoreForStaleTurn(
