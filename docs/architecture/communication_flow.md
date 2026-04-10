@@ -259,6 +259,7 @@ This keeps the backend as the hosted control plane and prevents SDK consumers fr
 - Notes:
   - Selecting a chat in `Your workspace` is renderer-only browsing; it does not eagerly send `rehydrate-conversation`.
   - Renderer sends this lazily before the first backend-dependent action on an existing chat, such as send, replay/edit, or manual compaction.
+  - Renderer conversation identity for those actions comes from the merged local session snapshot: transcript session is authoritative, with projected chat-store selection only as a fallback when the transcript session has not caught up yet.
   - `tool_call_id` and `tool_calls` are optional linkage fields for native tool-calling history.
   - If omitted, backend reconstructs valid tool-call linkage from transcript `message_type` + `correlation_id` and synthesizes missing IDs as needed.
 
