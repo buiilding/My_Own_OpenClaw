@@ -142,6 +142,9 @@ Current ownership boundary:
 
 - frontend + sidecar local store own conversation history, replay state, workspace binding, and history browsing/search
 - backend sessions are disposable inference state that may be rebuilt from the local transcript before a backend-dependent action
+- renderer transcript session state is the conversation authority for the currently selected chat
+- `chatStore.activeConversationRef` is a renderer projection/cache used for workspace-scoped UI state, stream routing, and turn fallback lookups; it is not a second user-facing source of truth
+- renderer surfaces that need "current conversation" should read the merged session snapshot (`useRendererConversationSessionInfo`) instead of independently picking transcript-session vs chat-store refs
 
 ### Wakeword/Voice Flow
 
@@ -218,6 +221,12 @@ Primary modules:
 - `renderer/features/chat/session/conversationInferenceSessionRuntime.ts`:
   - Tracks whether a given conversation needs backend inference-session hydration from local transcript history.
   - Makes backend state explicitly disposable and rebuildable instead of treating it as conversation truth.
+- `renderer/features/chat/session/conversationSessionRuntime.ts`:
+  - Shared renderer policy for conversation selection, local conversation creation, transcript-session sync, and active-chat projection.
+  - Owns the normalization rules that decide when transcript session, chat-store projection, and backend bootstrap state may move foreground conversation focus.
+- `renderer/features/chat/session/useRendererConversationSessionInfo.js`:
+  - Renderer-facing current-conversation reader that prefers transcript session state and falls back to projected chat-store selection.
+  - Keeps dashboard/chat controls from independently choosing between transcript session and `chatStore.activeConversationRef`.
 - `main/local_backend_bridge.cjs`:
   - Sidecar subprocess start/readiness ping/retry and JSON-RPC bridge wiring.
   - Uses `local_backend_supervisor.cjs` to track process identity plus explicit `starting|ready|stopping|error` lifecycle state.
@@ -287,6 +296,7 @@ Primary modules:
 - `features/chat/components/ChatInterface.jsx`:
   - Provider + model selectors, stop/new-chat actions, speech toggle, retry/edit message flows.
   - Focused-window `Esc` stop handler wired to the same stop-query path as the stop button.
+  - Reads current conversation identity from the merged renderer session snapshot rather than mixing transcript-session and chat-store lookups inline.
 - `features/chat/components/MessageList.jsx`:
   - Message rendering + inline user-message editor.
 
@@ -327,6 +337,7 @@ Primary modules:
 - `infrastructure/ipc/bridge.ts`: typed channel wrappers over preload API.
 - `infrastructure/api/client.ts`: typed backend command emitter.
 - `infrastructure/transcript/TranscriptWriter.ts`: transcript session state + queued persistence.
+- `features/chat/session/useRendererConversationSessionInfo.js`: merged renderer current-session reader for user-facing surfaces.
 - `infrastructure/services/ToolExecutionService.ts`: tool execution/capture bundling.
 - `infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/*`: explicit per-OS screenshot chat-pill policy (Linux hides; Windows/macOS no-op because overlay exclusion comes from phase-driven content protection, not capture-time hide/show).
 - `infrastructure/audio/PlayerService.ts`: chunk queue decode/playback.
