@@ -1,4 +1,5 @@
 import {
+  applyTranscriptSessionUserBinding,
   applyRendererConversationSelection,
   EMPTY_MAIN_SESSION_SNAPSHOT,
   applyMainSessionSnapshot,
@@ -6,6 +7,7 @@ import {
   hydrateConversationSessionFromMainSnapshot,
   normalizeMainSessionSnapshot,
   resolveConversationRefForSend,
+  syncTranscriptSessionFromBackendEvent,
   shouldProjectSessionConversationRef,
 } from '../../frontend/src/renderer/features/chat/session/conversationSessionRuntime';
 
@@ -141,6 +143,70 @@ describe('conversationSessionRuntime', () => {
     });
 
     expect(updateTranscriptSession).toHaveBeenCalledWith(null, undefined);
+  });
+
+  test('applyTranscriptSessionUserBinding updates transcript user without changing the conversation ref', () => {
+    const updateTranscriptSession = jest.fn();
+
+    expect(applyTranscriptSessionUserBinding({
+      userId: ' user-bound ',
+      updateTranscriptSession,
+    })).toBe(true);
+
+    expect(updateTranscriptSession).toHaveBeenCalledWith(undefined, 'user-bound');
+  });
+
+  test('applyTranscriptSessionUserBinding ignores invalid user ids', () => {
+    const updateTranscriptSession = jest.fn();
+
+    expect(applyTranscriptSessionUserBinding({
+      userId: '   ',
+      updateTranscriptSession,
+    })).toBe(false);
+
+    expect(updateTranscriptSession).not.toHaveBeenCalled();
+  });
+
+  test('syncTranscriptSessionFromBackendEvent prefers local-user-message conversation refs over stale active refs', () => {
+    const updateTranscriptSession = jest.fn();
+
+    syncTranscriptSessionFromBackendEvent({
+      eventType: 'local-user-message',
+      eventUserId: 'user-local',
+      resolvedConversationRef: ' conv-event ',
+      activeConversationRef: ' conv-active ',
+      updateTranscriptSession,
+    });
+
+    expect(updateTranscriptSession).toHaveBeenCalledWith('conv-event', 'user-local');
+  });
+
+  test('syncTranscriptSessionFromBackendEvent keeps the active conversation for non-local events', () => {
+    const updateTranscriptSession = jest.fn();
+
+    syncTranscriptSessionFromBackendEvent({
+      eventType: 'token-count',
+      eventUserId: 'user-token',
+      resolvedConversationRef: ' conv-event ',
+      activeConversationRef: ' conv-active ',
+      updateTranscriptSession,
+    });
+
+    expect(updateTranscriptSession).toHaveBeenCalledWith('conv-active', 'user-token');
+  });
+
+  test('syncTranscriptSessionFromBackendEvent falls back to undefined when no conversation refs exist', () => {
+    const updateTranscriptSession = jest.fn();
+
+    syncTranscriptSessionFromBackendEvent({
+      eventType: 'token-count',
+      eventUserId: 'user-none',
+      resolvedConversationRef: '   ',
+      activeConversationRef: null,
+      updateTranscriptSession,
+    });
+
+    expect(updateTranscriptSession).toHaveBeenCalledWith(undefined, 'user-none');
   });
 
   test('hydrateConversationSessionFromMainSnapshot normalizes, projects, and marks unknown inference state', async () => {
