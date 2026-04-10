@@ -7,30 +7,22 @@ import {
 import { markConversationInferenceSessionUnknown } from '../session/conversationInferenceSessionRuntime';
 import { useChatStore } from '../stores/chatStore';
 import {
-  applyMainSessionSnapshot,
-  normalizeMainSessionSnapshot,
+  hydrateConversationSessionFromMainSnapshot,
 } from '../session/conversationSessionRuntime';
 
 export function useChatSessionBootstrap() {
   const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
 
   return useCallback(async () => {
-    try {
-      const snapshotPayload = await IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID);
-      const snapshot = normalizeMainSessionSnapshot(snapshotPayload);
-      if (!snapshot.conversationRef && !snapshot.userId) {
-        return snapshot;
-      }
-      const appliedSnapshot = applyMainSessionSnapshot(snapshot, {
-        setTranscriptConversationRef,
-        setChatConversationRef: setChatActiveConversationRef,
-        updateTranscriptSession,
-      });
-      markConversationInferenceSessionUnknown(appliedSnapshot.conversationRef);
-      return appliedSnapshot;
-    } catch (error) {
-      console.warn('[chatSessionBootstrap] Failed to hydrate session snapshot:', error);
-      return { conversationRef: null, userId: null };
-    }
+    return hydrateConversationSessionFromMainSnapshot({
+      loadMainSessionSnapshot: () => IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID),
+      setTranscriptConversationRef,
+      setChatConversationRef: setChatActiveConversationRef,
+      updateTranscriptSession,
+      markConversationInferenceSessionUnknown,
+      onError: (error) => {
+        console.warn('[chatSessionBootstrap] Failed to hydrate session snapshot:', error);
+      },
+    });
   }, [setChatActiveConversationRef]);
 }

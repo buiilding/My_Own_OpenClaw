@@ -1,5 +1,8 @@
 import {
+  EMPTY_MAIN_SESSION_SNAPSHOT,
   applyMainSessionSnapshot,
+  ensureConversationRefForSend,
+  hydrateConversationSessionFromMainSnapshot,
   normalizeMainSessionSnapshot,
   resolveConversationRefForSend,
   shouldProjectSessionConversationRef,
@@ -111,5 +114,104 @@ describe('conversationSessionRuntime', () => {
     expect(setTranscriptConversationRef).not.toHaveBeenCalled();
     expect(setChatConversationRef).not.toHaveBeenCalled();
     expect(updateTranscriptSession).toHaveBeenCalledWith(null, 'user-main');
+  });
+
+  test('hydrateConversationSessionFromMainSnapshot normalizes, projects, and marks unknown inference state', async () => {
+    const setTranscriptConversationRef = jest.fn();
+    const setChatConversationRef = jest.fn();
+    const updateTranscriptSession = jest.fn();
+    const markConversationInferenceSessionUnknown = jest.fn();
+
+    await expect(hydrateConversationSessionFromMainSnapshot({
+      loadMainSessionSnapshot: async () => ({
+        conversation_ref: ' conv-main ',
+        user_id: ' user-main ',
+      }),
+      setTranscriptConversationRef,
+      setChatConversationRef,
+      updateTranscriptSession,
+      markConversationInferenceSessionUnknown,
+    })).resolves.toEqual({
+      conversationRef: 'conv-main',
+      userId: 'user-main',
+    });
+
+    expect(setTranscriptConversationRef).toHaveBeenCalledWith('conv-main');
+    expect(setChatConversationRef).toHaveBeenCalledWith('conv-main');
+    expect(updateTranscriptSession).toHaveBeenCalledWith('conv-main', 'user-main');
+    expect(markConversationInferenceSessionUnknown).toHaveBeenCalledWith('conv-main');
+  });
+
+  test('hydrateConversationSessionFromMainSnapshot returns empty snapshot and reports errors', async () => {
+    const onError = jest.fn();
+
+    await expect(hydrateConversationSessionFromMainSnapshot({
+      loadMainSessionSnapshot: async () => {
+        throw new Error('ipc down');
+      },
+      setTranscriptConversationRef: jest.fn(),
+      setChatConversationRef: jest.fn(),
+      updateTranscriptSession: jest.fn(),
+      onError,
+    })).resolves.toBe(EMPTY_MAIN_SESSION_SNAPSHOT);
+
+    expect(onError).toHaveBeenCalledWith(expect.any(Error));
+  });
+
+  test('ensureConversationRefForSend reuses store conversation refs and projects them back into transcript state', async () => {
+    const setTranscriptConversationRef = jest.fn();
+    const setChatConversationRef = jest.fn();
+
+    await expect(ensureConversationRefForSend({
+      transcriptConversationRef: null,
+      storeConversationRef: ' conv-store ',
+      setTranscriptConversationRef,
+      setChatConversationRef,
+      hydrateMainSessionSnapshot: jest.fn(),
+      createConversationRef: jest.fn(() => 'conv-generated'),
+      markConversationInferenceSessionLocalOnly: jest.fn(),
+    })).resolves.toBe('conv-store');
+
+    expect(setTranscriptConversationRef).toHaveBeenCalledWith('conv-store');
+    expect(setChatConversationRef).toHaveBeenCalledWith('conv-store');
+  });
+
+  test('ensureConversationRefForSend falls back to hydrated main snapshot before generating a new conversation', async () => {
+    const hydrateMainSessionSnapshot = jest.fn(async () => ({
+      conversationRef: 'conv-main',
+      userId: 'user-main',
+    }));
+
+    await expect(ensureConversationRefForSend({
+      transcriptConversationRef: null,
+      storeConversationRef: null,
+      setTranscriptConversationRef: jest.fn(),
+      setChatConversationRef: jest.fn(),
+      hydrateMainSessionSnapshot,
+      createConversationRef: jest.fn(() => 'conv-generated'),
+      markConversationInferenceSessionLocalOnly: jest.fn(),
+    })).resolves.toBe('conv-main');
+
+    expect(hydrateMainSessionSnapshot).toHaveBeenCalledTimes(1);
+  });
+
+  test('ensureConversationRefForSend generates a fresh local conversation only when no other source exists', async () => {
+    const setTranscriptConversationRef = jest.fn();
+    const setChatConversationRef = jest.fn();
+    const markConversationInferenceSessionLocalOnly = jest.fn();
+
+    await expect(ensureConversationRefForSend({
+      transcriptConversationRef: null,
+      storeConversationRef: null,
+      setTranscriptConversationRef,
+      setChatConversationRef,
+      hydrateMainSessionSnapshot: async () => EMPTY_MAIN_SESSION_SNAPSHOT,
+      createConversationRef: () => 'conv-generated',
+      markConversationInferenceSessionLocalOnly,
+    })).resolves.toBe('conv-generated');
+
+    expect(setTranscriptConversationRef).toHaveBeenCalledWith('conv-generated');
+    expect(setChatConversationRef).toHaveBeenCalledWith('conv-generated');
+    expect(markConversationInferenceSessionLocalOnly).toHaveBeenCalledWith('conv-generated');
   });
 });
