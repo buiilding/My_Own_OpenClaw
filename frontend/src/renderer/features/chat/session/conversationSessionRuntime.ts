@@ -1,5 +1,10 @@
 type ConversationRefSource = 'transcript' | 'store' | 'generated';
 
+type TranscriptSessionUpdater = (
+  conversationRef?: string | null,
+  userId?: string | null,
+) => void;
+
 export type MainSessionSnapshot = {
   conversationRef: string | null;
   userId: string | null;
@@ -77,7 +82,7 @@ type SessionProjectionCallbacks = {
 type RendererConversationSelectionOptions = {
   conversationRef: string | null;
   userId?: string | null;
-  updateTranscriptSession: (conversationRef: string | null, userId?: string | null) => void;
+  updateTranscriptSession: TranscriptSessionUpdater;
   setChatConversationRef?: ((conversationRef: string | null) => void) | null;
 };
 
@@ -95,6 +100,19 @@ type EnsureConversationRefForSendOptions = {
   hydrateMainSessionSnapshot: () => Promise<MainSessionSnapshot>;
   createConversationRef: () => string;
   markConversationInferenceSessionLocalOnly: (conversationRef: string | null) => void;
+};
+
+type TranscriptSessionUserBindingOptions = {
+  userId: unknown;
+  updateTranscriptSession: TranscriptSessionUpdater;
+};
+
+type BackendEventTranscriptSessionSyncOptions = {
+  eventType: string;
+  eventUserId?: string | null;
+  resolvedConversationRef: unknown;
+  activeConversationRef: unknown;
+  updateTranscriptSession: TranscriptSessionUpdater;
 };
 
 export function applyMainSessionSnapshot(
@@ -123,6 +141,37 @@ export function applyRendererConversationSelection({
 }: RendererConversationSelectionOptions): void {
   updateTranscriptSession(conversationRef, userId ?? undefined);
   setChatConversationRef?.(conversationRef);
+}
+
+export function applyTranscriptSessionUserBinding({
+  userId,
+  updateTranscriptSession,
+}: TranscriptSessionUserBindingOptions): boolean {
+  const normalizedUserId = normalizeConversationRef(userId);
+  if (!normalizedUserId) {
+    return false;
+  }
+
+  updateTranscriptSession(undefined, normalizedUserId);
+  return true;
+}
+
+export function syncTranscriptSessionFromBackendEvent({
+  eventType,
+  eventUserId,
+  resolvedConversationRef,
+  activeConversationRef,
+  updateTranscriptSession,
+}: BackendEventTranscriptSessionSyncOptions): void {
+  const normalizedResolvedConversationRef = normalizeConversationRef(resolvedConversationRef);
+  const normalizedActiveConversationRef = normalizeConversationRef(activeConversationRef);
+  const transcriptConversationRef = (
+    eventType === 'local-user-message' && normalizedResolvedConversationRef
+      ? normalizedResolvedConversationRef
+      : normalizedActiveConversationRef ?? normalizedResolvedConversationRef ?? undefined
+  );
+
+  updateTranscriptSession(transcriptConversationRef, eventUserId ?? undefined);
 }
 
 export async function hydrateConversationSessionFromMainSnapshot({

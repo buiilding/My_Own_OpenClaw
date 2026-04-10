@@ -1,4 +1,5 @@
 import { getActiveConversationRef, updateTranscriptSession } from '../../../../infrastructure/transcript/TranscriptWriter';
+import { syncTranscriptSessionFromBackendEvent } from '../../session/conversationSessionRuntime';
 import type { BackendEvent } from '../../../../types/backendEvents';
 
 type IngressDeps = {
@@ -44,18 +45,13 @@ export const ingestBackendEvent = (
   }
   if (enableTranscript) {
     try {
-      const rawActiveConversationRef = getActiveConversationRef();
-      const activeConversationRef = (
-        typeof rawActiveConversationRef === 'string'
-          ? rawActiveConversationRef.trim()
-          : ''
-      );
-      const transcriptConversationRef = (
-        event.type === 'local-user-message' && normalizedConversationRef
-          ? normalizedConversationRef
-          : activeConversationRef || normalizedConversationRef || undefined
-      );
-      updateTranscriptSession(transcriptConversationRef, event.user_id);
+      syncTranscriptSessionFromBackendEvent({
+        eventType: event.type,
+        eventUserId: event.user_id,
+        resolvedConversationRef: normalizedConversationRef,
+        activeConversationRef: getActiveConversationRef(),
+        updateTranscriptSession,
+      });
     } catch {
       // Transcript session sync is best-effort. Stream event dispatch must continue.
     }

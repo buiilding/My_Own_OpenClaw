@@ -6,6 +6,7 @@ import { ApiClient } from '../../infrastructure/api/client';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
 import { AppConfigContext } from './AppConfigContext';
 import { updateTranscriptSession } from '../../infrastructure/transcript/TranscriptWriter';
+import { applyTranscriptSessionUserBinding } from '../../features/chat/session/conversationSessionRuntime';
 import { extractTranscriptUserId, routeConfigBackendEvent } from './appConfigEvents';
 import { setBackendHttpUrl } from '../../infrastructure/services/ArtifactUploader';
 import { useLatestRef } from '../../infrastructure/hooks/useLatestRef';
@@ -168,10 +169,10 @@ export function AppConfigProvider({ children }) {
       });
     }
 
-    const userId = extractTranscriptUserId(data);
-    if (userId) {
-      updateTranscriptSession(undefined, userId);
-    }
+    applyTranscriptSessionUserBinding({
+      userId: extractTranscriptUserId(data),
+      updateTranscriptSession,
+    });
     setBackendHttpUrl(data?.backendHttpUrl);
     if (data?.isConnected === true) {
       syncCurrentConfigToBackend();
