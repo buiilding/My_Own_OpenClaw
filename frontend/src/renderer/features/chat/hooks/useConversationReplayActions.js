@@ -10,7 +10,6 @@ import { buildDeferredQueryModelConfig } from '../../../app/providers/appConfigB
 import {
   getActiveConversationRef,
   getTranscriptSessionInfo,
-  setActiveConversationRef,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
 import { deleteConversationStoredState } from '../../../infrastructure/transcript/conversationReplayState';
@@ -22,6 +21,7 @@ import {
   markConversationInferenceSessionLocalOnly,
   rehydrateConversationInferenceSession,
 } from '../session/conversationInferenceSessionRuntime';
+import { applyRendererConversationSelection } from '../session/conversationSessionRuntime';
 import { createConversationRef } from '../utils/session/conversationRef';
 import {
   resolveTranscriptMessageType,
@@ -105,7 +105,10 @@ function ensureConversationRef(sessionConversationRef) {
   let conversationRef = getActiveConversationRef() || sessionConversationRef;
   if (!conversationRef) {
     conversationRef = createConversationRef();
-    setActiveConversationRef(conversationRef);
+    applyRendererConversationSelection({
+      conversationRef,
+      updateTranscriptSession,
+    });
     setConversationWorkspaceBinding(conversationRef, null);
     markConversationInferenceSessionLocalOnly(conversationRef);
   }
@@ -129,7 +132,11 @@ async function executeReplayAction({
 }) {
   const conversationRef = ensureConversationRef(sessionInfo.conversationRef);
   const workspaceBinding = getConversationWorkspaceBinding(conversationRef);
-  updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
+  applyRendererConversationSelection({
+    conversationRef,
+    userId: sessionInfo.userId || undefined,
+    updateTranscriptSession,
+  });
 
   setMessages(replayMessages, conversationRef);
   setThinkingStatus(null, conversationRef);

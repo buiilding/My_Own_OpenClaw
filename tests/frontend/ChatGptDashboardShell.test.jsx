@@ -37,7 +37,6 @@ const mockInvoke = jest.fn(async (channel) => {
   }
   return { success: true, data: {} };
 });
-const mockSetActiveConversationRef = jest.fn();
 const mockUpdateTranscriptSession = jest.fn();
 let mockSessionInfo = { conversationRef: null, userId: null };
 
@@ -68,7 +67,6 @@ jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/Us
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
   getTranscriptSessionInfo: () => mockSessionInfo,
-  setActiveConversationRef: (...args) => mockSetActiveConversationRef(...args),
   updateTranscriptSession: (...args) => mockUpdateTranscriptSession(...args),
 }));
 
@@ -160,7 +158,6 @@ describe('ChatGptDashboardShell', () => {
   beforeEach(() => {
     mockListeners.clear();
     mockInvoke.mockClear();
-    mockSetActiveConversationRef.mockClear();
     mockUpdateTranscriptSession.mockClear();
     mockInvalidateConversationInferenceSessionState.mockClear();
     mockClearConversationReplayStateCache.mockClear();
@@ -342,16 +339,12 @@ describe('ChatGptDashboardShell', () => {
       }),
     );
 
-    if (!mockSetActiveConversationRef.mock.calls.some(([conversationRef]) => (
-      conversationRef === 'conv-history-1'
-    ))) {
-      throw new Error('expected active conversation ref to switch to conv-history-1');
-    }
     if (!mockUpdateTranscriptSession.mock.calls.some(([conversationRef, userId]) => (
       conversationRef === 'conv-history-1' && userId === LOCAL_SNAPSHOT_USER_ID
     ))) {
       throw new Error('expected transcript session to switch to conv-history-1');
     }
+    expect(useChatStore.getState().activeConversationRef).toBe('conv-history-1');
   });
 
   test('loads recent local chats while transport is disconnected', async () => {
@@ -435,16 +428,12 @@ describe('ChatGptDashboardShell', () => {
         conversationId: 'conv-history-1',
       }),
     );
-    if (!mockSetActiveConversationRef.mock.calls.some(([conversationRef]) => (
-      conversationRef === 'conv-history-1'
-    ))) {
-      throw new Error('expected active conversation ref to switch during active loop');
-    }
     if (!mockUpdateTranscriptSession.mock.calls.some(([conversationRef, userId]) => (
       conversationRef === 'conv-history-1' && userId === LOCAL_SNAPSHOT_USER_ID
     ))) {
       throw new Error('expected transcript session to switch during active loop');
     }
+    expect(useChatStore.getState().activeConversationRef).toBe('conv-history-1');
   });
 
   test('highlights active conversation row in sidebar history', async () => {
@@ -796,9 +785,6 @@ describe('ChatGptDashboardShell', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Trigger chats cleared' }));
     await flushMicrotasks();
 
-    expect(mockSetActiveConversationRef.mock.calls.some(([conversationRef]) => (
-      conversationRef === null
-    ))).toBe(true);
     expect(mockUpdateTranscriptSession.mock.calls.some(([conversationRef, userId]) => (
       conversationRef === null && userId === 'user-live'
     ))).toBe(true);

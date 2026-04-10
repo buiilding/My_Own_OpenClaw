@@ -1,12 +1,10 @@
 import { resetActiveChatSession } from '../../frontend/src/renderer/features/chat/utils/session/resetActiveChatSession';
 import {
-  setActiveConversationRef,
   updateTranscriptSession,
 } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
 import { clearConversationInferenceSessionState } from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  setActiveConversationRef: jest.fn(),
   updateTranscriptSession: jest.fn(),
 }));
 
@@ -14,13 +12,11 @@ jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferen
   clearConversationInferenceSessionState: jest.fn(),
 }));
 
-const mockSetActiveConversationRef = setActiveConversationRef as jest.MockedFunction<typeof setActiveConversationRef>;
 const mockUpdateTranscriptSession = updateTranscriptSession as jest.MockedFunction<typeof updateTranscriptSession>;
 const mockClearConversationInferenceSessionState = clearConversationInferenceSessionState as jest.MockedFunction<typeof clearConversationInferenceSessionState>;
 
 describe('resetActiveChatSession', () => {
   beforeEach(() => {
-    mockSetActiveConversationRef.mockReset();
     mockUpdateTranscriptSession.mockReset();
     mockClearConversationInferenceSessionState.mockReset();
   });
@@ -42,7 +38,6 @@ describe('resetActiveChatSession', () => {
       setChatActiveConversationRef,
     });
 
-    expect(mockSetActiveConversationRef).toHaveBeenCalledWith(null);
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(null, 'user-1');
     expect(mockClearConversationInferenceSessionState).toHaveBeenCalledWith('conv-1');
     expect(clearMessages).toHaveBeenCalledWith('conv-1');
