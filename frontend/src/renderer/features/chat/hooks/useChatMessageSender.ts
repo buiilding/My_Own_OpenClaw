@@ -24,9 +24,8 @@ import { createConversationRef } from '../utils/session/conversationRef';
 import { useChatCommonActions } from './useChatCommonActions';
 import { normalizeArtifactImageContentType } from '../../../infrastructure/services/ArtifactImageUtils';
 import {
-  applyMainSessionSnapshot,
-  normalizeMainSessionSnapshot,
-  resolveConversationRefForSend,
+  ensureConversationRefForSend,
+  hydrateConversationSessionFromMainSnapshot,
 } from '../session/conversationSessionRuntime';
 import {
   ensureConversationInferenceSessionHydrated,
@@ -91,48 +90,35 @@ export function useChatMessageSender(
   }, [addMessage]);
 
   const hydrateSessionFromMainSnapshot = useCallback(async (): Promise<string | null> => {
-    try {
-      const snapshotPayload = await IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID);
-      const snapshot = normalizeMainSessionSnapshot(snapshotPayload);
-      if (!snapshot.conversationRef && !snapshot.userId) {
-        return null;
-      }
-      const appliedSnapshot = applyMainSessionSnapshot(snapshot, {
-        setTranscriptConversationRef: setActiveConversationRef,
-        setChatConversationRef: setChatActiveConversationRef,
-        updateTranscriptSession,
-      });
-      markConversationInferenceSessionUnknown(appliedSnapshot.conversationRef);
-      return appliedSnapshot.conversationRef;
-    } catch (error) {
-      console.warn('[useChatMessageSender] Failed to load startup session snapshot:', error);
-      return null;
-    }
+    const snapshot = await hydrateConversationSessionFromMainSnapshot({
+      loadMainSessionSnapshot: () => IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID),
+      setTranscriptConversationRef: setActiveConversationRef,
+      setChatConversationRef: setChatActiveConversationRef,
+      updateTranscriptSession,
+      markConversationInferenceSessionUnknown,
+      onError: (error) => {
+        console.warn('[useChatMessageSender] Failed to load startup session snapshot:', error);
+      },
+    });
+    return snapshot.conversationRef;
   }, [setChatActiveConversationRef]);
 
   const ensureConversationRef = useCallback(async (): Promise<string> => {
-    const resolvedConversationRef = resolveConversationRefForSend(
-      getActiveConversationRef(),
-      useChatStore.getState().activeConversationRef,
-    );
-    if (resolvedConversationRef.conversationRef) {
-      if (resolvedConversationRef.source === 'store') {
-        setActiveConversationRef(resolvedConversationRef.conversationRef);
-      }
-      setChatActiveConversationRef(resolvedConversationRef.conversationRef);
-      return resolvedConversationRef.conversationRef;
-    }
-
-    const hydratedConversationRef = await hydrateSessionFromMainSnapshot();
-    if (hydratedConversationRef) {
-      return hydratedConversationRef;
-    }
-
-    const generatedRef = createConversationRef();
-    setActiveConversationRef(generatedRef);
-    setChatActiveConversationRef(generatedRef);
-    markConversationInferenceSessionLocalOnly(generatedRef);
-    return generatedRef;
+    return ensureConversationRefForSend({
+      transcriptConversationRef: getActiveConversationRef(),
+      storeConversationRef: useChatStore.getState().activeConversationRef,
+      setTranscriptConversationRef: setActiveConversationRef,
+      setChatConversationRef: setChatActiveConversationRef,
+      hydrateMainSessionSnapshot: async () => {
+        const conversationRef = await hydrateSessionFromMainSnapshot();
+        return {
+          conversationRef,
+          userId: getTranscriptSessionInfo().userId,
+        };
+      },
+      createConversationRef,
+      markConversationInferenceSessionLocalOnly,
+    });
   }, [hydrateSessionFromMainSnapshot, setChatActiveConversationRef]);
 
   const ensureConversationWorkspaceBinding = useCallback(async (conversationRef: string) => {
