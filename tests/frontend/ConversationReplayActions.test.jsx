@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 
 import { useConversationReplayActions } from '../../frontend/src/renderer/features/chat/hooks/useConversationReplayActions';
+import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import {
@@ -75,6 +76,7 @@ describe('useConversationReplayActions', () => {
     mockRehydrateConversationInferenceSession.mockReset();
     mockRehydrateConversationInferenceSession.mockResolvedValue(undefined);
     mockSendQuery.mockResolvedValue(undefined);
+    useChatStore.setState({ activeConversationRef: null });
   });
 
   afterEach(() => {
@@ -316,5 +318,41 @@ describe('useConversationReplayActions', () => {
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_replay-ref', 'user-1');
     expect(mockMarkConversationInferenceSessionLocalOnly).toHaveBeenCalledWith('conv_replay-ref');
     expect(mockSendQuery.mock.calls[0][1]).toBe('conv_replay-ref');
+  });
+
+  test('retry replay reuses projected chat-store conversation ref when transcript session is empty', async () => {
+    mockConversationRef = null;
+    useChatStore.setState({ activeConversationRef: 'conv-store-active' });
+
+    const messages = [
+      {
+        id: 'user-store',
+        sender: 'user',
+        text: 'question from projected chat',
+        screenshotRef: null,
+        screenshotUrl: null,
+      },
+      {
+        id: 'assistant-store',
+        sender: 'assistant',
+        text: 'answer',
+      },
+    ];
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      setIsSending: jest.fn(),
+    }));
+
+    await act(async () => {
+      await result.current.handleTryAgainFromAssistant('assistant-store');
+    });
+
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-store-active', 'user-1');
+    expect(mockMarkConversationInferenceSessionLocalOnly).not.toHaveBeenCalled();
+    expect(mockSendQuery.mock.calls[0][1]).toBe('conv-store-active');
   });
 });

@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { useChatStore } from '../stores/chatStore';
 import {
   resolveReplayScreenshotState,
   resolveStoredTranscriptScreenshotValue,
@@ -24,6 +25,7 @@ import {
 import {
   applyRendererConversationSelection,
   initializeLocalConversationSession,
+  resolveRendererConversationSessionSnapshot,
 } from '../session/conversationSessionRuntime';
 import { createConversationRef } from '../utils/session/conversationRef';
 import {
@@ -105,7 +107,10 @@ async function runReplayQueryFlow({
 }
 
 function ensureConversationRef(sessionConversationRef) {
-  let conversationRef = getActiveConversationRef() || sessionConversationRef;
+  let conversationRef = resolveRendererConversationSessionSnapshot({
+    transcriptConversationRef: getActiveConversationRef() || sessionConversationRef,
+    storeConversationRef: useChatStore.getState().activeConversationRef,
+  }).conversationRef;
   if (!conversationRef) {
     conversationRef = initializeLocalConversationSession({
       createConversationRef,
