@@ -39,4 +39,4 @@ tools = [
 # If omitted, all methods are enabled.
 [tool_options.mouse_control]
 enabled_coordinate_methods = [
-  "manual", "ocr"]
+  "manual"]
