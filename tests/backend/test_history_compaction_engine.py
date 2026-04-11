@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
 
 import backend.src.services.token_service as token_service_module
@@ -49,6 +51,11 @@ class _FakeSession:
         self.cfg = cfg
         self.history = history
         self.llm_client = _FakeLLMClient()
+        self.prompt_builder = SimpleNamespace(
+            get_prompt_token_count=lambda stored_messages, model_id: (
+                len(stored_messages.get_history()) * 100
+            )
+        )
 
 
 def _seed_history(history: ConversationHistory) -> None:
@@ -173,6 +180,9 @@ async def test_compaction_engine_respects_cooldown(monkeypatch):
         history_compaction_cooldown_turns=1,
     )
     session = _FakeSession(cfg=cfg, history=history)
+    session.prompt_builder = SimpleNamespace(
+        get_prompt_token_count=lambda stored_messages, model_id: 3000
+    )
     engine = CompactionEngine(session)
 
     first_decision = engine.evaluate(reason="auto-mid")
@@ -263,3 +273,27 @@ async def test_compaction_engine_skips_when_dynamic_threshold_not_reached(monkey
     decision = engine.evaluate(reason="auto-pre")
     assert decision.should_compact is False
     assert decision.skip_reason == "below-threshold"
+
+
+def test_compaction_engine_counts_contextual_prompt_messages(monkeypatch):
+    monkeypatch.setattr(
+        token_service_module,
+        "get_token_service",
+        lambda: _FakeTokenService(),
+    )
+    history = ConversationHistory(system_prompt="system")
+    history.add_user_message("user one")
+    cfg = AppConfig(
+        history_compaction_enabled=True,
+        history_compaction_trigger_tokens=2048,
+    )
+    session = _FakeSession(cfg=cfg, history=history)
+    session.prompt_builder = SimpleNamespace(
+        get_prompt_token_count=lambda stored_messages, model_id: 2100
+    )
+    engine = CompactionEngine(session)
+
+    decision = engine.evaluate(reason="auto-pre")
+
+    assert decision.should_compact is True
+    assert decision.before_tokens == 2100

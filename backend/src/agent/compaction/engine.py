@@ -45,8 +45,7 @@ class CompactionEngine:
         """Evaluate whether compaction should run now."""
         cfg = self._session.cfg
         model = cfg.llm_model
-        history = self._session.history
-        before_tokens = history.get_token_count(model)
+        before_tokens = self._get_prompt_token_count(model=model)
         projected_tokens = before_tokens + self._estimate_pending_user_tokens(
             model=model,
             pending_user_content=pending_user_content,
@@ -158,7 +157,7 @@ class CompactionEngine:
         )
         self._session.history.replace_with_stored_messages(replacement_messages)
 
-        after_tokens = self._session.history.get_token_count(self._session.cfg.llm_model)
+        after_tokens = self._get_prompt_token_count(model=self._session.cfg.llm_model)
         removed_messages = max(0, len(current_messages) - len(replacement_messages))
         self._last_compaction_user_turn_index = active_decision.user_turn_index
 
@@ -181,6 +180,15 @@ class CompactionEngine:
             replacement_history_preview=replacement_history_preview,
             replacement_history_entries=replacement_history_entries,
             skip_reason=None,
+        )
+
+    def _get_prompt_token_count(self, *, model: str) -> int:
+        prompt_builder = getattr(self._session, "prompt_builder", None)
+        if prompt_builder is None or not hasattr(prompt_builder, "get_prompt_token_count"):
+            return self._session.history.get_token_count(model)
+        return prompt_builder.get_prompt_token_count(
+            self._session.history,
+            model_id=model,
         )
 
     @staticmethod

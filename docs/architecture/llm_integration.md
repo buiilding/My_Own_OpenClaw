@@ -12,6 +12,7 @@ WindieOS supports multiple LLM providers through a unified interface. The system
 
 System prompt note:
 - `backend/src/llm/prompts/system_prompt.txt` now carries a fuller Codex-style execution scaffold adapted for WindieOS, including Codex-like repo-instruction scope, preamble/response discipline, final-answer formatting rules, and coding workflow guidance, with WindieOS-specific browser-use, desktop-use, process, and validation rules layered on top.
+- Applicable workspace `AGENTS.md` files are also injected as separate contextual `user` messages during prompt assembly, following Codex's `# AGENTS.md instructions for ...` wrapper format instead of being inlined into the system prompt.
 
 ## Supported Providers
 
