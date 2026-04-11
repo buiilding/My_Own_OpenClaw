@@ -127,6 +127,27 @@ function resolvePythonExecutablePath() {
   return process.platform === 'win32' ? 'py' : 'python3';
 }
 
+function resolveBundledRuntimeRootFromExecutable(executablePath) {
+  if (!executablePath || !isPackagedApp()) {
+    return null;
+  }
+
+  const absoluteExecutablePath = path.resolve(executablePath);
+  if (process.platform === 'win32') {
+    const executableDir = path.dirname(absoluteExecutablePath);
+    if (path.basename(executableDir).toLowerCase() === 'scripts') {
+      return path.dirname(executableDir);
+    }
+    return executableDir;
+  }
+
+  const executableDir = path.dirname(absoluteExecutablePath);
+  if (path.basename(executableDir) === 'bin') {
+    return path.dirname(executableDir);
+  }
+  return executableDir;
+}
+
 function resolveSidecarBinaryPath(serviceName) {
   const normalizedServiceName = String(serviceName || '').trim().replace(/\.py$/i, '');
   if (!normalizedServiceName || !isPackagedApp()) {
@@ -157,12 +178,14 @@ function resolveSidecarLaunchTarget(scriptName) {
   }
 
   const scriptPath = resolvePythonScriptPath(normalizedScript);
+  const pythonCommand = resolvePythonExecutablePath();
   return {
     kind: 'python',
-    command: resolvePythonExecutablePath(),
+    command: pythonCommand,
     args: [scriptPath],
     cwd: path.dirname(scriptPath),
     resolvedPath: scriptPath,
+    runtimeRoot: resolveBundledRuntimeRootFromExecutable(pythonCommand),
   };
 }
 

@@ -337,18 +337,34 @@ function startLocalBackend(mainWindow, options = {}) {
     isPackaged: options.isPackaged === true,
   });
 
+  const backendEnv = withLocalBackendNodeOptions({
+    ...process.env,
+    PYTHONUNBUFFERED: '1',
+    WINDIE_BACKEND_HTTP_URL: backendEndpoints.httpUrl,
+    ...(backendFallbackHttpUrl ? { WINDIE_BACKEND_FALLBACK_HTTP_URL: backendFallbackHttpUrl } : {}),
+    WINDIE_PACKAGED_APP: packagedApp ? '1' : '0',
+    WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: packagedApp ? '0' : '1',
+    ...(permissionStatePath ? { WINDIE_PERMISSION_STATE_PATH: permissionStatePath } : {}),
+    ...(
+      packagedApp
+      && launchTarget.kind === 'python'
+      && process.platform !== 'win32'
+      && launchTarget.runtimeRoot
+        ? {
+            PYTHONHOME: launchTarget.runtimeRoot,
+            PYTHONNOUSERSITE: '1',
+          }
+        : {}
+    ),
+  });
+  if (packagedApp && launchTarget.kind === 'python') {
+    delete backendEnv.PYTHONPATH;
+  }
+
   pythonProcess = spawn(launchTarget.command, launchTarget.args, {
     stdio: ['pipe', 'pipe', 'pipe'],
     cwd: launchTarget.cwd,
-    env: withLocalBackendNodeOptions({
-      ...process.env,
-      PYTHONUNBUFFERED: '1',
-      WINDIE_BACKEND_HTTP_URL: backendEndpoints.httpUrl,
-      ...(backendFallbackHttpUrl ? { WINDIE_BACKEND_FALLBACK_HTTP_URL: backendFallbackHttpUrl } : {}),
-      WINDIE_PACKAGED_APP: packagedApp ? '1' : '0',
-      WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: packagedApp ? '0' : '1',
-      ...(permissionStatePath ? { WINDIE_PERMISSION_STATE_PATH: permissionStatePath } : {}),
-    }),
+    env: backendEnv,
   });
   const processRef = pythonProcess;
   readinessCheckToken = localBackendSupervisor.attachProcess(processRef);

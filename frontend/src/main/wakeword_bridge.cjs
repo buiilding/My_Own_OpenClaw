@@ -51,15 +51,30 @@ function startWakewordService(mainWindow, onWakewordDetected) {
     `[Wakeword] Starting service (${launchTarget.kind}): ` +
     `${launchTarget.command} ${launchTarget.args.join(' ')}`.trim(),
   );
+  const wakewordEnv = {
+    ...process.env,
+    PYTHONUNBUFFERED: '1',
+    WINDIE_PACKAGED_APP: packagedApp ? '1' : '0',
+    WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: packagedApp ? '0' : '1',
+    ...(
+      packagedApp
+      && launchTarget.kind === 'python'
+      && process.platform !== 'win32'
+      && launchTarget.runtimeRoot
+        ? {
+            PYTHONHOME: launchTarget.runtimeRoot,
+            PYTHONNOUSERSITE: '1',
+          }
+        : {}
+    ),
+  };
+  if (packagedApp && launchTarget.kind === 'python') {
+    delete wakewordEnv.PYTHONPATH;
+  }
   const spawnedProcess = spawn(launchTarget.command, launchTarget.args, {
     stdio: ['pipe', 'pipe', 'pipe'], // stdin, stdout, stderr
     cwd: launchTarget.cwd,
-    env: {
-      ...process.env,
-      PYTHONUNBUFFERED: '1',
-      WINDIE_PACKAGED_APP: packagedApp ? '1' : '0',
-      WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: packagedApp ? '0' : '1',
-    },
+    env: wakewordEnv,
   });
   pythonProcess = spawnedProcess;
   wakewordSupervisor.attachProcess(spawnedProcess);
