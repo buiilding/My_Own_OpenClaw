@@ -4,6 +4,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- fix(macos-release): add the hardened-runtime JIT entitlements required by the signed Electron app so the DMG-mounted macOS build no longer aborts at startup with `Failed to reserve virtual memory for CodeRange`, and tighten the local macOS package smoke helper to fail on crashy `--version` launches while also checking the mounted-DMG app path that users can click before dragging into Applications.
+
 ### Added
 - feat(backend-agents-md-context): resolve applicable `AGENTS.md` files from the active workspace up to the repo root at prompt-build time, inject them as Codex-style contextual user messages ahead of the real turn, propagate workspace path into session prompt state, and count that injected context in backend history-compaction token budgeting; add focused backend coverage and docs for the new prompt contract.
 - test(backend-agents-md-context): add direct unit coverage for `repo_instructions.py` so git-root walking, non-repo fallback, blank instructions, and file-path workspace normalization are validated without depending only on prompt-constructor tests.

@@ -7,6 +7,35 @@ INSTALLED_APP=""
 MOUNT_POINT=""
 APP_PID=""
 
+run_binary_smoke() {
+  local app_bundle="$1"
+  local label="$2"
+  local binary_path="${app_bundle}/Contents/MacOS/WindieOS"
+  local log_path="/tmp/windieos-macos-smoke-$(echo "${label}" | tr '[:upper:] ' '[:lower:]-').log"
+  local pid=""
+
+  if [[ ! -x "${binary_path}" ]]; then
+    binary_path="$(find "${app_bundle}/Contents/MacOS" -maxdepth 1 -type f -perm -111 -print -quit)"
+  fi
+  [[ -n "${binary_path}" ]] || { echo "Unable to locate app executable for ${label}." >&2; exit 1; }
+
+  "${binary_path}" --version >"${log_path}" 2>&1 &
+  pid=$!
+  sleep 10
+
+  if kill -0 "${pid}" 2>/dev/null; then
+    kill "${pid}" 2>/dev/null || true
+    wait "${pid}" 2>/dev/null || true
+    return 0
+  fi
+
+  wait "${pid}" || {
+    cat "${log_path}" >&2
+    echo "${label} app smoke launch failed." >&2
+    exit 1
+  }
+}
+
 cleanup() {
   if [[ -n "${APP_PID}" ]] && kill -0 "${APP_PID}" 2>/dev/null; then
     kill "${APP_PID}" 2>/dev/null || true
@@ -37,6 +66,8 @@ APP_IN_DMG="$(find "${MOUNT_POINT}" -maxdepth 1 -name '*.app' -print -quit)"
 INSTALLED_APP="/Applications/$(basename "${APP_IN_DMG}")"
 rm -rf "${INSTALLED_APP}"
 ditto "${APP_IN_DMG}" "${INSTALLED_APP}"
+
+run_binary_smoke "${APP_IN_DMG}" "mounted-dmg"
 
 RUNTIME_ROOT="${INSTALLED_APP}/Contents/Resources/python-runtime"
 RUNTIME_PYTHON="${RUNTIME_ROOT}/bin/python3"
@@ -85,12 +116,6 @@ if offenders:
     )
 PY
 
-BINARY_PATH="${INSTALLED_APP}/Contents/MacOS/WindieOS"
-if [[ ! -x "${BINARY_PATH}" ]]; then
-  BINARY_PATH="$(find "${INSTALLED_APP}/Contents/MacOS" -maxdepth 1 -type f -perm -111 -print -quit)"
-fi
-[[ -n "${BINARY_PATH}" ]] || { echo "Unable to locate app executable." >&2; exit 1; }
-
 if [[ "${validate_downloaded_app}" == "true" ]]; then
   quarantine_value="0083;$(date +%s);WindieOS CI;$(uuidgen)"
   # Mirror Finder's downloaded-app flow without mutating sealed resources inside the bundle.
@@ -128,13 +153,7 @@ if [[ "${validate_downloaded_app}" == "true" ]]; then
   fi
 fi
 
-"${BINARY_PATH}" --version >/tmp/windieos-macos-smoke.log 2>&1 &
-PID=$!
-sleep 10
-if kill -0 "${PID}" 2>/dev/null; then
-  kill "${PID}" 2>/dev/null || true
-fi
-wait "${PID}" 2>/dev/null || true
+run_binary_smoke "${INSTALLED_APP}" "installed-app"
 
 if [[ "${WINDIE_REQUIRE_SIGNING:-false}" == "true" ]]; then
   codesign --verify --deep --strict --verbose=2 "${INSTALLED_APP}"
