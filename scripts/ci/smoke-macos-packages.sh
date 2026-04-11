@@ -42,7 +42,7 @@ RUNTIME_ROOT="${INSTALLED_APP}/Contents/Resources/python-runtime"
 RUNTIME_PYTHON="${RUNTIME_ROOT}/bin/python3"
 [[ -x "${RUNTIME_PYTHON}" ]] || { echo "Bundled runtime python missing at ${RUNTIME_PYTHON}" >&2; exit 1; }
 
-env -u PYTHONPATH PYTHONHOME="${RUNTIME_ROOT}" PYTHONNOUSERSITE=1 "${RUNTIME_PYTHON}" - "${RUNTIME_ROOT}" <<'PY'
+env -u PYTHONPATH PYTHONDONTWRITEBYTECODE=1 PYTHONHOME="${RUNTIME_ROOT}" PYTHONNOUSERSITE=1 "${RUNTIME_PYTHON}" - "${RUNTIME_ROOT}" <<'PY'
 from __future__ import annotations
 
 import pathlib

@@ -344,11 +344,17 @@ function startLocalBackend(mainWindow, options = {}) {
     ...(
       packagedApp
       && launchTarget.kind === 'python'
-      && process.platform !== 'win32'
-      && launchTarget.runtimeRoot
         ? {
-            PYTHONHOME: launchTarget.runtimeRoot,
-            PYTHONNOUSERSITE: '1',
+            PYTHONDONTWRITEBYTECODE: '1',
+            ...(
+              process.platform !== 'win32'
+              && launchTarget.runtimeRoot
+                ? {
+                    PYTHONHOME: launchTarget.runtimeRoot,
+                    PYTHONNOUSERSITE: '1',
+                  }
+                : {}
+            ),
           }
         : {}
     ),

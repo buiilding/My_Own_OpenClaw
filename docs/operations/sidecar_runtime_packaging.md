@@ -125,6 +125,7 @@ On a clean test machine:
 - Bundled runtimes now ship relocatable interpreter trees on Windows, macOS, and Linux (not host-bound `venv` shells) so installed apps do not depend on build-machine Python paths.
 - POSIX runtime validation now imports stdlib extension modules (`_socket`, `_ssl`, `_sqlite3`) from inside the bundled runtime and fails packaging when host-prefix leakage is detected.
 - Packaged POSIX sidecar launches now set `PYTHONHOME` to the bundled runtime root and clear inherited `PYTHONPATH` so macOS/Linux sidecar processes resolve stdlib/site-packages from app resources instead of any host interpreter config.
+- Packaged bundled-runtime Python launches now set `PYTHONDONTWRITEBYTECODE=1` so stdlib imports do not create `__pycache__` files inside signed app resources after install.
 - macOS package builds now re-sign every Mach-O file inside `Contents/Resources/python-runtime` after bundling so copied or thinned CPython binaries/extensions do not carry stale signatures into the final `.app` bundle.
 - Runtime packaging now prunes build-only payload after dependency install: bundled `pip`/`setuptools`/`wheel`, `ensurepip`, static `.a` libraries, duplicate `lib/python3.1`, and package test/source fixture trees (for example `tests/`, `.pyx`, `.npz`) are removed before validation/archive creation.
 - macOS runtime packaging now thins bundled universal Mach-O files to the target architecture during runtime build so Apple Silicon installers do not ship extra Intel slices inside copied Python dependencies.
