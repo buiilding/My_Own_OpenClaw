@@ -1,6 +1,7 @@
 const { spawnSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
+const { findIdentity } = require("app-builder-lib/out/codeSign/macCodeSign");
 
 const MACHO_MAGICS = new Set([
   "feedface",
@@ -65,6 +66,64 @@ function collectFiles(rootDir) {
   return entries.sort((left, right) => right.split(path.sep).length - left.split(path.sep).length);
 }
 
+function resolveOptionalPath(baseDir, candidatePath) {
+  if (!candidatePath) {
+    return null;
+  }
+
+  return path.isAbsolute(candidatePath)
+    ? candidatePath
+    : path.join(baseDir, candidatePath);
+}
+
+async function resolveSigningContext(context) {
+  const adHoc = isAdHocSignature(context.appPath);
+  if (adHoc) {
+    return {
+      appArgs: ["--force", "--deep", "--sign", "-", context.appPath],
+      binaryArgsPrefix: ["--force", "--sign", "-"],
+      label: "ad-hoc",
+    };
+  }
+
+  const keychainFile = (await context.packager.codeSigningInfo.value)?.keychainFile ?? null;
+  const identity = await findIdentity(
+    "Developer ID Application",
+    context.packager.platformSpecificBuildOptions.identity,
+    keychainFile,
+  );
+
+  if (!identity) {
+    throw new Error("Unable to resolve Developer ID Application identity for bundled runtime re-sign");
+  }
+
+  const signValue = identity.hash || identity.name;
+  const entitlementsPath = resolveOptionalPath(
+    context.packager.projectDir,
+    context.packager.platformSpecificBuildOptions.entitlements,
+  );
+
+  const appArgs = [
+    "--force",
+    "--deep",
+    "--sign",
+    signValue,
+    "--timestamp",
+    "--options",
+    "runtime",
+  ];
+  if (entitlementsPath) {
+    appArgs.push("--entitlements", entitlementsPath);
+  }
+  appArgs.push(context.appPath);
+
+  return {
+    appArgs,
+    binaryArgsPrefix: ["--force", "--sign", signValue, "--timestamp"],
+    label: `Developer ID (${identity.name})`,
+  };
+}
+
 module.exports = async function afterSign(context) {
   if (context.electronPlatformName !== "darwin") {
     return;
@@ -80,12 +139,10 @@ module.exports = async function afterSign(context) {
     return;
   }
 
-  if (!isAdHocSignature(appPath)) {
-    console.log("[afterSign] macOS build uses a real signing identity; skipping ad-hoc runtime re-sign");
-    return;
-  }
-
-  console.log("[afterSign] ad-hoc macOS build detected; re-signing bundled Python runtime Mach-O files");
+  const signingContext = await resolveSigningContext({ ...context, appPath });
+  console.log(
+    `[afterSign] re-signing bundled Python runtime Mach-O files using ${signingContext.label} identity`,
+  );
 
   let signedCount = 0;
   for (const filePath of collectFiles(runtimeRoot)) {
@@ -93,10 +150,13 @@ module.exports = async function afterSign(context) {
       continue;
     }
 
-    run("codesign", ["--force", "--sign", "-", filePath]);
+    run("codesign", [...signingContext.binaryArgsPrefix, filePath]);
     signedCount += 1;
   }
 
-  run("codesign", ["--force", "--deep", "--sign", "-", appPath]);
-  console.log(`[afterSign] re-signed ${signedCount} bundled Python Mach-O files and refreshed app signature`);
+  run("codesign", signingContext.appArgs);
+  run("codesign", ["--verify", "--deep", "--strict", "--verbose=2", appPath]);
+  console.log(
+    `[afterSign] re-signed ${signedCount} bundled Python Mach-O files and refreshed app signature`,
+  );
 };
