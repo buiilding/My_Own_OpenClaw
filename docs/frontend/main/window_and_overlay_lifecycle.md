@@ -69,6 +69,7 @@ For lifecycle + overlay-handler split details, see [Main Process Lifecycle, Over
 Window close policy:
 
 - `mainWindow.close` is intercepted; app hides window and shows chat overlay instead.
+- on macOS, if the dashboard is currently in native fullscreen, close first exits fullscreen and waits for `leave-full-screen` before hiding the dashboard and restoring the chat pill, which prevents the black fullscreen shell from lingering behind the overlay.
 - `chatWindow.close` is intercepted; overlay hides without app quit.
 - `responseWindow.close` is intercepted; overlay hides and visibility flag resets.
 

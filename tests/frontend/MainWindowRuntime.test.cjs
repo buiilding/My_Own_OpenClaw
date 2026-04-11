@@ -8,6 +8,7 @@ jest.mock('electron', () => ({
 }));
 
 const {
+  collapseMainWindowToChatPill,
   createMainWindow,
   createChatWindow,
   createResponseWindow,
@@ -521,8 +522,13 @@ describe('main_window_runtime createMainWindow', () => {
       loadURL: jest.fn(),
       loadFile: jest.fn(),
       hide: jest.fn(),
+      setFullScreen: jest.fn(),
+      isFullScreen: jest.fn(() => false),
       on: jest.fn((eventName, handler) => {
         handlers[eventName] = handler;
+      }),
+      once: jest.fn((eventName, handler) => {
+        handlers[`once:${eventName}`] = handler;
       }),
       isDestroyed: jest.fn().mockReturnValue(false),
       webContents: {
@@ -680,6 +686,47 @@ describe('main_window_runtime createMainWindow', () => {
 
     expect(closeEvent.preventDefault).not.toHaveBeenCalled();
     expect(deps.showChatWindow).not.toHaveBeenCalled();
+  });
+
+  test('exits macOS fullscreen before hiding the dashboard on close', () => {
+    const { deps, handlers, mainWindow } = createDeps({
+      platform: 'darwin',
+    });
+    mainWindow.isFullScreen.mockReturnValue(true);
+    const closeEvent = { preventDefault: jest.fn() };
+
+    createMainWindow(deps);
+    handlers.close(closeEvent);
+
+    expect(closeEvent.preventDefault).toHaveBeenCalledTimes(1);
+    expect(mainWindow.setFullScreen).toHaveBeenCalledWith(false);
+    expect(mainWindow.hide).not.toHaveBeenCalled();
+    expect(deps.showChatWindow).not.toHaveBeenCalled();
+
+    handlers['once:leave-full-screen']();
+
+    expect(mainWindow.hide).toHaveBeenCalledTimes(1);
+    expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true });
+  });
+});
+
+describe('main_window_runtime collapseMainWindowToChatPill', () => {
+  test('collapses immediately when the dashboard is not in macOS fullscreen', () => {
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      hide: jest.fn(),
+      isFullScreen: jest.fn(() => false),
+    };
+    const showChatWindow = jest.fn();
+
+    collapseMainWindowToChatPill({
+      mainWindow,
+      showChatWindow,
+      platform: 'darwin',
+    });
+
+    expect(mainWindow.hide).toHaveBeenCalledTimes(1);
+    expect(showChatWindow).toHaveBeenCalledWith({ focus: true });
   });
 });
 
