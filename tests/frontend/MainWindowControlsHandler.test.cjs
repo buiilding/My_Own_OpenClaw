@@ -14,6 +14,8 @@ describe('main_window_controls_handler', () => {
       close: jest.fn(),
       maximize: jest.fn(),
       unmaximize: jest.fn(),
+      setFullScreen: jest.fn(),
+      isFullScreen: jest.fn().mockReturnValue(false),
       isMaximized: jest.fn().mockReturnValue(false),
       ...overrides,
     };
@@ -47,9 +49,10 @@ describe('main_window_controls_handler', () => {
         .mockReturnValueOnce(false)
         .mockReturnValueOnce(true),
     });
-    const result = handleWindowToggleMaximize({ mainWindow });
+    const result = handleWindowToggleMaximize({ mainWindow, platform: 'win32' });
     expect(mainWindow.maximize).toHaveBeenCalledTimes(1);
     expect(mainWindow.unmaximize).not.toHaveBeenCalled();
+    expect(mainWindow.setFullScreen).not.toHaveBeenCalled();
     expect(result).toEqual({ success: true, isMaximized: true });
   });
 
@@ -60,9 +63,32 @@ describe('main_window_controls_handler', () => {
         .mockReturnValueOnce(true)
         .mockReturnValueOnce(false),
     });
-    const result = handleWindowToggleMaximize({ mainWindow });
+    const result = handleWindowToggleMaximize({ mainWindow, platform: 'win32' });
     expect(mainWindow.unmaximize).toHaveBeenCalledTimes(1);
     expect(mainWindow.maximize).not.toHaveBeenCalled();
+    expect(mainWindow.setFullScreen).not.toHaveBeenCalled();
+    expect(result).toEqual({ success: true, isMaximized: false });
+  });
+
+  test('toggle-maximize enters fullscreen on macOS', () => {
+    const mainWindow = createWindow({
+      isFullScreen: jest.fn().mockReturnValue(false),
+    });
+    const result = handleWindowToggleMaximize({ mainWindow, platform: 'darwin' });
+    expect(mainWindow.setFullScreen).toHaveBeenCalledWith(true);
+    expect(mainWindow.maximize).not.toHaveBeenCalled();
+    expect(mainWindow.unmaximize).not.toHaveBeenCalled();
+    expect(result).toEqual({ success: true, isMaximized: true });
+  });
+
+  test('toggle-maximize exits fullscreen on macOS', () => {
+    const mainWindow = createWindow({
+      isFullScreen: jest.fn().mockReturnValue(true),
+    });
+    const result = handleWindowToggleMaximize({ mainWindow, platform: 'darwin' });
+    expect(mainWindow.setFullScreen).toHaveBeenCalledWith(false);
+    expect(mainWindow.maximize).not.toHaveBeenCalled();
+    expect(mainWindow.unmaximize).not.toHaveBeenCalled();
     expect(result).toEqual({ success: true, isMaximized: false });
   });
 

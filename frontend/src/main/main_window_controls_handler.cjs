@@ -19,9 +19,21 @@ function handleWindowMinimize(deps = {}) {
 }
 
 function handleWindowToggleMaximize(deps = {}) {
-  const { mainWindow } = deps;
+  const {
+    mainWindow,
+    platform = process.platform,
+  } = deps;
   if (!mainWindow || mainWindow.isDestroyed()) {
     return getUnavailableMainWindowResult(true);
+  }
+
+  if (platform === 'darwin' && typeof mainWindow.setFullScreen === 'function') {
+    const isFullScreen = typeof mainWindow.isFullScreen === 'function'
+      ? mainWindow.isFullScreen()
+      : false;
+    const nextFullScreen = !isFullScreen;
+    mainWindow.setFullScreen(nextFullScreen);
+    return { success: true, isMaximized: nextFullScreen };
   }
 
   if (mainWindow.isMaximized()) {
