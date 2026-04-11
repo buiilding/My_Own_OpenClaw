@@ -310,6 +310,7 @@ describe('wakeword_bridge', () => {
       expect(spawnOptions.env).toEqual(expect.objectContaining({
         WINDIE_PACKAGED_APP: '1',
         WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
+        PYTHONDONTWRITEBYTECODE: '1',
         PYTHONHOME: '/opt/WindieOS/resources/python-runtime',
         PYTHONNOUSERSITE: '1',
       }));

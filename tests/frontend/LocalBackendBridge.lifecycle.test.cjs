@@ -53,6 +53,7 @@ describe('local_backend_bridge process lifecycle', () => {
       expect(spawnOptions.env).toEqual(expect.objectContaining({
         WINDIE_PACKAGED_APP: '1',
         WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: '0',
+        PYTHONDONTWRITEBYTECODE: '1',
         PYTHONHOME: '/opt/WindieOS/resources/python-runtime',
         PYTHONNOUSERSITE: '1',
       }));
