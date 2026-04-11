@@ -102,6 +102,67 @@ describe('window_controls_ipc_runtime', () => {
     expect(typeof invokeHandlers['window-close']).toBe('function');
   });
 
+  test('passes maximize requests through show-main-window handler', async () => {
+    const showMainWindow = jest.fn(() => ({ success: true }));
+    const senderWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+      getBounds: jest.fn(() => ({ x: 1920, y: 10, width: 500, height: 300 })),
+    };
+    const screen = {
+      getAllDisplays: jest.fn(() => ([
+        {
+          id: 1,
+          bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+          workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+        },
+        {
+          id: 2,
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        },
+      ])),
+      getDisplayMatching: jest.fn(() => ({
+        id: 2,
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+        workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      })),
+      getPrimaryDisplay: jest.fn(() => ({
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      })),
+    };
+    const { invokeHandlers } = createRuntime({
+      screen,
+      showMainWindow,
+      BrowserWindow: {
+        fromWebContents: jest.fn(() => senderWindow),
+      },
+      getWindows: () => ({
+        mainWindow: senderWindow,
+        chatWindow: null,
+      }),
+    });
+
+    const result = await invokeHandlers['show-main-window'](
+      { sender: {} },
+      { open: 'chat', maximize: true },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(showMainWindow).toHaveBeenCalledWith({
+      focus: true,
+      maximize: true,
+      targetDisplayAffinity: {
+        monitor_id: '2',
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+        workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
+      },
+    });
+  });
+
   test('show-main-window prefers visible chat surface over a non-surface sender fallback', async () => {
     const showMainWindow = jest.fn(() => ({ success: true }));
     const screen = {

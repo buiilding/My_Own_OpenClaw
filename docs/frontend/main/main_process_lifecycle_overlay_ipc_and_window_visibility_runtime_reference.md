@@ -157,9 +157,10 @@ Behavior:
   - centered in target display work area for normal open
   - fit to target display work area when `maximize=true`
   - if currently maximized, unmaximize before display-targeted placement
+  - on macOS, if currently fullscreen, exit native fullscreen before display-targeted placement
 - hidden-window no-target path therefore preserves monitor continuity without retargeting already-visible windows
 - show main window
-- optional maximize flow (`restore` + `maximize`)
+- optional maximize flow (`restore` + native maximize on Windows/Linux, native fullscreen on macOS)
 - optional focus
 
 ## Drift Hotspots

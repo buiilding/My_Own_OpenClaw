@@ -68,12 +68,12 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `run-permission-probe` | `main/permission_ipc_runtime.cjs` | Explicit probe execution for one permission |
 | `request-permission` | `main/permission_ipc_runtime.cjs` | OS request/open-settings path per permission |
 | `set-responsebox-size` | `main/overlay_phase_ipc_runtime.cjs` | Resize response overlay |
-| `show-main-window` | `main/window_controls_ipc_runtime.cjs` | Show dashboard window; optional `{ open, maximize }`; `open` target must normalize to `chat|memory|models|settings` before emit |
+| `show-main-window` | `main/window_controls_ipc_runtime.cjs` | Show dashboard window; optional `{ open, maximize }`; `open` target must normalize to `chat|memory|models|settings` before emit; `maximize` is platform-aware (`maximize` on Windows/Linux, native fullscreen on macOS when not display-targeted) |
 | `show-chatbox` | `main/overlay_phase_ipc_runtime.cjs` | Show chatbox overlay |
 | `hide-chatbox` | `main/overlay_phase_ipc_runtime.cjs` | Hide chatbox overlay |
 | `get-displays` | `main/window_controls_ipc_runtime.cjs` | Return display inventory mapped as `{ id, label, isPrimary, bounds, scaleFactor }` |
 | `window-minimize` | `main/window_controls_ipc_runtime.cjs` | Minimize main window |
-| `window-toggle-maximize` | `main/window_controls_ipc_runtime.cjs` | Toggle maximize state |
+| `window-toggle-maximize` | `main/window_controls_ipc_runtime.cjs` | Toggle maximize state; macOS uses native fullscreen instead of Electron maximize |
 | `window-close` | `main/window_controls_ipc_runtime.cjs` | Close main window |
 
 ### `on`/`once` Channels (Main -> Renderer)
