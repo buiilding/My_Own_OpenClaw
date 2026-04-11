@@ -54,13 +54,15 @@ jobs:
               raise SystemExit("Missing package step details for signing-env contract checks")
 
           package_run = package_step.get("run", "")
-          required_unset = "unset CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID"
+          required_unset = "unset CSC_LINK CSC_KEY_PASSWORD WIN_CSC_LINK WIN_CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID"
           if required_unset not in package_run:
               raise SystemExit("Package step must unset signing env vars when run_signing=false")
 
           forbidden_empty_exports = [
               'export CSC_LINK=""',
               'export CSC_KEY_PASSWORD=""',
+              'export WIN_CSC_LINK=""',
+              'export WIN_CSC_KEY_PASSWORD=""',
               'export APPLE_ID=""',
               'export APPLE_APP_SPECIFIC_PASSWORD=""',
               'export APPLE_TEAM_ID=""',
