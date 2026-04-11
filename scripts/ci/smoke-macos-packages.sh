@@ -96,6 +96,12 @@ if [[ "${validate_downloaded_app}" == "true" ]]; then
   # Mirror Finder's downloaded-app flow without mutating sealed resources inside the bundle.
   xattr -w com.apple.quarantine "${quarantine_value}" "${INSTALLED_APP}"
 
+  if ! codesign --verify --deep --strict --verbose=4 "${INSTALLED_APP}" >/tmp/windieos-macos-codesign.log 2>&1; then
+    cat /tmp/windieos-macos-codesign.log >&2
+    echo "codesign verification failed for the installed app bundle before Gatekeeper assessment." >&2
+    exit 1
+  fi
+
   if ! spctl --assess --type execute --verbose=4 "${INSTALLED_APP}" >/tmp/windieos-macos-gatekeeper.log 2>&1; then
     cat /tmp/windieos-macos-gatekeeper.log >&2
     echo "Gatekeeper rejected the installed app bundle under a download-style quarantine check." >&2
