@@ -116,7 +116,6 @@ Current runtime behavior also relies on these explicit seams:
 New-chat behavior:
 
 - starting a new chat resets the visible workspace and creates a fresh `conversationRef`
-- changing the active workspace should happen on that new-chat boundary so prompt-scoped `AGENTS.md` context does not bleed across chats
 - it does **not** auto-send `stop-query` for an older in-flight conversation
 - switching to another history row is renderer-only browsing; it swaps transcript/UI state without eagerly rebuilding backend session history
 - late backend events remain conversation-scoped and continue to route into the original workspace/transcript instead of the newly created chat

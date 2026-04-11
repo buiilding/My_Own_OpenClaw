@@ -43,9 +43,9 @@ Frontend settings are sent via `update-settings` and applied to the user session
 Workspace prompt context:
 
 - the session's active `workspace_path` is conversation-scoped prompt context
-- prompt assembly may inject one contextual `user` instruction block from `<workspace>/AGENTS.md`
-- that `AGENTS.md` binding is limited to the active workspace for the current chat/session
-- editing outside the active workspace does not trigger additional `AGENTS.md` discovery in the current session
+- prompt assembly may inject contextual `user` instruction blocks from applicable `AGENTS.md` files
+- resolution starts at the active workspace and walks parent directories up to the enclosing repo root
+- nested `AGENTS.md` files therefore layer from broad repo guidance to more specific subdirectory guidance
 
 ## Runtime Seams (2026-02-11)
 
