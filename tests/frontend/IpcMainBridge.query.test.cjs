@@ -424,7 +424,7 @@ describe('ipc.cjs bridge query handling', () => {
 
     const localUserMessage = getLatestLocalUserMessage(mainWindow);
     expect(localUserMessage.payload.screenshot_ref).toBe('art_999');
-    expect(localUserMessage.payload.screenshot_url).toBe('http://127.0.0.1:8765/api/artifacts/art_999');
+    expect(localUserMessage.payload.screenshot_url).toBe('https://api.windieos.com/api/artifacts/art_999');
   });
 
   test('strips tool-bundle-result screenshot_url fields before sending to backend', async () => {
