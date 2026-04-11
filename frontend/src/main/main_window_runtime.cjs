@@ -95,6 +95,44 @@ function emitMainWindowOpenTarget({ target, mainWindow, channel }) {
   mainWindow.webContents.send(channel, { target });
 }
 
+function collapseMainWindowToChatPill({
+  mainWindow,
+  showChatWindow,
+  platform = process.platform,
+}) {
+  const finishCollapse = () => {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      return;
+    }
+    mainWindow.hide();
+    showChatWindow({ focus: true });
+  };
+
+  const shouldExitFullscreenFirst = (
+    platform === 'darwin'
+    && typeof mainWindow?.isFullScreen === 'function'
+    && mainWindow.isFullScreen()
+    && typeof mainWindow.setFullScreen === 'function'
+    && typeof mainWindow.once === 'function'
+  );
+
+  if (!shouldExitFullscreenFirst) {
+    finishCollapse();
+    return;
+  }
+
+  if (mainWindow.__windiePendingCollapseToChatPill) {
+    return;
+  }
+
+  mainWindow.__windiePendingCollapseToChatPill = true;
+  mainWindow.once('leave-full-screen', () => {
+    mainWindow.__windiePendingCollapseToChatPill = false;
+    finishCollapse();
+  });
+  mainWindow.setFullScreen(false);
+}
+
 function createMainWindow({
   BrowserWindow,
   path,
@@ -185,8 +223,11 @@ function createMainWindow({
   mainWindow.on('close', (event) => {
     if (minimizeToTrayOnClose && !app.isQuitting) {
       event.preventDefault();
-      mainWindow.hide();
-      showChatWindow({ focus: true });
+      collapseMainWindowToChatPill({
+        mainWindow,
+        showChatWindow,
+        platform,
+      });
       return false;
     }
     return undefined;
@@ -432,6 +473,7 @@ function createTray({
 }
 
 module.exports = {
+  collapseMainWindowToChatPill,
   createChatWindow,
   createMainWindow,
   createResponseWindow,
