@@ -33,7 +33,7 @@ title: "Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime R
 
 1. `WINDIE_BACKEND_HTTP_URL`
 2. `BACKEND_HTTP_URL`
-3. default `http://127.0.0.1:8765`
+3. default `https://api.windieos.com`
 
 Normalization:
 
@@ -162,7 +162,7 @@ Related runtime knobs:
 
 `tests/sidecar/test_backend_config.py` verifies:
 
-- env precedence and fallback behavior
+- env precedence and hosted-default behavior
 - trailing-slash normalization
 - path preservation semantics
 

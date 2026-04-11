@@ -53,22 +53,18 @@ async def test_post_success_json_uses_primary_backend():
 
 
 @pytest.mark.asyncio
-async def test_post_success_json_falls_back_to_secondary_backend(monkeypatch):
+async def test_post_success_json_raises_after_hosted_network_error_without_local_fallback(monkeypatch):
     monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://api.windieos.com")
-    monkeypatch.setenv("WINDIE_BACKEND_FALLBACK_HTTP_URL", "http://127.0.0.1:8765")
+    monkeypatch.delenv("BACKEND_HTTP_URL", raising=False)
     client = DemoClient()
     client._session = SequentialSession(
-        post_results=[
-            aiohttp.ClientError("remote down"),
-            DummyResponse(200, json_data={"success": True, "value": 2}),
-        ],
+        post_results=[aiohttp.ClientError("remote down")],
     )
 
-    result = await client.send_demo({"ok": True})
+    with pytest.raises(Exception, match="Failed to connect to demo service"):
+        await client.send_demo({"ok": True})
 
-    assert result == {"success": True, "value": 2}
     assert [call[0] for call in client._session.post_calls] == [
         "https://api.windieos.com/api/demo",
-        "http://127.0.0.1:8765/api/demo",
     ]
-    assert client.backend_url == "http://127.0.0.1:8765"
+    assert client.backend_url == "https://api.windieos.com"

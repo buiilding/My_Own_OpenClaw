@@ -16,7 +16,7 @@ describe('backend_endpoints artifact url selection', () => {
     ])).toBe('https://api.windieos.com');
   });
 
-  test('uses canonical local artifact base when no endpoint data exists', () => {
-    expect(resolvePreferredArtifactHttpUrl(null, [])).toBe('http://127.0.0.1:8765');
+  test('uses canonical hosted artifact base when no endpoint data exists', () => {
+    expect(resolvePreferredArtifactHttpUrl(null, [])).toBe('https://api.windieos.com');
   });
 });

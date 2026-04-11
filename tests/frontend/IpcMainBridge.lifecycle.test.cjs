@@ -382,22 +382,16 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     await expectClientEndpoints(bridge.handlers, 'wss://api.windieos.com/ws', 'https://api.windieos.com');
   });
 
-  test('falls back to the local backend when the hosted default is unreachable before open', async () => {
+  test('does not fall back to a local backend when the hosted default is unreachable before open', async () => {
     const bridge = initIpc();
-    const { pending } = beginBackendConnection(bridge);
+    beginBackendConnection(bridge);
     const WebSocketMock = require('ws');
     const remoteSocket = WebSocketMock.instances[0];
 
     remoteSocket.handlers.error({ message: 'connect ECONNREFUSED api.windieos.com' });
 
-    const fallbackSocket = WebSocketMock.instances[1];
-    expect(fallbackSocket.url).toBe('ws://127.0.0.1:8765/ws');
-    expect(fallbackSocket.options).toEqual(expect.objectContaining({ origin: 'http://127.0.0.1:8765' }));
-
-    fallbackSocket.triggerOpen();
-    await pending;
-
-    await expectClientEndpoints(bridge.handlers, 'ws://127.0.0.1:8765/ws', 'http://127.0.0.1:8765');
+    expect(WebSocketMock.instances).toHaveLength(1);
+    await expectClientEndpoints(bridge.handlers, 'wss://api.windieos.com/ws', 'https://api.windieos.com');
   });
 
   test('derives websocket URL from BACKEND_HTTP_URL when explicit ws url is absent', async () => {
@@ -420,22 +414,16 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     await expectClientEndpoints(bridge.handlers, 'wss://api.windieos.com/ws', 'https://api.windieos.com');
   });
 
-  test('falls back to the local backend when the packaged hosted default is unreachable before open', async () => {
+  test('does not fall back to a local backend when the packaged hosted default is unreachable before open', async () => {
     const bridge = initIpc({ isPackaged: true });
-    const { pending } = beginBackendConnection(bridge);
+    beginBackendConnection(bridge);
     const WebSocketMock = require('ws');
     const remoteSocket = WebSocketMock.instances[0];
 
     remoteSocket.handlers.error({ message: 'connect ECONNREFUSED api.windieos.com' });
 
-    const fallbackSocket = WebSocketMock.instances[1];
-    expect(fallbackSocket.url).toBe('ws://127.0.0.1:8765/ws');
-    expect(fallbackSocket.options).toEqual(expect.objectContaining({ origin: 'http://127.0.0.1:8765' }));
-
-    fallbackSocket.triggerOpen();
-    await pending;
-
-    await expectClientEndpoints(bridge.handlers, 'ws://127.0.0.1:8765/ws', 'http://127.0.0.1:8765');
+    expect(WebSocketMock.instances).toHaveLength(1);
+    await expectClientEndpoints(bridge.handlers, 'wss://api.windieos.com/ws', 'https://api.windieos.com');
   });
 
   test('uses packaged default backend env override when app is packaged', async () => {

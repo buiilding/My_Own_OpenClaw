@@ -32,8 +32,7 @@ title: "WebSocket Handshake and Settings Sync Reference"
 - otherwise derived counterpart URL from whichever explicit URL exists
 - final default candidates:
   - dev/source runs:
-    - hosted first: `wss://api.windieos.com/ws`, `https://api.windieos.com`
-    - local fallback second: `ws://127.0.0.1:8765/ws`, `http://127.0.0.1:8765`
+    - hosted only: `wss://api.windieos.com/ws`, `https://api.windieos.com`
   - packaged runs: hosted defaults only (`wss://api.windieos.com/ws`, `https://api.windieos.com`)
   - hosted default env overrides:
     - `WINDIE_DEFAULT_BACKEND_HTTP_URL`

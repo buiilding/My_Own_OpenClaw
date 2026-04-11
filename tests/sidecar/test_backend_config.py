@@ -5,11 +5,11 @@ ensure_frontend_python_path()
 from core.backend_config import get_backend_http_url, get_backend_http_urls  # noqa: E402
 
 
-def test_get_backend_http_url_defaults_to_localhost(monkeypatch):
+def test_get_backend_http_url_defaults_to_hosted_backend(monkeypatch):
     monkeypatch.delenv("WINDIE_BACKEND_HTTP_URL", raising=False)
     monkeypatch.delenv("BACKEND_HTTP_URL", raising=False)
 
-    assert get_backend_http_url() == "http://127.0.0.1:8765"
+    assert get_backend_http_url() == "https://api.windieos.com"
 
 
 def test_get_backend_http_url_prefers_windie_specific_env(monkeypatch):
@@ -43,12 +43,11 @@ def test_get_backend_http_url_strips_multiple_trailing_slashes(monkeypatch):
     assert get_backend_http_url() == "http://localhost:9001"
 
 
-def test_get_backend_http_urls_includes_windie_fallback_without_duplicates(monkeypatch):
+def test_get_backend_http_urls_prefers_windie_env_then_backend_env_then_hosted_default(monkeypatch):
     monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://api.windieos.com/")
-    monkeypatch.setenv("WINDIE_BACKEND_FALLBACK_HTTP_URL", "http://127.0.0.1:8765/")
-    monkeypatch.setenv("BACKEND_HTTP_URL", "http://127.0.0.1:8765/")
+    monkeypatch.setenv("BACKEND_HTTP_URL", "https://backup.windie.example/")
 
     assert get_backend_http_urls() == [
         "https://api.windieos.com",
-        "http://127.0.0.1:8765",
+        "https://backup.windie.example",
     ]

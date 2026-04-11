@@ -96,8 +96,8 @@ Local memory is implemented in the sidecar:
 - SQLite + FAISS in `frontend/src/main/python/memory/local_store.py`
 - Summarization worker in `frontend/src/main/python/memory/summarizer.py`
 - Uses backend `/api/embeddings` and `/api/semantic/summarize` APIs
-- Backend base URL comes from `WINDIE_BACKEND_HTTP_URL` (normally injected by Electron main from the hosted-first endpoint resolver), then `BACKEND_HTTP_URL`, then default `http://127.0.0.1:8765`
-- Sidecar backend-backed HTTP clients treat retryable hosted `5xx` responses (for example Cloudflare tunnel `530`) like transport failures and fall back to the next configured backend URL, so local memory/title/summarization calls can keep working when the hosted endpoint is degraded.
+- Backend base URL comes from `WINDIE_BACKEND_HTTP_URL` (normally injected by Electron main from the hosted endpoint resolver), then `BACKEND_HTTP_URL`, then default `https://api.windieos.com`
+- Sidecar backend-backed HTTP clients no longer auto-fall back to frontend-local `127.0.0.1`; remote memory/title/summarization calls stay pinned to the configured hosted endpoint unless an explicit `BACKEND_*` override is provided.
 - Summarizer runs on a fixed interval, deduplicates via summary hashes, and updates `watermark_state.json` safely on shutdown
 - Pending summarization cadence is turn-based: watermark pending count increments
   on assistant terminal transcript turns (`llm-text`, `error`, or empty type).
