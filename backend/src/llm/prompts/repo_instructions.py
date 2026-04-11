@@ -93,7 +93,7 @@ def _resolve_scope_root(workspace_dir: Path) -> Path:
 def _iter_instruction_directories(workspace_dir: Path) -> List[Path]:
     """Return instruction directories from broadest applicable scope to narrowest."""
     scope_root = _resolve_scope_root(workspace_dir)
-    if not _is_relative_to(workspace_dir, scope_root):
+    if not workspace_dir.is_relative_to(scope_root):
         scope_root = workspace_dir
 
     directories: List[Path] = []
@@ -108,11 +108,3 @@ def _iter_instruction_directories(workspace_dir: Path) -> List[Path]:
         cursor = parent
 
     return list(reversed(directories))
-
-
-def _is_relative_to(path: Path, parent: Path) -> bool:
-    try:
-        path.relative_to(parent)
-    except ValueError:
-        return False
-    return True
