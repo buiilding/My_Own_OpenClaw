@@ -221,6 +221,7 @@ Behavior:
 - uses `container.embedder.embed_text(...)`
 - converts vector to JSON list
 - response model includes vector, model name, and dimension
+- emits route-level start/success/failure logs with request char count, model, duration, and result dimension so origin-vs-tunnel debugging can confirm whether the request reached FastAPI
 
 Failure behavior:
 
@@ -253,6 +254,7 @@ Behavior:
 - resolves provider client via backend config/API-key path
 - parses/fallback-extracts semantic facts
 - returns `summary`, `facts[]`, `success=true`
+- emits route-level start/success/failure logs with user id, request size metadata, fact count, and duration so backend logs show whether summarize/title requests reached the origin app
 
 ### `POST /api/semantic/title`
 
@@ -273,6 +275,7 @@ Behavior:
 - applies optional override model/provider
 - generates one short title string
 - returns `title`, `success=true`
+- emits route-level start/success/failure logs with user id, user/assistant message sizes, title length, and duration so backend logs show whether title generation reached the origin app
 
 ### `GET /api/semantic/health`
 
