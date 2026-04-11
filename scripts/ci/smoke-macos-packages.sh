@@ -37,7 +37,6 @@ APP_IN_DMG="$(find "${MOUNT_POINT}" -maxdepth 1 -name '*.app' -print -quit)"
 INSTALLED_APP="/Applications/$(basename "${APP_IN_DMG}")"
 rm -rf "${INSTALLED_APP}"
 ditto "${APP_IN_DMG}" "${INSTALLED_APP}"
-chmod -R u+w "${INSTALLED_APP}"
 
 RUNTIME_ROOT="${INSTALLED_APP}/Contents/Resources/python-runtime"
 RUNTIME_PYTHON="${RUNTIME_ROOT}/bin/python3"
@@ -94,7 +93,8 @@ fi
 
 if [[ "${validate_downloaded_app}" == "true" ]]; then
   quarantine_value="0083;$(date +%s);WindieOS CI;$(uuidgen)"
-  xattr -r -w com.apple.quarantine "${quarantine_value}" "${INSTALLED_APP}"
+  # Mirror Finder's downloaded-app flow without mutating sealed resources inside the bundle.
+  xattr -w com.apple.quarantine "${quarantine_value}" "${INSTALLED_APP}"
 
   if ! spctl --assess --type execute --verbose=4 "${INSTALLED_APP}" >/tmp/windieos-macos-gatekeeper.log 2>&1; then
     cat /tmp/windieos-macos-gatekeeper.log >&2
