@@ -24,11 +24,8 @@ jobs:
           workflow = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
           jobs = workflow.get("jobs", {})
           package = jobs.get("package", {})
-          publish = jobs.get("publish-release", {})
           if not package:
               raise SystemExit("Missing 'package' job in desktop-release.yml")
-          if not publish:
-              raise SystemExit("Missing 'publish-release' job in desktop-release.yml")
 
           matrix = package.get("strategy", {}).get("matrix", {}).get("include", [])
           labels = {item.get("label") for item in matrix}
@@ -38,16 +35,22 @@ jobs:
           steps = package.get("steps", [])
           step_names = {step.get("name") for step in steps}
           required_steps = {
-              "Validate signing secrets",
-              "Validate macOS signing/notarization secrets",
+              "Resolve signing mode",
+              "Log signing mode",
               "Package desktop artifact",
               "Smoke test packaged artifact (Linux/macOS)",
               "Smoke test packaged artifact (Windows)",
-              "Upload packaged artifacts",
+              "Publish packaged artifacts to GitHub release",
           }
           missing = sorted(required_steps - step_names)
           if missing:
               raise SystemExit(f"Missing required package steps: {missing}")
+
+          linux_smoke_step = next((step for step in steps if step.get("name") == "Smoke test packaged artifact (Linux/macOS)"), None)
+          if linux_smoke_step is None:
+              raise SystemExit("Missing Linux packaged-artifact smoke step")
+          if linux_smoke_step.get("if") != "${{ matrix.label == 'linux' }}":
+              raise SystemExit("Linux/macOS smoke step must be restricted to Linux in CI")
 
           package_step = next((step for step in steps if step.get("name") == "Package desktop artifact"), None)
           if package_step is None:
@@ -72,8 +75,8 @@ jobs:
               raise SystemExit(f"Package step still exports empty signing env vars: {offenders}")
 
           runtime_builder = Path("scripts/build-sidecar-runtime").read_text(encoding="utf-8")
-          if '-m venv --copies "${RUNTIME_DIR}"' not in runtime_builder:
-              raise SystemExit("scripts/build-sidecar-runtime must create venv with --copies for macOS bundle safety")
+          if "thin_macos_universal_binaries" not in runtime_builder:
+              raise SystemExit("scripts/build-sidecar-runtime must keep macOS binary thinning support for bundle safety")
 
           print("desktop-release workflow contract: ok")
           PY

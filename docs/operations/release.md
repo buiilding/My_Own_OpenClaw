@@ -58,9 +58,9 @@ Behavior:
   - Linux (`AppImage`, `deb`, `rpm`)
   - Windows (`nsis .exe`)
   - macOS (`dmg`, `zip`)
-- Runs install/launch smoke checks per platform before upload.
+- Runs packaged-artifact smoke checks in CI only for Linux and Windows before upload.
 - macOS publish runs must have signing + notarization available; the workflow now refuses to publish unsigned mac artifacts.
-- macOS smoke for publish runs validates the downloaded-app path by applying quarantine to the installed `.app` bundle root, running `spctl` Gatekeeper assessment, and verifying LaunchServices can open the bundle without recursively mutating signed bundle contents.
+- macOS Gatekeeper and LaunchServices downloaded-app validation is manual-only and is intentionally not run from GitHub Actions because that interactive installed-app path can stall hosted runners.
 - On tag pushes (`v*`) or manual dispatch with publish enabled, creates/updates the GitHub release first and then uploads each platform's packaged files directly from the runner to that release.
 - This direct-release path avoids GitHub Actions artifact-storage quota blocking release publication; publish runs do not rely on workflow-run artifact retention.
 
@@ -74,6 +74,7 @@ Local macOS packaged-user test helper:
 
 - `./scripts/reinstall-windieos-macos.sh`
 - Rebuilds the local macOS DMG, removes old installed WindieOS copies, clears app support/cache/WebKit/saved-state data, resets TCC grants for `com.windieos.desktop` and its Electron helper bundle IDs, reinstalls into `/Applications`, and launches the installed app through LaunchServices while tailing packaged-app logs into the terminal and `~/windieos-packaged-run.log`.
+- Use `scripts/ci/smoke-macos-packages.sh` locally when you specifically need the downloaded-app Gatekeeper path (`WINDIE_VALIDATE_DOWNLOADED_APP=true`); do not wire that path back into GitHub-hosted release runners.
 
 Required secrets when `run_signing=true`:
 
