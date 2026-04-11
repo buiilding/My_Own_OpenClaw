@@ -44,23 +44,8 @@ def resolve_workspace_repo_instruction_messages(
     if workspace_dir is None:
         return []
 
-    scope_root = _resolve_scope_root(workspace_dir)
-    if not _is_relative_to(workspace_dir, scope_root):
-        scope_root = workspace_dir
-
-    directories: List[Path] = []
-    cursor = workspace_dir
-    while True:
-        directories.append(cursor)
-        if cursor == scope_root:
-            break
-        parent = cursor.parent
-        if parent == cursor:
-            break
-        cursor = parent
-
     messages: List[LLMMessage] = []
-    for directory in reversed(directories):
+    for directory in _iter_instruction_directories(workspace_dir):
         agents_path = directory / AGENTS_FILENAME
         if not agents_path.is_file():
             continue
@@ -103,6 +88,26 @@ def _resolve_scope_root(workspace_dir: Path) -> Path:
         if git_dir.exists():
             return directory
     return workspace_dir
+
+
+def _iter_instruction_directories(workspace_dir: Path) -> List[Path]:
+    """Return instruction directories from broadest applicable scope to narrowest."""
+    scope_root = _resolve_scope_root(workspace_dir)
+    if not _is_relative_to(workspace_dir, scope_root):
+        scope_root = workspace_dir
+
+    directories: List[Path] = []
+    cursor = workspace_dir
+    while True:
+        directories.append(cursor)
+        if cursor == scope_root:
+            break
+        parent = cursor.parent
+        if parent == cursor:
+            break
+        cursor = parent
+
+    return list(reversed(directories))
 
 
 def _is_relative_to(path: Path, parent: Path) -> bool:
