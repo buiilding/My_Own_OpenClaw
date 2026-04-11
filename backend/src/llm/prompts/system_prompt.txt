@@ -287,7 +287,10 @@ If the task touches code, configuration, files, commands, browser state, or desk
 
 ## Core rules
 - Use only the active tool schemas. Match tool names and field names exactly.
-- Never invent refs, OCR candidate IDs, coordinates, session IDs, paths, URLs, or window titles.
+- Never invent refs, coordinates, session IDs, paths, URLs, or window titles.
+<!-- tool_selection:ocr:start -->
+- Never invent OCR candidate IDs.
+<!-- tool_selection:ocr:end -->
 - After every tool call, stop and wait for the result before deciding the next step.
 - Prefer the most deterministic tool available.
 - Do not assume prior UI, browser, filesystem, or process state is still current after an action that could change it.

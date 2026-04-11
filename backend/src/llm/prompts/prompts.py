@@ -6,9 +6,34 @@ to prevent import-time crashes and ensure fail-fast behavior.
 """
 
 import platform
+import re
 import threading
 from pathlib import Path
 from typing import Optional
+
+from backend.src.tools.tool_selection import load_tool_selection
+
+
+_METHOD_SECTION_TAGS: tuple[str, ...] = ("ocr", "prediction")
+
+
+def _filter_prompt_method_sections(prompt_text: str) -> str:
+    """Strip prompt sections gated by dev tool-selection coordinate methods."""
+    selection = load_tool_selection()
+    if selection is None:
+        allowed_methods = set(_METHOD_SECTION_TAGS)
+    else:
+        allowed_methods = set(selection.get_allowed_mouse_coordinate_methods())
+
+    filtered = prompt_text
+    for method_name in _METHOD_SECTION_TAGS:
+        pattern = re.compile(
+            rf"\n?<!-- tool_selection:{method_name}:start -->\n?(.*?)\n?<!-- tool_selection:{method_name}:end -->",
+            re.DOTALL,
+        )
+        replacement = r"\1" if method_name in allowed_methods else ""
+        filtered = pattern.sub(replacement, filtered)
+    return filtered
 
 
 class PromptManager:
@@ -127,11 +152,12 @@ class PromptManager:
             normalized_workspace_path = workspace_path.strip()
             if normalized_workspace_path:
                 resolved_workspace_path = normalized_workspace_path
-        return (
+        rendered_prompt = (
             self._system_prompt_template
             .replace("{os}", resolved_operating_system)
             .replace("{workspace_path}", resolved_workspace_path)
         )
+        return _filter_prompt_method_sections(rendered_prompt)
 
 
 # Global accessor function (for backward compatibility)

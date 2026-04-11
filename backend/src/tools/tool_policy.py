@@ -90,6 +90,34 @@ class ToolPolicy:
             filtered = effective_selection.filter_tool_schemas(filtered)
         return filtered
 
+    def filter_projected_tool_schemas(
+        self,
+        tool_schemas: Sequence[Dict[str, Any]],
+        selection: Optional[ToolSelection] | object = _UNSET,
+    ) -> List[Dict[str, Any]]:
+        """
+        Apply selection-only pruning after provider projection.
+
+        Provider projection can add non-function tools such as OpenAI's native
+        `computer` declaration plus grounded helper schemas. Preserve non-function
+        tool declarations, but still prune grounded function schemas so disabled
+        OCR/prediction fields do not leak into the model-facing surface.
+        """
+        effective_selection = self._resolve_selection(selection)
+        if effective_selection is None:
+            return list(tool_schemas)
+
+        filtered: List[Dict[str, Any]] = []
+        for schema in tool_schemas:
+            if not isinstance(schema, dict):
+                continue
+            tool_name = self._extract_tool_name(schema)
+            if not isinstance(tool_name, str):
+                filtered.append(schema)
+                continue
+            filtered.extend(effective_selection.filter_tool_schemas([schema]))
+        return filtered
+
     def get_method_validation_errors(
         self,
         tool_name: str,

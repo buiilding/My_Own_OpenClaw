@@ -29,6 +29,26 @@ logger = logging.getLogger(__name__)
 
 _ENV_PATH = "WINDIEOS_DEV_TOOL_SELECTION_PATH"
 _MOUSE_COORD_METHODS: tuple[str, ...] = ("manual", "ocr", "prediction")
+_SOURCE_GROUNDED_TOOL_NAMES: frozenset[str] = frozenset(
+    {
+        "mouse_control",
+        "scroll_control",
+        "grounded_mouse_action",
+        "grounded_scroll_action",
+    }
+)
+_DRAG_DESTINATION_GROUNDED_TOOL_NAMES: frozenset[str] = frozenset(
+    {"mouse_control", "grounded_mouse_action"}
+)
+_NON_MANUAL_GROUNDED_TOOL_NAMES: frozenset[str] = frozenset(
+    {"grounded_mouse_action", "grounded_scroll_action"}
+)
+_DERIVED_TOOL_PARENT_NAMES: dict[str, str] = {
+    "grounded_mouse_action": "mouse_control",
+    "grounded_scroll_action": "scroll_control",
+}
+
+
 def _ordered_mouse_methods(methods: Sequence[str]) -> List[str]:
     return [method for method in _MOUSE_COORD_METHODS if method in methods]
 
@@ -47,11 +67,12 @@ class ToolSelection:
 
     def is_tool_enabled(self, tool_name: str) -> bool:
         """Return True if the tool is enabled by top-level allow/deny policy."""
+        parent_tool_name = _DERIVED_TOOL_PARENT_NAMES.get(tool_name, tool_name)
         if not self.enabled:
             return True
         if self.mode == "allowlist":
-            return self._is_allowlisted(tool_name)
-        return self._is_not_denylisted(tool_name)
+            return self._is_allowlisted(parent_tool_name)
+        return self._is_not_denylisted(parent_tool_name)
 
     def get_allowed_mouse_coordinate_methods(self) -> frozenset[str]:
         """
@@ -92,6 +113,10 @@ class ToolSelection:
                 continue
             if name == "mouse_control" and not self._is_mouse_control_effectively_enabled():
                 continue
+            if name in _NON_MANUAL_GROUNDED_TOOL_NAMES and not self._has_non_manual_methods(
+                self.get_allowed_mouse_coordinate_methods()
+            ):
+                continue
             filtered.append(name)
         return filtered
 
@@ -101,6 +126,7 @@ class ToolSelection:
             return list(tool_schemas)
 
         filtered: List[Dict[str, Any]] = []
+        allowed_methods = self.get_allowed_mouse_coordinate_methods()
         for schema in tool_schemas:
             tool_name = self._get_tool_name(schema)
             if not isinstance(tool_name, str):
@@ -112,45 +138,109 @@ class ToolSelection:
             if not self.is_tool_enabled(tool_name):
                 continue
 
-            if tool_name == "mouse_control":
-                allowed_methods = self.get_allowed_mouse_coordinate_methods()
-                if not allowed_methods:
-                    continue
-                filtered.append(self._filter_mouse_control_schema(schema, allowed_methods))
-            else:
-                filtered.append(schema)
+            if tool_name in _SOURCE_GROUNDED_TOOL_NAMES:
+                filtered_schema = self._filter_grounded_tool_schema(
+                    schema,
+                    tool_name=tool_name,
+                    allowed_methods=allowed_methods,
+                )
+                if filtered_schema is not None:
+                    filtered.append(filtered_schema)
+                continue
+
+            filtered.append(schema)
 
         return filtered
 
-    def _filter_mouse_control_schema(
+    def _filter_grounded_tool_schema(
         self,
         schema: Dict[str, Any],
+        *,
+        tool_name: str,
         allowed_methods: frozenset[str],
-    ) -> Dict[str, Any]:
+    ) -> Optional[Dict[str, Any]]:
         """
-        Filter mouse_control arg schema by allowed coordinate methods.
+        Filter grounded desktop-tool schemas by allowed coordinate methods.
 
-        Removes method-specific fields and narrows `find_coordinates_by` enum/default.
+        This prunes:
+        - coordinate-method enums/defaults
+        - method-specific source and drag-destination fields
+        - conditional JSON-schema branches for disabled methods
+        - tool/field descriptions that would otherwise mention disabled methods
         """
+        if tool_name == "mouse_control" and not allowed_methods:
+            return None
+        if tool_name in _NON_MANUAL_GROUNDED_TOOL_NAMES and not self._has_non_manual_methods(
+            allowed_methods
+        ):
+            return None
+
         schema_copy = copy.deepcopy(schema)
-        args_props = self._get_mouse_args_properties(schema_copy)
-        if args_props is None:
+        parameters = self._get_schema_parameters(schema_copy)
+        args_props = self._get_schema_properties(schema_copy)
+        if parameters is None or args_props is None:
             return schema_copy
 
+        if tool_name in _SOURCE_GROUNDED_TOOL_NAMES:
+            self._filter_source_grounding_schema(
+                args_props,
+                allowed_methods=allowed_methods,
+            )
+            self._filter_conditional_rules(
+                parameters,
+                method_field_name="find_coordinates_by",
+                allowed_methods=allowed_methods,
+            )
+
+        if tool_name in _DRAG_DESTINATION_GROUNDED_TOOL_NAMES:
+            self._filter_drag_destination_schema(
+                args_props,
+                allowed_methods=allowed_methods,
+            )
+            self._filter_conditional_rules(
+                parameters,
+                method_field_name="drag_to_find_coordinates_by",
+                allowed_methods=allowed_methods,
+            )
+
+        self._rewrite_grounded_schema_descriptions(
+            schema_copy,
+            tool_name=tool_name,
+            args_props=args_props,
+            allowed_methods=allowed_methods,
+        )
+        return schema_copy
+
+    @staticmethod
+    def _get_schema_parameters(schema: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        parameters = schema.get("parameters")
+        return parameters if isinstance(parameters, dict) else None
+
+    @classmethod
+    def _get_schema_properties(cls, schema: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Navigate to canonical function-tool parameters.properties."""
+        parameters = cls._get_schema_parameters(schema)
+        if parameters is None:
+            return None
+        properties = parameters.get("properties")
+        return properties if isinstance(properties, dict) else None
+
+    @classmethod
+    def _filter_source_grounding_schema(
+        cls,
+        args_props: Dict[str, Any],
+        *,
+        allowed_methods: frozenset[str],
+    ) -> None:
         ordered_methods = _ordered_mouse_methods(tuple(allowed_methods))
-        method_schema = args_props.get("find_coordinates_by")
-        if isinstance(method_schema, dict):
-            # Gemini requires enum fields to declare an explicit STRING type.
-            # Our cleaned schema can drop the type due to Enum $ref flattening,
-            # so enforce it at the point where we inject enum constraints.
-            method_schema["type"] = "string"
-            method_schema["enum"] = ordered_methods
-            default_method = method_schema.get("default")
-            if default_method not in allowed_methods:
-                if ordered_methods:
-                    method_schema["default"] = ordered_methods[0]
-                else:
-                    method_schema.pop("default", None)
+        cls._rewrite_method_property(
+            args_props.get("find_coordinates_by"),
+            ordered_methods=ordered_methods,
+            description=cls._build_method_property_description(
+                "Coordinate targeting method.",
+                ordered_methods,
+            ),
+        )
 
         if "manual" not in allowed_methods:
             args_props.pop("x", None)
@@ -160,22 +250,178 @@ class ToolSelection:
             args_props.pop("candidate_id", None)
         if "prediction" not in allowed_methods:
             args_props.pop("source_description", None)
-            args_props.pop("destination_description", None)
-            args_props.pop("drag_to_model_name", None)
             args_props.pop("model_name", None)
 
-        return schema_copy
+    @classmethod
+    def _filter_drag_destination_schema(
+        cls,
+        args_props: Dict[str, Any],
+        *,
+        allowed_methods: frozenset[str],
+    ) -> None:
+        ordered_methods = _ordered_mouse_methods(tuple(allowed_methods))
+        cls._rewrite_method_property(
+            args_props.get("drag_to_find_coordinates_by"),
+            ordered_methods=ordered_methods,
+            description=cls._build_method_property_description(
+                "Drag destination targeting method.",
+                ordered_methods,
+            ),
+        )
+
+        if "manual" not in allowed_methods:
+            args_props.pop("drag_to_x", None)
+            args_props.pop("drag_to_y", None)
+        if "ocr" not in allowed_methods:
+            args_props.pop("drag_to_ocr_text", None)
+            args_props.pop("drag_to_candidate_id", None)
+        if "prediction" not in allowed_methods:
+            args_props.pop("destination_description", None)
+            args_props.pop("drag_to_model_name", None)
 
     @staticmethod
-    def _get_mouse_args_properties(schema: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Navigate to mouse_control args.properties from canonical direct schema."""
-        parameters = schema.get("parameters")
-        if not isinstance(parameters, dict):
+    def _rewrite_method_property(
+        method_schema: Any,
+        *,
+        ordered_methods: List[str],
+        description: str,
+    ) -> None:
+        if not isinstance(method_schema, dict):
+            return
+        method_schema["type"] = "string"
+        method_schema["enum"] = ordered_methods
+        method_schema["description"] = description
+        default_method = method_schema.get("default")
+        if default_method not in ordered_methods:
+            if ordered_methods:
+                method_schema["default"] = ordered_methods[0]
+            else:
+                method_schema.pop("default", None)
+
+    @classmethod
+    def _filter_conditional_rules(
+        cls,
+        parameters: Dict[str, Any],
+        *,
+        method_field_name: str,
+        allowed_methods: frozenset[str],
+    ) -> None:
+        all_of = parameters.get("allOf")
+        if not isinstance(all_of, list):
+            return
+
+        filtered_rules: List[Any] = []
+        for rule in all_of:
+            method_name = cls._extract_rule_method_name(rule, method_field_name)
+            if method_name is None or method_name in allowed_methods:
+                filtered_rules.append(rule)
+
+        if filtered_rules:
+            parameters["allOf"] = filtered_rules
+        else:
+            parameters.pop("allOf", None)
+
+    @staticmethod
+    def _extract_rule_method_name(
+        rule: Any,
+        method_field_name: str,
+    ) -> Optional[str]:
+        if not isinstance(rule, dict):
             return None
-        properties = parameters.get("properties")
-        if isinstance(properties, dict):
-            return properties
-        return None
+        if_block = rule.get("if")
+        if not isinstance(if_block, dict):
+            return None
+        properties = if_block.get("properties")
+        if not isinstance(properties, dict):
+            return None
+        method_schema = properties.get(method_field_name)
+        if not isinstance(method_schema, dict):
+            return None
+        method_name = method_schema.get("const")
+        return method_name if isinstance(method_name, str) else None
+
+    @classmethod
+    def _rewrite_grounded_schema_descriptions(
+        cls,
+        schema: Dict[str, Any],
+        *,
+        tool_name: str,
+        args_props: Dict[str, Any],
+        allowed_methods: frozenset[str],
+    ) -> None:
+        if tool_name == "mouse_control":
+            schema["description"] = (
+                "Control mouse actions with schema-guided coordinate targeting. "
+                "Prefer keyboard shortcuts and app-native navigation first; use mouse interaction when needed. "
+                "Use only the currently enabled targeting fields exposed by this schema. "
+                "Do not treat tool status alone as success; confirm the expected UI state change from the latest screenshot."
+            )
+        elif tool_name == "scroll_control":
+            schema["description"] = (
+                "Control desktop scrolling actions. Target the scroll region using the currently enabled grounding "
+                "fields exposed by this schema. Omit `clicks` on the first vertical scroll attempt so the executor "
+                "uses its default click amount; use `clicks` only for follow-up fine tuning."
+            )
+        elif tool_name == "grounded_mouse_action":
+            schema["description"] = (
+                "Ground a semantic mouse action using the currently enabled non-manual grounding fields, "
+                "then execute it on the desktop."
+            )
+        elif tool_name == "grounded_scroll_action":
+            schema["description"] = (
+                "Ground a semantic scroll action using the currently enabled non-manual grounding fields, "
+                "then execute it on the desktop."
+            )
+
+        action_schema = args_props.get("action")
+        if isinstance(action_schema, dict) and tool_name == "grounded_mouse_action":
+            action_schema["description"] = cls._build_grounded_action_description(
+                allowed_methods
+            )
+        elif isinstance(action_schema, dict) and tool_name == "grounded_scroll_action":
+            action_schema["description"] = cls._build_grounded_scroll_description(
+                allowed_methods
+            )
+
+    @staticmethod
+    def _build_method_property_description(
+        prefix: str,
+        ordered_methods: List[str],
+    ) -> str:
+        allowed_display = ", ".join(ordered_methods) or "none"
+        return f"{prefix} Allowed values: {allowed_display}."
+
+    @staticmethod
+    def _build_grounded_action_description(
+        allowed_methods: frozenset[str],
+    ) -> str:
+        parts: List[str] = ["Mouse action to perform using the currently enabled grounding fields."]
+        if "ocr" in allowed_methods and "prediction" in allowed_methods:
+            parts.append(
+                "Use OCR fields for visible text targets and source_description for non-text targets."
+            )
+        elif "ocr" in allowed_methods:
+            parts.append("Use OCR fields for visible text targets.")
+        elif "prediction" in allowed_methods:
+            parts.append("Use source_description for non-text targets.")
+        return " ".join(parts)
+
+    @staticmethod
+    def _build_grounded_scroll_description(
+        allowed_methods: frozenset[str],
+    ) -> str:
+        parts: List[str] = ["Scroll action to perform against the currently enabled grounded region fields."]
+        if "ocr" in allowed_methods and "prediction" in allowed_methods:
+            parts.append("Use OCR fields for visible text regions and source_description for non-text regions.")
+        elif "ocr" in allowed_methods:
+            parts.append("Use OCR fields for visible text regions.")
+        elif "prediction" in allowed_methods:
+            parts.append("Use source_description for non-text regions.")
+        return " ".join(parts)
+
+    @staticmethod
+    def _has_non_manual_methods(allowed_methods: frozenset[str]) -> bool:
+        return any(method in allowed_methods for method in ("ocr", "prediction"))
 
     def _is_allowlisted(self, tool_name: str) -> bool:
         return tool_name in self.tools

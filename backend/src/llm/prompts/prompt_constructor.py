@@ -113,21 +113,24 @@ class PromptConstructor:
             filtered_schemas = (
                 self.tool_registry.get_function_declarations_filtered(filtered_names) or []
             )
-            return project_tool_schemas_for_provider(
+            filtered_schemas = self.tool_policy.filter_tool_schemas(filtered_schemas)
+            projected_schemas = project_tool_schemas_for_provider(
                 tool_schemas=filtered_schemas,
                 tool_registry=self.tool_registry,
                 config=self.config,
                 prompt_messages=prompt_messages,
             )
+            return self.tool_policy.filter_projected_tool_schemas(projected_schemas)
 
         tool_schemas = self.tool_registry.get_function_declarations() or []
         filtered_schemas = self.tool_policy.filter_tool_schemas(tool_schemas)
-        return project_tool_schemas_for_provider(
+        projected_schemas = project_tool_schemas_for_provider(
             tool_schemas=filtered_schemas,
             tool_registry=self.tool_registry,
             config=self.config,
             prompt_messages=prompt_messages,
         )
+        return self.tool_policy.filter_projected_tool_schemas(projected_schemas)
 
     def build_prompt(
         self,

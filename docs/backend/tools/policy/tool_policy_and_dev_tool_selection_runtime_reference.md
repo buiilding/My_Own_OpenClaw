@@ -75,16 +75,25 @@ If allowed method set is empty:
 
 ## Schema Pruning for Mouse Methods
 
-`ToolSelection.filter_tool_schemas(...)` performs deep schema edits for `mouse_control`.
+`ToolSelection.filter_tool_schemas(...)` performs deep schema edits for grounded desktop schemas that share the coordinate-method contract.
 
 Field/enum pruning behavior:
 
 - narrows `find_coordinates_by.enum` to allowed methods, preserving canonical order (`manual`, `ocr`, `prediction`)
+- narrows `drag_to_find_coordinates_by.enum` the same way for drag-capable grounded schemas
 - adjusts default method if current default is disallowed
 - removes method-specific fields when corresponding method disabled:
   - `manual` disabled -> remove `x`, `y`
   - `ocr` disabled -> remove `ocr_text`
   - `prediction` disabled -> remove `description`, `model_name`
+- removes matching JSON Schema conditional branches so disabled method names do not remain in `allOf`
+
+Current grounded schema coverage:
+
+- `mouse_control`
+- `scroll_control`
+- `grounded_mouse_action`
+- `grounded_scroll_action`
 
 Schema path compatibility:
 
@@ -116,12 +125,15 @@ Current flow:
 1. read model-visible tool names from `ToolRegistry.get_model_tool_names()`
 2. apply `ToolPolicy.filter_tool_names(..., normalize_wrappers=False)` to that direct-tool list
 3. hand the filtered list back to `ToolRegistry.get_function_declarations_filtered(...)`
+4. apply `ToolPolicy.filter_tool_schemas(...)` to the returned direct function schemas
+5. run provider projection
+6. apply selection-only post-projection pruning for projected grounded helper schemas
 
 Result:
 
 - LLM only sees policy-filtered tool schemas
 - prompt injection no longer depends on a separate schema-source helper path
-- mouse schema the LLM receives is still pruned when dev selection disables OCR or prediction
+- grounded desktop schemas the LLM receives are pruned when dev selection disables OCR or prediction, including provider-projected grounded helpers
 
 ## Available-Tools Listing Coupling
 
@@ -144,6 +156,15 @@ When disabled:
 - vision startup model preload is skipped
 
 This keeps startup cost aligned with currently enabled coordinate methods.
+
+## System Prompt Coupling
+
+`PromptManager.render_system_prompt(...)` strips dev-selection-gated OCR/prediction sections from the rendered prompt template.
+
+Result:
+
+- the runtime system prompt no longer references disabled OCR/prediction-only guidance
+- prompt transparency stays aligned with the filtered model-facing tool surface
 
 ## Selection File Loading and Cache Semantics
 

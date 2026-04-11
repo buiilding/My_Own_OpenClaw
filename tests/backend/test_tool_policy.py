@@ -3,6 +3,11 @@ from pathlib import Path
 
 from backend.src.core.config.models import AppConfig
 from backend.src.tools.remote import RemoteMouseTool
+from backend.src.tools.remote_tools.computer import (
+    RemoteGroundedMouseTool,
+    RemoteGroundedScrollTool,
+    RemoteScrollTool,
+)
 from backend.src.tools.tool_policy import ToolPolicy
 from backend.src.tools.tool_selection import load_tool_selection
 
@@ -142,6 +147,84 @@ def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
     assert "source_description" not in args_props
     assert "destination_description" not in args_props
     assert "model_name" not in args_props
+
+
+def test_filter_tool_schemas_filters_scroll_and_grounded_method_fields(tmp_path: Path):
+    selection = _load_selection(
+        tmp_path,
+        (
+            'enabled = true\n'
+            'mode = "allowlist"\n'
+            'tools = ["mouse_control", "scroll_control"]\n'
+            "[tool_options.mouse_control]\n"
+            'enabled_coordinate_methods = ["manual", "ocr"]\n'
+        ),
+    )
+    policy = ToolPolicy(config=AppConfig(interaction_mode="agent"), selection=selection)
+
+    schemas = policy.filter_tool_schemas(
+        [
+            RemoteScrollTool().get_json_schema(),
+            RemoteGroundedMouseTool().get_json_schema(),
+            RemoteGroundedScrollTool().get_json_schema(),
+        ]
+    )
+
+    assert [schema["name"] for schema in schemas] == [
+        "scroll_control",
+        "grounded_mouse_action",
+        "grounded_scroll_action",
+    ]
+
+    scroll_props = schemas[0]["parameters"]["properties"]
+    assert scroll_props["find_coordinates_by"]["enum"] == ["manual", "ocr"]
+    assert "source_description" not in scroll_props
+    assert "model_name" not in scroll_props
+
+    grounded_mouse_props = schemas[1]["parameters"]["properties"]
+    assert "source_description" not in grounded_mouse_props
+    assert "destination_description" not in grounded_mouse_props
+    assert "model_name" not in grounded_mouse_props
+    assert "drag_to_model_name" not in grounded_mouse_props
+    assert "ocr" in grounded_mouse_props["action"]["description"].lower()
+    assert "non-text" not in grounded_mouse_props["action"]["description"].lower()
+
+    grounded_scroll_props = schemas[2]["parameters"]["properties"]
+    assert "source_description" not in grounded_scroll_props
+    assert "model_name" not in grounded_scroll_props
+    assert "non-text" not in grounded_scroll_props["action"]["description"].lower()
+
+
+def test_filter_tool_schemas_removes_prediction_drag_rules_when_prediction_disabled(tmp_path: Path):
+    selection = _load_selection(
+        tmp_path,
+        (
+            'enabled = true\n'
+            'mode = "allowlist"\n'
+            'tools = ["mouse_control"]\n'
+            "[tool_options.mouse_control]\n"
+            'enabled_coordinate_methods = ["manual", "ocr"]\n'
+        ),
+    )
+    policy = ToolPolicy(config=AppConfig(interaction_mode="agent"), selection=selection)
+
+    mouse_schema = policy.filter_tool_schemas([RemoteMouseTool().get_json_schema()])[0]
+    props = mouse_schema["parameters"]["properties"]
+    assert props["drag_to_find_coordinates_by"]["enum"] == ["manual", "ocr"]
+    assert "destination_description" not in props
+    assert "drag_to_model_name" not in props
+
+    rule_methods = []
+    for rule in mouse_schema["parameters"].get("allOf", []):
+        if_block = rule.get("if", {})
+        properties = if_block.get("properties", {})
+        method_schema = properties.get("find_coordinates_by") or properties.get(
+            "drag_to_find_coordinates_by"
+        )
+        if isinstance(method_schema, dict) and isinstance(method_schema.get("const"), str):
+            rule_methods.append(method_schema["const"])
+
+    assert "prediction" not in rule_methods
 
 
 def test_filter_tool_schemas_disables_browser_when_browser_automation_not_enabled():
