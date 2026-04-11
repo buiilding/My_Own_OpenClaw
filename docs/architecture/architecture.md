@@ -149,7 +149,7 @@ This is not the primary open-source SDK contract. The default client contract is
 - **Tool Preparation**: Coordinate resolution and tool call preparation
 
 #### Core Systems
-- **Embedding Service**: SentenceTransformer provider exposed via `/api/embeddings` (used by sidecar memory)
+- **Memory HTTP Services**: `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title` support sidecar memory retrieval, semantic summarization, and conversation-title generation
 - **Tool System**: Tool registry and orchestration
 - **LLM Client**: Multi-provider LLM abstraction
   - OpenAI provider includes a model-gated native reasoning runtime (`litellm.aresponses`) alongside the provider-generic path

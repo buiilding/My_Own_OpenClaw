@@ -8,7 +8,7 @@ read_when:
 
 ## Overview
 
-Memory is implemented in the **frontend Python sidecar**, not the backend. The sidecar stores episodic and semantic memory locally using SQLite + FAISS, and requests embeddings/summaries from the backend over HTTP.
+Memory is implemented in the **frontend Python sidecar**, not the backend. The sidecar stores episodic and semantic memory locally using SQLite + FAISS, and requests embeddings, semantic summaries, and conversation titles from the backend over HTTP.
 
 **Key locations:**
 - Sidecar implementation: `frontend/src/main/python/memory/`
@@ -32,7 +32,8 @@ Memory is implemented in the **frontend Python sidecar**, not the backend. The s
 ┌───────────────────────────────────────────────┐
 │ Backend API (FastAPI)                         │
 │  ├─ /api/embeddings/ (SentenceTransformer)    │
-│  └─ /api/semantic/summarize (LLM summary)     │
+│  ├─ /api/semantic/summarize (LLM summary)     │
+│  └─ /api/semantic/title (conversation title) │
 └───────────────────────────────────────────────┘
 ```
 
@@ -101,6 +102,13 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 `frontend/src/main/python/memory/summarizer.py`
 - Periodically converts episodic memory into semantic summaries
 - Calls backend `/api/semantic/summarize` via `RemoteSemanticClient`
+
+### Conversation Title Generation
+
+`frontend/src/main/python/memory/conversation_title_runtime.py`
+- Generates model-backed transcript titles after the first user and first assistant `llm-text` rows exist
+- Calls backend `/api/semantic/title` via `RemoteTitleClient`
+- Runs best-effort in the background and falls back to heuristic list titles until a saved model title exists
 
 **Behavior notes**:
 - Runs an immediate startup pass, then continues on a fixed interval; summarization proceeds immediately for large backlogs (`min_batch_size`, default `6`) and for smaller idle backlogs (`min_batch_size_idle`, default `1`) when age checks pass.
@@ -189,6 +197,7 @@ Current title behavior for transcript chats:
 - A new chat can appear in `Your chats` immediately after the first user transcript row is stored.
 - Until a saved model title exists, list/search reads derive a temporary heuristic title from the first user message.
 - After the first assistant `llm-text` transcript row is stored, async model title generation can replace that temporary title.
+- Hosted debugging note: backend `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title` now emit route-level start/success/failure logs so a hosted `502` can be separated into “request never hit FastAPI” versus “origin app received and failed the request.”
 
 ## Chat Transcript vs Replay State
 

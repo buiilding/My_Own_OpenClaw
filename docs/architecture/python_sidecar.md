@@ -95,7 +95,8 @@ Computer-control execution notes:
 Local memory is implemented in the sidecar:
 - SQLite + FAISS in `frontend/src/main/python/memory/local_store.py`
 - Summarization worker in `frontend/src/main/python/memory/summarizer.py`
-- Uses backend `/api/embeddings` and `/api/semantic/summarize` APIs
+- Async title generation in `frontend/src/main/python/memory/conversation_title_runtime.py`
+- Uses backend `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title` APIs
 - Backend base URL comes from `WINDIE_BACKEND_HTTP_URL` (normally injected by Electron main from the hosted endpoint resolver), then `BACKEND_HTTP_URL`, then default `https://api.windieos.com`
 - Sidecar backend-backed HTTP clients no longer auto-fall back to frontend-local `127.0.0.1`; remote memory/title/summarization calls stay pinned to the configured hosted endpoint unless an explicit `BACKEND_*` override is provided.
 - Summarizer runs on a fixed interval, deduplicates via summary hashes, and updates `watermark_state.json` safely on shutdown
