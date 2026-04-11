@@ -610,7 +610,7 @@ class WindieBrowserRuntime:
         page = await self._require_connected_page()
         html, _scope = await capture_scoped_html(
             page,
-            selector=args.css_scope,
+            selector=getattr(args, "css_scope", None),
         )
         return html_to_markdown(html, extract_links=False)
 
@@ -665,7 +665,7 @@ class WindieBrowserRuntime:
             regex=False,
             case_sensitive=False,
             context_chars=80,
-            max_results=20,
+            max_results=args.max_results or 20,
         )
         return {
             "success": True,

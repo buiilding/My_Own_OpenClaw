@@ -68,8 +68,16 @@ def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
     input_args = BrowserInputArgs(action="input", ref="3", text="hello", explanation=EXPLANATION)
     assert input_args.clear is True
 
-    find_text_args = BrowserFindTextArgs(action="find_text", text="pricing", explanation=EXPLANATION)
+    find_text_args = BrowserFindTextArgs(
+        action="find_text",
+        text="pricing",
+        css_scope="#search",
+        max_results=5,
+        explanation=EXPLANATION,
+    )
     assert find_text_args.text == "pricing"
+    assert find_text_args.css_scope == "#search"
+    assert find_text_args.max_results == 5
 
     switch_args = BrowserSwitchArgs(action="switch", tab_id="abcd", explanation=EXPLANATION)
     assert switch_args.tab_id == "abcd"
@@ -88,6 +96,9 @@ def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
 
     with pytest.raises(ValidationError):
         BrowserFindTextArgs(action="find_text", pattern="pricing", explanation=EXPLANATION)
+
+    with pytest.raises(ValidationError):
+        BrowserFindTextArgs(action="find_text", text="pricing", max_results=0, explanation=EXPLANATION)
 
     with pytest.raises(ValidationError):
         BrowserSwitchArgs(action="switch", target_id="abcd", explanation=EXPLANATION)

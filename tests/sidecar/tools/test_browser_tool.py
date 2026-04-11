@@ -151,6 +151,40 @@ async def test_not_connected_runtime_error_preserves_code() -> None:
 
 
 @pytest.mark.asyncio
+async def test_find_text_accepts_css_scope_and_max_results() -> None:
+    controller = _connected_controller()
+
+    with (
+        mock.patch(
+            "tools.browser.browser_tool.get_browser_controller", return_value=controller
+        ),
+        mock.patch(
+            "tools.browser.windie_runtime.capture_scoped_html",
+            new=mock.AsyncMock(return_value=("<main>Hello, sign in. Hello, sign in.</main>", "#search")),
+        ) as capture_scoped_html,
+        mock.patch(
+            "tools.browser.windie_runtime.html_to_markdown",
+            return_value="Hello, sign in. Hello, sign in.",
+        ) as html_to_markdown,
+    ):
+        result = await execute_browser(
+            {
+                "action": "find_text",
+                "text": "Hello, sign in",
+                "css_scope": "#search",
+                "max_results": 1,
+                "explanation": EXPLANATION,
+            }
+        )
+
+    assert result.success is True
+    assert result.data["match_count"] == 1
+    assert result.data["matches"][0]["match"] == "Hello, sign in"
+    capture_scoped_html.assert_awaited_once_with(controller._page, selector="#search")
+    html_to_markdown.assert_called_once()
+
+
+@pytest.mark.asyncio
 async def test_removed_alias_returns_invalid_argument_error() -> None:
     with mock.patch("tools.browser.browser_tool.get_browser_controller"):
         result = await execute_browser({"action": "open", "url": "https://example.com", "explanation": EXPLANATION})

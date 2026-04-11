@@ -16,6 +16,7 @@ All notable changes to WindieOS will be documented in this file.
 - feat(openai-native-web-search-progress): stream OpenAI native backend `web_search` progress through a dedicated `web-search-progress` websocket event, surface transient renderer `search-source` rows and overlay tool-call phase activity while the search is still running, and keep the final logical tool result on the existing backend `tool-call` + `tool-output` contract; add focused backend/frontend regressions and contract/doc updates.
 
 ### Fixed
+- fix(sidecar-browser-find-text-and-status): restore `find_text` support for optional `css_scope` and `max_results` in the shared browser contract/runtime, and make browser `status` tolerate transient Playwright title-read failures during navigation instead of surfacing avoidable sidecar errors.
 - fix(frontend-wakeword-logging): make wakeword subprocess logging ignore broken stdout/stderr pipes so late child-process exit logs do not crash the Electron main process with uncaught `EPIPE` errors.
 - fix(frontend-macos-dashboard-maximize): route both the custom dashboard maximize control and `show-main-window({ maximize: true })` through native macOS fullscreen toggling so the frameless main window enters and exits real fullscreen on macOS while Windows and Linux keep the existing maximize/unmaximize behavior.
 - fix(frontend-macos-dashboard-close): when the fullscreen dashboard is closed back to the minimal chat pill, exit native fullscreen before hiding the dashboard so macOS does not leave behind a black fullscreen shell.

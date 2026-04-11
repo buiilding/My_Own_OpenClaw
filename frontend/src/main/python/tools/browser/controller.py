@@ -47,6 +47,14 @@ from tools.browser.role_snapshot import (
 logger = logging.getLogger(__name__)
 
 
+def _is_transient_page_title_error(error: Exception) -> bool:
+    message = str(error).lower()
+    return (
+        "execution context was destroyed" in message
+        or "most likely because of a navigation" in message
+    )
+
+
 class BrowserController:
     """
     Controller for browser automation.
@@ -397,8 +405,8 @@ class BrowserController:
 
         try:
             return await page.title()
-        except Exception:
-            if self._is_page_closed(page):
+        except Exception as error:
+            if self._is_page_closed(page) or _is_transient_page_title_error(error):
                 return ""
             raise
 
