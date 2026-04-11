@@ -156,6 +156,29 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     },
   } = deps;
 
+  function focusPrimarySurface() {
+    if (vmMode) {
+      showMainWindow({ focus: true });
+      return;
+    }
+
+    const mainWindow = getMainWindow();
+    const mainWindowVisible = Boolean(
+      mainWindow
+      && typeof mainWindow.isDestroyed === 'function'
+      && !mainWindow.isDestroyed()
+      && typeof mainWindow.isVisible === 'function'
+      && mainWindow.isVisible()
+    );
+
+    if (mainWindowVisible) {
+      showMainWindow({ focus: true });
+      return;
+    }
+
+    showChatWindow({ focus: true });
+  }
+
   const singleInstanceLockAcquired = requestSingleInstanceLock();
   if (!singleInstanceLockAcquired) {
     log('[Main] Existing instance detected, exiting duplicate process.');
@@ -178,7 +201,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     }
     lastSecondInstanceFocusAt = focusTimestamp;
     log('[Main][StartupMetrics] second-instance event received; focusing existing window.');
-    showMainWindow({ focus: true });
+    focusPrimarySurface();
   });
 
   app.whenReady().then(() => {
@@ -191,9 +214,9 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       responseOverlay = createResponseWindow();
       createTray();
     }
-    // First launch should present the dashboard immediately. Tray/pill mode
-    // still applies after close via existing close-handler behavior.
-    showMainWindow({ focus: true });
+    if (vmMode) {
+      showMainWindow({ focus: true });
+    }
     if (!vmMode) {
       syncWakewordToggleForChatVisibility();
 
@@ -273,7 +296,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
           );
         }
       } else {
-        showMainWindow({ focus: true });
+        focusPrimarySurface();
       }
     });
   });

@@ -89,7 +89,7 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     expect(deps.log).toHaveBeenCalledWith(
       '[Main][StartupMetrics] second-instance event received; focusing existing window.',
     );
-    expect(deps.showMainWindow).toHaveBeenCalledWith({ focus: true });
+    expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true });
   });
 
   test('throttles rapid second-instance focus storms to prevent focus stealing loops', async () => {
@@ -110,10 +110,9 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     appEvents['second-instance']();
     appEvents['second-instance']();
 
-    expect(deps.showMainWindow).toHaveBeenCalledTimes(3);
-    expect(deps.showMainWindow).toHaveBeenNthCalledWith(1, { focus: true }); // startup ready
-    expect(deps.showMainWindow).toHaveBeenNthCalledWith(2, { focus: true }); // first second-instance
-    expect(deps.showMainWindow).toHaveBeenNthCalledWith(3, { focus: true }); // post-throttle second-instance
+    expect(deps.showChatWindow).toHaveBeenCalledTimes(2);
+    expect(deps.showChatWindow).toHaveBeenNthCalledWith(1, { focus: true }); // first second-instance
+    expect(deps.showChatWindow).toHaveBeenNthCalledWith(2, { focus: true }); // post-throttle second-instance
     expect(deps.log).toHaveBeenCalledWith(
       '[Main][StartupMetrics] second-instance event throttled; skip focus to avoid loop.',
     );
@@ -137,8 +136,7 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     appEvents['second-instance']();
     appEvents['second-instance']();
 
-    // one startup focus + three second-instance focus calls
-    expect(deps.showMainWindow).toHaveBeenCalledTimes(4);
+    expect(deps.showChatWindow).toHaveBeenCalledTimes(3);
     expect(deps.log).not.toHaveBeenCalledWith(
       '[Main][StartupMetrics] second-instance event throttled; skip focus to avoid loop.',
     );
@@ -154,7 +152,7 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     expect(deps.createChatWindow).toHaveBeenCalledTimes(1);
     expect(deps.createResponseWindow).toHaveBeenCalledTimes(1);
     expect(deps.createTray).toHaveBeenCalledTimes(1);
-    expect(deps.showMainWindow).toHaveBeenCalledWith({ focus: true });
+    expect(deps.showMainWindow).not.toHaveBeenCalled();
     expect(deps.syncWakewordToggleForChatVisibility).toHaveBeenCalledTimes(1);
     expect(deps.globalShortcut.register).toHaveBeenCalledWith(
       'Super+Alt+W',
@@ -335,9 +333,48 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     expect(deps.createChatWindow).not.toHaveBeenCalled();
     expect(deps.createResponseWindow).not.toHaveBeenCalled();
     expect(deps.createTray).not.toHaveBeenCalled();
+    expect(deps.showMainWindow).toHaveBeenCalledWith({ focus: true });
     expect(deps.syncWakewordToggleForChatVisibility).not.toHaveBeenCalled();
     expect(deps.globalShortcut.register).not.toHaveBeenCalled();
     expect(deps.screen.on).not.toHaveBeenCalled();
+  });
+
+  test('second-instance focuses the main window when onboarding/dashboard is already visible', async () => {
+    const visibleMainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+    };
+    const { deps, appEvents } = createRuntimeDeps({
+      getMainWindow: jest.fn(() => visibleMainWindow),
+    });
+
+    initializeMainProcessLifecycleRuntime(deps);
+    await flushPromises();
+
+    appEvents['second-instance']();
+
+    expect(deps.showMainWindow).toHaveBeenCalledWith({ focus: true });
+    expect(deps.showChatWindow).not.toHaveBeenCalled();
+  });
+
+  test('activate focuses the chat pill when the dashboard is hidden', async () => {
+    const visibleWindows = [{ id: 'hidden-main' }];
+    const hiddenMainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+    };
+    const { deps, appEvents } = createRuntimeDeps({
+      BrowserWindow: { getAllWindows: jest.fn(() => visibleWindows) },
+      getMainWindow: jest.fn(() => hiddenMainWindow),
+    });
+
+    initializeMainProcessLifecycleRuntime(deps);
+    await flushPromises();
+
+    appEvents.activate();
+
+    expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true });
+    expect(deps.showMainWindow).not.toHaveBeenCalled();
   });
 
   test('vm mode does not prevent window-all-closed default behavior', async () => {

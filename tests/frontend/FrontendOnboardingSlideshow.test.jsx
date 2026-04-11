@@ -105,7 +105,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     invoke: (...args) => mockIpcInvoke(...args),
   },
   INVOKE_CHANNELS: {
-    SHOW_MAIN_WINDOW: 'show-main-window',
     WINDOW_MINIMIZE: 'window-minimize',
     WINDOW_TOGGLE_MAXIMIZE: 'window-toggle-maximize',
     WINDOW_CLOSE: 'window-close',
@@ -142,11 +141,6 @@ describe('FrontendOnboardingSlideshow', () => {
   test('renders slide progression and completes onboarding', async () => {
     const onComplete = jest.fn();
     render(<FrontendOnboardingSlideshow onComplete={onComplete} stopAgentShortcutLabel="Ctrl + Shift + Esc" />);
-
-    expect(mockIpcInvoke).toHaveBeenCalledWith('show-main-window', {
-      focus: true,
-      maximize: true,
-    });
 
     expect(screen.getByText('Step 1 of 6')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Set up system access' })).toBeInTheDocument();
@@ -219,9 +213,9 @@ describe('FrontendOnboardingSlideshow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Minimize window' }));
     fireEvent.click(screen.getByRole('button', { name: 'Toggle maximize window' }));
     fireEvent.click(screen.getByRole('button', { name: 'Close window' }));
-    expect(mockIpcInvoke).toHaveBeenNthCalledWith(2, 'window-minimize', undefined);
-    expect(mockIpcInvoke).toHaveBeenNthCalledWith(3, 'window-toggle-maximize', undefined);
-    expect(mockIpcInvoke).toHaveBeenNthCalledWith(4, 'window-close', undefined);
+    expect(mockIpcInvoke).toHaveBeenNthCalledWith(1, 'window-minimize', undefined);
+    expect(mockIpcInvoke).toHaveBeenNthCalledWith(2, 'window-toggle-maximize', undefined);
+    expect(mockIpcInvoke).toHaveBeenNthCalledWith(3, 'window-close', undefined);
 
     fireEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(screen.getByText('Step 5 of 6')).toBeInTheDocument();

@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 
 const mockBootstrapPermissions = jest.fn();
+const mockIpcInvoke = jest.fn(async () => ({ success: true }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/runtime/vmMode', () => ({
   isVmModeEnabled: () => true,
@@ -24,6 +25,16 @@ jest.mock('../../frontend/src/renderer/features/permissions/stores/permissionSto
     needsOnboarding: true,
     bootstrapPermissions: mockBootstrapPermissions,
   }),
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
+  IpcBridge: {
+    invoke: (...args) => mockIpcInvoke(...args),
+  },
+  INVOKE_CHANNELS: {
+    SHOW_MAIN_WINDOW: 'show-main-window',
+    SHOW_CHATBOX: 'show-chatbox',
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppProvider', () => ({
@@ -49,6 +60,7 @@ import App from '../../frontend/src/renderer/app/App';
 describe('App VM mode', () => {
   beforeEach(() => {
     mockBootstrapPermissions.mockClear();
+    mockIpcInvoke.mockClear();
   });
 
   test('bypasses onboarding and renders dashboard shell in vm mode', () => {
@@ -56,5 +68,6 @@ describe('App VM mode', () => {
 
     expect(screen.getByTestId('dashboard-shell-stub')).toHaveTextContent('vmModeEnabled:true');
     expect(screen.queryByTestId('frontend-onboarding-stub')).not.toBeInTheDocument();
+    expect(mockIpcInvoke).toHaveBeenCalledWith('show-main-window', { focus: true });
   });
 });

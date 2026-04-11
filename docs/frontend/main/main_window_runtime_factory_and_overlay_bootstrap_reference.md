@@ -34,6 +34,15 @@ title: "Main Window Runtime Factory and Overlay Bootstrap Reference"
 - tray menu creation (`createTray`)
 - open-target normalization/emission helpers
 
+Startup visibility ownership note:
+
+- non-VM desktop startup no longer auto-shows the dashboard window from Electron main
+- Electron main creates the dashboard and overlay windows hidden
+- the renderer startup-surface controller decides the first visible surface:
+  - onboarding -> main window
+  - normal desktop launch -> minimal chat pill
+  - VM mode -> main window
+
 Delegated helper ownership:
 
 - icon resolution + fallback behavior: `main_window_icon_runtime.cjs`
@@ -59,6 +68,11 @@ Close behavior:
 
 - when app not quitting, close is intercepted
 - window is hidden and chat overlay is shown/focused
+
+Visibility behavior:
+
+- the dashboard window is not the default first surface for normal desktop startup
+- it is shown on explicit dashboard opens, onboarding, VM mode, or when already visible and focused again by lifecycle events
 
 `prepareOverlayQueryCaptureFocus(...)` helper contract:
 
