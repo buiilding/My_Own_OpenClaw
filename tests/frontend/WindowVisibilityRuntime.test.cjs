@@ -375,6 +375,8 @@ describe('window_visibility_runtime showMainWindow', () => {
       isDestroyed: jest.fn(() => false),
       isVisible: jest.fn(() => false),
       isMaximized: jest.fn(() => false),
+      isFullScreen: jest.fn(() => false),
+      setFullScreen: jest.fn(),
       setBounds: jest.fn(),
       show: jest.fn(),
       moveTop: jest.fn(),
@@ -417,6 +419,7 @@ describe('window_visibility_runtime showMainWindow', () => {
       workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
     });
     expect(mainWindow.maximize).not.toHaveBeenCalled();
+    expect(mainWindow.setFullScreen).not.toHaveBeenCalled();
     expect(mainWindow.show).toHaveBeenCalledTimes(1);
     expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
     expect(mainWindow.moveTop).toHaveBeenCalledTimes(1);
@@ -429,6 +432,8 @@ describe('window_visibility_runtime showMainWindow', () => {
       isDestroyed: jest.fn(() => false),
       isVisible: jest.fn(() => true),
       isMaximized: jest.fn(() => true),
+      isFullScreen: jest.fn(() => false),
+      setFullScreen: jest.fn(),
       unmaximize: jest.fn(),
       getSize: jest.fn(() => [1000, 700]),
       setBounds: jest.fn(),
@@ -469,6 +474,81 @@ describe('window_visibility_runtime showMainWindow', () => {
     expect(mainWindow.moveTop).not.toHaveBeenCalled();
     expect(mainWindow.focus).not.toHaveBeenCalled();
     expect(mainWindow.webContents.focus).not.toHaveBeenCalled();
+  });
+
+  test('exits macOS fullscreen before repositioning onto target display', () => {
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+      isMaximized: jest.fn(() => false),
+      isFullScreen: jest.fn(() => true),
+      setFullScreen: jest.fn(),
+      getSize: jest.fn(() => [1000, 700]),
+      setBounds: jest.fn(),
+      show: jest.fn(),
+      moveTop: jest.fn(),
+      focus: jest.fn(),
+      setOpacity: jest.fn(),
+      restore: jest.fn(),
+      isMinimized: jest.fn(() => false),
+      webContents: {
+        focus: jest.fn(),
+      },
+    };
+
+    showMainWindow(
+      {
+        focus: false,
+        targetDisplayAffinity: {
+          monitor_id: '2',
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        },
+      },
+      {
+        mainWindow,
+        platform: 'darwin',
+        syncWindowDisplayAffinity: jest.fn(),
+        setActiveDisplayAffinity: jest.fn(),
+      },
+    );
+
+    expect(mainWindow.setFullScreen).toHaveBeenCalledWith(false);
+  });
+
+  test('uses macOS fullscreen when opening maximized without a target display', () => {
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+      isMaximized: jest.fn(() => false),
+      isFullScreen: jest.fn(() => false),
+      setFullScreen: jest.fn(),
+      setBounds: jest.fn(),
+      show: jest.fn(),
+      moveTop: jest.fn(),
+      focus: jest.fn(),
+      isMinimized: jest.fn(() => false),
+      maximize: jest.fn(),
+      setOpacity: jest.fn(),
+      restore: jest.fn(),
+      webContents: {
+        focus: jest.fn(),
+        invalidate: jest.fn(),
+      },
+    };
+
+    const result = showMainWindow(
+      { focus: true, maximize: true },
+      {
+        mainWindow,
+        platform: 'darwin',
+        syncWindowDisplayAffinity: jest.fn(),
+      },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(mainWindow.setFullScreen).toHaveBeenCalledWith(true);
+    expect(mainWindow.maximize).not.toHaveBeenCalled();
   });
 });
 

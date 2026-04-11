@@ -227,6 +227,7 @@ function showMainWindow(options = {}, deps = {}) {
     chatWindow,
     responseWindow,
     contextLabelWindow,
+    platform = process.platform,
     syncWindowDisplayAffinity = () => {},
     setActiveDisplayAffinity = () => {},
     getActiveDisplayAffinity = () => null,
@@ -235,6 +236,10 @@ function showMainWindow(options = {}, deps = {}) {
   } = deps;
   const focus = options?.focus !== false;
   const maximize = options?.maximize === true;
+  const isMacFullscreenCapable = (
+    platform === 'darwin'
+    && typeof mainWindow?.setFullScreen === 'function'
+  );
 
   if (!mainWindow || mainWindow.isDestroyed()) {
     return { success: false, reason: 'Main window not available' };
@@ -255,6 +260,13 @@ function showMainWindow(options = {}, deps = {}) {
   if (resolvedTargetDisplayAffinity) {
     delete mainWindow.__windieScreenshotRestoreBounds;
     setActiveDisplayAffinity(resolvedTargetDisplayAffinity);
+    if (
+      isMacFullscreenCapable
+      && typeof mainWindow.isFullScreen === 'function'
+      && mainWindow.isFullScreen()
+    ) {
+      mainWindow.setFullScreen(false);
+    }
     if (typeof mainWindow.isMaximized === 'function' && mainWindow.isMaximized()) {
       mainWindow.unmaximize();
     }
@@ -283,7 +295,13 @@ function showMainWindow(options = {}, deps = {}) {
     if (mainWindow.isMinimized()) {
       mainWindow.restore();
     }
-    if (!mainWindow.isMaximized()) {
+    if (
+      isMacFullscreenCapable
+      && typeof mainWindow.isFullScreen === 'function'
+      && !mainWindow.isFullScreen()
+    ) {
+      mainWindow.setFullScreen(true);
+    } else if (!mainWindow.isMaximized()) {
       mainWindow.maximize();
     }
   }
