@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for sidecar backend endpoint config: env-var precedence, empty-value fallback behavior, default localhost URL contract, and trailing-slash normalization semantics."
+summary: "Deep reference for sidecar backend endpoint config: env-var precedence, empty-value fallback behavior, default hosted URL contract, and trailing-slash normalization semantics."
 read_when:
   - When changing `core/backend_config.py` or introducing new sidecar/backend endpoint env vars.
   - When debugging sidecar requests targeting the wrong backend URL due to env precedence or slash-normalization drift.
@@ -19,7 +19,7 @@ title: "Backend Config Env-Precedence, Trailing-Slash Normalization, and Default
 
 Constants and function:
 
-- `DEFAULT_BACKEND_HTTP_URL = "http://127.0.0.1:8765"`
+- `DEFAULT_BACKEND_HTTP_URL = "https://api.windieos.com"`
 - `get_backend_http_urls() -> list[str]`
 - `get_backend_http_url() -> str`
 
@@ -31,9 +31,8 @@ when an explicit URL is not passed. `get_backend_http_url()` returns the first c
 URL resolution order:
 
 1. `WINDIE_BACKEND_HTTP_URL`
-2. `WINDIE_BACKEND_FALLBACK_HTTP_URL`
-3. `BACKEND_HTTP_URL`
-4. `DEFAULT_BACKEND_HTTP_URL`
+2. `BACKEND_HTTP_URL`
+3. `DEFAULT_BACKEND_HTTP_URL`
 
 Semantics:
 
@@ -68,19 +67,19 @@ Each consumer applies additional endpoint-specific path suffixes on top of this 
 
 `tests/sidecar/test_backend_config.py` verifies:
 
-- default localhost fallback when both env vars missing
+- default hosted backend when both env vars missing
 - `WINDIE_BACKEND_HTTP_URL` precedence over `BACKEND_HTTP_URL`
 - fallback to `BACKEND_HTTP_URL` when Windie-specific env is empty
 - preservation of non-trailing path segments
 - stripping of multiple trailing slashes
-- inclusion of `WINDIE_BACKEND_FALLBACK_HTTP_URL` without duplicate localhost entries
+- ordered dedupe across explicit env values and the hosted default
 
 ## Drift Hotspots
 
-1. Reordering env precedence can silently redirect sidecar traffic between intended and fallback backends.
+1. Reordering env precedence can silently redirect sidecar traffic between intended backends.
 2. Removing empty-string fallback behavior can treat blank env values as valid URLs.
 3. Dropping trailing-slash stripping or dedupe can create duplicate/double-slash retry targets.
-4. Changing default URL without synchronized desktop/runtime defaults can break local dev assumptions.
+4. Changing default URL without synchronized desktop/runtime defaults can break hosted desktop assumptions.
 
 ## Related Pages
 

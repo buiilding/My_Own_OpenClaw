@@ -4,7 +4,7 @@
  * Supported env vars:
  * - BACKEND_WS_URL   (highest priority for WebSocket URL)
  * - BACKEND_HTTP_URL (highest priority for HTTP base URL)
- * - BACKEND_HOST + BACKEND_PORT (explicit local endpoint override)
+ * - BACKEND_HOST + BACKEND_PORT (explicit endpoint override)
  * - WINDIE_DEFAULT_BACKEND_HTTP_URL / WINDIE_DEFAULT_BACKEND_WS_URL
  *   (optional hosted-default overrides for all app modes)
  * - WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL / WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL
@@ -220,7 +220,6 @@ function resolveBackendEndpointCandidates(env = process.env) {
 
   return dedupeEndpointCandidates([
     resolveHostedDefaultEndpoints(env),
-    resolveLocalFallbackEndpoints(env),
   ]);
 }
 
@@ -246,7 +245,7 @@ function resolvePreferredArtifactHttpUrl(activeHttpUrl, endpointCandidates = [])
   return (
     normalizeUrl(loopbackCandidate?.httpUrl, ['http:', 'https:'])
     || normalizeUrl(activeHttpUrl, ['http:', 'https:'])
-    || resolveLocalFallbackEndpoints({}).httpUrl
+    || resolveHostedDefaultEndpoints({}).httpUrl
   );
 }
 

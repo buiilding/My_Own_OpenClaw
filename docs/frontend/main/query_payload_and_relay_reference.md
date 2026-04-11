@@ -90,8 +90,8 @@ Main broadcasts synthetic `local-user-message` to renderer via `from-backend` ch
 - includes `turn_ref` (query message id)
 - includes screenshot refs/urls when present
 - when renderer only provides `screenshot_ref`, main derives `screenshot_url` from the preferred artifact HTTP base:
-  - prefer loopback/local artifact base when hosted backend is primary and local fallback is available
-  - otherwise fall back to the active backend HTTP URL
+  - prefer loopback/local artifact base only when an explicit loopback backend candidate exists
+  - otherwise use the active backend HTTP URL
 - includes `attachment_filenames` when renderer supplied picker/clipboard attachment names
 - includes session/user/conversation context fields
 - uses `broadcastLocalUserMessage` in `ipc_query_broadcast.cjs` with shape builder from `ipc_query_events.cjs`

@@ -182,7 +182,7 @@ When launching Electron (dev or packaged), these env vars can override defaults:
 
 - `BACKEND_HTTP_URL`: full backend HTTP base URL.
 - `BACKEND_WS_URL`: full backend WebSocket URL (`/ws`).
-- `BACKEND_HOST` and `BACKEND_PORT`: explicit local override when full URLs are unset.
+- `BACKEND_HOST` and `BACKEND_PORT`: explicit endpoint override when full URLs are unset.
 - `WINDIE_DEFAULT_BACKEND_HTTP_URL`: hosted-default HTTP URL when no `BACKEND_*` override is set.
 - `WINDIE_DEFAULT_BACKEND_WS_URL`: hosted-default WS URL when no `BACKEND_*` override is set.
 - `WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL`: packaged-app default HTTP URL when no `BACKEND_*` override is set.
@@ -211,9 +211,9 @@ When launching Electron (dev or packaged), these env vars can override defaults:
 
 Default behavior:
 
-- Dev/source runs try the hosted backend first (`https://api.windieos.com`, `wss://api.windieos.com/ws`) and fall back to the local backend (`127.0.0.1:8765`) if the hosted socket is unreachable before connect.
-- Packaged builds also try the hosted backend first and fall back to the local backend (`127.0.0.1:8765`) before showing a disconnected state, unless `BACKEND_*` explicitly pins a different target.
-- `WINDIE_DEFAULT_BACKEND_*` and `WINDIE_DEFAULT_PACKAGED_BACKEND_*` change the hosted-first default candidate used before any local fallback.
+- Dev/source runs default to the hosted backend (`https://api.windieos.com`, `wss://api.windieos.com/ws`) unless `BACKEND_*` explicitly pins a different target.
+- Packaged builds also default to the hosted backend and do not auto-fall back to frontend-local `127.0.0.1:8765`.
+- `WINDIE_DEFAULT_BACKEND_*` and `WINDIE_DEFAULT_PACKAGED_BACKEND_*` change that hosted default when `BACKEND_*` is unset.
 - Preferred self-hosted dev setup: keep the Cloudflare tunnel service for `api.windieos.com` enabled at startup, but launch the backend manually with `python -m backend.src.main` only when you want the local machine publicly reachable.
 
 For bundled runtime packaging details, see `docs/operations/sidecar_runtime_packaging.md`.

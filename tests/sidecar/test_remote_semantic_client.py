@@ -80,26 +80,21 @@ async def test_summarize_wraps_network_client_error():
 
 
 @pytest.mark.asyncio
-async def test_summarize_falls_back_to_secondary_backend_on_retryable_http_status(monkeypatch):
+async def test_summarize_raises_after_retryable_http_status_without_local_fallback(monkeypatch):
     monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://api.windieos.com")
-    monkeypatch.setenv("WINDIE_BACKEND_FALLBACK_HTTP_URL", "http://127.0.0.1:8765")
+    monkeypatch.delenv("BACKEND_HTTP_URL", raising=False)
     client = RemoteSemanticClient()
     client._session = SequentialSession(
-        post_results=[
-            DummyResponse(530, text_data="cloudflare tunnel error"),
-            DummyResponse(200, json_data={"success": True, "summary": "ok", "facts": ["f1"]}),
-        ],
+        post_results=[DummyResponse(530, text_data="cloudflare tunnel error")],
     )
 
-    summary, facts = await client.summarize(["chunk"], user_id="u-fallback")
+    with pytest.raises(Exception, match="Semantic API returned 530: cloudflare tunnel error"):
+        await client.summarize(["chunk"], user_id="u-fallback")
 
-    assert summary == "ok"
-    assert facts == ["f1"]
     assert [call[0] for call in client._session.post_calls] == [
         "https://api.windieos.com/api/semantic/summarize",
-        "http://127.0.0.1:8765/api/semantic/summarize",
     ]
-    assert client.backend_url == "http://127.0.0.1:8765"
+    assert client.backend_url == "https://api.windieos.com"
 
 
 @pytest.mark.asyncio

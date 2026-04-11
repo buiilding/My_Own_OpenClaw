@@ -53,47 +53,39 @@ async def test_embed_text_wraps_network_client_error():
 
 
 @pytest.mark.asyncio
-async def test_embed_text_falls_back_to_secondary_backend_on_network_error(monkeypatch):
+async def test_embed_text_raises_after_hosted_network_error_without_local_fallback(monkeypatch):
     monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://api.windieos.com")
-    monkeypatch.setenv("WINDIE_BACKEND_FALLBACK_HTTP_URL", "http://127.0.0.1:8765")
+    monkeypatch.delenv("BACKEND_HTTP_URL", raising=False)
     client = RemoteEmbeddingClient()
     client._session = SequentialSession(
-        post_results=[
-            aiohttp.ClientError("remote down"),
-            DummyResponse(200, json_data={"embedding": [4.0, 5.0]}),
-        ],
+        post_results=[aiohttp.ClientError("remote down")],
     )
 
-    embedding = await client.embed_text("hello")
+    with pytest.raises(Exception, match="Failed to connect to embedding service"):
+        await client.embed_text("hello")
 
-    assert embedding.tolist() == [4.0, 5.0]
     assert [call[0] for call in client._session.post_calls] == [
         "https://api.windieos.com/api/embeddings/",
-        "http://127.0.0.1:8765/api/embeddings/",
     ]
-    assert client.backend_url == "http://127.0.0.1:8765"
+    assert client.backend_url == "https://api.windieos.com"
 
 
 @pytest.mark.asyncio
-async def test_embed_text_falls_back_to_secondary_backend_on_retryable_http_status(monkeypatch):
+async def test_embed_text_raises_after_retryable_http_status_without_local_fallback(monkeypatch):
     monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://api.windieos.com")
-    monkeypatch.setenv("WINDIE_BACKEND_FALLBACK_HTTP_URL", "http://127.0.0.1:8765")
+    monkeypatch.delenv("BACKEND_HTTP_URL", raising=False)
     client = RemoteEmbeddingClient()
     client._session = SequentialSession(
-        post_results=[
-            DummyResponse(530, text_data="cloudflare tunnel error"),
-            DummyResponse(200, json_data={"embedding": [7.0, 8.0]}),
-        ],
+        post_results=[DummyResponse(530, text_data="cloudflare tunnel error")],
     )
 
-    embedding = await client.embed_text("hello")
+    with pytest.raises(Exception, match="Embedding API returned 530: cloudflare tunnel error"):
+        await client.embed_text("hello")
 
-    assert embedding.tolist() == [7.0, 8.0]
     assert [call[0] for call in client._session.post_calls] == [
         "https://api.windieos.com/api/embeddings/",
-        "http://127.0.0.1:8765/api/embeddings/",
     ]
-    assert client.backend_url == "http://127.0.0.1:8765"
+    assert client.backend_url == "https://api.windieos.com"
 
 
 @pytest.mark.asyncio
@@ -135,23 +127,19 @@ async def test_health_check_returns_false_when_request_raises():
 
 
 @pytest.mark.asyncio
-async def test_health_check_falls_back_to_secondary_backend(monkeypatch):
+async def test_health_check_returns_false_after_hosted_error_without_local_fallback(monkeypatch):
     monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://api.windieos.com")
-    monkeypatch.setenv("WINDIE_BACKEND_FALLBACK_HTTP_URL", "http://127.0.0.1:8765")
+    monkeypatch.delenv("BACKEND_HTTP_URL", raising=False)
     client = RemoteEmbeddingClient()
     client._session = SequentialSession(
-        get_results=[
-            RuntimeError("remote down"),
-            DummyResponse(200, json_data={"status": "healthy"}),
-        ],
+        get_results=[RuntimeError("remote down")],
     )
 
-    assert await client.health_check() is True
+    assert await client.health_check() is False
     assert [call[0] for call in client._session.get_calls] == [
         "https://api.windieos.com/api/embeddings/health",
-        "http://127.0.0.1:8765/api/embeddings/health",
     ]
-    assert client.backend_url == "http://127.0.0.1:8765"
+    assert client.backend_url == "https://api.windieos.com"
 
 
 @pytest.mark.asyncio
