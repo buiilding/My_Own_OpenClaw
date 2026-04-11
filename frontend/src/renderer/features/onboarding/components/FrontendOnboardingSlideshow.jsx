@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import MainWindowControls from '../../../components/MainWindowControls';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
@@ -19,12 +19,10 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
   const bootstrapPermissions = usePermissionStore((state) => state.bootstrapPermissions);
   const completeOnboarding = usePermissionStore((state) => state.completeOnboarding);
   const { isLoading, pendingPermissionId, handleGrantPermission } = useOnboardingPermissionActions();
-  const startupMaximizeRequestedRef = useRef(false);
   const {
     handleWindowMinimize,
     handleWindowToggleMaximize,
     handleWindowClose,
-    showMainWindow,
   } = useMainWindowControls({ warningPrefix: 'FrontendOnboardingSlideshow' });
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const onboardingPermissions = Array.isArray(permissions)
@@ -53,14 +51,6 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
       void bootstrapPermissions();
     }
   }, [bootstrapPermissions, bootstrapped, isLoading, isPermissionSlide]);
-
-  useEffect(() => {
-    if (startupMaximizeRequestedRef.current) {
-      return;
-    }
-    startupMaximizeRequestedRef.current = true;
-    void showMainWindow({ focus: true, maximize: true });
-  }, [showMainWindow]);
 
   function handleComplete() {
     const completed = completeOnboarding();

@@ -50,12 +50,15 @@ Routing behavior:
   - render `ChatGptDashboardShell` immediately
   - pass `vmModeEnabled={true}`
   - bypass frontend onboarding slideshow
+  - request `show-main-window({ focus: true })` from the renderer startup-surface controller
 - VM mode disabled + onboarding incomplete:
   - render `FrontendOnboardingSlideshow`
   - inject stop-agent shortcut label from `getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)`
+  - request `show-main-window({ focus: true, maximize: true })` from the renderer startup-surface controller
 - VM mode disabled + onboarding complete:
   - render `ChatGptDashboardShell`
   - pass `vmModeEnabled={false}`
+  - request `show-chatbox({ focus: true })` from the renderer startup-surface controller so cold start lands on the minimal chat pill instead of the dashboard window
 
 Pre-bootstrap startup behavior:
 
@@ -91,7 +94,8 @@ Startup completion is now sourced from `permissionStore` local persistence:
 
 Implementation split:
 
-- `FrontendOnboardingSlideshow` owns shell routing, footer controls, and startup window maximize behavior
+- `AppContent` owns startup-surface IPC handoff (`show-main-window` for onboarding/VM, `show-chatbox` for normal desktop startup)
+- `FrontendOnboardingSlideshow` owns shell routing and footer controls only
 - `buildOnboardingSlideState(...)` is the pure slide-index/slide-kind model
 - `PermissionOnboardingSlide` renders the active permission card only
 - `StopShortcutOnboardingSlide` renders the keybind-only final slide
@@ -109,6 +113,7 @@ Navigation behavior:
 - `Next` / `Back` controls slide index
 - permission slides advance through the current manifest in order
 - final CTA `Start WindieOS` calls `permissionStore.completeOnboarding()`
+- after completion, `AppContent` re-resolves startup surface and hands visibility to the minimal chat pill instead of leaving the dashboard window open
 - `Start WindieOS` stays enabled once permission status has loaded, even if some permissions are still missing
 - the final slide warns when permissions remain missing and points the user to Settings for follow-up
 
@@ -142,8 +147,9 @@ The same permission store also powers Settings > Permissions (`PermissionControl
 `tests/frontend/AppPermissionGate.test.jsx`:
 
 - non-VM mode renders onboarding while `needsOnboarding` is true
-- non-VM mode renders dashboard after permission onboarding completes
+- non-VM mode renders dashboard after permission onboarding completes while requesting `show-chatbox({ focus: true })`
 - non-VM mode does not flash onboarding during pre-bootstrap startup when persisted onboarding completion is already true
+- onboarding completion transition moves the visible surface from onboarding/main-window to the chat pill
 
 `tests/frontend/startupSurface.test.js`:
 

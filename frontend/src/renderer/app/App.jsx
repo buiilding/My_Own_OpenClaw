@@ -1,8 +1,10 @@
+import { useEffect, useRef } from 'react';
 import ErrorBoundary from '../components/ErrorBoundary';
 import DashboardShell from '../features/dashboard/components/DashboardShell';
 import FrontendOnboardingSlideshow from '../features/onboarding/components/FrontendOnboardingSlideshow';
 import { usePermissionStore } from '../features/permissions/stores/permissionStore';
 import { getGlobalAgentStopShortcutLabel } from '../infrastructure/shortcuts/agentStopShortcut';
+import { IpcBridge, INVOKE_CHANNELS } from '../infrastructure/ipc/bridge';
 import { isVmModeEnabled } from '../infrastructure/runtime/vmMode';
 import { selectStartupSurface } from './startupSurface';
 import { AppProvider } from './providers/AppProvider';
@@ -25,12 +27,43 @@ function AppContent() {
   const bootstrapped = usePermissionStore((state) => state.bootstrapped);
   const needsOnboarding = usePermissionStore((state) => state.needsOnboarding);
   const onboardingCompleted = usePermissionStore((state) => state.onboardingState?.completed === true);
+  const lastAppliedStartupSurfaceRef = useRef(null);
   const startupSurface = selectStartupSurface({
     vmModeEnabled,
     bootstrapped,
     needsOnboarding,
     onboardingCompleted,
   });
+
+  useEffect(() => {
+    if (lastAppliedStartupSurfaceRef.current === startupSurface) {
+      return;
+    }
+    lastAppliedStartupSurfaceRef.current = startupSurface;
+
+    async function applyStartupSurface() {
+      try {
+        if (startupSurface === 'dashboard-vm') {
+          await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { focus: true });
+          return;
+        }
+
+        if (startupSurface === 'onboarding') {
+          await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
+            focus: true,
+            maximize: true,
+          });
+          return;
+        }
+
+        await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: true });
+      } catch (error) {
+        console.warn('[App] Failed to apply startup surface:', error);
+      }
+    }
+
+    void applyStartupSurface();
+  }, [startupSurface]);
 
   if (startupSurface === 'dashboard-vm') {
     return (
