@@ -110,7 +110,7 @@ Notable behavior:
 
 - `show-main-window` normalizes optional open-target payload and emits `main-window-open-target` to renderer on accepted target
 - `show-main-window` target-display selection routes through `resolveActiveSurfaceDisplayAffinityForWindows(...)` (sender + `getWindows()` wrapper) before window-visibility runtime execution
-- `show-main-window { maximize:true }` restores/minimizes state and maximizes before focusing dashboard window
+- `show-main-window { maximize:true }` routes through platform-aware window visibility behavior: Windows/Linux use native maximize after restore when no display-targeted placement is requested, while macOS uses native fullscreen and exits fullscreen first before any display-targeted reposition
 - `get-displays` returns mapped inventory rows `{ id, label, isPrimary, bounds, scaleFactor }` produced by `display_query_handler.cjs` (label format: `Display N (WIDTHxHEIGHT)`)
 
 ### `permission_ipc_runtime.cjs` (invoked from `index.cjs`)

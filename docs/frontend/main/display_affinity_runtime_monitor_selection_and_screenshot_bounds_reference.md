@@ -123,13 +123,14 @@ caller args do not already contain valid explicit bounds.
 `showMainWindow({ targetDisplayAffinity, maximize })` in `window_visibility_runtime.cjs`:
 
 - without `maximize`, centers current window size inside target display `workArea`
-- with `maximize`, fits window bounds to target display `workArea` (does not call native maximize path)
+- with `maximize`, fits window bounds to target display `workArea` for display-targeted placement rather than invoking native fullscreen/maximize during the reposition step
 - if currently maximized, unmaximizes before display-targeted placement
+- on macOS, if currently fullscreen, exits native fullscreen before display-targeted placement
 - when hidden and `targetDisplayAffinity` is omitted, falls back to stored active display affinity to keep open-target monitor continuity
 
 When no target affinity is provided:
 
-- legacy behavior remains (`restore` + native `maximize` when requested)
+- legacy behavior remains (`restore` + native maximize when requested on Windows/Linux, native fullscreen when requested on macOS)
 
 `showChatWindow({ ... })` in `window_visibility_runtime.cjs`:
 
