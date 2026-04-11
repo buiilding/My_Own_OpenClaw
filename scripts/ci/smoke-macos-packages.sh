@@ -37,6 +37,7 @@ APP_IN_DMG="$(find "${MOUNT_POINT}" -maxdepth 1 -name '*.app' -print -quit)"
 INSTALLED_APP="/Applications/$(basename "${APP_IN_DMG}")"
 rm -rf "${INSTALLED_APP}"
 ditto "${APP_IN_DMG}" "${INSTALLED_APP}"
+chmod -R u+w "${INSTALLED_APP}"
 
 RUNTIME_ROOT="${INSTALLED_APP}/Contents/Resources/python-runtime"
 RUNTIME_PYTHON="${RUNTIME_ROOT}/bin/python3"
