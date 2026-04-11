@@ -40,6 +40,13 @@ Key entry points:
 
 Frontend settings are sent via `update-settings` and applied to the user session before the next query.
 
+Workspace prompt context:
+
+- the session's active `workspace_path` is conversation-scoped prompt context
+- prompt assembly may inject one contextual `user` instruction block from `<workspace>/AGENTS.md`
+- that `AGENTS.md` binding is limited to the active workspace for the current chat/session
+- editing outside the active workspace does not trigger additional `AGENTS.md` discovery in the current session
+
 ## Runtime Seams (2026-02-11)
 
 Recent backend-agent refactors split mutable session/runtime concerns into focused modules:
