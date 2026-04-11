@@ -621,6 +621,27 @@ class TestBrowserControllerActions:
         closed_page.title.assert_not_awaited()
 
     @pytest.mark.asyncio
+    async def test_get_status_tolerates_navigation_time_title_failures(self):
+        """Transient navigation title errors should not fail browser status."""
+        live_page = mock.MagicMock()
+        live_page.is_closed.return_value = False
+        live_page.title = mock.AsyncMock(
+            side_effect=Exception("Page.title: Execution context was destroyed, most likely because of a navigation")
+        )
+        live_page.url = "https://example.com/live"
+
+        self.controller._page = live_page
+        self.controller._context.pages = [live_page]
+        self.controller._mode = "user_chrome"
+
+        status = await self.controller.get_status()
+
+        assert status["connected"] is True
+        assert status["title"] == ""
+        assert status["url"] == "https://example.com/live"
+        assert status["tab_count"] == 1
+
+    @pytest.mark.asyncio
     async def test_get_tabs_filters_closed_pages(self):
         """Closed Playwright pages should be omitted from tab snapshots."""
         closed_page = mock.MagicMock()

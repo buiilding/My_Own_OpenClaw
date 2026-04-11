@@ -315,6 +315,10 @@ class BrowserFindElementsArgs(BrowserActionArgsBase):
 class BrowserFindTextArgs(BrowserActionArgsBase):
     action: Literal["find_text"] = Field(..., description="Find text on the current page.")
     text: str = Field(..., description="Text to find.", min_length=1)
+    css_scope: Optional[str] = Field(None, description="Optional CSS scope for the search.")
+    max_results: Optional[int] = Field(
+        None, description="Maximum number of matches to return.", ge=1
+    )
 
 
 class BrowserCloseTabArgs(BrowserActionArgsBase):
