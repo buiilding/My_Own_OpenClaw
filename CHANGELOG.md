@@ -31,6 +31,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 - chore(backend-dev-tool-selection): enable the backend dev tool-selection allowlist with a manual-only mouse coordinate method for local tool-contract testing.
+- docs(hosted-memory-and-cloudflared): refresh high-level API, memory, sidecar, communication-flow, and self-hosting docs so they reflect `/api/semantic/title`, hosted backend defaults, route-ingress diagnostics, and the preferred persistent backend+tunnel setup for serving `api.windieos.com`.
 - refactor(frontend-renderer-conversation-selection): route dashboard open, replay, reset, and new-chat selection changes through one renderer conversation-selection helper so transcript session updates and chat-store active-conversation projection no longer need to be hand-kept in sync at each call site.
 - refactor(frontend-chat-store-projection): centralize workspace mutation and active-workspace projection helpers inside the renderer chat store so message, status, token, and stream-tracking setters reuse one mirroring path instead of duplicating the same active-workspace branching logic across every action.
 - refactor(frontend-local-conversation-snapshots): share local transcript/replay loading, workspace-binding derivation, parsed dashboard messages, and backend rehydrate payload shaping through one renderer snapshot loader so dashboard open and inference-session hydration no longer duplicate local conversation assembly logic.

@@ -68,6 +68,7 @@ To reduce feature-change friction in `backend/src/api`, WebSocket + semantic API
 Current backend runtime wiring also includes:
 
 - **Runs API routes are first-class app routes**: `backend/src/api/routes/__init__.py` registers `runs.router` beside websocket/artifact/memory routes, so `/api/runs/*` is part of canonical app assembly (`backend/src/api/app_assembly.py`).
+- **Hosted memory HTTP routes now emit ingress logs**: `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title` log start/success/failure with request-size metadata and duration so hosted `502` debugging can distinguish tunnel/origin reachability failures from in-app route failures.
 - **SDK perception routes are first-class app routes**: `backend/src/api/routes/sdk/router.py` registers direct OCR/text-grounding and vision/prediction APIs under `/api/sdk/*`, exposing backend-owned perception capabilities without routing through the agent loop.
 - **SDK perception routes are meant for direct hosted consumption**: clients upload artifacts or send inline images, call `/api/sdk/*`, then combine the returned grounding data with local sidecar actions. They should not need to instantiate backend OCR/vision services locally to use these APIs.
 - **Query execution helper split is now structural**: `backend/src/api/services/query_execution_support/*` owns screenshot/input resolution, completion backfill, post-terminal filtering, and cancellation cleanup used by `QueryExecutionService`.

@@ -115,7 +115,7 @@ Provider note:
 
 These REST endpoints live on the same FastAPI server as the WebSocket. In the default product topology that means the hosted backend at `https://api.windieos.com`; local or self-hosted deployments may instead use `http://127.0.0.1:8765`.
 
-They are used by the Python sidecar for embeddings and semantic summarization.
+They are used by the Python sidecar for embeddings, semantic summarization, and async conversation-title generation.
 
 ### POST `/api/embeddings/`
 
@@ -156,6 +156,28 @@ Summarize episodic conversations into semantic memory.
 **Response**:
 ```json
 { "summary": "string", "facts": ["..."], "success": true }
+```
+
+### POST `/api/semantic/title`
+
+Generate a short conversation title from the first user and assistant turn.
+
+**Request**:
+```json
+{
+  "user_id": "user-123",
+  "user_message": "string",
+  "assistant_message": "string",
+  "model_id": "optional-override",
+  "model_provider": "optional-provider-override"
+}
+```
+
+**Limits**: `user_message` max 32KB; `assistant_message` max 32KB; `user_id` cannot be `default_user`.
+
+**Response**:
+```json
+{ "title": "string", "success": true }
 ```
 
 ### GET `/api/semantic/health`

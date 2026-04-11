@@ -214,7 +214,7 @@ Default behavior:
 - Dev/source runs default to the hosted backend (`https://api.windieos.com`, `wss://api.windieos.com/ws`) unless `BACKEND_*` explicitly pins a different target.
 - Packaged builds also default to the hosted backend and do not auto-fall back to frontend-local `127.0.0.1:8765`.
 - `WINDIE_DEFAULT_BACKEND_*` and `WINDIE_DEFAULT_PACKAGED_BACKEND_*` change that hosted default when `BACKEND_*` is unset.
-- Preferred self-hosted dev setup: keep the Cloudflare tunnel service for `api.windieos.com` enabled at startup, but launch the backend manually with `python -m backend.src.main` only when you want the local machine publicly reachable.
+- Preferred self-hosted setup for serving `api.windieos.com`: keep both the Cloudflare tunnel and the backend available as persistent user services so the hosted endpoint does not intermittently route to an origin with nothing listening on `127.0.0.1:8765`.
 
 For bundled runtime packaging details, see `docs/operations/sidecar_runtime_packaging.md`.
 

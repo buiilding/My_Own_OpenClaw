@@ -10,7 +10,7 @@ read_when:
 This runbook sets up:
 - Cloudflare Tunnel from this machine to `api.windieos.com`.
 - Persistent startup for the tunnel service.
-- Optional backend startup as a separate user-level systemd service when you explicitly want that.
+- Persistent backend startup as a separate user-level systemd service so the origin stays available when the tunnel is up.
 
 ## Prerequisites
 
@@ -19,22 +19,15 @@ This runbook sets up:
 - WindieOS repo on machine.
 - Backend secrets provided through your shell env or a local env file (do not commit secrets).
 
-## Preferred mode: tunnel on startup, backend started manually
+## Preferred mode: tunnel on startup, backend as a user service
 
-This is the preferred local-dev setup for this repo:
+For a hosted `api.windieos.com` endpoint, the preferred setup is:
 - keep `windieos-cloudflared.service` enabled at startup
-- start the backend manually only when you want it public:
+- keep the backend available through `windieos-backend.service`
 
-```bash
-cd /path/to/windieos
-python -m backend.src.main
-```
+If the tunnel stays up while the backend is started manually and stops listening on `127.0.0.1:8765`, hosted clients can see intermittent `502` responses even though the process may appear healthy at other times.
 
-When the backend is not running, `https://api.windieos.com` stays routed to this machine but requests fail because nothing is listening on `127.0.0.1:8765`.
-
-## 1) Optional: install backend user service
-
-Skip this section if you do not want the backend to start automatically.
+## 1) Install backend user service
 
 Create a local env file for backend secrets:
 
@@ -95,29 +88,25 @@ Notes:
 
 ## 4) Validate remote access
 
-If you are using the preferred manual-backend flow, start the backend first:
+Validate both the local origin and hosted route:
 
 ```bash
-cd /path/to/windieos
-python -m backend.src.main
-```
-
-Then validate remote access:
-
-```bash
+curl -fsSL http://127.0.0.1:8765/api/embeddings/health
 curl -fsSL https://api.windieos.com/api/embeddings/health
 ```
 
 Service diagnostics:
 
 ```bash
-systemctl --user status windieos-backend.service --no-pager
 systemctl --user status windieos-cloudflared.service --no-pager
+systemctl --user status windieos-backend.service --no-pager
 journalctl --user -u windieos-backend.service -n 100 --no-pager
 journalctl --user -u windieos-cloudflared.service -n 100 --no-pager
 ```
 
-If you skipped the optional backend service install, ignore the `windieos-backend.service` checks and just inspect the manual backend terminal plus `windieos-cloudflared.service`.
+If hosted clients still see intermittent `502` errors, compare tunnel logs with the backend memory-route ingress logs for `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title`:
+- no matching backend route log usually means the request never reached FastAPI
+- matching route start/failure logs mean the origin app received the request and failed it
 
 ## 5) Optional one-shot bootstrap
 
@@ -142,4 +131,4 @@ Current WindieOS packaged defaults already target:
 - `https://api.windieos.com`
 - `wss://api.windieos.com/ws`
 
-So installers on other laptops connect to the remote backend by default whenever the tunnel is up and your manually started local backend is healthy.
+So installers on other laptops connect to the remote backend by default whenever both the tunnel and backend service are healthy.

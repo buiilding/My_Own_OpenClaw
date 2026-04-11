@@ -364,13 +364,14 @@ Identity notes:
 
 ## Memory HTTP Flow (Sidecar ↔ Backend)
 
-The Python sidecar uses REST endpoints on the same FastAPI server (default `http://127.0.0.1:8765`) for memory operations. This is separate from the WebSocket stream and inherits Electron's resolved backend HTTP URL.
+The Python sidecar uses REST endpoints on the same FastAPI server for memory operations. In the product default this is the hosted backend `https://api.windieos.com`; local/self-hosted setups may instead point at `http://127.0.0.1:8765` or another explicit backend override. This is separate from the WebSocket stream and inherits Electron's resolved backend HTTP URL.
 
 ```
 ┌──────────────────────────────┐          HTTP           ┌──────────────────────────────┐
 │ Python Sidecar (memory/)     │  ───────────────────▶   │ FastAPI REST (memory routes) │
 │ - LocalMemoryStore           │                         │ - /api/embeddings            │
-│ - MemorySummarizer           │  ◀───────────────────   │ - /api/semantic/summarize    │
+│ - MemorySummarizer           │                         │ - /api/semantic/summarize    │
+│ - Title runtime              │  ◀───────────────────   │ - /api/semantic/title        │
 └──────────────────────────────┘                         └──────────────────────────────┘
 ```
 
@@ -383,6 +384,11 @@ The Python sidecar uses REST endpoints on the same FastAPI server (default `http
 1. MemorySummarizer batches episodic memories by conversation.
 2. `POST /api/semantic/summarize` returns summary + facts.
 3. Sidecar stores semantic memory and marks episodic memories as semanticized.
+
+### Conversation Title Flow
+1. Transcript storage sees the first user turn and first assistant `llm-text` turn for a conversation.
+2. `POST /api/semantic/title` returns a short model-backed title.
+3. Sidecar saves the title for conversation-list/search reads while heuristic titles remain the fallback.
 
 ### Health Checks
 - `GET /api/embeddings/health`
