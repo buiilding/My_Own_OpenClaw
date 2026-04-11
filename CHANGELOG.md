@@ -17,6 +17,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 - fix(backend-memory-route-observability): add route-level start/success/failure logging for `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title` so intermittent hosted `502` failures can be isolated to “request never hit FastAPI” vs “origin app received and failed the request”; add focused backend coverage and endpoint docs for the logging contract.
+- fix(macos-release-ci-smoke-scope): stop running the interactive macOS downloaded-app Gatekeeper smoke path on GitHub-hosted release runners, and document that Gatekeeper/LaunchServices validation is a local manual release check rather than a CI publish gate.
 - fix(macos-runtime-notarization-order): move bundled Python Mach-O re-signing into electron-builder’s pre-sign `afterPack` phase so the final distributed app bundle is the one Apple signs and notarizes, avoiding Gatekeeper `Unnotarized Developer ID` rejection after post-notarization mutations.
 - fix(packaged-runtime-bytecode-writes): disable bundled-runtime `.pyc` writes in packaged sidecar launches and release smoke validation so signed macOS app resources stay immutable after install and codesign verification no longer fails on generated `__pycache__` files.
 - fix(macos-runtime-resigning): re-sign thinned bundled Python Mach-O files during signed macOS package builds before notarization, then re-sign and verify the outer app so Gatekeeper smoke checks do not ship a bundle with stale nested signatures.

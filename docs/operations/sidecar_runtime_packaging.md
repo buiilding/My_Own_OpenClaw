@@ -73,7 +73,7 @@ CI equivalent:
 - Smoke checks run after packaging:
   - Linux: install `deb`, launch check, AppImage check, rpm metadata/install probe
   - Windows: silent installer run + launch check
-  - macOS: dmg mount/copy + launch check (+ codesign verify when signing enabled)
+  - macOS: no GitHub-hosted smoke step; CI relies on signing/notarization plus artifact publication, while downloaded-app Gatekeeper validation stays manual on a local macOS machine
 
 ## Step 3: Configure Hosted Backend Endpoint
 

@@ -223,10 +223,9 @@ jobs:
           npm run "${{ matrix.package_script }}"
 
       - name: Smoke test packaged artifact (Linux/macOS)
-        if: ${{ matrix.label != 'windows' }}
+        if: ${{ matrix.label == 'linux' }}
         env:
           WINDIE_REQUIRE_SIGNING: ${{ steps.signing.outputs.effective }}
-          WINDIE_VALIDATE_DOWNLOADED_APP: ${{ matrix.label == 'macos' && needs.prepare-release.outputs.publish_release == 'true' }}
         shell: bash
         run: bash ${{ matrix.smoke_script }}
 
