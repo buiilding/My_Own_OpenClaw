@@ -28,12 +28,6 @@ function run(command, args, options = {}) {
   throw new Error(`Command failed: ${command} ${args.join(" ")}\n${details}`);
 }
 
-function isAdHocSignature(targetPath) {
-  const result = run("codesign", ["-dv", "--verbose=4", targetPath]);
-  const output = `${result.stdout ?? ""}\n${result.stderr ?? ""}`;
-  return output.includes("Signature=adhoc");
-}
-
 function isMachO(targetPath) {
   const fd = fs.openSync(targetPath, "r");
   try {
@@ -66,26 +60,7 @@ function collectFiles(rootDir) {
   return entries.sort((left, right) => right.split(path.sep).length - left.split(path.sep).length);
 }
 
-function resolveOptionalPath(baseDir, candidatePath) {
-  if (!candidatePath) {
-    return null;
-  }
-
-  return path.isAbsolute(candidatePath)
-    ? candidatePath
-    : path.join(baseDir, candidatePath);
-}
-
-async function resolveSigningContext(context) {
-  const adHoc = isAdHocSignature(context.appPath);
-  if (adHoc) {
-    return {
-      appArgs: ["--force", "--deep", "--sign", "-", context.appPath],
-      binaryArgsPrefix: ["--force", "--sign", "-"],
-      label: "ad-hoc",
-    };
-  }
-
+async function resolveRuntimeSigningContext(context) {
   const keychainFile = (await context.packager.codeSigningInfo.value)?.keychainFile ?? null;
   const identity = await findIdentity(
     "Developer ID Application",
@@ -94,37 +69,21 @@ async function resolveSigningContext(context) {
   );
 
   if (!identity) {
-    throw new Error("Unable to resolve Developer ID Application identity for bundled runtime re-sign");
+    return {
+      binaryArgsPrefix: ["--force", "--sign", "-"],
+      label: "ad-hoc",
+    };
   }
 
   const signValue = identity.hash || identity.name;
-  const entitlementsPath = resolveOptionalPath(
-    context.packager.projectDir,
-    context.packager.platformSpecificBuildOptions.entitlements,
-  );
-
-  const appArgs = [
-    "--force",
-    "--deep",
-    "--sign",
-    signValue,
-    "--timestamp",
-    "--options",
-    "runtime",
-  ];
-  if (entitlementsPath) {
-    appArgs.push("--entitlements", entitlementsPath);
-  }
-  appArgs.push(context.appPath);
 
   return {
-    appArgs,
     binaryArgsPrefix: ["--force", "--sign", signValue, "--timestamp"],
     label: `Developer ID (${identity.name})`,
   };
 }
 
-module.exports = async function afterSign(context) {
+module.exports = async function afterPack(context) {
   if (context.electronPlatformName !== "darwin") {
     return;
   }
@@ -139,9 +98,9 @@ module.exports = async function afterSign(context) {
     return;
   }
 
-  const signingContext = await resolveSigningContext({ ...context, appPath });
+  const signingContext = await resolveRuntimeSigningContext(context);
   console.log(
-    `[afterSign] re-signing bundled Python runtime Mach-O files using ${signingContext.label} identity`,
+    `[afterPack] re-signing bundled Python runtime Mach-O files using ${signingContext.label} identity before electron-builder signing/notarization`,
   );
 
   let signedCount = 0;
@@ -154,9 +113,7 @@ module.exports = async function afterSign(context) {
     signedCount += 1;
   }
 
-  run("codesign", signingContext.appArgs);
-  run("codesign", ["--verify", "--deep", "--strict", "--verbose=2", appPath]);
   console.log(
-    `[afterSign] re-signed ${signedCount} bundled Python Mach-O files and refreshed app signature`,
+    `[afterPack] re-signed ${signedCount} bundled Python Mach-O files before outer app signing`,
   );
 };
