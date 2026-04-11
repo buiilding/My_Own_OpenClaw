@@ -106,10 +106,10 @@ async function runReplayQueryFlow({
   );
 }
 
-function ensureConversationRef(sessionConversationRef) {
+function ensureConversationRef(sessionConversationRef, storeConversationRef) {
   let conversationRef = resolveRendererConversationSessionSnapshot({
     transcriptConversationRef: getActiveConversationRef() || sessionConversationRef,
-    storeConversationRef: useChatStore.getState().activeConversationRef,
+    storeConversationRef,
   }).conversationRef;
   if (!conversationRef) {
     conversationRef = initializeLocalConversationSession({
@@ -131,6 +131,7 @@ function ensureConversationRef(sessionConversationRef) {
 
 async function executeReplayAction({
   sessionInfo,
+  activeConversationRef,
   replayMessages,
   preservedPayloads,
   queryText,
@@ -144,7 +145,10 @@ async function executeReplayAction({
   errorPrefix,
   deferredQueryModelConfig,
 }) {
-  const conversationRef = ensureConversationRef(sessionInfo.conversationRef);
+  const conversationRef = ensureConversationRef(
+    sessionInfo.conversationRef,
+    activeConversationRef,
+  );
   const workspaceBinding = getConversationWorkspaceBinding(conversationRef);
   applyRendererConversationSelection({
     conversationRef,
@@ -187,6 +191,7 @@ export function useConversationReplayActions({
   setThinkingSourceEventType,
   setIsSending,
 }) {
+  const activeConversationRef = useChatStore((state) => state.activeConversationRef);
   const { config } = useAppConfigContext();
   const deferredQueryModelConfig = buildDeferredQueryModelConfig(config);
 
@@ -222,6 +227,7 @@ export function useConversationReplayActions({
     });
     await executeReplayAction({
       sessionInfo,
+      activeConversationRef,
       replayMessages: replayConversation,
       preservedPayloads,
       queryText: normalizedEditedText,
@@ -235,7 +241,15 @@ export function useConversationReplayActions({
       errorPrefix: 'Failed to edit user message',
       deferredQueryModelConfig,
     });
-  }, [deferredQueryModelConfig, messages, setIsSending, setMessages, setThinkingSourceEventType, setThinkingStatus]);
+  }, [
+    activeConversationRef,
+    deferredQueryModelConfig,
+    messages,
+    setIsSending,
+    setMessages,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+  ]);
 
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
     const assistantIndex = messages.findIndex(
@@ -272,6 +286,7 @@ export function useConversationReplayActions({
     });
     await executeReplayAction({
       sessionInfo,
+      activeConversationRef,
       replayMessages: replayContextMessages,
       preservedPayloads,
       queryText: retryUserMessage.text,
@@ -285,7 +300,15 @@ export function useConversationReplayActions({
       errorPrefix: 'Failed to retry assistant message',
       deferredQueryModelConfig,
     });
-  }, [deferredQueryModelConfig, messages, setIsSending, setMessages, setThinkingSourceEventType, setThinkingStatus]);
+  }, [
+    activeConversationRef,
+    deferredQueryModelConfig,
+    messages,
+    setIsSending,
+    setMessages,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+  ]);
 
   return {
     handleEditFromUser,
