@@ -45,6 +45,7 @@ Load behavior:
 - reads UTF-8 text
 - rejects empty/whitespace-only prompt file
 - caches the raw template and renders `{os}` at access time
+- strips dev-tool-selection-gated OCR/prediction sections after render so disabled coordinate methods do not remain in the runtime prompt
 - default render path still falls back to runtime `platform.system()` when no frontend override is provided
 
 Failure behavior (all raise `RuntimeError`):

@@ -43,6 +43,7 @@ When `include_tools=True`:
 
 - constructor pulls declarations from `ToolRegistry.get_function_declarations()`
 - applies `ToolPolicy.from_config(config).filter_tool_schemas(...)`
+- re-applies policy pruning after provider projection so projected grounded helper schemas do not leak disabled OCR/prediction fields
 - computes `prompt_messages` first, then applies provider projection against the prompt that will actually be sent for this query
 - returns filtered schemas for:
   - native LLM tools parameter

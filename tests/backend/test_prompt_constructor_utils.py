@@ -251,6 +251,101 @@ def test_build_prompt_allowlisting_mouse_control_yields_single_direct_schema():
     ]
 
 
+def test_build_prompt_real_registry_prunes_live_model_facing_grounding_schema(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+):
+    config_path = tmp_path / "tool_selection.toml"
+    config_path.write_text(
+        (
+            'enabled = true\n'
+            'mode = "allowlist"\n'
+            'tools = ["mouse_control", "scroll_control"]\n'
+            "[tool_options.mouse_control]\n"
+            'enabled_coordinate_methods = ["manual"]\n'
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(config_path))
+
+    config = AppConfig(tool_allowlist=["mouse_control", "scroll_control"])
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+    constructor = PromptConstructor(
+        tool_registry=registry,
+        config=config,
+        system_prompt="system",
+    )
+
+    _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
+
+    assert [schema["name"] for schema in schemas] == ["mouse_control", "scroll_control"]
+
+    mouse_props = schemas[0]["parameters"]["properties"]
+    assert mouse_props["find_coordinates_by"]["enum"] == ["manual"]
+    assert mouse_props["drag_to_find_coordinates_by"]["enum"] == ["manual"]
+    assert "ocr_text" not in mouse_props
+    assert "source_description" not in mouse_props
+    assert "drag_to_ocr_text" not in mouse_props
+    assert "destination_description" not in mouse_props
+
+    scroll_props = schemas[1]["parameters"]["properties"]
+    assert scroll_props["find_coordinates_by"]["enum"] == ["manual"]
+    assert "ocr_text" not in scroll_props
+    assert "source_description" not in scroll_props
+
+
+def test_build_prompt_openai_projection_filters_grounded_tools_after_projection(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+):
+    config_path = tmp_path / "tool_selection.toml"
+    config_path.write_text(
+        (
+            'enabled = true\n'
+            'mode = "allowlist"\n'
+            'tools = ["mouse_control", "keyboard_control", "screenshot", "scroll_control", "wait"]\n'
+            "[tool_options.mouse_control]\n"
+            'enabled_coordinate_methods = ["manual", "ocr"]\n'
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(config_path))
+
+    config = AppConfig(
+        interaction_mode="agent",
+        model_provider="openai",
+        tool_allowlist=[
+            "mouse_control",
+            "keyboard_control",
+            "screenshot",
+            "scroll_control",
+            "wait",
+        ],
+    )
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+    constructor = PromptConstructor(
+        tool_registry=registry,
+        config=config,
+        system_prompt="system",
+    )
+
+    _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
+
+    assert schemas[0] == {"type": "computer"}
+    grounded_names = [schema["name"] for schema in schemas[1:]]
+    assert grounded_names == ["grounded_mouse_action", "grounded_scroll_action"]
+
+    grounded_mouse_props = schemas[1]["parameters"]["properties"]
+    assert "source_description" not in grounded_mouse_props
+    assert "destination_description" not in grounded_mouse_props
+    assert "model_name" not in grounded_mouse_props
+    assert "drag_to_model_name" not in grounded_mouse_props
+
+    grounded_scroll_props = schemas[2]["parameters"]["properties"]
+    assert "source_description" not in grounded_scroll_props
+    assert "model_name" not in grounded_scroll_props
+
+
 def test_build_prompt_allowlisting_read_file_yields_single_direct_schema():
     registry = ToolRegistry(config=AppConfig(tool_allowlist=["read_file"]), cache_manager=CacheManager())
     constructor = PromptConstructor(

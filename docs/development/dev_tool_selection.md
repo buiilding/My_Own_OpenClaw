@@ -62,9 +62,11 @@ Allowed values:
 
 Effects:
 - Disabled methods are removed from the injected `mouse_control` schema.
+- Disabled methods are also removed from other model-facing grounded desktop schemas that share OCR/prediction targeting fields.
 - Disabled methods are rejected by parser validation if the LLM still calls them.
 - If `ocr` is disabled, OCR service does not initialize at backend startup and is disabled for proactive/lazy OCR.
 - If `prediction` is disabled, vision service does not initialize at backend startup.
+- OCR/prediction-only system-prompt sections are stripped at render time when those methods are disabled.
 
 ## Optional Override
 
