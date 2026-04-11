@@ -53,8 +53,11 @@ describe('local_backend_bridge process lifecycle', () => {
       expect(spawnOptions.env).toEqual(expect.objectContaining({
         WINDIE_PACKAGED_APP: '1',
         WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: '0',
+        PYTHONHOME: '/opt/WindieOS/resources/python-runtime',
+        PYTHONNOUSERSITE: '1',
       }));
       expect(spawnOptions.env.PLAYWRIGHT_BROWSERS_PATH).toBeUndefined();
+      expect(spawnOptions.env.PYTHONPATH).toBeUndefined();
     } finally {
       process.resourcesPath = originalResourcesPath;
     }

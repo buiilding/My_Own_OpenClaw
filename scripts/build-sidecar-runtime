@@ -355,7 +355,8 @@ PY
 )"
 
 echo "[build-sidecar-runtime] validating relocated runtime imports"
-"${RUNTIME_PYTHON}" - "${RUNTIME_DIR}" <<'PY'
+if [[ "${PYTHON_PLATFORM}" == "win32" ]]; then
+  "${RUNTIME_PYTHON}" - "${RUNTIME_DIR}" <<'PY'
 from __future__ import annotations
 
 import pathlib
@@ -407,6 +408,60 @@ if offenders:
 
 print(f"[build-sidecar-runtime] runtime validation passed for {runtime_root}", file=sys.stderr)
 PY
+else
+  env -u PYTHONPATH PYTHONHOME="${RUNTIME_DIR}" PYTHONNOUSERSITE=1 "${RUNTIME_PYTHON}" - "${RUNTIME_DIR}" <<'PY'
+from __future__ import annotations
+
+import pathlib
+import sqlite3
+import ssl
+import sys
+import xml.parsers.expat
+
+import _socket
+import _sqlite3
+import _ssl
+import pyexpat
+
+runtime_root = pathlib.Path(sys.argv[1]).resolve()
+version = f"{sys.version_info.major}.{sys.version_info.minor}"
+expected_prefix = runtime_root
+if sys.platform == "win32":
+    expected_stdlib = runtime_root / "Lib"
+else:
+    expected_stdlib = runtime_root / "lib" / f"python{version}"
+offenders: list[str] = []
+
+for attribute in ("prefix", "exec_prefix", "base_prefix", "base_exec_prefix"):
+    value = pathlib.Path(getattr(sys, attribute)).resolve()
+    if value != expected_prefix:
+        offenders.append(f"{attribute}={value}")
+
+for module_name, module in {
+    "_socket": _socket,
+    "_ssl": _ssl,
+    "_sqlite3": _sqlite3,
+    "pyexpat": pyexpat,
+    "ssl": ssl,
+    "sqlite3": sqlite3,
+    "xml.parsers.expat": xml.parsers.expat,
+}.items():
+    module_path = pathlib.Path(getattr(module, "__file__", "")).resolve()
+    if not module_path.is_relative_to(runtime_root):
+        offenders.append(f"{module_name}={module_path}")
+
+if not expected_stdlib.exists():
+    offenders.append(f"missing_stdlib={expected_stdlib}")
+
+if offenders:
+    raise RuntimeError(
+        "Bundled runtime validation failed; leaked or missing runtime paths: "
+        + ", ".join(offenders)
+    )
+
+print(f"[build-sidecar-runtime] runtime validation passed for {runtime_root}", file=sys.stderr)
+PY
+fi
 
 echo "[build-sidecar-runtime] prefetching wakeword model assets"
 if "${RUNTIME_PYTHON}" - <<'PY'

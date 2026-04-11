@@ -37,7 +37,7 @@ describe('wakeword_bridge', () => {
     jest.restoreAllMocks();
   });
 
-  const initBridge = ({ isPackaged = false } = {}) => {
+  const initBridge = ({ isPackaged = false, mockExistsSync = null } = {}) => {
     jest.resetModules();
     handlers = {};
     stdoutHandler = null;
@@ -46,7 +46,11 @@ describe('wakeword_bridge', () => {
 
     spawn = require('child_process').spawn;
     const electron = require('electron');
+    const fs = require('fs');
     electron.app.isPackaged = isPackaged;
+    if (typeof mockExistsSync === 'function') {
+      fs.existsSync.mockImplementation(mockExistsSync);
+    }
     ipcMain = electron.ipcMain;
     jest.spyOn(process, 'on').mockImplementation((event, handler) => {
       if (event === 'beforeExit') {
@@ -289,14 +293,30 @@ describe('wakeword_bridge', () => {
   });
 
   test('packaged mode disables wakeword runtime model downloads', () => {
-    initBridge({ isPackaged: true });
-    handlers['wakeword-enable']();
+    const originalResourcesPath = process.resourcesPath;
+    process.resourcesPath = '/opt/WindieOS/resources';
 
-    const spawnOptions = spawn.mock.calls[0][2];
-    expect(spawnOptions.env).toEqual(expect.objectContaining({
-      WINDIE_PACKAGED_APP: '1',
-      WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
-    }));
+    try {
+      initBridge({
+        isPackaged: true,
+        mockExistsSync: (candidate) => (
+          candidate === '/opt/WindieOS/resources/python-runtime/sidecar/wakeword_service.pyc'
+          || candidate === '/opt/WindieOS/resources/python-runtime/bin/python3'
+        ),
+      });
+      handlers['wakeword-enable']();
+
+      const spawnOptions = spawn.mock.calls[0][2];
+      expect(spawnOptions.env).toEqual(expect.objectContaining({
+        WINDIE_PACKAGED_APP: '1',
+        WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
+        PYTHONHOME: '/opt/WindieOS/resources/python-runtime',
+        PYTHONNOUSERSITE: '1',
+      }));
+      expect(spawnOptions.env.PYTHONPATH).toBeUndefined();
+    } finally {
+      process.resourcesPath = originalResourcesPath;
+    }
   });
 
   test('maps non-zero wakeword process exits to wakeword-status error payload', () => {
