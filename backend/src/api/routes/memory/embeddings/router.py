@@ -26,6 +26,60 @@ router = APIRouter(prefix="/api/embeddings", tags=["embeddings"])
 logger = logging.getLogger(__name__)
 
 
+def _log_embedding_route_start(*, text: str, model_name: str) -> float:
+    started_at = time.perf_counter()
+    logger.info(
+        "[MemoryRoute] /api/embeddings start chars=%s model=%s",
+        len(text),
+        model_name,
+    )
+    return started_at
+
+
+def _log_embedding_route_success(
+    *,
+    started_at: float,
+    text: str,
+    model_name: str,
+    dimension: int,
+) -> None:
+    logger.info(
+        "[MemoryRoute] /api/embeddings success chars=%s model=%s dimension=%s duration=%.3fs",
+        len(text),
+        model_name,
+        dimension,
+        time.perf_counter() - started_at,
+    )
+
+
+def _log_embedding_route_failure(
+    *,
+    started_at: float,
+    text: str,
+    model_name: str,
+    error: Exception,
+    status_code: int | None = None,
+) -> None:
+    if status_code is None:
+        logger.error(
+            "[MemoryRoute] /api/embeddings failure chars=%s model=%s duration=%.3fs error=%s",
+            len(text),
+            model_name,
+            time.perf_counter() - started_at,
+            error,
+            exc_info=True,
+        )
+        return
+    logger.warning(
+        "[MemoryRoute] /api/embeddings failure chars=%s model=%s status=%s duration=%.3fs error=%s",
+        len(text),
+        model_name,
+        status_code,
+        time.perf_counter() - started_at,
+        error,
+    )
+
+
 @router.post("/", response_model=EmbeddingResponse)
 async def generate_embedding(
     request: EmbeddingRequest,
@@ -47,25 +101,55 @@ async def generate_embedding(
     Raises:
         HTTPException: If embedding generation fails
     """
-    embedding_start_time = time.perf_counter()
+    route_started_at = _log_embedding_route_start(
+        text=request.text,
+        model_name=request.model_name,
+    )
     try:
         embedding_provider = container.embedder
         if not embedding_provider:
-            raise HTTPException(
+            error = HTTPException(
                 status_code=503,
                 detail="Embedding service not available",
             )
-        return await generate_embedding_response(
+            _log_embedding_route_failure(
+                started_at=route_started_at,
+                text=request.text,
+                model_name=request.model_name,
+                error=error,
+                status_code=error.status_code,
+            )
+            raise error
+        response = await generate_embedding_response(
             request_text=request.text,
             request_model_name=request.model_name,
             embedding_provider=embedding_provider,
             logger=logger,
         )
-
-    except HTTPException:
+        _log_embedding_route_success(
+            started_at=route_started_at,
+            text=request.text,
+            model_name=request.model_name,
+            dimension=response.dimension,
+        )
+        return response
+    except HTTPException as error:
+        _log_embedding_route_failure(
+            started_at=route_started_at,
+            text=request.text,
+            model_name=request.model_name,
+            error=error,
+            status_code=error.status_code,
+        )
         raise
     except Exception as error:
-        raise_embedding_error(error=error, logger=logger, started_at=embedding_start_time)
+        _log_embedding_route_failure(
+            started_at=route_started_at,
+            text=request.text,
+            model_name=request.model_name,
+            error=error,
+        )
+        raise_embedding_error(error=error, logger=logger, started_at=route_started_at)
 
 
 @router.get("/health")
