@@ -78,14 +78,19 @@ Local macOS packaged-user test helper:
 Required secrets when `run_signing=true`:
 
 - Windows signing:
-  - `CSC_LINK`
-  - `CSC_KEY_PASSWORD`
+  - `WIN_CSC_LINK`
+  - `WIN_CSC_KEY_PASSWORD`
 - macOS signing + notarization:
   - `CSC_LINK`
   - `CSC_KEY_PASSWORD`
   - `APPLE_ID`
   - `APPLE_APP_SPECIFIC_PASSWORD`
   - `APPLE_TEAM_ID`
+
+The release workflow intentionally keeps macOS and Windows certificate secrets
+separate. The repo-level `CSC_LINK` and `CSC_KEY_PASSWORD` secrets are reserved
+for the macOS `Developer ID Application` identity, while Windows packaging only
+enables signing when `WIN_CSC_LINK` and `WIN_CSC_KEY_PASSWORD` are present.
 
 ### macOS Developer ID setup notes
 

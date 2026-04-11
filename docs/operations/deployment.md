@@ -72,6 +72,9 @@ Bundled sidecar-runtime packaging profile:
   identity visible to `security find-identity -v -p codesigning`; otherwise
   `electron-builder` can package successfully but fall back to ad-hoc signing and
   Apple notarization will reject the bundle.
+- Desktop release secrets are split by platform: repo-level `CSC_*` is reserved
+  for the macOS Developer ID identity, and Windows signing stays disabled until
+  dedicated `WIN_CSC_*` secrets are provided.
 - Channels: `canary`, `beta`, `stable`.
 - Rollout: staged rollout by percentage; instant rollback by channel pin.
 

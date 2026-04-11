@@ -123,6 +123,8 @@ jobs:
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -142,7 +144,7 @@ jobs:
           if [[ "${requested}" == "true" ]]; then
             case "${{ matrix.label }}" in
               windows)
-                if [[ -z "${CSC_LINK}" || -z "${CSC_KEY_PASSWORD}" ]]; then
+                if [[ -z "${WIN_CSC_LINK}" || -z "${WIN_CSC_KEY_PASSWORD}" ]]; then
                   effective="false"
                   reason="missing_windows_signing_secrets"
                 fi
@@ -203,6 +205,8 @@ jobs:
           RUN_SIGNING: ${{ steps.signing.outputs.effective }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -210,7 +214,11 @@ jobs:
           set -euo pipefail
           if [[ "${RUN_SIGNING}" != "true" ]]; then
             export CSC_IDENTITY_AUTO_DISCOVERY="false"
-            unset CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
+            unset CSC_LINK CSC_KEY_PASSWORD WIN_CSC_LINK WIN_CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
+          elif [[ "${{ matrix.label }}" == "windows" ]]; then
+            export CSC_LINK="${WIN_CSC_LINK}"
+            export CSC_KEY_PASSWORD="${WIN_CSC_KEY_PASSWORD}"
+            unset APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
           fi
           npm run "${{ matrix.package_script }}"
 
