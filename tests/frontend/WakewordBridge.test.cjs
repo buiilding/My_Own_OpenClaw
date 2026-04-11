@@ -272,6 +272,21 @@ describe('wakeword_bridge', () => {
     );
   });
 
+  test('ignores EPIPE logging when wakeword process exits', () => {
+    const { createdProcesses } = initBridge();
+    enableAndReady();
+
+    console.log.mockImplementation(() => {
+      const error = new Error('write EPIPE');
+      error.code = 'EPIPE';
+      throw error;
+    });
+
+    expect(() => {
+      createdProcesses[0]._handlers.exit(0, null);
+    }).not.toThrow();
+  });
+
   test('maps ENOENT process start failures to wakeword-status error payload', () => {
     const { mainWindow, createdProcesses } = initBridge();
 

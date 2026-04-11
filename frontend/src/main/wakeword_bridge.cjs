@@ -24,12 +24,31 @@ let stderrBuffer = '';
 let wakewordDetectedCallback = null;
 const wakewordSupervisor = createWakewordSupervisor();
 
+function isIgnorableLogPipeError(error) {
+  return error?.code === 'EPIPE' || error?.code === 'ERR_STREAM_DESTROYED';
+}
+
+function writeWakewordLog(level, ...args) {
+  const sink = console?.[level];
+  if (typeof sink !== 'function') {
+    return;
+  }
+
+  try {
+    sink(...args);
+  } catch (error) {
+    if (!isIgnorableLogPipeError(error)) {
+      throw error;
+    }
+  }
+}
+
 /**
  * Start Python wakeword service
  */
 function startWakewordService(mainWindow, onWakewordDetected) {
   if (pythonProcess) {
-    console.log('[Wakeword] Service already running');
+    writeWakewordLog('log', '[Wakeword] Service already running');
     return;
   }
 
@@ -39,7 +58,7 @@ function startWakewordService(mainWindow, onWakewordDetected) {
 
   const startErrorMessage = resolveWakewordStartErrorMessage({ launchTarget, packagedApp });
   if (startErrorMessage) {
-    console.error(`[Wakeword] ${startErrorMessage}`);
+    writeWakewordLog('error', `[Wakeword] ${startErrorMessage}`);
     emitWakewordStatus(mainWindow, {
       ready: false,
       error: startErrorMessage,
@@ -47,7 +66,8 @@ function startWakewordService(mainWindow, onWakewordDetected) {
     return;
   }
 
-  console.log(
+  writeWakewordLog(
+    'log',
     `[Wakeword] Starting service (${launchTarget.kind}): ` +
     `${launchTarget.command} ${launchTarget.args.join(' ')}`.trim(),
   );
@@ -85,7 +105,7 @@ function startWakewordService(mainWindow, onWakewordDetected) {
   pythonProcess = spawnedProcess;
   wakewordSupervisor.attachProcess(spawnedProcess);
 
-  console.log(`[Wakeword] Python process spawned (PID: ${spawnedProcess.pid})`);
+  writeWakewordLog('log', `[Wakeword] Python process spawned (PID: ${spawnedProcess.pid})`);
 
   // Handle stderr (status messages)
   // Buffer stderr and only parse complete JSON lines
@@ -127,7 +147,7 @@ function startWakewordService(mainWindow, onWakewordDetected) {
     if (pythonProcess !== spawnedProcess) {
       return;
     }
-    console.log(`[Wakeword] Python process exited - code: ${code}, signal: ${signal}`);
+    writeWakewordLog('log', `[Wakeword] Python process exited - code: ${code}, signal: ${signal}`);
     pythonProcess = null;
     wakewordSupervisor.clear({
       status: code !== 0 && code !== null ? 'error' : 'stopped',
@@ -144,13 +164,13 @@ function startWakewordService(mainWindow, onWakewordDetected) {
         errorMessage = `Python process exited with code ${code}`;
       }
       
-      console.error(`[Wakeword] ${errorMessage}`);
+      writeWakewordLog('error', `[Wakeword] ${errorMessage}`);
       emitWakewordStatus(mainWindow, { 
         ready: false,
         error: errorMessage
       });
     } else {
-      console.log('[Wakeword] Python process exited normally');
+      writeWakewordLog('log', '[Wakeword] Python process exited normally');
       emitWakewordStatus(mainWindow, { ready: false });
     }
   });
@@ -159,7 +179,10 @@ function startWakewordService(mainWindow, onWakewordDetected) {
     if (pythonProcess !== spawnedProcess) {
       return;
     }
-    console.error(`[Wakeword] Failed to start Python process: ${error.message} (code: ${error.code})`);
+    writeWakewordLog(
+      'error',
+      `[Wakeword] Failed to start Python process: ${error.message} (code: ${error.code})`,
+    );
     pythonProcess = null;
     wakewordSupervisor.clear({
       status: 'error',
@@ -215,12 +238,15 @@ function processDetectionResults(data, mainWindow, onWakewordDetected) {
       
       // Double-check wakeword is still enabled before processing detection
       if (result.detected && wakewordSupervisor.getSnapshot().enabled) {
-        console.log(`[Wakeword] *** DETECTED *** ${result.model} (confidence: ${result.confidence}, score: ${result.score})`);
+        writeWakewordLog(
+          'log',
+          `[Wakeword] *** DETECTED *** ${result.model} (confidence: ${result.confidence}, score: ${result.score})`,
+        );
         if (typeof onWakewordDetected === 'function') {
           try {
             onWakewordDetected();
           } catch (error) {
-            console.error('[Wakeword] Wakeword handler failed:', error);
+            writeWakewordLog('error', '[Wakeword] Wakeword handler failed:', error);
           }
         }
         mainWindow?.webContents.send('wakeword-detected', {
@@ -231,11 +257,11 @@ function processDetectionResults(data, mainWindow, onWakewordDetected) {
         // Clear buffer after sending detection to prevent processing duplicate/buffered detections
         clearResultBuffer();
       } else if (result.error) {
-        console.error('[Wakeword] Python service error:', result.error);
+        writeWakewordLog('error', '[Wakeword] Python service error:', result.error);
       }
       // Note: Python service logs all scores via stderr, so we don't duplicate here
     } catch (e) {
-      console.error('[Wakeword] Error parsing detection result:', e);
+      writeWakewordLog('error', '[Wakeword] Error parsing detection result:', e);
     }
   }
 }
@@ -257,7 +283,7 @@ function sendAudioChunk(audioData) {
     pythonProcess.stdin.write(lengthBuffer);
     pythonProcess.stdin.write(audioData);
   } catch (error) {
-    console.error('[Wakeword] Error sending audio chunk:', error);
+    writeWakewordLog('error', '[Wakeword] Error sending audio chunk:', error);
   }
 }
 
@@ -287,13 +313,13 @@ function initializeWakewordBridge(mainWindow, onWakewordDetected) {
   ipcMain.on('wakeword-audio-chunk', (event, audioData) => {
     if (!wakewordSupervisor.getSnapshot().ready) {
       if (receivedChunkCount === 0) {
-        console.log('[Wakeword] Audio chunks received but Python service not ready yet');
+        writeWakewordLog('log', '[Wakeword] Audio chunks received but Python service not ready yet');
       }
       return;
     }
     
     if (!audioData) {
-      console.error('[Wakeword] Received null/undefined audio data');
+      writeWakewordLog('error', '[Wakeword] Received null/undefined audio data');
       return;
     }
     
@@ -302,7 +328,7 @@ function initializeWakewordBridge(mainWindow, onWakewordDetected) {
     // Convert base64 or buffer to Buffer
     const audioBuffer = normalizeAudioChunk(audioData);
     if (!audioBuffer) {
-      console.error('[Wakeword] Invalid audio data format:', typeof audioData);
+      writeWakewordLog('error', '[Wakeword] Invalid audio data format:', typeof audioData);
       return;
     }
     
@@ -313,7 +339,7 @@ function initializeWakewordBridge(mainWindow, onWakewordDetected) {
   ipcMain.on('wakeword-enable', () => {
     wakewordSupervisor.setEnabled(true);
     if (!pythonProcess) {
-      console.log('[Wakeword] Starting Python service...');
+      writeWakewordLog('log', '[Wakeword] Starting Python service...');
       startWakewordService(mainWindow, wakewordDetectedCallback);
     } else if (wakewordSupervisor.getSnapshot().ready) {
       // Service already ready, send status immediately (silently, renderer will handle it)
@@ -326,7 +352,7 @@ function initializeWakewordBridge(mainWindow, onWakewordDetected) {
     // Disable wakeword detection and clear buffers
     // This prevents old buffered chunks from triggering false detections
     wakewordSupervisor.setEnabled(false);
-    console.log('[Wakeword] Disabled - clearing buffers and ignoring detections');
+    writeWakewordLog('log', '[Wakeword] Disabled - clearing buffers and ignoring detections');
     clearResultBuffer();
     
     // Send reset signal to Python process (length 0)
