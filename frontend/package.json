@@ -1,7 +1,7 @@
 {
   "name": "windieos",
   "private": true,
-  "version": "0.6.20",
+  "version": "0.6.21",
   "description": "WindieOS desktop client for the AI Operating System layer.",
   "homepage": "https://api.windieos.com",
   "author": {
