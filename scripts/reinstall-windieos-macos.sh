@@ -144,8 +144,7 @@ fi
 
 echo "[reinstall-windieos-macos] installing ${APP_SOURCE_PATH} -> ${APP_INSTALL_PATH}"
 ditto "${APP_SOURCE_PATH}" "${APP_INSTALL_PATH}"
-chmod -R u+w "${APP_INSTALL_PATH}" >/dev/null 2>&1 || true
-xattr -dr com.apple.quarantine "${APP_INSTALL_PATH}" >/dev/null 2>&1 || true
+xattr -d com.apple.quarantine "${APP_INSTALL_PATH}" >/dev/null 2>&1 || true
 open -R "${APP_INSTALL_PATH}"
 open -a Finder /Applications
 
