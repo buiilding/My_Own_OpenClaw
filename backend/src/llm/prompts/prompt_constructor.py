@@ -27,6 +27,9 @@ from typing import List, Dict, Any, Optional, Union
 from backend.src.core.config import AppConfig
 from backend.src.llm.prompts.prompts import get_system_prompt
 from backend.src.llm.prompts.prompt_metadata import PromptMetadata, UserMessageMetadata
+from backend.src.llm.prompts.repo_instructions import (
+    resolve_workspace_repo_instruction_messages,
+)
 from backend.src.tools.tool_policy import ToolPolicy
 from backend.src.tools.provider_projection import project_tool_schemas_for_provider
 from backend.src.tools.registry import ToolRegistry
@@ -97,6 +100,7 @@ class PromptConstructor:
         self.metrics = metrics_service.get_metrics("prompt_constructor")
         self.limits = config.security_limits
         self.tool_policy = ToolPolicy.from_config(config)
+        self.workspace_path: Optional[str] = None
 
     def _get_filtered_tool_schemas(
         self,
@@ -160,7 +164,7 @@ class PromptConstructor:
         Raises:
             InputSizeLimitError: If any size limit is exceeded
         """
-        prompt_messages = self._get_prompt_messages(stored_messages)
+        prompt_messages = self._build_prompt_messages(stored_messages)
         tool_schemas = []
         if include_tools:
             tool_schemas = self._get_filtered_tool_schemas(
@@ -187,6 +191,31 @@ class PromptConstructor:
         if stored_messages and hasattr(stored_messages, "get_history"):
             return stored_messages.get_history()
         return []
+
+    def _build_prompt_messages(
+        self,
+        stored_messages: Optional[Union[List[StoredMessage], Any]],
+    ) -> List[LLMMessage]:
+        """Build model-visible prompt messages, including contextual repo instructions."""
+        prompt_messages: List[LLMMessage] = []
+        prompt_messages.extend(
+            resolve_workspace_repo_instruction_messages(self.workspace_path)
+        )
+        prompt_messages.extend(self._get_prompt_messages(stored_messages))
+        return prompt_messages
+
+    def get_prompt_token_count(
+        self,
+        stored_messages: Optional[Union[List[StoredMessage], Any]],
+        *,
+        model_id: str,
+    ) -> int:
+        """Count tokens for the actual prompt shape sent to the model."""
+        from backend.src.services.token_service import get_token_service
+
+        token_service = get_token_service()
+        prompt_messages = self._build_prompt_messages(stored_messages)
+        return token_service.count_tokens(prompt_messages, model_id)
 
     def _build_user_message_metadata(
         self,

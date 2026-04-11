@@ -230,6 +230,84 @@ def test_build_prompt_returns_empty_history_and_no_user_metadata_without_store()
     assert metadata.user_message_metadata is None
 
 
+def test_build_prompt_prepends_applicable_agents_md_context(tmp_path):
+    repo_root = tmp_path / "repo"
+    nested_dir = repo_root / "apps" / "desktop"
+    nested_dir.mkdir(parents=True)
+    (repo_root / ".git").mkdir()
+    (repo_root / "AGENTS.md").write_text("root instructions", encoding="utf-8")
+    (repo_root / "apps" / "AGENTS.md").write_text("apps instructions", encoding="utf-8")
+
+    constructor = _make_constructor()
+    constructor.workspace_path = str(nested_dir)
+    history = DummyHistory(
+        history=[
+            {
+                "role": MessageRole.USER.value,
+                "content": "<user_query>open file</user_query>",
+            }
+        ],
+        user_query_raw="open file",
+        message_types=[MessageType.USER_QUERY],
+    )
+
+    prompt_messages, _tool_schemas, _metadata = constructor.build_prompt(
+        history,
+        include_tools=False,
+    )
+
+    assert [message["role"] for message in prompt_messages[:2]] == ["user", "user"]
+    assert prompt_messages[0]["content"] == (
+        f"# AGENTS.md instructions for {repo_root}\n\n"
+        "<INSTRUCTIONS>\nroot instructions\n</INSTRUCTIONS>"
+    )
+    assert prompt_messages[1]["content"] == (
+        f"# AGENTS.md instructions for {repo_root / 'apps'}\n\n"
+        "<INSTRUCTIONS>\napps instructions\n</INSTRUCTIONS>"
+    )
+    assert prompt_messages[2] == history.get_history()[0]
+
+
+def test_get_prompt_token_count_uses_contextual_agents_messages(monkeypatch, tmp_path):
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    (repo_root / ".git").mkdir()
+    (repo_root / "AGENTS.md").write_text("repo instructions", encoding="utf-8")
+
+    constructor = _make_constructor()
+    constructor.workspace_path = str(repo_root)
+    history = DummyHistory(
+        history=[
+            {
+                "role": MessageRole.USER.value,
+                "content": "<user_query>open file</user_query>",
+            }
+        ],
+        user_query_raw="open file",
+        message_types=[MessageType.USER_QUERY],
+    )
+
+    captured = {}
+
+    class _FakeTokenService:
+        def count_tokens(self, messages, model):
+            captured["messages"] = messages
+            captured["model"] = model
+            return len(messages) * 10
+
+    monkeypatch.setattr(
+        "backend.src.services.token_service.get_token_service",
+        lambda: _FakeTokenService(),
+    )
+
+    count = constructor.get_prompt_token_count(history, model_id="model-a")
+
+    assert count == 20
+    assert captured["model"] == "model-a"
+    assert captured["messages"][0]["content"].startswith("# AGENTS.md instructions for ")
+    assert captured["messages"][1] == history.get_history()[0]
+
+
 def test_build_prompt_allowlisting_mouse_control_yields_single_direct_schema():
     registry = ToolRegistry(config=AppConfig(tool_allowlist=["mouse_control"]), cache_manager=CacheManager())
     constructor = PromptConstructor(

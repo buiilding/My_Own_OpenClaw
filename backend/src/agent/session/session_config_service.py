@@ -98,6 +98,7 @@ class SessionConfigService:
         if runtime is not None:
             runtime.workspace_path = normalized_workspace_path
         session.prompt_builder.system_prompt = rendered_prompt
+        setattr(session.prompt_builder, "workspace_path", normalized_workspace_path)
         session.history.system_prompt = rendered_prompt
 
     def _call_render_system_prompt(
