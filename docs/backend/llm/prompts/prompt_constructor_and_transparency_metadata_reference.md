@@ -22,7 +22,7 @@ title: "Prompt Constructor and Transparency Metadata Reference"
 `PromptConstructor.build_prompt(stored_messages, include_tools)` returns:
 
 1. `prompt_messages`: list of LLM messages consisting of:
-   - optional contextual `user` message from `<active workspace>/AGENTS.md`
+   - optional contextual `user` messages from applicable `AGENTS.md` files
    - history (`stored_messages.get_history()` when available)
 2. `tool_schemas`: filtered canonical tool schema list (or `[]`)
 3. `PromptMetadata`:
@@ -38,8 +38,8 @@ Session-scoped system prompt context:
 - frontend OS remains user-scoped session context
 - `workspace_path` is conversation-scoped context supplied on query/rehydrate payloads
 - prompt rendering happens when the active session is prepared for a conversation request, so two sessions for the same user can carry different workspace bindings without mutating each other
-- `AGENTS.md` discovery is limited to the active workspace directory; parent repos/directories are not searched from prompt assembly
-- changing workspace is expected to produce a separate conversation/session boundary rather than mutating the current chat's repo-instruction context
+- `AGENTS.md` discovery walks from the active workspace directory up to the enclosing repo root
+- broader repo guidance is emitted before more specific nested-directory guidance so later blocks can override earlier ones
 
 ## Tool Schema Policy Boundary
 

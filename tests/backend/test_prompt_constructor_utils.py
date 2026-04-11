@@ -230,12 +230,13 @@ def test_build_prompt_returns_empty_history_and_no_user_metadata_without_store()
     assert metadata.user_message_metadata is None
 
 
-def test_build_prompt_prepends_active_workspace_agents_md_context(tmp_path):
+def test_build_prompt_prepends_applicable_agents_md_context(tmp_path):
     repo_root = tmp_path / "repo"
     nested_dir = repo_root / "apps" / "desktop"
     nested_dir.mkdir(parents=True)
+    (repo_root / ".git").mkdir()
     (repo_root / "AGENTS.md").write_text("root instructions", encoding="utf-8")
-    (nested_dir / "AGENTS.md").write_text("desktop instructions", encoding="utf-8")
+    (repo_root / "apps" / "AGENTS.md").write_text("apps instructions", encoding="utf-8")
 
     constructor = _make_constructor()
     constructor.workspace_path = str(nested_dir)
@@ -255,17 +256,22 @@ def test_build_prompt_prepends_active_workspace_agents_md_context(tmp_path):
         include_tools=False,
     )
 
-    assert [message["role"] for message in prompt_messages[:1]] == ["user"]
+    assert [message["role"] for message in prompt_messages[:2]] == ["user", "user"]
     assert prompt_messages[0]["content"] == (
-        f"# AGENTS.md instructions for {nested_dir}\n\n"
-        "<INSTRUCTIONS>\ndesktop instructions\n</INSTRUCTIONS>"
+        f"# AGENTS.md instructions for {repo_root}\n\n"
+        "<INSTRUCTIONS>\nroot instructions\n</INSTRUCTIONS>"
     )
-    assert prompt_messages[1] == history.get_history()[0]
+    assert prompt_messages[1]["content"] == (
+        f"# AGENTS.md instructions for {repo_root / 'apps'}\n\n"
+        "<INSTRUCTIONS>\napps instructions\n</INSTRUCTIONS>"
+    )
+    assert prompt_messages[2] == history.get_history()[0]
 
 
 def test_get_prompt_token_count_uses_contextual_agents_messages(monkeypatch, tmp_path):
     repo_root = tmp_path / "repo"
     repo_root.mkdir()
+    (repo_root / ".git").mkdir()
     (repo_root / "AGENTS.md").write_text("repo instructions", encoding="utf-8")
 
     constructor = _make_constructor()
