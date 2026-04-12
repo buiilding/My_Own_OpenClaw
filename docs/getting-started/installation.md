@@ -236,9 +236,11 @@ workspace root:
 
 The macOS helper is intentionally local-only: it clears all known TCC/privacy
 grants for existing WindieOS app/helper bundle ids before reinstalling, strips
-Apple notarization environment variables from the build step so the reinstall
-does not wait on Apple, rebuilds the unpacked `release/mac-arm64/WindieOS.app`
-bundle, installs it into `/Applications`, and relaunches that installed app.
+Apple notarization and Developer ID signing environment variables from the
+build step so the reinstall does not wait on Apple, rebuilds the unpacked
+`release/mac-arm64/WindieOS.app` bundle, installs it into `/Applications`,
+applies one consistent ad-hoc signature to the installed app bundle, and
+relaunches that installed app.
 
 The Windows helper stops the installed app, clears WindieOS app data under
 `%APPDATA%`/`%LOCALAPPDATA%`, rebuilds the bundled-runtime NSIS installer, runs

@@ -29,6 +29,11 @@ NOTARIZATION_ENV_VARS=(
   APPLE_API_KEY_ID
   APPLE_API_ISSUER
 )
+LOCAL_SIGNING_ENV_VARS=(
+  CSC_LINK
+  CSC_KEY_PASSWORD
+  CSC_IDENTITY_AUTO_DISCOVERY
+)
 APP_NAME="${WINDIE_APP_NAME:-WindieOS.app}"
 APP_INSTALL_PATH="/Applications/${APP_NAME}"
 USER_DATA_DIR="${HOME}/Library/Application Support/WindieOS"
@@ -65,6 +70,9 @@ run_frontend_local_build_cmd() {
     -u APPLE_API_KEY \
     -u APPLE_API_KEY_ID \
     -u APPLE_API_ISSUER \
+    -u CSC_LINK \
+    -u CSC_KEY_PASSWORD \
+    CSC_IDENTITY_AUTO_DISCOVERY=false \
     WINDIE_PYTHON_BUILD="${PYTHON_BUILD}" \
     "$@"
 }
@@ -115,7 +123,9 @@ echo "[reinstall-windieos-macos] app_install_path=${APP_INSTALL_PATH}"
 echo "[reinstall-windieos-macos] user_data_dir=${USER_DATA_DIR}"
 echo "[reinstall-windieos-macos] log_file=${LOG_FILE}"
 echo "[reinstall-windieos-macos] sidecar_log_level=${SIDECAR_LOG_LEVEL}"
-echo "[reinstall-windieos-macos] local reinstall skips Apple notarization and ignores: ${NOTARIZATION_ENV_VARS[*]}"
+echo "[reinstall-windieos-macos] local reinstall skips Apple notarization and Developer ID signing"
+echo "[reinstall-windieos-macos] ignored notarization env vars: ${NOTARIZATION_ENV_VARS[*]}"
+echo "[reinstall-windieos-macos] ignored local signing env vars: ${LOCAL_SIGNING_ENV_VARS[*]}"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "[reinstall-windieos-macos] ERROR: this script only supports macOS" >&2
@@ -180,9 +190,9 @@ echo "[reinstall-windieos-macos] building fresh local macOS app bundle (no Apple
 run_frontend_local_build_cmd npm --prefix "${FRONTEND_DIR}" run build:sidecar-runtime
 run_frontend_local_build_cmd npm --prefix "${FRONTEND_DIR}" run build
 run_frontend_local_build_cmd \
-  "${FRONTEND_DIR}/node_modules/.bin/electron-builder" \
-  --config electron-builder.bundled-python.yml \
-  --mac dir
+  bash \
+  -lc \
+  "cd \"${FRONTEND_DIR}\" && ./node_modules/.bin/electron-builder --config electron-builder.bundled-python.yml -c.mac.identity=null --mac dir"
 
 APP_SOURCE_PATH="${FRONTEND_DIR}/release/mac-arm64/${APP_NAME}"
 if [[ ! -d "${APP_SOURCE_PATH}" ]]; then
@@ -192,6 +202,8 @@ fi
 
 echo "[reinstall-windieos-macos] installing ${APP_SOURCE_PATH} -> ${APP_INSTALL_PATH}"
 ditto "${APP_SOURCE_PATH}" "${APP_INSTALL_PATH}"
+echo "[reinstall-windieos-macos] applying a consistent ad-hoc signature to the installed app bundle"
+codesign --force --deep --sign - "${APP_INSTALL_PATH}"
 xattr -d com.apple.quarantine "${APP_INSTALL_PATH}" >/dev/null 2>&1 || true
 open -R "${APP_INSTALL_PATH}"
 open -a Finder /Applications

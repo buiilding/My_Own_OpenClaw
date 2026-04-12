@@ -249,6 +249,31 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(screen.getByRole('button', { name: 'Waiting...' })).toBeDisabled();
   });
 
+  test('shows Waiting... after App Management opens a macOS settings-backed retry flow', async () => {
+    mockRequestPermission.mockResolvedValue({
+      permission_id: 'app_management',
+      status: 'needs-action',
+      granted: false,
+      reason: 'Waiting for App Management access. Enable WindieOS in System Settings.',
+      details: {
+        awaiting_external_grant: true,
+      },
+    });
+
+    render(<FrontendOnboardingSlideshow onComplete={jest.fn()} stopAgentShortcutLabel="Ctrl + Shift + Esc" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Allow' }));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByRole('button', { name: 'Waiting...' })).toBeDisabled();
+  });
+
   test('keeps actions outside the scroll region on the permissions slide', () => {
     const onComplete = jest.fn();
     const { container } = render(

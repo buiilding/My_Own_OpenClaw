@@ -2,8 +2,11 @@ const {
   PERMISSION_STATUS,
   buildProbeResult,
   getStoredPermissionEntry,
+  openExternal,
   setStoredPermissionEntry,
 } = require('./permission_service_runtime.cjs');
+
+const MACOS_APP_MANAGEMENT_SETTINGS_URL = 'x-apple.systempreferences:com.apple.preference.security?Privacy_AppBundles';
 
 async function verifyMacOsSystemEventsAutomationPermission(deps = {}) {
   if (typeof deps.probeMacOsSystemEventsAutomationPermission !== 'function') {
@@ -93,6 +96,31 @@ async function verifyAppManagementCapability(permissionId, deps = {}) {
       stored_entry: storedEntry,
     },
   };
+}
+
+function warmBrowserResultReachedGrantedState(warmResult = {}) {
+  if (!warmResult || warmResult.success !== true) {
+    return false;
+  }
+
+  const details = warmResult.details && typeof warmResult.details === 'object'
+    ? warmResult.details
+    : {};
+
+  if (
+    details.app_management_prompt_shown === true
+    || details.needs_app_management === true
+    || details.blocked_by_app_management === true
+    || details.awaiting_external_grant === true
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+async function openAppManagementSettings(deps = {}) {
+  return await openExternal(MACOS_APP_MANAGEMENT_SETTINGS_URL, deps);
 }
 
 async function probeSystemEventsAutomation(permission, deps = {}) {
@@ -201,19 +229,24 @@ async function requestAppManagementPermission(permission, deps = {}) {
   }
 
   if (typeof deps.warmBrowserAutomationPermission !== 'function') {
+    const settingsResult = await openAppManagementSettings(deps);
     return buildProbeResult(
       permissionId,
       PERMISSION_STATUS.NEEDS_ACTION,
-      'WindieOS could not trigger the macOS App Management prompt yet.',
+      settingsResult.success
+        ? 'Waiting for App Management access. Enable WindieOS in System Settings.'
+        : 'Open App Management settings and enable WindieOS.',
       {
         platform,
-        remediation: 'Retry Allow. If the prompt does not appear, open System Settings > Privacy & Security > App Management and enable WindieOS.',
+        awaiting_external_grant: settingsResult.success === true,
+        settings_result: settingsResult,
+        remediation: 'Enable WindieOS in System Settings > Privacy & Security > App Management, then return to onboarding.',
       },
     );
   }
 
   const warmResult = await deps.warmBrowserAutomationPermission();
-  if (warmResult && warmResult.success === true) {
+  if (warmBrowserResultReachedGrantedState(warmResult)) {
     await setStoredPermissionEntry(permissionId, {
       granted: true,
       source: 'os',
@@ -232,14 +265,20 @@ async function requestAppManagementPermission(permission, deps = {}) {
     });
   }
 
+  const settingsResult = await openAppManagementSettings(deps);
+
   return buildProbeResult(
     permissionId,
     PERMISSION_STATUS.NEEDS_ACTION,
-    'Allow WindieOS in macOS App Management, then retry.',
+    settingsResult.success
+      ? 'Waiting for App Management access. Enable WindieOS in System Settings.'
+      : 'Open App Management settings and enable WindieOS.',
     {
       platform,
+      awaiting_external_grant: settingsResult.success === true,
       verification: warmResult && typeof warmResult === 'object' ? (warmResult.details || warmResult) : {},
-      remediation: 'When the macOS Privacy & Security prompt appears, click Allow. If you already dismissed it, open System Settings > Privacy & Security > App Management and enable WindieOS.',
+      settings_result: settingsResult,
+      remediation: 'Enable WindieOS in System Settings > Privacy & Security > App Management, then return to onboarding and let WindieOS re-check.',
     },
   );
 }
