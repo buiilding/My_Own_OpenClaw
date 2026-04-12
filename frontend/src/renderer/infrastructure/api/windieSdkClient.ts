@@ -133,6 +133,39 @@ export type SdkPromptPreviewResponse = {
   token_count_error?: string | null;
 };
 
+export type SdkQueryPlanRequest = {
+  user_id?: string;
+  model_id?: string;
+  model_provider?: string;
+  interaction_mode?: SdkInteractionMode;
+  include_tools?: boolean;
+  workspace_path?: string;
+  user_query_raw?: string;
+  conversation_ref?: string;
+  messages?: JsonRecord[];
+};
+
+export type SdkQueryPlanResponse = {
+  config: SdkConfigSnapshot;
+  query_message: JsonRecord;
+  transparency_events: JsonRecord[];
+  system_prompt: string;
+  prompt_messages: JsonRecord[];
+  canonical_tool_schemas: JsonRecord[];
+  provider_tool_schemas: JsonRecord[];
+  user_message_full?: {
+    content: string;
+    metadata: {
+      original_query: string;
+      context_type: string;
+      injected_context: string;
+      active_window: string;
+    };
+  } | null;
+  prompt_token_count?: number | null;
+  token_count_error?: string | null;
+};
+
 export type SdkArtifactUploadResponse = {
   artifact_id: string;
   content_type: string;
@@ -617,6 +650,7 @@ export class WindieSdkClient {
     toolCapabilities: async (toolName: string, options?: WindieSdkQueryOptions): Promise<SdkToolCapabilitiesResponse> => this.getJson(`/api/sdk/tool-capabilities/${encodeURIComponent(toolName)}${buildQueryString(options)}`),
     systemPrompt: async (options?: WindieSdkQueryOptions): Promise<SdkSystemPromptResponse> => this.getJson(`/api/sdk/system-prompt${buildQueryString(options)}`),
     promptPreview: async (payload: SdkPromptPreviewRequest): Promise<SdkPromptPreviewResponse> => this.postJson('/api/sdk/prompt-preview', payload),
+    queryPlan: async (payload: SdkQueryPlanRequest): Promise<SdkQueryPlanResponse> => this.postJson('/api/sdk/query-plan', payload),
   };
 
   readonly agent = {
@@ -650,6 +684,10 @@ export class WindieSdkClient {
 
   async promptPreview(payload: SdkPromptPreviewRequest): Promise<SdkPromptPreviewResponse> {
     return this.introspection.promptPreview(payload);
+  }
+
+  async queryPlan(payload: SdkQueryPlanRequest): Promise<SdkQueryPlanResponse> {
+    return this.introspection.queryPlan(payload);
   }
 
   async connectAgent(options: WindieAgentConnectOptions = {}): Promise<WindieAgentSession> {

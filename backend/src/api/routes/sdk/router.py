@@ -30,6 +30,8 @@ from backend.src.api.routes.sdk.models import (
     OverlayArtifactResponse,
     PromptPreviewRequest,
     PromptPreviewResponse,
+    QueryPlanRequest,
+    QueryPlanResponse,
     VisionDescribeRequest,
     VisionDescribeResponse,
     VisionLocateAllRequest,
@@ -43,6 +45,7 @@ from backend.src.api.routes.sdk.service import (
     build_debug_tool_schemas,
     build_image_metadata,
     build_prompt_constructor,
+    build_query_plan,
     build_prompt_preview,
     build_ocr_results,
     build_vision_locate_all_response,
@@ -483,4 +486,41 @@ async def sdk_debug_prompt_preview(
         user_message_full=preview["user_message_full"],
         prompt_token_count=preview["prompt_token_count"],
         token_count_error=preview["token_count_error"],
+    )
+
+
+@router.post("/query-plan", response_model=QueryPlanResponse)
+async def sdk_debug_query_plan(
+    payload: QueryPlanRequest,
+    container: ContainerDep,
+    session_manager: SessionManagerDep,
+) -> QueryPlanResponse:
+    config = resolve_effective_debug_config(
+        container=container,
+        session_manager=session_manager,
+        user_id=payload.user_id,
+        model_id=payload.model_id,
+        model_provider=payload.model_provider,
+        interaction_mode=payload.interaction_mode,
+    )
+    plan = build_query_plan(
+        config=config,
+        container=container,
+        messages=payload.messages,
+        user_query_raw=payload.user_query_raw,
+        include_tools=payload.include_tools,
+        workspace_path=payload.workspace_path,
+        conversation_ref=payload.conversation_ref,
+    )
+    return QueryPlanResponse(
+        config=build_debug_config_snapshot(config),
+        query_message=plan["query_message"],
+        transparency_events=plan["transparency_events"],
+        system_prompt=plan["system_prompt"],
+        prompt_messages=plan["prompt_messages"],
+        canonical_tool_schemas=plan["canonical_tool_schemas"],
+        provider_tool_schemas=plan["provider_tool_schemas"],
+        user_message_full=plan["user_message_full"],
+        prompt_token_count=plan["prompt_token_count"],
+        token_count_error=plan["token_count_error"],
     )

@@ -352,3 +352,32 @@ class PromptPreviewResponse(BaseModel):
     user_message_full: Optional[DebugUserMessageFullModel] = None
     prompt_token_count: Optional[int] = None
     token_count_error: Optional[str] = None
+
+
+class QueryPlanRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    user_id: Optional[str] = None
+    model_id: Optional[str] = Field(None, min_length=1, max_length=256)
+    model_provider: Optional[str] = Field(None, min_length=1, max_length=128)
+    interaction_mode: Optional[Literal["chat", "agent"]] = None
+    include_tools: bool = True
+    workspace_path: Optional[str] = Field(None, min_length=1, max_length=4096)
+    user_query_raw: Optional[str] = Field(None, max_length=32768)
+    conversation_ref: Optional[str] = Field(None, min_length=1, max_length=512)
+    messages: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class QueryPlanResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    config: DebugConfigSnapshot
+    query_message: dict[str, Any]
+    transparency_events: list[dict[str, Any]]
+    system_prompt: str
+    prompt_messages: list[dict[str, Any]]
+    canonical_tool_schemas: list[dict[str, Any]]
+    provider_tool_schemas: list[dict[str, Any]]
+    user_message_full: Optional[DebugUserMessageFullModel] = None
+    prompt_token_count: Optional[int] = None
+    token_count_error: Optional[str] = None

@@ -471,6 +471,7 @@ Current scope:
 - per-tool capability metadata
 - rendered system prompt
 - prompt preview including the full user-message transparency payload
+- query-plan preview including the first-turn `query` envelope shape and transparency events
 
 ### GET `/api/sdk/models`
 
@@ -581,6 +582,97 @@ Notes:
 - `prompt_messages` is the model-facing message list after repo-instruction injection and prompt construction.
 - `user_message_full` mirrors the transparency payload emitted on the first agent iteration.
 - `prompt_token_count` is best-effort; if token counting fails, `token_count_error` is populated instead.
+
+### POST `/api/sdk/query-plan`
+
+Build a first-turn SDK planning snapshot without executing the agent loop.
+
+This route is a transport-facing companion to `prompt-preview`. It returns:
+
+- a planned `query_message` shape that mirrors the WebSocket `query` envelope payload a client would send
+- the ordered first-turn transparency events a client should expect before normal model streaming
+- the same prompt/system/tool preview metadata exposed by `prompt-preview`
+
+**Request**:
+```json
+{
+  "user_query_raw": "open file",
+  "conversation_ref": "conv_sdk",
+  "workspace_path": "/absolute/workspace/path",
+  "include_tools": true,
+  "messages": [
+    {
+      "role": "user",
+      "content": "<system_context><active_window>Terminal</active_window></system_context>\n<user_query>open file</user_query>"
+    }
+  ]
+}
+```
+
+**Response**:
+```json
+{
+  "config": {
+    "model_mode": "online",
+    "model_provider": "openai",
+    "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
+    "interaction_mode": "agent"
+  },
+  "query_message": {
+    "type": "query",
+    "payload": {
+      "text": "open file",
+      "conversation_ref": "conv_sdk",
+      "workspace_path": "/absolute/workspace/path"
+    }
+  },
+  "transparency_events": [
+    {
+      "type": "system-prompt",
+      "payload": {
+        "content": "You are a helpful assistant..."
+      }
+    },
+    {
+      "type": "user-message-full",
+      "payload": {
+        "content": "<system_context>...</system_context>\n<user_query>open file</user_query>",
+        "metadata": {
+          "original_query": "open file",
+          "context_type": "initial",
+          "injected_context": "<system_context>...</system_context>",
+          "active_window": "Terminal"
+        }
+      }
+    },
+    {
+      "type": "tool-schemas",
+      "payload": {
+        "tool_schemas": [
+          {
+            "type": "function",
+            "name": "read_file",
+            "parameters": { "type": "object" }
+          }
+        ]
+      }
+    }
+  ],
+  "system_prompt": "You are a helpful assistant...",
+  "prompt_messages": [],
+  "canonical_tool_schemas": [],
+  "provider_tool_schemas": [],
+  "user_message_full": null,
+  "prompt_token_count": 1234,
+  "token_count_error": null
+}
+```
+
+Notes:
+
+- `query_message` is a client-planning preview and is not automatically dispatched.
+- `transparency_events` uses the same event types and payload shape the backend emits on the first agent iteration.
+- `tool-schemas` in `transparency_events` is the canonical transparency payload, while `provider_tool_schemas` remains the provider-projected model-facing tool list.
 
 ## HTTP Endpoints (Runs / VM Control)
 

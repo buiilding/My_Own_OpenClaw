@@ -1,6 +1,7 @@
 import {
   WindieSdkClient,
   type SdkPromptPreviewRequest,
+  type SdkQueryPlanRequest,
 } from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
 
 class FakeWebSocket {
@@ -139,6 +140,65 @@ describe('WindieSdkClient', () => {
     expect(response.prompt_token_count).toBe(42);
     expect(mockFetch).toHaveBeenCalledWith(
       'https://api.windieos.com/api/sdk/prompt-preview',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }),
+    );
+  });
+
+  test('posts query plan payloads and returns first-turn transparency planning data', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({
+      config: {
+        model_mode: 'online',
+        model_provider: 'openai',
+        selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
+        interaction_mode: 'agent',
+      },
+      query_message: {
+        type: 'query',
+        payload: {
+          text: 'open file',
+          conversation_ref: 'conv-sdk',
+        },
+      },
+      transparency_events: [
+        { type: 'system-prompt', payload: { content: 'prompt' } },
+        { type: 'tool-schemas', payload: { tool_schemas: [] } },
+      ],
+      system_prompt: 'prompt',
+      prompt_messages: [],
+      canonical_tool_schemas: [],
+      provider_tool_schemas: [],
+      user_message_full: null,
+      prompt_token_count: 42,
+      token_count_error: null,
+    }));
+
+    const payload: SdkQueryPlanRequest = {
+      user_query_raw: 'open file',
+      conversation_ref: 'conv-sdk',
+      messages: [],
+    };
+
+    const client = new WindieSdkClient({
+      httpBaseUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+    });
+
+    const response = await client.queryPlan(payload);
+
+    expect(response.query_message).toEqual({
+      type: 'query',
+      payload: {
+        text: 'open file',
+        conversation_ref: 'conv-sdk',
+      },
+    });
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://api.windieos.com/api/sdk/query-plan',
       expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

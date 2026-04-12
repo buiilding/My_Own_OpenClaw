@@ -22,6 +22,7 @@ try:
     from backend.src.api.routes.sdk.models import (
         BoundingBoxModel,
         PromptPreviewRequest,
+        QueryPlanRequest,
         ImageSourceInput,
         OcrInspectRequest,
         OcrCandidateRequest,
@@ -599,3 +600,41 @@ async def test_sdk_debug_prompt_preview_returns_prompt_transparency_payloads(tmp
     assert response.user_message_full.metadata.active_window == "Terminal"
     assert any(schema.get("name") == "read_file" for schema in response.canonical_tool_schemas)
     assert response.prompt_token_count is not None or response.token_count_error is not None
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_query_plan_returns_query_and_transparency_payloads(tmp_path) -> None:
+    container = _container(tmp_path)
+
+    response = await sdk_routes.sdk_debug_query_plan(
+        QueryPlanRequest(
+            messages=[
+                {
+                    "role": "user",
+                    "content": (
+                        "<system_context><active_window>Terminal</active_window></system_context>\n"
+                        "<user_query>open file</user_query>"
+                    ),
+                }
+            ],
+            user_query_raw="open file",
+            conversation_ref="conv-sdk",
+            workspace_path="/tmp/workspace",
+            include_tools=True,
+        ),
+        container=container,
+        session_manager=_FakeSessionManager(),
+    )
+
+    assert response.query_message["type"] == "query"
+    assert response.query_message["payload"]["text"] == "open file"
+    assert response.query_message["payload"]["conversation_ref"] == "conv-sdk"
+    assert response.query_message["payload"]["workspace_path"] == "/tmp/workspace"
+    assert [event["type"] for event in response.transparency_events] == [
+        "system-prompt",
+        "user-message-full",
+        "tool-schemas",
+    ]
+    assert response.transparency_events[2]["payload"]["tool_schemas"]
+    assert response.user_message_full is not None
+    assert response.user_message_full.metadata.original_query == "open file"
