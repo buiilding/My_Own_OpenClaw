@@ -133,6 +133,42 @@ function collapseMainWindowToChatPill({
   mainWindow.setFullScreen(false);
 }
 
+function hideMainWindowWithoutChatPill({
+  mainWindow,
+  platform = process.platform,
+}) {
+  const finishHide = () => {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      return;
+    }
+    mainWindow.hide();
+  };
+
+  const shouldExitFullscreenFirst = (
+    platform === 'darwin'
+    && typeof mainWindow?.isFullScreen === 'function'
+    && mainWindow.isFullScreen()
+    && typeof mainWindow.setFullScreen === 'function'
+    && typeof mainWindow.once === 'function'
+  );
+
+  if (!shouldExitFullscreenFirst) {
+    finishHide();
+    return;
+  }
+
+  if (mainWindow.__windiePendingHideWithoutChatPill) {
+    return;
+  }
+
+  mainWindow.__windiePendingHideWithoutChatPill = true;
+  mainWindow.once('leave-full-screen', () => {
+    mainWindow.__windiePendingHideWithoutChatPill = false;
+    finishHide();
+  });
+  mainWindow.setFullScreen(false);
+}
+
 function createMainWindow({
   BrowserWindow,
   path,
@@ -156,6 +192,7 @@ function createMainWindow({
   initializeMainProcessIpc,
   getLatestFrontendConfig,
   getWindows,
+  getMainWindowSurfaceTarget = () => 'dashboard',
   setMainWindow,
   syncWindowDisplayAffinity = () => {},
   resolveAppIconPath = resolveAppIconPathRuntime,
@@ -221,6 +258,19 @@ function createMainWindow({
   }
 
   mainWindow.on('close', (event) => {
+    const mainWindowSurfaceTarget = typeof getMainWindowSurfaceTarget === 'function'
+      ? getMainWindowSurfaceTarget()
+      : 'dashboard';
+
+    if (!app.isQuitting && mainWindowSurfaceTarget === 'onboarding') {
+      event.preventDefault();
+      hideMainWindowWithoutChatPill({
+        mainWindow,
+        platform,
+      });
+      return false;
+    }
+
     if (minimizeToTrayOnClose && !app.isQuitting) {
       event.preventDefault();
       collapseMainWindowToChatPill({
@@ -480,6 +530,7 @@ module.exports = {
   createTray,
   emitMainWindowOpenTarget,
   enableContentProtectionSafely,
+  hideMainWindowWithoutChatPill,
   normalizeMainWindowOpenTarget,
   prepareOverlayQueryCaptureFocus,
 };

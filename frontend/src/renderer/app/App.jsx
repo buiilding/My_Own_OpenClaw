@@ -18,6 +18,18 @@ import '../styles/CloneMemoryModels.css';
 import '../styles/FrontendOnboarding.css';
 import '../styles/accessibility.css';
 
+function isMacOsRendererPlatform() {
+  if (typeof navigator !== 'object' || navigator == null) {
+    return false;
+  }
+  const userAgentDataPlatform = navigator.userAgentData?.platform;
+  if (typeof userAgentDataPlatform === 'string' && /mac/i.test(userAgentDataPlatform)) {
+    return true;
+  }
+  const navigatorPlatform = navigator.platform;
+  return typeof navigatorPlatform === 'string' && /mac/i.test(navigatorPlatform);
+}
+
 /**
  * Content wrapper that has access to AppContext
  */
@@ -28,6 +40,7 @@ function AppContent() {
   const needsOnboarding = usePermissionStore((state) => state.needsOnboarding);
   const onboardingCompleted = usePermissionStore((state) => state.onboardingState?.completed === true);
   const lastAppliedStartupSurfaceRef = useRef(null);
+  const isMacOs = isMacOsRendererPlatform();
   const startupSurface = selectStartupSurface({
     vmModeEnabled,
     bootstrapped,
@@ -51,7 +64,8 @@ function AppContent() {
         if (startupSurface === 'onboarding') {
           await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
             focus: true,
-            maximize: true,
+            maximize: !isMacOs,
+            open: 'onboarding',
           });
           return;
         }
@@ -63,7 +77,7 @@ function AppContent() {
     }
 
     void applyStartupSurface();
-  }, [startupSurface]);
+  }, [isMacOs, startupSurface]);
 
   if (startupSurface === 'dashboard-vm') {
     return (
@@ -79,6 +93,7 @@ function AppContent() {
   if (startupSurface === 'onboarding') {
     return (
       <FrontendOnboardingSlideshow
+        allowWindowMaximize={!isMacOs}
         stopAgentShortcutLabel={getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)}
       />
     );

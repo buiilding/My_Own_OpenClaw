@@ -6,6 +6,7 @@ function MainWindowControls({
   onToggleMaximize,
   onClose,
   className = '',
+  showMaximize = true,
 }) {
   const containerClassName = ['chat-window-controls', className]
     .filter(Boolean)
@@ -22,15 +23,17 @@ function MainWindowControls({
       >
         <Minus size={14} strokeWidth={2.2} />
       </button>
-      <button
-        type="button"
-        className="chat-window-control-btn chat-window-control-maximize"
-        aria-label="Toggle maximize window"
-        title="Maximize or restore"
-        onClick={onToggleMaximize}
-      >
-        <Square size={11} strokeWidth={2.2} />
-      </button>
+      {showMaximize ? (
+        <button
+          type="button"
+          className="chat-window-control-btn chat-window-control-maximize"
+          aria-label="Toggle maximize window"
+          title="Maximize or restore"
+          onClick={onToggleMaximize}
+        >
+          <Square size={11} strokeWidth={2.2} />
+        </button>
+      ) : null}
       <button
         type="button"
         className="chat-window-control-btn chat-window-control-close"
@@ -49,6 +52,7 @@ MainWindowControls.propTypes = {
   onToggleMaximize: PropTypes.func,
   onClose: PropTypes.func,
   className: PropTypes.string,
+  showMaximize: PropTypes.bool,
 };
 
 export default MainWindowControls;

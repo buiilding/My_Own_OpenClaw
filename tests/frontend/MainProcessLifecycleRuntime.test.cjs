@@ -377,6 +377,27 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     expect(deps.showMainWindow).not.toHaveBeenCalled();
   });
 
+  test('activate restores onboarding in the main window when onboarding was hidden', async () => {
+    const visibleWindows = [{ id: 'hidden-main' }];
+    const hiddenMainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+    };
+    const { deps, appEvents } = createRuntimeDeps({
+      BrowserWindow: { getAllWindows: jest.fn(() => visibleWindows) },
+      getMainWindow: jest.fn(() => hiddenMainWindow),
+      getMainWindowSurfaceTarget: jest.fn(() => 'onboarding'),
+    });
+
+    initializeMainProcessLifecycleRuntime(deps);
+    await flushPromises();
+
+    appEvents.activate();
+
+    expect(deps.showMainWindow).toHaveBeenCalledWith({ focus: true, open: 'onboarding' });
+    expect(deps.showChatWindow).not.toHaveBeenCalled();
+  });
+
   test('vm mode does not prevent window-all-closed default behavior', async () => {
     const { deps, appEvents } = createRuntimeDeps({
       vmMode: true,

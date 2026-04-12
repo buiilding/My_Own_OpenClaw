@@ -57,6 +57,7 @@ function createSurfaceRuntime({
     responseOverlayPhase: 'idle',
     chatVisualAnchorHeight: initialChatVisualAnchorHeight,
     chatboxHitTestActive: false,
+    mainWindowSurfaceTarget: 'dashboard',
   };
 
   function getWindows() {
@@ -234,6 +235,7 @@ function createSurfaceRuntime({
   }
 
   function showChatWindow(options = {}) {
+    state.mainWindowSurfaceTarget = 'chat';
     return showChatWindowRuntime(normalizeChatSurfaceWindowOptions(options), {
       chatWindow: state.chatWindow,
       mainWindow: state.mainWindow,
@@ -276,7 +278,9 @@ function createSurfaceRuntime({
   }
 
   function showMainWindow(options = {}) {
-    return showMainWindowRuntime(normalizeMainSurfaceWindowOptions(options), {
+    const normalizedOptions = normalizeMainSurfaceWindowOptions(options);
+    state.mainWindowSurfaceTarget = normalizedOptions.open || 'dashboard';
+    return showMainWindowRuntime(normalizedOptions, {
       mainWindow: state.mainWindow,
       chatWindow: state.chatWindow,
       responseWindow: state.responseWindow,
@@ -287,6 +291,10 @@ function createSurfaceRuntime({
       hideChatWindow,
       activateWindowForInteraction: windowPlatformPolicy.activateWindowForInteraction,
     });
+  }
+
+  function getMainWindowSurfaceTarget() {
+    return state.mainWindowSurfaceTarget;
   }
 
   function normalizeMainWindowOpenTarget(options = {}) {
@@ -357,6 +365,7 @@ function createSurfaceRuntime({
     getChatWindow: () => state.chatWindow,
     getContextLabelWindow: () => state.contextLabelWindow,
     getMainWindow: () => state.mainWindow,
+    getMainWindowSurfaceTarget,
     getResponseWindow: () => state.responseWindow,
     getState,
     getWindows,

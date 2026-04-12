@@ -247,6 +247,20 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(screen.getByText('Permission 1 of 5')).toBeInTheDocument();
   });
 
+  test('can hide the maximize control for onboarding-specific main-window behavior', () => {
+    render(
+      <FrontendOnboardingSlideshow
+        allowWindowMaximize={false}
+        onComplete={jest.fn()}
+        stopAgentShortcutLabel="Ctrl + Shift + Esc"
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Minimize window' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Toggle maximize window' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Close window' })).toBeInTheDocument();
+  });
+
   test('renders long macOS stop shortcuts as separate keycaps', () => {
     render(
       <FrontendOnboardingSlideshow
