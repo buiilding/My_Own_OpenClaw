@@ -4,12 +4,30 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FRONTEND_DIR="${ROOT_DIR}/frontend"
 BUNDLE_ID="${WINDIE_BUNDLE_ID:-com.windieos.desktop}"
-BUNDLE_IDS=(
+DEFAULT_BUNDLE_IDS=(
   "${BUNDLE_ID}"
   "${BUNDLE_ID}.helper"
   "${BUNDLE_ID}.helper.Renderer"
   "${BUNDLE_ID}.helper.GPU"
   "${BUNDLE_ID}.helper.Plugin"
+)
+TCC_SERVICES=(
+  All
+  ScreenCapture
+  Accessibility
+  Microphone
+  Camera
+  AppleEvents
+  AppManagement
+  SystemPolicyAllFiles
+)
+NOTARIZATION_ENV_VARS=(
+  APPLE_ID
+  APPLE_APP_SPECIFIC_PASSWORD
+  APPLE_TEAM_ID
+  APPLE_API_KEY
+  APPLE_API_KEY_ID
+  APPLE_API_ISSUER
 )
 APP_NAME="${WINDIE_APP_NAME:-WindieOS.app}"
 APP_INSTALL_PATH="/Applications/${APP_NAME}"
@@ -24,14 +42,7 @@ SAVED_STATE_DIR="${HOME}/Library/Saved Application State/${BUNDLE_ID}.savedState
 LOG_FILE="${WINDIE_LOG_FILE:-${HOME}/windieos-packaged-run.log}"
 SIDECAR_LOG_LEVEL="${WINDIE_SIDECAR_LOG_LEVEL:-ERROR}"
 PYTHON_BUILD="${WINDIE_PYTHON_BUILD:-}"
-MOUNT_POINT=""
 TAIL_PID=""
-
-cleanup_mount() {
-  if [[ -n "${MOUNT_POINT}" ]]; then
-    hdiutil detach "${MOUNT_POINT}" >/dev/null 2>&1 || true
-  fi
-}
 
 cleanup_tail() {
   if [[ -n "${TAIL_PID}" ]]; then
@@ -42,10 +53,60 @@ cleanup_tail() {
 
 cleanup() {
   cleanup_tail
-  cleanup_mount
 }
 
 trap cleanup EXIT
+
+run_frontend_local_build_cmd() {
+  "${ROOT_DIR}/scripts/python-in-env" frontend env \
+    -u APPLE_ID \
+    -u APPLE_APP_SPECIFIC_PASSWORD \
+    -u APPLE_TEAM_ID \
+    -u APPLE_API_KEY \
+    -u APPLE_API_KEY_ID \
+    -u APPLE_API_ISSUER \
+    WINDIE_PYTHON_BUILD="${PYTHON_BUILD}" \
+    "$@"
+}
+
+collect_existing_install_paths() {
+  shopt -s nullglob
+  local install_candidates=(
+    "${APP_INSTALL_PATH}"
+    /Applications/WindieOS.app.pre-*
+    /Applications/WindieOS.app.pre-codex-*
+    /Applications/WindieOS.app.pre-test-*
+  )
+  shopt -u nullglob
+  printf '%s\n' "${install_candidates[@]}"
+}
+
+collect_windie_bundle_ids() {
+  {
+    printf '%s\n' "${DEFAULT_BUNDLE_IDS[@]}"
+
+    while IFS= read -r app_path; do
+      [[ -d "${app_path}" ]] || continue
+
+      while IFS= read -r plist_path; do
+        /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "${plist_path}" 2>/dev/null || true
+      done < <(find "${app_path}" -path '*/Contents/Info.plist' -print)
+    done < <(collect_existing_install_paths)
+  } | sed '/^[[:space:]]*$/d' | sort -u
+}
+
+reset_windie_tcc_permissions() {
+  local bundle_id
+  local service
+
+  while IFS= read -r bundle_id; do
+    [[ -n "${bundle_id}" ]] || continue
+    echo "[reinstall-windieos-macos] resetting TCC grants for ${bundle_id}"
+    for service in "${TCC_SERVICES[@]}"; do
+      tccutil reset "${service}" "${bundle_id}" >/dev/null 2>&1 || true
+    done
+  done < <(collect_windie_bundle_ids)
+}
 
 echo "[reinstall-windieos-macos] repo=${ROOT_DIR}"
 echo "[reinstall-windieos-macos] frontend=${FRONTEND_DIR}"
@@ -54,6 +115,7 @@ echo "[reinstall-windieos-macos] app_install_path=${APP_INSTALL_PATH}"
 echo "[reinstall-windieos-macos] user_data_dir=${USER_DATA_DIR}"
 echo "[reinstall-windieos-macos] log_file=${LOG_FILE}"
 echo "[reinstall-windieos-macos] sidecar_log_level=${SIDECAR_LOG_LEVEL}"
+echo "[reinstall-windieos-macos] local reinstall skips Apple notarization and ignores: ${NOTARIZATION_ENV_VARS[*]}"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "[reinstall-windieos-macos] ERROR: this script only supports macOS" >&2
@@ -80,12 +142,8 @@ echo "[reinstall-windieos-macos] stopping running WindieOS processes"
 pkill -f "${APP_INSTALL_PATH}/Contents/MacOS/WindieOS" || true
 pkill -f '/WindieOS.app/Contents/MacOS/WindieOS' || true
 
-echo "[reinstall-windieos-macos] resetting macOS privacy permissions for WindieOS bundles"
-for bundle in "${BUNDLE_IDS[@]}"; do
-  for service in All ScreenCapture Accessibility Microphone AppleEvents AppManagement; do
-    tccutil reset "${service}" "${bundle}" >/dev/null 2>&1 || true
-  done
-done
+echo "[reinstall-windieos-macos] resetting all known macOS privacy permissions for prior WindieOS installs"
+reset_windie_tcc_permissions
 
 echo "[reinstall-windieos-macos] removing old installed copies and local app state"
 shopt -s nullglob
@@ -95,10 +153,10 @@ old_installs=(
   /Applications/WindieOS.app.pre-codex-*
   /Applications/WindieOS.app.pre-test-*
 )
+shopt -u nullglob
 if (( ${#old_installs[@]} > 0 )); then
   rm -rf "${old_installs[@]}"
 fi
-shopt -u nullglob
 
 rm -rf \
   "${USER_DATA_DIR}" \
@@ -118,27 +176,17 @@ rm -rf \
   "${FRONTEND_DIR}/python-runtime" \
   "${FRONTEND_DIR}/python-runtime.tar.gz"
 
-echo "[reinstall-windieos-macos] building fresh macOS package"
-"${ROOT_DIR}/scripts/python-in-env" frontend env \
-  WINDIE_PYTHON_BUILD="${PYTHON_BUILD}" \
-  npm --prefix "${FRONTEND_DIR}" run package:mac:bundled-python
+echo "[reinstall-windieos-macos] building fresh local macOS app bundle (no Apple notarization)"
+run_frontend_local_build_cmd npm --prefix "${FRONTEND_DIR}" run build:sidecar-runtime
+run_frontend_local_build_cmd npm --prefix "${FRONTEND_DIR}" run build
+run_frontend_local_build_cmd \
+  "${FRONTEND_DIR}/node_modules/.bin/electron-builder" \
+  --config electron-builder.bundled-python.yml \
+  --mac dir
 
-DMG_PATH="$(ls -t "${FRONTEND_DIR}"/release/WindieOS-*-arm64.dmg 2>/dev/null | head -n 1)"
-if [[ -z "${DMG_PATH}" || ! -f "${DMG_PATH}" ]]; then
-  echo "[reinstall-windieos-macos] ERROR: no macOS DMG found under ${FRONTEND_DIR}/release" >&2
-  exit 1
-fi
-
-echo "[reinstall-windieos-macos] mounting ${DMG_PATH}"
-MOUNT_POINT="$(hdiutil attach "${DMG_PATH}" -nobrowse | awk '/\/Volumes\// { print substr($0, index($0, "/Volumes/")); exit }')"
-if [[ -z "${MOUNT_POINT}" ]]; then
-  echo "[reinstall-windieos-macos] ERROR: failed to mount ${DMG_PATH}" >&2
-  exit 1
-fi
-
-APP_SOURCE_PATH="$(find "${MOUNT_POINT}" -maxdepth 1 -name '*.app' -print -quit)"
-if [[ -z "${APP_SOURCE_PATH}" || ! -d "${APP_SOURCE_PATH}" ]]; then
-  echo "[reinstall-windieos-macos] ERROR: failed to locate app bundle inside ${MOUNT_POINT}" >&2
+APP_SOURCE_PATH="${FRONTEND_DIR}/release/mac-arm64/${APP_NAME}"
+if [[ ! -d "${APP_SOURCE_PATH}" ]]; then
+  echo "[reinstall-windieos-macos] ERROR: failed to locate built app bundle at ${APP_SOURCE_PATH}" >&2
   exit 1
 fi
 
