@@ -20,10 +20,7 @@ const {
 } = require('./permission_service_microphone.cjs');
 const {
   probeSystemEventsAutomation,
-  probeAppManagement,
   requestSystemEventsAutomationPermission,
-  requestAppManagementPermission,
-  verifyAppManagementCapability,
 } = require('./permission_service_automation.cjs');
 const {
   probeFilesystemWorkspaceAccess,
@@ -45,12 +42,9 @@ const PROBE_HANDLERS = Object.freeze({
   input_control_accessibility: probeInputControl,
   system_events_automation: probeSystemEventsAutomation,
   microphone: probeMicrophone,
-  app_management: probeAppManagement,
   filesystem_workspace_access: probeFilesystemWorkspaceAccess,
   shell_execution: probeShellExecution,
-  browser_automation: (permission, deps) => probeBrowserAutomation(permission, deps, {
-    verifyAppManagementCapability,
-  }),
+  browser_automation: probeBrowserAutomation,
 });
 
 async function runPermissionProbe(permissionId, deps = {}) {
@@ -93,14 +87,11 @@ const REQUEST_HANDLERS = Object.freeze({
   microphone: (permission, deps) => requestMicrophonePermission(permission, deps, {
     rerunProbe: runPermissionProbe,
   }),
-  app_management: requestAppManagementPermission,
   filesystem_workspace_access: (permission, deps) => requestFilesystemWorkspaceAccessPermission(permission, deps, {
     rerunProbe: runPermissionProbe,
   }),
   shell_execution: requestShellExecutionPermission,
-  browser_automation: (permission, deps) => requestBrowserAutomationPermission(permission, deps, {
-    verifyAppManagementCapability,
-  }),
+  browser_automation: requestBrowserAutomationPermission,
 });
 
 async function requestPermission(permissionId, deps = {}) {

@@ -369,7 +369,7 @@ describe('SettingsSection', () => {
       granted: false,
       reason: 'WindieOS could not open the browser yet. Retry Open browser.',
       details: {
-        remediation: 'Use the App Management onboarding step first, then retry Open browser.',
+        remediation: 'Retry Open browser after checking that the WindieOS browser runtime is installed and available.',
       },
     });
 
@@ -378,7 +378,7 @@ describe('SettingsSection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Open Windie Browser' }));
 
     expect(await screen.findByText('WindieOS could not open the browser yet. Retry Open browser.')).toBeInTheDocument();
-    expect(screen.getByText('Use the App Management onboarding step first, then retry Open browser.')).toBeInTheDocument();
+    expect(screen.getByText('Retry Open browser after checking that the WindieOS browser runtime is installed and available.')).toBeInTheDocument();
     expect(mockAppConfigContext.updateConfig).not.toHaveBeenCalledWith({
       browser_automation_enabled: true,
     });

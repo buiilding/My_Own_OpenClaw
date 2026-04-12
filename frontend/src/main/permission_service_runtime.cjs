@@ -60,7 +60,6 @@ function resolveOnboardingVisibility(permission, platform = process.platform) {
     case 'input_control_accessibility':
       return normalizedPlatform === 'macos' ? 'required' : 'settings';
     case 'system_events_automation':
-    case 'app_management':
     case 'filesystem_workspace_access':
       return 'required';
     case 'microphone':
