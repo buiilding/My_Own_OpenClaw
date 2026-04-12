@@ -665,6 +665,7 @@ async function warmBrowserAutomation() {
       tool_name: 'browser',
       args: {
         action: 'connect',
+        explanation: 'Open the WindieOS browser for onboarding and profile setup.',
       },
     },
     { timeoutMs: 120000 },
