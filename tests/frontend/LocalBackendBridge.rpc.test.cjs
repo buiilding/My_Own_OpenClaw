@@ -61,6 +61,24 @@ describe('local_backend_bridge RPC handlers', () => {
     expect(result).toEqual({ success: true, data: { value: 1 } });
   });
 
+  test('browser warmup sends a valid connect payload with explanation', async () => {
+    const { bridge, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = bridge.warmBrowserAutomation();
+
+    expectLastRequestWith('execute_tool', {
+      tool_name: 'browser',
+      args: {
+        action: 'connect',
+        explanation: 'Open the WindieOS browser for onboarding and profile setup.',
+      },
+    });
+
+    emitRpcResult(stdoutHandler, { success: true, data: { connected: true } });
+    await expect(promise).resolves.toEqual({ success: true, data: { success: true, data: { connected: true } } });
+  });
+
   test('execute-tool handles large JSON-RPC stdout lines', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
