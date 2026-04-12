@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- fix(frontend-chatbox-copy): update the minimal chat pill composer placeholder to say `Ask me to do anything...` and align the focused overlay tests with the new wording.
 - fix(frontend-macos-screen-capture-registration): attempt a real desktop-capture request before opening macOS Screen Recording settings so WindieOS gets registered into the privacy list after a fresh TCC reset, and keep the onboarding Screen capture button in a visible `Waiting...` state while the app polls for the external OS grant.
 - fix(frontend-macos-screen-capture-settings-link): restore the onboarding Screen capture `Grant` action on macOS by reopening the Screen Recording settings pane when TCC access is still missing, then keeping the real screenshot verification path for already-granted access so the button no longer appears to do nothing.
 - fix(macos-release): add the hardened-runtime JIT entitlements required by the signed Electron app so the DMG-mounted macOS build no longer aborts at startup with `Failed to reserve virtual memory for CodeRange`, and tighten the local macOS package smoke helper to fail on crashy `--version` launches while also checking the mounted-DMG app path that users can click before dragging into Applications.

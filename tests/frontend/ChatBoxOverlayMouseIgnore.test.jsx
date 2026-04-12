@@ -417,7 +417,7 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(screen.getByRole('button', { name: 'Hide chat pill' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Toggle auto screenshot' })).toBeDisabled();
-    expect(screen.getByPlaceholderText('Ask me anything...')).toBeDisabled();
+    expect(screen.getByPlaceholderText('Ask me to do anything...')).toBeDisabled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Open config' }));
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'show-main-window')).toBe(false);
@@ -456,7 +456,7 @@ describe('ChatBox overlay mouse ignore', () => {
     setWindowScreenPosition(90, 90);
 
     render(<ChatBox />);
-    const input = screen.getByPlaceholderText('Ask me anything...');
+    const input = screen.getByPlaceholderText('Ask me to do anything...');
 
     fireEvent.mouseDown(input, { button: 0, clientX: 10, clientY: 10, screenX: 100, screenY: 100 });
     fireEvent.mouseMove(window, { clientX: 34, clientY: 30, screenX: 140, screenY: 130 });
@@ -495,14 +495,14 @@ describe('ChatBox overlay mouse ignore', () => {
 
   test('auto-focuses input on mount', () => {
     render(<ChatBox />);
-    const input = screen.getByPlaceholderText('Ask me anything...');
+    const input = screen.getByPlaceholderText('Ask me to do anything...');
 
     expect(document.activeElement).toBe(input);
   });
 
   test('responds only to explicit chatbox-focus events and ignores generic window focus churn', () => {
     render(<ChatBox />);
-    const input = screen.getByPlaceholderText('Ask me anything...');
+    const input = screen.getByPlaceholderText('Ask me to do anything...');
 
     input.blur();
     fireEvent.focus(window);
@@ -517,7 +517,7 @@ describe('ChatBox overlay mouse ignore', () => {
   test('does not focus input from chatbox-focus while loop interaction is locked', async () => {
     const { container } = render(<ChatBox />);
     emitOverlayPhase('tool-call');
-    const input = screen.getByPlaceholderText('Ask me anything...');
+    const input = screen.getByPlaceholderText('Ask me to do anything...');
     await waitFor(() => {
       const shellWrap = container.querySelector('.chatbox-shell-wrap');
       expect(shellWrap?.classList.contains('loop-active')).toBe(true);
@@ -550,7 +550,7 @@ describe('ChatBox overlay mouse ignore', () => {
 
   test('send button dispatches message and clears input', async () => {
     render(<ChatBox />);
-    const input = screen.getByPlaceholderText('Ask me anything...');
+    const input = screen.getByPlaceholderText('Ask me to do anything...');
     fireEvent.change(input, { target: { value: 'hello world' } });
     const sendButton = screen.getByRole('button', { name: 'Send message' });
 
@@ -564,7 +564,7 @@ describe('ChatBox overlay mouse ignore', () => {
 
   test('Enter sends while Shift+Enter keeps multiline content in the pill composer', async () => {
     render(<ChatBox />);
-    const input = screen.getByPlaceholderText('Ask me anything...');
+    const input = screen.getByPlaceholderText('Ask me to do anything...');
 
     fireEvent.change(input, { target: { value: 'line one', selectionStart: 8 } });
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: true });
@@ -581,7 +581,7 @@ describe('ChatBox overlay mouse ignore', () => {
 
   test('accepts pasted images and sends them through the shared outgoing payload contract', async () => {
     render(<ChatBox />);
-    const input = screen.getByPlaceholderText('Ask me anything...');
+    const input = screen.getByPlaceholderText('Ask me to do anything...');
 
     await act(async () => {
       fireEvent.paste(input, buildImagePasteEvent());
