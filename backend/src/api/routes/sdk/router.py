@@ -16,6 +16,9 @@ from backend.src.api.routes.sdk.models import (
     DebugSystemPromptResponse,
     DebugToolCapabilitiesResponse,
     DebugToolSchemasResponse,
+    OcrInspectRequest,
+    OcrInspectResponse,
+    OcrResolutionErrorModel,
     OcrCandidateRequest,
     OcrFindTextResponse,
     OcrOverlayRequest,
@@ -44,6 +47,7 @@ from backend.src.api.routes.sdk.service import (
     build_ocr_results,
     build_vision_locate_all_response,
     build_vision_locate_response,
+    build_ocr_resolution_error,
     crop_image_source,
     describe_image_region,
     get_debug_tool_capabilities,
@@ -74,6 +78,80 @@ async def sdk_ocr_run(
     return OcrRunResponse(
         image=build_image_metadata(source),
         results=build_ocr_results(ocr_results, source_id=source.source_id),
+    )
+
+
+@router.post("/ocr/inspect", response_model=OcrInspectResponse)
+async def sdk_ocr_inspect(
+    request: Request,
+    payload: OcrInspectRequest,
+    container: ContainerDep,
+) -> OcrInspectResponse:
+    source = resolve_image_source(payload.image, container)
+    ocr_results = await run_ocr(source, container)
+    results = build_ocr_results(ocr_results, source_id=source.source_id)
+
+    ranked_matches = []
+    accepted_matches = []
+    resolved_match = None
+    resolution_error = None
+
+    if payload.text:
+        ranked_matches = rank_ocr_matches(
+            payload.text,
+            ocr_results,
+            source_id=source.source_id,
+        )[: payload.max_results]
+        accepted_matches = [
+            match
+            for match in ranked_matches
+            if float(match.score or 0.0) >= payload.threshold
+        ]
+        try:
+            x, y = OcrCoordinateResolver.resolve(
+                payload.text,
+                ocr_results,
+                threshold=payload.threshold,
+                screenshot_id=source.source_id,
+            )
+            resolved_match = next(
+                (
+                    candidate
+                    for candidate in ranked_matches
+                    if candidate.center is not None
+                    and candidate.center.x == x
+                    and candidate.center.y == y
+                ),
+                None,
+            )
+        except Exception as exc:
+            status_code, detail = build_ocr_resolution_error(exc)
+            resolution_error = OcrResolutionErrorModel(
+                status_code=status_code,
+                detail=detail,
+            )
+
+    overlay = None
+    if payload.include_overlay:
+        overlay_rows = accepted_matches if payload.text else results[: payload.max_results]
+        overlay = render_ocr_overlay_response(
+            request=request,
+            container=container,
+            source=source,
+            rows=overlay_rows,
+            show_labels=payload.show_labels,
+        )
+
+    return OcrInspectResponse(
+        image=build_image_metadata(source),
+        query=payload.text,
+        threshold=payload.threshold,
+        results=results,
+        ranked_matches=ranked_matches,
+        accepted_matches=accepted_matches,
+        resolved_match=resolved_match,
+        resolution_error=resolution_error,
+        overlay=overlay,
     )
 
 

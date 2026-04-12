@@ -276,6 +276,41 @@ Run OCR on the provided image and return normalized OCR rows.
 }
 ```
 
+### POST `/api/sdk/ocr/inspect`
+
+Return an OCR observability bundle for developer SDK consumers.
+
+This route is meant to extend the existing OCR SDK surface rather than create a
+separate debugging subsystem. It combines:
+
+- normalized OCR rows
+- ranked fuzzy matches for a query
+- accepted matches above threshold
+- single-target resolution result when possible
+- structured resolution error when resolution fails
+- optional saved overlay artifact
+
+**Request**:
+```json
+{
+  "image": { "artifact_id": "shot.png" },
+  "text": "Search Amazon",
+  "threshold": 0.8,
+  "max_results": 10,
+  "include_overlay": true,
+  "show_labels": true
+}
+```
+
+**Response notes**:
+
+- `results`: all normalized OCR rows
+- `ranked_matches`: top fuzzy matches for `text`
+- `accepted_matches`: matches whose score meets `threshold`
+- `resolved_match`: the single resolved target when disambiguation succeeds
+- `resolution_error`: structured `status_code` plus `detail` when single-target resolution fails
+- `overlay`: optional saved artifact when `include_overlay=true`
+
 ### POST `/api/sdk/ocr/find-text`
 
 Return OCR rows whose fuzzy match score meets the requested threshold.
