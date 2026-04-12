@@ -19,6 +19,7 @@ All notable changes to WindieOS will be documented in this file.
 - refactor(frontend-onboarding-surface-state): split main-window mode (`onboarding|dashboard`) from the app’s primary surface (`onboarding|dashboard|chat`) so onboarding lifecycle behavior no longer depends on dashboard open-target state, and keep onboarding out of the maximize/fullscreen path entirely.
 
 ### Added
+- docs(agents-layout): move WindieOS architecture and product context above the general coding and workflow instructions so the repo description is grouped together at the top of `AGENTS.md`.
 - docs(agents-testing-policy): require behavior changes to update docs and refresh automated coverage for the changed path, regressions, and realistic in-scope edge and failure cases.
 - feat(backend-agents-md-context): resolve applicable `AGENTS.md` files from the active workspace up to the repo root at prompt-build time, inject them as Codex-style contextual user messages ahead of the real turn, propagate workspace path into session prompt state, and count that injected context in backend history-compaction token budgeting; add focused backend coverage and docs for the new prompt contract.
 - test(backend-agents-md-context): add direct unit coverage for `repo_instructions.py` so git-root walking, non-repo fallback, blank instructions, and file-path workspace normalization are validated without depending only on prompt-constructor tests.
