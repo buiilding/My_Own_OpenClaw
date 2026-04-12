@@ -296,6 +296,72 @@ describe('WindieSdkClient', () => {
     });
   });
 
+  test('collects a full agent trace until streaming-complete', async () => {
+    const client = new WindieSdkClient({
+      httpBaseUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      defaultOperatingSystem: 'macOS',
+    });
+
+    const tracePromise = client.agent.traceQuery(
+      {},
+      {
+        text: 'Summarize this file',
+        conversationRef: 'conv-trace',
+      },
+    );
+
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(JSON.parse(socket.sent[0])).toMatchObject({
+      type: 'handshake',
+      user_id: 'dev-user',
+      operating_system: 'macOS',
+    });
+    expect(JSON.parse(socket.sent[1])).toMatchObject({
+      type: 'query',
+      payload: {
+        text: 'Summarize this file',
+        conversation_ref: 'conv-trace',
+      },
+    });
+
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'tool-schemas',
+        payload: {
+          tool_schemas: [{ type: 'function', name: 'read_file', parameters: { type: 'object' } }],
+        },
+      }),
+    });
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'streaming-response',
+        payload: { text: 'partial' },
+      }),
+    });
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'streaming-complete',
+        payload: { final_response: 'done' },
+      }),
+    });
+
+    const trace = await tracePromise;
+
+    expect(trace.finalResponse).toBe('done');
+    expect(trace.events.map(event => event.type)).toEqual([
+      'tool-schemas',
+      'streaming-response',
+      'streaming-complete',
+    ]);
+    expect(trace.queryMessageId).toBe(JSON.parse(socket.sent[1]).id);
+  });
+
   test('requires an explicit user id when no default is configured', async () => {
     const client = new WindieSdkClient({
       httpBaseUrl: 'https://api.windieos.com',
