@@ -85,7 +85,7 @@ const WAKEWORD_HOTKEY = process.platform === 'win32'
   ? 'CommandOrControl+Alt+W'
   : 'Super+Alt+W';
 const MAIN_WINDOW_OPEN_TARGET_CHANNEL = 'main-window-open-target';
-const MAIN_WINDOW_OPEN_TARGETS = new Set(['chat', 'memory', 'models', 'settings']);
+const MAIN_WINDOW_OPEN_TARGETS = new Set(['chat', 'memory', 'models', 'onboarding', 'settings']);
 const CONTEXT_LABEL_WIDTH = 280;
 const CONTEXT_LABEL_HEIGHT = 26;
 const CONTEXT_LABEL_OFFSET_X = 14;
@@ -200,6 +200,7 @@ const {
   enableContentProtectionSafely: surfaceRuntime.enableContentProtectionSafely,
   applyOverlayWindowPolicy: surfaceRuntime.applyOverlayWindowPolicy,
   syncWindowDisplayAffinity: surfaceRuntime.syncWindowDisplayAffinity,
+  getMainWindowSurfaceTarget: surfaceRuntime.getMainWindowSurfaceTarget,
   getState: surfaceRuntime.getState,
   setMainWindow: surfaceRuntime.setMainWindow,
   setChatWindow: surfaceRuntime.setChatWindow,
@@ -264,6 +265,8 @@ initializeMainProcessLifecycleRuntime({
   hideChatWindow: surfaceRuntime.hideChatWindow,
   showChatWindow: surfaceRuntime.showChatWindow,
   showMainWindow: surfaceRuntime.showMainWindow,
+  getMainWindow: surfaceRuntime.getMainWindow,
+  getMainWindowSurfaceTarget: surfaceRuntime.getMainWindowSurfaceTarget,
   getChatWindow: surfaceRuntime.getChatWindow,
   getResponseWindow: surfaceRuntime.getResponseWindow,
   stopLocalBackend,

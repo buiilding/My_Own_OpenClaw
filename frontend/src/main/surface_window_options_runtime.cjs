@@ -17,9 +17,13 @@ function normalizeChatSurfaceWindowOptions(options = {}) {
 }
 
 function normalizeMainSurfaceWindowOptions(options = {}) {
+  const open = typeof options?.open === 'string'
+    ? options.open.trim().toLowerCase()
+    : '';
   return {
     focus: options?.focus !== false,
     maximize: options?.maximize === true,
+    open,
     targetDisplayAffinity: normalizeTargetDisplayAffinity(options?.targetDisplayAffinity),
   };
 }

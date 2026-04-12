@@ -34,6 +34,7 @@ function createWindowBootstrapRuntime(deps) {
       initializeMainProcessIpc: deps.initializeMainProcessIpc,
       getLatestFrontendConfig: deps.getLatestFrontendConfig,
       getWindows: () => deps.getState().windows,
+      getMainWindowSurfaceTarget: deps.getMainWindowSurfaceTarget,
       setMainWindow: deps.setMainWindow,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
     });

@@ -9,7 +9,11 @@ import { buildOnboardingSlideState } from '../utils/onboardingSlides';
 import PermissionOnboardingSlide from './PermissionOnboardingSlide';
 import StopShortcutOnboardingSlide from './StopShortcutOnboardingSlide';
 
-function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
+function FrontendOnboardingSlideshow({
+  onComplete,
+  stopAgentShortcutLabel,
+  allowWindowMaximize = true,
+}) {
   const resolvedStopShortcutLabel = stopAgentShortcutLabel || getAgentStopShortcutLabel();
   const bootstrapped = usePermissionStore((state) => state.bootstrapped);
   const permissions = usePermissionStore((state) => state.permissions);
@@ -67,6 +71,7 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
           onMinimize={handleWindowMinimize}
           onToggleMaximize={handleWindowToggleMaximize}
           onClose={handleWindowClose}
+          showMaximize={allowWindowMaximize}
         />
       </div>
       <section
@@ -158,6 +163,7 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
 }
 
 FrontendOnboardingSlideshow.propTypes = {
+  allowWindowMaximize: PropTypes.bool,
   onComplete: PropTypes.func,
   stopAgentShortcutLabel: PropTypes.string,
 };

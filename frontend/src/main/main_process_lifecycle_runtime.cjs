@@ -126,6 +126,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     showChatWindow,
     showMainWindow,
     getMainWindow = () => null,
+    getMainWindowSurfaceTarget = () => 'dashboard',
     getChatWindow = () => null,
     getResponseWindow = () => null,
     installApplicationMenu = () => {},
@@ -173,6 +174,11 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
 
     if (mainWindowVisible) {
       showMainWindow({ focus: true });
+      return;
+    }
+
+    if (getMainWindowSurfaceTarget() === 'onboarding') {
+      showMainWindow({ focus: true, open: 'onboarding' });
       return;
     }
 

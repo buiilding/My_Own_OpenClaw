@@ -14,6 +14,7 @@ const {
   createResponseWindow,
   createTray,
   enableContentProtectionSafely,
+  hideMainWindowWithoutChatPill,
   prepareOverlayQueryCaptureFocus,
 } = require('../../frontend/src/main/main_window_runtime.cjs');
 
@@ -554,6 +555,7 @@ describe('main_window_runtime createMainWindow', () => {
       initializeMainProcessIpc: jest.fn(),
       getLatestFrontendConfig: jest.fn(),
       getWindows: jest.fn(() => ({ mainWindow })),
+      getMainWindowSurfaceTarget: jest.fn(() => 'dashboard'),
       setMainWindow: jest.fn(),
       enableContentProtectionSafely: jest.fn(),
       syncWindowDisplayAffinity: jest.fn(),
@@ -708,6 +710,22 @@ describe('main_window_runtime createMainWindow', () => {
     expect(mainWindow.hide).toHaveBeenCalledTimes(1);
     expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true });
   });
+
+  test('hides onboarding without restoring the chat pill on close', () => {
+    const { deps, handlers, mainWindow } = createDeps({
+      platform: 'darwin',
+      getMainWindowSurfaceTarget: jest.fn(() => 'onboarding'),
+    });
+    const closeEvent = { preventDefault: jest.fn() };
+
+    createMainWindow(deps);
+    handlers.close(closeEvent);
+
+    expect(closeEvent.preventDefault).toHaveBeenCalledTimes(1);
+    expect(mainWindow.hide).toHaveBeenCalledTimes(1);
+    expect(mainWindow.setFullScreen).not.toHaveBeenCalled();
+    expect(deps.showChatWindow).not.toHaveBeenCalled();
+  });
 });
 
 describe('main_window_runtime collapseMainWindowToChatPill', () => {
@@ -727,6 +745,23 @@ describe('main_window_runtime collapseMainWindowToChatPill', () => {
 
     expect(mainWindow.hide).toHaveBeenCalledTimes(1);
     expect(showChatWindow).toHaveBeenCalledWith({ focus: true });
+  });
+});
+
+describe('main_window_runtime hideMainWindowWithoutChatPill', () => {
+  test('hides immediately when the onboarding window is not in macOS fullscreen', () => {
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      hide: jest.fn(),
+      isFullScreen: jest.fn(() => false),
+    };
+
+    hideMainWindowWithoutChatPill({
+      mainWindow,
+      platform: 'darwin',
+    });
+
+    expect(mainWindow.hide).toHaveBeenCalledTimes(1);
   });
 });
 
