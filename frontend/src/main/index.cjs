@@ -53,6 +53,9 @@ const {
 const {
   createWindowBootstrapRuntime,
 } = require('./main_process_bootstrap_runtime.cjs');
+const {
+  focusWindowForPermissionPrompt,
+} = require('./main_window_controls_handler.cjs');
 const { initializeOverlayPhaseHandlersRuntime } = require('./overlay_phase_ipc_runtime.cjs');
 const { initializeWindowControlHandlersRuntime } = require('./window_controls_ipc_runtime.cjs');
 const { initializePermissionHandlersRuntime } = require('./permission_ipc_runtime.cjs');
@@ -319,30 +322,10 @@ function initializeMainProcessIpc() {
       userDataPath: getUserDataPath(),
       focusPermissionPromptWindow: async () => {
         const mainWindow = surfaceRuntime.getMainWindow();
-        if (!mainWindow || mainWindow.isDestroyed()) {
-          return {
-            success: false,
-            reason: 'Main window is unavailable.',
-          };
-        }
-
-        try {
-          if (mainWindow.isMinimized()) {
-            mainWindow.restore();
-          }
-          if (!mainWindow.isVisible()) {
-            mainWindow.show();
-          }
-          mainWindow.moveTop();
-          mainWindow.focus();
-          mainWindow.webContents?.focus();
-          return { success: true };
-        } catch (error) {
-          return {
-            success: false,
-            reason: error?.message || String(error),
-          };
-        }
+        return await focusWindowForPermissionPrompt({
+          mainWindow,
+          platform: process.platform,
+        });
       },
       requestRendererMicrophoneAccess: async () => {
         const mainWindow = surfaceRuntime.getMainWindow();

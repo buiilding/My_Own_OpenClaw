@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 const {
+  focusWindowForPermissionPrompt,
   handleWindowClose,
   handleWindowMinimize,
   handleWindowToggleMaximize,
@@ -14,12 +15,69 @@ describe('main_window_controls_handler', () => {
       close: jest.fn(),
       maximize: jest.fn(),
       unmaximize: jest.fn(),
+      restore: jest.fn(),
+      show: jest.fn(),
+      moveTop: jest.fn(),
+      focus: jest.fn(),
       setFullScreen: jest.fn(),
       isFullScreen: jest.fn().mockReturnValue(false),
+      isMinimized: jest.fn().mockReturnValue(false),
       isMaximized: jest.fn().mockReturnValue(false),
+      isVisible: jest.fn().mockReturnValue(true),
+      once: jest.fn(),
+      webContents: {
+        focus: jest.fn(),
+      },
       ...overrides,
     };
   }
+
+  test('focusWindowForPermissionPrompt exits macOS fullscreen before focusing the window', async () => {
+    let leaveFullScreenHandler = null;
+    const mainWindow = createWindow({
+      isFullScreen: jest.fn().mockReturnValue(true),
+      once: jest.fn((event, handler) => {
+        if (event === 'leave-full-screen') {
+          leaveFullScreenHandler = handler;
+        }
+      }),
+      setFullScreen: jest.fn(() => {
+        if (typeof leaveFullScreenHandler === 'function') {
+          leaveFullScreenHandler();
+        }
+      }),
+    });
+
+    const result = await focusWindowForPermissionPrompt({
+      mainWindow,
+      platform: 'darwin',
+    });
+
+    expect(mainWindow.setFullScreen).toHaveBeenCalledWith(false);
+    expect(mainWindow.moveTop).toHaveBeenCalledTimes(1);
+    expect(mainWindow.focus).toHaveBeenCalledTimes(1);
+    expect(mainWindow.webContents.focus).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({ success: true });
+  });
+
+  test('focusWindowForPermissionPrompt restores and shows the window when needed', async () => {
+    const mainWindow = createWindow({
+      isMinimized: jest.fn().mockReturnValue(true),
+      isVisible: jest.fn().mockReturnValue(false),
+    });
+
+    const result = await focusWindowForPermissionPrompt({
+      mainWindow,
+      platform: 'win32',
+    });
+
+    expect(mainWindow.restore).toHaveBeenCalledTimes(1);
+    expect(mainWindow.show).toHaveBeenCalledTimes(1);
+    expect(mainWindow.moveTop).toHaveBeenCalledTimes(1);
+    expect(mainWindow.focus).toHaveBeenCalledTimes(1);
+    expect(mainWindow.webContents.focus).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({ success: true });
+  });
 
   test('minimize returns unavailable result when main window is missing', () => {
     const result = handleWindowMinimize({ mainWindow: null });
