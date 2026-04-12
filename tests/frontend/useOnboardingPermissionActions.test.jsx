@@ -141,40 +141,4 @@ describe('useOnboardingPermissionActions', () => {
     expect(mockRunPermissionProbe).not.toHaveBeenCalled();
   });
 
-  test('retries app management on focus after opening macOS App Management settings', async () => {
-    mockRequestPermission
-      .mockResolvedValueOnce({
-        permission_id: 'app_management',
-        status: 'needs-action',
-        granted: false,
-        details: {
-          awaiting_external_grant: true,
-        },
-      })
-      .mockResolvedValueOnce({
-        permission_id: 'app_management',
-        status: 'granted',
-        granted: true,
-      });
-
-    render(React.createElement(HookHarness, { permissionId: 'app_management' }));
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'grant' }));
-      await Promise.resolve();
-    });
-
-    expect(mockRequestPermission).toHaveBeenCalledTimes(1);
-    expect(mockRequestPermission).toHaveBeenCalledWith('app_management');
-    expect(mockRunPermissionProbe).not.toHaveBeenCalled();
-    expect(screen.getByRole('button', { name: 'app_management' })).toBeInTheDocument();
-
-    await act(async () => {
-      window.dispatchEvent(new Event('focus'));
-      await Promise.resolve();
-    });
-
-    expect(mockRequestPermission).toHaveBeenCalledTimes(2);
-    expect(mockRunPermissionProbe).not.toHaveBeenCalled();
-  });
 });

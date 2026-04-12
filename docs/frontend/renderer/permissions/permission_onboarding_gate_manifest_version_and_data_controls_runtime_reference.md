@@ -109,9 +109,9 @@ Settings/Data controls still render the full permission list, including
 settings-only/runtime-check rows hidden from first-run onboarding on
 Windows/Linux.
 
-macOS browser onboarding includes a dedicated `app_management` step before
-`browser_automation` so users can approve the native Privacy & Security prompt
-before the browser-open action is offered.
+macOS browser onboarding opens directly on the `browser_automation` slide.
+There is no separate `app_management` onboarding step because WindieOS does not
+have a reliable standalone App Management registration/probe path to gate on.
 
 Permission request handling is split deliberately:
 

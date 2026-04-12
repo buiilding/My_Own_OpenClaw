@@ -9,9 +9,6 @@ const MACOS_INTERVAL_RECHECK_PERMISSION_IDS = new Set([
   'system_events_automation',
   'microphone',
 ]);
-const MACOS_FOCUS_RECHECK_PERMISSION_IDS = new Set([
-  'app_management',
-]);
 const PERMISSION_RECHECK_INTERVAL_MS = 1000;
 const PERMISSION_RECHECK_TIMEOUT_MS = 2 * 60 * 1000;
 
@@ -20,13 +17,7 @@ function shouldWatchExternalGrantCompletion(permissionId, status) {
     return false;
   }
   return (
-    (
-      MACOS_INTERVAL_RECHECK_PERMISSION_IDS.has(permissionId)
-      || (
-        MACOS_FOCUS_RECHECK_PERMISSION_IDS.has(permissionId)
-        && status?.details?.awaiting_external_grant === true
-      )
-    )
+    MACOS_INTERVAL_RECHECK_PERMISSION_IDS.has(permissionId)
     && status?.granted !== true
     && status?.status === 'needs-action'
   );
@@ -51,7 +42,6 @@ function stopWatchingPermission({
 
 async function recheckWatchedPermission({
   runPermissionProbe,
-  requestPermission,
   watchedPermissionIdRef,
   recheckDeadlineRef,
   recheckIntervalRef,
@@ -62,15 +52,9 @@ async function recheckWatchedPermission({
     return null;
   }
 
-  let status = null;
-  if (
-    MACOS_FOCUS_RECHECK_PERMISSION_IDS.has(permissionId)
-    && typeof requestPermission === 'function'
-  ) {
-    status = await requestPermission(permissionId);
-  } else if (typeof runPermissionProbe === 'function') {
-    status = await runPermissionProbe(permissionId);
-  }
+  const status = typeof runPermissionProbe === 'function'
+    ? await runPermissionProbe(permissionId)
+    : null;
   if (status?.granted === true || Date.now() >= recheckDeadlineRef.current) {
     stopWatchingPermission({
       watchedPermissionIdRef,
@@ -112,7 +96,6 @@ export function useOnboardingPermissionActions() {
       recheckIntervalRef.current = window.setInterval(() => {
         void recheckWatchedPermission({
           runPermissionProbe,
-          requestPermission,
           watchedPermissionIdRef,
           recheckIntervalRef,
           recheckDeadlineRef,
@@ -121,7 +104,6 @@ export function useOnboardingPermissionActions() {
       }, PERMISSION_RECHECK_INTERVAL_MS);
       void recheckWatchedPermission({
         runPermissionProbe,
-        requestPermission,
         watchedPermissionIdRef,
         recheckIntervalRef,
         recheckDeadlineRef,
@@ -141,7 +123,6 @@ export function useOnboardingPermissionActions() {
       }
       void recheckWatchedPermission({
         runPermissionProbe,
-        requestPermission,
         watchedPermissionIdRef,
         recheckIntervalRef,
         recheckDeadlineRef,
@@ -162,7 +143,7 @@ export function useOnboardingPermissionActions() {
         setWaitingPermissionId,
       });
     };
-  }, [requestPermission, runPermissionProbe]);
+  }, [runPermissionProbe]);
 
   async function handleGrantPermission(permissionId) {
     if (!permissionId) {

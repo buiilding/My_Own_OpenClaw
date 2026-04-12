@@ -1,12 +1,7 @@
 const {
   PERMISSION_STATUS,
   buildProbeResult,
-  getStoredPermissionEntry,
-  openExternal,
-  setStoredPermissionEntry,
 } = require('./permission_service_runtime.cjs');
-
-const MACOS_APP_MANAGEMENT_SETTINGS_URL = 'x-apple.systempreferences:com.apple.preference.security?Privacy_AppBundles';
 
 async function verifyMacOsSystemEventsAutomationPermission(deps = {}) {
   if (typeof deps.probeMacOsSystemEventsAutomationPermission !== 'function') {
@@ -74,55 +69,6 @@ async function requestMacOsSystemEventsAutomationPermission(deps = {}) {
   }
 }
 
-async function verifyAppManagementCapability(permissionId, deps = {}) {
-  const storedEntry = await getStoredPermissionEntry(permissionId, deps);
-  if (storedEntry?.granted === true) {
-    return {
-      granted: true,
-      reason: 'App Management access is configured for WindieOS.',
-      details: {
-        stored_entry: storedEntry,
-      },
-    };
-  }
-
-  return {
-    granted: false,
-    reason: (
-      'Allow App Management for WindieOS on macOS before opening the browser so '
-      + 'Privacy & Security does not block browser setup.'
-    ),
-    details: {
-      stored_entry: storedEntry,
-    },
-  };
-}
-
-function warmBrowserResultReachedGrantedState(warmResult = {}) {
-  if (!warmResult || warmResult.success !== true) {
-    return false;
-  }
-
-  const details = warmResult.details && typeof warmResult.details === 'object'
-    ? warmResult.details
-    : {};
-
-  if (
-    details.app_management_prompt_shown === true
-    || details.needs_app_management === true
-    || details.blocked_by_app_management === true
-    || details.awaiting_external_grant === true
-  ) {
-    return false;
-  }
-
-  return true;
-}
-
-async function openAppManagementSettings(deps = {}) {
-  return await openExternal(MACOS_APP_MANAGEMENT_SETTINGS_URL, deps);
-}
-
 async function probeSystemEventsAutomation(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
@@ -155,32 +101,6 @@ async function probeSystemEventsAutomation(permission, deps = {}) {
       ),
     },
   );
-}
-
-async function probeAppManagement(permission, deps = {}) {
-  const permissionId = permission.permission_id;
-  const platform = deps.platform || process.platform;
-
-  if (platform !== 'darwin') {
-    return buildProbeResult(permissionId, PERMISSION_STATUS.UNSUPPORTED, 'App Management applies only to macOS.', {
-      platform,
-      os_scope: permission.os_scope,
-    });
-  }
-
-  const capability = await verifyAppManagementCapability(permissionId, deps);
-  if (capability.granted) {
-    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, capability.reason, {
-      platform,
-      capability_check: capability,
-    });
-  }
-
-  return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, capability.reason, {
-    platform,
-    capability_check: capability,
-    remediation: 'When macOS opens App Management, enable WindieOS there before using Open browser.',
-  });
 }
 
 async function requestSystemEventsAutomationPermission(permission, deps = {}) {
@@ -217,76 +137,7 @@ async function requestSystemEventsAutomationPermission(permission, deps = {}) {
   );
 }
 
-async function requestAppManagementPermission(permission, deps = {}) {
-  const permissionId = permission.permission_id;
-  const platform = deps.platform || process.platform;
-
-  if (platform !== 'darwin') {
-    return buildProbeResult(permissionId, PERMISSION_STATUS.UNSUPPORTED, 'App Management applies only to macOS.', {
-      platform,
-      os_scope: permission.os_scope,
-    });
-  }
-
-  if (typeof deps.warmBrowserAutomationPermission !== 'function') {
-    const settingsResult = await openAppManagementSettings(deps);
-    return buildProbeResult(
-      permissionId,
-      PERMISSION_STATUS.NEEDS_ACTION,
-      settingsResult.success
-        ? 'Waiting for App Management access. Enable WindieOS in System Settings.'
-        : 'Open App Management settings and enable WindieOS.',
-      {
-        platform,
-        awaiting_external_grant: settingsResult.success === true,
-        settings_result: settingsResult,
-        remediation: 'Enable WindieOS in System Settings > Privacy & Security > App Management, then return to onboarding.',
-      },
-    );
-  }
-
-  const warmResult = await deps.warmBrowserAutomationPermission();
-  if (warmBrowserResultReachedGrantedState(warmResult)) {
-    await setStoredPermissionEntry(permissionId, {
-      granted: true,
-      source: 'os',
-      details: {
-        verification: warmResult.details && typeof warmResult.details === 'object'
-          ? warmResult.details
-          : {},
-      },
-    }, deps);
-
-    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'App Management access was granted during browser warmup.', {
-      platform,
-      verification: warmResult.details && typeof warmResult.details === 'object'
-        ? warmResult.details
-        : {},
-    });
-  }
-
-  const settingsResult = await openAppManagementSettings(deps);
-
-  return buildProbeResult(
-    permissionId,
-    PERMISSION_STATUS.NEEDS_ACTION,
-    settingsResult.success
-      ? 'Waiting for App Management access. Enable WindieOS in System Settings.'
-      : 'Open App Management settings and enable WindieOS.',
-    {
-      platform,
-      awaiting_external_grant: settingsResult.success === true,
-      verification: warmResult && typeof warmResult === 'object' ? (warmResult.details || warmResult) : {},
-      settings_result: settingsResult,
-      remediation: 'Enable WindieOS in System Settings > Privacy & Security > App Management, then return to onboarding and let WindieOS re-check.',
-    },
-  );
-}
-
 module.exports = {
-  probeAppManagement,
   probeSystemEventsAutomation,
-  requestAppManagementPermission,
   requestSystemEventsAutomationPermission,
-  verifyAppManagementCapability,
 };

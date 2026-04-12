@@ -129,29 +129,10 @@ async function requestBrowserInstallConsent(deps = {}) {
   }
 }
 
-async function probeBrowserAutomation(permission, deps = {}, services = {}) {
+async function probeBrowserAutomation(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
   const preferenceEnabled = getBrowserAutomationPreference(deps);
-  const verifyAppManagementCapability = typeof services.verifyAppManagementCapability === 'function'
-    ? services.verifyAppManagementCapability
-    : async () => ({ granted: true });
-
-  if (platform === 'darwin') {
-    const appManagementCapability = await verifyAppManagementCapability('app_management', deps);
-    if (!appManagementCapability.granted) {
-      return buildProbeResult(
-        permissionId,
-        PERMISSION_STATUS.NEEDS_ACTION,
-        'Allow App Management for WindieOS first, then open the browser.',
-        {
-          platform,
-          app_management: appManagementCapability,
-          browser_automation_enabled: preferenceEnabled,
-        },
-      );
-    }
-  }
   const capability = await verifyBrowserAutomationCapability(deps);
 
   if (!preferenceEnabled) {
@@ -192,30 +173,10 @@ async function probeBrowserAutomation(permission, deps = {}, services = {}) {
   );
 }
 
-async function requestBrowserAutomationPermission(permission, deps = {}, services = {}) {
+async function requestBrowserAutomationPermission(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
   const currentPreferenceEnabled = getBrowserAutomationPreference(deps);
-  const verifyAppManagementCapability = typeof services.verifyAppManagementCapability === 'function'
-    ? services.verifyAppManagementCapability
-    : async () => ({ granted: true });
-
-  if (platform === 'darwin') {
-    const appManagementCapability = await verifyAppManagementCapability('app_management', deps);
-    if (!appManagementCapability.granted) {
-      return buildProbeResult(
-        permissionId,
-        PERMISSION_STATUS.NEEDS_ACTION,
-        'Allow App Management for WindieOS before opening the browser.',
-        {
-          platform,
-          app_management: appManagementCapability,
-          browser_automation_enabled: currentPreferenceEnabled,
-          remediation: 'Use the App Management onboarding step first, then retry Open browser.',
-        },
-      );
-    }
-  }
   let capability = await verifyBrowserAutomationCapability(deps);
   let requestedPreferenceEnabled = currentPreferenceEnabled;
 
