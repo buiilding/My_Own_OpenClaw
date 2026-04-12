@@ -34,6 +34,52 @@ WindieOS is a desktop AI operator with persistent memory, terminal access, and c
   - `tests/new_frontend`
 - Docs: `docs/`
 
+## Tooling and Architecture Notes
+
+- Tools execute on the frontend Python sidecar
+- The backend owns the model-facing tool schema
+- The frontend tool schema is only for execution and is intentionally simpler
+- Frontend and sidecar must not import backend code for schema parity
+- The preferred parity mechanism is tests that verify they do not drift
+
+### Tool Schema Example
+
+- Backend may resolve OCR or higher-level tool intent
+- Frontend receives a simpler executable action
+
+Example:
+
+- backend resolves `click_ocr("file")`
+- frontend executes `click(100, 200)`
+
+## Product-Specific Notes
+
+### Minimal Chat Pill
+
+Linux double-flicker after screenshot was caused by overlay awaiting state not being latched across cross-window phase timing, plus a pre-hide show flash path.
+
+Stable fix contract:
+
+* use a hide-only collapse path with `hide-chatbox`
+* do not pre-hide with `show-chatbox`
+* latch awaiting indicator from shared `response-overlay-phase`
+
+  * `tool-call`
+  * `tool-output`
+  * `awaiting-first-chunk`
+* keep the latch through transient `idle`
+* clear the latch on:
+
+  * `streaming`
+  * `complete`
+  * `error`
+  * or when response content becomes visible
+* mount the typing indicator in a stable awaiting shell
+* do not animate awaiting-to-response transitions in the minimal pill loop
+* Linux is the only OS that should hide WindieOS overlay surfaces for screenshot capture and restore them after capture
+* Windows and macOS must not add capture-time hide/show for the minimal chat pill or response overlay
+* Windows and macOS should enable overlay `setContentProtection(true)` only during active loop phases (`awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`) and disable it again for idle and terminal phases
+
 ## Environment and Commands
 
 ### Baseline
@@ -204,24 +250,6 @@ Always mention:
 - Never edit `node_modules` or vendored dependency output
 - Dependency patching, overrides, or vendored changes require explicit approval
 
-## Tooling and Architecture Notes
-
-- Tools execute on the frontend Python sidecar
-- The backend owns the model-facing tool schema
-- The frontend tool schema is only for execution and is intentionally simpler
-- Frontend and sidecar must not import backend code for schema parity
-- The preferred parity mechanism is tests that verify they do not drift
-
-### Tool Schema Example
-
-- Backend may resolve OCR or higher-level tool intent
-- Frontend receives a simpler executable action
-
-Example:
-
-- backend resolves `click_ocr("file")`
-- frontend executes `click(100, 200)`
-
 ## Working Style
 
 - When answering questions, verify in code first
@@ -351,34 +379,6 @@ Quick refs:
 * `tmux attach -t codex-shell`
 * `tmux list-sessions`
 * `tmux kill-session -t codex-shell`
-
-## Product-Specific Notes
-
-### Minimal Chat Pill
-
-Linux double-flicker after screenshot was caused by overlay awaiting state not being latched across cross-window phase timing, plus a pre-hide show flash path.
-
-Stable fix contract:
-
-* use a hide-only collapse path with `hide-chatbox`
-* do not pre-hide with `show-chatbox`
-* latch awaiting indicator from shared `response-overlay-phase`
-
-  * `tool-call`
-  * `tool-output`
-  * `awaiting-first-chunk`
-* keep the latch through transient `idle`
-* clear the latch on:
-
-  * `streaming`
-  * `complete`
-  * `error`
-  * or when response content becomes visible
-* mount the typing indicator in a stable awaiting shell
-* do not animate awaiting-to-response transitions in the minimal pill loop
-* Linux is the only OS that should hide WindieOS overlay surfaces for screenshot capture and restore them after capture
-* Windows and macOS must not add capture-time hide/show for the minimal chat pill or response overlay
-* Windows and macOS should enable overlay `setContentProtection(true)` only during active loop phases (`awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`) and disable it again for idle and terminal phases
 
 ## Frontend Aesthetics
 
