@@ -20,6 +20,14 @@ The intended SDK split is:
 
 SDK consumers should not need to start a local backend process just to use hosted OCR or prediction routes.
 
+The repo now also includes a transport-only TypeScript SDK client wrapper in `frontend/src/renderer/infrastructure/api/windieSdkClient.ts`.
+That client talks only to the public backend surfaces documented here:
+
+- HTTP: `/api/artifacts/*`, `/api/sdk/*`
+- WebSocket: `/ws`
+
+It is intentionally separate from the renderer `ApiClient`, which is the Electron IPC bridge used by the desktop app itself.
+
 Backend message dispatch is handled by `MessageHandlerRegistry` in `backend/src/api/infrastructure/registry.py`.
 
 ## WebSocket Endpoint
@@ -227,6 +235,38 @@ The intended usage pattern is:
 4. use the returned bbox/center/candidate data to drive a local sidecar action if needed
 
 These routes are for hosted backend use. They are not meant to require SDK consumers to spin up a local backend process just to resolve OCR or prediction.
+
+### TypeScript Client Example
+
+```ts
+import { WindieSdkClient } from '../frontend/src/renderer/infrastructure/api/windieSdkClient';
+
+const sdk = new WindieSdkClient({
+  httpBaseUrl: 'https://api.windieos.com',
+  defaultUserId: 'dev-user',
+  defaultOperatingSystem: 'macOS',
+});
+
+const prompt = await sdk.systemPrompt();
+const toolSchemas = await sdk.toolSchemas();
+
+const inspect = await sdk.ocr.inspect({
+  image: { artifact_id: 'shot.png' },
+  text: 'Search Amazon',
+  include_overlay: true,
+});
+
+const session = await sdk.agent.connect();
+session.on('tool-schemas', event => {
+  console.log(event.payload?.tool_schemas);
+});
+
+await session.query({
+  text: 'Click the orange search button',
+  conversationRef: 'conv_123',
+  screenshotRef: 'shot.png',
+});
+```
 
 Shared image input shape:
 

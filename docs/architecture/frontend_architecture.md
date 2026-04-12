@@ -72,6 +72,7 @@ frontend/src/
 │   ├── features/dashboard                 # Sidebar, memory/models/settings/usage/search panels
 │   ├── features/voice                     # Voice mode + wakeword capture hooks
 │   └── infrastructure                     # API/IPC/transcript/tool-exec/audio services
+│       └── api/windieSdkClient.ts         # Developer-facing backend SDK transport wrapper for `/api/sdk/*`, `/api/artifacts/*`, and `/ws`
 └── landing/                               # Marketing/landing surface
 ```
 
@@ -82,6 +83,7 @@ Current runtime behavior also relies on these explicit seams:
 - **Main-process composition is split by role**: `frontend/src/main/index.cjs` composes `main_process_bootstrap_runtime.cjs` (window creation/bootstrap), `main_process_lifecycle_runtime.cjs` (ready/activate/quit), and `surface_runtime.cjs` (window ownership + overlay phase state).
 - **Local sidecar bridge is now split by ownership**: `local_backend_bridge.cjs` keeps process lifecycle + IPC registration, `local_backend_bridge_request_transport.cjs` owns JSON-RPC request correlation/timeouts, and `local_backend_bridge_execute_tool_runtime.cjs` owns execute-tool routing plus screenshot-specific attachment handling.
 - **Renderer browser-session control is now runtime-backed**: renderer-side browser session UX should read local-backend readiness from the shared IPC status surface and consume shared browser-session/local-backend runtime stores rather than issuing ad hoc per-component browser polling directly from UI components. `localBackendStatusStore` owns the initial `get-local-backend-status` bootstrap plus `local-backend-status` event subscription, while `browserSessionStore` owns browser status sync, tab normalization, and shared polling cadence for all subscribers.
+- **Renderer now has two distinct API clients by boundary**: `renderer/infrastructure/api/client.ts` remains the app-internal Electron IPC bridge for the desktop product, while `renderer/infrastructure/api/windieSdkClient.ts` is a direct HTTP/WebSocket wrapper over the public backend SDK surface for developer-facing transport and observability use.
 - **Permission runtime is split by capability domain**: `permission_service.cjs` remains the public API surface, while focused domain modules own screen capture, accessibility/input control, microphone, automation/app-management, workspace/shell, and browser setup flows.
 - **Global stop shortcut is a dedicated runtime**: `frontend/src/main/agent_stop_shortcut_runtime.cjs` owns per-platform accelerator normalization, fallback registration, and phase gating; `ipc.cjs` projects runtime status back to renderer config/status flows.
 - **VM worker mode is runtime-flagged and run-API backed**: `runtime_mode.cjs` controls `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE` behavior, while `vm_worker_runtime.cjs` polls and relays `/api/runs/*` assignments/events over backend HTTP + existing websocket event observer hooks.
