@@ -325,6 +325,16 @@ export type WindieAgentQueryInput = {
   workspacePath?: string | null;
 };
 
+export type WindieAgentTrace = {
+  queryMessageId: string;
+  events: BackendEvent[];
+  finalResponse?: string | null;
+  error?: {
+    message?: string;
+    content?: string | null;
+  } | null;
+};
+
 type WindieAgentEventMap = {
   open: void;
   close: { code?: number; reason?: string; wasClean?: boolean };
@@ -655,6 +665,10 @@ export class WindieSdkClient {
 
   readonly agent = {
     connect: async (options?: WindieAgentConnectOptions): Promise<WindieAgentSession> => this.connectAgent(options),
+    traceQuery: async (
+      connectOptions: WindieAgentConnectOptions,
+      query: WindieAgentQueryInput,
+    ): Promise<WindieAgentTrace> => this.traceQuery(connectOptions, query),
   };
 
   constructor(options: WindieSdkClientOptions) {
@@ -702,6 +716,80 @@ export class WindieSdkClient {
     });
     await session.waitForOpen();
     return session;
+  }
+
+  async traceQuery(
+    connectOptions: WindieAgentConnectOptions,
+    query: WindieAgentQueryInput,
+  ): Promise<WindieAgentTrace> {
+    const session = await this.connectAgent(connectOptions);
+    return new Promise<WindieAgentTrace>((resolve, reject) => {
+      let settled = false;
+      let queryMessageId = '';
+      const events: BackendEvent[] = [];
+
+      const cleanup = () => {
+        unsubscribers.forEach(unsubscribe => unsubscribe());
+      };
+
+      const finish = (result: WindieAgentTrace) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        cleanup();
+        session.close();
+        resolve(result);
+      };
+
+      const fail = (error: unknown) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        cleanup();
+        session.close();
+        reject(error instanceof Error ? error : new Error(String(error)));
+      };
+
+      const unsubscribers = [
+        session.on('event', event => {
+          events.push(event);
+          if (event.type === 'streaming-complete') {
+            finish({
+              queryMessageId,
+              events,
+              finalResponse: event.payload?.final_response ?? null,
+            });
+            return;
+          }
+          if (event.type === 'error') {
+            finish({
+              queryMessageId,
+              events,
+              error: {
+                message: event.payload?.message,
+                content: event.payload?.content ?? null,
+              },
+            });
+          }
+        }),
+        session.on('socket-error', error => {
+          fail(error);
+        }),
+        session.on('close', payload => {
+          if (!settled) {
+            fail(new Error(`Windie agent session closed before terminal event (${payload.code ?? 'unknown'})`));
+          }
+        }),
+      ];
+
+      session.query(query)
+        .then(id => {
+          queryMessageId = id;
+        })
+        .catch(fail);
+    });
   }
 
   artifactUrl(artifactId: string): string {

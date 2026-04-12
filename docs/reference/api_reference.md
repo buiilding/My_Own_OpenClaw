@@ -266,6 +266,11 @@ await session.query({
   conversationRef: 'conv_123',
   screenshotRef: 'shot.png',
 });
+
+const trace = await sdk.agent.traceQuery(
+  { userId: 'dev-user', operatingSystem: 'macOS' },
+  { text: 'Inspect the repo state', conversationRef: 'conv_trace' },
+);
 ```
 
 Shared image input shape:
