@@ -382,6 +382,131 @@ Describe the full image or an optional cropped region for automation/debugging. 
 Render predicted points and/or regions onto the source image and save the overlay as an artifact.
 This is intended for SDK inspectors and debugging tools.
 
+## HTTP Endpoints (SDK Debug / Introspection)
+
+These routes expose backend-owned debug and introspection state for developer SDK consumers.
+They are meant for backend-aware debugging tools and local developer workflows that need to inspect
+what the backend would send to the model without relying on the customer-facing frontend.
+
+Current scope:
+
+- effective model/config snapshot
+- discovered model catalog
+- canonical tool schemas and provider-projected tool schemas
+- per-tool capability metadata
+- rendered system prompt
+- prompt preview including the full user-message transparency payload
+
+### GET `/api/sdk/debug/models`
+
+Return the current model catalog plus the effective config snapshot used for the request.
+
+Optional query params:
+
+- `user_id`: use the active session config for that user when available
+- `model_id`: override `selected_model_id` in the response snapshot
+- `model_provider`: override `model_provider` in the response snapshot
+- `interaction_mode`: override `interaction_mode` in the response snapshot
+
+### GET `/api/sdk/debug/tool-schemas`
+
+Return both:
+
+- `canonical_tool_schemas`: backend canonical flat tool specs before provider projection
+- `provider_tool_schemas`: model-facing tool specs after provider-specific projection/filtering
+
+This is useful because the backend currently has both internal canonical tool objects and
+provider-facing projected tool payloads in play.
+
+### GET `/api/sdk/debug/tool-capabilities/{tool_name}`
+
+Return:
+
+- backend capability metadata for one tool
+- that tool’s canonical schema when available
+- that tool’s provider-facing projected schema when available
+
+If a provider projection rewrites multiple backend tools into a shared declaration
+(for example OpenAI native `computer` projection), `provider_tool_schema` may be `null`
+for the individual logical tool.
+
+### GET `/api/sdk/debug/system-prompt`
+
+Return the rendered backend system prompt plus the effective config snapshot used to resolve it.
+
+### POST `/api/sdk/debug/prompt-preview`
+
+Build a backend prompt preview without executing the agent loop.
+
+**Request**:
+```json
+{
+  "user_id": "optional-session-user",
+  "model_id": "optional-model-override",
+  "model_provider": "optional-provider-override",
+  "interaction_mode": "agent",
+  "include_tools": true,
+  "workspace_path": "/absolute/workspace/path",
+  "user_query_raw": "open file",
+  "messages": [
+    {
+      "role": "user",
+      "content": "<system_context><active_window>Terminal</active_window></system_context>\n<user_query>open file</user_query>"
+    }
+  ]
+}
+```
+
+**Response**:
+```json
+{
+  "config": {
+    "model_mode": "online",
+    "model_provider": "openai",
+    "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
+    "interaction_mode": "agent"
+  },
+  "system_prompt": "You are a helpful assistant...",
+  "prompt_messages": [
+    {
+      "role": "user",
+      "content": "<system_context>...</system_context>\n<user_query>open file</user_query>"
+    }
+  ],
+  "canonical_tool_schemas": [
+    {
+      "type": "function",
+      "name": "read_file",
+      "parameters": { "type": "object" }
+    }
+  ],
+  "provider_tool_schemas": [
+    {
+      "type": "function",
+      "name": "read_file",
+      "parameters": { "type": "object" }
+    }
+  ],
+  "user_message_full": {
+    "content": "<system_context>...</system_context>\n<user_query>open file</user_query>",
+    "metadata": {
+      "original_query": "open file",
+      "context_type": "initial",
+      "injected_context": "<system_context>...</system_context>",
+      "active_window": "Terminal"
+    }
+  },
+  "prompt_token_count": 1234,
+  "token_count_error": null
+}
+```
+
+Notes:
+
+- `prompt_messages` is the model-facing message list after repo-instruction injection and prompt construction.
+- `user_message_full` mirrors the transparency payload emitted on the first agent iteration.
+- `prompt_token_count` is best-effort; if token counting fails, `token_count_error` is populated instead.
+
 ## HTTP Endpoints (Runs / VM Control)
 
 These endpoints provide a hosted control-plane contract for web dashboards that drive VM-backed Windie execution.

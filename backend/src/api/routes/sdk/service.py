@@ -1,4 +1,4 @@
-"""Service helpers for SDK-facing OCR and vision routes."""
+"""Service helpers for SDK-facing OCR, vision, and debug routes."""
 
 from __future__ import annotations
 
@@ -21,6 +21,9 @@ from backend.src.agent.tools.preparation.coordinate_resolution.resolvers import 
 )
 from backend.src.api.routes.sdk.models import (
     BoundingBoxModel,
+    DebugConfigSnapshot,
+    DebugUserMessageFullMetadataModel,
+    DebugUserMessageFullModel,
     ImageMetadataModel,
     ImageSourceInput,
     OcrResultModel,
@@ -30,6 +33,12 @@ from backend.src.api.routes.sdk.models import (
     VisionLocateResponse,
     VisionTargetModel,
 )
+from backend.src.core.types.enums import MessageType
+from backend.src.llm.prompts.prompt_constructor import PromptConstructor
+from backend.src.llm.prompts.prompts import PromptManager
+from backend.src.tools.provider_projection import project_tool_schemas_for_provider
+from backend.src.tools.tool_policy import ToolPolicy
+from backend.src.tools.tool_specs import get_tool_spec_name
 from backend.src.services.artifacts import ArtifactStore
 from backend.src.services.ocr.helpers import decode_screenshot_payload
 
@@ -41,6 +50,65 @@ _DEFAULT_POINT_COLOR = "#1677ff"
 
 
 @dataclass(frozen=True)
+class _PreviewStoredQuery:
+    user_query_raw: str
+
+
+@dataclass(frozen=True)
+class _PreviewStoredMessage:
+    message_type: str
+
+
+class PromptPreviewHistory:
+    """Minimal stored-history adapter for prompt preview introspection."""
+
+    def __init__(
+        self,
+        messages: list[dict[str, Any]],
+        *,
+        user_query_raw: Optional[str] = None,
+    ) -> None:
+        self._history = [message for message in messages if isinstance(message, dict)]
+        inferred_query = user_query_raw or self._infer_last_user_query_raw(self._history)
+        self.last_user_query = (
+            _PreviewStoredQuery(inferred_query)
+            if isinstance(inferred_query, str)
+            else None
+        )
+        self._stored_messages = [
+            _PreviewStoredMessage(message_type=MessageType.USER_QUERY)
+            for message in self._history
+            if self._contains_user_query(message)
+        ]
+
+    def get_history(self) -> list[dict[str, Any]]:
+        return list(self._history)
+
+    def get_stored_messages(self) -> list[_PreviewStoredMessage]:
+        return list(self._stored_messages)
+
+    @staticmethod
+    def _contains_user_query(message: dict[str, Any]) -> bool:
+        if str(message.get("role") or "").strip() != "user":
+            return False
+        content = message.get("content")
+        return isinstance(content, str) and "<user_query>" in content
+
+    @staticmethod
+    def _infer_last_user_query_raw(messages: list[dict[str, Any]]) -> Optional[str]:
+        for message in reversed(messages):
+            if str(message.get("role") or "").strip() != "user":
+                continue
+            content = message.get("content")
+            if isinstance(content, str):
+                match = re.search(r"<user_query>(.*?)</user_query>", content, re.DOTALL)
+                if match:
+                    return match.group(1).strip()
+                return content.strip()
+        return None
+
+
+@dataclass(frozen=True)
 class ResolvedImageSource:
     image_bytes: bytes
     image_base64: str
@@ -49,6 +117,218 @@ class ResolvedImageSource:
     source_id: str
     width: int
     height: int
+
+
+def resolve_effective_debug_config(
+    *,
+    container,
+    session_manager,
+    user_id: Optional[str] = None,
+    model_id: Optional[str] = None,
+    model_provider: Optional[str] = None,
+    interaction_mode: Optional[str] = None,
+):
+    """Resolve the effective debug config from session/global config plus overrides."""
+    base_config = container.config
+    if user_id and session_manager is not None:
+        session = session_manager.get_session(user_id)
+        if session is not None and getattr(session, "cfg", None) is not None:
+            base_config = session.cfg
+
+    updates: dict[str, Any] = {}
+    if isinstance(model_id, str) and model_id.strip():
+        updates["selected_model_id"] = model_id.strip()
+    if isinstance(model_provider, str) and model_provider.strip():
+        updates["model_provider"] = model_provider.strip()
+    if isinstance(interaction_mode, str) and interaction_mode.strip():
+        updates["interaction_mode"] = interaction_mode.strip()
+
+    if not updates:
+        return base_config
+    return base_config.model_copy(update=updates)
+
+
+def build_debug_config_snapshot(config: Any) -> DebugConfigSnapshot:
+    return DebugConfigSnapshot(
+        model_mode=str(getattr(config, "model_mode", "")),
+        model_provider=str(getattr(config, "model_provider", "")),
+        selected_model_id=str(getattr(config, "selected_model_id", "")),
+        interaction_mode=str(getattr(config, "interaction_mode", "")),
+    )
+
+
+def _get_model_service(container):
+    model_service = getattr(container, "model_service", None)
+    if model_service is None:
+        raise HTTPException(status_code=503, detail="Model service not available")
+    return model_service
+
+
+def _get_tool_registry(container):
+    tool_registry = getattr(container, "tool_registry", None)
+    if tool_registry is None:
+        raise HTTPException(status_code=503, detail="Tool registry not available")
+    return tool_registry
+
+
+def build_debug_tool_schemas(
+    *,
+    config: Any,
+    container,
+    prompt_messages: Optional[list[dict[str, Any]]] = None,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Return filtered canonical tool specs plus provider-projected tool specs."""
+    tool_registry = _get_tool_registry(container)
+    tool_policy = ToolPolicy.from_config(config)
+
+    model_tool_names_getter = getattr(tool_registry, "get_model_tool_names", None)
+    if callable(model_tool_names_getter):
+        filtered_names = tool_policy.filter_tool_names(
+            model_tool_names_getter(),
+            normalize_wrappers=False,
+        )
+        canonical_tool_schemas = (
+            tool_registry.get_function_declarations_filtered(filtered_names) or []
+        )
+    else:
+        canonical_tool_schemas = tool_registry.get_function_declarations() or []
+
+    canonical_tool_schemas = tool_policy.filter_tool_schemas(canonical_tool_schemas)
+    provider_tool_schemas = project_tool_schemas_for_provider(
+        tool_schemas=canonical_tool_schemas,
+        tool_registry=tool_registry,
+        config=config,
+        prompt_messages=prompt_messages,
+    )
+    provider_tool_schemas = tool_policy.filter_projected_tool_schemas(
+        provider_tool_schemas
+    )
+    return canonical_tool_schemas, provider_tool_schemas
+
+
+def build_prompt_constructor(*, config: Any, container) -> PromptConstructor:
+    PromptManager().initialize()
+    return PromptConstructor(
+        tool_registry=_get_tool_registry(container),
+        config=config,
+    )
+
+
+def build_debug_user_message_full(
+    preview_history: PromptPreviewHistory,
+    prompt_messages: list[dict[str, Any]],
+    constructor: PromptConstructor,
+) -> Optional[DebugUserMessageFullModel]:
+    metadata = constructor._build_user_message_metadata(  # noqa: SLF001
+        preview_history,
+        prompt_messages,
+    )
+    if metadata is None:
+        return None
+    return DebugUserMessageFullModel(
+        content=metadata.full_content,
+        metadata=DebugUserMessageFullMetadataModel(
+            original_query=metadata.original_query,
+            context_type=metadata.context_type,
+            injected_context=metadata.injected_context,
+            active_window=metadata.active_window or "Unknown",
+        ),
+    )
+
+
+async def list_debug_models(*, config: Any, container) -> list[dict[str, Any]]:
+    _ = config
+    model_service = _get_model_service(container)
+    models = await model_service.get_all_models()
+    if not isinstance(models, list):
+        raise HTTPException(
+            status_code=502,
+            detail="Model service returned an invalid catalog",
+        )
+    return [model for model in models if isinstance(model, dict)]
+
+
+def get_debug_tool_capabilities(
+    *,
+    tool_name: str,
+    config: Any,
+    container,
+) -> tuple[dict[str, Any], Optional[dict[str, Any]], Optional[dict[str, Any]]]:
+    tool_registry = _get_tool_registry(container)
+    capabilities = tool_registry.get_tool_capabilities(tool_name)
+    if capabilities is None:
+        raise HTTPException(status_code=404, detail="Tool not found")
+
+    canonical_tool_schemas, provider_tool_schemas = build_debug_tool_schemas(
+        config=config,
+        container=container,
+    )
+    canonical_tool_schema = next(
+        (
+            schema
+            for schema in canonical_tool_schemas
+            if get_tool_spec_name(schema) == tool_name
+        ),
+        None,
+    )
+    provider_tool_schema = next(
+        (
+            schema
+            for schema in provider_tool_schemas
+            if get_tool_spec_name(schema) == tool_name
+        ),
+        None,
+    )
+    return capabilities, canonical_tool_schema, provider_tool_schema
+
+
+def build_prompt_preview(
+    *,
+    config: Any,
+    container,
+    messages: list[dict[str, Any]],
+    user_query_raw: Optional[str],
+    include_tools: bool,
+    workspace_path: Optional[str],
+) -> dict[str, Any]:
+    preview_history = PromptPreviewHistory(messages, user_query_raw=user_query_raw)
+    constructor = build_prompt_constructor(config=config, container=container)
+    if isinstance(workspace_path, str) and workspace_path.strip():
+        constructor.workspace_path = workspace_path.strip()
+
+    prompt_messages, _, _ = constructor.build_prompt(
+        preview_history,
+        include_tools=include_tools,
+    )
+    canonical_tool_schemas, provider_tool_schemas = build_debug_tool_schemas(
+        config=config,
+        container=container,
+        prompt_messages=prompt_messages,
+    )
+
+    prompt_token_count: Optional[int] = None
+    token_count_error: Optional[str] = None
+    try:
+        prompt_token_count = constructor.get_prompt_token_count(
+            preview_history,
+            model_id=str(getattr(config, "selected_model_id", "")),
+        )
+    except Exception as exc:
+        token_count_error = str(exc)
+
+    return {
+        "system_prompt": constructor.system_prompt,
+        "prompt_messages": prompt_messages,
+        "canonical_tool_schemas": canonical_tool_schemas if include_tools else [],
+        "provider_tool_schemas": provider_tool_schemas if include_tools else [],
+        "user_message_full": build_debug_user_message_full(
+            preview_history,
+            prompt_messages,
+            constructor,
+        ),
+        "prompt_token_count": prompt_token_count,
+        "token_count_error": token_count_error,
+    }
 
 
 def _artifact_store(container) -> ArtifactStore:

@@ -3,14 +3,19 @@
 from __future__ import annotations
 
 import logging
+from typing import Literal, Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 
 from backend.src.agent.tools.preparation.coordinate_resolution.resolvers import (
     OcrCoordinateResolver,
 )
-from backend.src.api.deps import ContainerDep
+from backend.src.api.deps import ContainerDep, SessionManagerDep
 from backend.src.api.routes.sdk.models import (
+    DebugModelsResponse,
+    DebugSystemPromptResponse,
+    DebugToolCapabilitiesResponse,
+    DebugToolSchemasResponse,
     OcrCandidateRequest,
     OcrFindTextResponse,
     OcrOverlayRequest,
@@ -20,6 +25,8 @@ from backend.src.api.routes.sdk.models import (
     OcrRunResponse,
     OcrTextQueryRequest,
     OverlayArtifactResponse,
+    PromptPreviewRequest,
+    PromptPreviewResponse,
     VisionDescribeRequest,
     VisionDescribeResponse,
     VisionLocateAllRequest,
@@ -29,22 +36,32 @@ from backend.src.api.routes.sdk.models import (
     VisionOverlayRequest,
 )
 from backend.src.api.routes.sdk.service import (
+    build_debug_config_snapshot,
+    build_debug_tool_schemas,
     build_image_metadata,
+    build_prompt_constructor,
+    build_prompt_preview,
     build_ocr_results,
     build_vision_locate_all_response,
     build_vision_locate_response,
     crop_image_source,
     describe_image_region,
+    get_debug_tool_capabilities,
+    list_debug_models,
     raise_ocr_resolution_error,
     rank_ocr_matches,
     render_ocr_overlay_response,
     render_vision_overlay_response,
+    resolve_effective_debug_config,
     resolve_image_source,
     run_ocr,
 )
 
 router = APIRouter(prefix="/api/sdk", tags=["sdk"])
 logger = logging.getLogger(__name__)
+
+
+InteractionModeQuery = Optional[Literal["chat", "agent"]]
 
 
 @router.post("/ocr/run", response_model=OcrRunResponse)
@@ -247,4 +264,145 @@ async def sdk_vision_overlay(
         points=payload.result.points,
         regions=payload.result.regions,
         show_labels=payload.show_labels,
+    )
+
+
+@router.get("/debug/models", response_model=DebugModelsResponse)
+async def sdk_debug_models(
+    container: ContainerDep,
+    session_manager: SessionManagerDep,
+    user_id: Optional[str] = Query(None),
+    model_id: Optional[str] = Query(None),
+    model_provider: Optional[str] = Query(None),
+    interaction_mode: InteractionModeQuery = Query(None),
+) -> DebugModelsResponse:
+    config = resolve_effective_debug_config(
+        container=container,
+        session_manager=session_manager,
+        user_id=user_id,
+        model_id=model_id,
+        model_provider=model_provider,
+        interaction_mode=interaction_mode,
+    )
+    models = await list_debug_models(config=config, container=container)
+    return DebugModelsResponse(
+        config=build_debug_config_snapshot(config),
+        models=models,
+    )
+
+
+@router.get("/debug/tool-schemas", response_model=DebugToolSchemasResponse)
+async def sdk_debug_tool_schemas(
+    container: ContainerDep,
+    session_manager: SessionManagerDep,
+    user_id: Optional[str] = Query(None),
+    model_id: Optional[str] = Query(None),
+    model_provider: Optional[str] = Query(None),
+    interaction_mode: InteractionModeQuery = Query(None),
+) -> DebugToolSchemasResponse:
+    config = resolve_effective_debug_config(
+        container=container,
+        session_manager=session_manager,
+        user_id=user_id,
+        model_id=model_id,
+        model_provider=model_provider,
+        interaction_mode=interaction_mode,
+    )
+    canonical_tool_schemas, provider_tool_schemas = build_debug_tool_schemas(
+        config=config,
+        container=container,
+    )
+    return DebugToolSchemasResponse(
+        config=build_debug_config_snapshot(config),
+        canonical_tool_schemas=canonical_tool_schemas,
+        provider_tool_schemas=provider_tool_schemas,
+    )
+
+
+@router.get("/debug/tool-capabilities/{tool_name}", response_model=DebugToolCapabilitiesResponse)
+async def sdk_debug_tool_capabilities(
+    tool_name: str,
+    container: ContainerDep,
+    session_manager: SessionManagerDep,
+    user_id: Optional[str] = Query(None),
+    model_id: Optional[str] = Query(None),
+    model_provider: Optional[str] = Query(None),
+    interaction_mode: InteractionModeQuery = Query(None),
+) -> DebugToolCapabilitiesResponse:
+    config = resolve_effective_debug_config(
+        container=container,
+        session_manager=session_manager,
+        user_id=user_id,
+        model_id=model_id,
+        model_provider=model_provider,
+        interaction_mode=interaction_mode,
+    )
+    capability, canonical_tool_schema, provider_tool_schema = get_debug_tool_capabilities(
+        tool_name=tool_name,
+        config=config,
+        container=container,
+    )
+    return DebugToolCapabilitiesResponse(
+        config=build_debug_config_snapshot(config),
+        capability=capability,
+        canonical_tool_schema=canonical_tool_schema,
+        provider_tool_schema=provider_tool_schema,
+    )
+
+
+@router.get("/debug/system-prompt", response_model=DebugSystemPromptResponse)
+async def sdk_debug_system_prompt(
+    container: ContainerDep,
+    session_manager: SessionManagerDep,
+    user_id: Optional[str] = Query(None),
+    model_id: Optional[str] = Query(None),
+    model_provider: Optional[str] = Query(None),
+    interaction_mode: InteractionModeQuery = Query(None),
+) -> DebugSystemPromptResponse:
+    config = resolve_effective_debug_config(
+        container=container,
+        session_manager=session_manager,
+        user_id=user_id,
+        model_id=model_id,
+        model_provider=model_provider,
+        interaction_mode=interaction_mode,
+    )
+    constructor = build_prompt_constructor(config=config, container=container)
+    return DebugSystemPromptResponse(
+        config=build_debug_config_snapshot(config),
+        system_prompt=constructor.system_prompt,
+    )
+
+
+@router.post("/debug/prompt-preview", response_model=PromptPreviewResponse)
+async def sdk_debug_prompt_preview(
+    payload: PromptPreviewRequest,
+    container: ContainerDep,
+    session_manager: SessionManagerDep,
+) -> PromptPreviewResponse:
+    config = resolve_effective_debug_config(
+        container=container,
+        session_manager=session_manager,
+        user_id=payload.user_id,
+        model_id=payload.model_id,
+        model_provider=payload.model_provider,
+        interaction_mode=payload.interaction_mode,
+    )
+    preview = build_prompt_preview(
+        config=config,
+        container=container,
+        messages=payload.messages,
+        user_query_raw=payload.user_query_raw,
+        include_tools=payload.include_tools,
+        workspace_path=payload.workspace_path,
+    )
+    return PromptPreviewResponse(
+        config=build_debug_config_snapshot(config),
+        system_prompt=preview["system_prompt"],
+        prompt_messages=preview["prompt_messages"],
+        canonical_tool_schemas=preview["canonical_tool_schemas"],
+        provider_tool_schemas=preview["provider_tool_schemas"],
+        user_message_full=preview["user_message_full"],
+        prompt_token_count=preview["prompt_token_count"],
+        token_count_error=preview["token_count_error"],
     )
