@@ -163,7 +163,9 @@ frontend/src/renderer/
 ├── infrastructure/                        # Core infrastructure services
 │   │
 │   ├── api/                              # API client
-│   │   └── client.ts                    # ApiClient - Typed API client for backend communication (sendQuery, stopQuery, updateSettings, listModels, wakewordDetected)
+│   │   ├── client.ts                    # ApiClient - Typed IPC client for desktop app communication with Electron main
+│   │   ├── windieSdkClient.ts           # WindieSdkClient - Hosted backend SDK transport wrapper for `/api/sdk/*`, `/api/artifacts/*`, and `/ws`
+│   │   └── index.ts                     # Stable renderer API export surface for ApiClient + WindieSdkClient
 │   │
 │   ├── audio/                            # Audio services
 │   │   └── PlayerService.ts            # PlayerService - Audio playback queue management (TTS audio chunks from backend)
