@@ -226,6 +226,29 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
+  test('shows Waiting... after a macOS settings-backed grant starts external polling', async () => {
+    mockRequestPermission.mockResolvedValue({
+      permission_id: 'screen_capture',
+      status: 'needs-action',
+      granted: false,
+      reason: 'Opened Screen Recording settings. Enable WindieOS, then return here and click Grant again to verify capture.',
+    });
+    mockRunPermissionProbe.mockResolvedValue({
+      permission_id: 'screen_capture',
+      status: 'needs-action',
+      granted: false,
+    });
+
+    render(<FrontendOnboardingSlideshow onComplete={jest.fn()} stopAgentShortcutLabel="Ctrl + Shift + Esc" />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Grant' }));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByRole('button', { name: 'Waiting...' })).toBeDisabled();
+  });
+
   test('keeps actions outside the scroll region on the permissions slide', () => {
     const onComplete = jest.fn();
     const { container } = render(

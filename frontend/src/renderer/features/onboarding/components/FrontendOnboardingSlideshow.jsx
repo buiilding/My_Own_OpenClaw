@@ -22,7 +22,12 @@ function FrontendOnboardingSlideshow({
   const missingRequiredPermissions = usePermissionStore((state) => state.missingRequiredPermissions);
   const bootstrapPermissions = usePermissionStore((state) => state.bootstrapPermissions);
   const completeOnboarding = usePermissionStore((state) => state.completeOnboarding);
-  const { isLoading, pendingPermissionId, handleGrantPermission } = useOnboardingPermissionActions();
+  const {
+    isLoading,
+    pendingPermissionId,
+    waitingPermissionId,
+    handleGrantPermission,
+  } = useOnboardingPermissionActions();
   const {
     handleWindowMinimize,
     handleWindowToggleMaximize,
@@ -100,6 +105,7 @@ function FrontendOnboardingSlideshow({
                 isLoading={isLoading}
                 onGrantPermission={handleGrantPermission}
                 pendingPermissionId={pendingPermissionId}
+                waitingPermissionId={waitingPermissionId}
                 permissionCount={permissionSlides.length}
                 status={activePermission ? statusesByPermissionId[activePermission.permission_id] : null}
               />

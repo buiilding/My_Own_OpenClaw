@@ -24,9 +24,13 @@ function stopWatchingPermission({
   watchedPermissionIdRef,
   recheckIntervalRef,
   recheckDeadlineRef,
+  setWaitingPermissionId,
 }) {
   watchedPermissionIdRef.current = '';
   recheckDeadlineRef.current = 0;
+  if (typeof setWaitingPermissionId === 'function') {
+    setWaitingPermissionId('');
+  }
   if (typeof window !== 'undefined' && recheckIntervalRef.current) {
     window.clearInterval(recheckIntervalRef.current);
     recheckIntervalRef.current = null;
@@ -38,6 +42,7 @@ async function recheckWatchedPermission({
   watchedPermissionIdRef,
   recheckDeadlineRef,
   recheckIntervalRef,
+  setWaitingPermissionId,
 }) {
   const permissionId = watchedPermissionIdRef.current;
   if (!permissionId || typeof runPermissionProbe !== 'function') {
@@ -50,6 +55,7 @@ async function recheckWatchedPermission({
       watchedPermissionIdRef,
       recheckIntervalRef,
       recheckDeadlineRef,
+      setWaitingPermissionId,
     });
   }
   return status;
@@ -61,6 +67,7 @@ export function useOnboardingPermissionActions() {
   const runPermissionProbe = usePermissionStore((state) => state.runPermissionProbe);
   const { updateConfig } = useAppConfigContext();
   const [pendingPermissionId, setPendingPermissionId] = useState('');
+  const [waitingPermissionId, setWaitingPermissionId] = useState('');
   const watchedPermissionIdRef = useRef('');
   const recheckIntervalRef = useRef(null);
   const recheckDeadlineRef = useRef(0);
@@ -74,15 +81,18 @@ export function useOnboardingPermissionActions() {
       watchedPermissionIdRef,
       recheckIntervalRef,
       recheckDeadlineRef,
+      setWaitingPermissionId,
     });
     watchedPermissionIdRef.current = permissionId;
     recheckDeadlineRef.current = Date.now() + PERMISSION_RECHECK_TIMEOUT_MS;
+    setWaitingPermissionId(permissionId);
     recheckIntervalRef.current = window.setInterval(() => {
       void recheckWatchedPermission({
         runPermissionProbe,
         watchedPermissionIdRef,
         recheckIntervalRef,
         recheckDeadlineRef,
+        setWaitingPermissionId,
       });
     }, PERMISSION_RECHECK_INTERVAL_MS);
     void recheckWatchedPermission({
@@ -90,6 +100,7 @@ export function useOnboardingPermissionActions() {
       watchedPermissionIdRef,
       recheckIntervalRef,
       recheckDeadlineRef,
+      setWaitingPermissionId,
     });
   };
 
@@ -107,6 +118,7 @@ export function useOnboardingPermissionActions() {
         watchedPermissionIdRef,
         recheckIntervalRef,
         recheckDeadlineRef,
+        setWaitingPermissionId,
       });
     };
 
@@ -120,6 +132,7 @@ export function useOnboardingPermissionActions() {
         watchedPermissionIdRef,
         recheckIntervalRef,
         recheckDeadlineRef,
+        setWaitingPermissionId,
       });
     };
   }, [runPermissionProbe]);
@@ -140,6 +153,7 @@ export function useOnboardingPermissionActions() {
           watchedPermissionIdRef,
           recheckIntervalRef,
           recheckDeadlineRef,
+          setWaitingPermissionId,
         });
       }
       return status;
@@ -151,6 +165,7 @@ export function useOnboardingPermissionActions() {
   return {
     isLoading,
     pendingPermissionId,
+    waitingPermissionId,
     handleGrantPermission,
   };
 }
