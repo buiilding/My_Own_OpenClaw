@@ -21,7 +21,7 @@ def test_create_api_app_registers_shared_routes():
     assert "/api/artifacts/{artifact_id}" in registered_paths
     assert "/api/sdk/ocr/run" in registered_paths
     assert "/api/sdk/vision/locate" in registered_paths
-    assert "/api/sdk/debug/tool-schemas" in registered_paths
+    assert "/api/sdk/tool-schemas" in registered_paths
     assert "/api/embeddings/" in registered_paths
     assert "/api/semantic/summarize" in registered_paths
 

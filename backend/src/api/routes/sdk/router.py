@@ -267,7 +267,7 @@ async def sdk_vision_overlay(
     )
 
 
-@router.get("/debug/models", response_model=DebugModelsResponse)
+@router.get("/models", response_model=DebugModelsResponse)
 async def sdk_debug_models(
     container: ContainerDep,
     session_manager: SessionManagerDep,
@@ -291,7 +291,7 @@ async def sdk_debug_models(
     )
 
 
-@router.get("/debug/tool-schemas", response_model=DebugToolSchemasResponse)
+@router.get("/tool-schemas", response_model=DebugToolSchemasResponse)
 async def sdk_debug_tool_schemas(
     container: ContainerDep,
     session_manager: SessionManagerDep,
@@ -319,7 +319,7 @@ async def sdk_debug_tool_schemas(
     )
 
 
-@router.get("/debug/tool-capabilities/{tool_name}", response_model=DebugToolCapabilitiesResponse)
+@router.get("/tool-capabilities/{tool_name}", response_model=DebugToolCapabilitiesResponse)
 async def sdk_debug_tool_capabilities(
     tool_name: str,
     container: ContainerDep,
@@ -350,7 +350,7 @@ async def sdk_debug_tool_capabilities(
     )
 
 
-@router.get("/debug/system-prompt", response_model=DebugSystemPromptResponse)
+@router.get("/system-prompt", response_model=DebugSystemPromptResponse)
 async def sdk_debug_system_prompt(
     container: ContainerDep,
     session_manager: SessionManagerDep,
@@ -374,7 +374,7 @@ async def sdk_debug_system_prompt(
     )
 
 
-@router.post("/debug/prompt-preview", response_model=PromptPreviewResponse)
+@router.post("/prompt-preview", response_model=PromptPreviewResponse)
 async def sdk_debug_prompt_preview(
     payload: PromptPreviewRequest,
     container: ContainerDep,
