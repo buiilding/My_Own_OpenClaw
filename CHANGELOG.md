@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- fix(frontend-macos-screen-capture-settings-link): restore the onboarding Screen capture `Grant` action on macOS by reopening the Screen Recording settings pane when TCC access is still missing, then keeping the real screenshot verification path for already-granted access so the button no longer appears to do nothing.
 - fix(macos-release): add the hardened-runtime JIT entitlements required by the signed Electron app so the DMG-mounted macOS build no longer aborts at startup with `Failed to reserve virtual memory for CodeRange`, and tighten the local macOS package smoke helper to fail on crashy `--version` launches while also checking the mounted-DMG app path that users can click before dragging into Applications.
 - fix(frontend-macos-screen-capture-onboarding): restore the onboarding Screen capture Grant flow when the frameless macOS dashboard is in native full screen by exiting full screen before focusing the permission window and running the real screenshot verification path.
 - fix(frontend-onboarding-surface): treat onboarding as its own main-window surface target so macOS no longer opens onboarding in native fullscreen, hides the maximize control for onboarding chrome, and closing onboarding hides the main window instead of restoring the minimal chat pill.
