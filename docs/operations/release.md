@@ -73,7 +73,9 @@ Manual dispatch inputs:
 Local macOS packaged-user test helper:
 
 - `./scripts/reinstall-windieos-macos.sh`
-- Rebuilds the local macOS DMG, removes old installed WindieOS copies, clears app support/cache/WebKit/saved-state data, resets TCC grants for `com.windieos.desktop` and its Electron helper bundle IDs, reinstalls into `/Applications`, and launches the installed app through LaunchServices while tailing packaged-app logs into the terminal and `~/windieos-packaged-run.log`.
+- This helper is for local reinstall/testing only, not release publishing.
+- It removes old installed WindieOS copies, clears app support/cache/WebKit/saved-state data, resets all known TCC grants for previously installed WindieOS app/helper bundle IDs before reinstall, strips Apple notarization credentials from the local build environment, rebuilds the unpacked `release/mac-arm64/WindieOS.app` bundle, reinstalls into `/Applications`, and launches the installed app through LaunchServices while tailing packaged-app logs into the terminal and `~/windieos-packaged-run.log`.
+- Skipping notarization here is intentional so local reinstall loops stay fast; signed/notarized DMG validation remains part of the real release path, not this helper.
 - Use `scripts/ci/smoke-macos-packages.sh` locally when you specifically need the downloaded-app Gatekeeper path (`WINDIE_VALIDATE_DOWNLOADED_APP=true`); do not wire that path back into GitHub-hosted release runners.
 - The smoke helper now validates both the app mounted in the DMG and the copied `/Applications` app so hardened-runtime startup regressions are caught before release, even when the failure only reproduces from the mounted installer copy.
 

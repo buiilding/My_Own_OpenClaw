@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- fix(local-macos-reinstall): make the local macOS reinstall helper clear all discovered WindieOS TCC/privacy grants before reinstall, strip Apple notarization credentials from the local build environment, and install directly from the rebuilt unpacked app bundle so local reinstall loops no longer wait on Apple notarization.
 - fix(frontend-onboarding-grant-loop): simplify macOS onboarding grant UX to `Grant -> Waiting... -> probe`, return the live status from `permissionStore.runPermissionProbe()`, and stop telling users to click `Grant` repeatedly while they enable the OS permission.
 - fix(frontend-chatbox-copy): update the minimal chat pill composer placeholder to say `Ask me to do anything...` and align the focused overlay tests with the new wording.
 - fix(frontend-macos-screen-capture-registration): attempt a real desktop-capture request before opening macOS Screen Recording settings so WindieOS gets registered into the privacy list after a fresh TCC reset, and keep the onboarding Screen capture button in a visible `Waiting...` state while the app polls for the external OS grant.

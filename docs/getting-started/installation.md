@@ -234,6 +234,12 @@ workspace root:
 - macOS: `./scripts/reinstall-windieos-macos.sh`
 - Windows (PowerShell): `powershell -ExecutionPolicy Bypass -File .\scripts\reinstall-windieos-windows.ps1`
 
+The macOS helper is intentionally local-only: it clears all known TCC/privacy
+grants for existing WindieOS app/helper bundle ids before reinstalling, strips
+Apple notarization environment variables from the build step so the reinstall
+does not wait on Apple, rebuilds the unpacked `release/mac-arm64/WindieOS.app`
+bundle, installs it into `/Applications`, and relaunches that installed app.
+
 The Windows helper stops the installed app, clears WindieOS app data under
 `%APPDATA%`/`%LOCALAPPDATA%`, rebuilds the bundled-runtime NSIS installer, runs
 it silently, and relaunches the installed packaged app. It expects `npm`,
