@@ -275,6 +275,7 @@ await session.query({
 const trace = await sdk.agent.traceQuery(
   { userId: 'dev-user', operatingSystem: 'macOS' },
   { text: 'Inspect the repo state', conversationRef: 'conv_trace' },
+  { timeoutMs: 10000 },
 );
 ```
 
@@ -303,9 +304,16 @@ trace = await sdk.trace_query(
     query={
         "text": "Inspect the repo state",
         "conversation_ref": "conv_trace",
-    }
+    },
+    timeout_seconds=10,
 )
 ```
+
+Trace helper notes:
+
+- TypeScript `sdk.agent.traceQuery(...)` defaults to a 30 second timeout and accepts `{ timeoutMs }`.
+- Python `sdk.trace_query(...)` accepts `timeout_seconds`.
+- Both clients close the websocket before raising when the trace times out.
 
 Shared image input shape:
 
