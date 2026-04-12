@@ -472,7 +472,7 @@ function ChatBox() {
                   });
                 }}
                 onKeyDown={handleComposerKeyDown}
-                placeholder="Ask me anything..."
+                placeholder="Ask me to do anything..."
                 className="chatbox-input"
                 disabled={loopInteractionLocked}
                 rows={1}
