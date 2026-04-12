@@ -502,6 +502,11 @@ def rank_ocr_matches(
 
 
 def raise_ocr_resolution_error(error: Exception) -> None:
+    status_code, detail = build_ocr_resolution_error(error)
+    raise HTTPException(status_code=status_code, detail=detail)
+
+
+def build_ocr_resolution_error(error: Exception) -> tuple[int, dict[str, Any]]:
     message = str(error)
     detail: dict[str, Any] = {"message": message}
     payload_match = _AMBIGUITY_PAYLOAD_RE.search(message)
@@ -519,7 +524,7 @@ def raise_ocr_resolution_error(error: Exception) -> None:
         status_code = 409
     else:
         status_code = 422
-    raise HTTPException(status_code=status_code, detail=detail)
+    return status_code, detail
 
 
 async def resolve_vision_service(container):

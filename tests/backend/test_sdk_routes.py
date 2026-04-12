@@ -23,6 +23,7 @@ try:
         BoundingBoxModel,
         PromptPreviewRequest,
         ImageSourceInput,
+        OcrInspectRequest,
         OcrCandidateRequest,
         OcrOverlayRequest,
         OcrRunRequest,
@@ -187,6 +188,46 @@ async def test_sdk_ocr_run_accepts_artifact_id_sources(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
+async def test_sdk_ocr_inspect_returns_observability_bundle(tmp_path) -> None:
+    container = _container(
+        tmp_path,
+        ocr_results=[
+            {
+                "id": "row-1",
+                "text": "Search Walmart",
+                "confidence": 0.91,
+                "bbox": {"x": 100, "y": 20, "width": 150, "height": 24},
+            },
+            {
+                "id": "row-2",
+                "text": "Search Amazon",
+                "confidence": 0.97,
+                "bbox": {"x": 300, "y": 20, "width": 150, "height": 24},
+            },
+        ],
+    )
+
+    response = await sdk_routes.sdk_ocr_inspect(
+        _sdk_request("/api/sdk/ocr/inspect"),
+        OcrInspectRequest(
+            image=ImageSourceInput(image_base64=_png_base64()),
+            text="Search Amazon",
+            include_overlay=True,
+            max_results=2,
+        ),
+        container,
+    )
+
+    assert len(response.results) == 2
+    assert [row.text for row in response.ranked_matches] == ["Search Amazon", "Search Walmart"]
+    assert [row.text for row in response.accepted_matches] == ["Search Amazon"]
+    assert response.resolved_match is not None
+    assert response.resolution_error is None
+    assert response.overlay is not None
+    assert (tmp_path / response.overlay.artifact_id).is_file()
+
+
+@pytest.mark.asyncio
 async def test_sdk_ocr_find_text_candidates_returns_ranked_matches(tmp_path) -> None:
     container = _container(
         tmp_path,
@@ -277,6 +318,41 @@ async def test_sdk_ocr_resolve_text_returns_structured_ambiguity_error(tmp_path)
 
     assert exc_info.value.status_code == 409
     assert "resolver_payload" in exc_info.value.detail
+
+
+@pytest.mark.asyncio
+async def test_sdk_ocr_inspect_includes_structured_resolution_error(tmp_path) -> None:
+    container = _container(
+        tmp_path,
+        ocr_results=[
+            {
+                "id": "row-1",
+                "text": "Search Amazon",
+                "confidence": 0.99,
+                "bbox": {"x": 500, "y": 216, "width": 174, "height": 36},
+            },
+            {
+                "id": "row-2",
+                "text": "Search Amazon",
+                "confidence": 0.98,
+                "bbox": {"x": 700, "y": 216, "width": 174, "height": 36},
+            },
+        ],
+    )
+
+    response = await sdk_routes.sdk_ocr_inspect(
+        _sdk_request("/api/sdk/ocr/inspect"),
+        OcrInspectRequest(
+            image=ImageSourceInput(image_base64=_png_base64()),
+            text="Search Amazon",
+        ),
+        container,
+    )
+
+    assert response.resolved_match is None
+    assert response.resolution_error is not None
+    assert response.resolution_error.status_code == 409
+    assert "resolver_payload" in response.resolution_error.detail
 
 
 @pytest.mark.asyncio

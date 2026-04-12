@@ -139,6 +139,38 @@ class OcrResolveCandidateResponse(BaseModel):
     match: OcrResultModel
 
 
+class OcrResolutionErrorModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status_code: int
+    detail: Any
+
+
+class OcrInspectRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    image: ImageSourceInput
+    text: Optional[str] = Field(None, min_length=1, max_length=2000)
+    threshold: float = Field(0.8, ge=0.0, le=1.0)
+    max_results: int = Field(10, ge=1, le=100)
+    include_overlay: bool = False
+    show_labels: bool = True
+
+
+class OcrInspectResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    image: ImageMetadataModel
+    query: Optional[str] = None
+    threshold: float
+    results: list[OcrResultModel]
+    ranked_matches: list[OcrResultModel]
+    accepted_matches: list[OcrResultModel]
+    resolved_match: Optional[OcrResultModel] = None
+    resolution_error: Optional[OcrResolutionErrorModel] = None
+    overlay: Optional["OverlayArtifactResponse"] = None
+
+
 class OverlayArtifactResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
