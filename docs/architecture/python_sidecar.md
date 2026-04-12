@@ -15,6 +15,7 @@ The sidecar is the local execution runtime, not a replacement backend. Its role 
 - execute actions that must happen on the user's machine
 - expose local tool APIs to the UI and SDK
 - call the hosted backend when it needs backend-owned services such as embeddings, semantic summarization, OCR, or vision grounding
+- call the hosted backend through transport-only clients instead of importing backend Python packages
 
 The intended open-source distribution is UI + sidecar + SDK. Users should not need to run backend services locally in order to use hosted OCR, prediction, or agent APIs.
 
@@ -22,11 +23,13 @@ Release contract:
 - End users do not need Python preinstalled.
 - Installer ships a bundled runtime under `resources/python-runtime`.
 - Sidecar and wakeword services run from bundled runtime in packaged apps.
+- The sidecar now includes a transport-only hosted SDK client in `frontend/src/main/python/core/windie_sdk_client.py` for direct developer-facing calls to `/api/artifacts/*`, `/api/sdk/*`, and `/ws`.
 
 **Key files:**
 - Sidecar entrypoint: `frontend/src/main/python/local_backend.py`
 - Electron bridge: `frontend/src/main/local_backend_bridge.cjs`
 - Shared stdout writer: `frontend/src/main/python/core/stdout_json.py`
+- Hosted SDK transport client: `frontend/src/main/python/core/windie_sdk_client.py`
 - Tool implementations: `frontend/src/main/python/tools/`
 - Memory system: `frontend/src/main/python/memory/`
 
