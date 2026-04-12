@@ -382,7 +382,7 @@ Describe the full image or an optional cropped region for automation/debugging. 
 Render predicted points and/or regions onto the source image and save the overlay as an artifact.
 This is intended for SDK inspectors and debugging tools.
 
-## HTTP Endpoints (SDK Debug / Introspection)
+## HTTP Endpoints (SDK Introspection)
 
 These routes expose backend-owned debug and introspection state for developer SDK consumers.
 They are meant for backend-aware debugging tools and local developer workflows that need to inspect
@@ -397,7 +397,7 @@ Current scope:
 - rendered system prompt
 - prompt preview including the full user-message transparency payload
 
-### GET `/api/sdk/debug/models`
+### GET `/api/sdk/models`
 
 Return the current model catalog plus the effective config snapshot used for the request.
 
@@ -408,7 +408,7 @@ Optional query params:
 - `model_provider`: override `model_provider` in the response snapshot
 - `interaction_mode`: override `interaction_mode` in the response snapshot
 
-### GET `/api/sdk/debug/tool-schemas`
+### GET `/api/sdk/tool-schemas`
 
 Return both:
 
@@ -418,7 +418,7 @@ Return both:
 This is useful because the backend currently has both internal canonical tool objects and
 provider-facing projected tool payloads in play.
 
-### GET `/api/sdk/debug/tool-capabilities/{tool_name}`
+### GET `/api/sdk/tool-capabilities/{tool_name}`
 
 Return:
 
@@ -430,11 +430,11 @@ If a provider projection rewrites multiple backend tools into a shared declarati
 (for example OpenAI native `computer` projection), `provider_tool_schema` may be `null`
 for the individual logical tool.
 
-### GET `/api/sdk/debug/system-prompt`
+### GET `/api/sdk/system-prompt`
 
 Return the rendered backend system prompt plus the effective config snapshot used to resolve it.
 
-### POST `/api/sdk/debug/prompt-preview`
+### POST `/api/sdk/prompt-preview`
 
 Build a backend prompt preview without executing the agent loop.
 
