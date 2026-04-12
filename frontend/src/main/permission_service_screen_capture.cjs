@@ -119,6 +119,8 @@ async function requestScreenCapturePermission(permission, deps = {}) {
   if (platform === 'darwin') {
     const mediaStatus = getMediaAccessStatus('screen', deps);
     if (mediaStatus !== 'granted') {
+      const captureRegistrationAttempt = await requestDesktopCapturePrompt(deps);
+      const refreshedMediaStatus = getMediaAccessStatus('screen', deps);
       const settingsResult = await openExternal(MACOS_SCREEN_CAPTURE_SETTINGS_URL, deps);
       return buildProbeResult(
         permissionId,
@@ -128,11 +130,14 @@ async function requestScreenCapturePermission(permission, deps = {}) {
           : 'Open Screen Recording settings, enable WindieOS, then return here and click Grant again to verify capture.',
         {
           platform,
-          media_status: mediaStatus,
+          media_status: refreshedMediaStatus,
+          prior_media_status: mediaStatus,
+          capture_registration_attempt: captureRegistrationAttempt,
           settings_result: settingsResult,
           remediation: (
-            'Open System Settings -> Privacy & Security -> Screen Recording, enable WindieOS, '
-            + 'then return here and click Grant again so WindieOS can verify real screenshot capture.'
+            'WindieOS first attempted a real desktop-capture request so macOS can register it in Screen Recording. '
+            + 'If WindieOS is not listed yet, leave System Settings open and click Grant again. '
+            + 'Once WindieOS appears, enable it, then return here and click Grant again so WindieOS can verify real screenshot capture.'
           ),
         },
       );

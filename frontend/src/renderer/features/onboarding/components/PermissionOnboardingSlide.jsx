@@ -13,6 +13,7 @@ function PermissionOnboardingSlide({
   pendingPermissionId,
   permissionCount,
   status = null,
+  waitingPermissionId,
   onGrantPermission,
 }) {
   if (!activePermission) {
@@ -28,6 +29,7 @@ function PermissionOnboardingSlide({
   const statusReason = typeof status?.reason === 'string' ? status.reason.trim() : '';
   const isGranted = status?.granted === true || status?.status === 'granted';
   const isPending = pendingPermissionId === activePermission.permission_id;
+  const isWaiting = waitingPermissionId === activePermission.permission_id;
   const actionLabel = getPermissionActionLabel(activePermission);
   const grantedLabel = getPermissionGrantedLabel(activePermission);
 
@@ -67,9 +69,9 @@ function PermissionOnboardingSlide({
               onClick={() => {
                 void onGrantPermission(activePermission.permission_id);
               }}
-              disabled={isLoading || isPending}
+              disabled={isLoading || isPending || isWaiting}
             >
-              {isPending ? `${actionLabel}...` : actionLabel}
+              {isPending ? `${actionLabel}...` : isWaiting ? 'Waiting...' : actionLabel}
             </button>
           )}
         </article>
@@ -95,6 +97,7 @@ PermissionOnboardingSlide.propTypes = {
     reason: PropTypes.string,
     status: PropTypes.string,
   }),
+  waitingPermissionId: PropTypes.string.isRequired,
 };
 
 export default PermissionOnboardingSlide;

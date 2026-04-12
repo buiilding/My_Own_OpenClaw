@@ -132,6 +132,7 @@ describe('permission_service', () => {
 
   test('screen capture request on macOS opens Screen Recording settings before verification when access is missing', async () => {
     const openExternal = jest.fn(async () => true);
+    const getSources = jest.fn(async () => []);
     const focusPermissionPromptWindow = jest.fn(async () => ({ success: true }));
     const verifyScreenCaptureCapability = jest.fn(async () => ({
       granted: true,
@@ -143,6 +144,9 @@ describe('permission_service', () => {
       shell: {
         openExternal,
       },
+      desktopCapturer: {
+        getSources,
+      },
       systemPreferences: {
         getMediaAccessStatus: jest.fn(() => 'denied'),
       },
@@ -150,6 +154,7 @@ describe('permission_service', () => {
       verifyScreenCaptureCapability,
     });
 
+    expect(getSources).toHaveBeenCalledTimes(1);
     expect(openExternal).toHaveBeenCalledWith('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
     expect(focusPermissionPromptWindow).not.toHaveBeenCalled();
     expect(verifyScreenCaptureCapability).not.toHaveBeenCalled();

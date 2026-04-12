@@ -23,7 +23,7 @@ jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
 }));
 
 function HookHarness({ permissionId = 'screen_capture' }) {
-  const { handleGrantPermission, pendingPermissionId } = useOnboardingPermissionActions();
+  const { handleGrantPermission, pendingPermissionId, waitingPermissionId } = useOnboardingPermissionActions();
 
   return React.createElement(
     'button',
@@ -33,7 +33,7 @@ function HookHarness({ permissionId = 'screen_capture' }) {
         void handleGrantPermission(permissionId);
       },
     },
-    pendingPermissionId || 'grant',
+    pendingPermissionId || waitingPermissionId || 'grant',
   );
 }
 
@@ -77,6 +77,7 @@ describe('useOnboardingPermissionActions', () => {
 
     expect(mockRequestPermission).toHaveBeenCalledWith('screen_capture');
     expect(mockRunPermissionProbe).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'screen_capture' })).toBeInTheDocument();
 
     await act(async () => {
       jest.advanceTimersByTime(1000);
