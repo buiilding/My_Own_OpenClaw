@@ -10,6 +10,7 @@ class FakeWebSocket {
   readonly listeners = new Map<string, Set<(payload: unknown) => void>>();
   readonly sent: string[] = [];
   readonly url: string;
+  closed = false;
 
   constructor(url: string) {
     this.url = url;
@@ -31,6 +32,7 @@ class FakeWebSocket {
   }
 
   close(_code?: number, _reason?: string): void {
+    this.closed = true;
     this.emit('close', { code: 1000, reason: 'closed', wasClean: true });
   }
 
@@ -360,6 +362,38 @@ describe('WindieSdkClient', () => {
       'streaming-complete',
     ]);
     expect(trace.queryMessageId).toBe(JSON.parse(socket.sent[1]).id);
+  });
+
+  test('fails trace collection on timeout and closes the socket', async () => {
+    jest.useFakeTimers();
+
+    const client = new WindieSdkClient({
+      httpBaseUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+    });
+
+    const tracePromise = client.agent.traceQuery(
+      {},
+      {
+        text: 'Inspect repo state',
+        conversationRef: 'conv-timeout',
+      },
+      { timeoutMs: 25 },
+    );
+
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const rejection = expect(tracePromise).rejects.toThrow('Windie agent trace timed out after 25ms');
+    await jest.advanceTimersByTimeAsync(25);
+    await rejection;
+    expect(socket.closed).toBe(true);
+
+    jest.useRealTimers();
   });
 
   test('requires an explicit user id when no default is configured', async () => {

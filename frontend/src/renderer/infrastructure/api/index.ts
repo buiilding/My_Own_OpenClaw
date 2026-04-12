@@ -41,6 +41,7 @@ export type {
   ToolSchema,
   WindieAgentConnectOptions,
   WindieAgentQueryInput,
+  WindieAgentTraceOptions,
   WindieAgentTrace,
   WindieSdkClientOptions,
   WindieSdkQueryOptions,

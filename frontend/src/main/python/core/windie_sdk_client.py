@@ -4,6 +4,7 @@ Transport-only Python client for the hosted Windie SDK surface.
 
 from __future__ import annotations
 
+import asyncio
 import json
 from typing import Any, Optional
 from urllib.parse import quote, urlencode, urlparse, urlunparse
@@ -462,6 +463,7 @@ class WindieSdkClient(RemoteApiClientBase):
         query: dict[str, Any],
         user_id: Optional[str] = None,
         operating_system: Optional[str] = None,
+        timeout_seconds: Optional[float] = None,
     ) -> dict[str, Any]:
         session = await self.connect_agent(
             user_id=user_id,
@@ -482,7 +484,13 @@ class WindieSdkClient(RemoteApiClientBase):
         )
         try:
             while True:
-                event = await session.receive_json()
+                if isinstance(timeout_seconds, (int, float)) and timeout_seconds > 0:
+                    event = await asyncio.wait_for(
+                        session.receive_json(),
+                        timeout=timeout_seconds,
+                    )
+                else:
+                    event = await session.receive_json()
                 if isinstance(event, dict) and isinstance(event.get("type"), str):
                     events.append(event)
                     if event["type"] == "streaming-complete":
@@ -502,5 +510,9 @@ class WindieSdkClient(RemoteApiClientBase):
                                 "content": payload.get("content"),
                             },
                         }
+        except asyncio.TimeoutError as err:
+            raise Exception(
+                f"Windie SDK trace query timed out after {timeout_seconds} seconds"
+            ) from err
         finally:
             await session.close()

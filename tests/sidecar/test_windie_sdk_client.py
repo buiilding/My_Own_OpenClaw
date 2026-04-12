@@ -1,3 +1,4 @@
+import asyncio
 import json
 
 import pytest
@@ -52,16 +53,19 @@ class FakeWsMessage:
 
 
 class FakeWebSocket:
-    def __init__(self, messages=None):
+    def __init__(self, messages=None, *, block_on_empty=False):
         self.sent = []
         self.messages = list(messages or [])
         self.closed = False
+        self.block_on_empty = block_on_empty
 
     async def send_json(self, payload):
         self.sent.append(payload)
 
     async def receive(self):
         if not self.messages:
+            if self.block_on_empty:
+                await asyncio.Future()
             raise Exception("No more websocket messages")
         return FakeWsMessage(json.dumps(self.messages.pop(0)))
 
@@ -248,6 +252,28 @@ async def test_trace_query_collects_events_until_streaming_complete():
         "streaming-response",
         "streaming-complete",
     ]
+    assert websocket.closed is True
+
+
+@pytest.mark.asyncio
+async def test_trace_query_times_out_and_closes_websocket():
+    websocket = FakeWebSocket(messages=[], block_on_empty=True)
+    session = DummyWsSession(websocket)
+    client = WindieSdkClient(
+        backend_url="http://localhost:8765",
+        default_user_id="dev-user",
+    )
+    client._session = session
+
+    with pytest.raises(Exception, match="Windie SDK trace query timed out after 0.01 seconds"):
+        await client.trace_query(
+            query={
+                "text": "Inspect repo state",
+                "conversation_ref": "conv-timeout",
+            },
+            timeout_seconds=0.01,
+        )
+
     assert websocket.closed is True
 
 

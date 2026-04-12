@@ -335,6 +335,10 @@ export type WindieAgentTrace = {
   } | null;
 };
 
+export type WindieAgentTraceOptions = {
+  timeoutMs?: number;
+};
+
 type WindieAgentEventMap = {
   open: void;
   close: { code?: number; reason?: string; wasClean?: boolean };
@@ -668,7 +672,8 @@ export class WindieSdkClient {
     traceQuery: async (
       connectOptions: WindieAgentConnectOptions,
       query: WindieAgentQueryInput,
-    ): Promise<WindieAgentTrace> => this.traceQuery(connectOptions, query),
+      options?: WindieAgentTraceOptions,
+    ): Promise<WindieAgentTrace> => this.traceQuery(connectOptions, query, options),
   };
 
   constructor(options: WindieSdkClientOptions) {
@@ -721,14 +726,22 @@ export class WindieSdkClient {
   async traceQuery(
     connectOptions: WindieAgentConnectOptions,
     query: WindieAgentQueryInput,
+    options: WindieAgentTraceOptions = {},
   ): Promise<WindieAgentTrace> {
     const session = await this.connectAgent(connectOptions);
     return new Promise<WindieAgentTrace>((resolve, reject) => {
       let settled = false;
       let queryMessageId = '';
       const events: BackendEvent[] = [];
+      const timeoutMs = typeof options.timeoutMs === 'number' && options.timeoutMs > 0
+        ? options.timeoutMs
+        : 30000;
+      const timeoutHandle = setTimeout(() => {
+        fail(new Error(`Windie agent trace timed out after ${timeoutMs}ms`));
+      }, timeoutMs);
 
       const cleanup = () => {
+        clearTimeout(timeoutHandle);
         unsubscribers.forEach(unsubscribe => unsubscribe());
       };
 
