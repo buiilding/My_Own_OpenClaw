@@ -160,7 +160,7 @@ describe('permission_service', () => {
     expect(verifyScreenCaptureCapability).not.toHaveBeenCalled();
     expect(status.status).toBe('needs-action');
     expect(status.granted).toBe(false);
-    expect(String(status.reason || '')).toContain('Opened Screen Recording settings');
+    expect(String(status.reason || '')).toContain('Waiting for Screen Recording access');
   });
 
   test('screen capture request on macOS stays needs-action when real screenshot verification fails', async () => {

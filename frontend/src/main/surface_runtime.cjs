@@ -57,7 +57,8 @@ function createSurfaceRuntime({
     responseOverlayPhase: 'idle',
     chatVisualAnchorHeight: initialChatVisualAnchorHeight,
     chatboxHitTestActive: false,
-    mainWindowSurfaceTarget: 'dashboard',
+    primarySurface: 'dashboard',
+    mainWindowMode: 'dashboard',
   };
 
   function getWindows() {
@@ -235,7 +236,7 @@ function createSurfaceRuntime({
   }
 
   function showChatWindow(options = {}) {
-    state.mainWindowSurfaceTarget = 'chat';
+    state.primarySurface = 'chat';
     return showChatWindowRuntime(normalizeChatSurfaceWindowOptions(options), {
       chatWindow: state.chatWindow,
       mainWindow: state.mainWindow,
@@ -279,7 +280,10 @@ function createSurfaceRuntime({
 
   function showMainWindow(options = {}) {
     const normalizedOptions = normalizeMainSurfaceWindowOptions(options);
-    state.mainWindowSurfaceTarget = normalizedOptions.open || 'dashboard';
+    state.mainWindowMode = normalizedOptions.open === 'onboarding'
+      ? 'onboarding'
+      : 'dashboard';
+    state.primarySurface = state.mainWindowMode;
     return showMainWindowRuntime(normalizedOptions, {
       mainWindow: state.mainWindow,
       chatWindow: state.chatWindow,
@@ -293,8 +297,12 @@ function createSurfaceRuntime({
     });
   }
 
-  function getMainWindowSurfaceTarget() {
-    return state.mainWindowSurfaceTarget;
+  function getPrimarySurface() {
+    return state.primarySurface;
+  }
+
+  function getMainWindowMode() {
+    return state.mainWindowMode;
   }
 
   function normalizeMainWindowOpenTarget(options = {}) {
@@ -365,7 +373,8 @@ function createSurfaceRuntime({
     getChatWindow: () => state.chatWindow,
     getContextLabelWindow: () => state.contextLabelWindow,
     getMainWindow: () => state.mainWindow,
-    getMainWindowSurfaceTarget,
+    getMainWindowMode,
+    getPrimarySurface,
     getResponseWindow: () => state.responseWindow,
     getState,
     getWindows,

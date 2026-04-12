@@ -161,7 +161,8 @@ Current ownership boundary:
 4. Onboarding and settings surfaces both call store helpers for permission runtime updates:
    - onboarding uses `REQUEST_PERMISSION` (per row) and `CHECK_PERMISSIONS` (global re-check)
    - `PermissionControlCenter` uses `RUN_PERMISSION_PROBE` (per row) and `CHECK_PERMISSIONS` (global recheck)
-5. macOS permissions that bounce users into System Settings now trigger short-lived re-probes from onboarding after `Grant`, so rows can flip to granted when the user returns from Screen Recording / Accessibility / Automation settings.
+5. settings-backed macOS permissions now use a simple onboarding loop: `Grant` triggers the OS handoff, onboarding enters `Waiting...`, and short-lived re-probes flip rows to granted when the user returns from Screen Recording / Accessibility / Automation settings.
+6. onboarding is a dedicated primary surface, separate from both the dashboard and minimal chat pill, so main-window close/focus behavior no longer depends on dashboard tab-target state.
 
 ### Local Sidecar Status Flow
 

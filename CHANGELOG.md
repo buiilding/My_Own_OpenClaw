@@ -6,12 +6,17 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- fix(frontend-onboarding-grant-loop): simplify macOS onboarding grant UX to `Grant -> Waiting... -> probe`, return the live status from `permissionStore.runPermissionProbe()`, and stop telling users to click `Grant` repeatedly while they enable the OS permission.
 - fix(frontend-chatbox-copy): update the minimal chat pill composer placeholder to say `Ask me to do anything...` and align the focused overlay tests with the new wording.
 - fix(frontend-macos-screen-capture-registration): attempt a real desktop-capture request before opening macOS Screen Recording settings so WindieOS gets registered into the privacy list after a fresh TCC reset, and keep the onboarding Screen capture button in a visible `Waiting...` state while the app polls for the external OS grant.
 - fix(frontend-macos-screen-capture-settings-link): restore the onboarding Screen capture `Grant` action on macOS by reopening the Screen Recording settings pane when TCC access is still missing, then keeping the real screenshot verification path for already-granted access so the button no longer appears to do nothing.
 - fix(macos-release): add the hardened-runtime JIT entitlements required by the signed Electron app so the DMG-mounted macOS build no longer aborts at startup with `Failed to reserve virtual memory for CodeRange`, and tighten the local macOS package smoke helper to fail on crashy `--version` launches while also checking the mounted-DMG app path that users can click before dragging into Applications.
 - fix(frontend-macos-screen-capture-onboarding): restore the onboarding Screen capture Grant flow when the frameless macOS dashboard is in native full screen by exiting full screen before focusing the permission window and running the real screenshot verification path.
 - fix(frontend-onboarding-surface): treat onboarding as its own main-window surface target so macOS no longer opens onboarding in native fullscreen, hides the maximize control for onboarding chrome, and closing onboarding hides the main window instead of restoring the minimal chat pill.
+
+### Refactored
+
+- refactor(frontend-onboarding-surface-state): split main-window mode (`onboarding|dashboard`) from the app’s primary surface (`onboarding|dashboard|chat`) so onboarding lifecycle behavior no longer depends on dashboard open-target state, and keep onboarding out of the maximize/fullscreen path entirely.
 
 ### Added
 - feat(backend-agents-md-context): resolve applicable `AGENTS.md` files from the active workspace up to the repo root at prompt-build time, inject them as Codex-style contextual user messages ahead of the real turn, propagate workspace path into session prompt state, and count that injected context in backend history-compaction token budgeting; add focused backend coverage and docs for the new prompt contract.

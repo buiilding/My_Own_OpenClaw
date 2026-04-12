@@ -43,6 +43,9 @@ Window set:
 Shared ownership model:
 
 - `surface_runtime.cjs` is the single main-process owner for `mainWindow`, `chatWindow`, `responseWindow`, `contextLabelWindow`, response-overlay visibility, and response phase.
+- it also owns the high-level surface state:
+  - `primarySurface`: `onboarding|dashboard|chat`
+  - `mainWindowMode`: `onboarding|dashboard`
 - `window_platform_policy.cjs` is the single owner for per-platform `BrowserWindow` policy such as content protection, overlay topmost/workspace rules, and explicit activation/focus handoff.
 - `response_overlay_visibility_policy.cjs` is the shared pure policy layer for response-overlay phase -> window mode mapping and chat-pill response-shell restore eligibility.
 - `chat_pill_trace_runtime.cjs` is the gated main-process trace helper for chat-pill / response-overlay transitions (`[ChatPillTrace][main]`).
@@ -68,7 +71,9 @@ For lifecycle + overlay-handler split details, see [Main Process Lifecycle, Over
 
 Window close policy:
 
-- `mainWindow.close` is intercepted; app hides window and shows chat overlay instead.
+- `mainWindow.close` is intercepted.
+- onboarding close hides the main window and does not restore the chat pill.
+- dashboard close hides the window and restores the chat pill.
 - on macOS, if the dashboard is currently in native fullscreen, close first exits fullscreen and waits for `leave-full-screen` before hiding the dashboard and restoring the chat pill, which prevents the black fullscreen shell from lingering behind the overlay.
 - `chatWindow.close` is intercepted; overlay hides without app quit.
 - `responseWindow.close` is intercepted; overlay hides and visibility flag resets.
@@ -220,9 +225,9 @@ Main bridge fanout channel (`ipc.cjs`):
   - visible/destroyed/missing target windows do not trigger fallback retargeting
 - `maximize=true` restores and maximizes main window before focus.
 - on macOS, both `window-toggle-maximize` and `show-main-window({ maximize: true })` use native fullscreen entry/exit instead of Electron `maximize()`, and any display-targeted reopen exits fullscreen first so the frameless dashboard can be repositioned correctly before entering fullscreen again.
-- onboarding is treated as a separate main-window surface target from the dashboard and chat pill:
+- onboarding is treated as a separate primary surface from the dashboard and chat pill:
   - renderer opens it through `show-main-window({ open: 'onboarding' })`
-  - macOS onboarding does not request native fullscreen on startup
+  - onboarding does not request maximize/fullscreen on startup
   - closing onboarding hides the main window without restoring the chat pill
   - later app reactivation restores onboarding in the main window until the renderer leaves onboarding state
 - focused dashboard restores use a stronger activation path (`moveTop()` -> `focus()` -> `webContents.focus()`) after the overlay handoff so Windows does not leave the frameless dashboard visible-but-inactive after opening from the minimal chat pill.

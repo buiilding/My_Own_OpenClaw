@@ -126,7 +126,8 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     showChatWindow,
     showMainWindow,
     getMainWindow = () => null,
-    getMainWindowSurfaceTarget = () => 'dashboard',
+    getPrimarySurface = () => 'dashboard',
+    getMainWindowMode = () => 'dashboard',
     getChatWindow = () => null,
     getResponseWindow = () => null,
     installApplicationMenu = () => {},
@@ -173,11 +174,15 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     );
 
     if (mainWindowVisible) {
+      if (getMainWindowMode() === 'onboarding') {
+        showMainWindow({ focus: true, open: 'onboarding' });
+        return;
+      }
       showMainWindow({ focus: true });
       return;
     }
 
-    if (getMainWindowSurfaceTarget() === 'onboarding') {
+    if (getPrimarySurface() === 'onboarding') {
       showMainWindow({ focus: true, open: 'onboarding' });
       return;
     }

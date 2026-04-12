@@ -13,6 +13,9 @@ const PERMISSION_RECHECK_INTERVAL_MS = 1000;
 const PERMISSION_RECHECK_TIMEOUT_MS = 2 * 60 * 1000;
 
 function shouldWatchExternalGrantCompletion(permissionId, status) {
+  if (permissionId === 'screen_capture' && status?.details?.media_status === 'granted') {
+    return false;
+  }
   return (
     MACOS_SETTINGS_PERMISSION_IDS.has(permissionId)
     && status?.granted !== true

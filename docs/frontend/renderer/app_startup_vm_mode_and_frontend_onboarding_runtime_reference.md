@@ -55,7 +55,7 @@ Routing behavior:
   - render `FrontendOnboardingSlideshow`
   - inject stop-agent shortcut label from `getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)`
   - request `show-main-window({ focus: true, open: 'onboarding' })` from the renderer startup-surface controller
-  - on macOS, onboarding stays out of native fullscreen and its window chrome suppresses the maximize control so permission prompts are not blocked behind a fullscreen frameless shell
+  - onboarding never requests maximize/fullscreen and its window chrome suppresses the maximize control so permission prompts are not blocked behind a fullscreen frameless shell
 - VM mode disabled + onboarding complete:
   - render `ChatGptDashboardShell`
   - pass `vmModeEnabled={false}`
@@ -100,7 +100,7 @@ Implementation split:
 - `buildOnboardingSlideState(...)` is the pure slide-index/slide-kind model
 - `PermissionOnboardingSlide` renders the active permission card only
 - `StopShortcutOnboardingSlide` renders the keybind-only final slide
-- `useOnboardingPermissionActions()` owns request-in-flight state plus post-grant permission effects
+- `useOnboardingPermissionActions()` owns the simple `Grant -> Waiting... -> probe` loop for settings-backed OS permissions plus post-grant permission effects
 
 Viewport/layout behavior:
 
@@ -118,6 +118,7 @@ Navigation behavior:
 - `Start WindieOS` stays enabled once permission status has loaded, even if some permissions are still missing
 - the final slide warns when permissions remain missing and points the user to Settings for follow-up
 - while onboarding is active, closing the main window hides onboarding without restoring the minimal chat pill; reopening the app restores onboarding until the wizard is completed
+- onboarding is treated as its own primary surface in the main process, separate from both dashboard and minimal chat pill state
 
 Stop shortcut label source:
 
