@@ -331,6 +331,77 @@ def build_prompt_preview(
     }
 
 
+def build_query_plan(
+    *,
+    config: Any,
+    container,
+    messages: list[dict[str, Any]],
+    user_query_raw: Optional[str],
+    include_tools: bool,
+    workspace_path: Optional[str],
+    conversation_ref: Optional[str],
+) -> dict[str, Any]:
+    preview = build_prompt_preview(
+        config=config,
+        container=container,
+        messages=messages,
+        user_query_raw=user_query_raw,
+        include_tools=include_tools,
+        workspace_path=workspace_path,
+    )
+    resolved_query = (
+        str(user_query_raw).strip()
+        if isinstance(user_query_raw, str) and user_query_raw.strip()
+        else (
+            preview["user_message_full"].metadata.original_query
+            if preview.get("user_message_full") is not None
+            else ""
+        )
+    )
+
+    query_payload: dict[str, Any] = {
+        "text": resolved_query,
+    }
+    if isinstance(conversation_ref, str) and conversation_ref.strip():
+        query_payload["conversation_ref"] = conversation_ref.strip()
+    if isinstance(workspace_path, str) and workspace_path.strip():
+        query_payload["workspace_path"] = workspace_path.strip()
+
+    transparency_events: list[dict[str, Any]] = [
+        {
+            "type": "system-prompt",
+            "payload": {
+                "content": preview["system_prompt"],
+            },
+        }
+    ]
+    if preview.get("user_message_full") is not None:
+        transparency_events.append(
+            {
+                "type": "user-message-full",
+                "payload": preview["user_message_full"].model_dump(),
+            }
+        )
+    if include_tools:
+        transparency_events.append(
+            {
+                "type": "tool-schemas",
+                "payload": {
+                    "tool_schemas": preview["canonical_tool_schemas"],
+                },
+            }
+        )
+
+    return {
+        "query_message": {
+            "type": "query",
+            "payload": query_payload,
+        },
+        "transparency_events": transparency_events,
+        **preview,
+    }
+
+
 def _artifact_store(container) -> ArtifactStore:
     return ArtifactStore.from_config(container.config)
 
