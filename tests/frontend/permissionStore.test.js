@@ -2,11 +2,14 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: jest.fn(),
   },
-  INVOKE_CHANNELS: {},
+  INVOKE_CHANNELS: {
+    RUN_PERMISSION_PROBE: 'run-permission-probe',
+  },
 }));
 
 import { usePermissionStore } from '../../frontend/src/renderer/features/permissions/stores/permissionStore';
 import { loadPermissionOnboardingState } from '../../frontend/src/renderer/features/permissions/utils/permissionStorage';
+import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
 describe('permissionStore', () => {
   beforeEach(() => {
@@ -69,6 +72,34 @@ describe('permissionStore', () => {
       manifest_version: 'manifest-v3',
       completed: false,
       completed_at: null,
+    });
+  });
+
+  test('runPermissionProbe returns the probed status so onboarding wait loops can react', async () => {
+    IpcBridge.invoke.mockResolvedValueOnce({
+      success: true,
+      data: {
+        status: {
+          permission_id: 'screen_capture',
+          status: 'granted',
+          granted: true,
+          reason: 'Screen recording access is granted.',
+          checked_at: '2026-04-12T00:00:00.000Z',
+          details: {},
+        },
+      },
+    });
+
+    const status = await usePermissionStore.getState().runPermissionProbe('screen_capture');
+
+    expect(status).toMatchObject({
+      permission_id: 'screen_capture',
+      status: 'granted',
+      granted: true,
+    });
+    expect(usePermissionStore.getState().statusesByPermissionId.screen_capture).toMatchObject({
+      status: 'granted',
+      granted: true,
     });
   });
 });

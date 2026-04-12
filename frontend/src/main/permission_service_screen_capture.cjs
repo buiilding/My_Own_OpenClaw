@@ -126,8 +126,8 @@ async function requestScreenCapturePermission(permission, deps = {}) {
         permissionId,
         PERMISSION_STATUS.NEEDS_ACTION,
         settingsResult.success
-          ? 'Opened Screen Recording settings. Enable WindieOS, then return here and click Grant again to verify capture.'
-          : 'Open Screen Recording settings, enable WindieOS, then return here and click Grant again to verify capture.',
+          ? 'Waiting for Screen Recording access. Enable WindieOS in System Settings.'
+          : 'Open Screen Recording settings and enable WindieOS.',
         {
           platform,
           media_status: refreshedMediaStatus,
@@ -136,8 +136,7 @@ async function requestScreenCapturePermission(permission, deps = {}) {
           settings_result: settingsResult,
           remediation: (
             'WindieOS first attempted a real desktop-capture request so macOS can register it in Screen Recording. '
-            + 'If WindieOS is not listed yet, leave System Settings open and click Grant again. '
-            + 'Once WindieOS appears, enable it, then return here and click Grant again so WindieOS can verify real screenshot capture.'
+            + 'Enable WindieOS there and leave this onboarding step open while WindieOS waits for the OS grant.'
           ),
         },
       );

@@ -60,21 +60,8 @@ jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
 import App from '../../frontend/src/renderer/app/App';
 
 describe('App permission gate', () => {
-  const originalNavigatorPlatform = navigator.platform;
-
   beforeEach(() => {
     mockIpcInvoke.mockClear();
-    Object.defineProperty(window.navigator, 'platform', {
-      configurable: true,
-      value: 'MacIntel',
-    });
-  });
-
-  afterAll(() => {
-    Object.defineProperty(window.navigator, 'platform', {
-      configurable: true,
-      value: originalNavigatorPlatform,
-    });
   });
 
   test('renders onboarding while required permissions are still missing', () => {
@@ -88,7 +75,6 @@ describe('App permission gate', () => {
     expect(screen.queryByTestId('dashboard-shell-stub')).not.toBeInTheDocument();
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-main-window', {
       focus: true,
-      maximize: false,
       open: 'onboarding',
     });
   });
@@ -126,7 +112,6 @@ describe('App permission gate', () => {
 
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-main-window', {
       focus: true,
-      maximize: false,
       open: 'onboarding',
     });
 

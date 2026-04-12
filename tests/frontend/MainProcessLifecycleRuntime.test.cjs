@@ -386,7 +386,8 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     const { deps, appEvents } = createRuntimeDeps({
       BrowserWindow: { getAllWindows: jest.fn(() => visibleWindows) },
       getMainWindow: jest.fn(() => hiddenMainWindow),
-      getMainWindowSurfaceTarget: jest.fn(() => 'onboarding'),
+      getPrimarySurface: jest.fn(() => 'onboarding'),
+      getMainWindowMode: jest.fn(() => 'onboarding'),
     });
 
     initializeMainProcessLifecycleRuntime(deps);

@@ -555,7 +555,7 @@ describe('main_window_runtime createMainWindow', () => {
       initializeMainProcessIpc: jest.fn(),
       getLatestFrontendConfig: jest.fn(),
       getWindows: jest.fn(() => ({ mainWindow })),
-      getMainWindowSurfaceTarget: jest.fn(() => 'dashboard'),
+      getMainWindowMode: jest.fn(() => 'dashboard'),
       setMainWindow: jest.fn(),
       enableContentProtectionSafely: jest.fn(),
       syncWindowDisplayAffinity: jest.fn(),
@@ -714,7 +714,7 @@ describe('main_window_runtime createMainWindow', () => {
   test('hides onboarding without restoring the chat pill on close', () => {
     const { deps, handlers, mainWindow } = createDeps({
       platform: 'darwin',
-      getMainWindowSurfaceTarget: jest.fn(() => 'onboarding'),
+      getMainWindowMode: jest.fn(() => 'onboarding'),
     });
     const closeEvent = { preventDefault: jest.fn() };
 
@@ -749,16 +749,14 @@ describe('main_window_runtime collapseMainWindowToChatPill', () => {
 });
 
 describe('main_window_runtime hideMainWindowWithoutChatPill', () => {
-  test('hides immediately when the onboarding window is not in macOS fullscreen', () => {
+  test('hides immediately when onboarding closes', () => {
     const mainWindow = {
       isDestroyed: jest.fn(() => false),
       hide: jest.fn(),
-      isFullScreen: jest.fn(() => false),
     };
 
     hideMainWindowWithoutChatPill({
       mainWindow,
-      platform: 'darwin',
     });
 
     expect(mainWindow.hide).toHaveBeenCalledTimes(1);

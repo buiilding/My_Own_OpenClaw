@@ -231,7 +231,7 @@ describe('FrontendOnboardingSlideshow', () => {
       permission_id: 'screen_capture',
       status: 'needs-action',
       granted: false,
-      reason: 'Opened Screen Recording settings. Enable WindieOS, then return here and click Grant again to verify capture.',
+      reason: 'Waiting for Screen Recording access. Enable WindieOS in System Settings.',
     });
     mockRunPermissionProbe.mockResolvedValue({
       permission_id: 'screen_capture',

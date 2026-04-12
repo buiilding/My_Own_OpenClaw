@@ -135,38 +135,11 @@ function collapseMainWindowToChatPill({
 
 function hideMainWindowWithoutChatPill({
   mainWindow,
-  platform = process.platform,
 }) {
-  const finishHide = () => {
-    if (!mainWindow || mainWindow.isDestroyed()) {
-      return;
-    }
-    mainWindow.hide();
-  };
-
-  const shouldExitFullscreenFirst = (
-    platform === 'darwin'
-    && typeof mainWindow?.isFullScreen === 'function'
-    && mainWindow.isFullScreen()
-    && typeof mainWindow.setFullScreen === 'function'
-    && typeof mainWindow.once === 'function'
-  );
-
-  if (!shouldExitFullscreenFirst) {
-    finishHide();
+  if (!mainWindow || mainWindow.isDestroyed()) {
     return;
   }
-
-  if (mainWindow.__windiePendingHideWithoutChatPill) {
-    return;
-  }
-
-  mainWindow.__windiePendingHideWithoutChatPill = true;
-  mainWindow.once('leave-full-screen', () => {
-    mainWindow.__windiePendingHideWithoutChatPill = false;
-    finishHide();
-  });
-  mainWindow.setFullScreen(false);
+  mainWindow.hide();
 }
 
 function createMainWindow({
@@ -192,7 +165,7 @@ function createMainWindow({
   initializeMainProcessIpc,
   getLatestFrontendConfig,
   getWindows,
-  getMainWindowSurfaceTarget = () => 'dashboard',
+  getMainWindowMode = () => 'dashboard',
   setMainWindow,
   syncWindowDisplayAffinity = () => {},
   resolveAppIconPath = resolveAppIconPathRuntime,
@@ -258,15 +231,14 @@ function createMainWindow({
   }
 
   mainWindow.on('close', (event) => {
-    const mainWindowSurfaceTarget = typeof getMainWindowSurfaceTarget === 'function'
-      ? getMainWindowSurfaceTarget()
+    const mainWindowMode = typeof getMainWindowMode === 'function'
+      ? getMainWindowMode()
       : 'dashboard';
 
-    if (!app.isQuitting && mainWindowSurfaceTarget === 'onboarding') {
+    if (!app.isQuitting && mainWindowMode === 'onboarding') {
       event.preventDefault();
       hideMainWindowWithoutChatPill({
         mainWindow,
-        platform,
       });
       return false;
     }
