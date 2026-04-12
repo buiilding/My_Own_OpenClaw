@@ -1,8 +1,8 @@
-"""Pydantic models for SDK-facing OCR and vision routes."""
+"""Pydantic models for SDK-facing OCR, vision, and debug routes."""
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -239,3 +239,84 @@ class VisionOverlayRequest(BaseModel):
     result: VisionOverlayPayload
     show_labels: bool = True
 
+
+class DebugConfigSnapshot(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    model_mode: str
+    model_provider: str
+    selected_model_id: str
+    interaction_mode: str
+
+
+class DebugModelsResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    config: DebugConfigSnapshot
+    models: list[dict[str, Any]]
+
+
+class DebugToolSchemasResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    config: DebugConfigSnapshot
+    canonical_tool_schemas: list[dict[str, Any]]
+    provider_tool_schemas: list[dict[str, Any]]
+
+
+class DebugToolCapabilitiesResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    config: DebugConfigSnapshot
+    capability: dict[str, Any]
+    canonical_tool_schema: Optional[dict[str, Any]] = None
+    provider_tool_schema: Optional[dict[str, Any]] = None
+
+
+class DebugSystemPromptResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    config: DebugConfigSnapshot
+    system_prompt: str
+
+
+class PromptPreviewRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    user_id: Optional[str] = None
+    model_id: Optional[str] = Field(None, min_length=1, max_length=256)
+    model_provider: Optional[str] = Field(None, min_length=1, max_length=128)
+    interaction_mode: Optional[Literal["chat", "agent"]] = None
+    include_tools: bool = True
+    workspace_path: Optional[str] = Field(None, min_length=1, max_length=4096)
+    user_query_raw: Optional[str] = Field(None, max_length=32768)
+    messages: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class DebugUserMessageFullMetadataModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    original_query: str
+    context_type: str
+    injected_context: str
+    active_window: str
+
+
+class DebugUserMessageFullModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    content: str
+    metadata: DebugUserMessageFullMetadataModel
+
+
+class PromptPreviewResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    config: DebugConfigSnapshot
+    system_prompt: str
+    prompt_messages: list[dict[str, Any]]
+    canonical_tool_schemas: list[dict[str, Any]]
+    provider_tool_schemas: list[dict[str, Any]]
+    user_message_full: Optional[DebugUserMessageFullModel] = None
+    prompt_token_count: Optional[int] = None
+    token_count_error: Optional[str] = None

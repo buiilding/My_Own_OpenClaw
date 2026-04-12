@@ -8,6 +8,8 @@ from PIL import Image
 from starlette.requests import Request
 
 from backend.src.core.config.models import AppConfig
+from backend.src.core.infrastructure.cache_manager import CacheManager
+from backend.src.tools.registry import ToolRegistry
 from tests.backend.websocket_route_test_utils import (
     install_route_deps_shim,
     restore_route_deps_shim,
@@ -19,6 +21,7 @@ try:
     from backend.src.api.routes import sdk as sdk_routes
     from backend.src.api.routes.sdk.models import (
         BoundingBoxModel,
+        PromptPreviewRequest,
         ImageSourceInput,
         OcrCandidateRequest,
         OcrOverlayRequest,
@@ -88,19 +91,46 @@ class _FakeVisionService:
         return True
 
 
+class _FakeModelService:
+    async def get_all_models(self):
+        return [
+            {
+                "id": "gpt-5.4@@gpt-5-4-none-thinking",
+                "provider": "openai",
+                "display_name": "GPT-5.4",
+            }
+        ]
+
+
+class _FakeSessionManager:
+    def __init__(self, session=None):
+        self._session = session
+
+    def get_session(self, _user_id):
+        return self._session
+
+
+def _tool_registry(config: AppConfig) -> ToolRegistry:
+    return ToolRegistry(config=config, cache_manager=CacheManager())
+
+
 def _container(
     tmp_path,
     *,
     ocr_results=None,
     vision_model=None,
+    config=None,
 ):
+    effective_config = config or AppConfig(
+        artifact_store_path=str(tmp_path),
+        artifact_max_bytes=1024 * 1024,
+    )
     return SimpleNamespace(
-        config=AppConfig(
-            artifact_store_path=str(tmp_path),
-            artifact_max_bytes=1024 * 1024,
-        ),
+        config=effective_config,
         ocr_service=_FakeOcrService(ocr_results or []),
         vision_service=_FakeVisionService(vision_model or _FakeVisionModel()),
+        model_service=_FakeModelService(),
+        tool_registry=_tool_registry(effective_config),
     )
 
 
@@ -378,3 +408,118 @@ async def test_sdk_vision_overlay_writes_artifact(tmp_path) -> None:
 
     assert response.annotation_count == 2
     assert (tmp_path / response.artifact_id).is_file()
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_models_returns_catalog_and_effective_config(tmp_path) -> None:
+    config = AppConfig(
+        artifact_store_path=str(tmp_path),
+        artifact_max_bytes=1024 * 1024,
+        model_provider="openai",
+        selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
+    )
+    container = _container(tmp_path, config=config)
+
+    response = await sdk_routes.sdk_debug_models(
+        container=container,
+        session_manager=_FakeSessionManager(),
+        user_id=None,
+        model_id=None,
+        model_provider=None,
+        interaction_mode=None,
+    )
+
+    assert response.config.model_provider == "openai"
+    assert response.config.selected_model_id == "gpt-5.4@@gpt-5-4-none-thinking"
+    assert response.models[0]["id"] == "gpt-5.4@@gpt-5-4-none-thinking"
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_tool_schemas_returns_canonical_and_provider_shapes(tmp_path) -> None:
+    config = AppConfig(
+        artifact_store_path=str(tmp_path),
+        artifact_max_bytes=1024 * 1024,
+        model_provider="openai",
+        selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
+    )
+    container = _container(tmp_path, config=config)
+
+    response = await sdk_routes.sdk_debug_tool_schemas(
+        container=container,
+        session_manager=_FakeSessionManager(),
+        user_id=None,
+        model_id=None,
+        model_provider=None,
+        interaction_mode=None,
+    )
+
+    assert any(schema.get("name") == "read_file" for schema in response.canonical_tool_schemas)
+    assert response.provider_tool_schemas
+    assert any(schema.get("type") in {"function", "computer"} for schema in response.provider_tool_schemas)
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_tool_capabilities_returns_schema_details(tmp_path) -> None:
+    container = _container(tmp_path)
+
+    response = await sdk_routes.sdk_debug_tool_capabilities(
+        "read_file",
+        container=container,
+        session_manager=_FakeSessionManager(),
+        user_id=None,
+        model_id=None,
+        model_provider=None,
+        interaction_mode=None,
+    )
+
+    assert response.capability["name"] == "read_file"
+    assert response.canonical_tool_schema is not None
+    assert response.canonical_tool_schema["name"] == "read_file"
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_system_prompt_returns_prompt_text(tmp_path) -> None:
+    container = _container(tmp_path)
+
+    response = await sdk_routes.sdk_debug_system_prompt(
+        container=container,
+        session_manager=_FakeSessionManager(),
+        user_id=None,
+        model_id=None,
+        model_provider=None,
+        interaction_mode=None,
+    )
+
+    assert response.system_prompt
+    assert response.config.selected_model_id == container.config.selected_model_id
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_prompt_preview_returns_prompt_transparency_payloads(tmp_path) -> None:
+    container = _container(tmp_path)
+
+    response = await sdk_routes.sdk_debug_prompt_preview(
+        PromptPreviewRequest(
+            messages=[
+                {
+                    "role": "user",
+                    "content": (
+                        "<system_context><active_window>Terminal</active_window></system_context>\n"
+                        "<user_query>open file</user_query>"
+                    ),
+                }
+            ],
+            user_query_raw="open file",
+            include_tools=True,
+        ),
+        container=container,
+        session_manager=_FakeSessionManager(),
+    )
+
+    assert response.system_prompt
+    assert response.prompt_messages[0]["role"] == "user"
+    assert response.user_message_full is not None
+    assert response.user_message_full.metadata.original_query == "open file"
+    assert response.user_message_full.metadata.active_window == "Terminal"
+    assert any(schema.get("name") == "read_file" for schema in response.canonical_tool_schemas)
+    assert response.prompt_token_count is not None or response.token_count_error is not None
