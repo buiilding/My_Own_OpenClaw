@@ -101,6 +101,7 @@ describe('permission_service', () => {
 
   test('screen capture request on macOS verifies the real screenshot path before granting', async () => {
     const openExternal = jest.fn(async () => true);
+    const focusPermissionPromptWindow = jest.fn(async () => ({ success: true }));
     const verifyScreenCaptureCapability = jest.fn(async () => ({
       granted: true,
       details: {
@@ -117,10 +118,12 @@ describe('permission_service', () => {
       systemPreferences: {
         getMediaAccessStatus: jest.fn(() => 'granted'),
       },
+      focusPermissionPromptWindow,
       verifyScreenCaptureCapability,
     });
 
     expect(openExternal).not.toHaveBeenCalled();
+    expect(focusPermissionPromptWindow).toHaveBeenCalledTimes(1);
     expect(verifyScreenCaptureCapability).toHaveBeenCalledTimes(1);
     expect(status.status).toBe('granted');
     expect(status.granted).toBe(true);
@@ -129,6 +132,7 @@ describe('permission_service', () => {
 
   test('screen capture request on macOS stays needs-action when real screenshot verification fails', async () => {
     const openExternal = jest.fn(async () => true);
+    const focusPermissionPromptWindow = jest.fn(async () => ({ success: true }));
     const verifyScreenCaptureCapability = jest.fn(async () => ({
       granted: false,
       reason: 'User dismissed the verification screenshot prompt.',
@@ -143,10 +147,12 @@ describe('permission_service', () => {
       systemPreferences: {
         getMediaAccessStatus: jest.fn(() => 'granted'),
       },
+      focusPermissionPromptWindow,
       verifyScreenCaptureCapability,
     });
 
     expect(openExternal).not.toHaveBeenCalled();
+    expect(focusPermissionPromptWindow).toHaveBeenCalledTimes(1);
     expect(verifyScreenCaptureCapability).toHaveBeenCalledTimes(1);
     expect(status.status).toBe('needs-action');
     expect(status.granted).toBe(false);

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 ### Fixed
 
 - fix(macos-release): add the hardened-runtime JIT entitlements required by the signed Electron app so the DMG-mounted macOS build no longer aborts at startup with `Failed to reserve virtual memory for CodeRange`, and tighten the local macOS package smoke helper to fail on crashy `--version` launches while also checking the mounted-DMG app path that users can click before dragging into Applications.
+- fix(frontend-macos-screen-capture-onboarding): restore the onboarding Screen capture Grant flow when the frameless macOS dashboard is in native full screen by exiting full screen before focusing the permission window and running the real screenshot verification path.
 
 ### Added
 - feat(backend-agents-md-context): resolve applicable `AGENTS.md` files from the active workspace up to the repo root at prompt-build time, inject them as Codex-style contextual user messages ahead of the real turn, propagate workspace path into session prompt state, and count that injected context in backend history-compaction token budgeting; add focused backend coverage and docs for the new prompt contract.
