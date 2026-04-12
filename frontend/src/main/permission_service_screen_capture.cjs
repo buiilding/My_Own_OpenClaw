@@ -2,7 +2,10 @@ const {
   PERMISSION_STATUS,
   buildProbeResult,
   getMediaAccessStatus,
+  openExternal,
 } = require('./permission_service_runtime.cjs');
+
+const MACOS_SCREEN_CAPTURE_SETTINGS_URL = 'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture';
 
 async function requestDesktopCapturePrompt(deps = {}) {
   const desktopCapturer = deps.desktopCapturer;
@@ -114,6 +117,27 @@ async function requestScreenCapturePermission(permission, deps = {}) {
   const platform = deps.platform || process.platform;
 
   if (platform === 'darwin') {
+    const mediaStatus = getMediaAccessStatus('screen', deps);
+    if (mediaStatus !== 'granted') {
+      const settingsResult = await openExternal(MACOS_SCREEN_CAPTURE_SETTINGS_URL, deps);
+      return buildProbeResult(
+        permissionId,
+        PERMISSION_STATUS.NEEDS_ACTION,
+        settingsResult.success
+          ? 'Opened Screen Recording settings. Enable WindieOS, then return here and click Grant again to verify capture.'
+          : 'Open Screen Recording settings, enable WindieOS, then return here and click Grant again to verify capture.',
+        {
+          platform,
+          media_status: mediaStatus,
+          settings_result: settingsResult,
+          remediation: (
+            'Open System Settings -> Privacy & Security -> Screen Recording, enable WindieOS, '
+            + 'then return here and click Grant again so WindieOS can verify real screenshot capture.'
+          ),
+        },
+      );
+    }
+
     const promptWindowFocus = typeof deps.focusPermissionPromptWindow === 'function'
       ? await deps.focusPermissionPromptWindow()
       : null;
@@ -138,7 +162,7 @@ async function requestScreenCapturePermission(permission, deps = {}) {
       capability.reason || 'Grant Screen Recording and allow the verification screenshot prompt.',
       {
         platform,
-        media_status: getMediaAccessStatus('screen', deps),
+        media_status: mediaStatus,
         permission_prompt_window_focus: promptWindowFocus,
         capability_check: capability,
         remediation: (

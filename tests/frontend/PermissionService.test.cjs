@@ -130,6 +130,34 @@ describe('permission_service', () => {
     expect(status.details.capability_check.details.capture_backend).toBe('pyautogui_fallback+macos_builtin_cursor');
   });
 
+  test('screen capture request on macOS opens Screen Recording settings before verification when access is missing', async () => {
+    const openExternal = jest.fn(async () => true);
+    const focusPermissionPromptWindow = jest.fn(async () => ({ success: true }));
+    const verifyScreenCaptureCapability = jest.fn(async () => ({
+      granted: true,
+    }));
+
+    const status = await requestPermission('screen_capture', {
+      platform: 'darwin',
+      permissionStateStore,
+      shell: {
+        openExternal,
+      },
+      systemPreferences: {
+        getMediaAccessStatus: jest.fn(() => 'denied'),
+      },
+      focusPermissionPromptWindow,
+      verifyScreenCaptureCapability,
+    });
+
+    expect(openExternal).toHaveBeenCalledWith('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
+    expect(focusPermissionPromptWindow).not.toHaveBeenCalled();
+    expect(verifyScreenCaptureCapability).not.toHaveBeenCalled();
+    expect(status.status).toBe('needs-action');
+    expect(status.granted).toBe(false);
+    expect(String(status.reason || '')).toContain('Opened Screen Recording settings');
+  });
+
   test('screen capture request on macOS stays needs-action when real screenshot verification fails', async () => {
     const openExternal = jest.fn(async () => true);
     const focusPermissionPromptWindow = jest.fn(async () => ({ success: true }));
