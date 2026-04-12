@@ -3,6 +3,11 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FRONTEND_DIR="${ROOT_DIR}/frontend"
+RUNTIME_DIR="${FRONTEND_DIR}/python-runtime"
+RUNTIME_ARCHIVE="${FRONTEND_DIR}/python-runtime.tar.gz"
+RUNTIME_REQS="${FRONTEND_DIR}/src/main/python/requirements.runtime.txt"
+RUNTIME_BUILD_SCRIPT="${ROOT_DIR}/scripts/build-sidecar-runtime"
+RUNTIME_BUILD_STAMP="${FRONTEND_DIR}/.windie-python-runtime-build-stamp"
 BUNDLE_ID="${WINDIE_BUNDLE_ID:-com.windieos.desktop}"
 DEFAULT_BUNDLE_IDS=(
   "${BUNDLE_ID}"
@@ -77,6 +82,59 @@ run_frontend_local_build_cmd() {
     "$@"
 }
 
+compute_runtime_build_key() {
+  local python_identity=""
+  local input_fingerprint=""
+
+  python_identity="$("${PYTHON_BUILD}" - <<'PY'
+from __future__ import annotations
+
+import platform
+import sys
+
+print("|".join([
+    sys.executable,
+    sys.version.split()[0],
+    sys.platform,
+    platform.machine(),
+]))
+PY
+)"
+
+  input_fingerprint="$(
+    shasum -a 256 \
+      "${RUNTIME_REQS}" \
+      "${RUNTIME_BUILD_SCRIPT}" \
+    | shasum -a 256 \
+    | awk '{print $1}'
+  )"
+
+  printf '%s\n' "${python_identity}|${input_fingerprint}"
+}
+
+resolve_runtime_rebuild_reason() {
+  local expected_key="$1"
+
+  if [[ ! -d "${RUNTIME_DIR}" ]]; then
+    printf '%s\n' "python-runtime is missing"
+    return
+  fi
+
+  if [[ ! -f "${RUNTIME_BUILD_STAMP}" ]]; then
+    printf '%s\n' "python-runtime build stamp is missing"
+    return
+  fi
+
+  local current_key=""
+  current_key="$(tr -d '\n' < "${RUNTIME_BUILD_STAMP}")"
+  if [[ "${current_key}" != "${expected_key}" ]]; then
+    printf '%s\n' "runtime build inputs changed"
+    return
+  fi
+
+  printf '%s\n' ""
+}
+
 collect_existing_install_paths() {
   shopt -s nullglob
   local install_candidates=(
@@ -148,6 +206,19 @@ fi
 
 echo "[reinstall-windieos-macos] python_build=${PYTHON_BUILD}"
 
+if [[ ! -f "${RUNTIME_REQS}" ]]; then
+  echo "[reinstall-windieos-macos] ERROR: missing runtime requirements file: ${RUNTIME_REQS}" >&2
+  exit 1
+fi
+
+if [[ ! -f "${RUNTIME_BUILD_SCRIPT}" ]]; then
+  echo "[reinstall-windieos-macos] ERROR: missing runtime build script: ${RUNTIME_BUILD_SCRIPT}" >&2
+  exit 1
+fi
+
+RUNTIME_BUILD_KEY="$(compute_runtime_build_key)"
+RUNTIME_REBUILD_REASON="$(resolve_runtime_rebuild_reason "${RUNTIME_BUILD_KEY}")"
+
 echo "[reinstall-windieos-macos] stopping running WindieOS processes"
 pkill -f "${APP_INSTALL_PATH}/Contents/MacOS/WindieOS" || true
 pkill -f '/WindieOS.app/Contents/MacOS/WindieOS' || true
@@ -182,12 +253,17 @@ rm -f "${LOG_FILE}"
 echo "[reinstall-windieos-macos] cleaning previous build artifacts"
 rm -rf \
   "${FRONTEND_DIR}/dist" \
-  "${FRONTEND_DIR}/release" \
-  "${FRONTEND_DIR}/python-runtime" \
-  "${FRONTEND_DIR}/python-runtime.tar.gz"
+  "${FRONTEND_DIR}/release"
 
 echo "[reinstall-windieos-macos] building fresh local macOS app bundle (no Apple notarization)"
-run_frontend_local_build_cmd npm --prefix "${FRONTEND_DIR}" run build:sidecar-runtime
+if [[ -n "${RUNTIME_REBUILD_REASON}" ]]; then
+  echo "[reinstall-windieos-macos] rebuilding sidecar runtime because ${RUNTIME_REBUILD_REASON}"
+  rm -rf "${RUNTIME_DIR}" "${RUNTIME_ARCHIVE}"
+  run_frontend_local_build_cmd npm --prefix "${FRONTEND_DIR}" run build:sidecar-runtime
+  printf '%s\n' "${RUNTIME_BUILD_KEY}" > "${RUNTIME_BUILD_STAMP}"
+else
+  echo "[reinstall-windieos-macos] reusing existing sidecar runtime; runtime build inputs are unchanged"
+fi
 run_frontend_local_build_cmd npm --prefix "${FRONTEND_DIR}" run build
 run_frontend_local_build_cmd \
   bash \

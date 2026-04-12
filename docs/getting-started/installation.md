@@ -238,9 +238,11 @@ The macOS helper is intentionally local-only: it clears all known TCC/privacy
 grants for existing WindieOS app/helper bundle ids before reinstalling, strips
 Apple notarization and Developer ID signing environment variables from the
 build step so the reinstall does not wait on Apple, rebuilds the unpacked
-`release/mac-arm64/WindieOS.app` bundle, installs it into `/Applications`,
-applies one consistent ad-hoc signature to the installed app bundle, and
-relaunches that installed app.
+`release/mac-arm64/WindieOS.app` bundle, reuses the existing packaged
+`python-runtime` when `requirements.runtime.txt` and the runtime build script
+have not changed, installs the app into `/Applications`, applies one
+consistent ad-hoc signature to the installed app bundle, and relaunches that
+installed app.
 
 The Windows helper stops the installed app, clears WindieOS app data under
 `%APPDATA%`/`%LOCALAPPDATA%`, rebuilds the bundled-runtime NSIS installer, runs
