@@ -174,13 +174,13 @@ In the final summary, briefly note any meaningful refactor performed and any imp
 
 ## Documentation
 
-Before coding:
+Before coding/answering questions:
 
 - Run docs listing if available
   - prefer `./bin/docs-list`
   - fallback `node scripts/docs-list.js`
   - ignore if neither is installed
-- Follow doc links until the domain and relevant behavior are clear
+- Follow doc links and read them until the domain and relevant behavior are clear
 - Honor `read_when` hints
 
 When behavior or APIs change:
@@ -239,6 +239,7 @@ Always mention:
 - Do not change version numbers or publish artifacts without explicit approval
 - Before any release step, run the relevant tests
 - If UI is touched, include frontend test, lint, and build checks as appropriate
+- For local macOS reinstalls, skip Apple notarization so local rebuild/reinstall loops do not wait on Apple services
 
 ## Security and Configuration
 
@@ -252,7 +253,7 @@ Always mention:
 
 ## Working Style
 
-- When answering questions, verify in code first
+- When answering questions, verify in code and docs first
 - Avoid guessing
 - If unsure, read more code first
 - If still blocked, ask with short options
@@ -287,21 +288,6 @@ For complex UI or runtime bugs:
 - add scenario tests for race-prone flows
 
 If requirements conflict or timing semantics are ambiguous, resolve the spec conflict before implementation.
-
-### Chat Continuity Rules
-
-- Never generate a new conversation ref during first send or startup until all three are checked:
-  - transcript session
-  - chat store active ref
-  - main-process session snapshot
-- Closing the dashboard must not reset chat continuity
-- Chat pill send must continue the active conversation if the main process still has one
-- `local-user-message` screenshot attachments must render `screenshotRef` or `screenshotUrl` immediately when provided
-- No UI-only drops
-- Any change touching chat-pill send, session behavior, or overlay startup requires regression tests in the same PR
-  - minimum coverage: `ChatMessageSender`, `ChatProvider`, `IpcMainBridge`
-
-## Git Rules
 
 ### Safe Defaults
 
