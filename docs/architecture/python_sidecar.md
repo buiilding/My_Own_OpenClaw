@@ -24,6 +24,7 @@ Release contract:
 - Installer ships a bundled runtime under `resources/python-runtime`.
 - Sidecar and wakeword services run from bundled runtime in packaged apps.
 - The sidecar now includes a transport-only hosted SDK client in `frontend/src/main/python/core/windie_sdk_client.py` for direct developer-facing calls to `/api/artifacts/*`, `/api/sdk/*`, and `/ws`.
+- `frontend/src/main/python/core/__init__.py` now re-exports `WindieSdkClient` so sidecar consumers can import it from `core` instead of reaching into the module file path.
 
 **Key files:**
 - Sidecar entrypoint: `frontend/src/main/python/local_backend.py`

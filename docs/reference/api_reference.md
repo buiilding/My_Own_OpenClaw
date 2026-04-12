@@ -30,7 +30,8 @@ These clients talk only to the public backend surfaces documented here:
 - HTTP: `/api/artifacts/*`, `/api/sdk/*`
 - WebSocket: `/ws`
 
-It is intentionally separate from the renderer `ApiClient`, which is the Electron IPC bridge used by the desktop app itself.
+The renderer side also exposes a stable barrel import at `frontend/src/renderer/infrastructure/api/index.ts`, while the sidecar exports `WindieSdkClient` from `frontend/src/main/python/core/__init__.py`.
+The hosted SDK clients are intentionally separate from the renderer `ApiClient`, which is the Electron IPC bridge used by the desktop app itself.
 
 Backend message dispatch is handled by `MessageHandlerRegistry` in `backend/src/api/infrastructure/registry.py`.
 
@@ -243,7 +244,7 @@ These routes are for hosted backend use. They are not meant to require SDK consu
 ### TypeScript Client Example
 
 ```ts
-import { WindieSdkClient } from '../frontend/src/renderer/infrastructure/api/windieSdkClient';
+import { WindieSdkClient } from '../frontend/src/renderer/infrastructure/api';
 
 const sdk = new WindieSdkClient({
   httpBaseUrl: 'https://api.windieos.com',
@@ -280,7 +281,7 @@ const trace = await sdk.agent.traceQuery(
 ### Python Client Example
 
 ```python
-from core.windie_sdk_client import WindieSdkClient
+from core import WindieSdkClient
 
 sdk = WindieSdkClient(
     backend_url="https://api.windieos.com",
