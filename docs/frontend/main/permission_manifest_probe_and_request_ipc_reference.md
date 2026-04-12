@@ -63,7 +63,7 @@ Current probe ownership:
   - macOS: uses `getMediaAccessStatus('microphone')`
   - Windows/Linux: probes microphone capability directly
 - `app_management`:
-  - macOS-only onboarding/status step backed by app-managed state written after the dedicated browser warm-up path is used to trigger the native App Management flow
+  - macOS-only onboarding/status step backed by app-managed state written after the dedicated browser warm-up path confirms App Management is already usable
 - `filesystem_workspace_access`:
   - reads persisted folder-selection state from `permission_state_store.cjs` and verifies the selected path still exists
 - `shell_execution`:
@@ -119,7 +119,8 @@ the renderer:
   - successful request leaves the dedicated WindieOS browser available for sign-in/profile setup; status is inferred from real connect success, not a separate OS permission probe
 - `app_management`:
   - macOS-only step that uses the same browser warm-up path to surface App Management before the browser-automation onboarding slide
-  - successful request persists an app-managed grant so later browser onboarding can proceed without immediately re-blocking on the same prerequisite
+  - when App Management is still pending, it now opens the App Management settings pane and returns a waiting-style `needs-action` status so onboarding can switch the button into `Waiting...`
+  - once a subsequent re-check sees browser warm-up succeed without the pending-prompt markers, the request persists an app-managed grant so later browser onboarding can proceed without immediately re-blocking on the same prerequisite
 - macOS deep links via `shell.openExternal(...)`:
   - screen capture -> privacy screen-capture pane
   - accessibility input control -> privacy accessibility pane

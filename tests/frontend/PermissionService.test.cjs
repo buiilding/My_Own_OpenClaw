@@ -695,7 +695,8 @@ describe('permission_service', () => {
     expect(String(status.reason || '')).toContain('Failed to connect to Chrome');
   });
 
-  test('app management request on macOS becomes granted after browser warmup succeeds', async () => {
+  test('app management request on macOS opens App Management settings and waits when warmup only surfaces the prompt', async () => {
+    const openExternal = jest.fn(async () => true);
     const warmBrowserAutomationPermission = jest.fn(async () => ({
       success: true,
       details: { app_management_prompt_shown: true },
@@ -704,10 +705,44 @@ describe('permission_service', () => {
     const status = await requestPermission('app_management', {
       platform: 'darwin',
       permissionStateStore,
+      shell: {
+        openExternal,
+      },
       warmBrowserAutomationPermission,
     });
 
     expect(warmBrowserAutomationPermission).toHaveBeenCalledTimes(1);
+    expect(openExternal).toHaveBeenCalledWith('x-apple.systempreferences:com.apple.preference.security?Privacy_AppBundles');
+    expect(status.status).toBe('needs-action');
+    expect(status.granted).toBe(false);
+    expect(status.details.awaiting_external_grant).toBe(true);
+
+    const probe = await runPermissionProbe('app_management', {
+      platform: 'darwin',
+      permissionStateStore,
+    });
+    expect(probe.status).toBe('needs-action');
+    expect(probe.granted).toBe(false);
+  });
+
+  test('app management request on macOS becomes granted after browser warmup succeeds with usable browser access', async () => {
+    const openExternal = jest.fn(async () => true);
+    const warmBrowserAutomationPermission = jest.fn(async () => ({
+      success: true,
+      details: { browser_connected: true },
+    }));
+
+    const status = await requestPermission('app_management', {
+      platform: 'darwin',
+      permissionStateStore,
+      shell: {
+        openExternal,
+      },
+      warmBrowserAutomationPermission,
+    });
+
+    expect(warmBrowserAutomationPermission).toHaveBeenCalledTimes(1);
+    expect(openExternal).not.toHaveBeenCalled();
     expect(status.status).toBe('granted');
     expect(status.granted).toBe(true);
 
@@ -720,10 +755,17 @@ describe('permission_service', () => {
   });
 
   test('browser automation on macOS stays blocked until app management is granted', async () => {
-    const warmBrowserAutomationPermission = jest.fn(async () => ({
-      success: true,
-      details: { browser_connected: true },
-    }));
+    const openExternal = jest.fn(async () => true);
+    const warmBrowserAutomationPermission = jest
+      .fn()
+      .mockResolvedValueOnce({
+        success: false,
+        error: 'App Management is still pending.',
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        details: { browser_connected: true },
+      });
 
     const blocked = await requestPermission('browser_automation', {
       platform: 'darwin',
@@ -741,7 +783,15 @@ describe('permission_service', () => {
     await requestPermission('app_management', {
       platform: 'darwin',
       permissionStateStore,
+      shell: {
+        openExternal,
+      },
       warmBrowserAutomationPermission,
+    });
+
+    await permissionStateStore.set('app_management', {
+      granted: true,
+      source: 'os',
     });
 
     const unblocked = await requestPermission('browser_automation', {
