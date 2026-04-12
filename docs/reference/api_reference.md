@@ -20,8 +20,12 @@ The intended SDK split is:
 
 SDK consumers should not need to start a local backend process just to use hosted OCR or prediction routes.
 
-The repo now also includes a transport-only TypeScript SDK client wrapper in `frontend/src/renderer/infrastructure/api/windieSdkClient.ts`.
-That client talks only to the public backend surfaces documented here:
+The repo now also includes transport-only SDK client wrappers in:
+
+- `frontend/src/renderer/infrastructure/api/windieSdkClient.ts` (TypeScript)
+- `frontend/src/main/python/core/windie_sdk_client.py` (Python)
+
+These clients talk only to the public backend surfaces documented here:
 
 - HTTP: `/api/artifacts/*`, `/api/sdk/*`
 - WebSocket: `/ws`
@@ -271,6 +275,35 @@ const trace = await sdk.agent.traceQuery(
   { userId: 'dev-user', operatingSystem: 'macOS' },
   { text: 'Inspect the repo state', conversationRef: 'conv_trace' },
 );
+```
+
+### Python Client Example
+
+```python
+from core.windie_sdk_client import WindieSdkClient
+
+sdk = WindieSdkClient(
+    backend_url="https://api.windieos.com",
+    default_user_id="dev-user",
+    default_operating_system="macOS",
+)
+
+prompt = await sdk.get_system_prompt()
+tool_schemas = await sdk.get_tool_schemas()
+query_plan = await sdk.get_query_plan(
+    {
+        "user_query_raw": "open file",
+        "conversation_ref": "conv_sdk",
+        "messages": [],
+    }
+)
+
+trace = await sdk.trace_query(
+    query={
+        "text": "Inspect the repo state",
+        "conversation_ref": "conv_trace",
+    }
+)
 ```
 
 Shared image input shape:
