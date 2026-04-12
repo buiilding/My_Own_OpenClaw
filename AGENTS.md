@@ -140,6 +140,7 @@ Before coding:
 When behavior or APIs change:
 
 - update docs in the same change
+- update existing tests and add new tests in the same change for the changed behavior, affected regressions, and realistic edge cases you can identify
 - add `read_when` hints for cross-cutting docs when useful
 
 ### docs-list Notes
@@ -156,8 +157,10 @@ When behavior or APIs change:
 - New tests should go into `tests/new_*` unless extending an existing test module
 - Prefer unit-level tests with minimal I/O
 - Mock network and system calls
+- For any behavior change, update existing tests and add new coverage in the same change
+- Cover the primary path, regressions the change could reintroduce, and realistic edge or failure cases you can identify within the touched scope
 - If you change tool parsing, execution flow, or IPC, add tests across backend, sidecar, and frontend as needed
-- After each non-trivial feature or fix, add tests while implementation context is still fresh
+- Add or expand tests while implementation context is still fresh
 - Purely visual UI tweaks may skip new tests when they would be low-signal
 
 ## PR Workflow
