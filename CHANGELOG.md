@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 ### Changed
 
 - chore(prompt-contract-cleanup): update backend docs and prompt tests to describe the live direct-tool calling contract instead of legacy `computer_use`/`system_use` wrappers, and remove the stale checked-in `model-facing/*` prompt/schema snapshot artifacts from the repo.
+- fix(frontend-macos-screen-capture-grant-flow): change the first macOS Screen Recording grant attempt to trigger only the native capture prompt instead of auto-opening System Settings immediately, while keeping the onboarding row in `Waiting...` so users can fall back to System Settings manually if the native prompt does not complete the grant.
 
 ### Fixed
 
