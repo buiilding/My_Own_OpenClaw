@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for native tool-call bridging in `tool_call_bridge.py`: ParsedResponse conversion, unified computer/system wrapper normalization, whitespace-safe tool-call-id handling, history tool-call shaping, and recoverable-error helper contracts."
+summary: "Deep reference for native tool-call bridging in `tool_call_bridge.py`: ParsedResponse conversion, provider-payload preservation, whitespace-safe tool-call-id handling, history tool-call shaping, and recoverable-error helper contracts."
 read_when:
-  - When changing `backend/src/agent/execution/tool_call_bridge.py` conversion behavior, wrapper normalization, or metadata extraction.
+  - When changing `backend/src/agent/execution/tool_call_bridge.py` conversion behavior or metadata extraction.
   - When debugging mismatches between provider-native `tool_calls` payloads and downstream parsed/history tool-call shapes.
 title: "Native Tool-Call Bridge and History Mapping Reference"
 ---
@@ -60,85 +60,19 @@ Metadata extraction:
 - extracts thought signature from either:
   - `thought_signature`
   - `thoughtSignature`
-- if `arguments.metadata` is a dict:
-  - merges it into parsed metadata
-  - removes `metadata` key from executable `parameters`
-- if `arguments.metadata` is missing or not a dict:
-  - metadata merge is skipped safely (no parse failure)
-
-Metadata precedence nuance:
-
-- provider-level fields (`id` -> `metadata.tool_call_id`, `thought_signature`) are seeded first
-- top-level `arguments.metadata` merge runs after seeding, so overlapping keys in wrapper metadata can override seeded values
-- provider-native built-in calls such as OpenAI `computer` typically arrive without wrapper metadata; in that case the bridge keeps only provider-seeded metadata plus the preserved `model_facing_tool_call`
+- preserves the original provider-emitted payload as `metadata.model_facing_tool_call` when the tool name is non-blank
 
 Deep-copy boundary:
 
-- tool-call `arguments` are deep-copied before normalization/mutation
-- metadata extraction and unified-wrapper reshaping never mutate provider payload dictionaries in place
-- every native tool call also retains the original provider-normalized envelope in `metadata.model_facing_tool_call` so history/transparency can show the exact model-emitted payload even when execution normalizes it to an internal concrete tool name
+- tool-call `arguments` are deep-copied before normalization
+- metadata extraction never mutates provider payload dictionaries in place
+- every native tool call retains the original provider-normalized envelope in `metadata.model_facing_tool_call` so history/transparency can show the exact model-emitted payload
 
-## Unified `computer_use` Mapping
+No wrapper normalization happens in this bridge:
 
-When normalized name is `computer_use`:
-
-- reads mapped subtool from `parameters.tool`
-- allowed mapped names:
-  - `mouse_control`
-  - `keyboard_control`
-  - `screenshot`
-  - `scroll_control`
-  - `switch_window`
-  - `wait`
-- valid mapped name -> replace parsed `tool_name` with subtool
-- invalid/missing mapped name -> `tool_name = "invalid_computer_use_tool"`
-- executable parameters become `parameters.arguments` if dict, else `{}`
-
-Metadata-promotion boundary for unified envelopes:
-
-- only top-level unified `computer_use.metadata` is promoted to parsed metadata
-- nested `computer_use.arguments.metadata` is preserved in executable parameters (not promoted)
-- non-dict top-level unified metadata is ignored safely
-- computer required metadata fields (`description`, `explanation`, `expectation`) are normalized with trim semantics
-- bridge permits only this metadata allowlist for computer-use normalization:
-  - required rationale fields: `description`, `explanation`, `expectation`
-  - internal passthrough fields: `tool_call_id`, `thought_signature`
-- if any required field is missing/blank/non-string, or any unexpected metadata key is present, bridge marks call as `invalid_computer_use_tool`
-
-Direct computer-subtool parity:
-
-- direct native calls named `mouse_control|keyboard_control|screenshot|scroll_control|switch_window|wait` pass through the same metadata normalization gate.
-- missing/invalid metadata in direct computer-subtool calls also resolves to `invalid_computer_use_tool`.
-
-Concrete-argument validation boundary:
-
-- bridge normalization does not fully validate action-specific concrete arguments
-- backend preparation now owns that validation before frontend dispatch:
-  - model-emitted concrete tool args are revalidated against backend tool arg models
-  - resolved computer executor payloads are sanitized into sidecar-executor shape and validated again after OCR/prediction/manual coordinate resolution
-- this closes the prior gap where native `computer_use` calls could survive bridge normalization and fail only inside sidecar tool runtimes with missing `action`/coordinate errors
-
-## Unified `system_use` Mapping
-
-When normalized name is `system_use`:
-
-- reads mapped subtool from `parameters.tool`
-- supported mapped names:
-  - `run_shell_command`
-  - `replace`
-  - `read_file`
-  - `get_system_stats`
-  - `get_open_windows`
-- valid mapped name -> replace parsed `tool_name` with normalized concrete name
-- executable parameters become `parameters.arguments` if dict, else `{}`
-- nested `system_use.arguments.explanation` is stripped and ignored
-- top-level `system_use.explanation` is trim-normalized and, when present, injected into concrete tool parameters
-- invalid mapped names are left as `system_use` so downstream wrapper validation can return a deterministic tool error message
-
-Native-bridge nuance vs parser-module path:
-
-- parser-module `ToolCallSchema.extract_tool_call(...)` rejects unknown `system_use` subtools (`None`)
-- native bridge keeps `tool_name="system_use"` for unknown subtools to preserve deterministic downstream error surfaces in live native-tool-call flows
+- direct tool names remain unchanged
+- direct argument objects remain executable parameters
+- any later execution-time rewriting happens downstream in preparation/execution layers, not in `tool_call_bridge.py`
 
 ## History Tool-Call Shaping
 
@@ -148,7 +82,7 @@ Native-bridge nuance vs parser-module path:
   - uses `metadata.tool_call_id` when present
   - trims metadata id and treats blank/whitespace-only ids as missing
   - otherwise fallback `tool_call_<index>`
-- if `metadata.model_facing_tool_call` exists, history prefers that preserved raw payload for `id`/`name`/`arguments`, including successful unified `computer_use` / `system_use` calls
+- if `metadata.model_facing_tool_call` exists, history prefers that preserved raw payload for `id`/`name`/`arguments`
 - otherwise `name`: parsed `tool_name`
 - otherwise `arguments`: parsed `parameters` copy
 - `thought_signature`: included when metadata contains non-empty signature
@@ -198,13 +132,9 @@ Extraction helpers:
 - missing tool name fallback
 - native payload argument deep-copy immutability
 - history argument deep-copy immutability
-- invalid computer-use tool mapping behavior
-- unified `system_use` -> concrete subtool mapping behavior
-- unified `system_use` top-level explanation injection and nested explanation stripping
-- missing unified `arguments` -> empty parameters
-- top-level metadata promotion boundary (nested `arguments.metadata` remains in parameters; non-dict top-level metadata ignored)
+- direct native tool-call preservation behavior
+- thought-signature preservation across parsed/history shapes
 - whitespace-only tool-call id handling in both `extract_tool_call_ids(...)` and history id fallback
-- strict computer metadata allowlist behavior (unexpected keys invalidate unified/direct computer calls)
 - recoverable error marker detection and parse-summary extraction
 - target-file extraction from raw-arguments preview
 - retry message includes file-target/edit-strategy hints when file path can be extracted
@@ -217,7 +147,7 @@ Extraction helpers:
 
 ## Drift Hotspots
 
-1. Changing `computer_use` subtool allowlist in bridge without updating parser/remote-tool docs can desync parse and execution behavior.
+1. Changing metadata preservation or id-normalization behavior in the bridge without updating history/transparency docs can desync what the user sees from what execution received.
 2. Removing `arguments.metadata` stripping can leak metadata fields into executable tool parameter payloads.
 3. Changing history id fallback format can break downstream assumptions in tool-output correlation/debug tooling.
 4. Modifying recoverable marker heuristics can convert retryable malformed-tool-call events into hard loop aborts.

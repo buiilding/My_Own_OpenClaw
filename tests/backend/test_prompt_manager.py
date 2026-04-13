@@ -272,16 +272,18 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
 
 
 def test_model_facing_system_prompt_includes_browser_scope_rules():
-    prompt_file = Path(__file__).resolve().parents[2] / "model-facing/system_prompt.txt"
+    prompt_file = (
+        Path(__file__).resolve().parents[2]
+        / "backend/src/llm/prompts/system_prompt.txt"
+    )
     content = prompt_file.read_text(encoding="utf-8")
 
     assert "Before `browser.connect`, assume you do not have access to any browser instance." in content
     assert "Seeing a browser window in screenshots or open windows does not mean the `browser` tool can control that browser instance." in content
     assert "For browser tasks, an attached image or screenshot usually means the user is grounding the currently visible browser UI, not the dedicated Windie browser DOM." in content
-    assert "If a browser-related request includes an attached image or screenshot that grounds the currently visible browser UI, prefer `computer_use` first unless the image is clearly content to use inside a website workflow." in content
-    assert "Treat an attached image or screenshot of browser UI as visible desktop/browser-window evidence, not as proof that the `browser` tool is already connected to or can control that browser instance." in content
+    assert "If a browser-related request includes an attached image or screenshot that grounds the currently visible browser UI, prefer desktop UI tools first unless the image is clearly content to use inside a web workflow." in content
     assert "Until `browser.connect` succeeds, assume there is no active browser session you can inspect or control." in content
-    assert "`browser.connect` only attaches to that dedicated Windie browser instance/profile. It does not attach to arbitrary user Chrome windows or other browser instances." in content
-    assert "Treat the current browser context as unknown until `connect` succeeds and the current tabs have been read." in content
+    assert "`browser.connect` attaches only to the dedicated Windie browser instance/profile and does not attach to arbitrary user Chrome windows or other browser instances." in content
+    assert "Before doing anything after `browser.connect`, call `get_tabs` first unless the latest browser tool output already gives a current tab list." in content
     assert "Even after `browser.connect`, do not assume the connected browser matches a browser window shown in an attached image or screenshot until browser context confirms it." in content
-    assert "An attached image on a browser task is a strong signal to start with `computer_use`, because the image may show the user's personal browser window and is a visual-state artifact rather than DOM state." in content
+    assert "An attached image on a browser task is a strong signal to start with desktop verification or desktop actions, because the image may show the user's personal browser window and is a visual-state artifact rather than DOM state." in content

@@ -87,30 +87,17 @@ Strategy order:
 
 ## ToolCallSchema Formats
 
-`ToolCallSchema.extract_tool_call(...)` supports:
+`ToolCallSchema.extract_tool_call(...)` supports one live format:
 
 1. standard format:
    - `{"functionCall":{"name":"...","args":{...}}}`
-2. unified computer-use envelope:
-   - `{"functionCall":{"name":"computer_use","args":{"tool":"mouse_control","arguments":{...},"metadata":{...}}}}`
-3. unified system/filesystem envelope:
-   - `{"functionCall":{"name":"system_use","args":{"tool":"run_shell_command","explanation":"...","arguments":{...}}}}`
 
-Unified computer-use normalization behavior:
+Current behavior:
 
-- maps unified `tool` to concrete computer subtool name (`mouse_control`, `keyboard_control`, etc.)
-- forwards unified `metadata` for downstream metadata validation
-- defaults missing unified `arguments` to `{}`
-- rejects unknown unified subtools and non-dict `arguments`
-
-Unified system-use normalization behavior:
-
-- maps unified `tool` to concrete action (`run_shell_command|replace|read_file|get_system_stats|get_open_windows`)
-- defaults missing unified `arguments` to `{}`
-- strips nested `arguments.explanation`
-- trims top-level unified `explanation`; whitespace-only values are treated as missing
-- injects top-level explanation into concrete tool parameters when present
-- rejects unknown unified subtools and non-dict `arguments`
+- trims surrounding whitespace from `functionCall.name`
+- requires `args` to be an object when present
+- defaults missing `args` to `{}`
+- returns deep-copied arguments so later mutation cannot affect the parsed source payload
 
 Legacy metadata/action wrapper payloads are rejected by current parser schema extraction.
 
@@ -124,12 +111,10 @@ Legacy metadata/action wrapper payloads are rejected by current parser schema ex
 - max parameter count (`max_parameter_count`)
 - parameter value size limits for strings and serialized dict/list values (`max_parameter_value_size`)
 
-Whitelist compatibility behavior:
+Whitelist behavior:
 
-- when unified `computer_use` is present in filtered registry tool names, validator expands allowed names to include legacy concrete computer subtool names
-- this preserves backward-compatible concrete-name ingestion while keeping unified declaration surface available for tool schema exposure
-- when unified `system_use` is present in filtered registry tool names, validator expands allowed names to include legacy concrete system/filesystem action names
-- this preserves compatibility for direct concrete names while keeping the model-facing declaration surface unified
+- validator checks direct tool names against the filtered `ToolRegistry` + `ToolPolicy` surface
+- compatibility aliases are not part of the live model-facing tool catalog described by this page
 
 Method-level policy check:
 
@@ -195,28 +180,14 @@ Each includes boundary metadata (`boundary_name="response_parser"` plus optional
 - metadata merge behavior:
   - carries provider `id` as `metadata.tool_call_id`
   - carries `thought_signature`/`thoughtSignature` when present
-  - if `arguments.metadata` exists, merges it into `ParsedToolCall.metadata` and removes it from execution `parameters`
 - provider-native built-in bridge behavior:
   - normalized built-ins may arrive with logical tool names that do not correspond to registry `function` schemas; current native case is `name="computer"`
   - OpenAI Responses `computer_call` is normalized upstream into `arguments={"actions":[...]}` and kept as one logical model-facing tool turn
   - interaction-loop bridging preserves that logical provider call while the downstream execution layer expands it into the existing internal desktop-action bundle path
   - screenshot/image output for native `computer` turns still comes from the existing bundle capture path rather than a separate provider-native image contract
-- unified native `computer_use` bridge behavior:
-  - maps `arguments.tool` to concrete computer subtool when in allowed set (`mouse_control|keyboard_control|screenshot|scroll_control|switch_window|wait`)
-  - invalid/unknown mapped subtool becomes `invalid_computer_use_tool`
-  - missing/non-dict unified `arguments` becomes `parameters={}`
-  - only top-level unified `metadata` is promoted; nested `arguments.metadata` remains in tool parameters
-  - non-dict top-level unified metadata is ignored safely (no merge, no crash)
-  - strict metadata allowlist applies during native bridge normalization:
-    - required fields: `description`, `explanation`, `expectation`
-    - allowed internal passthrough fields: `tool_call_id`, `thought_signature`
-    - unexpected metadata keys invalidate the call (`invalid_computer_use_tool`)
-  - direct native computer-subtool names (`mouse_control|keyboard_control|screenshot|scroll_control|switch_window|wait`) run through the same metadata gate; missing/invalid metadata resolves to `invalid_computer_use_tool`
-- unified native `system_use` bridge behavior:
-  - maps `arguments.tool` to concrete tool (`run_shell_command|replace|read_file|get_system_stats|get_open_windows`) when valid
-  - strips nested `arguments.explanation`
-  - injects top-level `explanation` into concrete parameters when present
-  - invalid mapped subtool is kept as `tool_name="system_use"` so downstream wrapper validation emits deterministic errors in native path
+- model-facing preservation behavior:
+  - if the provider supplied a non-blank tool name, the bridge stores the exact normalized provider payload in `metadata.model_facing_tool_call`
+  - downstream history/transparency rendering can therefore show the original model-facing name and arguments even when execution later rewrites or expands them
 
 History-call shaping via `tool_call_bridge.to_history_tool_calls(...)`:
 
@@ -243,10 +214,9 @@ If parser tests fail on limits/validation:
 
 1. inspect `SecurityLimits` changes
 2. inspect tool whitelist filtering (`ToolPolicy` + `ToolRegistry`)
-3. inspect unified-wrapper compatibility expansion in `ToolCallValidator` (computer + system legacy names)
-4. inspect parser strategy selection (`_should_try_parse_json_response`)
-5. inspect trust-boundary exception metadata and boundary metrics payloads
-6. if OpenAI native `computer` turns regress, inspect the upstream Responses normalization path before changing parser extraction code; the parser library is not the primary ingestion path for those turns
+3. inspect parser strategy selection (`_should_try_parse_json_response`)
+4. inspect trust-boundary exception metadata and boundary metrics payloads
+5. if OpenAI native `computer` turns regress, inspect the upstream Responses normalization path before changing parser extraction code; the parser library is not the primary ingestion path for those turns
 
 ## Related Pages
 
