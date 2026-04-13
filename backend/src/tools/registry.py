@@ -12,7 +12,6 @@ from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from backend.src.tools.schema_registry import SchemaRegistry
 from backend.src.tools.remote_tools.computer import (
-    OpenAINativeComputerTool,
     RemoteGroundedMouseTool,
     RemoteGroundedScrollTool,
 )
@@ -72,7 +71,6 @@ class ToolRegistry:
             WebSearchTool,
             RemoteGroundedMouseTool,
             RemoteGroundedScrollTool,
-            OpenAINativeComputerTool,
         ):
             name = tool_class.name
             try:

@@ -100,13 +100,11 @@ Native reasoning mode behavior:
 - stream without final completed payload fails closed with `LLMAPIError`
 - final normalized payload may also carry `response_id`, which is later reused for `previous_response_id` continuation turns
 
-OpenAI native desktop/tool continuation behavior:
+OpenAI Responses continuation behavior:
 
-- OpenAI Responses can now be selected not only for reasoning turns, but also when the provider-facing tool list includes the built-in OpenAI `computer` tool
-- one provider-native `computer_call` is treated as one logical model tool turn
-- backend expands that call into an internal desktop-action bundle and sends the bundle through the existing frontend bundle execution path
-- the returned screenshot/image output remains the existing bundle capture output; no separate OpenAI-specific screenshot pipeline is introduced
-- follow-up Responses turns replay only the trailing tool outputs through `previous_response_id`, including `computer_call_output` for native desktop turns
+- OpenAI Responses can be selected for reasoning turns and for native `web_search` turns
+- desktop tools continue to run through the shared direct-function tool path rather than a provider-native OpenAI desktop bridge
+- follow-up Responses turns replay only the trailing tool outputs through `previous_response_id` as standard function-tool outputs
 
 This path is gated by provider/model reasoning preference resolution (`resolve_provider_thinking_preference(...)`).
 

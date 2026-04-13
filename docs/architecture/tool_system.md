@@ -86,7 +86,7 @@ Catalog-driven declaration contract:
 - prompt-time filtering, parser whitelists, transparency payloads, and sidecar exposed-tool parity all consume the same direct tool names
 - browser now uses the same generic schema generation path as every other backend-exposed tool; there is no browser-only schema rewriter
 - provider adapters convert the internal flat tool spec into nested provider transport formats when needed
-- OpenAI now projects the direct desktop tool family (`mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `wait`) into one provider-native `computer` tool plus OpenAI-only semantic grounded helpers (`grounded_mouse_action`, `grounded_scroll_action`) at the provider boundary; this does not change the canonical internal executor contract or the sidecar-exposed tool set
+- OpenAI now receives the same direct desktop function tools (`mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `wait`) as the canonical internal contract; provider-native adaptation is limited to features that remain intentionally native, such as OpenAI web search
 - grouped tools such as `browser` must emit provider-safe root-object schemas directly; OpenAI compatibility should not depend on browser-specific post-hoc schema rewrites
 
 Boundary rule:
@@ -108,7 +108,6 @@ Some logical tools are fulfilled entirely in the backend and never go through th
 - Gemini and Brave-backed sessions still expose logical backend `web_search`: the model emits a tool call, the backend fulfills it, and the UI renders the final tool-output result.
 - Brave remains the backend fallback when `BRAVE_SEARCH_API_KEY` is configured for providers without native search.
 - OpenAI native `web_search` still streams lightweight progress rows (`web-search-progress` -> transient renderer `search-source` messages), but those progress events now come from the main LLM turn rather than a backend logical tool execution.
-- OpenAI native `computer` uses a similar provider-boundary projection: the model sees one provider-native `computer` tool call, the backend expands that call into internal desktop-action bundles, and the frontend still executes the bundle through the shared path.
 
 ### Backend Responsibilities
 
@@ -125,16 +124,13 @@ Current live model-facing tool count:
 
 - 14 direct remote tools from `backend/src/tools/tool_catalog.py`
 - optional backend-owned logical `web_search` for Gemini/Brave-backed sessions
-- OpenAI-native sessions expose 14 live runtime tool schemas and add provider-native `web_search` directly at the OpenAI transport layer
+- OpenAI sessions expose the same 14 live runtime tool schemas as the canonical backend registry and add provider-native `web_search` directly at the OpenAI transport layer
 
 OpenAI projection note:
 
-- On OpenAI turns with native desktop support enabled, the provider-facing tool list differs from the canonical registry list.
-- The model sees native `computer`, the two OpenAI-only grounded helpers, and the remaining direct tools.
-- That provider-facing list is rebuilt on every new query.
-- If the prompt for a given query contains more than one user/system image input overall, WindieOS skips native `computer` projection for that request and exposes the direct desktop tools instead.
-- Later queries re-evaluate the same prompt-based rule, so native `computer` can return when the prompt becomes eligible again and can be disabled again by later multi-image prompts.
-- Non-OpenAI providers continue to see the direct internal tool names unchanged.
+- OpenAI no longer uses a provider-native desktop projection.
+- The provider-facing tool list matches the canonical registry list for desktop tools on every query.
+- Non-OpenAI providers continue to see the same direct internal tool names unchanged.
 
 ## Tool Execution Flow
 

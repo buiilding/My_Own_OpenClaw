@@ -177,13 +177,10 @@ Canonical shape is required in:
 - transparency/event payloads that expose tool schemas
 - provider transport boundaries (validation + forwarding)
 
-OpenAI native built-in exception:
+OpenAI built-in exception:
 
-- OpenAI Responses may also receive provider-native built-in tools such as `{ "type": "computer" }`.
-- WindieOS still keeps direct internal tool specs as the canonical backend contract and projects native built-ins only at the provider boundary.
-- Projection is recalculated on every new user query when the prompt/tool schema set is rebuilt.
-- Projection guard: if the prompt being sent for that query contains more than one `system`/`user` image input in total, WindieOS keeps the direct desktop function tools for that request instead of projecting OpenAI's native `computer` tool, because the Responses computer contract rejects multi-image inputs.
-- This guard is request-scoped, not permanently sticky. Native `computer` can return on a later query if that later request's prompt no longer contains multiple input images; it is disabled again on any future query whose prompt does contain multiple images.
+- OpenAI Responses may still receive provider-native built-ins such as native `web_search`.
+- WindieOS keeps direct internal tool specs as the canonical backend contract and no longer projects desktop tools into a provider-native OpenAI `computer` tool.
 
 ### Normalized Completion Response
 
@@ -201,7 +198,7 @@ Notes:
 - Runtime behavior: when tool schemas are present for a turn, backend uses non-stream `get_completion_response()` by default, but allows provider/model opt-in for safe stream tool turns. Current opt-in is `kimi-coding`, which streams `ThinkingEvent`/`ChunkEvent` while still finalizing structured `tool_calls` from the stream payload.
 - Safety behavior for streamed tool turns: if streamed tool-call arguments cannot be parsed into valid JSON object arguments, backend emits an error plus synthetic tool output (history + frontend event) and keeps the interaction loop running so the model can self-correct. Backend still aborts turn for non-recoverable/system errors.
 - Tool transparency behavior: ToolCall/ToolBundle frontend events include `metadata.model_facing_tool_call` (when available) with canonical `{id?, name, arguments}` so UI can render the exact model-facing tool call even if execution-time arguments were rewritten (for example coordinate resolution).
-- OpenAI Responses continuation behavior: when a turn ends in tool outputs and the provider returned a `response_id`, WindieOS now continues the loop with `previous_response_id` and only the trailing tool outputs, including `computer_call_output` replay for native OpenAI `computer` turns.
+- OpenAI Responses continuation behavior: when a turn ends in tool outputs and the provider returned a `response_id`, WindieOS now continues the loop with `previous_response_id` and only the trailing tool outputs as standard function-tool outputs.
 - OpenAI Responses stream recovery behavior: if OpenAI/LiteLLM streams visible `output_text` deltas but never delivers the terminal final response envelope, WindieOS now synthesizes a minimal normalized final payload from the streamed text instead of aborting the turn; truly empty broken streams still fail.
 - OpenAI Responses history replay is role-normalized: `system`/`user` content is sent back as input items, assistant history text is replayed as `output_text`/`refusal` only, and unsupported assistant-only blocks (for example stray reasoning/thinking fragments from partial turns or transcript drift) are dropped instead of being resent as malformed prompt history.
 - Text-bearing content normalization is shared across replay, provider payload parsing, converter utilities, and fallback token estimation so `text`, `input_text`, `output_text`, and assistant `refusal` blocks stay visible and countable across cancellation, rehydrate, and provider-specific follow-up turns.

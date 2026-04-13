@@ -606,10 +606,15 @@ def test_openai_responses_tools_preserve_browser_root_object_tool_schema():
     assert "oneOf" not in tools[0]["parameters"]
 
 
-def test_openai_responses_tools_passthrough_native_computer_tool():
+def test_openai_responses_tools_keeps_direct_function_tools_only():
     tools = build_openai_responses_tools(
         [
-            {"type": "computer"},
+            {
+                "type": "function",
+                "name": "mouse_control",
+                "description": "Control the mouse.",
+                "parameters": {"type": "object"},
+            },
             {
                 "type": "function",
                 "name": "browser",
@@ -619,7 +624,13 @@ def test_openai_responses_tools_passthrough_native_computer_tool():
     )
 
     assert tools == [
-        {"type": "computer"},
+        {
+            "type": "function",
+            "name": "mouse_control",
+            "description": "Control the mouse.",
+            "parameters": {"type": "object", "properties": {}},
+            "strict": False,
+        },
         {
             "type": "function",
             "name": "browser",
@@ -997,7 +1008,7 @@ def test_build_openai_responses_input_skips_assistant_messages_with_only_unsuppo
     ]
 
 
-def test_build_openai_responses_input_serializes_computer_calls_and_outputs():
+def test_build_openai_responses_input_treats_legacy_computer_calls_as_function_calls():
     messages = [
         {"role": "system", "content": "You are helpful."},
         {"role": "user", "content": "Open the app."},
@@ -1040,19 +1051,23 @@ def test_build_openai_responses_input_serializes_computer_calls_and_outputs():
             "content": "Open the app.",
         },
         {
-            "type": "computer_call",
+            "type": "function_call",
             "call_id": "comp_1",
-            "actions": [{"type": "click", "x": 100, "y": 200}],
+            "name": "computer",
+            "arguments": "{\"actions\": [{\"type\": \"click\", \"x\": 100, \"y\": 200}]}",
             "status": "completed",
         },
         {
-            "type": "computer_call_output",
+            "type": "function_call_output",
             "call_id": "comp_1",
-            "output": {
-                "type": "computer_screenshot",
-                "image_url": "data:image/png;base64,abc123",
-                "detail": "original",
-            },
+            "output": [
+                {"type": "input_text", "text": "Bundle executed successfully."},
+                {
+                    "type": "input_image",
+                    "image_url": "data:image/png;base64,abc123",
+                },
+            ],
+            "status": "completed",
         },
     ]
 
@@ -1093,18 +1108,21 @@ def test_build_openai_responses_input_uses_trailing_tool_outputs_for_previous_re
         previous_response_id="resp_123",
     ) == [
         {
-            "type": "computer_call_output",
+            "type": "function_call_output",
             "call_id": "comp_1",
-            "output": {
-                "type": "computer_screenshot",
-                "image_url": "data:image/png;base64,abc123",
-                "detail": "original",
-            },
+            "output": [
+                {"type": "input_text", "text": "Bundle executed successfully."},
+                {
+                    "type": "input_image",
+                    "image_url": "data:image/png;base64,abc123",
+                },
+            ],
+            "status": "completed",
         }
     ]
 
 
-def test_normalize_openai_responses_payload_reads_computer_calls_and_response_id():
+def test_normalize_openai_responses_payload_ignores_unsupported_output_items():
     provider = OpenAIProvider(api_key="test-key")
 
     payload = normalize_openai_responses_payload(
@@ -1113,7 +1131,7 @@ def test_normalize_openai_responses_payload_reads_computer_calls_and_response_id
             "id": "resp_123",
             "output": [
                 {
-                    "type": "computer_call",
+                    "type": "unsupported_tool_item",
                     "call_id": "comp_1",
                     "actions": [{"type": "click", "x": 100, "y": 200}],
                 }
@@ -1125,15 +1143,6 @@ def test_normalize_openai_responses_payload_reads_computer_calls_and_response_id
 
     assert payload == {
         "content": "",
-        "tool_calls": [
-            {
-                "id": "comp_1",
-                "name": "computer",
-                "arguments": {
-                    "actions": [{"type": "click", "x": 100, "y": 200}],
-                },
-            }
-        ],
         "finish_reason": "completed",
         "response_id": "resp_123",
     }

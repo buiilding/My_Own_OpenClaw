@@ -41,10 +41,8 @@ This lets `InteractionLoop` consume provider-native `tool_calls` without running
 Provider-normalized built-in note:
 
 - provider-normalized tool calls no longer have to be function tools only
-- OpenAI Responses-native `computer_call` items are normalized upstream into canonical `tool_calls` rows with:
-  - `name = "computer"`
-  - `arguments = {"actions": [...]}`
-- the bridge treats these like any other canonical native tool call: it preserves the model-facing payload in metadata and passes the logical tool name downstream unchanged
+- the bridge treats provider-normalized built-ins like any other canonical native tool call: it preserves the model-facing payload in metadata and passes the logical tool name downstream unchanged
+- OpenAI desktop execution now stays on the shared direct-function tool path rather than a provider-native desktop bridge
 
 ## Single Tool-Call Normalization
 
