@@ -101,6 +101,7 @@ class PromptConstructor:
         self.limits = config.security_limits
         self.tool_policy = ToolPolicy.from_config(config)
         self.workspace_path: Optional[str] = None
+        self.repo_instruction_messages: List[LLMMessage] = []
 
     def _get_filtered_tool_schemas(
         self,
@@ -198,11 +199,14 @@ class PromptConstructor:
     ) -> List[LLMMessage]:
         """Build model-visible prompt messages, including contextual repo instructions."""
         prompt_messages: List[LLMMessage] = []
-        prompt_messages.extend(
-            resolve_workspace_repo_instruction_messages(self.workspace_path)
-        )
+        prompt_messages.extend(self._get_repo_instruction_messages())
         prompt_messages.extend(self._get_prompt_messages(stored_messages))
         return prompt_messages
+
+    def _get_repo_instruction_messages(self) -> List[LLMMessage]:
+        if self.repo_instruction_messages:
+            return list(self.repo_instruction_messages)
+        return resolve_workspace_repo_instruction_messages(self.workspace_path)
 
     def get_prompt_token_count(
         self,

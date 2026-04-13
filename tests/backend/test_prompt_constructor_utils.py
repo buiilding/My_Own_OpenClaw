@@ -308,6 +308,40 @@ def test_get_prompt_token_count_uses_contextual_agents_messages(monkeypatch, tmp
     assert captured["messages"][1] == history.get_history()[0]
 
 
+def test_build_prompt_prefers_injected_repo_instruction_messages_over_workspace_lookup(tmp_path):
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    (repo_root / ".git").mkdir()
+    (repo_root / "AGENTS.md").write_text("local instructions that remote backend cannot read", encoding="utf-8")
+
+    constructor = _make_constructor()
+    constructor.workspace_path = str(repo_root / "missing-on-host")
+    constructor.repo_instruction_messages = [
+        {
+            "role": "user",
+            "content": "# AGENTS.md instructions for /Users/peter/project\n\n<INSTRUCTIONS>\ninjected instructions\n</INSTRUCTIONS>",
+        }
+    ]
+    history = DummyHistory(
+        history=[
+            {
+                "role": MessageRole.USER.value,
+                "content": "<user_query>open file</user_query>",
+            }
+        ],
+        user_query_raw="open file",
+        message_types=[MessageType.USER_QUERY],
+    )
+
+    prompt_messages, _tool_schemas, _metadata = constructor.build_prompt(
+        history,
+        include_tools=False,
+    )
+
+    assert prompt_messages[0] == constructor.repo_instruction_messages[0]
+    assert prompt_messages[1] == history.get_history()[0]
+
+
 def test_build_prompt_allowlisting_mouse_control_yields_single_direct_schema():
     registry = ToolRegistry(config=AppConfig(tool_allowlist=["mouse_control"]), cache_manager=CacheManager())
     constructor = PromptConstructor(

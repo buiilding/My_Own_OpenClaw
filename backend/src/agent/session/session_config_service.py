@@ -71,6 +71,7 @@ class SessionConfigService:
             session,
             operating_system=operating_system,
             workspace_path=getattr(runtime, "workspace_path", None),
+            repo_instruction_messages=getattr(runtime, "repo_instruction_messages", None),
         )
 
     @staticmethod
@@ -88,17 +89,34 @@ class SessionConfigService:
         *,
         operating_system: Optional[str],
         workspace_path: Optional[str],
+        repo_instruction_messages: Optional[list[dict[str, str]]] = None,
     ) -> None:
         normalized_workspace_path = self.normalize_workspace_path(workspace_path)
         rendered_prompt = self._call_render_system_prompt(
             operating_system=operating_system,
             workspace_path=normalized_workspace_path,
         )
+        normalized_repo_instruction_messages = [
+            {"role": message["role"], "content": message["content"]}
+            for message in (repo_instruction_messages or [])
+            if (
+                isinstance(message, dict)
+                and message.get("role") == "user"
+                and isinstance(message.get("content"), str)
+                and message["content"].strip()
+            )
+        ]
         runtime = getattr(session, "runtime", None)
         if runtime is not None:
             runtime.workspace_path = normalized_workspace_path
+            runtime.repo_instruction_messages = normalized_repo_instruction_messages
         session.prompt_builder.system_prompt = rendered_prompt
         setattr(session.prompt_builder, "workspace_path", normalized_workspace_path)
+        setattr(
+            session.prompt_builder,
+            "repo_instruction_messages",
+            list(normalized_repo_instruction_messages),
+        )
         session.history.system_prompt = rendered_prompt
 
     def _call_render_system_prompt(

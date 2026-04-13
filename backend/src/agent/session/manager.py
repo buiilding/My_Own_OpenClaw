@@ -140,11 +140,13 @@ class SessionManager(ConfigSubscriber):
         user_id: str,
         session: AgentSession,
         workspace_path: Optional[str],
+        repo_instruction_messages: Optional[list[dict[str, str]]] = None,
     ) -> None:
         self._config_service.apply_prompt_context_to_session(
             session,
             operating_system=self._config_service.frontend_operating_systems.get(user_id),
             workspace_path=workspace_path,
+            repo_instruction_messages=repo_instruction_messages,
         )
 
     def register_active_query_task(

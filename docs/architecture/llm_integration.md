@@ -13,7 +13,8 @@ WindieOS supports multiple LLM providers through a unified interface. The system
 System prompt note:
 - `backend/src/llm/prompts/system_prompt.txt` now carries a fuller Codex-style execution scaffold adapted for WindieOS, including Codex-like repo-instruction scope, preamble/response discipline, final-answer formatting rules, and coding workflow guidance, with WindieOS-specific browser-use, desktop-use, process, and validation rules layered on top.
 - Applicable `AGENTS.md` files are injected as separate contextual `user` messages during prompt assembly, following Codex's `# AGENTS.md instructions for ...` wrapper format instead of being inlined into the system prompt.
-- Resolution starts from the active workspace and walks parent directories up to the enclosing repo root, so nested `AGENTS.md` files can layer instructions the same way Codex does.
+- In hosted-backend mode, the desktop app resolves `AGENTS.md` locally from the selected workspace and sends those rendered messages with the query payload, because the remote backend cannot read the user's local filesystem path directly.
+- The backend still keeps a workspace-path fallback resolver for local/backend-cohosted development flows, so both hosted and local runtimes share one prompt-construction surface.
 
 ## Supported Providers
 

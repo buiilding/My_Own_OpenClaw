@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import time
 import asyncio
+import inspect
 from typing import TYPE_CHECKING, Any, Optional, Type
 
 from backend.src.api.processing.formatter import ResponseFormatter
@@ -90,6 +91,13 @@ class QueryExecutionService:
             user_id=user_id,
             agent_instance=agent_instance,
             workspace_path=message.payload.workspace_path,
+            repo_instruction_messages=[
+                {
+                    "role": instruction.role,
+                    "content": instruction.content,
+                }
+                for instruction in (message.payload.repo_instruction_messages or [])
+            ],
         )
         self._apply_query_runtime_system_state(agent_instance, message)
         stream_context = self._build_stream_context(
@@ -223,6 +231,7 @@ class QueryExecutionService:
         user_id: str,
         agent_instance: Any,
         workspace_path: Optional[str],
+        repo_instruction_messages: Optional[list[dict[str, str]]] = None,
     ) -> None:
         set_workspace_path = getattr(
             self._session_manager,
@@ -231,6 +240,32 @@ class QueryExecutionService:
         )
         if not callable(set_workspace_path):
             return
+        try:
+            signature = inspect.signature(set_workspace_path)
+        except (TypeError, ValueError):
+            signature = None
+
+        positional_params = [
+            parameter
+            for parameter in (signature.parameters.values() if signature else [])
+            if parameter.kind in (
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            )
+        ]
+        has_varargs = any(
+            parameter.kind == inspect.Parameter.VAR_POSITIONAL
+            for parameter in (signature.parameters.values() if signature else [])
+        )
+        if signature is None or has_varargs or len(positional_params) >= 4:
+            set_workspace_path(
+                user_id,
+                agent_instance,
+                workspace_path,
+                repo_instruction_messages,
+            )
+            return
+
         set_workspace_path(
             user_id,
             agent_instance,

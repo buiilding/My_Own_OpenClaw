@@ -50,6 +50,7 @@ class QueryPayload(BaseModel):
     capture_meta: Optional[Dict[str, Any]] = None
     system_state_internal: Optional[Dict[str, Any]] = None
     workspace_path: Optional[str] = None
+    repo_instruction_messages: Optional[List["RepoInstructionMessage"]] = None
 
     @field_validator("conversation_ref")
     @classmethod
@@ -65,6 +66,15 @@ class QueryPayload(BaseModel):
 class QueryMessage(BaseMessage):
     type: Literal["query"]
     payload: QueryPayload
+
+
+class RepoInstructionMessage(BaseModel):
+    """One contextual repo-instruction message supplied by the local app runtime."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    role: Literal["user"]
+    content: str = Field(min_length=1, max_length=200_000)
 
 
 class StopQueryPayload(BaseModel):
@@ -117,6 +127,7 @@ class RehydrateConversationPayload(BaseModel):
     messages: List[RehydrateConversationEntry]
     rehydrate_mode: Literal["replace"]
     workspace_path: Optional[str] = None
+    repo_instruction_messages: Optional[List[RepoInstructionMessage]] = None
 
     @field_validator("conversation_ref")
     @classmethod
