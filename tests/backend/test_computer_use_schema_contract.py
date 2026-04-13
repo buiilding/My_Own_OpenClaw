@@ -57,7 +57,7 @@ def test_scroll_control_schema_stays_direct_and_requires_direction_for_scroll():
     assert parameters["properties"]["direction"]["enum"] == ["up", "down", "left", "right"]
 
 
-def test_provider_projection_keeps_direct_computer_tools_for_openai():
+def test_provider_projection_is_noop_for_openai_computer_tools():
     config = AppConfig(model_provider="openai")
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
     direct_schemas = registry.get_function_declarations_filtered(

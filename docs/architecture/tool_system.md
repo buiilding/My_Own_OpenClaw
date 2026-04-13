@@ -128,7 +128,6 @@ Current live model-facing tool count:
 
 OpenAI desktop tool note:
 
-- OpenAI no longer uses a provider-native desktop projection.
 - The provider-facing tool list matches the canonical registry list for desktop tools on every query.
 - Non-OpenAI providers continue to see the same direct internal tool names unchanged.
 

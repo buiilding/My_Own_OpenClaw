@@ -60,7 +60,7 @@ OpenAI desktop tool note:
 
 - tool schemas are rebuilt per new user query, not once for the whole conversation
 - OpenAI now receives the same direct desktop function tools as the canonical registry on every query
-- prompt image count no longer affects desktop tool projection because provider-native OpenAI `computer` projection has been removed
+- prompt image count no longer changes desktop tool visibility for OpenAI
 
 ## User Message Metadata Extraction
 

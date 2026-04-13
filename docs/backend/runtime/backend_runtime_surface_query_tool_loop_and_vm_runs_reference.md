@@ -103,7 +103,7 @@ Native reasoning mode behavior:
 OpenAI Responses continuation behavior:
 
 - OpenAI Responses can be selected for reasoning turns and for native `web_search` turns
-- desktop tools continue to run through the shared direct-function tool path rather than a provider-native OpenAI desktop bridge
+- desktop tools continue to run through the shared direct-function tool path
 - follow-up Responses turns replay only the trailing tool outputs through `previous_response_id` as standard function-tool outputs
 
 This path is gated by provider/model reasoning preference resolution (`resolve_provider_thinking_preference(...)`).

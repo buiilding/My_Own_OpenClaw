@@ -42,7 +42,7 @@ Provider-normalized built-in note:
 
 - provider-normalized tool calls no longer have to be function tools only
 - the bridge treats provider-normalized built-ins like any other canonical native tool call: it preserves the model-facing payload in metadata and passes the logical tool name downstream unchanged
-- OpenAI desktop execution now stays on the shared direct-function tool path rather than a provider-native desktop bridge
+- OpenAI desktop execution uses the shared direct-function tool path
 
 ## Single Tool-Call Normalization
 

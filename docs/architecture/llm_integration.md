@@ -180,7 +180,7 @@ Canonical shape is required in:
 OpenAI built-in exception:
 
 - OpenAI Responses may still receive provider-native built-ins such as native `web_search`.
-- WindieOS keeps direct internal tool specs as the canonical backend contract and no longer projects desktop tools into a provider-native OpenAI `computer` tool.
+- Desktop tools use the same direct function-tool contract on OpenAI as they do on the canonical backend registry and other providers.
 
 ### Normalized Completion Response
 

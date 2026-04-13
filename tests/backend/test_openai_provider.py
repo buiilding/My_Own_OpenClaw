@@ -1008,7 +1008,7 @@ def test_build_openai_responses_input_skips_assistant_messages_with_only_unsuppo
     ]
 
 
-def test_build_openai_responses_input_treats_legacy_computer_calls_as_function_calls():
+def test_build_openai_responses_input_preserves_legacy_computer_named_calls_as_function_calls():
     messages = [
         {"role": "system", "content": "You are helpful."},
         {"role": "user", "content": "Open the app."},
