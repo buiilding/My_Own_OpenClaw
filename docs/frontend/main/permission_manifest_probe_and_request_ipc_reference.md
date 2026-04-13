@@ -101,7 +101,8 @@ the renderer:
   - on macOS, if native prompt is unavailable/denied in-process, falls back to renderer `navigator.mediaDevices.getUserMedia({ audio: true })` to trigger TCC registration
   - then re-runs probe
 - `screen_capture`:
-  - macOS: if Screen Recording is still missing, first attempts one real desktop-capture request so macOS can register WindieOS in the Screen Recording list, then opens the Screen Recording settings pane
+  - macOS: if Screen Recording is still missing, first attempts one real desktop-capture request so macOS can register WindieOS in the Screen Recording list, but does not auto-open System Settings on that first request
+  - if the native macOS prompt does not complete the grant, the user can then open the Screen Recording settings pane manually and keep onboarding open while WindieOS re-probes
   - onboarding switches the row into `Waiting...` and keeps re-probing while the user enables WindieOS in System Settings
   - once macOS reports the permission as granted, WindieOS focuses the onboarding window and runs one real screenshot verification through the same backend used by auto-screenshot so the direct capture path is verified during onboarding instead of surprising the first send
   - Windows: verifies desktop capture directly via `desktopCapturer.getSources(...)`; does not deep-link to Windows privacy settings

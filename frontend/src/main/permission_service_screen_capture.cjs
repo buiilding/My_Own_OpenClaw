@@ -121,22 +121,18 @@ async function requestScreenCapturePermission(permission, deps = {}) {
     if (mediaStatus !== 'granted') {
       const captureRegistrationAttempt = await requestDesktopCapturePrompt(deps);
       const refreshedMediaStatus = getMediaAccessStatus('screen', deps);
-      const settingsResult = await openExternal(MACOS_SCREEN_CAPTURE_SETTINGS_URL, deps);
       return buildProbeResult(
         permissionId,
         PERMISSION_STATUS.NEEDS_ACTION,
-        settingsResult.success
-          ? 'Waiting for Screen Recording access. Enable WindieOS in System Settings.'
-          : 'Open Screen Recording settings and enable WindieOS.',
+        'Waiting for Screen Recording access. Enable WindieOS in System Settings if the macOS prompt does not complete the grant.',
         {
           platform,
           media_status: refreshedMediaStatus,
           prior_media_status: mediaStatus,
           capture_registration_attempt: captureRegistrationAttempt,
-          settings_result: settingsResult,
           remediation: (
             'WindieOS first attempted a real desktop-capture request so macOS can register it in Screen Recording. '
-            + 'Enable WindieOS there and leave this onboarding step open while WindieOS waits for the OS grant.'
+            + 'Approve the native macOS prompt first; if the grant still does not land, then open System Settings -> Privacy & Security -> Screen Recording and enable WindieOS.'
           ),
         },
       );

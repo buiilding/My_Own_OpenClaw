@@ -125,7 +125,7 @@ describe('permission_service', () => {
     expect(status.details.capability_check.details.capture_backend).toBe('pyautogui_fallback+macos_builtin_cursor');
   });
 
-  test('screen capture request on macOS opens Screen Recording settings before verification when access is missing', async () => {
+  test('screen capture request on macOS triggers only the native capture prompt before verification when access is missing', async () => {
     const openExternal = jest.fn(async () => true);
     const getSources = jest.fn(async () => []);
     const focusPermissionPromptWindow = jest.fn(async () => ({ success: true }));
@@ -150,7 +150,7 @@ describe('permission_service', () => {
     });
 
     expect(getSources).toHaveBeenCalledTimes(1);
-    expect(openExternal).toHaveBeenCalledWith('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
+    expect(openExternal).not.toHaveBeenCalled();
     expect(focusPermissionPromptWindow).not.toHaveBeenCalled();
     expect(verifyScreenCaptureCapability).not.toHaveBeenCalled();
     expect(status.status).toBe('needs-action');
