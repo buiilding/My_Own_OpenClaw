@@ -31,9 +31,9 @@ Message contract:
 
 - prefixes with `[System Validation Error: <details>]`
 - states the tool-call format was invalid
-- includes canonical corrective examples for:
-  - `computer_use` envelope: `{tool, metadata, arguments}`
-  - `system_use` envelope: `{tool, explanation, arguments}`
+- includes canonical corrective examples for direct tool calls from the live catalog, such as:
+  - `mouse_control`
+  - `run_shell_command`
 - emphasizes direct `functionCall` JSON shape and asks the model to retry with corrected format
 
 This is distinct from stream-time recoverable tool-call error handling (synthetic tool-call/output replay path in interaction loop).
@@ -50,7 +50,7 @@ This is distinct from stream-time recoverable tool-call error handling (syntheti
 
 ## Drift Hotspots
 
-1. Editing parser corrective message examples without matching current wrapper schema contracts (`computer_use` metadata fields and `system_use` top-level explanation) can teach the model invalid formats.
+1. Editing parser corrective message examples without matching the live direct-tool catalog can teach the model invalid tool names or argument shapes.
 2. Changing bundle detection threshold (`> 1`) without updating tool-result staging/await assumptions can desynchronize bundle completion ordering.
 
 ## Related Pages

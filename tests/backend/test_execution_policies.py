@@ -9,7 +9,10 @@ def test_parse_recovery_policy_message_contains_format_guidance():
 
     assert "System Validation Error: bad payload" in message
     assert '"functionCall": {"name": "mouse_control", "args": {"action": "click"' in message
+    assert '"functionCall": {"name": "run_shell_command", "args": {"command": "pwd"' in message
     assert "Direct functionCall format is required" in message
+    assert "computer_use" not in message
+    assert "system_use" not in message
 
 
 def test_tool_execution_policy_identifies_bundle_by_count():

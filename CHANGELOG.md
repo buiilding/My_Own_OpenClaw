@@ -4,6 +4,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- chore(prompt-contract-cleanup): update backend docs and prompt tests to describe the live direct-tool calling contract instead of legacy `computer_use`/`system_use` wrappers, and remove the stale checked-in `model-facing/*` prompt/schema snapshot artifacts from the repo.
+
 ### Fixed
 
 - fix(frontend-browser-onboarding): remove the fake macOS App Management onboarding step, stop blocking browser setup on a permission WindieOS cannot actually register or probe, and let browser onboarding open directly from its own runtime capability check.

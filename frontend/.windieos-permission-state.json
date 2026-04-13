@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "permissions": {
+    "filesystem_workspace_access": {
+      "granted": true,
+      "source": "workspace_picker",
+      "updated_at": "2026-04-12T07:14:19.901Z",
+      "selected_paths": [
+        "/var/folders/bm/7wmcj6qd759cy9frh7xslcfh0000gn/T/windieos-workspace-Kyg0ks"
+      ],
+      "details": {
+        "selected_paths": [
+          "/var/folders/bm/7wmcj6qd759cy9frh7xslcfh0000gn/T/windieos-workspace-Kyg0ks"
+        ]
+      }
+    }
+  }
+}
