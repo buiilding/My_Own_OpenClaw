@@ -56,12 +56,11 @@ When `include_tools=True`:
 
 This keeps model-visible tool surface policy-driven instead of callsite-driven.
 
-OpenAI native computer projection nuance:
+OpenAI desktop tool note:
 
 - tool schemas are rebuilt per new user query, not once for the whole conversation
-- OpenAI native `computer` projection is decided from the current query's `prompt_messages`
-- if those prompt messages contain more than one user/system image input overall, constructor returns the direct desktop function tools for that request instead of the provider-native `computer` tool
-- later queries re-evaluate the same rule from their own prompt history, so native `computer` can return after image-heavy turns fall out of the prompt and can be disabled again by future multi-image turns
+- OpenAI now receives the same direct desktop function tools as the canonical registry on every query
+- prompt image count no longer affects desktop tool projection because provider-native OpenAI `computer` projection has been removed
 
 ## User Message Metadata Extraction
 

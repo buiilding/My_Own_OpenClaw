@@ -49,13 +49,9 @@ Default `list_models()` returns empty list; online model catalogs are static in 
 - switches to `openai_responses_runtime.py` when any of these are true:
   - the selected model preset enables native reasoning
   - backend native `web_search` is enabled for the turn
-  - the provider-facing tool list includes the built-in OpenAI `computer` tool
 - OpenAI Responses transport behavior now includes:
-  - provider-native built-in tool passthrough for `{ "type": "computer" }`
-  - `computer_call` normalization into canonical `tool_calls[{id,name="computer",arguments}]`
   - follow-up continuation with `previous_response_id` when the previous Responses payload exposed one and the current prompt ends in tool outputs
-  - `computer_call_output` replay using the trailing tool-result screenshot image with `detail="original"`
-- OpenAI still uses the provider-generic prompt/tool registry as the canonical internal contract; native built-ins are projected only at the provider boundary.
+- OpenAI still uses the provider-generic prompt/tool registry as the canonical internal contract for desktop and other direct tools; provider-native adaptation remains limited to supported built-ins such as native `web_search`.
 
 ### MistralProvider
 

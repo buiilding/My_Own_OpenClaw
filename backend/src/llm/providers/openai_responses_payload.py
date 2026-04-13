@@ -48,28 +48,6 @@ def iter_response_output_items(response: Any) -> Iterable[Any]:
         yield from output
 
 
-def _normalize_computer_actions(raw_actions: Any) -> List[Dict[str, Any]]:
-    if not isinstance(raw_actions, list):
-        return []
-    normalized: List[Dict[str, Any]] = []
-    for action in raw_actions:
-        if isinstance(action, dict):
-            normalized.append(dict(action))
-            continue
-        model_dump = getattr(action, "model_dump", None)
-        if callable(model_dump):
-            dumped = model_dump()
-            if isinstance(dumped, dict):
-                normalized.append(dumped)
-                continue
-        dict_method = getattr(action, "dict", None)
-        if callable(dict_method):
-            dumped = dict_method()
-            if isinstance(dumped, dict):
-                normalized.append(dumped)
-    return normalized
-
-
 def normalize_openai_responses_payload(
     provider: Any,
     response: Any,
@@ -90,27 +68,6 @@ def normalize_openai_responses_payload(
                     include_refusal=True,
                     stringify_scalars=False,
                 )
-            )
-            continue
-
-        if item_type == "computer_call":
-            call_id = str(
-                get_value(item, "call_id")
-                or get_value(item, "id")
-                or f"tool_call_{len(tool_calls)}"
-            )
-            raw_actions = get_value(item, "actions")
-            actions = (
-                [dict(action) for action in raw_actions]
-                if isinstance(raw_actions, list)
-                else []
-            )
-            tool_calls.append(
-                {
-                    "id": call_id,
-                    "name": "computer",
-                    "arguments": {"actions": _normalize_computer_actions(raw_actions)},
-                }
             )
             continue
 

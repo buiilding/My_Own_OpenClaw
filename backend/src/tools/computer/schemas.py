@@ -260,18 +260,6 @@ class GroundedScrollActionArgs(BaseModel):
         return self
 
 
-class OpenAIComputerArgs(BaseModel):
-    """Opaque OpenAI native computer call payload."""
-
-    model_config = ConfigDict(extra='forbid')
-
-    actions: List[dict[str, Any]] = Field(
-        ...,
-        description="Ordered OpenAI native computer actions to execute.",
-        min_length=1,
-    )
-
-
 # --- Screenshot Tool Schemas ---
 
 class ScreenshotToolArgs(BaseModel):

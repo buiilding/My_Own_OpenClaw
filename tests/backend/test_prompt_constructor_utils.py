@@ -443,19 +443,14 @@ def test_build_prompt_openai_projection_filters_grounded_tools_after_projection(
 
     _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
 
-    assert schemas[0] == {"type": "computer"}
-    grounded_names = [schema["name"] for schema in schemas[1:]]
-    assert grounded_names == ["grounded_mouse_action", "grounded_scroll_action"]
-
-    grounded_mouse_props = schemas[1]["parameters"]["properties"]
-    assert "source_description" not in grounded_mouse_props
-    assert "destination_description" not in grounded_mouse_props
-    assert "model_name" not in grounded_mouse_props
-    assert "drag_to_model_name" not in grounded_mouse_props
-
-    grounded_scroll_props = schemas[2]["parameters"]["properties"]
-    assert "source_description" not in grounded_scroll_props
-    assert "model_name" not in grounded_scroll_props
+    schema_names = [schema["name"] for schema in schemas]
+    assert schema_names == [
+        "mouse_control",
+        "keyboard_control",
+        "screenshot",
+        "scroll_control",
+        "wait",
+    ]
 
 
 def test_build_prompt_allowlisting_read_file_yields_single_direct_schema():

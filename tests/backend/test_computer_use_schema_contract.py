@@ -57,7 +57,7 @@ def test_scroll_control_schema_stays_direct_and_requires_direction_for_scroll():
     assert parameters["properties"]["direction"]["enum"] == ["up", "down", "left", "right"]
 
 
-def test_openai_projection_replaces_direct_computer_tools_with_native_computer_and_grounded_tools():
+def test_provider_projection_keeps_direct_computer_tools_for_openai():
     config = AppConfig(model_provider="openai")
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
     direct_schemas = registry.get_function_declarations_filtered(
@@ -70,16 +70,12 @@ def test_openai_projection_replaces_direct_computer_tools_with_native_computer_a
         config=config,
     )
 
-    assert projected[0] == {"type": "computer"}
-    assert [schema.get("name") for schema in projected[1:]] == [
-        "grounded_mouse_action",
-        "grounded_scroll_action",
-        "switch_window",
-        "get_open_windows",
+    assert [schema.get("name") for schema in projected] == _COMPUTER_TOOL_NAMES + [
+        "get_open_windows"
     ]
 
 
-def test_openai_projection_keeps_direct_computer_tools_when_prompt_has_multiple_images():
+def test_provider_projection_keeps_direct_computer_tools_with_multiple_images():
     config = AppConfig(model_provider="openai")
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
     direct_schemas = registry.get_function_declarations_filtered(

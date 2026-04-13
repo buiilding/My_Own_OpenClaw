@@ -9,7 +9,6 @@ from backend.src.llm.providers.openai_responses_runtime import (
     stream_openai_responses_events,
 )
 from backend.src.llm.providers.openai_tool_prep import make_openai_chat_tools_compatible
-from backend.src.tools.tool_specs import is_computer_tool_spec
 
 logger = logging.getLogger(__name__)
 
@@ -39,10 +38,10 @@ class OpenAIProvider(OnlineLLMProvider):
         tools: Optional[List[Dict[str, Any]]] = None,
         native_web_search_enabled: bool = False,
     ) -> bool:
+        _ = tools
         return (
             cls._uses_native_reasoning_runtime(model)
             or native_web_search_enabled
-            or any(is_computer_tool_spec(tool) for tool in tools or [])
         )
 
     async def get_completion(
