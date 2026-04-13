@@ -290,11 +290,11 @@ Identity notes:
 - Usage: Execute tools sequentially and return `tool-bundle-result`
 
 **`web-search-progress`**
-- Purpose: Mid-search progress row for backend-owned OpenAI native `web_search`
+- Purpose: Mid-search progress row for OpenAI native `web_search`
 - Payload: `{ text, request_id?, action_type?, query?, url?, pattern? }`
 - Usage: Render transient search trace rows before the final backend `tool-call` / `tool-output`
 - Notes:
-  - Current producer is OpenAI native backend `web_search` only.
+  - Current producer is OpenAI native `web_search` only.
   - Renderer treats these rows as transient UI trace, not transcript history.
 
 **`tool-output`**

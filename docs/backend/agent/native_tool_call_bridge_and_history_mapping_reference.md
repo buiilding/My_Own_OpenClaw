@@ -150,7 +150,7 @@ Extraction helpers:
 3. Changing history id fallback format can break downstream assumptions in tool-output correlation/debug tooling.
 4. Modifying recoverable marker heuristics can convert retryable malformed-tool-call events into hard loop aborts.
 5. Re-introducing nested `arguments.explanation` fallback in the bridge without matching parser/sidecar behavior can desync wrapper routing.
-6. Forgetting that canonical native tool calls can include built-in logical names such as `computer` can lead to downstream code that incorrectly assumes every normalized tool call originated from a function tool schema.
+6. Forgetting that canonical native tool calls can include provider-built-in logical names can lead to downstream code that incorrectly assumes every normalized tool call originated from a function tool schema.
 
 ## Related Docs
 

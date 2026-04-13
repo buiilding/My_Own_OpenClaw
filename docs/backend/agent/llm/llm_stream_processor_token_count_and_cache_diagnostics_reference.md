@@ -169,7 +169,7 @@ Output totals:
 2. losing normalized payload capture can break downstream parsed-response tool-call bridge.
 3. removing hash compaction can inflate memory/log cost for image-heavy prompt messages.
 4. changing provider usage precedence can skew token-count transparency and billing telemetry.
-5. changing OpenAI `previous_response_id` gating can accidentally drop full-history context on fresh user turns or break native `computer` / `web_search` continuation loops.
+5. changing OpenAI `previous_response_id` gating can accidentally drop full-history context on fresh user turns or break Responses continuation loops such as native `web_search` follow-up turns.
 
 ## Related Pages
 

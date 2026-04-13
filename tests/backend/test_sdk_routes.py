@@ -532,7 +532,7 @@ async def test_sdk_debug_tool_schemas_returns_canonical_and_provider_shapes(tmp_
 
     assert any(schema.get("name") == "read_file" for schema in response.canonical_tool_schemas)
     assert response.provider_tool_schemas
-    assert any(schema.get("type") in {"function", "computer"} for schema in response.provider_tool_schemas)
+    assert all(schema.get("type") == "function" for schema in response.provider_tool_schemas)
 
 
 @pytest.mark.asyncio
