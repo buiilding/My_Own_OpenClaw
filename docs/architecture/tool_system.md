@@ -126,7 +126,7 @@ Current live model-facing tool count:
 - optional backend-owned logical `web_search` for Gemini/Brave-backed sessions
 - OpenAI sessions expose the same 14 live runtime tool schemas as the canonical backend registry and add provider-native `web_search` directly at the OpenAI transport layer
 
-OpenAI projection note:
+OpenAI desktop tool note:
 
 - OpenAI no longer uses a provider-native desktop projection.
 - The provider-facing tool list matches the canonical registry list for desktop tools on every query.

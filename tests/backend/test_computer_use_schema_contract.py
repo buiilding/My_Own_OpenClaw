@@ -75,7 +75,7 @@ def test_provider_projection_keeps_direct_computer_tools_for_openai():
     ]
 
 
-def test_provider_projection_keeps_direct_computer_tools_with_multiple_images():
+def test_provider_projection_keeps_direct_computer_tools_even_with_prompt_images():
     config = AppConfig(model_provider="openai")
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
     direct_schemas = registry.get_function_declarations_filtered(
