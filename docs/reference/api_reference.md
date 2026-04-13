@@ -549,9 +549,9 @@ Return:
 - that tool’s canonical schema when available
 - that tool’s provider-facing projected schema when available
 
-If a provider projection rewrites multiple backend tools into a shared declaration
-(for example OpenAI native `computer` projection), `provider_tool_schema` may be `null`
-for the individual logical tool.
+`provider_tool_schema` reflects the provider-facing tool declaration for that logical
+tool after provider filtering/projection. For desktop tools, this now matches the
+canonical function-tool contract for OpenAI as well.
 
 ### GET `/api/sdk/system-prompt`
 

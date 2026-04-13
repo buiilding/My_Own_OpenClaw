@@ -215,7 +215,7 @@ If parser tests fail on limits/validation:
 2. inspect tool whitelist filtering (`ToolPolicy` + `ToolRegistry`)
 3. inspect parser strategy selection (`_should_try_parse_json_response`)
 4. inspect trust-boundary exception metadata and boundary metrics payloads
-5. if OpenAI native `computer` turns regress, inspect the upstream Responses normalization path before changing parser extraction code; the parser library is not the primary ingestion path for those turns
+5. if OpenAI Responses-native tool turns regress, inspect the upstream Responses normalization path before changing parser extraction code; the parser library is not the primary ingestion path for those turns
 
 ## Related Pages
 
