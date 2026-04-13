@@ -106,6 +106,7 @@ Current runtime behavior also relies on these explicit seams:
    - Resolves sender-window display affinity in main (including virtual desktop bounds) and stores it for follow-on tool screenshots when the dashboard renderer is hidden.
    - Emits local synthetic `local-user-message` event to renderer immediately.
    - Calls `buildQueryPayloadContent()` to inject system-context + memory sections.
+   - Resolves applicable local `AGENTS.md` files from the active workspace and forwards them as contextual prompt messages, which is required when the backend is hosted remotely and cannot read local repo paths.
    - Sends normalized `query` over backend WebSocket.
 
 ### Stream Receive Flow

@@ -49,6 +49,10 @@ class SessionConfigRuntime:
             session.cfg,
             system_prompt=previous_prompt.system_prompt,
         )
+        session.prompt_builder.workspace_path = getattr(previous_prompt, "workspace_path", None)
+        session.prompt_builder.repo_instruction_messages = list(
+            getattr(previous_prompt, "repo_instruction_messages", []) or []
+        )
 
         session.executor.prompt_builder = session.prompt_builder
         session.executor.interaction_loop.prompt_coordinator = ConversationContext(

@@ -46,6 +46,9 @@ const {
   prepareRendererQueryPayload,
 } = require('./ipc/ipc_query_runtime.cjs');
 const {
+  resolveWorkspaceRepoInstructionMessages,
+} = require('./repo_instruction_runtime.cjs');
+const {
   handleRendererQuerySendFailure,
   prepareRendererQuerySend,
 } = require('./ipc/ipc_query_send_runtime.cjs');
@@ -969,6 +972,9 @@ function initializeIpc(win, options = {}) {
         },
       });
       payload = preparedQuery.payload;
+      if (type === 'query' || type === 'rehydrate-conversation') {
+        payload = attachLocalRepoInstructionMessages(payload);
+      }
       currentConversationRef = preparedQuery.conversationRef;
       queryMessageId = preparedQuery.queryMessageId;
       queryUsedInitialContext = preparedQuery.queryUsedInitialContext;
@@ -1073,6 +1079,29 @@ function getBackendConnectionState() {
   };
 }
 
+function attachLocalRepoInstructionMessages(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return payload;
+  }
+
+  const workspacePath = typeof payload.workspace_path === 'string'
+    ? payload.workspace_path.trim()
+    : '';
+  if (!workspacePath) {
+    return payload;
+  }
+
+  const repoInstructionMessages = resolveWorkspaceRepoInstructionMessages(workspacePath);
+  if (repoInstructionMessages.length === 0) {
+    return payload;
+  }
+
+  return {
+    ...payload,
+    repo_instruction_messages: repoInstructionMessages,
+  };
+}
+
 async function sendAutomatedQuery(options = {}) {
   const preparedQuery = prepareAutomatedQueryPayload(options, currentConversationRef);
   if (!preparedQuery) {
@@ -1119,9 +1148,10 @@ async function sendAutomatedQuery(options = {}) {
   if (preparedQuery.attachmentFilenames.length > 0) {
     payload.attachment_filenames = preparedQuery.attachmentFilenames;
   }
+  const payloadWithRepoInstructions = attachLocalRepoInstructionMessages(payload);
 
   const queryMessageId = uuidv4();
-  const messageId = sendMessageToBackend('query', payload, queryMessageId);
+  const messageId = sendMessageToBackend('query', payloadWithRepoInstructions, queryMessageId);
   if (!messageId) {
     return { ok: false, error: 'Failed to send query to backend' };
   }

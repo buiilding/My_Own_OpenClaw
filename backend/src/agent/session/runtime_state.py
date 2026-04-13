@@ -28,6 +28,7 @@ class SessionRuntimeState:
     system_state: Optional[Dict[str, Any]] = None
     active_conversation_ref: Optional[str] = None
     workspace_path: Optional[str] = None
+    repo_instruction_messages: list[Dict[str, str]] = field(default_factory=list)
     ocr_completion_event: asyncio.Event = field(default_factory=asyncio.Event)
     background_tasks: set[asyncio.Task[Any]] = field(default_factory=set)
 
@@ -56,6 +57,7 @@ class SessionRuntimeState:
         self.system_state = None
         self.active_conversation_ref = None
         self.workspace_path = None
+        self.repo_instruction_messages = []
         self.ocr_completion_event.set()
 
     def register_background_task(self, task: asyncio.Task[Any]) -> None:

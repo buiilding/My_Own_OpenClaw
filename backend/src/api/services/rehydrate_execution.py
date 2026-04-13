@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import inspect
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
 
 from backend.src.api.schema import RehydrateConversationMessage
@@ -41,6 +42,13 @@ class RehydrateExecutionService:
             user_id=user_id,
             session=session,
             workspace_path=payload.workspace_path,
+            repo_instruction_messages=[
+                {
+                    "role": instruction.role,
+                    "content": instruction.content,
+                }
+                for instruction in (payload.repo_instruction_messages or [])
+            ],
         )
         artifact_store = self._build_artifact_store(artifact_store_cls)
 
@@ -95,6 +103,7 @@ class RehydrateExecutionService:
         user_id: str,
         session: Any,
         workspace_path: Optional[str],
+        repo_instruction_messages: Optional[list[dict[str, str]]] = None,
     ) -> None:
         set_workspace_path = getattr(
             self._session_manager,
@@ -103,6 +112,32 @@ class RehydrateExecutionService:
         )
         if not callable(set_workspace_path):
             return
+        try:
+            signature = inspect.signature(set_workspace_path)
+        except (TypeError, ValueError):
+            signature = None
+
+        positional_params = [
+            parameter
+            for parameter in (signature.parameters.values() if signature else [])
+            if parameter.kind in (
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            )
+        ]
+        has_varargs = any(
+            parameter.kind == inspect.Parameter.VAR_POSITIONAL
+            for parameter in (signature.parameters.values() if signature else [])
+        )
+        if signature is None or has_varargs or len(positional_params) >= 4:
+            set_workspace_path(
+                user_id,
+                session,
+                workspace_path,
+                repo_instruction_messages,
+            )
+            return
+
         set_workspace_path(
             user_id,
             session,
