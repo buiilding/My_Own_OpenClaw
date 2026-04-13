@@ -55,8 +55,12 @@ Backend ownership detail:
   - seeded from renderer surface on startup: main dashboard starts unsuppressed, overlay views start suppressed
 - `wakewordActive = wakewordEnabled && !wakewordSuppressed`: input to `WakewordController`
 
-`WakewordController` is always mounted under `App`, but the hook is inert when `wakewordActive` is false.
-It also passes `wakewordEnabled` separately so the capture hook can distinguish temporary suppression from explicit user disable when handling missing-device lockout.
+`WakewordController` only mounts on dashboard startup surfaces.
+The onboarding surface does not mount it, which prevents wakeword startup from
+requesting microphone capture before first-run permission onboarding reaches the
+microphone step. When mounted, it still passes `wakewordEnabled` separately so
+the capture hook can distinguish temporary suppression from explicit user
+disable when handling missing-device lockout.
 
 ## Live Transcription Flow (`useVoiceMode`)
 

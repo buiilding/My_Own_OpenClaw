@@ -41,6 +41,7 @@ Detection callback behavior:
 Controller wiring:
 
 - `WakewordController` passes `wakewordActive` as hook enable flag
+- onboarding does not mount `WakewordController`, so this flow starts only after startup resolves to a dashboard surface
 - callback side effects are centralized in one app-level owner:
   - backend `wakeword-detected` API call
   - `show-chatbox` IPC invoke

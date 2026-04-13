@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 
 const mockIpcInvoke = jest.fn(async () => ({ success: true }));
+const mockWakewordController = jest.fn(() => null);
 
 const mockPermissionState = {
   bootstrapped: true,
@@ -47,7 +48,7 @@ jest.mock('../../frontend/src/renderer/app/providers/ChatProvider', () => ({
   ChatProvider: ({ children }) => <>{children}</>,
 }));
 
-jest.mock('../../frontend/src/renderer/app/WakewordController', () => () => null);
+jest.mock('../../frontend/src/renderer/app/WakewordController', () => (...args) => mockWakewordController(...args));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
   useAppConfigContext: () => ({
@@ -62,6 +63,7 @@ import App from '../../frontend/src/renderer/app/App';
 describe('App permission gate', () => {
   beforeEach(() => {
     mockIpcInvoke.mockClear();
+    mockWakewordController.mockClear();
   });
 
   test('renders onboarding while required permissions are still missing', () => {
@@ -73,6 +75,7 @@ describe('App permission gate', () => {
 
     expect(screen.getByTestId('frontend-onboarding-stub')).toBeInTheDocument();
     expect(screen.queryByTestId('dashboard-shell-stub')).not.toBeInTheDocument();
+    expect(mockWakewordController).not.toHaveBeenCalled();
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-main-window', {
       focus: true,
       open: 'onboarding',
@@ -88,6 +91,7 @@ describe('App permission gate', () => {
 
     expect(screen.getByTestId('dashboard-shell-stub')).toHaveTextContent('vmModeEnabled:false');
     expect(screen.queryByTestId('frontend-onboarding-stub')).not.toBeInTheDocument();
+    expect(mockWakewordController).toHaveBeenCalledTimes(1);
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-chatbox', { focus: true });
   });
 
@@ -100,6 +104,7 @@ describe('App permission gate', () => {
 
     expect(screen.getByTestId('dashboard-shell-stub')).toHaveTextContent('vmModeEnabled:false');
     expect(screen.queryByTestId('frontend-onboarding-stub')).not.toBeInTheDocument();
+    expect(mockWakewordController).toHaveBeenCalledTimes(1);
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-chatbox', { focus: true });
   });
 
@@ -110,6 +115,7 @@ describe('App permission gate', () => {
 
     const { rerender } = render(<App />);
 
+    expect(mockWakewordController).not.toHaveBeenCalled();
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-main-window', {
       focus: true,
       open: 'onboarding',
@@ -121,6 +127,7 @@ describe('App permission gate', () => {
 
     rerender(<App />);
 
+    expect(mockWakewordController).toHaveBeenCalledTimes(1);
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-chatbox', { focus: true });
   });
 });

@@ -58,13 +58,13 @@ All surfaces mount `AppProvider`, which means:
 1. `ErrorBoundary`
 2. `AppProvider`
 3. `ChatProvider` (full chat hooks)
-4. `WakewordController`
-5. `AppContent` (`ChatGptDashboardShell`)
+4. `AppContent` (`ChatGptDashboardShell` or onboarding)
 
 `AppContent` behavior:
 
 - does not block startup behind renderer permission onboarding
 - always routes to dashboard shell or frontend onboarding slideshow based on VM mode and slideshow completion
+- mounts `WakewordController` only for dashboard surfaces
 - within shell, opens memory/models/settings as modal panels over chat
 
 ## Overlay App Stacks

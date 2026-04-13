@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 
 const mockBootstrapPermissions = jest.fn();
 const mockIpcInvoke = jest.fn(async () => ({ success: true }));
+const mockWakewordController = jest.fn(() => null);
 
 jest.mock('../../frontend/src/renderer/infrastructure/runtime/vmMode', () => ({
   isVmModeEnabled: () => true,
@@ -45,7 +46,7 @@ jest.mock('../../frontend/src/renderer/app/providers/ChatProvider', () => ({
   ChatProvider: ({ children }) => <>{children}</>,
 }));
 
-jest.mock('../../frontend/src/renderer/app/WakewordController', () => () => null);
+jest.mock('../../frontend/src/renderer/app/WakewordController', () => (...args) => mockWakewordController(...args));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
   useAppConfigContext: () => ({
@@ -61,6 +62,7 @@ describe('App VM mode', () => {
   beforeEach(() => {
     mockBootstrapPermissions.mockClear();
     mockIpcInvoke.mockClear();
+    mockWakewordController.mockClear();
   });
 
   test('bypasses onboarding and renders dashboard shell in vm mode', () => {
@@ -68,6 +70,7 @@ describe('App VM mode', () => {
 
     expect(screen.getByTestId('dashboard-shell-stub')).toHaveTextContent('vmModeEnabled:true');
     expect(screen.queryByTestId('frontend-onboarding-stub')).not.toBeInTheDocument();
+    expect(mockWakewordController).toHaveBeenCalledTimes(1);
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-main-window', { focus: true });
   });
 });

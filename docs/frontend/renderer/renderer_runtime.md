@@ -106,7 +106,7 @@ Primary hooks/components:
 - `useVoiceMode`
 - `useWakewordDetection`
 - `VoiceStatus`
-- app-level `WakewordController`
+- dashboard-surface `WakewordController`
 
 ## Infrastructure Layer
 
