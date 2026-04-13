@@ -468,7 +468,7 @@ def test_build_prompt_allowlisting_read_file_yields_single_direct_schema():
     assert "file_path" in parameters["properties"]
 
 
-def test_build_prompt_keeps_direct_computer_tools_for_openai_multi_image_history():
+def test_build_prompt_keeps_direct_computer_tools_for_openai_even_with_image_history():
     config = AppConfig(
         model_provider="openai",
         tool_allowlist=[
