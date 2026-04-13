@@ -18,6 +18,25 @@ import '../styles/CloneMemoryModels.css';
 import '../styles/FrontendOnboarding.css';
 import '../styles/accessibility.css';
 
+function DashboardStartupSurface({
+  config,
+  availableModels,
+  onConfigChange,
+  vmModeEnabled,
+}) {
+  return (
+    <>
+      <WakewordController />
+      <DashboardShell
+        config={config}
+        availableModels={availableModels}
+        onConfigChange={onConfigChange}
+        vmModeEnabled={vmModeEnabled}
+      />
+    </>
+  );
+}
+
 /**
  * Content wrapper that has access to AppContext
  */
@@ -34,7 +53,6 @@ function AppContent() {
     needsOnboarding,
     onboardingCompleted,
   });
-  const shouldMountWakewordController = startupSurface !== 'onboarding';
 
   useEffect(() => {
     if (lastAppliedStartupSurfaceRef.current === startupSurface) {
@@ -68,15 +86,12 @@ function AppContent() {
 
   if (startupSurface === 'dashboard-vm') {
     return (
-      <>
-        {shouldMountWakewordController ? <WakewordController /> : null}
-        <DashboardShell
-          config={config}
-          availableModels={availableModels}
-          onConfigChange={updateConfig}
-          vmModeEnabled
-        />
-      </>
+      <DashboardStartupSurface
+        config={config}
+        availableModels={availableModels}
+        onConfigChange={updateConfig}
+        vmModeEnabled
+      />
     );
   }
 
@@ -90,15 +105,12 @@ function AppContent() {
   }
 
   return (
-    <>
-      {shouldMountWakewordController ? <WakewordController /> : null}
-      <DashboardShell
-        config={config}
-        availableModels={availableModels}
-        onConfigChange={updateConfig}
-        vmModeEnabled={false}
-      />
-    </>
+    <DashboardStartupSurface
+      config={config}
+      availableModels={availableModels}
+      onConfigChange={updateConfig}
+      vmModeEnabled={false}
+    />
   );
 }
 

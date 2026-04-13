@@ -20,6 +20,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Refactored
 
+- refactor(frontend-app-startup-surface): collapse the duplicated dashboard startup branches in `App.jsx` into one shared dashboard-surface renderer so onboarding-vs-dashboard wakeword ownership stays easier to follow.
 - refactor(frontend-onboarding-surface-state): split main-window mode (`onboarding|dashboard`) from the app’s primary surface (`onboarding|dashboard|chat`) so onboarding lifecycle behavior no longer depends on dashboard open-target state, and keep onboarding out of the maximize/fullscreen path entirely.
 
 ### Added
