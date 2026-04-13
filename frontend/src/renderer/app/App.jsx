@@ -34,6 +34,7 @@ function AppContent() {
     needsOnboarding,
     onboardingCompleted,
   });
+  const shouldMountWakewordController = startupSurface !== 'onboarding';
 
   useEffect(() => {
     if (lastAppliedStartupSurfaceRef.current === startupSurface) {
@@ -67,12 +68,15 @@ function AppContent() {
 
   if (startupSurface === 'dashboard-vm') {
     return (
-      <DashboardShell
-        config={config}
-        availableModels={availableModels}
-        onConfigChange={updateConfig}
-        vmModeEnabled
-      />
+      <>
+        {shouldMountWakewordController ? <WakewordController /> : null}
+        <DashboardShell
+          config={config}
+          availableModels={availableModels}
+          onConfigChange={updateConfig}
+          vmModeEnabled
+        />
+      </>
     );
   }
 
@@ -86,12 +90,15 @@ function AppContent() {
   }
 
   return (
-    <DashboardShell
-      config={config}
-      availableModels={availableModels}
-      onConfigChange={updateConfig}
-      vmModeEnabled={false}
-    />
+    <>
+      {shouldMountWakewordController ? <WakewordController /> : null}
+      <DashboardShell
+        config={config}
+        availableModels={availableModels}
+        onConfigChange={updateConfig}
+        vmModeEnabled={false}
+      />
+    </>
   );
 }
 
@@ -104,7 +111,6 @@ function App() {
     <ErrorBoundary>
       <AppProvider>
         <ChatProvider>
-          <WakewordController />
           <AppContent />
         </ChatProvider>
       </AppProvider>

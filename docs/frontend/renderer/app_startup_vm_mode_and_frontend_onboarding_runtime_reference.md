@@ -32,10 +32,12 @@ title: "App Startup VM-Mode and Permission Onboarding Runtime Reference"
 1. `ErrorBoundary`
 2. `AppProvider`
 3. `ChatProvider`
-4. `WakewordController`
-5. `AppContent`
+4. `AppContent`
 
-`WakewordController` is always mounted in this default surface path.
+`WakewordController` is mounted by `AppContent` only for dashboard surfaces.
+The onboarding surface does not mount wakeword at all, so first-run startup
+cannot request microphone capture before the user reaches the microphone grant
+step.
 
 ## Startup Routing in `AppContent`
 
@@ -47,16 +49,19 @@ title: "App Startup VM-Mode and Permission Onboarding Runtime Reference"
 Routing behavior:
 
 - VM mode enabled:
+  - mount `WakewordController`
   - render `ChatGptDashboardShell` immediately
   - pass `vmModeEnabled={true}`
   - bypass frontend onboarding slideshow
   - request `show-main-window({ focus: true })` from the renderer startup-surface controller
 - VM mode disabled + onboarding incomplete:
+  - do not mount `WakewordController`
   - render `FrontendOnboardingSlideshow`
   - inject stop-agent shortcut label from `getGlobalAgentStopShortcutLabel(config?.global_agent_stop_shortcut)`
   - request `show-main-window({ focus: true, open: 'onboarding' })` from the renderer startup-surface controller
   - onboarding never requests maximize/fullscreen and its window chrome suppresses the maximize control so permission prompts are not blocked behind a fullscreen frameless shell
 - VM mode disabled + onboarding complete:
+  - mount `WakewordController`
   - render `ChatGptDashboardShell`
   - pass `vmModeEnabled={false}`
   - request `show-chatbox({ focus: true })` from the renderer startup-surface controller so cold start lands on the minimal chat pill instead of the dashboard window
@@ -176,7 +181,7 @@ The same permission store also powers Settings > Permissions (`PermissionControl
 1. Changing VM-mode detection source (URL query vs config/env) without updating startup docs/tests can break hosted VM launch behavior.
 2. Reintroducing permission gating into `AppContent` without updating routing docs can create confusing onboarding regressions.
 3. Changing onboarding storage key or payload shape without migration handling can reset completion state unexpectedly.
-4. Mounting `WakewordController` conditionally at app root can silently break wakeword readiness assumptions in non-dashboard surfaces.
+4. Re-mounting `WakewordController` on onboarding surfaces will reintroduce pre-onboarding microphone prompts on cold start.
 5. Changing the global shortcut catalog without updating onboarding/settings copy can make the first-run keybind guidance drift from the actual registered accelerator.
 6. Reintroducing mixed grid/wizard permission CSS selectors can silently left-align the single-card wizard even when the React tree is correct.
 
