@@ -236,15 +236,9 @@ def test_remote_mouse_tool_schema_explicitly_guides_ocr_for_text_targets():
     schema = tool.get_json_schema()
     parameters = schema["parameters"]["properties"]
 
-    assert "Prefer keyboard shortcuts" in schema["description"]
-    assert "find_coordinates_by='ocr'" in schema["description"]
-    assert "type something here" in schema["description"]
-    assert "beware of the mouse position on that image" in schema["description"]
-    assert "Do not treat tool status alone as success" in schema["description"]
-    assert "visible mouse position as a spatial reference" in parameters["find_coordinates_by"]["description"]
-    assert "success requires both cursor alignment and the intended UI state change" in parameters["find_coordinates_by"]["description"]
-    assert "type something here" in parameters["ocr_text"]["description"]
-    assert "visible text" in parameters["find_coordinates_by"]["description"]
+    assert schema["description"] == "Control mouse actions with schema-guided coordinate targeting."
+    assert parameters["find_coordinates_by"]["description"] == "Coordinate targeting method."
+    assert parameters["ocr_text"]["description"] == "Exact visible on-screen text for OCR targeting."
     assert "Beware of the mouse position on the image" in parameters["x"]["description"]
     assert "Beware of the mouse position on the image" in parameters["y"]["description"]
 

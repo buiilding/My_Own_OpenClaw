@@ -214,61 +214,27 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     )
     content = prompt_file.read_text(encoding="utf-8")
 
-    assert "You are WindieOS, a coding and operating agent running in the WindieOS desktop runtime." in content
+    assert "You are WindieOS, an assistant that has access to the desktop operating system." in content
     assert "## Personality" in content
-    assert "## AGENTS.md scope" in content
-    assert "## Workspace instructions" in content
+    assert "# AGENTS.md spec" in content
     assert "## Responsiveness" in content
     assert "### Preamble messages" in content
-    assert "## Planning" in content
     assert "## Task execution" in content
     assert "## Validating your work" in content
     assert "## Ambition vs. precision" in content
     assert "## Sharing progress updates" in content
-    assert "## Presenting results" in content
-    assert "## Final answer style" in content
-    assert "### Headers" in content
-    assert "### Bullets" in content
-    assert "### Monospace" in content
-    assert "### File references" in content
-    assert "## Tool selection" in content
-    assert "## State rules" in content
-    assert "## Computer-use rules" in content
-    assert "## Browser-use rules" in content
-    assert "## Coding rules" in content
-    assert "## Process rules" in content
-    assert "## Failure recovery" in content
-    assert "## Response rules" in content
-    assert "## Examples" in content
-    assert "behave like a strong coding agent first" in content
-    assert "default workflow is:" in content
-    assert "continue until the coding task is actually resolved" in content
-    assert "For coding tasks, prefer targeted tests, builds, or command output over assumption." in content
-    assert "Treat coding work as first-class work, not a fallback path behind browser or desktop actions." in content
-    assert "The scope of an `AGENTS.md` file is the directory tree rooted at the folder that contains it." in content
-    assert "Before making tool calls, briefly state what you are about to do" in content
-    assert "Use desktop UI tools only when deterministic filesystem, shell, or browser tools cannot do the job." in content
-    assert "Use canonical browser actions only." in content
-    assert "Use `process` only with valid session IDs returned by prior tool results." in content
-    assert "Prefer keyboard shortcuts over mouse interaction when both are reliable" in content
-    assert "Do not treat execution status alone as success" in content
-    assert "The emergency stop hotkey is Command/Ctrl+Shift+Escape" in content
-    assert "run_in_background=true" in content
-    assert "Use `open_app` for detached GUI launches that should keep running" in content
-    assert "Do not claim a code change works unless you have some direct evidence" in content
-    assert "Use fast focused search commands when inspecting repositories or logs." in content
-    assert "prefer `rg` over recursive `grep`" in content
-    assert "Before `browser.connect`, assume you do not have access to any browser instance." in content
-    assert "Seeing a browser window in screenshots or open windows does not mean the `browser` tool can control that browser instance." in content
-    assert "For browser tasks, an attached image or screenshot usually means the user is grounding the currently visible browser UI, not the dedicated Windie browser DOM." in content
-    assert "If a browser-related request includes an attached image or screenshot that grounds the currently visible browser UI, prefer desktop UI tools first unless the image is clearly content to use inside a web workflow." in content
-    assert "Until `browser.connect` succeeds, assume there is no active browser session you can inspect or control." in content
-    assert "`browser.connect` attaches only to the dedicated Windie browser instance/profile and does not attach to arbitrary user Chrome windows or other browser instances." in content
-    assert "Before doing anything after `browser.connect`, call `get_tabs` first unless the latest browser tool output already gives a current tab list." in content
-    assert "Even after `browser.connect`, do not assume the connected browser matches a browser window shown in an attached image or screenshot until browser context confirms it." in content
-    assert '"name":"run_shell_command"' in content
-    assert '"name":"open_app"' in content
-    assert '"name":"browser"' in content
+    assert "## Presenting your work and final message" in content
+    assert "### Final answer structure and style guidelines" in content
+    assert "The scope of an AGENTS.md file is the entire directory tree rooted at the folder that contains it." in content
+    assert "Before making tool calls, send a brief preamble" in content
+    assert "Please keep going until the query is completely resolved" in content
+    assert "Use the `replace` tool to edit files." in content
+    assert "Do not `git commit` your changes or create new git branches unless explicitly requested." in content
+    assert "Prefer keyboard shortcuts when they are reliable." in content
+    assert "Use the latest available screenshot included in the latest tool output." in content
+    assert "## Browser-use tools" in content
+    assert "Prefer `browser` when the target is a website and browser-native actions can solve it." in content
+    assert "dedicated browser profile" in content
 
 
 def test_model_facing_system_prompt_includes_browser_scope_rules():
@@ -278,12 +244,6 @@ def test_model_facing_system_prompt_includes_browser_scope_rules():
     )
     content = prompt_file.read_text(encoding="utf-8")
 
-    assert "Before `browser.connect`, assume you do not have access to any browser instance." in content
-    assert "Seeing a browser window in screenshots or open windows does not mean the `browser` tool can control that browser instance." in content
-    assert "For browser tasks, an attached image or screenshot usually means the user is grounding the currently visible browser UI, not the dedicated Windie browser DOM." in content
-    assert "If a browser-related request includes an attached image or screenshot that grounds the currently visible browser UI, prefer desktop UI tools first unless the image is clearly content to use inside a web workflow." in content
-    assert "Until `browser.connect` succeeds, assume there is no active browser session you can inspect or control." in content
-    assert "`browser.connect` attaches only to the dedicated Windie browser instance/profile and does not attach to arbitrary user Chrome windows or other browser instances." in content
-    assert "Before doing anything after `browser.connect`, call `get_tabs` first unless the latest browser tool output already gives a current tab list." in content
-    assert "Even after `browser.connect`, do not assume the connected browser matches a browser window shown in an attached image or screenshot until browser context confirms it." in content
-    assert "An attached image on a browser task is a strong signal to start with desktop verification or desktop actions, because the image may show the user's personal browser window and is a visual-state artifact rather than DOM state." in content
+    assert "dedicated chrome browser profile" in content
+    assert "## Browser-use tools" in content
+    assert "Prefer `browser` when the target is a website and browser-native actions can solve it." in content
