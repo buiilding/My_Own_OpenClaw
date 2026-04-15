@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(model-facing-schema): add `Model-Facing/schema.txt` as a repo-local snapshot of the current backend-owned model-facing tool contract, including the default visible tool surface and the current config and policy gating notes around browser, web search, and manual-only grounding.
 - chore(prompt-contract-cleanup): update backend docs and prompt tests to describe the live direct-tool calling contract instead of legacy `computer_use`/`system_use` wrappers, and remove the stale checked-in `model-facing/*` prompt/schema snapshot artifacts from the repo.
 - refactor(backend-openai-computer-tools): remove the OpenAI-native desktop tool projection/bridge so OpenAI now uses the same direct WindieOS computer function tools as other providers, while Responses follow-up turns replay only standard function-tool outputs.
 - docs(openai-computer-removal): clean up remaining SDK/runtime reference pages and tighten SDK route coverage so docs/tests no longer imply a live OpenAI `computer` schema type or native desktop continuation path.
