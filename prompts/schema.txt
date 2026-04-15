@@ -1,214 +1,706 @@
-WindieOS Model-Facing Tool Schema Snapshot
-
-This snapshot reflects the current backend-owned model-facing contract, not the
-frontend execution schema.
-
-Snapshot basis:
-- `AppConfig()` defaults from `backend/src/core/config/app_config.py`
-- `ToolPolicy.from_config(config)` filtering, including any local dev tool selection
-- current provider projection in `backend/src/tools/provider_projection.py`
-
-Source of truth:
-- `backend/src/tools/tool_catalog.py`
-- `backend/src/tools/registry.py`
-- `backend/src/llm/prompts/prompt_constructor.py`
-
-Current default AppConfig model-visible tools:
-- mouse_control
-- keyboard_control
-- screenshot
-- scroll_control
-- switch_window
-- wait
-- get_open_windows
-- get_system_stats
-- open_app
-- run_shell_command
-- process
-- read_file
-- replace
-
-Hidden by the current default config or policy:
-- `browser`: cataloged remote tool, but hidden because `browser_automation_enabled=False`
-- `web_search`: backend-owned optional tool, hidden for the default OpenAI path and exposed only on provider/config combinations that surface backend `web_search`
-
-Important note:
-- The underlying catalog still supports richer grounding in some tools, but this
-  snapshot is intentionally policy-pruned. In the current local/default path,
-  `mouse_control` and `scroll_control` expose only `manual` targeting.
-
-Canonical tool specs are flat function-tool objects shaped like:
-{type, name, description, strict, parameters}
-
-[mouse_control]
-type: function
-strict: False
-description: Control mouse actions with schema-guided coordinate targeting. Prefer keyboard shortcuts and app-native navigation first; use mouse interaction when needed. Use only the currently enabled targeting fields exposed by this schema. Do not treat tool status alone as success; confirm the expected UI state change from the latest screenshot.
-required fields: action, explanation
-properties:
-- drag_to_x: integer | Destination X coordinate in screenshot pixels for drag actions. Required when drag_to_find_coordinates_by='manual'.
-- drag_to_y: integer | Destination Y coordinate in screenshot pixels for drag actions. Required when drag_to_find_coordinates_by='manual'.
-- drag_to_find_coordinates_by: string | enum=manual | default='manual' | Drag destination targeting method. Allowed values: manual.
-- find_coordinates_by: string | enum=manual | default='manual' | Coordinate targeting method. Allowed values: manual.
-- x: integer | X coordinate in screenshot pixels. Required when find_coordinates_by='manual'. Beware of the mouse position on the image when determining manual coordinates.
-- y: integer | Y coordinate in screenshot pixels. Required when find_coordinates_by='manual'. Beware of the mouse position on the image when determining manual coordinates.
-- action: string | enum=click|double_click|right_click|move|drag | required | Mouse action to perform (click, double_click, right_click, move, or drag). Prefer keyboard shortcuts/hotkeys first when they can accomplish the same goal. Do not treat tool execution status alone as UI success; verify the expected UI change from the latest screenshot.
-- button: string | enum=left|right|middle | default='left' | Mouse button for click and double_click actions.
-- duration: number | default=0.5 | Duration for drag operations
-- explanation: string | required | One sentence explanation as to why this tool is being used, and how it contributes to the goal.
-- wait: number | default=0.0 | Delay in seconds before automatic post-action screenshot capture.
-
-[keyboard_control]
-type: function
-strict: False
-description: Control keyboard input including typing text, clipboard paste, pressing keys, and shortcuts. Default to action='type' for first-attempt text entry. Use action='paste' mainly as fallback when action='type' does not land text. After input, verify text appears in the latest screenshot; do not assume tool success means input landed. If text is missing, retry once with action='paste', then refocus the field and retry. Use deterministic action sequences for predictable flows (for example, input text then press Enter only when submit is intended). Prefer this tool over mouse clicks when a shortcut or key-driven path exists.
-required fields: action, explanation
-properties:
-- action: string | enum=type|paste|press|hotkey | required | Keyboard action to perform: type (text input), paste (clipboard insert), press (single key), or hotkey (combined keys). Default to action='type' for text entry; use action='paste' mainly as a recovery override when action='type' does not land text. Prefer keyboard-driven navigation over clicking when equivalent. Use press/hotkey for submit actions only when submission is explicitly intended.
-- text: string | Text payload for action='type' or action='paste'. Start with action='type'; runtime may internally use safer paste-like insertion for multiline or long text. After input, verify the text is visible in the latest screenshot instead of assuming tool success means UI success. If text is missing, retry once with action='paste'; if still missing, refocus the field and retry.
-- key: string | Single key for action='press' (for example: enter, esc, tab).
-- keys: array | Ordered key list for action='hotkey' (for example: ['ctrl', 'l']).
-- repeat: integer | default=1 | min=1 | max=50 | Repeat count for action='press' or action='hotkey'.
-- interval_ms: integer | default=0 | min=0 | max=2000 | Delay between repeats in milliseconds for action='press' or action='hotkey'.
-- explanation: string | required | One sentence explanation as to why this tool is being used, and how it contributes to the goal.
-- wait: number | default=0.0 | Delay in seconds before automatic post-action screenshot capture.
-
-[screenshot]
-type: function
-strict: False
-description: Capture a screenshot of the current computer screen.
-required fields: explanation
-properties:
-- explanation: string | required | One sentence explanation as to why this tool is being used, and how it contributes to the goal.
-- wait: number | (OPTIONAL) Delay in seconds before capturing a screenshot. If provided, waits this duration before capture.
-
-[scroll_control]
-type: function
-strict: False
-description: Control desktop scrolling actions. Target the scroll region using the currently enabled grounding fields exposed by this schema. Omit `clicks` on the first vertical scroll attempt so the executor uses its default click amount; use `clicks` only for follow-up fine tuning.
-required fields: action, explanation
-properties:
-- find_coordinates_by: string | enum=manual | default='manual' | Coordinate targeting method. Allowed values: manual.
-- x: integer | X coordinate in screenshot pixels. Required when find_coordinates_by='manual'. Beware of the mouse position on the image when determining manual coordinates.
-- y: integer | Y coordinate in screenshot pixels. Required when find_coordinates_by='manual'. Beware of the mouse position on the image when determining manual coordinates.
-- action: string | enum=scroll|scroll_up|scroll_down | required | Scroll action to perform (`scroll`, `scroll_up`, or `scroll_down`). Vertical actions default to a coarse executor-owned step.
-- clicks: integer | Optional explicit literal OS wheel click override. Fallback-only for follow-up fine tuning. Omit it on the first vertical scroll attempt so the executor chooses the default click amount (8 on macOS, 5 on Windows/Linux).
-- direction: string | enum=up|down|left|right | Direction for scroll action: vertical 'up'|'down', or horizontal 'left'|'right'. Required when action is 'scroll'.
-- explanation: string | required | One sentence explanation as to why this tool is being used, and how it contributes to the goal.
-- wait: number | default=0.0 | Delay in seconds before automatic post-action screenshot capture.
-
-[switch_window]
-type: function
-strict: False
-description: Switch focus to a specific window by exact title. Get valid titles from get_open_windows and switch by name instead of blind OS-level cycling.
-required fields: tab_name, explanation
-properties:
-- tab_name: string | required | Exact window or tab title to focus, matching get_open_windows output exactly.
-- match_mode: string | enum=exact|contains|regex | default='exact' | Window title match mode.
-- explanation: string | required | One sentence explanation as to why this tool is being used, and how it contributes to the goal.
-- wait: number | default=0.0 | Delay in seconds before automatic post-action screenshot capture.
-
-[wait]
-type: function
-strict: False
-description: Wait for a specified number of seconds, then capture a screenshot of the current screen state. Useful for waiting for UI changes, animations, page loads, or async operations to complete. After execution, returns a status message and a screenshot image.
-required fields: seconds, explanation
-properties:
-- seconds: number | required | Number of seconds to wait before capturing a screenshot.
-- explanation: string | required | One sentence explanation as to why this tool is being used, and how it contributes to the goal.
-
-[get_open_windows]
-type: function
-strict: False
-description: Lists currently open windows that exist on the desktop and can potentially be focused. This does not mean any listed window is currently active or focused. Use it to discover candidate windows, then use switch_window to focus the intended one before assuming shortcuts, clicking, or typing will land there.
-required fields: explanation
-properties:
-- filter_text: string | default='' | Optional text to filter window titles by (case-insensitive).
-- explanation: string | required | One sentence explanation as to why this tool is being used, and how it contributes to the goal.
-
-[get_system_stats]
-type: function
-strict: False
-description: Returns current system resource usage (CPU %, Memory %, Battery). Use this to check system performance before running resource-intensive operations.
-required fields: explanation
-properties:
-- explanation: string | required | One sentence explanation as to why this tool is being used, and how it contributes to the goal.
-
-[open_app]
-type: function
-strict: False
-description: Launch a GUI app detached from sidecar/agent lifecycle so the app remains running even if the current agent turn or sidecar process ends. Verification modes: window (default) polls open windows for expected title; screenshot captures visual proof after launch; none returns the fastest acknowledgment without verification. Use this instead of run_shell_command for open-and-leave-running app workflows.
-required fields: command, explanation
-properties:
-- command: string | required | Executable or app command to launch detached from sidecar lifecycle. Use this for opening GUI apps that should remain running even if agent/sidecar exits.
-- args: array | (OPTIONAL) Positional arguments for command launch.
-- directory: string | (OPTIONAL) Absolute working directory for launch.
-- verify: string | enum=none|window|screenshot | default='window' | (OPTIONAL) Post-launch verification mode: `none` for fast ack, `window` to poll open windows, `screenshot` to capture visual proof.
-- verify_window_title: string | (OPTIONAL) Window title substring expected after launch; improves window verification precision.
-- verify_timeout_seconds: number | default=6.0 | min=0.0 | (OPTIONAL) Max seconds for post-launch verification polling/capture.
-- explanation: string | required | One sentence explanation as to why this tool is being used, and how it contributes to the goal.
-
-[run_shell_command]
-type: function
-strict: False
-description: This tool executes shell commands on the local system. Commands are executed in the specified directory (or the user-selected WindieOS workspace folder when configured, otherwise the OS user home directory if not specified). Execution modes: foreground waits for completion and returns output; background returns immediately with a session id; yield returns early while keeping the process alive. Operational guidance: prefer short commands, avoid giant inline payloads, use `read_file` plus `replace` for file edits, prefer `open_app` for detached GUI launches, and use `process` to manage long-running sessions.
-required fields: command, run_in_background, explanation
-properties:
-- command: string | required | Exact command to execute. For repository or log search, prefer fast targeted commands such as rg instead of broad recursive grep, and exclude generated directories like node_modules, frontend/release, frontend/python-runtime, and .git unless the user explicitly needs them.
-- directory: string | (OPTIONAL) Working directory. Absolute paths are allowed, and relative paths resolve from the user-selected WindieOS workspace folder when configured, otherwise from the OS user home directory. If omitted, WindieOS uses that default base directory directly.
-- run_in_background: boolean | required | If True, start command asynchronously and return immediately with a session id. Use this for GUI app launches and long-running commands so the agent does not block. Then use the process tool to poll logs, write input, or terminate the session. If False, wait for command completion and return output.
-- terminate_after_seconds: number | default=120.0 | (OPTIONAL, only used when run_in_background=False) Maximum time in seconds to wait before terminating the command and returning current output. Default is 120 seconds. Set to `None` for no timeout limit.
-- yield_after_seconds: number | (OPTIONAL) Return early if the command runs longer than this duration. The process keeps running in the background and can be managed with the process tool.
-- max_output_tokens: integer | exclusiveMin=0 | (OPTIONAL) Maximum number of output tokens to include in llm_content for foreground responses. Defaults to 10000 when omitted. Excess output is truncated with a marker.
-- env: object | (OPTIONAL) Environment variable overrides for the command.
-- pty: boolean | (OPTIONAL) Request a pseudo-terminal (best-effort).
-- explanation: string | required | One sentence explanation as to why this tool is being used, and how it contributes to the goal.
-- wait: number | (OPTIONAL) Delay in seconds before taking a screenshot after execution. Use this when command effects are visual, for example launching a GUI app, to verify the UI state after launch.
-
-[process]
-type: function
-strict: False
-description: Manage background shell command sessions started by run_shell_command: list, poll, log, write, send-keys, submit, paste, kill, clear, remove.
-required fields: action
-properties:
-- action: string | required | Action to perform on background shell sessions from run_shell_command: list, poll, log, write, send-keys, submit, paste, kill, clear, remove.
-- session_id: string | Session id returned by run_shell_command (required for actions other than list/clear).
-- data: string | Data to write for write action
-- keys: array | Key tokens for send-keys action
-- hex: array | Hex bytes for send-keys action
-- literal: string | Literal text for send-keys action
-- text: string | Text for paste action
-- bracketed: boolean | Wrap paste in bracketed mode
-- eof: boolean | Close stdin after write action
-- offset: integer | Log line offset
-- limit: integer | Log line limit
-
-[read_file]
-type: function
-strict: False
-description: Read file contents. Use this tool to examine existing files.
-required fields: file_path, explanation
-properties:
-- file_path: string | required | Path to the file to read. Absolute paths are allowed, and relative paths resolve from the selected workspace folder when available; otherwise they resolve from the OS user home directory.
-- offset: integer | min=0 | 0-based line offset to start reading from (defaults to 0)
-- limit: integer | exclusiveMin=0 | Maximum number of lines to read (defaults to 2000 when omitted)
-- explanation: string | required | One sentence explanation as to why this tool is being used, and how it contributes to the goal.
-
-[replace]
-type: function
-strict: False
-description: Replace text in a file using exact or context-anchored matching. Supports single edits and batched replacements. Operational guidance: prefer focused edits per tool call, avoid giant `new_string` payloads, and split large changes into multiple replace or apply_patch-style calls.
-required fields: file_path, explanation
-properties:
-- file_path: string | required | Path to the file to edit. Absolute paths are allowed, and relative paths resolve from the selected workspace folder when available; otherwise they resolve from the OS user home directory. If the file does not exist, creation is allowed only when exactly one replacement operation has `old_string=''`.
-- old_string: string | Single-operation old string. Use this with new_string for legacy single replace.
-- new_string: string | Single-operation replacement string. Required when old_string is used. Do not send giant payloads in one call; chunk large edits across multiple calls.
-- replace_all: boolean | default=false | Single-operation flag: replace all matches of old_string.
-- before_context: string | Single-operation optional context before old_string.
-- after_context: string | Single-operation optional context after old_string.
-- occurrence_index: integer | min=1 | Single-operation 1-based match index to replace.
-- require_eof: boolean | default=false | Single-operation EOF constraint.
-- match_mode: string | enum=strict|lenient | default='lenient' | Matching mode for single operation and default for batch operations.
-- replacements: array | Optional batched replacements applied atomically in order. When provided, these operations are used instead of top-level old/new fields.
-- patch_chunks: array | Optional apply_patch-style ordered update chunks for robust multi-region edits. When provided, patch_chunks cannot be combined with old_string/new_string/replacements. Prefer multiple focused chunks or calls over one oversized payload.
-- explanation: string | required | One sentence explanation as to why this tool is being used, and how it contributes to the goal.
+[
+  {
+    "type": "function",
+    "name": "mouse_control",
+    "strict": false,
+    "parameters": {
+      "properties": {
+        "drag_to_x": {
+          "type": "integer",
+          "description": "Destination X coordinate in screenshot pixels for drag actions. Required when drag_to_find_coordinates_by='manual'."
+        },
+        "drag_to_y": {
+          "type": "integer",
+          "description": "Destination Y coordinate in screenshot pixels for drag actions. Required when drag_to_find_coordinates_by='manual'."
+        },
+        "drag_to_find_coordinates_by": {
+          "type": "string",
+          "description": "Drag destination targeting method. Allowed values: manual.",
+          "default": "manual",
+          "enum": [
+            "manual"
+          ]
+        },
+        "find_coordinates_by": {
+          "type": "string",
+          "description": "Coordinate targeting method. Allowed values: manual.",
+          "default": "manual",
+          "enum": [
+            "manual"
+          ]
+        },
+        "x": {
+          "type": "integer",
+          "description": "X coordinate in screenshot pixels. Required when find_coordinates_by='manual'. Beware of the mouse position on the image when determining manual coordinates."
+        },
+        "y": {
+          "type": "integer",
+          "description": "Y coordinate in screenshot pixels. Required when find_coordinates_by='manual'. Beware of the mouse position on the image when determining manual coordinates."
+        },
+        "action": {
+          "type": "string",
+          "description": "Mouse action to perform (click, double_click, right_click, move, or drag). Prefer keyboard shortcuts/hotkeys first when they can accomplish the same goal. Do not treat tool execution status alone as UI success; verify the expected UI change from the latest screenshot.",
+          "enum": [
+            "click",
+            "double_click",
+            "right_click",
+            "move",
+            "drag"
+          ]
+        },
+        "button": {
+          "type": "string",
+          "description": "Mouse button for click and double_click actions.",
+          "default": "left",
+          "enum": [
+            "left",
+            "right",
+            "middle"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Duration for drag operations",
+          "default": 0.5
+        },
+        "explanation": {
+          "type": "string",
+          "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        },
+        "wait": {
+          "type": "number",
+          "description": "Delay in seconds before automatic post-action screenshot capture.",
+          "default": 0.0
+        }
+      },
+      "required": [
+        "action",
+        "explanation"
+      ],
+      "type": "object"
+    },
+    "description": "Control mouse actions with schema-guided coordinate targeting. Prefer keyboard shortcuts and app-native navigation first; use mouse interaction when needed. Use only the currently enabled targeting fields exposed by this schema. Do not treat tool status alone as success; confirm the expected UI state change from the latest screenshot."
+  },
+  {
+    "type": "function",
+    "name": "keyboard_control",
+    "strict": false,
+    "parameters": {
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "Keyboard action to perform: type (text input), paste (clipboard insert), press (single key), or hotkey (combined keys). Default to action='type' for text entry; use action='paste' mainly as a recovery override when action='type' does not land text. Prefer keyboard-driven navigation over clicking when equivalent. Use press/hotkey for submit actions only when submission is explicitly intended.",
+          "enum": [
+            "type",
+            "paste",
+            "press",
+            "hotkey"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "description": "Text payload for action='type' or action='paste'. Start with action='type'; runtime may internally use safer paste-like insertion for multiline or long text. After input, verify the text is visible in the latest screenshot instead of assuming tool success means UI success. If text is missing, retry once with action='paste'; if still missing, refocus the field and retry."
+        },
+        "key": {
+          "type": "string",
+          "description": "Single key for action='press' (for example: enter, esc, tab)."
+        },
+        "keys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Ordered key list for action='hotkey' (for example: ['ctrl', 'l'])."
+        },
+        "repeat": {
+          "type": "integer",
+          "description": "Repeat count for action='press' or action='hotkey'.",
+          "default": 1,
+          "minimum": 1,
+          "maximum": 50
+        },
+        "interval_ms": {
+          "type": "integer",
+          "description": "Delay between repeats in milliseconds for action='press' or action='hotkey'.",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 2000
+        },
+        "explanation": {
+          "type": "string",
+          "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        },
+        "wait": {
+          "type": "number",
+          "description": "Delay in seconds before automatic post-action screenshot capture.",
+          "default": 0.0
+        }
+      },
+      "required": [
+        "action",
+        "explanation"
+      ],
+      "type": "object"
+    },
+    "description": "Control keyboard input including typing text, clipboard paste, pressing keys, and shortcuts. Default to action='type' for first-attempt text entry. Use action='paste' mainly as fallback when action='type' does not land text. After input, verify text appears in the latest screenshot; do not assume tool success means input landed. If text is missing, retry once with action='paste', then refocus the field and retry. Use deterministic action sequences for predictable flows (for example, input text then press Enter only when submit is intended). Prefer this tool over mouse clicks when a shortcut or key-driven path exists."
+  },
+  {
+    "type": "function",
+    "name": "screenshot",
+    "strict": false,
+    "parameters": {
+      "properties": {
+        "explanation": {
+          "type": "string",
+          "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        },
+        "wait": {
+          "type": "number",
+          "description": "(OPTIONAL) Delay in seconds before capturing a screenshot. If provided, waits this duration before capture."
+        }
+      },
+      "required": [
+        "explanation"
+      ],
+      "type": "object",
+      "description": "Arguments for screenshot tool."
+    },
+    "description": "Capture a screenshot of the current computer screen."
+  },
+  {
+    "type": "function",
+    "name": "scroll_control",
+    "strict": false,
+    "parameters": {
+      "properties": {
+        "find_coordinates_by": {
+          "type": "string",
+          "description": "Coordinate targeting method. Allowed values: manual.",
+          "default": "manual",
+          "enum": [
+            "manual"
+          ]
+        },
+        "x": {
+          "type": "integer",
+          "description": "X coordinate in screenshot pixels. Required when find_coordinates_by='manual'. Beware of the mouse position on the image when determining manual coordinates."
+        },
+        "y": {
+          "type": "integer",
+          "description": "Y coordinate in screenshot pixels. Required when find_coordinates_by='manual'. Beware of the mouse position on the image when determining manual coordinates."
+        },
+        "action": {
+          "type": "string",
+          "description": "Scroll action to perform (`scroll`, `scroll_up`, or `scroll_down`). Vertical actions default to a coarse executor-owned step.",
+          "enum": [
+            "scroll",
+            "scroll_up",
+            "scroll_down"
+          ]
+        },
+        "clicks": {
+          "type": "integer",
+          "description": "Optional explicit literal OS wheel click override. Fallback-only for follow-up fine tuning. Omit it on the first vertical scroll attempt so the executor chooses the default click amount (8 on macOS, 5 on Windows/Linux)."
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "up",
+            "down",
+            "left",
+            "right"
+          ],
+          "description": "Direction for scroll action: vertical 'up'|'down', or horizontal 'left'|'right'. Required when action is 'scroll'."
+        },
+        "explanation": {
+          "type": "string",
+          "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        },
+        "wait": {
+          "type": "number",
+          "description": "Delay in seconds before automatic post-action screenshot capture.",
+          "default": 0.0
+        }
+      },
+      "required": [
+        "action",
+        "explanation"
+      ],
+      "type": "object"
+    },
+    "description": "Control desktop scrolling actions. Target the scroll region using the currently enabled grounding fields exposed by this schema. Omit `clicks` on the first vertical scroll attempt so the executor uses its default click amount; use `clicks` only for follow-up fine tuning."
+  },
+  {
+    "type": "function",
+    "name": "switch_window",
+    "strict": false,
+    "parameters": {
+      "properties": {
+        "tab_name": {
+          "type": "string",
+          "description": "Exact window or tab title to focus, matching get_open_windows output exactly."
+        },
+        "match_mode": {
+          "type": "string",
+          "description": "Window title match mode.",
+          "default": "exact",
+          "enum": [
+            "exact",
+            "contains",
+            "regex"
+          ]
+        },
+        "explanation": {
+          "type": "string",
+          "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        },
+        "wait": {
+          "type": "number",
+          "description": "Delay in seconds before automatic post-action screenshot capture.",
+          "default": 0.0
+        }
+      },
+      "required": [
+        "tab_name",
+        "explanation"
+      ],
+      "type": "object",
+      "description": "Arguments for switching to a specific tab/window."
+    },
+    "description": "Switch focus to a specific window by exact title. Get valid titles from get_open_windows and switch by name instead of blind OS-level cycling."
+  },
+  {
+    "type": "function",
+    "name": "wait",
+    "strict": false,
+    "parameters": {
+      "properties": {
+        "seconds": {
+          "type": "number",
+          "description": "Number of seconds to wait before capturing a screenshot."
+        },
+        "explanation": {
+          "type": "string",
+          "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        }
+      },
+      "required": [
+        "seconds",
+        "explanation"
+      ],
+      "type": "object",
+      "description": "Arguments for wait tool."
+    },
+    "description": "Wait for a specified number of seconds, then capture a screenshot of the current screen state. Useful for waiting for UI changes, animations, page loads, or async operations to complete. After execution, returns a status message and a screenshot image."
+  },
+  {
+    "type": "function",
+    "name": "get_open_windows",
+    "strict": false,
+    "parameters": {
+      "properties": {
+        "filter_text": {
+          "type": "string",
+          "description": "Optional text to filter window titles by (case-insensitive).",
+          "default": ""
+        },
+        "explanation": {
+          "type": "string",
+          "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        }
+      },
+      "required": [
+        "explanation"
+      ],
+      "type": "object",
+      "description": "Arguments for listing open windows."
+    },
+    "description": "Lists currently open windows that exist on the desktop and can potentially be focused. This does not mean any listed window is currently active or focused. Use it to discover candidate windows, then use switch_window to focus the intended one before assuming shortcuts, clicking, or typing will land there."
+  },
+  {
+    "type": "function",
+    "name": "get_system_stats",
+    "strict": false,
+    "parameters": {
+      "properties": {
+        "explanation": {
+          "type": "string",
+          "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        }
+      },
+      "required": [
+        "explanation"
+      ],
+      "type": "object",
+      "description": "Arguments for checking system stats."
+    },
+    "description": "Returns current system resource usage (CPU %, Memory %, Battery). Use this to check system performance before running resource-intensive operations."
+  },
+  {
+    "type": "function",
+    "name": "open_app",
+    "strict": false,
+    "parameters": {
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "Executable or app command to launch detached from sidecar lifecycle. Use this for opening GUI apps that should remain running even if agent/sidecar exits."
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "(OPTIONAL) Positional arguments for command launch."
+        },
+        "directory": {
+          "type": "string",
+          "description": "(OPTIONAL) Absolute working directory for launch."
+        },
+        "verify": {
+          "type": "string",
+          "description": "(OPTIONAL) Post-launch verification mode: `none` for fast ack, `window` to poll open windows, `screenshot` to capture visual proof.",
+          "default": "window",
+          "enum": [
+            "none",
+            "window",
+            "screenshot"
+          ]
+        },
+        "verify_window_title": {
+          "type": "string",
+          "description": "(OPTIONAL) Window title substring expected after launch; improves window verification precision."
+        },
+        "verify_timeout_seconds": {
+          "type": "number",
+          "minimum": 0.0,
+          "description": "(OPTIONAL) Max seconds for post-launch verification polling/capture.",
+          "default": 6.0
+        },
+        "explanation": {
+          "type": "string",
+          "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        }
+      },
+      "required": [
+        "command",
+        "explanation"
+      ],
+      "type": "object",
+      "description": "Arguments for detached GUI app launch."
+    },
+    "description": "Launch a GUI app detached from sidecar/agent lifecycle so the app remains running even if the current agent turn or sidecar process ends.\n\nVerification modes:\n- window (default): polls open windows for expected title.\n- screenshot: captures visual proof after launch and returns screenshot artifact fields.\n- none: fastest acknowledgment without verification.\n\nUse this instead of run_shell_command for open-and-leave-running app workflows."
+  },
+  {
+    "type": "function",
+    "name": "run_shell_command",
+    "strict": false,
+    "parameters": {
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "Exact command to execute. For repository or log search, prefer fast targeted commands such as rg instead of broad recursive grep, and exclude generated directories like node_modules, frontend/release, frontend/python-runtime, and .git unless the user explicitly needs them."
+        },
+        "directory": {
+          "type": "string",
+          "description": "(OPTIONAL) Working directory. Absolute paths are allowed, and relative paths resolve from the user-selected WindieOS workspace folder when configured, otherwise from the OS user home directory. If omitted, WindieOS uses that default base directory directly."
+        },
+        "run_in_background": {
+          "type": "boolean",
+          "description": "If True, start command asynchronously and return immediately with a session id. Use this for GUI app launches and long-running commands so the agent does not block. Then use the process tool to poll logs, write input, or terminate the session. If False, wait for command completion and return output."
+        },
+        "terminate_after_seconds": {
+          "type": "number",
+          "description": "(OPTIONAL, only used when run_in_background=False) Maximum time in seconds to wait before terminating the command and returning current output. Default is 120 seconds (2 minutes). Set to None for no timeout limit.",
+          "default": 120.0
+        },
+        "yield_after_seconds": {
+          "type": "number",
+          "description": "(OPTIONAL) Return early if the command runs longer than this duration. The process keeps running in the background and can be managed with the process tool."
+        },
+        "max_output_tokens": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "description": "(OPTIONAL) Maximum number of output tokens to include in llm_content for foreground responses. Defaults to 10000 when omitted. Excess output is truncated with a marker."
+        },
+        "env": {
+          "type": "object",
+          "description": "(OPTIONAL) Environment variable overrides for the command."
+        },
+        "pty": {
+          "type": "boolean",
+          "description": "(OPTIONAL) Request a pseudo-terminal (best-effort)."
+        },
+        "explanation": {
+          "type": "string",
+          "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        },
+        "wait": {
+          "type": "number",
+          "description": "(OPTIONAL) Delay in seconds before taking a screenshot after execution. Use this when command effects are visual (for example, launching a GUI app) to verify the UI state after launch."
+        }
+      },
+      "required": [
+        "command",
+        "run_in_background",
+        "explanation"
+      ],
+      "type": "object"
+    },
+    "description": "This tool executes shell commands on the local system. Commands are executed in the specified directory (or the user-selected WindieOS workspace folder when configured, otherwise the OS user home directory if not specified).\n\nExecution Modes:\n- Foreground (run_in_background=False): Waits for command completion and returns output. Use terminate_after_seconds to set a timeout (default 120 seconds). If timeout is reached, the command is terminated and current output is returned. Foreground llm_content is truncated by default to about 10,000 tokens; override with max_output_tokens.\n- Background (run_in_background=True): Starts the command and returns immediately with execution confirmation. Does not wait for output or completion.\n- Yield (yield_after_seconds): Returns early if the command runs longer than the yield time; the command continues in the background and can be managed with the process tool.\n\nOperational Guidance:\n- Prefer short commands focused on one step per tool call.\n- Do not embed large inline file content (HTML/JSON/source blobs) directly in shell command arguments.\n- For creating/updating file contents, use file-edit tools first (read_file + replace) and then run shell commands.\n- Split large workflows into multiple tool calls rather than one giant command payload.\n- For detached GUI app launches, prefer open_app instead of run_shell_command.\n- For shell jobs you need to poll/terminate, keep run_in_background=True and manage via process tool.\n- After launch, capture a screenshot with wait to verify expected UI state.\n- Use get_open_windows + switch_window for deterministic window focus.\n\nOptional wait parameter: If 'wait' is provided (in seconds), the tool will wait and capture a screenshot after execution, similar to computer-use tools. This is useful when the command opens a GUI application or makes visual changes that need to be captured.\n\nReturns: Command output, exit code, execution time, and any errors."
+  },
+  {
+    "type": "function",
+    "name": "process",
+    "strict": false,
+    "parameters": {
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "Action to perform on background shell sessions from run_shell_command: list, poll, log, write, send-keys, submit, paste, kill, clear, remove."
+        },
+        "session_id": {
+          "type": "string",
+          "description": "Session id returned by run_shell_command (required for actions other than list/clear)."
+        },
+        "data": {
+          "type": "string",
+          "description": "Data to write for write action"
+        },
+        "keys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Key tokens for send-keys action"
+        },
+        "hex": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Hex bytes for send-keys action"
+        },
+        "literal": {
+          "type": "string",
+          "description": "Literal text for send-keys action"
+        },
+        "text": {
+          "type": "string",
+          "description": "Text for paste action"
+        },
+        "bracketed": {
+          "type": "boolean",
+          "description": "Wrap paste in bracketed mode"
+        },
+        "eof": {
+          "type": "boolean",
+          "description": "Close stdin after write action"
+        },
+        "offset": {
+          "type": "integer",
+          "description": "Log line offset"
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Log line limit"
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "type": "object"
+    },
+    "description": "Manage background shell command sessions started by run_shell_command: list, poll, log, write, send-keys, submit, paste, kill, clear, remove."
+  },
+  {
+    "type": "function",
+    "name": "read_file",
+    "strict": false,
+    "parameters": {
+      "properties": {
+        "file_path": {
+          "type": "string",
+          "description": "Path to the file to read. Absolute paths are allowed, and relative paths resolve from the selected workspace folder when available; otherwise they resolve from the OS user home directory."
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "0-based line offset to start reading from (defaults to 0)"
+        },
+        "limit": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "description": "Maximum number of lines to read (defaults to 2000 when omitted)"
+        },
+        "explanation": {
+          "type": "string",
+          "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        }
+      },
+      "required": [
+        "file_path",
+        "explanation"
+      ],
+      "type": "object",
+      "description": "Arguments for read file tool."
+    },
+    "description": "Read file contents. Use this tool to examine existing files."
+  },
+  {
+    "type": "function",
+    "name": "replace",
+    "strict": false,
+    "parameters": {
+      "properties": {
+        "file_path": {
+          "type": "string",
+          "description": "Path to the file to edit. Absolute paths are allowed, and relative paths resolve from the selected workspace folder when available; otherwise they resolve from the OS user home directory. If the file does not exist, creation is allowed only when exactly one replacement operation has old_string=''."
+        },
+        "old_string": {
+          "type": "string",
+          "description": "Single-operation old string. Use this with new_string for legacy single replace."
+        },
+        "new_string": {
+          "type": "string",
+          "description": "Single-operation replacement string. Required when old_string is used. Do not send giant payloads in one call; chunk large edits across multiple calls."
+        },
+        "replace_all": {
+          "type": "boolean",
+          "description": "Single-operation flag: replace all matches of old_string.",
+          "default": false
+        },
+        "before_context": {
+          "type": "string",
+          "description": "Single-operation optional context before old_string."
+        },
+        "after_context": {
+          "type": "string",
+          "description": "Single-operation optional context after old_string."
+        },
+        "occurrence_index": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Single-operation 1-based match index to replace."
+        },
+        "require_eof": {
+          "type": "boolean",
+          "description": "Single-operation EOF constraint.",
+          "default": false
+        },
+        "match_mode": {
+          "type": "string",
+          "description": "Matching mode for single operation and default for batch operations.",
+          "default": "lenient",
+          "enum": [
+            "strict",
+            "lenient"
+          ]
+        },
+        "replacements": {
+          "type": "array",
+          "items": {
+            "properties": {
+              "old_string": {
+                "type": "string",
+                "description": "The exact string to replace for this operation."
+              },
+              "new_string": {
+                "type": "string",
+                "description": "Replacement string for this operation. Keep payloads focused; split large edits across multiple replace/apply_patch-style calls."
+              },
+              "replace_all": {
+                "type": "boolean",
+                "description": "If true, replace all matches for this operation.",
+                "default": false
+              },
+              "before_context": {
+                "type": "string",
+                "description": "Optional exact text that must appear immediately before old_string."
+              },
+              "after_context": {
+                "type": "string",
+                "description": "Optional exact text that must appear immediately after old_string."
+              },
+              "occurrence_index": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Optional 1-based match index to replace when multiple matches exist."
+              },
+              "require_eof": {
+                "type": "boolean",
+                "description": "If true, match must end at file EOF (allowing trailing newline).",
+                "default": false
+              },
+              "match_mode": {
+                "type": "string",
+                "enum": [
+                  "strict",
+                  "lenient"
+                ],
+                "description": "Matching mode for this operation; defaults to top-level match_mode."
+              }
+            },
+            "required": [
+              "old_string",
+              "new_string"
+            ],
+            "type": "object",
+            "description": "One replacement operation for batched replace calls.",
+            "additionalProperties": false
+          },
+          "description": "Optional batched replacements applied atomically in order. When provided, these operations are used instead of top-level old/new fields."
+        },
+        "patch_chunks": {
+          "type": "array",
+          "items": {
+            "properties": {
+              "change_context": {
+                "type": "string",
+                "description": "Optional single-line context anchor. Matching starts after this line."
+              },
+              "old_lines": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Exact old lines to replace (line content only; no newline characters)."
+              },
+              "new_lines": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Replacement lines (line content only; no newline characters)."
+              },
+              "is_end_of_file": {
+                "type": "boolean",
+                "description": "If true, old_lines must match at end-of-file.",
+                "default": false
+              }
+            },
+            "required": [
+              "old_lines",
+              "new_lines"
+            ],
+            "type": "object",
+            "description": "One structured patch chunk for apply_patch-style ordered updates.",
+            "additionalProperties": false
+          },
+          "description": "Optional apply_patch-style ordered update chunks for robust multi-region edits. When provided, patch_chunks cannot be combined with old_string/new_string/replacements. Prefer multiple focused chunks/calls over one oversized payload."
+        },
+        "explanation": {
+          "type": "string",
+          "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        }
+      },
+      "required": [
+        "file_path",
+        "explanation"
+      ],
+      "type": "object",
+      "description": "Arguments for replace tool."
+    },
+    "description": "Replace text in a file using exact or context-anchored matching. Supports single edits and batched replacements.\n\nOperational Guidance:\n- Prefer focused edits per tool call.\n- Do not send giant new_string payloads in one call.\n- For large changes, split into multiple replace/apply_patch-style calls section-by-section."
+  }
+]
