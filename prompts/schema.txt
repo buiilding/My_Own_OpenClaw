@@ -18,15 +18,35 @@
           "description": "Drag destination targeting method.",
           "default": "manual",
           "enum": [
-            "manual"
+            "manual",
+            "ocr",
+            "prediction"
           ]
+        },
+        "drag_to_ocr_text": {
+          "type": "string",
+          "description": "Exact visible on-screen text for drag destination OCR targeting."
+        },
+        "drag_to_candidate_id": {
+          "type": "string",
+          "description": "Stable OCR candidate id for drag destination targeting."
+        },
+        "destination_description": {
+          "type": "string",
+          "description": "Detailed visual description of the drag destination for prediction targeting."
+        },
+        "drag_to_model_name": {
+          "type": "string",
+          "description": "Optional specific vision model for drag destination prediction."
         },
         "find_coordinates_by": {
           "type": "string",
           "description": "Coordinate targeting method.",
           "default": "manual",
           "enum": [
-            "manual"
+            "manual",
+            "ocr",
+            "prediction"
           ]
         },
         "x": {
@@ -36,6 +56,22 @@
         "y": {
           "type": "integer",
           "description": "Y coordinate in captured-image pixels. Required when find_coordinates_by='manual'. Beware of the mouse position on the image when determining manual coordinates."
+        },
+        "ocr_text": {
+          "type": "string",
+          "description": "Exact visible on-screen text for OCR targeting."
+        },
+        "candidate_id": {
+          "type": "string",
+          "description": "Stable OCR candidate id from an earlier ambiguity response."
+        },
+        "source_description": {
+          "type": "string",
+          "description": "Detailed visual description of the source target for prediction targeting."
+        },
+        "model_name": {
+          "type": "string",
+          "description": "Optional specific vision model for prediction targeting."
         },
         "action": {
           "type": "string",
@@ -178,7 +214,9 @@
           "description": "Coordinate targeting method.",
           "default": "manual",
           "enum": [
-            "manual"
+            "manual",
+            "ocr",
+            "prediction"
           ]
         },
         "x": {
@@ -188,6 +226,22 @@
         "y": {
           "type": "integer",
           "description": "Y coordinate in captured-image pixels. Required when find_coordinates_by='manual'. Beware of the mouse position on the image when determining manual coordinates."
+        },
+        "ocr_text": {
+          "type": "string",
+          "description": "Exact visible on-screen text for OCR targeting."
+        },
+        "candidate_id": {
+          "type": "string",
+          "description": "Stable OCR candidate id from an earlier ambiguity response."
+        },
+        "source_description": {
+          "type": "string",
+          "description": "Detailed visual description of the source target for prediction targeting."
+        },
+        "model_name": {
+          "type": "string",
+          "description": "Optional specific vision model for prediction targeting."
         },
         "action": {
           "type": "string",
