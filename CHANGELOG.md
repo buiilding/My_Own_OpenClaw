@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(prompt-and-selection): update the backend system prompt, refresh the active dev tool-selection profile, and regenerate `prompts/schema.txt` from the live prompt path so the checked-in snapshot matches the current prompt-visible tool surface.
 - docs(tool-schema-contracts): refresh the shared schema-field contract, computer tool schema contract, and shell/process runtime docs to match the current stable-description policy, captured-image wording, and no-cross-tool-reference guidance in the canonical schema sources.
 - docs(tool-schema-boundaries): clarify that dev tool selection is structural-only, distinguish canonical schemas from prompt-visible/provider-adapted schemas, and document provider transport adaptation as the remaining schema-transformation drift risk.
 - refactor(dev-tool-selection-schema): make `backend/src/tools/tool_selection.py` a structural pruning layer only, remove its model-facing description rewrites, simplify canonical grounded-tool descriptions so they stay valid after pruning, refresh the dev-tool-selection docs/tests, and regenerate `prompts/schema.txt` from the live prompt path.
