@@ -3,11 +3,11 @@
 from pydantic import Field
 
 EXPLANATION_FIELD_DESCRIPTION = (
-    "One sentence explanation as to why this tool is being used, "
-    "and how it contributes to the goal."
+    "One sentence explaning why this tool is being used, "
+    "and how it contributes to the goal. Start with an -ing verb."
 )
 POST_ACTION_WAIT_DESCRIPTION = (
-    "Delay in seconds before automatic post-action screenshot capture."
+    "Delay in seconds before automatic post-action screen capture."
 )
 
 

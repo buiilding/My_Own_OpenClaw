@@ -141,6 +141,7 @@ def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
     args_props = schemas[0]["parameters"]["properties"]
     assert args_props["find_coordinates_by"]["type"] == "string"
     assert args_props["find_coordinates_by"]["enum"] == ["manual"]
+    assert args_props["find_coordinates_by"]["description"] == "Coordinate targeting method."
     assert "x" in args_props
     assert "y" in args_props
     assert "ocr_text" not in args_props
@@ -186,13 +187,16 @@ def test_filter_tool_schemas_filters_scroll_and_grounded_method_fields(tmp_path:
     assert "destination_description" not in grounded_mouse_props
     assert "model_name" not in grounded_mouse_props
     assert "drag_to_model_name" not in grounded_mouse_props
-    assert "ocr" in grounded_mouse_props["action"]["description"].lower()
-    assert "non-text" not in grounded_mouse_props["action"]["description"].lower()
+    assert grounded_mouse_props["action"]["description"] == (
+        "Mouse action to perform using the grounding fields exposed by this schema."
+    )
 
     grounded_scroll_props = schemas[2]["parameters"]["properties"]
     assert "source_description" not in grounded_scroll_props
     assert "model_name" not in grounded_scroll_props
-    assert "non-text" not in grounded_scroll_props["action"]["description"].lower()
+    assert grounded_scroll_props["action"]["description"] == (
+        "Scroll action to perform against the grounded region described by this schema."
+    )
 
 
 def test_filter_tool_schemas_removes_prediction_drag_rules_when_prediction_disabled(tmp_path: Path):
@@ -211,6 +215,9 @@ def test_filter_tool_schemas_removes_prediction_drag_rules_when_prediction_disab
     mouse_schema = policy.filter_tool_schemas([RemoteMouseTool().get_json_schema()])[0]
     props = mouse_schema["parameters"]["properties"]
     assert props["drag_to_find_coordinates_by"]["enum"] == ["manual", "ocr"]
+    assert props["drag_to_find_coordinates_by"]["description"] == (
+        "Drag destination targeting method."
+    )
     assert "destination_description" not in props
     assert "drag_to_model_name" not in props
 

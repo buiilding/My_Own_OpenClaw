@@ -36,7 +36,7 @@ class RemoteReplaceTool(RemoteToolBase, Tool[ReplaceArgs]):
         "Operational Guidance:\n"
         "- Prefer focused edits per tool call.\n"
         "- Do not send giant new_string payloads in one call.\n"
-        "- For large changes, split into multiple replace/apply_patch-style calls section-by-section."
+        "- For large changes, split them into multiple focused edit calls section-by-section."
     )
     args_model = ReplaceArgs
     category = ToolDomain.FILESYSTEM

@@ -46,7 +46,7 @@ class ReplaceOperationArgs(BaseModel):
         ...,
         description=(
             "Replacement string for this operation. Keep payloads focused; split large "
-            "edits across multiple replace/apply_patch-style calls."
+            "edits across multiple focused edit calls."
         )
     )
     replace_all: bool = Field(
@@ -157,7 +157,7 @@ class ReplaceArgs(BaseModel):
     patch_chunks: Optional[List[ReplacePatchChunkArgs]] = Field(
         None,
         description=(
-            "Optional apply_patch-style ordered update chunks for robust multi-region edits. "
+            "Optional ordered update chunks for robust multi-region edits. "
             "When provided, patch_chunks cannot be combined with old_string/new_string/replacements. "
             "Prefer multiple focused chunks/calls over one oversized payload."
         )

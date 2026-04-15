@@ -36,54 +36,37 @@ class SourceGroundingArgsMixin(BaseModel):
 
     find_coordinates_by: CoordinateFindingMethod = Field(
         CoordinateFindingMethod.MANUAL,
-        description=(
-            "Coordinate targeting strategy. Use 'ocr' for visible text targets, "
-            "'prediction' for non-text visual targets, and 'manual' only when "
-            "you have reliable coordinates from the latest screenshot and use the "
-            "visible mouse position as a spatial reference. For manual clicks, success "
-            "requires both cursor alignment and the intended UI state change."
-        ),
+        description="Coordinate targeting method.",
     )
     x: Optional[int] = Field(
         None,
         description=(
-            "X coordinate in screenshot pixels. Required when find_coordinates_by='manual'. "
+            "X coordinate in captured-image pixels. Required when find_coordinates_by='manual'. "
             "Beware of the mouse position on the image when determining manual coordinates."
         ),
     )
     y: Optional[int] = Field(
         None,
         description=(
-            "Y coordinate in screenshot pixels. Required when find_coordinates_by='manual'. "
+            "Y coordinate in captured-image pixels. Required when find_coordinates_by='manual'. "
             "Beware of the mouse position on the image when determining manual coordinates."
         ),
     )
     ocr_text: Optional[str] = Field(
         None,
-        description=(
-            "Exact visible on-screen text for OCR targeting. Required when "
-            "find_coordinates_by='ocr' unless candidate_id is provided. Prefer this "
-            "whenever clicking text-labeled elements such as buttons, tabs, and inputs "
-            "like 'type something here'."
-        ),
+        description="Exact visible on-screen text for OCR targeting.",
     )
     candidate_id: Optional[str] = Field(
         None,
-        description=(
-            "Stable OCR candidate id from an earlier ambiguity response. "
-            "Use this for deterministic follow-up selection when multiple OCR matches exist."
-        ),
+        description="Stable OCR candidate id from an earlier ambiguity response.",
     )
     source_description: Optional[str] = Field(
         None,
-        description=(
-            "Detailed visual description of the source target when "
-            "find_coordinates_by='prediction'."
-        ),
+        description="Detailed visual description of the source target for prediction targeting.",
     )
     model_name: Optional[str] = Field(
         None,
-        description="Optional specific vision model to use for prediction grounding.",
+        description="Optional specific vision model for prediction targeting.",
     )
 
 
@@ -95,49 +78,36 @@ class DragDestinationGroundingArgsMixin(BaseModel):
     drag_to_x: Optional[int] = Field(
         None,
         description=(
-            "Destination X coordinate in screenshot pixels for drag actions. "
+            "Destination X coordinate in captured-image pixels for drag actions. "
             "Required when drag_to_find_coordinates_by='manual'."
         ),
     )
     drag_to_y: Optional[int] = Field(
         None,
         description=(
-            "Destination Y coordinate in screenshot pixels for drag actions. "
+            "Destination Y coordinate in captured-image pixels for drag actions. "
             "Required when drag_to_find_coordinates_by='manual'."
         ),
     )
     drag_to_find_coordinates_by: CoordinateFindingMethod = Field(
         CoordinateFindingMethod.MANUAL,
-        description=(
-            "Destination coordinate targeting strategy for drag actions. "
-            "Use 'ocr' for text-labeled targets, 'prediction' for non-text targets, "
-            "and 'manual' when you already know destination screenshot coordinates."
-        ),
+        description="Drag destination targeting method.",
     )
     drag_to_ocr_text: Optional[str] = Field(
         None,
-        description=(
-            "Exact visible on-screen text for the drag destination when "
-            "drag_to_find_coordinates_by='ocr'."
-        ),
+        description="Exact visible on-screen text for drag destination OCR targeting.",
     )
     drag_to_candidate_id: Optional[str] = Field(
         None,
-        description=(
-            "Stable OCR candidate id for the drag destination when "
-            "drag_to_find_coordinates_by='ocr'."
-        ),
+        description="Stable OCR candidate id for drag destination targeting.",
     )
     destination_description: Optional[str] = Field(
         None,
-        description=(
-            "Detailed visual description of the drag destination when "
-            "drag_to_find_coordinates_by='prediction'."
-        ),
+        description="Detailed visual description of the drag destination for prediction targeting.",
     )
     drag_to_model_name: Optional[str] = Field(
         None,
-        description="Optional specific vision model to use for drag destination prediction.",
+        description="Optional specific vision model for drag destination prediction.",
     )
 
 
@@ -199,14 +169,14 @@ def build_source_grounding_json_properties() -> Dict[str, Dict[str, Any]]:
         "x": {
             "type": "integer",
             "description": (
-                "X coordinate in screenshot pixels. Required when "
+                "X coordinate in captured-image pixels. Required when "
                 "find_coordinates_by='manual'."
             ),
         },
         "y": {
             "type": "integer",
             "description": (
-                "Y coordinate in screenshot pixels. Required when "
+                "Y coordinate in captured-image pixels. Required when "
                 "find_coordinates_by='manual'."
             ),
         },

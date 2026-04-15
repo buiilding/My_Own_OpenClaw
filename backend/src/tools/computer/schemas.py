@@ -42,11 +42,7 @@ class MouseControlArgs(SourceGroundingArgsMixin, DragDestinationGroundingArgsMix
 
     action: MouseAction = Field(
         ...,
-        description=(
-            "Mouse action to perform (click, double_click, right_click, move, or drag). "
-            "Prefer keyboard shortcuts/hotkeys first when they can accomplish the same goal. "
-            "Do not treat tool execution status alone as UI success; verify the expected UI change from the latest screenshot."
-        ),
+        description="Mouse action to perform (click, double_click, right_click, move, or drag).",
     )
     button: Literal["left", "right", "middle"] = Field(
         "left",
@@ -78,20 +74,15 @@ class KeyboardControlArgs(BaseModel):
         ...,
         description=(
             "Keyboard action to perform: type (text input), paste (clipboard insert), "
-            "press (single key), or hotkey (combined keys)."
-            " Default to action='type' for text entry; use action='paste' mainly as a recovery override "
-            "when action='type' does not land text. Prefer keyboard-driven navigation over clicking when equivalent. "
-            "Use press/hotkey for submit actions only when submission is explicitly intended."
+            "press (single key), or hotkey (combined keys). "
+            "Default to action='type' for text entry; use action='paste' to override auto-indentation "
+            "(mostly in code editors) when the captured screen image shows wrong indentation. "
+            "Prefer keyboard-driven navigation over clicking when equivalent."
         ),
     )
     text: Optional[str] = Field(
         None,
-        description=(
-            "Text payload for action='type' or action='paste'. Start with action='type'; runtime may internally use safer "
-            "paste-like insertion for multiline or long text. "
-            "After input, verify the text is visible in the latest screenshot instead of assuming tool success means UI success. "
-            "If text is missing, retry once with action='paste'; if still missing, refocus the field and retry."
-        ),
+        description="Text payload for action='type' or action='paste'.",
     )
     key: Optional[str] = Field(
         None,
@@ -141,10 +132,7 @@ class GroundedMouseActionArgs(BaseModel):
 
     action: MouseAction = Field(
         ...,
-        description=(
-            "Mouse action to perform using OCR or vision grounding. "
-            "Use OCR fields for visible text targets and source_description for non-text targets."
-        ),
+        description="Mouse action to perform using the grounding fields exposed by this schema.",
     )
     button: Literal["left", "right", "middle"] = Field(
         "left",
@@ -217,7 +205,7 @@ class GroundedScrollActionArgs(BaseModel):
 
     action: Literal["scroll", "scroll_up", "scroll_down"] = Field(
         ...,
-        description="Scroll action to perform against an OCR- or vision-grounded region.",
+        description="Scroll action to perform against the grounded region described by this schema.",
     )
     clicks: Optional[int] = Field(
         None,
@@ -269,7 +257,7 @@ class ScreenshotToolArgs(BaseModel):
     explanation: str = explanation_field()
     wait: Optional[float] = Field(
         None,
-        description="(OPTIONAL) Delay in seconds before capturing a screenshot. If provided, waits this duration before capture."
+        description="(OPTIONAL) Delay in seconds before capturing the current screen image. If provided, pauses for this duration before capture."
     )
 
 
@@ -318,9 +306,7 @@ class SwitchTabArgs(BaseModel):
 
     tab_name: str = Field(
         ...,
-        description=(
-            "Exact window or tab title to focus, matching get_open_windows output exactly."
-        ),
+        description="Exact window or tab title to focus.",
     )
     match_mode: Literal["exact", "contains", "regex"] = Field(
         "exact",
@@ -338,6 +324,6 @@ class WaitToolArgs(BaseModel):
 
     seconds: float = Field(
         ...,
-        description="Number of seconds to wait before capturing a screenshot."
+        description="Number of seconds to pause before capturing a fresh screen image."
     )
     explanation: str = explanation_field()

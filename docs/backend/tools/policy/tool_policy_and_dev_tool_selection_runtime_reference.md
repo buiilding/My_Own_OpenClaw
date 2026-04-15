@@ -85,8 +85,9 @@ Field/enum pruning behavior:
 - removes method-specific fields when corresponding method disabled:
   - `manual` disabled -> remove `x`, `y`
   - `ocr` disabled -> remove `ocr_text`
-  - `prediction` disabled -> remove `description`, `model_name`
+  - `prediction` disabled -> remove `source_description`, `model_name`
 - removes matching JSON Schema conditional branches so disabled method names do not remain in `allOf`
+- preserves canonical field and tool descriptions; `ToolSelection` no longer rewrites prose
 
 Current grounded schema coverage:
 

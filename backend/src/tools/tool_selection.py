@@ -166,7 +166,6 @@ class ToolSelection:
         - coordinate-method enums/defaults
         - method-specific source and drag-destination fields
         - conditional JSON-schema branches for disabled methods
-        - tool/field descriptions that would otherwise mention disabled methods
         """
         if tool_name == "mouse_control" and not allowed_methods:
             return None
@@ -202,13 +201,6 @@ class ToolSelection:
                 method_field_name="drag_to_find_coordinates_by",
                 allowed_methods=allowed_methods,
             )
-
-        self._rewrite_grounded_schema_descriptions(
-            schema_copy,
-            tool_name=tool_name,
-            args_props=args_props,
-            allowed_methods=allowed_methods,
-        )
         return schema_copy
 
     @staticmethod
@@ -236,10 +228,6 @@ class ToolSelection:
         cls._rewrite_method_property(
             args_props.get("find_coordinates_by"),
             ordered_methods=ordered_methods,
-            description=cls._build_method_property_description(
-                "Coordinate targeting method.",
-                ordered_methods,
-            ),
         )
 
         if "manual" not in allowed_methods:
@@ -263,10 +251,6 @@ class ToolSelection:
         cls._rewrite_method_property(
             args_props.get("drag_to_find_coordinates_by"),
             ordered_methods=ordered_methods,
-            description=cls._build_method_property_description(
-                "Drag destination targeting method.",
-                ordered_methods,
-            ),
         )
 
         if "manual" not in allowed_methods:
@@ -284,13 +268,11 @@ class ToolSelection:
         method_schema: Any,
         *,
         ordered_methods: List[str],
-        description: str,
     ) -> None:
         if not isinstance(method_schema, dict):
             return
         method_schema["type"] = "string"
         method_schema["enum"] = ordered_methods
-        method_schema["description"] = description
         default_method = method_schema.get("default")
         if default_method not in ordered_methods:
             if ordered_methods:
@@ -339,85 +321,6 @@ class ToolSelection:
             return None
         method_name = method_schema.get("const")
         return method_name if isinstance(method_name, str) else None
-
-    @classmethod
-    def _rewrite_grounded_schema_descriptions(
-        cls,
-        schema: Dict[str, Any],
-        *,
-        tool_name: str,
-        args_props: Dict[str, Any],
-        allowed_methods: frozenset[str],
-    ) -> None:
-        if tool_name == "mouse_control":
-            schema["description"] = (
-                "Control mouse actions with schema-guided coordinate targeting. "
-                "Prefer keyboard shortcuts and app-native navigation first; use mouse interaction when needed. "
-                "Use only the currently enabled targeting fields exposed by this schema. "
-                "Do not treat tool status alone as success; confirm the expected UI state change from the latest screenshot."
-            )
-        elif tool_name == "scroll_control":
-            schema["description"] = (
-                "Control desktop scrolling actions. Target the scroll region using the currently enabled grounding "
-                "fields exposed by this schema. Omit `clicks` on the first vertical scroll attempt so the executor "
-                "uses its default click amount; use `clicks` only for follow-up fine tuning."
-            )
-        elif tool_name == "grounded_mouse_action":
-            schema["description"] = (
-                "Ground a semantic mouse action using the currently enabled non-manual grounding fields, "
-                "then execute it on the desktop."
-            )
-        elif tool_name == "grounded_scroll_action":
-            schema["description"] = (
-                "Ground a semantic scroll action using the currently enabled non-manual grounding fields, "
-                "then execute it on the desktop."
-            )
-
-        action_schema = args_props.get("action")
-        if isinstance(action_schema, dict) and tool_name == "grounded_mouse_action":
-            action_schema["description"] = cls._build_grounded_action_description(
-                allowed_methods
-            )
-        elif isinstance(action_schema, dict) and tool_name == "grounded_scroll_action":
-            action_schema["description"] = cls._build_grounded_scroll_description(
-                allowed_methods
-            )
-
-    @staticmethod
-    def _build_method_property_description(
-        prefix: str,
-        ordered_methods: List[str],
-    ) -> str:
-        allowed_display = ", ".join(ordered_methods) or "none"
-        return f"{prefix} Allowed values: {allowed_display}."
-
-    @staticmethod
-    def _build_grounded_action_description(
-        allowed_methods: frozenset[str],
-    ) -> str:
-        parts: List[str] = ["Mouse action to perform using the currently enabled grounding fields."]
-        if "ocr" in allowed_methods and "prediction" in allowed_methods:
-            parts.append(
-                "Use OCR fields for visible text targets and source_description for non-text targets."
-            )
-        elif "ocr" in allowed_methods:
-            parts.append("Use OCR fields for visible text targets.")
-        elif "prediction" in allowed_methods:
-            parts.append("Use source_description for non-text targets.")
-        return " ".join(parts)
-
-    @staticmethod
-    def _build_grounded_scroll_description(
-        allowed_methods: frozenset[str],
-    ) -> str:
-        parts: List[str] = ["Scroll action to perform against the currently enabled grounded region fields."]
-        if "ocr" in allowed_methods and "prediction" in allowed_methods:
-            parts.append("Use OCR fields for visible text regions and source_description for non-text regions.")
-        elif "ocr" in allowed_methods:
-            parts.append("Use OCR fields for visible text regions.")
-        elif "prediction" in allowed_methods:
-            parts.append("Use source_description for non-text regions.")
-        return " ".join(parts)
 
     @staticmethod
     def _has_non_manual_methods(allowed_methods: frozenset[str]) -> bool:
