@@ -38,19 +38,19 @@ class RunShellCommandArgs(BaseModel):
         description=(
             "If True, start command asynchronously and return immediately with a session id. "
             "Use this for GUI app launches and long-running commands so the agent does not block. "
-            "Then use the process tool to poll logs, write input, or terminate the session. "
-            "If False, wait for command completion and return output."
+            "Then use the returned session id to poll logs, write input, or terminate the session. "
+            "If False, block until command completion and return output."
         ),
     )
     terminate_after_seconds: Optional[float] = Field(
         120.0,
-        description="(OPTIONAL, only used when run_in_background=False) Maximum time in seconds to wait before terminating the command and returning current output. Default is 120 seconds (2 minutes). Set to None for no timeout limit."
+        description="(OPTIONAL, only used when run_in_background=False) Maximum time in seconds to allow before terminating the command and returning current output. Default is 120 seconds (2 minutes). Set to None for no timeout limit."
     )
     yield_after_seconds: Optional[float] = Field(
         None,
         description=(
             "(OPTIONAL) Return early if the command runs longer than this duration. "
-            "The process keeps running in the background and can be managed with the process tool."
+            "The command keeps running in the background and can be managed with the returned session id."
         ),
     )
     max_output_tokens: Optional[int] = Field(
@@ -73,7 +73,7 @@ class RunShellCommandArgs(BaseModel):
     wait: Optional[float] = Field(
         None,
         description=(
-            "(OPTIONAL) Delay in seconds before taking a screenshot after execution. "
+            "(OPTIONAL) Delay in seconds before capturing a screen image after execution. "
             "Use this when command effects are visual (for example, launching a GUI app) "
             "to verify the UI state after launch."
         ),
@@ -124,14 +124,14 @@ class ProcessShellCommandArgs(BaseModel):
     action: str = Field(
         ...,
         description=(
-            "Action to perform on background shell sessions from run_shell_command: "
+            "Action to perform on background shell sessions: "
             "list, poll, log, write, send-keys, submit, paste, kill, clear, remove."
         ),
     )
     session_id: Optional[str] = Field(
         None,
         description=(
-            "Session id returned by run_shell_command (required for actions other than list/clear)."
+            "Session id returned by a previous background shell command invocation (required for actions other than list/clear)."
         ),
     )
     data: Optional[str] = _optional_process_field("Data to write for write action")

@@ -395,6 +395,10 @@ def test_build_prompt_real_registry_prunes_live_model_facing_grounding_schema(
     mouse_props = schemas[0]["parameters"]["properties"]
     assert mouse_props["find_coordinates_by"]["enum"] == ["manual"]
     assert mouse_props["drag_to_find_coordinates_by"]["enum"] == ["manual"]
+    assert mouse_props["find_coordinates_by"]["description"] == "Coordinate targeting method."
+    assert mouse_props["drag_to_find_coordinates_by"]["description"] == (
+        "Drag destination targeting method."
+    )
     assert "ocr_text" not in mouse_props
     assert "source_description" not in mouse_props
     assert "drag_to_ocr_text" not in mouse_props
