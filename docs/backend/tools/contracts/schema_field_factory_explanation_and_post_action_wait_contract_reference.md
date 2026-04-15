@@ -30,7 +30,15 @@ These helpers centralize descriptions/defaults so tool schema docs emitted to mo
 
 Returns a required field (`Field(...)`) with canonical description:
 
-- one sentence explaining why the tool call is needed and how it supports the user goal
+- exact current payload text:
+  - `One sentence explaning why this tool is being used, and how it contributes to the goal. Start with an -ing verb.`
+
+Behavioral intent:
+
+- one sentence only
+- rationale for why the tool is being used
+- tie the tool call back to the user goal
+- start with an `-ing` verb
 
 Used by multiple schema models (`MouseControlArgs`, `KeyboardControlArgs`, `ScreenshotToolArgs`, `ScrollControlArgs`, `SwitchTabArgs`, `WaitToolArgs`, `RunShellCommandArgs`, `ReadFileArgs`, `ReplaceArgs`, `GetOpenWindowsArgs`, `GetSystemStatsArgs`).
 
@@ -38,7 +46,8 @@ Used by multiple schema models (`MouseControlArgs`, `KeyboardControlArgs`, `Scre
 
 Returns optional float field with default (default `0.0`) and canonical description:
 
-- delay in seconds before automatic post-action screenshot capture
+- exact current payload text:
+  - `Delay in seconds before automatic post-action screen capture.`
 
 Used by interactive tools where UI state may settle after the action (`MouseControlArgs.wait`, `KeyboardControlArgs.wait`, `ScrollControlArgs.wait`, `SwitchTabArgs.wait`).
 
@@ -59,6 +68,7 @@ Validation is indirect through schema/model tests and runtime tool-call behavior
 1. Changing helper descriptions alters every tool schema prompt description at once.
 2. Changing `post_action_wait_field` default can affect post-action capture timing semantics for multiple tools.
 3. Inlining per-schema replacements instead of shared helpers reintroduces description drift.
+4. Diverging from this shared factory to work around one tool's wording should be treated as a schema-owner bug; fix the canonical shared helper or the individual schema source explicitly.
 
 ## Related Pages
 

@@ -26,6 +26,12 @@ title: "Shell and Process Session Runtime Reference"
 
 Detached GUI app launching is handled by `open_app` (outside shell session registry lifecycle).
 
+Model-facing wording note:
+
+- backend schema/description guidance for `run_shell_command`, `process`, and `open_app` now avoids naming other tools inside tool descriptions unless the relationship is intrinsic to the contract
+- session follow-up behavior is described in terms of the returned `session_id`, not by telling the model to call a different tool by name
+- visual verification wording now uses generic `screen image` / `capture` terminology in shared schema text where possible
+
 The design separates:
 
 - execution path + stream capture (`shell_tool.py`)
