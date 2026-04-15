@@ -535,8 +535,8 @@ Optional query params:
 
 Return both:
 
-- `canonical_tool_schemas`: backend canonical flat tool specs before provider projection
-- `provider_tool_schemas`: model-facing tool specs after provider-specific projection/filtering
+- `canonical_tool_schemas`: backend canonical flat tool specs before policy pruning or provider transport adaptation
+- `provider_tool_schemas`: prompt-visible tool specs after backend policy pruning and provider-facing projection/adaptation
 
 This is useful because the backend currently has both internal canonical tool objects and
 provider-facing projected tool payloads in play.

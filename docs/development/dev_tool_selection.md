@@ -19,6 +19,12 @@ Policy implementation lives in `backend/src/tools/tool_policy.py` and is used by
 - available-tool capability listing
 - container startup gating for OCR/Vision
 
+Important boundary:
+- `backend/src/tools/tool_selection.py` is now a structural filtering layer only.
+- It may remove disabled tools, fields, enum values/defaults, and conditional branches.
+- It does not rewrite tool or field descriptions.
+- If pruned schemas need different wording, fix the canonical schema source instead of adding selection-layer prose.
+
 Deep runtime reference:
 - [`docs/backend/tools/policy/tool_policy_and_dev_tool_selection_runtime_reference.md`](../backend/tools/policy/tool_policy_and_dev_tool_selection_runtime_reference.md)
 
@@ -63,6 +69,7 @@ Allowed values:
 Effects:
 - Disabled methods are removed from the injected `mouse_control` schema.
 - Disabled methods are also removed from other model-facing grounded desktop schemas that share OCR/prediction targeting fields.
+- Canonical tool and field descriptions stay unchanged; only the remaining structure is filtered.
 - Disabled methods are rejected by parser validation if the LLM still calls them.
 - If `ocr` is disabled, OCR service does not initialize at backend startup and is disabled for proactive/lazy OCR.
 - If `prediction` is disabled, vision service does not initialize at backend startup.

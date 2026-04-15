@@ -84,8 +84,9 @@ Catalog-driven declaration contract:
 - backend `tool_catalog.py` now builds canonical tool specs and remote stub classes together through one builder path; `ToolRegistry` consumes those prebuilt specs instead of deriving schemas from live tool instances
 - model visibility, declaration assembly, and runtime lookup all project from the same registered tool names
 - prompt-time filtering, parser whitelists, transparency payloads, and sidecar exposed-tool parity all consume the same direct tool names
+- dev tool selection is now structural-only: it prunes tool names, fields, enums/defaults, and conditional branches, but does not rewrite descriptions
 - browser now uses the same generic schema generation path as every other backend-exposed tool; there is no browser-only schema rewriter
-- provider adapters convert the internal flat tool spec into nested provider transport formats when needed
+- provider adapters still convert the internal flat tool spec into transport-specific formats when needed; that transport adaptation remains the main remaining schema-transformation drift risk
 - OpenAI now receives the same direct desktop function tools (`mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `wait`) as the canonical internal contract; provider-native adaptation is limited to features that remain intentionally native, such as OpenAI web search
 - grouped tools such as `browser` must emit provider-safe root-object schemas directly; OpenAI compatibility should not depend on browser-specific post-hoc schema rewrites
 
