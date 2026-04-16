@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for `EmbeddingProvider` abstraction: async embed_text/embed_batch and dimension property contract, SentenceTransformer implementation behavior, and DI wiring from container factories."
+summary: "Deep reference for `EmbeddingProvider` abstraction: async embed_text/embed_batch and provider/model identity contract, SentenceTransformer implementation behavior, and DI wiring through the embedding router."
 read_when:
   - When changing `EmbeddingProvider` interface signatures or async semantics.
-  - When changing embedder construction in container factories or sentence-transformer caching behavior.
+  - When changing embedder construction, embedding-router wiring, or sentence-transformer caching behavior.
 title: "Embedding Provider Async Contract and Container Wiring Reference"
 ---
 
@@ -11,9 +11,12 @@ title: "Embedding Provider Async Contract and Container Wiring Reference"
 ## Canonical Modules
 
 - `backend/src/core/interfaces/embedding.py`
+- `backend/src/core/inference/embedding_router.py`
 - `backend/src/embeddings/embeddings.py`
 - `backend/src/core/container/factories.py`
+- `backend/src/core/container/application.py`
 - `tests/backend/test_embeddings_provider.py`
+- `tests/backend/test_inference_routers.py`
 
 ## Interface Contract (`EmbeddingProvider`)
 
@@ -26,11 +29,16 @@ And abstract property:
 
 - `dimension -> int`
 
+And default identity properties:
+
+- `provider_id -> str`
+- `model_id -> str`
+
 Design contract:
 
 - methods are async so implementations can offload blocking inference without blocking event loop.
 
-## Container Wiring Contract
+## Router Wiring Contract
 
 `_create_embedder(config, cache_manager)` in `core/container/factories.py`:
 
@@ -44,6 +52,12 @@ Design contract:
 Failure behavior:
 
 - import/creation failures logged and return `None` instead of crashing startup.
+
+`ApplicationContainer` then wraps the configured embedding provider in `EmbeddingRouter`:
+
+- the router becomes the container-facing embedding capability boundary
+- route handlers and future orchestration layers can depend on the router instead of the concrete sentence-transformer class
+- provider swaps can update the router without changing higher-level call sites
 
 ## SentenceTransformerProvider Contract
 
@@ -78,6 +92,7 @@ Dimension behavior:
 1. Making interface methods sync can leak blocking inference onto event loop.
 2. Removing init lock risks concurrent double model allocation/OOM.
 3. Changing batch reorder logic can return embeddings mismatched to input text order.
+4. Returning container-facing concrete providers instead of the router reintroduces singleton coupling into route/orchestration code.
 
 ## Related Pages
 

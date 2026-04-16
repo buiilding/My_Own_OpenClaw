@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- refactor(backend-inference-routing): wrap the local OCR and vision services in provider adapters, expose embeddings/OCR/vision through capability routers in the container, and migrate route/runtime lookup paths to those routers so inference ownership no longer depends on raw singleton model hosts.
 - docs(planning-inference): add a near-term refactor plan for provider-routed OCR/vision/embedding boundaries and a future-state architecture plan for scalable worker-pool/vendor-backed inference services.
 - fix(backend-multi-chat-query-isolation): move query-scoped prompt context and backend-only runtime system state application under `AgentSession.process_query()` so different conversation sessions for the same client can run concurrently without pre-lock session-state smearing; add backend coverage for forwarded query context, multi-conversation concurrency on one client, and the expanded query input contract.
 - fix(frontend-chat-utility-theme): restyle the dashboard header utility cluster and in-conversation find bar with one shared monochrome surface system so `Connect browser`, `Workspace`, and search controls no longer break the black-and-white chat aesthetic.

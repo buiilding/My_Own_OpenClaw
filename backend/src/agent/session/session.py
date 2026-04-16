@@ -4,11 +4,21 @@ The Agent Session.
 This module contains the Agent class, which is the core "brain" of the assistant.
 It manages conversation history and orchestrates the execution using AgentExecutor.
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional, List, Callable, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AsyncGenerator,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Union,
+)
 
 from backend.src.agent.session.config_runtime import SessionConfigRuntime
 from backend.src.agent.session.initializer import (
@@ -30,11 +40,11 @@ from backend.src.llm.prompts.prompts import get_system_prompt
 from backend.src.tools.registry import ToolRegistry
 
 if TYPE_CHECKING:
+    from backend.src.agent.tools.waiting.storage.result_storage import ToolResultStorage
     from backend.src.core.infrastructure.bus import EventBus
     from backend.src.core.interfaces.tool import ToolResult
-    from backend.src.agent.tools.waiting.storage.result_storage import ToolResultStorage
-    from backend.src.tools.orchestrator import ToolResultOrchestrator
     from backend.src.services.ocr.ocr_service import OcrService
+    from backend.src.tools.orchestrator import ToolResultOrchestrator
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +110,7 @@ class AgentSession:
         init_compaction_engine(self)
         init_identity(self, user_id, session_id)
         init_event_bus(self, event_bus)
+        self.ocr_router = ocr_service
         self.ocr_service = ocr_service
         init_executor(self, self.ocr_service)
         init_session_state(self)
@@ -177,66 +188,68 @@ class AgentSession:
     def get_current_system_state(self) -> Optional[Dict[str, Any]]:
         """Return the last system_state payload captured by the frontend, if any."""
         return self.runtime.get_system_state()
-    
-    def register_pending_tool_result(self, request_id: str, result: "ToolResult") -> None:
+
+    def register_pending_tool_result(
+        self, request_id: str, result: "ToolResult"
+    ) -> None:
         """
         Register a pending tool result in the session.
-        
+
         ENCAPSULATION: Public method to register tool results without exposing
         private implementation details. This allows ToolPreparer and other
         components to store results without tight coupling to internal storage.
-        
+
         Args:
             request_id: Request ID for the tool result
             result: Tool result to store
         """
         # Use centralized storage
         self.runtime.tool_results.store_pending_result(request_id, result)
-    
+
     def register_resolved_tool_call(self, request_id: str, resolved_call: Any) -> None:
         """
         Register a resolved tool call in the session.
-        
+
         ENCAPSULATION: Public method to register resolved tool calls without
         exposing private implementation details. This allows ToolPreparer to
         store resolved calls without tight coupling to internal storage.
-        
+
         Delegates to ResolvedToolCallStorage for state management.
-        
+
         Args:
             request_id: Request ID for the tool call
             resolved_call: Resolved tool call to store
         """
         self.runtime.resolved_calls.register(request_id, resolved_call)
-    
+
     def get_resolved_tool_call(self, request_id: str) -> Optional[Any]:
         """
         Get a resolved tool call by request ID.
-        
+
         ENCAPSULATION: Public method to retrieve resolved tool calls without
         exposing private implementation details. This allows ToolOrchestrator
         to access resolved calls without tight coupling to internal storage.
-        
+
         Delegates to ResolvedToolCallStorage for state management.
-        
+
         Args:
             request_id: Request ID for the tool call
-            
+
         Returns:
             Resolved tool call or None if not found
         """
         return self.runtime.resolved_calls.get(request_id)
-    
+
     def remove_resolved_tool_call(self, request_id: str) -> None:
         """
         Remove a resolved tool call from the session.
-        
+
         ENCAPSULATION: Public method to remove resolved tool calls without
         exposing private implementation details. This allows cleanup code
         to remove calls without tight coupling to internal storage.
-        
+
         Delegates to ResolvedToolCallStorage for state management.
-        
+
         Args:
             request_id: Request ID for the tool call to remove
         """
@@ -313,7 +326,7 @@ class AgentSession:
     async def update_config(self, new_cfg: AppConfig) -> None:
         """
         Updates the agent's configuration and re-initializes dependencies.
-        
+
         STALE CONFIGURATION FIX: Propagates LLM client updates through the entire
         dependency chain: AgentSession -> AgentExecutor -> InteractionLoop -> LLMInteractionHandler.
         Without this, LLMInteractionHandler holds a stale reference to the old LLM client,
@@ -365,8 +378,8 @@ class AgentSession:
         ):
             return
         normalized_workspace_path = self._normalize_workspace_path(workspace_path)
-        normalized_repo_instruction_messages = self._normalize_repo_instruction_messages(
-            repo_instruction_messages
+        normalized_repo_instruction_messages = (
+            self._normalize_repo_instruction_messages(repo_instruction_messages)
         )
         rendered_prompt = get_system_prompt(operating_system, normalized_workspace_path)
 
@@ -419,8 +432,8 @@ class AgentSession:
             return decision, result
 
     async def process_query(
-        self, 
-        query: str, 
+        self,
+        query: str,
         image_data: Optional[Union[str, List[str]]] = None,
         capture_meta: Optional[Dict[str, Any]] = None,
         message_content: Optional[str] = None,
@@ -432,7 +445,7 @@ class AgentSession:
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Processes a user query and yields status updates and response chunks.
-        
+
         Args:
             query: The user's query text (for reference)
             image_data: Optional base64 image payload(s) for multimodal queries
@@ -457,13 +470,13 @@ class AgentSession:
                 return
 
             async for event in self.executor.process_query(
-                query, 
-                screenshot=image_data, 
+                query,
+                screenshot=image_data,
                 capture_meta=capture_meta,
                 message_content=message_content,
             ):
                 yield event
-    
+
     async def process_frontend_tool_result(
         self,
         **tool_result_payload: Any,
@@ -472,7 +485,7 @@ class AgentSession:
         await self.tool_result_handler.process_frontend_tool_result(
             **tool_result_payload
         )
-    
+
     async def process_frontend_tool_bundle_result(
         self,
         **bundle_result_payload: Any,
@@ -481,15 +494,15 @@ class AgentSession:
         await self.tool_result_handler.process_frontend_tool_bundle_result(
             **bundle_result_payload
         )
-    
+
     async def cleanup(self) -> None:
         """
         Clean up session resources.
-        
+
         RESOURCE MANAGEMENT: Explicitly releases resources held by the session
         to prevent memory leaks and ensure proper cleanup even if garbage collection
         is delayed or prevented by circular references.
-        
+
         This method should be called before the session is removed from active_sessions
         to ensure resources are freed immediately rather than waiting for GC.
         """

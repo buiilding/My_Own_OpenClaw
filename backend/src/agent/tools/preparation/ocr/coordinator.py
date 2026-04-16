@@ -4,10 +4,11 @@ OCR Coordinator.
 Coordinates OCR result acquisition and waiting for proactive OCR.
 Handles OCR service access and synchronization.
 """
+
+import asyncio
 import logging
 import time
-from typing import List, Dict, Any, Optional, TYPE_CHECKING
-import asyncio
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -18,29 +19,32 @@ logger = logging.getLogger(__name__)
 class OcrCoordinator:
     """
     Coordinates OCR result acquisition.
-    
+
     Responsibility: OCR synchronization and service access.
     Handles waiting for proactive OCR and fallback OCR execution.
     """
 
     async def get_ocr_results(
-        self, session: "AgentSession", screenshot_data: str, screenshot_id: Optional[str] = None
+        self,
+        session: "AgentSession",
+        screenshot_data: str,
+        screenshot_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
         Get OCR results, waiting for proactive OCR if needed.
-        
+
         Verifies that OCR results match the specific screenshot being used to prevent
         race conditions where OCR results from a different screenshot are returned.
-        
+
         Args:
             session: Agent session with OCR state
             screenshot_data: Base64-encoded screenshot (for fallback OCR)
             screenshot_id: Optional screenshot ID. If provided, verifies OCR results match this screenshot.
                           If None, uses current screenshot ID.
-            
+
         Returns:
             List of OCR results with text and bbox
-            
+
         Raises:
             ValueError: If OCR service unavailable, OCR fails, or screenshot ID mismatch
         """
@@ -48,7 +52,7 @@ class OcrCoordinator:
         if screenshot_id is None:
             screenshot_id = session.get_current_screenshot_id()
         ocr_state = session.get_ocr_runtime_state()
-        
+
         # Wait for in-flight OCR task for this screenshot (if any).
         # Use shielded wait to avoid cancelling background OCR on timeout.
         ocr_wait_start = time.perf_counter()
@@ -85,21 +89,27 @@ class OcrCoordinator:
             # Get OCR results for current screenshot
             ocr_results = ocr_state.get_results()
             if ocr_results:
-                logger.info(f"Using cached OCR results for current screenshot {current_screenshot_id[:8] if current_screenshot_id else 'unknown'}")
+                logger.info(
+                    f"Using cached OCR results for current screenshot {current_screenshot_id[:8] if current_screenshot_id else 'unknown'}"
+                )
 
         # If no results yet (proactive OCR disabled, failed, or screenshot changed), run it now
         if not ocr_results:
-            logger.info("OCR results not cached for current screenshot, running OCR now...")
+            logger.info(
+                "OCR results not cached for current screenshot, running OCR now..."
+            )
             ocr_exec_start = time.perf_counter()
 
-            ocr_service = session.ocr_service
+            ocr_service = getattr(session, "ocr_router", session.ocr_service)
             if not ocr_service or not ocr_service.enabled:
                 raise ValueError("OCR service is not available or enabled")
 
             ocr_results = await ocr_service.perform_ocr(screenshot_data)
             ocr_exec_time = time.perf_counter() - ocr_exec_start
-            logger.info(f"[Timing] OCR execution took {ocr_exec_time:.3f}s (found {len(ocr_results) if ocr_results else 0} results)")
-            
+            logger.info(
+                f"[Timing] OCR execution took {ocr_exec_time:.3f}s (found {len(ocr_results) if ocr_results else 0} results)"
+            )
+
             # SIMPLIFIED: Store results for current screenshot only
             ocr_state.set_results(ocr_results)
 

@@ -4,19 +4,23 @@ Agent Executor - Core execution loop for the agent.
 This module implements the main agent execution loop that processes user queries,
 manages tool execution, handles LLM streaming, and coordinates memory operations.
 """
+
 import logging
 from typing import TYPE_CHECKING, AsyncGenerator, List, Optional, Union
 
-from backend.src.agent.history.history_committer import HistoryCommitter
 from backend.src.agent.execution.completion_side_effects import (
     publish_and_emit_completion_side_effects,
     resolve_raw_user_query,
 )
 from backend.src.agent.execution.interaction_loop import InteractionLoop
+from backend.src.agent.history.history_committer import HistoryCommitter
 from backend.src.agent.llm.conversation_context import ConversationContext
 from backend.src.agent.llm.event_presenter import EventPresenter
 from backend.src.agent.llm.llm_stream_processor import LLMStreamProcessor
-from backend.src.agent.tools.orchestrator import ToolOrchestrator as AgentToolOrchestrator
+from backend.src.agent.tools.orchestrator import (
+    ToolOrchestrator as AgentToolOrchestrator,
+)
+from backend.src.agent.tools.preparation import ToolPreparer
 from backend.src.agent.tools.preparation.coordinate_resolution import (
     CoordinateResolver,
     OcrCoordinateResolver,
@@ -30,9 +34,7 @@ from backend.src.agent.tools.processing import (
     ToolProcessingCoordinator,
     ToolResultProcessor,
 )
-from backend.src.agent.tools.preparation import ToolPreparer
 from backend.src.agent.tools.sending import ToolSender
-from backend.src.core.infrastructure.bus import EventBus
 from backend.src.core.events import (
     AgentStreamingEvent,
     ContextCompactionCompletedEvent,
@@ -40,6 +42,7 @@ from backend.src.core.events import (
     ContextCompactionStartedEvent,
     StreamingCompleteEvent,
 )
+from backend.src.core.infrastructure.bus import EventBus
 from backend.src.llm.client import LLMClient
 from backend.src.llm.prompts import PromptConstructor
 from backend.src.tools.orchestrator import ToolResultOrchestrator
@@ -79,29 +82,36 @@ class AgentExecutor:
             prompt_constructor=prompt_constructor,
             history=session.history,
         )
-        
+
         llm_stream_processor = LLMStreamProcessor(
             llm_client=llm_client,
             session=session,
         )
-        
+
         # Result processing: split into pure transformation and state mutation
         result_transformer = ResultTransformer()
         history_committer = HistoryCommitter(history=session.history)
-        
+
         # Tool preparation: split into specialized components
         self.screenshot_manager = ScreenshotManager()  # Store for use in process_query
         ocr_coordinate_resolver = OcrCoordinateResolver()
         vision_coordinate_resolver = VisionCoordinateResolver()
-        coordinate_resolver = CoordinateResolver(ocr_coordinate_resolver, vision_coordinate_resolver)
+        coordinate_resolver = CoordinateResolver(
+            ocr_coordinate_resolver, vision_coordinate_resolver
+        )
         ocr_coordinator = OcrCoordinator()
         synthetic_result_factory = SyntheticResultFactory()
-        
+
         # Get vision service for ToolPreparer (inject directly to avoid circular dependency)
         vision_service = None
         if self.tool_orchestrator and self.tool_orchestrator.context_factory:
-            vision_service = self.tool_orchestrator.context_factory.vision_service
-        
+            context_factory = self.tool_orchestrator.context_factory
+            vision_service = getattr(
+                context_factory,
+                "vision_router",
+                getattr(context_factory, "vision_service", None),
+            )
+
         # Tool preparation: orchestrates resolution
         tool_preparer = ToolPreparer(
             screenshot_manager=self.screenshot_manager,
@@ -110,29 +120,31 @@ class AgentExecutor:
             vision_service=vision_service,  # Inject directly instead of using provider
             tool_registry=tool_orchestrator.tool_registry,
         )
-        
+
         # Tool sending: sends resolved tools to frontend
         tool_sender = ToolSender(
             preparer=tool_preparer,
             synthetic_result_factory=synthetic_result_factory,
         )
-        
+
         # Tool lifecycle components
         tool_result_processor = ToolResultProcessor(
             result_transformer=result_transformer,
             history_committer=history_committer,
         )
-        tool_processing_coordinator = ToolProcessingCoordinator(processor=tool_result_processor)
-        
+        tool_processing_coordinator = ToolProcessingCoordinator(
+            processor=tool_result_processor
+        )
+
         # High-level orchestrator
         agent_tool_orchestrator = AgentToolOrchestrator(
             tool_sender=tool_sender,
             tool_result_orchestrator=tool_orchestrator,
             tool_processing_coordinator=tool_processing_coordinator,
         )
-        
+
         event_presenter = EventPresenter()
-        
+
         # Initialize InteractionLoop with all components
         self.interaction_loop = InteractionLoop(
             session=session,
@@ -143,15 +155,15 @@ class AgentExecutor:
         )
 
     async def process_query(
-        self, 
-        query: str, 
+        self,
+        query: str,
         screenshot: Optional[Union[str, List[str]]] = None,
         capture_meta: Optional[dict] = None,
         message_content: Optional[str] = None,
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
         Processes a user query and yields status updates and response chunks.
-        
+
         Args:
             query: The user's query text (for reference)
             screenshot: Optional base64 screenshot payload(s) for multimodal queries
@@ -228,7 +240,7 @@ class AgentExecutor:
         self.session.history.add_user_message(
             content=final_content,
             user_query_raw=raw_user_query,
-            image_data=screenshot  # History still uses image_data internally
+            image_data=screenshot,  # History still uses image_data internally
         )
 
         # 4. Process user message screenshot if present (store as current, trigger OCR)
@@ -257,7 +269,9 @@ class AgentExecutor:
             # even if the generator is closed early (GeneratorExit)
             if final_response:
                 try:
-                    async for completion_event in publish_and_emit_completion_side_effects(
+                    async for (
+                        completion_event
+                    ) in publish_and_emit_completion_side_effects(
                         session=self.session,
                         event_bus=self.event_bus,
                         raw_user_query=raw_user_query,
@@ -268,7 +282,7 @@ class AgentExecutor:
                     # Log but don't re-raise - we're in finally block
                     logger.error(
                         f"Error during finalization after interaction loop: {e}",
-                        exc_info=True
+                        exc_info=True,
                     )
 
     @staticmethod
@@ -295,7 +309,7 @@ class AgentExecutor:
     def _is_first_user_message(self) -> bool:
         """
         Check if this is the first user message in the conversation.
-        
+
         PERFORMANCE: Uses O(1) length check instead of O(N) scan through all messages.
         This avoids unnecessary latency as conversation history grows.
         """

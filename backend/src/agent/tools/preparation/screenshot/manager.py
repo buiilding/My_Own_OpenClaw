@@ -4,6 +4,7 @@ Screenshot Manager.
 Manages screenshot acquisition and processing.
 Centralizes storage of the active screenshot and OCR triggering.
 """
+
 import asyncio
 import hashlib
 import logging
@@ -12,7 +13,6 @@ from typing import TYPE_CHECKING, Any, Optional
 from backend.src.agent.tools.preparation.helpers.coordinate_contract import (
     normalize_capture_meta,
 )
-
 from backend.src.agent.tools.shared.logging_utils import short_id
 
 if TYPE_CHECKING:
@@ -24,14 +24,14 @@ logger = logging.getLogger(__name__)
 class ScreenshotManager:
     """
     Manages screenshot acquisition for tool preparation.
-    
+
     Responsibility: Screenshot availability for coordinate resolution.
     """
 
     def __init__(self, timeout: float = 30.0):
         """
         Initialize the screenshot manager.
-        
+
         Args:
             timeout: Reserved for future use
         """
@@ -63,18 +63,18 @@ class ScreenshotManager:
     ) -> str:
         """
         Process a screenshot: store it as current (discarding old), and trigger OCR.
-        
+
         SIMPLIFIED: Only current screenshot is kept. Previous screenshots are obsolete
         for desktop automation (can't interact with past state).
-        
+
         This is the single source of truth for screenshot processing. All screenshots
         (from user messages or tool results) go through this method.
-        
+
         Args:
             session: Agent session to store screenshot in
             screenshot_data: Base64-encoded screenshot data
             request_id: Request ID for logging purposes
-            
+
         Returns:
             screenshot_id: Unique ID for the screenshot
         """
@@ -95,7 +95,7 @@ class ScreenshotManager:
             normalized_screenshot_id[:8],
             short_id(request_id),
         )
-        
+
         # Trigger OCR in background (non-blocking)
         await self._maybe_trigger_ocr(
             session,
@@ -103,33 +103,33 @@ class ScreenshotManager:
             normalized_screenshot_id,
             request_id,
         )
-        
+
         return normalized_screenshot_id
-    
+
     async def _maybe_trigger_ocr(
         self,
         session: "AgentSession",
         screenshot_data: str,
         screenshot_id: str,
-        request_id: str
+        request_id: str,
     ) -> None:
         """
         Trigger proactive OCR if screenshot is present.
-        
+
         This is a non-blocking operation that runs OCR in the background.
         Tools that need OCR results will wait for ocr_completion_event.
-        
+
         SIMPLIFIED: OCR results are stored for current screenshot only.
         If a new screenshot arrives while OCR is processing, the old OCR task
         will complete but its results will be ignored (screenshot_id won't match).
-        
+
         Args:
             session: Agent session
             screenshot_data: Base64-encoded screenshot data
             screenshot_id: Unique ID for this screenshot (for race condition prevention)
             request_id: Request ID for logging purposes
         """
-        ocr_service = session.ocr_service
+        ocr_service = getattr(session, "ocr_router", session.ocr_service)
         ocr_state = session.get_ocr_runtime_state()
         if not ocr_service or not ocr_service.enabled:
             # OCR disabled: keep event set so tools don't block unnecessarily.
@@ -150,9 +150,13 @@ class ScreenshotManager:
                     # while OCR is processing the old one
                     if ocr_state.get_current_screenshot_id() == screenshot_id:
                         ocr_state.set_results(results)
-                        logger.info(f"Proactive OCR completed for screenshot {screenshot_id[:8]} (request {short_id(request_id)})")
+                        logger.info(
+                            f"Proactive OCR completed for screenshot {screenshot_id[:8]} (request {short_id(request_id)})"
+                        )
                     else:
-                        logger.debug(f"OCR completed for outdated screenshot {screenshot_id[:8]}, ignoring results")
+                        logger.debug(
+                            f"OCR completed for outdated screenshot {screenshot_id[:8]}, ignoring results"
+                        )
             except Exception as e:
                 logger.error(f"Proactive OCR failed: {e}")
             finally:
@@ -166,18 +170,22 @@ class ScreenshotManager:
         ocr_state.cancel_active_task()
         task: asyncio.Task[Any] = asyncio.create_task(run_ocr_task())
         ocr_state.set_active_task(task, screenshot_id)
-    
+
     def _generate_screenshot_id(self, screenshot_data: str) -> str:
         """
         Generate a unique ID for a screenshot based on its content hash.
-        
+
         Args:
             screenshot_data: Base64-encoded screenshot data
-            
+
         Returns:
             Unique screenshot ID (SHA256 hash of first 1KB for performance)
         """
         # Use hash of first 1KB for performance (screenshots are large)
         # This is sufficient to uniquely identify different screenshots
-        sample = screenshot_data[:1024] if len(screenshot_data) > 1024 else screenshot_data
-        return hashlib.sha256(sample.encode('utf-8')).hexdigest()[:16]  # 16 chars is sufficient
+        sample = (
+            screenshot_data[:1024] if len(screenshot_data) > 1024 else screenshot_data
+        )
+        return hashlib.sha256(sample.encode("utf-8")).hexdigest()[
+            :16
+        ]  # 16 chars is sufficient

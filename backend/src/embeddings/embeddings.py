@@ -4,10 +4,12 @@ Embedding Provider Implementation.
 This module provides the SentenceTransformer-based embedding provider for generating
 vector embeddings of text. Includes caching to avoid recomputing embeddings for the same text.
 """
+
 import asyncio
-import os
 import logging
+import os
 from typing import List, Optional
+
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
@@ -33,11 +35,12 @@ def is_cuda_error(error: Exception) -> bool:
     error_message = str(error)
     return any(keyword in error_message for keyword in CUDA_ERROR_KEYWORDS)
 
+
 class SentenceTransformerProvider(EmbeddingProvider):
     """
     Local embedding provider using SentenceTransformers.
     Uses caching to avoid recomputing embeddings for the same text.
-    
+
     CRITICAL: Model loading is deferred to async initialize() to prevent blocking
     application startup. All embedding operations are offloaded to thread pool
     to prevent blocking the asyncio event loop.
@@ -51,7 +54,7 @@ class SentenceTransformerProvider(EmbeddingProvider):
     ):
         """
         Initialize the embedding provider.
-        
+
         Args:
             model_name: Name of the SentenceTransformer model to load
             device: Device to run model on ("cpu" or "cuda")
@@ -77,10 +80,10 @@ class SentenceTransformerProvider(EmbeddingProvider):
     async def initialize(self) -> None:
         """
         Async initialization: Load the model in a thread pool to avoid blocking startup.
-        
+
         RACE CONDITION FIX: Uses asyncio.Lock to ensure only one concurrent call
         loads the model, preventing double allocation and OOM crashes.
-        
+
         This method must be called before using embed_text or embed_batch.
         """
         # RACE CONDITION FIX: Serialize initialization to prevent double model loading
@@ -89,7 +92,9 @@ class SentenceTransformerProvider(EmbeddingProvider):
             if self._initialized:
                 return
 
-            logger.info(f"Loading embedding model: {self._model_name} on {self._device}")
+            logger.info(
+                f"Loading embedding model: {self._model_name} on {self._device}"
+            )
             await self._load_model(self._device)
             logger.info(f"Embedding model loaded: dimension={self._dimension}")
 
@@ -165,24 +170,24 @@ class SentenceTransformerProvider(EmbeddingProvider):
     async def embed_text(self, text: str) -> np.ndarray:
         """
         Generate embedding for text, using cache if available.
-        
+
         CRITICAL: Blocking model.encode() is offloaded to thread pool to prevent
         freezing the asyncio event loop.
         """
         self._ensure_initialized()
-        
+
         if self._use_cache and self._cache_manager:
             cache_key = self._cache_manager.get_embedding_key(text)
             cached_embedding = self._cache_manager.embeddings.get(cache_key)
-            
+
             if cached_embedding is not None:
                 return cached_embedding
-            
+
             embedding = await self._encode_with_runtime_fallback(
                 lambda: self.model.encode(text, convert_to_numpy=True),
                 operation="text",
             )
-            
+
             # Cache it
             self._cache_manager.embeddings.set(cache_key, embedding)
             return embedding
@@ -195,44 +200,44 @@ class SentenceTransformerProvider(EmbeddingProvider):
     async def embed_batch(self, texts: List[str]) -> List[np.ndarray]:
         """
         Generate embeddings for a batch of texts.
-        
+
         CRITICAL: Blocking model.encode() is offloaded to thread pool to prevent
         freezing the asyncio event loop.
         """
         self._ensure_initialized()
-        
+
         if self._use_cache and self._cache_manager:
             embeddings = []
             texts_to_encode = []
             indices_to_encode = []
-            
+
             # Check cache for each text
             for i, text in enumerate(texts):
                 cache_key = self._cache_manager.get_embedding_key(text)
                 cached_embedding = self._cache_manager.embeddings.get(cache_key)
-                
+
                 if cached_embedding is not None:
                     embeddings.append((i, cached_embedding))
                 else:
                     texts_to_encode.append(text)
                     indices_to_encode.append(i)
-            
+
             # Generate embeddings for uncached texts
             if texts_to_encode:
                 new_embeddings = await self._encode_with_runtime_fallback(
                     lambda: self.model.encode(texts_to_encode, convert_to_numpy=True),
                     operation="batch",
                 )
-                
+
                 # Cache new embeddings
                 for text, embedding in zip(texts_to_encode, new_embeddings):
                     cache_key = self._cache_manager.get_embedding_key(text)
                     self._cache_manager.embeddings.set(cache_key, embedding)
-                
+
                 # Add to results
                 for idx, embedding in zip(indices_to_encode, new_embeddings):
                     embeddings.append((idx, embedding))
-            
+
             # Sort by original index and return embeddings only
             embeddings.sort(key=lambda x: x[0])
             return [emb for _, emb in embeddings]
@@ -242,6 +247,14 @@ class SentenceTransformerProvider(EmbeddingProvider):
                 operation="batch",
             )
             return [e for e in embeddings]
+
+    @property
+    def provider_id(self) -> str:
+        return "local-sentence-transformer"
+
+    @property
+    def model_id(self) -> str:
+        return self._model_name
 
     @property
     def model_name(self) -> str:

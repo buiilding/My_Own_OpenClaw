@@ -6,14 +6,14 @@ import pytest
 from fastapi import HTTPException
 from PIL import Image
 from starlette.requests import Request
-
-from backend.src.core.config.models import AppConfig
-from backend.src.core.infrastructure.cache_manager import CacheManager
-from backend.src.tools.registry import ToolRegistry
 from tests.backend.websocket_route_test_utils import (
     install_route_deps_shim,
     restore_route_deps_shim,
 )
+
+from backend.src.core.config.models import AppConfig
+from backend.src.core.infrastructure.cache_manager import CacheManager
+from backend.src.tools.registry import ToolRegistry
 
 _original_deps = install_route_deps_shim()
 
@@ -21,16 +21,16 @@ try:
     from backend.src.api.routes import sdk as sdk_routes
     from backend.src.api.routes.sdk.models import (
         BoundingBoxModel,
-        PromptPreviewRequest,
-        QueryPlanRequest,
         ImageSourceInput,
-        OcrInspectRequest,
         OcrCandidateRequest,
+        OcrInspectRequest,
         OcrOverlayRequest,
         OcrRunRequest,
         OcrTextQueryRequest,
         OverlayPointModel,
         OverlayRegionModel,
+        PromptPreviewRequest,
+        QueryPlanRequest,
         VisionDescribeRequest,
         VisionLocateAllRequest,
         VisionLocateRequest,
@@ -127,17 +127,23 @@ def _container(
         artifact_store_path=str(tmp_path),
         artifact_max_bytes=1024 * 1024,
     )
+    ocr_service = _FakeOcrService(ocr_results or [])
+    vision_service = _FakeVisionService(vision_model or _FakeVisionModel())
     return SimpleNamespace(
         config=effective_config,
-        ocr_service=_FakeOcrService(ocr_results or []),
-        vision_service=_FakeVisionService(vision_model or _FakeVisionModel()),
+        ocr_router=ocr_service,
+        ocr_service=ocr_service,
+        vision_router=vision_service,
+        vision_service=vision_service,
         model_service=_FakeModelService(),
         tool_registry=_tool_registry(effective_config),
     )
 
 
 @pytest.mark.asyncio
-async def test_sdk_ocr_run_returns_results_with_centers_and_candidates(tmp_path) -> None:
+async def test_sdk_ocr_run_returns_results_with_centers_and_candidates(
+    tmp_path,
+) -> None:
     container = _container(
         tmp_path,
         ocr_results=[
@@ -220,7 +226,10 @@ async def test_sdk_ocr_inspect_returns_observability_bundle(tmp_path) -> None:
     )
 
     assert len(response.results) == 2
-    assert [row.text for row in response.ranked_matches] == ["Search Amazon", "Search Walmart"]
+    assert [row.text for row in response.ranked_matches] == [
+        "Search Amazon",
+        "Search Walmart",
+    ]
     assert [row.text for row in response.accepted_matches] == ["Search Amazon"]
     assert response.resolved_match is not None
     assert response.resolution_error is None
@@ -289,7 +298,9 @@ async def test_sdk_ocr_resolve_text_returns_center_match(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_sdk_ocr_resolve_text_returns_structured_ambiguity_error(tmp_path) -> None:
+async def test_sdk_ocr_resolve_text_returns_structured_ambiguity_error(
+    tmp_path,
+) -> None:
     container = _container(
         tmp_path,
         ocr_results=[
@@ -477,7 +488,9 @@ async def test_sdk_vision_overlay_writes_artifact(tmp_path) -> None:
             image=ImageSourceInput(image_base64=_png_base64()),
             result=VisionOverlayPayload(
                 points=[OverlayPointModel(x=120, y=90, label="target")],
-                regions=[OverlayRegionModel(x=80, y=40, width=100, height=60, label="region")],
+                regions=[
+                    OverlayRegionModel(x=80, y=40, width=100, height=60, label="region")
+                ],
             ),
         ),
         container,
@@ -512,7 +525,9 @@ async def test_sdk_debug_models_returns_catalog_and_effective_config(tmp_path) -
 
 
 @pytest.mark.asyncio
-async def test_sdk_debug_tool_schemas_returns_canonical_and_provider_shapes(tmp_path) -> None:
+async def test_sdk_debug_tool_schemas_returns_canonical_and_provider_shapes(
+    tmp_path,
+) -> None:
     config = AppConfig(
         artifact_store_path=str(tmp_path),
         artifact_max_bytes=1024 * 1024,
@@ -530,9 +545,13 @@ async def test_sdk_debug_tool_schemas_returns_canonical_and_provider_shapes(tmp_
         interaction_mode=None,
     )
 
-    assert any(schema.get("name") == "read_file" for schema in response.canonical_tool_schemas)
+    assert any(
+        schema.get("name") == "read_file" for schema in response.canonical_tool_schemas
+    )
     assert response.provider_tool_schemas
-    assert all(schema.get("type") == "function" for schema in response.provider_tool_schemas)
+    assert all(
+        schema.get("type") == "function" for schema in response.provider_tool_schemas
+    )
 
 
 @pytest.mark.asyncio
@@ -572,7 +591,9 @@ async def test_sdk_debug_system_prompt_returns_prompt_text(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_sdk_debug_prompt_preview_returns_prompt_transparency_payloads(tmp_path) -> None:
+async def test_sdk_debug_prompt_preview_returns_prompt_transparency_payloads(
+    tmp_path,
+) -> None:
     container = _container(tmp_path)
 
     response = await sdk_routes.sdk_debug_prompt_preview(
@@ -598,12 +619,19 @@ async def test_sdk_debug_prompt_preview_returns_prompt_transparency_payloads(tmp
     assert response.user_message_full is not None
     assert response.user_message_full.metadata.original_query == "open file"
     assert response.user_message_full.metadata.active_window == "Terminal"
-    assert any(schema.get("name") == "read_file" for schema in response.canonical_tool_schemas)
-    assert response.prompt_token_count is not None or response.token_count_error is not None
+    assert any(
+        schema.get("name") == "read_file" for schema in response.canonical_tool_schemas
+    )
+    assert (
+        response.prompt_token_count is not None
+        or response.token_count_error is not None
+    )
 
 
 @pytest.mark.asyncio
-async def test_sdk_debug_query_plan_returns_query_and_transparency_payloads(tmp_path) -> None:
+async def test_sdk_debug_query_plan_returns_query_and_transparency_payloads(
+    tmp_path,
+) -> None:
     container = _container(tmp_path)
 
     response = await sdk_routes.sdk_debug_query_plan(

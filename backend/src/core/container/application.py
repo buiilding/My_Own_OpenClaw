@@ -3,11 +3,15 @@ Application Container for dependency injection.
 
 This module provides the main application container using dependency injection composition.
 """
+
 from dependency_injector import containers, providers
 
 from backend.src.core.container.core_container import CoreContainer
 from backend.src.core.container.memory_container import MemoryContainer
 from backend.src.core.container.tool_container import ToolContainer
+from backend.src.core.inference import EmbeddingRouter, OcrRouter, VisionRouter
+from backend.src.services.ocr import LocalOcrProvider
+from backend.src.services.vision import LocalVisionProvider
 
 
 class ApplicationContainer(containers.DeclarativeContainer):
@@ -55,6 +59,27 @@ class ApplicationContainer(containers.DeclarativeContainer):
         MemoryContainer,
         config=core.config,
         cache_manager=core.cache_manager,
+    )
+
+    ocr_provider = providers.Singleton(
+        LocalOcrProvider,
+        service=core.ocr_service,
+    )
+    vision_provider = providers.Singleton(
+        LocalVisionProvider,
+        service=core.vision_service,
+    )
+    embedding_router = providers.Singleton(
+        EmbeddingRouter,
+        provider=memory.embedder,
+    )
+    ocr_router = providers.Singleton(
+        OcrRouter,
+        provider=ocr_provider,
+    )
+    vision_router = providers.Singleton(
+        VisionRouter,
+        provider=vision_provider,
     )
 
     # API container (will be created and wired in Container facade)

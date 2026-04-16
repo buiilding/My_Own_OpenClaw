@@ -3,8 +3,9 @@ Vision Service Provider.
 
 Provides vision service access without tight coupling to session hierarchy.
 """
+
 import logging
-from typing import Callable, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Optional
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 class VisionServiceProvider:
     """
     Provides vision service access from session.
-    
+
     Responsibility: Decouple ToolPreparer from session hierarchy.
     Encapsulates the access pattern for vision service.
     """
@@ -25,16 +26,19 @@ class VisionServiceProvider:
     def get_vision_service(session: "AgentSession") -> Optional["IVisionService"]:
         """
         Get vision service from session hierarchy.
-        
+
         Args:
             session: Agent session with executor hierarchy
-            
+
         Returns:
             Vision service instance or None if unavailable
         """
         try:
-            vision_service = (
-                session.executor.tool_orchestrator.context_factory.vision_service
+            context_factory = session.executor.tool_orchestrator.context_factory
+            vision_service = getattr(
+                context_factory,
+                "vision_router",
+                getattr(context_factory, "vision_service", None),
             )
             return vision_service
         except AttributeError as e:
