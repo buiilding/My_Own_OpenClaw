@@ -8,6 +8,7 @@ from backend.src.api.processing.formatters.base import EventFormatter, EventInpu
 
 class ContextCompactionFailedEventFormatter(EventFormatter):
     """Format compaction-failed lifecycle events for websocket transport."""
+    message_type = OutgoingMessageType.CONTEXT_COMPACTION_FAILED
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
         event_dict = self._get_event_dict(event)
@@ -33,7 +34,7 @@ class ContextCompactionFailedEventFormatter(EventFormatter):
             return None
 
         return {
-            "type": OutgoingMessageType.CONTEXT_COMPACTION_FAILED,
+            "type": self.message_type,
             "id": msg_id,
             "payload": {
                 "reason": reason,
@@ -42,4 +43,3 @@ class ContextCompactionFailedEventFormatter(EventFormatter):
                 "before_tokens": event_dict.get("before_tokens"),
             },
         }
-

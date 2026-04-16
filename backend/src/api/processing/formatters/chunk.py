@@ -7,6 +7,7 @@ from backend.src.api.processing.formatters.base import EventFormatter, EventInpu
 
 class ChunkEventFormatter(EventFormatter):
     """Formatter for streaming chunk events."""
+    message_type = OutgoingMessageType.STREAMING_RESPONSE
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
         event_dict = self._get_event_dict(event)
@@ -15,7 +16,7 @@ class ChunkEventFormatter(EventFormatter):
             return None
 
         return {
-            "type": OutgoingMessageType.STREAMING_RESPONSE,
+            "type": self.message_type,
             "id": msg_id,
             "payload": {"text": content},
         }

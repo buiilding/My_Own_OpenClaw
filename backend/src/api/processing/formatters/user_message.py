@@ -8,11 +8,12 @@ from backend.src.core.events import AgentStreamingEvent
 
 class UserMessageFullEventFormatter(EventFormatter):
     """Formatter for full user message events."""
+    message_type = OutgoingMessageType.USER_MESSAGE_FULL
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
         return {
-            "type": OutgoingMessageType.USER_MESSAGE_FULL,
+            "type": self.message_type,
             "id": msg_id,
             "payload": {
                 "content": event_dict.get("content"),

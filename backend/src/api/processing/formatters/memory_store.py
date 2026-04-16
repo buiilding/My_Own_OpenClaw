@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class MemoryStoreEventFormatter(EventFormatter):
     """Formatter for memory store events."""
+    message_type = OutgoingMessageType.MEMORY_STORE
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
@@ -28,7 +29,7 @@ class MemoryStoreEventFormatter(EventFormatter):
             )
             return None
         return {
-            "type": OutgoingMessageType.MEMORY_STORE,
+            "type": self.message_type,
             "id": msg_id,
             "payload": {
                 "user_query": user_query,

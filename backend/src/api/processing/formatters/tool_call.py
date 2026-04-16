@@ -7,6 +7,7 @@ from backend.src.api.processing.formatters.base import EventFormatter, EventInpu
 
 class ToolCallEventFormatter(EventFormatter):
     """Formatter for tool call events."""
+    message_type = OutgoingMessageType.TOOL_CALL
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
         event_dict = self._get_event_dict(event)
@@ -39,7 +40,7 @@ class ToolCallEventFormatter(EventFormatter):
             payload["metadata"] = event_dict.get("metadata")
         
         return {
-            "type": OutgoingMessageType.TOOL_CALL,
+            "type": self.message_type,
             "id": msg_id,
             "payload": payload,
         }

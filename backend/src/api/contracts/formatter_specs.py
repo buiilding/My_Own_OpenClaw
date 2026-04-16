@@ -9,10 +9,9 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import TypeAlias
 
-from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.core.types import StreamingEventType
 
-FormatterSpec: TypeAlias = tuple[type, str, type, str]
+FormatterSpec: TypeAlias = tuple[type, str, type]
 
 
 @lru_cache(maxsize=1)
@@ -45,102 +44,85 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
             ThinkingEvent,
             StreamingEventType.LLM_THOUGHT.value,
             formatter_module.ThinkingEventFormatter,
-            OutgoingMessageType.LLM_THOUGHT,
         ),
         (
             ChunkEvent,
             StreamingEventType.STREAMING_RESPONSE.value,
             formatter_module.ChunkEventFormatter,
-            OutgoingMessageType.STREAMING_RESPONSE,
         ),
         (
             ErrorEvent,
             StreamingEventType.ERROR.value,
             formatter_module.ErrorEventFormatter,
-            OutgoingMessageType.ERROR,
         ),
         (
             StreamingCompleteEvent,
             StreamingEventType.STREAMING_COMPLETE.value,
             formatter_module.StreamingCompleteEventFormatter,
-            OutgoingMessageType.STREAMING_COMPLETE,
         ),
         (
             ToolCallEvent,
             StreamingEventType.TOOL_CALL.value,
             formatter_module.ToolCallEventFormatter,
-            OutgoingMessageType.TOOL_CALL,
         ),
         (
             ToolOutputEvent,
             StreamingEventType.TOOL_OUTPUT.value,
             formatter_module.ToolOutputEventFormatter,
-            OutgoingMessageType.TOOL_OUTPUT,
         ),
         (
             WebSearchProgressEvent,
             StreamingEventType.WEB_SEARCH_PROGRESS.value,
             formatter_module.WebSearchProgressEventFormatter,
-            OutgoingMessageType.WEB_SEARCH_PROGRESS,
         ),
         (
             SystemPromptEvent,
             StreamingEventType.SYSTEM_PROMPT.value,
             formatter_module.SystemPromptEventFormatter,
-            OutgoingMessageType.SYSTEM_PROMPT,
         ),
         (
             ToolSchemasEvent,
             StreamingEventType.TOOL_SCHEMAS.value,
             formatter_module.ToolSchemasEventFormatter,
-            OutgoingMessageType.TOOL_SCHEMAS,
         ),
         (
             UserMessageFullEvent,
             StreamingEventType.USER_MESSAGE_FULL.value,
             formatter_module.UserMessageFullEventFormatter,
-            OutgoingMessageType.USER_MESSAGE_FULL,
         ),
         (
             AssistantMessageFullEvent,
             StreamingEventType.ASSISTANT_MESSAGE_FULL.value,
             formatter_module.AssistantMessageFullEventFormatter,
-            OutgoingMessageType.ASSISTANT_MESSAGE_FULL,
         ),
         (
             TokenCountEvent,
             StreamingEventType.TOKEN_COUNT.value,
             formatter_module.TokenCountEventFormatter,
-            OutgoingMessageType.TOKEN_COUNT,
         ),
         (
             ContextCompactionStartedEvent,
             StreamingEventType.CONTEXT_COMPACTION_STARTED.value,
             formatter_module.ContextCompactionStartedEventFormatter,
-            OutgoingMessageType.CONTEXT_COMPACTION_STARTED,
         ),
         (
             ContextCompactionCompletedEvent,
             StreamingEventType.CONTEXT_COMPACTION_COMPLETED.value,
             formatter_module.ContextCompactionCompletedEventFormatter,
-            OutgoingMessageType.CONTEXT_COMPACTION_COMPLETED,
         ),
         (
             ContextCompactionFailedEvent,
             StreamingEventType.CONTEXT_COMPACTION_FAILED.value,
             formatter_module.ContextCompactionFailedEventFormatter,
-            OutgoingMessageType.CONTEXT_COMPACTION_FAILED,
         ),
         (
             MemoryStoreEvent,
             StreamingEventType.MEMORY_STORE.value,
             formatter_module.MemoryStoreEventFormatter,
-            OutgoingMessageType.MEMORY_STORE,
         ),
         (
             ToolBundleEvent,
             StreamingEventType.TOOL_BUNDLE.value,
             formatter_module.ToolBundleEventFormatter,
-            OutgoingMessageType.TOOL_BUNDLE,
         ),
     )

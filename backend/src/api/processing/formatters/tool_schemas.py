@@ -8,6 +8,7 @@ from backend.src.core.events import AgentStreamingEvent
 
 class ToolSchemasEventFormatter(EventFormatter):
     """Formatter for tool schemas events."""
+    message_type = OutgoingMessageType.TOOL_SCHEMAS
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
@@ -16,7 +17,7 @@ class ToolSchemasEventFormatter(EventFormatter):
             raise ValueError("tool_schemas event payload must be a canonical tool object list")
 
         return {
-            "type": OutgoingMessageType.TOOL_SCHEMAS,
+            "type": self.message_type,
             "id": msg_id,
             "payload": {
                 "tool_schemas": tool_schemas,

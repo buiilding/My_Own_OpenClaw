@@ -22,12 +22,12 @@ title: "Response Formatter Registry Lifecycle, Lazy Specs, and Context Attachmen
 
 `formatter_specs.get_formatter_specs()` defines canonical tuples:
 
-- `(event_class, stream_event_type_literal, formatter_class, outgoing_message_type_literal)`
+- `(event_class, stream_event_type_literal, formatter_class)`
 
 This one tuple list powers two independent consumers:
 
 - runtime dispatch: `ResponseFormatter._register_formatters()`
-- contract validation: registry/tests asserting spec-to-schema alignment
+- contract validation: registry/tests asserting formatter-to-schema alignment via each formatter class `message_type`
 
 Because both paths consume the same source, spec drift appears early as test failure or formatter-construction exception.
 
@@ -124,7 +124,7 @@ Debug implication:
 `tests/backend/test_api_contract_registry.py` locks:
 
 - formatter spec classes/types align with live `ResponseFormatter` maps
-- spec outgoing message types are subset of outgoing schema message-type registry
+- formatter class `message_type` values are subset of outgoing schema message-type registry
 
 This couples formatter registration, schema constants, and contract tables as a single guarded surface.
 
@@ -132,7 +132,7 @@ This couples formatter registration, schema constants, and contract tables as a 
 
 1. adding formatter class but forgetting spec entry => formatter never reachable.
 2. adding spec with duplicate event type/class => constructor failure at startup/test.
-3. changing outgoing type constant in spec but not outgoing schema contracts => registry alignment failure.
+3. changing a formatter class `message_type` but not outgoing schema contracts => registry alignment failure.
 4. introducing subclass event without explicit spec => typed dispatch miss despite similar fields.
 5. passing empty context identifiers => omitted envelope fields by falsy guard.
 
@@ -141,7 +141,7 @@ This couples formatter registration, schema constants, and contract tables as a 
 When adding a new event formatter:
 
 1. add tuple to `get_formatter_specs()`
-2. ensure outgoing message type constant exists in canonical message-type sets
+2. set formatter class `message_type` to the canonical outgoing message type constant
 3. add/extend formatter output schema contract tests
 4. add typed and dict-path dispatch tests when compatibility is required
 

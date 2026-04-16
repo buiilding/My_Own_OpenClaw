@@ -11,11 +11,12 @@ from backend.src.core.infrastructure.user_facing_errors import (
 
 class ErrorEventFormatter(EventFormatter):
     """Formatter for error events."""
+    message_type = OutgoingMessageType.ERROR
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
         return {
-            "type": OutgoingMessageType.ERROR,
+            "type": self.message_type,
             "id": msg_id,
             "payload": {
                 "message": sanitize_stream_error_message(event_dict.get("content")),

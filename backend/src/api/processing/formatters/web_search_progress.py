@@ -6,6 +6,7 @@ from backend.src.api.processing.formatters.base import EventFormatter, EventInpu
 
 class WebSearchProgressEventFormatter(EventFormatter):
     """Formatter for provider-native web-search progress events."""
+    message_type = OutgoingMessageType.WEB_SEARCH_PROGRESS
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
         event_dict = self._get_event_dict(event)
@@ -24,7 +25,7 @@ class WebSearchProgressEventFormatter(EventFormatter):
         }
 
         return {
-            "type": OutgoingMessageType.WEB_SEARCH_PROGRESS,
+            "type": self.message_type,
             "id": msg_id,
             "payload": payload,
         }

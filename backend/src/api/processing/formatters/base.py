@@ -4,7 +4,7 @@ Base Event Formatter.
 Abstract base class for all event formatters.
 """
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Union
+from typing import Any, ClassVar, Dict, Optional, Union
 
 from backend.src.core.events import AgentStreamingEvent, StreamingEvent
 
@@ -16,6 +16,8 @@ FormattedEvent = Optional[Dict[str, Any]]
 
 class EventFormatter(ABC):
     """Abstract base class for event formatters."""
+
+    message_type: ClassVar[str]
 
     @abstractmethod
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:

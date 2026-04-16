@@ -8,11 +8,12 @@ from backend.src.core.events import AgentStreamingEvent
 
 class TokenCountEventFormatter(EventFormatter):
     """Formatter for token count events."""
+    message_type = OutgoingMessageType.TOKEN_COUNT
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
         return {
-            "type": OutgoingMessageType.TOKEN_COUNT,
+            "type": self.message_type,
             "id": msg_id,
             "payload": {
                 "prompt_tokens": event_dict.get("prompt_tokens"),

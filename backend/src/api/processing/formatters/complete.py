@@ -8,6 +8,7 @@ from backend.src.core.events import AgentStreamingEvent
 
 class StreamingCompleteEventFormatter(EventFormatter):
     """Formatter for streaming complete events."""
+    message_type = OutgoingMessageType.STREAMING_COMPLETE
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
@@ -16,7 +17,7 @@ class StreamingCompleteEventFormatter(EventFormatter):
         if isinstance(final_response, str):
             payload["final_response"] = final_response
         return {
-            "type": OutgoingMessageType.STREAMING_COMPLETE,
+            "type": self.message_type,
             "id": msg_id,
             "payload": payload,
         }

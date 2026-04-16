@@ -8,6 +8,7 @@ from backend.src.core.events import AgentStreamingEvent, ToolBundleEvent
 
 class ToolBundleEventFormatter(EventFormatter):
     """Formatter for tool bundle events."""
+    message_type = OutgoingMessageType.TOOL_BUNDLE
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         if isinstance(event, dict):
@@ -18,7 +19,7 @@ class ToolBundleEventFormatter(EventFormatter):
             tools = event.tools
         
         return {
-            "type": OutgoingMessageType.TOOL_BUNDLE,
+            "type": self.message_type,
             "id": msg_id,
             "payload": {
                 "bundle_id": bundle_id,
