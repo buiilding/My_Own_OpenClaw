@@ -73,6 +73,10 @@ class DummyAgent:
         capture_meta=None,
         message_content=None,
         conversation_ref=None,
+        operating_system=None,
+        workspace_path=None,
+        repo_instruction_messages=None,
+        runtime_system_state=None,
     ):
         yield {"type": "chunk", "content": "ok"}
 
@@ -101,6 +105,10 @@ class DummyCaptureAgent:
         capture_meta=None,
         message_content=None,
         conversation_ref=None,
+        operating_system=None,
+        workspace_path=None,
+        repo_instruction_messages=None,
+        runtime_system_state=None,
     ):
         self.calls.append(
             {
@@ -110,8 +118,16 @@ class DummyCaptureAgent:
                 "capture_meta": capture_meta,
                 "message_content": message_content,
                 "conversation_ref": conversation_ref,
+                "operating_system": operating_system,
+                "workspace_path": workspace_path,
+                "repo_instruction_messages": repo_instruction_messages,
+                "runtime_system_state": runtime_system_state,
             }
         )
+        if runtime_system_state is not None:
+            setter = getattr(self, "set_current_system_state", None)
+            if callable(setter):
+                setter(runtime_system_state)
         yield {"type": "chunk", "content": "ok"}
 
 
@@ -143,6 +159,10 @@ class DummySilentAgent:
         capture_meta=None,
         message_content=None,
         conversation_ref=None,
+        operating_system=None,
+        workspace_path=None,
+        repo_instruction_messages=None,
+        runtime_system_state=None,
     ):
         if False:
             yield {
@@ -168,6 +188,10 @@ class DummyAssistantFullThenCompleteAgent:
         capture_meta=None,
         message_content=None,
         conversation_ref=None,
+        operating_system=None,
+        workspace_path=None,
+        repo_instruction_messages=None,
+        runtime_system_state=None,
     ):
         yield {"type": "assistant_message_full", "content": "Final answer from assistant full"}
         yield {"type": "streaming-complete", "payload": {}}
@@ -187,6 +211,10 @@ class DummyPostTerminalNoiseAgent:
         capture_meta=None,
         message_content=None,
         conversation_ref=None,
+        operating_system=None,
+        workspace_path=None,
+        repo_instruction_messages=None,
+        runtime_system_state=None,
     ):
         yield {"type": "chunk", "content": "first chunk"}
         yield {"type": "streaming-complete", "payload": {"final_response": "done"}}
@@ -207,6 +235,10 @@ class DummyErrorThenChunkAgent:
         capture_meta=None,
         message_content=None,
         conversation_ref=None,
+        operating_system=None,
+        workspace_path=None,
+        repo_instruction_messages=None,
+        runtime_system_state=None,
     ):
         yield {"type": "error", "payload": {"message": "failed"}}
         yield {"type": "chunk", "content": "late chunk"}
@@ -228,6 +260,10 @@ class DummyBlockingAgent:
         capture_meta=None,
         message_content=None,
         conversation_ref=None,
+        operating_system=None,
+        workspace_path=None,
+        repo_instruction_messages=None,
+        runtime_system_state=None,
     ):
         self._started_event.set()
         await asyncio.sleep(3600)
@@ -258,6 +294,7 @@ class DummySessionManager:
         self.register_calls = []
         self.clear_calls = []
         self.cancel_calls = []
+        self.frontend_operating_system = None
 
     async def get_or_create_session(
         self,
@@ -310,17 +347,23 @@ class DummySessionManager:
                 "task": task,
             }
         )
-        self.registered_query_tasks[user_id] = (task, turn_ref, conversation_ref)
+        self.registered_query_tasks.setdefault(user_id, {})[task] = (
+            turn_ref,
+            conversation_ref,
+        )
         return False
 
     def clear_active_query_task(self, user_id: str, task=None) -> None:
         self.clear_calls.append({"user_id": user_id, "task": task})
         registered = self.registered_query_tasks.get(user_id)
-        if registered is None:
+        if not registered:
             return
-        if task is not None and registered[0] is not task:
+        if task is None:
+            self.registered_query_tasks.pop(user_id, None)
             return
-        self.registered_query_tasks.pop(user_id, None)
+        registered.pop(task, None)
+        if not registered:
+            self.registered_query_tasks.pop(user_id, None)
 
     def cancel_active_query_task(
         self,
@@ -329,16 +372,46 @@ class DummySessionManager:
     ):
         self.cancel_calls.append((user_id, conversation_ref))
         registered = self.registered_query_tasks.get(user_id)
-        if registered is None:
+        if not registered:
             return None
-        task, turn_ref, registered_conversation_ref = registered
-        if (
-            conversation_ref is not None
-            and registered_conversation_ref != conversation_ref
-        ):
-            return None
-        task.cancel()
-        return turn_ref, registered_conversation_ref
+        canceled = None
+        for task, (turn_ref, registered_conversation_ref) in list(registered.items()):
+            if task.done():
+                registered.pop(task, None)
+                continue
+            if (
+                conversation_ref is not None
+                and registered_conversation_ref != conversation_ref
+            ):
+                continue
+            task.cancel()
+            registered.pop(task, None)
+            canceled = (turn_ref, registered_conversation_ref)
+        if not registered:
+            self.registered_query_tasks.pop(user_id, None)
+        return canceled
+
+    def has_active_query_task(
+        self,
+        user_id: str,
+        conversation_ref: Optional[str] = None,
+    ) -> bool:
+        registered = self.registered_query_tasks.get(user_id)
+        if not registered:
+            return False
+        for task, (_turn_ref, registered_conversation_ref) in list(registered.items()):
+            if task.done():
+                registered.pop(task, None)
+                continue
+            if (
+                conversation_ref is not None
+                and registered_conversation_ref != conversation_ref
+            ):
+                continue
+            return True
+        if not registered:
+            self.registered_query_tasks.pop(user_id, None)
+        return False
 
     async def update_session_config(
         self, user_id: str, updates: Dict[str, Any]
@@ -346,6 +419,10 @@ class DummySessionManager:
         await self.session.update_config(
             AppConfig(**{**self.session.cfg.model_dump(), **updates})
         )
+
+    def get_frontend_operating_system(self, user_id: str):
+        _ = user_id
+        return self.frontend_operating_system
 
 
 class DummySession:
@@ -1041,6 +1118,138 @@ async def test_query_handler_applies_runtime_system_state_internal(monkeypatch):
 
     assert len(session_manager.session.calls) == 1
     assert session_manager.session.runtime_state_updates[-1]["screen_resolution"] == "2560x1440"
+
+
+@pytest.mark.asyncio
+async def test_query_handler_forwards_query_scoped_context_to_session(monkeypatch):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session = DummyCaptureAgent()
+    session_manager.frontend_operating_system = "Linux"
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
+
+    class DummyPipeline:
+        def __init__(self, *_args, **_kwargs):
+            return None
+
+        async def process(self, *_args, **_kwargs):
+            return None
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    monkeypatch.setattr("backend.src.api.handlers.query.StreamPipeline", DummyPipeline)
+
+    message = QueryMessage(
+        id="msg_query_context_1",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "contextful query",
+            "conversation_ref": "conv_test",
+            "content": "<user_query>contextful query</user_query>",
+            "workspace_path": "/work/WindieOS",
+            "repo_instruction_messages": [
+                {"role": "user", "content": "Respect AGENTS.md"},
+            ],
+            "system_state_internal": {
+                "active_window": "Terminal",
+            },
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert len(session_manager.session.calls) == 1
+    assert session_manager.session.calls[0]["operating_system"] == "Linux"
+    assert session_manager.session.calls[0]["workspace_path"] == "/work/WindieOS"
+    assert session_manager.session.calls[0]["repo_instruction_messages"] == [
+        {"role": "user", "content": "Respect AGENTS.md"}
+    ]
+    assert session_manager.session.calls[0]["runtime_system_state"] == {
+        "active_window": "Terminal"
+    }
+
+
+@pytest.mark.asyncio
+async def test_query_handler_allows_concurrent_queries_for_different_conversations(monkeypatch):
+    websocket = FakeWebSocket()
+
+    class _ConcurrentSessionManager(DummySessionManager):
+        def __init__(self):
+            super().__init__()
+            self.started_events = {
+                "conv-a": asyncio.Event(),
+                "conv-b": asyncio.Event(),
+            }
+            self.sessions = {
+                "conv-a": DummyBlockingAgent(self.started_events["conv-a"]),
+                "conv-b": DummyBlockingAgent(self.started_events["conv-b"]),
+            }
+
+        async def get_or_create_session(
+            self,
+            user_id: str,
+            conversation_ref: Optional[str] = None,
+        ):
+            _ = user_id
+            return self.sessions[conversation_ref]
+
+    session_manager = _ConcurrentSessionManager()
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
+
+    class DummyPipeline:
+        def __init__(self, *_args, **_kwargs):
+            return None
+
+        async def process(self, *_args, **_kwargs):
+            return None
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    monkeypatch.setattr("backend.src.api.handlers.query.StreamPipeline", DummyPipeline)
+
+    message_a = QueryMessage(
+        id="msg_concurrent_a",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "chat a",
+            "conversation_ref": "conv-a",
+            "content": "<user_query>chat a</user_query>",
+        },
+    )
+    message_b = QueryMessage(
+        id="msg_concurrent_b",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "chat b",
+            "conversation_ref": "conv-b",
+            "content": "<user_query>chat b</user_query>",
+        },
+    )
+
+    task_a = asyncio.create_task(handler.handle(message_a, websocket, "user_1"))
+    task_b = asyncio.create_task(handler.handle(message_b, websocket, "user_1"))
+
+    try:
+        await asyncio.wait_for(session_manager.started_events["conv-a"].wait(), timeout=1)
+        await asyncio.wait_for(session_manager.started_events["conv-b"].wait(), timeout=1)
+        assert session_manager.has_active_query_task("user_1", conversation_ref="conv-a")
+        assert session_manager.has_active_query_task("user_1", conversation_ref="conv-b")
+    finally:
+        task_a.cancel()
+        task_b.cancel()
+        with suppress(asyncio.CancelledError):
+            await task_a
+        with suppress(asyncio.CancelledError):
+            await task_b
 
 
 @pytest.mark.asyncio

@@ -30,7 +30,6 @@ from backend.src.api.services.query_execution_support.query_execution_pipeline_e
     process_pipeline_event,
 )
 from backend.src.api.services.query_execution_support.query_execution_runtime import (
-    apply_query_runtime_system_state,
     build_stream_context,
 )
 from backend.src.api.services.query_execution_support.query_execution_stream_state import (
@@ -87,19 +86,7 @@ class QueryExecutionService:
             user_id,
             conversation_ref=message.payload.conversation_ref,
         )
-        self._apply_session_workspace_path(
-            user_id=user_id,
-            agent_instance=agent_instance,
-            workspace_path=message.payload.workspace_path,
-            repo_instruction_messages=[
-                {
-                    "role": instruction.role,
-                    "content": instruction.content,
-                }
-                for instruction in (message.payload.repo_instruction_messages or [])
-            ],
-        )
-        self._apply_query_runtime_system_state(agent_instance, message)
+        frontend_operating_system = self._get_frontend_operating_system(user_id)
         stream_context = self._build_stream_context(
             agent_instance=agent_instance,
             msg_id=msg_id,
@@ -130,6 +117,10 @@ class QueryExecutionService:
                     capture_meta=query_inputs.capture_meta,
                     message_content=query_inputs.message_content,
                     conversation_ref=query_inputs.conversation_ref,
+                    operating_system=frontend_operating_system,
+                    workspace_path=query_inputs.workspace_path,
+                    repo_instruction_messages=query_inputs.repo_instruction_messages,
+                    runtime_system_state=query_inputs.runtime_system_state,
                 ):
                     event_type = extract_event_type(event)
 
@@ -225,23 +216,42 @@ class QueryExecutionService:
             user_id,
         )
 
-    def _apply_session_workspace_path(
-        self,
+    @staticmethod
+    def _finalize_pending_tool_calls_on_cancel(
         *,
-        user_id: str,
         agent_instance: Any,
-        workspace_path: Optional[str],
-        repo_instruction_messages: Optional[list[dict[str, str]]] = None,
+        msg_id: str,
+        conversation_ref: Optional[str],
     ) -> None:
-        set_workspace_path = getattr(
+        finalize_pending_tool_calls_on_cancel(
+            agent_instance=agent_instance,
+            msg_id=msg_id,
+            conversation_ref=conversation_ref,
+        )
+
+    @staticmethod
+    def _build_stream_context(
+        *,
+        agent_instance: Any,
+        msg_id: str,
+        conversation_ref: Optional[str],
+    ) -> dict[str, Optional[str]]:
+        return build_stream_context(
+            agent_instance=agent_instance,
+            msg_id=msg_id,
+            conversation_ref=conversation_ref,
+        )
+
+    def _get_frontend_operating_system(self, user_id: str) -> Optional[str]:
+        get_frontend_operating_system = getattr(
             self._session_manager,
-            "set_session_workspace_path",
+            "get_frontend_operating_system",
             None,
         )
-        if not callable(set_workspace_path):
-            return
+        if not callable(get_frontend_operating_system):
+            return None
         try:
-            signature = inspect.signature(set_workspace_path)
+            signature = inspect.signature(get_frontend_operating_system)
         except (TypeError, ValueError):
             signature = None
 
@@ -257,49 +267,11 @@ class QueryExecutionService:
             parameter.kind == inspect.Parameter.VAR_POSITIONAL
             for parameter in (signature.parameters.values() if signature else [])
         )
-        if signature is None or has_varargs or len(positional_params) >= 4:
-            set_workspace_path(
-                user_id,
-                agent_instance,
-                workspace_path,
-                repo_instruction_messages,
-            )
-            return
-
-        set_workspace_path(
-            user_id,
-            agent_instance,
-            workspace_path,
-        )
-
-    @staticmethod
-    def _finalize_pending_tool_calls_on_cancel(
-        *,
-        agent_instance: Any,
-        msg_id: str,
-        conversation_ref: Optional[str],
-    ) -> None:
-        finalize_pending_tool_calls_on_cancel(
-            agent_instance=agent_instance,
-            msg_id=msg_id,
-            conversation_ref=conversation_ref,
-        )
-
-    def _apply_query_runtime_system_state(self, agent_instance: Any, message: QueryMessage) -> None:
-        apply_query_runtime_system_state(agent_instance, message)
-
-    @staticmethod
-    def _build_stream_context(
-        *,
-        agent_instance: Any,
-        msg_id: str,
-        conversation_ref: Optional[str],
-    ) -> dict[str, Optional[str]]:
-        return build_stream_context(
-            agent_instance=agent_instance,
-            msg_id=msg_id,
-            conversation_ref=conversation_ref,
-        )
+        if signature is None or has_varargs or len(positional_params) >= 1:
+            operating_system = get_frontend_operating_system(user_id)
+        else:
+            operating_system = get_frontend_operating_system()
+        return operating_system if isinstance(operating_system, str) else None
 
     @staticmethod
     async def _process_pipeline_event(

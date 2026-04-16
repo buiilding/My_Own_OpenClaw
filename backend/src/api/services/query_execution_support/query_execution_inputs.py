@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, List, Optional, Type, Union
 
 from backend.src.api.services.query_execution_support.query_execution_runtime import (
+    resolve_query_runtime_system_state,
     resolve_query_screenshot_metadata,
     resolve_screenshots,
 )
@@ -23,6 +24,9 @@ class QueryExecutionInputs:
     capture_meta: Optional[dict[str, Any]]
     message_content: Optional[Any]
     conversation_ref: Optional[str]
+    workspace_path: Optional[str]
+    repo_instruction_messages: Optional[list[dict[str, str]]]
+    runtime_system_state: Optional[dict[str, str]]
 
 
 def build_query_image_data(
@@ -48,9 +52,27 @@ def resolve_query_execution_inputs(
         artifact_store_cls=artifact_store_cls,
         session_manager_config=session_manager_config,
     )
+    raw_repo_instruction_messages = getattr(
+        message.payload,
+        "repo_instruction_messages",
+        None,
+    )
+    repo_instruction_messages = None
+    if raw_repo_instruction_messages is not None:
+        repo_instruction_messages = [
+            {
+                "role": instruction.role,
+                "content": instruction.content,
+            }
+            for instruction in raw_repo_instruction_messages
+        ]
+
     return QueryExecutionInputs(
         image_data=build_query_image_data(resolved_screenshots),
         capture_meta=resolve_query_screenshot_metadata(message),
         message_content=getattr(message.payload, "content", None),
         conversation_ref=getattr(message.payload, "conversation_ref", None),
+        workspace_path=getattr(message.payload, "workspace_path", None),
+        repo_instruction_messages=repo_instruction_messages,
+        runtime_system_state=resolve_query_runtime_system_state(message),
     )
