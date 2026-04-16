@@ -4,6 +4,7 @@ Embedding Provider Interface.
 This module defines the abstract interface for embedding generation, allowing
 different implementations (SentenceTransformer, OpenAI, etc.) to be used interchangeably.
 """
+
 from abc import ABC, abstractmethod
 from typing import List
 
@@ -14,10 +15,20 @@ class EmbeddingProvider(ABC):
     """
     Abstract interface for embedding generation.
     Decouples the memory store from specific embedding libraries (e.g., SentenceTransformer, OpenAI).
-    
+
     All methods are async to allow offloading blocking operations (e.g., model inference)
     to thread pools, preventing asyncio event loop blocking.
     """
+
+    @property
+    def provider_id(self) -> str:
+        """Stable provider identity for routing and memory metadata."""
+        return self.__class__.__name__.replace("Provider", "").lower()
+
+    @property
+    def model_id(self) -> str:
+        """Stable model identity for routing and memory metadata."""
+        return getattr(self, "model_name", self.__class__.__name__)
 
     @abstractmethod
     async def embed_text(self, text: str) -> np.ndarray:

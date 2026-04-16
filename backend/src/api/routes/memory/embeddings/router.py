@@ -15,6 +15,7 @@ from backend.src.api.routes.memory.health import (
     dependency_health_check,
     healthy_payload,
 )
+
 from .models import EmbeddingRequest, EmbeddingResponse
 from .service import (
     generate_embedding_response,
@@ -24,6 +25,17 @@ from .service import (
 
 router = APIRouter(prefix="/api/embeddings", tags=["embeddings"])
 logger = logging.getLogger(__name__)
+
+
+def _resolve_embedding_provider(container: Any) -> Any:
+    embedding_router = getattr(container, "embedding_router", None)
+    if embedding_router is not None:
+        return (
+            embedding_router
+            if getattr(embedding_router, "provider", None) is not None
+            else None
+        )
+    return getattr(container, "embedder", None)
 
 
 def _log_embedding_route_start(*, text: str, model_name: str) -> float:
@@ -106,7 +118,7 @@ async def generate_embedding(
         model_name=request.model_name,
     )
     try:
-        embedding_provider = container.embedder
+        embedding_provider = _resolve_embedding_provider(container)
         if not embedding_provider:
             error = HTTPException(
                 status_code=503,
@@ -164,7 +176,7 @@ async def health_check(
     """
     return await dependency_health_check(
         dependency=None,
-        get_dependency=lambda: container.embedder,
+        get_dependency=lambda: _resolve_embedding_provider(container),
         missing_message="Embedding provider not available",
         on_healthy=lambda embedding_provider: resolve_health_payload(
             embedding_provider=embedding_provider,

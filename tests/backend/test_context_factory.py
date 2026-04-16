@@ -37,6 +37,7 @@ def test_context_factory_builds_tool_context_with_services():
     assert services["tool_registry"] is dummy_registry
     assert services["agent_factory"] == "agent-factory"
     assert services["vision_service"] == "vision-service"
+    assert services["vision_router"] == "vision-service"
     assert services["extra"] == 123
 
 
@@ -84,7 +85,9 @@ def test_context_factory_update_session_ref_affects_future_contexts():
 def test_context_factory_defaults_workspace_to_cwd(monkeypatch):
     config = AppConfig()
     factory = ContextFactory(config=config)
-    monkeypatch.setattr("backend.src.core.services.context_factory.os.getcwd", lambda: "/tmp/cwd")
+    monkeypatch.setattr(
+        "backend.src.core.services.context_factory.os.getcwd", lambda: "/tmp/cwd"
+    )
 
     context = factory.create_tool_context(user_id="u1", session_id="s1")
 
@@ -113,6 +116,8 @@ def test_context_factory_can_remove_optional_services():
 
     assert "vision_service" not in context.services
     assert "ocr_service" not in context.services
+    assert "vision_router" not in context.services
+    assert "ocr_router" not in context.services
 
 
 def test_context_factory_copies_session_metadata_snapshot():

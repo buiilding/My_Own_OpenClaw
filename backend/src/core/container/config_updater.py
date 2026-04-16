@@ -67,6 +67,9 @@ class ContainerConfigUpdater:
         if updated_config.memory_enabled:
             self._reinitialize_embedder(updated_config)
         else:
+            if hasattr(self.container, "embedding_router"):
+                self.container.embedding_router.set_provider(None)
+                self.container.embedding_provider = None
             self.container.embedder = None
 
         # Invalidate session factory to force recreation with new config.
@@ -89,8 +92,14 @@ class ContainerConfigUpdater:
                 _create_embedder,
                 config=providers.Object(config),
                 cache_manager=providers.Object(
-                    self.container._di_container.cache_manager()
+                    self.container._di_container.core.cache_manager()
                 ),
             )
         )
-        self.container.embedder = memory_embedder_provider()
+        embedding_provider = memory_embedder_provider()
+        if hasattr(self.container, "embedding_router"):
+            self.container.embedding_router.set_provider(embedding_provider)
+            self.container.embedding_provider = embedding_provider
+            self.container.embedder = self.container.embedding_router
+            return
+        self.container.embedder = embedding_provider

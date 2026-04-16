@@ -36,11 +36,11 @@ from backend.src.api.routes.sdk.models import (
 from backend.src.core.types.enums import MessageType
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 from backend.src.llm.prompts.prompts import PromptManager
+from backend.src.services.artifacts import ArtifactStore
+from backend.src.services.ocr.helpers import decode_screenshot_payload
 from backend.src.tools.provider_projection import project_tool_schemas_for_provider
 from backend.src.tools.tool_policy import ToolPolicy
 from backend.src.tools.tool_specs import get_tool_spec_name
-from backend.src.services.artifacts import ArtifactStore
-from backend.src.services.ocr.helpers import decode_screenshot_payload
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +69,9 @@ class PromptPreviewHistory:
         user_query_raw: Optional[str] = None,
     ) -> None:
         self._history = [message for message in messages if isinstance(message, dict)]
-        inferred_query = user_query_raw or self._infer_last_user_query_raw(self._history)
+        inferred_query = user_query_raw or self._infer_last_user_query_raw(
+            self._history
+        )
         self.last_user_query = (
             _PreviewStoredQuery(inferred_query)
             if isinstance(inferred_query, str)
@@ -436,7 +438,9 @@ def resolve_image_source(image: ImageSourceInput, container) -> ResolvedImageSou
                 else:
                     content_type = "image/png"
     except Exception as exc:
-        raise HTTPException(status_code=422, detail="Image source is not a valid image") from exc
+        raise HTTPException(
+            status_code=422, detail="Image source is not a valid image"
+        ) from exc
 
     return ResolvedImageSource(
         image_bytes=image_bytes,
@@ -469,7 +473,9 @@ def crop_image_source(
     width = min(region.width, source.width - x)
     height = min(region.height, source.height - y)
     if width <= 0 or height <= 0:
-        raise HTTPException(status_code=422, detail="Requested region is outside image bounds")
+        raise HTTPException(
+            status_code=422, detail="Requested region is outside image bounds"
+        )
 
     with Image.open(io.BytesIO(source.image_bytes)) as img:
         cropped = img.crop((x, y, x + width, y + height))
@@ -492,13 +498,17 @@ def crop_image_source(
 
 
 async def run_ocr(source: ResolvedImageSource, container) -> list[dict[str, Any]]:
-    ocr_service = getattr(container, "ocr_service", None)
+    ocr_service = getattr(
+        container, "ocr_router", getattr(container, "ocr_service", None)
+    )
     if ocr_service is None or not getattr(ocr_service, "enabled", False):
         raise HTTPException(status_code=503, detail="OCR service not available")
 
     ocr_results = await ocr_service.perform_ocr(source.image_base64)
     if ocr_results is None:
-        raise HTTPException(status_code=503, detail="OCR service did not return results")
+        raise HTTPException(
+            status_code=503, detail="OCR service did not return results"
+        )
     return ocr_results
 
 
@@ -511,11 +521,7 @@ def _build_ocr_result(
 ) -> OcrResultModel:
     bbox = item.get("bbox") or {}
     center = OcrCoordinateResolver._extract_bbox_center(bbox)
-    center_model = (
-        PointModel(x=center[0], y=center[1])
-        if center is not None
-        else None
-    )
+    center_model = PointModel(x=center[0], y=center[1]) if center is not None else None
     bbox_model = BoundingBoxModel(
         x=int(bbox["x"]),
         y=int(bbox["y"]),
@@ -599,13 +605,20 @@ def build_ocr_resolution_error(error: Exception) -> tuple[int, dict[str, Any]]:
 
 
 async def resolve_vision_service(container):
-    vision_service = getattr(container, "vision_service", None)
+    vision_service = getattr(
+        container,
+        "vision_router",
+        getattr(container, "vision_service", None),
+    )
     if vision_service is None:
         raise HTTPException(status_code=503, detail="Vision service not available")
     if not getattr(vision_service, "is_initialized", False):
         initialized = await vision_service.initialize()
         if not initialized:
-            detail = getattr(vision_service, "initialization_error", None) or "Vision service not initialized"
+            detail = (
+                getattr(vision_service, "initialization_error", None)
+                or "Vision service not initialized"
+            )
             raise HTTPException(status_code=503, detail=detail)
     if getattr(vision_service, "model", None) is None:
         raise HTTPException(status_code=503, detail="Vision model not available")
@@ -674,7 +687,9 @@ async def describe_image_region(
     )
     description = await describe_fn(source.image_base64, prompt)
     if not description:
-        raise HTTPException(status_code=502, detail="Vision model returned an empty description")
+        raise HTTPException(
+            status_code=502, detail="Vision model returned an empty description"
+        )
     return description.strip()
 
 

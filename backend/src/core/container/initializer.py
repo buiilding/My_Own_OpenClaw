@@ -174,6 +174,9 @@ class ContainerInitializer:
             if embedder is None:
                 logger.debug("Embedder not available (memory may be disabled)")
                 return
+            if getattr(embedder, "provider", object()) is None:
+                logger.debug("Embedding provider not available (memory may be disabled)")
+                return
 
             # Check if embedder has initialize method (SentenceTransformerProvider)
             if hasattr(embedder, 'initialize'):

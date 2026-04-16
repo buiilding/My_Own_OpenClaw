@@ -4,17 +4,23 @@ Context Factory Service.
 This module provides a centralized service for creating execution contexts,
 eliminating duplication and ensuring consistent context creation across the system.
 """
+
+import logging
 import os
 import time
-import logging
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from backend.src.sdk.context import ToolContext, UserContext, SessionContext, ExecutionRuntime
 from backend.src.core.config import AppConfig
+from backend.src.sdk.context import (
+    ExecutionRuntime,
+    SessionContext,
+    ToolContext,
+    UserContext,
+)
 
 if TYPE_CHECKING:
-    from backend.src.tools.registry import ToolRegistry
     from backend.src.agent.session.session import AgentSession
+    from backend.src.tools.registry import ToolRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +28,11 @@ logger = logging.getLogger(__name__)
 class ContextFactory:
     """
     Factory for creating execution contexts.
-    
+
     Provides a single source of truth for context creation, ensuring
     consistent service injection and context structure across the system.
     """
-    
+
     def __init__(
         self,
         config: AppConfig,
@@ -36,7 +42,7 @@ class ContextFactory:
     ):
         """
         Initialize the context factory.
-        
+
         Args:
             config: Application configuration
             tool_registry: Optional tool registry instance (can be set later)
@@ -49,6 +55,8 @@ class ContextFactory:
         self.agent_factory = agent_factory
         self.vision_service: Optional[Any] = None
         self.ocr_service: Optional[Any] = None
+        self.vision_router: Optional[Any] = None
+        self.ocr_router: Optional[Any] = None
         self._base_services: Dict[str, Any] = {"config": self.config}
         if self.tool_registry:
             self._base_services["tool_registry"] = self.tool_registry
@@ -58,11 +66,11 @@ class ContextFactory:
             self._base_services["vision_service"] = self.vision_service
         if self.ocr_service:
             self._base_services["ocr_service"] = self.ocr_service
-    
+
     def set_tool_registry(self, tool_registry: "ToolRegistry") -> None:
         """
         Set the tool registry (for resolving circular dependencies).
-        
+
         Args:
             tool_registry: Tool registry instance
         """
@@ -77,15 +85,18 @@ class ContextFactory:
     def set_vision_service(self, vision_service: Optional[Any]) -> None:
         """
         Set the vision service (for pre-initialized InternVL model).
-        
+
         Args:
             vision_service: VisionService instance or None
         """
         self.vision_service = vision_service
+        self.vision_router = vision_service
         if vision_service is None:
             self._base_services.pop("vision_service", None)
+            self._base_services.pop("vision_router", None)
         else:
             self._base_services["vision_service"] = vision_service
+            self._base_services["vision_router"] = vision_service
 
     def set_ocr_service(self, ocr_service: Optional[Any]) -> None:
         """
@@ -95,11 +106,14 @@ class ContextFactory:
             ocr_service: OcrService instance or None
         """
         self.ocr_service = ocr_service
+        self.ocr_router = ocr_service
         if ocr_service is None:
             self._base_services.pop("ocr_service", None)
+            self._base_services.pop("ocr_router", None)
         else:
             self._base_services["ocr_service"] = ocr_service
-    
+            self._base_services["ocr_router"] = ocr_service
+
     def create_tool_context(
         self,
         user_id: str,
@@ -110,26 +124,26 @@ class ContextFactory:
     ) -> ToolContext:
         """
         Create a tool execution context.
-        
+
         This is the single source of truth for context creation.
         All context creation should go through this method.
-        
+
         Args:
             user_id: User identifier
             session_id: Session identifier
             workspace_root: Optional workspace root path (defaults to current directory)
             session_ref: Optional session reference (overrides factory default)
             additional_services: Optional additional services to inject
-            
+
         Returns:
             Configured ToolContext instance
         """
         # Use provided session_ref or fall back to factory default
         effective_session_ref = session_ref or self.session_ref
-        
+
         # Build services dictionary
         services: Dict[str, Any] = dict(self._base_services)
-        
+
         # Add session reference if available (for session-scoped data)
         if effective_session_ref:
             services["session"] = effective_session_ref
@@ -137,41 +151,38 @@ class ContextFactory:
         # Merge additional services
         if additional_services:
             services.update(additional_services)
-        
+
         # Create context
         workspace = workspace_root or os.getcwd()
-        
+
         # Metadata from session (includes active window provided by frontend)
         session_metadata = {}
         if effective_session_ref and hasattr(effective_session_ref, "metadata"):
             session_metadata.update(effective_session_ref.metadata)
-        
+
         context = ToolContext(
             user=UserContext(user_id=user_id),
             session=SessionContext(
-                session_id=session_id,
-                created_at=time.time(),
-                metadata=session_metadata
+                session_id=session_id, created_at=time.time(), metadata=session_metadata
             ),
-            runtime=ExecutionRuntime(
-                workspace_root=workspace,
-                services=services
-            )
+            runtime=ExecutionRuntime(workspace_root=workspace, services=services),
         )
-        
+
         logger.debug(
             f"Created context for user={user_id}, session={session_id}, "
             f"workspace={context.workspace_root}"
         )
-        
+
         return context
-    
+
     def update_session_ref(self, session_ref: Optional["AgentSession"]) -> None:
         """
         Update the default session reference for this factory.
-        
+
         Args:
             session_ref: New session reference (or None to clear)
         """
         self.session_ref = session_ref
-        logger.debug(f"Updated factory session reference: {session_ref.session_id if session_ref else None}")
+        logger.debug(
+            f"Updated factory session reference: {session_ref.session_id if session_ref else None}"
+        )

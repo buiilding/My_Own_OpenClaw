@@ -14,12 +14,14 @@ from backend.src.services.vision.providers import (
     VenusVisionModel,
     VISION_MODELS_AVAILABLE,
 )
+from backend.src.services.vision.provider import LocalVisionProvider
 from backend.src.services.vision.utils import normalize_model_name
 from backend.src.services.vision.vision_service import VisionService
 
 __all__ = [
     "BaseVisionModel",
     "InternVLModel",
+    "LocalVisionProvider",
     "VenusVisionModel",
     "VISION_MODELS_AVAILABLE",
     "VisionService",

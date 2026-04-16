@@ -54,12 +54,18 @@ class Container:
         self.context_factory = self._di_container.context_factory()
         self.agent_factory = self._di_container.agent_factory()
 
-        # Initialize memory system
-        self.embedder = self._di_container.embedder()
+        # Inference system
+        self.embedding_router = self._di_container.embedding_router()
+        self.vision_router = self._di_container.vision_router()
+        self.ocr_router = self._di_container.ocr_router()
+        self.embedding_provider = self.embedding_router.provider
+        self.vision_provider = self.vision_router.provider
+        self.ocr_provider = self.ocr_router.provider
 
-        # Vision service (from core container)
-        self.vision_service = self._di_container.core.vision_service()
-        self.ocr_service = self._di_container.core.ocr_service()
+        # Backward-compatible aliases while call sites migrate off service naming.
+        self.embedder = self.embedding_router
+        self.vision_service = self.vision_router
+        self.ocr_service = self.ocr_router
 
         # Core services (from core container)
         self.config_service = self._di_container.core.config_service()

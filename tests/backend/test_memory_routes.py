@@ -14,7 +14,10 @@ _original_deps = install_route_deps_shim()
 
 from backend.src.api.routes.memory import embeddings as embeddings_routes
 from backend.src.api.routes.memory import health as health_routes
-semantic_routes = importlib.import_module("backend.src.api.routes.memory.semantic.router")
+
+semantic_routes = importlib.import_module(
+    "backend.src.api.routes.memory.semantic.router"
+)
 from backend.src.core.config.models import AppConfig
 
 restore_route_deps_shim(_original_deps)
@@ -85,6 +88,24 @@ async def test_generate_embedding_success() -> None:
 
 
 @pytest.mark.asyncio
+async def test_generate_embedding_uses_embedding_router_when_present() -> None:
+    embedder = FakeEmbedder()
+    container = SimpleNamespace(
+        embedding_router=SimpleNamespace(
+            provider=embedder,
+            embed_text=embedder.embed_text,
+            model_name="fake-embedder",
+        )
+    )
+    request = embeddings_routes.EmbeddingRequest(text="hello")
+
+    result = await embeddings_routes.generate_embedding(request, container)
+
+    assert result.model_name == "fake-embedder"
+    assert result.dimension == 3
+
+
+@pytest.mark.asyncio
 async def test_generate_embedding_logs_route_start_and_success(caplog) -> None:
     container = SimpleNamespace(embedder=FakeEmbedder())
     request = embeddings_routes.EmbeddingRequest(text="hello")
@@ -94,7 +115,10 @@ async def test_generate_embedding_logs_route_start_and_success(caplog) -> None:
 
     assert result.dimension == 3
     assert "[MemoryRoute] /api/embeddings start chars=5 model=default" in caplog.text
-    assert "[MemoryRoute] /api/embeddings success chars=5 model=default dimension=3" in caplog.text
+    assert (
+        "[MemoryRoute] /api/embeddings success chars=5 model=default dimension=3"
+        in caplog.text
+    )
 
 
 @pytest.mark.asyncio
@@ -107,7 +131,10 @@ async def test_generate_embedding_returns_503_when_embedder_missing(caplog) -> N
             await embeddings_routes.generate_embedding(request, container)
 
     assert exc_info.value.status_code == 503
-    assert "[MemoryRoute] /api/embeddings failure chars=5 model=default status=503" in caplog.text
+    assert (
+        "[MemoryRoute] /api/embeddings failure chars=5 model=default status=503"
+        in caplog.text
+    )
 
 
 @pytest.mark.asyncio
@@ -198,9 +225,13 @@ async def test_summarize_conversations_uses_session_config(monkeypatch) -> None:
 
 
 @pytest.mark.asyncio
-async def test_summarize_conversations_logs_route_start_and_success(monkeypatch, caplog) -> None:
+async def test_summarize_conversations_logs_route_start_and_success(
+    monkeypatch, caplog
+) -> None:
     container_cfg = _local_ollama_config("container-model")
-    fake_client = FakeLLMClient("SUMMARY: short summary\n\nFACTS:\n- fact one\n- fact two\n")
+    fake_client = FakeLLMClient(
+        "SUMMARY: short summary\n\nFACTS:\n- fact one\n- fact two\n"
+    )
 
     _patch_semantic_client(monkeypatch, fake_client)
 
@@ -219,15 +250,25 @@ async def test_summarize_conversations_logs_route_start_and_success(monkeypatch,
         )
 
     assert response.success is True
-    assert "[MemoryRoute] /api/semantic/summarize start user_id=user_123 conversations=1" in caplog.text
-    assert "[MemoryRoute] /api/semantic/summarize success user_id=user_123 facts=2" in caplog.text
+    assert (
+        "[MemoryRoute] /api/semantic/summarize start user_id=user_123 conversations=1"
+        in caplog.text
+    )
+    assert (
+        "[MemoryRoute] /api/semantic/summarize success user_id=user_123 facts=2"
+        in caplog.text
+    )
 
 
 @pytest.mark.asyncio
-async def test_summarize_conversations_does_not_use_other_active_session(monkeypatch) -> None:
+async def test_summarize_conversations_does_not_use_other_active_session(
+    monkeypatch,
+) -> None:
     other_session_cfg = _local_ollama_config("other-active-session-model")
     container_cfg = _local_ollama_config("container-model")
-    fake_client = FakeLLMClient("SUMMARY: container summary\n\nFACTS:\n- from container config\n")
+    fake_client = FakeLLMClient(
+        "SUMMARY: container summary\n\nFACTS:\n- from container config\n"
+    )
 
     _patch_semantic_client(monkeypatch, fake_client)
 
@@ -253,7 +294,9 @@ async def test_summarize_conversations_does_not_use_other_active_session(monkeyp
 
 
 @pytest.mark.asyncio
-async def test_generate_conversation_title_uses_session_config_and_model_override(monkeypatch) -> None:
+async def test_generate_conversation_title_uses_session_config_and_model_override(
+    monkeypatch,
+) -> None:
     session_cfg = _local_ollama_config("session-model")
     container_cfg = _local_ollama_config("container-model")
     fake_client = FakeLLMClient('Title:   "Good to Meet You"')
@@ -284,7 +327,9 @@ async def test_generate_conversation_title_uses_session_config_and_model_overrid
 
 
 @pytest.mark.asyncio
-async def test_generate_conversation_title_logs_route_start_and_success(monkeypatch, caplog) -> None:
+async def test_generate_conversation_title_logs_route_start_and_success(
+    monkeypatch, caplog
+) -> None:
     container_cfg = _local_ollama_config("container-model")
     fake_client = FakeLLMClient("Mission Planning")
 
@@ -306,12 +351,20 @@ async def test_generate_conversation_title_logs_route_start_and_success(monkeypa
         )
 
     assert response.success is True
-    assert "[MemoryRoute] /api/semantic/title start user_id=user_456 conversations=- user_chars=17 assistant_chars=61" in caplog.text
-    assert "[MemoryRoute] /api/semantic/title success user_id=user_456 facts=- title_chars=16" in caplog.text
+    assert (
+        "[MemoryRoute] /api/semantic/title start user_id=user_456 conversations=- user_chars=17 assistant_chars=61"
+        in caplog.text
+    )
+    assert (
+        "[MemoryRoute] /api/semantic/title success user_id=user_456 facts=- title_chars=16"
+        in caplog.text
+    )
 
 
 @pytest.mark.asyncio
-async def test_generate_conversation_title_uses_container_config_when_session_missing(monkeypatch) -> None:
+async def test_generate_conversation_title_uses_container_config_when_session_missing(
+    monkeypatch,
+) -> None:
     container_cfg = _local_ollama_config("container-model")
     fake_client = FakeLLMClient("Mission Planning")
 
@@ -338,7 +391,9 @@ async def test_generate_conversation_title_uses_container_config_when_session_mi
 
 
 @pytest.mark.asyncio
-async def test_generate_conversation_title_trims_to_short_concise_shape(monkeypatch) -> None:
+async def test_generate_conversation_title_trims_to_short_concise_shape(
+    monkeypatch,
+) -> None:
     container_cfg = _local_ollama_config("container-model")
     fake_client = FakeLLMClient(
         "Title: Extremely long descriptive title with too many words and extra detail"
@@ -402,7 +457,9 @@ async def test_safe_health_check_returns_unhealthy_on_exception() -> None:
 
 
 @pytest.mark.asyncio
-async def test_dependency_health_check_returns_unhealthy_when_dependency_missing() -> None:
+async def test_dependency_health_check_returns_unhealthy_when_dependency_missing() -> (
+    None
+):
     result = await health_routes.dependency_health_check(
         dependency=None,
         missing_message="Dependency missing",
