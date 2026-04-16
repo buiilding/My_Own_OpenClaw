@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Optional
 
 from backend.src.core.interfaces.vision import IVisionProvider
 
@@ -36,11 +36,6 @@ class VisionRouter:
         return provider.model_name if provider is not None else "unconfigured"
 
     @property
-    def model(self) -> Optional[Any]:
-        provider = self._provider
-        return provider.model if provider is not None else None
-
-    @property
     def is_initialized(self) -> bool:
         provider = self._provider
         return bool(provider is not None and provider.is_initialized)
@@ -55,6 +50,26 @@ class VisionRouter:
         if provider is None:
             return False
         return await provider.initialize()
+
+    async def predict_coordinates(
+        self,
+        image_base64: str,
+        description: str,
+    ) -> Optional[tuple[int, int]]:
+        provider = self._provider
+        if provider is None:
+            return None
+        return await provider.predict_coordinates(image_base64, description)
+
+    async def answer_question_about_image(
+        self,
+        image_base64: str,
+        prompt: str,
+    ) -> Optional[str]:
+        provider = self._provider
+        if provider is None:
+            return None
+        return await provider.answer_question_about_image(image_base64, prompt)
 
     async def unload_model(self) -> bool:
         provider = self._provider

@@ -1,6 +1,6 @@
 """Vision provider interface."""
 
-from typing import Any, Optional, Protocol
+from typing import Optional, Protocol
 
 
 class IVisionProvider(Protocol):
@@ -9,11 +9,6 @@ class IVisionProvider(Protocol):
     provider_id: str
     model_id: str
     model_name: str
-
-    @property
-    def model(self) -> Optional[Any]:
-        """Get the initialized vision model instance."""
-        ...
 
     @property
     def is_initialized(self) -> bool:
@@ -27,6 +22,22 @@ class IVisionProvider(Protocol):
 
     async def initialize(self) -> bool:
         """Initialize the InternVL model."""
+        ...
+
+    async def predict_coordinates(
+        self,
+        image_base64: str,
+        description: str,
+    ) -> Optional[tuple[int, int]]:
+        """Locate an element in the image and return its click point."""
+        ...
+
+    async def answer_question_about_image(
+        self,
+        image_base64: str,
+        prompt: str,
+    ) -> Optional[str]:
+        """Answer a descriptive prompt about the image."""
         ...
 
 

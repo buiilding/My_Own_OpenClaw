@@ -205,31 +205,25 @@ def test_extract_bbox_center_handles_invalid_shapes():
     assert OcrCoordinateResolver._extract_bbox_center({"x": 10, "y": 20, "width": 4, "height": 6}) == (12, 23)
 
 
-class DummyVisionModel:
-    def __init__(self, coordinates):
+class DummyVisionService:
+    def __init__(self, coordinates=None, *, is_initialized=True):
         self._coordinates = coordinates
         self.calls = []
+        self.is_initialized = is_initialized
 
-    async def predict_click_coordinates(self, screenshot_data, description):
+    async def predict_coordinates(self, screenshot_data, description):
         self.calls.append((screenshot_data, description))
         return self._coordinates
 
 
-class DummyVisionService:
-    def __init__(self, is_initialized=True, model=None):
-        self.is_initialized = is_initialized
-        self.model = model
-
-
 @pytest.mark.asyncio
 async def test_vision_coordinate_resolver_success():
-    model = DummyVisionModel((123, 456))
-    service = DummyVisionService(is_initialized=True, model=model)
+    service = DummyVisionService((123, 456), is_initialized=True)
 
     x, y = await VisionCoordinateResolver.resolve("submit button", "base64-shot", service)
 
     assert (x, y) == (123, 456)
-    assert model.calls == [("base64-shot", "submit button")]
+    assert service.calls == [("base64-shot", "submit button")]
 
 
 @pytest.mark.asyncio
@@ -241,17 +235,14 @@ async def test_vision_coordinate_resolver_validation_errors():
         await VisionCoordinateResolver.resolve(
             "desc",
             "shot",
-            DummyVisionService(is_initialized=False, model=DummyVisionModel((1, 2))),
+            DummyVisionService((1, 2), is_initialized=False),
         )
-
-    with pytest.raises(ValueError, match="Vision model instance is None"):
-        await VisionCoordinateResolver.resolve("desc", "shot", DummyVisionService(is_initialized=True, model=None))
 
     with pytest.raises(ValueError, match="could not identify"):
         await VisionCoordinateResolver.resolve(
             "desc",
             "shot",
-            DummyVisionService(is_initialized=True, model=DummyVisionModel(None)),
+            DummyVisionService(None, is_initialized=True),
         )
 
 
@@ -278,8 +269,7 @@ async def test_coordinate_resolver_routes_ocr_and_prediction_methods():
     )
     assert ocr_coords == (60, 65)
 
-    model = DummyVisionModel((77, 88))
-    vision_service = DummyVisionService(is_initialized=True, model=model)
+    vision_service = DummyVisionService((77, 88), is_initialized=True)
     vision_call = ParsedToolCall(
         tool_name="mouse_control",
         parameters={

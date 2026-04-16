@@ -36,13 +36,17 @@ Add a new provider by implementing `LLMProvider` in:
 
 and wiring it into the provider factory in `backend/src/llm/providers/__init__.py`.
 
-## 4) Vision Providers
+## 4) Inference Capability Providers
 
-Add a new vision model provider:
+Add or swap OCR, vision, or embedding inference backends through the capability boundaries:
 
-- Base class: `backend/src/services/vision/providers/base.py`
-- Providers: `backend/src/services/vision/providers/`
-- Selection: `backend/src/services/vision/vision_service.py`
+- Contracts: `backend/src/core/interfaces/`
+- Routers: `backend/src/core/inference/`
+- Local OCR provider adapter: `backend/src/services/ocr/provider.py`
+- Local vision provider adapter: `backend/src/services/vision/provider.py`
+- Local vision model hosts: `backend/src/services/vision/providers/`
+
+The backend orchestration/runtime layers should depend on these capability contracts and routers rather than on concrete singleton model hosts.
 
 ## 5) Renderer UI Features
 

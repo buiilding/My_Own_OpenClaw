@@ -620,8 +620,6 @@ async def resolve_vision_service(container):
                 or "Vision service not initialized"
             )
             raise HTTPException(status_code=503, detail=detail)
-    if getattr(vision_service, "model", None) is None:
-        raise HTTPException(status_code=503, detail="Vision model not available")
     return vision_service
 
 
@@ -673,22 +671,18 @@ async def describe_image_region(
     container,
 ) -> str:
     vision_service = await resolve_vision_service(container)
-    model = vision_service.model
-    describe_fn = getattr(model, "answer_question_about_image", None)
-    if not callable(describe_fn):
-        raise HTTPException(
-            status_code=501,
-            detail="Vision model does not support descriptive prompts",
-        )
-
     prompt = (
         "Describe this UI image briefly for automation. "
         "Mention visible text, likely control types, and the most actionable element."
     )
-    description = await describe_fn(source.image_base64, prompt)
+    description = await vision_service.answer_question_about_image(
+        source.image_base64,
+        prompt,
+    )
     if not description:
         raise HTTPException(
-            status_code=502, detail="Vision model returned an empty description"
+            status_code=502,
+            detail="Vision provider returned an empty description",
         )
     return description.strip()
 

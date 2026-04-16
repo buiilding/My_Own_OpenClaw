@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for the vision provider protocol boundary and session-hierarchy lookup helper: required provider/model identity, model/is_initialized/error/initialize surface, and router-based access semantics."
+summary: "Deep reference for the vision provider protocol boundary and session-hierarchy lookup helper: required provider/model identity, readiness + prediction/description methods, and router-based access semantics."
 read_when:
   - When changing vision provider protocol fields/methods.
   - When changing vision router/provider lookup from tool preparation via session hierarchy (`VisionServiceProvider`).
@@ -26,10 +26,11 @@ title: "Vision Service Protocol Boundary and Session Hierarchy Access Contract R
 - attribute: `provider_id`
 - attribute: `model_id`
 - attribute: `model_name`
-- property: `model`
 - property: `is_initialized`
 - property: `initialization_error`
 - async method: `initialize() -> bool`
+- async method: `predict_coordinates(image_base64, description) -> tuple[int, int] | None`
+- async method: `answer_question_about_image(image_base64, prompt) -> str | None`
 
 This is a structural typing boundary used by preparation/resolver layers without hard coupling to a concrete in-process vision host.
 
@@ -39,7 +40,8 @@ This is a structural typing boundary used by preparation/resolver layers without
 
 - model-name normalization + provider selection (InternVL/Venus)
 - lock-serialized async initialize path with success/failure state tracking
-- readable `model`, `is_initialized`, and `initialization_error` properties
+- readable `model`, `is_initialized`, and `initialization_error` properties for the local host
+- local model-specific inference methods remain internal to the provider adapter
 
 `LocalVisionProvider` wraps that service behind the provider contract, and `VisionRouter` becomes the orchestration-facing boundary exposed by the container.
 
@@ -64,7 +66,8 @@ Prediction resolver paths rely on protocol fields:
 
 - check `vision_service` exists
 - require `vision_service.is_initialized` before prediction inference
-- call through service `model` for coordinate prediction runtime
+- call `vision_service.predict_coordinates(...)` for grounding
+- call `vision_service.answer_question_about_image(...)` for SDK descriptive prompts
 
 Contract outcome:
 
@@ -86,9 +89,9 @@ Coverage note:
 ## Drift Hotspots
 
 1. Changing protocol field names can silently break structural compatibility with existing resolvers/helpers.
-2. Returning the raw concrete service to orchestration code instead of the router/provider boundary reintroduces singleton coupling.
+2. Returning the raw concrete service or raw model object to orchestration code instead of the router/provider boundary reintroduces singleton coupling.
 3. Hard-failing session hierarchy lookup in helper instead of returning `None` can break non-vision tool flows.
-4. Removing `initialize() -> bool` semantics from service/provider breaks readiness checks in startup/runtime guards.
+4. Removing `initialize() -> bool` semantics or provider-level prediction methods breaks readiness and inference checks in startup/runtime guards.
 
 ## Related Pages
 
