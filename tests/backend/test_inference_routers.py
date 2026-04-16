@@ -1,5 +1,3 @@
-from types import SimpleNamespace
-
 import pytest
 
 from backend.src.core.inference import EmbeddingRouter, OcrRouter, VisionRouter
@@ -46,13 +44,29 @@ class _FakeVisionProvider:
     model_name = "vision-model"
 
     def __init__(self) -> None:
-        self.model = SimpleNamespace()
         self.is_initialized = False
         self.initialization_error = None
+        self.calls: list[tuple[str, str]] = []
 
     async def initialize(self) -> bool:
         self.is_initialized = True
         return True
+
+    async def predict_coordinates(
+        self,
+        image_base64: str,
+        description: str,
+    ) -> tuple[int, int]:
+        self.calls.append((image_base64, description))
+        return (12, 34)
+
+    async def answer_question_about_image(
+        self,
+        image_base64: str,
+        prompt: str,
+    ) -> str:
+        self.calls.append((image_base64, prompt))
+        return "description"
 
 
 @pytest.mark.asyncio
@@ -103,8 +117,12 @@ async def test_vision_router_initializes_current_provider() -> None:
     router = VisionRouter(provider)
 
     initialized = await router.initialize()
+    coordinates = await router.predict_coordinates("shot", "button")
+    description = await router.answer_question_about_image("shot", "what is here?")
 
     assert initialized is True
     assert router.is_initialized is True
-    assert router.model is provider.model
+    assert coordinates == (12, 34)
+    assert description == "description"
+    assert provider.calls == [("shot", "button"), ("shot", "what is here?")]
     assert router.provider_id == "fake-vision"

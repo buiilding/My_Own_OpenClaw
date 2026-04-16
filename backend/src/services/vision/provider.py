@@ -24,10 +24,6 @@ class LocalVisionProvider:
         return self._service.model_name
 
     @property
-    def model(self):
-        return self._service.model
-
-    @property
     def is_initialized(self) -> bool:
         return self._service.is_initialized
 
@@ -37,6 +33,26 @@ class LocalVisionProvider:
 
     async def initialize(self) -> bool:
         return await self._service.initialize()
+
+    async def predict_coordinates(
+        self,
+        image_base64: str,
+        description: str,
+    ) -> Optional[tuple[int, int]]:
+        model = self._service.model
+        if model is None:
+            return None
+        return await model.predict_click_coordinates(image_base64, description)
+
+    async def answer_question_about_image(
+        self,
+        image_base64: str,
+        prompt: str,
+    ) -> Optional[str]:
+        model = self._service.model
+        if model is None:
+            return None
+        return await model.answer_question_about_image(image_base64, prompt)
 
     async def unload_model(self) -> bool:
         return await self._service.unload_model()

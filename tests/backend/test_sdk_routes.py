@@ -69,28 +69,23 @@ class _FakeOcrService:
         return list(self._results)
 
 
-class _FakeVisionModel:
+class _FakeVisionService:
     def __init__(self, *, point=(640, 240)):
         self.point = point
-
-    async def predict_click_coordinates(self, _image_b64: str, _description: str):
-        return self.point
-
-    async def answer_question_about_image(self, image_b64: str, _prompt: str):
-        raw = base64.b64decode(image_b64)
-        image = Image.open(io.BytesIO(raw))
-        return f"region size {image.size[0]}x{image.size[1]}"
-
-
-class _FakeVisionService:
-    def __init__(self, model):
-        self.model = model
         self.is_initialized = True
         self.initialization_error = None
 
     async def initialize(self):
         self.is_initialized = True
         return True
+
+    async def predict_coordinates(self, _image_b64: str, _description: str):
+        return self.point
+
+    async def answer_question_about_image(self, image_b64: str, _prompt: str):
+        raw = base64.b64decode(image_b64)
+        image = Image.open(io.BytesIO(raw))
+        return f"region size {image.size[0]}x{image.size[1]}"
 
 
 class _FakeModelService:
@@ -120,7 +115,7 @@ def _container(
     tmp_path,
     *,
     ocr_results=None,
-    vision_model=None,
+    vision_point=(640, 240),
     config=None,
 ):
     effective_config = config or AppConfig(
@@ -128,7 +123,7 @@ def _container(
         artifact_max_bytes=1024 * 1024,
     )
     ocr_service = _FakeOcrService(ocr_results or [])
-    vision_service = _FakeVisionService(vision_model or _FakeVisionModel())
+    vision_service = _FakeVisionService(point=vision_point)
     return SimpleNamespace(
         config=effective_config,
         ocr_router=ocr_service,
@@ -428,7 +423,7 @@ async def test_sdk_ocr_overlay_writes_artifact(tmp_path) -> None:
 
 @pytest.mark.asyncio
 async def test_sdk_vision_locate_returns_predicted_coordinates(tmp_path) -> None:
-    container = _container(tmp_path, vision_model=_FakeVisionModel(point=(612, 241)))
+    container = _container(tmp_path, vision_point=(612, 241))
 
     response = await sdk_routes.sdk_vision_locate(
         VisionLocateRequest(
@@ -445,7 +440,7 @@ async def test_sdk_vision_locate_returns_predicted_coordinates(tmp_path) -> None
 
 @pytest.mark.asyncio
 async def test_sdk_vision_locate_all_returns_best_match_list(tmp_path) -> None:
-    container = _container(tmp_path, vision_model=_FakeVisionModel(point=(612, 241)))
+    container = _container(tmp_path, vision_point=(612, 241))
 
     response = await sdk_routes.sdk_vision_locate_all(
         VisionLocateAllRequest(
@@ -462,7 +457,7 @@ async def test_sdk_vision_locate_all_returns_best_match_list(tmp_path) -> None:
 
 @pytest.mark.asyncio
 async def test_sdk_vision_describe_uses_cropped_region(tmp_path) -> None:
-    container = _container(tmp_path, vision_model=_FakeVisionModel())
+    container = _container(tmp_path)
 
     response = await sdk_routes.sdk_vision_describe(
         VisionDescribeRequest(

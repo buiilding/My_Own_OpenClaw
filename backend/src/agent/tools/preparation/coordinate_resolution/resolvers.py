@@ -343,13 +343,11 @@ class VisionCoordinateResolver:
         
         if not vision_service or not vision_service.is_initialized:
             raise ValueError("Vision service is not available or initialized")
-        
-        model = vision_service.model
-        if not model:
-            raise ValueError("Vision model instance is None")
-        
-        # Run prediction
-        coordinates = await model.predict_click_coordinates(screenshot_data, description)
+
+        coordinates = await vision_service.predict_coordinates(
+            screenshot_data,
+            description,
+        )
         vision_time = time.perf_counter() - vision_start
         logger.info(f"[Timing] Vision model prediction took {vision_time:.3f}s (description='{description[:50]}...')")
         
