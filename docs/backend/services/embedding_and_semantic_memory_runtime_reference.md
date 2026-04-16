@@ -1,5 +1,5 @@
 ---
-summary: "Backend memory-service runtime reference: embedding provider lifecycle, `/api/embeddings` behavior, semantic summarization pipeline, parser/fallback rules, and config-driven embedder rebind semantics."
+summary: "Backend memory-service runtime reference: embedding provider lifecycle, provider-routed `/api/embeddings` behavior, semantic summarization pipeline, parser/fallback rules, and config-driven inference rebind semantics."
 read_when:
   - When changing embedding model/config behavior, memory-enabled toggles, or embedding/semantic route contracts.
   - When debugging semantic summary quality regressions, embedding service unavailability, or startup latency from model initialization.
@@ -29,12 +29,19 @@ title: "Embedding and Semantic Memory Runtime Reference"
 Memory-related config fields in `AppConfig`:
 
 - `memory_enabled` (default `true`)
+- `embedding_backend` (default `"local"`)
 - `embedding_model` (default `"all-MiniLM-L6-v2"`)
+- `ocr_backend` (default `"local"`)
+- `ocr_model` (default `"rapidocr-ppocrv5-server"`)
+- `vision_backend` (default `"local"`)
+- `vision_model_name` (default `"OpenGVLab/InternVL3_5-4B"`)
 
 DI ownership:
 
 - `MemoryContainer.embedder` is a singleton created by `_create_embedder(...)`
+- `ApplicationContainer.embedding_router` exposes the embedding capability boundary used by routes and sidecar-facing health probes
 - if `memory_enabled` is false, factory returns `None`
+- if `embedding_backend != "local"`, in-process provider creation is disabled until a remote/vendor adapter is implemented
 - device selection prefers `cuda`, then `mps`, then `cpu`
 
 Runtime startup:
@@ -44,8 +51,9 @@ Runtime startup:
 
 Config updates:
 
-- `ContainerConfigUpdater.update_config(...)` recreates embedder provider when memory remains enabled
-- when memory is disabled, `container.embedder` is set to `None`
+- `ContainerConfigUpdater.update_config(...)` recreates embedding/OCR/vision providers when capability config changes
+- routers stay stable while their underlying providers are rebound capability-by-capability
+- when memory is disabled, `container.embedding_router` is rebound to `None`
 
 ## Embedding Provider Runtime (`SentenceTransformerProvider`)
 
@@ -77,11 +85,17 @@ Request constraints:
 
 Execution path:
 
-1. resolve `container.embedder`
+1. resolve `container.embedding_router` (falling back to legacy `container.embedder` alias)
 2. return `503` if unavailable
 3. `await embedder.embed_text(text)`
 4. normalize embedding to JSON-safe list
-5. return `embedding`, `model_name`, `dimension`
+5. return:
+   - `embedding`
+   - `provider_id`
+   - `model_id`
+   - `model_name`
+   - `dimension`
+   - `embedding_space_version`
 
 Error behavior:
 
@@ -92,7 +106,7 @@ Health route: `GET /api/embeddings/health`
 
 - returns `unhealthy` when embedder missing
 - performs real probe `embed_text("test")`
-- returns model name + computed dimension on success
+- returns provider/model identity + computed dimension + `embedding_space_version` on success
 - wraps unexpected exceptions through `safe_health_check(...)`
 
 ## Semantic Summarization Runtime

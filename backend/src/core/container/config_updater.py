@@ -10,7 +10,13 @@ from typing import Any
 from dependency_injector import providers
 
 from backend.src.core.config import AppConfig
-from backend.src.core.container.factories import _create_embedder
+from backend.src.core.container.factories import (
+    _create_embedder,
+    _create_ocr_service,
+    _create_vision_service,
+)
+from backend.src.services.ocr import LocalOcrProvider
+from backend.src.services.vision import LocalVisionProvider
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +78,9 @@ class ContainerConfigUpdater:
                 self.container.embedding_provider = None
             self.container.embedder = None
 
+        self._reinitialize_ocr_provider(updated_config)
+        self._reinitialize_vision_provider(updated_config)
+
         # Invalidate session factory to force recreation with new config.
         self.container.invalidate_session_factory()
 
@@ -103,3 +112,53 @@ class ContainerConfigUpdater:
             self.container.embedder = self.container.embedding_router
             return
         self.container.embedder = embedding_provider
+
+    def _reinitialize_ocr_provider(self, config: AppConfig) -> None:
+        core_ocr_service_provider = self.container._di_container.core.ocr_service
+        core_ocr_service_provider.reset_override()
+        core_ocr_service_provider.override(
+            providers.Singleton(
+                _create_ocr_service,
+                config=providers.Object(config),
+            )
+        )
+        ocr_service = core_ocr_service_provider()
+        ocr_provider = (
+            LocalOcrProvider(ocr_service, model_id=config.ocr_model)
+            if ocr_service is not None
+            else None
+        )
+        if hasattr(self.container, "ocr_router"):
+            self.container.ocr_router.set_provider(ocr_provider)
+            self.container.ocr_provider = ocr_provider
+            self.container.ocr_service = self.container.ocr_router
+        else:
+            self.container.ocr_service = ocr_provider
+        if getattr(self.container, "context_factory", None) is not None:
+            self.container.context_factory.set_ocr_service(
+                getattr(self.container, "ocr_service", None)
+            )
+
+    def _reinitialize_vision_provider(self, config: AppConfig) -> None:
+        core_vision_service_provider = self.container._di_container.core.vision_service
+        core_vision_service_provider.reset_override()
+        core_vision_service_provider.override(
+            providers.Singleton(
+                _create_vision_service,
+                config=providers.Object(config),
+            )
+        )
+        vision_service = core_vision_service_provider()
+        vision_provider = (
+            LocalVisionProvider(vision_service) if vision_service is not None else None
+        )
+        if hasattr(self.container, "vision_router"):
+            self.container.vision_router.set_provider(vision_provider)
+            self.container.vision_provider = vision_provider
+            self.container.vision_service = self.container.vision_router
+        else:
+            self.container.vision_service = vision_provider
+        if getattr(self.container, "context_factory", None) is not None:
+            self.container.context_factory.set_vision_service(
+                getattr(self.container, "vision_service", None)
+            )

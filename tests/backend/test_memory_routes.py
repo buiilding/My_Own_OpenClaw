@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 from fastapi import HTTPException
 from pydantic import ValidationError
+
 from tests.backend.websocket_route_test_utils import (
     install_route_deps_shim,
     restore_route_deps_shim,
@@ -32,7 +33,10 @@ class FakeArray:
 
 
 class FakeEmbedder:
+    provider_id = "fake-provider"
+    model_id = "fake-embedder-v1"
     model_name = "fake-embedder"
+    dimension = 3
 
     def __init__(self, should_raise: bool = False):
         self.should_raise = should_raise
@@ -83,25 +87,25 @@ async def test_generate_embedding_success() -> None:
     result = await embeddings_routes.generate_embedding(request, container)
 
     assert result.model_name == "fake-embedder"
+    assert result.provider_id == "fake-provider"
+    assert result.model_id == "fake-embedder-v1"
     assert result.dimension == 3
     assert result.embedding == [0.1, 0.2, 0.3]
+    assert result.embedding_space_version == "fake-provider:fake-embedder-v1:3"
 
 
 @pytest.mark.asyncio
 async def test_generate_embedding_uses_embedding_router_when_present() -> None:
+    from backend.src.core.inference import EmbeddingRouter
+
     embedder = FakeEmbedder()
-    container = SimpleNamespace(
-        embedding_router=SimpleNamespace(
-            provider=embedder,
-            embed_text=embedder.embed_text,
-            model_name="fake-embedder",
-        )
-    )
+    container = SimpleNamespace(embedding_router=EmbeddingRouter(embedder))
     request = embeddings_routes.EmbeddingRequest(text="hello")
 
     result = await embeddings_routes.generate_embedding(request, container)
 
     assert result.model_name == "fake-embedder"
+    assert result.provider_id == "fake-provider"
     assert result.dimension == 3
 
 
@@ -153,7 +157,10 @@ async def test_embeddings_health_check_reports_embedder_model_name() -> None:
     result = await embeddings_routes.health_check(container)
 
     assert result["status"] == "healthy"
+    assert result["provider_id"] == "fake-provider"
+    assert result["model_id"] == "fake-embedder-v1"
     assert result["model_name"] == "fake-embedder"
+    assert result["embedding_space_version"] == "fake-provider:fake-embedder-v1:3"
 
 
 def test_parse_summarization_response_extracts_summary_and_facts() -> None:

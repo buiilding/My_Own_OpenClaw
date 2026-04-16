@@ -62,11 +62,16 @@ class ApplicationContainer(containers.DeclarativeContainer):
     )
 
     ocr_provider = providers.Singleton(
-        LocalOcrProvider,
+        lambda service, cfg: (
+            LocalOcrProvider(service, model_id=cfg.ocr_model)
+            if service is not None
+            else None
+        ),
         service=core.ocr_service,
+        cfg=core.config,
     )
     vision_provider = providers.Singleton(
-        LocalVisionProvider,
+        lambda service: LocalVisionProvider(service) if service is not None else None,
         service=core.vision_service,
     )
     embedding_router = providers.Singleton(

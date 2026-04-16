@@ -8,6 +8,7 @@ from typing import Any, List
 from fastapi import HTTPException
 
 from backend.src.embeddings.embeddings import is_cuda_error
+
 from .models import EmbeddingResponse
 
 
@@ -17,6 +18,18 @@ def embedding_to_list(embedding: Any) -> List[float]:
         return embedding.tolist()
     except AttributeError:
         return list(embedding)
+
+
+def resolve_embedding_space_version(embedding_provider: Any) -> str:
+    """Return a stable embedding-space version string for index compatibility checks."""
+    provider_id = getattr(embedding_provider, "provider_id", "unknown-provider")
+    model_id = getattr(
+        embedding_provider,
+        "model_id",
+        getattr(embedding_provider, "model_name", "unknown-model"),
+    )
+    dimension = getattr(embedding_provider, "dimension", "unknown-dimension")
+    return f"{provider_id}:{model_id}:{dimension}"
 
 
 async def generate_embedding_response(
@@ -46,12 +59,21 @@ async def generate_embedding_response(
 
     return EmbeddingResponse(
         embedding=embedding_list,
+        provider_id=getattr(embedding_provider, "provider_id", "unknown-provider"),
+        model_id=getattr(
+            embedding_provider,
+            "model_id",
+            getattr(embedding_provider, "model_name", request_model_name),
+        ),
         model_name=getattr(embedding_provider, "model_name", request_model_name),
         dimension=len(embedding_list),
+        embedding_space_version=resolve_embedding_space_version(embedding_provider),
     )
 
 
-async def resolve_health_payload(*, embedding_provider: Any, healthy_payload_fn: Any) -> dict[str, Any]:
+async def resolve_health_payload(
+    *, embedding_provider: Any, healthy_payload_fn: Any
+) -> dict[str, Any]:
     """Run live provider probe and build health payload."""
     test_embedding = await embed_text_with_runtime_recovery(
         text="test",
@@ -60,8 +82,15 @@ async def resolve_health_payload(*, embedding_provider: Any, healthy_payload_fn:
     )
     dimension = len(embedding_to_list(test_embedding))
     return healthy_payload_fn(
+        provider_id=getattr(embedding_provider, "provider_id", "unknown-provider"),
+        model_id=getattr(
+            embedding_provider,
+            "model_id",
+            getattr(embedding_provider, "model_name", "unknown"),
+        ),
         model_name=getattr(embedding_provider, "model_name", "unknown"),
         dimension=dimension,
+        embedding_space_version=resolve_embedding_space_version(embedding_provider),
     )
 
 

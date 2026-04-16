@@ -21,14 +21,20 @@ class FakeArray:
 
 
 class FakeEmbedder:
+    provider_id = "fake-provider"
+    model_id = "fake-embedder-v1"
     model_name = "fake-embedder"
+    dimension = 3
 
     async def embed_text(self, _text: str):
         return FakeArray([0.1, 0.2, 0.3])
 
 
 class RecoveringCudaEmbedder:
+    provider_id = "recovering-provider"
+    model_id = "recovering-cuda-embedder-v1"
     model_name = "recovering-cuda-embedder"
+    dimension = 3
 
     def __init__(self) -> None:
         self.embed_calls = 0
@@ -61,8 +67,11 @@ async def test_generate_embedding_response_builds_contract() -> None:
     )
 
     assert response.model_name == "fake-embedder"
+    assert response.provider_id == "fake-provider"
+    assert response.model_id == "fake-embedder-v1"
     assert response.dimension == 3
     assert response.embedding == [0.1, 0.2, 0.3]
+    assert response.embedding_space_version == "fake-provider:fake-embedder-v1:3"
 
 
 @pytest.mark.asyncio
@@ -73,7 +82,9 @@ async def test_embed_text_with_runtime_recovery_retries_after_cuda_failure() -> 
     embedding = await embed_text_with_runtime_recovery(
         text="hello",
         embedding_provider=embedder,
-        logger=SimpleNamespace(warning=lambda message, *_args, **_kwargs: warnings.append(message)),
+        logger=SimpleNamespace(
+            warning=lambda message, *_args, **_kwargs: warnings.append(message)
+        ),
     )
 
     assert embedding_to_list(embedding) == [0.4, 0.5, 0.6]
@@ -97,8 +108,14 @@ async def test_generate_embedding_response_recovers_from_cuda_failure() -> None:
     )
 
     assert response.model_name == "recovering-cuda-embedder"
+    assert response.provider_id == "recovering-provider"
+    assert response.model_id == "recovering-cuda-embedder-v1"
     assert response.dimension == 3
     assert response.embedding == [0.4, 0.5, 0.6]
+    assert (
+        response.embedding_space_version
+        == "recovering-provider:recovering-cuda-embedder-v1:3"
+    )
 
 
 @pytest.mark.asyncio
@@ -110,8 +127,11 @@ async def test_resolve_health_payload_uses_live_probe() -> None:
 
     assert payload == {
         "status": "healthy",
+        "provider_id": "fake-provider",
+        "model_id": "fake-embedder-v1",
         "model_name": "fake-embedder",
         "dimension": 3,
+        "embedding_space_version": "fake-provider:fake-embedder-v1:3",
     }
 
 
@@ -124,8 +144,11 @@ async def test_resolve_health_payload_recovers_from_cuda_failure() -> None:
 
     assert payload == {
         "status": "healthy",
+        "provider_id": "recovering-provider",
+        "model_id": "recovering-cuda-embedder-v1",
         "model_name": "recovering-cuda-embedder",
         "dimension": 3,
+        "embedding_space_version": "recovering-provider:recovering-cuda-embedder-v1:3",
     }
 
 

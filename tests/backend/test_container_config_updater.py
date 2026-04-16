@@ -35,3 +35,65 @@ def test_reinitialize_embedder_rebinds_embedding_router(monkeypatch) -> None:
     assert captured["provider"] is new_provider
     assert container.embedding_provider is new_provider
     assert container.embedder is container.embedding_router
+
+
+def test_reinitialize_ocr_provider_rebinds_router_and_context(monkeypatch) -> None:
+    captured = {}
+
+    monkeypatch.setattr(
+        "backend.src.core.container.config_updater._create_ocr_service",
+        lambda config: object(),
+    )
+
+    container = SimpleNamespace(
+        _di_container=SimpleNamespace(
+            core=SimpleNamespace(ocr_service=providers.Singleton(lambda: "old-ocr")),
+        ),
+        ocr_router=SimpleNamespace(
+            set_provider=lambda provider: captured.setdefault("provider", provider)
+        ),
+        ocr_provider=None,
+        ocr_service=None,
+        context_factory=SimpleNamespace(
+            set_ocr_service=lambda service: captured.setdefault("service", service)
+        ),
+    )
+
+    ContainerConfigUpdater(container)._reinitialize_ocr_provider(AppConfig())
+
+    assert container.ocr_provider is not None
+    assert container.ocr_service is container.ocr_router
+    assert captured["provider"] is container.ocr_provider
+    assert captured["service"] is container.ocr_router
+
+
+def test_reinitialize_vision_provider_rebinds_router_and_context(monkeypatch) -> None:
+    captured = {}
+
+    monkeypatch.setattr(
+        "backend.src.core.container.config_updater._create_vision_service",
+        lambda config: object(),
+    )
+
+    container = SimpleNamespace(
+        _di_container=SimpleNamespace(
+            core=SimpleNamespace(
+                vision_service=providers.Singleton(lambda: "old-vision")
+            ),
+        ),
+        vision_router=SimpleNamespace(
+            set_provider=lambda provider: captured.setdefault("provider", provider)
+        ),
+        vision_provider=None,
+        vision_service=None,
+        context_factory=SimpleNamespace(
+            set_vision_service=lambda service: captured.setdefault("service", service)
+        ),
+    )
+
+    ContainerConfigUpdater(container)._reinitialize_vision_provider(AppConfig())
+
+    assert container.vision_provider is not None
+    assert container.vision_service is container.vision_router
+    assert captured["provider"] is container.vision_provider
+    assert captured["service"] is container.vision_router

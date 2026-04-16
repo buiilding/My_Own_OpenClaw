@@ -2,11 +2,11 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
-import pytest
 import types
-import numpy as np
 
 import memory.local_store as local_store_module  # noqa: E402
+import numpy as np
+import pytest
 from memory.local_store import LocalMemoryStore  # noqa: E402
 from memory.transcript_embedding_policy import should_embed_episodic_entry  # noqa: E402
 
@@ -21,7 +21,9 @@ def test_local_memory_store_init_skips_sync_faiss_reads(monkeypatch, tmp_path):
     (memory_dir / "semantic.faiss.index").write_bytes(b"stale-index")
 
     def fail_read_index(_index_path):
-        raise AssertionError("LocalMemoryStore.__init__ should not read FAISS indices synchronously")
+        raise AssertionError(
+            "LocalMemoryStore.__init__ should not read FAISS indices synchronously"
+        )
 
     monkeypatch.setattr(local_store_module.faiss, "read_index", fail_read_index)
 
@@ -70,12 +72,22 @@ async def test_initialize_creates_faiss_indices_before_sync(monkeypatch, tmp_pat
     store.embedder = types.SimpleNamespace(
         dimension=8,
         initialize=_noop_async,
+        refresh_embedding_space=_noop_async,
+        get_embedding_space_metadata=lambda: {
+            "embedding_provider_id": "local-provider",
+            "embedding_model_id": "model-a",
+            "embedding_dimension": 8,
+            "embedding_space_version": "local-provider:model-a:8",
+        },
     )
     store.title_client = types.SimpleNamespace(initialize=_noop_async)
+    store.embedding_space_metadata_path = tmp_path / "embedding_space.json"
+    store._embedding_space_metadata = None
 
     await LocalMemoryStore.initialize(store)
 
     assert observed_sync_state == [(True, True)]
+    assert store.embedding_space_metadata_path.exists() is True
 
 
 @pytest.mark.asyncio
@@ -172,7 +184,14 @@ async def test_sync_vector_mappings_backfill_query_skips_non_embeddable_transcri
             VALUES (?, ?, ?, ?, ?, ?)
             """,
             [
-                ("tool-call-1", "tool payload", None, "transcript", "tool", "tool-call"),
+                (
+                    "tool-call-1",
+                    "tool payload",
+                    None,
+                    "transcript",
+                    "tool",
+                    "tool-call",
+                ),
                 ("user-turn-1", "user text", None, "transcript", "user", "llm-text"),
             ],
         )
@@ -189,9 +208,16 @@ async def test_sync_vector_mappings_backfill_query_skips_non_embeddable_transcri
     store.embedder.embed_text = _embed_text
 
     def _unexpected_embed_gate_check(*_args, **_kwargs):
-        raise AssertionError("startup backfill should rely on SQL prefilter, not python per-row embed gate")
+        raise AssertionError(
+            "startup backfill should rely on SQL prefilter, not python per-row embed gate"
+        )
 
-    monkeypatch.setattr(store, "_should_embed_episodic_entry", _unexpected_embed_gate_check, raising=False)
+    monkeypatch.setattr(
+        store,
+        "_should_embed_episodic_entry",
+        _unexpected_embed_gate_check,
+        raising=False,
+    )
     monkeypatch.setattr(local_store_module.faiss, "normalize_L2", lambda _vector: None)
 
     class _Index:
@@ -205,14 +231,16 @@ async def test_sync_vector_mappings_backfill_query_skips_non_embeddable_transcri
     vector_id_to_memory_id = {}
     memory_id_to_vector_id = {}
 
-    next_vector_id, embedded_count = await LocalMemoryStore._sync_vector_mappings_for_db(
-        store,
-        memory_type="episodic",
-        db_path=str(db_path),
-        index=index,
-        vector_id_to_memory_id=vector_id_to_memory_id,
-        memory_id_to_vector_id=memory_id_to_vector_id,
-        next_vector_id=41,
+    next_vector_id, embedded_count = (
+        await LocalMemoryStore._sync_vector_mappings_for_db(
+            store,
+            memory_type="episodic",
+            db_path=str(db_path),
+            index=index,
+            vector_id_to_memory_id=vector_id_to_memory_id,
+            memory_id_to_vector_id=memory_id_to_vector_id,
+            next_vector_id=41,
+        )
     )
 
     assert embedded_count == 1
@@ -223,9 +251,7 @@ async def test_sync_vector_mappings_backfill_query_skips_non_embeddable_transcri
 
     async with local_store_module.aiosqlite.connect(db_path) as conn:
         cursor = await conn.cursor()
-        await cursor.execute(
-            "SELECT id, embedding_id FROM memories ORDER BY id"
-        )
+        await cursor.execute("SELECT id, embedding_id FROM memories ORDER BY id")
         rows = await cursor.fetchall()
 
     assert rows == [
@@ -262,8 +288,22 @@ async def test_sync_vector_mappings_backfill_query_skips_transcript_replay_rows(
             VALUES (?, ?, ?, ?, ?, ?)
             """,
             [
-                ("replay-tool-output", "very long replay payload", None, "transcript_replay", "tool", "tool-output"),
-                ("assistant-turn", "assistant text", None, "transcript", "assistant", "llm-text"),
+                (
+                    "replay-tool-output",
+                    "very long replay payload",
+                    None,
+                    "transcript_replay",
+                    "tool",
+                    "tool-output",
+                ),
+                (
+                    "assistant-turn",
+                    "assistant text",
+                    None,
+                    "transcript",
+                    "assistant",
+                    "llm-text",
+                ),
             ],
         )
         await conn.commit()
@@ -290,14 +330,16 @@ async def test_sync_vector_mappings_backfill_query_skips_transcript_replay_rows(
     vector_id_to_memory_id = {}
     memory_id_to_vector_id = {}
 
-    next_vector_id, embedded_count = await LocalMemoryStore._sync_vector_mappings_for_db(
-        store,
-        memory_type="episodic",
-        db_path=str(db_path),
-        index=index,
-        vector_id_to_memory_id=vector_id_to_memory_id,
-        memory_id_to_vector_id=memory_id_to_vector_id,
-        next_vector_id=10,
+    next_vector_id, embedded_count = (
+        await LocalMemoryStore._sync_vector_mappings_for_db(
+            store,
+            memory_type="episodic",
+            db_path=str(db_path),
+            index=index,
+            vector_id_to_memory_id=vector_id_to_memory_id,
+            memory_id_to_vector_id=memory_id_to_vector_id,
+            next_vector_id=10,
+        )
     )
 
     assert embedded_count == 1
@@ -308,28 +350,105 @@ async def test_sync_vector_mappings_backfill_query_skips_transcript_replay_rows(
 
 
 def test_should_embed_episodic_entry_matches_transcript_policy():
-    assert should_embed_episodic_entry(
-        record_kind="memory",
-        role=None,
-        message_type=None,
-    ) is True
-    assert should_embed_episodic_entry(
-        record_kind="transcript",
-        role="user",
-        message_type="user",
-    ) is True
-    assert should_embed_episodic_entry(
-        record_kind="transcript",
-        role="assistant",
-        message_type="llm-text",
-    ) is True
-    assert should_embed_episodic_entry(
-        record_kind="transcript",
-        role="tool",
-        message_type="tool-output",
-    ) is False
-    assert should_embed_episodic_entry(
-        record_kind="transcript_replay",
-        role="assistant",
-        message_type="llm-text",
-    ) is False
+    assert (
+        should_embed_episodic_entry(
+            record_kind="memory",
+            role=None,
+            message_type=None,
+        )
+        is True
+    )
+    assert (
+        should_embed_episodic_entry(
+            record_kind="transcript",
+            role="user",
+            message_type="user",
+        )
+        is True
+    )
+    assert (
+        should_embed_episodic_entry(
+            record_kind="transcript",
+            role="assistant",
+            message_type="llm-text",
+        )
+        is True
+    )
+    assert (
+        should_embed_episodic_entry(
+            record_kind="transcript",
+            role="tool",
+            message_type="tool-output",
+        )
+        is False
+    )
+    assert (
+        should_embed_episodic_entry(
+            record_kind="transcript_replay",
+            role="assistant",
+            message_type="llm-text",
+        )
+        is False
+    )
+
+
+@pytest.mark.asyncio
+async def test_initialize_rebuilds_indices_when_embedding_space_changes(
+    monkeypatch, tmp_path
+):
+    async def _noop_async(*_args, **_kwargs):
+        return None
+
+    async def _read_index(*_args, **_kwargs):
+        return types.SimpleNamespace(ntotal=1, d=4)
+
+    rebuild_calls = []
+
+    async def _record_rebuild(self, memory_type):
+        rebuild_calls.append(memory_type)
+
+    monkeypatch.setattr(local_store_module, "read_index_safe_async", _read_index)
+    monkeypatch.setattr(LocalMemoryStore, "_init_databases", _noop_async)
+    monkeypatch.setattr(LocalMemoryStore, "_load_vector_mappings", _noop_async)
+    monkeypatch.setattr(LocalMemoryStore, "_sync_vector_mappings", _noop_async)
+    monkeypatch.setattr(LocalMemoryStore, "_rebuild_index", _record_rebuild)
+
+    store = LocalMemoryStore.__new__(LocalMemoryStore)
+    store.episodic_index_path = tmp_path / "episodic.faiss.index"
+    store.semantic_index_path = tmp_path / "semantic.faiss.index"
+    store.embedding_space_metadata_path = tmp_path / "embedding_space.json"
+    store.embedding_space_metadata_path.write_text(
+        '{"embedding_provider_id":"old-provider","embedding_model_id":"old-model","embedding_dimension":4,"embedding_space_version":"old-provider:old-model:4"}',
+        encoding="utf-8",
+    )
+    store.episodic_index = None
+    store.semantic_index = None
+    store.episodic_vector_id_to_memory_id = {}
+    store.semantic_vector_id_to_memory_id = {}
+    store.episodic_memory_id_to_vector_id = {}
+    store.semantic_memory_id_to_vector_id = {}
+    store.episodic_next_vector_id = 0
+    store.semantic_next_vector_id = 0
+    store.embedder = types.SimpleNamespace(
+        dimension=8,
+        initialize=_noop_async,
+        refresh_embedding_space=_noop_async,
+        get_embedding_space_metadata=lambda: {
+            "embedding_provider_id": "new-provider",
+            "embedding_model_id": "new-model",
+            "embedding_dimension": 8,
+            "embedding_space_version": "new-provider:new-model:8",
+        },
+    )
+    store.title_client = types.SimpleNamespace(initialize=_noop_async)
+    store._embedding_space_metadata = None
+
+    await LocalMemoryStore.initialize(store)
+
+    assert rebuild_calls == ["episodic", "semantic"]
+    assert (
+        store.embedding_space_metadata_path.read_text(encoding="utf-8").find(
+            '"embedding_space_version": "new-provider:new-model:8"'
+        )
+        != -1
+    )

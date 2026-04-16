@@ -8,7 +8,10 @@ import os
 import platform
 from pathlib import Path
 from typing import List, Literal, Optional
+
 from pydantic import BaseModel, ConfigDict, Field
+
+InferenceBackend = Literal["local", "remote-http", "vendor"]
 
 
 def _default_artifact_store_path() -> str:
@@ -248,6 +251,7 @@ class AppConfig(BaseModel):
 
     # Memory System Settings
     memory_enabled: bool = True
+    embedding_backend: InferenceBackend = "local"
     embedding_model: str = "all-MiniLM-L6-v2"
 
     # Agent Execution Settings
@@ -270,9 +274,12 @@ class AppConfig(BaseModel):
     brave_search: BraveSearchConfig = Field(default_factory=BraveSearchConfig)
 
     # Vision Model Settings
+    vision_backend: InferenceBackend = "local"
     vision_model_name: Optional[str] = (
         "OpenGVLab/InternVL3_5-4B"  # Defaults to "OpenGVLab/InternVL3_5-4B" if None
     )
+    ocr_backend: InferenceBackend = "local"
+    ocr_model: str = "rapidocr-ppocrv5-server"
 
     # Voice Mode Settings
     wakeword_stt_enabled: bool = False

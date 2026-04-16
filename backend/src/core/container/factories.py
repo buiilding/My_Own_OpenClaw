@@ -69,6 +69,12 @@ def _create_embedder(config: AppConfig, cache_manager) -> Optional[EmbeddingProv
     """
     if not config.memory_enabled:
         return None
+    if config.embedding_backend != "local":
+        logger.warning(
+            "Embedding backend %s is not implemented in-process; disabling embedding provider",
+            config.embedding_backend,
+        )
+        return None
 
     try:
         from backend.src.embeddings.embeddings import SentenceTransformerProvider
@@ -112,6 +118,12 @@ def _create_tts_service(config: AppConfig):
 
 def _create_vision_service(config: AppConfig):
     """Create vision service with configured model name."""
+    if config.vision_backend != "local":
+        logger.warning(
+            "Vision backend %s is not implemented in-process; disabling vision provider",
+            config.vision_backend,
+        )
+        return None
     from backend.src.services.vision import VisionService
 
     return VisionService(model_name=config.vision_model_name)
@@ -119,6 +131,12 @@ def _create_vision_service(config: AppConfig):
 
 def _create_ocr_service(config: AppConfig):
     """Create OCR service with configured settings."""
+    if config.ocr_backend != "local":
+        logger.warning(
+            "OCR backend %s is not implemented in-process; disabling OCR provider",
+            config.ocr_backend,
+        )
+        return None
     from backend.src.services.ocr import OcrService
 
     return OcrService()
