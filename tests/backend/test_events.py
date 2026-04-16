@@ -95,13 +95,13 @@ class TestChunkEvent:
         event = ChunkEvent(content="Hello world")
         
         assert event.content == "Hello world"
-        assert event.type.value == "chunk"
+        assert event.type.value == "streaming-response"
 
     def test_to_dict(self):
         event = ChunkEvent(content="Hello world")
         result = event.to_dict()
         
-        assert result == {"type": "chunk", "content": "Hello world"}
+        assert result == {"type": "streaming-response", "content": "Hello world"}
 
 
 class TestThinkingEvent:
@@ -111,13 +111,13 @@ class TestThinkingEvent:
         event = ThinkingEvent(content="Thinking...")
         
         assert event.content == "Thinking..."
-        assert event.type.value == "thinking"
+        assert event.type.value == "llm-thought"
 
     def test_to_dict(self):
         event = ThinkingEvent(content="Analyzing...")
         result = event.to_dict()
         
-        assert result == {"type": "thinking", "content": "Analyzing..."}
+        assert result == {"type": "llm-thought", "content": "Analyzing..."}
 
 
 class TestErrorEvent:
@@ -176,7 +176,7 @@ class TestToolCallEvent:
         assert event.parameters == {"path": "/test.txt"}
         assert event.request_id is None
         assert event.metadata is None
-        assert event.type.value == "tool_call"
+        assert event.type.value == "tool-call"
 
     def test_init_with_optional_fields(self):
         event = ToolCallEvent(
@@ -196,7 +196,7 @@ class TestToolCallEvent:
         )
         result = event.to_dict()
         
-        assert result["type"] == "tool_call"
+        assert result["type"] == "tool-call"
         assert result["tool_name"] == "read_file"
         assert result["parameters"] == {"path": "/test.txt"}
 
@@ -243,7 +243,7 @@ class TestToolOutputEvent:
         )
         result = event.to_dict()
         
-        assert result["type"] == "tool_output"
+        assert result["type"] == "tool-output"
         assert result["tool_name"] == "read_file"
         assert result["success"] is True
         assert result["output"] == "contents"
@@ -256,13 +256,13 @@ class TestAssistantMessageFullEvent:
         event = AssistantMessageFullEvent(content="Full response")
         
         assert event.content == "Full response"
-        assert event.type.value == "assistant_message_full"
+        assert event.type.value == "assistant-message-full"
 
     def test_to_dict(self):
         event = AssistantMessageFullEvent(content="Full response")
         result = event.to_dict()
         
-        assert result == {"type": "assistant_message_full", "content": "Full response"}
+        assert result == {"type": "assistant-message-full", "content": "Full response"}
 
 
 class TestTokenCountEvent:
@@ -292,7 +292,7 @@ class TestTokenCountEvent:
         assert event.cached_tokens == 40
         assert event.cache_hit is True
         assert event.cache_status == "hit"
-        assert event.type.value == "token_count"
+        assert event.type.value == "token-count"
 
     def test_to_dict(self):
         event = TokenCountEvent(
@@ -309,7 +309,7 @@ class TestTokenCountEvent:
         )
         result = event.to_dict()
         
-        assert result["type"] == "token_count"
+        assert result["type"] == "token-count"
         assert result["prompt_tokens"] == 100
         assert result["visible_output_tokens"] == 50
         assert result["thinking_tokens"] is None
@@ -374,7 +374,7 @@ class TestContextCompactionEvents:
             projected_tokens=2200,
         )
 
-        assert event.type.value == "context_compaction_started"
+        assert event.type.value == "context-compaction-started"
         result = event.to_dict()
         assert result["reason"] == "auto-pre"
         assert result["projected_tokens"] == 2200
@@ -397,7 +397,7 @@ class TestContextCompactionEvents:
             skipped_reason=None,
         )
 
-        assert event.type.value == "context_compaction_completed"
+        assert event.type.value == "context-compaction-completed"
         result = event.to_dict()
         assert result["after_tokens"] == 900
         assert result["removed_messages"] == 9
@@ -411,7 +411,7 @@ class TestContextCompactionEvents:
             before_tokens=2000,
         )
 
-        assert event.type.value == "context_compaction_failed"
+        assert event.type.value == "context-compaction-failed"
         result = event.to_dict()
         assert result["error"] == "failed"
         assert result["before_tokens"] == 2000

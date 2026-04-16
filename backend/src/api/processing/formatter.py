@@ -11,6 +11,7 @@ from backend.src.api.contracts.formatter_specs import get_formatter_specs
 from backend.src.core.events import (
     AgentStreamingEvent,
 )
+from backend.src.core.types.enums import normalize_streaming_event_type
 
 from backend.src.api.processing.formatters.base import EventFormatter
 from backend.src.api.transport.envelope import attach_context_fields
@@ -64,7 +65,7 @@ class ResponseFormatter:
 
         # Backward compatibility with dict events
         if isinstance(event, dict):
-            event_type = event.get("type")
+            event_type = normalize_streaming_event_type(event.get("type"))
             formatter = self._formatters.get(event_type)
             if formatter:
                 response = formatter.format(event, msg_id)

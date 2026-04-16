@@ -464,7 +464,7 @@ class AgentSession:
             self._apply_query_runtime_system_state_locked(runtime_system_state)
             if not self.cfg.selected_model_id:
                 yield {
-                    "type": "thinking",
+                    "type": "llm-thought",
                     "content": "No model selected. Please select a model in settings.",
                 }
                 return

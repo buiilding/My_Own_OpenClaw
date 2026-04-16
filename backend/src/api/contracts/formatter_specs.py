@@ -43,13 +43,13 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
     return (
         (
             ThinkingEvent,
-            StreamingEventType.THINKING.value,
+            StreamingEventType.LLM_THOUGHT.value,
             formatter_module.ThinkingEventFormatter,
             OutgoingMessageType.LLM_THOUGHT,
         ),
         (
             ChunkEvent,
-            StreamingEventType.CHUNK.value,
+            StreamingEventType.STREAMING_RESPONSE.value,
             formatter_module.ChunkEventFormatter,
             OutgoingMessageType.STREAMING_RESPONSE,
         ),

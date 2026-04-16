@@ -15,7 +15,7 @@ from backend.src.core.events.streaming_events import (
     ToolCallEvent,
     ToolOutputEvent,
 )
-from backend.src.core.types.enums import ContentType
+from backend.src.core.types.enums import ContentType, StreamingEventType, normalize_streaming_event_type
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -103,15 +103,15 @@ async def extract_response(
             return f"Error: {error_content}"
         elif isinstance(event, dict):
             # Backward compatibility with dict events
-            event_type = event.get("type")
-            if event_type == "chunk":
+            event_type = normalize_streaming_event_type(event.get("type"))
+            if event_type == StreamingEventType.STREAMING_RESPONSE.value:
                 content = event.get("content", "")
                 final_response += content
             elif event_type == "full_response":
                 content = event.get("content", "")
                 if content and not final_response:
                     final_response = content
-            elif event_type == "tool_call":
+            elif event_type == StreamingEventType.TOOL_CALL.value:
                 if collect_tool_calls:
                     tool_calls.append({
                         "tool": event.get("tool_name"),
@@ -119,14 +119,14 @@ async def extract_response(
                     })
                 last_tool_call_iteration = iteration_count
                 logger.info(f"🔧 Agent called tool: {event.get('tool_name')} (event #{iteration_count})")
-            elif event_type == "tool_output":
+            elif event_type == StreamingEventType.TOOL_OUTPUT.value:
                 logger.info(f"📥 Tool output received: {event.get('tool_name')} - agent will see this and decide next action")
-            elif event_type == "streaming-complete":
+            elif event_type == StreamingEventType.STREAMING_COMPLETE.value:
                 logger.info(f"✅ Agent completed tool loop after {iteration_count} events, last tool call at event #{last_tool_call_iteration}, total tools called: {len(tool_calls)}")
                 if final_response:
                     logger.info(f"📝 Agent's final response (no more tool calls): {final_response[:500]}{'...' if len(final_response) > 500 else ''}")
                 break
-            elif event_type == "error":
+            elif event_type == StreamingEventType.ERROR.value:
                 error_content = event.get("content", "Unknown error")
                 logger.error(f"Agent session error: {error_content}")
                 if collect_tool_calls:
@@ -166,4 +166,3 @@ async def extract_response(
     if collect_tool_calls:
         return (response, tool_calls)
     return response
-

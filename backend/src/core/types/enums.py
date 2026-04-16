@@ -4,6 +4,7 @@ Enumeration types for the application.
 This module provides Enum definitions for type safety throughout the codebase.
 """
 from enum import Enum
+from typing import Final
 
 
 class MessageRole(str, Enum):
@@ -24,25 +25,54 @@ class MessageType(str, Enum):
 
 class StreamingEventType(str, Enum):
     """Types of streaming events emitted by the agent."""
-    THINKING = "thinking"
-    CHUNK = "chunk"
+    LLM_THOUGHT = "llm-thought"
+    THINKING = LLM_THOUGHT
+    STREAMING_RESPONSE = "streaming-response"
+    CHUNK = STREAMING_RESPONSE
     ERROR = "error"
     STREAMING_COMPLETE = "streaming-complete"
-    TOOL_CALL = "tool_call"
-    TOOL_OUTPUT = "tool_output"
-    SYSTEM_PROMPT = "system_prompt"
-    TOOL_SCHEMAS = "tool_schemas"
-    USER_MESSAGE_FULL = "user_message_full"
-    ASSISTANT_MESSAGE_FULL = "assistant_message_full"
+    TOOL_CALL = "tool-call"
+    TOOL_OUTPUT = "tool-output"
+    SYSTEM_PROMPT = "system-prompt"
+    TOOL_SCHEMAS = "tool-schemas"
+    USER_MESSAGE_FULL = "user-message-full"
+    ASSISTANT_MESSAGE_FULL = "assistant-message-full"
     FULL_RESPONSE = "full_response"
-    TOKEN_COUNT = "token_count"
-    CONTEXT_COMPACTION_STARTED = "context_compaction_started"
-    CONTEXT_COMPACTION_COMPLETED = "context_compaction_completed"
-    CONTEXT_COMPACTION_FAILED = "context_compaction_failed"
+    TOKEN_COUNT = "token-count"
+    CONTEXT_COMPACTION_STARTED = "context-compaction-started"
+    CONTEXT_COMPACTION_COMPLETED = "context-compaction-completed"
+    CONTEXT_COMPACTION_FAILED = "context-compaction-failed"
     CONTENT = "content"  # Used internally by LLM client
     MEMORY_STORE = "memory-store"
     TOOL_BUNDLE = "tool-bundle"
-    WEB_SEARCH_PROGRESS = "web_search_progress"
+    WEB_SEARCH_PROGRESS = "web-search-progress"
+
+
+LEGACY_STREAMING_EVENT_TYPE_ALIASES: Final[dict[str, str]] = {
+    "thinking": StreamingEventType.LLM_THOUGHT.value,
+    "chunk": StreamingEventType.STREAMING_RESPONSE.value,
+    "tool_call": StreamingEventType.TOOL_CALL.value,
+    "tool_output": StreamingEventType.TOOL_OUTPUT.value,
+    "system_prompt": StreamingEventType.SYSTEM_PROMPT.value,
+    "tool_schemas": StreamingEventType.TOOL_SCHEMAS.value,
+    "user_message_full": StreamingEventType.USER_MESSAGE_FULL.value,
+    "assistant_message_full": StreamingEventType.ASSISTANT_MESSAGE_FULL.value,
+    "token_count": StreamingEventType.TOKEN_COUNT.value,
+    "context_compaction_started": StreamingEventType.CONTEXT_COMPACTION_STARTED.value,
+    "context_compaction_completed": StreamingEventType.CONTEXT_COMPACTION_COMPLETED.value,
+    "context_compaction_failed": StreamingEventType.CONTEXT_COMPACTION_FAILED.value,
+    "web_search_progress": StreamingEventType.WEB_SEARCH_PROGRESS.value,
+}
+
+
+def normalize_streaming_event_type(event_type: str | None) -> str | None:
+    """Normalize legacy/internal stream event type spellings to canonical transport names."""
+    if not isinstance(event_type, str):
+        return None
+    normalized = event_type.strip()
+    if not normalized:
+        return None
+    return LEGACY_STREAMING_EVENT_TYPE_ALIASES.get(normalized, normalized)
 
 
 class ContentType(str, Enum):

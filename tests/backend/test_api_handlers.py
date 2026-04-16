@@ -897,7 +897,7 @@ async def test_query_handler_loads_screenshot_from_artifact_ref(monkeypatch):
             return None
 
     class DummyStore:
-        def load_base64(self, artifact_id: str) -> str:
+        def load_base64(self, artifact_id: str, owner_user_id=None) -> str:
             assert artifact_id == "shot_1.png"
             return "artifact-base64"
 
@@ -948,7 +948,7 @@ async def test_query_handler_loads_multiple_screenshots_from_artifact_refs(monke
             return None
 
     class DummyStore:
-        def load_base64(self, artifact_id: str) -> str:
+        def load_base64(self, artifact_id: str, owner_user_id=None) -> str:
             return f"artifact:{artifact_id}"
 
     monkeypatch.setattr("backend.src.api.handlers.query.StreamPipeline", DummyPipeline)
@@ -1001,7 +1001,7 @@ async def test_query_handler_continues_when_artifact_load_fails(monkeypatch):
             return None
 
     class DummyStore:
-        def load_base64(self, artifact_id: str) -> str:
+        def load_base64(self, artifact_id: str, owner_user_id=None) -> str:
             raise RuntimeError(f"failed to load {artifact_id}")
 
     monkeypatch.setattr("backend.src.api.handlers.query.StreamPipeline", DummyPipeline)

@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import Final
 
+from backend.src.core.types.enums import StreamingEventType
+
 
 class IncomingMessageType:
     """Incoming WebSocket message type names."""
@@ -42,25 +44,25 @@ class OutgoingMessageType:
     """Outgoing WebSocket message type names."""
 
     ERROR: Final[str] = "error"
-    STREAMING_RESPONSE: Final[str] = "streaming-response"
-    STREAMING_COMPLETE: Final[str] = "streaming-complete"
-    LLM_THOUGHT: Final[str] = "llm-thought"
-    TOOL_CALL: Final[str] = "tool-call"
-    TOOL_BUNDLE: Final[str] = "tool-bundle"
-    TOOL_OUTPUT: Final[str] = "tool-output"
-    WEB_SEARCH_PROGRESS: Final[str] = "web-search-progress"
+    STREAMING_RESPONSE: Final[str] = StreamingEventType.STREAMING_RESPONSE.value
+    STREAMING_COMPLETE: Final[str] = StreamingEventType.STREAMING_COMPLETE.value
+    LLM_THOUGHT: Final[str] = StreamingEventType.LLM_THOUGHT.value
+    TOOL_CALL: Final[str] = StreamingEventType.TOOL_CALL.value
+    TOOL_BUNDLE: Final[str] = StreamingEventType.TOOL_BUNDLE.value
+    TOOL_OUTPUT: Final[str] = StreamingEventType.TOOL_OUTPUT.value
+    WEB_SEARCH_PROGRESS: Final[str] = StreamingEventType.WEB_SEARCH_PROGRESS.value
     AUDIO_CHUNK: Final[str] = "audio-chunk"
     WAKEWORD_ACTIVATED: Final[str] = "wakeword-activated"
     WAKEWORD_GREETING: Final[str] = "wakeword-greeting"
-    SYSTEM_PROMPT: Final[str] = "system-prompt"
-    TOOL_SCHEMAS: Final[str] = "tool-schemas"
-    TOKEN_COUNT: Final[str] = "token-count"
-    MEMORY_STORE: Final[str] = "memory-store"
-    USER_MESSAGE_FULL: Final[str] = "user-message-full"
-    ASSISTANT_MESSAGE_FULL: Final[str] = "assistant-message-full"
-    CONTEXT_COMPACTION_STARTED: Final[str] = "context-compaction-started"
-    CONTEXT_COMPACTION_COMPLETED: Final[str] = "context-compaction-completed"
-    CONTEXT_COMPACTION_FAILED: Final[str] = "context-compaction-failed"
+    SYSTEM_PROMPT: Final[str] = StreamingEventType.SYSTEM_PROMPT.value
+    TOOL_SCHEMAS: Final[str] = StreamingEventType.TOOL_SCHEMAS.value
+    TOKEN_COUNT: Final[str] = StreamingEventType.TOKEN_COUNT.value
+    MEMORY_STORE: Final[str] = StreamingEventType.MEMORY_STORE.value
+    USER_MESSAGE_FULL: Final[str] = StreamingEventType.USER_MESSAGE_FULL.value
+    ASSISTANT_MESSAGE_FULL: Final[str] = StreamingEventType.ASSISTANT_MESSAGE_FULL.value
+    CONTEXT_COMPACTION_STARTED: Final[str] = StreamingEventType.CONTEXT_COMPACTION_STARTED.value
+    CONTEXT_COMPACTION_COMPLETED: Final[str] = StreamingEventType.CONTEXT_COMPACTION_COMPLETED.value
+    CONTEXT_COMPACTION_FAILED: Final[str] = StreamingEventType.CONTEXT_COMPACTION_FAILED.value
     SETTINGS_LOADED: Final[str] = "settings-loaded"
     SETTINGS_UPDATED: Final[str] = "settings-updated"
     MODELS_LISTED: Final[str] = "models-listed"

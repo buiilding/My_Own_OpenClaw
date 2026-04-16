@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- refactor(stream-event-contract): canonicalize backend streamed event names to match the websocket/renderer transport vocabulary directly, keep legacy dict-event alias normalization for compatibility, and refresh the contract docs/tests around that single event naming surface.
 - refactor(vision-provider-boundary): move vision coordinate prediction and descriptive image-question calls onto the vision provider/router contract so SDK and coordinate-resolution paths no longer reach into the raw local model object.
 - refactor(sidecar-embedding-space-identity): propagate embedding provider/model/version metadata through the backend embeddings API, teach the sidecar remote embedding client to cache that identity, and persist local embedding-space metadata so FAISS indices rebuild explicitly when the embedding space changes.
 - refactor(backend-inference-routing): wrap the local OCR and vision services in provider adapters, expose embeddings/OCR/vision through capability routers in the container, and migrate route/runtime lookup paths to those routers so inference ownership no longer depends on raw singleton model hosts.

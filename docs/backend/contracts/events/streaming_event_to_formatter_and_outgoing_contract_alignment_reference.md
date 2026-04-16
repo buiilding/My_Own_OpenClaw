@@ -28,42 +28,43 @@ Runtime stream alignment depends on four coordinated layers:
 3. `OutgoingMessageType` constants and `OUTGOING_SCHEMA_MESSAGE_TYPES` list
 4. outgoing Pydantic schemas in `api/schemas/outgoing.py` (`type: Literal[...]`)
 
-Drift on any one surface can silently drop events (`ResponseFormatter.format(...)` returns `None`) or cause schema/runtime mismatch.
+The intended contract is now one vocabulary for streamed backend events and websocket transport message types. Drift on any one surface can silently drop events (`ResponseFormatter.format(...)` returns `None`) or cause schema/runtime mismatch.
 
 ## Canonical Event Mapping Matrix
 
 `get_formatter_specs()` currently defines:
 
-- `ThinkingEvent` -> `thinking` -> `llm-thought` -> `LlmThought`
-- `ChunkEvent` -> `chunk` -> `streaming-response` -> `StreamingResponse`
+- `ThinkingEvent` -> `llm-thought` -> `llm-thought` -> `LlmThought`
+- `ChunkEvent` -> `streaming-response` -> `streaming-response` -> `StreamingResponse`
 - `ErrorEvent` -> `error` -> `error` -> `ErrorResponse`
 - `StreamingCompleteEvent` -> `streaming-complete` -> `streaming-complete` -> `StreamingComplete`
-- `ToolCallEvent` -> `tool_call` -> `tool-call` -> `ToolCallMessage`
-- `ToolOutputEvent` -> `tool_output` -> `tool-output` -> `ToolOutputMessage`
-- `WebSearchProgressEvent` -> `web_search_progress` -> `web-search-progress` -> `WebSearchProgressMessage`
-- `SystemPromptEvent` -> `system_prompt` -> `system-prompt` -> `SystemPromptMessage`
-- `ToolSchemasEvent` -> `tool_schemas` -> `tool-schemas` -> `ToolSchemasMessage`
-- `UserMessageFullEvent` -> `user_message_full` -> `user-message-full` -> `UserMessageFullMessage`
-- `AssistantMessageFullEvent` -> `assistant_message_full` -> `assistant-message-full` -> `AssistantMessageFullMessage`
-- `TokenCountEvent` -> `token_count` -> `token-count` -> `TokenCountMessage`
+- `ToolCallEvent` -> `tool-call` -> `tool-call` -> `ToolCallMessage`
+- `ToolOutputEvent` -> `tool-output` -> `tool-output` -> `ToolOutputMessage`
+- `WebSearchProgressEvent` -> `web-search-progress` -> `web-search-progress` -> `WebSearchProgressMessage`
+- `SystemPromptEvent` -> `system-prompt` -> `system-prompt` -> `SystemPromptMessage`
+- `ToolSchemasEvent` -> `tool-schemas` -> `tool-schemas` -> `ToolSchemasMessage`
+- `UserMessageFullEvent` -> `user-message-full` -> `user-message-full` -> `UserMessageFullMessage`
+- `AssistantMessageFullEvent` -> `assistant-message-full` -> `assistant-message-full` -> `AssistantMessageFullMessage`
+- `TokenCountEvent` -> `token-count` -> `token-count` -> `TokenCountMessage`
+- `ContextCompactionStartedEvent` -> `context-compaction-started` -> `context-compaction-started` -> `ContextCompactionStartedMessage`
+- `ContextCompactionCompletedEvent` -> `context-compaction-completed` -> `context-compaction-completed` -> `ContextCompactionCompletedMessage`
+- `ContextCompactionFailedEvent` -> `context-compaction-failed` -> `context-compaction-failed` -> `ContextCompactionFailedMessage`
 - `MemoryStoreEvent` -> `memory-store` -> `memory-store` -> `MemoryStoreMessage`
 - `ToolBundleEvent` -> `tool-bundle` -> `tool-bundle` -> `ToolBundleMessage`
 
-## Separator-Conventions Boundary
+## Legacy Alias Handling
 
-Important conversion boundary:
+The canonical stream vocabulary is kebab-case and matches the websocket transport contract directly.
 
-- stream event literals are mixed (`snake_case`, `kebab-case`, and plain words)
-- outgoing websocket message type literals are kebab-case
+For bounded backward compatibility, helper paths still normalize legacy/internal dict event names such as:
 
-Examples:
-
+- `thinking` -> `llm-thought`
+- `chunk` -> `streaming-response`
 - `tool_call` -> `tool-call`
-- `web_search_progress` -> `web-search-progress`
-- `token_count` -> `token-count`
-- `streaming-complete` remains unchanged
+- `tool_output` -> `tool-output`
+- `assistant_message_full` -> `assistant-message-full`
 
-Do not assume one canonical separator across core events and outgoing transport contracts.
+Typed dataclass events should emit canonical values directly. New code should not produce the legacy spellings.
 
 ## Internal-Only Event Literals
 
@@ -90,11 +91,12 @@ These are intentionally not websocket schema message types.
 
 When an emitted event does not reach renderer:
 
-1. confirm dataclass sets expected `StreamingEventType` literal in `__post_init__`
+1. confirm dataclass sets expected canonical `StreamingEventType` literal in `__post_init__`
 2. confirm event class and literal are both present in `get_formatter_specs()`
 3. confirm mapped outgoing type exists in `OUTGOING_SCHEMA_MESSAGE_TYPES`
 4. confirm outgoing schema model has matching `type: Literal[...]`
 5. confirm formatter returns non-`None` (required field guards)
+6. if the source is a legacy dict event, confirm alias normalization covers its old spelling
 
 ## Related Pages
 
