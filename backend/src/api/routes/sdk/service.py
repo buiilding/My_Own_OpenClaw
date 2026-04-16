@@ -19,6 +19,7 @@ from backend.src.agent.tools.preparation.coordinate_resolution.resolvers import 
     OcrCoordinateResolver,
     VisionCoordinateResolver,
 )
+from backend.src.api.auth.context import get_current_authenticated_install_identity
 from backend.src.api.routes.sdk.models import (
     BoundingBoxModel,
     DebugConfigSnapshot,
@@ -131,9 +132,11 @@ def resolve_effective_debug_config(
     interaction_mode: Optional[str] = None,
 ):
     """Resolve the effective debug config from session/global config plus overrides."""
+    identity = get_current_authenticated_install_identity()
+    resolved_user_id = identity.user_id if identity is not None else user_id
     base_config = container.config
-    if user_id and session_manager is not None:
-        session = session_manager.get_session(user_id)
+    if resolved_user_id and session_manager is not None:
+        session = session_manager.get_session(resolved_user_id)
         if session is not None and getattr(session, "cfg", None) is not None:
             base_config = session.cfg
 
@@ -768,7 +771,12 @@ def save_overlay_response(
     annotation_count: int,
 ) -> OverlayArtifactResponse:
     store = _artifact_store(container)
-    meta = store.save_bytes(image_bytes, content_type="image/png")
+    identity = get_current_authenticated_install_identity()
+    meta = store.save_bytes(
+        image_bytes,
+        content_type="image/png",
+        owner_user_id=identity.user_id if identity is not None else None,
+    )
     base_url = str(request.base_url).rstrip("/")
     return OverlayArtifactResponse(
         image=build_image_metadata(source),

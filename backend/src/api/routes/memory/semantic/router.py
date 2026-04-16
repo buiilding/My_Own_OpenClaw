@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Tuple
 
 from fastapi import APIRouter
 
+from backend.src.api.auth.context import get_current_authenticated_install_identity
 from backend.src.api.deps import ContainerDep, SessionManagerDep
 from backend.src.api.routes.memory.health import (
     dependency_health_check,
@@ -99,16 +100,18 @@ async def summarize_conversations(
     session_manager: SessionManagerDep,
 ) -> SummarizeResponse:
     """Summarize conversations and extract semantic information."""
+    identity = get_current_authenticated_install_identity()
+    resolved_user_id = identity.user_id if identity is not None else request.user_id
     route_started_at = _log_semantic_route_start(
         route_label="/api/semantic/summarize",
-        user_id=request.user_id,
+        user_id=resolved_user_id,
         conversation_count=len(request.conversations),
     )
     service = _build_semantic_service()
     try:
         summary, facts = await service.summarize(
             conversations=request.conversations,
-            user_id=request.user_id,
+            user_id=resolved_user_id,
             container=container,
             session_manager=session_manager,
         )
@@ -117,11 +120,11 @@ async def summarize_conversations(
             "Summarized %s conversations into %s facts for user %s",
             len(request.conversations),
             len(facts),
-            request.user_id,
+            resolved_user_id,
         )
         _log_semantic_route_success(
             route_label="/api/semantic/summarize",
-            user_id=request.user_id,
+            user_id=resolved_user_id,
             started_at=route_started_at,
             fact_count=len(facts),
         )
@@ -129,7 +132,7 @@ async def summarize_conversations(
     except Exception as error:
         _log_semantic_route_failure(
             route_label="/api/semantic/summarize",
-            user_id=request.user_id,
+            user_id=resolved_user_id,
             started_at=route_started_at,
             error=error,
         )
@@ -143,9 +146,11 @@ async def generate_conversation_title(
     session_manager: SessionManagerDep,
 ) -> GenerateTitleResponse:
     """Generate a conversation title using the active user model."""
+    identity = get_current_authenticated_install_identity()
+    resolved_user_id = identity.user_id if identity is not None else request.user_id
     route_started_at = _log_semantic_route_start(
         route_label="/api/semantic/title",
-        user_id=request.user_id,
+        user_id=resolved_user_id,
         user_chars=len(request.user_message),
         assistant_chars=len(request.assistant_message),
     )
@@ -154,7 +159,7 @@ async def generate_conversation_title(
         title = await service.generate_title(
             user_message=request.user_message,
             assistant_message=request.assistant_message,
-            user_id=request.user_id,
+            user_id=resolved_user_id,
             container=container,
             session_manager=session_manager,
             model_id_override=request.model_id,
@@ -162,7 +167,7 @@ async def generate_conversation_title(
         )
         _log_semantic_route_success(
             route_label="/api/semantic/title",
-            user_id=request.user_id,
+            user_id=resolved_user_id,
             started_at=route_started_at,
             title_chars=len(title),
         )
@@ -170,7 +175,7 @@ async def generate_conversation_title(
     except Exception as error:
         _log_semantic_route_failure(
             route_label="/api/semantic/title",
-            user_id=request.user_id,
+            user_id=resolved_user_id,
             started_at=route_started_at,
             error=error,
         )

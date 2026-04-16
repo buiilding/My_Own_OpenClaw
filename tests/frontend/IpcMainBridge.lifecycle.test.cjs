@@ -19,20 +19,29 @@ const {
 describe('ipc.cjs bridge lifecycle/config', () => {
   registerBridgeSuiteLifecycleHooks();
 
+  async function waitForSocket(getWs, attempts = 20) {
+    let ws = getWs();
+    for (let attempt = 0; !ws && attempt < attempts; attempt += 1) {
+      await new Promise((resolve) => queueMicrotask(resolve));
+      ws = getWs();
+    }
+    return ws;
+  }
+
   afterEach(() => {
     setActiveDisplayAffinity(null);
   });
 
-  function beginBackendConnection(bridge, message = { type: 'list-models' }) {
+  async function beginBackendConnection(bridge, message = { type: 'list-models' }) {
     const pending = bridge.handlers['to-backend']({ sender: null }, message);
-    const ws = bridge.getWs();
+    const ws = await waitForSocket(() => bridge.getWs());
     expect(ws).not.toBeNull();
     return { pending, ws };
   }
 
   async function setupOpenedIpc(options = {}) {
     const bridge = initIpc(options);
-    const { pending, ws } = beginBackendConnection(bridge);
+    const { pending, ws } = await beginBackendConnection(bridge);
     ws.triggerOpen();
     await pending;
     return { ...bridge, ws };
@@ -65,30 +74,29 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(bridge.ws).toBeNull();
   });
 
-  test('exposes a local user id before the backend websocket connects', async () => {
+  test('does not expose a user id before backend auth has been established', async () => {
     const bridge = initIpc();
 
     const clientInfo = await bridge.handlers['get-client-user-id']();
     expect(clientInfo).toEqual(expect.objectContaining({
-      userId: 'bad_user_',
+      userId: null,
       isConnected: false,
     }));
   });
 
-  test('sends handshake on websocket open with sanitized user_id', async () => {
+  test('sends handshake on websocket open with server-issued user_id', async () => {
     const { ws } = await setupOpenedIpc();
 
     const handshake = JSON.parse(ws.sent[0]);
     expect(handshake.type).toBe('handshake');
-    expect(handshake.user_id).toBe('bad_user_');
+    expect(handshake.user_id).toBe('registered-user-1');
   });
 
   test('queues list-models requests made before websocket open and flushes them after connect', async () => {
     const bridge = initIpc();
 
     const pendingRequest = bridge.handlers['to-backend']({ sender: null }, { type: 'list-models' });
-
-    const pendingSocket = bridge.getWs();
+    const pendingSocket = await waitForSocket(() => bridge.getWs());
     expect(pendingSocket.sent).toHaveLength(0);
 
     pendingSocket.triggerOpen();
@@ -101,7 +109,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(JSON.parse(pendingSocket.sent[1])).toEqual(expect.objectContaining({
       type: 'list-models',
       payload: {},
-      user_id: 'bad_user_',
+      user_id: 'registered-user-1',
     }));
   });
 
@@ -366,7 +374,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     process.env.BACKEND_PORT = '9001';
 
     const bridge = initIpc();
-    const { ws } = beginBackendConnection(bridge);
+    const { ws } = await beginBackendConnection(bridge);
     expect(ws.url).toBe('ws://10.0.0.42:9001/ws');
     expect(ws.options).toEqual(expect.objectContaining({ origin: 'http://10.0.0.42:9001' }));
 
@@ -375,7 +383,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
   test('uses hosted backend defaults first for customer-mode desktop runs', async () => {
     const bridge = initIpc();
-    const { ws } = beginBackendConnection(bridge);
+    const { ws } = await beginBackendConnection(bridge);
     expect(ws.url).toBe('wss://api.windieos.com/ws');
     expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://api.windieos.com' }));
 
@@ -384,7 +392,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
   test('does not fall back to a local backend when the hosted default is unreachable before open', async () => {
     const bridge = initIpc();
-    beginBackendConnection(bridge);
+    await beginBackendConnection(bridge);
     const WebSocketMock = require('ws');
     const remoteSocket = WebSocketMock.instances[0];
 
@@ -398,7 +406,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     process.env.BACKEND_HTTP_URL = 'https://windie.example.com/';
 
     const bridge = initIpc();
-    const { ws } = beginBackendConnection(bridge);
+    const { ws } = await beginBackendConnection(bridge);
     expect(ws.url).toBe('wss://windie.example.com/ws');
     expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://windie.example.com' }));
 
@@ -407,7 +415,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
   test('uses hosted backend defaults first when app is packaged', async () => {
     const bridge = initIpc({ isPackaged: true });
-    const { ws } = beginBackendConnection(bridge);
+    const { ws } = await beginBackendConnection(bridge);
     expect(ws.url).toBe('wss://api.windieos.com/ws');
     expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://api.windieos.com' }));
 
@@ -416,7 +424,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
   test('does not fall back to a local backend when the packaged hosted default is unreachable before open', async () => {
     const bridge = initIpc({ isPackaged: true });
-    beginBackendConnection(bridge);
+    await beginBackendConnection(bridge);
     const WebSocketMock = require('ws');
     const remoteSocket = WebSocketMock.instances[0];
 
@@ -429,7 +437,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   test('uses packaged default backend env override when app is packaged', async () => {
     process.env.WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL = 'https://hosted.windie.example/v1/';
     const bridge = initIpc({ isPackaged: true });
-    const { ws } = beginBackendConnection(bridge);
+    const { ws } = await beginBackendConnection(bridge);
     expect(ws.url).toBe('wss://hosted.windie.example/ws');
     expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://hosted.windie.example/v1' }));
 
@@ -443,7 +451,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   test('closes an idle backend websocket after the 30 minute grace window', async () => {
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(() => 0);
     const bridge = initIpc();
-    const { pending, ws } = beginBackendConnection(bridge);
+    const { pending, ws } = await beginBackendConnection(bridge);
 
     ws.triggerOpen();
     await pending;
@@ -466,7 +474,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   test('does not schedule reconnect after the idle timeout closes the websocket', async () => {
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout').mockImplementation(() => 0);
     const bridge = initIpc();
-    const { pending, ws } = beginBackendConnection(bridge);
+    const { pending, ws } = await beginBackendConnection(bridge);
 
     ws.triggerOpen();
     await pending;

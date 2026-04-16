@@ -30,8 +30,10 @@ async def test_summarize_success_returns_summary_and_facts():
 
     assert summary == "A summary"
     assert facts == ["fact-1", "fact-2"]
-    url, payload, timeout = session.last_post
+    url, payload, timeout, headers, data = session.last_post
     assert url == "http://localhost:9999/api/semantic/summarize"
+    assert headers == {}
+    assert data is None
     assert payload == {"conversations": ["hello"], "user_id": "u-1"}
     assert timeout.total == 12
 

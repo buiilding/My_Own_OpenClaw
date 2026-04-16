@@ -17,6 +17,7 @@ def resolve_screenshots(
     *,
     artifact_store_cls: Type[ArtifactStore],
     session_manager_config: Any,
+    user_id: Optional[str] = None,
 ) -> Optional[List[str]]:
     """Resolve screenshots from inline payload and/or artifact references."""
     screenshot = message.payload.screenshot
@@ -62,7 +63,7 @@ def resolve_screenshots(
 
     for ref in ref_candidates:
         try:
-            resolved_screenshots.append(store.load_base64(ref))
+            resolved_screenshots.append(store.load_base64(ref, owner_user_id=user_id))
         except Exception as exc:
             logger.warning("Failed to load screenshot artifact %s: %s", ref, exc)
 

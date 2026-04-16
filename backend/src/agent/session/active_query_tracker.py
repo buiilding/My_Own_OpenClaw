@@ -163,6 +163,27 @@ class ActiveQueryTracker:
             self.active_query_tasks.pop(user_id, None)
         return False
 
+    def count_active_query_tasks(self, user_id: Optional[str] = None) -> int:
+        if user_id is None:
+            count = 0
+            for candidate_user_id in list(self.active_query_tasks.keys()):
+                count += self.count_active_query_tasks(candidate_user_id)
+            return count
+
+        user_tasks = self.active_query_tasks.get(user_id)
+        if not user_tasks:
+            return 0
+
+        count = 0
+        for task in list(user_tasks.keys()):
+            if task.done():
+                user_tasks.pop(task, None)
+                continue
+            count += 1
+        if not user_tasks:
+            self.active_query_tasks.pop(user_id, None)
+        return count
+
     def clear_user_state(self, user_id: str) -> None:
         self.clear_active_query_task(user_id)
         self.pending_stop_requests.pop(user_id, None)

@@ -29,6 +29,11 @@ def _default_artifact_store_path() -> str:
     return str(home_dir / ".config" / app_name / "artifacts")
 
 
+def _default_install_auth_db_path() -> str:
+    artifact_dir = Path(_default_artifact_store_path())
+    return str(artifact_dir.parent / "install-auth.sqlite3")
+
+
 class OpenAIConfig(BaseModel):
     """Configuration for OpenAI provider."""
 
@@ -253,6 +258,9 @@ class AppConfig(BaseModel):
     memory_enabled: bool = True
     embedding_backend: InferenceBackend = "local"
     embedding_model: str = "all-MiniLM-L6-v2"
+    embedding_remote_service_url: Optional[str] = None
+    embedding_max_concurrent_requests: int = Field(default=32, ge=1)
+    embedding_queue_timeout_seconds: float = Field(default=5.0, ge=0.1)
 
     # Agent Execution Settings
     interaction_mode: Literal["chat", "agent"] = "agent"
@@ -349,6 +357,14 @@ class AppConfig(BaseModel):
         default=5.0,
         description="Timeout for waiting for tasks to cancel on disconnect (seconds)",
     )
+    max_active_queries_per_user: int = Field(
+        default=4,
+        description="Maximum concurrently active query tasks per authenticated user",
+    )
+    max_active_queries_global: int = Field(
+        default=200,
+        description="Maximum concurrently active query tasks across the backend process",
+    )
 
     # Artifact Settings (HTTP storage for large blobs)
     artifact_store_path: str = Field(
@@ -358,6 +374,11 @@ class AppConfig(BaseModel):
     artifact_max_bytes: int = Field(
         default=25 * 1024 * 1024,  # 25MB
         description="Maximum artifact size accepted by HTTP upload",
+    )
+    install_auth_enabled: bool = True
+    install_auth_db_path: str = Field(
+        default_factory=_default_install_auth_db_path,
+        description="SQLite file used for install-token registration and authentication",
     )
 
     @property

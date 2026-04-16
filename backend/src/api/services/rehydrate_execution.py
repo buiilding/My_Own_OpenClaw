@@ -69,6 +69,7 @@ class RehydrateExecutionService:
 
             image_data = self._resolve_image_data(
                 artifact_store=artifact_store,
+                user_id=user_id,
                 entry=entry,
                 screenshot=entry.screenshot,
                 screenshot_ref=entry.screenshot_ref,
@@ -203,6 +204,7 @@ class RehydrateExecutionService:
         self,
         *,
         artifact_store: Optional[ArtifactStore],
+        user_id: str,
         entry: Any,
         screenshot: Optional[str],
         screenshot_ref: Optional[str],
@@ -228,7 +230,10 @@ class RehydrateExecutionService:
                 f"Unable to resolve screenshot_ref at message index {index}: artifact store unavailable"
             )
         try:
-            return artifact_store.load_base64(screenshot_ref)
+            return artifact_store.load_base64(
+                screenshot_ref,
+                owner_user_id=user_id,
+            )
         except Exception as exc:
             logger.warning(
                 "Failed to resolve screenshot_ref during rehydrate (index=%s, ref=%s): %s. "

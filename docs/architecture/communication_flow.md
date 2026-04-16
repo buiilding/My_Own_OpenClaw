@@ -128,7 +128,8 @@ The default product topology is remote-first: the app and SDK talk to the hosted
 ### Connection Lifecycle
 
 1. **Connection**: Electron main opens the backend WebSocket on demand instead of at renderer startup. Customer-mode source and packaged runs try `wss://api.windieos.com/ws` first and fall back to `ws://127.0.0.1:8765/ws` if the hosted backend is unreachable before the socket opens.
-2. **Handshake**: Client sends handshake message (backend validates and uses client `user_id`)
+2. **Auth + Handshake**: Hosted clients first authenticate with a server-issued install token, then send the handshake message
+   - the backend resolves the real `user_id` from the install token and ignores mismatched client-claimed `user_id` values
    - Electron main also sends the frontend operating-system label so backend session prompt rendering can follow the frontend OS instead of the Python host OS
    - Invalid handshake JSON/schema closes the socket with code `1008` (policy violation)
 3. **Session Creation**: Backend creates session
@@ -180,6 +181,11 @@ This keeps the backend as the hosted control plane and prevents SDK consumers fr
 **Handshake (required, before any other messages)**:
 ```json
 { "type": "handshake", "user_id": "user-123", "operating_system": "macOS" }
+```
+
+**Hosted auth header**:
+```text
+Authorization: Bearer <install_token>
 ```
 
 **Outgoing (Client → Server)**:

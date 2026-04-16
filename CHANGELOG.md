@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- feat(hosted-install-auth-and-remote-embeddings): add no-login install registration plus install-token auth for hosted REST and websocket flows, stop trusting client-owned `user_id` on the hosted path, scope session cleanup to the final active connection per authenticated user, extract embeddings behind a remote HTTP provider/service option with bounded concurrency, and thread auth headers through the Electron main process and sidecar backend clients; add focused backend/frontend/sidecar coverage and refresh the API/transport docs for the new hosted contract.
 - refactor(formatter-spec-contract): make formatter classes own their websocket `message_type` so formatter specs now register only the backend event class plus canonical event type instead of restating a separate outgoing type layer.
 - refactor(stream-event-contract): canonicalize backend streamed event names to match the websocket/renderer transport vocabulary directly, keep legacy dict-event alias normalization for compatibility, and refresh the contract docs/tests around that single event naming surface.
 - refactor(vision-provider-boundary): move vision coordinate prediction and descriptive image-question calls onto the vision provider/router contract so SDK and coordinate-resolution paths no longer reach into the raw local model object.

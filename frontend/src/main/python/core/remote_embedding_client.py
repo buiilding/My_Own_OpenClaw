@@ -105,6 +105,7 @@ class RemoteEmbeddingClient(RemoteApiClientBase):
                 async with self._session.post(
                     f"{backend_url}/api/embeddings/",
                     json=payload,
+                    headers=self._build_auth_headers(),
                     timeout=aiohttp.ClientTimeout(total=self.timeout_seconds),
                 ) as response:
                     if response.status != 200:
@@ -193,6 +194,7 @@ class RemoteEmbeddingClient(RemoteApiClientBase):
             try:
                 async with self._session.get(
                     f"{backend_url}/api/embeddings/health",
+                    headers=self._build_auth_headers(),
                     timeout=aiohttp.ClientTimeout(total=5),
                 ) as response:
                     if response.status == 200:

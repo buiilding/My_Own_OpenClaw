@@ -45,12 +45,14 @@ def resolve_query_execution_inputs(
     *,
     artifact_store_cls: Type[ArtifactStore],
     session_manager_config: Any,
+    user_id: Optional[str] = None,
 ) -> QueryExecutionInputs:
     """Resolve screenshot/capture metadata and stable payload fields for one query."""
     resolved_screenshots = resolve_screenshots(
         message,
         artifact_store_cls=artifact_store_cls,
         session_manager_config=session_manager_config,
+        user_id=user_id,
     )
     raw_repo_instruction_messages = getattr(
         message.payload,

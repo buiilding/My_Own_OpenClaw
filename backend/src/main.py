@@ -8,6 +8,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from backend.src.api.auth.http_middleware import install_auth_http_middleware
+from backend.src.api.auth.service import InstallAuthService
 from backend.src.api.app_assembly import create_api_app
 from backend.src.api.deps import set_container
 from backend.src.core.bootstrap.coordinator import InitializationCoordinator
@@ -25,12 +27,15 @@ async def lifespan(app: FastAPI):
     coordinator = InitializationCoordinator()
     container, _session_manager = await coordinator.initialize(app)
     set_container(container, app=app, force=True)
+    app.state.install_auth_service = InstallAuthService.from_config(container.config)
 
     try:
         yield
     finally:
         # Shutdown
         logger.info("Shutting down...")
+        if hasattr(app.state, "install_auth_service"):
+            delattr(app.state, "install_auth_service")
         set_container(None, app=app, force=True)
         logger.info("Shutdown complete.")
 
@@ -39,6 +44,7 @@ app = create_api_app(
     title="Desktop Assistant",
     lifespan=lifespan,
 )
+app.middleware("http")(install_auth_http_middleware)
 
 if __name__ == "__main__":
     run_uvicorn_app(

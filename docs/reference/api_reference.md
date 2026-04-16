@@ -54,8 +54,11 @@ Local development or self-hosted deployments may use `ws://127.0.0.1:8765/ws`.
 
 The client must send a handshake message immediately after connecting.
 This message does **not** use the base message envelope.
-The backend validates the client-provided `user_id` and uses it as the
-connection identity.
+For hosted deployments, the socket must also include
+`Authorization: Bearer <install_token>`. The backend authenticates that token,
+derives the real `user_id` server-side, and ignores any mismatched client-claimed
+`user_id` in the handshake payload. Local/self-hosted deployments may still run
+without install auth when explicitly configured that way.
 
 Handshake validation behavior:
 - Invalid handshake JSON or invalid handshake schema closes the socket with policy-violation code `1008`.
@@ -68,13 +71,28 @@ Handshake validation behavior:
 { "type": "handshake", "user_id": "user-123", "operating_system": "macOS" }
 ```
 
-### Hosted WebSocket (Planned)
+### Install Registration (Hosted)
 
-**URL**: `wss://api.<domain>/ws`
+Hosted desktop clients bootstrap identity with a no-login registration call.
+The returned install token is stored locally and reused for subsequent REST and
+WebSocket calls.
 
-**Auth**: `Authorization: Bearer <access_token>`
+### POST `/api/install/register`
 
-**Handshake Payload**: `{ user_id, device_id, session_id? }`
+**Request**:
+```json
+{ "operating_system": "Windows" }
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "user_id": "user_123",
+  "install_id": "install_123",
+  "install_token": "wnd_install_..."
+}
+```
 
 ## Dedicated Transcription WebSocket
 
@@ -130,6 +148,9 @@ These REST endpoints live on the same FastAPI server as the WebSocket. In the de
 
 They are used by the Python sidecar for embeddings, semantic summarization, and async conversation-title generation.
 
+Hosted requests on `/api/*` require `Authorization: Bearer <install_token>`
+except for `/api/install/register`.
+
 ### POST `/api/embeddings/`
 
 Generate an embedding for a single text input.
@@ -143,7 +164,14 @@ Generate an embedding for a single text input.
 
 **Response**:
 ```json
-{ "embedding": [0.0, 0.1, ...], "model_name": "string", "dimension": 384 }
+{
+  "embedding": [0.0, 0.1, ...],
+  "provider_id": "local-sentence-transformer",
+  "model_id": "sentence-transformers/all-MiniLM-L6-v2",
+  "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+  "dimension": 384,
+  "embedding_space_version": "local-sentence-transformer:sentence-transformers/all-MiniLM-L6-v2:384"
+}
 ```
 
 ### GET `/api/embeddings/health`
@@ -152,7 +180,37 @@ Health check for the embeddings service.
 
 **Response**:
 ```json
-{ "status": "healthy", "model_name": "string", "dimension": 384 }
+{
+  "status": "healthy",
+  "provider_id": "local-sentence-transformer",
+  "model_id": "sentence-transformers/all-MiniLM-L6-v2",
+  "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+  "dimension": 384,
+  "embedding_space_version": "local-sentence-transformer:sentence-transformers/all-MiniLM-L6-v2:384"
+}
+```
+
+### Internal Embedding Service
+
+The hosted backend can also delegate embeddings to a separate internal service
+when `embedding_backend=remote-http`.
+
+**Routes**:
+- `GET /health`
+- `POST /embed`
+
+**Embed response**:
+```json
+{
+  "embeddings": [[0.0, 0.1, ...]],
+  "provider_id": "embedding-service",
+  "model_id": "sentence-transformers/all-MiniLM-L6-v2",
+  "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+  "dimension": 384,
+  "embedding_space_version": "embedding-service:sentence-transformers/all-MiniLM-L6-v2:384",
+  "queue_wait_ms": 0.4,
+  "service_time_ms": 12.7
+}
 ```
 
 ### POST `/api/semantic/summarize`
@@ -2128,7 +2186,10 @@ codes are internal to the backend exception hierarchy and may appear in logs.
 
 ### Handshake
 
-On connection, client sends handshake (backend validates and uses the client `user_id` for the connection):
+On hosted connections, the client first authenticates with an install bearer
+token and then sends the websocket handshake payload. The backend resolves the
+real `user_id` from the token and does not trust a mismatched claimed
+`user_id` from the client:
 
 ```json
 {

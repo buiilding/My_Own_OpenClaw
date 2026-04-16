@@ -14,6 +14,9 @@ const {
 const {
   createWindowPlatformPolicy,
 } = require('./window_platform_policy.cjs');
+const {
+  getInstallAuthStatePath,
+} = require('./ipc/ipc_install_auth_state.cjs');
 
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
 const CHATBOX_OVERLAY_FIXED_HEIGHT = 220;
@@ -223,6 +226,7 @@ function createMainWindow({
     getFrontendConfig: getLatestFrontendConfig,
     isPackaged: app.isPackaged,
     permissionStatePath,
+    authStatePath: getInstallAuthStatePath(),
   });
   initializeMainProcessIpc();
 

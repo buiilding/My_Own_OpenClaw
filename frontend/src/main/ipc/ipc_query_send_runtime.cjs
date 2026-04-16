@@ -31,8 +31,6 @@ async function prepareRendererQuerySend({
     buildQueryPayloadContent,
     getSystemState,
     searchMemory,
-    generateUserId,
-    osUserInfo,
   } = deps;
 
   await runBeforeOverlayQueryCapture({
@@ -97,9 +95,6 @@ async function prepareRendererQuerySend({
     buildQueryPayloadContent,
     getSystemState,
     searchMemory,
-    generateUserId,
-    osUserInfo,
-    uuidGenerator,
     log,
   });
 

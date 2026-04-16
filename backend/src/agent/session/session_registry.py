@@ -20,6 +20,7 @@ class SessionRegistry:
     def __init__(self) -> None:
         self.active_sessions: dict[str, dict[Optional[str], "AgentSession"]] = {}
         self.latest_conversation_refs: dict[str, Optional[str]] = {}
+        self.active_connection_counts: dict[str, int] = {}
         self.user_locks: dict[str, asyncio.Lock] = {}
         self.locks_lock = asyncio.Lock()
 
@@ -117,6 +118,23 @@ class SessionRegistry:
     def clear_user(self, user_id: str) -> None:
         self.active_sessions.pop(user_id, None)
         self.latest_conversation_refs.pop(user_id, None)
+
+    def increment_connection_count(self, user_id: str) -> int:
+        next_count = int(self.active_connection_counts.get(user_id, 0)) + 1
+        self.active_connection_counts[user_id] = next_count
+        return next_count
+
+    def decrement_connection_count(self, user_id: str) -> int:
+        current_count = int(self.active_connection_counts.get(user_id, 0))
+        if current_count <= 1:
+            self.active_connection_counts.pop(user_id, None)
+            return 0
+        next_count = current_count - 1
+        self.active_connection_counts[user_id] = next_count
+        return next_count
+
+    def get_connection_count(self, user_id: str) -> int:
+        return int(self.active_connection_counts.get(user_id, 0))
 
     async def get_user_lock(self, user_id: str) -> asyncio.Lock:
         """Get or create a lock for a specific user."""

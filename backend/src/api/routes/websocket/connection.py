@@ -10,6 +10,7 @@ import asyncio
 from fastapi import WebSocket
 from pydantic import ValidationError as PydanticValidationError
 
+from backend.src.api.auth.service import InstallAuthService, extract_bearer_token
 from backend.src.api.transport.websocket import SafeWebSocket
 from backend.src.api.schema import HandshakeMessage
 from backend.src.api.routes.websocket.task_manager import TaskManager
@@ -53,7 +54,10 @@ async def _fail_handshake(
 
 async def perform_handshake(
     websocket: WebSocket,
-    safe_ws: SafeWebSocket
+    safe_ws: SafeWebSocket,
+    *,
+    install_auth_service: InstallAuthService | None = None,
+    require_install_auth: bool = False,
 ) -> str | None:
     """
     Perform WebSocket handshake and validate client-provided user_id.
@@ -73,12 +77,36 @@ async def perform_handshake(
             loop_getter=asyncio.get_running_loop,
         )
         handshake_msg = HandshakeMessage.model_validate(handshake_data)
-        user_id = handshake_msg.user_id
+        claimed_user_id = handshake_msg.user_id
         setattr(safe_ws, "frontend_operating_system", handshake_msg.operating_system)
-        
+        user_id = claimed_user_id
+        install_id = None
+        if require_install_auth:
+            if install_auth_service is None:
+                raise RuntimeError("install auth service unavailable")
+            auth_header = getattr(getattr(websocket, "headers", None), "get", lambda *_args, **_kwargs: None)(
+                "authorization"
+            )
+            bearer_token = extract_bearer_token(auth_header)
+            if bearer_token is None:
+                raise ValueError("missing install bearer token")
+            identity = install_auth_service.authenticate_token(bearer_token)
+            if identity is None:
+                raise ValueError("invalid install bearer token")
+            user_id = identity.user_id
+            install_id = identity.install_id
+            if claimed_user_id != user_id:
+                logger.warning(
+                    "Handshake user_id mismatch ignored (claimed=%s authenticated=%s)",
+                    claimed_user_id,
+                    user_id,
+                )
+        setattr(safe_ws, "authenticated_user_id", user_id)
+        setattr(safe_ws, "authenticated_install_id", install_id)
         logger.info(
-            "Handshake successful (user_id=%s)",
+            "Handshake successful (user_id=%s, install_id=%s)",
             user_id,
+            install_id or "-",
         )
         return user_id
     except (PydanticValidationError, JsonRootTypeError) as e:
@@ -129,8 +157,17 @@ async def cleanup_connection(
     except Exception as e:
         logger.error(f"Error cleaning up tasks for user {user_id}: {e}", exc_info=True)
     
-    # Clean up session - handle exceptions to prevent cleanup failure
+    # Clean up session only after the final active connection for this user closes.
     try:
-        await session_manager.end_session(user_id)
+        remaining_connections = 0
+        decrement_connection_count = getattr(
+            session_manager,
+            "decrement_connection_count",
+            None,
+        )
+        if callable(decrement_connection_count):
+            remaining_connections = decrement_connection_count(user_id)
+        if remaining_connections <= 0:
+            await session_manager.end_session(user_id)
     except Exception as e:
         logger.error(f"Error ending session for user {user_id}: {e}", exc_info=True)

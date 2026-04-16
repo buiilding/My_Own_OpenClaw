@@ -66,16 +66,16 @@ class DummySession:
         self.last_get = None
         self.close_calls = 0
 
-    def post(self, url, json=None, timeout=None):
+    def post(self, url, json=None, timeout=None, headers=None, data=None):
         if self.post_error is not None:
             raise self.post_error
-        self.last_post = (url, json, timeout)
+        self.last_post = (url, json, timeout, headers, data)
         return self.response
 
-    def get(self, url, timeout=None):
+    def get(self, url, timeout=None, headers=None):
         if self.get_error is not None:
             raise self.get_error
-        self.last_get = (url, timeout)
+        self.last_get = (url, timeout, headers)
         return self.response
 
     async def close(self):
@@ -90,15 +90,15 @@ class SequentialSession:
         self.post_calls = []
         self.get_calls = []
 
-    def post(self, url, json=None, timeout=None):
-        self.post_calls.append((url, json, timeout))
+    def post(self, url, json=None, timeout=None, headers=None, data=None):
+        self.post_calls.append((url, json, timeout, headers, data))
         result = self.post_results.pop(0)
         if isinstance(result, Exception):
             raise result
         return result
 
-    def get(self, url, timeout=None):
-        self.get_calls.append((url, timeout))
+    def get(self, url, timeout=None, headers=None):
+        self.get_calls.append((url, timeout, headers))
         result = self.get_results.pop(0)
         if isinstance(result, Exception):
             raise result

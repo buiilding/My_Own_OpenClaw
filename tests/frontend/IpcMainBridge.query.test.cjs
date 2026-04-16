@@ -16,16 +16,26 @@ const {
 describe('ipc.cjs bridge query handling', () => {
   registerBridgeSuiteLifecycleHooks();
 
-  function beginBackendConnection(bridge, message = { type: 'list-models' }) {
+  async function waitForSocket(getWs, attempts = 100) {
+    let ws = getWs();
+    for (let attempt = 0; !ws && attempt < attempts; attempt += 1) {
+      await Promise.resolve();
+      await Promise.resolve();
+      ws = getWs();
+    }
+    return ws;
+  }
+
+  async function beginBackendConnection(bridge, message = { type: 'list-models' }) {
     const pending = bridge.handlers['to-backend']({ sender: null }, message);
-    const ws = bridge.getWs();
+    const ws = await waitForSocket(() => bridge.getWs());
     expect(ws).not.toBeNull();
     return { pending, ws };
   }
 
   async function setupQueryBridge(initOptions = {}, queryContextOptions = undefined) {
     const bridge = initIpc(initOptions);
-    const { pending, ws } = beginBackendConnection(bridge);
+    const { pending, ws } = await beginBackendConnection(bridge);
     ws.triggerOpen();
     await pending;
     primeQueryContext(bridge.backendBridge, queryContextOptions);
@@ -41,11 +51,7 @@ describe('ipc.cjs bridge query handling', () => {
 
   async function beginQuerySend(bridge, payload, sender = null) {
     const pending = sendQuery(bridge.handlers, payload, sender);
-    let ws = bridge.getWs();
-    for (let attempt = 0; !ws && attempt < 8; attempt += 1) {
-      await Promise.resolve();
-      ws = bridge.getWs();
-    }
+    const ws = await waitForSocket(() => bridge.getWs());
     if (!ws) {
       throw new Error('Expected query send to create a backend websocket.');
     }

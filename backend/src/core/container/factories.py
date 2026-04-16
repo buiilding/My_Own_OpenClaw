@@ -9,6 +9,8 @@ from typing import Optional
 
 from backend.src.core.config import AppConfig
 from backend.src.core.interfaces.embedding import EmbeddingProvider
+from backend.src.embeddings.limited_provider import CapacityLimitedEmbeddingProvider
+from backend.src.embeddings.remote_provider import RemoteHttpEmbeddingProvider
 
 logger = logging.getLogger(__name__)
 
@@ -59,23 +61,11 @@ def _create_tool_orchestrator(tool_registry, config: AppConfig, context_factory)
     )
 
 
-def _create_embedder(config: AppConfig, cache_manager) -> Optional[EmbeddingProvider]:
-    """
-    Create embedding provider if memory is enabled.
-
-    Args:
-        config: Application configuration
-        cache_manager: CacheManager instance (injected via DI)
-    """
-    if not config.memory_enabled:
-        return None
-    if config.embedding_backend != "local":
-        logger.warning(
-            "Embedding backend %s is not implemented in-process; disabling embedding provider",
-            config.embedding_backend,
-        )
-        return None
-
+def _create_local_sentence_transformer_provider(
+    config: AppConfig,
+    cache_manager,
+) -> Optional[EmbeddingProvider]:
+    """Create the in-process sentence-transformer provider."""
     try:
         from backend.src.embeddings.embeddings import SentenceTransformerProvider
 
@@ -94,8 +84,6 @@ def _create_embedder(config: AppConfig, cache_manager) -> Optional[EmbeddingProv
             # If torch import/probing fails, stay on CPU to keep startup healthy.
             device = "cpu"
 
-        # Create provider without loading model (deferred to async initialize())
-        # CacheManager is injected via DI to avoid global state dependency
         return SentenceTransformerProvider(
             model_name=config.embedding_model,
             device=device,
@@ -107,6 +95,60 @@ def _create_embedder(config: AppConfig, cache_manager) -> Optional[EmbeddingProv
     except Exception as e:
         logger.error(f"Failed to create embedding provider: {e}")
         return None
+
+
+def _wrap_embedding_provider(
+    provider: Optional[EmbeddingProvider],
+    *,
+    config: AppConfig,
+    label: str,
+) -> Optional[EmbeddingProvider]:
+    if provider is None:
+        return None
+    return CapacityLimitedEmbeddingProvider(
+        provider,
+        max_concurrent_requests=config.embedding_max_concurrent_requests,
+        queue_timeout_seconds=config.embedding_queue_timeout_seconds,
+        label=label,
+    )
+
+
+def _create_embedder(config: AppConfig, cache_manager) -> Optional[EmbeddingProvider]:
+    """
+    Create embedding provider if memory is enabled.
+
+    Args:
+        config: Application configuration
+        cache_manager: CacheManager instance (injected via DI)
+    """
+    if not config.memory_enabled:
+        return None
+    if config.embedding_backend == "local":
+        provider = _create_local_sentence_transformer_provider(config, cache_manager)
+        return _wrap_embedding_provider(
+            provider,
+            config=config,
+            label="backend-local-embedding",
+        )
+    if config.embedding_backend == "remote-http":
+        if not isinstance(config.embedding_remote_service_url, str) or not config.embedding_remote_service_url.strip():
+            logger.error("Embedding backend remote-http requires embedding_remote_service_url")
+            return None
+        provider = RemoteHttpEmbeddingProvider(
+            service_url=config.embedding_remote_service_url,
+            model_id=config.embedding_model,
+        )
+        return _wrap_embedding_provider(
+            provider,
+            config=config,
+            label="backend-remote-embedding",
+        )
+
+    logger.warning(
+        "Embedding backend %s is not implemented in-process; disabling embedding provider",
+        config.embedding_backend,
+    )
+    return None
 
 
 def _create_tts_service(config: AppConfig):

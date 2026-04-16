@@ -35,8 +35,10 @@ async def test_generate_title_success_returns_title_and_payload_includes_overrid
     )
 
     assert title == "Linux mic troubleshooting"
-    url, payload, timeout = session.last_post
+    url, payload, timeout, headers, data = session.last_post
     assert url == "http://localhost:9999/api/semantic/title"
+    assert headers == {}
+    assert data is None
     assert payload == {
         "user_id": "u-1",
         "user_message": "how to fix my mic",
@@ -66,8 +68,10 @@ async def test_generate_title_omits_empty_overrides_and_normalizes_blank_title()
     )
 
     assert title == ""
-    url, payload, _timeout = session.last_post
+    url, payload, _timeout, headers, data = session.last_post
     assert url == "http://localhost:9999/api/semantic/title"
+    assert headers == {}
+    assert data is None
     assert payload == {
         "user_id": "u-2",
         "user_message": "hello",
@@ -162,6 +166,8 @@ async def test_generate_title_sanitizes_lone_surrogates_in_payload():
         assistant_message="hello\udc9dassistant",
     )
 
-    _url, payload, _timeout = session.last_post
+    _url, payload, _timeout, headers, data = session.last_post
+    assert headers == {}
+    assert data is None
     assert payload["user_message"] == "hello�user"
     assert payload["assistant_message"] == "hello�assistant"
