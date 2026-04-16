@@ -7,11 +7,7 @@ Edit this file to change application settings.
 Note: Changes require application restart to take effect.
 """
 
-from backend.src.core.config.models import (
-    AppConfig,
-    LLMProviders,
-    SecurityLimits,
-)
+from backend.src.core.config.models import AppConfig, LLMProviders, SecurityLimits
 
 # Default application configuration
 # Edit the values below to customize your configuration
@@ -27,6 +23,7 @@ APP_CONFIG = AppConfig(
     llm_providers=LLMProviders(),
     # Memory System Settings
     memory_enabled=True,
+    embedding_backend="local",
     embedding_model="all-MiniLM-L6-v2",
     # Agent Execution Settings
     interaction_mode="agent",
@@ -41,7 +38,10 @@ APP_CONFIG = AppConfig(
     history_compaction_prompt=None,
     history_compaction_cooldown_turns=1,
     # Vision Model Settings (UI grounding / Venus)
+    vision_backend="local",
     vision_model_name="OpenGVLab/InternVL3_5-4B",
+    ocr_backend="local",
+    ocr_model="rapidocr-ppocrv5-server",
     # Voice Mode Settings
     wakeword_stt_enabled=False,
     stt_provider="openai",

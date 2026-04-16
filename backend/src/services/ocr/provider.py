@@ -11,10 +11,14 @@ class LocalOcrProvider:
     """Wrap the in-process OCR service behind the provider contract."""
 
     provider_id = "local-rapidocr"
-    model_id = "rapidocr-ppocrv5-server"
 
-    def __init__(self, service: OcrService) -> None:
+    def __init__(
+        self,
+        service: OcrService,
+        model_id: str = "rapidocr-ppocrv5-server",
+    ) -> None:
         self._service = service
+        self.model_id = model_id
 
     @property
     def enabled(self) -> bool:

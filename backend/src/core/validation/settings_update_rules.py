@@ -18,10 +18,15 @@ SETTINGS_UPDATE_RULES: dict[str, SettingsUpdateRule] = {
     "llm_timeout": SettingsUpdateRule((int, float)),
     "query_timeout": SettingsUpdateRule((int, float)),
     "memory_enabled": SettingsUpdateRule((bool,)),
+    "embedding_backend": SettingsUpdateRule((str,), allow_none=True),
     "model_provider": SettingsUpdateRule((str,), allow_none=True),
     "selected_model_id": SettingsUpdateRule((str,), allow_none=True),
     "model_mode": SettingsUpdateRule((str,), allow_none=True),
     "embedding_model": SettingsUpdateRule((str,), allow_none=True),
+    "vision_backend": SettingsUpdateRule((str,), allow_none=True),
+    "vision_model_name": SettingsUpdateRule((str,), allow_none=True),
+    "ocr_backend": SettingsUpdateRule((str,), allow_none=True),
+    "ocr_model": SettingsUpdateRule((str,), allow_none=True),
     "interaction_mode": SettingsUpdateRule((str,), allow_none=True),
     "browser_automation_enabled": SettingsUpdateRule((bool,)),
     "history_compaction_enabled": SettingsUpdateRule((bool,)),
@@ -32,7 +37,9 @@ SETTINGS_UPDATE_RULES: dict[str, SettingsUpdateRule] = {
     "history_compaction_keep_recent_user_messages": SettingsUpdateRule(
         (int,), allow_none=True
     ),
-    "history_compaction_summary_max_tokens": SettingsUpdateRule((int,), allow_none=True),
+    "history_compaction_summary_max_tokens": SettingsUpdateRule(
+        (int,), allow_none=True
+    ),
     "history_compaction_cooldown_turns": SettingsUpdateRule((int,), allow_none=True),
     "history_compaction_strategy": SettingsUpdateRule((str,)),
     "history_compaction_prompt": SettingsUpdateRule((str,), allow_none=True),

@@ -31,11 +31,10 @@ from core.unicode_sanitizer import (
     sanitize_surrogates,
     sanitize_surrogates_in_text,
 )
-from memory.admin import (
-    clear_chat_history as clear_chat_history_admin,
-    clear_local_memory as clear_local_memory_admin,
-)
+from memory.admin import clear_chat_history as clear_chat_history_admin
+from memory.admin import clear_local_memory as clear_local_memory_admin
 from memory.conversation_list_runtime import list_transcript_conversations
+from memory.conversation_search_runtime import search_transcript_conversations
 from memory.conversation_semanticization_runtime import (
     count_unsemanticized_interaction_memories as fetch_unsemanticized_interaction_count,
 )
@@ -45,16 +44,19 @@ from memory.conversation_semanticization_runtime import (
 from memory.conversation_semanticization_runtime import (
     semantic_summary_exists as check_semantic_summary_exists,
 )
-from memory.conversation_search_runtime import search_transcript_conversations
-from memory.conversation_title_runtime import cancel_title_generation_tasks
-from memory.conversation_title_runtime import ensure_title_generation_runtime_state
-from memory.conversation_title_runtime import generate_conversation_title_and_persist
-from memory.conversation_title_runtime import maybe_generate_conversation_title
-from memory.conversation_title_runtime import run_conversation_title_generation
-from memory.conversation_window_runtime import conversation_where_clause
-from memory.conversation_window_runtime import format_transcript_rows
-from memory.conversation_window_runtime import get_episodic_memories_for_conversation
-from memory.conversation_window_runtime import get_next_message_index_for_conversation
+from memory.conversation_title_runtime import (
+    cancel_title_generation_tasks,
+    ensure_title_generation_runtime_state,
+    generate_conversation_title_and_persist,
+    maybe_generate_conversation_title,
+    run_conversation_title_generation,
+)
+from memory.conversation_window_runtime import (
+    conversation_where_clause,
+    format_transcript_rows,
+    get_episodic_memories_for_conversation,
+    get_next_message_index_for_conversation,
+)
 from memory.conversation_window_runtime import (
     get_unprocessed_memories_after_id as fetch_unprocessed_memories_after_id,
 )
@@ -70,26 +72,23 @@ from memory.conversation_window_runtime import (
 from memory.conversation_window_runtime import (
     mark_episodic_memories_semanticized as mark_semanticized_memories_runtime,
 )
-from memory.faiss_index import (
-    read_index_safe_async,
-    save_indices_async,
-)
-from memory.sqlite_store import (
-    init_episodic_schema,
-    init_semantic_schema,
-    load_vector_mappings,
-)
-from memory.watermark_state import WatermarkStateStore
+from memory.faiss_index import read_index_safe_async, save_indices_async
 from memory.operations import format_interaction_memory
 from memory.record_kinds import (
     INTERACTION_RECORD_KIND,
     TRANSCRIPT_RECORD_KIND,
     TRANSCRIPT_REPLAY_RECORD_KIND,
 )
+from memory.sqlite_store import (
+    init_episodic_schema,
+    init_semantic_schema,
+    load_vector_mappings,
+)
 from memory.transcript_embedding_policy import (
     build_missing_embedding_rows_query,
     should_embed_episodic_entry,
 )
+from memory.watermark_state import WatermarkStateStore
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +100,50 @@ class _MemoryAttrNames:
     vector_id_to_memory_id: str
     memory_id_to_vector_id: str
     next_vector_id: str
+
+
+@dataclass(frozen=True)
+class EmbeddingSpaceMetadata:
+    embedding_provider_id: str
+    embedding_model_id: str
+    embedding_dimension: int
+    embedding_space_version: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "embedding_provider_id": self.embedding_provider_id,
+            "embedding_model_id": self.embedding_model_id,
+            "embedding_dimension": self.embedding_dimension,
+            "embedding_space_version": self.embedding_space_version,
+        }
+
+    @classmethod
+    def from_dict(
+        cls, payload: Optional[Dict[str, Any]]
+    ) -> Optional["EmbeddingSpaceMetadata"]:
+        if not isinstance(payload, dict):
+            return None
+
+        provider_id = payload.get("embedding_provider_id")
+        model_id = payload.get("embedding_model_id")
+        dimension = payload.get("embedding_dimension")
+        space_version = payload.get("embedding_space_version")
+
+        if not isinstance(provider_id, str) or not provider_id.strip():
+            return None
+        if not isinstance(model_id, str) or not model_id.strip():
+            return None
+        if not isinstance(dimension, int) or dimension <= 0:
+            return None
+        if not isinstance(space_version, str) or not space_version.strip():
+            return None
+
+        return cls(
+            embedding_provider_id=provider_id.strip(),
+            embedding_model_id=model_id.strip(),
+            embedding_dimension=dimension,
+            embedding_space_version=space_version.strip(),
+        )
 
 
 class LocalMemoryStore:
@@ -146,14 +189,16 @@ class LocalMemoryStore:
             # Frontend has its own data folder, separate from backend config
             import os
             import platform
-            
+
             app_name = "desktop-assistant"
-            
+
             # Manually construct path to avoid platformdirs duplication issue
             if os.name == "nt":  # Windows
                 appdata = os.getenv("APPDATA")
                 if not appdata:
-                    raise ValueError("APPDATA environment variable is not set on Windows")
+                    raise ValueError(
+                        "APPDATA environment variable is not set on Windows"
+                    )
                 db_path = Path(appdata) / app_name
             elif os.name == "posix":
                 home_dir = Path.home()
@@ -163,7 +208,7 @@ class LocalMemoryStore:
                     db_path = home_dir / ".config" / app_name
             else:
                 raise ValueError(f"Unsupported OS: {os.name}")
-            
+
             memory_dir = db_path / "memory"
         else:
             db_path_obj = Path(db_path)
@@ -176,9 +221,13 @@ class LocalMemoryStore:
             memory_dir.mkdir(parents=True, exist_ok=True)
             if not memory_dir.exists():
                 raise OSError(f"Failed to create memory directory: {memory_dir}")
-            logger.info(f"Memory directory: {memory_dir} (exists: {memory_dir.exists()})")
+            logger.info(
+                f"Memory directory: {memory_dir} (exists: {memory_dir.exists()})"
+            )
         except OSError as e:
-            logger.error(f"Failed to create memory directory {memory_dir}: {e}", exc_info=True)
+            logger.error(
+                f"Failed to create memory directory {memory_dir}: {e}", exc_info=True
+            )
             raise
 
         self.memory_dir = memory_dir
@@ -190,6 +239,8 @@ class LocalMemoryStore:
         # Watermark state file for tracking semanticization progress
         self.watermark_state_path = memory_dir / "watermark_state.json"
         self._watermark_store = WatermarkStateStore(self.watermark_state_path)
+        self.embedding_space_metadata_path = memory_dir / "embedding_space.json"
+        self._embedding_space_metadata: Optional[EmbeddingSpaceMetadata] = None
 
         # Separate database paths for each memory type
         self.episodic_db_path = str(memory_dir / "episodic.db")
@@ -209,10 +260,14 @@ class LocalMemoryStore:
         self.semantic_next_vector_id = 0
 
         if faiss is None:
-            raise ImportError("FAISS is not installed. Install with: pip install faiss-cpu")
+            raise ImportError(
+                "FAISS is not installed. Install with: pip install faiss-cpu"
+            )
 
         if aiosqlite is None:
-            raise ImportError("aiosqlite is not installed. Install with: pip install aiosqlite")
+            raise ImportError(
+                "aiosqlite is not installed. Install with: pip install aiosqlite"
+            )
 
         # Indices are loaded during async initialize() to avoid duplicate startup disk reads.
         self.episodic_index = None
@@ -233,28 +288,64 @@ class LocalMemoryStore:
 
         # Initialize the remote embedding client
         await self.embedder.initialize()
+        await self.embedder.refresh_embedding_space()
         await self.title_client.initialize()
 
         # Create database schemas and load vector mappings
         await self._init_databases()
         await self._load_vector_mappings()
 
-        # Initialize FAISS indices if not loaded
-        dimension = self.embedder.dimension
+        current_embedding_space = self._get_current_embedding_space_metadata()
+        dimension = (
+            current_embedding_space.embedding_dimension
+            if current_embedding_space is not None
+            else self.embedder.dimension
+        )
+        persisted_embedding_space = self._load_embedding_space_metadata()
 
         if self.episodic_index is None:
             self.episodic_index = faiss.IndexFlatIP(dimension)
-        elif self.episodic_index.ntotal == 0 and len(self.episodic_vector_id_to_memory_id) > 0:
+        elif (
+            self.episodic_index.ntotal == 0
+            and len(self.episodic_vector_id_to_memory_id) > 0
+        ):
             # Index is empty but we have memories - rebuild it
-            logger.warning("Episodic FAISS index is empty but memories exist. Rebuilding index...")
+            logger.warning(
+                "Episodic FAISS index is empty but memories exist. Rebuilding index..."
+            )
             await self._rebuild_index("episodic")
 
         if self.semantic_index is None:
             self.semantic_index = faiss.IndexFlatIP(dimension)
-        elif self.semantic_index.ntotal == 0 and len(self.semantic_vector_id_to_memory_id) > 0:
+        elif (
+            self.semantic_index.ntotal == 0
+            and len(self.semantic_vector_id_to_memory_id) > 0
+        ):
             # Index is empty but we have memories - rebuild it
-            logger.warning("Semantic FAISS index is empty but memories exist. Rebuilding index...")
+            logger.warning(
+                "Semantic FAISS index is empty but memories exist. Rebuilding index..."
+            )
             await self._rebuild_index("semantic")
+
+        if self._embedding_space_rebuild_required(
+            persisted_embedding_space=persisted_embedding_space,
+            current_embedding_space=current_embedding_space,
+        ):
+            logger.warning(
+                "Embedding space changed from %s to %s. Rebuilding local memory indices.",
+                (
+                    persisted_embedding_space.to_dict()
+                    if persisted_embedding_space
+                    else None
+                ),
+                current_embedding_space.to_dict() if current_embedding_space else None,
+            )
+            await self._rebuild_index("episodic")
+            await self._rebuild_index("semantic")
+            if current_embedding_space is not None:
+                self._save_embedding_space_metadata(current_embedding_space)
+        elif current_embedding_space is not None and persisted_embedding_space is None:
+            self._save_embedding_space_metadata(current_embedding_space)
 
         await self._sync_vector_mappings()
 
@@ -295,13 +386,15 @@ class LocalMemoryStore:
                 memory_id_to_vector_id,
                 next_vector_id,
             ) = self._get_memory_state(memory_type)
-            updated_next_vector_id, embedded_count = await self._sync_vector_mappings_for_db(
-                memory_type=memory_type,
-                db_path=db_path,
-                index=index,
-                vector_id_to_memory_id=vector_id_to_memory_id,
-                memory_id_to_vector_id=memory_id_to_vector_id,
-                next_vector_id=next_vector_id,
+            updated_next_vector_id, embedded_count = (
+                await self._sync_vector_mappings_for_db(
+                    memory_type=memory_type,
+                    db_path=db_path,
+                    index=index,
+                    vector_id_to_memory_id=vector_id_to_memory_id,
+                    memory_id_to_vector_id=memory_id_to_vector_id,
+                    next_vector_id=next_vector_id,
+                )
             )
             self._set_next_vector_id(memory_type, updated_next_vector_id)
             embedded_total += embedded_count
@@ -368,6 +461,105 @@ class LocalMemoryStore:
             self.semantic_index_path,
             faiss,
         )
+
+    def _get_current_embedding_space_metadata(self) -> Optional[EmbeddingSpaceMetadata]:
+        metadata = getattr(self.embedder, "get_embedding_space_metadata", None)
+        payload = metadata() if callable(metadata) else None
+        return EmbeddingSpaceMetadata.from_dict(payload)
+
+    def _load_embedding_space_metadata(self) -> Optional[EmbeddingSpaceMetadata]:
+        path = getattr(self, "embedding_space_metadata_path", None)
+        if path is None or not path.exists():
+            return None
+
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            logger.warning(
+                "Failed to read embedding space metadata from %s: %s", path, exc
+            )
+            return None
+
+        metadata = EmbeddingSpaceMetadata.from_dict(payload)
+        if metadata is None:
+            logger.warning("Ignoring malformed embedding space metadata at %s", path)
+            return None
+        self._embedding_space_metadata = metadata
+        return metadata
+
+    def _save_embedding_space_metadata(self, metadata: EmbeddingSpaceMetadata) -> None:
+        path = getattr(self, "embedding_space_metadata_path", None)
+        if path is None:
+            return
+        try:
+            path.write_text(json.dumps(metadata.to_dict(), indent=2), encoding="utf-8")
+            self._embedding_space_metadata = metadata
+        except Exception as exc:
+            logger.warning(
+                "Failed to persist embedding space metadata to %s: %s", path, exc
+            )
+
+    @staticmethod
+    def _index_dimension(index: Any) -> Optional[int]:
+        dimension = getattr(index, "d", None)
+        return dimension if isinstance(dimension, int) and dimension > 0 else None
+
+    def _embedding_space_rebuild_required(
+        self,
+        *,
+        persisted_embedding_space: Optional[EmbeddingSpaceMetadata],
+        current_embedding_space: Optional[EmbeddingSpaceMetadata],
+    ) -> bool:
+        if current_embedding_space is None:
+            return False
+
+        persisted = persisted_embedding_space or self._embedding_space_metadata
+        if persisted is not None:
+            if (
+                persisted.embedding_space_version
+                != current_embedding_space.embedding_space_version
+            ):
+                return True
+            if (
+                persisted.embedding_dimension
+                != current_embedding_space.embedding_dimension
+            ):
+                return True
+        for index in (self.episodic_index, self.semantic_index):
+            index_dimension = self._index_dimension(index)
+            if (
+                index_dimension is not None
+                and index_dimension != current_embedding_space.embedding_dimension
+            ):
+                return True
+        return False
+
+    async def _ensure_runtime_embedding_space_alignment(self) -> None:
+        current_embedding_space = self._get_current_embedding_space_metadata()
+        persisted_embedding_space = (
+            getattr(self, "_embedding_space_metadata", None)
+            or self._load_embedding_space_metadata()
+        )
+        if not self._embedding_space_rebuild_required(
+            persisted_embedding_space=persisted_embedding_space,
+            current_embedding_space=current_embedding_space,
+        ):
+            if (
+                current_embedding_space is not None
+                and persisted_embedding_space is None
+            ):
+                self._save_embedding_space_metadata(current_embedding_space)
+            return
+
+        logger.warning(
+            "Detected runtime embedding-space change from %s to %s. Rebuilding local indices.",
+            persisted_embedding_space.to_dict() if persisted_embedding_space else None,
+            current_embedding_space.to_dict() if current_embedding_space else None,
+        )
+        await self._rebuild_index("episodic")
+        await self._rebuild_index("semantic")
+        if current_embedding_space is not None:
+            self._save_embedding_space_metadata(current_embedding_space)
 
     def _get_memory_attrs(self, memory_type: str) -> _MemoryAttrNames:
         try:
@@ -462,6 +654,7 @@ class LocalMemoryStore:
 
                 # Generate embedding
                 embedding = await self.embedder.embed_text(content)
+                await self._ensure_runtime_embedding_space_alignment()
                 embedding = embedding.reshape(1, -1)
                 faiss.normalize_L2(embedding)
 
@@ -548,15 +741,31 @@ class LocalMemoryStore:
 
         text = sanitize_surrogates_in_text(text)
         user_id = sanitize_surrogates_in_text(user_id)
-        conversation_id = sanitize_surrogates_in_text(conversation_id) if conversation_id else conversation_id
+        conversation_id = (
+            sanitize_surrogates_in_text(conversation_id)
+            if conversation_id
+            else conversation_id
+        )
         record_kind = sanitize_surrogates_in_text(record_kind)
         role = sanitize_surrogates_in_text(role) if role else role
-        message_type = sanitize_surrogates_in_text(message_type) if message_type else message_type
+        message_type = (
+            sanitize_surrogates_in_text(message_type) if message_type else message_type
+        )
         tool_name = sanitize_surrogates_in_text(tool_name) if tool_name else tool_name
-        correlation_id = sanitize_surrogates_in_text(correlation_id) if correlation_id else correlation_id
+        correlation_id = (
+            sanitize_surrogates_in_text(correlation_id)
+            if correlation_id
+            else correlation_id
+        )
         model_id = sanitize_surrogates_in_text(model_id) if model_id else model_id
-        model_provider = sanitize_surrogates_in_text(model_provider) if model_provider else model_provider
-        screenshot = sanitize_surrogates_in_text(screenshot) if screenshot else screenshot
+        model_provider = (
+            sanitize_surrogates_in_text(model_provider)
+            if model_provider
+            else model_provider
+        )
+        screenshot = (
+            sanitize_surrogates_in_text(screenshot) if screenshot else screenshot
+        )
         metadata = sanitize_surrogates(metadata) if metadata else metadata
 
         memory_id = str(uuid.uuid4())
@@ -564,7 +773,7 @@ class LocalMemoryStore:
 
         # Extract memory type from metadata (default to episodic for backward compatibility)
         memory_type_str = metadata.get("type", "episodic") if metadata else "episodic"
-        
+
         # Extract conversation_id from metadata if not provided directly
         if conversation_id is None and metadata:
             conversation_id = metadata.get("conversation_id")
@@ -572,7 +781,10 @@ class LocalMemoryStore:
         # Convert string to enum for type safety
         memory_type = self._normalize_memory_type(memory_type_str)
 
-        if record_kind in {TRANSCRIPT_RECORD_KIND, TRANSCRIPT_REPLAY_RECORD_KIND} and memory_type != "episodic":
+        if (
+            record_kind in {TRANSCRIPT_RECORD_KIND, TRANSCRIPT_REPLAY_RECORD_KIND}
+            and memory_type != "episodic"
+        ):
             memory_type = "episodic"
 
         (
@@ -587,6 +799,7 @@ class LocalMemoryStore:
         if not skip_embedding:
             # Generate embedding using remote client
             embedding = await self.embedder.embed_text(text)
+            await self._ensure_runtime_embedding_space_alignment()
             embedding = embedding.reshape(1, -1)
             faiss.normalize_L2(embedding)
 
@@ -599,7 +812,7 @@ class LocalMemoryStore:
 
         # Store in SQLite
         metadata_json = json.dumps(metadata) if metadata else None
-        
+
         # Only set is_semanticized for episodic memories (semantic memories don't need this field)
         is_semanticized = 0 if memory_type == "episodic" else None
 
@@ -653,7 +866,11 @@ class LocalMemoryStore:
             await conn.commit()
 
         # Update mappings
-        if not skip_embedding and vector_id_to_memory_id is not None and memory_id_to_vector_id is not None:
+        if (
+            not skip_embedding
+            and vector_id_to_memory_id is not None
+            and memory_id_to_vector_id is not None
+        ):
             vector_id_to_memory_id[vector_id] = memory_id
             memory_id_to_vector_id[memory_id] = vector_id
 
@@ -753,6 +970,7 @@ class LocalMemoryStore:
 
         # Generate query embedding using remote client
         query_embedding = await self.embedder.embed_text(query)
+        await self._ensure_runtime_embedding_space_alignment()
         query_embedding = query_embedding.reshape(1, -1)
         faiss.normalize_L2(query_embedding)
 
@@ -798,9 +1016,7 @@ class LocalMemoryStore:
             if not self._has_searchable_index(index, memory_type):
                 continue
 
-            search_targets.append(
-                (memory_type, db_path, index, vector_id_to_memory_id)
-            )
+            search_targets.append((memory_type, db_path, index, vector_id_to_memory_id))
 
         return search_targets
 
@@ -1000,12 +1216,16 @@ class LocalMemoryStore:
         results: List[Dict[str, Any]],
         user_id: str,
     ) -> None:
-        assistant_candidates_by_conversation: Dict[str, List[Tuple[Optional[int], str]]] = {}
+        assistant_candidates_by_conversation: Dict[
+            str, List[Tuple[Optional[int], str]]
+        ] = {}
         for result in results:
             if result.get("type") != "episodic":
                 continue
             metadata = self._extract_result_metadata(result)
-            record_kind = self._result_field_as_str(result, "record_kind", metadata).lower()
+            record_kind = self._result_field_as_str(
+                result, "record_kind", metadata
+            ).lower()
             role = self._result_field_as_str(result, "role", metadata).lower()
             if record_kind != "transcript" or role != "assistant":
                 continue
@@ -1014,7 +1234,9 @@ class LocalMemoryStore:
             if not self._is_retrievable_assistant_message_type(message_type):
                 continue
 
-            conversation_id = self._result_field_as_str(result, "conversation_id", metadata)
+            conversation_id = self._result_field_as_str(
+                result, "conversation_id", metadata
+            )
             if not conversation_id:
                 continue
 
@@ -1046,9 +1268,13 @@ class LocalMemoryStore:
                 continue
 
             metadata = self._extract_result_metadata(result)
-            record_kind = self._result_field_as_str(result, "record_kind", metadata).lower()
+            record_kind = self._result_field_as_str(
+                result, "record_kind", metadata
+            ).lower()
             role = self._result_field_as_str(result, "role", metadata).lower()
-            conversation_id = self._result_field_as_str(result, "conversation_id", metadata)
+            conversation_id = self._result_field_as_str(
+                result, "conversation_id", metadata
+            )
             if record_kind != "transcript" or role != "user" or not conversation_id:
                 continue
 
@@ -1059,10 +1285,12 @@ class LocalMemoryStore:
             if user_message_index is not None:
                 cache_key = (conversation_id, user_message_index)
                 if cache_key not in lookup_cache:
-                    lookup_cache[cache_key] = await self._fetch_next_assistant_transcript_text(
-                        user_id=user_id,
-                        conversation_id=conversation_id,
-                        after_message_index=user_message_index,
+                    lookup_cache[cache_key] = (
+                        await self._fetch_next_assistant_transcript_text(
+                            user_id=user_id,
+                            conversation_id=conversation_id,
+                            after_message_index=user_message_index,
+                        )
                     )
                 assistant_text = lookup_cache[cache_key]
             if not assistant_text:
@@ -1187,7 +1415,9 @@ class LocalMemoryStore:
 
         return True
 
-    def _parse_metadata(self, raw_metadata: Optional[str], memory_type: str) -> Dict[str, Any]:
+    def _parse_metadata(
+        self, raw_metadata: Optional[str], memory_type: str
+    ) -> Dict[str, Any]:
         metadata = self._parse_raw_metadata(raw_metadata)
         metadata["type"] = memory_type
         return metadata
@@ -1366,12 +1596,16 @@ class LocalMemoryStore:
             "total_count": total_count,
             "by_type": by_type,
             "faiss_index_size": {
-                "episodic": self.episodic_index.ntotal
-                if hasattr(self.episodic_index, "ntotal")
-                else 0,
-                "semantic": self.semantic_index.ntotal
-                if hasattr(self.semantic_index, "ntotal")
-                else 0,
+                "episodic": (
+                    self.episodic_index.ntotal
+                    if hasattr(self.episodic_index, "ntotal")
+                    else 0
+                ),
+                "semantic": (
+                    self.semantic_index.ntotal
+                    if hasattr(self.semantic_index, "ntotal")
+                    else 0
+                ),
             },
         }
 
@@ -1546,12 +1780,14 @@ class LocalMemoryStore:
 
             results = []
             for row in rows:
-                results.append({
-                    "id": row["id"],
-                    "content": row["content"],
-                    "timestamp": row["timestamp"],
-                    "metadata": self._parse_raw_metadata(row["metadata"]),
-                })
+                results.append(
+                    {
+                        "id": row["id"],
+                        "content": row["content"],
+                        "timestamp": row["timestamp"],
+                        "metadata": self._parse_raw_metadata(row["metadata"]),
+                    }
+                )
 
             return results
 
@@ -1582,14 +1818,17 @@ class LocalMemoryStore:
             results = []
             for row in rows:
                 parsed_metadata = self._parse_raw_metadata(row["metadata"])
-                results.append({
-                    "id": row["id"],
-                    "content": row["content"],
-                    "timestamp": row["timestamp"],
-                    "metadata": parsed_metadata,
-                    "conversation_id": row["conversation_id"],
-                    "record_kind": row["record_kind"] or parsed_metadata.get("record_kind"),
-                })
+                results.append(
+                    {
+                        "id": row["id"],
+                        "content": row["content"],
+                        "timestamp": row["timestamp"],
+                        "metadata": parsed_metadata,
+                        "conversation_id": row["conversation_id"],
+                        "record_kind": row["record_kind"]
+                        or parsed_metadata.get("record_kind"),
+                    }
+                )
 
             return results
 
@@ -1761,7 +2000,9 @@ class LocalMemoryStore:
                 select_params,
             )
 
-            deleted_count = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+            deleted_count = (
+                cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+            )
             if (
                 conversation_id is not None
                 and normalized_record_kind == TRANSCRIPT_RECORD_KIND
@@ -1801,8 +2042,8 @@ class LocalMemoryStore:
 
         This ensures "delete everything" workflows also remove persisted vector artifacts.
         """
-        db_path, _, vector_id_to_memory_id, memory_id_to_vector_id, _ = self._get_memory_state(
-            memory_type
+        db_path, _, vector_id_to_memory_id, memory_id_to_vector_id, _ = (
+            self._get_memory_state(memory_type)
         )
 
         try:
@@ -1911,17 +2152,15 @@ class LocalMemoryStore:
             after_message_index=after_message_index,
             parse_raw_metadata=self._parse_raw_metadata,
         )
-    
-    async def get_unsemanticized_conversation_windows(
-        self, user_id: str
-    ) -> List[str]:
+
+    async def get_unsemanticized_conversation_windows(self, user_id: str) -> List[str]:
         """
         Get list of conversation_id values that have unsummarized memories.
         Returns conversation windows ordered by the earliest unsummarized memory timestamp.
-        
+
         Args:
             user_id: User identifier
-            
+
         Returns:
             List of conversation_id strings (None values are treated as separate windows)
         """
@@ -1929,19 +2168,19 @@ class LocalMemoryStore:
             episodic_db_path=self.episodic_db_path,
             user_id=user_id,
         )
-    
+
     async def get_unsemanticized_episodic_memories_by_conversation(
         self, user_id: str, conversation_id: Optional[str], limit: int = 1000
     ) -> List[Dict[str, Any]]:
         """
         Get episodic memories for a specific conversation window that haven't been processed.
         Returns memories in chronological order to maintain conversation history.
-        
+
         Args:
             user_id: User identifier
             conversation_id: Conversation window identifier (None for memories without conversation_id)
             limit: Maximum number of memories to return (for safety)
-            
+
         Returns:
             List of memory dictionaries with 'id', 'content', 'timestamp', 'metadata', 'conversation_id'
         """
@@ -1954,19 +2193,21 @@ class LocalMemoryStore:
         )
 
     @staticmethod
-    def _conversation_where_clause(conversation_id: Optional[str]) -> Tuple[str, Tuple[Any, ...]]:
+    def _conversation_where_clause(
+        conversation_id: Optional[str],
+    ) -> Tuple[str, Tuple[Any, ...]]:
         return conversation_where_clause(conversation_id)
-    
+
     async def get_unsemanticized_episodic_memories(
         self, user_id: str, limit: int = 10
     ) -> List[Dict[str, Any]]:
         """
         Get episodic memories that haven't been processed into semantic memory.
-        
+
         Args:
             user_id: User identifier
             limit: Maximum number of memories to return
-            
+
         Returns:
             List of memory dictionaries with 'id', 'content', 'timestamp', 'metadata'
         """
@@ -1976,7 +2217,7 @@ class LocalMemoryStore:
             limit=limit,
             format_transcript_rows=self._format_transcript_rows,
         )
-    
+
     async def mark_episodic_memories_semanticized(
         self,
         memory_ids: List[str],
@@ -1984,7 +2225,7 @@ class LocalMemoryStore:
     ) -> None:
         """
         Mark episodic memories as semanticized.
-        
+
         Args:
             memory_ids: List of memory IDs to mark as processed
         """
@@ -1994,39 +2235,43 @@ class LocalMemoryStore:
             metadata_patch=metadata_patch,
             log_debug=logger.debug,
         )
-    
+
     async def get_watermark(self) -> Dict[str, Any]:
         """
         Get current watermark state.
-        
+
         Returns:
             Dictionary with 'last_semanticized_id' and 'pending_message_count'
         """
         return await self._watermark_store.get()
-    
-    async def update_watermark(self, last_semanticized_id: Optional[str], pending_message_count: int = 0) -> None:
+
+    async def update_watermark(
+        self, last_semanticized_id: Optional[str], pending_message_count: int = 0
+    ) -> None:
         """
         Update watermark state.
-        
+
         Args:
             last_semanticized_id: ID of the last processed episodic memory (None if none processed)
             pending_message_count: Number of pending messages since last batch
         """
         await self._watermark_store.update(last_semanticized_id, pending_message_count)
-        logger.debug(f"Updated watermark: last_id={last_semanticized_id}, pending={pending_message_count}")
-    
+        logger.debug(
+            f"Updated watermark: last_id={last_semanticized_id}, pending={pending_message_count}"
+        )
+
     async def get_unprocessed_memories_after_id(
-        self, last_id: Optional[str], user_id: str, limit: int = 1000 
+        self, last_id: Optional[str], user_id: str, limit: int = 1000
     ) -> List[Dict[str, Any]]:
         """
         Get all episodic memories after the watermark ID that haven't been processed.
         Returns memories in chronological order (by timestamp, then by id).
-        
+
         Args:
             last_id: Last processed memory ID (None to get all unprocessed)
             user_id: User identifier
             limit: Maximum number of memories to return (safety limit)
-            
+
         Returns:
             List of memory dictionaries with 'id', 'content', 'timestamp', 'metadata', 'conversation_id'
         """

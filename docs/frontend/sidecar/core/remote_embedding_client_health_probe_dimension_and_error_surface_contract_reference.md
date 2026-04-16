@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for `RemoteEmbeddingClient`: backend URL normalization, embedding request/response shape, fixed timeout + dimension contracts, health-probe semantics, and error-surface behavior."
+summary: "Deep reference for `RemoteEmbeddingClient`: backend URL normalization, embedding request/response shape, cached embedding-space metadata contract, health-probe semantics, and error-surface behavior."
 read_when:
   - When changing `core/remote_embedding_client.py` request, timeout, health-check, or session lifecycle behavior.
   - When debugging sidecar embedding failures, unexpected embedding dimensions, or embedding health-check false negatives.
@@ -25,7 +25,11 @@ Primary methods/properties:
 - `close()`
 - `embed_text(text) -> np.ndarray`
 - `health_check() -> bool`
+- `refresh_embedding_space() -> dict | None`
 - `dimension -> int`
+- `provider_id -> str | None`
+- `model_id -> str | None`
+- `embedding_space_version -> str | None`
 
 ## URL and Session Lifecycle Contract
 
@@ -54,8 +58,15 @@ Request:
 Success response behavior:
 
 - requires `HTTP 200`
-- expects JSON field `embedding`
+- expects JSON fields:
+  - `embedding`
+  - `provider_id`
+  - `model_id`
+  - `model_name`
+  - `dimension`
+  - `embedding_space_version`
 - converts to `np.ndarray(dtype=np.float32)`
+- caches provider/model/dimension/version metadata for later FAISS compatibility checks
 
 Error behavior:
 
@@ -65,17 +76,23 @@ Error behavior:
   - `Failed to connect to embedding service: {err}`
 - other exceptions are logged and re-raised
 
-## Dimension Contract
+## Embedding-Space Metadata Contract
 
-`dimension` property is currently a fixed constant:
+`RemoteEmbeddingClient` caches embedding-space identity from successful embed and health responses:
 
-- `384`
+- `provider_id`
+- `model_id`
+- `dimension`
+- `embedding_space_version`
 
-It does not probe backend at runtime and does not depend on provider metadata.
+`get_embedding_space_metadata()` returns:
 
-Implication:
+- `embedding_provider_id`
+- `embedding_model_id`
+- `embedding_dimension`
+- `embedding_space_version`
 
-- callers must treat this as the sidecar contract value for index sizing unless refactored to dynamic discovery.
+`dimension` returns the cached backend dimension when available, falling back to the default constant only before the first metadata-bearing success response.
 
 ## Health Probe Contract (`health_check`)
 
@@ -89,6 +106,7 @@ Success criteria:
 - returns `True` only when:
   - HTTP status is `200`
   - JSON payload has `{"status": "healthy"}`
+- successful health responses also refresh cached embedding-space metadata
 
 All other outcomes return `False`:
 
@@ -112,12 +130,13 @@ See backend route reference for serialization + sanitized error mapping details.
 `tests/sidecar/test_remote_embedding_client.py` verifies:
 
 - success ndarray conversion to float32
+- embedding response metadata cache updates
 - normalized endpoint URL when backend_url has trailing slash
 - fixed `30s` POST timeout wiring
 - non-200 and network error surfaces
 - `health_check()` true/false matrix for healthy/degraded/non-200/exception paths
 - initialize/close session reuse + noop close behavior
-- fixed `dimension == 384` contract
+- default dimension fallback before metadata discovery
 
 `tests/backend/test_memory_routes.py` verifies backend embeddings route/health contracts consumed by this client.
 
@@ -125,7 +144,7 @@ See backend route reference for serialization + sanitized error mapping details.
 
 1. Changing endpoint path or payload fields can silently break sidecar-to-backend embedding compatibility.
 2. Changing fixed timeout values affects failure latency and can destabilize long-running embedding calls.
-3. Moving from fixed dimension to dynamic discovery without synchronized index-init updates can break FAISS initialization assumptions.
+3. Changing backend response metadata fields without updating the sidecar cache logic can break FAISS index compatibility checks.
 4. Relaxing health-check criteria can mask degraded embedding backends as healthy.
 
 ## Related Pages

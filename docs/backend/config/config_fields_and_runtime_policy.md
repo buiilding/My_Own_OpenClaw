@@ -56,8 +56,12 @@ Provider defaults in `LLMProviders`:
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `memory_enabled` | `bool` | `true` | Frontend-side memory services still consume backend config context. |
+| `embedding_backend` | `"local" \| "remote-http" \| "vendor"` | `"local"` | Selects the embedding provider backend; only `local` is implemented in-process today. |
 | `embedding_model` | `str` | `all-MiniLM-L6-v2` | Used by embedding provider wiring. |
+| `ocr_backend` | `"local" \| "remote-http" \| "vendor"` | `"local"` | Selects the OCR provider backend; only `local` is implemented in-process today. |
+| `ocr_model` | `str` | `rapidocr-ppocrv5-server` | OCR model identifier surfaced through provider metadata and future remote routing. |
 | `interaction_mode` | `"chat" \| "agent"` | `"agent"` | Controls tool allowlist behavior (`get_tool_allowlist`). |
+| `vision_backend` | `"local" \| "remote-http" \| "vendor"` | `"local"` | Selects the vision provider backend; only `local` is implemented in-process today. |
 | `vision_model_name` | `str \| None` | `OpenGVLab/InternVL3_5-4B` | Vision grounding model selection. |
 
 `interaction_mode` policy:

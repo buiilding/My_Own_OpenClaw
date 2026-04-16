@@ -35,6 +35,7 @@ State tracked:
 - vector ID <-> memory ID mappings per memory type
 - next vector IDs for insertion
 - watermark state for semanticization progress
+- persisted embedding-space metadata (`embedding_space.json`) used to detect backend embedding model/provider changes
 
 ## Remote Embedding Dependency
 
@@ -47,6 +48,7 @@ Behavior:
 - calls backend `POST /api/embeddings/`
 - returns numpy vectors to sidecar memory store
 - exposes health check via backend embeddings health endpoint
+- caches `embedding_provider_id`, `embedding_model_id`, `embedding_dimension`, and `embedding_space_version`
 
 ## Semantic Summarization Dependency
 
@@ -106,6 +108,7 @@ Operational controls (from `SummarizerSettings`):
 Observed defensive behavior:
 
 - index/database mismatch triggers index rebuild flow
+- embedding-space metadata mismatch triggers explicit FAISS rebuild before mixed-space search/add flows continue
 - summarizer failures apply backoff and continue next cycle
 - empty semantic results are skipped without corrupting source data
 - remote API failures are logged and surfaced through exception paths

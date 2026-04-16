@@ -43,7 +43,12 @@ class BrowserRuntimeConfigView:
 @dataclass(frozen=True, slots=True)
 class MemoryConfigView:
     memory_enabled: bool
+    embedding_backend: str
     embedding_model: str
+    ocr_backend: str
+    ocr_model: str
+    vision_backend: str
+    vision_model_name: Optional[str]
 
 
 @dataclass(frozen=True, slots=True)
@@ -95,7 +100,12 @@ def browser_runtime_config(config: AppConfig) -> BrowserRuntimeConfigView:
 def memory_config(config: AppConfig) -> MemoryConfigView:
     return MemoryConfigView(
         memory_enabled=config.memory_enabled,
+        embedding_backend=config.embedding_backend,
         embedding_model=config.embedding_model,
+        ocr_backend=config.ocr_backend,
+        ocr_model=config.ocr_model,
+        vision_backend=config.vision_backend,
+        vision_model_name=config.vision_model_name,
     )
 
 

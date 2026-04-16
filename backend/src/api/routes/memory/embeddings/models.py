@@ -23,5 +23,8 @@ class EmbeddingResponse(BaseModel):
     """Response model for embedding generation."""
 
     embedding: List[float]
+    provider_id: str
+    model_id: str
     model_name: str
     dimension: int
+    embedding_space_version: str
