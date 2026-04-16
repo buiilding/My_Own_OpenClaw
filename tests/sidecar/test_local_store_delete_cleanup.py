@@ -1,3 +1,4 @@
+import json
 import sqlite3
 from pathlib import Path
 
@@ -8,6 +9,11 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from memory.local_store import LocalMemoryStore  # noqa: E402
+from memory.record_kinds import (  # noqa: E402
+    INTERACTION_RECORD_KIND,
+    TRANSCRIPT_RECORD_KIND,
+    TRANSCRIPT_REPLAY_RECORD_KIND,
+)
 
 try:
     import faiss  # noqa: E402
@@ -238,6 +244,82 @@ async def test_delete_semantic_memory_clears_faiss_artifacts_when_empty(tmp_path
 
 
 @pytest.mark.asyncio
+async def test_list_episodic_memories_returns_interaction_rows_only(tmp_path: Path):
+    store = _build_store(tmp_path)
+    _create_unprocessed_memories_table(store.episodic_db_path)
+
+    with sqlite3.connect(store.episodic_db_path) as conn:
+        conn.executemany(
+            """
+            INSERT INTO memories (
+                id, user_id, content, timestamp, metadata, conversation_id, record_kind, role, message_type, tool_name, is_semanticized
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                (
+                    "interaction-1",
+                    "user-1",
+                    "User: keep this\nAssistant: yes",
+                    "2026-04-15T21:44:00Z",
+                    json.dumps({
+                        "record_kind": INTERACTION_RECORD_KIND,
+                        "source": "interaction_completed",
+                    }),
+                    "conv-1",
+                    INTERACTION_RECORD_KIND,
+                    "assistant",
+                    "llm-text",
+                    None,
+                    0,
+                ),
+                (
+                    "transcript-1",
+                    "user-1",
+                    "raw transcript",
+                    "2026-04-15T21:43:00Z",
+                    json.dumps({"record_kind": TRANSCRIPT_RECORD_KIND, "role": "user"}),
+                    "conv-1",
+                    TRANSCRIPT_RECORD_KIND,
+                    "user",
+                    "user",
+                    None,
+                    0,
+                ),
+                (
+                    "replay-1",
+                    "user-1",
+                    "[internal replay entry]",
+                    "2026-04-15T21:45:00Z",
+                    json.dumps({"record_kind": TRANSCRIPT_REPLAY_RECORD_KIND}),
+                    "conv-1",
+                    TRANSCRIPT_REPLAY_RECORD_KIND,
+                    "assistant",
+                    "llm-text",
+                    None,
+                    0,
+                ),
+            ],
+        )
+        conn.commit()
+
+    results = await store.list_episodic_memories("user-1")
+
+    assert results == [
+        {
+            "id": "interaction-1",
+            "content": "User: keep this\nAssistant: yes",
+            "timestamp": "2026-04-15T21:44:00Z",
+            "metadata": {
+                "record_kind": INTERACTION_RECORD_KIND,
+                "source": "interaction_completed",
+            },
+            "conversation_id": "conv-1",
+            "record_kind": INTERACTION_RECORD_KIND,
+        }
+    ]
+
+
+@pytest.mark.asyncio
 @pytest.mark.skipif(faiss is None, reason="faiss is required")
 async def test_delete_episodic_memory_clears_faiss_artifacts_when_empty(tmp_path: Path):
     store = _build_store(tmp_path)
@@ -272,7 +354,41 @@ async def test_delete_episodic_memory_clears_faiss_artifacts_when_empty(tmp_path
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(faiss is None, reason="faiss is required")
-async def test_clear_local_memory_preserves_transcripts_and_rebuilds_indices(tmp_path: Path):
+async def test_delete_episodic_memory_ignores_transcript_replay_rows(tmp_path: Path):
+    store = _build_store(tmp_path)
+    _create_episodic_memories_table(store.episodic_db_path)
+
+    with sqlite3.connect(store.episodic_db_path) as conn:
+        conn.execute(
+            """
+            INSERT INTO memories (id, user_id, embedding_id, conversation_id, record_kind)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            ("replay-1", "user-1", 0, "conv-1", TRANSCRIPT_REPLAY_RECORD_KIND),
+        )
+        conn.commit()
+
+    store.episodic_memory_id_to_vector_id = {"replay-1": 0}
+    store.episodic_vector_id_to_memory_id = {0: "replay-1"}
+    store.episodic_next_vector_id = 1
+    store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
+
+    deleted = await store.delete_episodic_memory("user-1", "replay-1")
+
+    assert deleted is False
+    assert store.episodic_memory_id_to_vector_id == {"replay-1": 0}
+    assert store.episodic_vector_id_to_memory_id == {0: "replay-1"}
+
+    with sqlite3.connect(store.episodic_db_path) as conn:
+        remaining_rows = conn.execute(
+            "SELECT id, record_kind FROM memories ORDER BY id"
+        ).fetchall()
+    assert remaining_rows == [("replay-1", TRANSCRIPT_REPLAY_RECORD_KIND)]
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(faiss is None, reason="faiss is required")
+async def test_clear_local_memory_preserves_transcripts_and_replay_rows_and_rebuilds_indices(tmp_path: Path):
     store = _build_store(tmp_path)
     _create_bulk_clear_episodic_memories_table(store.episodic_db_path)
     _create_bulk_clear_semantic_memories_table(store.semantic_db_path)
@@ -285,8 +401,36 @@ async def test_clear_local_memory_preserves_transcripts_and_rebuilds_indices(tmp
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
-                ("interaction-1", "user-1", "episodic memory", 0, "conv-1", "interaction", "assistant", "llm-text"),
-                ("transcript-1", "user-1", "chat transcript", 1, "conv-1", "transcript", "user", "user"),
+                (
+                    "interaction-1",
+                    "user-1",
+                    "episodic memory",
+                    0,
+                    "conv-1",
+                    INTERACTION_RECORD_KIND,
+                    "assistant",
+                    "llm-text",
+                ),
+                (
+                    "transcript-1",
+                    "user-1",
+                    "chat transcript",
+                    1,
+                    "conv-1",
+                    TRANSCRIPT_RECORD_KIND,
+                    "user",
+                    "user",
+                ),
+                (
+                    "replay-1",
+                    "user-1",
+                    "[internal replay entry]",
+                    2,
+                    "conv-1",
+                    TRANSCRIPT_REPLAY_RECORD_KIND,
+                    "assistant",
+                    "llm-text",
+                ),
             ],
         )
         conn.commit()
@@ -304,6 +448,7 @@ async def test_clear_local_memory_preserves_transcripts_and_rebuilds_indices(tmp
             [
                 np.full((store.embedder.dimension,), 1.0, dtype=np.float32),
                 np.full((store.embedder.dimension,), 2.0, dtype=np.float32),
+                np.full((store.embedder.dimension,), 3.0, dtype=np.float32),
             ],
             axis=0,
         )
@@ -319,7 +464,7 @@ async def test_clear_local_memory_preserves_transcripts_and_rebuilds_indices(tmp
         "semantic_deleted_count": 1,
     }
     assert store.episodic_index is not None
-    assert store.episodic_index.ntotal == 1
+    assert store.episodic_index.ntotal == 2
     assert store.semantic_index is not None
     assert store.semantic_index.ntotal == 0
     assert store.semantic_index_path.exists() is False
@@ -334,7 +479,10 @@ async def test_clear_local_memory_preserves_transcripts_and_rebuilds_indices(tmp
         remaining_rows = conn.execute(
             "SELECT id, record_kind, embedding_id FROM memories ORDER BY id"
         ).fetchall()
-    assert remaining_rows == [("transcript-1", "transcript", 0)]
+    assert remaining_rows == [
+        ("replay-1", TRANSCRIPT_REPLAY_RECORD_KIND, 1),
+        ("transcript-1", TRANSCRIPT_RECORD_KIND, 0),
+    ]
 
     with sqlite3.connect(store.semantic_db_path) as conn:
         remaining_semantic_rows = conn.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
