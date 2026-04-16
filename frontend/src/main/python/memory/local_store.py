@@ -82,6 +82,7 @@ from memory.sqlite_store import (
 from memory.watermark_state import WatermarkStateStore
 from memory.operations import format_interaction_memory
 from memory.record_kinds import (
+    INTERACTION_RECORD_KIND,
     TRANSCRIPT_RECORD_KIND,
     TRANSCRIPT_REPLAY_RECORD_KIND,
 )
@@ -1558,10 +1559,10 @@ class LocalMemoryStore:
         self, user_id: str, limit: int = 200
     ) -> List[Dict[str, Any]]:
         """
-        List episodic memory entries for a user excluding transcript conversation rows.
+        List completed-turn interaction memories for a user.
 
-        This powers the memory panel's episodic tab, while transcript conversations stay
-        in the sidebar "Your chats" surface.
+        This powers the memory panel's episodic tab, while transcript and replay rows stay
+        in the chat-history domain.
         """
         async with aiosqlite.connect(self.episodic_db_path) as conn:
             conn.row_factory = aiosqlite.Row
@@ -1570,11 +1571,11 @@ class LocalMemoryStore:
                 """
                 SELECT id, content, timestamp, metadata, conversation_id, record_kind
                 FROM memories
-                WHERE user_id = ? AND COALESCE(record_kind, '') != 'transcript'
+                WHERE user_id = ? AND COALESCE(record_kind, '') = ?
                 ORDER BY timestamp DESC
                 LIMIT ?
             """,
-                (user_id, limit),
+                (user_id, INTERACTION_RECORD_KIND, limit),
             )
             rows = await cursor.fetchall()
 
@@ -1594,10 +1595,10 @@ class LocalMemoryStore:
 
     async def delete_episodic_memory(self, user_id: str, memory_id: str) -> bool:
         """
-        Delete a non-transcript episodic memory entry by ID for a given user.
+        Delete a completed-turn interaction memory entry by ID for a given user.
 
-        Transcript rows are intentionally excluded from this path; transcript
-        deletions should continue through conversation-level deletion.
+        Transcript and replay rows are intentionally excluded from this path;
+        chat-history deletions should continue through conversation-level deletion.
         """
         if not memory_id:
             return False
@@ -1611,9 +1612,9 @@ class LocalMemoryStore:
                 """
                 SELECT embedding_id
                 FROM memories
-                WHERE id = ? AND user_id = ? AND COALESCE(record_kind, '') != 'transcript'
+                WHERE id = ? AND user_id = ? AND COALESCE(record_kind, '') = ?
             """,
-                (memory_id, user_id),
+                (memory_id, user_id, INTERACTION_RECORD_KIND),
             )
             row = await cursor.fetchone()
             if row:
@@ -1625,9 +1626,9 @@ class LocalMemoryStore:
             await cursor.execute(
                 """
                 DELETE FROM memories
-                WHERE id = ? AND user_id = ? AND COALESCE(record_kind, '') != 'transcript'
+                WHERE id = ? AND user_id = ? AND COALESCE(record_kind, '') = ?
             """,
-                (memory_id, user_id),
+                (memory_id, user_id, INTERACTION_RECORD_KIND),
             )
             deleted = cursor.rowcount > 0
             await conn.commit()

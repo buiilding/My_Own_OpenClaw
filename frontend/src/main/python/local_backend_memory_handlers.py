@@ -293,7 +293,7 @@ class LocalBackendMemoryHandlersMixin:
         limit: int = 200,
         **kwargs,
     ) -> Dict[str, Any]:
-        """List completed-turn interaction memories excluding transcript rows."""
+        """List completed-turn interaction memories for the episodic memory surface."""
         try:
             memories = await self.memory_store.list_episodic_memories(user_id, limit)
             return {
@@ -375,7 +375,7 @@ class LocalBackendMemoryHandlersMixin:
         memory_id: Optional[str] = None,
         **kwargs,
     ) -> Dict[str, Any]:
-        """Delete a non-transcript episodic memory entry."""
+        """Delete a completed-turn interaction memory entry."""
         if not memory_id:
             return {
                 "success": False,

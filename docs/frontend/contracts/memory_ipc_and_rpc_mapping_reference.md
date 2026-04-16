@@ -169,8 +169,8 @@ Decorator `@requires_memory_store` gates most memory handlers:
 
 ### `list_episodic_memories`
 
-- returns episodic memory entries while excluding transcript conversation rows
-- keeps chat history ownership in sidebar `Your chats`
+- returns completed-turn `interaction` memory entries only
+- keeps transcript and replay chat-history rows owned by sidebar `Your chats`
 - returns newest-first by timestamp
 
 ### `get_conversation`
@@ -187,7 +187,7 @@ Decorator `@requires_memory_store` gates most memory handlers:
 ### `delete_episodic_memory`
 
 - requires `memory_id`
-- deletes non-transcript episodic entry by id
+- deletes completed-turn `interaction` memory entry by id
 - returns `{ memory_id, deleted }`
 
 ### `list_semantic_memories`
