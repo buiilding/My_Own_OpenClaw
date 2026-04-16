@@ -14,6 +14,8 @@ class DummyEvent:
 
 
 class DummyFormatter(EventFormatter):
+    message_type = "dummy-out"
+
     def format(self, event, msg_id):
         if isinstance(event, dict):
             payload = {"content": event.get("content")}
@@ -23,11 +25,15 @@ class DummyFormatter(EventFormatter):
 
 
 class NoneFormatter(EventFormatter):
+    message_type = "dummy-out"
+
     def format(self, event, msg_id):
         return None
 
 
 class SharedResponseFormatter(EventFormatter):
+    message_type = "dummy-out"
+
     def __init__(self):
         self.shared = {"type": "dummy-out", "id": None, "payload": {}}
 
@@ -48,7 +54,7 @@ def test_response_formatter_formats_typed_event_and_attaches_context(monkeypatch
     _set_specs(
         monkeypatch,
         (
-            (DummyEvent, "dummy", DummyFormatter, "dummy-out"),
+            (DummyEvent, "dummy", DummyFormatter),
         ),
     )
 
@@ -79,7 +85,7 @@ def test_response_formatter_formats_dict_event_via_backward_compat_path(monkeypa
     _set_specs(
         monkeypatch,
         (
-            (DummyEvent, "dummy", DummyFormatter, "dummy-out"),
+            (DummyEvent, "dummy", DummyFormatter),
         ),
     )
     formatter = ResponseFormatter()
@@ -97,7 +103,7 @@ def test_response_formatter_returns_none_for_unknown_event(monkeypatch):
     _set_specs(
         monkeypatch,
         (
-            (DummyEvent, "dummy", DummyFormatter, "dummy-out"),
+            (DummyEvent, "dummy", DummyFormatter),
         ),
     )
     formatter = ResponseFormatter()
@@ -110,7 +116,7 @@ def test_response_formatter_keeps_none_when_formatter_skips_event(monkeypatch):
     _set_specs(
         monkeypatch,
         (
-            (DummyEvent, "dummy", NoneFormatter, "dummy-out"),
+            (DummyEvent, "dummy", NoneFormatter),
         ),
     )
     formatter = ResponseFormatter()
@@ -122,8 +128,8 @@ def test_response_formatter_raises_for_duplicate_event_type_specs(monkeypatch):
     _set_specs(
         monkeypatch,
         (
-            (DummyEvent, "duplicate-type", DummyFormatter, "dummy-out"),
-            (dict, "duplicate-type", DummyFormatter, "dummy-out"),
+            (DummyEvent, "duplicate-type", DummyFormatter),
+            (dict, "duplicate-type", DummyFormatter),
         ),
     )
 
@@ -135,8 +141,8 @@ def test_response_formatter_raises_for_duplicate_event_class_specs(monkeypatch):
     _set_specs(
         monkeypatch,
         (
-            (DummyEvent, "event-one", DummyFormatter, "dummy-out"),
-            (DummyEvent, "event-two", DummyFormatter, "dummy-out"),
+            (DummyEvent, "event-one", DummyFormatter),
+            (DummyEvent, "event-two", DummyFormatter),
         ),
     )
 
@@ -150,7 +156,7 @@ def test_response_formatter_does_not_mutate_shared_formatter_response_when_attac
     _set_specs(
         monkeypatch,
         (
-            (DummyEvent, "dummy", SharedResponseFormatter, "dummy-out"),
+            (DummyEvent, "dummy", SharedResponseFormatter),
         ),
     )
     formatter = ResponseFormatter()
@@ -174,7 +180,7 @@ def test_response_formatter_preserves_prior_contextualized_result_snapshot(monke
     _set_specs(
         monkeypatch,
         (
-            (DummyEvent, "dummy", SharedResponseFormatter, "dummy-out"),
+            (DummyEvent, "dummy", SharedResponseFormatter),
         ),
     )
     formatter = ResponseFormatter()

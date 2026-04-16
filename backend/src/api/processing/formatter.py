@@ -33,7 +33,7 @@ class ResponseFormatter:
 
     def _register_formatters(self) -> None:
         """Register typed and dict formatter dispatch tables from one source."""
-        for event_cls, event_type, formatter_cls, _ in get_formatter_specs():
+        for event_cls, event_type, formatter_cls in get_formatter_specs():
             if event_type in self._formatters:
                 raise ValueError(f"Duplicate formatter registration for type: {event_type}")
             if event_cls in self._typed_formatters:

@@ -165,7 +165,7 @@ Key types emitted to renderer:
 
 ## Runtime Event -> Outgoing Formatter Map
 
-`get_formatter_specs()` maps core stream events to formatter classes and outgoing type names:
+`get_formatter_specs()` maps core stream events to formatter classes. Each formatter class owns its outgoing message type via `message_type`:
 
 - `ThinkingEvent` -> `ThinkingEventFormatter` -> `llm-thought`
 - `ChunkEvent` -> `ChunkEventFormatter` -> `streaming-response`

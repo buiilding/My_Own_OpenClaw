@@ -61,9 +61,9 @@ def test_formatter_specs_align_with_response_formatter_dispatch() -> None:
     formatter = ResponseFormatter()
     specs = get_formatter_specs()
 
-    spec_event_classes = [event_cls for event_cls, _, _, _ in specs]
-    spec_stream_event_types = [event_type for _, event_type, _, _ in specs]
-    spec_outgoing_types = [outgoing_type for _, _, _, outgoing_type in specs]
+    spec_event_classes = [event_cls for event_cls, _, _ in specs]
+    spec_stream_event_types = [event_type for _, event_type, _ in specs]
+    spec_outgoing_types = [formatter_cls.message_type for _, _, formatter_cls in specs]
 
     assert len(spec_event_classes) == len(set(spec_event_classes))
     assert len(spec_stream_event_types) == len(set(spec_stream_event_types))
@@ -77,7 +77,7 @@ def test_validate_registry_alignment_passes() -> None:
 
 
 def test_get_formatter_specs_proxies_contract_registry(monkeypatch) -> None:
-    sentinel = ((object, "evt", object, "out"),)
+    sentinel = ((object, "evt", object),)
     monkeypatch.setattr(
         registry_module,
         "get_formatter_specs_from_registry",

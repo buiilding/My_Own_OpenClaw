@@ -7,6 +7,7 @@ from backend.src.api.processing.formatters.base import EventFormatter, EventInpu
 
 class ThinkingEventFormatter(EventFormatter):
     """Formatter for thinking events."""
+    message_type = OutgoingMessageType.LLM_THOUGHT
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
         event_dict = self._get_event_dict(event)
@@ -15,7 +16,7 @@ class ThinkingEventFormatter(EventFormatter):
             return None
 
         return {
-            "type": OutgoingMessageType.LLM_THOUGHT,
+            "type": self.message_type,
             "id": msg_id,
             "payload": {"status": content},
         }

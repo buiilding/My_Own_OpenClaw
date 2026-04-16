@@ -8,6 +8,7 @@ from backend.src.api.processing.formatters.base import EventFormatter, EventInpu
 
 class ContextCompactionStartedEventFormatter(EventFormatter):
     """Format compaction-start lifecycle events for websocket transport."""
+    message_type = OutgoingMessageType.CONTEXT_COMPACTION_STARTED
 
     def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
         event_dict = self._get_event_dict(event)
@@ -44,7 +45,7 @@ class ContextCompactionStartedEventFormatter(EventFormatter):
             return None
 
         return {
-            "type": OutgoingMessageType.CONTEXT_COMPACTION_STARTED,
+            "type": self.message_type,
             "id": msg_id,
             "payload": {
                 "reason": reason,
@@ -53,4 +54,3 @@ class ContextCompactionStartedEventFormatter(EventFormatter):
                 "projected_tokens": projected_tokens,
             },
         }
-

@@ -24,7 +24,7 @@ title: "Streaming Event to Formatter and Outgoing Contract Alignment Reference"
 Runtime stream alignment depends on four coordinated layers:
 
 1. `StreamingEventType` literals emitted by dataclasses (`event.type.value`)
-2. `get_formatter_specs()` map (`event class + event literal -> formatter + outgoing type`)
+2. `get_formatter_specs()` map (`event class + event literal -> formatter class`)
 3. `OutgoingMessageType` constants and `OUTGOING_SCHEMA_MESSAGE_TYPES` list
 4. outgoing Pydantic schemas in `api/schemas/outgoing.py` (`type: Literal[...]`)
 
@@ -34,23 +34,23 @@ The intended contract is now one vocabulary for streamed backend events and webs
 
 `get_formatter_specs()` currently defines:
 
-- `ThinkingEvent` -> `llm-thought` -> `llm-thought` -> `LlmThought`
-- `ChunkEvent` -> `streaming-response` -> `streaming-response` -> `StreamingResponse`
-- `ErrorEvent` -> `error` -> `error` -> `ErrorResponse`
-- `StreamingCompleteEvent` -> `streaming-complete` -> `streaming-complete` -> `StreamingComplete`
-- `ToolCallEvent` -> `tool-call` -> `tool-call` -> `ToolCallMessage`
-- `ToolOutputEvent` -> `tool-output` -> `tool-output` -> `ToolOutputMessage`
-- `WebSearchProgressEvent` -> `web-search-progress` -> `web-search-progress` -> `WebSearchProgressMessage`
-- `SystemPromptEvent` -> `system-prompt` -> `system-prompt` -> `SystemPromptMessage`
-- `ToolSchemasEvent` -> `tool-schemas` -> `tool-schemas` -> `ToolSchemasMessage`
-- `UserMessageFullEvent` -> `user-message-full` -> `user-message-full` -> `UserMessageFullMessage`
-- `AssistantMessageFullEvent` -> `assistant-message-full` -> `assistant-message-full` -> `AssistantMessageFullMessage`
-- `TokenCountEvent` -> `token-count` -> `token-count` -> `TokenCountMessage`
-- `ContextCompactionStartedEvent` -> `context-compaction-started` -> `context-compaction-started` -> `ContextCompactionStartedMessage`
-- `ContextCompactionCompletedEvent` -> `context-compaction-completed` -> `context-compaction-completed` -> `ContextCompactionCompletedMessage`
-- `ContextCompactionFailedEvent` -> `context-compaction-failed` -> `context-compaction-failed` -> `ContextCompactionFailedMessage`
-- `MemoryStoreEvent` -> `memory-store` -> `memory-store` -> `MemoryStoreMessage`
-- `ToolBundleEvent` -> `tool-bundle` -> `tool-bundle` -> `ToolBundleMessage`
+- `ThinkingEvent` -> `llm-thought` -> `ThinkingEventFormatter` -> `LlmThought`
+- `ChunkEvent` -> `streaming-response` -> `ChunkEventFormatter` -> `StreamingResponse`
+- `ErrorEvent` -> `error` -> `ErrorEventFormatter` -> `ErrorResponse`
+- `StreamingCompleteEvent` -> `streaming-complete` -> `StreamingCompleteEventFormatter` -> `StreamingComplete`
+- `ToolCallEvent` -> `tool-call` -> `ToolCallEventFormatter` -> `ToolCallMessage`
+- `ToolOutputEvent` -> `tool-output` -> `ToolOutputEventFormatter` -> `ToolOutputMessage`
+- `WebSearchProgressEvent` -> `web-search-progress` -> `WebSearchProgressEventFormatter` -> `WebSearchProgressMessage`
+- `SystemPromptEvent` -> `system-prompt` -> `SystemPromptEventFormatter` -> `SystemPromptMessage`
+- `ToolSchemasEvent` -> `tool-schemas` -> `ToolSchemasEventFormatter` -> `ToolSchemasMessage`
+- `UserMessageFullEvent` -> `user-message-full` -> `UserMessageFullEventFormatter` -> `UserMessageFullMessage`
+- `AssistantMessageFullEvent` -> `assistant-message-full` -> `AssistantMessageFullEventFormatter` -> `AssistantMessageFullMessage`
+- `TokenCountEvent` -> `token-count` -> `TokenCountEventFormatter` -> `TokenCountMessage`
+- `ContextCompactionStartedEvent` -> `context-compaction-started` -> `ContextCompactionStartedEventFormatter` -> `ContextCompactionStartedMessage`
+- `ContextCompactionCompletedEvent` -> `context-compaction-completed` -> `ContextCompactionCompletedEventFormatter` -> `ContextCompactionCompletedMessage`
+- `ContextCompactionFailedEvent` -> `context-compaction-failed` -> `ContextCompactionFailedEventFormatter` -> `ContextCompactionFailedMessage`
+- `MemoryStoreEvent` -> `memory-store` -> `MemoryStoreEventFormatter` -> `MemoryStoreMessage`
+- `ToolBundleEvent` -> `tool-bundle` -> `ToolBundleEventFormatter` -> `ToolBundleMessage`
 
 ## Legacy Alias Handling
 

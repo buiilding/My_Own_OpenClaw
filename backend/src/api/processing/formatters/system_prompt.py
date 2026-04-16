@@ -8,11 +8,12 @@ from backend.src.core.events import AgentStreamingEvent
 
 class SystemPromptEventFormatter(EventFormatter):
     """Formatter for system prompt events."""
+    message_type = OutgoingMessageType.SYSTEM_PROMPT
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
         return {
-            "type": OutgoingMessageType.SYSTEM_PROMPT,
+            "type": self.message_type,
             "id": msg_id,
             "payload": {
                 "content": event_dict.get("content"),
