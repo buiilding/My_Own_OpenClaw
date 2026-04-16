@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- fix(frontend-chat-utility-theme): restyle the dashboard header utility cluster and in-conversation find bar with one shared monochrome surface system so `Connect browser`, `Workspace`, and search controls no longer break the black-and-white chat aesthetic.
 - chore(dev-tool-selection): narrow the default backend dev tool-selection profile so `mouse_control` allows only `manual` coordinate targeting and no longer keeps OCR or prediction methods enabled.
 - test(prompt-and-tool-contracts): align backend prompt-manager and remote-tool assertions with the current system prompt wording and simplified `mouse_control` schema guidance.
 - docs(prompt-and-selection): update the backend system prompt, refresh the active dev tool-selection profile, and regenerate `prompts/schema.txt` from the live prompt path so the checked-in snapshot matches the current prompt-visible tool surface.
