@@ -228,7 +228,7 @@ Settings now exposes two destructive local-data actions:
 - `Nuke memory`: deletes user-local episodic interaction memory plus semantic memory, then rebuilds local indices so transcript chats remain searchable.
 - `Nuke chats`: deletes transcript chat history plus saved conversation titles, then rebuilds the episodic index so non-chat memory stays intact.
 
-These actions are user-scoped (`user_id`) and run through the frontend sidecar memory admin module/store boundary, not the backend FastAPI service.
+These actions are user-scoped (`user_id`) and run through the frontend sidecar memory admin module/store boundary, not the backend FastAPI service. In hosted mode, that `user_id` is now a server-issued identity derived from the install token bootstrap flow rather than a client-chosen value.
 
 ## Prompt Injection Retrieval
 

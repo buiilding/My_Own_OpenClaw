@@ -109,6 +109,7 @@ class QueryExecutionService:
                     message,
                     artifact_store_cls=artifact_store_cls,
                     session_manager_config=getattr(self._session_manager, "config", None),
+                    user_id=user_id,
                 )
 
                 async for event in agent_instance.process_query(

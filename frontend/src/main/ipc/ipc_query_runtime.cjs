@@ -58,17 +58,13 @@ async function buildQueryPayload({
   buildQueryPayloadContent,
   getSystemState,
   searchMemory,
-  generateUserId,
-  osUserInfo,
-  uuidGenerator,
   log,
 }) {
   const contextType = isFirstQuery ? 'initial' : 'sequential';
-  const userId = currentUserId || generateUserId({
-    osUserInfo,
-    uuidGenerator,
-    log,
-  });
+  const userId = typeof currentUserId === 'string' ? currentUserId.trim() : '';
+  if (!userId) {
+    throw new Error('buildQueryPayload requires an authenticated user id');
+  }
   const {
     content,
     runtimeSystemState,

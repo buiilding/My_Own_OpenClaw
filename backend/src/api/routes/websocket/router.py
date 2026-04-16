@@ -57,10 +57,19 @@ async def websocket_endpoint(
 
     task_manager = TaskManager(max_concurrent_tasks, task_cancellation_timeout)
     close_requested = False
+    install_auth_service = getattr(websocket.app.state, "install_auth_service", None)
 
-    user_id = await perform_handshake(websocket, safe_ws)
+    user_id = await perform_handshake(
+        websocket,
+        safe_ws,
+        install_auth_service=install_auth_service,
+        require_install_auth=bool(getattr(config, "install_auth_enabled", True)),
+    )
     if not user_id:
         return
+    increment_connection_count = getattr(session_manager, "increment_connection_count", None)
+    if callable(increment_connection_count):
+        increment_connection_count(user_id)
 
     frontend_operating_system = getattr(safe_ws, "frontend_operating_system", None)
     set_frontend_operating_system = getattr(

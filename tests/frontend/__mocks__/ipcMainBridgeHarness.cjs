@@ -116,6 +116,7 @@ const DEFAULT_MEMORY_RESULT = {
 };
 
 let lastIpc = null;
+let originalFetch = null;
 
 function primeQueryContext(backendBridge, options = {}) {
   if (options.systemStateError) {
@@ -138,6 +139,29 @@ function initIpc(options = {}) {
   const WebSocketMock = require('ws');
   const backendBridge = require('../../../frontend/src/main/local_backend_bridge.cjs');
   const fs = require('fs');
+
+  if (originalFetch === null) {
+    originalFetch = global.fetch;
+  }
+  global.fetch = jest.fn(async (url) => {
+    if (typeof url === 'string' && url.includes('/api/install/register')) {
+      return {
+        ok: true,
+        status: 200,
+        async json() {
+          return {
+            user_id: 'registered-user-1',
+            install_id: 'install-1',
+            install_token: 'install-token-1',
+          };
+        },
+        async text() {
+          return '';
+        },
+      };
+    }
+    throw new Error(`Unexpected fetch call in ipc harness: ${url}`);
+  });
 
   const handlers = {};
   ipcMain.handle.mockImplementation((channel, handler) => {
@@ -186,6 +210,7 @@ function registerIpcBridgeSuiteLifecycleHooks() {
     lastIpc = null;
     const WebSocketMock = require('ws');
     WebSocketMock.instances.length = 0;
+    global.fetch = originalFetch;
     jest.restoreAllMocks();
   });
 

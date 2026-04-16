@@ -338,6 +338,9 @@ function startLocalBackend(mainWindow, options = {}) {
     ...process.env,
     PYTHONUNBUFFERED: '1',
     WINDIE_BACKEND_HTTP_URL: backendEndpoints.httpUrl,
+    ...(typeof options.authStatePath === 'string' && options.authStatePath.trim()
+      ? { WINDIE_BACKEND_AUTH_STATE_PATH: options.authStatePath.trim() }
+      : {}),
     WINDIE_PACKAGED_APP: packagedApp ? '1' : '0',
     WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: packagedApp ? '0' : '1',
     ...(permissionStatePath ? { WINDIE_PERMISSION_STATE_PATH: permissionStatePath } : {}),
@@ -564,6 +567,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     isPackaged,
     backendEndpoints,
     permissionStatePath: options.permissionStatePath,
+    authStatePath: options.authStatePath,
   });
 
   const registerRpcHandler = (channel, method, mapParams) => {

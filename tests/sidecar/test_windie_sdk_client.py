@@ -39,8 +39,8 @@ class DummyArtifactSession:
         self.response = response
         self.last_post = None
 
-    def post(self, url, data=None, timeout=None, json=None):
-        self.last_post = (url, data, timeout, json)
+    def post(self, url, data=None, timeout=None, json=None, headers=None):
+        self.last_post = (url, data, timeout, json, headers)
         return self.response
 
     async def close(self):
@@ -78,8 +78,8 @@ class DummyWsSession:
         self.websocket = websocket
         self.ws_connect_calls = []
 
-    async def ws_connect(self, url, timeout=None):
-        self.ws_connect_calls.append((url, timeout))
+    async def ws_connect(self, url, timeout=None, headers=None):
+        self.ws_connect_calls.append((url, timeout, headers))
         return self.websocket
 
     async def close(self):
@@ -99,9 +99,10 @@ async def test_get_system_prompt_builds_query_string():
     result = await client.get_system_prompt(user_id="dev-user", interaction_mode="agent")
 
     assert result["system_prompt"] == "prompt"
-    url, timeout = session.last_get
+    url, timeout, headers = session.last_get
     assert url == "https://api.windieos.com/api/sdk/system-prompt?user_id=dev-user&interaction_mode=agent"
     assert timeout.total == 60
+    assert headers == {}
 
 
 @pytest.mark.asyncio
@@ -125,10 +126,12 @@ async def test_get_query_plan_posts_payload_and_returns_json():
     result = await client.get_query_plan(payload)
 
     assert result["query_message"]["payload"]["text"] == "open file"
-    url, posted_payload, timeout = session.last_post
+    url, posted_payload, timeout, headers, data = session.last_post
     assert url == "http://localhost:8765/api/sdk/query-plan"
     assert posted_payload == payload
     assert timeout.total == 60
+    assert headers == {}
+    assert data is None
 
 
 @pytest.mark.asyncio
@@ -156,10 +159,11 @@ async def test_upload_artifact_uses_artifact_endpoint(monkeypatch):
     )
 
     assert result["artifact_id"] == "shot.png"
-    url, data, timeout, posted_json = session.last_post
+    url, data, timeout, posted_json, headers = session.last_post
     assert url == "https://api.windieos.com/api/artifacts/"
     assert posted_json is None
     assert timeout.total == 60
+    assert headers == {}
     assert data.fields == [
         {
             "name": "file",
@@ -188,7 +192,7 @@ async def test_connect_agent_sends_handshake_and_query():
         screenshot_ref="artifact-123.png",
     )
 
-    assert session.ws_connect_calls == [("wss://api.windieos.com/ws", 60)]
+    assert session.ws_connect_calls == [("wss://api.windieos.com/ws", 60, {})]
     assert websocket.sent[0] == {
         "type": "handshake",
         "user_id": "dev-user",

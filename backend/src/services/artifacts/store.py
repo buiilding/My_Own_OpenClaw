@@ -7,6 +7,7 @@ stable artifact IDs for WS payloads.
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 import shutil
 import tempfile
@@ -61,12 +62,25 @@ class ArtifactStore:
 
     def resolve_path(self, artifact_id: str) -> Tuple[Path, str]:
         """Resolve a stored artifact path and content type."""
+        return self.resolve_path_for_owner(artifact_id)
+
+    def resolve_path_for_owner(
+        self,
+        artifact_id: str,
+        owner_user_id: Optional[str] = None,
+    ) -> Tuple[Path, str]:
+        """Resolve a stored artifact path and optionally enforce owner identity."""
         if not _SAFE_ID_RE.match(artifact_id):
             raise HTTPException(status_code=400, detail="Invalid artifact id")
         path = self.base_dir / artifact_id
         if not path.is_file():
             path = self._resolve_legacy_path(artifact_id) or path
         if not path.is_file():
+            raise HTTPException(status_code=404, detail="Artifact not found")
+        if owner_user_id is not None and not self._artifact_belongs_to_user(
+            artifact_id,
+            owner_user_id,
+        ):
             raise HTTPException(status_code=404, detail="Artifact not found")
         content_type = _EXT_TO_CONTENT_TYPE.get(path.suffix.lstrip("."), "application/octet-stream")
         return path, content_type
@@ -110,7 +124,33 @@ class ArtifactStore:
         if path.exists():
             path.unlink(missing_ok=True)
 
-    async def save_upload(self, upload: UploadFile) -> ArtifactMeta:
+    def _metadata_path(self, artifact_id: str) -> Path:
+        return self.base_dir / f"{artifact_id}.meta.json"
+
+    def _write_metadata(self, artifact_id: str, *, owner_user_id: Optional[str]) -> None:
+        metadata_path = self._metadata_path(artifact_id)
+        payload = {}
+        if isinstance(owner_user_id, str) and owner_user_id.strip():
+            payload["owner_user_id"] = owner_user_id.strip()
+        metadata_path.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
+
+    def _artifact_belongs_to_user(self, artifact_id: str, owner_user_id: str) -> bool:
+        metadata_path = self._metadata_path(artifact_id)
+        if not metadata_path.is_file():
+            return False
+        try:
+            payload = json.loads(metadata_path.read_text(encoding="utf-8"))
+        except Exception:
+            return False
+        stored_owner = payload.get("owner_user_id")
+        return isinstance(stored_owner, str) and stored_owner.strip() == owner_user_id
+
+    async def save_upload(
+        self,
+        upload: UploadFile,
+        *,
+        owner_user_id: Optional[str] = None,
+    ) -> ArtifactMeta:
         """Save an uploaded file to disk with size enforcement."""
         ext = self._resolve_upload_extension(upload)
 
@@ -138,6 +178,12 @@ class ArtifactStore:
             self._cleanup_partial_upload(path)
             raise HTTPException(status_code=500, detail="Artifact upload failed") from exc
 
+        try:
+            self._write_metadata(artifact_id, owner_user_id=owner_user_id)
+        except Exception as exc:
+            self._cleanup_partial_upload(path)
+            raise HTTPException(status_code=500, detail="Artifact upload failed") from exc
+
         return ArtifactMeta(
             artifact_id=artifact_id,
             content_type=_EXT_TO_CONTENT_TYPE[ext],
@@ -146,7 +192,13 @@ class ArtifactStore:
             path=path,
         )
 
-    def save_bytes(self, data: bytes, *, content_type: str) -> ArtifactMeta:
+    def save_bytes(
+        self,
+        data: bytes,
+        *,
+        content_type: str,
+        owner_user_id: Optional[str] = None,
+    ) -> ArtifactMeta:
         """Persist generated artifact bytes (for example overlay images)."""
         normalized_content_type = content_type.split(";", 1)[0].strip().lower()
         ext = _CONTENT_TYPE_TO_EXT.get(normalized_content_type)
@@ -161,6 +213,7 @@ class ArtifactStore:
         path = self.base_dir / artifact_id
         try:
             path.write_bytes(data)
+            self._write_metadata(artifact_id, owner_user_id=owner_user_id)
         except Exception as exc:
             self._cleanup_partial_upload(path)
             raise HTTPException(status_code=500, detail="Artifact upload failed") from exc
@@ -173,11 +226,15 @@ class ArtifactStore:
             path=path,
         )
 
-    def load_base64(self, artifact_id: str) -> str:
+    def load_base64(
+        self,
+        artifact_id: str,
+        owner_user_id: Optional[str] = None,
+    ) -> str:
         """Load artifact bytes and return base64-encoded string."""
         import base64
 
-        path, _ = self.resolve_path(artifact_id)
+        path, _ = self.resolve_path_for_owner(artifact_id, owner_user_id=owner_user_id)
         if path.stat().st_size > self.max_bytes:
             raise HTTPException(status_code=413, detail="Artifact too large")
         data = path.read_bytes()

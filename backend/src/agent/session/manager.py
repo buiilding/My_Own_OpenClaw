@@ -141,6 +141,15 @@ class SessionManager(ConfigSubscriber):
     ) -> Optional[str]:
         return self._config_service.frontend_operating_systems.get(user_id)
 
+    def increment_connection_count(self, user_id: str) -> int:
+        return self._registry.increment_connection_count(user_id)
+
+    def decrement_connection_count(self, user_id: str) -> int:
+        return self._registry.decrement_connection_count(user_id)
+
+    def get_connection_count(self, user_id: str) -> int:
+        return self._registry.get_connection_count(user_id)
+
     def set_session_workspace_path(
         self,
         user_id: str,
@@ -214,6 +223,9 @@ class SessionManager(ConfigSubscriber):
     ) -> bool:
         """Return True when at least one matching active query task is still running."""
         return self._active_queries.has_active_query_task(user_id, conversation_ref)
+
+    def count_active_query_tasks(self, user_id: Optional[str] = None) -> int:
+        return self._active_queries.count_active_query_tasks(user_id)
 
     async def _get_user_lock(self, user_id: str) -> asyncio.Lock:
         """

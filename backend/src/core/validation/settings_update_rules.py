@@ -19,6 +19,7 @@ SETTINGS_UPDATE_RULES: dict[str, SettingsUpdateRule] = {
     "query_timeout": SettingsUpdateRule((int, float)),
     "memory_enabled": SettingsUpdateRule((bool,)),
     "embedding_backend": SettingsUpdateRule((str,), allow_none=True),
+    "embedding_remote_service_url": SettingsUpdateRule((str,), allow_none=True),
     "model_provider": SettingsUpdateRule((str,), allow_none=True),
     "selected_model_id": SettingsUpdateRule((str,), allow_none=True),
     "model_mode": SettingsUpdateRule((str,), allow_none=True),
@@ -43,6 +44,11 @@ SETTINGS_UPDATE_RULES: dict[str, SettingsUpdateRule] = {
     "history_compaction_cooldown_turns": SettingsUpdateRule((int,), allow_none=True),
     "history_compaction_strategy": SettingsUpdateRule((str,)),
     "history_compaction_prompt": SettingsUpdateRule((str,), allow_none=True),
+    "embedding_max_concurrent_requests": SettingsUpdateRule((int,), allow_none=True),
+    "embedding_queue_timeout_seconds": SettingsUpdateRule((int, float), allow_none=True),
+    "max_active_queries_per_user": SettingsUpdateRule((int,), allow_none=True),
+    "max_active_queries_global": SettingsUpdateRule((int,), allow_none=True),
+    "install_auth_enabled": SettingsUpdateRule((bool,)),
 }
 
 

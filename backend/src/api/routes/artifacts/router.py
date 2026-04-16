@@ -10,6 +10,7 @@ import logging
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 
+from backend.src.api.auth.context import get_current_authenticated_install_identity
 from backend.src.api.deps import ContainerDep
 from backend.src.services.artifacts import ArtifactStore
 
@@ -27,7 +28,11 @@ async def upload_artifact(
 ) -> ArtifactUploadResponse:
     """Upload an artifact (multipart/form-data)."""
     store = ArtifactStore.from_config(container.config)
-    meta = await store.save_upload(file)
+    identity = get_current_authenticated_install_identity()
+    meta = await store.save_upload(
+        file,
+        owner_user_id=identity.user_id if identity is not None else None,
+    )
     base_url = str(request.base_url).rstrip("/")
     url = f"{base_url}/api/artifacts/{meta.artifact_id}"
     return ArtifactUploadResponse(
@@ -46,8 +51,12 @@ async def get_artifact(
 ) -> FileResponse:
     """Fetch an artifact by ID."""
     store = ArtifactStore.from_config(container.config)
+    identity = get_current_authenticated_install_identity()
     try:
-        path, content_type = store.resolve_path(artifact_id)
+        path, content_type = store.resolve_path_for_owner(
+            artifact_id,
+            owner_user_id=identity.user_id if identity is not None else None,
+        )
     except HTTPException:
         raise
     except Exception as exc:

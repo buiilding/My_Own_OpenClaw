@@ -8,6 +8,7 @@ from typing import Any, Optional
 import aiohttp
 
 from core.backend_config import get_backend_http_url, get_backend_http_urls
+from core.install_auth_state import get_install_bearer_token
 from core.unicode_sanitizer import sanitize_surrogates
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,12 @@ class RemoteApiClientBase:
             await self._session.close()
             self._session = None
 
+    def _build_auth_headers(self) -> dict[str, str]:
+        token = get_install_bearer_token()
+        if not token:
+            return {}
+        return {"Authorization": f"Bearer {token}"}
+
     @staticmethod
     def _should_try_fallback_for_status(status: int) -> bool:
         """Return True when an HTTP status should try the next backend URL."""
@@ -62,6 +69,7 @@ class RemoteApiClientBase:
                 async with self._session.post(
                     f"{backend_url}{path}",
                     json=sanitized_payload,
+                    headers=self._build_auth_headers(),
                     timeout=self._aiohttp.ClientTimeout(total=self.timeout_seconds),
                 ) as response:
                     if response.status != 200:

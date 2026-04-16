@@ -125,7 +125,7 @@ function normalizeBackendPayload(type, payload) {
   return normalized;
 }
 
-async function uploadArtifact({ base64, contentType, filename, backendHttpUrl }) {
+async function uploadArtifact({ base64, contentType, filename, backendHttpUrl, headers = {} }) {
   if (!base64 || typeof base64 !== 'string') {
     return { success: false, error: 'Missing artifact data' };
   }
@@ -150,6 +150,7 @@ async function uploadArtifact({ base64, contentType, filename, backendHttpUrl })
 
     const response = await fetch(`${backendHttpUrl}/api/artifacts/`, {
       method: 'POST',
+      headers,
       body: form,
     });
 

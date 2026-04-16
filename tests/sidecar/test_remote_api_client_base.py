@@ -17,8 +17,8 @@ class SequentialSession:
         self.post_results = list(post_results or [])
         self.post_calls = []
 
-    def post(self, url, json=None, timeout=None):
-        self.post_calls.append((url, json, timeout))
+    def post(self, url, json=None, timeout=None, headers=None, data=None):
+        self.post_calls.append((url, json, timeout, headers, data))
         result = self.post_results.pop(0)
         if isinstance(result, Exception):
             raise result

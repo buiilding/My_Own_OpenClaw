@@ -51,22 +51,18 @@ describe('ipc_query_runtime', () => {
       content: '<user_query>\nhello\n</user_query>',
       runtimeSystemState: { screen_resolution: '1920x1080' },
     });
-    const generateUserId = jest.fn(() => 'user-1');
 
     await expect(buildQueryPayload({
       basePayload: { text: 'hello', conversation_ref: 'conv-1' },
       text: 'hello',
       conversationRef: 'conv-1',
-      currentUserId: null,
+      currentUserId: 'user-1',
       isFirstQuery: true,
       attachmentContext: 'notes',
       memoryRetrievalEnabled: true,
       buildQueryPayloadContent,
       getSystemState: jest.fn(),
       searchMemory: jest.fn(),
-      generateUserId,
-      osUserInfo: jest.fn(() => ({ username: 'alice' })),
-      uuidGenerator: jest.fn(() => 'uuid-1'),
       log: jest.fn(),
     })).resolves.toEqual({
       payload: {

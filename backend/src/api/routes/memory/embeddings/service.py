@@ -8,6 +8,10 @@ from typing import Any, List
 from fastapi import HTTPException
 
 from backend.src.embeddings.embeddings import is_cuda_error
+from backend.src.embeddings.errors import (
+    EmbeddingCapacityExceededError,
+    EmbeddingProviderRequestError,
+)
 
 from .models import EmbeddingResponse
 
@@ -126,6 +130,10 @@ async def embed_text_with_runtime_recovery(
 
 def raise_embedding_error(*, error: Exception, logger: Any, started_at: float) -> None:
     """Emit sanitized internal-error response for embedding failures."""
+    if isinstance(error, EmbeddingCapacityExceededError):
+        raise HTTPException(status_code=error.status_code, detail=error.detail) from error
+    if isinstance(error, EmbeddingProviderRequestError):
+        raise HTTPException(status_code=error.status_code, detail=error.detail) from error
     embedding_time = time.perf_counter() - started_at
     logger.error(
         "[Timing] Embedding generation failed after %.3fs: %s",

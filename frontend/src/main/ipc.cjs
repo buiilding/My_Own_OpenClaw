@@ -9,7 +9,6 @@ const {
 } = require('electron');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
-const os = require('os');
 const { getSystemState, searchMemory, storeMemory } = require('./local_backend_bridge.cjs');
 const {
   resolveBackendEndpointCandidates,
@@ -20,6 +19,11 @@ const {
   loadFrontendConfigFromDisk,
   saveFrontendConfigToDisk,
 } = require('./ipc/ipc_frontend_config.cjs');
+const {
+  loadInstallAuthStateFromDisk,
+  registerInstallWithBackend,
+  saveInstallAuthStateToDisk,
+} = require('./ipc/ipc_install_auth_state.cjs');
 const {
   clearPendingSettingsSyncs,
   isValidConfigPayload,
@@ -34,7 +38,6 @@ const {
   buildQuerySendFailure,
 } = require('./ipc/ipc_query_events.cjs');
 const {
-  generateUserId,
   normalizeBackendPayload,
   processBackendMessageData,
   runBeforeOverlayQueryCapture,
@@ -102,6 +105,8 @@ let rendererWindows = new Set();
 let isConnected = false;
 let isFirstQuery = true;
 let currentUserId = null;
+let currentInstallId = null;
+let currentInstallToken = null;
 let currentSessionId = null;
 let currentServerUserId = null;
 let currentConversationRef = null;
@@ -121,19 +126,87 @@ let backendReconnectTimer = null;
 let backendIdleDisconnectTimer = null;
 let shouldMaintainBackendConnection = false;
 let intentionalSocketCloseReason = null;
+let pendingInstallAuthStatePromise = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 
-function ensureCurrentUserId() {
-  if (typeof currentUserId === 'string' && currentUserId.trim().length > 0) {
-    return currentUserId;
+function applyInstallAuthState(state) {
+  if (!state || typeof state !== 'object') {
+    return null;
   }
-  currentUserId = generateUserId({
-    osUserInfo: () => os.userInfo(),
-    uuidGenerator: uuidv4,
-    log,
+  const installToken = typeof state.installToken === 'string' ? state.installToken.trim() : '';
+  const userId = typeof state.userId === 'string' ? state.userId.trim() : '';
+  const installId = typeof state.installId === 'string' ? state.installId.trim() : '';
+  if (!installToken || !userId || !installId) {
+    return null;
+  }
+  currentInstallToken = installToken;
+  currentInstallId = installId;
+  currentUserId = userId;
+  if (!currentServerUserId) {
+    currentServerUserId = userId;
+  }
+  return {
+    installToken,
+    userId,
+    installId,
+  };
+}
+
+function buildInstallAuthHeaders() {
+  if (typeof currentInstallToken !== 'string' || !currentInstallToken) {
+    return {};
+  }
+  return {
+    Authorization: `Bearer ${currentInstallToken}`,
+  };
+}
+
+async function ensureInstallAuthState() {
+  const currentState = applyInstallAuthState({
+    installToken: currentInstallToken,
+    userId: currentUserId,
+    installId: currentInstallId,
   });
-  return currentUserId;
+  if (currentState) {
+    return currentState;
+  }
+  if (pendingInstallAuthStatePromise) {
+    return pendingInstallAuthStatePromise;
+  }
+
+  pendingInstallAuthStatePromise = (async () => {
+    const cachedState = applyInstallAuthState(await loadInstallAuthStateFromDisk(log));
+    if (cachedState) {
+      return cachedState;
+    }
+
+    let lastError = null;
+    for (let index = 0; index < BACKEND_ENDPOINT_CANDIDATES.length; index += 1) {
+      const candidate = BACKEND_ENDPOINT_CANDIDATES[index];
+      try {
+        const registeredState = await registerInstallWithBackend({
+          backendHttpUrl: candidate.httpUrl,
+          operatingSystem: resolveFrontendOperatingSystem(process.platform),
+          log,
+        });
+        const persistResult = await saveInstallAuthStateToDisk(registeredState, log);
+        if (!persistResult?.success) {
+          throw new Error(persistResult?.error || 'Failed to persist install auth state');
+        }
+        setActiveBackendEndpoint(index);
+        return applyInstallAuthState(registeredState);
+      } catch (error) {
+        lastError = error;
+        log(`Install registration failed against ${candidate.httpUrl}: ${error?.message || error}`);
+      }
+    }
+    throw lastError || new Error('Failed to register install with backend');
+  })().finally(() => {
+    pendingInstallAuthStatePromise = null;
+  });
+
+  return pendingInstallAuthStatePromise;
 }
 
 function resolveFrontendOperatingSystem(platformName = process.platform) {
@@ -389,6 +462,7 @@ function waitForBackendConnection(reason = 'request', timeoutMs = BACKEND_CONNEC
 
 async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_CONNECT_TIMEOUT_MS) {
   ensureBackendConnectionDemand();
+  await ensureInstallAuthState();
   if (isConnected && ws && ws.readyState === WebSocket.OPEN) {
     syncBackendIdleDisconnectTimer(`ensure:${reason}`);
     return true;
@@ -543,9 +617,11 @@ function connect() {
     log('WebSocket already open or connecting.');
     return;
   }
-
   log(`Attempting to connect to Python backend at ${BACKEND_URL}...`);
-  const socket = new WebSocket(BACKEND_URL, { origin: BACKEND_ENDPOINTS.wsOrigin });
+  const socket = new WebSocket(BACKEND_URL, {
+    origin: BACKEND_ENDPOINTS.wsOrigin,
+    headers: buildInstallAuthHeaders(),
+  });
   ws = socket;
   let opened = false;
 
@@ -555,17 +631,13 @@ function connect() {
     }
     opened = true;
     isConnected = true;
-    isFirstQuery = true; // Reset on new connection (new session)
+    isFirstQuery = true;
     resetSettingsSyncState();
     setResponseOverlayPhase('idle', 'ws-open');
     ipcEventReplayState.clear();
     clearBackendReconnectTimer();
     log('Successfully connected to Python backend.');
 
-    // Generate a stable local user identity before handshake if needed.
-    ensureCurrentUserId();
-    
-    // Send handshake message as required by the backend server
     const handshakeMessage = {
       type: 'handshake',
       user_id: currentUserId,
@@ -573,8 +645,7 @@ function connect() {
     };
     try {
       ws.send(JSON.stringify(handshakeMessage));
-      log(`Handshake sent with user_id: ${currentUserId}`);
-      // Broadcast connection status after handshake send to reduce startup races.
+      log(`Handshake sent with authenticated user_id: ${currentUserId}`);
       broadcastConnectionStatus(true);
       resolvePendingBackendConnectWaiters();
       noteBackendTraffic('ws-open');
@@ -725,6 +796,7 @@ function shutdownIpcForTests() {
   onBeforeOverlayQueryCapture = null;
   setAgentLoopStopShortcutEnabled = null;
   setGlobalAgentStopShortcutAccelerator = null;
+  pendingInstallAuthStatePromise = null;
   const socket = ws;
   ws = null;
   isConnected = false;
@@ -760,7 +832,11 @@ function initializeIpc(win, options = {}) {
     : () => ({ mainWindow: win, chatWindow: null });
   rendererWindows = new Set();
   trackRendererWindow(win);
-  ensureCurrentUserId();
+  loadInstallAuthStateFromDisk(log)
+    .then((state) => {
+      applyInstallAuthState(state);
+    })
+    .catch(() => {});
   loadCachedFrontendConfigFromDisk()
     .then((config) => {
       if (!isValidConfigPayload(config)) {
@@ -818,6 +894,7 @@ function initializeIpc(win, options = {}) {
     return uploadArtifact({
       ...(payload || {}),
       backendHttpUrl: BACKEND_HTTP_URL,
+      headers: buildInstallAuthHeaders(),
     });
   });
 
@@ -933,6 +1010,13 @@ function initializeIpc(win, options = {}) {
     let queryUsedInitialContext = false;
 
     if (type === 'query') {
+      if (!currentUserId) {
+        try {
+          await ensureInstallAuthState();
+        } catch (error) {
+          log(`Failed to resolve authenticated user before query: ${error?.message || error}`);
+        }
+      }
       const preparedQuery = await prepareRendererQuerySend({
         event,
         payload,
@@ -967,8 +1051,6 @@ function initializeIpc(win, options = {}) {
           buildQueryPayloadContent,
           getSystemState,
           searchMemory,
-          generateUserId,
-          osUserInfo: () => os.userInfo(),
         },
       });
       payload = preparedQuery.payload;
@@ -1134,9 +1216,6 @@ async function sendAutomatedQuery(options = {}) {
     buildQueryPayloadContent,
     getSystemState,
     searchMemory,
-    generateUserId,
-    osUserInfo: () => os.userInfo(),
-    uuidGenerator: uuidv4,
     log,
   });
 

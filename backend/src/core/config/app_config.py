@@ -25,6 +25,9 @@ APP_CONFIG = AppConfig(
     memory_enabled=True,
     embedding_backend="local",
     embedding_model="all-MiniLM-L6-v2",
+    embedding_remote_service_url=None,
+    embedding_max_concurrent_requests=32,
+    embedding_queue_timeout_seconds=5.0,
     # Agent Execution Settings
     interaction_mode="agent",
     history_compaction_enabled=True,
@@ -82,4 +85,7 @@ APP_CONFIG = AppConfig(
     websocket_max_concurrent_tasks=50,
     websocket_receive_timeout=3600.0,  # 1 hour
     websocket_task_cancellation_timeout=5.0,
+    max_active_queries_per_user=4,
+    max_active_queries_global=200,
+    install_auth_enabled=True,
 )

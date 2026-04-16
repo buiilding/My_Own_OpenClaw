@@ -84,6 +84,38 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
         """
         msg_id = message.id
         current_task = asyncio.current_task()
+        config = getattr(self.session_manager, "config", None)
+        max_active_queries_per_user = int(
+            getattr(config, "max_active_queries_per_user", 4)
+        )
+        max_active_queries_global = int(
+            getattr(config, "max_active_queries_global", 200)
+        )
+        count_active_query_tasks = getattr(
+            self.session_manager,
+            "count_active_query_tasks",
+            None,
+        )
+        if callable(count_active_query_tasks):
+            user_active_queries = count_active_query_tasks(user_id)
+            global_active_queries = count_active_query_tasks()
+            if user_active_queries >= max_active_queries_per_user:
+                await self._send_error(
+                    websocket,
+                    msg_id,
+                    (
+                        "Too many active queries for this user. "
+                        "Wait for an existing query to finish or stop it."
+                    ),
+                )
+                return
+            if global_active_queries >= max_active_queries_global:
+                await self._send_error(
+                    websocket,
+                    msg_id,
+                    "Backend query capacity is saturated. Please retry shortly.",
+                )
+                return
         stop_consumed_on_register = False
         if current_task is not None:
             stop_consumed_on_register = self.session_manager.register_active_query_task(

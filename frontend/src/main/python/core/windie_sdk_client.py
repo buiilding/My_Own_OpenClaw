@@ -12,6 +12,7 @@ from uuid import uuid4
 
 import aiohttp
 
+from core.install_auth_state import get_authenticated_user_id
 from core.remote_api_client_base import RemoteApiClientBase
 from core.unicode_sanitizer import sanitize_surrogates
 
@@ -214,11 +215,16 @@ class WindieSdkClient(RemoteApiClientBase):
                 request_url = f"{backend_url}{path}"
                 request_timeout = self._aiohttp.ClientTimeout(total=self.timeout_seconds)
                 if method_name == "get":
-                    request_context = self._session.get(request_url, timeout=request_timeout)
+                    request_context = self._session.get(
+                        request_url,
+                        headers=self._build_auth_headers(),
+                        timeout=request_timeout,
+                    )
                 elif method_name == "post":
                     request_context = self._session.post(
                         request_url,
                         json=sanitized_payload,
+                        headers=self._build_auth_headers(),
                         timeout=request_timeout,
                     )
                 else:
@@ -269,6 +275,7 @@ class WindieSdkClient(RemoteApiClientBase):
                 async with self._session.post(
                     f"{backend_url}/api/artifacts/",
                     data=form,
+                    headers=self._build_auth_headers(),
                     timeout=self._aiohttp.ClientTimeout(total=self.timeout_seconds),
                 ) as response:
                     if response.status != 200:
@@ -430,6 +437,8 @@ class WindieSdkClient(RemoteApiClientBase):
 
         effective_user_id = user_id or self.default_user_id
         if not isinstance(effective_user_id, str) or not effective_user_id.strip():
+            effective_user_id = get_authenticated_user_id()
+        if not isinstance(effective_user_id, str) or not effective_user_id.strip():
             raise Exception("WindieSdkClient.connect_agent requires a user_id or default_user_id")
 
         last_network_error: Optional[Exception] = None
@@ -437,6 +446,7 @@ class WindieSdkClient(RemoteApiClientBase):
             try:
                 websocket = await self._session.ws_connect(
                     _derive_ws_url(backend_url),
+                    headers=self._build_auth_headers(),
                     timeout=self.timeout_seconds,
                 )
                 session = WindieSdkAgentSession(
