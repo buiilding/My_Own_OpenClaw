@@ -173,7 +173,7 @@ def test_resolve_screenshot_loads_artifact_ref_when_inline_missing():
         def from_config(cls, _config):
             return cls()
 
-        def load_base64(self, screenshot_ref):
+        def load_base64(self, screenshot_ref, owner_user_id=None):
             return f"resolved:{screenshot_ref}"
 
     message = _build_message(screenshot=None, screenshot_ref="artifact-ref")
@@ -190,7 +190,7 @@ def test_resolve_screenshots_loads_multi_artifact_refs_when_provided():
         def from_config(cls, _config):
             return cls()
 
-        def load_base64(self, screenshot_ref):
+        def load_base64(self, screenshot_ref, owner_user_id=None):
             return f"resolved:{screenshot_ref}"
 
     message = _build_message(
@@ -216,7 +216,7 @@ def test_resolve_screenshots_trims_refs_and_skips_blank_entries():
         def from_config(cls, _config):
             return cls()
 
-        def load_base64(self, screenshot_ref):
+        def load_base64(self, screenshot_ref, owner_user_id=None):
             calls.append(screenshot_ref)
             return f"resolved:{screenshot_ref}"
 
@@ -259,7 +259,7 @@ def test_resolve_screenshots_falls_back_to_single_ref_when_ref_list_is_blank_onl
         def from_config(cls, _config):
             return cls()
 
-        def load_base64(self, screenshot_ref):
+        def load_base64(self, screenshot_ref, owner_user_id=None):
             calls.append(screenshot_ref)
             return f"resolved:{screenshot_ref}"
 
@@ -287,7 +287,7 @@ def test_resolve_screenshots_keeps_successful_refs_when_one_load_fails():
         def from_config(cls, _config):
             return cls()
 
-        def load_base64(self, screenshot_ref):
+        def load_base64(self, screenshot_ref, owner_user_id=None):
             calls.append(screenshot_ref)
             if screenshot_ref == "bad-ref":
                 raise RuntimeError("missing artifact")
@@ -392,7 +392,7 @@ def test_finalize_pending_tool_calls_on_cancel_handles_success_and_failures():
 
 
 def test_query_execution_event_extraction_helpers_passthrough():
-    assert extract_event_type({"type": "chunk"}) == "chunk"
+    assert extract_event_type({"type": "chunk"}) == "streaming-response"
     assert extract_dict_payload({"payload": {"x": 1}}) == {"x": 1}
     assert (
         extract_dict_string_field(
@@ -582,7 +582,7 @@ async def test_execute_emits_fallback_completion_when_agent_stream_ends_without_
 
                 async def process_query(self, *_args, **_kwargs):
                     yield {"type": "streaming-response", "payload": {"text": "hello "}}
-                    yield {"type": "assistant_message_full", "content": "hello there"}
+                    yield {"type": "assistant-message-full", "content": "hello there"}
 
             return _Agent()
 
@@ -601,7 +601,7 @@ async def test_execute_emits_fallback_completion_when_agent_stream_ends_without_
 
     assert len(observed_events) == 3
     assert observed_events[0][0]["type"] == "streaming-response"
-    assert observed_events[1][0]["type"] == "assistant_message_full"
+    assert observed_events[1][0]["type"] == "assistant-message-full"
     assert isinstance(observed_events[2][0], StreamingCompleteEvent)
     assert observed_events[2][0].final_response == "hello"
 

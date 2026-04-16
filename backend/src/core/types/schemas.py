@@ -125,14 +125,14 @@ class ContentChunk(TypedDict):
 class ThinkingChunk(TypedDict):
     """Event emitted during LLM thinking/reasoning."""
 
-    type: Literal["thinking"]
+    type: Literal["llm-thought"]
     content: str
 
 
 class ToolCallChunk(TypedDict):
     """Event emitted when a tool is called."""
 
-    type: Literal["tool_call"]
+    type: Literal["tool-call"]
     tool_name: str
     parameters: Dict
 
@@ -147,7 +147,7 @@ class ErrorChunk(TypedDict):
 class SystemPromptChunk(TypedDict):
     """Event emitted with full system prompt sent to LLM."""
 
-    type: Literal["system_prompt"]
+    type: Literal["system-prompt"]
     content: str
     tool_schemas: Optional[List["ToolSchema"]]
 
@@ -155,7 +155,7 @@ class SystemPromptChunk(TypedDict):
 class UserMessageFullChunk(TypedDict):
     """Event emitted with full user message including injected context."""
 
-    type: Literal["user_message_full"]
+    type: Literal["user-message-full"]
     content: str
     metadata: Dict[str, Any]
 
@@ -163,7 +163,7 @@ class UserMessageFullChunk(TypedDict):
 class AssistantMessageFullChunk(TypedDict):
     """Event emitted with complete assistant response."""
 
-    type: Literal["assistant_message_full"]
+    type: Literal["assistant-message-full"]
     content: str
 
 

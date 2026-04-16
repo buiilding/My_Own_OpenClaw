@@ -51,7 +51,7 @@ class TestEventFormatterBase:
         
         result = formatter.format(event, "msg-123")
         
-        assert result["type"] == "chunk"
+        assert result["type"] == "streaming-response"
         assert result["content"] == "test content"
 
 

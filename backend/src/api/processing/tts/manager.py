@@ -15,6 +15,7 @@ from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent
 from backend.src.core.services.speech_service import SpeechService
 from backend.src.core.services.speech_service_factory import create_speech_service
 from backend.src.core.types import StreamingEventType
+from backend.src.core.types.enums import normalize_streaming_event_type
 from backend.src.core.services.tts_service import TTSService
 
 logger = logging.getLogger(__name__)
@@ -100,7 +101,8 @@ class TTSManager:
             await tts_service.process_text(event.content)
         elif (
             isinstance(event, dict)
-            and event.get("type") == StreamingEventType.CHUNK.value
+            and normalize_streaming_event_type(event.get("type"))
+            == StreamingEventType.STREAMING_RESPONSE.value
         ):
             # Backward compatibility with dict events
             await tts_service.process_text(event.get("content", ""))

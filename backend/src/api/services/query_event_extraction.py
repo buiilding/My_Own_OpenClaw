@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-TEXT_CHUNK_EVENT_TYPES = frozenset({"chunk", "content", "streaming-response"})
+from backend.src.core.types.enums import StreamingEventType, normalize_streaming_event_type
+
+TEXT_CHUNK_EVENT_TYPES = frozenset({
+    StreamingEventType.STREAMING_RESPONSE.value,
+    StreamingEventType.CONTENT.value,
+})
 
 
 def extract_event_type(event: Any) -> Optional[str]:
@@ -13,18 +18,15 @@ def extract_event_type(event: Any) -> Optional[str]:
         value = event.get("type")
         if not isinstance(value, str):
             return None
-        normalized = value.strip()
-        return normalized or None
+        return normalize_streaming_event_type(value)
 
     event_type = getattr(event, "type", None)
     if isinstance(event_type, str):
-        normalized = event_type.strip()
-        return normalized or None
+        return normalize_streaming_event_type(event_type)
     value = getattr(event_type, "value", None)
     if not isinstance(value, str):
         return None
-    normalized = value.strip()
-    return normalized or None
+    return normalize_streaming_event_type(value)
 
 
 def extract_dict_payload(event: Any) -> Optional[dict[str, Any]]:
@@ -77,7 +79,7 @@ def extract_non_empty_chunk_text(
     event_type: Optional[str] = None,
 ) -> str:
     """Extract non-empty chunk text only for chunk/content/streaming-response events."""
-    resolved_event_type = event_type or extract_event_type(event)
+    resolved_event_type = normalize_streaming_event_type(event_type) or extract_event_type(event)
     if resolved_event_type not in TEXT_CHUNK_EVENT_TYPES:
         return ""
 
@@ -93,8 +95,8 @@ def extract_assistant_full_text(
     event_type: Optional[str] = None,
 ) -> str:
     """Extract assistant full-text content from typed or dict events."""
-    resolved_event_type = event_type or extract_event_type(event)
-    if resolved_event_type != "assistant_message_full":
+    resolved_event_type = normalize_streaming_event_type(event_type) or extract_event_type(event)
+    if resolved_event_type != StreamingEventType.ASSISTANT_MESSAGE_FULL.value:
         return ""
     if isinstance(event, dict):
         content = extract_dict_string_field(event, top_level_key="content")
@@ -111,8 +113,8 @@ def extract_streaming_complete_text(
     """Extract final response text from streaming-complete events."""
     if not event:
         return ""
-    resolved_event_type = event_type or extract_event_type(event)
-    if resolved_event_type != "streaming-complete":
+    resolved_event_type = normalize_streaming_event_type(event_type) or extract_event_type(event)
+    if resolved_event_type != StreamingEventType.STREAMING_COMPLETE.value:
         return ""
     if isinstance(event, dict):
         final_response = extract_dict_string_field(

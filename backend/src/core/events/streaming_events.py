@@ -35,7 +35,7 @@ class ThinkingEvent(StreamingEvent):
     content: str
     
     def __post_init__(self):
-        self.type = StreamingEventType.THINKING
+        self.type = StreamingEventType.LLM_THOUGHT
 
 
 @dataclass
@@ -44,7 +44,7 @@ class ChunkEvent(StreamingEvent):
     content: str
     
     def __post_init__(self):
-        self.type = StreamingEventType.CHUNK
+        self.type = StreamingEventType.STREAMING_RESPONSE
 
 
 @dataclass
