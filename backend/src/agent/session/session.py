@@ -26,6 +26,7 @@ from backend.src.agent.session.lifecycle import SessionLifecycle
 from backend.src.core.config import AppConfig
 from backend.src.core.events.bus_events import InteractionCompleted
 from backend.src.llm.client import LLMClient, get_llm_client
+from backend.src.llm.prompts.prompts import get_system_prompt
 from backend.src.tools.registry import ToolRegistry
 
 if TYPE_CHECKING:
@@ -328,6 +329,70 @@ class AgentSession:
         self.runtime.active_conversation_ref = conversation_ref
         self.history.clear()
 
+    @staticmethod
+    def _normalize_workspace_path(workspace_path: Optional[str]) -> Optional[str]:
+        if not isinstance(workspace_path, str):
+            return None
+        normalized = workspace_path.strip()
+        return normalized or None
+
+    @staticmethod
+    def _normalize_repo_instruction_messages(
+        repo_instruction_messages: Optional[List[Dict[str, str]]],
+    ) -> list[Dict[str, str]]:
+        return [
+            {"role": message["role"], "content": message["content"]}
+            for message in (repo_instruction_messages or [])
+            if (
+                isinstance(message, dict)
+                and message.get("role") == "user"
+                and isinstance(message.get("content"), str)
+                and message["content"].strip()
+            )
+        ]
+
+    def _apply_query_prompt_context_locked(
+        self,
+        *,
+        operating_system: Optional[str],
+        workspace_path: Optional[str],
+        repo_instruction_messages: Optional[List[Dict[str, str]]],
+    ) -> None:
+        if (
+            operating_system is None
+            and workspace_path is None
+            and repo_instruction_messages is None
+        ):
+            return
+        normalized_workspace_path = self._normalize_workspace_path(workspace_path)
+        normalized_repo_instruction_messages = self._normalize_repo_instruction_messages(
+            repo_instruction_messages
+        )
+        rendered_prompt = get_system_prompt(operating_system, normalized_workspace_path)
+
+        self.runtime.workspace_path = normalized_workspace_path
+        self.runtime.repo_instruction_messages = normalized_repo_instruction_messages
+        self.prompt_builder.system_prompt = rendered_prompt
+        setattr(self.prompt_builder, "workspace_path", normalized_workspace_path)
+        setattr(
+            self.prompt_builder,
+            "repo_instruction_messages",
+            list(normalized_repo_instruction_messages),
+        )
+        self.history.system_prompt = rendered_prompt
+
+    def _apply_query_runtime_system_state_locked(
+        self,
+        runtime_system_state: Optional[Dict[str, str]],
+    ) -> None:
+        if runtime_system_state is None:
+            return
+
+        existing_state = self.get_current_system_state() or {}
+        merged_state: Dict[str, Any] = dict(existing_state)
+        merged_state.update(runtime_system_state)
+        self.set_current_system_state(merged_state)
+
     async def rehydrate_conversation(
         self,
         conversation_ref: str,
@@ -360,6 +425,10 @@ class AgentSession:
         capture_meta: Optional[Dict[str, Any]] = None,
         message_content: Optional[str] = None,
         conversation_ref: Optional[str] = None,
+        operating_system: Optional[str] = None,
+        workspace_path: Optional[str] = None,
+        repo_instruction_messages: Optional[List[Dict[str, str]]] = None,
+        runtime_system_state: Optional[Dict[str, str]] = None,
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Processes a user query and yields status updates and response chunks.
@@ -374,6 +443,12 @@ class AgentSession:
         async with self._lock:
             if conversation_ref:
                 self._switch_conversation_ref(conversation_ref)
+            self._apply_query_prompt_context_locked(
+                operating_system=operating_system,
+                workspace_path=workspace_path,
+                repo_instruction_messages=repo_instruction_messages,
+            )
+            self._apply_query_runtime_system_state_locked(runtime_system_state)
             if not self.cfg.selected_model_id:
                 yield {
                     "type": "thinking",

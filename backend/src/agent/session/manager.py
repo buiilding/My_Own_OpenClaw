@@ -135,6 +135,12 @@ class SessionManager(ConfigSubscriber):
             normalized_operating_system,
         )
 
+    def get_frontend_operating_system(
+        self,
+        user_id: str,
+    ) -> Optional[str]:
+        return self._config_service.frontend_operating_systems.get(user_id)
+
     def set_session_workspace_path(
         self,
         user_id: str,

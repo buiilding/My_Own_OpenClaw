@@ -20,6 +20,7 @@ from backend.src.api.services.query_execution_support.query_execution_completion
     resolve_query_completion_text,
 )
 from backend.src.api.services.query_execution_support.query_execution_runtime import (
+    apply_query_runtime_system_state,
     resolve_query_runtime_system_state,
     resolve_screenshots,
 )
@@ -110,7 +111,6 @@ def test_apply_query_runtime_system_state_merges_existing_values():
         def set_current_system_state(self, state):
             observed["state"] = state
 
-    service = _build_service()
     message = _build_message(
         system_state_internal={
             "active_window": " Browser ",
@@ -118,7 +118,7 @@ def test_apply_query_runtime_system_state_merges_existing_values():
         }
     )
 
-    service._apply_query_runtime_system_state(_Agent(), message)
+    apply_query_runtime_system_state(_Agent(), message)
 
     assert observed["state"] == {
         "mouse_position": "10,20",
@@ -131,8 +131,10 @@ def test_apply_query_runtime_system_state_ignores_missing_setter():
     class _Agent:
         pass
 
-    service = _build_service()
-    service._apply_query_runtime_system_state(_Agent(), _build_message(system_state_internal={"active_window": "x"}))
+    apply_query_runtime_system_state(
+        _Agent(),
+        _build_message(system_state_internal={"active_window": "x"}),
+    )
 
 
 def test_build_stream_context_uses_agent_identifiers():

@@ -109,6 +109,14 @@ Critical mutating operations are serialized:
 - `rehydrate_conversation(...)`
 - `process_query(...)`
 
+Query-scoped prompt/runtime inputs are also applied under that same lock:
+
+- frontend operating-system + workspace/repo instruction prompt context
+- backend-only `system_state_internal` merge for the turn
+
+This keeps per-conversation mutable state atomic for one active turn while still
+allowing different conversation-scoped sessions for the same user to run concurrently.
+
 This avoids:
 
 - config updates racing with in-flight prompt/execution mutation

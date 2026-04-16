@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- fix(backend-multi-chat-query-isolation): move query-scoped prompt context and backend-only runtime system state application under `AgentSession.process_query()` so different conversation sessions for the same client can run concurrently without pre-lock session-state smearing; add backend coverage for forwarded query context, multi-conversation concurrency on one client, and the expanded query input contract.
 - fix(frontend-chat-utility-theme): restyle the dashboard header utility cluster and in-conversation find bar with one shared monochrome surface system so `Connect browser`, `Workspace`, and search controls no longer break the black-and-white chat aesthetic.
 - chore(dev-tool-selection): narrow the default backend dev tool-selection profile so `mouse_control` allows only `manual` coordinate targeting and no longer keeps OCR or prediction methods enabled.
 - test(prompt-and-tool-contracts): align backend prompt-manager and remote-tool assertions with the current system prompt wording and simplified `mouse_control` schema guidance.

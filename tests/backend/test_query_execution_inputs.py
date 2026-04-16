@@ -12,6 +12,9 @@ def _build_message(
     screenshot_refs=None,
     capture_meta=None,
     content=None,
+    system_state_internal=None,
+    workspace_path=None,
+    repo_instruction_messages=None,
     conversation_ref="conv-1",
 ):
     return QueryMessage(
@@ -26,6 +29,9 @@ def _build_message(
             "screenshot_refs": screenshot_refs,
             "capture_meta": capture_meta,
             "content": content,
+            "system_state_internal": system_state_internal,
+            "workspace_path": workspace_path,
+            "repo_instruction_messages": repo_instruction_messages,
         },
     )
 
@@ -50,6 +56,9 @@ def test_resolve_query_execution_inputs_resolves_artifacts_and_payload_fields():
         screenshot_refs=["shot-a", "shot-b"],
         capture_meta={"display": {"width": 1920}},
         content="hello",
+        system_state_internal={"active_window": "Terminal", "ignored": "nope"},
+        workspace_path="/work/WindieOS",
+        repo_instruction_messages=[{"role": "user", "content": "Use repo rules"}],
         conversation_ref="conv-2",
     )
     inputs = resolve_query_execution_inputs(
@@ -62,6 +71,11 @@ def test_resolve_query_execution_inputs_resolves_artifacts_and_payload_fields():
     assert inputs.capture_meta == {"display": {"width": 1920}}
     assert inputs.message_content == "hello"
     assert inputs.conversation_ref == "conv-2"
+    assert inputs.workspace_path == "/work/WindieOS"
+    assert inputs.repo_instruction_messages == [
+        {"role": "user", "content": "Use repo rules"}
+    ]
+    assert inputs.runtime_system_state == {"active_window": "Terminal"}
 
 
 def test_resolve_query_execution_inputs_prefers_inline_screenshot():
@@ -78,3 +92,5 @@ def test_resolve_query_execution_inputs_prefers_inline_screenshot():
     )
 
     assert inputs.image_data == "inline-b64"
+    assert inputs.repo_instruction_messages is None
+    assert inputs.runtime_system_state is None
