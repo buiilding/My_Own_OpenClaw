@@ -4,6 +4,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+## 0.6.23 - 2026-04-21
+
 ### Changed
 
 - feat(hosted-install-auth-and-remote-embeddings): add no-login install registration plus install-token auth for hosted REST and websocket flows, stop trusting client-owned `user_id` on the hosted path, scope session cleanup to the final active connection per authenticated user, extract embeddings behind a remote HTTP provider/service option with bounded concurrency, and thread auth headers through the Electron main process and sidecar backend clients; add focused backend/frontend/sidecar coverage and refresh the API/transport docs for the new hosted contract.
