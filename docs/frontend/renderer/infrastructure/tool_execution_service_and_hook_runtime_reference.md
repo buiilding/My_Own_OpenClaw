@@ -104,6 +104,7 @@ Ordered pipeline:
 2. invoke tool IPC via `invokeTool(...)`
 3. run `ensureAutoCapture(...)`
 4. upload screenshot artifact when computer-use tool + screenshot available
+   hosted artifact uploads from the main-process local-backend bridge include the persisted install bearer token when present
 5. resolve final system state
 6. format `formattedMessage` (`formatToolOutputMessage`)
 7. emit UI callback (`onToolResult`)

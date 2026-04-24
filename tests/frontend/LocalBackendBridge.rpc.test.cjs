@@ -100,7 +100,11 @@ describe('local_backend_bridge RPC handlers', () => {
   });
 
   test('execute-tool uploads screenshot temp-path responses and returns artifact refs', async () => {
-    const { handlers, stdoutHandler } = initBridge();
+    const { handlers, stdoutHandler } = initBridge({
+      getArtifactUploadHeaders: async () => ({
+        Authorization: 'Bearer test-install-token',
+      }),
+    });
     markReady();
 
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-shot-'));
@@ -150,6 +154,9 @@ describe('local_backend_bridge RPC handlers', () => {
       if (uploadOptions?.method !== 'POST') {
         throw new Error(`unexpected upload method: ${String(uploadOptions?.method)}`);
       }
+      expect(uploadOptions?.headers).toEqual({
+        Authorization: 'Bearer test-install-token',
+      });
       await expect(fsPromises.access(screenshotPath)).rejects.toThrow();
     } finally {
       global.fetch = originalFetch;
@@ -412,7 +419,11 @@ describe('local_backend_bridge RPC handlers', () => {
   });
 
   test('execute-tool falls back to inline screenshot when screenshot-path artifact upload fails', async () => {
-    const { handlers, stdoutHandler } = initBridge();
+    const { handlers, stdoutHandler } = initBridge({
+      getArtifactUploadHeaders: async () => ({
+        Authorization: 'Bearer test-install-token',
+      }),
+    });
     markReady();
 
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-shot-inline-'));
@@ -457,6 +468,9 @@ describe('local_backend_bridge RPC handlers', () => {
       if (uploadOptions?.method !== 'POST') {
         throw new Error(`unexpected upload method: ${String(uploadOptions?.method)}`);
       }
+      expect(uploadOptions?.headers).toEqual({
+        Authorization: 'Bearer test-install-token',
+      });
       await expect(fsPromises.access(screenshotPath)).rejects.toThrow();
     } finally {
       global.fetch = originalFetch;

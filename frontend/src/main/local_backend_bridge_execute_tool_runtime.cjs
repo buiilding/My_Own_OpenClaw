@@ -28,6 +28,7 @@ const {
 function createLocalBackendExecuteToolRuntime({
   sendRequest,
   backendHttpUrl,
+  getArtifactUploadHeaders,
   getFrontendConfig,
   resolveWindows,
   resolveChatWindow,
@@ -89,6 +90,7 @@ function createLocalBackendExecuteToolRuntime({
       result = await materializeScreenshotAttachment(result, backendHttpUrl, {
         warn: console.warn,
         getErrorMessage,
+        getArtifactUploadHeaders,
       });
 
       if (result.success === false) {

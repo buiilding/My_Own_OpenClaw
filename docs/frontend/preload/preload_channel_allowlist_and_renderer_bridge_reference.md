@@ -55,6 +55,7 @@ Allowed channels (from shared `INVOKE_CHANNELS` registry):
 
 - `execute-tool`
 - `upload-artifact`
+- `fetch-artifact-image`
 - `get-system-state`
 - `store-memory`
 - `search-memory`

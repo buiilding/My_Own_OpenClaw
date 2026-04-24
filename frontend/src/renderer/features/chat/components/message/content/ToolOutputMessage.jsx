@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { resolveMessageScreenshotSrc } from '../../../utils/message/messageScreenshots';
+import { useResolvedMessageScreenshotSrc } from '../../../utils/message/useResolvedMessageScreenshots';
 import HighlightedPlainText from './HighlightedPlainText';
 
 export default function ToolOutputMessage({
@@ -10,7 +10,7 @@ export default function ToolOutputMessage({
   activeFindMatchIndex = null,
 }) {
   const [showDetails, setShowDetails] = useState(false);
-  const screenshotSrc = resolveMessageScreenshotSrc(message);
+  const screenshotSrc = useResolvedMessageScreenshotSrc(message);
   const modelFacingOutput = (
     typeof message.modelFacingToolOutput === 'string'
       ? message.modelFacingToolOutput

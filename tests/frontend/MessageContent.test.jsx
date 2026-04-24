@@ -25,6 +25,15 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => {
 describe('MessageContent', () => {
   beforeEach(() => {
     IpcBridge.invoke.mockClear();
+    IpcBridge.invoke.mockImplementation(async (channel) => {
+      if (channel === INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE) {
+        return {
+          success: true,
+          dataUrl: 'data:image/png;base64,resolved-artifact-image',
+        };
+      }
+      return { success: true };
+    });
   });
 
   test('prefers screenshot URL over inline screenshot data', () => {
@@ -77,6 +86,30 @@ describe('MessageContent', () => {
     const secondImage = screen.getByRole('img', { name: 'User message screenshot 2' });
     expect(firstImage.getAttribute('src')).toBe('https://cdn.example/screenshot-a.png');
     expect(secondImage.getAttribute('src')).toBe('data:image/png;base64,inline-b');
+  });
+
+  test('renders authenticated artifact screenshots via IPC-backed data url resolution', async () => {
+    render(
+      <MessageContent
+        message={{
+          sender: 'assistant',
+          type: 'tool-output',
+          text: 'result',
+          screenshotRef: 'artifact-1',
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      const image = screen.getByRole('img', { name: 'Screenshot after tool execution' });
+      expect(image.getAttribute('src')).toBe('data:image/png;base64,resolved-artifact-image');
+    });
+
+    const artifactFetchCall = IpcBridge.invoke.mock.calls.find(
+      ([channel]) => channel === INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE,
+    );
+    expect(Boolean(artifactFetchCall)).toBe(true);
+    expect(artifactFetchCall[1].artifactId).toBe('artifact-1');
   });
 
   test('shows the native image context menu through IPC on right click', async () => {

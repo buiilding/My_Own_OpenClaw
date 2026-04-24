@@ -17,6 +17,7 @@ type SharedChannelRegistry = {
   INVOKE_CHANNELS: {
     EXECUTE_TOOL: 'execute-tool';
     UPLOAD_ARTIFACT: 'upload-artifact';
+    FETCH_ARTIFACT_IMAGE: 'fetch-artifact-image';
     GET_SYSTEM_STATE: 'get-system-state';
     STORE_MEMORY: 'store-memory';
     SEARCH_MEMORY: 'search-memory';

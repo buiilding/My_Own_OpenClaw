@@ -30,7 +30,7 @@ describe('preload IPC channel registry', () => {
 
     process.argv = [
       '/path/to/electron',
-      '--windie-ipc-channels=%7B%22SEND_CHANNELS%22%3A%7B%7D%2C%22INVOKE_CHANNELS%22%3A%7B%22CLEAR_CHAT_HISTORY%22%3A%22clear-chat-history%22%2C%22CLEAR_LOCAL_MEMORY%22%3A%22clear-local-memory%22%2C%22COPY_IMAGE_TO_CLIPBOARD%22%3A%22copy-image-to-clipboard%22%2C%22SHOW_IMAGE_CONTEXT_MENU%22%3A%22show-image-context-menu%22%7D%2C%22ON_CHANNELS%22%3A%7B%7D%7D',
+      '--windie-ipc-channels=%7B%22SEND_CHANNELS%22%3A%7B%7D%2C%22INVOKE_CHANNELS%22%3A%7B%22CLEAR_CHAT_HISTORY%22%3A%22clear-chat-history%22%2C%22CLEAR_LOCAL_MEMORY%22%3A%22clear-local-memory%22%2C%22COPY_IMAGE_TO_CLIPBOARD%22%3A%22copy-image-to-clipboard%22%2C%22FETCH_ARTIFACT_IMAGE%22%3A%22fetch-artifact-image%22%2C%22SHOW_IMAGE_CONTEXT_MENU%22%3A%22show-image-context-menu%22%7D%2C%22ON_CHANNELS%22%3A%7B%7D%7D',
     ];
 
     require('../../frontend/src/preload.js');
@@ -51,6 +51,11 @@ describe('preload IPC channel registry', () => {
     await expect(exposedIpc.invoke('copy-image-to-clipboard', { src: 'data:image/png;base64,abc' })).resolves.toBe('ok');
     expect(ipcRendererMock.invoke).toHaveBeenCalledWith('copy-image-to-clipboard', {
       src: 'data:image/png;base64,abc',
+    });
+
+    await expect(exposedIpc.invoke('fetch-artifact-image', { artifactId: 'artifact-1' })).resolves.toBe('ok');
+    expect(ipcRendererMock.invoke).toHaveBeenCalledWith('fetch-artifact-image', {
+      artifactId: 'artifact-1',
     });
 
     await expect(exposedIpc.invoke('show-image-context-menu', { src: 'https://cdn.example/screenshot.png' })).resolves.toBe('ok');
