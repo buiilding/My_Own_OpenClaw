@@ -1,5 +1,5 @@
 import { normalizeArtifactImageContentType } from '../../../../infrastructure/services/ArtifactImageUtils';
-import { buildArtifactUrl } from '../../../../infrastructure/services/ArtifactUploader';
+import { buildArtifactUrl } from '../../../../infrastructure/services/BackendEndpointStore';
 import {
   inferArtifactRefFromUrl,
   resolveScreenshotAttachmentState,

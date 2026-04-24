@@ -13,7 +13,7 @@ import { useSettingsManagement } from '../../frontend/src/renderer/features/sett
 import { loadConfigFromStorage, saveConfigToStorage } from '../../frontend/src/renderer/utils/configStorage';
 import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
 import { updateTranscriptSession } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
-import { setBackendHttpUrl } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
+import { setBackendHttpUrl } from '../../frontend/src/renderer/infrastructure/services/BackendEndpointStore';
 
 jest.mock('../../frontend/src/renderer/features/settings/hooks/useSettingsManagement');
 jest.mock('../../frontend/src/renderer/utils/configFilter', () => ({
@@ -26,7 +26,7 @@ jest.mock('../../frontend/src/renderer/utils/configStorage', () => ({
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
   updateTranscriptSession: jest.fn(),
 }));
-jest.mock('../../frontend/src/renderer/infrastructure/services/ArtifactUploader', () => ({
+jest.mock('../../frontend/src/renderer/infrastructure/services/BackendEndpointStore', () => ({
   setBackendHttpUrl: jest.fn(),
 }));
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({

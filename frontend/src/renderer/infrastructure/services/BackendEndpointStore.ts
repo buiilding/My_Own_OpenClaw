@@ -32,6 +32,10 @@ export function getBackendHttpUrl(): string {
   return backendHttpUrl;
 }
 
+export function buildArtifactUrl(artifactId: string): string {
+  return `${getBackendHttpUrl()}/api/artifacts/${artifactId}`;
+}
+
 export function buildTranscriptionWebSocketUrl(): string {
   const httpUrl = getBackendHttpUrl();
   try {

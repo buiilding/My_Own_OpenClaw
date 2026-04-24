@@ -8,7 +8,7 @@ import { AppConfigContext } from './AppConfigContext';
 import { updateTranscriptSession } from '../../infrastructure/transcript/TranscriptWriter';
 import { applyTranscriptSessionUserBinding } from '../../features/chat/session/conversationSessionRuntime';
 import { extractTranscriptUserId, routeConfigBackendEvent } from './appConfigEvents';
-import { setBackendHttpUrl } from '../../infrastructure/services/ArtifactUploader';
+import { setBackendHttpUrl } from '../../infrastructure/services/BackendEndpointStore';
 import { useLatestRef } from '../../infrastructure/hooks/useLatestRef';
 import {
   applyConfigIfChanged,

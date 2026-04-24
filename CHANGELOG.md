@@ -4,6 +4,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- fix(frontend-artifact-screenshot-startup): keep artifact URL resolution in the backend endpoint store so chat screenshot rendering and app config startup do not import the artifact upload IPC client just to build image paths.
+
 ## 0.6.23 - 2026-04-21
 
 ### Changed
