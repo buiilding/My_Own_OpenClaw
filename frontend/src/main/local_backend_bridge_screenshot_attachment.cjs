@@ -54,6 +54,7 @@ async function uploadScreenshotArtifactFromPath({
   screenshotPath,
   backendHttpUrl,
   contentType,
+  headers,
 }) {
   const resolvedContentType = isImageContentType(contentType) ? contentType : 'image/jpeg';
   const fileBuffer = await fsPromises.readFile(screenshotPath);
@@ -63,6 +64,7 @@ async function uploadScreenshotArtifactFromPath({
 
   const response = await fetch(`${backendHttpUrl}/api/artifacts/`, {
     method: 'POST',
+    headers: isRecord(headers) ? headers : undefined,
     body: form,
   });
 
@@ -97,6 +99,9 @@ async function materializeScreenshotAttachment(result, backendHttpUrl, options =
   const getErrorMessage = typeof options.getErrorMessage === 'function'
     ? options.getErrorMessage
     : ((error) => error instanceof Error ? error.message : String(error));
+  const getArtifactUploadHeaders = typeof options.getArtifactUploadHeaders === 'function'
+    ? options.getArtifactUploadHeaders
+    : null;
 
   if (!result || result.success === false || !isRecord(result.data)) {
     return result;
@@ -110,10 +115,14 @@ async function materializeScreenshotAttachment(result, backendHttpUrl, options =
   }
 
   try {
+    const artifactUploadHeaders = getArtifactUploadHeaders
+      ? await getArtifactUploadHeaders()
+      : undefined;
     const uploaded = await uploadScreenshotArtifactFromPath({
       screenshotPath,
       backendHttpUrl,
       contentType: resolveScreenshotContentType(data),
+      headers: artifactUploadHeaders,
     });
     const artifactId = (
       uploaded

@@ -25,6 +25,9 @@ const {
   createLocalBackendExecuteToolRuntime,
 } = require('./local_backend_bridge_execute_tool_runtime.cjs');
 const {
+  loadInstallAuthStateFromDisk,
+} = require('./ipc/ipc_install_auth_state.cjs');
+const {
   resolveSidecarLaunchTarget,
 } = require('./runtime_paths.cjs');
 const { createLocalBackendSupervisor } = require('./local_backend_supervisor.cjs');
@@ -539,6 +542,21 @@ function stopLocalBackend() {
   }
 }
 
+async function loadArtifactUploadHeaders() {
+  const authState = await loadInstallAuthStateFromDisk((message) => {
+    console.warn(`[LocalBackend] ${message}`);
+  });
+  const installToken = typeof authState?.installToken === 'string'
+    ? authState.installToken.trim()
+    : '';
+  if (!installToken) {
+    return {};
+  }
+  return {
+    Authorization: `Bearer ${installToken}`,
+  };
+}
+
 function initializeLocalBackendBridge(getWindows, options = {}) {
   const getFrontendConfig = typeof options.getFrontendConfig === 'function'
     ? options.getFrontendConfig
@@ -552,9 +570,13 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     resolveChatWindow,
     resolveResponseWindow,
   } = createWindowResolvers(getWindows);
+  const getArtifactUploadHeaders = typeof options.getArtifactUploadHeaders === 'function'
+    ? options.getArtifactUploadHeaders
+    : loadArtifactUploadHeaders;
   const executeToolRuntime = createLocalBackendExecuteToolRuntime({
     sendRequest,
     backendHttpUrl: backendEndpoints.httpUrl,
+    getArtifactUploadHeaders,
     getFrontendConfig,
     resolveWindows,
     resolveChatWindow,

@@ -1,8 +1,6 @@
 import { useCallback } from 'react';
 import PropTypes from 'prop-types';
-import {
-  resolveMessageScreenshotSrcList,
-} from '../../../utils/message/messageScreenshots';
+import { useResolvedMessageScreenshotSrcList } from '../../../utils/message/useResolvedMessageScreenshots';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
 import MarkdownMessage from './MarkdownMessage';
 
@@ -12,7 +10,7 @@ export default function UserMessage({
   findMatchIndexes = [],
   activeFindMatchIndex = null,
 }) {
-  const screenshotSources = resolveMessageScreenshotSrcList(message);
+  const screenshotSources = useResolvedMessageScreenshotSrcList(message);
   const attachmentFilenames = Array.isArray(message.attachmentFilenames)
     ? message.attachmentFilenames.filter((filename) => typeof filename === 'string' && filename.length > 0)
     : [];

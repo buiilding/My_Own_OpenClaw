@@ -30,6 +30,9 @@ const {
   resolveSettingsSync,
   waitForSettingsAck,
 } = require('./ipc/ipc_settings_sync.cjs');
+const {
+  fetchArtifactImage,
+} = require('./ipc/ipc_artifact_fetch.cjs');
 const { persistMemoryStoreEvent } = require('./ipc/ipc_memory_store_persistence.cjs');
 const { buildQueryPayloadContent } = require('./query_payload_builder.cjs');
 const {
@@ -896,6 +899,22 @@ function initializeIpc(win, options = {}) {
       backendHttpUrl: BACKEND_HTTP_URL,
       headers: buildInstallAuthHeaders(),
     });
+  });
+
+  ipcMain.handle('fetch-artifact-image', async (_event, payload) => {
+    try {
+      await ensureInstallAuthState();
+      return await fetchArtifactImage({
+        ...(payload || {}),
+        backendHttpUrl: BACKEND_HTTP_URL,
+        headers: buildInstallAuthHeaders(),
+      });
+    } catch (error) {
+      return {
+        success: false,
+        error: String(error?.message || error || 'Failed to fetch artifact image.'),
+      };
+    }
   });
 
   ipcMain.handle('save-frontend-config', async (event, config) => {
