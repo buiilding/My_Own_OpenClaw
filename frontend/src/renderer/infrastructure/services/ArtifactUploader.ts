@@ -1,7 +1,7 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import { logRendererArtifactScreenshotDebug } from './toolExecution/ToolScreenshotDebugTrace';
 import {
-  getBackendHttpUrl,
+  buildArtifactUrl,
   setBackendHttpUrl,
 } from './BackendEndpointStore';
 
@@ -25,7 +25,7 @@ type UploadResponse = {
   error?: string;
 };
 
-export { setBackendHttpUrl };
+export { buildArtifactUrl, setBackendHttpUrl };
 
 export async function uploadArtifactBase64(
   base64: string,
@@ -68,8 +68,4 @@ export async function uploadArtifactBase64(
     sha256: response.data.sha256,
     url: response.data.url,
   };
-}
-
-export function buildArtifactUrl(artifactId: string): string {
-  return `${getBackendHttpUrl()}/api/artifacts/${artifactId}`;
 }

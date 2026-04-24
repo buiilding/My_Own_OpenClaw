@@ -1,4 +1,4 @@
-import { buildArtifactUrl } from './ArtifactUploader';
+import { buildArtifactUrl } from './BackendEndpointStore';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 
 export function inferArtifactRefFromUrl(url) {

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
+import { inferArtifactRefFromUrl } from '../../../../infrastructure/services/screenshotMessageState';
 import {
-  inferArtifactRefFromUrl,
   resolveMessageScreenshotAttachments,
   resolveStaticScreenshotAttachmentSrc,
 } from './messageScreenshots';
