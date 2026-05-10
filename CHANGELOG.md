@@ -4,6 +4,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Removed
+
+- chore(repo-public-cleanup): remove a root screenshot artifact and tracked `.codex` placeholder while ignoring `audit/plan1` for open-source preparation.
+
 ### Fixed
 
 - fix(frontend-artifact-screenshot-startup): keep artifact URL resolution in the backend endpoint store so chat screenshot rendering and app config startup do not import the artifact upload IPC client just to build image paths.

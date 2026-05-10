@@ -22,6 +22,7 @@ frontend/python-runtime.no-browsers.tar.gz
 
 # Logs
 *.log
+audit/plan1
 
 # OS generated files
 .DS_Store
