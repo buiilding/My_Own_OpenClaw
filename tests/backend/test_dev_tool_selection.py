@@ -4,25 +4,35 @@ import os
 from pathlib import Path
 
 import pytest
+from tests.backend.tool_validator_test_utils import (
+    DummyMetrics,
+    DummyRegistry,
+    make_tool_call_validator,
+)
 
+from backend.src.core.config.models import AppConfig, SecurityLimits
 from backend.src.core.infrastructure.exceptions import ParseValidationError
+from backend.src.llm.parser_validation import ToolCallValidator
 from backend.src.tools.tool_selection import (
     load_tool_selection,
     should_initialize_ocr,
     should_initialize_vision,
 )
-from tests.backend.tool_validator_test_utils import DummyRegistry, make_tool_call_validator
 
 
 def test_load_tool_selection_returns_none_when_disabled(tmp_path: Path):
     p = tmp_path / "tool_selection.toml"
-    p.write_text('enabled = false\nmode = "denylist"\ntools = ["read_file"]\n', encoding="utf-8")
+    p.write_text(
+        'enabled = false\nmode = "denylist"\ntools = ["read_file"]\n', encoding="utf-8"
+    )
     assert load_tool_selection(p) is None
 
 
 def test_load_tool_selection_allowlist_filters(tmp_path: Path):
     p = tmp_path / "tool_selection.toml"
-    p.write_text('enabled = true\nmode = "allowlist"\ntools = ["read_file"]\n', encoding="utf-8")
+    p.write_text(
+        'enabled = true\nmode = "allowlist"\ntools = ["read_file"]\n', encoding="utf-8"
+    )
     selection = load_tool_selection(p)
     assert selection is not None
     assert selection.filter_tool_names(["read_file", "replace"]) == ["read_file"]
@@ -32,7 +42,7 @@ def test_load_tool_selection_mouse_coordinate_methods(tmp_path: Path):
     p = tmp_path / "tool_selection.toml"
     p.write_text(
         (
-            'enabled = true\n'
+            "enabled = true\n"
             'mode = "allowlist"\n'
             'tools = ["mouse_control"]\n'
             "[tool_options.mouse_control]\n"
@@ -43,14 +53,16 @@ def test_load_tool_selection_mouse_coordinate_methods(tmp_path: Path):
     selection = load_tool_selection(p)
     assert selection is not None
     assert selection.get_allowed_mouse_coordinate_methods() == {"manual", "ocr"}
-    assert selection.filter_tool_names(["mouse_control", "read_file"]) == ["mouse_control"]
+    assert selection.filter_tool_names(["mouse_control", "read_file"]) == [
+        "mouse_control"
+    ]
 
 
 def test_load_tool_selection_mouse_disabled_when_no_methods(tmp_path: Path):
     p = tmp_path / "tool_selection.toml"
     p.write_text(
         (
-            'enabled = true\n'
+            "enabled = true\n"
             'mode = "allowlist"\n'
             'tools = ["mouse_control"]\n'
             "[tool_options.mouse_control]\n"
@@ -64,11 +76,13 @@ def test_load_tool_selection_mouse_disabled_when_no_methods(tmp_path: Path):
     assert selection.filter_tool_names(["mouse_control", "read_file"]) == []
 
 
-def test_initialize_helpers_follow_mouse_methods(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+def test_initialize_helpers_follow_mouse_methods(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+):
     p = tmp_path / "tool_selection.toml"
     p.write_text(
         (
-            'enabled = true\n'
+            "enabled = true\n"
             'mode = "allowlist"\n'
             'tools = ["mouse_control"]\n'
             "[tool_options.mouse_control]\n"
@@ -82,9 +96,13 @@ def test_initialize_helpers_follow_mouse_methods(monkeypatch: pytest.MonkeyPatch
     assert should_initialize_vision() is False
 
 
-def test_tool_call_validator_applies_dev_denylist(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+def test_tool_call_validator_applies_dev_denylist(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+):
     p = tmp_path / "tool_selection.toml"
-    p.write_text('enabled = true\nmode = "denylist"\ntools = ["write_file"]\n', encoding="utf-8")
+    p.write_text(
+        'enabled = true\nmode = "denylist"\ntools = ["write_file"]\n', encoding="utf-8"
+    )
     monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(p))
 
     validator, metrics = make_tool_call_validator(
@@ -96,7 +114,35 @@ def test_tool_call_validator_applies_dev_denylist(monkeypatch: pytest.MonkeyPatc
         validator.validate_tool_call("write_file", {})
 
 
-def test_load_tool_selection_refreshes_cache_when_file_rewritten_with_same_mtime(tmp_path: Path):
+def test_tool_call_validator_applies_agent_tool_profile(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+):
+    p = tmp_path / "tool_selection.toml"
+    p.write_text("enabled = false\n", encoding="utf-8")
+    monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(p))
+
+    limits = SecurityLimits()
+    validator = ToolCallValidator(
+        config=AppConfig(
+            interaction_mode="agent",
+            agent_tool_profile="coding",
+            security_limits=limits,
+        ),
+        tool_registry=DummyRegistry(
+            ["mouse_control", "read_file", "run_shell_command"]
+        ),
+        metrics=DummyMetrics(),
+        limits=limits,
+    )
+
+    validator.validate_tool_call("read_file", {})
+    with pytest.raises(ParseValidationError, match="not in whitelist"):
+        validator.validate_tool_call("mouse_control", {})
+
+
+def test_load_tool_selection_refreshes_cache_when_file_rewritten_with_same_mtime(
+    tmp_path: Path,
+):
     p = tmp_path / "tool_selection.toml"
     fixed_mtime = 1_700_000_000
 

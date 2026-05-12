@@ -19,7 +19,9 @@ def reset_prompt_manager_state():
 def test_initialize_loads_and_formats_prompt(tmp_path, monkeypatch):
     prompt_file = tmp_path / "system_prompt.txt"
     prompt_file.write_text("running on {os} in {workspace_path}", encoding="utf-8")
-    monkeypatch.setattr("backend.src.llm.prompts.prompts.platform.system", lambda: "TestOS")
+    monkeypatch.setattr(
+        "backend.src.llm.prompts.prompts.platform.system", lambda: "TestOS"
+    )
 
     manager = PromptManager()
     manager.initialize(prompt_file)
@@ -30,7 +32,9 @@ def test_initialize_loads_and_formats_prompt(tmp_path, monkeypatch):
 def test_initialize_concurrent_calls_read_prompt_once(tmp_path, monkeypatch):
     prompt_file = tmp_path / "system_prompt.txt"
     prompt_file.write_text("hello {os}", encoding="utf-8")
-    monkeypatch.setattr("backend.src.llm.prompts.prompts.platform.system", lambda: "TestOS")
+    monkeypatch.setattr(
+        "backend.src.llm.prompts.prompts.platform.system", lambda: "TestOS"
+    )
 
     call_count = {"value": 0}
     original_read_text = type(prompt_file).read_text
@@ -75,7 +79,9 @@ def test_initialize_raises_for_missing_file(tmp_path):
 def test_initialize_accepts_string_path(tmp_path, monkeypatch):
     prompt_file = tmp_path / "system_prompt.txt"
     prompt_file.write_text("os={os}", encoding="utf-8")
-    monkeypatch.setattr("backend.src.llm.prompts.prompts.platform.system", lambda: "Linux")
+    monkeypatch.setattr(
+        "backend.src.llm.prompts.prompts.platform.system", lambda: "Linux"
+    )
 
     manager = PromptManager()
     manager.initialize(str(prompt_file))
@@ -134,7 +140,9 @@ def test_initialize_is_noop_after_first_success(tmp_path, monkeypatch):
     second = tmp_path / "second.txt"
     first.write_text("first {os}", encoding="utf-8")
     second.write_text("second {os}", encoding="utf-8")
-    monkeypatch.setattr("backend.src.llm.prompts.prompts.platform.system", lambda: "TestOS")
+    monkeypatch.setattr(
+        "backend.src.llm.prompts.prompts.platform.system", lambda: "TestOS"
+    )
 
     manager = PromptManager()
     manager.initialize(first)
@@ -146,7 +154,9 @@ def test_initialize_is_noop_after_first_success(tmp_path, monkeypatch):
 def test_get_system_prompt_global_accessor(tmp_path, monkeypatch):
     prompt_file = tmp_path / "system_prompt.txt"
     prompt_file.write_text("global {os} {workspace_path}", encoding="utf-8")
-    monkeypatch.setattr("backend.src.llm.prompts.prompts.platform.system", lambda: "TestOS")
+    monkeypatch.setattr(
+        "backend.src.llm.prompts.prompts.platform.system", lambda: "TestOS"
+    )
 
     manager = PromptManager()
     manager.initialize(prompt_file)
@@ -157,7 +167,9 @@ def test_get_system_prompt_global_accessor(tmp_path, monkeypatch):
 def test_get_system_prompt_renders_explicit_operating_system(tmp_path, monkeypatch):
     prompt_file = tmp_path / "system_prompt.txt"
     prompt_file.write_text("global {os} {workspace_path}", encoding="utf-8")
-    monkeypatch.setattr("backend.src.llm.prompts.prompts.platform.system", lambda: "BackendOS")
+    monkeypatch.setattr(
+        "backend.src.llm.prompts.prompts.platform.system", lambda: "BackendOS"
+    )
 
     manager = PromptManager()
     manager.initialize(prompt_file)
@@ -187,7 +199,7 @@ def test_get_system_prompt_filters_method_gated_sections_from_dev_tool_selection
     selection_file = tmp_path / "tool_selection.toml"
     selection_file.write_text(
         (
-            'enabled = true\n'
+            "enabled = true\n"
             'mode = "allowlist"\n'
             'tools = ["mouse_control"]\n'
             "[tool_options.mouse_control]\n"
@@ -207,6 +219,37 @@ def test_get_system_prompt_filters_method_gated_sections_from_dev_tool_selection
     assert "tool_selection:" not in rendered
 
 
+def test_get_system_prompt_uses_effective_coordinate_methods_when_provided(
+    tmp_path,
+    monkeypatch,
+):
+    prompt_file = tmp_path / "system_prompt.txt"
+    prompt_file.write_text(
+        (
+            "base\n"
+            "<!-- tool_selection:ocr:start -->\n"
+            "ocr guidance\n"
+            "<!-- tool_selection:ocr:end -->\n"
+            "<!-- tool_selection:prediction:start -->\n"
+            "prediction guidance\n"
+            "<!-- tool_selection:prediction:end -->\n"
+        ),
+        encoding="utf-8",
+    )
+    selection_file = tmp_path / "tool_selection.toml"
+    selection_file.write_text("enabled = false\n", encoding="utf-8")
+    monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(selection_file))
+
+    manager = PromptManager()
+    manager.initialize(prompt_file)
+
+    rendered = get_system_prompt(allowed_coordinate_methods=["manual", "ocr"])
+    assert "base" in rendered
+    assert "ocr guidance" in rendered
+    assert "prediction guidance" not in rendered
+    assert "tool_selection:" not in rendered
+
+
 def test_repo_system_prompt_includes_tool_strategy_rules():
     prompt_file = (
         Path(__file__).resolve().parents[2]
@@ -214,7 +257,10 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     )
     content = prompt_file.read_text(encoding="utf-8")
 
-    assert "You are WindieOS, an assistant that has access to the desktop operating system." in content
+    assert (
+        "You are WindieOS, an assistant that has access to the desktop operating system."
+        in content
+    )
     assert "## Personality" in content
     assert "# AGENTS.md spec" in content
     assert "## Responsiveness" in content
@@ -225,15 +271,27 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     assert "## Sharing progress updates" in content
     assert "## Presenting your work and final message" in content
     assert "### Final answer structure and style guidelines" in content
-    assert "The scope of an AGENTS.md file is the entire directory tree rooted at the folder that contains it." in content
+    assert (
+        "The scope of an AGENTS.md file is the entire directory tree rooted at the folder that contains it."
+        in content
+    )
     assert "Before making tool calls, send a brief preamble" in content
     assert "Please keep going until the query is completely resolved" in content
     assert "Use the `replace` tool to edit files." in content
-    assert "Do not `git commit` your changes or create new git branches unless explicitly requested." in content
+    assert (
+        "Do not `git commit` your changes or create new git branches unless explicitly requested."
+        in content
+    )
     assert "Prefer keyboard shortcuts when they are reliable." in content
-    assert "Use the latest available screenshot included in the latest tool output." in content
+    assert (
+        "Use the latest available screenshot included in the latest tool output."
+        in content
+    )
     assert "## Browser-use tools" in content
-    assert "Prefer `browser` when the target is a website and browser-native actions can solve it." in content
+    assert (
+        "Prefer `browser` when the target is a website and browser-native actions can solve it."
+        in content
+    )
     assert "dedicated browser profile" in content
 
 
@@ -246,4 +304,7 @@ def test_model_facing_system_prompt_includes_browser_scope_rules():
 
     assert "dedicated chrome browser profile" in content
     assert "## Browser-use tools" in content
-    assert "Prefer `browser` when the target is a website and browser-native actions can solve it." in content
+    assert (
+        "Prefer `browser` when the target is a website and browser-native actions can solve it."
+        in content
+    )

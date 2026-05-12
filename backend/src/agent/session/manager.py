@@ -9,21 +9,25 @@ from backend.src.agent.session.active_query_tracker import ActiveQueryTracker
 from backend.src.agent.session.conversation_refs import (
     normalize_optional_conversation_ref,
 )
+from backend.src.agent.session.session import AgentSession
 from backend.src.agent.session.session_config_service import SessionConfigService
 from backend.src.agent.session.session_registry import SessionRegistry
-from backend.src.agent.session.session import AgentSession
 from backend.src.core.config import AppConfig
-from backend.src.core.config.loader import get_default_tts_model_path, load_api_key_for_provider
+from backend.src.core.config.loader import (
+    get_default_tts_model_path,
+    load_api_key_for_provider,
+)
 from backend.src.core.config.runtime import assemble_runtime_config
 from backend.src.core.config.subscriptions import ConfigSubscriber
 from backend.src.llm.prompts.prompts import get_system_prompt
 
 logger = logging.getLogger(__name__)
 
+
 class SessionManager(ConfigSubscriber):
     """
     Manages the lifecycle of user sessions.
-    
+
     Thread-safe: Uses per-user locks to prevent race conditions during session creation.
     """
 
@@ -34,7 +38,7 @@ class SessionManager(ConfigSubscriber):
     ):
         """
         Initialize the session manager.
-        
+
         Args:
             config: Global application configuration
             create_agent_session_func: Function to create agent sessions (takes user_id, config)
@@ -48,10 +52,7 @@ class SessionManager(ConfigSubscriber):
             assemble_runtime_session_config=lambda cfg: self._assemble_runtime_session_config(
                 cfg
             ),
-            render_system_prompt=lambda operating_system=None, workspace_path=None: get_system_prompt(
-                operating_system,
-                workspace_path,
-            ),
+            render_system_prompt=get_system_prompt,
         )
         self._active_queries = ActiveQueryTracker()
 
@@ -118,7 +119,9 @@ class SessionManager(ConfigSubscriber):
     def _normalize_frontend_operating_system(
         operating_system: Optional[str],
     ) -> Optional[str]:
-        return SessionConfigService.normalize_frontend_operating_system(operating_system)
+        return SessionConfigService.normalize_frontend_operating_system(
+            operating_system
+        )
 
     def set_frontend_operating_system(
         self,
@@ -159,7 +162,9 @@ class SessionManager(ConfigSubscriber):
     ) -> None:
         self._config_service.apply_prompt_context_to_session(
             session,
-            operating_system=self._config_service.frontend_operating_systems.get(user_id),
+            operating_system=self._config_service.frontend_operating_systems.get(
+                user_id
+            ),
             workspace_path=workspace_path,
             repo_instruction_messages=repo_instruction_messages,
         )
@@ -173,7 +178,9 @@ class SessionManager(ConfigSubscriber):
         conversation_ref: Optional[str] = None,
     ) -> bool:
         """Track the currently running query task for a user."""
-        normalized_conversation_ref = self._normalize_optional_conversation_ref(conversation_ref)
+        normalized_conversation_ref = self._normalize_optional_conversation_ref(
+            conversation_ref
+        )
         if self._active_queries.register_active_query_task(
             user_id,
             task,
@@ -228,17 +235,7 @@ class SessionManager(ConfigSubscriber):
         return self._active_queries.count_active_query_tasks(user_id)
 
     async def _get_user_lock(self, user_id: str) -> asyncio.Lock:
-        """
-        Get or create a lock for a specific user.
-        
-        Thread-safe: Uses _locks_lock to protect the user_locks dictionary.
-        
-        Args:
-            user_id: User identifier
-            
-        Returns:
-            Async lock for this user
-        """
+        """Get or create the per-user session lock."""
         return await self._registry.get_user_lock(user_id)
 
     @staticmethod
@@ -258,16 +255,16 @@ class SessionManager(ConfigSubscriber):
     ) -> AgentSession:
         """
         Retrieves an existing session or creates a new one if it doesn't exist.
-        
+
         Thread-safe: Uses per-user locks to prevent race conditions when multiple
         async tasks try to create a session for the same user concurrently.
-        
+
         Args:
             user_id: User identifier
-            
+
         Returns:
             AgentSession instance for the user
-            
+
         Raises:
             RuntimeError: If session creation fails
         """
@@ -280,7 +277,7 @@ class SessionManager(ConfigSubscriber):
         )
         if existing_session is not None:
             return existing_session
-        
+
         # Slow path: need to create session (with lock to prevent races)
         user_lock = await self._get_user_lock(user_id)
         async with user_lock:
@@ -291,16 +288,16 @@ class SessionManager(ConfigSubscriber):
             )
             if existing_session is not None:
                 return existing_session
-            
+
             logger.info(
                 "Creating new session for user %s (conversation_ref=%s)",
                 user_id,
                 normalized_conversation_ref,
             )
-            
+
             try:
                 session_config = self._build_effective_config(user_id)
-                
+
                 logger.info(
                     "[Session Config] Final session config (user_id=%s, conversation_ref=%s): "
                     "model_mode=%s, model_provider=%s, selected_model_id=%s, speech_mode_enabled=%s",
@@ -311,7 +308,7 @@ class SessionManager(ConfigSubscriber):
                     session_config.selected_model_id,
                     session_config.speech_mode_enabled,
                 )
-                
+
                 # Create session with config
                 session = self.create_agent_session(
                     user_id=user_id, config=session_config
@@ -357,10 +354,10 @@ class SessionManager(ConfigSubscriber):
     ) -> Optional[AgentSession]:
         """
         Retrieves an active session for a user.
-        
+
         Args:
             user_id: User identifier
-            
+
         Returns:
             AgentSession if exists, None otherwise
         """
@@ -419,9 +416,9 @@ class SessionManager(ConfigSubscriber):
     ) -> None:
         """
         Ends a user's session and performs cleanup.
-        
+
         Thread-safe: Uses per-user lock to prevent races during cleanup.
-        
+
         Args:
             user_id: User identifier
         """
@@ -429,7 +426,7 @@ class SessionManager(ConfigSubscriber):
         if not user_sessions:
             logger.debug(f"No active session for user {user_id}")
             return
-        
+
         user_lock = await self._get_user_lock(user_id)
         async with user_lock:
             # Double-check after acquiring lock
@@ -490,16 +487,7 @@ class SessionManager(ConfigSubscriber):
             await self._registry.remove_user_lock(user_id)
 
     async def update_all_sessions_config(self, config: AppConfig):
-        """
-        Updates the configuration for all active sessions.
-        
-        Thread-safe: Acquires per-user locks to prevent race conditions with
-        end_session during cleanup. This ensures update_config doesn't run on
-        a session that's being destroyed.
-        
-        Args:
-            config: New configuration to apply
-        """
+        """Update active sessions after a global config change."""
         # NOTE: SessionManager is a config subscriber only.
         # Global container/config mutation belongs to ConfigurationService/Container.
         # This method only updates currently active sessions.
@@ -522,4 +510,3 @@ class SessionManager(ConfigSubscriber):
         logger.info("SessionManager received config change notification")
         self._config_service.set_base_config(new_config)
         await self.update_all_sessions_config(new_config)
-    

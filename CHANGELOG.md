@@ -4,6 +4,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- refactor(backend-agent-capability-policy): add typed per-user/session agent tool profiles and capability gates so prompt schemas, parser validation, available-tool metadata, and OCR/vision prompt sections can be narrowed without restarting the backend while keeping legacy dev tool-selection as a compatibility layer.
+
 ### Removed
 
 - chore(repo-public-cleanup): remove a root screenshot artifact and tracked `.codex` placeholder while ignoring `audit/plan1` for open-source preparation.

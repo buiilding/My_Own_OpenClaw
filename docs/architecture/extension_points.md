@@ -17,6 +17,11 @@ Back-end tools can be built using the SDK in:
 
 Tools are registered by the backend tool registry (`backend/src/tools/registry.py`).
 
+Model-visible tool exposure is narrowed after registration by typed agent
+capability policy in `backend/src/tools/agent_capability_policy.py` and
+`backend/src/tools/tool_policy.py`. Add new production profiles or capability
+gates there instead of extending `backend/dev/tool_selection*.toml`.
+
 ## 2) Frontend Python Sidecar Tools
 
 Most OS-level tools are implemented in the Python sidecar:

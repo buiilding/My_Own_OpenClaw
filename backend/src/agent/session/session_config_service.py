@@ -7,6 +7,7 @@ import logging
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
 from backend.src.core.config import AppConfig
+from backend.src.tools.tool_policy import ToolPolicy
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -24,7 +25,7 @@ class SessionConfigService:
         base_config: AppConfig,
         registry: "SessionRegistry",
         assemble_runtime_session_config: Callable[[AppConfig], AppConfig],
-        render_system_prompt: Callable[[Optional[str], Optional[str]], str],
+        render_system_prompt: Callable[..., str],
     ) -> None:
         self._base_config = base_config
         self._registry = registry
@@ -71,7 +72,9 @@ class SessionConfigService:
             session,
             operating_system=operating_system,
             workspace_path=getattr(runtime, "workspace_path", None),
-            repo_instruction_messages=getattr(runtime, "repo_instruction_messages", None),
+            repo_instruction_messages=getattr(
+                runtime, "repo_instruction_messages", None
+            ),
         )
 
     @staticmethod
@@ -95,6 +98,9 @@ class SessionConfigService:
         rendered_prompt = self._call_render_system_prompt(
             operating_system=operating_system,
             workspace_path=normalized_workspace_path,
+            allowed_coordinate_methods=ToolPolicy.from_config(
+                getattr(session, "cfg", self._base_config)
+            ).get_allowed_mouse_coordinate_methods(),
         )
         normalized_repo_instruction_messages = [
             {"role": message["role"], "content": message["content"]}
@@ -124,6 +130,7 @@ class SessionConfigService:
         *,
         operating_system: Optional[str],
         workspace_path: Optional[str],
+        allowed_coordinate_methods: Optional[frozenset[str]] = None,
     ) -> str:
         try:
             signature = inspect.signature(self._render_system_prompt)
@@ -136,7 +143,8 @@ class SessionConfigService:
         positional_params = [
             parameter
             for parameter in signature.parameters.values()
-            if parameter.kind in (
+            if parameter.kind
+            in (
                 inspect.Parameter.POSITIONAL_ONLY,
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
             )
@@ -146,6 +154,12 @@ class SessionConfigService:
             for parameter in signature.parameters.values()
         )
 
+        if "allowed_coordinate_methods" in signature.parameters:
+            return self._render_system_prompt(
+                operating_system,
+                workspace_path,
+                allowed_coordinate_methods=allowed_coordinate_methods,
+            )
         if has_varargs or len(positional_params) >= 2:
             return self._render_system_prompt(operating_system, workspace_path)
         if len(positional_params) == 1:
@@ -219,7 +233,9 @@ class SessionConfigService:
                 user_sessions = self._registry.get_user_sessions(user_id)
                 if not user_sessions:
                     continue
-                updated_config = self.build_effective_config(user_id, base_config=config)
+                updated_config = self.build_effective_config(
+                    user_id, base_config=config
+                )
                 for session in user_sessions.values():
                     try:
                         await session.update_config(updated_config)

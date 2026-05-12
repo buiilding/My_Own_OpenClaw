@@ -94,7 +94,9 @@ async def test_get_or_create_session_is_race_safe() -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_or_create_session_creates_distinct_sessions_per_conversation() -> None:
+async def test_get_or_create_session_creates_distinct_sessions_per_conversation() -> (
+    None
+):
     create_count = 0
 
     def create_agent_session(user_id: str, config: AppConfig) -> DummySession:
@@ -108,7 +110,9 @@ async def test_get_or_create_session_creates_distinct_sessions_per_conversation(
 
     session_a = await manager.get_or_create_session("user-1", conversation_ref="conv-a")
     session_b = await manager.get_or_create_session("user-1", conversation_ref="conv-b")
-    session_a_again = await manager.get_or_create_session("user-1", conversation_ref="conv-a")
+    session_a_again = await manager.get_or_create_session(
+        "user-1", conversation_ref="conv-a"
+    )
 
     assert session_a is session_a_again
     assert session_a is not session_b
@@ -118,7 +122,9 @@ async def test_get_or_create_session_creates_distinct_sessions_per_conversation(
 
 
 @pytest.mark.asyncio
-async def test_get_session_without_conversation_prefers_latest_named_conversation_over_default() -> None:
+async def test_get_session_without_conversation_prefers_latest_named_conversation_over_default() -> (
+    None
+):
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
     default_session = DummySession("default")
     named_session = DummySession("named")
@@ -129,7 +135,9 @@ async def test_get_session_without_conversation_prefers_latest_named_conversatio
 
 
 @pytest.mark.asyncio
-async def test_get_or_create_session_applies_handshake_operating_system(monkeypatch) -> None:
+async def test_get_or_create_session_applies_handshake_operating_system(
+    monkeypatch,
+) -> None:
     monkeypatch.setattr(
         "backend.src.agent.session.manager.get_system_prompt",
         lambda operating_system=None, workspace_path=None: (
@@ -147,7 +155,9 @@ async def test_get_or_create_session_applies_handshake_operating_system(monkeypa
 
 
 @pytest.mark.asyncio
-async def test_set_frontend_operating_system_updates_active_session(monkeypatch) -> None:
+async def test_set_frontend_operating_system_updates_active_session(
+    monkeypatch,
+) -> None:
     monkeypatch.setattr(
         "backend.src.agent.session.manager.get_system_prompt",
         lambda operating_system=None, workspace_path=None: (
@@ -295,6 +305,30 @@ async def test_update_session_config_applies_to_future_conversation_sessions() -
 
 
 @pytest.mark.asyncio
+async def test_update_session_config_stores_user_agent_policy_override() -> None:
+    def create_agent_session(user_id: str, config: AppConfig) -> DummySession:
+        session = DummySession()
+        session.cfg = config
+        return session
+
+    manager = SessionManager(AppConfig(), create_agent_session)
+
+    await manager.update_session_config(
+        "user-1",
+        {
+            "agent_tool_profile": "coding",
+            "agent_coordinate_methods": ["manual"],
+            "agent_disabled_capabilities": ["ocr", "vision"],
+        },
+    )
+    session = await manager.get_or_create_session("user-1", conversation_ref="conv-a")
+
+    assert session.cfg.agent_tool_profile == "coding"
+    assert session.cfg.agent_coordinate_methods == ["manual"]
+    assert session.cfg.agent_disabled_capabilities == ["ocr", "vision"]
+
+
+@pytest.mark.asyncio
 async def test_end_session_removes_session_and_lock() -> None:
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
     session = await manager.get_or_create_session("user-1")
@@ -309,7 +343,9 @@ async def test_end_session_removes_session_and_lock() -> None:
 
 @pytest.mark.asyncio
 async def test_end_session_still_removes_session_when_cleanup_fails() -> None:
-    manager = SessionManager(AppConfig(), lambda user_id, config: FailingCleanupSession())
+    manager = SessionManager(
+        AppConfig(), lambda user_id, config: FailingCleanupSession()
+    )
     session = await manager.get_or_create_session("user-1")
 
     await manager.end_session("user-1")
@@ -329,7 +365,9 @@ async def test_end_session_missing_user_is_noop() -> None:
 
 
 @pytest.mark.asyncio
-async def test_end_session_can_remove_one_conversation_without_clearing_others() -> None:
+async def test_end_session_can_remove_one_conversation_without_clearing_others() -> (
+    None
+):
     first = DummySession("first")
     second = DummySession("second")
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
@@ -434,7 +472,9 @@ async def test_cancel_active_query_task_cancels_all_registered_tasks() -> None:
 
 
 @pytest.mark.asyncio
-async def test_cancel_active_query_task_sets_pending_stop_and_consumes_late_registration() -> None:
+async def test_cancel_active_query_task_sets_pending_stop_and_consumes_late_registration() -> (
+    None
+):
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
 
     async def _sleep_forever() -> None:
@@ -465,7 +505,9 @@ async def test_cancel_active_query_task_sets_pending_stop_and_consumes_late_regi
 
 
 @pytest.mark.asyncio
-async def test_register_active_query_task_ignores_expired_pending_stop_request() -> None:
+async def test_register_active_query_task_ignores_expired_pending_stop_request() -> (
+    None
+):
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
     manager._active_queries.pending_stop_requests["user-1"] = {None: 0.0}
 
@@ -491,7 +533,9 @@ async def test_register_active_query_task_ignores_expired_pending_stop_request()
 
 
 @pytest.mark.asyncio
-async def test_cancel_active_query_task_scopes_cancellation_by_conversation_ref() -> None:
+async def test_cancel_active_query_task_scopes_cancellation_by_conversation_ref() -> (
+    None
+):
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
 
     async def _sleep_forever() -> None:
@@ -513,7 +557,9 @@ async def test_cancel_active_query_task_scopes_cancellation_by_conversation_ref(
             conversation_ref="conv-b",
         )
 
-        cancelled = manager.cancel_active_query_task("user-1", conversation_ref="conv-a")
+        cancelled = manager.cancel_active_query_task(
+            "user-1", conversation_ref="conv-a"
+        )
         await asyncio.sleep(0)
 
         assert cancelled == ("turn-a", "conv-a")

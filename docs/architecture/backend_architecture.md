@@ -22,6 +22,13 @@ In the intended product topology, the backend is the hosted control plane for Wi
 
 The backend is not the local machine executor. Mouse, keyboard, screenshots, browser/runtime control, and local filesystem/process operations stay in the sidecar on the user's computer.
 
+The backend resolves the model-visible agent surface per effective user/session
+configuration. Registered tools remain process-wide, but prompt schemas,
+parser validation, available-tool metadata, and OCR/vision coordinate-method
+guidance are narrowed by typed agent capability policy before each agent loop.
+This keeps the backend in the control-plane role: policy decides what the
+agent may ask for, while sidecar/provider routes decide where work executes.
+
 Open-source client distributions should assume:
 
 - the SDK calls this backend over HTTP/WebSocket
@@ -74,6 +81,7 @@ Current backend runtime wiring also includes:
 - **SDK OCR observability extends the same OCR surface**: `/api/sdk/ocr/inspect` now bundles raw OCR rows, ranked candidates, resolution outcome, and optional overlay output in one OCR-first SDK call instead of introducing a separate OCR-debug subsystem.
 - **SDK introspection now includes first-turn planning**: `/api/sdk/query-plan` reuses the real prompt/tool/transparency pipeline to return a planned `query` envelope plus ordered first-turn transparency events (`system-prompt`, `user-message-full`, `tool-schemas`) without executing the agent loop.
 - **SDK introspection routes are first-class app routes**: the same SDK router now exposes developer-facing `/api/sdk/*` introspection APIs for model catalogs, system-prompt inspection, tool-schema snapshots, per-tool capabilities, and prompt previews built from the backend’s real prompt/tool pipeline alongside the perception routes.
+- **Agent capability policy is session-scoped**: `agent_tool_profile`, `agent_disabled_tools`, `agent_coordinate_methods`, and `agent_disabled_capabilities` in the effective `AppConfig` can narrow model-visible tools and OCR/vision coordinate methods per user/session without restarting the backend.
 - **Query execution helper split is now structural**: `backend/src/api/services/query_execution_support/*` owns screenshot/input resolution, completion backfill, post-terminal filtering, and cancellation cleanup used by `QueryExecutionService`.
 - **OpenAI native reasoning path is provider-owned**: `backend/src/llm/providers/openai.py` routes reasoning-enabled models through `openai_responses_runtime.py` (`litellm.aresponses`) while non-reasoning models keep the shared online provider path.
 - **VM run control service is app-state scoped and in-memory**: `backend/src/api/routes/runs/support.py` lazily creates `VmRunControlService` on `app.state` with optional API-key protection via `x-windie-runs-key`.

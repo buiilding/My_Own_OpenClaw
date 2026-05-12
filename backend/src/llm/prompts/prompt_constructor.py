@@ -18,26 +18,28 @@ OBSERVABILITY: All violations are logged with structured metrics:
 This module handles the construction of prompts using structured Prompt objects,
 eliminating circular parsing patterns and preserving data integrity.
 """
+
 import json
 import logging
 import re
 from functools import lru_cache
-from typing import List, Dict, Any, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from backend.src.core.config import AppConfig
-from backend.src.llm.prompts.prompts import get_system_prompt
+from backend.src.core.messages.converters import content_to_message_content
+from backend.src.core.messages.structures import StoredMessage
+from backend.src.core.observability.trust_boundary_metrics import MetricsService
+from backend.src.core.types.enums import MessageRole, MessageType
+from backend.src.core.types.schemas import LLMMessage
 from backend.src.llm.prompts.prompt_metadata import PromptMetadata, UserMessageMetadata
+from backend.src.llm.prompts.prompts import get_system_prompt
 from backend.src.llm.prompts.repo_instructions import (
     resolve_workspace_repo_instruction_messages,
 )
-from backend.src.tools.tool_policy import ToolPolicy
 from backend.src.tools.provider_projection import project_tool_schemas_for_provider
 from backend.src.tools.registry import ToolRegistry
-from backend.src.core.messages.converters import content_to_message_content
-from backend.src.core.messages.structures import StoredMessage
-from backend.src.core.types.enums import MessageRole, MessageType
-from backend.src.core.types.schemas import LLMMessage
-from backend.src.core.observability.trust_boundary_metrics import MetricsService
+from backend.src.tools.tool_policy import ToolPolicy
+
 # system_monitor removed - frontend handles system state
 
 logger = logging.getLogger(__name__)
@@ -58,7 +60,7 @@ def _xml_tag_pattern(tag_name: str) -> re.Pattern[str]:
 class PromptConstructor:
     """
     Constructs prompts for LLM interactions, including system prompts and tool schemas.
-    
+
     SECURITY: This is a trust boundary. All inputs are validated with size limits.
     Violations raise hard errors.
     """
@@ -79,7 +81,7 @@ class PromptConstructor:
             system_prompt: Optional custom system prompt. If None, loads from PromptManager
                           (assumes PromptManager.initialize() was called at startup)
             metrics_service: Optional MetricsService for observability (injected via DI)
-        
+
         Raises:
             ValueError: If config is None (security requirement)
         """
@@ -88,18 +90,23 @@ class PromptConstructor:
                 "config is required for PromptConstructor. "
                 "Cannot enforce security limits without configuration (security requirement)."
             )
-        
+
         self.tool_registry = tool_registry
         self.config = config
+        self.tool_policy = ToolPolicy.from_config(config)
         # Load system prompt at runtime (not import time) to avoid crashes
-        self.system_prompt = system_prompt or get_system_prompt()
+        self.system_prompt = system_prompt or get_system_prompt(
+            allowed_coordinate_methods=self.tool_policy.get_allowed_mouse_coordinate_methods()
+        )
         # Use injected MetricsService or create a new instance (for backward compatibility)
         if metrics_service is None:
-            from backend.src.core.observability.trust_boundary_metrics import MetricsService
+            from backend.src.core.observability.trust_boundary_metrics import (
+                MetricsService,
+            )
+
             metrics_service = MetricsService()
         self.metrics = metrics_service.get_metrics("prompt_constructor")
         self.limits = config.security_limits
-        self.tool_policy = ToolPolicy.from_config(config)
         self.workspace_path: Optional[str] = None
         self.repo_instruction_messages: List[LLMMessage] = []
 
@@ -109,14 +116,17 @@ class PromptConstructor:
         prompt_messages: Optional[List[LLMMessage]] = None,
     ) -> List[Dict[str, Any]]:
         """Return tool schemas filtered by centralized tool policy."""
-        model_tool_names_getter = getattr(self.tool_registry, "get_model_tool_names", None)
+        model_tool_names_getter = getattr(
+            self.tool_registry, "get_model_tool_names", None
+        )
         if callable(model_tool_names_getter):
             filtered_names = self.tool_policy.filter_tool_names(
                 model_tool_names_getter(),
                 normalize_wrappers=False,
             )
             filtered_schemas = (
-                self.tool_registry.get_function_declarations_filtered(filtered_names) or []
+                self.tool_registry.get_function_declarations_filtered(filtered_names)
+                or []
             )
             filtered_schemas = self.tool_policy.filter_tool_schemas(filtered_schemas)
             projected_schemas = project_tool_schemas_for_provider(
@@ -161,7 +171,7 @@ class PromptConstructor:
         Returns:
             Tuple of (List of LLMMessage dicts ready to send to LLM,
             List of tool schemas for transparency, PromptMetadata object)
-            
+
         Raises:
             InputSizeLimitError: If any size limit is exceeded
         """
@@ -264,7 +274,9 @@ class PromptConstructor:
             return "", "Unknown"
 
         context_xml = self._extract_xml_tag(full_content, "system_context")
-        active_window = self._extract_xml_tag_content(full_content, "active_window") or "Unknown"
+        active_window = (
+            self._extract_xml_tag_content(full_content, "active_window") or "Unknown"
+        )
         return context_xml, active_window
 
     def _determine_context_type(self, stored_messages: Any) -> str:
@@ -279,11 +291,11 @@ class PromptConstructor:
             if getattr(msg, "message_type", None) == MessageType.USER_QUERY
         )
         return "initial" if user_query_count == 1 else "sequential"
-    
+
     def _calculate_message_size(self, msg: Dict[str, Any]) -> int:
         """
         Calculate the size of a message in bytes.
-        
+
         PERFORMANCE: Sums content lengths directly instead of serializing to JSON,
         avoiding O(N) allocation and CPU overhead on the hot path.
         """
@@ -295,7 +307,7 @@ class PromptConstructor:
                     size += len(key)
                 else:
                     size += len(str(key))
-                
+
                 # Add value length based on type
                 if isinstance(value, str):
                     size += len(value)
@@ -315,54 +327,54 @@ class PromptConstructor:
                 return len(json.dumps(msg, ensure_ascii=False))
             except (TypeError, ValueError):
                 return len(str(msg))
-        
+
         return size
-    
+
     def _extract_xml_tag(self, content: str, tag_name: str) -> str:
         """
         Extract XML tag content using regex to handle attributes correctly.
-        
+
         CORRECTNESS: Uses regex instead of naive find(">") to properly handle
         attributes that may contain '>' characters (e.g., code="if a > b:").
-        
+
         SECURITY: Limits search space and validates extracted size to prevent DoS.
-        
+
         NOTE: For production usage with hostile input, consider using a proper
         XML parser (lxml or defusedxml) which handles all edge cases correctly.
         """
         match = self._search_xml_tag(content, tag_name)
         if not match:
             return ""
-        
+
         # Get the full match (entire tag including content)
         full_tag = match.group(0)
-        
+
         # SECURITY: Validate extracted size
         if len(full_tag) > self.limits.max_message_content_size:
             return ""  # Too large, reject
-        
+
         return full_tag
-    
+
     def _extract_xml_tag_content(self, content: str, tag_name: str) -> Optional[str]:
         """
         Extract content inside XML tag using regex.
-        
+
         CORRECTNESS: Uses regex to properly handle attributes, avoiding the
         naive find(">") bug that breaks on attributes containing '>'.
-        
+
         SECURITY: Limits search space and validates extracted size.
         """
         match = self._search_xml_tag(content, tag_name)
         if not match:
             return None
-        
+
         # Extract content (group 1 is the content between tags)
         extracted = match.group(1)
-        
+
         # SECURITY: Validate extracted size
         if len(extracted) > self.limits.max_message_content_size:
             return None  # Too large, reject
-        
+
         return extracted.strip()
 
     def _search_xml_tag(self, content: str, tag_name: str) -> Optional[re.Match[str]]:
@@ -370,7 +382,7 @@ class PromptConstructor:
         max_search_size = min(len(content), self.limits.max_message_content_size)
         search_content = content[:max_search_size]
         return _xml_tag_pattern(tag_name).search(search_content)
-    
+
     def format_user_message_content(
         self,
         message_content: Optional[str],
@@ -382,12 +394,12 @@ class PromptConstructor:
 
         This method handles the formatting logic for user messages, including:
         - Fallback formatting when message_content is not provided
-        
+
         Args:
             message_content: Complete message content from frontend (system state + memories + query)
             query: The user's raw query text (for fallback formatting)
             is_first_message: Whether this is the first user message in the conversation
-            
+
         Returns:
             Formatted message content ready to be added to history
         """
@@ -399,7 +411,7 @@ class PromptConstructor:
             # Fallback: just the query (shouldn't happen in normal flow)
             logger.warning("No message content provided by frontend, using query only")
             final_content = f"<user_query>\n{query}\n</user_query>"
-        
+
         # Tool schemas are passed via native API params, not embedded in user content.
         _ = is_first_message
         return final_content

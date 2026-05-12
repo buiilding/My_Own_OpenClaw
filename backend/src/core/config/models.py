@@ -12,6 +12,11 @@ from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 InferenceBackend = Literal["local", "remote-http", "vendor"]
+AgentToolProfile = Literal[
+    "default", "chat", "coding", "browser", "computer", "full", "custom"
+]
+AgentCapability = Literal["ocr", "vision", "embeddings", "web_search", "browser"]
+CoordinateMethod = Literal["manual", "ocr", "prediction"]
 
 
 def _default_artifact_store_path() -> str:
@@ -265,6 +270,32 @@ class AppConfig(BaseModel):
     # Agent Execution Settings
     interaction_mode: Literal["chat", "agent"] = "agent"
     tool_allowlist: Optional[List[str]] = None
+    agent_tool_profile: AgentToolProfile = Field(
+        default="default",
+        description=(
+            "Session-scoped agent tool profile. 'default' preserves the "
+            "interaction_mode/tool_allowlist behavior; other profiles further "
+            "narrow the model-visible tool surface."
+        ),
+    )
+    agent_disabled_tools: List[str] = Field(
+        default_factory=list,
+        description="Session/server tool names to remove from the agent-visible surface.",
+    )
+    agent_coordinate_methods: Optional[List[CoordinateMethod]] = Field(
+        default=None,
+        description=(
+            "Allowed coordinate targeting methods for grounded desktop tools. "
+            "None means all methods unless capability gates remove some."
+        ),
+    )
+    agent_disabled_capabilities: List[AgentCapability] = Field(
+        default_factory=list,
+        description=(
+            "Session/server capability gates that remove related tool schema "
+            "fields or direct tools before prompt construction."
+        ),
+    )
     history_compaction_enabled: bool = True
     history_compaction_manual_enabled: bool = True
     history_compaction_openai_remote_enabled: bool = False
