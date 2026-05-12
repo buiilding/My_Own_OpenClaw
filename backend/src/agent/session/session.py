@@ -38,6 +38,7 @@ from backend.src.core.events.bus_events import InteractionCompleted
 from backend.src.llm.client import LLMClient, get_llm_client
 from backend.src.llm.prompts.prompts import get_system_prompt
 from backend.src.tools.registry import ToolRegistry
+from backend.src.tools.tool_policy import ToolPolicy
 
 if TYPE_CHECKING:
     from backend.src.agent.tools.waiting.storage.result_storage import ToolResultStorage
@@ -381,7 +382,13 @@ class AgentSession:
         normalized_repo_instruction_messages = (
             self._normalize_repo_instruction_messages(repo_instruction_messages)
         )
-        rendered_prompt = get_system_prompt(operating_system, normalized_workspace_path)
+        rendered_prompt = get_system_prompt(
+            operating_system,
+            normalized_workspace_path,
+            allowed_coordinate_methods=ToolPolicy.from_config(
+                self.cfg
+            ).get_allowed_mouse_coordinate_methods(),
+        )
 
         self.runtime.workspace_path = normalized_workspace_path
         self.runtime.repo_instruction_messages = normalized_repo_instruction_messages

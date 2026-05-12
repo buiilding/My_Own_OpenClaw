@@ -6,10 +6,11 @@ read_when:
 title: "Tool Policy and Dev Tool Selection Runtime Reference"
 ---
 
-# Tool Policy and Dev Tool Selection Runtime Reference
+# Tool Policy, Agent Capability Policy, and Dev Tool Selection Runtime Reference
 
 This page documents policy behavior implemented in:
 
+- `backend/src/tools/agent_capability_policy.py`
 - `backend/src/tools/tool_policy.py`
 - `backend/src/tools/tool_selection.py`
 - `backend/src/llm/parser_validation.py`
@@ -25,7 +26,8 @@ Tool exposure filtering is layered in this order:
 
 1. config-driven hard disables (`ToolPolicy._get_config_disabled_tools()`)
 2. interaction-mode allowlist from runtime config (`config.get_tool_allowlist()`)
-3. dev tool-selection policy (`ToolSelection`) when enabled
+3. session/server agent capability policy from typed `AppConfig` fields
+4. legacy dev tool-selection policy (`ToolSelection`) when enabled
 
 `ToolPolicy.filter_tool_names(...)` and `ToolPolicy.filter_tool_schemas(...)` apply both layers in that order.
 
@@ -38,13 +40,50 @@ Practical effect:
 
 - interaction-mode restrictions always apply, even when dev selection is disabled
 - config hard-disables always apply before allowlist/selection filtering
-- dev selection further narrows what remains
+- agent capability policy can narrow what remains per effective user/session config
+- dev selection remains a legacy local-development narrowing layer and should not be treated as the production source of truth
 
 Current config hard-disable:
 
 - `browser_automation_enabled != true` removes `browser` from both available-tool names and prompt-injected schemas.
+- `agent_disabled_tools` removes matching direct tool names.
+- `agent_disabled_capabilities=["browser"]` removes `browser`.
+- `agent_disabled_capabilities=["web_search"]` removes backend logical `web_search`.
 
-## ToolSelection Config Model
+## Agent Capability Policy
+
+Agent capability policy is the backend-owned production path for changing what the
+model can see without restarting the backend.
+
+Typed config fields:
+
+- `agent_tool_profile`: `default`, `chat`, `coding`, `browser`, `computer`, `full`, or `custom`
+- `agent_disabled_tools`: direct tool names to remove
+- `agent_coordinate_methods`: optional allowed coordinate methods (`manual`, `ocr`, `prediction`)
+- `agent_disabled_capabilities`: capability gates (`ocr`, `vision`, `embeddings`, `web_search`, `browser`)
+
+Profile behavior:
+
+- `default` preserves existing `interaction_mode` plus `tool_allowlist` behavior.
+- `chat`, `coding`, `browser`, `computer`, and `full` apply built-in allowlists from `backend/src/tools/agent_capability_policy.py`.
+- `custom` does not add a built-in allowlist; use `tool_allowlist`/`agent_disabled_tools` to shape it.
+
+Coordinate/capability behavior:
+
+- `agent_coordinate_methods=["manual"]` prunes OCR and prediction fields from grounded desktop schemas.
+- `agent_disabled_capabilities=["ocr"]` removes OCR coordinate fields and rejects OCR method calls.
+- `agent_disabled_capabilities=["vision"]` removes prediction coordinate fields and rejects prediction method calls.
+- These gates are evaluated from the effective `AppConfig`, so `SessionManager` user overrides can give different users different model-visible tool surfaces in the same backend process.
+
+This layer intentionally reuses `ToolSelection` as its structural selection
+object so prompt schema filtering, parser validation, projected-schema pruning,
+and available-tool listing stay aligned.
+
+## Legacy ToolSelection Config Model
+
+`backend/dev/tool_selection*.toml` remains supported as a local development
+compatibility layer. It should be removed once production agent capability
+policy covers all needed profile and testing flows.
 
 `ToolSelection` fields:
 
@@ -110,11 +149,12 @@ Validation flow:
 1. compute valid tool-name index from registry names filtered via `ToolPolicy.filter_tool_names(...)`
 2. reject tool names outside filtered set with whitelist error message
 3. for `mouse_control`, call `ToolPolicy.get_method_validation_errors(...)`
-4. reject disallowed methods with explicit allowed-method list in error
+4. reject disallowed source or drag-destination methods with explicit allowed-method list in error
 
 Method normalization:
 
 - `find_coordinates_by` values are normalized via `normalize_coordinate_method(...)`
+- `drag_to_find_coordinates_by` values are normalized through the same path
 - enum instances and mixed-case strings are normalized to lowercase strings
 
 ## Prompt Injection Coupling
@@ -160,7 +200,10 @@ This keeps startup cost aligned with currently enabled coordinate methods.
 
 ## System Prompt Coupling
 
-`PromptManager.render_system_prompt(...)` strips dev-selection-gated OCR/prediction sections from the rendered prompt template.
+`PromptManager.render_system_prompt(...)` strips OCR/prediction sections from
+the rendered prompt template using the effective coordinate-method policy when
+one is provided, falling back to legacy dev tool-selection when called without
+session context.
 
 Result:
 

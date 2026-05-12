@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 from pathlib import Path
 
 from backend.src.core.config.models import AppConfig
+from backend.src.tools.agent_capability_policy import build_agent_tool_selection
 from backend.src.tools.remote import RemoteMouseTool
 from backend.src.tools.remote_tools.computer import (
     RemoteGroundedMouseTool,
@@ -47,7 +49,7 @@ def test_filter_tool_names_applies_dev_selection(tmp_path: Path):
     selection = _load_selection(
         tmp_path,
         (
-            'enabled = true\n'
+            "enabled = true\n"
             'mode = "allowlist"\n'
             'tools = ["read_file", "write_file"]\n'
         ),
@@ -57,6 +59,45 @@ def test_filter_tool_names_applies_dev_selection(tmp_path: Path):
     filtered = policy.filter_tool_names(["read_file", "write_file", "glob"])
 
     assert filtered == ["read_file", "write_file"]
+
+
+def test_filter_tool_names_applies_agent_tool_profile():
+    config = AppConfig(
+        interaction_mode="agent",
+        agent_tool_profile="coding",
+        browser_automation_enabled=True,
+    )
+    policy = ToolPolicy(
+        config=config,
+        agent_selection=build_agent_tool_selection(config),
+        selection=None,
+    )
+
+    filtered = policy.filter_tool_names(
+        ["browser", "mouse_control", "run_shell_command", "read_file", "replace"]
+    )
+
+    assert filtered == ["run_shell_command", "read_file", "replace"]
+
+
+def test_filter_tool_names_applies_agent_disabled_capabilities():
+    config = AppConfig(
+        interaction_mode="agent",
+        agent_tool_profile="full",
+        agent_disabled_capabilities=["browser", "web_search"],
+        browser_automation_enabled=True,
+    )
+    policy = ToolPolicy(
+        config=config,
+        agent_selection=build_agent_tool_selection(config),
+        selection=None,
+    )
+
+    filtered = policy.filter_tool_names(
+        ["browser", "web_search", "mouse_control", "read_file"]
+    )
+
+    assert filtered == ["mouse_control", "read_file"]
 
 
 def test_filter_tool_names_keeps_direct_tool_names():
@@ -78,9 +119,7 @@ def test_filter_tool_names_disables_browser_when_browser_automation_not_enabled(
         selection=None,
     )
 
-    filtered = policy.filter_tool_names(
-        ["browser", "mouse_control", "read_file"]
-    )
+    filtered = policy.filter_tool_names(["browser", "mouse_control", "read_file"])
 
     assert filtered == ["mouse_control", "read_file"]
 
@@ -119,7 +158,7 @@ def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
     selection = _load_selection(
         tmp_path,
         (
-            'enabled = true\n'
+            "enabled = true\n"
             'mode = "allowlist"\n'
             'tools = ["mouse_control"]\n'
             "[tool_options.mouse_control]\n"
@@ -141,7 +180,10 @@ def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
     args_props = schemas[0]["parameters"]["properties"]
     assert args_props["find_coordinates_by"]["type"] == "string"
     assert args_props["find_coordinates_by"]["enum"] == ["manual"]
-    assert args_props["find_coordinates_by"]["description"] == "Coordinate targeting method."
+    assert (
+        args_props["find_coordinates_by"]["description"]
+        == "Coordinate targeting method."
+    )
     assert "x" in args_props
     assert "y" in args_props
     assert "ocr_text" not in args_props
@@ -150,11 +192,38 @@ def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
     assert "model_name" not in args_props
 
 
+def test_filter_tool_schemas_applies_agent_capability_coordinate_methods():
+    config = AppConfig(
+        interaction_mode="agent",
+        agent_disabled_capabilities=["ocr", "vision"],
+    )
+    policy = ToolPolicy(
+        config=config,
+        agent_selection=build_agent_tool_selection(config),
+        selection=None,
+    )
+
+    schemas = policy.filter_tool_schemas([RemoteMouseTool().get_json_schema()])
+
+    assert len(schemas) == 1
+    args_props = schemas[0]["parameters"]["properties"]
+    assert args_props["find_coordinates_by"]["enum"] == ["manual"]
+    assert args_props["drag_to_find_coordinates_by"]["enum"] == ["manual"]
+    assert "ocr_text" not in args_props
+    assert "candidate_id" not in args_props
+    assert "source_description" not in args_props
+    assert "model_name" not in args_props
+    assert "drag_to_ocr_text" not in args_props
+    assert "drag_to_candidate_id" not in args_props
+    assert "destination_description" not in args_props
+    assert "drag_to_model_name" not in args_props
+
+
 def test_filter_tool_schemas_filters_scroll_and_grounded_method_fields(tmp_path: Path):
     selection = _load_selection(
         tmp_path,
         (
-            'enabled = true\n'
+            "enabled = true\n"
             'mode = "allowlist"\n'
             'tools = ["mouse_control", "scroll_control"]\n'
             "[tool_options.mouse_control]\n"
@@ -199,11 +268,13 @@ def test_filter_tool_schemas_filters_scroll_and_grounded_method_fields(tmp_path:
     )
 
 
-def test_filter_tool_schemas_removes_prediction_drag_rules_when_prediction_disabled(tmp_path: Path):
+def test_filter_tool_schemas_removes_prediction_drag_rules_when_prediction_disabled(
+    tmp_path: Path,
+):
     selection = _load_selection(
         tmp_path,
         (
-            'enabled = true\n'
+            "enabled = true\n"
             'mode = "allowlist"\n'
             'tools = ["mouse_control"]\n'
             "[tool_options.mouse_control]\n"
@@ -228,7 +299,9 @@ def test_filter_tool_schemas_removes_prediction_drag_rules_when_prediction_disab
         method_schema = properties.get("find_coordinates_by") or properties.get(
             "drag_to_find_coordinates_by"
         )
-        if isinstance(method_schema, dict) and isinstance(method_schema.get("const"), str):
+        if isinstance(method_schema, dict) and isinstance(
+            method_schema.get("const"), str
+        ):
             rule_methods.append(method_schema["const"])
 
     assert "prediction" not in rule_methods
@@ -286,7 +359,7 @@ def test_get_method_validation_errors_rejects_disabled_mouse_method(tmp_path: Pa
     selection = _load_selection(
         tmp_path,
         (
-            'enabled = true\n'
+            "enabled = true\n"
             'mode = "allowlist"\n'
             'tools = ["mouse_control"]\n'
             "[tool_options.mouse_control]\n"
@@ -304,11 +377,32 @@ def test_get_method_validation_errors_rejects_disabled_mouse_method(tmp_path: Pa
     assert "find_coordinates_by='prediction'" in errors[0]
 
 
+def test_get_method_validation_errors_rejects_agent_disabled_drag_method():
+    config = AppConfig(
+        interaction_mode="agent",
+        agent_coordinate_methods=["manual"],
+    )
+    policy = ToolPolicy(
+        config=config,
+        agent_selection=build_agent_tool_selection(config),
+        selection=None,
+    )
+
+    errors = policy.get_method_validation_errors(
+        "mouse_control",
+        {"action": "drag", "drag_to_find_coordinates_by": "ocr"},
+    )
+
+    assert len(errors) == 1
+    assert "drag_to_find_coordinates_by='ocr'" in errors[0]
+    assert "agent capability policy" in errors[0]
+
+
 def test_should_initialize_startup_services_follow_mouse_methods(tmp_path: Path):
     selection = _load_selection(
         tmp_path,
         (
-            'enabled = true\n'
+            "enabled = true\n"
             'mode = "allowlist"\n'
             'tools = ["mouse_control"]\n'
             "[tool_options.mouse_control]\n"
