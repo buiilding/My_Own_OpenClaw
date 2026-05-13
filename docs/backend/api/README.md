@@ -19,6 +19,7 @@ title: "Backend API Docs Hub"
 - [API Processing TTS Docs Hub](processing/tts/README.md)
 - [API Transport Docs Hub](transport/README.md)
 - [API WebSocket Docs Hub](websocket/README.md)
+- [WebSocket Connection Change Workflow](../../gateway/websocket_connection_change_workflow.md)
 - [API WebSocket Connection Docs Hub](websocket/connection/README.md)
 - [API Memory Docs Hub](memory/README.md)
 - [Artifacts Route Package Split and Compatibility Export Contract Reference](artifacts_route_package_split_and_compatibility_export_contract_reference.md)

@@ -23,7 +23,7 @@ Use this hub when a change affects how clients enter the hosted backend, how the
 | Surface | Route | Owner | Start docs |
 | --- | --- | --- | --- |
 | FastAPI app assembly | app startup, CORS, router registration | `backend/src/main.py`, `backend/src/api/app_assembly.py`, `backend/src/api/routes/__init__.py` | [Gateway Protocol Map](gateway_protocol_map.md) |
-| Main agent websocket | `GET /ws` | `backend/src/api/routes/websocket/*` | [WebSocket Connection Lifecycle](websocket_connection_lifecycle.md), [Backend API WebSocket Docs Hub](../backend/api/websocket/README.md) |
+| Main agent websocket | `GET /ws` | `backend/src/api/routes/websocket/*` | [WebSocket Connection Change Workflow](websocket_connection_change_workflow.md), [WebSocket Connection Lifecycle](websocket_connection_lifecycle.md), [Backend API WebSocket Docs Hub](../backend/api/websocket/README.md) |
 | Transcription websocket | `GET /ws/transcription` | `backend/src/api/routes/transcription/router.py`, `backend/src/api/services/transcription/*` | [Voice and Audio Channels](../channels/voice_and_audio_channels.md) |
 | Install auth | `POST /api/install/register`, REST middleware, websocket auth | `backend/src/api/auth/*`, websocket connection auth | [Gateway Auth and Health Runbook](gateway_auth_and_health_runbook.md), [Hosted Backend Auth](../operations/hosted_backend_auth.md) |
 | Hosted REST APIs | `/api/artifacts/*`, `/api/sdk/*`, `/api/embeddings/*`, `/api/semantic/*`, `/api/runs/*` | backend route packages | [REST Route Auth Matrix](rest_route_auth_matrix.md), [HTTP and WebSocket API Surface](../reference/http_api_surface.md) |
@@ -64,6 +64,26 @@ Likely code:
 - frontend/SDK token propagation code
 
 Validate install registration, REST middleware, websocket auth, mismatch handling, and same-user connection cleanup tests.
+
+### Change the Main WebSocket Lifecycle
+
+Read:
+
+- [WebSocket Connection Change Workflow](websocket_connection_change_workflow.md)
+- [WebSocket Connection Lifecycle](websocket_connection_lifecycle.md)
+- [Backend API WebSocket Docs Hub](../backend/api/websocket/README.md)
+
+Likely code:
+
+- `backend/src/api/routes/websocket/router.py`
+- `backend/src/api/routes/websocket/connection.py`
+- `backend/src/api/routes/websocket/message_parse_runtime.py`
+- `backend/src/api/routes/websocket/message_handler.py`
+- `backend/src/api/routes/websocket/loop_runtime.py`
+- `backend/src/api/routes/websocket/task_manager.py`
+- `backend/src/api/transport/websocket.py`
+
+Validate handshake/auth, parse/runtime, route loop, task-manager, handler, and safe-websocket tests for the changed layer.
 
 ### Debug Hosted Availability
 

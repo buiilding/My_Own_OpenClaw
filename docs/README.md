@@ -22,6 +22,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, sidecar, wakeword, VM worker, and Cloudflare process triage
 - [**Channels Hub**](channels/README.md) - Desktop, websocket, voice, sidecar, SDK, and VM-run communication paths
 - [**Gateway Hub**](gateway/README.md) - Hosted backend ingress, FastAPI route assembly, websocket protocols, auth, health, and troubleshooting
+- [**WebSocket Connection Change Workflow**](gateway/websocket_connection_change_workflow.md) - Owner routing for main `/ws` handshake auth, identity binding, message validation, task limits, timeouts, handler dispatch, transport sends, and cleanup
 - [**REST Route Auth Matrix**](gateway/rest_route_auth_matrix.md) - Hosted `/api/*` route owners, install-token rules, runs key behavior, failure signals, and tests
 - [**WebSocket Connection Lifecycle**](gateway/websocket_connection_lifecycle.md) - Main `/ws` accept, handshake, auth, message validation, task scheduling, timeout, and cleanup flow
 - [**Runtime Nodes Hub**](nodes/README.md) - Runtime process and service boundaries for backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes
@@ -103,6 +104,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Voice and Audio Channels**](channels/voice_and_audio_channels.md) - Wakeword, voice dictation, transcription websocket, and TTS playback ownership
 - [**Sidecar and Tool Channels**](channels/sidecar_and_tool_channels.md) - Local tool IPC, sidecar JSON-RPC, executable tools, and tool-result return path
 - [**Gateway Hub**](gateway/README.md) - FastAPI gateway boundary for hosted HTTP/websocket ingress
+- [**WebSocket Connection Change Workflow**](gateway/websocket_connection_change_workflow.md) - Change workflow for main websocket handshake, install auth, message validation, task scheduling, timeout, and cleanup behavior
 - [**Gateway Protocol Map**](gateway/gateway_protocol_map.md) - App assembly, router registration, websocket, REST, CORS, and protocol families
 - [**Gateway Auth and Health Runbook**](gateway/gateway_auth_and_health_runbook.md) - Install auth, websocket auth, runs key, and health endpoints
 - [**REST Route Auth Matrix**](gateway/rest_route_auth_matrix.md) - Hosted REST route ownership, identity source, auth failure routing, and focused route tests

@@ -10,6 +10,8 @@ title: "WebSocket Connection Lifecycle"
 
 This page covers the main agent websocket at `GET /ws`. It does not cover the transcription websocket at `GET /ws/transcription`; use [Voice and Audio Channels](../channels/voice_and_audio_channels.md) for that route.
 
+For a task-oriented owner map and validation checklist before changing websocket lifecycle behavior, start with [WebSocket Connection Change Workflow](websocket_connection_change_workflow.md).
+
 The main websocket is owned by `backend/src/api/routes/websocket/router.py` and related helper modules. The websocket is the backend transport for query messages, tool results, settings messages, compaction requests, model listing, wakeword events, and streamed agent output.
 
 ## Lifecycle Timeline
@@ -92,6 +94,7 @@ When adding a message family, update incoming schemas, handler registry tests, w
 ## Related Docs
 
 - [Gateway Protocol Map](gateway_protocol_map.md)
+- [WebSocket Connection Change Workflow](websocket_connection_change_workflow.md)
 - [WebSocket Event Reference](../reference/websocket_event_reference.md)
 - [Streaming and Events](../concepts/streaming_and_events.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)

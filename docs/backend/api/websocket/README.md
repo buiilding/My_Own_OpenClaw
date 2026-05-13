@@ -10,6 +10,7 @@ title: "Backend API WebSocket Docs Hub"
 
 ## Deep Pages
 
+- [WebSocket Connection Change Workflow](../../../gateway/websocket_connection_change_workflow.md)
 - [WebSocket Message Parse, Validation Guard, and Task-Scheduling Reference](websocket_message_parse_validation_guard_and_task_scheduling_reference.md)
 - [WebSocket Connection Docs Hub](connection/README.md)
 - [Handshake Parse, Validation, and Policy-Close Contract Reference](connection/handshake_parse_validation_and_policy_close_contract_reference.md)

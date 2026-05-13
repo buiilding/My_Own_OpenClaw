@@ -76,7 +76,7 @@ Added/expanded in WindieOS:
 - `getting-started/docs_hub.md`: central agent-facing docs entrypoint with subsystem ownership, code-root routing, and change-path playbooks.
 - `architecture/`: architecture hub plus runtime-boundary, data-flow/state ownership, storage/persistence change routing, ownership-decision, and failure-domain maps.
 - `concepts/`: OpenClaw-style conceptual docs for runtime model, sessions/conversations, agent loop, streaming/events, context/memory, prompt/tool context, model-provider selection, usage/token accounting, and safety boundaries.
-- `gateway/`: hosted backend ingress docs for FastAPI app assembly, websocket/REST protocol families, install auth, health checks, REST route ownership, websocket connection lifecycle, and hosted troubleshooting.
+- `gateway/`: hosted backend ingress docs for FastAPI app assembly, websocket/REST protocol families, install auth, health checks, REST route ownership, websocket connection lifecycle/change routing, and hosted troubleshooting.
 - `desktop/`: user-visible desktop surface docs for dashboard, chat pill, response overlay, onboarding/permissions, voice, artifacts, and artifact-change workflow routing.
 - `debug/`: OpenClaw-style debug docs for logs, observability-change routing, error/failure change routing, diagnostic flags, endpoint/network checks, process health, trace flags, symptom playbooks, and test selection.
 - `channels/`: OpenClaw-style channel docs for desktop chat, websocket transport and event-contract change routing, voice/audio workflows, sidecar tool execution, SDK clients, and VM run control routing.
