@@ -12,6 +12,8 @@ Packaged WindieOS builds are Electron apps with a bundled Python sidecar runtime
 
 Use [Install Decision Matrix](install_decision_matrix.md) before packaging if the change may be source-only. Packaged validation is required for bundled runtime paths, installed app paths, platform permissions, local reinstall helpers, and release artifacts.
 
+For implementation work, start with [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md) before editing package scripts, runtime build helpers, smoke scripts, or release workflow files.
+
 ## Package Commands
 
 From `frontend/`:
@@ -63,6 +65,7 @@ CI smoke helpers live under `scripts/ci/`:
 ## Related Docs
 
 - [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+- [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
 - [Backend Endpoint Setup](local_backend_and_endpoint_setup.md)
 - [Install Troubleshooting](install_troubleshooting.md)

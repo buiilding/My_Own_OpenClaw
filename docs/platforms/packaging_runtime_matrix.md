@@ -10,6 +10,8 @@ title: "Packaging Runtime Matrix"
 
 Packaging is OS-native. Build and validate each runtime on the target OS because Electron packages, bundled Python binaries, signing, and OS dependencies do not transfer across platforms.
 
+For implementation routing, start with [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md). This matrix is the target/validation companion for that workflow.
+
 ## Target Matrix
 
 | Platform | Package command | Targets | Local reinstall helper | Smoke helper |
@@ -57,4 +59,5 @@ For platform packaging changes:
 - [Install Decision Matrix](../install/install_decision_matrix.md)
 - [Uninstall, Reinstall, and Reset](../install/uninstall_reinstall_reset.md)
 - [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+- [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)

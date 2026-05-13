@@ -10,6 +10,8 @@ title: "Packaging and Release Commands"
 
 Packaging commands are OS-sensitive. Build and smoke the target package on the target OS whenever possible.
 
+Use [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md) before changing these commands, release workflow inputs, smoke scripts, or reinstall helpers.
+
 ## Frontend Package Commands
 
 Run from `frontend/`.
@@ -52,6 +54,7 @@ Local macOS reinstall loops intentionally skip Apple notarization and release si
 
 - [Install Hub](../install/README.md)
 - [Packaged Desktop Builds](../install/packaged_desktop.md)
+- [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md)
 - [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
 - [Release Guide](../operations/release.md)

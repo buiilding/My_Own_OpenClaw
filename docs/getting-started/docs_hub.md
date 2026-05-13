@@ -63,6 +63,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [SDK Auth and Error Handling](../sdk/sdk_auth_and_error_handling.md) for SDK auth, endpoint, status, websocket, and client error contracts.
 - [Install Hub](../install/README.md) for local development, packaged desktop builds, endpoint setup, reinstall/reset loops, and install troubleshooting.
 - [Install Decision Matrix](../install/install_decision_matrix.md) for choosing the correct source, packaged, endpoint, reinstall, or release-validation path.
+- [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md) for changing Electron Builder targets, bundled sidecar runtime generation, reinstall helpers, smoke checks, and release workflow behavior.
 - [Backend Endpoint Setup](../install/local_backend_and_endpoint_setup.md) for hosted, local, packaged-default, and self-host backend routing.
 - [Uninstall, Reinstall, and Reset](../install/uninstall_reinstall_reset.md) for OS-specific local packaged reinstall helpers and reset scope.
 - [Install Troubleshooting](../install/install_troubleshooting.md) for install failures across dependencies, sidecar runtime, endpoint routing, permissions, and signing.

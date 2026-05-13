@@ -23,6 +23,7 @@ WindieOS install docs cover source-mode development, packaged desktop validation
 - [Backend Endpoint Setup](local_backend_and_endpoint_setup.md)
 - [Uninstall, Reinstall, and Reset](uninstall_reinstall_reset.md)
 - [Install Troubleshooting](install_troubleshooting.md)
+- [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
 
 ## Main Commands
@@ -38,6 +39,7 @@ WindieOS install docs cover source-mode development, packaged desktop validation
 - [Platform Setup: Backend + Frontend](../getting-started/platform_setup_backend_frontend.md)
 - [Installation Guide](../getting-started/installation.md)
 - [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md)
+- [Release and Packaging Change Workflow](../operations/release_packaging_change_workflow.md)
 - [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md)
 - [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
 - [Release Guide](../operations/release.md)

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(operations): add release and packaging change workflow for Electron Builder targets, bundled sidecar runtime, local reinstall helpers, smoke checks, and release workflow behavior.
 - docs(debug): add observability change workflow for logs, trace flags, metrics, diagnostic events, evidence collection, and debug gates.
 - docs(voice): add voice/audio change workflow for wakeword, microphone permissions, transcription websocket, STT providers, TTS chunks, and renderer playback.
 - docs(artifacts): add artifact change workflow for screenshot attachments, upload/fetch, query payloads, tool-result screenshots, replay, and SDK access.
