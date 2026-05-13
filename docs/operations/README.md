@@ -150,6 +150,8 @@ Validation:
 - [Cloudflared Self-Host Runbook](cloudflared_self_host_windieos.md)
 - [Sidecar Runtime Packaging](sidecar_runtime_packaging.md)
 - [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md)
+- [Evidence Collection Runbook](evidence_collection_runbook.md)
+- [Incident Triage Runbook](incident_triage_runbook.md)
 - [Release Guide](release.md)
 - [Security](security.md)
 - [Multi-User Runtime Hardening](multi_user_runtime_hardening.md)

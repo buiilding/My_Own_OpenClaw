@@ -157,6 +157,8 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, deployment, packaging, release, security, performance, and operational troubleshooting
 - [**Runtime Configuration Matrix**](operations/runtime_configuration_matrix.md) - Config ownership, env vars, defaults, propagation paths, and validation targets
 - [**Hosted Backend Auth**](operations/hosted_backend_auth.md) - Install registration, bearer-token REST auth, websocket identity, and hosted-auth debugging
+- [**Evidence Collection Runbook**](operations/evidence_collection_runbook.md) - Operations evidence packet for hosted, tunnel, Electron, renderer, sidecar, packaged, VM, provider, and permission failures
+- [**Incident Triage Runbook**](operations/incident_triage_runbook.md) - Severity, owner, mitigation, validation, and closure flow for operational incidents
 - [**Operational Troubleshooting**](operations/operational_troubleshooting.md) - Symptom-to-owner routing for hosted, tunnel, packaged-app, sidecar, and VM worker failures
 
 ### Architecture & Design
