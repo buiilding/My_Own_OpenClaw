@@ -53,9 +53,11 @@ Current WindieOS major sections:
 
 - `getting-started/`
 - `concepts/`
+- `desktop/`
 - `architecture/`
 - `tools/`
 - `providers/`
+- `sdk/`
 - `install/`
 - `cli/`
 - `platforms/`
@@ -71,8 +73,10 @@ Added/expanded in WindieOS:
 
 - `getting-started/docs_hub.md`: central agent-facing docs entrypoint with subsystem ownership, code-root routing, and change-path playbooks.
 - `concepts/`: OpenClaw-style conceptual docs for runtime model, agent loop, context/memory, and safety boundaries.
+- `desktop/`: user-visible desktop surface docs for dashboard, chat pill, response overlay, onboarding/permissions, voice, and artifacts.
 - `tools/`: first-class tool-system docs covering contracts, computer use, browser automation, filesystem, and shell execution.
 - `providers/`: model/provider docs covering LLM providers, model catalog metadata, credentials, and inference providers.
+- `sdk/`: hosted backend client and developer API docs covering query planning, traces, OCR/vision, and tool authoring.
 - `install/`, `cli/`, `platforms/`, `help/`, and `web/`: broad operational entrypoints that mirror OpenClaw's public-domain navigation while staying grounded in WindieOS desktop/runtime surfaces.
 - `backend/`: backend functionality maps and subsystem docs.
 - `frontend/`: frontend/electron/renderer/sidecar functionality maps.
@@ -89,9 +93,11 @@ Added/expanded in WindieOS:
 
 - `getting-started/`: onboarding and quick paths.
 - `concepts/`: product/system mental models that are not tied to one source folder.
+- `desktop/`: user-facing desktop surfaces and their renderer/main ownership boundaries.
 - `architecture/`: high-level conceptual architecture and cross-system flows.
 - `tools/`: first-class tool behavior, contracts, and runtime maps.
 - `providers/`: LLM, model, credential, inference, audio, and web-search provider behavior.
+- `sdk/`: hosted backend clients, public SDK routes, query introspection, and tool authoring.
 - `install/`: source setup, packaged app build, and reinstall flows.
 - `cli/`: current repo scripts/package commands and future first-class CLI boundary.
 - `platforms/`: OS-specific desktop behavior and packaging notes.

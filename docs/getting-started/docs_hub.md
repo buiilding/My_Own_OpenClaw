@@ -33,8 +33,10 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Quick Start](quick_start.md) for the local run path.
 - [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) for environment setup.
 - [Concepts Hub](../concepts/README.md) for product/system mental models before implementation details.
+- [Desktop Surfaces](../desktop/README.md) for dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts.
 - [Tools Hub](../tools/README.md) for model-facing and sidecar-executable tools.
 - [Providers Hub](../providers/README.md) for LLM, inference, credential, STT, TTS, and web-search providers.
+- [SDK Hub](../sdk/README.md) for hosted backend clients, query planning, OCR/vision, and tool authoring.
 - [Install Hub](../install/README.md) for local development and packaged desktop builds.
 - [Commands and Scripts](../cli/README.md) for current repo/script entrypoints and planned CLI boundaries.
 - [Platforms Hub](../platforms/README.md) for macOS, Windows, and Linux behavior.
@@ -325,6 +327,16 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Context and Memory](../concepts/context_and_memory.md)
 - [Safety Boundaries](../concepts/safety_boundaries.md)
 
+### Desktop Surfaces
+
+- [Desktop Surfaces](../desktop/README.md)
+- [Dashboard](../desktop/dashboard.md)
+- [Minimal Chat Pill](../desktop/minimal_chat_pill.md)
+- [Response Overlay](../desktop/response_overlay.md)
+- [Onboarding and Permissions](../desktop/onboarding_permissions.md)
+- [Voice and Wakeword](../desktop/voice_and_wakeword.md)
+- [Artifacts and Attachments](../desktop/artifacts_and_attachments.md)
+
 ### Tools
 
 - [Tools Hub](../tools/README.md)
@@ -339,6 +351,14 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Models and LLM Providers](../providers/models.md)
 - [Provider Credentials](../providers/credentials.md)
 - [Inference Providers](../providers/inference.md)
+
+### SDK
+
+- [SDK Hub](../sdk/README.md)
+- [Hosted Backend Clients](../sdk/hosted_backend_clients.md)
+- [Query Planning and Trace](../sdk/query_planning_and_trace.md)
+- [OCR and Vision SDK](../sdk/ocr_and_vision.md)
+- [Tool Authoring](../sdk/tool_authoring.md)
 
 ### Install
 

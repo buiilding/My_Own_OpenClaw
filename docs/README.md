@@ -13,8 +13,10 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 ### Documentation Hubs
 - [**Documentation Hub**](getting-started/docs_hub.md) - Agent-facing routing map for choosing the right subsystem, code roots, docs, and validation path before development
 - [**Concepts Hub**](concepts/README.md) - Runtime model, agent loop, memory/context, and safety-boundary mental models
+- [**Desktop Surfaces**](desktop/README.md) - Dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts
 - [**Tools Hub**](tools/README.md) - Tool contracts, computer tools, browser automation, filesystem, and shell execution
 - [**Providers Hub**](providers/README.md) - LLM providers, model catalog, credentials, inference providers, STT, and TTS
+- [**SDK Hub**](sdk/README.md) - Hosted backend clients, query planning, OCR/vision SDK routes, and tool authoring
 - [**Install Hub**](install/README.md) - Local development, packaging, sidecar runtime bundling, and reinstall helpers
 - [**Commands and Scripts**](cli/README.md) - Current developer commands, package scripts, cloudflared helpers, and planned CLI boundary
 - [**Platforms Hub**](platforms/README.md) - macOS, Windows, and Linux platform-specific behavior
@@ -40,6 +42,12 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Agent Loop**](concepts/agent_loop.md) - Query send, backend streaming, tool turns, and completion lifecycle
 - [**Context and Memory**](concepts/context_and_memory.md) - Transcript, backend history, semantic memory, artifacts, screenshots, and repo instructions
 - [**Safety Boundaries**](concepts/safety_boundaries.md) - Permissions, schema validation, provider health, and trust boundaries
+- [**Dashboard**](desktop/dashboard.md) - Dashboard shell, sidebar, chat history, settings, memory, and model section routing
+- [**Minimal Chat Pill**](desktop/minimal_chat_pill.md) - Floating command pill behavior, capture timing, drag, anchor, and Linux flicker contract
+- [**Response Overlay**](desktop/response_overlay.md) - Overlay phase state, streamed output, tool ghost preview, and close behavior
+- [**Onboarding and Permissions**](desktop/onboarding_permissions.md) - First-run gate, permission manifest, probes, grant effects, and settings control center
+- [**Voice and Wakeword**](desktop/voice_and_wakeword.md) - Wakeword bridge, voice capture, STT websocket, TTS chunks, and voice status UI
+- [**Artifacts and Attachments**](desktop/artifacts_and_attachments.md) - Screenshot artifact refs, upload/fetch paths, image rendering, and replay preservation
 - [**Tool Contracts**](tools/tool_contracts.md) - Backend model-facing schema vs sidecar executable tool contract
 - [**Computer Tools**](tools/computer.md) - Mouse, keyboard, screenshot, scroll, window, OCR, and vision grounding paths
 - [**Browser Tool**](tools/browser.md) - Dedicated browser runtime, schema parity, snapshots, and debugging
@@ -48,6 +56,10 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Provider Credentials**](providers/credentials.md) - Environment variables, frontend overrides, OAuth entries, and install auth
 - [**Inference Providers**](providers/inference.md) - OCR, vision, embeddings, STT, TTS, health, and capability gating
 - [**HTTP and WebSocket API Surface**](reference/http_api_surface.md) - Route-level map for hosted APIs, SDK routes, artifacts, memory, transcription, and runs
+- [**Hosted Backend Clients**](sdk/hosted_backend_clients.md) - TypeScript and Python SDK client boundaries for backend APIs
+- [**Query Planning and Trace**](sdk/query_planning_and_trace.md) - Prompt/query planning, trace collection, and debug introspection
+- [**OCR and Vision SDK**](sdk/ocr_and_vision.md) - SDK perception routes for OCR, vision locate/describe, overlays, and artifact image sources
+- [**Tool Authoring**](sdk/tool_authoring.md) - Backend SDK tool template, ToolContext, permissions, schema, and registration expectations
 
 ### Architecture & Design
 - [**Frontend Functionality Map**](frontend/README.md) - Detailed module-level renderer, electron-main, and sidecar runtime maps

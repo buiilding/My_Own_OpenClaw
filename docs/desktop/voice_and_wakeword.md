@@ -1,0 +1,37 @@
+---
+summary: "Voice and wakeword guide covering renderer capture, wakeword bridge, STT websocket, voice status UI, TTS playback, and provider routing."
+read_when:
+  - When changing voice mode, wakeword detection, transient dictation, STT, TTS, or voice status UI.
+  - When debugging microphone or audio streaming behavior.
+title: "Voice and Wakeword"
+---
+
+# Voice and Wakeword
+
+WindieOS voice has three related paths: wakeword detection, transient voice dictation, and backend speech/audio output. Keep them distinct when debugging.
+
+## Main Files
+
+- Wakeword controller: `frontend/src/renderer/app/WakewordController.jsx`
+- Voice hooks: `frontend/src/renderer/features/voice/hooks/*`
+- Voice utilities: `frontend/src/renderer/features/voice/utils/*`
+- Voice status UI: `frontend/src/renderer/features/voice/components/VoiceStatus.jsx`
+- Main wakeword bridge: `frontend/src/main/wakeword_bridge*.cjs`
+- Sidecar wakeword service: `frontend/src/main/python/wakeword_service.py`
+- Backend transcription route/service: `backend/src/api/routes/transcription/*`, `backend/src/api/services/transcription/*`
+- Backend TTS: `backend/src/api/processing/tts/*`, `backend/src/api/services/tts_session.py`
+
+## Runtime Rules
+
+- Onboarding should not mount wakeword capture.
+- Wakeword capture streams through the Electron bridge to the sidecar wakeword service.
+- Voice mode transcription uses the dedicated `/ws/transcription` backend websocket, not the normal agent `/ws` channel.
+- OpenAI and Nova STT modes share the renderer protocol.
+- TTS audio chunks arrive through backend stream events and are played by renderer audio services.
+
+## Deep Docs
+
+- [Frontend Voice Capture + Wakeword Controller Reference](../frontend/renderer/voice_capture_and_wakeword_controller_reference.md)
+- [Frontend Wakeword Bridge + Audio Framing Reference](../frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md)
+- [Backend TTS + Wakeword Audio Runtime Reference](../backend/services/tts_and_wakeword_audio_runtime_reference.md)
+- [API Reference](../reference/api_reference.md)
