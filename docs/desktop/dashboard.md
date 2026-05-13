@@ -39,6 +39,7 @@ The dashboard is the main WindieOS desktop workspace. It is renderer-owned, but 
 
 ## Deep Docs
 
+- [Dashboard Change Workflow](../frontend/renderer/dashboard/dashboard_change_workflow.md)
 - [Frontend Dashboard Memory Management + Resume Runtime](../frontend/renderer/dashboard_memory_management_and_resume_reference.md)
 - [Frontend Dashboard Sidebar, Search, and Profile Menu Runtime Reference](../frontend/renderer/dashboard/shell/sidebar_search_profile_menu_and_recent_conversation_resume_reference.md)
 - [Frontend Renderer Dashboard Docs Hub](../frontend/renderer/dashboard/README.md)

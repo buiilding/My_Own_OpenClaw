@@ -10,6 +10,7 @@ title: "Renderer Dashboard Docs Hub"
 
 ## Deep Pages
 
+- [Dashboard Change Workflow](dashboard_change_workflow.md)
 - [Dashboard Shell Docs Hub](shell/README.md)
 - [Renderer State Change Workflow](../renderer_state_change_workflow.md)
 - [Dashboard Conversation Hook Search, Polling, and Group Bucket Contract Reference](shell/dashboard_conversation_hook_search_polling_and_group_bucket_contract_reference.md)
@@ -28,7 +29,7 @@ title: "Renderer Dashboard Docs Hub"
 
 ## Code Scope
 
-- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/features/dashboard/components/DashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`

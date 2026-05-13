@@ -95,6 +95,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [App Startup VM-Mode and Frontend Onboarding Runtime Reference](renderer/app_startup_vm_mode_and_frontend_onboarding_runtime_reference.md)
 - [Feature Module Matrix](renderer/feature_module_matrix.md)
 - [Renderer Dashboard Docs Hub](renderer/dashboard/README.md)
+- [Dashboard Change Workflow](renderer/dashboard/dashboard_change_workflow.md)
 - [Dashboard Memory Management and Resume Reference](renderer/dashboard_memory_management_and_resume_reference.md)
 - [Dashboard Shell Docs Hub](renderer/dashboard/shell/README.md)
 - [Dashboard Sections Docs Hub](renderer/dashboard/sections/README.md)

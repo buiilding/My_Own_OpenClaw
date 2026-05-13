@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(frontend): add a dashboard change workflow for shell routing, sidebar conversations, search, memory, models, settings, usage, transcript handoff, and chat resume.
 - docs(frontend): add an overlay phase and surface change workflow for chat pill, response overlay, phase IPC, loop interactivity, content protection, screenshot hide/restore, and platform capture policy.
 - docs(frontend): add a query-send and stream-relay change workflow for renderer compose, Electron main websocket relay, payload enrichment, optimistic events, overlay phase, transcript sync, backend handoff, and stream ingress.
 - docs(gateway): add a websocket connection change workflow for main `/ws` handshake auth, identity binding, message validation, task limits, receive timeouts, handler dispatch, transport sends, and cleanup.
