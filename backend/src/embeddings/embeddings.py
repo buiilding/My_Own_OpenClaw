@@ -8,14 +8,25 @@ vector embeddings of text. Includes caching to avoid recomputing embeddings for 
 import asyncio
 import logging
 import os
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 from backend.src.core.interfaces.embedding import EmbeddingProvider
 
 logger = logging.getLogger(__name__)
+
+
+def _load_sentence_transformer_class() -> Any:
+    try:
+        from sentence_transformers import SentenceTransformer
+    except ImportError as exc:
+        raise RuntimeError(
+            "Local embeddings require sentence-transformers to be installed. "
+            "Set embedding_backend to 'remote-http' or 'disabled' for lightweight "
+            "orchestrator deployments."
+        ) from exc
+    return SentenceTransformer
 
 CUDA_ERROR_KEYWORDS = (
     "CUBLAS_STATUS_ALLOC_FAILED",
@@ -63,7 +74,7 @@ class SentenceTransformerProvider(EmbeddingProvider):
         self._model_name = model_name
         self._device = device
         self._cache_manager = cache_manager
-        self.model: Optional[SentenceTransformer] = None
+        self.model: Optional[Any] = None
         self._dimension: Optional[int] = None
         self._use_cache = True  # Enable caching by default
         self._initialized = False
@@ -100,6 +111,7 @@ class SentenceTransformerProvider(EmbeddingProvider):
 
     async def _load_model(self, device: str) -> None:
         """Load or reload the sentence transformer on the requested device."""
+        SentenceTransformer = _load_sentence_transformer_class()
         model = await self._run_blocking(
             lambda: SentenceTransformer(self._model_name, device=device)
         )
