@@ -49,6 +49,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Landing Page**](web/landing_page.md) - Standalone public landing page entrypoint, section, style, and product-claim boundaries
 - [**Web Client Integration**](web/web_client_integration.md) - Hosted TypeScript/Python client and non-Electron integration boundaries
 - [**Reference Hub**](reference/README.md) - Stable API, websocket event, configuration, session/transcript, and docs-organization lookup maps
+- [**Code Change Surface Index**](reference/code_change_surface_index.md) - Feature-request to source-root, test, docs, and validation routing map
 - [**OpenClaw Docs Structure Reference**](reference/openclaw_docs_structure_reference.md) - Structure benchmark and WindieOS mapping
 - [**Backend Bootstrap/API/Contracts Hubs**](backend/README.md) - Subfolder-level backend navigation mirroring OpenClaw-style layered docs
 - [**Frontend Main/Renderer/Contracts/Sidecar Hubs**](frontend/README.md) - Subfolder-level frontend navigation for process/runtime boundaries
@@ -134,6 +135,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Local Providers**](providers/local.md) - Ollama and LM Studio base URLs, model discovery, and placeholder-key behavior
 - [**HTTP and WebSocket API Surface**](reference/http_api_surface.md) - Route-level map for hosted APIs, SDK routes, artifacts, memory, transcription, and runs
 - [**Reference Hub**](reference/README.md) - Stable contract lookup for APIs, events, config, session/transcript identifiers, and docs organization
+- [**Code Change Surface Index**](reference/code_change_surface_index.md) - Concrete code-change routing by feature, runtime owner, source root, test path, and docs path
 - [**WebSocket Event Reference**](reference/websocket_event_reference.md) - Canonical backend event families, renderer consumers, correlation fields, and validation docs
 - [**Configuration Reference**](reference/configuration_reference.md) - Runtime config owners, high-touch env vars, credential rules, and add-a-config checklist
 - [**Session and Transcript Reference**](reference/session_and_transcript_reference.md) - User/session/conversation, turn, tool, transcript, replay, and VM run identifier map

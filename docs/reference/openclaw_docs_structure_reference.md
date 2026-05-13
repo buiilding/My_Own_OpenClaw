@@ -88,7 +88,8 @@ Added/expanded in WindieOS:
 - `tools/`: first-class tool-system docs covering contracts, catalog matrices, execution lifecycle, policy/profile gates, troubleshooting, computer use, browser automation, filesystem, and shell execution.
 - `providers/`: model/provider docs covering LLM providers, provider-specific runtime pages, model catalog metadata, credentials, and inference providers.
 - `sdk/`: hosted backend client and developer API docs covering query planning, traces, OCR/vision, and tool authoring.
-- `reference/`: stable lookup docs for API surfaces, websocket event contracts, configuration ownership, session/transcript identifiers, and docs organization policy.
+- `reference/`: stable lookup docs for API surfaces, websocket event contracts, configuration ownership, session/transcript identifiers, code-change surface routing, and docs organization policy.
+- `reference/code_change_surface_index.md`: OpenClaw-style feature-to-code routing map for source roots, tests, docs, and validation commands.
 - `install/`, `cli/`, `platforms/`, `help/`, and `web/`: broad operational entrypoints that mirror OpenClaw's public-domain navigation while staying grounded in WindieOS desktop/runtime surfaces; install now covers path selection, endpoint setup, packaged reinstall/reset, and install troubleshooting, platforms now cover permission, screenshot/overlay, window/input, and packaging runtime matrices, help now covers triage routes, doctor-style checks, evidence packets, and FAQ entries, and web now separates landing, hosted API/auth, and client-integration surfaces.
 - `cli/`: current repo-script and package-script command docs with separate matrices for command selection, validation, and packaging/release operations while first-class user CLI behavior remains planned.
 - `automation/`: current VM run orchestration docs for `/api/runs/*`, worker polling, run timelines, run controls, and explicit boundaries for future cron/webhook/scheduler work.
