@@ -1,6 +1,7 @@
 import {
   act,
   ApiClient,
+  flushAsyncEffects,
   getBackendHandler,
   getRemoveBackendListenerMock,
   INVOKE_CHANNELS,
@@ -12,6 +13,7 @@ import {
   registerAppConfigProviderSuiteLifecycle,
   renderAppConfigContext,
   SEND_CHANNELS,
+  setClientUserIdResponse,
 } from './AppConfigProvider.testUtils';
 
 registerAppConfigProviderSuiteLifecycle();
@@ -30,13 +32,22 @@ describe('AppConfigProvider model + config wiring', () => {
     return { settingsHandlers, backendHandler };
   }
 
-  test('registers backend listener before requesting model list', () => {
+  test('registers backend listener before requesting model list after connect', () => {
     renderAppConfigContext();
 
     expect(IpcBridge.on).toHaveBeenCalledWith(
       ON_CHANNELS.FROM_BACKEND,
       expect.any(Function),
     );
+    expect(IpcBridge.send).not.toHaveBeenCalledWith(
+      SEND_CHANNELS.TO_BACKEND,
+      { type: 'list-models' },
+    );
+
+    act(() => {
+      getBackendHandler(ON_CHANNELS.IPC_STATUS)?.({ isConnected: true });
+    });
+
     expect(IpcBridge.send).toHaveBeenCalledWith(
       SEND_CHANNELS.TO_BACKEND,
       { type: 'list-models' },
@@ -47,6 +58,9 @@ describe('AppConfigProvider model + config wiring', () => {
     window.history.pushState({}, '', '/?view=chatbox-response');
 
     renderAppConfigContext();
+    act(() => {
+      getBackendHandler(ON_CHANNELS.IPC_STATUS)?.({ isConnected: true });
+    });
 
     expect(IpcBridge.send).not.toHaveBeenCalledWith(
       SEND_CHANNELS.TO_BACKEND,
@@ -56,13 +70,31 @@ describe('AppConfigProvider model + config wiring', () => {
 
   test('requests model list only once per renderer session', () => {
     const firstRender = renderAppConfigContext();
+    act(() => {
+      getBackendHandler(ON_CHANNELS.IPC_STATUS)?.({ isConnected: true });
+    });
     firstRender.unmount();
     renderAppConfigContext();
+    act(() => {
+      getBackendHandler(ON_CHANNELS.IPC_STATUS)?.({ isConnected: true });
+    });
 
     const listModelCalls = (IpcBridge.send as jest.Mock).mock.calls.filter(
       ([channel, payload]) => channel === SEND_CHANNELS.TO_BACKEND && payload?.type === 'list-models',
     );
     expect(listModelCalls).toHaveLength(1);
+  });
+
+  test('requests model list from initial connected backend snapshot', async () => {
+    setClientUserIdResponse({ isConnected: true });
+
+    renderAppConfigContext();
+    await flushAsyncEffects();
+
+    expect(IpcBridge.send).toHaveBeenCalledWith(
+      SEND_CHANNELS.TO_BACKEND,
+      { type: 'list-models' },
+    );
   });
 
   test('routes models-listed event to settings handler', () => {
