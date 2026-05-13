@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(frontend): add a local-backend JSON-RPC change workflow for Electron-to-sidecar methods, payload mappers, readiness, timeouts, protocol errors, and response envelopes.
 - docs(automation): add a VM run control change workflow for `/api/runs/*`, `VmRunControlService`, worker heartbeats, event timelines, pending controls, stop-all, runs keys, and Electron VM worker dispatch.
 - docs(debug): add error and failure change workflow for backend exceptions, websocket and HTTP errors, Electron IPC/reconnect failures, sidecar ToolResult failures, renderer error UI, retries, and sanitized logs.
 - docs(architecture): add storage and persistence change workflow for renderer storage, Electron user-data files, sidecar SQLite/FAISS memory, backend artifacts, install-auth SQLite, caches, VM run state, migrations, reset behavior, and validation routing.

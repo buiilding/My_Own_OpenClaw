@@ -68,6 +68,7 @@ Registered methods:
 - `get_system_state`
 - `search_memory`
 - `store_memory`
+- `search_conversations`
 - `list_conversations`
 - `list_episodic_memories`
 - `get_conversation`
@@ -75,7 +76,11 @@ Registered methods:
 - `delete_episodic_memory`
 - `delete_conversation`
 - `delete_semantic_memory`
+- `clear_local_memory`
+- `clear_chat_history`
 - `store_transcript`
+- `install_browser_chromium`
+- `determine_macos_system_events_automation_permission`
 
 Method validation behavior:
 
@@ -102,6 +107,7 @@ Special behavior:
 
 From `local_backend_bridge_rpc_mappers.cjs`:
 
+- `search-conversations` -> `search_conversations`
 - `list-conversations` -> `list_conversations`
 - `list-episodic-memories` -> `list_episodic_memories`
 - `get-conversation` -> `get_conversation`
@@ -109,6 +115,8 @@ From `local_backend_bridge_rpc_mappers.cjs`:
 - `delete-episodic-memory` -> `delete_episodic_memory`
 - `delete-conversation` -> `delete_conversation`
 - `delete-semantic-memory` -> `delete_semantic_memory`
+- `clear-local-memory` -> `clear_local_memory`
+- `clear-chat-history` -> `clear_chat_history`
 - `store-memory` -> `store_memory`
 - `store-transcript` -> `store_transcript`
 
@@ -117,6 +125,15 @@ Mapper details:
 - camelCase renderer keys are converted to snake_case sidecar params.
 - fallback key resolution is used where both naming styles can arrive.
 - payloads are normalized to plain objects before sending.
+
+### Main-only JSON-RPC helpers
+
+`local_backend_bridge.cjs` also exposes main-process helpers that call JSON-RPC directly without a general renderer channel:
+
+- `getLocalBackendStatus()` -> `get_status`
+- `installBrowserChromium()` -> `install_browser_chromium`
+- `determineMacOsSystemEventsAutomationPermission()` -> `determine_macos_system_events_automation_permission`
+- `warmBrowserAutomation()` -> `execute_tool` with `tool_name="browser"` and `action="connect"`
 
 ## Memory-specific Method Semantics
 
@@ -235,6 +252,7 @@ Main process emits local backend status events:
 ## Related Pages
 
 - [Sidecar Core Docs Hub](core/README.md)
+- [Local Backend JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md)
 - [JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
 - [Memory IPC and RPC Mapping Reference](../contracts/memory_ipc_and_rpc_mapping_reference.md)
 - [Memory Search Grouping and Transcript Pair Synthesis Contract Reference](memory/memory_search_grouping_and_transcript_pair_synthesis_contract_reference.md)

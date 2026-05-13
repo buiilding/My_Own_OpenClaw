@@ -40,6 +40,8 @@ Mapped handlers via `registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_
 - `delete-episodic-memory`
 - `delete-conversation`
 - `delete-semantic-memory`
+- `clear-local-memory`
+- `clear-chat-history`
 - `store-memory`
 - `store-transcript`
 
@@ -161,6 +163,8 @@ Guarantee:
 - `delete-episodic-memory` -> `delete_episodic_memory` with `{ memoryId } -> { memory_id }`
 - `delete-conversation` -> `delete_conversation` with null-safe `conversation_id`
 - `delete-semantic-memory` -> `delete_semantic_memory` with `{ memoryId } -> { memory_id }`
+- `clear-local-memory` -> `clear_local_memory` with `{ userId } -> { user_id }`
+- `clear-chat-history` -> `clear_chat_history` with `{ userId } -> { user_id }`
 - `store-memory` -> `store_memory` with camelCase-to-snake_case memory write fields
 - `store-transcript` -> `store_transcript` mapping transcript metadata (`conversation_ref`, `message_type`, `tool_name`, `correlation_id`, `message_index`, `model_id`, `model_provider`)
 
@@ -189,6 +193,7 @@ From `tests/frontend/LocalBackendBridge.rpc.test.cjs`:
 ## Related Pages
 
 - [Frontend Main Local-Backend Docs Hub](README.md)
+- [Local Backend JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md)
 - [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md)
 - [Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference](tool_arg_sudo_auth_mode_resolution_and_config_guard_contract_reference.md)
 - [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)

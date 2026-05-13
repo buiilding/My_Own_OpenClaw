@@ -39,8 +39,9 @@ If a request/response needs correlation, use `invoke` or include an explicit id 
 3. Add or update renderer helper code so feature components do not call raw `window.ipc`.
 4. Register the main handler or broadcaster in `frontend/src/main/ipc.cjs` or a focused `frontend/src/main/ipc/*.cjs` module.
 5. If the channel reaches Python, add or update mapper code in `local_backend_bridge_rpc_mappers.cjs` or the local backend bridge module that owns the behavior.
-6. Add tests for registry/preload parity plus the handler or bridge behavior.
-7. Update docs for the affected domain, not only this workflow.
+6. Read [Local Backend JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md) before changing sidecar method names, handler params, or JSON-RPC response envelopes.
+7. Add tests for registry/preload parity plus the handler or bridge behavior.
+8. Update docs for the affected domain, not only this workflow.
 
 ## Change or Remove a Channel
 
@@ -80,4 +81,5 @@ Do not keep compatibility shims unless there is a verified packaged-app, transcr
 - [Preload Channel Allowlist and Renderer Bridge Reference](preload/preload_channel_allowlist_and_renderer_bridge_reference.md)
 - [IPC Channel and Handler Reference](contracts/ipc_channel_and_handler_reference.md)
 - [Main-Process IPC Handler Ownership and RPC Mapper Reference](contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)
+- [Local Backend JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
 - [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md)

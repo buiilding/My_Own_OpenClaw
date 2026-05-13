@@ -26,6 +26,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 - [IPC Change Workflow](ipc_change_workflow.md)
 - [Sidecar Tool Change Workflow](sidecar_tool_change_workflow.md)
+- [Local Backend JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
 
 ## Deep Pages
 
@@ -174,6 +175,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Sidecar Memory Docs Hub](sidecar/memory/README.md)
 - [Sidecar Memory Storage Docs Hub](sidecar/memory/storage/README.md)
 - [Python Sidecar and Memory](sidecar/python_sidecar_and_memory.md)
+- [Local Backend JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
 - [Sidecar System-State Collection and Platform Adapter Reference](sidecar/system_state/system_state_collection_and_platform_adapter_reference.md)
 - [Sidecar Tool Catalog and Execution Model](sidecar/tool_catalog_and_execution_model.md)
 - [Sidecar Shell and Process Session Runtime Reference](sidecar/tools/shell_and_process_session_runtime_reference.md)

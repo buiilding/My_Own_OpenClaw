@@ -12,6 +12,7 @@ title: "Frontend Sidecar Docs Hub"
 
 - [Python Sidecar and Memory](python_sidecar_and_memory.md)
 - [Sidecar Runtime Change Workflow](sidecar_runtime_change_workflow.md)
+- [Local Backend JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md)
 - [Sidecar Core Docs Hub](core/README.md)
 - [Sidecar Services Docs Hub](services/README.md)
 - [Sidecar System-State Docs Hub](system_state/README.md)
@@ -81,6 +82,7 @@ title: "Frontend Sidecar Docs Hub"
 - [Browser Use File System Runtime, File Type Adapters, and State Persistence Contract Reference](browser/browser_use/filesystem/file_system_runtime_file_type_adapters_and_state_persistence_contract_reference.md)
 - [Python Sidecar Folder Topology and Package `__init__` Export Surface Reference](source_maps/python_sidecar_folder_topology_and_package_init_export_surface_reference.md)
 - [Local Backend JSON-RPC Reference](local_backend_jsonrpc_reference.md)
+- [Local Backend JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md)
 - [Local Backend Process Lifecycle Reference](local_backend_process_lifecycle_reference.md)
 - [Wakeword Bridge and Audio Framing Reference](wakeword_bridge_and_audio_framing_reference.md)
 - [JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
