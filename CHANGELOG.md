@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(sdk): add SDK route-change and auth/error-handling guides for hosted routes, clients, artifacts, OCR, vision, and websocket transport.
 - docs(operations): add evidence collection and incident triage runbooks for hosted, packaged, provider, sidecar, permission, and VM-worker failures.
 - docs(security): add permissions/local-authority and credentials/tokens routing guides for high-risk desktop and hosted changes.
 - docs(memory): add a memory change workflow for transcript, replay, sidecar memory, semanticization, backend history, and compaction ownership.

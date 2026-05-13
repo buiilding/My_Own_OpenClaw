@@ -58,6 +58,8 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Provider Change Workflow](../providers/provider_change_workflow.md) for backend provider runtime, factory, config, credential, frontend setting, and test changes.
 - [Model Catalog Change Workflow](../providers/model_catalog_change_workflow.md) for model ids, capability flags, routing metadata, and picker behavior.
 - [SDK Hub](../sdk/README.md) for hosted backend clients, query planning, OCR/vision, and tool authoring.
+- [SDK Route Change Workflow](../sdk/sdk_route_change_workflow.md) for hosted SDK route, client, artifact, OCR, vision, and test changes.
+- [SDK Auth and Error Handling](../sdk/sdk_auth_and_error_handling.md) for SDK auth, endpoint, status, websocket, and client error contracts.
 - [Install Hub](../install/README.md) for local development, packaged desktop builds, endpoint setup, reinstall/reset loops, and install troubleshooting.
 - [Install Decision Matrix](../install/install_decision_matrix.md) for choosing the correct source, packaged, endpoint, reinstall, or release-validation path.
 - [Backend Endpoint Setup](../install/local_backend_and_endpoint_setup.md) for hosted, local, packaged-default, and self-host backend routing.
@@ -642,6 +644,8 @@ Use these when a change path is not enough and you need exact file ownership:
 
 - [SDK Hub](../sdk/README.md)
 - [Hosted Backend Clients](../sdk/hosted_backend_clients.md)
+- [SDK Route Change Workflow](../sdk/sdk_route_change_workflow.md)
+- [SDK Auth and Error Handling](../sdk/sdk_auth_and_error_handling.md)
 - [Query Planning and Trace](../sdk/query_planning_and_trace.md)
 - [OCR and Vision SDK](../sdk/ocr_and_vision.md)
 - [Tool Authoring](../sdk/tool_authoring.md)

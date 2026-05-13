@@ -1,0 +1,73 @@
+---
+summary: "Auth, endpoint, and error-handling guide for WindieOS hosted SDK routes, artifacts, websocket query transport, TypeScript client, and Python client."
+read_when:
+  - When changing SDK client auth headers, endpoint selection, error surfaces, artifact access, or websocket query transport.
+  - When debugging SDK 401/422/503 failures, artifact fetch failures, or hosted client websocket connection issues.
+title: "SDK Auth and Error Handling"
+---
+
+# SDK Auth and Error Handling
+
+SDK clients use hosted backend auth rules. They do not bypass install auth, provider availability, route validation, or websocket handshake requirements.
+
+## Auth by Route Family
+
+| Route family | Auth | Notes |
+| --- | --- | --- |
+| `POST /api/install/register` | None | Issues install token and server-owned identity. |
+| `/api/sdk/*` | `Authorization: Bearer <install_token>` when install auth is enabled | Includes OCR, vision, debug, prompt-preview, and query-plan routes. |
+| `/api/artifacts/*` | Install bearer token when enabled | Artifact owner should derive from authenticated identity where relevant. |
+| `/ws` | Bearer token in websocket headers plus handshake message | Authenticated identity overrides claimed `user_id`. |
+| `/api/runs/*` | Install auth plus optional `x-windie-runs-key` | VM worker/control plane, not normal SDK client path. |
+
+## Endpoint Rules
+
+| Client | Endpoint source |
+| --- | --- |
+| TypeScript hosted client | Constructor/base URL options in `windieSdkClient.ts`. |
+| Python hosted client | Sidecar/developer client configuration in `frontend/src/main/python/core/windie_sdk_client.py`. |
+| Electron internal `ApiClient` | App-internal backend websocket and IPC wiring; not the same as hosted SDK client. |
+| Sidecar remote clients | Electron-injected backend URL and install token where hosted auth applies. |
+
+Keep HTTP and websocket base URLs paired. A client using hosted HTTP and local websocket, or the inverse, will produce confusing identity and artifact behavior.
+
+## Error Surfaces
+
+| Status/signal | Meaning | First owner |
+| --- | --- | --- |
+| HTTP `401` | Missing or invalid install bearer token, or runs key mismatch for runs routes | Client auth header or backend auth middleware |
+| HTTP `404` | Route path mismatch, missing artifact, missing tool/candidate, or router not registered | Route family owner |
+| HTTP `422` | Pydantic request validation, invalid image base64, invalid region, or payload shape mismatch | SDK route models/service validation |
+| HTTP `503` | Provider/service unavailable, install auth service unavailable, OCR/vision disabled/unhealthy | Backend provider/router/container readiness |
+| Websocket close `1008` | Handshake/auth/schema policy failure | Websocket lifecycle owner |
+| Client timeout | Network, endpoint selection, provider latency, or missing event completion | Client transport or backend route/service |
+
+Do not collapse all SDK failures into `Error: request failed`. Preserve status, route, and response detail in client errors so agents can route failures correctly.
+
+## Client Error-Handling Rules
+
+- Include method, path, status, and parsed response detail when possible.
+- Preserve structured provider errors from backend `503` responses.
+- Treat `422` as caller payload/schema error, not provider failure.
+- Treat `401` as credential/token failure before debugging provider code.
+- For websocket query transport, report close code and reason.
+- For artifact URLs, distinguish upload failure from fetch/display failure.
+
+## Tests
+
+| Behavior | Tests |
+| --- | --- |
+| Backend SDK route validation and provider errors | `tests/backend/test_sdk_routes.py` |
+| Artifact route auth/fetch/upload | `tests/backend/test_artifact_routes.py`, `tests/backend/test_artifacts_store.py` |
+| TypeScript client request/error behavior | `tests/frontend/WindieSdkClient.test.ts` |
+| TypeScript export surface | `tests/frontend/WindieSdkClientExports.test.ts` |
+| Python client behavior | `tests/sidecar/test_windie_sdk_client.py` |
+| Remote client auth/error wrappers | `tests/sidecar/test_remote_api_client_base.py`, remote embedding/semantic/title client tests |
+
+## Related Docs
+
+- [Hosted Backend Clients](hosted_backend_clients.md)
+- [SDK Route Change Workflow](sdk_route_change_workflow.md)
+- [Hosted API and Auth](../web/hosted_api_and_auth.md)
+- [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md)
+- [REST Route Auth Matrix](../gateway/rest_route_auth_matrix.md)

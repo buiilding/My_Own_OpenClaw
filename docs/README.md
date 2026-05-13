@@ -151,6 +151,8 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Configuration Reference**](reference/configuration_reference.md) - Runtime config owners, high-touch env vars, credential rules, and add-a-config checklist
 - [**Session and Transcript Reference**](reference/session_and_transcript_reference.md) - User/session/conversation, turn, tool, transcript, replay, and VM run identifier map
 - [**Hosted Backend Clients**](sdk/hosted_backend_clients.md) - TypeScript and Python SDK client boundaries for backend APIs
+- [**SDK Route Change Workflow**](sdk/sdk_route_change_workflow.md) - Change `/api/sdk/*` routes, models, service helpers, hosted clients, artifacts, OCR, vision, and tests
+- [**SDK Auth and Error Handling**](sdk/sdk_auth_and_error_handling.md) - Hosted SDK auth headers, endpoints, status routing, websocket close handling, and client error rules
 - [**Query Planning and Trace**](sdk/query_planning_and_trace.md) - Prompt/query planning, trace collection, and debug introspection
 - [**OCR and Vision SDK**](sdk/ocr_and_vision.md) - SDK perception routes for OCR, vision locate/describe, overlays, and artifact image sources
 - [**Tool Authoring**](sdk/tool_authoring.md) - Backend SDK tool template, ToolContext, permissions, schema, and registration expectations
