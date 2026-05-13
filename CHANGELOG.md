@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(readme): reposition WindieOS as the open-source desktop companion layer for personal AI agents, clarifying the frontend/sidecar boundary and differentiating it from coding agents, messaging gateways, and cloud agent computers.
 - refactor(backend-agent-capability-policy): add typed per-user/session agent tool profiles and capability gates so prompt schemas, parser validation, available-tool metadata, and OCR/vision prompt sections can be narrowed without restarting the backend while keeping legacy dev tool-selection as a compatibility layer.
 - feat(agent-capability-handshake): let clients send available tools, available coordinate methods, and requested agent policy in the websocket handshake so backend effective policy can narrow model-visible tools per connection before the first query.
 - feat(agent-provider-health-policy): feed known OCR, vision, embedding, and web-search provider availability into effective session policy so unavailable capabilities are hidden before prompt construction.
