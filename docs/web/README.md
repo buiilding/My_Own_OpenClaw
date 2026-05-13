@@ -1,5 +1,5 @@
 ---
-summary: "Web surfaces hub for WindieOS landing page, hosted backend APIs, SDK routes, websocket clients, and dashboard-adjacent surfaces."
+summary: "Web surfaces hub for WindieOS landing page, hosted backend APIs, auth, SDK routes, websocket clients, client integration, and dashboard-adjacent surfaces."
 read_when:
   - When changing web-facing docs, landing page behavior, SDK HTTP routes, or hosted backend access.
   - When deciding whether a feature is a desktop renderer surface or a web/API surface.
@@ -27,6 +27,13 @@ WindieOS is primarily a desktop app, but it has web-facing surfaces:
 | SDK/introspection routes | Backend API | `backend/src/api/routes/sdk/*` |
 | Runs/VM control API | Backend API/services | `backend/src/api/routes/runs/*` |
 
+## Web Pages
+
+- [Web Surface Matrix](web_surface_matrix.md)
+- [Hosted API and Auth](hosted_api_and_auth.md)
+- [Landing Page](landing_page.md)
+- [Web Client Integration](web_client_integration.md)
+
 ## Rules
 
 - Do not treat renderer dashboard code as a browser-hosted dashboard without checking Electron assumptions.
@@ -37,6 +44,8 @@ WindieOS is primarily a desktop app, but it has web-facing surfaces:
 
 - [Frontend Landing Docs Hub](../frontend/landing/README.md)
 - [Backend API Docs Hub](../backend/api/README.md)
+- [Gateway Protocol Map](../gateway/gateway_protocol_map.md)
 - [API Reference](../reference/api_reference.md)
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
+- [Hosted Backend Clients](../sdk/hosted_backend_clients.md)
 - [Deployment](../operations/deployment.md)

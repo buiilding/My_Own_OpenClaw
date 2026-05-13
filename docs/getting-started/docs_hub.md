@@ -73,6 +73,10 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Doctor Checklist](../help/doctor_checklist.md) for collecting environment, endpoint, sidecar, permission, packaging, and hosted evidence.
 - [Evidence Packet](../help/evidence_packet.md) for handoff-ready bug reports across backend/frontend/sidecar boundaries.
 - [FAQ](../help/faq.md) for recurring source, packaged, endpoint, provider, tool, browser, permission, and memory questions.
+- [Web Surfaces](../web/README.md) for landing, hosted API/auth, SDK/client, artifact, websocket, and dashboard-adjacent web boundaries.
+- [Web Surface Matrix](../web/web_surface_matrix.md) for mapping web/API changes to owners and public contracts.
+- [Hosted API and Auth](../web/hosted_api_and_auth.md) for hosted REST/websocket auth, CORS, health checks, and failure routing.
+- [Web Client Integration](../web/web_client_integration.md) for TypeScript/Python hosted client and non-Electron integration boundaries.
 - [Reference Hub](../reference/README.md) for stable API, websocket event, configuration, and session/transcript lookup maps.
 - [System Architecture](../architecture/architecture.md) for the high-level runtime model.
 - [Communication Flow](../architecture/communication_flow.md) for cross-process event flow.
@@ -661,6 +665,10 @@ Use these when a change path is not enough and you need exact file ownership:
 ### Web
 
 - [Web Surfaces](../web/README.md)
+- [Web Surface Matrix](../web/web_surface_matrix.md)
+- [Hosted API and Auth](../web/hosted_api_and_auth.md)
+- [Landing Page](../web/landing_page.md)
+- [Web Client Integration](../web/web_client_integration.md)
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
 
 ### Reference

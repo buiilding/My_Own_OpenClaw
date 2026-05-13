@@ -43,7 +43,11 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Doctor Checklist**](help/doctor_checklist.md) - Manual environment, endpoint, sidecar, permission, packaging, and hosted checks
 - [**Evidence Packet**](help/evidence_packet.md) - Debugging report template for cross-boundary failures
 - [**FAQ**](help/faq.md) - Short routes for recurring source, packaged, endpoint, provider, tool, browser, and memory issues
-- [**Web Surfaces**](web/README.md) - Landing page, hosted backend APIs, SDK routes, artifacts, and websocket surfaces
+- [**Web Surfaces**](web/README.md) - Landing page, hosted backend APIs, auth, SDK routes, client integration, artifacts, and websocket surfaces
+- [**Web Surface Matrix**](web/web_surface_matrix.md) - Current web/API surfaces, owners, public contracts, and change routing
+- [**Hosted API and Auth**](web/hosted_api_and_auth.md) - Hosted REST/websocket auth, CORS, health checks, and failure routing
+- [**Landing Page**](web/landing_page.md) - Standalone public landing page entrypoint, section, style, and product-claim boundaries
+- [**Web Client Integration**](web/web_client_integration.md) - Hosted TypeScript/Python client and non-Electron integration boundaries
 - [**Reference Hub**](reference/README.md) - Stable API, websocket event, configuration, session/transcript, and docs-organization lookup maps
 - [**OpenClaw Docs Structure Reference**](reference/openclaw_docs_structure_reference.md) - Structure benchmark and WindieOS mapping
 - [**Backend Bootstrap/API/Contracts Hubs**](backend/README.md) - Subfolder-level backend navigation mirroring OpenClaw-style layered docs
