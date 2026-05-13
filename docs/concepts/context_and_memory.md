@@ -39,6 +39,7 @@ WindieOS context is assembled from live UI state, stored transcript state, local
 
 ## Deep Docs
 
+- [Memory Hub](../memory/README.md)
 - [Memory System](../architecture/memory_system.md)
 - [Frontend Transcript Session + Rehydrate Reference](../frontend/renderer/transcript_session_and_rehydrate_reference.md)
 - [Frontend Sidecar Memory Docs Hub](../frontend/sidecar/memory/README.md)

@@ -56,6 +56,7 @@ Current WindieOS major sections:
 - `desktop/`
 - `debug/`
 - `architecture/`
+- `memory/`
 - `tools/`
 - `providers/`
 - `sdk/`
@@ -77,6 +78,7 @@ Added/expanded in WindieOS:
 - `desktop/`: user-visible desktop surface docs for dashboard, chat pill, response overlay, onboarding/permissions, voice, and artifacts.
 - `debug/`: OpenClaw-style debug docs for logs, trace flags, symptom playbooks, and test selection.
 - `browser/`: dedicated browser automation docs for launch/profile isolation, action dispatch, session UI, files, and troubleshooting.
+- `memory/`: transcript, replay, sidecar local memory, backend history, semantic routes, and troubleshooting docs.
 - `tools/`: first-class tool-system docs covering contracts, computer use, browser automation, filesystem, and shell execution.
 - `providers/`: model/provider docs covering LLM providers, provider-specific runtime pages, model catalog metadata, credentials, and inference providers.
 - `sdk/`: hosted backend client and developer API docs covering query planning, traces, OCR/vision, and tool authoring.
@@ -99,6 +101,7 @@ Added/expanded in WindieOS:
 - `desktop/`: user-facing desktop surfaces and their renderer/main ownership boundaries.
 - `debug/`: symptom-first debugging, runtime trace controls, logs, and validation choices.
 - `browser/`: browser-specific runtime, action surface, and troubleshooting docs separate from generic tool docs.
+- `memory/`: memory and transcript docs that distinguish renderer persistence, sidecar storage, and backend active history.
 - `architecture/`: high-level conceptual architecture and cross-system flows.
 - `tools/`: first-class tool behavior, contracts, and runtime maps.
 - `providers/`: LLM, model, credential, inference, audio, and web-search provider behavior.

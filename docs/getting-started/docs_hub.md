@@ -33,6 +33,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Quick Start](quick_start.md) for the local run path.
 - [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) for environment setup.
 - [Concepts Hub](../concepts/README.md) for product/system mental models before implementation details.
+- [Memory Hub](../memory/README.md) for transcript, replay, sidecar memory, backend history, and semantic route ownership.
 - [Desktop Surfaces](../desktop/README.md) for dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts.
 - [Debug Hub](../debug/README.md) for logs, trace flags, symptom playbooks, and test selection.
 - [Tools Hub](../tools/README.md) for model-facing and sidecar-executable tools.
@@ -327,6 +328,14 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Agent Loop](../concepts/agent_loop.md)
 - [Context and Memory](../concepts/context_and_memory.md)
 - [Safety Boundaries](../concepts/safety_boundaries.md)
+
+### Memory
+
+- [Memory Hub](../memory/README.md)
+- [Transcript and Replay](../memory/transcript_and_replay.md)
+- [Sidecar Local Memory](../memory/sidecar_local_memory.md)
+- [Backend History and Semantic Routes](../memory/backend_history_and_semantic_routes.md)
+- [Memory Troubleshooting](../memory/memory_troubleshooting.md)
 
 ### Desktop Surfaces
 

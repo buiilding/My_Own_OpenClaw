@@ -42,6 +42,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Runtime Model**](concepts/runtime_model.md) - Hosted backend, Electron main, renderer, preload, and Python sidecar boundaries
 - [**Agent Loop**](concepts/agent_loop.md) - Query send, backend streaming, tool turns, and completion lifecycle
 - [**Context and Memory**](concepts/context_and_memory.md) - Transcript, backend history, semantic memory, artifacts, screenshots, and repo instructions
+- [**Memory Hub**](memory/README.md) - Transcript persistence, replay, sidecar local memory, semantic routes, and troubleshooting
 - [**Safety Boundaries**](concepts/safety_boundaries.md) - Permissions, schema validation, provider health, and trust boundaries
 - [**Dashboard**](desktop/dashboard.md) - Dashboard shell, sidebar, chat history, settings, memory, and model section routing
 - [**Minimal Chat Pill**](desktop/minimal_chat_pill.md) - Floating command pill behavior, capture timing, drag, anchor, and Linux flicker contract
