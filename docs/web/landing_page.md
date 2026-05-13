@@ -10,6 +10,8 @@ title: "Landing Page"
 
 The landing page is a standalone frontend surface under `frontend/src/landing`. It is not the Electron desktop dashboard and should not depend on Electron IPC, local sidecar state, user credentials, or backend websocket sessions.
 
+For section, anchor, CTA, styling, and product-claim changes, start with [Landing Page Change Workflow](landing_page_change_workflow.md).
+
 ## Code Owners
 
 | Concern | Files |
@@ -63,6 +65,7 @@ For content-only docs updates, run:
 ## Related Docs
 
 - [Frontend Landing Docs Hub](../frontend/landing/README.md)
+- [Landing Page Change Workflow](landing_page_change_workflow.md)
 - [Product Overview](../getting-started/product_overview.md)
 - [Web Surface Matrix](web_surface_matrix.md)
 - [Web Surfaces Hub](README.md)

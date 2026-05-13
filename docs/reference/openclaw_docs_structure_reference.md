@@ -130,7 +130,7 @@ Added/expanded in WindieOS:
 - `cli/`: current repo scripts/package commands and future first-class CLI boundary.
 - `platforms/`: OS-specific desktop behavior and packaging notes.
 - `help/`: diagnostics and troubleshooting.
-- `web/`: hosted API, websocket, SDK, artifact, and landing-page web surfaces.
+- `web/`: hosted API, websocket, SDK, artifact, landing-page web surfaces, and landing-page change routing.
 - `backend/`: implementation-level backend details (API, runtime, tools, config, services).
 - `frontend/`: implementation-level renderer/main/sidecar details.
 - `development/`: contributor workflows, testing, and local environments.

@@ -10,6 +10,7 @@ title: "Frontend Landing Docs Hub"
 
 ## Deep Pages
 
+- [Landing Page Change Workflow](../../web/landing_page_change_workflow.md)
 - [Landing Page Runtime and Content Reference](landing_page_runtime_and_content_reference.md)
 - [Frontend Landing Sections Docs Hub](sections/README.md)
 - [Hero, How, Available, and Roadmap Section Content Contract Reference](sections/hero_how_available_and_roadmap_section_content_contract_reference.md)

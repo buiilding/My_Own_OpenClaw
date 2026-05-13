@@ -97,6 +97,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Web Surfaces](../web/README.md) for landing, hosted API/auth, SDK/client, artifact, websocket, and dashboard-adjacent web boundaries.
 - [Web Surface Matrix](../web/web_surface_matrix.md) for mapping web/API changes to owners and public contracts.
 - [Hosted API and Auth](../web/hosted_api_and_auth.md) for hosted REST/websocket auth, CORS, health checks, and failure routing.
+- [Landing Page Change Workflow](../web/landing_page_change_workflow.md) for standalone public landing entrypoint, content, anchor, CTA, and claim changes.
 - [Web Client Integration](../web/web_client_integration.md) for TypeScript/Python hosted client and non-Electron integration boundaries.
 - [Reference Hub](../reference/README.md) for stable API, websocket event, configuration, and session/transcript lookup maps.
 - [Code Change Surface Index](../reference/code_change_surface_index.md) for routing concrete feature requests to source roots, tests, docs, and validation commands.
@@ -733,6 +734,7 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Web Surface Matrix](../web/web_surface_matrix.md)
 - [Hosted API and Auth](../web/hosted_api_and_auth.md)
 - [Landing Page](../web/landing_page.md)
+- [Landing Page Change Workflow](../web/landing_page_change_workflow.md)
 - [Web Client Integration](../web/web_client_integration.md)
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
 

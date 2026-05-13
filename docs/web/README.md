@@ -32,6 +32,7 @@ WindieOS is primarily a desktop app, but it has web-facing surfaces:
 - [Web Surface Matrix](web_surface_matrix.md)
 - [Hosted API and Auth](hosted_api_and_auth.md)
 - [Landing Page](landing_page.md)
+- [Landing Page Change Workflow](landing_page_change_workflow.md)
 - [Web Client Integration](web_client_integration.md)
 
 ## Rules

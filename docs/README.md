@@ -58,6 +58,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Web Surface Matrix**](web/web_surface_matrix.md) - Current web/API surfaces, owners, public contracts, and change routing
 - [**Hosted API and Auth**](web/hosted_api_and_auth.md) - Hosted REST/websocket auth, CORS, health checks, and failure routing
 - [**Landing Page**](web/landing_page.md) - Standalone public landing page entrypoint, section, style, and product-claim boundaries
+- [**Landing Page Change Workflow**](web/landing_page_change_workflow.md) - Change workflow for landing entrypoints, section content, anchors, CTA links, styles, tests, and product claims
 - [**Web Client Integration**](web/web_client_integration.md) - Hosted TypeScript/Python client and non-Electron integration boundaries
 - [**Reference Hub**](reference/README.md) - Stable API, websocket event, configuration, session/transcript, and docs-organization lookup maps
 - [**Code Change Surface Index**](reference/code_change_surface_index.md) - Feature-request to source-root, test, docs, and validation routing map

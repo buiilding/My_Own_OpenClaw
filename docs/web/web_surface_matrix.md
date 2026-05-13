@@ -28,7 +28,7 @@ WindieOS is desktop-first. Web-facing surfaces are either the public landing pag
 
 | Change | Start docs | Code roots |
 | --- | --- | --- |
-| update public landing copy/sections | [Landing Page](landing_page.md) | `frontend/src/landing/*` |
+| update public landing copy/sections | [Landing Page Change Workflow](landing_page_change_workflow.md), [Landing Page](landing_page.md) | `frontend/src/landing/*` |
 | add/change hosted REST route | [Hosted API and Auth](hosted_api_and_auth.md), [Gateway Protocol Map](../gateway/gateway_protocol_map.md) | `backend/src/api/routes/*` |
 | add/change websocket event | [HTTP and WebSocket API Surface](../reference/http_api_surface.md), [WebSocket Event Reference](../reference/websocket_event_reference.md) | `backend/src/api/routes/websocket/*`, renderer event consumers |
 | expose SDK/client helper | [Web Client Integration](web_client_integration.md), [SDK Hub](../sdk/README.md) | `backend/src/api/routes/sdk/*`, `frontend/src/renderer/infrastructure/api`, `frontend/src/main/python/core` |
