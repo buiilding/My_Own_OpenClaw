@@ -17,6 +17,7 @@ WindieOS install docs cover two different paths:
 
 - [Local Development](local_development.md)
 - [Packaged Desktop Builds](packaged_desktop.md)
+- [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
 
 ## Main Commands
 
@@ -31,4 +32,5 @@ WindieOS install docs cover two different paths:
 - [Platform Setup: Backend + Frontend](../getting-started/platform_setup_backend_frontend.md)
 - [Installation Guide](../getting-started/installation.md)
 - [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
 - [Release Guide](../operations/release.md)

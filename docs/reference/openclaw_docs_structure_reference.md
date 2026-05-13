@@ -83,6 +83,7 @@ Added/expanded in WindieOS:
 - `providers/`: model/provider docs covering LLM providers, provider-specific runtime pages, model catalog metadata, credentials, and inference providers.
 - `sdk/`: hosted backend client and developer API docs covering query planning, traces, OCR/vision, and tool authoring.
 - `install/`, `cli/`, `platforms/`, `help/`, and `web/`: broad operational entrypoints that mirror OpenClaw's public-domain navigation while staying grounded in WindieOS desktop/runtime surfaces.
+- `operations/`: OpenClaw-style operational hub and runbooks for runtime config ownership, hosted install auth, deployment, Cloudflare Tunnel, packaging/reinstall flows, release, security, performance, and troubleshooting.
 - `backend/`: backend functionality maps and subsystem docs.
 - `frontend/`: frontend/electron/renderer/sidecar functionality maps.
 - Sub-hubs added for layered navigation:

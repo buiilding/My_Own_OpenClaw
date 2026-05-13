@@ -41,6 +41,12 @@ runbook:
 
 - `docs/operations/cloudflared_self_host_windieos.md`
 
+For hosted install-token identity and endpoint/auth troubleshooting, also read:
+
+- `docs/operations/hosted_backend_auth.md`
+- `docs/operations/runtime_configuration_matrix.md`
+- `docs/operations/operational_troubleshooting.md`
+
 Supporting scripts in this repo:
 - `scripts/cloudflared/install-cloudflared-user`
 - `scripts/cloudflared/install-backend-user-service`

@@ -1,0 +1,128 @@
+---
+summary: "Operations hub for WindieOS runtime configuration, hosted backend auth, deployment, packaging, release, security, performance, and troubleshooting."
+read_when:
+  - When changing runtime configuration, hosted backend behavior, packaging, release, security, or deployment flows.
+  - When deciding which operations runbook owns a production, packaged-app, or hosted-backend issue.
+title: "Operations Hub"
+---
+
+# Operations Hub
+
+Operations docs cover runtime behavior that is outside one feature surface but still affects real users: backend endpoint selection, install auth, hosted deployment, packaging, release, local reinstalls, platform services, security, and production debugging.
+
+Use this hub before editing scripts, build config, backend auth/config, endpoint resolution, or release workflows.
+
+## Ownership Map
+
+| Area | Primary owner | Code and config roots | Start docs |
+| --- | --- | --- | --- |
+| Runtime configuration | Backend config and Electron main endpoint resolution | `backend/src/core/config`, `frontend/src/main/backend_endpoints.cjs`, `frontend/src/main/ipc/*`, `frontend/src/renderer/utils/configStorage.js` | [Configuration](configuration.md), [Runtime Configuration Matrix](runtime_configuration_matrix.md) |
+| Hosted backend auth | Backend install-token service plus frontend token propagation | `backend/src/api/auth`, `backend/src/api/routes/websocket`, `frontend/src/main`, `frontend/src/renderer/infrastructure` | [Hosted Backend Auth](hosted_backend_auth.md), [Multi-User Runtime Hardening](multi_user_runtime_hardening.md) |
+| Deployment | Hosted backend origin, Cloudflare Tunnel, user services, default endpoint routing | `scripts/cloudflared`, `backend/src/main.py`, `frontend/src/main/backend_endpoints.cjs` | [Deployment](deployment.md), [Cloudflared Self-Host Runbook](cloudflared_self_host_windieos.md) |
+| Packaging | Electron Builder, bundled Python runtime, release workflow | `frontend/package.json`, `frontend/electron-builder.bundled-python.yml`, `scripts/build-sidecar-runtime`, `.github/workflows/desktop-release.yml` | [Sidecar Runtime Packaging](sidecar_runtime_packaging.md), [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Release Guide](release.md) |
+| Local packaged reinstall | OS-specific uninstall, local state reset, runtime rebuild, launch smoke | `scripts/reinstall-windieos-macos.sh`, `scripts/reinstall-windieos-linux.sh`, `scripts/reinstall-windieos-windows.ps1` | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Packaged Desktop Builds](../install/packaged_desktop.md) |
+| Security | IPC isolation, API auth, tool execution policy, hosted-session risks | `frontend/src/preload.js`, `backend/src/api/auth`, `backend/src/core/security`, `frontend/src/main/python/tools` | [Security](security.md), [Hosted Backend Auth](hosted_backend_auth.md), [Multi-User Runtime Hardening](multi_user_runtime_hardening.md) |
+| Performance | Backend/provider caching, renderer subscriptions, sidecar startup and JSON-RPC hot paths | `backend/src/agent`, `backend/src/llm`, `frontend/src/renderer`, `frontend/src/main/python` | [Performance](performance.md), [Operational Troubleshooting](operational_troubleshooting.md) |
+
+## Common Change Paths
+
+### Change a Backend Endpoint Default
+
+Read:
+
+- [Runtime Configuration Matrix](runtime_configuration_matrix.md)
+- [Configuration](configuration.md)
+- [Sidecar Runtime Packaging](sidecar_runtime_packaging.md)
+
+Likely code:
+
+- `frontend/src/main/backend_endpoints.cjs`
+- `frontend/src/main/ipc.cjs`
+- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/python/core/backend_config.py`
+- endpoint-related frontend tests under `tests/new_frontend`
+
+Validation:
+
+- endpoint resolver tests
+- packaged sidecar env propagation tests when the sidecar sees backend URL changes
+- `./bin/docs-list`
+
+### Change Hosted Auth or Install Registration
+
+Read:
+
+- [Hosted Backend Auth](hosted_backend_auth.md)
+- [Multi-User Runtime Hardening](multi_user_runtime_hardening.md)
+- [Security](security.md)
+
+Likely code:
+
+- `backend/src/api/auth/service.py`
+- `backend/src/api/auth/http_middleware.py`
+- `backend/src/api/auth/router.py`
+- `backend/src/api/routes/websocket/connection.py`
+- frontend token storage/transport code that sends `Authorization: Bearer ...`
+
+Validation:
+
+- backend REST auth middleware tests
+- websocket handshake tests for authenticated and unauthenticated paths
+- frontend connection tests that verify token propagation and mismatch handling
+
+### Change Packaging or Reinstall Behavior
+
+Read:
+
+- [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md)
+- [Sidecar Runtime Packaging](sidecar_runtime_packaging.md)
+- [Release Guide](release.md)
+- [Platform docs](../platforms/README.md)
+
+Likely code:
+
+- `frontend/package.json`
+- `frontend/electron-builder.bundled-python.yml`
+- `scripts/build-sidecar-runtime`
+- `scripts/reinstall-windieos-macos.sh`
+- `scripts/reinstall-windieos-linux.sh`
+- `scripts/reinstall-windieos-windows.ps1`
+- `.github/workflows/desktop-release.yml`
+
+Validation:
+
+- target OS package command only on that OS
+- platform smoke helper under `scripts/ci/`
+- local reinstall helper when validating packaged app state reset
+
+### Debug Hosted 401, 403, 409, 502, or WebSocket Failures
+
+Read:
+
+- [Operational Troubleshooting](operational_troubleshooting.md)
+- [Hosted Backend Auth](hosted_backend_auth.md)
+- [Cloudflared Self-Host Runbook](cloudflared_self_host_windieos.md)
+- [Runtime Configuration Matrix](runtime_configuration_matrix.md)
+
+Likely owners:
+
+- 401 on `/api/*`: backend install-token auth middleware or missing frontend bearer token
+- websocket close code `1008`: handshake/auth/schema failure
+- 409 on `/api/runs/*`: active VM run cap
+- 502 from `api.windieos.com`: Cloudflare Tunnel or origin backend service
+- local tool failure after successful backend query: sidecar runtime, not hosted backend
+
+## Operations Pages
+
+- [Configuration](configuration.md)
+- [Runtime Configuration Matrix](runtime_configuration_matrix.md)
+- [Hosted Backend Auth](hosted_backend_auth.md)
+- [Deployment](deployment.md)
+- [Cloudflared Self-Host Runbook](cloudflared_self_host_windieos.md)
+- [Sidecar Runtime Packaging](sidecar_runtime_packaging.md)
+- [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md)
+- [Release Guide](release.md)
+- [Security](security.md)
+- [Multi-User Runtime Hardening](multi_user_runtime_hardening.md)
+- [Performance](performance.md)
+- [Operational Troubleshooting](operational_troubleshooting.md)

@@ -13,6 +13,10 @@ Desktop Assistant does **not** use a YAML config file. Configuration is split be
 - **Backend config**: Python `AppConfig` in `backend/src/core/config/app_config.py`.
 - **Frontend config**: A small JSON blob stored in Electron’s user data folder and mirrored in `localStorage`.
 
+For an agent-facing matrix of every major owner, environment variable group,
+default, propagation path, and validation target, see
+`docs/operations/runtime_configuration_matrix.md`.
+
 Backend config is loaded **at startup**. It can be updated or reloaded in memory
 via `ConfigManager`, but changes are **not persisted** (edit `app_config.py` and
 restart to make permanent changes). Frontend config is updated from the UI,
@@ -257,3 +261,6 @@ For bundled runtime packaging details, see `docs/operations/sidecar_runtime_pack
 
 For self-hosting `api.windieos.com` via Cloudflare Tunnel on your own machine,
 see `docs/operations/cloudflared_self_host_windieos.md`.
+
+For hosted install-token identity and bearer-token debugging, see
+`docs/operations/hosted_backend_auth.md`.

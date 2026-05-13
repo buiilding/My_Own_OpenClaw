@@ -40,6 +40,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Providers Hub](../providers/README.md) for LLM, inference, credential, STT, TTS, and web-search providers.
 - [SDK Hub](../sdk/README.md) for hosted backend clients, query planning, OCR/vision, and tool authoring.
 - [Install Hub](../install/README.md) for local development and packaged desktop builds.
+- [Operations Hub](../operations/README.md) for runtime config, hosted auth, packaging, release, deployment, and operational troubleshooting.
 - [Commands and Scripts](../cli/README.md) for current repo/script entrypoints and planned CLI boundaries.
 - [Platforms Hub](../platforms/README.md) for macOS, Windows, and Linux behavior.
 - [Help Hub](../help/README.md) for diagnostics and troubleshooting.
@@ -60,7 +61,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 | Renderer | Chat UI, dashboard, settings, permissions, voice UI, stream event consumption, tool runner, transcript queue | `frontend/src/renderer` | [Frontend Renderer Docs Hub](../frontend/renderer/README.md), [Frontend Inventory Domains Hub](../frontend/inventory/domains/README.md) |
 | Preload IPC | Isolated renderer bridge, channel allowlist, IPC surface trust boundary | `frontend/src/preload.js` | [Frontend Preload Docs Hub](../frontend/preload/README.md), [Frontend Contracts IPC Docs Hub](../frontend/contracts/ipc/README.md) |
 | Python sidecar | Local JSON-RPC, shell/filesystem/computer/system tools, browser runtime, local memory, system state, wakeword service | `frontend/src/main/python` | [Frontend Sidecar Docs Hub](../frontend/sidecar/README.md), [Frontend Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md) |
-| Operations | Config, deployment, hosted backend, packaging, release, performance, security | `docs/operations`, scripts, build config | [Configuration](../operations/configuration.md), [Deployment](../operations/deployment.md), [Release Guide](../operations/release.md), [Security](../operations/security.md) |
+| Operations | Config, hosted auth, deployment, packaging, release, performance, security, runtime troubleshooting | `docs/operations`, `scripts`, `.github/workflows`, build config | [Operations Hub](../operations/README.md), [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), [Operational Troubleshooting](../operations/operational_troubleshooting.md) |
 
 ## Change Path Playbooks
 
@@ -280,11 +281,15 @@ Validate backend config service tests, frontend settings sync tests, and model/s
 Read:
 
 - [Configuration](../operations/configuration.md)
+- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
+- [Hosted Backend Auth](../operations/hosted_backend_auth.md)
 - [Deployment](../operations/deployment.md)
 - [Release Guide](../operations/release.md)
 - [Security](../operations/security.md)
 - [Multi-User Runtime Hardening](../operations/multi_user_runtime_hardening.md)
 - [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+- [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
+- [Operational Troubleshooting](../operations/operational_troubleshooting.md)
 
 Likely code:
 
@@ -438,12 +443,18 @@ Use these when a change path is not enough and you need exact file ownership:
 
 ### Operations
 
+- [Operations Hub](../operations/README.md)
 - [Configuration](../operations/configuration.md)
+- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
+- [Hosted Backend Auth](../operations/hosted_backend_auth.md)
 - [Deployment](../operations/deployment.md)
 - [Release Guide](../operations/release.md)
 - [Security](../operations/security.md)
 - [Performance](../operations/performance.md)
 - [Cloudflared Self-Host Runbook](../operations/cloudflared_self_host_windieos.md)
+- [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+- [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
+- [Operational Troubleshooting](../operations/operational_troubleshooting.md)
 
 ### Planning
 

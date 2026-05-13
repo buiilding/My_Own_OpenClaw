@@ -19,6 +19,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Providers Hub**](providers/README.md) - LLM providers, model catalog, credentials, inference providers, STT, and TTS
 - [**SDK Hub**](sdk/README.md) - Hosted backend clients, query planning, OCR/vision SDK routes, and tool authoring
 - [**Install Hub**](install/README.md) - Local development, packaging, sidecar runtime bundling, and reinstall helpers
+- [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, deployment, packaging, release, security, and troubleshooting runbooks
 - [**Commands and Scripts**](cli/README.md) - Current developer commands, package scripts, cloudflared helpers, and planned CLI boundary
 - [**Platforms Hub**](platforms/README.md) - macOS, Windows, and Linux platform-specific behavior
 - [**Help Hub**](help/README.md) - Diagnostics and troubleshooting routes by runtime boundary
@@ -36,6 +37,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Installation Guide**](getting-started/installation.md) - Detailed installation instructions
 - [**Local Development**](install/local_development.md) - Source setup, run commands, tests, and environment launcher usage
 - [**Packaged Desktop Builds**](install/packaged_desktop.md) - Electron Builder targets and bundled sidecar runtime packaging
+- [**Packaging and Reinstall Runbooks**](operations/packaging_and_reinstall_runbooks.md) - OS-specific packaged-app reinstall and smoke-check workflows
 - [**Commands and Scripts**](cli/README.md) - Repo scripts and frontend package commands
 
 ### Concepts, Tools, Providers
@@ -70,6 +72,10 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Query Planning and Trace**](sdk/query_planning_and_trace.md) - Prompt/query planning, trace collection, and debug introspection
 - [**OCR and Vision SDK**](sdk/ocr_and_vision.md) - SDK perception routes for OCR, vision locate/describe, overlays, and artifact image sources
 - [**Tool Authoring**](sdk/tool_authoring.md) - Backend SDK tool template, ToolContext, permissions, schema, and registration expectations
+- [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, deployment, packaging, release, security, performance, and operational troubleshooting
+- [**Runtime Configuration Matrix**](operations/runtime_configuration_matrix.md) - Config ownership, env vars, defaults, propagation paths, and validation targets
+- [**Hosted Backend Auth**](operations/hosted_backend_auth.md) - Install registration, bearer-token REST auth, websocket identity, and hosted-auth debugging
+- [**Operational Troubleshooting**](operations/operational_troubleshooting.md) - Symptom-to-owner routing for hosted, tunnel, packaged-app, sidecar, and VM worker failures
 
 ### Architecture & Design
 - [**Frontend Functionality Map**](frontend/README.md) - Detailed module-level renderer, electron-main, and sidecar runtime maps

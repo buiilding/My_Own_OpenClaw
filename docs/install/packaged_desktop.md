@@ -46,6 +46,8 @@ That command calls `../scripts/build-sidecar-runtime`. Runtime dependencies are 
 
 For local macOS reinstall loops, skip notarization and use the local helper path rather than release signing.
 
+See [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md) for the detailed OS-specific behavior, reset scope, useful environment overrides, and debugging matrix.
+
 ## Smoke Checks
 
 CI smoke helpers live under `scripts/ci/`:
@@ -57,5 +59,6 @@ CI smoke helpers live under `scripts/ci/`:
 ## Related Docs
 
 - [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+- [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
 - [Release Guide](../operations/release.md)
 - [Deployment](../operations/deployment.md)
