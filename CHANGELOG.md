@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(docs-hub): reshape the WindieOS documentation hub into an OpenClaw-style agent routing map with subsystem ownership, code roots, change-path playbooks, and validation guidance for backend, frontend, sidecar, operations, and planning work.
 - docs(readme): retune the README around a more product-forward Windie introduction, covering the minimal pill and dashboard flow, model-agnostic screenshot-first computer-use, local memory framing, and dedicated browser profile.
 - docs(readme): reposition WindieOS as the open-source desktop companion layer for personal AI agents, clarifying the frontend/sidecar boundary and differentiating it from coding agents, messaging gateways, and cloud agent computers.
 - refactor(backend-agent-capability-policy): add typed per-user/session agent tool profiles and capability gates so prompt schemas, parser validation, available-tool metadata, and OCR/vision prompt sections can be narrowed without restarting the backend while keeping legacy dev tool-selection as a compatibility layer.

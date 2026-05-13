@@ -59,14 +59,19 @@ Current WindieOS major sections:
 - `reference/`
 - `browser/`
 
-Added/expanded in this docs pass:
+Added/expanded in WindieOS:
 
-- `getting-started/docs_hub.md`: central docs entrypoint.
+- `getting-started/docs_hub.md`: central agent-facing docs entrypoint with subsystem ownership, code-root routing, and change-path playbooks.
 - `backend/`: backend functionality maps and subsystem docs.
 - `frontend/`: frontend/electron/renderer/sidecar functionality maps.
 - Sub-hubs added for layered navigation:
 - `backend/bootstrap/README.md`, `backend/api/README.md`, `backend/contracts/README.md`, `backend/tools/README.md`
 - `frontend/main/README.md`, `frontend/renderer/README.md`, `frontend/contracts/README.md`, `frontend/sidecar/README.md`
+- Inventory and playbook references that route common implementation tasks to exact files:
+- `backend/inventory/domains/backend_change_path_playbook_reference.md`
+- `frontend/inventory/domains/frontend_change_path_playbook_reference.md`
+- `backend/inventory/backend_capability_to_file_matrix_reference.md`
+- `frontend/inventory/frontend_capability_to_file_matrix_reference.md`
 
 ## WindieOS Section Policy (Proposed)
 
@@ -84,5 +89,6 @@ Added/expanded in this docs pass:
 - Add `summary`, `read_when`, and `title` front matter.
 - Keep overview pages as hubs, with deep technical pages linked below.
 - Keep module/file references precise and current.
+- Prefer task-oriented routing over giant exhaustive link dumps on top-level hubs.
 - Update hub/index pages when adding subsystem docs.
 - Keep behavior docs synchronized with backend/frontend runtime changes.

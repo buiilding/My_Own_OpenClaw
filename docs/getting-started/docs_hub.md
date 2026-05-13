@@ -1,338 +1,358 @@
 ---
-summary: "Documentation hub with domain-based navigation for backend, frontend, sidecar, operations, and reference."
+summary: "Agent-facing WindieOS docs hub for quickly choosing the right subsystem, docs, code roots, and validation path before development."
 read_when:
   - When you need a fast entrypoint to WindieOS docs by domain.
+  - When deciding where to develop, debug, or modify code.
   - When deciding where new documentation should be added.
 title: "Documentation Hub"
 ---
 
 # Documentation Hub
 
-This page mirrors the domain-based docs navigation style used in OpenClaw, but adapted to WindieOS architecture.
+This is the OpenClaw-style entrypoint for working on WindieOS. Start here when you need to identify the right subsystem, code roots, docs, and tests before changing behavior.
+
+WindieOS has three hard runtime boundaries:
+
+- The hosted FastAPI backend owns the agent loop, model-facing tool schema, LLM providers, streaming contracts, OCR/vision, TTS/STT, embeddings, artifacts, and SDK routes.
+- The Electron frontend owns desktop windows, renderer UI, preload IPC, local config, websocket relay, and the Python sidecar process lifecycle.
+- The Python sidecar owns local tool execution, browser automation, filesystem/shell/computer actions, local memory storage, system state, and wakeword subprocesses.
+
+Frontend and sidecar code must not import backend code for parity. Keep parity in explicit contracts, generated schemas, and tests.
+
+## Agent Workflow
+
+1. Run the docs index first: `./bin/docs-list` from the repo root.
+2. Pick the closest change path below before searching broadly.
+3. Read the domain hub, the capability-to-file matrix, and the focused reference for the behavior you are changing.
+4. Edit the owner subsystem first. Do not patch a consumer layer to hide malformed producer behavior.
+5. Update tests and docs in the same pass when behavior, API, IPC, schema, or runtime contracts change.
 
 ## Start Here
+
+- [Product Overview](product_overview.md) for the non-technical product shape.
+- [Quick Start](quick_start.md) for the local run path.
+- [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) for environment setup.
+- [System Architecture](../architecture/architecture.md) for the high-level runtime model.
+- [Communication Flow](../architecture/communication_flow.md) for cross-process event flow.
+- [OpenClaw Docs Structure Reference](../reference/openclaw_docs_structure_reference.md) for the docs organization benchmark.
+
+## Runtime Boundary Map
+
+| Area | Owns | Code roots | Start docs |
+| --- | --- | --- | --- |
+| Backend API + transport | HTTP routes, websocket handshake, incoming message dispatch, outgoing event envelopes, formatter contracts | `backend/src/api`, `backend/src/core/container`, `backend/src/api/contracts` | [Backend API Docs Hub](../backend/api/README.md), [Backend Contracts Docs Hub](../backend/contracts/README.md), [Backend Inventory Protocols Hub](../backend/inventory/protocols/README.md) |
+| Backend agent runtime | Session lifecycle, query execution, interaction loop, tool turns, history, compaction, prompt context | `backend/src/agent`, `backend/src/api/services/query_execution.py` | [Backend Agent Docs Hub](../backend/agent/README.md), [Backend Runtime Docs Hub](../backend/runtime/README.md) |
+| Backend tool schema + orchestration | Model-facing tool registry, schema filtering, coordinate preparation, frontend dispatch, result waiting, tool-result history | `backend/src/tools`, `backend/src/agent/tools` | [Backend Tools Docs Hub](../backend/tools/README.md), [Backend Change Path Playbook](../backend/inventory/domains/backend_change_path_playbook_reference.md) |
+| Backend LLM + prompts | Provider factory, model catalog, prompt construction, parser/trust boundary, stream normalization | `backend/src/llm`, `backend/src/agent/llm` | [Backend LLM Docs Hub](../backend/llm/README.md), [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md), [Backend LLM Prompt Docs Hub](../backend/llm/prompts/README.md) |
+| Backend services | Artifacts, embeddings, semantic memory API, OCR, vision, token counting, TTS/wakeword audio services | `backend/src/services`, `backend/src/embeddings`, `backend/src/api/routes` | [Backend Services Docs Hub](../backend/services/README.md), [Backend Services Screen-Grounding Docs Hub](../backend/services/screen_grounding/README.md) |
+| Electron main | Windows, overlays, websocket relay, config persistence, local sidecar bridge, permissions, wakeword bridge | `frontend/src/main` | [Frontend Main Docs Hub](../frontend/main/README.md), [Frontend Runtime Docs Hub](../frontend/runtime/README.md) |
+| Renderer | Chat UI, dashboard, settings, permissions, voice UI, stream event consumption, tool runner, transcript queue | `frontend/src/renderer` | [Frontend Renderer Docs Hub](../frontend/renderer/README.md), [Frontend Inventory Domains Hub](../frontend/inventory/domains/README.md) |
+| Preload IPC | Isolated renderer bridge, channel allowlist, IPC surface trust boundary | `frontend/src/preload.js` | [Frontend Preload Docs Hub](../frontend/preload/README.md), [Frontend Contracts IPC Docs Hub](../frontend/contracts/ipc/README.md) |
+| Python sidecar | Local JSON-RPC, shell/filesystem/computer/system tools, browser runtime, local memory, system state, wakeword service | `frontend/src/main/python` | [Frontend Sidecar Docs Hub](../frontend/sidecar/README.md), [Frontend Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md) |
+| Operations | Config, deployment, hosted backend, packaging, release, performance, security | `docs/operations`, scripts, build config | [Configuration](../operations/configuration.md), [Deployment](../operations/deployment.md), [Release Guide](../operations/release.md), [Security](../operations/security.md) |
+
+## Change Path Playbooks
+
+### Add or Change a WebSocket Message
+
+Read:
+
+- [Backend Change Path Playbook](../backend/inventory/domains/backend_change_path_playbook_reference.md)
+- [Backend Message Schema + Formatter Reference](../backend/contracts/message_schema_and_formatter_reference.md)
+- [Frontend IPC and Sidecar Contract Touchpoints](../frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
+
+Likely code:
+
+- `backend/src/api/contracts/message_types.py`
+- `backend/src/api/schemas/incoming.py` or `backend/src/api/schemas/outgoing.py`
+- `backend/src/api/handlers/*`
+- `backend/src/core/container/incoming_routing.py`
+- `frontend/src/main/ipc.cjs`
+- `frontend/src/renderer/types/backendEvents.ts`
+
+Validate with schema, handler-routing, formatter, and renderer event-consumption tests.
+
+### Change Query Streaming or Completion Behavior
+
+Read:
+
+- [Backend Query Handler and Query Execution Service Runtime Reference](../backend/api/handlers/query_handler_and_query_execution_service_runtime_reference.md)
+- [Backend Stream Pipeline, Completion, and TTS Concurrency Reference](../backend/api/processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
+- [Frontend Stream State Machine](../frontend/runtime/stream_event_state_machine.md)
+- [Frontend Chat Stream + Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md)
+
+Likely code:
+
+- `backend/src/api/services/query_execution.py`
+- `backend/src/api/processing/*`
+- `backend/src/agent/execution/interaction_loop.py`
+- `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/stores/chatStore.ts`
+
+Validate backend stream lifecycle tests plus renderer stream hook/store tests.
+
+### Change Tool Schema, Tool Calls, or Tool Results
+
+Read:
+
+- [Backend Tools Docs Hub](../backend/tools/README.md)
+- [Backend Tool Preparation + Coordinate Resolution Reference](../backend/tools/tool_preparation_and_coordinate_resolution_reference.md)
+- [Backend Tool Result Ingress Reference](../backend/tools/tool_result_ingress_and_storage_reference.md)
+- [Frontend Tool Execution Service + Hook Runtime Reference](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
+- [Sidecar Tool Registry Exposed Schema and Result Normalization Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
+
+Likely code:
+
+- `backend/src/tools/**`
+- `backend/src/agent/tools/**`
+- `backend/src/api/processing/formatters/actions/*`
+- `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
+- `frontend/src/renderer/infrastructure/services/ToolExecution*.ts`
+- `frontend/src/main/python/tools/**`
+
+Validate backend schema/parser/formatter tests, renderer tool-runner tests, and sidecar registry/tool tests. Keep backend model-facing schemas and sidecar executable schemas separate.
+
+### Change Desktop Computer Use, Screenshots, OCR, or Vision
+
+Read:
+
+- [Frontend Message Send Surface Policy and Screenshot Capture](../frontend/renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md)
+- [Frontend Capture, Artifact Upload, and Payload Normalization Reference](../frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
+- [Frontend Linux Screenshot Window Hide and Restore Guard Reference](../frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
+- [Backend OCR + Vision Coordinate Runtime Overview](../backend/services/ocr_and_vision_coordinate_runtime_reference.md)
+- [Backend OCR Service + Screenshot State-Machine Reference](../backend/services/screen_grounding/ocr_service_and_screenshot_state_machine_reference.md)
+
+Likely code:
+
+- `frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts`
+- `frontend/src/main/overlays/*`
+- `frontend/src/main/python/tools/computer/*`
+- `backend/src/services/screen_grounding/**`
+- `backend/src/agent/tools/preparation/*`
+
+Validate platform-specific frontend tests, sidecar computer-tool tests, and backend OCR/coordinate-preparation tests. Linux is the only OS that should hide WindieOS overlay surfaces for screenshot capture.
+
+### Change Browser Automation
+
+Read:
+
+- [Browser Control](../browser/browser_control.md)
+- [Frontend Sidecar Browser Stack](../frontend/sidecar/browser_automation_stack.md)
+- [Backend Browser Remote Schema Surface + Compatibility Contract Reference](../backend/tools/browser/browser_remote_schema_surface_and_compatibility_contract_reference.md)
+- [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](../backend/tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
+
+Likely code:
+
+- `backend/src/tools/browser/**`
+- `frontend/src/main/python/tools/browser/**`
+- `frontend/src/renderer/features/dashboard/components/*` for browser UI surfaces
+
+Validate backend/sidecar browser schema parity, sidecar runtime action tests, and renderer browser header/status tests when UI changes.
+
+### Change Renderer Chat, Dashboard, or Settings UI
+
+Read:
+
+- [Frontend Renderer Docs Hub](../frontend/renderer/README.md)
+- [Frontend Renderer Chat Docs Hub](../frontend/renderer/chat/README.md)
+- [Frontend Renderer Dashboard Docs Hub](../frontend/renderer/dashboard/README.md)
+- [Frontend Renderer Settings Docs Hub](../frontend/renderer/settings/README.md)
+- [Frontend Global Theme + Main Layout Style Runtime](../frontend/renderer/styles/global_theme_accessibility_utility_and_main_layout_visual_contract_reference.md)
+
+Likely code:
+
+- `frontend/src/renderer/features/chat/**`
+- `frontend/src/renderer/features/dashboard/**`
+- `frontend/src/renderer/features/settings/**`
+- `frontend/src/renderer/app/**`
+- `frontend/src/renderer/styles/**`
+
+Validate focused frontend tests. Purely visual changes can skip new tests when they are low signal, but still verify layout behavior.
+
+### Change Overlay, Minimal Pill, or Window Visibility Behavior
+
+Read:
+
+- [Frontend Main Overlay Focus Docs Hub](../frontend/main/overlays/README.md)
+- [Frontend Overlay Query-Capture Blur + Settle](../frontend/main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
+- [Frontend Response Overlay Phase and Tool-Ghost Runtime Reference](../frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
+- [Frontend Chatbox Overlay Input, Drag, and Click-Through Reference](../frontend/renderer/overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md)
+
+Likely code:
+
+- `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/overlay_*`
+- `frontend/src/main/response_overlay_phase_handler.cjs`
+- `frontend/src/renderer/app/ChatBox*.jsx`
+- `frontend/src/renderer/features/chat/**`
+- `frontend/src/renderer/features/overlays/**`
+
+Validate main-process overlay tests and renderer overlay tests. Keep focus, visibility, click-through, and transport changes scoped separately unless the state machine requires a combined patch.
+
+### Change Voice, Wakeword, STT, or TTS
+
+Read:
+
+- [Frontend Voice Capture + Wakeword Controller Reference](../frontend/renderer/voice_capture_and_wakeword_controller_reference.md)
+- [Frontend Wakeword Bridge + Audio Framing Reference](../frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md)
+- [Backend TTS + Wakeword Audio Runtime Reference](../backend/services/tts_and_wakeword_audio_runtime_reference.md)
+- [Backend TTS Manager Audio Stream and Cleanup Reference](../backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md)
+
+Likely code:
+
+- `frontend/src/renderer/features/voice/**`
+- `frontend/src/main/wakeword_bridge*.cjs`
+- `frontend/src/main/python/wakeword_service.py`
+- `backend/src/api/processing/tts/**`
+- `backend/src/services/*tts*`
+
+Validate audio framing, voice hook, wakeword bridge, and backend TTS/STT tests.
+
+### Change Transcript, Local Memory, or Semantic Memory
+
+Read:
+
+- [Frontend Transcript Session + Rehydrate Reference](../frontend/renderer/transcript_session_and_rehydrate_reference.md)
+- [Frontend Sidecar Memory Docs Hub](../frontend/sidecar/memory/README.md)
+- [Backend Embedding + Semantic Memory Runtime Reference](../backend/services/embedding_and_semantic_memory_runtime_reference.md)
+- [Backend API Memory Docs Hub](../backend/api/memory/README.md)
+
+Likely code:
+
+- `frontend/src/renderer/infrastructure/transcript/**`
+- `frontend/src/main/python/memory/**`
+- `frontend/src/main/python/core/remote_*_client.py`
+- `backend/src/api/routes/memory/**`
+- `backend/src/services/embedding*`
+
+Validate renderer transcript tests, sidecar memory tests, and backend memory route tests. Keep transcript replay state and semantic memory state distinct.
+
+### Add or Change an LLM Provider, Prompt, or Model Catalog
+
+Read:
+
+- [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md)
+- [Backend Provider Factory + Runtime Selection Reference](../backend/llm/provider_factory_and_runtime_selection_reference.md)
+- [Backend Prompt Constructor and Transparency Metadata Reference](../backend/llm/prompts/prompt_constructor_and_transparency_metadata_reference.md)
+- [LLM Integration](../architecture/llm_integration.md)
+
+Likely code:
+
+- `backend/src/llm/providers/*`
+- `backend/src/llm/providers/__init__.py`
+- `backend/src/llm/models/models_config.py`
+- `backend/src/core/config/*`
+- `backend/src/llm/prompts/*`
+
+Validate provider stream/non-stream/tool-call behavior, model listing, config loading, prompt transparency, and any regenerated prompt/schema snapshots.
+
+### Change Config, Settings, or Runtime Policy
+
+Read:
+
+- [Backend Config Runtime Policy](../backend/config/config_fields_and_runtime_policy.md)
+- [Frontend Config Sync + Settings Lifecycle Reference](../frontend/runtime/config_sync_and_settings_lifecycle_reference.md)
+- [Frontend Settings + Models ACK Event Routing Reference](../frontend/contracts/events/settings_and_model_ack_event_routing_reference.md)
+
+Likely code:
+
+- `backend/src/core/config/**`
+- `backend/src/api/handlers/settings.py`
+- `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_settings_sync.cjs`
+- `frontend/src/renderer/features/settings/**`
+
+Validate backend config service tests, frontend settings sync tests, and model/settings ACK routing tests.
+
+### Change Packaging, Release, Security, or Hosted Runtime
+
+Read:
+
+- [Configuration](../operations/configuration.md)
+- [Deployment](../operations/deployment.md)
+- [Release Guide](../operations/release.md)
+- [Security](../operations/security.md)
+- [Multi-User Runtime Hardening](../operations/multi_user_runtime_hardening.md)
+- [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md)
+
+Likely code:
+
+- `scripts/**`
+- `frontend/package.json`
+- `frontend/electron-builder.*`
+- `backend/src/core/config/**`
+- `backend/src/api/**`
+- operation-specific docs and release notes
+
+Validate the relevant build/test commands before release or packaging steps. Do not change version numbers or publish artifacts without explicit approval.
+
+## Full Implementation Maps
+
+Use these when a change path is not enough and you need exact file ownership:
+
+- [Backend Functionality Map](../backend/README.md)
+- [Backend Inventory Docs Hub](../backend/inventory/README.md)
+- [Backend Capability to File Matrix Reference](../backend/inventory/backend_capability_to_file_matrix_reference.md)
+- [Backend Module File Index Reference](../backend/inventory/backend_module_file_index_reference.md)
+- [Frontend Functionality Map](../frontend/README.md)
+- [Frontend Inventory Docs Hub](../frontend/inventory/README.md)
+- [Frontend Capability to File Matrix Reference](../frontend/inventory/frontend_capability_to_file_matrix_reference.md)
+- [Frontend Module File Index Reference](../frontend/inventory/frontend_module_file_index_reference.md)
+- [Frontend IPC and Sidecar Contract Touchpoints Reference](../frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
+
+## Docs by Domain
+
+### Getting Started
 
 - [Overview](overview.md)
 - [Quick Start](quick_start.md)
 - [Installation](installation.md)
-- [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md)
+- [User Guide](user_guide.md)
+- [Troubleshooting](troubleshooting.md)
 
-## Architecture Hubs
+### Architecture
 
 - [System Architecture](../architecture/architecture.md)
-- [Communication Flow](../architecture/communication_flow.md)
-- [Backend Architecture (high level)](../architecture/backend_architecture.md)
-- [Frontend Architecture (high level)](../architecture/frontend_architecture.md)
-- [Python Sidecar (high level)](../architecture/python_sidecar.md)
+- [Backend Architecture](../architecture/backend_architecture.md)
+- [Frontend Architecture](../architecture/frontend_architecture.md)
+- [Python Sidecar](../architecture/python_sidecar.md)
 - [Agent System](../architecture/agent_system.md)
 - [Tool System](../architecture/tool_system.md)
 - [Memory System](../architecture/memory_system.md)
-- [LLM Integration](../architecture/llm_integration.md)
+- [Extension Points](../architecture/extension_points.md)
 
-## Deep Technical Maps
-
-- [Backend Functionality Map](../backend/README.md)
-- [Backend Inventory Docs Hub](../backend/inventory/README.md)
-- [Backend Inventory Domains Hub](../backend/inventory/domains/README.md)
-- [Backend Inventory Protocols Hub](../backend/inventory/protocols/README.md)
-- [Backend Full Functionality Inventory Reference](../backend/inventory/backend_full_functionality_inventory_reference.md)
-- [Backend Cross-Layer Contract Touchpoints Reference](../backend/inventory/backend_cross_layer_contract_touchpoints_reference.md)
-- [Backend Bootstrap Docs Hub](../backend/bootstrap/README.md)
-- [Backend Bootstrap Entrypoints Docs Hub](../backend/bootstrap/entrypoints/README.md)
-- [Backend Core Infrastructure Docs Hub](../backend/core/README.md)
-- [Backend Core Logging Docs Hub](../backend/core/logging/README.md)
-- [Backend Source Maps Docs Hub](../backend/source_maps/README.md)
-- [Backend Core Observability Docs Hub](../backend/core/observability/README.md)
-- [Backend Core Validation Docs Hub](../backend/core/validation/README.md)
-- [Backend API Docs Hub](../backend/api/README.md)
-- [Backend API Handlers Docs Hub](../backend/api/handlers/README.md)
-- [Backend API Services Docs Hub](../backend/api/services/README.md)
-- [Backend API Processing Docs Hub](../backend/api/processing/README.md)
-- [Backend API Processing Formatters Docs Hub](../backend/api/processing/formatters/README.md)
-- [Backend API Processing TTS Docs Hub](../backend/api/processing/tts/README.md)
-- [Backend API Transport Docs Hub](../backend/api/transport/README.md)
-- [Backend Contracts Docs Hub](../backend/contracts/README.md)
-- [Backend Contracts Streaming Events Docs Hub](../backend/contracts/events/README.md)
-- [Backend Contracts Routing Docs Hub](../backend/contracts/routing/README.md)
-- [Backend Contracts Message Types Docs Hub](../backend/contracts/message_types/README.md)
-- [Backend Agent Docs Hub](../backend/agent/README.md)
-- [Backend Agent Tools Shared-Utility Docs Hub](../backend/agent/tools/shared/README.md)
-- [Backend Agent History Docs Hub](../backend/agent/history/README.md)
-- [Backend Agent LLM Docs Hub](../backend/agent/llm/README.md)
-- [Backend Agent Recovery Docs Hub](../backend/agent/recovery/README.md)
-- [Backend Runtime Docs Hub](../backend/runtime/README.md)
-- [Backend Tools Docs Hub](../backend/tools/README.md)
-- [Backend Tools Registry Docs Hub](../backend/tools/registry/README.md)
-- [Backend Browser Tools Docs Hub](../backend/tools/browser/README.md)
-- [Backend Browser Schema Docs Hub](../backend/tools/browser/schema/README.md)
-- [Backend Tools Policy Docs Hub](../backend/tools/policy/README.md)
-- [Backend Remote Tools Docs Hub](../backend/tools/remote/README.md)
-- [Backend Tools Execution Docs Hub](../backend/tools/execution/README.md)
-- [Backend Tools Preparation Docs Hub](../backend/tools/preparation/README.md)
-- [Backend Tools Waiting Docs Hub](../backend/tools/waiting/README.md)
-- [Backend Tools Processing Docs Hub](../backend/tools/processing/README.md)
-- [Backend Tools Contracts Docs Hub](../backend/tools/contracts/README.md)
-- [Backend Tools Templates Docs Hub](../backend/tools/templates/README.md)
-- [Backend Tools Security Docs Hub](../backend/tools/security/README.md)
-- [Backend Config Docs Hub](../backend/config/README.md)
-- [Backend LLM Docs Hub](../backend/llm/README.md)
-- [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md)
-- [Backend LLM Prompt Docs Hub](../backend/llm/prompts/README.md)
-- [Backend Services Docs Hub](../backend/services/README.md)
-- [Backend Services Token Docs Hub](../backend/services/token/README.md)
-- [Backend Services Screen-Grounding Docs Hub](../backend/services/screen_grounding/README.md)
-- [Backend Simulation Docs Hub](../backend/simulation/README.md)
-- [Backend Simulation Entrypoints Docs Hub](../backend/simulation/entrypoints/README.md)
-- [Backend Simulation Contracts Docs Hub](../backend/simulation/contracts/README.md)
-- [Backend SDK Docs Hub](../backend/sdk/README.md)
-- [Backend Container DI and Init Lifecycle](../backend/bootstrap/container_di_and_init_lifecycle_reference.md)
-- [Backend Event Bus + Cache Infrastructure Reference](../backend/core/event_bus_and_cache_infrastructure_reference.md)
-- [Backend Trust-Boundary Metrics + Enforcement Reference](../backend/core/observability/trust_boundary_metrics_and_enforcement_reference.md)
-- [Backend Input Validation + Frontend Patch Guard Reference](../backend/core/validation/input_validation_and_frontend_patch_guard_reference.md)
-- [Backend WebSocket Contracts](../backend/contracts/websocket_message_contracts.md)
-- [Backend Message Schema + Formatter Reference](../backend/contracts/message_schema_and_formatter_reference.md)
-- [Backend Message-Type Constants + Schema-Subset Reference](../backend/contracts/message_types/message_type_constants_schema_subset_and_handler_ack_reference.md)
-- [Backend Incoming Route Table + Handler-Binding Reference](../backend/contracts/routing/incoming_route_table_schema_parity_and_handler_binding_reference.md)
-- [Backend Streaming Event Dataclass + Enum Semantics Reference](../backend/contracts/events/streaming_event_dataclass_and_enum_semantics_reference.md)
-- [Backend Streaming Event -> Formatter + Outgoing Alignment Reference](../backend/contracts/events/streaming_event_to_formatter_and_outgoing_contract_alignment_reference.md)
-- [Backend Session Runtime + Config Rewire Reference](../backend/agent/session_runtime_and_config_rewire_reference.md)
-- [Backend Interaction Loop + Tool-Turn Orchestration Reference](../backend/agent/interaction_loop_and_tool_turn_orchestration_reference.md)
-- [Backend Conversation Context and Event Presenter Prompt-Metadata Reference](../backend/agent/llm/conversation_context_and_event_presenter_prompt_metadata_reference.md)
-- [Backend LLM Stream Processor Token Count and Cache Diagnostics Reference](../backend/agent/llm/llm_stream_processor_token_count_and_cache_diagnostics_reference.md)
-- [Backend History Committer and Result-Processor Boundary Reference](../backend/agent/history/history_committer_and_result_processor_boundary_reference.md)
-- [Backend Tool-Call-ID Staging and Tool-Output History Row Contract Reference](../backend/agent/history/tool_call_id_staging_and_tool_output_history_row_contract_reference.md)
-- [Backend Tool-Call Error Recovery and Synthetic Tool-Output Replay Reference](../backend/agent/recovery/tool_call_error_recovery_and_synthetic_tool_output_replay_reference.md)
-- [Backend Query Execution Pipeline Reference](../backend/runtime/query_execution_and_stream_pipeline_reference.md)
-- [Backend Runtime Surface: Query, Tool Loop, and VM Runs](../backend/runtime/backend_runtime_surface_query_tool_loop_and_vm_runs_reference.md)
-- [Backend Conversation History + Prompt Context Runtime Reference](../backend/runtime/conversation_history_and_prompt_context_runtime_reference.md)
-- [Backend Token Count Event + Usage Diagnostics Reference](../backend/runtime/token_count_event_and_usage_diagnostics_reference.md)
-- [Backend Token Service Message Normalization and Fallback Reference](../backend/services/token/token_service_message_normalization_and_fallback_reference.md)
-- [Backend Non-Query Handler Control Flow Reference](../backend/api/non_query_handler_and_control_flow_reference.md)
-- [Backend Formatter Dispatch and Schema Alignment Reference](../backend/api/processing/formatter_dispatch_and_schema_alignment_reference.md)
-- [Backend Stream Pipeline, Completion, and TTS Concurrency Reference](../backend/api/processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
-- [Backend Query Execution Runtime-State and Completion Resolver Reference](../backend/api/processing/query_execution_runtime_state_and_completion_resolver_reference.md)
-- [Backend Base Formatter Guard Utilities and Skip Semantics Reference](../backend/api/processing/formatters/base_formatter_guard_utilities_and_skip_semantics_reference.md)
-- [Backend Formatter Validation and Contract-Test Matrix Reference](../backend/api/processing/formatters/formatter_validation_and_contract_test_matrix_reference.md)
-- [Backend TTS Manager Audio Stream and Cleanup Reference](../backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md)
-- [Backend TTS Processor Suppression State-Machine Reference](../backend/api/processing/tts/tts_processor_suppression_state_machine_reference.md)
-- [Backend Provider Factory + Runtime Selection Reference](../backend/llm/provider_factory_and_runtime_selection_reference.md)
-- [Backend Parser Trust Boundary + Native Tool-Call Reference](../backend/llm/parser_trust_boundary_and_native_tool_call_reference.md)
-- [Backend LLM Base Request, Stream, and Normalization Reference](../backend/llm/providers/base_request_stream_and_normalization_reference.md)
-- [Backend LLM Provider-Specific Overrides and Local Runtime Reference](../backend/llm/providers/provider_specific_overrides_and_local_runtime_reference.md)
-- [Backend Prompt Constructor and Transparency Metadata Reference](../backend/llm/prompts/prompt_constructor_and_transparency_metadata_reference.md)
-- [Backend Prompt Manager and System Prompt Lifecycle Reference](../backend/llm/prompts/prompt_manager_and_system_prompt_lifecycle_reference.md)
-- [Backend Simulation + Mock LLM Runtime Reference](../backend/simulation/simulation_backend_and_mock_llm_runtime_reference.md)
-- [Backend SDK Tool Context + Schema Contract Reference](../backend/sdk/tool_context_and_schema_contract_reference.md)
-- [Backend SDK Sub-Agent Session Helper Runtime Reference](../backend/sdk/subagent_session_helper_runtime_reference.md)
-- [Backend Artifact/Screenshot/System-State Flow Reference](../backend/services/artifact_screenshot_and_system_state_flow_reference.md)
-- [Backend Embedding + Semantic Memory Runtime Reference](../backend/services/embedding_and_semantic_memory_runtime_reference.md)
-- [Backend TTS + Wakeword Audio Runtime Reference](../backend/services/tts_and_wakeword_audio_runtime_reference.md)
-- [Backend OCR + Vision Coordinate Runtime Overview](../backend/services/ocr_and_vision_coordinate_runtime_reference.md)
-- [Backend OCR Service + Screenshot State-Machine Reference](../backend/services/screen_grounding/ocr_service_and_screenshot_state_machine_reference.md)
-- [Backend Vision Provider Runtime + Coordinate-Scaling Reference](../backend/services/screen_grounding/vision_provider_runtime_and_coordinate_scaling_reference.md)
-- [Backend Tool Result Ingress Reference](../backend/tools/tool_result_ingress_and_storage_reference.md)
-- [Backend Tool Preparation + Coordinate Resolution Reference](../backend/tools/tool_preparation_and_coordinate_resolution_reference.md)
-- [Backend Tool Sender Frontend Dispatch and Synthetic Error Result Reference](../backend/tools/execution/tool_sender_frontend_dispatch_and_synthetic_error_result_reference.md)
-- [Backend Tool Result Orchestrator Bundle Detection and Wait Path Reference](../backend/tools/execution/tool_result_orchestrator_bundle_detection_and_wait_path_reference.md)
-- [Backend Screenshot Manager and OCR Task Lifecycle Reference](../backend/tools/preparation/screenshot_manager_and_ocr_task_lifecycle_reference.md)
-- [Backend Resolved Tool-Call Storage and Session Access Contract Reference](../backend/tools/preparation/resolved_tool_call_storage_and_session_access_contract_reference.md)
-- [Backend Tool Result Processor Bundle Formatting and Cleanup Reference](../backend/tools/processing/tool_result_processor_bundle_formatting_and_cleanup_reference.md)
-- [Backend Result Transformer and Tool Result Formatting Contract Reference](../backend/tools/processing/result_transformer_and_tool_result_formatting_contract_reference.md)
-- [Backend Synthetic Result Factory and Coordinate-Resolution Failure Tool-Output Reference](../backend/tools/processing/synthetic_result_factory_and_coordinate_resolution_failure_tool_output_reference.md)
-- [Backend Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference](../backend/tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md)
-- [Backend Browser Remote Schema Surface and Compatibility Contract Reference](../backend/tools/browser/browser_remote_schema_surface_and_compatibility_contract_reference.md)
-- [Backend Browser Control Unified Schema and Compatibility Field Matrix Reference](../backend/tools/browser/schema/browser_control_unified_schema_and_compatibility_field_matrix_reference.md)
-- [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](../backend/tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
-- [Backend Tool Policy and Dev Tool Selection Runtime Reference](../backend/tools/policy/tool_policy_and_dev_tool_selection_runtime_reference.md)
-- [Backend Remote Tool Domain Payload and Request-ID Semantics Reference](../backend/tools/remote/remote_tool_domain_payload_and_request_id_semantics_reference.md)
-- [Backend Tool Security Policy + Executor Reference](../backend/tools/tool_security_policy_and_executor_reference.md)
-- [Backend Policy Permissions, Audit Sanitization, and Executor Registry Reference](../backend/tools/security/policy_permissions_audit_and_executor_registry_reference.md)
-- [Backend Tool Result Receiver and Router Shared Route-Mode Reference](../backend/tools/waiting/tool_result_receiver_and_router_shared_route_mode_reference.md)
-- [Backend Tool Result Storage Future Lifecycle and Cleanup Reference](../backend/tools/waiting/tool_result_storage_future_lifecycle_and_cleanup_reference.md)
-- [Backend Config Runtime Policy](../backend/config/config_fields_and_runtime_policy.md)
-- [Backend Endpoint Reference](../backend/api/http_and_ws_endpoint_reference.md)
-- [Backend App Assembly + Container Dependency Reference](../backend/api/app_assembly_and_container_dependency_reference.md)
-- [Backend Safe WebSocket + Transport Envelope Reference](../backend/api/transport/safe_websocket_and_transport_envelope_reference.md)
-- [Backend Memory Route Validation + Fallback Reference](../backend/api/memory_route_validation_and_fallback_reference.md)
-- [Backend WebSocket Connection + Task Lifecycle Reference](../backend/api/websocket_connection_and_task_lifecycle_reference.md)
-- [Backend Handler Registry + Error Envelope Reference](../backend/api/handler_registry_and_error_envelope_reference.md)
-- [Backend Query Handler and Query Execution Service Runtime Reference](../backend/api/handlers/query_handler_and_query_execution_service_runtime_reference.md)
-- [Backend Non-Query Handler Dispatch and Payload Normalization Reference](../backend/api/handlers/non_query_handler_dispatch_and_payload_normalization_reference.md)
-- [Backend Query Execution Service Stream Context and Completion Fallback Reference](../backend/api/services/query_execution_service_stream_context_and_completion_fallback_reference.md)
-- [Backend Rehydrate and Wakeword Execution Service and TTS Session Reference](../backend/api/services/rehydrate_and_wakeword_execution_service_and_tts_session_reference.md)
-- [Backend API/Core Folder Topology and Data-Flow Source Map Reference](../backend/source_maps/api_core_folder_topology_and_data_flow_source_map_reference.md)
-- [Backend Package `__init__` Exports and Public Import Surface Reference](../backend/source_maps/backend_package_init_exports_and_public_import_surface_reference.md)
-- [Frontend Functionality Map](../frontend/README.md)
-- [Frontend Inventory Docs Hub](../frontend/inventory/README.md)
-- [Frontend Inventory Domains Hub](../frontend/inventory/domains/README.md)
-- [Frontend Inventory Protocols Hub](../frontend/inventory/protocols/README.md)
-- [Frontend Full Functionality Inventory Reference](../frontend/inventory/frontend_full_functionality_inventory_reference.md)
-- [Frontend IPC and Sidecar Contract Touchpoints Reference](../frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
-- [Frontend Landing Docs Hub](../frontend/landing/README.md)
-- [Frontend Landing Sections Docs Hub](../frontend/landing/sections/README.md)
-- [Frontend Main Docs Hub](../frontend/main/README.md)
-- [Frontend Main Testing Docs Hub](../frontend/main/testing/README.md)
-- [Frontend Main Testing Data-Seed Docs Hub](../frontend/main/testing/data_seed/README.md)
-- [Frontend Mock Memory Seed Script and NPM Entrypoints Reference](../frontend/main/testing/data_seed/mock_memory_seed_script_and_npm_entrypoints_reference.md)
-- [Frontend Main Local-Backend Docs Hub](../frontend/main/local_backend/README.md)
-- [Frontend Main Overlay Focus Docs Hub](../frontend/main/overlays/README.md)
-- [Frontend Renderer Docs Hub](../frontend/renderer/README.md)
-- [Frontend Renderer Chat Docs Hub](../frontend/renderer/chat/README.md)
-- [Frontend Renderer Settings Docs Hub](../frontend/renderer/settings/README.md)
-- [Frontend Renderer Voice Docs Hub](../frontend/renderer/voice/README.md)
-- [Frontend Renderer Voice Utils Docs Hub](../frontend/renderer/voice/utils/README.md)
-- [Frontend Renderer Provider Docs Hub](../frontend/renderer/providers/README.md)
-- [Frontend Renderer Provider Components Docs Hub](../frontend/renderer/providers/components/README.md)
-- [Frontend Renderer Overlay Docs Hub](../frontend/renderer/overlays/README.md)
-- [Frontend Renderer Infrastructure Docs Hub](../frontend/renderer/infrastructure/README.md)
-- [Frontend Renderer Infrastructure Audio Docs Hub](../frontend/renderer/infrastructure/audio/README.md)
-- [Frontend Renderer Transcript Docs Hub](../frontend/renderer/transcript/README.md)
-- [Frontend Renderer Styles Docs Hub](../frontend/renderer/styles/README.md)
-- [Frontend Renderer Transcript Contracts Docs Hub](../frontend/renderer/transcript/contracts/README.md)
-- [Frontend Runtime Docs Hub](../frontend/runtime/README.md)
-- [Frontend Runtime Surface: Main, Renderer, Sidecar, and VM Worker](../frontend/runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)
-- [Frontend Contracts Docs Hub](../frontend/contracts/README.md)
-- [Frontend Contracts Events Docs Hub](../frontend/contracts/events/README.md)
-- [Frontend Contracts Events Tool Runtime Docs Hub](../frontend/contracts/events/tool_runtime/README.md)
-- [Frontend Contracts IPC Docs Hub](../frontend/contracts/ipc/README.md)
-- [Frontend Sidecar Docs Hub](../frontend/sidecar/README.md)
-- [Frontend Sidecar Core Docs Hub](../frontend/sidecar/core/README.md)
-- [Frontend Sidecar Services Docs Hub](../frontend/sidecar/services/README.md)
-- [Frontend Sidecar Source Maps Docs Hub](../frontend/sidecar/source_maps/README.md)
-- [Frontend Sidecar Browser Docs Hub](../frontend/sidecar/browser/README.md)
-- [Frontend Sidecar Browser Contracts Docs Hub](../frontend/sidecar/browser/contracts/README.md)
-- [Frontend Sidecar Browser Role-Snapshot Docs Hub](../frontend/sidecar/browser/contracts/role_snapshot/README.md)
-- [Frontend Sidecar Browser Chrome Docs Hub](../frontend/sidecar/browser/chrome/README.md)
-- [Frontend Sidecar Browser Use Runtime Docs Hub](../frontend/sidecar/browser/browser_use/README.md)
-- [Frontend Sidecar Browser Use Browser Docs Hub](../frontend/sidecar/browser/browser_use/browser/README.md)
-- [Frontend Sidecar Browser Use Browser Watchdogs Docs Hub](../frontend/sidecar/browser/browser_use/browser/watchdogs/README.md)
-- [Frontend Sidecar Browser Use DOM Docs Hub](../frontend/sidecar/browser/browser_use/dom/README.md)
-- [Frontend Sidecar Browser Use Tools Docs Hub](../frontend/sidecar/browser/browser_use/tools/README.md)
-- [Frontend Sidecar Browser Use LLM Docs Hub](../frontend/sidecar/browser/browser_use/llm/README.md)
-- [Frontend Sidecar Browser Use Actor Docs Hub](../frontend/sidecar/browser/browser_use/actor/README.md)
-- [Frontend Sidecar Browser Use Agent Docs Hub](../frontend/sidecar/browser/browser_use/agent/README.md)
-- [Frontend Sidecar Browser Use Tokens Docs Hub](../frontend/sidecar/browser/browser_use/tokens/README.md)
-- [Frontend Sidecar Browser Use Filesystem Docs Hub](../frontend/sidecar/browser/browser_use/filesystem/README.md)
-- [Frontend Sidecar Python Folder Topology and Package `__init__` Export Surface Reference](../frontend/sidecar/source_maps/python_sidecar_folder_topology_and_package_init_export_surface_reference.md)
-- [Frontend Sidecar System-State Docs Hub](../frontend/sidecar/system_state/README.md)
-- [Frontend Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md)
-- [Frontend Sidecar Tools Contracts Docs Hub](../frontend/sidecar/tools/contracts/README.md)
-- [Frontend Sidecar Tool Registry Docs Hub](../frontend/sidecar/tools/registry/README.md)
-- [Frontend Sidecar Computer Tools Docs Hub](../frontend/sidecar/tools/computer/README.md)
-- [Frontend Sidecar System Tools Docs Hub](../frontend/sidecar/tools/system/README.md)
-- [Frontend Sidecar Memory Docs Hub](../frontend/sidecar/memory/README.md)
-- [Frontend Sidecar Memory Storage Docs Hub](../frontend/sidecar/memory/storage/README.md)
-- [Frontend Preload Docs Hub](../frontend/preload/README.md)
-- [Frontend Landing Page Runtime + Content Reference](../frontend/landing/landing_page_runtime_and_content_reference.md)
-- [Frontend IPC/Event Contracts](../frontend/contracts/ipc_channels_and_event_contracts.md)
-- [Frontend IPC Channel Handler Reference](../frontend/contracts/ipc_channel_and_handler_reference.md)
-- [Frontend Preload Allowlist + Channel-Constant Parity Reference](../frontend/contracts/ipc/preload_allowlist_and_channel_constant_parity_reference.md)
-- [Frontend Main IPC Handler Ownership + RPC Mapper Reference](../frontend/contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)
-- [Frontend Schema Generation + Event Guard Reference](../frontend/contracts/schema_generation_and_event_guard_reference.md)
-- [Frontend Memory IPC + RPC Mapping Reference](../frontend/contracts/memory_ipc_and_rpc_mapping_reference.md)
-- [Frontend Backend Event Consumer Matrix](../frontend/contracts/backend_event_consumer_matrix_reference.md)
-- [Frontend From-Backend Ingress + Audio Side-Channel Reference](../frontend/contracts/events/from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md)
-- [Frontend Local User Message + Query Send-Failure Synthesis Reference](../frontend/contracts/events/local_user_message_and_query_send_failure_synthesis_reference.md)
-- [Frontend Settings + Models ACK Event Routing Reference](../frontend/contracts/events/settings_and_model_ack_event_routing_reference.md)
-- [Frontend Tool-Call and Tool-Output Recovery/Skip-Execution Contract Reference](../frontend/contracts/events/tool_runtime/tool_call_and_tool_output_recovery_skip_execution_contract_reference.md)
-- [Frontend Overlay + Wakeword Control Channel Reference](../frontend/contracts/overlay_and_wakeword_control_channel_reference.md)
-- [Frontend Dashboard Memory Management + Resume Reference](../frontend/renderer/dashboard_memory_management_and_resume_reference.md)
-- [Frontend Dashboard Sidebar, Search, and Profile Menu Runtime Reference](../frontend/renderer/dashboard/shell/sidebar_search_profile_menu_and_recent_conversation_resume_reference.md)
-- [Frontend Chat Stream + Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md)
-- [Frontend Message Send Surface Policy and Screenshot Capture Reference](../frontend/renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md)
-- [Frontend Chat Store State and New Session Rotation Reference](../frontend/renderer/chat/chat_store_state_and_new_session_rotation_reference.md)
-- [Frontend Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](../frontend/renderer/settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
-- [Frontend Config Filter, Storage, and Provider Merge Runtime Reference](../frontend/renderer/settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
-- [Frontend Tool Execution Service and Hook Runtime Reference](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
-- [Frontend Capture, Artifact Upload, and Payload Normalization Reference](../frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
-- [Frontend Player Service Queue, Generation, and Error-Recovery Reference](../frontend/renderer/infrastructure/audio/player_service_queue_generation_and_error_recovery_reference.md)
-- [Frontend Global Theme, Accessibility Utility, and Main Layout Visual Contract Reference](../frontend/renderer/styles/global_theme_accessibility_utility_and_main_layout_visual_contract_reference.md)
-- [Frontend Chat Interface, Thinking Stream, and Token Count Style Contract Reference](../frontend/renderer/styles/chat_interface_thinking_stream_and_token_count_style_contract_reference.md)
-- [Frontend Voice Status Visual State Style Contract Reference](../frontend/renderer/styles/voice_status_visual_state_style_contract_reference.md)
-- [Frontend Transcript Session + Rehydrate Reference](../frontend/renderer/transcript_session_and_rehydrate_reference.md)
-- [Frontend Transcript Writer Queue Flush and Session Event Reference](../frontend/renderer/transcript/transcript_writer_queue_flush_and_session_event_reference.md)
-- [Frontend Voice Capture + Wakeword Controller Reference](../frontend/renderer/voice_capture_and_wakeword_controller_reference.md)
-- [Frontend Voice Mode Gateway Connection and Transcription Region Reference](../frontend/renderer/voice/voice_mode_gateway_connection_and_transcription_region_reference.md)
-- [Frontend Wakeword Detection IPC Capture and Cooldown Reference](../frontend/renderer/voice/wakeword_detection_ipc_capture_and_cooldown_reference.md)
-- [Frontend Audio Encoding, Chunk Normalization, and Capture Cleanup Reference](../frontend/renderer/voice/utils/audio_encoding_chunk_normalization_and_capture_cleanup_reference.md)
-- [Frontend Transcription Region State Machine and Input Edit Reconciliation Reference](../frontend/renderer/voice/utils/transcription_region_state_machine_and_input_edit_reconciliation_reference.md)
-- [Frontend Entrypoint View Routing and Provider Stack Reference](../frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md)
-- [Frontend App Provider Coordinator and Save-Status Runtime Reference](../frontend/renderer/providers/app_provider_coordinator_and_save_status_runtime_reference.md)
-- [Frontend Chatbox Overlay Input, Drag, and Click-Through Reference](../frontend/renderer/overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md)
-- [Frontend Response Overlay Phase and Tool-Ghost Runtime Reference](../frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
-- [Frontend Runtime Paths and Endpoints](../frontend/main/runtime_paths_and_endpoints.md)
-- [Frontend Context Label Overlay + Active-Window Runtime Reference](../frontend/main/context_label_overlay_and_active_window_runtime_reference.md)
-- [Frontend Query Payload + Relay Reference](../frontend/main/query_payload_and_relay_reference.md)
-- [Frontend WebSocket Handshake + Settings Sync Reference](../frontend/main/websocket_handshake_and_settings_sync_reference.md)
-- [Frontend Local Backend Bridge Overview + Window Guard Index](../frontend/main/local_backend_bridge_handler_and_window_guard_reference.md)
-- [Frontend Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](../frontend/main/local_backend/process_lifecycle_readiness_and_request_correlation_reference.md)
-- [Frontend Local-Backend RPC Handler Registry and Payload-Mapper Reference](../frontend/main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
-- [Frontend Overlay Query-Capture Blur and Settle Reference](../frontend/main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
-- [Frontend Linux Screenshot Window Hide and Restore Guard Reference](../frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
-- [Frontend Preload Channel Allowlist + Renderer Bridge Reference](../frontend/preload/preload_channel_allowlist_and_renderer_bridge_reference.md)
-- [Frontend Stream State Machine](../frontend/runtime/stream_event_state_machine.md)
-- [Frontend Runtime Invariants and PR Checklist](../frontend/runtime/frontend_runtime_invariants_checklist.md)
-- [Frontend Config Sync + Settings Lifecycle Reference](../frontend/runtime/config_sync_and_settings_lifecycle_reference.md)
-- [Frontend Audio Chunk Playback + Stop Semantics Reference](../frontend/runtime/audio_chunk_playback_and_stop_semantics_reference.md)
-- [Frontend Sidecar Browser Stack](../frontend/sidecar/browser_automation_stack.md)
-- [Frontend Sidecar Browser Action Compatibility + Runtime Reference](../frontend/sidecar/browser_action_compatibility_and_runtime_reference.md)
-- [Frontend Sidecar Browser Runtime Provider + Native Handler Bridge Reference](../frontend/sidecar/browser/browser_runtime_provider_vendoring_and_native_handler_bridge_reference.md)
-- [Frontend Sidecar Browser Adapter Action Routing + Compatibility Semantics Reference](../frontend/sidecar/browser/browser_adapter_action_routing_and_compatibility_semantics_reference.md)
-- [Frontend Sidecar Browser Schema Registry and Action Validation Boundary Reference](../frontend/sidecar/browser/contracts/schema_registry_and_action_validation_boundary_reference.md)
-- [Frontend Sidecar OpenClaw Compatibility Action and Field Surface Reference](../frontend/sidecar/browser/contracts/openclaw_compat_action_and_field_surface_reference.md)
-- [Frontend Sidecar Chrome Detection, Launcher, and CDP Session Reference](../frontend/sidecar/browser/chrome/chrome_detection_launcher_and_cdp_session_reference.md)
-- [Frontend Sidecar Browser Controller Lifecycle, Snapshot, and Action Runtime Reference](../frontend/sidecar/browser/chrome/browser_controller_lifecycle_snapshot_and_action_runtime_reference.md)
-- [Frontend Sidecar Enhanced CDP DOM Snapshot Pipeline Runtime Reference](../frontend/sidecar/browser/chrome/enhanced_cdp_dom_snapshot_pipeline_runtime_reference.md)
-- [Frontend Sidecar Browser Use Config, Logging, Observability, and Lazy Import Runtime Reference](../frontend/sidecar/browser/browser_use/config_logging_observability_and_lazy_import_runtime_reference.md)
-- [Frontend Sidecar Browser Session, Session Manager, Event Bus, and CDP Lifecycle Orchestration Reference](../frontend/sidecar/browser/browser_use/browser/session_manager_event_bus_and_cdp_lifecycle_orchestration_reference.md)
-- [Frontend Sidecar Browser Profile Runtime Defaults, Launch Args, Demo Overlay, and Video Recording Reference](../frontend/sidecar/browser/browser_use/browser/profile_runtime_defaults_launch_args_demo_overlay_and_video_recording_reference.md)
-- [Frontend Sidecar Browser Watchdog Base and Specialized Watchdogs Runtime Reference](../frontend/sidecar/browser/browser_use/browser/watchdogs/watchdog_base_and_specialized_watchdogs_runtime_reference.md)
-- [Frontend Sidecar Browser Use DOM Tree Construction, Visibility, Iframe Traversal, and Pagination Detection Contract Reference](../frontend/sidecar/browser/browser_use/dom/dom_tree_construction_visibility_iframe_traversal_and_pagination_detection_contract_reference.md)
-- [Frontend Sidecar Browser Use DOM Data Models, Hashing, Scrollability, and Interaction Identity Contract Reference](../frontend/sidecar/browser/browser_use/dom/dom_data_models_hashing_scrollability_and_interaction_identity_contract_reference.md)
-- [Frontend Sidecar Browser Use DOM Serializer, Snapshot, Clickability, and Markdown Pipeline Runtime Reference](../frontend/sidecar/browser/browser_use/dom/dom_serializer_snapshot_clickability_and_markdown_pipeline_runtime_reference.md)
-- [Frontend Sidecar Browser Use Tools Action Model Surface and Input Schema Contract Reference](../frontend/sidecar/browser/browser_use/tools/action_model_surface_and_input_schema_contract_reference.md)
-- [Frontend Sidecar Browser Use Tools Registry Signature Normalization, Sensitive Placeholder, and Domain Filter Contract Reference](../frontend/sidecar/browser/browser_use/tools/registry_signature_normalization_sensitive_placeholder_and_domain_filter_contract_reference.md)
-- [Frontend Sidecar Browser Use Tools Runtime Action Dispatch, Extraction, and CodeAgent Variant Contract Reference](../frontend/sidecar/browser/browser_use/tools/runtime_action_dispatch_extraction_and_codeagent_variant_contract_reference.md)
-- [Frontend Sidecar Browser Use LLM Base Protocol, Message Types, Schema Optimization, and Model Alias Factory Contract Reference](../frontend/sidecar/browser/browser_use/llm/base_protocol_message_types_schema_optimization_and_model_alias_factory_contract_reference.md)
-- [Frontend Sidecar Browser Use LLM Provider Adapters and Serializer Runtime Reference](../frontend/sidecar/browser/browser_use/llm/provider_adapters_and_serializer_runtime_reference.md)
-- [Frontend Sidecar System-State Collection + Platform Adapter Reference](../frontend/sidecar/system_state/system_state_collection_and_platform_adapter_reference.md)
-- [Frontend Sidecar Shell and Process Session Runtime Reference](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md)
-- [Frontend Sidecar Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md)
-- [Frontend Sidecar Tool Registry Exposed Schema and Result Normalization Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
-- [Frontend Sidecar Mouse, Keyboard, Scroll, and Screenshot Runtime Reference](../frontend/sidecar/tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md)
-- [Frontend Sidecar Wait, Window, and Stats Runtime Reference](../frontend/sidecar/tools/system/wait_window_stats_runtime_reference.md)
-- [Frontend Sidecar Summarizer Watermark and Conversation Batch Reference](../frontend/sidecar/memory/summarizer_watermark_and_conversation_batch_reference.md)
-- [Frontend Sidecar Transcript Storage, Semantic Candidate, and Watermark Reference](../frontend/sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
-- [Frontend Sidecar Local Memory Store Embedding, Search, and Memory-Type Routing Reference](../frontend/sidecar/memory/storage/local_memory_store_embedding_search_and_memory_type_routing_reference.md)
-- [Frontend Sidecar Conversation Transcript Window Queries and FAISS Artifact Cleanup Reference](../frontend/sidecar/memory/storage/conversation_transcript_window_queries_and_faiss_artifact_cleanup_reference.md)
-- [Frontend Sidecar SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference](../frontend/sidecar/memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)
-- [Frontend Sidecar JSON-RPC Reference](../frontend/sidecar/local_backend_jsonrpc_reference.md)
-- [Frontend Sidecar Process Lifecycle Reference](../frontend/sidecar/local_backend_process_lifecycle_reference.md)
-- [Frontend Wakeword Bridge + Audio Framing Reference](../frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md)
-- [Frontend Sidecar JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](../frontend/sidecar/core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
-- [Frontend Sidecar Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime Reference](../frontend/sidecar/core/backend_url_resolution_remote_memory_clients_and_thread_pool_runtime_reference.md)
-- [Frontend Sidecar Memory Service JSON Protocol and Store Lifecycle Reference](../frontend/sidecar/services/memory_service_json_protocol_and_store_lifecycle_reference.md)
-- [Frontend Sidecar Wakeword Service Model Bootstrap and Binary Framing Reference](../frontend/sidecar/services/wakeword_service_model_bootstrap_and_binary_framing_reference.md)
-- [API Reference](../reference/api_reference.md)
-
-## Development and Operations
+### Development
 
 - [Developer Guide](../development/developer_guide.md)
 - [Environment Setup](../development/environment_setup.md)
 - [Testing Guide](../development/testing.md)
+- [Tool Development](../development/tool_development.md)
+- [Dev Tool Selection](../development/dev_tool_selection.md)
+
+### Operations
+
 - [Configuration](../operations/configuration.md)
 - [Deployment](../operations/deployment.md)
 - [Release Guide](../operations/release.md)
 - [Security](../operations/security.md)
 - [Performance](../operations/performance.md)
+- [Cloudflared Self-Host Runbook](../operations/cloudflared_self_host_windieos.md)
 
-## Planning
+### Planning
 
 - [Planning Hub](../planning/README.md)
 - [Future Product Plan](../planning/future_plan.md)
-- [Plan Matrix](../planning/plan_matrix.md)
-- [Security and Compliance (Planned)](../planning/security_and_compliance.md)
+- [OS Layer UX Evolution Plan](../planning/os_layer_ux_evolution_plan.md)
+- [VM Multi-Agent Plan](../planning/windieos_vm_multi_agent_plan.md)
+- [CLI OS Control Plan](../planning/windieos_cli_os_control_plan.md)
 
-## Documentation Design Notes
+## Where to Add New Docs
 
-- [OpenClaw Docs Structure Reference](../reference/openclaw_docs_structure_reference.md)
+- Add conceptual docs to `docs/architecture/`.
+- Add implementation maps and subsystem references to `docs/backend/` or `docs/frontend/`.
+- Add contributor workflow docs to `docs/development/`.
+- Add runtime, deployment, release, security, or packaging docs to `docs/operations/`.
+- Add stable protocol/API lookup docs to `docs/reference/`.
+- Add future plans or staged implementation proposals to `docs/planning/`.
+
+Every new doc should include `summary`, `read_when`, and `title` front matter. Update this hub only for docs that materially help agents route future work.

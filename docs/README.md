@@ -11,7 +11,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 ## 📚 Documentation Index
 
 ### Documentation Hubs
-- [**Documentation Hub**](getting-started/docs_hub.md) - Domain-based navigation for architecture, backend, frontend, and operations
+- [**Documentation Hub**](getting-started/docs_hub.md) - Agent-facing routing map for choosing the right subsystem, code roots, docs, and validation path before development
 - [**OpenClaw Docs Structure Reference**](reference/openclaw_docs_structure_reference.md) - Structure benchmark and WindieOS mapping
 - [**Backend Bootstrap/API/Contracts Hubs**](backend/README.md) - Subfolder-level backend navigation mirroring OpenClaw-style layered docs
 - [**Frontend Main/Renderer/Contracts/Sidecar Hubs**](frontend/README.md) - Subfolder-level frontend navigation for process/runtime boundaries
