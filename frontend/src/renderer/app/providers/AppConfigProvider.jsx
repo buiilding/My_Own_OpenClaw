@@ -139,6 +139,22 @@ export function AppConfigProvider({ children }) {
     routeConfigBackendEvent(data, handlersRef);
   }, [handlersRef]);
 
+  const requestModelListIfNeeded = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const view = new URLSearchParams(window.location.search).get('view');
+    const isMainView = !view;
+    const hasRequestedModels = Boolean(window[LIST_MODELS_REQUEST_GUARD_KEY]);
+    if (!isMainView || hasRequestedModels) {
+      return;
+    }
+
+    logConfigInfo('[Config] Requesting available models...');
+    window[LIST_MODELS_REQUEST_GUARD_KEY] = true;
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'list-models' });
+  }, []);
+
   const applyBackendConnectionSnapshot = useCallback((data) => {
     const shortcutStatus = (
       data?.globalAgentStopShortcutStatus
@@ -176,24 +192,18 @@ export function AppConfigProvider({ children }) {
     setBackendHttpUrl(data?.backendHttpUrl);
     if (data?.isConnected === true) {
       syncCurrentConfigToBackend();
+      requestModelListIfNeeded();
     }
   }, [
     applyFrontendConfigPatch,
     configRef,
     globalAgentStopShortcutStatusRef,
+    requestModelListIfNeeded,
     syncCurrentConfigToBackend,
   ]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, onBackendEvent);
-    const view = new URLSearchParams(window.location.search).get('view');
-    const isMainView = !view;
-    const hasRequestedModels = Boolean(window[LIST_MODELS_REQUEST_GUARD_KEY]);
-    if (isMainView && !hasRequestedModels) {
-      logConfigInfo('[Config] Requesting available models...');
-      window[LIST_MODELS_REQUEST_GUARD_KEY] = true;
-      IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'list-models' });
-    }
 
     return () => {
       removeListener();
