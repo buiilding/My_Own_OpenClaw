@@ -1,3 +1,4 @@
+import asyncio
 import signal
 import logging
 
@@ -65,7 +66,9 @@ class DummyMemoryStore:
             }
         ]
 
-    async def get_next_message_index(self, user_id, conversation_id, record_kind="transcript"):
+    async def get_next_message_index(
+        self, user_id, conversation_id, record_kind="transcript"
+    ):
         value = self.next_index
         self.next_index += 1
         return value
@@ -205,19 +208,28 @@ class DummySummarizerInit:
 def test_resolve_sidecar_log_level_defaults_to_warning(monkeypatch):
     monkeypatch.delenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, raising=False)
 
-    assert local_backend_module._resolve_sidecar_log_level() == local_backend_module.logging.WARNING
+    assert (
+        local_backend_module._resolve_sidecar_log_level()
+        == local_backend_module.logging.WARNING
+    )
 
 
 def test_resolve_sidecar_log_level_accepts_valid_levels(monkeypatch):
     monkeypatch.setenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, "info")
 
-    assert local_backend_module._resolve_sidecar_log_level() == local_backend_module.logging.INFO
+    assert (
+        local_backend_module._resolve_sidecar_log_level()
+        == local_backend_module.logging.INFO
+    )
 
 
 def test_resolve_sidecar_log_level_falls_back_on_invalid_value(monkeypatch):
     monkeypatch.setenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, "verbose-ish")
 
-    assert local_backend_module._resolve_sidecar_log_level() == local_backend_module.logging.WARNING
+    assert (
+        local_backend_module._resolve_sidecar_log_level()
+        == local_backend_module.logging.WARNING
+    )
 
 
 def test_collect_runtime_dependency_warnings_linux_missing_xdotool(monkeypatch):
@@ -407,8 +419,12 @@ async def test_handle_execute_tool_browser_feature_pack_install_failure(monkeypa
     )
     backend._browser_feature_pack_autoinstall_enabled = True
 
-    monkeypatch.setattr(local_backend_module, "is_feature_pack_available", lambda *_: False)
-    monkeypatch.setattr(local_backend_module, "install_feature_pack", lambda *_: (False, "network down"))
+    monkeypatch.setattr(
+        local_backend_module, "is_feature_pack_available", lambda *_: False
+    )
+    monkeypatch.setattr(
+        local_backend_module, "install_feature_pack", lambda *_: (False, "network down")
+    )
 
     result = await backend._handle_execute_tool("browser", {"action": "snapshot"})
 
@@ -436,8 +452,12 @@ async def test_handle_execute_tool_browser_feature_pack_install_success(monkeypa
         feature_state["available"] = True
         return True, None
 
-    monkeypatch.setattr(local_backend_module, "is_feature_pack_available", _is_feature_pack_available)
-    monkeypatch.setattr(local_backend_module, "install_feature_pack", _install_feature_pack)
+    monkeypatch.setattr(
+        local_backend_module, "is_feature_pack_available", _is_feature_pack_available
+    )
+    monkeypatch.setattr(
+        local_backend_module, "install_feature_pack", _install_feature_pack
+    )
 
     result = await backend._handle_execute_tool("browser", {"action": "snapshot"})
 
@@ -447,7 +467,9 @@ async def test_handle_execute_tool_browser_feature_pack_install_success(monkeypa
 
 
 @pytest.mark.asyncio
-async def test_handle_execute_tool_browser_feature_pack_autoinstall_disabled(monkeypatch):
+async def test_handle_execute_tool_browser_feature_pack_autoinstall_disabled(
+    monkeypatch,
+):
     backend = LocalBackend()
     backend.tool_registry = BrowserToolRegistry(
         has_browser=False,
@@ -455,7 +477,9 @@ async def test_handle_execute_tool_browser_feature_pack_autoinstall_disabled(mon
     )
     backend._browser_feature_pack_autoinstall_enabled = False
 
-    monkeypatch.setattr(local_backend_module, "is_feature_pack_available", lambda *_: False)
+    monkeypatch.setattr(
+        local_backend_module, "is_feature_pack_available", lambda *_: False
+    )
 
     result = await backend._handle_execute_tool("browser", {"action": "snapshot"})
 
@@ -496,7 +520,9 @@ async def test_handle_install_browser_chromium_skips_when_browser_already_availa
     assert result["browser_binary_path"] == "/usr/bin/chromium"
 
 
-def test_find_available_browser_binary_prefers_system_browser_over_playwright_cache(monkeypatch, tmp_path):
+def test_find_available_browser_binary_prefers_system_browser_over_playwright_cache(
+    monkeypatch, tmp_path
+):
     backend = LocalBackend()
     playwright_root = tmp_path / "ms-playwright"
     playwright_browser = playwright_root / "chromium-123" / "chrome-linux" / "chrome"
@@ -534,14 +560,18 @@ def test_find_available_browser_binary_prefers_system_browser_over_playwright_ca
 
 
 @pytest.mark.asyncio
-async def test_handle_install_browser_chromium_installs_when_missing(monkeypatch, tmp_path):
+async def test_handle_install_browser_chromium_installs_when_missing(
+    monkeypatch, tmp_path
+):
     backend = LocalBackend()
     browser_checks = {"count": 0}
 
     def _find_browser():
         browser_checks["count"] += 1
         if browser_checks["count"] >= 3:
-            return str(tmp_path / "ms-playwright" / "chromium-123" / "chrome-linux" / "chrome")
+            return str(
+                tmp_path / "ms-playwright" / "chromium-123" / "chrome-linux" / "chrome"
+            )
         return None
 
     async def _ensure_ready():
@@ -556,7 +586,9 @@ async def test_handle_install_browser_chromium_installs_when_missing(monkeypatch
     backend._ensure_browser_tool_ready = _ensure_ready  # type: ignore[assignment]
     backend._resolve_playwright_browsers_path = lambda: tmp_path / "ms-playwright"  # type: ignore[assignment]
 
-    monkeypatch.setattr(local_backend_module.subprocess, "run", lambda *args, **kwargs: _RunResult())
+    monkeypatch.setattr(
+        local_backend_module.subprocess, "run", lambda *args, **kwargs: _RunResult()
+    )
 
     result = await backend._handle_install_browser_chromium()
 
@@ -567,7 +599,9 @@ async def test_handle_install_browser_chromium_installs_when_missing(monkeypatch
 
 
 @pytest.mark.asyncio
-async def test_handle_install_browser_chromium_reports_install_failure(monkeypatch, tmp_path):
+async def test_handle_install_browser_chromium_reports_install_failure(
+    monkeypatch, tmp_path
+):
     backend = LocalBackend()
 
     async def _ensure_ready():
@@ -582,7 +616,9 @@ async def test_handle_install_browser_chromium_reports_install_failure(monkeypat
     backend._ensure_browser_tool_ready = _ensure_ready  # type: ignore[assignment]
     backend._resolve_playwright_browsers_path = lambda: tmp_path / "ms-playwright"  # type: ignore[assignment]
 
-    monkeypatch.setattr(local_backend_module.subprocess, "run", lambda *args, **kwargs: _RunResult())
+    monkeypatch.setattr(
+        local_backend_module.subprocess, "run", lambda *args, **kwargs: _RunResult()
+    )
 
     result = await backend._handle_install_browser_chromium()
 
@@ -623,6 +659,7 @@ async def test_initialize_starts_memory_summarizer_when_enabled(monkeypatch):
 
     backend = LocalBackend()
     await backend.initialize()
+    await backend._wait_for_memory_runtime_initialization()
     await backend.shutdown()
 
     assert fake_store.initialized is True
@@ -647,12 +684,48 @@ async def test_initialize_skips_memory_summarizer_when_disabled(monkeypatch):
 
     backend = LocalBackend()
     await backend.initialize()
+    await backend._wait_for_memory_runtime_initialization()
     await backend.shutdown()
 
     assert backend._semantic_summarizer_enabled is False
     assert fake_store.initialized is True
     assert created["count"] == 0
     assert backend._summarizer is None
+
+
+@pytest.mark.asyncio
+async def test_initialize_does_not_block_on_memory_store_initialization(monkeypatch):
+    started = asyncio.Event()
+    release = asyncio.Event()
+
+    class _SlowMemoryStore(DummyMemoryStore):
+        def __init__(self):
+            super().__init__()
+            self.initialized = False
+
+        async def initialize(self):
+            started.set()
+            await release.wait()
+            self.initialized = True
+
+    monkeypatch.setattr(local_backend_module, "LocalMemoryStore", _SlowMemoryStore)
+    monkeypatch.setattr(local_backend_module, "MemorySummarizer", None)
+
+    backend = LocalBackend()
+    await backend.initialize()
+    await asyncio.wait_for(started.wait(), timeout=1)
+
+    status = await backend._handle_get_status()
+    assert status["memory_store_initialized"] is False
+    assert status["memory_store_initializing"] is True
+    assert status["memory_store_status"] == "initializing"
+
+    release.set()
+    await backend._wait_for_memory_runtime_initialization()
+
+    assert backend.memory_store is not None
+    assert backend.memory_store.initialized is True
+    await backend.shutdown()
 
 
 @pytest.mark.asyncio
@@ -757,7 +830,9 @@ async def test_handle_search_conversations_returns_matches():
     assert result["success"] is True
     assert result["data"]["count"] == 1
     assert result["data"]["conversations"][0]["conversation_id"] == "conv-2"
-    assert backend.memory_store.search_conversation_calls == [("user-1", "vietnamese lawyer", 25)]
+    assert backend.memory_store.search_conversation_calls == [
+        ("user-1", "vietnamese lawyer", 25)
+    ]
 
 
 @pytest.mark.asyncio
@@ -784,7 +859,9 @@ async def test_handle_search_memory_applies_filters():
         memory_type="semantic",
     )
     assert result["success"] is True
-    assert backend.memory_store.search_calls == [("query", "user-1", {"type": "semantic"}, 3)]
+    assert backend.memory_store.search_calls == [
+        ("query", "user-1", {"type": "semantic"}, 3)
+    ]
 
 
 @pytest.mark.asyncio
@@ -812,7 +889,9 @@ async def test_handle_search_memory_normalizes_query_and_type_filter():
         memory_type=" SEMANTIC ",
     )
     assert result["success"] is True
-    assert backend.memory_store.search_calls == [("query", "user-1", {"type": "semantic"}, 5)]
+    assert backend.memory_store.search_calls == [
+        ("query", "user-1", {"type": "semantic"}, 5)
+    ]
 
 
 @pytest.mark.asyncio
@@ -833,7 +912,11 @@ async def test_handle_search_memory_excludes_active_conversation():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStoreCapturing(
         [
-            {"type": "episodic", "text": "from active", "conversation_id": "conv-active"},
+            {
+                "type": "episodic",
+                "text": "from active",
+                "conversation_id": "conv-active",
+            },
             {"type": "episodic", "text": "from old", "conversation_id": "conv-old"},
             {"type": "semantic", "text": "semantic fact"},
         ]
@@ -855,8 +938,18 @@ async def test_handle_search_memory_balances_episodic_and_semantic_results():
     backend.memory_store = DummyMemoryStoreCapturing(
         {
             "episodic": [
-                {"type": "episodic", "text": "from active", "conversation_id": "conv-active", "score": 0.95},
-                {"type": "episodic", "text": "from old", "conversation_id": "conv-old", "score": 0.9},
+                {
+                    "type": "episodic",
+                    "text": "from active",
+                    "conversation_id": "conv-active",
+                    "score": 0.95,
+                },
+                {
+                    "type": "episodic",
+                    "text": "from old",
+                    "conversation_id": "conv-old",
+                    "score": 0.9,
+                },
             ],
             "semantic": [
                 {"type": "semantic", "text": "high value fact", "score": 0.3},

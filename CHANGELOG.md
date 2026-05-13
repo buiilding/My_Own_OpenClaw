@@ -21,6 +21,7 @@ All notable changes to WindieOS will be documented in this file.
 - fix(backend-embedding-import): avoid importing the heavy SentenceTransformers stack unless the local embedding provider is initialized so disabled or remote embedding deployments can stay lightweight.
 - fix(sidecar-memory-embedding-unavailable): treat unavailable embeddings as non-fatal so prompt memory retrieval is omitted and SQLite memory writes continue without interrupting the agent loop.
 - fix(sidecar-memory-embedding-rebuild): prevent embedding-space migration rebuilds from recursively re-triggering themselves while each stored memory row is re-embedded.
+- fix(sidecar-startup-memory-migration): start local backend JSON-RPC before memory index migration completes so embedding-space rebuilds cannot trip Electron's readiness timeout.
 - fix(frontend-artifact-screenshot-startup): keep artifact URL resolution in the backend endpoint store so chat screenshot rendering and app config startup do not import the artifact upload IPC client just to build image paths.
 
 ## 0.6.23 - 2026-04-21
