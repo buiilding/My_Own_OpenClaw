@@ -1,0 +1,57 @@
+---
+summary: "Security hub for WindieOS hosted auth, IPC isolation, schema validation, credentials, tool execution, sidecar boundaries, and multi-user risks."
+read_when:
+  - When changing security-relevant behavior across backend, frontend, sidecar, tools, providers, hosted auth, or packaging.
+  - When deciding which trust boundary owns an auth, IPC, credential, permission, tool-execution, or multi-user issue.
+title: "Security Hub"
+---
+
+# Security Hub
+
+WindieOS security spans hosted backend identity, Electron renderer isolation, backend validation, provider credentials, permission checks, tool policy, and Python sidecar execution. Start here when a change affects trust, secrets, local machine control, or multi-user hosted behavior.
+
+## Start Here
+
+- [Security Boundary Matrix](security_boundary_matrix.md) for owner/code/test routing by trust boundary.
+- [Security Change Playbook](security_change_playbook.md) for how to change auth, IPC, validation, credentials, permissions, tools, or sidecar execution.
+- [Operations Security](../operations/security.md) for current security notes.
+- [Safety Boundaries](../concepts/safety_boundaries.md) for the conceptual safety model.
+- [Hosted Backend Auth](../operations/hosted_backend_auth.md) for install-token REST and websocket identity.
+- [Multi-User Runtime Hardening](../operations/multi_user_runtime_hardening.md) for shared backend risks.
+
+## Security Areas
+
+| Area | Security job | Primary docs |
+| --- | --- | --- |
+| Hosted auth | Derive backend identity from install token, not client claims | [Hosted Backend Auth](../operations/hosted_backend_auth.md), [HTTP and WebSocket API Surface](../reference/http_api_surface.md) |
+| WebSocket validation | Parse/validate handshakes and incoming messages, cap tasks, sanitize errors | [Backend API and Transport](../backend/api/api_and_transport.md), [Backend WebSocket Docs Hub](../backend/api/websocket/README.md) |
+| Renderer isolation | Keep privileged APIs behind preload allowlists and typed IPC bridge | [Preload Channel Allowlist](../frontend/preload/preload_channel_allowlist_and_renderer_bridge_reference.md), [IPC Channel Reference](../frontend/contracts/ipc_channel_and_handler_reference.md) |
+| Settings patch guard | Accept only frontend-owned config fields from renderer updates | [Input Validation and Frontend Patch Guard](../backend/core/validation/input_validation_and_frontend_patch_guard_reference.md) |
+| Credentials | Keep API keys in env or explicit provider credential surfaces | [Provider Credentials](../providers/credentials.md), [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) |
+| Tool execution | Narrow model-visible capabilities and route local actions through sidecar execution boundaries | [Tools Hub](../tools/README.md), [Backend Tools Security Docs Hub](../backend/tools/security/README.md) |
+| Permissions | Gate screen/input/microphone/browser capabilities through OS-aware probes and onboarding | [Onboarding and Permissions](../desktop/onboarding_permissions.md), [Platform Docs](../platforms/README.md) |
+| Sidecar runtime | Keep local JSON-RPC, filesystem/shell/browser/computer actions, and subprocess protocols explicit | [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md), [Frontend Sidecar Docs Hub](../frontend/sidecar/README.md) |
+| Future compliance | Plan durable hosted security/compliance before implementing broad hosted features | [Security and Compliance Plan](../planning/security_and_compliance.md) |
+
+## Rules
+
+- Do not commit real credentials, tokens, user data, local private paths, or generated machine secrets.
+- Do not add broad preload channels to bypass renderer/main boundaries.
+- Do not let frontend or sidecar import backend schemas for parity; add contract tests instead.
+- Do not trust renderer-provided user identity when hosted install auth is enabled.
+- Do not expose unavailable tools or coordinate methods to the model.
+- Do not route local machine actions through hosted SDK routes.
+- Do not turn future security plans into docs that imply implementation already exists.
+
+## Validation Defaults
+
+When a security boundary changes, run the focused tests for that boundary:
+
+- hosted auth: backend auth middleware, install registration, websocket handshake tests
+- IPC/preload: bridge validation, preload allowlist, main handler tests
+- backend validation: schema, input validation, sanitized error tests
+- tool security: tool policy/schema/filtering tests, sidecar executable tool tests
+- credentials/config: config loader and provider credential tests
+- permissions/platform: renderer onboarding, main permission service, platform-specific tests
+
+Always run `./bin/docs-list` after docs updates.

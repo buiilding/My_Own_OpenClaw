@@ -22,7 +22,7 @@ Use this hub before editing scripts, build config, backend auth/config, endpoint
 | Deployment | Hosted backend origin, Cloudflare Tunnel, user services, default endpoint routing | `scripts/cloudflared`, `backend/src/main.py`, `frontend/src/main/backend_endpoints.cjs` | [Deployment](deployment.md), [Cloudflared Self-Host Runbook](cloudflared_self_host_windieos.md) |
 | Packaging | Electron Builder, bundled Python runtime, release workflow | `frontend/package.json`, `frontend/electron-builder.bundled-python.yml`, `scripts/build-sidecar-runtime`, `.github/workflows/desktop-release.yml` | [Sidecar Runtime Packaging](sidecar_runtime_packaging.md), [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Release Guide](release.md) |
 | Local packaged reinstall | OS-specific uninstall, local state reset, runtime rebuild, launch smoke | `scripts/reinstall-windieos-macos.sh`, `scripts/reinstall-windieos-linux.sh`, `scripts/reinstall-windieos-windows.ps1` | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Packaged Desktop Builds](../install/packaged_desktop.md) |
-| Security | IPC isolation, API auth, tool execution policy, hosted-session risks | `frontend/src/preload.js`, `backend/src/api/auth`, `backend/src/core/security`, `frontend/src/main/python/tools` | [Security](security.md), [Hosted Backend Auth](hosted_backend_auth.md), [Multi-User Runtime Hardening](multi_user_runtime_hardening.md) |
+| Security | IPC isolation, API auth, tool execution policy, hosted-session risks | `frontend/src/preload.js`, `backend/src/api/auth`, `backend/src/core/security`, `frontend/src/main/python/tools` | [Security Hub](../security/README.md), [Security](security.md), [Hosted Backend Auth](hosted_backend_auth.md), [Multi-User Runtime Hardening](multi_user_runtime_hardening.md) |
 | Performance | Backend/provider caching, renderer subscriptions, sidecar startup and JSON-RPC hot paths | `backend/src/agent`, `backend/src/llm`, `frontend/src/renderer`, `frontend/src/main/python` | [Performance](performance.md), [Operational Troubleshooting](operational_troubleshooting.md) |
 
 ## Common Change Paths
@@ -53,6 +53,7 @@ Validation:
 
 Read:
 
+- [Security Hub](../security/README.md)
 - [Hosted Backend Auth](hosted_backend_auth.md)
 - [Multi-User Runtime Hardening](multi_user_runtime_hardening.md)
 - [Security](security.md)

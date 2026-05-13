@@ -35,6 +35,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Concepts Hub](../concepts/README.md) for product/system mental models before implementation details.
 - [Channels Hub](../channels/README.md) for desktop, websocket, voice, sidecar, SDK, and VM-run communication paths.
 - [Memory Hub](../memory/README.md) for transcript, replay, sidecar memory, backend history, and semantic route ownership.
+- [Security Hub](../security/README.md) for hosted auth, IPC isolation, validation, credentials, permissions, tools, and sidecar security boundaries.
 - [Automation Hub](../automation/README.md) for VM run orchestration, worker polling, run-control APIs, and scheduler boundaries.
 - [Desktop Surfaces](../desktop/README.md) for dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts.
 - [Debug Hub](../debug/README.md) for logs, trace flags, symptom playbooks, and test selection.
@@ -56,6 +57,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 | --- | --- | --- | --- |
 | Backend API + transport | HTTP routes, websocket handshake, incoming message dispatch, outgoing event envelopes, formatter contracts | `backend/src/api`, `backend/src/core/container`, `backend/src/api/contracts` | [Backend API Docs Hub](../backend/api/README.md), [Backend Contracts Docs Hub](../backend/contracts/README.md), [Backend Inventory Protocols Hub](../backend/inventory/protocols/README.md) |
 | Channels and transports | Desktop chat entrypoints, backend websocket, transcription websocket, sidecar JSON-RPC, SDK routes, VM run control | `frontend/src/main`, `frontend/src/renderer`, `frontend/src/main/python`, `backend/src/api/routes`, `frontend/src/renderer/infrastructure/api` | [Channels Hub](../channels/README.md), [Channel Routing Matrix](../channels/channel_routing_matrix.md), [Communication Flow](../architecture/communication_flow.md) |
+| Security boundaries | Hosted auth, websocket validation, IPC isolation, credentials, permissions, tool policy, sidecar execution, multi-user risks | `backend/src/api/auth`, `backend/src/api/schemas`, `backend/src/core/security`, `frontend/src/preload.js`, `frontend/src/shared/ipcChannels.json`, `frontend/src/main/python/tools` | [Security Hub](../security/README.md), [Security Boundary Matrix](../security/security_boundary_matrix.md), [Security Change Playbook](../security/security_change_playbook.md) |
 | Backend agent runtime | Session lifecycle, query execution, interaction loop, tool turns, history, compaction, prompt context | `backend/src/agent`, `backend/src/api/services/query_execution.py` | [Backend Agent Docs Hub](../backend/agent/README.md), [Backend Runtime Docs Hub](../backend/runtime/README.md) |
 | Backend tool schema + orchestration | Model-facing tool registry, schema filtering, coordinate preparation, frontend dispatch, result waiting, tool-result history | `backend/src/tools`, `backend/src/agent/tools` | [Backend Tools Docs Hub](../backend/tools/README.md), [Backend Change Path Playbook](../backend/inventory/domains/backend_change_path_playbook_reference.md) |
 | Backend LLM + prompts | Provider factory, model catalog, prompt construction, parser/trust boundary, stream normalization | `backend/src/llm`, `backend/src/agent/llm` | [Backend LLM Docs Hub](../backend/llm/README.md), [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md), [Backend LLM Prompt Docs Hub](../backend/llm/prompts/README.md) |
@@ -89,6 +91,28 @@ Likely code:
 - `frontend/src/main/python/**` when local sidecar execution is involved
 
 Validate producer/consumer tests on both sides of the changed channel. Do not reuse another channel's private payload shape as an implicit compatibility shortcut.
+
+### Change Auth, IPC Security, Credentials, Permissions, or Tool Authority
+
+Read:
+
+- [Security Hub](../security/README.md)
+- [Security Boundary Matrix](../security/security_boundary_matrix.md)
+- [Security Change Playbook](../security/security_change_playbook.md)
+- [Safety Boundaries](../concepts/safety_boundaries.md)
+
+Likely code:
+
+- `backend/src/api/auth/**`
+- `backend/src/api/schemas/**`
+- `backend/src/core/validation/**`
+- `backend/src/core/security/**`
+- `frontend/src/shared/ipcChannels.json`
+- `frontend/src/preload.js`
+- `frontend/src/main/permission*`
+- `frontend/src/main/python/tools/**`
+
+Validate the enforcing boundary plus the producer/consumer boundary. Never commit credentials, broaden preload IPC generically, or trust renderer-provided hosted identity.
 
 ### Add or Change a WebSocket Message
 
@@ -387,6 +411,14 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Channel Routing Matrix](../channels/channel_routing_matrix.md)
 - [Voice and Audio Channels](../channels/voice_and_audio_channels.md)
 - [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md)
+
+### Security
+
+- [Security Hub](../security/README.md)
+- [Security Boundary Matrix](../security/security_boundary_matrix.md)
+- [Security Change Playbook](../security/security_change_playbook.md)
+- [Operations Security](../operations/security.md)
+- [Hosted Backend Auth](../operations/hosted_backend_auth.md)
 
 ### Memory
 
