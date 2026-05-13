@@ -92,6 +92,9 @@ const {
 const {
   isAgentLoopStopShortcutPhase,
 } = require('./agent_stop_shortcut_runtime.cjs');
+const {
+  buildAgentCapabilityHandshakePayload,
+} = require('./agent_capability_handshake.cjs');
 const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
 
 let BACKEND_ENDPOINTS = resolveBackendEndpoints();
@@ -645,6 +648,7 @@ function connect() {
       type: 'handshake',
       user_id: currentUserId,
       operating_system: resolveFrontendOperatingSystem(process.platform),
+      ...buildAgentCapabilityHandshakePayload(),
     };
     try {
       ws.send(JSON.stringify(handshakeMessage));

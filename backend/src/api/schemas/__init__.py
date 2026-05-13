@@ -1,6 +1,10 @@
 """API schema modules split by direction."""
 
-from backend.src.api.schemas.common import BaseMessage, HandshakeMessage
+from backend.src.api.schemas.common import (
+    BaseMessage,
+    HandshakeAgentPolicy,
+    HandshakeMessage,
+)
 from backend.src.api.schemas.incoming import (
     IncomingMessage,
     ListModelsMessage,
@@ -77,6 +81,7 @@ __all__ = [
     "ErrorPayload",
     "ErrorResponse",
     "HandshakeMessage",
+    "HandshakeAgentPolicy",
     "IncomingMessage",
     "ListModelsMessage",
     "LlmThought",
