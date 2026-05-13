@@ -33,6 +33,7 @@ Settings can restart onboarding through the onboarding/settings tab. Keep re-ent
 
 ## Deep Docs
 
+- [App Startup and Onboarding Change Workflow](../frontend/renderer/app_startup_onboarding_change_workflow.md)
 - [Frontend Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference](../frontend/renderer/permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
 - [Frontend Permission Store Action Liveness and Active Consumer Map Reference](../frontend/renderer/permissions/permission_store_action_liveness_and_active_consumer_map_reference.md)
 - [Frontend Permission Manifest, Probe, and IPC Request Contract Reference](../frontend/main/permission_manifest_probe_and_request_ipc_reference.md)

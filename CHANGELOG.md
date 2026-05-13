@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(frontend): add an app startup and onboarding change workflow for root view routing, VM mode, permission-gated onboarding, wakeword placement, and Electron surface handoff.
 - docs(frontend): add a model settings change workflow for dashboard model cards, chat selectors, frontend config persistence, list-models sync, provider API keys, and backend catalog routing.
 - docs(frontend): add a workspace context change workflow for active workspace selection, conversation workspace binding, `workspace_path` forwarding, AGENTS.md repo instruction injection, and backend prompt context.
 - docs(frontend): add a dashboard change workflow for shell routing, sidebar conversations, search, memory, models, settings, usage, transcript handoff, and chat resume.

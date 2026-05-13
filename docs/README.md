@@ -196,6 +196,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Failure Domain Map**](architecture/failure_domain_map.md) - Route broad failures to producer, transport, consumer, platform, provider, packaging, or operations owners
 - [**Frontend Functionality Map**](frontend/README.md) - Detailed module-level renderer, electron-main, and sidecar runtime maps
 - [**Renderer State Change Workflow**](frontend/renderer/renderer_state_change_workflow.md) - Owner routing for chat state, dashboard panels, settings, transcript projection, stream presentation, tool results, and provider contexts
+- [**Frontend App Startup + Onboarding Workflow**](frontend/renderer/app_startup_onboarding_change_workflow.md) - Change workflow for renderer root selection, VM mode, permission onboarding, wakeword placement, and startup surface handoff
 - [**Main Process Change Workflow**](frontend/main/main_process_change_workflow.md) - Owner routing for Electron startup, IPC, windows, overlays, endpoints, permissions, local backend bridge, wakeword, and VM worker behavior
 - [**Sidecar Runtime Change Workflow**](frontend/sidecar/sidecar_runtime_change_workflow.md) - Owner routing for Python JSON-RPC, local tools, memory, browser automation, system state, platform adapters, backend config, and wakeword service behavior
 - [**Local Backend JSON-RPC Change Workflow**](frontend/sidecar/local_backend_jsonrpc_change_workflow.md) - Change workflow for sidecar method registration, Electron mapper payloads, readiness, request transport, and JSON-RPC protocol errors

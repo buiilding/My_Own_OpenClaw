@@ -93,6 +93,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Renderer Styles Docs Hub](renderer/styles/README.md)
 - [Renderer Transcript Contracts Docs Hub](renderer/transcript/contracts/README.md)
 - [Renderer Runtime](renderer/renderer_runtime.md)
+- [App Startup and Onboarding Change Workflow](renderer/app_startup_onboarding_change_workflow.md)
 - [App Startup VM-Mode and Frontend Onboarding Runtime Reference](renderer/app_startup_vm_mode_and_frontend_onboarding_runtime_reference.md)
 - [Feature Module Matrix](renderer/feature_module_matrix.md)
 - [Renderer Dashboard Docs Hub](renderer/dashboard/README.md)
