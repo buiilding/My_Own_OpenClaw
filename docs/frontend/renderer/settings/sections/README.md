@@ -10,6 +10,7 @@ title: "Renderer Settings Sections Docs Hub"
 
 ## Deep Pages
 
+- [Settings Surface Change Workflow](../settings_surface_change_workflow.md)
 - [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
 - [Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference](../../permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
 

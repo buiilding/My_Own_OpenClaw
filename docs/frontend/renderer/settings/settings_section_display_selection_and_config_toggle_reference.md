@@ -12,6 +12,7 @@ This page is retained as a compatibility entrypoint.
 
 Current detailed docs moved to organized subfolders:
 
+- [Settings Surface Change Workflow](settings_surface_change_workflow.md)
 - [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
 - [Frontend Config Filter, Storage, and Provider Merge Runtime Reference](config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
 - [Frontend Renderer Settings Docs Hub](README.md)

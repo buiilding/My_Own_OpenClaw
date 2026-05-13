@@ -145,5 +145,6 @@ Exception:
 ## Related Pages
 
 - [Renderer Settings Sections Docs Hub](README.md)
+- [Settings Surface Change Workflow](../settings_surface_change_workflow.md)
 - [Renderer Settings Config Docs Hub](../config/README.md)
 - [App Provider Coordinator and Save-Status Runtime Reference](../../providers/app_provider_coordinator_and_save_status_runtime_reference.md)

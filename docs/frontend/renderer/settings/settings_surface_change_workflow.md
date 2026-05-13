@@ -1,0 +1,171 @@
+---
+summary: "Workflow for changing WindieOS dashboard settings surfaces across tab routing, config patches, permission actions, workspace selection, browser automation, memory resets, Electron IPC, backend settings sync, and tests."
+read_when:
+  - When adding, removing, renaming, or debugging a dashboard settings tab or control.
+  - When a setting persists locally but does not affect runtime behavior, reappears after reload, fails backend sync, triggers the wrong permission action, or calls the wrong memory/workspace/browser IPC path.
+  - When deciding whether a settings change belongs to renderer settings UI, AppConfig persistence, Electron main IPC/config, backend update-settings validation, permission services, sidecar memory actions, or workspace access.
+title: "Settings Surface Change Workflow"
+---
+
+# Settings Surface Change Workflow
+
+Use this workflow for user-facing settings controls in the desktop dashboard. It complements [Settings Sync Change Workflow](../../runtime/settings_sync_change_workflow.md): that workflow owns config propagation, while this one starts from the settings UI surface and routes each tab/control to the right runtime.
+
+The main rule is: a settings control should have exactly one semantic owner. Some controls write `AppConfig`, some invoke Electron permission or admin actions, some read workspace state, and some are only presentation. Do not make every control an `onConfigChange` patch just because it lives in Settings.
+
+## Runtime Path
+
+```mermaid
+flowchart LR
+    A["SettingsSection tab"] --> B{"control kind"}
+    B -- "config patch" --> C["AppConfigProvider.updateConfig"]
+    C --> D["localStorage + Electron disk config"]
+    D --> E["update-settings over websocket"]
+    E --> F["backend patch validation + session rewire"]
+    B -- "local authority" --> G["permission store or Electron IPC"]
+    G --> H["permission service / sudo / browser / workspace"]
+    B -- "local data admin" --> I["memory settings action hook"]
+    I --> J["main IPC memory RPC"]
+    J --> K["sidecar memory admin/store"]
+```
+
+## Fast Owner Map
+
+| Change or symptom | First owner | Inspect first | Then inspect |
+| --- | --- | --- | --- |
+| Add, remove, rename, or reorder a settings tab | Renderer settings shell | `SettingsSection.jsx`, `SETTINGS_TABS`, `renderTabContent()` | `tests/frontend/SettingsSection.test.jsx`, settings docs |
+| Toggle emits config but value disappears after reload | Renderer config allowlist/storage | `frontend/src/renderer/utils/configFilter.js`, `configStorage.js`, `appConfigPersistence.js` | [Settings Sync Change Workflow](../../runtime/settings_sync_change_workflow.md) |
+| Setting saves locally but backend ignores it | Backend patch validation or main sync | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `backend/src/api/handlers/settings.py`, backend validation docs | backend settings/update tests |
+| General wakeword listening toggle is wrong | AppConfig context wakeword state | `GeneralSettingsTab.jsx`, `AppConfigProvider.jsx`, wakeword bridge/runtime docs | wakeword/voice tests |
+| Wakeword STT toggle is wrong | Renderer config patch path | `GeneralSettingsTab.jsx`, config filter/storage, settings sync | `GeneralSettingsTab.test.jsx`, config tests |
+| Agent full sudo toggle persists without auth or fails prompt | Electron sudo access handler | `GeneralSettingsTab.jsx`, `frontend/src/main/agent_sudo_access_handler.cjs`, shell sudo docs | `GeneralSettingsTab.test.jsx`, main-process sudo tests |
+| View tool logs changes execution instead of presentation | Renderer transcript/display settings | `GeneralSettingsTab.jsx`, chat message rendering, transcript display filtering | chat/message display tests |
+| Workspace settings uses wrong folder | Workspace permission/runtime path | `WorkspaceSettingsTab.jsx`, `workspaceAccess`, Electron workspace permission service | [Workspace Context Change Workflow](../../runtime/workspace_context_change_workflow.md), file/shell workflow |
+| Browser settings opens wrong browser or status is stale | Permission store plus browser permission service | `BrowserSettingsTab.jsx`, `permissionStore.js`, browser permission service, browser runtime docs | permission/browser tests |
+| Memory tab nukes wrong data | Memory settings actions and sidecar admin path | `MemorySettingsTab.jsx`, `useMemorySettingsActions.js`, main memory IPC, sidecar memory admin/store | memory reset/delete tests |
+| Onboarding tab shows wrong permission state | Permission onboarding surface | `OnboardingSettingsTab.jsx`, permission store, onboarding permission docs | onboarding/permission tests |
+| Save status gets stuck | App status provider and settings ACK routing | `AppStatusProvider.jsx`, `appConfigEvents.js`, `ipc_settings_sync.cjs` | `AppStatusProvider`/settings ACK tests |
+
+## Current Settings Tabs
+
+| Tab | Renderer component | Primary behavior | Owner boundary |
+| --- | --- | --- | --- |
+| General | `GeneralSettingsTab.jsx` | wakeword listening, wakeword STT, agent sudo access, tool log visibility, global stop shortcut | mixed: context setters, config patches, Electron sudo IPC |
+| Workspace | `WorkspaceSettingsTab.jsx` | active workspace display and folder selection | Electron workspace permission/runtime path |
+| Browser | `BrowserSettingsTab.jsx` | dedicated browser permission/status and open-browser action | renderer permission store plus Electron/sidecar browser runtime |
+| Memory | `MemorySettingsTab.jsx`, `useMemorySettingsActions.js` | local memory reset and chat-history reset | renderer action hook, main IPC, sidecar memory admin |
+| Onboarding | `OnboardingSettingsTab.jsx` | permission/onboarding reset or status controls | renderer permission/onboarding store |
+| Data controls | `PermissionControlCenter` branch | hidden compatibility branch, no visible tab button | permission center path only |
+
+## Change Sequence
+
+1. Classify the control.
+   - Config patch: persists in frontend config and may sync to backend.
+   - Permission or authority action: calls permission store or Electron main.
+   - Local data admin: calls main/sidecar memory actions.
+   - Workspace/browser action: calls specialized runtime paths.
+   - Presentation-only: affects renderer display only.
+
+2. Update the owning tab and shell.
+   - Add tab metadata in `SETTINGS_TABS`.
+   - Add explicit `renderTabContent()` routing.
+   - Keep the tab id stable if existing links or initial-tab opens use it.
+   - Update `SettingsSection.propTypes` when props change.
+
+3. For config controls, update the config pipeline.
+   - Add defaults in `configStorage.js`.
+   - Add allowlist projection in `configFilter.js`.
+   - Update `AppConfigProvider` or hook usage if the field has special merge/defer semantics.
+   - Update Electron disk persistence only if payload shape changes.
+   - Update backend settings validation/session rewire only if backend runtime behavior changes.
+
+4. For authority controls, update the authority path.
+   - Permission controls should go through `permissionStore` and permission services.
+   - Sudo controls should go through `agent_sudo_access_handler.cjs` before persisting `agent_full_sudo_enabled`.
+   - Browser controls should apply permission grant effects and update browser automation config only through the established permission path.
+   - Workspace controls should go through workspace access helpers and Electron workspace permission/runtime services.
+
+5. For destructive local data controls, update all reset effects.
+   - The renderer hook should call the correct IPC channel.
+   - Electron main should route to the right sidecar method.
+   - Sidecar should delete the intended record family only.
+   - Dashboard/chat state should refresh after success.
+   - The UI should block duplicate pending actions.
+
+6. Update docs and validation together.
+   - Settings surface changes update this workflow and the settings hub.
+   - Config propagation changes update [Settings Sync Change Workflow](../../runtime/settings_sync_change_workflow.md).
+   - Model/provider controls update [Model Settings Change Workflow](model_settings_change_workflow.md).
+   - Permission controls update [Permissions and Local Authority Workflow](../../../security/permissions_and_local_authority_workflow.md).
+   - Workspace controls update [Workspace Context Change Workflow](../../runtime/workspace_context_change_workflow.md).
+   - Memory reset controls update memory docs.
+
+## Validation Matrix
+
+| Change type | Focused validation |
+| --- | --- |
+| Settings tab routing, initial tab, close behavior | `cd frontend && npm run test -- SettingsSection` |
+| General tab config/authority controls | `cd frontend && npm run test -- GeneralSettingsTab SettingsSection` |
+| Config allowlist/storage/provider merge | `cd frontend && npm run test -- configFilter configStorage AppConfigProvider.storageAndIpc AppConfigPersistence SettingsManagementHook` |
+| Settings ACK/main sync | `cd frontend && npm run test -- IpcSettingsSync AppConfigEvents` plus backend settings tests when payload shape changes |
+| Backend settings validation/session rewire | `./scripts/python-in-env backend pytest tests/backend/test_settings_update_rules.py tests/backend/test_session_config_service.py` |
+| Permission/onboarding controls | `cd frontend && npm run test -- AppPermissionGate PermissionStorage PermissionIpcRuntime PermissionService useOnboardingPermissionActions FrontendOnboardingSlideshow` |
+| Workspace controls | `cd frontend && npm run test -- ChatWorkspaceState` plus workspace IPC/permission tests if main-process behavior changes |
+| Browser controls | `cd frontend && npm run test -- ChatBrowserSessionControl PermissionService PermissionIpcRuntime` plus browser workflow tests if runtime changes |
+| Memory reset controls | `cd frontend && npm run test -- SettingsSection` plus focused sidecar memory delete/reset tests if sidecar admin behavior changes |
+| Docs-only settings surface | `./bin/docs-list`, `git diff --check`, focused Markdown link check |
+
+If a test stem is not available in the current checkout, search by the component or helper name before adding new coverage.
+
+## Debug Playbooks
+
+### Setting Reappears After Reload
+
+1. Confirm the control emits the intended config patch.
+2. Confirm the field is included in `FRONTEND_CONFIG_FIELDS`.
+3. Confirm `configStorage` default and merge behavior preserve the value.
+4. Confirm `AppConfigProvider` applies the disk/local merge only when changed.
+5. Confirm Electron disk config is not writing an older value over renderer state.
+
+### Setting Saves Locally but Runtime Does Not Change
+
+1. Decide whether the runtime is renderer-only, Electron main, backend, or sidecar.
+2. If backend-owned, inspect `update-settings` ACK and backend patch allowlist.
+3. If Electron-owned, inspect the matching IPC handler and disk config path.
+4. If sidecar-owned, inspect sidecar launch env or JSON-RPC action path.
+5. Add producer and consumer tests for the changed field.
+
+### Sudo Toggle Is Unsafe or Ineffective
+
+1. Confirm enabling still asks the user for confirmation.
+2. Confirm `SET_AGENT_SUDO_ACCESS` succeeds before `agent_full_sudo_enabled` is persisted.
+3. Confirm failure paths alert and do not update config.
+4. Confirm shell tool argument mapping still derives `sudo_auth_mode` from frontend config.
+
+### Memory Reset Deletes the Wrong Thing
+
+1. Confirm whether the requested action is memory reset or chat-history reset.
+2. Confirm `useMemorySettingsActions` invokes the matching IPC channel.
+3. Confirm sidecar deletes only the intended local store records.
+4. Confirm dashboard/chat state refreshes after success.
+5. Confirm semantic/vector artifacts are rebuilt or cleared only when needed.
+
+## Review Checklist
+
+- Each control has one owner and one update path.
+- New config fields have defaults, allowlist entries, persistence tests, and backend validation if synced.
+- Authority controls do not persist optimistic config before required OS/app action succeeds.
+- Destructive controls block duplicate clicks and refresh visible state after success.
+- Settings UI tests cover tab routing and user-facing state.
+- Docs name the owner, IPC/backend/sidecar path, and focused validation.
+
+## Related Docs
+
+- [Frontend Renderer Settings Docs Hub](README.md)
+- [Renderer Settings Sections Docs Hub](sections/README.md)
+- [Settings Sync Change Workflow](../../runtime/settings_sync_change_workflow.md)
+- [Config Sync and Settings Lifecycle Reference](../../runtime/config_sync_and_settings_lifecycle_reference.md)
+- [Model Settings Change Workflow](model_settings_change_workflow.md)
+- [Permissions and Local Authority Workflow](../../../security/permissions_and_local_authority_workflow.md)
+- [Workspace Context Change Workflow](../../runtime/workspace_context_change_workflow.md)
+- [Memory Change Workflow](../../../memory/memory_change_workflow.md)

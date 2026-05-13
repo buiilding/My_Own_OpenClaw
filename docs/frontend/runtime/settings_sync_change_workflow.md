@@ -11,6 +11,8 @@ title: "Settings Sync Change Workflow"
 
 Use this workflow before changing frontend settings or config sync. Settings changes are cross-runtime by default: renderer UI persists local state, Electron main stores disk state and gates backend sync, and the backend may rewire sessions from the sanitized settings payload.
 
+For tab/control ownership, start with [Settings Surface Change Workflow](../renderer/settings/settings_surface_change_workflow.md). Use this page when the setting value crosses persistence, Electron ACK, or backend session-config boundaries.
+
 ## Settings Flow
 
 1. renderer loads local storage and disk config.
@@ -159,6 +161,7 @@ Validation:
 ## Related Docs
 
 - [Frontend Runtime Docs Hub](README.md)
+- [Settings Surface Change Workflow](../renderer/settings/settings_surface_change_workflow.md)
 - [Config Sync and Settings Lifecycle Reference](config_sync_and_settings_lifecycle_reference.md)
 - [Model Settings Change Workflow](../renderer/settings/model_settings_change_workflow.md)
 - [Configuration Change Workflow](../../operations/configuration_change_workflow.md)

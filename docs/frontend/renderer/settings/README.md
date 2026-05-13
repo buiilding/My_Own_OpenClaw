@@ -10,6 +10,7 @@ title: "Frontend Renderer Settings Docs Hub"
 
 ## Deep Pages
 
+- [Settings Surface Change Workflow](settings_surface_change_workflow.md)
 - [Renderer Settings Sections Docs Hub](sections/README.md)
 - [Model Settings Change Workflow](model_settings_change_workflow.md)
 - [Renderer State Change Workflow](../renderer_state_change_workflow.md)
@@ -23,6 +24,7 @@ title: "Frontend Renderer Settings Docs Hub"
 
 - [Frontend Renderer Docs Hub](../README.md)
 - [Settings Sync Change Workflow](../../runtime/settings_sync_change_workflow.md)
+- [Settings Surface Change Workflow](settings_surface_change_workflow.md)
 - [Config Sync and Settings Lifecycle Reference](../../runtime/config_sync_and_settings_lifecycle_reference.md)
 - [App Provider Coordinator and Save-Status Runtime Reference](../providers/app_provider_coordinator_and_save_status_runtime_reference.md)
 - [Renderer Permissions Docs Hub](../permissions/README.md)

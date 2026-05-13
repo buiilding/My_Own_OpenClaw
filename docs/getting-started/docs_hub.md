@@ -367,6 +367,7 @@ Read:
 - [Dashboard Change Workflow](../frontend/renderer/dashboard/dashboard_change_workflow.md)
 - [Frontend Renderer Dashboard Docs Hub](../frontend/renderer/dashboard/README.md)
 - [Frontend Renderer Settings Docs Hub](../frontend/renderer/settings/README.md)
+- [Settings Surface Change Workflow](../frontend/renderer/settings/settings_surface_change_workflow.md)
 - [Frontend Global Theme + Main Layout Style Runtime](../frontend/renderer/styles/global_theme_accessibility_utility_and_main_layout_visual_contract_reference.md)
 
 Likely code:
@@ -489,6 +490,7 @@ Read:
 - [Configuration Change Workflow](../operations/configuration_change_workflow.md)
 - [Backend Config Runtime Policy](../backend/config/config_fields_and_runtime_policy.md)
 - [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md)
+- [Settings Surface Change Workflow](../frontend/renderer/settings/settings_surface_change_workflow.md)
 - [Frontend Config Sync + Settings Lifecycle Reference](../frontend/runtime/config_sync_and_settings_lifecycle_reference.md)
 - [Frontend Settings + Models ACK Event Routing Reference](../frontend/contracts/events/settings_and_model_ack_event_routing_reference.md)
 
