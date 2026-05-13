@@ -11,6 +11,7 @@ title: "Backend Services Docs Hub"
 ## Deep Pages
 
 - [Services and Storage](services_and_storage.md)
+- [Backend Service Change Workflow](backend_service_change_workflow.md)
 - [VM Run Control Service Runtime Reference](vm_run_control_service_runtime_reference.md)
 - [VM Run Control Support Helper Module Contract Reference](vm_run_control_support_helper_module_contract_reference.md)
 - [VM Run Control Bulk-Stop Helper Contract Reference](vm_run_control_bulk_stop_helper_contract_reference.md)

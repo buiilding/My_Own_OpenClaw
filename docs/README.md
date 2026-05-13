@@ -193,6 +193,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Frontend Landing Section Content Contracts**](frontend/landing/sections/hero_how_available_and_roadmap_section_content_contract_reference.md) - Hero/How/Available/Roadmap source arrays, CTA anchor semantics, and status-label behavior for public capability messaging
 - [**Backend Functionality Map**](backend/README.md) - Detailed module-level backend runtime and API maps
 - [**API Route Change Workflow**](backend/api/api_route_change_workflow.md) - Owner routing for backend HTTP routes, websocket messages, handlers, formatters, auth gates, route models, and package exports
+- [**Backend Service Change Workflow**](backend/services/backend_service_change_workflow.md) - Owner routing for artifacts, OCR, vision, embeddings, semantic memory, TTS/wakeword audio, token counting, and VM run-control services
 - [**Backend Inventory Docs Hub**](backend/inventory/README.md) - Subfolder inventory hub for exhaustive backend runtime coverage, flow matrices, and file ownership indexes
 - [**Backend Inventory Domains Hub**](backend/inventory/domains/README.md) - Domain ownership matrix + change-path playbooks for API/agent/core/tools/llm/services scope decisions
 - [**Backend Inventory Protocols Hub**](backend/inventory/protocols/README.md) - WebSocket handshake/incoming/outgoing/formatter matrix for backend protocol ownership and drift detection
