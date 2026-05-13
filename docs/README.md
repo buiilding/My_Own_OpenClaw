@@ -12,6 +12,14 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 
 ### Documentation Hubs
 - [**Documentation Hub**](getting-started/docs_hub.md) - Agent-facing routing map for choosing the right subsystem, code roots, docs, and validation path before development
+- [**Concepts Hub**](concepts/README.md) - Runtime model, agent loop, memory/context, and safety-boundary mental models
+- [**Tools Hub**](tools/README.md) - Tool contracts, computer tools, browser automation, filesystem, and shell execution
+- [**Providers Hub**](providers/README.md) - LLM providers, model catalog, credentials, inference providers, STT, and TTS
+- [**Install Hub**](install/README.md) - Local development, packaging, sidecar runtime bundling, and reinstall helpers
+- [**Commands and Scripts**](cli/README.md) - Current developer commands, package scripts, cloudflared helpers, and planned CLI boundary
+- [**Platforms Hub**](platforms/README.md) - macOS, Windows, and Linux platform-specific behavior
+- [**Help Hub**](help/README.md) - Diagnostics and troubleshooting routes by runtime boundary
+- [**Web Surfaces**](web/README.md) - Landing page, hosted backend APIs, SDK routes, artifacts, and websocket surfaces
 - [**OpenClaw Docs Structure Reference**](reference/openclaw_docs_structure_reference.md) - Structure benchmark and WindieOS mapping
 - [**Backend Bootstrap/API/Contracts Hubs**](backend/README.md) - Subfolder-level backend navigation mirroring OpenClaw-style layered docs
 - [**Frontend Main/Renderer/Contracts/Sidecar Hubs**](frontend/README.md) - Subfolder-level frontend navigation for process/runtime boundaries
@@ -23,6 +31,23 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Overview**](getting-started/overview.md) - Project overview, vision, and key capabilities
 - [**Quick Start Guide**](getting-started/quick_start.md) - Get up and running quickly
 - [**Installation Guide**](getting-started/installation.md) - Detailed installation instructions
+- [**Local Development**](install/local_development.md) - Source setup, run commands, tests, and environment launcher usage
+- [**Packaged Desktop Builds**](install/packaged_desktop.md) - Electron Builder targets and bundled sidecar runtime packaging
+- [**Commands and Scripts**](cli/README.md) - Repo scripts and frontend package commands
+
+### Concepts, Tools, Providers
+- [**Runtime Model**](concepts/runtime_model.md) - Hosted backend, Electron main, renderer, preload, and Python sidecar boundaries
+- [**Agent Loop**](concepts/agent_loop.md) - Query send, backend streaming, tool turns, and completion lifecycle
+- [**Context and Memory**](concepts/context_and_memory.md) - Transcript, backend history, semantic memory, artifacts, screenshots, and repo instructions
+- [**Safety Boundaries**](concepts/safety_boundaries.md) - Permissions, schema validation, provider health, and trust boundaries
+- [**Tool Contracts**](tools/tool_contracts.md) - Backend model-facing schema vs sidecar executable tool contract
+- [**Computer Tools**](tools/computer.md) - Mouse, keyboard, screenshot, scroll, window, OCR, and vision grounding paths
+- [**Browser Tool**](tools/browser.md) - Dedicated browser runtime, schema parity, snapshots, and debugging
+- [**Filesystem and Shell Tools**](tools/filesystem_shell.md) - Read/replace, shell, process sessions, app launch, and output formatting
+- [**Models and LLM Providers**](providers/models.md) - Provider factory, model catalog, reasoning variants, and capability flags
+- [**Provider Credentials**](providers/credentials.md) - Environment variables, frontend overrides, OAuth entries, and install auth
+- [**Inference Providers**](providers/inference.md) - OCR, vision, embeddings, STT, TTS, health, and capability gating
+- [**HTTP and WebSocket API Surface**](reference/http_api_surface.md) - Route-level map for hosted APIs, SDK routes, artifacts, memory, transcription, and runs
 
 ### Architecture & Design
 - [**Frontend Functionality Map**](frontend/README.md) - Detailed module-level renderer, electron-main, and sidecar runtime maps

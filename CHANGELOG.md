@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(api-and-commands): add command/script and HTTP/websocket API surface docs so WindieOS has OpenClaw-like command and integration entrypoints grounded in current routes and scripts.
+- docs(openclaw-coverage): add OpenClaw-style top-level concept, tool, provider, install, platform, help, and web docs grounded in the current backend, frontend, and sidecar code surfaces.
 - docs(docs-hub): reshape the WindieOS documentation hub into an OpenClaw-style agent routing map with subsystem ownership, code roots, change-path playbooks, and validation guidance for backend, frontend, sidecar, operations, and planning work.
 - docs(readme): retune the README around a more product-forward Windie introduction, covering the minimal pill and dashboard flow, model-agnostic screenshot-first computer-use, local memory framing, and dedicated browser profile.
 - docs(readme): reposition WindieOS as the open-source desktop companion layer for personal AI agents, clarifying the frontend/sidecar boundary and differentiating it from coding agents, messaging gateways, and cloud agent computers.

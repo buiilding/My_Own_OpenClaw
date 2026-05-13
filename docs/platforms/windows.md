@@ -1,0 +1,30 @@
+---
+summary: "Windows WindieOS platform guide for packaging, reinstall, sidecar platform behavior, window handling, and screenshot policy."
+read_when:
+  - When changing Windows packaging, permissions, screenshot behavior, or sidecar platform adapters.
+title: "Windows"
+---
+
+# Windows
+
+Windows behavior is mostly implemented through Electron main window policy, sidecar platform adapters, Electron Builder NSIS packaging, and the Windows reinstall helper.
+
+## Key Areas
+
+- Windows package target: `frontend/package.json` `package:win`
+- Reinstall helper: `scripts/reinstall-windieos-windows.ps1`
+- Sidecar adapter: `frontend/src/main/python/core/platform/windows.py`
+- Window/platform policy: `frontend/src/main/window_platform_policy.cjs`
+- CI smoke helper: `scripts/ci/smoke-windows-packages.ps1`
+
+## Rules
+
+- Do not add capture-time hide/show behavior for minimal chat pill or response overlay on Windows.
+- Content protection should be active only during active loop phases and off during idle/terminal phases.
+- PowerShell should not invoke `./scripts/committer` directly; use Git Bash or plain `git add`/`git commit`.
+- Keep Windows package checks separate from Linux/macOS package assumptions.
+
+## Related Docs
+
+- [Packaged Desktop Builds](../install/packaged_desktop.md)
+- [Frontend Runtime Invariants and PR Checklist](../frontend/runtime/frontend_runtime_invariants_checklist.md)

@@ -1,0 +1,45 @@
+---
+summary: "Conceptual agent-loop lifecycle from renderer query send through backend streaming, tool turns, result handling, and completion."
+read_when:
+  - When explaining or changing how a WindieOS turn executes.
+  - When debugging query streaming, tool calls, or completion behavior at a high level.
+title: "Agent Loop"
+---
+
+# Agent Loop
+
+The WindieOS agent loop is backend-owned, but it depends on frontend and sidecar execution for local tools. Treat the loop as a distributed state machine rather than a single function call.
+
+## Turn Lifecycle
+
+1. **Query send**: renderer chat surfaces call the query-send path, optionally attaching screenshots and system state.
+2. **Main-process relay**: Electron main validates websocket readiness, applies settings sync gates, forwards local repo instructions, and sends the backend query.
+3. **Backend session routing**: the backend resolves the user/session/conversation, applies runtime config, and starts a query task.
+4. **Prompt construction**: backend prompt code builds system instructions, history, tool schemas, capability metadata, model settings, and optional artifact/screenshot context.
+5. **LLM streaming**: provider code normalizes chunks, thinking text, tool calls, token usage, and native provider events into WindieOS streaming events.
+6. **Tool turn**: backend prepares tool arguments, sends `tool-call` or `tool-bundle` events, waits for frontend results, transforms results for history, and resumes the model.
+7. **Completion**: backend emits terminal completion/error/cancel events and commits transcript/history state.
+
+## Owner Modules
+
+- Query handlers and service: `backend/src/api/handlers/query.py`, `backend/src/api/services/query_execution.py`
+- Agent loop: `backend/src/agent/execution/*`
+- Prompt and LLM stream processing: `backend/src/llm/*`, `backend/src/agent/llm/*`
+- Tool orchestration: `backend/src/agent/tools/*`, `backend/src/tools/*`
+- Renderer stream consumption: `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- Renderer tool execution: `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
+- Main relay and websocket lifecycle: `frontend/src/main/ipc.cjs`
+
+## Failure Modes to Route Correctly
+
+- A malformed model tool call belongs in parser/provider/agent recovery docs, not renderer display code.
+- A missing or stale request id belongs in backend tool waiting/result storage or frontend tool-runner correlation code.
+- A renderer event that fails type guards belongs in backend outgoing schema/formatter alignment first.
+- A local tool execution error belongs in the sidecar tool implementation or main bridge mapping.
+
+## Deep Docs
+
+- [Backend Query Handler and Query Execution Service Runtime Reference](../backend/api/handlers/query_handler_and_query_execution_service_runtime_reference.md)
+- [Backend Interaction Loop + Tool-Turn Orchestration Reference](../backend/agent/interaction_loop_and_tool_turn_orchestration_reference.md)
+- [Backend Tool Result Ingress Reference](../backend/tools/tool_result_ingress_and_storage_reference.md)
+- [Frontend Chat Stream + Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md)

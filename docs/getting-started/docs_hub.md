@@ -32,6 +32,13 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Product Overview](product_overview.md) for the non-technical product shape.
 - [Quick Start](quick_start.md) for the local run path.
 - [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) for environment setup.
+- [Concepts Hub](../concepts/README.md) for product/system mental models before implementation details.
+- [Tools Hub](../tools/README.md) for model-facing and sidecar-executable tools.
+- [Providers Hub](../providers/README.md) for LLM, inference, credential, STT, TTS, and web-search providers.
+- [Install Hub](../install/README.md) for local development and packaged desktop builds.
+- [Commands and Scripts](../cli/README.md) for current repo/script entrypoints and planned CLI boundaries.
+- [Platforms Hub](../platforms/README.md) for macOS, Windows, and Linux behavior.
+- [Help Hub](../help/README.md) for diagnostics and troubleshooting.
 - [System Architecture](../architecture/architecture.md) for the high-level runtime model.
 - [Communication Flow](../architecture/communication_flow.md) for cross-process event flow.
 - [OpenClaw Docs Structure Reference](../reference/openclaw_docs_structure_reference.md) for the docs organization benchmark.
@@ -309,6 +316,57 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Installation](installation.md)
 - [User Guide](user_guide.md)
 - [Troubleshooting](troubleshooting.md)
+
+### Concepts
+
+- [Concepts Hub](../concepts/README.md)
+- [Runtime Model](../concepts/runtime_model.md)
+- [Agent Loop](../concepts/agent_loop.md)
+- [Context and Memory](../concepts/context_and_memory.md)
+- [Safety Boundaries](../concepts/safety_boundaries.md)
+
+### Tools
+
+- [Tools Hub](../tools/README.md)
+- [Tool Contracts](../tools/tool_contracts.md)
+- [Computer Tools](../tools/computer.md)
+- [Browser Tool](../tools/browser.md)
+- [Filesystem and Shell Tools](../tools/filesystem_shell.md)
+
+### Providers
+
+- [Providers Hub](../providers/README.md)
+- [Models and LLM Providers](../providers/models.md)
+- [Provider Credentials](../providers/credentials.md)
+- [Inference Providers](../providers/inference.md)
+
+### Install
+
+- [Install Hub](../install/README.md)
+- [Local Development](../install/local_development.md)
+- [Packaged Desktop Builds](../install/packaged_desktop.md)
+
+### Commands
+
+- [Commands and Scripts](../cli/README.md)
+
+### Platforms
+
+- [Platforms Hub](../platforms/README.md)
+- [macOS](../platforms/macos.md)
+- [Windows](../platforms/windows.md)
+- [Linux](../platforms/linux.md)
+
+### Help
+
+- [Help Hub](../help/README.md)
+- [Diagnostics](../help/diagnostics.md)
+- [Troubleshooting](../help/troubleshooting.md)
+
+### Web
+
+- [Web Surfaces](../web/README.md)
+- [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
 
 ### Architecture
 

@@ -52,7 +52,15 @@ Representative style examples reviewed:
 Current WindieOS major sections:
 
 - `getting-started/`
+- `concepts/`
 - `architecture/`
+- `tools/`
+- `providers/`
+- `install/`
+- `cli/`
+- `platforms/`
+- `help/`
+- `web/`
 - `development/`
 - `operations/`
 - `planning/`
@@ -62,6 +70,10 @@ Current WindieOS major sections:
 Added/expanded in WindieOS:
 
 - `getting-started/docs_hub.md`: central agent-facing docs entrypoint with subsystem ownership, code-root routing, and change-path playbooks.
+- `concepts/`: OpenClaw-style conceptual docs for runtime model, agent loop, context/memory, and safety boundaries.
+- `tools/`: first-class tool-system docs covering contracts, computer use, browser automation, filesystem, and shell execution.
+- `providers/`: model/provider docs covering LLM providers, model catalog metadata, credentials, and inference providers.
+- `install/`, `cli/`, `platforms/`, `help/`, and `web/`: broad operational entrypoints that mirror OpenClaw's public-domain navigation while staying grounded in WindieOS desktop/runtime surfaces.
 - `backend/`: backend functionality maps and subsystem docs.
 - `frontend/`: frontend/electron/renderer/sidecar functionality maps.
 - Sub-hubs added for layered navigation:
@@ -76,7 +88,15 @@ Added/expanded in WindieOS:
 ## WindieOS Section Policy (Proposed)
 
 - `getting-started/`: onboarding and quick paths.
+- `concepts/`: product/system mental models that are not tied to one source folder.
 - `architecture/`: high-level conceptual architecture and cross-system flows.
+- `tools/`: first-class tool behavior, contracts, and runtime maps.
+- `providers/`: LLM, model, credential, inference, audio, and web-search provider behavior.
+- `install/`: source setup, packaged app build, and reinstall flows.
+- `cli/`: current repo scripts/package commands and future first-class CLI boundary.
+- `platforms/`: OS-specific desktop behavior and packaging notes.
+- `help/`: diagnostics and troubleshooting.
+- `web/`: hosted API, websocket, SDK, artifact, and landing-page web surfaces.
 - `backend/`: implementation-level backend details (API, runtime, tools, config, services).
 - `frontend/`: implementation-level renderer/main/sidecar details.
 - `development/`: contributor workflows, testing, and local environments.
