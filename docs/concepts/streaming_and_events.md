@@ -56,6 +56,7 @@ Do not make tool events UI-only unless the backend explicitly marks the event as
 
 ## Change Rules
 
+- Use [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md) before adding, renaming, formatting, or consuming a backend websocket event.
 - Add backend event types to backend event constants, formatter dispatch, outgoing schema, renderer guards, and consumer matrices together.
 - Keep `audio-chunk` on its dedicated parser path unless the renderer typed event union is intentionally expanded.
 - Preserve `turn_ref` and `conversation_ref` on events that affect active chat state.
@@ -76,6 +77,7 @@ Do not make tool events UI-only unless the backend explicitly marks the event as
 ## Deep Docs
 
 - [Channels Hub](../channels/README.md)
+- [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md)
 - [Backend Streaming Events Contracts Hub](../backend/contracts/events/README.md)
 - [Backend Formatter Dispatch and Schema Alignment](../backend/api/processing/formatter_dispatch_and_schema_alignment_reference.md)
 - [Frontend Backend Event Consumer Matrix](../frontend/contracts/backend_event_consumer_matrix_reference.md)

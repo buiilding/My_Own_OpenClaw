@@ -87,11 +87,13 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Session and Conversation Identity Change Workflow**](memory/session_conversation_identity_change_workflow.md) - Owner routing for user/session/conversation/turn identity, transcript sync, replay, rehydrate, stale-event filtering, and wrong-conversation bugs
 - [**Agent Loop**](concepts/agent_loop.md) - Query send, backend streaming, tool turns, and completion lifecycle
 - [**Streaming and Events**](concepts/streaming_and_events.md) - Websocket event families, renderer consumers, correlation fields, tool turns, audio side-channel, and stale-turn filtering
+- [**WebSocket Event Contract Change Workflow**](channels/websocket_event_contract_change_workflow.md) - Owner routing for backend events, formatter specs, outgoing schemas, Electron rebroadcast, renderer guards, stream handlers, terminal events, and audio side-channels
 - [**Context and Memory**](concepts/context_and_memory.md) - Transcript, backend history, semantic memory, artifacts, screenshots, and repo instructions
 - [**Prompt and Tool Context**](concepts/prompt_and_tool_context.md) - Prompt inputs, repo instruction forwarding, model-visible tool schemas, provider/capability gates, and transparency events
 - [**Model Provider Selection**](concepts/model_provider_selection.md) - Provider runtime selection, catalog metadata, credential gates, local providers, web-search fallback, and failover boundaries
 - [**Usage and Token Accounting**](concepts/usage_and_token_accounting.md) - Token-count events, provider diagnostics, estimates, cache metrics, dashboard usage, and billing boundaries
 - [**Channels Hub**](channels/README.md) - Entry-channel routing for desktop chat, backend websocket, voice, sidecar tools, SDK, and VM runs
+- [**WebSocket Event Contract Change Workflow**](channels/websocket_event_contract_change_workflow.md) - Change workflow for websocket event names, payloads, formatters, renderer consumers, stream filtering, and terminal/audio event behavior
 - [**Channel Routing Matrix**](channels/channel_routing_matrix.md) - Channel-to-transport, owner, code-root, and validation map
 - [**Voice Audio Change Workflow**](channels/voice_audio_change_workflow.md) - Owner routing for wakeword, microphone permissions, transcription websocket, STT providers, TTS chunks, and renderer playback
 - [**Voice and Audio Channels**](channels/voice_and_audio_channels.md) - Wakeword, voice dictation, transcription websocket, and TTS playback ownership

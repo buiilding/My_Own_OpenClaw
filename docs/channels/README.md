@@ -35,6 +35,16 @@ WindieOS has several user and developer entry channels that eventually meet the 
 
 ## Common Change Paths
 
+### Change a WebSocket Event Contract
+
+Read:
+
+- [WebSocket Event Contract Change Workflow](websocket_event_contract_change_workflow.md)
+- [Streaming and Events](../concepts/streaming_and_events.md)
+- [WebSocket Event Reference](../reference/websocket_event_reference.md)
+
+Use this route for backend streamed event names, formatter payloads, outgoing schemas, renderer `from-backend` guards, chat stream handlers, tool-runner event consumption, terminal events, and audio side-channel payloads.
+
 ### Add a Query Input Surface
 
 Read:
@@ -91,6 +101,7 @@ Validate backend schema tests, sidecar tool tests, renderer tool-runner tests, a
 ## Deep Docs
 
 - [Channel Routing Matrix](channel_routing_matrix.md)
+- [WebSocket Event Contract Change Workflow](websocket_event_contract_change_workflow.md)
 - [Voice Audio Change Workflow](voice_audio_change_workflow.md)
 - [Voice and Audio Channels](voice_and_audio_channels.md)
 - [Sidecar and Tool Channels](sidecar_and_tool_channels.md)

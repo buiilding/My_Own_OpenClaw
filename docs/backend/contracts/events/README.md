@@ -10,6 +10,7 @@ title: "Backend Streaming Events Contracts Docs Hub"
 
 ## Deep Pages
 
+- [WebSocket Event Contract Change Workflow](../../../channels/websocket_event_contract_change_workflow.md)
 - [Streaming Event Dataclass and Enum Semantics Reference](streaming_event_dataclass_and_enum_semantics_reference.md)
 - [Streaming Event to Formatter and Outgoing Contract Alignment Reference](streaming_event_to_formatter_and_outgoing_contract_alignment_reference.md)
 

@@ -8,7 +8,7 @@ title: "WebSocket Event Reference"
 
 # WebSocket Event Reference
 
-WindieOS uses one canonical streamed-event vocabulary for backend formatter output and renderer chat consumption. Electron main rebroadcasts backend websocket messages to renderer windows on `from-backend`.
+WindieOS uses one canonical streamed-event vocabulary for backend formatter output and renderer chat consumption. Electron main rebroadcasts backend websocket messages to renderer windows on `from-backend`. For a development workflow, read [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md).
 
 ## Canonical Event Families
 
@@ -62,6 +62,7 @@ Renderer active-conversation filtering and stale-turn rejection depend on these 
 
 ## Deep Docs
 
+- [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md)
 - [Streaming and Events](../concepts/streaming_and_events.md)
 - [Backend Streaming Events Contracts Hub](../backend/contracts/events/README.md)
 - [Streaming Event to Formatter and Outgoing Contract Alignment Reference](../backend/contracts/events/streaming_event_to_formatter_and_outgoing_contract_alignment_reference.md)
