@@ -71,6 +71,8 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Validation Commands](../cli/validation_commands.md) for choosing focused checks by changed boundary.
 - [Packaging and Release Commands](../cli/packaging_and_release_commands.md) for sidecar runtime builds, Electron package commands, smoke helpers, and reinstall loops.
 - [Platforms Hub](../platforms/README.md) for macOS, Windows, and Linux permission, screenshot/overlay, window/input, packaging, and runtime behavior.
+- [Platform Change Workflow](../platforms/platform_change_workflow.md) for routing OS-specific screenshot, overlay, permission, input, sidecar, and packaging changes.
+- [Platform Validation Matrix](../platforms/platform_validation_matrix.md) for choosing focused platform tests and manual OS smoke checks.
 - [Platform Permission Matrix](../platforms/permission_matrix.md) for platform-specific permission probes, onboarding visibility, and grant routing.
 - [Screenshot and Overlay Policy](../platforms/screenshot_overlay_policy.md) for capture-time hide/restore and content-protection rules.
 - [Window and Input Matrix](../platforms/window_input_matrix.md) for active-window, window-switching, and local input-control ownership.
@@ -114,6 +116,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 | Renderer | Chat UI, dashboard, settings, permissions, voice UI, stream event consumption, tool runner, transcript queue | `frontend/src/renderer` | [Frontend Renderer Docs Hub](../frontend/renderer/README.md), [Frontend Inventory Domains Hub](../frontend/inventory/domains/README.md) |
 | Preload IPC | Isolated renderer bridge, channel allowlist, IPC surface trust boundary | `frontend/src/preload.js` | [Frontend Preload Docs Hub](../frontend/preload/README.md), [Frontend Contracts IPC Docs Hub](../frontend/contracts/ipc/README.md), [IPC Change Workflow](../frontend/ipc_change_workflow.md) |
 | Python sidecar | Local JSON-RPC, shell/filesystem/computer/system tools, browser runtime, local memory, system state, wakeword service | `frontend/src/main/python` | [Frontend Sidecar Docs Hub](../frontend/sidecar/README.md), [Frontend Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md), [Sidecar Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md) |
+| Platform behavior | OS-specific permissions, screenshots, overlays, content protection, display affinity, window/input adapters, packaged runtime smoke checks | `frontend/src/main/platform`, `frontend/src/main/permission_service*.cjs`, `frontend/src/main/python/core/platform`, `frontend/src/main/python/tools/computer`, `scripts/reinstall-windieos-*`, `scripts/ci/smoke-*` | [Platforms Hub](../platforms/README.md), [Platform Change Workflow](../platforms/platform_change_workflow.md), [Platform Validation Matrix](../platforms/platform_validation_matrix.md) |
 | Operations | Config, hosted auth, deployment, packaging, release, performance, security, runtime troubleshooting | `docs/operations`, `scripts`, `.github/workflows`, build config | [Operations Hub](../operations/README.md), [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), [Operational Troubleshooting](../operations/operational_troubleshooting.md) |
 
 ## Change Path Playbooks
@@ -293,6 +296,8 @@ Validate backend schema/parser/formatter tests, renderer tool-runner tests, and 
 
 Read:
 
+- [Platform Change Workflow](../platforms/platform_change_workflow.md)
+- [Platform Validation Matrix](../platforms/platform_validation_matrix.md)
 - [Frontend Message Send Surface Policy and Screenshot Capture](../frontend/renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md)
 - [Frontend Capture, Artifact Upload, and Payload Normalization Reference](../frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
 - [Frontend Linux Screenshot Window Hide and Restore Guard Reference](../frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
@@ -670,6 +675,8 @@ Use these when a change path is not enough and you need exact file ownership:
 ### Platforms
 
 - [Platforms Hub](../platforms/README.md)
+- [Platform Change Workflow](../platforms/platform_change_workflow.md)
+- [Platform Validation Matrix](../platforms/platform_validation_matrix.md)
 - [macOS](../platforms/macos.md)
 - [Windows](../platforms/windows.md)
 - [Linux](../platforms/linux.md)

@@ -36,6 +36,8 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Validation Commands**](cli/validation_commands.md) - Focused docs, backend, sidecar, frontend, lint, typecheck, packaging, and config validation commands
 - [**Packaging and Release Commands**](cli/packaging_and_release_commands.md) - Sidecar runtime build, Electron package, smoke, reinstall, and release guardrail commands
 - [**Platforms Hub**](platforms/README.md) - macOS, Windows, and Linux permission, screenshot/overlay, window/input, packaging, and runtime behavior
+- [**Platform Change Workflow**](platforms/platform_change_workflow.md) - Owner routing for OS-specific screenshot, overlay, permission, input, sidecar, and packaging changes
+- [**Platform Validation Matrix**](platforms/platform_validation_matrix.md) - Focused test and manual smoke matrix for platform-specific changes
 - [**Platform Permission Matrix**](platforms/permission_matrix.md) - Cross-platform permission probes, onboarding visibility, and grant routing
 - [**Screenshot and Overlay Policy**](platforms/screenshot_overlay_policy.md) - OS-specific capture, overlay hide/restore, and content-protection policy
 - [**Window and Input Matrix**](platforms/window_input_matrix.md) - Window discovery, active-window, input control, and sidecar platform dependencies

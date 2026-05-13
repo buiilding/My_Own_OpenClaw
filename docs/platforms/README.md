@@ -16,6 +16,8 @@ WindieOS platform docs cover behavior that differs across macOS, Windows, and Li
 - [Windows](windows.md)
 - [Linux](linux.md)
 - [Platform Permission Matrix](permission_matrix.md)
+- [Platform Change Workflow](platform_change_workflow.md)
+- [Platform Validation Matrix](platform_validation_matrix.md)
 - [Screenshot and Overlay Policy](screenshot_overlay_policy.md)
 - [Window and Input Matrix](window_input_matrix.md)
 - [Packaging Runtime Matrix](packaging_runtime_matrix.md)
@@ -25,6 +27,7 @@ WindieOS platform docs cover behavior that differs across macOS, Windows, and Li
 - Electron main platform/window policy: `frontend/src/main/window_platform_policy.cjs`
 - Permission services: `frontend/src/main/permission_service*.cjs`
 - Sidecar platform adapters: `frontend/src/main/python/core/platform/*`
+- Computer tools: `frontend/src/main/python/tools/computer/*`
 - Packaging scripts: `scripts/reinstall-windieos-*.sh`, `scripts/reinstall-windieos-windows.ps1`
 - CI smoke helpers: `scripts/ci/*`
 
@@ -34,7 +37,8 @@ Do not implement platform behavior in the renderer when the decision belongs in 
 
 ## Platform Change Checklist
 
-1. Identify whether the owner is Electron main, sidecar platform code, packaging scripts, or renderer presentation.
+1. Read [Platform Change Workflow](platform_change_workflow.md) and identify whether the owner is Electron main, renderer presentation, sidecar platform code, permission services, or packaging scripts.
 2. Read the matching matrix above before editing.
 3. Keep macOS, Windows, and Linux behavior explicit in tests when policy differs.
-4. Update the OS page and matrix together when behavior changes.
+4. Use [Platform Validation Matrix](platform_validation_matrix.md) to choose focused tests and manual OS smoke checks.
+5. Update the OS page and matrix together when behavior changes.
