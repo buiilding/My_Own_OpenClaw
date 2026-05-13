@@ -10,6 +10,7 @@ title: "Frontend Renderer Chat Docs Hub"
 
 ## Deep Pages
 
+- [Chat Attachment Change Workflow](chat_attachment_change_workflow.md)
 - [Message Send Surface Policy and Screenshot Capture Reference](message_send_surface_policy_and_screenshot_capture_reference.md)
 - [Renderer State Change Workflow](../renderer_state_change_workflow.md)
 - [Chat Interface Header Controls, Model Selection, and Compaction Rehydrate Reference](chat_interface_header_controls_model_selection_and_compaction_rehydrate_reference.md)
@@ -37,6 +38,7 @@ title: "Frontend Renderer Chat Docs Hub"
 ## Related Pages
 
 - [Frontend Renderer Docs Hub](../README.md)
+- [Artifact Change Workflow](../../../desktop/artifact_change_workflow.md)
 - [Chat Stream and Tool Execution Reference](../chat_stream_and_tool_execution_reference.md)
 - [Chatbox Overlay Input, Drag, and Click-Through Reference](../overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md)
 - [Transcript Session and Rehydrate Reference](../transcript_session_and_rehydrate_reference.md)

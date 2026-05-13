@@ -11,6 +11,8 @@ title: "Artifact Change Workflow"
 
 Use this workflow before changing screenshot artifacts or attachments. Artifacts are the durable bridge between UI image state, backend model context, tool-result screenshots, transcript replay, and SDK/web clients.
 
+For composer-specific attachment behavior, start with [Chat Attachment Change Workflow](../frontend/renderer/chat/chat_attachment_change_workflow.md). Use this page when the change crosses artifact upload/fetch, backend artifact storage, query artifact resolution, tool-result screenshots, replay, SDK, or web clients.
+
 The normal attachment path is:
 
 1. renderer collects pasted images, selected files, or screenshot capture.
@@ -203,6 +205,7 @@ Rules:
 ## Related Docs
 
 - [Artifacts and Attachments](artifacts_and_attachments.md)
+- [Chat Attachment Change Workflow](../frontend/renderer/chat/chat_attachment_change_workflow.md)
 - [Backend Artifact Service Docs Hub](../backend/services/artifacts/README.md)
 - [Backend Artifact, Screenshot, and System-State Flow Reference](../backend/services/artifact_screenshot_and_system_state_flow_reference.md)
 - [Frontend Capture, Artifact Upload, and Payload Normalization Reference](../frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)

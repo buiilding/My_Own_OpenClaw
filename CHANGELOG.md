@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(frontend): add a chat attachment change workflow for pasted images, selected files, readable-file context, screenshot artifact upload, optimistic user rows, query payloads, backend query resolution, replay, and validation routing.
 - docs(frontend): add a settings surface change workflow for dashboard settings tabs, config patches, permission actions, workspace and browser controls, memory resets, Electron IPC, backend settings sync, ownership routing, and validation.
 - docs(memory): add a transcript replay change workflow for visible transcript writes, pending queues, sidecar transcript storage, dashboard replay/resume, backend rehydrate payloads, tool-row reconstruction, delete/search routing, and validation.
 - docs(tools): add a filesystem and shell change workflow for file reads/edits, shell commands, process sessions, sudo mode, working directories, output formatting, bridge payload shaping, sidecar execution, result envelopes, and validation routing.

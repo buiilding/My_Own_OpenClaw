@@ -364,6 +364,7 @@ Read:
 
 - [Frontend Renderer Docs Hub](../frontend/renderer/README.md)
 - [Frontend Renderer Chat Docs Hub](../frontend/renderer/chat/README.md)
+- [Chat Attachment Change Workflow](../frontend/renderer/chat/chat_attachment_change_workflow.md)
 - [Dashboard Change Workflow](../frontend/renderer/dashboard/dashboard_change_workflow.md)
 - [Frontend Renderer Dashboard Docs Hub](../frontend/renderer/dashboard/README.md)
 - [Frontend Renderer Settings Docs Hub](../frontend/renderer/settings/README.md)
