@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(cli): expand command docs with script, validation, packaging, release, docs-tooling, and commit-helper matrices.
 - docs(reference): add a reference hub for stable API, event, configuration, and session/transcript lookup surfaces.
 - docs(concepts): expand concept coverage for sessions, streaming events, prompt/tool context, model provider selection, and usage/token accounting.
 - docs(nodes): add a runtime nodes hub mapping the hosted backend, Electron main, renderer, preload, Python sidecar, wakeword service, VM worker, and Cloudflare/origin service boundaries.

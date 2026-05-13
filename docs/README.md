@@ -27,6 +27,9 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Install Hub**](install/README.md) - Local development, packaging, sidecar runtime bundling, and reinstall helpers
 - [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, deployment, packaging, release, security, and troubleshooting runbooks
 - [**Commands and Scripts**](cli/README.md) - Current developer commands, package scripts, cloudflared helpers, and planned CLI boundary
+- [**Command Matrix**](cli/command_matrix.md) - Repo scripts, frontend package scripts, docs tooling, commit helper, and Cloudflare helpers
+- [**Validation Commands**](cli/validation_commands.md) - Focused docs, backend, sidecar, frontend, lint, typecheck, packaging, and config validation commands
+- [**Packaging and Release Commands**](cli/packaging_and_release_commands.md) - Sidecar runtime build, Electron package, smoke, reinstall, and release guardrail commands
 - [**Platforms Hub**](platforms/README.md) - macOS, Windows, and Linux platform-specific behavior
 - [**Help Hub**](help/README.md) - Diagnostics and troubleshooting routes by runtime boundary
 - [**Web Surfaces**](web/README.md) - Landing page, hosted backend APIs, SDK routes, artifacts, and websocket surfaces
@@ -46,6 +49,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Packaged Desktop Builds**](install/packaged_desktop.md) - Electron Builder targets and bundled sidecar runtime packaging
 - [**Packaging and Reinstall Runbooks**](operations/packaging_and_reinstall_runbooks.md) - OS-specific packaged-app reinstall and smoke-check workflows
 - [**Commands and Scripts**](cli/README.md) - Repo scripts and frontend package commands
+- [**Command Matrix**](cli/command_matrix.md) - Detailed command lookup for current scripts and package commands
 
 ### Concepts, Tools, Providers
 - [**Runtime Model**](concepts/runtime_model.md) - Hosted backend, Electron main, renderer, preload, and Python sidecar boundaries
@@ -390,12 +394,14 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Development Hub**](development/README.md) - Agent-facing contributor workflow, validation, environment, and change routing hub
 - [**Agent Development Workflow**](development/agent_development_workflow.md) - Step-by-step workflow for docs-first implementation, scoped edits, validation, and commits
 - [**Validation Matrix**](development/validation_matrix.md) - Current backend/frontend/sidecar/docs/package validation commands by change type
+- [**Validation Commands**](cli/validation_commands.md) - Command-focused validation guide for docs, backend, sidecar, frontend, IPC, provider, packaging, and config changes
 - [**Developer Guide**](development/developer_guide.md) - Comprehensive development guide
 - Developer Guide includes current local automation scripts (`bin/docs-list` or `node scripts/docs-list.js`, `scripts/test`, `scripts/test-backend`, `scripts/test-sidecar`, `scripts/committer`) and frontend audit commands (`npm run lint:audit`, `npm run audit:jscpd`, `npm run audit:knip`).
 - [**Dev Tool Selection**](development/dev_tool_selection.md) - Backend-only tool schema allow/denylist controls for development
 - [**Tool Development Guide**](development/tool_development.md) - Creating custom tools
 - [**API Reference**](reference/api_reference.md) - Complete API documentation
 - [**Extension Points**](architecture/extension_points.md) - How to extend the system
+- [**Packaging and Release Commands**](cli/packaging_and_release_commands.md) - Packaging, smoke, reinstall, and release guardrail command reference
 
 ### Configuration & Deployment
 - [**Configuration Guide**](operations/configuration.md) - Configuration options and settings

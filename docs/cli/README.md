@@ -56,3 +56,9 @@ Read [Cloudflared Self-Host Runbook](../operations/cloudflared_self_host_windieo
 ## Planned CLI
 
 WindieOS has a plan for a first-class CLI, but implementation is not the same as these repo scripts. See [WindieOS CLI OS Control Plan](../planning/windieos_cli_os_control_plan.md).
+
+## Deep Command Docs
+
+- [Command Matrix](command_matrix.md) maps repo-root scripts, frontend package scripts, docs tooling, commit helper, and Cloudflare helpers.
+- [Validation Commands](validation_commands.md) maps tests, lint, typecheck, docs checks, and focused validation commands by changed boundary.
+- [Packaging and Release Commands](packaging_and_release_commands.md) maps sidecar runtime builds, Electron package scripts, smoke helpers, local reinstall helpers, and release guardrails.

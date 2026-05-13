@@ -89,6 +89,7 @@ Added/expanded in WindieOS:
 - `sdk/`: hosted backend client and developer API docs covering query planning, traces, OCR/vision, and tool authoring.
 - `reference/`: stable lookup docs for API surfaces, websocket event contracts, configuration ownership, session/transcript identifiers, and docs organization policy.
 - `install/`, `cli/`, `platforms/`, `help/`, and `web/`: broad operational entrypoints that mirror OpenClaw's public-domain navigation while staying grounded in WindieOS desktop/runtime surfaces.
+- `cli/`: current repo-script and package-script command docs with separate matrices for command selection, validation, and packaging/release operations while first-class user CLI behavior remains planned.
 - `automation/`: current VM run orchestration docs for `/api/runs/*`, worker polling, run timelines, run controls, and explicit boundaries for future cron/webhook/scheduler work.
 - `operations/`: OpenClaw-style operational hub and runbooks for runtime config ownership, hosted install auth, deployment, Cloudflare Tunnel, packaging/reinstall flows, release, security, performance, and troubleshooting.
 - `backend/`: backend functionality maps and subsystem docs.

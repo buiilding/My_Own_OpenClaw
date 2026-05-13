@@ -53,6 +53,9 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Install Hub](../install/README.md) for local development and packaged desktop builds.
 - [Operations Hub](../operations/README.md) for runtime config, hosted auth, packaging, release, deployment, and operational troubleshooting.
 - [Commands and Scripts](../cli/README.md) for current repo/script entrypoints and planned CLI boundaries.
+- [Command Matrix](../cli/command_matrix.md) for repo-root scripts, frontend package scripts, docs tooling, commit helper, and Cloudflare helpers.
+- [Validation Commands](../cli/validation_commands.md) for choosing focused checks by changed boundary.
+- [Packaging and Release Commands](../cli/packaging_and_release_commands.md) for sidecar runtime builds, Electron package commands, smoke helpers, and reinstall loops.
 - [Platforms Hub](../platforms/README.md) for macOS, Windows, and Linux behavior.
 - [Help Hub](../help/README.md) for diagnostics and troubleshooting.
 - [Reference Hub](../reference/README.md) for stable API, websocket event, configuration, and session/transcript lookup maps.
@@ -604,6 +607,9 @@ Use these when a change path is not enough and you need exact file ownership:
 ### Commands
 
 - [Commands and Scripts](../cli/README.md)
+- [Command Matrix](../cli/command_matrix.md)
+- [Validation Commands](../cli/validation_commands.md)
+- [Packaging and Release Commands](../cli/packaging_and_release_commands.md)
 
 ### Platforms
 
