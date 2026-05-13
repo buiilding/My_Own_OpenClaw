@@ -16,6 +16,7 @@ title: "Backend Artifact Service Docs Hub"
 ## Related Pages
 
 - [Backend Services Docs Hub](../README.md)
+- [Artifact Change Workflow](../../../desktop/artifact_change_workflow.md)
 - [Artifact, Screenshot, and System-State Flow Reference](../artifact_screenshot_and_system_state_flow_reference.md)
 - [HTTP and WebSocket Endpoint Reference](../../api/http_and_ws_endpoint_reference.md)
 

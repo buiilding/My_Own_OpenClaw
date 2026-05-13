@@ -605,6 +605,7 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Response Overlay](../desktop/response_overlay.md)
 - [Onboarding and Permissions](../desktop/onboarding_permissions.md)
 - [Voice and Wakeword](../desktop/voice_and_wakeword.md)
+- [Artifact Change Workflow](../desktop/artifact_change_workflow.md)
 - [Artifacts and Attachments](../desktop/artifacts_and_attachments.md)
 
 ### Debug

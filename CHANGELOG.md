@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(artifacts): add artifact change workflow for screenshot attachments, upload/fetch, query payloads, tool-result screenshots, replay, and SDK access.
 - docs(config): add configuration and settings-sync workflows for backend config, Electron endpoints, renderer persistence, sidecar env, credentials, and packaging variables.
 - docs(backend-runtime): add query lifecycle and tool-turn change workflows for backend stream, cancellation, tool dispatch, result, and history changes.
 - docs(platforms): add platform change and validation workflows for OS-specific screenshot, overlay, permission, sidecar input, display-affinity, packaging, and smoke-check work.

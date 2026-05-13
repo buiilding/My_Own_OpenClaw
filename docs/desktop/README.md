@@ -17,6 +17,7 @@ WindieOS is not only a chat UI. It is a set of desktop surfaces coordinated by E
 - [Response Overlay](response_overlay.md)
 - [Onboarding and Permissions](onboarding_permissions.md)
 - [Voice and Wakeword](voice_and_wakeword.md)
+- [Artifact Change Workflow](artifact_change_workflow.md)
 - [Artifacts and Attachments](artifacts_and_attachments.md)
 
 ## Renderer Entrypoints

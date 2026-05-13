@@ -121,6 +121,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Response Overlay**](desktop/response_overlay.md) - Overlay phase state, streamed output, tool ghost preview, and close behavior
 - [**Onboarding and Permissions**](desktop/onboarding_permissions.md) - First-run gate, permission manifest, probes, grant effects, and settings control center
 - [**Voice and Wakeword**](desktop/voice_and_wakeword.md) - Wakeword bridge, voice capture, STT websocket, TTS chunks, and voice status UI
+- [**Artifact Change Workflow**](desktop/artifact_change_workflow.md) - Owner routing for screenshot attachments, artifact upload/fetch, query payloads, tool-result screenshots, replay, and SDK access
 - [**Artifacts and Attachments**](desktop/artifacts_and_attachments.md) - Screenshot artifact refs, upload/fetch paths, image rendering, and replay preservation
 - [**Logging**](debug/logging.md) - Backend, Electron, renderer, sidecar, and packaged app log controls
 - [**Diagnostic Flags**](debug/diagnostic_flags.md) - Backend, Electron, renderer, sidecar, VM worker, and packaged-app debug flags
