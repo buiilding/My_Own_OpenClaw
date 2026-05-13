@@ -10,6 +10,8 @@ title: "Runs API Runbook"
 
 The runs API is a hosted HTTP control plane for VM-backed Windie execution. It is not the normal chat websocket. Use it to create a run, let a worker pick it up, control it, and inspect its timeline.
 
+For owner-file routing, invariants, and focused validation by change type, start with [VM Run Control Change Workflow](vm_run_control_change_workflow.md).
+
 ## Auth
 
 Header:
@@ -293,6 +295,7 @@ Frontend worker changes:
 
 Docs to keep synchronized:
 
+- [VM Run Control Change Workflow](vm_run_control_change_workflow.md)
 - [VM Runs and Workers](vm_runs_and_workers.md)
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
 - [API Reference](../reference/api_reference.md)

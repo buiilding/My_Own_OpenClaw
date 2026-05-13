@@ -16,9 +16,9 @@ Use this hub when an agent needs to work on hosted run orchestration without con
 
 | Surface | What it owns | Code roots | Start docs |
 | --- | --- | --- | --- |
-| Runs HTTP API | Create/get/control/stop runs, poll events, receive worker stream events | `backend/src/api/routes/runs/*` | [Runs API Runbook](runs_api_runbook.md), [Runs Route and VM Control Service Reference](../backend/api/runs_route_and_vm_control_service_reference.md) |
-| Run registry service | In-memory run map, worker map, workspace queue, active-run cap, status transitions, pending controls | `backend/src/services/vm_run_control.py`, `backend/src/services/vm_run_control_support/*` | [VM Runs and Workers](vm_runs_and_workers.md), [VM Control Service Runtime Reference](../backend/services/vm_run_control_service_runtime_reference.md) |
-| Electron VM worker loop | Heartbeat polling, assignment dispatch, event relay, stop-control application | `frontend/src/main/vm_worker_runtime.cjs`, `frontend/src/main/runtime_mode.cjs`, `frontend/src/main/index.cjs` | [VM Runs and Workers](vm_runs_and_workers.md), [Frontend Runtime Surface](../frontend/runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md) |
+| Runs HTTP API | Create/get/control/stop runs, poll events, receive worker stream events | `backend/src/api/routes/runs/*` | [VM Run Control Change Workflow](vm_run_control_change_workflow.md), [Runs API Runbook](runs_api_runbook.md), [Runs Route and VM Control Service Reference](../backend/api/runs_route_and_vm_control_service_reference.md) |
+| Run registry service | In-memory run map, worker map, workspace queue, active-run cap, status transitions, pending controls | `backend/src/services/vm_run_control.py`, `backend/src/services/vm_run_control_support/*` | [VM Run Control Change Workflow](vm_run_control_change_workflow.md), [VM Runs and Workers](vm_runs_and_workers.md), [VM Control Service Runtime Reference](../backend/services/vm_run_control_service_runtime_reference.md) |
+| Electron VM worker loop | Heartbeat polling, assignment dispatch, event relay, stop-control application | `frontend/src/main/vm_worker_runtime.cjs`, `frontend/src/main/runtime_mode.cjs`, `frontend/src/main/index.cjs` | [VM Run Control Change Workflow](vm_run_control_change_workflow.md), [VM Runs and Workers](vm_runs_and_workers.md), [Frontend Runtime Surface](../frontend/runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md) |
 | Operations config | VM worker env vars, runs API key, active-run cap, endpoint selection | `frontend/src/main/backend_endpoints.cjs`, backend env, release/runtime env | [Automation Boundaries](automation_boundaries.md), [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) |
 
 ## What Counts as Automation Today
@@ -51,6 +51,7 @@ Those future surfaces should be planned under `docs/planning/` until implemented
 
 Read:
 
+- [VM Run Control Change Workflow](vm_run_control_change_workflow.md)
 - [Runs API Runbook](runs_api_runbook.md)
 - [Runs Route and VM Control Service Reference](../backend/api/runs_route_and_vm_control_service_reference.md)
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
@@ -73,6 +74,7 @@ Validate:
 
 Read:
 
+- [VM Run Control Change Workflow](vm_run_control_change_workflow.md)
 - [VM Runs and Workers](vm_runs_and_workers.md)
 - [VM Control Service Runtime Reference](../backend/services/vm_run_control_service_runtime_reference.md)
 - focused helper docs under `docs/backend/services/`
@@ -96,6 +98,7 @@ Validate:
 
 Read:
 
+- [VM Run Control Change Workflow](vm_run_control_change_workflow.md)
 - [VM Runs and Workers](vm_runs_and_workers.md)
 - [Frontend Runtime Surface](../frontend/runtime/frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)
 - [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
@@ -125,6 +128,7 @@ The runs API is a control plane. It should not become the normal desktop chat tr
 ## Related Docs
 
 - [VM Runs and Workers](vm_runs_and_workers.md)
+- [VM Run Control Change Workflow](vm_run_control_change_workflow.md)
 - [Runs API Runbook](runs_api_runbook.md)
 - [Automation Boundaries](automation_boundaries.md)
 - [Operations Hub](../operations/README.md)

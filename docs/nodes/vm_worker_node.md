@@ -12,6 +12,8 @@ The VM worker node is an Electron main-process runtime configured to poll the ho
 
 The worker uses `/api/runs/*` for control-plane state, then dispatches assigned work through the normal backend websocket query path.
 
+For code-owner routing across route models, assignment helpers, event logs, controls, auth, and Electron worker dispatch, use [VM Run Control Change Workflow](../automation/vm_run_control_change_workflow.md).
+
 ## Current Runtime
 
 Code roots:
@@ -113,6 +115,7 @@ Use the smallest test set that covers the changed node:
 Docs to update with behavior changes:
 
 - [Automation Hub](../automation/README.md)
+- [VM Run Control Change Workflow](../automation/vm_run_control_change_workflow.md)
 - [VM Runs and Workers](../automation/vm_runs_and_workers.md)
 - [Runs API Runbook](../automation/runs_api_runbook.md)
 - [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)

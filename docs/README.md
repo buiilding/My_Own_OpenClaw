@@ -26,6 +26,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**WebSocket Connection Lifecycle**](gateway/websocket_connection_lifecycle.md) - Main `/ws` accept, handshake, auth, message validation, task scheduling, timeout, and cleanup flow
 - [**Runtime Nodes Hub**](nodes/README.md) - Runtime process and service boundaries for backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes
 - [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and future scheduler boundaries
+- [**VM Run Control Change Workflow**](automation/vm_run_control_change_workflow.md) - Owner routing for `/api/runs/*`, VM worker heartbeats, event timelines, controls, runs keys, and Electron worker dispatch
 - [**Security Hub**](security/README.md) - Hosted auth, IPC isolation, schema validation, credentials, tool execution, and sidecar boundaries
 - [**Credential and Token Change Workflow**](security/credential_token_change_workflow.md) - Owner routing for install auth, bearer tokens, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging
 - [**Plugins and Extensions Hub**](plugins/README.md) - Current extension points for tools, providers, SDK routes, sidecar actions, and future plugin boundaries
@@ -124,6 +125,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Extension Surface Matrix**](plugins/extension_surface_matrix.md) - Registration points, owner files, docs, and validation targets for extensibility work
 - [**Provider Extension Guide**](plugins/provider_extension_guide.md) - LLM/inference provider extension paths, credentials, product rules, and tests
 - [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and scheduling boundaries
+- [**VM Run Control Change Workflow**](automation/vm_run_control_change_workflow.md) - Change workflow for route models, `VmRunControlService`, assignment, event timelines, pending controls, stop-all, runs API keys, and worker dispatch
 - [**VM Runs and Workers**](automation/vm_runs_and_workers.md) - Run lifecycle from creation through worker dispatch, event relay, and controls
 - [**Runs API Runbook**](automation/runs_api_runbook.md) - `/api/runs/*` endpoint behavior, auth, payloads, statuses, and tests
 - [**Automation Boundaries**](automation/automation_boundaries.md) - Current VM runs versus future cron, webhook, durable queue, and scheduler work

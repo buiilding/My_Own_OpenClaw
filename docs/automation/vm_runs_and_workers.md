@@ -10,6 +10,8 @@ title: "VM Runs and Workers"
 
 This page maps the current VM run orchestration flow across backend and Electron main. It is intentionally concrete so an agent can identify where to modify code without starting from a repo-wide search.
 
+For a task-oriented edit checklist that routes symptoms and feature changes to owner files, use [VM Run Control Change Workflow](vm_run_control_change_workflow.md).
+
 ## Code Ownership
 
 | Concern | Owner files |
@@ -232,4 +234,4 @@ Frontend:
 Docs:
 
 - `./bin/docs-list`
-- update [Runs API Runbook](runs_api_runbook.md) and [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) when env vars, statuses, event names, or route payloads change.
+- update [VM Run Control Change Workflow](vm_run_control_change_workflow.md), [Runs API Runbook](runs_api_runbook.md), and [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) when env vars, statuses, event names, or route payloads change.

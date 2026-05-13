@@ -22,6 +22,8 @@ Current VM run orchestration is:
 - dispatched through the normal backend websocket query path
 - observable through a per-run event timeline
 
+For the detailed owner map and validation matrix for current run-control edits, read [VM Run Control Change Workflow](vm_run_control_change_workflow.md) before changing code.
+
 It is appropriate for:
 
 - hosted dashboard demos
@@ -108,6 +110,7 @@ Current knobs are documented in [Runtime Configuration Matrix](../operations/run
 
 When adding or changing any of these, update:
 
+- [VM Run Control Change Workflow](vm_run_control_change_workflow.md)
 - [VM Runs and Workers](vm_runs_and_workers.md)
 - [Runs API Runbook](runs_api_runbook.md)
 - [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
