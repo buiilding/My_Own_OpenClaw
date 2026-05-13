@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(gateway): add a hosted backend gateway hub covering FastAPI route assembly, websocket and REST protocol families, install auth, health checks, and hosted troubleshooting.
 - docs(desktop-sdk): add OpenClaw-style desktop surface and SDK hubs covering dashboard, chat pill, response overlay, permissions, voice, artifacts, hosted clients, query traces, OCR/vision, and tool authoring.
 - docs(debug): add OpenClaw-style debug hub with logging controls, runtime trace routes, symptom playbooks, and focused test-selection guidance.
 - docs(providers): add provider-specific OpenAI, Anthropic, Gemini, OpenRouter, Kimi Coding, Mistral, and local-provider guides with code ownership and focused validation maps.

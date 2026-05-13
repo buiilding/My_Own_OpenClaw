@@ -17,6 +17,7 @@ Use this hub before editing scripts, build config, backend auth/config, endpoint
 | Area | Primary owner | Code and config roots | Start docs |
 | --- | --- | --- | --- |
 | Runtime configuration | Backend config and Electron main endpoint resolution | `backend/src/core/config`, `frontend/src/main/backend_endpoints.cjs`, `frontend/src/main/ipc/*`, `frontend/src/renderer/utils/configStorage.js` | [Configuration](configuration.md), [Runtime Configuration Matrix](runtime_configuration_matrix.md) |
+| Gateway ingress | Hosted FastAPI app assembly, route registration, auth middleware, health checks, and edge troubleshooting | `backend/src/main.py`, `backend/src/api/app_assembly.py`, `backend/src/api/routes`, `backend/src/api/auth`, `scripts/cloudflared` | [Gateway Hub](../gateway/README.md), [Gateway Auth and Health Runbook](../gateway/gateway_auth_and_health_runbook.md), [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md) |
 | Hosted backend auth | Backend install-token service plus frontend token propagation | `backend/src/api/auth`, `backend/src/api/routes/websocket`, `frontend/src/main`, `frontend/src/renderer/infrastructure` | [Hosted Backend Auth](hosted_backend_auth.md), [Multi-User Runtime Hardening](multi_user_runtime_hardening.md) |
 | VM run control | Runs API auth/caps plus Electron worker mode runtime | `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py`, `frontend/src/main/vm_worker_runtime.cjs` | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md), [Runs API Runbook](../automation/runs_api_runbook.md) |
 | Deployment | Hosted backend origin, Cloudflare Tunnel, user services, default endpoint routing | `scripts/cloudflared`, `backend/src/main.py`, `frontend/src/main/backend_endpoints.cjs` | [Deployment](deployment.md), [Cloudflared Self-Host Runbook](cloudflared_self_host_windieos.md) |
@@ -101,6 +102,7 @@ Validation:
 
 Read:
 
+- [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md)
 - [Operational Troubleshooting](operational_troubleshooting.md)
 - [Hosted Backend Auth](hosted_backend_auth.md)
 - [Cloudflared Self-Host Runbook](cloudflared_self_host_windieos.md)

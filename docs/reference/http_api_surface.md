@@ -10,6 +10,8 @@ title: "HTTP and WebSocket API Surface"
 
 This page is the route-level map. Use [API Reference](api_reference.md) for payload examples and longer protocol notes.
 
+For gateway-level route assembly, auth, health checks, and hosted troubleshooting, start with [Gateway Hub](../gateway/README.md).
+
 ## Public/Hosted Surfaces
 
 | Surface | Routes | Code owner |

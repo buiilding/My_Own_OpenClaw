@@ -33,6 +33,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Quick Start](quick_start.md) for the local run path.
 - [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) for environment setup.
 - [Concepts Hub](../concepts/README.md) for product/system mental models before implementation details.
+- [Gateway Hub](../gateway/README.md) for hosted backend ingress, app assembly, websocket protocols, auth, health, and route troubleshooting.
 - [Channels Hub](../channels/README.md) for desktop, websocket, voice, sidecar, SDK, and VM-run communication paths.
 - [Memory Hub](../memory/README.md) for transcript, replay, sidecar memory, backend history, and semantic route ownership.
 - [Security Hub](../security/README.md) for hosted auth, IPC isolation, validation, credentials, permissions, tools, and sidecar security boundaries.
@@ -57,6 +58,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 | Area | Owns | Code roots | Start docs |
 | --- | --- | --- | --- |
 | Backend API + transport | HTTP routes, websocket handshake, incoming message dispatch, outgoing event envelopes, formatter contracts | `backend/src/api`, `backend/src/core/container`, `backend/src/api/contracts` | [Backend API Docs Hub](../backend/api/README.md), [Backend Contracts Docs Hub](../backend/contracts/README.md), [Backend Inventory Protocols Hub](../backend/inventory/protocols/README.md) |
+| Gateway ingress | FastAPI app assembly, CORS, router registration, install auth middleware, hosted REST/websocket ingress, health checks, Cloudflare/self-host troubleshooting | `backend/src/main.py`, `backend/src/api/app_assembly.py`, `backend/src/api/routes`, `backend/src/api/auth`, `scripts/cloudflared` | [Gateway Hub](../gateway/README.md), [Gateway Protocol Map](../gateway/gateway_protocol_map.md), [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md) |
 | Channels and transports | Desktop chat entrypoints, backend websocket, transcription websocket, sidecar JSON-RPC, SDK routes, VM run control | `frontend/src/main`, `frontend/src/renderer`, `frontend/src/main/python`, `backend/src/api/routes`, `frontend/src/renderer/infrastructure/api` | [Channels Hub](../channels/README.md), [Channel Routing Matrix](../channels/channel_routing_matrix.md), [Communication Flow](../architecture/communication_flow.md) |
 | Security boundaries | Hosted auth, websocket validation, IPC isolation, credentials, permissions, tool policy, sidecar execution, multi-user risks | `backend/src/api/auth`, `backend/src/api/schemas`, `backend/src/core/security`, `frontend/src/preload.js`, `frontend/src/shared/ipcChannels.json`, `frontend/src/main/python/tools` | [Security Hub](../security/README.md), [Security Boundary Matrix](../security/security_boundary_matrix.md), [Security Change Playbook](../security/security_change_playbook.md) |
 | Plugins and extensions | Current source-owned extension surfaces for tools, providers, inference adapters, SDK routes, browser actions, renderer features, and future plugin boundaries | `backend/src/tools`, `backend/src/sdk`, `backend/src/llm/providers`, `backend/src/api/routes/sdk`, `frontend/src/main/python/tools`, `frontend/src/renderer/features` | [Plugins and Extensions Hub](../plugins/README.md), [Extension Surface Matrix](../plugins/extension_surface_matrix.md), [Architecture Extension Points](../architecture/extension_points.md) |
@@ -77,6 +79,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 
 Read:
 
+- [Gateway Hub](../gateway/README.md)
 - [Channels Hub](../channels/README.md)
 - [Channel Routing Matrix](../channels/channel_routing_matrix.md)
 - [Communication Flow](../architecture/communication_flow.md)
@@ -93,6 +96,27 @@ Likely code:
 - `frontend/src/main/python/**` when local sidecar execution is involved
 
 Validate producer/consumer tests on both sides of the changed channel. Do not reuse another channel's private payload shape as an implicit compatibility shortcut.
+
+### Change Hosted Backend Gateway, Route Assembly, Auth, or Health
+
+Read:
+
+- [Gateway Hub](../gateway/README.md)
+- [Gateway Protocol Map](../gateway/gateway_protocol_map.md)
+- [Gateway Auth and Health Runbook](../gateway/gateway_auth_and_health_runbook.md)
+- [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md)
+- [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
+
+Likely code:
+
+- `backend/src/main.py`
+- `backend/src/api/app_assembly.py`
+- `backend/src/api/routes/__init__.py`
+- `backend/src/api/routes/**`
+- `backend/src/api/auth/**`
+- `scripts/cloudflared/**` for self-host/tunnel behavior
+
+Validate route/schema tests, auth/websocket tests when auth changes, SDK clients for public route changes, and Cloudflare/self-host docs for deployment changes.
 
 ### Change Auth, IPC Security, Credentials, Permissions, or Tool Authority
 
@@ -431,6 +455,13 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Channel Routing Matrix](../channels/channel_routing_matrix.md)
 - [Voice and Audio Channels](../channels/voice_and_audio_channels.md)
 - [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md)
+
+### Gateway
+
+- [Gateway Hub](../gateway/README.md)
+- [Gateway Protocol Map](../gateway/gateway_protocol_map.md)
+- [Gateway Auth and Health Runbook](../gateway/gateway_auth_and_health_runbook.md)
+- [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md)
 
 ### Security
 

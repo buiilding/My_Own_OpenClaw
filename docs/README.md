@@ -16,6 +16,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Desktop Surfaces**](desktop/README.md) - Dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts
 - [**Debug Hub**](debug/README.md) - Logs, runtime traces, symptom playbooks, and test selection
 - [**Channels Hub**](channels/README.md) - Desktop, websocket, voice, sidecar, SDK, and VM-run communication paths
+- [**Gateway Hub**](gateway/README.md) - Hosted backend ingress, FastAPI route assembly, websocket protocols, auth, health, and troubleshooting
 - [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and future scheduler boundaries
 - [**Security Hub**](security/README.md) - Hosted auth, IPC isolation, schema validation, credentials, tool execution, and sidecar boundaries
 - [**Plugins and Extensions Hub**](plugins/README.md) - Current extension points for tools, providers, SDK routes, sidecar actions, and future plugin boundaries
@@ -52,6 +53,10 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Channel Routing Matrix**](channels/channel_routing_matrix.md) - Channel-to-transport, owner, code-root, and validation map
 - [**Voice and Audio Channels**](channels/voice_and_audio_channels.md) - Wakeword, voice dictation, transcription websocket, and TTS playback ownership
 - [**Sidecar and Tool Channels**](channels/sidecar_and_tool_channels.md) - Local tool IPC, sidecar JSON-RPC, executable tools, and tool-result return path
+- [**Gateway Hub**](gateway/README.md) - FastAPI gateway boundary for hosted HTTP/websocket ingress
+- [**Gateway Protocol Map**](gateway/gateway_protocol_map.md) - App assembly, router registration, websocket, REST, CORS, and protocol families
+- [**Gateway Auth and Health Runbook**](gateway/gateway_auth_and_health_runbook.md) - Install auth, websocket auth, runs key, and health endpoints
+- [**Gateway Troubleshooting**](gateway/gateway_troubleshooting.md) - Hosted route, websocket, auth, Cloudflare, health, and endpoint-resolution failures
 - [**Memory Hub**](memory/README.md) - Transcript persistence, replay, sidecar local memory, semantic routes, and troubleshooting
 - [**Security Hub**](security/README.md) - Security routing for auth, IPC, validation, credentials, permissions, tools, and sidecar execution
 - [**Security Boundary Matrix**](security/security_boundary_matrix.md) - Trust-boundary owner, code-root, failure-signal, and validation matrix
