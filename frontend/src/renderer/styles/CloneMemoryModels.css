@@ -554,16 +554,6 @@
   background: color-mix(in srgb, var(--ui-panel-bg) 62%, transparent);
 }
 
-.clone-model-oauth {
-  margin-top: 12px;
-  width: 100%;
-  max-width: none;
-  align-self: stretch;
-  border: 1px solid var(--ui-border-subtle);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--ui-panel-bg) 62%, transparent);
-}
-
 .clone-model-api-keys-toggle {
   width: 100%;
   border: 0;
@@ -614,69 +604,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-}
-
-.clone-model-oauth-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.clone-model-oauth-actions {
-  margin-top: 10px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.clone-model-oauth-status {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: 4px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  border: 1px solid var(--ui-border-subtle);
-  color: var(--ui-text-dim);
-}
-
-.clone-model-oauth-status.connected {
-  border-color: color-mix(in srgb, var(--success) 45%, transparent);
-  background: color-mix(in srgb, var(--success) 20%, transparent);
-  color: var(--success);
-}
-
-.clone-model-oauth-status.disconnected {
-  border-color: color-mix(in srgb, var(--warning) 45%, transparent);
-  background: color-mix(in srgb, var(--warning) 15%, transparent);
-  color: var(--warning);
-}
-
-.clone-model-oauth-button {
-  border: 1px solid var(--ui-border-subtle);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--ui-panel-bg) 78%, transparent);
-  color: var(--ui-text-primary);
-  padding: 8px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.clone-model-oauth-button:hover:enabled {
-  border-color: var(--ui-border-soft);
-  background: color-mix(in srgb, var(--ui-panel-bg) 88%, transparent);
-}
-
-.clone-model-oauth-button:disabled {
-  opacity: 0.6;
-  cursor: progress;
-}
-
-.clone-model-oauth-error {
-  margin: 0;
-  font-size: 11px;
-  color: var(--danger);
 }
 
 .clone-model-api-provider-title-wrap {

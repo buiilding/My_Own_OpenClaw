@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 import ModelsSection from '../../frontend/src/renderer/features/dashboard/components/sections/ModelsSection';
-import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { IpcBridge, SEND_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
 describe('ModelsSection', () => {
   const config = {
@@ -161,43 +161,18 @@ describe('ModelsSection', () => {
     );
   });
 
-  test('oauth login updates provider_oauth config for openai codex', async () => {
-    const onConfigChange = jest.fn();
-    jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
-      success: true,
-      token: {
-        access_token: 'codex-access',
-        refresh_token: 'codex-refresh',
-        expires_at: 12345,
-        profile_id: 'openai-codex:default',
-      },
-    });
-
+  test('does not render unsupported oauth controls', () => {
     render(
       <ModelsSection
         config={config}
         availableModels={availableModels}
-        onConfigChange={onConfigChange}
+        onConfigChange={jest.fn()}
         onClose={jest.fn()}
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'OAuth' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Login with Codex' }));
-
-    await waitFor(() => {
-      expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.OPENAI_CODEX_OAUTH_LOGIN);
-      expect(onConfigChange).toHaveBeenCalledWith(
-        expect.objectContaining({
-          provider_oauth: expect.objectContaining({
-            openai_codex: expect.objectContaining({
-              connected: true,
-              access_token: 'codex-access',
-            }),
-          }),
-        }),
-      );
-    });
+    expect(screen.queryByRole('button', { name: 'OAuth' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Login with Codex' })).not.toBeInTheDocument();
   });
 
   test('requests a fresh model catalog when mounted with legacy model payloads', () => {

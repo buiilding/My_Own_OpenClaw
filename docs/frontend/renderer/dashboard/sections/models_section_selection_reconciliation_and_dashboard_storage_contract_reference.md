@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for dashboard ModelsSection runtime: provider-first navigation, model/provider reconciliation, helper-module card mapping, and provider API-key/OAuth config payload contracts."
+summary: "Deep reference for dashboard ModelsSection runtime: provider-first navigation, model/provider reconciliation, helper-module card mapping, and provider API-key config payload contracts."
 read_when:
   - When changing `ModelsSection` provider/model selection flow or reconciliation behavior.
   - When modifying model card/provider card helper modules or API-key payload normalization.
@@ -117,22 +117,10 @@ Persistence/sync remains owned by AppConfig provider pipeline.
 
 ## OAuth Contract
 
-`ModelsSection` also wires provider OAuth state through `OAuthSection`:
-
-- normalizes `config.provider_oauth` via `normalizeProviderOAuth(...)`
-- currently supports `openai_codex` only
-- login action:
-  - invokes `IpcBridge.invoke(INVOKE_CHANNELS.OPENAI_CODEX_OAUTH_LOGIN)`
-  - on success updates `provider_oauth.openai_codex` with:
-    - `connected=true`
-    - `access_token`, `refresh_token`, `expires_at`, `profile_id`
-- logout action:
-  - invokes `IpcBridge.invoke(INVOKE_CHANNELS.OPENAI_CODEX_OAUTH_LOGOUT)`
-  - resets `provider_oauth.openai_codex` to disconnected/empty token state
-
-`ModelsSection` forwards OAuth updates as partial config patch:
-
-- `onConfigChange({ provider_oauth: ... })`
+`ModelsSection` does not expose provider OAuth controls. The renderer config
+storage/sync layer may still preserve `provider_oauth` values from older local
+state or non-UI sources, but the models settings surface no longer mutates
+OAuth state.
 
 ## Test-Backed Signals
 
@@ -149,6 +137,7 @@ Persistence/sync remains owned by AppConfig provider pipeline.
 - provider-first list flow + provider-scoped model display
 - provider-specific model selection payload
 - API-key section expand behavior and provider payload updates
+- absence of unsupported OAuth controls
 
 ## Drift Hotspots
 
