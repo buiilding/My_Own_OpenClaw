@@ -74,6 +74,7 @@ Current WindieOS major sections:
 Added/expanded in WindieOS:
 
 - `getting-started/docs_hub.md`: central agent-facing docs entrypoint with subsystem ownership, code-root routing, and change-path playbooks.
+- `architecture/`: architecture hub plus runtime-boundary, data-flow/state ownership, ownership-decision, and failure-domain maps.
 - `concepts/`: OpenClaw-style conceptual docs for runtime model, sessions/conversations, agent loop, streaming/events, context/memory, prompt/tool context, model-provider selection, usage/token accounting, and safety boundaries.
 - `gateway/`: hosted backend ingress docs for FastAPI app assembly, websocket/REST protocol families, install auth, health checks, and hosted troubleshooting.
 - `desktop/`: user-visible desktop surface docs for dashboard, chat pill, response overlay, onboarding/permissions, voice, and artifacts.

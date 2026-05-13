@@ -617,12 +617,12 @@ response = await mock_client.get_completion(...)
 async def test_llm_integration():
     config = AppConfig(...)
     client = get_llm_client(config)
-    
+
     response = await client.get_completion(
         model="gpt-5.4",
         messages=[{"role": "user", "content": "Hello"}]
     )
-    
+
     assert response is not None
 ```
 

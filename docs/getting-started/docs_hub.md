@@ -78,6 +78,11 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Hosted API and Auth](../web/hosted_api_and_auth.md) for hosted REST/websocket auth, CORS, health checks, and failure routing.
 - [Web Client Integration](../web/web_client_integration.md) for TypeScript/Python hosted client and non-Electron integration boundaries.
 - [Reference Hub](../reference/README.md) for stable API, websocket event, configuration, and session/transcript lookup maps.
+- [Architecture Hub](../architecture/README.md) for runtime boundaries, ownership decision trees, state flow, and failure-domain maps.
+- [Runtime Boundary Matrix](../architecture/runtime_boundary_matrix.md) for choosing the owning process/trust boundary.
+- [Data Flow and State Ownership](../architecture/data_flow_and_state_ownership.md) for query, stream, tool-result, settings, transcript, memory, artifact, permission, provider, and VM-run ownership.
+- [Change Ownership Decision Tree](../architecture/change_ownership_decision_tree.md) for routing ambiguous implementation requests.
+- [Failure Domain Map](../architecture/failure_domain_map.md) for cross-runtime failure triage.
 - [System Architecture](../architecture/architecture.md) for the high-level runtime model.
 - [Communication Flow](../architecture/communication_flow.md) for cross-process event flow.
 - [OpenClaw Docs Structure Reference](../reference/openclaw_docs_structure_reference.md) for the docs organization benchmark.
@@ -683,7 +688,12 @@ Use these when a change path is not enough and you need exact file ownership:
 
 ### Architecture
 
+- [Architecture Hub](../architecture/README.md)
 - [System Architecture](../architecture/architecture.md)
+- [Runtime Boundary Matrix](../architecture/runtime_boundary_matrix.md)
+- [Data Flow and State Ownership](../architecture/data_flow_and_state_ownership.md)
+- [Change Ownership Decision Tree](../architecture/change_ownership_decision_tree.md)
+- [Failure Domain Map](../architecture/failure_domain_map.md)
 - [Backend Architecture](../architecture/backend_architecture.md)
 - [Frontend Architecture](../architecture/frontend_architecture.md)
 - [Python Sidecar](../architecture/python_sidecar.md)

@@ -6,6 +6,8 @@ read_when:
 
 # System Architecture
 
+For architecture navigation by ownership, state, and failure domain, start with [Architecture Hub](README.md).
+
 ## Overview
 
 WindieOS is built as a distributed system with a clear separation between frontend (Electron/React), local execution runtime (Python sidecar), and backend control plane (Python/FastAPI). The architecture follows clean architecture principles with dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR).

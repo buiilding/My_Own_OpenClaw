@@ -147,6 +147,11 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Operational Troubleshooting**](operations/operational_troubleshooting.md) - Symptom-to-owner routing for hosted, tunnel, packaged-app, sidecar, and VM worker failures
 
 ### Architecture & Design
+- [**Architecture Hub**](architecture/README.md) - Runtime boundaries, ownership decision tree, state flow, failure domains, and subsystem architecture routes
+- [**Runtime Boundary Matrix**](architecture/runtime_boundary_matrix.md) - Architecture-level ownership map for backend, Electron main, renderer, preload, sidecar, wakeword, VM worker, and gateway services
+- [**Data Flow and State Ownership**](architecture/data_flow_and_state_ownership.md) - Query, stream, tool-result, settings, transcript, memory, artifact, permission, provider, and VM-run state ownership
+- [**Change Ownership Decision Tree**](architecture/change_ownership_decision_tree.md) - Choose the owning subsystem before implementing cross-runtime changes
+- [**Failure Domain Map**](architecture/failure_domain_map.md) - Route broad failures to producer, transport, consumer, platform, provider, packaging, or operations owners
 - [**Frontend Functionality Map**](frontend/README.md) - Detailed module-level renderer, electron-main, and sidecar runtime maps
 - [**Frontend Inventory Docs Hub**](frontend/inventory/README.md) - Subfolder inventory hub for exhaustive frontend runtime coverage, matrix views, and file ownership indexes
 - [**Frontend Inventory Domains Hub**](frontend/inventory/domains/README.md) - Domain ownership matrix + change-path playbooks for main/preload/renderer/sidecar/landing scope decisions
@@ -242,7 +247,12 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Frontend Audio Encoding + Chunk Normalization + Capture Cleanup**](frontend/renderer/voice/utils/audio_encoding_chunk_normalization_and_capture_cleanup_reference.md) - Float32->PCM16 conversion, gateway frame prefix cache contract, supported chunk-size normalization rules, and safe audio-node/context teardown behavior
 - [**Frontend Transcription Region State Machine + Edit Reconciliation**](frontend/renderer/voice/utils/transcription_region_state_machine_and_input_edit_reconciliation_reference.md) - Single-region append/replace model, input-change/paste offset logic, and utterance-end submission/reset coupling
 - [**Frontend Wakeword IPC Capture + Cooldown Runtime**](frontend/renderer/voice/wakeword_detection_ipc_capture_and_cooldown_reference.md) - Readiness-gated wakeword capture, generation-guarded start/stop flow, threshold/cooldown filtering, and retrigger-prevention disable sequence
+- [**Architecture Hub**](architecture/README.md) - Runtime boundaries, ownership decision tree, state flow, and failure-domain maps
 - [**System Architecture**](architecture/architecture.md) - High-level system design and components
+- [**Runtime Boundary Matrix**](architecture/runtime_boundary_matrix.md) - Runtime ownership across backend, Electron main, renderer, preload, sidecar, wakeword, VM worker, and gateway services
+- [**Data Flow and State Ownership**](architecture/data_flow_and_state_ownership.md) - State owners and duplication risks for core runtime flows
+- [**Change Ownership Decision Tree**](architecture/change_ownership_decision_tree.md) - Subsystem routing before code changes
+- [**Failure Domain Map**](architecture/failure_domain_map.md) - Architecture-level failure routing
 - [**Backend Architecture**](architecture/backend_architecture.md) - Backend system design and patterns
 - [**Frontend Architecture**](architecture/frontend_architecture.md) - Frontend system design and patterns
 - [**Communication Flow**](architecture/communication_flow.md) - How frontend and backend communicate
