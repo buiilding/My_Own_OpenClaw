@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(memory): add a transcript replay change workflow for visible transcript writes, pending queues, sidecar transcript storage, dashboard replay/resume, backend rehydrate payloads, tool-row reconstruction, delete/search routing, and validation.
 - docs(tools): add a filesystem and shell change workflow for file reads/edits, shell commands, process sessions, sudo mode, working directories, output formatting, bridge payload shaping, sidecar execution, result envelopes, and validation routing.
 - docs(providers): add an inference capability change workflow for OCR, vision, embeddings, STT, TTS, provider factories, routers, health gates, SDK routes, and sidecar clients.
 - docs(web): add a landing page change workflow for standalone web entrypoints, section content, anchors, CTA links, styles, validation, and product-claim boundaries.

@@ -35,6 +35,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Concepts Hub](../concepts/README.md) for product/system mental models before implementation details.
 - [Sessions and Conversations](../concepts/sessions_and_conversations.md) for user/session/conversation identity, transcript replay, backend rehydrate, and wrong-thread debugging.
 - [Session and Conversation Identity Change Workflow](../memory/session_conversation_identity_change_workflow.md) for `user_id`, `session_id`, `conversation_ref`, `turn_ref`, transcript-session sync, replay, rehydrate, stale-event filtering, and wrong-conversation bugs.
+- [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md) for transcript writes, pending queues, sidecar transcript storage, dashboard replay/resume, backend rehydrate payloads, and tool-row reconstruction.
 - [Streaming and Events](../concepts/streaming_and_events.md) for websocket event families, renderer consumers, token-counts, tool events, and audio side-channels.
 - [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md) for backend event dataclasses, formatter specs, outgoing schemas, Electron rebroadcast, renderer guards, stream handlers, terminal events, and audio side-channels.
 - [Prompt and Tool Context](../concepts/prompt_and_tool_context.md) for prompt inputs, repo instructions, tool-schema visibility, and transparency events.
@@ -47,6 +48,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Memory Hub](../memory/README.md) for transcript, replay, sidecar memory, backend history, and semantic route ownership.
 - [Memory Change Workflow](../memory/memory_change_workflow.md) for routing transcript, replay, sidecar memory, semanticization, backend history, and compaction edits.
 - [Session and Conversation Identity Change Workflow](../memory/session_conversation_identity_change_workflow.md) for changing conversation/session identity, active stream filtering, resume/rehydrate routing, and wrong-thread fixes.
+- [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md) for changing visible transcript persistence, pending queue retries, dashboard replay, and backend rehydrate flow.
 - [Security Hub](../security/README.md) for hosted auth, IPC isolation, validation, credentials, permissions, tools, and sidecar security boundaries.
 - [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) for screen/input/microphone/browser/workspace/sudo authority changes.
 - [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md) for install tokens, runs keys, provider keys, OAuth state, and sidecar remote-client auth.
@@ -424,6 +426,7 @@ Validate audio framing, voice hook, wakeword bridge, and backend TTS/STT tests.
 
 Read:
 
+- [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md)
 - [Frontend Transcript Session + Rehydrate Reference](../frontend/renderer/transcript_session_and_rehydrate_reference.md)
 - [Frontend Sidecar Memory Docs Hub](../frontend/sidecar/memory/README.md)
 - [Backend Embedding + Semantic Memory Runtime Reference](../backend/services/embedding_and_semantic_memory_runtime_reference.md)
@@ -614,6 +617,7 @@ Use these when a change path is not enough and you need exact file ownership:
 
 - [Memory Hub](../memory/README.md)
 - [Memory Change Workflow](../memory/memory_change_workflow.md)
+- [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md)
 - [Transcript and Replay](../memory/transcript_and_replay.md)
 - [Sidecar Local Memory](../memory/sidecar_local_memory.md)
 - [Backend History and Semantic Routes](../memory/backend_history_and_semantic_routes.md)

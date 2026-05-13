@@ -10,6 +10,7 @@ title: "Frontend Renderer Transcript Docs Hub"
 
 ## Deep Pages
 
+- [Transcript Replay Change Workflow](../../../memory/transcript_replay_change_workflow.md)
 - [Transcript Writer Queue Flush and Session Event Reference](transcript_writer_queue_flush_and_session_event_reference.md)
 - [Transcript Queue Docs Hub](queue/README.md)
 - [Pending Transcript Queue FIFO and Requeue Contract Reference](queue/pending_transcript_queue_fifo_and_requeue_contract_reference.md)

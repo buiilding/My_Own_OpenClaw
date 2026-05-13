@@ -51,6 +51,7 @@ Use this route for `user_id`, `session_id`, `conversation_ref`, `turn_ref`, tran
 
 Read:
 
+- [Transcript Replay Change Workflow](transcript_replay_change_workflow.md)
 - [Transcript and Replay](transcript_and_replay.md)
 - [Renderer Transcript Docs Hub](../frontend/renderer/transcript/README.md)
 - [Transcript Writer Queue Flush and Session Event Reference](../frontend/renderer/transcript/transcript_writer_queue_flush_and_session_event_reference.md)
@@ -73,6 +74,7 @@ Validation:
 
 Read:
 
+- [Transcript Replay Change Workflow](transcript_replay_change_workflow.md)
 - [Transcript and Replay](transcript_and_replay.md)
 - [Session and Transcript Reference](../reference/session_and_transcript_reference.md)
 - [Backend History and Semantic Routes](backend_history_and_semantic_routes.md)
@@ -158,6 +160,7 @@ Do not invent new identifiers inside UI components. Use the transcript/session r
 ## Related Docs
 
 - [Memory Hub](README.md)
+- [Transcript Replay Change Workflow](transcript_replay_change_workflow.md)
 - [Transcript and Replay](transcript_and_replay.md)
 - [Sidecar Local Memory](sidecar_local_memory.md)
 - [Backend History and Semantic Routes](backend_history_and_semantic_routes.md)

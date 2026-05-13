@@ -24,6 +24,7 @@ WindieOS has several memory-like systems. They must not be treated as one store.
 
 - [Memory Change Workflow](memory_change_workflow.md) routes transcript, replay, sidecar durable memory, semanticization, backend history, and compaction changes to the right owner.
 - [Session and Conversation Identity Change Workflow](session_conversation_identity_change_workflow.md) routes `user_id`, `session_id`, `conversation_ref`, `turn_ref`, transcript sync, replay, rehydrate, stream filtering, and wrong-conversation bugs.
+- [Transcript Replay Change Workflow](transcript_replay_change_workflow.md) routes transcript writes, pending queues, sidecar transcript storage, dashboard replay/resume, backend rehydrate payloads, tool-row reconstruction, and validation.
 - [Storage and Persistence Change Workflow](../architecture/storage_persistence_change_workflow.md) routes storage shape, migration, reset, durability, SQLite/FAISS, artifact, config, and in-memory-state changes.
 - [Transcript and Replay](transcript_and_replay.md) maps renderer transcript writes, pending queues, local snapshots, and replay/rehydrate payloads.
 - [Sidecar Local Memory](sidecar_local_memory.md) maps JSON-RPC handlers, local store operations, semanticization, titles, and local search.

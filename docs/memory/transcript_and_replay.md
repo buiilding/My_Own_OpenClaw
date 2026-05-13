@@ -10,6 +10,8 @@ title: "Transcript and Replay"
 
 Renderer transcript state is the source for visible conversation persistence and dashboard replay. It is not the same as backend active model history.
 
+For code changes or debugging, start with [Transcript Replay Change Workflow](transcript_replay_change_workflow.md). That workflow maps transcript writes, pending queues, sidecar transcript storage, dashboard replay/resume, backend rehydrate payloads, tool-row reconstruction, and validation.
+
 ## Code Ownership
 
 | Concern | Files |
@@ -66,3 +68,6 @@ npm run test:ci -- TranscriptWriter.userAssistant.test.ts TranscriptWriter.tool.
 npm run test:ci -- ConversationReplayState.test.ts ConversationReplayActions.test.jsx RehydratePayload.test.js
 ```
 
+## Change Workflow
+
+- [Transcript Replay Change Workflow](transcript_replay_change_workflow.md)
