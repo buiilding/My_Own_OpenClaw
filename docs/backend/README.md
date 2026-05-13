@@ -133,6 +133,8 @@ Covers:
 - [Agent Tools Shared-Utility Docs Hub](agent/tools/shared/README.md)
 - [Agent and Tool Runtime](runtime/agent_and_tool_runtime.md)
 - [Session State and Lifecycle](runtime/session_state_and_lifecycle.md)
+- [Query Lifecycle Change Workflow](runtime/query_lifecycle_change_workflow.md)
+- [Tool Turn Change Workflow](agent/tool_turn_change_workflow.md)
 - [Session Runtime and Config Rewire Reference](agent/session_runtime_and_config_rewire_reference.md)
 - [Interaction Loop and Tool-Turn Orchestration Reference](agent/interaction_loop_and_tool_turn_orchestration_reference.md)
 - [History Compaction Engine Decision, Strategy, and Event Contract Reference](agent/history_compaction_engine_decision_strategy_and_event_contract_reference.md)

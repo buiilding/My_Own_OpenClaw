@@ -94,7 +94,7 @@ Added/expanded in WindieOS:
 - `cli/`: current repo-script and package-script command docs with separate matrices for command selection, validation, and packaging/release operations while first-class user CLI behavior remains planned.
 - `automation/`: current VM run orchestration docs for `/api/runs/*`, worker polling, run timelines, run controls, and explicit boundaries for future cron/webhook/scheduler work.
 - `operations/`: OpenClaw-style operational hub and runbooks for runtime config ownership, hosted install auth, deployment, Cloudflare Tunnel, packaging/reinstall flows, evidence collection, incident triage, release, security, performance, and troubleshooting.
-- `backend/`: backend functionality maps and subsystem docs.
+- `backend/`: backend functionality maps and subsystem docs, including query-lifecycle and tool-turn workflow guides that route agent-loop changes to exact API, session, formatter, history, and tool orchestration owners.
 - `frontend/`: frontend/electron/renderer/sidecar functionality maps plus IPC and sidecar-tool change workflows for renderer/preload/main/sidecar boundaries.
 - `development/`: agent-facing implementation workflow, validation matrix, docs update workflow, review/risk checklist, test-failure triage, commit/changelog workflow, environment setup, testing, contributing, and tool-development guides.
 - `planning/`: current-vs-future boundary, roadmap status matrix, promotion checklist, initiative index, and future-facing plan docs.

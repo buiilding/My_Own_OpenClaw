@@ -107,7 +107,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 | Channels and transports | Desktop chat entrypoints, backend websocket, transcription websocket, sidecar JSON-RPC, SDK routes, VM run control | `frontend/src/main`, `frontend/src/renderer`, `frontend/src/main/python`, `backend/src/api/routes`, `frontend/src/renderer/infrastructure/api` | [Channels Hub](../channels/README.md), [Channel Routing Matrix](../channels/channel_routing_matrix.md), [Communication Flow](../architecture/communication_flow.md) |
 | Security boundaries | Hosted auth, websocket validation, IPC isolation, credentials, permissions, tool policy, sidecar execution, multi-user risks | `backend/src/api/auth`, `backend/src/api/schemas`, `backend/src/core/security`, `frontend/src/preload.js`, `frontend/src/shared/ipcChannels.json`, `frontend/src/main/python/tools` | [Security Hub](../security/README.md), [Security Boundary Matrix](../security/security_boundary_matrix.md), [Security Change Playbook](../security/security_change_playbook.md) |
 | Plugins and extensions | Current source-owned extension surfaces for tools, providers, inference adapters, SDK routes, browser actions, renderer features, and future plugin boundaries | `backend/src/tools`, `backend/src/sdk`, `backend/src/llm/providers`, `backend/src/api/routes/sdk`, `frontend/src/main/python/tools`, `frontend/src/renderer/features` | [Plugins and Extensions Hub](../plugins/README.md), [Extension Surface Matrix](../plugins/extension_surface_matrix.md), [Architecture Extension Points](../architecture/extension_points.md) |
-| Backend agent runtime | Session lifecycle, query execution, interaction loop, tool turns, history, compaction, prompt context | `backend/src/agent`, `backend/src/api/services/query_execution.py` | [Backend Agent Docs Hub](../backend/agent/README.md), [Backend Runtime Docs Hub](../backend/runtime/README.md) |
+| Backend agent runtime | Session lifecycle, query execution, interaction loop, tool turns, history, compaction, prompt context | `backend/src/agent`, `backend/src/api/services/query_execution.py` | [Backend Agent Docs Hub](../backend/agent/README.md), [Backend Runtime Docs Hub](../backend/runtime/README.md), [Query Lifecycle Change Workflow](../backend/runtime/query_lifecycle_change_workflow.md), [Tool Turn Change Workflow](../backend/agent/tool_turn_change_workflow.md) |
 | Backend tool schema + orchestration | Model-facing tool registry, schema filtering, coordinate preparation, frontend dispatch, result waiting, tool-result history | `backend/src/tools`, `backend/src/agent/tools` | [Backend Tools Docs Hub](../backend/tools/README.md), [Backend Change Path Playbook](../backend/inventory/domains/backend_change_path_playbook_reference.md) |
 | Backend LLM + prompts | Provider factory, model catalog, prompt construction, parser/trust boundary, stream normalization | `backend/src/llm`, `backend/src/agent/llm` | [Backend LLM Docs Hub](../backend/llm/README.md), [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md), [Backend LLM Prompt Docs Hub](../backend/llm/prompts/README.md) |
 | Backend services | Artifacts, embeddings, semantic memory API, OCR, vision, token counting, TTS/wakeword audio services | `backend/src/services`, `backend/src/embeddings`, `backend/src/api/routes` | [Backend Services Docs Hub](../backend/services/README.md), [Backend Services Screen-Grounding Docs Hub](../backend/services/screen_grounding/README.md) |
@@ -252,6 +252,7 @@ Validate with schema, handler-routing, formatter, and renderer event-consumption
 
 Read:
 
+- [Query Lifecycle Change Workflow](../backend/runtime/query_lifecycle_change_workflow.md)
 - [Backend Query Handler and Query Execution Service Runtime Reference](../backend/api/handlers/query_handler_and_query_execution_service_runtime_reference.md)
 - [Backend Stream Pipeline, Completion, and TTS Concurrency Reference](../backend/api/processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
 - [Frontend Stream State Machine](../frontend/runtime/stream_event_state_machine.md)
@@ -271,6 +272,7 @@ Validate backend stream lifecycle tests plus renderer stream hook/store tests.
 
 Read:
 
+- [Tool Turn Change Workflow](../backend/agent/tool_turn_change_workflow.md)
 - [Backend Tools Docs Hub](../backend/tools/README.md)
 - [Tool Catalog Matrix](../tools/tool_catalog_matrix.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)

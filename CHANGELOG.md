@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(backend-runtime): add query lifecycle and tool-turn change workflows for backend stream, cancellation, tool dispatch, result, and history changes.
 - docs(platforms): add platform change and validation workflows for OS-specific screenshot, overlay, permission, sidecar input, display-affinity, packaging, and smoke-check work.
 - docs(sdk): add SDK route-change and auth/error-handling guides for hosted routes, clients, artifacts, OCR, vision, and websocket transport.
 - docs(operations): add evidence collection and incident triage runbooks for hosted, packaged, provider, sidecar, permission, and VM-worker failures.

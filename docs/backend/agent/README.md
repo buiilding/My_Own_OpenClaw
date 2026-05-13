@@ -12,6 +12,7 @@ title: "Backend Agent Docs Hub"
 
 - [History Docs Hub](history/README.md)
 - [Agent LLM Docs Hub](llm/README.md)
+- [Tool Turn Change Workflow](tool_turn_change_workflow.md)
 - [Session Runtime and Config Rewire Reference](session_runtime_and_config_rewire_reference.md)
 - [Interaction Loop and Tool-Turn Orchestration Reference](interaction_loop_and_tool_turn_orchestration_reference.md)
 - [Execution Policy Iteration, Parse-Recovery, and Bundle Gate Reference](execution_policy_iteration_parse_recovery_and_bundle_gate_reference.md)
