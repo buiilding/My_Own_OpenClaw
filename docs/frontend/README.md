@@ -22,6 +22,11 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Frontend Inventory Domains Hub](inventory/domains/README.md)
 - [Frontend Inventory Protocols Hub](inventory/protocols/README.md)
 
+## Change Workflows
+
+- [IPC Change Workflow](ipc_change_workflow.md)
+- [Sidecar Tool Change Workflow](sidecar_tool_change_workflow.md)
+
 ## Deep Pages
 
 ### Landing

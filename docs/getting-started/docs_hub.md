@@ -103,10 +103,10 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 | Backend LLM + prompts | Provider factory, model catalog, prompt construction, parser/trust boundary, stream normalization | `backend/src/llm`, `backend/src/agent/llm` | [Backend LLM Docs Hub](../backend/llm/README.md), [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md), [Backend LLM Prompt Docs Hub](../backend/llm/prompts/README.md) |
 | Backend services | Artifacts, embeddings, semantic memory API, OCR, vision, token counting, TTS/wakeword audio services | `backend/src/services`, `backend/src/embeddings`, `backend/src/api/routes` | [Backend Services Docs Hub](../backend/services/README.md), [Backend Services Screen-Grounding Docs Hub](../backend/services/screen_grounding/README.md) |
 | Automation and VM runs | Hosted run creation, worker assignment, run event timelines, stop controls, VM worker polling | `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py`, `backend/src/services/vm_run_control_support`, `frontend/src/main/vm_worker_runtime.cjs` | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md), [Runs API Runbook](../automation/runs_api_runbook.md) |
-| Electron main | Windows, overlays, websocket relay, config persistence, local sidecar bridge, permissions, wakeword bridge | `frontend/src/main` | [Frontend Main Docs Hub](../frontend/main/README.md), [Frontend Runtime Docs Hub](../frontend/runtime/README.md) |
+| Electron main | Windows, overlays, websocket relay, config persistence, local sidecar bridge, permissions, wakeword bridge | `frontend/src/main` | [Frontend Main Docs Hub](../frontend/main/README.md), [Frontend Runtime Docs Hub](../frontend/runtime/README.md), [IPC Change Workflow](../frontend/ipc_change_workflow.md) |
 | Renderer | Chat UI, dashboard, settings, permissions, voice UI, stream event consumption, tool runner, transcript queue | `frontend/src/renderer` | [Frontend Renderer Docs Hub](../frontend/renderer/README.md), [Frontend Inventory Domains Hub](../frontend/inventory/domains/README.md) |
-| Preload IPC | Isolated renderer bridge, channel allowlist, IPC surface trust boundary | `frontend/src/preload.js` | [Frontend Preload Docs Hub](../frontend/preload/README.md), [Frontend Contracts IPC Docs Hub](../frontend/contracts/ipc/README.md) |
-| Python sidecar | Local JSON-RPC, shell/filesystem/computer/system tools, browser runtime, local memory, system state, wakeword service | `frontend/src/main/python` | [Frontend Sidecar Docs Hub](../frontend/sidecar/README.md), [Frontend Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md) |
+| Preload IPC | Isolated renderer bridge, channel allowlist, IPC surface trust boundary | `frontend/src/preload.js` | [Frontend Preload Docs Hub](../frontend/preload/README.md), [Frontend Contracts IPC Docs Hub](../frontend/contracts/ipc/README.md), [IPC Change Workflow](../frontend/ipc_change_workflow.md) |
+| Python sidecar | Local JSON-RPC, shell/filesystem/computer/system tools, browser runtime, local memory, system state, wakeword service | `frontend/src/main/python` | [Frontend Sidecar Docs Hub](../frontend/sidecar/README.md), [Frontend Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md), [Sidecar Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md) |
 | Operations | Config, hosted auth, deployment, packaging, release, performance, security, runtime troubleshooting | `docs/operations`, `scripts`, `.github/workflows`, build config | [Operations Hub](../operations/README.md), [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), [Operational Troubleshooting](../operations/operational_troubleshooting.md) |
 
 ## Change Path Playbooks
@@ -121,6 +121,7 @@ Read:
 - [Channel Routing Matrix](../channels/channel_routing_matrix.md)
 - [Communication Flow](../architecture/communication_flow.md)
 - [IPC Channel and Handler Reference](../frontend/contracts/ipc_channel_and_handler_reference.md)
+- [IPC Change Workflow](../frontend/ipc_change_workflow.md)
 - [Backend API and Transport](../backend/api/api_and_transport.md)
 
 Likely code:
@@ -268,6 +269,7 @@ Read:
 - [Backend Tool Result Ingress Reference](../backend/tools/tool_result_ingress_and_storage_reference.md)
 - [Frontend Tool Execution Service + Hook Runtime Reference](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
 - [Sidecar Tool Registry Exposed Schema and Result Normalization Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
+- [Sidecar Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md)
 
 Likely code:
 

@@ -55,6 +55,8 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**OpenClaw Docs Structure Reference**](reference/openclaw_docs_structure_reference.md) - Structure benchmark and WindieOS mapping
 - [**Backend Bootstrap/API/Contracts Hubs**](backend/README.md) - Subfolder-level backend navigation mirroring OpenClaw-style layered docs
 - [**Frontend Main/Renderer/Contracts/Sidecar Hubs**](frontend/README.md) - Subfolder-level frontend navigation for process/runtime boundaries
+- [**IPC Change Workflow**](frontend/ipc_change_workflow.md) - Safe IPC change flow across shared registry, preload, renderer bridge, main handlers, and local backend bridge
+- [**Sidecar Tool Change Workflow**](frontend/sidecar_tool_change_workflow.md) - Cross-runtime tool change workflow for backend schema, renderer execution, Electron bridge, and Python sidecar
 - [**Backend Config/LLM/Services Hubs**](backend/README.md) - Additional backend sub-hub navigation for config policy, model stack, and runtime services
 - [**Backend LLM Provider Hub**](backend/llm/providers/README.md) - Base provider contract and provider-specific runtime docs for cloud/local integrations
 
