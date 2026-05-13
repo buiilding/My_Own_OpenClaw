@@ -159,6 +159,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**OCR and Vision SDK**](sdk/ocr_and_vision.md) - SDK perception routes for OCR, vision locate/describe, overlays, and artifact image sources
 - [**Tool Authoring**](sdk/tool_authoring.md) - Backend SDK tool template, ToolContext, permissions, schema, and registration expectations
 - [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, deployment, packaging, release, security, performance, and operational troubleshooting
+- [**Configuration Change Workflow**](operations/configuration_change_workflow.md) - Owner routing for backend config, Electron endpoints, renderer settings, sidecar env, credentials, VM vars, and packaging config
 - [**Runtime Configuration Matrix**](operations/runtime_configuration_matrix.md) - Config ownership, env vars, defaults, propagation paths, and validation targets
 - [**Hosted Backend Auth**](operations/hosted_backend_auth.md) - Install registration, bearer-token REST auth, websocket identity, and hosted-auth debugging
 - [**Evidence Collection Runbook**](operations/evidence_collection_runbook.md) - Operations evidence packet for hosted, tunnel, Electron, renderer, sidecar, packaged, VM, provider, and permission failures
@@ -246,6 +247,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Frontend Linux Screenshot Hide/Restore Guard**](frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md) - Linux-only window hide/wait/restore behavior for clean screenshot tool execution
 - [**Frontend Preload Channel Allowlist + Renderer Bridge**](frontend/preload/preload_channel_allowlist_and_renderer_bridge_reference.md) - `window.ipc` exposure policy, channel allowlist enforcement semantics, and preload/renderer/main ownership alignment
 - [**Frontend Config Sync Lifecycle**](frontend/runtime/config_sync_and_settings_lifecycle_reference.md) - AppConfig/AppStatus provider ownership, local+disk persistence layering, and main-process `update-settings` ACK gating
+- [**Frontend Settings Sync Change Workflow**](frontend/runtime/settings_sync_change_workflow.md) - Change workflow for renderer settings persistence, Electron ACK gating, backend patch validation, and model/provider UI sync
 - [**Frontend Audio Chunk Playback Runtime**](frontend/runtime/audio_chunk_playback_and_stop_semantics_reference.md) - Backend `audio-chunk` relay path, renderer playback queue/decoding behavior, and stop/new-query audio reset semantics
 - [**Frontend IPC Channel Reference**](frontend/contracts/ipc_channel_and_handler_reference.md) - Exact send/invoke/on channel ownership and handler map
 - [**Frontend Schema Generation + Event Guard Runtime**](frontend/contracts/schema_generation_and_event_guard_reference.md) - Generated schema boundary vs live runtime contracts across preload allowlists, `backendEvents.ts` type guards, and main-process payload normalization

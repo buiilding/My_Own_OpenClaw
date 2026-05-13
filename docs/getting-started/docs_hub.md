@@ -117,7 +117,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 | Preload IPC | Isolated renderer bridge, channel allowlist, IPC surface trust boundary | `frontend/src/preload.js` | [Frontend Preload Docs Hub](../frontend/preload/README.md), [Frontend Contracts IPC Docs Hub](../frontend/contracts/ipc/README.md), [IPC Change Workflow](../frontend/ipc_change_workflow.md) |
 | Python sidecar | Local JSON-RPC, shell/filesystem/computer/system tools, browser runtime, local memory, system state, wakeword service | `frontend/src/main/python` | [Frontend Sidecar Docs Hub](../frontend/sidecar/README.md), [Frontend Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md), [Sidecar Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md) |
 | Platform behavior | OS-specific permissions, screenshots, overlays, content protection, display affinity, window/input adapters, packaged runtime smoke checks | `frontend/src/main/platform`, `frontend/src/main/permission_service*.cjs`, `frontend/src/main/python/core/platform`, `frontend/src/main/python/tools/computer`, `scripts/reinstall-windieos-*`, `scripts/ci/smoke-*` | [Platforms Hub](../platforms/README.md), [Platform Change Workflow](../platforms/platform_change_workflow.md), [Platform Validation Matrix](../platforms/platform_validation_matrix.md) |
-| Operations | Config, hosted auth, deployment, packaging, release, performance, security, runtime troubleshooting | `docs/operations`, `scripts`, `.github/workflows`, build config | [Operations Hub](../operations/README.md), [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), [Operational Troubleshooting](../operations/operational_troubleshooting.md) |
+| Operations | Config, hosted auth, deployment, packaging, release, performance, security, runtime troubleshooting | `docs/operations`, `scripts`, `.github/workflows`, build config | [Operations Hub](../operations/README.md), [Configuration Change Workflow](../operations/configuration_change_workflow.md), [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), [Operational Troubleshooting](../operations/operational_troubleshooting.md) |
 
 ## Change Path Playbooks
 
@@ -455,7 +455,9 @@ Validate provider stream/non-stream/tool-call behavior, model listing, config lo
 
 Read:
 
+- [Configuration Change Workflow](../operations/configuration_change_workflow.md)
 - [Backend Config Runtime Policy](../backend/config/config_fields_and_runtime_policy.md)
+- [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md)
 - [Frontend Config Sync + Settings Lifecycle Reference](../frontend/runtime/config_sync_and_settings_lifecycle_reference.md)
 - [Frontend Settings + Models ACK Event Routing Reference](../frontend/contracts/events/settings_and_model_ack_event_routing_reference.md)
 
@@ -474,6 +476,7 @@ Validate backend config service tests, frontend settings sync tests, and model/s
 Read:
 
 - [Configuration](../operations/configuration.md)
+- [Configuration Change Workflow](../operations/configuration_change_workflow.md)
 - [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
 - [Hosted Backend Auth](../operations/hosted_backend_auth.md)
 - [Deployment](../operations/deployment.md)

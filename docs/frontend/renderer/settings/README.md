@@ -20,6 +20,7 @@ title: "Frontend Renderer Settings Docs Hub"
 ## Related Pages
 
 - [Frontend Renderer Docs Hub](../README.md)
+- [Settings Sync Change Workflow](../../runtime/settings_sync_change_workflow.md)
 - [Config Sync and Settings Lifecycle Reference](../../runtime/config_sync_and_settings_lifecycle_reference.md)
 - [App Provider Coordinator and Save-Status Runtime Reference](../providers/app_provider_coordinator_and_save_status_runtime_reference.md)
 - [Renderer Permissions Docs Hub](../permissions/README.md)
