@@ -10,6 +10,8 @@ title: "Data Flow and State Ownership"
 
 Most WindieOS bugs come from duplicated ownership. This page maps where state should be produced, normalized, stored, and consumed.
 
+For durable or semi-durable storage changes, migrations, reset behavior, and data-loss debugging, use [Storage and Persistence Change Workflow](storage_persistence_change_workflow.md).
+
 ## State Ownership
 
 | State | Owner | Consumers | Notes |
@@ -53,6 +55,7 @@ Most WindieOS bugs come from duplicated ownership. This page maps where state sh
 ## Related Docs
 
 - [Session and Transcript Reference](../reference/session_and_transcript_reference.md)
+- [Storage and Persistence Change Workflow](storage_persistence_change_workflow.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 - [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
 - [Memory Hub](../memory/README.md)

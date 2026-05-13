@@ -185,6 +185,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Architecture Hub**](architecture/README.md) - Runtime boundaries, ownership decision tree, state flow, failure domains, and subsystem architecture routes
 - [**Runtime Boundary Matrix**](architecture/runtime_boundary_matrix.md) - Architecture-level ownership map for backend, Electron main, renderer, preload, sidecar, wakeword, VM worker, and gateway services
 - [**Data Flow and State Ownership**](architecture/data_flow_and_state_ownership.md) - Query, stream, tool-result, settings, transcript, memory, artifact, permission, provider, and VM-run state ownership
+- [**Storage and Persistence Change Workflow**](architecture/storage_persistence_change_workflow.md) - Owner routing for renderer storage, Electron user-data files, sidecar SQLite/FAISS, backend artifacts, install-auth SQLite, caches, and restart durability
 - [**Change Ownership Decision Tree**](architecture/change_ownership_decision_tree.md) - Choose the owning subsystem before implementing cross-runtime changes
 - [**Failure Domain Map**](architecture/failure_domain_map.md) - Route broad failures to producer, transport, consumer, platform, provider, packaging, or operations owners
 - [**Frontend Functionality Map**](frontend/README.md) - Detailed module-level renderer, electron-main, and sidecar runtime maps

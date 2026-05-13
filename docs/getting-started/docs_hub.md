@@ -100,6 +100,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Architecture Hub](../architecture/README.md) for runtime boundaries, ownership decision trees, state flow, and failure-domain maps.
 - [Runtime Boundary Matrix](../architecture/runtime_boundary_matrix.md) for choosing the owning process/trust boundary.
 - [Data Flow and State Ownership](../architecture/data_flow_and_state_ownership.md) for query, stream, tool-result, settings, transcript, memory, artifact, permission, provider, and VM-run ownership.
+- [Storage and Persistence Change Workflow](../architecture/storage_persistence_change_workflow.md) for renderer storage, Electron user-data files, sidecar SQLite/FAISS, backend artifacts, install-auth SQLite, caches, and in-memory service state.
 - [Change Ownership Decision Tree](../architecture/change_ownership_decision_tree.md) for routing ambiguous implementation requests.
 - [Failure Domain Map](../architecture/failure_domain_map.md) for cross-runtime failure triage.
 - [System Architecture](../architecture/architecture.md) for the high-level runtime model.

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(architecture): add storage and persistence change workflow for renderer storage, Electron user-data files, sidecar SQLite/FAISS memory, backend artifacts, install-auth SQLite, caches, VM run state, migrations, reset behavior, and validation routing.
 - docs(browser): add browser change workflow for backend schema, shared contract, sidecar runtime, CDP launch, Electron bridge, renderer session controls, files, snapshots, refs, and validation routing.
 - docs(security): add credential and token change workflow for install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging boundaries.
 - docs(channels): add websocket event contract change workflow for backend events, formatter specs, outgoing schemas, Electron rebroadcast, renderer guards, stream handlers, terminal events, and audio side-channels.
