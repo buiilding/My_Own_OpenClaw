@@ -160,6 +160,7 @@ Validation:
 
 - [Frontend Runtime Docs Hub](README.md)
 - [Config Sync and Settings Lifecycle Reference](config_sync_and_settings_lifecycle_reference.md)
+- [Model Settings Change Workflow](../renderer/settings/model_settings_change_workflow.md)
 - [Configuration Change Workflow](../../operations/configuration_change_workflow.md)
 - [Runtime Configuration Matrix](../../operations/runtime_configuration_matrix.md)
 - [Frontend Renderer Settings Docs Hub](../renderer/settings/README.md)

@@ -11,6 +11,7 @@ title: "Frontend Renderer Settings Docs Hub"
 ## Deep Pages
 
 - [Renderer Settings Sections Docs Hub](sections/README.md)
+- [Model Settings Change Workflow](model_settings_change_workflow.md)
 - [Renderer State Change Workflow](../renderer_state_change_workflow.md)
 - [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
 - [Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference](../permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
@@ -30,6 +31,9 @@ title: "Frontend Renderer Settings Docs Hub"
 ## Code Scope
 
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/modelCardData.js`
+- `frontend/src/renderer/features/dashboard/utils/modelSelectionUtils.js`
 - `frontend/src/renderer/features/permissions/components/PermissionControlCenter.jsx`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStorage.js`

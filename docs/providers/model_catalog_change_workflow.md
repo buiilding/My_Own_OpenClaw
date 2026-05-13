@@ -84,4 +84,5 @@ Do not remove a model id without checking persisted frontend config and backend 
 - [Provider Change Workflow](provider_change_workflow.md)
 - [Provider Credentials](credentials.md)
 - [Model Provider Selection](../concepts/model_provider_selection.md)
+- [Frontend Model Settings Change Workflow](../frontend/renderer/settings/model_settings_change_workflow.md)
 - [Configuration Reference](../reference/configuration_reference.md)
