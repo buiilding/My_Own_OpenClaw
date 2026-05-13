@@ -161,6 +161,8 @@ Read:
 - [Gateway Hub](../gateway/README.md)
 - [Gateway Protocol Map](../gateway/gateway_protocol_map.md)
 - [Gateway Auth and Health Runbook](../gateway/gateway_auth_and_health_runbook.md)
+- [REST Route Auth Matrix](../gateway/rest_route_auth_matrix.md)
+- [WebSocket Connection Lifecycle](../gateway/websocket_connection_lifecycle.md)
 - [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md)
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
 

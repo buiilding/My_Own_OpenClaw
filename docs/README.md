@@ -20,6 +20,8 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, sidecar, wakeword, VM worker, and Cloudflare process triage
 - [**Channels Hub**](channels/README.md) - Desktop, websocket, voice, sidecar, SDK, and VM-run communication paths
 - [**Gateway Hub**](gateway/README.md) - Hosted backend ingress, FastAPI route assembly, websocket protocols, auth, health, and troubleshooting
+- [**REST Route Auth Matrix**](gateway/rest_route_auth_matrix.md) - Hosted `/api/*` route owners, install-token rules, runs key behavior, failure signals, and tests
+- [**WebSocket Connection Lifecycle**](gateway/websocket_connection_lifecycle.md) - Main `/ws` accept, handshake, auth, message validation, task scheduling, timeout, and cleanup flow
 - [**Runtime Nodes Hub**](nodes/README.md) - Runtime process and service boundaries for backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes
 - [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and future scheduler boundaries
 - [**Security Hub**](security/README.md) - Hosted auth, IPC isolation, schema validation, credentials, tool execution, and sidecar boundaries
@@ -87,6 +89,8 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Gateway Hub**](gateway/README.md) - FastAPI gateway boundary for hosted HTTP/websocket ingress
 - [**Gateway Protocol Map**](gateway/gateway_protocol_map.md) - App assembly, router registration, websocket, REST, CORS, and protocol families
 - [**Gateway Auth and Health Runbook**](gateway/gateway_auth_and_health_runbook.md) - Install auth, websocket auth, runs key, and health endpoints
+- [**REST Route Auth Matrix**](gateway/rest_route_auth_matrix.md) - Hosted REST route ownership, identity source, auth failure routing, and focused route tests
+- [**WebSocket Connection Lifecycle**](gateway/websocket_connection_lifecycle.md) - `/ws` handshake, install auth, message parse, task limit, timeout, and cleanup internals
 - [**Gateway Troubleshooting**](gateway/gateway_troubleshooting.md) - Hosted route, websocket, auth, Cloudflare, health, and endpoint-resolution failures
 - [**Runtime Nodes Hub**](nodes/README.md) - Process/service ownership map for backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes
 - [**Runtime Node Matrix**](nodes/runtime_node_matrix.md) - Node-to-code-root, protocol, lifecycle, failure-signal, and validation matrix

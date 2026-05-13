@@ -23,10 +23,10 @@ Use this hub when a change affects how clients enter the hosted backend, how the
 | Surface | Route | Owner | Start docs |
 | --- | --- | --- | --- |
 | FastAPI app assembly | app startup, CORS, router registration | `backend/src/main.py`, `backend/src/api/app_assembly.py`, `backend/src/api/routes/__init__.py` | [Gateway Protocol Map](gateway_protocol_map.md) |
-| Main agent websocket | `GET /ws` | `backend/src/api/routes/websocket/*` | [Backend API WebSocket Docs Hub](../backend/api/websocket/README.md) |
+| Main agent websocket | `GET /ws` | `backend/src/api/routes/websocket/*` | [WebSocket Connection Lifecycle](websocket_connection_lifecycle.md), [Backend API WebSocket Docs Hub](../backend/api/websocket/README.md) |
 | Transcription websocket | `GET /ws/transcription` | `backend/src/api/routes/transcription/router.py`, `backend/src/api/services/transcription/*` | [Voice and Audio Channels](../channels/voice_and_audio_channels.md) |
 | Install auth | `POST /api/install/register`, REST middleware, websocket auth | `backend/src/api/auth/*`, websocket connection auth | [Gateway Auth and Health Runbook](gateway_auth_and_health_runbook.md), [Hosted Backend Auth](../operations/hosted_backend_auth.md) |
-| Hosted REST APIs | `/api/artifacts/*`, `/api/sdk/*`, `/api/embeddings/*`, `/api/semantic/*`, `/api/runs/*` | backend route packages | [HTTP and WebSocket API Surface](../reference/http_api_surface.md) |
+| Hosted REST APIs | `/api/artifacts/*`, `/api/sdk/*`, `/api/embeddings/*`, `/api/semantic/*`, `/api/runs/*` | backend route packages | [REST Route Auth Matrix](rest_route_auth_matrix.md), [HTTP and WebSocket API Surface](../reference/http_api_surface.md) |
 | Deployment edge | `api.windieos.com` via Cloudflare/self-host | scripts and operations docs | [Gateway Troubleshooting](gateway_troubleshooting.md), [Cloudflared Self-Host Runbook](../operations/cloudflared_self_host_windieos.md) |
 
 ## Change Paths
