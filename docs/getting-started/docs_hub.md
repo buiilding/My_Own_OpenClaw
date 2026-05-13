@@ -46,7 +46,10 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Plugins and Extensions Hub](../plugins/README.md) for current extension points and future plugin-system boundaries.
 - [Automation Hub](../automation/README.md) for VM run orchestration, worker polling, run-control APIs, and scheduler boundaries.
 - [Desktop Surfaces](../desktop/README.md) for dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts.
-- [Debug Hub](../debug/README.md) for logs, trace flags, symptom playbooks, and test selection.
+- [Debug Hub](../debug/README.md) for logs, diagnostic flags, endpoint/network checks, process health, trace flags, symptom playbooks, and test selection.
+- [Diagnostic Flags](../debug/diagnostic_flags.md) for enabling the narrowest backend, Electron, renderer, sidecar, VM worker, or packaged-app debug signal.
+- [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md) for hosted/local backend URL resolution, Cloudflare, auth, websocket, and sidecar endpoint drift.
+- [Process Health Checklist](../debug/process_health_checklist.md) for proving which process is dead, stuck, disconnected, or healthy before editing code.
 - [Tools Hub](../tools/README.md) for model-facing and sidecar-executable tools.
 - [Providers Hub](../providers/README.md) for LLM, inference, credential, STT, TTS, and web-search providers.
 - [SDK Hub](../sdk/README.md) for hosted backend clients, query planning, OCR/vision, and tool authoring.
@@ -556,7 +559,10 @@ Use these when a change path is not enough and you need exact file ownership:
 
 - [Debug Hub](../debug/README.md)
 - [Logging](../debug/logging.md)
+- [Diagnostic Flags](../debug/diagnostic_flags.md)
 - [Runtime Traces](../debug/runtime_traces.md)
+- [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md)
+- [Process Health Checklist](../debug/process_health_checklist.md)
 - [Symptom Playbooks](../debug/symptom_playbooks.md)
 - [Test Selection](../debug/test_selection.md)
 

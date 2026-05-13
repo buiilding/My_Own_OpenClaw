@@ -1,0 +1,86 @@
+---
+summary: "Diagnostic flag reference for WindieOS backend logs, Electron main traces, renderer URL traces, sidecar stderr, VM worker mode, and packaged reinstall logging."
+read_when:
+  - When enabling the smallest useful debug signal for a backend, Electron, renderer, sidecar, overlay, stream, screenshot, or packaged-app failure.
+  - When adding, removing, or renaming diagnostic environment flags.
+title: "Diagnostic Flags"
+---
+
+# Diagnostic Flags
+
+Enable the narrowest flag that proves which boundary broke. Do not leave verbose flags on in normal packaged flows.
+
+## Backend
+
+| Flag | Effect |
+| --- | --- |
+| `WINDIEOS_LOG_PROFILE=important` | Default high-signal backend log profile. |
+| `WINDIEOS_LOG_PROFILE=verbose` | Enables broader DEBUG-level backend logs unless `LOG_LEVEL` overrides. |
+| `LOG_LEVEL=DEBUG` | Sets root Python logging level. |
+| `WINDIEOS_LITELLM_SUPPRESS_DEBUG_INFO=0` | Allows LiteLLM debug/help output that is normally suppressed. |
+
+Example:
+
+```sh
+LOG_LEVEL=DEBUG WINDIEOS_LOG_PROFILE=verbose ./scripts/run-backend
+```
+
+## Electron Main and Renderer
+
+| Flag | Effect |
+| --- | --- |
+| `WINDIE_DEV_UI=1` | Enables developer UI/transparency paths; set by `npm run electron:dev`. |
+| `WINDIE_DEBUG_STREAM_EVENTS=1` | Enables stream trace propagation and main IPC stream logs. |
+| `WINDIE_DEBUG_CHAT_PILL=1` | Enables chat pill and response overlay trace logs. |
+| `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
+| `WINDIE_DEBUG_GHOST_OVERLAY=1` | Enables OS tool ghost overlay debugging; used by `npm run test:ghost-cursor`. |
+
+Examples:
+
+```sh
+cd frontend
+WINDIE_DEBUG_STREAM_EVENTS=1 npm run electron:dev
+WINDIE_DEBUG_CHAT_PILL=1 npm run electron:dev
+WINDIE_DEBUG_TOOL_SCREENSHOT=1 npm run electron:dev
+```
+
+## Sidecar
+
+| Flag | Effect |
+| --- | --- |
+| `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` | Raises Python sidecar logs. |
+| `WINDIE_VERBOSE_SIDECAR_STDERR=1` | Forwards verbose sidecar stderr through Electron main. |
+| `WINDIE_VERBOSE_SIDECAR_STDERR=0` | Reduces sidecar stderr noise; used by packaged reinstall helpers. |
+| `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` | Disables semantic summarizer for focused local-backend debugging. |
+| `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL=0` | Prevents browser feature-pack auto-install while debugging availability. |
+
+Sidecar stdout is protocol traffic. Never log debug text to stdout.
+
+## VM Worker and Runs
+
+| Flag | Effect |
+| --- | --- |
+| `WINDIE_VM_MODE=1` | Enables hosted VM/dashboard-oriented app mode. |
+| `WINDIE_VM_WORKER_MODE=1` | Explicitly enables worker heartbeat/polling mode. |
+| `WINDIE_VM_WORKER_HEARTBEAT_MS=<ms>` | Worker heartbeat interval; minimum is 1000ms. |
+| `WINDIE_VM_RUNS_API_KEY=<key>` | Worker-specific runs API key override. |
+
+Use [VM Worker Node](../nodes/vm_worker_node.md) and [Runs API Runbook](../automation/runs_api_runbook.md) for the full control-plane flow.
+
+## Packaged Reinstall
+
+| Flag | Effect |
+| --- | --- |
+| `WINDIE_LOG_FILE=<path>` | Packaged run log path for local reinstall helpers. |
+| `WINDIE_SIDECAR_LOG_LEVEL=<level>` | Sidecar log level used by reinstall helpers. |
+| `WINDIE_BUNDLE_ID=<id>` | Override bundle id in local reinstall flows. |
+| `WINDIE_APP_NAME=<name>` | Override app name in local reinstall flows. |
+
+Local reinstall logs are not release-signing validation.
+
+## Related Docs
+
+- [Logging](logging.md)
+- [Runtime Traces](runtime_traces.md)
+- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
+- [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)

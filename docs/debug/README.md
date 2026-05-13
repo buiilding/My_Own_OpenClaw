@@ -23,7 +23,10 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 ## Debug Pages
 
 - [Logging](logging.md) maps backend, Electron, renderer, and sidecar log controls.
+- [Diagnostic Flags](diagnostic_flags.md) maps backend, Electron, renderer, sidecar, VM worker, and packaged-app debug flags.
 - [Runtime Traces](runtime_traces.md) covers stream, chat pill, screenshot, overlay, and sidecar trace paths.
+- [Endpoint and Network Debugging](endpoint_and_network_debugging.md) routes hosted/local endpoint, websocket, install auth, Cloudflare, and sidecar backend URL failures.
+- [Process Health Checklist](process_health_checklist.md) maps backend, Electron, renderer, sidecar, wakeword, VM worker, and Cloudflare process health checks.
 - [Symptom Playbooks](symptom_playbooks.md) maps common failures to code roots and validation.
 - [Test Selection](test_selection.md) maps changed subsystems to focused tests and full-suite commands.
 
@@ -42,4 +45,3 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 - For overlay timing bugs, write down the phase sequence first. Mixing focus, capture, content protection, and visibility changes in one patch makes regressions hard to isolate.
 - For local tool bugs, verify all three surfaces: backend schema, renderer tool-runner payload, and sidecar executable result.
 - For hosted backend bugs, do not assume local Electron state is wrong until the websocket or HTTP payload is inspected.
-

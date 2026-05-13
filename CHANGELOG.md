@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(debug): add diagnostic flag, endpoint/network, and process-health lookup guides for faster runtime triage.
 - docs(cli): expand command docs with script, validation, packaging, release, docs-tooling, and commit-helper matrices.
 - docs(reference): add a reference hub for stable API, event, configuration, and session/transcript lookup surfaces.
 - docs(concepts): expand concept coverage for sessions, streaming events, prompt/tool context, model provider selection, and usage/token accounting.
