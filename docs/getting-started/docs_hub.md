@@ -377,6 +377,7 @@ Validate main-process overlay tests and renderer overlay tests. Keep focus, visi
 
 Read:
 
+- [Voice Audio Change Workflow](../channels/voice_audio_change_workflow.md)
 - [Frontend Voice Capture + Wakeword Controller Reference](../frontend/renderer/voice_capture_and_wakeword_controller_reference.md)
 - [Frontend Wakeword Bridge + Audio Framing Reference](../frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md)
 - [Backend TTS + Wakeword Audio Runtime Reference](../backend/services/tts_and_wakeword_audio_runtime_reference.md)
@@ -545,6 +546,7 @@ Use these when a change path is not enough and you need exact file ownership:
 
 - [Channels Hub](../channels/README.md)
 - [Channel Routing Matrix](../channels/channel_routing_matrix.md)
+- [Voice Audio Change Workflow](../channels/voice_audio_change_workflow.md)
 - [Voice and Audio Channels](../channels/voice_and_audio_channels.md)
 - [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md)
 

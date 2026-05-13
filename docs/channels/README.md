@@ -17,9 +17,9 @@ WindieOS has several user and developer entry channels that eventually meet the 
 | Dashboard chat | Main React dashboard composer | renderer -> Electron IPC -> backend `/ws` | [Channel Routing Matrix](channel_routing_matrix.md), [Desktop Dashboard](../desktop/dashboard.md) |
 | Minimal chat pill | Floating overlay composer | overlay renderer -> Electron IPC -> backend `/ws` | [Channel Routing Matrix](channel_routing_matrix.md), [Minimal Chat Pill](../desktop/minimal_chat_pill.md) |
 | Backend agent stream | Main query/control protocol | WebSocket `/ws` | [Backend API and Transport](../backend/api/api_and_transport.md), [HTTP and WebSocket API Surface](../reference/http_api_surface.md) |
-| Voice dictation | Voice-mode microphone capture | renderer audio -> backend `/ws/transcription` | [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
-| Wakeword | Background hotword listener | renderer audio -> Electron wakeword bridge -> sidecar subprocess | [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
-| TTS playback | Backend audio response | backend `/ws` `audio-chunk` events -> renderer playback queue | [Voice and Audio Channels](voice_and_audio_channels.md), [Backend TTS Manager](../backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md) |
+| Voice dictation | Voice-mode microphone capture | renderer audio -> backend `/ws/transcription` | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
+| Wakeword | Background hotword listener | renderer audio -> Electron wakeword bridge -> sidecar subprocess | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
+| TTS playback | Backend audio response | backend `/ws` `audio-chunk` events -> renderer playback queue | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Audio Channels](voice_and_audio_channels.md), [Backend TTS Manager](../backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md) |
 | Local tools | Computer, browser, filesystem, shell, memory | renderer/main IPC -> Python sidecar JSON-RPC | [Sidecar and Tool Channels](sidecar_and_tool_channels.md), [Tools Hub](../tools/README.md) |
 | SDK clients | External programmatic clients | direct hosted HTTP + WebSocket | [Channel Routing Matrix](channel_routing_matrix.md), [SDK Hub](../sdk/README.md) |
 | VM runs | Hosted dashboard or worker execution | `/api/runs/*` HTTP control plane + backend `/ws` dispatch | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md) |
@@ -56,6 +56,7 @@ Validate renderer send-path tests, main-process IPC tests, and backend query con
 
 Read:
 
+- [Voice Audio Change Workflow](voice_audio_change_workflow.md)
 - [Voice and Audio Channels](voice_and_audio_channels.md)
 - [Voice and Wakeword](../desktop/voice_and_wakeword.md)
 - [Backend TTS + Wakeword Audio Runtime Reference](../backend/services/tts_and_wakeword_audio_runtime_reference.md)
@@ -90,6 +91,7 @@ Validate backend schema tests, sidecar tool tests, renderer tool-runner tests, a
 ## Deep Docs
 
 - [Channel Routing Matrix](channel_routing_matrix.md)
+- [Voice Audio Change Workflow](voice_audio_change_workflow.md)
 - [Voice and Audio Channels](voice_and_audio_channels.md)
 - [Sidecar and Tool Channels](sidecar_and_tool_channels.md)
 - [Communication Flow](../architecture/communication_flow.md)

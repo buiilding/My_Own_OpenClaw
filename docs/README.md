@@ -88,6 +88,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Usage and Token Accounting**](concepts/usage_and_token_accounting.md) - Token-count events, provider diagnostics, estimates, cache metrics, dashboard usage, and billing boundaries
 - [**Channels Hub**](channels/README.md) - Entry-channel routing for desktop chat, backend websocket, voice, sidecar tools, SDK, and VM runs
 - [**Channel Routing Matrix**](channels/channel_routing_matrix.md) - Channel-to-transport, owner, code-root, and validation map
+- [**Voice Audio Change Workflow**](channels/voice_audio_change_workflow.md) - Owner routing for wakeword, microphone permissions, transcription websocket, STT providers, TTS chunks, and renderer playback
 - [**Voice and Audio Channels**](channels/voice_and_audio_channels.md) - Wakeword, voice dictation, transcription websocket, and TTS playback ownership
 - [**Sidecar and Tool Channels**](channels/sidecar_and_tool_channels.md) - Local tool IPC, sidecar JSON-RPC, executable tools, and tool-result return path
 - [**Gateway Hub**](gateway/README.md) - FastAPI gateway boundary for hosted HTTP/websocket ingress
