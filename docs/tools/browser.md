@@ -10,6 +10,8 @@ title: "Browser Tool"
 
 WindieOS browser automation uses a dedicated browser runtime controlled by the sidecar. It is not the user's normal browser unless explicitly connected through the dedicated runtime path.
 
+For deeper dedicated-browser launch, action-surface, session-UI, and troubleshooting docs, read [Browser Hub](../browser/README.md).
+
 ## Runtime Split
 
 | Layer | Responsibility |
@@ -38,6 +40,10 @@ WindieOS browser automation uses a dedicated browser runtime controlled by the s
 ## Deep Docs
 
 - [Browser Control](../browser/browser_control.md)
+- [Browser Hub](../browser/README.md)
+- [Dedicated Browser Runtime](../browser/dedicated_browser_runtime.md)
+- [Browser Action Surface](../browser/browser_action_surface.md)
+- [Browser Troubleshooting](../browser/browser_troubleshooting.md)
 - [Frontend Sidecar Browser Stack](../frontend/sidecar/browser_automation_stack.md)
 - [Backend Browser Remote Schema Surface + Compatibility Contract Reference](../backend/tools/browser/browser_remote_schema_surface_and_compatibility_contract_reference.md)
 - [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](../backend/tools/browser/schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)

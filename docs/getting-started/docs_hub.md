@@ -352,6 +352,10 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Tool Contracts](../tools/tool_contracts.md)
 - [Computer Tools](../tools/computer.md)
 - [Browser Tool](../tools/browser.md)
+- [Browser Hub](../browser/README.md)
+- [Dedicated Browser Runtime](../browser/dedicated_browser_runtime.md)
+- [Browser Action Surface](../browser/browser_action_surface.md)
+- [Browser Troubleshooting](../browser/browser_troubleshooting.md)
 - [Filesystem and Shell Tools](../tools/filesystem_shell.md)
 
 ### Providers

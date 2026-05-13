@@ -76,6 +76,7 @@ Added/expanded in WindieOS:
 - `concepts/`: OpenClaw-style conceptual docs for runtime model, agent loop, context/memory, and safety boundaries.
 - `desktop/`: user-visible desktop surface docs for dashboard, chat pill, response overlay, onboarding/permissions, voice, and artifacts.
 - `debug/`: OpenClaw-style debug docs for logs, trace flags, symptom playbooks, and test selection.
+- `browser/`: dedicated browser automation docs for launch/profile isolation, action dispatch, session UI, files, and troubleshooting.
 - `tools/`: first-class tool-system docs covering contracts, computer use, browser automation, filesystem, and shell execution.
 - `providers/`: model/provider docs covering LLM providers, provider-specific runtime pages, model catalog metadata, credentials, and inference providers.
 - `sdk/`: hosted backend client and developer API docs covering query planning, traces, OCR/vision, and tool authoring.
@@ -97,6 +98,7 @@ Added/expanded in WindieOS:
 - `concepts/`: product/system mental models that are not tied to one source folder.
 - `desktop/`: user-facing desktop surfaces and their renderer/main ownership boundaries.
 - `debug/`: symptom-first debugging, runtime trace controls, logs, and validation choices.
+- `browser/`: browser-specific runtime, action surface, and troubleshooting docs separate from generic tool docs.
 - `architecture/`: high-level conceptual architecture and cross-system flows.
 - `tools/`: first-class tool behavior, contracts, and runtime maps.
 - `providers/`: LLM, model, credential, inference, audio, and web-search provider behavior.
