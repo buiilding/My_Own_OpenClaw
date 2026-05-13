@@ -79,7 +79,7 @@ Added/expanded in WindieOS:
 - `debug/`: OpenClaw-style debug docs for logs, trace flags, symptom playbooks, and test selection.
 - `browser/`: dedicated browser automation docs for launch/profile isolation, action dispatch, session UI, files, and troubleshooting.
 - `memory/`: transcript, replay, sidecar local memory, backend history, semantic routes, and troubleshooting docs.
-- `tools/`: first-class tool-system docs covering contracts, computer use, browser automation, filesystem, and shell execution.
+- `tools/`: first-class tool-system docs covering contracts, catalog matrices, execution lifecycle, policy/profile gates, troubleshooting, computer use, browser automation, filesystem, and shell execution.
 - `providers/`: model/provider docs covering LLM providers, provider-specific runtime pages, model catalog metadata, credentials, and inference providers.
 - `sdk/`: hosted backend client and developer API docs covering query planning, traces, OCR/vision, and tool authoring.
 - `install/`, `cli/`, `platforms/`, `help/`, and `web/`: broad operational entrypoints that mirror OpenClaw's public-domain navigation while staying grounded in WindieOS desktop/runtime surfaces.

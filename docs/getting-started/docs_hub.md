@@ -108,6 +108,9 @@ Validate backend stream lifecycle tests plus renderer stream hook/store tests.
 Read:
 
 - [Backend Tools Docs Hub](../backend/tools/README.md)
+- [Tool Catalog Matrix](../tools/tool_catalog_matrix.md)
+- [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
+- [Tool Policy Profiles and Capabilities](../tools/tool_policy_profiles_and_capabilities.md)
 - [Backend Tool Preparation + Coordinate Resolution Reference](../backend/tools/tool_preparation_and_coordinate_resolution_reference.md)
 - [Backend Tool Result Ingress Reference](../backend/tools/tool_result_ingress_and_storage_reference.md)
 - [Frontend Tool Execution Service + Hook Runtime Reference](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
@@ -364,6 +367,10 @@ Use these when a change path is not enough and you need exact file ownership:
 
 - [Tools Hub](../tools/README.md)
 - [Tool Contracts](../tools/tool_contracts.md)
+- [Tool Catalog Matrix](../tools/tool_catalog_matrix.md)
+- [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
+- [Tool Policy Profiles and Capabilities](../tools/tool_policy_profiles_and_capabilities.md)
+- [Tool Troubleshooting](../tools/tool_troubleshooting.md)
 - [Computer Tools](../tools/computer.md)
 - [Browser Tool](../tools/browser.md)
 - [Browser Hub](../browser/README.md)

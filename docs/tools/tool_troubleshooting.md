@@ -1,0 +1,115 @@
+---
+summary: "Tool troubleshooting guide for routing WindieOS tool visibility, schema, dispatch, sidecar execution, result, artifact, and replay failures to the right owner."
+read_when:
+  - When a model-visible tool is missing, malformed, not executing, returning the wrong result, or breaking replay.
+  - When deciding which backend, renderer, Electron main, or sidecar tests should cover a tool regression.
+title: "Tool Troubleshooting"
+---
+
+# Tool Troubleshooting
+
+Use this page for symptom-to-owner routing. After identifying the owner, switch to the focused implementation doc.
+
+## Fast Triage
+
+| Symptom | Likely owner | First check |
+| --- | --- | --- |
+| Tool not shown to model | backend tool policy/profile/provider health | [Tool Policy Profiles](tool_policy_profiles_and_capabilities.md) |
+| Tool schema missing fields | backend schema owner or provider projection | `backend/src/tools/**/schemas.py`, `backend/src/tools/provider_projection.py` |
+| Model calls disabled coordinate method | backend method validation | `ToolPolicy.get_method_validation_errors()` |
+| Backend logs tool call but frontend never runs it | websocket formatter/outgoing event or renderer event consumer | backend formatter tests, `useToolRunner` tests |
+| Renderer says unknown tool | sidecar registry parity or renderer dispatch map | `frontend/src/main/python/tools/registry.py`, `ToolExecutionService` |
+| Sidecar returns `Tool not found` | sidecar registration/import failure | sidecar registry logs and `tests/sidecar/test_tool_registry.py` |
+| Tool succeeds but no model continuation | backend waiting storage/result receiver | `backend/src/agent/tools/waiting/**` |
+| Tool result visible but future replay breaks | transcript/history/model-facing row shape | renderer transcript docs and backend history docs |
+| Screenshot or artifact missing | renderer upload path, backend artifact route, endpoint resolution | [Artifacts and Attachments](../desktop/artifacts_and_attachments.md) |
+| Browser action rejected | shared browser contract validation | [Browser Action Surface](../browser/browser_action_surface.md) |
+
+## Model Visibility Failures
+
+Questions to answer:
+
+1. Is the tool in `backend/src/tools/tool_catalog.py`?
+2. Does `ToolPolicy.filter_tool_schemas()` remove it?
+3. Is the current `agent_tool_profile` expected to include it?
+4. Did the client provide `agent_available_tools` that excludes it?
+5. Is a disabled capability hiding it?
+6. Is provider health hiding `ocr`, `vision`, `embedding`, `browser`, or `web_search`?
+7. Is dev tool selection narrowing local development prompts?
+
+Read:
+
+- [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md)
+- [Backend Tool Policy Runtime](../backend/tools/policy/tool_policy_and_dev_tool_selection_runtime_reference.md)
+
+## Schema and Parser Failures
+
+Questions to answer:
+
+1. Is the schema canonical function-tool shape?
+2. Did provider projection adapt it for a specific model provider?
+3. Did the parser normalize the provider-native call into the direct WindieOS tool name?
+4. Is validation failing before or after coordinate preparation?
+5. Is the model trying to use stale wrapper-style tool payloads?
+
+Read:
+
+- [Tool Contracts](tool_contracts.md)
+- [Backend Tool Registry and Schema Cache](../backend/tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md)
+- [Backend Tool Policy Runtime](../backend/tools/policy/tool_policy_and_dev_tool_selection_runtime_reference.md)
+
+## Dispatch and Execution Failures
+
+Questions to answer:
+
+1. Did backend send a `tool-call` or `tool-bundle` event?
+2. Did renderer receive the matching event type?
+3. Did renderer construct the sidecar payload with the expected args?
+4. Did Electron main route JSON-RPC to the sidecar?
+5. Did sidecar registry import the tool module lazily without import error?
+6. Did the executable tool return `ToolResult` or a legacy dict that normalizes successfully?
+
+Read:
+
+- [Tool Execution Lifecycle](tool_execution_lifecycle.md)
+- [Frontend Tool Execution Service](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
+- [Sidecar Registry and Result Normalization](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
+
+## Result and History Failures
+
+Questions to answer:
+
+1. Does the returned result include the same `request_id` or `bundle_id`?
+2. Did renderer send `tool-result` or `tool-bundle-result` back to backend?
+3. Did waiting storage resolve the pending future?
+4. Did result processing format both display output and model-facing `llm_content`?
+5. Did history commit preserve tool-call/tool-output linkage?
+6. Did transcript persistence preserve structured payload fields needed for replay?
+
+Read:
+
+- [Backend Tool Result Ingress](../backend/tools/tool_result_ingress_and_storage_reference.md)
+- [Backend Tool Result Processor](../backend/tools/processing/tool_result_processor_bundle_formatting_and_cleanup_reference.md)
+- [Backend History Hub](../backend/agent/history/README.md)
+- [Memory Hub](../memory/README.md)
+
+## Tool-Specific Starting Points
+
+| Tool family | Docs | Tests |
+| --- | --- | --- |
+| computer | [Computer Tools](computer.md), [Sidecar Computer Runtime](../frontend/sidecar/tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md) | `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_screenshot_tool.py`, `tests/sidecar/test_scroll_tool.py` |
+| shell/process | [Filesystem and Shell Tools](filesystem_shell.md), [Shell Runtime](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md) | `tests/sidecar/test_shell_process_tool.py`, `tests/sidecar/test_shell_process_registry.py` |
+| filesystem | [Filesystem and Shell Tools](filesystem_shell.md), [Read File Runtime](../frontend/sidecar/tools/filesystem/read_file_window_pagination_binary_guard_and_truncation_contract_reference.md), [Replace Runtime](../frontend/sidecar/tools/filesystem/replace_engine_match_modes_patch_chunks_and_atomic_write_contract_reference.md) | `tests/sidecar/test_read_file_tool.py`, `tests/sidecar/test_replace_tool.py` |
+| browser | [Browser Tool](browser.md), [Browser Hub](../browser/README.md) | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_tool.py`, `tests/sidecar/tools/test_browser_schemas.py` |
+| web search | [Providers Hub](../providers/README.md), [OpenAI Provider](../providers/openai.md), [Gemini Provider](../providers/gemini.md) | `tests/backend/test_web_search_tool.py` |
+
+## Minimum Regression Coverage
+
+For a tool regression fix, add the narrowest tests that cross the failing boundary:
+
+- policy visibility bug: backend `ToolPolicy` test
+- schema drift: backend schema/registry test and sidecar parity test if local execution is involved
+- sidecar runtime bug: sidecar unit test for the executable tool
+- renderer dispatch bug: frontend tool-runner test
+- waiting/result bug: backend result receiver/storage/processor test
+- replay bug: renderer transcript or backend rehydrate/history test
