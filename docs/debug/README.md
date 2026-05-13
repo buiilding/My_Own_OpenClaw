@@ -24,6 +24,7 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 
 - [Logging](logging.md) maps backend, Electron, renderer, and sidecar log controls.
 - [Observability Change Workflow](observability_change_workflow.md) routes new logs, traces, metrics, diagnostic flags, and evidence signals to the right runtime.
+- [Error and Failure Change Workflow](error_failure_change_workflow.md) routes exception mapping, websocket/HTTP errors, IPC failures, sidecar ToolResult failures, renderer error UI, retries, and sanitized logs.
 - [Diagnostic Flags](diagnostic_flags.md) maps backend, Electron, renderer, sidecar, VM worker, and packaged-app debug flags.
 - [Runtime Traces](runtime_traces.md) covers stream, chat pill, screenshot, overlay, and sidecar trace paths.
 - [Endpoint and Network Debugging](endpoint_and_network_debugging.md) routes hosted/local endpoint, websocket, install auth, Cloudflare, and sidecar backend URL failures.
@@ -37,7 +38,8 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 2. Use [Runtime Traces](runtime_traces.md) if the failure crosses process boundaries or depends on event ordering.
 3. Use [Logging](logging.md) if the producer is unclear or a runtime exits silently.
 4. Use [Symptom Playbooks](symptom_playbooks.md) to choose the code roots.
-5. Use [Test Selection](test_selection.md) before and after edits.
+5. Use [Error and Failure Change Workflow](error_failure_change_workflow.md) before changing error payloads, retries, or recovery semantics.
+6. Use [Test Selection](test_selection.md) before and after edits.
 
 ## Rules For Agents
 

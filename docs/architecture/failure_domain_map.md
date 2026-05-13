@@ -8,7 +8,7 @@ title: "Failure Domain Map"
 
 # Failure Domain Map
 
-Use this map when a failure is broader than one feature. It complements [Triage Routes](../help/triage_routes.md) with architecture-level failure domains.
+Use this map when a failure is broader than one feature. It complements [Triage Routes](../help/triage_routes.md) with architecture-level failure domains. For implementation changes to error payloads, retries, recovery, or sanitized logs, use [Error and Failure Change Workflow](../debug/error_failure_change_workflow.md).
 
 ## Domains
 
@@ -47,6 +47,7 @@ Use this map when a failure is broader than one feature. It complements [Triage 
 ## Related Docs
 
 - [Triage Routes](../help/triage_routes.md)
+- [Error and Failure Change Workflow](../debug/error_failure_change_workflow.md)
 - [Process Health Checklist](../debug/process_health_checklist.md)
 - [Runtime Node Matrix](../nodes/runtime_node_matrix.md)
 - [Operational Troubleshooting](../operations/operational_troubleshooting.md)
