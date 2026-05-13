@@ -11,6 +11,7 @@ title: "Backend API Docs Hub"
 ## Deep Pages
 
 - [API and Transport](api_and_transport.md)
+- [API Route Change Workflow](api_route_change_workflow.md)
 - [API Handlers Docs Hub](handlers/README.md)
 - [API Services Docs Hub](services/README.md)
 - [API Processing Docs Hub](processing/README.md)
