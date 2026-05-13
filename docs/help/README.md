@@ -1,5 +1,5 @@
 ---
-summary: "Help hub for WindieOS troubleshooting, diagnostics, logs, permissions, providers, tools, and packaged app issues."
+summary: "Help hub for WindieOS troubleshooting, diagnostics, triage routes, doctor-style checks, evidence packets, logs, permissions, providers, tools, and packaged app issues."
 read_when:
   - When debugging a user-visible WindieOS failure.
   - When adding troubleshooting docs for a recurring issue.
@@ -14,6 +14,10 @@ Start here for user-visible failures. If the issue is implementation-specific, f
 
 - [Diagnostics](diagnostics.md)
 - [Troubleshooting](troubleshooting.md)
+- [Triage Routes](triage_routes.md)
+- [Doctor Checklist](doctor_checklist.md)
+- [Evidence Packet](evidence_packet.md)
+- [FAQ](faq.md)
 
 ## First Questions
 
@@ -26,6 +30,7 @@ Start here for user-visible failures. If the issue is implementation-specific, f
 ## Related Docs
 
 - [Getting Started Troubleshooting](../getting-started/troubleshooting.md)
+- [Debug Hub](../debug/README.md)
 - [Configuration](../operations/configuration.md)
 - [Security](../operations/security.md)
 - [Platforms Hub](../platforms/README.md)

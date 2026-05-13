@@ -10,6 +10,8 @@ title: "Troubleshooting"
 
 Use this page after [Diagnostics](diagnostics.md) identifies the likely runtime.
 
+If the owner is still unclear, use [Triage Routes](triage_routes.md). If the issue is intermittent, packaged-only, hosted-only, or platform-specific, collect a short [Evidence Packet](evidence_packet.md) before editing code.
+
 ## Backend Does Not Respond
 
 - Confirm the backend process is running.
@@ -51,3 +53,9 @@ Use this page after [Diagnostics](diagnostics.md) identifies the likely runtime.
 - Check whether the issue is visible transcript, replay state, backend history, or semantic memory.
 - Check sidecar memory store and backend semantic/title route separately.
 - Read [Context and Memory](../concepts/context_and_memory.md).
+
+## Related Help
+
+- [Doctor Checklist](doctor_checklist.md)
+- [FAQ](faq.md)
+- [Symptom Playbooks](../debug/symptom_playbooks.md)

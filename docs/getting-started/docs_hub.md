@@ -68,7 +68,11 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Screenshot and Overlay Policy](../platforms/screenshot_overlay_policy.md) for capture-time hide/restore and content-protection rules.
 - [Window and Input Matrix](../platforms/window_input_matrix.md) for active-window, window-switching, and local input-control ownership.
 - [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md) for target OS package commands, bundled runtime rules, and smoke checks.
-- [Help Hub](../help/README.md) for diagnostics and troubleshooting.
+- [Help Hub](../help/README.md) for diagnostics, troubleshooting, triage routes, doctor-style checks, evidence packets, and FAQ routes.
+- [Triage Routes](../help/triage_routes.md) for mapping user-visible symptoms to the first likely runtime owner.
+- [Doctor Checklist](../help/doctor_checklist.md) for collecting environment, endpoint, sidecar, permission, packaging, and hosted evidence.
+- [Evidence Packet](../help/evidence_packet.md) for handoff-ready bug reports across backend/frontend/sidecar boundaries.
+- [FAQ](../help/faq.md) for recurring source, packaged, endpoint, provider, tool, browser, permission, and memory questions.
 - [Reference Hub](../reference/README.md) for stable API, websocket event, configuration, and session/transcript lookup maps.
 - [System Architecture](../architecture/architecture.md) for the high-level runtime model.
 - [Communication Flow](../architecture/communication_flow.md) for cross-process event flow.
@@ -649,6 +653,10 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Help Hub](../help/README.md)
 - [Diagnostics](../help/diagnostics.md)
 - [Troubleshooting](../help/troubleshooting.md)
+- [Triage Routes](../help/triage_routes.md)
+- [Doctor Checklist](../help/doctor_checklist.md)
+- [Evidence Packet](../help/evidence_packet.md)
+- [FAQ](../help/faq.md)
 
 ### Web
 

@@ -38,7 +38,11 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Screenshot and Overlay Policy**](platforms/screenshot_overlay_policy.md) - OS-specific capture, overlay hide/restore, and content-protection policy
 - [**Window and Input Matrix**](platforms/window_input_matrix.md) - Window discovery, active-window, input control, and sidecar platform dependencies
 - [**Packaging Runtime Matrix**](platforms/packaging_runtime_matrix.md) - Platform package targets, bundled runtime rules, local reinstall helpers, and smoke checks
-- [**Help Hub**](help/README.md) - Diagnostics and troubleshooting routes by runtime boundary
+- [**Help Hub**](help/README.md) - Diagnostics, troubleshooting, triage routes, doctor-style checks, evidence packets, and FAQ routes by runtime boundary
+- [**Triage Routes**](help/triage_routes.md) - Symptom-to-owner routing before code edits
+- [**Doctor Checklist**](help/doctor_checklist.md) - Manual environment, endpoint, sidecar, permission, packaging, and hosted checks
+- [**Evidence Packet**](help/evidence_packet.md) - Debugging report template for cross-boundary failures
+- [**FAQ**](help/faq.md) - Short routes for recurring source, packaged, endpoint, provider, tool, browser, and memory issues
 - [**Web Surfaces**](web/README.md) - Landing page, hosted backend APIs, SDK routes, artifacts, and websocket surfaces
 - [**Reference Hub**](reference/README.md) - Stable API, websocket event, configuration, session/transcript, and docs-organization lookup maps
 - [**OpenClaw Docs Structure Reference**](reference/openclaw_docs_structure_reference.md) - Structure benchmark and WindieOS mapping

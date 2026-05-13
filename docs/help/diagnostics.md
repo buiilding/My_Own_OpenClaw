@@ -36,6 +36,8 @@ cd frontend && npm run lint
 
 For trace flags, logging controls, symptom playbooks, and focused test selection, read [Debug](../debug/README.md).
 
+For a report that is not yet tied to a subsystem, start with [Triage Routes](triage_routes.md), then use [Doctor Checklist](doctor_checklist.md) and [Evidence Packet](evidence_packet.md) to collect only the evidence the owner runtime needs.
+
 ## Diagnostic Rule
 
 Do not patch the first failing UI symptom until you know whether the producer contract is valid. Many WindieOS bugs are contract drift across backend formatter/schema, Electron bridge mapping, renderer guards, and sidecar executable tools.
