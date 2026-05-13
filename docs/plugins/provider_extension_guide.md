@@ -52,6 +52,7 @@ Core files:
 Docs:
 
 - [Inference Providers](../providers/inference.md)
+- [Inference Capability Change Workflow](../providers/inference_capability_change_workflow.md)
 - [Safety Boundaries](../concepts/safety_boundaries.md)
 - [Security Hub](../security/README.md)
 

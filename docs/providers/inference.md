@@ -10,6 +10,9 @@ title: "Inference Providers"
 
 WindieOS routes non-chat inference through explicit provider settings so hosted deployments can use local, remote, vendor, or disabled capabilities.
 
+For provider factory, router, health gate, SDK, sidecar, STT, and TTS changes,
+start with [Inference Capability Change Workflow](inference_capability_change_workflow.md).
+
 ## Configured Backends
 
 `backend/src/core/config/app_config.py` and `backend/src/core/config/models.py` define provider mode fields:
@@ -42,6 +45,7 @@ Provider health and circuit breakers should hide or fail capabilities predictabl
 
 ## Deep Docs
 
+- [Inference Capability Change Workflow](inference_capability_change_workflow.md)
 - [Backend Services Screen-Grounding Docs Hub](../backend/services/screen_grounding/README.md)
 - [Backend Embedding + Semantic Memory Runtime Reference](../backend/services/embedding_and_semantic_memory_runtime_reference.md)
 - [Backend TTS + Wakeword Audio Runtime Reference](../backend/services/tts_and_wakeword_audio_runtime_reference.md)

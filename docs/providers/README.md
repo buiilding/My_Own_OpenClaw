@@ -23,6 +23,7 @@ WindieOS has multiple provider classes:
 - [Model Catalog Change Workflow](model_catalog_change_workflow.md)
 - [Provider Credentials](credentials.md)
 - [Inference Providers](inference.md)
+- [Inference Capability Change Workflow](inference_capability_change_workflow.md)
 - [OpenAI Provider](openai.md)
 - [Anthropic Provider](anthropic.md)
 - [Gemini Provider](gemini.md)

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(providers): add an inference capability change workflow for OCR, vision, embeddings, STT, TTS, provider factories, routers, health gates, SDK routes, and sidecar clients.
 - docs(web): add a landing page change workflow for standalone web entrypoints, section content, anchors, CTA links, styles, validation, and product-claim boundaries.
 - docs(frontend): add an app startup and onboarding change workflow for root view routing, VM mode, permission-gated onboarding, wakeword placement, and Electron surface handoff.
 - docs(frontend): add a model settings change workflow for dashboard model cards, chat selectors, frontend config persistence, list-models sync, provider API keys, and backend catalog routing.
