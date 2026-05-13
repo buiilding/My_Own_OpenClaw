@@ -36,10 +36,14 @@ feat(frontend-dashboard): delete semantic memory entries
 
 ## Tests
 
-- Full gate: `scripts/check`
+- Broad test gate: `scripts/test`
 - Tests only: `scripts/test`
 - Docs sanity: `bin/docs-list` (or `node scripts/docs-list.js`)
 - Frontend typecheck: `cd frontend && npm run typecheck`
 - Frontend lint: `cd frontend && npm run lint`
 - Frontend audits: `cd frontend && npm run lint:audit && npm run audit:jscpd && npm run audit:knip`
 - Frontend checks auto-skip when `frontend/node_modules` is missing.
+
+There is no current repo-root `scripts/check` in this checkout. Use
+[Validation Matrix](validation_matrix.md) to compose the right docs/test/lint
+gate for the changed boundary.

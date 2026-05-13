@@ -13,6 +13,7 @@ All notable changes to WindieOS will be documented in this file.
 - docs(memory): add a memory hub covering transcript persistence, replay, sidecar local memory, backend history, semantic routes, and troubleshooting.
 - docs(operations): add an OpenClaw-style operations hub with runtime configuration, hosted install auth, packaging/reinstall, and operational troubleshooting runbooks.
 - docs(tools): expand the tools hub with a catalog matrix, execution lifecycle, policy/profile guide, and troubleshooting route map.
+- docs(development): add a development hub, agent workflow, validation matrix, and refresh stale check-script references.
 - docs(api-and-commands): add command/script and HTTP/websocket API surface docs so WindieOS has OpenClaw-like command and integration entrypoints grounded in current routes and scripts.
 - docs(openclaw-coverage): add OpenClaw-style top-level concept, tool, provider, install, platform, help, and web docs grounded in the current backend, frontend, and sidecar code surfaces.
 - docs(docs-hub): reshape the WindieOS documentation hub into an OpenClaw-style agent routing map with subsystem ownership, code roots, change-path playbooks, and validation guidance for backend, frontend, sidecar, operations, and planning work.

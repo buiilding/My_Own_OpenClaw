@@ -139,8 +139,6 @@ frontend/src/
 
 - `bin/docs-list` (or `node scripts/docs-list.js`): Lists docs and front-matter metadata.
 - `scripts/test`: Runs backend + sidecar tests, then frontend tests when `frontend/node_modules` exists.
-- `scripts/check`: Runs docs list, backend + sidecar tests, frontend lint + tests.
-- `scripts/check-loc.py --max 500`: Reports files over the LOC guideline (`--fail` to exit non-zero).
 - `scripts/committer "<msg>" <files...>`: Scoped commits using the shared `committer` helper.
 - Frontend checks auto-skip when `frontend/node_modules` is missing.
 - `cd frontend && npm run typecheck`: Runs TS gate (`tsc --noEmit -p tsconfig.eslint.json`).
@@ -148,6 +146,10 @@ frontend/src/
 - `cd frontend && npm run lint:audit`: Runs React compiler + deprecation audits.
 - `cd frontend && npm run audit:jscpd`: Runs duplication scan across backend/frontend/tests.
 - `cd frontend && npm run audit:knip`: Runs dead-code audit.
+
+There is no current repo-root `scripts/check` or `scripts/check-loc.py` in this
+checkout. Use [Validation Matrix](validation_matrix.md) to compose validation
+for the boundary you changed.
 
 ## Future: Productization Checklist (Planned)
 

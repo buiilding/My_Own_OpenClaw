@@ -348,8 +348,11 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Billing & Usage (Planned)**](planning/billing_and_usage.md) - Subscriptions, entitlements, and usage limits
 
 ### Development Guides
+- [**Development Hub**](development/README.md) - Agent-facing contributor workflow, validation, environment, and change routing hub
+- [**Agent Development Workflow**](development/agent_development_workflow.md) - Step-by-step workflow for docs-first implementation, scoped edits, validation, and commits
+- [**Validation Matrix**](development/validation_matrix.md) - Current backend/frontend/sidecar/docs/package validation commands by change type
 - [**Developer Guide**](development/developer_guide.md) - Comprehensive development guide
-- Developer Guide includes local automation scripts (`bin/docs-list` or `node scripts/docs-list.js`, `scripts/check`, `scripts/test`, `scripts/check-loc.py`) and frontend audit commands (`npm run lint:audit`, `npm run audit:jscpd`, `npm run audit:knip`).
+- Developer Guide includes current local automation scripts (`bin/docs-list` or `node scripts/docs-list.js`, `scripts/test`, `scripts/test-backend`, `scripts/test-sidecar`, `scripts/committer`) and frontend audit commands (`npm run lint:audit`, `npm run audit:jscpd`, `npm run audit:knip`).
 - [**Dev Tool Selection**](development/dev_tool_selection.md) - Backend-only tool schema allow/denylist controls for development
 - [**Tool Development Guide**](development/tool_development.md) - Creating custom tools
 - [**API Reference**](reference/api_reference.md) - Complete API documentation

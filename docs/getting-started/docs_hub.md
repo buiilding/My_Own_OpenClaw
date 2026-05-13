@@ -442,6 +442,9 @@ Use these when a change path is not enough and you need exact file ownership:
 
 ### Development
 
+- [Development Hub](../development/README.md)
+- [Agent Development Workflow](../development/agent_development_workflow.md)
+- [Validation Matrix](../development/validation_matrix.md)
 - [Developer Guide](../development/developer_guide.md)
 - [Environment Setup](../development/environment_setup.md)
 - [Testing Guide](../development/testing.md)
