@@ -16,6 +16,8 @@ def _has_provider(router: Any) -> bool:
 def _ocr_unavailable(ocr_router: Any) -> bool:
     if not _has_provider(ocr_router):
         return True
+    if hasattr(ocr_router, "is_ready"):
+        return getattr(ocr_router, "is_ready", False) is not True
     return getattr(ocr_router, "enabled", False) is not True
 
 

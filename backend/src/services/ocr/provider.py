@@ -35,6 +35,9 @@ class LocalOcrProvider:
     async def initialize(self) -> None:
         await self._service.initialize()
 
+    async def health_check(self) -> bool:
+        return self.enabled and self.is_ready
+
     async def analyze_image(self, image_base64: str) -> Optional[list[dict[str, Any]]]:
         return await self._service.perform_ocr(image_base64)
 

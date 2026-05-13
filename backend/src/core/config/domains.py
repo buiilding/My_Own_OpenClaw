@@ -47,8 +47,12 @@ class MemoryConfigView:
     embedding_model: str
     ocr_backend: str
     ocr_model: str
+    ocr_remote_service_url: Optional[str]
+    ocr_request_timeout_seconds: float
     vision_backend: str
     vision_model_name: Optional[str]
+    vision_remote_service_url: Optional[str]
+    vision_request_timeout_seconds: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -104,8 +108,12 @@ def memory_config(config: AppConfig) -> MemoryConfigView:
         embedding_model=config.embedding_model,
         ocr_backend=config.ocr_backend,
         ocr_model=config.ocr_model,
+        ocr_remote_service_url=config.ocr_remote_service_url,
+        ocr_request_timeout_seconds=config.ocr_request_timeout_seconds,
         vision_backend=config.vision_backend,
         vision_model_name=config.vision_model_name,
+        vision_remote_service_url=config.vision_remote_service_url,
+        vision_request_timeout_seconds=config.vision_request_timeout_seconds,
     )
 
 

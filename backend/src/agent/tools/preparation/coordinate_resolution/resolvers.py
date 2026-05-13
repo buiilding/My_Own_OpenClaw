@@ -4,6 +4,7 @@ Coordinate Resolvers.
 Pure coordinate resolution logic for OCR and Vision methods.
 No side effects, no session access, fully testable.
 """
+
 import difflib
 import hashlib
 import json
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 class OcrCoordinateResolver:
     """
     Resolves coordinates using OCR text matching.
-    
+
     Pure function: no side effects, deterministic output.
     Input: text → Output: coordinates
     """
@@ -39,22 +40,22 @@ class OcrCoordinateResolver:
     ) -> Tuple[int, int]:
         """
         Resolve coordinates by finding matching text in OCR results.
-        
+
         Args:
             text: Text to search for
             ocr_results: List of OCR results with text and bbox
             threshold: Similarity threshold (0-1)
-            
+
         Returns:
             Tuple of (x, y) center coordinates
-            
+
         Raises:
             ValueError: If text not found or multiple fuzzy matches exceed threshold
         """
         ocr_match_start = time.perf_counter()
         if not ocr_results:
             raise ValueError("OCR results are empty")
-        
+
         normalized_candidate_id = (
             candidate_id.strip()
             if isinstance(candidate_id, str) and candidate_id.strip()
@@ -78,12 +79,12 @@ class OcrCoordinateResolver:
             x = bbox["x"] + bbox["width"] // 2
             y = bbox["y"] + bbox["height"] // 2
             return x, y
-        
+
         best_score = 0.0
         target = text.lower().strip()
         fuzzy_matches: List[Dict[str, Any]] = []
         scored_matches: List[Dict[str, Any]] = []
-        
+
         for source_index, item in enumerate(ocr_results):
             current = item.get("text", "").lower().strip()
             score = difflib.SequenceMatcher(None, target, current).ratio()
@@ -97,7 +98,7 @@ class OcrCoordinateResolver:
                 fuzzy_matches.append(scored_match)
             if score > best_score:
                 best_score = score
-        
+
         ocr_match_time = time.perf_counter() - ocr_match_start
         logger.info(
             "[Timing] OCR text matching took %.3fs (searched %s items, fuzzy_matches=%s, best_score=%.2f)",
@@ -141,10 +142,12 @@ class OcrCoordinateResolver:
         screenshot_id: Optional[str] = None,
     ) -> str:
         """Build an actionable error message for ambiguous fuzzy OCR matches."""
-        formatted_matches, candidate_payloads = OcrCoordinateResolver._format_candidate_matches(
-            matches,
-            screenshot_id=screenshot_id,
-            max_listed=8,
+        formatted_matches, candidate_payloads = (
+            OcrCoordinateResolver._format_candidate_matches(
+                matches,
+                screenshot_id=screenshot_id,
+                max_listed=8,
+            )
         )
         candidates = ", ".join(formatted_matches)
         ambiguity_payload = {
@@ -168,10 +171,12 @@ class OcrCoordinateResolver:
         screenshot_id: Optional[str] = None,
     ) -> str:
         """Build a no-match error with top candidate suggestions for manual disambiguation."""
-        formatted_matches, candidate_payloads = OcrCoordinateResolver._format_candidate_matches(
-            scored_matches,
-            screenshot_id=screenshot_id,
-            max_listed=3,
+        formatted_matches, candidate_payloads = (
+            OcrCoordinateResolver._format_candidate_matches(
+                scored_matches,
+                screenshot_id=screenshot_id,
+                max_listed=3,
+            )
         )
         best_score = max(
             (
@@ -220,7 +225,8 @@ class OcrCoordinateResolver:
             center = OcrCoordinateResolver._extract_bbox_center(item.get("bbox"))
             source_index = (
                 match.get("source_index")
-                if isinstance(match, dict) and isinstance(match.get("source_index"), int)
+                if isinstance(match, dict)
+                and isinstance(match.get("source_index"), int)
                 else fallback_index
             )
             candidate_id = OcrCoordinateResolver._build_candidate_id(
@@ -262,7 +268,9 @@ class OcrCoordinateResolver:
         bbox = item.get("bbox") if isinstance(item, dict) else None
         if not isinstance(bbox, dict):
             bbox = {}
-        text = str(item.get("text", "")).strip().lower() if isinstance(item, dict) else ""
+        text = (
+            str(item.get("text", "")).strip().lower() if isinstance(item, dict) else ""
+        )
         payload = "|".join(
             [
                 str(screenshot_id or ""),
@@ -312,7 +320,7 @@ class OcrCoordinateResolver:
 class VisionCoordinateResolver:
     """
     Resolves coordinates using Vision model.
-    
+
     Pure function: no side effects, deterministic output.
     Input: text (description) → Output: coordinates
     """
@@ -325,42 +333,51 @@ class VisionCoordinateResolver:
     ) -> Tuple[int, int]:
         """
         Resolve coordinates using Vision model prediction.
-        
+
         Args:
             description: Visual description of element to find
             screenshot_data: Base64-encoded screenshot
             vision_service: Initialized vision service
-            
+
         Returns:
             Tuple of (x, y) coordinates
-            
+
         Raises:
             ValueError: If description missing, service unavailable, or element not found
         """
         vision_start = time.perf_counter()
         if not description:
-            raise ValueError("source_description parameter is required for prediction method")
-        
+            raise ValueError(
+                "source_description parameter is required for prediction method"
+            )
+
         if not vision_service or not vision_service.is_initialized:
-            raise ValueError("Vision service is not available or initialized")
+            error_message = "Vision service is not available or initialized"
+            if vision_service and callable(
+                getattr(vision_service, "unavailable_error_message", None)
+            ):
+                error_message = vision_service.unavailable_error_message()
+            raise ValueError(error_message)
 
         coordinates = await vision_service.predict_coordinates(
             screenshot_data,
             description,
         )
         vision_time = time.perf_counter() - vision_start
-        logger.info(f"[Timing] Vision model prediction took {vision_time:.3f}s (description='{description[:50]}...')")
-        
+        logger.info(
+            f"[Timing] Vision model prediction took {vision_time:.3f}s (description='{description[:50]}...')"
+        )
+
         if not coordinates:
             raise ValueError(f"Vision model could not identify '{description}'")
-        
+
         return coordinates
 
 
 class CoordinateResolver:
     """
     Routes coordinate resolution to OCR or Vision methods.
-    
+
     Pure function: no side effects, deterministic output.
     """
 
@@ -371,7 +388,7 @@ class CoordinateResolver:
     ):
         """
         Initialize the coordinate resolver.
-        
+
         Args:
             ocr_resolver: OCR coordinate resolver
             vision_resolver: Vision coordinate resolver
@@ -390,21 +407,21 @@ class CoordinateResolver:
     ) -> Tuple[int, int]:
         """
         Resolve coordinates using OCR or Vision based on tool call parameters.
-        
+
         Args:
             tool_call: Parsed tool call with coordinate finding method
             screenshot_data: Base64-encoded screenshot
             ocr_results: Optional OCR results (for OCR method)
             vision_service: Optional vision service (for Vision method)
-            
+
         Returns:
             Tuple of (x, y) coordinates
-            
+
         Raises:
             ValueError: If method unknown, parameters missing, or resolution fails
         """
         method = tool_call.parameters.get("find_coordinates_by")
-        
+
         if method == CoordinateFindingMethod.OCR:
             text = tool_call.parameters.get("ocr_text")
             candidate_id = tool_call.parameters.get("candidate_id")
@@ -416,7 +433,7 @@ class CoordinateResolver:
                 screenshot_id=screenshot_id,
                 candidate_id=candidate_id,
             )
-        
+
         elif method == CoordinateFindingMethod.PREDICTION:
             description = tool_call.parameters.get("source_description")
             if not vision_service:
@@ -424,6 +441,6 @@ class CoordinateResolver:
             return await self.vision_resolver.resolve(
                 description, screenshot_data, vision_service
             )
-        
+
         else:
             raise ValueError(f"Unknown coordinate finding method: {method}")

@@ -50,3 +50,27 @@ def test_provider_health_keeps_available_capabilities(monkeypatch):
     )
 
     assert unavailable == []
+
+
+def test_provider_health_marks_ocr_unavailable_when_circuit_not_ready(monkeypatch):
+    monkeypatch.setenv("BRAVE_SEARCH_API_KEY", "test-brave-key")
+    config = AppConfig(
+        model_provider="anthropic",
+        selected_model_id="claude-sonnet-4-20250514",
+    )
+    ocr_router = SimpleNamespace(provider=object(), enabled=True, is_ready=False)
+    vision_router = SimpleNamespace(
+        provider=object(),
+        is_initialized=True,
+        initialization_error=None,
+    )
+    embedding_router = SimpleNamespace(provider=object())
+
+    unavailable = resolve_unavailable_agent_capabilities(
+        config,
+        ocr_router=ocr_router,
+        vision_router=vision_router,
+        embedding_router=embedding_router,
+    )
+
+    assert unavailable == ["ocr"]

@@ -102,7 +102,12 @@ class OcrCoordinator:
 
             ocr_service = getattr(session, "ocr_router", session.ocr_service)
             if not ocr_service or not ocr_service.enabled:
-                raise ValueError("OCR service is not available or enabled")
+                error_message = "OCR service is not available or enabled"
+                if ocr_service and callable(
+                    getattr(ocr_service, "unavailable_error_message", None)
+                ):
+                    error_message = ocr_service.unavailable_error_message()
+                raise ValueError(error_message)
 
             ocr_results = await ocr_service.perform_ocr(screenshot_data)
             ocr_exec_time = time.perf_counter() - ocr_exec_start

@@ -11,7 +11,7 @@ from typing import List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-InferenceBackend = Literal["local", "remote-http", "vendor"]
+InferenceBackend = Literal["local", "remote-http", "vendor", "disabled"]
 AgentToolProfile = Literal[
     "default", "chat", "coding", "browser", "computer", "full", "custom"
 ]
@@ -338,8 +338,18 @@ class AppConfig(BaseModel):
     vision_model_name: Optional[str] = (
         "OpenGVLab/InternVL3_5-4B"  # Defaults to "OpenGVLab/InternVL3_5-4B" if None
     )
+    vision_remote_service_url: Optional[str] = None
+    vision_remote_health_url: Optional[str] = None
+    vision_request_timeout_seconds: float = Field(default=30.0, ge=0.1)
+    vision_health_timeout_seconds: float = Field(default=5.0, ge=0.1)
     ocr_backend: InferenceBackend = "local"
     ocr_model: str = "rapidocr-ppocrv5-server"
+    ocr_remote_service_url: Optional[str] = None
+    ocr_remote_health_url: Optional[str] = None
+    ocr_request_timeout_seconds: float = Field(default=10.0, ge=0.1)
+    ocr_health_timeout_seconds: float = Field(default=3.0, ge=0.1)
+    provider_circuit_breaker_failure_threshold: int = Field(default=3, ge=1)
+    provider_circuit_breaker_cooldown_seconds: float = Field(default=60.0, ge=0.1)
 
     # Voice Mode Settings
     wakeword_stt_enabled: bool = False

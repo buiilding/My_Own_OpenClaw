@@ -24,6 +24,13 @@ title: "Vision Provider Runtime and Coordinate-Scaling Reference"
 
 ## VisionService Selection and Lifecycle
 
+Vision call sites use `VisionRouter` as the provider boundary. For
+`vision_backend="local"`, the router delegates to `VisionService` through the
+local provider adapter. For `vision_backend="remote-http"`, it delegates to the
+remote HTTP adapter and probes service health before advertising prediction.
+For `vision_backend="disabled"` or missing remote URL, no vision provider is
+exposed to session policy.
+
 Model-name normalization:
 
 - `normalize_model_name(...)` strips `huggingface-local/` prefix (case-insensitive) and falls back to default `OpenGVLab/InternVL3_5-4B`
@@ -57,6 +64,11 @@ Failure behavior:
 
 - logs all intermediate errors
 - raises wrapped runtime error when all paths fail
+- router-level provider failures include `provider_error_json={...}` in the
+  synthetic tool-output path so the model can recover with manual coordinates,
+  OCR, or a user question instead of crashing the turn
+- repeated failures open a circuit breaker; while open, provider health marks
+  `vision` unavailable and prediction fields are hidden from new prompts
 
 Inference safety:
 
