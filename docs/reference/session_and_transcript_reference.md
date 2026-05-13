@@ -8,7 +8,7 @@ title: "Session and Transcript Reference"
 
 # Session and Transcript Reference
 
-This page is a compact identifier lookup. For the conceptual explanation, read [Sessions and Conversations](../concepts/sessions_and_conversations.md).
+This page is a compact identifier lookup. For the conceptual explanation, read [Sessions and Conversations](../concepts/sessions_and_conversations.md). For a development workflow, read [Session and Conversation Identity Change Workflow](../memory/session_conversation_identity_change_workflow.md).
 
 ## Identifier Map
 
@@ -71,6 +71,7 @@ Tool-call and tool-output rows must preserve enough structured metadata to rebui
 
 ## Deep Docs
 
+- [Session and Conversation Identity Change Workflow](../memory/session_conversation_identity_change_workflow.md)
 - [Sessions and Conversations](../concepts/sessions_and_conversations.md)
 - [Transcript and Replay](../memory/transcript_and_replay.md)
 - [Backend Session Runtime and Config Rewire Reference](../backend/agent/session_runtime_and_config_rewire_reference.md)

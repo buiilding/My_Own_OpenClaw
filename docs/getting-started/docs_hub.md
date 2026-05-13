@@ -34,6 +34,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) for environment setup.
 - [Concepts Hub](../concepts/README.md) for product/system mental models before implementation details.
 - [Sessions and Conversations](../concepts/sessions_and_conversations.md) for user/session/conversation identity, transcript replay, backend rehydrate, and wrong-thread debugging.
+- [Session and Conversation Identity Change Workflow](../memory/session_conversation_identity_change_workflow.md) for `user_id`, `session_id`, `conversation_ref`, `turn_ref`, transcript-session sync, replay, rehydrate, stale-event filtering, and wrong-conversation bugs.
 - [Streaming and Events](../concepts/streaming_and_events.md) for websocket event families, renderer consumers, token-counts, tool events, and audio side-channels.
 - [Prompt and Tool Context](../concepts/prompt_and_tool_context.md) for prompt inputs, repo instructions, tool-schema visibility, and transparency events.
 - [Model Provider Selection](../concepts/model_provider_selection.md) for provider runtime selection, model catalogs, credential gates, and failover boundaries.
@@ -43,6 +44,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Channels Hub](../channels/README.md) for desktop, websocket, voice, sidecar, SDK, and VM-run communication paths.
 - [Memory Hub](../memory/README.md) for transcript, replay, sidecar memory, backend history, and semantic route ownership.
 - [Memory Change Workflow](../memory/memory_change_workflow.md) for routing transcript, replay, sidecar memory, semanticization, backend history, and compaction edits.
+- [Session and Conversation Identity Change Workflow](../memory/session_conversation_identity_change_workflow.md) for changing conversation/session identity, active stream filtering, resume/rehydrate routing, and wrong-thread fixes.
 - [Security Hub](../security/README.md) for hosted auth, IPC isolation, validation, credentials, permissions, tools, and sidecar security boundaries.
 - [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) for screen/input/microphone/browser/workspace/sudo authority changes.
 - [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md) for install tokens, runs keys, provider keys, OAuth state, and sidecar remote-client auth.

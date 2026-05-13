@@ -60,6 +60,7 @@ Replay displays stored transcript rows in the UI. Rehydrate converts stored tran
 
 ## Deep Docs
 
+- [Session and Conversation Identity Change Workflow](../memory/session_conversation_identity_change_workflow.md)
 - [Memory Hub](../memory/README.md)
 - [Transcript and Replay](../memory/transcript_and_replay.md)
 - [Backend History and Semantic Routes](../memory/backend_history_and_semantic_routes.md)

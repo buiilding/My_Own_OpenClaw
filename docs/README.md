@@ -84,6 +84,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 ### Concepts, Tools, Providers
 - [**Runtime Model**](concepts/runtime_model.md) - Hosted backend, Electron main, renderer, preload, and Python sidecar boundaries
 - [**Sessions and Conversations**](concepts/sessions_and_conversations.md) - User/session/conversation identity, transcript replay, backend rehydrate, and conversation-scoped routing
+- [**Session and Conversation Identity Change Workflow**](memory/session_conversation_identity_change_workflow.md) - Owner routing for user/session/conversation/turn identity, transcript sync, replay, rehydrate, stale-event filtering, and wrong-conversation bugs
 - [**Agent Loop**](concepts/agent_loop.md) - Query send, backend streaming, tool turns, and completion lifecycle
 - [**Streaming and Events**](concepts/streaming_and_events.md) - Websocket event families, renderer consumers, correlation fields, tool turns, audio side-channel, and stale-turn filtering
 - [**Context and Memory**](concepts/context_and_memory.md) - Transcript, backend history, semantic memory, artifacts, screenshots, and repo instructions
@@ -108,6 +109,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Current vs Future Nodes**](nodes/current_vs_future_nodes.md) - Implemented nodes versus planned mobile, edge, scheduler, and multi-agent VM node work
 - [**Memory Hub**](memory/README.md) - Transcript persistence, replay, sidecar local memory, semantic routes, and troubleshooting
 - [**Memory Change Workflow**](memory/memory_change_workflow.md) - Route transcript, replay, sidecar memory, semanticization, backend history, and compaction changes
+- [**Session and Conversation Identity Change Workflow**](memory/session_conversation_identity_change_workflow.md) - Change workflow for `user_id`, `session_id`, `conversation_ref`, `turn_ref`, transcript-session sync, resume, rehydrate, and stale-stream routing
 - [**Security Hub**](security/README.md) - Security routing for auth, IPC, validation, credentials, permissions, tools, and sidecar execution
 - [**Security Boundary Matrix**](security/security_boundary_matrix.md) - Trust-boundary owner, code-root, failure-signal, and validation matrix
 - [**Security Change Playbook**](security/security_change_playbook.md) - Focused implementation checklist for security-sensitive changes

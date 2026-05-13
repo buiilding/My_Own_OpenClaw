@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(memory): add session and conversation identity change workflow for user/session/conversation/turn routing, transcript sync, replay, rehydrate, stale stream filtering, and wrong-conversation debugging.
 - docs(tools): add tool schema and policy change workflow for model-visible schemas, policy gates, provider projection, sidecar parity, renderer dispatch, and tool-result contract validation.
 - docs(config): add backend config and container change workflow for `AppConfig` fields, runtime normalization, session settings propagation, DI rebinding, provider refresh, and stale dependency debugging.
 - docs(prompts): add prompt context change workflow for system prompt text, repo instructions, memory and attachment context, model-visible tool schemas, transparency events, and generated prompt/schema artifacts.

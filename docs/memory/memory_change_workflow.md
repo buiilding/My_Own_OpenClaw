@@ -37,6 +37,16 @@ WindieOS has multiple memory systems. Treating them as one store causes wrong-la
 
 ## Change Paths
 
+### Change Session or Conversation Identity
+
+Read:
+
+- [Session and Conversation Identity Change Workflow](session_conversation_identity_change_workflow.md)
+- [Sessions and Conversations](../concepts/sessions_and_conversations.md)
+- [Session and Transcript Reference](../reference/session_and_transcript_reference.md)
+
+Use this route for `user_id`, `session_id`, `conversation_ref`, `turn_ref`, transcript-session sync, active stream filtering, dashboard resume, stop-query routing, and wrong-conversation bugs before changing lower-level transcript or memory storage.
+
 ### Change Transcript Writes
 
 Read:
