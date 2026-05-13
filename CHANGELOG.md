@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(adr): add ADR hub plus browser extension and frontend tool-schema decision records referenced by existing docs.
 - docs(planning): add current-vs-future boundary, roadmap status, promotion checklist, and initiative index guides.
 - docs(architecture): add architecture hub, boundary, state ownership, decision-tree, and failure-domain maps.
 - docs(web): add web surface, hosted API/auth, landing, and client integration guides.

@@ -740,6 +740,12 @@ Use these when a change path is not enough and you need exact file ownership:
 - [VM Multi-Agent Plan](../planning/windieos_vm_multi_agent_plan.md)
 - [CLI OS Control Plan](../planning/windieos_cli_os_control_plan.md)
 
+### Architecture Decision Records
+
+- [Architecture Decision Records](../adr/README.md)
+- [ADR 004: Browser Extension Auto-Attach Boundary](../adr/004-browser-extension-auto-attach.md)
+- [ADR 005: Frontend Tool Schema Source of Truth](../adr/005-frontend-tool-schema-source-of-truth.md)
+
 ## Where to Add New Docs
 
 - Add conceptual docs to `docs/architecture/`.

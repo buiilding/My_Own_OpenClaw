@@ -433,6 +433,9 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Tool Development Guide**](development/tool_development.md) - Creating custom tools
 - [**API Reference**](reference/api_reference.md) - Complete API documentation
 - [**Extension Points**](architecture/extension_points.md) - How to extend the system
+- [**Architecture Decision Records**](adr/README.md) - Durable technical decisions, ADR status, and when to create/update decision records
+- [**ADR 004: Browser Extension Auto-Attach Boundary**](adr/004-browser-extension-auto-attach.md) - Current dedicated browser runtime versus future extension auto-attach behavior
+- [**ADR 005: Frontend Tool Schema Source of Truth**](adr/005-frontend-tool-schema-source-of-truth.md) - Proposed executable-tool manifest direction while preserving backend policy ownership
 - [**Packaging and Release Commands**](cli/packaging_and_release_commands.md) - Packaging, smoke, reinstall, and release guardrail command reference
 
 ### Configuration & Deployment

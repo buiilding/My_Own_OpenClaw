@@ -1,0 +1,69 @@
+---
+summary: "ADR 004 for the WindieOS browser extension auto-attach boundary, keeping current dedicated-browser CDP behavior separate from future extension-mode attachment."
+read_when:
+  - When changing browser launch, attach, dedicated profile, browser extension, or browser session ownership behavior.
+  - When deciding whether browser automation should attach to arbitrary user browser sessions or remain in the WindieOS-owned browser runtime.
+title: "ADR 004: Browser Extension Auto-Attach Boundary"
+---
+
+# ADR 004: Browser Extension Auto-Attach Boundary
+
+## Status
+
+Proposed. Current implementation remains dedicated WindieOS browser control through the sidecar browser runtime and CDP profile ownership.
+
+## Context
+
+WindieOS browser automation currently relies on a WindieOS-owned browser runtime:
+
+- dedicated browser profile
+- sidecar browser controller
+- CDP launch/connect flow
+- browser action schema compatibility handled in backend/sidecar docs
+- explicit browser availability/permission checks
+
+Some future product ideas involve a browser extension that could auto-attach to an existing user browser session. That would change the trust model because the extension would operate inside a user-managed browser profile with ambient cookies, extensions, and tabs.
+
+## Decision
+
+Do not treat extension auto-attach as current browser behavior.
+
+Current behavior:
+
+- keep dedicated WindieOS browser runtime and profile ownership
+- use sidecar-controlled launch/connect paths
+- prefer installed Chrome/Chromium-family browsers before optional Chromium install
+- keep browser action execution in sidecar runtime
+
+Future extension mode, if implemented, must be designed as a separate capability with its own:
+
+- permission and consent model
+- profile/tab selection model
+- extension install/update flow
+- host messaging protocol
+- security review and audit trail
+- tests for accidental attachment to the wrong browser/profile/tab
+
+## Alternatives Considered
+
+| Alternative | Reason not chosen now |
+| --- | --- |
+| auto-attach to any user Chrome profile | too much ambient authority and unclear consent boundary |
+| replace dedicated browser runtime with extension-only control | would remove current predictable CDP/profile behavior |
+| support both without separate mode policy | risk of hidden profile/cookie access and difficult debugging |
+
+## Consequences
+
+- Browser docs should describe dedicated runtime behavior as current.
+- Extension attachment docs must stay in planning/ADR language until code, permissions, and tests exist.
+- Browser troubleshooting should debug sidecar runtime, CDP, profile, and browser availability before extension assumptions.
+
+## Validation And Docs Impact
+
+When extension mode is implemented:
+
+- update [Browser Hub](../browser/README.md)
+- update [Browser Troubleshooting](../browser/browser_troubleshooting.md)
+- update [Security Boundary Matrix](../security/security_boundary_matrix.md)
+- add sidecar/browser extension protocol tests
+- add permission/onboarding docs for extension mode
