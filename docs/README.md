@@ -12,7 +12,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 
 ### Documentation Hubs
 - [**Documentation Hub**](getting-started/docs_hub.md) - Agent-facing routing map for choosing the right subsystem, code roots, docs, and validation path before development
-- [**Concepts Hub**](concepts/README.md) - Runtime model, agent loop, memory/context, and safety-boundary mental models
+- [**Concepts Hub**](concepts/README.md) - Runtime model, sessions, streaming, prompt/tool context, providers, usage, memory, and safety mental models
 - [**Desktop Surfaces**](desktop/README.md) - Dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts
 - [**Debug Hub**](debug/README.md) - Logs, runtime traces, symptom playbooks, and test selection
 - [**Channels Hub**](channels/README.md) - Desktop, websocket, voice, sidecar, SDK, and VM-run communication paths
@@ -48,8 +48,13 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 
 ### Concepts, Tools, Providers
 - [**Runtime Model**](concepts/runtime_model.md) - Hosted backend, Electron main, renderer, preload, and Python sidecar boundaries
+- [**Sessions and Conversations**](concepts/sessions_and_conversations.md) - User/session/conversation identity, transcript replay, backend rehydrate, and conversation-scoped routing
 - [**Agent Loop**](concepts/agent_loop.md) - Query send, backend streaming, tool turns, and completion lifecycle
+- [**Streaming and Events**](concepts/streaming_and_events.md) - Websocket event families, renderer consumers, correlation fields, tool turns, audio side-channel, and stale-turn filtering
 - [**Context and Memory**](concepts/context_and_memory.md) - Transcript, backend history, semantic memory, artifacts, screenshots, and repo instructions
+- [**Prompt and Tool Context**](concepts/prompt_and_tool_context.md) - Prompt inputs, repo instruction forwarding, model-visible tool schemas, provider/capability gates, and transparency events
+- [**Model Provider Selection**](concepts/model_provider_selection.md) - Provider runtime selection, catalog metadata, credential gates, local providers, web-search fallback, and failover boundaries
+- [**Usage and Token Accounting**](concepts/usage_and_token_accounting.md) - Token-count events, provider diagnostics, estimates, cache metrics, dashboard usage, and billing boundaries
 - [**Channels Hub**](channels/README.md) - Entry-channel routing for desktop chat, backend websocket, voice, sidecar tools, SDK, and VM runs
 - [**Channel Routing Matrix**](channels/channel_routing_matrix.md) - Channel-to-transport, owner, code-root, and validation map
 - [**Voice and Audio Channels**](channels/voice_and_audio_channels.md) - Wakeword, voice dictation, transcription websocket, and TTS playback ownership
@@ -456,7 +461,7 @@ See [Contributing Guide](development/contributing.md) for guidelines on improvin
 
 ---
 
-**Last Updated**: February 2026  
+**Last Updated**: February 2026
 **Version**: 1.0.0
 
 ## Recent Updates

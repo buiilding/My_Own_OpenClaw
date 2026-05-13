@@ -1,0 +1,84 @@
+---
+summary: "Conceptual guide to WindieOS websocket streaming events, renderer consumers, tool turns, audio side-channel, and stale-turn filtering."
+read_when:
+  - When changing websocket event names, payloads, formatter behavior, renderer stream handling, audio chunks, or tool-runner event consumption.
+  - When debugging an event that appears on the wire but is ignored, duplicated, stale, or rendered in the wrong conversation.
+title: "Streaming and Events"
+---
+
+# Streaming and Events
+
+WindieOS streaming is the live contract between the hosted backend and renderer surfaces. Backend events are rebroadcast by Electron main on `from-backend`; renderer listeners then decide whether the event updates chat text, tool execution, settings status, audio playback, or transparency panels.
+
+## Main Event Families
+
+| Family | Examples | Primary consumer |
+| --- | --- | --- |
+| assistant stream | `llm-thought`, `streaming-response`, `streaming-complete`, `error` | chat stream hooks and message store |
+| tool turns | `tool-call`, `tool-bundle`, `tool-output` | chat stream, tool runner, transcript writer |
+| transparency | `system-prompt`, `user-message-full`, `assistant-message-full`, `tool-schemas` | message transparency sections |
+| context management | `context-compaction-started`, `context-compaction-completed`, `context-compaction-failed` | chat stream and compaction UI state |
+| memory/status | `memory-store`, `token-count` | side effects, token display, usage diagnostics |
+| config/model status | `models-listed`, `settings-updated` | app config/status providers |
+| audio side-channel | `audio-chunk` | dedicated audio parser/player, not the typed chat event union |
+
+## Event Path
+
+1. Backend agent/services emit typed internal events.
+2. Backend formatter layer maps events to outgoing websocket payloads.
+3. Outgoing schema validation checks payload shape.
+4. Electron main receives backend websocket messages and rebroadcasts them to renderer windows.
+5. Renderer event guards and consumer-specific parsers accept or ignore each event.
+6. Chat stream state updates UI, transcript queues, tool runner state, overlay phase, and token/usage display.
+
+## Correlation Fields
+
+Most query events should carry:
+
+- `id`
+- `turn_ref`
+- `conversation_ref`
+- `session_id`
+- `user_id`
+
+Renderer filtering depends on these fields. Missing or renamed correlation fields can make events appear valid while still being dropped as stale, wrong-conversation, or unowned.
+
+## Tool Event Rule
+
+`tool-call` and `tool-bundle` are both display events and execution requests. The renderer must:
+
+1. render visible tool state,
+2. execute local tools through IPC/sidecar when required,
+3. persist transcript rows,
+4. send `tool-result` or `tool-bundle-result` back to the backend.
+
+Do not make tool events UI-only unless the backend explicitly marks the event as not requiring frontend execution.
+
+## Change Rules
+
+- Add backend event types to backend event constants, formatter dispatch, outgoing schema, renderer guards, and consumer matrices together.
+- Keep `audio-chunk` on its dedicated parser path unless the renderer typed event union is intentionally expanded.
+- Preserve `turn_ref` and `conversation_ref` on events that affect active chat state.
+- Do not change event names just in frontend or backend. The transport vocabulary is a shared contract.
+- When a provider emits native events, normalize them into WindieOS event names before renderer consumption.
+
+## Debug Routing
+
+| Symptom | Start here |
+| --- | --- |
+| event is visible in DevTools but ignored | renderer `backendEvents.ts` guard and consumer matrix |
+| event never reaches renderer | backend formatter/schema path or Electron main websocket rebroadcast |
+| text streams into the wrong chat | `conversation_ref` filtering and transcript session sync |
+| tool call renders but does not execute | renderer tool runner and sidecar bridge |
+| audio text exists but no sound plays | `audio-chunk` side-channel parser and playback queue |
+| token count absent | backend token event emission and renderer token-count consumer |
+
+## Deep Docs
+
+- [Channels Hub](../channels/README.md)
+- [Backend Streaming Events Contracts Hub](../backend/contracts/events/README.md)
+- [Backend Formatter Dispatch and Schema Alignment](../backend/api/processing/formatter_dispatch_and_schema_alignment_reference.md)
+- [Frontend Backend Event Consumer Matrix](../frontend/contracts/backend_event_consumer_matrix_reference.md)
+- [Frontend Stream State Machine](../frontend/runtime/stream_event_state_machine.md)
+- [Frontend Chat Stream and Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md)
+- [Token Count Event and Usage Diagnostics Reference](../backend/runtime/token_count_event_and_usage_diagnostics_reference.md)

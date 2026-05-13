@@ -33,6 +33,11 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Quick Start](quick_start.md) for the local run path.
 - [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) for environment setup.
 - [Concepts Hub](../concepts/README.md) for product/system mental models before implementation details.
+- [Sessions and Conversations](../concepts/sessions_and_conversations.md) for user/session/conversation identity, transcript replay, backend rehydrate, and wrong-thread debugging.
+- [Streaming and Events](../concepts/streaming_and_events.md) for websocket event families, renderer consumers, token-counts, tool events, and audio side-channels.
+- [Prompt and Tool Context](../concepts/prompt_and_tool_context.md) for prompt inputs, repo instructions, tool-schema visibility, and transparency events.
+- [Model Provider Selection](../concepts/model_provider_selection.md) for provider runtime selection, model catalogs, credential gates, and failover boundaries.
+- [Usage and Token Accounting](../concepts/usage_and_token_accounting.md) for token-count events, provider usage diagnostics, cache metrics, and billing boundaries.
 - [Gateway Hub](../gateway/README.md) for hosted backend ingress, app assembly, websocket protocols, auth, health, and route troubleshooting.
 - [Runtime Nodes Hub](../nodes/README.md) for process/service ownership across hosted backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes.
 - [Channels Hub](../channels/README.md) for desktop, websocket, voice, sidecar, SDK, and VM-run communication paths.
@@ -185,6 +190,7 @@ Validate the registration point, policy/visibility, execution path, and docs for
 
 Read:
 
+- [Streaming and Events](../concepts/streaming_and_events.md)
 - [Backend Change Path Playbook](../backend/inventory/domains/backend_change_path_playbook_reference.md)
 - [Backend Message Schema + Formatter Reference](../backend/contracts/message_schema_and_formatter_reference.md)
 - [Frontend IPC and Sidecar Contract Touchpoints](../frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
@@ -381,6 +387,8 @@ Validate backend runs route/service tests and frontend VM worker/runtime-mode te
 
 Read:
 
+- [Model Provider Selection](../concepts/model_provider_selection.md)
+- [Prompt and Tool Context](../concepts/prompt_and_tool_context.md)
 - [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md)
 - [Backend Provider Factory + Runtime Selection Reference](../backend/llm/provider_factory_and_runtime_selection_reference.md)
 - [Backend Prompt Constructor and Transparency Metadata Reference](../backend/llm/prompts/prompt_constructor_and_transparency_metadata_reference.md)
@@ -468,8 +476,13 @@ Use these when a change path is not enough and you need exact file ownership:
 
 - [Concepts Hub](../concepts/README.md)
 - [Runtime Model](../concepts/runtime_model.md)
+- [Sessions and Conversations](../concepts/sessions_and_conversations.md)
 - [Agent Loop](../concepts/agent_loop.md)
+- [Streaming and Events](../concepts/streaming_and_events.md)
 - [Context and Memory](../concepts/context_and_memory.md)
+- [Prompt and Tool Context](../concepts/prompt_and_tool_context.md)
+- [Model Provider Selection](../concepts/model_provider_selection.md)
+- [Usage and Token Accounting](../concepts/usage_and_token_accounting.md)
 - [Safety Boundaries](../concepts/safety_boundaries.md)
 
 ### Channels

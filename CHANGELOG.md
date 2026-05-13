@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(concepts): expand concept coverage for sessions, streaming events, prompt/tool context, model provider selection, and usage/token accounting.
 - docs(nodes): add a runtime nodes hub mapping the hosted backend, Electron main, renderer, preload, Python sidecar, wakeword service, VM worker, and Cloudflare/origin service boundaries.
 - docs(gateway): add a hosted backend gateway hub covering FastAPI route assembly, websocket and REST protocol families, install auth, health checks, and hosted troubleshooting.
 - docs(desktop-sdk): add OpenClaw-style desktop surface and SDK hubs covering dashboard, chat pill, response overlay, permissions, voice, artifacts, hosted clients, query traces, OCR/vision, and tool authoring.
