@@ -11,6 +11,7 @@ title: "Frontend Runtime Docs Hub"
 ## Deep Pages
 
 - [Frontend Runtime Invariants and PR Checklist](frontend_runtime_invariants_checklist.md)
+- [Renderer State Change Workflow](../renderer/renderer_state_change_workflow.md)
 - [Tool Execution and Streaming](tool_execution_and_streaming.md)
 - [Stream Event State Machine](stream_event_state_machine.md)
 - [Frontend Runtime Surface: Main, Renderer, Sidecar, and VM Worker](frontend_runtime_surface_main_renderer_sidecar_and_vm_worker_reference.md)

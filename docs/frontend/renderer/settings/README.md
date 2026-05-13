@@ -11,6 +11,7 @@ title: "Frontend Renderer Settings Docs Hub"
 ## Deep Pages
 
 - [Renderer Settings Sections Docs Hub](sections/README.md)
+- [Renderer State Change Workflow](../renderer_state_change_workflow.md)
 - [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
 - [Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference](../permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
 - [Renderer Settings Config Docs Hub](config/README.md)

@@ -11,6 +11,7 @@ title: "Frontend Renderer Chat Docs Hub"
 ## Deep Pages
 
 - [Message Send Surface Policy and Screenshot Capture Reference](message_send_surface_policy_and_screenshot_capture_reference.md)
+- [Renderer State Change Workflow](../renderer_state_change_workflow.md)
 - [Chat Interface Header Controls, Model Selection, and Compaction Rehydrate Reference](chat_interface_header_controls_model_selection_and_compaction_rehydrate_reference.md)
 - [Chat Store State and New Session Rotation Reference](chat_store_state_and_new_session_rotation_reference.md)
 - [Chat Loop UI State Disconnect Recovery and Surface Projection Reference](loop_ui_state_disconnect_recovery_and_surface_projection_reference.md)

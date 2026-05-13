@@ -11,6 +11,7 @@ title: "Renderer Dashboard Docs Hub"
 ## Deep Pages
 
 - [Dashboard Shell Docs Hub](shell/README.md)
+- [Renderer State Change Workflow](../renderer_state_change_workflow.md)
 - [Dashboard Conversation Hook Search, Polling, and Group Bucket Contract Reference](shell/dashboard_conversation_hook_search_polling_and_group_bucket_contract_reference.md)
 - [Dashboard Recent Conversation Loader, Retry, and Title-Visibility Poll Runtime Reference](shell/dashboard_recent_conversation_loader_retry_and_title_visibility_poll_runtime_reference.md)
 - [Dashboard Sections Docs Hub](sections/README.md)
