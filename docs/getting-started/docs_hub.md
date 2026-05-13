@@ -375,6 +375,7 @@ Validate focused frontend tests. Purely visual changes can skip new tests when t
 
 Read:
 
+- [Overlay Phase and Surface Change Workflow](../frontend/runtime/overlay_phase_and_surface_change_workflow.md)
 - [Frontend Main Overlay Focus Docs Hub](../frontend/main/overlays/README.md)
 - [Frontend Overlay Query-Capture Blur + Settle](../frontend/main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
 - [Frontend Response Overlay Phase and Tool-Ghost Runtime Reference](../frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
@@ -385,6 +386,8 @@ Likely code:
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/overlay_*`
 - `frontend/src/main/response_overlay_phase_handler.cjs`
+- `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`
+- `frontend/src/main/platform/screenshot_window_visibility/**`
 - `frontend/src/renderer/app/ChatBox*.jsx`
 - `frontend/src/renderer/features/chat/**`
 - `frontend/src/renderer/features/overlays/**`

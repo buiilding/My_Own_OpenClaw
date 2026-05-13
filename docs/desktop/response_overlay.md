@@ -41,6 +41,7 @@ Tool ghost previews visualize target/action intent during local computer-use flo
 
 ## Deep Docs
 
+- [Overlay Phase and Surface Change Workflow](../frontend/runtime/overlay_phase_and_surface_change_workflow.md)
 - [Frontend Response Overlay Phase and Tool-Ghost Runtime Reference](../frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
 - [Frontend Overlay + Wakeword Control Channel Reference](../frontend/contracts/overlay_and_wakeword_control_channel_reference.md)
 - [Frontend Runtime Invariants and PR Checklist](../frontend/runtime/frontend_runtime_invariants_checklist.md)

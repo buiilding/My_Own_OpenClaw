@@ -75,6 +75,7 @@ Use focused tests when changing capture or overlay policy:
 
 ## Related Docs
 
+- [Overlay Phase and Surface Change Workflow](../frontend/runtime/overlay_phase_and_surface_change_workflow.md)
 - [Frontend Runtime Invariants and PR Checklist](../frontend/runtime/frontend_runtime_invariants_checklist.md)
 - [Minimal Chat Pill](../desktop/minimal_chat_pill.md)
 - [Response Overlay](../desktop/response_overlay.md)
