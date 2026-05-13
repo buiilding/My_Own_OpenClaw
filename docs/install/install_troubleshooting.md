@@ -1,0 +1,105 @@
+---
+summary: "Install troubleshooting guide for WindieOS source setup, package builds, sidecar runtime, endpoint routing, permissions, signing, and platform-specific install failures."
+read_when:
+  - When source setup, npm install/build, Electron launch, sidecar startup, packaged reinstall, endpoint routing, or platform package install fails.
+  - When deciding whether an install failure belongs to backend dependencies, frontend Node tooling, Electron main, sidecar runtime packaging, OS permissions, or release signing.
+title: "Install Troubleshooting"
+---
+
+# Install Troubleshooting
+
+First classify the failure by runtime boundary. Many install failures look like app bugs, but the first broken layer is often dependency setup, endpoint selection, bundled sidecar path resolution, or platform package state.
+
+## Symptom Map
+
+| Symptom | Likely owner | First checks |
+| --- | --- | --- |
+| backend command cannot import modules | backend Python environment | run through `./scripts/python-in-env backend`; verify `backend/requirements.txt` install |
+| frontend command cannot find packages | Node install | `cd frontend && npm install`; inspect `frontend/package.json` scripts |
+| Electron dev launches but cannot connect | endpoint selection or backend health | `BACKEND_HTTP_URL`, `BACKEND_WS_URL`, backend health route |
+| renderer loads but sidecar tools fail | Electron main sidecar bridge | sidecar readiness logs, `frontend/src/main/local_backend_bridge.cjs`, `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` |
+| packaged app cannot start sidecar | bundled runtime path or missing runtime deps | inspect `resources/python-runtime`, `frontend/src/main/runtime_paths.cjs`, packaged run log |
+| local macOS reinstall waits on signing | wrong workflow for local loop | use reinstall helper; confirm release signing env is not driving local packaging |
+| Windows packaging fails extracting helpers | symlink/developer-mode issue | enable Developer Mode or run elevated shell; use Windows reinstall helper preflight |
+| Linux package installs but browser tools fail | missing OS dependency or AppImage gap | install `xdotool` for AppImage users; prefer DEB/RPM dependency metadata |
+| app connects to hosted when local expected | endpoint env missing | set `BACKEND_HTTP_URL` and `BACKEND_WS_URL` explicitly |
+| hosted route returns `502` | Cloudflare/origin service | check backend and cloudflared user services |
+| hosted route returns `401` | install auth or runs key | verify token/key and target host |
+
+## Fast Checks
+
+Backend:
+
+```bash
+./scripts/python-in-env backend python -m backend.src.main
+curl -fsSL http://127.0.0.1:8765/api/embeddings/health
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+npm run build
+npm run electron:dev
+```
+
+Sidecar:
+
+```bash
+./scripts/test-sidecar
+cd frontend
+WINDIE_SIDECAR_LOG_LEVEL=DEBUG npm run electron:dev
+```
+
+Packaging:
+
+```bash
+cd frontend
+npm run build:sidecar-runtime
+npm run package
+```
+
+Docs:
+
+```bash
+./bin/docs-list
+```
+
+## When Source Works But Packaged Fails
+
+Check packaged-only contracts:
+
+- packaged sidecar uses `resources/python-runtime`
+- packaged app does not depend on conda or system Python
+- `PYTHONHOME` and `PYTHONPATH` are controlled for POSIX bundled runtimes
+- sidecar plaintext Python sources are removed before packaging
+- wakeword model must be prefetched unless `WINDIE_REQUIRE_WAKEWORD_PREFETCH=0`
+- browser automation uses system Chrome/Chromium first and does not prebundle Playwright Chromium
+- macOS packaged runtime Mach-O files must be signed in the release path
+
+## When Packaged Works But Dev Fails
+
+Check source-only assumptions:
+
+- current shell may not have the expected Python packages unless routed through `./scripts/python-in-env`
+- Vite dev server and Electron dev app are separate commands
+- local backend mode needs explicit endpoint overrides
+- development may use the hosted backend by default
+- renderer localStorage or Electron user data may still hold previous settings
+
+## Escalation Route
+
+1. Use [Install Decision Matrix](install_decision_matrix.md) to confirm the intended path.
+2. Use [Backend Endpoint Setup](local_backend_and_endpoint_setup.md) when the failure is connection/auth/tunnel related.
+3. Use [Uninstall, Reinstall, and Reset](uninstall_reinstall_reset.md) when installed app state may be stale.
+4. Use [Diagnostic Flags](../debug/diagnostic_flags.md) for the smallest useful log signal.
+5. Use [Process Health Checklist](../debug/process_health_checklist.md) if a runtime looks dead or disconnected.
+
+## Related Docs
+
+- [Local Development](local_development.md)
+- [Packaged Desktop Builds](packaged_desktop.md)
+- [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
+- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
+- [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md)

@@ -27,7 +27,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Tools Hub**](tools/README.md) - Tool contracts, computer tools, browser automation, filesystem, and shell execution
 - [**Providers Hub**](providers/README.md) - LLM providers, model catalog, credentials, inference providers, STT, and TTS
 - [**SDK Hub**](sdk/README.md) - Hosted backend clients, query planning, OCR/vision SDK routes, and tool authoring
-- [**Install Hub**](install/README.md) - Local development, packaging, sidecar runtime bundling, and reinstall helpers
+- [**Install Hub**](install/README.md) - Local development, packaging, endpoint setup, sidecar runtime bundling, reinstall/reset loops, and install troubleshooting
 - [**Operations Hub**](operations/README.md) - Runtime configuration, hosted auth, deployment, packaging, release, security, and troubleshooting runbooks
 - [**Commands and Scripts**](cli/README.md) - Current developer commands, package scripts, cloudflared helpers, and planned CLI boundary
 - [**Command Matrix**](cli/command_matrix.md) - Repo scripts, frontend package scripts, docs tooling, commit helper, and Cloudflare helpers
@@ -48,8 +48,12 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Overview**](getting-started/overview.md) - Project overview, vision, and key capabilities
 - [**Quick Start Guide**](getting-started/quick_start.md) - Get up and running quickly
 - [**Installation Guide**](getting-started/installation.md) - Detailed installation instructions
+- [**Install Decision Matrix**](install/install_decision_matrix.md) - Choose source, packaged, reinstall, endpoint, or release validation paths by change type
 - [**Local Development**](install/local_development.md) - Source setup, run commands, tests, and environment launcher usage
 - [**Packaged Desktop Builds**](install/packaged_desktop.md) - Electron Builder targets and bundled sidecar runtime packaging
+- [**Backend Endpoint Setup**](install/local_backend_and_endpoint_setup.md) - Hosted, local, packaged-default, and self-host backend endpoint setup
+- [**Uninstall, Reinstall, and Reset**](install/uninstall_reinstall_reset.md) - OS-specific packaged app reinstall helpers and reset scope
+- [**Install Troubleshooting**](install/install_troubleshooting.md) - Source setup, package build, sidecar runtime, endpoint, permission, and signing failure routes
 - [**Packaging and Reinstall Runbooks**](operations/packaging_and_reinstall_runbooks.md) - OS-specific packaged-app reinstall and smoke-check workflows
 - [**Commands and Scripts**](cli/README.md) - Repo scripts and frontend package commands
 - [**Command Matrix**](cli/command_matrix.md) - Detailed command lookup for current scripts and package commands

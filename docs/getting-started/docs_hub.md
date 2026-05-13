@@ -53,7 +53,11 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Tools Hub](../tools/README.md) for model-facing and sidecar-executable tools.
 - [Providers Hub](../providers/README.md) for LLM, inference, credential, STT, TTS, and web-search providers.
 - [SDK Hub](../sdk/README.md) for hosted backend clients, query planning, OCR/vision, and tool authoring.
-- [Install Hub](../install/README.md) for local development and packaged desktop builds.
+- [Install Hub](../install/README.md) for local development, packaged desktop builds, endpoint setup, reinstall/reset loops, and install troubleshooting.
+- [Install Decision Matrix](../install/install_decision_matrix.md) for choosing the correct source, packaged, endpoint, reinstall, or release-validation path.
+- [Backend Endpoint Setup](../install/local_backend_and_endpoint_setup.md) for hosted, local, packaged-default, and self-host backend routing.
+- [Uninstall, Reinstall, and Reset](../install/uninstall_reinstall_reset.md) for OS-specific local packaged reinstall helpers and reset scope.
+- [Install Troubleshooting](../install/install_troubleshooting.md) for install failures across dependencies, sidecar runtime, endpoint routing, permissions, and signing.
 - [Operations Hub](../operations/README.md) for runtime config, hosted auth, packaging, release, deployment, and operational troubleshooting.
 - [Commands and Scripts](../cli/README.md) for current repo/script entrypoints and planned CLI boundaries.
 - [Command Matrix](../cli/command_matrix.md) for repo-root scripts, frontend package scripts, docs tooling, commit helper, and Cloudflare helpers.
@@ -442,6 +446,10 @@ Read:
 - [Multi-User Runtime Hardening](../operations/multi_user_runtime_hardening.md)
 - [Sidecar Runtime Packaging](../operations/sidecar_runtime_packaging.md)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)
+- [Install Decision Matrix](../install/install_decision_matrix.md)
+- [Backend Endpoint Setup](../install/local_backend_and_endpoint_setup.md)
+- [Uninstall, Reinstall, and Reset](../install/uninstall_reinstall_reset.md)
+- [Install Troubleshooting](../install/install_troubleshooting.md)
 - [Operational Troubleshooting](../operations/operational_troubleshooting.md)
 
 Likely code:
@@ -607,8 +615,12 @@ Use these when a change path is not enough and you need exact file ownership:
 ### Install
 
 - [Install Hub](../install/README.md)
+- [Install Decision Matrix](../install/install_decision_matrix.md)
 - [Local Development](../install/local_development.md)
 - [Packaged Desktop Builds](../install/packaged_desktop.md)
+- [Backend Endpoint Setup](../install/local_backend_and_endpoint_setup.md)
+- [Uninstall, Reinstall, and Reset](../install/uninstall_reinstall_reset.md)
+- [Install Troubleshooting](../install/install_troubleshooting.md)
 
 ### Commands
 

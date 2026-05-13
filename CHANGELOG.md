@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(install): expand install coverage with decision, endpoint, reinstall/reset, and troubleshooting guides.
 - docs(debug): add diagnostic flag, endpoint/network, and process-health lookup guides for faster runtime triage.
 - docs(cli): expand command docs with script, validation, packaging, release, docs-tooling, and commit-helper matrices.
 - docs(reference): add a reference hub for stable API, event, configuration, and session/transcript lookup surfaces.

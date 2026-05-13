@@ -1,0 +1,65 @@
+---
+summary: "Install-path decision matrix for WindieOS source development, packaged desktop builds, local reinstall loops, hosted endpoint overrides, and release validation."
+read_when:
+  - When deciding whether a task needs source setup, packaged install, local reinstall, self-host endpoint configuration, or release packaging validation.
+  - When changing install docs, packaging scripts, endpoint defaults, or developer setup assumptions.
+title: "Install Decision Matrix"
+---
+
+# Install Decision Matrix
+
+Choose the install path from the runtime you need to validate. Source-mode checks are good for code iteration, but packaged checks are required when the change touches bundled Python, Electron Builder output, signing, installed app paths, or OS-level permissions.
+
+## Path Selector
+
+| Goal | Use | Commands | Validates | Does not validate |
+| --- | --- | --- | --- | --- |
+| edit backend agent/provider/API behavior | source development | `./scripts/python-in-env backend python -m backend.src.main` | backend import, startup, routes, provider config | Electron packaging, bundled sidecar runtime |
+| edit renderer/main/sidecar behavior quickly | Electron dev app | `cd frontend && npm run electron:dev` | Vite renderer, Electron main, sidecar process, websocket relay | installed app state, signing, packaged resource paths |
+| verify pure renderer UI build | frontend dev/build | `cd frontend && npm run dev`; `cd frontend && npm run build` | renderer compile/runtime in browser-like dev mode | Electron main, sidecar, packaged app |
+| verify bundled sidecar Python | sidecar runtime build | `cd frontend && npm run build:sidecar-runtime` | dependency install, bytecode packaging, runtime archive | installer behavior, OS install paths |
+| verify installed desktop app locally | local reinstall helper | `scripts/reinstall-windieos-*` | installed app launch, local state reset, bundled runtime, sidecar startup | release signing/notarization, production publishing |
+| verify release artifacts | release workflow and smoke helpers | `.github/workflows/desktop-release.yml`; `scripts/ci/smoke-*` | target-OS package creation, smoke install, release artifact behavior | manual Gatekeeper validation on downloaded macOS apps |
+| route app to a non-default backend | endpoint override | `BACKEND_HTTP_URL`, `BACKEND_WS_URL` | desktop/sidecar traffic reaches intended backend | backend service health by itself |
+
+## Runtime Boundary
+
+| Install concern | Owner | First files |
+| --- | --- | --- |
+| backend dependencies and config | backend Python runtime | `backend/requirements.txt`, `backend/src/core/config` |
+| frontend dependencies and package scripts | frontend Node runtime | `frontend/package.json`, `frontend/vite.config.*`, `frontend/electron-builder.bundled-python.yml` |
+| sidecar runtime dependencies | bundled Python builder | `scripts/build-sidecar-runtime`, `frontend/src/main/python/requirements.runtime.txt` |
+| sidecar launch path | Electron main | `frontend/src/main/runtime_paths.cjs`, `frontend/src/main/local_backend_bridge.cjs` |
+| wakeword launch path | Electron main plus sidecar Python | `frontend/src/main/wakeword_bridge.cjs`, `frontend/src/main/python/wakeword_service.py` |
+| endpoint selection | Electron main | `frontend/src/main/backend_endpoints.cjs` |
+| packaged app state reset | reinstall helpers | `scripts/reinstall-windieos-macos.sh`, `scripts/reinstall-windieos-windows.ps1`, `scripts/reinstall-windieos-linux.sh` |
+| release signing/notarization | CI release workflow | `.github/workflows/desktop-release.yml` |
+
+## Required Validation By Change Type
+
+| Change type | Minimum validation |
+| --- | --- |
+| backend-only API/provider/agent change | `./scripts/test-backend` plus route/provider-specific checks |
+| sidecar tool or local memory change | `./scripts/test-sidecar`; Electron dev smoke if bridge payloads changed |
+| renderer-only UI change | `cd frontend && npm run test`; add `npm run lint` for shared code |
+| Electron main IPC or endpoint change | focused frontend tests plus Electron dev smoke |
+| bundled sidecar dependency change | `cd frontend && npm run build:sidecar-runtime`; package on target OS when feasible |
+| local reinstall helper change | run the matching OS helper, then inspect packaged run logs |
+| release workflow/signing change | target release workflow or dry-run equivalent; do not publish without approval |
+
+## Rules
+
+- Do not manually activate conda environments for repo commands. Use `./scripts/python-in-env`.
+- Build each packaged Python runtime on its target OS.
+- Do not treat source Electron success as packaged success when `resources/python-runtime` or installed paths are involved.
+- Do not treat local macOS reinstall as notarization validation. The helper intentionally strips signing/notarization variables for fast local loops.
+- Do not commit real backend endpoint credentials, install tokens, signing secrets, or user-specific app data.
+
+## Related Docs
+
+- [Local Development](local_development.md)
+- [Packaged Desktop Builds](packaged_desktop.md)
+- [Endpoint Setup](local_backend_and_endpoint_setup.md)
+- [Uninstall, Reinstall, and Reset](uninstall_reinstall_reset.md)
+- [Install Troubleshooting](install_troubleshooting.md)
+- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)

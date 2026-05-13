@@ -10,6 +10,8 @@ title: "Local Development"
 
 Use the repository scripts instead of manually activating conda environments. `./scripts/python-in-env` selects the expected environment when it exists and falls back to the current shell environment otherwise.
 
+Use [Install Decision Matrix](install_decision_matrix.md) first when you are not sure whether source mode is sufficient. Source mode is the right loop for backend/frontend/sidecar implementation, but not for bundled runtime, installed app path, signing, or OS permission validation.
+
 ## Prerequisites
 
 - Python 3.11
@@ -33,6 +35,15 @@ cd frontend && npm run dev
 cd frontend && npm run electron:dev
 ```
 
+To force Electron dev to use the local backend:
+
+```bash
+cd frontend
+BACKEND_HTTP_URL=http://127.0.0.1:8765 \
+BACKEND_WS_URL=ws://127.0.0.1:8765/ws \
+npm run electron:dev
+```
+
 Convenience scripts also exist:
 
 - `scripts/run-backend`
@@ -52,3 +63,9 @@ cd frontend && npm run lint
 ## Docs
 
 Run `./bin/docs-list` from the repo root before implementation work. If `bin/docs-list` is missing, use `node scripts/docs-list.js`.
+
+## Related Docs
+
+- [Backend Endpoint Setup](local_backend_and_endpoint_setup.md)
+- [Install Troubleshooting](install_troubleshooting.md)
+- [Validation Commands](../cli/validation_commands.md)
