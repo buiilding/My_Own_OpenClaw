@@ -10,13 +10,24 @@ title: "Frontend Contracts IPC Docs Hub"
 
 ## Deep Pages
 
+- [IPC Change Workflow](../../ipc_change_workflow.md)
 - [Preload Allowlist and Channel-Constant Parity Reference](preload_allowlist_and_channel_constant_parity_reference.md)
 - [Main-Process IPC Handler Ownership and RPC Mapper Reference](main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)
 - [IPC Bridge Docs Hub](bridge/README.md)
 - [Renderer IPC Bridge Runtime Validation and Window IPC Guard Reference](bridge/renderer_ipc_bridge_runtime_validation_and_window_ipc_guard_reference.md)
 
+## Start Here By Task
+
+| Task | Start doc |
+| --- | --- |
+| Add, rename, remove, or repurpose an Electron IPC channel | [IPC Change Workflow](../../ipc_change_workflow.md) |
+| Debug invalid invoke/send/on drift | [Preload Allowlist and Channel-Constant Parity Reference](preload_allowlist_and_channel_constant_parity_reference.md) |
+| Find the main-process owner for a channel | [Main-Process IPC Handler Ownership and RPC Mapper Reference](main_process_ipc_handler_ownership_and_rpc_mapper_reference.md) |
+| Debug renderer-side validation or missing `window.ipc` | [IPC Bridge Docs Hub](bridge/README.md) |
+
 ## Code Scope
 
+- `frontend/src/shared/ipcChannels.json`
 - `frontend/src/preload.js`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`

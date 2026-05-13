@@ -62,6 +62,26 @@ Likely code:
 
 Validate renderer send-path tests, main-process IPC tests, and backend query contract tests when payloads change.
 
+### Change an Electron IPC Channel
+
+Read:
+
+- [IPC Change Workflow](../frontend/ipc_change_workflow.md)
+- [Frontend Contracts IPC Docs Hub](../frontend/contracts/ipc/README.md)
+- [Preload Allowlist and Channel-Constant Parity Reference](../frontend/contracts/ipc/preload_allowlist_and_channel_constant_parity_reference.md)
+- [Main-Process IPC Handler Ownership and RPC Mapper Reference](../frontend/contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)
+
+Likely code:
+
+- `frontend/src/shared/ipcChannels.json`
+- `frontend/src/preload.js`
+- `frontend/src/renderer/infrastructure/ipc`
+- `frontend/src/main/ipc.cjs`
+- owning `frontend/src/main/*_ipc_runtime.cjs` or `frontend/src/main/ipc/*.cjs` helper
+- `frontend/src/main/local_backend_bridge*.cjs` when the channel reaches the Python sidecar
+
+Validate preload/registry parity, the owning main-process handler, and the renderer consumer or sidecar mapper. Do not add generic renderer IPC access to bypass the preload allowlist.
+
 ### Add a Voice or Audio Feature
 
 Read:
