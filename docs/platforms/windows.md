@@ -23,8 +23,14 @@ Windows behavior is mostly implemented through Electron main window policy, side
 - Content protection should be active only during active loop phases and off during idle/terminal phases.
 - PowerShell should not invoke `./scripts/committer` directly; use Git Bash or plain `git add`/`git commit`.
 - Keep Windows package checks separate from Linux/macOS package assumptions.
+- Treat Developer Mode, PowerShell execution policy, and NSIS install behavior as packaging concerns before changing app runtime code.
+- Host-window switching belongs in the sidecar Win32 adapter; WindieOS overlay policy belongs in Electron main.
 
 ## Related Docs
 
 - [Packaged Desktop Builds](../install/packaged_desktop.md)
+- [Platform Permission Matrix](permission_matrix.md)
+- [Screenshot and Overlay Policy](screenshot_overlay_policy.md)
+- [Window and Input Matrix](window_input_matrix.md)
+- [Packaging Runtime Matrix](packaging_runtime_matrix.md)
 - [Frontend Runtime Invariants and PR Checklist](../frontend/runtime/frontend_runtime_invariants_checklist.md)

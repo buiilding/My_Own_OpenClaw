@@ -1,0 +1,58 @@
+---
+summary: "Cross-platform window and input-control matrix for WindieOS active-window detection, window switching, overlay policy, and local input automation dependencies."
+read_when:
+  - When changing active-window detection, window switching, input control, overlay topmost policy, or local computer-use behavior.
+  - When debugging platform-specific failures in window listing, active-window context, focus, keyboard/mouse control, or overlay layering.
+title: "Window and Input Matrix"
+---
+
+# Window and Input Matrix
+
+Window and input behavior spans Electron main and the Python sidecar. Electron owns WindieOS windows and overlay policy. The sidecar owns host-window discovery and local input/tool execution.
+
+## Owner Map
+
+| Concern | Owner files |
+| --- | --- |
+| WindieOS BrowserWindow policy | `frontend/src/main/window_platform_policy.cjs`, `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/overlay_*` |
+| overlay topmost/all-workspaces behavior | `frontend/src/main/overlay_topmost_runtime.cjs`, `frontend/src/main/surface_window_options_runtime.cjs` |
+| active-window context label | `frontend/src/main/context_label_overlay_and_active_window_runtime_reference.md`, `frontend/src/main/window_visibility_runtime.cjs` |
+| sidecar platform abstraction | `frontend/src/main/python/core/platform/__init__.py`, `base.py` |
+| macOS window management | `frontend/src/main/python/core/platform/macos.py` |
+| Windows window management | `frontend/src/main/python/core/platform/windows.py` |
+| Linux window management | `frontend/src/main/python/core/platform/linux.py` |
+| input-control permission | `frontend/src/main/permission_service_input_control.cjs` |
+| computer tools | `frontend/src/main/python/tools/computer`, `docs/tools/computer.md` |
+
+## Platform Dependencies
+
+| Platform | Window listing/switching | Input-control probe | Common failure |
+| --- | --- | --- | --- |
+| macOS | AppKit, ApplicationServices Accessibility APIs, Quartz | Accessibility trust through `systemPreferences.isTrustedAccessibilityClient` | Accessibility not granted; AppKit/ApplicationServices unavailable in packaged runtime |
+| Windows | Win32 `user32` APIs through `ctypes` | PowerShell/.NET cursor probe | foreground-window wait fails or PowerShell blocked |
+| Linux | `xdotool` for visible windows and active window name | GNOME accessibility, X11 with `xdotool`, or `ydotool` | Wayland/X11 differences, missing `xdotool`, ambiguous window title match |
+
+## Routing Rules
+
+- Keep WindieOS-owned window visibility, focusability, content protection, and all-workspaces policy in Electron main.
+- Keep host-application window discovery and switching in sidecar platform adapters.
+- Renderer should consume normalized active-window/context state.
+- Do not add OS-specific subprocess calls in React components.
+- Do not make a sidecar platform adapter depend on backend code.
+
+## Debug Checklist
+
+1. Confirm the failing operation is WindieOS window policy or host-window control.
+2. For WindieOS windows, inspect Electron main logs and platform policy modules.
+3. For host-window discovery, run the sidecar platform tests or a focused sidecar shell probe.
+4. On Linux, verify `xdotool` or `ydotool` availability before editing fuzzy match logic.
+5. On macOS, verify Accessibility and System Events permissions before editing AppKit code.
+6. On Windows, verify the PowerShell probe and foreground-window wait behavior before changing sidecar switching logic.
+
+## Related Docs
+
+- [Computer Tools](../tools/computer.md)
+- [Platform Permission Matrix](permission_matrix.md)
+- [Screenshot and Overlay Policy](screenshot_overlay_policy.md)
+- [Desktop and Sidecar Node](../nodes/desktop_and_sidecar_node.md)
+- [Python Sidecar](../architecture/python_sidecar.md)

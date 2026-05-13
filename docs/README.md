@@ -33,7 +33,11 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Command Matrix**](cli/command_matrix.md) - Repo scripts, frontend package scripts, docs tooling, commit helper, and Cloudflare helpers
 - [**Validation Commands**](cli/validation_commands.md) - Focused docs, backend, sidecar, frontend, lint, typecheck, packaging, and config validation commands
 - [**Packaging and Release Commands**](cli/packaging_and_release_commands.md) - Sidecar runtime build, Electron package, smoke, reinstall, and release guardrail commands
-- [**Platforms Hub**](platforms/README.md) - macOS, Windows, and Linux platform-specific behavior
+- [**Platforms Hub**](platforms/README.md) - macOS, Windows, and Linux permission, screenshot/overlay, window/input, packaging, and runtime behavior
+- [**Platform Permission Matrix**](platforms/permission_matrix.md) - Cross-platform permission probes, onboarding visibility, and grant routing
+- [**Screenshot and Overlay Policy**](platforms/screenshot_overlay_policy.md) - OS-specific capture, overlay hide/restore, and content-protection policy
+- [**Window and Input Matrix**](platforms/window_input_matrix.md) - Window discovery, active-window, input control, and sidecar platform dependencies
+- [**Packaging Runtime Matrix**](platforms/packaging_runtime_matrix.md) - Platform package targets, bundled runtime rules, local reinstall helpers, and smoke checks
 - [**Help Hub**](help/README.md) - Diagnostics and troubleshooting routes by runtime boundary
 - [**Web Surfaces**](web/README.md) - Landing page, hosted backend APIs, SDK routes, artifacts, and websocket surfaces
 - [**Reference Hub**](reference/README.md) - Stable API, websocket event, configuration, session/transcript, and docs-organization lookup maps

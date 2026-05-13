@@ -25,8 +25,14 @@ Linux is the only platform where WindieOS should hide overlay surfaces for scree
 - Use the hide-only collapse path for minimal pill screenshot timing; do not pre-hide with a show path.
 - Keep the awaiting indicator latched through transient `idle` until streaming, completion, error, or visible response content clears it.
 - Keep sudo grant/revoke behavior explicit and non-interactive disable behavior documented.
+- Verify `xdotool` or `ydotool` availability before editing window-switching or input-control behavior.
+- Treat AppImage dependency gaps separately from DEB/RPM package dependency metadata.
 
 ## Related Docs
 
 - [Frontend Linux Screenshot Window Hide and Restore Guard Reference](../frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
+- [Platform Permission Matrix](permission_matrix.md)
+- [Screenshot and Overlay Policy](screenshot_overlay_policy.md)
+- [Window and Input Matrix](window_input_matrix.md)
+- [Packaging Runtime Matrix](packaging_runtime_matrix.md)
 - [Packaged Desktop Builds](../install/packaged_desktop.md)

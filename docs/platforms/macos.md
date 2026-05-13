@@ -23,9 +23,15 @@ macOS behavior is shaped by TCC permissions, Screen Recording registration, micr
 - Content protection should be enabled only during active loop phases and disabled in idle/terminal phases.
 - Local reinstall loops should skip Apple notarization.
 - Permission UI should probe real OS capability instead of treating settings navigation as success.
+- Accessibility and System Events automation failures are permission failures until proven otherwise.
+- Packaged runtime checks must include sidecar startup, microphone/screen prompt behavior, and installed-app path behavior.
 
 ## Related Docs
 
 - [Permission Onboarding Gate](../frontend/renderer/permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
 - [Frontend Overlay Query-Capture Blur + Settle](../frontend/main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
+- [Platform Permission Matrix](permission_matrix.md)
+- [Screenshot and Overlay Policy](screenshot_overlay_policy.md)
+- [Window and Input Matrix](window_input_matrix.md)
+- [Packaging Runtime Matrix](packaging_runtime_matrix.md)
 - [Packaged Desktop Builds](../install/packaged_desktop.md)

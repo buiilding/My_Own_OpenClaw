@@ -63,7 +63,11 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Command Matrix](../cli/command_matrix.md) for repo-root scripts, frontend package scripts, docs tooling, commit helper, and Cloudflare helpers.
 - [Validation Commands](../cli/validation_commands.md) for choosing focused checks by changed boundary.
 - [Packaging and Release Commands](../cli/packaging_and_release_commands.md) for sidecar runtime builds, Electron package commands, smoke helpers, and reinstall loops.
-- [Platforms Hub](../platforms/README.md) for macOS, Windows, and Linux behavior.
+- [Platforms Hub](../platforms/README.md) for macOS, Windows, and Linux permission, screenshot/overlay, window/input, packaging, and runtime behavior.
+- [Platform Permission Matrix](../platforms/permission_matrix.md) for platform-specific permission probes, onboarding visibility, and grant routing.
+- [Screenshot and Overlay Policy](../platforms/screenshot_overlay_policy.md) for capture-time hide/restore and content-protection rules.
+- [Window and Input Matrix](../platforms/window_input_matrix.md) for active-window, window-switching, and local input-control ownership.
+- [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md) for target OS package commands, bundled runtime rules, and smoke checks.
 - [Help Hub](../help/README.md) for diagnostics and troubleshooting.
 - [Reference Hub](../reference/README.md) for stable API, websocket event, configuration, and session/transcript lookup maps.
 - [System Architecture](../architecture/architecture.md) for the high-level runtime model.
@@ -635,6 +639,10 @@ Use these when a change path is not enough and you need exact file ownership:
 - [macOS](../platforms/macos.md)
 - [Windows](../platforms/windows.md)
 - [Linux](../platforms/linux.md)
+- [Platform Permission Matrix](../platforms/permission_matrix.md)
+- [Screenshot and Overlay Policy](../platforms/screenshot_overlay_policy.md)
+- [Window and Input Matrix](../platforms/window_input_matrix.md)
+- [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md)
 
 ### Help
 
