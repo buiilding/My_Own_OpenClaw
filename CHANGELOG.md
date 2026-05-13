@@ -11,6 +11,7 @@ All notable changes to WindieOS will be documented in this file.
 - docs(providers): add provider-specific OpenAI, Anthropic, Gemini, OpenRouter, Kimi Coding, Mistral, and local-provider guides with code ownership and focused validation maps.
 - docs(channels): add channel-routing docs for desktop chat, websocket transport, voice/audio, sidecar tools, SDK clients, and VM run control.
 - docs(security): add a top-level security hub with trust-boundary ownership, failure signals, and change playbooks for auth, IPC, validation, credentials, permissions, and tool execution.
+- docs(plugins): add a plugins/extensions hub that maps current tool, provider, SDK, sidecar, browser, and renderer extension points while marking marketplace plugins as future work.
 - docs(browser): add a dedicated browser automation hub covering profile isolation, CDP launch, action dispatch, session controls, file storage, and troubleshooting.
 - docs(memory): add a memory hub covering transcript persistence, replay, sidecar local memory, backend history, semantic routes, and troubleshooting.
 - docs(automation): add a VM run orchestration hub covering `/api/runs/*`, worker heartbeats, dispatch, event relay, controls, and future scheduler boundaries.

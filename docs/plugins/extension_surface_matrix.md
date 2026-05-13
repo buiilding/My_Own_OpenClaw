@@ -1,0 +1,54 @@
+---
+summary: "Matrix of current WindieOS extension surfaces with owner files, registration points, docs, and validation targets."
+read_when:
+  - When adding or modifying a tool, provider, inference adapter, SDK route, sidecar action, browser integration, or renderer feature.
+  - When deciding which current extension point should satisfy a plugin-like request.
+title: "Extension Surface Matrix"
+---
+
+# Extension Surface Matrix
+
+WindieOS extensibility is code-owned, not plugin-manifest-owned. Use this matrix to find the current registration point and validation path.
+
+| Extension surface | Registration/owner | Code roots | Validate |
+| --- | --- | --- | --- |
+| Backend remote tool | backend tool catalog/registry and policy | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools`, `backend/src/tools/registry.py`, `backend/src/tools/tool_policy.py` | backend tool contract/schema/policy tests |
+| Backend SDK tool | SDK `Tool` and `ToolContext` | `backend/src/sdk/tool.py`, `backend/src/sdk/context.py`, `backend/src/tools/templates` | SDK tool contract tests |
+| Sidecar executable tool | Python sidecar registry and exposed tool names | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/exposed_tool_names.py`, domain tool folders | sidecar pytest tests, parity tests |
+| Backend-only tool | backend registry only | `backend/src/tools/registry.py`, domain implementation | backend tool tests and docs explaining no sidecar parity |
+| LLM provider | provider factory + config + model catalog | `backend/src/llm/providers`, `backend/src/llm/providers/__init__.py`, `backend/src/llm/models/models_config.py`, `backend/src/core/config` | provider factory/config/model-list/stream tests |
+| Inference provider | capability router/adapter | `backend/src/core/inference`, `backend/src/core/interfaces`, `backend/src/services/ocr`, `backend/src/services/vision`, embedding services | provider health/circuit/tool-output tests |
+| Hosted SDK route | FastAPI SDK router + client wrappers | `backend/src/api/routes/sdk`, `frontend/src/renderer/infrastructure/api/windieSdkClient.ts`, `frontend/src/main/python/core/windie_sdk_client.py` | backend route tests, TS/Python SDK client tests |
+| Artifact route/storage | artifact route and store | `backend/src/api/routes/artifacts`, `backend/src/services/artifacts` | upload/fetch/client tests |
+| Browser action | backend browser schema + sidecar browser runtime | `backend/src/tools/browser`, `frontend/src/main/python/tools/browser` | backend/sidecar browser schema parity and action tests |
+| Renderer feature | feature module + provider/layout wiring | `frontend/src/renderer/features`, `frontend/src/renderer/app`, `frontend/src/renderer/infrastructure` | focused renderer tests |
+| Electron main runtime feature | main-process module and IPC/channel owner | `frontend/src/main`, `frontend/src/shared/ipcChannels.json`, preload/IPC docs | main-process IPC/lifecycle tests |
+
+## Extension Decision Flow
+
+1. If the model should call it, start with backend tool schema/policy.
+2. If it controls the local machine, add sidecar execution and parity tests.
+3. If it calls a model provider, add an LLM provider or provider config/catalog entry.
+4. If it exposes hosted introspection/perception to external clients, add an SDK route/client.
+5. If it changes desktop UI, add a renderer feature and main/preload IPC only when privileged APIs are needed.
+6. If it requires third-party package discovery/loading/isolation, it is future plugin-system work and needs planning first.
+
+## Required Docs Updates
+
+For each extension type:
+
+- backend tool: `docs/tools/`, `docs/backend/tools/`, and this matrix
+- sidecar tool: `docs/tools/`, `docs/frontend/sidecar/tools/`, and [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md)
+- provider: `docs/providers/` and provider-specific page
+- SDK route: `docs/sdk/` and `docs/reference/http_api_surface.md`
+- renderer/main feature: relevant `docs/desktop/`, `docs/frontend/`, and [Channels Hub](../channels/README.md) if routing changes
+- security-sensitive extension: [Security Hub](../security/README.md)
+
+## Validation Checklist
+
+- registration point is explicit.
+- model visibility is covered by backend policy tests.
+- sidecar executable behavior is covered when local actions exist.
+- provider credentials are loaded from config/env, not hardcoded.
+- SDK clients update when public routes change.
+- docs and changelog mention the extension surface.

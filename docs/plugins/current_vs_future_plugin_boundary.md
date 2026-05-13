@@ -1,0 +1,72 @@
+---
+summary: "Boundary guide for current WindieOS extension surfaces versus future plugin marketplace or dynamic plugin-loader work."
+read_when:
+  - When a request mentions plugins, marketplace, third-party extensions, dynamic loading, or installable integrations.
+  - When documenting future plugin behavior without implying it exists today.
+title: "Current vs Future Plugin Boundary"
+---
+
+# Current vs Future Plugin Boundary
+
+WindieOS currently supports code-level extension points. It does not currently support installable third-party plugin packages, marketplace metadata, signed plugin bundles, hot-loaded tool manifests, or user-installed runtime extensions.
+
+## Current
+
+Implemented today:
+
+- backend tool registry and SDK tool base
+- sidecar executable tools
+- LLM provider factory and model catalog
+- OCR/vision/embedding capability routers
+- hosted SDK routes and clients
+- dedicated browser runtime actions
+- renderer feature modules
+- Electron main IPC/runtime modules
+
+These are implemented as source-code changes and normal repo commits.
+
+## Future
+
+A real plugin system would need at least:
+
+- plugin manifest schema
+- package install/update/remove flow
+- signature/trust policy
+- sandbox/isolation model
+- permissions prompt and audit trail
+- model-visible tool registration policy
+- sidecar execution registration policy
+- provider credential scoping
+- compatibility/version constraints
+- tests for malicious, malformed, duplicate, and disabled plugins
+
+Do not imply this exists in current docs.
+
+## Decision Rules
+
+| Request | Current answer |
+| --- | --- |
+| "Add a provider plugin" | implement an LLM/inference provider in current provider paths |
+| "Add a desktop action plugin" | implement backend schema + sidecar tool execution |
+| "Add a browser plugin" | extend browser schema/runtime, not a third-party browser extension store |
+| "Let users install plugins" | planning/design first |
+| "Load tools from a manifest at runtime" | future plugin-loader work |
+| "Expose a new SDK integration" | add SDK route/client docs and tests |
+
+## Planning Path
+
+If a true plugin system is needed, start in `docs/planning/` and include:
+
+- security model
+- packaging/install flow
+- trust and signing policy
+- runtime isolation model
+- capability/policy integration
+- UI and CLI management surfaces
+- migration path from current source-owned extensions
+
+Also read:
+
+- [Security Hub](../security/README.md)
+- [Security Boundary Matrix](../security/security_boundary_matrix.md)
+- [Extension Surface Matrix](extension_surface_matrix.md)

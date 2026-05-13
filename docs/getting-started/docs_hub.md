@@ -36,6 +36,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Channels Hub](../channels/README.md) for desktop, websocket, voice, sidecar, SDK, and VM-run communication paths.
 - [Memory Hub](../memory/README.md) for transcript, replay, sidecar memory, backend history, and semantic route ownership.
 - [Security Hub](../security/README.md) for hosted auth, IPC isolation, validation, credentials, permissions, tools, and sidecar security boundaries.
+- [Plugins and Extensions Hub](../plugins/README.md) for current extension points and future plugin-system boundaries.
 - [Automation Hub](../automation/README.md) for VM run orchestration, worker polling, run-control APIs, and scheduler boundaries.
 - [Desktop Surfaces](../desktop/README.md) for dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts.
 - [Debug Hub](../debug/README.md) for logs, trace flags, symptom playbooks, and test selection.
@@ -58,6 +59,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 | Backend API + transport | HTTP routes, websocket handshake, incoming message dispatch, outgoing event envelopes, formatter contracts | `backend/src/api`, `backend/src/core/container`, `backend/src/api/contracts` | [Backend API Docs Hub](../backend/api/README.md), [Backend Contracts Docs Hub](../backend/contracts/README.md), [Backend Inventory Protocols Hub](../backend/inventory/protocols/README.md) |
 | Channels and transports | Desktop chat entrypoints, backend websocket, transcription websocket, sidecar JSON-RPC, SDK routes, VM run control | `frontend/src/main`, `frontend/src/renderer`, `frontend/src/main/python`, `backend/src/api/routes`, `frontend/src/renderer/infrastructure/api` | [Channels Hub](../channels/README.md), [Channel Routing Matrix](../channels/channel_routing_matrix.md), [Communication Flow](../architecture/communication_flow.md) |
 | Security boundaries | Hosted auth, websocket validation, IPC isolation, credentials, permissions, tool policy, sidecar execution, multi-user risks | `backend/src/api/auth`, `backend/src/api/schemas`, `backend/src/core/security`, `frontend/src/preload.js`, `frontend/src/shared/ipcChannels.json`, `frontend/src/main/python/tools` | [Security Hub](../security/README.md), [Security Boundary Matrix](../security/security_boundary_matrix.md), [Security Change Playbook](../security/security_change_playbook.md) |
+| Plugins and extensions | Current source-owned extension surfaces for tools, providers, inference adapters, SDK routes, browser actions, renderer features, and future plugin boundaries | `backend/src/tools`, `backend/src/sdk`, `backend/src/llm/providers`, `backend/src/api/routes/sdk`, `frontend/src/main/python/tools`, `frontend/src/renderer/features` | [Plugins and Extensions Hub](../plugins/README.md), [Extension Surface Matrix](../plugins/extension_surface_matrix.md), [Architecture Extension Points](../architecture/extension_points.md) |
 | Backend agent runtime | Session lifecycle, query execution, interaction loop, tool turns, history, compaction, prompt context | `backend/src/agent`, `backend/src/api/services/query_execution.py` | [Backend Agent Docs Hub](../backend/agent/README.md), [Backend Runtime Docs Hub](../backend/runtime/README.md) |
 | Backend tool schema + orchestration | Model-facing tool registry, schema filtering, coordinate preparation, frontend dispatch, result waiting, tool-result history | `backend/src/tools`, `backend/src/agent/tools` | [Backend Tools Docs Hub](../backend/tools/README.md), [Backend Change Path Playbook](../backend/inventory/domains/backend_change_path_playbook_reference.md) |
 | Backend LLM + prompts | Provider factory, model catalog, prompt construction, parser/trust boundary, stream normalization | `backend/src/llm`, `backend/src/agent/llm` | [Backend LLM Docs Hub](../backend/llm/README.md), [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md), [Backend LLM Prompt Docs Hub](../backend/llm/prompts/README.md) |
@@ -113,6 +115,24 @@ Likely code:
 - `frontend/src/main/python/tools/**`
 
 Validate the enforcing boundary plus the producer/consumer boundary. Never commit credentials, broaden preload IPC generically, or trust renderer-provided hosted identity.
+
+### Add a Plugin-Like Extension
+
+Read:
+
+- [Plugins and Extensions Hub](../plugins/README.md)
+- [Extension Surface Matrix](../plugins/extension_surface_matrix.md)
+- [Current vs Future Plugin Boundary](../plugins/current_vs_future_plugin_boundary.md)
+- [Architecture Extension Points](../architecture/extension_points.md)
+
+Likely code depends on the extension type:
+
+- tools: `backend/src/tools/**`, `backend/src/sdk/**`, `frontend/src/main/python/tools/**`
+- providers: `backend/src/llm/providers/**`, `backend/src/llm/models/models_config.py`, `backend/src/core/config/**`
+- SDK routes: `backend/src/api/routes/sdk/**`, SDK client wrappers
+- renderer features: `frontend/src/renderer/features/**`
+
+Validate the registration point, policy/visibility, execution path, and docs for the specific extension surface. Treat installable third-party plugins as future planning unless a real loader, trust model, and tests exist.
 
 ### Add or Change a WebSocket Message
 
@@ -419,6 +439,14 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Security Change Playbook](../security/security_change_playbook.md)
 - [Operations Security](../operations/security.md)
 - [Hosted Backend Auth](../operations/hosted_backend_auth.md)
+
+### Plugins and Extensions
+
+- [Plugins and Extensions Hub](../plugins/README.md)
+- [Extension Surface Matrix](../plugins/extension_surface_matrix.md)
+- [Provider Extension Guide](../plugins/provider_extension_guide.md)
+- [Current vs Future Plugin Boundary](../plugins/current_vs_future_plugin_boundary.md)
+- [Architecture Extension Points](../architecture/extension_points.md)
 
 ### Memory
 
