@@ -14,6 +14,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Documentation Hub**](getting-started/docs_hub.md) - Agent-facing routing map for choosing the right subsystem, code roots, docs, and validation path before development
 - [**Concepts Hub**](concepts/README.md) - Runtime model, agent loop, memory/context, and safety-boundary mental models
 - [**Desktop Surfaces**](desktop/README.md) - Dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts
+- [**Debug Hub**](debug/README.md) - Logs, runtime traces, symptom playbooks, and test selection
 - [**Tools Hub**](tools/README.md) - Tool contracts, computer tools, browser automation, filesystem, and shell execution
 - [**Providers Hub**](providers/README.md) - LLM providers, model catalog, credentials, inference providers, STT, and TTS
 - [**SDK Hub**](sdk/README.md) - Hosted backend clients, query planning, OCR/vision SDK routes, and tool authoring
@@ -48,6 +49,10 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Onboarding and Permissions**](desktop/onboarding_permissions.md) - First-run gate, permission manifest, probes, grant effects, and settings control center
 - [**Voice and Wakeword**](desktop/voice_and_wakeword.md) - Wakeword bridge, voice capture, STT websocket, TTS chunks, and voice status UI
 - [**Artifacts and Attachments**](desktop/artifacts_and_attachments.md) - Screenshot artifact refs, upload/fetch paths, image rendering, and replay preservation
+- [**Logging**](debug/logging.md) - Backend, Electron, renderer, sidecar, and packaged app log controls
+- [**Runtime Traces**](debug/runtime_traces.md) - Stream, chat pill, screenshot, sidecar, and websocket trace routes
+- [**Symptom Playbooks**](debug/symptom_playbooks.md) - Failure-to-owner maps for backend, tools, screenshots, overlays, permissions, voice, and browser
+- [**Test Selection**](debug/test_selection.md) - Focused pytest/Jest commands by runtime and contract boundary
 - [**Tool Contracts**](tools/tool_contracts.md) - Backend model-facing schema vs sidecar executable tool contract
 - [**Computer Tools**](tools/computer.md) - Mouse, keyboard, screenshot, scroll, window, OCR, and vision grounding paths
 - [**Browser Tool**](tools/browser.md) - Dedicated browser runtime, schema parity, snapshots, and debugging

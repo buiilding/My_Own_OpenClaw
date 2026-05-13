@@ -1,0 +1,45 @@
+---
+summary: "Debug hub for WindieOS runtime failures, logs, trace flags, symptom playbooks, and test selection."
+read_when:
+  - When triaging a bug before changing code.
+  - When deciding which runtime logs, trace flags, or tests apply to a failure.
+title: "Debug"
+---
+
+# Debug
+
+Use this hub when a WindieOS behavior fails and the next code edit is not obvious. The goal is to identify the owner runtime first, then inspect the narrowest log stream and test slice.
+
+## Runtime Boundaries
+
+| Boundary | Owns | First files |
+| --- | --- | --- |
+| Hosted backend | Agent loop, providers, tool schemas, websocket events, SDK routes, OCR/vision/TTS/STT | `backend/src/api`, `backend/src/agent`, `backend/src/llm`, `backend/src/tools`, `backend/src/services` |
+| Electron main | Windows, overlay orchestration, IPC relay, local config, permission probes, sidecar process lifecycle | `frontend/src/main` |
+| React renderer | Dashboard, chat UI, response overlay UI, permissions UI, voice controls, local tool runner | `frontend/src/renderer` |
+| Python sidecar | Local executable tools, memory store, browser runtime, screenshots, shell/process execution | `frontend/src/main/python` |
+| Tests | Contract drift and runtime regressions | `tests/backend`, `tests/frontend`, `tests/sidecar` |
+
+## Debug Pages
+
+- [Logging](logging.md) maps backend, Electron, renderer, and sidecar log controls.
+- [Runtime Traces](runtime_traces.md) covers stream, chat pill, screenshot, overlay, and sidecar trace paths.
+- [Symptom Playbooks](symptom_playbooks.md) maps common failures to code roots and validation.
+- [Test Selection](test_selection.md) maps changed subsystems to focused tests and full-suite commands.
+
+## Debug Order
+
+1. Start at [Diagnostics](../help/diagnostics.md) to classify the boundary.
+2. Use [Runtime Traces](runtime_traces.md) if the failure crosses process boundaries or depends on event ordering.
+3. Use [Logging](logging.md) if the producer is unclear or a runtime exits silently.
+4. Use [Symptom Playbooks](symptom_playbooks.md) to choose the code roots.
+5. Use [Test Selection](test_selection.md) before and after edits.
+
+## Rules For Agents
+
+- Do not patch the visible UI symptom until the producing event or state contract is verified.
+- For backend/frontend/sidecar drift, prefer adding or extending parity tests over importing implementation code across boundaries.
+- For overlay timing bugs, write down the phase sequence first. Mixing focus, capture, content protection, and visibility changes in one patch makes regressions hard to isolate.
+- For local tool bugs, verify all three surfaces: backend schema, renderer tool-runner payload, and sidecar executable result.
+- For hosted backend bugs, do not assume local Electron state is wrong until the websocket or HTTP payload is inspected.
+

@@ -34,6 +34,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) for environment setup.
 - [Concepts Hub](../concepts/README.md) for product/system mental models before implementation details.
 - [Desktop Surfaces](../desktop/README.md) for dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts.
+- [Debug Hub](../debug/README.md) for logs, trace flags, symptom playbooks, and test selection.
 - [Tools Hub](../tools/README.md) for model-facing and sidecar-executable tools.
 - [Providers Hub](../providers/README.md) for LLM, inference, credential, STT, TTS, and web-search providers.
 - [SDK Hub](../sdk/README.md) for hosted backend clients, query planning, OCR/vision, and tool authoring.
@@ -336,6 +337,14 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Onboarding and Permissions](../desktop/onboarding_permissions.md)
 - [Voice and Wakeword](../desktop/voice_and_wakeword.md)
 - [Artifacts and Attachments](../desktop/artifacts_and_attachments.md)
+
+### Debug
+
+- [Debug Hub](../debug/README.md)
+- [Logging](../debug/logging.md)
+- [Runtime Traces](../debug/runtime_traces.md)
+- [Symptom Playbooks](../debug/symptom_playbooks.md)
+- [Test Selection](../debug/test_selection.md)
 
 ### Tools
 

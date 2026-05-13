@@ -34,6 +34,8 @@ cd frontend && npm run test:ci
 cd frontend && npm run lint
 ```
 
+For trace flags, logging controls, symptom playbooks, and focused test selection, read [Debug](../debug/README.md).
+
 ## Diagnostic Rule
 
 Do not patch the first failing UI symptom until you know whether the producer contract is valid. Many WindieOS bugs are contract drift across backend formatter/schema, Electron bridge mapping, renderer guards, and sidecar executable tools.

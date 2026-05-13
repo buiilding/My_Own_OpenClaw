@@ -6,6 +6,8 @@ read_when:
 
 # Testing Guide
 
+For symptom-driven and subsystem-specific command selection, read [Test Selection](../debug/test_selection.md).
+
 ## Backend + Sidecar Tests
 
 ```bash
