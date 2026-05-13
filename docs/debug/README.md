@@ -23,6 +23,7 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 ## Debug Pages
 
 - [Logging](logging.md) maps backend, Electron, renderer, and sidecar log controls.
+- [Observability Change Workflow](observability_change_workflow.md) routes new logs, traces, metrics, diagnostic flags, and evidence signals to the right runtime.
 - [Diagnostic Flags](diagnostic_flags.md) maps backend, Electron, renderer, sidecar, VM worker, and packaged-app debug flags.
 - [Runtime Traces](runtime_traces.md) covers stream, chat pill, screenshot, overlay, and sidecar trace paths.
 - [Endpoint and Network Debugging](endpoint_and_network_debugging.md) routes hosted/local endpoint, websocket, install auth, Cloudflare, and sidecar backend URL failures.

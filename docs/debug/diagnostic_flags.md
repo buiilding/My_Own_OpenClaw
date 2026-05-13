@@ -81,6 +81,7 @@ Local reinstall logs are not release-signing validation.
 ## Related Docs
 
 - [Logging](logging.md)
+- [Observability Change Workflow](observability_change_workflow.md)
 - [Runtime Traces](runtime_traces.md)
 - [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
 - [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md)

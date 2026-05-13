@@ -1,0 +1,164 @@
+---
+summary: "Workflow for adding or changing WindieOS logs, trace flags, diagnostic events, metrics, evidence collection, and debug gates across backend, Electron main, renderer, sidecar, and packaged app runtimes."
+read_when:
+  - When adding, removing, or renaming logs, trace flags, diagnostic events, metrics, or evidence collection paths.
+  - When a bug needs new observability before a safe code fix can be made.
+  - When deciding where debug output belongs across backend, Electron main, renderer, sidecar, packaged app, and hosted runtime boundaries.
+title: "Observability Change Workflow"
+---
+
+# Observability Change Workflow
+
+Use this workflow before adding logs or diagnostic flags. Observability should prove which runtime owns a failure without creating always-on noise, leaking secrets, or corrupting sidecar JSON-RPC stdout.
+
+## Fast Owner Map
+
+| Need | First owner | Source roots | Start docs | Tests |
+| --- | --- | --- | --- | --- |
+| backend log profile, logger level, third-party noise filtering | backend logging setup | `backend/src/core/logging_setup.py`, `backend/src/core/logging` | [Logging](logging.md), [Backend Core Logging Profile Contracts](../backend/core/logging/log_profile_noise_filter_and_env_level_resolution_contract_reference.md) | `tests/backend/test_logging_setup.py` |
+| backend security/trust-boundary metrics | backend observability service | `backend/src/core/observability`, trust-boundary parsers/enforcers | [Backend Trust-Boundary Metrics and Enforcement](../backend/core/observability/trust_boundary_metrics_and_enforcement_reference.md) | `tests/backend/test_trust_boundary_metrics.py` |
+| stream, websocket, or query event trace | backend formatter/transport plus Electron relay and renderer stream | `backend/src/api`, `frontend/src/main/ipc.cjs`, `frontend/src/renderer/features/chat` | [Runtime Traces](runtime_traces.md), [Query Lifecycle Change Workflow](../backend/runtime/query_lifecycle_change_workflow.md) | backend formatter/websocket tests plus frontend stream tests |
+| chat pill, response overlay, or screenshot trace | Electron main surface runtime and renderer surface orchestrator | `frontend/src/main/chat_pill_trace_runtime.cjs`, `frontend/src/main/overlay_*`, `frontend/src/renderer/infrastructure/services/surfaceOrchestrator` | [Runtime Traces](runtime_traces.md), [Platform Change Workflow](../platforms/platform_change_workflow.md) | `tests/frontend/SurfaceOrchestratorLoggingGate.test.ts`, overlay/phase tests |
+| tool execution or tool screenshot debug output | renderer tool execution services | `frontend/src/renderer/infrastructure/services/toolExecution` | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md), [Runtime Traces](runtime_traces.md) | `tests/frontend/ToolExecutionLogger.test.ts`, tool execution tests |
+| sidecar stderr logging or system metrics | Python sidecar runtime | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/system_metrics.py`, sidecar tool modules | [Logging](logging.md), [Process Health Checklist](process_health_checklist.md) | sidecar focused pytest, `tests/sidecar/test_system_metrics_and_watermark_state.py` |
+| VM run event log or operations evidence | backend VM run control and operations runbooks | `backend/src/services/vm_run_control_support`, `docs/operations` | [Evidence Collection Runbook](../operations/evidence_collection_runbook.md), [Incident Triage Runbook](../operations/incident_triage_runbook.md) | `tests/backend/test_vm_run_control_event_log.py` |
+| packaged app log controls | reinstall helpers and Electron launch/runtime env | `scripts/reinstall-windieos-*`, `frontend/scripts/electron-launcher.cjs`, `frontend/src/main` | [Packaging and Reinstall Runbooks](../operations/packaging_and_reinstall_runbooks.md), [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md) | package smoke helpers and target OS manual checks |
+
+## Rules
+
+- Add the smallest diagnostic signal that proves the boundary.
+- Keep verbose traces opt-in behind env flags, URL params, or test-only gates.
+- Do not log secrets, bearer tokens, API keys, install tokens, file contents, or full screenshots.
+- Do not write debug text to sidecar stdout. Sidecar stdout is protocol traffic.
+- Prefer structured fields such as `user_id`, `session_id`, `conversation_ref`, `turn_ref`, `request_id`, and `bundle_id` over long prose.
+- Redact or summarize payloads at trust boundaries.
+- Update [Diagnostic Flags](diagnostic_flags.md) when adding, renaming, or removing a flag.
+- Add tests for gating logic when logs/traces affect runtime behavior.
+
+## Change Sequence
+
+1. Identify the runtime that produces the missing evidence.
+2. Check existing docs and flags before adding a new flag.
+3. Decide whether the signal is always-on high-signal logging, opt-in trace output, test-only logging, or operational evidence.
+4. Add the signal at the producer boundary, not the visible consumer symptom.
+5. Gate verbose output and keep defaults quiet.
+6. Add or update tests for logger setup, trace gating, metrics collection, or evidence serialization.
+7. Update [Logging](logging.md), [Runtime Traces](runtime_traces.md), [Diagnostic Flags](diagnostic_flags.md), and operational runbooks as needed.
+
+## Backend Logging Changes
+
+Use backend logging for hosted backend events, provider failures, route/handler decisions, session lifecycle, and tool orchestration.
+
+Primary files:
+
+- `backend/src/core/logging_setup.py`
+- `backend/src/core/logging/**`
+- `backend/src/agent/tools/shared/logging_utils.py`
+- feature modules under `backend/src/api`, `backend/src/agent`, `backend/src/llm`, `backend/src/tools`, `backend/src/services`
+
+Validation:
+
+- `tests/backend/test_logging_setup.py`
+- `tests/backend/test_logging_utils_shared.py`
+- feature tests that assert error handling or sanitized output.
+
+Rules:
+
+- Keep `WINDIEOS_LOG_PROFILE=important` high signal.
+- Use `LOG_LEVEL=DEBUG` and `WINDIEOS_LOG_PROFILE=verbose` for broad debug.
+- Keep third-party debug noise suppressed unless explicitly enabled.
+- Use sanitized user-facing messages for client responses and full exception details only in server logs.
+
+## Electron and Renderer Trace Changes
+
+Use Electron/renderer traces for event ordering, window/overlay state, screenshot/capture timing, and renderer state transitions.
+
+Primary files:
+
+- `frontend/src/main/ipc.cjs`
+- `frontend/src/main/chat_pill_trace_runtime.cjs`
+- `frontend/src/main/main_window_overlay_runtime.cjs`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts`
+- `frontend/src/renderer/infrastructure/services/toolExecution/ToolScreenshotDebugTrace.ts`
+- `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/logging.ts`
+- `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/loggingGate.ts`
+
+Validation:
+
+- `tests/frontend/SurfaceOrchestratorLoggingGate.test.ts`
+- `tests/frontend/ToolExecutionLogger.test.ts`
+- focused stream/overlay/tool execution tests.
+
+Rules:
+
+- Use existing flags before adding new ones:
+  - `WINDIE_DEBUG_STREAM_EVENTS`
+  - `WINDIE_DEBUG_CHAT_PILL`
+  - `WINDIE_DEBUG_TOOL_SCREENSHOT`
+  - `WINDIE_DEBUG_GHOST_OVERLAY`
+- Do not leave trace logs always on in packaged flows.
+- Include turn/request identifiers when tracing stream or tool events.
+- Avoid logging full user content unless the trace is explicitly developer-only and documented.
+
+## Sidecar Logging Changes
+
+Use sidecar logs for local JSON-RPC execution, local tools, memory, browser runtime, wakeword subprocesses, and system metrics.
+
+Primary files:
+
+- `frontend/src/main/python/local_backend.py`
+- `frontend/src/main/python/core/ipc_protocol.py`
+- `frontend/src/main/python/core/system_metrics.py`
+- `frontend/src/main/python/tools/**`
+- `frontend/src/main/python/memory/**`
+- `frontend/src/main/python/wakeword_service.py`
+
+Validation:
+
+- focused sidecar pytest for changed module.
+- Electron bridge tests when stderr forwarding changes.
+
+Rules:
+
+- Log to stderr only.
+- Keep stdout reserved for JSON-RPC frames.
+- Use `WINDIE_SIDECAR_LOG_LEVEL=DEBUG` for debug verbosity.
+- Use `WINDIE_VERBOSE_SIDECAR_STDERR` only for explicit packaged/source debugging.
+- Do not dump file contents, shell outputs, browser page text, or memory facts unless explicitly part of a sanitized tool result.
+
+## Operational Evidence Changes
+
+Use operational evidence docs when the signal is needed for incident triage, hosted debugging, packaged app issues, or handoff reports.
+
+Primary docs:
+
+- [Evidence Collection Runbook](../operations/evidence_collection_runbook.md)
+- [Incident Triage Runbook](../operations/incident_triage_runbook.md)
+- [Evidence Packet](../help/evidence_packet.md)
+- [Process Health Checklist](process_health_checklist.md)
+
+Rules:
+
+- Evidence should identify runtime, version/build mode, endpoint, OS, command, and first failing boundary.
+- Evidence should avoid private user content unless the user explicitly provides it for debugging.
+- Packaged evidence should mention install path, package type, and local reinstall helper output.
+- Hosted evidence should include route/status/close code, not raw tokens.
+
+## Review Checklist
+
+- The signal belongs to the producing runtime.
+- Verbose output is gated.
+- Sidecar stdout remains protocol-only.
+- Secrets and user data are redacted or omitted.
+- Diagnostic flags docs are updated for flag changes.
+- Tests cover gating or serialization when behavior changed.
+- The evidence path gives an agent enough identifiers to route the bug without broad searching.
+
+## Related Docs
+
+- [Logging](logging.md)
+- [Runtime Traces](runtime_traces.md)
+- [Diagnostic Flags](diagnostic_flags.md)
+- [Process Health Checklist](process_health_checklist.md)
+- [Evidence Collection Runbook](../operations/evidence_collection_runbook.md)
+- [Runtime Boundary Matrix](../architecture/runtime_boundary_matrix.md)

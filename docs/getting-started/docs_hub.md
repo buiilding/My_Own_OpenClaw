@@ -50,6 +50,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Automation Hub](../automation/README.md) for VM run orchestration, worker polling, run-control APIs, and scheduler boundaries.
 - [Desktop Surfaces](../desktop/README.md) for dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts.
 - [Debug Hub](../debug/README.md) for logs, diagnostic flags, endpoint/network checks, process health, trace flags, symptom playbooks, and test selection.
+- [Observability Change Workflow](../debug/observability_change_workflow.md) for adding logs, trace flags, metrics, diagnostic events, and evidence collection safely.
 - [Diagnostic Flags](../debug/diagnostic_flags.md) for enabling the narrowest backend, Electron, renderer, sidecar, VM worker, or packaged-app debug signal.
 - [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md) for hosted/local backend URL resolution, Cloudflare, auth, websocket, and sidecar endpoint drift.
 - [Process Health Checklist](../debug/process_health_checklist.md) for proving which process is dead, stuck, disconnected, or healthy before editing code.
@@ -614,6 +615,7 @@ Use these when a change path is not enough and you need exact file ownership:
 
 - [Debug Hub](../debug/README.md)
 - [Logging](../debug/logging.md)
+- [Observability Change Workflow](../debug/observability_change_workflow.md)
 - [Diagnostic Flags](../debug/diagnostic_flags.md)
 - [Runtime Traces](../debug/runtime_traces.md)
 - [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md)

@@ -14,6 +14,8 @@ WindieOS has four practical log streams: backend Python logs, Electron main stdo
 
 Backend logging is configured in `backend/src/core/logging_setup.py`.
 
+Use [Observability Change Workflow](observability_change_workflow.md) before adding new log streams, trace flags, metrics, or evidence collection paths.
+
 | Control | Behavior |
 | --- | --- |
 | `WINDIEOS_LOG_PROFILE=important` | Default profile. Keeps high-signal INFO while suppressing noisy internals and third-party libraries. |
@@ -94,4 +96,3 @@ Packaged reinstall scripts expose log controls:
 - Linux: `scripts/reinstall-windieos-linux.sh`
 
 On macOS, `WINDIE_LOG_FILE` defaults to `~/windieos-packaged-run.log` in the reinstall helper. Keep packaged debugging separate from source-run debugging because app paths, Python paths, and permission state differ.
-

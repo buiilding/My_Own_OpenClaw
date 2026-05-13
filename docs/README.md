@@ -15,6 +15,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Concepts Hub**](concepts/README.md) - Runtime model, sessions, streaming, prompt/tool context, providers, usage, memory, and safety mental models
 - [**Desktop Surfaces**](desktop/README.md) - Dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts
 - [**Debug Hub**](debug/README.md) - Logs, diagnostic flags, endpoint/network checks, process health, runtime traces, symptom playbooks, and test selection
+- [**Observability Change Workflow**](debug/observability_change_workflow.md) - Owner routing for logs, trace flags, metrics, diagnostic events, evidence collection, and debug gates
 - [**Diagnostic Flags**](debug/diagnostic_flags.md) - Backend, Electron, renderer, sidecar, VM worker, and packaged-app debug flags
 - [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/local backend endpoint resolution, auth, websocket, Cloudflare, and sidecar URL drift checks
 - [**Process Health Checklist**](debug/process_health_checklist.md) - Backend, Electron, renderer, sidecar, wakeword, VM worker, and Cloudflare process triage
@@ -125,6 +126,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Artifact Change Workflow**](desktop/artifact_change_workflow.md) - Owner routing for screenshot attachments, artifact upload/fetch, query payloads, tool-result screenshots, replay, and SDK access
 - [**Artifacts and Attachments**](desktop/artifacts_and_attachments.md) - Screenshot artifact refs, upload/fetch paths, image rendering, and replay preservation
 - [**Logging**](debug/logging.md) - Backend, Electron, renderer, sidecar, and packaged app log controls
+- [**Observability Change Workflow**](debug/observability_change_workflow.md) - Add or change logs, traces, metrics, and evidence without noisy defaults or secret leakage
 - [**Diagnostic Flags**](debug/diagnostic_flags.md) - Backend, Electron, renderer, sidecar, VM worker, and packaged-app debug flags
 - [**Runtime Traces**](debug/runtime_traces.md) - Stream, chat pill, screenshot, sidecar, and websocket trace routes
 - [**Endpoint and Network Debugging**](debug/endpoint_and_network_debugging.md) - Hosted/local backend endpoint resolution, auth, websocket, Cloudflare, and sidecar URL drift checks

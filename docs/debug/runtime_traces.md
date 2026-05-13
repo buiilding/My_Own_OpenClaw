@@ -10,6 +10,8 @@ title: "Runtime Traces"
 
 Runtime traces are useful when a bug depends on event order, process boundaries, or transient UI state. Enable the smallest trace that can prove which boundary broke.
 
+Use [Observability Change Workflow](observability_change_workflow.md) before adding or renaming trace flags.
+
 ## Stream Event Trace
 
 Use this when the backend sends events but the UI displays stale, missing, or duplicated content.
@@ -115,4 +117,3 @@ If a sidecar result is missing, check for all of these before editing:
 - Main bridge sent a JSON-RPC request to the sidecar.
 - Sidecar executed a registered tool and returned a JSON-serializable result.
 - Renderer sent the result back to the backend with the original request id.
-
