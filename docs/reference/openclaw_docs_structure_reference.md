@@ -96,6 +96,7 @@ Added/expanded in WindieOS:
 - `backend/`: backend functionality maps and subsystem docs.
 - `frontend/`: frontend/electron/renderer/sidecar functionality maps.
 - `development/`: agent-facing implementation workflow, validation matrix, environment setup, testing, contributing, and tool-development guides.
+- `planning/`: current-vs-future boundary, roadmap status matrix, promotion checklist, initiative index, and future-facing plan docs.
 - Sub-hubs added for layered navigation:
 - `backend/bootstrap/README.md`, `backend/api/README.md`, `backend/contracts/README.md`, `backend/tools/README.md`
 - `frontend/main/README.md`, `frontend/renderer/README.md`, `frontend/contracts/README.md`, `frontend/sidecar/README.md`

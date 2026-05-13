@@ -1,5 +1,5 @@
 ---
-summary: "Planning Hub"
+summary: "Planning hub for WindieOS roadmap status, current-vs-future boundaries, initiative indexes, promotion checklists, and future-facing plans."
 read_when:
   - When deciding roadmap priorities or sequencing.
   - When adding a new future-facing plan doc.
@@ -8,6 +8,13 @@ read_when:
 # Planning Hub
 
 Single entrypoint for future work. Use this page first.
+
+## Planning Index
+
+- [Current vs Future Boundary](current_vs_future_boundary.md)
+- [Roadmap Status Matrix](roadmap_status_matrix.md)
+- [Plan Promotion Checklist](plan_promotion_checklist.md)
+- [Initiative Index](initiative_index.md)
 
 ## Canonical Roadmap
 
@@ -48,3 +55,4 @@ Single entrypoint for future work. Use this page first.
 - Put implementation-track plans in `docs/planning/*.md`.
 - In feature docs (`architecture/*`, `getting-started/*`, root `README.md`), keep only short summaries and link back here.
 - When a plan ships, move behavior docs to the relevant stable area and remove/trim the planning item.
+- Do not describe planned behavior as current until it satisfies [Plan Promotion Checklist](plan_promotion_checklist.md).

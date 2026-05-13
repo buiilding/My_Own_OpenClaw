@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(planning): add current-vs-future boundary, roadmap status, promotion checklist, and initiative index guides.
 - docs(architecture): add architecture hub, boundary, state ownership, decision-tree, and failure-domain maps.
 - docs(web): add web surface, hosted API/auth, landing, and client integration guides.
 - docs(help): add triage, doctor-checklist, evidence-packet, and FAQ routes for user-visible failures.
