@@ -15,6 +15,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Concepts Hub**](concepts/README.md) - Runtime model, agent loop, memory/context, and safety-boundary mental models
 - [**Desktop Surfaces**](desktop/README.md) - Dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts
 - [**Debug Hub**](debug/README.md) - Logs, runtime traces, symptom playbooks, and test selection
+- [**Channels Hub**](channels/README.md) - Desktop, websocket, voice, sidecar, SDK, and VM-run communication paths
 - [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and future scheduler boundaries
 - [**Tools Hub**](tools/README.md) - Tool contracts, computer tools, browser automation, filesystem, and shell execution
 - [**Providers Hub**](providers/README.md) - LLM providers, model catalog, credentials, inference providers, STT, and TTS
@@ -45,6 +46,10 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Runtime Model**](concepts/runtime_model.md) - Hosted backend, Electron main, renderer, preload, and Python sidecar boundaries
 - [**Agent Loop**](concepts/agent_loop.md) - Query send, backend streaming, tool turns, and completion lifecycle
 - [**Context and Memory**](concepts/context_and_memory.md) - Transcript, backend history, semantic memory, artifacts, screenshots, and repo instructions
+- [**Channels Hub**](channels/README.md) - Entry-channel routing for desktop chat, backend websocket, voice, sidecar tools, SDK, and VM runs
+- [**Channel Routing Matrix**](channels/channel_routing_matrix.md) - Channel-to-transport, owner, code-root, and validation map
+- [**Voice and Audio Channels**](channels/voice_and_audio_channels.md) - Wakeword, voice dictation, transcription websocket, and TTS playback ownership
+- [**Sidecar and Tool Channels**](channels/sidecar_and_tool_channels.md) - Local tool IPC, sidecar JSON-RPC, executable tools, and tool-result return path
 - [**Memory Hub**](memory/README.md) - Transcript persistence, replay, sidecar local memory, semantic routes, and troubleshooting
 - [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and scheduling boundaries
 - [**VM Runs and Workers**](automation/vm_runs_and_workers.md) - Run lifecycle from creation through worker dispatch, event relay, and controls

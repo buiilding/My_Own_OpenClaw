@@ -1,0 +1,112 @@
+---
+summary: "Matrix mapping WindieOS user/developer channels to transports, payload owners, code roots, docs, and validation targets."
+read_when:
+  - When changing how a request enters WindieOS or deciding whether a behavior belongs to IPC, websocket, HTTP, sidecar JSON-RPC, SDK, voice, or VM runs.
+  - When debugging why a query, control message, tool result, voice event, or SDK request reached the wrong owner.
+title: "Channel Routing Matrix"
+---
+
+# Channel Routing Matrix
+
+This matrix maps entry channels to the transport and code that own them. Start here when a bug description says "chat", "voice", "SDK", "worker", "tool", or "API" but does not identify the runtime layer.
+
+## Routing Matrix
+
+| Channel | Primary input | Transport path | Backend owner | Frontend/sidecar owner | Validate |
+| --- | --- | --- | --- | --- | --- |
+| Dashboard chat query | dashboard composer submit | renderer `to-backend` IPC -> Electron main -> `/ws` `query` | `backend/src/api/handlers/query.py`, `backend/src/api/services/query_execution.py` | `frontend/src/renderer/features/chat/**`, `frontend/src/main/ipc.cjs` | backend query tests, frontend chat/IPC tests |
+| Minimal pill query | overlay composer submit | overlay renderer IPC -> Electron main -> `/ws` `query` | same backend query path | `frontend/src/renderer/app/ChatBox*.jsx`, overlay IPC/window runtime | overlay/main-process tests, query-send tests |
+| Settings/model messages | dashboard settings or startup sync | renderer `to-backend` IPC -> `/ws` non-query handlers | `backend/src/api/handlers/settings.py`, model/list handlers | settings provider, `ipc_settings_sync.cjs` | settings ACK and model-list tests |
+| Stop query | user stop, VM stop control | renderer/main or VM worker -> `/ws` `stop-query` | `backend/src/api/handlers/stop_query.py` | renderer controls, `vm_worker_runtime.cjs` | stop/cancellation tests, VM worker tests |
+| Tool result ingress | renderer tool runner completion | renderer -> `to-backend` -> `/ws` `tool-result` or `tool-bundle-result` | backend tool-result receiver/router/history commit | renderer tool runner + sidecar JSON-RPC | backend tool-result tests, renderer runner tests |
+| Backend stream events | agent loop output | backend `/ws` outgoing event -> Electron main -> renderer `from-backend` | formatter registry, outgoing schemas, SafeWebSocket sender | main websocket observer, renderer stream consumers | formatter/schema tests, renderer event guards |
+| Voice dictation | voice-mode microphone capture | renderer audio -> `/ws/transcription` | transcription route/services/providers | voice hooks/utils | STT gateway tests, voice hook tests |
+| Wakeword | background microphone chunks | renderer IPC -> main wakeword bridge -> sidecar subprocess | optional wakeword activation handler on `/ws` | `wakeword_bridge*.cjs`, `wakeword_service.py`, `WakewordController.jsx` | wakeword bridge and controller tests |
+| TTS playback | backend audio chunk event | `/ws` `audio-chunk` -> renderer playback queue | API TTS manager/session | renderer audio playback service | TTS backend tests, renderer audio tests |
+| Local sidecar tool | model-visible tool call | backend emits tool-call -> renderer executes via IPC -> sidecar JSON-RPC | backend schema/preparation/waiting/history | renderer tool runner, `local_backend_bridge.cjs`, sidecar tools | schema parity, sidecar tool, renderer runner tests |
+| SDK hosted query | external SDK client | direct WebSocket `/ws` | same websocket query path | TypeScript/Python SDK clients | SDK client and backend route tests |
+| SDK HTTP routes | external SDK client | direct `/api/sdk/*`, `/api/artifacts/*` | SDK/artifact routes/services | SDK client wrappers | SDK route/client tests |
+| VM run control | dashboard/API caller + VM worker | `/api/runs/*` HTTP plus worker-dispatched `/ws` query | runs router/service | `vm_worker_runtime.cjs` | runs route tests, VM worker tests |
+
+## Payload Ownership
+
+Backend-owned payloads:
+
+- `/ws` incoming/outgoing Pydantic schemas
+- formatter output envelopes
+- model-facing tool schemas
+- `/api/sdk/*`, `/api/artifacts/*`, `/api/runs/*`, `/api/embeddings/*`, and `/api/semantic/*` request/response models
+- transcription websocket provider protocol normalization
+
+Frontend-owned payloads:
+
+- renderer-to-main IPC channel payloads
+- local frontend config and settings subset
+- overlay/window control payloads
+- renderer chat state and transcript queue payloads
+- sidecar JSON-RPC request envelopes created by Electron main
+
+Sidecar-owned payloads:
+
+- executable tool argument validation
+- local JSON-RPC method responses
+- local memory, browser, filesystem, shell, computer, system-state, and wakeword subprocess protocols
+
+Do not use one channel's payload shape as a silent compatibility layer for another. If two channels need parity, add an explicit adapter or parity test.
+
+## Decision Rules
+
+Use `/ws` when:
+
+- the message changes an agent session
+- a query is sent
+- a query is stopped
+- a tool result returns to the agent loop
+- backend stream events must reach the renderer
+- wakeword activation should trigger a backend greeting/query flow
+
+Use `/ws/transcription` when:
+
+- audio frames are for live dictation/transcription
+- voice-mode control messages such as language reset/start-over are sent
+- STT provider changes must be hidden behind one renderer protocol
+
+Use `/api/runs/*` when:
+
+- a hosted dashboard or API caller creates/controls/observes a VM run
+- an Electron VM worker polls for assignments
+- a VM worker relays stream events into a run timeline
+
+Use sidecar JSON-RPC when:
+
+- local machine state or control is required
+- browser/computer/filesystem/shell/system/memory tools execute locally
+- a subprocess protocol is needed for wakeword or memory service behavior
+
+Use `/api/sdk/*` when:
+
+- a developer tool needs hosted OCR/vision/query-plan/prompt introspection
+- the operation should work without Electron renderer IPC
+- local desktop action execution is not required
+
+## Debugging by Symptom
+
+| Symptom | Likely channel | First docs |
+| --- | --- | --- |
+| Query never reaches backend | desktop IPC or `/ws` | [IPC Channel Reference](../frontend/contracts/ipc_channel_and_handler_reference.md), [Backend WebSocket Reference](../backend/api/websocket_connection_and_task_lifecycle_reference.md) |
+| Query streams but UI does not update | backend outgoing event or renderer stream consumer | [Backend Contracts Events Hub](../backend/contracts/events/README.md), [Frontend Backend Event Consumer Matrix](../frontend/contracts/backend_event_consumer_matrix_reference.md) |
+| Tool call appears but local action does not run | renderer tool runner or sidecar JSON-RPC | [Sidecar and Tool Channels](sidecar_and_tool_channels.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
+| Voice text does not appear | `/ws/transcription` or voice renderer state | [Voice and Audio Channels](voice_and_audio_channels.md) |
+| Wakeword fires repeatedly or not at all | wakeword bridge/subprocess | [Voice and Audio Channels](voice_and_audio_channels.md) |
+| SDK route works but desktop action fails | hosted SDK vs sidecar split | [SDK Hub](../sdk/README.md), [Sidecar and Tool Channels](sidecar_and_tool_channels.md) |
+| VM run is created but not executed | `/api/runs/*` or VM worker loop | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md) |
+
+## Validation Checklist
+
+Before finishing a channel change:
+
+1. identify the owning channel and payload contract.
+2. update the owner docs and this matrix if the routing changes.
+3. add tests at the producer and consumer boundary.
+4. verify no unrelated channel started depending on private payload shape.
+5. run `./bin/docs-list`.

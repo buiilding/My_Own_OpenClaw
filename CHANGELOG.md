@@ -9,6 +9,7 @@ All notable changes to WindieOS will be documented in this file.
 - docs(desktop-sdk): add OpenClaw-style desktop surface and SDK hubs covering dashboard, chat pill, response overlay, permissions, voice, artifacts, hosted clients, query traces, OCR/vision, and tool authoring.
 - docs(debug): add OpenClaw-style debug hub with logging controls, runtime trace routes, symptom playbooks, and focused test-selection guidance.
 - docs(providers): add provider-specific OpenAI, Anthropic, Gemini, OpenRouter, Kimi Coding, Mistral, and local-provider guides with code ownership and focused validation maps.
+- docs(channels): add channel-routing docs for desktop chat, websocket transport, voice/audio, sidecar tools, SDK clients, and VM run control.
 - docs(browser): add a dedicated browser automation hub covering profile isolation, CDP launch, action dispatch, session controls, file storage, and troubleshooting.
 - docs(memory): add a memory hub covering transcript persistence, replay, sidecar local memory, backend history, semantic routes, and troubleshooting.
 - docs(automation): add a VM run orchestration hub covering `/api/runs/*`, worker heartbeats, dispatch, event relay, controls, and future scheduler boundaries.

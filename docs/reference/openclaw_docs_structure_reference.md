@@ -77,6 +77,7 @@ Added/expanded in WindieOS:
 - `concepts/`: OpenClaw-style conceptual docs for runtime model, agent loop, context/memory, and safety boundaries.
 - `desktop/`: user-visible desktop surface docs for dashboard, chat pill, response overlay, onboarding/permissions, voice, and artifacts.
 - `debug/`: OpenClaw-style debug docs for logs, trace flags, symptom playbooks, and test selection.
+- `channels/`: OpenClaw-style channel docs for desktop chat, websocket transport, voice/audio, sidecar tool execution, SDK clients, and VM run control routing.
 - `browser/`: dedicated browser automation docs for launch/profile isolation, action dispatch, session UI, files, and troubleshooting.
 - `memory/`: transcript, replay, sidecar local memory, backend history, semantic routes, and troubleshooting docs.
 - `tools/`: first-class tool-system docs covering contracts, catalog matrices, execution lifecycle, policy/profile gates, troubleshooting, computer use, browser automation, filesystem, and shell execution.
@@ -103,6 +104,7 @@ Added/expanded in WindieOS:
 - `concepts/`: product/system mental models that are not tied to one source folder.
 - `desktop/`: user-facing desktop surfaces and their renderer/main ownership boundaries.
 - `debug/`: symptom-first debugging, runtime trace controls, logs, and validation choices.
+- `channels/`: entry-channel and transport routing docs across IPC, websocket, HTTP, sidecar JSON-RPC, SDK, voice, and VM run control.
 - `browser/`: browser-specific runtime, action surface, and troubleshooting docs separate from generic tool docs.
 - `memory/`: memory and transcript docs that distinguish renderer persistence, sidecar storage, and backend active history.
 - `automation/`: current VM runs and worker control plane; future cron/webhook/durable scheduler docs stay in `planning/` until implemented.

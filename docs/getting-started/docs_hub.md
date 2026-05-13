@@ -33,6 +33,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Quick Start](quick_start.md) for the local run path.
 - [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) for environment setup.
 - [Concepts Hub](../concepts/README.md) for product/system mental models before implementation details.
+- [Channels Hub](../channels/README.md) for desktop, websocket, voice, sidecar, SDK, and VM-run communication paths.
 - [Memory Hub](../memory/README.md) for transcript, replay, sidecar memory, backend history, and semantic route ownership.
 - [Automation Hub](../automation/README.md) for VM run orchestration, worker polling, run-control APIs, and scheduler boundaries.
 - [Desktop Surfaces](../desktop/README.md) for dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts.
@@ -54,6 +55,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 | Area | Owns | Code roots | Start docs |
 | --- | --- | --- | --- |
 | Backend API + transport | HTTP routes, websocket handshake, incoming message dispatch, outgoing event envelopes, formatter contracts | `backend/src/api`, `backend/src/core/container`, `backend/src/api/contracts` | [Backend API Docs Hub](../backend/api/README.md), [Backend Contracts Docs Hub](../backend/contracts/README.md), [Backend Inventory Protocols Hub](../backend/inventory/protocols/README.md) |
+| Channels and transports | Desktop chat entrypoints, backend websocket, transcription websocket, sidecar JSON-RPC, SDK routes, VM run control | `frontend/src/main`, `frontend/src/renderer`, `frontend/src/main/python`, `backend/src/api/routes`, `frontend/src/renderer/infrastructure/api` | [Channels Hub](../channels/README.md), [Channel Routing Matrix](../channels/channel_routing_matrix.md), [Communication Flow](../architecture/communication_flow.md) |
 | Backend agent runtime | Session lifecycle, query execution, interaction loop, tool turns, history, compaction, prompt context | `backend/src/agent`, `backend/src/api/services/query_execution.py` | [Backend Agent Docs Hub](../backend/agent/README.md), [Backend Runtime Docs Hub](../backend/runtime/README.md) |
 | Backend tool schema + orchestration | Model-facing tool registry, schema filtering, coordinate preparation, frontend dispatch, result waiting, tool-result history | `backend/src/tools`, `backend/src/agent/tools` | [Backend Tools Docs Hub](../backend/tools/README.md), [Backend Change Path Playbook](../backend/inventory/domains/backend_change_path_playbook_reference.md) |
 | Backend LLM + prompts | Provider factory, model catalog, prompt construction, parser/trust boundary, stream normalization | `backend/src/llm`, `backend/src/agent/llm` | [Backend LLM Docs Hub](../backend/llm/README.md), [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md), [Backend LLM Prompt Docs Hub](../backend/llm/prompts/README.md) |
@@ -66,6 +68,27 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 | Operations | Config, hosted auth, deployment, packaging, release, performance, security, runtime troubleshooting | `docs/operations`, `scripts`, `.github/workflows`, build config | [Operations Hub](../operations/README.md), [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), [Operational Troubleshooting](../operations/operational_troubleshooting.md) |
 
 ## Change Path Playbooks
+
+### Change an Entry Channel or Transport Route
+
+Read:
+
+- [Channels Hub](../channels/README.md)
+- [Channel Routing Matrix](../channels/channel_routing_matrix.md)
+- [Communication Flow](../architecture/communication_flow.md)
+- [IPC Channel and Handler Reference](../frontend/contracts/ipc_channel_and_handler_reference.md)
+- [Backend API and Transport](../backend/api/api_and_transport.md)
+
+Likely code:
+
+- `frontend/src/main/ipc.cjs`
+- `frontend/src/preload.js`
+- `frontend/src/renderer/infrastructure/ipc/**`
+- `backend/src/api/routes/**`
+- `backend/src/api/handlers/**`
+- `frontend/src/main/python/**` when local sidecar execution is involved
+
+Validate producer/consumer tests on both sides of the changed channel. Do not reuse another channel's private payload shape as an implicit compatibility shortcut.
 
 ### Add or Change a WebSocket Message
 
@@ -357,6 +380,13 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Agent Loop](../concepts/agent_loop.md)
 - [Context and Memory](../concepts/context_and_memory.md)
 - [Safety Boundaries](../concepts/safety_boundaries.md)
+
+### Channels
+
+- [Channels Hub](../channels/README.md)
+- [Channel Routing Matrix](../channels/channel_routing_matrix.md)
+- [Voice and Audio Channels](../channels/voice_and_audio_channels.md)
+- [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md)
 
 ### Memory
 

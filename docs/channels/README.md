@@ -1,0 +1,97 @@
+---
+summary: "Channel hub for WindieOS desktop, websocket, voice, sidecar, SDK, and VM-run communication paths."
+read_when:
+  - When deciding which WindieOS transport or entry channel owns a behavior.
+  - When changing desktop chat, overlay chat, voice/STT/TTS, SDK clients, sidecar tools, or VM run control flows.
+title: "Channels Hub"
+---
+
+# Channels Hub
+
+WindieOS has several user and developer entry channels that eventually meet the backend agent loop or local sidecar tools. Use this hub before changing routing behavior so the implementation lands in the owner channel instead of patching the wrong consumer.
+
+## Channel Map
+
+| Channel | User/developer entry | Primary transport | Owner docs |
+| --- | --- | --- | --- |
+| Dashboard chat | Main React dashboard composer | renderer -> Electron IPC -> backend `/ws` | [Channel Routing Matrix](channel_routing_matrix.md), [Desktop Dashboard](../desktop/dashboard.md) |
+| Minimal chat pill | Floating overlay composer | overlay renderer -> Electron IPC -> backend `/ws` | [Channel Routing Matrix](channel_routing_matrix.md), [Minimal Chat Pill](../desktop/minimal_chat_pill.md) |
+| Backend agent stream | Main query/control protocol | WebSocket `/ws` | [Backend API and Transport](../backend/api/api_and_transport.md), [HTTP and WebSocket API Surface](../reference/http_api_surface.md) |
+| Voice dictation | Voice-mode microphone capture | renderer audio -> backend `/ws/transcription` | [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
+| Wakeword | Background hotword listener | renderer audio -> Electron wakeword bridge -> sidecar subprocess | [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
+| TTS playback | Backend audio response | backend `/ws` `audio-chunk` events -> renderer playback queue | [Voice and Audio Channels](voice_and_audio_channels.md), [Backend TTS Manager](../backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md) |
+| Local tools | Computer, browser, filesystem, shell, memory | renderer/main IPC -> Python sidecar JSON-RPC | [Sidecar and Tool Channels](sidecar_and_tool_channels.md), [Tools Hub](../tools/README.md) |
+| SDK clients | External programmatic clients | direct hosted HTTP + WebSocket | [Channel Routing Matrix](channel_routing_matrix.md), [SDK Hub](../sdk/README.md) |
+| VM runs | Hosted dashboard or worker execution | `/api/runs/*` HTTP control plane + backend `/ws` dispatch | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md) |
+
+## Rules
+
+- Use `/ws` for normal agent queries, settings/model messages, tool-result ingress, rehydrate, stop-query, wakeword activation, and stream events.
+- Use `/ws/transcription` only for voice-mode STT audio/control messages.
+- Use `/api/runs/*` only for VM worker assignment, run control, and run timeline events.
+- Use `/api/sdk/*` for hosted developer introspection and perception routes, not local sidecar execution.
+- Use the sidecar JSON-RPC path for local desktop control, browser actions, shell/filesystem tools, local memory, and system state.
+- Do not make frontend or sidecar code import backend modules to share channel schemas.
+
+## Common Change Paths
+
+### Add a Query Input Surface
+
+Read:
+
+- [Channel Routing Matrix](channel_routing_matrix.md)
+- [Frontend Chat Stream + Tool Runtime](../frontend/renderer/chat_stream_and_tool_execution_reference.md)
+- [IPC Channel and Handler Reference](../frontend/contracts/ipc_channel_and_handler_reference.md)
+- [Backend API and Transport](../backend/api/api_and_transport.md)
+
+Likely code:
+
+- renderer surface/component under `frontend/src/renderer`
+- `frontend/src/main/ipc.cjs` query send path
+- backend `/ws` query handler only if the payload contract changes
+
+Validate renderer send-path tests, main-process IPC tests, and backend query contract tests when payloads change.
+
+### Add a Voice or Audio Feature
+
+Read:
+
+- [Voice and Audio Channels](voice_and_audio_channels.md)
+- [Voice and Wakeword](../desktop/voice_and_wakeword.md)
+- [Backend TTS + Wakeword Audio Runtime Reference](../backend/services/tts_and_wakeword_audio_runtime_reference.md)
+
+Likely code:
+
+- `frontend/src/renderer/features/voice/**`
+- `frontend/src/main/wakeword_bridge*.cjs`
+- `frontend/src/main/python/wakeword_service.py`
+- `backend/src/api/routes/transcription/**`
+- `backend/src/api/processing/tts/**`
+
+Validate voice hook, wakeword bridge, STT gateway, and TTS stream tests.
+
+### Add a Local Tool Capability
+
+Read:
+
+- [Sidecar and Tool Channels](sidecar_and_tool_channels.md)
+- [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
+- [Frontend Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md)
+
+Likely code:
+
+- backend model-facing schema under `backend/src/tools`
+- renderer tool runner under `frontend/src/renderer`
+- sidecar executable tool under `frontend/src/main/python/tools`
+- IPC bridge only when a new local bridge channel is required
+
+Validate backend schema tests, sidecar tool tests, renderer tool-runner tests, and schema parity tests.
+
+## Deep Docs
+
+- [Channel Routing Matrix](channel_routing_matrix.md)
+- [Voice and Audio Channels](voice_and_audio_channels.md)
+- [Sidecar and Tool Channels](sidecar_and_tool_channels.md)
+- [Communication Flow](../architecture/communication_flow.md)
+- [IPC Channel and Handler Reference](../frontend/contracts/ipc_channel_and_handler_reference.md)
+- [HTTP and WebSocket Endpoint Reference](../backend/api/http_and_ws_endpoint_reference.md)
