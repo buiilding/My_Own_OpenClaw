@@ -43,8 +43,18 @@ APP_CONFIG = AppConfig(
     # Vision Model Settings (UI grounding / Venus)
     vision_backend="local",
     vision_model_name="OpenGVLab/InternVL3_5-4B",
+    vision_remote_service_url=None,
+    vision_remote_health_url=None,
+    vision_request_timeout_seconds=30.0,
+    vision_health_timeout_seconds=5.0,
     ocr_backend="local",
     ocr_model="rapidocr-ppocrv5-server",
+    ocr_remote_service_url=None,
+    ocr_remote_health_url=None,
+    ocr_request_timeout_seconds=10.0,
+    ocr_health_timeout_seconds=3.0,
+    provider_circuit_breaker_failure_threshold=3,
+    provider_circuit_breaker_cooldown_seconds=60.0,
     # Voice Mode Settings
     wakeword_stt_enabled=False,
     stt_provider="openai",

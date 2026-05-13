@@ -24,6 +24,10 @@ class IVisionProvider(Protocol):
         """Initialize the InternVL model."""
         ...
 
+    async def health_check(self) -> bool:
+        """Return provider health using a cheap readiness probe when available."""
+        ...
+
     async def predict_coordinates(
         self,
         image_base64: str,

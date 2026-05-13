@@ -12,11 +12,11 @@ from dependency_injector import providers
 from backend.src.core.config import AppConfig
 from backend.src.core.container.factories import (
     _create_embedder,
+    _create_ocr_provider,
     _create_ocr_service,
+    _create_vision_provider,
     _create_vision_service,
 )
-from backend.src.services.ocr import LocalOcrProvider
-from backend.src.services.vision import LocalVisionProvider
 
 logger = logging.getLogger(__name__)
 
@@ -123,12 +123,12 @@ class ContainerConfigUpdater:
             )
         )
         ocr_service = core_ocr_service_provider()
-        ocr_provider = (
-            LocalOcrProvider(ocr_service, model_id=config.ocr_model)
-            if ocr_service is not None
-            else None
-        )
+        ocr_provider = _create_ocr_provider(config, service=ocr_service)
         if hasattr(self.container, "ocr_router"):
+            self.container.ocr_router.configure_circuit_breaker(
+                failure_threshold=config.provider_circuit_breaker_failure_threshold,
+                cooldown_seconds=config.provider_circuit_breaker_cooldown_seconds,
+            )
             self.container.ocr_router.set_provider(ocr_provider)
             self.container.ocr_provider = ocr_provider
             self.container.ocr_service = self.container.ocr_router
@@ -149,10 +149,12 @@ class ContainerConfigUpdater:
             )
         )
         vision_service = core_vision_service_provider()
-        vision_provider = (
-            LocalVisionProvider(vision_service) if vision_service is not None else None
-        )
+        vision_provider = _create_vision_provider(config, service=vision_service)
         if hasattr(self.container, "vision_router"):
+            self.container.vision_router.configure_circuit_breaker(
+                failure_threshold=config.provider_circuit_breaker_failure_threshold,
+                cooldown_seconds=config.provider_circuit_breaker_cooldown_seconds,
+            )
             self.container.vision_router.set_provider(vision_provider)
             self.container.vision_provider = vision_provider
             self.container.vision_service = self.container.vision_router

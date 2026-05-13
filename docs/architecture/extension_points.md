@@ -48,7 +48,9 @@ Add or swap OCR, vision, or embedding inference backends through the capability 
 - Contracts: `backend/src/core/interfaces/`
 - Routers: `backend/src/core/inference/`
 - Local OCR provider adapter: `backend/src/services/ocr/provider.py`
+- Remote OCR provider adapter: `backend/src/services/ocr/remote_provider.py`
 - Local vision provider adapter: `backend/src/services/vision/provider.py`
+- Remote vision provider adapter: `backend/src/services/vision/remote_provider.py`
 - Local vision model hosts: `backend/src/services/vision/providers/`
 
 The backend orchestration/runtime layers should depend on these capability contracts and routers rather than on concrete singleton model hosts.
@@ -57,6 +59,12 @@ Provider availability feeds the agent capability policy through
 `agent_provider_unavailable_capabilities`. If a provider is missing, disabled,
 failed, or otherwise known unavailable before prompt construction, the backend
 removes the matching capability from the model-visible surface for that session.
+OCR and vision routers support `local`, `remote-http`, and `disabled` backends.
+Remote OCR uses `/health` and `/ocr/analyze`; remote vision uses `/health`,
+`/vision/locate`, and `/vision/describe`. Router circuit breakers stop
+advertising repeatedly failing providers during the cooldown window and provider
+failures during a turn are returned as structured provider-error payloads through
+the normal tool-output recovery path.
 
 ## 5) Renderer UI Features
 

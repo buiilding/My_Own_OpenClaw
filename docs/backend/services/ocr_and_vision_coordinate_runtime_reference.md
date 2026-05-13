@@ -22,23 +22,29 @@ This page is the entrypoint for backend OCR and vision coordinate behavior. Deta
 
 The OCR/vision coordinate pipeline covers:
 
-1. startup policy-gated service initialization
+1. startup policy-gated provider initialization
 2. per-session screenshot + OCR task state tracking
 3. proactive OCR scheduling and stale-result guards
 4. coordinate resolver routing (`ocr` vs `prediction`)
-5. vision provider model loading and inference fallback
+5. local or remote provider routing for OCR and vision
 6. coordinate parsing/scaling from model output to pixel click targets
+7. structured provider error recovery and circuit-breaker health gating
 
 ## Canonical Modules
 
 - `backend/src/core/container/initializer.py`
+- `backend/src/core/inference/ocr_router.py`
+- `backend/src/core/inference/vision_router.py`
+- `backend/src/core/inference/circuit_breaker.py`
 - `backend/src/tools/tool_policy.py`
 - `backend/src/services/ocr/ocr_service.py`
+- `backend/src/services/ocr/remote_provider.py`
 - `backend/src/agent/tools/preparation/screenshot/state.py`
 - `backend/src/agent/tools/preparation/screenshot/manager.py`
 - `backend/src/agent/tools/preparation/ocr/coordinator.py`
 - `backend/src/agent/tools/preparation/coordinate_resolution/resolvers.py`
 - `backend/src/services/vision/vision_service.py`
+- `backend/src/services/vision/remote_provider.py`
 - `backend/src/services/vision/providers/base.py`
 - `backend/src/services/vision/providers/internvl.py`
 - `backend/src/services/vision/providers/internvl_runtime_helpers.py`

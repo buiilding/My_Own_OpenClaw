@@ -7,11 +7,13 @@ This module provides the main application container using dependency injection c
 from dependency_injector import containers, providers
 
 from backend.src.core.container.core_container import CoreContainer
+from backend.src.core.container.factories import (
+    _create_ocr_provider,
+    _create_vision_provider,
+)
 from backend.src.core.container.memory_container import MemoryContainer
 from backend.src.core.container.tool_container import ToolContainer
 from backend.src.core.inference import EmbeddingRouter, OcrRouter, VisionRouter
-from backend.src.services.ocr import LocalOcrProvider
-from backend.src.services.vision import LocalVisionProvider
 
 
 class ApplicationContainer(containers.DeclarativeContainer):
@@ -62,16 +64,13 @@ class ApplicationContainer(containers.DeclarativeContainer):
     )
 
     ocr_provider = providers.Singleton(
-        lambda service, cfg: (
-            LocalOcrProvider(service, model_id=cfg.ocr_model)
-            if service is not None
-            else None
-        ),
+        _create_ocr_provider,
+        config=core.config,
         service=core.ocr_service,
-        cfg=core.config,
     )
     vision_provider = providers.Singleton(
-        lambda service: LocalVisionProvider(service) if service is not None else None,
+        _create_vision_provider,
+        config=core.config,
         service=core.vision_service,
     )
     embedding_router = providers.Singleton(
@@ -79,12 +78,22 @@ class ApplicationContainer(containers.DeclarativeContainer):
         provider=memory.embedder,
     )
     ocr_router = providers.Singleton(
-        OcrRouter,
+        lambda provider, cfg: OcrRouter(
+            provider,
+            failure_threshold=cfg.provider_circuit_breaker_failure_threshold,
+            cooldown_seconds=cfg.provider_circuit_breaker_cooldown_seconds,
+        ),
         provider=ocr_provider,
+        cfg=core.config,
     )
     vision_router = providers.Singleton(
-        VisionRouter,
+        lambda provider, cfg: VisionRouter(
+            provider,
+            failure_threshold=cfg.provider_circuit_breaker_failure_threshold,
+            cooldown_seconds=cfg.provider_circuit_breaker_cooldown_seconds,
+        ),
         provider=vision_provider,
+        cfg=core.config,
     )
 
     # API container (will be created and wired in Container facade)

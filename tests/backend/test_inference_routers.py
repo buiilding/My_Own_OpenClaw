@@ -1,6 +1,16 @@
+import json
+
 import pytest
 
-from backend.src.core.inference import EmbeddingRouter, OcrRouter, VisionRouter
+from backend.src.agent.tools.processing.synthetic_factory import SyntheticResultFactory
+from backend.src.core.inference import (
+    EmbeddingRouter,
+    OcrRouter,
+    ProviderCircuitOpenError,
+    ProviderRequestError,
+    VisionRouter,
+)
+from backend.src.llm.parser_types import ParsedToolCall
 
 
 class _FakeEmbeddingProvider:
@@ -33,6 +43,9 @@ class _FakeOcrProvider:
     async def initialize(self) -> None:
         return None
 
+    async def health_check(self) -> bool:
+        return self.enabled and self.is_ready
+
     async def analyze_image(self, image_base64: str):
         self.calls.append(image_base64)
         return [{"text": image_base64}]
@@ -51,6 +64,9 @@ class _FakeVisionProvider:
     async def initialize(self) -> bool:
         self.is_initialized = True
         return True
+
+    async def health_check(self) -> bool:
+        return self.is_initialized and not self.initialization_error
 
     async def predict_coordinates(
         self,
@@ -126,3 +142,70 @@ async def test_vision_router_initializes_current_provider() -> None:
     assert description == "description"
     assert provider.calls == [("shot", "button"), ("shot", "what is here?")]
     assert router.provider_id == "fake-vision"
+
+
+@pytest.mark.asyncio
+async def test_ocr_router_opens_circuit_after_repeated_failures() -> None:
+    class FailingProvider(_FakeOcrProvider):
+        async def analyze_image(self, _image_base64: str):
+            raise RuntimeError("ocr endpoint down")
+
+    router = OcrRouter(
+        FailingProvider(),
+        failure_threshold=2,
+        cooldown_seconds=30.0,
+    )
+
+    with pytest.raises(ProviderRequestError):
+        await router.perform_ocr("first")
+    with pytest.raises(ProviderRequestError):
+        await router.perform_ocr("second")
+
+    assert router.is_ready is False
+    with pytest.raises(ProviderCircuitOpenError) as exc_info:
+        await router.perform_ocr("third")
+    assert exc_info.value.to_payload()["code"] == "circuit_open"
+
+
+@pytest.mark.asyncio
+async def test_vision_router_returns_structured_provider_error_payload() -> None:
+    class EmptyVisionProvider(_FakeVisionProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.is_initialized = True
+
+        async def predict_coordinates(self, _image_base64: str, _description: str):
+            return None
+
+    router = VisionRouter(EmptyVisionProvider(), failure_threshold=1)
+
+    with pytest.raises(ProviderRequestError) as exc_info:
+        await router.predict_coordinates("shot", "button")
+
+    payload = exc_info.value.to_payload()
+    assert payload["type"] == "provider_error"
+    assert payload["capability"] == "vision"
+    assert payload["code"] == "provider_request_failed"
+    assert "no coordinates" in payload["message"]
+
+
+def test_synthetic_result_factory_preserves_provider_error_payload() -> None:
+    payload = {
+        "type": "provider_error",
+        "capability": "ocr",
+        "provider_id": "remote-http-ocr",
+        "code": "provider_request_failed",
+        "message": "Remote OCR service timed out",
+    }
+    error_msg = (
+        "OCR provider error (provider_request_failed): Remote OCR service timed out. "
+        f"provider_error_json={json.dumps(payload, separators=(',', ':'))}"
+    )
+
+    result = SyntheticResultFactory.create(
+        ParsedToolCall(tool_name="mouse_control", parameters={}),
+        error_msg,
+    )
+
+    assert result.success is False
+    assert result.data["provider_error"] == payload

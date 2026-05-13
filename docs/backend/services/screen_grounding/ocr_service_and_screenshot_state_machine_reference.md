@@ -24,14 +24,20 @@ title: "OCR Service and Screenshot State-Machine Reference"
 
 ## Startup Gating and Service Enablement
 
-`ContainerInitializer._initialize_ocr_service()` startup path:
+`ContainerInitializer._initialize_ocr_service()` startup path now initializes the
+configured OCR provider through `OcrRouter`, not the concrete OCR model directly.
+For `ocr_backend="local"`, the router delegates to the RapidOCR adapter. For
+`ocr_backend="remote-http"`, it probes the remote service health endpoint. For
+`ocr_backend="disabled"` or missing remote URL, no OCR provider is exposed.
+
+Startup path:
 
 1. resolves policy via `ToolPolicy.should_initialize_ocr()`
 2. if disabled:
    - sets `ocr_service.enabled = False` when field exists
    - skips startup engine initialization
 3. if enabled:
-   - runs `ocr_service.initialize()`
+   - runs `ocr_service.initialize()` through the router/provider boundary
    - logs whether the engine is ready, still enabled-but-not-ready, or disabled
 
 Policy source:
@@ -111,6 +117,10 @@ Failure semantics:
 
 - raises `ValueError` when OCR service unavailable/disabled
 - raises `ValueError` when OCR returns no usable results
+- provider router failures include `provider_error_json={...}` in the error text
+  so synthetic tool output can return structured provider details to the model
+- repeated provider failures open the OCR router circuit breaker; while open,
+  provider health hides the OCR capability before prompt construction
 
 Coverage note:
 

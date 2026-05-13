@@ -19,6 +19,7 @@ from backend.src.agent.tools.preparation.coordinate_resolution.resolvers import 
     OcrCoordinateResolver,
     VisionCoordinateResolver,
 )
+from backend.src.core.inference.errors import ProviderCapabilityError
 from backend.src.api.auth.context import get_current_authenticated_install_identity
 from backend.src.api.routes.sdk.models import (
     BoundingBoxModel,
@@ -507,7 +508,10 @@ async def run_ocr(source: ResolvedImageSource, container) -> list[dict[str, Any]
     if ocr_service is None or not getattr(ocr_service, "enabled", False):
         raise HTTPException(status_code=503, detail="OCR service not available")
 
-    ocr_results = await ocr_service.perform_ocr(source.image_base64)
+    try:
+        ocr_results = await ocr_service.perform_ocr(source.image_base64)
+    except ProviderCapabilityError as error:
+        raise HTTPException(status_code=503, detail=error.to_payload()) from error
     if ocr_results is None:
         raise HTTPException(
             status_code=503, detail="OCR service did not return results"
@@ -616,7 +620,10 @@ async def resolve_vision_service(container):
     if vision_service is None:
         raise HTTPException(status_code=503, detail="Vision service not available")
     if not getattr(vision_service, "is_initialized", False):
-        initialized = await vision_service.initialize()
+        try:
+            initialized = await vision_service.initialize()
+        except ProviderCapabilityError as error:
+            raise HTTPException(status_code=503, detail=error.to_payload()) from error
         if not initialized:
             detail = (
                 getattr(vision_service, "initialization_error", None)
@@ -633,11 +640,14 @@ async def build_vision_locate_response(
     container,
 ) -> VisionLocateResponse:
     vision_service = await resolve_vision_service(container)
-    x, y = await VisionCoordinateResolver.resolve(
-        description,
-        source.image_base64,
-        vision_service,
-    )
+    try:
+        x, y = await VisionCoordinateResolver.resolve(
+            description,
+            source.image_base64,
+            vision_service,
+        )
+    except ProviderCapabilityError as error:
+        raise HTTPException(status_code=503, detail=error.to_payload()) from error
     return VisionLocateResponse(
         image=build_image_metadata(source),
         description=description,
@@ -678,10 +688,13 @@ async def describe_image_region(
         "Describe this UI image briefly for automation. "
         "Mention visible text, likely control types, and the most actionable element."
     )
-    description = await vision_service.answer_question_about_image(
-        source.image_base64,
-        prompt,
-    )
+    try:
+        description = await vision_service.answer_question_about_image(
+            source.image_base64,
+            prompt,
+        )
+    except ProviderCapabilityError as error:
+        raise HTTPException(status_code=503, detail=error.to_payload()) from error
     if not description:
         raise HTTPException(
             status_code=502,

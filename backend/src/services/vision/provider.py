@@ -34,6 +34,9 @@ class LocalVisionProvider:
     async def initialize(self) -> bool:
         return await self._service.initialize()
 
+    async def health_check(self) -> bool:
+        return self.is_initialized and not self.initialization_error
+
     async def predict_coordinates(
         self,
         image_base64: str,

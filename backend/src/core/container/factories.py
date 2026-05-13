@@ -131,8 +131,13 @@ def _create_embedder(config: AppConfig, cache_manager) -> Optional[EmbeddingProv
             label="backend-local-embedding",
         )
     if config.embedding_backend == "remote-http":
-        if not isinstance(config.embedding_remote_service_url, str) or not config.embedding_remote_service_url.strip():
-            logger.error("Embedding backend remote-http requires embedding_remote_service_url")
+        if (
+            not isinstance(config.embedding_remote_service_url, str)
+            or not config.embedding_remote_service_url.strip()
+        ):
+            logger.error(
+                "Embedding backend remote-http requires embedding_remote_service_url"
+            )
             return None
         provider = RemoteHttpEmbeddingProvider(
             service_url=config.embedding_remote_service_url,
@@ -160,6 +165,8 @@ def _create_tts_service(config: AppConfig):
 
 def _create_vision_service(config: AppConfig):
     """Create vision service with configured model name."""
+    if config.vision_backend in {"remote-http", "disabled"}:
+        return None
     if config.vision_backend != "local":
         logger.warning(
             "Vision backend %s is not implemented in-process; disabling vision provider",
@@ -173,6 +180,8 @@ def _create_vision_service(config: AppConfig):
 
 def _create_ocr_service(config: AppConfig):
     """Create OCR service with configured settings."""
+    if config.ocr_backend in {"remote-http", "disabled"}:
+        return None
     if config.ocr_backend != "local":
         logger.warning(
             "OCR backend %s is not implemented in-process; disabling OCR provider",
@@ -182,3 +191,73 @@ def _create_ocr_service(config: AppConfig):
     from backend.src.services.ocr import OcrService
 
     return OcrService()
+
+
+def _create_ocr_provider(config: AppConfig, service=None):
+    """Create the configured OCR provider adapter."""
+    if config.ocr_backend == "disabled":
+        return None
+    if config.ocr_backend == "local":
+        if service is None:
+            return None
+        from backend.src.services.ocr import LocalOcrProvider
+
+        return LocalOcrProvider(service, model_id=config.ocr_model)
+    if config.ocr_backend == "remote-http":
+        if (
+            not isinstance(config.ocr_remote_service_url, str)
+            or not config.ocr_remote_service_url.strip()
+        ):
+            logger.error("OCR backend remote-http requires ocr_remote_service_url")
+            return None
+        from backend.src.services.ocr import RemoteHttpOcrProvider
+
+        return RemoteHttpOcrProvider(
+            service_url=config.ocr_remote_service_url,
+            health_url=config.ocr_remote_health_url,
+            model_id=config.ocr_model,
+            request_timeout_seconds=config.ocr_request_timeout_seconds,
+            health_timeout_seconds=config.ocr_health_timeout_seconds,
+        )
+
+    logger.warning(
+        "OCR backend %s is not implemented in-process; disabling OCR provider",
+        config.ocr_backend,
+    )
+    return None
+
+
+def _create_vision_provider(config: AppConfig, service=None):
+    """Create the configured vision provider adapter."""
+    if config.vision_backend == "disabled":
+        return None
+    if config.vision_backend == "local":
+        if service is None:
+            return None
+        from backend.src.services.vision import LocalVisionProvider
+
+        return LocalVisionProvider(service)
+    if config.vision_backend == "remote-http":
+        if (
+            not isinstance(config.vision_remote_service_url, str)
+            or not config.vision_remote_service_url.strip()
+        ):
+            logger.error(
+                "Vision backend remote-http requires vision_remote_service_url"
+            )
+            return None
+        from backend.src.services.vision import RemoteHttpVisionProvider
+
+        return RemoteHttpVisionProvider(
+            service_url=config.vision_remote_service_url,
+            health_url=config.vision_remote_health_url,
+            model_id=config.vision_model_name or "remote-vision",
+            request_timeout_seconds=config.vision_request_timeout_seconds,
+            health_timeout_seconds=config.vision_health_timeout_seconds,
+        )
+
+    logger.warning(
+        "Vision backend %s is not implemented in-process; disabling vision provider",
+        config.vision_backend,
+    )
+    return None

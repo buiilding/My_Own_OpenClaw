@@ -105,6 +105,42 @@ WindieOS exposes one logical capability named `web_search`. Availability is auto
 
 No separate runtime toggle is required in v1.
 
+### OCR and Vision Provider Routing
+
+OCR and vision are selected independently with backend-owned config:
+
+- `ocr_backend`: `local`, `remote-http`, `vendor`, or `disabled`
+- `ocr_remote_service_url`: base URL for a remote OCR service
+- `ocr_remote_health_url`: optional health URL or path; defaults to `/health`
+- `ocr_request_timeout_seconds` and `ocr_health_timeout_seconds`
+- `vision_backend`: `local`, `remote-http`, `vendor`, or `disabled`
+- `vision_remote_service_url`: base URL for a remote vision service
+- `vision_remote_health_url`: optional health URL or path; defaults to `/health`
+- `vision_request_timeout_seconds` and `vision_health_timeout_seconds`
+- `provider_circuit_breaker_failure_threshold`
+- `provider_circuit_breaker_cooldown_seconds`
+
+Remote OCR contract:
+
+- `GET /health` returns any 2xx response, optionally with `status: ok|healthy|ready`
+  or boolean `ready`, `healthy`, or `available`.
+- `POST /ocr/analyze` receives `{"image": "...", "model": "..."}` and returns either
+  a result list or an object with `results`, `ocr_results`, `items`, or `data`.
+
+Remote vision contract:
+
+- `GET /health` follows the same health convention.
+- `POST /vision/locate` receives `{"image": "...", "description": "...", "model": "..."}`
+  and returns coordinates as `center`, `point`, `coordinates`, or `match.center`.
+- `POST /vision/describe` receives `{"image": "...", "prompt": "...", "model": "..."}`
+  and returns text in `answer`, `description`, `text`, or `result`.
+
+If a provider is known down before prompt construction, backend policy hides the
+matching OCR or vision fields from model-visible tool schemas. If it fails during
+a turn, the router returns a structured provider error through the normal tool
+output path so the agent loop can recover or ask for another method. Repeated
+failures open a circuit breaker and temporarily stop advertising the capability.
+
 ### Local Providers
 
 Local providers do not require API keys and use base URLs defined in the provider config:
