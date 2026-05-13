@@ -14,6 +14,10 @@ Use this hub when you are about to edit code. It routes a change to the right su
 
 - [Agent Development Workflow](agent_development_workflow.md)
 - [Validation Matrix](validation_matrix.md)
+- [Docs Update Workflow](docs_update_workflow.md)
+- [Review and Risk Checklist](review_and_risk_checklist.md)
+- [Test Failure Triage](test_failure_triage.md)
+- [Commit and Changelog Workflow](commit_and_changelog_workflow.md)
 - [Developer Guide](developer_guide.md)
 - [Environment Setup](environment_setup.md)
 - [Testing Guide](testing.md)
@@ -68,3 +72,10 @@ There is no current repo-root `scripts/check` or `scripts/check-loc.py` in this 
 4. Add tests at the boundary that failed or changed.
 5. Update docs and changelog with behavior/API/contract changes.
 6. Commit completed work with `./scripts/committer`.
+
+## Execution Workflows
+
+- Use [Docs Update Workflow](docs_update_workflow.md) for docs-only changes and behavior changes that need docs updates.
+- Use [Review and Risk Checklist](review_and_risk_checklist.md) before committing cross-runtime or security-sensitive work.
+- Use [Test Failure Triage](test_failure_triage.md) when a focused command fails.
+- Use [Commit and Changelog Workflow](commit_and_changelog_workflow.md) for commit scope, changelog entries, and validation reporting.

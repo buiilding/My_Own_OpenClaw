@@ -426,6 +426,10 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Development Hub**](development/README.md) - Agent-facing contributor workflow, validation, environment, and change routing hub
 - [**Agent Development Workflow**](development/agent_development_workflow.md) - Step-by-step workflow for docs-first implementation, scoped edits, validation, and commits
 - [**Validation Matrix**](development/validation_matrix.md) - Current backend/frontend/sidecar/docs/package validation commands by change type
+- [**Docs Update Workflow**](development/docs_update_workflow.md) - Docs-list, front matter, hub wiring, changelog, link, and whitespace workflow
+- [**Review and Risk Checklist**](development/review_and_risk_checklist.md) - Ownership, contracts, security, validation, and residual-risk review questions
+- [**Test Failure Triage**](development/test_failure_triage.md) - Route failed backend, sidecar, frontend, docs, packaging, and contract checks
+- [**Commit and Changelog Workflow**](development/commit_and_changelog_workflow.md) - Commit scope, Conventional Commit subjects, changelog entries, and validation reporting
 - [**Validation Commands**](cli/validation_commands.md) - Command-focused validation guide for docs, backend, sidecar, frontend, IPC, provider, packaging, and config changes
 - [**Developer Guide**](development/developer_guide.md) - Comprehensive development guide
 - Developer Guide includes current local automation scripts (`bin/docs-list` or `node scripts/docs-list.js`, `scripts/test`, `scripts/test-backend`, `scripts/test-sidecar`, `scripts/committer`) and frontend audit commands (`npm run lint:audit`, `npm run audit:jscpd`, `npm run audit:knip`).
