@@ -11,6 +11,7 @@ title: "Frontend Main Docs Hub"
 ## Deep Pages
 
 - [Electron Main and IPC](electron_main_and_ipc.md)
+- [Main Process Change Workflow](main_process_change_workflow.md)
 - [Main Overlay Focus Docs Hub](overlays/README.md)
 - [Window and Overlay Lifecycle](window_and_overlay_lifecycle.md)
 - [Main Window Runtime Factory and Overlay Bootstrap Reference](main_window_runtime_factory_and_overlay_bootstrap_reference.md)

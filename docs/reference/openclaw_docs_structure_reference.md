@@ -95,7 +95,7 @@ Added/expanded in WindieOS:
 - `automation/`: current VM run orchestration docs for `/api/runs/*`, worker polling, run timelines, run controls, and explicit boundaries for future cron/webhook/scheduler work.
 - `operations/`: OpenClaw-style operational hub and runbooks for runtime config ownership, configuration-change routing, hosted install auth, deployment, Cloudflare Tunnel, release/packaging change routing, packaging/reinstall flows, evidence collection, incident triage, release, security, performance, and troubleshooting.
 - `backend/`: backend functionality maps and subsystem docs, including query-lifecycle and tool-turn workflow guides that route agent-loop changes to exact API, session, formatter, history, and tool orchestration owners.
-- `frontend/`: frontend/electron/renderer/sidecar functionality maps plus renderer-state, IPC, and sidecar-tool change workflows for renderer/preload/main/sidecar boundaries.
+- `frontend/`: frontend/electron/renderer/sidecar functionality maps plus renderer-state, main-process, IPC, and sidecar-tool change workflows for renderer/preload/main/sidecar boundaries.
 - `development/`: agent-facing implementation workflow, validation matrix, docs update workflow, review/risk checklist, test-failure triage, commit/changelog workflow, environment setup, testing, contributing, and tool-development guides.
 - `planning/`: current-vs-future boundary, roadmap status matrix, promotion checklist, initiative index, and future-facing plan docs.
 - `adr/`: architecture decision records for durable cross-runtime decisions, including browser extension auto-attach and frontend tool schema source-of-truth proposals.
