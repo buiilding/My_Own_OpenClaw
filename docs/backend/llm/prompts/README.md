@@ -10,6 +10,7 @@ title: "Backend LLM Prompt Docs Hub"
 
 ## Deep Pages
 
+- [Prompt Context Change Workflow](prompt_context_change_workflow.md)
 - [Prompt Constructor and Transparency Metadata Reference](prompt_constructor_and_transparency_metadata_reference.md)
 - [Prompt Manager and System Prompt Lifecycle Reference](prompt_manager_and_system_prompt_lifecycle_reference.md)
 

@@ -76,6 +76,7 @@ Keep ordering broad-to-specific so nested repo instructions can override parent 
 - [Agent Loop](agent_loop.md)
 - [Context and Memory](context_and_memory.md)
 - [Safety Boundaries](safety_boundaries.md)
+- [Backend Prompt Context Change Workflow](../backend/llm/prompts/prompt_context_change_workflow.md)
 - [Backend Prompt Constructor and Transparency Metadata Reference](../backend/llm/prompts/prompt_constructor_and_transparency_metadata_reference.md)
 - [Backend LLM Prompt Docs Hub](../backend/llm/prompts/README.md)
 - [Tool Contracts](../tools/tool_contracts.md)

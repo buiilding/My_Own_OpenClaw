@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(prompts): add prompt context change workflow for system prompt text, repo instructions, memory and attachment context, model-visible tool schemas, transparency events, and generated prompt/schema artifacts.
 - docs(backend-services): add backend service change workflow for artifacts, OCR, vision, embeddings, semantic memory, TTS/wakeword audio, token counting, and VM run-control services.
 - docs(backend-api): add API route change workflow for HTTP routes, websocket messages, handlers, formatters, auth gates, route models, and package exports.
 - docs(frontend): add sidecar runtime change workflow for Python JSON-RPC, local tools, memory, browser automation, system state, platform adapters, backend config, and wakeword service behavior.
