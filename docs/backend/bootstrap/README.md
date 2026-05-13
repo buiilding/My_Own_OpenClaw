@@ -12,6 +12,7 @@ title: "Backend Bootstrap Docs Hub"
 
 - [Bootstrap and Config](bootstrap_and_config.md)
 - [Container DI and Initialization Lifecycle Reference](container_di_and_init_lifecycle_reference.md)
+- [Backend Config and Container Change Workflow](../config/backend_config_and_container_change_workflow.md)
 - [Backend Bootstrap Entrypoints Docs Hub](entrypoints/README.md)
 - [Shared Entrypoint Logger and Uvicorn Runner Contract Reference](entrypoints/shared_entrypoint_logger_and_uvicorn_runner_contract_reference.md)
 

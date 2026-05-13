@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(config): add backend config and container change workflow for `AppConfig` fields, runtime normalization, session settings propagation, DI rebinding, provider refresh, and stale dependency debugging.
 - docs(prompts): add prompt context change workflow for system prompt text, repo instructions, memory and attachment context, model-visible tool schemas, transparency events, and generated prompt/schema artifacts.
 - docs(backend-services): add backend service change workflow for artifacts, OCR, vision, embeddings, semantic memory, TTS/wakeword audio, token counting, and VM run-control services.
 - docs(backend-api): add API route change workflow for HTTP routes, websocket messages, handlers, formatters, auth gates, route models, and package exports.

@@ -131,3 +131,5 @@ Local macOS reinstall intentionally clears Apple signing/notarization env before
 4. Add tests at the owner boundary and at every protocol boundary that receives the propagated value.
 5. Update [Configuration](configuration.md), this matrix, and any feature-specific docs.
 6. Run `./bin/docs-list`.
+
+For backend `AppConfig`, session-scoped settings, container rebinding, and stale provider/session debugging, use [Backend Config and Container Change Workflow](../backend/config/backend_config_and_container_change_workflow.md).

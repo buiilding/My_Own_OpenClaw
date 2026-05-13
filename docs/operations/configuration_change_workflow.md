@@ -51,6 +51,8 @@ The core rule is: put the setting where it can be enforced, then propagate only 
 
 Use backend config when the setting affects backend runtime behavior.
 
+For backend-only details such as `AppConfig` field ownership, runtime normalization, session-scoped settings updates, DI provider rebinding, model service refresh, OCR/vision/embedding router refresh, and lazy session factory invalidation, read [Backend Config and Container Change Workflow](../backend/config/backend_config_and_container_change_workflow.md).
+
 Primary files:
 
 - `backend/src/core/config/app_config.py`

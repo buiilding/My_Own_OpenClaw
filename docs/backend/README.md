@@ -43,6 +43,7 @@ Covers:
 - [Bootstrap Entrypoints Docs Hub](bootstrap/entrypoints/README.md)
 - [Shared Entrypoint Logger and Uvicorn Runner Contract Reference](bootstrap/entrypoints/shared_entrypoint_logger_and_uvicorn_runner_contract_reference.md)
 - [Config Docs Hub](config/README.md)
+- [Backend Config and Container Change Workflow](config/backend_config_and_container_change_workflow.md)
 - [Config Fields and Runtime Policy](config/config_fields_and_runtime_policy.md)
 - [Core Infrastructure Docs Hub](core/README.md)
 - [Event Bus and Cache Infrastructure Reference](core/event_bus_and_cache_infrastructure_reference.md)

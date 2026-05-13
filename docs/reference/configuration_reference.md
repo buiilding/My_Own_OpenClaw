@@ -50,10 +50,13 @@ WindieOS config is split by runtime owner. Add a field where the owner can enfor
 6. Update [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md), [Configuration](../operations/configuration.md), and any feature docs.
 7. Run `./bin/docs-list`.
 
+Use [Backend Config and Container Change Workflow](../backend/config/backend_config_and_container_change_workflow.md) when the owner is backend `AppConfig`, a session-scoped settings update, or a container/provider rebinding path.
+
 ## Deep Docs
 
 - [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
 - [Configuration](../operations/configuration.md)
+- [Backend Config and Container Change Workflow](../backend/config/backend_config_and_container_change_workflow.md)
 - [Hosted Backend Auth](../operations/hosted_backend_auth.md)
 - [Provider Credentials](../providers/credentials.md)
 - [Model Provider Selection](../concepts/model_provider_selection.md)
