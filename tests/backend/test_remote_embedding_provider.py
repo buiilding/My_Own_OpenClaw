@@ -85,6 +85,37 @@ async def test_remote_provider_maps_capacity_response_to_capacity_error() -> Non
 
 
 @pytest.mark.asyncio
+async def test_remote_provider_health_check_updates_metadata() -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/health"
+        return httpx.Response(
+            200,
+            json={
+                "status": "healthy",
+                "provider_id": "embedding-service",
+                "model_id": "sentence-transformers/all-MiniLM-L6-v2",
+                "dimension": 384,
+                "embedding_space_version": "embedding-service:sentence-transformers/all-MiniLM-L6-v2:384",
+            },
+        )
+
+    provider = RemoteHttpEmbeddingProvider(
+        service_url="http://embeddings.internal",
+        http_client=httpx.AsyncClient(
+            base_url="http://embeddings.internal",
+            transport=_build_transport(handler),
+        ),
+    )
+
+    assert await provider.health_check() is True
+    assert provider.provider_id == "embedding-service"
+    assert provider.model_id == "sentence-transformers/all-MiniLM-L6-v2"
+    assert provider.dimension == 384
+
+    await provider.close()
+
+
+@pytest.mark.asyncio
 async def test_remote_provider_rejects_invalid_response_body() -> None:
     async def handler(_request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"embeddings": []})

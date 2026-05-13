@@ -74,8 +74,13 @@ class ApplicationContainer(containers.DeclarativeContainer):
         service=core.vision_service,
     )
     embedding_router = providers.Singleton(
-        EmbeddingRouter,
+        lambda provider, cfg: EmbeddingRouter(
+            provider,
+            failure_threshold=cfg.provider_circuit_breaker_failure_threshold,
+            cooldown_seconds=cfg.provider_circuit_breaker_cooldown_seconds,
+        ),
         provider=memory.embedder,
+        cfg=core.config,
     )
     ocr_router = providers.Singleton(
         lambda provider, cfg: OcrRouter(
