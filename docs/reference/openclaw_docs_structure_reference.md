@@ -85,7 +85,7 @@ Added/expanded in WindieOS:
 - `plugins/`: current plugin-like extension docs for tools, providers, SDK routes, sidecar actions, renderer features, and future plugin-system boundaries.
 - `browser/`: dedicated browser automation docs for launch/profile isolation, action dispatch, session UI, files, and troubleshooting.
 - `memory/`: transcript, replay, sidecar local memory, backend history, semantic routes, compaction routing, and troubleshooting docs.
-- `tools/`: first-class tool-system docs covering contracts, catalog matrices, execution lifecycle, policy/profile gates, troubleshooting, computer use, browser automation, filesystem, and shell execution.
+- `tools/`: first-class tool-system docs covering schema/policy change routing, contracts, catalog matrices, execution lifecycle, policy/profile gates, troubleshooting, computer use, browser automation, filesystem, and shell execution.
 - `providers/`: model/provider docs covering LLM providers, provider-specific runtime pages, provider/model-catalog change workflows, model catalog metadata, credentials, and inference providers.
 - `sdk/`: hosted backend client and developer API docs covering route-change workflow, auth/error handling, query planning, traces, OCR/vision, and tool authoring.
 - `reference/`: stable lookup docs for API surfaces, websocket event contracts, configuration ownership, session/transcript identifiers, code-change surface routing, and docs organization policy.

@@ -13,6 +13,7 @@ WindieOS tools are split between backend model-facing definitions and frontend/s
 ## Tool Families
 
 - [Tool Contracts](tool_contracts.md) explains backend schema, sidecar execution, request ids, bundle results, and parity tests.
+- [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md) routes model-visible schema, policy, provider projection, sidecar parity, renderer dispatch, and result-contract changes.
 - [Tool Catalog Matrix](tool_catalog_matrix.md) maps every model-visible tool to backend schema owners, sidecar executors, use cases, policy gates, and tests.
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md) follows a tool call from prompt exposure through renderer dispatch, sidecar execution, result ingress, history, and loop continuation.
 - [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) explains profiles, available/disabled tools, disabled capabilities, coordinate method gates, browser gating, and web-search exposure.
@@ -45,16 +46,18 @@ Sidecar executable tools are registered in `frontend/src/main/python/tools/regis
 ## Change Path
 
 1. Use [Tool Catalog Matrix](tool_catalog_matrix.md) to identify the static owner.
-2. Use [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) to identify any visibility gate.
-3. Update the backend catalog/schema owner first.
-4. Update sidecar executable schema/runtime if the local payload changes.
-5. Update renderer tool-runner payload shaping if correlation, artifacts, screenshots, or bundle behavior changes.
-6. Update formatter/outgoing schemas if the visible stream event changes.
-7. Add or update backend, frontend, and sidecar tests for the changed boundary.
+2. Use [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md) to route schema, visibility, provider, sidecar, renderer, and result-contract changes.
+3. Use [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) to identify any visibility gate.
+4. Update the backend catalog/schema owner first.
+5. Update sidecar executable schema/runtime if the local payload changes.
+6. Update renderer tool-runner payload shaping if correlation, artifacts, screenshots, or bundle behavior changes.
+7. Update formatter/outgoing schemas if the visible stream event changes.
+8. Add or update backend, frontend, and sidecar tests for the changed boundary.
 
 ## Deep Docs
 
 - [Tool System](../architecture/tool_system.md)
+- [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md)
 - [Tool Catalog Matrix](tool_catalog_matrix.md)
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md)
 - [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md)

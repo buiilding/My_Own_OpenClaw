@@ -28,6 +28,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Security Hub**](security/README.md) - Hosted auth, IPC isolation, schema validation, credentials, tool execution, and sidecar boundaries
 - [**Plugins and Extensions Hub**](plugins/README.md) - Current extension points for tools, providers, SDK routes, sidecar actions, and future plugin boundaries
 - [**Tools Hub**](tools/README.md) - Tool contracts, computer tools, browser automation, filesystem, and shell execution
+- [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Owner routing for model-visible tool schemas, policy gates, provider projection, sidecar parity, renderer dispatch, and tool-result contracts
 - [**Providers Hub**](providers/README.md) - LLM providers, model catalog, credentials, inference providers, STT, and TTS
 - [**SDK Hub**](sdk/README.md) - Hosted backend clients, query planning, OCR/vision SDK routes, and tool authoring
 - [**Install Hub**](install/README.md) - Local development, packaging, endpoint setup, sidecar runtime bundling, reinstall/reset loops, and install troubleshooting
@@ -136,6 +137,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Symptom Playbooks**](debug/symptom_playbooks.md) - Failure-to-owner maps for backend, tools, screenshots, overlays, permissions, voice, and browser
 - [**Test Selection**](debug/test_selection.md) - Focused pytest/Jest commands by runtime and contract boundary
 - [**Tool Contracts**](tools/tool_contracts.md) - Backend model-facing schema vs sidecar executable tool contract
+- [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Change workflow for model-facing schemas, policy gates, provider projection, sidecar parity, renderer dispatch, and result-contract validation
 - [**Tool Catalog Matrix**](tools/tool_catalog_matrix.md) - Model-visible tools mapped to backend schema owners, sidecar executors, policy gates, and tests
 - [**Tool Execution Lifecycle**](tools/tool_execution_lifecycle.md) - End-to-end tool-call path through backend, renderer, sidecar, result ingress, and history
 - [**Tool Policy Profiles and Capabilities**](tools/tool_policy_profiles_and_capabilities.md) - Tool profiles, available/disabled tools, coordinate methods, browser gates, and web-search exposure

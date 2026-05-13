@@ -40,6 +40,8 @@ They are related but intentionally not the same code. The backend can resolve hi
 | Main sidecar bridge | `frontend/src/main/local_backend_bridge*.cjs` |
 | Sidecar registry | `frontend/src/main/python/tools/registry.py` |
 
+For a step-by-step change route across these owners, use [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md).
+
 ## Validation Checklist
 
 - Backend schema and parser tests cover the model-facing shape.
