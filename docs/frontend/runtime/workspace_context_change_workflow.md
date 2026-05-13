@@ -1,0 +1,249 @@
+---
+summary: "Workflow for changing workspace selection, conversation workspace binding, workspace_path query forwarding, AGENTS.md repo instruction injection, and backend prompt context."
+read_when:
+  - When changing active workspace selection, workspace access permission, conversation workspace binding, workspace_path query payloads, or repo instruction injection.
+  - When debugging missing AGENTS.md instructions, wrong workspace on resumed conversations, file/shell tools using the wrong folder, or backend prompts not reflecting the active workspace.
+  - When changing dashboard workspace settings, query send workspace forwarding, rehydrate workspace behavior, or backend prompt construction from workspace context.
+title: "Workspace Context Change Workflow"
+---
+
+# Workspace Context Change Workflow
+
+Use this workflow when a change involves "workspace", "project folder",
+`workspace_path`, repo instructions, AGENTS.md, conversation workspace binding, or
+file/shell default directory behavior. This path crosses renderer permission UI,
+conversation-local state, Electron main repo-instruction reading, backend query
+execution, and backend prompt construction.
+
+## Boundary Rules
+
+- Renderer owns active workspace display, user selection requests, per-conversation
+  workspace binding, and passing `workspace_path` with query/rehydrate payloads.
+- Electron main owns filesystem permission prompts, active workspace permission
+  status, and local AGENTS.md reading for the desktop query path.
+- Backend owns prompt construction, session workspace path, backend-side
+  AGENTS.md lookup when the backend can access the path, and preference for
+  injected repo instruction messages when the backend cannot read local files.
+- Sidecar local tools may use workspace-related config for execution defaults,
+  but sidecar must not construct backend prompt context or import backend code.
+- `workspace_path` is context. It must not be treated as proof that the backend
+  can access the same filesystem path.
+- Repo instruction messages are user-role context blocks generated from
+  AGENTS.md files. Preserve the marker format unless every consumer/test is
+  updated.
+
+## Fast Owner Map
+
+| Change or symptom | Primary owner files | Tests to inspect or add |
+| --- | --- | --- |
+| Workspace picker, active workspace display, or permission status changes | `frontend/src/renderer/features/dashboard/components/sections/settings/WorkspaceSettingsTab.jsx`, `frontend/src/renderer/infrastructure/workspace/workspaceAccess.js`, `frontend/src/main/permission_service_workspace.cjs`, `frontend/src/main/permission_ipc_runtime.cjs` | `tests/frontend/PermissionIpcRuntime.test.cjs`, settings tab tests when UI changes |
+| Per-conversation workspace binding is missing or stale | `frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js`, `useChatMessageSender.ts`, `useDashboardConversations.js`, transcript snapshot loader | `tests/frontend/ChatWorkspaceState.test.ts`, dashboard conversation tests, transcript snapshot tests |
+| Query payload has missing or wrong `workspace_path` | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/infrastructure/api/client.ts`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | `tests/frontend/ApiClient.test.ts`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/QueryPayloadBuilder.test.cjs` |
+| Electron main AGENTS.md injection changes | `frontend/src/main/repo_instruction_runtime.cjs`, `frontend/src/main/ipc.cjs` | `tests/frontend/RepoInstructionRuntime.test.cjs`, query relay tests |
+| Backend query execution does not pass workspace into agent session | `backend/src/api/services/query_execution_support/query_execution_inputs.py`, `backend/src/api/services/query_execution.py`, `backend/src/agent/session/manager.py` | `tests/backend/test_query_execution_inputs.py`, `tests/backend/test_api_handlers.py`, `tests/backend/test_session_manager.py` |
+| Backend prompt misses AGENTS.md or uses stale repo instructions | `backend/src/llm/prompts/repo_instructions.py`, prompt constructor/manager modules | `tests/backend/test_repo_instructions.py`, `tests/backend/test_prompt_constructor_utils.py`, `tests/backend/test_prompt_manager.py` |
+| Rehydrated conversation resumes with wrong workspace | `backend/src/api/services/rehydrate_execution.py`, renderer rehydrate payload builders, conversation workspace binding helpers | backend rehydrate tests, frontend conversation replay/resume tests |
+
+## Runtime Flow
+
+```mermaid
+sequenceDiagram
+    participant Settings as Workspace settings UI
+    participant Renderer as Renderer chat/dashboard
+    participant Main as Electron main
+    participant Backend as Hosted backend
+    participant Prompt as Prompt constructor
+
+    Settings->>Main: request/check workspace permission
+    Main->>Renderer: workspace-access-updated
+    Renderer->>Renderer: bind workspace to conversation_ref
+    Renderer->>Main: query payload with workspace_path
+    Main->>Main: read AGENTS.md messages when local path is available
+    Main->>Backend: query with workspace_path + repo_instruction_messages
+    Backend->>Backend: normalize query inputs and session workspace
+    Backend->>Prompt: build prompt with injected messages or backend lookup
+```
+
+## Change Sequence
+
+### 1. Classify the workspace behavior
+
+Start by deciding which contract is changing:
+
+- Permission and selection: the user chooses or clears a local workspace.
+- Conversation binding: a chat retains the workspace it started or resumed with.
+- Query forwarding: `workspace_path` and repo instructions are attached to query
+  or rehydrate payloads.
+- Prompt context: AGENTS.md messages and `workspace_path` affect backend prompt
+  construction.
+- Tool defaults: local tools use workspace as a default execution directory.
+
+If the change touches prompt context and local selection, update frontend and
+backend tests in the same batch.
+
+### 2. Inspect workspace selection and permission UI
+
+Read these files for active workspace selection:
+
+- `frontend/src/renderer/features/dashboard/components/sections/settings/WorkspaceSettingsTab.jsx`
+- `frontend/src/renderer/infrastructure/workspace/workspaceAccess.js`
+- `frontend/src/main/permission_service_workspace.cjs`
+- `frontend/src/main/permission_ipc_runtime.cjs`
+- `frontend/src/main/index.cjs`
+
+Selection rules:
+
+- `filesystem_workspace_access` is the permission id used by renderer helpers.
+- `fetchActiveWorkspaceSelection()` reads permission status through main IPC.
+- `requestActiveWorkspaceSelection()` asks main to open the selection flow.
+- `setActiveWorkspaceSelection(workspacePath)` updates the selected workspace
+  without re-opening the picker.
+- The displayed workspace name is derived from the final path segment.
+
+### 3. Inspect conversation workspace binding
+
+Read these files when a resumed conversation uses the wrong workspace:
+
+- `frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js`
+- `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
+- `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
+- `frontend/src/renderer/infrastructure/transcript/conversationLocalSnapshotLoader.ts`
+- `frontend/src/renderer/features/chat/session/conversationSessionRuntime.ts`
+
+Binding rules:
+
+- Bindings are keyed by `conversation_ref` and stored in session storage.
+- Sending a new query should reuse an existing conversation binding, or fetch the
+  active workspace selection and bind it to the conversation.
+- Opening a dashboard conversation should restore the snapshot's workspace
+  binding and set active workspace selection in main.
+- Deleting or clearing chats must clear matching workspace bindings.
+- Empty workspace paths normalize to an empty binding, not `null`-shaped objects.
+
+### 4. Inspect query and rehydrate forwarding
+
+Read these files when `workspace_path` is missing on the backend:
+
+- `frontend/src/renderer/infrastructure/api/client.ts`
+- `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
+- `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
+- `frontend/src/main/ipc/ipc_query_runtime.cjs`
+- `frontend/src/main/repo_instruction_runtime.cjs`
+- `backend/src/api/services/query_execution_support/query_execution_inputs.py`
+- `backend/src/api/services/query_execution.py`
+- `backend/src/api/services/rehydrate_execution.py`
+
+Forwarding rules:
+
+- Renderer sends normalized `workspace_path` through `ApiClient.sendQuery`.
+- Electron main may resolve local AGENTS.md instructions from the workspace path
+  before forwarding to the backend.
+- Backend query execution normalizes `workspace_path` and
+  `repo_instruction_messages` before calling `agent_instance.process_query`.
+- Rehydrate should apply workspace path and repo instruction messages to the
+  active backend session when resuming conversation context.
+
+### 5. Inspect AGENTS.md instruction lookup
+
+Electron main path:
+
+- `frontend/src/main/repo_instruction_runtime.cjs`
+- `tests/frontend/RepoInstructionRuntime.test.cjs`
+
+Backend path:
+
+- `backend/src/llm/prompts/repo_instructions.py`
+- `tests/backend/test_repo_instructions.py`
+
+Instruction rules:
+
+- A workspace file path normalizes to its parent directory.
+- If the workspace is inside a git repository, include every AGENTS.md from the
+  git root down to the workspace directory.
+- Outside a git repository, only the workspace directory is checked.
+- Messages are ordered broadest-to-narrowest.
+- Blank AGENTS.md files are ignored.
+- The message content format is:
+
+```text
+# AGENTS.md instructions for /path/to/scope
+
+<INSTRUCTIONS>
+...
+</INSTRUCTIONS>
+```
+
+### 6. Inspect backend prompt behavior
+
+Read these files when the model does not see workspace context:
+
+- `backend/src/llm/prompts/repo_instructions.py`
+- prompt constructor/manager modules under `backend/src/llm/prompts`
+- `backend/src/agent/session/manager.py`
+- `backend/src/agent/session/config_runtime.py`
+
+Prompt rules:
+
+- Injected `repo_instruction_messages` take priority over backend local
+  workspace lookup because the hosted backend usually cannot read desktop paths.
+- `set_session_workspace_path(...)` must update the active prompt builder and
+  conversation history system prompt.
+- Prompt tests should cover both backend lookup and injected instruction
+  priority.
+
+## Debug Routes
+
+| Symptom | First checks | Likely owner |
+| --- | --- | --- |
+| Workspace settings shows no workspace after choosing one | Check permission result payload, `workspace-access-updated`, selected paths, and `normalizeActiveWorkspace`. | Permission IPC and workspace settings |
+| New query omits `workspace_path` | Check conversation binding, `fetchActiveWorkspaceSelection`, and `ApiClient.sendQuery` args. | Renderer send path |
+| Resumed chat uses another workspace | Check snapshot workspace metadata, `setConversationWorkspaceBinding`, and `setActiveWorkspaceSelection`. | Dashboard conversation handoff |
+| AGENTS.md works locally but not with hosted backend | Check Electron-injected `repo_instruction_messages`; do not rely on backend reading a desktop path. | Main repo instruction runtime |
+| Backend prompt uses old workspace | Check `QueryExecutionInputs.workspace_path`, `process_query`, and session manager workspace update path. | Backend query/session runtime |
+| File tools run in wrong folder | Check workspace permission status, sidecar/backend config propagation, and tool execution cwd defaults. | Workspace permission and sidecar tool runtime |
+
+## Validation Matrix
+
+Docs-only change:
+
+- `./bin/docs-list`
+- `git diff --check`
+- focused Markdown link check for touched docs
+
+Workspace selection or permission change:
+
+- `cd frontend && npm run test -- PermissionIpcRuntime`
+- settings tab tests if UI behavior changes
+
+Conversation binding or dashboard resume change:
+
+- `cd frontend && npm run test -- ChatWorkspaceState`
+- `cd frontend && npm run test -- DashboardConversationLoad`
+- `cd frontend && npm run test -- ConversationSessionRuntime`
+- `cd frontend && npm run test -- ConversationLocalSnapshotLoader`
+
+Query forwarding or repo instruction injection change:
+
+- `cd frontend && npm run test -- ApiClient`
+- `cd frontend && npm run test -- IpcMainBridge.query`
+- `cd frontend && npm run test -- RepoInstructionRuntime`
+- `./scripts/python-in-env backend pytest tests/backend/test_query_execution_inputs.py`
+- `./scripts/python-in-env backend pytest tests/backend/test_repo_instructions.py`
+
+Backend prompt/session change:
+
+- `./scripts/python-in-env backend pytest tests/backend/test_prompt_constructor_utils.py`
+- `./scripts/python-in-env backend pytest tests/backend/test_prompt_manager.py`
+- `./scripts/python-in-env backend pytest tests/backend/test_session_manager.py`
+
+## Docs to Sync
+
+Update these docs when workspace context changes:
+
+- [Query Send and Stream Relay Change Workflow](../main/query_send_and_stream_relay_change_workflow.md)
+- [Dashboard Change Workflow](../renderer/dashboard/dashboard_change_workflow.md)
+- [Prompt Context Change Workflow](../../backend/llm/prompts/prompt_context_change_workflow.md)
+- [Prompt and Tool Context](../../concepts/prompt_and_tool_context.md)
+- [Session and Conversation Identity Change Workflow](../../memory/session_conversation_identity_change_workflow.md)
+- [Permissions and Local Authority Workflow](../../security/permissions_and_local_authority_workflow.md)
+- [Filesystem and Shell Tool Guide](../../tools/filesystem_shell.md)
