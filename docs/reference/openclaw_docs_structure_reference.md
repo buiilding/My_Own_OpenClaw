@@ -83,7 +83,7 @@ Added/expanded in WindieOS:
 - `nodes/`: runtime process/service docs mapping WindieOS's current hosted backend, Electron desktop, renderer, preload, Python sidecar, wakeword, VM worker, and Cloudflare/origin nodes, while keeping mobile/edge and one-agent-per-VM nodes marked as planned.
 - `security/`: top-level security docs for hosted auth, IPC isolation, validation, credential/token change workflows, credentials/tokens, permissions/local authority, tool authority, sidecar execution, and multi-user risks.
 - `plugins/`: current plugin-like extension docs for tools, providers, SDK routes, sidecar actions, renderer features, and future plugin-system boundaries.
-- `browser/`: dedicated browser automation docs for launch/profile isolation, action dispatch, session UI, files, and troubleshooting.
+- `browser/`: dedicated browser automation docs for launch/profile isolation, change workflow routing, action dispatch, session UI, files, and troubleshooting.
 - `memory/`: transcript, replay, session/conversation identity change routing, sidecar local memory, backend history, semantic routes, compaction routing, and troubleshooting docs.
 - `tools/`: first-class tool-system docs covering schema/policy change routing, contracts, catalog matrices, execution lifecycle, policy/profile gates, troubleshooting, computer use, browser automation, filesystem, and shell execution.
 - `providers/`: model/provider docs covering LLM providers, provider-specific runtime pages, provider/model-catalog change workflows, model catalog metadata, credentials, and inference providers.

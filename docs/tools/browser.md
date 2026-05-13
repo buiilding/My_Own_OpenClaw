@@ -10,7 +10,7 @@ title: "Browser Tool"
 
 WindieOS browser automation uses a dedicated browser runtime controlled by the sidecar. It is not the user's normal browser unless explicitly connected through the dedicated runtime path.
 
-For deeper dedicated-browser launch, action-surface, session-UI, and troubleshooting docs, read [Browser Hub](../browser/README.md).
+For browser changes that can cross schema, sidecar runtime, Electron bridge, renderer controls, CDP launch, snapshots, refs, or files, start with [Browser Change Workflow](../browser/browser_change_workflow.md). For deeper dedicated-browser launch, action-surface, session-UI, and troubleshooting docs, read [Browser Hub](../browser/README.md).
 
 ## Runtime Split
 
@@ -41,6 +41,7 @@ For deeper dedicated-browser launch, action-surface, session-UI, and troubleshoo
 
 - [Browser Control](../browser/browser_control.md)
 - [Browser Hub](../browser/README.md)
+- [Browser Change Workflow](../browser/browser_change_workflow.md)
 - [Dedicated Browser Runtime](../browser/dedicated_browser_runtime.md)
 - [Browser Action Surface](../browser/browser_action_surface.md)
 - [Browser Troubleshooting](../browser/browser_troubleshooting.md)

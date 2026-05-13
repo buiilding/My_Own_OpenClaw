@@ -1,5 +1,5 @@
 ---
-summary: "End-to-end browser tool runtime in sidecar: IPC/JSON-RPC path, adapter/runtime provider layers, BrowserController + CDP orchestration, and Browser Use vendoring/security rules."
+summary: "End-to-end browser tool runtime in sidecar: IPC/JSON-RPC path, shared browser contract validation, WindieBrowserRuntime dispatch, BrowserController + CDP orchestration, and browser file/snapshot boundaries."
 read_when:
   - When changing sidecar browser tool behavior, action routing, or CDP launch policy.
   - When debugging browser connect/snapshot/action failures across renderer, Electron main, and Python sidecar.
@@ -8,6 +8,8 @@ title: "Browser Automation Stack"
 
 # Browser Automation Stack
 
+WindieOS currently uses a first-party Windie browser runtime. Older Browser Use adapter/provider layers are not the current action dispatch path for the canonical `browser` tool.
+
 ## End-to-End Call Path
 
 Request path for browser actions:
@@ -15,9 +17,9 @@ Request path for browser actions:
 1. Renderer `ToolExecutionService` invokes `INVOKE_CHANNELS.EXECUTE_TOOL`.
 2. Electron main `local_backend_bridge.cjs` handles `execute-tool` and sends JSON-RPC `execute_tool`.
 3. Python sidecar `local_backend.py` routes to `ToolRegistry.execute_tool("browser", args)`.
-4. `tools/browser/browser_tool.py:execute_browser(...)` validates action and delegates to adapter.
-5. `BrowserRuntimeAdapter.execute(...)` maps action to runtime/provider operation.
-6. Runtime provider talks to `BrowserController` / Browser Use runtime and returns normalized action result.
+4. `tools/browser/browser_tool.py:execute_browser(...)` validates `BrowserControlArgs`.
+5. `WindieBrowserRuntime.execute(...)` maps the canonical action to a runtime handler.
+6. Runtime handlers talk to `BrowserController`, content extraction helpers, or browser file helpers and return normalized action result data.
 
 Main-process timeout behavior:
 
@@ -39,38 +41,43 @@ Main-process timeout behavior:
 `browser_tool.py`:
 
 - validates `args` object and `action`
-- rejects actions outside `BROWSER_ROUTED_ACTIONS`
-- resolves `get_browser_controller` lazily at execution time (avoids import-time Playwright dependency for adapter/parity-only test modules)
-- converts adapter result to canonical `ToolResult`
+- resolves `get_browser_controller` lazily at execution time to avoid import-time Playwright dependency
+- instantiates `WindieBrowserRuntime`
+- converts runtime success/failure into canonical `ToolResult`
 
-### Layer 2: runtime adapter
+### Layer 2: Windie runtime
 
-`browser_adapter.py`:
+`windie_runtime.py`:
 
-- handles runtime surface actions (`connect`, `profiles`, canonical Browser Use actions)
-- blocks removed aliases (`open`, `switch_tab`, `press`, `type`, `act`) with migration guidance
-- passes canonical Browser Use actions through `execute_browser_use_action(...)`
-- enforces connection preconditions for action families that require active session
-- returns normalized `AdapterActionResult` with `success`, `error_code`, warnings, and payload
+- declares `_RUNTIME_HANDLER_BINDINGS`
+- exposes `WindieBrowserRuntime.supported_actions()`
+- rejects unsupported actions with `ACTION_UNSUPPORTED`
+- enforces connection preconditions with `BROWSER_NOT_CONNECTED`
+- routes page actions through `BrowserController` and `BrowserActionExecutor`
+- routes extraction through `content_extraction.py`
+- routes browser-local file actions through `file_store.py`
 
-Important adapter constants:
+Important runtime constants:
 
-- `BROWSER_USE_ACTIONS_REQUIRING_CONNECTION`
+- `BROWSER_RUNTIME_ACTIONS`
+- `DEFAULT_SNAPSHOT_PAGE_LIMIT`
+- `MAX_SNAPSHOT_WINDOW_CHARS`
+- `RUNTIME_SOURCE = "windie.browser"`
 
-## Runtime Provider Selection
+## Shared Contract and Runtime Parity
 
-`browser_runtime.py:get_browser_runtime_provider(...)`:
+Canonical schema and runtime action coverage are shared through:
 
-- requires vendored `browser_use` package inside repo
-- default runtime (unset env): `browser_use_native`
-- accepted runtime env values (`WINDIE_BROWSER_USE_RUNTIME`): `browser_use`, `browser_use_native`
-- any unknown runtime value raises runtime error
+- `frontend/src/main/python/windie_shared/browser_contract_models.py`
+- `frontend/src/main/python/windie_shared/browser_contract_catalog.py`
+- `frontend/src/main/python/windie_shared/browser_contract_schema.py`
+- `frontend/src/main/python/windie_shared/browser_contract.py`
+- `frontend/src/main/python/tools/browser/schemas.py`
+- `backend/src/tools/browser/**`
 
-Vendoring enforcement:
+When adding/removing actions, update the shared contract, backend schema wrappers, sidecar schema re-export, runtime handler bindings, and parity tests together.
 
-- inserts `frontend/src/main/python/tools/browser` at front of `sys.path`
-- purges non-vendored `browser_use*` modules from `sys.modules`
-- asserts imported module path resolves inside vendored folder
+Use [Browser Change Workflow](../../browser/browser_change_workflow.md) for the full owner map and validation matrix.
 
 ## BrowserController Runtime Capabilities
 
@@ -118,21 +125,17 @@ Safety constraints include:
 - `connect.cdp_url` localhost-only validation for security
 - required selector/ref/coordinate checks for click/input families
 
-## Browser Use Bridge Internals
+## Browser Files and Extraction
 
-`_BrowserUseActionBridge` in `browser_runtime.py` handles:
+`tools/browser/content_extraction.py` owns page content extraction, scoped HTML capture, markdown conversion, and long-content bounds.
 
-- lazy import of Browser Use tool registry and session classes
-- Browser Use session creation tied to controller mode (`user_chrome`/`managed`)
-- optional file-system sandbox root for Browser Use file actions
-- extraction model/provider resolution from env or Windie runtime config
+`tools/browser/file_store.py` owns browser-local file paths. Relative browser file paths resolve under the browser file root, defaulting to:
 
-Extraction runtime env overrides:
+```text
+~/.windieos/browser
+```
 
-- `WINDIE_BROWSER_USE_EXTRACTION_PROVIDER`
-- `WINDIE_BROWSER_USE_EXTRACTION_MODEL_ID`
-- `WINDIE_BROWSER_USE_EXTRACTION_API_KEY`
-- `WINDIE_BROWSER_USE_EXTRACTION_BASE_URL`
+Do not route browser-owned file actions through general filesystem tools unless the product behavior is intentionally changing.
 
 ## Failure Surfaces and Diagnostics
 
@@ -146,13 +149,14 @@ Frequent failure points:
 
 Where errors are normalized:
 
-- adapter returns structured `AdapterActionResult.error_code`
-- browser tool converts failures into `ToolResult.error_result(...)`
+- `WindieBrowserRuntime` raises `BrowserActionError` with stable error codes
+- browser tool converts failures into `ToolResult` failures with `error_code`
 - local backend bridge maps JSON-RPC failures to `{ success: false, error }`
 
 ## Related Pages
 
 - [Sidecar Browser Docs Hub](browser/README.md)
+- [Browser Change Workflow](../../browser/browser_change_workflow.md)
 - [Sidecar Browser Chrome Docs Hub](browser/chrome/README.md)
 - [Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference](browser/browser_runtime_provider_vendoring_and_native_handler_bridge_reference.md)
 - [Browser Adapter Action Routing and Compatibility Semantics Reference](browser/browser_adapter_action_routing_and_compatibility_semantics_reference.md)

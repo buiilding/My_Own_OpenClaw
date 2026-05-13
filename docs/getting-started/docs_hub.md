@@ -60,6 +60,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Process Health Checklist](../debug/process_health_checklist.md) for proving which process is dead, stuck, disconnected, or healthy before editing code.
 - [Tools Hub](../tools/README.md) for model-facing and sidecar-executable tools.
 - [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) for changing model-visible tool schemas, policy gates, provider projection, sidecar parity, renderer dispatch, and tool-result contracts.
+- [Browser Change Workflow](../browser/browser_change_workflow.md) for browser action schemas, shared contracts, sidecar runtime, CDP launch, snapshots, refs, files, Electron bridge, and renderer browser controls.
 - [Providers Hub](../providers/README.md) for LLM, inference, credential, STT, TTS, and web-search providers.
 - [Provider Change Workflow](../providers/provider_change_workflow.md) for backend provider runtime, factory, config, credential, frontend setting, and test changes.
 - [Model Catalog Change Workflow](../providers/model_catalog_change_workflow.md) for model ids, capability flags, routing metadata, and picker behavior.
@@ -329,6 +330,7 @@ Validate platform-specific frontend tests, sidecar computer-tool tests, and back
 
 Read:
 
+- [Browser Change Workflow](../browser/browser_change_workflow.md)
 - [Browser Control](../browser/browser_control.md)
 - [Frontend Sidecar Browser Stack](../frontend/sidecar/browser_automation_stack.md)
 - [Backend Browser Remote Schema Surface + Compatibility Contract Reference](../backend/tools/browser/browser_remote_schema_surface_and_compatibility_contract_reference.md)

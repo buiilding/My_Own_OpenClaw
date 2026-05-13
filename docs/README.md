@@ -151,6 +151,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Computer Tools**](tools/computer.md) - Mouse, keyboard, screenshot, scroll, window, OCR, and vision grounding paths
 - [**Browser Tool**](tools/browser.md) - Dedicated browser runtime, schema parity, snapshots, and debugging
 - [**Browser Hub**](browser/README.md) - Dedicated browser launch, action surface, session UI, files, and troubleshooting
+- [**Browser Change Workflow**](browser/browser_change_workflow.md) - Owner routing for browser schemas, shared contract, sidecar runtime, CDP launch, Electron bridge, renderer controls, files, and tests
 - [**Filesystem and Shell Tools**](tools/filesystem_shell.md) - Read/replace, shell, process sessions, app launch, and output formatting
 - [**Models and LLM Providers**](providers/models.md) - Provider factory, model catalog, reasoning variants, and capability flags
 - [**Provider Change Workflow**](providers/provider_change_workflow.md) - Add/change provider runtime, factory, config, credentials, frontend settings, and tests
@@ -394,6 +395,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Backend Tool Preparation + Coordinate Resolution**](backend/tools/tool_preparation_and_coordinate_resolution_reference.md) - Pre-dispatch tool resolution internals: execution refs, OCR/prediction coordinate flow, normalization metadata contract, synthetic failure paths, and stale-screen execution guard
 - [**Backend Tools Processing Hub**](backend/tools/processing/README.md) - Sub-hub for history-facing post-execution processing (transform, synthetic error creation, and bundle-aware commit behavior)
 - [**Browser Control**](browser/browser_control.md) - Browser automation architecture and tool behavior
+- [**Browser Change Workflow**](browser/browser_change_workflow.md) - Browser action/schema/CDP/session/file change workflow across backend, sidecar, Electron, renderer, and tests
 - [**Sidecar Browser Automation Stack**](frontend/sidecar/browser_automation_stack.md) - Renderer->main->sidecar browser runtime and CDP orchestration details
 - [**Sidecar Browser Action Compatibility + Runtime**](frontend/sidecar/browser_action_compatibility_and_runtime_reference.md) - OpenClaw-compatible browser action surface, adapter normalization rules, native runtime handler mapping, and timeout/error-code behavior
 - [**Sidecar Browser Docs Hub**](frontend/sidecar/browser/README.md) - Sub-hub for Browser Use runtime-provider/vendoring guarantees and adapter action normalization contracts

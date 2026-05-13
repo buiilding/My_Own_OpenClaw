@@ -14,6 +14,7 @@ WindieOS browser automation is a first-class local tool path. The backend expose
 
 - [Browser Control](browser_control.md) documents the current action surface.
 - [How to Run Browser Control](browser_control_run.md) covers source-run setup and manual smoke checks.
+- [Browser Change Workflow](browser_change_workflow.md) routes browser changes across backend schema, shared contract, sidecar runtime, CDP launch, Electron bridge, renderer controls, files, and tests.
 - [Dedicated Browser Runtime](dedicated_browser_runtime.md) maps CDP launch, profile isolation, sidecar dispatch, and browser file storage.
 - [Browser Action Surface](browser_action_surface.md) maps actions to runtime handlers, snapshot refs, extraction, tab control, and file helpers.
 - [Browser Troubleshooting](browser_troubleshooting.md) maps symptoms to code roots and focused tests.
@@ -30,7 +31,7 @@ WindieOS browser automation is a first-class local tool path. The backend expose
 
 ## Development Rule
 
-Do not edit the renderer to compensate for sidecar/browser payload bugs. Verify the sidecar action result first, then the Electron bridge result, then the renderer session store.
+Do not edit the renderer to compensate for sidecar/browser payload bugs. Start with [Browser Change Workflow](browser_change_workflow.md), verify the sidecar action result first, then the Electron bridge result, then the renderer session store.
 
 ## Focused Validation
 
@@ -40,4 +41,3 @@ Do not edit the renderer to compensate for sidecar/browser payload bugs. Verify 
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_action_executor.py -q
 cd frontend && npm run test:ci -- ChatBrowserSessionControl.test.jsx
 ```
-
