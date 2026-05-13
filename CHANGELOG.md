@@ -11,6 +11,7 @@ All notable changes to WindieOS will be documented in this file.
 - docs(providers): add provider-specific OpenAI, Anthropic, Gemini, OpenRouter, Kimi Coding, Mistral, and local-provider guides with code ownership and focused validation maps.
 - docs(browser): add a dedicated browser automation hub covering profile isolation, CDP launch, action dispatch, session controls, file storage, and troubleshooting.
 - docs(memory): add a memory hub covering transcript persistence, replay, sidecar local memory, backend history, semantic routes, and troubleshooting.
+- docs(automation): add a VM run orchestration hub covering `/api/runs/*`, worker heartbeats, dispatch, event relay, controls, and future scheduler boundaries.
 - docs(operations): add an OpenClaw-style operations hub with runtime configuration, hosted install auth, packaging/reinstall, and operational troubleshooting runbooks.
 - docs(tools): expand the tools hub with a catalog matrix, execution lifecycle, policy/profile guide, and troubleshooting route map.
 - docs(development): add a development hub, agent workflow, validation matrix, and refresh stale check-script references.

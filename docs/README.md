@@ -15,6 +15,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Concepts Hub**](concepts/README.md) - Runtime model, agent loop, memory/context, and safety-boundary mental models
 - [**Desktop Surfaces**](desktop/README.md) - Dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts
 - [**Debug Hub**](debug/README.md) - Logs, runtime traces, symptom playbooks, and test selection
+- [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and future scheduler boundaries
 - [**Tools Hub**](tools/README.md) - Tool contracts, computer tools, browser automation, filesystem, and shell execution
 - [**Providers Hub**](providers/README.md) - LLM providers, model catalog, credentials, inference providers, STT, and TTS
 - [**SDK Hub**](sdk/README.md) - Hosted backend clients, query planning, OCR/vision SDK routes, and tool authoring
@@ -45,6 +46,10 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Agent Loop**](concepts/agent_loop.md) - Query send, backend streaming, tool turns, and completion lifecycle
 - [**Context and Memory**](concepts/context_and_memory.md) - Transcript, backend history, semantic memory, artifacts, screenshots, and repo instructions
 - [**Memory Hub**](memory/README.md) - Transcript persistence, replay, sidecar local memory, semantic routes, and troubleshooting
+- [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and scheduling boundaries
+- [**VM Runs and Workers**](automation/vm_runs_and_workers.md) - Run lifecycle from creation through worker dispatch, event relay, and controls
+- [**Runs API Runbook**](automation/runs_api_runbook.md) - `/api/runs/*` endpoint behavior, auth, payloads, statuses, and tests
+- [**Automation Boundaries**](automation/automation_boundaries.md) - Current VM runs versus future cron, webhook, durable queue, and scheduler work
 - [**Safety Boundaries**](concepts/safety_boundaries.md) - Permissions, schema validation, provider health, and trust boundaries
 - [**Dashboard**](desktop/dashboard.md) - Dashboard shell, sidebar, chat history, settings, memory, and model section routing
 - [**Minimal Chat Pill**](desktop/minimal_chat_pill.md) - Floating command pill behavior, capture timing, drag, anchor, and Linux flicker contract

@@ -18,6 +18,7 @@ Use this hub before editing scripts, build config, backend auth/config, endpoint
 | --- | --- | --- | --- |
 | Runtime configuration | Backend config and Electron main endpoint resolution | `backend/src/core/config`, `frontend/src/main/backend_endpoints.cjs`, `frontend/src/main/ipc/*`, `frontend/src/renderer/utils/configStorage.js` | [Configuration](configuration.md), [Runtime Configuration Matrix](runtime_configuration_matrix.md) |
 | Hosted backend auth | Backend install-token service plus frontend token propagation | `backend/src/api/auth`, `backend/src/api/routes/websocket`, `frontend/src/main`, `frontend/src/renderer/infrastructure` | [Hosted Backend Auth](hosted_backend_auth.md), [Multi-User Runtime Hardening](multi_user_runtime_hardening.md) |
+| VM run control | Runs API auth/caps plus Electron worker mode runtime | `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py`, `frontend/src/main/vm_worker_runtime.cjs` | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md), [Runs API Runbook](../automation/runs_api_runbook.md) |
 | Deployment | Hosted backend origin, Cloudflare Tunnel, user services, default endpoint routing | `scripts/cloudflared`, `backend/src/main.py`, `frontend/src/main/backend_endpoints.cjs` | [Deployment](deployment.md), [Cloudflared Self-Host Runbook](cloudflared_self_host_windieos.md) |
 | Packaging | Electron Builder, bundled Python runtime, release workflow | `frontend/package.json`, `frontend/electron-builder.bundled-python.yml`, `scripts/build-sidecar-runtime`, `.github/workflows/desktop-release.yml` | [Sidecar Runtime Packaging](sidecar_runtime_packaging.md), [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Release Guide](release.md) |
 | Local packaged reinstall | OS-specific uninstall, local state reset, runtime rebuild, launch smoke | `scripts/reinstall-windieos-macos.sh`, `scripts/reinstall-windieos-linux.sh`, `scripts/reinstall-windieos-windows.ps1` | [Packaging and Reinstall Runbooks](packaging_and_reinstall_runbooks.md), [Packaged Desktop Builds](../install/packaged_desktop.md) |
@@ -111,6 +112,30 @@ Likely owners:
 - 409 on `/api/runs/*`: active VM run cap
 - 502 from `api.windieos.com`: Cloudflare Tunnel or origin backend service
 - local tool failure after successful backend query: sidecar runtime, not hosted backend
+
+### Change VM Worker or Runs API Operations
+
+Read:
+
+- [Automation Hub](../automation/README.md)
+- [VM Runs and Workers](../automation/vm_runs_and_workers.md)
+- [Runs API Runbook](../automation/runs_api_runbook.md)
+- [Runtime Configuration Matrix](runtime_configuration_matrix.md)
+- [Operational Troubleshooting](operational_troubleshooting.md)
+
+Likely code/config:
+
+- `backend/src/api/routes/runs/*`
+- `backend/src/services/vm_run_control.py`
+- `frontend/src/main/vm_worker_runtime.cjs`
+- `frontend/src/main/runtime_mode.cjs`
+- `WINDIE_VM_*` and `WINDIE_RUNS_API_KEY` env vars
+
+Validation:
+
+- backend runs route/service tests
+- frontend VM worker/runtime-mode tests
+- endpoint/auth/cap docs when env behavior changes
 
 ## Operations Pages
 

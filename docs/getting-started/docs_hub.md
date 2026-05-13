@@ -34,6 +34,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) for environment setup.
 - [Concepts Hub](../concepts/README.md) for product/system mental models before implementation details.
 - [Memory Hub](../memory/README.md) for transcript, replay, sidecar memory, backend history, and semantic route ownership.
+- [Automation Hub](../automation/README.md) for VM run orchestration, worker polling, run-control APIs, and scheduler boundaries.
 - [Desktop Surfaces](../desktop/README.md) for dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts.
 - [Debug Hub](../debug/README.md) for logs, trace flags, symptom playbooks, and test selection.
 - [Tools Hub](../tools/README.md) for model-facing and sidecar-executable tools.
@@ -57,6 +58,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 | Backend tool schema + orchestration | Model-facing tool registry, schema filtering, coordinate preparation, frontend dispatch, result waiting, tool-result history | `backend/src/tools`, `backend/src/agent/tools` | [Backend Tools Docs Hub](../backend/tools/README.md), [Backend Change Path Playbook](../backend/inventory/domains/backend_change_path_playbook_reference.md) |
 | Backend LLM + prompts | Provider factory, model catalog, prompt construction, parser/trust boundary, stream normalization | `backend/src/llm`, `backend/src/agent/llm` | [Backend LLM Docs Hub](../backend/llm/README.md), [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md), [Backend LLM Prompt Docs Hub](../backend/llm/prompts/README.md) |
 | Backend services | Artifacts, embeddings, semantic memory API, OCR, vision, token counting, TTS/wakeword audio services | `backend/src/services`, `backend/src/embeddings`, `backend/src/api/routes` | [Backend Services Docs Hub](../backend/services/README.md), [Backend Services Screen-Grounding Docs Hub](../backend/services/screen_grounding/README.md) |
+| Automation and VM runs | Hosted run creation, worker assignment, run event timelines, stop controls, VM worker polling | `backend/src/api/routes/runs`, `backend/src/services/vm_run_control.py`, `backend/src/services/vm_run_control_support`, `frontend/src/main/vm_worker_runtime.cjs` | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md), [Runs API Runbook](../automation/runs_api_runbook.md) |
 | Electron main | Windows, overlays, websocket relay, config persistence, local sidecar bridge, permissions, wakeword bridge | `frontend/src/main` | [Frontend Main Docs Hub](../frontend/main/README.md), [Frontend Runtime Docs Hub](../frontend/runtime/README.md) |
 | Renderer | Chat UI, dashboard, settings, permissions, voice UI, stream event consumption, tool runner, transcript queue | `frontend/src/renderer` | [Frontend Renderer Docs Hub](../frontend/renderer/README.md), [Frontend Inventory Domains Hub](../frontend/inventory/domains/README.md) |
 | Preload IPC | Isolated renderer bridge, channel allowlist, IPC surface trust boundary | `frontend/src/preload.js` | [Frontend Preload Docs Hub](../frontend/preload/README.md), [Frontend Contracts IPC Docs Hub](../frontend/contracts/ipc/README.md) |
@@ -242,6 +244,25 @@ Likely code:
 
 Validate renderer transcript tests, sidecar memory tests, and backend memory route tests. Keep transcript replay state and semantic memory state distinct.
 
+### Change VM Runs, Worker Polling, or Run Controls
+
+Read:
+
+- [Automation Hub](../automation/README.md)
+- [VM Runs and Workers](../automation/vm_runs_and_workers.md)
+- [Runs API Runbook](../automation/runs_api_runbook.md)
+- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
+
+Likely code:
+
+- `backend/src/api/routes/runs/**`
+- `backend/src/services/vm_run_control.py`
+- `backend/src/services/vm_run_control_support/**`
+- `frontend/src/main/vm_worker_runtime.cjs`
+- `frontend/src/main/runtime_mode.cjs`
+
+Validate backend runs route/service tests and frontend VM worker/runtime-mode tests. Keep `/api/runs/*` as a control plane; normal desktop chat still goes through `/ws`.
+
 ### Add or Change an LLM Provider, Prompt, or Model Catalog
 
 Read:
@@ -344,6 +365,13 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Sidecar Local Memory](../memory/sidecar_local_memory.md)
 - [Backend History and Semantic Routes](../memory/backend_history_and_semantic_routes.md)
 - [Memory Troubleshooting](../memory/memory_troubleshooting.md)
+
+### Automation
+
+- [Automation Hub](../automation/README.md)
+- [VM Runs and Workers](../automation/vm_runs_and_workers.md)
+- [Runs API Runbook](../automation/runs_api_runbook.md)
+- [Automation Boundaries](../automation/automation_boundaries.md)
 
 ### Desktop Surfaces
 

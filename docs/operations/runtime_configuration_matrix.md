@@ -88,6 +88,8 @@ Do not add backend-owned provider internals such as `speech_provider`, `stt_prov
 
 ## VM Worker and Runs API Variables
 
+See [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md), and [Runs API Runbook](../automation/runs_api_runbook.md) for the end-to-end control-plane flow behind these variables.
+
 | Variable | Owner | Effect |
 | --- | --- | --- |
 | `WINDIE_VM_MODE` | Electron main | Boots the app in hosted VM dashboard mode, disables normal tray/overlay/onboarding surfaces |

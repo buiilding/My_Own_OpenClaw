@@ -48,6 +48,12 @@ These routes should expose backend-owned perception and introspection without re
 
 Runs routes require the runs API key dependency. Do not route normal desktop app query traffic through the runs API.
 
+Detailed run orchestration docs:
+
+- [Automation Hub](../automation/README.md)
+- [VM Runs and Workers](../automation/vm_runs_and_workers.md)
+- [Runs API Runbook](../automation/runs_api_runbook.md)
+
 ## Auth Rules
 
 - Hosted `/api/*` requests require install-token authorization except install registration.
