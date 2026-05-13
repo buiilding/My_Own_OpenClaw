@@ -187,4 +187,5 @@ These are consumed by backend handler stack and routed into session tool-result 
 
 ## Related Docs
 
+- [Query Send and Stream Relay Change Workflow](../main/query_send_and_stream_relay_change_workflow.md)
 - [Tool Computer-Use Catalog, Surface Mode, and Capture Policy Reference](../renderer/infrastructure/tool_computer_use_catalog_surface_mode_and_capture_policy_reference.md)

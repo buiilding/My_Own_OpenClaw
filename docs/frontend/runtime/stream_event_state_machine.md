@@ -201,6 +201,7 @@ Consumers:
 
 ## Related Pages
 
+- [Query Send and Stream Relay Change Workflow](../main/query_send_and_stream_relay_change_workflow.md)
 - [Chat Stream and Tool Execution Reference](../renderer/chat_stream_and_tool_execution_reference.md)
 - [Frontend Renderer Chat Stream Docs Hub](../renderer/chat/stream/README.md)
 - [Backend Ingress Fail-Safe and Dispatch Order Reference](../renderer/chat/stream/backend_ingress_failsafe_and_dispatch_order_reference.md)

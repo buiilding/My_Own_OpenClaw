@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(frontend): add a query-send and stream-relay change workflow for renderer compose, Electron main websocket relay, payload enrichment, optimistic events, overlay phase, transcript sync, backend handoff, and stream ingress.
 - docs(gateway): add a websocket connection change workflow for main `/ws` handshake auth, identity binding, message validation, task limits, receive timeouts, handler dispatch, transport sends, and cleanup.
 - docs(frontend): add a local-backend JSON-RPC change workflow for Electron-to-sidecar methods, payload mappers, readiness, timeouts, protocol errors, and response envelopes.
 - docs(automation): add a VM run control change workflow for `/api/runs/*`, `VmRunControlService`, worker heartbeats, event timelines, pending controls, stop-all, runs keys, and Electron VM worker dispatch.

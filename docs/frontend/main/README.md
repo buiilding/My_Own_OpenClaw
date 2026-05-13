@@ -21,6 +21,7 @@ title: "Frontend Main Docs Hub"
 - [Context Label Overlay and Active-Window Runtime Reference](context_label_overlay_and_active_window_runtime_reference.md)
 - [Display Query Handler Display Inventory Payload Contract Reference](display_query_handler_display_inventory_payload_contract_reference.md)
 - [Runtime Paths and Endpoints](runtime_paths_and_endpoints.md)
+- [Query Send and Stream Relay Change Workflow](query_send_and_stream_relay_change_workflow.md)
 - [Query Payload and Relay Reference](query_payload_and_relay_reference.md)
 - [WebSocket Handshake and Settings Sync Reference](websocket_handshake_and_settings_sync_reference.md)
 - [Wakeword Bridge Runtime Helper Reference](wakeword_bridge_runtime_helper_reference.md)

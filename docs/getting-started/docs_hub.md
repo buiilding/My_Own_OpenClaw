@@ -269,6 +269,7 @@ Read:
 - [Query Lifecycle Change Workflow](../backend/runtime/query_lifecycle_change_workflow.md)
 - [Backend Query Handler and Query Execution Service Runtime Reference](../backend/api/handlers/query_handler_and_query_execution_service_runtime_reference.md)
 - [Backend Stream Pipeline, Completion, and TTS Concurrency Reference](../backend/api/processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
+- [Frontend Query Send and Stream Relay Change Workflow](../frontend/main/query_send_and_stream_relay_change_workflow.md)
 - [Frontend Stream State Machine](../frontend/runtime/stream_event_state_machine.md)
 - [Frontend Chat Stream + Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md)
 
@@ -278,6 +279,8 @@ Likely code:
 - `backend/src/api/processing/*`
 - `backend/src/agent/execution/interaction_loop.py`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
+- `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 
 Validate backend stream lifecycle tests plus renderer stream hook/store tests.

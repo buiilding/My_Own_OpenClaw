@@ -25,6 +25,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 ## Change Workflows
 
 - [IPC Change Workflow](ipc_change_workflow.md)
+- [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md)
 - [Sidecar Tool Change Workflow](sidecar_tool_change_workflow.md)
 - [Local Backend JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
 
@@ -50,6 +51,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Context Label Overlay and Active-Window Runtime Reference](main/context_label_overlay_and_active_window_runtime_reference.md)
 - [Display Query Handler Display Inventory Payload Contract Reference](main/display_query_handler_display_inventory_payload_contract_reference.md)
 - [Runtime Paths and Endpoints](main/runtime_paths_and_endpoints.md)
+- [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md)
 - [Query Payload and Relay Reference](main/query_payload_and_relay_reference.md)
 - [WebSocket Handshake and Settings Sync Reference](main/websocket_handshake_and_settings_sync_reference.md)
 - [Wakeword Bridge Runtime Helper Reference](main/wakeword_bridge_runtime_helper_reference.md)
