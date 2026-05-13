@@ -521,6 +521,7 @@ async def test_initialize_rebuilds_indices_when_embedding_space_changes(
 
     async def _record_rebuild(self, memory_type):
         rebuild_calls.append(memory_type)
+        return True
 
     monkeypatch.setattr(local_store_module, "read_index_safe_async", _read_index)
     monkeypatch.setattr(LocalMemoryStore, "_init_databases", _noop_async)
@@ -567,3 +568,70 @@ async def test_initialize_rebuilds_indices_when_embedding_space_changes(
         )
         != -1
     )
+
+
+@pytest.mark.asyncio
+async def test_rebuild_index_does_not_reenter_embedding_space_alignment(
+    monkeypatch,
+    tmp_path,
+):
+    if local_store_module.faiss is None or local_store_module.aiosqlite is None:
+        pytest.skip("LocalMemoryStore runtime dependencies are unavailable")
+
+    db_path = tmp_path / "episodic.db"
+    async with local_store_module.aiosqlite.connect(db_path) as conn:
+        await conn.execute(
+            """
+            CREATE TABLE memories (
+                id TEXT PRIMARY KEY,
+                content TEXT,
+                embedding_id INTEGER
+            )
+            """
+        )
+        await conn.executemany(
+            """
+            INSERT INTO memories (id, content, embedding_id)
+            VALUES (?, ?, ?)
+            """,
+            [("memory-1", "one", 0), ("memory-2", "two", 1)],
+        )
+        await conn.commit()
+
+    async def _embed_text(text):
+        return np.array([1.0, 0.0] if text == "one" else [0.0, 1.0], dtype=np.float32)
+
+    async def _fail_if_called():
+        raise AssertionError("Rebuild must not recursively check embedding alignment")
+
+    store = LocalMemoryStore.__new__(LocalMemoryStore)
+    store.episodic_db_path = str(db_path)
+    store.semantic_db_path = str(tmp_path / "semantic.db")
+    store.episodic_index = types.SimpleNamespace(ntotal=2, d=2)
+    store.semantic_index = types.SimpleNamespace()
+    store.episodic_vector_id_to_memory_id = {0: "memory-1", 1: "memory-2"}
+    store.episodic_memory_id_to_vector_id = {"memory-1": 0, "memory-2": 1}
+    store.semantic_vector_id_to_memory_id = {}
+    store.semantic_memory_id_to_vector_id = {}
+    store.episodic_next_vector_id = 2
+    store.semantic_next_vector_id = 0
+    store.embedder = types.SimpleNamespace(dimension=2, embed_text=_embed_text)
+    store.episodic_index_path = tmp_path / "episodic.faiss.index"
+    store.semantic_index_path = tmp_path / "semantic.faiss.index"
+    store.semantic_index = local_store_module.faiss.IndexFlatIP(2)
+
+    monkeypatch.setattr(
+        store,
+        "_ensure_runtime_embedding_space_alignment",
+        _fail_if_called,
+    )
+    monkeypatch.setattr(local_store_module.faiss, "normalize_L2", lambda _vector: None)
+
+    rebuilt = await LocalMemoryStore._rebuild_index(store, "episodic")
+
+    assert rebuilt is True
+    assert store.episodic_index.ntotal == 2
+    assert store.episodic_vector_id_to_memory_id == {
+        0: "memory-1",
+        1: "memory-2",
+    }

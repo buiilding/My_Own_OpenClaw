@@ -275,6 +275,7 @@ class LocalMemoryStore:
         # Indices are loaded during async initialize() to avoid duplicate startup disk reads.
         self.episodic_index = None
         self.semantic_index = None
+        self._embedding_space_rebuild_in_progress = False
 
     async def initialize(self) -> None:
         """
@@ -353,9 +354,17 @@ class LocalMemoryStore:
                 ),
                 current_embedding_space.to_dict() if current_embedding_space else None,
             )
-            await self._rebuild_index("episodic")
-            await self._rebuild_index("semantic")
-            if current_embedding_space is not None:
+            self._embedding_space_rebuild_in_progress = True
+            try:
+                episodic_rebuilt = await self._rebuild_index("episodic")
+                semantic_rebuilt = await self._rebuild_index("semantic")
+            finally:
+                self._embedding_space_rebuild_in_progress = False
+            if (
+                current_embedding_space is not None
+                and episodic_rebuilt
+                and semantic_rebuilt
+            ):
                 self._save_embedding_space_metadata(current_embedding_space)
         elif current_embedding_space is not None and persisted_embedding_space is None:
             self._save_embedding_space_metadata(current_embedding_space)
@@ -557,6 +566,9 @@ class LocalMemoryStore:
         return False
 
     async def _ensure_runtime_embedding_space_alignment(self) -> None:
+        if getattr(self, "_embedding_space_rebuild_in_progress", False):
+            return
+
         current_embedding_space = self._get_current_embedding_space_metadata()
         persisted_embedding_space = (
             getattr(self, "_embedding_space_metadata", None)
@@ -578,9 +590,17 @@ class LocalMemoryStore:
             persisted_embedding_space.to_dict() if persisted_embedding_space else None,
             current_embedding_space.to_dict() if current_embedding_space else None,
         )
-        await self._rebuild_index("episodic")
-        await self._rebuild_index("semantic")
-        if current_embedding_space is not None:
+        self._embedding_space_rebuild_in_progress = True
+        try:
+            episodic_rebuilt = await self._rebuild_index("episodic")
+            semantic_rebuilt = await self._rebuild_index("semantic")
+        finally:
+            self._embedding_space_rebuild_in_progress = False
+        if (
+            current_embedding_space is not None
+            and episodic_rebuilt
+            and semantic_rebuilt
+        ):
             self._save_embedding_space_metadata(current_embedding_space)
 
     def _get_memory_attrs(self, memory_type: str) -> _MemoryAttrNames:
@@ -635,7 +655,7 @@ class LocalMemoryStore:
             message_type=message_type,
         )
 
-    async def _rebuild_index(self, memory_type: str) -> None:
+    async def _rebuild_index(self, memory_type: str) -> bool:
         """Rebuild FAISS index from database for a given memory type."""
         (
             db_path,
@@ -692,8 +712,7 @@ class LocalMemoryStore:
                     memory_id_to_vector_id.clear()
                     memory_id_to_vector_id.update(previous_memory_id_to_vector_id)
                     self._set_next_vector_id(memory_type, previous_next_vector_id)
-                    return
-                await self._ensure_runtime_embedding_space_alignment()
+                    return False
                 embedding = embedding.reshape(1, -1)
                 faiss.normalize_L2(embedding)
 
@@ -714,6 +733,7 @@ class LocalMemoryStore:
         self._set_next_vector_id(memory_type, next_vector_id)
         logger.info(f"Rebuilt {memory_type} FAISS index with {index.ntotal} vectors")
         await self._save_faiss_indices()
+        return True
 
     async def add(
         self,
