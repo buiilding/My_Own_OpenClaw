@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(providers): add provider and model-catalog change workflows for backend runtime, config, frontend settings, and tests.
 - docs(frontend): add IPC and sidecar-tool change workflows for renderer, preload, main-process, and Python sidecar boundaries.
 - docs(gateway): add REST route/auth and websocket lifecycle matrices for hosted ingress development and debugging.
 - docs(reference): add a code change surface index that routes feature requests to runtime owners, source roots, tests, docs, and validation commands.

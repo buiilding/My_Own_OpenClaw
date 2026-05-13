@@ -19,6 +19,8 @@ WindieOS has multiple provider classes:
 ## Provider Pages
 
 - [Models and LLM Providers](models.md)
+- [Provider Change Workflow](provider_change_workflow.md)
+- [Model Catalog Change Workflow](model_catalog_change_workflow.md)
 - [Provider Credentials](credentials.md)
 - [Inference Providers](inference.md)
 - [OpenAI Provider](openai.md)

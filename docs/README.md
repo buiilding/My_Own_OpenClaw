@@ -134,6 +134,8 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Browser Hub**](browser/README.md) - Dedicated browser launch, action surface, session UI, files, and troubleshooting
 - [**Filesystem and Shell Tools**](tools/filesystem_shell.md) - Read/replace, shell, process sessions, app launch, and output formatting
 - [**Models and LLM Providers**](providers/models.md) - Provider factory, model catalog, reasoning variants, and capability flags
+- [**Provider Change Workflow**](providers/provider_change_workflow.md) - Add/change provider runtime, factory, config, credentials, frontend settings, and tests
+- [**Model Catalog Change Workflow**](providers/model_catalog_change_workflow.md) - Add/change model entries, capability flags, routing metadata, picker behavior, and validation
 - [**Provider Credentials**](providers/credentials.md) - Environment variables, frontend overrides, OAuth entries, and install auth
 - [**Inference Providers**](providers/inference.md) - OCR, vision, embeddings, STT, TTS, health, and capability gating
 - [**OpenAI Provider**](providers/openai.md) - Responses routing, native reasoning/search, Codex OAuth, and tool compatibility

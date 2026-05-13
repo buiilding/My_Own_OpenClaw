@@ -52,6 +52,8 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Process Health Checklist](../debug/process_health_checklist.md) for proving which process is dead, stuck, disconnected, or healthy before editing code.
 - [Tools Hub](../tools/README.md) for model-facing and sidecar-executable tools.
 - [Providers Hub](../providers/README.md) for LLM, inference, credential, STT, TTS, and web-search providers.
+- [Provider Change Workflow](../providers/provider_change_workflow.md) for backend provider runtime, factory, config, credential, frontend setting, and test changes.
+- [Model Catalog Change Workflow](../providers/model_catalog_change_workflow.md) for model ids, capability flags, routing metadata, and picker behavior.
 - [SDK Hub](../sdk/README.md) for hosted backend clients, query planning, OCR/vision, and tool authoring.
 - [Install Hub](../install/README.md) for local development, packaged desktop builds, endpoint setup, reinstall/reset loops, and install troubleshooting.
 - [Install Decision Matrix](../install/install_decision_matrix.md) for choosing the correct source, packaged, endpoint, reinstall, or release-validation path.
@@ -616,6 +618,8 @@ Use these when a change path is not enough and you need exact file ownership:
 
 - [Providers Hub](../providers/README.md)
 - [Models and LLM Providers](../providers/models.md)
+- [Provider Change Workflow](../providers/provider_change_workflow.md)
+- [Model Catalog Change Workflow](../providers/model_catalog_change_workflow.md)
 - [Provider Credentials](../providers/credentials.md)
 - [Inference Providers](../providers/inference.md)
 - [OpenAI Provider](../providers/openai.md)

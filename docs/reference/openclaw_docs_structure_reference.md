@@ -86,7 +86,7 @@ Added/expanded in WindieOS:
 - `browser/`: dedicated browser automation docs for launch/profile isolation, action dispatch, session UI, files, and troubleshooting.
 - `memory/`: transcript, replay, sidecar local memory, backend history, semantic routes, and troubleshooting docs.
 - `tools/`: first-class tool-system docs covering contracts, catalog matrices, execution lifecycle, policy/profile gates, troubleshooting, computer use, browser automation, filesystem, and shell execution.
-- `providers/`: model/provider docs covering LLM providers, provider-specific runtime pages, model catalog metadata, credentials, and inference providers.
+- `providers/`: model/provider docs covering LLM providers, provider-specific runtime pages, provider/model-catalog change workflows, model catalog metadata, credentials, and inference providers.
 - `sdk/`: hosted backend client and developer API docs covering query planning, traces, OCR/vision, and tool authoring.
 - `reference/`: stable lookup docs for API surfaces, websocket event contracts, configuration ownership, session/transcript identifiers, code-change surface routing, and docs organization policy.
 - `reference/code_change_surface_index.md`: OpenClaw-style feature-to-code routing map for source roots, tests, docs, and validation commands.
