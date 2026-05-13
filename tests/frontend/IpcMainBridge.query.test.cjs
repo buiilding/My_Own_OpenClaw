@@ -26,6 +26,20 @@ describe('ipc.cjs bridge query handling', () => {
     return ws;
   }
 
+  async function waitForSentMessageType(ws, type, attempts = 100) {
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      const message = ws.sent
+        .map((entry) => JSON.parse(entry))
+        .find((entry) => entry.type === type);
+      if (message) {
+        return message;
+      }
+      await Promise.resolve();
+      await Promise.resolve();
+    }
+    return null;
+  }
+
   async function beginBackendConnection(bridge, message = { type: 'list-models' }) {
     const pending = bridge.handlers['to-backend']({ sender: null }, message);
     const ws = await waitForSocket(() => bridge.getWs());
@@ -667,6 +681,28 @@ describe('ipc.cjs bridge query handling', () => {
     const queryMessage = getLastSentMessage(ws);
     expect(queryMessage.type).toBe('query');
     expect(queryMessage.payload.content).toContain('<user_query>\nafter settings update\n</user_query>');
+  });
+
+  test('connects before sending renderer update-settings', async () => {
+    const bridge = initIpc();
+
+    await bridge.handlers['to-backend']({ sender: null }, {
+      type: 'update-settings',
+      payload: { interaction_mode: 'agent' },
+    });
+    const ws = await waitForSocket(() => bridge.getWs());
+    expect(ws).not.toBeNull();
+    expect(ws.sent).toHaveLength(0);
+
+    ws.triggerOpen();
+
+    const updateSettingsMessage = await waitForSentMessageType(ws, 'update-settings');
+    expect(updateSettingsMessage).toBeDefined();
+    expect(updateSettingsMessage.payload).toEqual(expect.objectContaining({
+      interaction_mode: 'agent',
+    }));
+
+    emitSettingsUpdatedAck(ws, updateSettingsMessage.id);
   });
 
   test('sends first query after initial settings sync timeout fallback', async () => {

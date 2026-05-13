@@ -518,12 +518,20 @@ function flushPendingListModelsRequest() {
   hasPendingListModelsRequest = false;
 }
 
-function sendSettingsUpdate(config, source = 'renderer') {
+async function sendSettingsUpdate(config, source = 'renderer') {
   const backendConfig = buildBackendSettingsPayload(config);
   if (!backendConfig) {
     return Promise.resolve(false);
   }
   latestFrontendConfig = { ...config };
+  if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) {
+    try {
+      await ensureBackendConnection(`update-settings:${source}`);
+    } catch (error) {
+      log(`Failed to connect backend for update-settings: ${error?.message || error}`);
+      return false;
+    }
+  }
   const msgId = sendMessageToBackend('update-settings', backendConfig);
   if (!msgId) {
     return Promise.resolve(false);
@@ -1005,7 +1013,7 @@ function initializeIpc(win, options = {}) {
     }
 
     if (type === 'update-settings') {
-      sendSettingsUpdate(payload, 'renderer-update');
+      void sendSettingsUpdate(payload, 'renderer-update');
       return;
     }
 

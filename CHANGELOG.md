@@ -23,6 +23,7 @@ All notable changes to WindieOS will be documented in this file.
 - fix(sidecar-memory-embedding-rebuild): prevent embedding-space migration rebuilds from recursively re-triggering themselves while each stored memory row is re-embedded.
 - fix(sidecar-startup-memory-migration): start local backend JSON-RPC before memory index migration completes so embedding-space rebuilds cannot trip Electron's readiness timeout.
 - fix(frontend-startup-model-list): wait for backend connection before sending the startup `list-models` request so normal websocket startup no longer logs a queued send.
+- fix(frontend-startup-settings-sync): connect the backend websocket before sending renderer `update-settings` so startup config sync does not log disconnected websocket sends.
 - fix(frontend-artifact-screenshot-startup): keep artifact URL resolution in the backend endpoint store so chat screenshot rendering and app config startup do not import the artifact upload IPC client just to build image paths.
 
 ## 0.6.23 - 2026-04-21
