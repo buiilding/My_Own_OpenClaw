@@ -1,0 +1,69 @@
+---
+summary: "Anthropic provider guide for WindieOS covering LiteLLM routing, native thinking payloads, stream thinking extraction, model catalog variants, and tests."
+read_when:
+  - When changing Anthropic request parameters, thinking support, stream parsing, model catalog entries, or credentials.
+  - When debugging Claude model selection, thinking text, or provider-specific payloads.
+title: "Anthropic Provider"
+---
+
+# Anthropic Provider
+
+WindieOS routes Anthropic through the shared online provider path with provider-specific thinking request parameters and thinking-content extraction.
+
+## Code Ownership
+
+| Concern | Files |
+| --- | --- |
+| Provider class | `backend/src/llm/providers/anthropic.py` |
+| Native thinking helpers | `backend/src/llm/providers/provider_native_reasoning.py` |
+| Shared online provider | `backend/src/llm/providers/online.py` |
+| Model catalog/variants | `backend/src/llm/models/models_config.py` |
+| Credential loading | `backend/src/core/config/loader.py`, `backend/src/core/config/models.py` |
+| Dashboard model UI | `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx` |
+
+## Runtime Behavior
+
+`AnthropicProvider` sets:
+
+- `provider_label = "Anthropic"`
+- `model_prefix = "anthropic"`
+- `stream_includes_thinking = True`
+
+The request hook calls `apply_provider_native_thinking_request_params` with `provider_name="anthropic"`. Stream deltas use `extract_anthropic_thinking_content`.
+
+## Credential Resolution
+
+Credential priority is:
+
+1. Frontend-managed API key override in `provider_api_keys.anthropic`.
+2. Environment variable from `AnthropicConfig.api_key_env`, default `ANTHROPIC_API_KEY`.
+
+Provider code should not read env vars directly.
+
+## Model Catalog
+
+Anthropic model entries and reasoning variants live in `backend/src/llm/models/models_config.py`. The frontend receives model-list output from backend model service; do not duplicate Anthropic reasoning-mode logic in the renderer.
+
+When adding an Anthropic model:
+
+1. Add catalog metadata.
+2. Add thinking/non-thinking variants if the model supports the shared reasoning controls.
+3. Confirm `resolve_provider_thinking_preference` and `resolve_provider_thinking_budget_tokens` return the expected values.
+4. Update dashboard tests if the model family should expose reasoning controls.
+
+## Tests
+
+Focused backend tests:
+
+```bash
+./scripts/test-backend tests/backend/test_anthropic_provider.py tests/backend/test_models_config.py -q
+./scripts/test-backend tests/backend/test_provider_native_reasoning.py tests/backend/test_llm_thinking_extraction.py -q
+```
+
+Focused frontend tests:
+
+```bash
+cd frontend
+npm run test:ci -- ChatInterfaceWiring.test.jsx ModelThinkingCapabilities.test.ts ModelCardData.test.js
+```
+

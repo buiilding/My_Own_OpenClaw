@@ -77,7 +77,7 @@ Added/expanded in WindieOS:
 - `desktop/`: user-visible desktop surface docs for dashboard, chat pill, response overlay, onboarding/permissions, voice, and artifacts.
 - `debug/`: OpenClaw-style debug docs for logs, trace flags, symptom playbooks, and test selection.
 - `tools/`: first-class tool-system docs covering contracts, computer use, browser automation, filesystem, and shell execution.
-- `providers/`: model/provider docs covering LLM providers, model catalog metadata, credentials, and inference providers.
+- `providers/`: model/provider docs covering LLM providers, provider-specific runtime pages, model catalog metadata, credentials, and inference providers.
 - `sdk/`: hosted backend client and developer API docs covering query planning, traces, OCR/vision, and tool authoring.
 - `install/`, `cli/`, `platforms/`, `help/`, and `web/`: broad operational entrypoints that mirror OpenClaw's public-domain navigation while staying grounded in WindieOS desktop/runtime surfaces.
 - `backend/`: backend functionality maps and subsystem docs.

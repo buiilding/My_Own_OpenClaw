@@ -360,6 +360,13 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Models and LLM Providers](../providers/models.md)
 - [Provider Credentials](../providers/credentials.md)
 - [Inference Providers](../providers/inference.md)
+- [OpenAI Provider](../providers/openai.md)
+- [Anthropic Provider](../providers/anthropic.md)
+- [Gemini Provider](../providers/gemini.md)
+- [OpenRouter Provider](../providers/openrouter.md)
+- [Kimi Coding Provider](../providers/kimi_coding.md)
+- [Mistral Provider](../providers/mistral.md)
+- [Local Providers](../providers/local.md)
 
 ### SDK
 

@@ -21,6 +21,13 @@ WindieOS has multiple provider classes:
 - [Models and LLM Providers](models.md)
 - [Provider Credentials](credentials.md)
 - [Inference Providers](inference.md)
+- [OpenAI Provider](openai.md)
+- [Anthropic Provider](anthropic.md)
+- [Gemini Provider](gemini.md)
+- [OpenRouter Provider](openrouter.md)
+- [Kimi Coding Provider](kimi_coding.md)
+- [Mistral Provider](mistral.md)
+- [Local Providers](local.md)
 
 ## Current LLM Providers
 
@@ -34,6 +41,18 @@ The backend provider factory registers:
 - Kimi Coding
 - Ollama
 - LM Studio
+
+## Provider-Specific Edit Routes
+
+| Provider | Read first | Primary tests |
+| --- | --- | --- |
+| OpenAI | [OpenAI Provider](openai.md) | `tests/backend/test_openai_provider.py`, `tests/backend/test_web_search_capabilities.py`, `tests/frontend/OpenAICodexOAuth.test.cjs` |
+| Anthropic | [Anthropic Provider](anthropic.md) | `tests/backend/test_anthropic_provider.py`, `tests/backend/test_provider_native_reasoning.py` |
+| Gemini | [Gemini Provider](gemini.md) | `tests/backend/test_gemini_provider.py`, `tests/backend/test_web_search_capabilities.py` |
+| OpenRouter | [OpenRouter Provider](openrouter.md) | `tests/backend/test_openrouter_provider.py`, `tests/backend/test_models_config.py` |
+| Kimi Coding | [Kimi Coding Provider](kimi_coding.md) | `tests/backend/test_kimi_coding_provider.py`, `tests/backend/test_provider_factory_helpers.py` |
+| Mistral | [Mistral Provider](mistral.md) | `tests/backend/test_models_config.py`, `tests/backend/test_provider_factory_helpers.py` |
+| Ollama/LM Studio | [Local Providers](local.md) | `tests/backend/test_local_llm_providers.py`, `tests/backend/test_model_service.py` |
 
 Primary files:
 

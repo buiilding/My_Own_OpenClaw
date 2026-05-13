@@ -51,3 +51,13 @@ The frontend model selector consumes model-list output from the backend. Do not 
 - [Backend LLM Provider Docs Hub](../backend/llm/providers/README.md)
 - [Backend LLM Base Request, Stream, and Normalization Reference](../backend/llm/providers/base_request_stream_and_normalization_reference.md)
 - [Backend LLM Provider-Specific Overrides and Local Runtime Reference](../backend/llm/providers/provider_specific_overrides_and_local_runtime_reference.md)
+
+## Provider-Specific Docs
+
+- [OpenAI Provider](openai.md)
+- [Anthropic Provider](anthropic.md)
+- [Gemini Provider](gemini.md)
+- [OpenRouter Provider](openrouter.md)
+- [Kimi Coding Provider](kimi_coding.md)
+- [Mistral Provider](mistral.md)
+- [Local Providers](local.md)
