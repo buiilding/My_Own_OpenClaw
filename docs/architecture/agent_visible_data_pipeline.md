@@ -124,6 +124,7 @@ Question the design when you see any of these:
 
 - [Data Flow and State Ownership](data_flow_and_state_ownership.md)
 - [Runtime Boundary Matrix](runtime_boundary_matrix.md)
+- [Session and Transcript Reference](../reference/session_and_transcript_reference.md)
 - [Prompt and Tool Context](../concepts/prompt_and_tool_context.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 - [Backend Tool Turn Change Workflow](../backend/agent/tool_turn_change_workflow.md)
