@@ -17,6 +17,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Debug Hub**](debug/README.md) - Logs, runtime traces, symptom playbooks, and test selection
 - [**Channels Hub**](channels/README.md) - Desktop, websocket, voice, sidecar, SDK, and VM-run communication paths
 - [**Gateway Hub**](gateway/README.md) - Hosted backend ingress, FastAPI route assembly, websocket protocols, auth, health, and troubleshooting
+- [**Runtime Nodes Hub**](nodes/README.md) - Runtime process and service boundaries for backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes
 - [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and future scheduler boundaries
 - [**Security Hub**](security/README.md) - Hosted auth, IPC isolation, schema validation, credentials, tool execution, and sidecar boundaries
 - [**Plugins and Extensions Hub**](plugins/README.md) - Current extension points for tools, providers, SDK routes, sidecar actions, and future plugin boundaries
@@ -57,6 +58,11 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Gateway Protocol Map**](gateway/gateway_protocol_map.md) - App assembly, router registration, websocket, REST, CORS, and protocol families
 - [**Gateway Auth and Health Runbook**](gateway/gateway_auth_and_health_runbook.md) - Install auth, websocket auth, runs key, and health endpoints
 - [**Gateway Troubleshooting**](gateway/gateway_troubleshooting.md) - Hosted route, websocket, auth, Cloudflare, health, and endpoint-resolution failures
+- [**Runtime Nodes Hub**](nodes/README.md) - Process/service ownership map for backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes
+- [**Runtime Node Matrix**](nodes/runtime_node_matrix.md) - Node-to-code-root, protocol, lifecycle, failure-signal, and validation matrix
+- [**Desktop and Sidecar Node**](nodes/desktop_and_sidecar_node.md) - Electron main, renderer, preload, sidecar JSON-RPC, local tools, and wakeword ownership
+- [**VM Worker Node**](nodes/vm_worker_node.md) - `/api/runs/*` heartbeat, assignment, dispatch, event relay, and stop-control worker behavior
+- [**Current vs Future Nodes**](nodes/current_vs_future_nodes.md) - Implemented nodes versus planned mobile, edge, scheduler, and multi-agent VM node work
 - [**Memory Hub**](memory/README.md) - Transcript persistence, replay, sidecar local memory, semantic routes, and troubleshooting
 - [**Security Hub**](security/README.md) - Security routing for auth, IPC, validation, credentials, permissions, tools, and sidecar execution
 - [**Security Boundary Matrix**](security/security_boundary_matrix.md) - Trust-boundary owner, code-root, failure-signal, and validation matrix

@@ -79,6 +79,7 @@ Added/expanded in WindieOS:
 - `desktop/`: user-visible desktop surface docs for dashboard, chat pill, response overlay, onboarding/permissions, voice, and artifacts.
 - `debug/`: OpenClaw-style debug docs for logs, trace flags, symptom playbooks, and test selection.
 - `channels/`: OpenClaw-style channel docs for desktop chat, websocket transport, voice/audio, sidecar tool execution, SDK clients, and VM run control routing.
+- `nodes/`: runtime process/service docs mapping WindieOS's current hosted backend, Electron desktop, renderer, preload, Python sidecar, wakeword, VM worker, and Cloudflare/origin nodes, while keeping mobile/edge and one-agent-per-VM nodes marked as planned.
 - `security/`: top-level security docs for hosted auth, IPC isolation, validation, credentials, permissions, tool authority, sidecar execution, and multi-user risks.
 - `plugins/`: current plugin-like extension docs for tools, providers, SDK routes, sidecar actions, renderer features, and future plugin-system boundaries.
 - `browser/`: dedicated browser automation docs for launch/profile isolation, action dispatch, session UI, files, and troubleshooting.
@@ -109,6 +110,7 @@ Added/expanded in WindieOS:
 - `desktop/`: user-facing desktop surfaces and their renderer/main ownership boundaries.
 - `debug/`: symptom-first debugging, runtime trace controls, logs, and validation choices.
 - `channels/`: entry-channel and transport routing docs across IPC, websocket, HTTP, sidecar JSON-RPC, SDK, voice, and VM run control.
+- `nodes/`: runtime process/service ownership docs. Use for current nodes with code roots and lifecycle hooks; keep planned mobile, edge, scheduler, plugin-marketplace, and one-agent-per-VM nodes in `planning/` until implemented.
 - `security/`: security and trust-boundary routing docs; operations keeps deployment runbooks while this section maps enforcement owners.
 - `plugins/`: current source-owned extension surfaces and explicit future boundaries for marketplace/dynamic plugin work.
 - `browser/`: browser-specific runtime, action surface, and troubleshooting docs separate from generic tool docs.

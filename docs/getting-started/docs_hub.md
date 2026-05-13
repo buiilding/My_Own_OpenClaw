@@ -34,6 +34,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) for environment setup.
 - [Concepts Hub](../concepts/README.md) for product/system mental models before implementation details.
 - [Gateway Hub](../gateway/README.md) for hosted backend ingress, app assembly, websocket protocols, auth, health, and route troubleshooting.
+- [Runtime Nodes Hub](../nodes/README.md) for process/service ownership across hosted backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes.
 - [Channels Hub](../channels/README.md) for desktop, websocket, voice, sidecar, SDK, and VM-run communication paths.
 - [Memory Hub](../memory/README.md) for transcript, replay, sidecar memory, backend history, and semantic route ownership.
 - [Security Hub](../security/README.md) for hosted auth, IPC isolation, validation, credentials, permissions, tools, and sidecar security boundaries.
@@ -58,6 +59,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 | Area | Owns | Code roots | Start docs |
 | --- | --- | --- | --- |
 | Backend API + transport | HTTP routes, websocket handshake, incoming message dispatch, outgoing event envelopes, formatter contracts | `backend/src/api`, `backend/src/core/container`, `backend/src/api/contracts` | [Backend API Docs Hub](../backend/api/README.md), [Backend Contracts Docs Hub](../backend/contracts/README.md), [Backend Inventory Protocols Hub](../backend/inventory/protocols/README.md) |
+| Runtime nodes | Process/service ownership, lifecycle, protocols, and validation routes for backend, Electron main, renderer, preload, sidecar, wakeword, VM worker, and Cloudflare/origin nodes | `backend/src`, `frontend/src/main`, `frontend/src/renderer`, `frontend/src/preload.js`, `frontend/src/main/python`, `scripts/cloudflared` | [Runtime Nodes Hub](../nodes/README.md), [Runtime Node Matrix](../nodes/runtime_node_matrix.md), [Current vs Future Nodes](../nodes/current_vs_future_nodes.md) |
 | Gateway ingress | FastAPI app assembly, CORS, router registration, install auth middleware, hosted REST/websocket ingress, health checks, Cloudflare/self-host troubleshooting | `backend/src/main.py`, `backend/src/api/app_assembly.py`, `backend/src/api/routes`, `backend/src/api/auth`, `scripts/cloudflared` | [Gateway Hub](../gateway/README.md), [Gateway Protocol Map](../gateway/gateway_protocol_map.md), [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md) |
 | Channels and transports | Desktop chat entrypoints, backend websocket, transcription websocket, sidecar JSON-RPC, SDK routes, VM run control | `frontend/src/main`, `frontend/src/renderer`, `frontend/src/main/python`, `backend/src/api/routes`, `frontend/src/renderer/infrastructure/api` | [Channels Hub](../channels/README.md), [Channel Routing Matrix](../channels/channel_routing_matrix.md), [Communication Flow](../architecture/communication_flow.md) |
 | Security boundaries | Hosted auth, websocket validation, IPC isolation, credentials, permissions, tool policy, sidecar execution, multi-user risks | `backend/src/api/auth`, `backend/src/api/schemas`, `backend/src/core/security`, `frontend/src/preload.js`, `frontend/src/shared/ipcChannels.json`, `frontend/src/main/python/tools` | [Security Hub](../security/README.md), [Security Boundary Matrix](../security/security_boundary_matrix.md), [Security Change Playbook](../security/security_change_playbook.md) |
@@ -79,6 +81,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 
 Read:
 
+- [Runtime Nodes Hub](../nodes/README.md)
 - [Gateway Hub](../gateway/README.md)
 - [Channels Hub](../channels/README.md)
 - [Channel Routing Matrix](../channels/channel_routing_matrix.md)
@@ -96,6 +99,26 @@ Likely code:
 - `frontend/src/main/python/**` when local sidecar execution is involved
 
 Validate producer/consumer tests on both sides of the changed channel. Do not reuse another channel's private payload shape as an implicit compatibility shortcut.
+
+### Change a Runtime Node Boundary
+
+Read:
+
+- [Runtime Nodes Hub](../nodes/README.md)
+- [Runtime Node Matrix](../nodes/runtime_node_matrix.md)
+- [Desktop and Sidecar Node](../nodes/desktop_and_sidecar_node.md)
+- [VM Worker Node](../nodes/vm_worker_node.md)
+- [Current vs Future Nodes](../nodes/current_vs_future_nodes.md)
+
+Likely code:
+
+- hosted backend node: `backend/src/main.py`, `backend/src/api/**`, `backend/src/agent/**`, `backend/src/tools/**`
+- Electron desktop nodes: `frontend/src/main/**`, `frontend/src/preload.js`, `frontend/src/renderer/**`
+- sidecar/wakeword nodes: `frontend/src/main/python/**`, `frontend/src/main/wakeword_bridge*.cjs`
+- VM worker node: `frontend/src/main/vm_worker_runtime.cjs`, `backend/src/api/routes/runs/**`, `backend/src/services/vm_run_control*`
+- Cloudflare/origin node: `scripts/cloudflared/**`, deployment operations docs
+
+Validate the owner node plus the adjacent protocol boundary. If a planned mobile, edge, scheduler, plugin-marketplace, or one-agent-per-VM node is not implemented yet, keep the docs under planning until there is a code root and lifecycle.
 
 ### Change Hosted Backend Gateway, Route Assembly, Auth, or Health
 
@@ -455,6 +478,14 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Channel Routing Matrix](../channels/channel_routing_matrix.md)
 - [Voice and Audio Channels](../channels/voice_and_audio_channels.md)
 - [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md)
+
+### Runtime Nodes
+
+- [Runtime Nodes Hub](../nodes/README.md)
+- [Runtime Node Matrix](../nodes/runtime_node_matrix.md)
+- [Desktop and Sidecar Node](../nodes/desktop_and_sidecar_node.md)
+- [VM Worker Node](../nodes/vm_worker_node.md)
+- [Current vs Future Nodes](../nodes/current_vs_future_nodes.md)
 
 ### Gateway
 
