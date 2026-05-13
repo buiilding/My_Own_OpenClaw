@@ -11,6 +11,7 @@ title: "Frontend Sidecar Docs Hub"
 ## Deep Pages
 
 - [Python Sidecar and Memory](python_sidecar_and_memory.md)
+- [Sidecar Runtime Change Workflow](sidecar_runtime_change_workflow.md)
 - [Sidecar Core Docs Hub](core/README.md)
 - [Sidecar Services Docs Hub](services/README.md)
 - [Sidecar System-State Docs Hub](system_state/README.md)

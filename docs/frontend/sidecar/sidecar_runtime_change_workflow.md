@@ -1,0 +1,136 @@
+---
+summary: "Workflow for changing WindieOS Python sidecar runtime behavior across JSON-RPC methods, local tools, memory services, browser automation, platform adapters, backend config, system state, and wakeword service boundaries."
+read_when:
+  - When changing `frontend/src/main/python`, sidecar JSON-RPC methods, local tool registry behavior, memory storage/search/summarization, browser runtime internals, system-state probes, platform adapters, backend URL resolution, or wakeword service framing.
+  - When a local tool, memory, browser, wakeword, system-state, or sidecar startup failure could belong to Electron main bridge, Python sidecar code, backend-hosted APIs, or renderer projection.
+title: "Sidecar Runtime Change Workflow"
+---
+
+# Sidecar Runtime Change Workflow
+
+Use this workflow when behavior is executed by the Python sidecar. The sidecar owns local-machine actions and local data services: executable tools, browser automation, local memory storage/search, system state, platform adapters, wakeword service protocol, backend URL clients, and JSON-RPC method handling.
+
+The sidecar is not the model-facing policy owner. Backend owns model-visible tool schemas, provider policy, prompt construction, and hosted route auth. Electron main owns process startup, IPC channel registration, native windows, and request transport. Renderer owns UI state and tool-result envelope orchestration.
+
+## Fast Owner Map
+
+| Symptom or request | Sidecar owner | First source roots | First tests | First docs |
+| --- | --- | --- | --- | --- |
+| Add or change a sidecar JSON-RPC method | Local backend method registry and protocol | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`, `frontend/src/main/local_backend_bridge_rpc_mappers.cjs` | `tests/sidecar/test_json_rpc_protocol.py`, `tests/sidecar/test_local_backend.py`, focused `LocalBackendBridge*.test.cjs` | [Local Backend JSON-RPC Reference](local_backend_jsonrpc_reference.md), [Main Process Change Workflow](../main/main_process_change_workflow.md) |
+| Tool exists in renderer/main but sidecar rejects or executes it incorrectly | Tool registry and executable tool implementation | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools`, `frontend/src/main/python/tools/result.py` | `tests/sidecar/test_tool_registry.py`, `tests/sidecar/test_tool_result.py`, focused tool tests | [Sidecar Tool Change Workflow](../sidecar_tool_change_workflow.md), [Sidecar Tool Catalog](tool_catalog_and_execution_model.md) |
+| Tool schema parity drift or exposed executable fields change | Sidecar tool schema/export contract | `frontend/src/main/python/tools/schemas.py`, `frontend/src/main/python/tools/exposed_tool_names.py`, `frontend/src/main/python/tools/*` | `tests/sidecar/test_tool_schemas.py`, `tests/sidecar/test_shared_tool_schema_parity.py` | [Tool Registry Exposed Schema](tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md) |
+| Filesystem read/replace behavior changes | Filesystem tools and path resolution | `frontend/src/main/python/tools/filesystem/*`, `frontend/src/main/python/tools/path_resolution.py` | `tests/sidecar/test_read_file_tool.py`, `tests/sidecar/test_replace_tool.py`, filesystem tool tests | [Filesystem Read and Replace](tools/filesystem_read_replace_runtime_reference.md) |
+| Shell/process/open-app/wait/stats behavior changes | System tools and process registry | `frontend/src/main/python/tools/system/*` | `tests/sidecar/test_shell_process_tool.py`, `tests/sidecar/test_shell_process_registry.py`, `tests/sidecar/test_system_tools.py` | [Shell and Process Session Runtime](tools/shell_and_process_session_runtime_reference.md), [Sidecar System Tools Hub](tools/system/README.md) |
+| Mouse, keyboard, scroll, screenshot, or local window action changes | Computer tools plus platform adapters | `frontend/src/main/python/tools/computer/*`, `frontend/src/main/python/core/platform/*` | `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_scroll_tool.py`, `tests/sidecar/test_screenshot_tool.py`, platform tests | [Computer Tools Runtime](tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md), [System-State Platform Adapter Reference](system_state/platform/system_state_probe_layer_and_window_manager_adapter_boundary_reference.md) |
+| Browser launch, session, action, extraction, snapshot, file, or role ref behavior changes | Sidecar browser runtime | `frontend/src/main/python/tools/browser/*`, `frontend/src/main/python/windie_shared/browser_contract*` | `tests/sidecar/tools/test_browser_*.py`, `tests/sidecar/test_browser_runtime_architecture.py` | [Sidecar Browser Hub](browser/README.md), [Browser Automation Stack](browser_automation_stack.md) |
+| Local memory search, transcript rows, conversation list/window/search, semantic memory, or summarizer changes | Sidecar memory runtime and storage | `frontend/src/main/python/memory/*`, `frontend/src/main/python/local_backend_memory_handlers.py`, `frontend/src/main/python/tools/memory/*` | `tests/sidecar/test_memory_*.py`, `tests/sidecar/test_conversation_*runtime.py`, `tests/sidecar/test_memory_operations.py` | [Sidecar Memory Hub](memory/README.md), [Memory Pipeline and Summarization](memory_pipeline_and_summarization.md) |
+| Backend URL, remote embedding/semantic/title client, or sidecar API token forwarding changes | Sidecar backend config and remote clients | `frontend/src/main/python/core/backend_config.py`, remote client modules under sidecar/memory code | `tests/sidecar/test_backend_config.py`, remote client tests | [Backend URL Resolution and Thread-Pool Runtime](core/backend_url_resolution_remote_memory_clients_and_thread_pool_runtime_reference.md), [Runtime Configuration Matrix](../../operations/runtime_configuration_matrix.md) |
+| System-state payload is stale, missing, or platform-specific | System-state collector and platform probe layer | `frontend/src/main/python/core/system_state.py`, `frontend/src/main/python/core/platform/*`, `frontend/src/main/python/tools/system/window_tool.py` | `tests/sidecar/test_system_state.py`, `tests/sidecar/test_platform_module_selection.py`, platform window-manager tests | [System-State Collection](system_state/system_state_collection_and_platform_adapter_reference.md), [System-State Platform Adapter Reference](system_state/platform/system_state_probe_layer_and_window_manager_adapter_boundary_reference.md) |
+| Sidecar process hangs, stdout framing breaks, or shutdown fails | JSON-RPC loop, stdout JSON, shutdown runtime | `frontend/src/main/python/core/ipc_protocol.py`, `frontend/src/main/python/core/stdout_json.py`, `frontend/src/main/python/core/runtime_shutdown.py`, `frontend/src/main/python/local_backend.py` | `tests/sidecar/test_stdout_json.py`, `tests/sidecar/test_runtime_shutdown.py`, `tests/sidecar/test_json_rpc_protocol.py` | [JSON-RPC Protocol and Stdout Framing](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md), [Local Backend Process Lifecycle](local_backend_process_lifecycle_reference.md) |
+| Wakeword service model bootstrap, binary frames, or service lifecycle changes | Wakeword sidecar service | `frontend/src/main/python/wakeword_service.py`, `frontend/src/main/python/core/ipc_protocol.py` | `tests/sidecar/test_wakeword_service.py` plus frontend bridge tests when framing changes | [Wakeword Service Model Bootstrap](services/wakeword_service_model_bootstrap_and_binary_framing_reference.md), [Wakeword Bridge and Audio Framing](wakeword_bridge_and_audio_framing_reference.md) |
+
+## Boundary Rules
+
+- Do not import backend code into sidecar to mirror model-facing schemas. Use explicit executable schemas and parity tests.
+- Do not add renderer UI state or Electron window decisions to Python code. Return normalized data; let renderer/main own presentation/native orchestration.
+- Do not make sidecar depend on conda, source checkout paths, or system Python in packaged mode. Runtime dependencies belong in `frontend/src/main/python/requirements.runtime.txt` and packaging docs.
+- Keep JSON-RPC results serializable and explicit: return success/error envelopes instead of leaking tracebacks or unserializable objects to Electron main.
+- Browser runtime changes must preserve the dedicated Windie browser/session ownership policy unless the browser docs and tests are updated.
+- Memory writes must distinguish transcript rows, interaction rows, semantic rows, and summarizer candidates. Do not make every transcript row a semantic candidate by accident.
+- Platform adapters should normalize OS differences for callers; avoid scattering platform branches through individual tools when an adapter exists.
+
+## Change Sequence
+
+1. **Classify the sidecar surface.** Decide whether the owner is JSON-RPC protocol, method handler, tool registry, specific tool family, memory runtime, browser runtime, platform adapter, backend config client, or wakeword service.
+2. **Check Electron bridge ownership.** If renderer/main payload mapping changes, read [Main Process Change Workflow](../main/main_process_change_workflow.md) and update bridge tests with sidecar tests.
+3. **Keep executable and model-facing contracts separate.** For tool changes, read [Sidecar Tool Change Workflow](../sidecar_tool_change_workflow.md) before touching backend schemas.
+4. **Update the owner module first.** Fix registry/method/tool/storage/platform code at the owner layer before adding tolerance in callers.
+5. **Normalize errors at the boundary.** Convert local exceptions into sidecar result errors or JSON-RPC errors with useful but non-secret messages.
+6. **Add focused sidecar tests.** Prefer unit tests around the exact tool, method, memory helper, browser contract, or platform adapter.
+7. **Update docs and changelog.** Link new sidecar surfaces from this workflow and the relevant sub-hub.
+
+## JSON-RPC Method Checklist
+
+When adding or changing a method:
+
+- Register the method in `LocalBackend._initialize_methods`.
+- Validate params through handler signatures and explicit type checks.
+- Add or update Electron main mapper definitions when renderer IPC reaches the method.
+- Keep snake_case sidecar params and document any camelCase bridge mapping.
+- Return stable JSON-serializable payloads.
+- Add sidecar protocol tests and main bridge mapper tests when the Electron payload changes.
+
+## Tool Runtime Checklist
+
+When changing a local executable tool:
+
+- Decide whether the backend model-visible schema must change. If yes, update backend schema/tests/docs too.
+- Keep `ToolResult` success/error shape stable.
+- Keep tool registry registration and exposed executable schema in sync.
+- Preserve local authority boundaries for filesystem, shell, browser, screenshot, input, and window actions.
+- Add tests for valid input, invalid input, runtime failure, and normalized result shape.
+
+## Memory Runtime Checklist
+
+When changing sidecar memory:
+
+- Preserve record-kind semantics: transcript rows, interaction rows, semantic rows, and metadata/watermark rows have different jobs.
+- Keep embedding unavailability non-fatal where the existing contract allows local writes without embeddings.
+- Update conversation list/search/window runtime tests when stored row shape or grouping changes.
+- Keep FAISS/SQLite cleanup behavior explicit when deleting conversations or semantic memories.
+- Update backend remote client docs/tests if sidecar memory starts calling a hosted route differently.
+
+## Browser Runtime Checklist
+
+When changing browser behavior:
+
+- Preserve session ownership and ref registry guarantees.
+- Keep action schema validation and OpenClaw-compatible field behavior documented.
+- Update Chrome detection/launcher tests when browser selection changes.
+- Update browser-use docs/tests when vendored browser-use internals or adapters change.
+- Keep extraction deterministic unless the docs and runtime intentionally introduce an LLM-dependent path.
+
+## Platform and System-State Checklist
+
+When changing platform adapters or system state:
+
+- Keep OS-specific probes under `core/platform/*` when possible.
+- Normalize payloads before returning them through JSON-RPC.
+- Update macOS, Windows, and Linux tests or docs when behavior differs.
+- Keep screenshot/window/input changes aligned with [Platform Change Workflow](../../platforms/platform_change_workflow.md).
+
+## Validation Matrix
+
+| Changed surface | Focused validation |
+| --- | --- |
+| JSON-RPC protocol or method registry | `./scripts/python-in-env sidecar pytest tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_local_backend.py` |
+| Tool registry/schema/result | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_schemas.py tests/sidecar/test_tool_result.py` |
+| Filesystem/shell/computer/system tool | Focused `tests/sidecar/test_*_tool.py` for that tool family |
+| Browser runtime | `./scripts/python-in-env sidecar pytest tests/sidecar/tools` plus focused browser runtime tests |
+| Memory runtime/storage | `./scripts/python-in-env sidecar pytest tests/sidecar/test_memory_*.py tests/sidecar/test_conversation_*runtime.py` |
+| Backend config/remote clients | `./scripts/python-in-env sidecar pytest tests/sidecar/test_backend_config.py tests/sidecar/test_remote_*client.py` |
+| Wakeword service | `./scripts/python-in-env sidecar pytest tests/sidecar/test_wakeword_service.py` plus frontend wakeword bridge tests if framing changes |
+| Docs-only sidecar workflow updates | `./bin/docs-list`, `git diff --check`, focused Markdown link checks |
+
+## Review Checklist
+
+Before committing sidecar work:
+
+- Did the change belong to Python sidecar rather than backend policy, Electron main orchestration, or renderer projection?
+- Did JSON-RPC and Electron bridge payloads stay explicit and tested when they changed?
+- Did packaged runtime dependencies and source-mode imports stay separated?
+- Did local authority boundaries remain clear for filesystem, shell, browser, screenshot, input, and window operations?
+- Did memory row kinds and semanticization behavior stay intentional?
+- Did tests cover success, invalid input, and failure normalization for the changed executable path?
+- Did docs and `CHANGELOG.md` move with behavior or contract changes?
+
+## Related Docs
+
+- [Frontend Sidecar Docs Hub](README.md)
+- [Local Backend JSON-RPC Reference](local_backend_jsonrpc_reference.md)
+- [Sidecar Tool Change Workflow](../sidecar_tool_change_workflow.md)
+- [Sidecar Tool Catalog and Execution Model](tool_catalog_and_execution_model.md)
+- [Sidecar Memory Hub](memory/README.md)
+- [Sidecar Browser Hub](browser/README.md)
+- [System-State Collection](system_state/system_state_collection_and_platform_adapter_reference.md)
+- [Wakeword Bridge and Audio Framing](wakeword_bridge_and_audio_framing_reference.md)

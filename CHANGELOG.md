@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(frontend): add sidecar runtime change workflow for Python JSON-RPC, local tools, memory, browser automation, system state, platform adapters, backend config, and wakeword service behavior.
 - docs(frontend): add main-process change workflow for Electron startup, IPC, windows, overlays, endpoints, permissions, local backend bridge, wakeword, and VM worker behavior.
 - docs(frontend): add renderer state change workflow for chat state, dashboard panels, settings, transcript projection, stream presentation, tool results, and provider contexts.
 - docs(operations): add release and packaging change workflow for Electron Builder targets, bundled sidecar runtime, local reinstall helpers, smoke checks, and release workflow behavior.
