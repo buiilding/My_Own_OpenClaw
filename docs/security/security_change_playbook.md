@@ -85,6 +85,7 @@ Validate:
 
 Read:
 
+- [Credential and Token Change Workflow](credential_token_change_workflow.md)
 - [Provider Credentials](../providers/credentials.md)
 - [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md)
 - [Providers Hub](../providers/README.md)

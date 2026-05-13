@@ -26,6 +26,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Runtime Nodes Hub**](nodes/README.md) - Runtime process and service boundaries for backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes
 - [**Automation Hub**](automation/README.md) - VM run orchestration, worker polling, run-control APIs, and future scheduler boundaries
 - [**Security Hub**](security/README.md) - Hosted auth, IPC isolation, schema validation, credentials, tool execution, and sidecar boundaries
+- [**Credential and Token Change Workflow**](security/credential_token_change_workflow.md) - Owner routing for install auth, bearer tokens, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging
 - [**Plugins and Extensions Hub**](plugins/README.md) - Current extension points for tools, providers, SDK routes, sidecar actions, and future plugin boundaries
 - [**Tools Hub**](tools/README.md) - Tool contracts, computer tools, browser automation, filesystem, and shell execution
 - [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Owner routing for model-visible tool schemas, policy gates, provider projection, sidecar parity, renderer dispatch, and tool-result contracts
@@ -117,6 +118,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Security Change Playbook**](security/security_change_playbook.md) - Focused implementation checklist for security-sensitive changes
 - [**Permissions and Local Authority Workflow**](security/permissions_and_local_authority_workflow.md) - Screen/input/microphone/browser/workspace/sudo authority routing
 - [**Credentials and Tokens Matrix**](security/credentials_and_tokens_matrix.md) - Install tokens, runs keys, provider keys, OAuth state, and sidecar remote-client auth
+- [**Credential and Token Change Workflow**](security/credential_token_change_workflow.md) - Change workflow for install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging
 - [**Plugins and Extensions Hub**](plugins/README.md) - Current extension surfaces and plugin-marketplace boundaries
 - [**Extension Surface Matrix**](plugins/extension_surface_matrix.md) - Registration points, owner files, docs, and validation targets for extensibility work
 - [**Provider Extension Guide**](plugins/provider_extension_guide.md) - LLM/inference provider extension paths, credentials, product rules, and tests

@@ -11,6 +11,8 @@ title: "REST Route Auth Matrix"
 
 The WindieOS hosted REST boundary is FastAPI route registration plus install-auth middleware. There is no separate gateway process. Route ownership starts in `backend/src/api/routes/__init__.py`, app assembly lives in `backend/src/api/app_assembly.py`, and hosted HTTP auth is enforced by `backend/src/api/auth/http_middleware.py`.
 
+Use [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) when a route change touches install bearer auth, runs API keys, provider credentials, sidecar auth headers, or secret logging.
+
 ## Assembly Contract
 
 | Layer | Owner | Contract |
@@ -75,4 +77,5 @@ Do not let route handlers trust a request body `user_id` when install auth is en
 - [Gateway Auth and Health Runbook](gateway_auth_and_health_runbook.md)
 - [Hosted API and Auth](../web/hosted_api_and_auth.md)
 - [Security Boundary Matrix](../security/security_boundary_matrix.md)
+- [Credential and Token Change Workflow](../security/credential_token_change_workflow.md)
 - [Configuration Reference](../reference/configuration_reference.md)

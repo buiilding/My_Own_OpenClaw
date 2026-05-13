@@ -12,6 +12,8 @@ WindieOS uses no-login install registration for hosted backend access. A desktop
 
 The hosted path must not trust renderer-provided `user_id` ownership. When install auth is required, backend identity comes from the authenticated install token.
 
+For implementation steps that cross install auth, runs keys, provider keys, OAuth state, sidecar remote-client auth, or secret logging, read [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) before editing.
+
 ## Runtime Pieces
 
 | Piece | Owns | Files |
@@ -135,6 +137,7 @@ When changing hosted auth:
 ## Related Docs
 
 - [Runtime Configuration Matrix](runtime_configuration_matrix.md)
+- [Credential and Token Change Workflow](../security/credential_token_change_workflow.md)
 - [Security](security.md)
 - [Multi-User Runtime Hardening](multi_user_runtime_hardening.md)
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)

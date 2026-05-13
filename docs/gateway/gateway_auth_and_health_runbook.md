@@ -10,6 +10,8 @@ title: "Gateway Auth and Health Runbook"
 
 This runbook covers the auth and health pieces that sit at the FastAPI gateway boundary.
 
+For code-change steps across install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, sidecar auth headers, and secret logging, use [Credential and Token Change Workflow](../security/credential_token_change_workflow.md).
+
 ## Install Registration
 
 Endpoint:
@@ -133,3 +135,9 @@ curl -fsSL \
 - route health tests for embeddings/semantic behavior
 - runs route auth tests when runs key behavior changes
 - SDK/client auth propagation tests when header behavior changes
+
+## Related Docs
+
+- [Credential and Token Change Workflow](../security/credential_token_change_workflow.md)
+- [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md)
+- [Hosted Backend Auth](../operations/hosted_backend_auth.md)

@@ -16,6 +16,7 @@ WindieOS security spans hosted backend identity, Electron renderer isolation, ba
 - [Security Change Playbook](security_change_playbook.md) for how to change auth, IPC, validation, credentials, permissions, tools, or sidecar execution.
 - [Permissions and Local Authority Workflow](permissions_and_local_authority_workflow.md) for screen/input/microphone/browser/workspace/sudo authority changes.
 - [Credentials and Tokens Matrix](credentials_and_tokens_matrix.md) for install tokens, runs keys, provider keys, OAuth state, and sidecar remote-client auth.
+- [Credential and Token Change Workflow](credential_token_change_workflow.md) for changing install auth, bearer tokens, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging boundaries.
 - [Operations Security](../operations/security.md) for current security notes.
 - [Safety Boundaries](../concepts/safety_boundaries.md) for the conceptual safety model.
 - [Hosted Backend Auth](../operations/hosted_backend_auth.md) for install-token REST and websocket identity.
@@ -29,7 +30,7 @@ WindieOS security spans hosted backend identity, Electron renderer isolation, ba
 | WebSocket validation | Parse/validate handshakes and incoming messages, cap tasks, sanitize errors | [Backend API and Transport](../backend/api/api_and_transport.md), [Backend WebSocket Docs Hub](../backend/api/websocket/README.md) |
 | Renderer isolation | Keep privileged APIs behind preload allowlists and typed IPC bridge | [Preload Channel Allowlist](../frontend/preload/preload_channel_allowlist_and_renderer_bridge_reference.md), [IPC Channel Reference](../frontend/contracts/ipc_channel_and_handler_reference.md) |
 | Settings patch guard | Accept only frontend-owned config fields from renderer updates | [Input Validation and Frontend Patch Guard](../backend/core/validation/input_validation_and_frontend_patch_guard_reference.md) |
-| Credentials | Keep API keys in env or explicit provider credential surfaces | [Provider Credentials](../providers/credentials.md), [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) |
+| Credentials | Keep API keys in env or explicit provider credential surfaces | [Credential and Token Change Workflow](credential_token_change_workflow.md), [Provider Credentials](../providers/credentials.md), [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) |
 | Tool execution | Narrow model-visible capabilities and route local actions through sidecar execution boundaries | [Tools Hub](../tools/README.md), [Backend Tools Security Docs Hub](../backend/tools/security/README.md) |
 | Permissions | Gate screen/input/microphone/browser capabilities through OS-aware probes and onboarding | [Onboarding and Permissions](../desktop/onboarding_permissions.md), [Platform Docs](../platforms/README.md) |
 | Sidecar runtime | Keep local JSON-RPC, filesystem/shell/browser/computer actions, and subprocess protocols explicit | [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md), [Frontend Sidecar Docs Hub](../frontend/sidecar/README.md) |

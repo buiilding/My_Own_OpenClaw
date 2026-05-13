@@ -10,6 +10,8 @@ title: "Credentials and Tokens Matrix"
 
 WindieOS uses several credential classes. Keep them separate: install auth identifies a desktop install to the hosted backend, runs keys protect VM worker/control routes, provider keys authenticate model/inference vendors, and OAuth state belongs to explicit provider-specific flows.
 
+For implementation steps, owner code paths, debug routing, and validation commands, use [Credential and Token Change Workflow](credential_token_change_workflow.md). This matrix is the compact lookup; the workflow is the edit guide.
+
 ## Credential Classes
 
 | Credential | Owner | Storage/source | Used by | Must not be used for |
@@ -68,6 +70,7 @@ WindieOS uses several credential classes. Keep them separate: install auth ident
 ## Related Docs
 
 - [Security Hub](README.md)
+- [Credential and Token Change Workflow](credential_token_change_workflow.md)
 - [Hosted Backend Auth](../operations/hosted_backend_auth.md)
 - [Provider Credentials](../providers/credentials.md)
 - [REST Route Auth Matrix](../gateway/rest_route_auth_matrix.md)

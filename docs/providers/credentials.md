@@ -10,6 +10,8 @@ title: "Provider Credentials"
 
 WindieOS supports environment-variable credentials, frontend-managed provider overrides, limited OAuth credential entries, and hosted install authentication. Never commit real credentials in docs, tests, or config.
 
+For code-owner routing and validation commands across install tokens, runs keys, provider keys, OAuth state, sidecar auth headers, and logging, start with [Credential and Token Change Workflow](../security/credential_token_change_workflow.md).
+
 ## Environment Variables
 
 Default provider env vars are defined in `backend/src/core/config/models.py`:
@@ -50,3 +52,4 @@ Hosted installs use install-token authentication when enabled. Relevant code liv
 - Check whether the provider factory actually registered the provider.
 - Check frontend overrides only after confirming environment variables are absent or intentionally overridden.
 - Check hosted auth headers when a remote REST route works locally but fails through the packaged app.
+- Check [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) when a symptom could belong to install auth, runs auth, provider credentials, OAuth state, sidecar header propagation, or secret logging.
