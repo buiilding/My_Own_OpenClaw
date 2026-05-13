@@ -1,69 +1,134 @@
 # WindieOS
 
-> The desktop layer for personal AI agents.
+> Welcome to Windie.
 
-WindieOS is an open-source desktop companion layer that gives an AI a local
-presence on your computer: a native desktop UI, an Electron runtime, a Python
-sidecar for local tool execution, local memory and transcript storage, browser
-control, filesystem access, shell execution, screenshots, system-state capture,
-and permission-aware OS integration.
+WindieOS is a desktop agent for your real computer.
 
-WindieOS is not trying to be another terminal coding agent, another messaging
-gateway, or another cloud sandbox. It is the local embodiment layer: the part of
-an agent system that can see, remember, and act on the user's real machine while
-keeping local execution separate from hosted model and backend services.
+Yes, it belongs in the same conversation as Hermes, OpenClaw, Codex, Claude
+Code, and the other agent tools people are building right now. The difference is
+where Windie tries to live: not just in a terminal, not just in a browser tab,
+and not just in a remote sandbox. Windie lives on your desktop, sees the screen
+you are seeing, remembers what happened locally, and can use your computer
+through tools while you stay in control.
 
-## Why WindieOS Exists
+It is an open-source Electron client with a Python sidecar. The hosted WindieOS
+backend owns model orchestration, OCR, vision, embeddings, and other
+backend-side services. The client owns the local experience: the floating chat
+pill, the fullscreen dashboard, screenshots, shell and filesystem tools,
+browser-use, local memory, and computer-use execution.
 
-Most AI tools still live outside the computer they are supposed to help with.
-They can answer questions, write code, or run commands in a narrow workspace,
-but they do not naturally share the user's desktop context. The user still has
-to copy, paste, switch apps, check browser state, open files, grant permissions,
-and connect the result back to the real workflow.
+## Why Windie Exists
 
-WindieOS explores a different boundary:
+Most AI products still ask the human to do the last mile.
+
+You can ask for restaurants, but you still open Maps to check hours. You can ask
+for a workflow, but you still jump between tabs. You can ask for code help, but
+the agent usually lives inside a repository instead of your whole computer.
+
+WindieOS is built around a different assumption:
 
 ```text
-Human goal
-  -> desktop companion UI
-  -> local sidecar tools and memory
-  -> hosted model/backend services when needed
-  -> visible action on the user's computer
+The user gives a goal.
+Windie sees the current desktop context.
+Windie chooses tools.
+Windie acts locally.
+Windie streams what it is doing back to the user.
 ```
 
-The project is built around the idea that personal agents need a real local
-surface. They need to capture screen state, operate browsers and files, run
-commands, manage local memory, request OS permissions, and stream progress back
-to the human without pretending the desktop is just a chat transcript.
+The point is not to replace the human. The point is to give the agent a real
+local body: screen context, memory, browser state, files, shell access, and a UI
+that stays with you while the loop runs.
 
-## How WindieOS Is Different
+## The Windie Vibe
+
+Windie has two UI states.
+
+The first is the minimal chat pill. It floats on your screen, stays out of the
+way, and can attach the current screen automatically when you send a message.
+This is the mode you should live in most of the time.
+
+The second is the fullscreen dashboard. It gives you the longer transcript,
+tool logs, memory surfaces, settings, and deeper visibility into the agent loop.
+Use it when you want to inspect what happened or steer a run more carefully.
+
+The intended flow is simple: talk to the pill, let Windie use the current screen
+as context, and open the dashboard when you need the details.
+
+## What Makes It Different
+
+| Area | WindieOS |
+| --- | --- |
+| Computer-use | Built in, Codex-style, but usable with any supported model provider. It does not depend on one vendor's native computer tool. |
+| Desktop control | Screenshot-first today. Windie captures state, reasons over the image/context, executes mouse/keyboard/scroll/browser/shell tools, then observes again. Accessibility-tree control is not the current path. |
+| Memory | Designed around human-like memory: episodic traces of what happened, semantic memory for distilled meaning, and procedural memory as the direction for repeatable routines and skills. |
+| Browser-use | Uses a WindieOS-owned persistent browser profile instead of attaching an extension to your everyday Chrome profile by default, so your normal browsing can continue separately. |
+| UI | Always-present minimal pill for quick goals, plus a dashboard for logs, tool traces, memory, settings, and longer runs. |
+| Boundary | Local frontend and sidecar execute tools on the user's machine. Hosted services handle backend-owned model, OCR, vision, embedding, and orchestration work. |
+
+## Compared To Other Agents
 
 | Project | Center of gravity | WindieOS difference |
 | --- | --- | --- |
-| Codex / Claude Code | Terminal, IDE, and repository workflows | WindieOS is OS-level: screen, apps, browser, files, shell, voice hooks, and local desktop state. |
-| Hermes Agent | Agent runtime, skills, memory, terminal backends, messaging, research tooling | WindieOS is the desktop embodiment and local execution surface that can sit beside a broader agent runtime. |
-| OpenClaw | Local-first personal assistant gateway across channels and device nodes | WindieOS focuses on the user's computer itself: permissioned screen capture, input control, local memory, and sidecar tools. |
-| Cloud agent computers | Remote VM or browser workspace | WindieOS runs beside the human on their real desktop and can bridge local context to hosted services. |
+| Codex / Claude Code | Terminal, IDE, repository, coding workflows | WindieOS is broader desktop embodiment: screen, apps, browser, files, shell, voice hooks, and local state. |
+| Hermes Agent | Agent runtime, skills, memory, terminal backends, messaging, research tooling | WindieOS is the local desktop surface that can sit beside a broader runtime and operate the user's real machine. |
+| OpenClaw | Local-first assistant gateway across channels and device nodes | WindieOS focuses on the computer in front of the user: screen capture, input control, local memory, browser profile, and sidecar tools. |
+| Cloud agent computers | Remote VM or browser workspace | WindieOS runs beside the human on the main desktop instead of moving all work into a separate remote computer. |
 
-## What This Repo Provides
+## Core Pieces
 
-The open-source client distribution is focused on the frontend, sidecar, and SDK
-transport boundary:
+### Computer-Use
 
-- **Electron desktop shell** for windows, overlays, permissions, process
-  lifecycle, backend transport, and sidecar supervision.
-- **React renderer** for chat, dashboard surfaces, transcript browsing, memory,
-  settings, tool progress, and voice/wakeword-facing UI.
-- **Python sidecar** for local tools, screenshots, system state, shell commands,
-  filesystem operations, browser adapters, and local memory.
-- **Local transcript and memory store** backed by SQLite and FAISS, with hosted
-  APIs used for embeddings, summarization, title generation, OCR, vision, and
-  agent orchestration where configured.
-- **Hosted SDK transport clients** in TypeScript and Python for calling public
-  WindieOS backend APIs without importing backend code into the client runtime.
+Windie can use the desktop through local tools:
 
-The sidecar is not a replacement backend. It executes actions that must happen
-on the user's machine and calls hosted services for backend-owned capabilities.
+- screenshots and system-state capture
+- mouse movement, clicking, dragging, and scrolling
+- keyboard input
+- app and window interactions
+- shell commands and long-running processes
+- filesystem reads, writes, and searches
+- browser-use actions through the Windie browser runtime
+
+The current computer-use path is intentionally screenshot-first. Windie observes
+the screen, takes an action, observes again, and continues the loop. That makes
+the tool contract model-agnostic and works across providers, but it also means
+Windie is not yet using an accessibility tree as its primary desktop interface.
+
+### Memory
+
+Windie memory is local-first and inspired by how people remember:
+
+- **Episodic memory**: records of interactions and what happened.
+- **Semantic memory**: distilled facts, preferences, and durable context.
+- **Procedural memory**: the planned layer for repeatable routines, workflows,
+  and learned ways of doing tasks.
+
+Today the local sidecar stores transcript, episodic, and semantic memory using
+SQLite and vector search. Hosted services can be used for embeddings,
+summaries, titles, OCR, and vision when configured.
+
+### Browser-Use
+
+Windie does not need to take over your everyday browser profile by default.
+
+Instead, browser-use is designed around a WindieOS-owned persistent browser
+profile. The agent can keep its own browser state, cookies, sessions, and
+automation context while you continue using your normal browser separately.
+
+### Frontend And Sidecar
+
+This repository is centered on the public client:
+
+- **Electron main process** for windows, permissions, lifecycle, backend
+  transport, and sidecar supervision.
+- **React renderer** for the chat pill, dashboard, transcript, memory, settings,
+  tool progress, voice surfaces, and onboarding.
+- **Python sidecar** for local screenshots, browser adapters, shell/filesystem
+  tools, local memory, and system state.
+- **Transport clients** for talking to hosted WindieOS APIs without importing
+  backend internals into the frontend or sidecar.
+
+The sidecar is not a replacement backend. It executes what must happen on the
+user's machine and calls hosted services for backend-owned capabilities.
 
 ## Architecture
 
@@ -82,7 +147,7 @@ on the user's machine and calls hosted services for backend-owned capabilities.
                 v                               v
 +------------------------------+   +------------------------------+
 |        React Renderer         |   |        Python Sidecar         |
-| chat, dashboard, settings,    |   | local tools, memory, browser, |
+| pill, dashboard, settings,    |   | local tools, memory, browser, |
 | transcript, tool progress     |   | files, shell, system state    |
 +------------------------------+   +---------------+--------------+
                                                     |
@@ -94,38 +159,19 @@ on the user's machine and calls hosted services for backend-owned capabilities.
 Runtime boundaries matter:
 
 - The frontend and sidecar own local desktop knowledge.
-- The sidecar does not import backend Python packages.
-- Backend sessions are remote inference state and can be rebuilt from the local
-  transcript when needed.
-- Local tools run through the sidecar, not through the hosted backend.
-
-## Capabilities
-
-- **Screen and system context**: capture screenshots and system state for
-  grounded agent turns.
-- **Computer control**: mouse, keyboard, scrolling, windows, browser sessions,
-  and app launching through local tools.
-- **Filesystem and shell tools**: read, write, search, execute commands, and
-  manage background shell sessions.
-- **Local memory**: store and search episodic and semantic memory locally, with
-  hosted embedding and summarization APIs when configured.
-- **Transcript ownership**: keep conversation history local and use it to
-  restore backend inference context on demand.
-- **Permission-aware onboarding**: guide users through screen, accessibility,
-  microphone, automation, workspace, and browser setup.
-- **Voice and wakeword hooks**: local wakeword process supervision and renderer
-  voice surfaces for hands-free interaction.
-- **Hosted backend bridge**: call public WindieOS APIs for model, OCR, vision,
-  artifact, and SDK operations without requiring end users to run a backend.
+- Tools execute on the sidecar, not in the hosted backend.
+- The frontend and sidecar do not import backend Python packages.
+- The backend owns model-facing tool schemas and orchestration.
+- Backend sessions can be rebuilt from local transcript state when needed.
 
 ## What WindieOS Is Not
 
 - It is not a full replacement operating system.
 - It is not a generic agent framework.
-- It is not a coding-only agent like Codex or Claude Code.
-- It is not a messaging gateway like OpenClaw.
-- It is not a promise that all computation is local. Backend-owned services can
-  be hosted, while local execution and memory remain on the user's machine.
+- It is not a coding-only agent.
+- It is not a messaging gateway.
+- It is not a claim that every computation is local. Local execution and memory
+  live on the user's machine, while backend-owned services can be hosted.
 
 ## Quick Start
 
@@ -205,9 +251,9 @@ Use the environment launcher for Python commands:
 ./scripts/python-in-env <backend|frontend|sidecar> <cmd...>
 ```
 
-## Security and Privacy Model
+## Security And Privacy
 
-WindieOS touches sensitive local surfaces, so the trust boundary is explicit:
+Windie touches sensitive local surfaces, so the trust boundary is explicit:
 
 - Local tools execute in the Python sidecar on the user's machine.
 - Conversation transcripts and local memory are stored locally.
@@ -217,8 +263,8 @@ WindieOS touches sensitive local surfaces, so the trust boundary is explicit:
   of silently assuming access.
 - The frontend and sidecar use transport clients for hosted APIs instead of
   importing backend internals.
-- Browser automation uses a dedicated runtime path and should avoid touching the
-  user's normal browser profile unless the user explicitly configures that path.
+- Browser automation uses a dedicated Windie runtime path by default and should
+  avoid touching the user's normal browser profile unless explicitly configured.
 
 ## Repository Map
 
@@ -243,9 +289,10 @@ tests/
 
 Start with:
 
+- [Product Overview](docs/getting-started/product_overview.md)
 - [Frontend Architecture](docs/architecture/frontend_architecture.md)
 - [Python Sidecar](docs/architecture/python_sidecar.md)
-- [System Architecture](docs/architecture/architecture.md)
+- [Memory System](docs/architecture/memory_system.md)
 - [Tool System](docs/architecture/tool_system.md)
 
 ## Roadmap
@@ -256,6 +303,7 @@ and remote/hosted agent intelligence:
 - simpler packaged install and onboarding
 - safer permission and tool policy surfaces
 - stronger local transcript and memory reliability
+- procedural memory for repeatable routines and learned workflows
 - dedicated agent browser/workspace flows
 - better voice and wakeword interaction
 - clearer SDK boundaries for developers building local tools and integrations
