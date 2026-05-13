@@ -59,7 +59,9 @@ Typed config fields:
 
 - `agent_tool_profile`: `default`, `chat`, `coding`, `browser`, `computer`, `full`, or `custom`
 - `agent_disabled_tools`: direct tool names to remove
+- `agent_available_tools`: optional client/session tool availability list; when supplied, policy intersects it with profile/server restrictions
 - `agent_coordinate_methods`: optional allowed coordinate methods (`manual`, `ocr`, `prediction`)
+- `agent_available_coordinate_methods`: optional client/session coordinate-method availability list; when supplied, policy intersects it with requested/server coordinate restrictions
 - `agent_disabled_capabilities`: capability gates (`ocr`, `vision`, `embeddings`, `web_search`, `browser`)
 
 Profile behavior:
@@ -71,9 +73,15 @@ Profile behavior:
 Coordinate/capability behavior:
 
 - `agent_coordinate_methods=["manual"]` prunes OCR and prediction fields from grounded desktop schemas.
+- `agent_available_coordinate_methods=["manual"]` also prunes OCR and prediction fields for that session, even if the server default allows them.
 - `agent_disabled_capabilities=["ocr"]` removes OCR coordinate fields and rejects OCR method calls.
 - `agent_disabled_capabilities=["vision"]` removes prediction coordinate fields and rejects prediction method calls.
 - These gates are evaluated from the effective `AppConfig`, so `SessionManager` user overrides can give different users different model-visible tool surfaces in the same backend process.
+
+The WebSocket handshake can populate `agent_available_tools`,
+`agent_available_coordinate_methods`, and requested policy fields before the
+first query. These client-provided fields are narrowing inputs only; they do not
+override backend hard-disables or legacy dev-selection narrowing.
 
 This layer intentionally reuses `ToolSelection` as its structural selection
 object so prompt schema filtering, parser validation, projected-schema pruning,

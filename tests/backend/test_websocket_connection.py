@@ -8,9 +8,12 @@ from tests.backend.websocket_route_test_utils import (
 
 _original_deps = install_route_deps_shim()
 
-from backend.src.api.routes.websocket import connection as connection_module
-from backend.src.api.routes.websocket.connection import cleanup_connection, perform_handshake
 from backend.src.api.auth.context import AuthenticatedInstallIdentity
+from backend.src.api.routes.websocket import connection as connection_module
+from backend.src.api.routes.websocket.connection import (
+    cleanup_connection,
+    perform_handshake,
+)
 
 restore_route_deps_shim(_original_deps)
 
@@ -33,7 +36,9 @@ class DummySafeWebSocket:
 
 
 class ExplodingSafeWebSocket(DummySafeWebSocket):
-    async def close(self, code: int = 1000, reason: str | None = None) -> None:  # noqa: ARG002
+    async def close(
+        self, code: int = 1000, reason: str | None = None
+    ) -> None:  # noqa: ARG002
         raise RuntimeError("socket close failed")
 
 
@@ -96,11 +101,21 @@ def _capture_connection_logger_calls(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_perform_handshake_returns_client_user_id() -> None:
-    websocket = DummyWebSocket(json.dumps({
-        "type": "handshake",
-        "user_id": "client_user",
-        "operating_system": "macOS",
-    }))
+    websocket = DummyWebSocket(
+        json.dumps(
+            {
+                "type": "handshake",
+                "user_id": "client_user",
+                "operating_system": "macOS",
+                "available_tools": ["read_file", "mouse_control"],
+                "available_coordinate_methods": ["manual"],
+                "requested_agent_policy": {
+                    "profile": "coding",
+                    "disabled_capabilities": ["ocr", "vision"],
+                },
+            }
+        )
+    )
     safe_ws = DummySafeWebSocket()
 
     assigned_user_id = await perform_handshake(websocket, safe_ws)
@@ -108,10 +123,18 @@ async def test_perform_handshake_returns_client_user_id() -> None:
     assert assigned_user_id == "client_user"
     assert safe_ws.closed == []
     assert getattr(safe_ws, "frontend_operating_system", None) == "macOS"
+    assert getattr(safe_ws, "frontend_agent_capability_overrides", None) == {
+        "agent_available_tools": ["read_file", "mouse_control"],
+        "agent_available_coordinate_methods": ["manual"],
+        "agent_tool_profile": "coding",
+        "agent_disabled_capabilities": ["ocr", "vision"],
+    }
 
 
 @pytest.mark.asyncio
-async def test_perform_handshake_uses_authenticated_install_identity_when_required() -> None:
+async def test_perform_handshake_uses_authenticated_install_identity_when_required() -> (
+    None
+):
     websocket = DummyWebSocket(
         json.dumps({"type": "handshake", "user_id": "claimed_user"}),
         headers={"authorization": "Bearer install-token-1"},
@@ -171,7 +194,9 @@ async def test_perform_handshake_rejects_missing_or_invalid_install_token(
 
 @pytest.mark.asyncio
 async def test_perform_handshake_small_payload_parses_inline(monkeypatch) -> None:
-    websocket = DummyWebSocket(json.dumps({"type": "handshake", "user_id": "client_user"}))
+    websocket = DummyWebSocket(
+        json.dumps({"type": "handshake", "user_id": "client_user"})
+    )
     safe_ws = DummySafeWebSocket()
 
     monkeypatch.setattr(
@@ -188,7 +213,9 @@ async def test_perform_handshake_small_payload_parses_inline(monkeypatch) -> Non
 
 @pytest.mark.asyncio
 async def test_perform_handshake_large_payload_uses_executor(monkeypatch) -> None:
-    websocket = DummyWebSocket(json.dumps({"type": "handshake", "user_id": "client_user"}))
+    websocket = DummyWebSocket(
+        json.dumps({"type": "handshake", "user_id": "client_user"})
+    )
     safe_ws = DummySafeWebSocket()
 
     monkeypatch.setattr(connection_module, "_HANDSHAKE_JSON_PARSE_OFFLOAD_BYTES", 1)
@@ -199,7 +226,9 @@ async def test_perform_handshake_large_payload_uses_executor(monkeypatch) -> Non
             called["executor"] = True
             return fn(data)
 
-    monkeypatch.setattr(connection_module.asyncio, "get_running_loop", lambda: FakeLoop())
+    monkeypatch.setattr(
+        connection_module.asyncio, "get_running_loop", lambda: FakeLoop()
+    )
 
     assigned_user_id = await perform_handshake(websocket, safe_ws)
 
@@ -209,7 +238,9 @@ async def test_perform_handshake_large_payload_uses_executor(monkeypatch) -> Non
 
 
 @pytest.mark.asyncio
-async def test_perform_handshake_offload_threshold_uses_utf8_byte_size(monkeypatch) -> None:
+async def test_perform_handshake_offload_threshold_uses_utf8_byte_size(
+    monkeypatch,
+) -> None:
     payload = json.dumps(
         {
             "type": "handshake",
@@ -222,7 +253,9 @@ async def test_perform_handshake_offload_threshold_uses_utf8_byte_size(monkeypat
 
     websocket = DummyWebSocket(payload)
     safe_ws = DummySafeWebSocket()
-    monkeypatch.setattr(connection_module, "_HANDSHAKE_JSON_PARSE_OFFLOAD_BYTES", threshold)
+    monkeypatch.setattr(
+        connection_module, "_HANDSHAKE_JSON_PARSE_OFFLOAD_BYTES", threshold
+    )
     called = {"executor": False}
 
     class FakeLoop:
@@ -230,7 +263,9 @@ async def test_perform_handshake_offload_threshold_uses_utf8_byte_size(monkeypat
             called["executor"] = True
             return fn(data)
 
-    monkeypatch.setattr(connection_module.asyncio, "get_running_loop", lambda: FakeLoop())
+    monkeypatch.setattr(
+        connection_module.asyncio, "get_running_loop", lambda: FakeLoop()
+    )
     assigned_user_id = await perform_handshake(websocket, safe_ws)
 
     assert assigned_user_id == "🙂" * 24
@@ -267,7 +302,9 @@ async def test_perform_handshake_invalid_payloads_close_socket(payload: str) -> 
 
 @pytest.mark.asyncio
 async def test_perform_handshake_parse_runtime_error_closes_socket(monkeypatch) -> None:
-    websocket = DummyWebSocket(json.dumps({"type": "handshake", "user_id": "client_user"}))
+    websocket = DummyWebSocket(
+        json.dumps({"type": "handshake", "user_id": "client_user"})
+    )
     safe_ws = DummySafeWebSocket()
 
     async def fail_parse(*_args, **_kwargs):
@@ -312,7 +349,9 @@ async def test_perform_handshake_json_decode_failure_logs_warning(monkeypatch) -
 
 @pytest.mark.asyncio
 async def test_perform_handshake_unexpected_failure_logs_error(monkeypatch) -> None:
-    websocket = DummyWebSocket(json.dumps({"type": "handshake", "user_id": "client_user"}))
+    websocket = DummyWebSocket(
+        json.dumps({"type": "handshake", "user_id": "client_user"})
+    )
     safe_ws = DummySafeWebSocket()
     warning_calls, error_calls = _capture_connection_logger_calls(monkeypatch)
 
@@ -395,7 +434,9 @@ async def test_cleanup_connection_swallows_session_cleanup_errors() -> None:
 
 
 @pytest.mark.asyncio
-async def test_cleanup_connection_continues_to_session_cleanup_when_task_cleanup_fails() -> None:
+async def test_cleanup_connection_continues_to_session_cleanup_when_task_cleanup_fails() -> (
+    None
+):
     task_manager = FailingTaskManager()
     session_manager = DummySessionManager()
 
@@ -406,7 +447,9 @@ async def test_cleanup_connection_continues_to_session_cleanup_when_task_cleanup
 
 
 @pytest.mark.asyncio
-async def test_cleanup_connection_swallows_when_task_and_session_cleanup_both_fail() -> None:
+async def test_cleanup_connection_swallows_when_task_and_session_cleanup_both_fail() -> (
+    None
+):
     task_manager = FailingTaskManager()
     session_manager = DummySessionManager(should_raise=True)
 

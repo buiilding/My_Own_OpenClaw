@@ -107,6 +107,14 @@ def normalize_coordinate_methods(values: Any) -> Optional[frozenset[str]]:
     return frozenset(method for method in COORDINATE_METHODS if method in requested)
 
 
+def available_tools_from_config(config: Any) -> Optional[frozenset[str]]:
+    """Return client/session available tool names, when supplied."""
+    values = getattr(config, "agent_available_tools", None)
+    if values is None:
+        return None
+    return frozenset(_string_set(values))
+
+
 def disabled_tools_from_config(config: Any) -> set[str]:
     """Return direct tool names disabled by session/server capability policy."""
     disabled = _string_set(getattr(config, "agent_disabled_tools", None))
@@ -121,17 +129,23 @@ def disabled_tools_from_config(config: Any) -> set[str]:
 
 
 def coordinate_methods_from_config(config: Any) -> Optional[frozenset[str]]:
-    """Return the configured coordinate methods after capability gates."""
+    """Return configured coordinate methods after capability and client gates."""
     methods = normalize_coordinate_methods(
         getattr(config, "agent_coordinate_methods", None)
+    )
+    available_methods = normalize_coordinate_methods(
+        getattr(config, "agent_available_coordinate_methods", None)
     )
     disabled_capabilities = _string_set(
         getattr(config, "agent_disabled_capabilities", None)
     )
-    if not disabled_capabilities:
-        return methods
+
+    if methods is None and available_methods is None and not disabled_capabilities:
+        return None
 
     effective = set(methods) if methods is not None else set(COORDINATE_METHODS)
+    if available_methods is not None:
+        effective.intersection_update(available_methods)
     if "ocr" in disabled_capabilities:
         effective.discard("ocr")
     if "vision" in disabled_capabilities:
@@ -149,18 +163,29 @@ def _profile_tools(config: Any) -> Optional[frozenset[str]]:
 def build_agent_tool_selection(config: Any) -> Optional[ToolSelection]:
     """Build a structural selection from typed session/server config."""
     profile_tools = _profile_tools(config)
+    available_tools = available_tools_from_config(config)
     disabled_tools = disabled_tools_from_config(config)
     coordinate_methods = coordinate_methods_from_config(config)
 
-    if profile_tools is None and not disabled_tools and coordinate_methods is None:
+    if (
+        profile_tools is None
+        and available_tools is None
+        and not disabled_tools
+        and coordinate_methods is None
+    ):
         return None
 
-    if profile_tools is not None:
-        tools = frozenset(tool for tool in profile_tools if tool not in disabled_tools)
+    if profile_tools is not None or available_tools is not None:
+        tools = set(
+            profile_tools if profile_tools is not None else available_tools or ()
+        )
+        if available_tools is not None:
+            tools.intersection_update(available_tools)
+        tools.difference_update(disabled_tools)
         return ToolSelection(
             enabled=True,
             mode="allowlist",
-            tools=tools,
+            tools=frozenset(tools),
             mouse_enabled_coordinate_methods=coordinate_methods,
         )
 

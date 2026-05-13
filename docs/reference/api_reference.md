@@ -68,8 +68,38 @@ Handshake validation behavior:
 
 **Payload**:
 ```json
-{ "type": "handshake", "user_id": "user-123", "operating_system": "macOS" }
+{
+  "type": "handshake",
+  "user_id": "user-123",
+  "operating_system": "macOS",
+  "available_tools": [
+    "mouse_control",
+    "keyboard_control",
+    "screenshot",
+    "browser",
+    "web_search"
+  ],
+  "available_coordinate_methods": ["manual", "ocr", "prediction"],
+  "requested_agent_policy": {
+    "profile": "computer",
+    "disabled_tools": ["browser"],
+    "coordinate_methods": ["manual"],
+    "disabled_capabilities": ["ocr", "vision"]
+  }
+}
 ```
+
+Capability negotiation fields are optional. If provided, the backend applies
+them as session-scoped policy inputs before the first query:
+- `available_tools`: tool names this client/runtime can satisfy or expects the backend to provide for this session
+- `available_coordinate_methods`: coordinate grounding methods available for this session
+- `requested_agent_policy.profile`: `default`, `chat`, `coding`, `browser`, `computer`, `full`, or `custom`
+- `requested_agent_policy.disabled_tools`: direct tool names requested off
+- `requested_agent_policy.coordinate_methods`: requested coordinate methods
+- `requested_agent_policy.disabled_capabilities`: `ocr`, `vision`, `embeddings`, `web_search`, or `browser`
+
+The backend treats these as narrowing inputs. Server policy, interaction mode,
+and dev compatibility policy still apply after handshake negotiation.
 
 ### Install Registration (Hosted)
 

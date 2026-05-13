@@ -24,9 +24,15 @@ class DummySessionManager:
     def __init__(self):
         self.config = DummyConfig()
         self.frontend_operating_system_calls = []
+        self.update_session_config_calls = []
 
-    def set_frontend_operating_system(self, user_id: str, operating_system: str) -> None:
+    def set_frontend_operating_system(
+        self, user_id: str, operating_system: str
+    ) -> None:
         self.frontend_operating_system_calls.append((user_id, operating_system))
+
+    async def update_session_config(self, user_id: str, updates: dict) -> None:
+        self.update_session_config_calls.append((user_id, updates))
 
 
 class DummyWebSocket:
@@ -66,7 +72,9 @@ class FakeSafeWebSocket:
 
 
 class ExplodingCloseSafeWebSocket(FakeSafeWebSocket):
-    async def close(self, code: int = 1000, reason: str | None = None) -> None:  # noqa: ARG002
+    async def close(
+        self, code: int = 1000, reason: str | None = None
+    ) -> None:  # noqa: ARG002
         raise RuntimeError("close failed")
 
 
@@ -83,14 +91,20 @@ class FakeTaskManager:
 
 
 @pytest.mark.asyncio
-async def test_websocket_endpoint_timeout_cleans_up_once(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_websocket_endpoint_timeout_cleans_up_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     FakeSafeWebSocket.instances = []
     cleanup_calls: list[str] = []
 
-    async def fake_perform_handshake(websocket, safe_ws) -> str:  # noqa: ARG001
+    async def fake_perform_handshake(
+        websocket, safe_ws, **_kwargs
+    ) -> str:  # noqa: ARG001
         return "user_timeout"
 
-    async def fake_cleanup_connection(task_manager, session_manager, user_id: str) -> None:  # noqa: ARG001
+    async def fake_cleanup_connection(
+        task_manager, session_manager, user_id: str
+    ) -> None:  # noqa: ARG001
         cleanup_calls.append(user_id)
 
     async def forced_timeout(awaitable, timeout):  # noqa: ARG001
@@ -101,8 +115,12 @@ async def test_websocket_endpoint_timeout_cleans_up_once(monkeypatch: pytest.Mon
 
     monkeypatch.setattr(websocket_route_module, "SafeWebSocket", FakeSafeWebSocket)
     monkeypatch.setattr(websocket_route_module, "TaskManager", FakeTaskManager)
-    monkeypatch.setattr(websocket_route_module, "perform_handshake", fake_perform_handshake)
-    monkeypatch.setattr(websocket_route_module, "cleanup_connection", fake_cleanup_connection)
+    monkeypatch.setattr(
+        websocket_route_module, "perform_handshake", fake_perform_handshake
+    )
+    monkeypatch.setattr(
+        websocket_route_module, "cleanup_connection", fake_cleanup_connection
+    )
     monkeypatch.setattr(websocket_route_module.asyncio, "wait_for", forced_timeout)
 
     await websocket_route_module.websocket_endpoint(
@@ -126,16 +144,22 @@ async def test_websocket_endpoint_returns_early_when_handshake_fails(
     FakeSafeWebSocket.instances = []
     cleanup_calls: list[str] = []
 
-    async def fake_perform_handshake(websocket, safe_ws):  # noqa: ARG001
+    async def fake_perform_handshake(websocket, safe_ws, **_kwargs):  # noqa: ARG001
         return None
 
-    async def fake_cleanup_connection(task_manager, session_manager, user_id: str):  # noqa: ARG001
+    async def fake_cleanup_connection(
+        task_manager, session_manager, user_id: str
+    ):  # noqa: ARG001
         cleanup_calls.append(user_id)
 
     monkeypatch.setattr(websocket_route_module, "SafeWebSocket", FakeSafeWebSocket)
     monkeypatch.setattr(websocket_route_module, "TaskManager", FakeTaskManager)
-    monkeypatch.setattr(websocket_route_module, "perform_handshake", fake_perform_handshake)
-    monkeypatch.setattr(websocket_route_module, "cleanup_connection", fake_cleanup_connection)
+    monkeypatch.setattr(
+        websocket_route_module, "perform_handshake", fake_perform_handshake
+    )
+    monkeypatch.setattr(
+        websocket_route_module, "cleanup_connection", fake_cleanup_connection
+    )
 
     await websocket_route_module.websocket_endpoint(
         websocket=DummyWebSocket(),
@@ -154,7 +178,7 @@ async def test_websocket_endpoint_applies_handshake_operating_system_to_session_
 ) -> None:
     session_manager = DummySessionManager()
 
-    async def fake_perform_handshake(websocket, safe_ws):  # noqa: ARG001
+    async def fake_perform_handshake(websocket, safe_ws, **_kwargs):  # noqa: ARG001
         setattr(safe_ws, "frontend_operating_system", "Windows")
         return "user_os"
 
@@ -166,7 +190,9 @@ async def test_websocket_endpoint_applies_handshake_operating_system_to_session_
 
     monkeypatch.setattr(websocket_route_module, "SafeWebSocket", FakeSafeWebSocket)
     monkeypatch.setattr(websocket_route_module, "TaskManager", FakeTaskManager)
-    monkeypatch.setattr(websocket_route_module, "perform_handshake", fake_perform_handshake)
+    monkeypatch.setattr(
+        websocket_route_module, "perform_handshake", fake_perform_handshake
+    )
     monkeypatch.setattr(websocket_route_module.asyncio, "wait_for", forced_disconnect)
 
     await websocket_route_module.websocket_endpoint(
@@ -176,6 +202,53 @@ async def test_websocket_endpoint_applies_handshake_operating_system_to_session_
     )
 
     assert session_manager.frontend_operating_system_calls == [("user_os", "Windows")]
+
+
+@pytest.mark.asyncio
+async def test_websocket_endpoint_applies_handshake_agent_capabilities(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session_manager = DummySessionManager()
+
+    async def fake_perform_handshake(websocket, safe_ws, **_kwargs):  # noqa: ARG001
+        setattr(
+            safe_ws,
+            "frontend_agent_capability_overrides",
+            {
+                "agent_available_tools": ["read_file"],
+                "agent_tool_profile": "coding",
+            },
+        )
+        return "user_capabilities"
+
+    async def forced_disconnect(awaitable, timeout):  # noqa: ARG001
+        close = getattr(awaitable, "close", None)
+        if callable(close):
+            close()
+        raise websocket_route_module.WebSocketDisconnect(code=1000)
+
+    monkeypatch.setattr(websocket_route_module, "SafeWebSocket", FakeSafeWebSocket)
+    monkeypatch.setattr(websocket_route_module, "TaskManager", FakeTaskManager)
+    monkeypatch.setattr(
+        websocket_route_module, "perform_handshake", fake_perform_handshake
+    )
+    monkeypatch.setattr(websocket_route_module.asyncio, "wait_for", forced_disconnect)
+
+    await websocket_route_module.websocket_endpoint(
+        websocket=DummyWebSocket(),
+        session_manager=session_manager,
+        handler_registry=object(),
+    )
+
+    assert session_manager.update_session_config_calls == [
+        (
+            "user_capabilities",
+            {
+                "agent_available_tools": ["read_file"],
+                "agent_tool_profile": "coding",
+            },
+        )
+    ]
 
 
 @pytest.mark.asyncio
@@ -189,19 +262,25 @@ async def test_websocket_endpoint_sends_parse_errors_and_continues_loop(
 
     class FakeTaskManagerNoOp(FakeTaskManager):
         async def create_task_if_under_limit(self, coro, user_id: str):  # noqa: ARG002
-            raise AssertionError("task manager should not be called for invalid messages")
+            raise AssertionError(
+                "task manager should not be called for invalid messages"
+            )
 
-    async def fake_perform_handshake(websocket, safe_ws):  # noqa: ARG001
+    async def fake_perform_handshake(websocket, safe_ws, **_kwargs):  # noqa: ARG001
         return "user_parse_error"
 
-    async def fake_cleanup_connection(task_manager, session_manager, user_id: str):  # noqa: ARG001
+    async def fake_cleanup_connection(
+        task_manager, session_manager, user_id: str
+    ):  # noqa: ARG001
         cleanup_calls.append(user_id)
 
     async def fake_parse_and_validate_message(data, user_id, max_message_size):
         parse_calls.append((data, user_id, max_message_size))
         return None, "Malformed JSON"
 
-    async def fake_send_error(websocket, msg_id, message=None, exception=None):  # noqa: ARG001
+    async def fake_send_error(
+        websocket, msg_id, message=None, exception=None
+    ):  # noqa: ARG001
         send_error_calls.append((websocket, msg_id, message))
 
     async def passthrough_wait_for(awaitable, timeout):  # noqa: ARG001
@@ -209,16 +288,26 @@ async def test_websocket_endpoint_sends_parse_errors_and_continues_loop(
 
     monkeypatch.setattr(websocket_route_module, "SafeWebSocket", FakeSafeWebSocket)
     monkeypatch.setattr(websocket_route_module, "TaskManager", FakeTaskManagerNoOp)
-    monkeypatch.setattr(websocket_route_module, "perform_handshake", fake_perform_handshake)
-    monkeypatch.setattr(websocket_route_module, "cleanup_connection", fake_cleanup_connection)
-    monkeypatch.setattr(websocket_route_module, "parse_and_validate_message", fake_parse_and_validate_message)
+    monkeypatch.setattr(
+        websocket_route_module, "perform_handshake", fake_perform_handshake
+    )
+    monkeypatch.setattr(
+        websocket_route_module, "cleanup_connection", fake_cleanup_connection
+    )
+    monkeypatch.setattr(
+        websocket_route_module,
+        "parse_and_validate_message",
+        fake_parse_and_validate_message,
+    )
     monkeypatch.setattr(websocket_route_module, "send_error", fake_send_error)
-    monkeypatch.setattr(websocket_route_module.asyncio, "wait_for", passthrough_wait_for)
+    monkeypatch.setattr(
+        websocket_route_module.asyncio, "wait_for", passthrough_wait_for
+    )
 
     await websocket_route_module.websocket_endpoint(
         websocket=SequencedWebSocket(
             [
-                "{\"bad\":true}",
+                '{"bad":true}',
                 websocket_route_module.WebSocketDisconnect(code=1000),
             ]
         ),
@@ -226,7 +315,7 @@ async def test_websocket_endpoint_sends_parse_errors_and_continues_loop(
         handler_registry=object(),
     )
 
-    assert parse_calls == [("{\"bad\":true}", "user_parse_error", 1024 * 1024)]
+    assert parse_calls == [('{"bad":true}', "user_parse_error", 1024 * 1024)]
     assert len(send_error_calls) == 1
     assert send_error_calls[0][1] is None
     assert send_error_calls[0][2] == "Malformed JSON"
@@ -252,22 +341,30 @@ async def test_websocket_endpoint_recovers_after_parse_error_and_dispatches_next
         id = "msg_valid_after_error"
         type = "query"
 
-    async def fake_perform_handshake(websocket, safe_ws):  # noqa: ARG001
+    async def fake_perform_handshake(websocket, safe_ws, **_kwargs):  # noqa: ARG001
         return "user_recovery"
 
-    async def fake_cleanup_connection(task_manager, session_manager, user_id: str):  # noqa: ARG001
+    async def fake_cleanup_connection(
+        task_manager, session_manager, user_id: str
+    ):  # noqa: ARG001
         cleanup_calls.append(user_id)
 
-    async def fake_parse_and_validate_message(data, user_id, max_message_size):  # noqa: ARG001
+    async def fake_parse_and_validate_message(
+        data, user_id, max_message_size
+    ):  # noqa: ARG001
         parse_call_count["value"] += 1
         if parse_call_count["value"] == 1:
             return None, "Malformed JSON"
         return DummyValidatedMessage(), None
 
-    async def fake_send_error(websocket, msg_id, message=None, exception=None):  # noqa: ARG001
+    async def fake_send_error(
+        websocket, msg_id, message=None, exception=None
+    ):  # noqa: ARG001
         send_error_calls.append((msg_id, message))
 
-    async def fake_handle_message(websocket, validated_msg, handler_registry, user_id):  # noqa: ARG001
+    async def fake_handle_message(
+        websocket, validated_msg, handler_registry, user_id
+    ):  # noqa: ARG001
         handled_messages.append((validated_msg.id, user_id))
 
     async def passthrough_wait_for(awaitable, timeout):  # noqa: ARG001
@@ -275,18 +372,28 @@ async def test_websocket_endpoint_recovers_after_parse_error_and_dispatches_next
 
     monkeypatch.setattr(websocket_route_module, "SafeWebSocket", FakeSafeWebSocket)
     monkeypatch.setattr(websocket_route_module, "TaskManager", FakeTaskManagerDispatch)
-    monkeypatch.setattr(websocket_route_module, "perform_handshake", fake_perform_handshake)
-    monkeypatch.setattr(websocket_route_module, "cleanup_connection", fake_cleanup_connection)
-    monkeypatch.setattr(websocket_route_module, "parse_and_validate_message", fake_parse_and_validate_message)
+    monkeypatch.setattr(
+        websocket_route_module, "perform_handshake", fake_perform_handshake
+    )
+    monkeypatch.setattr(
+        websocket_route_module, "cleanup_connection", fake_cleanup_connection
+    )
+    monkeypatch.setattr(
+        websocket_route_module,
+        "parse_and_validate_message",
+        fake_parse_and_validate_message,
+    )
     monkeypatch.setattr(websocket_route_module, "send_error", fake_send_error)
     monkeypatch.setattr(websocket_route_module, "handle_message", fake_handle_message)
-    monkeypatch.setattr(websocket_route_module.asyncio, "wait_for", passthrough_wait_for)
+    monkeypatch.setattr(
+        websocket_route_module.asyncio, "wait_for", passthrough_wait_for
+    )
 
     await websocket_route_module.websocket_endpoint(
         websocket=SequencedWebSocket(
             [
-                "{\"bad\":true}",
-                "{\"id\":\"msg_valid_after_error\"}",
+                '{"bad":true}',
+                '{"id":"msg_valid_after_error"}',
                 websocket_route_module.WebSocketDisconnect(code=1000),
             ]
         ),
@@ -320,37 +427,55 @@ async def test_websocket_endpoint_dispatches_sequential_control_messages(
             self.id = msg_id
             self.type = msg_type
 
-    async def fake_perform_handshake(websocket, safe_ws):  # noqa: ARG001
+    async def fake_perform_handshake(websocket, safe_ws, **_kwargs):  # noqa: ARG001
         return "user_control_flow"
 
-    async def fake_cleanup_connection(task_manager, session_manager, user_id: str):  # noqa: ARG001
+    async def fake_cleanup_connection(
+        task_manager, session_manager, user_id: str
+    ):  # noqa: ARG001
         cleanup_calls.append(user_id)
 
-    async def fake_parse_and_validate_message(data, user_id, max_message_size):  # noqa: ARG001
+    async def fake_parse_and_validate_message(
+        data, user_id, max_message_size
+    ):  # noqa: ARG001
         parse_calls["value"] += 1
         if parse_calls["value"] == 1:
             return DummyValidatedMessage("msg_stop_1", "stop-query"), None
         return DummyValidatedMessage("msg_rehydrate_1", "rehydrate-conversation"), None
 
-    async def fake_handle_message(websocket, validated_msg, handler_registry, user_id):  # noqa: ARG001
+    async def fake_handle_message(
+        websocket, validated_msg, handler_registry, user_id
+    ):  # noqa: ARG001
         handled_messages.append((validated_msg.id, validated_msg.type, user_id))
 
     async def passthrough_wait_for(awaitable, timeout):  # noqa: ARG001
         return await awaitable
 
     monkeypatch.setattr(websocket_route_module, "SafeWebSocket", FakeSafeWebSocket)
-    monkeypatch.setattr(websocket_route_module, "TaskManager", FakeTaskManagerSyncDispatch)
-    monkeypatch.setattr(websocket_route_module, "perform_handshake", fake_perform_handshake)
-    monkeypatch.setattr(websocket_route_module, "cleanup_connection", fake_cleanup_connection)
-    monkeypatch.setattr(websocket_route_module, "parse_and_validate_message", fake_parse_and_validate_message)
+    monkeypatch.setattr(
+        websocket_route_module, "TaskManager", FakeTaskManagerSyncDispatch
+    )
+    monkeypatch.setattr(
+        websocket_route_module, "perform_handshake", fake_perform_handshake
+    )
+    monkeypatch.setattr(
+        websocket_route_module, "cleanup_connection", fake_cleanup_connection
+    )
+    monkeypatch.setattr(
+        websocket_route_module,
+        "parse_and_validate_message",
+        fake_parse_and_validate_message,
+    )
     monkeypatch.setattr(websocket_route_module, "handle_message", fake_handle_message)
-    monkeypatch.setattr(websocket_route_module.asyncio, "wait_for", passthrough_wait_for)
+    monkeypatch.setattr(
+        websocket_route_module.asyncio, "wait_for", passthrough_wait_for
+    )
 
     await websocket_route_module.websocket_endpoint(
         websocket=SequencedWebSocket(
             [
-                "{\"id\":\"msg_stop_1\",\"type\":\"stop-query\"}",
-                "{\"id\":\"msg_rehydrate_1\",\"type\":\"rehydrate-conversation\"}",
+                '{"id":"msg_stop_1","type":"stop-query"}',
+                '{"id":"msg_rehydrate_1","type":"rehydrate-conversation"}',
                 websocket_route_module.WebSocketDisconnect(code=1000),
             ]
         ),
@@ -382,33 +507,51 @@ async def test_websocket_endpoint_sends_limit_exceeded_error_with_message_id(
                 close()
             return None, True
 
-    async def fake_perform_handshake(websocket, safe_ws):  # noqa: ARG001
+    async def fake_perform_handshake(websocket, safe_ws, **_kwargs):  # noqa: ARG001
         return "user_limited"
 
-    async def fake_cleanup_connection(task_manager, session_manager, user_id: str):  # noqa: ARG001
+    async def fake_cleanup_connection(
+        task_manager, session_manager, user_id: str
+    ):  # noqa: ARG001
         cleanup_calls.append(user_id)
 
-    async def fake_parse_and_validate_message(data, user_id, max_message_size):  # noqa: ARG001
+    async def fake_parse_and_validate_message(
+        data, user_id, max_message_size
+    ):  # noqa: ARG001
         return type("Msg", (), {"id": "msg_limit_1"})(), None
 
-    async def fake_send_error(websocket, msg_id, message=None, exception=None):  # noqa: ARG001
+    async def fake_send_error(
+        websocket, msg_id, message=None, exception=None
+    ):  # noqa: ARG001
         send_error_calls.append((msg_id, message))
 
     async def passthrough_wait_for(awaitable, timeout):  # noqa: ARG001
         return await awaitable
 
     monkeypatch.setattr(websocket_route_module, "SafeWebSocket", FakeSafeWebSocket)
-    monkeypatch.setattr(websocket_route_module, "TaskManager", FakeTaskManagerLimitExceeded)
-    monkeypatch.setattr(websocket_route_module, "perform_handshake", fake_perform_handshake)
-    monkeypatch.setattr(websocket_route_module, "cleanup_connection", fake_cleanup_connection)
-    monkeypatch.setattr(websocket_route_module, "parse_and_validate_message", fake_parse_and_validate_message)
+    monkeypatch.setattr(
+        websocket_route_module, "TaskManager", FakeTaskManagerLimitExceeded
+    )
+    monkeypatch.setattr(
+        websocket_route_module, "perform_handshake", fake_perform_handshake
+    )
+    monkeypatch.setattr(
+        websocket_route_module, "cleanup_connection", fake_cleanup_connection
+    )
+    monkeypatch.setattr(
+        websocket_route_module,
+        "parse_and_validate_message",
+        fake_parse_and_validate_message,
+    )
     monkeypatch.setattr(websocket_route_module, "send_error", fake_send_error)
-    monkeypatch.setattr(websocket_route_module.asyncio, "wait_for", passthrough_wait_for)
+    monkeypatch.setattr(
+        websocket_route_module.asyncio, "wait_for", passthrough_wait_for
+    )
 
     await websocket_route_module.websocket_endpoint(
         websocket=SequencedWebSocket(
             [
-                "{\"id\":\"msg_limit_1\"}",
+                '{"id":"msg_limit_1"}',
                 websocket_route_module.WebSocketDisconnect(code=1000),
             ]
         ),
@@ -441,10 +584,12 @@ async def test_websocket_endpoint_reraises_unexpected_loop_error_after_cleanup(
 ) -> None:
     cleanup_calls: list[str] = []
 
-    async def fake_perform_handshake(websocket, safe_ws):  # noqa: ARG001
+    async def fake_perform_handshake(websocket, safe_ws, **_kwargs):  # noqa: ARG001
         return "user_loop_error"
 
-    async def fake_cleanup_connection(task_manager, session_manager, user_id: str) -> None:  # noqa: ARG001
+    async def fake_cleanup_connection(
+        task_manager, session_manager, user_id: str
+    ) -> None:  # noqa: ARG001
         cleanup_calls.append(user_id)
 
     async def passthrough_wait_for(awaitable, timeout):  # noqa: ARG001
@@ -452,9 +597,15 @@ async def test_websocket_endpoint_reraises_unexpected_loop_error_after_cleanup(
 
     monkeypatch.setattr(websocket_route_module, "SafeWebSocket", FakeSafeWebSocket)
     monkeypatch.setattr(websocket_route_module, "TaskManager", FakeTaskManager)
-    monkeypatch.setattr(websocket_route_module, "perform_handshake", fake_perform_handshake)
-    monkeypatch.setattr(websocket_route_module, "cleanup_connection", fake_cleanup_connection)
-    monkeypatch.setattr(websocket_route_module.asyncio, "wait_for", passthrough_wait_for)
+    monkeypatch.setattr(
+        websocket_route_module, "perform_handshake", fake_perform_handshake
+    )
+    monkeypatch.setattr(
+        websocket_route_module, "cleanup_connection", fake_cleanup_connection
+    )
+    monkeypatch.setattr(
+        websocket_route_module.asyncio, "wait_for", passthrough_wait_for
+    )
 
     with pytest.raises(RuntimeError, match="receive exploded"):
         await websocket_route_module.websocket_endpoint(
@@ -472,16 +623,22 @@ async def test_websocket_endpoint_reraises_parse_error_send_failures_after_clean
 ) -> None:
     cleanup_calls: list[str] = []
 
-    async def fake_perform_handshake(websocket, safe_ws):  # noqa: ARG001
+    async def fake_perform_handshake(websocket, safe_ws, **_kwargs):  # noqa: ARG001
         return "user_send_error_fail"
 
-    async def fake_cleanup_connection(task_manager, session_manager, user_id: str) -> None:  # noqa: ARG001
+    async def fake_cleanup_connection(
+        task_manager, session_manager, user_id: str
+    ) -> None:  # noqa: ARG001
         cleanup_calls.append(user_id)
 
-    async def fake_parse_and_validate_message(data, user_id, max_message_size):  # noqa: ARG001
+    async def fake_parse_and_validate_message(
+        data, user_id, max_message_size
+    ):  # noqa: ARG001
         return None, "Malformed JSON"
 
-    async def failing_send_error(websocket, msg_id, message=None, exception=None):  # noqa: ARG001
+    async def failing_send_error(
+        websocket, msg_id, message=None, exception=None
+    ):  # noqa: ARG001
         raise RuntimeError("send failed")
 
     async def passthrough_wait_for(awaitable, timeout):  # noqa: ARG001
@@ -489,15 +646,25 @@ async def test_websocket_endpoint_reraises_parse_error_send_failures_after_clean
 
     monkeypatch.setattr(websocket_route_module, "SafeWebSocket", FakeSafeWebSocket)
     monkeypatch.setattr(websocket_route_module, "TaskManager", FakeTaskManager)
-    monkeypatch.setattr(websocket_route_module, "perform_handshake", fake_perform_handshake)
-    monkeypatch.setattr(websocket_route_module, "cleanup_connection", fake_cleanup_connection)
-    monkeypatch.setattr(websocket_route_module, "parse_and_validate_message", fake_parse_and_validate_message)
+    monkeypatch.setattr(
+        websocket_route_module, "perform_handshake", fake_perform_handshake
+    )
+    monkeypatch.setattr(
+        websocket_route_module, "cleanup_connection", fake_cleanup_connection
+    )
+    monkeypatch.setattr(
+        websocket_route_module,
+        "parse_and_validate_message",
+        fake_parse_and_validate_message,
+    )
     monkeypatch.setattr(websocket_route_module, "send_error", failing_send_error)
-    monkeypatch.setattr(websocket_route_module.asyncio, "wait_for", passthrough_wait_for)
+    monkeypatch.setattr(
+        websocket_route_module.asyncio, "wait_for", passthrough_wait_for
+    )
 
     with pytest.raises(RuntimeError, match="send failed"):
         await websocket_route_module.websocket_endpoint(
-            websocket=SequencedWebSocket(["{\"bad\":true}"]),
+            websocket=SequencedWebSocket(['{"bad":true}']),
             session_manager=DummySessionManager(),
             handler_registry=object(),
         )

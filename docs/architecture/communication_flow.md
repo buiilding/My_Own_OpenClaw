@@ -180,8 +180,24 @@ This keeps the backend as the hosted control plane and prevents SDK consumers fr
 
 **Handshake (required, before any other messages)**:
 ```json
-{ "type": "handshake", "user_id": "user-123", "operating_system": "macOS" }
+{
+  "type": "handshake",
+  "user_id": "user-123",
+  "operating_system": "macOS",
+  "available_tools": ["mouse_control", "keyboard_control", "screenshot", "browser", "web_search"],
+  "available_coordinate_methods": ["manual", "ocr", "prediction"],
+  "requested_agent_policy": {
+    "profile": "computer",
+    "coordinate_methods": ["manual"],
+    "disabled_capabilities": ["ocr", "vision"]
+  }
+}
 ```
+
+Handshake capability fields are optional. When present, the backend maps them
+into the session's effective agent capability policy before the first query.
+The backend still intersects them with server config, interaction-mode policy,
+and legacy dev policy; the client does not get to expand backend-allowed tools.
 
 **Hosted auth header**:
 ```text

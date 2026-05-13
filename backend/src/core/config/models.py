@@ -282,11 +282,25 @@ class AppConfig(BaseModel):
         default_factory=list,
         description="Session/server tool names to remove from the agent-visible surface.",
     )
+    agent_available_tools: Optional[List[str]] = Field(
+        default=None,
+        description=(
+            "Client/session tool names that are available for this runtime. "
+            "None means the client has not constrained tool availability."
+        ),
+    )
     agent_coordinate_methods: Optional[List[CoordinateMethod]] = Field(
         default=None,
         description=(
             "Allowed coordinate targeting methods for grounded desktop tools. "
             "None means all methods unless capability gates remove some."
+        ),
+    )
+    agent_available_coordinate_methods: Optional[List[CoordinateMethod]] = Field(
+        default=None,
+        description=(
+            "Client/session coordinate targeting methods available in this runtime. "
+            "None means the client has not constrained coordinate availability."
         ),
     )
     agent_disabled_capabilities: List[AgentCapability] = Field(

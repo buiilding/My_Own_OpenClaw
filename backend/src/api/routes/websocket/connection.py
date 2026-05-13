@@ -3,22 +3,23 @@ Connection Lifecycle Management for WebSocket Routes.
 
 Handles handshake, connection setup, and cleanup.
 """
+
+import asyncio
 import json
 import logging
-import asyncio
 
 from fastapi import WebSocket
 from pydantic import ValidationError as PydanticValidationError
 
 from backend.src.api.auth.service import InstallAuthService, extract_bearer_token
-from backend.src.api.transport.websocket import SafeWebSocket
-from backend.src.api.schema import HandshakeMessage
-from backend.src.api.routes.websocket.task_manager import TaskManager
 from backend.src.api.routes.websocket.json_parse import (
     DEFAULT_JSON_PARSE_OFFLOAD_BYTES,
     JsonRootTypeError,
     parse_json_object_payload,
 )
+from backend.src.api.routes.websocket.task_manager import TaskManager
+from backend.src.api.schema import HandshakeMessage
+from backend.src.api.transport.websocket import SafeWebSocket
 
 logger = logging.getLogger(__name__)
 _HANDSHAKE_JSON_PARSE_OFFLOAD_BYTES = DEFAULT_JSON_PARSE_OFFLOAD_BYTES
@@ -61,11 +62,11 @@ async def perform_handshake(
 ) -> str | None:
     """
     Perform WebSocket handshake and validate client-provided user_id.
-    
+
     Args:
         websocket: Raw WebSocket connection
         safe_ws: Safe WebSocket wrapper
-        
+
     Returns:
         validated client user_id if handshake successful, None otherwise
     """
@@ -79,14 +80,21 @@ async def perform_handshake(
         handshake_msg = HandshakeMessage.model_validate(handshake_data)
         claimed_user_id = handshake_msg.user_id
         setattr(safe_ws, "frontend_operating_system", handshake_msg.operating_system)
+        setattr(
+            safe_ws,
+            "frontend_agent_capability_overrides",
+            handshake_msg.to_session_config_overrides(),
+        )
         user_id = claimed_user_id
         install_id = None
         if require_install_auth:
             if install_auth_service is None:
                 raise RuntimeError("install auth service unavailable")
-            auth_header = getattr(getattr(websocket, "headers", None), "get", lambda *_args, **_kwargs: None)(
-                "authorization"
-            )
+            auth_header = getattr(
+                getattr(websocket, "headers", None),
+                "get",
+                lambda *_args, **_kwargs: None,
+            )("authorization")
             bearer_token = extract_bearer_token(auth_header)
             if bearer_token is None:
                 raise ValueError("missing install bearer token")
@@ -142,10 +150,10 @@ async def cleanup_connection(
 ) -> None:
     """
     Clean up connection resources: cancel tasks and end session.
-    
+
     This is called on both normal disconnect and unexpected errors to ensure
     resources are always cleaned up, preventing leaks.
-    
+
     Args:
         task_manager: Task manager instance
         session_manager: Session manager instance
@@ -156,7 +164,7 @@ async def cleanup_connection(
         await task_manager.cleanup(user_id)
     except Exception as e:
         logger.error(f"Error cleaning up tasks for user {user_id}: {e}", exc_info=True)
-    
+
     # Clean up session only after the final active connection for this user closes.
     try:
         remaining_connections = 0

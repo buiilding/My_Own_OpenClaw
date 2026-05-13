@@ -90,6 +90,16 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     const handshake = JSON.parse(ws.sent[0]);
     expect(handshake.type).toBe('handshake');
     expect(handshake.user_id).toBe('registered-user-1');
+    expect(handshake.available_tools).toEqual(expect.arrayContaining([
+      'mouse_control',
+      'read_file',
+      'web_search',
+    ]));
+    expect(handshake.available_coordinate_methods).toEqual([
+      'manual',
+      'ocr',
+      'prediction',
+    ]);
   });
 
   test('queues list-models requests made before websocket open and flushes them after connect', async () => {

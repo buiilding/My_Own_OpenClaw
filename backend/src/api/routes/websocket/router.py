@@ -8,7 +8,10 @@ import logging
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from backend.src.api.deps import HandlerRegistryDep, SessionManagerDep
-from backend.src.api.routes.websocket.connection import cleanup_connection, perform_handshake
+from backend.src.api.routes.websocket.connection import (
+    cleanup_connection,
+    perform_handshake,
+)
 from backend.src.api.routes.websocket.loop_runtime import (
     close_connection_on_timeout,
     schedule_validated_message_task,
@@ -57,7 +60,8 @@ async def websocket_endpoint(
 
     task_manager = TaskManager(max_concurrent_tasks, task_cancellation_timeout)
     close_requested = False
-    install_auth_service = getattr(websocket.app.state, "install_auth_service", None)
+    app_state = getattr(getattr(websocket, "app", None), "state", None)
+    install_auth_service = getattr(app_state, "install_auth_service", None)
 
     user_id = await perform_handshake(
         websocket,
@@ -67,7 +71,9 @@ async def websocket_endpoint(
     )
     if not user_id:
         return
-    increment_connection_count = getattr(session_manager, "increment_connection_count", None)
+    increment_connection_count = getattr(
+        session_manager, "increment_connection_count", None
+    )
     if callable(increment_connection_count):
         increment_connection_count(user_id)
 
@@ -77,8 +83,23 @@ async def websocket_endpoint(
         "set_frontend_operating_system",
         None,
     )
-    if callable(set_frontend_operating_system) and isinstance(frontend_operating_system, str):
+    if callable(set_frontend_operating_system) and isinstance(
+        frontend_operating_system, str
+    ):
         set_frontend_operating_system(user_id, frontend_operating_system)
+
+    frontend_agent_capability_overrides = getattr(
+        safe_ws,
+        "frontend_agent_capability_overrides",
+        None,
+    )
+    update_session_config = getattr(session_manager, "update_session_config", None)
+    if (
+        callable(update_session_config)
+        and isinstance(frontend_agent_capability_overrides, dict)
+        and frontend_agent_capability_overrides
+    ):
+        await update_session_config(user_id, frontend_agent_capability_overrides)
 
     try:
         while True:
