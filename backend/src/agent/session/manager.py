@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from collections.abc import Iterable
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from backend.src.agent.session.active_query_tracker import ActiveQueryTracker
 from backend.src.agent.session.conversation_refs import (
@@ -35,6 +35,7 @@ class SessionManager(ConfigSubscriber):
         self,
         config: AppConfig,
         create_agent_session_func,
+        provider_health_resolver: Optional[Callable[[AppConfig], Iterable[str]]] = None,
     ):
         """
         Initialize the session manager.
@@ -53,6 +54,7 @@ class SessionManager(ConfigSubscriber):
                 cfg
             ),
             render_system_prompt=get_system_prompt,
+            provider_health_resolver=provider_health_resolver,
         )
         self._active_queries = ActiveQueryTracker()
 

@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import inspect
 import logging
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
 from backend.src.core.config import AppConfig
+from backend.src.tools.provider_health import merge_unavailable_capabilities
 from backend.src.tools.tool_policy import ToolPolicy
 
 if TYPE_CHECKING:
@@ -26,11 +28,13 @@ class SessionConfigService:
         registry: "SessionRegistry",
         assemble_runtime_session_config: Callable[[AppConfig], AppConfig],
         render_system_prompt: Callable[..., str],
+        provider_health_resolver: Optional[Callable[[AppConfig], Iterable[str]]] = None,
     ) -> None:
         self._base_config = base_config
         self._registry = registry
         self._assemble_runtime_session_config = assemble_runtime_session_config
         self._render_system_prompt = render_system_prompt
+        self._provider_health_resolver = provider_health_resolver
         self.user_config_overrides: dict[str, dict[str, Any]] = {}
         self.frontend_operating_systems: dict[str, str] = {}
 
@@ -48,6 +52,15 @@ class SessionConfigService:
         for key, value in overrides.items():
             if value is not None:
                 config_dict[key] = value
+        if self._provider_health_resolver is not None:
+            probe_config = AppConfig(**config_dict)
+            unavailable = self._provider_health_resolver(probe_config)
+            config_dict["agent_provider_unavailable_capabilities"] = (
+                merge_unavailable_capabilities(
+                    config_dict.get("agent_provider_unavailable_capabilities"),
+                    unavailable,
+                )
+            )
         return self._assemble_runtime_session_config(AppConfig(**config_dict))
 
     def get_effective_config(self, user_id: str) -> AppConfig:

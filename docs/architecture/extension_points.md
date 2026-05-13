@@ -53,6 +53,11 @@ Add or swap OCR, vision, or embedding inference backends through the capability 
 
 The backend orchestration/runtime layers should depend on these capability contracts and routers rather than on concrete singleton model hosts.
 
+Provider availability feeds the agent capability policy through
+`agent_provider_unavailable_capabilities`. If a provider is missing, disabled,
+failed, or otherwise known unavailable before prompt construction, the backend
+removes the matching capability from the model-visible surface for that session.
+
 ## 5) Renderer UI Features
 
 UI features are grouped by domain in:

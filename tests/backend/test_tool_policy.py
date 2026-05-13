@@ -120,6 +120,26 @@ def test_filter_tool_names_applies_agent_disabled_capabilities():
     assert filtered == ["mouse_control", "read_file"]
 
 
+def test_filter_tool_names_applies_provider_unavailable_capabilities():
+    config = AppConfig(
+        interaction_mode="agent",
+        agent_tool_profile="full",
+        agent_provider_unavailable_capabilities=["browser", "web_search"],
+        browser_automation_enabled=True,
+    )
+    policy = ToolPolicy(
+        config=config,
+        agent_selection=build_agent_tool_selection(config),
+        selection=None,
+    )
+
+    filtered = policy.filter_tool_names(
+        ["browser", "web_search", "mouse_control", "read_file"]
+    )
+
+    assert filtered == ["mouse_control", "read_file"]
+
+
 def test_filter_tool_names_keeps_direct_tool_names():
     policy = ToolPolicy(
         config=AppConfig(interaction_mode="agent", browser_automation_enabled=True),
@@ -438,6 +458,27 @@ def test_available_coordinate_methods_narrow_agent_coordinate_methods():
 
     assert len(errors) == 1
     assert "find_coordinates_by='ocr'" in errors[0]
+
+
+def test_provider_unavailable_ocr_and_vision_disable_coordinate_methods():
+    config = AppConfig(
+        interaction_mode="agent",
+        agent_provider_unavailable_capabilities=["ocr", "vision"],
+    )
+    policy = ToolPolicy(
+        config=config,
+        agent_selection=build_agent_tool_selection(config),
+        selection=None,
+    )
+
+    assert policy.get_allowed_mouse_coordinate_methods() == frozenset({"manual"})
+    errors = policy.get_method_validation_errors(
+        "mouse_control",
+        {"action": "click", "find_coordinates_by": "prediction"},
+    )
+
+    assert len(errors) == 1
+    assert "find_coordinates_by='prediction'" in errors[0]
 
 
 def test_should_initialize_startup_services_follow_mouse_methods(tmp_path: Path):

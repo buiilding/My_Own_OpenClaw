@@ -101,6 +101,7 @@ WindieOS exposes one logical capability named `web_search`. Availability is auto
 - Gemini supported models fulfill the logical `web_search` tool through a backend-owned native Google Search grounding request.
 - Other providers use backend Brave Search only when `BRAVE_SEARCH_API_KEY` is set.
 - If neither native support nor Brave fallback is available, `web_search` is hidden from the model.
+- Explicit or provider-health capability policy can also disable `web_search`, including provider-native web-search exposure, for the affected session.
 
 No separate runtime toggle is required in v1.
 

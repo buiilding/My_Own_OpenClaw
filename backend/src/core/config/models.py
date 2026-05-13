@@ -310,6 +310,13 @@ class AppConfig(BaseModel):
             "fields or direct tools before prompt construction."
         ),
     )
+    agent_provider_unavailable_capabilities: List[AgentCapability] = Field(
+        default_factory=list,
+        description=(
+            "Provider-health capability gates computed by backend runtime. "
+            "These remove capabilities known unavailable before prompt construction."
+        ),
+    )
     history_compaction_enabled: bool = True
     history_compaction_manual_enabled: bool = True
     history_compaction_openai_remote_enabled: bool = False

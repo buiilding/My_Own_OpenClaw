@@ -178,3 +178,16 @@ class Container:
         Invalidate cached AgentSessionFactory so future sessions use latest config.
         """
         self._session_runtime.invalidate_session_factory()
+
+    def resolve_unavailable_agent_capabilities(self, config: AppConfig) -> list[str]:
+        """Return provider-backed capabilities known unavailable for a session."""
+        from backend.src.tools.provider_health import (
+            resolve_unavailable_agent_capabilities,
+        )
+
+        return resolve_unavailable_agent_capabilities(
+            config,
+            ocr_router=getattr(self, "ocr_router", None),
+            vision_router=getattr(self, "vision_router", None),
+            embedding_router=getattr(self, "embedding_router", None),
+        )

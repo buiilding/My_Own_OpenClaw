@@ -329,6 +329,24 @@ async def test_update_session_config_stores_user_agent_policy_override() -> None
 
 
 @pytest.mark.asyncio
+async def test_get_or_create_session_applies_provider_health_policy() -> None:
+    def create_agent_session(user_id: str, config: AppConfig) -> DummySession:
+        session = DummySession()
+        session.cfg = config
+        return session
+
+    manager = SessionManager(
+        AppConfig(),
+        create_agent_session,
+        provider_health_resolver=lambda cfg: ["ocr", "vision"],
+    )
+
+    session = await manager.get_or_create_session("user-1")
+
+    assert session.cfg.agent_provider_unavailable_capabilities == ["ocr", "vision"]
+
+
+@pytest.mark.asyncio
 async def test_end_session_removes_session_and_lock() -> None:
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
     session = await manager.get_or_create_session("user-1")
