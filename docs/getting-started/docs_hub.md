@@ -44,6 +44,8 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Memory Hub](../memory/README.md) for transcript, replay, sidecar memory, backend history, and semantic route ownership.
 - [Memory Change Workflow](../memory/memory_change_workflow.md) for routing transcript, replay, sidecar memory, semanticization, backend history, and compaction edits.
 - [Security Hub](../security/README.md) for hosted auth, IPC isolation, validation, credentials, permissions, tools, and sidecar security boundaries.
+- [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) for screen/input/microphone/browser/workspace/sudo authority changes.
+- [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md) for install tokens, runs keys, provider keys, OAuth state, and sidecar remote-client auth.
 - [Plugins and Extensions Hub](../plugins/README.md) for current extension points and future plugin-system boundaries.
 - [Automation Hub](../automation/README.md) for VM run orchestration, worker polling, run-control APIs, and scheduler boundaries.
 - [Desktop Surfaces](../desktop/README.md) for dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts.
@@ -552,6 +554,8 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Security Hub](../security/README.md)
 - [Security Boundary Matrix](../security/security_boundary_matrix.md)
 - [Security Change Playbook](../security/security_change_playbook.md)
+- [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md)
+- [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md)
 - [Operations Security](../operations/security.md)
 - [Hosted Backend Auth](../operations/hosted_backend_auth.md)
 

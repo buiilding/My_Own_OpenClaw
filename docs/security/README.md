@@ -14,6 +14,8 @@ WindieOS security spans hosted backend identity, Electron renderer isolation, ba
 
 - [Security Boundary Matrix](security_boundary_matrix.md) for owner/code/test routing by trust boundary.
 - [Security Change Playbook](security_change_playbook.md) for how to change auth, IPC, validation, credentials, permissions, tools, or sidecar execution.
+- [Permissions and Local Authority Workflow](permissions_and_local_authority_workflow.md) for screen/input/microphone/browser/workspace/sudo authority changes.
+- [Credentials and Tokens Matrix](credentials_and_tokens_matrix.md) for install tokens, runs keys, provider keys, OAuth state, and sidecar remote-client auth.
 - [Operations Security](../operations/security.md) for current security notes.
 - [Safety Boundaries](../concepts/safety_boundaries.md) for the conceptual safety model.
 - [Hosted Backend Auth](../operations/hosted_backend_auth.md) for install-token REST and websocket identity.

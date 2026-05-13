@@ -104,6 +104,8 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Security Hub**](security/README.md) - Security routing for auth, IPC, validation, credentials, permissions, tools, and sidecar execution
 - [**Security Boundary Matrix**](security/security_boundary_matrix.md) - Trust-boundary owner, code-root, failure-signal, and validation matrix
 - [**Security Change Playbook**](security/security_change_playbook.md) - Focused implementation checklist for security-sensitive changes
+- [**Permissions and Local Authority Workflow**](security/permissions_and_local_authority_workflow.md) - Screen/input/microphone/browser/workspace/sudo authority routing
+- [**Credentials and Tokens Matrix**](security/credentials_and_tokens_matrix.md) - Install tokens, runs keys, provider keys, OAuth state, and sidecar remote-client auth
 - [**Plugins and Extensions Hub**](plugins/README.md) - Current extension surfaces and plugin-marketplace boundaries
 - [**Extension Surface Matrix**](plugins/extension_surface_matrix.md) - Registration points, owner files, docs, and validation targets for extensibility work
 - [**Provider Extension Guide**](plugins/provider_extension_guide.md) - LLM/inference provider extension paths, credentials, product rules, and tests
