@@ -32,6 +32,7 @@ title: "Frontend Main Docs Hub"
 - [IPC Memory-Store Event Persistence Payload Fallback and Fail-Open Logging Contract Reference](ipc_memory_store_event_persistence_payload_fallback_and_fail_open_logging_contract_reference.md)
 - [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
 - [Main Local-Backend Docs Hub](local_backend/README.md)
+- [Local-Backend Process Lifecycle Change Workflow](local_backend/process_lifecycle_change_workflow.md)
 - [Main Testing Docs Hub](testing/README.md)
 - [Main Testing Data-Seed Docs Hub](testing/data_seed/README.md)
 - [Local Backend JSON-RPC Change Workflow](../sidecar/local_backend_jsonrpc_change_workflow.md)

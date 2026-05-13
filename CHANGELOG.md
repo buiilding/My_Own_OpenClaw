@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(frontend): add a local-backend process lifecycle workflow for sidecar startup, readiness probes, status propagation, request correlation, packaged launch targets, renderer readiness consumers, and validation routing.
 - docs(frontend): expand the IPC change workflow with runtime path, channel decision tree, fast owner map, payload contract rules, handler checklist, debug routes, and hub/index routing for Electron IPC channel changes.
 - docs(frontend): add a chat attachment change workflow for pasted images, selected files, readable-file context, screenshot artifact upload, optimistic user rows, query payloads, backend query resolution, replay, and validation routing.
 - docs(frontend): add a settings surface change workflow for dashboard settings tabs, config patches, permission actions, workspace and browser controls, memory resets, Electron IPC, backend settings sync, ownership routing, and validation.

@@ -27,6 +27,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [IPC Change Workflow](ipc_change_workflow.md)
 - [Query Send and Stream Relay Change Workflow](main/query_send_and_stream_relay_change_workflow.md)
 - [Sidecar Tool Change Workflow](sidecar_tool_change_workflow.md)
+- [Local-Backend Process Lifecycle Change Workflow](main/local_backend/process_lifecycle_change_workflow.md)
 - [Local Backend JSON-RPC Change Workflow](sidecar/local_backend_jsonrpc_change_workflow.md)
 
 ## Deep Pages
@@ -60,6 +61,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [IPC Query Runtime and Transcript Sync Helper Reference](main/ipc_query_runtime_and_transcript_sync_helper_reference.md)
 - [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](main/agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
 - [Main Local-Backend Docs Hub](main/local_backend/README.md)
+- [Local-Backend Process Lifecycle Change Workflow](main/local_backend/process_lifecycle_change_workflow.md)
 - [Main Testing Docs Hub](main/testing/README.md)
 - [Main Testing Data-Seed Docs Hub](main/testing/data_seed/README.md)
 - [Local Backend Bridge Overview and Window Guard Index](main/local_backend_bridge_handler_and_window_guard_reference.md)

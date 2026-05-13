@@ -10,12 +10,22 @@ title: "Frontend Main Local-Backend Docs Hub"
 
 ## Deep Pages
 
+- [Local-Backend Process Lifecycle Change Workflow](process_lifecycle_change_workflow.md)
 - [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md)
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](rpc_handler_registry_and_payload_mapper_reference.md)
 - [Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference](tool_arg_sudo_auth_mode_resolution_and_config_guard_contract_reference.md)
 - [Screenshot Display-Bounds Fallback and Attachment Materialization Reference](screenshot_display_bounds_fallback_and_attachment_materialization_reference.md)
 - [Local-Backend Windows Docs Hub](windows/README.md)
 - [Window Resolver Shapes and Screenshot Visibility Runtime Dispatch Reference](windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md)
+
+## Start Here By Task
+
+| Task | Start doc |
+| --- | --- |
+| Change sidecar process startup, readiness, shutdown, status, request timeout, stdout/stderr, or packaged launch behavior | [Local-Backend Process Lifecycle Change Workflow](process_lifecycle_change_workflow.md) |
+| Add or change a Python JSON-RPC method or payload mapper | [Local Backend JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md) |
+| Debug sidecar lifecycle races or pending request correlation | [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md) |
+| Debug mapped invoke payload keys or sidecar method names | [Local-Backend RPC Handler Registry and Payload-Mapper Reference](rpc_handler_registry_and_payload_mapper_reference.md) |
 
 ## Related Pages
 

@@ -67,6 +67,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Backend Bootstrap/API/Contracts Hubs**](backend/README.md) - Subfolder-level backend navigation mirroring OpenClaw-style layered docs
 - [**Frontend Main/Renderer/Contracts/Sidecar Hubs**](frontend/README.md) - Subfolder-level frontend navigation for process/runtime boundaries
 - [**IPC Change Workflow**](frontend/ipc_change_workflow.md) - Safe IPC change flow across shared registry, preload, renderer bridge, main handlers, and local backend bridge
+- [**Local-Backend Process Lifecycle Workflow**](frontend/main/local_backend/process_lifecycle_change_workflow.md) - Sidecar process startup, readiness, status propagation, request correlation, packaged launch targets, and renderer readiness consumers
 - [**Local Backend JSON-RPC Change Workflow**](frontend/sidecar/local_backend_jsonrpc_change_workflow.md) - Owner routing for Electron-to-sidecar JSON-RPC methods, payload mappers, readiness, timeouts, and response envelopes
 - [**Sidecar Tool Change Workflow**](frontend/sidecar_tool_change_workflow.md) - Cross-runtime tool change workflow for backend schema, renderer execution, Electron bridge, and Python sidecar
 - [**Backend Config/LLM/Services Hubs**](backend/README.md) - Additional backend sub-hub navigation for config policy, model stack, and runtime services
@@ -202,6 +203,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Renderer State Change Workflow**](frontend/renderer/renderer_state_change_workflow.md) - Owner routing for chat state, dashboard panels, settings, transcript projection, stream presentation, tool results, and provider contexts
 - [**Frontend App Startup + Onboarding Workflow**](frontend/renderer/app_startup_onboarding_change_workflow.md) - Change workflow for renderer root selection, VM mode, permission onboarding, wakeword placement, and startup surface handoff
 - [**Main Process Change Workflow**](frontend/main/main_process_change_workflow.md) - Owner routing for Electron startup, IPC, windows, overlays, endpoints, permissions, local backend bridge, wakeword, and VM worker behavior
+- [**Local-Backend Process Lifecycle Workflow**](frontend/main/local_backend/process_lifecycle_change_workflow.md) - Change workflow for local sidecar process launch, readiness, status propagation, JSON-RPC request correlation, and packaged runtime failures
 - [**Sidecar Runtime Change Workflow**](frontend/sidecar/sidecar_runtime_change_workflow.md) - Owner routing for Python JSON-RPC, local tools, memory, browser automation, system state, platform adapters, backend config, and wakeword service behavior
 - [**Local Backend JSON-RPC Change Workflow**](frontend/sidecar/local_backend_jsonrpc_change_workflow.md) - Change workflow for sidecar method registration, Electron mapper payloads, readiness, request transport, and JSON-RPC protocol errors
 - [**Frontend Inventory Docs Hub**](frontend/inventory/README.md) - Subfolder inventory hub for exhaustive frontend runtime coverage, matrix views, and file ownership indexes

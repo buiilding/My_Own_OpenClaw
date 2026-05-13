@@ -69,6 +69,7 @@ Sidecar method families:
 Read next:
 
 - [Frontend Sidecar Docs Hub](../frontend/sidecar/README.md)
+- [Local-Backend Process Lifecycle Change Workflow](../frontend/main/local_backend/process_lifecycle_change_workflow.md)
 - [Local Backend JSON-RPC Change Workflow](../frontend/sidecar/local_backend_jsonrpc_change_workflow.md)
 - [Frontend Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md)
 - [Python Sidecar Runtime and Memory](../frontend/sidecar/python_sidecar_and_memory.md)
