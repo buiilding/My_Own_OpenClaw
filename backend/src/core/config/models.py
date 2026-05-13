@@ -263,7 +263,9 @@ class AppConfig(BaseModel):
     memory_enabled: bool = True
     embedding_backend: InferenceBackend = "local"
     embedding_model: str = "all-MiniLM-L6-v2"
+    embedding_api_key_env: str = "OPENAI_API_KEY"
     embedding_remote_service_url: Optional[str] = None
+    embedding_request_timeout_seconds: float = Field(default=30.0, ge=0.1)
     embedding_max_concurrent_requests: int = Field(default=32, ge=1)
     embedding_queue_timeout_seconds: float = Field(default=5.0, ge=0.1)
 

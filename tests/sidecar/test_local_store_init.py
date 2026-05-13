@@ -7,6 +7,7 @@ import types
 import memory.local_store as local_store_module  # noqa: E402
 import numpy as np
 import pytest
+from core.remote_embedding_client import EmbeddingServiceUnavailableError  # noqa: E402
 from memory.local_store import LocalMemoryStore  # noqa: E402
 from memory.transcript_embedding_policy import should_embed_episodic_entry  # noqa: E402
 
@@ -258,6 +259,120 @@ async def test_sync_vector_mappings_backfill_query_skips_non_embeddable_transcri
         ("tool-call-1", None),
         ("user-turn-1", 41),
     ]
+
+
+@pytest.mark.asyncio
+async def test_sync_vector_mappings_stops_when_embedding_service_unavailable(
+    tmp_path,
+):
+    if local_store_module.faiss is None or local_store_module.aiosqlite is None:
+        pytest.skip("LocalMemoryStore runtime dependencies are unavailable")
+
+    db_path = tmp_path / "episodic.db"
+    async with local_store_module.aiosqlite.connect(db_path) as conn:
+        await conn.execute(
+            """
+            CREATE TABLE memories (
+                id TEXT PRIMARY KEY,
+                content TEXT,
+                embedding_id INTEGER,
+                record_kind TEXT,
+                role TEXT,
+                message_type TEXT
+            )
+            """
+        )
+        await conn.execute(
+            """
+            INSERT INTO memories (id, content, embedding_id, record_kind, role, message_type)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            ("user-turn-1", "user text", None, "transcript", "user", "llm-text"),
+        )
+        await conn.commit()
+
+    async def _embed_text(_text):
+        raise EmbeddingServiceUnavailableError("unavailable")
+
+    store = LocalMemoryStore.__new__(LocalMemoryStore)
+    store.embedder = types.SimpleNamespace(embed_text=_embed_text)
+
+    class _Index:
+        def add(self, _vector):
+            raise AssertionError("No vector should be added")
+
+    next_vector_id, embedded_count = (
+        await LocalMemoryStore._sync_vector_mappings_for_db(
+            store,
+            memory_type="episodic",
+            db_path=str(db_path),
+            index=_Index(),
+            vector_id_to_memory_id={},
+            memory_id_to_vector_id={},
+            next_vector_id=7,
+        )
+    )
+
+    assert next_vector_id == 7
+    assert embedded_count == 0
+
+
+@pytest.mark.asyncio
+async def test_add_stores_without_vector_mapping_when_embedding_unavailable(
+    monkeypatch,
+    tmp_path,
+):
+    if local_store_module.aiosqlite is None:
+        pytest.skip("aiosqlite runtime dependency is unavailable")
+
+    db_path = tmp_path / "episodic.db"
+    await local_store_module.init_episodic_schema(str(db_path))
+
+    async def _embed_text(_text):
+        raise EmbeddingServiceUnavailableError("unavailable")
+
+    store = LocalMemoryStore.__new__(LocalMemoryStore)
+    store.embedder = types.SimpleNamespace(
+        embed_text=_embed_text,
+        get_embedding_space_metadata=lambda: None,
+    )
+    store.episodic_db_path = str(db_path)
+    store.semantic_db_path = str(tmp_path / "semantic.db")
+    store.episodic_vector_id_to_memory_id = {}
+    store.episodic_memory_id_to_vector_id = {}
+    store.semantic_vector_id_to_memory_id = {}
+    store.semantic_memory_id_to_vector_id = {}
+    store.episodic_next_vector_id = 3
+    store.semantic_next_vector_id = 0
+    store.episodic_index = types.SimpleNamespace(
+        add=lambda _embedding: pytest.fail("No vector should be added")
+    )
+    store.semantic_index = types.SimpleNamespace()
+    store._embedding_space_metadata = None
+
+    save_calls = []
+
+    async def _record_save():
+        save_calls.append("saved")
+
+    monkeypatch.setattr(store, "_save_faiss_indices", _record_save)
+
+    memory_id = await LocalMemoryStore.add(
+        store,
+        "hello",
+        "user-1",
+        {"type": "episodic"},
+    )
+
+    async with local_store_module.aiosqlite.connect(db_path) as conn:
+        cursor = await conn.cursor()
+        await cursor.execute("SELECT id, embedding_id FROM memories")
+        rows = await cursor.fetchall()
+
+    assert rows == [(memory_id, None)]
+    assert store.episodic_vector_id_to_memory_id == {}
+    assert store.episodic_memory_id_to_vector_id == {}
+    assert save_calls == []
 
 
 @pytest.mark.asyncio

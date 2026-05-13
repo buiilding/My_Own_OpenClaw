@@ -13,7 +13,10 @@ aiohttp = ensure_aiohttp_with_stubs()
 ensure_frontend_python_path()
 
 from core import remote_embedding_client as remote_embedding_client_module  # noqa: E402
-from core.remote_embedding_client import RemoteEmbeddingClient  # noqa: E402
+from core.remote_embedding_client import (  # noqa: E402
+    EmbeddingServiceUnavailableError,
+    RemoteEmbeddingClient,
+)
 
 
 @pytest.mark.asyncio
@@ -60,6 +63,22 @@ async def test_embed_text_error_status():
 
     with pytest.raises(Exception):
         await client.embed_text("hello")
+
+
+@pytest.mark.asyncio
+async def test_embed_text_marks_embedding_service_unavailable():
+    response = DummyResponse(
+        503,
+        text_data='{"detail":"Embedding service not available"}',
+    )
+    client = RemoteEmbeddingClient()
+    client._session = DummySession(response)
+
+    with pytest.raises(EmbeddingServiceUnavailableError):
+        await client.embed_text("hello")
+
+    with pytest.raises(EmbeddingServiceUnavailableError):
+        await client.embed_text("hello again")
 
 
 @pytest.mark.asyncio

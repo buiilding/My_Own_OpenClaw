@@ -84,6 +84,10 @@ class CapacityLimitedEmbeddingProvider(EmbeddingProvider):
     def dimension(self) -> int:
         return self._provider.dimension
 
+    @property
+    def embedding_space_version(self) -> str | None:
+        return getattr(self._provider, "embedding_space_version", None)
+
     async def initialize(self) -> None:
         initialize = getattr(self._provider, "initialize", None)
         if callable(initialize):
@@ -93,6 +97,12 @@ class CapacityLimitedEmbeddingProvider(EmbeddingProvider):
         close = getattr(self._provider, "close", None)
         if callable(close):
             await close()
+
+    async def health_check(self) -> bool:
+        health_check = getattr(self._provider, "health_check", None)
+        if not callable(health_check):
+            return True
+        return bool(await health_check())
 
     async def embed_text(self, text: str) -> np.ndarray:
         async with self._gate.acquire() as queue_wait_seconds:

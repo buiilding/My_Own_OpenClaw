@@ -8,6 +8,7 @@ from backend.src.core.inference import (
     OcrRouter,
     ProviderCircuitOpenError,
     ProviderRequestError,
+    ProviderUnavailableError,
     VisionRouter,
 )
 from backend.src.llm.parser_types import ParsedToolCall
@@ -111,6 +112,40 @@ async def test_embedding_router_supports_provider_swap() -> None:
     assert first.calls == []
     assert second.calls == ["world"]
     assert router.model_id == "other-model"
+
+
+@pytest.mark.asyncio
+async def test_embedding_router_returns_structured_unavailable_error() -> None:
+    router = EmbeddingRouter(None)
+
+    with pytest.raises(ProviderUnavailableError) as exc_info:
+        await router.embed_text("hello")
+
+    assert exc_info.value.to_payload()["capability"] == "embeddings"
+    assert exc_info.value.to_payload()["code"] == "provider_unavailable"
+
+
+@pytest.mark.asyncio
+async def test_embedding_router_opens_circuit_after_repeated_failures() -> None:
+    class FailingProvider(_FakeEmbeddingProvider):
+        async def embed_text(self, _text: str):
+            raise RuntimeError("embedding endpoint down")
+
+    router = EmbeddingRouter(
+        FailingProvider(),
+        failure_threshold=2,
+        cooldown_seconds=30.0,
+    )
+
+    with pytest.raises(ProviderRequestError):
+        await router.embed_text("first")
+    with pytest.raises(ProviderRequestError):
+        await router.embed_text("second")
+
+    assert router.is_ready is False
+    with pytest.raises(ProviderCircuitOpenError) as exc_info:
+        await router.embed_text("third")
+    assert exc_info.value.to_payload()["code"] == "circuit_open"
 
 
 @pytest.mark.asyncio

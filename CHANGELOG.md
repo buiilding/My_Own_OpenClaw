@@ -10,6 +10,7 @@ All notable changes to WindieOS will be documented in this file.
 - feat(agent-capability-handshake): let clients send available tools, available coordinate methods, and requested agent policy in the websocket handshake so backend effective policy can narrow model-visible tools per connection before the first query.
 - feat(agent-provider-health-policy): feed known OCR, vision, embedding, and web-search provider availability into effective session policy so unavailable capabilities are hidden before prompt construction.
 - feat(inference-provider-routing): add OCR and vision `local`/`remote-http`/`disabled` provider routing with health probes, timeout config, structured provider errors during tool turns, and circuit breakers for repeated failures.
+- feat(embedding-provider-routing): route backend embeddings through `local`, `remote-http`, `vendor` OpenAI, or `disabled` providers with shared timeout config, health checks, structured provider errors, and circuit breakers.
 
 ### Removed
 
@@ -18,6 +19,7 @@ All notable changes to WindieOS will be documented in this file.
 ### Fixed
 
 - fix(backend-embedding-import): avoid importing the heavy SentenceTransformers stack unless the local embedding provider is initialized so disabled or remote embedding deployments can stay lightweight.
+- fix(sidecar-memory-embedding-unavailable): treat unavailable embeddings as non-fatal so prompt memory retrieval is omitted and SQLite memory writes continue without interrupting the agent loop.
 - fix(frontend-artifact-screenshot-startup): keep artifact URL resolution in the backend endpoint store so chat screenshot rendering and app config startup do not import the artifact upload IPC client just to build image paths.
 
 ## 0.6.23 - 2026-04-21

@@ -27,7 +27,11 @@ class RemoteHttpEmbeddingProvider(EmbeddingProvider):
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
         self._service_url = service_url.rstrip("/")
-        self._configured_model_id = model_id.strip() if isinstance(model_id, str) and model_id.strip() else "unknown"
+        self._configured_model_id = (
+            model_id.strip()
+            if isinstance(model_id, str) and model_id.strip()
+            else "unknown"
+        )
         self._timeout_seconds = timeout_seconds
         self._client = http_client
         self._client_lock = asyncio.Lock()
@@ -43,6 +47,18 @@ class RemoteHttpEmbeddingProvider(EmbeddingProvider):
         if self._client is not None:
             await self._client.aclose()
             self._client = None
+
+    async def health_check(self) -> bool:
+        client = await self._get_client()
+        try:
+            response = await client.get("/health")
+        except httpx.HTTPError:
+            return False
+        if response.status_code != 200:
+            return False
+        body = self._validate_health_body(response.json())
+        self._update_metadata(body)
+        return body.get("status") == "healthy"
 
     @property
     def provider_id(self) -> str:
@@ -149,4 +165,10 @@ class RemoteHttpEmbeddingProvider(EmbeddingProvider):
                 status_code=502,
                 detail="Remote embedding service returned no embeddings",
             )
+        return body
+
+    @staticmethod
+    def _validate_health_body(body: Any) -> dict[str, Any]:
+        if not isinstance(body, dict):
+            return {}
         return body

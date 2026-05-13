@@ -162,7 +162,16 @@ Initial allowed values:
 - `remote-http`
 - `vendor`
 
-Only `local` needs to be implemented immediately.
+Current implementation status:
+
+- Embeddings support `local`, `remote-http`, `vendor` (OpenAI), and `disabled`
+  through `EmbeddingRouter`.
+- OCR and vision support `local`, `remote-http`, and `disabled` through their
+  routers.
+- Routers normalize provider errors and circuit-break repeated failures so the
+  agent loop can receive bounded tool/capability errors instead of crashing.
+  When embeddings are unavailable, the sidecar skips prompt memory retrieval and
+  stores memory rows without vectors until the provider is healthy again.
 
 ## 5. Add provider registry/factory layer
 

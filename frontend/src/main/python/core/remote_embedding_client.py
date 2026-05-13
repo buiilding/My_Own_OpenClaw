@@ -18,6 +18,10 @@ EMBEDDING_TEXT_MAX_LENGTH = 8192
 DEFAULT_EMBEDDING_DIMENSION = 384
 
 
+class EmbeddingServiceUnavailableError(Exception):
+    """Raised when the backend reports embeddings are disabled or unavailable."""
+
+
 class RemoteEmbeddingClient(RemoteApiClientBase):
     """
     Client for remote embedding generation via backend API.
@@ -40,6 +44,7 @@ class RemoteEmbeddingClient(RemoteApiClientBase):
         self._model_name: str | None = None
         self._embedding_dimension: int | None = None
         self._embedding_space_version: str | None = None
+        self._service_unavailable = False
 
     def _update_embedding_space_metadata(self, payload: dict) -> None:
         provider_id = payload.get("provider_id")
@@ -87,6 +92,9 @@ class RemoteEmbeddingClient(RemoteApiClientBase):
         Raises:
             Exception: If the API call fails
         """
+        if self._service_unavailable:
+            raise EmbeddingServiceUnavailableError("Embedding service is unavailable")
+
         if not self._session:
             await self.initialize()
 
@@ -110,6 +118,14 @@ class RemoteEmbeddingClient(RemoteApiClientBase):
                 ) as response:
                     if response.status != 200:
                         error_text = await response.text()
+                        if self._is_embedding_unavailable_response(
+                            response.status,
+                            error_text,
+                        ):
+                            self._service_unavailable = True
+                            raise EmbeddingServiceUnavailableError(
+                                "Embedding service is unavailable"
+                            )
                         if self._should_try_fallback_for_status(
                             response.status
                         ) and index + 1 < len(self.backend_urls):
@@ -148,6 +164,8 @@ class RemoteEmbeddingClient(RemoteApiClientBase):
                     continue
                 logger.error(f"Network error calling embedding API: {e}")
                 raise Exception(f"Failed to connect to embedding service: {e}") from e
+            except EmbeddingServiceUnavailableError:
+                raise
             except Exception as e:
                 logger.error(f"Error generating remote embedding: {e}")
                 raise
@@ -174,6 +192,10 @@ class RemoteEmbeddingClient(RemoteApiClientBase):
     @property
     def embedding_space_version(self) -> str | None:
         return self._embedding_space_version
+
+    @property
+    def service_unavailable(self) -> bool:
+        return self._service_unavailable
 
     async def refresh_embedding_space(self) -> dict | None:
         if await self.health_check():
@@ -202,7 +224,10 @@ class RemoteEmbeddingClient(RemoteApiClientBase):
                         if data.get("status") == "healthy":
                             self._update_embedding_space_metadata(data)
                             self.backend_url = backend_url
+                            self._service_unavailable = False
                             return True
+                    if response.status == 503:
+                        self._service_unavailable = True
                     if index + 1 < len(self.backend_urls):
                         continue
                     return False
@@ -220,3 +245,15 @@ class RemoteEmbeddingClient(RemoteApiClientBase):
                 return False
 
         return False
+
+    @staticmethod
+    def _is_embedding_unavailable_response(status: int, body: str) -> bool:
+        if int(status) != 503:
+            return False
+        lowered = body.lower()
+        return (
+            "embedding service not available" in lowered
+            or "embedding provider not available" in lowered
+            or "provider_unavailable" in lowered
+            or "circuit_open" in lowered
+        )

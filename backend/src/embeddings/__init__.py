@@ -4,9 +4,11 @@
 # Storage, retrieval, and schema management are handled by the frontend.
 
 from backend.src.embeddings.limited_provider import CapacityLimitedEmbeddingProvider
+from backend.src.embeddings.openai_provider import OpenAIEmbeddingProvider
 from backend.src.embeddings.remote_provider import RemoteHttpEmbeddingProvider
 
 __all__ = [
     "CapacityLimitedEmbeddingProvider",
+    "OpenAIEmbeddingProvider",
     "RemoteHttpEmbeddingProvider",
 ]

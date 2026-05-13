@@ -15,6 +15,7 @@ from backend.src.api.routes.memory.health import (
     dependency_health_check,
     healthy_payload,
 )
+from backend.src.core.inference.errors import ProviderCapabilityError
 
 from .models import EmbeddingRequest, EmbeddingResponse
 from .service import (
@@ -92,6 +93,11 @@ def _log_embedding_route_failure(
     )
 
 
+def _provider_error_to_http_exception(error: ProviderCapabilityError) -> HTTPException:
+    status_code = 503 if error.code in {"provider_unavailable", "circuit_open"} else 502
+    return HTTPException(status_code=status_code, detail=error.to_payload())
+
+
 @router.post("/", response_model=EmbeddingResponse)
 async def generate_embedding(
     request: EmbeddingRequest,
@@ -154,6 +160,16 @@ async def generate_embedding(
             status_code=error.status_code,
         )
         raise
+    except ProviderCapabilityError as error:
+        http_error = _provider_error_to_http_exception(error)
+        _log_embedding_route_failure(
+            started_at=route_started_at,
+            text=request.text,
+            model_name=request.model_name,
+            error=error,
+            status_code=http_error.status_code,
+        )
+        raise http_error from error
     except Exception as error:
         _log_embedding_route_failure(
             started_at=route_started_at,

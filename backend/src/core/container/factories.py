@@ -5,6 +5,7 @@ Factory functions for creating application components.
 """
 
 import logging
+import os
 from typing import Optional
 
 from backend.src.core.config import AppConfig
@@ -123,6 +124,8 @@ def _create_embedder(config: AppConfig, cache_manager) -> Optional[EmbeddingProv
     """
     if not config.memory_enabled:
         return None
+    if config.embedding_backend == "disabled":
+        return None
     if config.embedding_backend == "local":
         provider = _create_local_sentence_transformer_provider(config, cache_manager)
         return _wrap_embedding_provider(
@@ -142,11 +145,36 @@ def _create_embedder(config: AppConfig, cache_manager) -> Optional[EmbeddingProv
         provider = RemoteHttpEmbeddingProvider(
             service_url=config.embedding_remote_service_url,
             model_id=config.embedding_model,
+            timeout_seconds=config.embedding_request_timeout_seconds,
         )
         return _wrap_embedding_provider(
             provider,
             config=config,
             label="backend-remote-embedding",
+        )
+    if config.embedding_backend == "vendor":
+        api_key = (
+            config.api_key
+            or os.getenv(config.embedding_api_key_env)
+            or os.getenv("OPENAI_API_KEY")
+        )
+        if not api_key:
+            logger.error(
+                "Embedding backend vendor requires %s",
+                config.embedding_api_key_env,
+            )
+            return None
+        from backend.src.embeddings import OpenAIEmbeddingProvider
+
+        provider = OpenAIEmbeddingProvider(
+            api_key=api_key,
+            model_id=config.embedding_model or "text-embedding-3-small",
+            timeout_seconds=config.embedding_request_timeout_seconds,
+        )
+        return _wrap_embedding_provider(
+            provider,
+            config=config,
+            label="backend-vendor-embedding",
         )
 
     logger.warning(

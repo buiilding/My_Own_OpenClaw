@@ -24,7 +24,10 @@ try:
 except ImportError:
     faiss = None
 
-from core.remote_embedding_client import RemoteEmbeddingClient
+from core.remote_embedding_client import (
+    EmbeddingServiceUnavailableError,
+    RemoteEmbeddingClient,
+)
 from core.remote_title_client import RemoteTitleClient
 from core.unicode_sanitizer import (
     find_surrogate_paths,
@@ -313,7 +316,12 @@ class LocalMemoryStore:
             logger.warning(
                 "Episodic FAISS index is empty but memories exist. Rebuilding index..."
             )
-            await self._rebuild_index("episodic")
+            if self._embedding_service_unavailable():
+                logger.info(
+                    "Skipping episodic index rebuild because embedding service is unavailable"
+                )
+            else:
+                await self._rebuild_index("episodic")
 
         if self.semantic_index is None:
             self.semantic_index = faiss.IndexFlatIP(dimension)
@@ -325,7 +333,12 @@ class LocalMemoryStore:
             logger.warning(
                 "Semantic FAISS index is empty but memories exist. Rebuilding index..."
             )
-            await self._rebuild_index("semantic")
+            if self._embedding_service_unavailable():
+                logger.info(
+                    "Skipping semantic index rebuild because embedding service is unavailable"
+                )
+            else:
+                await self._rebuild_index("semantic")
 
         if self._embedding_space_rebuild_required(
             persisted_embedding_space=persisted_embedding_space,
@@ -426,7 +439,13 @@ class LocalMemoryStore:
                 if not content:
                     continue
 
-                embedding = await self.embedder.embed_text(content)
+                try:
+                    embedding = await self.embedder.embed_text(content)
+                except EmbeddingServiceUnavailableError:
+                    logger.info(
+                        "Skipping missing embedding backfill because embedding service is unavailable"
+                    )
+                    break
                 embedding = embedding.reshape(1, -1)
                 faiss.normalize_L2(embedding)
 
@@ -466,6 +485,9 @@ class LocalMemoryStore:
         metadata = getattr(self.embedder, "get_embedding_space_metadata", None)
         payload = metadata() if callable(metadata) else None
         return EmbeddingSpaceMetadata.from_dict(payload)
+
+    def _embedding_service_unavailable(self) -> bool:
+        return bool(getattr(self.embedder, "service_unavailable", False))
 
     def _load_embedding_space_metadata(self) -> Optional[EmbeddingSpaceMetadata]:
         path = getattr(self, "embedding_space_metadata_path", None)
@@ -623,6 +645,11 @@ class LocalMemoryStore:
             _,
         ) = self._get_memory_state(memory_type)
 
+        previous_index = self._get_memory_state(memory_type)[1]
+        previous_vector_id_to_memory_id = dict(vector_id_to_memory_id)
+        previous_memory_id_to_vector_id = dict(memory_id_to_vector_id)
+        previous_next_vector_id = self._get_memory_state(memory_type)[4]
+
         # Reset index and in-memory mappings so FAISS position IDs stay aligned.
         dimension = self.embedder.dimension
         index = faiss.IndexFlatIP(dimension)
@@ -653,7 +680,19 @@ class LocalMemoryStore:
                     continue
 
                 # Generate embedding
-                embedding = await self.embedder.embed_text(content)
+                try:
+                    embedding = await self.embedder.embed_text(content)
+                except EmbeddingServiceUnavailableError:
+                    logger.info(
+                        "Stopping index rebuild because embedding service is unavailable"
+                    )
+                    self._set_memory_index(memory_type, previous_index)
+                    vector_id_to_memory_id.clear()
+                    vector_id_to_memory_id.update(previous_vector_id_to_memory_id)
+                    memory_id_to_vector_id.clear()
+                    memory_id_to_vector_id.update(previous_memory_id_to_vector_id)
+                    self._set_next_vector_id(memory_type, previous_next_vector_id)
+                    return
                 await self._ensure_runtime_embedding_space_alignment()
                 embedding = embedding.reshape(1, -1)
                 faiss.normalize_L2(embedding)
@@ -798,17 +837,22 @@ class LocalMemoryStore:
         vector_id = None
         if not skip_embedding:
             # Generate embedding using remote client
-            embedding = await self.embedder.embed_text(text)
-            await self._ensure_runtime_embedding_space_alignment()
-            embedding = embedding.reshape(1, -1)
-            faiss.normalize_L2(embedding)
+            try:
+                embedding = await self.embedder.embed_text(text)
+                await self._ensure_runtime_embedding_space_alignment()
+                embedding = embedding.reshape(1, -1)
+                faiss.normalize_L2(embedding)
 
-            # Route to appropriate database and index
-            vector_id = next_vector_id
-            self._set_next_vector_id(memory_type, next_vector_id + 1)
+                # Route to appropriate database and index
+                vector_id = next_vector_id
+                self._set_next_vector_id(memory_type, next_vector_id + 1)
 
-            # Add to FAISS index
-            index.add(embedding)
+                # Add to FAISS index
+                index.add(embedding)
+            except EmbeddingServiceUnavailableError:
+                logger.info(
+                    "Storing memory without vector index because embedding service is unavailable"
+                )
 
         # Store in SQLite
         metadata_json = json.dumps(metadata) if metadata else None
@@ -868,6 +912,7 @@ class LocalMemoryStore:
         # Update mappings
         if (
             not skip_embedding
+            and vector_id is not None
             and vector_id_to_memory_id is not None
             and memory_id_to_vector_id is not None
         ):
@@ -875,7 +920,7 @@ class LocalMemoryStore:
             memory_id_to_vector_id[memory_id] = vector_id
 
         # Save FAISS indices after each addition to ensure persistence
-        if not skip_embedding:
+        if not skip_embedding and vector_id is not None:
             await self._save_faiss_indices()
 
         normalized_message_type = (message_type or "").strip().lower().replace("_", "-")
@@ -969,7 +1014,13 @@ class LocalMemoryStore:
             return []
 
         # Generate query embedding using remote client
-        query_embedding = await self.embedder.embed_text(query)
+        try:
+            query_embedding = await self.embedder.embed_text(query)
+        except EmbeddingServiceUnavailableError:
+            logger.info(
+                "Skipping memory search because embedding service is unavailable"
+            )
+            return []
         await self._ensure_runtime_embedding_space_alignment()
         query_embedding = query_embedding.reshape(1, -1)
         faiss.normalize_L2(query_embedding)

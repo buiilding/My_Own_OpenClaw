@@ -31,11 +31,25 @@ Memory is implemented in the **frontend Python sidecar**, not the backend. The s
                 ▼                 │
 ┌───────────────────────────────────────────────┐
 │ Backend API (FastAPI)                         │
-│  ├─ /api/embeddings/ (SentenceTransformer)    │
+│  ├─ /api/embeddings/ (EmbeddingRouter)        │
 │  ├─ /api/semantic/summarize (LLM summary)     │
 │  └─ /api/semantic/title (conversation title) │
 └───────────────────────────────────────────────┘
 ```
+
+Backend embeddings are provider-routed. `embedding_backend` selects:
+
+- `local`: in-process SentenceTransformer provider.
+- `remote-http`: HTTP embedding service provider.
+- `vendor`: OpenAI embedding provider using `embedding_api_key_env`
+  (defaults to `OPENAI_API_KEY`).
+- `disabled`: no embedding provider.
+
+The embedding route returns structured provider errors when a provider is
+disabled, unavailable, or circuit-broken after repeated failures. The sidecar
+treats those errors as non-fatal: memory search returns no prompt memories,
+memory writes are still stored in SQLite without vector IDs, and startup
+backfills/rebuilds wait until embeddings become available again.
 
 ## Storage Layout
 
@@ -91,8 +105,11 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
   - Tool-related transcript rows can carry a typed metadata `structured_payload`
     snapshot so replay and rehydrate can recover tool semantics without reparsing
     the user-facing display text.
-  - On startup, sidecar backfills missing embeddings for existing transcript
-    semantic-candidate rows.
+- On startup, sidecar backfills missing embeddings for existing transcript
+  semantic-candidate rows.
+- If the backend embedding provider is unavailable, sidecar memory degrades to
+  SQLite-only behavior and omits memory context from prompts instead of blocking
+  the agent loop.
   - On retrieval, top-ranked episodic transcript user hits are enriched with the
     next assistant reply from the same conversation (when available), producing
     canonical paired interaction text for prompt injection.

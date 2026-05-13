@@ -8,12 +8,42 @@ from backend.src.core.container.factories import (
 )
 from backend.src.services.ocr import RemoteHttpOcrProvider
 from backend.src.services.vision import RemoteHttpVisionProvider
+from backend.src.embeddings import OpenAIEmbeddingProvider, RemoteHttpEmbeddingProvider
 
 
-def test_create_embedder_returns_none_for_non_local_backend() -> None:
-    config = AppConfig(embedding_backend="remote-http")
+def test_create_embedder_returns_remote_http_provider() -> None:
+    config = AppConfig(
+        embedding_backend="remote-http",
+        embedding_remote_service_url="http://embeddings.internal",
+    )
 
-    assert _create_embedder(config, cache_manager=None) is None
+    provider = _create_embedder(config, cache_manager=None)
+
+    assert provider is not None
+    assert isinstance(provider.provider, RemoteHttpEmbeddingProvider)
+    assert provider.model_id == "all-MiniLM-L6-v2"
+
+
+def test_create_embedder_returns_vendor_openai_provider(monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    config = AppConfig(
+        embedding_backend="vendor",
+        embedding_model="text-embedding-3-small",
+    )
+
+    provider = _create_embedder(config, cache_manager=None)
+
+    assert provider is not None
+    assert isinstance(provider.provider, OpenAIEmbeddingProvider)
+    assert provider.provider_id == "openai"
+    assert provider.model_id == "text-embedding-3-small"
+
+
+def test_create_embedder_returns_none_for_disabled_backend() -> None:
+    assert (
+        _create_embedder(AppConfig(embedding_backend="disabled"), cache_manager=None)
+        is None
+    )
 
 
 def test_create_ocr_service_returns_none_for_non_local_backend() -> None:
