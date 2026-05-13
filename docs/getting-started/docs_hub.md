@@ -42,6 +42,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Runtime Nodes Hub](../nodes/README.md) for process/service ownership across hosted backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin nodes.
 - [Channels Hub](../channels/README.md) for desktop, websocket, voice, sidecar, SDK, and VM-run communication paths.
 - [Memory Hub](../memory/README.md) for transcript, replay, sidecar memory, backend history, and semantic route ownership.
+- [Memory Change Workflow](../memory/memory_change_workflow.md) for routing transcript, replay, sidecar memory, semanticization, backend history, and compaction edits.
 - [Security Hub](../security/README.md) for hosted auth, IPC isolation, validation, credentials, permissions, tools, and sidecar security boundaries.
 - [Plugins and Extensions Hub](../plugins/README.md) for current extension points and future plugin-system boundaries.
 - [Automation Hub](../automation/README.md) for VM run orchestration, worker polling, run-control APIs, and scheduler boundaries.
@@ -565,6 +566,7 @@ Use these when a change path is not enough and you need exact file ownership:
 ### Memory
 
 - [Memory Hub](../memory/README.md)
+- [Memory Change Workflow](../memory/memory_change_workflow.md)
 - [Transcript and Replay](../memory/transcript_and_replay.md)
 - [Sidecar Local Memory](../memory/sidecar_local_memory.md)
 - [Backend History and Semantic Routes](../memory/backend_history_and_semantic_routes.md)

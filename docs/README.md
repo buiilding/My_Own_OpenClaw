@@ -100,6 +100,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**VM Worker Node**](nodes/vm_worker_node.md) - `/api/runs/*` heartbeat, assignment, dispatch, event relay, and stop-control worker behavior
 - [**Current vs Future Nodes**](nodes/current_vs_future_nodes.md) - Implemented nodes versus planned mobile, edge, scheduler, and multi-agent VM node work
 - [**Memory Hub**](memory/README.md) - Transcript persistence, replay, sidecar local memory, semantic routes, and troubleshooting
+- [**Memory Change Workflow**](memory/memory_change_workflow.md) - Route transcript, replay, sidecar memory, semanticization, backend history, and compaction changes
 - [**Security Hub**](security/README.md) - Security routing for auth, IPC, validation, credentials, permissions, tools, and sidecar execution
 - [**Security Boundary Matrix**](security/security_boundary_matrix.md) - Trust-boundary owner, code-root, failure-signal, and validation matrix
 - [**Security Change Playbook**](security/security_change_playbook.md) - Focused implementation checklist for security-sensitive changes

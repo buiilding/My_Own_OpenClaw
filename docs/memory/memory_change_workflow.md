@@ -1,0 +1,155 @@
+---
+summary: "Workflow for changing WindieOS transcript, replay, sidecar memory, backend history, semanticization, and compaction behavior across owning runtimes."
+read_when:
+  - When changing conversation persistence, replay, rehydrate, semantic memory, titles, search, backend history, or compaction.
+  - When debugging missing chats, stale memory, wrong conversation ids, lost tool linkage, or semantic memory drift.
+  - When deciding whether a memory issue belongs to renderer transcript, sidecar local store, backend active history, or derived semantic memory.
+title: "Memory Change Workflow"
+---
+
+# Memory Change Workflow
+
+WindieOS has multiple memory systems. Treating them as one store causes wrong-layer fixes. Start by identifying which memory layer owns the symptom.
+
+## Pick the Owner
+
+| Symptom or request | Primary owner | First code roots | Tests |
+| --- | --- | --- | --- |
+| Visible chat row is missing or duplicated | Renderer transcript | `frontend/src/renderer/infrastructure/transcript`, chat stream handlers | `tests/frontend/TranscriptWriter*.test.ts`, `TranscriptPending*.test.ts`, `ChatStream*.test.ts` |
+| Conversation list/search is wrong | Sidecar local memory plus dashboard renderer | `frontend/src/main/python/memory/conversation_*`, dashboard hooks | `tests/sidecar/test_conversation_*.py`, `tests/frontend/DashboardConversationLoad.test.js` |
+| Replay displays wrong messages | Renderer replay state | `conversationReplayState.ts`, `conversationLocalSnapshotLoader.ts`, replay hooks | `tests/frontend/ConversationReplay*.test.*`, `RehydratePayload.test.js` |
+| Backend forgets prior transcript after reopen | Rehydrate path | `frontend/src/renderer/infrastructure/transcript/rehydratePayload.js`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | `tests/backend/test_rehydrate_*.py`, `tests/frontend/RehydratePayload.test.js` |
+| Tool-call/tool-output linkage breaks after replay | Renderer transcript plus backend rehydrate repair | transcript tool message files, `rehydrate_tool_call_normalization.py`, `rehydrate_tool_linkage_repair.py` | `ConversationReplayToolMessages.test.js`, backend rehydrate linkage tests |
+| Semantic memory is stale or noisy | Sidecar semanticization and backend semantic routes | `frontend/src/main/python/memory/conversation_semanticization_runtime.py`, `summarizer.py`, `backend/src/api/routes/memory/semantic` | `tests/sidecar/test_memory_summarizer.py`, `test_conversation_semanticization_runtime.py`, `tests/backend/test_memory_routes.py` |
+| Embedding/search fails but transcript should still save | Sidecar local store and remote embedding client | `local_store.py`, `faiss_index.py`, `remote_embedding_client.py` | `tests/sidecar/test_local_store_*.py`, `test_remote_embedding_client.py` |
+| Backend model context is too long or compaction output is wrong | Backend active history/compaction | `backend/src/agent/compaction`, `backend/src/agent/history`, executor/interaction loop | `tests/backend/test_history_compaction_engine.py`, `test_compaction_prompt.py`, `test_interaction_loop_compaction.py` |
+| Memory tool result is wrong | Sidecar memory tool | `frontend/src/main/python/tools/memory/memory_tool.py` | `tests/sidecar/test_memory_tool.py` |
+
+## Layer Contracts
+
+| Layer | Owns | Does not own |
+| --- | --- | --- |
+| Renderer transcript | Visible chat persistence, pending flushes, session ids, local replay payloads | Semantic summaries, vector indexes, backend model history |
+| Sidecar local memory | SQLite transcript rows, episodic/semantic records, FAISS index, conversation list/search/title, semanticization | Backend active context window, prompt history mutation |
+| Backend active history | Model-facing message history for active sessions, compaction, tool linkage during the loop | Durable local transcript storage or dashboard conversation listing |
+| Backend memory routes | Embeddings, semantic summarize/title service endpoints, route health | Local sidecar DB schema or renderer replay state |
+| Dashboard UI | Listing/searching/deleting surfaced conversations and memories | Low-level storage schema, embedding provider behavior |
+
+## Change Paths
+
+### Change Transcript Writes
+
+Read:
+
+- [Transcript and Replay](transcript_and_replay.md)
+- [Renderer Transcript Docs Hub](../frontend/renderer/transcript/README.md)
+- [Transcript Writer Queue Flush and Session Event Reference](../frontend/renderer/transcript/transcript_writer_queue_flush_and_session_event_reference.md)
+
+Likely code:
+
+- `TranscriptWriter.ts`
+- `transcriptRecordWrite.ts`
+- `transcriptEntryPersistence.ts`
+- `pending/*`
+- chat stream handler code that calls transcript writer APIs
+
+Validation:
+
+- transcript writer tests,
+- pending queue/flush tests,
+- chat stream event tests if writes happen during streaming.
+
+### Change Replay or Rehydrate
+
+Read:
+
+- [Transcript and Replay](transcript_and_replay.md)
+- [Session and Transcript Reference](../reference/session_and_transcript_reference.md)
+- [Backend History and Semantic Routes](backend_history_and_semantic_routes.md)
+
+Likely code:
+
+- `conversationReplayState.ts`
+- `conversationLocalSnapshotLoader.ts`
+- `rehydratePayload.js`
+- `backend/src/api/handlers/rehydrate.py`
+- `backend/src/api/services/rehydrate_*`
+
+Validation:
+
+- frontend replay and rehydrate payload tests,
+- backend rehydrate execution, normalization, transparency, and linkage repair tests.
+
+### Change Sidecar Durable Memory
+
+Read:
+
+- [Sidecar Local Memory](sidecar_local_memory.md)
+- [Frontend Sidecar Memory Docs Hub](../frontend/sidecar/memory/README.md)
+- [Memory Troubleshooting](memory_troubleshooting.md)
+
+Likely code:
+
+- `frontend/src/main/python/local_backend_memory_handlers.py`
+- `frontend/src/main/python/memory/local_store.py`
+- `sqlite_store.py`
+- `operations.py`
+- `conversation_*_runtime.py`
+- remote embedding/semantic/title clients
+
+Validation:
+
+- sidecar local store, operations, memory service, conversation search/list/title, semanticization, and remote client tests.
+
+### Change Backend Compaction
+
+Read:
+
+- [Backend History and Semantic Routes](backend_history_and_semantic_routes.md)
+- [Context and Memory](../concepts/context_and_memory.md)
+- [Usage and Token Accounting](../concepts/usage_and_token_accounting.md)
+
+Likely code:
+
+- `backend/src/agent/compaction/engine.py`
+- `backend/src/agent/compaction/prompt.py`
+- `backend/src/agent/compaction/strategies/*`
+- executor and interaction loop compaction call sites
+- history admission/committer helpers
+
+Validation:
+
+- compaction prompt and engine tests,
+- interaction-loop compaction tests,
+- tool-result compaction facts tests.
+
+## Identity Rules
+
+| Identifier | Use |
+| --- | --- |
+| `userId` / `user_id` | Owner identity. Hosted backend should prefer authenticated identity when install auth is enabled. |
+| `sessionId` / `session_id` | Runtime session identity; do not use as durable conversation identity when `conversationRef` exists. |
+| `conversationRef` / `conversation_id` | Durable conversation/thread identity across transcript, replay, rehydrate, and sidecar storage. |
+| `turn_ref` | Backend turn-scoped correlation for stream/tool events. |
+| tool call ids/request ids | Preserve through transcript, replay, rehydrate, sidecar execution, and backend tool-result history. |
+
+Do not invent new identifiers inside UI components. Use the transcript/session runtime and existing conversation binding helpers.
+
+## Failure Routing
+
+| Failure | Avoid | Fix direction |
+| --- | --- | --- |
+| Missing dashboard row | Do not patch backend history | Check sidecar transcript storage and dashboard query path. |
+| Backend loses context after reopening | Do not rewrite sidecar DB | Fix renderer rehydrate payload or backend rehydrate service. |
+| Semantic fact is wrong | Do not edit raw transcript | Fix semanticization prompt/parser/source filtering or delete only derived semantic memory when intentional. |
+| Tool output appears without tool call | Do not hide the UI row | Fix tool linkage preservation in transcript or rehydrate repair. |
+| Embedding provider unavailable | Do not fail transcript writes | Keep durable writes non-fatal and surface search/semantic degradation. |
+
+## Related Docs
+
+- [Memory Hub](README.md)
+- [Transcript and Replay](transcript_and_replay.md)
+- [Sidecar Local Memory](sidecar_local_memory.md)
+- [Backend History and Semantic Routes](backend_history_and_semantic_routes.md)
+- [Memory Troubleshooting](memory_troubleshooting.md)
+- [Code Change Surface Index](../reference/code_change_surface_index.md)

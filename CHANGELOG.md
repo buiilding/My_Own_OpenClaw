@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(memory): add a memory change workflow for transcript, replay, sidecar memory, semanticization, backend history, and compaction ownership.
 - docs(providers): add provider and model-catalog change workflows for backend runtime, config, frontend settings, and tests.
 - docs(frontend): add IPC and sidecar-tool change workflows for renderer, preload, main-process, and Python sidecar boundaries.
 - docs(gateway): add REST route/auth and websocket lifecycle matrices for hosted ingress development and debugging.

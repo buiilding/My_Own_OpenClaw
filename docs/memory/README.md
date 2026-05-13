@@ -22,6 +22,7 @@ WindieOS has several memory-like systems. They must not be treated as one store.
 
 ## Memory Pages
 
+- [Memory Change Workflow](memory_change_workflow.md) routes transcript, replay, sidecar durable memory, semanticization, backend history, and compaction changes to the right owner.
 - [Transcript and Replay](transcript_and_replay.md) maps renderer transcript writes, pending queues, local snapshots, and replay/rehydrate payloads.
 - [Sidecar Local Memory](sidecar_local_memory.md) maps JSON-RPC handlers, local store operations, semanticization, titles, and local search.
 - [Backend History and Semantic Routes](backend_history_and_semantic_routes.md) maps active backend history, rehydrate services, embedding providers, and memory HTTP routes.
@@ -34,4 +35,3 @@ WindieOS has several memory-like systems. They must not be treated as one store.
 - Tool-call/tool-output linkage must preserve request ids, tool call ids, and structured payloads across transcript, rehydrate, and backend history.
 - Local memory writes should be non-fatal when embeddings or remote semantic services are unavailable.
 - Keep renderer, sidecar, and backend tests paired when a payload crosses process boundaries.
-
