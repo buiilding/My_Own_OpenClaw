@@ -10,6 +10,8 @@ title: "Filesystem and Shell Tools"
 
 Filesystem and shell tools execute in the local sidecar. They are used for code edits, file inspection, command execution, process sessions, app launching, waits, and host stats.
 
+For code changes or debugging, start with [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md). That workflow maps model-visible schema, renderer dispatch, Electron `execute-tool`, bridge argument shaping, sidecar execution, sudo mode, process sessions, result envelopes, and focused tests.
+
 ## Tool Surface
 
 | Tool | Purpose | Sidecar owner |
@@ -31,6 +33,7 @@ Filesystem and shell tools execute in the local sidecar. They are used for code 
 
 ## Deep Docs
 
+- [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md)
 - [Frontend Sidecar Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md)
 - [Frontend Sidecar Shell and Process Session Runtime Reference](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md)
 - [Frontend Sidecar Tool Registry Exposed Schema and Result Normalization Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)

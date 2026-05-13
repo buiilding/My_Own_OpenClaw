@@ -63,6 +63,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Process Health Checklist](../debug/process_health_checklist.md) for proving which process is dead, stuck, disconnected, or healthy before editing code.
 - [Tools Hub](../tools/README.md) for model-facing and sidecar-executable tools.
 - [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) for changing model-visible tool schemas, policy gates, provider projection, sidecar parity, renderer dispatch, and tool-result contracts.
+- [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md) for changing or debugging `read_file`, `replace`, `run_shell_command`, `process`, sudo mode, working directories, process sessions, output formatting, and local tool results.
 - [Browser Change Workflow](../browser/browser_change_workflow.md) for browser action schemas, shared contracts, sidecar runtime, CDP launch, snapshots, refs, files, Electron bridge, and renderer browser controls.
 - [Providers Hub](../providers/README.md) for LLM, inference, credential, STT, TTS, and web-search providers.
 - [Provider Change Workflow](../providers/provider_change_workflow.md) for backend provider runtime, factory, config, credential, frontend setting, and test changes.
@@ -297,6 +298,7 @@ Read:
 - [Tool Catalog Matrix](../tools/tool_catalog_matrix.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 - [Tool Policy Profiles and Capabilities](../tools/tool_policy_profiles_and_capabilities.md)
+- [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md)
 - [Backend Tool Preparation + Coordinate Resolution Reference](../backend/tools/tool_preparation_and_coordinate_resolution_reference.md)
 - [Backend Tool Result Ingress Reference](../backend/tools/tool_result_ingress_and_storage_reference.md)
 - [Frontend Tool Execution Service + Hook Runtime Reference](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
@@ -662,6 +664,7 @@ Use these when a change path is not enough and you need exact file ownership:
 - [Browser Action Surface](../browser/browser_action_surface.md)
 - [Browser Troubleshooting](../browser/browser_troubleshooting.md)
 - [Filesystem and Shell Tools](../tools/filesystem_shell.md)
+- [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md)
 
 ### Providers
 

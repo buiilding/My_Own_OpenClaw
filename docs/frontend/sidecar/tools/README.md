@@ -15,6 +15,7 @@ title: "Frontend Sidecar Tools Docs Hub"
 - [System Tools Docs Hub](system/README.md)
 - [Filesystem Tools Docs Hub](filesystem/README.md)
 - [Tools Contracts Docs Hub](contracts/README.md)
+- [Filesystem and Shell Change Workflow](../../../tools/filesystem_shell_change_workflow.md)
 - [Shell and Process Session Runtime Reference](shell_and_process_session_runtime_reference.md)
 - [Shell Output Formatting and Response Payload Contract Reference](system/shell_output_formatting_and_response_payload_contract_reference.md)
 - [Filesystem Read and Replace Runtime Reference](filesystem_read_replace_runtime_reference.md)

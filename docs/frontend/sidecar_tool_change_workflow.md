@@ -45,7 +45,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | --- | --- | --- | --- |
 | Computer/mouse/keyboard/screenshot/window | `backend/src/tools/computer`, `backend/src/tools/remote_tools` | `frontend/src/main/python/tools/computer`, platform adapters | `tests/backend/test_computer_use_schema_contract.py`, `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_screenshot_tool.py` |
 | Browser | `backend/src/tools/browser` | `frontend/src/main/python/tools/browser` | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_tool.py`, browser schema/runtime tests |
-| Filesystem and shell | `backend/src/tools/filesystem`, `backend/src/tools/system` | `frontend/src/main/python/tools/filesystem`, `frontend/src/main/python/tools/system` | `tests/sidecar/test_read_file_tool.py`, `tests/sidecar/test_replace_tool.py`, `tests/sidecar/test_shell_process_tool.py` |
+| Filesystem and shell | `backend/src/tools/filesystem`, `backend/src/tools/system` | `frontend/src/main/python/tools/filesystem`, `frontend/src/main/python/tools/system` | Start with [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md); then inspect `tests/sidecar/test_read_file_tool.py`, `tests/sidecar/test_replace_tool.py`, `tests/sidecar/test_shell_process_tool.py`, bridge tests, and renderer tool-execution tests. |
 | Memory | Backend memory routes and prompt context | `frontend/src/main/python/tools/memory`, `frontend/src/main/python/memory` | `tests/sidecar/test_memory_tool.py`, memory route and transcript tests |
 | System state and app/window helpers | `backend/src/tools/system`, prompt/tool context | `frontend/src/main/python/tools/system`, Electron window/display bridge | `tests/sidecar/test_system_tools.py`, frontend display/window tests |
 
@@ -83,6 +83,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 - [Tool Contracts](../tools/tool_contracts.md)
+- [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md)
 - [Sidecar Tool Catalog and Execution Model](sidecar/tool_catalog_and_execution_model.md)
 - [Frontend Tool Execution Service and Hook Runtime Reference](renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
 - [Code Change Surface Index](../reference/code_change_surface_index.md)

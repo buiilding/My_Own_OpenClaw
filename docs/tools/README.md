@@ -22,6 +22,7 @@ WindieOS tools are split between backend model-facing definitions and frontend/s
 - [Browser Tool](browser.md) covers the dedicated Windie browser runtime, browser action schemas, snapshots, and backend-sidecar parity.
 - [Browser Change Workflow](../browser/browser_change_workflow.md) routes browser changes across backend schema, shared contract, sidecar runtime, CDP launch, Electron bridge, renderer controls, files, and tests.
 - [Filesystem and Shell Tools](filesystem_shell.md) covers `read_file`, `replace`, shell/process execution, and output formatting.
+- [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md) routes file/shell changes across backend schema, renderer dispatch, Electron bridge argument shaping, sidecar execution, sudo policy, sessions, results, and tests.
 
 ## Current Tool Catalogs
 
@@ -50,11 +51,12 @@ Sidecar executable tools are registered in `frontend/src/main/python/tools/regis
 2. Use [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md) to route schema, visibility, provider, sidecar, renderer, and result-contract changes.
 3. Use [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) to identify any visibility gate.
 4. Use [Browser Change Workflow](../browser/browser_change_workflow.md) for browser-specific schema, CDP, snapshot, ref, file, or renderer-session changes.
-5. Update the backend catalog/schema owner first.
-6. Update sidecar executable schema/runtime if the local payload changes.
-7. Update renderer tool-runner payload shaping if correlation, artifacts, screenshots, or bundle behavior changes.
-8. Update formatter/outgoing schemas if the visible stream event changes.
-9. Add or update backend, frontend, and sidecar tests for the changed boundary.
+5. Use [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md) for file read/edit, shell command, background process, sudo, working-directory, and local output-shaping changes.
+6. Update the backend catalog/schema owner first.
+7. Update sidecar executable schema/runtime if the local payload changes.
+8. Update renderer tool-runner payload shaping if correlation, artifacts, screenshots, or bundle behavior changes.
+9. Update formatter/outgoing schemas if the visible stream event changes.
+10. Add or update backend, frontend, and sidecar tests for the changed boundary.
 
 ## Deep Docs
 
@@ -65,6 +67,7 @@ Sidecar executable tools are registered in `frontend/src/main/python/tools/regis
 - [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md)
 - [Tool Troubleshooting](tool_troubleshooting.md)
 - [Browser Change Workflow](../browser/browser_change_workflow.md)
+- [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md)
 - [Backend Tools Docs Hub](../backend/tools/README.md)
 - [Frontend Sidecar Tools Docs Hub](../frontend/sidecar/tools/README.md)
 - [Frontend Tool Execution Service + Hook Runtime Reference](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
