@@ -90,7 +90,7 @@ Functionality:
 - Builds query payload content with system-context XML + memory sections.
 - Emits synthetic `local-user-message` and fallback error envelopes for failed sends through split broadcaster helpers.
 - Persists/loads frontend config to disk and keeps in-memory config snapshot.
-- Exposes OpenAI Codex OAuth login/logout IPC handlers and returns normalized token envelopes to renderer settings UI.
+- Exposes OpenAI Codex OAuth login/logout IPC handlers for non-UI callers; the renderer settings UI does not currently surface OAuth controls.
 
 ### 1.3 Local Sidecar Bridge (Main <-> Python)
 

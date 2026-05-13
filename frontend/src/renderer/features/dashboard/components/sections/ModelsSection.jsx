@@ -11,7 +11,6 @@ import {
   getFallbackModelSelection,
 } from '../../utils/modelSelectionUtils';
 import ApiKeysSection from './ApiKeysSection';
-import OAuthSection from './OAuthSection';
 import {
   normalizeProviderLabel,
   toModelCard,
@@ -23,9 +22,7 @@ import {
 } from './modelCards';
 import { normalizeProviderApiKeys } from './providerApiKeys';
 import { providerApiKeysPropType } from './providerApiKeysPropTypes';
-import { normalizeProviderOAuth } from './providerOAuth';
-import { providerOAuthPropType } from './providerOAuthPropTypes';
-import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../../infrastructure/ipc/bridge';
+import { IpcBridge, SEND_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 
 function ModelsSection({ config, availableModels, onConfigChange, onClose = () => {} }) {
   const [modelResetWarning, setModelResetWarning] = useState('');
@@ -38,7 +35,6 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
   const selectedModelId = config?.selected_model_id || '';
   const selectedProvider = config?.model_provider || '';
   const providerApiKeys = normalizeProviderApiKeys(config?.provider_api_keys);
-  const providerOAuth = normalizeProviderOAuth(config?.provider_oauth);
   const speechModeEnabled = config?.speech_mode_enabled ?? false;
   const interactionMode = config?.interaction_mode || 'agent';
 
@@ -75,51 +71,6 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
       provider_api_keys: normalizeProviderApiKeys(nextProviderApiKeys),
     });
   }, [onConfigChange]);
-
-  const handleProviderOAuthLogin = useCallback(async (providerId) => {
-    if (providerId !== 'openai_codex') {
-      throw new Error(`Unsupported OAuth provider: ${providerId}`);
-    }
-    const response = await IpcBridge.invoke(INVOKE_CHANNELS.OPENAI_CODEX_OAUTH_LOGIN);
-    if (!response?.success) {
-      throw new Error(response?.error || 'OpenAI Codex login failed.');
-    }
-    const token = response.token || {};
-    onConfigChange({
-      provider_oauth: {
-        ...providerOAuth,
-        openai_codex: {
-          connected: true,
-          access_token: typeof token.access_token === 'string' ? token.access_token : '',
-          refresh_token: typeof token.refresh_token === 'string' ? token.refresh_token : '',
-          expires_at: typeof token.expires_at === 'number' ? token.expires_at : null,
-          profile_id: typeof token.profile_id === 'string' ? token.profile_id : 'openai-codex:default',
-        },
-      },
-    });
-  }, [onConfigChange, providerOAuth]);
-
-  const handleProviderOAuthLogout = useCallback(async (providerId) => {
-    if (providerId !== 'openai_codex') {
-      throw new Error(`Unsupported OAuth provider: ${providerId}`);
-    }
-    const response = await IpcBridge.invoke(INVOKE_CHANNELS.OPENAI_CODEX_OAUTH_LOGOUT);
-    if (!response?.success) {
-      throw new Error(response?.error || 'OpenAI Codex sign out failed.');
-    }
-    onConfigChange({
-      provider_oauth: {
-        ...providerOAuth,
-        openai_codex: {
-          connected: false,
-          access_token: '',
-          refresh_token: '',
-          expires_at: null,
-          profile_id: '',
-        },
-      },
-    });
-  }, [onConfigChange, providerOAuth]);
 
   useEffect(() => {
     const onlineModels = Array.isArray(availableModels?.online) ? availableModels.online : [];
@@ -307,17 +258,10 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
         )}
 
         {!activeProviderView ? (
-          <>
-            <ApiKeysSection
-              providerApiKeys={providerApiKeys}
-              onProviderApiKeysChange={handleProviderApiKeysChange}
-            />
-            <OAuthSection
-              providerOAuth={providerOAuth}
-              onLogin={handleProviderOAuthLogin}
-              onLogout={handleProviderOAuthLogout}
-            />
-          </>
+          <ApiKeysSection
+            providerApiKeys={providerApiKeys}
+            onProviderApiKeysChange={handleProviderApiKeysChange}
+          />
         ) : null}
       </div>
     </div>
@@ -332,7 +276,6 @@ ModelsSection.propTypes = {
     interaction_mode: PropTypes.string,
     speech_mode_enabled: PropTypes.bool,
     provider_api_keys: providerApiKeysPropType,
-    provider_oauth: providerOAuthPropType,
   }),
   availableModels: PropTypes.shape({
     local: PropTypes.arrayOf(

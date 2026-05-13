@@ -204,7 +204,7 @@ Callback server behaviors:
 
 ## Renderer Integration Points
 
-- `ModelsSection.jsx` invokes OAuth login/logout IPC and writes resulting token state into `config.provider_oauth.openai_codex`.
+- No renderer settings UI currently invokes the OAuth login/logout IPC handlers. Stored `provider_oauth.openai_codex` state may still flow through the config pipeline for compatibility with older local state or non-UI sources.
 - VM-mode renderer helper `renderer/infrastructure/runtime/vmMode.js` reads URL query `vm_mode=1` for surface behavior toggles.
 
 ## Test Coverage Pointers

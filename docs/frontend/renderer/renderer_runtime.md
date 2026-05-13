@@ -83,7 +83,6 @@ Current dashboard behavior:
 - sidebar owns conversation browsing/open/rename/pin/delete
 - memory section is unified (episodic/semantic/procedural)
 - models section is provider-first and includes provider API key controls
-- models section includes OpenAI Codex OAuth connect/sign-out controls in addition to provider API keys
 
 ### Permissions (`features/permissions`)
 
@@ -137,7 +136,7 @@ Typical keys:
 - voice/speech mode flags
 - query screenshot inclusion
 - provider API keys
-- provider OAuth credentials (currently `openai_codex`)
+- provider OAuth credentials can still be persisted/synced, but no OAuth controls are exposed in the renderer settings UI
 - agent sudo access policy flag (`agent_full_sudo_enabled`)
 - browser automation feature toggle (`browser_automation_enabled`)
 
