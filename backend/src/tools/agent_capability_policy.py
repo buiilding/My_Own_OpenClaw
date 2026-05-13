@@ -118,13 +118,20 @@ def available_tools_from_config(config: Any) -> Optional[frozenset[str]]:
 def disabled_tools_from_config(config: Any) -> set[str]:
     """Return direct tool names disabled by session/server capability policy."""
     disabled = _string_set(getattr(config, "agent_disabled_tools", None))
-    disabled_capabilities = _string_set(
-        getattr(config, "agent_disabled_capabilities", None)
-    )
+    disabled_capabilities = disabled_capabilities_from_config(config)
     if "browser" in disabled_capabilities:
         disabled.add("browser")
     if "web_search" in disabled_capabilities:
         disabled.add("web_search")
+    return disabled
+
+
+def disabled_capabilities_from_config(config: Any) -> set[str]:
+    """Return user/server-disabled plus provider-unavailable capabilities."""
+    disabled = _string_set(getattr(config, "agent_disabled_capabilities", None))
+    disabled.update(
+        _string_set(getattr(config, "agent_provider_unavailable_capabilities", None))
+    )
     return disabled
 
 
@@ -136,9 +143,7 @@ def coordinate_methods_from_config(config: Any) -> Optional[frozenset[str]]:
     available_methods = normalize_coordinate_methods(
         getattr(config, "agent_available_coordinate_methods", None)
     )
-    disabled_capabilities = _string_set(
-        getattr(config, "agent_disabled_capabilities", None)
-    )
+    disabled_capabilities = disabled_capabilities_from_config(config)
 
     if methods is None and available_methods is None and not disabled_capabilities:
         return None

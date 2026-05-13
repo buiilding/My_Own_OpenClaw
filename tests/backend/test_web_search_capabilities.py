@@ -3,8 +3,8 @@ import pytest
 from backend.src.core.config.models import AppConfig
 from backend.src.tools.web_search.capabilities import (
     resolve_web_search_execution_mode,
-    should_enable_openai_native_web_search_main_request,
     should_enable_native_web_search,
+    should_enable_openai_native_web_search_main_request,
     should_expose_backend_web_search_tool,
 )
 
@@ -48,11 +48,29 @@ def test_web_search_capabilities_fall_back_to_brave_for_other_providers(monkeypa
     assert should_expose_backend_web_search_tool(config) is True
 
 
-def test_web_search_capabilities_disable_web_search_without_native_support_or_brave_key(monkeypatch):
+def test_web_search_capabilities_disable_web_search_without_native_support_or_brave_key(
+    monkeypatch,
+):
     monkeypatch.delenv("BRAVE_SEARCH_API_KEY", raising=False)
     config = AppConfig(
         model_provider="anthropic",
         selected_model_id="claude-sonnet-4-20250514",
+    )
+
+    assert resolve_web_search_execution_mode(config) is None
+    assert should_enable_openai_native_web_search_main_request(config) is False
+    assert should_enable_native_web_search(config) is False
+    assert should_expose_backend_web_search_tool(config) is False
+
+
+def test_web_search_capabilities_honor_disabled_capability_for_native_search(
+    monkeypatch,
+):
+    monkeypatch.delenv("BRAVE_SEARCH_API_KEY", raising=False)
+    config = AppConfig(
+        model_provider="openai",
+        selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
+        agent_disabled_capabilities=["web_search"],
     )
 
     assert resolve_web_search_execution_mode(config) is None

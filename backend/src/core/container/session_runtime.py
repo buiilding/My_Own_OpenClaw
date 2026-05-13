@@ -32,7 +32,9 @@ class SessionRuntimeCoordinator:
         Create AgentSession instances via a lazily built AgentSessionFactory.
         """
         factory = self._get_or_create_session_factory()
-        return factory.create_session(user_id=user_id, session_id=session_id, config=config)
+        return factory.create_session(
+            user_id=user_id, session_id=session_id, config=config
+        )
 
     def get_session_manager(self) -> Any:
         """
@@ -46,6 +48,9 @@ class SessionRuntimeCoordinator:
                     self._session_manager = SessionManager(
                         config=self._container.config,
                         create_agent_session_func=self._container.create_agent_session,
+                        provider_health_resolver=(
+                            self._container.resolve_unavailable_agent_capabilities
+                        ),
                     )
         return self._session_manager
 
@@ -83,4 +88,3 @@ class SessionRuntimeCoordinator:
             )
 
         return self._session_factory
-

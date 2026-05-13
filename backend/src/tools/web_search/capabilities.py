@@ -7,6 +7,7 @@ from typing import Literal, Optional
 
 from backend.src.core.config.models import AppConfig
 from backend.src.llm.models.models_config import supports_model_capability
+from backend.src.tools.agent_capability_policy import disabled_capabilities_from_config
 
 WebSearchExecutionMode = Literal["native-openai", "native-gemini", "backend-brave"]
 
@@ -47,7 +48,9 @@ def supports_gemini_native_web_search(
 
 
 def has_brave_search_api_key(cfg: AppConfig) -> bool:
-    env_var = str(getattr(getattr(cfg, "brave_search", None), "api_key_env", "") or "").strip()
+    env_var = str(
+        getattr(getattr(cfg, "brave_search", None), "api_key_env", "") or ""
+    ).strip()
     if not env_var:
         return False
     value = os.getenv(env_var)
@@ -57,6 +60,9 @@ def has_brave_search_api_key(cfg: AppConfig) -> bool:
 def resolve_web_search_execution_mode(
     cfg: AppConfig,
 ) -> Optional[WebSearchExecutionMode]:
+    if "web_search" in disabled_capabilities_from_config(cfg):
+        return None
+
     provider_name = getattr(cfg, "model_provider", None)
     model_id = getattr(cfg, "selected_model_id", None)
 

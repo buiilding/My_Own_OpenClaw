@@ -63,6 +63,7 @@ Typed config fields:
 - `agent_coordinate_methods`: optional allowed coordinate methods (`manual`, `ocr`, `prediction`)
 - `agent_available_coordinate_methods`: optional client/session coordinate-method availability list; when supplied, policy intersects it with requested/server coordinate restrictions
 - `agent_disabled_capabilities`: capability gates (`ocr`, `vision`, `embeddings`, `web_search`, `browser`)
+- `agent_provider_unavailable_capabilities`: backend-computed capability gates for providers known unavailable before prompt construction
 
 Profile behavior:
 
@@ -76,12 +77,22 @@ Coordinate/capability behavior:
 - `agent_available_coordinate_methods=["manual"]` also prunes OCR and prediction fields for that session, even if the server default allows them.
 - `agent_disabled_capabilities=["ocr"]` removes OCR coordinate fields and rejects OCR method calls.
 - `agent_disabled_capabilities=["vision"]` removes prediction coordinate fields and rejects prediction method calls.
+- `agent_provider_unavailable_capabilities=["ocr", "vision"]` has the same prompt/schema effect as explicit disables, but is computed from backend provider health instead of user/session preference.
 - These gates are evaluated from the effective `AppConfig`, so `SessionManager` user overrides can give different users different model-visible tool surfaces in the same backend process.
 
 The WebSocket handshake can populate `agent_available_tools`,
 `agent_available_coordinate_methods`, and requested policy fields before the
 first query. These client-provided fields are narrowing inputs only; they do not
 override backend hard-disables or legacy dev-selection narrowing.
+
+Provider-health gates are also narrowing inputs. The container-backed session
+manager resolves known OCR, vision, embeddings, and web-search availability when
+building effective session config:
+
+- missing/disabled OCR provider -> `ocr`
+- missing, failed, or uninitialized vision provider -> `vision`
+- disabled/missing embedding provider -> `embeddings`
+- no native web-search mode and no Brave fallback -> `web_search`
 
 This layer intentionally reuses `ToolSelection` as its structural selection
 object so prompt schema filtering, parser validation, projected-schema pruning,

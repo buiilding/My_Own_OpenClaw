@@ -41,3 +41,22 @@ def test_session_config_service_builds_effective_config_with_user_overrides():
     cfg = service.build_effective_config("user-1")
 
     assert cfg.model_provider == "anthropic"
+
+
+def test_session_config_service_merges_provider_unavailable_capabilities():
+    registry = SessionRegistry()
+    service = SessionConfigService(
+        base_config=AppConfig(agent_provider_unavailable_capabilities=["ocr"]),
+        registry=registry,
+        assemble_runtime_session_config=lambda cfg: cfg,
+        render_system_prompt=lambda operating_system=None: f"prompt:{operating_system}",
+        provider_health_resolver=lambda cfg: ["vision", "web_search"],
+    )
+
+    cfg = service.build_effective_config("user-1")
+
+    assert cfg.agent_provider_unavailable_capabilities == [
+        "ocr",
+        "vision",
+        "web_search",
+    ]
