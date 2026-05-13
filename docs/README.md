@@ -30,6 +30,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Platforms Hub**](platforms/README.md) - macOS, Windows, and Linux platform-specific behavior
 - [**Help Hub**](help/README.md) - Diagnostics and troubleshooting routes by runtime boundary
 - [**Web Surfaces**](web/README.md) - Landing page, hosted backend APIs, SDK routes, artifacts, and websocket surfaces
+- [**Reference Hub**](reference/README.md) - Stable API, websocket event, configuration, session/transcript, and docs-organization lookup maps
 - [**OpenClaw Docs Structure Reference**](reference/openclaw_docs_structure_reference.md) - Structure benchmark and WindieOS mapping
 - [**Backend Bootstrap/API/Contracts Hubs**](backend/README.md) - Subfolder-level backend navigation mirroring OpenClaw-style layered docs
 - [**Frontend Main/Renderer/Contracts/Sidecar Hubs**](frontend/README.md) - Subfolder-level frontend navigation for process/runtime boundaries
@@ -106,6 +107,10 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Gemini Provider**](providers/gemini.md) - Native thinking/search, streamed tool-call aggregation, and source extraction
 - [**Local Providers**](providers/local.md) - Ollama and LM Studio base URLs, model discovery, and placeholder-key behavior
 - [**HTTP and WebSocket API Surface**](reference/http_api_surface.md) - Route-level map for hosted APIs, SDK routes, artifacts, memory, transcription, and runs
+- [**Reference Hub**](reference/README.md) - Stable contract lookup for APIs, events, config, session/transcript identifiers, and docs organization
+- [**WebSocket Event Reference**](reference/websocket_event_reference.md) - Canonical backend event families, renderer consumers, correlation fields, and validation docs
+- [**Configuration Reference**](reference/configuration_reference.md) - Runtime config owners, high-touch env vars, credential rules, and add-a-config checklist
+- [**Session and Transcript Reference**](reference/session_and_transcript_reference.md) - User/session/conversation, turn, tool, transcript, replay, and VM run identifier map
 - [**Hosted Backend Clients**](sdk/hosted_backend_clients.md) - TypeScript and Python SDK client boundaries for backend APIs
 - [**Query Planning and Trace**](sdk/query_planning_and_trace.md) - Prompt/query planning, trace collection, and debug introspection
 - [**OCR and Vision SDK**](sdk/ocr_and_vision.md) - SDK perception routes for OCR, vision locate/describe, overlays, and artifact image sources

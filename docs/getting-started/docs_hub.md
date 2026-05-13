@@ -55,6 +55,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Commands and Scripts](../cli/README.md) for current repo/script entrypoints and planned CLI boundaries.
 - [Platforms Hub](../platforms/README.md) for macOS, Windows, and Linux behavior.
 - [Help Hub](../help/README.md) for diagnostics and troubleshooting.
+- [Reference Hub](../reference/README.md) for stable API, websocket event, configuration, and session/transcript lookup maps.
 - [System Architecture](../architecture/architecture.md) for the high-level runtime model.
 - [Communication Flow](../architecture/communication_flow.md) for cross-process event flow.
 - [OpenClaw Docs Structure Reference](../reference/openclaw_docs_structure_reference.md) for the docs organization benchmark.
@@ -621,6 +622,16 @@ Use these when a change path is not enough and you need exact file ownership:
 
 - [Web Surfaces](../web/README.md)
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
+
+### Reference
+
+- [Reference Hub](../reference/README.md)
+- [API Reference](../reference/api_reference.md)
+- [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
+- [WebSocket Event Reference](../reference/websocket_event_reference.md)
+- [Configuration Reference](../reference/configuration_reference.md)
+- [Session and Transcript Reference](../reference/session_and_transcript_reference.md)
+- [OpenClaw Docs Structure Reference](../reference/openclaw_docs_structure_reference.md)
 
 ### Architecture
 

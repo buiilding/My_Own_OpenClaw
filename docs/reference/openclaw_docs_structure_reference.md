@@ -87,6 +87,7 @@ Added/expanded in WindieOS:
 - `tools/`: first-class tool-system docs covering contracts, catalog matrices, execution lifecycle, policy/profile gates, troubleshooting, computer use, browser automation, filesystem, and shell execution.
 - `providers/`: model/provider docs covering LLM providers, provider-specific runtime pages, model catalog metadata, credentials, and inference providers.
 - `sdk/`: hosted backend client and developer API docs covering query planning, traces, OCR/vision, and tool authoring.
+- `reference/`: stable lookup docs for API surfaces, websocket event contracts, configuration ownership, session/transcript identifiers, and docs organization policy.
 - `install/`, `cli/`, `platforms/`, `help/`, and `web/`: broad operational entrypoints that mirror OpenClaw's public-domain navigation while staying grounded in WindieOS desktop/runtime surfaces.
 - `automation/`: current VM run orchestration docs for `/api/runs/*`, worker polling, run timelines, run controls, and explicit boundaries for future cron/webhook/scheduler work.
 - `operations/`: OpenClaw-style operational hub and runbooks for runtime config ownership, hosted install auth, deployment, Cloudflare Tunnel, packaging/reinstall flows, release, security, performance, and troubleshooting.

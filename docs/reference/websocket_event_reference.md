@@ -1,0 +1,69 @@
+---
+summary: "Reference map for WindieOS backend websocket event families, canonical event names, backend owners, renderer consumers, and validation docs."
+read_when:
+  - When adding, renaming, formatting, or consuming backend websocket events.
+  - When debugging stream events that are missing, ignored by the renderer, stale, or malformed.
+title: "WebSocket Event Reference"
+---
+
+# WebSocket Event Reference
+
+WindieOS uses one canonical streamed-event vocabulary for backend formatter output and renderer chat consumption. Electron main rebroadcasts backend websocket messages to renderer windows on `from-backend`.
+
+## Canonical Event Families
+
+| Family | Event names | Backend owner | Renderer owner |
+| --- | --- | --- | --- |
+| assistant stream | `llm-thought`, `streaming-response`, `streaming-complete`, `error` | `backend/src/core/events/streaming_events.py`, backend formatter specs | `useChatStream.ts`, stream handler map |
+| tool turns | `tool-call`, `tool-bundle`, `tool-output` | backend tool orchestration, formatter specs, outgoing schemas | `useChatStream.ts`, `useToolRunner.ts`, transcript tool persistence |
+| transparency | `system-prompt`, `user-message-full`, `assistant-message-full`, `tool-schemas` | prompt metadata/event presenter and formatter specs | message transparency sections |
+| compaction | `context-compaction-started`, `context-compaction-completed`, `context-compaction-failed` | backend history compaction events and formatter specs | chat stream compaction/thinking state |
+| memory and usage | `memory-store`, `token-count` | backend memory event and token-count event formatter | memory side effects and token display |
+| model/settings status | `models-listed`, `settings-updated` | backend model/settings handlers | app config/status providers |
+| audio side-channel | `audio-chunk` | backend TTS/audio stream path | dedicated audio parser/player, outside typed chat-event union |
+| local synthetic | `local-user-message` | Electron main local optimistic event builder | chat stream and transcript writer |
+
+## Required Cross-Layer Updates
+
+When adding or renaming a streamed backend event, update the relevant set:
+
+1. backend event dataclass or event producer
+2. `StreamingEventType` literal when it is a backend streaming event
+3. formatter spec registration
+4. outgoing websocket schema and message type constants
+5. renderer event type guard or dedicated parser
+6. renderer consumer handler
+7. contract tests and focused frontend tests
+
+Do not rely on legacy alias normalization for new events.
+
+## Correlation Fields
+
+Events that affect chat state should preserve:
+
+- `id`
+- `turn_ref`
+- `conversation_ref`
+- `session_id`
+- `user_id`
+
+Renderer active-conversation filtering and stale-turn rejection depend on these fields.
+
+## Debug Map
+
+| Symptom | Check |
+| --- | --- |
+| backend produces event but websocket sends nothing | formatter spec, required fields, outgoing schema |
+| DevTools shows event but UI ignores it | renderer typed event guard or dedicated parser |
+| tool card renders but tool does not execute | `useToolRunner` consumer, `skip_frontend_execution` metadata, sidecar bridge |
+| event updates the wrong chat | `conversation_ref` and active transcript session state |
+| token display absent | backend `token-count` event and renderer token-count handler |
+| audio chunk ignored | `audio-chunk` parser, not `backendEvents.ts` typed union |
+
+## Deep Docs
+
+- [Streaming and Events](../concepts/streaming_and_events.md)
+- [Backend Streaming Events Contracts Hub](../backend/contracts/events/README.md)
+- [Streaming Event to Formatter and Outgoing Contract Alignment Reference](../backend/contracts/events/streaming_event_to_formatter_and_outgoing_contract_alignment_reference.md)
+- [Frontend Backend Event Consumer Matrix](../frontend/contracts/backend_event_consumer_matrix_reference.md)
+- [Frontend Stream State Machine](../frontend/runtime/stream_event_state_machine.md)
