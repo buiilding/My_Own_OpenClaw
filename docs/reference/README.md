@@ -19,6 +19,7 @@ Use this section for stable lookup material: route maps, event vocabularies, con
 | Backend stream event names and renderer consumers | [WebSocket Event Reference](websocket_event_reference.md) |
 | Environment variables and runtime config ownership | [Configuration Reference](configuration_reference.md) |
 | User/session/conversation/transcript identifiers | [Session and Transcript Reference](session_and_transcript_reference.md) |
+| Model-visible data versus transport/execution/replay payloads | [Agent-Visible Data Pipeline](../architecture/agent_visible_data_pipeline.md) |
 | Concrete feature request to source roots, tests, and docs | [Code Change Surface Index](code_change_surface_index.md) |
 | OpenClaw docs structure benchmark | [OpenClaw Docs Structure Reference](openclaw_docs_structure_reference.md) |
 

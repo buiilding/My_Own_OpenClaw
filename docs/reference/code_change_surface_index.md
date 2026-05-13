@@ -124,6 +124,7 @@ If a change seems to belong to two rows, change the producer first and then upda
 - [Documentation Hub](../getting-started/docs_hub.md)
 - [Change Ownership Decision Tree](../architecture/change_ownership_decision_tree.md)
 - [Runtime Boundary Matrix](../architecture/runtime_boundary_matrix.md)
+- [Agent-Visible Data Pipeline](../architecture/agent_visible_data_pipeline.md)
 - [Data Flow and State Ownership](../architecture/data_flow_and_state_ownership.md)
 - [Test Failure Triage](../development/test_failure_triage.md)
 - [Review and Risk Checklist](../development/review_and_risk_checklist.md)

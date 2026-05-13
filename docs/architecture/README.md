@@ -14,6 +14,7 @@ Start here for system-level design work. WindieOS is split across a hosted backe
 
 - [System Architecture](architecture.md)
 - [Runtime Boundary Matrix](runtime_boundary_matrix.md)
+- [Agent-Visible Data Pipeline](agent_visible_data_pipeline.md)
 - [Data Flow and State Ownership](data_flow_and_state_ownership.md)
 - [Storage and Persistence Change Workflow](storage_persistence_change_workflow.md)
 - [Change Ownership Decision Tree](change_ownership_decision_tree.md)
@@ -51,6 +52,7 @@ Start here for system-level design work. WindieOS is split across a hosted backe
 
 - [Runtime Model](../concepts/runtime_model.md)
 - [Runtime Node Matrix](../nodes/runtime_node_matrix.md)
+- [Agent-Visible Data Pipeline](agent_visible_data_pipeline.md)
 - [Channel Routing Matrix](../channels/channel_routing_matrix.md)
 - [Storage and Persistence Change Workflow](storage_persistence_change_workflow.md)
 - [Security Boundary Matrix](../security/security_boundary_matrix.md)
