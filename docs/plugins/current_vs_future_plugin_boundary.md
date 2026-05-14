@@ -8,12 +8,19 @@ title: "Current vs Future Plugin Boundary"
 
 # Current vs Future Plugin Boundary
 
-WindieOS currently supports code-level extension points. It does not currently support installable third-party plugin packages, marketplace metadata, signed plugin bundles, hot-loaded tool manifests, or user-installed runtime extensions.
+WindieOS currently supports code-level extension points and a manifest-based
+local extension loader for sidecar tools, prompt layers, and skills. It does not
+currently support a packaged plugin marketplace, signed plugin bundles,
+dependency installation, remote plugin registries, or hot-loading without app
+restart.
 
 ## Current
 
 Implemented today:
 
+- manifest extensions under `extensions/*/extension.json`
+- extension local sidecar tools declared with `name`, `schema`, and Python `entrypoint`
+- extension prompt layers and `skills/**/SKILL.md` instructions forwarded as `client_prompt_layers`
 - backend tool registry and SDK tool base
 - sidecar executable tools
 - LLM provider factory and model catalog
@@ -50,7 +57,9 @@ Do not imply this exists in current docs.
 | "Add a desktop action plugin" | implement backend schema + sidecar tool execution |
 | "Add a browser plugin" | extend browser schema/runtime, not a third-party browser extension store |
 | "Let users install plugins" | planning/design first |
-| "Load tools from a manifest at runtime" | future plugin-loader work |
+| "Load local sidecar tools from an extension manifest" | use `extensions/<id>/extension.json` |
+| "Add extension skills" | add `skills/<skill-id>/SKILL.md` under the extension |
+| "Install plugins from a marketplace" | planning/design first |
 | "Expose a new SDK integration" | add SDK route/client docs and tests |
 
 ## Planning Path

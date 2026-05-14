@@ -1,5 +1,5 @@
 ---
-summary: "Convention for WindieOS extensions that contribute local tools, schemas, prompt layers, and docs."
+summary: "Convention for WindieOS extensions that contribute local tools, schemas, prompt layers, skills, and docs."
 read_when:
   - When adding reusable client-side extensions.
   - When deciding where extension-owned tool schemas and docs should live.
@@ -8,8 +8,8 @@ read_when:
 # Extension Convention
 
 WindieOS extensions can contribute local sidecar tools, model-facing schemas,
-prompt layers, settings surfaces, required permissions, and documentation.
-Backend remote tools remain backend-owned.
+prompt layers, skills, settings surfaces, required permissions, and
+documentation. Backend remote tools remain backend-owned.
 
 The extension loader reads `extensions/*/extension.json`. Set
 `WINDIE_AGENT_EXTENSIONS_DIR` to point Electron main at a different extensions
@@ -21,6 +21,7 @@ extensions/
     extension.json
     tools/
     python/
+    skills/
     ui/
     docs/
 ```
@@ -47,13 +48,20 @@ Example `extension.json`:
       "content_path": "docs/prompt.md"
     }
   ],
+  "skills": [
+    {
+      "path": "skills/review-notes",
+      "id": "review-notes",
+      "priority": 75
+    }
+  ],
   "required_permissions": []
 }
 ```
 
 The loader contributes extension tools to `client_tool_manifest` and extension
-prompt layers to `client_prompt_layers`. `schema` and `content_path` are
-resolved relative to the extension directory. The Python
+prompt layers and skills to `client_prompt_layers`. `schema`, `content_path`,
+and skill paths are resolved relative to the extension directory. The Python
 sidecar also reads the same manifests and loads each sidecar tool `entrypoint`.
 For sidecar tools, Electron only advertises entries whose `entrypoint` points to
 an existing file inside the extension directory.
@@ -85,15 +93,70 @@ or `frontend/src/main/python/tools/manifest.py`. Those files are for built-in
 tool wiring. Use core sidecar edits only when changing a built-in tool or adding
 a shared sidecar primitive.
 
+## Extension Skills
+
+Skills are instruction packs, not executable tools. Put reusable agent guidance
+under `extensions/<id>/skills/<skill-id>/SKILL.md`. Electron main discovers
+every `SKILL.md` under an extension `skills/` directory and converts it into a
+`client_prompt_layers` entry with type `extension_skill`.
+
+Example:
+
+```text
+extensions/
+  my-extension/
+    extension.json
+    skills/
+      review-notes/
+        SKILL.md
+```
+
+```markdown
+---
+title: Review Notes
+priority: 75
+---
+
+When reviewing notes, identify decisions, open questions, and follow-up tasks.
+```
+
+The generated layer id is stable:
+
+```text
+extension:my-extension:skill:review-notes
+```
+
+Use the `skills` array in `extension.json` when a skill needs an explicit id,
+priority, or type override. The `path` may point at either a skill directory or
+the `SKILL.md` file itself:
+
+```json
+{
+  "skills": [
+    {
+      "path": "skills/review-notes",
+      "id": "notes-review",
+      "priority": 80
+    }
+  ]
+}
+```
+
+Skills should contain task-specific operating guidance, examples, and local
+workflow notes. If the model needs to call code, add a tool entry with `schema`
+and `entrypoint`; do not hide executable behavior inside a skill.
+
 Extension checklist:
 
 1. Add the tool schema under the extension `tools/` directory.
 2. Add executable Python code under the extension `python/` directory.
 3. Reference `schema` and the `file.py:function` entrypoint from
    `extension.json`.
-4. Add or update docs under the extension `docs/` directory and the relevant
+4. Add reusable instructions under `skills/<skill-id>/SKILL.md` when the
+   extension needs prompt guidance instead of executable code.
+5. Add or update docs under the extension `docs/` directory and the relevant
    canonical docs.
-5. Add tests for the manifest builder, sidecar extension loading, and execution
+6. Add tests for the manifest builder, sidecar extension loading, and execution
    path.
 
 Use `passthrough` when model arguments are executable sidecar arguments. Use

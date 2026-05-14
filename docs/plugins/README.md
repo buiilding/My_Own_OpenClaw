@@ -8,7 +8,11 @@ title: "Plugins and Extensions Hub"
 
 # Plugins and Extensions Hub
 
-WindieOS does not currently have a packaged plugin marketplace or runtime plugin loader. It does have concrete extension surfaces for tools, providers, SDK routes, inference backends, sidecar local actions, browser behavior, and renderer features.
+WindieOS does not currently have a packaged plugin marketplace. It does have a
+manifest-based extension loader for local sidecar tools, extension prompt
+layers, and extension skills, plus concrete source-level extension surfaces for
+providers, SDK routes, inference backends, browser behavior, and renderer
+features.
 
 Use this hub when a request sounds like "add a plugin" but the implementation should use existing WindieOS extension points.
 
@@ -16,6 +20,7 @@ Use this hub when a request sounds like "add a plugin" but the implementation sh
 
 | Surface | Extend here | Start docs |
 | --- | --- | --- |
+| Manifest extension tools and skills | `extensions/<id>/extension.json`, `extensions/<id>/skills/**/SKILL.md` | [Extension Convention](../development/extensions.md) |
 | Backend model-facing tools | `backend/src/tools`, `backend/src/sdk` | [Extension Surface Matrix](extension_surface_matrix.md), [Tool Authoring](../sdk/tool_authoring.md) |
 | Sidecar executable tools | `frontend/src/main/python/tools` | [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md), [Tool Development](../development/tool_development.md) |
 | LLM providers | `backend/src/llm/providers`, model catalog/config | [Providers Hub](../providers/README.md), [LLM Provider Docs Hub](../backend/llm/providers/README.md) |
@@ -26,7 +31,7 @@ Use this hub when a request sounds like "add a plugin" but the implementation sh
 
 ## Rules
 
-- Do not invent a plugin loader when the current request can be solved with a tool, provider, SDK route, or sidecar extension.
+- Do not invent marketplace behavior when the current request can be solved with a manifest extension, tool, provider, SDK route, or sidecar extension.
 - Do not make a new backend tool model-visible until it is registered, policy-allowed, documented, and tested.
 - Do not skip sidecar implementation for a local machine tool; backend schemas alone do not execute local actions.
 - Do not put provider credentials in plugin docs, fixtures, or code.
@@ -38,6 +43,7 @@ Use this hub when a request sounds like "add a plugin" but the implementation sh
 
 Read:
 
+- [Extension Convention](../development/extensions.md)
 - [Extension Surface Matrix](extension_surface_matrix.md)
 - [Tool Authoring](../sdk/tool_authoring.md)
 - [Tool Development](../development/tool_development.md)
@@ -51,6 +57,22 @@ Likely code:
 - renderer tool runner only when display/execution behavior changes
 
 Validate backend tool schema/policy tests, sidecar tool tests, renderer tool-runner tests, and parity tests.
+
+### Add an Extension Skill
+
+Read:
+
+- [Extension Convention](../development/extensions.md)
+- [Prompt and Tool Context](../concepts/prompt_and_tool_context.md)
+
+Likely code:
+
+- `extensions/<id>/skills/<skill-id>/SKILL.md`
+- `extensions/<id>/extension.json` only when id, priority, or type overrides are needed
+- `frontend/src/main/extension_manifest.cjs` only when changing loader behavior
+
+Validate extension-manifest tests and prompt-layer transparency tests when the
+payload contract changes.
 
 ### Add a Provider-Like Extension
 

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const yaml = require('js-yaml');
 
 function resolveDefaultExtensionsDir() {
   if (process.env.WINDIE_AGENT_EXTENSIONS_DIR) {
@@ -87,6 +88,158 @@ function readPromptLayer(layer, extensionDir, extensionId, index) {
   };
 }
 
+function parseMarkdownFrontmatter(content) {
+  if (typeof content !== 'string' || !content.startsWith('---')) {
+    return { metadata: {}, body: content };
+  }
+  const marker = '\n---';
+  const endIndex = content.indexOf(marker, 3);
+  if (endIndex === -1) {
+    return { metadata: {}, body: content };
+  }
+  const rawFrontmatter = content.slice(3, endIndex).trim();
+  const body = content.slice(endIndex + marker.length).replace(/^\s*\n/, '');
+  const parsed = yaml.load(rawFrontmatter);
+  return {
+    metadata: parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {},
+    body,
+  };
+}
+
+function slugFromRelativePath(relativePath) {
+  return relativePath
+    .replace(/\\/g, '/')
+    .replace(/^skills\//i, '')
+    .replace(/\/SKILL\.md$/i, '')
+    .replace(/[^a-zA-Z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase();
+}
+
+function findSkillFiles(rootDir) {
+  if (!fs.existsSync(rootDir)) {
+    return [];
+  }
+  const files = [];
+  const entries = fs.readdirSync(rootDir, { withFileTypes: true })
+    .sort((left, right) => left.name.localeCompare(right.name));
+  for (const dirent of entries) {
+    const childPath = path.join(rootDir, dirent.name);
+    if (dirent.isDirectory()) {
+      files.push(...findSkillFiles(childPath));
+      continue;
+    }
+    if (dirent.isFile() && dirent.name.toLowerCase() === 'skill.md') {
+      files.push(childPath);
+    }
+  }
+  return files;
+}
+
+function normalizeSkillSpec(rawSkill) {
+  if (typeof rawSkill === 'string' && rawSkill.trim()) {
+    return { path: rawSkill.trim() };
+  }
+  if (!rawSkill || typeof rawSkill !== 'object' || Array.isArray(rawSkill)) {
+    return null;
+  }
+  const skillPath = typeof rawSkill.path === 'string' && rawSkill.path.trim()
+    ? rawSkill.path.trim()
+    : typeof rawSkill.content_path === 'string' && rawSkill.content_path.trim()
+      ? rawSkill.content_path.trim()
+      : '';
+  if (!skillPath) {
+    return null;
+  }
+  return {
+    path: skillPath,
+    id: typeof rawSkill.id === 'string' && rawSkill.id.trim() ? rawSkill.id.trim() : '',
+    type: typeof rawSkill.type === 'string' && rawSkill.type.trim() ? rawSkill.type.trim() : '',
+    priority: Number.isFinite(Number(rawSkill.priority)) ? Number(rawSkill.priority) : null,
+  };
+}
+
+function resolveSkillFile(extensionDir, rawPath) {
+  const resolvedPath = resolveInsideExtension(extensionDir, rawPath);
+  const stat = fs.statSync(resolvedPath);
+  if (stat.isDirectory()) {
+    return path.join(resolvedPath, 'SKILL.md');
+  }
+  return resolvedPath;
+}
+
+function readSkillLayer(skillFilePath, extensionDir, extensionId, spec = {}) {
+  const relativePath = path.relative(extensionDir, skillFilePath);
+  const parsed = parseMarkdownFrontmatter(fs.readFileSync(skillFilePath, 'utf8'));
+  let content = parsed.body.trim();
+  if (!content) {
+    return null;
+  }
+  const titleValue = parsed.metadata.title || parsed.metadata.name || '';
+  const title = typeof titleValue === 'string' ? titleValue.trim() : '';
+  if (title && !content.startsWith('#')) {
+    content = `# ${title}\n\n${content}`;
+  }
+  const metadataId = typeof parsed.metadata.id === 'string' ? parsed.metadata.id.trim() : '';
+  const slug = spec.id || metadataId || slugFromRelativePath(relativePath);
+  if (!slug) {
+    return null;
+  }
+  const metadataType = typeof parsed.metadata.type === 'string' ? parsed.metadata.type.trim() : '';
+  const priority = spec.priority !== null && spec.priority !== undefined
+    ? spec.priority
+    : Number.isFinite(Number(parsed.metadata.priority))
+      ? Number(parsed.metadata.priority)
+      : 75;
+  return {
+    id: `extension:${extensionId}:skill:${slug}`,
+    type: spec.type || metadataType || 'extension_skill',
+    priority,
+    content,
+  };
+}
+
+function readSkillPromptLayers(manifest, extensionDir, extensionId) {
+  const layers = [];
+  const seenFiles = new Set();
+  const addSkillFile = (skillFilePath, spec = {}) => {
+    const resolvedSkillPath = path.resolve(skillFilePath);
+    if (seenFiles.has(resolvedSkillPath)) {
+      return;
+    }
+    seenFiles.add(resolvedSkillPath);
+    try {
+      const layer = readSkillLayer(resolvedSkillPath, extensionDir, extensionId, spec);
+      if (layer) {
+        layers.push(layer);
+      }
+    } catch (_error) {
+      // Invalid skill files should not block tools or other prompt layers.
+    }
+  };
+
+  for (const rawSkill of Array.isArray(manifest.skills) ? manifest.skills : []) {
+    const spec = normalizeSkillSpec(rawSkill);
+    if (!spec) {
+      continue;
+    }
+    try {
+      const skillFilePath = resolveSkillFile(extensionDir, spec.path);
+      if (path.basename(skillFilePath).toLowerCase() === 'skill.md' && fs.statSync(skillFilePath).isFile()) {
+        addSkillFile(skillFilePath, spec);
+      }
+    } catch (_error) {
+      // Invalid skill entries should not block the rest of the extension.
+    }
+  }
+
+  const skillsRoot = path.join(extensionDir, 'skills');
+  for (const skillFilePath of findSkillFiles(skillsRoot)) {
+    addSkillFile(skillFilePath);
+  }
+  return layers;
+}
+
 function loadExtension(entryDir) {
   const extensionJsonPath = path.join(entryDir, 'extension.json');
   const manifest = readJsonFile(extensionJsonPath);
@@ -131,6 +284,7 @@ function loadExtension(entryDir) {
       promptLayers.push(promptLayer);
     }
   });
+  promptLayers.push(...readSkillPromptLayers(manifest, entryDir, extensionId));
 
   return {
     id: extensionId,
