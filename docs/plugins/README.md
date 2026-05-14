@@ -17,6 +17,20 @@ browser behavior, and renderer features.
 
 Use this hub when a request sounds like "add a plugin" but the implementation should use existing WindieOS extension points.
 
+## Fast Routing
+
+| Developer asks to add | Put it here | Canonical instructions |
+| --- | --- | --- |
+| A Python local tool | `extensions/<id>/tools/*.schema.json`, `extensions/<id>/python/*.py`, `extensions/<id>/extension.json` | [Add A Sidecar Tool](../development/extensions.md#add-a-sidecar-tool) |
+| An Electron-main JavaScript tool | `extensions/<id>/plugin/index.cjs` | [Add A Plugin Tool](../development/extensions.md#add-a-plugin-tool) |
+| Instructions only | `extensions/<id>/skills/<skill-id>/SKILL.md` | [Add Only Skills](../development/extensions.md#add-only-skills) |
+| An MCP server | `extensions/<id>/mcp/servers.json` | [MCP Runtime](../development/mcp.md) |
+| Hooks, settings, permissions, config | `extensions/<id>/plugin/index.cjs`, `extension.json` | [Add Plugin Hooks, Settings, Config, Or Permissions](../development/extensions.md#add-plugin-hooks-settings-config-or-permissions) |
+
+The default answer for third-party developer extensibility is: create or update
+one package under `extensions/<id>/`. Core runtime files should change only when
+the WindieOS extension platform itself changes.
+
 ## Current Extension Surfaces
 
 | Surface | Extend here | Start docs |
@@ -51,14 +65,14 @@ Read:
 - [Tool Development](../development/tool_development.md)
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 
-Likely code:
+Likely extension package code:
 
-- `backend/src/tools/**`
-- `backend/src/sdk/**`
-- `frontend/src/main/python/tools/**`
-- renderer tool runner only when display/execution behavior changes
+- `extensions/<id>/tools/*.schema.json`
+- `extensions/<id>/python/*.py`
+- `extensions/<id>/extension.json`
 
-Validate backend tool schema/policy tests, sidecar tool tests, renderer tool-runner tests, and parity tests.
+Core code changes are needed only for built-in tools or runtime platform
+changes. Validate extension manifest tests and sidecar extension loading tests.
 
 ### Add a Local Plugin Runtime Contribution
 

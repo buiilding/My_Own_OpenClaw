@@ -19,7 +19,25 @@ frontend.
 
 ## Add An MCP Server
 
-Declare MCP servers in `mcp/servers.json` inside the extension package:
+Create this package shape:
+
+```text
+extensions/github-mcp/
+  extension.json
+  mcp/
+    servers.json
+```
+
+`extension.json` only identifies the package:
+
+```json
+{
+  "id": "github-mcp",
+  "name": "GitHub MCP"
+}
+```
+
+Declare MCP servers in `mcp/servers.json`:
 
 ```json
 {
@@ -37,7 +55,8 @@ Declare MCP servers in `mcp/servers.json` inside the extension package:
 }
 ```
 
-Or register one from `plugin/index.cjs` when the spec needs runtime logic:
+Use `plugin/index.cjs` only when the MCP server spec needs runtime logic,
+config, or permissions:
 
 ```js
 module.exports = function register(api) {
@@ -67,6 +86,20 @@ module.exports = function register(api) {
 `tools/list` response. Declared tools are fallback schemas for offline
 diagnostics and for development environments where the MCP server is not
 running yet.
+
+## Server Spec Fields
+
+| Field | Required | Meaning |
+| --- | --- | --- |
+| `id` | yes | Stable local server id. Used in generated MCP tool names. |
+| `command` | yes | Executable command, such as `node`, `npx`, `python`, or an absolute binary path. |
+| `args` | no | Arguments passed to the command. |
+| `cwd` | no | Working directory. Relative paths are resolved inside the extension package. |
+| `env` | no | Extra environment variables for the MCP process. Do not commit real credentials. |
+| `enabled` | no | Set `false` to keep a server declared but not loaded. |
+| `timeout_ms` | no | Request timeout for initialize, discovery, and calls. |
+| `tool_prefix` | no | Override generated model-visible tool prefix. |
+| `tools` | no | Fallback tool schemas if live `tools/list` discovery fails. |
 
 ## Tool Naming
 
@@ -101,6 +134,18 @@ That exposes `local_memory__search`.
 7. When the backend emits an MCP tool call, Electron main intercepts it and
    sends MCP `tools/call`.
 8. The MCP result is normalized into WindieOS tool result data.
+
+## What Devs Should Not Edit
+
+For normal MCP integrations, do not edit:
+
+- `frontend/src/main/mcp_runtime.cjs`
+- `frontend/src/main/extension_manifest.cjs`
+- backend tool registries
+- Python sidecar tool registries
+
+Edit those only when changing the WindieOS MCP platform itself. A normal MCP
+integration should be added entirely under `extensions/<id>/`.
 
 ## When To Use MCP
 
