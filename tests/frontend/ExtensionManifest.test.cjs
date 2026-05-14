@@ -34,7 +34,6 @@ function writeExtension() {
         description: 'Save a local note.',
         entrypoint: 'python/save_note.py:run',
         schema: 'tools/note.schema.json',
-        optional: true,
       }],
       prompt_layers: [{
         id: 'notes-guidance',
@@ -64,9 +63,9 @@ describe('extension manifest loader', () => {
         schema: expect.objectContaining({
           required: ['note'],
         }),
-        optional: true,
       }),
     ]);
+    expect(tools[0]).not.toHaveProperty('optional');
     expect(tools[0]).not.toHaveProperty('execution_schema');
     expect(promptLayers).toEqual([
       {

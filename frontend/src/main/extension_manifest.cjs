@@ -120,7 +120,6 @@ function loadExtension(entryDir) {
         ? 'backend_grounding'
         : 'passthrough',
       extension_id: extensionId,
-      optional: rawTool.optional === true,
     });
   }
 

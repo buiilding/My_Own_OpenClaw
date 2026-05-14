@@ -30,7 +30,6 @@ def test_client_tool_manifest_accepts_passthrough_sidecar_tool():
                     "execution_target": "sidecar",
                     "schema": _schema(),
                     "argument_resolution": "passthrough",
-                    "optional": True,
                 }
             ]
         }
@@ -38,9 +37,8 @@ def test_client_tool_manifest_accepts_passthrough_sidecar_tool():
 
     assert result.rejected == []
     assert result.accepted_tool_names == ["my_tool"]
-    assert result.accepted[0].optional is True
-    assert result.to_public_dict()["accepted"][0]["optional"] is True
     assert result.to_public_dict()["accepted"][0]["schema"] == _schema()
+    assert "optional" not in result.to_public_dict()["accepted"][0]
     assert "execution_schema" not in result.to_public_dict()["accepted"][0]
     assert result.accepted_tool_schemas[0]["name"] == "my_tool"
     assert result.accepted_tool_schemas[0]["parameters"]["required"] == ["value"]

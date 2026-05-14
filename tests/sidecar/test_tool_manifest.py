@@ -75,7 +75,6 @@ def test_registry_loads_extension_entrypoint_and_manifest(
                         "description": "Save a local note.",
                         "entrypoint": "python/save_note.py:run",
                         "schema": "tools/save_note.schema.json",
-                        "optional": True,
                         "argument_resolution": "passthrough",
                     }
                 ],

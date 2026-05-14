@@ -237,7 +237,6 @@ function ToolAcceptanceStatus({ acceptedTool, rejectedTool }) {
       <summary>Accepted schema</summary>
       <p className="clone-settings-tool-status">
         {acceptedTool.argument_resolution || 'passthrough'} / {acceptedTool.execution_target || 'sidecar'}
-        {acceptedTool.optional ? ' / optional' : ''}
       </p>
       <pre>{JSON.stringify({
         schema: acceptedTool.schema,
@@ -251,7 +250,6 @@ ToolAcceptanceStatus.propTypes = {
     argument_resolution: PropTypes.string,
     execution_target: PropTypes.string,
     schema: PropTypes.object,
-    optional: PropTypes.bool,
   }),
   rejectedTool: PropTypes.shape({
     reason: PropTypes.string,

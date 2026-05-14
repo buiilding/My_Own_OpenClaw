@@ -68,7 +68,6 @@ class ClientToolManifestEntry:
     execution_target: Literal["sidecar", "backend"]
     schema: dict[str, Any]
     argument_resolution: Literal["passthrough", "backend_grounding"]
-    optional: bool = False
 
     @property
     def function_tool_schema(self) -> dict[str, Any]:
@@ -92,7 +91,6 @@ class ClientToolManifestEntry:
             "execution_target": self.execution_target,
             "schema": copy.deepcopy(self.schema),
             "argument_resolution": self.argument_resolution,
-            "optional": self.optional,
         }
 
 
@@ -230,7 +228,6 @@ def _validate_tool_entry(
             execution_target=execution_target,
             schema=copy.deepcopy(schema),
             argument_resolution=argument_resolution,
-            optional=raw_tool.get("optional") is True,
         ),
         None,
     )

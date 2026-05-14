@@ -34,7 +34,6 @@ function makeExtensionDir() {
         entrypoint: 'python/demo_tool.py:run',
         schema: 'tools/demo.model.schema.json',
         argument_resolution: 'passthrough',
-        optional: true,
       }],
       prompt_layers: [{
         id: 'demo-extension-guidance',
@@ -97,7 +96,6 @@ describe('agent capability handshake manifest', () => {
           schema: expect.objectContaining({
             required: ['value'],
           }),
-          optional: true,
         }),
       ]),
     );
