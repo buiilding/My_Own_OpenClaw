@@ -27,6 +27,7 @@ class QueryExecutionInputs:
     workspace_path: Optional[str]
     repo_instruction_messages: Optional[list[dict[str, str]]]
     client_prompt_layers: Optional[list[dict[str, Any]]]
+    agent_definition: Optional[Any]
     runtime_system_state: Optional[dict[str, str]]
 
 
@@ -90,5 +91,6 @@ def resolve_query_execution_inputs(
         workspace_path=getattr(message.payload, "workspace_path", None),
         repo_instruction_messages=repo_instruction_messages,
         client_prompt_layers=client_prompt_layers,
+        agent_definition=getattr(message.payload, "agent_definition", None),
         runtime_system_state=resolve_query_runtime_system_state(message),
     )

@@ -19,7 +19,6 @@ from backend.src.agent.tools.preparation.coordinate_resolution.resolvers import 
     OcrCoordinateResolver,
     VisionCoordinateResolver,
 )
-from backend.src.core.inference.errors import ProviderCapabilityError
 from backend.src.api.auth.context import get_current_authenticated_install_identity
 from backend.src.api.routes.sdk.models import (
     BoundingBoxModel,
@@ -35,12 +34,15 @@ from backend.src.api.routes.sdk.models import (
     VisionLocateResponse,
     VisionTargetModel,
 )
+from backend.src.core.config import AppConfig
+from backend.src.core.inference.errors import ProviderCapabilityError
 from backend.src.core.types.enums import MessageType
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 from backend.src.llm.prompts.prompts import PromptManager
 from backend.src.services.artifacts import ArtifactStore
 from backend.src.services.ocr.helpers import decode_screenshot_payload
 from backend.src.tools.provider_projection import project_tool_schemas_for_provider
+from backend.src.tools.client_manifest import validate_client_tool_manifest
 from backend.src.tools.tool_policy import ToolPolicy
 from backend.src.tools.tool_specs import get_tool_spec_name
 
@@ -182,24 +184,82 @@ def build_debug_tool_schemas(
     config: Any,
     container,
     prompt_messages: Optional[list[dict[str, Any]]] = None,
+    client_tool_schemas: Optional[list[dict[str, Any]]] = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Return filtered canonical tool specs plus provider-projected tool specs."""
     tool_registry = _get_tool_registry(container)
     tool_policy = ToolPolicy.from_config(config)
+    client_tool_schemas = [
+        schema for schema in (client_tool_schemas or []) if isinstance(schema, dict)
+    ]
 
     model_tool_names_getter = getattr(tool_registry, "get_model_tool_names", None)
     if callable(model_tool_names_getter):
+        registry_tool_names = list(model_tool_names_getter())
+        registry_tool_names.extend(
+            name
+            for name in (get_tool_spec_name(schema) for schema in client_tool_schemas)
+            if isinstance(name, str) and name not in registry_tool_names
+        )
         filtered_names = tool_policy.filter_tool_names(
-            model_tool_names_getter(),
+            registry_tool_names,
             normalize_wrappers=False,
+        )
+        filtered_client_names = set(
+            tool_policy.filter_tool_names(
+                [
+                    name
+                    for name in (
+                        get_tool_spec_name(schema) for schema in client_tool_schemas
+                    )
+                    if isinstance(name, str)
+                ],
+                normalize_wrappers=False,
+                selection=None,
+            )
         )
         canonical_tool_schemas = (
             tool_registry.get_function_declarations_filtered(filtered_names) or []
         )
+        existing_names = {
+            name
+            for name in (
+                get_tool_spec_name(schema) for schema in canonical_tool_schemas
+            )
+            if isinstance(name, str)
+        }
+        canonical_tool_schemas.extend(
+            schema
+            for schema in client_tool_schemas
+            if get_tool_spec_name(schema) in filtered_client_names
+            and get_tool_spec_name(schema) not in existing_names
+        )
     else:
         canonical_tool_schemas = tool_registry.get_function_declarations() or []
+        canonical_tool_schemas.extend(client_tool_schemas)
 
-    canonical_tool_schemas = tool_policy.filter_tool_schemas(canonical_tool_schemas)
+    client_tool_names = {
+        name
+        for name in (get_tool_spec_name(schema) for schema in client_tool_schemas)
+        if isinstance(name, str)
+    }
+    registry_tool_schemas = [
+        schema
+        for schema in canonical_tool_schemas
+        if get_tool_spec_name(schema) not in client_tool_names
+    ]
+    filtered_client_tool_schemas = tool_policy.filter_tool_schemas(
+        [
+            schema
+            for schema in canonical_tool_schemas
+            if get_tool_spec_name(schema) in client_tool_names
+        ],
+        selection=None,
+    )
+    canonical_tool_schemas = [
+        *tool_policy.filter_tool_schemas(registry_tool_schemas),
+        *filtered_client_tool_schemas,
+    ]
     provider_tool_schemas = project_tool_schemas_for_provider(
         tool_schemas=canonical_tool_schemas,
         tool_registry=tool_registry,
@@ -207,7 +267,8 @@ def build_debug_tool_schemas(
         prompt_messages=prompt_messages,
     )
     provider_tool_schemas = tool_policy.filter_projected_tool_schemas(
-        provider_tool_schemas
+        provider_tool_schemas,
+        selection=None,
     )
     return canonical_tool_schemas, provider_tool_schemas
 
@@ -218,6 +279,54 @@ def build_prompt_constructor(*, config: Any, container) -> PromptConstructor:
         tool_registry=_get_tool_registry(container),
         config=config,
     )
+
+
+def apply_agent_definition_to_config(config: Any, agent_definition: Any) -> Any:
+    if agent_definition is None:
+        return config
+    manifest_result = validate_client_tool_manifest(
+        agent_definition.client_tool_manifest()
+        if hasattr(agent_definition, "client_tool_manifest")
+        else None
+    )
+    overrides = agent_definition.to_session_config_overrides(
+        accepted_client_tool_names=manifest_result.accepted_tool_names
+    )
+    if not overrides:
+        return config
+    config_dict = config.model_dump() if hasattr(config, "model_dump") else dict(config)
+    config_dict.update(overrides)
+    return AppConfig(**config_dict)
+
+
+def apply_agent_definition_to_constructor(
+    constructor: PromptConstructor,
+    agent_definition: Any,
+) -> None:
+    if agent_definition is None:
+        return
+    system_prompt_override = (
+        agent_definition.system_prompt_override()
+        if hasattr(agent_definition, "system_prompt_override")
+        else None
+    )
+    if isinstance(system_prompt_override, str) and system_prompt_override.strip():
+        constructor.system_prompt = system_prompt_override.strip()
+    runtime = getattr(agent_definition, "runtime", None)
+    workspace_path = getattr(runtime, "workspace_path", None)
+    if isinstance(workspace_path, str) and workspace_path.strip():
+        constructor.workspace_path = workspace_path.strip()
+    constructor.client_prompt_layers = (
+        agent_definition.client_prompt_layers()
+        if hasattr(agent_definition, "client_prompt_layers")
+        else []
+    )
+    manifest_result = validate_client_tool_manifest(
+        agent_definition.client_tool_manifest()
+        if hasattr(agent_definition, "client_tool_manifest")
+        else None
+    )
+    constructor.client_tool_schemas = list(manifest_result.accepted_tool_schemas)
 
 
 def build_debug_user_message_full(
@@ -296,9 +405,12 @@ def build_prompt_preview(
     user_query_raw: Optional[str],
     include_tools: bool,
     workspace_path: Optional[str],
+    agent_definition: Any = None,
 ) -> dict[str, Any]:
     preview_history = PromptPreviewHistory(messages, user_query_raw=user_query_raw)
+    config = apply_agent_definition_to_config(config, agent_definition)
     constructor = build_prompt_constructor(config=config, container=container)
+    apply_agent_definition_to_constructor(constructor, agent_definition)
     if isinstance(workspace_path, str) and workspace_path.strip():
         constructor.workspace_path = workspace_path.strip()
 
@@ -309,6 +421,7 @@ def build_prompt_preview(
     canonical_tool_schemas, provider_tool_schemas = build_debug_tool_schemas(
         config=config,
         container=container,
+        client_tool_schemas=list(getattr(constructor, "client_tool_schemas", []) or []),
         prompt_messages=prompt_messages,
     )
 
@@ -345,7 +458,8 @@ def build_query_plan(
     user_query_raw: Optional[str],
     include_tools: bool,
     workspace_path: Optional[str],
-    conversation_ref: Optional[str],
+    agent_definition: Any = None,
+    conversation_ref: Optional[str] = None,
 ) -> dict[str, Any]:
     preview = build_prompt_preview(
         config=config,
@@ -354,6 +468,7 @@ def build_query_plan(
         user_query_raw=user_query_raw,
         include_tools=include_tools,
         workspace_path=workspace_path,
+        agent_definition=agent_definition,
     )
     resolved_query = (
         str(user_query_raw).strip()
@@ -372,6 +487,11 @@ def build_query_plan(
         query_payload["conversation_ref"] = conversation_ref.strip()
     if isinstance(workspace_path, str) and workspace_path.strip():
         query_payload["workspace_path"] = workspace_path.strip()
+    if agent_definition is not None and hasattr(agent_definition, "model_dump"):
+        query_payload["agent_definition"] = agent_definition.model_dump(
+            mode="json",
+            exclude_none=True,
+        )
 
     transparency_events: list[dict[str, Any]] = [
         {

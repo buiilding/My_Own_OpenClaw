@@ -3,6 +3,7 @@ const {
   getBuiltinClientToolNames,
   getClientToolNames,
 } = require('./tool_manifest.cjs');
+const { buildAgentDefinition } = require('./agent_definition.cjs');
 
 const HANDSHAKE_REMOTE_TOOLS = Object.freeze([
   'web_search',
@@ -78,11 +79,33 @@ function buildAgentCapabilityHandshakePayload(options = {}) {
   const availableCoordinateMethods = normalizeStringList(options.availableCoordinateMethods)
     || [...HANDSHAKE_AVAILABLE_COORDINATE_METHODS];
   const requestedAgentPolicy = normalizeRequestedAgentPolicy(options.requestedAgentPolicy);
+  const operatingSystem = typeof options.operatingSystem === 'string'
+    ? options.operatingSystem.trim()
+    : '';
+  const agentDefinition = options.agentDefinition || buildAgentDefinition({
+    id: options.agentId,
+    name: options.agentName,
+    systemPrompt: options.systemPrompt,
+    customInstructions: options.customInstructions,
+    clientToolManifest,
+    availableTools,
+    enabledRemoteTools: HANDSHAKE_REMOTE_TOOLS,
+    disabledTools: normalizeStringList(options.disabledTools) || [],
+    disabledCapabilities: requestedAgentPolicy?.disabled_capabilities || [],
+    coordinateMethods: availableCoordinateMethods,
+    operatingSystem,
+    promptLayers: options.promptLayers,
+    skills: options.skills,
+    agentsMd: options.agentsMd,
+    plugins: options.plugins,
+    extensionsDir: options.extensionsDir,
+  });
 
   const payload = {
     available_tools: availableTools,
     available_coordinate_methods: availableCoordinateMethods,
     client_tool_manifest: clientToolManifest,
+    agent_definition: agentDefinition,
   };
   if (requestedAgentPolicy) {
     payload.requested_agent_policy = requestedAgentPolicy;

@@ -6,6 +6,7 @@ from backend.src.api.schemas.common import (
     BaseMessage,
     HandshakeMessage,
 )
+from backend.src.api.schemas.agent_definition import AgentDefinition
 
 
 def test_base_message_accepts_valid_payload_and_trims_id():
@@ -85,3 +86,91 @@ def test_handshake_message_validates_user_id():
             user_id="user-2",
             available_tools=["  "],
         )
+
+
+def test_agent_definition_normalizes_prompt_tools_and_runtime():
+    definition = AgentDefinition(
+        id=" custom-agent ",
+        system_prompt={"mode": "replace", "content": "  You are a custom agent. "},
+        tools={
+            "mode": "client_only",
+            "client_manifest": {
+                "version": 1,
+                "tools": [
+                    {
+                        "name": "save_note",
+                        "description": "Save a note.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {"note": {"type": "string"}},
+                            "required": ["note"],
+                            "additionalProperties": False,
+                        },
+                    }
+                ],
+            },
+            "enabled_remote_tools": [" web_search ", "web_search"],
+            "disabled_tools": [" browser "],
+        },
+        skills=[
+            {
+                "id": "review",
+                "type": "skill",
+                "priority": 70,
+                "content": "  Review carefully. ",
+            }
+        ],
+        agents_md=[
+            {
+                "id": "repo",
+                "type": "agents_md",
+                "priority": 50,
+                "content": "Follow repo rules.",
+            }
+        ],
+        runtime={"operating_system": " macOS ", "coordinate_methods": ["manual"]},
+    )
+
+    assert definition.id == "custom-agent"
+    assert definition.system_prompt_override() == "You are a custom agent."
+    assert definition.client_tool_manifest()["tools"][0]["name"] == "save_note"
+    assert definition.tools.enabled_remote_tools == ["web_search"]
+    assert definition.client_prompt_layers() == [
+        {
+            "id": "repo",
+            "type": "agents_md",
+            "priority": 50,
+            "content": "Follow repo rules.",
+        },
+        {
+            "id": "review",
+            "type": "skill",
+            "priority": 70,
+            "content": "Review carefully.",
+        },
+    ]
+    assert definition.to_session_config_overrides(
+        accepted_client_tool_names=["save_note"]
+    ) == {
+        "agent_available_tools": ["save_note", "web_search"],
+        "agent_disabled_tools": ["browser"],
+        "agent_available_coordinate_methods": ["manual"],
+    }
+
+
+def test_handshake_accepts_first_class_agent_definition():
+    message = HandshakeMessage(
+        type="handshake",
+        user_id="user-2",
+        agent_definition={
+            "version": 1,
+            "system_prompt": {
+                "mode": "replace",
+                "content": "Custom system prompt.",
+            },
+            "runtime": {"operating_system": "Linux"},
+        },
+    )
+
+    assert message.agent_definition.system_prompt_override() == "Custom system prompt."
+    assert message.agent_definition.runtime.operating_system == "Linux"

@@ -112,6 +112,7 @@ export type SdkPromptPreviewRequest = {
   workspace_path?: string;
   user_query_raw?: string;
   messages?: JsonRecord[];
+  agent_definition?: JsonRecord;
 };
 
 export type SdkPromptPreviewResponse = {
@@ -143,6 +144,7 @@ export type SdkQueryPlanRequest = {
   user_query_raw?: string;
   conversation_ref?: string;
   messages?: JsonRecord[];
+  agent_definition?: JsonRecord;
 };
 
 export type SdkQueryPlanResponse = {

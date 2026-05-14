@@ -153,6 +153,13 @@ class SessionManager(ConfigSubscriber):
     ) -> None:
         self._config_service.set_client_tool_manifest(user_id, manifest_result)
 
+    def set_agent_definition(
+        self,
+        user_id: str,
+        agent_definition: Any,
+    ) -> None:
+        self._config_service.set_agent_definition(user_id, agent_definition)
+
     def increment_connection_count(self, user_id: str) -> int:
         return self._registry.increment_connection_count(user_id)
 
@@ -342,6 +349,12 @@ class SessionManager(ConfigSubscriber):
                     self._config_service.apply_client_tool_manifest_to_session(
                         session,
                         client_tool_manifest,
+                    )
+                agent_definition = self._config_service.agent_definitions.get(user_id)
+                if agent_definition is not None:
+                    self._config_service.apply_agent_definition_to_session(
+                        session,
+                        agent_definition,
                     )
                 self._registry.store_session(
                     user_id,

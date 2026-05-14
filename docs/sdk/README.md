@@ -13,6 +13,7 @@ WindieOS SDK docs cover direct backend integration. They are separate from Elect
 ## SDK Pages
 
 - [Hosted Backend Clients](hosted_backend_clients.md)
+- [Agent Definition Contract](agent_definition.md)
 - [SDK Route Change Workflow](sdk_route_change_workflow.md)
 - [SDK Auth and Error Handling](sdk_auth_and_error_handling.md)
 - [Query Planning and Trace](query_planning_and_trace.md)
@@ -31,6 +32,7 @@ WindieOS SDK docs cover direct backend integration. They are separate from Elect
 - SDK routes: `backend/src/api/routes/sdk/*`
 - Artifact routes: `backend/src/api/routes/artifacts/*`
 - Websocket: `backend/src/api/routes/websocket/*`
+- Agent definition schema: `backend/src/api/schemas/agent_definition.py`
 
 ## Rule
 

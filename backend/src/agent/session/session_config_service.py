@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, Callable, Optional
 
 from backend.src.core.config import AppConfig
 from backend.src.tools.provider_health import merge_unavailable_capabilities
+from backend.src.tools.client_manifest import validate_client_tool_manifest
 from backend.src.tools.tool_policy import ToolPolicy
 
 if TYPE_CHECKING:
@@ -16,6 +17,13 @@ if TYPE_CHECKING:
     from backend.src.agent.session.session_registry import SessionRegistry
 
 logger = logging.getLogger(__name__)
+
+
+def _coerce_prompt_layer_priority(value: Any) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 100
 
 
 class SessionConfigService:
@@ -38,6 +46,7 @@ class SessionConfigService:
         self.user_config_overrides: dict[str, dict[str, Any]] = {}
         self.frontend_operating_systems: dict[str, str] = {}
         self.client_tool_manifests: dict[str, Any] = {}
+        self.agent_definitions: dict[str, Any] = {}
 
     def set_base_config(self, config: AppConfig) -> None:
         self._base_config = config
@@ -82,12 +91,19 @@ class SessionConfigService:
         operating_system: str,
     ) -> None:
         runtime = getattr(session, "runtime", None)
+        agent_definition = getattr(runtime, "agent_definition", None)
         self.apply_prompt_context_to_session(
             session,
             operating_system=operating_system,
             workspace_path=getattr(runtime, "workspace_path", None),
             repo_instruction_messages=getattr(
                 runtime, "repo_instruction_messages", None
+            ),
+            client_prompt_layers=getattr(runtime, "client_prompt_layers", None),
+            system_prompt_override=(
+                agent_definition.system_prompt_override()
+                if hasattr(agent_definition, "system_prompt_override")
+                else None
             ),
         )
 
@@ -107,14 +123,21 @@ class SessionConfigService:
         operating_system: Optional[str],
         workspace_path: Optional[str],
         repo_instruction_messages: Optional[list[dict[str, str]]] = None,
+        client_prompt_layers: Optional[list[dict[str, Any]]] = None,
+        system_prompt_override: Optional[str] = None,
     ) -> None:
         normalized_workspace_path = self.normalize_workspace_path(workspace_path)
-        rendered_prompt = self._call_render_system_prompt(
-            operating_system=operating_system,
-            workspace_path=normalized_workspace_path,
-            allowed_coordinate_methods=ToolPolicy.from_config(
-                getattr(session, "cfg", self._base_config)
-            ).get_allowed_mouse_coordinate_methods(),
+        rendered_prompt = (
+            system_prompt_override.strip()
+            if isinstance(system_prompt_override, str)
+            and system_prompt_override.strip()
+            else self._call_render_system_prompt(
+                operating_system=operating_system,
+                workspace_path=normalized_workspace_path,
+                allowed_coordinate_methods=ToolPolicy.from_config(
+                    getattr(session, "cfg", self._base_config)
+                ).get_allowed_mouse_coordinate_methods(),
+            )
         )
         normalized_repo_instruction_messages = [
             {"role": message["role"], "content": message["content"]}
@@ -126,16 +149,40 @@ class SessionConfigService:
                 and message["content"].strip()
             )
         ]
+        normalized_client_prompt_layers = [
+            {
+                "id": str(layer["id"]).strip(),
+                "type": str(layer["type"]).strip(),
+                "priority": _coerce_prompt_layer_priority(layer.get("priority")),
+                "content": str(layer["content"]).strip(),
+            }
+            for layer in (client_prompt_layers or [])
+            if (
+                isinstance(layer, dict)
+                and isinstance(layer.get("id"), str)
+                and layer["id"].strip()
+                and isinstance(layer.get("type"), str)
+                and layer["type"].strip()
+                and isinstance(layer.get("content"), str)
+                and layer["content"].strip()
+            )
+        ]
         runtime = getattr(session, "runtime", None)
         if runtime is not None:
             runtime.workspace_path = normalized_workspace_path
             runtime.repo_instruction_messages = normalized_repo_instruction_messages
+            runtime.client_prompt_layers = normalized_client_prompt_layers
         session.prompt_builder.system_prompt = rendered_prompt
         setattr(session.prompt_builder, "workspace_path", normalized_workspace_path)
         setattr(
             session.prompt_builder,
             "repo_instruction_messages",
             list(normalized_repo_instruction_messages),
+        )
+        setattr(
+            session.prompt_builder,
+            "client_prompt_layers",
+            list(normalized_client_prompt_layers),
         )
         session.history.system_prompt = rendered_prompt
 
@@ -153,7 +200,9 @@ class SessionConfigService:
             and hasattr(manifest_result, "accepted_tool_schemas")
             else []
         )
-        setattr(session.prompt_builder, "client_tool_schemas", list(accepted_tool_schemas))
+        setattr(
+            session.prompt_builder, "client_tool_schemas", list(accepted_tool_schemas)
+        )
 
     def set_client_tool_manifest(
         self,
@@ -163,6 +212,49 @@ class SessionConfigService:
         self.client_tool_manifests[user_id] = manifest_result
         for _, session in self._registry.iter_user_sessions(user_id):
             self.apply_client_tool_manifest_to_session(session, manifest_result)
+
+    def apply_agent_definition_to_session(
+        self,
+        session: "AgentSession",
+        agent_definition: Any,
+    ) -> None:
+        if agent_definition is None:
+            return
+        runtime = getattr(session, "runtime", None)
+        if runtime is not None:
+            runtime.agent_definition = agent_definition
+        manifest_result = validate_client_tool_manifest(
+            agent_definition.client_tool_manifest()
+            if hasattr(agent_definition, "client_tool_manifest")
+            else None
+        )
+        self.apply_client_tool_manifest_to_session(session, manifest_result)
+        definition_runtime = getattr(agent_definition, "runtime", None)
+        self.apply_prompt_context_to_session(
+            session,
+            operating_system=getattr(definition_runtime, "operating_system", None),
+            workspace_path=getattr(definition_runtime, "workspace_path", None),
+            repo_instruction_messages=None,
+            client_prompt_layers=(
+                agent_definition.client_prompt_layers()
+                if hasattr(agent_definition, "client_prompt_layers")
+                else None
+            ),
+            system_prompt_override=(
+                agent_definition.system_prompt_override()
+                if hasattr(agent_definition, "system_prompt_override")
+                else None
+            ),
+        )
+
+    def set_agent_definition(
+        self,
+        user_id: str,
+        agent_definition: Any,
+    ) -> None:
+        self.agent_definitions[user_id] = agent_definition
+        for _, session in self._registry.iter_user_sessions(user_id):
+            self.apply_agent_definition_to_session(session, agent_definition)
 
     def _call_render_system_prompt(
         self,
@@ -292,3 +384,5 @@ class SessionConfigService:
     def clear_user_state(self, user_id: str) -> None:
         self.frontend_operating_systems.pop(user_id, None)
         self.user_config_overrides.pop(user_id, None)
+        self.agent_definitions.pop(user_id, None)
+        self.client_tool_manifests.pop(user_id, None)

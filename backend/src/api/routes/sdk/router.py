@@ -136,7 +136,9 @@ async def sdk_ocr_inspect(
 
     overlay = None
     if payload.include_overlay:
-        overlay_rows = accepted_matches if payload.text else results[: payload.max_results]
+        overlay_rows = (
+            accepted_matches if payload.text else results[: payload.max_results]
+        )
         overlay = render_ocr_overlay_response(
             request=request,
             container=container,
@@ -167,9 +169,7 @@ async def sdk_ocr_find_text(
     ocr_results = await run_ocr(source, container)
     ranked = rank_ocr_matches(request.text, ocr_results, source_id=source.source_id)
     matches = [
-        match
-        for match in ranked
-        if float(match.score or 0.0) >= request.threshold
+        match for match in ranked if float(match.score or 0.0) >= request.threshold
     ][: request.max_results]
     return OcrFindTextResponse(
         image=build_image_metadata(source),
@@ -224,7 +224,9 @@ async def sdk_ocr_resolve_text(
         None,
     )
     if match is None:
-        raise HTTPException(status_code=500, detail="Resolved OCR point did not map back to a candidate")
+        raise HTTPException(
+            status_code=500, detail="Resolved OCR point did not map back to a candidate"
+        )
     return OcrResolveTextResponse(
         image=build_image_metadata(source),
         query=request.text,
@@ -247,7 +249,9 @@ async def sdk_ocr_resolve_candidate(
             resolved = row
             break
     if resolved is None:
-        raise HTTPException(status_code=404, detail="OCR candidate not found for the provided image")
+        raise HTTPException(
+            status_code=404, detail="OCR candidate not found for the provided image"
+        )
     return OcrResolveCandidateResponse(
         image=build_image_metadata(source),
         candidate_id=request.candidate_id,
@@ -267,16 +271,18 @@ async def sdk_ocr_overlay(
         rows = build_ocr_results(ocr_results, source_id=source.source_id)
         rows = [row for row in rows if row.candidate_id == payload.candidate_id]
         if not rows:
-            raise HTTPException(status_code=404, detail="OCR candidate not found for overlay")
+            raise HTTPException(
+                status_code=404, detail="OCR candidate not found for overlay"
+            )
     elif payload.text:
         ranked = rank_ocr_matches(payload.text, ocr_results, source_id=source.source_id)
-        rows = [
-            row
-            for row in ranked
-            if float(row.score or 0.0) >= payload.threshold
-        ][: payload.max_results]
+        rows = [row for row in ranked if float(row.score or 0.0) >= payload.threshold][
+            : payload.max_results
+        ]
     else:
-        rows = build_ocr_results(ocr_results, source_id=source.source_id)[: payload.max_results]
+        rows = build_ocr_results(ocr_results, source_id=source.source_id)[
+            : payload.max_results
+        ]
 
     return render_ocr_overlay_response(
         request=request,
@@ -400,7 +406,9 @@ async def sdk_debug_tool_schemas(
     )
 
 
-@router.get("/tool-capabilities/{tool_name}", response_model=DebugToolCapabilitiesResponse)
+@router.get(
+    "/tool-capabilities/{tool_name}", response_model=DebugToolCapabilitiesResponse
+)
 async def sdk_debug_tool_capabilities(
     tool_name: str,
     container: ContainerDep,
@@ -418,10 +426,12 @@ async def sdk_debug_tool_capabilities(
         model_provider=model_provider,
         interaction_mode=interaction_mode,
     )
-    capability, canonical_tool_schema, provider_tool_schema = get_debug_tool_capabilities(
-        tool_name=tool_name,
-        config=config,
-        container=container,
+    capability, canonical_tool_schema, provider_tool_schema = (
+        get_debug_tool_capabilities(
+            tool_name=tool_name,
+            config=config,
+            container=container,
+        )
     )
     return DebugToolCapabilitiesResponse(
         config=build_debug_config_snapshot(config),
@@ -476,6 +486,7 @@ async def sdk_debug_prompt_preview(
         user_query_raw=payload.user_query_raw,
         include_tools=payload.include_tools,
         workspace_path=payload.workspace_path,
+        agent_definition=payload.agent_definition,
     )
     return PromptPreviewResponse(
         config=build_debug_config_snapshot(config),
@@ -510,6 +521,7 @@ async def sdk_debug_query_plan(
         user_query_raw=payload.user_query_raw,
         include_tools=payload.include_tools,
         workspace_path=payload.workspace_path,
+        agent_definition=payload.agent_definition,
         conversation_ref=payload.conversation_ref,
     )
     return QueryPlanResponse(

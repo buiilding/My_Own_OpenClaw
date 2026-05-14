@@ -624,6 +624,65 @@ async def test_sdk_debug_prompt_preview_returns_prompt_transparency_payloads(
 
 
 @pytest.mark.asyncio
+async def test_sdk_debug_prompt_preview_applies_agent_definition(tmp_path) -> None:
+    container = _container(tmp_path)
+
+    response = await sdk_routes.sdk_debug_prompt_preview(
+        PromptPreviewRequest(
+            user_query_raw="summarize",
+            include_tools=True,
+            agent_definition={
+                "id": "custom-agent",
+                "system_prompt": {
+                    "mode": "replace",
+                    "content": "You are a custom agent.",
+                },
+                "prompt_layers": [
+                    {
+                        "id": "custom-layer",
+                        "type": "custom_instructions",
+                        "priority": 50,
+                        "content": "Always be direct.",
+                    }
+                ],
+                "tools": {
+                    "mode": "client_only",
+                    "client_manifest": {
+                        "version": 1,
+                        "tools": [
+                            {
+                                "name": "save_note",
+                                "description": "Save a note",
+                                "execution_target": "sidecar",
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "text": {"type": "string"},
+                                    },
+                                    "required": ["text"],
+                                },
+                                "entrypoint": "python/save_note.py:run",
+                            }
+                        ],
+                    },
+                },
+            },
+        ),
+        container=container,
+        session_manager=_FakeSessionManager(),
+    )
+
+    assert response.system_prompt == "You are a custom agent."
+    assert any(
+        schema.get("name") == "save_note" for schema in response.canonical_tool_schemas
+    )
+    assert all(
+        schema.get("name") != "read_file" for schema in response.canonical_tool_schemas
+    )
+    assert "Always be direct." in response.prompt_messages[0]["content"]
+
+
+@pytest.mark.asyncio
 async def test_sdk_debug_query_plan_returns_query_and_transparency_payloads(
     tmp_path,
 ) -> None:
@@ -661,3 +720,34 @@ async def test_sdk_debug_query_plan_returns_query_and_transparency_payloads(
     assert response.transparency_events[2]["payload"]["tool_schemas"]
     assert response.user_message_full is not None
     assert response.user_message_full.metadata.original_query == "open file"
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_query_plan_carries_agent_definition(tmp_path) -> None:
+    container = _container(tmp_path)
+    agent_definition = {
+        "id": "tui-agent",
+        "system_prompt": {
+            "mode": "replace",
+            "content": "You are a TUI-defined agent.",
+        },
+    }
+
+    response = await sdk_routes.sdk_debug_query_plan(
+        QueryPlanRequest(
+            user_query_raw="status",
+            conversation_ref="conv-tui",
+            agent_definition=agent_definition,
+        ),
+        container=container,
+        session_manager=_FakeSessionManager(),
+    )
+
+    assert response.system_prompt == "You are a TUI-defined agent."
+    assert response.query_message["payload"]["agent_definition"]["id"] == "tui-agent"
+    assert (
+        response.query_message["payload"]["agent_definition"]["system_prompt"][
+            "content"
+        ]
+        == "You are a TUI-defined agent."
+    )

@@ -114,6 +114,10 @@ async def websocket_endpoint(
     )
     if callable(set_client_tool_manifest):
         set_client_tool_manifest(user_id, frontend_client_tool_manifest_result)
+    frontend_agent_definition = getattr(safe_ws, "frontend_agent_definition", None)
+    set_agent_definition = getattr(session_manager, "set_agent_definition", None)
+    if callable(set_agent_definition) and frontend_agent_definition is not None:
+        set_agent_definition(user_id, frontend_agent_definition)
     if frontend_client_tool_manifest_result is not None:
         await safe_ws.send_json(
             {

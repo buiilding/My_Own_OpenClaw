@@ -1,4 +1,5 @@
 """Session runtime state containers and access helpers."""
+
 from __future__ import annotations
 
 import asyncio
@@ -21,7 +22,9 @@ class SessionRuntimeState:
     """
 
     screenshot: ScreenshotState = field(default_factory=ScreenshotState)
-    resolved_calls: ResolvedToolCallStorage = field(default_factory=ResolvedToolCallStorage)
+    resolved_calls: ResolvedToolCallStorage = field(
+        default_factory=ResolvedToolCallStorage
+    )
     tool_results: ToolResultStorage = field(
         default_factory=lambda: ToolResultStorage(cleanup_ttl_seconds=300)
     )
@@ -31,6 +34,7 @@ class SessionRuntimeState:
     repo_instruction_messages: list[Dict[str, str]] = field(default_factory=list)
     client_prompt_layers: list[Dict[str, Any]] = field(default_factory=list)
     client_tool_manifest: Optional[Any] = None
+    agent_definition: Optional[Any] = None
     ocr_completion_event: asyncio.Event = field(default_factory=asyncio.Event)
     background_tasks: set[asyncio.Task[Any]] = field(default_factory=set)
 
@@ -62,6 +66,7 @@ class SessionRuntimeState:
         self.repo_instruction_messages = []
         self.client_prompt_layers = []
         self.client_tool_manifest = None
+        self.agent_definition = None
         self.ocr_completion_event.set()
 
     def register_background_task(self, task: asyncio.Task[Any]) -> None:

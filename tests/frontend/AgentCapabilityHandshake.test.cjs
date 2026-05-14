@@ -66,6 +66,17 @@ describe('agent capability handshake manifest', () => {
         }),
       ]),
     );
+    expect(payload.agent_definition).toEqual(
+      expect.objectContaining({
+        version: 1,
+        system_prompt: { mode: 'default' },
+        tools: expect.objectContaining({
+          mode: 'explicit',
+          client_manifest: payload.client_tool_manifest,
+          enabled_remote_tools: ['web_search'],
+        }),
+      }),
+    );
   });
 
   test('omits disabled local tools from manifest and available tools', () => {
@@ -75,6 +86,7 @@ describe('agent capability handshake manifest', () => {
 
     expect(payload.available_tools).not.toContain('browser');
     expect(payload.client_tool_manifest.tools.map((tool) => tool.name)).not.toContain('browser');
+    expect(payload.agent_definition.tools.disabled_tools).toContain('browser');
   });
 
   test('loads extension tools into the manifest and handshake', () => {
@@ -110,5 +122,39 @@ describe('agent capability handshake manifest', () => {
         }),
       ]),
     );
+    expect(payload.agent_definition.prompt_layers).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'demo-extension-guidance',
+          type: 'extension',
+          content: 'Use the demo tool carefully.',
+        }),
+      ]),
+    );
+  });
+
+  test('builds custom instructions and system prompt into agent definition', () => {
+    const payload = buildAgentCapabilityHandshakePayload({
+      systemPrompt: 'You are a custom Windie agent.',
+      customInstructions: 'Prefer short answers.',
+      availableTools: ['read_file'],
+      availableCoordinateMethods: ['manual'],
+    });
+
+    expect(payload.agent_definition.system_prompt).toEqual({
+      mode: 'replace',
+      content: 'You are a custom Windie agent.',
+    });
+    expect(payload.agent_definition.prompt_layers).toEqual(
+      expect.arrayContaining([
+        {
+          id: 'custom-instructions',
+          type: 'custom_instructions',
+          priority: 60,
+          content: 'Prefer short answers.',
+        },
+      ]),
+    );
+    expect(payload.agent_definition.runtime.coordinate_methods).toEqual(['manual']);
   });
 });

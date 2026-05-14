@@ -20,11 +20,17 @@ Use it for direct backend access to:
 - `/api/sdk/*`
 - `/ws`
 
+Custom clients can define the agent they want to run by sending
+`agent_definition` in the `/ws` handshake. See
+[Agent Definition Contract](agent_definition.md).
+
 ## Python Client
 
 Path: `frontend/src/main/python/core/windie_sdk_client.py`
 
 The Python client mirrors the hosted backend access pattern for sidecar/developer tooling.
+`connect_agent(..., agent_definition={...})` sends the same first-class agent
+definition object used by Electron and future REST agent APIs.
 
 ## Auth and Endpoints
 

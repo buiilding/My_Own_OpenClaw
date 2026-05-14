@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sdk: add a first-class `agent_definition` contract for websocket and SDK clients to define system prompts, client tool manifests, skills, AGENTS.md content, plugin prompt layers, and runtime facts while preserving default WindieOS behavior when omitted.
 - extensions: add a first-class `plugin.cjs` runtime API for `registerTool`, `registerPromptLayer`, `registerSkill`, `registerSettingsPanel`, lifecycle hooks, config, and permissions.
 - docs(tools): expand tool contracts and schema policy workflow with client manifest data shapes, accepted/rejected diagnostics, override rules, argument-resolution modes, and schema/executor separation.
 - extensions: load `skills/**/SKILL.md` from manifest extensions as `client_prompt_layers` so reusable instructions can ship beside local tools without becoming executable tools.

@@ -13,6 +13,7 @@ from backend.src.core.config.models import (
     CoordinateMethod,
 )
 from backend.src.core.validation.validators import ValidationError, validate_user_id
+from backend.src.api.schemas.agent_definition import AgentDefinition
 
 MAX_MSG_ID_LENGTH = 128
 MSG_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
@@ -69,6 +70,7 @@ class HandshakeMessage(BaseModel):
     available_coordinate_methods: Optional[list[CoordinateMethod]] = None
     client_tool_manifest: Optional[dict[str, Any]] = None
     requested_agent_policy: Optional["HandshakeAgentPolicy"] = None
+    agent_definition: Optional[AgentDefinition] = None
 
     @field_validator("user_id")
     @classmethod

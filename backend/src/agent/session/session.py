@@ -38,6 +38,7 @@ from backend.src.core.events.bus_events import InteractionCompleted
 from backend.src.llm.client import LLMClient, get_llm_client
 from backend.src.llm.prompts.prompts import get_system_prompt
 from backend.src.tools.registry import ToolRegistry
+from backend.src.tools.client_manifest import validate_client_tool_manifest
 from backend.src.tools.tool_policy import ToolPolicy
 
 if TYPE_CHECKING:
@@ -407,12 +408,14 @@ class AgentSession:
         workspace_path: Optional[str],
         repo_instruction_messages: Optional[List[Dict[str, str]]],
         client_prompt_layers: Optional[List[Dict[str, Any]]],
+        system_prompt_override: Optional[str] = None,
     ) -> None:
         if (
             operating_system is None
             and workspace_path is None
             and repo_instruction_messages is None
             and client_prompt_layers is None
+            and system_prompt_override is None
         ):
             return
         normalized_workspace_path = self._normalize_workspace_path(workspace_path)
@@ -422,12 +425,17 @@ class AgentSession:
         normalized_client_prompt_layers = self._normalize_client_prompt_layers(
             client_prompt_layers
         )
-        rendered_prompt = get_system_prompt(
-            operating_system,
-            normalized_workspace_path,
-            allowed_coordinate_methods=ToolPolicy.from_config(
-                self.cfg
-            ).get_allowed_mouse_coordinate_methods(),
+        rendered_prompt = (
+            system_prompt_override.strip()
+            if isinstance(system_prompt_override, str)
+            and system_prompt_override.strip()
+            else get_system_prompt(
+                operating_system,
+                normalized_workspace_path,
+                allowed_coordinate_methods=ToolPolicy.from_config(
+                    self.cfg
+                ).get_allowed_mouse_coordinate_methods(),
+            )
         )
 
         self.runtime.workspace_path = normalized_workspace_path
@@ -495,6 +503,7 @@ class AgentSession:
         workspace_path: Optional[str] = None,
         repo_instruction_messages: Optional[List[Dict[str, str]]] = None,
         client_prompt_layers: Optional[List[Dict[str, Any]]] = None,
+        agent_definition: Optional[Any] = None,
         runtime_system_state: Optional[Dict[str, str]] = None,
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
@@ -510,12 +519,45 @@ class AgentSession:
         async with self._lock:
             if conversation_ref:
                 self._switch_conversation_ref(conversation_ref)
+            definition_runtime = getattr(agent_definition, "runtime", None)
             self._apply_query_prompt_context_locked(
-                operating_system=operating_system,
-                workspace_path=workspace_path,
+                operating_system=(
+                    getattr(definition_runtime, "operating_system", None)
+                    if agent_definition is not None
+                    else operating_system
+                ),
+                workspace_path=(
+                    getattr(definition_runtime, "workspace_path", None)
+                    if agent_definition is not None
+                    else workspace_path
+                ),
                 repo_instruction_messages=repo_instruction_messages,
-                client_prompt_layers=client_prompt_layers,
+                client_prompt_layers=(
+                    agent_definition.client_prompt_layers()
+                    if agent_definition is not None
+                    and hasattr(agent_definition, "client_prompt_layers")
+                    else client_prompt_layers
+                ),
+                system_prompt_override=(
+                    agent_definition.system_prompt_override()
+                    if agent_definition is not None
+                    and hasattr(agent_definition, "system_prompt_override")
+                    else None
+                ),
             )
+            if agent_definition is not None:
+                self.runtime.agent_definition = agent_definition
+                manifest_result = validate_client_tool_manifest(
+                    agent_definition.client_tool_manifest()
+                    if hasattr(agent_definition, "client_tool_manifest")
+                    else None
+                )
+                self.runtime.client_tool_manifest = manifest_result
+                setattr(
+                    self.prompt_builder,
+                    "client_tool_schemas",
+                    list(manifest_result.accepted_tool_schemas),
+                )
             self._apply_query_runtime_system_state_locked(runtime_system_state)
             if not self.cfg.selected_model_id:
                 yield {

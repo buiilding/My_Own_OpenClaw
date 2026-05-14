@@ -131,15 +131,21 @@ class PromptConstructor:
             for schema in self._get_policy_filtered_registry_tool_schemas()
             if get_tool_spec_name(schema) not in client_tool_names
         ]
-        tool_schemas.extend(client_tool_schemas)
-        filtered_schemas = self.tool_policy.filter_tool_schemas(tool_schemas)
+        filtered_client_schemas = self.tool_policy.filter_tool_schemas(
+            client_tool_schemas,
+            selection=None,
+        )
+        tool_schemas.extend(filtered_client_schemas)
         projected_schemas = project_tool_schemas_for_provider(
-            tool_schemas=filtered_schemas,
+            tool_schemas=tool_schemas,
             tool_registry=self.tool_registry,
             config=self.config,
             prompt_messages=prompt_messages,
         )
-        return self.tool_policy.filter_projected_tool_schemas(projected_schemas)
+        return self.tool_policy.filter_projected_tool_schemas(
+            projected_schemas,
+            selection=None,
+        )
 
     def _get_policy_filtered_registry_tool_schemas(self) -> List[Dict[str, Any]]:
         model_tool_names_getter = getattr(

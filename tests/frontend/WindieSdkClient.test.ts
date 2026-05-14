@@ -123,6 +123,10 @@ describe('WindieSdkClient', () => {
 
     const payload: SdkPromptPreviewRequest = {
       user_query_raw: 'open file',
+      agent_definition: {
+        id: 'custom-agent',
+        system_prompt: { mode: 'replace', content: 'Custom prompt.' },
+      },
       messages: [
         {
           role: 'user',
@@ -181,6 +185,10 @@ describe('WindieSdkClient', () => {
     const payload: SdkQueryPlanRequest = {
       user_query_raw: 'open file',
       conversation_ref: 'conv-sdk',
+      agent_definition: {
+        id: 'tui-agent',
+        system_prompt: { mode: 'replace', content: 'TUI prompt.' },
+      },
       messages: [],
     };
 

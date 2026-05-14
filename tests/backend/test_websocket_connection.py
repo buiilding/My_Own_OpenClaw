@@ -132,6 +132,73 @@ async def test_perform_handshake_returns_client_user_id() -> None:
 
 
 @pytest.mark.asyncio
+async def test_perform_handshake_accepts_agent_definition() -> None:
+    websocket = DummyWebSocket(
+        json.dumps(
+            {
+                "type": "handshake",
+                "user_id": "client_user",
+                "agent_definition": {
+                    "version": 1,
+                    "system_prompt": {
+                        "mode": "replace",
+                        "content": "Custom agent prompt.",
+                    },
+                    "tools": {
+                        "mode": "client_only",
+                        "client_manifest": {
+                            "version": 1,
+                            "tools": [
+                                {
+                                    "name": "save_note",
+                                    "description": "Save a note.",
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "note": {"type": "string"},
+                                        },
+                                        "required": ["note"],
+                                        "additionalProperties": False,
+                                    },
+                                }
+                            ],
+                        },
+                        "enabled_remote_tools": ["web_search"],
+                    },
+                    "runtime": {
+                        "operating_system": "Linux",
+                        "coordinate_methods": ["manual"],
+                    },
+                    "skills": [
+                        {
+                            "id": "review",
+                            "type": "extension_skill",
+                            "priority": 80,
+                            "content": "Review notes before answering.",
+                        }
+                    ],
+                },
+            }
+        )
+    )
+    safe_ws = DummySafeWebSocket()
+
+    assigned_user_id = await perform_handshake(websocket, safe_ws)
+
+    assert assigned_user_id == "client_user"
+    assert getattr(safe_ws, "frontend_operating_system", None) == "Linux"
+    assert getattr(safe_ws, "frontend_agent_capability_overrides", None) == {
+        "agent_available_tools": ["save_note", "web_search"],
+        "agent_available_coordinate_methods": ["manual"],
+    }
+    manifest_result = getattr(safe_ws, "frontend_client_tool_manifest_result", None)
+    assert manifest_result.accepted_tool_names == ["save_note"]
+    agent_definition = getattr(safe_ws, "frontend_agent_definition", None)
+    assert agent_definition.system_prompt_override() == "Custom agent prompt."
+    assert agent_definition.client_prompt_layers()[0]["id"] == "review"
+
+
+@pytest.mark.asyncio
 async def test_perform_handshake_uses_authenticated_install_identity_when_required() -> (
     None
 ):

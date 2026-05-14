@@ -29,7 +29,14 @@ WindieOS exposes SDK routes and clients that let developer tools inspect backend
 
 Use query planning when the issue is prompt/tool selection or model metadata. Use full trace collection when the issue is event ordering, completion behavior, or stream payload shape.
 
+Both `/api/sdk/prompt-preview` and `/api/sdk/query-plan` accept
+`agent_definition`. Use that when debugging a custom UI, TUI, CLI, or SDK
+client so the preview uses the same system prompt override, client tool
+manifest, skills, AGENTS.md instructions, plugin prompt layers, and runtime
+facts that the websocket handshake will use.
+
 ## Related Docs
 
 - [HTTP and WebSocket API Surface](../reference/http_api_surface.md)
+- [Agent Definition Contract](agent_definition.md)
 - [Backend Prompt Constructor and Transparency Metadata Reference](../backend/llm/prompts/prompt_constructor_and_transparency_metadata_reference.md)

@@ -6,6 +6,8 @@ from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from backend.src.api.schemas.agent_definition import AgentDefinition
+
 
 class ImageSourceInput(BaseModel):
     """Image source accepted by SDK perception routes."""
@@ -321,6 +323,7 @@ class PromptPreviewRequest(BaseModel):
     interaction_mode: Optional[Literal["chat", "agent"]] = None
     include_tools: bool = True
     workspace_path: Optional[str] = Field(None, min_length=1, max_length=4096)
+    agent_definition: Optional[AgentDefinition] = None
     user_query_raw: Optional[str] = Field(None, max_length=32768)
     messages: list[dict[str, Any]] = Field(default_factory=list)
 
@@ -363,6 +366,7 @@ class QueryPlanRequest(BaseModel):
     interaction_mode: Optional[Literal["chat", "agent"]] = None
     include_tools: bool = True
     workspace_path: Optional[str] = Field(None, min_length=1, max_length=4096)
+    agent_definition: Optional[AgentDefinition] = None
     user_query_raw: Optional[str] = Field(None, max_length=32768)
     conversation_ref: Optional[str] = Field(None, min_length=1, max_length=512)
     messages: list[dict[str, Any]] = Field(default_factory=list)

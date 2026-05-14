@@ -59,19 +59,22 @@ class WindieSdkAgentSession:
         websocket: Any,
         user_id: str,
         operating_system: Optional[str] = None,
+        agent_definition: Optional[dict[str, Any]] = None,
     ) -> None:
         self._websocket = websocket
         self.user_id = user_id
         self.operating_system = operating_system
+        self.agent_definition = agent_definition
 
     async def initialize(self) -> None:
-        await self._send_json(
-            {
-                "type": "handshake",
-                "user_id": self.user_id,
-                "operating_system": self.operating_system,
-            }
-        )
+        payload = {
+            "type": "handshake",
+            "user_id": self.user_id,
+            "operating_system": self.operating_system,
+        }
+        if isinstance(self.agent_definition, dict) and self.agent_definition:
+            payload["agent_definition"] = sanitize_surrogates(self.agent_definition)
+        await self._send_json(payload)
 
     async def query(
         self,
@@ -86,6 +89,7 @@ class WindieSdkAgentSession:
         attachment_filenames: Optional[list[str]] = None,
         system_state_internal: Optional[dict[str, Any]] = None,
         workspace_path: Optional[str] = None,
+        agent_definition: Optional[dict[str, Any]] = None,
     ) -> str:
         message_id = f"msg_{uuid4().hex}"
         payload: dict[str, Any] = {
@@ -99,15 +103,25 @@ class WindieSdkAgentSession:
         if isinstance(screenshot_ref, str) and screenshot_ref.strip():
             payload["screenshot_ref"] = screenshot_ref
         if screenshot_refs:
-            payload["screenshot_refs"] = [value for value in screenshot_refs if isinstance(value, str) and value.strip()]
+            payload["screenshot_refs"] = [
+                value
+                for value in screenshot_refs
+                if isinstance(value, str) and value.strip()
+            ]
         if isinstance(attachment_context, str) and attachment_context.strip():
             payload["attachment_context"] = attachment_context
         if attachment_filenames:
-            payload["attachment_filenames"] = [value for value in attachment_filenames if isinstance(value, str) and value.strip()]
+            payload["attachment_filenames"] = [
+                value
+                for value in attachment_filenames
+                if isinstance(value, str) and value.strip()
+            ]
         if isinstance(system_state_internal, dict) and system_state_internal:
             payload["system_state_internal"] = system_state_internal
         if isinstance(workspace_path, str) and workspace_path.strip():
             payload["workspace_path"] = workspace_path
+        if isinstance(agent_definition, dict) and agent_definition:
+            payload["agent_definition"] = sanitize_surrogates(agent_definition)
 
         await self._send_json(
             {
@@ -207,13 +221,17 @@ class WindieSdkClient(RemoteApiClientBase):
         if not self._session:
             await self.initialize()
 
-        sanitized_payload = sanitize_surrogates(payload) if isinstance(payload, dict) else None
+        sanitized_payload = (
+            sanitize_surrogates(payload) if isinstance(payload, dict) else None
+        )
         last_network_error: Optional[Exception] = None
         method_name = method.lower().strip()
         for index, backend_url in enumerate(self.backend_urls):
             try:
                 request_url = f"{backend_url}{path}"
-                request_timeout = self._aiohttp.ClientTimeout(total=self.timeout_seconds)
+                request_timeout = self._aiohttp.ClientTimeout(
+                    total=self.timeout_seconds
+                )
                 if method_name == "get":
                     request_context = self._session.get(
                         request_url,
@@ -232,12 +250,13 @@ class WindieSdkClient(RemoteApiClientBase):
                 async with request_context as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        if (
-                            self._should_try_fallback_for_status(response.status)
-                            and index + 1 < len(self.backend_urls)
-                        ):
+                        if self._should_try_fallback_for_status(
+                            response.status
+                        ) and index + 1 < len(self.backend_urls):
                             continue
-                        raise Exception(_build_error_message(response.status, error_text))
+                        raise Exception(
+                            _build_error_message(response.status, error_text)
+                        )
 
                     data = await response.json()
                     if not isinstance(data, dict):
@@ -280,22 +299,27 @@ class WindieSdkClient(RemoteApiClientBase):
                 ) as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        if (
-                            self._should_try_fallback_for_status(response.status)
-                            and index + 1 < len(self.backend_urls)
-                        ):
+                        if self._should_try_fallback_for_status(
+                            response.status
+                        ) and index + 1 < len(self.backend_urls):
                             continue
-                        raise Exception(f"Artifacts API returned {response.status}: {error_text}")
+                        raise Exception(
+                            f"Artifacts API returned {response.status}: {error_text}"
+                        )
                     data = await response.json()
                     if not isinstance(data, dict):
-                        raise Exception("Artifacts API returned a non-object JSON payload")
+                        raise Exception(
+                            "Artifacts API returned a non-object JSON payload"
+                        )
                     self.backend_url = backend_url
                     return data
             except self._aiohttp.ClientError as err:
                 last_network_error = err
                 if index + 1 < len(self.backend_urls):
                     continue
-                raise Exception(f"Failed to connect to artifacts service: {err}") from err
+                raise Exception(
+                    f"Failed to connect to artifacts service: {err}"
+                ) from err
 
         raise Exception(f"Failed to connect to artifacts service: {last_network_error}")
 
@@ -303,37 +327,59 @@ class WindieSdkClient(RemoteApiClientBase):
         return f"{self.backend_url.rstrip('/')}/api/artifacts/{quote(artifact_id)}"
 
     async def ocr_run(self, image: dict[str, Any]) -> dict[str, Any]:
-        return await self.request_json(method="post", path="/api/sdk/ocr/run", payload={"image": image})
+        return await self.request_json(
+            method="post", path="/api/sdk/ocr/run", payload={"image": image}
+        )
 
     async def ocr_inspect(self, payload: dict[str, Any]) -> dict[str, Any]:
-        return await self.request_json(method="post", path="/api/sdk/ocr/inspect", payload=payload)
+        return await self.request_json(
+            method="post", path="/api/sdk/ocr/inspect", payload=payload
+        )
 
     async def ocr_find_text(self, payload: dict[str, Any]) -> dict[str, Any]:
-        return await self.request_json(method="post", path="/api/sdk/ocr/find-text", payload=payload)
+        return await self.request_json(
+            method="post", path="/api/sdk/ocr/find-text", payload=payload
+        )
 
     async def ocr_find_text_candidates(self, payload: dict[str, Any]) -> dict[str, Any]:
-        return await self.request_json(method="post", path="/api/sdk/ocr/find-text-candidates", payload=payload)
+        return await self.request_json(
+            method="post", path="/api/sdk/ocr/find-text-candidates", payload=payload
+        )
 
     async def ocr_resolve_text(self, payload: dict[str, Any]) -> dict[str, Any]:
-        return await self.request_json(method="post", path="/api/sdk/ocr/resolve-text", payload=payload)
+        return await self.request_json(
+            method="post", path="/api/sdk/ocr/resolve-text", payload=payload
+        )
 
     async def ocr_resolve_candidate(self, payload: dict[str, Any]) -> dict[str, Any]:
-        return await self.request_json(method="post", path="/api/sdk/ocr/resolve-candidate", payload=payload)
+        return await self.request_json(
+            method="post", path="/api/sdk/ocr/resolve-candidate", payload=payload
+        )
 
     async def ocr_overlay(self, payload: dict[str, Any]) -> dict[str, Any]:
-        return await self.request_json(method="post", path="/api/sdk/ocr/overlay", payload=payload)
+        return await self.request_json(
+            method="post", path="/api/sdk/ocr/overlay", payload=payload
+        )
 
     async def vision_locate(self, payload: dict[str, Any]) -> dict[str, Any]:
-        return await self.request_json(method="post", path="/api/sdk/vision/locate", payload=payload)
+        return await self.request_json(
+            method="post", path="/api/sdk/vision/locate", payload=payload
+        )
 
     async def vision_locate_all(self, payload: dict[str, Any]) -> dict[str, Any]:
-        return await self.request_json(method="post", path="/api/sdk/vision/locate-all", payload=payload)
+        return await self.request_json(
+            method="post", path="/api/sdk/vision/locate-all", payload=payload
+        )
 
     async def vision_describe(self, payload: dict[str, Any]) -> dict[str, Any]:
-        return await self.request_json(method="post", path="/api/sdk/vision/describe", payload=payload)
+        return await self.request_json(
+            method="post", path="/api/sdk/vision/describe", payload=payload
+        )
 
     async def vision_overlay(self, payload: dict[str, Any]) -> dict[str, Any]:
-        return await self.request_json(method="post", path="/api/sdk/vision/overlay", payload=payload)
+        return await self.request_json(
+            method="post", path="/api/sdk/vision/overlay", payload=payload
+        )
 
     async def list_models(
         self,
@@ -421,16 +467,21 @@ class WindieSdkClient(RemoteApiClientBase):
         )
 
     async def get_prompt_preview(self, payload: dict[str, Any]) -> dict[str, Any]:
-        return await self.request_json(method="post", path="/api/sdk/prompt-preview", payload=payload)
+        return await self.request_json(
+            method="post", path="/api/sdk/prompt-preview", payload=payload
+        )
 
     async def get_query_plan(self, payload: dict[str, Any]) -> dict[str, Any]:
-        return await self.request_json(method="post", path="/api/sdk/query-plan", payload=payload)
+        return await self.request_json(
+            method="post", path="/api/sdk/query-plan", payload=payload
+        )
 
     async def connect_agent(
         self,
         *,
         user_id: Optional[str] = None,
         operating_system: Optional[str] = None,
+        agent_definition: Optional[dict[str, Any]] = None,
     ) -> WindieSdkAgentSession:
         if not self._session:
             await self.initialize()
@@ -439,7 +490,9 @@ class WindieSdkClient(RemoteApiClientBase):
         if not isinstance(effective_user_id, str) or not effective_user_id.strip():
             effective_user_id = get_authenticated_user_id()
         if not isinstance(effective_user_id, str) or not effective_user_id.strip():
-            raise Exception("WindieSdkClient.connect_agent requires a user_id or default_user_id")
+            raise Exception(
+                "WindieSdkClient.connect_agent requires a user_id or default_user_id"
+            )
 
         last_network_error: Optional[Exception] = None
         for backend_url in self.backend_urls:
@@ -454,9 +507,11 @@ class WindieSdkClient(RemoteApiClientBase):
                     user_id=effective_user_id.strip(),
                     operating_system=(
                         operating_system.strip()
-                        if isinstance(operating_system, str) and operating_system.strip()
+                        if isinstance(operating_system, str)
+                        and operating_system.strip()
                         else self.default_operating_system
                     ),
+                    agent_definition=agent_definition,
                 )
                 await session.initialize()
                 self.backend_url = backend_url
@@ -478,6 +533,7 @@ class WindieSdkClient(RemoteApiClientBase):
         session = await self.connect_agent(
             user_id=user_id,
             operating_system=operating_system,
+            agent_definition=query.get("agent_definition"),
         )
         events: list[dict[str, Any]] = []
         query_message_id = await session.query(
@@ -491,6 +547,7 @@ class WindieSdkClient(RemoteApiClientBase):
             attachment_filenames=query.get("attachment_filenames"),
             system_state_internal=query.get("system_state_internal"),
             workspace_path=query.get("workspace_path"),
+            agent_definition=query.get("agent_definition"),
         )
         try:
             while True:

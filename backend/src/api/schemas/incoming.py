@@ -30,6 +30,7 @@ def _validate_optional_workspace_path(value: Optional[str]) -> Optional[str]:
     return normalized or None
 
 
+from backend.src.api.schemas.agent_definition import AgentDefinition
 from backend.src.api.schemas.common import BaseMessage
 
 
@@ -52,6 +53,7 @@ class QueryPayload(BaseModel):
     workspace_path: Optional[str] = None
     repo_instruction_messages: Optional[List["RepoInstructionMessage"]] = None
     client_prompt_layers: Optional[List["ClientPromptLayer"]] = None
+    agent_definition: Optional[AgentDefinition] = None
 
     @field_validator("conversation_ref")
     @classmethod

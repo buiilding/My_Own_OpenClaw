@@ -5,6 +5,14 @@ from backend.src.api.schemas.common import (
     HandshakeAgentPolicy,
     HandshakeMessage,
 )
+from backend.src.api.schemas.agent_definition import (
+    AgentDefinition,
+    AgentPluginContribution,
+    AgentPromptContribution,
+    AgentRuntimeDefinition,
+    AgentSystemPromptDefinition,
+    AgentToolsDefinition,
+)
 from backend.src.api.schemas.incoming import (
     IncomingMessage,
     ListModelsMessage,
@@ -69,6 +77,12 @@ __all__ = [
     "AssistantMessageFullPayload",
     "AudioChunkMessage",
     "AudioChunkPayload",
+    "AgentDefinition",
+    "AgentPluginContribution",
+    "AgentPromptContribution",
+    "AgentRuntimeDefinition",
+    "AgentSystemPromptDefinition",
+    "AgentToolsDefinition",
     "BaseMessage",
     "ContextCompactionCompletedMessage",
     "ContextCompactionCompletedPayload",

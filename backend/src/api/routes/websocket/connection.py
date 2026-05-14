@@ -80,19 +80,47 @@ async def perform_handshake(
         )
         handshake_msg = HandshakeMessage.model_validate(handshake_data)
         claimed_user_id = handshake_msg.user_id
-        setattr(safe_ws, "frontend_operating_system", handshake_msg.operating_system)
-        capability_overrides = handshake_msg.to_session_config_overrides()
+        agent_definition = handshake_msg.agent_definition
+        frontend_operating_system = (
+            agent_definition.runtime.operating_system
+            if agent_definition is not None
+            and agent_definition.runtime.operating_system is not None
+            else handshake_msg.operating_system
+        )
+        setattr(safe_ws, "frontend_operating_system", frontend_operating_system)
+        raw_client_tool_manifest = (
+            agent_definition.client_tool_manifest()
+            if agent_definition is not None
+            and agent_definition.client_tool_manifest() is not None
+            else handshake_msg.client_tool_manifest
+        )
+        capability_overrides = (
+            agent_definition.to_session_config_overrides()
+            if agent_definition is not None
+            else handshake_msg.to_session_config_overrides()
+        )
         client_tool_manifest_result = validate_client_tool_manifest(
-            handshake_msg.client_tool_manifest
+            raw_client_tool_manifest
         )
         if client_tool_manifest_result.accepted:
-            available_tools = list(capability_overrides.get("agent_available_tools") or [])
-            seen_available_tools = set(available_tools)
-            for tool_name in client_tool_manifest_result.accepted_tool_names:
-                if tool_name not in seen_available_tools:
-                    available_tools.append(tool_name)
-                    seen_available_tools.add(tool_name)
-            capability_overrides["agent_available_tools"] = available_tools
+            if agent_definition is not None:
+                capability_overrides.update(
+                    agent_definition.to_session_config_overrides(
+                        accepted_client_tool_names=(
+                            client_tool_manifest_result.accepted_tool_names
+                        )
+                    )
+                )
+            else:
+                available_tools = list(
+                    capability_overrides.get("agent_available_tools") or []
+                )
+                seen_available_tools = set(available_tools)
+                for tool_name in client_tool_manifest_result.accepted_tool_names:
+                    if tool_name not in seen_available_tools:
+                        available_tools.append(tool_name)
+                        seen_available_tools.add(tool_name)
+                capability_overrides["agent_available_tools"] = available_tools
         setattr(
             safe_ws,
             "frontend_agent_capability_overrides",
@@ -103,6 +131,7 @@ async def perform_handshake(
             "frontend_client_tool_manifest_result",
             client_tool_manifest_result,
         )
+        setattr(safe_ws, "frontend_agent_definition", agent_definition)
         if client_tool_manifest_result.rejected:
             logger.warning(
                 "Client tool manifest rejected %s entr%s for user %s",

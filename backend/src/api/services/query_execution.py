@@ -24,7 +24,9 @@ from backend.src.api.services.query_execution_support.query_execution_completion
 from backend.src.api.services.query_execution_support.query_execution_cancellation import (
     finalize_pending_tool_calls_on_cancel,
 )
-from backend.src.api.services.query_execution_support.query_execution_inputs import resolve_query_execution_inputs
+from backend.src.api.services.query_execution_support.query_execution_inputs import (
+    resolve_query_execution_inputs,
+)
 from backend.src.api.services.query_execution_support.query_execution_pipeline_events import (
     emit_completion_events,
     process_pipeline_event,
@@ -48,9 +50,7 @@ if TYPE_CHECKING:
     from backend.src.agent.session.manager import SessionManager
 
 logger = logging.getLogger(__name__)
-EMPTY_FINAL_RESPONSE_FALLBACK = (
-    "I completed the requested action(s), but the model returned an empty final response."
-)
+EMPTY_FINAL_RESPONSE_FALLBACK = "I completed the requested action(s), but the model returned an empty final response."
 
 
 class QueryExecutionService:
@@ -103,12 +103,16 @@ class QueryExecutionService:
             ) as tts_session:
                 transport = transport_sender_cls(websocket)
                 tts_processor = tts_processor_cls(self._tts_manager)
-                pipeline = pipeline_cls(tts_processor, self._response_formatter, transport)
+                pipeline = pipeline_cls(
+                    tts_processor, self._response_formatter, transport
+                )
 
                 query_inputs = resolve_query_execution_inputs(
                     message,
                     artifact_store_cls=artifact_store_cls,
-                    session_manager_config=getattr(self._session_manager, "config", None),
+                    session_manager_config=getattr(
+                        self._session_manager, "config", None
+                    ),
                     user_id=user_id,
                 )
 
@@ -122,6 +126,7 @@ class QueryExecutionService:
                     workspace_path=query_inputs.workspace_path,
                     repo_instruction_messages=query_inputs.repo_instruction_messages,
                     client_prompt_layers=query_inputs.client_prompt_layers,
+                    agent_definition=query_inputs.agent_definition,
                     runtime_system_state=query_inputs.runtime_system_state,
                 ):
                     event_type = extract_event_type(event)
@@ -260,7 +265,8 @@ class QueryExecutionService:
         positional_params = [
             parameter
             for parameter in (signature.parameters.values() if signature else [])
-            if parameter.kind in (
+            if parameter.kind
+            in (
                 inspect.Parameter.POSITIONAL_ONLY,
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
             )

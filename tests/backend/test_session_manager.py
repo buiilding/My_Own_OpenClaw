@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from backend.src.agent.session.manager import SessionManager
+from backend.src.api.schemas.agent_definition import AgentDefinition
 from backend.src.core.config.models import AppConfig
 
 
@@ -193,6 +194,56 @@ async def test_set_session_workspace_path_updates_active_prompt(monkeypatch) -> 
     assert session.prompt_builder.system_prompt == "prompt:Linux:/work/WindieOS"
     assert session.prompt_builder.workspace_path == "/work/WindieOS"
     assert session.history.system_prompt == "prompt:Linux:/work/WindieOS"
+
+
+@pytest.mark.asyncio
+async def test_agent_definition_updates_prompt_layers_and_custom_system_prompt() -> (
+    None
+):
+    manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
+    session = DummySession("existing")
+    _assign_active_session(manager, "user-1", session)
+
+    definition = AgentDefinition(
+        system_prompt={"mode": "replace", "content": "Custom agent prompt."},
+        runtime={"workspace_path": "/work/project"},
+        agents_md=[
+            {
+                "id": "repo",
+                "type": "agents_md",
+                "priority": 50,
+                "content": "Follow repo rules.",
+            }
+        ],
+        skills=[
+            {
+                "id": "review",
+                "type": "extension_skill",
+                "priority": 70,
+                "content": "Review before answering.",
+            }
+        ],
+    )
+
+    manager.set_agent_definition("user-1", definition)
+
+    assert session.prompt_builder.system_prompt == "Custom agent prompt."
+    assert session.history.system_prompt == "Custom agent prompt."
+    assert session.prompt_builder.workspace_path == "/work/project"
+    assert session.prompt_builder.client_prompt_layers == [
+        {
+            "id": "repo",
+            "type": "agents_md",
+            "priority": 50,
+            "content": "Follow repo rules.",
+        },
+        {
+            "id": "review",
+            "type": "extension_skill",
+            "priority": 70,
+            "content": "Review before answering.",
+        },
+    ]
 
 
 @pytest.mark.asyncio

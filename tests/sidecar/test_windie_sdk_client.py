@@ -96,11 +96,16 @@ async def test_get_system_prompt_builds_query_string():
     client = WindieSdkClient(backend_url="https://api.windieos.com")
     client._session = session
 
-    result = await client.get_system_prompt(user_id="dev-user", interaction_mode="agent")
+    result = await client.get_system_prompt(
+        user_id="dev-user", interaction_mode="agent"
+    )
 
     assert result["system_prompt"] == "prompt"
     url, timeout, headers = session.last_get
-    assert url == "https://api.windieos.com/api/sdk/system-prompt?user_id=dev-user&interaction_mode=agent"
+    assert (
+        url
+        == "https://api.windieos.com/api/sdk/system-prompt?user_id=dev-user&interaction_mode=agent"
+    )
     assert timeout.total == 60
     assert headers == {}
 
@@ -178,6 +183,10 @@ async def test_upload_artifact_uses_artifact_endpoint(monkeypatch):
 async def test_connect_agent_sends_handshake_and_query():
     websocket = FakeWebSocket()
     session = DummyWsSession(websocket)
+    agent_definition = {
+        "id": "python-agent",
+        "system_prompt": {"mode": "replace", "content": "Python SDK prompt."},
+    }
     client = WindieSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
@@ -185,11 +194,12 @@ async def test_connect_agent_sends_handshake_and_query():
     )
     client._session = session
 
-    agent = await client.connect_agent()
+    agent = await client.connect_agent(agent_definition=agent_definition)
     message_id = await agent.query(
         text="Click the orange search button",
         conversation_ref="conv-123",
         screenshot_ref="artifact-123.png",
+        agent_definition=agent_definition,
     )
 
     assert session.ws_connect_calls == [("wss://api.windieos.com/ws", 60, {})]
@@ -197,6 +207,7 @@ async def test_connect_agent_sends_handshake_and_query():
         "type": "handshake",
         "user_id": "dev-user",
         "operating_system": "macOS",
+        "agent_definition": agent_definition,
     }
     assert websocket.sent[1]["type"] == "query"
     assert websocket.sent[1]["id"] == message_id
@@ -204,6 +215,7 @@ async def test_connect_agent_sends_handshake_and_query():
         "text": "Click the orange search button",
         "conversation_ref": "conv-123",
         "screenshot_ref": "artifact-123.png",
+        "agent_definition": agent_definition,
     }
 
 
@@ -269,7 +281,9 @@ async def test_trace_query_times_out_and_closes_websocket():
     )
     client._session = session
 
-    with pytest.raises(Exception, match="Windie SDK trace query timed out after 0.01 seconds"):
+    with pytest.raises(
+        Exception, match="Windie SDK trace query timed out after 0.01 seconds"
+    ):
         await client.trace_query(
             query={
                 "text": "Inspect repo state",
