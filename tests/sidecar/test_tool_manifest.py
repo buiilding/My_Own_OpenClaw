@@ -53,13 +53,13 @@ def test_registry_loads_extension_entrypoint_and_manifest(
     (python_dir / "save_note.py").write_text(
         "\n".join(
             [
+                "from __future__ import annotations",
                 "from tools.result import ToolResult",
                 "",
-                "async def run(args):",
-                "    note = args.get('note', '')",
+                "async def run(note: str, urgent: bool = False):",
                 "    return ToolResult.success_result({",
                 "        'llm_content': f'saved:{note}',",
-                "        'return_display': 'saved',",
+                "        'return_display': f'urgent:{urgent}',",
                 "    })",
             ]
         ),
@@ -74,7 +74,7 @@ def test_registry_loads_extension_entrypoint_and_manifest(
                         "name": "save_note",
                         "description": "Save a local note.",
                         "entrypoint": "python/save_note.py:run",
-                        "parameters": "tools/save_note.schema.json",
+                        "schema": "tools/save_note.schema.json",
                         "optional": True,
                         "argument_resolution": "passthrough",
                     }
@@ -86,13 +86,25 @@ def test_registry_loads_extension_entrypoint_and_manifest(
     monkeypatch.setenv("WINDIE_AGENT_EXTENSIONS_DIR", str(tmp_path))
 
     registry = ToolRegistry()
-    result = asyncio.run(registry.execute_tool("save_note", {"note": "hello"}))
+    result = asyncio.run(
+        registry.execute_tool("save_note", {"note": "hello", "urgent": True})
+    )
     manifest = registry.get_tool_manifest()
+    extension_tool_manifest = next(
+        tool for tool in manifest["tools"] if tool["name"] == "save_note"
+    )
 
     assert registry.has_tool("save_note")
     assert result.success is True
     assert result.data["llm_content"] == "saved:hello"
-    assert {
-        "name": "save_note",
-        "execution_schema": schema,
-    } in manifest["tools"]
+    assert result.data["return_display"] == "urgent:True"
+    assert extension_tool_manifest["execution_schema"] == {
+        "type": "object",
+        "properties": {
+            "note": {"type": "string"},
+            "urgent": {"type": "boolean"},
+        },
+        "required": ["note"],
+        "additionalProperties": False,
+    }
+    assert extension_tool_manifest["execution_schema"] != schema

@@ -83,7 +83,7 @@ Catalog-driven declaration contract:
 
 - backend `backend/src/tools/tool_catalog.py` is the source of truth for backend-owned remote tools and backend policy
 - frontend `frontend/src/main/tool_manifest.cjs` is the source of truth for built-in client-local model-facing and executable schemas
-- extension `parameters` schema contributions are loaded by Electron main from `extensions/*/extension.json`
+- extension `schema` contributions are loaded by Electron main from `extensions/*/extension.json`
 - extension Python entrypoints are loaded by the sidecar from `extensions/*/extension.json`
 - backend validates accepted/rejected client manifest entries before prompt construction
 - backend `tool_catalog.py` now builds canonical tool specs and remote stub classes together through one builder path; `ToolRegistry` consumes those prebuilt specs instead of deriving schemas from live tool instances

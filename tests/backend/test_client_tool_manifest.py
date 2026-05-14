@@ -28,7 +28,7 @@ def test_client_tool_manifest_accepts_passthrough_sidecar_tool():
                     "name": "my_tool",
                     "description": "A developer-defined local tool.",
                     "execution_target": "sidecar",
-                    "parameters": _schema(),
+                    "schema": _schema(),
                     "argument_resolution": "passthrough",
                     "optional": True,
                 }
@@ -44,8 +44,8 @@ def test_client_tool_manifest_accepts_passthrough_sidecar_tool():
     assert result.accepted_tool_schemas[0]["parameters"]["required"] == ["value"]
 
 
-def test_client_tool_manifest_accepts_execution_parameters_override():
-    execution_parameters = {
+def test_client_tool_manifest_accepts_generated_execution_schema():
+    execution_schema = {
         "type": "object",
         "properties": {"value": {"type": "string"}, "dry_run": {"type": "boolean"}},
         "required": ["value"],
@@ -58,8 +58,8 @@ def test_client_tool_manifest_accepts_execution_parameters_override():
                     "name": "my_tool",
                     "description": "A developer-defined local tool.",
                     "execution_target": "sidecar",
-                    "parameters": _schema(),
-                    "execution_parameters": execution_parameters,
+                    "schema": _schema(),
+                    "execution_schema": execution_schema,
                     "argument_resolution": "passthrough",
                 }
             ]
@@ -68,7 +68,7 @@ def test_client_tool_manifest_accepts_execution_parameters_override():
 
     assert result.rejected == []
     assert result.accepted[0].model_schema == _schema()
-    assert result.accepted[0].execution_schema == execution_parameters
+    assert result.accepted[0].execution_schema == execution_schema
 
 
 def test_client_tool_manifest_rejects_reserved_backend_tool_collision():
@@ -129,8 +129,7 @@ def test_client_tool_manifest_rejects_bad_and_oversized_schemas():
                     "name": "bad_schema",
                     "description": "Bad local tool.",
                     "execution_target": "sidecar",
-                    "model_schema": {"type": "object", "x-unsupported": True},
-                    "execution_schema": _schema(),
+                    "schema": {"type": "object", "x-unsupported": True},
                     "argument_resolution": "passthrough",
                 }
             ]
@@ -143,22 +142,21 @@ def test_client_tool_manifest_rejects_bad_and_oversized_schemas():
                     "name": "too_large",
                     "description": "Large local tool.",
                     "execution_target": "sidecar",
-                    "model_schema": {
+                    "schema": {
                         "type": "object",
                         "description": "x" * (MAX_SCHEMA_BYTES + 1),
                     },
-                    "execution_schema": _schema(),
                     "argument_resolution": "passthrough",
                 }
             ]
         }
     )
 
-    assert bad_key.rejected[0]["reason"].startswith("invalid parameters")
+    assert bad_key.rejected[0]["reason"].startswith("invalid schema")
     assert oversized.rejected == [
         {
             "name": "too_large",
-            "reason": "invalid parameters: schema exceeds size limit",
+            "reason": "invalid schema: schema exceeds size limit",
         }
     ]
 

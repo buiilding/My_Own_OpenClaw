@@ -41,7 +41,7 @@ WindieOS is a desktop AI operator with persistent memory, terminal access, and c
 - The backend validates client-provided tool manifests, applies policy/provider projection, owns backend remote tools, and owns final prompt compilation
 - Frontend and sidecar must not import backend code for schema parity
 - Tool changes must update the client tool manifest, sidecar executable schema export, docs, and focused tests in the same change
-- Extension tools must use `extensions/<id>/extension.json` with `parameters`, prompt-layer, and Python `entrypoint` contributions. Ordinary extension tools should not edit the built-in sidecar registry or manifest modules
+- Extension tools must use `extensions/<id>/extension.json` with `schema`, prompt-layer, and Python `entrypoint` contributions. Ordinary extension tools should not edit the built-in sidecar registry or manifest modules
 - Built-in grounded tools must preserve the model-schema vs execution-schema distinction. Use `backend_grounding` only when OCR/vision/prediction prepares executable sidecar arguments; otherwise use `passthrough`
 - The preferred parity mechanism is tests that verify schemas and registries do not drift
 

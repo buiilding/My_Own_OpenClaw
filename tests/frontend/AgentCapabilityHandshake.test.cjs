@@ -22,15 +22,6 @@ function makeExtensionDir() {
       additionalProperties: false,
     }),
   );
-  fs.writeFileSync(
-    path.join(extensionDir, 'tools', 'demo.execution.schema.json'),
-    JSON.stringify({
-      type: 'object',
-      properties: { value: { type: 'string' }, dry_run: { type: 'boolean' } },
-      required: ['value'],
-      additionalProperties: false,
-    }),
-  );
   fs.writeFileSync(path.join(extensionDir, 'python', 'demo_tool.py'), 'def run(args):\n  return {}\n');
   fs.writeFileSync(
     path.join(extensionDir, 'extension.json'),
@@ -41,8 +32,7 @@ function makeExtensionDir() {
         name: 'demo_tool',
         description: 'Demo extension tool.',
         entrypoint: 'python/demo_tool.py:run',
-        parameters: 'tools/demo.model.schema.json',
-        execution_parameters: 'tools/demo.execution.schema.json',
+        schema: 'tools/demo.model.schema.json',
         argument_resolution: 'passthrough',
         optional: true,
       }],
@@ -90,9 +80,26 @@ describe('agent capability handshake manifest', () => {
 
   test('loads extension tools into the manifest and handshake', () => {
     const extensionsDir = makeExtensionDir();
+    const sidecarToolManifest = {
+      tools: [{
+        name: 'demo_tool',
+        execution_schema: {
+          type: 'object',
+          properties: { value: { type: 'string' }, dry_run: { type: 'boolean' } },
+          required: ['value'],
+          additionalProperties: false,
+        },
+      }],
+    };
 
-    const manifest = buildClientToolManifest({ extensionsDir });
-    const payload = buildAgentCapabilityHandshakePayload({ extensionsDir });
+    const manifest = buildClientToolManifest({
+      extensionsDir,
+      sidecarToolManifest,
+    });
+    const payload = buildAgentCapabilityHandshakePayload({
+      extensionsDir,
+      sidecarToolManifest,
+    });
 
     expect(manifest.tools).toEqual(
       expect.arrayContaining([
@@ -113,6 +120,17 @@ describe('agent capability handshake manifest', () => {
       ]),
     );
     expect(payload.available_tools).toContain('demo_tool');
-    expect(payload.client_tool_manifest.tools.map((tool) => tool.name)).toContain('demo_tool');
+    expect(payload.client_tool_manifest.tools).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'demo_tool',
+          execution_schema: expect.objectContaining({
+            properties: expect.objectContaining({
+              dry_run: { type: 'boolean' },
+            }),
+          }),
+        }),
+      ]),
+    );
   });
 });

@@ -218,26 +218,23 @@ def _validate_tool_entry(
     if argument_resolution not in ARGUMENT_RESOLUTION_MODES:
         return None, {"name": name, "reason": "invalid argument_resolution"}
 
-    model_schema = raw_tool.get("model_schema", raw_tool.get("parameters"))
+    model_schema = raw_tool.get(
+        "model_schema", raw_tool.get("schema", raw_tool.get("parameters"))
+    )
     if not isinstance(model_schema, dict):
-        return None, {"name": name, "reason": "parameters must be an object"}
+        return None, {"name": name, "reason": "schema must be an object"}
     model_error = _validate_json_schema_subset(model_schema)
     if model_error:
-        return None, {"name": name, "reason": f"invalid parameters: {model_error}"}
+        return None, {"name": name, "reason": f"invalid schema: {model_error}"}
 
-    execution_schema = raw_tool.get(
-        "execution_schema", raw_tool.get("execution_parameters", model_schema)
-    )
+    execution_schema = raw_tool.get("execution_schema", model_schema)
     if not isinstance(execution_schema, dict):
-        return None, {
-            "name": name,
-            "reason": "execution_parameters must be an object",
-        }
+        return None, {"name": name, "reason": "execution_schema must be an object"}
     execution_error = _validate_json_schema_subset(execution_schema)
     if execution_error:
         return None, {
             "name": name,
-            "reason": f"invalid execution_parameters: {execution_error}",
+            "reason": f"invalid execution_schema: {execution_error}",
         }
 
     return (

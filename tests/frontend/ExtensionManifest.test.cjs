@@ -33,7 +33,7 @@ function writeExtension() {
         name: 'save_note',
         description: 'Save a local note.',
         entrypoint: 'python/save_note.py:run',
-        parameters: 'tools/note.schema.json',
+        schema: 'tools/note.schema.json',
         optional: true,
       }],
       prompt_layers: [{
@@ -99,7 +99,7 @@ describe('extension manifest loader', () => {
         tools: [{
           name: 'missing_entrypoint',
           description: 'Should not load.',
-          parameters: 'tools/tool.schema.json',
+          schema: 'tools/tool.schema.json',
         }],
       }),
     );

@@ -215,15 +215,27 @@ function buildClientToolManifest(options = {}) {
   const disabledTools = normalizeToolNameList(options.disabledTools);
   const builtinManifest = buildBuiltinClientToolManifest({ disabledTools: [...disabledTools] });
   const seenNames = new Set(builtinManifest.tools.map((tool) => tool.name));
+  const sidecarExecutionSchemas = new Map(
+    Array.isArray(options.sidecarToolManifest?.tools)
+      ? options.sidecarToolManifest.tools
+        .filter((tool) => tool?.name && tool?.execution_schema)
+        .map((tool) => [tool.name, tool.execution_schema])
+      : [],
+  );
   const extensionTools = loadExtensionTools({
     extensionsDir: options.extensionsDir,
-  }).filter((tool) => {
-    if (!tool?.name || disabledTools.has(tool.name) || seenNames.has(tool.name)) {
-      return false;
-    }
-    seenNames.add(tool.name);
-    return true;
-  });
+  })
+    .filter((tool) => {
+      if (!tool?.name || disabledTools.has(tool.name) || seenNames.has(tool.name)) {
+        return false;
+      }
+      seenNames.add(tool.name);
+      return true;
+    })
+    .map((tool) => ({
+      ...tool,
+      execution_schema: sidecarExecutionSchemas.get(tool.name) || tool.execution_schema,
+    }));
 
   return {
     version: 1,

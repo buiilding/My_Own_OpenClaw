@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import inspect
 import json
 import logging
 import os
@@ -10,7 +11,8 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable
+from types import NoneType, UnionType
+from typing import Any, Callable, Union, get_args, get_origin, get_type_hints
 
 logger = logging.getLogger(__name__)
 
@@ -117,18 +119,16 @@ def _load_tool(
     if not entrypoint:
         raise ValueError(f"extension tool {tool_name} is missing entrypoint")
 
-    execution_schema = _read_schema_value(
-        raw_tool.get("execution_parameters") or raw_tool.get("parameters"),
-        extension_dir,
-    )
-    if not isinstance(execution_schema, dict):
-        raise ValueError(f"extension tool {tool_name} is missing parameters")
+    model_schema = _read_schema_value(raw_tool.get("schema"), extension_dir)
+    if not isinstance(model_schema, dict):
+        raise ValueError(f"extension tool {tool_name} is missing schema")
 
     handler = _load_entrypoint(extension_dir, extension_id, tool_name, entrypoint)
+    execution_schema = _infer_execution_schema(handler) or model_schema
     return LoadedExtensionTool(
         name=tool_name,
         extension_id=extension_id,
-        handler=handler,
+        handler=_wrap_entrypoint_handler(handler),
         execution_schema=execution_schema,
     )
 
@@ -173,6 +173,105 @@ def _read_schema_value(value: Any, extension_dir: Path) -> dict[str, Any] | None
         return None
     loaded = _read_json(_resolve_inside_extension(extension_dir, schema_path))
     return loaded if isinstance(loaded, dict) else None
+
+
+def _wrap_entrypoint_handler(
+    handler: Callable[..., Any]
+) -> Callable[[dict[str, Any]], Any]:
+    signature = inspect.signature(handler)
+    parameters = list(signature.parameters.values())
+    if _accepts_raw_args(parameters):
+        return handler
+
+    async def _async_wrapper(args: dict[str, Any]) -> Any:
+        result = handler(**_build_handler_kwargs(signature, args))
+        if inspect.isawaitable(result):
+            return await result
+        return result
+
+    return _async_wrapper
+
+
+def _accepts_raw_args(parameters: list[inspect.Parameter]) -> bool:
+    if len(parameters) != 1:
+        return False
+    parameter = parameters[0]
+    return parameter.name in {"args", "params", "payload"} and parameter.kind in {
+        inspect.Parameter.POSITIONAL_ONLY,
+        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+    }
+
+
+def _build_handler_kwargs(
+    signature: inspect.Signature,
+    args: dict[str, Any],
+) -> dict[str, Any]:
+    try:
+        bound = signature.bind(**args)
+    except TypeError as exc:
+        raise ValueError(
+            f"extension tool arguments do not match entrypoint: {exc}"
+        ) from exc
+    return dict(bound.arguments)
+
+
+def _infer_execution_schema(handler: Callable[..., Any]) -> dict[str, Any] | None:
+    parameters = list(inspect.signature(handler).parameters.values())
+    if _accepts_raw_args(parameters):
+        return None
+
+    type_hints = get_type_hints(handler)
+    properties: dict[str, Any] = {}
+    required: list[str] = []
+    for parameter in parameters:
+        if parameter.kind in {
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            inspect.Parameter.KEYWORD_ONLY,
+        }:
+            annotation = type_hints.get(parameter.name, parameter.annotation)
+            properties[parameter.name] = _schema_for_annotation(annotation)
+            if parameter.default is inspect.Parameter.empty:
+                required.append(parameter.name)
+            continue
+        raise ValueError(
+            "extension tool entrypoint must accept either one args/params/payload "
+            "object or keyword-compatible parameters"
+        )
+
+    return {
+        "type": "object",
+        "properties": properties,
+        "required": required,
+        "additionalProperties": False,
+    }
+
+
+def _schema_for_annotation(annotation: Any) -> dict[str, Any]:
+    if annotation is inspect.Parameter.empty or annotation is Any:
+        return {}
+
+    origin = get_origin(annotation)
+    args = get_args(annotation)
+    if origin in {UnionType, Union}:
+        non_null_args = [item for item in args if item is not NoneType]
+        if len(non_null_args) == 1:
+            return _schema_for_annotation(non_null_args[0])
+        return {"anyOf": [_schema_for_annotation(item) for item in non_null_args]}
+
+    if annotation is str:
+        return {"type": "string"}
+    if annotation is bool:
+        return {"type": "boolean"}
+    if annotation is int:
+        return {"type": "integer"}
+    if annotation is float:
+        return {"type": "number"}
+    if annotation is list or origin is list:
+        item_annotation = args[0] if args else Any
+        return {"type": "array", "items": _schema_for_annotation(item_annotation)}
+    if annotation is dict or origin is dict:
+        return {"type": "object", "additionalProperties": True}
+    return {}
 
 
 def _resolve_inside_extension(extension_dir: Path, raw_path: str) -> Path:

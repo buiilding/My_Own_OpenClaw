@@ -7,7 +7,7 @@ read_when:
 
 # Extension Convention
 
-WindieOS extensions can contribute local sidecar tools, JSON Schema parameters,
+WindieOS extensions can contribute local sidecar tools, model-facing schemas,
 prompt layers, settings surfaces, required permissions, and documentation.
 Backend remote tools remain backend-owned.
 
@@ -37,7 +37,7 @@ Example `extension.json`:
       "name": "my_tool",
       "description": "Run my local workflow.",
       "entrypoint": "python/my_tool.py:run",
-      "parameters": "tools/my_tool.schema.json",
+      "schema": "tools/my_tool.schema.json",
       "optional": true
     }
   ],
@@ -54,16 +54,16 @@ Example `extension.json`:
 ```
 
 The loader contributes extension tools to `client_tool_manifest` and extension
-prompt layers to `client_prompt_layers`. `parameters`, `execution_parameters`,
-and `content_path` are resolved relative to the extension directory. The Python
+prompt layers to `client_prompt_layers`. `schema` and `content_path` are
+resolved relative to the extension directory. The Python
 sidecar also reads the same manifests and loads each sidecar tool `entrypoint`.
 For sidecar tools, Electron only advertises entries whose `entrypoint` points to
 an existing file inside the extension directory.
 
-`parameters` is the schema the model sees. For ordinary sidecar tools, the same
-schema is also the executable sidecar schema. Use `execution_parameters` only
-when the backend must transform model arguments before execution, usually with
-`argument_resolution: "backend_grounding"`.
+`schema` is the hand-written schema the model sees. The executable sidecar
+schema is generated from the Python entrypoint signature when possible; if the
+entrypoint accepts a single raw `args`, `params`, or `payload` dictionary,
+Windie falls back to using `schema` as the executable validation shape.
 
 Extension tool code should live inside the extension:
 
@@ -90,9 +90,9 @@ a shared sidecar primitive.
 
 Extension checklist:
 
-1. Add the tool parameter schema under the extension `tools/` directory.
+1. Add the tool schema under the extension `tools/` directory.
 2. Add executable Python code under the extension `python/` directory.
-3. Reference `parameters` and the `file.py:function` entrypoint from
+3. Reference `schema` and the `file.py:function` entrypoint from
    `extension.json`.
 4. Add or update docs under the extension `docs/` directory and the relevant
    canonical docs.
