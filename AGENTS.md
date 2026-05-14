@@ -37,12 +37,12 @@ WindieOS is a desktop AI operator with persistent memory, terminal access, and c
 ## Tooling and Architecture Notes
 
 - Tools execute on the frontend Python sidecar unless they are explicit backend remote tools such as `web_search`
-- Windie Agent/frontend owns local tool implementations, model-facing schemas for client-local tools, and executable schemas for sidecar tools
+- Windie Agent/frontend owns local tool implementations and model-facing schemas for client-local tools
 - The backend validates client-provided tool manifests, applies policy/provider projection, owns backend remote tools, and owns final prompt compilation
 - Frontend and sidecar must not import backend code for schema parity
-- Tool changes must update the client tool manifest, sidecar executable schema export, docs, and focused tests in the same change
+- Tool changes must update the client tool manifest, docs, and focused tests in the same change
 - Extension tools must use `extensions/<id>/extension.json` with `schema`, prompt-layer, and Python `entrypoint` contributions. Ordinary extension tools should not edit the built-in sidecar registry or manifest modules
-- Built-in grounded tools must preserve the model-schema vs execution-schema distinction. Use `backend_grounding` only when OCR/vision/prediction prepares executable sidecar arguments; otherwise use `passthrough`
+- Built-in grounded tools must preserve the model-schema vs prepared-argument distinction. Use `backend_grounding` only when OCR/vision/prediction prepares executable sidecar arguments; otherwise use `passthrough`
 - The preferred parity mechanism is tests that verify schemas and registries do not drift
 
 ### Tool Schema Example

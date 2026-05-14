@@ -53,7 +53,7 @@ Sidecar executable tools are registered in `frontend/src/main/python/tools/regis
 4. Use [Browser Change Workflow](../browser/browser_change_workflow.md) for browser-specific schema, CDP, snapshot, ref, file, or renderer-session changes.
 5. Use [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md) for file read/edit, shell command, background process, sudo, working-directory, and local output-shaping changes.
 6. Update the backend catalog/schema owner first.
-7. Update sidecar executable schema/runtime if the local payload changes.
+7. Update sidecar runtime argument handling if the local payload changes.
 8. Update renderer tool-runner payload shaping if correlation, artifacts, screenshots, or bundle behavior changes.
 9. Update formatter/outgoing schemas if the visible stream event changes.
 10. Add or update backend, frontend, and sidecar tests for the changed boundary.

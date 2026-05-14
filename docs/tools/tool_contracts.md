@@ -8,22 +8,18 @@ title: "Tool Contracts"
 
 # Tool Contracts
 
-WindieOS uses three tool contracts:
+WindieOS uses two tool-schema contracts:
 
 - **Backend-owned remote schema**: backend tools such as `web_search`.
-- **Client-owned local model schema**: what the LLM can call for sidecar tools.
-- **Sidecar executable schema**: what the local Python runtime actually executes.
+- **Client-owned local schema**: what the LLM can call for local sidecar tools.
 
-They are related but intentionally not the same code. The public client sends a
-`client_tool_manifest`; the hosted backend validates that manifest, applies
-policy/provider projection, and can resolve high-level or grounded intent into a
-simpler executable sidecar action.
+The public client sends a `client_tool_manifest`; the hosted backend validates
+that manifest, applies policy/provider projection, and can resolve high-level or
+grounded intent into a simpler executable sidecar action.
 
-Extension manifests use `schema` as the developer-facing JSON Schema field.
-Electron maps that to the backend-facing `model_schema` field inside
-`client_tool_manifest`. The Python sidecar generates extension
-`execution_schema` from the entrypoint signature when possible and falls back to
-`schema` for raw-dict entrypoints.
+Extension manifests use one developer-facing JSON Schema field: `schema`.
+Extension authors pair that with `entrypoint`; the sidecar calls the entrypoint
+with the arguments emitted for that tool.
 
 ## Contract Flow
 

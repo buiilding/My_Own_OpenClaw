@@ -31,7 +31,7 @@ The sidecar is not the model-facing policy owner. Backend owns model-visible too
 
 ## Boundary Rules
 
-- Do not import backend code into sidecar to mirror model-facing schemas. Use explicit executable schemas and parity tests.
+- Do not import backend code into sidecar to mirror model-facing schemas. Use explicit sidecar argument models and parity tests.
 - Do not add renderer UI state or Electron window decisions to Python code. Return normalized data; let renderer/main own presentation/native orchestration.
 - Do not make sidecar depend on conda, source checkout paths, or system Python in packaged mode. Runtime dependencies belong in `frontend/src/main/python/requirements.runtime.txt` and packaging docs.
 - Keep JSON-RPC results serializable and explicit: return success/error envelopes instead of leaking tracebacks or unserializable objects to Electron main.
@@ -43,7 +43,7 @@ The sidecar is not the model-facing policy owner. Backend owns model-visible too
 
 1. **Classify the sidecar surface.** Decide whether the owner is JSON-RPC protocol, method handler, tool registry, specific tool family, memory runtime, browser runtime, platform adapter, backend config client, or wakeword service.
 2. **Check Electron bridge ownership.** If renderer/main payload mapping changes, read [Main Process Change Workflow](../main/main_process_change_workflow.md) and update bridge tests with sidecar tests.
-3. **Keep executable and model-facing contracts separate.** For tool changes, read [Sidecar Tool Change Workflow](../sidecar_tool_change_workflow.md) before touching backend schemas.
+3. **Keep sidecar runtime and model-facing contracts aligned deliberately.** For tool changes, read [Sidecar Tool Change Workflow](../sidecar_tool_change_workflow.md) before touching backend schemas.
 4. **Update the owner module first.** Fix registry/method/tool/storage/platform code at the owner layer before adding tolerance in callers.
 5. **Normalize errors at the boundary.** Convert local exceptions into sidecar result errors or JSON-RPC errors with useful but non-secret messages.
 6. **Add focused sidecar tests.** Prefer unit tests around the exact tool, method, memory helper, browser contract, or platform adapter.
@@ -67,7 +67,7 @@ When changing a local executable tool:
 
 - Decide whether the backend model-visible schema must change. If yes, update backend schema/tests/docs too.
 - Keep `ToolResult` success/error shape stable.
-- Keep tool registry registration and exposed executable schema in sync.
+- Keep tool registry registration and exposed tool metadata in sync.
 - Preserve local authority boundaries for filesystem, shell, browser, screenshot, input, and window actions.
 - Add tests for valid input, invalid input, runtime failure, and normalized result shape.
 

@@ -80,25 +80,12 @@ describe('agent capability handshake manifest', () => {
 
   test('loads extension tools into the manifest and handshake', () => {
     const extensionsDir = makeExtensionDir();
-    const sidecarToolManifest = {
-      tools: [{
-        name: 'demo_tool',
-        execution_schema: {
-          type: 'object',
-          properties: { value: { type: 'string' }, dry_run: { type: 'boolean' } },
-          required: ['value'],
-          additionalProperties: false,
-        },
-      }],
-    };
 
     const manifest = buildClientToolManifest({
       extensionsDir,
-      sidecarToolManifest,
     });
     const payload = buildAgentCapabilityHandshakePayload({
       extensionsDir,
-      sidecarToolManifest,
     });
 
     expect(manifest.tools).toEqual(
@@ -107,13 +94,8 @@ describe('agent capability handshake manifest', () => {
           name: 'demo_tool',
           description: 'Demo extension tool.',
           extension_id: 'demo-extension',
-          model_schema: expect.objectContaining({
+          schema: expect.objectContaining({
             required: ['value'],
-          }),
-          execution_schema: expect.objectContaining({
-            properties: expect.objectContaining({
-              dry_run: { type: 'boolean' },
-            }),
           }),
           optional: true,
         }),
@@ -124,10 +106,8 @@ describe('agent capability handshake manifest', () => {
       expect.arrayContaining([
         expect.objectContaining({
           name: 'demo_tool',
-          execution_schema: expect.objectContaining({
-            properties: expect.objectContaining({
-              dry_run: { type: 'boolean' },
-            }),
+          schema: expect.objectContaining({
+            required: ['value'],
           }),
         }),
       ]),

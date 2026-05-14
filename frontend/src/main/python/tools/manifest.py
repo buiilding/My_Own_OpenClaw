@@ -1,4 +1,4 @@
-"""Sidecar-owned executable schema export for local tools."""
+"""Sidecar-owned diagnostic schema export for local built-in tools."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ from tools.schemas import (
 )
 
 
-EXECUTION_SCHEMA_MODELS = {
+TOOL_SCHEMA_MODELS = {
     "mouse_control": MouseControlArgs,
     "keyboard_control": KeyboardControlArgs,
     "screenshot": ScreenshotToolArgs,
@@ -70,10 +70,10 @@ def _clean_schema(schema: Any) -> Any:
     return cleaned
 
 
-def build_execution_schema(tool_name: str) -> dict[str, Any] | None:
+def build_tool_schema(tool_name: str) -> dict[str, Any] | None:
     if tool_name == "browser":
         return build_browser_tool_parameters_schema()
-    model = EXECUTION_SCHEMA_MODELS.get(tool_name)
+    model = TOOL_SCHEMA_MODELS.get(tool_name)
     if model is None:
         return None
     schema = _clean_schema(model.model_json_schema())
@@ -83,26 +83,16 @@ def build_execution_schema(tool_name: str) -> dict[str, Any] | None:
 
 def build_sidecar_tool_manifest(
     tool_names: set[str] | list[str],
-    extension_execution_schemas: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     tools = []
     for tool_name in sorted(tool_names):
-        execution_schema = build_execution_schema(tool_name)
-        if execution_schema is None:
+        schema = build_tool_schema(tool_name)
+        if schema is None:
             continue
         tools.append(
             {
                 "name": tool_name,
-                "execution_schema": execution_schema,
-            }
-        )
-    for tool_name, execution_schema in sorted(
-        (extension_execution_schemas or {}).items()
-    ):
-        tools.append(
-            {
-                "name": tool_name,
-                "execution_schema": execution_schema,
+                "schema": schema,
             }
         )
     return {

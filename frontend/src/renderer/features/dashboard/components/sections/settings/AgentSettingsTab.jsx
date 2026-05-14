@@ -240,8 +240,7 @@ function ToolAcceptanceStatus({ acceptedTool, rejectedTool }) {
         {acceptedTool.optional ? ' / optional' : ''}
       </p>
       <pre>{JSON.stringify({
-        model_schema: acceptedTool.model_schema,
-        execution_schema: acceptedTool.execution_schema,
+        schema: acceptedTool.schema,
       }, null, 2)}</pre>
     </details>
   );
@@ -251,8 +250,7 @@ ToolAcceptanceStatus.propTypes = {
   acceptedTool: PropTypes.shape({
     argument_resolution: PropTypes.string,
     execution_target: PropTypes.string,
-    model_schema: PropTypes.object,
-    execution_schema: PropTypes.object,
+    schema: PropTypes.object,
     optional: PropTypes.bool,
   }),
   rejectedTool: PropTypes.shape({

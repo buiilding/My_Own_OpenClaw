@@ -35,10 +35,8 @@ Example `extension.json`:
   "tools": [
     {
       "name": "my_tool",
-      "description": "Run my local workflow.",
       "entrypoint": "python/my_tool.py:run",
-      "schema": "tools/my_tool.schema.json",
-      "optional": true
+      "schema": "tools/my_tool.schema.json"
     }
   ],
   "prompt_layers": [
@@ -60,10 +58,9 @@ sidecar also reads the same manifests and loads each sidecar tool `entrypoint`.
 For sidecar tools, Electron only advertises entries whose `entrypoint` points to
 an existing file inside the extension directory.
 
-`schema` is the hand-written schema the model sees. The executable sidecar
-schema is generated from the Python entrypoint signature when possible; if the
-entrypoint accepts a single raw `args`, `params`, or `payload` dictionary,
-Windie falls back to using `schema` as the executable validation shape.
+`schema` is the hand-written schema the model sees. `entrypoint` is the local
+Python function the sidecar executes. For ordinary extension tools, those are
+the only tool-authoring fields developers need to provide.
 
 Extension tool code should live inside the extension:
 

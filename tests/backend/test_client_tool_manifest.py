@@ -40,35 +40,10 @@ def test_client_tool_manifest_accepts_passthrough_sidecar_tool():
     assert result.accepted_tool_names == ["my_tool"]
     assert result.accepted[0].optional is True
     assert result.to_public_dict()["accepted"][0]["optional"] is True
+    assert result.to_public_dict()["accepted"][0]["schema"] == _schema()
+    assert "execution_schema" not in result.to_public_dict()["accepted"][0]
     assert result.accepted_tool_schemas[0]["name"] == "my_tool"
     assert result.accepted_tool_schemas[0]["parameters"]["required"] == ["value"]
-
-
-def test_client_tool_manifest_accepts_generated_execution_schema():
-    execution_schema = {
-        "type": "object",
-        "properties": {"value": {"type": "string"}, "dry_run": {"type": "boolean"}},
-        "required": ["value"],
-    }
-
-    result = validate_client_tool_manifest(
-        {
-            "tools": [
-                {
-                    "name": "my_tool",
-                    "description": "A developer-defined local tool.",
-                    "execution_target": "sidecar",
-                    "schema": _schema(),
-                    "execution_schema": execution_schema,
-                    "argument_resolution": "passthrough",
-                }
-            ]
-        }
-    )
-
-    assert result.rejected == []
-    assert result.accepted[0].model_schema == _schema()
-    assert result.accepted[0].execution_schema == execution_schema
 
 
 def test_client_tool_manifest_rejects_reserved_backend_tool_collision():
@@ -79,8 +54,7 @@ def test_client_tool_manifest_rejects_reserved_backend_tool_collision():
                     "name": "web_search",
                     "description": "Attempt to override backend search.",
                     "execution_target": "sidecar",
-                    "model_schema": _schema(),
-                    "execution_schema": _schema(),
+                    "schema": _schema(),
                     "argument_resolution": "passthrough",
                 }
             ]
@@ -101,16 +75,14 @@ def test_client_tool_manifest_rejects_duplicate_tool_names():
                     "name": "my_tool",
                     "description": "First local tool.",
                     "execution_target": "sidecar",
-                    "model_schema": _schema(),
-                    "execution_schema": _schema(),
+                    "schema": _schema(),
                     "argument_resolution": "passthrough",
                 },
                 {
                     "name": "my_tool",
                     "description": "Duplicate local tool.",
                     "execution_target": "sidecar",
-                    "model_schema": _schema(),
-                    "execution_schema": _schema(),
+                    "schema": _schema(),
                     "argument_resolution": "passthrough",
                 },
             ]
@@ -169,8 +141,7 @@ def test_client_tool_manifest_rejects_oversized_tool_count_and_backend_addition(
                     "name": f"tool_{index}",
                     "description": "A local tool.",
                     "execution_target": "sidecar",
-                    "model_schema": _schema(),
-                    "execution_schema": _schema(),
+                    "schema": _schema(),
                     "argument_resolution": "passthrough",
                 }
                 for index in range(MAX_CLIENT_TOOLS + 1)
@@ -184,8 +155,7 @@ def test_client_tool_manifest_rejects_oversized_tool_count_and_backend_addition(
                     "name": "custom_backend_tool",
                     "description": "Attempt to add backend execution.",
                     "execution_target": "backend",
-                    "model_schema": _schema(),
-                    "execution_schema": _schema(),
+                    "schema": _schema(),
                     "argument_resolution": "passthrough",
                 }
             ]
@@ -210,8 +180,7 @@ def test_client_tool_manifest_accepts_backend_grounding_mode_for_sidecar_tools()
                     "name": "grounded_click",
                     "description": "A grounded local tool.",
                     "execution_target": "sidecar",
-                    "model_schema": _schema(),
-                    "execution_schema": _schema(),
+                    "schema": _schema(),
                     "argument_resolution": "backend_grounding",
                 }
             ]

@@ -10,7 +10,7 @@ title: "Prompt Context Change Workflow"
 
 Use this workflow for model-facing context. The backend owns final prompt construction, system prompt loading, model-visible tool schemas, prompt metadata, and transparency events. Desktop frontend can contribute context through query payloads; sidecar can contribute local memory results; backend decides what reaches the model.
 
-Do not patch prompt problems in renderer display code or sidecar executable schemas. Fix the producer of the model-facing context, then update transparency events and tests so future agents can prove what the model saw.
+Do not patch prompt problems in renderer display code or sidecar runtime argument models. Fix the producer of the model-facing context, then update transparency events and tests so future agents can prove what the model saw.
 
 ## Fast Owner Map
 

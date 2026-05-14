@@ -2,19 +2,19 @@ import asyncio
 import json
 from pathlib import Path
 
-from tools.manifest import build_execution_schema, build_sidecar_tool_manifest
+from tools.manifest import build_sidecar_tool_manifest, build_tool_schema
 from tools.registry import ToolRegistry
 
 
-def test_build_execution_schema_exports_registered_tool_schema():
-    schema = build_execution_schema("read_file")
+def test_build_tool_schema_exports_registered_tool_schema():
+    schema = build_tool_schema("read_file")
 
     assert schema["type"] == "object"
     assert "file_path" in schema["properties"]
     assert "explanation" in schema["required"]
 
 
-def test_registry_tool_manifest_contains_executable_schemas():
+def test_registry_tool_manifest_contains_builtin_schemas():
     registry = ToolRegistry()
 
     manifest = registry.get_tool_manifest()
@@ -22,7 +22,7 @@ def test_registry_tool_manifest_contains_executable_schemas():
 
     assert "read_file" in tool_names
     assert "mouse_control" in tool_names
-    assert all("execution_schema" in tool for tool in manifest["tools"])
+    assert all("schema" in tool for tool in manifest["tools"])
 
 
 def test_build_sidecar_tool_manifest_omits_unknown_schema_names():
@@ -89,22 +89,8 @@ def test_registry_loads_extension_entrypoint_and_manifest(
     result = asyncio.run(
         registry.execute_tool("save_note", {"note": "hello", "urgent": True})
     )
-    manifest = registry.get_tool_manifest()
-    extension_tool_manifest = next(
-        tool for tool in manifest["tools"] if tool["name"] == "save_note"
-    )
 
     assert registry.has_tool("save_note")
     assert result.success is True
     assert result.data["llm_content"] == "saved:hello"
     assert result.data["return_display"] == "urgent:True"
-    assert extension_tool_manifest["execution_schema"] == {
-        "type": "object",
-        "properties": {
-            "note": {"type": "string"},
-            "urgent": {"type": "boolean"},
-        },
-        "required": ["note"],
-        "additionalProperties": False,
-    }
-    assert extension_tool_manifest["execution_schema"] != schema

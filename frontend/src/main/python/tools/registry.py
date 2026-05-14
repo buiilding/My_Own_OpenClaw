@@ -42,7 +42,6 @@ class ToolRegistry:
 
     def __init__(self):
         self.tools: Dict[str, Callable[..., Any]] = {}
-        self.extension_execution_schemas: Dict[str, Dict[str, Any]] = {}
         self._register_tools()
 
     def has_tool(self, tool_name: str) -> bool:
@@ -50,7 +49,6 @@ class ToolRegistry:
 
     def reload_tools(self) -> None:
         self.tools.clear()
-        self.extension_execution_schemas.clear()
         self._register_tools()
 
     def _register_tools(self):
@@ -103,7 +101,6 @@ class ToolRegistry:
                 )
                 continue
             self.tools[tool_name] = loaded_tool.handler
-            self.extension_execution_schemas[tool_name] = loaded_tool.execution_schema
 
     @staticmethod
     def get_exposed_tool_names() -> set[str]:
@@ -111,19 +108,11 @@ class ToolRegistry:
         return set(EXPOSED_TO_BACKEND_TOOL_NAMES)
 
     def get_tool_manifest(self) -> dict[str, Any]:
-        """Return executable schemas for tools currently registered in the sidecar."""
+        """Return diagnostic schemas for exposed built-in sidecar tools."""
         exposed_registered_tools = EXPOSED_TO_BACKEND_TOOL_NAMES & set(
             self.tools.keys()
         )
-        registered_extension_schemas = {
-            tool_name: schema
-            for tool_name, schema in self.extension_execution_schemas.items()
-            if tool_name in self.tools
-        }
-        return build_sidecar_tool_manifest(
-            exposed_registered_tools,
-            extension_execution_schemas=registered_extension_schemas,
-        )
+        return build_sidecar_tool_manifest(exposed_registered_tools)
 
     @staticmethod
     def _build_lazy_tool(module_name: str, attr_name: str) -> Callable[..., Any]:

@@ -319,7 +319,7 @@ Likely code:
 - `frontend/src/renderer/infrastructure/services/ToolExecution*.ts`
 - `frontend/src/main/python/tools/**`
 
-Validate backend schema/parser/formatter tests, renderer tool-runner tests, and sidecar registry/tool tests. Keep backend model-facing schemas and sidecar executable schemas separate.
+Validate backend schema/parser/formatter tests, renderer tool-runner tests, and sidecar registry/tool tests. Keep backend model-facing schemas and sidecar runtime argument handling aligned deliberately.
 
 ### Change Desktop Computer Use, Screenshots, OCR, or Vision
 

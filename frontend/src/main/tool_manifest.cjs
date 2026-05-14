@@ -27,7 +27,7 @@ function objectSchema(properties, required = [], additionalProperties = false) {
   };
 }
 
-const EXECUTION_SCHEMAS = Object.freeze({
+const TOOL_SCHEMAS = Object.freeze({
   mouse_control: objectSchema({
     action: { type: 'string', enum: ['click', 'double_click', 'right_click', 'move', 'drag'] },
     button: { type: 'string', enum: ['left', 'right', 'middle'], default: 'left' },
@@ -169,17 +169,17 @@ const TOOL_DESCRIPTIONS = Object.freeze({
 const GROUNDED_TOOL_NAMES = Object.freeze(new Set(['mouse_control', 'scroll_control']));
 
 function buildModelSchema(toolName) {
-  const executionSchema = EXECUTION_SCHEMAS[toolName];
-  if (!executionSchema) {
+  const schema = TOOL_SCHEMAS[toolName];
+  if (!schema) {
     return null;
   }
   if (!GROUNDED_TOOL_NAMES.has(toolName)) {
-    return executionSchema;
+    return schema;
   }
   return {
-    ...executionSchema,
+    ...schema,
     properties: {
-      ...executionSchema.properties,
+      ...schema.properties,
       ...COORDINATE_GROUNDING_FIELDS,
     },
   };
@@ -196,14 +196,13 @@ function normalizeToolNameList(values) {
 
 function buildBuiltinClientToolManifest(options = {}) {
   const disabledTools = new Set(Array.isArray(options.disabledTools) ? options.disabledTools : []);
-  const tools = Object.keys(EXECUTION_SCHEMAS)
+  const tools = Object.keys(TOOL_SCHEMAS)
     .filter((toolName) => !disabledTools.has(toolName))
     .map((toolName) => ({
       name: toolName,
       description: TOOL_DESCRIPTIONS[toolName],
       execution_target: 'sidecar',
-      model_schema: buildModelSchema(toolName),
-      execution_schema: EXECUTION_SCHEMAS[toolName],
+      schema: buildModelSchema(toolName),
       argument_resolution: GROUNDED_TOOL_NAMES.has(toolName)
         ? 'backend_grounding'
         : 'passthrough',
@@ -215,13 +214,6 @@ function buildClientToolManifest(options = {}) {
   const disabledTools = normalizeToolNameList(options.disabledTools);
   const builtinManifest = buildBuiltinClientToolManifest({ disabledTools: [...disabledTools] });
   const seenNames = new Set(builtinManifest.tools.map((tool) => tool.name));
-  const sidecarExecutionSchemas = new Map(
-    Array.isArray(options.sidecarToolManifest?.tools)
-      ? options.sidecarToolManifest.tools
-        .filter((tool) => tool?.name && tool?.execution_schema)
-        .map((tool) => [tool.name, tool.execution_schema])
-      : [],
-  );
   const extensionTools = loadExtensionTools({
     extensionsDir: options.extensionsDir,
   })
@@ -231,11 +223,7 @@ function buildClientToolManifest(options = {}) {
       }
       seenNames.add(tool.name);
       return true;
-    })
-    .map((tool) => ({
-      ...tool,
-      execution_schema: sidecarExecutionSchemas.get(tool.name) || tool.execution_schema,
-    }));
+    });
 
   return {
     version: 1,

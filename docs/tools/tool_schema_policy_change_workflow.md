@@ -11,13 +11,13 @@ title: "Tool Schema and Policy Change Workflow"
 
 Use this workflow before changing anything that affects what tools the model can see or call. WindieOS tool behavior is split across client-provided local tool manifests, backend remote-tool schemas, backend policy gates, provider projection, renderer execution orchestration, Electron IPC, and sidecar local execution.
 
-The core rule is: backend owns backend remote tools and validation; Windie Agent owns model-facing and executable schemas for client-local tools. Do not make the frontend or sidecar import backend schemas to avoid drift. Keep parity explicit in tests and docs.
+The core rule is: backend owns backend remote tools and validation; Windie Agent owns client-local tool schemas and sidecar tool implementations. Do not make the frontend or sidecar import backend schemas to avoid drift. Keep parity explicit in tests and docs.
 
 ## Fast Owner Map
 
 | Change or symptom | First owner | Code roots | Start docs | Focused tests |
 | --- | --- | --- | --- | --- |
-| add or change a client-local sidecar tool schema | Windie Agent manifest, then backend validation policy | public `frontend/src/main/tool_manifest.cjs`, sidecar `frontend/src/main/python/tools/manifest.py`; backend `backend/src/tools/client_manifest.py` | [Tool Contracts](tool_contracts.md) | manifest builder tests, sidecar schema export tests, backend manifest validation tests |
+| add or change a client-local sidecar tool schema | Windie Agent manifest, then backend validation policy | public `frontend/src/main/tool_manifest.cjs`; backend `backend/src/tools/client_manifest.py` | [Tool Contracts](tool_contracts.md) | manifest builder tests, backend manifest validation tests |
 | add, remove, or rename a model-visible remote tool | backend tool catalog | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote.py`, `backend/src/tools/remote_tools/*` | [Tool Catalog Matrix](tool_catalog_matrix.md), [Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference](../backend/tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md) | `tests/backend/test_remote_tool_contract.py`, `tests/backend/test_tool_registry_schema.py` |
 | change a tool argument schema or description | backend schema model and remote stub | `backend/src/tools/{computer,system,filesystem,browser}/schemas.py`, `backend/src/tools/remote_tools/*`, `backend/src/tools/schema_fields.py` | [Tool Contracts](tool_contracts.md), [Backend Tools Contracts Hub](../backend/tools/contracts/README.md) | backend schema tests plus `tests/sidecar/test_shared_tool_schema_parity.py` when executable fields should match |
 | hide or expose tools by profile, interaction mode, disabled tools, capabilities, provider health, or browser toggle | backend policy | `backend/src/tools/tool_policy.py`, `backend/src/tools/agent_capability_policy.py`, `backend/src/tools/provider_health.py`, `backend/src/tools/tool_selection.py` | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md), [Tool Policy and Dev Tool Selection Runtime Reference](../backend/tools/policy/tool_policy_and_dev_tool_selection_runtime_reference.md) | `tests/backend/test_tool_policy.py`, `tests/backend/test_dev_tool_selection.py`, `tests/backend/test_provider_health_policy.py` |
@@ -31,7 +31,7 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 ## Boundary Rules
 
 - Backend owns backend remote-tool schemas, client-manifest validation, visibility policy, provider projection, parser validation, tool-result ingestion, and history conversion.
-- Windie Agent owns client-local model schemas, client-local executable schemas, and sidecar tool implementations.
+- Windie Agent owns client-local schemas and sidecar tool implementations.
 - Renderer owns streamed tool-call consumption, single/bundle execution orchestration, screenshot/artifact capture around tool execution, and backend result envelope submission.
 - Electron main owns the `execute-tool` IPC bridge, sidecar request transport, display/window context, and sidecar process availability.
 - Python sidecar owns local executable tool registry entries and actual local machine actions.
@@ -83,7 +83,7 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 
 1. Find the model-facing owner from [Tool Catalog Matrix](tool_catalog_matrix.md).
 2. Edit the backend Pydantic args model and remote tool stub first.
-3. Decide whether the sidecar executable schema must match:
+3. Decide whether the sidecar runtime arguments must match:
    - exact parity tools: update backend and sidecar schema models together
    - grounded tools: update backend preparation and executor validation so model-facing fields are stripped or resolved before dispatch
    - backend-only tools: update backend parser/provider tests only

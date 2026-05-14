@@ -41,11 +41,11 @@ function readSchemaValue(value, extensionDir) {
 }
 
 function readToolSchema(rawTool, extensionDir) {
-  const modelSchema = readSchemaValue(rawTool.schema, extensionDir);
-  if (!modelSchema) {
+  const schema = readSchemaValue(rawTool.schema, extensionDir);
+  if (!schema) {
     return null;
   }
-  return { modelSchema, executionSchema: modelSchema };
+  return schema;
 }
 
 function hasSidecarEntrypoint(entrypoint, extensionDir) {
@@ -115,8 +115,7 @@ function loadExtension(entryDir) {
         ? rawTool.description.trim()
         : `Extension tool from ${extensionId}.`,
       execution_target: executionTarget,
-      model_schema: toolSchema.modelSchema,
-      execution_schema: toolSchema.executionSchema,
+      schema: toolSchema,
       argument_resolution: rawTool.argument_resolution === 'backend_grounding'
         ? 'backend_grounding'
         : 'passthrough',

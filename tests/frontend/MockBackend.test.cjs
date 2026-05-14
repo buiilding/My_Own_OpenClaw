@@ -51,8 +51,7 @@ describe('mock backend', () => {
         tools: [{
           name: 'read_file',
           description: 'Read a file.',
-          model_schema: { type: 'object' },
-          execution_schema: { type: 'object' },
+          schema: { type: 'object' },
           execution_target: 'sidecar',
           argument_resolution: 'passthrough',
         }],

@@ -66,15 +66,14 @@ class ClientToolManifestEntry:
     name: str
     description: str
     execution_target: Literal["sidecar", "backend"]
-    model_schema: dict[str, Any]
-    execution_schema: dict[str, Any]
+    schema: dict[str, Any]
     argument_resolution: Literal["passthrough", "backend_grounding"]
     optional: bool = False
 
     @property
     def function_tool_schema(self) -> dict[str, Any]:
         """Return canonical flat model-facing function schema."""
-        schema = copy.deepcopy(self.model_schema)
+        schema = copy.deepcopy(self.schema)
         if is_function_tool_spec(schema):
             schema["name"] = self.name
             if self.description and not schema.get("description"):
@@ -91,8 +90,7 @@ class ClientToolManifestEntry:
             "name": self.name,
             "description": self.description,
             "execution_target": self.execution_target,
-            "model_schema": copy.deepcopy(self.model_schema),
-            "execution_schema": copy.deepcopy(self.execution_schema),
+            "schema": copy.deepcopy(self.schema),
             "argument_resolution": self.argument_resolution,
             "optional": self.optional,
         }
@@ -218,32 +216,19 @@ def _validate_tool_entry(
     if argument_resolution not in ARGUMENT_RESOLUTION_MODES:
         return None, {"name": name, "reason": "invalid argument_resolution"}
 
-    model_schema = raw_tool.get(
-        "model_schema", raw_tool.get("schema", raw_tool.get("parameters"))
-    )
-    if not isinstance(model_schema, dict):
+    schema = raw_tool.get("schema")
+    if not isinstance(schema, dict):
         return None, {"name": name, "reason": "schema must be an object"}
-    model_error = _validate_json_schema_subset(model_schema)
-    if model_error:
-        return None, {"name": name, "reason": f"invalid schema: {model_error}"}
-
-    execution_schema = raw_tool.get("execution_schema", model_schema)
-    if not isinstance(execution_schema, dict):
-        return None, {"name": name, "reason": "execution_schema must be an object"}
-    execution_error = _validate_json_schema_subset(execution_schema)
-    if execution_error:
-        return None, {
-            "name": name,
-            "reason": f"invalid execution_schema: {execution_error}",
-        }
+    schema_error = _validate_json_schema_subset(schema)
+    if schema_error:
+        return None, {"name": name, "reason": f"invalid schema: {schema_error}"}
 
     return (
         ClientToolManifestEntry(
             name=name,
             description=description,
             execution_target=execution_target,
-            model_schema=copy.deepcopy(model_schema),
-            execution_schema=copy.deepcopy(execution_schema),
+            schema=copy.deepcopy(schema),
             argument_resolution=argument_resolution,
             optional=raw_tool.get("optional") is True,
         ),

@@ -10,7 +10,6 @@ const {
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const {
-  getLocalBackendStatus,
   getSystemState,
   searchMemory,
   storeMemory,
@@ -648,7 +647,7 @@ function connect() {
   ws = socket;
   let opened = false;
 
-  socket.on('open', async () => {
+  socket.on('open', () => {
     if (ws !== socket) {
       return;
     }
@@ -661,20 +660,6 @@ function connect() {
     clearBackendReconnectTimer();
     log('Successfully connected to Python backend.');
 
-    let sidecarToolManifest = null;
-    try {
-      const localBackendStatus = await getLocalBackendStatus();
-      sidecarToolManifest = localBackendStatus?.success === true
-        ? localBackendStatus.data?.tool_manifest
-        : null;
-    } catch (error) {
-      log(`Unable to load sidecar tool manifest before handshake: ${error?.message || error}`);
-    }
-
-    if (ws !== socket) {
-      return;
-    }
-
     const handshakeMessage = {
       type: 'handshake',
       user_id: currentUserId,
@@ -682,7 +667,6 @@ function connect() {
       ...buildAgentCapabilityHandshakePayload({
         disabledTools: latestFrontendConfig?.agent_disabled_local_tools,
         availableCoordinateMethods: latestFrontendConfig?.agent_coordinate_methods,
-        sidecarToolManifest,
         requestedAgentPolicy: {
           disabled_tools: latestFrontendConfig?.agent_disabled_remote_tools,
           coordinate_methods: latestFrontendConfig?.agent_coordinate_methods,

@@ -61,15 +61,13 @@ describe('extension manifest loader', () => {
       expect.objectContaining({
         name: 'save_note',
         extension_id: 'notes',
-        model_schema: expect.objectContaining({
+        schema: expect.objectContaining({
           required: ['note'],
-        }),
-        execution_schema: expect.objectContaining({
-          additionalProperties: false,
         }),
         optional: true,
       }),
     ]);
+    expect(tools[0]).not.toHaveProperty('execution_schema');
     expect(promptLayers).toEqual([
       {
         id: 'notes-guidance',

@@ -17,5 +17,4 @@ extensions/
 See [Extension Convention](../docs/development/extensions.md) for the current
 contract. Ordinary sidecar extension tools declare their model-facing JSON
 Schema as `schema` and their Python executable as an `entrypoint` in
-`extension.json`; Windie generates the executable schema from the entrypoint
-when possible.
+`extension.json`.

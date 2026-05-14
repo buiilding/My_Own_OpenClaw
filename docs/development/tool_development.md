@@ -10,8 +10,8 @@ read_when:
 
 WindieOS tool calling is split across backend and frontend sidecar:
 
-- Windie Agent/frontend owns local tool implementations, model-facing schemas
-  for client-local tools, and executable schemas for sidecar tools.
+- Windie Agent/frontend owns local tool implementations and model-facing schemas
+  for client-local tools.
 - Backend validates client-provided manifests, applies policy/provider
   projection, owns backend remote tools, and owns request correlation.
 - Frontend Python sidecar executes local tools against the local machine.
@@ -32,7 +32,7 @@ This guide documents the current tool API and registration flow.
 ### Frontend sidecar (execution)
 
 - Sidecar tool registry: `frontend/src/main/python/tools/registry.py`
-- Sidecar executable schema export:
+- Sidecar diagnostic schema export:
   `frontend/src/main/python/tools/manifest.py`
 - Sidecar extension tool loader:
   `frontend/src/main/python/tools/extension_loader.py`
@@ -52,8 +52,6 @@ Current runtime note:
 - extension tools put model-facing JSON Schema files under
   `extensions/<id>/tools/` and reference them as `schema` from
   `extensions/<id>/extension.json`
-- extension executable schemas are generated from Python entrypoint signatures
-  when possible, with raw-dict entrypoints falling back to `schema`
 - extension tools can put executable Python under `extensions/<id>/python/`
   and reference it as `entrypoint: "python/file.py:function"` from
   `extension.json`
