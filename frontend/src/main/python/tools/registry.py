@@ -6,12 +6,19 @@ Registers and executes all available tools.
 
 import asyncio
 import copy
+import inspect
 from importlib import import_module
 import logging
+import sys
+from pathlib import Path
 from typing import Any, Callable, Dict
 
 from tools.exposed_tool_names import EXPOSED_TO_BACKEND_TOOL_NAMES
-from tools.extension_loader import load_sidecar_extension_tools
+from tools.extension_loader import (
+    TOOL_NAME_PATTERN,
+    load_sidecar_extension_path,
+    load_sidecar_extension_tools,
+)
 from tools.manifest import build_sidecar_tool_manifest
 from tools.result import ToolResult
 
@@ -42,6 +49,9 @@ class ToolRegistry:
 
     def __init__(self):
         self.tools: Dict[str, Callable[..., Any]] = {}
+        self.dynamic_tool_schemas: dict[str, dict[str, Any]] = {}
+        self.dynamic_tool_descriptions: dict[str, str] = {}
+        self.dynamic_tool_sources: dict[str, dict[str, Any]] = {}
         self._register_tools()
 
     def has_tool(self, tool_name: str) -> bool:
@@ -49,6 +59,9 @@ class ToolRegistry:
 
     def reload_tools(self) -> None:
         self.tools.clear()
+        self.dynamic_tool_schemas.clear()
+        self.dynamic_tool_descriptions.clear()
+        self.dynamic_tool_sources.clear()
         self._register_tools()
 
     def _register_tools(self):
@@ -101,6 +114,117 @@ class ToolRegistry:
                 )
                 continue
             self.tools[tool_name] = loaded_tool.handler
+            self.dynamic_tool_schemas[tool_name] = copy.deepcopy(loaded_tool.schema)
+            if loaded_tool.description:
+                self.dynamic_tool_descriptions[tool_name] = loaded_tool.description
+            self.dynamic_tool_sources[tool_name] = {
+                "kind": "extension",
+                "extension_id": loaded_tool.extension_id,
+            }
+
+    def register_module_tool(
+        self,
+        *,
+        name: str,
+        module: str,
+        schema: dict[str, Any],
+        description: str | None = None,
+        workspace_path: str | None = None,
+    ) -> dict[str, Any]:
+        """Register a module-path tool without restarting the sidecar runtime."""
+        self._validate_dynamic_tool_name(name)
+        if not isinstance(module, str) or ":" not in module:
+            raise ValueError("module must use the module:function format")
+        if not isinstance(schema, dict):
+            raise ValueError("schema must be an object")
+        if name in EXPOSED_TO_BACKEND_TOOL_NAMES:
+            raise ValueError(f"cannot override built-in sidecar tool: {name}")
+
+        module_name, attr_name = module.split(":", 1)
+        module_name = module_name.strip()
+        attr_name = attr_name.strip()
+        if not module_name or not attr_name:
+            raise ValueError("module must include both module name and function name")
+
+        search_path = None
+        if workspace_path:
+            search_path = str(Path(workspace_path).expanduser().resolve())
+            if search_path not in sys.path:
+                sys.path.insert(0, search_path)
+
+        imported_module = import_module(module_name)
+        handler = getattr(imported_module, attr_name, None)
+        if not callable(handler):
+            raise ValueError(f"module tool entrypoint is not callable: {module}")
+
+        self.tools[name] = self._wrap_module_handler(handler)
+        self.dynamic_tool_schemas[name] = copy.deepcopy(schema)
+        if description:
+            self.dynamic_tool_descriptions[name] = description
+        else:
+            self.dynamic_tool_descriptions.pop(name, None)
+        self.dynamic_tool_sources[name] = {
+            "kind": "module",
+            "module": module,
+            "workspace_path": search_path,
+        }
+        return self.describe_tool(name)
+
+    def register_plugin_tools(
+        self,
+        *,
+        plugin_path: str,
+    ) -> dict[str, Any]:
+        """Load extension-style plugin tools from a local package path."""
+        loaded_extensions = load_sidecar_extension_path(plugin_path)
+        registered: list[dict[str, Any]] = []
+        for error in loaded_extensions.errors:
+            logger.warning(
+                "Failed to dynamically load plugin tool from %s: %s",
+                error.get("extension", "unknown"),
+                error.get("reason", "unknown error"),
+            )
+
+        for tool_name, loaded_tool in loaded_extensions.tools.items():
+            self._validate_dynamic_tool_name(tool_name)
+            if tool_name in EXPOSED_TO_BACKEND_TOOL_NAMES:
+                raise ValueError(f"cannot override built-in sidecar tool: {tool_name}")
+            self.tools[tool_name] = loaded_tool.handler
+            self.dynamic_tool_schemas[tool_name] = copy.deepcopy(loaded_tool.schema)
+            if loaded_tool.description:
+                self.dynamic_tool_descriptions[tool_name] = loaded_tool.description
+            self.dynamic_tool_sources[tool_name] = {
+                "kind": "plugin",
+                "plugin_path": str(Path(plugin_path).expanduser().resolve()),
+                "extension_id": loaded_tool.extension_id,
+            }
+            registered.append(self.describe_tool(tool_name))
+        return {
+            "registered_tools": registered,
+            "errors": loaded_extensions.errors,
+        }
+
+    def register_runtime_tool(
+        self,
+        *,
+        name: str,
+        handler: Callable[..., Any],
+        schema: dict[str, Any],
+        description: str | None = None,
+        source: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Register a runtime-owned handler such as an MCP proxy tool."""
+        self._validate_dynamic_tool_name(name)
+        if not isinstance(schema, dict):
+            raise ValueError("schema must be an object")
+        if name in EXPOSED_TO_BACKEND_TOOL_NAMES:
+            raise ValueError(f"cannot override built-in sidecar tool: {name}")
+        self.tools[name] = handler
+        self.dynamic_tool_schemas[name] = copy.deepcopy(schema)
+        if description:
+            self.dynamic_tool_descriptions[name] = description
+        self.dynamic_tool_sources[name] = dict(source or {"kind": "runtime"})
+        return self.describe_tool(name)
 
     @staticmethod
     def get_exposed_tool_names() -> set[str]:
@@ -112,7 +236,66 @@ class ToolRegistry:
         exposed_registered_tools = EXPOSED_TO_BACKEND_TOOL_NAMES & set(
             self.tools.keys()
         )
-        return build_sidecar_tool_manifest(exposed_registered_tools)
+        manifest = build_sidecar_tool_manifest(exposed_registered_tools)
+        for tool_name in sorted(self.dynamic_tool_schemas):
+            if tool_name not in self.tools:
+                continue
+            tool_manifest = {
+                "name": tool_name,
+                "schema": copy.deepcopy(self.dynamic_tool_schemas[tool_name]),
+            }
+            description = self.dynamic_tool_descriptions.get(tool_name)
+            if description:
+                tool_manifest["description"] = description
+            source = self.dynamic_tool_sources.get(tool_name)
+            if source:
+                tool_manifest["source"] = copy.deepcopy(source)
+            manifest["tools"].append(tool_manifest)
+        return manifest
+
+    def describe_tool(self, tool_name: str) -> dict[str, Any]:
+        manifest_tools = self.get_tool_manifest().get("tools", [])
+        for tool in manifest_tools:
+            if tool.get("name") == tool_name:
+                return copy.deepcopy(tool)
+        if tool_name not in self.tools:
+            raise ValueError(f"tool is not registered: {tool_name}")
+        return {"name": tool_name}
+
+    @staticmethod
+    def _validate_dynamic_tool_name(tool_name: str) -> None:
+        if not isinstance(tool_name, str) or not TOOL_NAME_PATTERN.match(tool_name):
+            raise ValueError("tool name is missing or invalid")
+
+    @staticmethod
+    def _wrap_module_handler(handler: Callable[..., Any]) -> Callable[[dict[str, Any]], Any]:
+        signature = inspect.signature(handler)
+        parameters = list(signature.parameters.values())
+        accepts_raw_args = (
+            len(parameters) == 1
+            and parameters[0].name in {"args", "params", "payload"}
+            and parameters[0].kind
+            in {
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            }
+        )
+        if accepts_raw_args:
+            return handler
+
+        async def _async_wrapper(args: dict[str, Any]) -> Any:
+            try:
+                bound = signature.bind(**args)
+            except TypeError as exc:
+                raise ValueError(
+                    f"module tool arguments do not match entrypoint: {exc}"
+                ) from exc
+            result = handler(**bound.arguments)
+            if inspect.isawaitable(result):
+                return await result
+            return result
+
+        return _async_wrapper
 
     @staticmethod
     def _build_lazy_tool(module_name: str, attr_name: str) -> Callable[..., Any]:

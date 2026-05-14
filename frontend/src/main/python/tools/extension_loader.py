@@ -23,6 +23,8 @@ class LoadedExtensionTool:
     name: str
     extension_id: str
     handler: Callable[..., Any]
+    schema: dict[str, Any]
+    description: str | None = None
 
 
 @dataclass(slots=True)
@@ -72,6 +74,38 @@ def load_sidecar_extension_tools(
                     "reason": str(error),
                 }
             )
+    return result
+
+
+def load_sidecar_extension_path(
+    extension_path: str | os.PathLike[str],
+) -> LoadedSidecarExtensions:
+    """Load tools from one extension directory or an extensions root directory."""
+    path = Path(extension_path).expanduser().resolve()
+    result = LoadedSidecarExtensions()
+    if not path.exists():
+        result.errors.append(
+            {
+                "extension": str(path),
+                "reason": "extension path does not exist",
+            }
+        )
+        return result
+
+    try:
+        if (path / "extension.json").is_file():
+            _load_extension(path, result)
+        else:
+            for extension_dir in sorted(child for child in path.iterdir() if child.is_dir()):
+                if (extension_dir / "extension.json").is_file():
+                    _load_extension(extension_dir, result)
+    except Exception as error:
+        result.errors.append(
+            {
+                "extension": path.name,
+                "reason": str(error),
+            }
+        )
     return result
 
 
@@ -126,6 +160,8 @@ def _load_tool(
         name=tool_name,
         extension_id=extension_id,
         handler=_wrap_entrypoint_handler(handler),
+        schema=schema,
+        description=_read_string(raw_tool.get("description")),
     )
 
 

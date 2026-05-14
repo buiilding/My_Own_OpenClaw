@@ -8,6 +8,8 @@ title: "Local Backend JSON-RPC Reference"
 
 # Local Backend JSON-RPC Reference
 
+> New SDK-facing local execution should use the sidecar daemon contract in [Sidecar Daemon Runtime Reference](sidecar_daemon_runtime_reference.md). This JSON-RPC reference remains for existing Electron bridge methods and memory/service IPC while Electron migration continues.
+
 ## Core Modules
 
 - Electron bridge: `frontend/src/main/local_backend_bridge.cjs`

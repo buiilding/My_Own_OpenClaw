@@ -110,6 +110,9 @@ const {
 const {
   buildClientToolManifestWithMcp,
 } = require('./mcp_runtime.cjs');
+const {
+  createWindieSdkMainRuntime,
+} = require('./windie_sdk_runtime.cjs');
 const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
 
 let BACKEND_ENDPOINTS = resolveBackendEndpoints();
@@ -148,6 +151,7 @@ let backendIdleDisconnectTimer = null;
 let shouldMaintainBackendConnection = false;
 let intentionalSocketCloseReason = null;
 let pendingInstallAuthStatePromise = null;
+let windieSdkRuntime = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 
@@ -635,71 +639,89 @@ function setResponseOverlayPhase(phase, source = 'ipc', metadata = null) {
   syncBackendIdleDisconnectTimer(`phase:${phase}`);
 }
 
-function connect() {
-  if (!shouldMaintainBackendConnection) {
-    return;
-  }
-  if (
-    ws &&
-    (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)
-  ) {
-    log('WebSocket already open or connecting.');
-    return;
-  }
-  log(`Attempting to connect to Python backend at ${BACKEND_URL}...`);
-  const socket = new WebSocket(BACKEND_URL, {
-    origin: BACKEND_ENDPOINTS.wsOrigin,
-    headers: buildInstallAuthHeaders(),
+async function buildSdkRuntimeHandshake() {
+  const operatingSystem = resolveFrontendOperatingSystem(process.platform);
+  const clientToolManifest = await buildClientToolManifestWithMcp({
+    disabledTools: latestFrontendConfig?.agent_disabled_local_tools,
   });
-  ws = socket;
-  let opened = false;
-
-  socket.on('open', async () => {
-    if (ws !== socket) {
-      return;
-    }
-    opened = true;
-    isConnected = true;
-    isFirstQuery = true;
-    resetSettingsSyncState();
-    setResponseOverlayPhase('idle', 'ws-open');
-    ipcEventReplayState.clear();
-    clearBackendReconnectTimer();
-    log('Successfully connected to Python backend.');
-
-    const operatingSystem = resolveFrontendOperatingSystem(process.platform);
-    const clientToolManifest = await buildClientToolManifestWithMcp({
+  if (Array.isArray(clientToolManifest.mcp_errors) && clientToolManifest.mcp_errors.length > 0) {
+    log(`MCP discovery completed with ${clientToolManifest.mcp_errors.length} error(s).`);
+  }
+  const handshakeClientToolManifest = {
+    version: clientToolManifest.version,
+    tools: clientToolManifest.tools,
+  };
+  return {
+    type: 'handshake',
+    user_id: currentUserId,
+    operating_system: operatingSystem,
+    ...buildAgentCapabilityHandshakePayload({
+      clientToolManifest: handshakeClientToolManifest,
+      operatingSystem,
+      customInstructions: latestFrontendConfig?.agent_custom_instructions,
       disabledTools: latestFrontendConfig?.agent_disabled_local_tools,
-    });
-    if (Array.isArray(clientToolManifest.mcp_errors) && clientToolManifest.mcp_errors.length > 0) {
-      log(`MCP discovery completed with ${clientToolManifest.mcp_errors.length} error(s).`);
-    }
-    const handshakeClientToolManifest = {
-      version: clientToolManifest.version,
-      tools: clientToolManifest.tools,
-    };
-    const handshakeMessage = {
-      type: 'handshake',
-      user_id: currentUserId,
-      operating_system: operatingSystem,
-      ...buildAgentCapabilityHandshakePayload({
-        clientToolManifest: handshakeClientToolManifest,
-        operatingSystem,
-        customInstructions: latestFrontendConfig?.agent_custom_instructions,
-        disabledTools: latestFrontendConfig?.agent_disabled_local_tools,
-        availableCoordinateMethods: latestFrontendConfig?.agent_coordinate_methods,
-        requestedAgentPolicy: {
-          disabled_tools: latestFrontendConfig?.agent_disabled_remote_tools,
-          coordinate_methods: latestFrontendConfig?.agent_coordinate_methods,
-        },
-      }),
-    };
-    try {
-      ws.send(JSON.stringify(handshakeMessage));
+      availableCoordinateMethods: latestFrontendConfig?.agent_coordinate_methods,
+      requestedAgentPolicy: {
+        disabled_tools: latestFrontendConfig?.agent_disabled_remote_tools,
+        coordinate_methods: latestFrontendConfig?.agent_coordinate_methods,
+      },
+    }),
+  };
+}
+
+function handleSdkRuntimeMessage(data) {
+  ipcEventReplayState.appendForActiveTurn(data);
+  noteBackendTraffic(`message:${data?.type || 'unknown'}`);
+  notifyBackendMessageObservers(data);
+  processBackendMessageData(data, {
+    setCurrentSessionId: (value) => {
+      currentSessionId = value;
+    },
+    setCurrentServerUserId: (value) => {
+      currentServerUserId = value;
+    },
+    setCurrentConversationRef: (value) => {
+      currentConversationRef = value;
+    },
+    resolveSettingsSync: (msgId, wasSuccessful) => {
+      resolveSettingsSync(pendingSettingsSyncs, msgId, wasSuccessful);
+    },
+    setResponseOverlayPhase,
+    getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
+    onMemoryStoreEvent: (eventData) => {
+      persistMemoryStoreEvent(eventData, { storeMemory, log });
+    },
+    broadcastToRenderers,
+    log,
+  });
+}
+
+function getWindieSdkRuntime() {
+  if (windieSdkRuntime) {
+    return windieSdkRuntime;
+  }
+  windieSdkRuntime = createWindieSdkMainRuntime({
+    WebSocketImpl: WebSocket,
+    createMessageId: uuidv4,
+    getEndpoint: () => BACKEND_ENDPOINTS,
+    getHeaders: buildInstallAuthHeaders,
+    shouldConnect: () => shouldMaintainBackendConnection,
+    buildHandshake: buildSdkRuntimeHandshake,
+    onSocketChange: (socket) => {
+      ws = socket;
+    },
+    onOpen: ({ handshake }) => {
+      isConnected = true;
+      isFirstQuery = true;
+      resetSettingsSyncState();
+      setResponseOverlayPhase('idle', 'ws-open');
+      ipcEventReplayState.clear();
+      clearBackendReconnectTimer();
+      log('Successfully connected to Python backend through Windie SDK runtime.');
       log(`Handshake sent with authenticated user_id: ${currentUserId}`);
       runExtensionLifecycleHook('onSessionStart', {
         userId: currentUserId,
-        operatingSystem: handshakeMessage.operating_system,
+        operatingSystem: handshake.operating_system,
         backendWsUrl: BACKEND_URL,
         backendHttpUrl: BACKEND_HTTP_URL,
       }).catch((error) => {
@@ -709,103 +731,72 @@ function connect() {
       resolvePendingBackendConnectWaiters();
       noteBackendTraffic('ws-open');
       flushPendingListModelsRequest();
-    } catch (error) {
+    },
+    onHandshakeError: (error) => {
       log(`Error sending handshake: ${error}`);
       rejectPendingBackendConnectWaiters(error);
-    }
-  });
-
-  socket.on('message', (message) => {
-    if (ws !== socket) {
-      return;
-    }
-    try {
-      const data = JSON.parse(message);
-      ipcEventReplayState.appendForActiveTurn(data);
-      noteBackendTraffic(`message:${data?.type || 'unknown'}`);
-      notifyBackendMessageObservers(data);
-      processBackendMessageData(data, {
-        setCurrentSessionId: (value) => {
-          currentSessionId = value;
-        },
-        setCurrentServerUserId: (value) => {
-          currentServerUserId = value;
-        },
-        setCurrentConversationRef: (value) => {
-          currentConversationRef = value;
-        },
-        resolveSettingsSync: (msgId, wasSuccessful) => {
-          resolveSettingsSync(pendingSettingsSyncs, msgId, wasSuccessful);
-        },
-        setResponseOverlayPhase,
-        getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
-        onMemoryStoreEvent: (eventData) => {
-          persistMemoryStoreEvent(eventData, { storeMemory, log });
-        },
-        broadcastToRenderers,
-        log,
-      });
-    } catch (error) {
+    },
+    onMessage: handleSdkRuntimeMessage,
+    onMessageError: (error) => {
       log(`Error parsing message from backend: ${error}`);
-    }
-  });
-
-  socket.on('close', () => {
-    if (ws !== socket) {
-      return;
-    }
-    isConnected = false;
-    resetSettingsSyncState();
-    resetBackendSessionState();
-    setResponseOverlayPhase('idle', 'ws-close');
-    ipcEventReplayState.clear();
-    const closeReason = intentionalSocketCloseReason;
-    intentionalSocketCloseReason = null;
-    clearBackendIdleDisconnectTimer();
-    const shouldReconnect = shouldMaintainBackendConnection && !closeReason;
-    if (!opened && shouldReconnect && advanceToNextBackendEndpoint()) {
-      log(`Primary backend unavailable. Falling back to ${BACKEND_URL}.`);
+    },
+    onClose: ({ opened }) => {
+      isConnected = false;
+      resetSettingsSyncState();
+      resetBackendSessionState();
+      setResponseOverlayPhase('idle', 'ws-close');
+      ipcEventReplayState.clear();
+      const closeReason = intentionalSocketCloseReason;
+      intentionalSocketCloseReason = null;
+      clearBackendIdleDisconnectTimer();
+      const shouldReconnect = shouldMaintainBackendConnection && !closeReason;
+      if (!opened && shouldReconnect && advanceToNextBackendEndpoint()) {
+        log(`Primary backend unavailable. Falling back to ${BACKEND_URL}.`);
+        broadcastConnectionStatus(false);
+        scheduleBackendReconnect(0);
+        return;
+      }
+      if (shouldReconnect) {
+        log('Disconnected from Python backend. Attempting to reconnect...');
+      } else {
+        log(`Disconnected from Python backend (${closeReason || 'idle'}).`);
+      }
       broadcastConnectionStatus(false);
-      ws = null;
-      scheduleBackendReconnect(0);
-      return;
-    }
-    if (shouldReconnect) {
-      log('Disconnected from Python backend. Attempting to reconnect...');
-    } else {
-      log(`Disconnected from Python backend (${closeReason || 'idle'}).`);
-    }
-    broadcastConnectionStatus(false);
-    ws = null;
-    if (!shouldReconnect && !opened) {
-      rejectPendingBackendConnectWaiters(
-        new Error(`Backend websocket closed before connecting (${closeReason || 'not-demanded'}).`),
-      );
-      return;
-    }
-    if (shouldReconnect) {
-      scheduleBackendReconnect(BACKEND_RECONNECT_INTERVAL_MS);
-    }
+      if (!shouldReconnect && !opened) {
+        rejectPendingBackendConnectWaiters(
+          new Error(`Backend websocket closed before connecting (${closeReason || 'not-demanded'}).`),
+        );
+        return;
+      }
+      if (shouldReconnect) {
+        scheduleBackendReconnect(BACKEND_RECONNECT_INTERVAL_MS);
+      }
+    },
+    onError: ({ error, opened, socket }) => {
+      log(`WebSocket error: ${error.message}`);
+      if (!opened && shouldMaintainBackendConnection && advanceToNextBackendEndpoint()) {
+        log(`Primary backend unavailable. Falling back to ${BACKEND_URL}.`);
+        ws = null;
+        connect();
+        return;
+      }
+      if (!opened && !shouldMaintainBackendConnection) {
+        rejectPendingBackendConnectWaiters(error);
+      }
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.close();
+      }
+    },
+    onSend: (type) => {
+      noteBackendTraffic(`send:${type}`);
+    },
+    log,
   });
+  return windieSdkRuntime;
+}
 
-  socket.on('error', (error) => {
-    if (ws !== socket) {
-      return;
-    }
-    log(`WebSocket error: ${error.message}`);
-    if (!opened && shouldMaintainBackendConnection && advanceToNextBackendEndpoint()) {
-      log(`Primary backend unavailable. Falling back to ${BACKEND_URL}.`);
-      ws = null;
-      connect();
-      return;
-    }
-    if (!opened && !shouldMaintainBackendConnection) {
-      rejectPendingBackendConnectWaiters(error);
-    }
-    if (socket.readyState === WebSocket.OPEN) {
-      socket.close();
-    }
-  });
+function connect() {
+  getWindieSdkRuntime().connect();
 }
 
 function sendMessageToBackend(type, payload, messageId = null) {
@@ -819,25 +810,13 @@ function sendMessageToBackend(type, payload, messageId = null) {
     return null;
   }
 
-  const msgId = messageId || uuidv4();
-  const normalizedPayload = normalizeBackendPayload(type, payload);
-  const message = {
-    id: msgId,
+  return getWindieSdkRuntime().sendEnvelope({
     type,
-    payload: normalizedPayload,
-    user_id: currentUserId,
-    timestamp: new Date().toISOString(),
-  };
-
-  try {
-    ws.send(JSON.stringify(message));
-    // Only log errors, not every message
-    noteBackendTraffic(`send:${type}`);
-    return msgId;
-  } catch (error) {
-    log(`Error sending message to backend: ${error}`);
-    return null;
-  }
+    payload,
+    messageId,
+    userId: currentUserId,
+    normalizePayload: normalizeBackendPayload,
+  });
 }
 
 function shutdownIpcForTests() {
@@ -856,16 +835,10 @@ function shutdownIpcForTests() {
   setAgentLoopStopShortcutEnabled = null;
   setGlobalAgentStopShortcutAccelerator = null;
   pendingInstallAuthStatePromise = null;
-  const socket = ws;
+  const runtime = windieSdkRuntime;
   ws = null;
   isConnected = false;
-  if (
-    socket
-    && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)
-    && typeof socket.close === 'function'
-  ) {
-    socket.close();
-  }
+  runtime?.close?.('test-shutdown');
 }
 
 function initializeIpc(win, options = {}) {

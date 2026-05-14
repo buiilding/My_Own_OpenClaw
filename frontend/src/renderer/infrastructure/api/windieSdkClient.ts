@@ -307,11 +307,13 @@ export type WindieSdkClientOptions = {
   WebSocketImpl?: WebSocketConstructor;
   defaultUserId?: string;
   defaultOperatingSystem?: string;
+  localRuntime?: WindieLocalRuntimeClient;
 };
 
 export type WindieAgentConnectOptions = {
   userId?: string;
   operatingSystem?: string;
+  agentDefinition?: JsonRecord;
 };
 
 export type WindieAgentQueryInput = {
@@ -339,6 +341,59 @@ export type WindieAgentTrace = {
 
 export type WindieAgentTraceOptions = {
   timeoutMs?: number;
+};
+
+export type WindieToolDefinition = {
+  name: string;
+  description?: string;
+  schema: JsonRecord;
+  execution_target?: 'sidecar';
+  argument_resolution?: string;
+  module?: string;
+  workspacePath?: string;
+};
+
+export type WindieSkillDefinition = JsonRecord & {
+  id?: string;
+  type?: string;
+  content?: string;
+  priority?: number;
+};
+
+export type WindieMcpDefinition = JsonRecord & {
+  id?: string;
+  name?: string;
+  command?: string;
+  args?: string[];
+};
+
+export type WindiePluginDefinition = JsonRecord & {
+  path?: string;
+  pluginPath?: string;
+};
+
+export type WindieWakeUpOptions = {
+  backendUrl?: string;
+  userId?: string;
+  systemPrompt?: string;
+  workspacePath?: string;
+  tools?: WindieToolDefinition[];
+  skills?: WindieSkillDefinition[];
+  mcps?: WindieMcpDefinition[];
+  plugins?: WindiePluginDefinition[];
+  conversationRef?: string;
+  agentId?: string;
+  name?: string;
+};
+
+export type WindieLocalRuntimeClient = {
+  status?: () => Promise<JsonRecord>;
+  listTools?: () => Promise<{ version?: number; tools?: JsonRecord[] }>;
+  registerModuleTool?: (tool: WindieToolDefinition, context: { workspacePath?: string }) => Promise<JsonRecord>;
+  registerPlugin?: (plugin: WindiePluginDefinition) => Promise<JsonRecord>;
+  registerMcp?: (mcp: WindieMcpDefinition) => Promise<JsonRecord>;
+  executeTool?: (payload: { toolName: string; args: JsonRecord }) => Promise<{ success?: boolean; data?: JsonRecord; error?: string }>;
+  shutdown?: () => Promise<void>;
 };
 
 type WindieAgentEventMap = {
@@ -427,6 +482,20 @@ function createMessageId(): string {
   return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function normalizeToolResultData(data: JsonRecord | undefined): JsonRecord | undefined {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return undefined;
+  }
+  if (typeof data.llm_content === 'string' && data.llm_content) {
+    return data;
+  }
+  const display = typeof data.return_display === 'string' ? data.return_display : '';
+  return {
+    ...data,
+    llm_content: display || JSON.stringify(data),
+  };
+}
+
 function attachSocketListener(
   socket: WebSocketLike,
   event: string,
@@ -472,7 +541,8 @@ export class WindieAgentSession {
 
   constructor(
     private readonly socket: WebSocketLike,
-    handshake: { user_id: string; operating_system?: string },
+    private readonly handshake: { user_id: string; operating_system?: string; agent_definition?: JsonRecord },
+    private readonly localRuntime?: WindieLocalRuntimeClient,
   ) {
     this.readyPromise = new Promise<void>((resolve, reject) => {
       this.resolveReady = resolve;
@@ -485,6 +555,7 @@ export class WindieAgentSession {
           type: 'handshake',
           user_id: handshake.user_id,
           operating_system: handshake.operating_system,
+          agent_definition: handshake.agent_definition,
         }));
         this.isReady = true;
         this.resolveReady?.();
@@ -507,6 +578,7 @@ export class WindieAgentSession {
         if (isBackendEvent(parsed)) {
           this.emit('event', parsed);
           this.emit(parsed.type, parsed as WindieAgentEventMap[BackendEventType]);
+          void this.maybeExecuteLocalTool(parsed);
         }
       }),
     );
@@ -569,6 +641,7 @@ export class WindieAgentSession {
         system_state_internal: payload.systemStateInternal ?? undefined,
         workspace_path: payload.workspacePath ?? undefined,
       },
+      user_id: this.handshake.user_id,
       timestamp: new Date().toISOString(),
     }));
     return id;
@@ -583,6 +656,7 @@ export class WindieAgentSession {
       payload: {
         conversation_ref: conversationRef ?? null,
       },
+      user_id: this.handshake.user_id,
       timestamp: new Date().toISOString(),
     }));
     return id;
@@ -595,6 +669,7 @@ export class WindieAgentSession {
       id,
       type: 'update-settings',
       payload: config,
+      user_id: this.handshake.user_id,
       timestamp: new Date().toISOString(),
     }));
     return id;
@@ -607,7 +682,137 @@ export class WindieAgentSession {
       id,
       type: 'list-models',
       payload: {},
+      user_id: this.handshake.user_id,
       timestamp: new Date().toISOString(),
+    }));
+    return id;
+  }
+
+  private async maybeExecuteLocalTool(event: BackendEvent): Promise<void> {
+    if (!this.localRuntime?.executeTool) {
+      return;
+    }
+    if (event.type === 'tool-bundle') {
+      await this.executeLocalToolBundle(event);
+      return;
+    }
+    if (event.type !== 'tool-call') {
+      return;
+    }
+    const payload = event.payload ?? {};
+    if (payload.metadata?.skip_frontend_execution === true) {
+      return;
+    }
+    const toolName = typeof payload.tool_name === 'string' ? payload.tool_name : '';
+    const requestId = typeof payload.request_id === 'string'
+      ? payload.request_id
+      : (typeof payload.correlation_id === 'string' ? payload.correlation_id : '');
+    if (!toolName || !requestId) {
+      return;
+    }
+    const startedAt = Date.now();
+    try {
+      const result = await this.localRuntime.executeTool({
+        toolName,
+        args: payload.parameters && typeof payload.parameters === 'object'
+          ? payload.parameters
+          : {},
+      });
+      this.sendToolResult({
+        requestId,
+        success: result.success !== false,
+        data: normalizeToolResultData(result.data),
+        error: result.success === false ? result.error || 'Tool execution failed' : undefined,
+        elapsedMs: Date.now() - startedAt,
+      });
+    } catch (error) {
+      this.sendToolResult({
+        requestId,
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        elapsedMs: Date.now() - startedAt,
+      });
+    }
+  }
+
+  private async executeLocalToolBundle(event: Extract<BackendEvent, { type: 'tool-bundle' }>): Promise<void> {
+    const payload = event.payload ?? {};
+    const bundleId = typeof payload.bundle_id === 'string' ? payload.bundle_id : '';
+    const steps = Array.isArray(payload.tools) ? payload.tools : [];
+    if (!bundleId || steps.length === 0 || !this.localRuntime?.executeTool) {
+      return;
+    }
+    const stepResults = [];
+    for (const step of steps) {
+      const toolName = typeof step?.name === 'string' ? step.name : '';
+      if (!toolName) {
+        continue;
+      }
+      try {
+        const result = await this.localRuntime.executeTool({
+          toolName,
+          args: step.args && typeof step.args === 'object' ? step.args : {},
+        });
+        stepResults.push({
+          tool: toolName,
+          status: result.success === false ? 'failure' : 'success',
+          output: result.success === false
+            ? { error: result.error || 'Tool execution failed' }
+            : normalizeToolResultData(result.data) ?? {},
+        });
+      } catch (error) {
+        stepResults.push({
+          tool: toolName,
+          status: 'failure',
+          output: {
+            error: error instanceof Error ? error.message : String(error),
+          },
+        });
+      }
+    }
+    if (stepResults.length === 0) {
+      return;
+    }
+    const failures = stepResults.filter(step => step.status !== 'success');
+    const status = failures.length === 0
+      ? 'success'
+      : (failures.length === stepResults.length ? 'failure' : 'partial_failure');
+    this.socket.send(JSON.stringify({
+      id: createMessageId(),
+      type: 'tool-bundle-result',
+      payload: {
+        bundle_id: bundleId,
+        status,
+        step_results: stepResults,
+        error: failures.length > 0 ? `${failures.length} bundled tool step(s) failed` : undefined,
+      },
+      user_id: this.handshake.user_id,
+      timestamp: new Date().toISOString(),
+    }));
+  }
+
+  private sendToolResult(payload: {
+    requestId: string;
+    success: boolean;
+    data?: JsonRecord;
+    error?: string;
+    elapsedMs?: number;
+  }): string {
+    const id = createMessageId();
+    this.socket.send(JSON.stringify({
+      id,
+      type: 'tool-result',
+      payload: {
+        request_id: payload.requestId,
+        success: payload.success,
+        data: payload.data,
+        error: payload.error,
+      },
+      user_id: this.handshake.user_id,
+      timestamp: new Date().toISOString(),
+      metadata: {
+        local_execution_elapsed_ms: payload.elapsedMs,
+      },
     }));
     return id;
   }
@@ -637,6 +842,7 @@ export class WindieSdkClient {
   private readonly WebSocketImpl: WebSocketConstructor;
   private readonly defaultUserId?: string;
   private readonly defaultOperatingSystem?: string;
+  private readonly localRuntime?: WindieLocalRuntimeClient;
 
   readonly artifacts = {
     upload: async (file: Blob | File, filename?: string): Promise<SdkArtifactUploadResponse> => this.uploadArtifact(file, filename),
@@ -685,6 +891,7 @@ export class WindieSdkClient {
     this.WebSocketImpl = resolveWebSocketImplementation(options.WebSocketImpl);
     this.defaultUserId = options.defaultUserId;
     this.defaultOperatingSystem = options.defaultOperatingSystem;
+    this.localRuntime = options.localRuntime;
   }
 
   async models(options?: WindieSdkQueryOptions): Promise<SdkModelsResponse> {
@@ -720,7 +927,8 @@ export class WindieSdkClient {
     const session = new WindieAgentSession(socket, {
       user_id: userId,
       operating_system: options.operatingSystem ?? this.defaultOperatingSystem,
-    });
+      agent_definition: options.agentDefinition,
+    }, this.localRuntime);
     await session.waitForOpen();
     return session;
   }
@@ -845,6 +1053,268 @@ export class WindieSdkClient {
     }
     return response.json() as Promise<TResponse>;
   }
+}
+
+export type SidecarDaemonClientOptions = {
+  baseUrl: string;
+  token: string;
+  fetchImpl?: FetchLike;
+};
+
+export class SidecarDaemonHttpClient implements WindieLocalRuntimeClient {
+  private readonly baseUrl: string;
+  private readonly token: string;
+  private readonly fetchImpl: FetchLike;
+
+  constructor(options: SidecarDaemonClientOptions) {
+    this.baseUrl = normalizeHttpBaseUrl(options.baseUrl);
+    this.token = options.token;
+    this.fetchImpl = resolveFetchImplementation(options.fetchImpl);
+  }
+
+  async status(): Promise<JsonRecord> {
+    return this.request('/status', { method: 'GET' });
+  }
+
+  async listTools(): Promise<{ version?: number; tools?: JsonRecord[] }> {
+    return this.request('/tools', { method: 'GET' });
+  }
+
+  async registerModuleTool(tool: WindieToolDefinition, context: { workspacePath?: string }): Promise<JsonRecord> {
+    return this.post('/tools/register-module', {
+      name: tool.name,
+      description: tool.description,
+      module: tool.module,
+      schema: tool.schema,
+      workspace_path: tool.workspacePath ?? context.workspacePath,
+    });
+  }
+
+  async registerPlugin(plugin: WindiePluginDefinition): Promise<JsonRecord> {
+    return this.post('/plugins/register', plugin);
+  }
+
+  async registerMcp(mcp: WindieMcpDefinition): Promise<JsonRecord> {
+    return this.post('/mcps/register', mcp);
+  }
+
+  async executeTool(payload: { toolName: string; args: JsonRecord }): Promise<{ success?: boolean; data?: JsonRecord; error?: string }> {
+    return this.post('/execute-tool', {
+      tool_name: payload.toolName,
+      args: payload.args,
+    });
+  }
+
+  async shutdown(): Promise<void> {
+    await this.post('/shutdown', {});
+  }
+
+  private async post<TResponse>(path: string, body: unknown): Promise<TResponse> {
+    return this.request(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  }
+
+  private async request<TResponse>(path: string, init: RequestInit): Promise<TResponse> {
+    const headers = new Headers(init.headers);
+    headers.set('x-windie-sidecar-token', this.token);
+    const response = await this.fetchImpl(`${this.baseUrl}${path}`, {
+      ...init,
+      headers,
+    });
+    if (!response.ok) {
+      throw new Error(buildErrorMessage(response.status, response.statusText, await response.text()));
+    }
+    return response.json() as Promise<TResponse>;
+  }
+}
+
+export type WindieClientOptions = Partial<WindieSdkClientOptions> & {
+  backendUrl?: string;
+  sidecar?: WindieLocalRuntimeClient;
+};
+
+export function moduleTool(tool: WindieToolDefinition & { module: string }): WindieToolDefinition {
+  return {
+    ...tool,
+    execution_target: 'sidecar',
+    argument_resolution: tool.argument_resolution ?? 'passthrough',
+  };
+}
+
+export class WindieAgent {
+  constructor(
+    readonly id: string,
+    readonly session: WindieAgentSession,
+    readonly agentDefinition: JsonRecord,
+    private readonly sdkClient: WindieSdkClient,
+    private readonly owner: WindieClient,
+  ) {}
+
+  async ask(text: string, options: Partial<Omit<WindieAgentQueryInput, 'text' | 'conversationRef'>> & { conversationRef?: string } = {}): Promise<string> {
+    return this.session.query({
+      ...options,
+      text,
+      conversationRef: options.conversationRef ?? `conv-${this.id}`,
+    });
+  }
+
+  async query(payload: WindieAgentQueryInput): Promise<string> {
+    return this.session.query(payload);
+  }
+
+  async stop(conversationRef?: string | null): Promise<string> {
+    return this.session.stopQuery(conversationRef);
+  }
+
+  sleep(): void {
+    this.session.close(1000, 'sleep');
+  }
+
+  async listModels(): Promise<SdkModelsResponse> {
+    return this.sdkClient.models();
+  }
+
+  listAgents(): Array<{ id: string; agentDefinition: JsonRecord }> {
+    return this.owner.listAgents();
+  }
+}
+
+export class WindieClient {
+  private readonly defaultOptions: WindieClientOptions;
+  private readonly activeAgents = new Map<string, WindieAgent>();
+
+  constructor(options: WindieClientOptions = {}) {
+    this.defaultOptions = options;
+  }
+
+  async wakeUp(options: WindieWakeUpOptions): Promise<WindieAgent> {
+    const backendUrl = options.backendUrl ?? this.defaultOptions.backendUrl ?? this.defaultOptions.httpBaseUrl ?? 'https://api.windieos.com';
+    const localRuntime = this.defaultOptions.sidecar ?? this.defaultOptions.localRuntime;
+    const sdkClient = new WindieSdkClient({
+      httpBaseUrl: backendUrl,
+      wsUrl: this.defaultOptions.wsUrl,
+      fetchImpl: this.defaultOptions.fetchImpl,
+      WebSocketImpl: this.defaultOptions.WebSocketImpl,
+      defaultUserId: this.defaultOptions.defaultUserId,
+      defaultOperatingSystem: detectOperatingSystem(),
+      localRuntime,
+    });
+
+    const localTools = await this.prepareLocalRuntime(options, localRuntime);
+    const agentDefinition = buildWakeUpAgentDefinition(options, localTools);
+    const session = await sdkClient.connectAgent({
+      userId: options.userId ?? this.defaultOptions.defaultUserId ?? 'local-sdk-user',
+      agentDefinition,
+    });
+    const id = typeof agentDefinition.id === 'string' ? agentDefinition.id : createMessageId();
+    const agent = new WindieAgent(id, session, agentDefinition, sdkClient, this);
+    this.activeAgents.set(id, agent);
+    session.on('close', () => {
+      this.activeAgents.delete(id);
+    });
+    return agent;
+  }
+
+  listAgents(): Array<{ id: string; agentDefinition: JsonRecord }> {
+    return Array.from(this.activeAgents.values()).map(agent => ({
+      id: agent.id,
+      agentDefinition: agent.agentDefinition,
+    }));
+  }
+
+  async listTools(): Promise<{ version?: number; tools?: JsonRecord[] } | null> {
+    const localRuntime = this.defaultOptions.sidecar ?? this.defaultOptions.localRuntime;
+    return localRuntime?.listTools ? localRuntime.listTools() : null;
+  }
+
+  async status(): Promise<JsonRecord | null> {
+    const localRuntime = this.defaultOptions.sidecar ?? this.defaultOptions.localRuntime;
+    return localRuntime?.status ? localRuntime.status() : null;
+  }
+
+  async shutdownLocalRuntime(): Promise<void> {
+    const localRuntime = this.defaultOptions.sidecar ?? this.defaultOptions.localRuntime;
+    await localRuntime?.shutdown?.();
+  }
+
+  private async prepareLocalRuntime(
+    options: WindieWakeUpOptions,
+    localRuntime?: WindieLocalRuntimeClient,
+  ): Promise<JsonRecord[]> {
+    if (!localRuntime) {
+      return (options.tools ?? []).map(tool => buildManifestTool(tool));
+    }
+    await localRuntime.status?.();
+    for (const tool of options.tools ?? []) {
+      if (tool.module) {
+        await localRuntime.registerModuleTool?.(tool, { workspacePath: options.workspacePath });
+      }
+    }
+    for (const plugin of options.plugins ?? []) {
+      await localRuntime.registerPlugin?.(plugin);
+    }
+    for (const mcp of options.mcps ?? []) {
+      await localRuntime.registerMcp?.(mcp);
+    }
+    const manifest = await localRuntime.listTools?.();
+    const registeredTools = Array.isArray(manifest?.tools) ? manifest.tools : [];
+    const explicitTools = (options.tools ?? [])
+      .filter(tool => !tool.module)
+      .map(tool => buildManifestTool(tool));
+    return [...registeredTools, ...explicitTools];
+  }
+}
+
+function buildWakeUpAgentDefinition(options: WindieWakeUpOptions, tools: JsonRecord[]): JsonRecord {
+  return {
+    version: 1,
+    id: options.agentId ?? `windie-agent-${createMessageId()}`,
+    name: options.name ?? 'Windie Agent',
+    system_prompt: options.systemPrompt
+      ? { mode: 'replace', content: options.systemPrompt }
+      : undefined,
+    tools: {
+      mode: 'default_plus_client',
+      client_manifest: {
+        version: 1,
+        tools,
+      },
+    },
+    skills: options.skills ?? [],
+    mcps: options.mcps ?? [],
+    plugins: options.plugins ?? [],
+    runtime: {
+      workspace_path: options.workspacePath,
+      operating_system: detectOperatingSystem(),
+    },
+  };
+}
+
+function buildManifestTool(tool: WindieToolDefinition): JsonRecord {
+  return {
+    name: tool.name,
+    description: tool.description,
+    execution_target: tool.execution_target ?? 'sidecar',
+    argument_resolution: tool.argument_resolution ?? 'passthrough',
+    schema: tool.schema,
+  };
+}
+
+function detectOperatingSystem(): string {
+  const processPlatform = (globalThis as unknown as { process?: { platform?: string } }).process?.platform;
+  if (processPlatform === 'darwin') {
+    return 'macOS';
+  }
+  if (processPlatform === 'win32') {
+    return 'Windows';
+  }
+  if (processPlatform === 'linux') {
+    return 'Linux';
+  }
+  return 'unknown';
 }
 
 export type { ToolSchema };

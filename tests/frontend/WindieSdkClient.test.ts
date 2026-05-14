@@ -1,7 +1,10 @@
 import {
+  moduleTool,
+  WindieClient,
   WindieSdkClient,
   type SdkPromptPreviewRequest,
   type SdkQueryPlanRequest,
+  type WindieLocalRuntimeClient,
 } from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
 
 class FakeWebSocket {
@@ -404,6 +407,58 @@ describe('WindieSdkClient', () => {
     jest.useRealTimers();
   });
 
+  test('routes backend tool-call events through local runtime and sends tool results', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      executeTool: jest.fn(async () => ({
+        success: true,
+        data: {
+          return_display: 'saved',
+        },
+      })),
+    };
+    const client = new WindieSdkClient({
+      httpBaseUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      localRuntime,
+    });
+
+    const connectPromise = client.agent.connect();
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    await connectPromise;
+
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'tool-call',
+        payload: {
+          tool_name: 'save_note',
+          parameters: { text: 'hello' },
+          request_id: 'req-save-note',
+        },
+      }),
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(localRuntime.executeTool).toHaveBeenCalledWith({
+      toolName: 'save_note',
+      args: { text: 'hello' },
+    });
+    expect(JSON.parse(socket.sent[1])).toMatchObject({
+      type: 'tool-result',
+      payload: {
+        request_id: 'req-save-note',
+        success: true,
+        data: {
+          return_display: 'saved',
+          llm_content: 'saved',
+        },
+      },
+      user_id: 'dev-user',
+    });
+  });
+
   test('requires an explicit user id when no default is configured', async () => {
     const client = new WindieSdkClient({
       httpBaseUrl: 'https://api.windieos.com',
@@ -414,5 +469,89 @@ describe('WindieSdkClient', () => {
     await expect(client.connectAgent()).rejects.toThrow(
       'WindieSdkClient.connectAgent requires a userId or defaultUserId',
     );
+  });
+
+  test('wakeUp registers local module tools and sends agent definition in handshake', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      registerModuleTool: jest.fn(async () => ({ success: true })),
+      listTools: jest.fn(async () => ({
+        version: 1,
+        tools: [
+          {
+            name: 'save_note',
+            description: 'Save a local note.',
+            execution_target: 'sidecar',
+            schema: {
+              type: 'object',
+              properties: { text: { type: 'string' } },
+              required: ['text'],
+              additionalProperties: false,
+            },
+          },
+        ],
+      })),
+    };
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      systemPrompt: 'You are concise.',
+      workspacePath: '/tmp/project',
+      tools: [
+        moduleTool({
+          name: 'save_note',
+          description: 'Save a local note.',
+          module: 'my_project.tools:save_note',
+          schema: {
+            type: 'object',
+            properties: { text: { type: 'string' } },
+            required: ['text'],
+            additionalProperties: false,
+          },
+        }),
+      ],
+      skills: [{ id: 'code-review', type: 'extension_skill', content: 'Lead with risks.' }],
+      mcps: [{ id: 'fs', command: 'node', args: ['server.js'] }],
+      plugins: [{ path: '/tmp/plugin' }],
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+    const handshake = JSON.parse(socket.sent[0]);
+
+    expect(localRuntime.registerModuleTool).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'save_note',
+        module: 'my_project.tools:save_note',
+      }),
+      { workspacePath: '/tmp/project' },
+    );
+    expect(handshake).toMatchObject({
+      type: 'handshake',
+      user_id: 'dev-user',
+      agent_definition: {
+        version: 1,
+        system_prompt: { mode: 'replace', content: 'You are concise.' },
+        tools: {
+          mode: 'default_plus_client',
+          client_manifest: {
+            version: 1,
+            tools: [expect.objectContaining({ name: 'save_note' })],
+          },
+        },
+        runtime: {
+          workspace_path: '/tmp/project',
+        },
+      },
+    });
+    expect(agent.listAgents()).toHaveLength(1);
   });
 });

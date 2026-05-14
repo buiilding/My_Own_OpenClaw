@@ -1,4 +1,5 @@
 import pytest
+from pathlib import Path
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
@@ -122,3 +123,45 @@ async def test_execute_tool_handles_exceptions():
     result = await registry.execute_tool("read_file", {"file_path": "/tmp/a"})
     assert result.success is False
     assert "Tool execution failed" in (result.error or "")
+
+
+@pytest.mark.asyncio
+async def test_register_module_tool_loads_without_restart(
+    tmp_path: Path,
+    monkeypatch,
+):
+    package_dir = tmp_path / "my_project"
+    package_dir.mkdir()
+    (package_dir / "__init__.py").write_text("", encoding="utf-8")
+    (package_dir / "tools.py").write_text(
+        "\n".join(
+            [
+                "from tools.result import ToolResult",
+                "",
+                "async def save_note(text: str):",
+                "    return ToolResult.success_result({'llm_content': f'saved:{text}'})",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.syspath_prepend(str(tmp_path))
+
+    registry = ToolRegistry()
+    tool = registry.register_module_tool(
+        name="save_note",
+        module="my_project.tools:save_note",
+        description="Save a local note.",
+        schema={
+            "type": "object",
+            "properties": {"text": {"type": "string"}},
+            "required": ["text"],
+            "additionalProperties": False,
+        },
+    )
+    result = await registry.execute_tool("save_note", {"text": "hello"})
+    manifest = registry.get_tool_manifest()
+
+    assert tool["name"] == "save_note"
+    assert result.success is True
+    assert result.data == {"llm_content": "saved:hello"}
+    assert any(item["name"] == "save_note" for item in manifest["tools"])

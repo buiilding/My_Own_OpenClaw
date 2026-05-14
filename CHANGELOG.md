@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/sidecar: add the first-class `WindieClient.wakeUp` runtime contract, local sidecar daemon HTTP/WebSocket executor shell, dynamic module/plugin/MCP registration path, and docs for the backend/SDK/daemon/Electron ownership split.
 - frontend/backend: route Electron query-time workspace AGENTS.md context through `agent_definition.agents_md` and preserve accepted client tools when query agent definitions are partial.
 - extensions: make the package layout explicit with plugin code under `plugin/index.cjs`, MCP server specs under `mcp/servers.json`, and skills under `skills/**/SKILL.md`.
 - extensions/mcp: add a local MCP runtime that discovers stdio MCP tools, projects them into the client tool manifest, and executes MCP tool calls before sidecar fallback.

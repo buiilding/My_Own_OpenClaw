@@ -8,11 +8,12 @@ title: "SDK Hub"
 
 # SDK Hub
 
-WindieOS SDK docs cover direct backend integration. They are separate from Electron app-internal IPC APIs.
+WindieOS SDK docs cover the canonical client runtime for hosted backend access and local sidecar execution. Electron, future CLIs, and SDK users should share this runtime instead of owning separate backend websocket loops.
 
 ## SDK Pages
 
 - [Hosted Backend Clients](hosted_backend_clients.md)
+- [WindieClient Runtime Contract](windie_client_runtime.md)
 - [Agent Definition Contract](agent_definition.md)
 - [SDK Route Change Workflow](sdk_route_change_workflow.md)
 - [SDK Auth and Error Handling](sdk_auth_and_error_handling.md)
@@ -36,4 +37,4 @@ WindieOS SDK docs cover direct backend integration. They are separate from Elect
 
 ## Rule
 
-Use SDK clients for hosted backend capabilities. Do not use them as shortcuts for local machine-touching sidecar tools; local tool execution belongs to the desktop app and sidecar runtime.
+Use `WindieClient.wakeUp(...)` for agent sessions. The SDK runtime owns the hosted backend websocket and delegates local execution to the sidecar daemon. The backend remains the owner of model lists, provider policy, OCR/vision availability, and paid capability gates.

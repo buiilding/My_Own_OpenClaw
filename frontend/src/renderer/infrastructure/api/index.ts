@@ -1,5 +1,9 @@
 export { ApiClient } from './client';
 export {
+  moduleTool,
+  SidecarDaemonHttpClient,
+  WindieAgent,
+  WindieClient,
   WindieAgentSession,
   WindieSdkClient,
 } from './windieSdkClient';
@@ -39,10 +43,18 @@ export type {
   SdkVisionOverlayRequest,
   SdkVisionTarget,
   ToolSchema,
+  SidecarDaemonClientOptions,
+  WindieClientOptions,
   WindieAgentConnectOptions,
   WindieAgentQueryInput,
   WindieAgentTraceOptions,
   WindieAgentTrace,
+  WindieLocalRuntimeClient,
+  WindieMcpDefinition,
+  WindiePluginDefinition,
+  WindieSkillDefinition,
   WindieSdkClientOptions,
   WindieSdkQueryOptions,
+  WindieToolDefinition,
+  WindieWakeUpOptions,
 } from './windieSdkClient';

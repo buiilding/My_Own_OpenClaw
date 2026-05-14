@@ -10,7 +10,8 @@ title: "WebSocket Handshake and Settings Sync Reference"
 
 ## Canonical Modules
 
-- `frontend/src/main/ipc.cjs`
+- SDK runtime: `frontend/src/renderer/infrastructure/api/windieSdkClient.ts`
+- Electron adapter: `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
@@ -53,7 +54,11 @@ Relay state keeps:
 
 This means packaged-vs-dev fallback selection is determined at IPC bridge initialization time, not only process boot.
 
-## Connection Lifecycle (`connect`)
+## Ownership Direction
+
+The SDK runtime is the canonical owner of backend websocket sessions. Electron main should use the SDK runtime for connect/reconnect, handshake, query, stop, settings, event parsing, event fan-out, and local tool-call routing. Electron-specific code remains responsible for windows, overlays, renderer IPC, settings UI, permission prompts, and platform display/screenshot integration.
+
+## Legacy Connection Lifecycle (`connect`)
 
 Guard:
 
