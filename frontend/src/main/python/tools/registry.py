@@ -11,6 +11,7 @@ import logging
 from typing import Any, Callable, Dict
 
 from tools.exposed_tool_names import EXPOSED_TO_BACKEND_TOOL_NAMES
+from tools.extension_loader import load_sidecar_extension_tools
 from tools.manifest import build_sidecar_tool_manifest
 from tools.result import ToolResult
 
@@ -41,6 +42,7 @@ class ToolRegistry:
 
     def __init__(self):
         self.tools: Dict[str, Callable[..., Any]] = {}
+        self.extension_execution_schemas: Dict[str, Dict[str, Any]] = {}
         self._register_tools()
 
     def has_tool(self, tool_name: str) -> bool:
@@ -48,6 +50,7 @@ class ToolRegistry:
 
     def reload_tools(self) -> None:
         self.tools.clear()
+        self.extension_execution_schemas.clear()
         self._register_tools()
 
     def _register_tools(self):
@@ -69,6 +72,8 @@ class ToolRegistry:
         except ImportError as e:
             logger.warning(f"Failed to import window_tool: {e}")
 
+        self._register_extension_tools()
+
         missing_exposed_tools = EXPOSED_TO_BACKEND_TOOL_NAMES - set(self.tools.keys())
         if missing_exposed_tools:
             logger.warning(
@@ -80,6 +85,26 @@ class ToolRegistry:
             f"Registered {len(self.tools)} tools: {', '.join(self.tools.keys())}"
         )
 
+    def _register_extension_tools(self) -> None:
+        loaded_extensions = load_sidecar_extension_tools()
+        for error in loaded_extensions.errors:
+            logger.warning(
+                "Failed to load extension tool from %s: %s",
+                error.get("extension", "unknown"),
+                error.get("reason", "unknown error"),
+            )
+
+        for tool_name, loaded_tool in loaded_extensions.tools.items():
+            if tool_name in self.tools:
+                logger.warning(
+                    "Skipping extension tool %s from %s because a built-in tool already uses that name",
+                    tool_name,
+                    loaded_tool.extension_id,
+                )
+                continue
+            self.tools[tool_name] = loaded_tool.handler
+            self.extension_execution_schemas[tool_name] = loaded_tool.execution_schema
+
     @staticmethod
     def get_exposed_tool_names() -> set[str]:
         """Return sidecar tools that are expected to be exposed by backend schemas."""
@@ -87,8 +112,18 @@ class ToolRegistry:
 
     def get_tool_manifest(self) -> dict[str, Any]:
         """Return executable schemas for tools currently registered in the sidecar."""
-        exposed_registered_tools = EXPOSED_TO_BACKEND_TOOL_NAMES & set(self.tools.keys())
-        return build_sidecar_tool_manifest(exposed_registered_tools)
+        exposed_registered_tools = EXPOSED_TO_BACKEND_TOOL_NAMES & set(
+            self.tools.keys()
+        )
+        registered_extension_schemas = {
+            tool_name: schema
+            for tool_name, schema in self.extension_execution_schemas.items()
+            if tool_name in self.tools
+        }
+        return build_sidecar_tool_manifest(
+            exposed_registered_tools,
+            extension_execution_schemas=registered_extension_schemas,
+        )
 
     @staticmethod
     def _build_lazy_tool(module_name: str, attr_name: str) -> Callable[..., Any]:

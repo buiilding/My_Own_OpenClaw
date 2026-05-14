@@ -12,6 +12,7 @@ function writeExtension() {
   const extensionsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-extension-loader-'));
   const extensionDir = path.join(extensionsDir, 'notes');
   fs.mkdirSync(path.join(extensionDir, 'tools'), { recursive: true });
+  fs.mkdirSync(path.join(extensionDir, 'python'), { recursive: true });
   fs.writeFileSync(
     path.join(extensionDir, 'tools', 'note.schema.json'),
     JSON.stringify({
@@ -21,6 +22,7 @@ function writeExtension() {
       additionalProperties: false,
     }),
   );
+  fs.writeFileSync(path.join(extensionDir, 'python', 'save_note.py'), 'def run(args):\n  return {}\n');
   fs.writeFileSync(path.join(extensionDir, 'guidance.md'), 'Prefer notes from this extension.');
   fs.writeFileSync(
     path.join(extensionDir, 'extension.json'),
@@ -30,6 +32,7 @@ function writeExtension() {
       tools: [{
         name: 'save_note',
         description: 'Save a local note.',
+        entrypoint: 'python/save_note.py:run',
         model_schema: 'tools/note.schema.json',
         execution_schema: 'tools/note.schema.json',
       }],
@@ -74,5 +77,33 @@ describe('extension manifest loader', () => {
         content: 'Prefer notes from this extension.',
       },
     ]);
+  });
+
+  test('does not expose sidecar extension tools without an entrypoint', () => {
+    const extensionsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-extension-loader-'));
+    const extensionDir = path.join(extensionsDir, 'broken');
+    fs.mkdirSync(path.join(extensionDir, 'tools'), { recursive: true });
+    fs.writeFileSync(
+      path.join(extensionDir, 'tools', 'tool.schema.json'),
+      JSON.stringify({
+        type: 'object',
+        properties: {},
+        additionalProperties: false,
+      }),
+    );
+    fs.writeFileSync(
+      path.join(extensionDir, 'extension.json'),
+      JSON.stringify({
+        id: 'broken',
+        tools: [{
+          name: 'missing_entrypoint',
+          description: 'Should not load.',
+          model_schema: 'tools/tool.schema.json',
+          execution_schema: 'tools/tool.schema.json',
+        }],
+      }),
+    );
+
+    expect(loadExtensionTools({ extensionsDir })).toEqual([]);
   });
 });

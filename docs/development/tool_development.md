@@ -34,6 +34,8 @@ This guide documents the current tool API and registration flow.
 - Sidecar tool registry: `frontend/src/main/python/tools/registry.py`
 - Sidecar executable schema export:
   `frontend/src/main/python/tools/manifest.py`
+- Sidecar extension tool loader:
+  `frontend/src/main/python/tools/extension_loader.py`
 - Client model-facing manifest builder:
   `frontend/src/main/tool_manifest.cjs`
 - Extension manifest loader:
@@ -50,6 +52,11 @@ Current runtime note:
 - extension tools can put model-facing and executable schema JSON under
   `extensions/<id>/tools/` and reference those files from
   `extensions/<id>/extension.json`
+- extension tools can put executable Python under `extensions/<id>/python/`
+  and reference it as `entrypoint: "python/file.py:function"` from
+  `extension.json`
+- ordinary extensions do not edit the built-in sidecar registry or executable
+  manifest modules
 - repo-local `model-facing/tool_schema.txt` still documents unified `computer_use` and `system_use` envelopes, but those wrapper names are not current backend or sidecar registry entries
 
 ## Current SDK Pattern
@@ -137,7 +144,8 @@ class RemoteMyTool(RemoteToolBase, Tool[MyRemoteToolArgs]):
 
 ### 4. Implement sidecar execution handler
 
-Create sidecar implementation in `frontend/src/main/python/tools/...`.
+For a built-in tool, create sidecar implementation in
+`frontend/src/main/python/tools/...`.
 
 ```python
 from typing import Any
@@ -160,11 +168,16 @@ async def execute_my_remote_tool(args: dict[str, Any]) -> dict[str, Any]:
         }
 ```
 
-### 5. Register sidecar handler + exposure
+### 5. Register built-in sidecar handler + exposure
 
-In `frontend/src/main/python/tools/registry.py`:
+For built-ins, update `frontend/src/main/python/tools/registry.py`:
 - Add the tool to `TOOL_CATALOG` (or the explicit `switch_window` / `get_open_windows` registration path when appropriate).
 - Add tool name to `frontend/src/main/python/tools/exposed_tool_names.py` if it should be LLM-callable from the backend.
+
+For extension tools, do not edit built-in registry files. Add the Python
+entrypoint, model-facing schema, and executable schema to
+`extensions/<id>/extension.json`; Electron main forwards the schema manifest and
+the sidecar loads the executable entrypoint.
 
 ### 6. Validate drift contract
 
@@ -226,10 +239,14 @@ If you add backend-only tools, document the wiring point in the same PR.
 
 ### Tool not visible to model
 
-1. Confirm backend stub is present in `backend/src/tools/tool_catalog.py` and `backend/src/tools/remote.py` exports.
-2. Confirm sidecar tool is listed in `frontend/src/main/python/tools/exposed_tool_names.py`.
-3. Confirm handler is registered in sidecar `ToolRegistry`.
-4. Run remote contract test.
+1. For backend-owned tools, confirm backend stub is present in
+   `backend/src/tools/tool_catalog.py` and `backend/src/tools/remote.py` exports.
+2. For built-in sidecar tools, confirm the tool is listed in
+   `frontend/src/main/python/tools/exposed_tool_names.py`.
+3. For extension sidecar tools, confirm `extension.json` has `model_schema`,
+   `execution_schema`, and `entrypoint`.
+4. Confirm handler is registered in sidecar `ToolRegistry`.
+5. Run remote contract or extension manifest tests for the changed path.
 
 ### Tool executes but fails in sidecar
 

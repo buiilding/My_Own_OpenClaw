@@ -12,6 +12,7 @@ function makeExtensionDir() {
   const extensionsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-extensions-'));
   const extensionDir = path.join(extensionsDir, 'demo-extension');
   fs.mkdirSync(path.join(extensionDir, 'tools'), { recursive: true });
+  fs.mkdirSync(path.join(extensionDir, 'python'), { recursive: true });
   fs.writeFileSync(
     path.join(extensionDir, 'tools', 'demo.model.schema.json'),
     JSON.stringify({
@@ -30,6 +31,7 @@ function makeExtensionDir() {
       additionalProperties: false,
     }),
   );
+  fs.writeFileSync(path.join(extensionDir, 'python', 'demo_tool.py'), 'def run(args):\n  return {}\n');
   fs.writeFileSync(
     path.join(extensionDir, 'extension.json'),
     JSON.stringify({
@@ -38,6 +40,7 @@ function makeExtensionDir() {
       tools: [{
         name: 'demo_tool',
         description: 'Demo extension tool.',
+        entrypoint: 'python/demo_tool.py:run',
         model_schema: 'tools/demo.model.schema.json',
         execution_schema: 'tools/demo.execution.schema.json',
         argument_resolution: 'passthrough',

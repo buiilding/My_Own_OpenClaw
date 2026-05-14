@@ -20,6 +20,7 @@ extensions/
   my-extension/
     extension.json
     tools/
+    python/
     ui/
     docs/
 ```
@@ -35,6 +36,7 @@ Example `extension.json`:
     {
       "name": "my_tool",
       "description": "Run my local workflow.",
+      "entrypoint": "python/my_tool.py:run",
       "model_schema": "tools/my_tool.model.schema.json",
       "execution_schema": "tools/my_tool.execution.schema.json",
       "argument_resolution": "passthrough"
@@ -54,19 +56,44 @@ Example `extension.json`:
 
 The loader contributes extension tools to `client_tool_manifest` and extension
 prompt layers to `client_prompt_layers`. Schema paths and `content_path` are
-resolved relative to the extension directory.
+resolved relative to the extension directory. The Python sidecar also reads the
+same manifests and loads each sidecar tool `entrypoint`. For sidecar tools,
+Electron only advertises entries whose `entrypoint` points to an existing file
+inside the extension directory.
 
-Extension tool code still needs a sidecar implementation:
+Extension tool code should live inside the extension:
 
-1. Implement the local tool under `frontend/src/main/python/tools/`.
-2. Register it with the sidecar registry.
-3. Add executable schema export coverage in
-   `frontend/src/main/python/tools/manifest.py`.
-4. Add model-facing and executable schema files under the extension `tools/`
-   directory, referenced by `extension.json`.
-5. Add or update docs under the extension `docs/` directory and the relevant
+```python
+from tools.result import ToolResult
+
+
+async def run(args):
+    value = args.get("value", "")
+    if not value:
+        return ToolResult.error_result("value is required")
+    return ToolResult.success_result(
+        {
+            "llm_content": f"Processed: {value}",
+            "return_display": "Processed",
+        }
+    )
+```
+
+Normal extension tools should not edit `frontend/src/main/python/tools/registry.py`
+or `frontend/src/main/python/tools/manifest.py`. Those files are for built-in
+tool wiring. Use core sidecar edits only when changing a built-in tool or adding
+a shared sidecar primitive.
+
+Extension checklist:
+
+1. Add model-facing and executable schema files under the extension `tools/`
+   directory.
+2. Add executable Python code under the extension `python/` directory.
+3. Reference the schemas and `file.py:function` entrypoint from
+   `extension.json`.
+4. Add or update docs under the extension `docs/` directory and the relevant
    canonical docs.
-6. Add tests for the manifest builder, sidecar schema export, and execution
+5. Add tests for the manifest builder, sidecar extension loading, and execution
    path.
 
 Use `passthrough` when model arguments are executable sidecar arguments. Use

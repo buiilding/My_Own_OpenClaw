@@ -20,6 +20,15 @@ function readJsonFile(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+function resolveInsideExtension(extensionDir, rawPath) {
+  const resolvedPath = path.resolve(extensionDir, rawPath);
+  const relativePath = path.relative(extensionDir, resolvedPath);
+  if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+    throw new Error('Extension paths must stay inside the extension directory.');
+  }
+  return resolvedPath;
+}
+
 function readSchemaValue(value, extensionDir) {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     return value;
@@ -27,8 +36,23 @@ function readSchemaValue(value, extensionDir) {
   if (typeof value !== 'string' || !value.trim()) {
     return null;
   }
-  const schemaPath = path.resolve(extensionDir, value.trim());
+  const schemaPath = resolveInsideExtension(extensionDir, value.trim());
   return readJsonFile(schemaPath);
+}
+
+function hasSidecarEntrypoint(entrypoint, extensionDir) {
+  if (typeof entrypoint !== 'string' || !entrypoint.trim() || !entrypoint.includes(':')) {
+    return false;
+  }
+  const [rawFilePath, rawFunctionName] = entrypoint.split(':', 2);
+  if (!rawFilePath.trim() || !rawFunctionName.trim()) {
+    return false;
+  }
+  try {
+    return fs.statSync(resolveInsideExtension(extensionDir, rawFilePath.trim())).isFile();
+  } catch (_error) {
+    return false;
+  }
 }
 
 function readPromptLayer(layer, extensionDir, extensionId, index) {
@@ -37,7 +61,7 @@ function readPromptLayer(layer, extensionDir, extensionId, index) {
   }
   let content = typeof layer.content === 'string' ? layer.content : '';
   if (!content && typeof layer.content_path === 'string' && layer.content_path.trim()) {
-    content = fs.readFileSync(path.resolve(extensionDir, layer.content_path.trim()), 'utf8');
+    content = fs.readFileSync(resolveInsideExtension(extensionDir, layer.content_path.trim()), 'utf8');
   }
   content = content.trim();
   if (!content) {
@@ -68,9 +92,14 @@ function loadExtension(entryDir) {
       continue;
     }
     const name = typeof rawTool.name === 'string' ? rawTool.name.trim() : '';
+    const executionTarget = rawTool.execution_target === 'backend' ? 'backend' : 'sidecar';
+    const entrypoint = typeof rawTool.entrypoint === 'string' ? rawTool.entrypoint.trim() : '';
     const modelSchema = readSchemaValue(rawTool.model_schema, entryDir);
     const executionSchema = readSchemaValue(rawTool.execution_schema || rawTool.model_schema, entryDir);
     if (!name || !modelSchema || !executionSchema) {
+      continue;
+    }
+    if (executionTarget === 'sidecar' && !hasSidecarEntrypoint(entrypoint, entryDir)) {
       continue;
     }
     tools.push({
@@ -78,7 +107,7 @@ function loadExtension(entryDir) {
       description: typeof rawTool.description === 'string' && rawTool.description.trim()
         ? rawTool.description.trim()
         : `Extension tool from ${extensionId}.`,
-      execution_target: rawTool.execution_target === 'backend' ? 'backend' : 'sidecar',
+      execution_target: executionTarget,
       model_schema: modelSchema,
       execution_schema: executionSchema,
       argument_resolution: rawTool.argument_resolution === 'backend_grounding'

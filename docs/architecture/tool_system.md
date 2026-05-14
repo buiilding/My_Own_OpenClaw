@@ -83,7 +83,8 @@ Catalog-driven declaration contract:
 
 - backend `backend/src/tools/tool_catalog.py` is the source of truth for backend-owned remote tools and backend policy
 - frontend `frontend/src/main/tool_manifest.cjs` is the source of truth for built-in client-local model-facing and executable schemas
-- extension schema contributions are loaded from `extensions/*/extension.json`
+- extension schema contributions are loaded by Electron main from `extensions/*/extension.json`
+- extension Python entrypoints are loaded by the sidecar from `extensions/*/extension.json`
 - backend validates accepted/rejected client manifest entries before prompt construction
 - backend `tool_catalog.py` now builds canonical tool specs and remote stub classes together through one builder path; `ToolRegistry` consumes those prebuilt specs instead of deriving schemas from live tool instances
 - model visibility, declaration assembly, and runtime lookup all project from the same registered tool names
@@ -325,9 +326,10 @@ async def execute_my_tool(args: Dict[str, Any]) -> Dict[str, Any]:
 Tools are automatically registered:
 
 1. **Backend remote stubs**: Declared once in `backend/src/tools/tool_catalog.py`, instantiated by `backend/src/tools/registry.py`, and re-exported through `backend/src/tools/remote.py`.
-2. **Sidecar executors**: Registered in `frontend/src/main/python/tools/registry.py`.
-3. **LLM-callable sidecar subset**: Explicitly declared in `frontend/src/main/python/tools/exposed_tool_names.py` as `EXPOSED_TO_BACKEND_TOOL_NAMES`.
-4. **Backend-only tools**: Explicitly wired in `backend/src/tools/registry.py:_register_backend_tools()`.
+2. **Built-in sidecar executors**: Registered in `frontend/src/main/python/tools/registry.py`.
+3. **Extension sidecar executors**: Declared with `entrypoint` in `extensions/<id>/extension.json` and loaded by `frontend/src/main/python/tools/extension_loader.py`.
+4. **LLM-callable built-in sidecar subset**: Explicitly declared in `frontend/src/main/python/tools/exposed_tool_names.py` as `EXPOSED_TO_BACKEND_TOOL_NAMES`.
+5. **Backend-only tools**: Explicitly wired in `backend/src/tools/registry.py:_register_backend_tools()`.
    - `web_search` is the current backend-owned logical tool and can be fulfilled either by provider-native search or a backend Brave Search fallback.
 
 ## Coordinate Resolution
@@ -592,8 +594,10 @@ async def test_tool_execution_flow():
 
 1. Create tool class inheriting from `Tool`
 2. Add the remote stub entry in `backend/src/tools/tool_catalog.py`
-3. Add sidecar implementation + sidecar registry wiring
-4. Keep `frontend/src/main/python/tools/exposed_tool_names.py` in sync for LLM-callable tools
+3. Add built-in sidecar implementation + sidecar registry wiring, or add an
+   extension Python entrypoint in `extensions/<id>/extension.json`
+4. Keep `frontend/src/main/python/tools/exposed_tool_names.py` in sync for
+   LLM-callable built-in tools
 
 ---
 

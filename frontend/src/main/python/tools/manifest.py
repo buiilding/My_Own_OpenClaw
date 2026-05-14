@@ -52,9 +52,15 @@ def _clean_schema(schema: Any) -> Any:
         if key == "$ref":
             continue
         if key == "anyOf":
-            non_null = [
-                item for item in value if isinstance(item, dict) and item.get("type") != "null"
-            ] if isinstance(value, list) else []
+            non_null = (
+                [
+                    item
+                    for item in value
+                    if isinstance(item, dict) and item.get("type") != "null"
+                ]
+                if isinstance(value, list)
+                else []
+            )
             if len(non_null) == 1:
                 cleaned.update(_clean_schema(non_null[0]))
             else:
@@ -75,12 +81,24 @@ def build_execution_schema(tool_name: str) -> dict[str, Any] | None:
     return schema
 
 
-def build_sidecar_tool_manifest(tool_names: set[str] | list[str]) -> dict[str, Any]:
+def build_sidecar_tool_manifest(
+    tool_names: set[str] | list[str],
+    extension_execution_schemas: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     tools = []
     for tool_name in sorted(tool_names):
         execution_schema = build_execution_schema(tool_name)
         if execution_schema is None:
             continue
+        tools.append(
+            {
+                "name": tool_name,
+                "execution_schema": execution_schema,
+            }
+        )
+    for tool_name, execution_schema in sorted(
+        (extension_execution_schemas or {}).items()
+    ):
         tools.append(
             {
                 "name": tool_name,
