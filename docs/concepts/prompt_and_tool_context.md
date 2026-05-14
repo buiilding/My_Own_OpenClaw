@@ -10,6 +10,8 @@ title: "Prompt and Tool Context"
 
 The hosted backend owns model-facing prompt construction. The desktop app contributes context, but it should not decide the final prompt or model-visible tool schema.
 
+Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_data_pipeline.md) when tracing what the model saw versus what the renderer displayed, what Electron main forwarded, or what the sidecar executed.
+
 ## Prompt Inputs
 
 | Input | Producer | Purpose |
@@ -22,6 +24,26 @@ The hosted backend owns model-facing prompt construction. The desktop app contri
 | screenshots/artifacts | renderer capture/upload and backend artifact store | visual/multimodal context and durable replay refs |
 | tool schemas | backend tool registry, policy, provider projection | model-visible capabilities for the current session |
 | capability/provider health | backend policy/config | hides unavailable tools or coordinate methods before prompting |
+
+## Model-Visible Assembly Order
+
+`PromptConstructor.build_prompt()` returns three values that should stay aligned: prompt messages, model-visible tool schemas, and prompt metadata for transparency events.
+
+The model-visible message list is assembled in this order:
+
+1. repo instruction messages from desktop-forwarded `repo_instruction_messages` or backend workspace discovery
+2. client prompt layers sorted by numeric `priority`
+3. stored backend conversation history, including the current user query content and prior provider-safe tool rows
+
+The backend system prompt is stored separately as `PromptMetadata.system_prompt` and included by the provider request path. Do not assume renderer message rows are the prompt. Renderer rows are display projections; backend history and prompt constructor output are what the model can actually see.
+
+| Stage | Model-visible shape | Owner files | Drift check |
+| --- | --- | --- | --- |
+| system prompt | rendered system prompt text after OS/coordinate-method filtering | `backend/src/llm/prompts/prompts.py`, `backend/src/llm/prompts/system_prompt.txt` | If prompt text mentions a capability, prove the tool/policy/provider path supports it. |
+| repo instructions | `{"role": "user", "content": ...}` messages ordered broad-to-specific | `backend/src/llm/prompts/repo_instructions.py`, Electron repo instruction runtime | Do not reconstruct local `AGENTS.md` in renderer UI as if that were backend truth. |
+| client prompt layers | user-role messages wrapped in `<CLIENT_PROMPT_LAYER type="...">` after priority sort | `backend/src/llm/prompts/prompt_constructor.py`, session config runtime | Do not add a layer unless it needs priority, provenance, and transparency metadata. |
+| stored history | backend-rendered message history from `ConversationHistory.get_history()` | `backend/src/agent/session/state.py`, `backend/src/agent/history` | Visible transcript can differ, but backend history must remain provider-replay-safe. |
+| current user content | XML-like memory, attachment, system-state, and `<user_query>` sections inside the latest user message | `frontend/src/main/query_payload_builder.cjs`, backend query execution inputs | Hidden context should be intentional and visible through transparency metadata. |
 
 ## Tool Visibility Rule
 
@@ -37,6 +59,25 @@ That means tool schema visibility is narrowed by:
 
 The sidecar executable registry is intentionally separate. Parity is enforced through contracts and tests, not imports from backend into frontend or sidecar.
 
+## Tool Schema Projection Path
+
+Tool schemas are not copied directly from the registry into the model request. The backend pipeline is:
+
+1. read registry model tool names or declarations
+2. remove disabled, interaction-disallowed, and dev-selection-pruned tools
+3. merge valid client tool schemas while avoiding duplicate tool names
+4. apply centralized tool policy filtering
+5. project schemas for the active provider
+6. reapply selection pruning after provider projection so provider-native non-function tools can survive while disabled helper fields do not leak
+
+| Boundary | Shape | Owner files | Question before adding another adapter |
+| --- | --- | --- | --- |
+| registry -> policy | canonical backend tool declarations | `backend/src/tools`, `backend/src/tools/tool_policy.py` | Is this a model-facing capability, or only a sidecar executable helper? |
+| policy -> provider projection | filtered function/computer schemas | `backend/src/tools/provider_projection.py`, provider adapters | Does the provider require this dialect, or are we working around a local parser bug? |
+| provider request -> parser | provider-native tool call chunks | `backend/src/agent/llm`, `backend/src/llm/parser_types.py` | Can the parser preserve the original model intent and IDs? |
+| backend event -> renderer execution | executable tool event payload | `backend/src/api/processing/formatters`, `frontend/src/renderer/infrastructure/services/toolExecution` | Are model-facing args and executable args being confused? |
+| renderer/main -> sidecar | IPC/JSON-RPC executable params | `frontend/src/main/local_backend_bridge*.cjs`, `frontend/src/main/python/tools` | Is this the single JS/Python boundary mapper, or duplicated fallback logic? |
+
 ## Transparency Events
 
 On the first interaction-loop iteration, backend prompt metadata can be streamed to the renderer:
@@ -46,6 +87,14 @@ On the first interaction-loop iteration, backend prompt metadata can be streamed
 3. `tool-schemas`
 
 These are diagnostic UI events. They should reflect what the backend prepared, not a renderer reconstruction.
+
+`ConversationContext` caches tool schemas and prompt metadata from the first iteration. Later loop iterations use history directly but still carry the cached metadata for diagnostics. If transparency appears stale, first check whether the behavior is a first-iteration contract issue or a later history-update issue.
+
+| Transparency event | Source metadata | Must match |
+| --- | --- | --- |
+| `system-prompt` | `PromptMetadata.system_prompt` plus client prompt layer metadata | rendered backend system prompt and accepted prompt layers |
+| `user-message-full` | `UserMessageMetadata.full_content` and extracted context metadata | backend-built user content, not the visible chat row |
+| `tool-schemas` | validated `PromptMetadata.tool_schemas` | model-visible tool schemas after policy and provider projection |
 
 ## Repo Instruction Rule
 
@@ -60,6 +109,20 @@ Keep ordering broad-to-specific so nested repo instructions can override parent 
 - Do not expose a provider-native tool field unless the provider and parser path support it.
 - Do not let frontend settings broaden backend model-visible tools without backend validation.
 - When prompt metadata field names change, update backend event schemas and frontend transparency consumers together.
+- Do not add prompt layers that only duplicate repo instructions, visible transcript text, or backend history. Add a layer only when it has a distinct producer, priority, and removal condition.
+- Do not patch missing model context by adding renderer-only display state. Fix the query payload, backend prompt constructor, or backend history source.
+
+## Layer Removal Checks
+
+Question the design when:
+
+- the same context is present in both a client prompt layer and stored conversation history
+- renderer transparency UI contains data that backend metadata did not emit
+- a provider projection rewrites schema semantics instead of only changing provider dialect
+- a tool schema is visible but no sidecar or remote executor can satisfy it
+- memory context is embedded in user content and also injected by a backend prompt path
+- repo instructions are forwarded by Electron main and rediscovered by backend without deterministic precedence
+- generated prompt/schema artifacts differ from the live prompt constructor output
 
 ## Debug Routing
 
@@ -70,11 +133,14 @@ Keep ordering broad-to-specific so nested repo instructions can override parent 
 | tool visible but sidecar cannot execute it | backend-sidecar parity tests and sidecar exposed-tool registry |
 | transparency panel missing tool schemas | backend prompt metadata event emission and frontend transparency handlers |
 | screenshot shown in UI but not useful to model | artifact upload refs, query payload screenshot context, backend artifact fetch path |
+| model saw stale or duplicate context | `PromptConstructor._build_prompt_messages`, client prompt layers, and backend history rendering |
+| transparency differs from model behavior | first-iteration `ConversationContext` metadata cache and `EventPresenter.present_prompt_metadata` |
 
 ## Deep Docs
 
 - [Agent Loop](agent_loop.md)
 - [Context and Memory](context_and_memory.md)
+- [Agent-Visible Data Pipeline](../architecture/agent_visible_data_pipeline.md)
 - [Safety Boundaries](safety_boundaries.md)
 - [Backend Prompt Context Change Workflow](../backend/llm/prompts/prompt_context_change_workflow.md)
 - [Backend Prompt Constructor and Transparency Metadata Reference](../backend/llm/prompts/prompt_constructor_and_transparency_metadata_reference.md)

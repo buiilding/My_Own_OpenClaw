@@ -35,6 +35,9 @@ Do not patch prompt problems in renderer display code or sidecar runtime argumen
 - Repo instruction order must stay broad-to-specific so nested instructions can override parent guidance.
 - Do not hand-edit generated prompt/schema artifacts when a live generation path exists; regenerate them from the prompt path and document the command used.
 - Prompt metadata events should stay deterministic and first-iteration-only unless the interaction-loop contract intentionally changes.
+- Prompt messages, tool schemas, and prompt metadata are one contract. If one changes, check the other two for drift.
+- Client prompt layers need a distinct producer, priority, and reason to exist. Do not use them as a generic place to duplicate transcript text, repo instructions, or settings state.
+- Provider projection may change schema dialect, but it must not silently change the model-facing tool semantics.
 
 ## Change Sequence
 
@@ -45,6 +48,22 @@ Do not patch prompt problems in renderer display code or sidecar runtime argumen
 5. **Regenerate generated artifacts when necessary.** Refresh `prompts/schema.txt` from the live prompt path instead of editing it by hand.
 6. **Update tests at each changed boundary.** Prompt constructor tests for message assembly, tool schema tests for visibility, event/formatter tests for metadata, frontend tests only when consumer rendering changes.
 7. **Update docs and changelog.** Prompt changes affect agent behavior, so leave an explicit trail.
+
+## Prompt Data Shape Walkthrough
+
+When debugging prompt drift, inspect the shapes in this order:
+
+| Shape | Producer | Consumer | Drift check |
+| --- | --- | --- | --- |
+| rendered system prompt | `PromptManager.render_system_prompt()` | provider request path and `system-prompt` transparency event | OS and coordinate-method filtering should match active config. |
+| repo instruction messages | Electron forwarded payload or `resolve_workspace_repo_instruction_messages()` | `PromptConstructor._build_prompt_messages()` | Broad-to-specific order should be deterministic and not duplicated. |
+| client prompt layers | session runtime config | `PromptConstructor._get_client_prompt_layer_messages()` | Layers sort by `priority` and become user-role messages with explicit layer tags. |
+| stored history | `ConversationHistory.get_history()` | first and later provider prompt iterations | History must keep provider-safe tool-call/tool-output structure. |
+| current user content | Electron query payload builder and backend query inputs | stored history and `user-message-full` transparency | Hidden memory/attachment sections should match backend metadata. |
+| tool schemas | registry, client schemas, tool policy, provider projection | provider request and `tool-schemas` transparency | Tool visibility must match policy, provider support, and executable runtime support. |
+| prompt metadata | `PromptMetadata` and `UserMessageMetadata` | `EventPresenter.present_prompt_metadata()` | Metadata should describe actual prompt constructor output, not renderer display state. |
+
+If the bad shape appears first in a consumer, keep tracing backward until the producer that first created that shape. Most unnecessary layers are adapters that copy a bad shape forward instead of fixing the producer.
 
 ## System Prompt Checklist
 
@@ -61,6 +80,7 @@ When changing `system_prompt.txt` or prompt manager behavior:
 When changing model-visible tools:
 
 - Update backend canonical schema owner and policy gates.
+- Check whether the tool is a registry tool, a client tool schema, a provider-native projection, or a sidecar-only executable helper before choosing the owner.
 - Check provider-specific projection and parser compatibility.
 - Check capability/provider health gates so unavailable tools stay hidden.
 - Update transparency formatter/schema tests for `tool-schemas`.
@@ -86,6 +106,17 @@ When changing prompt metadata events:
 - Avoid emitting duplicate first-turn metadata on later loop iterations.
 - Update frontend transparency consumers only if payload fields or event names change.
 - Update [WebSocket Event Reference](../../../reference/websocket_event_reference.md) when event contracts change.
+- If a later tool turn appears to use stale transparency metadata, distinguish cached first-iteration metadata from live backend history before changing event emission.
+
+## Redundant Layer Checks
+
+Before adding a mapper, layer, or fallback:
+
+- Does this context already exist in stored history, repo instructions, memory sections, or a client prompt layer?
+- Is the renderer displaying backend-emitted metadata, or reconstructing a local approximation?
+- Is the provider projection only adapting dialect, or changing semantics that should belong in canonical schema/policy?
+- Does the sidecar executable payload need different fields because of the JS/Python boundary, or because upstream schema is vague?
+- Can a test prove the exact model-visible prompt/tool shape instead of relying on UI output?
 
 ## Validation Matrix
 
@@ -115,6 +146,7 @@ Before committing prompt/context work:
 
 - [Backend LLM Prompt Docs Hub](README.md)
 - [Prompt and Tool Context](../../../concepts/prompt_and_tool_context.md)
+- [Agent-Visible Data Pipeline](../../../architecture/agent_visible_data_pipeline.md)
 - [Prompt Constructor and Transparency Metadata Reference](prompt_constructor_and_transparency_metadata_reference.md)
 - [Conversation Context and Event Presenter Reference](../../agent/llm/conversation_context_and_event_presenter_prompt_metadata_reference.md)
 - [Tool Policy Profiles and Capabilities](../../../tools/tool_policy_profiles_and_capabilities.md)

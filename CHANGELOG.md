@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(prompts): expand prompt and tool context docs with model-visible assembly order, tool schema projection path, transparency metadata contracts, and redundant-layer checks.
 - extensions: keep `name`, `schema`, and Python `entrypoint` as the canonical long-term tool extension API.
 - sidecar: dynamically load extension Python entrypoints from `extensions/*/extension.json` so extension tools no longer require built-in registry edits.
 - frontend: migrate Windie Agent client-manifest, extension-loader, Agent settings, mock backend, and sidecar schema export work back into the full WindieOS repo.
