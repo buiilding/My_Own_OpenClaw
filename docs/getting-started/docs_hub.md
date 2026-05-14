@@ -55,6 +55,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Credentials and Tokens Matrix](../security/credentials_and_tokens_matrix.md) for install tokens, runs keys, provider keys, OAuth state, and sidecar remote-client auth.
 - [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) for install auth, REST bearer tokens, websocket auth, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging changes.
 - [Plugins and Extensions Hub](../plugins/README.md) for current extension points and future plugin-system boundaries.
+- [Extension Convention](../development/extensions.md) for reusable local sidecar tool schemas, prompt layers, and extension docs.
 - [Automation Hub](../automation/README.md) for VM run orchestration, worker polling, run-control APIs, and scheduler boundaries.
 - [VM Run Control Change Workflow](../automation/vm_run_control_change_workflow.md) for changing `/api/runs/*`, worker heartbeat assignment, event timelines, controls, runs keys, and Electron VM worker dispatch.
 - [Desktop Surfaces](../desktop/README.md) for dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts.

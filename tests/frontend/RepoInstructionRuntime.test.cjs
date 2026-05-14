@@ -6,13 +6,24 @@ const path = require('path');
 
 const {
   buildAgentsMdMessage,
+  buildAgentsMdPromptLayer,
   normalizeWorkspaceDirectory,
   resolveWorkspaceRepoInstructionMessages,
+  resolveWorkspaceRepoInstructionPromptLayers,
 } = require('../../frontend/src/main/repo_instruction_runtime.cjs');
 
 describe('repo_instruction_runtime', () => {
   test('buildAgentsMdMessage returns null for blank contents', () => {
     expect(buildAgentsMdMessage('/tmp/workspace', ' \n ')).toBeNull();
+  });
+
+  test('buildAgentsMdPromptLayer returns prompt layer payload', () => {
+    expect(buildAgentsMdPromptLayer('/tmp/workspace', 'use tests\n', 2)).toEqual({
+      id: 'agents-md:tmp_workspace',
+      type: 'agents_md',
+      priority: 42,
+      content: '# AGENTS.md instructions for /tmp/workspace\n\nuse tests',
+    });
   });
 
   test('normalizeWorkspaceDirectory resolves file paths to their parent directory', () => {
@@ -42,6 +53,22 @@ describe('repo_instruction_runtime', () => {
         role: 'user',
         content: `# AGENTS.md instructions for ${path.join(repoRoot, 'apps')}\n\n<INSTRUCTIONS>\napps instructions\n</INSTRUCTIONS>`,
       },
+    ]);
+  });
+
+  test('resolveWorkspaceRepoInstructionPromptLayers walks from git root to workspace', () => {
+    const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-agents-layers-'));
+    const workspaceDir = path.join(repoRoot, 'apps', 'desktop');
+    fs.mkdirSync(workspaceDir, { recursive: true });
+    fs.mkdirSync(path.join(repoRoot, '.git'));
+    fs.writeFileSync(path.join(repoRoot, 'AGENTS.md'), 'root instructions\n', 'utf8');
+    fs.writeFileSync(path.join(repoRoot, 'apps', 'AGENTS.md'), 'apps instructions\n', 'utf8');
+
+    const layers = resolveWorkspaceRepoInstructionPromptLayers(workspaceDir);
+
+    expect(layers.map((layer) => layer.content)).toEqual([
+      `# AGENTS.md instructions for ${repoRoot}\n\nroot instructions`,
+      `# AGENTS.md instructions for ${path.join(repoRoot, 'apps')}\n\napps instructions`,
     ]);
   });
 });

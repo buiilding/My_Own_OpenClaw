@@ -2,7 +2,9 @@
   display: flex;
   min-width: 0;
   height: 100%;
-  background: var(--ui-panel-bg);
+  background:
+    var(--ui-shell-ambient),
+    var(--ui-shell-bg);
   color: var(--ui-text-primary);
   backdrop-filter: blur(var(--ui-backdrop-blur));
   -webkit-backdrop-filter: blur(var(--ui-backdrop-blur));
@@ -13,6 +15,7 @@
   min-width: 0;
   flex-shrink: 0;
   border-right: 1px solid var(--ui-border-soft);
+  background: rgba(0, 0, 0, 0.24);
   padding: 14px 10px 12px;
 }
 
@@ -74,6 +77,7 @@
   min-width: 0;
   position: relative;
   display: flex;
+  background: rgba(0, 0, 0, 0.12);
 }
 
 .clone-settings-content {
@@ -116,6 +120,113 @@
 
 .clone-settings-row-rich > div {
   min-width: 0;
+}
+
+.clone-settings-row-stack {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.clone-settings-textarea {
+  width: 100%;
+  min-height: 132px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--ui-border-subtle);
+  border-radius: 8px;
+  resize: vertical;
+  background: var(--ui-surface-elevated);
+  color: var(--ui-text-primary);
+  font: inherit;
+  line-height: 1.45;
+}
+
+.clone-settings-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.clone-settings-tool-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--ui-border-subtle);
+  border-radius: 8px;
+  background: var(--ui-surface-elevated);
+}
+
+.clone-settings-tool-card {
+  border: 1px solid var(--ui-border-subtle);
+  border-radius: 8px;
+  background: var(--ui-surface-elevated);
+}
+
+.clone-settings-tool-card .clone-settings-tool-toggle {
+  border: 0;
+  background: transparent;
+}
+
+.clone-settings-tool-toggle span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+  color: var(--ui-text-primary);
+}
+
+.clone-settings-tool-toggle small,
+.clone-settings-tool-status {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--ui-text-muted);
+}
+
+.clone-settings-tool-status {
+  margin: 0;
+  padding: 0 12px 10px;
+}
+
+.clone-settings-tool-status-error {
+  color: color-mix(in srgb, #ff9d90 76%, var(--ui-text-primary) 24%);
+}
+
+.clone-settings-schema-viewer {
+  padding: 0 12px 12px;
+}
+
+.clone-settings-schema-viewer summary {
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--ui-text-muted);
+}
+
+.clone-settings-schema-viewer summary small {
+  display: block;
+  margin-top: 2px;
+  color: var(--ui-text-muted);
+  font-size: 10.5px;
+}
+
+.clone-settings-schema-viewer pre {
+  overflow: auto;
+  max-height: 240px;
+  margin: 8px 0 0;
+  padding: 10px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ui-neutral-black) 80%, transparent 20%);
+  color: var(--ui-text-primary);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.clone-settings-layer-list {
+  display: grid;
+  gap: 10px;
 }
 
 .clone-settings-row-action {
@@ -189,10 +300,10 @@
 }
 
 .clone-settings-primary-button {
-  border: 1px solid color-mix(in srgb, white 68%, var(--ui-border-soft) 32%);
+  border: 1px solid var(--windie-blue);
   border-radius: 999px;
-  background: color-mix(in srgb, white 88%, var(--ui-panel-bg) 12%);
-  color: #0f1115;
+  background: var(--windie-blue);
+  color: #ffffff;
   cursor: pointer;
   flex-shrink: 0;
   font-size: 12px;
@@ -200,10 +311,13 @@
   letter-spacing: 0.01em;
   min-width: 156px;
   padding: 7px 14px;
-  transition: transform 140ms ease, opacity 140ms ease;
+  box-shadow: 0 0 18px -10px var(--windie-blue-glow);
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease, opacity 140ms ease;
 }
 
 .clone-settings-primary-button:hover:not(:disabled) {
+  background: var(--windie-blue-hover);
+  border-color: var(--windie-blue-hover);
   transform: translateY(-1px);
 }
 
@@ -219,7 +333,7 @@
 }
 
 .clone-settings-action-status-success {
-  color: color-mix(in srgb, #8bd29b 72%, var(--ui-text-primary) 28%);
+  color: var(--windie-pale);
 }
 
 .clone-settings-action-status-error {
@@ -271,7 +385,8 @@
 }
 
 .clone-settings-row-tts .clone-settings-select-wrap:hover {
-  border-color: var(--ui-text-dim);
+  border-color: rgba(0, 122, 255, 0.42);
+  background: var(--ui-hover-bg);
 }
 
 .clone-settings-row-tts .clone-settings-select-wrap svg {
@@ -300,7 +415,8 @@
 }
 
 .clone-settings-select-shortcut:hover {
-  border-color: var(--ui-text-dim);
+  border-color: rgba(0, 122, 255, 0.42);
+  background: var(--ui-hover-bg);
 }
 
 .clone-settings-select-shortcut svg {

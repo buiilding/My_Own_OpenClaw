@@ -7,8 +7,10 @@ import {
   Database,
   FolderOpen,
   Sparkles,
+  Bot,
 } from 'lucide-react';
 import PermissionControlCenter from '../../../permissions/components/PermissionControlCenter';
+import AgentSettingsTab from './settings/AgentSettingsTab';
 import BrowserSettingsTab from './settings/BrowserSettingsTab';
 import GeneralSettingsTab from './settings/GeneralSettingsTab';
 import MemorySettingsTab from './settings/MemorySettingsTab';
@@ -18,6 +20,7 @@ import '../../../../styles/CloneSettings.css';
 
 const SETTINGS_TABS = Object.freeze([
   { id: 'general', icon: Settings, label: 'General' },
+  { id: 'agent', icon: Bot, label: 'Agent' },
   { id: 'workspace', icon: FolderOpen, label: 'Workspace' },
   { id: 'browser', icon: Globe, label: 'Browser' },
   { id: 'memory', icon: Database, label: 'Memory' },
@@ -56,6 +59,9 @@ function SettingsSection({
     }
     if (activeTab === 'memory') {
       return <MemorySettingsTab onChatsCleared={onChatsCleared} />;
+    }
+    if (activeTab === 'agent') {
+      return <AgentSettingsTab config={config} onConfigChange={onConfigChange} />;
     }
     if (activeTab === 'workspace') {
       return <WorkspaceSettingsTab />;
@@ -117,6 +123,10 @@ SettingsSection.propTypes = {
     agent_full_sudo_enabled: PropTypes.bool,
     show_tool_logs: PropTypes.bool,
     global_agent_stop_shortcut: PropTypes.string,
+    agent_custom_instructions: PropTypes.string,
+    agent_disabled_local_tools: PropTypes.arrayOf(PropTypes.string),
+    agent_disabled_remote_tools: PropTypes.arrayOf(PropTypes.string),
+    agent_coordinate_methods: PropTypes.arrayOf(PropTypes.string),
   }),
   onConfigChange: PropTypes.func.isRequired,
   initialTab: PropTypes.string,

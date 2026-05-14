@@ -19,6 +19,26 @@ function buildAgentsMdMessage(directoryPath, contents) {
   };
 }
 
+function buildAgentsMdPromptLayer(directoryPath, contents, index = 0) {
+  if (typeof contents !== 'string') {
+    return null;
+  }
+  const normalizedContents = contents.trim();
+  if (!normalizedContents) {
+    return null;
+  }
+  const safeDirectoryId = String(directoryPath)
+    .replace(/[^a-zA-Z0-9_.:-]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 96) || `scope-${index}`;
+  return {
+    id: `agents-md:${safeDirectoryId}`,
+    type: 'agents_md',
+    priority: 40 + index,
+    content: `# AGENTS.md instructions for ${directoryPath}\n\n${normalizedContents}`,
+  };
+}
+
 function normalizeWorkspaceDirectory(workspacePath, deps = {}) {
   if (typeof workspacePath !== 'string') {
     return null;
@@ -119,8 +139,40 @@ function resolveWorkspaceRepoInstructionMessages(workspacePath, deps = {}) {
   return messages;
 }
 
+function resolveWorkspaceRepoInstructionPromptLayers(workspacePath, deps = {}) {
+  const resolvedFs = deps.fs || fs;
+  const resolvedPath = deps.path || path;
+  const workspaceDir = normalizeWorkspaceDirectory(workspacePath, deps);
+  if (!workspaceDir) {
+    return [];
+  }
+
+  const layers = [];
+  const directories = listInstructionDirectories(workspaceDir, deps);
+  directories.forEach((directoryPath, index) => {
+    const agentsPath = resolvedPath.join(directoryPath, AGENTS_FILENAME);
+    if (!resolvedFs.existsSync(agentsPath)) {
+      return;
+    }
+
+    try {
+      const contents = resolvedFs.readFileSync(agentsPath, 'utf8');
+      const layer = buildAgentsMdPromptLayer(directoryPath, contents, index);
+      if (layer) {
+        layers.push(layer);
+      }
+    } catch (_error) {
+      // Ignore unreadable local instruction files; query send must not fail.
+    }
+  });
+
+  return layers;
+}
+
 module.exports = {
   buildAgentsMdMessage,
+  buildAgentsMdPromptLayer,
   normalizeWorkspaceDirectory,
   resolveWorkspaceRepoInstructionMessages,
+  resolveWorkspaceRepoInstructionPromptLayers,
 };

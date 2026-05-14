@@ -463,6 +463,9 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
             if self.tool_registry:
                 status["registered_tools"] = list(self.tool_registry.tools.keys())
                 status["tool_count"] = len(self.tool_registry.tools)
+                get_tool_manifest = getattr(self.tool_registry, "get_tool_manifest", None)
+                if callable(get_tool_manifest):
+                    status["tool_manifest"] = get_tool_manifest()
 
             if self.memory_store:
                 try:

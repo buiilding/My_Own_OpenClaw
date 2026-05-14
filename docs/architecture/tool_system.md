@@ -15,7 +15,8 @@ Current runtime note:
 - the live backend registry and the live sidecar registry both use direct tool names such as `mouse_control` and `run_shell_command`
 - the repo also contains wrapper-shaped reference artifacts for `computer_use` and `system_use` under `model-facing/`, but those names are not registered by `backend/src/tools/registry.py` or `frontend/src/main/python/tools/registry.py`
 
-For planned schema-ownership migration (frontend-sourced runtime tool catalogs), see `docs/adr/005-frontend-tool-schema-source-of-truth.md`.
+Frontend-sourced local tool schemas now flow through `client_tool_manifest`.
+For the decision history, see `docs/adr/005-frontend-tool-schema-source-of-truth.md`.
 
 ## Architecture
 
@@ -80,7 +81,10 @@ This is the live remote tool surface today: 14 direct remote tools shared across
 
 Catalog-driven declaration contract:
 
-- backend `backend/src/tools/tool_catalog.py` is the source of truth for backend-registered remote tools and model visibility
+- backend `backend/src/tools/tool_catalog.py` is the source of truth for backend-owned remote tools and backend policy
+- frontend `frontend/src/main/tool_manifest.cjs` is the source of truth for built-in client-local model-facing and executable schemas
+- extension schema contributions are loaded from `extensions/*/extension.json`
+- backend validates accepted/rejected client manifest entries before prompt construction
 - backend `tool_catalog.py` now builds canonical tool specs and remote stub classes together through one builder path; `ToolRegistry` consumes those prebuilt specs instead of deriving schemas from live tool instances
 - model visibility, declaration assembly, and runtime lookup all project from the same registered tool names
 - prompt-time filtering, parser whitelists, transparency payloads, and sidecar exposed-tool parity all consume the same direct tool names

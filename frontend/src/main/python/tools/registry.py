@@ -11,6 +11,7 @@ import logging
 from typing import Any, Callable, Dict
 
 from tools.exposed_tool_names import EXPOSED_TO_BACKEND_TOOL_NAMES
+from tools.manifest import build_sidecar_tool_manifest
 from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)
@@ -83,6 +84,11 @@ class ToolRegistry:
     def get_exposed_tool_names() -> set[str]:
         """Return sidecar tools that are expected to be exposed by backend schemas."""
         return set(EXPOSED_TO_BACKEND_TOOL_NAMES)
+
+    def get_tool_manifest(self) -> dict[str, Any]:
+        """Return executable schemas for tools currently registered in the sidecar."""
+        exposed_registered_tools = EXPOSED_TO_BACKEND_TOOL_NAMES & set(self.tools.keys())
+        return build_sidecar_tool_manifest(exposed_registered_tools)
 
     @staticmethod
     def _build_lazy_tool(module_name: str, attr_name: str) -> Callable[..., Any]:

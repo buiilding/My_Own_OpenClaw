@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend: migrate Windie Agent client-manifest, extension-loader, Agent settings, mock backend, and sidecar schema export work back into the full WindieOS repo.
+- docs: replace the WindieOS README with the Windie Agent README style and update agent/tool guidance for full-repo open source development.
+- license: switch the full WindieOS repo metadata to MIT for public open-source release.
 - backend: accept client tool manifests and client prompt layers so Windie Agent can own local tool schemas while the hosted backend validates, filters, and compiles them per session.
 - test(agent-manifest): cover bad, oversized, duplicate, disabled, grounded, remote-tool, and prompt-layer transparency paths for client tool manifests.
 - docs(reference): expand the session and transcript identifier reference with query identity flow, tool correlation flow, alias boundaries, replay preservation, and debug checks for lost IDs.

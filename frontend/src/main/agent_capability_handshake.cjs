@@ -1,18 +1,10 @@
-const HANDSHAKE_AVAILABLE_TOOLS = Object.freeze([
-  'browser',
-  'get_open_windows',
-  'get_system_stats',
-  'keyboard_control',
-  'mouse_control',
-  'open_app',
-  'process',
-  'read_file',
-  'replace',
-  'run_shell_command',
-  'screenshot',
-  'scroll_control',
-  'switch_window',
-  'wait',
+const {
+  buildClientToolManifest,
+  getBuiltinClientToolNames,
+  getClientToolNames,
+} = require('./tool_manifest.cjs');
+
+const HANDSHAKE_REMOTE_TOOLS = Object.freeze([
   'web_search',
 ]);
 
@@ -71,8 +63,18 @@ function normalizeRequestedAgentPolicy(policy) {
 }
 
 function buildAgentCapabilityHandshakePayload(options = {}) {
+  const clientToolManifest = options.clientToolManifest
+    || buildClientToolManifest({
+      disabledTools: normalizeStringList(options.disabledTools) || [],
+      extensionsDir: options.extensionsDir,
+    });
+  const clientToolNames = Array.isArray(clientToolManifest?.tools)
+    ? clientToolManifest.tools
+      .map((tool) => (typeof tool?.name === 'string' ? tool.name.trim() : ''))
+      .filter(Boolean)
+    : getClientToolNames();
   const availableTools = normalizeStringList(options.availableTools)
-    || [...HANDSHAKE_AVAILABLE_TOOLS];
+    || [...clientToolNames, ...HANDSHAKE_REMOTE_TOOLS];
   const availableCoordinateMethods = normalizeStringList(options.availableCoordinateMethods)
     || [...HANDSHAKE_AVAILABLE_COORDINATE_METHODS];
   const requestedAgentPolicy = normalizeRequestedAgentPolicy(options.requestedAgentPolicy);
@@ -80,6 +82,7 @@ function buildAgentCapabilityHandshakePayload(options = {}) {
   const payload = {
     available_tools: availableTools,
     available_coordinate_methods: availableCoordinateMethods,
+    client_tool_manifest: clientToolManifest,
   };
   if (requestedAgentPolicy) {
     payload.requested_agent_policy = requestedAgentPolicy;
@@ -89,6 +92,9 @@ function buildAgentCapabilityHandshakePayload(options = {}) {
 
 module.exports = {
   HANDSHAKE_AVAILABLE_COORDINATE_METHODS,
-  HANDSHAKE_AVAILABLE_TOOLS,
+  HANDSHAKE_AVAILABLE_TOOLS: Object.freeze([
+    ...getBuiltinClientToolNames(),
+    ...HANDSHAKE_REMOTE_TOOLS,
+  ]),
   buildAgentCapabilityHandshakePayload,
 };

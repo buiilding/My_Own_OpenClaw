@@ -11,8 +11,8 @@ WindieOS is a desktop AI operator with persistent memory, terminal access, and c
   - Main process for orchestration bridges
 - Python sidecar for local tool execution and local memory services
 - Python FastAPI backend for the agent loop, LLM orchestration, streaming, remote tools, and internal processing such as OCR and vision
-- The backend is remote and hosted by Peter
-- Frontend and sidecar must not depend on or directly inspect backend code
+- The backend is part of this repository and may be self-hosted or hosted
+- Frontend and sidecar must not import backend code at runtime; use public transport contracts, manifests, docs, and tests for parity
 
 ### User Experience Goal
 
@@ -36,11 +36,14 @@ WindieOS is a desktop AI operator with persistent memory, terminal access, and c
 
 ## Tooling and Architecture Notes
 
-- Tools execute on the frontend Python sidecar
-- The backend owns the model-facing tool schema
-- The frontend tool schema is only for execution and is intentionally simpler
+- Tools execute on the frontend Python sidecar unless they are explicit backend remote tools such as `web_search`
+- Windie Agent/frontend owns local tool implementations, model-facing schemas for client-local tools, and executable schemas for sidecar tools
+- The backend validates client-provided tool manifests, applies policy/provider projection, owns backend remote tools, and owns final prompt compilation
 - Frontend and sidecar must not import backend code for schema parity
-- The preferred parity mechanism is tests that verify they do not drift
+- Tool changes must update the client tool manifest, sidecar executable schema export, docs, and focused tests in the same change
+- Extension tools must use `extensions/<id>/extension.json` for schema and prompt-layer contributions, and must still register executable sidecar code through the normal sidecar registry
+- Built-in grounded tools must preserve the model-schema vs execution-schema distinction. Use `backend_grounding` only when OCR/vision/prediction prepares executable sidecar arguments; otherwise use `passthrough`
+- The preferred parity mechanism is tests that verify schemas and registries do not drift
 
 ### Tool Schema Example
 

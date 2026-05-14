@@ -53,7 +53,11 @@ const {
 } = require('./ipc/ipc_query_runtime.cjs');
 const {
   resolveWorkspaceRepoInstructionMessages,
+  resolveWorkspaceRepoInstructionPromptLayers,
 } = require('./repo_instruction_runtime.cjs');
+const {
+  loadExtensionPromptLayers,
+} = require('./extension_manifest.cjs');
 const {
   handleRendererQuerySendFailure,
   prepareRendererQuerySend,
@@ -656,7 +660,14 @@ function connect() {
       type: 'handshake',
       user_id: currentUserId,
       operating_system: resolveFrontendOperatingSystem(process.platform),
-      ...buildAgentCapabilityHandshakePayload(),
+      ...buildAgentCapabilityHandshakePayload({
+        disabledTools: latestFrontendConfig?.agent_disabled_local_tools,
+        availableCoordinateMethods: latestFrontendConfig?.agent_coordinate_methods,
+        requestedAgentPolicy: {
+          disabled_tools: latestFrontendConfig?.agent_disabled_remote_tools,
+          coordinate_methods: latestFrontendConfig?.agent_coordinate_methods,
+        },
+      }),
     };
     try {
       ws.send(JSON.stringify(handshakeMessage));
@@ -1196,22 +1207,51 @@ function attachLocalRepoInstructionMessages(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return payload;
   }
+  const customInstructions = typeof latestFrontendConfig?.agent_custom_instructions === 'string'
+    ? latestFrontendConfig.agent_custom_instructions.trim()
+    : '';
+  const customPromptLayers = customInstructions
+    ? [{
+      id: 'custom-instructions',
+      type: 'custom_instructions',
+      priority: 60,
+      content: customInstructions,
+    }]
+    : [];
+  const extensionPromptLayers = loadExtensionPromptLayers();
 
   const workspacePath = typeof payload.workspace_path === 'string'
     ? payload.workspace_path.trim()
     : '';
   if (!workspacePath) {
-    return payload;
+    const clientPromptLayers = [
+      ...extensionPromptLayers,
+      ...customPromptLayers,
+    ];
+    return clientPromptLayers.length > 0
+      ? { ...payload, client_prompt_layers: clientPromptLayers }
+      : payload;
   }
 
   const repoInstructionMessages = resolveWorkspaceRepoInstructionMessages(workspacePath);
-  if (repoInstructionMessages.length === 0) {
+  const repoInstructionPromptLayers = resolveWorkspaceRepoInstructionPromptLayers(workspacePath);
+  const clientPromptLayers = [
+    ...repoInstructionPromptLayers,
+    ...extensionPromptLayers,
+    ...customPromptLayers,
+  ];
+  if (repoInstructionMessages.length === 0 && clientPromptLayers.length === 0) {
     return payload;
   }
 
   return {
     ...payload,
-    repo_instruction_messages: repoInstructionMessages,
+    ...(repoInstructionMessages.length > 0
+      ? { repo_instruction_messages: repoInstructionMessages }
+      : {}),
+    ...(clientPromptLayers.length > 0
+      ? { client_prompt_layers: clientPromptLayers }
+      : {}),
   };
 }
 

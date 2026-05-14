@@ -5,6 +5,10 @@ const DEFERRED_QUERY_MODEL_CONFIG_KEYS = new Set([
 const LOCAL_ONLY_FRONTEND_CONFIG_KEYS = new Set([
   'global_agent_stop_shortcut',
   'show_tool_logs',
+  'agent_custom_instructions',
+  'agent_disabled_local_tools',
+  'agent_disabled_remote_tools',
+  'agent_coordinate_methods',
 ]);
 
 function isPlainObject(value) {
