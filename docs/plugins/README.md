@@ -10,8 +10,8 @@ title: "Plugins and Extensions Hub"
 
 WindieOS does not currently have a packaged plugin marketplace. It does have a
 manifest-based extension and plugin runtime for local sidecar tools, Electron
-main-process tools, extension prompt layers, extension skills, settings-panel
-metadata, lifecycle hooks, config schemas, and permissions, plus concrete
+main-process tools, MCP servers, extension prompt layers, extension skills,
+settings-panel metadata, lifecycle hooks, config schemas, and permissions, plus concrete
 source-level extension surfaces for providers, SDK routes, inference backends,
 browser behavior, and renderer features.
 
@@ -22,6 +22,7 @@ Use this hub when a request sounds like "add a plugin" but the implementation sh
 | Surface | Extend here | Start docs |
 | --- | --- | --- |
 | Manifest extensions and local plugins | `extensions/<id>/extension.json`, `extensions/<id>/plugin.cjs`, `extensions/<id>/skills/**/SKILL.md` | [Extension Convention](../development/extensions.md) |
+| MCP integrations | `extensions/<id>/extension.json`, `extensions/<id>/plugin.cjs`, MCP stdio servers | [MCP Runtime](../development/mcp.md) |
 | Backend model-facing tools | `backend/src/tools`, `backend/src/sdk` | [Extension Surface Matrix](extension_surface_matrix.md), [Tool Authoring](../sdk/tool_authoring.md) |
 | Sidecar executable tools | `frontend/src/main/python/tools` | [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md), [Tool Development](../development/tool_development.md) |
 | LLM providers | `backend/src/llm/providers`, model catalog/config | [Providers Hub](../providers/README.md), [LLM Provider Docs Hub](../backend/llm/providers/README.md) |
@@ -76,6 +77,24 @@ Likely code:
 
 Validate extension manifest tests, local backend bridge extension-runtime tests,
 and sidecar tests when Python entrypoints are involved.
+
+### Add an MCP Integration
+
+Read:
+
+- [MCP Runtime](../development/mcp.md)
+- [Extension Convention](../development/extensions.md)
+- [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
+
+Likely code:
+
+- `extensions/<id>/extension.json` with `mcp_servers`
+- `extensions/<id>/plugin.cjs` with `api.registerMcpServer(...)`
+- `frontend/src/main/mcp_runtime.cjs` only when changing MCP protocol behavior
+- `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs` only when changing MCP tool execution order
+
+Validate MCP runtime tests, extension manifest tests, local backend bridge tests,
+and backend client manifest tests when the projected schema shape changes.
 
 ### Add an Extension Skill
 

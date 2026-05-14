@@ -326,6 +326,58 @@ function addSettingsPanel(extension, panel) {
   }
 }
 
+function normalizeMcpToolSpec(tool) {
+  if (!tool || typeof tool !== 'object' || Array.isArray(tool)) {
+    return null;
+  }
+  const name = normalizeString(tool.name);
+  const schema = normalizeObject(tool.schema || tool.input_schema || tool.inputSchema);
+  if (!name || Object.keys(schema).length === 0) {
+    return null;
+  }
+  return {
+    name,
+    description: normalizeString(tool.description),
+    schema,
+  };
+}
+
+function addMcpServer(extension, server, extensionDir) {
+  if (!server || typeof server !== 'object' || Array.isArray(server)) {
+    return;
+  }
+  const id = normalizeString(server.id || server.name);
+  const command = normalizeString(server.command);
+  if (!id || !command) {
+    return;
+  }
+  let cwd = normalizeString(server.cwd);
+  if (cwd && !path.isAbsolute(cwd)) {
+    cwd = resolveInsideExtension(extensionDir, cwd);
+  }
+  const tools = Array.isArray(server.tools)
+    ? server.tools.map(normalizeMcpToolSpec).filter(Boolean)
+    : [];
+  extension.mcp_servers.push({
+    id,
+    name: normalizeString(server.name) || id,
+    description: normalizeString(server.description),
+    command,
+    args: Array.isArray(server.args)
+      ? server.args.filter((arg) => typeof arg === 'string')
+      : [],
+    env: normalizeObject(server.env),
+    cwd: cwd || extensionDir,
+    enabled: server.enabled !== false,
+    timeout_ms: Number.isFinite(Number(server.timeout_ms || server.timeoutMs))
+      ? Number(server.timeout_ms || server.timeoutMs)
+      : null,
+    tool_prefix: normalizeString(server.tool_prefix || server.toolPrefix),
+    tools,
+    extension_id: extension.id,
+  });
+}
+
 function addPermission(extension, permission) {
   if (typeof permission === 'string') {
     const id = normalizeString(permission);
@@ -436,6 +488,7 @@ function createPluginApi(extension, extensionDir) {
     registerPromptLayer: (layer) => addPromptLayer(extension, layer, extensionDir),
     registerSkill: (skill) => addSkill(extension, skill, extensionDir),
     registerSettingsPanel: (panel) => addSettingsPanel(extension, panel),
+    registerMcpServer: (server) => addMcpServer(extension, server, extensionDir),
     registerPermission: (permission) => addPermission(extension, permission),
     registerLifecycleHook: (hookName, handler) => addLifecycleHook(extension, hookName, handler),
   };
@@ -493,6 +546,7 @@ function createExtensionBase(extensionId, manifest, entryDir) {
     main_process_tools: [],
     prompt_layers: [],
     settings_panels: [],
+    mcp_servers: [],
     lifecycle_hooks: {
       onSessionStart: [],
       beforeToolCall: [],
@@ -531,6 +585,9 @@ function loadExtension(entryDir) {
   }
   for (const panel of Array.isArray(manifest.settings_panels) ? manifest.settings_panels : []) {
     addSettingsPanel(extension, panel);
+  }
+  for (const server of Array.isArray(manifest.mcp_servers) ? manifest.mcp_servers : []) {
+    addMcpServer(extension, server, entryDir);
   }
 
   loadPluginEntrypoint(extension, manifest, entryDir);
@@ -584,6 +641,30 @@ function loadExtensionSettingsPanels(options = {}) {
   return loadAgentExtensions(options).extensions.flatMap((extension) => extension.settings_panels);
 }
 
+function loadExtensionMcpServers(options = {}) {
+  return loadAgentExtensions(options).extensions.flatMap((extension) => extension.mcp_servers);
+}
+
+function toPublicMcpServer(server) {
+  return {
+    id: server.id,
+    name: server.name,
+    description: server.description,
+    command: server.command,
+    args: server.args,
+    cwd: server.cwd,
+    enabled: server.enabled,
+    timeout_ms: server.timeout_ms,
+    tool_prefix: server.tool_prefix,
+    tools: server.tools.map((tool) => ({
+      name: tool.name,
+      description: tool.description,
+    })),
+    env_keys: Object.keys(server.env || {}).sort(),
+    extension_id: server.extension_id,
+  };
+}
+
 function toPublicExtension(extension) {
   return {
     id: extension.id,
@@ -599,6 +680,7 @@ function toPublicExtension(extension) {
       priority: layer.priority,
     })),
     settings_panels: extension.settings_panels,
+    mcp_servers: extension.mcp_servers.map(toPublicMcpServer),
     lifecycle_hooks: Object.fromEntries(
       LIFECYCLE_HOOKS.map((hookName) => [
         hookName,
@@ -740,6 +822,7 @@ module.exports = {
   getMainProcessExtensionToolHandler,
   hasExtensionLifecycleHooks,
   loadAgentExtensions,
+  loadExtensionMcpServers,
   loadExtensionPromptLayers,
   loadExtensionSettingsPanels,
   loadExtensionTools,

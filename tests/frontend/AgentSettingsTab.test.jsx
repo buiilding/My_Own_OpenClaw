@@ -12,6 +12,12 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
         description: 'Adds note workflows.',
         permissions: [{ id: 'filesystem', reason: 'Read local notes' }],
         settings_panels: [{ id: 'extension:notes:settings:main', title: 'Notes settings' }],
+        mcp_servers: [{
+          id: 'memory',
+          name: 'Memory',
+          command: 'node',
+          tools: [{ name: 'search' }],
+        }],
         tools: [{ name: 'save_note' }],
         prompt_layers: [{ id: 'extension:notes:skill:review', type: 'extension_skill', priority: 75 }],
         lifecycle_hooks: { onSessionStart: 1, beforeToolCall: 1, afterToolCall: 1 },
@@ -91,5 +97,6 @@ describe('AgentSettingsTab', () => {
     expect(screen.getByText(/file_path/)).toBeInTheDocument();
     expect(await screen.findByText('Notes')).toBeInTheDocument();
     expect(screen.getByText(/save_note/)).toBeInTheDocument();
+    expect(screen.getAllByText(/search/).length).toBeGreaterThan(0);
   });
 });

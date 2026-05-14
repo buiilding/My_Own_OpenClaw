@@ -5,6 +5,7 @@ const path = require('path');
 const {
   executeMainProcessExtensionTool,
   loadAgentExtensions,
+  loadExtensionMcpServers,
   loadExtensionPromptLayers,
   loadExtensionSettingsPanels,
   loadExtensionTools,
@@ -36,6 +37,7 @@ function writeExtension() {
       'module.exports = function register(api) {',
       '  api.registerPermission({ id: "filesystem", reason: "Read and write local notes." });',
       '  api.registerSettingsPanel({ id: "notes", title: "Notes", description: "Configure note behavior.", config_schema: { type: "object" } });',
+      '  api.registerMcpServer({ id: "runtime-memory", command: "node", args: ["runtime-memory-server.cjs"], tools: [{ name: "remember", schema: { type: "object", properties: { value: { type: "string" } }, required: ["value"] } }] });',
       '  api.registerPromptLayer({ id: "notes-runtime-guidance", type: "extension", priority: 73, content: "Runtime plugin guidance." });',
       '  api.registerSkill({ id: "runtime-note-skill", title: "Runtime Skill", priority: 83, content: "Use runtime skill instructions." });',
       '  api.registerTool({',
@@ -93,6 +95,21 @@ function writeExtension() {
         id: 'manual-note-skill',
         priority: 88,
       }],
+      mcp_servers: [{
+        id: 'notes-memory',
+        command: 'node',
+        args: ['memory-server.cjs'],
+        tools: [{
+          name: 'search_notes',
+          description: 'Search notes through MCP.',
+          schema: {
+            type: 'object',
+            properties: { query: { type: 'string' } },
+            required: ['query'],
+            additionalProperties: false,
+          },
+        }],
+      }],
     }),
   );
   return extensionsDir;
@@ -106,6 +123,7 @@ describe('extension manifest loader', () => {
     const tools = loadExtensionTools({ extensionsDir });
     const promptLayers = loadExtensionPromptLayers({ extensionsDir });
     const settingsPanels = loadExtensionSettingsPanels({ extensionsDir });
+    const mcpServers = loadExtensionMcpServers({ extensionsDir });
 
     expect(result.errors).toEqual([]);
     expect(result.extensions[0].id).toBe('notes');
@@ -168,6 +186,20 @@ describe('extension manifest loader', () => {
         title: 'Notes',
       }),
     ]);
+    expect(mcpServers).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'notes-memory',
+        extension_id: 'notes',
+        command: 'node',
+        tools: [expect.objectContaining({ name: 'search_notes' })],
+      }),
+      expect.objectContaining({
+        id: 'runtime-memory',
+        extension_id: 'notes',
+        command: 'node',
+        tools: [expect.objectContaining({ name: 'remember' })],
+      }),
+    ]));
   });
 
   test('executes main-process plugin tools and lifecycle hooks', async () => {
@@ -208,6 +240,13 @@ describe('extension manifest loader', () => {
       id: 'notes',
       permissions: [expect.objectContaining({ id: 'filesystem' })],
       settings_panels: [expect.objectContaining({ id: 'extension:notes:settings:notes' })],
+      mcp_servers: expect.arrayContaining([
+        expect.objectContaining({
+          id: 'notes-memory',
+          env_keys: [],
+          tools: [expect.objectContaining({ name: 'search_notes' })],
+        }),
+      ]),
       lifecycle_hooks: {
         onSessionStart: 1,
         beforeToolCall: 1,

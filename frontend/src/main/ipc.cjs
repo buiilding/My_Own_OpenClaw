@@ -105,6 +105,9 @@ const {
 const {
   buildAgentCapabilityHandshakePayload,
 } = require('./agent_capability_handshake.cjs');
+const {
+  buildClientToolManifestWithMcp,
+} = require('./mcp_runtime.cjs');
 const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
 
 let BACKEND_ENDPOINTS = resolveBackendEndpoints();
@@ -649,7 +652,7 @@ function connect() {
   ws = socket;
   let opened = false;
 
-  socket.on('open', () => {
+  socket.on('open', async () => {
     if (ws !== socket) {
       return;
     }
@@ -663,11 +666,22 @@ function connect() {
     log('Successfully connected to Python backend.');
 
     const operatingSystem = resolveFrontendOperatingSystem(process.platform);
+    const clientToolManifest = await buildClientToolManifestWithMcp({
+      disabledTools: latestFrontendConfig?.agent_disabled_local_tools,
+    });
+    if (Array.isArray(clientToolManifest.mcp_errors) && clientToolManifest.mcp_errors.length > 0) {
+      log(`MCP discovery completed with ${clientToolManifest.mcp_errors.length} error(s).`);
+    }
+    const handshakeClientToolManifest = {
+      version: clientToolManifest.version,
+      tools: clientToolManifest.tools,
+    };
     const handshakeMessage = {
       type: 'handshake',
       user_id: currentUserId,
       operating_system: operatingSystem,
       ...buildAgentCapabilityHandshakePayload({
+        clientToolManifest: handshakeClientToolManifest,
         operatingSystem,
         customInstructions: latestFrontendConfig?.agent_custom_instructions,
         disabledTools: latestFrontendConfig?.agent_disabled_local_tools,

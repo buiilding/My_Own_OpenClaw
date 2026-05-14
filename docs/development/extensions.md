@@ -8,9 +8,9 @@ read_when:
 # Extension Convention
 
 WindieOS extensions can contribute local sidecar tools, Electron main-process
-plugin tools, model-facing schemas, prompt layers, skills, settings surfaces,
-required permissions, lifecycle hooks, config schemas, and documentation.
-Backend remote tools remain backend-owned.
+plugin tools, MCP servers, model-facing schemas, prompt layers, skills, settings
+surfaces, required permissions, lifecycle hooks, config schemas, and
+documentation. Backend remote tools remain backend-owned.
 
 The extension loader reads `extensions/*/extension.json`. If the extension has a
 `plugin.cjs` file, Electron main loads it as trusted local plugin code and calls
@@ -24,6 +24,7 @@ extensions/
     plugin.cjs
     tools/
     python/
+    servers/
     skills/
     ui/
     docs/
@@ -47,6 +48,27 @@ Example `extension.json`:
       "name": "my_tool",
       "entrypoint": "python/my_tool.py:run",
       "schema": "tools/my_tool.schema.json"
+    }
+  ],
+  "mcp_servers": [
+    {
+      "id": "memory",
+      "command": "node",
+      "args": ["servers/memory-mcp.cjs"],
+      "tools": [
+        {
+          "name": "search",
+          "description": "Search local memory.",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "query": { "type": "string" }
+            },
+            "required": ["query"],
+            "additionalProperties": false
+          }
+        }
+      ]
     }
   ],
   "prompt_layers": [
@@ -89,8 +111,8 @@ an existing file inside the extension directory.
 
 `schema` is the hand-written schema the model sees. `entrypoint` is the local
 Python function the sidecar executes. `plugin.cjs` can also register
-Electron-main tools, prompt layers, skills, settings panels, permissions, and
-lifecycle hooks through the runtime API.
+Electron-main tools, MCP servers, prompt layers, skills, settings panels,
+permissions, and lifecycle hooks through the runtime API.
 
 Extension tool code should live inside the extension:
 
@@ -138,6 +160,26 @@ module.exports = function register(api) {
         folder: { type: "string" },
       },
     },
+  });
+
+  api.registerMcpServer({
+    id: "memory",
+    command: "node",
+    args: ["servers/memory-mcp.cjs"],
+    tools: [
+      {
+        name: "search",
+        description: "Search local notes through MCP.",
+        schema: {
+          type: "object",
+          properties: {
+            query: { type: "string" },
+          },
+          required: ["query"],
+          additionalProperties: false,
+        },
+      },
+    ],
   });
 
   api.registerTool({
@@ -193,6 +235,7 @@ Runtime API methods:
 | `registerPromptLayer(layer)` | Adds a client prompt layer. |
 | `registerSkill(skill)` | Adds an inline skill or loads a `SKILL.md` path as an `extension_skill` prompt layer. |
 | `registerSettingsPanel(panel)` | Adds settings metadata shown in the Agent settings extension inspector. |
+| `registerMcpServer(server)` | Adds a stdio MCP server. Discovered MCP tools are exposed through the same client tool manifest. |
 | `registerPermission(permission)` | Declares local authority required by the extension. |
 | `beforeToolCall(handler)` | Runs before any local tool call. Return `{args}` to rewrite executable args or `{cancel: true, error}` to block. |
 | `afterToolCall(handler)` | Runs after any local tool call. Return `{result}` to rewrite the tool result. |
@@ -205,6 +248,11 @@ Use Python `entrypoint` tools for OS-level sidecar work. Use
 `registerTool(... execute ...)` for Electron-main tools, lightweight local
 logic, or tooling that needs the Electron bridge rather than Python sidecar
 imports.
+
+Use `mcp_servers` or `api.registerMcpServer` when the integration should be
+portable across agent clients. MCP tools are named
+`mcp_<server_id>__<tool_name>` by default and execute locally in Electron main
+through MCP `tools/call`. See [MCP Runtime](mcp.md).
 
 ## Extension Skills
 
@@ -268,12 +316,14 @@ Extension checklist:
 4. Add `plugin.cjs` when the extension needs runtime registration,
    main-process tool execution, settings metadata, permissions, or lifecycle
    hooks.
-5. Add reusable instructions under `skills/<skill-id>/SKILL.md` when the
+5. Add `mcp_servers` or `api.registerMcpServer` when the extension should
+   expose tools from an MCP server.
+6. Add reusable instructions under `skills/<skill-id>/SKILL.md` when the
    extension needs prompt guidance instead of executable code.
-6. Add or update docs under the extension `docs/` directory and the relevant
+7. Add or update docs under the extension `docs/` directory and the relevant
    canonical docs.
-7. Add tests for the manifest builder, plugin runtime, sidecar extension
-   loading, lifecycle hooks, settings metadata, and execution
+8. Add tests for the manifest builder, plugin runtime, MCP runtime, sidecar
+   extension loading, lifecycle hooks, settings metadata, and execution
    path.
 
 Use `passthrough` when model arguments are executable sidecar arguments. Use

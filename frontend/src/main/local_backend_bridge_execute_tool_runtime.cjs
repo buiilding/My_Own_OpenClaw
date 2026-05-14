@@ -30,6 +30,10 @@ const {
   hasExtensionLifecycleHooks,
   runExtensionLifecycleHook,
 } = require('./extension_manifest.cjs');
+const {
+  executeMcpTool,
+  hasDiscoveredMcpTool,
+} = require('./mcp_runtime.cjs');
 
 function createLocalBackendExecuteToolRuntime({
   sendRequest,
@@ -43,6 +47,8 @@ function createLocalBackendExecuteToolRuntime({
   platform = process.platform,
   executeExtensionTool = executeMainProcessExtensionTool,
   getExtensionToolHandler = getMainProcessExtensionToolHandler,
+  executeLocalMcpTool = executeMcpTool,
+  hasLocalMcpTool = hasDiscoveredMcpTool,
   hasExtensionHooks = hasExtensionLifecycleHooks,
   runExtensionHook = runExtensionLifecycleHook,
 } = {}) {
@@ -157,8 +163,13 @@ function createLocalBackendExecuteToolRuntime({
       }
       const timeoutMs = resolveExecuteToolTimeoutMs(toolName);
       let result = null;
+      if (hasLocalMcpTool(toolName)) {
+        result = await executeLocalMcpTool(toolName, normalizedArgs, {
+          senderWindowId: event?.sender?.id || null,
+        });
+      }
       if (executeExtensionTool !== executeMainProcessExtensionTool || getExtensionToolHandler(toolName)) {
-        result = await executeExtensionTool(toolName, normalizedArgs, {
+        result = result || await executeExtensionTool(toolName, normalizedArgs, {
           senderWindowId: event?.sender?.id || null,
         });
       }

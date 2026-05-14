@@ -142,14 +142,14 @@ function AgentSettingsTab({ config, onConfigChange }) {
       <div className="clone-settings-row clone-settings-row-rich clone-settings-row-stack">
         <div>
           <span>Extensions</span>
-          <p>Local plugin packages can contribute tools, prompt layers, skills, settings panels, hooks, config, and permissions.</p>
+          <p>Local plugin packages can contribute tools, MCP servers, prompt layers, skills, settings panels, hooks, config, and permissions.</p>
         </div>
         <div className="clone-settings-layer-list">
           {extensionRuntime.extensions.length > 0 ? extensionRuntime.extensions.map((extension) => (
             <details key={extension.id} className="clone-settings-schema-viewer">
               <summary>
                 {extension.name || extension.id}
-                <small>{extension.tools?.length || 0} tools / {extension.settings_panels?.length || 0} panels</small>
+                <small>{extension.tools?.length || 0} tools / {extension.mcp_servers?.length || 0} MCP / {extension.settings_panels?.length || 0} panels</small>
               </summary>
               <ExtensionRuntimeDetails extension={extension} />
             </details>
@@ -287,10 +287,27 @@ function ExtensionRuntimeDetails({ extension }) {
           </ul>
         </div>
       ) : null}
+      {Array.isArray(extension.mcp_servers) && extension.mcp_servers.length > 0 ? (
+        <div>
+          <strong>MCP servers</strong>
+          <ul>
+            {extension.mcp_servers.map((server) => (
+              <li key={server.id}>
+                {server.name || server.id}{server.tools?.length ? `: ${server.tools.map((tool) => tool.name).join(', ')}` : ''}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       <pre>{JSON.stringify({
         id: extension.id,
         version: extension.version || null,
         tools: (extension.tools || []).map((tool) => tool.name),
+        mcp_servers: (extension.mcp_servers || []).map((server) => ({
+          id: server.id,
+          command: server.command,
+          tools: (server.tools || []).map((tool) => tool.name),
+        })),
         prompt_layers: extension.prompt_layers || [],
         lifecycle_hooks: hookCounts,
         config_schema: extension.config_schema || {},
@@ -353,6 +370,14 @@ ExtensionRuntimeDetails.propTypes = {
     })),
     tools: PropTypes.arrayOf(PropTypes.shape({
       name: PropTypes.string,
+    })),
+    mcp_servers: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.string,
+      name: PropTypes.string,
+      command: PropTypes.string,
+      tools: PropTypes.arrayOf(PropTypes.shape({
+        name: PropTypes.string,
+      })),
     })),
     prompt_layers: PropTypes.arrayOf(PropTypes.object),
     lifecycle_hooks: PropTypes.object,

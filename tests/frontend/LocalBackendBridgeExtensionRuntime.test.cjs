@@ -89,4 +89,46 @@ describe('local backend bridge extension runtime', () => {
       },
     });
   });
+
+  test('executes MCP tools before sidecar fallback', async () => {
+    const sendRequest = jest.fn();
+    const executeLocalMcpTool = jest.fn(async (toolName, args) => ({
+      success: true,
+      data: {
+        llm_content: `${toolName}:${args.query}`,
+      },
+    }));
+
+    const runtime = createLocalBackendExecuteToolRuntime({
+      sendRequest,
+      backendHttpUrl: 'http://127.0.0.1:8765',
+      getArtifactUploadHeaders: async () => ({}),
+      getFrontendConfig: () => ({}),
+      resolveWindows: () => [],
+      resolveChatWindow: () => null,
+      resolveMainWindow: () => null,
+      resolveResponseWindow: () => null,
+      executeLocalMcpTool,
+      hasLocalMcpTool: (toolName) => toolName === 'mcp_memory__search',
+      runExtensionHook: async () => [],
+    });
+
+    const result = await runtime.executeTool(null, {
+      toolName: 'mcp_memory__search',
+      args: { query: 'windie' },
+    });
+
+    expect(sendRequest).not.toHaveBeenCalled();
+    expect(executeLocalMcpTool).toHaveBeenCalledWith(
+      'mcp_memory__search',
+      { query: 'windie' },
+      { senderWindowId: null },
+    );
+    expect(result).toEqual({
+      success: true,
+      data: {
+        llm_content: 'mcp_memory__search:windie',
+      },
+    });
+  });
 });
