@@ -41,7 +41,7 @@ WindieOS is a desktop AI operator with persistent memory, terminal access, and c
 - The backend validates client-provided tool manifests, applies policy/provider projection, owns backend remote tools, and owns final prompt compilation
 - Frontend and sidecar must not import backend code for schema parity
 - Tool changes must update the client tool manifest, docs, and focused tests in the same change
-- Extensions must use `extensions/<id>/extension.json` for tool, prompt-layer, and skill contributions. Tool entries use `name`, `schema`, and Python `entrypoint`; skill entries use `skills/<skill-id>/SKILL.md` and become prompt layers, not executable tools
+- Extensions must use `extensions/<id>/extension.json` and optional `plugin.cjs` for tool, prompt-layer, skill, settings-panel, lifecycle-hook, config, and permission contributions. Python sidecar tools use `name`, `schema`, and `entrypoint`; main-process plugin tools use `api.registerTool({ name, schema, execute })`; skills use `skills/<skill-id>/SKILL.md` and become prompt layers, not executable tools
 - Built-in grounded tools must preserve the model-schema vs prepared-argument distinction. Use `backend_grounding` only when OCR/vision/prediction prepares executable sidecar arguments; otherwise use `passthrough`
 - The preferred parity mechanism is tests that verify schemas and registries do not drift
 

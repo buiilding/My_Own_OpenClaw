@@ -24,6 +24,12 @@ const {
   resolveActiveSurfaceDisplayAffinityForWindows,
   toScreenshotDisplayBounds,
 } = require('./display_affinity_runtime.cjs');
+const {
+  executeMainProcessExtensionTool,
+  getMainProcessExtensionToolHandler,
+  hasExtensionLifecycleHooks,
+  runExtensionLifecycleHook,
+} = require('./extension_manifest.cjs');
 
 function createLocalBackendExecuteToolRuntime({
   sendRequest,
@@ -35,6 +41,10 @@ function createLocalBackendExecuteToolRuntime({
   resolveMainWindow,
   resolveResponseWindow,
   platform = process.platform,
+  executeExtensionTool = executeMainProcessExtensionTool,
+  getExtensionToolHandler = getMainProcessExtensionToolHandler,
+  hasExtensionHooks = hasExtensionLifecycleHooks,
+  runExtensionHook = runExtensionLifecycleHook,
 } = {}) {
   function resolveDisplayBounds(event) {
     return resolveScreenshotToolDisplayBounds({
@@ -72,26 +82,105 @@ function createLocalBackendExecuteToolRuntime({
     );
   }
 
+  async function runBeforeToolCallHooks(toolName, normalizedArgs) {
+    if (runExtensionHook === runExtensionLifecycleHook && !hasExtensionHooks('beforeToolCall')) {
+      return { canceled: false, args: normalizedArgs };
+    }
+    let nextArgs = normalizedArgs;
+    const hookResults = await runExtensionHook('beforeToolCall', {
+      toolName,
+      args: nextArgs,
+    });
+    for (const hookResult of hookResults) {
+      if (hookResult?.error) {
+        console.warn(`[ExtensionRuntime] beforeToolCall hook from ${hookResult.extension_id} failed: ${hookResult.error}`);
+        continue;
+      }
+      const result = hookResult?.result;
+      if (!result || typeof result !== 'object' || Array.isArray(result)) {
+        continue;
+      }
+      if (result.cancel === true || result.allowed === false) {
+        return {
+          canceled: true,
+          error: result.error || result.reason || `Tool call canceled by extension ${hookResult.extension_id}`,
+        };
+      }
+      if (result.args && typeof result.args === 'object' && !Array.isArray(result.args)) {
+        nextArgs = result.args;
+      }
+    }
+    return { canceled: false, args: nextArgs };
+  }
+
+  async function runAfterToolCallHooks(toolName, normalizedArgs, result) {
+    if (runExtensionHook === runExtensionLifecycleHook && !hasExtensionHooks('afterToolCall')) {
+      return result;
+    }
+    let nextResult = result;
+    const hookResults = await runExtensionHook('afterToolCall', {
+      toolName,
+      args: normalizedArgs,
+      result: nextResult,
+    });
+    for (const hookResult of hookResults) {
+      if (hookResult?.error) {
+        console.warn(`[ExtensionRuntime] afterToolCall hook from ${hookResult.extension_id} failed: ${hookResult.error}`);
+        continue;
+      }
+      const hookValue = hookResult?.result;
+      if (
+        hookValue
+        && typeof hookValue === 'object'
+        && !Array.isArray(hookValue)
+        && hookValue.result
+        && typeof hookValue.result === 'object'
+      ) {
+        nextResult = hookValue.result;
+      }
+    }
+    return nextResult;
+  }
+
   async function executeTool(event, { toolName, args } = {}) {
     try {
-      const normalizedArgs = resolveNormalizedToolArgs(toolName, args, event);
+      let normalizedArgs = resolveNormalizedToolArgs(toolName, args, event);
+      if (runExtensionHook !== runExtensionLifecycleHook || hasExtensionHooks('beforeToolCall')) {
+        const beforeHookResult = await runBeforeToolCallHooks(toolName, normalizedArgs);
+        if (beforeHookResult.canceled) {
+          return {
+            success: false,
+            error: beforeHookResult.error,
+          };
+        }
+        normalizedArgs = beforeHookResult.args;
+      }
       const timeoutMs = resolveExecuteToolTimeoutMs(toolName);
-      const runTool = () => runExecuteToolRequest(toolName, normalizedArgs, timeoutMs);
-      let result = toolName === 'screenshot'
-        ? await withHiddenWindowForScreenshot({
-          platform,
-          task: runTool,
-          resolveWindows,
-          resolveChatWindow,
-          resolveResponseWindow,
-        })
-        : await runTool();
+      let result = null;
+      if (executeExtensionTool !== executeMainProcessExtensionTool || getExtensionToolHandler(toolName)) {
+        result = await executeExtensionTool(toolName, normalizedArgs, {
+          senderWindowId: event?.sender?.id || null,
+        });
+      }
+      if (!result) {
+        const runTool = () => runExecuteToolRequest(toolName, normalizedArgs, timeoutMs);
+        result = toolName === 'screenshot'
+          ? await withHiddenWindowForScreenshot({
+            platform,
+            task: runTool,
+            resolveWindows,
+            resolveChatWindow,
+            resolveResponseWindow,
+          })
+          : await runTool();
+      }
 
       result = await materializeScreenshotAttachment(result, backendHttpUrl, {
         warn: console.warn,
         getErrorMessage,
         getArtifactUploadHeaders,
       });
+      result = await runAfterToolCallHooks(toolName, normalizedArgs, result);
 
       if (result.success === false) {
         return { success: false, error: result.error };

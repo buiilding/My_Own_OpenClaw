@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { IpcBridge, ON_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
 import { CloneToggle } from './settingsControls';
 
 const LOCAL_TOOLS = Object.freeze([
@@ -42,6 +42,7 @@ function AgentSettingsTab({ config, onConfigChange }) {
   const [manifestStatus, setManifestStatus] = useState({ accepted: [], rejected: [] });
   const [remoteToolCatalog, setRemoteToolCatalog] = useState({ remote_tools: [] });
   const [activePromptLayers, setActivePromptLayers] = useState([]);
+  const [extensionRuntime, setExtensionRuntime] = useState({ extensions: [], errors: [] });
   const disabledLocalTools = Array.isArray(config?.agent_disabled_local_tools)
     ? config.agent_disabled_local_tools
     : [];
@@ -62,6 +63,17 @@ function AgentSettingsTab({ config, onConfigChange }) {
     : [];
 
   useEffect(() => {
+    IpcBridge.invoke(INVOKE_CHANNELS.LIST_AGENT_EXTENSIONS)
+      .then((payload) => {
+        setExtensionRuntime({
+          extensions: Array.isArray(payload?.extensions) ? payload.extensions : [],
+          errors: Array.isArray(payload?.errors) ? payload.errors : [],
+        });
+      })
+      .catch(() => {
+        setExtensionRuntime({ extensions: [], errors: [] });
+      });
+
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (event) => {
       if (event?.type === 'client-tool-manifest') {
         setManifestStatus({
@@ -124,6 +136,31 @@ function AgentSettingsTab({ config, onConfigChange }) {
           )) : (
             <p className="clone-settings-tool-status">Waiting for backend prompt transparency</p>
           )}
+        </div>
+      </div>
+
+      <div className="clone-settings-row clone-settings-row-rich clone-settings-row-stack">
+        <div>
+          <span>Extensions</span>
+          <p>Local plugin packages can contribute tools, prompt layers, skills, settings panels, hooks, config, and permissions.</p>
+        </div>
+        <div className="clone-settings-layer-list">
+          {extensionRuntime.extensions.length > 0 ? extensionRuntime.extensions.map((extension) => (
+            <details key={extension.id} className="clone-settings-schema-viewer">
+              <summary>
+                {extension.name || extension.id}
+                <small>{extension.tools?.length || 0} tools / {extension.settings_panels?.length || 0} panels</small>
+              </summary>
+              <ExtensionRuntimeDetails extension={extension} />
+            </details>
+          )) : (
+            <p className="clone-settings-tool-status">No local extensions loaded</p>
+          )}
+          {extensionRuntime.errors.length > 0 ? extensionRuntime.errors.map((error) => (
+            <p key={`${error.extension}-${error.reason}`} className="clone-settings-tool-status clone-settings-tool-status-error">
+              {error.extension}: {error.reason}
+            </p>
+          )) : null}
         </div>
       </div>
 
@@ -219,6 +256,49 @@ function AgentSettingsTab({ config, onConfigChange }) {
   );
 }
 
+function ExtensionRuntimeDetails({ extension }) {
+  const hookCounts = extension.lifecycle_hooks || {};
+  return (
+    <div className="clone-settings-extension-detail">
+      {extension.description ? (
+        <p className="clone-settings-tool-status">{extension.description}</p>
+      ) : null}
+      {Array.isArray(extension.permissions) && extension.permissions.length > 0 ? (
+        <div>
+          <strong>Permissions</strong>
+          <ul>
+            {extension.permissions.map((permission) => (
+              <li key={permission.id}>
+                {permission.id}{permission.reason ? `: ${permission.reason}` : ''}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {Array.isArray(extension.settings_panels) && extension.settings_panels.length > 0 ? (
+        <div>
+          <strong>Settings panels</strong>
+          <ul>
+            {extension.settings_panels.map((panel) => (
+              <li key={panel.id}>
+                {panel.title}{panel.description ? `: ${panel.description}` : ''}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      <pre>{JSON.stringify({
+        id: extension.id,
+        version: extension.version || null,
+        tools: (extension.tools || []).map((tool) => tool.name),
+        prompt_layers: extension.prompt_layers || [],
+        lifecycle_hooks: hookCounts,
+        config_schema: extension.config_schema || {},
+      }, null, 2)}</pre>
+    </div>
+  );
+}
+
 function ToolAcceptanceStatus({ acceptedTool, rejectedTool }) {
   if (rejectedTool) {
     return (
@@ -254,6 +334,30 @@ ToolAcceptanceStatus.propTypes = {
   rejectedTool: PropTypes.shape({
     reason: PropTypes.string,
   }),
+};
+
+ExtensionRuntimeDetails.propTypes = {
+  extension: PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+    description: PropTypes.string,
+    version: PropTypes.string,
+    permissions: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.string,
+      reason: PropTypes.string,
+    })),
+    settings_panels: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.string,
+      title: PropTypes.string,
+      description: PropTypes.string,
+    })),
+    tools: PropTypes.arrayOf(PropTypes.shape({
+      name: PropTypes.string,
+    })),
+    prompt_layers: PropTypes.arrayOf(PropTypes.object),
+    lifecycle_hooks: PropTypes.object,
+    config_schema: PropTypes.object,
+  }).isRequired,
 };
 
 AgentSettingsTab.propTypes = {

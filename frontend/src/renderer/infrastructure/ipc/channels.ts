@@ -48,6 +48,7 @@ type SharedChannelRegistry = {
     GET_DISPLAYS: 'get-displays';
     LOAD_FRONTEND_CONFIG: 'load-frontend-config';
     SAVE_FRONTEND_CONFIG: 'save-frontend-config';
+    LIST_AGENT_EXTENSIONS: 'list-agent-extensions';
     OPENAI_CODEX_OAUTH_LOGIN: 'openai-codex-oauth-login';
     OPENAI_CODEX_OAUTH_LOGOUT: 'openai-codex-oauth-logout';
     SET_AGENT_SUDO_ACCESS: 'set-agent-sudo-access';

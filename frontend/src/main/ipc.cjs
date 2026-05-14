@@ -61,6 +61,8 @@ const {
 } = require('./repo_instruction_runtime.cjs');
 const {
   loadExtensionPromptLayers,
+  loadPublicAgentExtensions,
+  runExtensionLifecycleHook,
 } = require('./extension_manifest.cjs');
 const {
   handleRendererQuerySendFailure,
@@ -660,11 +662,14 @@ function connect() {
     clearBackendReconnectTimer();
     log('Successfully connected to Python backend.');
 
+    const operatingSystem = resolveFrontendOperatingSystem(process.platform);
     const handshakeMessage = {
       type: 'handshake',
       user_id: currentUserId,
-      operating_system: resolveFrontendOperatingSystem(process.platform),
+      operating_system: operatingSystem,
       ...buildAgentCapabilityHandshakePayload({
+        operatingSystem,
+        customInstructions: latestFrontendConfig?.agent_custom_instructions,
         disabledTools: latestFrontendConfig?.agent_disabled_local_tools,
         availableCoordinateMethods: latestFrontendConfig?.agent_coordinate_methods,
         requestedAgentPolicy: {
@@ -676,6 +681,14 @@ function connect() {
     try {
       ws.send(JSON.stringify(handshakeMessage));
       log(`Handshake sent with authenticated user_id: ${currentUserId}`);
+      runExtensionLifecycleHook('onSessionStart', {
+        userId: currentUserId,
+        operatingSystem: handshakeMessage.operating_system,
+        backendWsUrl: BACKEND_URL,
+        backendHttpUrl: BACKEND_HTTP_URL,
+      }).catch((error) => {
+        log(`Extension onSessionStart hook failed: ${error?.message || error}`);
+      });
       broadcastConnectionStatus(true);
       resolvePendingBackendConnectWaiters();
       noteBackendTraffic('ws-open');
@@ -894,6 +907,8 @@ function initializeIpc(win, options = {}) {
     }
     return latestFrontendConfig;
   });
+
+  ipcMain.handle('list-agent-extensions', async () => loadPublicAgentExtensions());
 
   ipcMain.handle('get-client-user-id', async () => {
     return {

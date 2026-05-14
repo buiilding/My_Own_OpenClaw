@@ -177,6 +177,10 @@ For built-ins, update `frontend/src/main/python/tools/registry.py`:
 For extension tools, do not edit built-in registry files. Add `schema` and the
 Python `entrypoint` to `extensions/<id>/extension.json`; Electron main
 forwards the schema manifest and the sidecar loads the executable entrypoint.
+For Electron-main plugin tools, add `plugin.cjs` and call
+`api.registerTool({ name, description, schema, execute })`; those tools are
+advertised through the same client manifest and executed before the sidecar
+fallback path.
 For reusable instructions that do not execute code, add
 `extensions/<id>/skills/<skill-id>/SKILL.md`; those skills become prompt layers,
 not tools.

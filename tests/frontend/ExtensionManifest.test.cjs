@@ -3,9 +3,13 @@ const os = require('os');
 const path = require('path');
 
 const {
+  executeMainProcessExtensionTool,
   loadAgentExtensions,
   loadExtensionPromptLayers,
+  loadExtensionSettingsPanels,
   loadExtensionTools,
+  loadPublicAgentExtensions,
+  runExtensionLifecycleHook,
 } = require('../../frontend/src/main/extension_manifest.cjs');
 
 function writeExtension() {
@@ -26,6 +30,26 @@ function writeExtension() {
   );
   fs.writeFileSync(path.join(extensionDir, 'python', 'save_note.py'), 'def run(args):\n  return {}\n');
   fs.writeFileSync(path.join(extensionDir, 'guidance.md'), 'Prefer notes from this extension.');
+  fs.writeFileSync(
+    path.join(extensionDir, 'plugin.cjs'),
+    [
+      'module.exports = function register(api) {',
+      '  api.registerPermission({ id: "filesystem", reason: "Read and write local notes." });',
+      '  api.registerSettingsPanel({ id: "notes", title: "Notes", description: "Configure note behavior.", config_schema: { type: "object" } });',
+      '  api.registerPromptLayer({ id: "notes-runtime-guidance", type: "extension", priority: 73, content: "Runtime plugin guidance." });',
+      '  api.registerSkill({ id: "runtime-note-skill", title: "Runtime Skill", priority: 83, content: "Use runtime skill instructions." });',
+      '  api.registerTool({',
+      '    name: "summarize_note",',
+      '    description: "Summarize a local note.",',
+      '    schema: { type: "object", properties: { note: { type: "string" } }, required: ["note"], additionalProperties: false },',
+      '    async execute(args) { return { llm_content: `summary:${args.note}`, return_display: "Summarized" }; },',
+      '  });',
+      '  api.beforeToolCall(({ toolName, args }) => toolName === "summarize_note" ? { args: { ...args, note: `${args.note}!` } } : null);',
+      '  api.afterToolCall(({ toolName, result }) => toolName === "summarize_note" ? { result: { ...result, data: { ...result.data, hooked: true } } } : null);',
+      '  api.onSessionStart(() => ({ started: true }));',
+      '};',
+    ].join('\n'),
+  );
   fs.writeFileSync(
     path.join(extensionDir, 'skills', 'note-review', 'SKILL.md'),
     [
@@ -81,10 +105,11 @@ describe('extension manifest loader', () => {
     const result = loadAgentExtensions({ extensionsDir });
     const tools = loadExtensionTools({ extensionsDir });
     const promptLayers = loadExtensionPromptLayers({ extensionsDir });
+    const settingsPanels = loadExtensionSettingsPanels({ extensionsDir });
 
     expect(result.errors).toEqual([]);
     expect(result.extensions[0].id).toBe('notes');
-    expect(tools).toEqual([
+    expect(tools).toEqual(expect.arrayContaining([
       expect.objectContaining({
         name: 'save_note',
         extension_id: 'notes',
@@ -92,7 +117,14 @@ describe('extension manifest loader', () => {
           required: ['note'],
         }),
       }),
-    ]);
+      expect.objectContaining({
+        name: 'summarize_note',
+        extension_id: 'notes',
+        schema: expect.objectContaining({
+          required: ['note'],
+        }),
+      }),
+    ]));
     expect(tools[0]).not.toHaveProperty('optional');
     expect(tools[0]).not.toHaveProperty('execution_schema');
     expect(promptLayers).toEqual(
@@ -102,6 +134,18 @@ describe('extension manifest loader', () => {
           type: 'extension',
           priority: 72,
           content: 'Prefer notes from this extension.',
+        },
+        {
+          id: 'notes-runtime-guidance',
+          type: 'extension',
+          priority: 73,
+          content: 'Runtime plugin guidance.',
+        },
+        {
+          id: 'extension:notes:skill:runtime-note-skill',
+          type: 'extension_skill',
+          priority: 83,
+          content: '# Runtime Skill\n\nUse runtime skill instructions.',
         },
         {
           id: 'extension:notes:skill:manual-note-skill',
@@ -117,6 +161,60 @@ describe('extension manifest loader', () => {
         },
       ]),
     );
+    expect(settingsPanels).toEqual([
+      expect.objectContaining({
+        id: 'extension:notes:settings:notes',
+        extension_id: 'notes',
+        title: 'Notes',
+      }),
+    ]);
+  });
+
+  test('executes main-process plugin tools and lifecycle hooks', async () => {
+    const extensionsDir = writeExtension();
+    const before = await runExtensionLifecycleHook('beforeToolCall', {
+      toolName: 'summarize_note',
+      args: { note: 'hello' },
+    }, { extensionsDir });
+    const pluginResult = await executeMainProcessExtensionTool(
+      'summarize_note',
+      before[0].result.args,
+      {},
+      { extensionsDir },
+    );
+    const after = await runExtensionLifecycleHook('afterToolCall', {
+      toolName: 'summarize_note',
+      args: before[0].result.args,
+      result: pluginResult,
+    }, { extensionsDir });
+    const sessionHooks = await runExtensionLifecycleHook('onSessionStart', {}, { extensionsDir });
+
+    expect(pluginResult).toEqual({
+      success: true,
+      data: {
+        llm_content: 'summary:hello!',
+        return_display: 'Summarized',
+      },
+    });
+    expect(after[0].result.result.data.hooked).toBe(true);
+    expect(sessionHooks[0].result).toEqual({ started: true });
+  });
+
+  test('returns public extension runtime metadata without executable handlers', () => {
+    const extensionsDir = writeExtension();
+    const publicRuntime = loadPublicAgentExtensions({ extensionsDir });
+
+    expect(publicRuntime.extensions[0]).toEqual(expect.objectContaining({
+      id: 'notes',
+      permissions: [expect.objectContaining({ id: 'filesystem' })],
+      settings_panels: [expect.objectContaining({ id: 'extension:notes:settings:notes' })],
+      lifecycle_hooks: {
+        onSessionStart: 1,
+        beforeToolCall: 1,
+        afterToolCall: 1,
+      },
+    }));
+    expect(JSON.stringify(publicRuntime)).not.toContain('async execute');
   });
 
   test('does not expose sidecar extension tools without an entrypoint', () => {

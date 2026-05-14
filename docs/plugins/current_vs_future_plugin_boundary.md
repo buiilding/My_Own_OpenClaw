@@ -9,10 +9,11 @@ title: "Current vs Future Plugin Boundary"
 # Current vs Future Plugin Boundary
 
 WindieOS currently supports code-level extension points and a manifest-based
-local extension loader for sidecar tools, prompt layers, and skills. It does not
-currently support a packaged plugin marketplace, signed plugin bundles,
-dependency installation, remote plugin registries, or hot-loading without app
-restart.
+local plugin runtime for sidecar tools, Electron main-process tools, prompt
+layers, skills, settings-panel metadata, lifecycle hooks, config schemas, and
+permissions. It does not currently support a packaged plugin marketplace, signed
+plugin bundles, dependency installation, remote plugin registries, or hot-loading
+without app restart.
 
 ## Current
 
@@ -20,6 +21,7 @@ Implemented today:
 
 - manifest extensions under `extensions/*/extension.json`
 - extension local sidecar tools declared with `name`, `schema`, and Python `entrypoint`
+- extension `plugin.cjs` modules with `registerTool`, `registerPromptLayer`, `registerSkill`, `registerSettingsPanel`, lifecycle hooks, config, and permissions
 - extension prompt layers and `skills/**/SKILL.md` instructions forwarded as `client_prompt_layers`
 - backend tool registry and SDK tool base
 - sidecar executable tools
@@ -56,7 +58,8 @@ Do not imply this exists in current docs.
 | "Add a provider plugin" | implement an LLM/inference provider in current provider paths |
 | "Add a desktop action plugin" | implement backend schema + sidecar tool execution |
 | "Add a browser plugin" | extend browser schema/runtime, not a third-party browser extension store |
-| "Let users install plugins" | planning/design first |
+| "Add a local plugin contribution" | use `extensions/<id>/plugin.cjs` |
+| "Let users install marketplace plugins" | planning/design first |
 | "Load local sidecar tools from an extension manifest" | use `extensions/<id>/extension.json` |
 | "Add extension skills" | add `skills/<skill-id>/SKILL.md` under the extension |
 | "Install plugins from a marketplace" | planning/design first |

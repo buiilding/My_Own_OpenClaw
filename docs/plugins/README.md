@@ -9,10 +9,11 @@ title: "Plugins and Extensions Hub"
 # Plugins and Extensions Hub
 
 WindieOS does not currently have a packaged plugin marketplace. It does have a
-manifest-based extension loader for local sidecar tools, extension prompt
-layers, and extension skills, plus concrete source-level extension surfaces for
-providers, SDK routes, inference backends, browser behavior, and renderer
-features.
+manifest-based extension and plugin runtime for local sidecar tools, Electron
+main-process tools, extension prompt layers, extension skills, settings-panel
+metadata, lifecycle hooks, config schemas, and permissions, plus concrete
+source-level extension surfaces for providers, SDK routes, inference backends,
+browser behavior, and renderer features.
 
 Use this hub when a request sounds like "add a plugin" but the implementation should use existing WindieOS extension points.
 
@@ -20,7 +21,7 @@ Use this hub when a request sounds like "add a plugin" but the implementation sh
 
 | Surface | Extend here | Start docs |
 | --- | --- | --- |
-| Manifest extension tools and skills | `extensions/<id>/extension.json`, `extensions/<id>/skills/**/SKILL.md` | [Extension Convention](../development/extensions.md) |
+| Manifest extensions and local plugins | `extensions/<id>/extension.json`, `extensions/<id>/plugin.cjs`, `extensions/<id>/skills/**/SKILL.md` | [Extension Convention](../development/extensions.md) |
 | Backend model-facing tools | `backend/src/tools`, `backend/src/sdk` | [Extension Surface Matrix](extension_surface_matrix.md), [Tool Authoring](../sdk/tool_authoring.md) |
 | Sidecar executable tools | `frontend/src/main/python/tools` | [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md), [Tool Development](../development/tool_development.md) |
 | LLM providers | `backend/src/llm/providers`, model catalog/config | [Providers Hub](../providers/README.md), [LLM Provider Docs Hub](../backend/llm/providers/README.md) |
@@ -31,7 +32,7 @@ Use this hub when a request sounds like "add a plugin" but the implementation sh
 
 ## Rules
 
-- Do not invent marketplace behavior when the current request can be solved with a manifest extension, tool, provider, SDK route, or sidecar extension.
+- Do not invent marketplace behavior when the current request can be solved with a manifest extension, local plugin, tool, provider, SDK route, or sidecar extension.
 - Do not make a new backend tool model-visible until it is registered, policy-allowed, documented, and tested.
 - Do not skip sidecar implementation for a local machine tool; backend schemas alone do not execute local actions.
 - Do not put provider credentials in plugin docs, fixtures, or code.
@@ -57,6 +58,24 @@ Likely code:
 - renderer tool runner only when display/execution behavior changes
 
 Validate backend tool schema/policy tests, sidecar tool tests, renderer tool-runner tests, and parity tests.
+
+### Add a Local Plugin Runtime Contribution
+
+Read:
+
+- [Extension Convention](../development/extensions.md)
+- [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
+
+Likely code:
+
+- `extensions/<id>/plugin.cjs`
+- `extensions/<id>/extension.json`
+- `frontend/src/main/extension_manifest.cjs` only when changing plugin API behavior
+- `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs` only when changing lifecycle hook execution
+- Agent settings renderer tests when settings-panel metadata changes
+
+Validate extension manifest tests, local backend bridge extension-runtime tests,
+and sidecar tests when Python entrypoints are involved.
 
 ### Add an Extension Skill
 
