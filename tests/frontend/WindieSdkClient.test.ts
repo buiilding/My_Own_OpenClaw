@@ -554,4 +554,94 @@ describe('WindieSdkClient', () => {
     });
     expect(agent.listAgents()).toHaveLength(1);
   });
+
+  test('wakeUp runs a fake backend plus fake daemon query flow end to end', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      registerModuleTool: jest.fn(async () => ({ success: true })),
+      listTools: jest.fn(async () => ({
+        version: 1,
+        tools: [
+          {
+            name: 'save_note',
+            execution_target: 'sidecar',
+            schema: {
+              type: 'object',
+              properties: { text: { type: 'string' } },
+              required: ['text'],
+              additionalProperties: false,
+            },
+          },
+        ],
+      })),
+      executeTool: jest.fn(async () => ({
+        success: true,
+        data: { llm_content: 'saved:hello' },
+      })),
+    };
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'fake-e2e-agent',
+      systemPrompt: 'Use local notes.',
+      workspacePath: '/tmp/project',
+      tools: [
+        moduleTool({
+          name: 'save_note',
+          module: 'my_project.tools:save_note',
+          schema: {
+            type: 'object',
+            properties: { text: { type: 'string' } },
+            required: ['text'],
+            additionalProperties: false,
+          },
+        }),
+      ],
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+
+    await agent.ask('save this note', { conversationRef: 'conv-fake' });
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'tool-call',
+        payload: {
+          tool_name: 'save_note',
+          parameters: { text: 'hello' },
+          request_id: 'req-fake-save',
+        },
+      }),
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(JSON.parse(socket.sent[0])).toMatchObject({
+      type: 'handshake',
+      agent_definition: {
+        id: 'fake-e2e-agent',
+      },
+    });
+    expect(JSON.parse(socket.sent[1])).toMatchObject({
+      type: 'query',
+      payload: {
+        text: 'save this note',
+        conversation_ref: 'conv-fake',
+      },
+    });
+    expect(JSON.parse(socket.sent[2])).toMatchObject({
+      type: 'tool-result',
+      payload: {
+        request_id: 'req-fake-save',
+        success: true,
+        data: { llm_content: 'saved:hello' },
+      },
+    });
+  });
 });

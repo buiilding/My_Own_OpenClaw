@@ -17,6 +17,7 @@ The daemon:
 - binds an HTTP/WebSocket server on localhost
 - generates a random per-process token unless a test explicitly provides one
 - writes a discovery file containing `pid`, `host`, `port`, `base_url`, `token`, and `created_at`
+- is started/reused by Electron main through `frontend/src/main/sidecar_daemon_manager.cjs`
 - exposes built-in sidecar tools through the existing `ToolRegistry`
 - dynamically registers module-path tools, extension/plugin tools, and MCP tools without restart
 
@@ -30,6 +31,8 @@ Every endpoint requires the token in either:
 
 - `x-windie-sidecar-token: <token>`
 - `Authorization: Bearer <token>`
+
+Electron's daemon manager probes the discovery file first. If `/health` succeeds with the stored token, the manager reuses that daemon. If discovery is missing or stale, it launches `sidecar_daemon.py` and waits for a fresh discovery file before routing local execution.
 
 ## Endpoints
 

@@ -1165,6 +1165,21 @@ export class WindieAgent {
     return this.session.query(payload);
   }
 
+  async run(input: string | WindieAgentQueryInput, options: Partial<Omit<WindieAgentQueryInput, 'text' | 'conversationRef'>> & { conversationRef?: string } = {}): Promise<string> {
+    if (typeof input === 'string') {
+      return this.ask(input, options);
+    }
+    return this.query(input);
+  }
+
+  async stream(input: string | WindieAgentQueryInput, options: Partial<Omit<WindieAgentQueryInput, 'text' | 'conversationRef'>> & { conversationRef?: string } = {}): Promise<{ queryMessageId: string; session: WindieAgentSession }> {
+    const queryMessageId = await this.run(input, options);
+    return {
+      queryMessageId,
+      session: this.session,
+    };
+  }
+
   async stop(conversationRef?: string | null): Promise<string> {
     return this.session.stopQuery(conversationRef);
   }

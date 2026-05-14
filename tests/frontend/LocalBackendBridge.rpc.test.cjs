@@ -61,6 +61,28 @@ describe('local_backend_bridge RPC handlers', () => {
     expect(result).toEqual({ success: true, data: { value: 1 } });
   });
 
+  test('execute-tool handler routes fallback execution through sidecar daemon client', async () => {
+    const sidecarDaemonClient = {
+      executeTool: jest.fn(async () => ({ success: true, data: { value: 2 } })),
+    };
+    const { handlers, pythonProcess } = initBridge({ sidecarDaemonClient });
+    markReady();
+    pythonProcess.stdin.write.mockClear();
+
+    const result = await handlers['execute-tool'](null, {
+      toolName: 'read_file',
+      args: { file_path: '/tmp/a' },
+    });
+
+    expect(result).toEqual({ success: true, data: { value: 2 } });
+    expect(sidecarDaemonClient.executeTool).toHaveBeenCalledWith({
+      toolName: 'read_file',
+      args: { file_path: '/tmp/a' },
+      timeoutMs: 60000,
+    });
+    expect(pythonProcess.stdin.write).not.toHaveBeenCalled();
+  });
+
   test('browser warmup sends a valid connect payload with explanation', async () => {
     const { bridge, stdoutHandler } = initBridge();
     markReady();

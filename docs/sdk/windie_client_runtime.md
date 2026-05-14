@@ -136,6 +136,8 @@ Current canonical surface:
 - `query`
 - `stop`
 - `sleep`
+- `run`
+- `stream`
 - `shutdownLocalRuntime`
 - `listModels`
 - `listAgents`

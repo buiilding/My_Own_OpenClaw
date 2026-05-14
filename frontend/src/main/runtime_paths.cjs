@@ -8,10 +8,15 @@
 
 const fs = require('fs');
 const path = require('path');
-const { app } = require('electron');
+let electronApp = null;
+try {
+  ({ app: electronApp } = require('electron'));
+} catch (_error) {
+  electronApp = null;
+}
 
 function isPackagedApp() {
-  return Boolean(app && app.isPackaged);
+  return Boolean(electronApp && electronApp.isPackaged);
 }
 
 function getResourcesRoot() {

@@ -31,6 +31,7 @@ const {
   resolveSidecarLaunchTarget,
 } = require('./runtime_paths.cjs');
 const { createLocalBackendSupervisor } = require('./local_backend_supervisor.cjs');
+const { createSidecarDaemonManager } = require('./sidecar_daemon_manager.cjs');
 
 let pythonProcess = null;
 let stdoutBuffer = '';
@@ -49,6 +50,7 @@ let runtimeScreenCaptureCapabilityVerifier = async () => ({
   },
 });
 const localBackendSupervisor = createLocalBackendSupervisor();
+let sidecarDaemonManager = null;
 
 function isBackendReady() {
   return localBackendSupervisor.getSnapshot().ready;
@@ -193,6 +195,7 @@ function buildLocalBackendStatusPayload() {
     ready: snapshot.ready === true,
     status: typeof snapshot.status === 'string' ? snapshot.status : 'stopped',
     error: typeof snapshot.lastError === 'string' ? snapshot.lastError : '',
+    sidecarDaemon: sidecarDaemonManager?.getSnapshot?.() || null,
   };
 }
 
@@ -527,6 +530,10 @@ async function storeMemory(payload = {}) {
 }
 
 function stopLocalBackend() {
+  if (sidecarDaemonManager) {
+    void sidecarDaemonManager.shutdown();
+    sidecarDaemonManager = null;
+  }
   if (pythonProcess) {
     const processToStop = pythonProcess;
     localBackendSupervisor.beginStop();
@@ -573,6 +580,23 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   const getArtifactUploadHeaders = typeof options.getArtifactUploadHeaders === 'function'
     ? options.getArtifactUploadHeaders
     : loadArtifactUploadHeaders;
+  sidecarDaemonManager = options.sidecarDaemonManager || (
+    isTestEnv
+      ? null
+      : createSidecarDaemonManager()
+  );
+  const sidecarDaemonClient = options.sidecarDaemonClient || (
+    sidecarDaemonManager
+      ? {
+          executeTool: (payload) => sidecarDaemonManager.executeTool(payload, {
+            isPackaged,
+            backendEndpoints,
+            permissionStatePath: options.permissionStatePath,
+            authStatePath: options.authStatePath,
+          }),
+        }
+      : null
+  );
   const executeToolRuntime = createLocalBackendExecuteToolRuntime({
     sendRequest,
     backendHttpUrl: backendEndpoints.httpUrl,
@@ -582,6 +606,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     resolveChatWindow,
     resolveMainWindow,
     resolveResponseWindow,
+    sidecarDaemonClient,
   });
 
   const [mainWindow] = resolveWindows();
@@ -591,6 +616,16 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     permissionStatePath: options.permissionStatePath,
     authStatePath: options.authStatePath,
   });
+  if (sidecarDaemonManager) {
+    void sidecarDaemonManager.ensureDaemon({
+      isPackaged,
+      backendEndpoints,
+      permissionStatePath: options.permissionStatePath,
+      authStatePath: options.authStatePath,
+    }).catch((error) => {
+      console.warn(`[LocalBackend] Sidecar daemon startup failed: ${getErrorMessage(error)}`);
+    });
+  }
 
   const registerRpcHandler = (channel, method, mapParams) => {
     ipcMain.handle(channel, async (event, payload = {}) => (

@@ -332,39 +332,38 @@ These routes are for hosted backend use. They are not meant to require SDK consu
 ### TypeScript Client Example
 
 ```ts
-import { WindieSdkClient } from '../frontend/src/renderer/infrastructure/api';
+import { WindieClient, moduleTool } from '../frontend/src/renderer/infrastructure/api';
 
-const sdk = new WindieSdkClient({
-  httpBaseUrl: 'https://api.windieos.com',
+const client = new WindieClient({
+  backendUrl: 'https://api.windieos.com',
   defaultUserId: 'dev-user',
-  defaultOperatingSystem: 'macOS',
 });
 
-const prompt = await sdk.systemPrompt();
-const toolSchemas = await sdk.toolSchemas();
-
-const inspect = await sdk.ocr.inspect({
-  image: { artifact_id: 'shot.png' },
-  text: 'Search Amazon',
-  include_overlay: true,
+const agent = await client.wakeUp({
+  systemPrompt: 'You are a concise coding agent.',
+  workspacePath: '/Users/me/project',
+  tools: [
+    moduleTool({
+      name: 'save_note',
+      module: 'my_project.tools:save_note',
+      schema: {
+        type: 'object',
+        properties: { text: { type: 'string' } },
+        required: ['text'],
+        additionalProperties: false,
+      },
+    }),
+  ],
 });
 
-const session = await sdk.agent.connect();
-session.on('tool-schemas', event => {
+agent.session.on('tool-schemas', event => {
   console.log(event.payload?.tool_schemas);
 });
 
-await session.query({
-  text: 'Click the orange search button',
+await agent.ask('Click the orange search button', {
   conversationRef: 'conv_123',
   screenshotRef: 'shot.png',
 });
-
-const trace = await sdk.agent.traceQuery(
-  { userId: 'dev-user', operatingSystem: 'macOS' },
-  { text: 'Inspect the repo state', conversationRef: 'conv_trace' },
-  { timeoutMs: 10000 },
-);
 ```
 
 ### Python Client Example
@@ -399,9 +398,8 @@ trace = await sdk.trace_query(
 
 Trace helper notes:
 
-- TypeScript `sdk.agent.traceQuery(...)` defaults to a 30 second timeout and accepts `{ timeoutMs }`.
-- Python `sdk.trace_query(...)` accepts `timeout_seconds`.
-- Both clients close the websocket before raising when the trace times out.
+- TypeScript agent sessions should be created through `WindieClient.wakeUp(...)`.
+- Python still exposes low-level hosted helpers until the Python wrapper adopts the same daemon protocol.
 
 Shared image input shape:
 
