@@ -1,7 +1,12 @@
 from backend.src.core.config import AppConfig
 from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor
-from backend.src.tools.client_manifest import validate_client_tool_manifest
+from backend.src.tools.client_manifest import (
+    MAX_CLIENT_TOOLS,
+    MAX_SCHEMA_BYTES,
+    validate_client_tool_manifest,
+)
+from backend.src.tools.remote_tool_catalog import build_remote_tool_catalog
 from backend.src.tools.registry import ToolRegistry
 
 
@@ -59,6 +64,141 @@ def test_client_tool_manifest_rejects_reserved_backend_tool_collision():
     ]
 
 
+def test_client_tool_manifest_rejects_duplicate_tool_names():
+    result = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": "my_tool",
+                    "description": "First local tool.",
+                    "execution_target": "sidecar",
+                    "model_schema": _schema(),
+                    "execution_schema": _schema(),
+                    "argument_resolution": "passthrough",
+                },
+                {
+                    "name": "my_tool",
+                    "description": "Duplicate local tool.",
+                    "execution_target": "sidecar",
+                    "model_schema": _schema(),
+                    "execution_schema": _schema(),
+                    "argument_resolution": "passthrough",
+                },
+            ]
+        }
+    )
+
+    assert result.accepted_tool_names == ["my_tool"]
+    assert result.rejected == [{"name": "my_tool", "reason": "duplicate tool name"}]
+
+
+def test_client_tool_manifest_rejects_bad_and_oversized_schemas():
+    bad_key = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": "bad_schema",
+                    "description": "Bad local tool.",
+                    "execution_target": "sidecar",
+                    "model_schema": {"type": "object", "x-unsupported": True},
+                    "execution_schema": _schema(),
+                    "argument_resolution": "passthrough",
+                }
+            ]
+        }
+    )
+    oversized = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": "too_large",
+                    "description": "Large local tool.",
+                    "execution_target": "sidecar",
+                    "model_schema": {
+                        "type": "object",
+                        "description": "x" * (MAX_SCHEMA_BYTES + 1),
+                    },
+                    "execution_schema": _schema(),
+                    "argument_resolution": "passthrough",
+                }
+            ]
+        }
+    )
+
+    assert bad_key.rejected[0]["reason"].startswith("invalid model_schema")
+    assert oversized.rejected == [
+        {
+            "name": "too_large",
+            "reason": "invalid model_schema: schema exceeds size limit",
+        }
+    ]
+
+
+def test_client_tool_manifest_rejects_oversized_tool_count_and_backend_addition():
+    too_many = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": f"tool_{index}",
+                    "description": "A local tool.",
+                    "execution_target": "sidecar",
+                    "model_schema": _schema(),
+                    "execution_schema": _schema(),
+                    "argument_resolution": "passthrough",
+                }
+                for index in range(MAX_CLIENT_TOOLS + 1)
+            ]
+        }
+    )
+    backend_addition = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": "custom_backend_tool",
+                    "description": "Attempt to add backend execution.",
+                    "execution_target": "backend",
+                    "model_schema": _schema(),
+                    "execution_schema": _schema(),
+                    "argument_resolution": "passthrough",
+                }
+            ]
+        }
+    )
+
+    assert too_many.accepted == []
+    assert too_many.rejected[0]["reason"].endswith(f"{MAX_CLIENT_TOOLS} tools")
+    assert backend_addition.rejected == [
+        {
+            "name": "custom_backend_tool",
+            "reason": "client manifests cannot add backend tools",
+        }
+    ]
+
+
+def test_client_tool_manifest_accepts_backend_grounding_mode_for_sidecar_tools():
+    result = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": "grounded_click",
+                    "description": "A grounded local tool.",
+                    "execution_target": "sidecar",
+                    "model_schema": _schema(),
+                    "execution_schema": _schema(),
+                    "argument_resolution": "backend_grounding",
+                }
+            ]
+        }
+    )
+
+    assert result.rejected == []
+    assert result.accepted[0].argument_resolution == "backend_grounding"
+    assert (
+        result.to_public_dict()["accepted"][0]["argument_resolution"]
+        == "backend_grounding"
+    )
+
+
 def test_prompt_constructor_merges_client_tool_schemas_after_policy(monkeypatch):
     monkeypatch.setattr(
         "backend.src.tools.tool_policy.load_tool_selection", lambda: None
@@ -86,6 +226,37 @@ def test_prompt_constructor_merges_client_tool_schemas_after_policy(monkeypatch)
     )
 
     assert [schema["name"] for schema in tool_schemas] == ["my_tool"]
+
+
+def test_prompt_constructor_policy_does_not_resurrect_disabled_client_tools(
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        "backend.src.tools.tool_policy.load_tool_selection", lambda: None
+    )
+    config = AppConfig(agent_available_tools=["allowed_tool"])
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+    constructor = PromptConstructor(registry, config, system_prompt="base")
+    constructor.client_tool_schemas = [
+        {
+            "type": "function",
+            "name": "allowed_tool",
+            "description": "Allowed local tool.",
+            "parameters": _schema(),
+        },
+        {
+            "type": "function",
+            "name": "disabled_tool",
+            "description": "Disabled local tool.",
+            "parameters": _schema(),
+        },
+    ]
+
+    _messages, tool_schemas, _metadata = constructor.build_prompt(
+        [], include_tools=True
+    )
+
+    assert [schema["name"] for schema in tool_schemas] == ["allowed_tool"]
 
 
 def test_prompt_constructor_client_schema_replaces_registry_schema(monkeypatch):
@@ -140,4 +311,22 @@ def test_prompt_constructor_adds_client_prompt_layers_in_priority_order():
             "priority": 80,
             "content": "later text",
         },
+    ]
+
+
+def test_remote_tool_catalog_reports_web_search_availability(monkeypatch):
+    monkeypatch.setattr(
+        "backend.src.tools.remote_tool_catalog.resolve_web_search_execution_mode",
+        lambda _config: None,
+    )
+    catalog = build_remote_tool_catalog(AppConfig())
+
+    assert catalog["remote_tools"] == [
+        {
+            "name": "web_search",
+            "description": "Search the web through the hosted WindieOS backend.",
+            "enabled": False,
+            "available": False,
+            "reason_unavailable": "No native provider search mode or Brave fallback is available.",
+        }
     ]
