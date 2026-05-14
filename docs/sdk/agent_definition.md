@@ -55,7 +55,9 @@ Send `agent_definition` in the first `/ws` message:
 ```
 
 The same object may also be included on a `query` payload for clients that need
-to update agent context for a specific turn.
+to update agent context for a specific turn. Query-level updates may omit
+`tools.client_manifest`; when omitted, the backend preserves the tool manifest
+accepted during handshake.
 
 ## Fields
 

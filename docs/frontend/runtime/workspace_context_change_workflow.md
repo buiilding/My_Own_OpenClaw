@@ -58,10 +58,10 @@ sequenceDiagram
     Main->>Renderer: workspace-access-updated
     Renderer->>Renderer: bind workspace to conversation_ref
     Renderer->>Main: query payload with workspace_path
-    Main->>Main: read AGENTS.md messages when local path is available
-    Main->>Backend: query with workspace_path + repo_instruction_messages
-    Backend->>Backend: normalize query inputs and session workspace
-    Backend->>Prompt: build prompt with injected messages or backend lookup
+    Main->>Main: read AGENTS.md layers when local path is available
+    Main->>Backend: query with workspace_path + agent_definition.agents_md
+    Backend->>Backend: normalize query inputs and session agent context
+    Backend->>Prompt: build prompt with client-defined layers or backend lookup
 ```
 
 ## Change Sequence
@@ -136,11 +136,11 @@ Read these files when `workspace_path` is missing on the backend:
 Forwarding rules:
 
 - Renderer sends normalized `workspace_path` through `ApiClient.sendQuery`.
-- Electron main may resolve local AGENTS.md instructions from the workspace path
-  before forwarding to the backend.
-- Backend query execution normalizes `workspace_path` and
-  `repo_instruction_messages` before calling `agent_instance.process_query`.
-- Rehydrate should apply workspace path and repo instruction messages to the
+- Electron main resolves local AGENTS.md instructions from the workspace path
+  into `agent_definition.agents_md` before forwarding to the backend.
+- Backend query execution normalizes `workspace_path` and `agent_definition`
+  before calling `agent_instance.process_query`.
+- Rehydrate should apply workspace path and client-defined agent context to the
   active backend session when resuming conversation context.
 
 ### 5. Inspect AGENTS.md instruction lookup
@@ -161,16 +161,14 @@ Instruction rules:
 - If the workspace is inside a git repository, include every AGENTS.md from the
   git root down to the workspace directory.
 - Outside a git repository, only the workspace directory is checked.
-- Messages are ordered broadest-to-narrowest.
+- `agents_md` layers are ordered broadest-to-narrowest with increasing priority.
 - Blank AGENTS.md files are ignored.
-- The message content format is:
+- The layer content format is:
 
 ```text
 # AGENTS.md instructions for /path/to/scope
 
-<INSTRUCTIONS>
 ...
-</INSTRUCTIONS>
 ```
 
 ### 6. Inspect backend prompt behavior
@@ -184,8 +182,9 @@ Read these files when the model does not see workspace context:
 
 Prompt rules:
 
-- Injected `repo_instruction_messages` take priority over backend local
-  workspace lookup because the hosted backend usually cannot read desktop paths.
+- Client-supplied `agent_definition.agents_md` layers take priority over backend
+  local workspace lookup because the hosted backend usually cannot read desktop
+  paths.
 - `set_session_workspace_path(...)` must update the active prompt builder and
   conversation history system prompt.
 - Prompt tests should cover both backend lookup and injected instruction
@@ -198,7 +197,7 @@ Prompt rules:
 | Workspace settings shows no workspace after choosing one | Check permission result payload, `workspace-access-updated`, selected paths, and `normalizeActiveWorkspace`. | Permission IPC and workspace settings |
 | New query omits `workspace_path` | Check conversation binding, `fetchActiveWorkspaceSelection`, and `ApiClient.sendQuery` args. | Renderer send path |
 | Resumed chat uses another workspace | Check snapshot workspace metadata, `setConversationWorkspaceBinding`, and `setActiveWorkspaceSelection`. | Dashboard conversation handoff |
-| AGENTS.md works locally but not with hosted backend | Check Electron-injected `repo_instruction_messages`; do not rely on backend reading a desktop path. | Main repo instruction runtime |
+| AGENTS.md works locally but not with hosted backend | Check Electron-injected `agent_definition.agents_md`; do not rely on backend reading a desktop path. | Main repo instruction runtime |
 | Backend prompt uses old workspace | Check `QueryExecutionInputs.workspace_path`, `process_query`, and session manager workspace update path. | Backend query/session runtime |
 | File tools run in wrong folder | Check workspace permission status, sidecar/backend config propagation, and tool execution cwd defaults. | Workspace permission and sidecar tool runtime |
 

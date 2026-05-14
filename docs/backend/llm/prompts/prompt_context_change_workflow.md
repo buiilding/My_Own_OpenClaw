@@ -56,7 +56,7 @@ When debugging prompt drift, inspect the shapes in this order:
 | Shape | Producer | Consumer | Drift check |
 | --- | --- | --- | --- |
 | rendered system prompt | `PromptManager.render_system_prompt()` | provider request path and `system-prompt` transparency event | OS and coordinate-method filtering should match active config. |
-| repo instruction messages | Electron forwarded payload or `resolve_workspace_repo_instruction_messages()` | `PromptConstructor._build_prompt_messages()` | Broad-to-specific order should be deterministic and not duplicated. |
+| repo instruction layers | Electron `agent_definition.agents_md` or `resolve_workspace_repo_instruction_messages()` fallback | `PromptConstructor._get_client_prompt_layer_messages()` / `_build_prompt_messages()` | Broad-to-specific order should be deterministic and not duplicated. |
 | client prompt layers | session runtime config | `PromptConstructor._get_client_prompt_layer_messages()` | Layers sort by `priority` and become user-role messages with explicit layer tags. |
 | stored history | `ConversationHistory.get_history()` | first and later provider prompt iterations | History must keep provider-safe tool-call/tool-output structure. |
 | current user content | Electron query payload builder and backend query inputs | stored history and `user-message-full` transparency | Hidden memory/attachment sections should match backend metadata. |

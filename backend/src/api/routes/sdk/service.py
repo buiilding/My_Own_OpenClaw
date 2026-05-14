@@ -321,12 +321,14 @@ def apply_agent_definition_to_constructor(
         if hasattr(agent_definition, "client_prompt_layers")
         else []
     )
-    manifest_result = validate_client_tool_manifest(
+    raw_manifest = (
         agent_definition.client_tool_manifest()
         if hasattr(agent_definition, "client_tool_manifest")
         else None
     )
-    constructor.client_tool_schemas = list(manifest_result.accepted_tool_schemas)
+    if raw_manifest is not None:
+        manifest_result = validate_client_tool_manifest(raw_manifest)
+        constructor.client_tool_schemas = list(manifest_result.accepted_tool_schemas)
 
 
 def build_debug_user_message_full(

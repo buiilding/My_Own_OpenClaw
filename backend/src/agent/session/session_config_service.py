@@ -223,29 +223,41 @@ class SessionConfigService:
         runtime = getattr(session, "runtime", None)
         if runtime is not None:
             runtime.agent_definition = agent_definition
-        manifest_result = validate_client_tool_manifest(
+        raw_manifest = (
             agent_definition.client_tool_manifest()
             if hasattr(agent_definition, "client_tool_manifest")
             else None
         )
-        self.apply_client_tool_manifest_to_session(session, manifest_result)
+        if raw_manifest is not None:
+            manifest_result = validate_client_tool_manifest(raw_manifest)
+            self.apply_client_tool_manifest_to_session(session, manifest_result)
         definition_runtime = getattr(agent_definition, "runtime", None)
-        self.apply_prompt_context_to_session(
-            session,
-            operating_system=getattr(definition_runtime, "operating_system", None),
-            workspace_path=getattr(definition_runtime, "workspace_path", None),
-            repo_instruction_messages=None,
-            client_prompt_layers=(
-                agent_definition.client_prompt_layers()
-                if hasattr(agent_definition, "client_prompt_layers")
-                else None
-            ),
-            system_prompt_override=(
-                agent_definition.system_prompt_override()
-                if hasattr(agent_definition, "system_prompt_override")
-                else None
-            ),
+        operating_system = getattr(definition_runtime, "operating_system", None)
+        workspace_path = getattr(definition_runtime, "workspace_path", None)
+        client_prompt_layers = (
+            agent_definition.client_prompt_layers()
+            if hasattr(agent_definition, "client_prompt_layers")
+            else None
         )
+        system_prompt_override = (
+            agent_definition.system_prompt_override()
+            if hasattr(agent_definition, "system_prompt_override")
+            else None
+        )
+        if (
+            operating_system is not None
+            or workspace_path is not None
+            or system_prompt_override is not None
+            or client_prompt_layers
+        ):
+            self.apply_prompt_context_to_session(
+                session,
+                operating_system=operating_system,
+                workspace_path=workspace_path,
+                repo_instruction_messages=None,
+                client_prompt_layers=client_prompt_layers,
+                system_prompt_override=system_prompt_override,
+            )
 
     def set_agent_definition(
         self,

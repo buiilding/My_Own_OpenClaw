@@ -56,7 +56,6 @@ const {
   prepareRendererQueryPayload,
 } = require('./ipc/ipc_query_runtime.cjs');
 const {
-  resolveWorkspaceRepoInstructionMessages,
   resolveWorkspaceRepoInstructionPromptLayers,
 } = require('./repo_instruction_runtime.cjs');
 const {
@@ -105,6 +104,9 @@ const {
 const {
   buildAgentCapabilityHandshakePayload,
 } = require('./agent_capability_handshake.cjs');
+const {
+  buildAgentDefinition,
+} = require('./agent_definition.cjs');
 const {
   buildClientToolManifestWithMcp,
 } = require('./mcp_runtime.cjs');
@@ -1130,7 +1132,7 @@ function initializeIpc(win, options = {}) {
       });
       payload = preparedQuery.payload;
       if (type === 'query' || type === 'rehydrate-conversation') {
-        payload = attachLocalRepoInstructionMessages(payload);
+        payload = attachAgentDefinitionContext(payload);
       }
       currentConversationRef = preparedQuery.conversationRef;
       queryMessageId = preparedQuery.queryMessageId;
@@ -1236,55 +1238,90 @@ function getBackendConnectionState() {
   };
 }
 
-function attachLocalRepoInstructionMessages(payload) {
+function isPlainObject(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function cloneJsonObject(value) {
+  if (!isPlainObject(value)) {
+    return {};
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+
+function mergeAgentDefinitionContext(generatedDefinition, suppliedDefinition) {
+  const supplied = cloneJsonObject(suppliedDefinition);
+  if (Object.keys(supplied).length === 0) {
+    return generatedDefinition;
+  }
+
+  const generated = cloneJsonObject(generatedDefinition);
+  return JSON.parse(JSON.stringify({
+    ...generated,
+    ...supplied,
+    system_prompt: isPlainObject(supplied.system_prompt)
+      ? supplied.system_prompt
+      : generated.system_prompt,
+    tools: isPlainObject(supplied.tools)
+      ? supplied.tools
+      : generated.tools,
+    runtime: {
+      ...(isPlainObject(generated.runtime) ? generated.runtime : {}),
+      ...(isPlainObject(supplied.runtime) ? supplied.runtime : {}),
+    },
+    prompt_layers: [
+      ...(Array.isArray(generated.prompt_layers) ? generated.prompt_layers : []),
+      ...(Array.isArray(supplied.prompt_layers) ? supplied.prompt_layers : []),
+    ],
+    agents_md: [
+      ...(Array.isArray(generated.agents_md) ? generated.agents_md : []),
+      ...(Array.isArray(supplied.agents_md) ? supplied.agents_md : []),
+    ],
+    skills: [
+      ...(Array.isArray(generated.skills) ? generated.skills : []),
+      ...(Array.isArray(supplied.skills) ? supplied.skills : []),
+    ],
+    plugins: [
+      ...(Array.isArray(generated.plugins) ? generated.plugins : []),
+      ...(Array.isArray(supplied.plugins) ? supplied.plugins : []),
+    ],
+  }));
+}
+
+function attachAgentDefinitionContext(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return payload;
   }
   const customInstructions = typeof latestFrontendConfig?.agent_custom_instructions === 'string'
     ? latestFrontendConfig.agent_custom_instructions.trim()
     : '';
-  const customPromptLayers = customInstructions
-    ? [{
-      id: 'custom-instructions',
-      type: 'custom_instructions',
-      priority: 60,
-      content: customInstructions,
-    }]
-    : [];
-  const extensionPromptLayers = loadExtensionPromptLayers();
-
   const workspacePath = typeof payload.workspace_path === 'string'
     ? payload.workspace_path.trim()
     : '';
-  if (!workspacePath) {
-    const clientPromptLayers = [
-      ...extensionPromptLayers,
-      ...customPromptLayers,
-    ];
-    return clientPromptLayers.length > 0
-      ? { ...payload, client_prompt_layers: clientPromptLayers }
-      : payload;
-  }
-
-  const repoInstructionMessages = resolveWorkspaceRepoInstructionMessages(workspacePath);
-  const repoInstructionPromptLayers = resolveWorkspaceRepoInstructionPromptLayers(workspacePath);
-  const clientPromptLayers = [
-    ...repoInstructionPromptLayers,
-    ...extensionPromptLayers,
-    ...customPromptLayers,
-  ];
-  if (repoInstructionMessages.length === 0 && clientPromptLayers.length === 0) {
+  const agentsMd = workspacePath
+    ? resolveWorkspaceRepoInstructionPromptLayers(workspacePath)
+    : [];
+  const generatedAgentDefinition = buildAgentDefinition({
+    includeToolManifest: false,
+    customInstructions,
+    promptLayers: loadExtensionPromptLayers(),
+    agentsMd,
+    workspacePath,
+    operatingSystem: resolveFrontendOperatingSystem(process.platform),
+  });
+  const suppliedAgentDefinition = isPlainObject(payload.agent_definition)
+    ? payload.agent_definition
+    : null;
+  if (generatedAgentDefinition.mode === 'windie_default' && !suppliedAgentDefinition) {
     return payload;
   }
 
   return {
     ...payload,
-    ...(repoInstructionMessages.length > 0
-      ? { repo_instruction_messages: repoInstructionMessages }
-      : {}),
-    ...(clientPromptLayers.length > 0
-      ? { client_prompt_layers: clientPromptLayers }
-      : {}),
+    agent_definition: mergeAgentDefinitionContext(
+      generatedAgentDefinition,
+      suppliedAgentDefinition,
+    ),
   };
 }
 
@@ -1331,10 +1368,10 @@ async function sendAutomatedQuery(options = {}) {
   if (preparedQuery.attachmentFilenames.length > 0) {
     payload.attachment_filenames = preparedQuery.attachmentFilenames;
   }
-  const payloadWithRepoInstructions = attachLocalRepoInstructionMessages(payload);
+  const payloadWithAgentDefinition = attachAgentDefinitionContext(payload);
 
   const queryMessageId = uuidv4();
-  const messageId = sendMessageToBackend('query', payloadWithRepoInstructions, queryMessageId);
+  const messageId = sendMessageToBackend('query', payloadWithAgentDefinition, queryMessageId);
   if (!messageId) {
     return { ok: false, error: 'Failed to send query to backend' };
   }

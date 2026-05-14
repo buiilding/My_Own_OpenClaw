@@ -177,7 +177,7 @@ describe('ipc.cjs bridge query handling', () => {
     });
   });
 
-  test('attaches locally resolved AGENTS.md messages to outbound query payloads', async () => {
+  test('attaches locally resolved AGENTS.md layers to outbound query agent definition', async () => {
     const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-query-agents-'));
     fs.mkdirSync(path.join(repoRoot, '.git'));
     fs.writeFileSync(path.join(repoRoot, 'AGENTS.md'), 'repo instructions\n', 'utf8');
@@ -211,21 +211,23 @@ describe('ipc.cjs bridge query handling', () => {
 
     const lastMessage = getLastSentMessage(ws);
     expect(lastMessage.type).toBe('query');
-    const repoInstructionMessages = lastMessage.payload.repo_instruction_messages;
-    if (!Array.isArray(repoInstructionMessages)) {
-      throw new Error(`expected repo_instruction_messages array, got ${typeof repoInstructionMessages}`);
+    expect(lastMessage.payload.repo_instruction_messages).toBeUndefined();
+    expect(lastMessage.payload.client_prompt_layers).toBeUndefined();
+    const agentsMd = lastMessage.payload.agent_definition?.agents_md;
+    if (!Array.isArray(agentsMd)) {
+      throw new Error(`expected agent_definition.agents_md array, got ${typeof agentsMd}`);
     }
-    if (repoInstructionMessages.length !== 1) {
-      throw new Error(`expected 1 repo instruction message, got ${repoInstructionMessages.length}`);
+    if (agentsMd.length !== 1) {
+      throw new Error(`expected 1 AGENTS.md layer, got ${agentsMd.length}`);
     }
-    if (repoInstructionMessages[0]?.role !== 'user') {
-      throw new Error(`unexpected repo instruction role: ${String(repoInstructionMessages[0]?.role)}`);
+    if (agentsMd[0]?.type !== 'agents_md') {
+      throw new Error(`unexpected AGENTS.md layer type: ${String(agentsMd[0]?.type)}`);
     }
     if (
-      repoInstructionMessages[0]?.content
-      !== `# AGENTS.md instructions for ${repoRoot}\n\n<INSTRUCTIONS>\nrepo instructions\n</INSTRUCTIONS>`
+      agentsMd[0]?.content
+      !== `# AGENTS.md instructions for ${repoRoot}\n\nrepo instructions`
     ) {
-      throw new Error(`unexpected repo instruction content: ${String(repoInstructionMessages[0]?.content)}`);
+      throw new Error(`unexpected AGENTS.md layer content: ${String(agentsMd[0]?.content)}`);
     }
   });
 

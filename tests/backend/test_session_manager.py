@@ -247,6 +247,63 @@ async def test_agent_definition_updates_prompt_layers_and_custom_system_prompt()
 
 
 @pytest.mark.asyncio
+async def test_partial_agent_definition_does_not_clear_existing_client_tools() -> None:
+    manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
+    session = DummySession("existing")
+    _assign_active_session(manager, "user-1", session)
+
+    manager.set_agent_definition(
+        "user-1",
+        AgentDefinition(
+            tools={
+                "client_manifest": {
+                    "version": 1,
+                    "tools": [
+                        {
+                            "name": "save_note",
+                            "description": "Save a note",
+                            "execution_target": "sidecar",
+                            "schema": {
+                                "type": "object",
+                                "properties": {"text": {"type": "string"}},
+                                "required": ["text"],
+                            },
+                        }
+                    ],
+                },
+            }
+        ),
+    )
+
+    manager.set_agent_definition(
+        "user-1",
+        AgentDefinition(
+            system_prompt={"mode": "replace", "content": "Prompt with repo rules."},
+            agents_md=[
+                {
+                    "id": "repo",
+                    "type": "agents_md",
+                    "priority": 50,
+                    "content": "Follow repo rules.",
+                }
+            ],
+        ),
+    )
+
+    assert [
+        schema.get("name") for schema in session.prompt_builder.client_tool_schemas
+    ] == ["save_note"]
+    assert session.prompt_builder.client_prompt_layers == [
+        {
+            "id": "repo",
+            "type": "agents_md",
+            "priority": 50,
+            "content": "Follow repo rules.",
+        }
+    ]
+
+
+@pytest.mark.asyncio
 async def test_update_all_sessions_config_updates_active_sessions() -> None:
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
     first = DummySession("first")

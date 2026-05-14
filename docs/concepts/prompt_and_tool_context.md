@@ -31,8 +31,8 @@ Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_d
 
 The model-visible message list is assembled in this order:
 
-1. repo instruction messages from desktop-forwarded `repo_instruction_messages` or backend workspace discovery
-2. client prompt layers sorted by numeric `priority`
+1. client-defined `agent_definition.agents_md` / prompt layers, sorted by numeric `priority`
+2. legacy injected repo instruction messages or backend workspace discovery when no client-defined layer is present
 3. stored backend conversation history, including the current user query content and prior provider-safe tool rows
 
 The backend system prompt is stored separately as `PromptMetadata.system_prompt` and included by the provider request path. Do not assume renderer message rows are the prompt. Renderer rows are display projections; backend history and prompt constructor output are what the model can actually see.
@@ -40,7 +40,7 @@ The backend system prompt is stored separately as `PromptMetadata.system_prompt`
 | Stage | Model-visible shape | Owner files | Drift check |
 | --- | --- | --- | --- |
 | system prompt | rendered system prompt text after OS/coordinate-method filtering | `backend/src/llm/prompts/prompts.py`, `backend/src/llm/prompts/system_prompt.txt` | If prompt text mentions a capability, prove the tool/policy/provider path supports it. |
-| repo instructions | `{"role": "user", "content": ...}` messages ordered broad-to-specific | `backend/src/llm/prompts/repo_instructions.py`, Electron repo instruction runtime | Do not reconstruct local `AGENTS.md` in renderer UI as if that were backend truth. |
+| repo instructions | `agent_definition.agents_md` entries resolved by the client, or backend lookup fallback | `frontend/src/main/repo_instruction_runtime.cjs`, `backend/src/api/schemas/agent_definition.py`, `backend/src/llm/prompts/repo_instructions.py` | Do not reconstruct local `AGENTS.md` in renderer UI as if that were backend truth. |
 | client prompt layers | user-role messages wrapped in `<CLIENT_PROMPT_LAYER type="...">` after priority sort | `backend/src/llm/prompts/prompt_constructor.py`, session config runtime | Do not add a layer unless it needs priority, provenance, and transparency metadata. |
 | stored history | backend-rendered message history from `ConversationHistory.get_history()` | `backend/src/agent/session/state.py`, `backend/src/agent/history` | Visible transcript can differ, but backend history must remain provider-replay-safe. |
 | current user content | XML-like memory, attachment, system-state, and `<user_query>` sections inside the latest user message | `frontend/src/main/query_payload_builder.cjs`, backend query execution inputs | Hidden context should be intentional and visible through transparency metadata. |

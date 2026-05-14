@@ -520,44 +520,57 @@ class AgentSession:
             if conversation_ref:
                 self._switch_conversation_ref(conversation_ref)
             definition_runtime = getattr(agent_definition, "runtime", None)
-            self._apply_query_prompt_context_locked(
-                operating_system=(
-                    getattr(definition_runtime, "operating_system", None)
-                    if agent_definition is not None
-                    else operating_system
-                ),
-                workspace_path=(
-                    getattr(definition_runtime, "workspace_path", None)
-                    if agent_definition is not None
-                    else workspace_path
-                ),
-                repo_instruction_messages=repo_instruction_messages,
-                client_prompt_layers=(
-                    agent_definition.client_prompt_layers()
-                    if agent_definition is not None
-                    and hasattr(agent_definition, "client_prompt_layers")
-                    else client_prompt_layers
-                ),
-                system_prompt_override=(
-                    agent_definition.system_prompt_override()
-                    if agent_definition is not None
-                    and hasattr(agent_definition, "system_prompt_override")
-                    else None
-                ),
+            resolved_operating_system = (
+                getattr(definition_runtime, "operating_system", None)
+                if agent_definition is not None
+                else operating_system
             )
+            resolved_workspace_path = (
+                getattr(definition_runtime, "workspace_path", None)
+                if agent_definition is not None
+                else workspace_path
+            )
+            resolved_client_prompt_layers = (
+                agent_definition.client_prompt_layers()
+                if agent_definition is not None
+                and hasattr(agent_definition, "client_prompt_layers")
+                else client_prompt_layers
+            )
+            resolved_system_prompt_override = (
+                agent_definition.system_prompt_override()
+                if agent_definition is not None
+                and hasattr(agent_definition, "system_prompt_override")
+                else None
+            )
+            if (
+                resolved_operating_system is not None
+                or resolved_workspace_path is not None
+                or repo_instruction_messages is not None
+                or resolved_client_prompt_layers is not None
+                or resolved_system_prompt_override is not None
+            ):
+                self._apply_query_prompt_context_locked(
+                    operating_system=resolved_operating_system,
+                    workspace_path=resolved_workspace_path,
+                    repo_instruction_messages=repo_instruction_messages,
+                    client_prompt_layers=resolved_client_prompt_layers,
+                    system_prompt_override=resolved_system_prompt_override,
+                )
             if agent_definition is not None:
                 self.runtime.agent_definition = agent_definition
-                manifest_result = validate_client_tool_manifest(
+                raw_manifest = (
                     agent_definition.client_tool_manifest()
                     if hasattr(agent_definition, "client_tool_manifest")
                     else None
                 )
-                self.runtime.client_tool_manifest = manifest_result
-                setattr(
-                    self.prompt_builder,
-                    "client_tool_schemas",
-                    list(manifest_result.accepted_tool_schemas),
-                )
+                if raw_manifest is not None:
+                    manifest_result = validate_client_tool_manifest(raw_manifest)
+                    self.runtime.client_tool_manifest = manifest_result
+                    setattr(
+                        self.prompt_builder,
+                        "client_tool_schemas",
+                        list(manifest_result.accepted_tool_schemas),
+                    )
             self._apply_query_runtime_system_state_locked(runtime_system_state)
             if not self.cfg.selected_model_id:
                 yield {

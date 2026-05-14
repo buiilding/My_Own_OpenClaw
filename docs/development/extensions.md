@@ -103,7 +103,7 @@ Example `extension.json`:
 ```
 
 The loader contributes extension tools to `client_tool_manifest` and extension
-prompt layers and skills to `client_prompt_layers`. `schema`, `content_path`,
+prompt layers and skills to `agent_definition`. `schema`, `content_path`,
 and skill paths are resolved relative to the extension directory. The Python
 sidecar also reads the same manifests and loads each sidecar tool `entrypoint`.
 For sidecar tools, Electron only advertises entries whose `entrypoint` points to
@@ -259,7 +259,7 @@ through MCP `tools/call`. See [MCP Runtime](mcp.md).
 Skills are instruction packs, not executable tools. Put reusable agent guidance
 under `extensions/<id>/skills/<skill-id>/SKILL.md`. Electron main discovers
 every `SKILL.md` under an extension `skills/` directory and converts it into a
-`client_prompt_layers` entry with type `extension_skill`.
+client-defined agent skill layer with type `extension_skill`.
 
 Example:
 

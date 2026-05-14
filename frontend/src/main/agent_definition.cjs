@@ -50,7 +50,10 @@ function buildCustomInstructionLayer(customInstructions) {
 }
 
 function buildAgentDefinition(options = {}) {
-  const clientToolManifest = options.clientToolManifest || { version: 1, tools: [] };
+  const includeToolManifest = options.includeToolManifest !== false;
+  const clientToolManifest = includeToolManifest
+    ? options.clientToolManifest || { version: 1, tools: [] }
+    : null;
   const enabledRemoteTools = normalizeStringList(options.enabledRemoteTools);
   const disabledTools = normalizeStringList(options.disabledTools);
   const disabledCapabilities = normalizeStringList(options.disabledCapabilities);
@@ -65,13 +68,25 @@ function buildAgentDefinition(options = {}) {
     ...(customInstructionLayer ? [customInstructionLayer] : []),
     ...(Array.isArray(options.promptLayers) ? options.promptLayers : []),
   ]);
+  const skills = normalizePromptLayers(options.skills);
+  const agentsMd = normalizePromptLayers(options.agentsMd || options.agents_md);
+  const plugins = Array.isArray(options.plugins) ? options.plugins : [];
 
   const systemPromptContent = normalizeString(options.systemPrompt);
+  const workspacePath = normalizeString(options.workspacePath);
   const definition = {
     version: 1,
     id: normalizeString(options.id) || 'windie-default',
     name: normalizeString(options.name) || 'WindieOS Agent',
-    mode: systemPromptContent || promptLayers.length > 0 || clientToolManifest.tools?.length > 0
+    mode: (
+      systemPromptContent
+      || promptLayers.length > 0
+      || skills.length > 0
+      || agentsMd.length > 0
+      || plugins.length > 0
+      || workspacePath
+      || clientToolManifest?.tools?.length > 0
+    )
       ? 'default_plus_overrides'
       : 'windie_default',
     system_prompt: systemPromptContent
@@ -79,19 +94,19 @@ function buildAgentDefinition(options = {}) {
       : { mode: 'default' },
     tools: {
       mode: explicitAvailableTools.length > 0 ? 'explicit' : 'default_plus_client',
-      client_manifest: clientToolManifest,
+      client_manifest: includeToolManifest ? clientToolManifest : undefined,
       available_tools: explicitAvailableTools.length > 0 ? explicitAvailableTools : undefined,
       enabled_remote_tools: enabledRemoteTools,
       disabled_tools: disabledTools,
       disabled_capabilities: disabledCapabilities,
     },
     prompt_layers: promptLayers,
-    skills: normalizePromptLayers(options.skills),
-    agents_md: normalizePromptLayers(options.agentsMd || options.agents_md),
-    plugins: Array.isArray(options.plugins) ? options.plugins : [],
+    skills,
+    agents_md: agentsMd,
+    plugins,
     runtime: {
       operating_system: normalizeString(options.operatingSystem),
-      workspace_path: normalizeString(options.workspacePath),
+      workspace_path: workspacePath,
       coordinate_methods: coordinateMethods.length > 0 ? coordinateMethods : undefined,
     },
   };

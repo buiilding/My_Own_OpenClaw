@@ -23,7 +23,7 @@ Implemented today:
 - extension local sidecar tools declared with `name`, `schema`, and Python `entrypoint`
 - extension `plugin.cjs` modules with `registerTool`, `registerPromptLayer`, `registerSkill`, `registerSettingsPanel`, lifecycle hooks, config, and permissions
 - extension MCP servers declared with `mcp_servers` or `api.registerMcpServer(...)`, discovered through MCP `tools/list`, and executed through local MCP `tools/call`
-- extension prompt layers and `skills/**/SKILL.md` instructions forwarded as `client_prompt_layers`
+- extension prompt layers and `skills/**/SKILL.md` instructions forwarded through `agent_definition.prompt_layers` and `agent_definition.skills`
 - backend tool registry and SDK tool base
 - sidecar executable tools
 - LLM provider factory and model catalog

@@ -4,6 +4,9 @@ const {
 const {
   buildClientToolManifest,
 } = require('../../frontend/src/main/tool_manifest.cjs');
+const {
+  buildAgentDefinition,
+} = require('../../frontend/src/main/agent_definition.cjs');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -156,5 +159,29 @@ describe('agent capability handshake manifest', () => {
       ]),
     );
     expect(payload.agent_definition.runtime.coordinate_methods).toEqual(['manual']);
+  });
+
+  test('can build partial query agent definitions without a tool manifest', () => {
+    const definition = buildAgentDefinition({
+      includeToolManifest: false,
+      agentsMd: [{
+        id: 'repo',
+        type: 'agents_md',
+        priority: 40,
+        content: 'Follow repo rules.',
+      }],
+      workspacePath: '/tmp/project',
+    });
+
+    expect(definition.tools.client_manifest).toBeUndefined();
+    expect(definition.agents_md).toEqual([
+      {
+        id: 'repo',
+        type: 'agents_md',
+        priority: 40,
+        content: 'Follow repo rules.',
+      },
+    ]);
+    expect(definition.runtime.workspace_path).toBe('/tmp/project');
   });
 });
