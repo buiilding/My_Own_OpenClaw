@@ -1,7 +1,7 @@
 ---
-summary: "Sidecar and local tool channel guide covering renderer/main IPC, Python JSON-RPC, executable tool ownership, and backend tool-result ingress."
+summary: "Sidecar and local tool channel guide covering SDK main-runtime execution, sidecar daemon tools, display-only renderer events, and backend tool-result ingress."
 read_when:
-  - When changing local tool execution, sidecar JSON-RPC, renderer tool-runner behavior, shell/filesystem/browser/computer actions, or local memory calls.
+  - When changing local tool execution, sidecar daemon routing, renderer tool-call display behavior, shell/filesystem/browser/computer actions, or local memory calls.
   - When debugging a tool call that is visible in backend streaming but fails before, during, or after local sidecar execution.
 title: "Sidecar and Tool Channels"
 ---
@@ -16,17 +16,16 @@ Local tools cross every WindieOS runtime boundary. The backend decides what the 
 sequenceDiagram
     participant Backend as Backend agent loop
     participant Main as Electron main
-    participant Renderer as Renderer tool runner
-    participant Sidecar as Python sidecar
+    participant SDK as SDK main runtime
+    participant Renderer as Renderer display surfaces
+    participant Sidecar as Python sidecar daemon
 
     Backend->>Main: /ws tool-call
-    Main->>Renderer: from-backend tool-call
-    Renderer->>Main: execute-tool IPC
-    Main->>Sidecar: JSON-RPC method
-    Sidecar-->>Main: tool result
-    Main-->>Renderer: normalized result
-    Renderer->>Main: to-backend tool-result
-    Main->>Backend: /ws tool-result
+    Main->>SDK: route local execution
+    SDK->>Sidecar: HTTP /execute-tool
+    Sidecar-->>SDK: tool result
+    SDK->>Backend: /ws tool-result
+    Main->>Renderer: from-backend tool-call (display-only)
 ```
 
 ## Ownership Split
@@ -34,9 +33,10 @@ sequenceDiagram
 | Layer | Owns | Code roots |
 | --- | --- | --- |
 | Backend | model-facing tool schema, policy filtering, parser validation, tool-call events, result waiting, history commit | `backend/src/tools`, `backend/src/agent/tools`, `backend/src/api/processing/formatters/actions`, `backend/src/api/handlers/tool_results.py` |
-| Renderer | tool-call display, stale-turn guards, surface preparation, local execution request, result persistence | `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`, `frontend/src/renderer/infrastructure/services/ToolExecution*.ts` |
-| Electron main | IPC channel ownership, sidecar process bridge, screenshot artifact upload, system-state bridge | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/ipc.cjs`, `frontend/src/main/python_bridge`-adjacent handlers |
-| Python sidecar | executable tool implementations and JSON-RPC method registry | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools/**`, `frontend/src/main/python/memory/**` |
+| SDK main runtime | backend websocket ownership, local tool-call routing, `tool-result` / `tool-bundle-result` return | `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`, `frontend/src/main/ipc.cjs` |
+| Renderer | tool-call display, transcript/chat state, stale-turn display guards; no default local execution for SDK-owned backend tool events | `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`, `frontend/src/renderer/infrastructure/services/ToolExecution*.ts` |
+| Electron main | renderer IPC, sidecar daemon bridge, screenshot artifact upload, system-state bridge | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/sidecar_daemon_manager.cjs`, `frontend/src/main/ipc.cjs` |
+| Python sidecar daemon | executable tool implementations and dynamic tool registry | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools/**`, `frontend/src/main/python/memory/**` |
 
 ## Main IPC Channels
 
@@ -52,9 +52,11 @@ Common local channels:
 
 Renderer code should call the typed IPC bridge instead of raw Electron APIs.
 
-## Sidecar JSON-RPC Boundary
+## Sidecar Daemon Boundary
 
-The sidecar uses line-oriented JSON-RPC over stdin/stdout through Electron main. This boundary is intentionally separate from backend HTTP/WebSocket contracts.
+The canonical local executor is the token-auth sidecar daemon. Electron main starts or reuses it through `sidecar_daemon_manager.cjs`, then local execution uses daemon HTTP endpoints such as `/execute-tool`.
+
+The older line-oriented JSON-RPC process remains for local memory/service IPC while those services are being carried behind the daemon boundary. It is intentionally separate from hosted backend HTTP/WebSocket contracts.
 
 Sidecar method families:
 
@@ -77,7 +79,7 @@ Read next:
 
 ## Tool Result Return Path
 
-After sidecar execution, renderer/main must return results to the backend using the normal `/ws` tool-result path.
+After sidecar execution, the SDK main runtime returns results to the backend using the normal `/ws` tool-result path. The renderer receives display-only tool-call events for chat/transcript/overlay state and should not execute events marked `metadata.skip_frontend_execution`.
 
 Result path rules:
 
@@ -98,8 +100,8 @@ Read next:
 | Symptom | Owner to inspect |
 | --- | --- |
 | model never sees tool | backend tool schema/policy |
-| backend emits tool-call but renderer never acts | main relay or renderer stream event consumer |
-| renderer starts tool but sidecar never receives it | IPC/local backend bridge |
+| backend emits tool-call but no local action happens | SDK tool router or sidecar daemon bridge |
+| renderer executes a backend tool-call twice | missing `skip_frontend_execution` display-only marker |
 | sidecar returns error before action | sidecar tool validation/runtime |
 | action succeeds but model does not continue | tool-result ingress, request id, or history commit path |
 | screenshot path exists but image missing in chat | artifact upload/materialization path |
@@ -109,7 +111,8 @@ Read next:
 Use the narrowest test set for the changed boundary:
 
 - backend schema/policy/formatter/tool-result tests for model-facing changes
-- renderer tool-runner tests for local dispatch/result projection changes
+- SDK/IPC tool-router tests for backend tool-call routing/result projection changes
+- renderer tool-runner tests for display-only event behavior
 - main-process IPC/local-backend bridge tests for channel mapping changes
 - sidecar pytest tests for executable tool behavior
 - parity tests when backend schema and sidecar executable payloads must stay aligned

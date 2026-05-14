@@ -206,6 +206,16 @@ export function useToolRunner(enabled = true) {
       sendStaleBundleCancellation(typeof bundleId === 'string' ? bundleId : null);
       return;
     }
+    if (shouldSkipToolExecution((event.payload as { metadata?: Record<string, unknown> } | undefined)?.metadata)) {
+      return;
+    }
+    const rawTools = Array.isArray(event.payload?.tools) ? event.payload.tools : [];
+    if (
+      rawTools.length > 0
+      && rawTools.every((tool) => shouldSkipToolExecution(tool.metadata))
+    ) {
+      return;
+    }
     const bundleId = event.payload?.bundle_id || `bundle-${crypto.randomUUID()}`;
     const tools = mapBundleTools(event.payload?.tools);
 

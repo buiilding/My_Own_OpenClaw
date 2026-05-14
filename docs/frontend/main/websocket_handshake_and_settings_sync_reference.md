@@ -22,6 +22,7 @@ title: "WebSocket Handshake and Settings Sync Reference"
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
 
@@ -58,7 +59,7 @@ This means packaged-vs-dev fallback selection is determined at IPC bridge initia
 
 The SDK runtime is the canonical owner of backend websocket sessions. Electron main should use the SDK runtime for connect/reconnect, handshake, query, stop, settings, event parsing, event fan-out, and local tool-call routing. Electron-specific code remains responsible for windows, overlays, renderer IPC, settings UI, permission prompts, and platform display/screenshot integration.
 
-## Legacy Connection Lifecycle (`connect`)
+## SDK Connection Lifecycle (`connect`)
 
 Guard:
 
@@ -116,6 +117,25 @@ Overlay transition contract:
 - backend event -> overlay phase mapping and recovery metadata extraction live in `ipc_overlay_phase_events.cjs`
 - shared phase/metadata normalization primitives live in `ipc_overlay_phase_contract.cjs`
 - `ipc_runtime_helpers.processBackendMessageData(...)` applies that transition via `setResponseOverlayPhase(...)`
+
+## SDK-Owned Local Tool Routing
+
+Backend local execution events are handled before renderer fan-out:
+
+1. `ipc.cjs` receives a backend `tool-call` or `tool-bundle` through the SDK main runtime.
+2. `ipc_sdk_tool_router.cjs` executes the local tool through `executeToolForBackend(...)`.
+3. `executeToolForBackend(...)` uses the local sidecar daemon-backed bridge.
+4. `ipc.cjs` sends `tool-result` or `tool-bundle-result` back over the SDK websocket runtime.
+5. the renderer receives a display-only copy of the original backend event.
+
+Display-only renderer events retain normal chat/transcript/overlay behavior but
+include:
+
+- `metadata.skip_frontend_execution = true`
+- `metadata.execution_owner = "sdk-runtime"`
+
+This keeps the UI informed while preventing the renderer `useToolRunner` path
+from executing tools a second time.
 
 ## Settings Sync ACK Pipeline
 

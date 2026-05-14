@@ -127,6 +127,13 @@ backend tool-call -> SDK session -> sidecar /execute-tool -> backend tool-result
 
 The SDK skips local execution when backend metadata marks the event as `skip_frontend_execution`.
 
+In Electron main, backend `tool-call` and `tool-bundle` events are routed through
+the SDK-owned main runtime before renderer fan-out. The renderer still receives
+the event for chat, transcript, overlay, and debugging surfaces, but the event is
+marked with `metadata.skip_frontend_execution = true` and
+`metadata.execution_owner = "sdk-runtime"` so renderer tool runners do not execute
+the same local action twice.
+
 ## Public Methods
 
 Current canonical surface:

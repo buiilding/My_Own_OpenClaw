@@ -529,6 +529,33 @@ describe('useToolRunner event handling', () => {
     expect(mockExecuteTool).not.toHaveBeenCalled();
   });
 
+  test('skips frontend execution for SDK-owned display-only tool-bundle metadata', async () => {
+    renderToolRunner(true);
+
+    await emitBackendEventAsync({
+      type: 'tool-bundle',
+      payload: {
+        bundle_id: 'bundle-display-only',
+        metadata: {
+          skip_frontend_execution: true,
+          execution_owner: 'sdk-runtime',
+        },
+        tools: [
+          {
+            name: 'read_file',
+            args: { file_path: '/tmp/a' },
+            metadata: {
+              skip_frontend_execution: true,
+              execution_owner: 'sdk-runtime',
+            },
+          },
+        ],
+      },
+    });
+
+    expect(mockExecuteToolBundle).not.toHaveBeenCalled();
+  });
+
   test('skips frontend execution for direct-tool validation-failure metadata', async () => {
     renderToolRunner(true);
 

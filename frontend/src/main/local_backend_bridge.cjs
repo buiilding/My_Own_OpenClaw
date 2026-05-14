@@ -49,6 +49,10 @@ let runtimeScreenCaptureCapabilityVerifier = async () => ({
     initialized: false,
   },
 });
+let runtimeExecuteTool = async () => ({
+  success: false,
+  error: 'Local backend bridge is not initialized.',
+});
 const localBackendSupervisor = createLocalBackendSupervisor();
 let sidecarDaemonManager = null;
 
@@ -530,6 +534,10 @@ async function storeMemory(payload = {}) {
 }
 
 function stopLocalBackend() {
+  runtimeExecuteTool = async () => ({
+    success: false,
+    error: 'Local backend bridge is stopped.',
+  });
   if (sidecarDaemonManager) {
     void sidecarDaemonManager.shutdown();
     sidecarDaemonManager = null;
@@ -640,6 +648,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   ipcMain.handle('get-local-backend-status', async () => buildLocalBackendStatusPayload());
 
   runtimeScreenCaptureCapabilityVerifier = executeToolRuntime.createScreenCaptureCapabilityVerifier();
+  runtimeExecuteTool = async (payload = {}) => executeToolRuntime.executeTool(null, payload);
 
   ipcMain.handle('get-system-state', async (event, { fields } = {}) => {
     return getSystemStateFromBackend(fields);
@@ -765,6 +774,7 @@ module.exports = {
   stopLocalBackend,
   getSystemState,
   verifyScreenCaptureCapability: async () => runtimeScreenCaptureCapabilityVerifier(),
+  executeToolForBackend: async (payload) => runtimeExecuteTool(payload),
   getLocalBackendStatus,
   installBrowserChromium,
   determineMacOsSystemEventsAutomationPermission,

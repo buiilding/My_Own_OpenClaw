@@ -10,6 +10,7 @@ const {
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const {
+  executeToolForBackend,
   getSystemState,
   searchMemory,
   storeMemory,
@@ -113,6 +114,10 @@ const {
 const {
   createWindieSdkMainRuntime,
 } = require('./windie_sdk_runtime.cjs');
+const {
+  markRendererToolEventDisplayOnly,
+  routeSdkToolEventToLocalRuntime,
+} = require('./ipc/ipc_sdk_tool_router.cjs');
 const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
 
 let BACKEND_ENDPOINTS = resolveBackendEndpoints();
@@ -670,10 +675,16 @@ async function buildSdkRuntimeHandshake() {
 }
 
 function handleSdkRuntimeMessage(data) {
-  ipcEventReplayState.appendForActiveTurn(data);
-  noteBackendTraffic(`message:${data?.type || 'unknown'}`);
-  notifyBackendMessageObservers(data);
-  processBackendMessageData(data, {
+  routeSdkToolEventToLocalRuntime(data, {
+    executeLocalTool: executeToolForBackend,
+    sendMessageToBackend,
+    log,
+  });
+  const rendererData = markRendererToolEventDisplayOnly(data);
+  ipcEventReplayState.appendForActiveTurn(rendererData);
+  noteBackendTraffic(`message:${rendererData?.type || 'unknown'}`);
+  notifyBackendMessageObservers(rendererData);
+  processBackendMessageData(rendererData, {
     setCurrentSessionId: (value) => {
       currentSessionId = value;
     },

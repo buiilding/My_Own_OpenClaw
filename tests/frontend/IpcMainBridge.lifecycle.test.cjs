@@ -230,6 +230,82 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
   });
 
+  test('routes backend tool-call through SDK local runtime and marks renderer event display-only', async () => {
+    const { ws, mainWindow, backendBridge } = await setupOpenedIpc();
+    backendBridge.executeToolForBackend.mockResolvedValueOnce({
+      success: true,
+      data: {
+        output: 'saved note',
+        llm_content: 'saved note',
+      },
+    });
+
+    emitBackendMessage(ws, {
+      id: 'event-tool-call-sdk-runtime',
+      type: 'tool-call',
+      payload: {
+        tool_name: 'save_note',
+        request_id: 'req-save-note',
+        parameters: { text: 'hello' },
+      },
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(backendBridge.executeToolForBackend).toHaveBeenCalledWith({
+      toolName: 'save_note',
+      args: { text: 'hello' },
+    });
+    const toolResult = ws.sent.map((entry) => JSON.parse(entry))
+      .find((entry) => entry.type === 'tool-result');
+    expect(toolResult).toMatchObject({
+      type: 'tool-result',
+      payload: {
+        request_id: 'req-save-note',
+        success: true,
+        data: {
+          output: 'saved note',
+          llm_content: 'saved note',
+        },
+      },
+      user_id: 'registered-user-1',
+    });
+    const rendererToolCall = mainWindow.webContents.send.mock.calls
+      .find(([channel, payload]) => (
+        channel === 'from-backend'
+        && payload?.type === 'tool-call'
+        && payload?.payload?.request_id === 'req-save-note'
+      ));
+    expect(rendererToolCall?.[1].payload.metadata).toEqual(expect.objectContaining({
+      skip_frontend_execution: true,
+      execution_owner: 'sdk-runtime',
+    }));
+  });
+
+  test('does not execute backend-owned tool-call events already marked skip_frontend_execution', async () => {
+    const { ws, backendBridge } = await setupOpenedIpc();
+    backendBridge.executeToolForBackend.mockClear();
+
+    emitBackendMessage(ws, {
+      id: 'event-backend-owned-tool',
+      type: 'tool-call',
+      payload: {
+        tool_name: 'backend_only_tool',
+        request_id: 'req-backend-owned',
+        parameters: {},
+        metadata: { skip_frontend_execution: true },
+      },
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(backendBridge.executeToolForBackend).not.toHaveBeenCalled();
+    expect(ws.sent.map((entry) => JSON.parse(entry)).some((entry) => (
+      entry.type === 'tool-result'
+      && entry.payload?.request_id === 'req-backend-owned'
+    ))).toBe(false);
+  });
+
   test('switches response overlay phase to tool-output after tool-output', async () => {
     const applyResponseOverlayPhase = jest.fn();
     const { ws } = await setupOpenedIpc({ applyResponseOverlayPhase });

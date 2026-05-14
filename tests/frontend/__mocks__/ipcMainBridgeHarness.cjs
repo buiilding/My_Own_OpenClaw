@@ -88,6 +88,7 @@ jest.mock('fs', () => ({
 }));
 
 jest.mock('../../../frontend/src/main/local_backend_bridge.cjs', () => ({
+  executeToolForBackend: jest.fn(),
   getSystemState: jest.fn(),
   searchMemory: jest.fn(),
   storeMemory: jest.fn(),
@@ -119,6 +120,14 @@ let lastIpc = null;
 let originalFetch = null;
 
 function primeQueryContext(backendBridge, options = {}) {
+  backendBridge.executeToolForBackend.mockResolvedValue({
+    success: true,
+    data: {
+      output: 'tool ok',
+      llm_content: 'tool ok',
+    },
+  });
+
   if (options.systemStateError) {
     backendBridge.getSystemState.mockRejectedValue(options.systemStateError);
   } else {
@@ -139,6 +148,14 @@ function initIpc(options = {}) {
   const WebSocketMock = require('ws');
   const backendBridge = require('../../../frontend/src/main/local_backend_bridge.cjs');
   const fs = require('fs');
+
+  backendBridge.executeToolForBackend.mockResolvedValue({
+    success: true,
+    data: {
+      output: 'tool ok',
+      llm_content: 'tool ok',
+    },
+  });
 
   if (originalFetch === null) {
     originalFetch = global.fetch;
