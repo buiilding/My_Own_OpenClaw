@@ -37,6 +37,7 @@ class SessionConfigService:
         self._provider_health_resolver = provider_health_resolver
         self.user_config_overrides: dict[str, dict[str, Any]] = {}
         self.frontend_operating_systems: dict[str, str] = {}
+        self.client_tool_manifests: dict[str, Any] = {}
 
     def set_base_config(self, config: AppConfig) -> None:
         self._base_config = config
@@ -137,6 +138,31 @@ class SessionConfigService:
             list(normalized_repo_instruction_messages),
         )
         session.history.system_prompt = rendered_prompt
+
+    def apply_client_tool_manifest_to_session(
+        self,
+        session: "AgentSession",
+        manifest_result: Any,
+    ) -> None:
+        runtime = getattr(session, "runtime", None)
+        if runtime is not None:
+            runtime.client_tool_manifest = manifest_result
+        accepted_tool_schemas = (
+            manifest_result.accepted_tool_schemas
+            if manifest_result is not None
+            and hasattr(manifest_result, "accepted_tool_schemas")
+            else []
+        )
+        setattr(session.prompt_builder, "client_tool_schemas", list(accepted_tool_schemas))
+
+    def set_client_tool_manifest(
+        self,
+        user_id: str,
+        manifest_result: Any,
+    ) -> None:
+        self.client_tool_manifests[user_id] = manifest_result
+        for _, session in self._registry.iter_user_sessions(user_id):
+            self.apply_client_tool_manifest_to_session(session, manifest_result)
 
     def _call_render_system_prompt(
         self,

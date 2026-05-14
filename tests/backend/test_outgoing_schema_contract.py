@@ -13,12 +13,16 @@ from backend.src.api.processing.formatters.context_compaction_started import (
     ContextCompactionStartedEventFormatter,
 )
 from backend.src.api.processing.formatters.token_count import TokenCountEventFormatter
+from backend.src.api.processing.formatters.system_prompt import (
+    SystemPromptEventFormatter,
+)
 from backend.src.api.processing.formatters.tool_schemas import ToolSchemasEventFormatter
 from backend.src.api.schema import (
     ContextCompactionCompletedMessage,
     ContextCompactionFailedMessage,
     ContextCompactionStartedMessage,
     MemoryStoreMessage,
+    SystemPromptMessage,
     TokenCountMessage,
     ToolSchemasMessage,
 )
@@ -56,6 +60,40 @@ def test_tool_schemas_formatter_rejects_non_list_payload() -> None:
 
     with pytest.raises(ValueError, match="canonical tool object list"):
         formatter.format({"tool_schemas": {"read_file": {"type": "object"}}}, "msg_1")
+
+
+def test_system_prompt_formatter_includes_client_prompt_layers() -> None:
+    formatter = SystemPromptEventFormatter()
+    payload = formatter.format(
+        {
+            "content": "base prompt",
+            "client_prompt_layers": [
+                {
+                    "id": "custom-instructions",
+                    "type": "custom_instructions",
+                    "priority": 60,
+                    "content": "Prefer concise answers.",
+                }
+            ],
+        },
+        "msg_prompt",
+    )
+
+    assert payload is not None
+    parsed = SystemPromptMessage.model_validate(
+        {
+            **payload,
+            "user_id": "user_1",
+        }
+    )
+    assert parsed.payload.client_prompt_layers == [
+        {
+            "id": "custom-instructions",
+            "type": "custom_instructions",
+            "priority": 60,
+            "content": "Prefer concise answers.",
+        }
+    ]
 
 
 def test_token_count_formatter_output_matches_schema() -> None:

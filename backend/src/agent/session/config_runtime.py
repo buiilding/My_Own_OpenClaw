@@ -53,6 +53,12 @@ class SessionConfigRuntime:
         session.prompt_builder.repo_instruction_messages = list(
             getattr(previous_prompt, "repo_instruction_messages", []) or []
         )
+        session.prompt_builder.client_prompt_layers = list(
+            getattr(previous_prompt, "client_prompt_layers", []) or []
+        )
+        session.prompt_builder.client_tool_schemas = list(
+            getattr(previous_prompt, "client_tool_schemas", []) or []
+        )
 
         session.executor.prompt_builder = session.prompt_builder
         session.executor.interaction_loop.prompt_coordinator = ConversationContext(

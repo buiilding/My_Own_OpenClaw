@@ -3,6 +3,7 @@ Event Presenter.
 
 Formats and emits all frontend/UI events for the agent interaction loop.
 """
+
 import logging
 from typing import AsyncGenerator, Dict, List, Optional, cast
 
@@ -86,6 +87,7 @@ class EventPresenter:
         yield SystemPromptEvent(
             content=metadata.system_prompt,
             tool_schemas=None,  # Tool schemas are emitted via dedicated tool-schemas event
+            client_prompt_layers=metadata.client_prompt_layers,
         )
 
         # Present user message event

@@ -39,6 +39,7 @@ from backend.src.llm.prompts.repo_instructions import (
 from backend.src.tools.provider_projection import project_tool_schemas_for_provider
 from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.tool_policy import ToolPolicy
+from backend.src.tools.tool_specs import get_tool_spec_name
 
 # system_monitor removed - frontend handles system state
 
@@ -109,6 +110,8 @@ class PromptConstructor:
         self.limits = config.security_limits
         self.workspace_path: Optional[str] = None
         self.repo_instruction_messages: List[LLMMessage] = []
+        self.client_prompt_layers: List[Dict[str, Any]] = []
+        self.client_tool_schemas: List[Dict[str, Any]] = []
 
     def _get_filtered_tool_schemas(
         self,
@@ -116,28 +119,19 @@ class PromptConstructor:
         prompt_messages: Optional[List[LLMMessage]] = None,
     ) -> List[Dict[str, Any]]:
         """Return tool schemas filtered by centralized tool policy."""
-        model_tool_names_getter = getattr(
-            self.tool_registry, "get_model_tool_names", None
-        )
-        if callable(model_tool_names_getter):
-            filtered_names = self.tool_policy.filter_tool_names(
-                model_tool_names_getter(),
-                normalize_wrappers=False,
-            )
-            filtered_schemas = (
-                self.tool_registry.get_function_declarations_filtered(filtered_names)
-                or []
-            )
-            filtered_schemas = self.tool_policy.filter_tool_schemas(filtered_schemas)
-            projected_schemas = project_tool_schemas_for_provider(
-                tool_schemas=filtered_schemas,
-                tool_registry=self.tool_registry,
-                config=self.config,
-                prompt_messages=prompt_messages,
-            )
-            return self.tool_policy.filter_projected_tool_schemas(projected_schemas)
-
-        tool_schemas = self.tool_registry.get_function_declarations() or []
+        client_tool_schemas = self._get_client_tool_schemas()
+        client_tool_names = {
+            tool_name
+            for schema in client_tool_schemas
+            for tool_name in [get_tool_spec_name(schema)]
+            if isinstance(tool_name, str)
+        }
+        tool_schemas = [
+            schema
+            for schema in self._get_policy_filtered_registry_tool_schemas()
+            if get_tool_spec_name(schema) not in client_tool_names
+        ]
+        tool_schemas.extend(client_tool_schemas)
         filtered_schemas = self.tool_policy.filter_tool_schemas(tool_schemas)
         projected_schemas = project_tool_schemas_for_provider(
             tool_schemas=filtered_schemas,
@@ -146,6 +140,28 @@ class PromptConstructor:
             prompt_messages=prompt_messages,
         )
         return self.tool_policy.filter_projected_tool_schemas(projected_schemas)
+
+    def _get_policy_filtered_registry_tool_schemas(self) -> List[Dict[str, Any]]:
+        model_tool_names_getter = getattr(
+            self.tool_registry, "get_model_tool_names", None
+        )
+        if callable(model_tool_names_getter):
+            filtered_names = self.tool_policy.filter_tool_names(
+                model_tool_names_getter(),
+                normalize_wrappers=False,
+            )
+            return (
+                self.tool_registry.get_function_declarations_filtered(filtered_names)
+                or []
+            )
+        return self.tool_registry.get_function_declarations() or []
+
+    def _get_client_tool_schemas(self) -> List[Dict[str, Any]]:
+        return [
+            dict(schema)
+            for schema in self.client_tool_schemas
+            if isinstance(schema, dict)
+        ]
 
     def build_prompt(
         self,
@@ -189,6 +205,7 @@ class PromptConstructor:
         metadata = PromptMetadata(
             system_prompt=self.system_prompt,
             tool_schemas=tool_schemas,
+            client_prompt_layers=self._get_client_prompt_layer_metadata(),
             user_message_metadata=user_message_metadata,
         )
 
@@ -210,6 +227,7 @@ class PromptConstructor:
         """Build model-visible prompt messages, including contextual repo instructions."""
         prompt_messages: List[LLMMessage] = []
         prompt_messages.extend(self._get_repo_instruction_messages())
+        prompt_messages.extend(self._get_client_prompt_layer_messages())
         prompt_messages.extend(self._get_prompt_messages(stored_messages))
         return prompt_messages
 
@@ -217,6 +235,51 @@ class PromptConstructor:
         if self.repo_instruction_messages:
             return list(self.repo_instruction_messages)
         return resolve_workspace_repo_instruction_messages(self.workspace_path)
+
+    def _get_client_prompt_layer_messages(self) -> List[LLMMessage]:
+        layers = [
+            layer
+            for layer in self.client_prompt_layers
+            if isinstance(layer, dict) and isinstance(layer.get("content"), str)
+        ]
+        layers.sort(key=lambda layer: int(layer.get("priority", 100)))
+        messages: List[LLMMessage] = []
+        for layer in layers:
+            layer_id = str(layer.get("id") or "client-layer")
+            layer_type = str(layer.get("type") or "custom")
+            content = layer["content"].strip()
+            if not content:
+                continue
+            messages.append(
+                {
+                    "role": "user",
+                    "content": (
+                        f"# Client prompt layer: {layer_id}\n\n"
+                        f'<CLIENT_PROMPT_LAYER type="{layer_type}">\n'
+                        f"{content}\n"
+                        "</CLIENT_PROMPT_LAYER>"
+                    ),
+                }
+            )
+        return messages
+
+    def _get_client_prompt_layer_metadata(self) -> List[Dict[str, Any]]:
+        layers = [
+            layer
+            for layer in self.client_prompt_layers
+            if isinstance(layer, dict) and isinstance(layer.get("content"), str)
+        ]
+        layers.sort(key=lambda layer: int(layer.get("priority", 100)))
+        return [
+            {
+                "id": str(layer.get("id") or "client-layer"),
+                "type": str(layer.get("type") or "custom"),
+                "priority": int(layer.get("priority", 100)),
+                "content": layer["content"],
+            }
+            for layer in layers
+            if layer["content"].strip()
+        ]
 
     def get_prompt_token_count(
         self,

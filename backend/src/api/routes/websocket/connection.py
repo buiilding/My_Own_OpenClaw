@@ -20,6 +20,7 @@ from backend.src.api.routes.websocket.json_parse import (
 from backend.src.api.routes.websocket.task_manager import TaskManager
 from backend.src.api.schema import HandshakeMessage
 from backend.src.api.transport.websocket import SafeWebSocket
+from backend.src.tools.client_manifest import validate_client_tool_manifest
 
 logger = logging.getLogger(__name__)
 _HANDSHAKE_JSON_PARSE_OFFLOAD_BYTES = DEFAULT_JSON_PARSE_OFFLOAD_BYTES
@@ -80,11 +81,35 @@ async def perform_handshake(
         handshake_msg = HandshakeMessage.model_validate(handshake_data)
         claimed_user_id = handshake_msg.user_id
         setattr(safe_ws, "frontend_operating_system", handshake_msg.operating_system)
+        capability_overrides = handshake_msg.to_session_config_overrides()
+        client_tool_manifest_result = validate_client_tool_manifest(
+            handshake_msg.client_tool_manifest
+        )
+        if client_tool_manifest_result.accepted:
+            available_tools = list(capability_overrides.get("agent_available_tools") or [])
+            seen_available_tools = set(available_tools)
+            for tool_name in client_tool_manifest_result.accepted_tool_names:
+                if tool_name not in seen_available_tools:
+                    available_tools.append(tool_name)
+                    seen_available_tools.add(tool_name)
+            capability_overrides["agent_available_tools"] = available_tools
         setattr(
             safe_ws,
             "frontend_agent_capability_overrides",
-            handshake_msg.to_session_config_overrides(),
+            capability_overrides,
         )
+        setattr(
+            safe_ws,
+            "frontend_client_tool_manifest_result",
+            client_tool_manifest_result,
+        )
+        if client_tool_manifest_result.rejected:
+            logger.warning(
+                "Client tool manifest rejected %s entr%s for user %s",
+                len(client_tool_manifest_result.rejected),
+                "y" if len(client_tool_manifest_result.rejected) == 1 else "ies",
+                claimed_user_id,
+            )
         user_id = claimed_user_id
         install_id = None
         if require_install_auth:

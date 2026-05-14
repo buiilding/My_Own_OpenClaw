@@ -146,6 +146,13 @@ class SessionManager(ConfigSubscriber):
     ) -> Optional[str]:
         return self._config_service.frontend_operating_systems.get(user_id)
 
+    def set_client_tool_manifest(
+        self,
+        user_id: str,
+        manifest_result: Any,
+    ) -> None:
+        self._config_service.set_client_tool_manifest(user_id, manifest_result)
+
     def increment_connection_count(self, user_id: str) -> int:
         return self._registry.increment_connection_count(user_id)
 
@@ -327,6 +334,14 @@ class SessionManager(ConfigSubscriber):
                     self._config_service.apply_frontend_operating_system_to_session(
                         session,
                         operating_system,
+                    )
+                client_tool_manifest = self._config_service.client_tool_manifests.get(
+                    user_id
+                )
+                if client_tool_manifest is not None:
+                    self._config_service.apply_client_tool_manifest_to_session(
+                        session,
+                        client_tool_manifest,
                     )
                 self._registry.store_session(
                     user_id,

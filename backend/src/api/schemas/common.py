@@ -67,6 +67,7 @@ class HandshakeMessage(BaseModel):
     operating_system: Optional[str] = None
     available_tools: Optional[list[str]] = None
     available_coordinate_methods: Optional[list[CoordinateMethod]] = None
+    client_tool_manifest: Optional[dict[str, Any]] = None
     requested_agent_policy: Optional["HandshakeAgentPolicy"] = None
 
     @field_validator("user_id")

@@ -23,6 +23,7 @@ from backend.src.api.routes.websocket.message_handler import (
 )
 from backend.src.api.routes.websocket.task_manager import TaskManager
 from backend.src.api.transport.websocket import SafeWebSocket
+from backend.src.tools.remote_tool_catalog import build_remote_tool_catalog
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -100,6 +101,36 @@ async def websocket_endpoint(
         and frontend_agent_capability_overrides
     ):
         await update_session_config(user_id, frontend_agent_capability_overrides)
+
+    frontend_client_tool_manifest_result = getattr(
+        safe_ws,
+        "frontend_client_tool_manifest_result",
+        None,
+    )
+    set_client_tool_manifest = getattr(
+        session_manager,
+        "set_client_tool_manifest",
+        None,
+    )
+    if callable(set_client_tool_manifest):
+        set_client_tool_manifest(user_id, frontend_client_tool_manifest_result)
+    if frontend_client_tool_manifest_result is not None:
+        await safe_ws.send_json(
+            {
+                "type": "client-tool-manifest",
+                "payload": frontend_client_tool_manifest_result.to_public_dict(),
+            }
+        )
+    get_effective_config = getattr(session_manager, "get_effective_config", None)
+    remote_catalog_config = (
+        get_effective_config(user_id) if callable(get_effective_config) else config
+    )
+    await safe_ws.send_json(
+        {
+            "type": "remote-tool-catalog",
+            "payload": build_remote_tool_catalog(remote_catalog_config),
+        }
+    )
 
     try:
         while True:

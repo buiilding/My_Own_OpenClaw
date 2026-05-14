@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend: accept client tool manifests and client prompt layers so Windie Agent can own local tool schemas while the hosted backend validates, filters, and compiles them per session.
 - docs(reference): expand the session and transcript identifier reference with query identity flow, tool correlation flow, alias boundaries, replay preservation, and debug checks for lost IDs.
 - docs(architecture): add an agent-visible data pipeline map for tracing model-visible prompt/tool data, transport payloads, sidecar execution shapes, transcript/history preservation, and unnecessary-layer checks.
 - docs(frontend): add a local-backend process lifecycle workflow for sidecar startup, readiness probes, status propagation, request correlation, packaged launch targets, renderer readiness consumers, and validation routing.

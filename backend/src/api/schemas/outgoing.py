@@ -163,6 +163,7 @@ class SystemPromptPayload(BaseModel):
 
     content: str
     tool_schemas: Optional[List[ToolSchemaPayload]] = None
+    client_prompt_layers: Optional[List[Dict[str, Any]]] = None
 
 
 class SystemPromptMessage(BaseMessage):

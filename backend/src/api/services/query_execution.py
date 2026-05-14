@@ -121,6 +121,7 @@ class QueryExecutionService:
                     operating_system=frontend_operating_system,
                     workspace_path=query_inputs.workspace_path,
                     repo_instruction_messages=query_inputs.repo_instruction_messages,
+                    client_prompt_layers=query_inputs.client_prompt_layers,
                     runtime_system_state=query_inputs.runtime_system_state,
                 ):
                     event_type = extract_event_type(event)

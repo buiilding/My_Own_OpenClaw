@@ -365,22 +365,62 @@ class AgentSession:
             )
         ]
 
+    @staticmethod
+    def _normalize_client_prompt_layers(
+        client_prompt_layers: Optional[List[Dict[str, Any]]],
+    ) -> list[Dict[str, Any]]:
+        normalized_layers: list[Dict[str, Any]] = []
+        for layer in client_prompt_layers or []:
+            if not isinstance(layer, dict):
+                continue
+            layer_id = layer.get("id")
+            layer_type = layer.get("type")
+            content = layer.get("content")
+            priority = layer.get("priority", 100)
+            if (
+                not isinstance(layer_id, str)
+                or not layer_id.strip()
+                or not isinstance(layer_type, str)
+                or not layer_type.strip()
+                or not isinstance(content, str)
+                or not content.strip()
+            ):
+                continue
+            try:
+                normalized_priority = int(priority)
+            except (TypeError, ValueError):
+                normalized_priority = 100
+            normalized_layers.append(
+                {
+                    "id": layer_id.strip(),
+                    "type": layer_type.strip(),
+                    "priority": normalized_priority,
+                    "content": content.strip(),
+                }
+            )
+        return normalized_layers
+
     def _apply_query_prompt_context_locked(
         self,
         *,
         operating_system: Optional[str],
         workspace_path: Optional[str],
         repo_instruction_messages: Optional[List[Dict[str, str]]],
+        client_prompt_layers: Optional[List[Dict[str, Any]]],
     ) -> None:
         if (
             operating_system is None
             and workspace_path is None
             and repo_instruction_messages is None
+            and client_prompt_layers is None
         ):
             return
         normalized_workspace_path = self._normalize_workspace_path(workspace_path)
         normalized_repo_instruction_messages = (
             self._normalize_repo_instruction_messages(repo_instruction_messages)
+        )
+        normalized_client_prompt_layers = self._normalize_client_prompt_layers(
+            client_prompt_layers
         )
         rendered_prompt = get_system_prompt(
             operating_system,
@@ -392,12 +432,18 @@ class AgentSession:
 
         self.runtime.workspace_path = normalized_workspace_path
         self.runtime.repo_instruction_messages = normalized_repo_instruction_messages
+        self.runtime.client_prompt_layers = normalized_client_prompt_layers
         self.prompt_builder.system_prompt = rendered_prompt
         setattr(self.prompt_builder, "workspace_path", normalized_workspace_path)
         setattr(
             self.prompt_builder,
             "repo_instruction_messages",
             list(normalized_repo_instruction_messages),
+        )
+        setattr(
+            self.prompt_builder,
+            "client_prompt_layers",
+            list(normalized_client_prompt_layers),
         )
         self.history.system_prompt = rendered_prompt
 
@@ -448,6 +494,7 @@ class AgentSession:
         operating_system: Optional[str] = None,
         workspace_path: Optional[str] = None,
         repo_instruction_messages: Optional[List[Dict[str, str]]] = None,
+        client_prompt_layers: Optional[List[Dict[str, Any]]] = None,
         runtime_system_state: Optional[Dict[str, str]] = None,
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
@@ -467,6 +514,7 @@ class AgentSession:
                 operating_system=operating_system,
                 workspace_path=workspace_path,
                 repo_instruction_messages=repo_instruction_messages,
+                client_prompt_layers=client_prompt_layers,
             )
             self._apply_query_runtime_system_state_locked(runtime_system_state)
             if not self.cfg.selected_model_id:

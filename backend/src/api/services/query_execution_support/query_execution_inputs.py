@@ -26,6 +26,7 @@ class QueryExecutionInputs:
     conversation_ref: Optional[str]
     workspace_path: Optional[str]
     repo_instruction_messages: Optional[list[dict[str, str]]]
+    client_prompt_layers: Optional[list[dict[str, Any]]]
     runtime_system_state: Optional[dict[str, str]]
 
 
@@ -68,6 +69,18 @@ def resolve_query_execution_inputs(
             }
             for instruction in raw_repo_instruction_messages
         ]
+    raw_client_prompt_layers = getattr(message.payload, "client_prompt_layers", None)
+    client_prompt_layers = None
+    if raw_client_prompt_layers is not None:
+        client_prompt_layers = [
+            {
+                "id": layer.id,
+                "type": layer.type,
+                "priority": layer.priority,
+                "content": layer.content,
+            }
+            for layer in raw_client_prompt_layers
+        ]
 
     return QueryExecutionInputs(
         image_data=build_query_image_data(resolved_screenshots),
@@ -76,5 +89,6 @@ def resolve_query_execution_inputs(
         conversation_ref=getattr(message.payload, "conversation_ref", None),
         workspace_path=getattr(message.payload, "workspace_path", None),
         repo_instruction_messages=repo_instruction_messages,
+        client_prompt_layers=client_prompt_layers,
         runtime_system_state=resolve_query_runtime_system_state(message),
     )

@@ -51,6 +51,7 @@ class QueryPayload(BaseModel):
     system_state_internal: Optional[Dict[str, Any]] = None
     workspace_path: Optional[str] = None
     repo_instruction_messages: Optional[List["RepoInstructionMessage"]] = None
+    client_prompt_layers: Optional[List["ClientPromptLayer"]] = None
 
     @field_validator("conversation_ref")
     @classmethod
@@ -74,6 +75,17 @@ class RepoInstructionMessage(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     role: Literal["user"]
+    content: str = Field(min_length=1, max_length=200_000)
+
+
+class ClientPromptLayer(BaseModel):
+    """One client-provided prompt layer compiled after backend base rules."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(min_length=1, max_length=128, pattern=r"^[a-zA-Z0-9_.:-]+$")
+    type: str = Field(min_length=1, max_length=64, pattern=r"^[a-zA-Z0-9_.:-]+$")
+    priority: int = Field(default=100, ge=0, le=1_000)
     content: str = Field(min_length=1, max_length=200_000)
 
 
