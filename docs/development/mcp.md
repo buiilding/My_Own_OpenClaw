@@ -19,17 +19,15 @@ frontend.
 
 ## Add An MCP Server
 
-Declare MCP servers from an extension manifest:
+Declare MCP servers in `mcp/servers.json` inside the extension package:
 
 ```json
 {
-  "id": "memory-tools",
-  "name": "Memory Tools",
-  "mcp_servers": [
+  "servers": [
     {
       "id": "memory",
       "command": "node",
-      "args": ["servers/memory-mcp.cjs"],
+      "args": ["mcp/memory-mcp.cjs"],
       "cwd": ".",
       "env": {
         "MEMORY_DB": "notes.sqlite"
@@ -39,14 +37,14 @@ Declare MCP servers from an extension manifest:
 }
 ```
 
-Or register one from `plugin.cjs`:
+Or register one from `plugin/index.cjs` when the spec needs runtime logic:
 
 ```js
 module.exports = function register(api) {
   api.registerMcpServer({
     id: "memory",
     command: "node",
-    args: ["servers/memory-mcp.cjs"],
+    args: ["mcp/memory-mcp.cjs"],
     tools: [
       {
         name: "search",
@@ -94,7 +92,7 @@ That exposes `local_memory__search`.
 
 ## Runtime Flow
 
-1. Extension manifests and `plugin.cjs` files register MCP servers.
+1. Extension `mcp/servers.json` files and `plugin/index.cjs` files register MCP servers.
 2. Electron main starts each enabled MCP server over stdio.
 3. Electron main sends MCP `initialize` and `notifications/initialized`.
 4. Electron main calls `tools/list`.

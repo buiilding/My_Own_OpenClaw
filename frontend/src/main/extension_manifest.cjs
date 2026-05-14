@@ -326,13 +326,13 @@ function addSettingsPanel(extension, panel) {
   }
 }
 
-function normalizeMcpToolSpec(tool) {
+function normalizeMcpToolSpec(tool, extensionDir) {
   if (!tool || typeof tool !== 'object' || Array.isArray(tool)) {
     return null;
   }
   const name = normalizeString(tool.name);
-  const schema = normalizeObject(tool.schema || tool.input_schema || tool.inputSchema);
-  if (!name || Object.keys(schema).length === 0) {
+  const schema = readSchemaValue(tool.schema || tool.input_schema || tool.inputSchema, extensionDir);
+  if (!name || !schema || Object.keys(schema).length === 0) {
     return null;
   }
   return {
@@ -356,7 +356,7 @@ function addMcpServer(extension, server, extensionDir) {
     cwd = resolveInsideExtension(extensionDir, cwd);
   }
   const tools = Array.isArray(server.tools)
-    ? server.tools.map(normalizeMcpToolSpec).filter(Boolean)
+    ? server.tools.map((tool) => normalizeMcpToolSpec(tool, extensionDir)).filter(Boolean)
     : [];
   extension.mcp_servers.push({
     id,
@@ -505,11 +505,20 @@ function createPluginApi(extension, extensionDir) {
 }
 
 function resolvePluginEntrypoint(manifest, extensionDir) {
-  const configured = normalizeString(manifest.main || manifest.plugin || manifest.entrypoint);
-  if (configured) {
-    return resolveInsideExtension(extensionDir, configured);
+  if (manifest.plugin === false) {
+    return null;
   }
-  const defaultEntrypoint = path.join(extensionDir, 'plugin.cjs');
+  const pluginConfig = normalizeObject(manifest.plugin);
+  const configured = normalizeString(pluginConfig.entrypoint || pluginConfig.main);
+  if (configured) {
+    const resolvedPath = resolveInsideExtension(extensionDir, configured);
+    const relativePath = path.relative(extensionDir, resolvedPath).replace(/\\/g, '/');
+    if (!relativePath.startsWith('plugin/')) {
+      throw new Error('Extension plugin entrypoints must live under plugin/.');
+    }
+    return resolvedPath;
+  }
+  const defaultEntrypoint = path.join(extensionDir, 'plugin', 'index.cjs');
   return fs.existsSync(defaultEntrypoint) ? defaultEntrypoint : null;
 }
 
@@ -555,6 +564,18 @@ function createExtensionBase(extensionId, manifest, entryDir) {
   };
 }
 
+function readMcpServersFile(extension, extensionDir) {
+  const mcpServersPath = path.join(extensionDir, 'mcp', 'servers.json');
+  if (!fs.existsSync(mcpServersPath)) {
+    return;
+  }
+  const parsed = readJsonFile(mcpServersPath);
+  const servers = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.servers) ? parsed.servers : [];
+  for (const server of servers) {
+    addMcpServer(extension, server, extensionDir);
+  }
+}
+
 function loadExtension(entryDir) {
   const extensionJsonPath = path.join(entryDir, 'extension.json');
   const manifest = readJsonFile(extensionJsonPath);
@@ -586,9 +607,7 @@ function loadExtension(entryDir) {
   for (const panel of Array.isArray(manifest.settings_panels) ? manifest.settings_panels : []) {
     addSettingsPanel(extension, panel);
   }
-  for (const server of Array.isArray(manifest.mcp_servers) ? manifest.mcp_servers : []) {
-    addMcpServer(extension, server, entryDir);
-  }
+  readMcpServersFile(extension, entryDir);
 
   loadPluginEntrypoint(extension, manifest, entryDir);
   return extension;

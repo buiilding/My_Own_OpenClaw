@@ -18,6 +18,8 @@ function writeExtension() {
   const extensionDir = path.join(extensionsDir, 'notes');
   fs.mkdirSync(path.join(extensionDir, 'tools'), { recursive: true });
   fs.mkdirSync(path.join(extensionDir, 'python'), { recursive: true });
+  fs.mkdirSync(path.join(extensionDir, 'plugin'), { recursive: true });
+  fs.mkdirSync(path.join(extensionDir, 'mcp'), { recursive: true });
   fs.mkdirSync(path.join(extensionDir, 'skills', 'note-review'), { recursive: true });
   fs.mkdirSync(path.join(extensionDir, 'skills', 'manual-entry'), { recursive: true });
   fs.writeFileSync(
@@ -32,12 +34,12 @@ function writeExtension() {
   fs.writeFileSync(path.join(extensionDir, 'python', 'save_note.py'), 'def run(args):\n  return {}\n');
   fs.writeFileSync(path.join(extensionDir, 'guidance.md'), 'Prefer notes from this extension.');
   fs.writeFileSync(
-    path.join(extensionDir, 'plugin.cjs'),
+    path.join(extensionDir, 'plugin', 'index.cjs'),
     [
       'module.exports = function register(api) {',
       '  api.registerPermission({ id: "filesystem", reason: "Read and write local notes." });',
       '  api.registerSettingsPanel({ id: "notes", title: "Notes", description: "Configure note behavior.", config_schema: { type: "object" } });',
-      '  api.registerMcpServer({ id: "runtime-memory", command: "node", args: ["runtime-memory-server.cjs"], tools: [{ name: "remember", schema: { type: "object", properties: { value: { type: "string" } }, required: ["value"] } }] });',
+      '  api.registerMcpServer({ id: "runtime-memory", command: "node", args: ["mcp/runtime-memory-server.cjs"], tools: [{ name: "remember", schema: { type: "object", properties: { value: { type: "string" } }, required: ["value"] } }] });',
       '  api.registerPromptLayer({ id: "notes-runtime-guidance", type: "extension", priority: 73, content: "Runtime plugin guidance." });',
       '  api.registerSkill({ id: "runtime-note-skill", title: "Runtime Skill", priority: 83, content: "Use runtime skill instructions." });',
       '  api.registerTool({',
@@ -74,6 +76,26 @@ function writeExtension() {
     ].join('\n'),
   );
   fs.writeFileSync(
+    path.join(extensionDir, 'mcp', 'servers.json'),
+    JSON.stringify({
+      servers: [{
+        id: 'notes-memory',
+        command: 'node',
+        args: ['mcp/memory-server.cjs'],
+        tools: [{
+          name: 'search_notes',
+          description: 'Search notes through MCP.',
+          schema: {
+            type: 'object',
+            properties: { query: { type: 'string' } },
+            required: ['query'],
+            additionalProperties: false,
+          },
+        }],
+      }],
+    }),
+  );
+  fs.writeFileSync(
     path.join(extensionDir, 'extension.json'),
     JSON.stringify({
       id: 'notes',
@@ -94,21 +116,6 @@ function writeExtension() {
         path: 'skills/manual-entry',
         id: 'manual-note-skill',
         priority: 88,
-      }],
-      mcp_servers: [{
-        id: 'notes-memory',
-        command: 'node',
-        args: ['memory-server.cjs'],
-        tools: [{
-          name: 'search_notes',
-          description: 'Search notes through MCP.',
-          schema: {
-            type: 'object',
-            properties: { query: { type: 'string' } },
-            required: ['query'],
-            additionalProperties: false,
-          },
-        }],
       }],
     }),
   );

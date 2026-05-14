@@ -41,7 +41,7 @@ WindieOS is a desktop AI operator with persistent memory, terminal access, and c
 - The backend validates client-provided tool manifests, applies policy/provider projection, owns backend remote tools, and owns final prompt compilation
 - Frontend and sidecar must not import backend code for schema parity
 - Tool changes must update the client tool manifest, docs, and focused tests in the same change
-- Extensions must use `extensions/<id>/extension.json` and optional `plugin.cjs` for tool, MCP server, prompt-layer, skill, settings-panel, lifecycle-hook, config, and permission contributions. Python sidecar tools use `name`, `schema`, and `entrypoint`; main-process plugin tools use `api.registerTool({ name, schema, execute })`; MCP servers use `mcp_servers` or `api.registerMcpServer(...)`; skills use `skills/<skill-id>/SKILL.md` and become prompt layers, not executable tools
+- Extensions must keep contribution types separated inside one package: metadata in `extensions/<id>/extension.json`, plugin code in `plugin/index.cjs`, MCP server config in `mcp/servers.json`, skills in `skills/<skill-id>/SKILL.md`, sidecar schemas in `tools/`, and sidecar code in `python/`. Python sidecar tools use `name`, `schema`, and `entrypoint`; main-process plugin tools use `api.registerTool({ name, schema, execute })`; plugin code may call `api.registerMcpServer(...)`; skills become prompt layers, not executable tools
 - Built-in grounded tools must preserve the model-schema vs prepared-argument distinction. Use `backend_grounding` only when OCR/vision/prediction prepares executable sidecar arguments; otherwise use `passthrough`
 - The preferred parity mechanism is tests that verify schemas and registries do not drift
 

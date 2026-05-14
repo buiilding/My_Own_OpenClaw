@@ -21,8 +21,8 @@ Use this hub when a request sounds like "add a plugin" but the implementation sh
 
 | Surface | Extend here | Start docs |
 | --- | --- | --- |
-| Manifest extensions and local plugins | `extensions/<id>/extension.json`, `extensions/<id>/plugin.cjs`, `extensions/<id>/skills/**/SKILL.md` | [Extension Convention](../development/extensions.md) |
-| MCP integrations | `extensions/<id>/extension.json`, `extensions/<id>/plugin.cjs`, MCP stdio servers | [MCP Runtime](../development/mcp.md) |
+| Manifest extensions and local plugins | `extensions/<id>/extension.json`, `extensions/<id>/plugin/index.cjs`, `extensions/<id>/skills/**/SKILL.md` | [Extension Convention](../development/extensions.md) |
+| MCP integrations | `extensions/<id>/mcp/servers.json`, optional `extensions/<id>/plugin/index.cjs`, MCP stdio servers | [MCP Runtime](../development/mcp.md) |
 | Backend model-facing tools | `backend/src/tools`, `backend/src/sdk` | [Extension Surface Matrix](extension_surface_matrix.md), [Tool Authoring](../sdk/tool_authoring.md) |
 | Sidecar executable tools | `frontend/src/main/python/tools` | [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md), [Tool Development](../development/tool_development.md) |
 | LLM providers | `backend/src/llm/providers`, model catalog/config | [Providers Hub](../providers/README.md), [LLM Provider Docs Hub](../backend/llm/providers/README.md) |
@@ -69,7 +69,7 @@ Read:
 
 Likely code:
 
-- `extensions/<id>/plugin.cjs`
+- `extensions/<id>/plugin/index.cjs`
 - `extensions/<id>/extension.json`
 - `frontend/src/main/extension_manifest.cjs` only when changing plugin API behavior
 - `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs` only when changing lifecycle hook execution
@@ -88,8 +88,8 @@ Read:
 
 Likely code:
 
-- `extensions/<id>/extension.json` with `mcp_servers`
-- `extensions/<id>/plugin.cjs` with `api.registerMcpServer(...)`
+- `extensions/<id>/mcp/servers.json`
+- `extensions/<id>/plugin/index.cjs` with `api.registerMcpServer(...)` only when runtime registration logic is needed
 - `frontend/src/main/mcp_runtime.cjs` only when changing MCP protocol behavior
 - `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs` only when changing MCP tool execution order
 

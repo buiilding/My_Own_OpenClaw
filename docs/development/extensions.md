@@ -1,5 +1,5 @@
 ---
-summary: "Convention for WindieOS extensions that contribute local tools, schemas, prompt layers, skills, and docs."
+summary: "Convention for WindieOS extension packages with separated plugin, MCP, skills, sidecar tool, schema, settings, and docs surfaces."
 read_when:
   - When adding reusable client-side extensions.
   - When deciding where extension-owned tool schemas and docs should live.
@@ -12,19 +12,23 @@ plugin tools, MCP servers, model-facing schemas, prompt layers, skills, settings
 surfaces, required permissions, lifecycle hooks, config schemas, and
 documentation. Backend remote tools remain backend-owned.
 
-The extension loader reads `extensions/*/extension.json`. If the extension has a
-`plugin.cjs` file, Electron main loads it as trusted local plugin code and calls
-its exported register function. Set `WINDIE_AGENT_EXTENSIONS_DIR` to point
-Electron main at a different extensions directory.
+The extension loader reads `extensions/*/extension.json`. If the extension has
+`plugin/index.cjs`, Electron main loads it as trusted local plugin code and
+calls its exported register function. If the extension has `mcp/servers.json`,
+Electron main loads those MCP server specs. Set `WINDIE_AGENT_EXTENSIONS_DIR`
+to point Electron main at a different extensions directory.
 
 ```text
 extensions/
   my-extension/
     extension.json
-    plugin.cjs
+    plugin/
+      index.cjs
     tools/
     python/
-    servers/
+    mcp/
+      servers.json
+      memory-mcp.cjs
     skills/
     ui/
     docs/
@@ -37,7 +41,9 @@ Example `extension.json`:
   "id": "my-extension",
   "name": "My Extension",
   "description": "Adds local tools for a specific workflow.",
-  "main": "plugin.cjs",
+  "plugin": {
+    "entrypoint": "plugin/index.cjs"
+  },
   "config_schema": {
     "type": "object",
     "additionalProperties": false,
@@ -48,27 +54,6 @@ Example `extension.json`:
       "name": "my_tool",
       "entrypoint": "python/my_tool.py:run",
       "schema": "tools/my_tool.schema.json"
-    }
-  ],
-  "mcp_servers": [
-    {
-      "id": "memory",
-      "command": "node",
-      "args": ["servers/memory-mcp.cjs"],
-      "tools": [
-        {
-          "name": "search",
-          "description": "Search local memory.",
-          "schema": {
-            "type": "object",
-            "properties": {
-              "query": { "type": "string" }
-            },
-            "required": ["query"],
-            "additionalProperties": false
-          }
-        }
-      ]
     }
   ],
   "prompt_layers": [
@@ -110,7 +95,7 @@ For sidecar tools, Electron only advertises entries whose `entrypoint` points to
 an existing file inside the extension directory.
 
 `schema` is the hand-written schema the model sees. `entrypoint` is the local
-Python function the sidecar executes. `plugin.cjs` can also register
+Python function the sidecar executes. `plugin/index.cjs` can also register
 Electron-main tools, MCP servers, prompt layers, skills, settings panels,
 permissions, and lifecycle hooks through the runtime API.
 
@@ -139,8 +124,8 @@ a shared sidecar primitive.
 
 ## Plugin Runtime API
 
-`plugin.cjs` runs in Electron main as trusted local code. Export a function or
-an object with `register(api)`:
+`plugin/index.cjs` runs in Electron main as trusted local code. Export a
+function or an object with `register(api)`:
 
 ```js
 module.exports = function register(api) {
@@ -165,7 +150,7 @@ module.exports = function register(api) {
   api.registerMcpServer({
     id: "memory",
     command: "node",
-    args: ["servers/memory-mcp.cjs"],
+    args: ["mcp/memory-mcp.cjs"],
     tools: [
       {
         name: "search",
@@ -249,10 +234,44 @@ Use Python `entrypoint` tools for OS-level sidecar work. Use
 logic, or tooling that needs the Electron bridge rather than Python sidecar
 imports.
 
-Use `mcp_servers` or `api.registerMcpServer` when the integration should be
-portable across agent clients. MCP tools are named
+Use `mcp/servers.json` or `api.registerMcpServer` when the integration should
+be portable across agent clients. MCP tools are named
 `mcp_<server_id>__<tool_name>` by default and execute locally in Electron main
 through MCP `tools/call`. See [MCP Runtime](mcp.md).
+
+## Extension MCP Servers
+
+Put declarative MCP server specs in `mcp/servers.json`, not in
+`extension.json`:
+
+```json
+{
+  "servers": [
+    {
+      "id": "memory",
+      "command": "node",
+      "args": ["mcp/memory-mcp.cjs"],
+      "tools": [
+        {
+          "name": "search",
+          "description": "Search local memory.",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "query": { "type": "string" }
+            },
+            "required": ["query"],
+            "additionalProperties": false
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+Use `api.registerMcpServer(...)` from `plugin/index.cjs` only when the server
+spec depends on plugin config or runtime registration logic.
 
 ## Extension Skills
 
@@ -313,10 +332,10 @@ Extension checklist:
 2. Add executable Python code under the extension `python/` directory.
 3. Reference `schema` and the `file.py:function` entrypoint from
    `extension.json`.
-4. Add `plugin.cjs` when the extension needs runtime registration,
+4. Add `plugin/index.cjs` when the extension needs runtime registration,
    main-process tool execution, settings metadata, permissions, or lifecycle
    hooks.
-5. Add `mcp_servers` or `api.registerMcpServer` when the extension should
+5. Add `mcp/servers.json` or `api.registerMcpServer` when the extension should
    expose tools from an MCP server.
 6. Add reusable instructions under `skills/<skill-id>/SKILL.md` when the
    extension needs prompt guidance instead of executable code.
