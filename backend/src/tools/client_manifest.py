@@ -69,6 +69,7 @@ class ClientToolManifestEntry:
     model_schema: dict[str, Any]
     execution_schema: dict[str, Any]
     argument_resolution: Literal["passthrough", "backend_grounding"]
+    optional: bool = False
 
     @property
     def function_tool_schema(self) -> dict[str, Any]:
@@ -93,6 +94,7 @@ class ClientToolManifestEntry:
             "model_schema": copy.deepcopy(self.model_schema),
             "execution_schema": copy.deepcopy(self.execution_schema),
             "argument_resolution": self.argument_resolution,
+            "optional": self.optional,
         }
 
 
@@ -216,21 +218,26 @@ def _validate_tool_entry(
     if argument_resolution not in ARGUMENT_RESOLUTION_MODES:
         return None, {"name": name, "reason": "invalid argument_resolution"}
 
-    model_schema = raw_tool.get("model_schema")
+    model_schema = raw_tool.get("model_schema", raw_tool.get("parameters"))
     if not isinstance(model_schema, dict):
-        return None, {"name": name, "reason": "model_schema must be an object"}
+        return None, {"name": name, "reason": "parameters must be an object"}
     model_error = _validate_json_schema_subset(model_schema)
     if model_error:
-        return None, {"name": name, "reason": f"invalid model_schema: {model_error}"}
+        return None, {"name": name, "reason": f"invalid parameters: {model_error}"}
 
-    execution_schema = raw_tool.get("execution_schema", model_schema)
+    execution_schema = raw_tool.get(
+        "execution_schema", raw_tool.get("execution_parameters", model_schema)
+    )
     if not isinstance(execution_schema, dict):
-        return None, {"name": name, "reason": "execution_schema must be an object"}
+        return None, {
+            "name": name,
+            "reason": "execution_parameters must be an object",
+        }
     execution_error = _validate_json_schema_subset(execution_schema)
     if execution_error:
         return None, {
             "name": name,
-            "reason": f"invalid execution_schema: {execution_error}",
+            "reason": f"invalid execution_parameters: {execution_error}",
         }
 
     return (
@@ -241,6 +248,7 @@ def _validate_tool_entry(
             model_schema=copy.deepcopy(model_schema),
             execution_schema=copy.deepcopy(execution_schema),
             argument_resolution=argument_resolution,
+            optional=raw_tool.get("optional") is True,
         ),
         None,
     )

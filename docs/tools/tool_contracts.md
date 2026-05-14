@@ -19,6 +19,11 @@ They are related but intentionally not the same code. The public client sends a
 policy/provider projection, and can resolve high-level or grounded intent into a
 simpler executable sidecar action.
 
+Extension manifests use `parameters` as the developer-facing JSON Schema field.
+Electron maps that to the backend-facing `model_schema` field inside
+`client_tool_manifest`; `execution_parameters` is optional and is only needed
+when executable sidecar arguments differ from model-facing arguments.
+
 ## Contract Flow
 
 1. Client sends `client_tool_manifest` during websocket handshake.

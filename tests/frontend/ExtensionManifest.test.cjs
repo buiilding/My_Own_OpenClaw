@@ -33,8 +33,8 @@ function writeExtension() {
         name: 'save_note',
         description: 'Save a local note.',
         entrypoint: 'python/save_note.py:run',
-        model_schema: 'tools/note.schema.json',
-        execution_schema: 'tools/note.schema.json',
+        parameters: 'tools/note.schema.json',
+        optional: true,
       }],
       prompt_layers: [{
         id: 'notes-guidance',
@@ -67,6 +67,7 @@ describe('extension manifest loader', () => {
         execution_schema: expect.objectContaining({
           additionalProperties: false,
         }),
+        optional: true,
       }),
     ]);
     expect(promptLayers).toEqual([
@@ -98,8 +99,7 @@ describe('extension manifest loader', () => {
         tools: [{
           name: 'missing_entrypoint',
           description: 'Should not load.',
-          model_schema: 'tools/tool.schema.json',
-          execution_schema: 'tools/tool.schema.json',
+          parameters: 'tools/tool.schema.json',
         }],
       }),
     );

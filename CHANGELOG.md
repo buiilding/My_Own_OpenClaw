@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- extensions: make manifest-declared `parameters` plus Python `entrypoint` the canonical long-term tool extension API.
 - sidecar: dynamically load extension Python entrypoints from `extensions/*/extension.json` so extension tools no longer require built-in registry edits.
 - frontend: migrate Windie Agent client-manifest, extension-loader, Agent settings, mock backend, and sidecar schema export work back into the full WindieOS repo.
 - docs: replace the WindieOS README with the Windie Agent README style and update agent/tool guidance for full-repo open source development.

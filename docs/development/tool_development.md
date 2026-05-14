@@ -49,9 +49,10 @@ Current runtime note:
 - the live backend and sidecar registries expose direct tool names only
 - the frontend sends `client_tool_manifest` during handshake so client-local
   tool schemas can be extended without editing backend schema code
-- extension tools can put model-facing and executable schema JSON under
-  `extensions/<id>/tools/` and reference those files from
-  `extensions/<id>/extension.json`
+- extension tools put JSON Schema parameters under `extensions/<id>/tools/`
+  and reference them as `parameters` from `extensions/<id>/extension.json`
+- extension tools can use `execution_parameters` only when model-facing
+  arguments differ from executable sidecar arguments
 - extension tools can put executable Python under `extensions/<id>/python/`
   and reference it as `entrypoint: "python/file.py:function"` from
   `extension.json`
@@ -174,10 +175,9 @@ For built-ins, update `frontend/src/main/python/tools/registry.py`:
 - Add the tool to `TOOL_CATALOG` (or the explicit `switch_window` / `get_open_windows` registration path when appropriate).
 - Add tool name to `frontend/src/main/python/tools/exposed_tool_names.py` if it should be LLM-callable from the backend.
 
-For extension tools, do not edit built-in registry files. Add the Python
-entrypoint, model-facing schema, and executable schema to
-`extensions/<id>/extension.json`; Electron main forwards the schema manifest and
-the sidecar loads the executable entrypoint.
+For extension tools, do not edit built-in registry files. Add `parameters` and
+the Python `entrypoint` to `extensions/<id>/extension.json`; Electron main
+forwards the schema manifest and the sidecar loads the executable entrypoint.
 
 ### 6. Validate drift contract
 
@@ -243,8 +243,8 @@ If you add backend-only tools, document the wiring point in the same PR.
    `backend/src/tools/tool_catalog.py` and `backend/src/tools/remote.py` exports.
 2. For built-in sidecar tools, confirm the tool is listed in
    `frontend/src/main/python/tools/exposed_tool_names.py`.
-3. For extension sidecar tools, confirm `extension.json` has `model_schema`,
-   `execution_schema`, and `entrypoint`.
+3. For extension sidecar tools, confirm `extension.json` has `parameters` and
+   `entrypoint`.
 4. Confirm handler is registered in sidecar `ToolRegistry`.
 5. Run remote contract or extension manifest tests for the changed path.
 

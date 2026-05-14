@@ -118,11 +118,11 @@ def _load_tool(
         raise ValueError(f"extension tool {tool_name} is missing entrypoint")
 
     execution_schema = _read_schema_value(
-        raw_tool.get("execution_schema") or raw_tool.get("model_schema"),
+        raw_tool.get("execution_parameters") or raw_tool.get("parameters"),
         extension_dir,
     )
     if not isinstance(execution_schema, dict):
-        raise ValueError(f"extension tool {tool_name} is missing execution_schema")
+        raise ValueError(f"extension tool {tool_name} is missing parameters")
 
     handler = _load_entrypoint(extension_dir, extension_id, tool_name, entrypoint)
     return LoadedExtensionTool(

@@ -40,6 +40,21 @@ function readSchemaValue(value, extensionDir) {
   return readJsonFile(schemaPath);
 }
 
+function readToolParameters(rawTool, extensionDir) {
+  const modelSchema = readSchemaValue(rawTool.parameters, extensionDir);
+  if (!modelSchema) {
+    return null;
+  }
+  const executionSchema = readSchemaValue(
+    rawTool.execution_parameters || rawTool.parameters,
+    extensionDir,
+  );
+  if (!executionSchema) {
+    return null;
+  }
+  return { modelSchema, executionSchema };
+}
+
 function hasSidecarEntrypoint(entrypoint, extensionDir) {
   if (typeof entrypoint !== 'string' || !entrypoint.trim() || !entrypoint.includes(':')) {
     return false;
@@ -94,9 +109,8 @@ function loadExtension(entryDir) {
     const name = typeof rawTool.name === 'string' ? rawTool.name.trim() : '';
     const executionTarget = rawTool.execution_target === 'backend' ? 'backend' : 'sidecar';
     const entrypoint = typeof rawTool.entrypoint === 'string' ? rawTool.entrypoint.trim() : '';
-    const modelSchema = readSchemaValue(rawTool.model_schema, entryDir);
-    const executionSchema = readSchemaValue(rawTool.execution_schema || rawTool.model_schema, entryDir);
-    if (!name || !modelSchema || !executionSchema) {
+    const toolParameters = readToolParameters(rawTool, entryDir);
+    if (!name || !toolParameters) {
       continue;
     }
     if (executionTarget === 'sidecar' && !hasSidecarEntrypoint(entrypoint, entryDir)) {
@@ -108,12 +122,13 @@ function loadExtension(entryDir) {
         ? rawTool.description.trim()
         : `Extension tool from ${extensionId}.`,
       execution_target: executionTarget,
-      model_schema: modelSchema,
-      execution_schema: executionSchema,
+      model_schema: toolParameters.modelSchema,
+      execution_schema: toolParameters.executionSchema,
       argument_resolution: rawTool.argument_resolution === 'backend_grounding'
         ? 'backend_grounding'
         : 'passthrough',
       extension_id: extensionId,
+      optional: rawTool.optional === true,
     });
   }
 

@@ -28,9 +28,9 @@ def test_client_tool_manifest_accepts_passthrough_sidecar_tool():
                     "name": "my_tool",
                     "description": "A developer-defined local tool.",
                     "execution_target": "sidecar",
-                    "model_schema": _schema(),
-                    "execution_schema": _schema(),
+                    "parameters": _schema(),
                     "argument_resolution": "passthrough",
+                    "optional": True,
                 }
             ]
         }
@@ -38,8 +38,37 @@ def test_client_tool_manifest_accepts_passthrough_sidecar_tool():
 
     assert result.rejected == []
     assert result.accepted_tool_names == ["my_tool"]
+    assert result.accepted[0].optional is True
+    assert result.to_public_dict()["accepted"][0]["optional"] is True
     assert result.accepted_tool_schemas[0]["name"] == "my_tool"
     assert result.accepted_tool_schemas[0]["parameters"]["required"] == ["value"]
+
+
+def test_client_tool_manifest_accepts_execution_parameters_override():
+    execution_parameters = {
+        "type": "object",
+        "properties": {"value": {"type": "string"}, "dry_run": {"type": "boolean"}},
+        "required": ["value"],
+    }
+
+    result = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": "my_tool",
+                    "description": "A developer-defined local tool.",
+                    "execution_target": "sidecar",
+                    "parameters": _schema(),
+                    "execution_parameters": execution_parameters,
+                    "argument_resolution": "passthrough",
+                }
+            ]
+        }
+    )
+
+    assert result.rejected == []
+    assert result.accepted[0].model_schema == _schema()
+    assert result.accepted[0].execution_schema == execution_parameters
 
 
 def test_client_tool_manifest_rejects_reserved_backend_tool_collision():
@@ -125,11 +154,11 @@ def test_client_tool_manifest_rejects_bad_and_oversized_schemas():
         }
     )
 
-    assert bad_key.rejected[0]["reason"].startswith("invalid model_schema")
+    assert bad_key.rejected[0]["reason"].startswith("invalid parameters")
     assert oversized.rejected == [
         {
             "name": "too_large",
-            "reason": "invalid model_schema: schema exceeds size limit",
+            "reason": "invalid parameters: schema exceeds size limit",
         }
     ]
 

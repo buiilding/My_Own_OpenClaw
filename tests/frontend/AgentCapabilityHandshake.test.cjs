@@ -41,9 +41,10 @@ function makeExtensionDir() {
         name: 'demo_tool',
         description: 'Demo extension tool.',
         entrypoint: 'python/demo_tool.py:run',
-        model_schema: 'tools/demo.model.schema.json',
-        execution_schema: 'tools/demo.execution.schema.json',
+        parameters: 'tools/demo.model.schema.json',
+        execution_parameters: 'tools/demo.execution.schema.json',
         argument_resolution: 'passthrough',
+        optional: true,
       }],
       prompt_layers: [{
         id: 'demo-extension-guidance',
@@ -107,6 +108,7 @@ describe('agent capability handshake manifest', () => {
               dry_run: { type: 'boolean' },
             }),
           }),
+          optional: true,
         }),
       ]),
     );
