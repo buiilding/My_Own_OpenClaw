@@ -39,6 +39,8 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 - Sidecar-only helper behavior must not be model-visible until the backend catalog and policy deliberately expose it.
 - Exact schema parity is required only where the backend model-facing args are also the sidecar executable args. Grounded tools can intentionally differ when backend preparation resolves them into simpler executable payloads.
 - Provider-native declarations may be added after canonical filtering, but policy must still prevent disabled grounded function schemas from leaking to the model.
+- Client manifest validation is partial: accepted entries can be exposed while rejected entries are reported as diagnostics. Do not turn one rejected extension tool into a whole-session failure unless the websocket contract intentionally changes.
+- Client schemas may override only explicitly overridable built-in local tools. They must not add arbitrary backend execution targets.
 
 ## Model-Facing Tool Schema Path
 
@@ -46,9 +48,22 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 2. Each remote tool class exposes a class-level `build_tool_spec()` through its SDK `Tool` base.
 3. `ToolRegistry` registers catalog entries, stores prebuilt canonical tool specs, and registers backend-only tools such as `web_search`.
 4. `SchemaRegistry` validates and caches canonical function tool schemas.
-5. `ToolPolicy` filters names and schemas by config, profile, available tools, disabled tools/capabilities, provider health, browser toggle, web-search availability, and dev tool selection.
-6. Provider projection can adapt the filtered schema set for provider-specific transports.
-7. Prompt construction sends the final model-visible schema set to the provider.
+5. `client_tool_manifest` entries are validated into accepted client-local function schemas or rejected diagnostics.
+6. Prompt construction merges accepted client schemas with backend registry schemas while avoiding unsupported duplicate names.
+7. `ToolPolicy` filters names and schemas by config, profile, available tools, disabled tools/capabilities, provider health, browser toggle, web-search availability, and dev tool selection.
+8. Provider projection can adapt the filtered schema set for provider-specific transports.
+9. Prompt construction sends the final model-visible schema set to the provider and transparency events.
+
+## Client Manifest Change Path
+
+1. Decide whether the tool is a client-local sidecar tool, an override of an allowed built-in, or a backend remote tool.
+2. For client-local tools, define `name`, `description`, `schema`, `execution_target`, and `argument_resolution`.
+3. Keep the developer-authored extension field named `schema`; let backend validation normalize it into the flat function schema.
+4. Use `execution_target=sidecar` unless the tool name is a reserved backend tool that the backend already knows how to execute.
+5. Use `argument_resolution=passthrough` when model args are executable as emitted.
+6. Use `argument_resolution=backend_grounding` only when backend preparation has a concrete owner and tests for the transformation.
+7. Add validation for accepted entries, rejected entries, duplicate names, reserved backend names, oversized manifests, unsupported schema keys, and disabled tools.
+8. Confirm prompt transparency reports accepted/rejected manifest entries and final tool schemas clearly enough to debug what the model saw.
 
 ## Executable Tool Path
 
@@ -128,6 +143,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 ### Tool Is Missing from the Prompt
 
 - Confirm it exists in `backend/src/tools/tool_catalog.py` or is a backend-owned tool registered by `ToolRegistry`.
+- If it is client-local, confirm the websocket handshake supplied `client_tool_manifest` and backend validation accepted the entry.
 - Confirm the tool class emits a canonical function tool spec.
 - Confirm `ToolRegistry.get_model_tool_names()` includes it.
 - Confirm `ToolPolicy.filter_tool_names()` is not hiding it through interaction mode, profile, disabled tools, capability gates, provider health, browser gating, web-search availability, or dev selection.
@@ -152,6 +168,8 @@ Provider projection should happen after canonical schema filtering. Do not make 
 ### Sidecar Rejects a Payload
 
 - Confirm backend preparation converts model-facing fields into sidecar executable fields.
+- Confirm the manifest `schema` and sidecar `entrypoint` agree on executable arg names.
+- Confirm `argument_resolution` matches the actual backend preparation path.
 - Confirm exact-parity sidecar schema matches backend schema where expected.
 - Confirm intentional exceptions are documented in parity tests.
 - Confirm renderer/Electron did not mutate or omit fields during transport.
@@ -168,6 +186,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 | Changed surface | Minimum checks |
 | --- | --- |
 | backend catalog/name registration | `./scripts/python-in-env backend pytest tests/backend/test_remote_tool_contract.py tests/backend/test_tool_registry_schema.py tests/backend/test_remote_tools.py` |
+| client manifest validation | `./scripts/python-in-env backend pytest tests/backend/test_client_tool_manifest.py` plus frontend manifest builder tests when client payload generation changes |
 | backend tool schema fields | tool-specific backend schema tests plus `./scripts/python-in-env sidecar pytest tests/sidecar/test_shared_tool_schema_parity.py` when parity applies |
 | policy/profile/capability visibility | `./scripts/python-in-env backend pytest tests/backend/test_tool_policy.py tests/backend/test_dev_tool_selection.py tests/backend/test_provider_health_policy.py` |
 | parser/preparation validation | `./scripts/python-in-env backend pytest tests/backend/test_tool_preparer.py tests/backend/test_interaction_tool_call_bridge.py` plus tool-specific validation tests |
@@ -179,6 +198,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 ## Review Checklist
 
 - Tool name is consistent across backend catalog, remote tool class, sidecar exposed set, sidecar registry, renderer tests, docs, and prompt transparency expectations.
+- Client manifest entries are accepted or rejected for explicit reasons, and rejected entries do not silently disappear from diagnostics.
 - Backend model-facing args and sidecar executable args are either exact-parity tested or intentionally different with preparation coverage.
 - Policy gates are centralized in `ToolPolicy` or agent capability policy, not scattered through prompt construction, provider code, or renderer UI.
 - Provider projection cannot resurrect tools or coordinate methods that policy already hid.

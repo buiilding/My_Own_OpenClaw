@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs(tools): expand tool contracts and schema policy workflow with client manifest data shapes, accepted/rejected diagnostics, override rules, argument-resolution modes, and schema/executor separation.
 - docs(prompts): expand prompt and tool context docs with model-visible assembly order, tool schema projection path, transparency metadata contracts, and redundant-layer checks.
 - extensions: keep `name`, `schema`, and Python `entrypoint` as the canonical long-term tool extension API.
 - sidecar: dynamically load extension Python entrypoints from `extensions/*/extension.json` so extension tools no longer require built-in registry edits.
