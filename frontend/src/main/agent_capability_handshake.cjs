@@ -9,12 +9,6 @@ const HANDSHAKE_REMOTE_TOOLS = Object.freeze([
   'web_search',
 ]);
 
-const HANDSHAKE_AVAILABLE_COORDINATE_METHODS = Object.freeze([
-  'manual',
-  'ocr',
-  'prediction',
-]);
-
 function normalizeStringList(values) {
   if (!Array.isArray(values)) {
     return null;
@@ -76,8 +70,7 @@ function buildAgentCapabilityHandshakePayload(options = {}) {
     : getClientToolNames();
   const availableTools = normalizeStringList(options.availableTools)
     || [...clientToolNames, ...HANDSHAKE_REMOTE_TOOLS];
-  const availableCoordinateMethods = normalizeStringList(options.availableCoordinateMethods)
-    || [...HANDSHAKE_AVAILABLE_COORDINATE_METHODS];
+  const availableCoordinateMethods = normalizeStringList(options.availableCoordinateMethods);
   const requestedAgentPolicy = normalizeRequestedAgentPolicy(options.requestedAgentPolicy);
   const operatingSystem = typeof options.operatingSystem === 'string'
     ? options.operatingSystem.trim()
@@ -92,7 +85,7 @@ function buildAgentCapabilityHandshakePayload(options = {}) {
     enabledRemoteTools: HANDSHAKE_REMOTE_TOOLS,
     disabledTools: normalizeStringList(options.disabledTools) || [],
     disabledCapabilities: requestedAgentPolicy?.disabled_capabilities || [],
-    coordinateMethods: availableCoordinateMethods,
+    coordinateMethods: availableCoordinateMethods || [],
     operatingSystem,
     promptLayers: options.promptLayers,
     skills: options.skills,
@@ -103,10 +96,12 @@ function buildAgentCapabilityHandshakePayload(options = {}) {
 
   const payload = {
     available_tools: availableTools,
-    available_coordinate_methods: availableCoordinateMethods,
     client_tool_manifest: clientToolManifest,
     agent_definition: agentDefinition,
   };
+  if (availableCoordinateMethods) {
+    payload.available_coordinate_methods = availableCoordinateMethods;
+  }
   if (requestedAgentPolicy) {
     payload.requested_agent_policy = requestedAgentPolicy;
   }
@@ -114,7 +109,6 @@ function buildAgentCapabilityHandshakePayload(options = {}) {
 }
 
 module.exports = {
-  HANDSHAKE_AVAILABLE_COORDINATE_METHODS,
   HANDSHAKE_AVAILABLE_TOOLS: Object.freeze([
     ...getBuiltinClientToolNames(),
     ...HANDSHAKE_REMOTE_TOOLS,

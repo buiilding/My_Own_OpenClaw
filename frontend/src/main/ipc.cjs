@@ -665,10 +665,8 @@ async function buildSdkRuntimeHandshake() {
       operatingSystem,
       customInstructions: latestFrontendConfig?.agent_custom_instructions,
       disabledTools: latestFrontendConfig?.agent_disabled_local_tools,
-      availableCoordinateMethods: latestFrontendConfig?.agent_coordinate_methods,
       requestedAgentPolicy: {
         disabled_tools: latestFrontendConfig?.agent_disabled_remote_tools,
-        coordinate_methods: latestFrontendConfig?.agent_coordinate_methods,
       },
     }),
   };

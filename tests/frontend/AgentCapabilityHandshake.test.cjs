@@ -141,7 +141,6 @@ describe('agent capability handshake manifest', () => {
       systemPrompt: 'You are a custom Windie agent.',
       customInstructions: 'Prefer short answers.',
       availableTools: ['read_file'],
-      availableCoordinateMethods: ['manual'],
     });
 
     expect(payload.agent_definition.system_prompt).toEqual({
@@ -158,7 +157,8 @@ describe('agent capability handshake manifest', () => {
         },
       ]),
     );
-    expect(payload.agent_definition.runtime.coordinate_methods).toEqual(['manual']);
+    expect(payload.available_coordinate_methods).toBeUndefined();
+    expect(payload.agent_definition.runtime.coordinate_methods).toBeUndefined();
   });
 
   test('can build partial query agent definitions without a tool manifest', () => {

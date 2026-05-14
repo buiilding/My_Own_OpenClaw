@@ -95,11 +95,8 @@ describe('ipc.cjs bridge lifecycle/config', () => {
       'read_file',
       'web_search',
     ]));
-    expect(handshake.available_coordinate_methods).toEqual([
-      'manual',
-      'ocr',
-      'prediction',
-    ]);
+    expect(handshake.available_coordinate_methods).toBeUndefined();
+    expect(handshake.agent_definition?.runtime?.coordinate_methods).toBeUndefined();
   });
 
   test('queues list-models requests made before websocket open and flushes them after connect', async () => {

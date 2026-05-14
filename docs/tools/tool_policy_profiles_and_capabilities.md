@@ -21,7 +21,7 @@ Tool visibility is not just the static catalog. Backend `ToolPolicy` narrows too
 | `agent_disabled_capabilities` | config/session policy | Removes capability families such as `browser`, `web_search`, `ocr`, or `vision` |
 | `agent_provider_unavailable_capabilities` | provider health policy | Removes capabilities known unavailable before prompt construction |
 | `agent_coordinate_methods` | config/session policy | Narrows mouse/scroll coordinate methods |
-| `agent_available_coordinate_methods` | websocket/client capability | Intersects server policy with client-supported coordinate methods |
+| `agent_available_coordinate_methods` | specialized websocket/client capability | Optional narrowing input for clients that truly lack a coordinate method; Electron does not send it |
 | dev tool selection | local development config | Optional local structural pruning layer |
 | provider projection | backend provider layer | May add or adapt provider-native declarations after canonical filtering |
 
@@ -86,6 +86,11 @@ Disabled capabilities affect methods:
 - disabled `vision` removes prediction coordinate targeting
 
 If no coordinate methods remain for `mouse_control`, the tool is effectively disabled by policy.
+
+Electron does not advertise local coordinate-method availability. OCR, vision,
+and prediction availability is resolved by backend policy, provider health, and
+server-side capability gates. Client-provided coordinate fields are narrowing
+inputs only and must not be treated as a way to unlock backend capabilities.
 
 ## Method-Level Validation
 

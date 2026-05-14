@@ -79,11 +79,9 @@ Handshake validation behavior:
     "browser",
     "web_search"
   ],
-  "available_coordinate_methods": ["manual", "ocr", "prediction"],
   "requested_agent_policy": {
     "profile": "computer",
     "disabled_tools": ["browser"],
-    "coordinate_methods": ["manual"],
     "disabled_capabilities": ["ocr", "vision"]
   }
 }
@@ -92,14 +90,16 @@ Handshake validation behavior:
 Capability negotiation fields are optional. If provided, the backend applies
 them as session-scoped policy inputs before the first query:
 - `available_tools`: tool names this client/runtime can satisfy or expects the backend to provide for this session
-- `available_coordinate_methods`: coordinate grounding methods available for this session
+- `available_coordinate_methods`: optional coordinate grounding methods used only as a narrowing input for specialized clients; Electron does not send this field
 - `requested_agent_policy.profile`: `default`, `chat`, `coding`, `browser`, `computer`, `full`, or `custom`
 - `requested_agent_policy.disabled_tools`: direct tool names requested off
-- `requested_agent_policy.coordinate_methods`: requested coordinate methods
+- `requested_agent_policy.coordinate_methods`: optional requested coordinate-method narrowing
 - `requested_agent_policy.disabled_capabilities`: `ocr`, `vision`, `embeddings`, `web_search`, or `browser`
 
 The backend treats these as narrowing inputs. Server policy, interaction mode,
 and dev compatibility policy still apply after handshake negotiation.
+OCR, vision, prediction, web search, and paid capability availability are
+backend-owned; clients cannot unlock them by sending handshake fields.
 
 ### Install Registration (Hosted)
 

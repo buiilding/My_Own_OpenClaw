@@ -15,7 +15,7 @@ See also: [Frontend Functionality Map](../frontend/README.md) and [Frontend Full
 WindieOS frontend is a multi-runtime desktop stack:
 
 1. Renderer (React): UX state, chat/dashboard surfaces, tool-stream rendering.
-2. Main process (Electron/Node): window lifecycle, backend WebSocket bridge, sidecar process bridge, wakeword subprocess bridge.
+2. Main process (Electron/Node): window lifecycle, SDK-runtime bridge, sidecar process bridge, wakeword subprocess bridge.
 3. Preload boundary: allowlisted IPC bridge (`window.ipc`) between renderer and main.
 4. Sidecar (Python): local tool execution, local transcript/memory store, system-state capture, browser/file/system tool adapters.
 
@@ -36,7 +36,7 @@ frontend/src/
 ├── main/
 │   ├── index.cjs                          # Electron main composition root (wires runtime modules)
 │   ├── app_menu_runtime.cjs               # Native application menu wiring (File -> Set active workspace and standard roles)
-│   ├── ipc.cjs                            # Renderer <-> backend WS bridge and event fan-out
+│   ├── ipc.cjs                            # Renderer <-> SDK-runtime bridge and event fan-out
 │   ├── ipc_runtime_helpers.cjs            # IPC runtime helper set (user-id, payload normalization, upload, backend message processing)
 │   ├── ipc_renderer_windows.cjs           # Renderer-window tracking + broadcast helpers for IPC bridge
 │   ├── ipc_query_broadcast.cjs            # Local user-message/query-failure bridge helpers
@@ -212,10 +212,11 @@ Primary modules:
   - Current contract keeps macOS/Windows overlay content protection tied to active loop phases rather than capture-time hide/show or always-on window lifetime protection.
   - Keeps macOS/Windows/Linux window rules in one place so composition/runtime modules do not duplicate Electron platform conditionals.
 - `main/ipc.cjs`:
-  - Single backend WebSocket client lifecycle and reconnect.
-  - Opens the backend socket on demand for backend-bound work instead of at app startup.
-  - Keeps the socket alive through active agent-loop phases, then starts a 30 minute idle grace timer before intentionally closing the connection.
-  - Only auto-reconnects after unexpected closes while the loop or idle grace window still owns the transport.
+  - Renderer-facing SDK runtime adapter for backend-bound work.
+  - Delegates backend websocket construction, handshake send, envelope send, close, and reconnect primitives to `main/windie_sdk_runtime.cjs`.
+  - Opens the SDK runtime connection on demand for backend-bound work instead of at app startup.
+  - Keeps the SDK runtime connection alive through active agent-loop phases, then starts a 30 minute idle grace timer before intentionally closing the connection.
+  - Only asks the SDK runtime to reconnect after unexpected closes while the loop or idle grace window still owns the transport.
   - Handshake/user/session/conversation context propagation.
   - Settings sync ACK tracking (`settings-updated`/timeout handling).
   - Applies the renderer-owned `global_agent_stop_shortcut` preference locally in main while filtering that key out of backend `update-settings` payloads.
