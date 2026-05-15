@@ -376,6 +376,62 @@ describe('Windie SDK conversation runtime core', () => {
     expect((await runtime.load()).state.phase).toBe('completed');
   });
 
+  test('conversation runtimes only accept backend events for their conversation and active turn', async () => {
+    const backendListeners = new Set<(event: unknown) => void>();
+    const transport: BackendTransport = {
+      connect: jest.fn(async () => undefined),
+      handshake: jest.fn(async () => undefined),
+      sendQuery: jest.fn(async () => 'query-unused'),
+      sendToolResult: jest.fn(async () => undefined),
+      sendToolBundleResult: jest.fn(async () => undefined),
+      sendRehydrate: jest.fn(async () => undefined),
+      stop: jest.fn(async () => undefined),
+      subscribe: jest.fn(listener => {
+        backendListeners.add(listener);
+        return () => {
+          backendListeners.delete(listener);
+        };
+      }),
+      close: jest.fn(async () => undefined),
+    };
+    const store = new InMemoryConversationStore();
+    const first = new SdkConversationRuntime({
+      conversationRef: 'conv-first',
+      store,
+      transport,
+    });
+    const second = new SdkConversationRuntime({
+      conversationRef: 'conv-second',
+      store,
+      transport,
+    });
+    first.attachTransport();
+    second.attachTransport();
+
+    await first.send({ text: 'first', turnRef: 'turn-first' });
+    await second.send({ text: 'second', turnRef: 'turn-second' });
+    backendListeners.forEach(listener => listener({
+      type: 'streaming-response',
+      conversation_ref: 'conv-first',
+      turn_ref: 'turn-first',
+      payload: { text: 'first chunk' },
+    } satisfies BackendEvent));
+    backendListeners.forEach(listener => listener({
+      type: 'streaming-response',
+      conversation_ref: 'conv-first',
+      turn_ref: 'turn-old',
+      payload: { text: 'stale chunk' },
+    } satisfies BackendEvent));
+    backendListeners.forEach(listener => listener({
+      type: 'streaming-response',
+      payload: { text: 'ambiguous chunk' },
+    } satisfies BackendEvent));
+    await tick();
+
+    expect((await store.loadEvents('conv-first')).filter(storedEvent => storedEvent.type === 'assistant_delta')).toHaveLength(1);
+    expect((await store.loadEvents('conv-second')).filter(storedEvent => storedEvent.type === 'assistant_delta')).toHaveLength(0);
+  });
+
   test('conversation runtime can route backend tool calls through a local runtime coordinator', async () => {
     const sentToolResults: Record<string, unknown>[] = [];
     let backendListener: ((event: unknown) => void) | null = null;

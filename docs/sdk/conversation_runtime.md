@@ -106,6 +106,12 @@ Prefer this over wiring `send()` and `subscribe()` separately in CLI or custom
 UI clients. UI components can still use `subscribe()` when they only need
 projected snapshots.
 
+Backend events must carry `conversation_ref` or `turn_ref` to enter a
+conversation runtime. The runtime drops ambiguous packets and ignores packets
+whose `conversationRef` or active `turnRef` does not match the runtime. This is
+what keeps two conversations on the same websocket from sharing streamed chunks
+or stale tool events.
+
 ## Tool Rule
 
 When the SDK claims a local tool call or bundle:

@@ -159,11 +159,16 @@ export class SdkConversationRuntime {
       if (!isBackendEvent(rawEvent)) {
         return;
       }
+      const hasRoutingIdentity = typeof rawEvent.conversation_ref === 'string'
+        || typeof rawEvent.turn_ref === 'string';
+      if (!hasRoutingIdentity) {
+        return;
+      }
       const event = normalizeBackendEventToConversationEvent(rawEvent, {
         fallbackConversationRef: this.options.conversationRef,
         fallbackRevisionId: this.state.revisionId,
       });
-      if (event) {
+      if (event && this.shouldAcceptBackendEvent(event)) {
         void this.applyEvent(event);
       }
     });
@@ -431,6 +436,23 @@ export class SdkConversationRuntime {
     const snapshot = this.snapshot(events);
     this.notify(snapshot, event);
     await this.maybeExecuteTool(event);
+  }
+
+  private shouldAcceptBackendEvent(event: ConversationEvent): boolean {
+    if (event.source !== 'backend') {
+      return true;
+    }
+    if (event.conversationRef !== this.options.conversationRef) {
+      return false;
+    }
+    if (
+      event.turnRef
+      && this.state.activeTurnRef
+      && event.turnRef !== this.state.activeTurnRef
+    ) {
+      return false;
+    }
+    return true;
   }
 
   private notify(snapshot: ConversationSnapshot, event?: ConversationEvent): void {
