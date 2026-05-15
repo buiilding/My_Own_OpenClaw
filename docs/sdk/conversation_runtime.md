@@ -94,6 +94,18 @@ The old revision remains valid until the rewrite commits. The SDK does not
 delete display rows and then reconstruct backend history through a separate
 lossy path.
 
+## Stream Rule
+
+`SdkConversationRuntime.stream(input)` is the canonical custom-client loop
+surface. It sends the user turn, stores the same normalized events used by
+display and rehydrate projections, yields `conversation_event` updates as
+backend packets normalize, and exits when the conversation reaches
+`completed`, `stopped`, or `error`.
+
+Prefer this over wiring `send()` and `subscribe()` separately in CLI or custom
+UI clients. UI components can still use `subscribe()` when they only need
+projected snapshots.
+
 ## Tool Rule
 
 When the SDK claims a local tool call or bundle:

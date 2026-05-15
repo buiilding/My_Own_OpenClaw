@@ -18,6 +18,7 @@ import { normalizeBackendEventToConversationEvent } from '../transport/backendEv
 import { reduceConversationRuntimeState, createInitialConversationRuntimeState } from './conversationReducer.js';
 
 export type ConversationListener = (snapshot: ConversationSnapshot) => void;
+export type ConversationEventListener = (event: ConversationEvent, snapshot: ConversationSnapshot) => void;
 
 export type ConversationSnapshot = {
   state: ConversationRuntimeState;
@@ -49,6 +50,23 @@ export type RetryTurnInput = {
   payload?: JsonRecord;
 };
 
+export type WindieRuntimeEvent =
+  | {
+      type: 'turn_started';
+      result: TurnResult;
+      snapshot: ConversationSnapshot;
+    }
+  | {
+      type: 'conversation_event';
+      event: ConversationEvent;
+      snapshot: ConversationSnapshot;
+    }
+  | {
+      type: 'error';
+      error: unknown;
+      snapshot?: ConversationSnapshot;
+    };
+
 function eventText(event: ConversationEvent): string {
   if (typeof event.payload.text === 'string') {
     return event.payload.text;
@@ -75,9 +93,18 @@ function isCompleteReplaySnapshot(snapshot: CompactedReplaySnapshot | null): sna
   );
 }
 
+function isTerminalConversationEvent(event: ConversationEvent): boolean {
+  return event.type === 'turn_completed'
+    || event.type === 'turn_stopped'
+    || event.type === 'turn_error'
+    || event.type === 'runtime_error'
+    || event.type === 'compaction_failed';
+}
+
 export class SdkConversationRuntime {
   private state: ConversationRuntimeState;
   private readonly listeners = new Set<ConversationListener>();
+  private readonly eventListeners = new Set<ConversationEventListener>();
   private detachTransport?: () => void;
 
   constructor(
@@ -111,6 +138,13 @@ export class SdkConversationRuntime {
     void this.load().then(snapshot => listener(snapshot));
     return () => {
       this.listeners.delete(listener);
+    };
+  }
+
+  subscribeEvents(listener: ConversationEventListener): () => void {
+    this.eventListeners.add(listener);
+    return () => {
+      this.eventListeners.delete(listener);
     };
   }
 
@@ -163,6 +197,75 @@ export class SdkConversationRuntime {
       turn_ref: turnRef,
     }) ?? turnRef;
     return { turnRef, queryMessageId };
+  }
+
+  async *stream(input: SendInput): AsyncIterable<WindieRuntimeEvent> {
+    const queue: WindieRuntimeEvent[] = [];
+    let finished = false;
+    let notify: (() => void) | null = null;
+    let sendError: unknown = null;
+    const wake = () => {
+      notify?.();
+      notify = null;
+    };
+    const push = (event: WindieRuntimeEvent) => {
+      if (finished) {
+        return;
+      }
+      queue.push(event);
+      if (event.type === 'conversation_event' && isTerminalConversationEvent(event.event)) {
+        finished = true;
+      }
+      wake();
+    };
+    const next = async (): Promise<WindieRuntimeEvent | null> => {
+      while (queue.length === 0 && !finished) {
+        await new Promise<void>(resolve => {
+          notify = resolve;
+        });
+      }
+      return queue.shift() ?? null;
+    };
+    const unsubscribe = this.subscribeEvents((event, snapshot) => {
+      push({ type: 'conversation_event', event, snapshot });
+    });
+    const sendPromise = this.send(input)
+      .then(async result => {
+        push({
+          type: 'turn_started',
+          result,
+          snapshot: await this.load(),
+        });
+      })
+      .catch(async error => {
+        sendError = error;
+        let snapshot: ConversationSnapshot | undefined;
+        try {
+          snapshot = await this.load();
+        } catch {
+          snapshot = undefined;
+        }
+        push({ type: 'error', error, snapshot });
+        finished = true;
+        wake();
+      });
+    try {
+      while (true) {
+        const event = await next();
+        if (!event) {
+          break;
+        }
+        yield event;
+      }
+      await sendPromise;
+      if (sendError) {
+        throw sendError;
+      }
+    } finally {
+      finished = true;
+      unsubscribe();
+      wake();
+    }
   }
 
   async editAndResend(input: EditAndResendInput): Promise<TurnResult> {
@@ -315,7 +418,7 @@ export class SdkConversationRuntime {
       createInitialConversationRuntimeState(this.options.conversationRef, newRevisionId),
     );
     const snapshot = this.snapshot(await this.options.store.loadEvents(this.options.conversationRef));
-    this.listeners.forEach(listener => listener(snapshot));
+    this.notify(snapshot, rewriteEvent);
   }
 
   private async applyEvent(event: ConversationEvent): Promise<void> {
@@ -323,7 +426,14 @@ export class SdkConversationRuntime {
     this.state = reduceConversationRuntimeState(this.state, event);
     const events = await this.options.store.loadEvents(this.options.conversationRef);
     const snapshot = this.snapshot(events);
+    this.notify(snapshot, event);
+  }
+
+  private notify(snapshot: ConversationSnapshot, event?: ConversationEvent): void {
     this.listeners.forEach(listener => listener(snapshot));
+    if (event) {
+      this.eventListeners.forEach(listener => listener(event, snapshot));
+    }
   }
 
   private snapshot(events: ConversationEvent[]): ConversationSnapshot {

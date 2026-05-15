@@ -1,4 +1,5 @@
 import {
+  type BackendEvent,
   buildDisplayConversation,
   buildRehydrateSnapshot,
   createConversationEvent,
@@ -24,6 +25,10 @@ function event(
     source: 'sdk',
     payload,
   });
+}
+
+async function tick(): Promise<void> {
+  await new Promise(resolve => setTimeout(resolve, 0));
 }
 
 describe('Windie SDK conversation runtime core', () => {
@@ -277,6 +282,73 @@ describe('Windie SDK conversation runtime core', () => {
         expect.objectContaining({ role: 'user', content: 'hello' }),
       ],
     });
+  });
+
+  test('conversation runtime stream yields normalized events until backend completion', async () => {
+    const sentQueries: Record<string, unknown>[] = [];
+    let backendListener: ((event: unknown) => void) | null = null;
+    const transport: BackendTransport = {
+      connect: jest.fn(async () => undefined),
+      handshake: jest.fn(async () => undefined),
+      sendQuery: jest.fn(async payload => {
+        sentQueries.push(payload);
+        return 'query-stream';
+      }),
+      sendToolResult: jest.fn(async () => undefined),
+      sendToolBundleResult: jest.fn(async () => undefined),
+      sendRehydrate: jest.fn(async () => undefined),
+      stop: jest.fn(async () => undefined),
+      subscribe: jest.fn(listener => {
+        backendListener = listener;
+        return () => {
+          backendListener = null;
+        };
+      }),
+      close: jest.fn(async () => undefined),
+    };
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport,
+    });
+    runtime.attachTransport();
+
+    const collected: string[] = [];
+    const consume = (async () => {
+      for await (const runtimeEvent of runtime.stream({ text: 'stream this', turnRef: 'turn-stream' })) {
+        collected.push(runtimeEvent.type === 'conversation_event'
+          ? runtimeEvent.event.type
+          : runtimeEvent.type);
+      }
+    })();
+
+    await tick();
+    expect(sentQueries[0]).toMatchObject({
+      text: 'stream this',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-stream',
+    });
+    expect(backendListener).toBeTruthy();
+    backendListener?.({
+      type: 'streaming-response',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-stream',
+      payload: { text: 'partial' },
+    } satisfies BackendEvent);
+    backendListener?.({
+      type: 'streaming-complete',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-stream',
+      payload: { final_response: 'done' },
+    } satisfies BackendEvent);
+
+    await consume;
+
+    expect(collected).toContain('turn_started');
+    expect(collected).toContain('user_message');
+    expect(collected).toContain('assistant_delta');
+    expect(collected).toContain('turn_completed');
+    expect((await runtime.load()).state.phase).toBe('completed');
   });
 
   test('editAndResend rewrites from the edited user message and sends a new revision turn', async () => {

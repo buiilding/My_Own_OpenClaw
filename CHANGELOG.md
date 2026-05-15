@@ -18,6 +18,7 @@ All notable changes to WindieOS will be documented in this file.
 - examples: add a runnable `examples/repo-agent-extension` package with a Python sidecar tool, skill, SDK script, and one-command README.
 - extensions: add a `scripts/create-windie-extension` scaffold command for starter extension packages with a sidecar tool, schema, skill, and docs.
 - sdk: add repo-local `@windie/sdk` and `windie-sdk` package boundaries while keeping existing frontend and sidecar compatibility imports.
+- sdk: add `SdkConversationRuntime.stream()` so custom clients can run turns through normalized conversation events, projections, and terminal runtime phases.
 - docs: add a direct README docs link for the computer-use guide.
 - frontend/settings: apply Appearance light, dark, and system selections to the renderer theme tokens instead of only persisting the selected setting.
 - frontend/settings: make Settings a full dashboard view with a back arrow instead of a small modal with a close icon.

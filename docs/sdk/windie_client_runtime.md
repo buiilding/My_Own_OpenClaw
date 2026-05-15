@@ -70,7 +70,11 @@ const agent = await client.wakeUp({
 await agent.ask("Read the repo instructions and summarize the tests.");
 
 const conversation = agent.conversation({ conversationRef: "repo-checks" });
-await conversation.send({ text: "Run the tests and summarize failures." });
+for await (const event of conversation.stream({ text: "Run the tests and summarize failures." })) {
+  if (event.type === "conversation_event" && event.event.type === "assistant_delta") {
+    process.stdout.write(String(event.event.payload.text ?? ""));
+  }
+}
 await conversation.editAndResend({
   messageId: "previous-user-message-id",
   text: "Run the focused SDK tests and summarize failures."
@@ -250,8 +254,13 @@ the caller exits iteration early.
 
 `conversation(options)` returns an SDK conversation runtime backed by the agent
 session transport. It is the migration path for clients that need local event
-storage, display projections, rehydrate snapshots, stop handling, and future
-edit/retry revision operations.
+storage, display projections, rehydrate snapshots, stop handling, streaming,
+and edit/retry revision operations.
+
+`conversation.stream(input)` is the preferred custom-client loop API. It emits
+normalized SDK runtime events, updates the configured conversation store, and
+terminates when the projected runtime phase reaches `completed`, `stopped`, or
+`error`.
 
 `agent.listConversations()` lists metadata from the agent's default conversation
 store. `agent.loadConversation({ conversationRef })` opens a runtime over the
