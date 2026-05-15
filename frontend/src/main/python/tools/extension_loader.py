@@ -1,4 +1,4 @@
-"""Load sidecar plugin tools from extensions/plugins/*/plugin.json."""
+"""Load sidecar plugin tools from repo-level plugins/*/plugin.json."""
 
 from __future__ import annotations
 
@@ -33,29 +33,33 @@ class LoadedSidecarPlugins:
     errors: list[dict[str, str]] = field(default_factory=list)
 
 
-def resolve_default_extensions_dir() -> Path:
-    env_dir = os.getenv("WINDIE_AGENT_EXTENSIONS_DIR")
+def _has_contribution_folders(candidate: Path) -> bool:
+    return any((candidate / name).exists() for name in ("plugins", "skills", "mcps"))
+
+
+def resolve_default_contribution_root() -> Path:
+    env_dir = os.getenv("WINDIE_AGENT_CONTRIBUTIONS_DIR")
     if env_dir:
         return Path(env_dir).expanduser().resolve()
 
-    cwd_candidate = Path.cwd() / "extensions"
-    if cwd_candidate.exists():
+    cwd_candidate = Path.cwd()
+    if _has_contribution_folders(cwd_candidate):
         return cwd_candidate.resolve()
 
-    repo_root_candidate = Path(__file__).resolve().parents[5] / "extensions"
-    if repo_root_candidate.exists():
+    repo_root_candidate = Path(__file__).resolve().parents[5]
+    if _has_contribution_folders(repo_root_candidate):
         return repo_root_candidate.resolve()
 
-    return (Path(__file__).resolve().parents[4] / "extensions").resolve()
+    return repo_root_candidate.resolve()
 
 
 def load_sidecar_plugin_tools(
-    extensions_dir: str | os.PathLike[str] | None = None,
+    contributions_dir: str | os.PathLike[str] | None = None,
 ) -> LoadedSidecarPlugins:
     root = (
-        Path(extensions_dir).expanduser().resolve()
-        if extensions_dir
-        else resolve_default_extensions_dir()
+        Path(contributions_dir).expanduser().resolve()
+        if contributions_dir
+        else resolve_default_contribution_root()
     )
     result = LoadedSidecarPlugins()
     plugins_root = root / "plugins"
@@ -81,7 +85,7 @@ def load_sidecar_plugin_tools(
 def load_sidecar_plugin_path(
     plugin_path: str | os.PathLike[str],
 ) -> LoadedSidecarPlugins:
-    """Load tools from one plugin directory or from an extensions/plugins root."""
+    """Load tools from one plugin directory, a plugins root, or a contribution root."""
     path = Path(plugin_path).expanduser().resolve()
     result = LoadedSidecarPlugins()
     if not path.exists():

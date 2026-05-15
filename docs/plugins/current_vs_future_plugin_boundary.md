@@ -18,11 +18,11 @@ without app restart.
 
 Implemented today:
 
-- sidecar plugins under `extensions/plugins/*/plugin.json`
+- sidecar plugins under `plugins/*/plugin.json`
 - plugin tools declared with `name`, `schema`, and Python `entrypoint`
 - plugin settings-panel metadata, config schemas, and permissions
-- MCP servers under `extensions/mcps/*/mcp.json`, discovered through MCP `tools/list`, and executed through local MCP `tools/call`
-- skills under `extensions/skills/**/SKILL.md` forwarded through `agent_definition.prompt_layers`
+- MCP servers under `mcps/*/mcp.json`, discovered through MCP `tools/list`, and executed through local MCP `tools/call`
+- skills under `skills/**/SKILL.md` forwarded through `agent_definition.prompt_layers`
 - backend tool registry and SDK tool base
 - sidecar executable tools
 - LLM provider factory and model catalog
@@ -58,11 +58,11 @@ Do not imply this exists in current docs.
 | "Add a provider plugin" | implement an LLM/inference provider in current provider paths |
 | "Add a desktop action plugin" | implement backend schema + sidecar tool execution |
 | "Add a browser plugin" | extend browser schema/runtime, not a third-party browser extension store |
-| "Add a local plugin contribution" | use `extensions/plugins/<id>/plugin.json` with sidecar Python |
-| "Connect an MCP server" | add `extensions/mcps/<id>/mcp.json` |
+| "Add a local plugin contribution" | use `plugins/<id>/plugin.json` with sidecar Python |
+| "Connect an MCP server" | add `mcps/<id>/mcp.json` |
 | "Let users install marketplace plugins" | planning/design first |
-| "Load local sidecar tools from a plugin manifest" | use `extensions/plugins/<id>/plugin.json` |
-| "Add extension skills" | add `extensions/skills/<skill-id>/SKILL.md` |
+| "Load local sidecar tools from a plugin manifest" | use `plugins/<id>/plugin.json` |
+| "Add extension skills" | add `skills/<skill-id>/SKILL.md` |
 | "Install plugins from a marketplace" | planning/design first |
 | "Expose a new SDK integration" | add SDK route/client docs and tests |
 

@@ -77,7 +77,7 @@ function normalizeMcpServerSpec(server) {
 function loadMcpServerSpecs(options = {}) {
   const configuredServers = Array.isArray(options.mcpServers)
     ? options.mcpServers
-    : loadExtensionMcpServers({ extensionsDir: options.extensionsDir });
+    : loadExtensionMcpServers({ contributionsDir: options.contributionsDir });
   return configuredServers.map(normalizeMcpServerSpec).filter(Boolean);
 }
 

@@ -82,7 +82,7 @@ def test_registry_loads_plugin_entrypoint_and_manifest(
         ),
         encoding="utf-8",
     )
-    monkeypatch.setenv("WINDIE_AGENT_EXTENSIONS_DIR", str(tmp_path))
+    monkeypatch.setenv("WINDIE_AGENT_CONTRIBUTIONS_DIR", str(tmp_path))
 
     registry = ToolRegistry()
     result = asyncio.run(

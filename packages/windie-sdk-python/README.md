@@ -14,7 +14,7 @@ client = WindieSdkClient(
 
 agent = await client.wake_up(
     workspace_path="/Users/me/project",
-    plugins=[{"path": "./extensions/plugins/repo-agent"}],
+    plugins=[{"path": "./plugins/repo-agent"}],
 )
 
 await agent.query(text="Inspect the repo and summarize what changed.")

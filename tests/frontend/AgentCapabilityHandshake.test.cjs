@@ -12,9 +12,9 @@ const os = require('os');
 const path = require('path');
 
 function makeExtensionDir() {
-  const extensionsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-extensions-'));
-  const pluginDir = path.join(extensionsDir, 'plugins', 'demo-extension');
-  const skillDir = path.join(extensionsDir, 'skills', 'demo-extension');
+  const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-contributions-'));
+  const pluginDir = path.join(contributionRoot, 'plugins', 'demo-extension');
+  const skillDir = path.join(contributionRoot, 'skills', 'demo-extension');
   fs.mkdirSync(path.join(pluginDir, 'schemas'), { recursive: true });
   fs.mkdirSync(path.join(pluginDir, 'python'), { recursive: true });
   fs.mkdirSync(skillDir, { recursive: true });
@@ -53,7 +53,7 @@ function makeExtensionDir() {
       'Use the demo tool carefully.',
     ].join('\n'),
   );
-  return extensionsDir;
+  return contributionRoot;
 }
 
 describe('agent capability handshake manifest', () => {
@@ -100,13 +100,13 @@ describe('agent capability handshake manifest', () => {
   });
 
   test('loads extension tools into the manifest and handshake', () => {
-    const extensionsDir = makeExtensionDir();
+    const contributionRoot = makeExtensionDir();
 
     const manifest = buildClientToolManifest({
-      extensionsDir,
+      contributionsDir: contributionRoot,
     });
     const payload = buildAgentCapabilityHandshakePayload({
-      extensionsDir,
+      contributionsDir: contributionRoot,
     });
 
     expect(manifest.tools).toEqual(

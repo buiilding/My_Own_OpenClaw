@@ -12,10 +12,10 @@ const {
 } = require('../../frontend/src/main/extension_manifest.cjs');
 
 function writeExtensionRegistry() {
-  const extensionsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-extension-registry-'));
-  const pluginDir = path.join(extensionsDir, 'plugins', 'notes');
-  const skillDir = path.join(extensionsDir, 'skills', 'note-review');
-  const mcpDir = path.join(extensionsDir, 'mcps', 'notes-memory');
+  const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-contributions-'));
+  const pluginDir = path.join(contributionRoot, 'plugins', 'notes');
+  const skillDir = path.join(contributionRoot, 'skills', 'note-review');
+  const mcpDir = path.join(contributionRoot, 'mcps', 'notes-memory');
   fs.mkdirSync(path.join(pluginDir, 'schemas'), { recursive: true });
   fs.mkdirSync(path.join(pluginDir, 'python'), { recursive: true });
   fs.mkdirSync(skillDir, { recursive: true });
@@ -80,18 +80,18 @@ function writeExtensionRegistry() {
       }],
     }),
   );
-  return extensionsDir;
+  return contributionRoot;
 }
 
 describe('extension registry loader', () => {
   test('loads divided plugin, skill, and MCP roots', () => {
-    const extensionsDir = writeExtensionRegistry();
+    const contributionRoot = writeExtensionRegistry();
 
-    const result = loadAgentExtensionRegistry({ extensionsDir });
-    const tools = loadExtensionPluginTools({ extensionsDir });
-    const promptLayers = loadExtensionSkillPromptLayers({ extensionsDir });
-    const settingsPanels = loadExtensionSettingsPanels({ extensionsDir });
-    const mcpServers = loadExtensionMcpServers({ extensionsDir });
+    const result = loadAgentExtensionRegistry({ contributionsDir: contributionRoot });
+    const tools = loadExtensionPluginTools({ contributionsDir: contributionRoot });
+    const promptLayers = loadExtensionSkillPromptLayers({ contributionsDir: contributionRoot });
+    const settingsPanels = loadExtensionSettingsPanels({ contributionsDir: contributionRoot });
+    const mcpServers = loadExtensionMcpServers({ contributionsDir: contributionRoot });
 
     expect(result.errors).toEqual([]);
     expect(result.plugins[0].id).toBe('notes');
@@ -134,8 +134,8 @@ describe('extension registry loader', () => {
   });
 
   test('returns public registry metadata without executable handlers', () => {
-    const extensionsDir = writeExtensionRegistry();
-    const publicRuntime = loadPublicExtensionRegistry({ extensionsDir });
+    const contributionRoot = writeExtensionRegistry();
+    const publicRuntime = loadPublicExtensionRegistry({ contributionsDir: contributionRoot });
 
     expect(publicRuntime.plugins[0]).toEqual(expect.objectContaining({
       id: 'notes',
@@ -154,8 +154,8 @@ describe('extension registry loader', () => {
   });
 
   test('does not expose plugin tools without an entrypoint', () => {
-    const extensionsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-extension-registry-'));
-    const pluginDir = path.join(extensionsDir, 'plugins', 'broken');
+    const contributionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-contributions-'));
+    const pluginDir = path.join(contributionRoot, 'plugins', 'broken');
     fs.mkdirSync(path.join(pluginDir, 'schemas'), { recursive: true });
     fs.writeFileSync(
       path.join(pluginDir, 'schemas', 'tool.schema.json'),
@@ -177,6 +177,6 @@ describe('extension registry loader', () => {
       }),
     );
 
-    expect(loadExtensionPluginTools({ extensionsDir })).toEqual([]);
+    expect(loadExtensionPluginTools({ contributionsDir: contributionRoot })).toEqual([]);
   });
 });

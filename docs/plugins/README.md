@@ -8,14 +8,13 @@ title: "Plugins and Extensions Hub"
 
 # Plugins and Extensions Hub
 
-WindieOS does not treat `extensions/` as a single package namespace. It is a
-container for three first-class contribution roots:
+WindieOS has three first-class repo-level contribution roots:
 
 | Developer asks to add | Put it here | Canonical instructions |
 | --- | --- | --- |
-| A local Python tool exposed to the model | `extensions/plugins/<id>/plugin.json`, `schemas/`, `python/` | [Extension Convention](../development/extensions.md#sidecar-plugin-tools) |
-| Instructions only | `extensions/skills/<id>/SKILL.md` | [Skills](../development/extensions.md#skills) |
-| An MCP server | `extensions/mcps/<id>/mcp.json` | [MCP Runtime](../development/mcp.md) |
+| A local Python tool exposed to the model | `plugins/<id>/plugin.json`, `schemas/`, `python/` | [Extension Convention](../development/extensions.md#sidecar-plugin-tools) |
+| Instructions only | `skills/<id>/SKILL.md` | [Skills](../development/extensions.md#skills) |
+| An MCP server | `mcps/<id>/mcp.json` | [MCP Runtime](../development/mcp.md) |
 | A built-in WindieOS tool | Core backend/frontend/sidecar tool files | [Tool Development](../development/tool_development.md) |
 | A provider | `backend/src/llm/providers`, model catalog/config | [Providers Hub](../providers/README.md) |
 
@@ -28,16 +27,16 @@ tools.
 
 | Surface | Extend here | Start docs |
 | --- | --- | --- |
-| Sidecar plugins | `extensions/plugins/<id>/plugin.json` | [Extension Convention](../development/extensions.md) |
-| Prompt skills | `extensions/skills/<id>/SKILL.md` | [Extension Convention](../development/extensions.md#skills) |
-| MCP integrations | `extensions/mcps/<id>/mcp.json` | [MCP Runtime](../development/mcp.md) |
+| Sidecar plugins | `plugins/<id>/plugin.json` | [Extension Convention](../development/extensions.md) |
+| Prompt skills | `skills/<id>/SKILL.md` | [Extension Convention](../development/extensions.md#skills) |
+| MCP integrations | `mcps/<id>/mcp.json` | [MCP Runtime](../development/mcp.md) |
 | Backend model-facing tools | `backend/src/tools`, `backend/src/sdk` | [Extension Surface Matrix](extension_surface_matrix.md), [Tool Authoring](../sdk/tool_authoring.md) |
 | Sidecar built-in tools | `frontend/src/main/python/tools` | [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md), [Tool Development](../development/tool_development.md) |
 | Renderer feature modules | `frontend/src/renderer/features` | [Frontend Renderer Docs Hub](../frontend/renderer/README.md) |
 
 ## Rules
 
-- Use `extensions/plugins`, `extensions/skills`, or `extensions/mcps` for normal
+- Use `plugins`, `skills`, or `mcps` for normal
   extension contributions.
 - Change `frontend/src/main/extension_manifest.cjs` only when changing the
   extension platform itself.
@@ -57,9 +56,9 @@ Read:
 
 Likely code:
 
-- `extensions/plugins/<id>/plugin.json`
-- `extensions/plugins/<id>/schemas/*.schema.json`
-- `extensions/plugins/<id>/python/*.py`
+- `plugins/<id>/plugin.json`
+- `plugins/<id>/schemas/*.schema.json`
+- `plugins/<id>/python/*.py`
 
 Validate extension manifest tests and sidecar plugin loading tests.
 
@@ -72,7 +71,7 @@ Read:
 
 Likely code:
 
-- `extensions/mcps/<id>/mcp.json`
+- `mcps/<id>/mcp.json`
 - bundled MCP server code under the same MCP folder when needed
 
 Validate MCP runtime tests and extension registry tests.
@@ -86,7 +85,7 @@ Read:
 
 Likely code:
 
-- `extensions/skills/<id>/SKILL.md`
+- `skills/<id>/SKILL.md`
 
 Validate extension registry tests and prompt-layer transparency tests when the
 payload contract changes.

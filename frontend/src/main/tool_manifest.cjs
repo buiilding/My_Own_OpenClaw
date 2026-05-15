@@ -215,7 +215,7 @@ function buildClientToolManifest(options = {}) {
   const builtinManifest = buildBuiltinClientToolManifest({ disabledTools: [...disabledTools] });
   const seenNames = new Set(builtinManifest.tools.map((tool) => tool.name));
   const pluginTools = loadExtensionPluginTools({
-    extensionsDir: options.extensionsDir,
+    contributionsDir: options.contributionsDir,
   })
     .filter((tool) => {
       if (!tool?.name || disabledTools.has(tool.name) || seenNames.has(tool.name)) {

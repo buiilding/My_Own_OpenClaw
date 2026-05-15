@@ -1,5 +1,5 @@
 ---
-summary: "Canonical WindieOS extension contribution layout: sidecar plugins, prompt skills, and MCP server specs under divided extensions roots."
+summary: "Canonical WindieOS contribution layout: repo-level sidecar plugins, prompt skills, and MCP server specs."
 read_when:
   - When adding reusable client-side plugins, skills, or MCP integrations.
   - When changing extension-owned tool schemas, sidecar execution, prompt layers, or MCP discovery.
@@ -7,39 +7,37 @@ read_when:
 
 # Extension Convention
 
-`extensions/` is a container, not an installable package root. Contributions are
-first-class by type:
+WindieOS contribution roots live directly under the repo root:
 
 ```text
-extensions/
-  plugins/
-    <plugin-id>/
-      plugin.json
-      schemas/
-      python/
-      docs/
-  skills/
-    <skill-id>/
-      SKILL.md
-  mcps/
-    <mcp-id>/
-      mcp.json
+plugins/
+  <plugin-id>/
+    plugin.json
+    schemas/
+    python/
+    docs/
+skills/
+  <skill-id>/
+    SKILL.md
+mcps/
+  <mcp-id>/
+    mcp.json
 ```
 
-There is no `extensions/<id>/extension.json` package shape and there is no
-Electron-main plugin tool execution surface. Plugin tools are sidecar tools:
-Electron main reads `plugin.json` for the model-facing client manifest, and the
-Python sidecar loads the same `plugin.json` to execute the declared Python
-entrypoints.
+There is no `extensions/` container, no `extensions/<id>/extension.json`
+package shape, and no Electron-main plugin tool execution surface. Plugin tools
+are sidecar tools: Electron main reads `plugin.json` for the model-facing client
+manifest, and the Python sidecar loads the same `plugin.json` to execute the
+declared Python entrypoints.
 
 ## Choose The Surface
 
 | Need | Use |
 | --- | --- |
-| The model should call local Python code | `extensions/plugins/<id>/plugin.json`, `schemas/*.schema.json`, and `python/*.py`. |
-| The agent needs reusable instructions only | `extensions/skills/<id>/SKILL.md`. |
-| A protocol server should expose tools | `extensions/mcps/<id>/mcp.json`. |
-| A built-in WindieOS tool changes | Core backend/frontend/sidecar tool files, not `extensions/`. |
+| The model should call local Python code | `plugins/<id>/plugin.json`, `schemas/*.schema.json`, and `python/*.py`. |
+| The agent needs reusable instructions only | `skills/<id>/SKILL.md`. |
+| A protocol server should expose tools | `mcps/<id>/mcp.json`. |
+| A built-in WindieOS tool changes | Core backend/frontend/sidecar tool files, not the contribution roots. |
 
 The backend receives the final output as normal `client_tool_manifest` entries
 and prompt layers. The backend validates and projects those schemas but does not
@@ -56,18 +54,18 @@ scripts/create-windie-extension repo-agent --name "Repo Agent" --tool inspect_re
 It creates:
 
 ```text
-extensions/plugins/repo-agent/
+plugins/repo-agent/
   plugin.json
   schemas/inspect_repo.schema.json
   python/inspect_repo.py
   README.md
   docs/README.md
-extensions/skills/repo-agent/
+skills/repo-agent/
   SKILL.md
   README.md
 ```
 
-Use `--dir <path>` to target another extensions root. The command refuses to
+Use `--dir <path>` to target another WindieOS repo/contribution root. The command refuses to
 overwrite existing contribution folders unless `--force` is passed and the
 target folders are empty.
 
@@ -122,7 +120,7 @@ async def run(root: str, max_files: int = 20):
 ## Skills
 
 Skills are prompt layers, not executable tools. Put each skill under
-`extensions/skills/<id>/SKILL.md`:
+`skills/<id>/SKILL.md`:
 
 ```markdown
 ---
@@ -144,7 +142,7 @@ Front matter:
 
 ## MCP Servers
 
-Declare MCP servers under `extensions/mcps/<id>/mcp.json`:
+Declare MCP servers under `mcps/<id>/mcp.json`:
 
 ```json
 {
@@ -174,11 +172,11 @@ the MCP server's `tools/list` response.
 
 ## Runtime Flow
 
-1. Electron main reads `extensions/plugins/*/plugin.json` and appends plugin
+1. Electron main reads `plugins/*/plugin.json` and appends plugin
    tools to `client_tool_manifest`.
-2. Electron main reads `extensions/skills/**/SKILL.md` and appends prompt
+2. Electron main reads `skills/**/SKILL.md` and appends prompt
    layers to the agent definition.
-3. Electron main reads `extensions/mcps/*/mcp.json`, discovers MCP tools, and
+3. Electron main reads `mcps/*/mcp.json`, discovers MCP tools, and
    appends them to `client_tool_manifest`.
 4. The backend validates and policy-projects the client manifest.
 5. Local plugin tool calls route to the sidecar tool registry.

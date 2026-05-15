@@ -12,10 +12,10 @@ function usage() {
     'Usage: scripts/create-windie-extension <plugin-id> [options]',
     '',
     'Options:',
-    '  --dir <path>       Extensions root. Defaults to ./extensions',
+    '  --dir <path>       WindieOS repo/contribution root. Defaults to .',
     '  --name <name>      Display name. Defaults to a title-cased plugin id',
     '  --tool <name>      Sample tool name. Defaults to sample_tool',
-    '  --force            Allow writing into an existing empty extension folder',
+    '  --force            Allow writing into existing empty contribution folders',
     '  -h, --help         Show this help',
   ].join('\n');
 }
@@ -30,7 +30,7 @@ function toTitleCase(value) {
 
 function parseArgs(argv) {
   const options = {
-    extensionsDir: 'extensions',
+    contributionsDir: '.',
     force: false,
     toolName: 'sample_tool',
   };
@@ -44,7 +44,7 @@ function parseArgs(argv) {
       options.force = true;
     } else if (arg === '--dir') {
       index += 1;
-      options.extensionsDir = argv[index];
+      options.contributionsDir = argv[index];
     } else if (arg === '--name') {
       index += 1;
       options.name = argv[index];
@@ -75,8 +75,8 @@ function validateOptions(options) {
   if (!options.toolName || !TOOL_NAME_PATTERN.test(options.toolName)) {
     throw new Error('Tool name must match /^[a-zA-Z][a-zA-Z0-9_-]{0,95}$/.');
   }
-  if (!options.extensionsDir) {
-    throw new Error('Extensions root is required.');
+  if (!options.contributionsDir) {
+    throw new Error('Contribution root is required.');
   }
 }
 
@@ -157,7 +157,7 @@ function buildFiles({ extensionId, name, toolName }) {
       '',
       '## Use',
       '',
-      'Keep this folder under `extensions/plugins/`.',
+      'Keep this folder under the repo-level `plugins/` directory.',
       '',
     ].join('\n')],
     ['docs/README.md', [
@@ -190,16 +190,16 @@ function buildFiles({ extensionId, name, toolName }) {
 
 function createWindieExtension(rawOptions) {
   const options = {
-    extensionsDir: rawOptions.extensionsDir || 'extensions',
+    contributionsDir: rawOptions.contributionsDir || '.',
     force: Boolean(rawOptions.force),
     toolName: rawOptions.toolName || 'sample_tool',
     ...rawOptions,
   };
   validateOptions(options);
 
-  const extensionsDir = path.resolve(options.extensionsDir);
-  const pluginDir = path.join(extensionsDir, 'plugins', options.extensionId);
-  const skillDir = path.join(extensionsDir, 'skills', options.extensionId);
+  const contributionsDir = path.resolve(options.contributionsDir);
+  const pluginDir = path.join(contributionsDir, 'plugins', options.extensionId);
+  const skillDir = path.join(contributionsDir, 'skills', options.extensionId);
   assertCanCreate(pluginDir, options.force);
   assertCanCreate(skillDir, options.force);
 

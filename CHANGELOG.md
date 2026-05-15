@@ -6,7 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- extensions: split the old package root into first-class `extensions/plugins`, `extensions/skills`, and `extensions/mcps`, with plugin tools executing through the sidecar instead of Electron main.
+- extensions: replace the old package root with first-class repo-level `plugins`, `skills`, and `mcps` folders, with plugin tools executing through the sidecar instead of Electron main.
 - repo: remove the root `TODO.md` from the tracked tree.
 - repo: remove private legal contracts from the tracked tree and ignore `legal/contracts/` going forward.
 - repo: add GitHub issue forms for bug reports, extension requests, provider requests, and docs confusion.
@@ -58,7 +58,7 @@ All notable changes to WindieOS will be documented in this file.
 - extensions: load `skills/**/SKILL.md` from manifest extensions as `client_prompt_layers` so reusable instructions can ship beside local tools without becoming executable tools.
 - docs(prompts): expand prompt and tool context docs with model-visible assembly order, tool schema projection path, transparency metadata contracts, and redundant-layer checks.
 - extensions: keep `name`, `schema`, and Python `entrypoint` as the canonical long-term tool extension API.
-- sidecar: dynamically load extension Python entrypoints from `extensions/*/extension.json` so extension tools no longer require built-in registry edits.
+- sidecar: dynamically load plugin Python entrypoints from repo-level `plugins/*/plugin.json` so plugin tools no longer require built-in registry edits.
 - frontend: migrate Windie Agent client-manifest, extension-loader, Agent settings, mock backend, and sidecar schema export work back into the full WindieOS repo.
 - docs: replace the WindieOS README with the Windie Agent README style and update agent/tool guidance for full-repo open source development.
 - license: switch the full WindieOS repo metadata to MIT for public open-source release.

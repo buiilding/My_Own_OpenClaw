@@ -4,19 +4,25 @@ const yaml = require('js-yaml');
 
 const extensionRuntimeCache = new Map();
 
-function resolveDefaultExtensionsDir() {
-  if (process.env.WINDIE_AGENT_EXTENSIONS_DIR) {
-    return path.resolve(process.env.WINDIE_AGENT_EXTENSIONS_DIR);
+function hasContributionFolders(candidateDir) {
+  return ['plugins', 'skills', 'mcps'].some((folderName) => (
+    fs.existsSync(path.join(candidateDir, folderName))
+  ));
+}
+
+function resolveDefaultContributionRoot() {
+  if (process.env.WINDIE_AGENT_CONTRIBUTIONS_DIR) {
+    return path.resolve(process.env.WINDIE_AGENT_CONTRIBUTIONS_DIR);
   }
-  const cwdCandidate = path.resolve(process.cwd(), 'extensions');
-  if (fs.existsSync(cwdCandidate)) {
+  const cwdCandidate = path.resolve(process.cwd());
+  if (hasContributionFolders(cwdCandidate)) {
     return cwdCandidate;
   }
-  const repoRootCandidate = path.resolve(__dirname, '../../../..', 'extensions');
-  if (fs.existsSync(repoRootCandidate)) {
+  const repoRootCandidate = path.resolve(__dirname, '../../../..');
+  if (hasContributionFolders(repoRootCandidate)) {
     return repoRootCandidate;
   }
-  return path.resolve(__dirname, '../../..', 'extensions');
+  return repoRootCandidate;
 }
 
 function normalizeString(value) {
@@ -293,24 +299,24 @@ function loadMcpEntry(mcpDir) {
 }
 
 function loadAgentExtensionRegistry(options = {}) {
-  const extensionsDir = path.resolve(options.extensionsDir || resolveDefaultExtensionsDir());
-  if (options.reload !== true && extensionRuntimeCache.has(extensionsDir)) {
-    return extensionRuntimeCache.get(extensionsDir);
+  const contributionRoot = path.resolve(options.contributionsDir || resolveDefaultContributionRoot());
+  if (options.reload !== true && extensionRuntimeCache.has(contributionRoot)) {
+    return extensionRuntimeCache.get(contributionRoot);
   }
 
   const result = {
-    extensionsDir,
+    contributionRoot,
     plugins: [],
     skills: [],
     mcps: [],
     errors: [],
   };
-  if (!fs.existsSync(extensionsDir) || typeof fs.readdirSync !== 'function') {
-    extensionRuntimeCache.set(extensionsDir, result);
+  if (!fs.existsSync(contributionRoot) || typeof fs.readdirSync !== 'function') {
+    extensionRuntimeCache.set(contributionRoot, result);
     return result;
   }
 
-  const pluginsRoot = path.join(extensionsDir, 'plugins');
+  const pluginsRoot = path.join(contributionRoot, 'plugins');
   if (fs.existsSync(pluginsRoot)) {
     for (const dirent of fs.readdirSync(pluginsRoot, { withFileTypes: true })) {
       if (!dirent.isDirectory()) {
@@ -332,7 +338,7 @@ function loadAgentExtensionRegistry(options = {}) {
     }
   }
 
-  const skillsRoot = path.join(extensionsDir, 'skills');
+  const skillsRoot = path.join(contributionRoot, 'skills');
   for (const skillFilePath of findSkillFiles(skillsRoot)) {
     try {
       const layer = readSkillLayer(skillFilePath, skillsRoot);
@@ -348,7 +354,7 @@ function loadAgentExtensionRegistry(options = {}) {
     }
   }
 
-  const mcpsRoot = path.join(extensionsDir, 'mcps');
+  const mcpsRoot = path.join(contributionRoot, 'mcps');
   if (fs.existsSync(mcpsRoot)) {
     for (const dirent of fs.readdirSync(mcpsRoot, { withFileTypes: true })) {
       if (!dirent.isDirectory()) {
@@ -370,7 +376,7 @@ function loadAgentExtensionRegistry(options = {}) {
     }
   }
 
-  extensionRuntimeCache.set(extensionsDir, result);
+  extensionRuntimeCache.set(contributionRoot, result);
   return result;
 }
 
@@ -441,7 +447,7 @@ function toPublicSkill(skill) {
 function loadPublicExtensionRegistry(options = {}) {
   const result = loadAgentExtensionRegistry(options);
   return {
-    extensionsDir: result.extensionsDir,
+    contributionRoot: result.contributionRoot,
     plugins: result.plugins.map(toPublicPlugin),
     skills: result.skills.map(toPublicSkill),
     mcps: result.mcps.map(toPublicMcpServer),
@@ -457,5 +463,5 @@ module.exports = {
   loadExtensionSettingsPanels,
   loadExtensionSkillPromptLayers,
   loadPublicExtensionRegistry,
-  resolveDefaultExtensionsDir,
+  resolveDefaultContributionRoot,
 };

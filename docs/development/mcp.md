@@ -1,5 +1,5 @@
 ---
-summary: "Developer guide for connecting Model Context Protocol servers to WindieOS agents through the divided extensions MCP root."
+summary: "Developer guide for connecting Model Context Protocol servers to WindieOS agents through the repo-level MCP root."
 read_when:
   - When adding MCP servers, MCP-backed tools, or MCP diagnostics to WindieOS.
   - When deciding whether an external integration should be a sidecar plugin, skill, MCP server, or backend remote tool.
@@ -7,15 +7,14 @@ read_when:
 
 # MCP Runtime
 
-MCP servers are declared under `extensions/mcps`. They are not nested inside a
-plugin package.
+MCP servers are declared under the repo-level `mcps` root. They are not nested
+inside a plugin package.
 
 ```text
-extensions/
-  mcps/
-    memory/
-      mcp.json
-      server.cjs
+mcps/
+  memory/
+    mcp.json
+    server.cjs
 ```
 
 Electron main reads `mcp.json`, starts configured stdio servers, discovers
@@ -29,7 +28,7 @@ frontend.
 
 ## Add An MCP Server
 
-Create `extensions/mcps/<id>/mcp.json`:
+Create `mcps/<id>/mcp.json`:
 
 ```json
 {
@@ -101,7 +100,7 @@ That exposes `local_memory__search`.
 
 ## Runtime Flow
 
-1. Electron main reads `extensions/mcps/*/mcp.json`.
+1. Electron main reads `mcps/*/mcp.json`.
 2. Electron main starts each enabled MCP server over stdio.
 3. Electron main sends MCP `initialize` and `notifications/initialized`.
 4. Electron main calls `tools/list`.

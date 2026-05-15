@@ -56,7 +56,7 @@ function buildAgentCapabilityHandshakePayload(options = {}) {
   const clientToolManifest = options.clientToolManifest
     || buildClientToolManifest({
       disabledTools: normalizeStringList(options.disabledTools) || [],
-      extensionsDir: options.extensionsDir,
+      contributionsDir: options.contributionsDir,
     });
   const clientToolNames = Array.isArray(clientToolManifest?.tools)
     ? clientToolManifest.tools
@@ -84,7 +84,7 @@ function buildAgentCapabilityHandshakePayload(options = {}) {
     skills: options.skills,
     agentsMd: options.agentsMd,
     plugins: options.plugins,
-    extensionsDir: options.extensionsDir,
+    contributionsDir: options.contributionsDir,
   });
 
   const payload = {

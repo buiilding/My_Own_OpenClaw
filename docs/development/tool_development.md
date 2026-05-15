@@ -54,10 +54,10 @@ Current runtime note:
 - the frontend sends `client_tool_manifest` during handshake so client-local
   tool schemas can be extended without editing backend schema code
 - sidecar plugin tools put model-facing JSON Schema files under
-  `extensions/plugins/<id>/schemas/` and reference them as `schema` from
-  `extensions/plugins/<id>/plugin.json`
+  `plugins/<id>/schemas/` and reference them as `schema` from
+  `plugins/<id>/plugin.json`
 - sidecar plugin tools put executable Python under
-  `extensions/plugins/<id>/python/` and reference it as
+  `plugins/<id>/python/` and reference it as
   `entrypoint: "python/file.py:function"` from `plugin.json`
 - ordinary extensions do not edit the built-in sidecar registry or executable
   manifest modules
@@ -179,21 +179,21 @@ For built-ins, update `frontend/src/main/python/tools/registry.py`:
 - Add tool name to `frontend/src/main/python/tools/exposed_tool_names.py` if it should be LLM-callable from the backend.
 
 For plugin tools, do not edit built-in registry files. Add `schema` and the
-Python `entrypoint` to `extensions/plugins/<id>/plugin.json`; Electron main
+Python `entrypoint` to `plugins/<id>/plugin.json`; Electron main
 forwards the schema manifest and the sidecar loads the executable entrypoint.
 The plugin package must include:
 
 ```text
-extensions/plugins/<id>/
+plugins/<id>/
   plugin.json
   schemas/<tool>.schema.json
   python/<tool>.py
 ```
 
 For reusable instructions that do not execute code, add
-`extensions/skills/<skill-id>/SKILL.md`; those skills become prompt layers, not
+`skills/<skill-id>/SKILL.md`; those skills become prompt layers, not
 tools.
-For protocol-backed tools, add `extensions/mcps/<id>/mcp.json` and let the MCP
+For protocol-backed tools, add `mcps/<id>/mcp.json` and let the MCP
 runtime discover `tools/list`.
 
 ### 6. Validate drift contract

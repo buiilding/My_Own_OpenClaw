@@ -60,7 +60,7 @@ function buildAgentDefinition(options = {}) {
   const explicitAvailableTools = normalizeStringList(options.availableTools);
   const extensionPromptLayers = options.includeExtensionPromptLayers === false
     ? []
-    : loadExtensionSkillPromptLayers({ extensionsDir: options.extensionsDir });
+    : loadExtensionSkillPromptLayers({ contributionsDir: options.contributionsDir });
   const customInstructionLayer = buildCustomInstructionLayer(options.customInstructions);
   const promptLayers = normalizePromptLayers([
     ...extensionPromptLayers,
