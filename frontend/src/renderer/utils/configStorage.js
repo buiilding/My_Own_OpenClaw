@@ -44,7 +44,6 @@ const DEFAULT_FRONTEND_CONFIG = {
   agent_custom_instructions: '',
   agent_disabled_local_tools: [],
   agent_disabled_remote_tools: [],
-  agent_coordinate_methods: ['manual', 'ocr', 'prediction'],
   browser_automation_enabled: false,
   global_agent_stop_shortcut: normalizeGlobalAgentStopShortcutAccelerator(),
   include_query_screenshot: true,
@@ -150,9 +149,6 @@ function buildFrontendConfig(overrides = {}) {
     agent_disabled_remote_tools: Array.isArray(filteredOverrides.agent_disabled_remote_tools)
       ? filteredOverrides.agent_disabled_remote_tools.filter((tool) => typeof tool === 'string')
       : DEFAULT_FRONTEND_CONFIG.agent_disabled_remote_tools,
-    agent_coordinate_methods: Array.isArray(filteredOverrides.agent_coordinate_methods)
-      ? filteredOverrides.agent_coordinate_methods.filter((method) => typeof method === 'string')
-      : DEFAULT_FRONTEND_CONFIG.agent_coordinate_methods,
     provider_api_keys: normalizeProviderApiKeys(filteredOverrides.provider_api_keys),
     provider_oauth: normalizeProviderOAuth(filteredOverrides.provider_oauth),
   };

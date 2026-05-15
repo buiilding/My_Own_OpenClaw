@@ -126,7 +126,6 @@ SettingsSection.propTypes = {
     agent_custom_instructions: PropTypes.string,
     agent_disabled_local_tools: PropTypes.arrayOf(PropTypes.string),
     agent_disabled_remote_tools: PropTypes.arrayOf(PropTypes.string),
-    agent_coordinate_methods: PropTypes.arrayOf(PropTypes.string),
   }),
   onConfigChange: PropTypes.func.isRequired,
   initialTab: PropTypes.string,

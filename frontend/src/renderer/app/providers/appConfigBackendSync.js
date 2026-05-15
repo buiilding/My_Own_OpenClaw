@@ -8,7 +8,6 @@ const LOCAL_ONLY_FRONTEND_CONFIG_KEYS = new Set([
   'agent_custom_instructions',
   'agent_disabled_local_tools',
   'agent_disabled_remote_tools',
-  'agent_coordinate_methods',
 ]);
 
 function isPlainObject(value) {

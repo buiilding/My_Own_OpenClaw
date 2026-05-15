@@ -24,12 +24,6 @@ const REMOTE_TOOLS = Object.freeze([
   'web_search',
 ]);
 
-const COORDINATE_METHODS = Object.freeze([
-  'manual',
-  'ocr',
-  'prediction',
-]);
-
 function toggleListValue(values, value, enabled) {
   const source = Array.isArray(values) ? values : [];
   if (enabled) {
@@ -49,9 +43,6 @@ function AgentSettingsTab({ config, onConfigChange }) {
   const disabledRemoteTools = Array.isArray(config?.agent_disabled_remote_tools)
     ? config.agent_disabled_remote_tools
     : [];
-  const coordinateMethods = Array.isArray(config?.agent_coordinate_methods)
-    ? config.agent_coordinate_methods
-    : COORDINATE_METHODS;
   const acceptedTools = useMemo(() => new Map(
     (manifestStatus.accepted || []).map((tool) => [tool.name, tool]),
   ), [manifestStatus.accepted]);
@@ -227,31 +218,6 @@ function AgentSettingsTab({ config, onConfigChange }) {
           })}
         </div>
       </div>
-
-      <div className="clone-settings-row clone-settings-row-rich clone-settings-row-stack">
-        <div>
-          <span>Coordinate modes</span>
-          <p>Controls which target-resolution methods the backend may use for grounded tools.</p>
-        </div>
-        <div className="clone-settings-tool-grid">
-          {COORDINATE_METHODS.map((method) => (
-            <div key={method} className="clone-settings-tool-toggle">
-              <span>{method}</span>
-              <CloneToggle
-                checked={coordinateMethods.includes(method)}
-                onChange={(enabled) => onConfigChange({
-                  agent_coordinate_methods: toggleListValue(
-                    coordinateMethods,
-                    method,
-                    enabled,
-                  ),
-                })}
-                ariaLabel={`Enable ${method}`}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
@@ -390,7 +356,6 @@ AgentSettingsTab.propTypes = {
     agent_custom_instructions: PropTypes.string,
     agent_disabled_local_tools: PropTypes.arrayOf(PropTypes.string),
     agent_disabled_remote_tools: PropTypes.arrayOf(PropTypes.string),
-    agent_coordinate_methods: PropTypes.arrayOf(PropTypes.string),
   }),
   onConfigChange: PropTypes.func.isRequired,
 };

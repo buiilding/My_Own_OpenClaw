@@ -55,7 +55,6 @@ describe('AgentSettingsTab', () => {
           agent_custom_instructions: 'Prefer local tools.',
           agent_disabled_local_tools: [],
           agent_disabled_remote_tools: [],
-          agent_coordinate_methods: ['manual', 'ocr', 'prediction'],
         }}
         onConfigChange={onConfigChange}
       />,
