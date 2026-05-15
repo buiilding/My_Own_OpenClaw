@@ -15,7 +15,7 @@ Choose the install path from the runtime you need to validate. Source-mode check
 | Goal | Use | Commands | Validates | Does not validate |
 | --- | --- | --- | --- | --- |
 | edit backend agent/provider/API behavior | source development | `./scripts/python-in-env backend python -m backend.src.main` | backend import, startup, routes, provider config | Electron packaging, bundled sidecar runtime |
-| edit renderer/main/sidecar behavior quickly | Electron dev app | `cd frontend && npm run electron:dev` | Vite renderer, Electron main, sidecar process, websocket relay | installed app state, signing, packaged resource paths |
+| edit renderer/main/sidecar behavior quickly | Electron dev app | `cd frontend && npm run electron:dev` | Vite renderer, Electron main, sidecar process, SDK runtime transport | installed app state, signing, packaged resource paths |
 | verify pure renderer UI build | frontend dev/build | `cd frontend && npm run dev`; `cd frontend && npm run build` | renderer compile/runtime in browser-like dev mode | Electron main, sidecar, packaged app |
 | verify bundled sidecar Python | sidecar runtime build | `cd frontend && npm run build:sidecar-runtime` | dependency install, bytecode packaging, runtime archive | installer behavior, OS install paths |
 | verify installed desktop app locally | local reinstall helper | `scripts/reinstall-windieos-*` | installed app launch, local state reset, bundled runtime, sidecar startup | release signing/notarization, production publishing |

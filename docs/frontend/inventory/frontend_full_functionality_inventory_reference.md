@@ -82,7 +82,7 @@ Primary files:
 
 Functionality:
 
-- Opens backend websocket (`/ws`) and sends handshake with validated user id.
+- Adapts IPC messages into the SDK runtime, which opens `/ws` and sends handshake with validated user id.
 - Tracks backend session/user/conversation identifiers from stream envelopes.
 - Broadcasts backend events to all renderer windows (`from-backend`).
 - Maintains settings-sync ACK lifecycle with timeout protection via `ipc_settings_sync` helper module.
@@ -211,9 +211,9 @@ Functionality:
   - Handles `llm-thought`, `streaming-response`, `streaming-complete`.
   - Handles `tool-call`, `tool-output`, `tool-bundle` render and transcript writes.
   - Handles `context-compaction-*`, `system-prompt`, `assistant-message-full`, `error`.
-- Tool execution (`useToolRunner`):
-  - Executes incoming tool calls/bundles through `ToolExecutionService`.
-  - Cancels stale-turn tool events with synthetic failure response payloads.
+- Tool display (`useToolRunner`):
+  - Treats backend tool calls/bundles as display/transcript events after SDK runtime routing.
+  - Cancels stale-turn display events without owning local execution.
 - Conversation actions:
   - New chat reset.
   - Assistant retry from selected assistant message.

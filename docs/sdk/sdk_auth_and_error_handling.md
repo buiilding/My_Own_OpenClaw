@@ -26,7 +26,7 @@ SDK clients use hosted backend auth rules. They do not bypass install auth, prov
 | --- | --- |
 | TypeScript hosted client | Constructor/base URL options in `windieSdkClient.ts`. |
 | Python hosted client | Sidecar/developer client configuration in `frontend/src/main/python/core/windie_sdk_client.py`. |
-| Electron internal `ApiClient` | App-internal backend websocket and IPC wiring; not the same as hosted SDK client. |
+| Electron internal `ApiClient` | App-internal IPC into the SDK runtime adapter; not the same as hosted SDK HTTP client. |
 | Sidecar remote clients | Electron-injected backend URL and install token where hosted auth applies. |
 
 Keep HTTP and websocket base URLs paired. A client using hosted HTTP and local websocket, or the inverse, will produce confusing identity and artifact behavior.

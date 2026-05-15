@@ -60,9 +60,9 @@ Client-local schemas are merged with backend registry schemas before policy filt
 7. The model emits a tool call.
 8. Backend parser and preparation code validates, normalizes, and enriches the call.
 9. Backend sends the executable payload over websocket as `tool-call` or `tool-bundle`.
-10. Renderer `useToolRunner` dispatches through `ToolExecutionService`.
-11. Main/sidecar execute local work through JSON-RPC.
-12. Renderer returns `tool-result` or `tool-bundle-result`.
+10. SDK runtime dispatches through Electron main to the sidecar daemon/local executor.
+11. Main/sidecar execute local work through the daemon or JSON-RPC bridge.
+12. SDK runtime returns `tool-result` or `tool-bundle-result`.
 13. Backend transforms the result into model-facing history and continues the loop.
 
 ## Shape Separation Rules

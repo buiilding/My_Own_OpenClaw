@@ -150,7 +150,7 @@ Read behavior (`loadFrontendConfigFromDisk`):
 ## Where These Values Are Used
 
 - `ipc.cjs` initializes:
-- `BACKEND_URL` for websocket client
+- `BACKEND_URL` for SDK runtime websocket transport
 - `BACKEND_HTTP_URL` for artifact upload route
 - `load-frontend-config` / `save-frontend-config` invoke handlers
 - VM worker HTTP calls to `/api/runs/*` consume resolved `backendHttpUrl`

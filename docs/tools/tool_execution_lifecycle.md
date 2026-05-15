@@ -1,5 +1,5 @@
 ---
-summary: "End-to-end WindieOS tool execution lifecycle from backend schema exposure through renderer dispatch, sidecar execution, result ingress, history, and loop continuation."
+summary: "End-to-end WindieOS tool execution lifecycle from backend schema exposure through SDK-runtime dispatch, sidecar execution, result ingress, history, and loop continuation."
 read_when:
   - When changing tool-call dispatch, bundle execution, request ids, tool-result payloads, screenshots, or model-facing history.
   - When debugging a tool that was called by the model but did not execute or did not re-enter backend history correctly.
@@ -8,7 +8,7 @@ title: "Tool Execution Lifecycle"
 
 # Tool Execution Lifecycle
 
-WindieOS tools run through a distributed pipeline. The backend owns model-facing schema and loop semantics; the renderer owns local dispatch and transcript/UI projection; the sidecar owns executable desktop actions.
+WindieOS tools run through a distributed pipeline. The backend owns model-facing schema and loop semantics; the SDK runtime owns local dispatch and backend result return; the renderer owns display/transcript projection; the sidecar owns executable desktop actions.
 
 ## Lifecycle
 
@@ -19,10 +19,10 @@ WindieOS tools run through a distributed pipeline. The backend owns model-facing
 5. Backend parser/tool bridge normalizes provider-native calls into WindieOS tool-call shapes.
 6. Backend preparation resolves any high-level or grounded fields into executable payloads.
 7. Backend sends `tool-call` or `tool-bundle` websocket events to the frontend.
-8. Renderer `useToolRunner` and `ToolExecutionService` route the call through Electron main.
-9. Electron main invokes the Python sidecar JSON-RPC tool registry.
+8. SDK runtime routes the call through Electron main to the sidecar daemon/local executor.
+9. Electron main invokes the Python sidecar daemon or JSON-RPC tool registry as the local executor.
 10. Sidecar executes the local action and returns a normalized `ToolResult`.
-11. Renderer uploads screenshots/artifacts when needed and sends `tool-result` or `tool-bundle-result` back to backend.
+11. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend.
 12. Backend result receiver resolves the pending future.
 13. Backend result transformer formats model-facing tool output and display metadata.
 14. Backend history committer writes tool rows and the interaction loop continues.
@@ -36,8 +36,8 @@ WindieOS tools run through a distributed pipeline. The backend owns model-facing
 | Provider call normalization | Backend | `backend/src/agent/execution/tool_call_bridge.py`, provider modules under `backend/src/llm/providers` |
 | Preparation and coordinate resolution | Backend | `backend/src/agent/tools/preparation/**`, `backend/src/services/screen_grounding/**` |
 | Frontend dispatch event | Backend API | `backend/src/api/processing/formatters/actions/*`, `backend/src/api/schemas/outgoing.py` |
-| Renderer execution | Frontend renderer | `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`, `frontend/src/renderer/infrastructure/services/toolExecution/**` |
-| Electron-sidecar bridge | Electron main | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/ipc.cjs` |
+| SDK runtime execution | Frontend main/SDK runtime | `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`, `frontend/src/main/ipc.cjs` |
+| Electron-sidecar bridge | Electron main | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/sidecar_daemon_manager.cjs` |
 | Local execution | Sidecar | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/**` |
 | Result ingress | Backend API | `backend/src/api/handlers/tool_result.py`, `backend/src/agent/tools/waiting/**` |
 | Result formatting/history | Backend agent | `backend/src/agent/tools/processing/**`, `backend/src/agent/history/**` |

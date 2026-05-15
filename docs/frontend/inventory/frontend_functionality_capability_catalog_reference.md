@@ -232,10 +232,10 @@ Capabilities:
 ## 10) End-to-End Path Checkpoints
 
 1. Renderer `ApiClient.sendQuery` sends query intent over main-process bridge.
-2. Main process enriches payload and relays to backend WebSocket.
+2. Main process enriches payload and hands it to the SDK runtime for backend WebSocket transport.
 3. Backend stream envelopes relay from main to renderer `from-backend`.
 4. `useChatStream` updates chat state + transcript and tracks active turn phase.
-5. `tool-call`/`tool-bundle` events execute through `ToolExecutionService` and sidecar RPC.
+5. `tool-call`/`tool-bundle` events route through the SDK runtime to the local sidecar executor.
 6. Tool results route back to backend as `tool-result`/`tool-bundle-result`.
 
 ## Related Docs

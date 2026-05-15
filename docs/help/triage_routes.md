@@ -14,7 +14,7 @@ Use this page before editing code when a bug report starts with a visible sympto
 
 | Symptom | Likely owner | First check | Deep docs |
 | --- | --- | --- | --- |
-| app opens but messages do not send | Electron main websocket relay or backend websocket | connection logs and settings ACK | [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md) |
+| app opens but messages do not send | SDK runtime adapter, Electron query preparation, or backend websocket | connection logs and settings ACK | [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md) |
 | backend responds but model output never appears | backend event stream or renderer event consumer | stream trace and stale-turn filters | [Runtime Traces](../debug/runtime_traces.md), [Streaming and Events](../concepts/streaming_and_events.md) |
 | model list is empty or wrong | backend provider/model catalog or renderer settings ACK | provider factory, catalog, credentials | [Models and LLM Providers](../providers/models.md) |
 | tool call appears but no local action happens | renderer tool runner, Electron bridge, or sidecar registry | tool event route and sidecar JSON-RPC | [Tool Troubleshooting](../tools/tool_troubleshooting.md) |

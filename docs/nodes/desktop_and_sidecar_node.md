@@ -22,7 +22,7 @@ Keep these nodes separate when developing. They run on the user's machine, but e
 
 | Local process | Owns | Does not own |
 | --- | --- | --- |
-| Electron main | native windows, overlay visibility, backend websocket client, config persistence, install-token storage/transport, IPC handlers, sidecar process lifecycle | React component state, backend route implementation, sidecar tool internals |
+| Electron main | native windows, overlay visibility, SDK-runtime adaptation, config persistence, install-token storage/transport, IPC handlers, sidecar process lifecycle | React component state, backend route implementation, hosted backend websocket policy, sidecar tool internals |
 | Renderer | dashboard/chat/overlay UI, stream projection, transcript state, settings forms, voice UI, tool-runner UI state | direct filesystem/shell access, backend auth enforcement, native window authority |
 | Preload | narrow `window.ipc` bridge and channel allowlist | feature policy, backend schemas, broad Node.js access |
 | Python sidecar | local executable tools, local memory, browser runtime, system state, shell/filesystem/computer actions | model-facing tool schemas, websocket route validation, renderer UI |

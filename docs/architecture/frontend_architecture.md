@@ -107,7 +107,7 @@ Current runtime behavior also relies on these explicit seams:
    - Emits local synthetic `local-user-message` event to renderer immediately.
    - Calls `buildQueryPayloadContent()` to inject system-context + memory sections.
    - Resolves applicable local `AGENTS.md` files from the active workspace and forwards them as contextual prompt messages, which is required when the backend is hosted remotely and cannot read local repo paths.
-   - Sends normalized `query` over backend WebSocket.
+   - Sends normalized `query` through the SDK runtime, which owns the hosted backend WebSocket.
 
 ### Stream Receive Flow
 
@@ -130,9 +130,9 @@ New-chat behavior:
 ### Tool Turn Flow
 
 1. Backend emits `tool-call` or `tool-bundle`.
-2. Renderer `useToolRunner` validates active turn and stale-turn guards.
-3. `ToolExecutionService` executes sidecar-facing tools and sends `tool-result`/`tool-bundle-result` via IPC -> backend.
-4. Tool output is rendered as assistant tool rows and persisted in transcript queue.
+2. SDK runtime validates and routes executable calls through Electron main to the sidecar daemon/local executor.
+3. SDK runtime sends `tool-result`/`tool-bundle-result` back to backend.
+4. Renderer receives display-only tool events, renders assistant tool rows, and persists transcript queue state.
 
 ### Conversation/Transcript Flow
 

@@ -17,10 +17,10 @@ Use this map when a failure is broader than one feature. It complements [Triage 
 | gateway ingress | HTTP `401`/`404`/`502`, websocket `1008`, CORS block | backend API/gateway and Cloudflare/origin |
 | agent loop | empty final response, repeated tool parse failures, missing completion | backend agent runtime |
 | provider/capability | missing model/tool/search, provider unavailable, circuit breaker | backend provider/config/capability policy |
-| stream transport | events emitted but UI stale, stale turn, missing settings ACK | backend websocket, Electron main relay, renderer event consumer |
+| stream transport | events emitted but UI stale, stale turn, missing settings ACK | backend websocket, SDK runtime adapter, renderer event consumer |
 | IPC/preload | invalid channel, missing `window.ipc`, renderer cannot invoke main | preload/channel allowlist and Electron main IPC |
 | sidecar process | readiness timeout, stdout contamination, import failure | Electron main local backend bridge and Python sidecar entrypoint |
-| local tool execution | tool called but OS action fails | renderer tool runner, Electron bridge, sidecar tool registry/tool |
+| local tool execution | tool called but OS action fails | SDK runtime tool router, Electron bridge, sidecar tool registry/tool |
 | platform/permission | one OS fails, permission stuck, screenshots include UI | Electron permission/platform policy, sidecar platform adapter |
 | packaging/runtime | source works but installed app fails | Electron Builder config, bundled Python runtime, reinstall helpers |
 | memory/transcript | replay drift, stale memory, wrong conversation | renderer transcript, sidecar memory, backend history |

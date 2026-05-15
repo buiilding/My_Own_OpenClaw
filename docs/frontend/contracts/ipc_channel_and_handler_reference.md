@@ -1,5 +1,5 @@
 ---
-summary: "Renderer-main IPC reference: preload allowlists, typed channel constants, Electron main handler ownership, and backend/ws relay channel behavior."
+summary: "Renderer-main IPC reference: preload allowlists, typed channel constants, Electron main handler ownership, and SDK-runtime relay channel behavior."
 read_when:
   - When adding or changing Electron IPC channels, including permission onboarding/data-controls channels.
   - When debugging renderer-main contract mismatches or unhandled invoke/send events.
@@ -48,7 +48,7 @@ Owner: `ipc.cjs`
 
 Behavior:
 
-- primary relay channel to backend websocket.
+- primary relay channel into the SDK runtime adapter.
 - supports message types like `query`, `update-settings`, `tool-result`, `tool-bundle-result`, `wakeword-detected`, etc.
 - query path enriches payload with system state + memory context and generates local optimistic user event.
 

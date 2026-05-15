@@ -12,11 +12,12 @@ Use these playbooks to avoid editing the wrong layer.
 
 ## No Backend Response
 
-Likely boundary: Electron main relay or hosted backend websocket.
+Likely boundary: SDK runtime adapter, Electron main query preparation, or hosted backend websocket.
 
 Inspect:
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/windie_sdk_runtime.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `backend/src/api/routes/websocket/router.py`
 - `backend/src/api/routes/websocket/task_manager.py`
@@ -222,4 +223,3 @@ Validate:
 ./scripts/test-sidecar tests/sidecar/test_browser_registry.py tests/sidecar/test_browser_runtime_architecture.py -q
 cd frontend && npm run test:ci -- ChatBrowserSessionControl.test.jsx PermissionService.test.cjs
 ```
-

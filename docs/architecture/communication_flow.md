@@ -119,15 +119,15 @@ The default product topology is remote-first: the app and SDK talk to the hosted
 
 **Main Process** (`src/main/ipc.cjs`):
 - Handles IPC message routing
-- Manages WebSocket connection
-- Forwards messages between renderer and backend
+- Adapts renderer messages to the SDK runtime
+- Delegates hosted backend WebSocket transport to `src/main/windie_sdk_runtime.cjs`
 - Builds complete user messages with system state and memories
 
 ## WebSocket Communication
 
 ### Connection Lifecycle
 
-1. **Connection**: Electron main opens the backend WebSocket on demand instead of at renderer startup. Customer-mode source and packaged runs try `wss://api.windieos.com/ws` first and fall back to `ws://127.0.0.1:8765/ws` if the hosted backend is unreachable before the socket opens.
+1. **Connection**: The SDK runtime opens the backend WebSocket on demand instead of at renderer startup. Customer-mode source and packaged runs try `wss://api.windieos.com/ws` first and fall back to `ws://127.0.0.1:8765/ws` if the hosted backend is unreachable before the socket opens.
 2. **Auth + Handshake**: Hosted clients first authenticate with a server-issued install token, then send the handshake message
    - the backend resolves the real `user_id` from the install token and ignores mismatched client-claimed `user_id` values
    - Electron main also sends the frontend operating-system label so backend session prompt rendering can follow the frontend OS instead of the Python host OS
@@ -239,7 +239,7 @@ Authorization: Bearer <install_token>
   - Sent only by the main dashboard renderer (`view` query param absent).
   - Chat overlay renderers (`view=chatbox`, `view=chatbox-response`) do not request models.
   - Renderer startup guards this request to one-shot per renderer lifecycle to avoid duplicate local-provider probes in React StrictMode.
-  - If the dashboard asks for models before the backend WebSocket is fully open, Electron main defers that one request and flushes it immediately after connect/handshake so selector state does not fall back to raw model ids during startup races.
+  - If the dashboard asks for models before the backend WebSocket is fully open, Electron main queues that request and the SDK runtime flushes it after connect/handshake so selector state does not fall back to raw model ids during startup races.
 
 **`load-settings`**
 - Purpose: Request frontend-owned settings snapshot from backend session/default config.
