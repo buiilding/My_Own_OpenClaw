@@ -515,6 +515,44 @@ function normalizeClosePayload(payload: unknown): { code?: number; reason?: stri
   };
 }
 
+function markSdkOwnedToolEvent(event: BackendEvent): BackendEvent {
+  if (event.type !== 'tool-call' && event.type !== 'tool-bundle') {
+    return event;
+  }
+  const cloned = JSON.parse(JSON.stringify(event)) as BackendEvent;
+  if (cloned.type === 'tool-call') {
+    cloned.payload = {
+      ...(cloned.payload ?? {}),
+      metadata: {
+        ...((cloned.payload?.metadata ?? {}) as JsonRecord),
+        skip_frontend_execution: true,
+        execution_owner: 'sdk-runtime',
+      },
+    };
+    return cloned;
+  }
+  const payload = cloned.payload ?? {};
+  cloned.payload = {
+    ...payload,
+    metadata: {
+      ...(((payload as JsonRecord).metadata ?? {}) as JsonRecord),
+      skip_frontend_execution: true,
+      execution_owner: 'sdk-runtime',
+    },
+    tools: Array.isArray(payload.tools)
+      ? payload.tools.map(tool => ({
+          ...(tool ?? {}),
+          metadata: {
+            ...((tool?.metadata ?? {}) as JsonRecord),
+            skip_frontend_execution: true,
+            execution_owner: 'sdk-runtime',
+          },
+        }))
+      : payload.tools,
+  } as typeof cloned.payload;
+  return cloned;
+}
+
 export class WindieAgentSession {
   private readonly listeners = new Map<WindieAgentEventName, Set<WindieAgentListener<unknown>>>();
   private readonly detachSocketListeners: Array<() => void> = [];
@@ -558,11 +596,14 @@ export class WindieAgentSession {
             parsed = raw;
           }
         }
-        this.emit('message', parsed);
         if (isBackendEvent(parsed)) {
-          this.emit('event', parsed);
-          this.emit(parsed.type, parsed as WindieAgentEventMap[BackendEventType]);
+          const listenerEvent = this.projectBackendEventForListeners(parsed);
+          this.emit('message', listenerEvent);
+          this.emit('event', listenerEvent);
+          this.emit(listenerEvent.type, listenerEvent as WindieAgentEventMap[BackendEventType]);
           void this.maybeExecuteLocalTool(parsed);
+        } else {
+          this.emit('message', parsed);
         }
       }),
     );
@@ -670,6 +711,13 @@ export class WindieAgentSession {
       timestamp: new Date().toISOString(),
     }));
     return id;
+  }
+
+  private projectBackendEventForListeners(event: BackendEvent): BackendEvent {
+    if (!this.localRuntime?.executeTool) {
+      return event;
+    }
+    return markSdkOwnedToolEvent(event);
   }
 
   private async maybeExecuteLocalTool(event: BackendEvent): Promise<void> {

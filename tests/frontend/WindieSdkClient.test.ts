@@ -535,6 +535,10 @@ describe('WindieSdkClient', () => {
     const socket = FakeWebSocket.instances[0];
     socket.emit('open', {});
     const agent = await wakePromise;
+    const observedEvents: unknown[] = [];
+    agent.session.on('event', event => {
+      observedEvents.push(event);
+    });
 
     await agent.ask('save this note', { conversationRef: 'conv-fake' });
     socket.emit('message', {
@@ -568,6 +572,15 @@ describe('WindieSdkClient', () => {
         request_id: 'req-fake-save',
         success: true,
         data: { llm_content: 'saved:hello' },
+      },
+    });
+    expect(observedEvents[0]).toMatchObject({
+      type: 'tool-call',
+      payload: {
+        metadata: {
+          skip_frontend_execution: true,
+          execution_owner: 'sdk-runtime',
+        },
       },
     });
   });
