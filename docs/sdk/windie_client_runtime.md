@@ -128,6 +128,15 @@ Stores are persistence adapters. They append/load events and commit complete
 compacted replay snapshots, but they do not own display or backend rehydrate
 interpretation. Projection builders in the SDK own those views.
 
+Electron uses a sidecar-backed store adapter during the desktop migration:
+
+- canonical SDK events are stored under the sidecar `conversation_event` record
+  kind so they do not pollute visible `transcript` rows
+- legacy transcript rows are projected into SDK events when a conversation has
+  not yet been written through the canonical adapter
+- compacted replay rows still use `transcript_replay`, but SDK loaders read them
+  as replay snapshots before falling back to full event projection
+
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel
 in normal UI.

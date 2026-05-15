@@ -151,3 +151,102 @@ async def list_transcript_conversations(
         )
         await conn.commit()
         return results
+
+
+async def list_record_kind_conversations(
+    *,
+    episodic_db_path: str,
+    user_id: str,
+    record_kind: str,
+    limit: int,
+) -> List[Dict[str, Any]]:
+    if aiosqlite is None:
+        raise ImportError("aiosqlite is not installed. Install with: pip install aiosqlite")
+
+    async with aiosqlite.connect(episodic_db_path) as conn:
+        conn.row_factory = aiosqlite.Row
+        cursor = await conn.cursor()
+        await cursor.execute(
+            """
+            SELECT conversation_id,
+                   MIN(timestamp) as first_timestamp,
+                   MAX(timestamp) as last_timestamp,
+                   COUNT(*) as entry_count,
+                   record_kind,
+                   (
+                     SELECT content FROM memories m2
+                     WHERE m2.user_id = ?
+                       AND m2.conversation_id = memories.conversation_id
+                       AND m2.record_kind = ?
+                       AND m2.content IS NOT NULL
+                       AND m2.content != ''
+                     ORDER BY m2.message_index ASC, m2.timestamp ASC
+                     LIMIT 1
+                   ) as first_content,
+                   (
+                     SELECT content FROM memories m2
+                     WHERE m2.user_id = ?
+                       AND m2.conversation_id = memories.conversation_id
+                       AND m2.record_kind = ?
+                       AND m2.content IS NOT NULL
+                       AND m2.content != ''
+                     ORDER BY m2.message_index DESC, m2.timestamp DESC
+                     LIMIT 1
+                   ) as last_content,
+                   (
+                     SELECT metadata FROM memories m2
+                     WHERE m2.user_id = ?
+                       AND m2.conversation_id = memories.conversation_id
+                       AND m2.record_kind = ?
+                       AND m2.metadata IS NOT NULL
+                       AND m2.metadata != ''
+                     ORDER BY m2.message_index DESC, m2.timestamp DESC
+                     LIMIT 1
+                   ) as latest_metadata
+            FROM memories
+            WHERE user_id = ? AND record_kind = ?
+            GROUP BY conversation_id
+            ORDER BY last_timestamp DESC
+            LIMIT ?
+            """,
+            (
+                user_id,
+                record_kind,
+                user_id,
+                record_kind,
+                user_id,
+                record_kind,
+                user_id,
+                record_kind,
+                limit,
+            ),
+        )
+        rows = await cursor.fetchall()
+
+    results: List[Dict[str, Any]] = []
+    for row in rows:
+        conversation_id = row["conversation_id"]
+        if not isinstance(conversation_id, str) or not conversation_id.strip():
+            continue
+        try:
+            latest_metadata = json.loads(row["latest_metadata"]) if row["latest_metadata"] else {}
+        except (TypeError, ValueError):
+            latest_metadata = {}
+        if not isinstance(latest_metadata, dict):
+            latest_metadata = {}
+        title = row["first_content"] or conversation_id
+        results.append(
+            {
+                "conversation_id": conversation_id,
+                "first_timestamp": row["first_timestamp"],
+                "last_timestamp": row["last_timestamp"],
+                "entry_count": row["entry_count"],
+                "record_kind": row["record_kind"],
+                "title": str(title).strip() or conversation_id,
+                "last_message": row["last_content"] or "",
+                "workspace_path": latest_metadata.get("workspace_path") or "",
+                "workspace_name": latest_metadata.get("workspace_name") or "",
+                "is_resumable": True,
+            }
+        )
+    return results

@@ -1310,6 +1310,38 @@ async def test_handle_store_transcript_success():
 
 
 @pytest.mark.asyncio
+async def test_handle_store_transcript_preserves_conversation_event_record_kind():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+    backend._summarizer = DummySummarizer()
+
+    result = await backend._handle_store_transcript(
+        content='{"type":"user_message"}',
+        user_id="user-1",
+        conversation_ref="conv-sdk",
+        role="user",
+        message_type="user_message",
+        record_kind="conversation_event",
+        structured_payload={
+            "windieSdkConversationEvent": {
+                "eventId": "evt-1",
+                "type": "user_message",
+            },
+        },
+    )
+
+    assert result["success"] is True
+    assert result["data"]["record_kind"] == "conversation_event"
+    _, _, metadata, conversation_id, kwargs = backend.memory_store.added[-1]
+    assert conversation_id == "conv-sdk"
+    assert metadata["record_kind"] == "conversation_event"
+    assert metadata["structured_payload"]["windieSdkConversationEvent"]["eventId"] == "evt-1"
+    assert kwargs["record_kind"] == "conversation_event"
+    assert kwargs["skip_embedding"] is True
+    assert backend._summarizer.notified == []
+
+
+@pytest.mark.asyncio
 async def test_handle_store_transcript_omits_whitespace_correlation_id():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()

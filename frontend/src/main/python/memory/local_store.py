@@ -36,7 +36,10 @@ from core.unicode_sanitizer import (
 )
 from memory.admin import clear_chat_history as clear_chat_history_admin
 from memory.admin import clear_local_memory as clear_local_memory_admin
-from memory.conversation_list_runtime import list_transcript_conversations
+from memory.conversation_list_runtime import (
+    list_record_kind_conversations,
+    list_transcript_conversations,
+)
 from memory.conversation_search_runtime import search_transcript_conversations
 from memory.conversation_semanticization_runtime import (
     count_unsemanticized_interaction_memories as fetch_unsemanticized_interaction_count,
@@ -78,6 +81,7 @@ from memory.conversation_window_runtime import (
 from memory.faiss_index import read_index_safe_async, save_indices_async
 from memory.operations import format_interaction_memory
 from memory.record_kinds import (
+    CONVERSATION_EVENT_RECORD_KIND,
     INTERACTION_RECORD_KIND,
     TRANSCRIPT_RECORD_KIND,
     TRANSCRIPT_REPLAY_RECORD_KIND,
@@ -1730,7 +1734,14 @@ class LocalMemoryStore:
         Returns:
             List of conversation summaries with timestamps and entry counts
         """
-        _ = record_kind  # API compatibility; transcript is the only supported kind.
+        normalized_record_kind = str(record_kind or "").strip().lower()
+        if normalized_record_kind == CONVERSATION_EVENT_RECORD_KIND:
+            return await list_record_kind_conversations(
+                episodic_db_path=self.episodic_db_path,
+                user_id=user_id,
+                record_kind=CONVERSATION_EVENT_RECORD_KIND,
+                limit=limit,
+            )
         return await list_transcript_conversations(
             episodic_db_path=self.episodic_db_path,
             user_id=user_id,
@@ -2024,9 +2035,11 @@ class LocalMemoryStore:
         Returns:
             Number of rows deleted.
         """
+        requested_record_kind = str(record_kind or "").strip().lower()
         normalized_record_kind = (
-            TRANSCRIPT_REPLAY_RECORD_KIND
-            if str(record_kind or "").strip().lower() == TRANSCRIPT_REPLAY_RECORD_KIND
+            requested_record_kind
+            if requested_record_kind
+            in {CONVERSATION_EVENT_RECORD_KIND, TRANSCRIPT_REPLAY_RECORD_KIND}
             else TRANSCRIPT_RECORD_KIND
         )
         record_kind_clause = "AND record_kind = ?"

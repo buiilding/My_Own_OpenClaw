@@ -25,10 +25,27 @@ from core.unicode_sanitizer import (
     sanitize_surrogates,
     sanitize_surrogates_in_text,
 )
-from memory.record_kinds import TRANSCRIPT_RECORD_KIND, TRANSCRIPT_REPLAY_RECORD_KIND
+from memory.record_kinds import (
+    CONVERSATION_EVENT_RECORD_KIND,
+    TRANSCRIPT_RECORD_KIND,
+    TRANSCRIPT_REPLAY_RECORD_KIND,
+)
 from memory.transcript_embedding_policy import is_semantic_transcript_candidate
 
 logger = logging.getLogger(__name__)
+
+_STORE_TRANSCRIPT_RECORD_KINDS = {
+    CONVERSATION_EVENT_RECORD_KIND,
+    TRANSCRIPT_RECORD_KIND,
+    TRANSCRIPT_REPLAY_RECORD_KIND,
+}
+
+
+def _normalize_store_transcript_record_kind(record_kind: Optional[str]) -> str:
+    normalized = str(record_kind or "").strip().lower()
+    if normalized in _STORE_TRANSCRIPT_RECORD_KINDS:
+        return normalized
+    return TRANSCRIPT_RECORD_KIND
 
 
 def requires_memory_store(
@@ -529,15 +546,14 @@ class LocalBackendMemoryHandlersMixin:
         **kwargs,
     ) -> Dict[str, Any]:
         """Store a transcript entry with selective embeddings for recall/summarization."""
-        normalized_record_kind = (
-            TRANSCRIPT_REPLAY_RECORD_KIND
-            if str(record_kind or "").strip().lower() == TRANSCRIPT_REPLAY_RECORD_KIND
-            else TRANSCRIPT_RECORD_KIND
-        )
+        normalized_record_kind = _normalize_store_transcript_record_kind(record_kind)
         normalized_rehydrate_entry = self._normalize_transcript_structured_payload(
             rehydrate_entry
         )
-        if not content and normalized_record_kind != TRANSCRIPT_REPLAY_RECORD_KIND:
+        if not content and normalized_record_kind not in {
+            CONVERSATION_EVENT_RECORD_KIND,
+            TRANSCRIPT_REPLAY_RECORD_KIND,
+        }:
             return {
                 "success": False,
                 "error": "Content is required"
@@ -570,11 +586,11 @@ class LocalBackendMemoryHandlersMixin:
                     ", ".join(surrogate_paths),
                 )
             stored_content = sanitize_surrogates_in_text(content)
-            if (
-                not stored_content
-                and normalized_record_kind == TRANSCRIPT_REPLAY_RECORD_KIND
-            ):
-                stored_content = "[internal replay entry]"
+            if not stored_content and normalized_record_kind in {
+                CONVERSATION_EVENT_RECORD_KIND,
+                TRANSCRIPT_REPLAY_RECORD_KIND,
+            }:
+                stored_content = "[internal state entry]"
             conversation_id = conversation_ref or session_id
             normalized_correlation_id = None
             if isinstance(correlation_id, str):

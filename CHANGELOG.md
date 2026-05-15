@@ -26,6 +26,7 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: collapse duplicate local/backend tool-output events by tool wait id in SDK display, rehydrate, and agent stream projections.
 - sdk: gate conversation runtime backend events by `conversation_ref`/`turn_ref` so simultaneous conversations ignore ambiguous or stale packets on shared transports.
 - frontend: build local conversation rehydrate payloads through SDK-normalized transcript events instead of directly mapping stored transcript rows.
+- frontend/sdk: add an Electron sidecar conversation-store adapter backed by a dedicated `conversation_event` record kind, with legacy transcript fallback and compacted replay loading through SDK projections.
 - sdk: align bundled local-tool step statuses with the backend `ok`/`error` bundle-result contract.
 - docs: add a direct README docs link for the computer-use guide.
 - frontend/settings: apply Appearance light, dark, and system selections to the renderer theme tokens instead of only persisting the selected setting.

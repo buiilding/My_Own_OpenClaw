@@ -20,6 +20,7 @@ For code changes or debugging, start with [Transcript Replay Change Workflow](tr
 | Session identity | `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionInfoStorage.ts` |
 | Pending queues | `frontend/src/renderer/infrastructure/transcript/pending/*` |
 | Entry persistence | `frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts`, `transcriptRecordWrite.ts` |
+| SDK conversation store adapter | `frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore.ts` |
 | Local snapshots/replay | `conversationLocalSnapshotLoader.ts`, `conversationReplayState.ts`, `rehydratePayload.js`, `rehydrateMessageState.js` |
 | Chat replay actions | `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js` |
 | Dashboard conversation list | `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `useTranscriptSessionInfo.js` |
@@ -52,6 +53,16 @@ Do not invent a second conversation id in a component. Use the transcript sessio
 ## Replay And Rehydrate
 
 Replay converts stored transcript entries back into chat messages for renderer display. Rehydrate converts stored transcript entries into backend-compatible state so an active backend session can continue.
+
+SDK-owned conversation state uses a separate sidecar record kind:
+
+- `conversation_event`: normalized SDK event log for runtime/load/rehydrate
+- `transcript`: visible transcript rows
+- `transcript_replay`: compacted replay rows
+
+New SDK callers should read display and rehydrate state through SDK projections
+over `conversation_event` rows. Existing conversations without event rows still
+fall back through the transcript projection adapter.
 
 Key files:
 

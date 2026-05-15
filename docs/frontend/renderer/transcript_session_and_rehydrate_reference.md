@@ -14,6 +14,7 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts`
+- `frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore.ts`
 - `frontend/src/renderer/infrastructure/transcript/localConversationStore.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
@@ -191,6 +192,26 @@ Flush behavior (`flushPendingMessages`):
 6. replace renderer chat store with parsed rows
 
 Search modal uses the same open path after `search-conversations` results.
+
+## SDK Store Migration Boundary
+
+The desktop migration adds `ElectronSidecarConversationStore` as the SDK-facing
+conversation-store adapter over the existing sidecar memory IPC.
+
+Record-kind split:
+
+- `conversation_event` stores canonical SDK conversation events for the runtime,
+  including `conversationRef`, `turnRef`, `revisionId`, request/bundle/tool-call
+  ids, and structured payloads.
+- `transcript` remains the visible chat transcript for dashboard display and
+  legacy replay.
+- `transcript_replay` remains the compacted backend rehydrate snapshot store.
+
+The adapter loads canonical `conversation_event` rows first. If a conversation
+only has legacy `transcript` rows, it projects those rows into normalized SDK
+events so display and backend rehydrate snapshots still come from the SDK
+projection path. This keeps new clients on the SDK model without breaking
+existing local conversations.
 
 ## Try-Again and Edit+Resend Replay Contract
 

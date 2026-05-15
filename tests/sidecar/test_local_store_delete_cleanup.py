@@ -10,6 +10,7 @@ ensure_frontend_python_path()
 
 from memory.local_store import LocalMemoryStore  # noqa: E402
 from memory.record_kinds import (  # noqa: E402
+    CONVERSATION_EVENT_RECORD_KIND,
     INTERACTION_RECORD_KIND,
     TRANSCRIPT_RECORD_KIND,
     TRANSCRIPT_REPLAY_RECORD_KIND,
@@ -505,6 +506,7 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(t
             [
                 ("interaction-1", "user-1", "episodic memory", 0, "conv-1", "interaction", "assistant", "llm-text"),
                 ("transcript-1", "user-1", "chat transcript", 1, "conv-1", "transcript", "user", "user"),
+                ("conversation-event-1", "user-1", "sdk event", None, "conv-1", CONVERSATION_EVENT_RECORD_KIND, "user", "user_message"),
             ],
         )
         conn.execute(
@@ -537,7 +539,7 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(t
     result = await store.clear_chat_history("user-1")
 
     assert result == {
-        "deleted_count": 1,
+        "deleted_count": 2,
         "deleted_title_count": 1,
     }
     assert cancel_calls == ["called"]
