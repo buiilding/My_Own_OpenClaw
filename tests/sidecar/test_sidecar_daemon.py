@@ -26,6 +26,18 @@ class FakeEventSocket:
         self.sent.append(payload)
 
 
+class FakeMcpClient:
+    async def call_tool(self, name, args):
+        return {
+            "content": [
+                {
+                    "type": "text",
+                    "text": f"{name}:{args['value']}",
+                }
+            ]
+        }
+
+
 @pytest.mark.asyncio
 async def test_sidecar_daemon_rejects_missing_or_invalid_token():
     daemon = SidecarDaemon(token="test-token")
@@ -88,6 +100,102 @@ async def test_sidecar_daemon_registers_module_tool_without_restart(
     assert json.loads(execution.text) == {
         "success": True,
         "data": {"llm_content": "saved:hello"},
+    }
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_registers_plugin_tools_without_restart(tmp_path: Path):
+    plugin_dir = tmp_path / "note_plugin"
+    plugin_dir.mkdir()
+    (plugin_dir / "extension.json").write_text(
+        json.dumps(
+            {
+                "id": "note-plugin",
+                "tools": [
+                    {
+                        "name": "plugin_note",
+                        "description": "Save a plugin note.",
+                        "entrypoint": "tool.py:save",
+                        "schema": {
+                            "type": "object",
+                            "properties": {"text": {"type": "string"}},
+                            "required": ["text"],
+                            "additionalProperties": False,
+                        },
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (plugin_dir / "tool.py").write_text(
+        "\n".join(
+            [
+                "def save(text: str):",
+                "    return {'success': True, 'data': {'llm_content': 'plugin:' + text}}",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    daemon = SidecarDaemon(token="test-token")
+    registration = await daemon.handle_register_plugin(
+        FakeRequest({"path": str(plugin_dir)})
+    )
+    execution = await daemon.handle_execute_tool(
+        FakeRequest({"tool_name": "plugin_note", "args": {"text": "hello"}})
+    )
+
+    assert registration.status == 200
+    registration_payload = json.loads(registration.text)
+    assert registration_payload["success"] is True
+    assert registration_payload["registered_tools"][0]["name"] == "plugin_note"
+    assert json.loads(execution.text) == {
+        "success": True,
+        "data": {"llm_content": "plugin:hello"},
+    }
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_registers_mcp_tools_without_restart():
+    daemon = SidecarDaemon(token="test-token")
+    daemon.mcp_clients["notes"] = FakeMcpClient()
+
+    registration = await daemon.handle_register_mcp(
+        FakeRequest(
+            {
+                "id": "notes",
+                "command": "fake-mcp-server",
+                "tools": [
+                    {
+                        "name": "remember",
+                        "description": "Remember a value.",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {"value": {"type": "string"}},
+                            "required": ["value"],
+                            "additionalProperties": False,
+                        },
+                    }
+                ],
+            }
+        )
+    )
+    execution = await daemon.handle_execute_tool(
+        FakeRequest({"tool_name": "mcp_notes__remember", "args": {"value": "hello"}})
+    )
+
+    assert registration.status == 200
+    registration_payload = json.loads(registration.text)
+    assert registration_payload["success"] is True
+    assert registration_payload["registered_tools"][0]["name"] == "mcp_notes__remember"
+    assert json.loads(execution.text) == {
+        "success": True,
+        "data": {
+            "llm_content": "remember:hello",
+            "return_display": "remember:hello",
+            "mcp_result": {"content": [{"type": "text", "text": "remember:hello"}]},
+        },
     }
 
 

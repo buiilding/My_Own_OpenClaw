@@ -348,6 +348,8 @@ describe('WindieSdkClient', () => {
     const localRuntime: WindieLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       registerModuleTool: jest.fn(async () => ({ success: true })),
+      registerPlugin: jest.fn(async () => ({ success: true })),
+      registerMcp: jest.fn(async () => ({ success: true })),
       listTools: jest.fn(async () => ({
         version: 1,
         tools: [
@@ -407,6 +409,12 @@ describe('WindieSdkClient', () => {
       }),
       { workspacePath: '/tmp/project' },
     );
+    expect(localRuntime.registerPlugin).toHaveBeenCalledWith({ path: '/tmp/plugin' });
+    expect(localRuntime.registerMcp).toHaveBeenCalledWith({
+      id: 'fs',
+      command: 'node',
+      args: ['server.js'],
+    });
     expect(handshake).toMatchObject({
       type: 'handshake',
       user_id: 'dev-user',
