@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- repo: remove the root `TODO.md` from the tracked tree.
 - repo: remove private legal contracts from the tracked tree and ignore `legal/contracts/` going forward.
 - repo: add GitHub issue forms for bug reports, extension requests, provider requests, and docs confusion.
 - repo: move the root banner image into `artifacts/image.png` and update the README reference.
