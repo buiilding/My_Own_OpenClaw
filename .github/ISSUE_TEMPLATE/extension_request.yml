@@ -1,0 +1,76 @@
+name: Extension request
+description: Request a WindieOS extension, plugin contribution, MCP integration, skill, or local tool.
+title: "[Extension]: "
+labels:
+  - extension
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for current extension surfaces: local sidecar tools, plugin tools, MCP servers, skills, prompt layers, settings metadata, config, lifecycle hooks, and permission declarations. Marketplace, signing, and hot install are future work unless the issue is explicitly a design proposal.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      placeholder: "Add a GitHub repo maintenance extension."
+    validations:
+      required: true
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Contribution type
+      options:
+        - Python sidecar tool
+        - Electron main-process plugin tool
+        - MCP server
+        - Skill / instructions
+        - Prompt layer
+        - Settings panel / config
+        - Lifecycle hook
+        - Permission declaration
+        - Full extension package
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    attributes:
+      label: User workflow
+      description: What should the agent help the user accomplish?
+      placeholder: "The user asks WindieOS to ..."
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_shape
+    attributes:
+      label: Proposed extension shape
+      description: Mention expected tools, skills, MCP servers, config, or files if you know them.
+      placeholder: |
+        extensions/my-extension/
+          extension.json
+          tools/...
+          python/...
+          skills/...
+  - type: textarea
+    id: local_authority
+    attributes:
+      label: Local authority and permissions
+      description: What local files, shell commands, browser access, screen control, or credentials would this need?
+      placeholder: "Needs workspace file read/write, no shell access."
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Current workaround
+      description: How do you solve this today, if at all?
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Boundary checks
+      options:
+        - label: This can be built with current extension surfaces, or I am explicitly asking for a design discussion.
+          required: true
+        - label: I am not asking WindieOS to handle secret credentials in docs, examples, or committed code.
+          required: true

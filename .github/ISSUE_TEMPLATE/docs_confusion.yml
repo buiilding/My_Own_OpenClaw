@@ -1,0 +1,62 @@
+name: Docs confusion
+description: Report unclear, stale, missing, or misleading documentation.
+title: "[Docs]: "
+labels:
+  - documentation
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this when docs confused you, sent you to the wrong place, overclaimed current behavior, or missed a setup step.
+  - type: input
+    id: page
+    attributes:
+      label: Page or file
+      description: Link or path to the confusing doc.
+      placeholder: "docs/development/extensions.md"
+    validations:
+      required: true
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Reader type
+      options:
+        - New user
+        - Extension developer
+        - SDK user
+        - Provider contributor
+        - Core maintainer
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: confusing_part
+    attributes:
+      label: What was confusing?
+      description: Quote or summarize the confusing part.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to learn?
+      placeholder: "I expected the page to tell me ..."
+    validations:
+      required: true
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What did you try?
+      description: Commands, links followed, or docs you read next.
+  - type: textarea
+    id: suggested_fix
+    attributes:
+      label: Suggested fix
+      description: Optional wording, missing link, or example that would have helped.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submit checks
+      options:
+        - label: I checked that this is not already covered by a nearby linked doc.
+          required: true

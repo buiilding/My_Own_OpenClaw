@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- repo: add GitHub issue forms for bug reports, extension requests, provider requests, and docs confusion.
 - repo: move the root banner image into `artifacts/image.png` and update the README reference.
 - sdk: make `packages/windie-sdk-js` a standalone npm package with its own lockfile, package-local build docs, and publish-time build check.
 - examples: add a runnable `examples/repo-agent-extension` package with a Python sidecar tool, skill, SDK script, and one-command README.

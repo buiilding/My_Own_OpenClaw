@@ -1,0 +1,97 @@
+name: Bug report
+description: Report something broken in the desktop app, SDK, sidecar, backend, tools, or docs.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a WindieOS bug. Do not include API keys, tokens, private repo content, screenshots with secrets, or personal data.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One sentence describing what broke.
+      placeholder: "The sidecar fails to execute extension tools after wakeUp."
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Pick the closest owner.
+      options:
+        - Desktop app / Electron
+        - Chat / streaming
+        - SDK / WindieClient
+        - Extensions / plugins / MCP
+        - Sidecar / local tools
+        - Browser-use / computer-use
+        - Backend / hosted API
+        - Providers / models
+        - Memory / transcripts
+        - Docs / examples
+        - Packaging / install
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: App version, release tag, or commit SHA.
+      placeholder: "0.6.23 or 61421f97"
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - SDK only
+        - Hosted backend only
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Give exact steps or commands.
+      placeholder: |
+        1. Start WindieOS
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: "The agent should ..."
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      placeholder: "Instead, ..."
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Paste minimal relevant logs. Redact paths, keys, tokens, and private data.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submit checks
+      options:
+        - label: I removed secrets, API keys, tokens, personal data, and private repo content.
+          required: true
+        - label: I searched existing issues for a duplicate.
+          required: true

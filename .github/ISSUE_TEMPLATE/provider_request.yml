@@ -1,0 +1,84 @@
+name: Provider request
+description: Request support for an LLM, inference, OCR, vision, embedding, STT, TTS, or web-search provider.
+title: "[Provider]: "
+labels:
+  - provider
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Provider work usually crosses backend routing, model catalog, credentials, capability policy, docs, and tests. Do not paste API keys or account-specific data.
+  - type: input
+    id: provider
+    attributes:
+      label: Provider name
+      placeholder: "OpenRouter, Mistral, Ollama, ExampleAI"
+    validations:
+      required: true
+  - type: dropdown
+    id: provider_type
+    attributes:
+      label: Provider type
+      options:
+        - Online LLM
+        - Local LLM
+        - OCR
+        - Vision
+        - Embeddings
+        - Speech to text
+        - Text to speech
+        - Web search
+        - Other inference capability
+    validations:
+      required: true
+  - type: input
+    id: docs_url
+    attributes:
+      label: Provider API docs
+      description: Link to official provider docs, if available.
+      placeholder: "https://..."
+  - type: textarea
+    id: models
+    attributes:
+      label: Models or capabilities requested
+      placeholder: |
+        - model-a
+        - model-b
+        - supports text, images, streaming, tool calls
+    validations:
+      required: true
+  - type: textarea
+    id: auth
+    attributes:
+      label: Authentication and base URL
+      description: Describe auth type and base URL shape. Do not include secrets.
+      placeholder: "Bearer API key via environment variable; OpenAI-compatible /v1 endpoint."
+  - type: checkboxes
+    id: capabilities
+    attributes:
+      label: Needed runtime capabilities
+      options:
+        - label: Streaming responses
+        - label: Tool calling / function calling
+        - label: Multimodal image input
+        - label: Reasoning / thinking output
+        - label: Web search
+        - label: Local model discovery
+        - label: Provider-specific rate limit or error handling
+  - type: textarea
+    id: why
+    attributes:
+      label: Why this provider matters
+      description: What workflow does this unlock for WindieOS users?
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submit checks
+      options:
+        - label: I included public provider docs or enough detail to identify the API.
+          required: true
+        - label: I did not include API keys, tokens, account IDs, or private endpoint secrets.
+          required: true

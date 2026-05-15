@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: WindieOS Discord
+    url: https://discord.gg/windieos
+    about: Use Discord for quick questions, early feedback, and community discussion.
+  - name: WindieOS website
+    url: https://windieos.com
+    about: Download WindieOS and find public product information.
