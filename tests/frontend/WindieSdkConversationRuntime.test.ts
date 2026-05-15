@@ -351,6 +351,68 @@ describe('Windie SDK conversation runtime core', () => {
     expect((await runtime.load()).state.phase).toBe('completed');
   });
 
+  test('conversation runtime can route backend tool calls through a local runtime coordinator', async () => {
+    const sentToolResults: Record<string, unknown>[] = [];
+    let backendListener: ((event: unknown) => void) | null = null;
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      localRuntime: {
+        executeTool: jest.fn(async call => ({
+          success: true,
+          data: {
+            return_display: `read ${String(call.args.path)}`,
+          },
+        })),
+      },
+      transport: {
+        connect: jest.fn(async () => undefined),
+        handshake: jest.fn(async () => undefined),
+        sendQuery: jest.fn(async () => 'query-unused'),
+        sendToolResult: jest.fn(async payload => {
+          sentToolResults.push(payload);
+        }),
+        sendToolBundleResult: jest.fn(async () => undefined),
+        sendRehydrate: jest.fn(async () => undefined),
+        stop: jest.fn(async () => undefined),
+        subscribe: jest.fn(listener => {
+          backendListener = listener;
+          return () => {
+            backendListener = null;
+          };
+        }),
+        close: jest.fn(async () => undefined),
+      },
+    });
+    runtime.attachTransport();
+
+    backendListener?.({
+      type: 'tool-call',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-tool',
+      payload: {
+        tool_name: 'read_file',
+        request_id: 'req-read',
+        parameters: { path: 'README.md' },
+      },
+    } satisfies BackendEvent);
+    await tick();
+
+    expect(sentToolResults[0]).toMatchObject({
+      request_id: 'req-read',
+      success: true,
+      data: {
+        llm_content: 'read README.md',
+      },
+    });
+    expect((await store.loadEvents('conv-sdk-runtime')).map(storedEvent => storedEvent.type)).toEqual([
+      'tool_call',
+      'tool_output',
+    ]);
+    expect((await runtime.load()).state.phase).toBe('tool_result_sent');
+  });
+
   test('editAndResend rewrites from the edited user message and sends a new revision turn', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const transport: BackendTransport = {

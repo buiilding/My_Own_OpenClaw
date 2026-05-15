@@ -8,6 +8,7 @@ import type {
   ConversationStore,
   DisplayConversation,
   JsonRecord,
+  LocalRuntime,
   RehydrateSnapshot,
 } from '../conversation/types.js';
 import {
@@ -15,6 +16,7 @@ import {
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
 import { normalizeBackendEventToConversationEvent } from '../transport/backendEventNormalizer.js';
+import { ToolExecutionCoordinator } from '../tools/ToolExecutionCoordinator.js';
 import { reduceConversationRuntimeState, createInitialConversationRuntimeState } from './conversationReducer.js';
 
 export type ConversationListener = (snapshot: ConversationSnapshot) => void;
@@ -113,6 +115,7 @@ export class SdkConversationRuntime {
       revisionId?: string;
       store: ConversationStore;
       transport?: BackendTransport;
+      localRuntime?: Pick<LocalRuntime, 'executeTool'> | null;
     },
   ) {
     this.state = createInitialConversationRuntimeState(
@@ -427,6 +430,7 @@ export class SdkConversationRuntime {
     const events = await this.options.store.loadEvents(this.options.conversationRef);
     const snapshot = this.snapshot(events);
     this.notify(snapshot, event);
+    await this.maybeExecuteTool(event);
   }
 
   private notify(snapshot: ConversationSnapshot, event?: ConversationEvent): void {
@@ -434,6 +438,28 @@ export class SdkConversationRuntime {
     if (event) {
       this.eventListeners.forEach(listener => listener(event, snapshot));
     }
+  }
+
+  private async maybeExecuteTool(event: ConversationEvent): Promise<void> {
+    if (
+      event.source !== 'backend'
+      || (event.type !== 'tool_call' && event.type !== 'tool_bundle_call')
+      || !this.options.localRuntime?.executeTool
+      || !this.options.transport
+    ) {
+      return;
+    }
+    const coordinator = new ToolExecutionCoordinator({
+      localRuntime: this.options.localRuntime,
+      store: {
+        appendEvent: async outputEvent => {
+          await this.applyEvent(outputEvent);
+        },
+      },
+      sendToolResult: async payload => this.options.transport!.sendToolResult(payload),
+      sendToolBundleResult: async payload => this.options.transport!.sendToolBundleResult(payload),
+    });
+    await coordinator.execute(event);
   }
 
   private snapshot(events: ConversationEvent[]): ConversationSnapshot {

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs: refocus the README around WindieOS as an open-source OS-layer Codex alternative with voice-first shared-screen use and customizable runtime surfaces.
 - backend/openai: synthesize Responses stream payloads from output item events and function-call argument deltas when OpenAI omits the terminal response envelope.
 - frontend: hide chat composer scrollbars across dashboard and minimal pill multiline drafts.
 - extensions: replace the old package root with first-class repo-level `plugins`, `skills`, and `mcps` folders, with plugin tools executing through the sidecar instead of Electron main.
@@ -18,6 +19,7 @@ All notable changes to WindieOS will be documented in this file.
 - extensions: add a `scripts/create-windie-extension` scaffold command for starter extension packages with a sidecar tool, schema, skill, and docs.
 - sdk: add repo-local `@windie/sdk` and `windie-sdk` package boundaries while keeping existing frontend and sidecar compatibility imports.
 - sdk: add `SdkConversationRuntime.stream()` so custom clients can run turns through normalized conversation events, projections, and terminal runtime phases.
+- sdk: let `SdkConversationRuntime` route normalized backend tool calls through `ToolExecutionCoordinator` when a local runtime adapter is provided.
 - docs: add a direct README docs link for the computer-use guide.
 - frontend/settings: apply Appearance light, dark, and system selections to the renderer theme tokens instead of only persisting the selected setting.
 - frontend/settings: make Settings a full dashboard view with a back arrow instead of a small modal with a close icon.

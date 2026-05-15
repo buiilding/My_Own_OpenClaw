@@ -118,6 +118,12 @@ When the SDK claims a local tool call or bundle:
 Malformed or unclaimable tool events should remain unclaimed or become explicit
 failures; they should not be marked display-only without a backend result path.
 
+`SdkConversationRuntime` can be constructed with a `localRuntime` adapter. In
+that mode, normalized backend `tool_call` and `tool_bundle_call` events are
+handed to `ToolExecutionCoordinator`, which executes the local runtime, sends
+the result back through the transport, and appends the corresponding normalized
+output event through the same store/projection path.
+
 ## Desktop Migration Target
 
 Desktop React should call runtime commands and render projections. It should not
