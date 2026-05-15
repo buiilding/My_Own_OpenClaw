@@ -1,0 +1,245 @@
+#!/usr/bin/env node
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+
+const TOOL_NAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9_-]{0,95}$/;
+const EXTENSION_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{1,63}$/;
+
+function usage() {
+  return [
+    'Usage: scripts/create-windie-extension <extension-id> [options]',
+    '',
+    'Options:',
+    '  --dir <path>       Extensions root. Defaults to ./extensions',
+    '  --name <name>      Display name. Defaults to a title-cased extension id',
+    '  --tool <name>      Sample tool name. Defaults to sample_tool',
+    '  --force            Allow writing into an existing empty extension folder',
+    '  -h, --help         Show this help',
+  ].join('\n');
+}
+
+function toTitleCase(value) {
+  return value
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map(part => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(' ');
+}
+
+function parseArgs(argv) {
+  const options = {
+    extensionsDir: 'extensions',
+    force: false,
+    toolName: 'sample_tool',
+  };
+  const positional = [];
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === '-h' || arg === '--help') {
+      options.help = true;
+    } else if (arg === '--force') {
+      options.force = true;
+    } else if (arg === '--dir') {
+      index += 1;
+      options.extensionsDir = argv[index];
+    } else if (arg === '--name') {
+      index += 1;
+      options.name = argv[index];
+    } else if (arg === '--tool') {
+      index += 1;
+      options.toolName = argv[index];
+    } else if (arg.startsWith('--')) {
+      throw new Error(`Unknown option: ${arg}`);
+    } else {
+      positional.push(arg);
+    }
+  }
+
+  if (options.help) {
+    return options;
+  }
+  if (positional.length !== 1) {
+    throw new Error('Expected exactly one extension id.');
+  }
+  options.extensionId = positional[0];
+  return options;
+}
+
+function validateOptions(options) {
+  if (!options.extensionId || !EXTENSION_ID_PATTERN.test(options.extensionId)) {
+    throw new Error('Extension id must match /^[a-z0-9][a-z0-9_-]{1,63}$/.');
+  }
+  if (!options.toolName || !TOOL_NAME_PATTERN.test(options.toolName)) {
+    throw new Error('Tool name must match /^[a-zA-Z][a-zA-Z0-9_-]{0,95}$/.');
+  }
+  if (!options.extensionsDir) {
+    throw new Error('Extensions root is required.');
+  }
+}
+
+function writeText(filePath, value) {
+  fs.writeFileSync(filePath, value, 'utf8');
+}
+
+function assertCanCreate(extensionDir, force) {
+  if (!fs.existsSync(extensionDir)) {
+    return;
+  }
+  const entries = fs.readdirSync(extensionDir);
+  if (entries.length > 0 || !force) {
+    throw new Error(
+      `Extension folder already exists: ${extensionDir}. Use --force only for an empty folder.`,
+    );
+  }
+}
+
+function buildFiles({ extensionId, name, toolName }) {
+  const displayName = name || toTitleCase(extensionId);
+  const skillId = `${extensionId}-agent`;
+  return new Map([
+    ['extension.json', JSON.stringify({
+      id: extensionId,
+      name: displayName,
+      description: `Starter Windie extension for ${displayName}.`,
+      tools: [
+        {
+          name: toolName,
+          description: `Run the starter ${displayName} local tool.`,
+          schema: `tools/${toolName}.schema.json`,
+          entrypoint: `python/${toolName}.py:run`,
+          argument_resolution: 'passthrough',
+        },
+      ],
+      skills: [
+        {
+          path: 'skills/agent',
+          id: skillId,
+          priority: 75,
+        },
+      ],
+      required_permissions: [],
+    }, null, 2) + '\n'],
+    [`tools/${toolName}.schema.json`, JSON.stringify({
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        text: {
+          type: 'string',
+          description: 'Text for the starter tool to process.',
+        },
+      },
+      required: ['text'],
+    }, null, 2) + '\n'],
+    [`python/${toolName}.py`, [
+      'from __future__ import annotations',
+      '',
+      'from tools.result import ToolResult',
+      '',
+      '',
+      'async def run(text: str):',
+      '    value = str(text or "").strip()',
+      '    if not value:',
+      '        return ToolResult.error_result("text is required")',
+      '    return ToolResult.success_result(',
+      '        {',
+      '            "llm_content": f"Starter tool received: {value}",',
+      '            "return_display": "Starter tool completed",',
+      '        }',
+      '    )',
+      '',
+    ].join('\n')],
+    ['skills/agent/SKILL.md', [
+      '---',
+      `title: ${displayName} Agent`,
+      'priority: 75',
+      '---',
+      '',
+      `Use the ${displayName} extension tools when they directly help with the user request.`,
+      'Keep tool calls narrow, explain failures plainly, and prefer local workspace context when available.',
+      '',
+    ].join('\n')],
+    ['README.md', [
+      `# ${displayName}`,
+      '',
+      'Starter Windie extension generated by `scripts/create-windie-extension`.',
+      '',
+      '## Contents',
+      '',
+      `- \`extension.json\` declares the extension package and the \`${toolName}\` tool.`,
+      `- \`tools/${toolName}.schema.json\` is the model-facing JSON Schema.`,
+      `- \`python/${toolName}.py\` is the local sidecar entrypoint.`,
+      '- `skills/agent/SKILL.md` adds reusable agent instructions.',
+      '',
+      '## Use',
+      '',
+      'Point Windie at this extension folder or keep it under the repo `extensions/` directory.',
+      '',
+    ].join('\n')],
+    ['docs/README.md', [
+      `# ${displayName} Notes`,
+      '',
+      'Document extension-specific behavior, permissions, config, and maintenance notes here.',
+      '',
+    ].join('\n')],
+  ]);
+}
+
+function createWindieExtension(rawOptions) {
+  const options = {
+    extensionsDir: rawOptions.extensionsDir || 'extensions',
+    force: Boolean(rawOptions.force),
+    toolName: rawOptions.toolName || 'sample_tool',
+    ...rawOptions,
+  };
+  validateOptions(options);
+
+  const extensionsDir = path.resolve(options.extensionsDir);
+  const extensionDir = path.join(extensionsDir, options.extensionId);
+  assertCanCreate(extensionDir, options.force);
+
+  fs.mkdirSync(extensionDir, { recursive: true });
+  for (const [relativePath, contents] of buildFiles(options)) {
+    const filePath = path.join(extensionDir, relativePath);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    writeText(filePath, contents);
+  }
+
+  return {
+    extensionDir,
+    extensionId: options.extensionId,
+    toolName: options.toolName,
+  };
+}
+
+function runCli(argv = process.argv.slice(2)) {
+  const options = parseArgs(argv);
+  if (options.help) {
+    process.stdout.write(`${usage()}\n`);
+    return 0;
+  }
+  const result = createWindieExtension(options);
+  process.stdout.write(`Created Windie extension at ${result.extensionDir}\n`);
+  process.stdout.write(`Tool: ${result.toolName}\n`);
+  return 0;
+}
+
+if (require.main === module) {
+  try {
+    process.exitCode = runCli();
+  } catch (error) {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n\n`);
+    process.stderr.write(`${usage()}\n`);
+    process.exitCode = 1;
+  }
+}
+
+module.exports = {
+  buildFiles,
+  createWindieExtension,
+  parseArgs,
+  runCli,
+  toTitleCase,
+};

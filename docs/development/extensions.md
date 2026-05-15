@@ -52,6 +52,30 @@ calls its exported register function. If the extension has `mcp/servers.json`,
 Electron main loads those MCP server specs. Set `WINDIE_AGENT_EXTENSIONS_DIR`
 to point Electron main at a different extensions directory.
 
+## Scaffold An Extension
+
+Use the scaffold command for new extension packages:
+
+```bash
+scripts/create-windie-extension repo-agent --name "Repo Agent" --tool inspect_repo
+```
+
+By default it writes to `extensions/<extension-id>/` and creates:
+
+```text
+extensions/repo-agent/
+  extension.json
+  tools/inspect_repo.schema.json
+  python/inspect_repo.py
+  skills/agent/SKILL.md
+  README.md
+  docs/README.md
+```
+
+Use `--dir <path>` to write to another extensions root. The command refuses to
+overwrite an existing extension folder unless `--force` is passed and the target
+folder is empty.
+
 ## Package Layout
 
 ```text

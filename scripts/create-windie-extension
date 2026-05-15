@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+'use strict';
+
+const { runCli } = require('./create-windie-extension.cjs');
+
+try {
+  process.exitCode = runCli(process.argv.slice(2));
+} catch (error) {
+  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+  process.exitCode = 1;
+}
