@@ -5,9 +5,14 @@ import {
   type ToolSchema,
 } from './backendEvents.js';
 import { InMemoryConversationStore } from './stores/InMemoryConversationStore.js';
-import { SdkConversationRuntime } from './runtime/ConversationRuntime.js';
+import {
+  SdkConversationRuntime,
+  type SendInput,
+  type WindieRuntimeEvent,
+} from './runtime/ConversationRuntime.js';
 import type {
   BackendTransport,
+  ConversationEvent,
   ConversationMetadata,
   ConversationStore,
   ListConversationOptions,
@@ -333,6 +338,7 @@ export type WindieAgentQueryInput = {
   attachmentFilenames?: string[] | null;
   systemStateInternal?: JsonRecord | null;
   workspacePath?: string | null;
+  turnRef?: string | null;
 };
 
 export type WindieAgentQueryOptions = Partial<Omit<WindieAgentQueryInput, 'text' | 'conversationRef'>> & {
@@ -449,10 +455,6 @@ type WindieAgentEventMap = {
 
 type WindieAgentEventName = keyof WindieAgentEventMap;
 type WindieAgentListener<T> = (payload: T) => void;
-type StreamQueueItem =
-  | { kind: 'event'; value: WindieAgentStreamEvent }
-  | { kind: 'error'; error: unknown }
-  | { kind: 'done' };
 
 function resolveFetchImplementation(fetchImpl?: FetchLike): FetchLike {
   if (fetchImpl) {
@@ -527,20 +529,6 @@ function createMessageId(): string {
   return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function normalizeToolResultData(data: JsonRecord | undefined): JsonRecord | undefined {
-  if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    return undefined;
-  }
-  if (typeof data.llm_content === 'string' && data.llm_content) {
-    return data;
-  }
-  const display = typeof data.return_display === 'string' ? data.return_display : '';
-  return {
-    ...data,
-    llm_content: display || JSON.stringify(data),
-  };
-}
-
 function attachSocketListener(
   socket: WebSocketLike,
   event: string,
@@ -576,229 +564,180 @@ function normalizeClosePayload(payload: unknown): { code?: number; reason?: stri
   };
 }
 
-function markSdkOwnedToolEvent(event: BackendEvent): BackendEvent {
-  if (event.type !== 'tool-call' && event.type !== 'tool-bundle') {
-    return event;
-  }
-  const cloned = JSON.parse(JSON.stringify(event)) as BackendEvent;
-  if (cloned.type === 'tool-call') {
-    cloned.payload = {
-      ...(cloned.payload ?? {}),
-      metadata: {
-        ...((cloned.payload?.metadata ?? {}) as JsonRecord),
-        skip_frontend_execution: true,
-        execution_owner: 'sdk-runtime',
-      },
-    };
-    return cloned;
-  }
-  const payload = (cloned.payload ?? {}) as Extract<BackendEvent, { type: 'tool-bundle' }>['payload'];
-  const tools = Array.isArray(payload?.tools) ? payload.tools : undefined;
-  cloned.payload = {
-    ...payload,
-    metadata: {
-      ...(((payload as JsonRecord).metadata ?? {}) as JsonRecord),
-      skip_frontend_execution: true,
-      execution_owner: 'sdk-runtime',
-    },
-    tools: tools
-      ? tools.map(tool => ({
-          ...(tool ?? {}),
-          metadata: {
-            ...((tool?.metadata ?? {}) as JsonRecord),
-            skip_frontend_execution: true,
-            execution_owner: 'sdk-runtime',
-          },
-        }))
-      : payload?.tools,
-  } as typeof cloned.payload;
-  return cloned;
+function rawBackendEventFromConversationEvent(event: ConversationEvent): BackendEvent | null {
+  const rawEvent = event.payload.rawEvent;
+  return isBackendEvent(rawEvent) ? rawEvent : null;
 }
 
-function isStreamTerminalEvent(event: WindieAgentStreamEvent): boolean {
-  return event.type === 'complete' || event.type === 'error';
+function eventStringField(payload: JsonRecord, ...keys: string[]): string | null {
+  for (const key of keys) {
+    const value = payload[key];
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
 }
 
-function shouldIncludeStreamBackendEvent(event: BackendEvent, conversationRef: string): boolean {
-  return !event.conversation_ref || event.conversation_ref === conversationRef;
+function toolOutputStreamKey(event: ConversationEvent): string | null {
+  if (event.type !== 'tool_output' && event.type !== 'tool_bundle_output') {
+    return null;
+  }
+  const requestId = eventStringField(event.payload, 'requestId', 'request_id', 'correlationId', 'correlation_id');
+  if (requestId) {
+    return `request:${requestId}`;
+  }
+  const bundleId = eventStringField(event.payload, 'bundleId', 'bundle_id');
+  if (bundleId) {
+    return `bundle:${bundleId}`;
+  }
+  const toolCallId = eventStringField(event.payload, 'toolCallId', 'tool_call_id');
+  return toolCallId ? `tool-call:${toolCallId}` : null;
 }
 
-function toStreamEvent(event: BackendEvent): WindieAgentStreamEvent {
-  if (event.type === 'streaming-response') {
-    return {
-      type: 'text',
-      text: typeof event.payload?.text === 'string' ? event.payload.text : '',
-      event,
-    };
-  }
-  if (event.type === 'streaming-complete') {
-    return {
-      type: 'complete',
-      finalResponse: typeof event.payload?.final_response === 'string'
-        ? event.payload.final_response
-        : undefined,
-      event,
-    };
-  }
-  if (event.type === 'tool-call') {
-    return {
-      type: 'tool_call',
-      toolName: typeof event.payload?.tool_name === 'string'
-        ? event.payload.tool_name
-        : undefined,
-      event,
-    };
-  }
-  if (event.type === 'tool-output') {
-    return {
-      type: 'tool_output',
-      event,
-    };
-  }
-  if (event.type === 'error') {
-    return {
-      type: 'error',
-      message: event.payload?.message || event.payload?.content || 'Windie stream failed',
-      event,
-    };
-  }
+function syntheticToolOutputEvent(event: ConversationEvent): Extract<BackendEvent, { type: 'tool-output' }> {
   return {
-    type: 'event',
-    event,
+    id: event.eventId,
+    type: 'tool-output',
+    conversation_ref: event.conversationRef,
+    turn_ref: event.turnRef ?? undefined,
+    payload: event.payload,
   };
 }
 
-class WindieAgentStream implements AsyncIterableIterator<WindieAgentStreamEvent> {
-  private readonly queue: StreamQueueItem[] = [];
-  private readonly waiting: Array<{
-    resolve: (result: IteratorResult<WindieAgentStreamEvent>) => void;
-    reject: (error: unknown) => void;
-  }> = [];
-  private readonly detachListeners: Array<() => void> = [];
-  private started = false;
-  private finished = false;
+function syntheticStreamingResponseEvent(event: ConversationEvent): Extract<BackendEvent, { type: 'streaming-response' }> {
+  return {
+    id: event.eventId,
+    type: 'streaming-response',
+    conversation_ref: event.conversationRef,
+    turn_ref: event.turnRef ?? undefined,
+    payload: {
+      text: typeof event.payload.text === 'string' ? event.payload.text : '',
+    },
+  };
+}
 
-  constructor(
-    private readonly session: WindieAgentSession,
-    private readonly input: WindieAgentQueryInput,
-  ) {}
+function syntheticStreamingCompleteEvent(event: ConversationEvent): Extract<BackendEvent, { type: 'streaming-complete' }> {
+  return {
+    id: event.eventId,
+    type: 'streaming-complete',
+    conversation_ref: event.conversationRef,
+    turn_ref: event.turnRef ?? undefined,
+    payload: {
+      final_response: typeof event.payload.finalResponse === 'string'
+        ? event.payload.finalResponse
+        : undefined,
+    },
+  };
+}
 
-  [Symbol.asyncIterator](): AsyncIterableIterator<WindieAgentStreamEvent> {
-    return this;
+function syntheticToolCallEvent(event: ConversationEvent): Extract<BackendEvent, { type: 'tool-call' }> {
+  return {
+    id: event.eventId,
+    type: 'tool-call',
+    conversation_ref: event.conversationRef,
+    turn_ref: event.turnRef ?? undefined,
+    payload: {
+      tool_name: typeof event.payload.toolName === 'string' ? event.payload.toolName : undefined,
+      parameters: event.payload.args && typeof event.payload.args === 'object' && !Array.isArray(event.payload.args)
+        ? event.payload.args as JsonRecord
+        : undefined,
+      request_id: typeof event.payload.requestId === 'string' ? event.payload.requestId : undefined,
+      correlation_id: typeof event.payload.correlationId === 'string' ? event.payload.correlationId : undefined,
+    },
+  };
+}
+
+function syntheticErrorEvent(event: ConversationEvent): Extract<BackendEvent, { type: 'error' }> {
+  const message = typeof event.payload.message === 'string'
+    ? event.payload.message
+    : (typeof event.payload.error === 'string' ? event.payload.error : 'Windie stream failed');
+  return {
+    id: event.eventId,
+    type: 'error',
+    conversation_ref: event.conversationRef,
+    turn_ref: event.turnRef ?? undefined,
+    payload: {
+      message,
+    },
+  };
+}
+
+function toAgentStreamEvent(runtimeEvent: WindieRuntimeEvent): WindieAgentStreamEvent | null {
+  if (runtimeEvent.type === 'turn_started') {
+    return {
+      type: 'start',
+      queryMessageId: runtimeEvent.result.queryMessageId,
+      conversationRef: runtimeEvent.snapshot.state.conversationRef,
+    };
   }
-
-  async next(): Promise<IteratorResult<WindieAgentStreamEvent>> {
-    this.start();
-    const queued = this.queue.shift();
-    if (queued) {
-      return this.resolveQueueItem(queued);
-    }
-    if (this.finished) {
-      return { done: true, value: undefined };
-    }
-    return new Promise<IteratorResult<WindieAgentStreamEvent>>((resolve, reject) => {
-      this.waiting.push({ resolve, reject });
-    });
+  if (runtimeEvent.type === 'error') {
+    return {
+      type: 'error',
+      message: runtimeEvent.error instanceof Error ? runtimeEvent.error.message : String(runtimeEvent.error),
+      error: runtimeEvent.error,
+    };
   }
-
-  async return(): Promise<IteratorResult<WindieAgentStreamEvent>> {
-    this.finish();
-    return { done: true, value: undefined };
+  const event = runtimeEvent.event;
+  const rawEvent = rawBackendEventFromConversationEvent(event);
+  if (event.type === 'assistant_delta') {
+    const backendEvent = rawEvent?.type === 'streaming-response'
+      ? rawEvent
+      : syntheticStreamingResponseEvent(event);
+    return {
+      type: 'text',
+      text: typeof event.payload.text === 'string' ? event.payload.text : '',
+      event: backendEvent,
+    };
   }
-
-  async throw(error?: unknown): Promise<IteratorResult<WindieAgentStreamEvent>> {
-    this.fail(error ?? new Error('Windie stream aborted'));
-    return { done: true, value: undefined };
+  if (event.type === 'turn_completed') {
+    const backendEvent = rawEvent?.type === 'streaming-complete'
+      ? rawEvent
+      : syntheticStreamingCompleteEvent(event);
+    return {
+      type: 'complete',
+      finalResponse: typeof event.payload.finalResponse === 'string'
+        ? event.payload.finalResponse
+        : undefined,
+      event: backendEvent,
+    };
   }
-
-  private start(): void {
-    if (this.started) {
-      return;
-    }
-    this.started = true;
-    this.detachListeners.push(
-      this.session.on('event', event => {
-        if (!shouldIncludeStreamBackendEvent(event, this.input.conversationRef)) {
-          return;
-        }
-        const streamEvent = toStreamEvent(event);
-        this.push(streamEvent);
-        if (isStreamTerminalEvent(streamEvent)) {
-          this.finish();
-        }
-      }),
-      this.session.on('close', close => {
-        this.fail(new Error(`Windie stream closed before completion${close.reason ? `: ${close.reason}` : ''}`));
-      }),
-      this.session.on('socket-error', error => {
-        this.fail(error);
-      }),
-    );
-    void this.session.query(this.input)
-      .then(queryMessageId => {
-        this.push({
-          type: 'start',
-          queryMessageId,
-          conversationRef: this.input.conversationRef,
-        });
-      })
-      .catch(error => {
-        this.fail(error);
-      });
+  if (event.type === 'tool_call') {
+    const backendEvent = rawEvent?.type === 'tool-call'
+      ? rawEvent
+      : syntheticToolCallEvent(event);
+    return {
+      type: 'tool_call',
+      toolName: typeof event.payload.toolName === 'string' ? event.payload.toolName : undefined,
+      event: backendEvent,
+    };
   }
-
-  private push(value: WindieAgentStreamEvent): void {
-    if (this.finished) {
-      return;
-    }
-    this.enqueue({ kind: 'event', value });
+  if (event.type === 'tool_output' || event.type === 'tool_bundle_output') {
+    const backendEvent = rawEvent?.type === 'tool-output'
+      ? rawEvent
+      : syntheticToolOutputEvent(event);
+    return {
+      type: 'tool_output',
+      event: backendEvent,
+    };
   }
-
-  private fail(error: unknown): void {
-    if (this.finished) {
-      return;
-    }
-    this.enqueue({
-      kind: 'event',
-      value: {
-        type: 'error',
-        message: error instanceof Error ? error.message : String(error),
-        error,
-      },
-    });
-    this.enqueue({ kind: 'error', error });
-    this.finish();
+  if (event.type === 'turn_error' || event.type === 'runtime_error') {
+    const backendEvent = rawEvent?.type === 'error'
+      ? rawEvent
+      : syntheticErrorEvent(event);
+    return {
+      type: 'error',
+      message: backendEvent.payload?.message || backendEvent.payload?.content || 'Windie stream failed',
+      event: backendEvent,
+    };
   }
-
-  private finish(): void {
-    if (this.finished) {
-      return;
-    }
-    this.finished = true;
-    this.detachListeners.splice(0).forEach(detach => detach());
-    this.enqueue({ kind: 'done' });
+  if (rawEvent) {
+    return {
+      type: 'event',
+      event: rawEvent,
+    };
   }
-
-  private enqueue(item: StreamQueueItem): void {
-    const waiter = this.waiting.shift();
-    if (!waiter) {
-      this.queue.push(item);
-      return;
-    }
-    this.resolveQueueItem(item)
-      .then(waiter.resolve)
-      .catch(waiter.reject);
-  }
-
-  private resolveQueueItem(item: StreamQueueItem): Promise<IteratorResult<WindieAgentStreamEvent>> {
-    if (item.kind === 'event') {
-      return Promise.resolve({ done: false, value: item.value });
-    }
-    if (item.kind === 'error') {
-      return Promise.reject(item.error);
-    }
-    return Promise.resolve({ done: true, value: undefined });
-  }
+  return null;
 }
 
 export class WindieAgentSession {
@@ -812,7 +751,6 @@ export class WindieAgentSession {
   constructor(
     private readonly socket: WebSocketLike,
     private readonly handshake: { user_id: string; operating_system?: string; agent_definition?: JsonRecord },
-    private readonly localRuntime?: WindieLocalRuntimeClient,
   ) {
     this.readyPromise = new Promise<void>((resolve, reject) => {
       this.resolveReady = resolve;
@@ -845,11 +783,9 @@ export class WindieAgentSession {
           }
         }
         if (isBackendEvent(parsed)) {
-          const listenerEvent = this.projectBackendEventForListeners(parsed);
-          this.emit('message', listenerEvent);
-          this.emit('event', listenerEvent);
-          this.emit(listenerEvent.type, listenerEvent as WindieAgentEventMap[BackendEventType]);
-          void this.maybeExecuteLocalTool(parsed);
+          this.emit('message', parsed);
+          this.emit('event', parsed);
+          this.emit(parsed.type, parsed as WindieAgentEventMap[BackendEventType]);
         } else {
           this.emit('message', parsed);
         }
@@ -905,6 +841,7 @@ export class WindieAgentSession {
       payload: {
         text: payload.text,
         conversation_ref: payload.conversationRef,
+        turn_ref: payload.turnRef ?? undefined,
         content: payload.content ?? undefined,
         screenshot: payload.screenshot ?? undefined,
         screenshot_ref: payload.screenshotRef ?? undefined,
@@ -999,142 +936,6 @@ export class WindieAgentSession {
       payload,
       user_id: this.handshake.user_id,
       timestamp: new Date().toISOString(),
-    }));
-    return id;
-  }
-
-  private projectBackendEventForListeners(event: BackendEvent): BackendEvent {
-    if (!this.localRuntime?.executeTool) {
-      return event;
-    }
-    return markSdkOwnedToolEvent(event);
-  }
-
-  private async maybeExecuteLocalTool(event: BackendEvent): Promise<void> {
-    if (!this.localRuntime?.executeTool) {
-      return;
-    }
-    if (event.type === 'tool-bundle') {
-      await this.executeLocalToolBundle(event);
-      return;
-    }
-    if (event.type !== 'tool-call') {
-      return;
-    }
-    const payload = event.payload ?? {};
-    if (payload.metadata?.skip_frontend_execution === true) {
-      return;
-    }
-    const toolName = typeof payload.tool_name === 'string' ? payload.tool_name : '';
-    const requestId = typeof payload.request_id === 'string'
-      ? payload.request_id
-      : (typeof payload.correlation_id === 'string' ? payload.correlation_id : '');
-    if (!toolName || !requestId) {
-      return;
-    }
-    const startedAt = Date.now();
-    try {
-      const result = await this.localRuntime.executeTool({
-        toolName,
-        args: payload.parameters && typeof payload.parameters === 'object'
-          ? payload.parameters
-          : {},
-      });
-      this.sendToolResult({
-        requestId,
-        success: result.success !== false,
-        data: normalizeToolResultData(result.data),
-        error: result.success === false ? result.error || 'Tool execution failed' : undefined,
-        elapsedMs: Date.now() - startedAt,
-      });
-    } catch (error) {
-      this.sendToolResult({
-        requestId,
-        success: false,
-        error: error instanceof Error ? error.message : String(error),
-        elapsedMs: Date.now() - startedAt,
-      });
-    }
-  }
-
-  private async executeLocalToolBundle(event: Extract<BackendEvent, { type: 'tool-bundle' }>): Promise<void> {
-    const payload = event.payload ?? {};
-    const bundleId = typeof payload.bundle_id === 'string' ? payload.bundle_id : '';
-    const steps = Array.isArray(payload.tools) ? payload.tools : [];
-    if (!bundleId || steps.length === 0 || !this.localRuntime?.executeTool) {
-      return;
-    }
-    const stepResults = [];
-    for (const step of steps) {
-      const toolName = typeof step?.name === 'string' ? step.name : '';
-      if (!toolName) {
-        continue;
-      }
-      try {
-        const result = await this.localRuntime.executeTool({
-          toolName,
-          args: step.args && typeof step.args === 'object' ? step.args : {},
-        });
-        stepResults.push({
-          tool: toolName,
-          status: result.success === false ? 'failure' : 'success',
-          output: result.success === false
-            ? { error: result.error || 'Tool execution failed' }
-            : normalizeToolResultData(result.data) ?? {},
-        });
-      } catch (error) {
-        stepResults.push({
-          tool: toolName,
-          status: 'failure',
-          output: {
-            error: error instanceof Error ? error.message : String(error),
-          },
-        });
-      }
-    }
-    if (stepResults.length === 0) {
-      return;
-    }
-    const failures = stepResults.filter(step => step.status !== 'success');
-    const status = failures.length === 0
-      ? 'success'
-      : (failures.length === stepResults.length ? 'failure' : 'partial_failure');
-    this.socket.send(JSON.stringify({
-      id: createMessageId(),
-      type: 'tool-bundle-result',
-      payload: {
-        bundle_id: bundleId,
-        status,
-        step_results: stepResults,
-        error: failures.length > 0 ? `${failures.length} bundled tool step(s) failed` : undefined,
-      },
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-    }));
-  }
-
-  private sendToolResult(payload: {
-    requestId: string;
-    success: boolean;
-    data?: JsonRecord;
-    error?: string;
-    elapsedMs?: number;
-  }): string {
-    const id = createMessageId();
-    this.socket.send(JSON.stringify({
-      id,
-      type: 'tool-result',
-      payload: {
-        request_id: payload.requestId,
-        success: payload.success,
-        data: payload.data,
-        error: payload.error,
-      },
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-      metadata: {
-        local_execution_elapsed_ms: payload.elapsedMs,
-      },
     }));
     return id;
   }
@@ -1583,6 +1384,7 @@ export class WindieAgent {
     readonly agentDefinition: JsonRecord,
     private readonly sdkClient: WindieSdkClient,
     private readonly owner: WindieClient,
+    private readonly localRuntime?: WindieLocalRuntimeClient,
   ) {}
 
   async ask(text: string, options: WindieAgentQueryOptions = {}): Promise<string> {
@@ -1600,11 +1402,45 @@ export class WindieAgent {
     return this.query(input);
   }
 
-  stream(input: string | WindieAgentQueryInput, options: WindieAgentQueryOptions = {}): AsyncIterableIterator<WindieAgentStreamEvent> {
-    return new WindieAgentStream(
-      this.session,
-      typeof input === 'string' ? this.buildQueryInput(input, options) : input,
-    );
+  async *stream(
+    input: string | WindieAgentQueryInput,
+    options: WindieAgentQueryOptions = {},
+  ): AsyncIterableIterator<WindieAgentStreamEvent> {
+    const queryInput = typeof input === 'string' ? this.buildQueryInput(input, options) : input;
+    const seenToolOutputs = new Set<string>();
+    const conversation = this.conversation({
+      conversationRef: queryInput.conversationRef,
+      store: this.defaultConversationStore,
+    });
+    const payload: SendInput['payload'] = {
+      content: queryInput.content ?? undefined,
+      screenshot: queryInput.screenshot ?? undefined,
+      screenshot_ref: queryInput.screenshotRef ?? undefined,
+      screenshot_refs: queryInput.screenshotRefs ?? undefined,
+      attachment_context: queryInput.attachmentContext ?? undefined,
+      attachment_filenames: queryInput.attachmentFilenames ?? undefined,
+      system_state_internal: queryInput.systemStateInternal ?? undefined,
+      workspace_path: queryInput.workspacePath ?? undefined,
+    };
+    for await (const runtimeEvent of conversation.stream({
+      text: queryInput.text,
+      turnRef: queryInput.turnRef ?? undefined,
+      payload,
+    })) {
+      const streamEvent = toAgentStreamEvent(runtimeEvent);
+      if (streamEvent) {
+        if (runtimeEvent.type === 'conversation_event') {
+          const key = toolOutputStreamKey(runtimeEvent.event);
+          if (key && seenToolOutputs.has(key)) {
+            continue;
+          }
+          if (key) {
+            seenToolOutputs.add(key);
+          }
+        }
+        yield streamEvent;
+      }
+    }
   }
 
   async stop(conversationRef?: string | null): Promise<string> {
@@ -1615,6 +1451,7 @@ export class WindieAgent {
     conversationRef?: string;
     revisionId?: string;
     store?: ConversationStore;
+    localRuntime?: WindieLocalRuntimeClient | null;
   } = {}): SdkConversationRuntime {
     const conversationRef = options.conversationRef ?? `conv-${this.id}`;
     const runtime = new SdkConversationRuntime({
@@ -1622,6 +1459,7 @@ export class WindieAgent {
       revisionId: options.revisionId,
       store: options.store ?? this.defaultConversationStore,
       transport: this.buildConversationTransport(conversationRef),
+      localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
     });
     runtime.attachTransport();
     return runtime;
@@ -1671,6 +1509,7 @@ export class WindieAgent {
         conversationRef: typeof payload.conversation_ref === 'string'
           ? payload.conversation_ref
           : conversationRef,
+        turnRef: typeof payload.turn_ref === 'string' ? payload.turn_ref : null,
         content: typeof payload.content === 'string' ? payload.content : null,
         screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,
         screenshotRef: typeof payload.screenshot_ref === 'string' ? payload.screenshot_ref : null,
@@ -1738,10 +1577,10 @@ export class WindieClient {
       user_id: options.userId ?? this.defaultOptions.defaultUserId ?? 'local-sdk-user',
       operating_system: detectOperatingSystem(),
       agent_definition: agentDefinition,
-    }, localRuntime);
+    });
     await session.waitForOpen();
     const id = typeof agentDefinition.id === 'string' ? agentDefinition.id : createMessageId();
-    const agent = new WindieAgent(id, session, agentDefinition, sdkClient, this);
+    const agent = new WindieAgent(id, session, agentDefinition, sdkClient, this, localRuntime);
     this.activeAgents.set(id, agent);
     session.on('close', () => {
       this.activeAgents.delete(id);

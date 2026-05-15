@@ -99,11 +99,13 @@ function createMockBackend() {
 
       if (message.type === 'tool-result') {
         const content = message.payload?.data?.llm_content || 'No tool content returned.';
+        const requestId = message.payload?.request_id;
         send(
           socket,
           'tool-output',
           {
             tool_name: toolName,
+            request_id: requestId,
             success: message.payload?.success !== false,
             output: content,
           },

@@ -209,21 +209,14 @@ backend websocket event -> SDK session -> Electron/UI/SDK listeners
 For local tool calls:
 
 ```text
-backend tool-call -> SDK session -> sidecar /execute-tool -> backend tool-result
+backend tool-call -> SDK conversation runtime -> sidecar /execute-tool -> backend tool-result
 ```
 
-The SDK skips local execution when backend metadata marks the event as `skip_frontend_execution`.
-When the SDK owns local execution for direct SDK callers, emitted `tool-call` and
-`tool-bundle` events are projected as display-only with
-`metadata.skip_frontend_execution = true` and `metadata.execution_owner =
-"sdk-runtime"`.
-
-In Electron main, backend `tool-call` and `tool-bundle` events are routed through
-the SDK-owned main runtime before renderer fan-out. The renderer still receives
-the event for chat, transcript, overlay, and debugging surfaces, but the event is
-marked with `metadata.skip_frontend_execution = true` and
-`metadata.execution_owner = "sdk-runtime"` so renderer tool runners do not execute
-the same local action twice.
+`WindieAgentSession` is now transport-only. It connects, handshakes, sends
+queries/results, and emits raw backend events. It does not execute local tools.
+`agent.stream(...)` and `agent.conversation(...).stream(...)` both run through
+`SdkConversationRuntime`, which owns local tool execution when a sidecar/local
+runtime adapter is available.
 
 ## Public Methods
 
@@ -246,11 +239,11 @@ Current canonical surface:
 `listModels` is backend-owned. `listAgents` is SDK-runtime state for active local agent sessions.
 
 `stream(input, options)` returns an `AsyncIterableIterator<WindieAgentStreamEvent>`.
-It attaches listeners before sending the query, yields a `start` item with the
-query message id, normalizes backend websocket events into `text`, `tool_call`,
-`tool_output`, `complete`, `error`, or generic `event` items, and detaches its
-listeners when the stream reaches `streaming-complete`, receives an error, or
-the caller exits iteration early.
+It is a compatibility-shaped wrapper over `SdkConversationRuntime.stream()`: it
+stores normalized events, preserves `conversationRef`/`turnRef`, routes local
+tool calls through the SDK coordinator, and maps runtime events into `start`,
+`text`, `tool_call`, `tool_output`, `complete`, `error`, or generic `event`
+items for callers that use the older agent-stream shape.
 
 `conversation(options)` returns an SDK conversation runtime backed by the agent
 session transport. It is the migration path for clients that need local event

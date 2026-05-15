@@ -588,7 +588,7 @@ describe('WindieSdkClient', () => {
     expect(agent.listAgents()).toHaveLength(1);
   });
 
-  test('wakeUp runs a fake backend plus fake daemon query flow end to end', async () => {
+  test('wakeUp registers local tools without making raw session queries execute tools', async () => {
     const localRuntime: WindieLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       registerModuleTool: jest.fn(async () => ({ success: true })),
@@ -641,11 +641,6 @@ describe('WindieSdkClient', () => {
     const socket = FakeWebSocket.instances[0];
     socket.emit('open', {});
     const agent = await wakePromise;
-    const observedEvents: unknown[] = [];
-    agent.session.on('event', event => {
-      observedEvents.push(event);
-    });
-
     await agent.ask('save this note', { conversationRef: 'conv-fake' });
     socket.emit('message', {
       data: JSON.stringify({
@@ -672,23 +667,8 @@ describe('WindieSdkClient', () => {
         conversation_ref: 'conv-fake',
       },
     });
-    expect(JSON.parse(socket.sent[2])).toMatchObject({
-      type: 'tool-result',
-      payload: {
-        request_id: 'req-fake-save',
-        success: true,
-        data: { llm_content: 'saved:hello' },
-      },
-    });
-    expect(observedEvents[0]).toMatchObject({
-      type: 'tool-call',
-      payload: {
-        metadata: {
-          skip_frontend_execution: true,
-          execution_owner: 'sdk-runtime',
-        },
-      },
-    });
+    expect(socket.sent).toHaveLength(2);
+    expect(localRuntime.executeTool).not.toHaveBeenCalled();
   });
 
   test('agent.stream yields normalized async events until completion', async () => {
@@ -758,6 +738,7 @@ describe('WindieSdkClient', () => {
       payload: {
         text: 'save this note',
         conversation_ref: 'conv-stream',
+        turn_ref: expect.any(String),
       },
     });
 

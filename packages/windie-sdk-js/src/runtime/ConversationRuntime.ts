@@ -115,7 +115,7 @@ export class SdkConversationRuntime {
       revisionId?: string;
       store: ConversationStore;
       transport?: BackendTransport;
-      localRuntime?: Pick<LocalRuntime, 'executeTool'> | null;
+      localRuntime?: Partial<Pick<LocalRuntime, 'executeTool'>> | null;
     },
   ) {
     this.state = createInitialConversationRuntimeState(

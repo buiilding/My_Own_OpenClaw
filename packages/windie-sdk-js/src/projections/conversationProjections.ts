@@ -48,6 +48,37 @@ function stringField(payload: JsonRecord, ...keys: string[]): string | null {
   return null;
 }
 
+function toolOutputDedupeKey(event: ConversationEvent): string | null {
+  if (event.type !== 'tool_output' && event.type !== 'tool_bundle_output') {
+    return null;
+  }
+  const requestId = stringField(event.payload, 'requestId', 'request_id', 'correlationId', 'correlation_id');
+  if (requestId) {
+    return `request:${requestId}`;
+  }
+  const bundleId = stringField(event.payload, 'bundleId', 'bundle_id');
+  if (bundleId) {
+    return `bundle:${bundleId}`;
+  }
+  const toolCallId = stringField(event.payload, 'toolCallId', 'tool_call_id');
+  return toolCallId ? `tool-call:${toolCallId}` : null;
+}
+
+function withoutDuplicateToolOutputs(events: ConversationEvent[]): ConversationEvent[] {
+  const seenOutputs = new Set<string>();
+  return events.filter(event => {
+    const key = toolOutputDedupeKey(event);
+    if (!key) {
+      return true;
+    }
+    if (seenOutputs.has(key)) {
+      return false;
+    }
+    seenOutputs.add(key);
+    return true;
+  });
+}
+
 function toDisplayMessage(event: ConversationEvent): DisplayMessage | null {
   if (event.type === 'assistant_delta') {
     return null;
@@ -125,10 +156,11 @@ export function buildCompactionState(events: ConversationEvent[]): CompactionSta
 export function buildDisplayConversation(events: ConversationEvent[]): DisplayConversation {
   const first = events[0];
   const last = events[events.length - 1];
+  const displayEvents = withoutDuplicateToolOutputs(events);
   return {
     conversationRef: first?.conversationRef ?? '',
     revisionId: last?.revisionId ?? first?.revisionId ?? '',
-    messages: events.map(toDisplayMessage).filter((message): message is DisplayMessage => Boolean(message)),
+    messages: displayEvents.map(toDisplayMessage).filter((message): message is DisplayMessage => Boolean(message)),
     compaction: buildCompactionState(events),
   };
 }
@@ -199,10 +231,11 @@ function toRehydrateMessage(event: ConversationEvent): JsonRecord | null {
 
 export function buildRehydrateSnapshot(events: ConversationEvent[]): RehydrateSnapshot {
   const display = buildDisplayConversation(events);
+  const rehydrateEvents = withoutDuplicateToolOutputs(events);
   return {
     conversationRef: display.conversationRef,
     revisionId: display.revisionId,
-    messages: events.map(toRehydrateMessage).filter((message): message is JsonRecord => Boolean(message)),
+    messages: rehydrateEvents.map(toRehydrateMessage).filter((message): message is JsonRecord => Boolean(message)),
     replayGenerationId: null,
   };
 }

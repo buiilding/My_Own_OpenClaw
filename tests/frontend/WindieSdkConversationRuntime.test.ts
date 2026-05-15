@@ -118,6 +118,31 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('display and rehydrate projections collapse duplicate local and backend tool outputs', () => {
+    const events = [
+      event('tool_call', {
+        toolName: 'read_file',
+        requestId: 'req-read',
+        toolCallId: 'call-read',
+      }),
+      event('tool_output', {
+        text: 'local result',
+        toolName: 'read_file',
+        requestId: 'req-read',
+        toolCallId: 'call-read',
+      }),
+      event('tool_output', {
+        text: 'backend ack result',
+        tool_name: 'read_file',
+        request_id: 'req-read',
+        tool_call_id: 'call-read',
+      }),
+    ];
+
+    expect(buildDisplayConversation(events).messages.filter(message => message.messageType === 'tool_output')).toHaveLength(1);
+    expect(buildRehydrateSnapshot(events).messages.filter(message => message.role === 'tool')).toHaveLength(1);
+  });
+
   test('in-memory store is idempotent and only activates complete compaction snapshots', async () => {
     const store = new InMemoryConversationStore();
     const userEvent = event('user_message', { text: 'hello' });

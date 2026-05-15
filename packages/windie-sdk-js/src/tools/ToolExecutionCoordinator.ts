@@ -9,7 +9,7 @@ import type {
 } from '../conversation/types.js';
 
 export type ToolExecutionCoordinatorOptions = {
-  localRuntime?: Pick<LocalRuntime, 'executeTool'> | null;
+  localRuntime?: Partial<Pick<LocalRuntime, 'executeTool'>> | null;
   store?: Pick<ConversationStore, 'appendEvent'> | null;
   sendToolResult: (payload: JsonRecord) => Promise<void>;
   sendToolBundleResult: (payload: JsonRecord) => Promise<void>;

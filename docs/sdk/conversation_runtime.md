@@ -124,6 +124,11 @@ handed to `ToolExecutionCoordinator`, which executes the local runtime, sends
 the result back through the transport, and appends the corresponding normalized
 output event through the same store/projection path.
 
+Projection builders collapse duplicate tool outputs that share the same
+`requestId`, `bundleId`, `correlationId`, or `toolCallId`. This handles the
+common local-runtime flow where the SDK appends the local sidecar result and the
+backend later emits an acknowledgement `tool-output` for the same tool wait.
+
 ## Desktop Migration Target
 
 Desktop React should call runtime commands and render projections. It should not
