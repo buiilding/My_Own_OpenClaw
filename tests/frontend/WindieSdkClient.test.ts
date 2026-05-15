@@ -357,6 +357,7 @@ describe('WindieSdkClient', () => {
         version: 1,
         tools: [{ name: 'save_note', schema: { type: 'object', properties: {} } }],
       })),
+      shutdown: jest.fn(async () => undefined),
     };
     const ensureLocalRuntime = jest.fn(async () => localRuntime);
     const client = new WindieClient({
@@ -393,6 +394,9 @@ describe('WindieSdkClient', () => {
       expect.objectContaining({ name: 'save_note' }),
       { workspacePath: '/tmp/project' },
     );
+    await expect(client.status()).resolves.toEqual({ status: 'ok' });
+    await client.shutdownLocalRuntime();
+    expect(localRuntime.shutdown).toHaveBeenCalled();
   });
 
   test('wakeUp automatically reuses a discovered sidecar daemon for local tools', async () => {
@@ -450,6 +454,13 @@ describe('WindieSdkClient', () => {
     const registerCall = mockFetch.mock.calls.find(([url]) => String(url).endsWith('/tools/register-module'));
     expect(registerCall?.[0]).toBe('http://127.0.0.1:43123/tools/register-module');
     expect((registerCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('auto-token');
+
+    mockFetch.mockClear();
+    const tools = await client.listTools();
+    expect(tools?.tools?.[0]?.name).toBe('save_note');
+    const listCall = mockFetch.mock.calls.find(([url]) => String(url).endsWith('/tools'));
+    expect(listCall?.[0]).toBe('http://127.0.0.1:43123/tools');
+    expect((listCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('auto-token');
   });
 
   test('createWindieLocalRuntimeProvider reuses discovery metadata directly', async () => {

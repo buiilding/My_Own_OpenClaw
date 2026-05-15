@@ -135,6 +135,10 @@ The default auto provider is Node-only. Browser-hosted SDK consumers should pass
 `sidecar`, `localRuntime`, `sidecarDaemon`, or `ensureLocalRuntime` explicitly
 when they need local execution.
 
+After `wakeUp` resolves a local runtime, `WindieClient.status()`,
+`WindieClient.listTools()`, and `WindieClient.shutdownLocalRuntime()` operate on
+that known runtime. They do not auto-start a daemon just to inspect status.
+
 The SDK does not accept raw JavaScript/Python closures as durable tools.
 Module tools must be registered by import path, plugin tools by package path, and
 MCP tools by server spec.
