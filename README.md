@@ -232,6 +232,7 @@ directly into a topic:
 | [Frontend Architecture](docs/architecture/frontend_architecture.md) | Electron main, React renderer, preload boundary, and sidecar ownership. |
 | [Communication Flow](docs/architecture/communication_flow.md) | IPC, JSON-RPC, WebSocket, HTTP, query, memory, and tool event paths. |
 | [Tool System](docs/architecture/tool_system.md) | Hosted orchestration boundary, sidecar tool execution, and renderer visibility. |
+| [Computer-Use](docs/tools/computer.md) | Mouse, keyboard, screenshots, scrolling, window actions, and coordinate grounding. |
 | [Plugins and Extensions](docs/plugins/README.md) | Extension package surfaces, tool/plugin/MCP routing, and current-vs-future boundaries. |
 | [SDK Hub](docs/sdk/README.md) | WindieClient runtime, hosted routes, OCR/vision, auth, traces, and SDK integration. |
 | [Browser-Use](docs/browser/browser_control.md) | Windie browser profile, browser automation actions, and runtime behavior. |
