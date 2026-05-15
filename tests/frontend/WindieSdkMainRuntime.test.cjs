@@ -1,5 +1,8 @@
 const { EventEmitter } = require('events');
-const { createWindieSdkMainRuntime } = require('../../frontend/src/main/windie_sdk_runtime.cjs');
+const {
+  buildWindieSdkMainHandshake,
+  createWindieSdkMainRuntime,
+} = require('../../frontend/src/main/windie_sdk_runtime.cjs');
 
 class FakeWebSocket extends EventEmitter {
   static OPEN = 1;
@@ -132,5 +135,39 @@ describe('Windie SDK main runtime', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+
+  test('builds Electron SDK handshakes with client tool manifests', async () => {
+    const payload = await buildWindieSdkMainHandshake({
+      userId: 'dev-user',
+      operatingSystem: 'macOS',
+      frontendConfig: {
+        agent_custom_instructions: 'Prefer short answers.',
+        agent_disabled_local_tools: ['browser'],
+        agent_disabled_remote_tools: ['web_search'],
+      },
+    });
+
+    expect(payload).toMatchObject({
+      type: 'handshake',
+      user_id: 'dev-user',
+      operating_system: 'macOS',
+      agent_definition: {
+        prompt_layers: expect.arrayContaining([
+          expect.objectContaining({
+            id: 'custom-instructions',
+            content: 'Prefer short answers.',
+          }),
+        ]),
+        tools: expect.objectContaining({
+          disabled_tools: ['browser'],
+        }),
+      },
+      requested_agent_policy: {
+        disabled_tools: ['web_search'],
+      },
+    });
+    expect(payload.client_tool_manifest.tools.map((tool) => tool.name)).not.toContain('browser');
+    expect(payload.available_tools).not.toContain('browser');
   });
 });

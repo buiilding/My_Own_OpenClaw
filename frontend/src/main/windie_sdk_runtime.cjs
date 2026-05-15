@@ -1,6 +1,41 @@
+const {
+  buildAgentCapabilityHandshakePayload,
+} = require('./agent_capability_handshake.cjs');
+const {
+  buildClientToolManifestWithMcp,
+} = require('./mcp_runtime.cjs');
+
 const DEFAULT_RECONNECT_INTERVAL_MS = 1000;
 const DEFAULT_CONNECT_TIMEOUT_MS = 10000;
 const DEFAULT_IDLE_DISCONNECT_TIMEOUT_MS = 30 * 60 * 1000;
+
+async function buildWindieSdkMainHandshake(options = {}) {
+  const frontendConfig = options.frontendConfig || {};
+  const clientToolManifest = await buildClientToolManifestWithMcp({
+    disabledTools: frontendConfig?.agent_disabled_local_tools,
+  });
+  if (Array.isArray(clientToolManifest.mcp_errors) && clientToolManifest.mcp_errors.length > 0) {
+    options.log?.(`MCP discovery completed with ${clientToolManifest.mcp_errors.length} error(s).`);
+  }
+  const handshakeClientToolManifest = {
+    version: clientToolManifest.version,
+    tools: clientToolManifest.tools,
+  };
+  return {
+    type: 'handshake',
+    user_id: options.userId,
+    operating_system: options.operatingSystem,
+    ...buildAgentCapabilityHandshakePayload({
+      clientToolManifest: handshakeClientToolManifest,
+      operatingSystem: options.operatingSystem,
+      customInstructions: frontendConfig?.agent_custom_instructions,
+      disabledTools: frontendConfig?.agent_disabled_local_tools,
+      requestedAgentPolicy: {
+        disabled_tools: frontendConfig?.agent_disabled_remote_tools,
+      },
+    }),
+  };
+}
 
 function createWindieSdkMainRuntime(options = {}) {
   const WebSocketImpl = options.WebSocketImpl;
@@ -286,5 +321,6 @@ function createWindieSdkMainRuntime(options = {}) {
 }
 
 module.exports = {
+  buildWindieSdkMainHandshake,
   createWindieSdkMainRuntime,
 };

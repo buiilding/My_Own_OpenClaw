@@ -19,6 +19,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: stop the Electron agent-definition builder from accepting runtime coordinate methods; backend policy remains the coordinate capability owner.
 - sdk: expose backend-owned model listing directly on `WindieClient.listModels(...)`.
 - frontend/sdk: move backend connect waiters, reconnect scheduling, and idle WebSocket close policy from Electron IPC into the SDK main runtime.
+- frontend/sdk: move Electron SDK handshake and client tool manifest construction into the SDK main runtime.
 - docs: update runtime, channel, and tool-routing references so they point to SDK runtime transport and sidecar daemon execution instead of the old Electron websocket relay and renderer tool runner ownership.
 - frontend/backend: route Electron query-time workspace AGENTS.md context through `agent_definition.agents_md` and preserve accepted client tools when query agent definitions are partial.
 - extensions: make the package layout explicit with plugin code under `plugin/index.cjs`, MCP server specs under `mcp/servers.json`, and skills under `skills/**/SKILL.md`.

@@ -103,15 +103,10 @@ const {
   isAgentLoopStopShortcutPhase,
 } = require('./agent_stop_shortcut_runtime.cjs');
 const {
-  buildAgentCapabilityHandshakePayload,
-} = require('./agent_capability_handshake.cjs');
-const {
   buildAgentDefinition,
 } = require('./agent_definition.cjs');
 const {
-  buildClientToolManifestWithMcp,
-} = require('./mcp_runtime.cjs');
-const {
+  buildWindieSdkMainHandshake,
   createWindieSdkMainRuntime,
 } = require('./windie_sdk_runtime.cjs');
 const {
@@ -545,30 +540,12 @@ function setResponseOverlayPhase(phase, source = 'ipc', metadata = null) {
 
 async function buildSdkRuntimeHandshake() {
   const operatingSystem = resolveFrontendOperatingSystem(process.platform);
-  const clientToolManifest = await buildClientToolManifestWithMcp({
-    disabledTools: latestFrontendConfig?.agent_disabled_local_tools,
+  return buildWindieSdkMainHandshake({
+    userId: currentUserId,
+    operatingSystem,
+    frontendConfig: latestFrontendConfig,
+    log,
   });
-  if (Array.isArray(clientToolManifest.mcp_errors) && clientToolManifest.mcp_errors.length > 0) {
-    log(`MCP discovery completed with ${clientToolManifest.mcp_errors.length} error(s).`);
-  }
-  const handshakeClientToolManifest = {
-    version: clientToolManifest.version,
-    tools: clientToolManifest.tools,
-  };
-  return {
-    type: 'handshake',
-    user_id: currentUserId,
-    operating_system: operatingSystem,
-    ...buildAgentCapabilityHandshakePayload({
-      clientToolManifest: handshakeClientToolManifest,
-      operatingSystem,
-      customInstructions: latestFrontendConfig?.agent_custom_instructions,
-      disabledTools: latestFrontendConfig?.agent_disabled_local_tools,
-      requestedAgentPolicy: {
-        disabled_tools: latestFrontendConfig?.agent_disabled_remote_tools,
-      },
-    }),
-  };
 }
 
 function handleSdkRuntimeMessage(data) {
