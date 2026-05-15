@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs: rewrite the README top-level positioning to be more product-led, highlight the Windie daemon and extension model, and move implementation boundaries below the quick-start path.
 - repo: remove the root `TODO.md` from the tracked tree.
 - repo: remove private legal contracts from the tracked tree and ignore `legal/contracts/` going forward.
 - repo: add GitHub issue forms for bug reports, extension requests, provider requests, and docs confusion.
