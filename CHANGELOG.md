@@ -17,6 +17,7 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: make `packages/windie-sdk-js` a standalone npm package with its own lockfile, package-local build docs, and publish-time build check.
 - examples: add a runnable `examples/repo-agent-extension` package with a Python sidecar tool, skill, SDK script, and one-command README.
 - examples: add a minimal `examples/cli-agent` script that uses `conversation.stream()` and `InMemoryConversationStore` without Electron.
+- examples: add a minimal `examples/custom-ui` browser client that renders SDK display projections against a mock backend.
 - extensions: add a `scripts/create-windie-extension` scaffold command for starter extension packages with a sidecar tool, schema, skill, and docs.
 - sdk: add repo-local `@windie/sdk` and `windie-sdk` package boundaries while keeping existing frontend and sidecar compatibility imports.
 - sdk: add `SdkConversationRuntime.stream()` so custom clients can run turns through normalized conversation events, projections, and terminal runtime phases.

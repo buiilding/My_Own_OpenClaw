@@ -262,3 +262,6 @@ same store and returns its projected snapshot.
 For a minimal non-Electron consumer, see `examples/cli-agent`. It uses
 `WindieClient.wakeUp`, `agent.conversation`, `InMemoryConversationStore`, and
 `conversation.stream()` against a mock websocket backend.
+
+For a browser-based custom UI that renders SDK display projections directly,
+see `examples/custom-ui`.

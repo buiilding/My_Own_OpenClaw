@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Windie Custom UI Example</title>
+    <style>
+      :root {
+        color: #101827;
+        background: #f7fafc;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 32px 20px;
+      }
+
+      h1 {
+        margin: 0 0 18px;
+        font-size: 24px;
+      }
+
+      #messages {
+        min-height: 360px;
+        padding: 16px;
+        background: white;
+        border: 1px solid #d6dde8;
+        border-radius: 8px;
+      }
+
+      .message {
+        margin: 0 0 12px;
+        padding: 10px 12px;
+        border-left: 3px solid #1d66f3;
+        background: #f2f6ff;
+        white-space: pre-wrap;
+      }
+
+      .message.user {
+        border-left-color: #1d9a6c;
+        background: #eefbf5;
+      }
+
+      form {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      input {
+        flex: 1;
+        min-width: 0;
+        padding: 12px;
+        border: 1px solid #b8c2d2;
+        border-radius: 6px;
+        font: inherit;
+      }
+
+      button {
+        padding: 0 16px;
+        border: 0;
+        border-radius: 6px;
+        background: #1d66f3;
+        color: white;
+        font: inherit;
+        font-weight: 700;
+      }
+
+      button:disabled {
+        opacity: 0.55;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Windie SDK Custom UI</h1>
+      <section id="messages" aria-live="polite"></section>
+      <form id="composer">
+        <input id="prompt" autocomplete="off" value="Explain what this custom UI is using.">
+        <button id="send" type="submit">Send</button>
+      </form>
+    </main>
+
+    <script type="module">
+      import {
+        InMemoryConversationStore,
+        WindieClient
+      } from '/sdk/index.js';
+
+      const messages = document.querySelector('#messages');
+      const prompt = document.querySelector('#prompt');
+      const send = document.querySelector('#send');
+      const composer = document.querySelector('#composer');
+      const store = new InMemoryConversationStore();
+      const client = new WindieClient({
+        backendUrl: window.location.origin
+      });
+      const agent = await client.wakeUp({
+        agentId: 'custom-ui-example',
+        name: 'Custom UI Example',
+        systemPrompt: 'You are a concise SDK custom UI demo agent.'
+      });
+      const conversation = agent.conversation({
+        conversationRef: 'custom-ui-example',
+        store
+      });
+
+      function render(snapshot) {
+        messages.replaceChildren();
+        for (const message of snapshot.display.messages) {
+          const row = document.createElement('article');
+          row.className = `message ${message.sender}`;
+          row.textContent = `${message.sender}: ${message.text || message.messageType}`;
+          messages.append(row);
+        }
+        if (snapshot.state.stream.text) {
+          const row = document.createElement('article');
+          row.className = 'message assistant';
+          row.textContent = `assistant: ${snapshot.state.stream.text}`;
+          messages.append(row);
+        }
+      }
+
+      conversation.subscribe(render);
+
+      composer.addEventListener('submit', async event => {
+        event.preventDefault();
+        const text = prompt.value.trim();
+        if (!text) {
+          return;
+        }
+        send.disabled = true;
+        try {
+          for await (const runtimeEvent of conversation.stream({ text })) {
+            if (runtimeEvent.type === 'error') {
+              throw runtimeEvent.error;
+            }
+          }
+        } finally {
+          send.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
