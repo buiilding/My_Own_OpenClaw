@@ -29,12 +29,22 @@ title: "Settings Section General + Memory Tabs Runtime Reference"
 Current visible tab ids:
 
 - `general`
+- `appearance`
+- `agent`
+- `workspace`
+- `browser`
 - `memory`
+- `onboarding`
 
 Routing model:
 
 - `general` renders live settings controls (`GeneralTab`)
+- `appearance` renders frontend-local theme editing controls for light/dark accent, background, foreground, fonts, translucent sidebar, and contrast values
+- `agent` renders custom instructions, extension runtime diagnostics, and local/remote tool toggles
+- `workspace` renders workspace permission/status controls
+- `browser` renders Windie browser permission/status controls
 - `memory` renders destructive local-data controls for memory/chat resets
+- `onboarding` renders an action to reopen onboarding
 - `data-controls` branch exists in `renderTabContent()` and renders `PermissionControlCenter`, but there is no current tab button for it in `SETTINGS_TABS`
 - unknown tabs fall back to `PlaceholderTab` title rendering
 
@@ -95,6 +105,19 @@ storage. The dashboard thread uses it to either:
 - show raw `tool-call` / `tool-output` rows, or
 - hide raw tool rows and derive subdued explanation text plus a collapsed `View actions` summary
 
+## Appearance Tab Ownership Model
+
+`AppearanceSettingsTab` owns frontend-local theme editor values:
+
+- light and dark accent/background/foreground colors
+- light and dark UI/code font strings
+- light and dark translucent sidebar toggles
+- light and dark contrast slider values
+
+These values are persisted through frontend config as `appearance_theme` and are local-only.
+They are not sent to the hosted backend because they do not affect model behavior,
+tools, prompt construction, or provider policy.
+
 ## Memory Tab Ownership Model
 
 `MemorySettingsTab` owns two destructive local-data actions:
@@ -140,7 +163,8 @@ Exception:
 1. Replacing context-driven wakeword setter with direct config patches can desync suppression-aware wakeword state.
 2. Bypassing sudo toggle confirmation/invoke flow can persist `agent_full_sudo_enabled` without OS-auth success.
 3. Adding new settings tabs requires updating both the shared `SETTINGS_TABS` registry and `renderTabContent()` routing in `SettingsSection.jsx`.
-4. Treating local-only `voice` selector as persisted config without wiring provider updates.
+4. Theme editor values should remain frontend-local unless a future runtime theme engine explicitly consumes them.
+5. Treating local-only `voice` selector as persisted config without wiring provider updates.
 
 ## Related Pages
 

@@ -70,6 +70,26 @@ describe('SettingsSection', () => {
     show_tool_logs: false,
     global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
     show_additional_models: true,
+    appearance_theme: {
+      light: {
+        accent: '#339CFF',
+        background: '#FFFFFF',
+        foreground: '#1A1C1F',
+        ui_font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        code_font: 'ui-monospace, "SFMono-Regular", monospace',
+        translucent_sidebar: true,
+        contrast: 45,
+      },
+      dark: {
+        accent: '#339CFF',
+        background: '#181818',
+        foreground: '#FFFFFF',
+        ui_font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        code_font: 'ui-monospace, "SFMono-Regular", monospace',
+        translucent_sidebar: true,
+        contrast: 60,
+      },
+    },
   };
 
   function renderSettingsSection(overrides = {}) {
@@ -324,6 +344,12 @@ describe('SettingsSection', () => {
     expect(screen.getByTestId('settings-tab-memory')).toBeInTheDocument();
   });
 
+  test('renders an appearance tab in the settings sidebar', () => {
+    renderSettingsSection();
+
+    expect(screen.getByTestId('settings-tab-appearance')).toBeInTheDocument();
+  });
+
   test('renders an onboarding tab in the settings sidebar', () => {
     renderSettingsSection();
 
@@ -381,6 +407,31 @@ describe('SettingsSection', () => {
     expect(screen.getByText('Retry Open browser after checking that the WindieOS browser runtime is installed and available.')).toBeInTheDocument();
     expect(mockAppConfigContext.updateConfig).not.toHaveBeenCalledWith({
       browser_automation_enabled: true,
+    });
+  });
+
+  test('appearance tab updates theme controls through frontend config', () => {
+    const onConfigChange = jest.fn();
+    renderSettingsSection({ initialTab: 'appearance', onConfigChange });
+
+    expect(screen.getByText('Light theme')).toBeInTheDocument();
+    expect(screen.getByText('Dark theme')).toBeInTheDocument();
+    expect(screen.queryByText('Import')).not.toBeInTheDocument();
+    expect(screen.queryByText('Copy theme')).not.toBeInTheDocument();
+    expect(screen.queryByText('Codex')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Dark theme accent'), {
+      target: { value: '#007AFF' },
+    });
+
+    expect(onConfigChange).toHaveBeenCalledWith({
+      appearance_theme: {
+        ...defaultConfig.appearance_theme,
+        dark: {
+          ...defaultConfig.appearance_theme.dark,
+          accent: '#007AFF',
+        },
+      },
     });
   });
 

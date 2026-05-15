@@ -31,6 +31,27 @@ const DEFAULT_PROVIDER_OAUTH = {
   },
 };
 
+export const DEFAULT_APPEARANCE_THEME = Object.freeze({
+  light: Object.freeze({
+    accent: '#339CFF',
+    background: '#FFFFFF',
+    foreground: '#1A1C1F',
+    ui_font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    code_font: 'ui-monospace, "SFMono-Regular", monospace',
+    translucent_sidebar: true,
+    contrast: 45,
+  }),
+  dark: Object.freeze({
+    accent: '#339CFF',
+    background: '#181818',
+    foreground: '#FFFFFF',
+    ui_font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    code_font: 'ui-monospace, "SFMono-Regular", monospace',
+    translucent_sidebar: true,
+    contrast: 60,
+  }),
+});
+
 const DEFAULT_FRONTEND_CONFIG = {
   model_mode: 'online',
   model_provider: 'openai',
@@ -49,6 +70,7 @@ const DEFAULT_FRONTEND_CONFIG = {
   include_query_screenshot: true,
   provider_api_keys: DEFAULT_PROVIDER_API_KEYS,
   provider_oauth: DEFAULT_PROVIDER_OAUTH,
+  appearance_theme: DEFAULT_APPEARANCE_THEME,
 };
 
 const LEGACY_MODEL_ID_MIGRATIONS = Object.freeze({
@@ -106,6 +128,46 @@ function normalizeProviderOAuth(overrides = null) {
   return normalized;
 }
 
+function normalizeHexColor(value, fallback) {
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+  const trimmed = value.trim().toUpperCase();
+  return /^#[0-9A-F]{6}$/.test(trimmed) ? trimmed : fallback;
+}
+
+function normalizeAppearanceThemeSection(overrides = null, defaults) {
+  const source = toPlainRecord(overrides);
+  const contrast = Number(source.contrast);
+  const normalizedContrast = Number.isFinite(contrast)
+    ? Math.min(100, Math.max(0, Math.round(contrast)))
+    : defaults.contrast;
+
+  return {
+    accent: normalizeHexColor(source.accent, defaults.accent),
+    background: normalizeHexColor(source.background, defaults.background),
+    foreground: normalizeHexColor(source.foreground, defaults.foreground),
+    ui_font: typeof source.ui_font === 'string' && source.ui_font.trim()
+      ? source.ui_font
+      : defaults.ui_font,
+    code_font: typeof source.code_font === 'string' && source.code_font.trim()
+      ? source.code_font
+      : defaults.code_font,
+    translucent_sidebar: typeof source.translucent_sidebar === 'boolean'
+      ? source.translucent_sidebar
+      : defaults.translucent_sidebar,
+    contrast: normalizedContrast,
+  };
+}
+
+function normalizeAppearanceTheme(overrides = null) {
+  const source = toPlainRecord(overrides);
+  return {
+    light: normalizeAppearanceThemeSection(source.light, DEFAULT_APPEARANCE_THEME.light),
+    dark: normalizeAppearanceThemeSection(source.dark, DEFAULT_APPEARANCE_THEME.dark),
+  };
+}
+
 function filterKnownFrontendConfigFields(overrides = null) {
   const source = toPlainRecord(overrides);
   const filtered = {};
@@ -151,6 +213,7 @@ function buildFrontendConfig(overrides = {}) {
       : DEFAULT_FRONTEND_CONFIG.agent_disabled_remote_tools,
     provider_api_keys: normalizeProviderApiKeys(filteredOverrides.provider_api_keys),
     provider_oauth: normalizeProviderOAuth(filteredOverrides.provider_oauth),
+    appearance_theme: normalizeAppearanceTheme(filteredOverrides.appearance_theme),
   };
 }
 

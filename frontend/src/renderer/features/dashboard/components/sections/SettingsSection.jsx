@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {
   X,
   Globe,
+  Palette,
   Settings,
   Database,
   FolderOpen,
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react';
 import PermissionControlCenter from '../../../permissions/components/PermissionControlCenter';
 import AgentSettingsTab from './settings/AgentSettingsTab';
+import AppearanceSettingsTab from './settings/AppearanceSettingsTab';
 import BrowserSettingsTab from './settings/BrowserSettingsTab';
 import GeneralSettingsTab from './settings/GeneralSettingsTab';
 import MemorySettingsTab from './settings/MemorySettingsTab';
@@ -20,12 +22,23 @@ import '../../../../styles/CloneSettings.css';
 
 const SETTINGS_TABS = Object.freeze([
   { id: 'general', icon: Settings, label: 'General' },
+  { id: 'appearance', icon: Palette, label: 'Appearance' },
   { id: 'agent', icon: Bot, label: 'Agent' },
   { id: 'workspace', icon: FolderOpen, label: 'Workspace' },
   { id: 'browser', icon: Globe, label: 'Browser' },
   { id: 'memory', icon: Database, label: 'Memory' },
   { id: 'onboarding', icon: Sparkles, label: 'Onboarding' },
 ]);
+
+const appearanceThemeSectionShape = PropTypes.shape({
+  accent: PropTypes.string,
+  background: PropTypes.string,
+  foreground: PropTypes.string,
+  ui_font: PropTypes.string,
+  code_font: PropTypes.string,
+  translucent_sidebar: PropTypes.bool,
+  contrast: PropTypes.number,
+});
 
 function PlaceholderTab({ title }) {
   return (
@@ -56,6 +69,9 @@ function SettingsSection({
   const renderTabContent = () => {
     if (activeTab === 'general') {
       return <GeneralSettingsTab config={config} onConfigChange={onConfigChange} />;
+    }
+    if (activeTab === 'appearance') {
+      return <AppearanceSettingsTab config={config} onConfigChange={onConfigChange} />;
     }
     if (activeTab === 'memory') {
       return <MemorySettingsTab onChatsCleared={onChatsCleared} />;
@@ -126,6 +142,10 @@ SettingsSection.propTypes = {
     agent_custom_instructions: PropTypes.string,
     agent_disabled_local_tools: PropTypes.arrayOf(PropTypes.string),
     agent_disabled_remote_tools: PropTypes.arrayOf(PropTypes.string),
+    appearance_theme: PropTypes.shape({
+      light: appearanceThemeSectionShape,
+      dark: appearanceThemeSectionShape,
+    }),
   }),
   onConfigChange: PropTypes.func.isRequired,
   initialTab: PropTypes.string,

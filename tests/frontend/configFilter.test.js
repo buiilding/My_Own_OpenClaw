@@ -22,6 +22,9 @@ describe('configFilter', () => {
       provider_oauth: {
         openai_codex: { connected: true, access_token: 'token' },
       },
+      appearance_theme: {
+        dark: { accent: '#339CFF' },
+      },
       extra: 'ignore',
     });
 
@@ -42,6 +45,9 @@ describe('configFilter', () => {
       },
       provider_oauth: {
         openai_codex: { connected: true, access_token: 'token' },
+      },
+      appearance_theme: {
+        dark: { accent: '#339CFF' },
       },
     });
   });

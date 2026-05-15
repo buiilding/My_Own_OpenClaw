@@ -15,6 +15,9 @@ const DEFAULT_FRONTEND_CONFIG = {
   wakeword_stt_enabled: false,
   agent_full_sudo_enabled: false,
   show_tool_logs: false,
+  agent_custom_instructions: '',
+  agent_disabled_local_tools: [],
+  agent_disabled_remote_tools: [],
   browser_automation_enabled: false,
   global_agent_stop_shortcut: 'CommandOrControl+Shift+Escape',
   include_query_screenshot: true,
@@ -33,6 +36,26 @@ const DEFAULT_FRONTEND_CONFIG = {
       refresh_token: '',
       expires_at: null,
       profile_id: '',
+    },
+  },
+  appearance_theme: {
+    light: {
+      accent: '#339CFF',
+      background: '#FFFFFF',
+      foreground: '#1A1C1F',
+      ui_font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      code_font: 'ui-monospace, "SFMono-Regular", monospace',
+      translucent_sidebar: true,
+      contrast: 45,
+    },
+    dark: {
+      accent: '#339CFF',
+      background: '#181818',
+      foreground: '#FFFFFF',
+      ui_font: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      code_font: 'ui-monospace, "SFMono-Regular", monospace',
+      translucent_sidebar: true,
+      contrast: 60,
     },
   },
 };
@@ -121,6 +144,32 @@ describe('configStorage', () => {
     expect(result).toEqual({
       ...DEFAULT_FRONTEND_CONFIG,
       show_tool_logs: true,
+    });
+  });
+
+  test('loadConfigFromStorage normalizes stored appearance theme values', () => {
+    localStorage.setItem(
+      CONFIG_KEY,
+      JSON.stringify({
+        appearance_theme: {
+          dark: {
+            accent: '#007AFF',
+            background: 'not-a-color',
+            foreground: '#F9FAFB',
+            translucent_sidebar: false,
+            contrast: 120,
+          },
+        },
+      }),
+    );
+
+    const result = loadConfigFromStorage();
+    expect(result.appearance_theme.dark).toEqual({
+      ...DEFAULT_FRONTEND_CONFIG.appearance_theme.dark,
+      accent: '#007AFF',
+      foreground: '#F9FAFB',
+      translucent_sidebar: false,
+      contrast: 100,
     });
   });
 

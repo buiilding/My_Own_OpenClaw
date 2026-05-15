@@ -24,6 +24,7 @@ const FRONTEND_CONFIG_FIELDS = [
   'include_query_screenshot',
   'provider_api_keys',
   'provider_oauth',
+  'appearance_theme',
 ];
 
 /**
