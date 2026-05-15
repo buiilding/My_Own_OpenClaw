@@ -184,17 +184,34 @@ describe('ElectronSidecarConversationStore', () => {
     }));
   });
 
-  test('lists conversation-event metadata and falls back to transcript metadata only when needed', async () => {
+  test('lists merged metadata while preferring conversation-event rows over transcript rows', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
-    mockListStoredConversations.mockResolvedValueOnce([
-      {
-        conversation_id: 'conv-sdk',
-        title: 'SDK title',
-        last_message: 'latest',
-        last_timestamp: '2026-05-15T12:00:00.000Z',
-        entry_count: 3,
-      } as any,
-    ]);
+    mockListStoredConversations
+      .mockResolvedValueOnce([
+        {
+          conversation_id: 'conv-legacy',
+          title: 'Legacy title',
+          last_message: 'legacy latest',
+          last_timestamp: '2026-05-15T11:00:00.000Z',
+          entry_count: 2,
+        } as any,
+        {
+          conversation_id: 'conv-sdk',
+          title: 'Old transcript title',
+          last_message: 'old latest',
+          last_timestamp: '2026-05-15T10:00:00.000Z',
+          entry_count: 1,
+        } as any,
+      ])
+      .mockResolvedValueOnce([
+        {
+          conversation_id: 'conv-sdk',
+          title: 'SDK title',
+          last_message: 'latest',
+          last_timestamp: '2026-05-15T12:00:00.000Z',
+          entry_count: 3,
+        } as any,
+      ]);
 
     const metadata = await store.listMetadata();
 
@@ -207,9 +224,20 @@ describe('ElectronSidecarConversationStore', () => {
         updatedAt: '2026-05-15T12:00:00.000Z',
         eventCount: 3,
       },
+      {
+        conversationRef: 'conv-legacy',
+        revisionId: 'rev-stored-conv-legacy',
+        title: 'Legacy title',
+        lastMessage: 'legacy latest',
+        updatedAt: '2026-05-15T11:00:00.000Z',
+        eventCount: 2,
+      },
     ]);
-    expect(mockListStoredConversations).toHaveBeenCalledTimes(1);
-    expect(mockListStoredConversations).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockListStoredConversations).toHaveBeenCalledTimes(2);
+    expect(mockListStoredConversations).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      recordKind: 'transcript',
+    }));
+    expect(mockListStoredConversations).toHaveBeenNthCalledWith(2, expect.objectContaining({
       recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
     }));
   });

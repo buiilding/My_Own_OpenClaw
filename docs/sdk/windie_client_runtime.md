@@ -138,6 +138,8 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
   as replay snapshots before falling back to full event projection
 - desktop backend-session rehydrate uses the store adapter's SDK projection
   instead of shaping messages directly from visible transcript rows
+- desktop recent-chat and open-chat loading use store metadata/display
+  projections, with legacy transcript fallback for existing local chats
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel

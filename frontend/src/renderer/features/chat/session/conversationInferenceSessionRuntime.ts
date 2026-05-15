@@ -1,4 +1,5 @@
 import { ApiClient } from '../../../infrastructure/api/client';
+import type { RehydrateConversationEntry } from '../../../infrastructure/api/client';
 import { ElectronSidecarConversationStore } from '../../../infrastructure/transcript/ElectronSidecarConversationStore';
 import { loadLocalConversationSnapshot } from '../../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import {
@@ -21,7 +22,7 @@ type EnsureConversationInferenceSessionOptions = {
 
 type RehydrateConversationInferenceSessionOptions = {
   conversationRef: string | null | undefined;
-  messages: Array<Record<string, unknown>>;
+  messages: RehydrateConversationEntry[];
 };
 
 type SyncStateRecord = {
@@ -46,6 +47,29 @@ function resolveUserId(userId: string | null | undefined): string {
     return userId.trim();
   }
   return DEFAULT_USER_ID;
+}
+
+function toRehydrateConversationEntry(message: Record<string, unknown>): RehydrateConversationEntry | null {
+  const role = message.role;
+  if (role !== 'user' && role !== 'assistant' && role !== 'tool') {
+    return null;
+  }
+  const content = typeof message.content === 'string'
+    ? message.content
+    : JSON.stringify(message.content ?? '');
+  return {
+    ...message,
+    role,
+    content,
+  } as RehydrateConversationEntry;
+}
+
+function toRehydrateConversationEntries(
+  messages: Array<Record<string, unknown>>,
+): RehydrateConversationEntry[] {
+  return messages
+    .map(toRehydrateConversationEntry)
+    .filter((message): message is RehydrateConversationEntry => Boolean(message));
 }
 
 function setConversationInferenceSessionState(
@@ -159,10 +183,11 @@ export async function ensureConversationInferenceSessionHydrated({
     setConversationWorkspaceBinding(normalizedConversationRef, snapshot.workspaceBinding);
     const store = new ElectronSidecarConversationStore({ userId: normalizedUserId });
     const rehydrateSnapshot = await store.loadForRehydrate(normalizedConversationRef);
-    if (rehydrateSnapshot.messages.length > 0) {
+    const rehydrateMessages = toRehydrateConversationEntries(rehydrateSnapshot.messages);
+    if (rehydrateMessages.length > 0) {
       await ApiClient.sendRehydrateConversation(
         normalizedConversationRef,
-        rehydrateSnapshot.messages,
+        rehydrateMessages,
         getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
       );
     }

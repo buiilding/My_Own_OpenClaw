@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  listStoredConversations,
   searchStoredConversations,
 } from '../../../infrastructure/transcript/localConversationStore';
+import { ElectronSidecarConversationStore } from '../../../infrastructure/transcript/ElectronSidecarConversationStore';
 import { loadLocalConversationSnapshot } from '../../../infrastructure/transcript/conversationLocalSnapshotLoader';
+import { buildChatMessagesFromDisplayConversation } from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
 import {
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
@@ -54,6 +55,10 @@ function useDashboardConversations({
   const recentConversationLoadRequestIdRef = useRef(0);
   const recentConversationLoadInFlightRef = useRef(null);
 
+  const createConversationStore = useCallback((userId) => (
+    new ElectronSidecarConversationStore({ userId })
+  ), []);
+
   const loadRecentConversations = useCallback(async () => {
     if (typeof resolvedUserId !== 'string' || resolvedUserId.trim().length === 0) {
       setIsLoadingRecentConversations(false);
@@ -74,11 +79,17 @@ function useDashboardConversations({
     const loadMarker = {};
     const requestPromise = (async () => {
       try {
-        const list = normalizeRecentConversations(await listStoredConversations({
-          userId: resolvedUserId,
-          limit: 200,
-          recordKind: 'transcript',
-        }));
+        const store = createConversationStore(resolvedUserId);
+        const list = normalizeRecentConversations(
+          (await store.listMetadata({ limit: 200 })).map((metadata) => ({
+            conversation_id: metadata.conversationRef,
+            record_kind: 'conversation_event',
+            title: metadata.title || metadata.conversationRef,
+            last_message: metadata.lastMessage || '',
+            last_timestamp: metadata.updatedAt,
+            entry_count: metadata.eventCount,
+          })),
+        );
 
         // Ignore stale loads so older responses cannot overwrite newer user/session state.
         if (recentConversationLoadRequestIdRef.current !== requestId) {
@@ -115,7 +126,7 @@ function useDashboardConversations({
     };
 
     return requestPromise;
-  }, [resolvedUserId]);
+  }, [createConversationStore, resolvedUserId]);
 
   const clearPendingTitlePoll = useCallback((conversationRef) => {
     const timerId = pendingTitlePollTimersRef.current.get(conversationRef);
@@ -164,10 +175,12 @@ function useDashboardConversations({
       const snapshot = await loadLocalConversationSnapshot({
         userId: resolvedUserId,
         conversationRef,
-        recordKind: conversation?.record_kind || 'transcript',
+        recordKind: 'transcript',
         conversation,
-        includeParsedMessages: true,
       });
+      const store = createConversationStore(resolvedUserId);
+      const displayConversation = await store.loadForDisplay(conversationRef);
+      const projectedMessages = buildChatMessagesFromDisplayConversation(displayConversation);
       setConversationWorkspaceBinding(conversationRef, snapshot.workspaceBinding);
       try {
         await setActiveWorkspaceSelection(snapshot.workspaceBinding.workspacePath || null);
@@ -184,7 +197,7 @@ function useDashboardConversations({
       if (sessionConversationRef !== conversationRef) {
         markConversationInferenceSessionUnknown(conversationRef);
       }
-      setChatMessages(snapshot.parsedMessages, conversationRef);
+      setChatMessages(projectedMessages, conversationRef);
       setChatIsSending(false, conversationRef);
       setChatThinkingStatus(null, conversationRef);
     } catch (error) {
@@ -192,6 +205,7 @@ function useDashboardConversations({
     }
   }, [
     resolvedUserId,
+    createConversationStore,
     sessionConversationRef,
     setChatActiveConversationRef,
     setChatIsSending,

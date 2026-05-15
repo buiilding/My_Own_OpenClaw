@@ -218,6 +218,15 @@ backend rehydrate payload. The local snapshot loader still supplies workspace
 binding/display metadata, but the backend continuation payload comes from the
 SDK store projection.
 
+Dashboard startup and open-chat loading also use the SDK store adapter:
+
+- recent chats are listed through store metadata from `conversation_event` rows
+  merged with legacy `transcript` rows
+- opening a chat renders `DisplayConversation` through
+  `sdkDisplayChatMessageProjection.ts`
+- the local snapshot loader remains only for workspace binding and legacy
+  transcript metadata during migration
+
 ## Try-Again and Edit+Resend Replay Contract
 
 Replay rehydrate must keep prior context stable.

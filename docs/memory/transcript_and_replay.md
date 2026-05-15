@@ -21,6 +21,7 @@ For code changes or debugging, start with [Transcript Replay Change Workflow](tr
 | Pending queues | `frontend/src/renderer/infrastructure/transcript/pending/*` |
 | Entry persistence | `frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts`, `transcriptRecordWrite.ts` |
 | SDK conversation store adapter | `frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore.ts` |
+| SDK display to chat-message projection | `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts` |
 | Local snapshots/replay | `conversationLocalSnapshotLoader.ts`, `conversationReplayState.ts`, `rehydratePayload.js`, `rehydrateMessageState.js` |
 | Chat replay actions | `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js` |
 | Dashboard conversation list | `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `useTranscriptSessionInfo.js` |
@@ -63,6 +64,10 @@ SDK-owned conversation state uses a separate sidecar record kind:
 New SDK callers should read display and rehydrate state through SDK projections
 over `conversation_event` rows. Existing conversations without event rows still
 fall back through the transcript projection adapter.
+
+Dashboard recent-chat loading merges `conversation_event` and `transcript`
+metadata so newly SDK-owned chats and old local chats appear together at
+startup.
 
 Key files:
 

@@ -251,11 +251,20 @@ export class ElectronSidecarConversationStore implements ConversationStore {
 
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {
     const limit = options.limit ?? 200;
-    const eventMetadata = await this.listMetadataForRecordKind(SDK_CONVERSATION_EVENT_RECORD_KIND, limit);
-    if (eventMetadata.length > 0) {
-      return eventMetadata;
+    const [transcriptMetadata, eventMetadata] = await Promise.all([
+      this.listMetadataForRecordKind('transcript', limit),
+      this.listMetadataForRecordKind(SDK_CONVERSATION_EVENT_RECORD_KIND, limit),
+    ]);
+    const merged = new Map<string, ConversationMetadata>();
+    for (const metadata of transcriptMetadata) {
+      merged.set(metadata.conversationRef, metadata);
     }
-    return this.listMetadataForRecordKind('transcript', limit);
+    for (const metadata of eventMetadata) {
+      merged.set(metadata.conversationRef, metadata);
+    }
+    return Array.from(merged.values())
+      .sort((a, b) => (Date.parse(b.updatedAt) || 0) - (Date.parse(a.updatedAt) || 0))
+      .slice(0, limit);
   }
 
   async getRevision(conversationRef: string): Promise<ConversationRevision> {

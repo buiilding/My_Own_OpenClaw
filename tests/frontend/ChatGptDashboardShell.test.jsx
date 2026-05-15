@@ -720,8 +720,14 @@ describe('ChatGptDashboardShell', () => {
   test('reloads recent chats after assistant llm transcript entry is stored', async () => {
     const nowIso = new Date().toISOString();
     let listCallCount = 0;
-    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel, payload) => {
       if (channel === 'list-conversations') {
+        if (payload?.recordKind === 'conversation_event') {
+          return {
+            success: true,
+            data: { conversations: [] },
+          };
+        }
         listCallCount += 1;
         if (listCallCount === 1) {
           return {
@@ -768,8 +774,14 @@ describe('ChatGptDashboardShell', () => {
   test('shows a new chat after user transcript storage and replaces the temporary title after assistant completion', async () => {
     const nowIso = new Date().toISOString();
     let listCallCount = 0;
-    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel, payload) => {
       if (channel === 'list-conversations') {
+        if (payload?.recordKind === 'conversation_event') {
+          return {
+            success: true,
+            data: { conversations: [] },
+          };
+        }
         listCallCount += 1;
         if (listCallCount === 1) {
           return {

@@ -9,7 +9,7 @@ import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalP
 import type { CaptureMeta } from '../services/ScreenshotAttachmentPipeline';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 
-type RehydrateConversationEntry = {
+export type RehydrateConversationEntry = {
   role: 'user' | 'assistant' | 'tool';
   content: string;
   message_type?: string;
