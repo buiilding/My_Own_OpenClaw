@@ -15,7 +15,7 @@
   min-width: 0;
   flex-shrink: 0;
   border-right: 1px solid var(--ui-border-soft);
-  background: rgba(0, 0, 0, 0.24);
+  background: color-mix(in srgb, var(--ui-sidebar-bg) 72%, transparent 28%);
   padding: 14px 10px 12px;
 }
 
@@ -77,7 +77,7 @@
   min-width: 0;
   position: relative;
   display: flex;
-  background: rgba(0, 0, 0, 0.12);
+  background: color-mix(in srgb, var(--ui-panel-bg) 34%, transparent 66%);
 }
 
 .clone-settings-content {

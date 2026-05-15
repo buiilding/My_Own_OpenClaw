@@ -12,6 +12,9 @@
   --windie-black: #050505;
   --windie-gray: #111111;
   --windie-gray-light: #1a1a1a;
+  --appearance-background: #181818;
+  --appearance-foreground: #ffffff;
+  --appearance-contrast: 60;
 
   --bg-base: var(--windie-black);
   --bg-muted: var(--windie-gray);
@@ -90,6 +93,7 @@
   --ui-sidebar-bg: var(--pill-sidebar-bg);
   --ui-panel-bg: var(--pill-surface-bg);
   --ui-panel-raised-bg: var(--pill-panel-elevated-bg);
+  --ui-surface-elevated: rgba(20, 20, 20, 0.94);
   --ui-hover-bg: var(--pill-hover-bg);
   --ui-hover-strong-bg: var(--pill-hover-strong-bg);
   --ui-text-primary: var(--pill-text-primary);
@@ -117,6 +121,94 @@
   --ui-toggle-thumb-on: var(--ui-neutral-white);
 }
 
+:root[data-windie-theme='light'] {
+  color-scheme: light;
+  --windie-blue-hover: color-mix(in srgb, var(--windie-blue) 82%, #003c9d 18%);
+  --windie-blue-soft: color-mix(in srgb, var(--windie-blue) 14%, transparent 86%);
+  --windie-blue-glow: color-mix(in srgb, var(--windie-blue) 28%, transparent 72%);
+
+  --bg-base: color-mix(in srgb, var(--appearance-background) 94%, var(--windie-blue) 6%);
+  --bg-muted: color-mix(in srgb, var(--appearance-background) 90%, var(--windie-blue) 10%);
+  --surface: color-mix(in srgb, var(--appearance-background) 94%, #eef5ff 6%);
+  --surface-strong: color-mix(in srgb, var(--appearance-background) 88%, #dbeafe 12%);
+  --surface-muted: color-mix(in srgb, var(--appearance-background) 92%, #e5edf7 8%);
+  --surface-ink: var(--appearance-foreground);
+
+  --text-primary: var(--appearance-foreground);
+  --text-muted: color-mix(in srgb, var(--appearance-foreground) 66%, transparent 34%);
+  --text-soft: color-mix(in srgb, var(--appearance-foreground) 48%, transparent 52%);
+
+  --border: color-mix(in srgb, var(--appearance-foreground) 12%, transparent 88%);
+  --border-strong: color-mix(in srgb, var(--appearance-foreground) 22%, transparent 78%);
+
+  --pill-surface-bg: color-mix(in srgb, var(--appearance-background) 90%, var(--windie-blue) 4%);
+  --pill-surface-raised-bg: color-mix(in srgb, var(--appearance-background) 96%, #dceeff 4%);
+  --pill-border: color-mix(in srgb, var(--appearance-foreground) 13%, transparent 87%);
+  --pill-border-soft: color-mix(in srgb, var(--appearance-foreground) 12%, transparent 88%);
+  --pill-border-subtle: color-mix(in srgb, var(--appearance-foreground) 8%, transparent 92%);
+  --pill-text-primary: var(--appearance-foreground);
+  --pill-text-muted: color-mix(in srgb, var(--appearance-foreground) 58%, transparent 42%);
+  --pill-hover-bg: color-mix(in srgb, var(--windie-blue) 8%, transparent 92%);
+  --pill-hover-strong-bg: color-mix(in srgb, var(--windie-blue) 15%, transparent 85%);
+  --pill-scrim: rgba(15, 23, 42, 0.18);
+  --pill-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.13),
+    0 0 28px -20px var(--windie-blue-glow);
+  --pill-shadow-strong:
+    0 30px 64px -26px rgba(15, 23, 42, 0.28),
+    0 0 36px -22px var(--windie-blue-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --pill-shell-bg:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--appearance-background) 96%, #edf6ff 4%) 0%,
+      color-mix(in srgb, var(--appearance-background) 92%, #dbeafe 8%) 100%
+    );
+  --pill-shell-ambient:
+    radial-gradient(1200px 760px at 12% -18%, color-mix(in srgb, var(--windie-blue) 13%, transparent 87%), transparent 58%),
+    radial-gradient(920px 620px at 100% 0%, rgba(166, 216, 255, 0.2), transparent 54%);
+  --pill-sidebar-bg:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--appearance-background) 94%, #f0f7ff 6%) 0%,
+      color-mix(in srgb, var(--appearance-background) 88%, #e7f1ff 12%) 100%
+    );
+  --pill-panel-elevated-bg:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--appearance-background) 96%, #eaf4ff 4%) 0%,
+      color-mix(in srgb, var(--appearance-background) 91%, #dbeafe 9%) 100%
+    );
+
+  --ui-panel-bg: color-mix(in srgb, var(--appearance-background) 88%, transparent 12%);
+  --ui-panel-raised-bg: var(--pill-panel-elevated-bg);
+  --ui-surface-elevated: color-mix(in srgb, var(--appearance-background) 88%, #eef5ff 12%);
+  --ui-hover-bg: var(--pill-hover-bg);
+  --ui-hover-strong-bg: var(--pill-hover-strong-bg);
+  --ui-text-primary: var(--appearance-foreground);
+  --ui-text-secondary: color-mix(in srgb, var(--appearance-foreground) 78%, transparent 22%);
+  --ui-text-muted: color-mix(in srgb, var(--appearance-foreground) 58%, transparent 42%);
+  --ui-text-dim: color-mix(in srgb, var(--appearance-foreground) 42%, transparent 58%);
+  --ui-border: var(--pill-border);
+  --ui-border-soft: var(--pill-border-soft);
+  --ui-border-subtle: var(--pill-border-subtle);
+  --ui-scrim: var(--pill-scrim);
+  --ui-shadow: var(--pill-shadow);
+  --ui-shadow-strong: var(--pill-shadow-strong);
+  --ui-send-bg-disabled: color-mix(in srgb, var(--windie-blue) 26%, #d5e3f4 74%);
+  --ui-send-text: #ffffff;
+  --ui-neutral-white: #ffffff;
+  --ui-neutral-black: #101318;
+  --ui-brand-dot-fg: #ffffff;
+  --ui-on-accent: #ffffff;
+  --ui-settings-swatch-bg: #ffffff;
+  --ui-toggle-thumb-on: #ffffff;
+}
+
+:root[data-windie-translucent-sidebar='false'] {
+  --ui-backdrop-blur: 0px;
+}
+
 *,
 *::before,
 *::after {
@@ -135,7 +227,7 @@ body {
   color: var(--text-primary);
   background:
     var(--ui-shell-ambient),
-    linear-gradient(180deg, rgba(5, 5, 5, 1) 0%, rgba(7, 7, 7, 1) 54%, rgba(10, 10, 10, 1) 100%);
+    var(--ui-shell-bg);
   background-attachment: fixed;
   overflow: hidden;
 }

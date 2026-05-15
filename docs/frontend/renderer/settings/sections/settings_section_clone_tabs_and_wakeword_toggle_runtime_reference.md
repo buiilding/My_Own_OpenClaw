@@ -120,6 +120,11 @@ These values are persisted through frontend config as `appearance_theme` and are
 They are not sent to the hosted backend because they do not affect model behavior,
 tools, prompt construction, or provider policy.
 
+The renderer root consumes `appearance_mode` and the active `appearance_theme` section by
+setting document-level theme attributes and CSS variables. Light/dark/system selection is
+therefore a renderer presentation concern: the settings tab produces the config patch, and
+the app root applies the effective theme to shared dashboard/settings tokens.
+
 ## Memory Tab Ownership Model
 
 `MemorySettingsTab` owns two destructive local-data actions:
