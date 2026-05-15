@@ -39,12 +39,7 @@ Local runtime facts must not unlock backend capabilities. In particular, coordin
 ## Public API
 
 ```ts
-const client = new WindieClient({
-  sidecarDaemon: {
-    baseUrl: "http://127.0.0.1:43123",
-    token: "per-process-token"
-  }
-});
+const client = new WindieClient();
 
 const agent = await client.wakeUp({
   backendUrl: "https://api.windieos.com",
@@ -119,9 +114,15 @@ The SDK builds:
 ## Local Runtime Options
 
 Electron uses `sidecar_daemon_manager.cjs` to start or reuse the daemon and then
-passes the daemon client into the SDK runtime. Non-Electron SDK hosts can provide
-either:
+passes the daemon client into the SDK runtime. Node/CLI SDK hosts use the default
+auto sidecar provider: when `wakeUp` sees module tools, plugins, or MCP servers,
+it reads the daemon discovery file, reuses a healthy daemon when present, or
+starts `sidecar_daemon.py` and waits for fresh discovery metadata.
 
+Non-Electron SDK hosts can override that behavior with:
+
+- `autoSidecar`: daemon script, discovery file, host/port, timeout, or Python command
+  options for the default Node provider.
 - `ensureLocalRuntime`: an async provider that starts/reuses a daemon and returns
   a `WindieLocalRuntimeClient` when `wakeUp` needs local execution.
 - `sidecar`: a custom `WindieLocalRuntimeClient` implementation.
@@ -130,9 +131,9 @@ either:
   creates a `SidecarDaemonHttpClient` and uses `/status`, registration endpoints,
   `/tools`, and `/execute-tool`.
 
-`wakeUp` calls `ensureLocalRuntime` only when module tools, plugins, or MCP
-servers require local execution and no explicit `sidecar`, `localRuntime`, or
-`sidecarDaemon` was configured.
+The default auto provider is Node-only. Browser-hosted SDK consumers should pass
+`sidecar`, `localRuntime`, `sidecarDaemon`, or `ensureLocalRuntime` explicitly
+when they need local execution.
 
 The SDK does not accept raw JavaScript/Python closures as durable tools.
 Module tools must be registered by import path, plugin tools by package path, and

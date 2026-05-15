@@ -531,7 +531,8 @@ function markSdkOwnedToolEvent(event: BackendEvent): BackendEvent {
     };
     return cloned;
   }
-  const payload = cloned.payload ?? {};
+  const payload = (cloned.payload ?? {}) as Extract<BackendEvent, { type: 'tool-bundle' }>['payload'];
+  const tools = Array.isArray(payload?.tools) ? payload.tools : undefined;
   cloned.payload = {
     ...payload,
     metadata: {
@@ -539,8 +540,8 @@ function markSdkOwnedToolEvent(event: BackendEvent): BackendEvent {
       skip_frontend_execution: true,
       execution_owner: 'sdk-runtime',
     },
-    tools: Array.isArray(payload.tools)
-      ? payload.tools.map(tool => ({
+    tools: tools
+      ? tools.map(tool => ({
           ...(tool ?? {}),
           metadata: {
             ...((tool?.metadata ?? {}) as JsonRecord),
@@ -548,7 +549,7 @@ function markSdkOwnedToolEvent(event: BackendEvent): BackendEvent {
             execution_owner: 'sdk-runtime',
           },
         }))
-      : payload.tools,
+      : payload?.tools,
   } as typeof cloned.payload;
   return cloned;
 }
@@ -977,6 +978,17 @@ export type SidecarDaemonClientOptions = {
   fetchImpl?: FetchLike;
 };
 
+export type WindieAutoSidecarOptions = {
+  discoveryFile?: string;
+  daemonScript?: string;
+  pythonCommand?: string;
+  host?: string;
+  port?: number;
+  startTimeoutMs?: number;
+  pollIntervalMs?: number;
+  fetchImpl?: FetchLike;
+};
+
 export class SidecarDaemonHttpClient implements WindieLocalRuntimeClient {
   private readonly baseUrl: string;
   private readonly token: string;
@@ -1047,6 +1059,209 @@ export class SidecarDaemonHttpClient implements WindieLocalRuntimeClient {
   }
 }
 
+type NodeFsLike = {
+  existsSync(path: string): boolean;
+  mkdirSync(path: string, options?: { recursive?: boolean }): void;
+  readFileSync(path: string, encoding: BufferEncoding): string;
+};
+
+type NodeOsLike = {
+  tmpdir(): string;
+};
+
+type NodePathLike = {
+  dirname(path: string): string;
+  join(...parts: string[]): string;
+  resolve(...parts: string[]): string;
+};
+
+type NodeChildProcessLike = {
+  spawn(command: string, args: string[], options?: JsonRecord): {
+    kill?: (signal?: string) => void;
+    unref?: () => void;
+  };
+};
+
+async function importNodeModule<TModule>(specifier: string): Promise<TModule> {
+  return import(/* @vite-ignore */ specifier) as Promise<TModule>;
+}
+
+async function loadNodeSidecarModules(): Promise<{
+  fs: NodeFsLike;
+  os: NodeOsLike;
+  path: NodePathLike;
+  childProcess: NodeChildProcessLike;
+}> {
+  const [fs, os, path, childProcess] = await Promise.all([
+    importNodeModule<NodeFsLike>('node:fs'),
+    importNodeModule<NodeOsLike>('node:os'),
+    importNodeModule<NodePathLike>('node:path'),
+    importNodeModule<NodeChildProcessLike>('node:child_process'),
+  ]);
+  return { fs, os, path, childProcess };
+}
+
+function normalizeDiscovery(raw: unknown): SidecarDaemonClientOptions | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return null;
+  }
+  const payload = raw as JsonRecord;
+  const baseUrl = typeof payload.base_url === 'string'
+    ? payload.base_url.trim()
+    : (typeof payload.baseUrl === 'string' ? payload.baseUrl.trim() : '');
+  const token = typeof payload.token === 'string' ? payload.token.trim() : '';
+  if (!baseUrl || !token) {
+    return null;
+  }
+  return { baseUrl, token };
+}
+
+function readDaemonDiscovery(fs: NodeFsLike, discoveryFile: string): SidecarDaemonClientOptions | null {
+  try {
+    if (!fs.existsSync(discoveryFile)) {
+      return null;
+    }
+    return normalizeDiscovery(JSON.parse(fs.readFileSync(discoveryFile, 'utf8')));
+  } catch {
+    return null;
+  }
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function probeDaemon(
+  discovery: SidecarDaemonClientOptions | null,
+  fetchImpl?: FetchLike,
+): Promise<SidecarDaemonHttpClient | null> {
+  if (!discovery) {
+    return null;
+  }
+  const client = new SidecarDaemonHttpClient({
+    ...discovery,
+    fetchImpl,
+  });
+  try {
+    await client.status();
+    return client;
+  } catch {
+    return null;
+  }
+}
+
+function resolveDaemonScript(options: WindieAutoSidecarOptions, fs: NodeFsLike, path: NodePathLike): string {
+  const processLike = (globalThis as unknown as {
+    process?: { cwd?: () => string; env?: Record<string, string | undefined> };
+  }).process;
+  const explicit = options.daemonScript
+    ?? processLike?.env?.WINDIE_SIDECAR_DAEMON_SCRIPT;
+  if (explicit) {
+    return path.resolve(explicit);
+  }
+  const cwd = typeof processLike?.cwd === 'function'
+    ? processLike.cwd()
+    : '.';
+  const candidates = [
+    path.resolve(cwd, 'frontend/src/main/python/sidecar_daemon.py'),
+    path.resolve(cwd, 'src/main/python/sidecar_daemon.py'),
+  ];
+  const found = candidates.find(candidate => fs.existsSync(candidate));
+  if (found) {
+    return found;
+  }
+  throw new Error(
+    'WindieClient could not locate sidecar_daemon.py. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoSidecar.daemonScript.',
+  );
+}
+
+export function createWindieLocalRuntimeProvider(
+  options: WindieAutoSidecarOptions = {},
+): WindieLocalRuntimeProvider {
+  let cachedRuntime: WindieLocalRuntimeClient | undefined;
+  let ownedProcess: { kill?: (signal?: string) => void; unref?: () => void } | null = null;
+  return async () => {
+    if (cachedRuntime) {
+      return cachedRuntime;
+    }
+    let modules: Awaited<ReturnType<typeof loadNodeSidecarModules>>;
+    try {
+      modules = await loadNodeSidecarModules();
+    } catch (error) {
+      throw new Error(
+        `WindieClient local tools require a Node sidecar runtime provider: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    const { fs, os, path, childProcess } = modules;
+    const processLike = (globalThis as unknown as {
+      process?: { env?: Record<string, string | undefined> };
+    }).process;
+    const discoveryFile = path.resolve(
+      options.discoveryFile
+        ?? processLike?.env?.WINDIE_SIDECAR_DAEMON_DISCOVERY_FILE
+        ?? path.join(os.tmpdir(), 'windieos', 'sidecar-daemon.json'),
+    );
+    const fetchImpl = options.fetchImpl;
+    const existing = await probeDaemon(readDaemonDiscovery(fs, discoveryFile), fetchImpl);
+    if (existing) {
+      cachedRuntime = existing;
+      return cachedRuntime;
+    }
+
+    const daemonScript = resolveDaemonScript(options, fs, path);
+    fs.mkdirSync(path.dirname(discoveryFile), { recursive: true });
+    const pythonCommand = options.pythonCommand
+      ?? processLike?.env?.WINDIE_PYTHON
+      ?? 'python3';
+    const args = [
+      daemonScript,
+      '--discovery-file',
+      discoveryFile,
+    ];
+    if (options.host) {
+      args.push('--host', options.host);
+    }
+    if (typeof options.port === 'number') {
+      args.push('--port', String(options.port));
+    }
+    ownedProcess = childProcess.spawn(pythonCommand, args, {
+      stdio: 'ignore',
+      detached: true,
+    });
+    ownedProcess.unref?.();
+
+    const deadline = Date.now() + (options.startTimeoutMs ?? 10000);
+    const pollIntervalMs = options.pollIntervalMs ?? 100;
+    while (Date.now() < deadline) {
+      const started = await probeDaemon(readDaemonDiscovery(fs, discoveryFile), fetchImpl);
+      if (started) {
+        cachedRuntime = {
+          status: () => started.status(),
+          listTools: () => started.listTools(),
+          registerModuleTool: (tool, context) => started.registerModuleTool(tool, context),
+          registerPlugin: plugin => started.registerPlugin(plugin),
+          registerMcp: mcp => started.registerMcp(mcp),
+          executeTool: payload => started.executeTool(payload),
+          shutdown: async () => {
+            try {
+              await started.shutdown();
+            } finally {
+              ownedProcess?.kill?.('SIGTERM');
+              ownedProcess = null;
+              cachedRuntime = undefined;
+            }
+          },
+        };
+        return cachedRuntime;
+      }
+      await sleep(pollIntervalMs);
+    }
+    ownedProcess?.kill?.('SIGTERM');
+    ownedProcess = null;
+    throw new Error(`Timed out waiting for Windie sidecar daemon discovery at ${discoveryFile}`);
+  };
+}
+
 export type WindieClientOptions = {
   backendUrl?: string;
   httpBaseUrl?: string;
@@ -1058,6 +1273,8 @@ export type WindieClientOptions = {
   sidecar?: WindieLocalRuntimeClient;
   sidecarDaemon?: SidecarDaemonClientOptions;
   ensureLocalRuntime?: WindieLocalRuntimeProvider;
+  autoStartLocalRuntime?: boolean;
+  autoSidecar?: WindieAutoSidecarOptions;
 };
 
 export function moduleTool(tool: WindieToolDefinition & { module: string }): WindieToolDefinition {
@@ -1216,10 +1433,20 @@ export class WindieClient {
     if (!this.needsLocalRuntime(options)) {
       return undefined;
     }
-    return this.defaultOptions.ensureLocalRuntime?.({
+    const context = {
       wakeUp: options,
       needsLocalRuntime: true,
-    });
+    };
+    if (this.defaultOptions.ensureLocalRuntime) {
+      return this.defaultOptions.ensureLocalRuntime(context);
+    }
+    if (this.defaultOptions.autoStartLocalRuntime === false) {
+      return undefined;
+    }
+    return createWindieLocalRuntimeProvider({
+      fetchImpl: this.defaultOptions.fetchImpl,
+      ...(this.defaultOptions.autoSidecar ?? {}),
+    })(context);
   }
 
   private needsLocalRuntime(options: WindieWakeUpOptions): boolean {

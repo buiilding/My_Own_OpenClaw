@@ -1,5 +1,6 @@
 export { ApiClient } from './client';
 export {
+  createWindieLocalRuntimeProvider,
   moduleTool,
   SidecarDaemonHttpClient,
   WindieAgent,
@@ -43,6 +44,7 @@ export type {
   SdkVisionOverlayRequest,
   SdkVisionTarget,
   ToolSchema,
+  WindieAutoSidecarOptions,
   SidecarDaemonClientOptions,
   WindieClientOptions,
   WindieAgentQueryInput,

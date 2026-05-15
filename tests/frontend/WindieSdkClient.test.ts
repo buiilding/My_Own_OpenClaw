@@ -1,4 +1,9 @@
+import { promises as fsPromises } from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+
 import {
+  createWindieLocalRuntimeProvider,
   moduleTool,
   WindieClient,
   WindieSdkClient,
@@ -388,6 +393,96 @@ describe('WindieSdkClient', () => {
       expect.objectContaining({ name: 'save_note' }),
       { workspacePath: '/tmp/project' },
     );
+  });
+
+  test('wakeUp automatically reuses a discovered sidecar daemon for local tools', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-daemon-'));
+    const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
+    await fsPromises.writeFile(
+      discoveryFile,
+      JSON.stringify({
+        base_url: 'http://127.0.0.1:43123',
+        token: 'auto-token',
+      }),
+      'utf8',
+    );
+    mockFetch.mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.endsWith('/status')) {
+        return jsonResponse({ status: 'ok' }) as any;
+      }
+      if (url.endsWith('/tools/register-module')) {
+        return jsonResponse({ success: true }) as any;
+      }
+      if (url.endsWith('/tools')) {
+        return jsonResponse({
+          version: 1,
+          tools: [{ name: 'save_note', schema: { type: 'object', properties: {} } }],
+        }) as any;
+      }
+      return jsonResponse({ ok: true, init }) as any;
+    });
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      autoSidecar: {
+        discoveryFile,
+        startTimeoutMs: 50,
+      },
+    });
+
+    const wakePromise = client.wakeUp({
+      workspacePath: '/tmp/project',
+      tools: [
+        moduleTool({
+          name: 'save_note',
+          module: 'my_project.tools:save_note',
+          schema: { type: 'object', properties: {} },
+        }),
+      ],
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    await wakePromise;
+
+    const registerCall = mockFetch.mock.calls.find(([url]) => String(url).endsWith('/tools/register-module'));
+    expect(registerCall?.[0]).toBe('http://127.0.0.1:43123/tools/register-module');
+    expect((registerCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('auto-token');
+  });
+
+  test('createWindieLocalRuntimeProvider reuses discovery metadata directly', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-'));
+    const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
+    await fsPromises.writeFile(
+      discoveryFile,
+      JSON.stringify({
+        base_url: 'http://127.0.0.1:43124',
+        token: 'provider-token',
+      }),
+      'utf8',
+    );
+    mockFetch.mockResolvedValue(jsonResponse({ status: 'ok' }) as any);
+
+    const provider = createWindieLocalRuntimeProvider({
+      discoveryFile,
+      fetchImpl: mockFetch,
+    });
+    const runtime = await provider({
+      wakeUp: { tools: [] },
+      needsLocalRuntime: true,
+    });
+
+    expect(runtime).toBeDefined();
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://127.0.0.1:43124/status',
+      expect.objectContaining({
+        headers: expect.any(Headers),
+      }),
+    );
+    const headers = mockFetch.mock.calls[0][1]?.headers as Headers;
+    expect(headers.get('x-windie-sidecar-token')).toBe('provider-token');
   });
 
   test('wakeUp registers local module tools and sends agent definition in handshake', async () => {
