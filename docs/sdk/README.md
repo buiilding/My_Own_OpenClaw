@@ -44,6 +44,12 @@ npm run build
 
 ## Examples
 
+- `examples/cli-agent`: minimal Node CLI using `WindieClient`,
+  `InMemoryConversationStore`, and `conversation.stream()` without Electron:
+  `node examples/cli-agent/run.mjs`
+- `examples/custom-ui`: minimal browser UI that renders SDK display projections
+  against a mock backend:
+  `node examples/custom-ui/run.mjs`
 - `examples/repo-agent-extension`: runnable sidecar plugin SDK example with
   one Python plugin tool and one command:
   `node examples/repo-agent-extension/run.mjs`
