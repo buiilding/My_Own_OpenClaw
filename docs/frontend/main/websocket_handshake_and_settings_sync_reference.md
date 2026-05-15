@@ -178,10 +178,14 @@ Purpose:
 
 ## Outbound Message Normalization
 
-`sendMessageToBackend(type, payload, messageId?)`:
+SDK runtime backend send helpers:
 
-- requires active websocket and non-empty `currentUserId`
-- injects envelope fields: `id`, `type`, `payload`, `user_id`, `timestamp`
+- require an active websocket and non-empty `currentUserId`
+- inject envelope fields: `id`, `type`, `payload`, `user_id`, `timestamp`
+- expose named helpers for query, wakeword, stop-query, settings, list-models,
+  and local tool-result traffic
+- keep `ipc.cjs` as a thin adapter for Electron call sites that still pass
+  generic backend message types
 
 `normalizeBackendPayload(...)` strips unsupported/transient fields:
 
