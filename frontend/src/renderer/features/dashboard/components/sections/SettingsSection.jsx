@@ -142,6 +142,7 @@ SettingsSection.propTypes = {
     agent_custom_instructions: PropTypes.string,
     agent_disabled_local_tools: PropTypes.arrayOf(PropTypes.string),
     agent_disabled_remote_tools: PropTypes.arrayOf(PropTypes.string),
+    appearance_mode: PropTypes.oneOf(['light', 'dark', 'system']),
     appearance_theme: PropTypes.shape({
       light: appearanceThemeSectionShape,
       dark: appearanceThemeSectionShape,

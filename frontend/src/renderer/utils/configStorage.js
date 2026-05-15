@@ -70,6 +70,7 @@ const DEFAULT_FRONTEND_CONFIG = {
   include_query_screenshot: true,
   provider_api_keys: DEFAULT_PROVIDER_API_KEYS,
   provider_oauth: DEFAULT_PROVIDER_OAUTH,
+  appearance_mode: 'system',
   appearance_theme: DEFAULT_APPEARANCE_THEME,
 };
 
@@ -168,6 +169,10 @@ function normalizeAppearanceTheme(overrides = null) {
   };
 }
 
+function normalizeAppearanceMode(value) {
+  return ['light', 'dark', 'system'].includes(value) ? value : DEFAULT_FRONTEND_CONFIG.appearance_mode;
+}
+
 function filterKnownFrontendConfigFields(overrides = null) {
   const source = toPlainRecord(overrides);
   const filtered = {};
@@ -213,6 +218,7 @@ function buildFrontendConfig(overrides = {}) {
       : DEFAULT_FRONTEND_CONFIG.agent_disabled_remote_tools,
     provider_api_keys: normalizeProviderApiKeys(filteredOverrides.provider_api_keys),
     provider_oauth: normalizeProviderOAuth(filteredOverrides.provider_oauth),
+    appearance_mode: normalizeAppearanceMode(filteredOverrides.appearance_mode),
     appearance_theme: normalizeAppearanceTheme(filteredOverrides.appearance_theme),
   };
 }

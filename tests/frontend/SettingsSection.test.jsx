@@ -70,6 +70,7 @@ describe('SettingsSection', () => {
     show_tool_logs: false,
     global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
     show_additional_models: true,
+    appearance_mode: 'system',
     appearance_theme: {
       light: {
         accent: '#339CFF',
@@ -416,6 +417,7 @@ describe('SettingsSection', () => {
 
     expect(screen.getByText('Light theme')).toBeInTheDocument();
     expect(screen.getByText('Dark theme')).toBeInTheDocument();
+    expect(screen.getByText('Use light, dark, or match your system')).toBeInTheDocument();
     expect(screen.queryByText('Import')).not.toBeInTheDocument();
     expect(screen.queryByText('Copy theme')).not.toBeInTheDocument();
     expect(screen.queryByText('Codex')).not.toBeInTheDocument();
@@ -433,6 +435,9 @@ describe('SettingsSection', () => {
         },
       },
     });
+
+    fireEvent.click(screen.getByRole('button', { name: /Dark/ }));
+    expect(onConfigChange).toHaveBeenCalledWith({ appearance_mode: 'dark' });
   });
 
   test('workspace tab shows the active workspace and can change it', async () => {

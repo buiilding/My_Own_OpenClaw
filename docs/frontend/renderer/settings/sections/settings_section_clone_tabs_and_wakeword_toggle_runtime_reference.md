@@ -109,6 +109,7 @@ storage. The dashboard thread uses it to either:
 
 `AppearanceSettingsTab` owns frontend-local theme editor values:
 
+- light, dark, or system theme mode
 - light and dark accent/background/foreground colors
 - light and dark UI/code font strings
 - light and dark translucent sidebar toggles

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/settings: add a top-level light, dark, and system theme selector to the Appearance tab without the Codex-style diff preview.
 - frontend/settings: add an Appearance tab with Windie-styled light/dark theme controls for colors, fonts, translucent sidebar, and contrast.
 - frontend/settings: hide the internal active prompt layers transparency panel and use user-facing copy for custom instructions.
 - frontend: port the Windie Agent blue UI palette and refreshed app icon treatment into the full WindieOS frontend so the dashboard, chat, settings, and onboarding surfaces match the logo and landing page aesthetic.

@@ -38,6 +38,7 @@ const DEFAULT_FRONTEND_CONFIG = {
       profile_id: '',
     },
   },
+  appearance_mode: 'system',
   appearance_theme: {
     light: {
       accent: '#339CFF',
@@ -145,6 +146,25 @@ describe('configStorage', () => {
       ...DEFAULT_FRONTEND_CONFIG,
       show_tool_logs: true,
     });
+  });
+
+  test('loadConfigFromStorage preserves valid appearance mode and normalizes invalid values', () => {
+    localStorage.setItem(
+      CONFIG_KEY,
+      JSON.stringify({ appearance_mode: 'dark' }),
+    );
+
+    expect(loadConfigFromStorage()).toEqual({
+      ...DEFAULT_FRONTEND_CONFIG,
+      appearance_mode: 'dark',
+    });
+
+    localStorage.setItem(
+      CONFIG_KEY,
+      JSON.stringify({ appearance_mode: 'sepia' }),
+    );
+
+    expect(loadConfigFromStorage()).toEqual(DEFAULT_FRONTEND_CONFIG);
   });
 
   test('loadConfigFromStorage normalizes stored appearance theme values', () => {

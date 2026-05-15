@@ -1,6 +1,13 @@
 import PropTypes from 'prop-types';
+import { Monitor, Moon, Sun } from 'lucide-react';
 import { CloneToggle } from './settingsControls';
 import { DEFAULT_APPEARANCE_THEME } from '../../../../../utils/configStorage';
+
+const THEME_MODE_OPTIONS = Object.freeze([
+  { value: 'light', label: 'Light', icon: Sun },
+  { value: 'dark', label: 'Dark', icon: Moon },
+  { value: 'system', label: 'System', icon: Monitor },
+]);
 
 const THEME_SECTIONS = Object.freeze([
   { id: 'light', title: 'Light theme' },
@@ -36,6 +43,13 @@ function getPillTextColor(value) {
 
 function AppearanceSettingsTab({ config, onConfigChange }) {
   const appearanceTheme = normalizeThemeConfig(config);
+  const appearanceMode = ['light', 'dark', 'system'].includes(config?.appearance_mode)
+    ? config.appearance_mode
+    : 'system';
+
+  const updateAppearanceMode = (mode) => {
+    onConfigChange({ appearance_mode: mode });
+  };
 
   const updateThemeValue = (themeId, key, value) => {
     onConfigChange({
@@ -52,6 +66,31 @@ function AppearanceSettingsTab({ config, onConfigChange }) {
   return (
     <div className="clone-settings-general clone-settings-appearance">
       <h2>Appearance</h2>
+
+      <section className="clone-settings-theme-mode-card" aria-label="Theme">
+        <div>
+          <h3>Theme</h3>
+          <p>Use light, dark, or match your system</p>
+        </div>
+        <div className="clone-settings-theme-mode-segment" role="group" aria-label="Theme mode">
+          {THEME_MODE_OPTIONS.map((option) => {
+            const Icon = option.icon;
+            const isActive = appearanceMode === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className={isActive ? 'active' : ''}
+                aria-pressed={isActive}
+                onClick={() => updateAppearanceMode(option.value)}
+              >
+                <Icon size={18} />
+                <span>{option.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       {THEME_SECTIONS.map((section) => {
         const theme = appearanceTheme[section.id];
@@ -169,6 +208,7 @@ const themeSectionShape = PropTypes.shape({
 
 AppearanceSettingsTab.propTypes = {
   config: PropTypes.shape({
+    appearance_mode: PropTypes.oneOf(['light', 'dark', 'system']),
     appearance_theme: PropTypes.shape({
       light: themeSectionShape,
       dark: themeSectionShape,
