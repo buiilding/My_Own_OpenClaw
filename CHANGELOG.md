@@ -21,7 +21,9 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: let `WindieClient.wakeUp` call an `ensureLocalRuntime` provider so CLI/SDK hosts can start or reuse the sidecar daemon when local tools/plugins/MCPs are requested.
 - sdk: add a default Node auto-sidecar provider so plain `new WindieClient().wakeUp(...)` can reuse or start the local sidecar daemon for module/plugin/MCP tools.
 - sdk: retain the resolved local runtime so `WindieClient.status`, `listTools`, and `shutdownLocalRuntime` work after automatic sidecar wake-up.
-- sidecar/sdk: replace the public Python `connect_agent` agent path with `wake_up(...)` and reject Python local-tool declarations until that wrapper owns daemon execution.
+- sidecar/sdk: replace the public Python `connect_agent` agent path with `wake_up(...)`.
+- sidecar/sdk: wire Python `WindieSdkClient.wake_up(...)` to the shared sidecar daemon for module tools, plugins, MCP registration, and backend tool-call result routing.
+- sidecar/sdk: add Python local-runtime `status`, `list_tools`, and `shutdown_local_runtime` helpers over the resolved daemon.
 - sidecar: make the daemon `/shutdown` endpoint signal the daemon loop so SDK-owned local runtimes can stop cleanly.
 - sdk: project direct SDK `tool-call` and `tool-bundle` events as display-only when the SDK owns local execution.
 - frontend/sdk: move backend connect waiters, reconnect scheduling, and idle WebSocket close policy from Electron IPC into the SDK main runtime.

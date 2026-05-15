@@ -86,6 +86,59 @@ class DummyWsSession:
         return None
 
 
+class FakeSidecarRuntime:
+    def __init__(self):
+        self.status_calls = 0
+        self.module_tools = []
+        self.plugins = []
+        self.mcps = []
+        self.executions = []
+        self.shutdown_calls = 0
+        self.close_calls = 0
+
+    async def status(self):
+        self.status_calls += 1
+        return {"status": "ok"}
+
+    async def register_module_tool(self, tool, *, workspace_path=None):
+        self.module_tools.append((tool, workspace_path))
+        return {"success": True, "tool": tool}
+
+    async def register_plugin(self, plugin):
+        self.plugins.append(plugin)
+        return {"success": True}
+
+    async def register_mcp(self, mcp):
+        self.mcps.append(mcp)
+        return {"success": True}
+
+    async def list_tools(self):
+        return {
+            "version": 1,
+            "tools": [
+                {
+                    "name": "save_note",
+                    "description": "Save a note.",
+                    "execution_target": "sidecar",
+                    "schema": {"type": "object", "properties": {}},
+                }
+            ],
+        }
+
+    async def execute_tool(self, *, tool_name, args):
+        self.executions.append((tool_name, args))
+        return {
+            "success": True,
+            "data": {"llm_content": f"{tool_name}:{args.get('text', '')}"},
+        }
+
+    async def shutdown(self):
+        self.shutdown_calls += 1
+
+    async def close(self):
+        self.close_calls += 1
+
+
 @pytest.mark.asyncio
 async def test_get_system_prompt_builds_query_string():
     response = DummyResponse(
@@ -251,27 +304,148 @@ async def test_wake_up_requires_user_id_when_no_default_is_configured():
 
 
 @pytest.mark.asyncio
-async def test_wake_up_rejects_local_tools_until_python_daemon_runtime_exists():
+async def test_wake_up_registers_local_tools_plugins_and_mcps():
+    sidecar = FakeSidecarRuntime()
     client = WindieSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
+        sidecar=sidecar,
     )
-    client._session = DummyWsSession(FakeWebSocket())
+    websocket = FakeWebSocket()
+    client._session = DummyWsSession(websocket)
 
-    with pytest.raises(Exception, match="does not execute local tools yet"):
-        await client.wake_up(
-            tools=[
+    await client.wake_up(
+        workspace_path="/tmp/project",
+        tools=[
+            {
+                "name": "save_note",
+                "module": "my_project.tools:save_note",
+                "schema": {"type": "object", "properties": {}},
+            }
+        ],
+        plugins=[{"path": "/tmp/plugin"}],
+        mcps=[{"id": "notes", "command": "fake-mcp"}],
+    )
+
+    assert sidecar.status_calls == 1
+    assert sidecar.module_tools[0][0]["name"] == "save_note"
+    assert sidecar.module_tools[0][1] == "/tmp/project"
+    assert sidecar.plugins == [{"path": "/tmp/plugin"}]
+    assert sidecar.mcps == [{"id": "notes", "command": "fake-mcp"}]
+    assert websocket.sent[0]["agent_definition"]["tools"] == {
+        "mode": "default_plus_client",
+        "client_manifest": {
+            "version": 1,
+            "tools": [
                 {
                     "name": "save_note",
-                    "module": "my_project.tools:save_note",
+                    "description": "Save a note.",
+                    "execution_target": "sidecar",
                     "schema": {"type": "object", "properties": {}},
                 }
-            ]
-        )
+            ],
+        },
+    }
+    assert websocket.sent[0]["agent_definition"]["plugins"] == [{"path": "/tmp/plugin"}]
+    assert websocket.sent[0]["agent_definition"]["mcps"] == [
+        {"id": "notes", "command": "fake-mcp"}
+    ]
+    assert await client.status() == {"status": "ok"}
+    assert (await client.list_tools())["tools"][0]["name"] == "save_note"
+    await client.shutdown_local_runtime()
+    assert sidecar.shutdown_calls == 1
+    assert sidecar.close_calls == 1
 
 
-def test_python_client_no_longer_exposes_connect_agent():
-    assert not hasattr(WindieSdkClient(), "connect_agent")
+@pytest.mark.asyncio
+async def test_python_agent_session_routes_tool_call_to_sidecar():
+    sidecar = FakeSidecarRuntime()
+    websocket = FakeWebSocket(
+        messages=[
+            {
+                "type": "tool-call",
+                "payload": {
+                    "request_id": "req-1",
+                    "tool_name": "save_note",
+                    "parameters": {"text": "hello"},
+                },
+            }
+        ]
+    )
+    client = WindieSdkClient(
+        backend_url="https://api.windieos.com",
+        default_user_id="dev-user",
+        sidecar=sidecar,
+    )
+    client._session = DummyWsSession(websocket)
+    agent = await client.wake_up(
+        tools=[
+            {
+                "name": "save_note",
+                "module": "my_project.tools:save_note",
+                "schema": {"type": "object", "properties": {}},
+            }
+        ]
+    )
+
+    event = await agent.receive_json()
+
+    assert event["type"] == "tool-call"
+    assert sidecar.executions == [("save_note", {"text": "hello"})]
+    assert websocket.sent[-1]["type"] == "tool-result"
+    assert websocket.sent[-1]["payload"] == {
+        "request_id": "req-1",
+        "success": True,
+        "data": {"llm_content": "save_note:hello"},
+        "error": None,
+    }
+
+
+@pytest.mark.asyncio
+async def test_python_agent_session_routes_tool_bundle_to_sidecar():
+    sidecar = FakeSidecarRuntime()
+    websocket = FakeWebSocket(
+        messages=[
+            {
+                "type": "tool-bundle",
+                "payload": {
+                    "bundle_id": "bundle-1",
+                    "tools": [
+                        {
+                            "name": "save_note",
+                            "args": {"text": "first"},
+                        }
+                    ],
+                },
+            }
+        ]
+    )
+    client = WindieSdkClient(
+        backend_url="https://api.windieos.com",
+        default_user_id="dev-user",
+        sidecar=sidecar,
+    )
+    client._session = DummyWsSession(websocket)
+    agent = await client.wake_up(
+        tools=[
+            {
+                "name": "save_note",
+                "module": "my_project.tools:save_note",
+                "schema": {"type": "object", "properties": {}},
+            }
+        ]
+    )
+
+    event = await agent.receive_json()
+
+    assert event["type"] == "tool-bundle"
+    assert sidecar.executions == [("save_note", {"text": "first"})]
+    assert websocket.sent[-1]["type"] == "tool-bundle-result"
+    assert websocket.sent[-1]["payload"]["bundle_id"] == "bundle-1"
+    assert websocket.sent[-1]["payload"]["status"] == "success"
+    assert websocket.sent[-1]["payload"]["step_results"][0]["output"] == {
+        "llm_content": "save_note:first"
+    }
 
 
 @pytest.mark.asyncio

@@ -32,10 +32,14 @@ tooling. Agent sessions use `WindieSdkClient.wake_up(...)`, which builds the
 low-level `agent_definition` from first-class arguments before connecting to the
 hosted backend websocket.
 
-Python does not yet execute local module tools, plugins, or MCP servers. Those
-inputs are rejected instead of advertising tools the Python runtime cannot route
-to the sidecar daemon. Use the TypeScript `WindieClient` runtime when local tool
-execution is required.
+When local module tools, plugins, or MCP servers are supplied, the Python client
+uses the same sidecar daemon contract as the TypeScript runtime: discover or
+start the daemon, register local executable capabilities, include the daemon
+tool manifest in `agent_definition`, and route backend `tool-call` /
+`tool-bundle` events back through `/execute-tool`.
+
+The Python runtime also exposes `status()`, `list_tools()`, and
+`shutdown_local_runtime()` for the resolved local daemon.
 
 ## Auth and Endpoints
 

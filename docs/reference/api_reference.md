@@ -388,6 +388,18 @@ query_plan = await sdk.get_query_plan(
 agent = await sdk.wake_up(
     system_prompt="You are a concise coding agent.",
     workspace_path="/Users/me/project",
+    tools=[
+        {
+            "name": "save_note",
+            "module": "my_project.tools:save_note",
+            "schema": {
+                "type": "object",
+                "properties": {"text": {"type": "string"}},
+                "required": ["text"],
+                "additionalProperties": False,
+            },
+        }
+    ],
 )
 message_id = await agent.query(
     text="Summarize the repo instructions.",
@@ -398,9 +410,9 @@ message_id = await agent.query(
 Agent runtime notes:
 
 - TypeScript agent sessions should be created through `WindieClient.wakeUp(...)`.
-- Python agent sessions should use `WindieSdkClient.wake_up(...)`; Python local
-  module tools, plugins, and MCP execution are intentionally rejected until the
-  Python wrapper adopts the same daemon executor protocol as the TypeScript runtime.
+- Python agent sessions should use `WindieSdkClient.wake_up(...)`; local module
+  tools, plugins, and MCP servers are registered with the same sidecar daemon
+  contract used by the TypeScript runtime.
 
 Shared image input shape:
 

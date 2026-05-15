@@ -6,7 +6,11 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import platform
+import tempfile
+import time
+from pathlib import Path
 from typing import Any, Optional
 from urllib.parse import quote, urlencode, urlparse, urlunparse
 from uuid import uuid4
@@ -16,6 +20,12 @@ import aiohttp
 from core.install_auth_state import get_authenticated_user_id
 from core.remote_api_client_base import RemoteApiClientBase
 from core.unicode_sanitizer import sanitize_surrogates
+
+DEFAULT_SIDECAR_DISCOVERY_FILE = (
+    Path(tempfile.gettempdir()) / "windieos" / "sidecar-daemon.json"
+)
+DEFAULT_SIDECAR_START_TIMEOUT_SECONDS = 10.0
+DEFAULT_SIDECAR_POLL_INTERVAL_SECONDS = 0.1
 
 
 def _build_error_message(status: int, body_text: str) -> str:
@@ -64,6 +74,21 @@ def _clean_string(value: Optional[str]) -> Optional[str]:
     return None
 
 
+def _build_manifest_tool(tool: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "name": tool.get("name"),
+        "description": tool.get("description"),
+        "execution_target": tool.get("execution_target") or "sidecar",
+        "argument_resolution": tool.get("argument_resolution") or "passthrough",
+        "schema": tool.get("schema")
+        or {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": True,
+        },
+    }
+
+
 def _build_python_wake_up_agent_definition(
     *,
     agent_id: Optional[str] = None,
@@ -72,6 +97,9 @@ def _build_python_wake_up_agent_definition(
     workspace_path: Optional[str] = None,
     skills: Optional[list[dict[str, Any]]] = None,
     agents_md: Optional[list[dict[str, Any]]] = None,
+    tools: Optional[list[dict[str, Any]]] = None,
+    mcps: Optional[list[dict[str, Any]]] = None,
+    plugins: Optional[list[dict[str, Any]]] = None,
 ) -> dict[str, Any]:
     definition: dict[str, Any] = {
         "version": 1,
@@ -85,12 +113,195 @@ def _build_python_wake_up_agent_definition(
         definition["skills"] = skills
     if agents_md:
         definition["agents_md"] = agents_md
+    if tools:
+        definition["tools"] = {
+            "mode": "default_plus_client",
+            "client_manifest": {
+                "version": 1,
+                "tools": tools,
+            },
+        }
+    if mcps:
+        definition["mcps"] = mcps
+    if plugins:
+        definition["plugins"] = plugins
     runtime: dict[str, Any] = {"operating_system": _detect_operating_system()}
     workspace = _clean_string(workspace_path)
     if workspace:
         runtime["workspace_path"] = workspace
     definition["runtime"] = runtime
     return definition
+
+
+def _normalize_tool_result_data(data: Any) -> dict[str, Any]:
+    if isinstance(data, dict):
+        if isinstance(data.get("llm_content"), str) and data["llm_content"].strip():
+            return data
+        fallback_content = (
+            data.get("output")
+            if isinstance(data.get("output"), str)
+            else json.dumps(data, separators=(",", ":"))
+        )
+        return {**data, "llm_content": fallback_content}
+    if isinstance(data, str):
+        return {"output": data, "llm_content": data}
+    if data is None:
+        return {}
+    return {"output": data}
+
+
+def _build_tool_result_payload(
+    request_id: str, result: dict[str, Any]
+) -> dict[str, Any]:
+    success = result.get("success") is not False
+    error = result.get("error") or "Tool execution failed"
+    return {
+        "request_id": request_id,
+        "success": success,
+        "data": (
+            _normalize_tool_result_data(result.get("data"))
+            if success
+            else _normalize_tool_result_data(result.get("data") or {"output": error})
+        ),
+        "error": None if success else error,
+    }
+
+
+class SidecarDaemonHttpClient:
+    def __init__(
+        self,
+        *,
+        base_url: str,
+        token: str,
+        timeout_seconds: int = 60,
+        aiohttp_module: Any = aiohttp,
+    ) -> None:
+        self.base_url = base_url.rstrip("/")
+        self.token = token
+        self.timeout_seconds = timeout_seconds
+        self._aiohttp = aiohttp_module
+        self._session: Any = None
+
+    async def initialize(self) -> None:
+        if self._session is None:
+            self._session = self._aiohttp.ClientSession()
+
+    async def close(self) -> None:
+        if self._session is not None:
+            await self._session.close()
+            self._session = None
+
+    def _headers(self) -> dict[str, str]:
+        return {"x-windie-sidecar-token": self.token}
+
+    async def _request_json(
+        self,
+        *,
+        method: str,
+        path: str,
+        payload: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
+        await self.initialize()
+        request_timeout = self._aiohttp.ClientTimeout(total=self.timeout_seconds)
+        request_url = f"{self.base_url}{path}"
+        if method == "get":
+            request_context = self._session.get(
+                request_url,
+                headers=self._headers(),
+                timeout=request_timeout,
+            )
+        elif method == "post":
+            request_context = self._session.post(
+                request_url,
+                json=sanitize_surrogates(payload or {}),
+                headers=self._headers(),
+                timeout=request_timeout,
+            )
+        else:
+            raise ValueError(f"Unsupported sidecar method: {method}")
+        async with request_context as response:
+            if response.status < 200 or response.status >= 300:
+                error_text = await response.text()
+                raise Exception(
+                    f"Sidecar daemon returned {response.status}: {error_text}"
+                )
+            data = await response.json()
+            if not isinstance(data, dict):
+                raise Exception("Sidecar daemon returned a non-object JSON payload")
+            return data
+
+    async def status(self) -> dict[str, Any]:
+        return await self._request_json(method="get", path="/status")
+
+    async def list_tools(self) -> dict[str, Any]:
+        return await self._request_json(method="get", path="/tools")
+
+    async def register_module_tool(
+        self,
+        tool: dict[str, Any],
+        *,
+        workspace_path: Optional[str] = None,
+    ) -> dict[str, Any]:
+        payload = {**tool}
+        if workspace_path:
+            payload["workspace_path"] = workspace_path
+        return await self._request_json(
+            method="post",
+            path="/tools/register-module",
+            payload=payload,
+        )
+
+    async def register_plugin(self, plugin: dict[str, Any]) -> dict[str, Any]:
+        return await self._request_json(
+            method="post",
+            path="/plugins/register",
+            payload=plugin,
+        )
+
+    async def register_mcp(self, mcp: dict[str, Any]) -> dict[str, Any]:
+        return await self._request_json(
+            method="post", path="/mcps/register", payload=mcp
+        )
+
+    async def execute_tool(
+        self, *, tool_name: str, args: dict[str, Any]
+    ) -> dict[str, Any]:
+        return await self._request_json(
+            method="post",
+            path="/execute-tool",
+            payload={"tool_name": tool_name, "args": args},
+        )
+
+    async def shutdown(self) -> None:
+        await self._request_json(method="post", path="/shutdown", payload={})
+
+
+def _normalize_discovery(raw: Any) -> Optional[dict[str, str]]:
+    if not isinstance(raw, dict):
+        return None
+    base_url = _clean_string(raw.get("base_url")) or _clean_string(raw.get("baseUrl"))
+    token = _clean_string(raw.get("token"))
+    if not base_url or not token:
+        return None
+    return {"base_url": base_url, "token": token}
+
+
+def _read_daemon_discovery(path: Path) -> Optional[dict[str, str]]:
+    try:
+        if not path.exists():
+            return None
+        return _normalize_discovery(json.loads(path.read_text(encoding="utf-8")))
+    except Exception:
+        return None
+
+
+def _resolve_daemon_script(explicit: Optional[str] = None) -> Path:
+    if _clean_string(explicit):
+        return Path(str(explicit)).expanduser().resolve()
+    env_value = _clean_string(os.environ.get("WINDIE_SIDECAR_DAEMON_SCRIPT"))
+    if env_value:
+        return Path(env_value).expanduser().resolve()
+    return Path(__file__).resolve().parents[1] / "sidecar_daemon.py"
 
 
 class WindieSdkAgentSession:
@@ -103,11 +314,13 @@ class WindieSdkAgentSession:
         user_id: str,
         operating_system: Optional[str] = None,
         agent_definition: Optional[dict[str, Any]] = None,
+        local_runtime: Any = None,
     ) -> None:
         self._websocket = websocket
         self.user_id = user_id
         self.operating_system = operating_system
         self.agent_definition = agent_definition
+        self.local_runtime = local_runtime
 
     async def initialize(self) -> None:
         payload = {
@@ -216,8 +429,12 @@ class WindieSdkAgentSession:
         if isinstance(data, bytes):
             data = data.decode("utf-8")
         if isinstance(data, str):
-            return json.loads(data)
+            parsed = json.loads(data)
+            if isinstance(parsed, dict):
+                await self._maybe_execute_local_tool(parsed)
+            return parsed
         if isinstance(data, dict):
+            await self._maybe_execute_local_tool(data)
             return data
         raise Exception("Unexpected websocket message payload")
 
@@ -236,6 +453,127 @@ class WindieSdkAgentSession:
             return
         raise Exception("Websocket implementation does not support JSON sending")
 
+    async def _maybe_execute_local_tool(self, event: dict[str, Any]) -> None:
+        if self.local_runtime is None:
+            return
+        event_type = event.get("type")
+        if event_type == "tool-call":
+            await self._execute_local_tool_call(event)
+        elif event_type == "tool-bundle":
+            await self._execute_local_tool_bundle(event)
+
+    async def _execute_local_tool_call(self, event: dict[str, Any]) -> None:
+        payload = event.get("payload") if isinstance(event.get("payload"), dict) else {}
+        metadata = (
+            payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+        )
+        if metadata.get("skip_frontend_execution") is True:
+            return
+        tool_name = _clean_string(payload.get("tool_name"))
+        request_id = _clean_string(payload.get("request_id")) or _clean_string(
+            payload.get("correlation_id")
+        )
+        if not tool_name or not request_id:
+            return
+        parameters = payload.get("parameters")
+        args = parameters if isinstance(parameters, dict) else {}
+        try:
+            result = await self.local_runtime.execute_tool(
+                tool_name=tool_name,
+                args=args,
+            )
+            result_payload = _build_tool_result_payload(request_id, result)
+        except Exception as exc:
+            error = str(exc)
+            result_payload = {
+                "request_id": request_id,
+                "success": False,
+                "data": _normalize_tool_result_data({"output": error}),
+                "error": error,
+            }
+        await self._send_json(
+            {
+                "id": f"msg_{uuid4().hex}",
+                "type": "tool-result",
+                "payload": result_payload,
+                "user_id": self.user_id,
+                "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            }
+        )
+
+    async def _execute_local_tool_bundle(self, event: dict[str, Any]) -> None:
+        payload = event.get("payload") if isinstance(event.get("payload"), dict) else {}
+        metadata = (
+            payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+        )
+        if metadata.get("skip_frontend_execution") is True:
+            return
+        bundle_id = _clean_string(payload.get("bundle_id"))
+        steps = payload.get("tools") if isinstance(payload.get("tools"), list) else []
+        if not bundle_id or not steps:
+            return
+        step_results: list[dict[str, Any]] = []
+        for step in steps:
+            if not isinstance(step, dict):
+                continue
+            tool_name = _clean_string(step.get("name"))
+            if not tool_name:
+                continue
+            args = step.get("args") if isinstance(step.get("args"), dict) else {}
+            try:
+                result = await self.local_runtime.execute_tool(
+                    tool_name=tool_name,
+                    args=args,
+                )
+                success = result.get("success") is not False
+                step_results.append(
+                    {
+                        "tool": tool_name,
+                        "status": "success" if success else "failure",
+                        "output": (
+                            _normalize_tool_result_data(result.get("data"))
+                            if success
+                            else {
+                                "error": result.get("error") or "Tool execution failed"
+                            }
+                        ),
+                    }
+                )
+            except Exception as exc:
+                step_results.append(
+                    {
+                        "tool": tool_name,
+                        "status": "failure",
+                        "output": {"error": str(exc)},
+                    }
+                )
+        if not step_results:
+            return
+        failures = [step for step in step_results if step["status"] != "success"]
+        status = (
+            "success"
+            if not failures
+            else "failure" if len(failures) == len(step_results) else "partial_failure"
+        )
+        await self._send_json(
+            {
+                "id": f"msg_{uuid4().hex}",
+                "type": "tool-bundle-result",
+                "payload": {
+                    "bundle_id": bundle_id,
+                    "status": status,
+                    "step_results": step_results,
+                    "error": (
+                        f"{len(failures)} bundled tool step(s) failed"
+                        if failures
+                        else None
+                    ),
+                },
+                "user_id": self.user_id,
+                "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            }
+        )
+
 
 class WindieSdkClient(RemoteApiClientBase):
     """Python transport wrapper over `/api/artifacts/*`, `/api/sdk/*`, and `/ws`."""
@@ -248,9 +586,41 @@ class WindieSdkClient(RemoteApiClientBase):
         *,
         timeout_seconds: int = 60,
         default_user_id: Optional[str] = None,
+        sidecar: Any = None,
+        auto_start_local_runtime: bool = True,
+        sidecar_discovery_file: Optional[str] = None,
+        sidecar_daemon_script: Optional[str] = None,
+        python_command: Optional[str] = None,
     ) -> None:
         super().__init__(backend_url=backend_url, timeout_seconds=timeout_seconds)
         self.default_user_id = default_user_id
+        self.sidecar = sidecar
+        self.auto_start_local_runtime = auto_start_local_runtime
+        self.sidecar_discovery_file = (
+            Path(sidecar_discovery_file).expanduser()
+            if sidecar_discovery_file
+            else DEFAULT_SIDECAR_DISCOVERY_FILE
+        )
+        self.sidecar_daemon_script = sidecar_daemon_script
+        self.python_command = (
+            python_command or os.environ.get("WINDIE_PYTHON") or "python3"
+        )
+        self._owned_sidecar_process: asyncio.subprocess.Process | None = None
+
+    async def close(self) -> None:
+        await super().close()
+        if isinstance(self.sidecar, SidecarDaemonHttpClient):
+            await self.sidecar.close()
+        if (
+            self._owned_sidecar_process
+            and self._owned_sidecar_process.returncode is None
+        ):
+            self._owned_sidecar_process.terminate()
+            try:
+                await asyncio.wait_for(self._owned_sidecar_process.wait(), timeout=2)
+            except asyncio.TimeoutError:
+                self._owned_sidecar_process.kill()
+        self._owned_sidecar_process = None
 
     async def request_json(
         self,
@@ -517,6 +887,36 @@ class WindieSdkClient(RemoteApiClientBase):
             method="post", path="/api/sdk/query-plan", payload=payload
         )
 
+    async def status(self) -> Optional[dict[str, Any]]:
+        local_runtime = await self._resolve_known_local_runtime()
+        if local_runtime is None:
+            return None
+        return await local_runtime.status()
+
+    async def list_tools(self) -> Optional[dict[str, Any]]:
+        local_runtime = await self._resolve_known_local_runtime()
+        if local_runtime is None:
+            return None
+        return await local_runtime.list_tools()
+
+    async def shutdown_local_runtime(self) -> None:
+        local_runtime = await self._resolve_known_local_runtime()
+        if local_runtime is None:
+            return
+        shutdown = getattr(local_runtime, "shutdown", None)
+        if callable(shutdown):
+            await shutdown()
+        close = getattr(local_runtime, "close", None)
+        if callable(close):
+            await close()
+        self.sidecar = None
+        if (
+            self._owned_sidecar_process
+            and self._owned_sidecar_process.returncode is None
+        ):
+            self._owned_sidecar_process.terminate()
+        self._owned_sidecar_process = None
+
     async def wake_up(
         self,
         *,
@@ -532,11 +932,16 @@ class WindieSdkClient(RemoteApiClientBase):
         agent_id: Optional[str] = None,
         name: Optional[str] = None,
     ) -> WindieSdkAgentSession:
-        if tools or mcps or plugins:
-            raise Exception(
-                "WindieSdkClient.wake_up does not execute local tools yet; "
-                "use the TypeScript WindieClient runtime for module tools, plugins, or MCPs"
-            )
+        local_runtime = await self._prepare_local_runtime(
+            tools=tools or [],
+            plugins=plugins or [],
+            mcps=mcps or [],
+            workspace_path=workspace_path,
+        )
+        manifest_tools = await self._build_wake_up_tool_manifest(
+            local_runtime=local_runtime,
+            tools=tools or [],
+        )
         agent_definition = _build_python_wake_up_agent_definition(
             agent_id=agent_id,
             name=name,
@@ -544,11 +949,15 @@ class WindieSdkClient(RemoteApiClientBase):
             workspace_path=workspace_path,
             skills=skills,
             agents_md=agents_md,
+            tools=manifest_tools,
+            mcps=mcps,
+            plugins=plugins,
         )
         return await self._connect_agent(
             backend_url=backend_url,
             user_id=user_id,
             agent_definition=agent_definition,
+            local_runtime=local_runtime,
         )
 
     async def _connect_agent(
@@ -557,6 +966,7 @@ class WindieSdkClient(RemoteApiClientBase):
         backend_url: Optional[str] = None,
         user_id: Optional[str] = None,
         agent_definition: Optional[dict[str, Any]] = None,
+        local_runtime: Any = None,
     ) -> WindieSdkAgentSession:
         if not self._session:
             await self.initialize()
@@ -587,6 +997,7 @@ class WindieSdkClient(RemoteApiClientBase):
                     user_id=effective_user_id.strip(),
                     operating_system=_detect_operating_system(),
                     agent_definition=agent_definition,
+                    local_runtime=local_runtime,
                 )
                 await session.initialize()
                 self.backend_url = candidate_backend_url
@@ -596,6 +1007,126 @@ class WindieSdkClient(RemoteApiClientBase):
                 continue
 
         raise Exception(f"Failed to connect to agent websocket: {last_network_error}")
+
+    def _needs_local_runtime(
+        self,
+        *,
+        tools: list[dict[str, Any]],
+        plugins: list[dict[str, Any]],
+        mcps: list[dict[str, Any]],
+    ) -> bool:
+        return bool(tools or plugins or mcps)
+
+    async def _prepare_local_runtime(
+        self,
+        *,
+        tools: list[dict[str, Any]],
+        plugins: list[dict[str, Any]],
+        mcps: list[dict[str, Any]],
+        workspace_path: Optional[str],
+    ) -> Any:
+        if not self._needs_local_runtime(tools=tools, plugins=plugins, mcps=mcps):
+            return None
+        local_runtime = await self._ensure_local_runtime()
+        await local_runtime.status()
+        for tool in tools:
+            if not isinstance(tool, dict):
+                continue
+            if _clean_string(tool.get("module")):
+                await local_runtime.register_module_tool(
+                    tool,
+                    workspace_path=workspace_path,
+                )
+        for plugin in plugins:
+            if isinstance(plugin, dict):
+                await local_runtime.register_plugin(plugin)
+        for mcp in mcps:
+            if isinstance(mcp, dict):
+                await local_runtime.register_mcp(mcp)
+        return local_runtime
+
+    async def _build_wake_up_tool_manifest(
+        self,
+        *,
+        local_runtime: Any,
+        tools: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        manifest_tools: list[dict[str, Any]] = []
+        if local_runtime is not None:
+            manifest = await local_runtime.list_tools()
+            raw_tools = manifest.get("tools") if isinstance(manifest, dict) else None
+            if isinstance(raw_tools, list):
+                manifest_tools.extend(
+                    tool for tool in raw_tools if isinstance(tool, dict)
+                )
+        explicit_tools = [
+            _build_manifest_tool(tool)
+            for tool in tools
+            if isinstance(tool, dict) and not _clean_string(tool.get("module"))
+        ]
+        manifest_tools.extend(explicit_tools)
+        return manifest_tools
+
+    async def _ensure_local_runtime(self) -> Any:
+        if self.sidecar is not None:
+            return self.sidecar
+        discovered = await self._probe_discovered_sidecar()
+        if discovered is not None:
+            self.sidecar = discovered
+            return discovered
+        if not self.auto_start_local_runtime:
+            raise Exception(
+                "WindieSdkClient local runtime is required but auto-start is disabled"
+            )
+        self.sidecar_discovery_file.parent.mkdir(parents=True, exist_ok=True)
+        daemon_script = _resolve_daemon_script(self.sidecar_daemon_script)
+        self._owned_sidecar_process = await asyncio.create_subprocess_exec(
+            self.python_command,
+            str(daemon_script),
+            "--discovery-file",
+            str(self.sidecar_discovery_file),
+            stdin=asyncio.subprocess.DEVNULL,
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+        deadline = time.monotonic() + DEFAULT_SIDECAR_START_TIMEOUT_SECONDS
+        while time.monotonic() < deadline:
+            discovered = await self._probe_discovered_sidecar()
+            if discovered is not None:
+                self.sidecar = discovered
+                return discovered
+            await asyncio.sleep(DEFAULT_SIDECAR_POLL_INTERVAL_SECONDS)
+        if self._owned_sidecar_process.returncode is None:
+            self._owned_sidecar_process.terminate()
+        raise Exception(
+            f"Timed out waiting for Windie sidecar daemon discovery at {self.sidecar_discovery_file}"
+        )
+
+    async def _probe_discovered_sidecar(self) -> Optional[SidecarDaemonHttpClient]:
+        discovery = _read_daemon_discovery(self.sidecar_discovery_file)
+        if not discovery:
+            return None
+        client = SidecarDaemonHttpClient(
+            base_url=discovery["base_url"],
+            token=discovery["token"],
+            timeout_seconds=self.timeout_seconds,
+            aiohttp_module=self._aiohttp,
+        )
+        try:
+            await client.status()
+            return client
+        except Exception:
+            await client.close()
+            return None
+
+    async def _resolve_known_local_runtime(self) -> Any:
+        if self.sidecar is not None:
+            return self.sidecar
+        discovered = await self._probe_discovered_sidecar()
+        if discovered is not None:
+            self.sidecar = discovered
+            return discovered
+        return None
 
     async def trace_query(
         self,
