@@ -15,7 +15,7 @@ WindieOS should use OpenClaw-style node docs for discoverability, but the curren
 | Node category | Current status | Notes |
 | --- | --- | --- |
 | Hosted backend node | implemented | FastAPI app exposes `/ws`, `/ws/transcription`, and `/api/*` routes; owns agent loop, providers, route auth, artifacts, OCR/vision, memory APIs, and runs control plane. |
-| Desktop app node | implemented | Electron main + React renderer + preload bridge own local UX, windows, IPC, endpoint selection, and backend websocket relay. |
+| Desktop app node | implemented | Electron main + React renderer + preload bridge own local UX, windows, IPC, endpoint selection, and SDK-runtime adaptation. |
 | Python sidecar node | implemented | Local subprocess owns executable tools, local memory, system state, shell/filesystem/computer/browser actions, and JSON-RPC protocol. |
 | Wakeword service node | implemented | Separate local subprocess for wakeword audio/model framing. |
 | VM worker node | implemented as control-plane worker | Electron main worker polls `/api/runs/*`, dispatches assigned work through `/ws`, and relays stream events. |

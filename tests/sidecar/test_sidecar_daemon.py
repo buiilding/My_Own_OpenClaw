@@ -18,6 +18,14 @@ class FakeRequest:
         return self._payload
 
 
+class FakeEventSocket:
+    def __init__(self):
+        self.sent = []
+
+    async def send_json(self, payload):
+        self.sent.append(payload)
+
+
 @pytest.mark.asyncio
 async def test_sidecar_daemon_rejects_missing_or_invalid_token():
     daemon = SidecarDaemon(token="test-token")
@@ -81,3 +89,31 @@ async def test_sidecar_daemon_registers_module_tool_without_restart(
         "success": True,
         "data": {"llm_content": "saved:hello"},
     }
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_events_channel_handles_control_messages():
+    daemon = SidecarDaemon(token="test-token")
+    ws = FakeEventSocket()
+
+    await daemon.handle_event_control_message(ws, '{"id":"1","type":"ping"}')
+    await daemon.handle_event_control_message(ws, '{"id":"2","type":"status"}')
+    await daemon.handle_event_control_message(ws, '{"id":"3","type":"tools/list"}')
+    await daemon.handle_event_control_message(ws, '{"id":"4","type":"unknown"}')
+    await daemon.handle_event_control_message(ws, "{bad-json")
+
+    assert ws.sent[0]["type"] == "pong"
+    assert ws.sent[0]["id"] == "1"
+    assert isinstance(ws.sent[0]["payload"]["pid"], int)
+    assert ws.sent[1]["type"] == "status"
+    assert ws.sent[1]["id"] == "2"
+    assert ws.sent[1]["payload"]["daemon"]["status"] == "ok"
+    assert ws.sent[2]["type"] == "tools"
+    assert ws.sent[2]["id"] == "3"
+    assert ws.sent[3] == {
+        "type": "error",
+        "error": "unknown_command",
+        "command": "unknown",
+        "id": "4",
+    }
+    assert ws.sent[4] == {"type": "error", "error": "invalid_json"}

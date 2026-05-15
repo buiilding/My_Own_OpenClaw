@@ -109,3 +109,32 @@ The daemon starts the MCP process over stdio, runs `initialize`, discovers `tool
 The daemon reports local execution needs but does not make user-facing approval decisions. Permission prompting remains with the host application, currently Electron main and renderer UI.
 
 `POST /permissions/request` returns `202 requires_host_prompt` until the host binds an approval UI to the daemon event/control channel.
+
+## Event And Control WebSocket
+
+`WS /events` sends an initial ready event:
+
+```json
+{ "type": "ready", "payload": { "pid": 12345 } }
+```
+
+The daemon also broadcasts lifecycle events such as:
+
+- `tool-registered`
+- `plugin-registered`
+- `mcp-registered`
+- `tool-executed`
+- `shutdown-requested`
+
+The same socket accepts lightweight control messages. Supported commands:
+
+```json
+{ "id": "1", "type": "ping" }
+{ "id": "2", "type": "status" }
+{ "id": "3", "type": "tools/list" }
+```
+
+Responses preserve `id` when supplied and use `pong`, `status`, `tools`, or
+`error` event types. This channel is intentionally local-runtime only; it does
+not expose backend model lists, OCR/vision policy, billing gates, or prompt
+state.

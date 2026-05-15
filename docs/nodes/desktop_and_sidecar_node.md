@@ -36,7 +36,8 @@ Start with these files when local orchestration changes:
 - `frontend/src/main/main_process_bootstrap_runtime.cjs`: bootstrap/runtime setup.
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`: Electron lifecycle policy.
 - `frontend/src/main/surface_runtime.cjs`: shared window/surface owner.
-- `frontend/src/main/ipc.cjs`: backend websocket relay, query dispatch, renderer fanout, session/config state.
+- `frontend/src/main/ipc.cjs`: SDK-runtime adaptation, query dispatch, renderer fanout, session/config state.
+- `frontend/src/main/windie_sdk_runtime.cjs`: hosted backend websocket primitive for Electron.
 - `frontend/src/main/ipc/**`: narrower IPC modules.
 - `frontend/src/main/local_backend_bridge.cjs`: sidecar process bridge.
 - `frontend/src/main/local_backend_bridge_*`: sidecar request mapping, timeout, screenshot, bounds, and tool-argument helpers.

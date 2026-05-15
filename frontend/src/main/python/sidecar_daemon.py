@@ -270,17 +270,7 @@ class SidecarDaemon:
         for ws in dead:
             self.events.discard(ws)
 
-    async def handle_health(self, request: web.Request) -> web.Response:
-        return web.json_response(
-            {
-                "status": "ok",
-                "service": "windie_sidecar_daemon",
-                "pid": os.getpid(),
-                "created_at": self.created_at,
-            }
-        )
-
-    async def handle_status(self, request: web.Request) -> web.Response:
+    async def build_status_payload(self) -> dict[str, Any]:
         status = await self.backend._handle_get_status()
         status.update(
             {
@@ -292,7 +282,20 @@ class SidecarDaemon:
                 }
             }
         )
-        return web.json_response(status)
+        return status
+
+    async def handle_health(self, request: web.Request) -> web.Response:
+        return web.json_response(
+            {
+                "status": "ok",
+                "service": "windie_sidecar_daemon",
+                "pid": os.getpid(),
+                "created_at": self.created_at,
+            }
+        )
+
+    async def handle_status(self, request: web.Request) -> web.Response:
+        return web.json_response(await self.build_status_payload())
 
     async def handle_shutdown(self, request: web.Request) -> web.Response:
         await self.emit_event({"type": "shutdown-requested"})
@@ -426,10 +429,38 @@ class SidecarDaemon:
         await ws.prepare(request)
         self.events.add(ws)
         await ws.send_json({"type": "ready", "payload": {"pid": os.getpid()}})
-        async for _message in ws:
-            pass
+        async for message in ws:
+            if message.type == web.WSMsgType.TEXT:
+                await self.handle_event_control_message(ws, message.data)
+            elif message.type == web.WSMsgType.ERROR:
+                break
         self.events.discard(ws)
         return ws
+
+    async def handle_event_control_message(self, ws: Any, raw_message: str) -> None:
+        try:
+            message = json.loads(raw_message)
+        except json.JSONDecodeError:
+            await ws.send_json({"type": "error", "error": "invalid_json"})
+            return
+        if not isinstance(message, dict):
+            await ws.send_json({"type": "error", "error": "invalid_message"})
+            return
+
+        message_id = message.get("id")
+        command = normalize_string(message.get("type") or message.get("command"))
+        response: dict[str, Any]
+        if command in {"ping", "control/ping"}:
+            response = {"type": "pong", "payload": {"pid": os.getpid()}}
+        elif command in {"status", "control/status"}:
+            response = {"type": "status", "payload": await self.build_status_payload()}
+        elif command in {"tools/list", "list-tools", "control/tools"}:
+            response = {"type": "tools", "payload": self.backend.tool_registry.get_tool_manifest()}
+        else:
+            response = {"type": "error", "error": "unknown_command", "command": command}
+        if message_id is not None:
+            response["id"] = message_id
+        await ws.send_json(response)
 
     async def close(self) -> None:
         for client in self.mcp_clients.values():
