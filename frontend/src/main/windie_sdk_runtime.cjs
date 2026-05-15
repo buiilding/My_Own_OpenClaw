@@ -1,4 +1,6 @@
 const DEFAULT_RECONNECT_INTERVAL_MS = 1000;
+const DEFAULT_CONNECT_TIMEOUT_MS = 10000;
+const DEFAULT_IDLE_DISCONNECT_TIMEOUT_MS = 30 * 60 * 1000;
 
 function createWindieSdkMainRuntime(options = {}) {
   const WebSocketImpl = options.WebSocketImpl;
@@ -7,6 +9,14 @@ function createWindieSdkMainRuntime(options = {}) {
   }
 
   let socket = null;
+  let shouldMaintainConnection = false;
+  let intentionalCloseReason = null;
+  let reconnectTimer = null;
+  let idleDisconnectTimer = null;
+  const connectWaiters = new Set();
+  const reconnectIntervalMs = options.reconnectIntervalMs || DEFAULT_RECONNECT_INTERVAL_MS;
+  const connectTimeoutMs = options.connectTimeoutMs || DEFAULT_CONNECT_TIMEOUT_MS;
+  const idleDisconnectTimeoutMs = options.idleDisconnectTimeoutMs || DEFAULT_IDLE_DISCONNECT_TIMEOUT_MS;
 
   function isOpen() {
     return socket && socket.readyState === WebSocketImpl.OPEN;
@@ -16,8 +26,74 @@ function createWindieSdkMainRuntime(options = {}) {
     return socket && socket.readyState === WebSocketImpl.CONNECTING;
   }
 
-  function connect() {
-    if (typeof options.shouldConnect === 'function' && !options.shouldConnect()) {
+  function clearReconnectTimer() {
+    if (reconnectTimer !== null) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+  }
+
+  function clearIdleDisconnectTimer() {
+    if (idleDisconnectTimer !== null) {
+      clearTimeout(idleDisconnectTimer);
+      idleDisconnectTimer = null;
+    }
+  }
+
+  function resolveConnectWaiters() {
+    for (const waiter of connectWaiters) {
+      clearTimeout(waiter.timeoutId);
+      waiter.resolve(true);
+    }
+    connectWaiters.clear();
+  }
+
+  function rejectConnectWaiters(error) {
+    for (const waiter of connectWaiters) {
+      clearTimeout(waiter.timeoutId);
+      waiter.reject(error);
+    }
+    connectWaiters.clear();
+  }
+
+  function scheduleReconnect(delayMs = reconnectIntervalMs) {
+    clearReconnectTimer();
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null;
+      connect({ force: true });
+    }, delayMs);
+  }
+
+  function syncIdleTimer(reason = 'idle-sync') {
+    clearIdleDisconnectTimer();
+    if (!shouldMaintainConnection || !isOpen()) {
+      return;
+    }
+    if (typeof options.shouldHoldOpen === 'function' && options.shouldHoldOpen()) {
+      return;
+    }
+    idleDisconnectTimer = setTimeout(() => {
+      options.log?.(`Closing idle backend websocket after ${idleDisconnectTimeoutMs}ms (${reason}).`);
+      intentionalCloseReason = 'idle-timeout';
+      shouldMaintainConnection = false;
+      clearReconnectTimer();
+      clearIdleDisconnectTimer();
+      if (socket && (socket.readyState === WebSocketImpl.OPEN || socket.readyState === WebSocketImpl.CONNECTING)) {
+        socket.close();
+      }
+    }, idleDisconnectTimeoutMs);
+  }
+
+  function noteTraffic(reason = 'traffic') {
+    if (!shouldMaintainConnection) {
+      return;
+    }
+    syncIdleTimer(reason);
+  }
+
+  function connect({ force = false } = {}) {
+    shouldMaintainConnection = true;
+    if (!force && !shouldMaintainConnection) {
       return;
     }
     if (isOpen() || isConnecting()) {
@@ -49,8 +125,11 @@ function createWindieSdkMainRuntime(options = {}) {
         const handshake = await options.buildHandshake?.();
         nextSocket.send(JSON.stringify(handshake));
         options.onOpen?.({ socket: nextSocket, handshake });
+        resolveConnectWaiters();
+        noteTraffic('ws-open');
       } catch (error) {
         options.onHandshakeError?.(error);
+        rejectConnectWaiters(error);
       }
     });
 
@@ -72,7 +151,26 @@ function createWindieSdkMainRuntime(options = {}) {
       }
       socket = null;
       options.onSocketChange?.(socket);
-      options.onClose?.({ opened });
+      clearIdleDisconnectTimer();
+      const closeReason = intentionalCloseReason;
+      intentionalCloseReason = null;
+      const shouldReconnect = shouldMaintainConnection && !closeReason;
+      let fallbackScheduled = false;
+      if (!opened && shouldReconnect && options.advanceEndpoint?.()) {
+        options.onFallback?.();
+        scheduleReconnect(0);
+        fallbackScheduled = true;
+      }
+      options.onClose?.({ opened, closeReason, shouldReconnect, fallbackScheduled });
+      if (!shouldReconnect && !opened) {
+        rejectConnectWaiters(
+          new Error(`Backend websocket closed before connecting (${closeReason || 'not-demanded'}).`),
+        );
+        return;
+      }
+      if (shouldReconnect && !fallbackScheduled) {
+        scheduleReconnect(reconnectIntervalMs);
+      }
     });
 
     nextSocket.on('error', (error) => {
@@ -80,7 +178,46 @@ function createWindieSdkMainRuntime(options = {}) {
         return;
       }
       options.onError?.({ error, opened, socket: nextSocket });
+      if (!opened && shouldMaintainConnection && options.advanceEndpoint?.()) {
+        socket = null;
+        options.onSocketChange?.(socket);
+        options.onFallback?.();
+        connect({ force: true });
+        return;
+      }
+      if (!opened && !shouldMaintainConnection) {
+        rejectConnectWaiters(error);
+      }
+      if (nextSocket.readyState === WebSocketImpl.OPEN) {
+        nextSocket.close();
+      }
     });
+  }
+
+  async function ensureConnected({ reason = 'request', timeoutMs = connectTimeoutMs } = {}) {
+    shouldMaintainConnection = true;
+    clearReconnectTimer();
+    clearIdleDisconnectTimer();
+    await options.beforeConnect?.({ reason });
+    if (isOpen()) {
+      syncIdleTimer(`ensure:${reason}`);
+      return true;
+    }
+    const waitPromise = new Promise((resolve, reject) => {
+      const waiter = {
+        resolve,
+        reject,
+        timeoutId: setTimeout(() => {
+          connectWaiters.delete(waiter);
+          reject(new Error(`Timed out connecting to backend for ${reason}.`));
+        }, timeoutMs),
+      };
+      connectWaiters.add(waiter);
+    });
+    connect({ force: true });
+    await waitPromise;
+    syncIdleTimer(`connected:${reason}`);
+    return true;
   }
 
   function sendEnvelope({
@@ -117,6 +254,11 @@ function createWindieSdkMainRuntime(options = {}) {
   }
 
   function close(reason = 'runtime-close') {
+    shouldMaintainConnection = false;
+    intentionalCloseReason = reason;
+    clearReconnectTimer();
+    clearIdleDisconnectTimer();
+    rejectConnectWaiters(new Error('Windie SDK runtime closed.'));
     const current = socket;
     socket = null;
     options.onSocketChange?.(socket);
@@ -133,10 +275,13 @@ function createWindieSdkMainRuntime(options = {}) {
     close,
     connect,
     getSocket: () => socket,
+    ensureConnected,
     isConnecting,
     isOpen,
-    reconnectIntervalMs: options.reconnectIntervalMs || DEFAULT_RECONNECT_INTERVAL_MS,
+    noteTraffic,
+    reconnectIntervalMs,
     sendEnvelope,
+    syncIdleTimer,
   };
 }
 

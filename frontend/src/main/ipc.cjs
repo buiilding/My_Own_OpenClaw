@@ -129,7 +129,6 @@ const SETTINGS_SYNC_TIMEOUT_MS = 2500;
 const BACKEND_RECONNECT_INTERVAL_MS = 1000;
 const BACKEND_CONNECT_TIMEOUT_MS = 10000;
 const BACKEND_IDLE_DISCONNECT_TIMEOUT_MS = 30 * 60 * 1000;
-let ws = null;
 let rendererWindows = new Set();
 let isConnected = false;
 let isFirstQuery = true;
@@ -145,16 +144,11 @@ let pendingSettingsSyncPromise = null;
 const pendingSettingsSyncs = new Map();
 let hasPendingListModelsRequest = false;
 const backendMessageObservers = new Set();
-const pendingBackendConnectWaiters = new Set();
 let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
 let setAgentLoopStopShortcutEnabled = null;
 let setGlobalAgentStopShortcutAccelerator = null;
 let currentGlobalAgentStopShortcutStatus = null;
-let backendReconnectTimer = null;
-let backendIdleDisconnectTimer = null;
-let shouldMaintainBackendConnection = false;
-let intentionalSocketCloseReason = null;
 let pendingInstallAuthStatePromise = null;
 let windieSdkRuntime = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
@@ -393,115 +387,20 @@ function isActiveBackendLoopPhase(phase) {
   );
 }
 
-function clearBackendReconnectTimer() {
-  if (backendReconnectTimer !== null) {
-    clearTimeout(backendReconnectTimer);
-    backendReconnectTimer = null;
-  }
-}
-
-function scheduleBackendReconnect(delayMs = BACKEND_RECONNECT_INTERVAL_MS) {
-  clearBackendReconnectTimer();
-  backendReconnectTimer = setTimeout(() => {
-    backendReconnectTimer = null;
-    connect();
-  }, delayMs);
-}
-
-function clearBackendIdleDisconnectTimer() {
-  if (backendIdleDisconnectTimer !== null) {
-    clearTimeout(backendIdleDisconnectTimer);
-    backendIdleDisconnectTimer = null;
-  }
-}
-
-function resolvePendingBackendConnectWaiters() {
-  if (pendingBackendConnectWaiters.size === 0) {
-    return;
-  }
-  for (const waiter of pendingBackendConnectWaiters) {
-    clearTimeout(waiter.timeoutId);
-    waiter.resolve(true);
-  }
-  pendingBackendConnectWaiters.clear();
-}
-
-function rejectPendingBackendConnectWaiters(error) {
-  if (pendingBackendConnectWaiters.size === 0) {
-    return;
-  }
-  for (const waiter of pendingBackendConnectWaiters) {
-    clearTimeout(waiter.timeoutId);
-    waiter.reject(error);
-  }
-  pendingBackendConnectWaiters.clear();
-}
-
 function syncBackendIdleDisconnectTimer(reason = 'idle-sync') {
-  clearBackendIdleDisconnectTimer();
-  if (!shouldMaintainBackendConnection) {
-    return;
-  }
-  if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) {
-    return;
-  }
-  if (isActiveBackendLoopPhase(responseOverlayPhaseState.getPhase())) {
-    return;
-  }
-  backendIdleDisconnectTimer = setTimeout(() => {
-    log(`Closing idle backend websocket after ${BACKEND_IDLE_DISCONNECT_TIMEOUT_MS}ms (${reason}).`);
-    intentionalSocketCloseReason = 'idle-timeout';
-    shouldMaintainBackendConnection = false;
-    clearBackendReconnectTimer();
-    clearBackendIdleDisconnectTimer();
-    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
-      ws.close();
-    }
-  }, BACKEND_IDLE_DISCONNECT_TIMEOUT_MS);
+  getWindieSdkRuntime().syncIdleTimer(reason);
 }
 
 function noteBackendTraffic(reason = 'traffic') {
-  if (!shouldMaintainBackendConnection) {
-    return;
-  }
-  syncBackendIdleDisconnectTimer(reason);
+  getWindieSdkRuntime().noteTraffic(reason);
 }
 
-function ensureBackendConnectionDemand() {
-  shouldMaintainBackendConnection = true;
-  clearBackendReconnectTimer();
-  clearBackendIdleDisconnectTimer();
-}
-
-function waitForBackendConnection(reason = 'request', timeoutMs = BACKEND_CONNECT_TIMEOUT_MS) {
-  if (isConnected && ws && ws.readyState === WebSocket.OPEN) {
-    return Promise.resolve(true);
-  }
-  return new Promise((resolve, reject) => {
-    const waiter = {
-      resolve,
-      reject,
-      timeoutId: setTimeout(() => {
-        pendingBackendConnectWaiters.delete(waiter);
-        reject(new Error(`Timed out connecting to backend for ${reason}.`));
-      }, timeoutMs),
-    };
-    pendingBackendConnectWaiters.add(waiter);
-  });
+function isBackendRuntimeConnected() {
+  return isConnected && Boolean(windieSdkRuntime?.isOpen?.());
 }
 
 async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_CONNECT_TIMEOUT_MS) {
-  ensureBackendConnectionDemand();
-  await ensureInstallAuthState();
-  if (isConnected && ws && ws.readyState === WebSocket.OPEN) {
-    syncBackendIdleDisconnectTimer(`ensure:${reason}`);
-    return true;
-  }
-  const waitPromise = waitForBackendConnection(reason, timeoutMs);
-  connect();
-  await waitPromise;
-  syncBackendIdleDisconnectTimer(`connected:${reason}`);
-  return true;
+  return getWindieSdkRuntime().ensureConnected({ reason, timeoutMs });
 }
 
 function buildIpcStatusPayload(connected) {
@@ -548,7 +447,7 @@ async function sendSettingsUpdate(config, source = 'renderer') {
     return Promise.resolve(false);
   }
   latestFrontendConfig = { ...config };
-  if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) {
+  if (!isBackendRuntimeConnected()) {
     try {
       await ensureBackendConnection(`update-settings:${source}`);
     } catch (error) {
@@ -714,18 +613,19 @@ function getWindieSdkRuntime() {
     createMessageId: uuidv4,
     getEndpoint: () => BACKEND_ENDPOINTS,
     getHeaders: buildInstallAuthHeaders,
-    shouldConnect: () => shouldMaintainBackendConnection,
+    beforeConnect: () => ensureInstallAuthState(),
+    shouldHoldOpen: () => isActiveBackendLoopPhase(responseOverlayPhaseState.getPhase()),
     buildHandshake: buildSdkRuntimeHandshake,
-    onSocketChange: (socket) => {
-      ws = socket;
-    },
+    advanceEndpoint: advanceToNextBackendEndpoint,
+    connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
+    reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
+    idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
     onOpen: ({ handshake }) => {
       isConnected = true;
       isFirstQuery = true;
       resetSettingsSyncState();
       setResponseOverlayPhase('idle', 'ws-open');
       ipcEventReplayState.clear();
-      clearBackendReconnectTimer();
       log('Successfully connected to Python backend through Windie SDK runtime.');
       log(`Handshake sent with authenticated user_id: ${currentUserId}`);
       runExtensionLifecycleHook('onSessionStart', {
@@ -737,64 +637,33 @@ function getWindieSdkRuntime() {
         log(`Extension onSessionStart hook failed: ${error?.message || error}`);
       });
       broadcastConnectionStatus(true);
-      resolvePendingBackendConnectWaiters();
-      noteBackendTraffic('ws-open');
       flushPendingListModelsRequest();
     },
     onHandshakeError: (error) => {
       log(`Error sending handshake: ${error}`);
-      rejectPendingBackendConnectWaiters(error);
     },
     onMessage: handleSdkRuntimeMessage,
     onMessageError: (error) => {
       log(`Error parsing message from backend: ${error}`);
     },
-    onClose: ({ opened }) => {
+    onClose: ({ closeReason, shouldReconnect }) => {
       isConnected = false;
       resetSettingsSyncState();
       resetBackendSessionState();
       setResponseOverlayPhase('idle', 'ws-close');
       ipcEventReplayState.clear();
-      const closeReason = intentionalSocketCloseReason;
-      intentionalSocketCloseReason = null;
-      clearBackendIdleDisconnectTimer();
-      const shouldReconnect = shouldMaintainBackendConnection && !closeReason;
-      if (!opened && shouldReconnect && advanceToNextBackendEndpoint()) {
-        log(`Primary backend unavailable. Falling back to ${BACKEND_URL}.`);
-        broadcastConnectionStatus(false);
-        scheduleBackendReconnect(0);
-        return;
-      }
       if (shouldReconnect) {
         log('Disconnected from Python backend. Attempting to reconnect...');
       } else {
         log(`Disconnected from Python backend (${closeReason || 'idle'}).`);
       }
       broadcastConnectionStatus(false);
-      if (!shouldReconnect && !opened) {
-        rejectPendingBackendConnectWaiters(
-          new Error(`Backend websocket closed before connecting (${closeReason || 'not-demanded'}).`),
-        );
-        return;
-      }
-      if (shouldReconnect) {
-        scheduleBackendReconnect(BACKEND_RECONNECT_INTERVAL_MS);
-      }
     },
-    onError: ({ error, opened, socket }) => {
+    onError: ({ error }) => {
       log(`WebSocket error: ${error.message}`);
-      if (!opened && shouldMaintainBackendConnection && advanceToNextBackendEndpoint()) {
-        log(`Primary backend unavailable. Falling back to ${BACKEND_URL}.`);
-        ws = null;
-        connect();
-        return;
-      }
-      if (!opened && !shouldMaintainBackendConnection) {
-        rejectPendingBackendConnectWaiters(error);
-      }
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.close();
-      }
+    },
+    onFallback: () => {
+      log(`Primary backend unavailable. Falling back to ${BACKEND_URL}.`);
     },
     onSend: (type) => {
       noteBackendTraffic(`send:${type}`);
@@ -804,12 +673,8 @@ function getWindieSdkRuntime() {
   return windieSdkRuntime;
 }
 
-function connect() {
-  getWindieSdkRuntime().connect();
-}
-
 function sendMessageToBackend(type, payload, messageId = null) {
-  if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) {
+  if (!isBackendRuntimeConnected()) {
     log('Cannot send message: WebSocket is not connected.');
     return null;
   }
@@ -829,11 +694,6 @@ function sendMessageToBackend(type, payload, messageId = null) {
 }
 
 function shutdownIpcForTests() {
-  shouldMaintainBackendConnection = false;
-  intentionalSocketCloseReason = 'test-shutdown';
-  clearBackendReconnectTimer();
-  clearBackendIdleDisconnectTimer();
-  rejectPendingBackendConnectWaiters(new Error('IPC bridge shutdown.'));
   resetSettingsSyncState();
   resetBackendSessionState();
   hasPendingListModelsRequest = false;
@@ -845,7 +705,6 @@ function shutdownIpcForTests() {
   setGlobalAgentStopShortcutAccelerator = null;
   pendingInstallAuthStatePromise = null;
   const runtime = windieSdkRuntime;
-  ws = null;
   isConnected = false;
   runtime?.close?.('test-shutdown');
 }
@@ -1045,7 +904,7 @@ function initializeIpc(win, options = {}) {
       return;
     }
 
-    if (type === 'list-models' && (!isConnected || !ws || ws.readyState !== WebSocket.OPEN)) {
+    if (type === 'list-models' && !isBackendRuntimeConnected()) {
       queueListModelsRequest();
       log('Queued list-models request until backend websocket is connected.');
       try {
@@ -1130,7 +989,7 @@ function initializeIpc(win, options = {}) {
       || type === 'load-settings'
     );
     let backendConnectionReady = true;
-    if (shouldConnectForMessage && (!isConnected || !ws || ws.readyState !== WebSocket.OPEN)) {
+    if (shouldConnectForMessage && !isBackendRuntimeConnected()) {
       try {
         await ensureBackendConnection(type);
       } catch (error) {
