@@ -6,7 +6,6 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- docs: refocus the README opening around WindieOS as an open-source OS-layer Codex alternative with voice, shared screen context, and customization.
 - backend/openai: synthesize Responses stream payloads from output item events and function-call argument deltas when OpenAI omits the terminal response envelope.
 - frontend: hide chat composer scrollbars across dashboard and minimal pill multiline drafts.
 - extensions: replace the old package root with first-class repo-level `plugins`, `skills`, and `mcps` folders, with plugin tools executing through the sidecar instead of Electron main.
