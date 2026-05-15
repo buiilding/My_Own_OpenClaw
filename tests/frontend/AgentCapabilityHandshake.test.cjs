@@ -161,6 +161,20 @@ describe('agent capability handshake manifest', () => {
     expect(payload.agent_definition.runtime.coordinate_methods).toBeUndefined();
   });
 
+  test('does not forward frontend coordinate-method requests', () => {
+    const payload = buildAgentCapabilityHandshakePayload({
+      requestedAgentPolicy: {
+        coordinate_methods: ['ocr'],
+        disabled_capabilities: ['vision'],
+      },
+    });
+
+    expect(payload.available_coordinate_methods).toBeUndefined();
+    expect(payload.requested_agent_policy.coordinate_methods).toBeUndefined();
+    expect(payload.requested_agent_policy.disabled_capabilities).toEqual(['vision']);
+    expect(payload.agent_definition.runtime.coordinate_methods).toBeUndefined();
+  });
+
   test('can build partial query agent definitions without a tool manifest', () => {
     const definition = buildAgentDefinition({
       includeToolManifest: false,

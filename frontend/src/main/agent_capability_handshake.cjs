@@ -49,11 +49,6 @@ function normalizeRequestedAgentPolicy(policy) {
     normalized.disabled_capabilities = disabledCapabilities;
   }
 
-  const coordinateMethods = normalizeStringList(policy.coordinate_methods);
-  if (coordinateMethods) {
-    normalized.coordinate_methods = coordinateMethods;
-  }
-
   return Object.keys(normalized).length > 0 ? normalized : null;
 }
 
@@ -84,7 +79,6 @@ function buildAgentCapabilityHandshakePayload(options = {}) {
     enabledRemoteTools: HANDSHAKE_REMOTE_TOOLS,
     disabledTools: normalizeStringList(options.disabledTools) || [],
     disabledCapabilities: requestedAgentPolicy?.disabled_capabilities || [],
-    coordinateMethods: [],
     operatingSystem,
     promptLayers: options.promptLayers,
     skills: options.skills,

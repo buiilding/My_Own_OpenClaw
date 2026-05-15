@@ -57,7 +57,6 @@ function buildAgentDefinition(options = {}) {
   const enabledRemoteTools = normalizeStringList(options.enabledRemoteTools);
   const disabledTools = normalizeStringList(options.disabledTools);
   const disabledCapabilities = normalizeStringList(options.disabledCapabilities);
-  const coordinateMethods = normalizeStringList(options.coordinateMethods);
   const explicitAvailableTools = normalizeStringList(options.availableTools);
   const extensionPromptLayers = options.includeExtensionPromptLayers === false
     ? []
@@ -107,7 +106,6 @@ function buildAgentDefinition(options = {}) {
     runtime: {
       operating_system: normalizeString(options.operatingSystem),
       workspace_path: workspacePath,
-      coordinate_methods: coordinateMethods.length > 0 ? coordinateMethods : undefined,
     },
   };
 

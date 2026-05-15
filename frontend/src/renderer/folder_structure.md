@@ -284,7 +284,7 @@ frontend/src/renderer/
 3. IPC BRIDGE
    └─> infrastructure/ipc/bridge.ts
        └─> IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'query', ... })
-           └─> Main process (`src/main/ipc.cjs`) waits for initial `update-settings` ACK, then forwards query to backend WebSocket
+           └─> Main process (`src/main/ipc.cjs`) hands query context to the SDK runtime, which owns the hosted backend WebSocket
 ```
 
 ### Streaming Response Flow
@@ -540,7 +540,7 @@ App
 ## IPC Channel Usage
 
 ### Send Channels (Renderer → Main)
-- `TO_BACKEND` - Send messages to backend WebSocket
+- `TO_BACKEND` - Send query/settings messages to the SDK runtime adapter in main
 - `WAKEWORD_AUDIO_CHUNK` - Send audio chunks for wakeword detection
 - `WAKEWORD_ENABLE` - Enable wakeword detection
 - `WAKEWORD_DISABLE` - Disable wakeword detection

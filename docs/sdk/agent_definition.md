@@ -47,8 +47,7 @@ Send `agent_definition` in the first `/ws` message:
     "plugins": [],
     "runtime": {
       "operating_system": "macOS",
-      "workspace_path": "/Users/me/project",
-      "coordinate_methods": ["manual", "ocr"]
+      "workspace_path": "/Users/me/project"
     }
   }
 }
@@ -70,7 +69,7 @@ accepted during handshake.
 | `skills` | Skill instruction packs already resolved by the client into content. Skills are not executable tools. |
 | `agents_md` | AGENTS.md or repo instruction content already resolved by the client. Hosted backend must not assume local filesystem access. |
 | `plugins` | Plugin metadata and plugin prompt layers. Plugin executable tools still belong in `tools.client_manifest`. |
-| `runtime` | OS, workspace, and coordinate-method facts that affect prompt rendering and tool policy. |
+| `runtime` | OS and workspace facts that affect prompt rendering and tool policy. Backend provider health and policy own OCR, vision, prediction, web search, and paid capability availability. |
 
 ## Tool Modes
 
