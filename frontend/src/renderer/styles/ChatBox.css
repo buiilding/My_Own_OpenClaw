@@ -376,7 +376,7 @@ body {
 }
 
 .chatbox-image-preview-remove:hover {
-  background: rgba(22, 22, 22, 0.9);
+  background: rgba(0, 122, 255, 0.34);
 }
 
 .chatbox-file-preview-card {
@@ -449,7 +449,7 @@ body {
 }
 
 .chatbox-file-preview-remove:hover {
-  background: rgba(22, 22, 22, 0.9);
+  background: rgba(0, 122, 255, 0.34);
 }
 
 .chatbox-icon.is-enabled,
@@ -536,7 +536,7 @@ body {
 
 .chatbox-close-badge:hover:not(:disabled) {
   color: var(--ui-text-primary);
-  background: transparent;
+  background: var(--ui-hover-bg);
 }
 
 .chatbox-close-badge:disabled {
@@ -590,7 +590,7 @@ body {
 
 .chatbox-response-pill::-webkit-scrollbar-thumb:hover,
 .chatbox-response-pill *::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.34);
+  background: rgba(0, 122, 255, 0.42);
 }
 
 .chatbox-response-pill::before {

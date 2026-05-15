@@ -11,9 +11,9 @@
   grid-template-rows: minmax(0, 1fr);
   overflow: hidden;
   background:
-    radial-gradient(circle at top left, rgba(126, 211, 122, 0.12), transparent 28%),
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.07), transparent 18%),
-    linear-gradient(180deg, #080808 0%, #020202 100%);
+    radial-gradient(circle at top left, rgba(0, 122, 255, 0.2), transparent 30%),
+    radial-gradient(circle at top right, rgba(166, 216, 255, 0.1), transparent 20%),
+    linear-gradient(180deg, var(--windie-black) 0%, #020202 100%);
   color: #f3f3f3;
 }
 
@@ -23,8 +23,8 @@
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   background:
-    linear-gradient(180deg, rgba(10, 10, 10, 0.96), rgba(4, 4, 4, 0.98)),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025), transparent 26%);
+    linear-gradient(180deg, rgba(5, 5, 5, 0.97), rgba(3, 3, 3, 0.99)),
+    linear-gradient(90deg, rgba(0, 122, 255, 0.045), transparent 28%);
   font-family: var(--font-ui);
   overflow: hidden;
 }
@@ -102,7 +102,8 @@
   line-height: 1.3;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #c5c5c5;
+  color: #fff;
+  text-shadow: none;
 }
 
 .frontend-onboarding-title {
@@ -146,7 +147,8 @@
     linear-gradient(180deg, rgba(19, 19, 19, 0.98), rgba(10, 10, 10, 0.98));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 20px 44px rgba(0, 0, 0, 0.34);
+    0 20px 44px rgba(0, 0, 0, 0.34),
+    0 0 30px -18px var(--windie-blue-glow);
 }
 
 .frontend-onboarding-stop-flow-keybind-label {
@@ -227,22 +229,24 @@
 
 .frontend-onboarding-button.secondary {
   color: #e2e2e2;
-  background: #0f0f0f;
+  background: var(--windie-gray);
 }
 
 .frontend-onboarding-button.secondary:hover {
-  background: #1a1a1a;
+  background: var(--windie-gray-light);
+  border-color: rgba(0, 122, 255, 0.34);
 }
 
 .frontend-onboarding-button.primary {
-  color: #0b0b0b;
-  background: #ffffff;
-  border-color: #ffffff;
+  color: #ffffff;
+  background: var(--windie-blue);
+  border-color: var(--windie-blue);
+  box-shadow: 0 0 20px -8px var(--windie-blue-glow);
 }
 
 .frontend-onboarding-button.primary:hover {
-  background: #ececec;
-  border-color: #ececec;
+  background: var(--windie-blue-hover);
+  border-color: var(--windie-blue-hover);
 }
 
 .frontend-onboarding-permissions-section {
@@ -267,7 +271,8 @@
   line-height: 1.2;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  color: #8fc49a;
+  color: #fff;
+  text-shadow: none;
 }
 
 .frontend-onboarding-permission-stage-summary {
@@ -297,13 +302,16 @@
   grid-template-columns: 1fr auto;
   gap: 14px;
   align-items: start;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(0, 122, 255, 0.24) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 28px -24px var(--windie-blue-glow) !important;
   outline: 0;
   border-radius: 22px;
   padding: 16px 18px;
   background:
-    linear-gradient(180deg, rgba(18, 18, 18, 0.92), rgba(10, 10, 10, 0.96));
+    radial-gradient(circle at top left, rgba(0, 122, 255, 0.08), transparent 42%),
+    linear-gradient(180deg, rgba(17, 17, 17, 0.94), rgba(8, 8, 8, 0.97));
 }
 
 .frontend-onboarding-permission-row.single {
@@ -389,7 +397,19 @@
 }
 
 .frontend-onboarding-permission-reason.status-granted {
-  color: #8dc29a;
+  color: var(--windie-pale);
+  text-shadow: 0 0 18px rgba(0, 122, 255, 0.18);
+}
+
+.frontend-onboarding-card-permissions .frontend-onboarding-permission-reason.status-granted,
+.frontend-onboarding-card-permissions .frontend-onboarding-permission-granted {
+  color: var(--windie-pale);
+}
+
+.frontend-onboarding-card-permissions .frontend-onboarding-permission-granted-icon {
+  background: var(--windie-blue);
+  border-color: rgba(166, 216, 255, 0.72);
+  color: #ffffff;
 }
 
 .frontend-onboarding-permission-row > .frontend-onboarding-button {
@@ -408,7 +428,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  color: #6fda8e;
+  color: var(--windie-pale);
   font-size: 13px;
   font-weight: 600;
   min-width: 112px;
@@ -427,9 +447,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(111, 218, 142, 0.18);
-  border: 1px solid rgba(111, 218, 142, 0.62);
-  color: #82e8a2;
+  background: var(--windie-blue);
+  border: 1px solid rgba(166, 216, 255, 0.62);
+  color: #ffffff;
   font-size: 12px;
   line-height: 1;
 }

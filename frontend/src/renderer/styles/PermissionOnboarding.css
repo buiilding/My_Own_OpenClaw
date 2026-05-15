@@ -26,13 +26,18 @@
 
 .permission-onboarding-card {
   width: 100%;
-  border: 1px solid #444;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  background: transparent;
+  background:
+    radial-gradient(circle at top left, rgba(0, 122, 255, 0.08), transparent 44%),
+    linear-gradient(180deg, rgba(17, 17, 17, 0.94), rgba(8, 8, 8, 0.96));
   padding: 16px;
   display: grid;
   gap: 12px;
   justify-items: stretch;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 28px -20px var(--windie-blue-glow);
 }
 
 .permission-slide-track {
@@ -104,7 +109,7 @@
 }
 
 .permission-onboarding-permission-state {
-  color: #d5d5d5;
+  color: var(--windie-pale);
   font-size: 1.08rem;
 }
 
@@ -148,16 +153,33 @@
   width: 100%;
   height: 56px;
   border-radius: 10px;
-  border: 1px solid #fff;
-  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--windie-gray);
   color: #fff;
   font-size: 1rem;
   font-weight: 600;
 }
 
 .permission-onboarding-slide-actions .secondary {
-  background: #fff;
-  color: #000;
+  background: rgba(255, 255, 255, 0.06);
+  color: #d7d7d7;
+}
+
+.permission-onboarding-slide-actions .primary {
+  background: var(--windie-blue);
+  border-color: var(--windie-blue);
+  box-shadow: 0 0 20px -10px var(--windie-blue-glow);
+}
+
+.permission-onboarding-slide-actions .primary:hover:not(:disabled) {
+  background: var(--windie-blue-hover);
+  border-color: var(--windie-blue-hover);
+}
+
+.permission-onboarding-slide-actions .secondary:hover:not(:disabled) {
+  border-color: rgba(0, 122, 255, 0.34);
+  background: rgba(0, 122, 255, 0.1);
+  color: #ffffff;
 }
 
 .permission-onboarding-card button,
@@ -166,17 +188,17 @@
   height: 44px;
   padding: 0 16px;
   border-radius: 8px;
-  border: 1px solid #3a3a3a;
-  background: #fff;
-  color: #000;
+  border: 1px solid var(--windie-blue);
+  background: var(--windie-blue);
+  color: #fff;
   cursor: pointer;
   font-size: 1rem;
 }
 
 .permission-onboarding-footer button {
-  background: #fff;
-  border-color: #fff;
-  color: #000;
+  background: var(--windie-blue);
+  border-color: var(--windie-blue);
+  color: #fff;
   font-weight: 600;
   min-width: 260px;
   height: 48px;
@@ -198,8 +220,10 @@
 }
 
 .permission-pill.granted {
-  border-color: #777;
-  color: #d5d5d5;
+  border-color: var(--windie-blue);
+  background: rgba(0, 122, 255, 0.14);
+  color: var(--windie-pale);
+  box-shadow: 0 0 18px -14px var(--windie-blue-glow);
 }
 
 .permission-pill.warning {

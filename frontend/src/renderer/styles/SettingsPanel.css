@@ -236,15 +236,15 @@
 
 .model-item:hover,
 .memory-item:hover {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(0, 122, 255, 0.34);
+  background: var(--ui-hover-bg);
   transform: translateY(-1px);
 }
 
 .model-item.active,
 .memory-item.active {
-  border-color: rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(0, 122, 255, 0.44);
+  background: var(--ui-hover-strong-bg);
   color: var(--ui-text-primary);
 }
 
@@ -290,8 +290,8 @@
 }
 
 .memory-card:hover {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(0, 122, 255, 0.34);
+  background: var(--ui-hover-bg);
   transform: translateY(-1px);
 }
 
@@ -342,11 +342,11 @@
 }
 
 .memory-back-button:hover {
-  color: var(--ui-text-secondary);
+  color: var(--windie-pale);
 }
 
 .memory-continue-button {
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(0, 122, 255, 0.62);
   background: var(--ui-send-bg);
   color: var(--ui-send-text);
   padding: 7px 12px;
@@ -359,7 +359,7 @@
 .memory-continue-button:hover:not(:disabled) {
   background: var(--ui-send-bg-hover);
   color: var(--ui-send-text);
-  border-color: rgba(255, 255, 255, 0.28);
+  border-color: rgba(166, 216, 255, 0.72);
 }
 
 .memory-continue-button:disabled {

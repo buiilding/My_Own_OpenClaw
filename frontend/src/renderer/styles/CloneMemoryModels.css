@@ -147,8 +147,9 @@
 }
 
 .clone-memory-type-btn:hover {
-  background: color-mix(in srgb, var(--ui-panel-bg) 82%, transparent);
-  color: var(--ui-text-muted);
+  background: var(--ui-hover-bg);
+  border-color: color-mix(in srgb, var(--accent) 34%, transparent);
+  color: var(--ui-text-primary);
 }
 
 .clone-memory-type-btn.active {
@@ -339,8 +340,8 @@
 }
 
 .clone-memory-item:hover {
-  border-color: var(--ui-border-soft);
-  background: color-mix(in srgb, var(--ui-panel-bg) 82%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 34%, transparent);
+  background: var(--ui-hover-bg);
 }
 
 .clone-memory-item-header {
@@ -439,8 +440,8 @@
 }
 
 .clone-memory-action-btn:hover {
-  background: color-mix(in srgb, var(--ui-panel-bg) 86%, transparent);
-  color: var(--ui-text-muted);
+  background: var(--ui-hover-strong-bg);
+  color: var(--ui-text-primary);
 }
 
 .clone-memory-action-btn.delete:hover {
@@ -569,7 +570,7 @@
 }
 
 .clone-model-api-keys-toggle:hover {
-  color: var(--ui-text-primary);
+  color: var(--windie-pale);
 }
 
 .clone-model-api-keys-content {
@@ -706,7 +707,8 @@
 }
 
 .clone-model-provider-back:hover {
-  background: color-mix(in srgb, var(--ui-panel-bg) 86%, transparent);
+  background: var(--ui-hover-strong-bg);
+  border-color: color-mix(in srgb, var(--accent) 34%, transparent);
   color: var(--ui-text-primary);
 }
 
@@ -728,8 +730,8 @@
 }
 
 .clone-model-provider-card:hover {
-  background: color-mix(in srgb, var(--ui-panel-bg) 82%, transparent);
-  border-color: var(--ui-border-soft);
+  background: var(--ui-hover-bg);
+  border-color: color-mix(in srgb, var(--accent) 34%, transparent);
 }
 
 .clone-model-provider-card.selected {
@@ -809,8 +811,8 @@
 }
 
 .clone-model-card.hovered {
-  background: color-mix(in srgb, var(--ui-panel-bg) 82%, transparent);
-  border-color: var(--ui-border-soft);
+  background: var(--ui-hover-bg);
+  border-color: color-mix(in srgb, var(--accent) 34%, transparent);
 }
 
 .clone-model-card.selected {
@@ -898,7 +900,7 @@
 }
 
 .clone-model-chevron.hovered {
-  color: var(--ui-text-muted);
+  color: var(--windie-pale);
   transform: translateX(2px);
 }
 

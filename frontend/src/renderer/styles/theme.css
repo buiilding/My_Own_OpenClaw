@@ -4,24 +4,33 @@
   --font-ui: 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
 
-  --bg-base: #141414;
-  --bg-muted: #1d1d1d;
-  --surface: #242424;
-  --surface-strong: #2a2a2a;
-  --surface-muted: #202020;
-  --surface-ink: #171717;
+  --windie-blue: #007aff;
+  --windie-blue-hover: #0055dd;
+  --windie-blue-soft: rgba(0, 122, 255, 0.16);
+  --windie-blue-glow: rgba(0, 122, 255, 0.38);
+  --windie-pale: #a6d8ff;
+  --windie-black: #050505;
+  --windie-gray: #111111;
+  --windie-gray-light: #1a1a1a;
+
+  --bg-base: var(--windie-black);
+  --bg-muted: var(--windie-gray);
+  --surface: var(--windie-gray-light);
+  --surface-strong: #202020;
+  --surface-muted: var(--windie-gray);
+  --surface-ink: #080808;
 
   --text-primary: #ececec;
   --text-muted: #b9b9b9;
   --text-soft: #8b8b8b;
 
-  --accent: #c6c6c6;
-  --accent-strong: #f2f2f2;
-  --accent-soft: rgba(255, 255, 255, 0.16);
+  --accent: var(--windie-blue);
+  --accent-strong: var(--windie-blue-hover);
+  --accent-soft: var(--windie-blue-soft);
 
   --warning: #e3a84f;
   --danger: #f87171;
-  --success: #2bc866;
+  --success: var(--windie-pale);
 
   --border: rgba(255, 255, 255, 0.1);
   --border-strong: rgba(255, 255, 255, 0.2);
@@ -47,30 +56,33 @@
   --legacy-dashboard-scrim: rgba(0, 0, 0, 0.62);
 
   /* Always-on-top pill palette source. */
-  --pill-surface-bg: rgba(10, 10, 10, 0.9);
-  --pill-surface-raised-bg: rgba(12, 12, 12, 0.92);
-  --pill-border: rgba(38, 38, 38, 1);
+  --pill-surface-bg: rgba(17, 17, 17, 0.92);
+  --pill-surface-raised-bg: rgba(26, 26, 26, 0.94);
+  --pill-border: rgba(42, 42, 42, 1);
   --pill-border-soft: rgba(255, 255, 255, 0.12);
   --pill-border-subtle: rgba(255, 255, 255, 0.08);
   --pill-text-primary: rgba(250, 250, 250, 1);
   --pill-text-muted: rgba(163, 163, 163, 1);
-  --pill-hover-bg: rgba(38, 38, 38, 1);
-  --pill-hover-strong-bg: rgba(56, 56, 56, 1);
+  --pill-hover-bg: rgba(0, 122, 255, 0.12);
+  --pill-hover-strong-bg: rgba(0, 122, 255, 0.18);
   --pill-scrim: rgba(0, 0, 0, 0.68);
-  --pill-shadow: 0 24px 60px rgba(0, 0, 0, 0.56);
+  --pill-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.56),
+    0 0 28px -18px var(--windie-blue-glow);
   --pill-shadow-strong:
     0 30px 64px -22px rgba(0, 0, 0, 0.82),
+    0 0 36px -18px var(--windie-blue-glow),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --pill-backdrop-blur: 24px;
   --pill-shell-bg:
-    linear-gradient(180deg, rgba(5, 5, 5, 0.98) 0%, rgba(8, 8, 8, 0.96) 48%, rgba(11, 11, 11, 0.98) 100%);
+    linear-gradient(180deg, rgba(5, 5, 5, 0.99) 0%, rgba(7, 7, 7, 0.98) 48%, rgba(10, 10, 10, 0.99) 100%);
   --pill-shell-ambient:
-    radial-gradient(1200px 760px at 12% -18%, rgba(255, 255, 255, 0.07), transparent 56%),
-    radial-gradient(920px 620px at 100% 0%, rgba(255, 255, 255, 0.04), transparent 52%);
+    radial-gradient(1200px 760px at 12% -18%, rgba(0, 122, 255, 0.14), transparent 56%),
+    radial-gradient(920px 620px at 100% 0%, rgba(166, 216, 255, 0.08), transparent 52%);
   --pill-sidebar-bg:
-    linear-gradient(180deg, rgba(8, 8, 8, 0.96) 0%, rgba(6, 6, 6, 0.98) 100%);
+    linear-gradient(180deg, rgba(9, 9, 9, 0.98) 0%, rgba(5, 5, 5, 0.99) 100%);
   --pill-panel-elevated-bg:
-    linear-gradient(180deg, rgba(15, 15, 15, 0.95) 0%, rgba(10, 10, 10, 0.92) 100%);
+    linear-gradient(180deg, rgba(26, 26, 26, 0.95) 0%, rgba(13, 13, 13, 0.94) 100%);
 
   /* Active theme mapping. To revert quickly, point these back to --legacy-* tokens below. */
   --ui-shell-bg: var(--pill-shell-bg);
@@ -81,7 +93,7 @@
   --ui-hover-bg: var(--pill-hover-bg);
   --ui-hover-strong-bg: var(--pill-hover-strong-bg);
   --ui-text-primary: var(--pill-text-primary);
-  --ui-text-secondary: rgba(233, 233, 233, 0.88);
+  --ui-text-secondary: rgba(233, 238, 246, 0.88);
   --ui-text-muted: var(--pill-text-muted);
   --ui-text-dim: rgba(126, 126, 126, 1);
   --ui-border: var(--pill-border);
@@ -91,15 +103,15 @@
   --ui-shadow: var(--pill-shadow);
   --ui-shadow-strong: var(--pill-shadow-strong);
   --ui-backdrop-blur: var(--pill-backdrop-blur);
-  --ui-send-bg: rgba(250, 250, 250, 1);
-  --ui-send-bg-hover: rgba(250, 250, 250, 0.9);
-  --ui-send-bg-disabled: rgba(171, 171, 171, 1);
-  --ui-send-text: rgba(23, 23, 23, 1);
+  --ui-send-bg: var(--windie-blue);
+  --ui-send-bg-hover: var(--windie-blue-hover);
+  --ui-send-bg-disabled: rgba(52, 76, 106, 0.82);
+  --ui-send-text: rgba(255, 255, 255, 1);
   --ui-neutral-white: #ffffff;
   --ui-neutral-black: #000000;
-  --ui-brand-dot-bg: var(--ui-neutral-white);
-  --ui-brand-dot-fg: var(--ui-neutral-black);
-  --ui-gpt-dot-bg: #00c4cc;
+  --ui-brand-dot-bg: var(--windie-blue);
+  --ui-brand-dot-fg: var(--ui-neutral-white);
+  --ui-gpt-dot-bg: var(--windie-blue);
   --ui-on-accent: var(--ui-neutral-white);
   --ui-settings-swatch-bg: var(--ui-neutral-black);
   --ui-toggle-thumb-on: var(--ui-neutral-white);
@@ -123,7 +135,7 @@ body {
   color: var(--text-primary);
   background:
     var(--ui-shell-ambient),
-    linear-gradient(180deg, rgba(4, 4, 4, 1) 0%, rgba(8, 8, 8, 1) 54%, rgba(11, 11, 11, 1) 100%);
+    linear-gradient(180deg, rgba(5, 5, 5, 1) 0%, rgba(7, 7, 7, 1) 54%, rgba(10, 10, 10, 1) 100%);
   background-attachment: fixed;
   overflow: hidden;
 }
@@ -145,7 +157,7 @@ a {
 }
 
 ::selection {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 122, 255, 0.45);
 }
 
 ::-webkit-scrollbar {
@@ -162,7 +174,7 @@ a {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(0, 122, 255, 0.42);
 }
 
 @keyframes fadeUp {

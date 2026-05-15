@@ -9,7 +9,6 @@ import {
   Pin,
   Trash2,
 } from 'lucide-react';
-import WindieGlyph from '../../../components/WindieGlyph';
 import { workspaceConversationGroupsPropType } from './shared/conversationGroupPropTypes';
 import DashboardSidebarNavigation from './sidebar/DashboardSidebarNavigation';
 import DashboardSidebarUserMenu from './sidebar/DashboardSidebarUserMenu';
@@ -180,9 +179,11 @@ function DashboardSidebar({
               {collapsedHeaderHovered ? (
                 <PanelLeft size={18} data-testid="sidebar-collapsed-expand-icon" />
               ) : (
-                <span data-testid="sidebar-collapsed-brand-icon" aria-hidden="true">
-                  <WindieGlyph size={14} />
-                </span>
+                <span
+                  className="cg-brand-app-icon"
+                  data-testid="sidebar-collapsed-brand-icon"
+                  aria-hidden="true"
+                />
               )}
             </button>
             <button
@@ -198,8 +199,8 @@ function DashboardSidebar({
         ) : (
           <>
             <div className="cg-sidebar-brand">
-              <div className="cg-brand-dot">
-                <WindieGlyph size={14} />
+              <div className="cg-brand-dot" aria-hidden="true">
+                <span className="cg-brand-app-icon" />
               </div>
             </div>
             <button
