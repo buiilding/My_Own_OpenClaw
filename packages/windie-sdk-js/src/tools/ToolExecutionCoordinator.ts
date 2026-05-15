@@ -27,7 +27,9 @@ function normalizeToolResultData(data: JsonRecord | undefined): JsonRecord {
   if (typeof data.llm_content === 'string' && data.llm_content.trim()) {
     return data;
   }
-  const display = typeof data.return_display === 'string' ? data.return_display : '';
+  const display = typeof data.return_display === 'string'
+    ? data.return_display
+    : (typeof data.output === 'string' ? data.output : '');
   return {
     ...data,
     llm_content: display || JSON.stringify(data),
@@ -184,13 +186,13 @@ export class ToolExecutionCoordinator {
       const success = result.success !== false;
       stepResults.push({
         tool: toolName,
-        status: success ? 'success' : 'failure',
+        status: success ? 'ok' : 'error',
         output: success
           ? normalizeToolResultData(result.data)
           : { error: result.error || 'Tool execution failed' },
       });
     }
-    const failures = stepResults.filter(step => step.status !== 'success');
+    const failures = stepResults.filter(step => step.status !== 'ok');
     const status = failures.length === 0
       ? 'success'
       : (failures.length === stepResults.length ? 'failure' : 'partial_failure');

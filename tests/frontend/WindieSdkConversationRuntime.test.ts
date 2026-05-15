@@ -264,6 +264,40 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('tool coordinator sends backend-compatible bundle step statuses', async () => {
+    const sendToolBundleResult = jest.fn(async () => undefined);
+    const coordinator = new ToolExecutionCoordinator({
+      localRuntime: {
+        executeTool: jest
+          .fn()
+          .mockResolvedValueOnce({ success: true, data: { output: 'one' } })
+          .mockResolvedValueOnce({ success: false, error: 'failed-two' }),
+      },
+      sendToolResult: jest.fn(async () => undefined),
+      sendToolBundleResult,
+    });
+
+    const claim = await coordinator.execute(event('tool_bundle_call', {
+      bundleId: 'bundle-read',
+      tools: [
+        { name: 'read_file', args: { path: 'a' } },
+        { name: 'read_file', args: { path: 'b' } },
+      ],
+    }));
+
+    expect(claim.claimed).toBe(true);
+    const bundlePayload = sendToolBundleResult.mock.calls[0][0];
+    expect(bundlePayload.bundle_id).toBe('bundle-read');
+    expect(bundlePayload.status).toBe('partial_failure');
+    expect(bundlePayload.step_results[0].status).toBe('ok');
+    expect(bundlePayload.step_results[0].output.llm_content).toBe('one');
+    expect(bundlePayload.step_results[1]).toEqual({
+      tool: 'read_file',
+      status: 'error',
+      output: { error: 'failed-two' },
+    });
+  });
+
   test('conversation runtime stores events and sends rehydrate from projection', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const sentRehydrates: Record<string, unknown>[] = [];
