@@ -78,6 +78,18 @@ describe('Windie SDK main runtime', () => {
       payload: { conversation_ref: 'conv-1' },
       user_id: 'dev-user',
     });
+    expect(runtime.sendUpdateSettings({ model_provider: 'openai' })).toBe('msg-1');
+    expect(runtime.sendListModels()).toBe('msg-1');
+    expect(JSON.parse(socket.sent[3])).toMatchObject({
+      type: 'update-settings',
+      payload: { model_provider: 'openai' },
+      user_id: 'dev-user',
+    });
+    expect(JSON.parse(socket.sent[4])).toMatchObject({
+      type: 'list-models',
+      payload: {},
+      user_id: 'dev-user',
+    });
   });
 
   test('owns connection waiters and reconnect scheduling', async () => {

@@ -184,8 +184,8 @@ SDK runtime backend send helpers:
 - inject envelope fields: `id`, `type`, `payload`, `user_id`, `timestamp`
 - expose named helpers for query, wakeword, stop-query, settings, list-models,
   and local tool-result traffic
-- keep `ipc.cjs` as a thin adapter for Electron call sites that still pass
-  generic backend message types
+- keep the compatibility `sendMessageToBackend(...)` export only for VM/bootstrap
+  adapters that still pass generic backend message types
 
 `normalizeBackendPayload(...)` strips unsupported/transient fields:
 

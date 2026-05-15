@@ -425,7 +425,7 @@ function flushPendingListModelsRequest() {
   if (!hasPendingListModelsRequest) {
     return;
   }
-  const msgId = sendMessageToBackend('list-models', {});
+  const msgId = getWindieSdkRuntime().sendListModels({});
   if (!msgId) {
     return;
   }
@@ -446,7 +446,7 @@ async function sendSettingsUpdate(config, source = 'renderer') {
       return false;
     }
   }
-  const msgId = sendMessageToBackend('update-settings', backendConfig);
+  const msgId = getWindieSdkRuntime().sendUpdateSettings(backendConfig);
   if (!msgId) {
     return Promise.resolve(false);
   }
@@ -962,9 +962,17 @@ function initializeIpc(win, options = {}) {
     // System context is now pre-formatted in llm_content by ChatContext.jsx
     // No need to extract or add system_context here - backend expects pre-formatted messages
     
-    const messageId = backendConnectionReady
-      ? sendMessageToBackend(type, payload, queryMessageId)
-      : null;
+    let messageId = null;
+    if (backendConnectionReady) {
+      const runtime = getWindieSdkRuntime();
+      if (type === 'query') {
+        messageId = runtime.sendQuery(payload, queryMessageId);
+      } else if (type === 'wakeword-detected') {
+        messageId = runtime.sendWakewordDetected(payload, queryMessageId);
+      } else {
+        messageId = runtime.sendBackendMessage(type, payload, queryMessageId);
+      }
+    }
     if (!messageId && type === 'query') {
       handleRendererQuerySendFailure({
         payload,
@@ -989,7 +997,7 @@ function initializeIpc(win, options = {}) {
 }
 
 function triggerStopQueryFromMain() {
-  const messageId = sendMessageToBackend('stop-query', currentConversationRef
+  const messageId = getWindieSdkRuntime().sendStopQuery(currentConversationRef
     ? { conversation_ref: currentConversationRef }
     : {});
   if (!messageId) {
@@ -1166,7 +1174,7 @@ async function sendAutomatedQuery(options = {}) {
   const payloadWithAgentDefinition = attachAgentDefinitionContext(payload);
 
   const queryMessageId = uuidv4();
-  const messageId = sendMessageToBackend('query', payloadWithAgentDefinition, queryMessageId);
+  const messageId = getWindieSdkRuntime().sendQuery(payloadWithAgentDefinition, queryMessageId);
   if (!messageId) {
     return { ok: false, error: 'Failed to send query to backend' };
   }
