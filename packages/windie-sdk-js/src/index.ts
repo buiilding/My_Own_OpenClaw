@@ -5,6 +5,15 @@ import {
   type ToolSchema,
 } from './backendEvents.js';
 
+export * from './conversation/types.js';
+export * from './conversation/events.js';
+export * from './stores/InMemoryConversationStore.js';
+export * from './projections/conversationProjections.js';
+export * from './runtime/conversationReducer.js';
+export * from './runtime/ConversationRuntime.js';
+export * from './transport/backendEventNormalizer.js';
+export * from './tools/ToolExecutionCoordinator.js';
+
 type FetchLike = typeof fetch;
 
 type WebSocketLike = {

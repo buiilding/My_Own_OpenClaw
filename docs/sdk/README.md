@@ -8,12 +8,16 @@ title: "SDK Hub"
 
 # SDK Hub
 
-WindieOS SDK docs cover the canonical client runtime for hosted backend access and local sidecar execution. Electron, future CLIs, and SDK users should share this runtime instead of owning separate backend websocket loops.
+WindieOS SDK docs cover the canonical client runtime for hosted backend access,
+local sidecar execution, and client-side conversation state. Electron, future
+CLIs, custom UIs, and SDK users should share this runtime instead of owning
+separate backend websocket loops, replay logic, or tool-result routing.
 
 ## SDK Pages
 
 - [Hosted Backend Clients](hosted_backend_clients.md)
 - [WindieClient Runtime Contract](windie_client_runtime.md)
+- [SDK Conversation Runtime](conversation_runtime.md)
 - [Agent Definition Contract](agent_definition.md)
 - [SDK Route Change Workflow](sdk_route_change_workflow.md)
 - [SDK Auth and Error Handling](sdk_auth_and_error_handling.md)
@@ -53,4 +57,9 @@ npm run build
 
 ## Rule
 
-Use `WindieClient.wakeUp(...)` for agent sessions. The SDK runtime owns the hosted backend websocket and delegates local execution to the sidecar daemon. The backend remains the owner of model lists, provider policy, OCR/vision availability, and paid capability gates.
+Use `WindieClient.wakeUp(...)` for agent sessions. The SDK runtime owns the
+hosted backend websocket, conversation runtime state, normalized projections, and
+local tool result return. It delegates local execution to the sidecar daemon. The
+backend remains the owner of model lists, provider policy, OCR/vision
+availability, prompt construction, compaction decisions, and paid capability
+gates.

@@ -29,7 +29,9 @@ TS Windie SDK runtime
 
 Ownership rules:
 
-- SDK runtime owns hosted backend HTTP/WebSocket connection, handshake, query, stop, settings, event fan-out, and tool-result return.
+- SDK runtime owns hosted backend HTTP/WebSocket connection, handshake, query,
+  stop, settings, event fan-out, normalized conversation events, display and
+  rehydrate projections, edit/retry revision semantics, and tool-result return.
 - sidecar daemon owns local execution only.
 - backend owns model/provider selection, paid capability gates, OCR/vision/prediction/web-search availability, prompt construction, session policy, and remote/backend tools.
 - Electron owns windows, renderer IPC, overlays, permission prompts, display/screenshot integration, and settings UI.
@@ -89,7 +91,34 @@ for await (const event of agent.stream("Run the test command and report progress
 5. Build the low-level backend `agent_definition`.
 6. Connect to the backend websocket.
 7. Send the websocket handshake with `agent_definition`.
-8. Route backend events to callers and route local `tool-call` events to the sidecar daemon.
+8. Normalize backend events into SDK conversation events.
+9. Route backend events to callers and route local `tool-call` events to the sidecar daemon.
+10. Project display transcript and rehydrate snapshots from normalized events.
+
+## Conversation Runtime
+
+The SDK conversation runtime is the canonical client-side state layer for
+desktop, CLI, custom UI, and tests.
+
+```text
+backend websocket event
+  -> SDK event normalizer
+  -> normalized conversation event
+  -> ConversationStore adapter
+  -> SDK projections
+     -> display transcript
+     -> backend rehydrate snapshot
+     -> tool trace
+     -> compaction state
+```
+
+Stores are persistence adapters. They append/load events and commit complete
+compacted replay snapshots, but they do not own display or backend rehydrate
+interpretation. Projection builders in the SDK own those views.
+
+Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
+state and should not render as assistant output or a full compacted-history panel
+in normal UI.
 
 ## Low-Level Agent Definition
 

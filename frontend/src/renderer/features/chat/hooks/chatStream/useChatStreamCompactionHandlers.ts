@@ -7,7 +7,6 @@ import type {
 } from '../../../../types/backendEvents';
 import {
   COMPACTION_THINKING_STATUS,
-  COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS,
   COMPACTION_COMPLETED_THINKING_STATUS,
   COMPACTION_FAILED_THINKING_STATUS,
 } from '../../utils/chatStream/chatStreamThinkingStatus';
@@ -96,10 +95,15 @@ export function useChatStreamCompactionHandlers({
           ? event.payload.skipped_reason.trim()
           : ''
       );
+      if (skippedReason) {
+        setThinkingStatus(null, conversationRef);
+        setThinkingSourceEventType(null, conversationRef);
+        setCompactionDebugInfo(null, conversationRef);
+        recordTrackingEvent('context-compaction-completed', event.turn_ref, { skippedReason }, conversationRef);
+        return;
+      }
       setThinkingStatus(
-        skippedReason
-          ? COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS
-          : COMPACTION_COMPLETED_THINKING_STATUS,
+        COMPACTION_COMPLETED_THINKING_STATUS,
         conversationRef,
       );
       setThinkingSourceEventType('context-compaction-completed', conversationRef);

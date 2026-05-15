@@ -182,6 +182,11 @@ function MessageList({
   const compactionStatusText = useMemo(() => {
     return resolveCompactionStatusText(thinkingStatus, thinkingSourceEventType);
   }, [thinkingSourceEventType, thinkingStatus]);
+  const showCompactionDebugDetails = showDevCompactionDebug
+    && compactionDebugInfo
+    && !compactionDebugInfo.skippedReason
+    && Array.isArray(compactionDebugInfo.replacementHistoryPreview)
+    && compactionDebugInfo.replacementHistoryPreview.length > 0;
 
   return (
     <div
@@ -206,7 +211,7 @@ function MessageList({
           </span>
         </div>
       ) : null}
-      {showDevCompactionDebug && compactionDebugInfo ? (
+      {showCompactionDebugDetails ? (
         <details className="message-list-compaction-debug" open>
           <summary>Compacted History Summary</summary>
           <div className="message-list-compaction-debug-metadata">

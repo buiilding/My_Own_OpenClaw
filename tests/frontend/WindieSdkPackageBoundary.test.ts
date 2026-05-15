@@ -1,6 +1,10 @@
 import {
   WindieClient,
   WindieSdkClient,
+  InMemoryConversationStore,
+  SdkConversationRuntime,
+  ToolExecutionCoordinator,
+  buildDisplayConversation,
   moduleTool,
 } from '../../packages/windie-sdk-js/src';
 
@@ -8,6 +12,10 @@ describe('@windie/sdk package boundary', () => {
   test('exports the public agent runtime surface', () => {
     expect(WindieClient).toBeDefined();
     expect(WindieSdkClient).toBeDefined();
+    expect(InMemoryConversationStore).toBeDefined();
+    expect(SdkConversationRuntime).toBeDefined();
+    expect(ToolExecutionCoordinator).toBeDefined();
+    expect(buildDisplayConversation).toBeDefined();
     expect(moduleTool({
       name: 'save_note',
       module: 'example.tools:save_note',

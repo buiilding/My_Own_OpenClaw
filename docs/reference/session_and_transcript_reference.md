@@ -19,6 +19,8 @@ Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_d
 - Treat `conversation_ref`, `turn_ref`, `request_id`, `tool_call_id`, `correlation_id`, and `bundle_id` as pipeline keys, not display metadata.
 - Keep visible transcript identifiers separate from backend provider-history identifiers. A transcript row can be user-facing; backend history must remain provider-replay-safe.
 - Preserve IDs through failure paths. A failed local tool still needs the original request or bundle key so backend waiters can unblock and history can record the failure.
+- In SDK-owned clients, persist normalized conversation events first and derive
+  display transcript and backend rehydrate payloads from SDK projections.
 
 ## Identifier Map
 
@@ -26,8 +28,8 @@ Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_d
 | --- | --- | --- | --- | --- | --- |
 | `user_id` / `userId` | string | install auth and Electron main session snapshot | backend connection/session context | backend sessions, sidecar memory rows, settings, transcript search | memory and conversations can cross users, backend session lookup fails, or sidecar memory calls store under fallback users |
 | `session_id` / `sessionId` | string | backend websocket/session runtime | backend session manager | stream events, transcript metadata, live runtime diagnostics | events can be impossible to join to a backend runtime, but `conversation_ref` should still route user-visible state |
-| `conversation_ref` / `conversationRef` | string | renderer send path or VM run metadata | renderer transcript runtime plus backend session registry | active conversation filtering, backend history, transcript persistence, rehydrate, VM run metadata | wrong chat resumes, stale events land in the visible thread, or backend history is created under a new conversation |
-| `turn_ref` | string | renderer optimistic user message ID | renderer send and backend stream event correlation | stale-turn filtering, local optimistic user row, overlay phase traces | late events can update the wrong active turn or leave the UI awaiting forever |
+| `conversation_ref` / `conversationRef` | string | SDK conversation runtime, renderer send path, or VM run metadata | SDK conversation runtime plus backend session registry | active conversation filtering, backend history, transcript persistence, rehydrate, VM run metadata | wrong chat resumes, stale events land in the visible thread, or backend history is created under a new conversation |
+| `turn_ref` | string | SDK conversation runtime or renderer optimistic user message ID | SDK runtime and backend stream event correlation | stale-turn filtering, local optimistic user row, overlay phase traces | late events can update the wrong active turn or leave the UI awaiting forever |
 | `request_id` | string | backend tool-call dispatch | backend session pending-tool registry | renderer result relay, `tool-result` ingress, backend waiter cleanup | sidecar may execute, but backend never resumes the agent loop |
 | `bundle_id` | string | backend bundled-tool dispatch | backend session pending-bundle registry | renderer bundle execution, `tool-bundle-result` ingress, bundle history | partial bundle results cannot be matched and backend may keep waiting |
 | `tool_call_id` | string | provider/tool parser or backend history staging | backend provider-history builder | provider replay, tool-output linkage, rehydrate repair | provider history can reject replay or attach output to the wrong assistant call |
@@ -110,6 +112,7 @@ Do not replace a missing backend `request_id` with a newly generated renderer `c
 
 Common stored row families:
 
+- normalized SDK conversation events
 - user message
 - assistant text
 - tool-call

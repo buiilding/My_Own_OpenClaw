@@ -197,7 +197,7 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().thinkingSourceEventType).toBe('context-compaction-completed');
   });
 
-  test('shows completed-no-changes status when compaction completes with skipped_reason', () => {
+  test('clears compaction status when compaction completes with skipped_reason', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -208,8 +208,8 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBe('Compaction completed (no changes needed).');
-    expect(useChatStore.getState().thinkingSourceEventType).toBe('context-compaction-completed');
+    expect(useChatStore.getState().thinkingStatus).toBeNull();
+    expect(useChatStore.getState().thinkingSourceEventType).toBeNull();
   });
 
   test('replaces compacting status with failure status when context compaction fails', () => {

@@ -8,7 +8,7 @@ title: "Tool Execution Lifecycle"
 
 # Tool Execution Lifecycle
 
-WindieOS tools run through a distributed pipeline. The backend owns model-facing schema and loop semantics; the SDK runtime owns local dispatch and backend result return; the renderer owns display/transcript projection; the sidecar owns executable desktop actions.
+WindieOS tools run through a distributed pipeline. The backend owns model-facing schema and loop semantics; the SDK runtime owns local dispatch, backend result return, normalized tool events, and display/rehydrate projections; the sidecar owns executable desktop actions.
 
 ## Lifecycle
 
@@ -19,10 +19,10 @@ WindieOS tools run through a distributed pipeline. The backend owns model-facing
 5. Backend parser/tool bridge normalizes provider-native calls into WindieOS tool-call shapes.
 6. Backend preparation resolves any high-level or grounded fields into executable payloads.
 7. Backend sends `tool-call` or `tool-bundle` websocket events to the frontend.
-8. SDK runtime routes the call through Electron main to the sidecar daemon/local executor.
+8. SDK runtime normalizes the tool event and routes the call through the local runtime adapter to the sidecar daemon/local executor.
 9. Electron main invokes the Python sidecar daemon or JSON-RPC tool registry as the local executor.
 10. Sidecar executes the local action and returns a normalized `ToolResult`.
-11. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend.
+11. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend and appends a normalized `tool_output` or `tool_bundle_output` event.
 12. Backend result receiver resolves the pending future.
 13. Backend result transformer formats model-facing tool output and display metadata.
 14. Backend history committer writes tool rows and the interaction loop continues.
@@ -36,7 +36,7 @@ WindieOS tools run through a distributed pipeline. The backend owns model-facing
 | Provider call normalization | Backend | `backend/src/agent/execution/tool_call_bridge.py`, provider modules under `backend/src/llm/providers` |
 | Preparation and coordinate resolution | Backend | `backend/src/agent/tools/preparation/**`, `backend/src/services/screen_grounding/**` |
 | Frontend dispatch event | Backend API | `backend/src/api/processing/formatters/actions/*`, `backend/src/api/schemas/outgoing.py` |
-| SDK runtime execution | Frontend main/SDK runtime | `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`, `frontend/src/main/ipc.cjs` |
+| SDK runtime execution | SDK runtime and Electron main host | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs` |
 | Electron-sidecar bridge | Electron main | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/sidecar_daemon_manager.cjs` |
 | Local execution | Sidecar | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/**` |
 | Result ingress | Backend API | `backend/src/api/handlers/tool_result.py`, `backend/src/agent/tools/waiting/**` |
@@ -65,6 +65,7 @@ If a tool hangs, inspect request-id state in this order:
 3. sidecar executed or returned a validation/runtime error
 4. renderer sent result back with matching request or bundle id
 5. backend waiting storage resolved and cleaned it
+6. SDK normalized tool-output event was stored for display and future rehydrate projections
 
 ## Screenshots and Artifacts
 

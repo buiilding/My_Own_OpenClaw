@@ -132,6 +132,31 @@ describe('MessageList assistant actions', () => {
     expect(screen.getByText(/Before tokens:/i)).toBeInTheDocument();
   });
 
+  test('does not render compaction debug summary for skipped compaction', () => {
+    mockIsDevUiEnabled.mockReturnValue(true);
+    render(
+      <MessageList
+        messages={[]}
+        thinkingStatus={null}
+        thinkingSourceEventType={null}
+        compactionDebugInfo={{
+          reason: 'auto-mid',
+          strategy: null,
+          beforeTokens: 167141,
+          afterTokens: null,
+          removedMessages: null,
+          summaryPreview: null,
+          summaryText: null,
+          replacementHistoryPreview: [],
+          skippedReason: 'insufficient-history',
+        }}
+      />,
+    );
+
+    expect(screen.queryByText('Compacted History Summary')).not.toBeInTheDocument();
+    expect(screen.queryByText('No replacement history preview.')).not.toBeInTheDocument();
+  });
+
   test('does not render assistant actions while assistant text is still streaming', () => {
     jest.useFakeTimers();
 

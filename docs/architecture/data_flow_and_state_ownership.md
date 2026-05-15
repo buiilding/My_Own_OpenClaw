@@ -19,12 +19,13 @@ For durable or semi-durable storage changes, migrations, reset behavior, and dat
 | State | Owner | Consumers | Notes |
 | --- | --- | --- | --- |
 | backend endpoint URLs | Electron main | renderer, sidecar env, SDK helpers | resolved in `frontend/src/main/backend_endpoints.cjs`; sidecar receives `WINDIE_BACKEND_HTTP_URL` |
-| session/conversation identity | backend plus Electron/renderer transcript state | backend history, renderer replay, sidecar transcript/memory | keep `user_id`, `session_id`, `conversation_ref`, and turn ids aligned |
+| session/conversation identity | backend plus SDK conversation runtime | backend history, SDK projections, sidecar transcript/memory, renderer display | keep `user_id`, `session_id`, `conversation_ref`, and turn ids aligned |
 | model/provider settings | backend config/session policy; renderer stores user-facing subset | provider factory, model list UI, prompt construction | renderer should not persist backend-owned provider internals or keys |
 | model-facing tool schema | backend | LLM provider adapters, parser validation, transparency events | frontend/sidecar must not import backend schema code |
 | executable local tool implementation | sidecar | Electron main bridge, renderer tool runner, backend result ingestion | backend sees results, sidecar does local work |
-| stream event phase | backend event producer and Electron/renderer consumers | chat UI, response overlay, tool runner, transcript | stale-turn filtering belongs at consumer boundaries |
-| transcript queue | renderer and sidecar local store | dashboard replay, memory indexing, backend rehydrate | visible transcript is not the same as backend history |
+| stream event phase | backend event producer plus SDK runtime reducer | chat UI, response overlay, tool coordinator, transcript projections | stale-turn filtering belongs at consumer boundaries |
+| normalized conversation events | SDK runtime | desktop, CLI, custom UI, store adapters, backend rehydrate projection | UI messages are projections, not storage truth |
+| transcript queue | SDK store adapter and sidecar local store during migration | dashboard replay, memory indexing, backend rehydrate | visible transcript is not the same as backend history |
 | backend conversation history | backend | prompt context, compaction, history rehydrate | sidecar should not mutate it directly |
 | semantic/episodic memory | sidecar local store plus backend embedding/semantic APIs | prompt context, dashboard memory, search | embeddings may degrade without blocking SQLite storage |
 | artifacts | backend artifact service/API plus Electron upload bridge | renderer image display, tool results, SDK clients | artifact refs should survive transcript replay |
@@ -33,15 +34,16 @@ For durable or semi-durable storage changes, migrations, reset behavior, and dat
 
 ## Query Flow
 
-1. Renderer submits a user goal.
-2. Electron main enriches with endpoint/config/session/workspace/screenshot/system-state context.
+1. UI submits a user goal to the SDK conversation runtime.
+2. SDK transport sends the query through the hosted backend websocket.
 3. Backend websocket route validates the message and resolves a session.
 4. Backend agent loop builds prompt/tool context and streams events.
-5. Renderer consumes stream events for UI state.
-6. Tool calls are dispatched to renderer/main/sidecar as needed.
-7. Sidecar returns local tool results through Electron main.
-8. Backend ingests tool results, commits history, and continues or completes.
-9. Renderer persists visible transcript and replay state.
+5. SDK normalizes backend events into conversation events.
+6. SDK tool coordinator dispatches local tool calls to the sidecar runtime.
+7. Sidecar returns local tool results to the SDK coordinator.
+8. SDK returns tool results to backend and appends normalized tool-output events.
+9. Backend ingests tool results, commits history, and continues or completes.
+10. UI renders SDK display projections while rehydrate snapshots are generated from the same normalized events.
 
 ## Duplication Risk
 
@@ -51,6 +53,7 @@ For durable or semi-durable storage changes, migrations, reset behavior, and dat
 | sidecar points to different backend than websocket | Electron main injects resolved URL; debug `WINDIE_BACKEND_HTTP_URL` |
 | tool schemas drift | parity tests, generated/shared contract checks, no backend imports in frontend/sidecar |
 | visible transcript differs from backend history | use session/transcript reference and rehydrate contracts |
+| UI display, replay, and edit/resend history drift | make them projections from SDK normalized conversation events |
 | permission UI says granted without OS capability | permission services must probe real capability before setting granted |
 | packaged app works differently than source | validate installed resource paths and bundled runtime separately |
 

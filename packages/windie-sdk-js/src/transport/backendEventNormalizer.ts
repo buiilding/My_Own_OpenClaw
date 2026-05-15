@@ -1,0 +1,177 @@
+import type { BackendEvent } from '../backendEvents.js';
+import { createConversationEvent, createRuntimeId } from '../conversation/events.js';
+import type { ConversationEvent, JsonRecord } from '../conversation/types.js';
+
+function payloadOf(event: BackendEvent): JsonRecord {
+  return (event.payload && typeof event.payload === 'object' && !Array.isArray(event.payload))
+    ? event.payload as JsonRecord
+    : {};
+}
+
+function conversationRefOf(event: BackendEvent, fallbackConversationRef?: string): string | null {
+  if (typeof event.conversation_ref === 'string' && event.conversation_ref.trim()) {
+    return event.conversation_ref.trim();
+  }
+  return fallbackConversationRef?.trim() || null;
+}
+
+function revisionIdFor(event: BackendEvent, fallbackRevisionId?: string): string {
+  const payload = payloadOf(event);
+  if (typeof payload.revision_id === 'string' && payload.revision_id.trim()) {
+    return payload.revision_id.trim();
+  }
+  if (typeof payload.revisionId === 'string' && payload.revisionId.trim()) {
+    return payload.revisionId.trim();
+  }
+  return fallbackRevisionId || createRuntimeId('rev');
+}
+
+function eventBase(
+  event: BackendEvent,
+  fallbackConversationRef?: string,
+  fallbackRevisionId?: string,
+): { conversationRef: string; revisionId: string; turnRef: string | null; eventId: string; timestamp: string } | null {
+  const conversationRef = conversationRefOf(event, fallbackConversationRef);
+  if (!conversationRef) {
+    return null;
+  }
+  return {
+    conversationRef,
+    revisionId: revisionIdFor(event, fallbackRevisionId),
+    turnRef: typeof event.turn_ref === 'string' ? event.turn_ref : null,
+    eventId: typeof event.id === 'string' ? event.id : createRuntimeId('evt'),
+    timestamp: new Date().toISOString(),
+  };
+}
+
+export type NormalizeBackendEventOptions = {
+  fallbackConversationRef?: string;
+  fallbackRevisionId?: string;
+};
+
+export function normalizeBackendEventToConversationEvent(
+  event: BackendEvent,
+  options: NormalizeBackendEventOptions = {},
+): ConversationEvent | null {
+  const base = eventBase(event, options.fallbackConversationRef, options.fallbackRevisionId);
+  if (!base) {
+    return null;
+  }
+  const payload = payloadOf(event);
+  if (event.type === 'streaming-response') {
+    return createConversationEvent({
+      ...base,
+      type: 'assistant_delta',
+      source: 'backend',
+      payload: {
+        text: typeof payload.text === 'string' ? payload.text : '',
+        rawEvent: event,
+      },
+    });
+  }
+  if (event.type === 'streaming-complete') {
+    return createConversationEvent({
+      ...base,
+      type: 'turn_completed',
+      source: 'backend',
+      payload: {
+        finalResponse: typeof payload.final_response === 'string' ? payload.final_response : null,
+        rawEvent: event,
+      },
+    });
+  }
+  if (event.type === 'tool-call') {
+    return createConversationEvent({
+      ...base,
+      type: 'tool_call',
+      source: 'backend',
+      payload: {
+        toolName: typeof payload.tool_name === 'string' ? payload.tool_name : null,
+        args: payload.parameters && typeof payload.parameters === 'object' ? payload.parameters : {},
+        requestId: typeof payload.request_id === 'string' ? payload.request_id : null,
+        correlationId: typeof payload.correlation_id === 'string' ? payload.correlation_id : null,
+        toolCallId: typeof payload.tool_call_id === 'string' ? payload.tool_call_id : null,
+        structuredPayload: payload,
+        rawEvent: event,
+      },
+    });
+  }
+  if (event.type === 'tool-output') {
+    return createConversationEvent({
+      ...base,
+      type: 'tool_output',
+      source: 'backend',
+      payload: {
+        ...payload,
+        structuredPayload: payload,
+        rawEvent: event,
+      },
+    });
+  }
+  if (event.type === 'tool-bundle') {
+    return createConversationEvent({
+      ...base,
+      type: 'tool_bundle_call',
+      source: 'backend',
+      payload: {
+        bundleId: typeof payload.bundle_id === 'string' ? payload.bundle_id : null,
+        tools: Array.isArray(payload.tools) ? payload.tools : [],
+        structuredPayload: payload,
+        rawEvent: event,
+      },
+    });
+  }
+  if (event.type === 'context-compaction-started') {
+    return createConversationEvent({
+      ...base,
+      type: 'compaction_started',
+      source: 'backend',
+      payload: {
+        ...payload,
+        rawEvent: event,
+      },
+    });
+  }
+  if (event.type === 'context-compaction-completed') {
+    const skippedReason = typeof payload.skipped_reason === 'string'
+      ? payload.skipped_reason
+      : '';
+    return createConversationEvent({
+      ...base,
+      type: skippedReason ? 'compaction_skipped' : 'compaction_applied',
+      source: 'backend',
+      payload: {
+        ...payload,
+        skippedReason: skippedReason || null,
+        generationId: typeof payload.generation_id === 'string' ? payload.generation_id : null,
+        summaryPreview: typeof payload.summary_preview === 'string' ? payload.summary_preview : null,
+        rawEvent: event,
+      },
+    });
+  }
+  if (event.type === 'context-compaction-failed') {
+    return createConversationEvent({
+      ...base,
+      type: 'compaction_failed',
+      source: 'backend',
+      payload: {
+        ...payload,
+        rawEvent: event,
+      },
+    });
+  }
+  if (event.type === 'error') {
+    return createConversationEvent({
+      ...base,
+      type: 'turn_error',
+      source: 'backend',
+      payload: {
+        message: typeof payload.message === 'string'
+          ? payload.message
+          : (typeof payload.content === 'string' ? payload.content : 'Backend error'),
+        rawEvent: event,
+      },
+    });
+  }
+  return null;
+}

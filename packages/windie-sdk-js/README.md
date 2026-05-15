@@ -12,7 +12,8 @@ npm run build
 ```
 
 The public package surface is `WindieClient`, `WindieAgent`, `moduleTool`,
-sidecar daemon helpers, and hosted SDK route clients.
+sidecar daemon helpers, hosted SDK route clients, and the SDK conversation
+runtime primitives used by desktop, CLI, and custom UI adapters.
 
 ```ts
 import { WindieClient } from '@windie/sdk';
@@ -37,3 +38,12 @@ for await (const event of agent.stream('Run the repo checks and report progress.
   }
 }
 ```
+
+For custom clients that need durable local state, use the conversation runtime
+pieces exported from this package:
+
+- normalized conversation events
+- `InMemoryConversationStore`
+- projection builders for display, rehydrate, tool trace, and compaction state
+- `SdkConversationRuntime`
+- `ToolExecutionCoordinator`

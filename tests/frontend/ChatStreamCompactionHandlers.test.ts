@@ -1,7 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { useChatStreamCompactionHandlers } from '../../frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompactionHandlers';
 import {
-  COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS,
   COMPACTION_COMPLETED_THINKING_STATUS,
   COMPACTION_FAILED_THINKING_STATUS,
   COMPACTION_THINKING_STATUS,
@@ -94,10 +93,11 @@ describe('useChatStreamCompactionHandlers', () => {
 
     expect(setThinkingStatus).toHaveBeenNthCalledWith(1, COMPACTION_THINKING_STATUS, 'conversation-1');
     expect(setThinkingStatus).toHaveBeenNthCalledWith(2, COMPACTION_COMPLETED_THINKING_STATUS, 'conversation-1');
-    expect(setThinkingStatus).toHaveBeenNthCalledWith(3, COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS, 'conversation-1');
+    expect(setThinkingStatus).toHaveBeenNthCalledWith(3, null, 'conversation-1');
     expect(setThinkingStatus).toHaveBeenNthCalledWith(4, COMPACTION_FAILED_THINKING_STATUS, 'conversation-1');
     expect(setThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-started', 'conversation-1');
     expect(setThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-completed', 'conversation-1');
+    expect(setThinkingSourceEventType).toHaveBeenCalledWith(null, 'conversation-1');
     expect(setThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-failed', 'conversation-1');
     expect(setCompactionDebugInfo).toHaveBeenNthCalledWith(1, null, 'conversation-1');
     expect(setCompactionDebugInfo).toHaveBeenNthCalledWith(
@@ -111,6 +111,7 @@ describe('useChatStreamCompactionHandlers', () => {
       }),
       'conversation-1',
     );
+    expect(setCompactionDebugInfo).toHaveBeenNthCalledWith(3, null, 'conversation-1');
     expect(setCompactionDebugInfo).toHaveBeenNthCalledWith(4, null, 'conversation-1');
     expect(recordTrackingEvent).toHaveBeenCalledTimes(4);
     expect(mockReplaceConversationReplayState).toHaveBeenCalledTimes(1);

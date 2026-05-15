@@ -44,6 +44,7 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/sdk: add Python local-runtime `status`, `list_tools`, and `shutdown_local_runtime` helpers over the resolved daemon.
 - sidecar: make the daemon `/shutdown` endpoint signal the daemon loop so SDK-owned local runtimes can stop cleanly.
 - sdk: project direct SDK `tool-call` and `tool-bundle` events as display-only when the SDK owns local execution.
+- sdk: add the first SDK conversation runtime foundation with normalized conversation events, an in-memory store adapter, display/rehydrate projections, compaction-skipped normalization, a runtime reducer, and an authoritative tool execution coordinator.
 - frontend/sdk: move backend connect waiters, reconnect scheduling, and idle WebSocket close policy from Electron IPC into the SDK main runtime.
 - frontend/sdk: move Electron SDK handshake and client tool manifest construction into the SDK main runtime.
 - frontend/sdk: move backend tool-call routing and display-only event projection fully into the SDK main runtime.
@@ -159,6 +160,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Fixed
 
+- frontend: treat skipped context compaction as lifecycle telemetry instead of a visible compacted-history output panel.
 - fix(backend-embedding-import): avoid importing the heavy SentenceTransformers stack unless the local embedding provider is initialized so disabled or remote embedding deployments can stay lightweight.
 - fix(sidecar-memory-embedding-unavailable): treat unavailable embeddings as non-fatal so prompt memory retrieval is omitted and SQLite memory writes continue without interrupting the agent loop.
 - fix(sidecar-memory-embedding-rebuild): prevent embedding-space migration rebuilds from recursively re-triggering themselves while each stored memory row is re-embedded.
