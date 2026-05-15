@@ -4,6 +4,10 @@ const {
 const {
   buildClientToolManifestWithMcp,
 } = require('./mcp_runtime.cjs');
+const {
+  markRendererToolEventDisplayOnly,
+  routeSdkToolEventToLocalRuntime,
+} = require('./ipc/ipc_sdk_tool_router.cjs');
 
 const DEFAULT_RECONNECT_INTERVAL_MS = 1000;
 const DEFAULT_CONNECT_TIMEOUT_MS = 10000;
@@ -126,6 +130,31 @@ function createWindieSdkMainRuntime(options = {}) {
     syncIdleTimer(reason);
   }
 
+  function sendBackendMessage(type, payload, messageId = null) {
+    return sendEnvelope({
+      type,
+      payload,
+      messageId,
+      userId: options.getUserId?.(),
+      normalizePayload: options.normalizePayload,
+    });
+  }
+
+  function handleBackendEvent(data) {
+    routeSdkToolEventToLocalRuntime(data, {
+      executeLocalTool: options.executeLocalTool,
+      sendMessageToBackend: sendBackendMessage,
+      log: options.log,
+    });
+    const rendererData = markRendererToolEventDisplayOnly(data);
+    if (typeof options.onEvent === 'function') {
+      options.onEvent(rendererData);
+    } else {
+      options.onMessage?.(rendererData);
+    }
+    return rendererData;
+  }
+
   function connect({ force = false } = {}) {
     shouldMaintainConnection = true;
     if (!force && !shouldMaintainConnection) {
@@ -174,7 +203,7 @@ function createWindieSdkMainRuntime(options = {}) {
       }
       try {
         const data = JSON.parse(message);
-        options.onMessage?.(data);
+        handleBackendEvent(data);
       } catch (error) {
         options.onMessageError?.(error);
       }

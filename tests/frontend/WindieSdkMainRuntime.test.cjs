@@ -106,6 +106,70 @@ describe('Windie SDK main runtime', () => {
     }
   });
 
+  test('owns backend tool event routing before renderer fan-out', async () => {
+    const onEvent = jest.fn();
+    const executeLocalTool = jest.fn(async () => ({
+      success: true,
+      data: { output: 'saved', llm_content: 'saved' },
+    }));
+    const runtime = createWindieSdkMainRuntime({
+      WebSocketImpl: FakeWebSocket,
+      createMessageId: () => 'tool-result-msg',
+      getEndpoint: () => ({ wsUrl: 'wss://api.windieos.com/ws' }),
+      getUserId: () => 'dev-user',
+      buildHandshake: async () => ({ type: 'handshake', user_id: 'dev-user' }),
+      executeLocalTool,
+      onEvent,
+    });
+
+    runtime.connect();
+    const socket = FakeWebSocket.instances[0];
+    socket.open();
+    await Promise.resolve();
+
+    socket.emit('message', JSON.stringify({
+      id: 'event-1',
+      type: 'tool-call',
+      payload: {
+        tool_name: 'save_note',
+        request_id: 'req-save',
+        parameters: { text: 'hello' },
+        metadata: { attempt: 1 },
+      },
+    }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(executeLocalTool).toHaveBeenCalledWith({
+      toolName: 'save_note',
+      args: { text: 'hello' },
+    });
+    expect(JSON.parse(socket.sent[1])).toMatchObject({
+      id: 'tool-result-msg',
+      type: 'tool-result',
+      payload: {
+        request_id: 'req-save',
+        success: true,
+        data: { output: 'saved', llm_content: 'saved' },
+      },
+      user_id: 'dev-user',
+    });
+    expect(onEvent).toHaveBeenCalledWith({
+      id: 'event-1',
+      type: 'tool-call',
+      payload: {
+        tool_name: 'save_note',
+        request_id: 'req-save',
+        parameters: { text: 'hello' },
+        metadata: {
+          attempt: 1,
+          skip_frontend_execution: true,
+          execution_owner: 'sdk-runtime',
+        },
+      },
+    });
+  });
+
   test('owns idle disconnect policy', async () => {
     jest.useFakeTimers();
     try {
