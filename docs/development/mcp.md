@@ -1,14 +1,24 @@
 ---
-summary: "Developer guide for connecting Model Context Protocol servers to WindieOS agents through the local Electron MCP runtime."
+summary: "Developer guide for connecting Model Context Protocol servers to WindieOS agents through the divided extensions MCP root."
 read_when:
   - When adding MCP servers, MCP-backed tools, or MCP diagnostics to WindieOS.
-  - When deciding whether an external integration should be a sidecar tool, plugin tool, MCP server, or backend remote tool.
+  - When deciding whether an external integration should be a sidecar plugin, skill, MCP server, or backend remote tool.
 ---
 
 # MCP Runtime
 
-WindieOS treats MCP servers as local extension runtime inputs. Electron main
-starts configured MCP servers, initializes the MCP JSON-RPC session, discovers
+MCP servers are declared under `extensions/mcps`. They are not nested inside a
+plugin package.
+
+```text
+extensions/
+  mcps/
+    memory/
+      mcp.json
+      server.cjs
+```
+
+Electron main reads `mcp.json`, starts configured stdio servers, discovers
 `tools/list`, converts those tools into `client_tool_manifest` entries, and
 executes `tools/call` locally when the model invokes an MCP-backed tool.
 
@@ -19,73 +29,40 @@ frontend.
 
 ## Add An MCP Server
 
-Create this package shape:
-
-```text
-extensions/github-mcp/
-  extension.json
-  mcp/
-    servers.json
-```
-
-`extension.json` only identifies the package:
+Create `extensions/mcps/<id>/mcp.json`:
 
 ```json
 {
-  "id": "github-mcp",
-  "name": "GitHub MCP"
-}
-```
-
-Declare MCP servers in `mcp/servers.json`:
-
-```json
-{
-  "servers": [
+  "id": "memory",
+  "command": "node",
+  "args": ["server.cjs"],
+  "cwd": ".",
+  "env": {
+    "MEMORY_DB": "notes.sqlite"
+  },
+  "tools": [
     {
-      "id": "memory",
-      "command": "node",
-      "args": ["mcp/memory-mcp.cjs"],
-      "cwd": ".",
-      "env": {
-        "MEMORY_DB": "notes.sqlite"
+      "name": "search",
+      "description": "Search local memory.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string" }
+        },
+        "required": ["query"],
+        "additionalProperties": false
       }
     }
   ]
 }
 ```
 
-Use `plugin/index.cjs` only when the MCP server spec needs runtime logic,
-config, or permissions:
-
-```js
-module.exports = function register(api) {
-  api.registerMcpServer({
-    id: "memory",
-    command: "node",
-    args: ["mcp/memory-mcp.cjs"],
-    tools: [
-      {
-        name: "search",
-        description: "Search local memory.",
-        schema: {
-          type: "object",
-          properties: {
-            query: { type: "string" },
-          },
-          required: ["query"],
-          additionalProperties: false,
-        },
-      },
-    ],
-  });
-};
-```
-
 `tools` is optional. When live MCP discovery succeeds, WindieOS uses the server's
 `tools/list` response. Declared tools are fallback schemas for offline
-diagnostics and for development environments where the MCP server is not
-running yet.
+diagnostics and development environments where the MCP server is not running.
+
+`mcp.json` can also contain `{ "servers": [...] }` if one MCP folder needs to
+declare multiple server processes.
 
 ## Server Spec Fields
 
@@ -94,7 +71,7 @@ running yet.
 | `id` | yes | Stable local server id. Used in generated MCP tool names. |
 | `command` | yes | Executable command, such as `node`, `npx`, `python`, or an absolute binary path. |
 | `args` | no | Arguments passed to the command. |
-| `cwd` | no | Working directory. Relative paths are resolved inside the extension package. |
+| `cwd` | no | Working directory. Relative paths are resolved inside the MCP folder. |
 | `env` | no | Extra environment variables for the MCP process. Do not commit real credentials. |
 | `enabled` | no | Set `false` to keep a server declared but not loaded. |
 | `timeout_ms` | no | Request timeout for initialize, discovery, and calls. |
@@ -111,8 +88,7 @@ mcp_<server_id>__<tool_name>
 
 Example: server `memory`, MCP tool `search` becomes `mcp_memory__search`.
 
-Use `tool_prefix` on the MCP server spec only when a stable public name is
-needed:
+Use `tool_prefix` only when a stable public name is needed:
 
 ```json
 {
@@ -125,7 +101,7 @@ That exposes `local_memory__search`.
 
 ## Runtime Flow
 
-1. Extension `mcp/servers.json` files and `plugin/index.cjs` files register MCP servers.
+1. Electron main reads `extensions/mcps/*/mcp.json`.
 2. Electron main starts each enabled MCP server over stdio.
 3. Electron main sends MCP `initialize` and `notifications/initialized`.
 4. Electron main calls `tools/list`.
@@ -144,8 +120,7 @@ For normal MCP integrations, do not edit:
 - backend tool registries
 - Python sidecar tool registries
 
-Edit those only when changing the WindieOS MCP platform itself. A normal MCP
-integration should be added entirely under `extensions/<id>/`.
+Edit those only when changing the WindieOS MCP platform itself.
 
 ## When To Use MCP
 
@@ -157,22 +132,21 @@ Use MCP when the integration already has, or should have, a protocol boundary:
 - language servers
 - services that should be reusable outside WindieOS
 
-Use a sidecar tool when the integration is WindieOS-local Python execution.
-Use `api.registerTool` when the integration is lightweight Electron-main logic.
+Use a sidecar plugin when the integration is WindieOS-local Python execution.
 Use a backend remote tool when execution must happen on the hosted backend.
 
 ## Validation
 
-Run the focused MCP and manifest tests after changing this runtime:
+Run the focused MCP and registry tests after changing this runtime:
 
 ```bash
 cd frontend
-npm test -- --runTestsByPath ../tests/frontend/McpRuntime.test.cjs ../tests/frontend/ExtensionManifest.test.cjs ../tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs ../tests/frontend/AgentCapabilityHandshake.test.cjs --runInBand
+npm test -- --runTestsByPath ../tests/frontend/McpRuntime.test.cjs ../tests/frontend/ExtensionManifest.test.cjs ../tests/frontend/AgentCapabilityHandshake.test.cjs --runInBand
 ```
 
 Also run backend client manifest tests when changing the shape sent to the
 backend:
 
 ```bash
-./scripts/python-in-env backend pytest tests/backend/test_client_tool_manifest.py
+./scripts/python-in-env backend python -m pytest tests/backend/test_client_tool_manifest.py -q
 ```

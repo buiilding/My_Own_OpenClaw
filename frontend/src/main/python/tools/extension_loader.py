@@ -1,4 +1,4 @@
-"""Load sidecar extension tools from extensions/*/extension.json."""
+"""Load sidecar plugin tools from extensions/plugins/*/plugin.json."""
 
 from __future__ import annotations
 
@@ -19,17 +19,17 @@ TOOL_NAME_PATTERN = re.compile(r"^[a-zA-Z][a-zA-Z0-9_-]{0,95}$")
 
 
 @dataclass(slots=True)
-class LoadedExtensionTool:
+class LoadedPluginTool:
     name: str
-    extension_id: str
+    plugin_id: str
     handler: Callable[..., Any]
     schema: dict[str, Any]
     description: str | None = None
 
 
 @dataclass(slots=True)
-class LoadedSidecarExtensions:
-    tools: dict[str, LoadedExtensionTool] = field(default_factory=dict)
+class LoadedSidecarPlugins:
+    tools: dict[str, LoadedPluginTool] = field(default_factory=dict)
     errors: list[dict[str, str]] = field(default_factory=list)
 
 
@@ -49,80 +49,82 @@ def resolve_default_extensions_dir() -> Path:
     return (Path(__file__).resolve().parents[4] / "extensions").resolve()
 
 
-def load_sidecar_extension_tools(
+def load_sidecar_plugin_tools(
     extensions_dir: str | os.PathLike[str] | None = None,
-) -> LoadedSidecarExtensions:
+) -> LoadedSidecarPlugins:
     root = (
         Path(extensions_dir).expanduser().resolve()
         if extensions_dir
         else resolve_default_extensions_dir()
     )
-    result = LoadedSidecarExtensions()
-    if not root.exists():
+    result = LoadedSidecarPlugins()
+    plugins_root = root / "plugins"
+    if not plugins_root.exists():
         return result
 
-    for extension_dir in sorted(path for path in root.iterdir() if path.is_dir()):
-        manifest_path = extension_dir / "extension.json"
+    for plugin_dir in sorted(path for path in plugins_root.iterdir() if path.is_dir()):
+        manifest_path = plugin_dir / "plugin.json"
         if not manifest_path.exists():
             continue
         try:
-            _load_extension(extension_dir, result)
+            _load_plugin(plugin_dir, result)
         except Exception as error:
             result.errors.append(
                 {
-                    "extension": extension_dir.name,
+                    "plugin": plugin_dir.name,
                     "reason": str(error),
                 }
             )
     return result
 
 
-def load_sidecar_extension_path(
-    extension_path: str | os.PathLike[str],
-) -> LoadedSidecarExtensions:
-    """Load tools from one extension directory or an extensions root directory."""
-    path = Path(extension_path).expanduser().resolve()
-    result = LoadedSidecarExtensions()
+def load_sidecar_plugin_path(
+    plugin_path: str | os.PathLike[str],
+) -> LoadedSidecarPlugins:
+    """Load tools from one plugin directory or from an extensions/plugins root."""
+    path = Path(plugin_path).expanduser().resolve()
+    result = LoadedSidecarPlugins()
     if not path.exists():
         result.errors.append(
             {
-                "extension": str(path),
-                "reason": "extension path does not exist",
+                "plugin": str(path),
+                "reason": "plugin path does not exist",
             }
         )
         return result
 
     try:
-        if (path / "extension.json").is_file():
-            _load_extension(path, result)
+        if (path / "plugin.json").is_file():
+            _load_plugin(path, result)
         else:
-            for extension_dir in sorted(child for child in path.iterdir() if child.is_dir()):
-                if (extension_dir / "extension.json").is_file():
-                    _load_extension(extension_dir, result)
+            plugins_root = path / "plugins" if (path / "plugins").is_dir() else path
+            for plugin_dir in sorted(child for child in plugins_root.iterdir() if child.is_dir()):
+                if (plugin_dir / "plugin.json").is_file():
+                    _load_plugin(plugin_dir, result)
     except Exception as error:
         result.errors.append(
             {
-                "extension": path.name,
+                "plugin": path.name,
                 "reason": str(error),
             }
         )
     return result
 
 
-def _load_extension(extension_dir: Path, result: LoadedSidecarExtensions) -> None:
-    manifest = _read_json(extension_dir / "extension.json")
-    extension_id = _read_string(manifest.get("id")) or extension_dir.name
+def _load_plugin(plugin_dir: Path, result: LoadedSidecarPlugins) -> None:
+    manifest = _read_json(plugin_dir / "plugin.json")
+    plugin_id = _read_string(manifest.get("id")) or plugin_dir.name
     for raw_tool in (
         manifest.get("tools") if isinstance(manifest.get("tools"), list) else []
     ):
         if not isinstance(raw_tool, dict):
             continue
         try:
-            loaded_tool = _load_tool(extension_dir, extension_id, raw_tool)
+            loaded_tool = _load_tool(plugin_dir, plugin_id, raw_tool)
         except Exception as error:
             result.errors.append(
                 {
-                    "extension": extension_id,
+                    "plugin": plugin_id,
                     "reason": str(error),
                 }
             )
@@ -130,8 +132,8 @@ def _load_extension(extension_dir: Path, result: LoadedSidecarExtensions) -> Non
         if loaded_tool.name in result.tools:
             result.errors.append(
                 {
-                    "extension": extension_id,
-                    "reason": f"duplicate extension tool name: {loaded_tool.name}",
+                    "plugin": plugin_id,
+                    "reason": f"duplicate plugin tool name: {loaded_tool.name}",
                 }
             )
             continue
@@ -139,26 +141,26 @@ def _load_extension(extension_dir: Path, result: LoadedSidecarExtensions) -> Non
 
 
 def _load_tool(
-    extension_dir: Path,
-    extension_id: str,
+    plugin_dir: Path,
+    plugin_id: str,
     raw_tool: dict[str, Any],
-) -> LoadedExtensionTool:
+) -> LoadedPluginTool:
     tool_name = _read_string(raw_tool.get("name"))
     if not tool_name or not TOOL_NAME_PATTERN.match(tool_name):
-        raise ValueError("extension tool name is missing or invalid")
+        raise ValueError("plugin tool name is missing or invalid")
 
     entrypoint = _read_string(raw_tool.get("entrypoint"))
     if not entrypoint:
-        raise ValueError(f"extension tool {tool_name} is missing entrypoint")
+        raise ValueError(f"plugin tool {tool_name} is missing entrypoint")
 
-    schema = _read_schema_value(raw_tool.get("schema"), extension_dir)
+    schema = _read_schema_value(raw_tool.get("schema"), plugin_dir)
     if not isinstance(schema, dict):
-        raise ValueError(f"extension tool {tool_name} is missing schema")
+        raise ValueError(f"plugin tool {tool_name} is missing schema")
 
-    handler = _load_entrypoint(extension_dir, extension_id, tool_name, entrypoint)
-    return LoadedExtensionTool(
+    handler = _load_entrypoint(plugin_dir, plugin_id, tool_name, entrypoint)
+    return LoadedPluginTool(
         name=tool_name,
-        extension_id=extension_id,
+        plugin_id=plugin_id,
         handler=_wrap_entrypoint_handler(handler),
         schema=schema,
         description=_read_string(raw_tool.get("description")),
@@ -166,44 +168,42 @@ def _load_tool(
 
 
 def _load_entrypoint(
-    extension_dir: Path,
-    extension_id: str,
+    plugin_dir: Path,
+    plugin_id: str,
     tool_name: str,
     entrypoint: str,
 ) -> Callable[..., Any]:
     if ":" not in entrypoint:
-        raise ValueError(
-            f"extension tool {tool_name} entrypoint must be file.py:function"
-        )
+        raise ValueError(f"plugin tool {tool_name} entrypoint must be file.py:function")
     raw_file_path, raw_attr_name = entrypoint.split(":", 1)
     attr_name = raw_attr_name.strip()
     if not attr_name:
-        raise ValueError(f"extension tool {tool_name} entrypoint function is missing")
+        raise ValueError(f"plugin tool {tool_name} entrypoint function is missing")
 
-    file_path = _resolve_inside_extension(extension_dir, raw_file_path)
+    file_path = _resolve_inside_plugin(plugin_dir, raw_file_path)
     if not file_path.is_file():
-        raise ValueError(f"extension tool {tool_name} entrypoint file does not exist")
+        raise ValueError(f"plugin tool {tool_name} entrypoint file does not exist")
 
-    module_name = _module_name(extension_id, tool_name)
+    module_name = _module_name(plugin_id, tool_name)
     spec = importlib.util.spec_from_file_location(module_name, file_path)
     if spec is None or spec.loader is None:
-        raise ValueError(f"extension tool {tool_name} entrypoint cannot be imported")
+        raise ValueError(f"plugin tool {tool_name} entrypoint cannot be imported")
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
     handler = getattr(module, attr_name, None)
     if not callable(handler):
-        raise ValueError(f"extension tool {tool_name} entrypoint is not callable")
+        raise ValueError(f"plugin tool {tool_name} entrypoint is not callable")
     return handler
 
 
-def _read_schema_value(value: Any, extension_dir: Path) -> dict[str, Any] | None:
+def _read_schema_value(value: Any, plugin_dir: Path) -> dict[str, Any] | None:
     if isinstance(value, dict):
         return dict(value)
     schema_path = _read_string(value)
     if not schema_path:
         return None
-    loaded = _read_json(_resolve_inside_extension(extension_dir, schema_path))
+    loaded = _read_json(_resolve_inside_plugin(plugin_dir, schema_path))
     return loaded if isinstance(loaded, dict) else None
 
 
@@ -241,18 +241,16 @@ def _build_handler_kwargs(
     try:
         bound = signature.bind(**args)
     except TypeError as exc:
-        raise ValueError(
-            f"extension tool arguments do not match entrypoint: {exc}"
-        ) from exc
+        raise ValueError(f"plugin tool arguments do not match entrypoint: {exc}") from exc
     return dict(bound.arguments)
 
 
-def _resolve_inside_extension(extension_dir: Path, raw_path: str) -> Path:
-    path = (extension_dir / raw_path).resolve()
+def _resolve_inside_plugin(plugin_dir: Path, raw_path: str) -> Path:
+    path = (plugin_dir / raw_path).resolve()
     try:
-        path.relative_to(extension_dir.resolve())
+        path.relative_to(plugin_dir.resolve())
     except ValueError as exc:
-        raise ValueError("extension path must stay inside extension directory") from exc
+        raise ValueError("plugin path must stay inside plugin directory") from exc
     return path
 
 
@@ -265,7 +263,7 @@ def _read_string(value: Any) -> str:
     return value.strip() if isinstance(value, str) else ""
 
 
-def _module_name(extension_id: str, tool_name: str) -> str:
-    safe_extension_id = re.sub(r"[^a-zA-Z0-9_]", "_", extension_id)
+def _module_name(plugin_id: str, tool_name: str) -> str:
+    safe_plugin_id = re.sub(r"[^a-zA-Z0-9_]", "_", plugin_id)
     safe_tool_name = re.sub(r"[^a-zA-Z0-9_]", "_", tool_name)
-    return f"windie_extension_{safe_extension_id}_{safe_tool_name}"
+    return f"windie_plugin_{safe_plugin_id}_{safe_tool_name}"

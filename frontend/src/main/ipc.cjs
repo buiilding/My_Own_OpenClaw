@@ -60,9 +60,8 @@ const {
   resolveWorkspaceRepoInstructionPromptLayers,
 } = require('./repo_instruction_runtime.cjs');
 const {
-  loadExtensionPromptLayers,
-  loadPublicAgentExtensions,
-  runExtensionLifecycleHook,
+  loadExtensionSkillPromptLayers,
+  loadPublicExtensionRegistry,
 } = require('./extension_manifest.cjs');
 const {
   handleRendererQuerySendFailure,
@@ -598,14 +597,6 @@ function getWindieSdkRuntime() {
       ipcEventReplayState.clear();
       log('Successfully connected to Python backend through Windie SDK runtime.');
       log(`Handshake sent with authenticated user_id: ${currentUserId}`);
-      runExtensionLifecycleHook('onSessionStart', {
-        userId: currentUserId,
-        operatingSystem: handshake.operating_system,
-        backendWsUrl: BACKEND_URL,
-        backendHttpUrl: BACKEND_HTTP_URL,
-      }).catch((error) => {
-        log(`Extension onSessionStart hook failed: ${error?.message || error}`);
-      });
       broadcastConnectionStatus(true);
       flushPendingListModelsRequest();
     },
@@ -719,7 +710,7 @@ function initializeIpc(win, options = {}) {
     return latestFrontendConfig;
   });
 
-  ipcMain.handle('list-agent-extensions', async () => loadPublicAgentExtensions());
+  ipcMain.handle('list-agent-extensions', async () => loadPublicExtensionRegistry());
 
   ipcMain.handle('get-client-user-id', async () => {
     return {
@@ -1107,7 +1098,7 @@ function attachAgentDefinitionContext(payload) {
   const generatedAgentDefinition = buildAgentDefinition({
     includeToolManifest: false,
     customInstructions,
-    promptLayers: loadExtensionPromptLayers(),
+    promptLayers: loadExtensionSkillPromptLayers(),
     agentsMd,
     workspacePath,
     operatingSystem: resolveFrontendOperatingSystem(process.platform),

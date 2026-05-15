@@ -13,11 +13,13 @@ const path = require('path');
 
 function makeExtensionDir() {
   const extensionsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-agent-extensions-'));
-  const extensionDir = path.join(extensionsDir, 'demo-extension');
-  fs.mkdirSync(path.join(extensionDir, 'tools'), { recursive: true });
-  fs.mkdirSync(path.join(extensionDir, 'python'), { recursive: true });
+  const pluginDir = path.join(extensionsDir, 'plugins', 'demo-extension');
+  const skillDir = path.join(extensionsDir, 'skills', 'demo-extension');
+  fs.mkdirSync(path.join(pluginDir, 'schemas'), { recursive: true });
+  fs.mkdirSync(path.join(pluginDir, 'python'), { recursive: true });
+  fs.mkdirSync(skillDir, { recursive: true });
   fs.writeFileSync(
-    path.join(extensionDir, 'tools', 'demo.model.schema.json'),
+    path.join(pluginDir, 'schemas', 'demo.model.schema.json'),
     JSON.stringify({
       type: 'object',
       properties: { value: { type: 'string' } },
@@ -25,9 +27,9 @@ function makeExtensionDir() {
       additionalProperties: false,
     }),
   );
-  fs.writeFileSync(path.join(extensionDir, 'python', 'demo_tool.py'), 'def run(args):\n  return {}\n');
+  fs.writeFileSync(path.join(pluginDir, 'python', 'demo_tool.py'), 'def run(args):\n  return {}\n');
   fs.writeFileSync(
-    path.join(extensionDir, 'extension.json'),
+    path.join(pluginDir, 'plugin.json'),
     JSON.stringify({
       id: 'demo-extension',
       name: 'Demo Extension',
@@ -35,16 +37,21 @@ function makeExtensionDir() {
         name: 'demo_tool',
         description: 'Demo extension tool.',
         entrypoint: 'python/demo_tool.py:run',
-        schema: 'tools/demo.model.schema.json',
+        schema: 'schemas/demo.model.schema.json',
         argument_resolution: 'passthrough',
       }],
-      prompt_layers: [{
-        id: 'demo-extension-guidance',
-        type: 'extension',
-        priority: 70,
-        content: 'Use the demo tool carefully.',
-      }],
     }),
+  );
+  fs.writeFileSync(
+    path.join(skillDir, 'SKILL.md'),
+    [
+      '---',
+      'id: demo-extension-guidance',
+      'priority: 70',
+      '---',
+      '',
+      'Use the demo tool carefully.',
+    ].join('\n'),
   );
   return extensionsDir;
 }
@@ -107,7 +114,8 @@ describe('agent capability handshake manifest', () => {
         expect.objectContaining({
           name: 'demo_tool',
           description: 'Demo extension tool.',
-          extension_id: 'demo-extension',
+          extension_id: 'plugin:demo-extension',
+          plugin_id: 'demo-extension',
           schema: expect.objectContaining({
             required: ['value'],
           }),
@@ -128,8 +136,8 @@ describe('agent capability handshake manifest', () => {
     expect(payload.agent_definition.prompt_layers).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: 'demo-extension-guidance',
-          type: 'extension',
+          id: 'extension:skill:demo-extension-guidance',
+          type: 'extension_skill',
           content: 'Use the demo tool carefully.',
         }),
       ]),

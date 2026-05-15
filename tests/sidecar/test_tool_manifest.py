@@ -31,14 +31,14 @@ def test_build_sidecar_tool_manifest_omits_unknown_schema_names():
     assert [tool["name"] for tool in manifest["tools"]] == ["read_file"]
 
 
-def test_registry_loads_extension_entrypoint_and_manifest(
+def test_registry_loads_plugin_entrypoint_and_manifest(
     tmp_path: Path,
     monkeypatch,
 ):
-    extension_dir = tmp_path / "notes"
-    tools_dir = extension_dir / "tools"
-    python_dir = extension_dir / "python"
-    tools_dir.mkdir(parents=True)
+    plugin_dir = tmp_path / "plugins" / "notes"
+    schemas_dir = plugin_dir / "schemas"
+    python_dir = plugin_dir / "python"
+    schemas_dir.mkdir(parents=True)
     python_dir.mkdir()
 
     schema = {
@@ -47,7 +47,7 @@ def test_registry_loads_extension_entrypoint_and_manifest(
         "required": ["note"],
         "additionalProperties": False,
     }
-    (tools_dir / "save_note.schema.json").write_text(
+    (schemas_dir / "save_note.schema.json").write_text(
         json.dumps(schema), encoding="utf-8"
     )
     (python_dir / "save_note.py").write_text(
@@ -65,7 +65,7 @@ def test_registry_loads_extension_entrypoint_and_manifest(
         ),
         encoding="utf-8",
     )
-    (extension_dir / "extension.json").write_text(
+    (plugin_dir / "plugin.json").write_text(
         json.dumps(
             {
                 "id": "notes",
@@ -74,7 +74,7 @@ def test_registry_loads_extension_entrypoint_and_manifest(
                         "name": "save_note",
                         "description": "Save a local note.",
                         "entrypoint": "python/save_note.py:run",
-                        "schema": "tools/save_note.schema.json",
+                        "schema": "schemas/save_note.schema.json",
                         "argument_resolution": "passthrough",
                     }
                 ],

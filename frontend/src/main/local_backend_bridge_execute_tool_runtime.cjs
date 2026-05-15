@@ -25,12 +25,6 @@ const {
   toScreenshotDisplayBounds,
 } = require('./display_affinity_runtime.cjs');
 const {
-  executeMainProcessExtensionTool,
-  getMainProcessExtensionToolHandler,
-  hasExtensionLifecycleHooks,
-  runExtensionLifecycleHook,
-} = require('./extension_manifest.cjs');
-const {
   executeMcpTool,
   hasDiscoveredMcpTool,
 } = require('./mcp_runtime.cjs');
@@ -45,12 +39,8 @@ function createLocalBackendExecuteToolRuntime({
   resolveMainWindow,
   resolveResponseWindow,
   platform = process.platform,
-  executeExtensionTool = executeMainProcessExtensionTool,
-  getExtensionToolHandler = getMainProcessExtensionToolHandler,
   executeLocalMcpTool = executeMcpTool,
   hasLocalMcpTool = hasDiscoveredMcpTool,
-  hasExtensionHooks = hasExtensionLifecycleHooks,
-  runExtensionHook = runExtensionLifecycleHook,
   sidecarDaemonClient = null,
 } = {}) {
   function resolveDisplayBounds(event) {
@@ -96,88 +86,13 @@ function createLocalBackendExecuteToolRuntime({
     );
   }
 
-  async function runBeforeToolCallHooks(toolName, normalizedArgs) {
-    if (runExtensionHook === runExtensionLifecycleHook && !hasExtensionHooks('beforeToolCall')) {
-      return { canceled: false, args: normalizedArgs };
-    }
-    let nextArgs = normalizedArgs;
-    const hookResults = await runExtensionHook('beforeToolCall', {
-      toolName,
-      args: nextArgs,
-    });
-    for (const hookResult of hookResults) {
-      if (hookResult?.error) {
-        console.warn(`[ExtensionRuntime] beforeToolCall hook from ${hookResult.extension_id} failed: ${hookResult.error}`);
-        continue;
-      }
-      const result = hookResult?.result;
-      if (!result || typeof result !== 'object' || Array.isArray(result)) {
-        continue;
-      }
-      if (result.cancel === true || result.allowed === false) {
-        return {
-          canceled: true,
-          error: result.error || result.reason || `Tool call canceled by extension ${hookResult.extension_id}`,
-        };
-      }
-      if (result.args && typeof result.args === 'object' && !Array.isArray(result.args)) {
-        nextArgs = result.args;
-      }
-    }
-    return { canceled: false, args: nextArgs };
-  }
-
-  async function runAfterToolCallHooks(toolName, normalizedArgs, result) {
-    if (runExtensionHook === runExtensionLifecycleHook && !hasExtensionHooks('afterToolCall')) {
-      return result;
-    }
-    let nextResult = result;
-    const hookResults = await runExtensionHook('afterToolCall', {
-      toolName,
-      args: normalizedArgs,
-      result: nextResult,
-    });
-    for (const hookResult of hookResults) {
-      if (hookResult?.error) {
-        console.warn(`[ExtensionRuntime] afterToolCall hook from ${hookResult.extension_id} failed: ${hookResult.error}`);
-        continue;
-      }
-      const hookValue = hookResult?.result;
-      if (
-        hookValue
-        && typeof hookValue === 'object'
-        && !Array.isArray(hookValue)
-        && hookValue.result
-        && typeof hookValue.result === 'object'
-      ) {
-        nextResult = hookValue.result;
-      }
-    }
-    return nextResult;
-  }
-
   async function executeTool(event, { toolName, args } = {}) {
     try {
-      let normalizedArgs = resolveNormalizedToolArgs(toolName, args, event);
-      if (runExtensionHook !== runExtensionLifecycleHook || hasExtensionHooks('beforeToolCall')) {
-        const beforeHookResult = await runBeforeToolCallHooks(toolName, normalizedArgs);
-        if (beforeHookResult.canceled) {
-          return {
-            success: false,
-            error: beforeHookResult.error,
-          };
-        }
-        normalizedArgs = beforeHookResult.args;
-      }
+      const normalizedArgs = resolveNormalizedToolArgs(toolName, args, event);
       const timeoutMs = resolveExecuteToolTimeoutMs(toolName);
       let result = null;
       if (hasLocalMcpTool(toolName)) {
         result = await executeLocalMcpTool(toolName, normalizedArgs, {
-          senderWindowId: event?.sender?.id || null,
-        });
-      }
-      if (executeExtensionTool !== executeMainProcessExtensionTool || getExtensionToolHandler(toolName)) {
-        result = result || await executeExtensionTool(toolName, normalizedArgs, {
           senderWindowId: event?.sender?.id || null,
         });
       }
@@ -199,7 +114,6 @@ function createLocalBackendExecuteToolRuntime({
         getErrorMessage,
         getArtifactUploadHeaders,
       });
-      result = await runAfterToolCallHooks(toolName, normalizedArgs, result);
 
       if (result.success === false) {
         return { success: false, error: result.error };

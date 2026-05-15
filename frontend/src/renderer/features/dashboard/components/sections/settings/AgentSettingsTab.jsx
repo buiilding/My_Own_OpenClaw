@@ -35,7 +35,12 @@ function toggleListValue(values, value, enabled) {
 function AgentSettingsTab({ config, onConfigChange }) {
   const [manifestStatus, setManifestStatus] = useState({ accepted: [], rejected: [] });
   const [remoteToolCatalog, setRemoteToolCatalog] = useState({ remote_tools: [] });
-  const [extensionRuntime, setExtensionRuntime] = useState({ extensions: [], errors: [] });
+  const [extensionRuntime, setExtensionRuntime] = useState({
+    plugins: [],
+    skills: [],
+    mcps: [],
+    errors: [],
+  });
   const disabledLocalTools = Array.isArray(config?.agent_disabled_local_tools)
     ? config.agent_disabled_local_tools
     : [];
@@ -56,12 +61,14 @@ function AgentSettingsTab({ config, onConfigChange }) {
     IpcBridge.invoke(INVOKE_CHANNELS.LIST_AGENT_EXTENSIONS)
       .then((payload) => {
         setExtensionRuntime({
-          extensions: Array.isArray(payload?.extensions) ? payload.extensions : [],
+          plugins: Array.isArray(payload?.plugins) ? payload.plugins : [],
+          skills: Array.isArray(payload?.skills) ? payload.skills : [],
+          mcps: Array.isArray(payload?.mcps) ? payload.mcps : [],
           errors: Array.isArray(payload?.errors) ? payload.errors : [],
         });
       })
       .catch(() => {
-        setExtensionRuntime({ extensions: [], errors: [] });
+        setExtensionRuntime({ plugins: [], skills: [], mcps: [], errors: [] });
       });
 
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (event) => {
@@ -105,23 +112,46 @@ function AgentSettingsTab({ config, onConfigChange }) {
       <div className="clone-settings-row clone-settings-row-rich clone-settings-row-stack">
         <div>
           <span>Extensions</span>
-          <p>Local plugin packages can contribute tools, MCP servers, prompt layers, skills, settings panels, hooks, config, and permissions.</p>
+          <p>Local extension contributions are divided into sidecar plugins, prompt skills, and MCP servers.</p>
         </div>
         <div className="clone-settings-layer-list">
-          {extensionRuntime.extensions.length > 0 ? extensionRuntime.extensions.map((extension) => (
-            <details key={extension.id} className="clone-settings-schema-viewer">
+          {extensionRuntime.plugins.length > 0 ? extensionRuntime.plugins.map((plugin) => (
+            <details key={`plugin:${plugin.id}`} className="clone-settings-schema-viewer">
               <summary>
-                {extension.name || extension.id}
-                <small>{extension.tools?.length || 0} tools / {extension.mcp_servers?.length || 0} MCP / {extension.settings_panels?.length || 0} panels</small>
+                {plugin.name || plugin.id}
+                <small>{plugin.tools?.length || 0} tools / {plugin.settings_panels?.length || 0} panels</small>
               </summary>
-              <ExtensionRuntimeDetails extension={extension} />
+              <PluginRuntimeDetails plugin={plugin} />
             </details>
           )) : (
-            <p className="clone-settings-tool-status">No local extensions loaded</p>
+            <p className="clone-settings-tool-status">No sidecar plugins loaded</p>
           )}
+          {extensionRuntime.skills.length > 0 ? (
+            <details className="clone-settings-schema-viewer">
+              <summary>
+                Skills
+                <small>{extensionRuntime.skills.length} prompt layers</small>
+              </summary>
+              <pre>{JSON.stringify(extensionRuntime.skills, null, 2)}</pre>
+            </details>
+          ) : null}
+          {extensionRuntime.mcps.length > 0 ? (
+            <details className="clone-settings-schema-viewer">
+              <summary>
+                MCP servers
+                <small>{extensionRuntime.mcps.length} servers</small>
+              </summary>
+              <pre>{JSON.stringify(extensionRuntime.mcps.map((server) => ({
+                id: server.id,
+                name: server.name,
+                command: server.command,
+                tools: (server.tools || []).map((tool) => tool.name),
+              })), null, 2)}</pre>
+            </details>
+          ) : null}
           {extensionRuntime.errors.length > 0 ? extensionRuntime.errors.map((error) => (
-            <p key={`${error.extension}-${error.reason}`} className="clone-settings-tool-status clone-settings-tool-status-error">
-              {error.extension}: {error.reason}
+            <p key={`${error.kind || 'extension'}-${error.id || 'unknown'}-${error.reason}`} className="clone-settings-tool-status clone-settings-tool-status-error">
+              {error.kind || 'extension'} {error.id || 'unknown'}: {error.reason}
             </p>
           )) : null}
         </div>
@@ -194,18 +224,17 @@ function AgentSettingsTab({ config, onConfigChange }) {
   );
 }
 
-function ExtensionRuntimeDetails({ extension }) {
-  const hookCounts = extension.lifecycle_hooks || {};
+function PluginRuntimeDetails({ plugin }) {
   return (
     <div className="clone-settings-extension-detail">
-      {extension.description ? (
-        <p className="clone-settings-tool-status">{extension.description}</p>
+      {plugin.description ? (
+        <p className="clone-settings-tool-status">{plugin.description}</p>
       ) : null}
-      {Array.isArray(extension.permissions) && extension.permissions.length > 0 ? (
+      {Array.isArray(plugin.permissions) && plugin.permissions.length > 0 ? (
         <div>
           <strong>Permissions</strong>
           <ul>
-            {extension.permissions.map((permission) => (
+            {plugin.permissions.map((permission) => (
               <li key={permission.id}>
                 {permission.id}{permission.reason ? `: ${permission.reason}` : ''}
               </li>
@@ -213,11 +242,11 @@ function ExtensionRuntimeDetails({ extension }) {
           </ul>
         </div>
       ) : null}
-      {Array.isArray(extension.settings_panels) && extension.settings_panels.length > 0 ? (
+      {Array.isArray(plugin.settings_panels) && plugin.settings_panels.length > 0 ? (
         <div>
           <strong>Settings panels</strong>
           <ul>
-            {extension.settings_panels.map((panel) => (
+            {plugin.settings_panels.map((panel) => (
               <li key={panel.id}>
                 {panel.title}{panel.description ? `: ${panel.description}` : ''}
               </li>
@@ -225,30 +254,11 @@ function ExtensionRuntimeDetails({ extension }) {
           </ul>
         </div>
       ) : null}
-      {Array.isArray(extension.mcp_servers) && extension.mcp_servers.length > 0 ? (
-        <div>
-          <strong>MCP servers</strong>
-          <ul>
-            {extension.mcp_servers.map((server) => (
-              <li key={server.id}>
-                {server.name || server.id}{server.tools?.length ? `: ${server.tools.map((tool) => tool.name).join(', ')}` : ''}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
       <pre>{JSON.stringify({
-        id: extension.id,
-        version: extension.version || null,
-        tools: (extension.tools || []).map((tool) => tool.name),
-        mcp_servers: (extension.mcp_servers || []).map((server) => ({
-          id: server.id,
-          command: server.command,
-          tools: (server.tools || []).map((tool) => tool.name),
-        })),
-        prompt_layers: extension.prompt_layers || [],
-        lifecycle_hooks: hookCounts,
-        config_schema: extension.config_schema || {},
+        id: plugin.id,
+        version: plugin.version || null,
+        tools: (plugin.tools || []).map((tool) => tool.name),
+        config_schema: plugin.config_schema || {},
       }, null, 2)}</pre>
     </div>
   );
@@ -291,8 +301,8 @@ ToolAcceptanceStatus.propTypes = {
   }),
 };
 
-ExtensionRuntimeDetails.propTypes = {
-  extension: PropTypes.shape({
+PluginRuntimeDetails.propTypes = {
+  plugin: PropTypes.shape({
     id: PropTypes.string,
     name: PropTypes.string,
     description: PropTypes.string,
@@ -309,16 +319,6 @@ ExtensionRuntimeDetails.propTypes = {
     tools: PropTypes.arrayOf(PropTypes.shape({
       name: PropTypes.string,
     })),
-    mcp_servers: PropTypes.arrayOf(PropTypes.shape({
-      id: PropTypes.string,
-      name: PropTypes.string,
-      command: PropTypes.string,
-      tools: PropTypes.arrayOf(PropTypes.shape({
-        name: PropTypes.string,
-      })),
-    })),
-    prompt_layers: PropTypes.arrayOf(PropTypes.object),
-    lifecycle_hooks: PropTypes.object,
     config_schema: PropTypes.object,
   }).isRequired,
 };

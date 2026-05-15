@@ -2,11 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
-const LIFECYCLE_HOOKS = Object.freeze([
-  'onSessionStart',
-  'beforeToolCall',
-  'afterToolCall',
-]);
 const extensionRuntimeCache = new Map();
 
 function resolveDefaultExtensionsDir() {
@@ -24,39 +19,39 @@ function resolveDefaultExtensionsDir() {
   return path.resolve(__dirname, '../../..', 'extensions');
 }
 
+function normalizeString(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : '';
+}
+
+function normalizeObject(value) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+}
+
 function readJsonFile(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
-function resolveInsideExtension(extensionDir, rawPath) {
-  const resolvedPath = path.resolve(extensionDir, rawPath);
-  const relativePath = path.relative(extensionDir, resolvedPath);
+function resolveInside(rootDir, rawPath, label = 'Extension path') {
+  const resolvedPath = path.resolve(rootDir, rawPath);
+  const relativePath = path.relative(rootDir, resolvedPath);
   if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
-    throw new Error('Extension paths must stay inside the extension directory.');
+    throw new Error(`${label} must stay inside ${rootDir}.`);
   }
   return resolvedPath;
 }
 
-function readSchemaValue(value, extensionDir) {
+function readSchemaValue(value, rootDir) {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     return value;
   }
-  if (typeof value !== 'string' || !value.trim()) {
+  const schemaPath = normalizeString(value);
+  if (!schemaPath) {
     return null;
   }
-  const schemaPath = resolveInsideExtension(extensionDir, value.trim());
-  return readJsonFile(schemaPath);
+  return readJsonFile(resolveInside(rootDir, schemaPath, 'Schema path'));
 }
 
-function readToolSchema(rawTool, extensionDir) {
-  const schema = readSchemaValue(rawTool.schema || rawTool.tool_schema, extensionDir);
-  if (!schema) {
-    return null;
-  }
-  return schema;
-}
-
-function hasSidecarEntrypoint(entrypoint, extensionDir) {
+function hasSidecarEntrypoint(entrypoint, pluginDir) {
   if (typeof entrypoint !== 'string' || !entrypoint.trim() || !entrypoint.includes(':')) {
     return false;
   }
@@ -65,34 +60,10 @@ function hasSidecarEntrypoint(entrypoint, extensionDir) {
     return false;
   }
   try {
-    return fs.statSync(resolveInsideExtension(extensionDir, rawFilePath.trim())).isFile();
+    return fs.statSync(resolveInside(pluginDir, rawFilePath.trim(), 'Plugin entrypoint')).isFile();
   } catch (_error) {
     return false;
   }
-}
-
-function readPromptLayer(layer, extensionDir, extensionId, index) {
-  if (!layer || typeof layer !== 'object' || Array.isArray(layer)) {
-    return null;
-  }
-  let content = typeof layer.content === 'string' ? layer.content : '';
-  if (!content && typeof layer.content_path === 'string' && layer.content_path.trim()) {
-    content = fs.readFileSync(resolveInsideExtension(extensionDir, layer.content_path.trim()), 'utf8');
-  }
-  content = content.trim();
-  if (!content) {
-    return null;
-  }
-  return {
-    id: typeof layer.id === 'string' && layer.id.trim()
-      ? layer.id.trim()
-      : `extension:${extensionId}:prompt-layer:${index}`,
-    type: typeof layer.type === 'string' && layer.type.trim()
-      ? layer.type.trim()
-      : 'extension',
-    priority: Number.isFinite(Number(layer.priority)) ? Number(layer.priority) : 70,
-    content,
-  };
 }
 
 function parseMarkdownFrontmatter(content) {
@@ -116,7 +87,6 @@ function parseMarkdownFrontmatter(content) {
 function slugFromRelativePath(relativePath) {
   return relativePath
     .replace(/\\/g, '/')
-    .replace(/^skills\//i, '')
     .replace(/\/SKILL\.md$/i, '')
     .replace(/[^a-zA-Z0-9_-]+/g, '-')
     .replace(/^-+|-+$/g, '')
@@ -143,40 +113,8 @@ function findSkillFiles(rootDir) {
   return files;
 }
 
-function normalizeSkillSpec(rawSkill) {
-  if (typeof rawSkill === 'string' && rawSkill.trim()) {
-    return { path: rawSkill.trim() };
-  }
-  if (!rawSkill || typeof rawSkill !== 'object' || Array.isArray(rawSkill)) {
-    return null;
-  }
-  const skillPath = typeof rawSkill.path === 'string' && rawSkill.path.trim()
-    ? rawSkill.path.trim()
-    : typeof rawSkill.content_path === 'string' && rawSkill.content_path.trim()
-      ? rawSkill.content_path.trim()
-      : '';
-  if (!skillPath) {
-    return null;
-  }
-  return {
-    path: skillPath,
-    id: typeof rawSkill.id === 'string' && rawSkill.id.trim() ? rawSkill.id.trim() : '',
-    type: typeof rawSkill.type === 'string' && rawSkill.type.trim() ? rawSkill.type.trim() : '',
-    priority: Number.isFinite(Number(rawSkill.priority)) ? Number(rawSkill.priority) : null,
-  };
-}
-
-function resolveSkillFile(extensionDir, rawPath) {
-  const resolvedPath = resolveInsideExtension(extensionDir, rawPath);
-  const stat = fs.statSync(resolvedPath);
-  if (stat.isDirectory()) {
-    return path.join(resolvedPath, 'SKILL.md');
-  }
-  return resolvedPath;
-}
-
-function readSkillLayer(skillFilePath, extensionDir, extensionId, spec = {}) {
-  const relativePath = path.relative(extensionDir, skillFilePath);
+function readSkillLayer(skillFilePath, skillsRoot) {
+  const relativePath = path.relative(skillsRoot, skillFilePath);
   const parsed = parseMarkdownFrontmatter(fs.readFileSync(skillFilePath, 'utf8'));
   let content = parsed.body.trim();
   if (!content) {
@@ -187,131 +125,76 @@ function readSkillLayer(skillFilePath, extensionDir, extensionId, spec = {}) {
   if (title && !content.startsWith('#')) {
     content = `# ${title}\n\n${content}`;
   }
-  const metadataId = typeof parsed.metadata.id === 'string' ? parsed.metadata.id.trim() : '';
-  const slug = spec.id || metadataId || slugFromRelativePath(relativePath);
+  const metadataId = normalizeString(parsed.metadata.id);
+  const slug = metadataId || slugFromRelativePath(relativePath);
   if (!slug) {
     return null;
   }
-  const metadataType = typeof parsed.metadata.type === 'string' ? parsed.metadata.type.trim() : '';
-  const priority = spec.priority !== null && spec.priority !== undefined
-    ? spec.priority
-    : Number.isFinite(Number(parsed.metadata.priority))
-      ? Number(parsed.metadata.priority)
-      : 75;
+  const priority = Number.isFinite(Number(parsed.metadata.priority))
+    ? Number(parsed.metadata.priority)
+    : 75;
   return {
-    id: `extension:${extensionId}:skill:${slug}`,
-    type: spec.type || metadataType || 'extension_skill',
+    id: `extension:skill:${slug}`,
+    skill_id: slug,
+    type: normalizeString(parsed.metadata.type) || 'extension_skill',
     priority,
     content,
+    path: skillFilePath,
   };
 }
 
-function readSkillPromptLayers(manifest, extensionDir, extensionId) {
-  const layers = [];
-  const seenFiles = new Set();
-  const addSkillFile = (skillFilePath, spec = {}) => {
-    const resolvedSkillPath = path.resolve(skillFilePath);
-    if (seenFiles.has(resolvedSkillPath)) {
-      return;
-    }
-    seenFiles.add(resolvedSkillPath);
-    try {
-      const layer = readSkillLayer(resolvedSkillPath, extensionDir, extensionId, spec);
-      if (layer) {
-        layers.push(layer);
-      }
-    } catch (_error) {
-      // Invalid skill files should not block tools or other prompt layers.
-    }
-  };
-
-  for (const rawSkill of Array.isArray(manifest.skills) ? manifest.skills : []) {
-    const spec = normalizeSkillSpec(rawSkill);
-    if (!spec) {
-      continue;
-    }
-    try {
-      const skillFilePath = resolveSkillFile(extensionDir, spec.path);
-      if (path.basename(skillFilePath).toLowerCase() === 'skill.md' && fs.statSync(skillFilePath).isFile()) {
-        addSkillFile(skillFilePath, spec);
-      }
-    } catch (_error) {
-      // Invalid skill entries should not block the rest of the extension.
-    }
-  }
-
-  const skillsRoot = path.join(extensionDir, 'skills');
-  for (const skillFilePath of findSkillFiles(skillsRoot)) {
-    addSkillFile(skillFilePath);
-  }
-  return layers;
-}
-
-function normalizeString(value) {
-  return typeof value === 'string' && value.trim() ? value.trim() : '';
-}
-
-function normalizeObject(value) {
-  return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
-}
-
-function readToolContribution(rawTool, extensionDir, extensionId) {
+function readToolContribution(rawTool, pluginDir, pluginId) {
   if (!rawTool || typeof rawTool !== 'object' || Array.isArray(rawTool)) {
     return null;
   }
   const name = normalizeString(rawTool.name);
-  const executionTarget = rawTool.execution_target === 'backend' ? 'backend' : 'sidecar';
   const entrypoint = normalizeString(rawTool.entrypoint);
-  const toolSchema = readToolSchema(rawTool, extensionDir);
-  if (!name || !toolSchema) {
+  const toolSchema = readSchemaValue(rawTool.schema || rawTool.tool_schema, pluginDir);
+  if (!name || !toolSchema || !hasSidecarEntrypoint(entrypoint, pluginDir)) {
     return null;
   }
-
-  const execute = typeof rawTool.execute === 'function' ? rawTool.execute : null;
-  if (!execute && executionTarget === 'sidecar' && !hasSidecarEntrypoint(entrypoint, extensionDir)) {
-    return null;
-  }
-
   return {
-    manifestTool: {
-      name,
-      description: normalizeString(rawTool.description) || `Extension tool from ${extensionId}.`,
-      execution_target: executionTarget,
-      schema: toolSchema,
-      argument_resolution: rawTool.argument_resolution === 'backend_grounding'
-        ? 'backend_grounding'
-        : 'passthrough',
-      extension_id: extensionId,
-    },
-    mainProcessHandler: execute
-      ? {
-        name,
-        extension_id: extensionId,
-        handler: execute,
-      }
-      : null,
+    name,
+    description: normalizeString(rawTool.description) || `Plugin tool from ${pluginId}.`,
+    execution_target: 'sidecar',
+    schema: toolSchema,
+    argument_resolution: rawTool.argument_resolution === 'backend_grounding'
+      ? 'backend_grounding'
+      : 'passthrough',
+    plugin_id: pluginId,
+    extension_id: `plugin:${pluginId}`,
   };
 }
 
-function addToolContribution(extension, contribution) {
-  if (!contribution) {
-    return;
+function normalizePermission(permission) {
+  if (typeof permission === 'string') {
+    const id = normalizeString(permission);
+    return id ? { id, reason: '' } : null;
   }
-  extension.tools.push(contribution.manifestTool);
-  if (contribution.mainProcessHandler) {
-    extension.main_process_tools.push(contribution.mainProcessHandler);
+  if (!permission || typeof permission !== 'object' || Array.isArray(permission)) {
+    return null;
   }
+  const id = normalizeString(permission.id || permission.name);
+  if (!id) {
+    return null;
+  }
+  return {
+    id,
+    reason: normalizeString(permission.reason || permission.description),
+    required: permission.required !== false,
+  };
 }
 
-function normalizeSettingsPanel(panel, extensionId, index) {
+function normalizeSettingsPanel(panel, pluginId, index) {
   if (!panel || typeof panel !== 'object' || Array.isArray(panel)) {
     return null;
   }
   const id = normalizeString(panel.id) || `panel-${index}`;
-  const title = normalizeString(panel.title) || normalizeString(panel.name) || id;
+  const title = normalizeString(panel.title || panel.name) || id;
   return {
-    id: `extension:${extensionId}:settings:${id}`,
-    extension_id: extensionId,
+    id: `extension:plugin:${pluginId}:settings:${id}`,
+    plugin_id: pluginId,
+    extension_id: `plugin:${pluginId}`,
     title,
     description: normalizeString(panel.description),
     config_schema: normalizeObject(panel.config_schema || panel.schema),
@@ -319,19 +202,39 @@ function normalizeSettingsPanel(panel, extensionId, index) {
   };
 }
 
-function addSettingsPanel(extension, panel) {
-  const normalized = normalizeSettingsPanel(panel, extension.id, extension.settings_panels.length);
-  if (normalized) {
-    extension.settings_panels.push(normalized);
-  }
+function loadPlugin(pluginDir) {
+  const manifestPath = path.join(pluginDir, 'plugin.json');
+  const manifest = readJsonFile(manifestPath);
+  const pluginId = normalizeString(manifest.id) || path.basename(pluginDir);
+  const permissions = [
+    ...(Array.isArray(manifest.required_permissions) ? manifest.required_permissions : []),
+    ...(Array.isArray(manifest.permissions) ? manifest.permissions : []),
+  ].map(normalizePermission).filter(Boolean);
+  const settingsPanels = (Array.isArray(manifest.settings_panels) ? manifest.settings_panels : [])
+    .map((panel, index) => normalizeSettingsPanel(panel, pluginId, index))
+    .filter(Boolean);
+  return {
+    id: pluginId,
+    name: normalizeString(manifest.name) || pluginId,
+    description: normalizeString(manifest.description),
+    version: normalizeString(manifest.version),
+    directory: pluginDir,
+    config: normalizeObject(manifest.config),
+    config_schema: normalizeObject(manifest.config_schema || manifest.configSchema),
+    permissions,
+    settings_panels: settingsPanels,
+    tools: (Array.isArray(manifest.tools) ? manifest.tools : [])
+      .map((rawTool) => readToolContribution(rawTool, pluginDir, pluginId))
+      .filter(Boolean),
+  };
 }
 
-function normalizeMcpToolSpec(tool, extensionDir) {
+function normalizeMcpToolSpec(tool, mcpDir) {
   if (!tool || typeof tool !== 'object' || Array.isArray(tool)) {
     return null;
   }
   const name = normalizeString(tool.name);
-  const schema = readSchemaValue(tool.schema || tool.input_schema || tool.inputSchema, extensionDir);
+  const schema = readSchemaValue(tool.schema || tool.input_schema || tool.inputSchema, mcpDir);
   if (!name || !schema || Object.keys(schema).length === 0) {
     return null;
   }
@@ -342,23 +245,23 @@ function normalizeMcpToolSpec(tool, extensionDir) {
   };
 }
 
-function addMcpServer(extension, server, extensionDir) {
+function normalizeMcpServer(server, mcpDir, mcpId) {
   if (!server || typeof server !== 'object' || Array.isArray(server)) {
-    return;
+    return null;
   }
-  const id = normalizeString(server.id || server.name);
+  const id = normalizeString(server.id || server.name) || mcpId;
   const command = normalizeString(server.command);
-  if (!id || !command) {
-    return;
+  if (!id || !command || server.enabled === false) {
+    return null;
   }
   let cwd = normalizeString(server.cwd);
   if (cwd && !path.isAbsolute(cwd)) {
-    cwd = resolveInsideExtension(extensionDir, cwd);
+    cwd = resolveInside(mcpDir, cwd, 'MCP cwd');
   }
   const tools = Array.isArray(server.tools)
-    ? server.tools.map((tool) => normalizeMcpToolSpec(tool, extensionDir)).filter(Boolean)
+    ? server.tools.map((tool) => normalizeMcpToolSpec(tool, mcpDir)).filter(Boolean)
     : [];
-  extension.mcp_servers.push({
+  return {
     id,
     name: normalizeString(server.name) || id,
     description: normalizeString(server.description),
@@ -367,301 +270,129 @@ function addMcpServer(extension, server, extensionDir) {
       ? server.args.filter((arg) => typeof arg === 'string')
       : [],
     env: normalizeObject(server.env),
-    cwd: cwd || extensionDir,
-    enabled: server.enabled !== false,
+    cwd: cwd || mcpDir,
+    enabled: true,
     timeout_ms: Number.isFinite(Number(server.timeout_ms || server.timeoutMs))
       ? Number(server.timeout_ms || server.timeoutMs)
       : null,
     tool_prefix: normalizeString(server.tool_prefix || server.toolPrefix),
     tools,
-    extension_id: extension.id,
-  });
-}
-
-function addPermission(extension, permission) {
-  if (typeof permission === 'string') {
-    const id = normalizeString(permission);
-    if (id) {
-      extension.permissions.push({ id, reason: '' });
-    }
-    return;
-  }
-  if (!permission || typeof permission !== 'object' || Array.isArray(permission)) {
-    return;
-  }
-  const id = normalizeString(permission.id || permission.name);
-  if (!id) {
-    return;
-  }
-  extension.permissions.push({
-    id,
-    reason: normalizeString(permission.reason || permission.description),
-    required: permission.required !== false,
-  });
-}
-
-function addPromptLayer(extension, layer, extensionDir) {
-  const normalized = readPromptLayer(layer, extensionDir, extension.id, extension.prompt_layers.length);
-  if (normalized) {
-    extension.prompt_layers.push(normalized);
-  }
-}
-
-function addSkill(extension, skill, extensionDir) {
-  if (typeof skill === 'string') {
-    const spec = normalizeSkillSpec(skill);
-    if (!spec) {
-      return;
-    }
-    try {
-      const skillFilePath = resolveSkillFile(extensionDir, spec.path);
-      const layer = readSkillLayer(skillFilePath, extensionDir, extension.id, spec);
-      if (layer) {
-        extension.prompt_layers.push(layer);
-      }
-    } catch (_error) {
-      // Invalid plugin-registered skill paths should not block the extension.
-    }
-    return;
-  }
-
-  if (!skill || typeof skill !== 'object' || Array.isArray(skill)) {
-    return;
-  }
-  if (typeof skill.content === 'string' && skill.content.trim()) {
-    const id = normalizeString(skill.id) || normalizeString(skill.name) || `skill-${extension.prompt_layers.length}`;
-    const title = normalizeString(skill.title || skill.name);
-    const content = title && !skill.content.trim().startsWith('#')
-      ? `# ${title}\n\n${skill.content.trim()}`
-      : skill.content.trim();
-    extension.prompt_layers.push({
-      id: `extension:${extension.id}:skill:${id}`,
-      type: normalizeString(skill.type) || 'extension_skill',
-      priority: Number.isFinite(Number(skill.priority)) ? Number(skill.priority) : 75,
-      content,
-    });
-    return;
-  }
-
-  const spec = normalizeSkillSpec(skill);
-  if (!spec) {
-    return;
-  }
-  try {
-    const skillFilePath = resolveSkillFile(extensionDir, spec.path);
-    const layer = readSkillLayer(skillFilePath, extensionDir, extension.id, spec);
-    if (layer) {
-      extension.prompt_layers.push(layer);
-    }
-  } catch (_error) {
-    // Invalid plugin-registered skill paths should not block the extension.
-  }
-}
-
-function addLifecycleHook(extension, hookName, handler) {
-  if (!LIFECYCLE_HOOKS.includes(hookName) || typeof handler !== 'function') {
-    return;
-  }
-  extension.lifecycle_hooks[hookName].push({
-    extension_id: extension.id,
-    handler,
-  });
-}
-
-function createPluginApi(extension, extensionDir) {
-  const api = {
-    extension: Object.freeze({
-      id: extension.id,
-      name: extension.name,
-      version: extension.version,
-      directory: extensionDir,
-    }),
-    config: Object.freeze({ ...extension.config }),
-    paths: Object.freeze({
-      resolve: (relativePath) => resolveInsideExtension(extensionDir, relativePath),
-      readJson: (relativePath) => readJsonFile(resolveInsideExtension(extensionDir, relativePath)),
-      readText: (relativePath) => fs.readFileSync(resolveInsideExtension(extensionDir, relativePath), 'utf8'),
-    }),
-    registerTool: (tool) => {
-      addToolContribution(extension, readToolContribution(tool, extensionDir, extension.id));
-    },
-    registerPromptLayer: (layer) => addPromptLayer(extension, layer, extensionDir),
-    registerSkill: (skill) => addSkill(extension, skill, extensionDir),
-    registerSettingsPanel: (panel) => addSettingsPanel(extension, panel),
-    registerMcpServer: (server) => addMcpServer(extension, server, extensionDir),
-    registerPermission: (permission) => addPermission(extension, permission),
-    registerLifecycleHook: (hookName, handler) => addLifecycleHook(extension, hookName, handler),
-  };
-
-  api.onSessionStart = (handler) => addLifecycleHook(extension, 'onSessionStart', handler);
-  api.beforeToolCall = (handler) => addLifecycleHook(extension, 'beforeToolCall', handler);
-  api.afterToolCall = (handler) => addLifecycleHook(extension, 'afterToolCall', handler);
-  api.hooks = Object.freeze({
-    onSessionStart: api.onSessionStart,
-    beforeToolCall: api.beforeToolCall,
-    afterToolCall: api.afterToolCall,
-  });
-  return Object.freeze(api);
-}
-
-function resolvePluginEntrypoint(manifest, extensionDir) {
-  if (manifest.plugin === false) {
-    return null;
-  }
-  const pluginConfig = normalizeObject(manifest.plugin);
-  const configured = normalizeString(pluginConfig.entrypoint || pluginConfig.main);
-  if (configured) {
-    const resolvedPath = resolveInsideExtension(extensionDir, configured);
-    const relativePath = path.relative(extensionDir, resolvedPath).replace(/\\/g, '/');
-    if (!relativePath.startsWith('plugin/')) {
-      throw new Error('Extension plugin entrypoints must live under plugin/.');
-    }
-    return resolvedPath;
-  }
-  const defaultEntrypoint = path.join(extensionDir, 'plugin', 'index.cjs');
-  return fs.existsSync(defaultEntrypoint) ? defaultEntrypoint : null;
-}
-
-function loadPluginEntrypoint(extension, manifest, extensionDir) {
-  const pluginPath = resolvePluginEntrypoint(manifest, extensionDir);
-  if (!pluginPath || !fs.existsSync(pluginPath)) {
-    return;
-  }
-  const pluginModule = require(pluginPath);
-  const register = typeof pluginModule === 'function'
-    ? pluginModule
-    : typeof pluginModule?.register === 'function'
-      ? pluginModule.register
-      : typeof pluginModule?.default === 'function'
-        ? pluginModule.default
-        : null;
-  if (!register) {
-    throw new Error(`Extension plugin ${extension.id} does not export a register function`);
-  }
-  register(createPluginApi(extension, extensionDir));
-}
-
-function createExtensionBase(extensionId, manifest, entryDir) {
-  return {
-    id: extensionId,
-    name: normalizeString(manifest.name) || extensionId,
-    description: normalizeString(manifest.description),
-    version: normalizeString(manifest.version),
-    directory: entryDir,
-    config: normalizeObject(manifest.config),
-    config_schema: normalizeObject(manifest.config_schema || manifest.configSchema),
-    permissions: [],
-    tools: [],
-    main_process_tools: [],
-    prompt_layers: [],
-    settings_panels: [],
-    mcp_servers: [],
-    lifecycle_hooks: {
-      onSessionStart: [],
-      beforeToolCall: [],
-      afterToolCall: [],
-    },
+    mcp_id: mcpId,
+    extension_id: `mcp:${mcpId}`,
   };
 }
 
-function readMcpServersFile(extension, extensionDir) {
-  const mcpServersPath = path.join(extensionDir, 'mcp', 'servers.json');
-  if (!fs.existsSync(mcpServersPath)) {
-    return;
-  }
-  const parsed = readJsonFile(mcpServersPath);
-  const servers = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.servers) ? parsed.servers : [];
-  for (const server of servers) {
-    addMcpServer(extension, server, extensionDir);
-  }
+function loadMcpEntry(mcpDir) {
+  const manifestPath = path.join(mcpDir, 'mcp.json');
+  const parsed = readJsonFile(manifestPath);
+  const mcpId = normalizeString(parsed.id || parsed.name) || path.basename(mcpDir);
+  const servers = Array.isArray(parsed.servers) ? parsed.servers : [parsed];
+  return servers
+    .map((server) => normalizeMcpServer(server, mcpDir, mcpId))
+    .filter(Boolean);
 }
 
-function loadExtension(entryDir) {
-  const extensionJsonPath = path.join(entryDir, 'extension.json');
-  const manifest = readJsonFile(extensionJsonPath);
-  const extensionId = typeof manifest.id === 'string' && manifest.id.trim()
-    ? manifest.id.trim()
-    : path.basename(entryDir);
-  const extension = createExtensionBase(extensionId, manifest, entryDir);
-
-  for (const rawTool of Array.isArray(manifest.tools) ? manifest.tools : []) {
-    addToolContribution(extension, readToolContribution(rawTool, entryDir, extensionId));
-  }
-
-  const rawPromptLayers = Array.isArray(manifest.prompt_layers) ? manifest.prompt_layers : [];
-  rawPromptLayers.forEach((layer, index) => {
-    const promptLayer = readPromptLayer(layer, entryDir, extensionId, index);
-    if (promptLayer) {
-      extension.prompt_layers.push(promptLayer);
-    }
-  });
-  extension.prompt_layers.push(...readSkillPromptLayers(manifest, entryDir, extensionId));
-
-  const permissions = [
-    ...(Array.isArray(manifest.required_permissions) ? manifest.required_permissions : []),
-    ...(Array.isArray(manifest.permissions) ? manifest.permissions : []),
-  ];
-  for (const permission of permissions) {
-    addPermission(extension, permission);
-  }
-  for (const panel of Array.isArray(manifest.settings_panels) ? manifest.settings_panels : []) {
-    addSettingsPanel(extension, panel);
-  }
-  readMcpServersFile(extension, entryDir);
-
-  loadPluginEntrypoint(extension, manifest, entryDir);
-  return extension;
-}
-
-function loadAgentExtensions(options = {}) {
+function loadAgentExtensionRegistry(options = {}) {
   const extensionsDir = path.resolve(options.extensionsDir || resolveDefaultExtensionsDir());
   if (options.reload !== true && extensionRuntimeCache.has(extensionsDir)) {
     return extensionRuntimeCache.get(extensionsDir);
   }
+
+  const result = {
+    extensionsDir,
+    plugins: [],
+    skills: [],
+    mcps: [],
+    errors: [],
+  };
   if (!fs.existsSync(extensionsDir) || typeof fs.readdirSync !== 'function') {
-    const emptyResult = { extensionsDir, extensions: [], errors: [] };
-    extensionRuntimeCache.set(extensionsDir, emptyResult);
-    return emptyResult;
+    extensionRuntimeCache.set(extensionsDir, result);
+    return result;
   }
 
-  const extensions = [];
-  const errors = [];
-  for (const dirent of fs.readdirSync(extensionsDir, { withFileTypes: true })) {
-    if (!dirent.isDirectory()) {
-      continue;
+  const pluginsRoot = path.join(extensionsDir, 'plugins');
+  if (fs.existsSync(pluginsRoot)) {
+    for (const dirent of fs.readdirSync(pluginsRoot, { withFileTypes: true })) {
+      if (!dirent.isDirectory()) {
+        continue;
+      }
+      const pluginDir = path.join(pluginsRoot, dirent.name);
+      if (!fs.existsSync(path.join(pluginDir, 'plugin.json'))) {
+        continue;
+      }
+      try {
+        result.plugins.push(loadPlugin(pluginDir));
+      } catch (error) {
+        result.errors.push({
+          kind: 'plugin',
+          id: dirent.name,
+          reason: error?.message || String(error),
+        });
+      }
     }
-    const entryDir = path.join(extensionsDir, dirent.name);
-    if (!fs.existsSync(path.join(entryDir, 'extension.json'))) {
-      continue;
-    }
+  }
+
+  const skillsRoot = path.join(extensionsDir, 'skills');
+  for (const skillFilePath of findSkillFiles(skillsRoot)) {
     try {
-      extensions.push(loadExtension(entryDir));
+      const layer = readSkillLayer(skillFilePath, skillsRoot);
+      if (layer) {
+        result.skills.push(layer);
+      }
     } catch (error) {
-      errors.push({
-        extension: dirent.name,
+      result.errors.push({
+        kind: 'skill',
+        id: path.relative(skillsRoot, skillFilePath),
         reason: error?.message || String(error),
       });
     }
   }
-  const result = { extensionsDir, extensions, errors };
+
+  const mcpsRoot = path.join(extensionsDir, 'mcps');
+  if (fs.existsSync(mcpsRoot)) {
+    for (const dirent of fs.readdirSync(mcpsRoot, { withFileTypes: true })) {
+      if (!dirent.isDirectory()) {
+        continue;
+      }
+      const mcpDir = path.join(mcpsRoot, dirent.name);
+      if (!fs.existsSync(path.join(mcpDir, 'mcp.json'))) {
+        continue;
+      }
+      try {
+        result.mcps.push(...loadMcpEntry(mcpDir));
+      } catch (error) {
+        result.errors.push({
+          kind: 'mcp',
+          id: dirent.name,
+          reason: error?.message || String(error),
+        });
+      }
+    }
+  }
+
   extensionRuntimeCache.set(extensionsDir, result);
   return result;
 }
 
-function loadExtensionTools(options = {}) {
-  return loadAgentExtensions(options).extensions.flatMap((extension) => extension.tools);
+function loadExtensionPluginTools(options = {}) {
+  return loadAgentExtensionRegistry(options).plugins.flatMap((plugin) => plugin.tools);
 }
 
-function loadExtensionPromptLayers(options = {}) {
-  return loadAgentExtensions(options).extensions.flatMap((extension) => extension.prompt_layers);
+function loadExtensionSkillPromptLayers(options = {}) {
+  return loadAgentExtensionRegistry(options).skills.map((skill) => ({
+    id: skill.id,
+    type: skill.type,
+    priority: skill.priority,
+    content: skill.content,
+  }));
 }
 
 function loadExtensionSettingsPanels(options = {}) {
-  return loadAgentExtensions(options).extensions.flatMap((extension) => extension.settings_panels);
+  return loadAgentExtensionRegistry(options).plugins.flatMap((plugin) => plugin.settings_panels);
 }
 
 function loadExtensionMcpServers(options = {}) {
-  return loadAgentExtensions(options).extensions.flatMap((extension) => extension.mcp_servers);
+  return loadAgentExtensionRegistry(options).mcps;
 }
 
 function toPublicMcpServer(server) {
@@ -680,172 +411,51 @@ function toPublicMcpServer(server) {
       description: tool.description,
     })),
     env_keys: Object.keys(server.env || {}).sort(),
+    mcp_id: server.mcp_id,
     extension_id: server.extension_id,
   };
 }
 
-function toPublicExtension(extension) {
+function toPublicPlugin(plugin) {
   return {
-    id: extension.id,
-    name: extension.name,
-    description: extension.description,
-    version: extension.version,
-    permissions: extension.permissions,
-    config_schema: extension.config_schema,
-    tools: extension.tools,
-    prompt_layers: extension.prompt_layers.map((layer) => ({
-      id: layer.id,
-      type: layer.type,
-      priority: layer.priority,
-    })),
-    settings_panels: extension.settings_panels,
-    mcp_servers: extension.mcp_servers.map(toPublicMcpServer),
-    lifecycle_hooks: Object.fromEntries(
-      LIFECYCLE_HOOKS.map((hookName) => [
-        hookName,
-        extension.lifecycle_hooks[hookName].length,
-      ]),
-    ),
+    id: plugin.id,
+    name: plugin.name,
+    description: plugin.description,
+    version: plugin.version,
+    permissions: plugin.permissions,
+    config_schema: plugin.config_schema,
+    settings_panels: plugin.settings_panels,
+    tools: plugin.tools,
   };
 }
 
-function loadPublicAgentExtensions(options = {}) {
-  const result = loadAgentExtensions(options);
+function toPublicSkill(skill) {
+  return {
+    id: skill.id,
+    skill_id: skill.skill_id,
+    type: skill.type,
+    priority: skill.priority,
+  };
+}
+
+function loadPublicExtensionRegistry(options = {}) {
+  const result = loadAgentExtensionRegistry(options);
   return {
     extensionsDir: result.extensionsDir,
-    extensions: result.extensions.map(toPublicExtension),
+    plugins: result.plugins.map(toPublicPlugin),
+    skills: result.skills.map(toPublicSkill),
+    mcps: result.mcps.map(toPublicMcpServer),
     errors: result.errors,
   };
 }
 
-function getMainProcessExtensionToolHandler(toolName, options = {}) {
-  const normalizedToolName = normalizeString(toolName);
-  if (!normalizedToolName) {
-    return null;
-  }
-  try {
-    for (const extension of loadAgentExtensions(options).extensions) {
-      const tool = extension.main_process_tools.find((candidate) => candidate.name === normalizedToolName);
-      if (tool) {
-        return {
-          extension_id: tool.extension_id,
-          handler: tool.handler,
-          config: extension.config,
-        };
-      }
-    }
-  } catch (_error) {
-    return null;
-  }
-  return null;
-}
-
-function hasExtensionLifecycleHooks(hookName, options = {}) {
-  if (!LIFECYCLE_HOOKS.includes(hookName)) {
-    return false;
-  }
-  try {
-    return loadAgentExtensions(options).extensions.some(
-      (extension) => extension.lifecycle_hooks[hookName].length > 0,
-    );
-  } catch (_error) {
-    return false;
-  }
-}
-
-async function executeMainProcessExtensionTool(toolName, args, context = {}, options = {}) {
-  const tool = getMainProcessExtensionToolHandler(toolName, options);
-  if (!tool) {
-    return null;
-  }
-  try {
-    const result = await tool.handler(args, {
-      ...context,
-      toolName,
-      extensionId: tool.extension_id,
-      config: tool.config,
-    });
-    if (result && typeof result === 'object' && !Array.isArray(result)) {
-      if (result.success === false) {
-        return {
-          success: false,
-          error: normalizeString(result.error) || 'Extension tool failed',
-          data: result.data,
-        };
-      }
-      if (result.success === true) {
-        return {
-          success: true,
-          data: result.data !== undefined ? result.data : result,
-        };
-      }
-      return { success: true, data: result };
-    }
-    if (typeof result === 'string') {
-      return {
-        success: true,
-        data: {
-          llm_content: result,
-          return_display: result,
-        },
-      };
-    }
-    return { success: true, data: result };
-  } catch (error) {
-    return {
-      success: false,
-      error: error?.message || String(error),
-    };
-  }
-}
-
-async function runExtensionLifecycleHook(hookName, context = {}, options = {}) {
-  if (!LIFECYCLE_HOOKS.includes(hookName)) {
-    return [];
-  }
-  const results = [];
-  let loaded;
-  try {
-    loaded = loadAgentExtensions(options);
-  } catch (_error) {
-    return results;
-  }
-  for (const extension of loaded.extensions) {
-    for (const hook of extension.lifecycle_hooks[hookName]) {
-      try {
-        const result = await hook.handler({
-          ...context,
-          extensionId: hook.extension_id,
-          config: extension.config,
-        });
-        if (result !== undefined) {
-          results.push({
-            extension_id: hook.extension_id,
-            result,
-          });
-        }
-      } catch (error) {
-        results.push({
-          extension_id: hook.extension_id,
-          error: error?.message || String(error),
-        });
-      }
-    }
-  }
-  return results;
-}
-
 module.exports = {
   clearExtensionRuntimeCache: () => extensionRuntimeCache.clear(),
-  executeMainProcessExtensionTool,
-  getMainProcessExtensionToolHandler,
-  hasExtensionLifecycleHooks,
-  loadAgentExtensions,
+  loadAgentExtensionRegistry,
   loadExtensionMcpServers,
-  loadExtensionPromptLayers,
+  loadExtensionPluginTools,
   loadExtensionSettingsPanels,
-  loadExtensionTools,
-  loadPublicAgentExtensions,
-  runExtensionLifecycleHook,
+  loadExtensionSkillPromptLayers,
+  loadPublicExtensionRegistry,
   resolveDefaultExtensionsDir,
 };

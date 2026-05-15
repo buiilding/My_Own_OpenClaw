@@ -1,21 +1,14 @@
 {
   "id": "repo-agent-extension",
   "name": "Repo Agent Extension",
-  "description": "A runnable Windie extension that gives an agent a local repo inspection tool.",
+  "description": "A runnable Windie sidecar plugin that gives an agent a local repo inspection tool.",
   "tools": [
     {
       "name": "read_repo_snapshot",
       "description": "Read a compact snapshot of a local repository tree.",
-      "schema": "tools/read_repo_snapshot.schema.json",
+      "schema": "schemas/read_repo_snapshot.schema.json",
       "entrypoint": "python/read_repo_snapshot.py:run",
       "argument_resolution": "passthrough"
-    }
-  ],
-  "skills": [
-    {
-      "path": "skills/agent",
-      "id": "repo-agent",
-      "priority": 75
     }
   ],
   "required_permissions": []

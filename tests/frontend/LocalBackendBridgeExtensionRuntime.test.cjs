@@ -20,40 +20,11 @@ const {
 } = require('../../frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs');
 
 describe('local backend bridge extension runtime', () => {
-  test('executes main-process extension tools and applies tool lifecycle hooks', async () => {
-    const sendRequest = jest.fn();
-    const runExtensionHook = jest.fn(async (hookName, payload) => {
-      if (hookName === 'beforeToolCall') {
-        return [{
-          extension_id: 'notes',
-          result: {
-            args: {
-              ...payload.args,
-              note: `${payload.args.note}!`,
-            },
-          },
-        }];
-      }
-      if (hookName === 'afterToolCall') {
-        return [{
-          extension_id: 'notes',
-          result: {
-            result: {
-              ...payload.result,
-              data: {
-                ...payload.result.data,
-                after_hook: true,
-              },
-            },
-          },
-        }];
-      }
-      return [];
-    });
-    const executeExtensionTool = jest.fn(async (toolName, args) => ({
+  test('executes plugin tools through the sidecar path', async () => {
+    const sendRequest = jest.fn(async (_method, payload) => ({
       success: true,
       data: {
-        llm_content: `${toolName}:${args.note}`,
+        llm_content: `${payload.tool_name}:${payload.args.note}`,
       },
     }));
 
@@ -66,8 +37,6 @@ describe('local backend bridge extension runtime', () => {
       resolveChatWindow: () => null,
       resolveMainWindow: () => null,
       resolveResponseWindow: () => null,
-      executeExtensionTool,
-      runExtensionHook,
     });
 
     const result = await runtime.executeTool(null, {
@@ -75,17 +44,18 @@ describe('local backend bridge extension runtime', () => {
       args: { note: 'hello' },
     });
 
-    expect(sendRequest).not.toHaveBeenCalled();
-    expect(executeExtensionTool).toHaveBeenCalledWith(
-      'summarize_note',
-      { note: 'hello!' },
-      { senderWindowId: null },
+    expect(sendRequest).toHaveBeenCalledWith(
+      'execute_tool',
+      {
+        tool_name: 'summarize_note',
+        args: { note: 'hello' },
+      },
+      expect.objectContaining({ timeoutMs: expect.any(Number) }),
     );
     expect(result).toEqual({
       success: true,
       data: {
-        llm_content: 'summarize_note:hello!',
-        after_hook: true,
+        llm_content: 'summarize_note:hello',
       },
     });
   });
@@ -110,7 +80,6 @@ describe('local backend bridge extension runtime', () => {
       resolveResponseWindow: () => null,
       executeLocalMcpTool,
       hasLocalMcpTool: (toolName) => toolName === 'mcp_memory__search',
-      runExtensionHook: async () => [],
     });
 
     const result = await runtime.executeTool(null, {

@@ -7,11 +7,11 @@ const {
   parseArgs,
 } = require('../../scripts/create-windie-extension.cjs');
 const {
-  loadAgentExtensions,
+  loadAgentExtensionRegistry,
 } = require('../../frontend/src/main/extension_manifest.cjs');
 
 describe('create-windie-extension scaffold', () => {
-  test('creates a loadable extension package with a sidecar tool and skill', () => {
+  test('creates loadable divided plugin and skill contributions', () => {
     const extensionsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-extension-scaffold-'));
 
     const result = createWindieExtension({
@@ -21,16 +21,17 @@ describe('create-windie-extension scaffold', () => {
       toolName: 'inspect_repo',
     });
 
-    expect(result.extensionDir).toBe(path.join(extensionsDir, 'repo-agent'));
-    expect(fs.existsSync(path.join(result.extensionDir, 'extension.json'))).toBe(true);
-    expect(fs.existsSync(path.join(result.extensionDir, 'tools', 'inspect_repo.schema.json'))).toBe(true);
-    expect(fs.existsSync(path.join(result.extensionDir, 'python', 'inspect_repo.py'))).toBe(true);
-    expect(fs.existsSync(path.join(result.extensionDir, 'skills', 'agent', 'SKILL.md'))).toBe(true);
+    expect(result.pluginDir).toBe(path.join(extensionsDir, 'plugins', 'repo-agent'));
+    expect(result.skillDir).toBe(path.join(extensionsDir, 'skills', 'repo-agent'));
+    expect(fs.existsSync(path.join(result.pluginDir, 'plugin.json'))).toBe(true);
+    expect(fs.existsSync(path.join(result.pluginDir, 'schemas', 'inspect_repo.schema.json'))).toBe(true);
+    expect(fs.existsSync(path.join(result.pluginDir, 'python', 'inspect_repo.py'))).toBe(true);
+    expect(fs.existsSync(path.join(result.skillDir, 'SKILL.md'))).toBe(true);
 
-    const loaded = loadAgentExtensions({ extensionsDir });
+    const loaded = loadAgentExtensionRegistry({ extensionsDir });
 
     expect(loaded.errors).toEqual([]);
-    expect(loaded.extensions).toEqual([
+    expect(loaded.plugins).toEqual([
       expect.objectContaining({
         id: 'repo-agent',
         name: 'Repo Agent',
@@ -42,19 +43,19 @@ describe('create-windie-extension scaffold', () => {
             }),
           }),
         ],
-        prompt_layers: [
-          expect.objectContaining({
-            id: 'extension:repo-agent:skill:repo-agent-agent',
-            type: 'extension_skill',
-          }),
-        ],
+      }),
+    ]);
+    expect(loaded.skills).toEqual([
+      expect.objectContaining({
+        id: 'extension:skill:repo-agent',
+        type: 'extension_skill',
       }),
     ]);
   });
 
   test('refuses to overwrite an existing extension folder', () => {
     const extensionsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'windie-extension-scaffold-'));
-    fs.mkdirSync(path.join(extensionsDir, 'repo-agent'), { recursive: true });
+    fs.mkdirSync(path.join(extensionsDir, 'plugins', 'repo-agent'), { recursive: true });
 
     expect(() => createWindieExtension({
       extensionId: 'repo-agent',

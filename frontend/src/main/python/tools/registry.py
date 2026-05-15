@@ -16,8 +16,8 @@ from typing import Any, Callable, Dict
 from tools.exposed_tool_names import EXPOSED_TO_BACKEND_TOOL_NAMES
 from tools.extension_loader import (
     TOOL_NAME_PATTERN,
-    load_sidecar_extension_path,
-    load_sidecar_extension_tools,
+    load_sidecar_plugin_path,
+    load_sidecar_plugin_tools,
 )
 from tools.manifest import build_sidecar_tool_manifest
 from tools.result import ToolResult
@@ -83,7 +83,7 @@ class ToolRegistry:
         except ImportError as e:
             logger.warning(f"Failed to import window_tool: {e}")
 
-        self._register_extension_tools()
+        self._register_plugin_tools()
 
         missing_exposed_tools = EXPOSED_TO_BACKEND_TOOL_NAMES - set(self.tools.keys())
         if missing_exposed_tools:
@@ -96,21 +96,21 @@ class ToolRegistry:
             f"Registered {len(self.tools)} tools: {', '.join(self.tools.keys())}"
         )
 
-    def _register_extension_tools(self) -> None:
-        loaded_extensions = load_sidecar_extension_tools()
-        for error in loaded_extensions.errors:
+    def _register_plugin_tools(self) -> None:
+        loaded_plugins = load_sidecar_plugin_tools()
+        for error in loaded_plugins.errors:
             logger.warning(
-                "Failed to load extension tool from %s: %s",
-                error.get("extension", "unknown"),
+                "Failed to load plugin tool from %s: %s",
+                error.get("plugin", "unknown"),
                 error.get("reason", "unknown error"),
             )
 
-        for tool_name, loaded_tool in loaded_extensions.tools.items():
+        for tool_name, loaded_tool in loaded_plugins.tools.items():
             if tool_name in self.tools:
                 logger.warning(
-                    "Skipping extension tool %s from %s because a built-in tool already uses that name",
+                    "Skipping plugin tool %s from %s because a built-in tool already uses that name",
                     tool_name,
-                    loaded_tool.extension_id,
+                    loaded_tool.plugin_id,
                 )
                 continue
             self.tools[tool_name] = loaded_tool.handler
@@ -118,8 +118,8 @@ class ToolRegistry:
             if loaded_tool.description:
                 self.dynamic_tool_descriptions[tool_name] = loaded_tool.description
             self.dynamic_tool_sources[tool_name] = {
-                "kind": "extension",
-                "extension_id": loaded_tool.extension_id,
+                "kind": "plugin",
+                "plugin_id": loaded_tool.plugin_id,
             }
 
     def register_module_tool(
@@ -175,17 +175,17 @@ class ToolRegistry:
         *,
         plugin_path: str,
     ) -> dict[str, Any]:
-        """Load extension-style plugin tools from a local package path."""
-        loaded_extensions = load_sidecar_extension_path(plugin_path)
+        """Load sidecar plugin tools from a local package path."""
+        loaded_plugins = load_sidecar_plugin_path(plugin_path)
         registered: list[dict[str, Any]] = []
-        for error in loaded_extensions.errors:
+        for error in loaded_plugins.errors:
             logger.warning(
                 "Failed to dynamically load plugin tool from %s: %s",
-                error.get("extension", "unknown"),
+                error.get("plugin", "unknown"),
                 error.get("reason", "unknown error"),
             )
 
-        for tool_name, loaded_tool in loaded_extensions.tools.items():
+        for tool_name, loaded_tool in loaded_plugins.tools.items():
             self._validate_dynamic_tool_name(tool_name)
             if tool_name in EXPOSED_TO_BACKEND_TOOL_NAMES:
                 raise ValueError(f"cannot override built-in sidecar tool: {tool_name}")
@@ -196,12 +196,12 @@ class ToolRegistry:
             self.dynamic_tool_sources[tool_name] = {
                 "kind": "plugin",
                 "plugin_path": str(Path(plugin_path).expanduser().resolve()),
-                "extension_id": loaded_tool.extension_id,
+                "plugin_id": loaded_tool.plugin_id,
             }
             registered.append(self.describe_tool(tool_name))
         return {
             "registered_tools": registered,
-            "errors": loaded_extensions.errors,
+            "errors": loaded_plugins.errors,
         }
 
     def register_runtime_tool(

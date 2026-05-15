@@ -1,8 +1,8 @@
 # Extensions
 
-This directory is reserved for reusable Windie Agent extensions.
+This directory is reserved for reusable Windie Agent extension contributions.
 
-Create a starter extension with:
+Create a starter sidecar plugin plus paired skill with:
 
 ```bash
 scripts/create-windie-extension repo-agent --name "Repo Agent" --tool inspect_repo
@@ -12,15 +12,20 @@ Use this shape:
 
 ```text
 extensions/
-  my-extension/
-    extension.json
-    tools/
-    python/
-    ui/
-    docs/
+  plugins/
+    my-plugin/
+      plugin.json
+      schemas/
+      python/
+      docs/
+  skills/
+    my-skill/
+      SKILL.md
+  mcps/
+    my-server/
+      mcp.json
 ```
 
 See [Extension Convention](../docs/development/extensions.md) for the current
-contract. Ordinary sidecar extension tools declare their model-facing JSON
-Schema as `schema` and their Python executable as an `entrypoint` in
-`extension.json`.
+contract. Plugins declare model-facing schemas and Python sidecar entrypoints
+in `plugin.json`; skills and MCP servers are separate first-class roots.

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- extensions: split the old package root into first-class `extensions/plugins`, `extensions/skills`, and `extensions/mcps`, with plugin tools executing through the sidecar instead of Electron main.
 - repo: remove the root `TODO.md` from the tracked tree.
 - repo: remove private legal contracts from the tracked tree and ignore `legal/contracts/` going forward.
 - repo: add GitHub issue forms for bug reports, extension requests, provider requests, and docs confusion.

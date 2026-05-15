@@ -108,7 +108,7 @@ async def test_sidecar_daemon_registers_module_tool_without_restart(
 async def test_sidecar_daemon_registers_plugin_tools_without_restart(tmp_path: Path):
     plugin_dir = tmp_path / "note_plugin"
     plugin_dir.mkdir()
-    (plugin_dir / "extension.json").write_text(
+    (plugin_dir / "plugin.json").write_text(
         json.dumps(
             {
                 "id": "note-plugin",

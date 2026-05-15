@@ -1,4 +1,4 @@
-const { loadExtensionPromptLayers } = require('./extension_manifest.cjs');
+const { loadExtensionSkillPromptLayers } = require('./extension_manifest.cjs');
 
 function normalizeString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : '';
@@ -60,7 +60,7 @@ function buildAgentDefinition(options = {}) {
   const explicitAvailableTools = normalizeStringList(options.availableTools);
   const extensionPromptLayers = options.includeExtensionPromptLayers === false
     ? []
-    : loadExtensionPromptLayers({ extensionsDir: options.extensionsDir });
+    : loadExtensionSkillPromptLayers({ extensionsDir: options.extensionsDir });
   const customInstructionLayer = buildCustomInstructionLayer(options.customInstructions);
   const promptLayers = normalizePromptLayers([
     ...extensionPromptLayers,

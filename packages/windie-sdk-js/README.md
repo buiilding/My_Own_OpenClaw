@@ -20,7 +20,7 @@ import { WindieClient } from '@windie/sdk';
 const windie = new WindieClient({ backendUrl: 'https://api.windieos.com' });
 const agent = await windie.wakeUp({
   workspacePath: '/Users/me/project',
-  plugins: [{ path: './extensions/repo-agent' }],
+  plugins: [{ path: './extensions/plugins/repo-agent' }],
 });
 
 await agent.run('Inspect the repo and summarize what changed.');

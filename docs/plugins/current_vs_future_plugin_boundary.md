@@ -8,10 +8,9 @@ title: "Current vs Future Plugin Boundary"
 
 # Current vs Future Plugin Boundary
 
-WindieOS currently supports code-level extension points and a manifest-based
-local plugin runtime for sidecar tools, Electron main-process tools, prompt
-layers, skills, MCP servers, settings-panel metadata, lifecycle hooks, config
-schemas, and permissions. It does not currently support a packaged plugin marketplace, signed
+WindieOS currently supports code-level extension points plus divided local
+extension contribution roots for sidecar plugins, prompt skills, and MCP server
+specs. It does not currently support a packaged plugin marketplace, signed
 plugin bundles, dependency installation, remote plugin registries, or hot-loading
 without app restart.
 
@@ -19,11 +18,11 @@ without app restart.
 
 Implemented today:
 
-- manifest extensions under `extensions/*/extension.json`
-- extension local sidecar tools declared with `name`, `schema`, and Python `entrypoint`
-- extension `plugin/index.cjs` modules with `registerTool`, `registerPromptLayer`, `registerSkill`, `registerSettingsPanel`, lifecycle hooks, config, and permissions
-- extension MCP servers declared with `mcp/servers.json` or `api.registerMcpServer(...)`, discovered through MCP `tools/list`, and executed through local MCP `tools/call`
-- extension prompt layers and `skills/**/SKILL.md` instructions forwarded through `agent_definition.prompt_layers` and `agent_definition.skills`
+- sidecar plugins under `extensions/plugins/*/plugin.json`
+- plugin tools declared with `name`, `schema`, and Python `entrypoint`
+- plugin settings-panel metadata, config schemas, and permissions
+- MCP servers under `extensions/mcps/*/mcp.json`, discovered through MCP `tools/list`, and executed through local MCP `tools/call`
+- skills under `extensions/skills/**/SKILL.md` forwarded through `agent_definition.prompt_layers`
 - backend tool registry and SDK tool base
 - sidecar executable tools
 - LLM provider factory and model catalog
@@ -59,11 +58,11 @@ Do not imply this exists in current docs.
 | "Add a provider plugin" | implement an LLM/inference provider in current provider paths |
 | "Add a desktop action plugin" | implement backend schema + sidecar tool execution |
 | "Add a browser plugin" | extend browser schema/runtime, not a third-party browser extension store |
-| "Add a local plugin contribution" | use `extensions/<id>/plugin/index.cjs` |
-| "Connect an MCP server" | add `extensions/<id>/mcp/servers.json` or `api.registerMcpServer(...)` in an extension |
+| "Add a local plugin contribution" | use `extensions/plugins/<id>/plugin.json` with sidecar Python |
+| "Connect an MCP server" | add `extensions/mcps/<id>/mcp.json` |
 | "Let users install marketplace plugins" | planning/design first |
-| "Load local sidecar tools from an extension manifest" | use `extensions/<id>/extension.json` |
-| "Add extension skills" | add `skills/<skill-id>/SKILL.md` under the extension |
+| "Load local sidecar tools from a plugin manifest" | use `extensions/plugins/<id>/plugin.json` |
+| "Add extension skills" | add `extensions/skills/<skill-id>/SKILL.md` |
 | "Install plugins from a marketplace" | planning/design first |
 | "Expose a new SDK integration" | add SDK route/client docs and tests |
 

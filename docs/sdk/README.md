@@ -40,8 +40,8 @@ npm run build
 
 ## Examples
 
-- `examples/repo-agent-extension`: runnable extension-first SDK example with
-  one Python sidecar tool, one skill, and one command:
+- `examples/repo-agent-extension`: runnable sidecar plugin SDK example with
+  one Python plugin tool and one command:
   `node examples/repo-agent-extension/run.mjs`
 
 ## API Owners

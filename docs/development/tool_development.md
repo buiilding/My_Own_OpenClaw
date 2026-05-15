@@ -53,12 +53,12 @@ Current runtime note:
 - the live backend and sidecar registries expose direct tool names only
 - the frontend sends `client_tool_manifest` during handshake so client-local
   tool schemas can be extended without editing backend schema code
-- extension tools put model-facing JSON Schema files under
-  `extensions/<id>/tools/` and reference them as `schema` from
-  `extensions/<id>/extension.json`
-- extension tools can put executable Python under `extensions/<id>/python/`
-  and reference it as `entrypoint: "python/file.py:function"` from
-  `extension.json`
+- sidecar plugin tools put model-facing JSON Schema files under
+  `extensions/plugins/<id>/schemas/` and reference them as `schema` from
+  `extensions/plugins/<id>/plugin.json`
+- sidecar plugin tools put executable Python under
+  `extensions/plugins/<id>/python/` and reference it as
+  `entrypoint: "python/file.py:function"` from `plugin.json`
 - ordinary extensions do not edit the built-in sidecar registry or executable
   manifest modules
 - repo-local `model-facing/tool_schema.txt` still documents unified `computer_use` and `system_use` envelopes, but those wrapper names are not current backend or sidecar registry entries
@@ -178,27 +178,23 @@ For built-ins, update `frontend/src/main/python/tools/registry.py`:
 - Add the tool to `TOOL_CATALOG` (or the explicit `switch_window` / `get_open_windows` registration path when appropriate).
 - Add tool name to `frontend/src/main/python/tools/exposed_tool_names.py` if it should be LLM-callable from the backend.
 
-For extension tools, do not edit built-in registry files. Add `schema` and the
-Python `entrypoint` to `extensions/<id>/extension.json`; Electron main
+For plugin tools, do not edit built-in registry files. Add `schema` and the
+Python `entrypoint` to `extensions/plugins/<id>/plugin.json`; Electron main
 forwards the schema manifest and the sidecar loads the executable entrypoint.
-The extension package must include:
+The plugin package must include:
 
 ```text
-extensions/<id>/
-  extension.json
-  tools/<tool>.schema.json
+extensions/plugins/<id>/
+  plugin.json
+  schemas/<tool>.schema.json
   python/<tool>.py
 ```
 
-For Electron-main plugin tools, add `plugin/index.cjs` and call
-`api.registerTool({ name, description, schema, execute })`; those tools are
-advertised through the same client manifest and executed before the sidecar
-fallback path.
 For reusable instructions that do not execute code, add
-`extensions/<id>/skills/<skill-id>/SKILL.md`; those skills become prompt layers,
-not tools.
-For protocol-backed tools, add `extensions/<id>/mcp/servers.json` and let the
-MCP runtime discover `tools/list`.
+`extensions/skills/<skill-id>/SKILL.md`; those skills become prompt layers, not
+tools.
+For protocol-backed tools, add `extensions/mcps/<id>/mcp.json` and let the MCP
+runtime discover `tools/list`.
 
 ### 6. Validate drift contract
 
@@ -264,7 +260,7 @@ If you add backend-only tools, document the wiring point in the same PR.
    `backend/src/tools/tool_catalog.py` and `backend/src/tools/remote.py` exports.
 2. For built-in sidecar tools, confirm the tool is listed in
    `frontend/src/main/python/tools/exposed_tool_names.py`.
-3. For extension sidecar tools, confirm `extension.json` has `schema` and
+3. For sidecar plugin tools, confirm `plugin.json` has `schema` and
    `entrypoint`.
 4. Confirm handler is registered in sidecar `ToolRegistry`.
 5. Run remote contract or extension manifest tests for the changed path.

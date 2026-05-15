@@ -79,9 +79,11 @@ The sidecar imports `module:function`, wraps either raw `args` handlers or keywo
 
 ## Plugin Registration
 
-`POST /plugins/register` accepts a local extension/plugin path. The path can point at one extension directory with `extension.json` or a root containing multiple extension directories.
+`POST /plugins/register` accepts a local sidecar plugin path. The path can
+point at one plugin directory with `plugin.json`, an `extensions/plugins` root,
+or an `extensions` root containing `plugins/`.
 
-Plugin tools use the existing extension manifest contract:
+Plugin tools use the sidecar plugin manifest contract:
 
 - `name`
 - `description`

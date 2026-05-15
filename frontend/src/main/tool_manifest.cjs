@@ -214,7 +214,7 @@ function buildClientToolManifest(options = {}) {
   const disabledTools = normalizeToolNameList(options.disabledTools);
   const builtinManifest = buildBuiltinClientToolManifest({ disabledTools: [...disabledTools] });
   const seenNames = new Set(builtinManifest.tools.map((tool) => tool.name));
-  const extensionTools = loadExtensionTools({
+  const pluginTools = loadExtensionPluginTools({
     extensionsDir: options.extensionsDir,
   })
     .filter((tool) => {
@@ -229,7 +229,7 @@ function buildClientToolManifest(options = {}) {
     version: 1,
     tools: [
       ...builtinManifest.tools,
-      ...extensionTools,
+      ...pluginTools,
     ],
   };
 }
@@ -248,4 +248,4 @@ module.exports = {
   getClientToolNames,
   getBuiltinClientToolNames,
 };
-const { loadExtensionTools } = require('./extension_manifest.cjs');
+const { loadExtensionPluginTools } = require('./extension_manifest.cjs');

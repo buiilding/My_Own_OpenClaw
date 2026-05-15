@@ -6,22 +6,21 @@ let backendHandler = null;
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: jest.fn(async () => ({
-      extensions: [{
+      plugins: [{
         id: 'notes',
         name: 'Notes',
         description: 'Adds note workflows.',
         permissions: [{ id: 'filesystem', reason: 'Read local notes' }],
-        settings_panels: [{ id: 'extension:notes:settings:main', title: 'Notes settings' }],
-        mcp_servers: [{
-          id: 'memory',
-          name: 'Memory',
-          command: 'node',
-          tools: [{ name: 'search' }],
-        }],
+        settings_panels: [{ id: 'extension:plugin:notes:settings:main', title: 'Notes settings' }],
         tools: [{ name: 'save_note' }],
-        prompt_layers: [{ id: 'extension:notes:skill:review', type: 'extension_skill', priority: 75 }],
-        lifecycle_hooks: { onSessionStart: 1, beforeToolCall: 1, afterToolCall: 1 },
         config_schema: { type: 'object' },
+      }],
+      skills: [{ id: 'extension:skill:review', type: 'extension_skill', priority: 75 }],
+      mcps: [{
+        id: 'memory',
+        name: 'Memory',
+        command: 'node',
+        tools: [{ name: 'search' }],
       }],
       errors: [],
     })),
