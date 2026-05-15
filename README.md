@@ -11,14 +11,14 @@
   <a href="AGENTS.md"><img src="https://img.shields.io/badge/Agents-AGENTS.md-FFFFFF?style=for-the-badge" alt="AGENTS.md"></a>
 </p>
 
-**The desktop runtime for personal AI agents.** WindieOS gives agents a local
-place to operate: a floating desktop chat surface, hosted model orchestration,
-computer-use, browser-use, terminal and file tools, local memory, voice input,
-and an extension system for adding your own tools and instructions.
+**The desktop layer for personal AI agents.** Windie gives agents a visible,
+always-present surface on your computer: a chat pill that follows you across the
+operating system, watches the current screen when you ask for help, and shows
+what the agent is doing in real time.
 
-The goal is simple: describe what you want in natural language, and let the
-agent use the right local and hosted capabilities to complete it while you can
-see what it is doing.
+No setup flow, no extension pinned to one tab, and no model lock-in. Download
+Windie, talk to the pill, and let the agent use computer-use, browser-use,
+terminal, files, and memory from the desktop you already work in.
 
 Download Windie on its official website: [WindieOS](https://windieos.com)
 
@@ -26,106 +26,17 @@ Latest releases: [Releases](https://github.com/buiilding/WindieOS/releases)
 
 ---
 
-## Why WindieOS
+## Why Windie
 
 <table>
-<tr><td><b>Desktop-native agent surface</b></td><td>The floating chat pill stays with you while the agent works, so you can watch tool calls, progress, and responses without living in one browser tab.</td></tr>
-<tr><td><b>Local execution sidecar</b></td><td>File, shell, browser, computer-use, memory, MCP, and extension tools run through a local sidecar instead of being hard-wired into one frontend screen.</td></tr>
-<tr><td><b>Computer-use across providers</b></td><td>WindieOS projects local computer-use tools through its own tool contract, so desktop control is not limited to a single vendor's native computer-use stack.</td></tr>
-<tr><td><b>Persistent browser runtime</b></td><td>WindieOS uses its own browser-use profile for agent work instead of relying on a normal user tab or a one-off extension session.</td></tr>
-<tr><td><b>Extension-first development</b></td><td>Developers add tools, skills, prompt layers, MCP servers, settings metadata, permissions, and plugin hooks as WindieOS extensions.</td></tr>
-<tr><td><b>Hosted intelligence, local authority</b></td><td>The hosted backend owns model routing, policy, prompt construction, OCR/vision capability decisions, and streaming. The local runtime owns desktop authority and execution.</td></tr>
+<tr><td><b>No setup desktop agent</b></td><td>Windie is built for macOS, Windows, and Linux. Download the app, open it, and start talking to your agent from the desktop.</td></tr>
+<tr><td><b>An operating-system layer</b></td><td>The floating chat pill stays with you while the agent works, so you can see its reactions, tool calls, and progress instead of guessing what the model is doing.</td></tr>
+<tr><td><b>Computer-use for any model provider</b></td><td>Windie's computer-use tools run through its own local tool contract, so they are not limited to one vendor's native computer-use model.</td></tr>
+<tr><td><b>Hands-free voice</b></td><td>Say "Hey Jarvis", talk into the mic, and Windie transcribes your speech into the query that starts the agent loop.</td></tr>
+<tr><td><b>Dedicated browser-use profile</b></td><td>Windie uses its own persistent Chrome profile instead of attaching an extension to one of your normal browser tabs.</td></tr>
 </table>
 
 ---
-
-## What You Can Build
-
-WindieOS is for people building desktop agents, not just chatbots. A WindieOS
-agent can:
-
-- inspect the current screen when the user asks for help
-- click, type, scroll, and use desktop applications through computer-use tools
-- browse with a persistent Windie-owned browser profile
-- run shell commands and work with local files through the sidecar
-- use local memory and transcript context across sessions
-- call tools contributed by local extensions, plugins, and MCP servers
-- stream progress back to the desktop UI while it works
-
-## How It Works
-
-```text
-User goal
-  -> WindieOS desktop app
-  -> WindieClient runtime
-  -> hosted backend for model orchestration, policy, prompts, OCR/vision, streaming
-  -> local sidecar for files, shell, browser, computer-use, memory, MCP, extensions
-  -> visible progress and tool results back in the desktop UI
-```
-
-The split matters. The backend decides what the agent can see and call. The
-sidecar executes local actions. The desktop app shows the loop and handles the
-human-facing experience.
-
-## Developer Model
-
-WindieOS uses an extension-first developer model.
-
-An extension package can contribute:
-
-- Python sidecar tools with a `schema` and local `entrypoint`
-- Electron main-process plugin tools
-- MCP server definitions
-- skills and prompt layers
-- settings metadata
-- lifecycle hooks
-- config schemas and permission declarations
-
-The SDK/runtime wakes up agents with those capabilities. Extension authors
-should not need to edit core tool registries for normal local tools.
-
-```text
-extensions/
-  repo-maintainer/
-    extension.json
-    tools/
-      summarize-diff.schema.json
-    python/
-      summarize_diff.py
-    skills/
-      repo-review/SKILL.md
-    mcp/
-      servers.json
-    plugin/
-      index.cjs
-```
-
-Start with [Extension Convention](docs/development/extensions.md), [Plugins and
-Extensions](docs/plugins/README.md), and [WindieClient Runtime Contract](docs/sdk/windie_client_runtime.md).
-
-## Current Status
-
-Implemented today:
-
-- Electron desktop app with chat pill and dashboard surfaces
-- hosted FastAPI backend for the agent loop, provider routing, streaming, OCR,
-  vision, prompts, policy, SDK routes, and remote tools
-- Python sidecar for local execution and memory services
-- local sidecar daemon path for SDK-owned tool execution
-- extension packages for sidecar tools, plugin tools, MCP servers, skills,
-  prompt layers, settings metadata, hooks, config, and permissions
-- dedicated browser-use runtime and computer-use tooling
-- voice and wakeword flows
-- TypeScript and Python SDK runtime code inside the repo
-
-Not yet the public claim:
-
-- packaged plugin marketplace
-- signed third-party extension distribution
-- hot install/update/remove flow for marketplace plugins
-- fully extracted standalone npm/PyPI SDK packages
-
-Those boundaries are intentional. See [Current vs Future Plugin Boundary](docs/plugins/current_vs_future_plugin_boundary.md).
 
 ## Desktop Experience
 
@@ -202,23 +113,6 @@ By default, the Electron client talks to the configured WindieOS backend. Use
 `BACKEND_*` or `WINDIE_BACKEND_*` overrides when pointing the client at another
 compatible backend instance.
 
-## Validation
-
-Useful focused checks:
-
-```bash
-./scripts/test-backend
-./scripts/test-sidecar
-cd frontend && npm run test:ci
-```
-
-SDK-focused checks:
-
-```bash
-cd frontend && npm run test -- WindieSdkClient.test.ts --runInBand
-cd .. && ./scripts/python-in-env sidecar pytest tests/sidecar/test_windie_sdk_client.py -q
-```
-
 ## Docs
 
 Start with the [Documentation Hub](docs/getting-started/docs_hub.md), or jump
@@ -233,8 +127,6 @@ directly into a topic:
 | [Communication Flow](docs/architecture/communication_flow.md) | IPC, JSON-RPC, WebSocket, HTTP, query, memory, and tool event paths. |
 | [Tool System](docs/architecture/tool_system.md) | Hosted orchestration boundary, sidecar tool execution, and renderer visibility. |
 | [Computer-Use](docs/tools/computer.md) | Mouse, keyboard, screenshots, scrolling, window actions, and coordinate grounding. |
-| [Plugins and Extensions](docs/plugins/README.md) | Extension package surfaces, tool/plugin/MCP routing, and current-vs-future boundaries. |
-| [SDK Hub](docs/sdk/README.md) | WindieClient runtime, hosted routes, OCR/vision, auth, traces, and SDK integration. |
 | [Browser-Use](docs/browser/browser_control.md) | Windie browser profile, browser automation actions, and runtime behavior. |
 | [Frontend Docs](docs/frontend/README.md) | Deep frontend maps across main, renderer, preload, contracts, runtime, and inventory. |
 | [Sidecar Docs](docs/frontend/sidecar/README.md) | Python sidecar runtime, memory, browser automation, services, and tools. |

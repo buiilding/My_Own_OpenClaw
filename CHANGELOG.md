@@ -15,7 +15,6 @@ All notable changes to WindieOS will be documented in this file.
 - extensions: add a `scripts/create-windie-extension` scaffold command for starter extension packages with a sidecar tool, schema, skill, and docs.
 - sdk: add repo-local `@windie/sdk` and `windie-sdk` package boundaries while keeping existing frontend and sidecar compatibility imports.
 - docs: add a direct README docs link for the computer-use guide.
-- docs: sharpen the README launch narrative around WindieOS as a desktop agent runtime, extension-first development, current implementation status, and SDK validation paths.
 - frontend/settings: apply Appearance light, dark, and system selections to the renderer theme tokens instead of only persisting the selected setting.
 - frontend/settings: make Settings a full dashboard view with a back arrow instead of a small modal with a close icon.
 - frontend/settings: add a top-level light, dark, and system theme selector to the Appearance tab without the Codex-style diff preview.
