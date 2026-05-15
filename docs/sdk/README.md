@@ -23,8 +23,10 @@ WindieOS SDK docs cover the canonical client runtime for hosted backend access a
 
 ## Client Implementations
 
-- TypeScript: `frontend/src/renderer/infrastructure/api/windieSdkClient.ts`
-- Python: `frontend/src/main/python/core/windie_sdk_client.py`
+- TypeScript package: `packages/windie-sdk-js` publishes as `@windie/sdk`.
+- TypeScript compatibility export: `frontend/src/renderer/infrastructure/api/windieSdkClient.ts`
+- Python package: `packages/windie-sdk-python` publishes as `windie-sdk` and imports as `windie`.
+- Python compatibility export: `frontend/src/main/python/core/windie_sdk_client.py`
 - Renderer API barrel: `frontend/src/renderer/infrastructure/api/index.ts`
 - Sidecar package export: `frontend/src/main/python/core/__init__.py`
 

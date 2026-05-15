@@ -39,6 +39,8 @@ Local runtime facts must not unlock backend capabilities. In particular, coordin
 ## Public API
 
 ```ts
+import { WindieClient, moduleTool } from "@windie/sdk";
+
 const client = new WindieClient();
 
 const agent = await client.wakeUp({
@@ -64,6 +66,18 @@ const agent = await client.wakeUp({
 });
 
 await agent.ask("Read the repo instructions and summarize the tests.");
+
+for await (const event of agent.stream("Run the test command and report progress.")) {
+  if (event.type === "text") {
+    process.stdout.write(event.text);
+  }
+  if (event.type === "tool_call") {
+    console.log(`using ${event.toolName}`);
+  }
+  if (event.type === "complete") {
+    console.log(event.finalResponse);
+  }
+}
 ```
 
 `wakeUp` performs this sequence:
@@ -188,3 +202,10 @@ Current canonical surface:
 - `status`
 
 `listModels` is backend-owned. `listAgents` is SDK-runtime state for active local agent sessions.
+
+`stream(input, options)` returns an `AsyncIterableIterator<WindieAgentStreamEvent>`.
+It attaches listeners before sending the query, yields a `start` item with the
+query message id, normalizes backend websocket events into `text`, `tool_call`,
+`tool_output`, `complete`, `error`, or generic `event` items, and detaches its
+listeners when the stream reaches `streaming-complete`, receives an error, or
+the caller exits iteration early.

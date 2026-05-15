@@ -1,19 +1,13 @@
-"""Compatibility import for the public ``windie`` Python SDK package."""
+"""Public Python SDK for waking Windie agents and routing local tools."""
 
-from windie import sdk as _sdk
 from windie.sdk import (
     SidecarDaemonHttpClient,
     WindieSdkAgentSession,
     WindieSdkClient,
 )
 
-aiohttp = _sdk.aiohttp
-platform = _sdk.platform
-
 __all__ = [
     "SidecarDaemonHttpClient",
     "WindieSdkAgentSession",
     "WindieSdkClient",
-    "aiohttp",
-    "platform",
 ]

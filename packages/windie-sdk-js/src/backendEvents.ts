@@ -1,0 +1,110 @@
+export type BackendEventType =
+  | 'llm-thought'
+  | 'streaming-response'
+  | 'streaming-complete'
+  | 'context-compaction-started'
+  | 'context-compaction-completed'
+  | 'context-compaction-failed'
+  | 'tool-call'
+  | 'tool-output'
+  | 'tool-bundle'
+  | 'web-search-progress'
+  | 'local-user-message'
+  | 'system-prompt'
+  | 'user-message-full'
+  | 'assistant-message-full'
+  | 'memory-store'
+  | 'token-count'
+  | 'tool-schemas'
+  | 'error';
+
+export type BackendEventBase<TType extends BackendEventType, TPayload = undefined> = {
+  type: TType;
+  payload?: TPayload;
+  id?: string;
+  session_id?: string;
+  user_id?: string;
+  conversation_ref?: string;
+  turn_ref?: string;
+};
+
+export type ToolSchema = {
+  type: string;
+  name?: string;
+  description?: string;
+  strict?: boolean;
+  parameters?: Record<string, unknown>;
+  function?: {
+    name?: string;
+    parameters?: Record<string, unknown>;
+  } & Record<string, unknown>;
+} & Record<string, unknown>;
+
+export type BackendEvent =
+  | BackendEventBase<'llm-thought', { status?: string }>
+  | BackendEventBase<'streaming-response', { text?: string }>
+  | BackendEventBase<'streaming-complete', { final_response?: string }>
+  | BackendEventBase<'context-compaction-started', Record<string, unknown>>
+  | BackendEventBase<'context-compaction-completed', Record<string, unknown>>
+  | BackendEventBase<'context-compaction-failed', Record<string, unknown>>
+  | BackendEventBase<'tool-call', {
+    tool_name?: string;
+    parameters?: Record<string, unknown>;
+    correlation_id?: string;
+    request_id?: string;
+    metadata?: Record<string, unknown> & {
+      skip_frontend_execution?: boolean;
+      execution_owner?: string;
+      model_facing_tool_call?: Record<string, unknown>;
+    };
+  }>
+  | BackendEventBase<'tool-output', Record<string, unknown>>
+  | BackendEventBase<'tool-bundle', {
+    bundle_id?: string;
+    tools?: Array<{
+      name?: string;
+      args?: Record<string, unknown>;
+      metadata?: Record<string, unknown> & {
+        model_facing_tool_call?: Record<string, unknown>;
+      };
+    }>;
+    metadata?: Record<string, unknown>;
+  }>
+  | BackendEventBase<'web-search-progress', Record<string, unknown>>
+  | BackendEventBase<'local-user-message', Record<string, unknown>>
+  | BackendEventBase<'system-prompt', { content?: string; tool_schemas?: ToolSchema[] }>
+  | BackendEventBase<'user-message-full', Record<string, unknown>>
+  | BackendEventBase<'assistant-message-full', Record<string, unknown>>
+  | BackendEventBase<'memory-store', Record<string, unknown>>
+  | BackendEventBase<'token-count', Record<string, unknown>>
+  | BackendEventBase<'tool-schemas', { tool_schemas?: ToolSchema[] }>
+  | BackendEventBase<'error', { message?: string; content?: string | null }>;
+
+const BACKEND_EVENT_TYPES = new Set<BackendEventType>([
+  'llm-thought',
+  'streaming-response',
+  'streaming-complete',
+  'context-compaction-started',
+  'context-compaction-completed',
+  'context-compaction-failed',
+  'tool-call',
+  'tool-output',
+  'tool-bundle',
+  'web-search-progress',
+  'local-user-message',
+  'system-prompt',
+  'user-message-full',
+  'assistant-message-full',
+  'memory-store',
+  'token-count',
+  'tool-schemas',
+  'error',
+]);
+
+export function isBackendEvent(value: unknown): value is BackendEvent {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const candidate = value as { type?: unknown };
+  return typeof candidate.type === 'string' && BACKEND_EVENT_TYPES.has(candidate.type as BackendEventType);
+}

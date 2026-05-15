@@ -12,7 +12,11 @@ WindieOS includes transport-only SDK clients for hosted backend APIs. These clie
 
 ## TypeScript Client
 
-Path: `frontend/src/renderer/infrastructure/api/windieSdkClient.ts`
+Package boundary: `packages/windie-sdk-js`
+
+Compatibility path: `frontend/src/renderer/infrastructure/api/windieSdkClient.ts`
+
+The package name is `@windie/sdk`.
 
 Use it for direct backend access to:
 
@@ -25,7 +29,11 @@ tool calls through the sidecar daemon.
 
 ## Python Client
 
-Path: `frontend/src/main/python/core/windie_sdk_client.py`
+Package boundary: `packages/windie-sdk-python`
+
+Compatibility path: `frontend/src/main/python/core/windie_sdk_client.py`
+
+The distribution name is `windie-sdk`; the import package is `windie`.
 
 The Python client mirrors hosted backend route access for sidecar/developer
 tooling. Agent sessions use `WindieSdkClient.wake_up(...)`, which builds the
