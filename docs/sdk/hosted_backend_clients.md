@@ -28,8 +28,14 @@ tool calls through the sidecar daemon.
 Path: `frontend/src/main/python/core/windie_sdk_client.py`
 
 The Python client mirrors hosted backend route access for sidecar/developer
-tooling. Python keeps its low-level websocket helper until the Python wrapper
-adopts the same daemon protocol as the TypeScript runtime.
+tooling. Agent sessions use `WindieSdkClient.wake_up(...)`, which builds the
+low-level `agent_definition` from first-class arguments before connecting to the
+hosted backend websocket.
+
+Python does not yet execute local module tools, plugins, or MCP servers. Those
+inputs are rejected instead of advertising tools the Python runtime cannot route
+to the sidecar daemon. Use the TypeScript `WindieClient` runtime when local tool
+execution is required.
 
 ## Auth and Endpoints
 

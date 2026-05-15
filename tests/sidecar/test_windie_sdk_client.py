@@ -180,26 +180,33 @@ async def test_upload_artifact_uses_artifact_endpoint(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_connect_agent_sends_handshake_and_query(monkeypatch):
+async def test_wake_up_builds_agent_definition_and_sends_query(monkeypatch):
     monkeypatch.setattr(windie_sdk_client_module.platform, "system", lambda: "Darwin")
     websocket = FakeWebSocket()
     session = DummyWsSession(websocket)
-    agent_definition = {
-        "id": "python-agent",
-        "system_prompt": {"mode": "replace", "content": "Python SDK prompt."},
-    }
     client = WindieSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
     )
     client._session = session
 
-    agent = await client.connect_agent(agent_definition=agent_definition)
+    agent = await client.wake_up(
+        agent_id="python-agent",
+        name="Python Agent",
+        system_prompt="Python SDK prompt.",
+        workspace_path="/tmp/project",
+        skills=[
+            {
+                "id": "code-review",
+                "type": "extension_skill",
+                "content": "Lead with risks.",
+            }
+        ],
+    )
     message_id = await agent.query(
         text="Click the orange search button",
         conversation_ref="conv-123",
         screenshot_ref="artifact-123.png",
-        agent_definition=agent_definition,
     )
 
     assert session.ws_connect_calls == [("wss://api.windieos.com/ws", 60, {})]
@@ -207,7 +214,23 @@ async def test_connect_agent_sends_handshake_and_query(monkeypatch):
         "type": "handshake",
         "user_id": "dev-user",
         "operating_system": "macOS",
-        "agent_definition": agent_definition,
+        "agent_definition": {
+            "version": 1,
+            "id": "python-agent",
+            "name": "Python Agent",
+            "system_prompt": {"mode": "replace", "content": "Python SDK prompt."},
+            "skills": [
+                {
+                    "id": "code-review",
+                    "type": "extension_skill",
+                    "content": "Lead with risks.",
+                }
+            ],
+            "runtime": {
+                "operating_system": "macOS",
+                "workspace_path": "/tmp/project",
+            },
+        },
     }
     assert websocket.sent[1]["type"] == "query"
     assert websocket.sent[1]["id"] == message_id
@@ -215,17 +238,40 @@ async def test_connect_agent_sends_handshake_and_query(monkeypatch):
         "text": "Click the orange search button",
         "conversation_ref": "conv-123",
         "screenshot_ref": "artifact-123.png",
-        "agent_definition": agent_definition,
     }
 
 
 @pytest.mark.asyncio
-async def test_connect_agent_requires_user_id_when_no_default_is_configured():
+async def test_wake_up_requires_user_id_when_no_default_is_configured():
     client = WindieSdkClient(backend_url="https://api.windieos.com")
     client._session = DummyWsSession(FakeWebSocket())
 
     with pytest.raises(Exception, match="requires a user_id or default_user_id"):
-        await client.connect_agent()
+        await client.wake_up()
+
+
+@pytest.mark.asyncio
+async def test_wake_up_rejects_local_tools_until_python_daemon_runtime_exists():
+    client = WindieSdkClient(
+        backend_url="https://api.windieos.com",
+        default_user_id="dev-user",
+    )
+    client._session = DummyWsSession(FakeWebSocket())
+
+    with pytest.raises(Exception, match="does not execute local tools yet"):
+        await client.wake_up(
+            tools=[
+                {
+                    "name": "save_note",
+                    "module": "my_project.tools:save_note",
+                    "schema": {"type": "object", "properties": {}},
+                }
+            ]
+        )
+
+
+def test_python_client_no_longer_exposes_connect_agent():
+    assert not hasattr(WindieSdkClient(), "connect_agent")
 
 
 @pytest.mark.asyncio

@@ -384,12 +384,23 @@ query_plan = await sdk.get_query_plan(
         "messages": [],
     }
 )
+
+agent = await sdk.wake_up(
+    system_prompt="You are a concise coding agent.",
+    workspace_path="/Users/me/project",
+)
+message_id = await agent.query(
+    text="Summarize the repo instructions.",
+    conversation_ref="conv_python_sdk",
+)
 ```
 
 Agent runtime notes:
 
 - TypeScript agent sessions should be created through `WindieClient.wakeUp(...)`.
-- Python still exposes low-level hosted helpers until the Python wrapper adopts the same daemon protocol.
+- Python agent sessions should use `WindieSdkClient.wake_up(...)`; Python local
+  module tools, plugins, and MCP execution are intentionally rejected until the
+  Python wrapper adopts the same daemon executor protocol as the TypeScript runtime.
 
 Shared image input shape:
 

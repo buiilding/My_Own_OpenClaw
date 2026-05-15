@@ -58,6 +58,41 @@ def _detect_operating_system() -> str:
     return system or "unknown"
 
 
+def _clean_string(value: Optional[str]) -> Optional[str]:
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return None
+
+
+def _build_python_wake_up_agent_definition(
+    *,
+    agent_id: Optional[str] = None,
+    name: Optional[str] = None,
+    system_prompt: Optional[str] = None,
+    workspace_path: Optional[str] = None,
+    skills: Optional[list[dict[str, Any]]] = None,
+    agents_md: Optional[list[dict[str, Any]]] = None,
+) -> dict[str, Any]:
+    definition: dict[str, Any] = {
+        "version": 1,
+        "id": _clean_string(agent_id) or f"windie-python-agent-{uuid4().hex}",
+        "name": _clean_string(name) or "Windie Python Agent",
+    }
+    prompt = _clean_string(system_prompt)
+    if prompt:
+        definition["system_prompt"] = {"mode": "replace", "content": prompt}
+    if skills:
+        definition["skills"] = skills
+    if agents_md:
+        definition["agents_md"] = agents_md
+    runtime: dict[str, Any] = {"operating_system": _detect_operating_system()}
+    workspace = _clean_string(workspace_path)
+    if workspace:
+        runtime["workspace_path"] = workspace
+    definition["runtime"] = runtime
+    return definition
+
+
 class WindieSdkAgentSession:
     """Minimal websocket session wrapper for the backend `/ws` channel."""
 
@@ -482,11 +517,45 @@ class WindieSdkClient(RemoteApiClientBase):
             method="post", path="/api/sdk/query-plan", payload=payload
         )
 
-    async def connect_agent(
+    async def wake_up(
         self,
         *,
+        backend_url: Optional[str] = None,
         user_id: Optional[str] = None,
-        operating_system: Optional[str] = None,
+        system_prompt: Optional[str] = None,
+        workspace_path: Optional[str] = None,
+        skills: Optional[list[dict[str, Any]]] = None,
+        agents_md: Optional[list[dict[str, Any]]] = None,
+        tools: Optional[list[dict[str, Any]]] = None,
+        mcps: Optional[list[dict[str, Any]]] = None,
+        plugins: Optional[list[dict[str, Any]]] = None,
+        agent_id: Optional[str] = None,
+        name: Optional[str] = None,
+    ) -> WindieSdkAgentSession:
+        if tools or mcps or plugins:
+            raise Exception(
+                "WindieSdkClient.wake_up does not execute local tools yet; "
+                "use the TypeScript WindieClient runtime for module tools, plugins, or MCPs"
+            )
+        agent_definition = _build_python_wake_up_agent_definition(
+            agent_id=agent_id,
+            name=name,
+            system_prompt=system_prompt,
+            workspace_path=workspace_path,
+            skills=skills,
+            agents_md=agents_md,
+        )
+        return await self._connect_agent(
+            backend_url=backend_url,
+            user_id=user_id,
+            agent_definition=agent_definition,
+        )
+
+    async def _connect_agent(
+        self,
+        *,
+        backend_url: Optional[str] = None,
+        user_id: Optional[str] = None,
         agent_definition: Optional[dict[str, Any]] = None,
     ) -> WindieSdkAgentSession:
         if not self._session:
@@ -497,30 +566,30 @@ class WindieSdkClient(RemoteApiClientBase):
             effective_user_id = get_authenticated_user_id()
         if not isinstance(effective_user_id, str) or not effective_user_id.strip():
             raise Exception(
-                "WindieSdkClient.connect_agent requires a user_id or default_user_id"
+                "WindieSdkClient.wake_up requires a user_id or default_user_id"
             )
 
         last_network_error: Optional[Exception] = None
-        for backend_url in self.backend_urls:
+        backend_urls = (
+            [backend_url.rstrip("/")]
+            if _clean_string(backend_url)
+            else self.backend_urls
+        )
+        for candidate_backend_url in backend_urls:
             try:
                 websocket = await self._session.ws_connect(
-                    _derive_ws_url(backend_url),
+                    _derive_ws_url(candidate_backend_url),
                     headers=self._build_auth_headers(),
                     timeout=self.timeout_seconds,
                 )
                 session = WindieSdkAgentSession(
                     websocket=websocket,
                     user_id=effective_user_id.strip(),
-                    operating_system=(
-                        operating_system.strip()
-                        if isinstance(operating_system, str)
-                        and operating_system.strip()
-                        else _detect_operating_system()
-                    ),
+                    operating_system=_detect_operating_system(),
                     agent_definition=agent_definition,
                 )
                 await session.initialize()
-                self.backend_url = backend_url
+                self.backend_url = candidate_backend_url
                 return session
             except self._aiohttp.ClientError as err:
                 last_network_error = err
@@ -533,12 +602,10 @@ class WindieSdkClient(RemoteApiClientBase):
         *,
         query: dict[str, Any],
         user_id: Optional[str] = None,
-        operating_system: Optional[str] = None,
         timeout_seconds: Optional[float] = None,
     ) -> dict[str, Any]:
-        session = await self.connect_agent(
+        session = await self._connect_agent(
             user_id=user_id,
-            operating_system=operating_system,
             agent_definition=query.get("agent_definition"),
         )
         events: list[dict[str, Any]] = []
