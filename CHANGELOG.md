@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/settings: make Settings a full dashboard view with a back arrow instead of a small modal with a close icon.
 - frontend/settings: add a top-level light, dark, and system theme selector to the Appearance tab without the Codex-style diff preview.
 - frontend/settings: add an Appearance tab with Windie-styled light/dark theme controls for colors, fonts, translucent sidebar, and contrast.
 - frontend/settings: hide the internal active prompt layers transparency panel and use user-facing copy for custom instructions.

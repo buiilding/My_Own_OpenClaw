@@ -24,7 +24,7 @@ title: "Settings Section General + Memory Tabs Runtime Reference"
 
 - left sidebar tab list
 - right content pane
-- one close control in sidebar (`onClose`)
+- one back control in sidebar (`onClose`) that returns to the dashboard/chat surface
 
 Current visible tab ids:
 
@@ -52,6 +52,7 @@ Routing model:
 
 - local `activeTab` state is reset from `initialTab` via effect
 - parent can reopen SettingsSection on a specific tab id; current first-party dashboard menu opens settings with `general`
+- dashboard mounts settings as a full main-content view rather than a centered modal so wide controls have the same usable area as the dashboard
 
 ## General Tab Ownership Model
 

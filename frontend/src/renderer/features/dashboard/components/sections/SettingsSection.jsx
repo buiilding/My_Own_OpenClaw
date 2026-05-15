@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
-  X,
+  ArrowLeft,
   Globe,
   Palette,
   Settings,
@@ -103,9 +103,9 @@ function SettingsSection({
           type="button"
           className="clone-settings-close clone-settings-close-left"
           onClick={onClose}
-          aria-label="Close settings"
+          aria-label="Back to dashboard"
         >
-          <X size={18} />
+          <ArrowLeft size={18} />
         </button>
 
         <nav className="clone-settings-tab-list">

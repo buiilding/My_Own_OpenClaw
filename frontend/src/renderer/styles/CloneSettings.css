@@ -87,7 +87,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  padding: 20px 16px 20px 18px;
+  padding: 42px clamp(24px, 4vw, 64px);
 }
 
 .clone-settings-general h2,
@@ -231,7 +231,8 @@
 
 .clone-settings-appearance {
   display: grid;
-  gap: 16px;
+  gap: 22px;
+  max-width: 1180px;
 }
 
 .clone-settings-theme-mode-card {
@@ -240,7 +241,7 @@
   align-items: center;
   gap: 18px;
   min-height: 96px;
-  padding: 22px 24px;
+  padding: 28px 32px;
   border: 1px solid var(--ui-border-soft);
   border-radius: 18px;
   background:
@@ -316,8 +317,8 @@
 .clone-settings-theme-card-header {
   display: flex;
   align-items: center;
-  min-height: 58px;
-  padding: 0 24px;
+  min-height: 72px;
+  padding: 0 32px;
 }
 
 .clone-settings-theme-card-header h3 {
@@ -334,11 +335,11 @@
 
 .clone-settings-theme-row {
   display: grid;
-  grid-template-columns: minmax(160px, 1fr) minmax(220px, 280px);
+  grid-template-columns: minmax(200px, 1fr) minmax(280px, 420px);
   align-items: center;
   gap: 22px;
-  min-height: 64px;
-  padding: 0 24px;
+  min-height: 72px;
+  padding: 0 32px;
   border-top: 1px solid var(--ui-border-subtle);
 }
 
@@ -351,7 +352,7 @@
 .clone-settings-color-pill,
 .clone-settings-font-input {
   width: 100%;
-  height: 38px;
+  height: 44px;
   border-radius: 16px;
   justify-self: end;
 }

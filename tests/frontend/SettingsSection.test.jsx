@@ -196,9 +196,9 @@ describe('SettingsSection', () => {
     expect(mockAppConfigContext.setWakewordEnabled).toHaveBeenCalledWith(false);
   });
 
-  test('renders only the left settings close button', () => {
+  test('renders only the left settings back button', () => {
     renderSettingsSection();
-    expect(screen.getAllByLabelText('Close settings')).toHaveLength(1);
+    expect(screen.getAllByLabelText('Back to dashboard')).toHaveLength(1);
   });
 
   test('shows wakeword paused helper while chatbox is visible', () => {

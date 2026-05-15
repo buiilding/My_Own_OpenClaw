@@ -297,7 +297,7 @@ function DashboardShell({
 
   return (
     <div className={`cg-dashboard-shell${dashboardOpening ? ' cg-dashboard-shell-opening' : ''}`}>
-      {!vmModeEnabled ? (
+      {!vmModeEnabled && !settingsOpen ? (
         <DashboardSidebar
           sidebarOpen={sidebarOpen}
           onExpandSidebar={handleExpandSidebar}
@@ -325,11 +325,21 @@ function DashboardShell({
       ) : null}
 
       <main className={`cg-main-content${
-        vmModeEnabled
+        vmModeEnabled || settingsOpen
           ? ''
           : (sidebarOpen ? '' : ' cg-main-content-collapsed')
       }`.trim()}>
-        <ChatInterface sidebarOpen={sidebarOpen} focusComposerToken={composerFocusToken} />
+        {settingsOpen && !vmModeEnabled ? (
+          <SettingsSection
+            config={config}
+            onConfigChange={onConfigChange}
+            initialTab={settingsInitialTab}
+            onClose={() => setSettingsOpen(false)}
+            onChatsCleared={handleChatsCleared}
+          />
+        ) : (
+          <ChatInterface sidebarOpen={sidebarOpen} focusComposerToken={composerFocusToken} />
+        )}
       </main>
 
       {!vmModeEnabled ? (
@@ -371,21 +381,6 @@ function DashboardShell({
             </div>
           </DashboardModal>
 
-          <DashboardModal
-            isOpen={settingsOpen}
-            onClose={() => setSettingsOpen(false)}
-            className="cg-modal-settings"
-          >
-            <div className="cg-panel-wrapper">
-              <SettingsSection
-                config={config}
-                onConfigChange={onConfigChange}
-                initialTab={settingsInitialTab}
-                onClose={() => setSettingsOpen(false)}
-                onChatsCleared={handleChatsCleared}
-              />
-            </div>
-          </DashboardModal>
         </>
       ) : null}
     </div>

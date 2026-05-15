@@ -46,6 +46,9 @@ jest.mock('../../frontend/src/renderer/features/chat/components/ChatInterface', 
 
 jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/SettingsSection', () => (props) => (
   <div data-testid="settings-section-stub">
+    <button type="button" onClick={() => props.onClose?.()}>
+      Back to dashboard
+    </button>
     <button type="button" onClick={() => props.onChatsCleared?.()}>
       Trigger chats cleared
     </button>
@@ -249,7 +252,7 @@ describe('ChatGptDashboardShell', () => {
     }
   });
 
-  test('opens settings modal when main process emits settings target', async () => {
+  test('opens settings view when main process emits settings target', async () => {
     await renderDashboardShell();
 
     act(() => {
@@ -258,6 +261,20 @@ describe('ChatGptDashboardShell', () => {
     });
 
     expect(screen.getByTestId('settings-section-stub')).toBeInTheDocument();
+    expect(screen.queryByTestId('chat-interface-stub')).not.toBeInTheDocument();
+  });
+
+  test('settings back action returns to chat view', async () => {
+    await renderDashboardShell();
+
+    fireEvent.click(screen.getByTestId('sidebar-user-menu-trigger'));
+    fireEvent.click(screen.getByTestId('sidebar-user-menu-settings'));
+    expect(screen.getByTestId('settings-section-stub')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back to dashboard' }));
+
+    expect(screen.queryByTestId('settings-section-stub')).not.toBeInTheDocument();
+    expect(screen.getByTestId('chat-interface-stub')).toBeInTheDocument();
   });
 
   test('collapses and expands sidebar through dedicated controls', async () => {

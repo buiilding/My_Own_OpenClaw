@@ -888,14 +888,6 @@ body.cg-scroll-locked,
   animation: cg-modal-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-.cg-modal.cg-modal-settings {
-  width: min(768px, calc(100vw - 40px));
-  height: min(600px, calc(100vh - 40px));
-  background:
-    var(--ui-shell-ambient),
-    var(--ui-shell-bg);
-}
-
 .cg-modal-body {
   flex: 1;
   min-width: 0;
