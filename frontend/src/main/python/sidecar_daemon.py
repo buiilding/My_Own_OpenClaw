@@ -33,9 +33,13 @@ def normalize_string(value: Any) -> str:
     return value.strip() if isinstance(value, str) and value.strip() else ""
 
 
-def create_mcp_tool_name(server_id: str, tool_name: str, prefix: str | None = None) -> str:
+def create_mcp_tool_name(
+    server_id: str, tool_name: str, prefix: str | None = None
+) -> str:
     def _segment(value: str) -> str:
-        cleaned = "".join(char if char.isalnum() or char in {"_", "-"} else "_" for char in value)
+        cleaned = "".join(
+            char if char.isalnum() or char in {"_", "-"} else "_" for char in value
+        )
         cleaned = cleaned.strip("_")
         return cleaned or "tool"
 
@@ -86,14 +90,25 @@ class McpServerSpec:
             name=normalize_string(payload.get("name")) or server_id,
             description=normalize_string(payload.get("description")) or None,
             command=command,
-            args=[arg for arg in raw_args if isinstance(arg, str)] if isinstance(raw_args, list) else [],
+            args=(
+                [arg for arg in raw_args if isinstance(arg, str)]
+                if isinstance(raw_args, list)
+                else []
+            ),
             cwd=normalize_string(payload.get("cwd")) or None,
             env={key: str(value) for key, value in raw_env.items()},
-            timeout_ms=int(payload.get("timeout_ms") or payload.get("timeoutMs") or 15000),
-            tool_prefix=normalize_string(payload.get("tool_prefix") or payload.get("toolPrefix")) or None,
-            tools=[tool for tool in payload.get("tools", []) if isinstance(tool, dict)]
-            if isinstance(payload.get("tools"), list)
-            else [],
+            timeout_ms=int(
+                payload.get("timeout_ms") or payload.get("timeoutMs") or 15000
+            ),
+            tool_prefix=normalize_string(
+                payload.get("tool_prefix") or payload.get("toolPrefix")
+            )
+            or None,
+            tools=(
+                [tool for tool in payload.get("tools", []) if isinstance(tool, dict)]
+                if isinstance(payload.get("tools"), list)
+                else []
+            ),
         )
 
 
@@ -135,7 +150,11 @@ class McpStdioClient:
                 continue
             future = self.pending.pop(request_id)
             if message.get("error"):
-                future.set_exception(RuntimeError(message["error"].get("message") or json.dumps(message["error"])))
+                future.set_exception(
+                    RuntimeError(
+                        message["error"].get("message") or json.dumps(message["error"])
+                    )
+                )
             else:
                 future.set_result(message.get("result"))
 
@@ -155,7 +174,9 @@ class McpStdioClient:
         self.pending[request_id] = future
         self.proc.stdin.write((json.dumps(message) + "\n").encode("utf-8"))
         await self.proc.stdin.drain()
-        return await asyncio.wait_for(future, timeout=max(self.server.timeout_ms / 1000, 1))
+        return await asyncio.wait_for(
+            future, timeout=max(self.server.timeout_ms / 1000, 1)
+        )
 
     async def notify(self, method: str, params: dict[str, Any] | None = None) -> None:
         await self.ensure_started()
@@ -194,8 +215,12 @@ class McpStdioClient:
         tools: list[dict[str, Any]] = []
         cursor: str | None = None
         while True:
-            result = await self.request("tools/list", {"cursor": cursor} if cursor else {})
-            tools.extend(tool for tool in result.get("tools", []) if isinstance(tool, dict))
+            result = await self.request(
+                "tools/list", {"cursor": cursor} if cursor else {}
+            )
+            tools.extend(
+                tool for tool in result.get("tools", []) if isinstance(tool, dict)
+            )
             cursor = normalize_string(result.get("nextCursor"))
             if not cursor:
                 return tools
@@ -224,12 +249,18 @@ class McpStdioClient:
 
 
 class SidecarDaemon:
-    def __init__(self, *, backend: LocalBackend | None = None, token: str | None = None):
+    def __init__(
+        self, *, backend: LocalBackend | None = None, token: str | None = None
+    ):
         self.backend = backend or LocalBackend()
         self.token = token or secrets.token_urlsafe(32)
         self.created_at = time.time()
         self.events: set[web.WebSocketResponse] = set()
         self.mcp_clients: dict[str, McpStdioClient] = {}
+        self.shutdown_event: asyncio.Event | None = None
+
+    def bind_shutdown_event(self, shutdown_event: asyncio.Event) -> None:
+        self.shutdown_event = shutdown_event
 
     def create_app(self) -> web.Application:
         app = web.Application(middlewares=[self._auth_middleware])
@@ -251,7 +282,9 @@ class SidecarDaemon:
         return app
 
     @web.middleware
-    async def _auth_middleware(self, request: web.Request, handler: Any) -> web.StreamResponse:
+    async def _auth_middleware(
+        self, request: web.Request, handler: Any
+    ) -> web.StreamResponse:
         supplied = request.headers.get("x-windie-sidecar-token", "")
         auth_header = request.headers.get("authorization", "")
         if auth_header.lower().startswith("bearer "):
@@ -299,12 +332,13 @@ class SidecarDaemon:
 
     async def handle_shutdown(self, request: web.Request) -> web.Response:
         await self.emit_event({"type": "shutdown-requested"})
-        asyncio.create_task(self.shutdown_later(request.app))
+        asyncio.create_task(self.shutdown_later())
         return web.json_response({"success": True})
 
-    async def shutdown_later(self, app: web.Application) -> None:
+    async def shutdown_later(self) -> None:
         await asyncio.sleep(0.05)
-        await app.shutdown()
+        if self.shutdown_event is not None:
+            self.shutdown_event.set()
 
     async def handle_tools(self, request: web.Request) -> web.Response:
         return web.json_response(self.backend.tool_registry.get_tool_manifest())
@@ -316,40 +350,62 @@ class SidecarDaemon:
             module=payload.get("module"),
             schema=payload.get("schema"),
             description=payload.get("description"),
-            workspace_path=payload.get("workspace_path") or payload.get("workspacePath"),
+            workspace_path=payload.get("workspace_path")
+            or payload.get("workspacePath"),
         )
         await self.emit_event({"type": "tool-registered", "payload": tool})
         return web.json_response({"success": True, "tool": tool})
 
     async def handle_register_plugin(self, request: web.Request) -> web.Response:
         payload = await request.json()
-        plugin_path = normalize_string(payload.get("path") or payload.get("plugin_path") or payload.get("pluginPath"))
+        plugin_path = normalize_string(
+            payload.get("path")
+            or payload.get("plugin_path")
+            or payload.get("pluginPath")
+        )
         if not plugin_path:
-            return web.json_response({"success": False, "error": "plugin path is required"}, status=400)
-        result = self.backend.tool_registry.register_plugin_tools(plugin_path=plugin_path)
+            return web.json_response(
+                {"success": False, "error": "plugin path is required"}, status=400
+            )
+        result = self.backend.tool_registry.register_plugin_tools(
+            plugin_path=plugin_path
+        )
         await self.emit_event({"type": "plugin-registered", "payload": result})
         return web.json_response({"success": True, **result})
 
     async def handle_register_mcp(self, request: web.Request) -> web.Response:
         payload = await request.json()
-        servers = payload.get("servers") if isinstance(payload.get("servers"), list) else [payload]
+        servers = (
+            payload.get("servers")
+            if isinstance(payload.get("servers"), list)
+            else [payload]
+        )
         registered_tools: list[dict[str, Any]] = []
         errors: list[dict[str, str]] = []
         for raw_server in servers:
             if not isinstance(raw_server, dict):
                 continue
             try:
-                registered_tools.extend(await self.register_mcp_server(McpServerSpec.from_payload(raw_server)))
+                registered_tools.extend(
+                    await self.register_mcp_server(
+                        McpServerSpec.from_payload(raw_server)
+                    )
+                )
             except Exception as exc:
                 errors.append(
                     {
-                        "server_id": normalize_string(raw_server.get("id") or raw_server.get("name")) or "unknown",
+                        "server_id": normalize_string(
+                            raw_server.get("id") or raw_server.get("name")
+                        )
+                        or "unknown",
                         "reason": str(exc),
                     }
                 )
         result = {"registered_tools": registered_tools, "errors": errors}
         await self.emit_event({"type": "mcp-registered", "payload": result})
-        return web.json_response({"success": len(errors) == 0, **result}, status=207 if errors else 200)
+        return web.json_response(
+            {"success": len(errors) == 0, **result}, status=207 if errors else 200
+        )
 
     async def register_mcp_server(self, server: McpServerSpec) -> list[dict[str, Any]]:
         client = self.mcp_clients.get(server.id)
@@ -362,24 +418,39 @@ class SidecarDaemon:
             original_name = normalize_string(discovered_tool.get("name"))
             if not original_name:
                 continue
-            exposed_name = create_mcp_tool_name(server.id, original_name, server.tool_prefix)
+            exposed_name = create_mcp_tool_name(
+                server.id, original_name, server.tool_prefix
+            )
             schema = normalize_object(
                 discovered_tool.get("inputSchema")
                 or discovered_tool.get("input_schema")
                 or discovered_tool.get("schema")
             )
             if schema.get("type") != "object":
-                schema = {"type": "object", "properties": {}, "additionalProperties": True}
+                schema = {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": True,
+                }
 
-            async def _handler(args: dict[str, Any], *, tool_name: str = original_name, mcp_client: McpStdioClient = client) -> dict[str, Any]:
+            async def _handler(
+                args: dict[str, Any],
+                *,
+                tool_name: str = original_name,
+                mcp_client: McpStdioClient = client,
+            ) -> dict[str, Any]:
                 result = await mcp_client.call_tool(tool_name, args)
                 text = format_mcp_content(result.get("content"))
                 if result.get("isError"):
-                    return {"success": False, "error": text or f"MCP tool {tool_name} failed"}
+                    return {
+                        "success": False,
+                        "error": text or f"MCP tool {tool_name} failed",
+                    }
                 return {
                     "success": True,
                     "data": {
-                        "llm_content": text or json.dumps(result, separators=(",", ":")),
+                        "llm_content": text
+                        or json.dumps(result, separators=(",", ":")),
                         "return_display": text or f"MCP tool {tool_name} completed.",
                         "mcp_result": result,
                     },
@@ -421,7 +492,15 @@ class SidecarDaemon:
             tool_name=payload.get("tool_name") or payload.get("toolName"),
             args=normalize_object(payload.get("args")),
         )
-        await self.emit_event({"type": "tool-executed", "payload": {"tool_name": payload.get("tool_name") or payload.get("toolName"), "success": result.get("success")}})
+        await self.emit_event(
+            {
+                "type": "tool-executed",
+                "payload": {
+                    "tool_name": payload.get("tool_name") or payload.get("toolName"),
+                    "success": result.get("success"),
+                },
+            }
+        )
         return web.json_response(result)
 
     async def handle_events(self, request: web.Request) -> web.WebSocketResponse:
@@ -455,7 +534,10 @@ class SidecarDaemon:
         elif command in {"status", "control/status"}:
             response = {"type": "status", "payload": await self.build_status_payload()}
         elif command in {"tools/list", "list-tools", "control/tools"}:
-            response = {"type": "tools", "payload": self.backend.tool_registry.get_tool_manifest()}
+            response = {
+                "type": "tools",
+                "payload": self.backend.tool_registry.get_tool_manifest(),
+            }
         else:
             response = {"type": "error", "error": "unknown_command", "command": command}
         if message_id is not None:
@@ -495,6 +577,8 @@ async def run_daemon(
 ) -> None:
     daemon = SidecarDaemon(token=token)
     await daemon.backend.initialize()
+    shutdown_event = asyncio.Event()
+    daemon.bind_shutdown_event(shutdown_event)
     app = daemon.create_app()
     app.on_cleanup.append(lambda _app: daemon.close())
     runner = web.AppRunner(app)
@@ -503,9 +587,11 @@ async def run_daemon(
     await site.start()
     sockets = list(site._server.sockets or []) if site._server else []
     actual_port = sockets[0].getsockname()[1] if sockets else port
-    await write_discovery_file(discovery_file, host=host, port=actual_port, token=daemon.token)
+    await write_discovery_file(
+        discovery_file, host=host, port=actual_port, token=daemon.token
+    )
     try:
-        await asyncio.Event().wait()
+        await shutdown_event.wait()
     finally:
         await runner.cleanup()
 

@@ -1,3 +1,4 @@
+import asyncio
 import json
 from pathlib import Path
 
@@ -225,3 +226,15 @@ async def test_sidecar_daemon_events_channel_handles_control_messages():
         "id": "4",
     }
     assert ws.sent[4] == {"type": "error", "error": "invalid_json"}
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_shutdown_endpoint_signals_daemon_loop():
+    daemon = SidecarDaemon(token="test-token")
+    shutdown_event = asyncio.Event()
+    daemon.bind_shutdown_event(shutdown_event)
+
+    response = await daemon.handle_shutdown(FakeRequest())
+
+    assert response.status == 200
+    await asyncio.wait_for(shutdown_event.wait(), timeout=0.2)
