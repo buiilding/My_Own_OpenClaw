@@ -690,4 +690,137 @@ describe('WindieSdkClient', () => {
       },
     });
   });
+
+  test('agent.stream yields normalized async events until completion', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      registerModuleTool: jest.fn(async () => ({ success: true })),
+      listTools: jest.fn(async () => ({
+        version: 1,
+        tools: [
+          {
+            name: 'save_note',
+            execution_target: 'sidecar',
+            schema: {
+              type: 'object',
+              properties: { text: { type: 'string' } },
+              required: ['text'],
+              additionalProperties: false,
+            },
+          },
+        ],
+      })),
+      executeTool: jest.fn(async () => ({
+        success: true,
+        data: { llm_content: 'saved:hello' },
+      })),
+    };
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'stream-agent',
+      systemPrompt: 'Stream events.',
+      workspacePath: '/tmp/project',
+      tools: [
+        moduleTool({
+          name: 'save_note',
+          module: 'my_project.tools:save_note',
+          schema: {
+            type: 'object',
+            properties: { text: { type: 'string' } },
+            required: ['text'],
+            additionalProperties: false,
+          },
+        }),
+      ],
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+
+    const iterator = agent.stream('save this note', { conversationRef: 'conv-stream' });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        type: 'start',
+        conversationRef: 'conv-stream',
+      },
+    });
+    expect(JSON.parse(socket.sent[1])).toMatchObject({
+      type: 'query',
+      payload: {
+        text: 'save this note',
+        conversation_ref: 'conv-stream',
+      },
+    });
+
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'streaming-response',
+        conversation_ref: 'conv-stream',
+        payload: { text: 'partial' },
+      }),
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        type: 'text',
+        text: 'partial',
+      },
+    });
+
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'tool-call',
+        conversation_ref: 'conv-stream',
+        payload: {
+          tool_name: 'save_note',
+          parameters: { text: 'hello' },
+          request_id: 'req-stream-save',
+        },
+      }),
+    });
+    const toolEvent = await iterator.next();
+    expect(toolEvent).toMatchObject({
+      done: false,
+      value: {
+        type: 'tool_call',
+        toolName: 'save_note',
+      },
+    });
+    expect(JSON.parse(socket.sent[2])).toMatchObject({
+      type: 'tool-result',
+      payload: {
+        request_id: 'req-stream-save',
+        success: true,
+        data: { llm_content: 'saved:hello' },
+      },
+    });
+
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'streaming-complete',
+        conversation_ref: 'conv-stream',
+        payload: { final_response: 'done' },
+      }),
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        type: 'complete',
+        finalResponse: 'done',
+      },
+    });
+    await expect(iterator.next()).resolves.toEqual({
+      done: true,
+      value: undefined,
+    });
+  });
 });
