@@ -8,7 +8,7 @@ title: "Hosted Backend Clients"
 
 # Hosted Backend Clients
 
-WindieOS includes transport-only SDK clients for hosted backend APIs. These clients are intentionally separate from the Electron renderer `ApiClient`, which talks through app-internal IPC.
+WindieOS includes transport-only SDK clients for hosted backend APIs. These clients are intentionally separate from the Electron renderer `ApiClient`, which talks through app-internal IPC. Agent sessions should use `WindieClient.wakeUp(...)`, not a direct hosted-client websocket helper.
 
 ## TypeScript Client
 
@@ -18,19 +18,18 @@ Use it for direct backend access to:
 
 - `/api/artifacts/*`
 - `/api/sdk/*`
-- `/ws`
 
-Custom clients can define the agent they want to run by sending
-`agent_definition` in the `/ws` handshake. See
-[Agent Definition Contract](agent_definition.md).
+The normal TypeScript agent surface is `WindieClient.wakeUp(...)`. It builds the
+low-level `agent_definition`, owns the hosted backend websocket, and routes local
+tool calls through the sidecar daemon.
 
 ## Python Client
 
 Path: `frontend/src/main/python/core/windie_sdk_client.py`
 
-The Python client mirrors the hosted backend access pattern for sidecar/developer tooling.
-`connect_agent(..., agent_definition={...})` sends the same first-class agent
-definition object used by Electron and future REST agent APIs.
+The Python client mirrors hosted backend route access for sidecar/developer
+tooling. Python keeps its low-level websocket helper until the Python wrapper
+adopts the same daemon protocol as the TypeScript runtime.
 
 ## Auth and Endpoints
 

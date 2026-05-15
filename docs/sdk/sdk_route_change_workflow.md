@@ -19,7 +19,7 @@ SDK routes are hosted backend APIs. They are not Electron IPC, and they do not d
 | Backend request/response models | `backend/src/api/routes/sdk/models.py` | Pydantic payload validation and typed response shapes. |
 | Backend service helpers | `backend/src/api/routes/sdk/service.py` | OCR/vision execution, artifact source resolution, overlay rendering, prompt preview, query plan. |
 | Backend SDK helpers | `backend/src/sdk` | Tool/context helpers and sub-agent helper utilities. |
-| TypeScript hosted client | `frontend/src/renderer/infrastructure/api/windieSdkClient.ts` | Public TS client methods, request typing, websocket trace client, artifact helpers. |
+| TypeScript hosted client | `frontend/src/renderer/infrastructure/api/windieSdkClient.ts` | Public TS route methods, request typing, artifact helpers, and `WindieClient.wakeUp` agent runtime. |
 | Renderer API exports | `frontend/src/renderer/infrastructure/api/index.ts` | Export surface for TS client types/methods. |
 | Python sidecar/developer client | `frontend/src/main/python/core/windie_sdk_client.py` | Python hosted client behavior. |
 
@@ -44,7 +44,7 @@ Do not add a hosted SDK route just to reach local machine state. Local screensho
 | Vision | `/api/sdk/vision/*`, vision locate/describe/overlay helpers | `client.vision.*` | SDK route tests, vision provider/service tests, client tests |
 | Prompt/debug | `/api/sdk/models`, `/tool-schemas`, `/tool-capabilities`, `/system-prompt`, `/prompt-preview`, `/query-plan` | `client.introspection.*`, `promptPreview`, `queryPlan` | SDK route tests, prompt/tool schema tests, client tests |
 | Artifacts | `/api/artifacts/*`, artifact source resolution, overlay upload | `client.artifacts.*`, `artifactUrl`, `uploadArtifact` | `tests/backend/test_artifact_routes.py`, `tests/frontend/ArtifactUploader.test.ts`, client tests |
-| Websocket query/trace | `/ws` and hosted event stream | `client.query`, `traceQuery` | websocket backend tests and TS client trace tests |
+| Agent runtime | `/ws` and hosted event stream | `WindieClient.wakeUp`, `agent.ask`, `agent.run`, `agent.stream` | websocket backend tests and TS `WindieClient` runtime tests |
 
 ## Payload Rules
 

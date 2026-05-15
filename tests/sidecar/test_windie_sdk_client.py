@@ -180,7 +180,8 @@ async def test_upload_artifact_uses_artifact_endpoint(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_connect_agent_sends_handshake_and_query():
+async def test_connect_agent_sends_handshake_and_query(monkeypatch):
+    monkeypatch.setattr(windie_sdk_client_module.platform, "system", lambda: "Darwin")
     websocket = FakeWebSocket()
     session = DummyWsSession(websocket)
     agent_definition = {
@@ -190,7 +191,6 @@ async def test_connect_agent_sends_handshake_and_query():
     client = WindieSdkClient(
         backend_url="https://api.windieos.com",
         default_user_id="dev-user",
-        default_operating_system="macOS",
     )
     client._session = session
 

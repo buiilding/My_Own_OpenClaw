@@ -302,18 +302,7 @@ export type WindieSdkQueryOptions = {
 
 export type WindieSdkClientOptions = {
   httpBaseUrl: string;
-  wsUrl?: string;
   fetchImpl?: FetchLike;
-  WebSocketImpl?: WebSocketConstructor;
-  defaultUserId?: string;
-  defaultOperatingSystem?: string;
-  localRuntime?: WindieLocalRuntimeClient;
-};
-
-export type WindieAgentConnectOptions = {
-  userId?: string;
-  operatingSystem?: string;
-  agentDefinition?: JsonRecord;
 };
 
 export type WindieAgentQueryInput = {
@@ -327,20 +316,6 @@ export type WindieAgentQueryInput = {
   attachmentFilenames?: string[] | null;
   systemStateInternal?: JsonRecord | null;
   workspacePath?: string | null;
-};
-
-export type WindieAgentTrace = {
-  queryMessageId: string;
-  events: BackendEvent[];
-  finalResponse?: string | null;
-  error?: {
-    message?: string;
-    content?: string | null;
-  } | null;
-};
-
-export type WindieAgentTraceOptions = {
-  timeoutMs?: number;
 };
 
 export type WindieToolDefinition = {
@@ -837,12 +812,7 @@ export class WindieAgentSession {
 
 export class WindieSdkClient {
   private readonly httpBaseUrl: string;
-  private readonly wsUrl: string;
   private readonly fetchImpl: FetchLike;
-  private readonly WebSocketImpl: WebSocketConstructor;
-  private readonly defaultUserId?: string;
-  private readonly defaultOperatingSystem?: string;
-  private readonly localRuntime?: WindieLocalRuntimeClient;
 
   readonly artifacts = {
     upload: async (file: Blob | File, filename?: string): Promise<SdkArtifactUploadResponse> => this.uploadArtifact(file, filename),
@@ -875,23 +845,9 @@ export class WindieSdkClient {
     queryPlan: async (payload: SdkQueryPlanRequest): Promise<SdkQueryPlanResponse> => this.postJson('/api/sdk/query-plan', payload),
   };
 
-  readonly agent = {
-    connect: async (options?: WindieAgentConnectOptions): Promise<WindieAgentSession> => this.connectAgent(options),
-    traceQuery: async (
-      connectOptions: WindieAgentConnectOptions,
-      query: WindieAgentQueryInput,
-      options?: WindieAgentTraceOptions,
-    ): Promise<WindieAgentTrace> => this.traceQuery(connectOptions, query, options),
-  };
-
   constructor(options: WindieSdkClientOptions) {
     this.httpBaseUrl = normalizeHttpBaseUrl(options.httpBaseUrl);
-    this.wsUrl = options.wsUrl ? normalizeWsUrl(options.wsUrl) : deriveWsUrl(options.httpBaseUrl);
     this.fetchImpl = resolveFetchImplementation(options.fetchImpl);
-    this.WebSocketImpl = resolveWebSocketImplementation(options.WebSocketImpl);
-    this.defaultUserId = options.defaultUserId;
-    this.defaultOperatingSystem = options.defaultOperatingSystem;
-    this.localRuntime = options.localRuntime;
   }
 
   async models(options?: WindieSdkQueryOptions): Promise<SdkModelsResponse> {
@@ -916,103 +872,6 @@ export class WindieSdkClient {
 
   async queryPlan(payload: SdkQueryPlanRequest): Promise<SdkQueryPlanResponse> {
     return this.introspection.queryPlan(payload);
-  }
-
-  async connectAgent(options: WindieAgentConnectOptions = {}): Promise<WindieAgentSession> {
-    const userId = options.userId ?? this.defaultUserId;
-    if (!userId) {
-      throw new Error('WindieSdkClient.connectAgent requires a userId or defaultUserId');
-    }
-    const socket = new this.WebSocketImpl(this.wsUrl);
-    const session = new WindieAgentSession(socket, {
-      user_id: userId,
-      operating_system: options.operatingSystem ?? this.defaultOperatingSystem,
-      agent_definition: options.agentDefinition,
-    }, this.localRuntime);
-    await session.waitForOpen();
-    return session;
-  }
-
-  async traceQuery(
-    connectOptions: WindieAgentConnectOptions,
-    query: WindieAgentQueryInput,
-    options: WindieAgentTraceOptions = {},
-  ): Promise<WindieAgentTrace> {
-    const session = await this.connectAgent(connectOptions);
-    return new Promise<WindieAgentTrace>((resolve, reject) => {
-      let settled = false;
-      let queryMessageId = '';
-      const events: BackendEvent[] = [];
-      const timeoutMs = typeof options.timeoutMs === 'number' && options.timeoutMs > 0
-        ? options.timeoutMs
-        : 30000;
-      const timeoutHandle = setTimeout(() => {
-        fail(new Error(`Windie agent trace timed out after ${timeoutMs}ms`));
-      }, timeoutMs);
-
-      const cleanup = () => {
-        clearTimeout(timeoutHandle);
-        unsubscribers.forEach(unsubscribe => unsubscribe());
-      };
-
-      const finish = (result: WindieAgentTrace) => {
-        if (settled) {
-          return;
-        }
-        settled = true;
-        cleanup();
-        session.close();
-        resolve(result);
-      };
-
-      const fail = (error: unknown) => {
-        if (settled) {
-          return;
-        }
-        settled = true;
-        cleanup();
-        session.close();
-        reject(error instanceof Error ? error : new Error(String(error)));
-      };
-
-      const unsubscribers = [
-        session.on('event', event => {
-          events.push(event);
-          if (event.type === 'streaming-complete') {
-            finish({
-              queryMessageId,
-              events,
-              finalResponse: event.payload?.final_response ?? null,
-            });
-            return;
-          }
-          if (event.type === 'error') {
-            finish({
-              queryMessageId,
-              events,
-              error: {
-                message: event.payload?.message,
-                content: event.payload?.content ?? null,
-              },
-            });
-          }
-        }),
-        session.on('socket-error', error => {
-          fail(error);
-        }),
-        session.on('close', payload => {
-          if (!settled) {
-            fail(new Error(`Windie agent session closed before terminal event (${payload.code ?? 'unknown'})`));
-          }
-        }),
-      ];
-
-      session.query(query)
-        .then(id => {
-          queryMessageId = id;
-        })
-        .catch(fail);
-    });
   }
 
   artifactUrl(artifactId: string): string {
@@ -1131,8 +990,14 @@ export class SidecarDaemonHttpClient implements WindieLocalRuntimeClient {
   }
 }
 
-export type WindieClientOptions = Partial<WindieSdkClientOptions> & {
+export type WindieClientOptions = {
   backendUrl?: string;
+  httpBaseUrl?: string;
+  wsUrl?: string;
+  fetchImpl?: FetchLike;
+  WebSocketImpl?: WebSocketConstructor;
+  defaultUserId?: string;
+  localRuntime?: WindieLocalRuntimeClient;
   sidecar?: WindieLocalRuntimeClient;
 };
 
@@ -1210,20 +1075,22 @@ export class WindieClient {
     const localRuntime = this.defaultOptions.sidecar ?? this.defaultOptions.localRuntime;
     const sdkClient = new WindieSdkClient({
       httpBaseUrl: backendUrl,
-      wsUrl: this.defaultOptions.wsUrl,
       fetchImpl: this.defaultOptions.fetchImpl,
-      WebSocketImpl: this.defaultOptions.WebSocketImpl,
-      defaultUserId: this.defaultOptions.defaultUserId,
-      defaultOperatingSystem: detectOperatingSystem(),
-      localRuntime,
     });
 
     const localTools = await this.prepareLocalRuntime(options, localRuntime);
     const agentDefinition = buildWakeUpAgentDefinition(options, localTools);
-    const session = await sdkClient.connectAgent({
-      userId: options.userId ?? this.defaultOptions.defaultUserId ?? 'local-sdk-user',
-      agentDefinition,
-    });
+    const wsUrl = this.defaultOptions.wsUrl
+      ? normalizeWsUrl(this.defaultOptions.wsUrl)
+      : deriveWsUrl(backendUrl);
+    const WebSocketImpl = resolveWebSocketImplementation(this.defaultOptions.WebSocketImpl);
+    const socket = new WebSocketImpl(wsUrl);
+    const session = new WindieAgentSession(socket, {
+      user_id: options.userId ?? this.defaultOptions.defaultUserId ?? 'local-sdk-user',
+      operating_system: detectOperatingSystem(),
+      agent_definition: agentDefinition,
+    }, localRuntime);
+    await session.waitForOpen();
     const id = typeof agentDefinition.id === 'string' ? agentDefinition.id : createMessageId();
     const agent = new WindieAgent(id, session, agentDefinition, sdkClient, this);
     this.activeAgents.set(id, agent);

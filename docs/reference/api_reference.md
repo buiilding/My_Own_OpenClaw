@@ -374,7 +374,6 @@ from core import WindieSdkClient
 sdk = WindieSdkClient(
     backend_url="https://api.windieos.com",
     default_user_id="dev-user",
-    default_operating_system="macOS",
 )
 
 prompt = await sdk.get_system_prompt()
@@ -386,17 +385,9 @@ query_plan = await sdk.get_query_plan(
         "messages": [],
     }
 )
-
-trace = await sdk.trace_query(
-    query={
-        "text": "Inspect the repo state",
-        "conversation_ref": "conv_trace",
-    },
-    timeout_seconds=10,
-)
 ```
 
-Trace helper notes:
+Agent runtime notes:
 
 - TypeScript agent sessions should be created through `WindieClient.wakeUp(...)`.
 - Python still exposes low-level hosted helpers until the Python wrapper adopts the same daemon protocol.

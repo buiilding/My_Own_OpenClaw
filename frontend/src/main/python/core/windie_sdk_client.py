@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import platform
 from typing import Any, Optional
 from urllib.parse import quote, urlencode, urlparse, urlunparse
 from uuid import uuid4
@@ -48,6 +49,13 @@ def _derive_ws_url(http_url: str) -> str:
             "",
         )
     )
+
+
+def _detect_operating_system() -> str:
+    system = platform.system().strip()
+    if system == "Darwin":
+        return "macOS"
+    return system or "unknown"
 
 
 class WindieSdkAgentSession:
@@ -205,11 +213,9 @@ class WindieSdkClient(RemoteApiClientBase):
         *,
         timeout_seconds: int = 60,
         default_user_id: Optional[str] = None,
-        default_operating_system: Optional[str] = None,
     ) -> None:
         super().__init__(backend_url=backend_url, timeout_seconds=timeout_seconds)
         self.default_user_id = default_user_id
-        self.default_operating_system = default_operating_system
 
     async def request_json(
         self,
@@ -509,7 +515,7 @@ class WindieSdkClient(RemoteApiClientBase):
                         operating_system.strip()
                         if isinstance(operating_system, str)
                         and operating_system.strip()
-                        else self.default_operating_system
+                        else _detect_operating_system()
                     ),
                     agent_definition=agent_definition,
                 )

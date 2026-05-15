@@ -92,7 +92,6 @@ describe('WindieSdkClient', () => {
     const client = new WindieSdkClient({
       httpBaseUrl: 'https://api.windieos.com/',
       fetchImpl: mockFetch,
-      WebSocketImpl: FakeWebSocket as any,
     });
 
     const response = await client.systemPrompt({
@@ -141,7 +140,6 @@ describe('WindieSdkClient', () => {
     const client = new WindieSdkClient({
       httpBaseUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
-      WebSocketImpl: FakeWebSocket as any,
     });
 
     const response = await client.promptPreview(payload);
@@ -198,7 +196,6 @@ describe('WindieSdkClient', () => {
     const client = new WindieSdkClient({
       httpBaseUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
-      WebSocketImpl: FakeWebSocket as any,
     });
 
     const response = await client.queryPlan(payload);
@@ -232,7 +229,6 @@ describe('WindieSdkClient', () => {
     const client = new WindieSdkClient({
       httpBaseUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
-      WebSocketImpl: FakeWebSocket as any,
     });
 
     const response = await client.artifacts.upload(
@@ -249,226 +245,15 @@ describe('WindieSdkClient', () => {
     );
   });
 
-  test('connects an agent session, sends handshake and emits backend events', async () => {
+  test('does not expose the old direct websocket agent authoring surface', () => {
     const client = new WindieSdkClient({
       httpBaseUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
-      WebSocketImpl: FakeWebSocket as any,
-      defaultUserId: 'dev-user',
-      defaultOperatingSystem: 'macOS',
     });
 
-    const connectPromise = client.agent.connect();
-    const socket = FakeWebSocket.instances[0];
-    expect(socket.url).toBe('wss://api.windieos.com/ws');
-
-    socket.emit('open', {});
-
-    const session = await connectPromise;
-    expect(JSON.parse(socket.sent[0])).toEqual({
-      type: 'handshake',
-      user_id: 'dev-user',
-      operating_system: 'macOS',
-    });
-
-    const toolSchemasEvents: Array<{ type: string; payload?: unknown }> = [];
-    session.on('tool-schemas', event => {
-      toolSchemasEvents.push(event);
-    });
-
-    socket.emit('message', {
-      data: JSON.stringify({
-        type: 'tool-schemas',
-        payload: {
-          tool_schemas: [{ type: 'function', name: 'read_file', parameters: { type: 'object' } }],
-        },
-      }),
-    });
-
-    expect(toolSchemasEvents).toHaveLength(1);
-    expect(toolSchemasEvents[0].payload).toEqual({
-      tool_schemas: [{ type: 'function', name: 'read_file', parameters: { type: 'object' } }],
-    });
-
-    socket.clearSent();
-    const messageId = await session.query({
-      text: 'Click the orange search button',
-      conversationRef: 'conv-123',
-      screenshotRef: 'artifact-123.png',
-    });
-
-    const queryEnvelope = JSON.parse(socket.sent[0]);
-    expect(messageId).toBe(queryEnvelope.id);
-    expect(queryEnvelope).toMatchObject({
-      type: 'query',
-      payload: {
-        text: 'Click the orange search button',
-        conversation_ref: 'conv-123',
-        screenshot_ref: 'artifact-123.png',
-      },
-    });
-  });
-
-  test('collects a full agent trace until streaming-complete', async () => {
-    const client = new WindieSdkClient({
-      httpBaseUrl: 'https://api.windieos.com',
-      fetchImpl: mockFetch,
-      WebSocketImpl: FakeWebSocket as any,
-      defaultUserId: 'dev-user',
-      defaultOperatingSystem: 'macOS',
-    });
-
-    const tracePromise = client.agent.traceQuery(
-      {},
-      {
-        text: 'Summarize this file',
-        conversationRef: 'conv-trace',
-      },
-    );
-
-    const socket = FakeWebSocket.instances[0];
-    socket.emit('open', {});
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    expect(JSON.parse(socket.sent[0])).toMatchObject({
-      type: 'handshake',
-      user_id: 'dev-user',
-      operating_system: 'macOS',
-    });
-    expect(JSON.parse(socket.sent[1])).toMatchObject({
-      type: 'query',
-      payload: {
-        text: 'Summarize this file',
-        conversation_ref: 'conv-trace',
-      },
-    });
-
-    socket.emit('message', {
-      data: JSON.stringify({
-        type: 'tool-schemas',
-        payload: {
-          tool_schemas: [{ type: 'function', name: 'read_file', parameters: { type: 'object' } }],
-        },
-      }),
-    });
-    socket.emit('message', {
-      data: JSON.stringify({
-        type: 'streaming-response',
-        payload: { text: 'partial' },
-      }),
-    });
-    socket.emit('message', {
-      data: JSON.stringify({
-        type: 'streaming-complete',
-        payload: { final_response: 'done' },
-      }),
-    });
-
-    const trace = await tracePromise;
-
-    expect(trace.finalResponse).toBe('done');
-    expect(trace.events.map(event => event.type)).toEqual([
-      'tool-schemas',
-      'streaming-response',
-      'streaming-complete',
-    ]);
-    expect(trace.queryMessageId).toBe(JSON.parse(socket.sent[1]).id);
-  });
-
-  test('fails trace collection on timeout and closes the socket', async () => {
-    jest.useFakeTimers();
-
-    const client = new WindieSdkClient({
-      httpBaseUrl: 'https://api.windieos.com',
-      fetchImpl: mockFetch,
-      WebSocketImpl: FakeWebSocket as any,
-      defaultUserId: 'dev-user',
-    });
-
-    const tracePromise = client.agent.traceQuery(
-      {},
-      {
-        text: 'Inspect repo state',
-        conversationRef: 'conv-timeout',
-      },
-      { timeoutMs: 25 },
-    );
-
-    const socket = FakeWebSocket.instances[0];
-    socket.emit('open', {});
-    await Promise.resolve();
-    await Promise.resolve();
-
-    const rejection = expect(tracePromise).rejects.toThrow('Windie agent trace timed out after 25ms');
-    await jest.advanceTimersByTimeAsync(25);
-    await rejection;
-    expect(socket.closed).toBe(true);
-
-    jest.useRealTimers();
-  });
-
-  test('routes backend tool-call events through local runtime and sends tool results', async () => {
-    const localRuntime: WindieLocalRuntimeClient = {
-      executeTool: jest.fn(async () => ({
-        success: true,
-        data: {
-          return_display: 'saved',
-        },
-      })),
-    };
-    const client = new WindieSdkClient({
-      httpBaseUrl: 'https://api.windieos.com',
-      fetchImpl: mockFetch,
-      WebSocketImpl: FakeWebSocket as any,
-      defaultUserId: 'dev-user',
-      localRuntime,
-    });
-
-    const connectPromise = client.agent.connect();
-    const socket = FakeWebSocket.instances[0];
-    socket.emit('open', {});
-    await connectPromise;
-
-    socket.emit('message', {
-      data: JSON.stringify({
-        type: 'tool-call',
-        payload: {
-          tool_name: 'save_note',
-          parameters: { text: 'hello' },
-          request_id: 'req-save-note',
-        },
-      }),
-    });
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    expect(localRuntime.executeTool).toHaveBeenCalledWith({
-      toolName: 'save_note',
-      args: { text: 'hello' },
-    });
-    expect(JSON.parse(socket.sent[1])).toMatchObject({
-      type: 'tool-result',
-      payload: {
-        request_id: 'req-save-note',
-        success: true,
-        data: {
-          return_display: 'saved',
-          llm_content: 'saved',
-        },
-      },
-      user_id: 'dev-user',
-    });
-  });
-
-  test('requires an explicit user id when no default is configured', async () => {
-    const client = new WindieSdkClient({
-      httpBaseUrl: 'https://api.windieos.com',
-      fetchImpl: mockFetch,
-      WebSocketImpl: FakeWebSocket as any,
-    });
-
-    await expect(client.connectAgent()).rejects.toThrow(
-      'WindieSdkClient.connectAgent requires a userId or defaultUserId',
-    );
+    expect((client as any).agent).toBeUndefined();
+    expect((client as any).connectAgent).toBeUndefined();
+    expect((client as any).traceQuery).toBeUndefined();
   });
 
   test('wakeUp registers local module tools and sends agent definition in handshake', async () => {
