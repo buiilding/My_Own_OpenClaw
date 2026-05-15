@@ -78,7 +78,7 @@ function DashboardShell({
   onConfigChange,
   vmModeEnabled = false,
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dashboardOpening, setDashboardOpening] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsInitialTab, setSettingsInitialTab] = useState('general');

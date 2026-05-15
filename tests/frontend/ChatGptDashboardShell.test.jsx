@@ -143,7 +143,7 @@ describe('ChatGptDashboardShell', () => {
     return implementation(...args);
   };
 
-  const renderDashboardShell = async () => {
+  const renderDashboardShell = async ({ expandSidebar = true } = {}) => {
     const view = render(
       <DashboardShell
         config={{}}
@@ -155,6 +155,12 @@ describe('ChatGptDashboardShell', () => {
     await flushMicrotasks();
     await flushMicrotasks();
     expect(mockInvoke).toHaveBeenCalled();
+    if (expandSidebar) {
+      const expandButton = screen.queryByRole('button', { name: 'Expand sidebar' });
+      if (expandButton) {
+        fireEvent.click(expandButton);
+      }
+    }
     return view;
   };
 
@@ -277,10 +283,9 @@ describe('ChatGptDashboardShell', () => {
     expect(screen.getByTestId('chat-interface-stub')).toBeInTheDocument();
   });
 
-  test('collapses and expands sidebar through dedicated controls', async () => {
-    const { container } = await renderDashboardShell();
+  test('defaults to collapsed sidebar and expands through dedicated controls', async () => {
+    const { container } = await renderDashboardShell({ expandSidebar: false });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
     expect(container.querySelector('.cg-sidebar')).toHaveClass('collapsed');
     expect(container.querySelector('.cg-main-content')).toHaveClass('cg-main-content-collapsed');
     expect(screen.getByRole('button', { name: 'Expand sidebar' })).toBeInTheDocument();
@@ -289,6 +294,10 @@ describe('ChatGptDashboardShell', () => {
     expect(container.querySelector('.cg-sidebar')).not.toHaveClass('collapsed');
     expect(container.querySelector('.cg-main-content')).not.toHaveClass('cg-main-content-collapsed');
     expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
+    expect(container.querySelector('.cg-sidebar')).toHaveClass('collapsed');
+    expect(container.querySelector('.cg-main-content')).toHaveClass('cg-main-content-collapsed');
   });
 
   test('sidebar models button opens models modal', async () => {
