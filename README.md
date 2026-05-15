@@ -11,20 +11,14 @@
   <a href="AGENTS.md"><img src="https://img.shields.io/badge/Agents-AGENTS.md-FFFFFF?style=for-the-badge" alt="AGENTS.md"></a>
 </p>
 
-**The open-source alternative to Codex, built for the operating system.**
-WindieOS gives you computer-use, browser-use, persistent memory, coding
-capabilities, voice, terminal access, and multimodal model support from a
-desktop layer that follows you everywhere you work.
+**The desktop layer for personal AI agents.** Windie gives agents a visible,
+always-present surface on your computer: a chat pill that follows you across the
+operating system, watches the current screen when you ask for help, and shows
+what the agent is doing in real time.
 
-Ever felt like you had to switch tabs just to use your agent? WindieOS keeps a
-minimal chat pill on top of the OS, so the agent stays with you across apps
-instead of waiting in one browser tab or dashboard. It can see what you see when
-you ask for help, react to the app in front of you, and show its work while it
-clicks, types, browses, runs commands, or waits for you to redirect it.
-
-The point is not to blindly delegate work to an isolated agent computer.
-WindieOS is meant to work with you on your own operating system: more companion
-than remote worker, more shared context than lonely automation box.
+No setup flow, no extension pinned to one tab, and no model lock-in. Download
+Windie, talk to the pill, and let the agent use computer-use, browser-use,
+terminal, files, and memory from the desktop you already work in.
 
 Download Windie on its official website: [WindieOS](https://windieos.com)
 
@@ -35,12 +29,11 @@ Latest releases: [Releases](https://github.com/buiilding/WindieOS/releases)
 ## Why Windie
 
 <table>
-<tr><td><b>Codex-style work, OS-level surface</b></td><td>Use WindieOS for coding, files, terminal commands, browser actions, and computer-use without living inside a single Codex tab.</td></tr>
-<tr><td><b>With you everywhere</b></td><td>The minimal chat pill stays on the operating-system layer, so your agent can follow your current app instead of forcing you back to one workspace.</td></tr>
-<tr><td><b>Sees what you see</b></td><td>WindieOS can attach the current screen, use OCR and vision, and operate in the same desktop context you are already looking at.</td></tr>
-<tr><td><b>Keyboard-free by design</b></td><td>Say "Hey Jarvis", talk into the mic, and WindieOS records, transcribes, and sends your request to the agent without making you touch the keyboard.</td></tr>
-<tr><td><b>Model-agnostic computer-use</b></td><td>WindieOS routes desktop actions through its own local tool contract, so computer-use can work across multimodal model providers instead of one vendor-specific mode.</td></tr>
-<tr><td><b>Fully open source and hackable</b></td><td>Change the UI, instructions, tools, plugins, skills, MCPs, or SDK clients. The project is meant to be shaped by the people building desktop agents.</td></tr>
+<tr><td><b>No setup desktop agent</b></td><td>Windie is built for macOS, Windows, and Linux. Download the app, open it, and start talking to your agent from the desktop.</td></tr>
+<tr><td><b>An operating-system layer</b></td><td>The floating chat pill stays with you while the agent works, so you can see its reactions, tool calls, and progress instead of guessing what the model is doing.</td></tr>
+<tr><td><b>Computer-use for any model provider</b></td><td>Windie's computer-use tools run through its own local tool contract, so they are not limited to one vendor's native computer-use model.</td></tr>
+<tr><td><b>Hands-free voice</b></td><td>Say "Hey Jarvis", talk into the mic, and Windie transcribes your speech into the query that starts the agent loop.</td></tr>
+<tr><td><b>Dedicated browser-use profile</b></td><td>Windie uses its own persistent Chrome profile instead of attaching an extension to one of your normal browser tabs.</td></tr>
 </table>
 
 ---
@@ -55,21 +48,9 @@ message. This is the state you should live in most of the time.
 conversation, live tool logs, memory surfaces, settings, and everything else
 you need when you want to inspect the agent loop closely.
 
-WindieOS is designed to feel present without taking over the computer. You can
-talk to it, watch what it is doing, interrupt it, or open the dashboard when you
-want the full agent loop, memory, settings, and tool logs.
-
-## Open Source Runtime
-
-WindieOS is fully open source because desktop agents should be customizable. If
-you do not like the UI, change it. If you do not like the instructions, change
-them. If your agent needs a new capability, add a plugin, skill, MCP server, or
-local tool and let the runtime expose it to the agent.
-
-The SDK is meant for building your own desktop agents on top of the same
-runtime: agents that fill forms, check information, book reservations, handle
-repetitive school or work admin, or automate the parts of the computer you do
-not want to keep doing by hand.
+Windie is designed to feel present without taking over the computer. It gives
+the agent a place to react while it clicks, types, browses, runs commands, or
+waits for you to redirect it.
 
 ## Quick Start
 
