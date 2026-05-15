@@ -245,7 +245,7 @@ function MessageInput({
               onKeyDown={handleKeyDown}
               placeholder="Ask anything"
               disabled={isSending}
-              className="message-input"
+              className="message-input composer-textarea"
               rows={1}
               style={{ minHeight: '24px', maxHeight: '200px' }}
               aria-label="Type your message"

@@ -243,6 +243,23 @@ textarea {
   font-family: inherit;
 }
 
+.composer-textarea {
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.composer-textarea::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.composer-textarea::-webkit-scrollbar-track,
+.composer-textarea::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
 a {
   color: inherit;
   text-decoration: none;

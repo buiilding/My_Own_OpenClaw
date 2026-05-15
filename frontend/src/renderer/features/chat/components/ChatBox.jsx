@@ -473,7 +473,7 @@ function ChatBox() {
                 }}
                 onKeyDown={handleComposerKeyDown}
                 placeholder="Ask me to do anything..."
-                className="chatbox-input"
+                className="chatbox-input composer-textarea"
                 disabled={loopInteractionLocked}
                 rows={1}
               />

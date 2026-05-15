@@ -6,7 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- frontend: hide the minimal chat pill composer scrollbar while preserving multiline draft resizing.
+- frontend: hide chat composer scrollbars across dashboard and minimal pill multiline drafts.
 - extensions: replace the old package root with first-class repo-level `plugins`, `skills`, and `mcps` folders, with plugin tools executing through the sidecar instead of Electron main.
 - repo: remove the root `TODO.md` from the tracked tree.
 - repo: remove private legal contracts from the tracked tree and ignore `legal/contracts/` going forward.
