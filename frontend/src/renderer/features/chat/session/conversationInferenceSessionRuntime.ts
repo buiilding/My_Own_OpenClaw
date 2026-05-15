@@ -1,4 +1,5 @@
 import { ApiClient } from '../../../infrastructure/api/client';
+import { ElectronSidecarConversationStore } from '../../../infrastructure/transcript/ElectronSidecarConversationStore';
 import { loadLocalConversationSnapshot } from '../../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import {
   getConversationWorkspaceBinding,
@@ -149,17 +150,19 @@ export async function ensureConversationInferenceSessionHydrated({
 
   const startingEpoch = connectionEpoch;
   const ensurePromise = (async () => {
+    const normalizedUserId = resolveUserId(userId);
     const snapshot = await loadLocalConversationSnapshot({
-      userId: resolveUserId(userId),
+      userId: normalizedUserId,
       conversationRef: normalizedConversationRef,
       recordKind,
-      includeReplayState: true,
     });
     setConversationWorkspaceBinding(normalizedConversationRef, snapshot.workspaceBinding);
-    if (snapshot.rehydrateMessages.length > 0) {
+    const store = new ElectronSidecarConversationStore({ userId: normalizedUserId });
+    const rehydrateSnapshot = await store.loadForRehydrate(normalizedConversationRef);
+    if (rehydrateSnapshot.messages.length > 0) {
       await ApiClient.sendRehydrateConversation(
         normalizedConversationRef,
-        snapshot.rehydrateMessages,
+        rehydrateSnapshot.messages,
         getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
       );
     }

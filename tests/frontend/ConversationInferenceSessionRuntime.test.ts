@@ -34,6 +34,8 @@ describe('conversationInferenceSessionRuntime', () => {
     markConversationInferenceSessionUnknown('conv-existing');
     mockLoadStoredConversationEntries
       .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([
         {
           role: 'user',
@@ -52,7 +54,7 @@ describe('conversationInferenceSessionRuntime', () => {
       userId: 'user-1',
     });
 
-    expect(mockLoadStoredConversationEntries).toHaveBeenCalledTimes(2);
+    expect(mockLoadStoredConversationEntries).toHaveBeenCalledTimes(4);
     expect(mockSendRehydrateConversation).toHaveBeenCalledTimes(1);
     expect(mockSendRehydrateConversation).toHaveBeenCalledWith(
       'conv-existing',
@@ -71,6 +73,7 @@ describe('conversationInferenceSessionRuntime', () => {
   test('prefers persisted replay state when available', async () => {
     markConversationInferenceSessionUnknown('conv-replay-preferred');
     mockLoadStoredConversationEntries
+      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([
         {
           metadata: {
@@ -81,8 +84,7 @@ describe('conversationInferenceSessionRuntime', () => {
             },
           },
         } as any,
-      ])
-      .mockResolvedValueOnce([]);
+      ]);
 
     await ensureConversationInferenceSessionHydrated({
       conversationRef: 'conv-replay-preferred',
@@ -97,6 +99,49 @@ describe('conversationInferenceSessionRuntime', () => {
           role: 'assistant',
           content: 'compacted replay',
           message_type: 'context_compaction',
+        }),
+      ],
+      null,
+    );
+  });
+
+  test('uses canonical SDK conversation events for backend rehydrate when available', async () => {
+    markConversationInferenceSessionUnknown('conv-sdk-events');
+    mockLoadStoredConversationEntries
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          metadata: {
+            structured_payload: {
+              windieSdkConversationEvent: {
+                eventId: 'evt-assistant',
+                type: 'assistant_message',
+                conversationRef: 'conv-sdk-events',
+                revisionId: 'rev-1',
+                timestamp: '2026-05-15T12:00:00.000Z',
+                source: 'sdk',
+                payload: {
+                  text: 'canonical answer',
+                },
+              },
+            },
+          },
+        } as any,
+      ]);
+
+    await ensureConversationInferenceSessionHydrated({
+      conversationRef: 'conv-sdk-events',
+      userId: 'user-1',
+    });
+
+    expect(mockLoadStoredConversationEntries).toHaveBeenCalledTimes(3);
+    expect(mockSendRehydrateConversation).toHaveBeenCalledWith(
+      'conv-sdk-events',
+      [
+        expect.objectContaining({
+          role: 'assistant',
+          content: 'canonical answer',
         }),
       ],
       null,
@@ -130,6 +175,8 @@ describe('conversationInferenceSessionRuntime', () => {
     markConversationInferenceSessionUnknown('conv-reconnect');
     mockLoadStoredConversationEntries
       .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([
         {
           role: 'assistant',
@@ -138,6 +185,8 @@ describe('conversationInferenceSessionRuntime', () => {
           metadata: {},
         } as any,
       ])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([
         {

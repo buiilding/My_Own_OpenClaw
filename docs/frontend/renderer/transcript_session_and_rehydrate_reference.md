@@ -213,6 +213,11 @@ events so display and backend rehydrate snapshots still come from the SDK
 projection path. This keeps new clients on the SDK model without breaking
 existing local conversations.
 
+`ensureConversationInferenceSessionHydrated(...)` now uses this adapter for the
+backend rehydrate payload. The local snapshot loader still supplies workspace
+binding/display metadata, but the backend continuation payload comes from the
+SDK store projection.
+
 ## Try-Again and Edit+Resend Replay Contract
 
 Replay rehydrate must keep prior context stable.
