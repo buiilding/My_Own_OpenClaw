@@ -85,6 +85,7 @@ Normalized payload nuance:
 
 - OpenAI Responses payloads can now persist `response_id` in addition to `content`, `tool_calls`, and `finish_reason`
 - this is the token-safe continuation anchor used for later `previous_response_id` tool-output turns
+- OpenAI Responses streaming may synthesize this payload from completed output items and function-call argument deltas when OpenAI omits the final `response.completed` or `response.incomplete` event
 
 Implementation note:
 

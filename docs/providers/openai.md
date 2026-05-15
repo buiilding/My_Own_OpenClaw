@@ -48,6 +48,8 @@ Do not add a second OpenAI key-loading path in provider code. Keep credentials c
 
 OpenAI chat requests pass tools through `make_openai_chat_tools_compatible` before shared request execution. Responses requests are prepared through the Responses payload helpers.
 
+For streamed Responses requests, do not treat `response.completed` or `response.incomplete` as the only authoritative source of assistant output. The stream adapter must also accumulate `response.output_item.added`, `response.function_call_arguments.delta`, `response.function_call_arguments.done`, and `response.output_item.done` so message output and function calls survive when OpenAI ends the stream without a final response envelope. The final envelope is still preferred when present because it carries usage and terminal status.
+
 When changing OpenAI tool behavior, verify:
 
 - Tool schema stays provider-compatible.
@@ -82,4 +84,3 @@ Focused frontend tests:
 cd frontend
 npm run test:ci -- OpenAICodexOAuth.test.cjs ModelThinkingCapabilities.test.ts ChatInterfaceWiring.test.jsx
 ```
-

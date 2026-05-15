@@ -214,7 +214,9 @@ async def test_openai_responses_runtime_emits_web_search_progress_events(monkeyp
 
 
 @pytest.mark.asyncio
-async def test_openai_responses_runtime_emits_early_web_search_source_events(monkeypatch):
+async def test_openai_responses_runtime_emits_early_web_search_source_events(
+    monkeypatch,
+):
     provider = OpenAIProvider(api_key="test-key")
 
     class _FakeResponsesStream:
@@ -311,7 +313,9 @@ async def test_openai_responses_runtime_emits_early_web_search_source_events(mon
 
 
 @pytest.mark.asyncio
-async def test_openai_responses_runtime_emits_searching_status_before_sources(monkeypatch):
+async def test_openai_responses_runtime_emits_searching_status_before_sources(
+    monkeypatch,
+):
     provider = OpenAIProvider(api_key="test-key")
 
     class _FakeResponsesStream:
@@ -515,16 +519,24 @@ async def test_openai_responses_runtime_recovers_missing_final_payload_when_text
 
 
 @pytest.mark.asyncio
-async def test_openai_responses_runtime_still_fails_missing_final_payload_without_text(
+async def test_openai_responses_runtime_recovers_missing_final_payload_from_done_message(
     monkeypatch,
 ):
     provider = OpenAIProvider(api_key="test-key")
 
     async def fake_stream():
         yield {
-            "type": "response.reasoning_text.delta",
-            "delta": "thinking only",
+            "type": "response.output_item.done",
             "response_id": "resp_456",
+            "item": {
+                "type": "message",
+                "content": [
+                    {
+                        "type": "output_text",
+                        "text": "message from output item",
+                    }
+                ],
+            },
         }
 
     async def fake_aresponses(**_kwargs):
@@ -535,17 +547,141 @@ async def test_openai_responses_runtime_still_fails_missing_final_payload_withou
         fake_aresponses,
     )
 
-    with pytest.raises(
-        Exception,
-        match="stream completed without a final response payload",
-    ):
-        await _collect_events(
-            stream_openai_responses_events(
-                provider,
-                model="gpt-5.4@@gpt-5-4-none-thinking",
-                messages=[{"role": "user", "content": "hi"}],
-            )
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.4@@gpt-5-4-none-thinking",
+            messages=[{"role": "user", "content": "hi"}],
         )
+    )
+
+    assert events == []
+    assert provider.get_last_stream_response_payload() == {
+        "content": "message from output item",
+        "finish_reason": "incomplete",
+        "response_id": "resp_456",
+    }
+
+
+@pytest.mark.asyncio
+async def test_openai_responses_runtime_recovers_missing_final_payload_from_function_call(
+    monkeypatch,
+):
+    provider = OpenAIProvider(api_key="test-key")
+
+    async def fake_stream():
+        yield {
+            "type": "response.output_item.added",
+            "response_id": "resp_789",
+            "output_index": 0,
+            "item": {
+                "type": "function_call",
+                "call_id": "call_1",
+                "name": "run_shell",
+                "arguments": "",
+            },
+        }
+        yield {
+            "type": "response.function_call_arguments.delta",
+            "output_index": 0,
+            "delta": '{"cmd":',
+        }
+        yield {
+            "type": "response.function_call_arguments.delta",
+            "output_index": 0,
+            "delta": '"pwd"}',
+        }
+        yield {
+            "type": "response.output_item.done",
+            "response_id": "resp_789",
+            "output_index": 0,
+            "item": {
+                "type": "function_call",
+                "call_id": "call_1",
+                "name": "run_shell",
+                "arguments": "",
+            },
+        }
+
+    async def fake_aresponses(**_kwargs):
+        return fake_stream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
+
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.4@@gpt-5-4-none-thinking",
+            messages=[{"role": "user", "content": "hi"}],
+            tools=[
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "run_shell",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {"cmd": {"type": "string"}},
+                        },
+                    },
+                }
+            ],
+        )
+    )
+
+    assert events == []
+    assert provider.get_last_stream_response_payload() == {
+        "content": "",
+        "tool_calls": [
+            {
+                "id": "call_1",
+                "name": "run_shell",
+                "arguments": {"cmd": "pwd"},
+            }
+        ],
+        "finish_reason": "incomplete",
+        "response_id": "resp_789",
+    }
+
+
+@pytest.mark.asyncio
+async def test_openai_responses_runtime_recovers_missing_final_payload_when_only_reasoning_streamed(
+    monkeypatch,
+):
+    provider = OpenAIProvider(api_key="test-key")
+
+    async def fake_stream():
+        yield {
+            "type": "response.reasoning_text.delta",
+            "delta": "thinking only",
+            "response_id": "resp_999",
+        }
+
+    async def fake_aresponses(**_kwargs):
+        return fake_stream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
+
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.4@@gpt-5-4-none-thinking",
+            messages=[{"role": "user", "content": "hi"}],
+        )
+    )
+
+    assert [type(event).__name__ for event in events] == ["ThinkingEvent"]
+    assert events[0].content == "thinking only"
+    assert provider.get_last_stream_response_payload() == {
+        "content": "",
+        "finish_reason": "incomplete",
+        "response_id": "resp_999",
+    }
 
 
 def test_openai_provider_build_request_params_preserves_browser_root_object_tool_schema():
@@ -1054,7 +1190,7 @@ def test_build_openai_responses_input_preserves_legacy_computer_named_calls_as_f
             "type": "function_call",
             "call_id": "comp_1",
             "name": "computer",
-            "arguments": "{\"actions\": [{\"type\": \"click\", \"x\": 100, \"y\": 200}]}",
+            "arguments": '{"actions": [{"type": "click", "x": 100, "y": 200}]}',
             "status": "completed",
         },
         {
