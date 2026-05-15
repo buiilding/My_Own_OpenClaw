@@ -1,11 +1,13 @@
 import {
   parseMemoriesToMessages,
-  toRehydrateMessagePayload,
 } from '../../features/dashboard/utils/episodicMemoryUtils';
 import {
   readStoredReplayRehydrateEntry,
   TRANSCRIPT_REPLAY_RECORD_KIND,
 } from './conversationReplayState';
+import {
+  buildStoredTranscriptRehydrateMessages,
+} from './storedTranscriptSdkProjection';
 import { loadStoredConversationEntries } from './localConversationStore';
 import { resolveConversationWorkspaceBinding } from '../workspace/conversationWorkspaceBinding';
 
@@ -32,16 +34,22 @@ export type LocalConversationSnapshot = {
 };
 
 function buildRehydrateMessages({
+  conversationRef,
   transcriptEntries,
   replayEntries,
 }: {
+  conversationRef: string;
   transcriptEntries: StoredConversationEntry[];
   replayEntries: StoredConversationEntry[];
 }): Array<Record<string, unknown>> {
   if (replayEntries.length > 0) {
-    return replayEntries.map((entry) => readStoredReplayRehydrateEntry(entry) || toRehydrateMessagePayload(entry));
+    return replayEntries.map((entry) => readStoredReplayRehydrateEntry(entry) || buildStoredTranscriptRehydrateMessages([entry], {
+      conversationRef,
+    })[0]).filter((entry): entry is Record<string, unknown> => Boolean(entry));
   }
-  return transcriptEntries.map(toRehydrateMessagePayload);
+  return buildStoredTranscriptRehydrateMessages(transcriptEntries, {
+    conversationRef,
+  });
 }
 
 export async function loadLocalConversationSnapshot({
@@ -76,6 +84,7 @@ export async function loadLocalConversationSnapshot({
     }),
     parsedMessages: includeParsedMessages ? parseMemoriesToMessages(transcriptEntries) : [],
     rehydrateMessages: buildRehydrateMessages({
+      conversationRef,
       transcriptEntries,
       replayEntries,
     }),

@@ -135,6 +135,10 @@ Projection builders collapse duplicate tool outputs that share the same
 common local-runtime flow where the SDK appends the local sidecar result and the
 backend later emits an acknowledgement `tool-output` for the same tool wait.
 
+The desktop local snapshot loader uses this SDK projection path when generating
+rehydrate payloads from stored transcript rows. That is the first migration step
+away from separate renderer-only replay shaping.
+
 ## Desktop Migration Target
 
 Desktop React should call runtime commands and render projections. It should not

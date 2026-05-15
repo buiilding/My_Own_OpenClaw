@@ -97,6 +97,49 @@ describe('conversationLocalSnapshotLoader', () => {
     ]);
   });
 
+  test('builds rehydrate payloads through SDK projection and collapses duplicate tool outputs', async () => {
+    mockLoadStoredConversationEntries.mockResolvedValueOnce([
+      {
+        id: 'tool-call-row',
+        role: 'assistant',
+        content: '{"name":"read_file"}',
+        message_type: 'tool-call',
+        correlation_id: 'req-read',
+        tool_name: 'read_file',
+        tool_call_id: 'call-read',
+      } as any,
+      {
+        id: 'tool-output-local',
+        role: 'tool',
+        content: 'local result',
+        message_type: 'tool-output',
+        correlation_id: 'req-read',
+        tool_name: 'read_file',
+        tool_call_id: 'call-read',
+      } as any,
+      {
+        id: 'tool-output-backend',
+        role: 'tool',
+        content: 'backend ack',
+        message_type: 'tool-output',
+        correlation_id: 'req-read',
+        tool_name: 'read_file',
+        tool_call_id: 'call-read',
+      } as any,
+    ]);
+
+    const snapshot = await loadLocalConversationSnapshot({
+      userId: 'user-1',
+      conversationRef: 'conv-tools',
+    });
+
+    expect(snapshot.rehydrateMessages.filter(message => message.role === 'tool')).toHaveLength(1);
+    expect(snapshot.rehydrateMessages[0]).toEqual(expect.objectContaining({
+      role: 'assistant',
+      tool_call_id: 'call-read',
+    }));
+  });
+
   test('falls back to conversation-level workspace binding when transcript rows do not carry one', async () => {
     mockLoadStoredConversationEntries.mockResolvedValueOnce([
       {
