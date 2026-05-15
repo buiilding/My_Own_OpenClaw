@@ -256,6 +256,28 @@ describe('WindieSdkClient', () => {
     expect((client as any).traceQuery).toBeUndefined();
   });
 
+  test('WindieClient lists backend-owned models from the configured backend', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({
+      config: { model_id: 'gpt-5.4' },
+      models: [{ id: 'gpt-5.4' }],
+    }));
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+    });
+
+    const response = await client.listModels({ userId: 'dev-user' });
+
+    expect(response.models).toEqual([{ id: 'gpt-5.4' }]);
+    const [url, init] = mockFetch.mock.calls[0];
+    if (String(url) !== 'https://api.windieos.com/api/sdk/models?user_id=dev-user') {
+      throw new Error(`unexpected models URL: ${String(url)}`);
+    }
+    if (init?.method !== 'GET') {
+      throw new Error(`unexpected models method: ${String(init?.method)}`);
+    }
+  });
+
   test('wakeUp can attach to a configured sidecar daemon HTTP runtime', async () => {
     mockFetch.mockImplementation(async (url, init) => {
       const parsedUrl = String(url);

@@ -1072,12 +1072,9 @@ export class WindieClient {
   }
 
   async wakeUp(options: WindieWakeUpOptions): Promise<WindieAgent> {
-    const backendUrl = options.backendUrl ?? this.defaultOptions.backendUrl ?? this.defaultOptions.httpBaseUrl ?? 'https://api.windieos.com';
+    const backendUrl = this.resolveBackendUrl(options.backendUrl);
     const localRuntime = this.resolveLocalRuntime();
-    const sdkClient = new WindieSdkClient({
-      httpBaseUrl: backendUrl,
-      fetchImpl: this.defaultOptions.fetchImpl,
-    });
+    const sdkClient = this.createSdkClient(backendUrl);
 
     const localTools = await this.prepareLocalRuntime(options, localRuntime);
     const agentDefinition = buildWakeUpAgentDefinition(options, localTools);
@@ -1108,6 +1105,11 @@ export class WindieClient {
     }));
   }
 
+  async listModels(options: WindieSdkQueryOptions & { backendUrl?: string } = {}): Promise<SdkModelsResponse> {
+    const { backendUrl, ...queryOptions } = options;
+    return this.createSdkClient(this.resolveBackendUrl(backendUrl)).models(queryOptions);
+  }
+
   async listTools(): Promise<{ version?: number; tools?: JsonRecord[] } | null> {
     const localRuntime = this.resolveLocalRuntime();
     return localRuntime?.listTools ? localRuntime.listTools() : null;
@@ -1121,6 +1123,17 @@ export class WindieClient {
   async shutdownLocalRuntime(): Promise<void> {
     const localRuntime = this.resolveLocalRuntime();
     await localRuntime?.shutdown?.();
+  }
+
+  private resolveBackendUrl(backendUrl?: string): string {
+    return backendUrl ?? this.defaultOptions.backendUrl ?? this.defaultOptions.httpBaseUrl ?? 'https://api.windieos.com';
+  }
+
+  private createSdkClient(backendUrl: string): WindieSdkClient {
+    return new WindieSdkClient({
+      httpBaseUrl: backendUrl,
+      fetchImpl: this.defaultOptions.fetchImpl,
+    });
   }
 
   private resolveLocalRuntime(): WindieLocalRuntimeClient | undefined {
