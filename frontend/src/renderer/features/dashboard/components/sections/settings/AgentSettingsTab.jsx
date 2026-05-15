@@ -35,7 +35,6 @@ function toggleListValue(values, value, enabled) {
 function AgentSettingsTab({ config, onConfigChange }) {
   const [manifestStatus, setManifestStatus] = useState({ accepted: [], rejected: [] });
   const [remoteToolCatalog, setRemoteToolCatalog] = useState({ remote_tools: [] });
-  const [activePromptLayers, setActivePromptLayers] = useState([]);
   const [extensionRuntime, setExtensionRuntime] = useState({ extensions: [], errors: [] });
   const disabledLocalTools = Array.isArray(config?.agent_disabled_local_tools)
     ? config.agent_disabled_local_tools
@@ -79,13 +78,6 @@ function AgentSettingsTab({ config, onConfigChange }) {
             : [],
         });
       }
-      if (event?.type === 'system-prompt') {
-        setActivePromptLayers(
-          Array.isArray(event.payload?.client_prompt_layers)
-            ? event.payload.client_prompt_layers
-            : [],
-        );
-      }
     });
     return removeListener;
   }, []);
@@ -97,7 +89,7 @@ function AgentSettingsTab({ config, onConfigChange }) {
       <div className="clone-settings-row clone-settings-row-rich">
         <div>
           <span>Custom instructions</span>
-          <p>Saved locally and sent as a client prompt layer on each workspace query.</p>
+          <p>Saved locally and included with each workspace query.</p>
           <textarea
             className="clone-settings-textarea"
             value={config?.agent_custom_instructions || ''}
@@ -107,26 +99,6 @@ function AgentSettingsTab({ config, onConfigChange }) {
             rows={6}
             spellCheck
           />
-        </div>
-      </div>
-
-      <div className="clone-settings-row clone-settings-row-rich clone-settings-row-stack">
-        <div>
-          <span>Active prompt layers</span>
-          <p>These are the client prompt layers the backend reported in the latest prompt.</p>
-        </div>
-        <div className="clone-settings-layer-list">
-          {activePromptLayers.length > 0 ? activePromptLayers.map((layer) => (
-            <details key={`${layer.id || 'layer'}-${layer.priority ?? 100}`} className="clone-settings-schema-viewer">
-              <summary>
-                {layer.id || 'client-layer'}
-                <small>{layer.type || 'custom'} / priority {layer.priority ?? 100}</small>
-              </summary>
-              <pre>{layer.content || ''}</pre>
-            </details>
-          )) : (
-            <p className="clone-settings-tool-status">Waiting for backend prompt transparency</p>
-          )}
         </div>
       </div>
 

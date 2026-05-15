@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/settings: hide the internal active prompt layers transparency panel and use user-facing copy for custom instructions.
 - frontend: port the Windie Agent blue UI palette and refreshed app icon treatment into the full WindieOS frontend so the dashboard, chat, settings, and onboarding surfaces match the logo and landing page aesthetic.
 - sdk/sidecar: add the first-class `WindieClient.wakeUp` runtime contract, local sidecar daemon HTTP/WebSocket executor shell, dynamic module/plugin/MCP registration path, and docs for the backend/SDK/daemon/Electron ownership split.
 - frontend/sidecar: route Electron local tool execution through a reusable token-auth sidecar daemon manager while keeping legacy JSON-RPC for remaining memory/service IPC.

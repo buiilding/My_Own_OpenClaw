@@ -47,7 +47,7 @@ describe('AgentSettingsTab', () => {
     backendHandler = null;
   });
 
-  test('updates tool toggles and displays accepted schemas plus prompt layers', async () => {
+  test('updates tool toggles and displays accepted schemas plus extensions', async () => {
     const onConfigChange = jest.fn();
     render(
       <AgentSettingsTab
@@ -78,20 +78,10 @@ describe('AgentSettingsTab', () => {
           rejected: [],
         },
       });
-      backendHandler({
-        type: 'system-prompt',
-        payload: {
-          client_prompt_layers: [{
-            id: 'custom-instructions',
-            type: 'custom_instructions',
-            priority: 60,
-            content: 'Prefer local tools.',
-          }],
-        },
-      });
     });
 
-    expect(screen.getByText('custom-instructions')).toBeInTheDocument();
+    expect(screen.queryByText('Active prompt layers')).not.toBeInTheDocument();
+    expect(screen.queryByText('custom-instructions')).not.toBeInTheDocument();
     expect(screen.getByText('Accepted schema')).toBeInTheDocument();
     expect(screen.getByText(/file_path/)).toBeInTheDocument();
     expect(await screen.findByText('Notes')).toBeInTheDocument();
