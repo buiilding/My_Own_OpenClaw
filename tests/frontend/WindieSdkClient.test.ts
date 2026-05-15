@@ -344,6 +344,52 @@ describe('WindieSdkClient', () => {
     expect((registerCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('daemon-token');
   });
 
+  test('wakeUp ensures a local runtime when module tools need sidecar execution', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      registerModuleTool: jest.fn(async () => ({ success: true })),
+      listTools: jest.fn(async () => ({
+        version: 1,
+        tools: [{ name: 'save_note', schema: { type: 'object', properties: {} } }],
+      })),
+    };
+    const ensureLocalRuntime = jest.fn(async () => localRuntime);
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      ensureLocalRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      systemPrompt: 'Use local tools.',
+      workspacePath: '/tmp/project',
+      tools: [
+        moduleTool({
+          name: 'save_note',
+          module: 'my_project.tools:save_note',
+          schema: { type: 'object', properties: {} },
+        }),
+      ],
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    await wakePromise;
+
+    expect(ensureLocalRuntime).toHaveBeenCalledWith({
+      wakeUp: expect.objectContaining({
+        systemPrompt: 'Use local tools.',
+        workspacePath: '/tmp/project',
+      }),
+      needsLocalRuntime: true,
+    });
+    expect(localRuntime.registerModuleTool).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'save_note' }),
+      { workspacePath: '/tmp/project' },
+    );
+  });
+
   test('wakeUp registers local module tools and sends agent definition in handshake', async () => {
     const localRuntime: WindieLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),

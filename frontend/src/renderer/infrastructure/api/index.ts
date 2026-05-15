@@ -47,6 +47,8 @@ export type {
   WindieClientOptions,
   WindieAgentQueryInput,
   WindieLocalRuntimeClient,
+  WindieLocalRuntimeProvider,
+  WindieLocalRuntimeProviderContext,
   WindieMcpDefinition,
   WindiePluginDefinition,
   WindieSkillDefinition,

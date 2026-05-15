@@ -371,6 +371,15 @@ export type WindieLocalRuntimeClient = {
   shutdown?: () => Promise<void>;
 };
 
+export type WindieLocalRuntimeProviderContext = {
+  wakeUp: WindieWakeUpOptions;
+  needsLocalRuntime: boolean;
+};
+
+export type WindieLocalRuntimeProvider = (
+  context: WindieLocalRuntimeProviderContext,
+) => Promise<WindieLocalRuntimeClient | undefined> | WindieLocalRuntimeClient | undefined;
+
 type WindieAgentEventMap = {
   open: void;
   close: { code?: number; reason?: string; wasClean?: boolean };
@@ -1000,6 +1009,7 @@ export type WindieClientOptions = {
   localRuntime?: WindieLocalRuntimeClient;
   sidecar?: WindieLocalRuntimeClient;
   sidecarDaemon?: SidecarDaemonClientOptions;
+  ensureLocalRuntime?: WindieLocalRuntimeProvider;
 };
 
 export function moduleTool(tool: WindieToolDefinition & { module: string }): WindieToolDefinition {
@@ -1073,7 +1083,7 @@ export class WindieClient {
 
   async wakeUp(options: WindieWakeUpOptions): Promise<WindieAgent> {
     const backendUrl = this.resolveBackendUrl(options.backendUrl);
-    const localRuntime = this.resolveLocalRuntime();
+    const localRuntime = await this.resolveLocalRuntimeForWakeUp(options);
     const sdkClient = this.createSdkClient(backendUrl);
 
     const localTools = await this.prepareLocalRuntime(options, localRuntime);
@@ -1111,17 +1121,17 @@ export class WindieClient {
   }
 
   async listTools(): Promise<{ version?: number; tools?: JsonRecord[] } | null> {
-    const localRuntime = this.resolveLocalRuntime();
+    const localRuntime = this.resolveConfiguredLocalRuntime();
     return localRuntime?.listTools ? localRuntime.listTools() : null;
   }
 
   async status(): Promise<JsonRecord | null> {
-    const localRuntime = this.resolveLocalRuntime();
+    const localRuntime = this.resolveConfiguredLocalRuntime();
     return localRuntime?.status ? localRuntime.status() : null;
   }
 
   async shutdownLocalRuntime(): Promise<void> {
-    const localRuntime = this.resolveLocalRuntime();
+    const localRuntime = this.resolveConfiguredLocalRuntime();
     await localRuntime?.shutdown?.();
   }
 
@@ -1136,7 +1146,7 @@ export class WindieClient {
     });
   }
 
-  private resolveLocalRuntime(): WindieLocalRuntimeClient | undefined {
+  private resolveConfiguredLocalRuntime(): WindieLocalRuntimeClient | undefined {
     const explicitRuntime = this.defaultOptions.sidecar ?? this.defaultOptions.localRuntime;
     if (explicitRuntime) {
       return explicitRuntime;
@@ -1148,6 +1158,28 @@ export class WindieClient {
       });
     }
     return undefined;
+  }
+
+  private async resolveLocalRuntimeForWakeUp(options: WindieWakeUpOptions): Promise<WindieLocalRuntimeClient | undefined> {
+    const configuredRuntime = this.resolveConfiguredLocalRuntime();
+    if (configuredRuntime) {
+      return configuredRuntime;
+    }
+    if (!this.needsLocalRuntime(options)) {
+      return undefined;
+    }
+    return this.defaultOptions.ensureLocalRuntime?.({
+      wakeUp: options,
+      needsLocalRuntime: true,
+    });
+  }
+
+  private needsLocalRuntime(options: WindieWakeUpOptions): boolean {
+    return Boolean(
+      (options.tools ?? []).some(tool => Boolean(tool.module))
+      || (options.plugins ?? []).length > 0
+      || (options.mcps ?? []).length > 0,
+    );
   }
 
   private async prepareLocalRuntime(

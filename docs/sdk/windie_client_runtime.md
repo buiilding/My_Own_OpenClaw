@@ -122,11 +122,17 @@ Electron uses `sidecar_daemon_manager.cjs` to start or reuse the daemon and then
 passes the daemon client into the SDK runtime. Non-Electron SDK hosts can provide
 either:
 
+- `ensureLocalRuntime`: an async provider that starts/reuses a daemon and returns
+  a `WindieLocalRuntimeClient` when `wakeUp` needs local execution.
 - `sidecar`: a custom `WindieLocalRuntimeClient` implementation.
 - `localRuntime`: an alias for the same custom runtime interface.
 - `sidecarDaemon`: daemon `baseUrl` and per-process `token`; `WindieClient`
   creates a `SidecarDaemonHttpClient` and uses `/status`, registration endpoints,
   `/tools`, and `/execute-tool`.
+
+`wakeUp` calls `ensureLocalRuntime` only when module tools, plugins, or MCP
+servers require local execution and no explicit `sidecar`, `localRuntime`, or
+`sidecarDaemon` was configured.
 
 The SDK does not accept raw JavaScript/Python closures as durable tools.
 Module tools must be registered by import path, plugin tools by package path, and
