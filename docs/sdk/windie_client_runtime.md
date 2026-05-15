@@ -71,6 +71,10 @@ await agent.ask("Read the repo instructions and summarize the tests.");
 
 const conversation = agent.conversation({ conversationRef: "repo-checks" });
 await conversation.send({ text: "Run the tests and summarize failures." });
+await conversation.editAndResend({
+  messageId: "previous-user-message-id",
+  text: "Run the focused SDK tests and summarize failures."
+});
 await conversation.rehydrate();
 
 for await (const event of agent.stream("Run the test command and report progress.")) {
@@ -248,3 +252,7 @@ the caller exits iteration early.
 session transport. It is the migration path for clients that need local event
 storage, display projections, rehydrate snapshots, stop handling, and future
 edit/retry revision operations.
+
+`agent.listConversations()` lists metadata from the agent's default conversation
+store. `agent.loadConversation({ conversationRef })` opens a runtime over the
+same store and returns its projected snapshot.

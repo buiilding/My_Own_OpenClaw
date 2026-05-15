@@ -74,6 +74,26 @@ Only `compaction_applied` with actual replacement history should affect compacte
 replay snapshots. A store adapter must activate a compacted replay generation
 only after the generation is complete and its entry count matches.
 
+When a complete active compacted replay generation exists, `rehydrate()` uses
+that replay snapshot. Otherwise it derives rehydrate messages from normalized
+events.
+
+## Revision Rule
+
+Edit/resend and retry are revision operations:
+
+```text
+load events
+  -> choose target user turn
+  -> preserve events before that user turn
+  -> commit conversation_rewritten with new revisionId
+  -> send replacement user message as a new turn
+```
+
+The old revision remains valid until the rewrite commits. The SDK does not
+delete display rows and then reconstruct backend history through a separate
+lossy path.
+
 ## Tool Rule
 
 When the SDK claims a local tool call or bundle:

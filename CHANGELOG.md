@@ -46,6 +46,7 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: project direct SDK `tool-call` and `tool-bundle` events as display-only when the SDK owns local execution.
 - sdk: add the first SDK conversation runtime foundation with normalized conversation events, an in-memory store adapter, display/rehydrate projections, compaction-skipped normalization, a runtime reducer, and an authoritative tool execution coordinator.
 - sdk: expose `WindieAgent.conversation(...)` so SDK consumers can use the conversation runtime over the existing agent session transport.
+- sdk: add conversation-runtime `editAndResend`, `retryTurn`, compacted replay rehydrate selection, and agent conversation listing/loading APIs.
 - frontend/sdk: move backend connect waiters, reconnect scheduling, and idle WebSocket close policy from Electron IPC into the SDK main runtime.
 - frontend/sdk: move Electron SDK handshake and client tool manifest construction into the SDK main runtime.
 - frontend/sdk: move backend tool-call routing and display-only event projection fully into the SDK main runtime.

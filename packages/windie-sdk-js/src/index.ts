@@ -8,7 +8,9 @@ import { InMemoryConversationStore } from './stores/InMemoryConversationStore.js
 import { SdkConversationRuntime } from './runtime/ConversationRuntime.js';
 import type {
   BackendTransport,
+  ConversationMetadata,
   ConversationStore,
+  ListConversationOptions,
 } from './conversation/types.js';
 
 export * from './conversation/types.js';
@@ -1631,6 +1633,21 @@ export class WindieAgent {
 
   async listModels(): Promise<SdkModelsResponse> {
     return this.sdkClient.models();
+  }
+
+  async listConversations(options: ListConversationOptions & {
+    store?: ConversationStore;
+  } = {}): Promise<ConversationMetadata[]> {
+    const { store, ...listOptions } = options;
+    return (store ?? this.defaultConversationStore).listMetadata(listOptions);
+  }
+
+  async loadConversation(options: {
+    conversationRef: string;
+    revisionId?: string;
+    store?: ConversationStore;
+  }): Promise<ReturnType<SdkConversationRuntime['load']>> {
+    return this.conversation(options).load();
   }
 
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }> {

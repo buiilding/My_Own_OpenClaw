@@ -2,6 +2,7 @@ import { createConversationEvent, createRuntimeId } from '../conversation/events
 import { isBackendEvent } from '../backendEvents.js';
 import type {
   BackendTransport,
+  CompactedReplaySnapshot,
   ConversationEvent,
   ConversationRuntimeState,
   ConversationStore,
@@ -34,6 +35,45 @@ export type TurnResult = {
   turnRef: string;
   queryMessageId: string;
 };
+
+export type EditAndResendInput = {
+  messageId: string;
+  text: string;
+  turnRef?: string;
+  payload?: JsonRecord;
+};
+
+export type RetryTurnInput = {
+  messageId?: string;
+  turnRef?: string;
+  payload?: JsonRecord;
+};
+
+function eventText(event: ConversationEvent): string {
+  if (typeof event.payload.text === 'string') {
+    return event.payload.text;
+  }
+  if (typeof event.payload.content === 'string') {
+    return event.payload.content;
+  }
+  return '';
+}
+
+function eventMatchesId(event: ConversationEvent, messageId: string): boolean {
+  return event.eventId === messageId
+    || event.payload.id === messageId
+    || event.payload.messageId === messageId
+    || event.payload.message_id === messageId;
+}
+
+function isCompleteReplaySnapshot(snapshot: CompactedReplaySnapshot | null): snapshot is CompactedReplaySnapshot {
+  return Boolean(
+    snapshot
+    && snapshot.complete
+    && snapshot.active !== false
+    && snapshot.entryCount === snapshot.entries.length,
+  );
+}
 
 export class SdkConversationRuntime {
   private state: ConversationRuntimeState;
@@ -112,17 +152,83 @@ export class SdkConversationRuntime {
       turnRef,
       source: 'ui',
       payload: {
-        text: input.text,
         ...(input.payload ?? {}),
+        text: input.text,
       },
     }));
     const queryMessageId = await this.options.transport?.sendQuery({
+      ...(input.payload ?? {}),
       text: input.text,
       conversation_ref: this.options.conversationRef,
       turn_ref: turnRef,
-      ...(input.payload ?? {}),
     }) ?? turnRef;
     return { turnRef, queryMessageId };
+  }
+
+  async editAndResend(input: EditAndResendInput): Promise<TurnResult> {
+    const normalizedText = input.text.trim();
+    if (!normalizedText) {
+      throw new Error('editAndResend requires non-empty text');
+    }
+    const events = await this.options.store.loadEvents(this.options.conversationRef);
+    const userIndex = events.findIndex(event => (
+      event.type === 'user_message' && eventMatchesId(event, input.messageId)
+    ));
+    if (userIndex < 0) {
+      throw new Error(`Cannot edit missing user message: ${input.messageId}`);
+    }
+    await this.rewriteToRevision({
+      events,
+      preservedEvents: events.slice(0, userIndex),
+      removedEvents: events.slice(userIndex),
+      reason: 'edit_resend',
+      replacementText: normalizedText,
+    });
+    return this.send({
+      text: normalizedText,
+      turnRef: input.turnRef,
+      payload: {
+        ...events[userIndex].payload,
+        ...(input.payload ?? {}),
+      },
+    });
+  }
+
+  async retryTurn(input: RetryTurnInput = {}): Promise<TurnResult> {
+    const events = await this.options.store.loadEvents(this.options.conversationRef);
+    const targetIndex = input.messageId
+      ? events.findIndex(event => eventMatchesId(event, input.messageId))
+      : events.length - 1;
+    const searchStart = targetIndex >= 0 ? targetIndex : events.length - 1;
+    let userIndex = -1;
+    for (let index = searchStart; index >= 0; index -= 1) {
+      if (events[index]?.type === 'user_message') {
+        userIndex = index;
+        break;
+      }
+    }
+    if (userIndex < 0) {
+      throw new Error('Cannot retry without a previous user message');
+    }
+    const retryText = eventText(events[userIndex]);
+    if (!retryText.trim()) {
+      throw new Error('Cannot retry a user message with empty text');
+    }
+    await this.rewriteToRevision({
+      events,
+      preservedEvents: events.slice(0, userIndex),
+      removedEvents: events.slice(userIndex),
+      reason: 'retry',
+      replacementText: retryText,
+    });
+    return this.send({
+      text: retryText,
+      turnRef: input.turnRef,
+      payload: {
+        ...events[userIndex].payload,
+        ...(input.payload ?? {}),
+      },
+    });
   }
 
   async stop(turnRef: string | null = this.state.activeTurnRef ?? null): Promise<void> {
@@ -142,7 +248,15 @@ export class SdkConversationRuntime {
 
   async rehydrate(): Promise<RehydrateSnapshot> {
     const events = await this.options.store.loadEvents(this.options.conversationRef);
-    const snapshot = buildRehydrateSnapshot(events);
+    const compactedReplay = await this.options.store.loadCompactedReplay?.(this.options.conversationRef) ?? null;
+    const snapshot = isCompleteReplaySnapshot(compactedReplay)
+      ? {
+          conversationRef: this.options.conversationRef,
+          revisionId: compactedReplay.sourceRevisionId,
+          messages: compactedReplay.entries,
+          replayGenerationId: compactedReplay.generationId,
+        }
+      : buildRehydrateSnapshot(events);
     await this.options.transport?.sendRehydrate({
       conversation_ref: this.options.conversationRef,
       messages: snapshot.messages,
@@ -154,6 +268,54 @@ export class SdkConversationRuntime {
     this.detachTransport?.();
     this.detachTransport = undefined;
     this.listeners.clear();
+  }
+
+  private async rewriteToRevision({
+    events,
+    preservedEvents,
+    removedEvents,
+    reason,
+    replacementText,
+  }: {
+    events: ConversationEvent[];
+    preservedEvents: ConversationEvent[];
+    removedEvents: ConversationEvent[];
+    reason: 'edit_resend' | 'retry';
+    replacementText: string;
+  }): Promise<void> {
+    const baseRevisionId = events[events.length - 1]?.revisionId ?? this.state.revisionId;
+    const newRevisionId = createRuntimeId('rev');
+    const rewriteEvent = createConversationEvent({
+      type: 'conversation_rewritten',
+      conversationRef: this.options.conversationRef,
+      revisionId: newRevisionId,
+      source: 'sdk',
+      payload: {
+        baseRevisionId,
+        reason,
+        replacementUserMessage: {
+          text: replacementText,
+        },
+        removedEventIds: removedEvents.map(event => event.eventId),
+      },
+    });
+    const nextEvents = [...preservedEvents, rewriteEvent];
+    await this.options.store.rewriteConversation({
+      conversationRef: this.options.conversationRef,
+      baseRevisionId,
+      newRevisionId,
+      cutAfterEventId: preservedEvents[preservedEvents.length - 1]?.eventId ?? null,
+      replacementUserMessage: { text: replacementText },
+      preservedEvents: nextEvents,
+      removedEventIds: removedEvents.map(event => event.eventId),
+      reason,
+    });
+    this.state = nextEvents.reduce(
+      (state, event) => reduceConversationRuntimeState(state, event),
+      createInitialConversationRuntimeState(this.options.conversationRef, newRevisionId),
+    );
+    const snapshot = this.snapshot(await this.options.store.loadEvents(this.options.conversationRef));
+    this.listeners.forEach(listener => listener(snapshot));
   }
 
   private async applyEvent(event: ConversationEvent): Promise<void> {

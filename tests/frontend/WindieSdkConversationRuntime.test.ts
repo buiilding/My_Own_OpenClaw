@@ -278,4 +278,179 @@ describe('Windie SDK conversation runtime core', () => {
       ],
     });
   });
+
+  test('editAndResend rewrites from the edited user message and sends a new revision turn', async () => {
+    const sentQueries: Record<string, unknown>[] = [];
+    const transport: BackendTransport = {
+      connect: jest.fn(async () => undefined),
+      handshake: jest.fn(async () => undefined),
+      sendQuery: jest.fn(async payload => {
+        sentQueries.push(payload);
+        return 'query-edited';
+      }),
+      sendToolResult: jest.fn(async () => undefined),
+      sendToolBundleResult: jest.fn(async () => undefined),
+      sendRehydrate: jest.fn(async () => undefined),
+      stop: jest.fn(async () => undefined),
+      subscribe: jest.fn(() => () => undefined),
+      close: jest.fn(async () => undefined),
+    };
+    const store = new InMemoryConversationStore();
+    const firstUser = createConversationEvent({
+      type: 'user_message',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-old',
+      eventId: 'user-keep',
+      payload: { text: 'keep this' },
+    });
+    const editedUser = createConversationEvent({
+      type: 'user_message',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-old',
+      eventId: 'user-edit',
+      payload: { text: 'old text', artifactRefs: ['artifact-old'] },
+    });
+    const staleAssistant = createConversationEvent({
+      type: 'assistant_message',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-old',
+      eventId: 'assistant-stale',
+      payload: { text: 'stale answer' },
+    });
+    await store.appendEvents([firstUser, editedUser, staleAssistant]);
+
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+    });
+    await runtime.load();
+    await runtime.editAndResend({
+      messageId: 'user-edit',
+      text: 'new text',
+      turnRef: 'turn-edited',
+    });
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-stale');
+    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('user-edit');
+    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+      'user_message',
+      'conversation_rewritten',
+      'turn_started',
+      'user_message',
+    ]);
+    expect(sentQueries[0]).toMatchObject({
+      text: 'new text',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-edited',
+      artifactRefs: ['artifact-old'],
+    });
+    expect(buildDisplayConversation(events).messages.map(message => message.text)).toEqual([
+      'keep this',
+      'new text',
+    ]);
+  });
+
+  test('retryTurn cuts stale assistant/tool history and resends the previous user message', async () => {
+    const sentQueries: Record<string, unknown>[] = [];
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'user-retry',
+        payload: { text: 'try this again' },
+      }),
+      createConversationEvent({
+        type: 'tool_call',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'tool-stale',
+        payload: { toolName: 'read_file', requestId: 'req-stale' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'assistant-retry',
+        payload: { text: 'bad answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: {
+        connect: jest.fn(async () => undefined),
+        handshake: jest.fn(async () => undefined),
+        sendQuery: jest.fn(async payload => {
+          sentQueries.push(payload);
+          return 'query-retry';
+        }),
+        sendToolResult: jest.fn(async () => undefined),
+        sendToolBundleResult: jest.fn(async () => undefined),
+        sendRehydrate: jest.fn(async () => undefined),
+        stop: jest.fn(async () => undefined),
+        subscribe: jest.fn(() => () => undefined),
+        close: jest.fn(async () => undefined),
+      },
+    });
+
+    await runtime.load();
+    await runtime.retryTurn({
+      messageId: 'assistant-retry',
+      turnRef: 'turn-retry',
+    });
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('tool-stale');
+    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-retry');
+    expect(sentQueries[0]).toMatchObject({
+      text: 'try this again',
+      turn_ref: 'turn-retry',
+    });
+  });
+
+  test('rehydrate uses the active complete compacted replay generation when present', async () => {
+    const sentRehydrates: Record<string, unknown>[] = [];
+    const store = new InMemoryConversationStore();
+    await store.appendEvent(event('user_message', { text: 'long original history' }));
+    await store.replaceCompactedReplay({
+      generationId: 'gen-active',
+      conversationRef: 'conv-sdk-runtime',
+      sourceRevisionId: 'rev-compact',
+      createdAt: new Date().toISOString(),
+      entries: [{ role: 'assistant', content: 'summary' }],
+      entryCount: 1,
+      complete: true,
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: {
+        connect: jest.fn(async () => undefined),
+        handshake: jest.fn(async () => undefined),
+        sendQuery: jest.fn(async () => 'query-unused'),
+        sendToolResult: jest.fn(async () => undefined),
+        sendToolBundleResult: jest.fn(async () => undefined),
+        sendRehydrate: jest.fn(async payload => {
+          sentRehydrates.push(payload);
+        }),
+        stop: jest.fn(async () => undefined),
+        subscribe: jest.fn(() => () => undefined),
+        close: jest.fn(async () => undefined),
+      },
+    });
+
+    const snapshot = await runtime.rehydrate();
+
+    expect(snapshot).toMatchObject({
+      replayGenerationId: 'gen-active',
+      messages: [{ role: 'assistant', content: 'summary' }],
+    });
+    expect(sentRehydrates[0]).toMatchObject({
+      messages: [{ role: 'assistant', content: 'summary' }],
+    });
+  });
 });

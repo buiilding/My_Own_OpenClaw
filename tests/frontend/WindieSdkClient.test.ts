@@ -888,5 +888,22 @@ describe('WindieSdkClient', () => {
         ],
       },
     });
+    await expect(agent.listConversations()).resolves.toEqual([
+      expect.objectContaining({
+        conversationRef: 'conv-runtime-public',
+        lastMessage: 'hello runtime',
+      }),
+    ]);
+    await expect(agent.loadConversation({
+      conversationRef: 'conv-runtime-public',
+    })).resolves.toMatchObject({
+      display: {
+        messages: [
+          expect.objectContaining({
+            text: 'hello runtime',
+          }),
+        ],
+      },
+    });
   });
 });

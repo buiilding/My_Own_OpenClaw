@@ -28,6 +28,7 @@ await agent.run('Inspect the repo and summarize what changed.');
 
 const conversation = agent.conversation({ conversationRef: 'repo-checks' });
 await conversation.send({ text: 'Run the tests and summarize failures.' });
+await conversation.retryTurn();
 
 for await (const event of agent.stream('Run the repo checks and report progress.')) {
   if (event.type === 'text') {
