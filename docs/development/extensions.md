@@ -76,6 +76,9 @@ Use `--dir <path>` to write to another extensions root. The command refuses to
 overwrite an existing extension folder unless `--force` is passed and the target
 folder is empty.
 
+For a complete runnable extension-first SDK example, see
+`examples/repo-agent-extension`.
+
 ## Package Layout
 
 ```text
