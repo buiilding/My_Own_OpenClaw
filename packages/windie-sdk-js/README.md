@@ -2,9 +2,17 @@
 
 TypeScript SDK boundary for waking Windie agents from external clients.
 
-The implementation currently shares the same runtime source used by the
-Electron app. The public package surface is `WindieClient`, `WindieAgent`,
-`moduleTool`, sidecar daemon helpers, and hosted SDK route clients.
+This package is intentionally standalone: install and build it from this
+directory without relying on the Electron app's `frontend/node_modules`.
+
+```bash
+cd packages/windie-sdk-js
+npm install
+npm run build
+```
+
+The public package surface is `WindieClient`, `WindieAgent`, `moduleTool`,
+sidecar daemon helpers, and hosted SDK route clients.
 
 ```ts
 import { WindieClient } from '@windie/sdk';

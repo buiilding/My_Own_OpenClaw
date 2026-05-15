@@ -4,8 +4,19 @@
   "description": "Public TypeScript SDK for waking Windie agents and routing local runtime tools.",
   "license": "MIT",
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "windie",
+    "windieos",
+    "agents",
+    "desktop-agents",
+    "computer-use"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -16,7 +27,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "ws": "^8.19.0"

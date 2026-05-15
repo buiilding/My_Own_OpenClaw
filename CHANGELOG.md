@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: make `packages/windie-sdk-js` a standalone npm package with its own lockfile, package-local build docs, and publish-time build check.
 - extensions: add a `scripts/create-windie-extension` scaffold command for starter extension packages with a sidecar tool, schema, skill, and docs.
 - sdk: add repo-local `@windie/sdk` and `windie-sdk` package boundaries while keeping existing frontend and sidecar compatibility imports.
 - docs: add a direct README docs link for the computer-use guide.

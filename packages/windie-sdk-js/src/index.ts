@@ -3,7 +3,7 @@ import {
   type BackendEvent,
   type BackendEventType,
   type ToolSchema,
-} from './backendEvents';
+} from './backendEvents.js';
 
 type FetchLike = typeof fetch;
 

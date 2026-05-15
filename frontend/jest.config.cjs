@@ -23,6 +23,7 @@ module.exports = {
   moduleDirectories: ['node_modules', '<rootDir>/frontend/node_modules'],
   moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'cjs', 'json'],
   moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
     '\\.(css|less|scss|sass)$': '<rootDir>/tests/frontend/__mocks__/styleMock.js',
   },
   setupFilesAfterEnv: ['<rootDir>/frontend/jest.setup.js'],

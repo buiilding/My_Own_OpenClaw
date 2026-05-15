@@ -30,6 +30,14 @@ WindieOS SDK docs cover the canonical client runtime for hosted backend access a
 - Renderer API barrel: `frontend/src/renderer/infrastructure/api/index.ts`
 - Sidecar package export: `frontend/src/main/python/core/__init__.py`
 
+Build the TypeScript SDK as a standalone package:
+
+```bash
+cd packages/windie-sdk-js
+npm install
+npm run build
+```
+
 ## API Owners
 
 - SDK routes: `backend/src/api/routes/sdk/*`
