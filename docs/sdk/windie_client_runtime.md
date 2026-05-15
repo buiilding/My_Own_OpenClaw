@@ -69,6 +69,10 @@ const agent = await client.wakeUp({
 
 await agent.ask("Read the repo instructions and summarize the tests.");
 
+const conversation = agent.conversation({ conversationRef: "repo-checks" });
+await conversation.send({ text: "Run the tests and summarize failures." });
+await conversation.rehydrate();
+
 for await (const event of agent.stream("Run the test command and report progress.")) {
   if (event.type === "text") {
     process.stdout.write(event.text);
@@ -224,6 +228,7 @@ Current canonical surface:
 - `sleep`
 - `run`
 - `stream`
+- `conversation`
 - `shutdownLocalRuntime`
 - `listModels`
 - `listAgents`
@@ -238,3 +243,8 @@ query message id, normalizes backend websocket events into `text`, `tool_call`,
 `tool_output`, `complete`, `error`, or generic `event` items, and detaches its
 listeners when the stream reaches `streaming-complete`, receives an error, or
 the caller exits iteration early.
+
+`conversation(options)` returns an SDK conversation runtime backed by the agent
+session transport. It is the migration path for clients that need local event
+storage, display projections, rehydrate snapshots, stop handling, and future
+edit/retry revision operations.

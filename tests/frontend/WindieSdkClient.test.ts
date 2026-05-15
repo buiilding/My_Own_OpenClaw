@@ -823,4 +823,70 @@ describe('WindieSdkClient', () => {
       value: undefined,
     });
   });
+
+  test('agent.conversation exposes the SDK conversation runtime over the agent session', async () => {
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'conversation-runtime-agent',
+      systemPrompt: 'Use the runtime.',
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+
+    const conversation = agent.conversation({ conversationRef: 'conv-runtime-public' });
+    await conversation.send({ text: 'hello runtime', turnRef: 'turn-runtime-public' });
+    socket.emit('message', {
+      data: JSON.stringify({
+        id: 'backend-chunk-1',
+        type: 'streaming-response',
+        conversation_ref: 'conv-runtime-public',
+        turn_ref: 'turn-runtime-public',
+        payload: { text: 'partial' },
+      }),
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await conversation.rehydrate();
+
+    expect(JSON.parse(socket.sent[1])).toMatchObject({
+      type: 'query',
+      payload: {
+        text: 'hello runtime',
+        conversation_ref: 'conv-runtime-public',
+      },
+    });
+    expect(JSON.parse(socket.sent[2])).toMatchObject({
+      type: 'rehydrate-conversation',
+      payload: {
+        conversation_ref: 'conv-runtime-public',
+        rehydrate_mode: 'replace',
+        messages: [
+          expect.objectContaining({
+            role: 'user',
+            content: 'hello runtime',
+          }),
+        ],
+      },
+    });
+    await expect(conversation.load()).resolves.toMatchObject({
+      state: {
+        phase: 'streaming',
+      },
+      display: {
+        messages: [
+          expect.objectContaining({
+            sender: 'user',
+            text: 'hello runtime',
+          }),
+        ],
+      },
+    });
+  });
 });

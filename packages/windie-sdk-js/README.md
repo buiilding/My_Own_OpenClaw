@@ -26,6 +26,9 @@ const agent = await windie.wakeUp({
 
 await agent.run('Inspect the repo and summarize what changed.');
 
+const conversation = agent.conversation({ conversationRef: 'repo-checks' });
+await conversation.send({ text: 'Run the tests and summarize failures.' });
+
 for await (const event of agent.stream('Run the repo checks and report progress.')) {
   if (event.type === 'text') {
     process.stdout.write(event.text);

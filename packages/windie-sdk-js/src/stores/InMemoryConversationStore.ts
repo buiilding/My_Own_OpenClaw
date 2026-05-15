@@ -14,7 +14,7 @@ function sortEvents(events: ConversationEvent[]): ConversationEvent[] {
     if (timeDiff !== 0) {
       return timeDiff;
     }
-    return a.eventId.localeCompare(b.eventId);
+    return 0;
   });
 }
 

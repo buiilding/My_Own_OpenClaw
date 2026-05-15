@@ -4,6 +4,12 @@ import {
   type BackendEventType,
   type ToolSchema,
 } from './backendEvents.js';
+import { InMemoryConversationStore } from './stores/InMemoryConversationStore.js';
+import { SdkConversationRuntime } from './runtime/ConversationRuntime.js';
+import type {
+  BackendTransport,
+  ConversationStore,
+} from './conversation/types.js';
 
 export * from './conversation/types.js';
 export * from './conversation/events.js';
@@ -953,6 +959,48 @@ export class WindieAgentSession {
     return id;
   }
 
+  async rehydrateConversation(payload: JsonRecord): Promise<string> {
+    await this.waitForOpen();
+    const id = createMessageId();
+    this.socket.send(JSON.stringify({
+      id,
+      type: 'rehydrate-conversation',
+      payload: {
+        ...payload,
+        rehydrate_mode: payload.rehydrate_mode ?? 'replace',
+      },
+      user_id: this.handshake.user_id,
+      timestamp: new Date().toISOString(),
+    }));
+    return id;
+  }
+
+  async sendToolResultPayload(payload: JsonRecord): Promise<string> {
+    await this.waitForOpen();
+    const id = createMessageId();
+    this.socket.send(JSON.stringify({
+      id,
+      type: 'tool-result',
+      payload,
+      user_id: this.handshake.user_id,
+      timestamp: new Date().toISOString(),
+    }));
+    return id;
+  }
+
+  async sendToolBundleResultPayload(payload: JsonRecord): Promise<string> {
+    await this.waitForOpen();
+    const id = createMessageId();
+    this.socket.send(JSON.stringify({
+      id,
+      type: 'tool-bundle-result',
+      payload,
+      user_id: this.handshake.user_id,
+      timestamp: new Date().toISOString(),
+    }));
+    return id;
+  }
+
   private projectBackendEventForListeners(event: BackendEvent): BackendEvent {
     if (!this.localRuntime?.executeTool) {
       return event;
@@ -1525,6 +1573,8 @@ export function moduleTool(tool: WindieToolDefinition & { module: string }): Win
 }
 
 export class WindieAgent {
+  private readonly defaultConversationStore = new InMemoryConversationStore();
+
   constructor(
     readonly id: string,
     readonly session: WindieAgentSession,
@@ -1559,6 +1609,22 @@ export class WindieAgent {
     return this.session.stopQuery(conversationRef);
   }
 
+  conversation(options: {
+    conversationRef?: string;
+    revisionId?: string;
+    store?: ConversationStore;
+  } = {}): SdkConversationRuntime {
+    const conversationRef = options.conversationRef ?? `conv-${this.id}`;
+    const runtime = new SdkConversationRuntime({
+      conversationRef,
+      revisionId: options.revisionId,
+      store: options.store ?? this.defaultConversationStore,
+      transport: this.buildConversationTransport(conversationRef),
+    });
+    runtime.attachTransport();
+    return runtime;
+  }
+
   sleep(): void {
     this.session.close(1000, 'sleep');
   }
@@ -1576,6 +1642,55 @@ export class WindieAgent {
       ...options,
       text,
       conversationRef: options.conversationRef ?? `conv-${this.id}`,
+    };
+  }
+
+  private buildConversationTransport(conversationRef: string): BackendTransport {
+    return {
+      connect: async () => this.session.waitForOpen(),
+      handshake: async () => undefined,
+      sendQuery: async payload => this.session.query({
+        text: typeof payload.text === 'string' ? payload.text : '',
+        conversationRef: typeof payload.conversation_ref === 'string'
+          ? payload.conversation_ref
+          : conversationRef,
+        content: typeof payload.content === 'string' ? payload.content : null,
+        screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,
+        screenshotRef: typeof payload.screenshot_ref === 'string' ? payload.screenshot_ref : null,
+        screenshotRefs: Array.isArray(payload.screenshot_refs)
+          ? payload.screenshot_refs.filter((value): value is string => typeof value === 'string')
+          : null,
+        attachmentContext: typeof payload.attachment_context === 'string' ? payload.attachment_context : null,
+        attachmentFilenames: Array.isArray(payload.attachment_filenames)
+          ? payload.attachment_filenames.filter((value): value is string => typeof value === 'string')
+          : null,
+        systemStateInternal: payload.system_state_internal && typeof payload.system_state_internal === 'object'
+          ? payload.system_state_internal as JsonRecord
+          : null,
+        workspacePath: typeof payload.workspace_path === 'string' ? payload.workspace_path : null,
+      }),
+      sendToolResult: async payload => {
+        await this.session.sendToolResultPayload(payload);
+      },
+      sendToolBundleResult: async payload => {
+        await this.session.sendToolBundleResultPayload(payload);
+      },
+      sendRehydrate: async payload => {
+        await this.session.rehydrateConversation({
+          conversation_ref: typeof payload.conversation_ref === 'string'
+            ? payload.conversation_ref
+            : conversationRef,
+          messages: Array.isArray(payload.messages) ? payload.messages : [],
+          rehydrate_mode: 'replace',
+        });
+      },
+      stop: async payload => {
+        await this.session.stopQuery(
+          typeof payload.conversation_ref === 'string' ? payload.conversation_ref : conversationRef,
+        );
+      },
+      subscribe: listener => this.session.on('event', listener),
+      close: async () => this.session.close(1000, 'conversation-runtime-close'),
     };
   }
 }

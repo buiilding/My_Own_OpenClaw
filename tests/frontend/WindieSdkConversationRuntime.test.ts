@@ -147,6 +147,35 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('in-memory store preserves append order for events with the same timestamp', async () => {
+    const store = new InMemoryConversationStore();
+    const timestamp = new Date().toISOString();
+    const first = createConversationEvent({
+      type: 'turn_started',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      eventId: 'z-turn-started',
+      timestamp,
+    });
+    const second = createConversationEvent({
+      type: 'assistant_delta',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      eventId: 'a-assistant-delta',
+      timestamp,
+      payload: { text: 'partial' },
+    });
+
+    await store.appendEvents([first, second]);
+
+    expect((await store.loadEvents('conv-sdk-runtime')).map(storedEvent => storedEvent.eventId)).toEqual([
+      'z-turn-started',
+      'a-assistant-delta',
+    ]);
+  });
+
   test('backend compaction-completed with skipped_reason normalizes to compaction_skipped', () => {
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'context-compaction-completed',
