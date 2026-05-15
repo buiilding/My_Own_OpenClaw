@@ -62,7 +62,9 @@ The SDK runtime is the canonical owner of backend websocket sessions. Electron m
 ## SDK Connection Lifecycle (`windie_sdk_runtime.cjs`)
 
 The SDK runtime owns connection demand, connect waiters, reconnect timers, idle
-disconnect timers, socket construction, handshake send, and envelope send.
+disconnect timers, socket construction, handshake send, and backend message
+envelope send helpers for query, wakeword, stop-query, settings, model listing,
+and tool-result traffic.
 Electron main provides callbacks for UI/session state and renderer fan-out.
 
 Guard:

@@ -644,23 +644,7 @@ function getWindieSdkRuntime() {
 }
 
 function sendMessageToBackend(type, payload, messageId = null) {
-  if (!isBackendRuntimeConnected()) {
-    log('Cannot send message: WebSocket is not connected.');
-    return null;
-  }
-
-  if (!currentUserId) {
-    log('Cannot send message: user_id not set (handshake may have failed).');
-    return null;
-  }
-
-  return getWindieSdkRuntime().sendEnvelope({
-    type,
-    payload,
-    messageId,
-    userId: currentUserId,
-    normalizePayload: normalizeBackendPayload,
-  });
+  return getWindieSdkRuntime().sendBackendMessage(type, payload, messageId);
 }
 
 function shutdownIpcForTests() {

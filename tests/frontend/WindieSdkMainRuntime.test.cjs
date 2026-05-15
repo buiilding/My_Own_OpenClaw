@@ -45,6 +45,7 @@ describe('Windie SDK main runtime', () => {
       createMessageId: () => 'msg-1',
       getEndpoint: () => ({ wsUrl: 'wss://api.windieos.com/ws', wsOrigin: 'app://windie' }),
       getHeaders: () => ({ authorization: 'Bearer install-token' }),
+      getUserId: () => 'dev-user',
       shouldConnect: () => true,
       buildHandshake: async () => ({ type: 'handshake', user_id: 'dev-user' }),
       onOpen: opened,
@@ -68,6 +69,13 @@ describe('Windie SDK main runtime', () => {
       id: 'msg-1',
       type: 'query',
       payload: { text: 'hello' },
+      user_id: 'dev-user',
+    });
+    expect(runtime.sendStopQuery({ conversation_ref: 'conv-1' })).toBe('msg-1');
+    expect(JSON.parse(socket.sent[2])).toMatchObject({
+      id: 'msg-1',
+      type: 'stop-query',
+      payload: { conversation_ref: 'conv-1' },
       user_id: 'dev-user',
     });
   });

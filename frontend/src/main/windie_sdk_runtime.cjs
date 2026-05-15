@@ -140,6 +140,26 @@ function createWindieSdkMainRuntime(options = {}) {
     });
   }
 
+  function sendQuery(payload, messageId = null) {
+    return sendBackendMessage('query', payload, messageId);
+  }
+
+  function sendWakewordDetected(payload, messageId = null) {
+    return sendBackendMessage('wakeword-detected', payload, messageId);
+  }
+
+  function sendStopQuery(payload, messageId = null) {
+    return sendBackendMessage('stop-query', payload, messageId);
+  }
+
+  function sendUpdateSettings(payload, messageId = null) {
+    return sendBackendMessage('update-settings', payload, messageId);
+  }
+
+  function sendListModels(payload = {}, messageId = null) {
+    return sendBackendMessage('list-models', payload, messageId);
+  }
+
   function handleBackendEvent(data) {
     routeSdkToolEventToLocalRuntime(data, {
       executeLocalTool: options.executeLocalTool,
@@ -344,7 +364,13 @@ function createWindieSdkMainRuntime(options = {}) {
     isOpen,
     noteTraffic,
     reconnectIntervalMs,
+    sendBackendMessage,
     sendEnvelope,
+    sendListModels,
+    sendQuery,
+    sendStopQuery,
+    sendUpdateSettings,
+    sendWakewordDetected,
     syncIdleTimer,
   };
 }
