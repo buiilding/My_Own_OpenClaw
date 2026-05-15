@@ -256,6 +256,72 @@ describe('WindieSdkClient', () => {
     expect((client as any).traceQuery).toBeUndefined();
   });
 
+  test('wakeUp can attach to a configured sidecar daemon HTTP runtime', async () => {
+    mockFetch.mockImplementation(async (url, init) => {
+      const parsedUrl = String(url);
+      if (parsedUrl.endsWith('/status')) {
+        return jsonResponse({ status: 'ok' }) as any;
+      }
+      if (parsedUrl.endsWith('/tools/register-module')) {
+        return jsonResponse({ success: true }) as any;
+      }
+      if (parsedUrl.endsWith('/tools')) {
+        return jsonResponse({
+          version: 1,
+          tools: [
+            {
+              name: 'save_note',
+              description: 'Save a local note.',
+              execution_target: 'sidecar',
+              schema: {
+                type: 'object',
+                properties: { text: { type: 'string' } },
+                required: ['text'],
+                additionalProperties: false,
+              },
+            },
+          ],
+        }) as any;
+      }
+      return jsonResponse({ ok: true }) as any;
+    });
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecarDaemon: {
+        baseUrl: 'http://127.0.0.1:43123',
+        token: 'daemon-token',
+      },
+    });
+
+    const wakePromise = client.wakeUp({
+      systemPrompt: 'Use local tools.',
+      tools: [
+        moduleTool({
+          name: 'save_note',
+          module: 'my_project.tools:save_note',
+          schema: {
+            type: 'object',
+            properties: { text: { type: 'string' } },
+            required: ['text'],
+            additionalProperties: false,
+          },
+        }),
+      ],
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    await wakePromise;
+
+    const statusCall = mockFetch.mock.calls.find(([url]) => String(url).endsWith('/status'));
+    const registerCall = mockFetch.mock.calls.find(([url]) => String(url).endsWith('/tools/register-module'));
+    expect((statusCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('daemon-token');
+    expect(registerCall?.[1]?.method).toBe('POST');
+    expect((registerCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('daemon-token');
+  });
+
   test('wakeUp registers local module tools and sends agent definition in handshake', async () => {
     const localRuntime: WindieLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),

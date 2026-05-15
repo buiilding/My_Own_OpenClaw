@@ -1,7 +1,7 @@
 ---
-summary: "Workflow for changing the desktop query-send and stream-relay path across renderer compose, Electron main websocket relay, payload enrichment, optimistic events, overlay phase, transcript sync, and backend stream ingress."
+summary: "Workflow for changing the desktop query-send and stream-relay path across renderer compose, Electron main SDK-runtime adapter, payload enrichment, optimistic events, overlay phase, transcript sync, and backend stream ingress."
 read_when:
-  - When changing how a user message leaves the renderer, is enriched in Electron main, or is sent to the backend websocket.
+  - When changing how a user message leaves the renderer, is enriched in Electron main, or is sent through the SDK runtime to the backend websocket.
   - When debugging a message that appears locally but does not reach the backend, streams into the wrong conversation, loses screenshots or attachments, or leaves the chat pill stuck awaiting a response.
   - When changing query screenshots, file attachment context, memory retrieval injection, workspace-path forwarding, overlay phase updates, or query send failure behavior.
 title: "Query Send and Stream Relay Change Workflow"
@@ -12,7 +12,7 @@ title: "Query Send and Stream Relay Change Workflow"
 Use this workflow when the requested change is phrased as "sending a message",
 "query payload", "stream relay", "optimistic user row", "wrong chat", "missing
 screenshot", "stuck awaiting", or "first query uses stale settings". The path is
-split across renderer UI, Electron main, backend websocket transport, backend
+split across renderer UI, Electron main, SDK runtime, backend websocket transport, backend
 query execution, and renderer stream consumption; do not patch only the visible
 chat component until the producer and relay contracts are identified.
 
@@ -20,10 +20,11 @@ chat component until the producer and relay contracts are identified.
 
 - Renderer owns compose state, local optimistic rows, screenshot/file collection,
   transcript writes, and active conversation selection.
-- Electron main owns the `to-backend` IPC handler, websocket connection, install
-  auth headers, settings ACK gate, query payload enrichment, synthetic
+- Electron main owns the `to-backend` IPC handler, settings ACK gate, query payload enrichment, synthetic
   `local-user-message` events, synthetic send-failure errors, replay buffer, and
   overlay phase fan-out.
+- The SDK runtime owns backend websocket construction, envelope send/close
+  primitives, and SDK-owned local tool-result routing.
 - The Python sidecar only supplies local enrichment data through JSON-RPC
   helpers such as system state and memory search. It must not inspect backend
   schemas or construct model-facing websocket messages.
@@ -57,6 +58,7 @@ sequenceDiagram
     participant A as ApiClient
     participant M as Electron main
     participant L as Local sidecar
+    participant SDK as SDK runtime
     participant B as Backend websocket
     participant S as Renderer stream
 
@@ -69,7 +71,8 @@ sequenceDiagram
     M->>S: local-user-message optimistic event
     M->>L: get_system_state + search_memory
     M->>M: build content, runtime state, replay buffer, overlay phase
-    M->>B: websocket query message
+    M->>SDK: send query envelope
+    SDK->>B: websocket query message
     B->>B: validate, bind session/conversation, execute agent loop
     B->>M: streaming events
     M->>S: from-backend fan-out
@@ -86,8 +89,8 @@ Before editing, answer which contract is changing:
   message-send policy, disabled send states.
 - Renderer-to-main IPC contract: `ApiClient.sendQuery(...)` arguments and
   `SEND_CHANNELS.TO_BACKEND` payload shape.
-- Main relay contract: query payload filtering, enrichment, settings ACK gate,
-  websocket send, local synthetic events, replay, and send failure behavior.
+- Main/SDK runtime contract: query payload filtering, enrichment, settings ACK
+  gate, SDK runtime send, local synthetic events, replay, and send failure behavior.
 - Backend websocket contract: incoming `query` schema, handler dispatch, stream
   event formatting, completion, cancellation, or task cleanup.
 - Renderer stream contract: event guards, conversation routing, turn tracking,
@@ -123,9 +126,10 @@ Renderer invariants:
 
 ### 3. Inspect the Electron main relay path
 
-Read these files when changing websocket relay behavior:
+Read these files when changing SDK runtime relay behavior:
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/windie_sdk_runtime.cjs`
 - `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/query_payload_builder.cjs`

@@ -13,6 +13,7 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: remove the public TypeScript `WindieSdkClient.agent.connect`/`traceQuery` surface so agent sessions go through `WindieClient.wakeUp`.
 - sidecar/sdk: detect the Python hosted client's websocket operating system internally instead of accepting a default OS constructor parameter.
 - frontend/settings: remove the coordinate-method settings surface and local config field so backend/provider policy owns OCR, vision, and prediction availability.
+- sdk: let `WindieClient` attach directly to a configured sidecar daemon HTTP runtime and refresh frontend docs around SDK runtime ownership.
 - frontend/backend: route Electron query-time workspace AGENTS.md context through `agent_definition.agents_md` and preserve accepted client tools when query agent definitions are partial.
 - extensions: make the package layout explicit with plugin code under `plugin/index.cjs`, MCP server specs under `mcp/servers.json`, and skills under `skills/**/SKILL.md`.
 - extensions/mcp: add a local MCP runtime that discovers stdio MCP tools, projects them into the client tool manifest, and executes MCP tool calls before sidecar fallback.

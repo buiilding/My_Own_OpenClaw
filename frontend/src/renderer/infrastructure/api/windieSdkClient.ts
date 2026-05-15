@@ -999,6 +999,7 @@ export type WindieClientOptions = {
   defaultUserId?: string;
   localRuntime?: WindieLocalRuntimeClient;
   sidecar?: WindieLocalRuntimeClient;
+  sidecarDaemon?: SidecarDaemonClientOptions;
 };
 
 export function moduleTool(tool: WindieToolDefinition & { module: string }): WindieToolDefinition {
@@ -1072,7 +1073,7 @@ export class WindieClient {
 
   async wakeUp(options: WindieWakeUpOptions): Promise<WindieAgent> {
     const backendUrl = options.backendUrl ?? this.defaultOptions.backendUrl ?? this.defaultOptions.httpBaseUrl ?? 'https://api.windieos.com';
-    const localRuntime = this.defaultOptions.sidecar ?? this.defaultOptions.localRuntime;
+    const localRuntime = this.resolveLocalRuntime();
     const sdkClient = new WindieSdkClient({
       httpBaseUrl: backendUrl,
       fetchImpl: this.defaultOptions.fetchImpl,
@@ -1108,18 +1109,32 @@ export class WindieClient {
   }
 
   async listTools(): Promise<{ version?: number; tools?: JsonRecord[] } | null> {
-    const localRuntime = this.defaultOptions.sidecar ?? this.defaultOptions.localRuntime;
+    const localRuntime = this.resolveLocalRuntime();
     return localRuntime?.listTools ? localRuntime.listTools() : null;
   }
 
   async status(): Promise<JsonRecord | null> {
-    const localRuntime = this.defaultOptions.sidecar ?? this.defaultOptions.localRuntime;
+    const localRuntime = this.resolveLocalRuntime();
     return localRuntime?.status ? localRuntime.status() : null;
   }
 
   async shutdownLocalRuntime(): Promise<void> {
-    const localRuntime = this.defaultOptions.sidecar ?? this.defaultOptions.localRuntime;
+    const localRuntime = this.resolveLocalRuntime();
     await localRuntime?.shutdown?.();
+  }
+
+  private resolveLocalRuntime(): WindieLocalRuntimeClient | undefined {
+    const explicitRuntime = this.defaultOptions.sidecar ?? this.defaultOptions.localRuntime;
+    if (explicitRuntime) {
+      return explicitRuntime;
+    }
+    if (this.defaultOptions.sidecarDaemon) {
+      return new SidecarDaemonHttpClient({
+        ...this.defaultOptions.sidecarDaemon,
+        fetchImpl: this.defaultOptions.sidecarDaemon.fetchImpl ?? this.defaultOptions.fetchImpl,
+      });
+    }
+    return undefined;
   }
 
   private async prepareLocalRuntime(

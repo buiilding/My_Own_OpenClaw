@@ -39,7 +39,12 @@ Local runtime facts must not unlock backend capabilities. In particular, coordin
 ## Public API
 
 ```ts
-const client = new WindieClient();
+const client = new WindieClient({
+  sidecarDaemon: {
+    baseUrl: "http://127.0.0.1:43123",
+    token: "per-process-token"
+  }
+});
 
 const agent = await client.wakeUp({
   backendUrl: "https://api.windieos.com",
@@ -110,6 +115,22 @@ The SDK builds:
 ```
 
 `runtime.operating_system` is detected by the SDK runtime. It is not a public wake-up parameter.
+
+## Local Runtime Options
+
+Electron uses `sidecar_daemon_manager.cjs` to start or reuse the daemon and then
+passes the daemon client into the SDK runtime. Non-Electron SDK hosts can provide
+either:
+
+- `sidecar`: a custom `WindieLocalRuntimeClient` implementation.
+- `localRuntime`: an alias for the same custom runtime interface.
+- `sidecarDaemon`: daemon `baseUrl` and per-process `token`; `WindieClient`
+  creates a `SidecarDaemonHttpClient` and uses `/status`, registration endpoints,
+  `/tools`, and `/execute-tool`.
+
+The SDK does not accept raw JavaScript/Python closures as durable tools.
+Module tools must be registered by import path, plugin tools by package path, and
+MCP tools by server spec.
 
 ## Event And Tool Routing
 

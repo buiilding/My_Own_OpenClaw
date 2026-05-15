@@ -70,7 +70,7 @@ Primary files:
 
 Capabilities:
 
-- Maintains backend websocket session and handshake to `/ws`.
+- Adapts renderer/backend-bound work to the SDK runtime, which owns the backend websocket session and handshake to `/ws`.
 - Relays backend stream envelopes to renderer windows (`from-backend`).
 - Enforces first-query settings-sync ACK/timeout policy through `ipc_settings_sync` helpers.
 - Builds query payload with memory/system context sections.

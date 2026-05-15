@@ -1,7 +1,7 @@
 ---
-summary: "Electron main query relay reference: renderer to-backend handling, initial settings ACK gating, system/memory context payload assembly, and local-user-message/failure event synthesis."
+summary: "Electron main query relay reference: renderer to-backend handling, SDK runtime sends, initial settings ACK gating, system/memory context payload assembly, and local-user-message/failure event synthesis."
 read_when:
-  - When changing query transport from renderer to backend websocket, including helper payload shaping in `ipc_query_runtime.cjs`.
+  - When changing query transport from renderer to the SDK runtime/backend websocket, including helper payload shaping in `ipc_query_runtime.cjs`.
   - When debugging first-query context assembly, settings-sync gate timing, or local-user-message/error event behavior.
 title: "Query Payload and Relay Reference"
 ---
@@ -11,6 +11,7 @@ title: "Query Payload and Relay Reference"
 ## Canonical Modules
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/windie_sdk_runtime.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
@@ -35,9 +36,10 @@ Common input normalization:
 - shallow-copies object payload only
 - drops malformed events early
 
-Endpoint context for relay calls:
+Endpoint context for SDK runtime calls:
 
 - websocket send target and origin come from `resolveBackendEndpoints(...)` state in `ipc.cjs`
+- socket construction and envelope sends are delegated to `windie_sdk_runtime.cjs`
 - `initializeIpc(..., { isPackaged })` refreshes endpoint resolution at startup to select dev or packaged fallback policy
 - `get-client-user-id` snapshot includes resolved `backendWsUrl` and `backendHttpUrl` values for renderer diagnostics
 
@@ -67,9 +69,9 @@ Goal:
 
 - prevent first query from using stale backend session settings.
 
-## Query-Specific Relay Pipeline
+## Query-Specific SDK Runtime Pipeline
 
-When `type === 'query'`, main performs extra steps before websocket send.
+When `type === 'query'`, main performs extra steps before sending through the SDK runtime.
 
 ### 1) Overlay pre-capture hook
 
@@ -118,9 +120,9 @@ Output from `buildQueryPayload(...)`:
 - optional `system_state_internal` (runtime-only state for backend normalization)
 - resolved `userId` used by automated query return path
 
-### 5) Backend send + failure fallback
+### 5) SDK runtime send + failure fallback
 
-- sends websocket message with stable message id
+- sends the backend websocket message through the SDK runtime with stable message id
 - on send failure, emits synthetic renderer error event via `buildQuerySendFailure(...)`
 - on send failure, clears replay buffer so stale optimistic events are not replayed after reconnect
 
@@ -221,7 +223,7 @@ If query content misses memory/system context:
 If renderer shows user message but backend never streams:
 
 1. confirm local synthetic `local-user-message` occurred (optimistic path)
-2. verify websocket send returned message id
+2. verify SDK runtime send returned message id
 3. inspect synthetic `buildQuerySendFailure` error event path for failed send
 
 For module ownership details of query/local synthetic event broadcasters and renderer-window fan-out, see [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md).

@@ -1,8 +1,8 @@
 ---
-summary: "Electron main process runtime: window orchestration, backend websocket bridge, sidecar process bridge, and IPC contracts."
+summary: "Electron main process runtime: window orchestration, SDK runtime bridge, sidecar process bridge, and IPC contracts."
 read_when:
   - When changing renderer/main IPC channels or backend bridge logic.
-  - When debugging window overlays, wakeword bridge, or backend connectivity.
+  - When debugging window overlays, wakeword bridge, SDK runtime connectivity, or backend connectivity.
 title: "Electron Main and IPC"
 ---
 
@@ -47,11 +47,12 @@ Responsibilities:
 - Enforces channel allowlists at the renderer boundary.
 - Prevents arbitrary channel usage from renderer code.
 
-## IPC Bridge to Backend WebSocket
+## IPC Bridge to SDK Runtime
 
 Main modules:
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/windie_sdk_runtime.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
@@ -60,7 +61,8 @@ Main modules:
 
 Responsibilities:
 
-- Maintains backend websocket connection and reconnect logic.
+- Adapts renderer IPC to the SDK main runtime.
+- Delegates backend websocket construction, envelope sends, close, and reconnect primitives to `windie_sdk_runtime.cjs`.
 - Tracks backend session context (`userId`, `sessionId`, `conversation_ref`).
 - Gates first query on settings synchronization ACK.
 - Broadcasts connection status to all renderer windows.
@@ -68,7 +70,8 @@ Responsibilities:
 
 Split boundary:
 
-- `ipc.cjs` owns lifecycle orchestration and IPC handler registration.
+- `windie_sdk_runtime.cjs` owns the hosted backend websocket primitive for Electron.
+- `ipc.cjs` owns renderer-facing lifecycle orchestration and IPC handler registration.
 - `ipc_settings_sync.cjs` owns settings ACK wait/resolve/timeout primitives for first-query gating.
 - helper modules own event processing, renderer-window fan-out, and synthetic query event broadcast paths.
 - See [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md) for per-module contract details.

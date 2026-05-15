@@ -271,7 +271,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 ## Frontend Code Layout
 
-- `frontend/src/main`: Electron main process, backend/ws bridge, wakeword bridge, query payload enrichment
+- `frontend/src/main`: Electron main process, SDK runtime adapter, wakeword bridge, query payload enrichment
 - `frontend/src/preload.js`: sandbox-safe IPC exposure to renderer
 - `frontend/src/renderer`: React app, contexts, feature modules, infrastructure services
 - `frontend/src/main/python`: local backend sidecar, memory service, wakeword subprocess, tool implementations
@@ -281,8 +281,8 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 1. Renderer sends query via typed IPC bridge.
 2. Main process gates initial settings sync, enriches query with system context + memory search.
-3. Main process forwards query over backend WebSocket.
-4. Backend streams events back; main relays to renderer.
+3. Main process forwards query through the SDK runtime.
+4. Backend streams events back through the SDK runtime; main relays display events to renderer.
 5. Renderer stream hook updates chat state and transcript.
-6. Tool events trigger `ToolExecutionService`, which executes tools via local sidecar bridge.
-7. Tool results (single or bundle) are posted back to backend for next loop iteration.
+6. SDK runtime routes tool events to the sidecar daemon and posts tool results back to backend.
+7. Renderer receives SDK-owned tool events as display-only chat/transcript events.
