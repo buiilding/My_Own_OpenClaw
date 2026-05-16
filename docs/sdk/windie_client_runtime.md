@@ -136,6 +136,9 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
   not yet been written through the canonical adapter
 - compacted replay rows still use `transcript_replay`, but SDK loaders read them
   as replay snapshots before falling back to full event projection
+- desktop compaction replacement-history writes go through the conversation store
+  adapter's `replaceCompactedReplay(...)` path instead of stream handlers
+  directly mutating replay storage
 - desktop backend-session rehydrate uses the store adapter's SDK projection
   instead of shaping messages directly from visible transcript rows
 - desktop recent-chat and open-chat loading use store metadata/display

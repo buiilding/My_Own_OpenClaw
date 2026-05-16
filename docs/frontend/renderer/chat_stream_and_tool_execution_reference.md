@@ -156,6 +156,7 @@ Handler map (`BackendEventType` -> behavior):
 - `context-compaction-started`: sets thinking text to `Compacting conversation history...` while backend compaction runs
 - `context-compaction-completed`: replaces in-progress compaction thinking with a terminal `Conversation history compacted.` status and marks source as `context-compaction-completed`
   - in dev UI, also stores compaction debug payload including the full summary text plus the replacement-history preview (summary message + kept tail messages)
+  - when backend sends replacement history, persists the compacted replay through the SDK conversation store adapter instead of directly mutating replay rows from the stream handler
 - `context-compaction-completed` with `skipped_reason`: clears only an active compaction status/debug payload. It does not render a compacted-history panel, persist replay rows, or clear unrelated active thinking/tool state.
 - `context-compaction-failed`: replaces compaction thinking with terminal failure text (backend error string when available, otherwise `Conversation compaction failed.`) and marks source as `context-compaction-failed`
 - `tool-call`: append assistant tool-call row and transcript tool-call row

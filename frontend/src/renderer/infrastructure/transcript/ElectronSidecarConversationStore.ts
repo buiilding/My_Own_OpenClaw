@@ -7,6 +7,9 @@ import {
   TRANSCRIPT_REPLAY_RECORD_KIND,
 } from './conversationReplayState';
 import {
+  getConversationWorkspaceBinding,
+} from '../workspace/conversationWorkspaceBinding';
+import {
   listStoredConversations,
   loadStoredConversationEntries,
 } from './localConversationStore';
@@ -40,6 +43,7 @@ type ElectronSidecarConversationStoreDeps = {
   loadStoredConversationEntries?: typeof loadStoredConversationEntries;
   listStoredConversations?: typeof listStoredConversations;
   invoke?: typeof IpcBridge.invoke;
+  getConversationWorkspaceBinding?: typeof getConversationWorkspaceBinding;
 };
 
 function normalizeNonEmptyString(value: unknown): string | null {
@@ -197,6 +201,7 @@ export class ElectronSidecarConversationStore implements ConversationStore {
       loadStoredConversationEntries: deps.loadStoredConversationEntries ?? loadStoredConversationEntries,
       listStoredConversations: deps.listStoredConversations ?? listStoredConversations,
       invoke: deps.invoke ?? IpcBridge.invoke,
+      getConversationWorkspaceBinding: deps.getConversationWorkspaceBinding ?? getConversationWorkspaceBinding,
     };
   }
 
@@ -219,10 +224,13 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     if (!snapshot.complete || snapshot.entryCount !== snapshot.entries.length) {
       return;
     }
+    const workspaceBinding = this.deps.getConversationWorkspaceBinding(snapshot.conversationRef);
     await replaceConversationReplayState(
       {
         userId: this.userId,
         conversationRef: snapshot.conversationRef,
+        workspacePath: workspaceBinding.workspacePath || null,
+        workspaceName: workspaceBinding.workspaceName || null,
       },
       snapshot.entries.map((entry, index) => ({
         messageIndex: index + 1,

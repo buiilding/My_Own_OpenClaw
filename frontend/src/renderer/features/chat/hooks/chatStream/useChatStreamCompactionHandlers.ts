@@ -11,8 +11,8 @@ import {
   COMPACTION_FAILED_THINKING_STATUS,
 } from '../../utils/chatStream/chatStreamThinkingStatus';
 import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
-import { getConversationWorkspaceBinding } from '../../../../infrastructure/workspace/conversationWorkspaceBinding';
-import { replaceConversationReplayState } from '../../../../infrastructure/transcript/conversationReplayState';
+import { ElectronSidecarConversationStore } from '../../../../infrastructure/transcript/ElectronSidecarConversationStore';
+import type { CompactedReplaySnapshot } from '../../../../infrastructure/api/windieSdkClient';
 import { useTurnScopedBackendEventHandler } from './useTurnScopedBackendEventHandler';
 
 type ResolveTargetConversationRef = (event: BackendEvent) => string | null;
@@ -64,6 +64,53 @@ type RecordTrackingEvent = (
   conversationRef?: string | null,
 ) => void;
 
+type PersistCompactedReplaySnapshot = (
+  snapshot: CompactedReplaySnapshot,
+  userId: string,
+) => Promise<void>;
+
+function resolveReplacementHistoryEntries(
+  event: ContextCompactionCompletedEvent,
+): Record<string, unknown>[] {
+  return Array.isArray(event.payload?.replacement_history_entries)
+    ? event.payload.replacement_history_entries
+        .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry))
+    : [];
+}
+
+function buildCompactedReplaySnapshot(
+  event: ContextCompactionCompletedEvent,
+  conversationRef: string,
+  entries: Record<string, unknown>[],
+): CompactedReplaySnapshot {
+  const eventId = typeof event.id === 'string' && event.id.trim()
+    ? event.id.trim()
+    : null;
+  const turnRef = typeof event.turn_ref === 'string' && event.turn_ref.trim()
+    ? event.turn_ref.trim()
+    : null;
+  const stableSuffix = eventId ?? turnRef ?? `${Date.now()}`;
+  return {
+    generationId: `compaction-${conversationRef}-${stableSuffix}`,
+    conversationRef,
+    sourceRevisionId: `rev-compaction-${conversationRef}-${stableSuffix}`,
+    sourceTurnRef: turnRef,
+    createdAt: new Date().toISOString(),
+    entries,
+    entryCount: entries.length,
+    complete: true,
+    active: true,
+  };
+}
+
+async function persistCompactedReplaySnapshot(
+  snapshot: CompactedReplaySnapshot,
+  userId: string,
+): Promise<void> {
+  const store = new ElectronSidecarConversationStore({ userId });
+  await store.replaceCompactedReplay(snapshot);
+}
+
 export function useChatStreamCompactionHandlers({
   resolveTargetConversationRef,
   shouldIgnoreForStaleTurn,
@@ -72,6 +119,7 @@ export function useChatStreamCompactionHandlers({
   getThinkingSourceEventType,
   setCompactionDebugInfo,
   recordTrackingEvent,
+  persistCompactedReplay = persistCompactedReplaySnapshot,
 }: {
   resolveTargetConversationRef: ResolveTargetConversationRef;
   shouldIgnoreForStaleTurn: ShouldIgnoreForStaleTurn;
@@ -80,6 +128,7 @@ export function useChatStreamCompactionHandlers({
   getThinkingSourceEventType?: GetThinkingSourceEventType;
   setCompactionDebugInfo: SetCompactionDebugInfo;
   recordTrackingEvent: RecordTrackingEvent;
+  persistCompactedReplay?: PersistCompactedReplaySnapshot;
 }) {
   const handleContextCompactionStarted = useTurnScopedBackendEventHandler<ContextCompactionStartedEvent>({
     resolveTargetConversationRef,
@@ -139,24 +188,14 @@ export function useChatStreamCompactionHandlers({
           : [],
         skippedReason: skippedReason || null,
       }, conversationRef);
-      const replacementHistoryEntries = Array.isArray(event.payload?.replacement_history_entries)
-        ? event.payload.replacement_history_entries
-            .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry))
-        : [];
+      const replacementHistoryEntries = resolveReplacementHistoryEntries(event);
       if (!skippedReason && conversationRef && replacementHistoryEntries.length > 0) {
-        const workspaceBinding = getConversationWorkspaceBinding(conversationRef);
-        void replaceConversationReplayState(
-          {
-            conversationRef,
-            userId: event.user_id || 'default_user',
-            workspacePath: workspaceBinding.workspacePath || null,
-            workspaceName: workspaceBinding.workspaceName || null,
-          },
-          replacementHistoryEntries.map((rehydrateEntry, index) => ({
-            messageIndex: index + 1,
-            rehydrateEntry,
-          })),
-        ).catch((error) => {
+        const snapshot = buildCompactedReplaySnapshot(
+          event,
+          conversationRef,
+          replacementHistoryEntries,
+        );
+        void persistCompactedReplay(snapshot, event.user_id || 'default_user').catch((error) => {
           console.warn('[useChatStreamCompactionHandlers] Failed to persist compacted replay state:', error);
         });
       }

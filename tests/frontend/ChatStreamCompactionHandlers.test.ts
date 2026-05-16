@@ -6,24 +6,7 @@ import {
   COMPACTION_THINKING_STATUS,
 } from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamThinkingStatus';
 
-const mockReplaceConversationReplayState = jest.fn(() => Promise.resolve());
-
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/conversationReplayState', () => ({
-  replaceConversationReplayState: (...args: any[]) => mockReplaceConversationReplayState(...args),
-}));
-
-jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding', () => ({
-  getConversationWorkspaceBinding: jest.fn(() => ({
-    workspacePath: '/workspace',
-    workspaceName: 'WindieOS',
-  })),
-}));
-
 describe('useChatStreamCompactionHandlers', () => {
-  beforeEach(() => {
-    mockReplaceConversationReplayState.mockClear();
-  });
-
   test('updates thinking state for compaction lifecycle events', async () => {
     const resolveTargetConversationRef = jest.fn(() => 'conversation-1');
     const shouldIgnoreForStaleTurn = jest.fn(() => false);
@@ -32,6 +15,7 @@ describe('useChatStreamCompactionHandlers', () => {
     const getThinkingSourceEventType = jest.fn(() => 'context-compaction-started');
     const setCompactionDebugInfo = jest.fn();
     const recordTrackingEvent = jest.fn();
+    const persistCompactedReplay = jest.fn(() => Promise.resolve());
 
     const { result } = renderHook(() => useChatStreamCompactionHandlers({
       resolveTargetConversationRef,
@@ -41,6 +25,7 @@ describe('useChatStreamCompactionHandlers', () => {
       getThinkingSourceEventType,
       setCompactionDebugInfo,
       recordTrackingEvent,
+      persistCompactedReplay,
     }));
 
     await act(async () => {
@@ -50,6 +35,7 @@ describe('useChatStreamCompactionHandlers', () => {
       } as any);
       result.current.handleContextCompactionCompleted({
         type: 'context-compaction-completed',
+        id: 'compaction-event-1',
         turn_ref: 'turn-1',
         user_id: 'user-1',
         payload: {
@@ -116,22 +102,21 @@ describe('useChatStreamCompactionHandlers', () => {
     expect(setCompactionDebugInfo).toHaveBeenNthCalledWith(3, null, 'conversation-1');
     expect(setCompactionDebugInfo).toHaveBeenNthCalledWith(4, null, 'conversation-1');
     expect(recordTrackingEvent).toHaveBeenCalledTimes(4);
-    expect(mockReplaceConversationReplayState).toHaveBeenCalledTimes(1);
-    expect(mockReplaceConversationReplayState).toHaveBeenCalledWith(
+    expect(persistCompactedReplay).toHaveBeenCalledTimes(1);
+    expect(persistCompactedReplay).toHaveBeenCalledWith(
       expect.objectContaining({
+        generationId: 'compaction-conversation-1-compaction-event-1',
         conversationRef: 'conversation-1',
-        userId: 'user-1',
+        sourceRevisionId: 'rev-compaction-conversation-1-compaction-event-1',
+        sourceTurnRef: 'turn-1',
+        entries: [
+          expect.objectContaining({ message_type: 'context_compaction' }),
+          expect.objectContaining({ message_type: 'user_query' }),
+        ],
+        entryCount: 2,
+        complete: true,
       }),
-      [
-        expect.objectContaining({
-          messageIndex: 1,
-          rehydrateEntry: expect.objectContaining({ message_type: 'context_compaction' }),
-        }),
-        expect.objectContaining({
-          messageIndex: 2,
-          rehydrateEntry: expect.objectContaining({ message_type: 'user_query' }),
-        }),
-      ],
+      'user-1',
     );
   });
 
@@ -143,6 +128,7 @@ describe('useChatStreamCompactionHandlers', () => {
     const getThinkingSourceEventType = jest.fn(() => 'tool-call');
     const setCompactionDebugInfo = jest.fn();
     const recordTrackingEvent = jest.fn();
+    const persistCompactedReplay = jest.fn(() => Promise.resolve());
 
     const { result } = renderHook(() => useChatStreamCompactionHandlers({
       resolveTargetConversationRef,
@@ -152,6 +138,7 @@ describe('useChatStreamCompactionHandlers', () => {
       getThinkingSourceEventType,
       setCompactionDebugInfo,
       recordTrackingEvent,
+      persistCompactedReplay,
     }));
 
     await act(async () => {
@@ -172,7 +159,7 @@ describe('useChatStreamCompactionHandlers', () => {
       {},
       'conversation-1',
     );
-    expect(mockReplaceConversationReplayState).not.toHaveBeenCalled();
+    expect(persistCompactedReplay).not.toHaveBeenCalled();
   });
 
   test('ignores stale-turn events', () => {

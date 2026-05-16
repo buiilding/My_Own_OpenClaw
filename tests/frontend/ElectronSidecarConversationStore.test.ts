@@ -150,6 +150,55 @@ describe('ElectronSidecarConversationStore', () => {
     });
   });
 
+  test('persists compacted replay snapshots with workspace binding through replay storage', async () => {
+    const store = new ElectronSidecarConversationStore(
+      { userId: 'user-1' },
+      {
+        getConversationWorkspaceBinding: jest.fn(() => ({
+          workspacePath: '/workspace',
+          workspaceName: 'WindieOS',
+        })),
+      },
+    );
+
+    await store.replaceCompactedReplay({
+      generationId: 'gen-1',
+      conversationRef: 'conv-compact',
+      sourceRevisionId: 'rev-source',
+      sourceTurnRef: 'turn-compact',
+      createdAt: '2026-05-15T12:00:00.000Z',
+      entries: [
+        {
+          role: 'assistant',
+          content: 'compacted summary',
+          message_type: 'context_compaction',
+        },
+      ],
+      entryCount: 1,
+      complete: true,
+      active: true,
+    });
+
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-conversation', {
+      userId: 'user-1',
+      conversationId: 'conv-compact',
+      recordKind: 'transcript_replay',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'store-transcript', expect.objectContaining({
+      userId: 'user-1',
+      conversationRef: 'conv-compact',
+      recordKind: 'transcript_replay',
+      workspacePath: '/workspace',
+      workspaceName: 'WindieOS',
+      rehydrateEntry: expect.objectContaining({
+        content: 'compacted summary',
+        replay_generation_id: 'gen-1',
+        replay_source_revision_id: 'rev-source',
+        replay_source_turn_ref: 'turn-compact',
+      }),
+    }));
+  });
+
   test('rewrite deletes only canonical event rows before storing the new revision projection', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
     const preserved = createConversationEvent({
