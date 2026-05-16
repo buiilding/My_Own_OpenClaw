@@ -338,9 +338,7 @@ class WindieSdkAgentSession:
         self.agent_definition = agent_definition
         self.local_runtime = local_runtime
         agent_id = (
-            agent_definition.get("id")
-            if isinstance(agent_definition, dict)
-            else None
+            agent_definition.get("id") if isinstance(agent_definition, dict) else None
         )
         self.default_conversation_ref = (
             f"conv-{agent_id}"
@@ -706,9 +704,7 @@ class WindieSdkAgentSession:
                     "output": (
                         _normalize_tool_result_data(result.get("data"))
                         if success
-                        else {
-                            "error": result.get("error") or "Tool execution failed"
-                        }
+                        else {"error": result.get("error") or "Tool execution failed"}
                     ),
                 }
                 if tool_call_id:
