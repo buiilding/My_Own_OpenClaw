@@ -1,6 +1,5 @@
 import type { WindieModelSelection } from '../../infrastructure/api/windieSdkClient';
 import {
-  type BackendTransport,
   type JsonRecord,
   createConversationRuntime,
 } from '../../infrastructure/api/windieSdkClient';
@@ -13,7 +12,6 @@ import {
   type SendConversationRehydrateInput,
 } from './desktopBackendCommandRuntimeClient';
 import {
-  loadLocalConversationSnapshot,
   type LocalConversationSnapshot,
 } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import {
@@ -22,6 +20,8 @@ import {
   type TranscriptProjectionRewriteEntry,
 } from './desktopTranscriptProjectionRuntimeClient';
 import type { CompactedReplaySnapshot } from '../../infrastructure/api/windieSdkClient';
+import { createDesktopBackendTransport } from './desktopBackendTransport';
+import { DesktopConversationContinuityService } from './desktopConversationContinuityService';
 
 export type { RehydrateConversationEntry };
 
@@ -68,37 +68,6 @@ function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
 }
 
-function optionalStringArray(value: unknown): string[] | null {
-  if (!Array.isArray(value)) {
-    return null;
-  }
-  const normalized = value
-    .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
-    .map((entry) => entry.trim());
-  return normalized.length > 0 ? normalized : null;
-}
-
-function toRehydrateConversationEntry(message: JsonRecord): RehydrateConversationEntry | null {
-  const role = message.role;
-  if (role !== 'user' && role !== 'assistant' && role !== 'tool') {
-    return null;
-  }
-  const content = typeof message.content === 'string'
-    ? message.content
-    : JSON.stringify(message.content ?? '');
-  return {
-    ...message,
-    role,
-    content,
-  } as RehydrateConversationEntry;
-}
-
-function toRehydrateConversationEntries(messages: JsonRecord[]): RehydrateConversationEntry[] {
-  return messages
-    .map(toRehydrateConversationEntry)
-    .filter((message): message is RehydrateConversationEntry => Boolean(message));
-}
-
 function resolveReplacementHistoryEntries(event: JsonRecord): JsonRecord[] {
   const payload = event.payload;
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
@@ -131,66 +100,6 @@ function buildCompactedReplaySnapshotFromBackendEvent({
     entryCount: entries.length,
     complete: true,
     active: true,
-  };
-}
-
-function createDesktopBackendTransport(workspacePath: string | null = null): BackendTransport {
-  return {
-    connect: async () => undefined,
-    handshake: async () => undefined,
-    sendQuery: async (payload) => {
-      await DesktopBackendCommandRuntimeClient.sendQuery({
-        text: optionalString(payload.text) ?? '',
-        conversationRef: optionalString(payload.conversation_ref)
-          ?? optionalString(payload.conversationRef)
-          ?? '',
-        screenshotRef: optionalString(payload.screenshot_ref)
-          ?? optionalString(payload.screenshotRef),
-        screenshotUrl: optionalString(payload.screenshot_url)
-          ?? optionalString(payload.screenshotUrl),
-        screenshotRefs: optionalStringArray(payload.screenshot_refs)
-          ?? optionalStringArray(payload.screenshotRefs),
-        captureMeta: (payload.capture_meta ?? payload.captureMeta ?? null) as SendConversationQueryInput['captureMeta'],
-        attachmentContext: optionalString(payload.attachment_context)
-          ?? optionalString(payload.attachmentContext),
-        attachmentFilenames: optionalStringArray(payload.attachment_filenames)
-          ?? optionalStringArray(payload.attachmentFilenames),
-        screenshot: optionalString(payload.screenshot),
-        workspacePath: optionalString(payload.workspace_path)
-          ?? optionalString(payload.workspacePath)
-          ?? workspacePath,
-      });
-      return optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? '';
-    },
-    sendToolResult: async () => undefined,
-    sendToolBundleResult: async () => undefined,
-    rehydrateConversation: async (payload) => {
-      await DesktopBackendCommandRuntimeClient.rehydrateConversation({
-        conversationRef: optionalString(payload.conversation_ref)
-          ?? optionalString(payload.conversationRef)
-          ?? '',
-        messages: Array.isArray(payload.messages)
-          ? payload.messages as RehydrateConversationEntry[]
-          : [],
-        workspacePath: optionalString(payload.workspace_path)
-          ?? optionalString(payload.workspacePath)
-          ?? workspacePath,
-      });
-    },
-    compactHistory: async () => undefined,
-    wakewordDetected: async () => undefined,
-    updateSettings: async (payload) => {
-      DesktopSettingsRuntimeClient.updateSettings(payload);
-      return undefined;
-    },
-    listModels: async () => undefined,
-    stop: async (payload) => {
-      DesktopBackendCommandRuntimeClient.stop(
-        optionalString(payload.conversation_ref) ?? optionalString(payload.conversationRef),
-      );
-    },
-    subscribe: () => () => undefined,
-    close: async () => undefined,
   };
 }
 
@@ -262,7 +171,7 @@ export const DesktopConversationRuntimeClient = {
     snapshot: CompactedReplaySnapshot,
     userId: string,
   ): Promise<void> {
-    await DesktopTranscriptProjectionRuntimeClient.replaceCompactedReplay(snapshot, userId);
+    await DesktopConversationContinuityService.replaceCompactedReplay(snapshot, userId);
   },
 
   async replaceCompactedReplayFromBackendEvent(
@@ -272,33 +181,24 @@ export const DesktopConversationRuntimeClient = {
     if (!snapshot) {
       return;
     }
-    await DesktopTranscriptProjectionRuntimeClient.replaceCompactedReplay(
+    await DesktopConversationContinuityService.replaceCompactedReplay(
       snapshot,
       input.userId || 'default_user',
     );
   },
 
   async loadRehydrateSnapshot(input: LoadRehydrateSnapshotInput) {
-    return DesktopTranscriptProjectionRuntimeClient.loadRehydrateSnapshot(input);
+    return DesktopConversationContinuityService.loadRehydrateSnapshot(input);
   },
 
   async rehydrateFromStore(input: RehydrateFromStoreInput): Promise<void> {
-    const snapshot = await DesktopTranscriptProjectionRuntimeClient.loadRehydrateSnapshot(input);
-    const messages = toRehydrateConversationEntries(snapshot.messages);
-    if (messages.length === 0) {
-      return;
-    }
-    await DesktopBackendCommandRuntimeClient.rehydrateConversation({
-      conversationRef: input.conversationRef,
-      messages,
-      workspacePath: input.workspacePath ?? null,
-    });
+    await DesktopConversationContinuityService.rehydrateFromStore(input);
   },
 
   async loadLocalConversationSnapshot(
-    input: Parameters<typeof loadLocalConversationSnapshot>[0],
+    input: Parameters<typeof DesktopConversationContinuityService.loadLocalConversationSnapshot>[0],
   ): Promise<LocalConversationSnapshot> {
-    return loadLocalConversationSnapshot(input);
+    return DesktopConversationContinuityService.loadLocalConversationSnapshot(input);
   },
 
   async editAndResend(input: RewriteAndResendInput): Promise<void> {

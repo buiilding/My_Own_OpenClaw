@@ -13,6 +13,8 @@ title: "Transcript Session and Rehydrate Reference"
 
 - `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`
+- `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts`
 - `frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore.ts`
@@ -184,7 +186,7 @@ not execute tools.
 1. list conversations from the SDK conversation library (`recordKind: "conversation_event"`)
 2. load selected conversation SDK events via `loadConversationTranscriptMemories(...)` (cursor-paginated `get-conversation`)
 3. project SDK display messages for the renderer
-4. ask the desktop conversation runtime to rehydrate the backend inference session (`DesktopConversationRuntimeClient.rehydrate(...)`)
+4. ask the desktop conversation runtime to rehydrate the backend inference session through `DesktopConversationRuntimeClient.rehydrateFromStore(...)`
    - rehydrate payload shaping is centralized in SDK projection helpers so dashboard-open rehydrate and edit/retry replay agree on `tool_name`, `tool_call_id`, screenshots, and structured tool payloads
 5. set active transcript conversation/session info
 6. replace renderer chat store with projected SDK display messages
@@ -193,8 +195,9 @@ Search modal uses the same open path after `search-conversations` results.
 
 ## SDK Store Boundary
 
-The desktop runtime uses `ElectronSidecarConversationStore` as the SDK-facing
-conversation-store adapter over sidecar memory IPC.
+The desktop runtime uses `ConversationContinuityService` as the SDK-owned
+continuity orchestrator and `ElectronSidecarConversationStore` as the
+SDK-facing conversation-store adapter over sidecar memory IPC.
 
 Record-kind split:
 
@@ -206,16 +209,18 @@ Record-kind split:
   `compaction_applied` conversation events.
 
 The adapter loads canonical `conversation_event` rows. Display and backend
-rehydrate snapshots come from the SDK projection path.
+rehydrate snapshots come from the SDK projection path, and backend resume is
+triggered by the SDK continuity service rather than by dashboard or chat
+feature code.
 
 `DesktopTranscriptProjectionRuntimeClient` routes new visible projection appends
 through this adapter. Direct `store-transcript` calls and replay append mutation
 are not renderer feature-code surfaces.
 
-`ensureConversationInferenceSessionHydrated(...)` now uses this adapter for the
-backend rehydrate payload. The local snapshot loader still supplies workspace
-binding/display metadata, but the backend continuation payload comes from the
-SDK store projection.
+`ensureConversationInferenceSessionHydrated(...)` now uses the continuity
+service for the backend rehydrate payload. The local snapshot loader still
+supplies workspace binding/display metadata, but the backend continuation
+payload comes from the SDK store projection.
 
 Dashboard startup and open-chat loading also use the SDK store adapter:
 

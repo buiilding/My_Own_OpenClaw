@@ -1,31 +1,25 @@
 import {
-  DesktopTranscriptProjectionRuntimeClient,
-} from './desktopTranscriptProjectionRuntimeClient';
-import {
-  loadLocalConversationSnapshot,
-} from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
-import {
-  searchStoredConversations,
-} from '../../infrastructure/transcript/localConversationStore';
+  DesktopConversationContinuityService,
+} from './desktopConversationContinuityService';
 
 export const DesktopConversationLibraryClient = {
   async listMetadata(userId, options) {
-    return DesktopTranscriptProjectionRuntimeClient.listMetadata(userId, options);
+    return DesktopConversationContinuityService.listMetadata(userId, options);
   },
 
   async loadForDisplay(userId, conversationRef) {
-    return DesktopTranscriptProjectionRuntimeClient.loadForDisplay(userId, conversationRef);
+    return DesktopConversationContinuityService.loadForDisplay(userId, conversationRef);
   },
 
   async deleteConversation(userId, conversationRef) {
-    await DesktopTranscriptProjectionRuntimeClient.deleteConversation(userId, conversationRef);
+    await DesktopConversationContinuityService.deleteConversation(userId, conversationRef);
   },
 
   async loadLocalConversationSnapshot(input) {
-    return loadLocalConversationSnapshot(input);
+    return DesktopConversationContinuityService.loadLocalConversationSnapshot(input);
   },
 
   async searchConversations(input) {
-    return searchStoredConversations(input);
+    return DesktopConversationContinuityService.searchConversations(input);
   },
 };

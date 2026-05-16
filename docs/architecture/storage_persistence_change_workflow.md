@@ -29,7 +29,7 @@ Do not promote ephemeral state to durable storage unless the product needs it ac
 
 | Storage surface | Primary owner | Code roots | Tests to inspect or add | Start docs |
 | --- | --- | --- | --- | --- |
-| Visible transcript rows and retry queues | SDK transcript projection runtime | `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`, `frontend/src/renderer/infrastructure/transcript/**` | `tests/frontend/DesktopTranscriptProjectionRuntimeClient.test.ts`, `TranscriptPending*.test.ts`, `TranscriptStorage*.test.ts` | [Transcript and Replay](../memory/transcript_and_replay.md) |
+| Visible transcript rows, retry queues, and conversation continuity orchestration | SDK transcript projection/runtime | `packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts`, `frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts`, `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`, `frontend/src/renderer/infrastructure/transcript/**` | `tests/frontend/ConversationContinuityService.test.ts`, `tests/frontend/DesktopConversationRuntimeClient.test.ts`, `tests/frontend/DesktopTranscriptProjectionRuntimeClient.test.ts`, `TranscriptPending*.test.ts`, `TranscriptStorage*.test.ts` | [Transcript and Replay](../memory/transcript_and_replay.md) |
 | Transcript session identity cache | Renderer transcript session runtime plus Electron sync | `sessionInfoStorage.ts`, `transcriptSessionRuntime.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | `tests/frontend/TranscriptSessionState.test.ts`, `IpcTranscriptSessionSync.test.cjs` | [Session and Transcript Reference](../reference/session_and_transcript_reference.md) |
 | Frontend user settings | Renderer config storage and Electron config file | `frontend/src/renderer/utils/configStorage.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `frontend/src/main/ipc.cjs` | `tests/frontend/configStorage.test.js`, `AppConfigPersistence.test.js`, `AppConfigProvider.storageAndIpc.test.tsx` | [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md) |
 | Install auth state file | Electron main | `frontend/src/main/ipc/ipc_install_auth_state.cjs`, `frontend/src/main/ipc.cjs` | install-auth/frontend IPC tests | [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) |
@@ -67,6 +67,8 @@ Read:
 
 Edit:
 
+- `ConversationContinuityService.ts` for SDK-owned display/rehydrate/delete orchestration over a `ConversationStore`.
+- `desktopConversationContinuityService.ts` for Electron's sidecar-backed continuity service instance.
 - `desktopTranscriptProjectionRuntimeClient.ts` for SDK projection write API behavior.
 - `ElectronSidecarConversationStore.ts` for sidecar-backed conversation event storage.
 - `transcriptEntryPersistence.ts` and `transcriptRecordWrite.ts` for persisted row shape and IPC payloads.

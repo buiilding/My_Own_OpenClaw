@@ -7,6 +7,7 @@ export * from './stores/FileConversationStore.js';
 export * from './projections/conversationProjections.js';
 export * from './runtime/conversationReducer.js';
 export * from './runtime/ConversationRuntime.js';
+export * from './runtime/ConversationContinuityService.js';
 export * from './runtime/AgentStreamEvents.js';
 export * from './runtime/WindieAgent.js';
 export * from './runtime/WindieClient.js';

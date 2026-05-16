@@ -98,17 +98,46 @@ Desktop chat code should call public conversation commands through the desktop
 runtime facade and render SDK projections, not depend on the adapter as its
 normal feature-code surface.
 
-Desktop stored-conversation rehydrate is also facade-owned. Feature/session
-helpers ask `DesktopConversationRuntimeClient.rehydrateFromStore(...)` to load
-the SDK rehydrate projection from the configured store and send the backend
-rehydrate command. They should not fetch projection rows and shape provider
-history themselves.
+Desktop stored-conversation rehydrate is also SDK-continuity-owned.
+Feature/session helpers ask `DesktopConversationRuntimeClient.rehydrateFromStore(...)`,
+which delegates to `ConversationContinuityService`, to load the SDK rehydrate
+projection from the configured store and send the backend rehydrate command.
+They should not fetch projection rows and shape provider history themselves.
 
 Desktop compaction replay persistence follows the same rule. Chat stream
 handlers may render visible lifecycle/debug state, but
 `DesktopConversationRuntimeClient.replaceCompactedReplayFromBackendEvent(...)`
 owns conversion from backend compaction events to complete active replay
 snapshots before delegating to the store adapter.
+
+## Continuity Service Rule
+
+`ConversationContinuityService` is the SDK-owned orchestration layer for chat
+continuity over any `ConversationStore`. It owns the common flow:
+
+```text
+store.loadForDisplay(conversationRef)
+  -> SDK display projection
+
+store.loadForRehydrate(conversationRef)
+  -> provider-safe backend rehydrate payload
+  -> backendTransport.rehydrateConversation(...)
+```
+
+Electron may provide a sidecar-backed store adapter and backend transport, but
+it should not duplicate projection, provider-history filtering, compacted
+replay, or delete orchestration in feature code. Desktop facades can expose
+commands such as `loadForDisplay`, `rehydrateFromStore`, and
+`deleteConversation`, but those commands should delegate to the SDK continuity
+service.
+
+Responsibility split:
+
+- SDK owns conversation semantics, display projection, rehydrate projection, and
+  continuity orchestration.
+- Electron owns local IPC, sidecar-backed persistence, and renderer wiring.
+- Sidecar owns durable rows, ordering, list/search/title/delete queries, and
+  SQLite/FAISS mechanics.
 
 ## Compaction Rule
 
@@ -235,4 +264,7 @@ away from separate renderer-only replay shaping.
 
 Desktop React should call runtime commands and render projections. It should not
 directly mutate transcript/replay state, interpret compaction lifecycle events,
-or route backend tool results after migration.
+or route backend tool results after migration. The desktop runtime should expose
+a small first-party service surface backed by `ConversationContinuityService`
+instead of letting dashboard hooks, chat hooks, and storage adapters each own a
+piece of resume semantics.

@@ -1,26 +1,29 @@
-const mockLoadRehydrateSnapshot = jest.fn();
 const mockLoadLocalConversationSnapshot = jest.fn();
-const mockRehydrateConversation = jest.fn();
+const mockLoadRehydrateSnapshot = jest.fn();
+const mockRehydrateFromStore = jest.fn();
 const mockReplaceCompactedReplay = jest.fn();
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient', () => ({
   DesktopTranscriptProjectionRuntimeClient: {
-    loadRehydrateSnapshot: (...args: unknown[]) => mockLoadRehydrateSnapshot(...args),
     createSeededConversationStore: jest.fn(),
     recordUserMessage: jest.fn(),
     recordAssistantMessage: jest.fn(),
     recordToolMessage: jest.fn(),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
+  DesktopConversationContinuityService: {
+    loadLocalConversationSnapshot: (...args: unknown[]) => mockLoadLocalConversationSnapshot(...args),
+    loadRehydrateSnapshot: (...args: unknown[]) => mockLoadRehydrateSnapshot(...args),
+    rehydrateFromStore: (...args: unknown[]) => mockRehydrateFromStore(...args),
     replaceCompactedReplay: (...args: unknown[]) => mockReplaceCompactedReplay(...args),
   },
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/conversationLocalSnapshotLoader', () => ({
-  loadLocalConversationSnapshot: (...args: unknown[]) => mockLoadLocalConversationSnapshot(...args),
-}));
-
 jest.mock('../../frontend/src/renderer/app/runtime/desktopBackendCommandRuntimeClient', () => ({
   DesktopBackendCommandRuntimeClient: {
-    rehydrateConversation: (...args: unknown[]) => mockRehydrateConversation(...args),
+    rehydrateConversation: jest.fn(),
     sendQuery: jest.fn(),
     stop: jest.fn(),
     compactHistory: jest.fn(),
@@ -50,7 +53,7 @@ describe('DesktopConversationRuntimeClient', () => {
     jest.resetModules();
     mockLoadRehydrateSnapshot.mockReset();
     mockLoadLocalConversationSnapshot.mockReset();
-    mockRehydrateConversation.mockReset();
+    mockRehydrateFromStore.mockReset();
     mockReplaceCompactedReplay.mockReset();
   });
 
@@ -79,15 +82,12 @@ describe('DesktopConversationRuntimeClient', () => {
     });
   });
 
-  test('rehydrateFromStore loads the SDK projection and sends backend rehydrate behind the facade', async () => {
-    mockLoadRehydrateSnapshot.mockResolvedValueOnce({
+  test('rehydrateFromStore delegates backend continuity to the SDK service facade', async () => {
+    mockRehydrateFromStore.mockResolvedValueOnce({
       conversationRef: 'conv-sdk',
       revisionId: 'rev-1',
-      messages: [
-        { role: 'user', content: 'hello' },
-        { role: 'assistant', content: { text: 'structured answer' } },
-        { role: 'system', content: 'debug-only' },
-      ],
+      messageCount: 2,
+      hydrated: true,
     });
     const { DesktopConversationRuntimeClient } = require(
       '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
@@ -97,41 +97,36 @@ describe('DesktopConversationRuntimeClient', () => {
       conversationRef: 'conv-sdk',
       userId: 'user-1',
       workspacePath: '/tmp/project',
+    });
+
+    expect(mockRehydrateFromStore).toHaveBeenCalledWith({
+      conversationRef: 'conv-sdk',
+      userId: 'user-1',
+      workspacePath: '/tmp/project',
+    });
+  });
+
+  test('loadRehydrateSnapshot delegates snapshot loading to the SDK continuity service', async () => {
+    mockLoadRehydrateSnapshot.mockResolvedValueOnce({
+      conversationRef: 'conv-sdk',
+      revisionId: 'rev-1',
+      messages: [],
+    });
+    const { DesktopConversationRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
+    );
+
+    await expect(DesktopConversationRuntimeClient.loadRehydrateSnapshot({
+      conversationRef: 'conv-sdk',
+      userId: 'user-1',
+    })).resolves.toMatchObject({
+      conversationRef: 'conv-sdk',
     });
 
     expect(mockLoadRehydrateSnapshot).toHaveBeenCalledWith({
       conversationRef: 'conv-sdk',
       userId: 'user-1',
-      workspacePath: '/tmp/project',
     });
-    expect(mockRehydrateConversation).toHaveBeenCalledWith({
-      conversationRef: 'conv-sdk',
-      workspacePath: '/tmp/project',
-      messages: [
-        { role: 'user', content: 'hello' },
-        { role: 'assistant', content: '{"text":"structured answer"}' },
-      ],
-    });
-  });
-
-  test('rehydrateFromStore skips backend rehydrate when the SDK projection has no provider messages', async () => {
-    mockLoadRehydrateSnapshot.mockResolvedValueOnce({
-      conversationRef: 'conv-empty',
-      revisionId: 'rev-1',
-      messages: [
-        { role: 'system', content: 'debug-only' },
-      ],
-    });
-    const { DesktopConversationRuntimeClient } = require(
-      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
-    );
-
-    await DesktopConversationRuntimeClient.rehydrateFromStore({
-      conversationRef: 'conv-empty',
-      userId: 'user-1',
-    });
-
-    expect(mockRehydrateConversation).not.toHaveBeenCalled();
   });
 
   test('replaceCompactedReplayFromBackendEvent builds replay snapshots behind the desktop facade', async () => {
