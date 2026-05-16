@@ -289,6 +289,28 @@ describe('ElectronSidecarConversationStore', () => {
     }));
   });
 
+  test('deletes visible transcript replay and canonical event rows for a conversation', async () => {
+    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+
+    await store.deleteConversation('conv-delete');
+
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-conversation', {
+      userId: 'user-1',
+      conversationId: 'conv-delete',
+      recordKind: 'transcript',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'delete-conversation', {
+      userId: 'user-1',
+      conversationId: 'conv-delete',
+      recordKind: 'transcript_replay',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(3, 'delete-conversation', {
+      userId: 'user-1',
+      conversationId: 'conv-delete',
+      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
+    });
+  });
+
   test('rewrites visible transcript projection through the store boundary', async () => {
     const store = new ElectronSidecarConversationStore(
       { userId: 'user-1' },

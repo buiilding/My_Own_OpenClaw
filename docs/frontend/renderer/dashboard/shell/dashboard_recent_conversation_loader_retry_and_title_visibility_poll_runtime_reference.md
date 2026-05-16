@@ -103,7 +103,9 @@ Failure is reported via `recentConversationsError`.
 `handleDeleteConversation(conversation)`:
 
 - confirms with blocking prompt
-- invokes `delete-conversation`
+- delegates to `ElectronSidecarConversationStore.deleteConversation(...)`, which
+  deletes visible transcript rows, compacted replay rows, and canonical
+  `conversation_event` rows for the chat
 - removes row from recent/searched lists and pin set
 - when deleting currently active session conversation:
   - clears active conversation refs

@@ -8,7 +8,6 @@ import { buildChatMessagesFromDisplayConversation } from '../../../infrastructur
 import {
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
-import { deleteConversationStoredState } from '../../../infrastructure/transcript/conversationReplayState';
 import { setActiveWorkspaceSelection } from '../../../infrastructure/workspace/workspaceAccess';
 import {
   clearConversationWorkspaceBinding,
@@ -265,10 +264,8 @@ function useDashboardConversations({
     }
 
     try {
-      await deleteConversationStoredState({
-        userId: resolvedUserId,
-        conversationRef,
-      });
+      const store = createConversationStore(resolvedUserId);
+      await store.deleteConversation(conversationRef);
 
       setRecentConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
       setSearchedConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
@@ -291,6 +288,7 @@ function useDashboardConversations({
     }
   }, [
     clearChatMessages,
+    createConversationStore,
     resolvedUserId,
     sessionConversationRef,
     setChatActiveConversationRef,

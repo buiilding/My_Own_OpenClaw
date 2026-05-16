@@ -242,6 +242,14 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     await this.appendEvents(plan.preservedEvents);
   }
 
+  async deleteConversation(conversationRef: string): Promise<void> {
+    await deleteConversationStoredState({
+      userId: this.userId,
+      conversationRef,
+    });
+    await this.deleteRecordKind(conversationRef, SDK_CONVERSATION_EVENT_RECORD_KIND);
+  }
+
   async appendTranscriptProjectionEntry(entry: TranscriptProjectionAppendEntry): Promise<void> {
     const workspaceBinding = this.deps.getConversationWorkspaceBinding(entry.conversationRef);
     const result = await this.deps.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {

@@ -610,6 +610,13 @@ describe('ChatGptDashboardShell', () => {
       ))) {
         throw new Error('expected replay rows to be deleted for conv-delete-1');
       }
+      if (!mockInvoke.mock.calls.some(([channel, payload]) => (
+        channel === 'delete-conversation'
+        && payload?.conversationId === 'conv-delete-1'
+        && payload?.recordKind === 'conversation_event'
+      ))) {
+        throw new Error('expected SDK event rows to be deleted for conv-delete-1');
+      }
       if (!mockClearConversationWorkspaceBinding.mock.calls.some(([conversationRef]) => (
         conversationRef === 'conv-delete-1'
       ))) {

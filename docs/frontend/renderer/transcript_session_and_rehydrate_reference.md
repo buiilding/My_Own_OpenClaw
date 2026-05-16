@@ -228,6 +228,9 @@ Dashboard startup and open-chat loading also use the SDK store adapter:
 
 - recent chats are listed through store metadata from `conversation_event` rows
   merged with legacy `transcript` rows
+- dashboard chat deletion goes through the store adapter so visible transcript
+  rows, compacted replay rows, and canonical `conversation_event` rows are
+  removed together
 - opening a chat renders `DisplayConversation` through
   `sdkDisplayChatMessageProjection.ts`
 - the local snapshot loader remains only for workspace binding and legacy
