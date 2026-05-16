@@ -76,6 +76,21 @@ Protocol output notes:
 - JSON-RPC responses are emitted as one JSON line per message.
 - `core/stdout_json.py::write_json_line()` is the shared writer used by both JSON-RPC (`local_backend.py`/`core/ipc_protocol.py`) and line-based memory service responses (`memory_service.py`) to keep UTF-8 encoding and flush behavior consistent.
 
+## Sidecar Daemon HTTP Runtime
+
+The SDK-owned local runtime can also talk to `sidecar_daemon.py` over token-authenticated HTTP/WebSocket endpoints instead of raw JSON-RPC. This daemon is the sidecar boundary used by `WindieClient.wakeUp(...)` for local tools, plugins, MCP servers, and SDK examples:
+
+- `GET /status`: local runtime diagnostics, daemon metadata, registered tool names, and the executable sidecar tool manifest.
+- `GET /tools`: executable sidecar tool manifest for built-in and dynamic module/plugin/MCP tools.
+- `POST /tools/register-module`: register a Python module-path tool without restarting the daemon.
+- `POST /tools/register-plugin`: load tools from a local plugin package.
+- `POST /tools/register-mcp`: expose MCP server tools as sidecar runtime tools.
+- `POST /execute-tool`: execute a local tool and return the normalized `{ success, data?, error? }` envelope.
+- `GET /events`: lightweight event/control websocket for `ping`, `status`, and `tools/list`.
+- `POST /shutdown`: signal SDK-owned daemon shutdown.
+
+The daemon does not own LLM inference, prompt policy, provider history, or conversation replay semantics. It only exposes local authority and execution services to the SDK runtime.
+
 ## Tools
 
 The sidecar maintains a `ToolRegistry` (`frontend/src/main/python/tools/registry.py`) with tools for:
@@ -143,6 +158,7 @@ Wakeword detection runs as a separate Python subprocess:
 - Sidecar unit tests live in `tests/sidecar/`.
 - Core coverage:
   - `tests/sidecar/test_local_backend.py` (JSON-RPC handlers, tool execution, memory wiring)
+  - `tests/sidecar/test_sidecar_daemon.py` (daemon HTTP status, tool manifest, execution, dynamic module/plugin/MCP registration, event-control channel, shutdown)
   - `tests/sidecar/test_memory_service.py` (search/store validation, error handling)
   - `tests/sidecar/test_bootstrap_paths.py` (source-run bootstrap for client-local sidecar imports)
   - `tests/sidecar/test_stdout_json.py` (shared JSON-line stdout writer behavior)

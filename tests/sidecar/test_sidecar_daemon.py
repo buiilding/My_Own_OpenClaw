@@ -58,6 +58,77 @@ async def test_sidecar_daemon_rejects_missing_or_invalid_token():
 
 
 @pytest.mark.asyncio
+async def test_sidecar_daemon_status_endpoint_reports_runtime_boundary():
+    daemon = SidecarDaemon(token="test-token")
+    daemon.mcp_clients["notes"] = FakeMcpClient()
+
+    response = await daemon.handle_status(FakeRequest())
+    payload = json.loads(response.text)
+
+    assert response.status == 200
+    assert payload["daemon"]["status"] == "ok"
+    assert payload["daemon"]["pid"] > 0
+    assert payload["daemon"]["mcp_servers"] == ["notes"]
+    assert "read_file" in payload["registered_tools"]
+    assert payload["tool_manifest"]["version"] == 1
+    assert any(
+        tool["name"] == "read_file" for tool in payload["tool_manifest"]["tools"]
+    )
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_tools_endpoint_lists_builtin_and_dynamic_tools():
+    daemon = SidecarDaemon(token="test-token")
+
+    async def save_note(args):
+        return {"success": True, "data": {"llm_content": args["text"]}}
+
+    daemon.backend.tool_registry.register_runtime_tool(
+        name="sdk_note",
+        handler=save_note,
+        schema={
+            "type": "object",
+            "properties": {"text": {"type": "string"}},
+            "required": ["text"],
+            "additionalProperties": False,
+        },
+        description="Save an SDK note.",
+        source={"kind": "sdk-test"},
+    )
+
+    response = await daemon.handle_tools(FakeRequest())
+    payload = json.loads(response.text)
+    tools_by_name = {tool["name"]: tool for tool in payload["tools"]}
+
+    assert response.status == 200
+    assert payload["version"] == 1
+    assert "read_file" in tools_by_name
+    assert tools_by_name["sdk_note"]["description"] == "Save an SDK note."
+    assert tools_by_name["sdk_note"]["source"] == {"kind": "sdk-test"}
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_execute_tool_endpoint_normalizes_missing_tool_errors():
+    daemon = SidecarDaemon(token="test-token")
+    ws = FakeEventSocket()
+    daemon.events.add(ws)
+
+    response = await daemon.handle_execute_tool(
+        FakeRequest({"tool_name": "missing_tool", "args": {"value": "hello"}})
+    )
+    payload = json.loads(response.text)
+
+    assert response.status == 200
+    assert payload == {"success": False, "error": "Tool not found: missing_tool"}
+    assert ws.sent == [
+        {
+            "type": "tool-executed",
+            "payload": {"tool_name": "missing_tool", "success": False},
+        }
+    ]
+
+
+@pytest.mark.asyncio
 async def test_sidecar_daemon_registers_module_tool_without_restart(
     tmp_path: Path,
     monkeypatch,
