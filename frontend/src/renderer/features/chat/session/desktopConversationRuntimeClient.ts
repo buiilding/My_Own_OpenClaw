@@ -2,7 +2,11 @@ import { ApiClient } from '../../../infrastructure/api/client';
 import type { RehydrateConversationEntry } from '../../../infrastructure/api/client';
 import type { CaptureMeta } from '../../../infrastructure/services/ScreenshotAttachmentPipeline';
 import type { WindieModelSelection } from '../../../infrastructure/api/windieSdkClient';
-import { recordUserMessage } from '../../../infrastructure/transcript/TranscriptWriter';
+import {
+  recordAssistantMessage,
+  recordToolMessage,
+  recordUserMessage,
+} from '../../../infrastructure/transcript/TranscriptWriter';
 
 export type { RehydrateConversationEntry };
 
@@ -40,6 +44,20 @@ type SendConversationRehydrateInput = {
 export const DesktopConversationRuntimeClient = {
   setModel(selection: WindieModelSelection): void {
     ApiClient.setModel(selection);
+  },
+
+  recordAssistantMessage(
+    text: string,
+    options: Parameters<typeof recordAssistantMessage>[1] = {},
+  ): void {
+    recordAssistantMessage(text, options);
+  },
+
+  recordToolMessage(
+    text: string,
+    options: Parameters<typeof recordToolMessage>[1],
+  ): void {
+    recordToolMessage(text, options);
   },
 
   sendQuery(input: SendConversationQueryInput): Promise<void> {

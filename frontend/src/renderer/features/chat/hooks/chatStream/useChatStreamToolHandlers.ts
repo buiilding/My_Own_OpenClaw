@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { recordToolMessage } from '../../../../infrastructure/transcript/TranscriptWriter';
 import { type ChatMessage } from '../../stores/chatStore';
 import {
   type BackendEventType,
@@ -30,6 +29,7 @@ import {
   resolveToolOutputCorrelationId,
 } from '../../utils/chatStream/chatStreamEventUtils';
 import { recordToolOutputTranscriptMessage } from '../../utils/toolOutputTranscriptPersistence';
+import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
 
 type MinimalModelContext = {
   modelId: string | null;
@@ -73,7 +73,7 @@ export function useChatStreamToolHandlers({
       return;
     }
     const modelContext = modelContextRef.current;
-    recordToolMessage(text, {
+    DesktopConversationRuntimeClient.recordToolMessage(text, {
       messageType: 'tool-call',
       toolName,
       correlationId,
@@ -191,7 +191,7 @@ export function useChatStreamToolHandlers({
       conversationRef,
     );
     if (enableTranscript) {
-      recordToolMessage(toolBundleMessageState.text, {
+      DesktopConversationRuntimeClient.recordToolMessage(toolBundleMessageState.text, {
         messageType: 'tool-bundle',
         toolName: 'tool-bundle',
         correlationId: toolBundleMessageState.correlationId || undefined,

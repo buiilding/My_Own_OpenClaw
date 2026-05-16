@@ -49,4 +49,24 @@ describe('renderer chat runtime boundary', () => {
 
     expect(source).not.toContain('recordUserMessage');
   });
+
+  test('chat feature transcript persistence calls stay inside the runtime facade', async () => {
+    const persistenceCallerFiles = [
+      'hooks/chatStream/useChatStreamCompletionHandler.ts',
+      'hooks/chatStream/useChatStreamTerminalHandlers.ts',
+      'hooks/chatStream/useChatStreamToolHandlers.ts',
+      'utils/toolOutputTranscriptPersistence.ts',
+    ];
+    const offenders: string[] = [];
+
+    for (const relativePath of persistenceCallerFiles) {
+      const file = path.join(chatRoot, relativePath);
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('infrastructure/transcript/TranscriptWriter')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
 });

@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { useChatStore, type ChatMessage } from '../../stores/chatStore';
-import { recordAssistantMessage } from '../../../../infrastructure/transcript/TranscriptWriter';
 import type { TranscriptTransparencyData } from '../../../../infrastructure/transcript/types';
 import type { StreamingCompleteEvent } from '../../../../types/backendEvents';
 import { findStreamingCompleteAssistantMessage } from '../../utils/chatStream/chatStreamMessageUpdates';
@@ -9,6 +8,7 @@ import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTy
 import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
 import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
 import { buildAssistantTextChatMessageState } from '../../../../infrastructure/transcript/assistantTextChatMessageState';
+import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
 
 type UseChatStreamCompletionHandlerOptions = {
   addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
@@ -68,7 +68,7 @@ export const useChatStreamCompletionHandler = ({
         const normalizedTransparency: TranscriptTransparencyData | undefined = (
           buildAssistantTranscriptTransparency(currentMessages, lastMessage, event.turn_ref || undefined)
         );
-        recordAssistantMessage(nextText, {
+        DesktopConversationRuntimeClient.recordAssistantMessage(nextText, {
           messageType: lastMessage.type || 'llm-text',
           conversationRef: conversationRef || event.conversation_ref,
           userId: event.user_id,
@@ -89,7 +89,7 @@ export const useChatStreamCompletionHandler = ({
       }) as ChatMessage;
       addMessage(newMessage, conversationRef);
       if (enableTranscript) {
-        recordAssistantMessage(completionText, {
+        DesktopConversationRuntimeClient.recordAssistantMessage(completionText, {
           messageType: 'llm-text',
           conversationRef: conversationRef || event.conversation_ref,
           userId: event.user_id,

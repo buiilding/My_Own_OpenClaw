@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { recordAssistantMessage } from '../../../../infrastructure/transcript/TranscriptWriter';
 import {
   useChatStore,
   type ChatMessage,
@@ -12,6 +11,7 @@ import type {
 import { resolveErrorText } from '../../utils/chatStream/chatStreamEventUtils';
 import type { ChatStreamThinkingStateDeps } from './chatStreamHandlerTypes';
 import { findLastAssistantLlmTextMessageId } from '../../utils/chatStream/chatStreamMessageUpdates';
+import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
 
 type UseChatStreamTerminalHandlersDeps = ChatStreamThinkingStateDeps<
   'streaming-complete' | 'token-count' | 'memory-store' | 'error'
@@ -109,7 +109,7 @@ export function useChatStreamTerminalHandlers({
     }, conversationRef);
 
     if (enableTranscript) {
-      recordAssistantMessage(errorText, {
+      DesktopConversationRuntimeClient.recordAssistantMessage(errorText, {
         messageType: 'error',
         conversationRef: event.conversation_ref,
         userId: event.user_id,

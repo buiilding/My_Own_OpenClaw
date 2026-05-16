@@ -120,6 +120,10 @@ Readable file injection path:
 - context is appended into backend-bound composed query content by main process.
 - raw `read_file` content is never rendered in user-visible chat row.
 
+Assistant and tool transcript projection writes from stream ingestion also route
+through `DesktopConversationRuntimeClient`, keeping transcript persistence calls
+behind the desktop conversation runtime facade instead of scattered chat hooks.
+
 ## Screenshot Source and Fallback Chain
 
 Priority order:

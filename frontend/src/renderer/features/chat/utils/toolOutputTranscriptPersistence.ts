@@ -1,5 +1,5 @@
-import { recordToolMessage } from '../../../infrastructure/transcript/TranscriptWriter';
 import { buildStructuredToolPayload } from '../../../infrastructure/transcript/structuredToolPayload';
+import { DesktopConversationRuntimeClient } from '../session/desktopConversationRuntimeClient';
 import type { TranscriptModelContext } from './transcriptModelContext';
 
 type RecordToolOutputTranscriptMessageOptions = {
@@ -23,7 +23,7 @@ export function recordToolOutputTranscriptMessage({
   modelContext,
   toolOutputDetails = null,
 }: RecordToolOutputTranscriptMessageOptions): void {
-  recordToolMessage(text, {
+  DesktopConversationRuntimeClient.recordToolMessage(text, {
     messageType: 'tool-output',
     toolName: toolName || undefined,
     correlationId: correlationId || undefined,
@@ -38,4 +38,3 @@ export function recordToolOutputTranscriptMessage({
     }),
   });
 }
-
