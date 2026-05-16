@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for sidecar core connectivity/runtime helpers: backend HTTP URL env precedence, remote embedding/semantic/title client request contracts, and bounded interactive/background executor lifecycle behavior."
 read_when:
-  - When changing `core/backend_config.py`, `core/remote_api_client_base.py`, `core/remote_embedding_client.py`, `core/remote_semantic_client.py`, `core/remote_title_client.py`, or `core/thread_pool.py`.
+  - When changing `core/backend_config.py`, `core/remote_api_client_base.py`, `core/remote_embedding_client.py`, `core/remote_semantic_client.py`, `core/remote_title_client.py`, or `core/executors.py`.
   - When debugging backend URL drift, memory client HTTP errors, title client failures, base-client error wrappers, or executor routing/reuse/shutdown behavior.
 title: "Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime Reference"
 ---
@@ -16,7 +16,6 @@ title: "Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime R
 - `frontend/src/main/python/core/remote_semantic_client.py`
 - `frontend/src/main/python/core/remote_title_client.py`
 - `frontend/src/main/python/core/executors.py`
-- `frontend/src/main/python/core/thread_pool.py`
 - `frontend/src/main/python/memory/local_store.py`
 - `frontend/src/main/python/memory/summarizer.py`
 - `tests/sidecar/test_backend_config.py`
@@ -146,10 +145,8 @@ Loop binding:
 - sidecar boot binds loop default executor to the interactive pool via `configure_event_loop_default_executor(...)`
 - uncategorized `run_in_executor(None, ...)` calls therefore remain bounded
 
-Compatibility:
-
-- `core/thread_pool.get_executor(max_workers=10)` now aliases the background executor for legacy memory paths
-- `core/thread_pool.shutdown_executor(...)` shuts down only that background executor
+Memory/index jobs import the background pool directly from `core.executors`;
+there is no `core.thread_pool` facade in the first-class sidecar runtime.
 
 Related runtime knobs:
 
@@ -193,8 +190,8 @@ Related runtime knobs:
 
 `tests/sidecar/test_thread_pool.py` verifies:
 
-- background-executor singleton compatibility via `core.thread_pool`
-- shutdown safety and re-create behavior for legacy imports
+- background-executor singleton behavior through `core.executors`
+- shutdown safety and re-create behavior for memory/index runtime imports
 
 `tests/sidecar/test_executors.py` verifies:
 
