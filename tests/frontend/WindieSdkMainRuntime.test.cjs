@@ -229,6 +229,9 @@ describe('Windie SDK main runtime', () => {
     expect(executeLocalTool).toHaveBeenCalledWith({
       toolName: 'save_note',
       args: { text: 'hello' },
+      requestId: 'req-save',
+      toolCallId: null,
+      correlationId: null,
     });
     expect(JSON.parse(socket.sent[1])).toMatchObject({
       id: 'tool-result-msg',
