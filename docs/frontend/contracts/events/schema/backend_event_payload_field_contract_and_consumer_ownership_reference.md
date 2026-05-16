@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for frontend backend event schemas: typed union field contracts, per-event payload keys, and renderer consumer ownership across chat/tool/config/status/audio paths."
+summary: "Deep reference for frontend backend event schemas: typed union field contracts, per-event payload keys, and SDK/renderer consumer ownership across chat/tool/config/status/audio paths."
 read_when:
   - When adding a new backend event type or editing payload fields in `backendEvents.ts`.
   - When diagnosing renderer behavior drift caused by event field rename/removal.
@@ -12,7 +12,8 @@ title: "Backend Event Payload Field Contract and Consumer Ownership Reference"
 
 - `frontend/src/renderer/types/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
+- `packages/windie-sdk-js/src/transport/backendEventNormalizer.ts`
+- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `frontend/src/renderer/features/chat/utils/backendAudioEvents.js`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
@@ -71,7 +72,7 @@ These fields drive turn/conversation guards, transcript session updates, and cor
 Used by:
 
 - chat UI tool-call rendering (`modelFacingToolCall`)
-- tool runner execution correlation and fallback request-id routing
+- SDK tool coordinator execution correlation and fallback request-id routing
 
 ### `tool-output`
 
@@ -98,7 +99,7 @@ Used by:
 
 Used by:
 
-- tool runner bundle execution + relay
+- SDK tool coordinator bundle execution + relay
 - chat stream tool-bundle summary rendering
 
 ### `local-user-message`
@@ -171,7 +172,8 @@ This means adding events to backend wire protocol may require both:
 ## Consumer Ownership Matrix (Condensed)
 
 - `useChatStream`: typed union main consumer, message/transcript/token updates
-- `useToolRunner`: typed subset (`tool-call`, `tool-bundle`) + stale-turn cancellation logic
+- SDK runtime: typed tool subset (`tool-call`, `tool-bundle`) plus
+  conversation/turn guard and local execution coordination
 - `ChatInterface` audio listener: untyped `audio-chunk`
 - `appConfigEvents`: untyped `models-listed`
 - `AppStatusProvider`: `settings-updated` + settings-specific `error` branch

@@ -47,23 +47,24 @@ WindieOS tools run through a distributed pipeline. The backend owns model-facing
 Single-tool path:
 
 - backend assigns or preserves a `request_id`
-- renderer returns `tool-result` with the same `request_id`
+- SDK runtime returns `tool-result` with the same `request_id`
 - backend waiting storage resolves the pending future for that request
 - processing cleanup removes resolved-call state for the request
 
 Bundle path:
 
 - backend sends one `tool-bundle` event with a `bundle_id`
-- renderer executes bundle steps and returns `tool-bundle-result`
+- SDK runtime executes bundle steps through the local runtime adapter and returns
+  `tool-bundle-result`
 - backend treats atomic bundle success differently from individual fallback output
 - partial failure must preserve enough per-step output for debugging and model recovery
 
 If a tool hangs, inspect request-id state in this order:
 
 1. backend emitted `tool-call` or `tool-bundle`
-2. renderer received and started it
+2. SDK runtime received and started it
 3. sidecar executed or returned a validation/runtime error
-4. renderer sent result back with matching request or bundle id
+4. SDK runtime sent result back with matching request or bundle id
 5. backend waiting storage resolved and cleaned it
 6. SDK normalized tool-output event was stored for display and future rehydrate projections
 
@@ -85,7 +86,7 @@ Do not put large inline base64 payloads on hot JSON-RPC paths when a file ref or
 | --- | --- | --- |
 | Tool never appears in prompt | backend policy/profile/provider health | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) |
 | Model emits invalid args | backend schema, provider projection, parser recovery | [Tool Contracts](tool_contracts.md), [Backend Tools Docs Hub](../backend/tools/README.md) |
-| Backend emits `tool-call`, renderer does nothing | renderer event consumption or tool runner | [Frontend Tool Execution Service](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md) |
+| Backend emits `tool-call`, local execution does nothing | SDK runtime event normalization, tool coordinator, or Electron main runtime host | [Frontend Tool Execution Service](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md) |
 | Renderer invokes tool but sidecar says missing tool | sidecar registry/exposed-name parity | [Tool Catalog Matrix](tool_catalog_matrix.md), [Sidecar Registry](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md) |
 | Sidecar succeeds but model never sees result | result envelope/request id/waiting storage | [Backend Tool Result Ingress](../backend/tools/tool_result_ingress_and_storage_reference.md) |
 | Tool output appears in UI but rehydrate breaks later | transcript/history shaping | [Memory Hub](../memory/README.md), [Backend History](../backend/agent/history/README.md) |
@@ -96,7 +97,7 @@ For tool execution changes:
 
 1. Backend schema/policy tests cover tool visibility and args.
 2. Backend formatter/outgoing schema tests cover `tool-call`, `tool-bundle`, and result events.
-3. Renderer tests cover tool-runner correlation and result relay.
+3. SDK/frontend tests cover tool coordinator correlation and result relay.
 4. Sidecar tests cover executable behavior and `ToolResult` normalization.
 5. Bundle tests cover success, failure, timeout, and cleanup paths.
 6. Rehydrate/transcript tests cover any visible or model-facing row shape changes.

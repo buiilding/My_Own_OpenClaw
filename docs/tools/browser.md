@@ -17,8 +17,8 @@ For browser changes that can cross schema, sidecar runtime, Electron bridge, ren
 | Layer | Responsibility |
 | --- | --- |
 | Backend | Exposes model-facing `browser` tool schema, validates action payloads, and sends executable browser requests. |
-| Renderer | Shows browser connection/status controls and routes tool execution through the shared tool runner. |
-| Main process | Relays tool requests to the sidecar local backend and handles dedicated-browser process integration. |
+| Renderer | Shows browser connection/status controls and renders SDK-projected tool status. |
+| SDK runtime and main process | Route backend tool requests to the local runtime adapter, relay execution to the sidecar local backend, and handle dedicated-browser process integration. |
 | Sidecar | Owns browser sessions, Chrome/CDP launch or connect behavior, snapshots, action execution, and compatibility aliases. |
 
 ## Files to Inspect
