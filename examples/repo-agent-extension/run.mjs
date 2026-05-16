@@ -86,6 +86,7 @@ function createMockBackend() {
           'tool-call',
           {
             tool_name: toolName,
+            tool_call_id: 'repo-agent-provider-call',
             parameters: {
               root: repoRoot,
               max_files: 12,
@@ -106,6 +107,7 @@ function createMockBackend() {
           {
             tool_name: toolName,
             request_id: requestId,
+            tool_call_id: 'repo-agent-provider-call',
             success: message.payload?.success !== false,
             output: content,
           },

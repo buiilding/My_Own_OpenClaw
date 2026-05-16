@@ -75,6 +75,7 @@ function createMockBackend() {
           'tool-call',
           {
             tool_name: toolName,
+            tool_call_id: 'local-tool-extension-provider-call',
             parameters: {
               text: 'Windie local module tools execute through the sidecar.',
               filename: 'windie-local-tool-extension.txt',
@@ -95,6 +96,7 @@ function createMockBackend() {
           {
             tool_name: toolName,
             request_id: requestId,
+            tool_call_id: 'local-tool-extension-provider-call',
             success: message.payload?.success !== false,
             output: content,
           },

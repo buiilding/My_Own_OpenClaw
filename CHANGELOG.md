@@ -39,6 +39,7 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: align public agent stream tool-output dedupe and synthetic tool-call events with provider-safe tool identity.
 - frontend/sdk: accept canonical camelCase SDK tool identity fields in the Electron main-process tool router.
 - sidecar/sdk: pass request, provider, correlation, and bundle identities from Python SDK tool events into local runtime execution and align Python bundle step statuses with the SDK `ok`/`error` contract.
+- examples: include provider-safe `tool_call_id` values in local-tool and repo-agent SDK mock backend tool history.
 - backend/container: remove container-level `embedder`, `ocr_service`, and `vision_service` aliases in favor of router fields.
 - backend/sdk: remove the transitional `Context` alias so tools import `ToolContext` directly.
 - backend/simulation: remove the coordinate resolver compatibility re-export and docs from the first-class simulation surface.

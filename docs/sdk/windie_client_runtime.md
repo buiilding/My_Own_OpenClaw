@@ -459,10 +459,11 @@ The public examples intentionally exercise the modular runtime controls:
   projections, changes models through `conversation.setModel(...)`, and exposes
   Retry and Stop controls.
 - `examples/local-tool-extension` registers a module tool through the sidecar,
-  streams local tool execution, returns the tool result to the backend, and
-  stops through `agent.stop(...)`.
+  streams local tool execution with request/provider tool ids, returns the tool
+  result to the backend, and stops through `agent.stop(...)`.
 - `examples/repo-agent-extension` loads a plugin package, registers the local
-  repo-inspection tool, streams the result, and stops through `agent.stop(...)`.
+  repo-inspection tool, streams provider-safe tool history, and stops through
+  `agent.stop(...)`.
 
 For the smallest local tool authoring path, see `examples/local-tool-extension`.
 It uses `moduleTool(...)` to register a Python `module:function` entrypoint with
