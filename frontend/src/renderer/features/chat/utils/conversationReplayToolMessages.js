@@ -1,4 +1,9 @@
-import { resolveCorrelationId } from '../../../infrastructure/services/CorrelationId';
+import {
+  resolveCorrelationId,
+  resolveToolBundleCorrelationId,
+  resolveToolCallCorrelationId,
+  resolveToolOutputCorrelationId,
+} from '../../../infrastructure/api/windieSdkClient';
 
 const TOOL_CALL_MESSAGE_TYPES = new Set(['tool-call', 'tool-bundle']);
 const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output']);
@@ -12,26 +17,39 @@ function normalizeReplayMessageType(message) {
     : '';
 }
 
-function pickCorrelationIdFromPayload(payload) {
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-    return null;
-  }
-  return resolveCorrelationId(
-    payload.correlation_id,
-    payload.request_id,
-    payload.bundle_id,
-    payload.id,
-  );
-}
-
 function resolveReplayToolMessageCorrelationId(message) {
   if (!message || typeof message !== 'object') {
     return null;
   }
+  const messageType = normalizeReplayMessageType(message);
+  const toolCallDetailsId = (
+    message.toolCallDetails
+    && typeof message.toolCallDetails === 'object'
+    && !Array.isArray(message.toolCallDetails)
+    && typeof message.toolCallDetails.id === 'string'
+      ? message.toolCallDetails.id
+      : null
+  );
+  const toolOutputDetailsId = (
+    message.toolOutputDetails
+    && typeof message.toolOutputDetails === 'object'
+    && !Array.isArray(message.toolOutputDetails)
+    && typeof message.toolOutputDetails.id === 'string'
+      ? message.toolOutputDetails.id
+      : null
+  );
+  const sdkResolvedId = messageType === 'tool-bundle'
+    ? resolveToolBundleCorrelationId(message.toolCallDetails)
+    : (
+        messageType === 'tool-output'
+          ? resolveToolOutputCorrelationId(message.toolOutputDetails)
+          : resolveToolCallCorrelationId(message.toolCallDetails)
+      );
   return resolveCorrelationId(
     message.correlationId,
-    pickCorrelationIdFromPayload(message.toolCallDetails),
-    pickCorrelationIdFromPayload(message.toolOutputDetails),
+    sdkResolvedId,
+    toolCallDetailsId,
+    toolOutputDetailsId,
     message?.modelFacingToolCall?.id,
   );
 }

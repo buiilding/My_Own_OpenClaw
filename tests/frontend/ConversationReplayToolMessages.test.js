@@ -85,4 +85,40 @@ describe('conversationReplayToolMessages', () => {
       'm-4',
     ]);
   });
+
+  test('matches calls and outputs with provider-safe tool call id only', () => {
+    const messages = [
+      {
+        id: 'm-1',
+        type: 'tool-call',
+        correlationId: '   ',
+        toolCallDetails: { tool_call_id: ' call-a ' },
+      },
+      {
+        id: 'm-2',
+        type: 'tool-output',
+        correlationId: '   ',
+        toolOutputDetails: { tool_call_id: 'call-a' },
+      },
+      {
+        id: 'm-3',
+        type: 'tool-call',
+        correlationId: '   ',
+        toolCallDetails: { bundle_id: ' bundle-a ' },
+      },
+      {
+        id: 'm-4',
+        type: 'tool-output',
+        correlationId: '   ',
+        toolOutputDetails: { bundle_id: 'bundle-a' },
+      },
+    ];
+
+    expect(buildReplayContextMessages(messages).map((message) => message.id)).toEqual([
+      'm-1',
+      'm-2',
+      'm-3',
+      'm-4',
+    ]);
+  });
 });
