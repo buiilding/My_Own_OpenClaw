@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar: remove browser-session cloud parameter aliases so sidecar browser runtime accepts only first-class `cloud_*`, `use_cloud`, and `cloud_browser_params` fields.
 - docs: replace stale transcript writer, replay-state, and renderer tool-runner references in current frontend architecture docs with SDK runtime and transcript projection owners.
 - docs: refresh frontend inventory and tool-event docs so deleted renderer tool-runner and transcript-writer paths no longer appear as current owners.
 - frontend/sdk: hide the low-level desktop `sendRehydrate` command behind the semantic conversation-runtime `rehydrate` facade.

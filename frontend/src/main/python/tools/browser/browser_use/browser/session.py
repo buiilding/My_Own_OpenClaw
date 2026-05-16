@@ -152,12 +152,7 @@ class BrowserSession(BaseModel):
 		cloud_profile_id: UUID | str | None = None,
 		cloud_proxy_country_code: ProxyCountryCode | None = None,
 		cloud_timeout: int | None = None,
-		# Backward compatibility aliases
-		profile_id: UUID | str | None = None,
-		proxy_country_code: ProxyCountryCode | None = None,
-		timeout: int | None = None,
 		use_cloud: bool | None = None,
-		cloud_browser: bool | None = None,  # Backward compatibility alias
 		cloud_browser_params: CloudBrowserParams | None = None,
 		# Common params that work with cloud
 		id: str | None = None,
@@ -251,10 +246,6 @@ class BrowserSession(BaseModel):
 		cloud_profile_id: UUID | str | None = None,
 		cloud_proxy_country_code: ProxyCountryCode | None = None,
 		cloud_timeout: int | None = None,
-		# Backward compatibility aliases for cloud params
-		profile_id: UUID | str | None = None,
-		proxy_country_code: ProxyCountryCode | None = None,
-		timeout: int | None = None,
 		# BrowserProfile fields that can be passed directly
 		# From BrowserConnectArgs
 		headers: dict[str, str] | None = None,
@@ -290,7 +281,6 @@ class BrowserSession(BaseModel):
 		# BrowserProfile specific fields
 		## Cloud Browser Fields
 		use_cloud: bool | None = None,
-		cloud_browser: bool | None = None,  # Backward compatibility alias
 		cloud_browser_params: CloudBrowserParams | None = None,
 		## Other params
 		disable_security: bool | None = None,
@@ -331,31 +321,19 @@ class BrowserSession(BaseModel):
 				'cloud_profile_id',
 				'cloud_proxy_country_code',
 				'cloud_timeout',
-				'profile_id',
-				'proxy_country_code',
-				'timeout',
 			]
 			and v is not None
 		}
 
-		# Handle backward compatibility: prefer cloud_* params over old names
-		final_profile_id = cloud_profile_id if cloud_profile_id is not None else profile_id
-		final_proxy_country_code = cloud_proxy_country_code if cloud_proxy_country_code is not None else proxy_country_code
-		final_timeout = cloud_timeout if cloud_timeout is not None else timeout
-
 		# If any cloud params are provided, create cloud_browser_params
-		if final_profile_id is not None or final_proxy_country_code is not None or final_timeout is not None:
+		if cloud_profile_id is not None or cloud_proxy_country_code is not None or cloud_timeout is not None:
 			cloud_params = CreateBrowserRequest(
-				cloud_profile_id=final_profile_id,
-				cloud_proxy_country_code=final_proxy_country_code,
-				cloud_timeout=final_timeout,
+				cloud_profile_id=cloud_profile_id,
+				cloud_proxy_country_code=cloud_proxy_country_code,
+				cloud_timeout=cloud_timeout,
 			)
 			profile_kwargs['cloud_browser_params'] = cloud_params
 			profile_kwargs['use_cloud'] = True
-
-		# Handle backward compatibility: map cloud_browser to use_cloud
-		if 'cloud_browser' in profile_kwargs:
-			profile_kwargs['use_cloud'] = profile_kwargs.pop('cloud_browser')
 
 		# If cloud_browser_params is set, force use_cloud=True
 		if cloud_browser_params is not None:
@@ -366,7 +344,7 @@ class BrowserSession(BaseModel):
 			profile_kwargs['is_local'] = True
 		# Only set is_local=True when cdp_url is missing if we're not using cloud browser
 		# (cloud browser will provide cdp_url later)
-		use_cloud = profile_kwargs.get('use_cloud') or profile_kwargs.get('cloud_browser')
+		use_cloud = profile_kwargs.get('use_cloud')
 		if not cdp_url and not use_cloud:
 			profile_kwargs['is_local'] = True
 
