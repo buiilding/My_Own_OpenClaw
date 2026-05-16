@@ -110,7 +110,7 @@ class VenusVisionModel(InternVLModel):
                 self.model_name,
                 trust_remote_code=self.trust_remote_code,
             )
-            # Keep tokenizer for compatibility when available
+            # Reuse the processor tokenizer when the provider exposes one.
             self.tokenizer = getattr(self.processor, "tokenizer", None)
             logger.info(f"Successfully loaded Venus model: {self.model_name}")
 
