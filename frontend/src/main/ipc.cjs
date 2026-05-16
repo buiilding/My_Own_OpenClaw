@@ -99,6 +99,14 @@ const {
   applyTranscriptSessionSync,
 } = require('./ipc/ipc_transcript_session_sync.cjs');
 const {
+  normalizeSdkRuntimeCommand,
+  shouldConnectForSdkRuntimeCommand,
+  shouldLogRendererSdkRuntimeCommand,
+  shouldQueueUntilConnected,
+  shouldSyncSettingsBeforeSdkRuntimeCommand,
+  sendSdkRuntimeCommand,
+} = require('./ipc/ipc_sdk_command_router.cjs');
+const {
   isAgentLoopStopShortcutPhase,
 } = require('./agent_stop_shortcut_runtime.cjs');
 const {
@@ -832,12 +840,9 @@ function initializeIpc(win, options = {}) {
   });
 
   ipcMain.on('to-backend', async (event, message = {}) => {
-    const type = typeof message?.type === 'string' ? message.type : null;
-    let payload = (
-      message?.payload
-      && typeof message.payload === 'object'
-      && !Array.isArray(message.payload)
-    ) ? { ...message.payload } : {};
+    const normalizedCommand = normalizeSdkRuntimeCommand(message);
+    const type = normalizedCommand.type;
+    let payload = normalizedCommand.payload;
 
     if (!type) {
       log('Ignoring malformed to-backend message: missing string "type"');
@@ -849,7 +854,7 @@ function initializeIpc(win, options = {}) {
       return;
     }
 
-    if (type === 'list-models' && !isBackendRuntimeConnected()) {
+    if (shouldQueueUntilConnected(type) && !isBackendRuntimeConnected()) {
       queueListModelsRequest();
       log('Queued list-models request until backend websocket is connected.');
       try {
@@ -865,7 +870,7 @@ function initializeIpc(win, options = {}) {
     }
 
     // Only log important message types
-    if (type === 'query' || type === 'wakeword-detected') {
+    if (shouldLogRendererSdkRuntimeCommand(type)) {
       log(`Received ${type} from renderer`);
     }
 
@@ -926,15 +931,8 @@ function initializeIpc(win, options = {}) {
       log('Complete user message built successfully');
     }
 
-    const shouldConnectForMessage = (
-      type === 'query'
-      || type === 'wakeword-detected'
-      || type === 'compact-history'
-      || type === 'rehydrate-conversation'
-      || type === 'load-settings'
-    );
     let backendConnectionReady = true;
-    if (shouldConnectForMessage && !isBackendRuntimeConnected()) {
+    if (shouldConnectForSdkRuntimeCommand(type) && !isBackendRuntimeConnected()) {
       try {
         await ensureBackendConnection(type);
       } catch (error) {
@@ -943,7 +941,7 @@ function initializeIpc(win, options = {}) {
       }
     }
 
-    if (backendConnectionReady && (type === 'query' || type === 'wakeword-detected')) {
+    if (backendConnectionReady && shouldSyncSettingsBeforeSdkRuntimeCommand(type)) {
       await ensureInitialSettingsSync();
       if (pendingSettingsSyncPromise) {
         await pendingSettingsSyncPromise;
@@ -956,13 +954,11 @@ function initializeIpc(win, options = {}) {
     let messageId = null;
     if (backendConnectionReady) {
       const runtime = getWindieSdkRuntime();
-      if (type === 'query') {
-        messageId = runtime.sendQuery(payload, queryMessageId);
-      } else if (type === 'wakeword-detected') {
-        messageId = runtime.sendWakewordDetected(payload, queryMessageId);
-      } else {
-        messageId = runtime.sendBackendMessage(type, payload, queryMessageId);
-      }
+      messageId = sendSdkRuntimeCommand(runtime, {
+        type,
+        payload,
+        messageId: queryMessageId,
+      });
     }
     if (!messageId && type === 'query') {
       handleRendererQuerySendFailure({

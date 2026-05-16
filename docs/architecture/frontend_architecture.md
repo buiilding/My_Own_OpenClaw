@@ -215,6 +215,7 @@ Primary modules:
 - `main/ipc.cjs`:
   - Renderer-facing SDK runtime adapter for backend-bound work.
   - Delegates backend websocket construction, handshake send, envelope send, close, and reconnect primitives to `main/windie_sdk_runtime.cjs`.
+  - Delegates backend-bound renderer command normalization, connection policy, settings-sync gating, and typed SDK send dispatch to `main/ipc/ipc_sdk_command_router.cjs`.
   - Opens the SDK runtime connection on demand for backend-bound work instead of at app startup.
   - Keeps the SDK runtime connection alive through active agent-loop phases, then starts a 30 minute idle grace timer before intentionally closing the connection.
   - Only asks the SDK runtime to reconnect after unexpected closes while the loop or idle grace window still owns the transport.

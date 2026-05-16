@@ -36,7 +36,7 @@ WindieOS tools run through a distributed pipeline. The backend owns model-facing
 | Provider call normalization | Backend | `backend/src/agent/execution/tool_call_bridge.py`, provider modules under `backend/src/llm/providers` |
 | Preparation and coordinate resolution | Backend | `backend/src/agent/tools/preparation/**`, `backend/src/services/screen_grounding/**` |
 | Frontend dispatch event | Backend API | `backend/src/api/processing/formatters/actions/*`, `backend/src/api/schemas/outgoing.py` |
-| SDK runtime execution | SDK runtime and Electron main host | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs` |
+| SDK runtime execution | SDK runtime and Electron main host | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/ipc/ipc_sdk_command_router.cjs`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs` |
 | Electron-sidecar bridge | Electron main | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/sidecar_daemon_manager.cjs` |
 | Local execution | Sidecar | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/**` |
 | Result ingress | Backend API | `backend/src/api/handlers/tool_result.py`, `backend/src/agent/tools/waiting/**` |
