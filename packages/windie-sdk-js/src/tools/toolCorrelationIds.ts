@@ -20,6 +20,12 @@ function stringField(payload: ToolCorrelationPayload, ...keys: string[]): string
   return null;
 }
 
+export function resolveModelFacingToolCallId(payload: ToolCorrelationPayload): string | null {
+  const metadata = recordFromUnknown(recordFromUnknown(payload)?.metadata);
+  const toolCall = recordFromUnknown(metadata?.model_facing_tool_call);
+  return stringField(toolCall, 'id');
+}
+
 export function resolveCorrelationId(
   ...ids: Array<string | null | undefined>
 ): string | null {
@@ -39,6 +45,7 @@ export function resolveToolCallCorrelationId(
     stringField(payload, 'correlationId', 'correlation_id'),
     stringField(payload, 'requestId', 'request_id'),
     stringField(payload, 'toolCallId', 'tool_call_id'),
+    resolveModelFacingToolCallId(payload),
     eventId,
   ) ?? undefined;
 }

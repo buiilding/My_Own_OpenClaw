@@ -1,6 +1,7 @@
 import type { BackendEvent } from '../events/backendEvents.js';
 import { createConversationEvent, createRuntimeId } from '../conversation/events.js';
 import type { ConversationEvent, JsonRecord } from '../conversation/types.js';
+import { resolveModelFacingToolCallId } from '../tools/toolCorrelationIds.js';
 
 function payloadOf(event: BackendEvent): JsonRecord {
   return (event.payload && typeof event.payload === 'object' && !Array.isArray(event.payload))
@@ -23,19 +24,6 @@ function stringFromEventPayloadOrTopLevel(event: BackendEvent, key: string): str
   }
   const topLevelValue = (event as unknown as JsonRecord)[key];
   return typeof topLevelValue === 'string' ? topLevelValue : null;
-}
-
-function modelFacingToolCallId(payload: JsonRecord): string | null {
-  const metadata = payload.metadata;
-  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
-    return null;
-  }
-  const toolCall = (metadata as JsonRecord).model_facing_tool_call;
-  if (!toolCall || typeof toolCall !== 'object' || Array.isArray(toolCall)) {
-    return null;
-  }
-  const id = (toolCall as JsonRecord).id;
-  return typeof id === 'string' && id.trim() ? id.trim() : null;
 }
 
 function revisionIdFor(event: BackendEvent, fallbackRevisionId?: string): string {
@@ -127,7 +115,7 @@ export function normalizeBackendEventToConversationEvent(
         correlationId: typeof payload.correlation_id === 'string' ? payload.correlation_id : null,
         toolCallId: typeof payload.tool_call_id === 'string'
           ? payload.tool_call_id
-          : modelFacingToolCallId(payload),
+          : resolveModelFacingToolCallId(payload),
         structuredPayload: payload,
         rawEvent: event,
       },

@@ -7,6 +7,7 @@ import {
   buildDisplayConversation,
   createConversationRuntime,
   moduleTool,
+  resolveModelFacingToolCallId,
   resolveToolCallCorrelationId,
   resolveToolEventCorrelationId,
   resolveToolOutputCorrelationId,
@@ -22,6 +23,7 @@ describe('@windie/sdk package boundary', () => {
     expect(createConversationRuntime).toBeDefined();
     expect(ToolExecutionCoordinator).toBeDefined();
     expect(buildDisplayConversation).toBeDefined();
+    expect(resolveModelFacingToolCallId).toBeDefined();
     expect(resolveToolCallCorrelationId).toBeDefined();
     expect(resolveToolEventCorrelationId).toBeDefined();
     expect(resolveToolOutputCorrelationId).toBeDefined();
@@ -60,5 +62,10 @@ describe('@windie/sdk package boundary', () => {
       tool_call_id: ' call-event-1 ',
       correlation_id: ' corr-event-1 ',
     })).toBe('call-event-1');
+    expect(resolveModelFacingToolCallId({
+      metadata: {
+        model_facing_tool_call: { id: ' model-facing-call-1 ' },
+      },
+    })).toBe('model-facing-call-1');
   });
 });

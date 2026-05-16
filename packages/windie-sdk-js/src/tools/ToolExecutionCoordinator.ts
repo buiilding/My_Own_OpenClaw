@@ -9,6 +9,7 @@ import type {
   ToolBundleResultPayload,
   ToolResultPayload,
 } from '../conversation/types.js';
+import { resolveModelFacingToolCallId } from './toolCorrelationIds.js';
 
 export type ToolExecutionCoordinatorOptions = {
   localRuntime?: Partial<Pick<LocalRuntime, 'executeTool'>> | null;
@@ -82,7 +83,8 @@ function localToolCallFromEvent(event: ConversationEvent): LocalToolCall | null 
     bundleId: typeof payload.bundleId === 'string'
       ? payload.bundleId
       : (typeof payload.bundle_id === 'string' ? payload.bundle_id : null),
-    toolCallId: stringPayloadField(payload, 'toolCallId', 'tool_call_id'),
+    toolCallId: stringPayloadField(payload, 'toolCallId', 'tool_call_id')
+      ?? resolveModelFacingToolCallId(payload),
     correlationId: stringPayloadField(payload, 'correlationId', 'correlation_id'),
     turnRef: event.turnRef,
     conversationRef: event.conversationRef,
@@ -200,16 +202,8 @@ export class ToolExecutionCoordinator {
       if (!toolName) {
         continue;
       }
-      const metadata = record.metadata && typeof record.metadata === 'object' && !Array.isArray(record.metadata)
-        ? record.metadata as JsonRecord
-        : {};
-      const modelFacingToolCall = metadata.model_facing_tool_call
-        && typeof metadata.model_facing_tool_call === 'object'
-        && !Array.isArray(metadata.model_facing_tool_call)
-        ? metadata.model_facing_tool_call as JsonRecord
-        : {};
       const toolCallId = stringPayloadField(record, 'toolCallId', 'tool_call_id')
-        ?? stringPayloadField(modelFacingToolCall, 'id');
+        ?? resolveModelFacingToolCallId(record);
       let result: LocalToolResult;
       try {
         result = await this.options.localRuntime.executeTool({

@@ -737,6 +737,36 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('tool coordinator resolves provider-safe id from model-facing metadata', async () => {
+    const executeTool = jest.fn(async () => ({
+      success: true,
+      data: { output: 'README contents' },
+    }));
+    const coordinator = new ToolExecutionCoordinator({
+      localRuntime: { executeTool },
+      sendToolResult: jest.fn(async () => undefined),
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    await coordinator.execute(event('tool_call', {
+      toolName: 'read_file',
+      requestId: 'req-read',
+      metadata: {
+        model_facing_tool_call: {
+          id: 'call-read-model',
+          name: 'read_file',
+          arguments: '{"path":"README.md"}',
+        },
+      },
+      args: { path: 'README.md' },
+    }));
+
+    expect(executeTool).toHaveBeenCalledWith(expect.objectContaining({
+      requestId: 'req-read',
+      toolCallId: 'call-read-model',
+    }));
+  });
+
   test('tool coordinator marks claimed tool results failed when backend delivery fails', async () => {
     const store = new InMemoryConversationStore();
     const coordinator = new ToolExecutionCoordinator({
