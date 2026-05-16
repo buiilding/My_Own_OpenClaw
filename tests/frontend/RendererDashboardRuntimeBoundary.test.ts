@@ -49,4 +49,19 @@ describe('renderer dashboard runtime boundary', () => {
 
     expect(offenders).toEqual([]);
   });
+
+  test('dashboard feature code does not import transcript replay storage directly', async () => {
+    const files = await listSourceFiles(dashboardRoot);
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      const relativePath = path.relative(dashboardRoot, file);
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('infrastructure/transcript/conversationReplayState')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
 });

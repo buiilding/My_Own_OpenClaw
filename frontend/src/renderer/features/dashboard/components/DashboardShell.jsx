@@ -13,8 +13,8 @@ import SearchChatsModal from './SearchChatsModal';
 import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChatSession';
 import { invalidateConversationInferenceSessionState } from '../../chat/session/conversationInferenceSessionRuntime';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
-import { clearConversationReplayStateCache } from '../../../infrastructure/transcript/conversationReplayState';
 import { clearAllConversationWorkspaceBindings } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
+import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) {
@@ -205,7 +205,7 @@ function DashboardShell({
       setChatActiveConversationRef,
     });
     invalidateConversationInferenceSessionState();
-    clearConversationReplayStateCache();
+    DesktopConversationLibraryClient.clearReplayStateCache();
     clearAllConversationWorkspaceBindings();
     await loadRecentConversations();
   }, [

@@ -1,6 +1,9 @@
 import {
   ElectronSidecarConversationStore,
 } from '../../infrastructure/transcript/ElectronSidecarConversationStore';
+import {
+  clearConversationReplayStateCache,
+} from '../../infrastructure/transcript/conversationReplayState';
 
 function createConversationStore(userId) {
   return new ElectronSidecarConversationStore({ userId });
@@ -20,5 +23,9 @@ export const DesktopConversationLibraryClient = {
   async deleteConversation(userId, conversationRef) {
     const store = createConversationStore(userId);
     await store.deleteConversation(conversationRef);
+  },
+
+  clearReplayStateCache() {
+    clearConversationReplayStateCache();
   },
 };
