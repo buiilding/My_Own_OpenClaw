@@ -1,5 +1,18 @@
 .chatbox-response-shell-wrap {
+  --chatbox-typing-surface-bg: var(--ui-panel-bg);
+  --chatbox-typing-border: var(--ui-border-soft);
+  --chatbox-typing-dot-bg: var(--ui-text-primary);
+  --chatbox-typing-shadow: none;
   animation: none;
+}
+
+:root[data-windie-theme='light'] .chatbox-response-shell-wrap {
+  --chatbox-typing-surface-bg: rgba(15, 23, 42, 0.07);
+  --chatbox-typing-border: rgba(15, 23, 42, 0.18);
+  --chatbox-typing-dot-bg: rgba(15, 23, 42, 0.74);
+  --chatbox-typing-shadow:
+    0 10px 24px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
 }
 
 .chatbox-response-shell-wrap.awaiting-only {
@@ -99,8 +112,9 @@
   box-sizing: border-box;
   line-height: 0;
   border-radius: 999px;
-  background: var(--ui-panel-bg);
-  border: 1px solid var(--ui-border-soft);
+  background: var(--chatbox-typing-surface-bg);
+  border: 1px solid var(--chatbox-typing-border);
+  box-shadow: var(--chatbox-typing-shadow);
   transform: translate(1px, 0);
 }
 
@@ -108,7 +122,7 @@
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  background: var(--ui-text-primary);
+  background: var(--chatbox-typing-dot-bg);
   will-change: opacity, transform;
   animation: chatboxTyping 1.08s ease-in-out infinite;
 }

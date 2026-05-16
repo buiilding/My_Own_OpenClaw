@@ -6,7 +6,6 @@ import { usePermissionStore } from '../features/permissions/stores/permissionSto
 import { getGlobalAgentStopShortcutLabel } from '../infrastructure/shortcuts/agentStopShortcut';
 import { IpcBridge, INVOKE_CHANNELS } from '../infrastructure/ipc/bridge';
 import { isVmModeEnabled } from '../infrastructure/runtime/vmMode';
-import { applyAppearanceTheme } from './applyAppearanceTheme';
 import { selectStartupSurface } from './startupSurface';
 import { AppProvider } from './providers/AppProvider';
 import { useAppConfigContext } from './providers/AppContextHooks';
@@ -43,8 +42,6 @@ function DashboardStartupSurface({
  */
 function AppContent() {
   const { config, availableModels, updateConfig } = useAppConfigContext();
-  const appearanceMode = config?.appearance_mode;
-  const appearanceTheme = config?.appearance_theme;
   const vmModeEnabled = isVmModeEnabled();
   const bootstrapped = usePermissionStore((state) => state.bootstrapped);
   const needsOnboarding = usePermissionStore((state) => state.needsOnboarding);
@@ -56,11 +53,6 @@ function AppContent() {
     needsOnboarding,
     onboardingCompleted,
   });
-
-  useEffect(() => applyAppearanceTheme({
-    appearance_mode: appearanceMode,
-    appearance_theme: appearanceTheme,
-  }), [appearanceMode, appearanceTheme]);
 
   useEffect(() => {
     if (lastAppliedStartupSurfaceRef.current === startupSurface) {

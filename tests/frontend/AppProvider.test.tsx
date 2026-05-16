@@ -42,6 +42,9 @@ describe('AppProvider', () => {
   });
 
   beforeEach(() => {
+    document.documentElement.removeAttribute('data-windie-theme');
+    document.documentElement.removeAttribute('data-windie-theme-preference');
+    document.documentElement.removeAttribute('style');
     mockConfigContext = {
       config: { interaction_mode: 'chat' },
       updateConfig: jest.fn(),
@@ -58,6 +61,34 @@ describe('AppProvider', () => {
     expect(mockConfigContext.registerSaveStatusCallback).toHaveBeenCalledWith(
       mockStatusContext.setSaving,
     );
+  });
+
+  test('applies appearance theme for every AppProvider-mounted renderer surface', () => {
+    mockConfigContext = {
+      ...mockConfigContext,
+      config: {
+        interaction_mode: 'chat',
+        appearance_mode: 'light',
+        appearance_theme: {
+          light: {
+            accent: '#007AFF',
+            background: '#FFFFFF',
+            foreground: '#111827',
+            ui_font: 'Manrope, sans-serif',
+            code_font: 'JetBrains Mono, monospace',
+            translucent_sidebar: true,
+            contrast: 52,
+          },
+        },
+      },
+    };
+
+    renderProvider();
+
+    expect(document.documentElement.dataset.windieThemePreference).toBe('light');
+    expect(document.documentElement.dataset.windieTheme).toBe('light');
+    expect(document.documentElement.style.getPropertyValue('--appearance-background')).toBe('#FFFFFF');
+    expect(document.documentElement.style.getPropertyValue('--appearance-foreground')).toBe('#111827');
   });
 
   test('shift+tab toggles interaction mode', () => {

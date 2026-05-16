@@ -30,6 +30,8 @@ Contract:
 
 - response mode always renders fixed `236px` pill height
 - awaiting-typing reports `24px` overlay height for stable compact shell behavior
+- awaiting-typing uses dedicated typing-indicator surface, border, dot, and shadow
+  tokens so light appearance cannot collapse into white-on-white dots
 - no response-content auto-resize hook participates in runtime sizing
 
 ## Response Selection and Visibility

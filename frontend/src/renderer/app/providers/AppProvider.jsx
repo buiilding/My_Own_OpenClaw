@@ -4,6 +4,7 @@ import { AppStatusProvider } from './AppStatusProvider';
 import { useAppConfigContext } from './AppConfigContext';
 import { useAppStatusContext } from './AppStatusContext';
 import { useLatestRef } from '../../infrastructure/hooks/useLatestRef';
+import { applyAppearanceTheme } from '../applyAppearanceTheme';
 
 const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="textbox"]';
 
@@ -27,12 +28,19 @@ function AppContextCoordinator({ children }) {
   const registerSaveStatusCallback = configContext?.registerSaveStatusCallback;
   const configRef = useLatestRef(configContext?.config || {});
   const updateConfigRef = useLatestRef(configContext?.updateConfig);
+  const appearanceMode = configContext?.config?.appearance_mode;
+  const appearanceTheme = configContext?.config?.appearance_theme;
 
   useEffect(() => {
     if (registerSaveStatusCallback) {
       registerSaveStatusCallback(statusContext.setSaving);
     }
   }, [registerSaveStatusCallback, statusContext.setSaving]);
+
+  useEffect(() => applyAppearanceTheme({
+    appearance_mode: appearanceMode,
+    appearance_theme: appearanceTheme,
+  }), [appearanceMode, appearanceTheme]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {

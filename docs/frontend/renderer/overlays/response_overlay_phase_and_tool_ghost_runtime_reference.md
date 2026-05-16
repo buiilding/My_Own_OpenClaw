@@ -110,6 +110,9 @@ Scroll behavior:
 ## Awaiting Indicator Behavior
 
 - awaiting mode shows typing indicator.
+- the response overlay is an independently mounted renderer surface, so
+  `AppProvider` must apply the saved appearance theme there too; the indicator
+  itself uses dedicated light-mode typing tokens for visible dots and shell.
 - `ChatBoxResponse` does not render a separate reasoning/thinking stream region.
 - compaction status text alone does not render overlay content unless awaiting/response mode is active.
 
