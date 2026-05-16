@@ -39,6 +39,8 @@ const mockSendRehydrateConversation = jest.fn();
 const mockSetModel = jest.fn();
 const mockUpdateSettings = jest.fn();
 const mockRewriteTranscriptProjection = jest.fn(async () => ({ entries: [], messages: [] }));
+const mockEditAndResend = jest.fn();
+const mockRetryTurn = jest.fn();
 const mockEnsureConversationInferenceSessionHydrated = jest.fn();
 const mockRehydrateConversationInferenceSession = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
@@ -108,7 +110,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
     stopQuery: (...args) => mockStopQuery(...args),
     compactHistory: (...args) => mockCompactHistory(...args),
     sendQuery: (...args) => mockSendQuery(...args),
-    sendRehydrateConversation: (...args) => mockSendRehydrateConversation(...args),
+    rehydrateConversation: (...args) => mockSendRehydrateConversation(...args),
     setModel: (...args) => mockSetModel(...args),
     updateSettings: (...args) => mockUpdateSettings(...args),
   },
@@ -135,10 +137,12 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
     stop: (...args) => mockStopQuery(...args),
     compactHistory: (...args) => mockCompactHistory(...args),
     sendQuery: (...args) => mockSendQuery(...args),
-    sendRehydrateConversation: (...args) => mockSendRehydrateConversation(...args),
+    rehydrate: (...args) => mockSendRehydrateConversation(...args),
     setModel: (...args) => mockSetModel(...args),
     updateSettings: (...args) => mockUpdateSettings(...args),
     rewriteTranscriptProjection: (...args) => mockRewriteTranscriptProjection(...args),
+    editAndResend: (...args) => mockEditAndResend(...args),
+    retryTurn: (...args) => mockRetryTurn(...args),
   },
 }));
 
@@ -217,6 +221,10 @@ describe('ChatInterface wiring', () => {
     mockUpdateSettings.mockClear();
     mockRewriteTranscriptProjection.mockClear();
     mockRewriteTranscriptProjection.mockResolvedValue({ entries: [], messages: [] });
+    mockEditAndResend.mockClear();
+    mockEditAndResend.mockResolvedValue(undefined);
+    mockRetryTurn.mockClear();
+    mockRetryTurn.mockResolvedValue(undefined);
     mockEnsureConversationInferenceSessionHydrated.mockReset();
     mockEnsureConversationInferenceSessionHydrated.mockResolvedValue(undefined);
     mockRehydrateConversationInferenceSession.mockReset();
@@ -1365,10 +1373,12 @@ describe('ChatInterface wiring', () => {
     expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
     expect(mockSetIsSending).toHaveBeenCalledWith(true, 'conv_existing');
 
-    expect(mockRewriteTranscriptProjection).toHaveBeenCalledWith(expect.objectContaining({
+    const retryPayload = mockRetryTurn.mock.calls[0]?.[0];
+    expect(retryPayload).toEqual(expect.objectContaining({
       conversationRef: 'conv_existing',
       userId: 'default_user',
-      transcriptEntries: expect.arrayContaining([
+      text: 'create a dashboard for this',
+      projectionEntries: expect.arrayContaining([
         expect.objectContaining({
           content: 'create a dashboard for this',
           role: 'user',
@@ -1376,22 +1386,7 @@ describe('ChatInterface wiring', () => {
         }),
       ]),
     }));
-    const sawExpectedRehydrateCall = mockRehydrateConversationInferenceSession.mock.calls.some(
-      ([payload]) => payload?.conversationRef === 'conv_existing'
-        && Array.isArray(payload?.messages)
-        && payload.messages.length === 0,
-    );
-    expect(sawExpectedRehydrateCall).toBe(true);
-    const sawExpectedSendQueryCall = mockSendQuery.mock.calls.some(
-      ([payload]) => (
-        payload.text === 'create a dashboard for this'
-        && payload.conversationRef === 'conv_existing'
-        && (payload.screenshotRef ?? null) === null
-        && (payload.screenshotUrl ?? null) === null
-        && (payload.screenshotRefs ?? null) === null
-      ),
-    );
-    expect(sawExpectedSendQueryCall).toBe(true);
+    expect(mockSendQuery).not.toHaveBeenCalled();
   });
 
   test('user edit rewinds assistant output and re-queries with edited text', async () => {
@@ -1413,31 +1408,21 @@ describe('ChatInterface wiring', () => {
     expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
     expect(mockSetIsSending).toHaveBeenCalledWith(true, 'conv_existing');
 
-    expect(mockRewriteTranscriptProjection).toHaveBeenCalledWith(expect.objectContaining({
+    const editPayload = mockEditAndResend.mock.calls[0]?.[0];
+    expect(editPayload).toEqual(expect.objectContaining({
       conversationRef: 'conv_existing',
       userId: 'default_user',
-      transcriptEntries: expect.arrayContaining([
+      messageId: 'user-1',
+      text: 'new prompt',
+      projectionEntries: expect.arrayContaining([
         expect.objectContaining({
-          content: 'new prompt',
+          content: 'old prompt',
           role: 'user',
           messageType: 'user',
         }),
       ]),
     }));
-    expect(mockRehydrateConversationInferenceSession).toHaveBeenCalledWith({
-      conversationRef: 'conv_existing',
-      messages: [],
-    });
-    const sawEditedSendQueryCall = mockSendQuery.mock.calls.some(
-      ([payload]) => (
-        payload.text === 'new prompt'
-        && payload.conversationRef === 'conv_existing'
-        && (payload.screenshotRef ?? null) === null
-        && (payload.screenshotUrl ?? null) === null
-        && (payload.screenshotRefs ?? null) === null
-      ),
-    );
-    expect(sawEditedSendQueryCall).toBe(true);
+    expect(mockSendQuery).not.toHaveBeenCalled();
   });
 
   test('command+f opens the find bar and focuses the search input', async () => {

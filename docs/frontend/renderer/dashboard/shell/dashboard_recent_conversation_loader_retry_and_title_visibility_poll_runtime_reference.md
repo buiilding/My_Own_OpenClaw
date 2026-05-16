@@ -92,7 +92,7 @@ This path handles title generation lag between transcript persistence and indexe
 
 1. loads transcript memories (`loadConversationTranscriptMemories`)
 2. converts to renderer message rows (`parseMemoriesToMessages`)
-3. sends backend `rehydrate-conversation` payload (`toRehydrateMessagePayload`)
+3. sends the desktop runtime `rehydrate` command with the SDK rehydrate payload (`toRehydrateMessagePayload`); the SDK transport adapter translates it to the backend wire message
 4. updates transcript session + active conversation refs
 5. writes parsed rows into chat workspace and resets `isSending` / `thinkingStatus`
 

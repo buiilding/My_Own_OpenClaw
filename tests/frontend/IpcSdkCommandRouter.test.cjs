@@ -33,7 +33,7 @@ describe('ipc sdk command router', () => {
     expect(shouldConnectForSdkRuntimeCommand('query')).toBe(true);
     expect(shouldConnectForSdkRuntimeCommand('wakeword-detected')).toBe(true);
     expect(shouldConnectForSdkRuntimeCommand('compact-history')).toBe(true);
-    expect(shouldConnectForSdkRuntimeCommand('rehydrate-conversation')).toBe(true);
+    expect(shouldConnectForSdkRuntimeCommand('rehydrate')).toBe(true);
     expect(shouldConnectForSdkRuntimeCommand('load-settings')).toBe(true);
     expect(shouldConnectForSdkRuntimeCommand('list-models')).toBe(false);
     expect(shouldConnectForSdkRuntimeCommand('update-settings')).toBe(false);
@@ -59,7 +59,7 @@ describe('ipc sdk command router', () => {
       sendCompactHistory: jest.fn(() => 'compact-id'),
       sendListModels: jest.fn(() => 'models-id'),
       sendQuery: jest.fn(() => 'query-id'),
-      sendRehydrateConversation: jest.fn(() => 'rehydrate-id'),
+      sendRehydrate: jest.fn(() => 'rehydrate-id'),
       sendStopQuery: jest.fn(() => 'stop-id'),
       sendUpdateSettings: jest.fn(() => 'settings-id'),
       sendWakewordDetected: jest.fn(() => 'wakeword-id'),
@@ -96,7 +96,7 @@ describe('ipc sdk command router', () => {
       messageId: 'msg-compact',
     })).toBe('compact-id');
     expect(sendSdkRuntimeCommand(runtime, {
-      type: 'rehydrate-conversation',
+      type: 'rehydrate',
       payload: { conversation_ref: 'conv-1', messages: [] },
       messageId: 'msg-rehydrate',
     })).toBe('rehydrate-id');
@@ -110,7 +110,7 @@ describe('ipc sdk command router', () => {
     expect(runtime.sendUpdateSettings).toHaveBeenCalledWith({ provider: 'openai' }, 'msg-settings');
     expect(runtime.sendListModels).toHaveBeenCalledWith({}, 'msg-models');
     expect(runtime.sendCompactHistory).toHaveBeenCalledWith({ conversation_ref: 'conv-1' }, 'msg-compact');
-    expect(runtime.sendRehydrateConversation).toHaveBeenCalledWith(
+    expect(runtime.sendRehydrate).toHaveBeenCalledWith(
       { conversation_ref: 'conv-1', messages: [] },
       'msg-rehydrate',
     );

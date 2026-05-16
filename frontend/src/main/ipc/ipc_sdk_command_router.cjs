@@ -2,7 +2,7 @@ const CONNECT_REQUIRED_COMMANDS = new Set([
   'query',
   'wakeword-detected',
   'compact-history',
-  'rehydrate-conversation',
+  'rehydrate',
   'load-settings',
 ]);
 
@@ -66,8 +66,8 @@ function sendSdkRuntimeCommand(runtime, {
   if (type === 'list-models' && typeof runtime.sendListModels === 'function') {
     return runtime.sendListModels(payload, messageId);
   }
-  if (type === 'rehydrate-conversation' && typeof runtime.sendRehydrateConversation === 'function') {
-    return runtime.sendRehydrateConversation(payload, messageId);
+  if (type === 'rehydrate' && typeof runtime.sendRehydrate === 'function') {
+    return runtime.sendRehydrate(payload, messageId);
   }
   if (type === 'compact-history' && typeof runtime.sendCompactHistory === 'function') {
     return runtime.sendCompactHistory(payload, messageId);

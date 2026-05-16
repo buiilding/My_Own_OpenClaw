@@ -19,7 +19,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).not.toContain('reconnectTimer');
     expect(source).not.toContain('shouldMaintainConnection');
     expect(source).toContain('sendCompactHistory');
-    expect(source).toContain('sendRehydrateConversation');
+    expect(source).toContain('sendRehydrate');
     expect(source).toContain('sendToolBundleResult');
     expect(source).toContain('sendToolResult');
   });

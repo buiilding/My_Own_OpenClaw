@@ -94,7 +94,7 @@ describe('Windie SDK main runtime', () => {
     });
     expect(runtime.sendUpdateSettings({ model_provider: 'openai' })).toBe('msg-1');
     expect(runtime.sendListModels()).toBe('msg-1');
-    expect(runtime.sendRehydrateConversation({ conversation_ref: 'conv-1', messages: [] })).toBe('msg-1');
+    expect(runtime.sendRehydrate({ conversation_ref: 'conv-1', messages: [] })).toBe('msg-1');
     expect(runtime.sendCompactHistory({ conversation_ref: 'conv-1' })).toBe('msg-1');
     expect(runtime.sendToolResult({ request_id: 'req-1', success: true })).toBe('msg-1');
     expect(runtime.sendToolBundleResult({ bundle_id: 'bundle-1', status: 'success' })).toBe('msg-1');

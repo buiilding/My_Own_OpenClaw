@@ -939,7 +939,7 @@ function initializeIpc(win, options = {}) {
         return;
       }
       payload = preparedQuery.payload;
-      if (type === 'query' || type === 'rehydrate-conversation') {
+      if (type === 'query' || type === 'rehydrate') {
         payload = attachAgentDefinitionContext(payload);
       }
       currentConversationRef = preparedQuery.conversationRef;

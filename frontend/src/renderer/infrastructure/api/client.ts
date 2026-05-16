@@ -117,13 +117,13 @@ export const ApiClient = {
     });
   },
 
-  sendRehydrateConversation: async (
+  rehydrateConversation: async (
     conversationRef: string,
     messages: RehydrateConversationEntry[],
     workspacePath: string | null = null,
   ): Promise<void> => {
     IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-      type: 'rehydrate-conversation',
+      type: 'rehydrate',
       payload: {
         conversation_ref: conversationRef,
         messages,
