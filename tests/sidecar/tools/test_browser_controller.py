@@ -174,8 +174,10 @@ class TestBrowserControllerActions:
 
     def _register_role_ref(self, ref: str, role: str, name: str) -> None:
         target_id = str(id(self.controller._page))
-        self.controller._role_refs_by_tab[target_id] = {ref: RoleRef(role=role, name=name)}
-        self.controller._role_refs_frame_by_tab[target_id] = None
+        self.controller._observation_store.store_role_refs(
+            target_id,
+            {ref: RoleRef(role=role, name=name)},
+        )
 
     def _setup_select_locator(
         self,

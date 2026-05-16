@@ -29,6 +29,7 @@ All notable changes to WindieOS will be documented in this file.
 - backend/api: reduce the embeddings memory package export to the route object so tests import handlers and models from owner modules.
 - backend/config: remove the config-manager API-key loader re-export so semantic memory routes import the loader owner directly.
 - backend/tools: remove duplicated `_dev_tool_selection` state so validators and tool result availability read from `ToolPolicy` directly.
+- sidecar/browser: remove BrowserController observation-store alias dictionaries so tests seed `BrowserObservationStore` directly.
 - backend/container: remove container-level `embedder`, `ocr_service`, and `vision_service` aliases in favor of router fields.
 - backend/sdk: remove the transitional `Context` alias so tools import `ToolContext` directly.
 - backend/simulation: remove the coordinate resolver compatibility re-export and docs from the first-class simulation surface.

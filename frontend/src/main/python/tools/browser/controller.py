@@ -67,19 +67,6 @@ class BrowserController:
         self._runtime = BrowserSessionRuntime()
         self._observation_store = BrowserObservationStore()
         self._action_executor = BrowserActionExecutor(self)
-        # Compatibility aliases while controller ownership is decomposed.
-        self._ref_registry_by_tab = self._observation_store.ref_registry_by_tab
-        self._role_refs_by_tab = self._observation_store.role_refs_by_tab
-        self._role_refs_frame_by_tab = self._observation_store.role_refs_frame_by_tab
-        self._observed_tabs = self._observation_store.observed_tabs
-        self._console_messages_by_tab = self._observation_store.console_messages_by_tab
-        self._dialog_events_by_tab = self._observation_store.dialog_events_by_tab
-        self._dialog_arms_by_tab = self._observation_store.dialog_arms_by_tab
-        self._dialog_waiters_by_tab = self._observation_store.dialog_waiters_by_tab
-        self._page_errors_by_tab = self._observation_store.page_errors_by_tab
-        self._network_requests_by_tab = self._observation_store.network_requests_by_tab
-        self._network_request_id_by_req = self._observation_store.network_request_id_by_req
-        self._next_request_id_by_tab = self._observation_store.next_request_id_by_tab
         self._enhanced_cdp_pipeline = EnhancedCdpDomPipeline()
 
     @property
@@ -1673,7 +1660,6 @@ class BrowserController:
                     logger.warning(f"Failed to cleanup user data dir: {e}")
 
             self._observation_store.reset()
-            self._network_request_id_by_req = self._observation_store.network_request_id_by_req
             self._runtime.reset()
 
         except Exception as e:
