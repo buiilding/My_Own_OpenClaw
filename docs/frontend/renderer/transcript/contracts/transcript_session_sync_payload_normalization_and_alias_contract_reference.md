@@ -1,41 +1,39 @@
 ---
-summary: "Deep reference for transcript-session-sync payload parsing: alias-key support, whitespace/null normalization, and partial-update semantics consumed by TranscriptWriter."
+summary: "Deep reference for transcript-session-sync payload parsing: conversationRef identity keys, whitespace/null normalization, and partial-update semantics consumed by the desktop transcript session runtime."
 read_when:
   - When changing `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts` or transcript-session sync message formats.
-  - When debugging renderer/main transcript session drift caused by payload key aliasing, whitespace-only identifiers, or partial update packets.
-title: "Transcript Session Sync Payload Normalization and Alias Contract Reference"
+  - When debugging renderer/main transcript session drift caused by payload keys, whitespace-only identifiers, or partial update packets.
+title: "Transcript Session Sync Payload Normalization Contract Reference"
 ---
 
-# Transcript Session Sync Payload Normalization and Alias Contract Reference
+# Transcript Session Sync Payload Normalization Contract Reference
 
 ## Canonical Modules
 
 - `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `tests/frontend/TranscriptSessionSyncPayload.test.ts`
-- `tests/frontend/TranscriptWriter.session.test.ts`
+- `tests/frontend/TranscriptSessionState.test.ts`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 
 ## Ownership Boundary
 
-`extractTranscriptSessionSyncPayload(payload)` is the normalization boundary for inbound `transcript-session-sync` packets consumed by `TranscriptWriter`.
+`extractTranscriptSessionSyncPayload(payload)` is the normalization boundary for inbound `transcript-session-sync` packets consumed by the desktop transcript session runtime.
 
 It does not persist state; it only parses and normalizes external payload shape into:
 
 - `conversationRef?: string | null`
 - `userId?: string | null`
 
-`TranscriptWriter` then applies the normalized fields through `applyTranscriptSessionUpdate(..., { syncToMainProcess: false })` to avoid rebroadcast loops.
+The session runtime then applies the normalized fields through `applyTranscriptSessionUpdate(..., { syncToMainProcess: false })` to avoid rebroadcast loops.
 
-## Accepted Key Aliases
+## Accepted Identity Keys
 
 Conversation identity keys (first-present resolution order):
 
 1. `conversationRef`
 2. `conversation_ref`
-3. `sessionId`
-4. `session_id`
 
 User identity keys:
 
@@ -52,7 +50,7 @@ Function returns `null` for non-object payloads:
 - primitive types (`string`, `number`, etc.)
 - arrays
 
-Only plain object-like values continue to alias/key parsing.
+Only plain object-like values continue to key parsing.
 
 ## Field Normalization Contract
 
@@ -81,7 +79,7 @@ Function can return one-dimensional updates:
 - conversation-only packet -> `{ conversationRef: <value>, userId: undefined }`
 - user-only packet -> `{ conversationRef: undefined, userId: <value> }`
 
-`TranscriptWriter` merges these via session-state update rules, preserving unspecified fields.
+The transcript session runtime merges these via session-state update rules, preserving unspecified fields.
 
 ## Test-Locked Invariants
 
@@ -89,10 +87,11 @@ Function can return one-dimensional updates:
 
 - rejection of non-object payloads
 - camelCase extraction and trim behavior
-- snake_case + legacy session alias support
+- snake_case conversation/user key support
+- rejection of `sessionId`/`session_id` because `conversationRef` owns chat identity
 - partial update output shape with `undefined` missing field
 
-`tests/frontend/TranscriptWriter.session.test.ts` locks integration behavior:
+`tests/frontend/TranscriptSessionState.test.ts` and the app runtime tests lock integration behavior:
 
 - inbound `transcript-session-sync` updates writer session state
 - inbound sync updates do not trigger outbound rebroadcast sends
@@ -101,7 +100,7 @@ Function can return one-dimensional updates:
 
 ## Drift Hotspots
 
-1. Changing alias precedence can rebind conversation identity unexpectedly when multiple keys are present.
+1. Reintroducing `sessionId` as a chat identity alias can rebind durable conversation state to backend session runtime ids.
 2. Removing trim/null normalization can preserve whitespace ids and break session identity comparisons.
 3. Returning empty object instead of `null` for non-session payloads can trigger unintended writer updates.
 4. Rebroadcasting inbound sync packets can create renderer/main echo loops.
@@ -109,5 +108,5 @@ Function can return one-dimensional updates:
 ## Related Pages
 
 - [Transcript Entry and Pending Message Type Contract Reference](transcript_entry_and_pending_message_type_contract_reference.md)
-- [Transcript Writer Queue Flush and Session Event Reference](../transcript_writer_queue_flush_and_session_event_reference.md)
+- [Transcript Projection Queue Flush and Session Event Reference](../transcript_writer_queue_flush_and_session_event_reference.md)
 - [Transcript Session and Rehydrate Reference](../../transcript_session_and_rehydrate_reference.md)

@@ -27,7 +27,7 @@ Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_d
 | Identifier | Shape | First producer | Canonical owner | Used by | If missing or wrong |
 | --- | --- | --- | --- | --- | --- |
 | `user_id` / `userId` | string | install auth and Electron main session snapshot | backend connection/session context | backend sessions, sidecar memory rows, settings, transcript search | memory and conversations can cross users, backend session lookup fails, or sidecar memory calls store under fallback users |
-| `session_id` / `sessionId` | string | backend websocket/session runtime | backend session manager | stream events, transcript metadata, live runtime diagnostics | events can be impossible to join to a backend runtime, but `conversation_ref` should still route user-visible state |
+| `session_id` / `sessionId` | string | backend websocket/session runtime | backend session manager | stream events, live runtime diagnostics | events can be impossible to join to a backend runtime, but `conversation_ref` routes user-visible state |
 | `conversation_ref` / `conversationRef` | string | SDK conversation runtime, renderer send path, or VM run metadata | SDK conversation runtime plus backend session registry | active conversation filtering, backend history, transcript persistence, rehydrate, VM run metadata | wrong chat resumes, stale events land in the visible thread, or backend history is created under a new conversation |
 | `turn_ref` | string | SDK conversation runtime or renderer optimistic user message ID | SDK runtime and backend stream event correlation | stale-turn filtering, local optimistic user row, overlay phase traces | late events can update the wrong active turn or leave the UI awaiting forever |
 | `request_id` | string | backend tool-call dispatch | backend session pending-tool registry | SDK result relay, `tool-result` ingress, backend waiter cleanup | sidecar may execute, but backend never resumes the agent loop |
@@ -39,12 +39,11 @@ Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_d
 
 ## Alias Policy
 
-Renderer/main boundaries often accept both camelCase and snake_case aliases for identity fields. Normalize aliases at the boundary and write one canonical internal shape afterward.
+Renderer/main boundaries accept camelCase on JS-facing APIs and snake_case at backend/sidecar boundaries. Normalize names at the boundary and write one canonical internal shape afterward. `sessionId` is backend runtime identity, not a durable chat identity alias.
 
 Examples:
 
 - `conversationRef` -> `conversation_ref`
-- `sessionId` -> `session_id`
 - `userId` -> `user_id`
 
 Do not let every consumer implement its own alias parser.

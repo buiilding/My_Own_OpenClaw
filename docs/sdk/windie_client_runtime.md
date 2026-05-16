@@ -44,7 +44,7 @@ Ownership rules:
 - the SDK `WindieClient` runtime module owns wake-up orchestration, websocket
   session creation, initial model selection, local-runtime startup/reuse, and
   conversion of local tool/plugin/MCP definitions into the client manifest.
-- the SDK agent stream-event module owns the compatibility projection from
+- the SDK agent stream-event module owns the public event projection from
   normalized conversation events to high-level `agent.stream(...)` events,
   including duplicate tool-output suppression for local/backend acknowledgements.
 - the SDK `WindieAgent` runtime module owns high-level agent helpers such as
@@ -182,12 +182,12 @@ interface exposes `loadForDisplay(...)` and `loadForRehydrate(...)` as
 first-class convenience methods, and adapters must implement them by delegating
 to shared SDK projections or to a complete active compacted replay snapshot.
 
-Electron uses a sidecar-backed store adapter during the desktop migration:
+Electron uses a sidecar-backed store adapter:
 
 - canonical SDK events are stored under the sidecar `conversation_event` record
   kind as the storage truth for desktop display and backend rehydrate
-- legacy transcript/replay fallback is removed; conversations that participate
-  in the SDK runtime must load from canonical `conversation_event` rows
+- transcript/replay fallback is removed; conversations that participate in the
+  SDK runtime must load from canonical `conversation_event` rows
 - compacted replay snapshots are persisted as `compaction_applied` conversation
   events with complete generation payloads, not as hidden replay rows
 - desktop compaction replacement-history writes go through the conversation store
@@ -207,7 +207,7 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
   pages. `cursor` is the last `conversationRef` from the previous page.
 - desktop edit/resend and try-again visible transcript rewrites are routed
   through the Electron conversation store adapter. The adapter owns local
-  transcript row deletion, replay-state clearing, workspace metadata, rewritten
+  transcript projection replacement, workspace metadata, rewritten
   row persistence, and the rehydrate projection used before the resend turn.
 - desktop visible transcript appends route through
   `DesktopTranscriptProjectionRuntimeClient` and the Electron conversation
@@ -215,7 +215,7 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
   IPC or replay append mutation.
 - desktop chat feature code uses the desktop conversation runtime facade for
   transcript session identity helpers. There is no renderer `TranscriptWriter`
-  compatibility boundary.
+  boundary.
 - desktop dashboard and app config session synchronization use an app-level
   transcript-session runtime facade, so feature/provider code does not import
   transcript infrastructure directly for conversation/user identity updates.
@@ -384,7 +384,7 @@ public `WindieClient` callers. Feature code should not shape
 `update-settings` payloads or call the backend API adapter directly.
 
 `stream(input, options)` returns an `AsyncIterableIterator<WindieAgentStreamEvent>`.
-It is a compatibility-shaped wrapper over `SdkConversationRuntime.stream()`: it
+It is a high-level projection over `SdkConversationRuntime.stream()`: it
 stores normalized events, preserves `conversationRef`/`turnRef`, routes local
 tool calls through the SDK coordinator, and maps runtime events into `start`,
 `text`, `tool_call`, `tool_output`, `complete`, `error`, or generic `event`

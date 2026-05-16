@@ -1,16 +1,16 @@
 ---
-summary: "Renderer transcript and replay guide covering desktop SDK projection runtime writes, pending queues, session identity, local snapshots, replay state, and rehydrate payloads."
+summary: "Renderer transcript and replay guide covering desktop SDK projection runtime writes, pending queues, session identity, local snapshots, canonical conversation events, and rehydrate payloads."
 read_when:
-  - When changing renderer transcript writes, pending flush behavior, conversation replay, local snapshots, or rehydrate payload construction.
+  - When changing renderer transcript projection writes, pending flush behavior, canonical conversation events, local snapshots, or rehydrate payload construction.
   - When debugging visible chat rows that do not persist or replay correctly.
 title: "Transcript and Replay"
 ---
 
 # Transcript and Replay
 
-Renderer transcript state is the source for visible conversation persistence and dashboard replay. It is not the same as backend active model history.
+Renderer transcript rows are visible projections. Canonical client-runtime state is stored as SDK `conversation_event` rows and projected for display, dashboard replay, and backend rehydrate. Neither visible rows nor backend active model history are storage truth.
 
-For code changes or debugging, start with [Transcript Replay Change Workflow](transcript_replay_change_workflow.md). That workflow maps transcript writes, pending queues, sidecar transcript storage, dashboard replay/resume, backend rehydrate payloads, tool-row reconstruction, and validation.
+For code changes or debugging, start with [Transcript Replay Change Workflow](transcript_replay_change_workflow.md). That workflow maps SDK projection writes, pending queues, sidecar event storage, dashboard replay/resume, backend rehydrate payloads, tool-row reconstruction, and validation.
 
 ## Code Ownership
 
@@ -47,7 +47,6 @@ If session identity is not ready, entries are queued through pending transcript 
 Transcript session identity includes:
 
 - `conversationRef`,
-- `sessionId`,
 - `userId`.
 
 Do not invent a second conversation id in a component. Use the transcript session runtime and existing conversation workspace binding.
@@ -61,9 +60,9 @@ SDK-owned conversation state uses a separate sidecar record kind:
 - `conversation_event`: normalized SDK event log for runtime/load/rehydrate/display
 - compaction replay generations: complete `compaction_applied` events with replacement-history entries
 
-New SDK callers should read display and rehydrate state through SDK projections
-over `conversation_event` rows. The desktop runtime no longer writes hidden
-replay rows or falls back to legacy transcript rows.
+SDK callers should read display and rehydrate state through SDK projections over
+`conversation_event` rows. The desktop runtime does not write hidden replay rows
+or fall back to visible transcript rows for runtime truth.
 
 Dashboard recent-chat loading reads canonical `conversation_event` metadata.
 

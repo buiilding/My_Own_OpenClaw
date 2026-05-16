@@ -65,7 +65,7 @@ export function normalizeMainSessionSnapshot(payload: unknown): MainSessionSnaps
 
   return {
     conversationRef: normalizeConversationRef(
-      source.conversationRef ?? source.conversation_ref ?? source.sessionId ?? source.session_id,
+      source.conversationRef ?? source.conversation_ref,
     ),
     userId: normalizeConversationRef(
       source.userId ?? source.user_id,

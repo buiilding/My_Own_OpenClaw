@@ -24,8 +24,6 @@ export const extractTranscriptSessionSyncPayload = (
   const hasConversationRef = (
     hasOwnProperty(payload, 'conversationRef')
     || hasOwnProperty(payload, 'conversation_ref')
-    || hasOwnProperty(payload, 'sessionId')
-    || hasOwnProperty(payload, 'session_id')
   );
   const hasUserId = hasOwnProperty(payload, 'userId') || hasOwnProperty(payload, 'user_id');
   if (!hasConversationRef && !hasUserId) {
@@ -34,15 +32,7 @@ export const extractTranscriptSessionSyncPayload = (
 
   const conversationRefCandidate = hasOwnProperty(payload, 'conversationRef')
     ? (payload as { conversationRef?: unknown }).conversationRef
-    : (
-      hasOwnProperty(payload, 'conversation_ref')
-        ? (payload as { conversation_ref?: unknown }).conversation_ref
-        : (
-          hasOwnProperty(payload, 'sessionId')
-            ? (payload as { sessionId?: unknown }).sessionId
-            : (payload as { session_id?: unknown }).session_id
-        )
-    );
+    : (payload as { conversation_ref?: unknown }).conversation_ref;
   const userIdCandidate = hasOwnProperty(payload, 'userId')
     ? (payload as { userId?: unknown }).userId
     : (payload as { user_id?: unknown }).user_id;

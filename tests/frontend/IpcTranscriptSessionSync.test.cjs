@@ -41,4 +41,17 @@ describe('ipc_transcript_session_sync', () => {
 
     expect(broadcastToRenderers).not.toHaveBeenCalled();
   });
+
+  test('ignores session aliases without broadcasting', () => {
+    const broadcastToRenderers = jest.fn();
+
+    expect(applyTranscriptSessionSync({
+      payload: { session_id: 'session-next', sessionId: 'session-next' },
+      currentConversationRef: 'conv-current',
+      currentUserId: 'user-current',
+      broadcastToRenderers,
+    })).toBeNull();
+
+    expect(broadcastToRenderers).not.toHaveBeenCalled();
+  });
 });

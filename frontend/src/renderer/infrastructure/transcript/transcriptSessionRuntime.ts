@@ -10,7 +10,6 @@ import type { SessionInfo } from './types';
 
 export type TranscriptSessionResolveOptions = {
   conversationRef?: string | null;
-  sessionId?: string | null;
   userId?: string | null;
 };
 
@@ -98,7 +97,7 @@ export function createTranscriptSessionRuntime({
     options: TranscriptSessionResolveOptions,
   ): SessionInfo => {
     return sessionState.resolve({
-      conversationRef: options.conversationRef ?? options.sessionId ?? null,
+      conversationRef: options.conversationRef ?? null,
       userId: options.userId ?? null,
     });
   };

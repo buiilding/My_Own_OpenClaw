@@ -81,7 +81,7 @@ This avoids invalid UTF-16 payload propagation while preserving valid non-BMP ch
 
 `sessionSyncPayload.ts` uses `normalizeOptionalIncomingText(...)` for:
 
-- `conversationRef|conversation_ref|sessionId|session_id`
+- `conversationRef|conversation_ref`
 - `userId|user_id`
 
 Whitespace-only values collapse to `null`; omitted keys remain `undefined` for partial-update semantics.
@@ -115,6 +115,6 @@ This keeps prompt/transparency snapshots trimmed and safe before `store-transcri
 ## Related Docs
 
 - [Tracking, Formatting, and Message-Update Utility Reference](../chat/stream/tracking_formatting_and_message_update_utility_reference.md)
-- [Transcript Session Sync Payload Normalization and Alias Contract Reference](../transcript/contracts/transcript_session_sync_payload_normalization_and_alias_contract_reference.md)
-- [Transcript Writer Queue Flush and Session Event Reference](../transcript/transcript_writer_queue_flush_and_session_event_reference.md)
+- [Transcript Session Sync Payload Normalization Contract Reference](../transcript/contracts/transcript_session_sync_payload_normalization_and_alias_contract_reference.md)
+- [Transcript Projection Queue Flush and Session Event Reference](../transcript/transcript_writer_queue_flush_and_session_event_reference.md)
 - [Frontend Renderer Infrastructure Docs Hub](README.md)

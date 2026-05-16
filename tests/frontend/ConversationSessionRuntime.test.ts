@@ -76,11 +76,12 @@ describe('conversationSessionRuntime', () => {
     });
 
     expect(normalizeMainSessionSnapshot({
-      session_id: ' conv-legacy ',
-      userId: ' user-legacy ',
+      session_id: ' session-ignored ',
+      sessionId: 'session-ignored',
+      userId: ' user-main ',
     })).toEqual({
-      conversationRef: 'conv-legacy',
-      userId: 'user-legacy',
+      conversationRef: null,
+      userId: 'user-main',
     });
   });
 

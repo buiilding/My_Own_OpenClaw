@@ -37,7 +37,7 @@ export const ApiClient = {
    * @param {string} text
    * @param {string} conversationRef
    * @param {string|null} screenshotRef - Optional artifact reference for screenshot data
-   * @param {string|null} screenshotUrl - Optional artifact URL (kept for caller compatibility; not sent)
+   * @param {string|null} screenshotUrl - Optional artifact URL used for local UI echo; not sent to backend
    * @param {string[]|null} screenshotRefs - Optional artifact references for multi-image payloads
    */
   sendQuery: async (

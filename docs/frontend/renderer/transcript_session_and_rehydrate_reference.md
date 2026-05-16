@@ -11,7 +11,8 @@ title: "Transcript Session and Rehydrate Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts`
 - `frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore.ts`
@@ -52,7 +53,7 @@ Transcript writes require:
 `createTranscriptSessionState(...)` behavior:
 
 - lazy bootstrap from `sessionStorage` key `transcript-session-info`
-- legacy fallback accepts stored `sessionId` as conversation ref
+- stored identity must use `conversationRef`; `sessionId` is not accepted as a chat identity alias
 - after bootstrap, reads are in-memory
 
 Update semantics:
@@ -69,7 +70,7 @@ Session info is persisted/emitted only when changed:
 - dispatches browser event `transcript-session-update`
 - sends IPC event `transcript-session-sync` so main process session snapshots track renderer transcript identity
 - inbound `transcript-session-sync` packets are normalized by `extractTranscriptSessionSyncPayload(...)` before state updates:
-  - accepts alias keys (`conversationRef|conversation_ref|sessionId|session_id`, `userId|user_id`)
+  - accepts first-class identity keys (`conversationRef|conversation_ref`, `userId|user_id`)
   - trims/normalizes text and converts blank values to `null`
   - supports partial updates (one field may be `undefined`)
 - inbound sync updates apply with rebroadcast disabled to avoid renderer/main loopback storms
@@ -77,7 +78,7 @@ Session info is persisted/emitted only when changed:
 Responsibility split:
 
 - `transcriptSessionRuntime.ts` owns session-state bootstrap, storage persistence, browser/main-process sync, and session resolution helpers
-- `TranscriptWriter.ts` remains the public write API and queue coordinator, but no longer embeds the full session runtime implementation inline
+- `DesktopTranscriptProjectionRuntimeClient` is the public projection write API and queue coordinator; `transcriptSessionRuntime.ts` owns session identity.
 
 Dashboard consumers subscribe via `useSyncExternalStore` (`useTranscriptSessionInfo`) for stable snapshot behavior.
 
@@ -95,10 +96,10 @@ Public writer entrypoints:
 
 Shared writer layering:
 
-- `TranscriptWriter.ts` owns public recorder entrypoints, queue coordination, and `transcript-entry-stored` emission
+- `DesktopTranscriptProjectionRuntimeClient` owns public recorder entrypoints, queue coordination, and `transcript-entry-stored` emission
 - `transcriptRecordWrite.ts` owns the empty-text / resolve-session / immediate-write-or-queue decision boundary
 - `transcriptEntryPersistence.ts` resolves the final session and delegates persistence to the conversation store adapter
-- `ElectronSidecarConversationStore` owns IPC payload shaping, workspace-binding attachment, replay bootstrap checks, and replay append writes for visible transcript rows
+- `ElectronSidecarConversationStore` owns IPC payload shaping, workspace-binding attachment, and canonical event/projection writes for visible transcript rows
 
 Each path:
 
@@ -195,30 +196,26 @@ not execute tools.
 
 Search modal uses the same open path after `search-conversations` results.
 
-## SDK Store Migration Boundary
+## SDK Store Boundary
 
-The desktop migration adds `ElectronSidecarConversationStore` as the SDK-facing
-conversation-store adapter over the existing sidecar memory IPC.
+The desktop runtime uses `ElectronSidecarConversationStore` as the SDK-facing
+conversation-store adapter over sidecar memory IPC.
 
 Record-kind split:
 
 - `conversation_event` stores canonical SDK conversation events for the runtime,
   including `conversationRef`, `turnRef`, `revisionId`, request/bundle/tool-call
   ids, and structured payloads.
-- `transcript` remains the visible chat transcript for dashboard display and
-  legacy replay.
-- `transcript_replay` remains the compacted backend rehydrate snapshot store.
+- `transcript` remains a visible projection for dashboard display/search.
+- compacted backend rehydrate snapshots are stored as complete
+  `compaction_applied` conversation events.
 
-The adapter loads canonical `conversation_event` rows first. If a conversation
-only has legacy `transcript` rows, it projects those rows into normalized SDK
-events so display and backend rehydrate snapshots still come from the SDK
-projection path. This keeps new clients on the SDK model without breaking
-existing local conversations.
+The adapter loads canonical `conversation_event` rows. Display and backend
+rehydrate snapshots come from the SDK projection path.
 
-`TranscriptWriter` also routes new visible transcript appends through this
-adapter. The writer remains the renderer-facing queue/session facade, but direct
-`store-transcript` calls and replay append mutation are now behind
-`ElectronSidecarConversationStore`.
+`DesktopTranscriptProjectionRuntimeClient` routes new visible projection appends
+through this adapter. Direct `store-transcript` calls and replay append mutation
+are not renderer feature-code surfaces.
 
 `ensureConversationInferenceSessionHydrated(...)` now uses this adapter for the
 backend rehydrate payload. The local snapshot loader still supplies workspace
@@ -228,19 +225,18 @@ SDK store projection.
 Dashboard startup and open-chat loading also use the SDK store adapter:
 
 - recent chats are listed through store metadata from `conversation_event` rows
-  merged with legacy `transcript` rows
+  and explicit pagination options
 - dashboard chat deletion goes through the store adapter so visible transcript
-  rows, compacted replay rows, and canonical `conversation_event` rows are
-  removed together
+  projection rows and canonical `conversation_event` rows are removed together
 - opening a chat renders `DisplayConversation` through
   `sdkDisplayChatMessageProjection.ts`
-- the local snapshot loader remains only for workspace binding and legacy
-  transcript metadata during migration
+- the local snapshot loader remains only for workspace binding and projection
+  metadata
 - edit/resend and try-again visible transcript rewrites go through the Electron
-  sidecar conversation store adapter, which owns the local transcript and
-  `transcript_replay` generation writes. The replay hook still chooses the
-  replacement message list during migration, but it no longer invokes
-  `store-transcript`, `delete-conversation`, or direct backend rehydrate shaping.
+  sidecar conversation store adapter, which owns local projection replacement
+  and `compaction_applied` generation writes. The replay hook chooses the
+  replacement message list, but it does not invoke `store-transcript`,
+  `delete-conversation`, or direct backend rehydrate shaping.
   It converts replay rows into store projection entries and lets the SDK
   projection build the backend rehydrate snapshot.
 - compacted replay replacement appends a new generation with

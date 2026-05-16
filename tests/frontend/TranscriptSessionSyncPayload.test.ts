@@ -17,14 +17,21 @@ describe('extractTranscriptSessionSyncPayload', () => {
     });
   });
 
-  test('supports legacy session aliases and snake_case user id', () => {
+  test('supports snake_case conversation and user identifiers', () => {
     expect(extractTranscriptSessionSyncPayload({
-      session_id: 'conv-2',
+      conversation_ref: 'conv-2',
       user_id: 'user-2',
     })).toEqual({
       conversationRef: 'conv-2',
       userId: 'user-2',
     });
+  });
+
+  test('ignores session aliases because conversationRef owns chat identity', () => {
+    expect(extractTranscriptSessionSyncPayload({
+      session_id: 'session-2',
+      sessionId: 'session-3',
+    })).toBeNull();
   });
 
   test('supports partial payload updates', () => {

@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS transcript persistence, pending queues, conversation replay, dashboard resume, backend rehydrate payloads, tool-row reconstruction, and related validation."
+summary: "Workflow for changing WindieOS SDK-backed transcript projections, pending queues, conversation replay, dashboard resume, backend rehydrate payloads, tool-row reconstruction, and related validation."
 read_when:
   - When changing renderer transcript writes, pending transcript queues, local conversation snapshots, dashboard conversation replay, or backend rehydrate payload construction.
   - When visible chat rows persist incorrectly, dashboard resume shows the wrong messages, replay loses tool rows, or backend context after resume does not match the stored transcript.
@@ -9,9 +9,9 @@ title: "Transcript Replay Change Workflow"
 
 # Transcript Replay Change Workflow
 
-Use this workflow for the visible-chat persistence path. WindieOS transcript replay is related to memory, but it is not the same thing as semantic memory or backend active model history.
+Use this workflow for the visible-chat projection path. WindieOS transcript replay is related to memory, but it is not the same thing as semantic memory or backend active model history.
 
-The core rule is: visible transcript rows are renderer-owned records persisted through the sidecar; backend active history is rebuilt from those rows only during rehydrate. Fix transcript display and replay at the transcript layer. Fix resumed model context at the rehydrate layer. Fix derived memory search/semantic facts in sidecar memory and semanticization code.
+The core rule is: SDK `conversation_event` rows are the canonical client-runtime state. Visible transcript rows are projections persisted for display/search, and backend active history is rebuilt from SDK rehydrate projections before resume. Fix display and replay at the SDK projection/store layer. Fix resumed model context at the rehydrate projection layer. Fix derived memory search/semantic facts in sidecar memory and semanticization code.
 
 ## Runtime Path
 
@@ -23,10 +23,10 @@ flowchart LR
     C -- "yes" --> D["transcriptRecordWrite"]
     C -- "no" --> E["pending transcript queues"]
     E --> D
-    D --> F["renderer IPC store-transcript"]
+    D --> F["ElectronSidecarConversationStore"]
     F --> G["Electron main memory RPC mapper"]
     G --> H["sidecar store_transcript handler"]
-    H --> I["LocalMemoryStore transcript rows"]
+    H --> I["LocalMemoryStore conversation_event rows"]
     I --> J["dashboard conversation list/search"]
     I --> K["SDK display/rehydrate projections"]
     K --> L["rehydratePayload.js"]
@@ -36,9 +36,9 @@ flowchart LR
 
 ## Boundary Rules
 
-- Renderer transcript code owns visible chat row recording, pending retry queues, local replay snapshots, and the rehydrate payload assembled from stored transcript rows.
+- SDK projection/runtime code owns visible chat projection recording, pending retry queues, local replay snapshots, and the rehydrate payload assembled from stored conversation events.
 - Electron main owns IPC/RPC mapping and identity sync between windows. It should not interpret chat semantics beyond normalizing bridge payload keys and forwarding session updates.
-- The sidecar owns durable transcript row storage, conversation list/search/title/delete queries, message-index ordering, and transcript-window APIs.
+- The sidecar owns durable local row storage, conversation list/search/title/delete queries, message-index ordering, and transcript-window APIs.
 - Backend rehydrate owns conversion from stored transcript entries into model-compatible backend history. It may normalize, repair, prune, or synthesize tool linkage only to preserve provider-valid history.
 - Backend active history is not the source of dashboard conversation list truth. Do not patch backend history to make a missing sidebar conversation appear.
 - Semantic memory is derived from transcript/interaction rows. Do not edit semantic memory as a shortcut for fixing replay or visible transcript bugs.
@@ -70,7 +70,7 @@ flowchart LR
    - Rehydrate: stored rows become backend model history.
 
 2. Check identity before changing storage shape.
-   - If `conversationRef`, `userId`, `sessionId`, or `turn_ref` is wrong, switch to [Session and Conversation Identity Change Workflow](session_conversation_identity_change_workflow.md).
+   - If `conversationRef`, `userId`, or `turn_ref` is wrong, switch to [Session and Conversation Identity Change Workflow](session_conversation_identity_change_workflow.md).
    - If the identity is right but the row is missing or malformed, continue here.
 
 3. Trace the write path.

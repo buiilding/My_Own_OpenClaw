@@ -1,16 +1,17 @@
 ---
-summary: "Deep reference for renderer TranscriptWriter internals: session-state loading/override rules, queue drain ordering and requeue semantics, immediate write fallback behavior, and test-backed session event/persistence contracts."
+summary: "Deep reference for renderer transcript projection internals: session-state loading/override rules, queue drain ordering and requeue semantics, immediate write fallback behavior, and test-backed session event/persistence contracts."
 read_when:
-  - When changing TranscriptWriter queue flush order, retry/requeue behavior, or transcript session identity update APIs.
+  - When changing desktop transcript projection queue flush order, retry/requeue behavior, or transcript session identity update APIs.
   - When debugging missing transcript writes, repeated flush retries, or stale dashboard listeners on transcript session updates.
-title: "Transcript Writer Queue Flush and Session Event Reference"
+title: "Transcript Projection Queue Flush and Session Event Reference"
 ---
 
-# Transcript Writer Queue Flush and Session Event Reference
+# Transcript Projection Queue Flush and Session Event Reference
 
 ## Canonical Modules
 
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptRecordWrite.ts`
@@ -26,9 +27,7 @@ title: "Transcript Writer Queue Flush and Session Event Reference"
 - `frontend/src/renderer/infrastructure/transcript/types.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
-- `tests/frontend/TranscriptWriter.session.test.ts`
-- `tests/frontend/TranscriptWriter.userAssistant.test.ts`
-- `tests/frontend/TranscriptWriter.tool.test.ts`
+- `tests/frontend/DesktopTranscriptProjectionRuntimeClient.test.ts`
 - `tests/frontend/TranscriptSessionState.test.ts`
 - `tests/frontend/TranscriptStorage.test.ts`
 - `tests/frontend/TranscriptPendingFlush.test.ts`
@@ -55,24 +54,24 @@ Transcript identity fields:
 Layering:
 
 - `transcriptSessionRuntime.ts` wraps `createTranscriptSessionState(...)`, storage persistence, window event emission, and main-process sync subscription/send behavior
-- `TranscriptWriter.ts` consumes that runtime instead of inlining session bootstrap and sync logic
+- `DesktopTranscriptProjectionRuntimeClient` consumes that runtime instead of owning session bootstrap and sync logic
 
 ## Storage + Event Contract
 
 Persistence boundary (`sessionInfoStorage.ts`):
 
 - key: `transcript-session-info` in `sessionStorage`
-- read path supports legacy payload fallback (`sessionId` -> `conversationRef`)
+- read path accepts stored `conversationRef` only; `sessionId` is not a chat identity alias
 - read/write errors are swallowed and return safe null-state fallback
 
 Session event boundary:
 
-- writer emits `window` custom event `transcript-session-update`
+- session runtime emits `window` custom event `transcript-session-update`
 - emission happens only when `(conversationRef,userId)` actually changed
 - dashboard hook `useTranscriptSessionInfo` consumes event with `useSyncExternalStore` and referentially-stable snapshots
 - local session changes are mirrored to main process over `SEND_CHANNELS.TRANSCRIPT_SESSION_SYNC`
 - inbound `ON_CHANNELS.TRANSCRIPT_SESSION_SYNC` updates are applied with rebroadcast disabled to avoid loopback storms
-- inbound sync payload parser accepts alias keys (`conversationRef|conversation_ref|sessionId|session_id`, `userId|user_id`) and trims/normalizes values before applying state updates
+- inbound sync payload parser accepts first-class identity keys (`conversationRef|conversation_ref`, `userId|user_id`) and trims/normalizes values before applying state updates
 
 ## Queue Families and FIFO Semantics
 
@@ -141,7 +140,7 @@ Shared immediate-write helper:
 
 - `recordImmediateTranscriptEntry(...)` in `transcriptRecordWrite.ts` centralizes the empty-text guard, session-resolution gate, and `storeImmediateTranscriptEntryWithRetry(...)` invocation so user/assistant/tool recorders keep one retry boundary contract.
 - `storeTranscriptEntry(...)` in `transcriptEntryPersistence.ts` resolves the final session and builds the replay-safe payload, then delegates storage to `ElectronSidecarConversationStore`.
-- `ElectronSidecarConversationStore` centralizes IPC payload shaping, conversation workspace binding lookup, replay bootstrap initialization, and replay append writes so `TranscriptWriter.ts` no longer mixes session/runtime logic with storage/replay mechanics.
+- `ElectronSidecarConversationStore` centralizes IPC payload shaping, conversation workspace binding lookup, and canonical event/projection writes so the projection runtime does not mix session logic with storage mechanics.
 
 Payload defaults:
 
@@ -152,7 +151,7 @@ Payload defaults:
 - assistant/user/tool rows can include optional `transparency` metadata; writer normalizes and prunes empty snapshots through `normalizeTransparencyData(...)` before queue/persistence mapping.
 - successful writes dispatch `window` custom event `transcript-entry-stored` with persisted identity + row metadata
 
-Tool-output transcript persistence is intentionally shared outside `TranscriptWriter`:
+Tool-output transcript persistence is intentionally shared outside the projection runtime:
 
 - chat-stream `tool-output` handlers and frontend tool-runner result persistence now both route transcript output rows through `features/chat/utils/toolOutputTranscriptPersistence.ts`
 - that shared helper feeds `recordToolMessage(...)` with one canonical `structuredPayload` contract for output details, screenshot refs, and model metadata
@@ -175,7 +174,7 @@ Tool-output transcript persistence is intentionally shared outside `TranscriptWr
 
 ## Test-Backed Invariants
 
-`TranscriptWriter.session.test.ts` validates:
+`DesktopTranscriptProjectionRuntimeClient.test.ts` and transcript session tests validate:
 
 - storage bootstrap loads persisted session once
 - changed updates persist and emit `transcript-session-update`
@@ -184,7 +183,7 @@ Tool-output transcript persistence is intentionally shared outside `TranscriptWr
 - local transcript session updates send `transcript-session-sync` payloads to main process
 - inbound `transcript-session-sync` packets update local state without echo-send
 
-`TranscriptWriter.userAssistant.test.ts` validates:
+`DesktopTranscriptProjectionRuntimeClient.test.ts` and pending-queue tests validate:
 
 - queued user/assistant writes flush when identity becomes available
 - immediate write failures are requeued and retried on later session updates
@@ -192,7 +191,7 @@ Tool-output transcript persistence is intentionally shared outside `TranscriptWr
 - empty text writes are ignored
 - successful assistant writes emit `transcript-entry-stored`
 
-`TranscriptWriter.tool.test.ts` validates:
+`DesktopTranscriptProjectionRuntimeClient.test.ts` validates:
 
 - tool metadata fields persist through store payload
 - tool immediate/queued failure behavior mirrors user/assistant retry semantics
@@ -205,7 +204,7 @@ Tool-output transcript persistence is intentionally shared outside `TranscriptWr
 
 `TranscriptStorage.test.ts` validates:
 
-- legacy `sessionId` read fallback
+- stored `conversationRef` is the only chat identity field
 - malformed payload fallback to null-state
 - storage errors are non-fatal
 - custom session-update event emission payload
@@ -227,7 +226,7 @@ Tool-output transcript persistence is intentionally shared outside `TranscriptWr
 1. Changing update semantics for empty `userId` can accidentally clear identity and stall flushes.
 2. Reordering queue flush categories changes transcript row ordering guarantees.
 3. Emitting session events without identity-change guard can cause dashboard rerender churn.
-4. Removing legacy `sessionId` fallback can break persisted sessions from older app builds.
+4. Reintroducing `sessionId` fallback can bind durable chat state to backend runtime session ids.
 5. Reintroducing separate tool-output transcript builders in chat-stream and tool-runner paths will drift `structuredPayload` contents and replay behavior.
 
 ## Related Pages
@@ -235,7 +234,7 @@ Tool-output transcript persistence is intentionally shared outside `TranscriptWr
 - [Frontend Renderer Transcript Docs Hub](README.md)
 - [Transcript Queue Docs Hub](queue/README.md)
 - [Pending Transcript Queue FIFO and Requeue Contract Reference](queue/pending_transcript_queue_fifo_and_requeue_contract_reference.md)
-- [Transcript Session Sync Payload Normalization and Alias Contract Reference](contracts/transcript_session_sync_payload_normalization_and_alias_contract_reference.md)
+- [Transcript Session Sync Payload Normalization Contract Reference](contracts/transcript_session_sync_payload_normalization_and_alias_contract_reference.md)
 - [Transcript Transparency Normalization and Snapshot Pruning Contract Reference](contracts/transcript_transparency_normalization_and_snapshot_pruning_contract_reference.md)
 - [Transcript Session and Rehydrate Reference](../transcript_session_and_rehydrate_reference.md)
 - [Memory IPC and RPC Mapping Reference](../../contracts/memory_ipc_and_rpc_mapping_reference.md)

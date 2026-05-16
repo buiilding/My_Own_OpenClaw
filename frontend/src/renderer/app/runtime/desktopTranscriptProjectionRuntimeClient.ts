@@ -38,7 +38,6 @@ type LoadRehydrateSnapshotInput = {
 
 type TranscriptProjectionRecordOptions = {
   conversationRef?: string | null;
-  sessionId?: string | null;
   userId?: string | null;
   timestamp?: string;
   messageType?: string;
@@ -141,7 +140,7 @@ export const DesktopTranscriptProjectionRuntimeClient = {
     recordImmediateTranscriptEntry({
       text,
       resolveSessionInfo: () => resolveSessionInfoOrQueue({
-        conversationRef: options.conversationRef ?? options.sessionId ?? null,
+        conversationRef: options.conversationRef ?? null,
         userId: options.userId ?? null,
       }, queueForRetry),
       queueForRetry,

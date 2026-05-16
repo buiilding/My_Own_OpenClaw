@@ -34,14 +34,14 @@ describe('transcript session info storage', () => {
     });
   });
 
-  test('reads legacy sessionId payloads for backward compatibility', () => {
+  test('ignores sessionId aliases because conversationRef owns chat identity', () => {
     window.sessionStorage.setItem(
       TRANSCRIPT_SESSION_STORAGE_KEY,
-      JSON.stringify({ sessionId: 'legacy-session-1', userId: 'user-1' }),
+      JSON.stringify({ sessionId: 'session-1', userId: 'user-1' }),
     );
 
     expect(readSessionInfoFromStorage()).toEqual({
-      conversationRef: 'legacy-session-1',
+      conversationRef: null,
       userId: 'user-1',
     });
   });

@@ -18,8 +18,6 @@ function normalizeTranscriptSessionSyncPayload(payload = {}) {
   const hasConversationRef = (
     hasOwnProperty(payload, 'conversationRef')
     || hasOwnProperty(payload, 'conversation_ref')
-    || hasOwnProperty(payload, 'sessionId')
-    || hasOwnProperty(payload, 'session_id')
   );
   const hasUserId = hasOwnProperty(payload, 'userId') || hasOwnProperty(payload, 'user_id');
 
@@ -29,11 +27,7 @@ function normalizeTranscriptSessionSyncPayload(payload = {}) {
 
   const rawConversationRef = hasOwnProperty(payload, 'conversationRef')
     ? payload.conversationRef
-    : (
-      hasOwnProperty(payload, 'conversation_ref')
-        ? payload.conversation_ref
-        : (hasOwnProperty(payload, 'sessionId') ? payload.sessionId : payload.session_id)
-    );
+    : payload.conversation_ref;
   const rawUserId = hasOwnProperty(payload, 'userId') ? payload.userId : payload.user_id;
 
   return {

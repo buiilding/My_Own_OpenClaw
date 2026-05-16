@@ -17,7 +17,8 @@ title: "IPC Query Runtime and Transcript Sync Helper Reference"
 - `frontend/src/main/query_payload_builder.cjs`
 - `tests/frontend/IpcMainBridge.query.test.cjs`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
-- `tests/frontend/TranscriptWriter.session.test.ts`
+- `tests/frontend/IpcTranscriptSessionSync.test.cjs`
+- `tests/frontend/TranscriptSessionSyncPayload.test.ts`
 
 ## Query Helper Ownership (`ipc_query_runtime.cjs`)
 
@@ -74,9 +75,9 @@ Used by `sendAutomatedQuery(...)` in `ipc.cjs`.
 
 ### `normalizeTranscriptSessionSyncPayload(payload)`
 
-Accepted alias keys:
+Accepted identity keys:
 
-- conversation: `conversationRef`, `conversation_ref`, `sessionId`, `session_id`
+- conversation: `conversationRef`, `conversation_ref`
 - user: `userId`, `user_id`
 
 Normalization semantics:
@@ -135,14 +136,14 @@ Returns:
 - transcript-session sync from one renderer updates fallback conversation context for another renderer
 - sender window is excluded from transcript-session sync rebroadcast
 
-`tests/frontend/TranscriptWriter.session.test.ts`:
+`tests/frontend/IpcTranscriptSessionSync.test.cjs` and `TranscriptSessionSyncPayload.test.ts`:
 
 - renderer inbound transcript-session updates apply locally without echoing back to main
 
 ## Drift Hotspots
 
 1. Reintroducing ad-hoc payload mutation in `ipc.cjs` can desync renderer query and automated query behavior.
-2. Dropping alias normalization in transcript sync helper can break compatibility with existing renderer payload shapes.
+2. Reintroducing `sessionId`/`session_id` as chat identity aliases can bind durable conversation state to backend runtime sessions.
 3. Failing to preserve explicit `null` semantics can prevent intended conversation/session clears.
 4. Sending attachment context/filenames in outbound backend payload can leak UI-only metadata into backend protocol surfaces.
 

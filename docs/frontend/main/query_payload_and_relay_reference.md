@@ -24,7 +24,8 @@ title: "Query Payload and Relay Reference"
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 
 ## Relay Entry: `ipcMain.on('to-backend', ...)`
 
@@ -192,7 +193,7 @@ Main enriches backend and local events with tracked runtime context:
 Transcript session sync bridge:
 
 - renderer transcript subsystem emits `transcript-session-sync` on conversation/user updates
-- main delegates normalization/state-advance to `applyTranscriptSessionSync(...)` (`ipc_transcript_session_sync.cjs`) using aliases (`conversationRef|conversation_ref|sessionId|session_id`, `userId|user_id`)
+- main delegates normalization/state-advance to `applyTranscriptSessionSync(...)` (`ipc_transcript_session_sync.cjs`) using first-class identity keys (`conversationRef|conversation_ref`, `userId|user_id`)
 - normalized sync envelope is rebroadcast to other windows
 - this keeps query fallback conversation context and transcript writer session state aligned across multi-window sessions
 

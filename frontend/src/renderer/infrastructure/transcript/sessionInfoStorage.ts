@@ -14,11 +14,8 @@ export function readSessionInfoFromStorage(): SessionInfo {
     }
 
     const parsed = JSON.parse(raw);
-    const conversationRef = typeof parsed?.conversationRef === 'string'
-      ? parsed.conversationRef
-      : (typeof parsed?.sessionId === 'string' ? parsed.sessionId : null);
     return {
-      conversationRef,
+      conversationRef: typeof parsed?.conversationRef === 'string' ? parsed.conversationRef : null,
       userId: typeof parsed?.userId === 'string' ? parsed.userId : null,
     };
   } catch (_error) {
