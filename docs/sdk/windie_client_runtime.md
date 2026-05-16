@@ -56,6 +56,12 @@ const agent = await client.wakeUp({
   backendUrl: "https://api.windieos.com",
   systemPrompt: "You are a concise coding agent.",
   workspacePath: "/Users/me/project",
+  model: {
+    modelProvider: "openai",
+    modelId: "gpt-5.4@@gpt-5-4-medium-thinking",
+    modelMode: "online",
+    interactionMode: "agent"
+  },
   tools: [
     moduleTool({
       name: "save_note",
@@ -202,6 +208,8 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
 - desktop and custom SDK hosts use the same backend settings route for
   model/provider updates. Public SDK callers should use `agent.setModel(...)`
   rather than shaping `update-settings` payloads by hand.
+- `wakeUp({ model })` applies an initial backend settings update immediately
+  after websocket handshake and before the returned agent can send a turn.
 - high-level `agent.ask(...)`, `agent.run(...)`, and `agent.stream(...)` string
   helpers accept a `model` option and apply it before sending the turn; advanced
   callers can still use `conversation.setModel(...)` or per-turn conversation

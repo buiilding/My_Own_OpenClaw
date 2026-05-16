@@ -320,6 +320,45 @@ describe('WindieSdkClient', () => {
     });
   });
 
+  test('wakeUp applies an initial model selection after handshake', async () => {
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'initial-model-agent',
+      systemPrompt: 'Use selected models.',
+      model: {
+        modelProvider: 'openai',
+        modelId: 'gpt-5.4@@gpt-5-4-medium-thinking',
+        modelMode: 'online',
+        interactionMode: 'agent',
+      },
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    await wakePromise;
+
+    expect(JSON.parse(socket.sent[0])).toMatchObject({
+      type: 'handshake',
+      user_id: 'dev-user',
+    });
+    expect(JSON.parse(socket.sent[1])).toMatchObject({
+      type: 'update-settings',
+      payload: {
+        model_provider: 'openai',
+        selected_model_id: 'gpt-5.4@@gpt-5-4-medium-thinking',
+        model_mode: 'online',
+        interaction_mode: 'agent',
+      },
+      user_id: 'dev-user',
+    });
+  });
+
   test('agent.setModel validates SDK model selections before sending settings', async () => {
     const client = new WindieClient({
       backendUrl: 'https://api.windieos.com',

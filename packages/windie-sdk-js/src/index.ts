@@ -120,6 +120,7 @@ export type WindieWakeUpOptions = {
   conversationRef?: string;
   agentId?: string;
   name?: string;
+  model?: WindieModelSelection;
 };
 
 function rawBackendEventFromConversationEvent(event: ConversationEvent): BackendEvent | null {
@@ -467,6 +468,9 @@ export class WindieClient {
   }
 
   async wakeUp(options: WindieWakeUpOptions): Promise<WindieAgent> {
+    const initialModelSettings = options.model
+      ? buildModelSettingsPatch(options.model, 'WindieClient.wakeUp')
+      : null;
     const backendUrl = this.resolveBackendUrl(options.backendUrl);
     const localRuntime = await this.resolveLocalRuntimeForWakeUp(options);
     const sdkClient = this.createSdkClient(backendUrl);
@@ -484,6 +488,9 @@ export class WindieClient {
       agent_definition: agentDefinition,
     });
     await session.waitForOpen();
+    if (initialModelSettings) {
+      await session.updateSettings(initialModelSettings);
+    }
     const id = typeof agentDefinition.id === 'string' ? agentDefinition.id : createMessageId();
     const agent = new WindieAgent(id, session, agentDefinition, sdkClient, this, localRuntime);
     this.activeAgents.set(id, agent);
