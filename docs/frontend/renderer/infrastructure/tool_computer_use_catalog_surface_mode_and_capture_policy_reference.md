@@ -100,6 +100,5 @@ These values affect both full screenshot capture and system-state-only capture f
 
 ## Related Docs
 
-- [Tool Execution Service and Hook Runtime Reference](tool_execution_service_and_hook_runtime_reference.md)
 - [Tool Execution and Streaming](../../runtime/tool_execution_and_streaming.md)
 - [Frontend Renderer Infrastructure Docs Hub](README.md)

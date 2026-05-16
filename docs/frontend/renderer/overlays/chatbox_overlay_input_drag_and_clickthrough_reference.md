@@ -38,7 +38,7 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 This keeps overlay window lightweight:
 
 - no transcript writes
-- no frontend tool execution listeners
+- no SDK/main tool-dispatch listeners
 - chatbox still sends queries through `useChatMessageSender(...)`
 
 ## Send Path and Overlay Surface Policy

@@ -149,8 +149,6 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Renderer Tool-Ghost Lifecycle Docs Hub](renderer/overlays/tool_ghost/lifecycle/README.md)
 - [Tool Ghost Lifecycle System-State Sampling, Target Resolution, and Click Hide-Timer Reference](renderer/overlays/tool_ghost/lifecycle/tool_ghost_lifecycle_system_state_sampling_target_resolution_and_click_hide_timer_reference.md)
 - [Tool Ghost Track Style Variable and CSS Animation Contract Reference](renderer/overlays/tool_ghost/lifecycle/tool_ghost_track_style_variable_and_css_animation_contract_reference.md)
-- [Tool Execution Service and Hook Runtime Reference](renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
-- [Tool Execution Backend Envelope Builder and Payload-Gating Reference](renderer/infrastructure/tool_execution_backend_envelope_builder_and_payload_gating_reference.md)
 - [Tool Computer-Use Catalog, Surface Mode, and Capture Policy Reference](renderer/infrastructure/tool_computer_use_catalog_surface_mode_and_capture_policy_reference.md)
 - [Capture, Artifact Upload, and Payload Normalization Reference](renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
 - [Incoming Text Normalization Contract Reference](renderer/infrastructure/incoming_text_normalization_mojibake_and_lone_surrogate_contract_reference.md)

@@ -13,8 +13,6 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 
 - [Audio Docs Hub](audio/README.md)
 - [Player Service Queue, Generation, and Error-Recovery Reference](audio/player_service_queue_generation_and_error_recovery_reference.md)
-- [Retired Renderer Tool Execution Runtime Reference](tool_execution_service_and_hook_runtime_reference.md)
-- [Retired Renderer Tool Result Envelope Reference](tool_execution_backend_envelope_builder_and_payload_gating_reference.md)
 - [Tool Computer-Use Catalog, Surface Mode, and Capture Policy Reference](tool_computer_use_catalog_surface_mode_and_capture_policy_reference.md)
 - [Capture, Artifact Upload, and Payload Normalization Reference](capture_artifact_upload_and_payload_normalization_reference.md)
 - [Incoming Text Normalization Contract Reference](incoming_text_normalization_mojibake_and_lone_surrogate_contract_reference.md)

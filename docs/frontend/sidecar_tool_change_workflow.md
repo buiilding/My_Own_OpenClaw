@@ -76,7 +76,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | Backend schema or policy only | Focused backend schema/policy tests and docs-list. |
 | Sidecar implementation only | Focused sidecar tests for the tool plus shared schema parity if exposed. |
 | SDK/main dispatch/envelope | Focused SDK/frontend tool-coordinator tests and backend result handler tests if envelope changes. |
-| Cross-runtime tool change | Backend schema tests, frontend tool execution tests, sidecar tool tests, and docs-list. |
+| Cross-runtime tool change | Backend schema tests, SDK/main dispatch tests, sidecar tool tests, and docs-list. |
 | Browser tool change | Browser backend tests, sidecar browser tests, and browser runtime docs update. |
 
 ## Related Docs
@@ -85,5 +85,5 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 - [Tool Contracts](../tools/tool_contracts.md)
 - [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md)
 - [Sidecar Tool Catalog and Execution Model](sidecar/tool_catalog_and_execution_model.md)
-- [Frontend Tool Execution Service and Hook Runtime Reference](renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
+- [Windie Client Runtime](../sdk/windie_client_runtime.md)
 - [Code Change Surface Index](../reference/code_change_surface_index.md)

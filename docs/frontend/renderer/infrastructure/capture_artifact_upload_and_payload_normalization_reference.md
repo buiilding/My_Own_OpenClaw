@@ -149,7 +149,7 @@ Bundle helpers standardize UI/backend interchange:
 - `resolveBundleStatus(...)`: derives `success`/`partial_failure`/`failure`
 - `resolveBundleErrorMessage(...)`: only emits error for `failure`
 
-## Backend Envelope Builder Layer
+## SDK/Main Result Envelope Layer
 
 `ToolExecutionBackendPayload.ts` is the final send-side wrapper used by the SDK tool router/result relay:
 

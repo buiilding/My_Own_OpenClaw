@@ -17,7 +17,6 @@ title: "Renderer Chat Payload Docs Hub"
 
 - [Frontend Renderer Chat Docs Hub](../README.md)
 - [Chat Stream and Tool Execution Reference](../../chat_stream_and_tool_execution_reference.md)
-- [Tool Execution Service and Hook Runtime Reference](../../infrastructure/tool_execution_service_and_hook_runtime_reference.md)
 
 ## Code Scope
 

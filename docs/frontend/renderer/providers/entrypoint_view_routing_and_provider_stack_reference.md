@@ -80,7 +80,7 @@ Surface-specific body:
 Impact:
 
 - overlay windows still receive streamed state updates via chat store hooks
-- they avoid transcript writes and frontend tool execution side effects
+- they avoid transcript writes and SDK/main tool-dispatch side effects
 
 ## Wakeword Controller Placement
 
