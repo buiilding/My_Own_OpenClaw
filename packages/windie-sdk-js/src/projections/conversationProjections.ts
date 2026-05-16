@@ -76,6 +76,30 @@ function toolOutputDedupeKey(event: ConversationEvent): string | null {
   return toolCallId ? `tool-call:${toolCallId}` : null;
 }
 
+function toolPairKey(event: ConversationEvent): string | null {
+  if (event.type === 'tool_bundle_call' || event.type === 'tool_bundle_output') {
+    const bundleId = stringField(event.payload, 'bundleId', 'bundle_id');
+    return bundleId ? `bundle:${bundleId}` : null;
+  }
+  if (event.type === 'tool_call' || event.type === 'tool_output') {
+    const requestId = stringField(event.payload, 'requestId', 'request_id', 'correlationId', 'correlation_id');
+    if (requestId) {
+      return `request:${requestId}`;
+    }
+    const toolCallId = stringField(event.payload, 'toolCallId', 'tool_call_id');
+    return toolCallId ? `tool-call:${toolCallId}` : null;
+  }
+  return null;
+}
+
+function isToolCallEvent(event: ConversationEvent): boolean {
+  return event.type === 'tool_call' || event.type === 'tool_bundle_call';
+}
+
+function isToolOutputEvent(event: ConversationEvent): boolean {
+  return event.type === 'tool_output' || event.type === 'tool_bundle_output';
+}
+
 function recordFromUnknown(value: unknown): JsonRecord | null {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as JsonRecord
@@ -124,6 +148,33 @@ function withoutDuplicateToolOutputs(events: ConversationEvent[]): ConversationE
       return false;
     }
     seenOutputs.add(key);
+    return true;
+  });
+}
+
+function withoutDanglingToolPairs(events: ConversationEvent[]): ConversationEvent[] {
+  const callKeys = new Set<string>();
+  const outputKeys = new Set<string>();
+  for (const event of events) {
+    const key = toolPairKey(event);
+    if (!key) {
+      continue;
+    }
+    if (isToolCallEvent(event)) {
+      callKeys.add(key);
+    } else if (isToolOutputEvent(event)) {
+      outputKeys.add(key);
+    }
+  }
+  return events.filter(event => {
+    if (isToolCallEvent(event)) {
+      const key = toolPairKey(event);
+      return Boolean(key && outputKeys.has(key));
+    }
+    if (isToolOutputEvent(event)) {
+      const key = toolPairKey(event);
+      return Boolean(key && callKeys.has(key));
+    }
     return true;
   });
 }
@@ -301,7 +352,7 @@ function toRehydrateMessage(event: ConversationEvent): JsonRecord | null {
 
 export function buildRehydrateSnapshot(events: ConversationEvent[]): RehydrateSnapshot {
   const display = buildDisplayConversation(events);
-  const rehydrateEvents = withoutDuplicateToolOutputs(events);
+  const rehydrateEvents = withoutDanglingToolPairs(withoutDuplicateToolOutputs(events));
   return {
     conversationRef: display.conversationRef,
     revisionId: display.revisionId,

@@ -43,6 +43,7 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: add conversation-level model selection through `conversation.setModel(...)` and per-turn `model` options on send/stream/edit/retry.
 - sdk: let high-level `agent.ask(...)`, `agent.run(...)`, and `agent.stream(...)` string calls apply per-call model selections before sending turns.
 - sdk: let `WindieClient.wakeUp({ model })` apply an initial backend model selection after handshake and before the first turn.
+- sdk: drop dangling tool-call/tool-output events from backend rehydrate snapshots while keeping them visible in display/debug projections.
 - sdk: move backend websocket session framing and conversation transport adaptation into the SDK transport module.
 - sdk: move hosted backend HTTP SDK routes and public request/response types into a dedicated SDK transport module.
 - sdk: move high-level `agent.stream(...)` event projection and tool-output stream dedupe helpers into a dedicated SDK runtime module.

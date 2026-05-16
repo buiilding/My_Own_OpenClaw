@@ -83,7 +83,9 @@ only after the generation is complete and its entry count matches.
 
 When a complete active compacted replay generation exists, `rehydrate()` uses
 that replay snapshot. Otherwise it derives rehydrate messages from normalized
-events.
+events. Rehydrate projection keeps only complete tool-call/tool-output pairs;
+dangling calls, orphan outputs, or incomplete bundle pairs stay available to
+display/debug projections but are not sent back to backend provider history.
 
 ## Revision Rule
 

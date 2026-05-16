@@ -123,6 +123,9 @@ Common stored row families:
 - episodic/semantic memory rows
 
 Tool-call and tool-output rows must preserve enough structured metadata to rebuild strict provider history after rehydrate.
+The SDK rehydrate projection sends only complete tool-call/tool-output pairs:
+dangling tool calls, orphan tool outputs, and incomplete bundle pairs remain
+debug/display state rather than provider replay input.
 
 Minimum fields for tool-related transcript rows:
 

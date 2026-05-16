@@ -216,6 +216,47 @@ describe('Windie SDK conversation runtime core', () => {
     expect(buildRehydrateSnapshot(events).messages.filter(message => message.role === 'tool')).toHaveLength(1);
   });
 
+  test('rehydrate projection excludes partial tool history', () => {
+    const events = [
+      event('user_message', { text: 'inspect files' }),
+      event('tool_call', {
+        toolName: 'read_file',
+        requestId: 'req-complete',
+        toolCallId: 'call-complete',
+      }),
+      event('tool_output', {
+        text: 'complete result',
+        toolName: 'read_file',
+        requestId: 'req-complete',
+        toolCallId: 'call-complete',
+      }),
+      event('tool_call', {
+        toolName: 'read_file',
+        requestId: 'req-dangling-call',
+        toolCallId: 'call-dangling',
+      }),
+      event('tool_output', {
+        text: 'orphan output',
+        toolName: 'read_file',
+        requestId: 'req-dangling-output',
+        toolCallId: 'call-orphan',
+      }),
+      event('tool_bundle_call', {
+        bundleId: 'bundle-dangling',
+        tools: [],
+      }),
+    ];
+
+    const snapshot = buildRehydrateSnapshot(events);
+
+    expect(buildDisplayConversation(events).messages).toHaveLength(6);
+    expect(snapshot.messages).toEqual([
+      expect.objectContaining({ role: 'user', content: 'inspect files' }),
+      expect.objectContaining({ role: 'assistant', tool_call_id: 'call-complete' }),
+      expect.objectContaining({ role: 'tool', content: 'complete result', tool_call_id: 'call-complete' }),
+    ]);
+  });
+
   test('in-memory store is idempotent and only activates complete compaction snapshots', async () => {
     const store = new InMemoryConversationStore();
     const userEvent = event('user_message', { text: 'hello' });
