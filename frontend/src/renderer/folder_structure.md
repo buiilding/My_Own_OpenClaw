@@ -179,8 +179,7 @@ frontend/src/renderer/
 │   │   ├── MessageFormatter.ts          # MessageFormatter - Pure functions for formatting model-facing tool output text
 │   │   ├── ScreenshotAttachmentPipeline.ts # ScreenshotAttachmentPipeline - canonical screenshot capture/materialization/ref fallback service
 │   │   ├── SystemStateCapture.ts        # SystemStateCapture - explicit system-state capture service
-│   │   └── toolExecution/               # toolExecution - retained display/formatting models for tool output rendering
-│   │       ├── BundleExecutionModel.ts  # Bundle result display model shared with message formatting
+│   │   └── toolExecution/               # toolExecution - capture/debug helpers retained after SDK-owned tool routing migration
 │   │       ├── ToolExecutionLogger.ts   # Timing/log helpers used by capture services
 │   │       └── ToolScreenshotDebugTrace.ts # Gated screenshot/artifact debug trace helpers
 │   │

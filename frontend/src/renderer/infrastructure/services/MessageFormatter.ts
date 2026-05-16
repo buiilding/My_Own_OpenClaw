@@ -4,8 +4,6 @@
  * No side effects, no React dependencies.
  */
 
-import type { BundledToolResult } from './toolExecution/BundleExecutionModel';
-
 /**
  * System state structure
  */
@@ -33,6 +31,14 @@ export interface ToolResult {
     metadata?: Record<string, any>;
     [key: string]: any;
   } | string | null;
+}
+
+export interface BundledToolResult {
+  tool_name: string;
+  success: boolean;
+  error?: string | null;
+  data?: ToolResult['data'];
+  _rawResult?: ToolResult;
 }
 
 const NON_TEXT_DATA_KEYS = new Set([

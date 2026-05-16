@@ -1,12 +1,6 @@
 import {
-  logBundleDispatch,
-  logBundleFormatting,
-  logBundleStart,
-  logBundledToolStart,
-  logBundledToolTiming,
-  logBundleTiming,
-  logToolStart,
-  logToolTiming,
+  logScreenshotCaptureTiming,
+  logSystemStateCaptureTiming,
 } from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionLogger';
 
 describe('ToolExecutionLogger', () => {
@@ -22,48 +16,54 @@ describe('ToolExecutionLogger', () => {
     delete (window as any).__WINDIE_VERBOSE_TOOL_LOGS__;
   });
 
-  test('logToolStart returns truncated ids and default unknown id', () => {
-    expect(logToolStart('read_file', '1234567890abcdef')).toBe('1234567890abcde');
-    expect(logToolStart('read_file', undefined)).toBe('unknown');
-  });
-
   test('does not emit info logs in test mode by default', () => {
-    logToolStart('read_file', 'req-123');
-    logToolTiming({
-      toolName: 'read_file',
-      totalExecutionTime: 1,
-      toolInvokeTime: 0.2,
-      waitDelay: 0,
-      captureTime: 0,
-      shortId: 'req-123',
-      isComputerTool: false,
-      skipAutoCapture: false,
+    logScreenshotCaptureTiming({
+      correlationId: '1234567890abcdef',
+      waitTime: 0.1,
+      preparationTime: 0.2,
+      hideInvokeTime: 0.3,
+      settleTime: 0.4,
+      focusPrepTime: 0.5,
+      screenshotInvokeTime: 0.6,
+      restoreVisibilityTime: 0.7,
+      totalTime: 2.8,
     });
-    logBundleStart(2, 'bundle-1');
-    logBundledToolStart(1, 2, 'read_file');
-    logBundledToolTiming('read_file', 0.1);
-    logBundleFormatting(0.2);
-    logBundleDispatch();
-    logBundleTiming({
-      stepCount: 2,
-      bundleExecutionTime: 1.5,
-      totalToolTime: 0.8,
-      totalWaitDelay: 0.4,
-      totalCaptureTime: 0.3,
-      bundleId: 'bundle-1',
-      captured: true,
+    logSystemStateCaptureTiming({
+      correlationId: null,
+      waitTime: 0.1,
+      focusPrepTime: 0.2,
+      systemStateInvokeTime: 0.3,
+      totalTime: 0.6,
+      includeWindows: true,
     });
 
     expect(logSpy).not.toHaveBeenCalled();
   });
 
-  test('emits info logs when verbose flag is enabled', () => {
+  test('emits capture timing logs when verbose flag is enabled', () => {
     (window as any).__WINDIE_VERBOSE_TOOL_LOGS__ = true;
 
-    logToolStart('read_file', 'req-123');
-    logBundleStart(1, 'bundle-1');
-    logBundleDispatch();
+    logScreenshotCaptureTiming({
+      correlationId: '1234567890abcdef',
+      waitTime: 0.1,
+      preparationTime: 0.2,
+      hideInvokeTime: 0.3,
+      settleTime: 0.4,
+      focusPrepTime: 0.5,
+      screenshotInvokeTime: 0.6,
+      restoreVisibilityTime: 0.7,
+      totalTime: 2.8,
+    });
+    logSystemStateCaptureTiming({
+      correlationId: null,
+      waitTime: 0.1,
+      focusPrepTime: 0.2,
+      systemStateInvokeTime: 0.3,
+      totalTime: 0.6,
+      includeWindows: true,
+    });
 
-    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('capture_id=1234567890abcde'));
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('capture_id=unknown'));
   });
 });

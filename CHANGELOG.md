@@ -11,6 +11,7 @@ All notable changes to WindieOS will be documented in this file.
 - examples: show SDK model catalog loading and `conversation.setModel(...)` in the custom UI example.
 - frontend/sdk: add a renderer guardrail test so backend tool-result delivery stays owned by the SDK runtime.
 - frontend/sdk: move edit/resend and try-again rehydrate projection generation behind the Electron conversation store adapter.
+- frontend/sdk: remove the unused renderer bundle execution model and old tool-runner timing logs after SDK-owned tool routing.
 - docs: refocus the README around WindieOS as an open-source OS-layer Codex alternative, voice-first desktop companion, shared-screen collaborator, and hackable agent runtime.
 - backend/openai: synthesize Responses stream payloads from output item events and function-call argument deltas when OpenAI omits the terminal response envelope.
 - frontend: hide chat composer scrollbars across dashboard and minimal pill multiline drafts.
