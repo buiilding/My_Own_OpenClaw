@@ -102,6 +102,8 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/reference/code_change_surface_index.md',
       'docs/frontend/renderer/infrastructure/conversation_transcript_loader_and_display_bounds_storage_reference.md',
       'docs/frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md',
+      'docs/tools/tool_execution_lifecycle.md',
+      'frontend/src/renderer/folder_structure.md',
     ];
 
     const offenders: Record<string, string[]> = {};
@@ -119,6 +121,8 @@ describe('modular sdk refactor completion boundary', () => {
         'conversationReplayState.ts',
         'backward compatibility',
         'compatibility path',
+        'Frontend Tool Execution Service',
+        'Renderer invokes tool',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

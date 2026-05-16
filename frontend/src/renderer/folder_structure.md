@@ -522,7 +522,7 @@ App
 - `WAKEWORD_DISABLE` - Disable wakeword detection
 
 ### Invoke Channels (Renderer → Main, async)
-- `EXECUTE_TOOL` - Execute tool via Python sidecar
+- SDK conversation commands - send, stop, retry, edit/resend, and projection loading through app runtime clients
 - `GET_SYSTEM_STATE` - Get system state (active window, mouse, clipboard, etc.)
 - `STORE_MEMORY` - Store memory via Python sidecar
 - `SEARCH_MEMORY` - Search memory via Python sidecar
@@ -560,8 +560,13 @@ App
 
 ## Tool Execution Architecture
 
-### Computer-Use Tools
-Tools that automatically capture screenshots and system state:
+Renderer does not execute local tools or return backend tool results. It renders
+SDK display projections and runtime phase state. Electron main hosts the SDK
+runtime, routes tool calls to the sidecar, and returns exactly one
+`tool-result` or `tool-bundle-result` to the hosted backend.
+
+### Computer-Use Tool Projections
+Tools that may appear in renderer display projections:
 - `mouse_control`
 - `keyboard_control`
 - `scroll_control`
@@ -571,14 +576,13 @@ Tools that automatically capture screenshots and system state:
 - `run_shell_command` (if `wait` parameter provided)
 
 ### Tool Execution Options
-- `skipAutoCapture` - Skip automatic screenshot/system state capture
-- `correlationId` - Request ID for tracking tool execution
+- `skipAutoCapture` - SDK/main-side capture policy marker shown in debug payloads
+- `correlationId` - Request or bundle ID for display correlation
 
 ### Bundle Execution
-- Atomic bundles executed sequentially
-- Fail-fast: Stop on first error
-- Screenshot/system state captured only after last tool
-- Single combined message sent to backend
+- SDK runtime executes atomic bundles sequentially through the sidecar
+- Bundle result delivery is main-process SDK runtime behavior
+- Renderer receives display-only bundle/tool output projections
 
 ---
 

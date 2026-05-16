@@ -78,7 +78,7 @@ Tool execution can produce image context in several ways:
 - `wait` captures a fresh screen after delay.
 - mouse/keyboard/scroll actions may return post-action screenshots depending on executor behavior.
 - browser screenshots come from dedicated browser runtime.
-- renderer may upload local image refs to backend artifact routes before returning a tool result.
+- SDK/main runtime may upload or preserve local image refs before returning a tool result.
 
 Do not put large inline base64 payloads on hot JSON-RPC paths when a file ref or artifact ref is available. Keep artifact URL resolution in the frontend/backend endpoint stores rather than coupling display helpers to upload IPC.
 
@@ -88,9 +88,9 @@ Do not put large inline base64 payloads on hot JSON-RPC paths when a file ref or
 | --- | --- | --- |
 | Tool never appears in prompt | backend policy/profile/provider health | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) |
 | Model emits invalid args | backend schema, provider projection, parser recovery | [Tool Contracts](tool_contracts.md), [Backend Tools Docs Hub](../backend/tools/README.md) |
-| Backend emits `tool-call`, local execution does nothing | SDK runtime event normalization, tool coordinator, or Electron main runtime host | [Frontend Tool Execution Service](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md) |
+| Backend emits `tool-call`, local execution does nothing | SDK runtime event normalization, tool coordinator, or Electron main runtime host | [Windie Client Runtime](../sdk/windie_client_runtime.md) |
 | Backend tool event is missing request or bundle ids | SDK runtime malformed-event handling | SDK should store `runtime_error` with `reason: "malformed_tool_event"` and avoid invoking the sidecar without a result id |
-| Renderer invokes tool but sidecar says missing tool | sidecar registry/exposed-name parity | [Tool Catalog Matrix](tool_catalog_matrix.md), [Sidecar Registry](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md) |
+| SDK runtime invokes tool but sidecar says missing tool | sidecar registry/exposed-name parity | [Tool Catalog Matrix](tool_catalog_matrix.md), [Sidecar Registry](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md) |
 | Sidecar succeeds but model never sees result | result envelope/request id/waiting storage | [Backend Tool Result Ingress](../backend/tools/tool_result_ingress_and_storage_reference.md) |
 | Local tool output is stored as `deliveryFailed` | SDK transport/result delivery | SDK runtime should also append a turn error so UI/debug state does not treat the tool wait as completed successfully |
 | Tool output appears in UI but rehydrate breaks later | transcript/history shaping | [Memory Hub](../memory/README.md), [Backend History](../backend/agent/history/README.md) |
