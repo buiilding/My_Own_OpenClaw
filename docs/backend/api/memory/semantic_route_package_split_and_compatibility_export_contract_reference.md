@@ -29,7 +29,7 @@ Semantic route internals are split by responsibility:
 - `parser.py`: model-output parsing helpers for summary/fact extraction.
 - `service.py`: config resolution, LLM call flow, prompt building, title parsing, and sanitized error handling.
 
-`semantic/__init__.py` is a compatibility export surface, not a second runtime owner.
+`semantic/__init__.py` is the package entrypoint, not a second runtime owner.
 
 ## Router Registration Contract
 
@@ -41,7 +41,7 @@ Memory route package wiring stays stable:
 
 Result: switching to package internals does not change public API prefixes (`/api/semantic/*`).
 
-## Compatibility Export Surface
+## Package Export Surface
 
 `semantic/__init__.py` re-exports:
 
@@ -49,16 +49,13 @@ Result: switching to package internals does not change public API prefixes (`/ap
   - `summarize_conversations`
   - `generate_conversation_title`
   - `health_check`
-- compatibility parser helpers:
-  - `_parse_summarization_response`
-  - `_extract_fallback_facts`
 - route object:
   - `router`
 - service exports:
   - `SemanticSummarizationService`
   - `FALLBACK_TITLE`
 
-This allows existing imports like `from ...memory import semantic as semantic_routes` to keep working while tests and callers gradually move to direct package-module imports.
+Parser helpers are not route/package exports; import them directly from `backend/src/api/routes/memory/semantic/parser.py`.
 
 ## Handler Injection and Monkeypatch Contract
 
@@ -80,8 +77,8 @@ No global singleton service instance is retained across requests.
 
 `tests/backend/test_memory_routes.py` locks:
 
-- `semantic_routes` import shape from package export surface
-- parser helper alias behavior (`_parse_summarization_response`, `_extract_fallback_facts`)
+- `semantic_routes` route import shape from the package export surface
+- parser helper behavior (`parse_summarization_response`, `extract_fallback_facts`)
 - summarize/title route behavior with session config precedence and override handling
 - semantic health behavior with unhealthy fallback on unexpected container errors
 

@@ -56,13 +56,12 @@ runtime route object remains `semantic.router` through package exports:
 - route registration keeps importing `from .memory import embeddings, semantic`
 - `API_ROUTERS` still appends `semantic.router`
 
-Compatibility contract from `semantic/__init__.py`:
+Package contract from `semantic/__init__.py`:
 
-- re-exports route handlers and helper aliases (`_parse_summarization_response`, `_extract_fallback_facts`)
+- re-exports route handlers only; parser helpers live in `backend/src/api/routes/memory/semantic/parser.py`
 - re-exports `SemanticSummarizationService` and `FALLBACK_TITLE`
 
-This keeps imports used in existing route tests stable (`from ...memory import semantic as semantic_routes`) while
-semantic internals remain split into `router.py`, `models.py`, `parser.py`, and `service.py`.
+Route tests import the package route object through `from ...memory import semantic as semantic_routes`, while parser tests import parser helpers directly from `parser.py`.
 
 ## `/api/embeddings` Contract
 

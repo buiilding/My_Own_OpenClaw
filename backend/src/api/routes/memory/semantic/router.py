@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict
 
 from fastapi import APIRouter
 
@@ -195,12 +195,3 @@ async def health_check(container: ContainerDep) -> Dict[str, Any]:
         logger=logger,
         error_log_prefix="Semantic health check failed",
     )
-
-
-# Backward-compatible exports for existing tests/callers.
-def _parse_summarization_response(response_text: str) -> Tuple[str, List[str]]:
-    return parse_summarization_response(response_text)
-
-
-def _extract_fallback_facts(response_text: str) -> List[str]:
-    return extract_fallback_facts(response_text)

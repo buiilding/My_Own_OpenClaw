@@ -15,6 +15,10 @@ _original_deps = install_route_deps_shim()
 
 from backend.src.api.routes.memory import embeddings as embeddings_routes
 from backend.src.api.routes.memory import health as health_routes
+from backend.src.api.routes.memory.semantic.parser import (
+    extract_fallback_facts,
+    parse_summarization_response,
+)
 from backend.src.core.inference import EmbeddingRouter
 
 semantic_routes = importlib.import_module(
@@ -174,7 +178,7 @@ def test_parse_summarization_response_extracts_summary_and_facts() -> None:
         "- Prefers terminal tools\n"
     )
 
-    summary, facts = semantic_routes._parse_summarization_response(text)
+    summary, facts = parse_summarization_response(text)
 
     assert "prefers Python" in summary
     assert facts == ["Uses Linux daily", "Prefers terminal tools"]
@@ -188,7 +192,7 @@ def test_parse_summarization_response_extracts_bold_fact_label() -> None:
         "- Prefers terminal tools\n"
     )
 
-    summary, facts = semantic_routes._parse_summarization_response(text)
+    summary, facts = parse_summarization_response(text)
 
     assert "prefers Python" in summary
     assert facts == ["Uses Linux daily", "Prefers terminal tools"]
@@ -197,7 +201,7 @@ def test_parse_summarization_response_extracts_bold_fact_label() -> None:
 def test_extract_fallback_facts_filters_short_lines() -> None:
     text = "- ok\n- uses codex heavily\n- x\n* likes shell scripts"
 
-    facts = semantic_routes._extract_fallback_facts(text)
+    facts = extract_fallback_facts(text)
 
     assert "uses codex heavily" in facts
     assert "likes shell scripts" in facts
