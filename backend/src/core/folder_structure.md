@@ -12,13 +12,13 @@ backend/src/core/
 │   ├── handler_initializer.py        # HandlerInitializer - validates WebSocket message handlers are registered via DI container
 │
 ├── infrastructure/                    # Cross-cutting infrastructure components
-│   ├── __init__.py                    # Re-exports bus, cache, exceptions for backward compatibility
+│   ├── __init__.py                    # Public infrastructure exports
 │   ├── bus.py                         # EventBus - pub/sub event system with priority support and filtering
 │   ├── cache.py                       # Cache facade (re-exports store/manager/entry)
 │   ├── cache_entry.py                 # CacheEntry
 │   ├── cache_store.py                 # Cache - TTL + LRU in-memory cache
 │   ├── cache_manager.py               # CacheManager - shared caches
-│   ├── exceptions.py                  # Backward-compatible exception export facade (re-exports from error_types/)
+│   ├── exceptions.py                  # Public exception export facade (re-exports from error_types/)
 │   └── error_types/                   # Domain exception modules
 │       ├── __init__.py                # Public exception exports (stable surface)
 │       ├── base.py                    # BaseAppError + shared metadata/init helpers

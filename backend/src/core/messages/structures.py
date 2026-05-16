@@ -27,7 +27,7 @@ class StoredMessage:
     """
 
     role: MessageRole
-    content: str  # Rendered content for backward compatibility and LLM consumption
+    content: str  # Rendered provider-facing content.
     message_type: MessageType
     structured_content: Optional[MultimodalContent] = None
     timestamp: float = field(default_factory=time.time)
