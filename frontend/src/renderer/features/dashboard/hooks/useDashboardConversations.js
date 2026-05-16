@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   searchStoredConversations,
 } from '../../../infrastructure/transcript/localConversationStore';
-import { loadLocalConversationSnapshot } from '../../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import { buildChatMessagesFromDisplayConversation } from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
 import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
@@ -166,7 +165,7 @@ function useDashboardConversations({
     setRecentConversationsError('');
 
     try {
-      const snapshot = await loadLocalConversationSnapshot({
+      const snapshot = await DesktopConversationLibraryClient.loadLocalConversationSnapshot({
         userId: resolvedUserId,
         conversationRef,
         conversation,

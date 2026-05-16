@@ -1,4 +1,5 @@
 const mockLoadRehydrateSnapshot = jest.fn();
+const mockLoadLocalConversationSnapshot = jest.fn();
 const mockRehydrateConversation = jest.fn();
 const mockReplaceCompactedReplay = jest.fn();
 
@@ -11,6 +12,10 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRu
     recordToolMessage: jest.fn(),
     replaceCompactedReplay: (...args: unknown[]) => mockReplaceCompactedReplay(...args),
   },
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/transcript/conversationLocalSnapshotLoader', () => ({
+  loadLocalConversationSnapshot: (...args: unknown[]) => mockLoadLocalConversationSnapshot(...args),
 }));
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopBackendCommandRuntimeClient', () => ({
@@ -44,8 +49,34 @@ describe('DesktopConversationRuntimeClient', () => {
   beforeEach(() => {
     jest.resetModules();
     mockLoadRehydrateSnapshot.mockReset();
+    mockLoadLocalConversationSnapshot.mockReset();
     mockRehydrateConversation.mockReset();
     mockReplaceCompactedReplay.mockReset();
+  });
+
+  test('loadLocalConversationSnapshot keeps transcript snapshot loading behind the facade', async () => {
+    mockLoadLocalConversationSnapshot.mockResolvedValueOnce({
+      transcriptEntries: [],
+      replayEntries: [],
+      workspaceBinding: { workspacePath: '/repo', workspaceName: 'repo' },
+      parsedMessages: [],
+      rehydrateMessages: [],
+    });
+    const { DesktopConversationRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
+    );
+
+    await expect(DesktopConversationRuntimeClient.loadLocalConversationSnapshot({
+      conversationRef: 'conv-local',
+      userId: 'user-1',
+    })).resolves.toMatchObject({
+      workspaceBinding: { workspacePath: '/repo' },
+    });
+
+    expect(mockLoadLocalConversationSnapshot).toHaveBeenCalledWith({
+      conversationRef: 'conv-local',
+      userId: 'user-1',
+    });
   });
 
   test('rehydrateFromStore loads the SDK projection and sends backend rehydrate behind the facade', async () => {

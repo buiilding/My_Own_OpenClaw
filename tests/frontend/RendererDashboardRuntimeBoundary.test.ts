@@ -64,4 +64,19 @@ describe('renderer dashboard runtime boundary', () => {
 
     expect(offenders).toEqual([]);
   });
+
+  test('dashboard feature code loads local conversation snapshots through runtime facades', async () => {
+    const files = await listSourceFiles(dashboardRoot);
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      const relativePath = path.relative(dashboardRoot, file);
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('conversationLocalSnapshotLoader')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
 });

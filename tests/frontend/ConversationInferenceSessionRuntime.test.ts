@@ -1,4 +1,3 @@
-import { loadLocalConversationSnapshot } from '../../frontend/src/renderer/infrastructure/transcript/conversationLocalSnapshotLoader';
 import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
 import {
   clearConversationInferenceSessionState,
@@ -12,20 +11,16 @@ import {
 
 jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
   DesktopConversationRuntimeClient: {
+    loadLocalConversationSnapshot: jest.fn(),
     rehydrateFromStore: jest.fn(),
     rehydrate: jest.fn(),
   },
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/conversationLocalSnapshotLoader', () => ({
-  loadLocalConversationSnapshot: jest.fn(),
-}));
-
 const mockDesktopRuntime = DesktopConversationRuntimeClient as jest.Mocked<typeof DesktopConversationRuntimeClient>;
-const mockLoadLocalConversationSnapshot = loadLocalConversationSnapshot as jest.MockedFunction<typeof loadLocalConversationSnapshot>;
 
 function mockLocalSnapshot() {
-  mockLoadLocalConversationSnapshot.mockResolvedValue({
+  mockDesktopRuntime.loadLocalConversationSnapshot.mockResolvedValue({
     transcriptEntries: [],
     replayEntries: [],
     workspaceBinding: {
@@ -42,7 +37,7 @@ describe('conversationInferenceSessionRuntime', () => {
     invalidateConversationInferenceSessionState();
     mockDesktopRuntime.rehydrate.mockReset();
     mockDesktopRuntime.rehydrateFromStore.mockReset();
-    mockLoadLocalConversationSnapshot.mockReset();
+    mockDesktopRuntime.loadLocalConversationSnapshot.mockReset();
     mockLocalSnapshot();
   });
 
@@ -59,8 +54,8 @@ describe('conversationInferenceSessionRuntime', () => {
       userId: 'user-1',
     });
 
-    expect(mockLoadLocalConversationSnapshot).toHaveBeenCalledTimes(1);
-    expect(mockLoadLocalConversationSnapshot).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockDesktopRuntime.loadLocalConversationSnapshot).toHaveBeenCalledTimes(1);
+    expect(mockDesktopRuntime.loadLocalConversationSnapshot).toHaveBeenCalledWith(expect.objectContaining({
       recordKind: 'conversation_event',
     }));
     expect(mockDesktopRuntime.rehydrateFromStore).toHaveBeenCalledTimes(1);
@@ -114,7 +109,7 @@ describe('conversationInferenceSessionRuntime', () => {
       userId: 'user-1',
     });
 
-    expect(mockLoadLocalConversationSnapshot).not.toHaveBeenCalled();
+    expect(mockDesktopRuntime.loadLocalConversationSnapshot).not.toHaveBeenCalled();
     expect(mockDesktopRuntime.rehydrateFromStore).not.toHaveBeenCalled();
     expect(mockDesktopRuntime.rehydrate).not.toHaveBeenCalled();
     expect(getConversationInferenceSessionState('conv-fresh')).toBe('hydrated');

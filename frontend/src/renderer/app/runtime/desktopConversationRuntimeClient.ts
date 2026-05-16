@@ -13,6 +13,10 @@ import {
   type SendConversationRehydrateInput,
 } from './desktopBackendCommandRuntimeClient';
 import {
+  loadLocalConversationSnapshot,
+  type LocalConversationSnapshot,
+} from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
+import {
   DesktopTranscriptProjectionRuntimeClient,
   type LoadRehydrateSnapshotInput,
   type TranscriptProjectionRewriteEntry,
@@ -289,6 +293,12 @@ export const DesktopConversationRuntimeClient = {
       messages,
       workspacePath: input.workspacePath ?? null,
     });
+  },
+
+  async loadLocalConversationSnapshot(
+    input: Parameters<typeof loadLocalConversationSnapshot>[0],
+  ): Promise<LocalConversationSnapshot> {
+    return loadLocalConversationSnapshot(input);
   },
 
   async editAndResend(input: RewriteAndResendInput): Promise<void> {

@@ -1,6 +1,9 @@
 import {
   DesktopTranscriptProjectionRuntimeClient,
 } from './desktopTranscriptProjectionRuntimeClient';
+import {
+  loadLocalConversationSnapshot,
+} from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
 
 export const DesktopConversationLibraryClient = {
   async listMetadata(userId, options) {
@@ -13,5 +16,9 @@ export const DesktopConversationLibraryClient = {
 
   async deleteConversation(userId, conversationRef) {
     await DesktopTranscriptProjectionRuntimeClient.deleteConversation(userId, conversationRef);
+  },
+
+  async loadLocalConversationSnapshot(input) {
+    return loadLocalConversationSnapshot(input);
   },
 };

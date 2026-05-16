@@ -1,4 +1,3 @@
-import { loadLocalConversationSnapshot } from '../../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import {
   getConversationWorkspaceBinding,
   setConversationWorkspaceBinding,
@@ -151,7 +150,7 @@ export async function ensureConversationInferenceSessionHydrated({
   const startingEpoch = connectionEpoch;
   const ensurePromise = (async () => {
     const normalizedUserId = resolveUserId(userId);
-    const snapshot = await loadLocalConversationSnapshot({
+    const snapshot = await DesktopConversationRuntimeClient.loadLocalConversationSnapshot({
       userId: normalizedUserId,
       conversationRef: normalizedConversationRef,
       recordKind,
