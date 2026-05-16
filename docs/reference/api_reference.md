@@ -20,9 +20,10 @@ The intended SDK split is:
 
 SDK consumers should not need to start a local backend process just to use hosted OCR or prediction routes.
 
-The repo now also includes transport-only SDK client wrappers in:
+The canonical TypeScript SDK surface is the standalone `@windie/sdk` package in
+`packages/windie-sdk-js`. The repo also keeps compatibility client wrappers in:
 
-- `frontend/src/renderer/infrastructure/api/windieSdkClient.ts` (TypeScript)
+- `frontend/src/renderer/infrastructure/api/windieSdkClient.ts` (TypeScript compatibility)
 - `frontend/src/main/python/core/windie_sdk_client.py` (Python)
 
 These clients talk only to the public backend surfaces documented here:
@@ -30,7 +31,7 @@ These clients talk only to the public backend surfaces documented here:
 - HTTP: `/api/artifacts/*`, `/api/sdk/*`
 - WebSocket: `/ws`
 
-The renderer side also exposes a stable barrel import at `frontend/src/renderer/infrastructure/api/index.ts`, while the sidecar exports `WindieSdkClient` from `frontend/src/main/python/core/__init__.py`.
+The renderer side also exposes a compatibility barrel import at `frontend/src/renderer/infrastructure/api/index.ts`, while the sidecar exports `WindieSdkClient` from `frontend/src/main/python/core/__init__.py`.
 The hosted SDK clients are intentionally separate from the renderer `ApiClient`, which is the Electron IPC bridge used by the desktop app itself.
 
 Backend message dispatch is handled by `MessageHandlerRegistry` in `backend/src/api/infrastructure/registry.py`.
@@ -332,7 +333,7 @@ These routes are for hosted backend use. They are not meant to require SDK consu
 ### TypeScript Client Example
 
 ```ts
-import { WindieClient, moduleTool } from '../frontend/src/renderer/infrastructure/api';
+import { WindieClient, moduleTool } from '@windie/sdk';
 
 const client = new WindieClient();
 

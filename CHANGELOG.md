@@ -51,6 +51,7 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: move `WindieClient` wake-up, websocket session creation, model initialization, and local-runtime orchestration into a dedicated SDK runtime module.
 - sdk: move sidecar daemon HTTP, discovery, auto-start, and `moduleTool(...)` helpers into the SDK local-runtime module.
 - docs: refresh tool execution ownership references from the deleted renderer tool runner to the SDK runtime and Electron main host.
+- docs: point public TypeScript SDK examples at the standalone `@windie/sdk` package instead of the renderer compatibility barrel.
 - frontend/sdk: route renderer model-list refreshes through `ApiClient.listModels()` instead of direct backend IPC sends.
 - frontend/sdk: remove `ChatProvider`'s renderer tool-runner mount path so desktop chat surfaces only subscribe to stream state while SDK main owns local tool execution.
 - frontend/sdk: stop mounting renderer-side local tool execution by default now that SDK main runtime owns local tool routing.
