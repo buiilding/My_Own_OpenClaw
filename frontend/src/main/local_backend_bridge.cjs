@@ -43,6 +43,11 @@ let readinessCheckToken = 0;
 
 const LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES = 128 * 1024;
 const isTestEnv = process.env.NODE_ENV === 'test';
+const CHAT_LIST_DEBUG_METHODS = new Set([
+  'list_conversations',
+  'search_conversations',
+  'get_conversation',
+]);
 let runtimeScreenCaptureCapabilityVerifier = async () => ({
   granted: false,
   reason: 'Local backend bridge is not initialized.',
@@ -58,6 +63,31 @@ const localBackendSupervisor = createLocalBackendSupervisor();
 let sidecarDaemonManager = null;
 let sidecarDaemonRpcLaunchOptions = null;
 let daemonBackendProcessRef = null;
+
+function summarizeLocalRpcResult(result) {
+  const data = result?.data || result?.result?.data || {};
+  if (Array.isArray(data.conversations)) {
+    return {
+      success: result?.success !== false,
+      conversationCount: data.conversations.length,
+      firstConversationIds: data.conversations.slice(0, 5).map((conversation) => (
+        conversation?.conversation_id || conversation?.conversationId || null
+      )),
+      firstTitles: data.conversations.slice(0, 5).map((conversation) => conversation?.title || null),
+    };
+  }
+  if (Array.isArray(data.memories)) {
+    return {
+      success: result?.success !== false,
+      memoryCount: data.memories.length,
+    };
+  }
+  return {
+    success: result?.success !== false,
+    dataKeys: data && typeof data === 'object' ? Object.keys(data) : [],
+    error: result?.error || null,
+  };
+}
 
 function isBackendReady() {
   return localBackendSupervisor.getSnapshot().ready;
@@ -687,12 +717,27 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   }
 
   const registerRpcHandler = (channel, method, mapParams) => {
-    ipcMain.handle(channel, async (event, payload = {}) => (
-      sendRequestOrError(
-        method,
-        mapParams(payload || {}),
-      )
-    ));
+    ipcMain.handle(channel, async (event, payload = {}) => {
+      const params = mapParams(payload || {});
+      if (CHAT_LIST_DEBUG_METHODS.has(method)) {
+        console.log('[LocalBackend][RPC]', 'request', {
+          channel,
+          method,
+          params,
+          backendReady: isBackendReady(),
+          daemonSnapshot: sidecarDaemonManager?.getSnapshot?.() || null,
+        });
+      }
+      const result = await sendRequestOrError(method, params);
+      if (CHAT_LIST_DEBUG_METHODS.has(method)) {
+        console.log('[LocalBackend][RPC]', 'response', {
+          channel,
+          method,
+          summary: summarizeLocalRpcResult(result),
+        });
+      }
+      return result;
+    });
   };
 
   ipcMain.handle('execute-tool', executeToolRuntime.executeTool);

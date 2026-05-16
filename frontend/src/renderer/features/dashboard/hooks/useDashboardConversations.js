@@ -28,6 +28,13 @@ import {
   shouldRetryRecentConversationsLoad,
 } from '../utils/dashboardConversationLoad';
 
+function logDashboardConversations(stage, payload = {}) {
+  if (typeof console === 'undefined') {
+    return;
+  }
+  console.log('[DashboardConversations]', stage, payload);
+}
+
 function useDashboardConversations({
   resolvedUserId,
   sessionConversationRef,
@@ -52,8 +59,12 @@ function useDashboardConversations({
   const recentConversationLoadRequestIdRef = useRef(0);
   const recentConversationLoadInFlightRef = useRef(null);
 
-  const loadRecentConversations = useCallback(async () => {
+  const loadRecentConversations = useCallback(async (trigger = 'manual') => {
     if (typeof resolvedUserId !== 'string' || resolvedUserId.trim().length === 0) {
+      logDashboardConversations('load-skip-no-user', {
+        trigger,
+        resolvedUserId,
+      });
       setIsLoadingRecentConversations(false);
       setRecentConversationsError('');
       return [];
@@ -61,19 +72,29 @@ function useDashboardConversations({
 
     const activeLoad = recentConversationLoadInFlightRef.current;
     if (activeLoad && activeLoad.userId === resolvedUserId) {
+      logDashboardConversations('load-dedupe-in-flight', {
+        trigger,
+        userId: resolvedUserId,
+      });
       return activeLoad.promise;
     }
 
     const requestId = recentConversationLoadRequestIdRef.current + 1;
     recentConversationLoadRequestIdRef.current = requestId;
+    logDashboardConversations('load-start', {
+      trigger,
+      requestId,
+      userId: resolvedUserId,
+    });
     setIsLoadingRecentConversations(true);
     setRecentConversationsError('');
 
     const loadMarker = {};
     const requestPromise = (async () => {
       try {
+        const metadataList = await DesktopConversationLibraryClient.listMetadata(resolvedUserId);
         const list = normalizeRecentConversations(
-          (await DesktopConversationLibraryClient.listMetadata(resolvedUserId)).map((metadata) => ({
+          metadataList.map((metadata) => ({
             conversation_id: metadata.conversationRef,
             record_kind: 'conversation_event',
             title: metadata.title || metadata.conversationRef,
@@ -87,12 +108,29 @@ function useDashboardConversations({
 
         // Ignore stale loads so older responses cannot overwrite newer user/session state.
         if (recentConversationLoadRequestIdRef.current !== requestId) {
+          logDashboardConversations('load-stale-response-ignored', {
+            trigger,
+            requestId,
+            activeRequestId: recentConversationLoadRequestIdRef.current,
+            userId: resolvedUserId,
+            metadataCount: metadataList.length,
+            normalizedCount: list.length,
+          });
           return list;
         }
 
         recentConversationsRetryAttemptRef.current = 0;
         setRecentConversations(list);
         setPinnedConversationRefs((current) => prunePinnedConversationRefs(current, list));
+        logDashboardConversations('load-success', {
+          trigger,
+          requestId,
+          userId: resolvedUserId,
+          metadataCount: metadataList.length,
+          normalizedCount: list.length,
+          firstConversationIds: list.slice(0, 5).map((conversation) => conversation.conversation_id),
+          firstTitles: list.slice(0, 5).map((conversation) => conversation.title),
+        });
 
         return list;
       } catch (error) {
@@ -101,6 +139,12 @@ function useDashboardConversations({
         }
         const errorMessage = error?.message || 'Failed to load recent chats';
         setRecentConversationsError(errorMessage);
+        logDashboardConversations('load-error', {
+          trigger,
+          requestId,
+          userId: resolvedUserId,
+          error: errorMessage,
+        });
         return [];
       } finally {
         if (recentConversationLoadRequestIdRef.current === requestId) {
@@ -319,13 +363,15 @@ function useDashboardConversations({
   }, []);
 
   useEffect(() => {
-    loadRecentConversations();
+    loadRecentConversations('mount');
   }, [loadRecentConversations]);
 
   useEffect(() => {
     const reloadWhenLocalBackendReady = () => {
-      if (getLocalBackendStatusSnapshot().ready === true) {
-        void loadRecentConversations();
+      const snapshot = getLocalBackendStatusSnapshot();
+      logDashboardConversations('local-backend-status', snapshot);
+      if (snapshot.ready === true) {
+        void loadRecentConversations('local-backend-ready');
       }
     };
 
@@ -369,14 +415,14 @@ function useDashboardConversations({
         ? detail.conversationRef
         : '';
       if (role === 'user' && messageType === 'user') {
-        void loadRecentConversations();
+        void loadRecentConversations('transcript-user-entry-stored');
         return;
       }
       if (role !== 'assistant' || messageType !== 'llm-text') {
         return;
       }
       if (!conversationRef) {
-        void loadRecentConversations();
+        void loadRecentConversations('transcript-assistant-entry-stored-no-conversation');
         return;
       }
       scheduleTitleVisibilityPoll(conversationRef);
