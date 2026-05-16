@@ -65,7 +65,7 @@ sequenceDiagram
     Provider->>Chat: availableModels + config
     Dashboard->>Provider: updateConfig(selected_model_id/model_provider/provider_api_keys)
     Chat->>Provider: updateConfig(selected_model_id/model_provider)
-    Provider->>Main: update-settings using SDK model-selection patch
+    Provider->>Main: setModel using SDK model-selection patch
     Main->>Backend: settings patch with ACK id
 ```
 
@@ -173,7 +173,7 @@ Persistence rules:
   `{ enabled, api_key }`.
 - If a default selected model changes, update frontend local defaults and
   backend `AppConfig` defaults together.
-- First-query settings sync must still send the latest model selection before a
+- First-query `ApiClient.setModel(...)` sync must still send the latest model selection before a
   query reaches the backend.
 
 ## Debug Routes

@@ -102,7 +102,7 @@ Send pipeline details:
 
 - optimistic user row insert before backend send
 - query screenshot artifact resolution via `resolveQueryScreenshotArtifacts(...)`
-- deferred model settings patch (`buildDeferredQueryModelConfig`) sent immediately before `sendQuery(...)` when needed
+- deferred model selection (`buildDeferredQueryModelSelection`) sent through `ApiClient.setModel(...)` immediately before `sendQuery(...)` when needed
 - transcript write uses resolved conversation/session info at send time
 
 `useChatStream.ts` remains the canonical stream-event state machine and stale-turn guard boundary for renderer message updates.

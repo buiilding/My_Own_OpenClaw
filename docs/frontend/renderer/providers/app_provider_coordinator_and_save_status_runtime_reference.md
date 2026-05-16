@@ -114,7 +114,7 @@ One-time model-list request guard:
 3. invoke save-status callback if registered
 4. persist localStorage
 5. async save to disk via IPC invoke
-6. send backend `update-settings` via `ApiClient.updateSettings`
+6. send backend `update-settings` via `ApiClient.updateSettings` for non-model settings
 
 Shared commit path:
 
@@ -181,7 +181,7 @@ If settings button shows perpetual saving:
 
 If updates appear in UI but not backend:
 
-1. verify `ApiClient.updateSettings` call after `updateConfig`
+1. verify `ApiClient.updateSettings` call after `updateConfig` for non-model settings; model selection should wait for `ApiClient.setModel(...)`
 2. inspect `buildMergedFrontendConfig` filtering for dropped keys
 3. verify connection snapshot path triggers `syncCurrentConfigToBackend` when connected
 

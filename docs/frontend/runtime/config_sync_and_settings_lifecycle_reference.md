@@ -58,10 +58,11 @@ Responsibilities:
 
 - source config state from localStorage on startup
 - request model list once for main view through `ApiClient.listModels()`
-- sync config to backend on connection availability
+- sync non-model config to backend on connection availability
 - merge disk/local updates with current in-memory config
 - persist updates to localStorage and disk
 - publish `update-settings` through `ApiClient`
+- leave deferred model/provider selection to `ApiClient.setModel(...)` on send/replay/compaction paths
 - derive the wakeword preference from persisted `config.wakeword_enabled`
 
 Important guardrails:

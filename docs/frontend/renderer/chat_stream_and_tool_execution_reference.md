@@ -115,7 +115,7 @@ Persisted thinking cleanup contract from `chatStreamThinkingStatus.ts`:
 9. record transcript user row
 10. emit backend `query` via `ApiClient.sendQuery`
 
-Before final query dispatch, hook may send immediate model/provider updates via `ApiClient.updateSettings(...)` when deferred-model config changes are detected.
+Before final query dispatch, the hook may send immediate model/provider updates via `ApiClient.setModel(...)` when deferred-model selection changes are detected.
 
 Failure handling:
 
