@@ -153,26 +153,27 @@ Capabilities:
 - Mounts provider stack (`AppProvider` + `ChatProvider`) with shared status/config hooks.
 - Provider-level config comparison/persistence guards avoid redundant writes and stale-config merges.
 - Enforces permission-onboarding gate before dashboard/chat runtime.
-- Boots wakeword controller and chat stream/tool-runner runtime at app scope.
+- Boots wakeword controller and chat stream display runtime at app scope; local tool execution is owned by the SDK main runtime.
 
 ## 6) Renderer Chat + Stream + Tool Execution
 
 Primary files:
 
-- `frontend/src/renderer/features/chat/hooks/{useChatMessageSender,useChatStream,useToolRunner,useStreamMessageUpdaters}.ts`
+- `frontend/src/renderer/features/chat/hooks/{useChatMessageSender,useChatStream,useStreamMessageUpdaters}.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/components/*`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
+- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 
 Capabilities:
 
 - Message send pipeline supports typed payload normalization and optional screenshot artifact upload.
 - Streaming pipeline handles thought/chunk/complete/error/tool/context-compaction event families.
-- Shared turn-scoped stream guards reject stale reply, metadata, compaction, terminal, and tool packets per workspace; tool runner reuses the same handoff semantics for stale-turn cancellation.
-- Tool runner executes single and bundle tool requests and posts structured result payloads back to backend.
-- Transcript writer persists user/assistant/tool entries with pending-queue retry semantics.
+- Shared turn-scoped stream guards reject stale reply, metadata, compaction, terminal, and tool packets per workspace; SDK runtime owns stale local tool waits.
+- SDK runtime executes single and bundle tool requests through the sidecar local-runtime adapter and posts structured result payloads back to backend.
+- Desktop transcript projection runtime persists user/assistant/tool entries with pending-queue retry semantics.
 - Tool execution service includes capture, artifact upload, formatting, and backend callback fanout.
 - Tool-runner safety flow no longer exposes separate overlay-prep IPC; renderer surface orchestration plus main-process overlay phase handling own the loop guard behavior.
 

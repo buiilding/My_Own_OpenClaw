@@ -36,7 +36,7 @@ This matrix maps frontend capabilities to implementation files.
 
 | Capability | Primary files | Notes |
 | --- | --- | --- |
-| Backend websocket handshake + relay | `frontend/src/main/ipc.cjs`, `frontend/src/main/backend_endpoints.cjs` | Manages `/ws` session and relays stream events to renderer. |
+| Backend websocket handshake + relay | `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/ipc.cjs`, `frontend/src/main/backend_endpoints.cjs` | SDK-managed `/ws` session and renderer-safe stream fan-out. |
 | First-query settings ACK gate | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc.cjs` | Runs timeout-bound settings ACK before first query send. |
 | IPC helper module split | `frontend/src/main/ipc/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc/ipc_renderer_windows.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs` | Shared helper boundaries for relay/send/failure semantics. |
 | Query payload construction | `frontend/src/main/query_payload_builder.cjs` | Adds system/memory context and query metadata before send. |
@@ -69,10 +69,10 @@ This matrix maps frontend capabilities to implementation files.
 | --- | --- | --- |
 | Message send and capture path | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/infrastructure/services/{ScreenshotAttachmentPipeline,SystemStateCapture,ArtifactUploader}.ts` | Sends message, captures screenshots and system state through separate services, uploads artifacts, dispatches query. |
 | Backend stream event handling | `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, `frontend/src/renderer/features/chat/utils/chatStream/chatStream*.ts` | Handles thought/chunk/complete/error/tool/context-compaction event classes. |
-| Tool call execution and stale-turn cancel | `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`, `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerMessages.ts` | Executes tool/tool-bundle and sends cancellation results when turn is stale. |
-| Tool execution orchestration service | `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`, `ToolExecution*.ts` helper modules | Formats payloads, capture orchestration, backend callback dispatch. |
+| Tool call execution and stale-turn cancel | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`, `frontend/src/main/windie_sdk_runtime.cjs` | Executes tool/tool-bundle through the sidecar local-runtime adapter and sends explicit failure results for stale or failed waits. |
+| Tool display projection | `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`, `frontend/src/renderer/features/chat/utils/chatStream/chatStreamFormatting.ts` | Renders tool-call/tool-output cards from SDK/main fan-out without executing local tools in the renderer. |
 | Chat state store and selectors | `frontend/src/renderer/features/chat/stores/chatStore.ts`, `frontend/src/renderer/features/chat/utils/chatSelectors.js` | Message list, stream phase, token and turn tracking state. |
-| Transcript persistence and retry queues | `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`, `pending*Queue.ts`, `sessionInfo*.ts` | Session tracking plus queued retry when transcript write fails. |
+| Transcript persistence and retry queues | `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`, `pending*Queue.ts`, `sessionInfo*.ts` | SDK-facing projection runtime owns session tracking plus queued retry when transcript write fails. |
 | IPC channel constants and typed bridge | `frontend/src/renderer/infrastructure/ipc/{channels,bridge}.ts` | Canonical channel names and runtime bridge wrappers. |
 
 ## 6) Renderer Dashboard, Settings, Permissions, Voice

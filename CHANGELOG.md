@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs: refresh frontend inventory and tool-event docs so deleted renderer tool-runner and transcript-writer paths no longer appear as current owners.
 - frontend/sdk: hide the low-level desktop `sendRehydrate` command behind the semantic conversation-runtime `rehydrate` facade.
 - frontend/sdk: remove the singular `clipboardImage` sender compatibility payload so chat attachments use only the canonical `clipboardImages[]` array.
 - frontend/sdk: remove `sessionId`/`session_id` as transcript-session chat identity aliases so renderer/main transcript sync only accepts `conversationRef`/`conversation_ref`.

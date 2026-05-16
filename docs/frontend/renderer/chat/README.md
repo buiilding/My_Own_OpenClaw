@@ -1,5 +1,5 @@
 ---
-summary: "Frontend renderer chat docs sub-hub for message-send policy, stream/update flow, tool-runner handling, and transcript persistence contracts."
+summary: "Frontend renderer chat docs sub-hub for message-send policy, stream/update flow, SDK tool display handling, and transcript projection contracts."
 read_when:
   - When changing `frontend/src/renderer/features/chat/*` hooks/components/store contracts.
   - When debugging send-stream-tool state differences between dashboard and overlay chat surfaces.
@@ -50,7 +50,6 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useStreamMessageUpdaters.ts`
-- `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatCommonActions.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils.ts`
@@ -78,7 +77,8 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/components/MessageContent.jsx`
 - `frontend/src/renderer/features/chat/components/message/MessageTransparencySections.jsx`
 - `frontend/src/renderer/features/chat/components/message/TransparencySection.jsx`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `tests/frontend/ChatMessageSender.test.tsx`
 - `tests/frontend/ChatLoopUiState.test.js`
 - `tests/frontend/ChatLoopUiStateHook.test.jsx`

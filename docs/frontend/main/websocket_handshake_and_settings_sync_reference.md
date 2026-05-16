@@ -142,7 +142,7 @@ include:
 - `metadata.skip_frontend_execution = true`
 - `metadata.execution_owner = "sdk-runtime"`
 
-This keeps the UI informed while preventing the renderer `useToolRunner` path
+This keeps the UI informed while preventing renderer chat-stream display code
 from executing tools a second time.
 
 ## Settings Sync ACK Pipeline

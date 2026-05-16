@@ -41,15 +41,15 @@ Validation:
 
 ### 3) Change tool execution payload/behavior
 
-1. Update runner behavior in `renderer/features/chat/hooks/useToolRunner.ts`.
-2. Update payload shaping in `renderer/infrastructure/services/ToolExecutionPayloads.ts`.
-3. Update execution orchestration in `ToolExecutionService.ts`.
-4. Sync main bridge mapper and sidecar tool schema/registry.
-5. Sync backend `tool-result` contract if needed.
+1. Update SDK tool coordination in `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`.
+2. Update the Electron local-runtime adapter in `main/ipc/ipc_sdk_tool_router.cjs`.
+3. Sync sidecar tool schema/registry.
+4. Sync backend `tool-result` contract if needed.
+5. Update renderer display handlers only when the visible tool card changes.
 
 Validation:
 
-- Tool runner tests (single + bundle).
+- SDK tool coordinator tests (single + bundle).
 - Main local backend bridge tests.
 - Sidecar tool schema/registry tests.
 

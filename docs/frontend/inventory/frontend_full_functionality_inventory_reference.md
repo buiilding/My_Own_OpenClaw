@@ -211,7 +211,7 @@ Functionality:
   - Handles `llm-thought`, `streaming-response`, `streaming-complete`.
   - Handles `tool-call`, `tool-output`, `tool-bundle` render and transcript writes.
   - Handles `context-compaction-*`, `system-prompt`, `assistant-message-full`, `error`.
-- Tool display (`useToolRunner`):
+- Tool display:
   - Treats backend tool calls/bundles as display/transcript events after SDK runtime routing.
   - Cancels stale-turn display events without owning local execution.
 - Conversation actions:

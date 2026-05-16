@@ -25,14 +25,14 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | --- | --- | --- | --- |
 | Electron app runtime | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/main_process_lifecycle_runtime.cjs` | Window/tray setup, lifecycle listeners, bridge initializers | Renderer windows + process shutdown |
 | Main overlay/window runtime | `frontend/src/main/{overlay_phase_ipc_runtime,window_controls_ipc_runtime,permission_ipc_runtime}.cjs`, `frontend/src/main/window_visibility_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/overlay_window_helpers_runtime.cjs` | Split IPC registration, chat/main visibility transitions, overlay side-channel signals, positioning/top-most helpers | Overlay + main window state transitions |
-| Main process backend bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc/ipc_renderer_windows.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs` | WebSocket session, settings ACK gate, relay fan-out | IPC events to renderer |
+| Main process backend bridge | `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc/ipc_renderer_windows.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs` | SDK-managed WebSocket session, settings ACK gate, relay fan-out | IPC events to renderer |
 | Main process sidecar bridge | `frontend/src/main/local_backend_bridge.cjs` | Python subprocess lifecycle, JSON-RPC correlation | Tool/system/memory responses |
 | Main process wakeword bridge | `frontend/src/main/wakeword_bridge.cjs`, `frontend/src/main/wakeword_bridge_runtime.cjs` | Wakeword subprocess lifecycle + binary framing with helper-owned status/error parsing + payload normalization | Wakeword events to renderer/main IPC |
 | Main VM worker bridge | `frontend/src/main/{runtime_mode,vm_worker_runtime}.cjs` | Hosted `/api/runs/*` heartbeat polling, run dispatch, stream relay, control-command application | Websocket `stop-query` + `/api/runs/*` event/control updates |
 | Preload trust boundary | `frontend/src/preload.js` | Allowlisted IPC exposure only | `window.ipc` bridge methods |
 | Renderer app shell | `frontend/src/renderer/app/App.jsx` | Provider stack, main layout routing | Chat/dashboard surfaces |
 | Renderer chat runtime | `frontend/src/renderer/features/chat/hooks/useChatStream.ts` | Stream event handling, state transitions | Message list + overlay updates |
-| Renderer tool runtime | `frontend/src/renderer/features/chat/hooks/useToolRunner.ts` | Tool execution service + callback wiring | `tool-result` / `tool-bundle-result` send path |
+| SDK tool runtime | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`, `frontend/src/main/windie_sdk_runtime.cjs` | Local-runtime adapter + sidecar callback wiring | `tool-result` / `tool-bundle-result` send path |
 | Renderer voice runtime | `frontend/src/renderer/features/voice/hooks/*` | Wakeword capture + gateway audio stream | Transcription/voice status updates |
 | Sidecar local backend | `frontend/src/main/python/local_backend.py` | JSON-RPC method routing + tool registry | JSON-RPC result envelopes |
 | Sidecar memory-only service | `frontend/src/main/python/memory_service.py` | Search/store protocol loop | JSON line responses |
@@ -46,9 +46,9 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Phase | Module ownership |
 | --- | --- |
 | Query send from UI | `renderer/features/chat/hooks/useChatMessageSender.ts` |
-| Renderer API call | `renderer/infrastructure/api/client.ts` |
-| Main relay and gating | `main/ipc.cjs` |
-| Backend websocket send | `main/ipc.cjs` -> backend `/ws` |
+| Renderer runtime call | `renderer/app/runtime/desktopConversationRuntimeClient.ts` |
+| Main relay and gating | `main/ipc.cjs`, `main/windie_sdk_runtime.cjs` |
+| Backend websocket send | SDK managed backend session -> backend `/ws` |
 | Stream event return | backend `/ws` -> `main/ipc.cjs` -> renderer `ON_CHANNELS.FROM_BACKEND` |
 | Renderer stream integration | `renderer/features/chat/hooks/useChatStream.ts` + `chatStore.ts` |
 
@@ -56,12 +56,12 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 
 | Phase | Module ownership |
 | --- | --- |
-| Tool-call event detected | `renderer/features/chat/hooks/useToolRunner.ts` |
-| Tool execution orchestration | `renderer/infrastructure/services/ToolExecutionService.ts` |
-| IPC invoke to main | `renderer/infrastructure/ipc/bridge.ts` |
+| Tool-call event detected | SDK managed backend session |
+| Tool execution orchestration | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
+| Local-runtime adapter | `main/ipc/ipc_sdk_tool_router.cjs` |
 | Sidecar request dispatch | `main/local_backend_bridge.cjs` |
 | Sidecar tool execution | `main/python/tools/registry.py` + domain tool modules |
-| Result normalization + send | `ToolExecutionPayloads.ts` -> `main/ipc.cjs` -> backend `tool-result` |
+| Result normalization + send | SDK tool coordinator -> managed backend session -> backend `tool-result` |
 
 ### Voice + Wakeword Path
 

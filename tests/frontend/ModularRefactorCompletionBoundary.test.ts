@@ -60,4 +60,33 @@ describe('modular sdk refactor completion boundary', () => {
     expect(repoAgent).toContain('plugins: [{ path: exampleDir }]');
     expect(repoAgent).toContain('agent.stop');
   });
+
+  test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {
+    const currentInventoryDocs = [
+      'docs/frontend/inventory/frontend_runtime_surface_matrix_reference.md',
+      'docs/frontend/inventory/frontend_capability_to_file_matrix_reference.md',
+      'docs/frontend/inventory/frontend_functionality_capability_catalog_reference.md',
+      'docs/frontend/renderer/chat/README.md',
+      'docs/frontend/contracts/events/README.md',
+      'docs/frontend/contracts/events/tool_runtime/README.md',
+      'docs/frontend/inventory/domains/frontend_change_path_playbook_reference.md',
+      'docs/frontend/inventory/domains/frontend_domain_ownership_matrix_reference.md',
+    ];
+
+    const offenders: Record<string, string[]> = {};
+    for (const relativePath of currentInventoryDocs) {
+      const source = await read(relativePath);
+      const staleMentions = [
+        'frontend/src/renderer/features/chat/hooks/useToolRunner.ts',
+        'frontend/src/renderer/infrastructure/services/ToolExecutionService.ts',
+        'frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts',
+        'renderer/useToolRunner.ts',
+      ].filter((needle) => source.includes(needle));
+      if (staleMentions.length > 0) {
+        offenders[relativePath] = staleMentions;
+      }
+    }
+
+    expect(offenders).toEqual({});
+  });
 });

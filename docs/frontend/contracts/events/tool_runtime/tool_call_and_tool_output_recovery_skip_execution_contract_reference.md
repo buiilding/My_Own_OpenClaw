@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for frontend handling of backend tool protocol events with recovery metadata: event typing, UI/transcript effects, skip-frontend-execution gate, stale-turn cancellation responses, and correlation-id fallback order."
+summary: "Deep reference for frontend display handling of backend tool protocol events with recovery metadata: event typing, UI/transcript effects, SDK-owned execution, and correlation-id fallback order."
 read_when:
-  - When changing `useChatStream` or `useToolRunner` tool event paths.
+  - When changing `useChatStream` tool display paths or SDK runtime tool execution paths.
   - When debugging synthetic backend tool events that should render in chat but not execute local tools.
 title: "Tool-Call and Tool-Output Recovery/Skip-Execution Contract Reference"
 ---
@@ -12,8 +12,9 @@ title: "Tool-Call and Tool-Output Recovery/Skip-Execution Contract Reference"
 
 - `frontend/src/renderer/types/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
+- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
+- `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`
 - `backend/src/agent/execution/interaction_loop.py`
 - `backend/src/api/processing/formatters/tool_call.py`
 - `backend/src/api/processing/formatters/tool_output.py`
@@ -37,7 +38,7 @@ title: "Tool-Call and Tool-Output Recovery/Skip-Execution Contract Reference"
 
 Ingress type guard is `isBackendEvent(...)` with literal event-type set containing `tool-call`, `tool-output`, and `tool-bundle`.
 
-## Dual-Consumer Design: `useChatStream` vs `useToolRunner`
+## Split Ownership: Renderer Display vs SDK Execution
 
 ### `useChatStream`
 
@@ -49,7 +50,7 @@ Consumes tool events for presentation/transcript side effects:
 
 It does not execute tools.
 
-### `useToolRunner`
+### SDK Runtime Tool Coordinator
 
 Consumes tool events for execution/control plane:
 
@@ -61,7 +62,7 @@ This split allows synthetic or non-executable tool protocol events to be visible
 
 ## Skip-Execution Metadata Contract
 
-`useToolRunner.shouldSkipToolExecution(metadata)` returns true when:
+The SDK tool coordinator treats a tool event as display-only when:
 
 - metadata is object-like
 - `metadata.skip_frontend_execution === true`
