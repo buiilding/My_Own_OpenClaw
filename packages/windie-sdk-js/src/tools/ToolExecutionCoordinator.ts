@@ -51,6 +51,16 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+function stringPayloadField(payload: JsonRecord, ...keys: string[]): string | null {
+  for (const key of keys) {
+    const value = payload[key];
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
+}
+
 function localToolCallFromEvent(event: ConversationEvent): LocalToolCall | null {
   const payload = event.payload;
   const toolName = typeof payload.toolName === 'string'
@@ -70,6 +80,8 @@ function localToolCallFromEvent(event: ConversationEvent): LocalToolCall | null 
     bundleId: typeof payload.bundleId === 'string'
       ? payload.bundleId
       : (typeof payload.bundle_id === 'string' ? payload.bundle_id : null),
+    toolCallId: stringPayloadField(payload, 'toolCallId', 'tool_call_id'),
+    correlationId: stringPayloadField(payload, 'correlationId', 'correlation_id'),
     turnRef: event.turnRef,
     conversationRef: event.conversationRef,
   };
@@ -151,6 +163,8 @@ export class ToolExecutionCoordinator {
         source: 'sidecar',
         payload: {
           requestId: call.requestId,
+          toolCallId: call.toolCallId ?? null,
+          correlationId: call.correlationId ?? null,
           toolName: call.toolName,
           success: deliveryError ? false : success,
           result: payload.data,
@@ -184,6 +198,16 @@ export class ToolExecutionCoordinator {
       if (!toolName) {
         continue;
       }
+      const metadata = record.metadata && typeof record.metadata === 'object' && !Array.isArray(record.metadata)
+        ? record.metadata as JsonRecord
+        : {};
+      const modelFacingToolCall = metadata.model_facing_tool_call
+        && typeof metadata.model_facing_tool_call === 'object'
+        && !Array.isArray(metadata.model_facing_tool_call)
+        ? metadata.model_facing_tool_call as JsonRecord
+        : {};
+      const toolCallId = stringPayloadField(record, 'toolCallId', 'tool_call_id')
+        ?? stringPayloadField(modelFacingToolCall, 'id');
       let result: LocalToolResult;
       try {
         result = await this.options.localRuntime.executeTool({
@@ -192,6 +216,7 @@ export class ToolExecutionCoordinator {
             ? record.args as JsonRecord
             : {},
           bundleId,
+          toolCallId,
           turnRef: event.turnRef,
           conversationRef: event.conversationRef,
         });
@@ -201,6 +226,7 @@ export class ToolExecutionCoordinator {
       const success = result.success !== false;
       stepResults.push({
         tool: toolName,
+        ...(toolCallId ? { toolCallId } : {}),
         status: success ? 'ok' : 'error',
         output: success
           ? normalizeToolResultData(result.data)

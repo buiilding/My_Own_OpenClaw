@@ -205,6 +205,8 @@ export type LocalToolCall = {
   args: JsonRecord;
   requestId?: string | null;
   bundleId?: string | null;
+  toolCallId?: string | null;
+  correlationId?: string | null;
   turnRef?: string | null;
   conversationRef?: string | null;
 };

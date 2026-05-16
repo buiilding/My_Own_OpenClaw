@@ -459,6 +459,37 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('backend tool-call normalization preserves model-facing tool call ids', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'tool-call',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-1',
+      payload: {
+        tool_name: 'read_file',
+        request_id: 'req-read',
+        parameters: { path: 'README.md' },
+        metadata: {
+          model_facing_tool_call: {
+            id: 'call-read',
+            type: 'function',
+            function: {
+              name: 'read_file',
+              arguments: '{"path":"README.md"}',
+            },
+          },
+        },
+      },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'tool_call',
+      payload: expect.objectContaining({
+        requestId: 'req-read',
+        toolCallId: 'call-read',
+      }),
+    });
+  });
+
   test('backend compaction-completed only normalizes to applied when replacement history exists', () => {
     const applied = normalizeBackendEventToConversationEvent({
       type: 'context-compaction-completed',
@@ -532,8 +563,49 @@ describe('Windie SDK conversation runtime core', () => {
         type: 'tool_output',
         payload: expect.objectContaining({
           requestId: 'req-read',
+          toolCallId: null,
+          correlationId: null,
           success: false,
           error: 'sidecar unavailable',
+        }),
+      }),
+    ]);
+  });
+
+  test('tool coordinator preserves provider-safe ids on local tool outputs', async () => {
+    const store = new InMemoryConversationStore();
+    const executeTool = jest.fn(async () => ({
+      success: true,
+      data: { output: 'README contents' },
+    }));
+    const coordinator = new ToolExecutionCoordinator({
+      store,
+      localRuntime: { executeTool },
+      sendToolResult: jest.fn(async () => undefined),
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    await coordinator.execute(event('tool_call', {
+      toolName: 'read_file',
+      requestId: 'req-read',
+      toolCallId: 'call-read',
+      correlationId: 'corr-read',
+      args: { path: 'README.md' },
+    }));
+
+    expect(executeTool).toHaveBeenCalledWith(expect.objectContaining({
+      requestId: 'req-read',
+      toolCallId: 'call-read',
+      correlationId: 'corr-read',
+    }));
+    expect(await store.loadEvents('conv-sdk-runtime')).toEqual([
+      expect.objectContaining({
+        type: 'tool_output',
+        payload: expect.objectContaining({
+          requestId: 'req-read',
+          toolCallId: 'call-read',
+          correlationId: 'corr-read',
+          success: true,
         }),
       }),
     ]);

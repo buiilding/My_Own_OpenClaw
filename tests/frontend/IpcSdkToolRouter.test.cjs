@@ -56,6 +56,9 @@ describe('ipc sdk tool router', () => {
     expect(executeLocalTool).toHaveBeenCalledWith({
       toolName: 'read_file',
       args: { path: '/tmp/a' },
+      requestId: 'req-read',
+      toolCallId: null,
+      correlationId: null,
     });
     expect(sendToolResult).toHaveBeenCalledWith({
       request_id: 'req-read',

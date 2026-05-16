@@ -25,6 +25,19 @@ function stringFromEventPayloadOrTopLevel(event: BackendEvent, key: string): str
   return typeof topLevelValue === 'string' ? topLevelValue : null;
 }
 
+function modelFacingToolCallId(payload: JsonRecord): string | null {
+  const metadata = payload.metadata;
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+    return null;
+  }
+  const toolCall = (metadata as JsonRecord).model_facing_tool_call;
+  if (!toolCall || typeof toolCall !== 'object' || Array.isArray(toolCall)) {
+    return null;
+  }
+  const id = (toolCall as JsonRecord).id;
+  return typeof id === 'string' && id.trim() ? id.trim() : null;
+}
+
 function revisionIdFor(event: BackendEvent, fallbackRevisionId?: string): string {
   const payload = payloadOf(event);
   if (typeof payload.revision_id === 'string' && payload.revision_id.trim()) {
@@ -112,7 +125,9 @@ export function normalizeBackendEventToConversationEvent(
         args: payload.parameters && typeof payload.parameters === 'object' ? payload.parameters : {},
         requestId: typeof payload.request_id === 'string' ? payload.request_id : null,
         correlationId: typeof payload.correlation_id === 'string' ? payload.correlation_id : null,
-        toolCallId: typeof payload.tool_call_id === 'string' ? payload.tool_call_id : null,
+        toolCallId: typeof payload.tool_call_id === 'string'
+          ? payload.tool_call_id
+          : modelFacingToolCallId(payload),
         structuredPayload: payload,
         rawEvent: event,
       },

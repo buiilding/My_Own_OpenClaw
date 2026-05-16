@@ -244,6 +244,11 @@ Electron uses a sidecar-backed store adapter:
   `assistant_message` conversation events. `streaming-complete` normalizes to
   `turn_completed` lifecycle state only; it must not create visible transcript
   rows or provider rehydrate history.
+- backend `tool-call` events must preserve provider-safe tool identity. The SDK
+  normalizer resolves `toolCallId` from explicit payload fields or the
+  model-facing tool call metadata, and the local tool coordinator carries
+  `requestId`, `toolCallId`, and `correlationId` into stored `tool_output`
+  events.
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel

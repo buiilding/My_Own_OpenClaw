@@ -22,6 +22,26 @@ function resolveToolCallRequestId(payload, fallbackId = null) {
   return typeof fallbackId === 'string' && fallbackId.trim() ? fallbackId.trim() : '';
 }
 
+function resolveStringField(payload, keys) {
+  if (!isPlainObject(payload)) {
+    return null;
+  }
+  for (const key of keys) {
+    const value = payload[key];
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
+}
+
+function resolveModelFacingToolCallId(payload) {
+  const toolCall = payload?.metadata?.model_facing_tool_call;
+  return isPlainObject(toolCall) && typeof toolCall.id === 'string' && toolCall.id.trim()
+    ? toolCall.id.trim()
+    : null;
+}
+
 function shouldSkipLocalToolRouting(event) {
   return event?.payload?.metadata?.skip_frontend_execution === true;
 }
@@ -122,6 +142,9 @@ async function routeToolCallToLocalRuntime(event, deps) {
     const result = await deps.executeLocalTool({
       toolName,
       args: isPlainObject(event.payload.parameters) ? event.payload.parameters : {},
+      requestId,
+      toolCallId: resolveStringField(event.payload, ['tool_call_id']) ?? resolveModelFacingToolCallId(event.payload),
+      correlationId: resolveStringField(event.payload, ['correlation_id']),
     });
     deps.sendToolResult(buildToolResultPayload({
       requestId,
@@ -159,14 +182,19 @@ async function routeToolBundleToLocalRuntime(event, deps) {
     if (!toolName) {
       continue;
     }
+    const toolCallId = resolveStringField(tool, ['toolCallId', 'tool_call_id'])
+      ?? resolveModelFacingToolCallId(tool);
     try {
       const result = await deps.executeLocalTool({
         toolName,
         args: isPlainObject(tool.args) ? tool.args : {},
+        bundleId,
+        toolCallId,
       });
       const success = result?.success !== false;
       stepResults.push({
         tool: toolName,
+        ...(toolCallId ? { toolCallId } : {}),
         status: success ? 'ok' : 'error',
         output: success
           ? (isPlainObject(result?.data) ? result.data : normalizeToolResultData(result?.data))
