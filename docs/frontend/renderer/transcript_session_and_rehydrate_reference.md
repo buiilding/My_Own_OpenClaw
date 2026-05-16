@@ -226,6 +226,11 @@ Dashboard startup and open-chat loading also use the SDK store adapter:
   `sdkDisplayChatMessageProjection.ts`
 - the local snapshot loader remains only for workspace binding and legacy
   transcript metadata during migration
+- edit/resend and try-again visible transcript rewrites go through the Electron
+  sidecar conversation store adapter, which owns the local transcript and
+  `transcript_replay` delete/write sequence. The replay hook still chooses the
+  replacement message list during migration, but it no longer invokes
+  `store-transcript` or `delete-conversation` directly.
 
 ## Try-Again and Edit+Resend Replay Contract
 
@@ -242,6 +247,10 @@ Replay rehydrate must keep prior context stable.
   - converting old `role=tool + message_type=tool-call` rows into assistant tool-call turns
   - reusing explicit `tool_call_id` values when tool outputs arrive out of order
   - synthesizing fallback `tool-output` rows for unanswered pending tool calls so strict providers can resume old chats safely
+- Local transcript rewriting must be owned by the store/repository adapter, not
+  by chat UI hooks. Hooks may build the replay message projection while the
+  runtime migration is in progress, but persistence and replay-state clearing
+  stay behind the store boundary.
 
 This contract prevents provider tool-call sequencing errors without losing valid tool context.
 

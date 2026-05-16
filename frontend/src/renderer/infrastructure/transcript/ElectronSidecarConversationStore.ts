@@ -2,6 +2,7 @@ import {
   buildConversationEventsFromStoredTranscript,
 } from './storedTranscriptSdkProjection';
 import {
+  deleteConversationStoredState,
   readStoredReplayRehydrateEntry,
   replaceConversationReplayState,
   TRANSCRIPT_REPLAY_RECORD_KIND,
@@ -44,6 +45,16 @@ type ElectronSidecarConversationStoreDeps = {
   listStoredConversations?: typeof listStoredConversations;
   invoke?: typeof IpcBridge.invoke;
   getConversationWorkspaceBinding?: typeof getConversationWorkspaceBinding;
+};
+
+export type TranscriptProjectionRewriteEntry = {
+  content: string;
+  role: string;
+  messageType: string;
+  toolName?: string | null;
+  correlationId?: string | null;
+  screenshot?: unknown;
+  timestamp?: string | null;
 };
 
 function normalizeNonEmptyString(value: unknown): string | null {
@@ -218,6 +229,41 @@ export class ElectronSidecarConversationStore implements ConversationStore {
   async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
     await this.deleteRecordKind(plan.conversationRef, SDK_CONVERSATION_EVENT_RECORD_KIND);
     await this.appendEvents(plan.preservedEvents);
+  }
+
+  async rewriteTranscriptProjection({
+    conversationRef,
+    entries,
+  }: {
+    conversationRef: string;
+    entries: TranscriptProjectionRewriteEntry[];
+  }): Promise<void> {
+    const workspaceBinding = this.deps.getConversationWorkspaceBinding(conversationRef);
+    await deleteConversationStoredState({
+      userId: this.userId,
+      conversationRef,
+      workspacePath: workspaceBinding.workspacePath || null,
+      workspaceName: workspaceBinding.workspaceName || null,
+    });
+
+    for (const entry of entries) {
+      const result = await this.deps.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
+        content: entry.content,
+        userId: this.userId,
+        conversationRef,
+        role: entry.role,
+        messageType: entry.messageType,
+        toolName: entry.toolName || null,
+        correlationId: entry.correlationId || null,
+        screenshot: entry.screenshot ?? null,
+        timestamp: entry.timestamp || null,
+        workspacePath: workspaceBinding.workspacePath || null,
+        workspaceName: workspaceBinding.workspaceName || null,
+      });
+      if (!result || result.success === false) {
+        throw new Error(result?.error || 'Failed to store rewritten transcript entry');
+      }
+    }
   }
 
   async replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void> {

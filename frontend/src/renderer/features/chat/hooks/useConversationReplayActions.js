@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { ApiClient } from '../../../infrastructure/api/client';
-import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { useChatStore } from '../stores/chatStore';
 import {
   resolveReplayScreenshotState,
@@ -13,7 +12,7 @@ import {
   getTranscriptSessionInfo,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
-import { deleteConversationStoredState } from '../../../infrastructure/transcript/conversationReplayState';
+import { ElectronSidecarConversationStore } from '../../../infrastructure/transcript/ElectronSidecarConversationStore';
 import {
   getConversationWorkspaceBinding,
   setConversationWorkspaceBinding,
@@ -39,37 +38,24 @@ async function replayTranscriptMessages(messages, userId, conversationRef) {
   if (!userId) {
     return;
   }
-
-  const workspaceBinding = getConversationWorkspaceBinding(conversationRef);
-
-  await deleteConversationStoredState({
-    userId,
+  const store = new ElectronSidecarConversationStore({ userId });
+  await store.rewriteTranscriptProjection({
     conversationRef,
-    workspacePath: workspaceBinding.workspacePath || null,
-    workspaceName: workspaceBinding.workspaceName || null,
-  });
-
-  for (const message of messages) {
-    const storedScreenshot = resolveStoredTranscriptScreenshotValue({
-      screenshot: message.screenshot || null,
-      screenshotRef: message.screenshotRef || null,
-      screenshotUrl: message.screenshotUrl || null,
-      screenshotContentType: message.screenshotContentType || null,
-    });
-    await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
+    entries: messages.map((message) => ({
       content: message.text,
-      userId,
-      conversationRef,
       role: resolveTranscriptRole(message),
       messageType: resolveTranscriptMessageType(message),
       toolName: message.toolName || null,
       correlationId: message.correlationId || null,
-      screenshot: storedScreenshot,
+      screenshot: resolveStoredTranscriptScreenshotValue({
+        screenshot: message.screenshot || null,
+        screenshotRef: message.screenshotRef || null,
+        screenshotUrl: message.screenshotUrl || null,
+        screenshotContentType: message.screenshotContentType || null,
+      }),
       timestamp: message.timestamp || null,
-      workspacePath: workspaceBinding.workspacePath || null,
-      workspaceName: workspaceBinding.workspaceName || null,
-    });
-  }
+    })),
+  });
 }
 
 async function runReplayQueryFlow({

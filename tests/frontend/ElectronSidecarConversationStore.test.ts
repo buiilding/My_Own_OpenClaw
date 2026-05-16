@@ -233,6 +233,66 @@ describe('ElectronSidecarConversationStore', () => {
     }));
   });
 
+  test('rewrites visible transcript projection through the store boundary', async () => {
+    const store = new ElectronSidecarConversationStore(
+      { userId: 'user-1' },
+      {
+        getConversationWorkspaceBinding: jest.fn(() => ({
+          workspacePath: '/workspace',
+          workspaceName: 'WindieOS',
+        })),
+      },
+    );
+
+    await store.rewriteTranscriptProjection({
+      conversationRef: 'conv-edit',
+      entries: [
+        {
+          content: 'edited prompt',
+          role: 'user',
+          messageType: 'user',
+          screenshot: 'artifact-1',
+          timestamp: '2026-05-15T12:00:00.000Z',
+        },
+        {
+          content: 'tool output',
+          role: 'tool',
+          messageType: 'tool-output',
+          toolName: 'shell',
+          correlationId: 'tool-call-1',
+        },
+      ],
+    });
+
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-conversation', {
+      userId: 'user-1',
+      conversationId: 'conv-edit',
+      recordKind: 'transcript',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'delete-conversation', {
+      userId: 'user-1',
+      conversationId: 'conv-edit',
+      recordKind: 'transcript_replay',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(3, 'store-transcript', expect.objectContaining({
+      content: 'edited prompt',
+      userId: 'user-1',
+      conversationRef: 'conv-edit',
+      role: 'user',
+      messageType: 'user',
+      screenshot: 'artifact-1',
+      workspacePath: '/workspace',
+      workspaceName: 'WindieOS',
+    }));
+    expect(mockInvoke).toHaveBeenNthCalledWith(4, 'store-transcript', expect.objectContaining({
+      content: 'tool output',
+      role: 'tool',
+      messageType: 'tool-output',
+      toolName: 'shell',
+      correlationId: 'tool-call-1',
+    }));
+  });
+
   test('lists merged metadata while preferring conversation-event rows over transcript rows', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
     mockListStoredConversations

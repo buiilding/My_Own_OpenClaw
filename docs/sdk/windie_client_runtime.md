@@ -145,6 +145,11 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
   projections, with legacy transcript fallback for existing local chats
 - startup metadata loading does not apply a hidden local chat limit; SDK callers
   pass an explicit `listMetadata({ limit })` option when they want a bounded page
+- desktop edit/resend and try-again visible transcript rewrites are routed
+  through the Electron conversation store adapter. During migration, the
+  renderer still computes the replacement projection, but the adapter owns
+  local transcript row deletion, replay-state clearing, workspace metadata, and
+  rewritten row persistence.
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel
