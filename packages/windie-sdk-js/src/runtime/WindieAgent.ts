@@ -161,6 +161,18 @@ export class WindieAgent {
     return this.sdkClient.models();
   }
 
+  async listTools(): Promise<{ version?: number; tools?: JsonRecord[] } | null> {
+    return this.localRuntime?.listTools ? this.localRuntime.listTools() : null;
+  }
+
+  async status(): Promise<JsonRecord | null> {
+    return this.localRuntime?.status ? this.localRuntime.status() : null;
+  }
+
+  async shutdownLocalRuntime(): Promise<void> {
+    await this.localRuntime?.shutdown?.();
+  }
+
   subscribeRawBackendEvents(listener: RawBackendEventListener): () => void {
     return this.session.on('event', listener);
   }

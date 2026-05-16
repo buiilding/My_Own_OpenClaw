@@ -294,7 +294,10 @@ when they need local execution.
 
 After `wakeUp` resolves a local runtime, `WindieClient.status()`,
 `WindieClient.listTools()`, and `WindieClient.shutdownLocalRuntime()` operate on
-that known runtime. They do not auto-start a daemon just to inspect status.
+that known runtime. The returned `WindieAgent` exposes the same local-runtime
+status/tool-list/shutdown helpers, so SDK hosts can keep using the agent object
+after wake-up instead of retaining the root client. These helpers do not
+auto-start a daemon just to inspect status.
 
 The SDK does not accept raw JavaScript/Python closures as durable tools.
 Module tools must be registered by import path, plugin tools by package path, and

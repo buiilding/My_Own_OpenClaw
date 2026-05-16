@@ -341,7 +341,7 @@ describe('WindieSdkClient', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
     const socket = FakeWebSocket.instances[0];
     socket.emit('open', {});
-    await wakePromise;
+    const agent = await wakePromise;
 
     expect(JSON.parse(socket.sent[0])).toMatchObject({
       type: 'handshake',
@@ -485,7 +485,7 @@ describe('WindieSdkClient', () => {
     });
     await new Promise(resolve => setTimeout(resolve, 0));
     FakeWebSocket.instances[0].emit('open', {});
-    await wakePromise;
+    const agent = await wakePromise;
 
     const statusCall = mockFetch.mock.calls.find(([url]) => String(url).endsWith('/status'));
     const registerCall = mockFetch.mock.calls.find(([url]) => String(url).endsWith('/tools/register-module'));
@@ -526,7 +526,7 @@ describe('WindieSdkClient', () => {
     });
     await new Promise(resolve => setTimeout(resolve, 0));
     FakeWebSocket.instances[0].emit('open', {});
-    await wakePromise;
+    const agent = await wakePromise;
 
     expect(ensureLocalRuntime).toHaveBeenCalledWith({
       wakeUp: expect.objectContaining({
@@ -540,8 +540,15 @@ describe('WindieSdkClient', () => {
       { workspacePath: '/tmp/project' },
     );
     await expect(client.status()).resolves.toEqual({ status: 'ok' });
+    await expect(agent.status()).resolves.toEqual({ status: 'ok' });
+    await expect(agent.listTools()).resolves.toEqual({
+      version: 1,
+      tools: [{ name: 'save_note', schema: { type: 'object', properties: {} } }],
+    });
+    await agent.shutdownLocalRuntime();
+    expect(localRuntime.shutdown).toHaveBeenCalledTimes(1);
     await client.shutdownLocalRuntime();
-    expect(localRuntime.shutdown).toHaveBeenCalled();
+    expect(localRuntime.shutdown).toHaveBeenCalledTimes(2);
   });
 
   test('wakeUp automatically reuses a discovered sidecar daemon for local tools', async () => {
