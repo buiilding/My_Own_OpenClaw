@@ -74,6 +74,9 @@ describe('conversationInferenceSessionRuntime', () => {
     });
 
     expect(mockLoadLocalConversationSnapshot).toHaveBeenCalledTimes(1);
+    expect(mockLoadLocalConversationSnapshot).toHaveBeenCalledWith(expect.objectContaining({
+      recordKind: 'conversation_event',
+    }));
     expect(mockDesktopRuntime.loadRehydrateSnapshot).toHaveBeenCalledTimes(1);
     expect(mockDesktopRuntime.rehydrate).toHaveBeenCalledTimes(1);
     expect(mockDesktopRuntime.rehydrate).toHaveBeenCalledWith(expect.objectContaining({

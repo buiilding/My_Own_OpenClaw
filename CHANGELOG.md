@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: make conversation inference-session hydration read canonical `conversation_event` rows by default.
 - frontend/sdk: make dashboard conversation search and local conversation loaders use canonical SDK `conversation_event` rows by default instead of transcript fallback rows.
 - docs/frontend-sdk: refresh protocol-state, storage, and IPC ownership docs so active change guides route transcript/tool work through the SDK runtime instead of retired renderer-owned writers or tool services.
 - sidecar: remove browser-session cloud parameter aliases so sidecar browser runtime accepts only first-class `cloud_*`, `use_cloud`, and `cloud_browser_params` fields.

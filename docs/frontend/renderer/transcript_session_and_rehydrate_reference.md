@@ -181,18 +181,13 @@ not execute tools.
 
 `ChatGptDashboardShell` conversation-open path:
 
-1. list conversations (`list-conversations`, transcript record kind)
-2. load selected conversation transcript rows via `loadConversationTranscriptMemories(...)` (cursor-paginated `get-conversation`)
-3. parse rows to chat messages (`parseMemoriesToMessages`)
-   - tool-call rows use `buildToolCallMessageState(...)` so replayed chats reconstruct the same display payload used by live tool-call rows
-   - stored transcript field extraction is centralized in `storedTranscriptMemoryState.js` so dashboard replay and backend rehydrate read the same role/message-type/tool/screenshot/transparency inputs from transcript memories
-   - final past-chat message shaping is centralized in `storedTranscriptChatMessageState.js` so screenshot fields, transparency sections, and tool display metadata no longer live in a dashboard-local formatter
+1. list conversations from the SDK conversation library (`recordKind: "conversation_event"`)
+2. load selected conversation SDK events via `loadConversationTranscriptMemories(...)` (cursor-paginated `get-conversation`)
+3. project SDK display messages for the renderer
 4. ask the desktop conversation runtime to rehydrate the backend inference session (`DesktopConversationRuntimeClient.rehydrate(...)`)
-   - `toRehydrateMessagePayload(...)` appends persisted `transparency` snapshots to rehydrate `content` so resumed/manual compaction runs see saved prompt/tool-schema/full-message context.
-   - tool-call rows reuse the same normalized message-state helper before `buildRehydrateToolCall(...)` so transcript/session serialization and dashboard replay cannot drift on tool-call ids or display text
-   - final rehydrate payload shaping is centralized in SDK projection helpers so dashboard-open rehydrate and edit/retry replay agree on `tool_name`, `tool_call_id`, screenshots, and structured tool payload fallback
+   - rehydrate payload shaping is centralized in SDK projection helpers so dashboard-open rehydrate and edit/retry replay agree on `tool_name`, `tool_call_id`, screenshots, and structured tool payloads
 5. set active transcript conversation/session info
-6. replace renderer chat store with parsed rows
+6. replace renderer chat store with projected SDK display messages
 
 Search modal uses the same open path after `search-conversations` results.
 

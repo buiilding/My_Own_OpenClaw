@@ -64,7 +64,7 @@ Collapsed rail behavior:
 
 Recent chat list behavior:
 
-- source channel: `LIST_CONVERSATIONS` with `recordKind: "transcript"`.
+- source channel: SDK conversation library, backed by `LIST_CONVERSATIONS` with `recordKind: "conversation_event"`.
 - load path runs on mount and when session user id changes.
 - list is filtered to rows with `conversation_id`.
 - sort order is descending by `last_timestamp`.
@@ -97,6 +97,7 @@ Search RPC payload:
 - `userId`
 - `query`
 - `limit: 60`
+- `recordKind: "conversation_event"`
 
 Result payload expectations:
 
@@ -116,9 +117,9 @@ Search modal behavior:
 Conversation-open lifecycle (`useDashboardConversations`):
 
 1. resolve `conversation_ref` from selected row.
-2. call `GET_CONVERSATION` (`limit: 1000`, `recordKind` from row fallback to `transcript`).
-3. map memories into renderer rows via `parseMemoriesToMessages`.
-4. ask the desktop conversation runtime to rehydrate backend inference state for the opened conversation.
+2. load the canonical SDK conversation event log (`recordKind: "conversation_event"`).
+3. project SDK display messages for the renderer.
+4. ask the desktop conversation runtime to rehydrate backend inference state from the SDK rehydrate snapshot.
 5. sync transcript runtime: `setActiveConversationRef(conversationRef)` and `updateTranscriptSession(conversationRef, resolvedUserId)`.
 6. replace chat store message list and clear sending/thinking flags.
 

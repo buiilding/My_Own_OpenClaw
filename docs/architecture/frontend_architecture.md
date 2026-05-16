@@ -230,10 +230,10 @@ Primary modules:
   - Query preprocessing + local-user-message synthesis.
   - Artifact upload HTTP helper.
 - `renderer/infrastructure/transcript/localConversationStore.ts`:
-  - Renderer-owned read boundary for locally stored conversations and transcript rows.
+  - Renderer-owned read boundary for locally stored SDK conversation events.
   - Wraps `list-conversations`, `search-conversations`, and paginated `get-conversation` IPC so chat history stays explicitly local-first in renderer code.
 - `renderer/features/chat/session/conversationInferenceSessionRuntime.ts`:
-  - Tracks whether a given conversation needs backend inference-session hydration from local transcript history.
+  - Tracks whether a given conversation needs backend inference-session hydration from canonical SDK conversation-store snapshots.
   - Makes backend state explicitly disposable and rebuildable instead of treating it as conversation truth.
 - `renderer/features/chat/session/conversationSessionRuntime.ts`:
   - Shared renderer policy for conversation selection, local conversation creation, transcript-session sync, and active-chat projection.

@@ -96,9 +96,9 @@ When `includeSearchMetadata=true`, adds:
 
 `handleOpenConversation(conversation)`:
 
-1. loads full transcript rows through `loadConversationTranscriptMemories(...)` (paginated `GET_CONVERSATION` calls with `afterMessageIndex` cursor)
-2. parses rows with `parseMemoriesToMessages(...)`
-3. asks the desktop conversation runtime to rehydrate backend inference state
+1. loads canonical SDK conversation events through `loadConversationTranscriptMemories(...)` (paginated `GET_CONVERSATION` calls with `afterMessageIndex` cursor and `recordKind: "conversation_event"`)
+2. projects rows through the SDK display conversation builders
+3. asks the desktop conversation runtime to rehydrate backend inference state from the SDK rehydrate snapshot
 4. updates transcript session and active conversation ref
 5. replaces chat store messages and clears sending/thinking flags
 - switches visible chat workspace while in-flight loops continue in their original workspace

@@ -149,7 +149,7 @@ export function invalidateConversationInferenceSessionState(): void {
 export async function ensureConversationInferenceSessionHydrated({
   conversationRef,
   userId,
-  recordKind = 'transcript',
+  recordKind = 'conversation_event',
 }: EnsureConversationInferenceSessionOptions): Promise<void> {
   const normalizedConversationRef = normalizeConversationRef(conversationRef);
   if (!normalizedConversationRef) {
