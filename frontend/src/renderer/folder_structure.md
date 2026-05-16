@@ -17,7 +17,8 @@ frontend/src/renderer/
 │   ├── main.jsx                         # React entry point - renders App with StrictMode in dev
 │   │
 │   ├── runtime/                         # App-level SDK/runtime command facades
-│   │   └── desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC
+│   │   ├── desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC
+│   │   └── desktopVoiceRuntimeClient.ts # Renderer voice/wakeword facade over Electron main IPC
 │   │
 │   └── providers/                       # Context providers for global state
 │       ├── AppConfigContext.jsx         # AppConfigContext + useAppConfigContext hook
@@ -388,7 +389,7 @@ frontend/src/renderer/
        └─> Main process → IPC: ON_CHANNELS.WAKEWORD_DETECTED
            └─> useWakewordDetection hook receives event
                └─> onWakewordDetected callback
-                   ├─> ApiClient.wakewordDetected()
+                   ├─> DesktopVoiceRuntimeClient.wakewordDetected()
                    └─> SHOW_CHATBOX (IPC)
 ```
 

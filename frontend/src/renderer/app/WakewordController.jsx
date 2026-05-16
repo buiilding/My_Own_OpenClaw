@@ -1,15 +1,15 @@
 import { useCallback } from 'react';
 import { useWakewordDetection } from '../features/voice/hooks/useWakewordDetection';
-import { ApiClient } from '../infrastructure/api/client';
 import { IpcBridge, INVOKE_CHANNELS } from '../infrastructure/ipc/bridge';
 import { useAppConfigContext } from './providers/AppContextHooks';
+import { DesktopVoiceRuntimeClient } from './runtime/desktopVoiceRuntimeClient';
 
 function WakewordController() {
   const { wakewordActive, wakewordEnabled } = useAppConfigContext();
 
   const handleWakewordDetected = useCallback(() => {
     console.log('[WakewordController] Wakeword detected!');
-    ApiClient.wakewordDetected();
+    DesktopVoiceRuntimeClient.wakewordDetected();
     IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX).catch((error) => {
       console.warn('[WakewordController] Failed to show chatbox:', error);
     });

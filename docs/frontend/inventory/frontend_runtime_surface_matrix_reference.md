@@ -70,7 +70,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Wakeword capture | `renderer/features/voice/hooks/useWakewordDetection.ts` |
 | Binary audio relay | `main/wakeword_bridge.cjs`, `main/wakeword_bridge_runtime.cjs` |
 | Wakeword inference | `main/python/wakeword_service.py` |
-| Detection relay back | `wakeword_bridge.cjs` -> renderer + `ApiClient.wakewordDetected` |
+| Detection relay back | `wakeword_bridge.cjs` -> renderer + `DesktopVoiceRuntimeClient.wakewordDetected` |
 | Voice gateway stream | `renderer/features/voice/hooks/useVoiceMode.ts` |
 
 ### Memory + Transcript Path

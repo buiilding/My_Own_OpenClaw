@@ -141,7 +141,7 @@ This is why partial real-time updates can overwrite earlier draft text but prese
 
 `WakewordController` callback on detection:
 
-1. `ApiClient.wakewordDetected()` -> send backend `wakeword-detected` message
+1. `DesktopVoiceRuntimeClient.wakewordDetected()` -> send backend `wakeword-detected` message
 2. `IpcBridge.invoke('show-chatbox')` -> reveal chat UI
 
 Hook startup:

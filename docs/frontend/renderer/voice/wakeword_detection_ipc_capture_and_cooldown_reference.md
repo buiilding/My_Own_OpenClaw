@@ -35,7 +35,7 @@ title: "Wakeword Detection IPC Capture and Cooldown Reference"
 
 Detection callback behavior:
 
-1. send backend `wakeword-detected` signal via `ApiClient`
+1. send backend `wakeword-detected` signal via `DesktopVoiceRuntimeClient`
 2. invoke `show-chatbox` through IPC
 
 Controller wiring:
