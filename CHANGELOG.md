@@ -41,6 +41,7 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: add conversation-level model selection through `conversation.setModel(...)` and per-turn `model` options on send/stream/edit/retry.
 - sdk: let high-level `agent.ask(...)`, `agent.run(...)`, and `agent.stream(...)` string calls apply per-call model selections before sending turns.
 - sdk: move backend websocket session framing and conversation transport adaptation into the SDK transport module.
+- sdk: move hosted backend HTTP SDK routes and public request/response types into a dedicated SDK transport module.
 - sdk: move sidecar daemon HTTP, discovery, auto-start, and `moduleTool(...)` helpers into the SDK local-runtime module.
 - docs: refresh tool execution ownership references from the deleted renderer tool runner to the SDK runtime and Electron main host.
 - frontend/sdk: route renderer model-list refreshes through `ApiClient.listModels()` instead of direct backend IPC sends.

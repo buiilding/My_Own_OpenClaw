@@ -34,6 +34,9 @@ Ownership rules:
   rehydrate projections, edit/retry revision semantics, and tool-result return.
 - the SDK transport module owns websocket session framing, backend event fan-out,
   and the conversation transport adapter used by `ConversationRuntime`.
+- the SDK hosted HTTP transport owns model listing, prompt/query-plan
+  introspection, artifact upload URLs, OCR routes, and vision routes exposed to
+  public SDK callers.
 - the SDK local-runtime module owns sidecar daemon HTTP calls, daemon discovery,
   auto-start/reuse, and `moduleTool(...)` registration helpers.
 - sidecar daemon owns local execution only.
