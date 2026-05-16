@@ -649,7 +649,11 @@ function getWindieSdkRuntime() {
 }
 
 function sendMessageToBackend(type, payload, messageId = null) {
-  return getWindieSdkRuntime().sendBackendMessage(type, payload, messageId);
+  return sendSdkRuntimeCommand(getWindieSdkRuntime(), {
+    type,
+    payload,
+    messageId,
+  });
 }
 
 function shutdownIpcForTests() {
@@ -1170,7 +1174,11 @@ async function sendAutomatedQuery(options = {}) {
   const payloadWithAgentDefinition = attachAgentDefinitionContext(payload);
 
   const queryMessageId = uuidv4();
-  const messageId = getWindieSdkRuntime().sendQuery(payloadWithAgentDefinition, queryMessageId);
+  const messageId = sendSdkRuntimeCommand(getWindieSdkRuntime(), {
+    type: 'query',
+    payload: payloadWithAgentDefinition,
+    messageId: queryMessageId,
+  });
   if (!messageId) {
     return { ok: false, error: 'Failed to send query to backend' };
   }
