@@ -97,6 +97,36 @@ describe('ElectronSidecarConversationStore', () => {
     }));
   });
 
+  test('preserves sidecar append order for same-timestamp SDK event rows', async () => {
+    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const timestamp = '2026-05-15T12:00:00.000Z';
+    const first = createConversationEvent({
+      eventId: 'z-first',
+      type: 'user_message',
+      conversationRef: 'conv-1',
+      revisionId: 'rev-1',
+      timestamp,
+      payload: { text: 'first in append order' },
+    });
+    const second = createConversationEvent({
+      eventId: 'a-second',
+      type: 'assistant_message',
+      conversationRef: 'conv-1',
+      revisionId: 'rev-1',
+      timestamp,
+      payload: { text: 'second in append order' },
+    });
+    mockLoadStoredConversationEntries.mockResolvedValueOnce([
+      { message_index: 1, ...sdkEventRow(first) },
+      { message_index: 2, ...sdkEventRow(second) },
+    ]);
+
+    expect((await store.loadEvents('conv-1')).map((event) => event.eventId)).toEqual([
+      'z-first',
+      'a-second',
+    ]);
+  });
+
   test('stores compacted replay snapshots as compaction events', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
 

@@ -200,16 +200,6 @@ function roleFromEvent(event: ConversationEvent): string {
   return 'assistant';
 }
 
-function sortEvents(events: ConversationEvent[]): ConversationEvent[] {
-  return [...events].sort((a, b) => {
-    const timeDiff = Date.parse(a.timestamp) - Date.parse(b.timestamp);
-    if (timeDiff !== 0) {
-      return timeDiff;
-    }
-    return a.eventId.localeCompare(b.eventId);
-  });
-}
-
 function conversationRefFromMetadata(row: StoredConversationRow): string | null {
   return normalizeNonEmptyString(row.conversation_id)
     ?? normalizeNonEmptyString(row.conversationId)
@@ -427,10 +417,9 @@ export class ElectronSidecarConversationStore implements ConversationStore {
 
   async loadEvents(conversationRef: string): Promise<ConversationEvent[]> {
     const storedEventRows = await this.loadRows(conversationRef, SDK_CONVERSATION_EVENT_RECORD_KIND);
-    const storedEvents = storedEventRows
+    return storedEventRows
       .map(resolveStoredSdkEvent)
       .filter((event): event is ConversationEvent => Boolean(event));
-    return sortEvents(storedEvents);
   }
 
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {

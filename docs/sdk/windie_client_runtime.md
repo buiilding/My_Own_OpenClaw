@@ -205,6 +205,10 @@ Electron uses a sidecar-backed store adapter:
 - startup metadata loading does not apply a hidden local chat limit; SDK callers
   pass explicit `listMetadata({ limit, cursor })` options when they want bounded
   pages. `cursor` is the last `conversationRef` from the previous page.
+- Electron store event loading preserves the sidecar row append order from
+  `message_index` pagination. It must not re-sort events by timestamp or event
+  id because same-timestamp turns, tool pairs, and assistant commits depend on
+  append order.
 - desktop edit/resend and try-again visible transcript rewrites are routed
   through the Electron conversation store adapter. The adapter owns local
   transcript projection replacement, workspace metadata, rewritten
