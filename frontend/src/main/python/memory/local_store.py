@@ -40,7 +40,10 @@ from memory.conversation_list_runtime import (
     list_record_kind_conversations,
     list_transcript_conversations,
 )
-from memory.conversation_search_runtime import search_transcript_conversations
+from memory.conversation_search_runtime import (
+    search_record_kind_conversations,
+    search_transcript_conversations,
+)
 from memory.conversation_semanticization_runtime import (
     count_unsemanticized_interaction_memories as fetch_unsemanticized_interaction_count,
 )
@@ -1751,13 +1754,25 @@ class LocalMemoryStore:
         limit: int = 40,
         lexical_limit: int = 120,
         semantic_limit: int = 40,
+        record_kind: Optional[str] = CONVERSATION_EVENT_RECORD_KIND,
     ) -> List[Dict[str, Any]]:
         """
-        Search transcript conversations by message content.
+        Search conversation windows by message content.
 
-        Ranking combines lexical transcript matches (FTS5/LIKE fallback),
-        semantic transcript matches (vector search), and recency.
+        SDK conversation-event rows are the first-class desktop source. The
+        transcript path remains available only when explicitly requested by
+        callers that inspect transcript rows.
         """
+        normalized_record_kind = str(record_kind or "").strip().lower()
+        if normalized_record_kind == CONVERSATION_EVENT_RECORD_KIND:
+            return await search_record_kind_conversations(
+                episodic_db_path=self.episodic_db_path,
+                user_id=user_id,
+                query=query,
+                limit=limit,
+                record_kind=CONVERSATION_EVENT_RECORD_KIND,
+                now_epoch_seconds=datetime.now(timezone.utc).timestamp(),
+            )
         return await search_transcript_conversations(
             store=self,
             episodic_db_path=self.episodic_db_path,

@@ -147,6 +147,7 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
       query: 'query',
       user_id: 'userId',
       limit: 'limit',
+      record_kind: 'recordKind',
     }),
   },
   {

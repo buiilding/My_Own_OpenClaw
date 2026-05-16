@@ -2,6 +2,7 @@ import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 
 const DEFAULT_PAGE_SIZE = 1000;
 const DEFAULT_MAX_PAGES = 250;
+const SDK_CONVERSATION_EVENT_RECORD_KIND = 'conversation_event';
 
 type LocalConversationRecordKind = string;
 
@@ -15,6 +16,7 @@ type SearchStoredConversationsOptions = {
   userId: string;
   query: string;
   limit?: number;
+  recordKind?: LocalConversationRecordKind;
 };
 
 type LoadStoredConversationEntriesOptions = {
@@ -49,7 +51,7 @@ function resolveEntryMessageIndex(entry: Record<string, unknown>) {
 export async function listStoredConversations({
   userId,
   limit = null,
-  recordKind = 'transcript',
+  recordKind = SDK_CONVERSATION_EVENT_RECORD_KIND,
 }: ListStoredConversationsOptions): Promise<Array<Record<string, unknown>>> {
   const normalizedUserId = normalizeNonEmptyString(userId);
   if (!normalizedUserId) {
@@ -78,6 +80,7 @@ export async function searchStoredConversations({
   userId,
   query,
   limit = 60,
+  recordKind = SDK_CONVERSATION_EVENT_RECORD_KIND,
 }: SearchStoredConversationsOptions): Promise<Array<Record<string, unknown>>> {
   const normalizedUserId = normalizeNonEmptyString(userId);
   const normalizedQuery = normalizeNonEmptyString(query);
@@ -89,6 +92,7 @@ export async function searchStoredConversations({
     userId: normalizedUserId,
     query: normalizedQuery,
     limit,
+    recordKind,
   });
   if (!result || result.success === false) {
     throw new Error(result?.error || 'Failed to search stored conversations');
@@ -100,13 +104,13 @@ export async function searchStoredConversations({
 }
 
 /**
- * Load one full transcript conversation from the local store via paginated get-conversation IPC.
+ * Load one full SDK conversation-event log from the local store via paginated get-conversation IPC.
  * Uses message_index cursor pagination to avoid the fixed 1000-row cap.
  */
 export async function loadStoredConversationEntries({
   userId,
   conversationRef,
-  recordKind = 'transcript',
+  recordKind = SDK_CONVERSATION_EVENT_RECORD_KIND,
   pageSize = DEFAULT_PAGE_SIZE,
   maxPages = DEFAULT_MAX_PAGES,
 }: LoadStoredConversationEntriesOptions): Promise<Array<Record<string, unknown>>> {

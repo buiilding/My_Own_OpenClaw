@@ -22,7 +22,7 @@ title: "Conversation Transcript Loader and Display-Bounds Storage Reference"
 
 ## Transcript Conversation Loader Contract
 
-`loadConversationTranscriptMemories(...)` is the SDK projection pagination helper for loading full conversation transcript rows from local DB IPC.
+`loadConversationTranscriptMemories(...)` is the SDK projection pagination helper for loading full canonical `conversation_event` rows from local DB IPC.
 
 Input normalization:
 
@@ -33,7 +33,7 @@ Defaults:
 
 - `pageSize = 1000`
 - `maxPages = 250`
-- `recordKind = "transcript"`
+- `recordKind = "conversation_event"`
 
 Pagination behavior:
 

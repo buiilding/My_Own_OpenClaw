@@ -252,14 +252,16 @@ class LocalBackendMemoryHandlersMixin:
         query: str,
         user_id: str = "default_user",
         limit: int = 40,
+        record_kind: Optional[str] = CONVERSATION_EVENT_RECORD_KIND,
         **kwargs,
     ) -> Dict[str, Any]:
-        """Search transcript conversations by message content."""
+        """Search conversation windows by message content."""
         try:
             conversations = await self.memory_store.search_conversations(
                 user_id=user_id,
                 query=query,
                 limit=limit,
+                record_kind=record_kind,
             )
             return {
                 "success": True,

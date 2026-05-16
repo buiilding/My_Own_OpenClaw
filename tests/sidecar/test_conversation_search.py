@@ -93,7 +93,12 @@ async def test_search_conversations_finds_transcript_by_user_or_assistant_conten
         timestamp="2026-02-24T00:00:01+00:00",
     )
 
-    rows = await store.search_conversations(user_id="user-1", query="vietnamese lawyer", limit=10)
+    rows = await store.search_conversations(
+        user_id="user-1",
+        query="vietnamese lawyer",
+        limit=10,
+        record_kind="transcript",
+    )
 
     assert len(rows) >= 1
     assert rows[0]["conversation_id"] == "conv_legal"
@@ -148,10 +153,52 @@ async def test_search_conversations_merges_semantic_hits_when_lexical_miss(tmp_p
 
     monkeypatch.setattr(store, "search", _fake_semantic_search)
 
-    rows = await store.search_conversations(user_id="user-1", query="mic issue", limit=10)
+    rows = await store.search_conversations(
+        user_id="user-1",
+        query="mic issue",
+        limit=10,
+        record_kind="transcript",
+    )
 
     assert len(rows) == 1
     assert rows[0]["conversation_id"] == "conv_sem"
     assert rows[0]["semantic_match_count"] >= 1
     assert rows[0]["match_source"] == "semantic"
     assert "microphone" in rows[0]["snippet"].lower()
+
+
+@pytest.mark.asyncio
+async def test_search_conversations_uses_conversation_event_rows_by_default(tmp_path: Path):
+    store = _build_store(tmp_path)
+    await init_episodic_schema(store.episodic_db_path)
+
+    await store.add(
+        text="Plan the modular SDK runtime migration",
+        user_id="user-1",
+        metadata={"type": "episodic"},
+        conversation_id="conv_sdk",
+        record_kind="conversation_event",
+        role="user",
+        message_index=1,
+        message_type="user_message",
+        skip_embedding=True,
+        timestamp="2026-02-25T00:00:00+00:00",
+    )
+    await store.add(
+        text="Unrelated transcript row should not power first-class search",
+        user_id="user-1",
+        metadata={"type": "episodic"},
+        conversation_id="conv_transcript",
+        record_kind="transcript",
+        role="user",
+        message_index=1,
+        skip_embedding=True,
+        timestamp="2026-02-25T00:00:01+00:00",
+    )
+
+    rows = await store.search_conversations(user_id="user-1", query="modular SDK", limit=10)
+
+    assert len(rows) == 1
+    assert rows[0]["conversation_id"] == "conv_sdk"
+    assert rows[0]["match_source"] == "lexical"
+    assert rows[0]["lexical_match_count"] >= 1

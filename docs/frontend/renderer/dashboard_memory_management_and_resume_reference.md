@@ -139,7 +139,7 @@ Normalization:
 `handleOpenConversation(conversation)` shell behavior:
 
 1. guard missing `conversation_id`.
-2. call `GET_CONVERSATION` with `recordKind` fallback to `transcript`.
+2. call `GET_CONVERSATION` with canonical `recordKind: "conversation_event"`.
 3. convert memory rows for UI display (`parseMemoriesToMessages`).
 4. ask the desktop conversation runtime to rehydrate with SDK projection payloads.
 5. update active conversation + transcript session identity.

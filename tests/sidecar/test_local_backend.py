@@ -56,7 +56,7 @@ class DummyMemoryStore:
         self.added.append((content, user_id, metadata, conversation_id, kwargs))
         return "memory-1"
 
-    async def search_conversations(self, user_id, query, limit=40):
+    async def search_conversations(self, user_id, query, limit=40, record_kind="conversation_event"):
         return [
             {
                 "conversation_id": "conv-1",
@@ -167,8 +167,8 @@ class DummyMemoryStoreCapturing(DummyMemoryStore):
             return self.results.get(normalized_type, [])
         return self.results
 
-    async def search_conversations(self, user_id, query, limit=40):
-        self.search_conversation_calls.append((user_id, query, limit))
+    async def search_conversations(self, user_id, query, limit=40, record_kind="conversation_event"):
+        self.search_conversation_calls.append((user_id, query, limit, record_kind))
         return self.results
 
 
@@ -842,7 +842,7 @@ async def test_handle_search_conversations_returns_matches():
     assert result["data"]["count"] == 1
     assert result["data"]["conversations"][0]["conversation_id"] == "conv-2"
     assert backend.memory_store.search_conversation_calls == [
-        ("user-1", "vietnamese lawyer", 25)
+        ("user-1", "vietnamese lawyer", 25, "conversation_event")
     ]
 
 

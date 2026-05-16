@@ -1,6 +1,7 @@
 import {
   listStoredConversations,
   loadStoredConversationEntries,
+  searchStoredConversations,
 } from '../../frontend/src/renderer/infrastructure/transcript/localConversationStore';
 
 const mockInvoke = jest.fn();
@@ -55,6 +56,7 @@ describe('localConversationStore', () => {
         userId: 'default_user',
         conversationId: 'conv_1',
         limit: 2,
+        recordKind: 'conversation_event',
         afterMessageIndex: null,
       }),
     );
@@ -65,6 +67,7 @@ describe('localConversationStore', () => {
         userId: 'default_user',
         conversationId: 'conv_1',
         limit: 2,
+        recordKind: 'conversation_event',
         afterMessageIndex: 2,
       }),
     );
@@ -113,6 +116,34 @@ describe('localConversationStore', () => {
         userId: 'default_user',
         recordKind: 'transcript',
         limit: 25,
+      },
+    );
+  });
+
+  test('searches canonical conversation event rows by default', async () => {
+    mockInvoke.mockResolvedValue({
+      success: true,
+      data: {
+        conversations: [
+          { conversation_id: 'conv-1', record_kind: 'conversation_event' },
+        ],
+      },
+    });
+
+    const result = await searchStoredConversations({
+      userId: 'default_user',
+      query: 'project',
+      limit: 5,
+    });
+
+    expect(result).toEqual([{ conversation_id: 'conv-1', record_kind: 'conversation_event' }]);
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'search-conversations',
+      {
+        userId: 'default_user',
+        query: 'project',
+        limit: 5,
+        recordKind: 'conversation_event',
       },
     );
   });

@@ -838,12 +838,14 @@ describe('local_backend_bridge RPC handlers', () => {
       userId: 'u-1',
       query: 'ubuntu mic',
       limit: 9,
+      recordKind: 'conversation_event',
     });
 
     expectLastRequestWith('search_conversations', {
       user_id: 'u-1',
       query: 'ubuntu mic',
       limit: 9,
+      record_kind: 'conversation_event',
     });
 
     await expectResolvedSuccess(stdoutHandler, promise, { conversations: [] });

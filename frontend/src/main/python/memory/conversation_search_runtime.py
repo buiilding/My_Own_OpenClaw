@@ -233,6 +233,7 @@ async def fetch_conversation_summaries(
     cursor,
     user_id: str,
     conversation_ids: List[str],
+    record_kind: str = "transcript",
 ) -> Dict[str, Dict[str, Any]]:
     normalized_ids = [
         conversation_id
@@ -267,7 +268,7 @@ async def fetch_conversation_summaries(
                (
                  SELECT content FROM memories m2
                  WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
-                   AND m2.record_kind = 'transcript'
+                   AND m2.record_kind = ?
                    AND m2.role = 'user'
                    AND m2.content IS NOT NULL AND m2.content != ''
                  ORDER BY m2.message_index ASC, m2.timestamp ASC
@@ -276,7 +277,7 @@ async def fetch_conversation_summaries(
                (
                  SELECT model_id FROM memories m2
                  WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
-                   AND m2.record_kind = 'transcript'
+                   AND m2.record_kind = ?
                    AND m2.model_id IS NOT NULL AND m2.model_id != ''
                  ORDER BY m2.timestamp DESC, m2.message_index DESC
                  LIMIT 1
@@ -284,14 +285,14 @@ async def fetch_conversation_summaries(
                (
                  SELECT model_provider FROM memories m2
                  WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
-                   AND m2.record_kind = 'transcript'
+                   AND m2.record_kind = ?
                    AND m2.model_provider IS NOT NULL AND m2.model_provider != ''
                  ORDER BY m2.timestamp DESC, m2.message_index DESC
                  LIMIT 1
                ) AS model_provider
         FROM memories
         WHERE user_id = ?
-          AND record_kind = 'transcript'
+          AND record_kind = ?
           AND conversation_id IN ({placeholders})
         GROUP BY conversation_id
     """,
@@ -300,9 +301,13 @@ async def fetch_conversation_summaries(
             user_id,
             user_id,
             user_id,
+            record_kind,
             user_id,
+            record_kind,
             user_id,
+            record_kind,
             user_id,
+            record_kind,
             *normalized_ids,
         ),
     )
@@ -331,6 +336,87 @@ async def fetch_conversation_summaries(
             ),
         }
     return summaries
+
+
+async def search_record_kind_hits_like(
+    *,
+    cursor,
+    user_id: str,
+    query: str,
+    limit: int,
+    record_kind: str,
+) -> List[Dict[str, Any]]:
+    like_terms = extract_query_terms(query)
+    if not like_terms:
+        return []
+    where_clause = " OR ".join(["LOWER(content) LIKE ?"] * len(like_terms))
+    params = tuple(f"%{term.lower()}%" for term in like_terms)
+    await cursor.execute(
+        f"""
+        SELECT
+            id AS memory_id,
+            conversation_id,
+            role,
+            content,
+            timestamp
+        FROM memories
+        WHERE user_id = ?
+          AND record_kind = ?
+          AND conversation_id IS NOT NULL
+          AND ({where_clause})
+        ORDER BY timestamp DESC
+        LIMIT ?
+    """,
+        (user_id, record_kind, *params, limit),
+    )
+    rows = await cursor.fetchall()
+    return _build_lexical_hits_from_rows(rows=rows, query=query, limit=limit)
+
+
+async def search_record_kind_conversations(
+    *,
+    episodic_db_path: str,
+    user_id: str,
+    query: str,
+    limit: int,
+    record_kind: str,
+    now_epoch_seconds: Optional[float] = None,
+) -> List[Dict[str, Any]]:
+    normalized_query = (query or "").strip()
+    normalized_record_kind = (record_kind or "").strip().lower()
+    if len(normalized_query) < 2 or not normalized_record_kind:
+        return []
+
+    if aiosqlite is None:
+        raise ImportError("aiosqlite is not installed. Install with: pip install aiosqlite")
+
+    async with aiosqlite.connect(episodic_db_path) as conn:
+        conn.row_factory = aiosqlite.Row
+        cursor = await conn.cursor()
+        lexical_hits = await search_record_kind_hits_like(
+            cursor=cursor,
+            user_id=user_id,
+            query=normalized_query,
+            limit=max(1, limit * 4),
+            record_kind=normalized_record_kind,
+        )
+        grouped_hits = group_conversation_search_hits(lexical_hits, [])
+        if not grouped_hits:
+            return []
+        summaries = await fetch_conversation_summaries(
+            cursor=cursor,
+            user_id=user_id,
+            conversation_ids=list(grouped_hits.keys()),
+            record_kind=normalized_record_kind,
+        )
+        await conn.commit()
+
+    return build_ranked_conversation_search_rows(
+        grouped_hits=grouped_hits,
+        summaries=summaries,
+        limit=limit,
+        now_epoch_seconds=now_epoch_seconds,
+    )
 
 
 async def search_transcript_conversations(
