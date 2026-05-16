@@ -68,7 +68,7 @@ frontend/src/
 ├── preload.js                             # Context-isolated channel allowlist bridge
 ├── renderer/
 │   ├── app/                               # App/provider composition + wakeword controller
-│   ├── features/chat                      # Chat stream, tool runner, message UI
+│   ├── features/chat                      # Chat stream, display-only tool state, message UI
 │   ├── features/dashboard                 # Sidebar, memory/models/settings/usage/search panels
 │   ├── features/voice                     # Voice mode + wakeword capture hooks
 │   └── infrastructure                     # API/IPC/transcript/tool-exec/audio services
@@ -270,7 +270,7 @@ Primary modules:
 - `renderer/app/providers/AppProvider.jsx`:
   - Config/status coordination and keyboard interaction-mode toggle.
 - `renderer/app/providers/ChatProvider.jsx`:
-  - Wires `useChatStream` and `useToolRunner`.
+  - Wires chat stream subscriptions for display projections.
 
 ### Chat Runtime
 
@@ -287,15 +287,13 @@ Primary modules:
 - `features/chat/utils/overlay/responseOverlayViewContract.ts`:
   - Small renderer contract for `showResponse` vs `showAwaitingReply` vs hidden layout state.
   - Keeps awaiting typing and response overlay mode selection out of `ChatBoxResponse.jsx`.
-- `features/chat/hooks/useToolRunner.ts`:
-  - Executes incoming tool calls/bundles, stale-turn cancellation responses.
 - `features/chat/session/conversationInferenceSessionRuntime.ts`:
   - Rehydrates disposable backend inference state on reconnect/resume from local transcript history.
   - Now prefers persisted internal replay-state rows over raw transcript rows when a replay snapshot exists, so compacted chats reopen with compacted model history while preserving full UI scrollback.
 - `renderer/infrastructure/transcript/conversationReplayState.ts`:
   - Maintains the hidden replay-state stream (`transcript_replay`) used only for backend resume.
-  - Mirrors normal transcript writes into replay-state and overwrites replay-state with compacted replacement history when compaction completes.
-  - Owns shared delete semantics so dashboard chat deletion and retry/edit rewind clear replay-state together with raw transcript before rebuilding conversation state.
+  - Builds replay-state payloads, but persistence and deletion go through `ElectronSidecarConversationStore`.
+  - Shared store-adapter semantics let dashboard chat deletion and retry/edit rewind clear replay-state together with raw transcript before rebuilding conversation state.
   - Guards replay bootstrap with per-conversation mutation epochs so async bootstrap work cannot re-seed stale replay rows after delete, rewind, or compaction resets.
 - `features/dashboard/components/DashboardShell.jsx`:
   - Global `Nuke chats` success handling now resets the active chat plus invalidates renderer-side inference-session hydration, replay-bootstrap, and conversation-workspace-binding caches so no local resume state survives a full transcript wipe.
@@ -346,7 +344,7 @@ Primary modules:
 - `infrastructure/api/client.ts`: typed backend command emitter.
 - `infrastructure/transcript/TranscriptWriter.ts`: transcript session state + queued persistence.
 - `features/chat/session/useRendererConversationSessionInfo.js`: merged renderer current-session reader for user-facing surfaces.
-- `infrastructure/services/ToolExecutionService.ts`: tool execution/capture bundling.
+- `infrastructure/services/toolExecution/*`: retained display and capture timing helpers; backend tool execution is owned by the SDK runtime in Electron main and the sidecar daemon.
 - `infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/*`: explicit per-OS screenshot chat-pill policy (Linux hides; Windows/macOS no-op because overlay exclusion comes from phase-driven content protection, not capture-time hide/show).
 - `infrastructure/audio/PlayerService.ts`: chunk queue decode/playback.
 

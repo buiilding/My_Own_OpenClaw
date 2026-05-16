@@ -23,7 +23,7 @@ Keep these nodes separate when developing. They run on the user's machine, but e
 | Local process | Owns | Does not own |
 | --- | --- | --- |
 | Electron main | native windows, overlay visibility, SDK-runtime adaptation, config persistence, install-token storage/transport, IPC handlers, sidecar process lifecycle | React component state, backend route implementation, hosted backend websocket policy, sidecar tool internals |
-| Renderer | dashboard/chat/overlay UI, stream projection, transcript state, settings forms, voice UI, tool-runner UI state | direct filesystem/shell access, backend auth enforcement, native window authority |
+| Renderer | dashboard/chat/overlay UI, stream projection, transcript state, settings forms, voice UI, display-only tool state | direct filesystem/shell access, backend auth enforcement, native window authority, backend tool-result delivery |
 | Preload | narrow `window.ipc` bridge and channel allowlist | feature policy, backend schemas, broad Node.js access |
 | Python sidecar | local executable tools, local memory, browser runtime, system state, shell/filesystem/computer actions | model-facing tool schemas, websocket route validation, renderer UI |
 | Wakeword service | model bootstrap and audio-frame detection | voice dictation transcription, generic sidecar tools, backend TTS |
@@ -51,7 +51,7 @@ Start with these files when local orchestration changes:
 Start with these folders when UI or stream projection changes:
 
 - `frontend/src/renderer/app/**`: app roots, providers, overlay entrypoints, wakeword controller.
-- `frontend/src/renderer/features/chat/**`: chat dashboard, minimal pill, response overlay, stream hooks, tool runner, transcript projection.
+- `frontend/src/renderer/features/chat/**`: chat dashboard, minimal pill, response overlay, stream hooks, display-only tool state, transcript projection.
 - `frontend/src/renderer/features/dashboard/**`: dashboard shell, sidebar, settings, model/API-key/memory sections.
 - `frontend/src/renderer/features/voice/**`: voice mode UI, capture hooks, wakeword bridge events.
 - `frontend/src/renderer/features/permissions/**`: permission center state and presentation.

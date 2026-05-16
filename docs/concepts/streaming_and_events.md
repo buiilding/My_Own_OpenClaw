@@ -1,21 +1,21 @@
 ---
-summary: "Conceptual guide to WindieOS websocket streaming events, renderer consumers, tool turns, audio side-channel, and stale-turn filtering."
+summary: "Conceptual guide to WindieOS websocket streaming events, SDK tool coordination, renderer consumers, audio side-channel, and stale-turn filtering."
 read_when:
-  - When changing websocket event names, payloads, formatter behavior, renderer stream handling, audio chunks, or tool-runner event consumption.
+  - When changing websocket event names, payloads, formatter behavior, SDK tool coordination, renderer stream handling, or audio chunks.
   - When debugging an event that appears on the wire but is ignored, duplicated, stale, or rendered in the wrong conversation.
 title: "Streaming and Events"
 ---
 
 # Streaming and Events
 
-WindieOS streaming is the live contract between the hosted backend and renderer surfaces. Backend events are rebroadcast by Electron main on `from-backend`; renderer listeners then decide whether the event updates chat text, tool execution, settings status, audio playback, or transparency panels.
+WindieOS streaming is the live contract between the hosted backend, SDK runtime, and renderer surfaces. Backend events are normalized by the SDK runtime; Electron main rebroadcasts display events on `from-backend`; renderer listeners decide whether the event updates chat text, display-only tool state, settings status, audio playback, or transparency panels.
 
 ## Main Event Families
 
 | Family | Examples | Primary consumer |
 | --- | --- | --- |
 | assistant stream | `llm-thought`, `streaming-response`, `streaming-complete`, `error` | chat stream hooks and message store |
-| tool turns | `tool-call`, `tool-bundle`, `tool-output` | chat stream, tool runner, transcript writer |
+| tool turns | `tool-call`, `tool-bundle`, `tool-output` | SDK tool coordinator, chat stream, transcript writer |
 | transparency | `system-prompt`, `user-message-full`, `assistant-message-full`, `tool-schemas` | message transparency sections |
 | context management | `context-compaction-started`, `context-compaction-completed`, `context-compaction-failed` | chat stream and compaction UI state |
 | memory/status | `memory-store`, `token-count` | side effects, token display, usage diagnostics |
@@ -29,7 +29,7 @@ WindieOS streaming is the live contract between the hosted backend and renderer 
 3. Outgoing schema validation checks payload shape.
 4. Electron main receives backend websocket messages and rebroadcasts them to renderer windows.
 5. Renderer event guards and consumer-specific parsers accept or ignore each event.
-6. Chat stream state updates UI, transcript queues, tool runner state, overlay phase, and token/usage display.
+6. SDK tool coordination handles local execution and result delivery, while chat stream state updates UI, transcript queues, overlay phase, and token/usage display.
 
 ## Correlation Fields
 
@@ -45,14 +45,14 @@ Renderer filtering depends on these fields. Missing or renamed correlation field
 
 ## Tool Event Rule
 
-`tool-call` and `tool-bundle` are both display events and execution requests. The renderer must:
+`tool-call` and `tool-bundle` are both display events and execution requests. The SDK runtime must:
 
-1. render visible tool state,
-2. execute local tools through IPC/sidecar when required,
-3. persist transcript rows,
+1. normalize the backend event into a conversation event,
+2. execute claimed local tools through the local-runtime adapter and sidecar,
+3. append normalized tool output events,
 4. send `tool-result` or `tool-bundle-result` back to the backend.
 
-Do not make tool events UI-only unless the backend explicitly marks the event as not requiring frontend execution.
+The renderer renders display-only tool state and transcript projections. Do not reintroduce renderer-side backend tool-result delivery.
 
 ## Change Rules
 
@@ -70,7 +70,7 @@ Do not make tool events UI-only unless the backend explicitly marks the event as
 | event is visible in DevTools but ignored | renderer `backendEvents.ts` guard and consumer matrix |
 | event never reaches renderer | backend formatter/schema path or Electron main websocket rebroadcast |
 | text streams into the wrong chat | `conversation_ref` filtering and transcript session sync |
-| tool call renders but does not execute | renderer tool runner and sidecar bridge |
+| tool call renders but does not execute | SDK tool coordinator, Electron main local-runtime adapter, and sidecar bridge |
 | audio text exists but no sound plays | `audio-chunk` side-channel parser and playback queue |
 | token count absent | backend token event emission and renderer token-count consumer |
 
