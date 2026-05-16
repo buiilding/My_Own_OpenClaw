@@ -369,8 +369,8 @@ export class SdkConversationRuntime {
   }
 
   async setModel(selection: WindieModelSelection): Promise<string | void> {
-    if (!this.options.transport?.updateSettings) {
-      throw new Error('ConversationRuntime.setModel requires a backend transport that supports updateSettings');
+    if (!this.options.transport) {
+      throw new Error('ConversationRuntime.setModel requires a backend transport');
     }
     const settings = buildModelSettingsPatch(selection, 'ConversationRuntime.setModel');
     const backendMessageId = await this.options.transport.updateSettings(settings);

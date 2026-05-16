@@ -16,6 +16,7 @@ export * from './transport/HostedBackendHttpClient.js';
 export * from './tools/ToolExecutionCoordinator.js';
 export * from './settings/modelSelection.js';
 export {
+  createWindieAgentBackendTransport,
   createWindieAgentSession,
   WindieAgentSession,
 } from './transport/WindieAgentSession.js';

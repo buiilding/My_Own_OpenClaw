@@ -405,6 +405,7 @@ export function createWindieAgentBackendTransport(
     updateSettings: async payload => {
       await session.updateSettings(payload);
     },
+    listModels: async () => session.listModels(),
     subscribe: listener => session.on('event', listener),
     close: async () => session.close(1000, 'conversation-runtime-close'),
   };

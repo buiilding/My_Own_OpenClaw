@@ -3,6 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 
 import {
+  createWindieAgentBackendTransport,
   createWindieAgentSession,
   createWindieLocalRuntimeProvider,
   moduleTool,
@@ -340,6 +341,31 @@ describe('WindieSdkClient', () => {
       user_id: 'transport-user',
       operating_system: 'macOS',
       agent_definition: { id: 'transport-agent' },
+    });
+  });
+
+  test('SDK backend transport exposes websocket model-list messages', async () => {
+    const session = createWindieAgentSession({
+      backendUrl: 'https://api.windieos.com',
+      WebSocketImpl: FakeWebSocket as any,
+      userId: 'transport-user',
+      operatingSystem: 'macOS',
+      agentDefinition: { id: 'transport-agent' },
+    });
+
+    const openPromise = session.waitForOpen();
+    FakeWebSocket.instances[0].emit('open', {});
+    await openPromise;
+    FakeWebSocket.instances[0].clearSent();
+
+    const transport = createWindieAgentBackendTransport(session, 'conv-models');
+    const messageId = await transport.listModels();
+
+    expect(messageId).toEqual(expect.any(String));
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[0])).toMatchObject({
+      type: 'list-models',
+      payload: {},
+      user_id: 'transport-user',
     });
   });
 

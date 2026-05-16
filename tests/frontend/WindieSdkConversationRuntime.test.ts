@@ -31,6 +31,25 @@ async function tick(): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, 0));
 }
 
+function createMockBackendTransport(
+  overrides: Partial<BackendTransport> = {},
+): BackendTransport {
+  return {
+    connect: jest.fn(async () => undefined),
+    handshake: jest.fn(async () => undefined),
+    sendQuery: jest.fn(async () => 'query-unused'),
+    sendToolResult: jest.fn(async () => undefined),
+    sendToolBundleResult: jest.fn(async () => undefined),
+    sendRehydrate: jest.fn(async () => undefined),
+    updateSettings: jest.fn(async () => 'settings-unused'),
+    listModels: jest.fn(async () => 'models-unused'),
+    stop: jest.fn(async () => undefined),
+    subscribe: jest.fn(() => () => undefined),
+    close: jest.fn(async () => undefined),
+    ...overrides,
+  };
+}
+
 describe('Windie SDK conversation runtime core', () => {
   test('skipped compaction is runtime state, not display output', () => {
     const events = [
@@ -541,22 +560,15 @@ describe('Windie SDK conversation runtime core', () => {
   test('conversation runtime stores events and sends rehydrate from projection', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const sentRehydrates: Record<string, unknown>[] = [];
-    const transport: BackendTransport = {
-      connect: jest.fn(async () => undefined),
-      handshake: jest.fn(async () => undefined),
+    const transport = createMockBackendTransport({
       sendQuery: jest.fn(async payload => {
         sentQueries.push(payload);
         return 'query-1';
       }),
-      sendToolResult: jest.fn(async () => undefined),
-      sendToolBundleResult: jest.fn(async () => undefined),
       sendRehydrate: jest.fn(async payload => {
         sentRehydrates.push(payload);
       }),
-      stop: jest.fn(async () => undefined),
-      subscribe: jest.fn(() => () => undefined),
-      close: jest.fn(async () => undefined),
-    };
+    });
     const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
@@ -586,24 +598,16 @@ describe('Windie SDK conversation runtime core', () => {
   test('conversation runtime updates model selection before sending a turn', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const settingsUpdates: Record<string, unknown>[] = [];
-    const transport: BackendTransport = {
-      connect: jest.fn(async () => undefined),
-      handshake: jest.fn(async () => undefined),
+    const transport = createMockBackendTransport({
       sendQuery: jest.fn(async payload => {
         sentQueries.push(payload);
         return 'query-model';
       }),
-      sendToolResult: jest.fn(async () => undefined),
-      sendToolBundleResult: jest.fn(async () => undefined),
-      sendRehydrate: jest.fn(async () => undefined),
       updateSettings: jest.fn(async payload => {
         settingsUpdates.push(payload);
         return 'settings-model';
       }),
-      stop: jest.fn(async () => undefined),
-      subscribe: jest.fn(() => () => undefined),
-      close: jest.fn(async () => undefined),
-    };
+    });
     const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
@@ -667,18 +671,9 @@ describe('Windie SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store: new InMemoryConversationStore(),
-      transport: {
-        connect: jest.fn(async () => undefined),
-        handshake: jest.fn(async () => undefined),
+      transport: createMockBackendTransport({
         sendQuery,
-        sendToolResult: jest.fn(async () => undefined),
-        sendToolBundleResult: jest.fn(async () => undefined),
-        sendRehydrate: jest.fn(async () => undefined),
-        updateSettings: jest.fn(async () => 'settings-unused'),
-        stop: jest.fn(async () => undefined),
-        subscribe: jest.fn(() => () => undefined),
-        close: jest.fn(async () => undefined),
-      },
+      }),
     });
 
     await expect(runtime.send({
@@ -694,25 +689,18 @@ describe('Windie SDK conversation runtime core', () => {
   test('conversation runtime stream yields normalized events until backend completion', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     let backendListener: ((event: unknown) => void) | null = null;
-    const transport: BackendTransport = {
-      connect: jest.fn(async () => undefined),
-      handshake: jest.fn(async () => undefined),
+    const transport = createMockBackendTransport({
       sendQuery: jest.fn(async payload => {
         sentQueries.push(payload);
         return 'query-stream';
       }),
-      sendToolResult: jest.fn(async () => undefined),
-      sendToolBundleResult: jest.fn(async () => undefined),
-      sendRehydrate: jest.fn(async () => undefined),
-      stop: jest.fn(async () => undefined),
       subscribe: jest.fn(listener => {
         backendListener = listener;
         return () => {
           backendListener = null;
         };
       }),
-      close: jest.fn(async () => undefined),
-    };
+    });
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store: new InMemoryConversationStore(),
@@ -760,22 +748,14 @@ describe('Windie SDK conversation runtime core', () => {
 
   test('conversation runtimes only accept backend events for their conversation and active turn', async () => {
     const backendListeners = new Set<(event: unknown) => void>();
-    const transport: BackendTransport = {
-      connect: jest.fn(async () => undefined),
-      handshake: jest.fn(async () => undefined),
-      sendQuery: jest.fn(async () => 'query-unused'),
-      sendToolResult: jest.fn(async () => undefined),
-      sendToolBundleResult: jest.fn(async () => undefined),
-      sendRehydrate: jest.fn(async () => undefined),
-      stop: jest.fn(async () => undefined),
+    const transport = createMockBackendTransport({
       subscribe: jest.fn(listener => {
         backendListeners.add(listener);
         return () => {
           backendListeners.delete(listener);
         };
       }),
-      close: jest.fn(async () => undefined),
-    };
+    });
     const store = new InMemoryConversationStore();
     const first = new SdkConversationRuntime({
       conversationRef: 'conv-first',
@@ -829,24 +809,17 @@ describe('Windie SDK conversation runtime core', () => {
           },
         })),
       },
-      transport: {
-        connect: jest.fn(async () => undefined),
-        handshake: jest.fn(async () => undefined),
-        sendQuery: jest.fn(async () => 'query-unused'),
+      transport: createMockBackendTransport({
         sendToolResult: jest.fn(async payload => {
           sentToolResults.push(payload);
         }),
-        sendToolBundleResult: jest.fn(async () => undefined),
-        sendRehydrate: jest.fn(async () => undefined),
-        stop: jest.fn(async () => undefined),
         subscribe: jest.fn(listener => {
           backendListener = listener;
           return () => {
             backendListener = null;
           };
         }),
-        close: jest.fn(async () => undefined),
-      },
+      }),
     });
     runtime.attachTransport();
 
@@ -890,24 +863,17 @@ describe('Windie SDK conversation runtime core', () => {
           },
         })),
       },
-      transport: {
-        connect: jest.fn(async () => undefined),
-        handshake: jest.fn(async () => undefined),
-        sendQuery: jest.fn(async () => 'query-unused'),
+      transport: createMockBackendTransport({
         sendToolResult: jest.fn(async () => {
           throw new Error('websocket closed');
         }),
-        sendToolBundleResult: jest.fn(async () => undefined),
-        sendRehydrate: jest.fn(async () => undefined),
-        stop: jest.fn(async () => undefined),
         subscribe: jest.fn(listener => {
           backendListener = listener;
           return () => {
             backendListener = null;
           };
         }),
-        close: jest.fn(async () => undefined),
-      },
+      }),
     });
     runtime.attachTransport();
 
@@ -959,22 +925,15 @@ describe('Windie SDK conversation runtime core', () => {
       localRuntime: {
         executeTool,
       },
-      transport: {
-        connect: jest.fn(async () => undefined),
-        handshake: jest.fn(async () => undefined),
-        sendQuery: jest.fn(async () => 'query-unused'),
+      transport: createMockBackendTransport({
         sendToolResult,
-        sendToolBundleResult: jest.fn(async () => undefined),
-        sendRehydrate: jest.fn(async () => undefined),
-        stop: jest.fn(async () => undefined),
         subscribe: jest.fn(listener => {
           backendListener = listener;
           return () => {
             backendListener = null;
           };
         }),
-        close: jest.fn(async () => undefined),
-      },
+      }),
     });
     runtime.attachTransport();
 
@@ -1006,20 +965,12 @@ describe('Windie SDK conversation runtime core', () => {
 
   test('editAndResend rewrites from the edited user message and sends a new revision turn', async () => {
     const sentQueries: Record<string, unknown>[] = [];
-    const transport: BackendTransport = {
-      connect: jest.fn(async () => undefined),
-      handshake: jest.fn(async () => undefined),
+    const transport = createMockBackendTransport({
       sendQuery: jest.fn(async payload => {
         sentQueries.push(payload);
         return 'query-edited';
       }),
-      sendToolResult: jest.fn(async () => undefined),
-      sendToolBundleResult: jest.fn(async () => undefined),
-      sendRehydrate: jest.fn(async () => undefined),
-      stop: jest.fn(async () => undefined),
-      subscribe: jest.fn(() => () => undefined),
-      close: jest.fn(async () => undefined),
-    };
+    });
     const store = new InMemoryConversationStore();
     const firstUser = createConversationEvent({
       type: 'user_message',
@@ -1106,20 +1057,12 @@ describe('Windie SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
-      transport: {
-        connect: jest.fn(async () => undefined),
-        handshake: jest.fn(async () => undefined),
+      transport: createMockBackendTransport({
         sendQuery: jest.fn(async payload => {
           sentQueries.push(payload);
           return 'query-retry';
         }),
-        sendToolResult: jest.fn(async () => undefined),
-        sendToolBundleResult: jest.fn(async () => undefined),
-        sendRehydrate: jest.fn(async () => undefined),
-        stop: jest.fn(async () => undefined),
-        subscribe: jest.fn(() => () => undefined),
-        close: jest.fn(async () => undefined),
-      },
+      }),
     });
 
     await runtime.load();
@@ -1153,19 +1096,11 @@ describe('Windie SDK conversation runtime core', () => {
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
       store,
-      transport: {
-        connect: jest.fn(async () => undefined),
-        handshake: jest.fn(async () => undefined),
-        sendQuery: jest.fn(async () => 'query-unused'),
-        sendToolResult: jest.fn(async () => undefined),
-        sendToolBundleResult: jest.fn(async () => undefined),
+      transport: createMockBackendTransport({
         sendRehydrate: jest.fn(async payload => {
           sentRehydrates.push(payload);
         }),
-        stop: jest.fn(async () => undefined),
-        subscribe: jest.fn(() => () => undefined),
-        close: jest.fn(async () => undefined),
-      },
+      }),
     });
 
     const snapshot = await runtime.rehydrate();
