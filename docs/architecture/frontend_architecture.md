@@ -152,7 +152,7 @@ callbacks through `main/windie_sdk_runtime.cjs`.
 1. Renderer chat hooks call `DesktopConversationRuntimeClient` for visible transcript projection writes.
 2. The conversation runtime facade delegates projection persistence to `DesktopTranscriptProjectionRuntimeClient`, which writes through `ElectronSidecarConversationStore` rather than reaching into transcript IPC directly.
 3. `DesktopTranscriptSessionRuntimeClient` owns active conversation/user identity for app and dashboard surfaces.
-4. Dashboard conversation-list/load/delete and local snapshot calls go through `DesktopConversationLibraryClient`, which delegates store access to `DesktopTranscriptProjectionRuntimeClient` so dashboard feature code does not construct Electron store adapters or import transcript snapshot infrastructure.
+4. Dashboard conversation-list/load/delete/search and local snapshot calls go through `DesktopConversationLibraryClient`, which delegates store access to `DesktopTranscriptProjectionRuntimeClient` so dashboard feature code does not construct Electron store adapters or import transcript storage/snapshot infrastructure.
 5. Renderer-local conversation store helpers fetch transcript windows via sidecar RPC (`list-conversations`, `search-conversations`, `get-conversation`).
    `get-conversation` resume/hydrate paths use `message_index` cursor pagination (`after_message_index`) so large local DB transcripts are fully reloaded instead of capped at one page.
 6. `ElectronSidecarConversationStore` is the only renderer adapter that calls transcript storage IPC; it writes visible transcript rows, replay rows, and SDK `conversation_event` rows behind one store boundary.

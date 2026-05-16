@@ -4,6 +4,9 @@ import {
 import {
   loadLocalConversationSnapshot,
 } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
+import {
+  searchStoredConversations,
+} from '../../infrastructure/transcript/localConversationStore';
 
 export const DesktopConversationLibraryClient = {
   async listMetadata(userId, options) {
@@ -20,5 +23,9 @@ export const DesktopConversationLibraryClient = {
 
   async loadLocalConversationSnapshot(input) {
     return loadLocalConversationSnapshot(input);
+  },
+
+  async searchConversations(input) {
+    return searchStoredConversations(input);
   },
 };

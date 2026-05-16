@@ -1,7 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  searchStoredConversations,
-} from '../../../infrastructure/transcript/localConversationStore';
 import { buildChatMessagesFromDisplayConversation } from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
 import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
@@ -410,7 +407,7 @@ function useDashboardConversations({
       setIsSearchingConversations(true);
       setSearchConversationsError('');
       try {
-        const list = await searchStoredConversations({
+        const list = await DesktopConversationLibraryClient.searchConversations({
           userId: resolvedUserId,
           query: normalizedQuery,
           limit: 60,
