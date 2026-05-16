@@ -254,6 +254,9 @@ Electron uses a sidecar-backed store adapter:
 - rehydrate projection keeps tool history only when calls and outputs are paired,
   but pairing can use any shared wait/provider identity: `toolCallId`,
   `requestId`, `correlationId`, or `bundleId`.
+- public agent stream projection uses the same identity set for tool-output
+  dedupe and includes provider-safe `tool_call_id` on synthetic tool-call
+  events.
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel

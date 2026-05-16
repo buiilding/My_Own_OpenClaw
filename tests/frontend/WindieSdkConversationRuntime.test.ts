@@ -8,7 +8,10 @@ import {
   normalizeBackendEventToConversationEvent,
   reduceConversationRuntimeState,
   SdkConversationRuntime,
+  toAgentStreamEvent,
   ToolExecutionCoordinator,
+  toolOutputStreamKey,
+  toolOutputStreamKeys,
   type BackendTransport,
   type ConversationEvent,
 } from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
@@ -304,6 +307,43 @@ describe('Windie SDK conversation runtime core', () => {
       expect.objectContaining({ role: 'tool', content: 'result by provider id only', tool_call_id: 'call-read' }),
       expect.objectContaining({ role: 'assistant' }),
       expect.objectContaining({ role: 'tool', content: 'result by wait id only' }),
+    ]);
+  });
+
+  test('agent stream projection preserves provider ids and dedupes by every tool identity', () => {
+    const toolCall = event('tool_call', {
+      toolName: 'read_file',
+      requestId: 'req-read',
+      toolCallId: 'call-read',
+      correlationId: 'corr-read',
+      args: { path: 'README.md' },
+    });
+    const streamEvent = toAgentStreamEvent({
+      type: 'conversation_event',
+      event: toolCall,
+    } as any);
+
+    expect(streamEvent).toMatchObject({
+      type: 'tool_call',
+      event: {
+        payload: {
+          request_id: 'req-read',
+          tool_call_id: 'call-read',
+          correlation_id: 'corr-read',
+        },
+      },
+    });
+
+    const toolOutput = event('tool_output', {
+      requestId: 'req-read',
+      toolCallId: 'call-read',
+      correlationId: 'corr-read',
+      text: 'result',
+    });
+    expect(toolOutputStreamKey(toolOutput)).toBe('tool-call:call-read');
+    expect(toolOutputStreamKeys(toolOutput)).toEqual([
+      'tool-call:call-read',
+      'request:req-read',
     ]);
   });
 

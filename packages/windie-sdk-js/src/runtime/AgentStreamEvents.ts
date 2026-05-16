@@ -60,19 +60,27 @@ function eventStringField(payload: JsonRecord, ...keys: string[]): string | null
 }
 
 export function toolOutputStreamKey(event: ConversationEvent): string | null {
+  return toolOutputStreamKeys(event)[0] ?? null;
+}
+
+export function toolOutputStreamKeys(event: ConversationEvent): string[] {
   if (event.type !== 'tool_output' && event.type !== 'tool_bundle_output') {
-    return null;
+    return [];
+  }
+  const keys: string[] = [];
+  const toolCallId = eventStringField(event.payload, 'toolCallId', 'tool_call_id');
+  if (toolCallId) {
+    keys.push(`tool-call:${toolCallId}`);
   }
   const requestId = eventStringField(event.payload, 'requestId', 'request_id', 'correlationId', 'correlation_id');
   if (requestId) {
-    return `request:${requestId}`;
+    keys.push(`request:${requestId}`);
   }
   const bundleId = eventStringField(event.payload, 'bundleId', 'bundle_id');
   if (bundleId) {
-    return `bundle:${bundleId}`;
+    keys.push(`bundle:${bundleId}`);
   }
-  const toolCallId = eventStringField(event.payload, 'toolCallId', 'tool_call_id');
-  return toolCallId ? `tool-call:${toolCallId}` : null;
+  return keys;
 }
 
 function syntheticToolOutputEvent(event: ConversationEvent): Extract<BackendEvent, { type: 'tool-output' }> {
@@ -123,6 +131,7 @@ function syntheticToolCallEvent(event: ConversationEvent): Extract<BackendEvent,
         ? event.payload.args as JsonRecord
         : undefined,
       request_id: typeof event.payload.requestId === 'string' ? event.payload.requestId : undefined,
+      tool_call_id: typeof event.payload.toolCallId === 'string' ? event.payload.toolCallId : undefined,
       correlation_id: typeof event.payload.correlationId === 'string' ? event.payload.correlationId : undefined,
     },
   };

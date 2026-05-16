@@ -52,6 +52,7 @@ export type BackendEvent =
     parameters?: Record<string, unknown>;
     correlation_id?: string;
     request_id?: string;
+    tool_call_id?: string;
     metadata?: Record<string, unknown> & {
       skip_frontend_execution?: boolean;
       execution_owner?: string;

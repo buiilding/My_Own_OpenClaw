@@ -26,7 +26,7 @@ import {
 } from './ConversationRuntime.js';
 import {
   toAgentStreamEvent,
-  toolOutputStreamKey,
+  toolOutputStreamKeys,
   type WindieAgentStreamEvent,
 } from './AgentStreamEvents.js';
 
@@ -110,13 +110,11 @@ export class WindieAgent {
       const streamEvent = toAgentStreamEvent(runtimeEvent);
       if (streamEvent) {
         if (runtimeEvent.type === 'conversation_event') {
-          const key = toolOutputStreamKey(runtimeEvent.event);
-          if (key && seenToolOutputs.has(key)) {
+          const keys = toolOutputStreamKeys(runtimeEvent.event);
+          if (keys.some(key => seenToolOutputs.has(key))) {
             continue;
           }
-          if (key) {
-            seenToolOutputs.add(key);
-          }
+          keys.forEach(key => seenToolOutputs.add(key));
         }
         yield streamEvent;
       }
