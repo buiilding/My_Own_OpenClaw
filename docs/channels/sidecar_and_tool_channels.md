@@ -34,7 +34,7 @@ sequenceDiagram
 | --- | --- | --- |
 | Backend | model-facing tool schema, policy filtering, parser validation, tool-call events, result waiting, history commit | `backend/src/tools`, `backend/src/agent/tools`, `backend/src/api/processing/formatters/actions`, `backend/src/api/handlers/tool_results.py` |
 | SDK main runtime | backend websocket ownership, local tool-call routing, `tool-result` / `tool-bundle-result` return | `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs` |
-| Renderer | tool-call display, transcript/chat state, stale-turn display guards; no default local execution for SDK-owned backend tool events | `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`, `frontend/src/renderer/infrastructure/services/ToolExecution*.ts` |
+| Renderer | tool-call display, transcript/chat state, and stale-turn display guards; no local execution for backend tool events | `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`, `frontend/src/renderer/features/chat/utils/chatStream/chatStreamToolMessages.ts`, `frontend/src/renderer/infrastructure/transcript/*` |
 | Electron main | renderer IPC, sidecar daemon bridge, screenshot artifact upload, system-state bridge, display-only backend event fan-out | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/sidecar_daemon_manager.cjs`, `frontend/src/main/ipc.cjs` |
 | Python sidecar daemon | executable tool implementations and dynamic tool registry | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools/**`, `frontend/src/main/python/memory/**` |
 
@@ -81,9 +81,9 @@ Read next:
 
 After sidecar execution, the SDK main runtime returns results to the backend using the normal `/ws` tool-result path. The renderer receives display-only tool-call events for chat/transcript/overlay state and should not execute events marked `metadata.skip_frontend_execution`.
 
-The desktop `ChatProvider` does not mount renderer-side local execution by
-default. `useToolRunner` remains as an explicit legacy/test harness for
-non-SDK-owned events, not the normal desktop execution path.
+The desktop `ChatProvider` does not mount renderer-side local execution. The
+deleted renderer tool-runner path must not be reintroduced for backend
+tool-call events; execution belongs to the SDK main runtime and sidecar daemon.
 
 Result path rules:
 
@@ -97,7 +97,7 @@ Read next:
 
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 - [Backend Tool Result Ingress Reference](../backend/tools/tool_result_ingress_and_storage_reference.md)
-- [Frontend Tool Execution Service and Hook Runtime Reference](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
+- [Retired Renderer Tool Execution Runtime Reference](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
 
 ## Common Failure Routing
 
@@ -116,7 +116,7 @@ Use the narrowest test set for the changed boundary:
 
 - backend schema/policy/formatter/tool-result tests for model-facing changes
 - SDK/IPC tool-router tests for backend tool-call routing/result projection changes
-- renderer tool-runner tests for display-only event behavior
+- renderer chat-stream tests for display-only event behavior
 - main-process IPC/local-backend bridge tests for channel mapping changes
 - sidecar pytest tests for executable tool behavior
 - parity tests when backend schema and sidecar executable payloads must stay aligned

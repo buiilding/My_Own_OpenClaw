@@ -1,7 +1,12 @@
 import type { ToolResult } from '../MessageFormatter';
-import type { BundleStepResult } from './ToolExecutionBundleRunner';
 
 export type BundleStatus = 'success' | 'partial_failure' | 'failure';
+
+export type BundleStepResult = {
+  tool: string;
+  status: 'ok' | 'error';
+  output: string;
+};
 
 export interface BundledToolResult {
   tool_name: string;

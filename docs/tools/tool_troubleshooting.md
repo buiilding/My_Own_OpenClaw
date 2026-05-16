@@ -17,8 +17,8 @@ Use this page for symptom-to-owner routing. After identifying the owner, switch 
 | Tool not shown to model | backend tool policy/profile/provider health | [Tool Policy Profiles](tool_policy_profiles_and_capabilities.md) |
 | Tool schema missing fields | backend schema owner or provider projection | `backend/src/tools/**/schemas.py`, `backend/src/tools/provider_projection.py` |
 | Model calls disabled coordinate method | backend method validation | `ToolPolicy.get_method_validation_errors()` |
-| Backend logs tool call but frontend never runs it | websocket formatter/outgoing event or renderer event consumer | backend formatter tests, `useToolRunner` tests |
-| Renderer says unknown tool | sidecar registry parity or renderer dispatch map | `frontend/src/main/python/tools/registry.py`, `ToolExecutionService` |
+| Backend logs tool call but frontend never runs it | websocket formatter/outgoing event or SDK main-runtime tool router | backend formatter tests, SDK/main runtime tests |
+| SDK/main says unknown tool | sidecar registry parity or SDK dispatch map | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs` |
 | Sidecar returns `Tool not found` | sidecar registration/import failure | sidecar registry logs and `tests/sidecar/test_tool_registry.py` |
 | Tool succeeds but no model continuation | backend waiting storage/result receiver | `backend/src/agent/tools/waiting/**` |
 | Tool result visible but future replay breaks | transcript/history/model-facing row shape | renderer transcript docs and backend history docs |
@@ -63,8 +63,8 @@ Read:
 Questions to answer:
 
 1. Did backend send a `tool-call` or `tool-bundle` event?
-2. Did renderer receive the matching event type?
-3. Did renderer construct the sidecar payload with the expected args?
+2. Did the SDK main runtime receive the matching event type?
+3. Did SDK/main construct the sidecar payload with the expected args?
 4. Did Electron main route JSON-RPC to the sidecar?
 5. Did sidecar registry import the tool module lazily without import error?
 6. Did the executable tool return `ToolResult` or a legacy dict that normalizes successfully?
@@ -72,7 +72,7 @@ Questions to answer:
 Read:
 
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md)
-- [Frontend Tool Execution Service](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
+- [Retired Renderer Tool Execution Runtime](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
 - [Sidecar Registry and Result Normalization](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
 
 ## Result and History Failures

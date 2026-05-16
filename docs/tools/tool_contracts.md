@@ -86,7 +86,7 @@ Client-local schemas are merged with backend registry schemas before policy filt
 | Prompt merge and projection | `backend/src/llm/prompts/prompt_constructor.py`, `backend/src/tools/provider_projection.py` |
 | Preparation and coordinate resolution | `backend/src/agent/tools/preparation/*` |
 | Sending/waiting/processing | `backend/src/agent/tools/sending/*`, `backend/src/agent/tools/waiting/*`, `backend/src/agent/tools/processing/*` |
-| Renderer execution | `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`, `frontend/src/renderer/infrastructure/services/toolExecution/*` |
+| SDK/local execution | `packages/windie-sdk-js/src/index.ts`, `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs` |
 | Main sidecar bridge | `frontend/src/main/local_backend_bridge*.cjs` |
 | Sidecar registry | `frontend/src/main/python/tools/registry.py` |
 
@@ -96,7 +96,7 @@ For a step-by-step change route across these owners, use [Tool Schema and Policy
 
 - Backend schema and parser tests cover the model-facing shape.
 - Client manifest tests cover accepted, rejected, duplicate, reserved, oversized, and grounding-mode entries.
-- Renderer tool-runner tests cover correlation and result envelopes.
+- SDK runtime and main-process tool-router tests cover correlation and result envelopes.
 - Sidecar registry/tool tests cover executable behavior.
 - Cross-layer parity tests cover expected backend-exposed sidecar tool names.
 - Bundle paths cover atomic success, partial failure, timeout, and cleanup.

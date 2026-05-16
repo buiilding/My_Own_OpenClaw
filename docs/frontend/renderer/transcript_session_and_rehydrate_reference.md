@@ -33,7 +33,6 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
-- `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/utils/toolOutputTranscriptPersistence.ts`
 - `frontend/src/renderer/features/chat/utils/session/newChatSession.ts`
 - `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
@@ -171,9 +170,11 @@ Flush behavior (`flushPendingMessages`):
 
 - updates transcript session identity from accepted backend events
 - records tool-call/tool-output/assistant/error rows
-- routes transcript `tool-output` writes through `toolOutputTranscriptPersistence.ts` so chat-stream and tool-runner use the same transcript payload builder for output details, screenshots, and model metadata
+- routes transcript `tool-output` writes through `toolOutputTranscriptPersistence.ts` so streamed tool-output rows use the shared transcript payload builder for output details, screenshots, and model metadata
 
-`useToolRunner` records frontend-side tool execution rows and uses the same shared tool-output transcript persistence helper as chat-stream tool-output handling.
+SDK/main records model-facing local tool execution through normalized
+conversation events. Renderer transcript rows remain visible projections and do
+not execute tools.
 
 ## Dashboard Resume and Rehydrate Flow
 

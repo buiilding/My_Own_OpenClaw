@@ -12,7 +12,6 @@ title: "Backend Event Consumer Matrix Reference"
 
 - `frontend/src/renderer/types/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/utils/backendAudioEvents.js`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
@@ -25,7 +24,7 @@ Main process rebroadcasts backend websocket payloads to renderer on:
 
 - `from-backend`
 
-Renderer has multiple independent listeners on this channel (chat stream, tool runner, config handlers, audio chunk playback, status tracking).
+Renderer has multiple independent listeners on this channel (chat stream, config handlers, audio chunk playback, status tracking).
 
 ## Typed Event Union (`backendEvents.ts`)
 
@@ -68,19 +67,6 @@ Core effects:
 - system-prompt/tool-schemas/user-message-full/assistant-message-full -> transparency annotations
 - token-count -> token display state
 - error -> assistant error row (with settings-update error suppression)
-
-### Tool runner consumer (`useToolRunner`)
-
-Consumes subset:
-
-- `tool-call`
-- `tool-bundle`
-
-Effects:
-
-- executes tool(s) on frontend sidecar bridge
-- posts `tool-result` / `tool-bundle-result` back through IPC
-- applies stale-turn cancellation guardrails
 
 ### Audio consumer (`ChatInterface`)
 

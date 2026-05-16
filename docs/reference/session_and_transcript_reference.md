@@ -87,24 +87,25 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
   participant Backend
-  participant Renderer
+  participant SDK as SDK main runtime
   participant Main as Electron main
   participant Sidecar
-  Backend->>Renderer: tool-call with request_id/correlation key or tool-bundle with bundle_id
-  Renderer->>Main: execute local tool through IPC
-  Main->>Sidecar: JSON-RPC method with executable args
+  Backend->>SDK: tool-call with request_id/correlation key or tool-bundle with bundle_id
+  SDK->>Main: execute local tool through sidecar bridge
+  Main->>Sidecar: daemon/JSON-RPC method with executable args
   Sidecar-->>Main: ToolResult success/data/error
-  Main-->>Renderer: local execution result
-  Renderer->>Backend: tool-result request_id or tool-bundle-result bundle_id
+  Main-->>SDK: local execution result
+  SDK->>Backend: tool-result request_id or tool-bundle-result bundle_id
+  SDK-->>Renderer: display-only tool events
   Backend->>Backend: match pending waiter and commit model-facing history
 ```
 
 | Field | Live transport | Stored or replay shape | Owner files | Failure signal |
 | --- | --- | --- | --- | --- |
-| `request_id` | backend `tool-call` to renderer, then renderer `tool-result` back to backend | may appear as transcript `correlation_id` or structured payload linkage | `backend/src/api/schemas/incoming.py`, `frontend/src/renderer/infrastructure/services/toolExecution`, `backend/src/api/handlers/tool_result.py` | sidecar result appears in UI but backend loop does not continue |
-| `bundle_id` | backend `tool-bundle`, renderer bundle execution, backend `tool-bundle-result` | transcript bundle row plus step results | `backend/src/api/schemas/outgoing.py`, `frontend/src/renderer/infrastructure/services/toolExecution/bundleExecution.ts`, `backend/src/api/handlers/tool_result.py` | bundle hangs, partial results are lost, or failure is not model-visible |
+| `request_id` | backend `tool-call` to SDK runtime, then SDK `tool-result` back to backend | may appear as transcript `correlation_id` or structured payload linkage | `backend/src/api/schemas/incoming.py`, `frontend/src/main/windie_sdk_runtime.cjs`, `backend/src/api/handlers/tool_result.py` | sidecar result appears in UI but backend loop does not continue |
+| `bundle_id` | backend `tool-bundle`, SDK bundle execution, backend `tool-bundle-result` | transcript bundle row plus step results | `backend/src/api/schemas/outgoing.py`, `frontend/src/main/windie_sdk_runtime.cjs`, `backend/src/api/handlers/tool_result.py` | bundle hangs, partial results are lost, or failure is not model-visible |
 | `tool_call_id` | provider-native assistant/tool history | backend history and rehydrate entries | `backend/src/agent/history`, `backend/src/llm/parser_types.py` | provider rejects replay or tool output is detached from assistant tool call |
-| `correlation_id` | renderer UI/tool runner local key | transcript rows and tool output display | `frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionTypes.ts`, `frontend/src/main/local_backend_bridge_rpc_mappers.cjs` | visible transcript has orphan tool rows even when backend request IDs are valid |
+| `correlation_id` | SDK/display projection local key | transcript rows and tool output display | `packages/windie-sdk-js/src/index.ts`, `frontend/src/main/local_backend_bridge_rpc_mappers.cjs` | visible transcript has orphan tool rows even when backend request IDs are valid |
 
 Do not replace a missing backend `request_id` with a newly generated renderer `correlation_id`. That makes the UI look consistent while guaranteeing the backend waiter cannot match the result.
 

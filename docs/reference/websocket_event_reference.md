@@ -15,7 +15,7 @@ WindieOS uses one canonical streamed-event vocabulary for backend formatter outp
 | Family | Event names | Backend owner | Renderer owner |
 | --- | --- | --- | --- |
 | assistant stream | `llm-thought`, `streaming-response`, `streaming-complete`, `error` | `backend/src/core/events/streaming_events.py`, backend formatter specs | `useChatStream.ts`, stream handler map |
-| tool turns | `tool-call`, `tool-bundle`, `tool-output` | backend tool orchestration, formatter specs, outgoing schemas | `useChatStream.ts`, `useToolRunner.ts`, transcript tool persistence |
+| tool turns | `tool-call`, `tool-bundle`, `tool-output` | backend tool orchestration, formatter specs, outgoing schemas | `useChatStream.ts`, SDK main runtime display projection, transcript tool persistence |
 | transparency | `system-prompt`, `user-message-full`, `assistant-message-full`, `tool-schemas` | prompt metadata/event presenter and formatter specs | message transparency sections |
 | compaction | `context-compaction-started`, `context-compaction-completed`, `context-compaction-failed` | backend history compaction events and formatter specs | chat stream compaction/thinking state |
 | memory and usage | `memory-store`, `token-count` | backend memory event and token-count event formatter | memory side effects and token display |
@@ -55,7 +55,7 @@ Renderer active-conversation filtering and stale-turn rejection depend on these 
 | --- | --- |
 | backend produces event but websocket sends nothing | formatter spec, required fields, outgoing schema |
 | DevTools shows event but UI ignores it | renderer typed event guard or dedicated parser |
-| tool card renders but tool does not execute | `useToolRunner` consumer, `skip_frontend_execution` metadata, sidecar bridge |
+| tool card renders but tool does not execute | SDK main-runtime tool router, `skip_frontend_execution` metadata, sidecar bridge |
 | event updates the wrong chat | `conversation_ref` and active transcript session state |
 | token display absent | backend `token-count` event and renderer token-count handler |
 | audio chunk ignored | `audio-chunk` parser, not `backendEvents.ts` typed union |

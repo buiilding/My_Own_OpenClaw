@@ -23,8 +23,6 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useTurnScopedBackendEventHandler.ts`
-- `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
-- `frontend/src/renderer/features/chat/hooks/useToolRunnerBackendListener.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
@@ -37,14 +35,7 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/utils/transcriptModelContext.ts`
 - `frontend/src/renderer/features/chat/utils/toolOutputTranscriptPersistence.ts`
 - `frontend/src/renderer/features/chat/utils/modelThinkingCapabilities.ts`
-- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerSurface.ts`
-- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerMessages.ts`
-- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerResultPersistence.ts`
 - `frontend/src/renderer/infrastructure/hooks/useLatestRef.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionBundleRunner.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionCapture.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionPayloads.ts`
 - `frontend/src/renderer/types/backendEvents.ts`
 
 ## Provider Topology and Ownership
@@ -226,94 +217,29 @@ Streaming-complete transcript write nuance:
   - full user message content/metadata
   - full assistant message content
 
-## Legacy Renderer Tool Execution Runtime
+## SDK-Owned Tool Execution
 
-`useToolRunner` and `ToolExecutionService` are no longer mounted by
-`ChatProvider`. The current app receives SDK-owned display-only tool events from
-Electron main while local execution happens through the SDK main runtime and
-sidecar daemon.
+The renderer does not execute backend tool events. `tool-call` and
+`tool-bundle` events are displayed by chat-stream handlers, while the SDK main
+runtime routes execution through Electron main and the sidecar daemon.
 
-Legacy ingress events:
+Renderer display contract:
 
-- `tool-call`
-- `tool-bundle`
+- render `tool-call`, `tool-bundle`, and `tool-output` cards from stream events
+- preserve backend identifiers in structured payloads for replay and debugging
+- write visible transcript rows through transcript helpers
+- keep skipped or display-only execution metadata out of model-facing history
 
-Tool-event backend listener binding remains isolated in
-`useToolRunnerBackendListener` for legacy tests and cleanup tracking.
+Execution contract:
 
-Stale-turn guardrails:
+- SDK main runtime receives backend tool events and owns local execution state
+- Electron main bridges SDK local-runtime calls into the sidecar daemon
+- sidecar executes filesystem, shell, browser, computer-use, MCP, plugin, and extension tools
+- SDK main runtime sends exactly one `tool-result` or `tool-bundle-result` back to backend for each claimed call or bundle
 
-- tool events are ignored when `turn_ref` does not match target workspace active turn or stream is terminal (`idle/complete/error`) in that workspace
-- stale tool events send explicit backend cancellation payloads:
-- tool call -> `tool-result` failure with `frontend_stale_turn_cancelled`
-- tool bundle -> `tool-bundle-result` failure with `frontend_stale_turn_cancelled`
-
-Correlation tracking:
-
-- hook tracks correlation IDs to `{turnRef, conversationRef}`
-- drops late/foreign callback results using target workspace stream phase/turn checks before UI append/backend relay
-- removes correlation tracking after backend send
-
-Transcript persistence contract:
-
-- `toolRunnerResultPersistence.ts` owns chat-row append + transcript-write orchestration for frontend-executed tools
-- transcript `tool-output` row construction is delegated to `toolOutputTranscriptPersistence.ts`, matching the same helper used by `useChatStreamToolHandlers`
-- this keeps `structuredPayload.toolCallDetails`, screenshot-ref handling, and model metadata aligned between backend-streamed and frontend-executed tool outputs
-
-Surface preparation contract (`toolRunnerSurface.ts`):
-
-- classifies tool UI mode as `none | screenshot | interactive`
-- interactive mode covers direct computer-control primitives only (`mouse_control`, `keyboard_control`, `scroll_control`, `click`, `type`, `scroll`)
-- screenshot mode covers capture-only computer-use actions (`screenshot`, `switch_window`, `wait`)
-- browser tool actions stay in `none` mode and do not trigger dashboard/chat-pill surface transitions
-- every non-`none` preparation claims a surface token; chat-pill restoration runs only after the last outstanding token is released (prevents early restore when tool executions overlap)
-
-Overlay/focus runtime behavior:
-
-- interactive mode:
-  - `SHOW_CHATBOX(focus=false)` then `HIDE_CHATBOX`
-  - no separate renderer-callable focus-prep IPC
-  - shared response-overlay phase in main owns click-through + `focusable=false` for the loop window state
-- screenshot mode:
-  - `SHOW_CHATBOX(focus=false)` then `HIDE_CHATBOX`
-- restoration:
-  - when preparation requested chat-pill hide, `restoreToolExecutionSurface(...)` releases the token
-  - `SHOW_CHATBOX(focus=false)` runs best-effort only when no active surface tokens remain
-
-`ToolExecutionService.executeTool(...)` flow:
-
-1. invoke tool over IPC (`execute-tool` invoke)
-2. run capture policy (`ensureAutoCapture`) for computer-use paths
-3. upload screenshot artifact when available
-4. format assistant-facing output (`formatToolOutputMessage`)
-5. emit UI callback with rich result payload
-6. send backend `tool-result` with normalized payload data (`llm_content`, optional `screenshot_ref`, optional normalized `system_state`)
-
-Bundle flow (`executeToolBundle(...)`):
-
-1. run tools sequentially via `runToolBundle`
-2. fail-fast on first error step
-3. capture screenshot/system-state policy for computer tools
-4. format combined bundle output
-5. emit UI callback
-6. send single atomic `tool-bundle-result`
-
-## Capture and Payload Normalization Rules
-
-`ToolExecutionCapture`:
-
-- computer-use tool detection includes standard computer tools and `run_shell_command` with positive `wait`
-- auto-capture only when screenshot missing and capture not skipped
-- tool-specific wait defaults:
-- `screenshot`: 0s
-- other computer tools: 2s
-
-`ToolExecutionPayloads.buildToolResultPayloadData(...)`:
-
-- strips raw image/base64 fields before backend relay
-- always injects formatted `llm_content`
-- `system_state` normalized to required keys (`active_window`, `mouse_position`)
-- optional internal extension (`system_state_internal.screen_resolution`) for backend normalization paths
+For execution bugs, start with the SDK main runtime and sidecar bridge. For
+visual or replay bugs, start with renderer chat-stream tool handlers and
+transcript projection.
 
 ## Debug Checklist
 

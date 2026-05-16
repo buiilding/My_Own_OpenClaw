@@ -1,232 +1,76 @@
 ---
-summary: "Renderer tool execution runtime reference: `useToolRunner` event gating/correlation tracking, `ToolExecutionService` single-tool and bundle orchestration, callback ordering, and backend relay contracts."
+summary: "Retired renderer tool execution runtime reference explaining why backend tool execution moved to the SDK main runtime and what current owners replace the old hook/service stack."
 read_when:
-  - When changing `useToolRunner` behavior for turn gating, callback wiring, or backend send policy.
-  - When changing `ToolExecutionService` execution ordering, fail-fast semantics, or bundle status/error mapping.
-title: "Tool Execution Service and Hook Runtime Reference"
+  - When you find old references to renderer-side tool execution, `useToolRunner`, or `ToolExecutionService`.
+  - When debugging local tool execution and deciding whether the fix belongs in SDK main runtime, Electron main, sidecar, backend ingress, or renderer display projection.
+title: "Retired Renderer Tool Execution Runtime Reference"
 ---
 
-# Tool Execution Service and Hook Runtime Reference
+# Retired Renderer Tool Execution Runtime Reference
 
-## Canonical Modules
+The renderer-side local tool runner has been deleted. Backend `tool-call` and
+`tool-bundle` events are no longer executed from renderer hooks or renderer
+services.
 
-- `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
-- `frontend/src/renderer/features/chat/utils/transcriptModelContext.ts`
-- `frontend/src/renderer/features/chat/utils/toolOutputTranscriptPersistence.ts`
-- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerMessages.ts`
-- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerResultPersistence.ts`
-- `frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionService.ts`
-- `frontend/src/renderer/infrastructure/services/toolExecution/singleToolExecution.ts`
-- `frontend/src/renderer/infrastructure/services/toolExecution/bundleExecution.ts`
-- `frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionResultDispatch.ts`
-- `frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionBundleRunner.ts`
-- `frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionTypes.ts`
-- `tests/frontend/ToolExecutionService.test.ts`
-- `tests/frontend/ToolExecutionBundleRunner.test.ts`
-- `tests/frontend/ToolRunnerHook.events.test.ts`
-- `tests/frontend/ToolRunnerHook.callbacks.test.ts`
-- `tests/frontend/ToolRunnerMessages.test.ts`
+Current ownership:
 
-## Runtime Ownership Boundary
+- SDK main runtime owns backend websocket tool events, local execution
+  coordination, stale execution guards, result envelope construction, and
+  `tool-result` / `tool-bundle-result` delivery.
+- Electron main owns the sidecar daemon bridge, local permissions, artifact
+  upload plumbing, and display-only backend event fan-out.
+- Python sidecar owns executable filesystem, shell, browser, computer-use, MCP,
+  plugin, and extension tools.
+- Renderer owns display projection only: tool-call cards, tool-output cards,
+  transcript projection, stream phase, and visible status.
 
-`useToolRunner` owns:
+Deleted runtime modules included the old renderer hook, runner utilities, and
+renderer execution service. Do not recreate them for backend-owned tool events.
+If a custom client needs local execution, use the SDK runtime contracts instead.
 
-- backend event subscription (`from-backend`)
-- turn-level stale-event filtering
-- execution correlation tracking
-- wiring backend send relay and delegating tool/bundle result persistence to `toolRunnerResultPersistence.ts`
+## Current Tool Flow
 
-`ToolExecutionService` owns:
+```mermaid
+sequenceDiagram
+  participant Backend
+  participant SDK as SDK main runtime
+  participant Main as Electron main
+  participant Sidecar
+  participant Renderer
 
-- service-level callback state and delegation into:
-  - `singleToolExecution.ts`
-  - `bundleExecution.ts`
-- capture/upload/format integration
-- normalized backend result envelope emission (`tool-result`, `tool-bundle-result`) via `ToolExecutionResultDispatch`
+  Backend->>SDK: tool-call or tool-bundle
+  SDK->>Main: execute through local runtime adapter
+  Main->>Sidecar: daemon execute-tool request
+  Sidecar-->>Main: local result
+  Main-->>SDK: normalized result
+  SDK->>Backend: tool-result or tool-bundle-result
+  SDK-->>Renderer: display-only event projection
+```
 
-## `useToolRunner` Event Gate and Correlation Model
+## Replacement Owners
 
-Tool ingress events:
+| Concern | Current owner |
+| --- | --- |
+| Backend tool event normalization | `packages/windie-sdk-js/src/index.ts`, `frontend/src/main/windie_sdk_runtime.cjs` |
+| Local tool routing | `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`, sidecar daemon bridge |
+| Tool execution implementation | `frontend/src/main/python/tools/**` |
+| Tool result ingress | backend incoming schemas and tool-result handlers |
+| Tool-call/tool-output display | `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts` and chat-stream tool message helpers |
+| Transcript projection | renderer transcript infrastructure and SDK conversation-store projections |
 
-- `tool-call`
-- `tool-bundle`
+## Debug Routing
 
-Turn guardrails:
+- If the backend emitted a tool event but no local action happened, inspect the
+  SDK main-runtime tool router and sidecar daemon status.
+- If the sidecar ran but the model did not continue, inspect SDK result delivery,
+  `request_id` / `bundle_id` preservation, and backend tool-result ingress.
+- If the UI shows a confusing tool card, inspect renderer chat-stream tool
+  display handlers and transcript projection.
+- If duplicate execution happens, verify the renderer copy is display-only and
+  that no renderer-side execution path was reintroduced.
 
-- tool events with `turn_ref` not matching active stream turn are treated as stale
-- tool events for terminal phases (`idle`, `complete`, `error`) are ignored
-- stale events emit explicit cancellation payloads:
-  - single tool: `tool-result` with `frontend_stale_turn_cancelled`
-  - bundle: `tool-bundle-result` with `frontend_stale_turn_cancelled`
-- click-action sync gate:
-  - `mouse_control` actions `click`, `double_click`, `right_click` wait full ghost-click timeline (`3200ms`) before execution:
-    - hold at current cursor for `1000ms`
-    - move to target for `1200ms`
-    - hold at target for `1000ms`
-  - after wait, stale-turn guard re-check runs before invoking sidecar tool
-  - if stale after wait, runner emits cancellation payload instead of executing click
+Read next:
 
-Correlation tracking:
-
-- `trackedExecutionTurnsRef` maps correlation id -> turn ref
-- entries are pruned when turn changes or reaches terminal phase
-- callback outputs are ignored when correlation id no longer tracked
-- backend send callback untracks correlation id after relay
-
-Correlation id source order:
-
-1. `payload.correlation_id`
-2. `payload.request_id`
-3. event id
-4. generated UUID fallback
-
-## Service Callback Wiring Contract
-
-`ToolExecutionService` callbacks injected by `useToolRunner`:
-
-- `onToolResult`: append assistant `tool-output` chat row + transcript tool-output row
-- `onBundleResult`: append bundled output row + transcript tool-output row
-- `sendToBackend`: relay tool payload to backend IPC channel
-
-Both UI callbacks are suppressed for untracked/late correlations.
-
-Model metadata capture:
-
-- hook keeps latest `{modelId, modelProvider}` in mutable ref
-- callback metadata uses latest values without recreating service instance
-- the shared model metadata base lives in `transcriptModelContext.ts`, which is also consumed by chat-stream tool-output persistence helpers
-
-## Single Tool Execution (`ToolExecutionService.executeTool`)
-
-Ordered pipeline:
-
-1. log start/timing context
-2. invoke tool IPC via `invokeTool(...)`
-3. run `ensureAutoCapture(...)`
-4. upload screenshot artifact when computer-use tool + screenshot available
-   hosted artifact uploads from the main-process local-backend bridge include the persisted install bearer token when present
-5. resolve final system state
-6. format `formattedMessage` (`formatToolOutputMessage`)
-7. emit UI callback (`onToolResult`)
-8. send backend payload (`tool-result`)
-9. compute total execution time including backend send path
-10. log timing breakdown
-
-Error path:
-
-- emits formatted failure tool-result to UI
-- still sends failure `tool-result` payload to backend
-- rethrows error to caller (hook catches/logs)
-
-## Bundle Execution (`ToolExecutionService.executeToolBundle`)
-
-`runToolBundle(...)` behavior:
-
-- executes tools sequentially
-- fail-fast on first failed result or thrown error
-- for computer-use steps, captures screenshot after step
-- captures system state only on final computer-use step
-
-Bundle completion path:
-
-1. derive bundle status from step results
-2. normalize step results for formatter/UI
-3. format combined message (`formatBundledToolOutputMessage`)
-4. upload bundle screenshot artifact if present
-5. emit UI callback (`onBundleResult`)
-6. send single atomic backend envelope (`tool-bundle-result`)
-7. compute total bundle time including backend send
-
-Bundle status mapping:
-
-- `success`: all executed steps succeeded
-- `partial_failure`: an error occurred before all bundle steps executed
-- `failure`: all steps executed but at least one failed
-
-Failure message behavior:
-
-- backend `error` field only populated for `failure` status
-
-## Tool/Bundle Message Mapping in Renderer
-
-`toolRunnerMessages.ts` contracts:
-
-- `buildToolOutputMessage` maps service result to assistant `tool-output` row
-- `buildBundleOutputMessage` includes bundled metadata:
-  - `bundled: true`
-  - `tool_count`
-  - per-tool `{tool_name, success, error}`
-- transcript metadata always includes:
-  - `messageType: tool-output`
-  - `toolName`
-  - `correlationId`
-  - model id/provider snapshot
-
-Transcript persistence split:
-
-- `toolRunnerMessages.ts` owns chat-row and transcript-metadata projection for frontend-executed tool results
-- `toolRunnerResultPersistence.ts` owns append/store orchestration for single-tool, bundle, and surface-failure result paths
-- transcript `tool-output` rows are written through `toolOutputTranscriptPersistence.ts`, which is shared with backend-stream `tool-output` handling so `structuredPayload.toolCallDetails` and screenshot/model metadata fields stay aligned
-
-## Backend Envelope Shapes from Service
-
-Single tool send:
-
-- `type: "tool-result"`
-- payload:
-  - `request_id`
-  - `success`
-  - `data` (normalized object with `llm_content` and optional `screenshot_ref`/`capture_meta` plus optional `system_state` and `system_state_internal`)
-  - `error`
-
-Bundle send:
-
-- `type: "tool-bundle-result"`
-- payload:
-  - `bundle_id`
-  - `status`
-  - `step_results` (`tool`, `status`, `output`)
-  - `error` (nullable; `null` in non-failure paths)
-  - optional `screenshot_ref`, `capture_meta`, and `system_state` (gated by include flags)
-
-Envelope-build ownership:
-
-- `ToolExecutionBackendPayload.ts` builds final backend envelopes
-- `ToolExecutionPayloads.ts` provides normalized `data` shaping for single-tool payloads
-- `ToolResultEnvelope.ts` is the canonical envelope-type + correlation-id resolver contract
-
-## Test-Backed Invariants
-
-`tests/frontend/ToolExecutionService.test.ts` verifies:
-
-- computer-use auto-capture and artifact upload behavior
-- non-computer tools skip screenshot/system-state payload fields
-- result-provided screenshot/system_state are reused
-- bundle fail-fast, partial/failure status mapping, and screenshot tool display-bounds forwarding
-
-`tests/frontend/ToolExecutionBackendPayload.test.ts` verifies:
-
-- `tool-result` envelope `llm_content` normalization path
-- screenshot/system-state inclusion-gate behavior
-- bundle envelope `error: null` success path and failure error propagation
-
-`tests/frontend/ToolExecutionBundleRunner.test.ts` verifies:
-
-- sequential execution ordering
-- fail-fast stop on error
-- fallback output text rules for missing outputs/errors
-- capture behavior for computer-use steps and final-state semantics
-
-`tests/frontend/ToolRunnerHook.events.test.ts` and `callbacks.test.ts` verify:
-
-- backend event subscription lifecycle
-- stale-turn cancellation payload emission
-- correlation-based dropping of late callbacks/results
-- callback wiring to chat store, transcript writer, and backend relay
-
-## Drift Hotspots
-
-1. Changing callback order (UI emit vs backend send) can break transcript/message ordering assumptions.
-2. Relaxing stale-turn guard logic allows old tool outputs to land in new conversations.
-3. Modifying bundle status mapping can desync backend expectations for retry/failure handling.
-4. Omitting untrack on backend send can leak correlation entries and wrongly admit future stale callbacks.
+- [Sidecar and Tool Channels](../../../channels/sidecar_and_tool_channels.md)
+- [Tool Execution Lifecycle](../../../tools/tool_execution_lifecycle.md)
+- [Windie Client Runtime](../../../sdk/windie_client_runtime.md)

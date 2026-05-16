@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing WindieOS model-visible tool schemas, policy gates, provider projection, sidecar parity, renderer dispatch, and tool-result contracts."
+summary: "Workflow for changing WindieOS model-visible tool schemas, policy gates, provider projection, sidecar parity, SDK/local execution, and tool-result contracts."
 read_when:
   - When adding, removing, renaming, hiding, exposing, or changing a model-visible WindieOS tool.
   - When changing tool argument schemas, descriptions, capability gates, profiles, coordinate methods, provider-native projections, frontend executable payloads, or sidecar registry exposure.
@@ -9,7 +9,7 @@ title: "Tool Schema and Policy Change Workflow"
 
 # Tool Schema and Policy Change Workflow
 
-Use this workflow before changing anything that affects what tools the model can see or call. WindieOS tool behavior is split across client-provided local tool manifests, backend remote-tool schemas, backend policy gates, provider projection, renderer execution orchestration, Electron IPC, and sidecar local execution.
+Use this workflow before changing anything that affects what tools the model can see or call. WindieOS tool behavior is split across client-provided local tool manifests, backend remote-tool schemas, backend policy gates, provider projection, SDK/main local execution orchestration, Electron IPC, and sidecar local execution.
 
 The core rule is: backend owns backend remote tools and validation; Windie Agent owns client-local tool schemas and sidecar tool implementations. Do not make the frontend or sidecar import backend schemas to avoid drift. Keep parity explicit in tests and docs.
 
@@ -24,7 +24,7 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 | change OCR, vision, manual coordinate method availability or validation | backend tool policy and preparation | `backend/src/tools/tool_policy.py`, `backend/src/tools/computer/schemas.py`, `backend/src/agent/tools/preparation/*` | [Computer Tools](computer.md), [Tool Preparation and Coordinate Resolution Reference](../backend/tools/tool_preparation_and_coordinate_resolution_reference.md) | `tests/backend/test_tool_policy.py`, `tests/backend/test_tool_preparer.py`, `tests/backend/test_computer_use_schema_contract.py` |
 | backend rejects a model tool call before frontend execution | backend parser/preparation validation | `backend/src/agent/tools/preparation/validation.py`, tool `args_model`, parser tests | [Tool Turn Change Workflow](../backend/agent/tool_turn_change_workflow.md), [Tool Troubleshooting](tool_troubleshooting.md) | `tests/backend/test_interaction_tool_call_bridge.py`, tool-specific validation tests |
 | sidecar says tool not found or rejects executable args | sidecar registry/schema/runtime | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/exposed_tool_names.py`, `frontend/src/main/python/tools/**` | [Sidecar Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md), [Sidecar Tool Catalog and Execution Model](../frontend/sidecar/tool_catalog_and_execution_model.md) | `tests/sidecar/test_tool_registry.py`, `tests/sidecar/test_tool_schemas.py`, tool-specific sidecar tests |
-| renderer drops fields, result ids, artifacts, screenshots, or bundle metadata | renderer tool execution | `frontend/src/renderer/infrastructure/services/toolExecution`, `frontend/src/renderer/features/chat/hooks/useToolRunner.ts` | [Tool Execution Lifecycle](tool_execution_lifecycle.md), [Frontend Tool Execution Service + Hook Runtime Reference](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md) | `tests/frontend/ToolExecution*.test.ts`, `tests/frontend/ToolRunner*.test.ts`, `tests/frontend/ToolResult*.test.ts` |
+| SDK/main drops fields, result ids, artifacts, screenshots, or bundle metadata | SDK tool router and main local-runtime bridge | `packages/windie-sdk-js/src/index.ts`, `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs` | [Tool Execution Lifecycle](tool_execution_lifecycle.md), [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md) | SDK runtime tests, main runtime/tool-router tests, backend tool-result tests |
 | provider-specific tool payload differs from canonical function schemas | backend provider projection/provider adapter | `backend/src/tools/provider_projection.py`, `backend/src/llm/providers/*`, `backend/src/llm/prompts/*` | [Provider Change Workflow](../providers/provider_change_workflow.md), [Prompt Context Change Workflow](../backend/llm/prompts/prompt_context_change_workflow.md) | provider tests plus prompt/schema tests |
 | tool-result history, request ids, bundle output, or cleanup changes | backend agent tool-turn runtime | `backend/src/agent/tools/sending`, `backend/src/agent/tools/waiting`, `backend/src/agent/tools/processing`, `backend/src/agent/history` | [Tool Turn Change Workflow](../backend/agent/tool_turn_change_workflow.md), [Tool Execution Lifecycle](tool_execution_lifecycle.md) | `tests/backend/test_tool_result_*`, `tests/backend/test_bundle_execution.py`, frontend bundle/result tests |
 
@@ -32,7 +32,8 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 
 - Backend owns backend remote-tool schemas, client-manifest validation, visibility policy, provider projection, parser validation, tool-result ingestion, and history conversion.
 - Windie Agent owns client-local schemas and sidecar tool implementations.
-- Renderer owns streamed tool-call consumption, single/bundle execution orchestration, screenshot/artifact capture around tool execution, and backend result envelope submission.
+- SDK/main owns streamed tool-call consumption for execution, single/bundle local orchestration, and backend result envelope submission.
+- Renderer owns streamed tool-call/tool-output display projection and transcript rendering.
 - Electron main owns the `execute-tool` IPC bridge, sidecar request transport, display/window context, and sidecar process availability.
 - Python sidecar owns local executable tool registry entries and actual local machine actions.
 - Backend-only tools such as `web_search` do not need sidecar parity, but they still need policy and provider capability tests.
@@ -70,11 +71,11 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 1. Model emits a tool call using the model-facing backend schema.
 2. Backend parser validates the call against the registered tool `args_model`.
 3. Preparation resolves backend-only or grounded fields such as OCR text, prediction targets, candidate ids, and screenshots.
-4. Backend sends `tool-call` or `tool-bundle` events to the frontend with executable payloads and request ids.
-5. Renderer tool execution services dispatch to Electron main.
-6. Electron main forwards the executable request to the sidecar JSON-RPC runtime.
+4. Backend sends `tool-call` or `tool-bundle` events to the SDK runtime with executable payloads and request ids.
+5. SDK main runtime dispatches local execution through Electron main.
+6. Electron main forwards the executable request to the sidecar daemon/JSON-RPC runtime.
 7. Sidecar registry executes the local tool implementation and returns a normalized result.
-8. Renderer submits `tool-result` or `tool-bundle-result` back to the backend.
+8. SDK main runtime submits `tool-result` or `tool-bundle-result` back to the backend.
 9. Backend transforms the result into model-facing history and resumes the loop.
 
 ## Add a New Sidecar-Executed Tool
@@ -86,7 +87,7 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 5. Add or update parser/preparation validation if model-facing fields differ from executable sidecar fields.
 6. Add the sidecar implementation and register it in `frontend/src/main/python/tools/registry.py`.
 7. Add the tool name to `frontend/src/main/python/tools/exposed_tool_names.py` only if backend parity should require it.
-8. Update renderer tool execution code only if the tool needs special handling for screenshots, artifacts, display context, bundle behavior, or result shaping.
+8. Update SDK/main local execution code only if the tool needs special handling for screenshots, artifacts, display context, bundle behavior, or result shaping.
 9. Update docs:
    - [Tool Catalog Matrix](tool_catalog_matrix.md)
    - [Tool Contracts](tool_contracts.md)
@@ -104,7 +105,7 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
    - backend-only tools: update backend parser/provider tests only
 4. Update shared field factories in `backend/src/tools/schema_fields.py` when multiple tools need the same wording or validation field.
 5. Update `tests/sidecar/test_shared_tool_schema_parity.py` for exact-parity coverage or intentional exceptions.
-6. Update renderer tests if streamed payload fields, request ids, artifacts, screenshots, or bundle result fields change.
+6. Update SDK/main and renderer display tests if streamed payload fields, request ids, artifacts, screenshots, or bundle result fields change.
 7. Regenerate or refresh any prompt/schema artifacts only through the live prompt path when the model-visible schema snapshot changes.
 
 ## Change Tool Visibility or Capability Policy

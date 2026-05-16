@@ -2,7 +2,7 @@
 
 ## Overview
 
-The renderer process is the React-based UI layer of the Electron desktop application. It handles user interactions, displays chat messages, manages voice/wakeword detection, executes tools, and communicates with the main process via IPC. The architecture follows a feature-based organization with clear separation between UI components, business logic (hooks), and infrastructure services.
+The renderer process is the React-based UI layer of the Electron desktop application. It handles user interactions, displays chat messages, manages voice/wakeword detection, renders tool-call/tool-output projections, and communicates with the main process via IPC. Local tool execution is owned by the SDK main runtime and sidecar, not the renderer. The architecture follows a feature-based organization with clear separation between UI components, business logic (hooks), and infrastructure services.
 
 ---
 
@@ -26,7 +26,7 @@ frontend/src/renderer/
 │       ├── appConfigEvents.js           # appConfigEvents - Backend event routing + transcript user-id extraction helpers
 │       ├── appConfigPersistence.js      # appConfigPersistence - Config sanitization + changed-config apply helpers
 │       ├── ChatContext.jsx              # ChatContext constants for ChatProvider wiring
-│       ├── ChatProvider.jsx             # ChatProvider - Sets up chat hooks (useChatStream, useToolRunner)
+│       ├── ChatProvider.jsx             # ChatProvider - Sets up chat stream hooks and transcript session sync
 │       └── configComparison.ts          # configComparison - Shallow config change detection helpers
 │
 ├── components/                           # Shared UI components
@@ -65,7 +65,6 @@ frontend/src/renderer/
 │   │   │   ├── useChatStream.ts         # useChatStream - Handles streaming events (llm-thought, streaming-response, tool-call, etc.)
 │   │   │   ├── useCopyMessageAction.js  # useCopyMessageAction - Shared clipboard copy-success state/timer logic for user/assistant message action rows
 │   │   │   ├── useStreamMessageUpdaters.ts # useStreamMessageUpdaters - Shared message update callbacks extracted from useChatStream
-│   │   │   ├── useToolRunner.ts         # useToolRunner - Connects UI to ToolExecutionService, handles tool execution events
 │   │   │   └── useTranscription.ts      # useTranscription - Manages input state and voice transcription text insertion
 │   │   │
 │   │   ├── stores/                      # State management
@@ -107,8 +106,6 @@ frontend/src/renderer/
 │   │       │   ├── messageTokenUsage.js # messageTokenUsage - Token usage/source label formatting helpers
 │   │       │   ├── messageTransparency.js # messageTransparency - Descriptor builder for transparency sections
 │   │       │   └── sourceTags.js        # sourceTags - Source tag derivation for message badges/thinking labels
-│   │       ├── toolRunner/              # toolRunner - Tool runner guards, envelopes, surface lifecycle, and message persistence helpers
-│   │       │   ├── toolRunnerMessages.ts # toolRunnerMessages - Tool result/bundle message builders and tool-call/bundle mapping helpers
 │   │       ├── overlay/                 # overlay - Phase/layout contracts for the response overlay shell
 │   │       │   ├── responseOverlayLayoutMode.js # responseOverlayLayoutMode - hidden/awaiting/response layout enum + compact-hover predicate
 │   │       │   └── responseOverlayViewContract.ts # responseOverlayViewContract - showResponse/showAwaitingReply/layout contract helper
@@ -182,17 +179,10 @@ frontend/src/renderer/
 │   │   ├── MessageFormatter.ts          # MessageFormatter - Pure functions for formatting model-facing tool output text
 │   │   ├── ScreenshotAttachmentPipeline.ts # ScreenshotAttachmentPipeline - canonical screenshot capture/materialization/ref fallback service
 │   │   ├── SystemStateCapture.ts        # SystemStateCapture - explicit system-state capture service
-│   │   └── toolExecution/               # toolExecution - Tool execution runtime, payload shaping, and envelope helpers
-│   │       ├── ToolExecutionService.ts  # Thin service wrapper that delegates to single-tool and bundle runtimes
-│   │       ├── singleToolExecution.ts   # Single-tool execution flow (invoke -> capture -> upload -> backend relay)
-│   │       ├── bundleExecution.ts       # Bundle execution flow (run -> format -> upload -> atomic relay)
-│   │       ├── ToolExecutionBundleRunner.ts # Runs atomic tool bundles and collects per-step results
-│   │       ├── ToolExecutionCapture.ts  # Auto-capture decisions and OS state capture helpers
-│   │       ├── ToolExecutionInvoker.ts  # IPC invocation wrapper with timing
-│   │       ├── ToolExecutionLogger.ts   # Timing/log helpers
-│   │       ├── ToolExecutionPayloads.ts # Shared tool/bundle payload/status shaping helpers
-│   │       ├── ToolExecutionTypes.ts    # Type definitions and constants (COMPUTER_USE_TOOLS, etc.)
-│   │       └── ToolResultEnvelope.ts    # Canonical tool-result and tool-bundle envelope builders
+│   │   └── toolExecution/               # toolExecution - retained display/formatting models for tool output rendering
+│   │       ├── BundleExecutionModel.ts  # Bundle result display model shared with message formatting
+│   │       ├── ToolExecutionLogger.ts   # Timing/log helpers used by capture services
+│   │       └── ToolScreenshotDebugTrace.ts # Gated screenshot/artifact debug trace helpers
 │   │
 │   └── transcript/                       # Transcript persistence helpers
 │       ├── pending/                     # Pending transcript queue helpers
@@ -261,8 +251,7 @@ frontend/src/renderer/
            ↓
 5. CHAT INITIALIZATION
    └─> app/providers/ChatProvider.jsx
-       ├─> useChatStream() - Set up streaming event listeners
-       └─> useToolRunner() - Initialize ToolExecutionService
+       └─> useChatStream() - Set up streaming event listeners and display projections
 ```
 
 ### Message Sending Flow
@@ -321,39 +310,29 @@ frontend/src/renderer/
        └─> Auto-scrolls to bottom
 ```
 
-### Tool Execution Flow
+### Tool Display and SDK Execution Flow
 
 ```
 1. TOOL CALL EVENT
    └─> Backend sends tool-call or tool-bundle event
-       └─> IPC: ON_CHANNELS.FROM_BACKEND
+       └─> SDK main runtime receives event
            ↓
-2. TOOL RUNNER HOOK
-       └─> features/chat/hooks/useToolRunner.ts
-       ├─> Handle tool-call → ToolExecutionService.executeTool()
-       ├─> Handle tool-bundle → ToolExecutionService.executeToolBundle()
-       └─> Handle memory-store → IPC invoke STORE_MEMORY
+2. SDK LOCAL EXECUTION
+   └─> frontend/src/main/windie_sdk_runtime.cjs
+       ├─> Route single tool or bundle to local runtime adapter
+       ├─> Preserve request_id / bundle_id / tool_call_id
+       └─> Send tool-result or tool-bundle-result back to backend
            ↓
-3. TOOL EXECUTION SERVICE
-   └─> infrastructure/services/toolExecution/ToolExecutionService.ts
-       ├─> Execute tool via IPC (INVOKE_CHANNELS.EXECUTE_TOOL)
-       ├─> Check if computer-use tool (needs screenshot)
-       ├─> captureScreenshotAttachment() / captureSystemState() - explicit capture services
-       ├─> formatToolOutputMessage() - Format model-facing tool output text
-       ├─> Call onToolResult callback (UI update)
-       └─> Send tool-result to backend via IPC
+3. SIDECAR EXECUTION
+   └─> Electron main → Python sidecar daemon
+       ├─> Execute filesystem/shell/browser/computer-use/MCP/plugin tools
+       └─> Return normalized local result to SDK runtime
            ↓
-4. IPC TO MAIN PROCESS
-   └─> infrastructure/ipc/bridge.ts
-       └─> IpcBridge.invoke(INVOKE_CHANNELS.EXECUTE_TOOL, ...)
-           └─> Main process → Python sidecar (JSON-RPC)
-               ↓
-5. TOOL RESULT
-   └─> Python sidecar returns result
-       └─> Main process → IPC to renderer
-           └─> ToolExecutionService processes result
-               └─> UI callback updates chatStore
-                   └─> MessageList displays tool output
+4. RENDERER DISPLAY
+   └─> features/chat/hooks/useChatStream.ts
+       ├─> Render display-only tool-call/tool-bundle events
+       ├─> Render backend tool-output events
+       └─> Persist visible transcript projection
 ```
 
 ### Voice Mode Flow
@@ -442,28 +421,18 @@ frontend/src/renderer/
        └─> AudioContext.createBufferSource() - Play audio
 ```
 
-### Bundle Execution Flow
+### Bundle Display Flow
 
 ```
 1. BUNDLE EVENT
-   └─> Backend sends tool-bundle event
-       └─> IPC: ON_CHANNELS.FROM_BACKEND
+   └─> Backend sends tool-bundle event through SDK runtime
            ↓
-2. TOOL EXECUTION SERVICE
-   └─> infrastructure/services/toolExecution/ToolExecutionService.ts
-       └─> executeToolBundle()
-           ├─> Execute tools sequentially (with skipAutoCapture)
-           ├─> Extract OS state after each computer-use tool
-           ├─> FAIL-FAST: Stop on first error
-           ├─> Capture screenshot/system state only after last tool
-           ├─> formatBundledToolOutputMessage() - Format combined message
-           ├─> Call onBundleResult callback (UI update)
-           └─> Send tool-bundle-result to backend
-               ↓
+2. SDK MAIN RUNTIME
+   └─> Executes bundle deterministically through sidecar and sends one tool-bundle-result
+           ↓
 3. UI UPDATE
-   └─> features/chat/hooks/useToolRunner.ts
-       └─> onBundleResult callback
-           └─> chatStore.addMessage() - Add bundled tool output message
+   └─> features/chat/hooks/useChatStream.ts
+       └─> chatStore.addMessage() - Add display projection for bundle/tool output
 ```
 
 ---
@@ -476,13 +445,13 @@ frontend/src/renderer/
 
 3. **Optimistic State**: Config loaded from localStorage immediately (zero latency) before backend sync
 
-4. **Hook-Based Logic**: Business logic extracted into custom hooks (useChatStream, useToolRunner, useVoiceMode, etc.)
+4. **Hook-Based Logic**: Business logic extracted into custom hooks (useChatStream, useVoiceMode, etc.)
 
 5. **Zustand Store**: Lightweight state management for chat messages (no Redux overhead)
 
 6. **Type-Safe IPC**: Typed IPC bridge with channel validation (development only, preload.js validates in production)
 
-7. **Pure Services**: Infrastructure services (ToolExecutionService, MessageFormatter, PlayerService) have no React dependencies
+7. **Pure Services**: Infrastructure services (MessageFormatter, PlayerService, capture/artifact helpers) have no React dependencies
 
 8. **Callback Pattern**: Services accept callbacks for UI updates and backend communication (dependency injection)
 

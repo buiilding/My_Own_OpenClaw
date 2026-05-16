@@ -2,7 +2,7 @@
 summary: "End-to-end browser tool runtime in sidecar: IPC/JSON-RPC path, shared browser contract validation, WindieBrowserRuntime dispatch, BrowserController + CDP orchestration, and browser file/snapshot boundaries."
 read_when:
   - When changing sidecar browser tool behavior, action routing, or CDP launch policy.
-  - When debugging browser connect/snapshot/action failures across renderer, Electron main, and Python sidecar.
+  - When debugging browser connect/snapshot/action failures across SDK main runtime, Electron main, and Python sidecar.
 title: "Browser Automation Stack"
 ---
 
@@ -14,7 +14,7 @@ WindieOS currently uses a first-party Windie browser runtime. Older Browser Use 
 
 Request path for browser actions:
 
-1. Renderer `ToolExecutionService` invokes `INVOKE_CHANNELS.EXECUTE_TOOL`.
+1. SDK main runtime routes a local browser tool call through the Electron local-runtime adapter.
 2. Electron main `local_backend_bridge.cjs` handles `execute-tool` and sends JSON-RPC `execute_tool`.
 3. Python sidecar `local_backend.py` routes to `ToolRegistry.execute_tool("browser", args)`.
 4. `tools/browser/browser_tool.py:execute_browser(...)` validates `BrowserControlArgs`.

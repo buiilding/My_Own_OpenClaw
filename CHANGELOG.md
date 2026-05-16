@@ -40,6 +40,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: route renderer model-list refreshes through `ApiClient.listModels()` instead of direct backend IPC sends.
 - frontend/sdk: remove `ChatProvider`'s renderer tool-runner mount path so desktop chat surfaces only subscribe to stream state while SDK main owns local tool execution.
 - frontend/sdk: stop mounting renderer-side local tool execution by default now that SDK main runtime owns local tool routing.
+- frontend/sdk: delete the unmounted renderer tool-runner execution stack and runner-specific tests; SDK main runtime and the sidecar now own local tool execution.
 - frontend: keep skipped compaction completions from clearing unrelated active stream status while continuing to hide skipped compaction debug panels.
 - frontend: restore chat stream TypeScript checking by tightening IPC channel typing, message-builder casts, and tool transcript payload types.
 - frontend/sdk: remove the hidden 200-chat cap from dashboard startup metadata loading while preserving explicit conversation-list limits for paged callers.

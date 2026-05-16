@@ -1,9 +1,9 @@
 ---
-summary: "Workflow for changing or debugging WindieOS filesystem and shell tools across backend model-visible schemas, renderer dispatch, Electron bridge argument shaping, sidecar execution, process sessions, sudo policy, results, and tests."
+summary: "Workflow for changing or debugging WindieOS filesystem and shell tools across backend model-visible schemas, SDK/local dispatch, Electron bridge argument shaping, sidecar execution, process sessions, sudo policy, results, and tests."
 read_when:
   - When changing or debugging `read_file`, `replace`, `run_shell_command`, `process`, `open_app`, or `wait`.
   - When a file edit, file read, shell command, background process, sudo prompt, working directory, output truncation, or local tool result behaves differently from what the model requested.
-  - When deciding whether a filesystem/shell bug belongs to backend schema/policy, renderer tool dispatch, Electron main bridge payload shaping, sidecar executable code, or result formatting.
+  - When deciding whether a filesystem/shell bug belongs to backend schema/policy, SDK/main tool dispatch, Electron main bridge payload shaping, sidecar executable code, or result formatting.
 title: "Filesystem and Shell Change Workflow"
 ---
 
@@ -11,7 +11,7 @@ title: "Filesystem and Shell Change Workflow"
 
 This workflow routes changes to WindieOS local file and terminal tools. Use it when the symptom is an agent-visible tool problem rather than a general backend, renderer, or platform issue.
 
-The key boundary is simple: the backend owns model-facing tool names, descriptions, JSON schemas, tool policy, and tool-result ingestion. The renderer and Electron main process relay requests and add frontend-local execution context. The Python sidecar owns local execution, path resolution, atomic file mutation, process sessions, shell output formatting, and executable result payloads.
+The key boundary is simple: the backend owns model-facing tool names, descriptions, JSON schemas, tool policy, and tool-result ingestion. The SDK main runtime and Electron main relay requests and add frontend-local execution context. The renderer displays tool projections. The Python sidecar owns local execution, path resolution, atomic file mutation, process sessions, shell output formatting, and executable result payloads.
 
 ## Runtime Path
 
@@ -19,22 +19,22 @@ The key boundary is simple: the backend owns model-facing tool names, descriptio
 flowchart LR
     A["Backend tool catalog and policy"] --> B["Model emits tool call"]
     B --> C["Backend streams tool-call event"]
-    C --> D["Renderer tool execution service"]
-    D --> E["Electron ipcMain execute-tool"]
+    C --> D["SDK main runtime tool router"]
+    D --> E["Electron main sidecar bridge"]
     E --> F["local_backend_bridge_execute_tool_runtime.cjs"]
     F --> G["local_backend_bridge_tool_args.cjs"]
     G --> H["Python sidecar execute_tool JSON-RPC"]
     H --> I["ToolRegistry.execute_tool"]
     I --> J["filesystem/system sidecar tool"]
     J --> K["ToolResult"]
-    K --> L["Renderer tool-result envelope"]
+    K --> L["SDK tool-result envelope"]
     L --> M["Backend tool-result ingress and history"]
 ```
 
 ## Boundary Rules
 
 - Backend schema changes live under `backend/src/tools/filesystem`, `backend/src/tools/system`, `backend/src/tools/tool_catalog.py`, and backend policy/profile code. Do not make the sidecar import backend schemas for parity.
-- Renderer dispatch lives under `frontend/src/renderer/infrastructure/services/toolExecution`. It should preserve correlation, bundle semantics, formatted model content, screenshot/system-state inclusion rules, and result envelopes.
+- SDK/main dispatch lives under `packages/windie-sdk-js/src/index.ts`, `frontend/src/main/windie_sdk_runtime.cjs`, and `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`. It should preserve correlation, bundle semantics, formatted model content, screenshot/system-state inclusion rules, and result envelopes.
 - Electron bridge payload shaping lives in `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs` and `frontend/src/main/local_backend_bridge_tool_args.cjs`. This is where frontend-local defaults such as `sudo_auth_mode` and screenshot display bounds are injected before sidecar execution.
 - Sidecar runtime argument models live in `frontend/src/main/python/tools/schemas.py`. Sidecar executable implementations live in `frontend/src/main/python/tools/filesystem` and `frontend/src/main/python/tools/system`.
 - `read_file` may read text, selected binary-safe formats, and paginated windows, but it must keep OCR/text extraction boundaries explicit. OCR belongs to screenshot/vision/OCR flows, not normal file reads.
@@ -58,7 +58,7 @@ flowchart LR
 | `read_file` pagination, binary guard, PDF handling, or line truncation is wrong | Sidecar filesystem reader | `frontend/src/main/python/tools/filesystem/read_file_tool.py` | [Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md) |
 | `replace` fails to match or edits too broadly | Sidecar replace engine | `frontend/src/main/python/tools/filesystem/replace_engine.py`, `replace_matchers.py`, `replace_patch_chunks.py` | `tests/sidecar/test_replace_engine.py`, `tests/sidecar/test_replace_tool.py` |
 | `replace` writes partial content after an error | Sidecar replace I/O wrapper | `frontend/src/main/python/tools/filesystem/replace_tool.py` | atomic write tests and temp-file cleanup tests |
-| Tool result reaches UI but not backend continuation | Renderer result envelope or backend result ingress | `ToolExecutionPayloads.ts`, `ToolExecutionBackendPayload.ts`, `ToolExecutionResultDispatch.ts` | backend tool-result ingress docs/tests |
+| Tool result reaches UI but not backend continuation | SDK result envelope or backend result ingress | `packages/windie-sdk-js/src/index.ts`, `frontend/src/main/windie_sdk_runtime.cjs`, `backend/src/api/handlers/tool_result.py` | SDK/main runtime and backend tool-result ingress docs/tests |
 | Backend receives a result but model history looks wrong | Backend result processing | `backend/src/agent/tools`, `backend/src/tools/processing` | backend tool processing docs/tests |
 
 ## Change Sequence
@@ -73,10 +73,9 @@ flowchart LR
    - If the tool name, description, argument schema, visibility, policy gate, provider projection, or prompt-facing guidance changes, start in backend tool schema and policy docs.
    - If only local execution behavior changes while the model-facing contract stays stable, start in the sidecar implementation and update parity/behavior tests.
 
-3. Trace the request through renderer and Electron.
-   - Renderer entrypoint: `frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionService.ts`.
-   - Single-tool invocation: `frontend/src/renderer/infrastructure/services/toolExecution/singleToolExecution.ts`.
-   - IPC invocation: `frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionInvoker.ts`.
+3. Trace the request through SDK main runtime and Electron.
+   - SDK runtime: `frontend/src/main/windie_sdk_runtime.cjs`.
+   - Tool router: `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`.
    - Electron handler: `frontend/src/main/local_backend_bridge.cjs` registers `ipcMain.handle('execute-tool', ...)`.
    - Tool execution runtime: `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`.
    - Argument mapper: `frontend/src/main/local_backend_bridge_tool_args.cjs`.
@@ -107,7 +106,7 @@ flowchart LR
 7. Preserve result shape.
    - Sidecar tools should return `ToolResult` objects or normalized compatible payloads.
    - Electron bridge should return `{ success: true, data }` or `{ success: false, error }`.
-   - Renderer payload builders should preserve `llm_content` and avoid leaking raw screenshot fields for non-computer tools.
+   - SDK/main payload builders should preserve `llm_content` and avoid leaking raw screenshot fields for non-computer tools.
    - Backend result ingress should still receive a correlation-aware `tool-result` or `tool-bundle-result` payload.
 
 8. Update docs next to behavior.
@@ -130,8 +129,8 @@ flowchart LR
 | Sidecar shell/process behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_shell_process_tool.py tests/sidecar/test_shell_process_registry.py tests/sidecar/test_shell_output_formatting.py` |
 | Sidecar registry/result normalization | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py` |
 | Electron bridge argument shaping, sudo mode, and execute-tool failures | `cd frontend && npm run test -- LocalBackendBridgeToolArgs LocalBackendBridge.lifecycle` |
-| Renderer dispatch/result envelope behavior | `cd frontend && npm run test -- ToolExecutionService ToolExecutionPayloads ToolExecutionBackendPayload ToolExecutionResultDispatch` |
-| Tool event parsing and hook dispatch | `cd frontend && npm run test -- ToolRunnerHook ChatStreamEventUtils ChatBoxResponse` |
+| SDK/main dispatch/result envelope behavior | `cd frontend && npm run test -- WindieSdkMainRuntime IpcSdkToolRouter` |
+| Tool event parsing and display projection | `cd frontend && npm run test -- ChatStreamEventUtils ChatBoxResponse ChatStreamToolHandlers` |
 | Workspace default-folder behavior | Workspace tests plus the focused shell/read-file tests that exercise selected-workspace path resolution |
 | Docs-only changes | `./bin/docs-list`, `git diff --check`, focused Markdown link checks |
 
@@ -142,8 +141,8 @@ If a listed test file has moved, search by the test stem before adding a new tes
 ### Tool is visible but does not run
 
 1. Confirm the backend schema includes the tool and the active policy profile exposes it.
-2. Check the streamed `tool-call` event reaches the renderer tool runner.
-3. Check `ToolExecutionInvoker.ts` invokes `INVOKE_CHANNELS.EXECUTE_TOOL`.
+2. Check the streamed `tool-call` event reaches the SDK main-runtime tool router.
+3. Check `ipc_sdk_tool_router.cjs` dispatches the local runtime call.
 4. Check `local_backend_bridge.cjs` has registered `execute-tool`.
 5. Check `local_backend_bridge_execute_tool_runtime.cjs` sends `execute_tool` with `tool_name` and normalized `args`.
 6. Check sidecar `ToolRegistry.execute_tool` has the executable name registered.
