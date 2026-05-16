@@ -70,7 +70,7 @@ Likely code:
 - `frontend/src/preload.js`
 - `frontend/src/main/python/**`
 
-Validate preload/channel tests, main-process IPC tests, renderer tool-runner tests, and sidecar pytest coverage for the touched tool or protocol.
+Validate preload/channel tests, main-process IPC tests, SDK/main tool-routing tests, renderer projection tests, and sidecar pytest coverage for the touched tool or protocol.
 
 ### Change Hosted Backend or Gateway Behavior
 

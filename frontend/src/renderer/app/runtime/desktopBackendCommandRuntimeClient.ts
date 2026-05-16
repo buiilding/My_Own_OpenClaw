@@ -37,7 +37,7 @@ export const DesktopBackendCommandRuntimeClient = {
     );
   },
 
-  sendRehydrate(input: SendConversationRehydrateInput): Promise<void> {
+  rehydrateConversation(input: SendConversationRehydrateInput): Promise<void> {
     return ApiClient.rehydrateConversation(
       input.conversationRef,
       input.messages,

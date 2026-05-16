@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: remove the renderer rehydrate send helper and retired renderer tool-runner doc from the active first-class path.
 - sdk/frontend: move Electron backend socket construction into the SDK package transport boundary.
 - backend/tools: describe tool-result waits as SDK/local-runtime waits instead of frontend-owned execution.
 - docs: remove remaining current-doc references to retired transcript-writer and renderer tool-runner ownership.

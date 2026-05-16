@@ -95,7 +95,7 @@ function createDesktopBackendTransport(workspacePath: string | null = null): Bac
     sendToolResult: async () => undefined,
     sendToolBundleResult: async () => undefined,
     sendRehydrate: async (payload) => {
-      await DesktopBackendCommandRuntimeClient.sendRehydrate({
+      await DesktopBackendCommandRuntimeClient.rehydrateConversation({
         conversationRef: optionalString(payload.conversation_ref)
           ?? optionalString(payload.conversationRef)
           ?? '',
@@ -142,10 +142,6 @@ async function createSeededConversationRuntime({
   });
   await runtime.load();
   return runtime;
-}
-
-async function sendConversationRehydrate(input: SendConversationRehydrateInput): Promise<void> {
-  await DesktopBackendCommandRuntimeClient.sendRehydrate(input);
 }
 
 /**
@@ -235,7 +231,7 @@ export const DesktopConversationRuntimeClient = {
   },
 
   rehydrate(input: SendConversationRehydrateInput): Promise<void> {
-    return sendConversationRehydrate(input);
+    return DesktopBackendCommandRuntimeClient.rehydrateConversation(input);
   },
 
   stop(conversationRef: string | null = null): void {

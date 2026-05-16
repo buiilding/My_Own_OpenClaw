@@ -79,11 +79,10 @@ Read next:
 
 ## Tool Result Return Path
 
-After sidecar execution, the SDK main runtime returns results to the backend using the normal `/ws` tool-result path. The renderer receives display-only tool-call events for chat/transcript/overlay state and should not execute events marked `metadata.skip_frontend_execution`.
+After sidecar execution, the SDK main runtime returns results to the backend using the normal `/ws` tool-result path. The renderer receives display-only tool-call events for chat/transcript/overlay state and does not execute backend tool events.
 
-The desktop `ChatProvider` does not mount renderer-side local execution. The
-deleted renderer tool-runner path must not be reintroduced for backend
-tool-call events; execution belongs to the SDK main runtime and sidecar daemon.
+The desktop `ChatProvider` is a display consumer. Backend tool-call execution
+belongs to the SDK main runtime and sidecar daemon.
 
 Result path rules:
 
@@ -97,7 +96,6 @@ Read next:
 
 - [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md)
 - [Backend Tool Result Ingress Reference](../backend/tools/tool_result_ingress_and_storage_reference.md)
-- [Retired Renderer Tool Execution Runtime Reference](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
 
 ## Common Failure Routing
 
@@ -105,7 +103,7 @@ Read next:
 | --- | --- |
 | model never sees tool | backend tool schema/policy |
 | backend emits tool-call but no local action happens | SDK tool router or sidecar daemon bridge |
-| renderer executes a backend tool-call twice | missing `skip_frontend_execution` display-only marker |
+| tool card appears twice or looks duplicated | SDK display projection or renderer card rendering |
 | sidecar returns error before action | sidecar tool validation/runtime |
 | action succeeds but model does not continue | tool-result ingress, request id, or history commit path |
 | screenshot path exists but image missing in chat | artifact upload/materialization path |

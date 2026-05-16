@@ -131,6 +131,8 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/memory/session_conversation_identity_change_workflow.md',
       'docs/memory/memory_change_workflow.md',
       'docs/memory/memory_troubleshooting.md',
+      'docs/channels/sidecar_and_tool_channels.md',
+      'docs/nodes/README.md',
       'docs/operations/performance.md',
       'docs/frontend/inventory/domains/frontend_domain_ownership_matrix_reference.md',
       'docs/development/testing.md',
