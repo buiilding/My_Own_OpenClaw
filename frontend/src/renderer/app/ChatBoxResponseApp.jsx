@@ -11,9 +11,9 @@ function ChatBoxResponseApp() {
   return (
     <ErrorBoundary>
       <AppProvider>
-        <ChatProvider enableToolRunner={false} enableTranscript={false}>
-          <ChatBoxResponse />
-        </ChatProvider>
+      <ChatProvider enableTranscript={false}>
+        <ChatBoxResponse />
+      </ChatProvider>
       </AppProvider>
     </ErrorBoundary>
   );

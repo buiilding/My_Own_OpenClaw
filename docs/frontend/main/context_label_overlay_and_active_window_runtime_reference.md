@@ -39,7 +39,7 @@ Renderer routing in `frontend/src/renderer/app/main.jsx` still maps:
 
 - `ErrorBoundary`
 - `AppProvider`
-- `ChatProvider(enableToolRunner=false, enableTranscript=false)`
+- `ChatProvider(enableTranscript=false)`
 
 This preserves route compatibility, but with current component no-op output.
 

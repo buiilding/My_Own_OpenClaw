@@ -60,7 +60,7 @@ Ownership boundaries:
 
 - `AppConfigProvider`: persisted config, model-list fetch trigger, backend settings sync, wakeword preference/suppression state
 - `AppStatusProvider`: transient settings-save status (`idle/saving/success/error`) with timeout-based transitions
-- `ChatProvider`: mounts `useChatStream` and `useToolRunner`, and mirrors transcript session `conversationRef` into chat-store `activeConversationRef` so overlay renderers consume the correct conversation workspace
+- `ChatProvider`: mounts `useChatStream` and mirrors transcript session `conversationRef` into chat-store `activeConversationRef` so overlay renderers consume the correct conversation workspace. Local tool execution is owned by the SDK main runtime.
 
 ## Chat Store Contract (`chatStore.ts`)
 
@@ -226,14 +226,20 @@ Streaming-complete transcript write nuance:
   - full user message content/metadata
   - full assistant message content
 
-## Tool Execution Runtime (`useToolRunner` + `ToolExecutionService`)
+## Legacy Renderer Tool Execution Runtime
 
-Ingress events:
+`useToolRunner` and `ToolExecutionService` are no longer mounted by
+`ChatProvider`. The current app receives SDK-owned display-only tool events from
+Electron main while local execution happens through the SDK main runtime and
+sidecar daemon.
+
+Legacy ingress events:
 
 - `tool-call`
 - `tool-bundle`
 
-Tool-event backend listener binding is isolated in `useToolRunnerBackendListener` so `useToolRunner` orchestration remains focused on execution lifecycle and stale-turn/result guards.
+Tool-event backend listener binding remains isolated in
+`useToolRunnerBackendListener` for legacy tests and cleanup tracking.
 
 Stale-turn guardrails:
 
@@ -320,14 +326,14 @@ If stream UI duplicates assistant rows:
 If tool outputs appear for wrong turn:
 
 1. inspect `streamTracking.activeTurnRef` transitions
-2. verify stale-turn cancellation path in `useToolRunner`
+2. verify stale-turn rejection in the SDK runtime and display-only renderer event metadata
 3. verify correlation IDs from backend tool-call payloads
 
 If transcript rows missing:
 
 1. verify `enableTranscript` flag in `ChatProvider`
 2. verify event conversation/user IDs are present
-3. inspect per-event transcript write sites in `useChatStream` and `useToolRunner`
+3. inspect per-event transcript write sites in `useChatStream` and SDK-owned tool-output projection
 
 ## Related References
 

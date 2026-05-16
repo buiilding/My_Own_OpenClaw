@@ -32,7 +32,7 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 `ChatBoxApp` renders:
 
 - `AppProvider`
-- `ChatProvider(enableToolRunner=false, enableTranscript=false)`
+- `ChatProvider(enableTranscript=false)`
 - `ChatBox`
 
 This keeps overlay window lightweight:

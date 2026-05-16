@@ -38,7 +38,9 @@ Provider responsibilities:
   - registers save-status callback from config provider into status provider
   - owns global `Shift+Tab` interaction-mode toggle (`chat <-> agent`) with editable-target guard
 - `ChatProvider`:
-  - initializes `useChatStream` + `useToolRunner`
+  - initializes `useChatStream`
+  - mirrors transcript-session conversation identity into chat store
+  - leaves local tool execution to the SDK main runtime
 
 Startup surface routing in `AppContent`:
 
@@ -59,7 +61,6 @@ Primary hooks:
 - `useChatMessageSender`
 - `useChatStream`
 - `useStreamMessageUpdaters`
-- `useToolRunner`
 - `useTranscription`
 
 Primary components:

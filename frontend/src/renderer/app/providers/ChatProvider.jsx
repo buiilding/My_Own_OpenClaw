@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { useChatStream } from '../../features/chat/hooks/useChatStream';
-import { useToolRunner } from '../../features/chat/hooks/useToolRunner';
 import { useChatSessionBootstrap } from '../../features/chat/hooks/useChatSessionBootstrap';
 import { invalidateConversationInferenceSessionState } from '../../features/chat/session/conversationInferenceSessionRuntime';
 import { useChatStore } from '../../features/chat/stores/chatStore';
@@ -13,7 +12,7 @@ import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
  * ChatProvider - Thin wrapper that sets up chat hooks and provides store access.
  * No business logic - just composition.
  */
-export function ChatProvider({ children, enableToolRunner = false, enableTranscript = true }) {
+export function ChatProvider({ children, enableTranscript = true }) {
   const activeConversationRef = useChatStore((state) => state.activeConversationRef);
   const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const transcriptSessionInfo = useTranscriptSessionInfo();
@@ -44,7 +43,6 @@ export function ChatProvider({ children, enableToolRunner = false, enableTranscr
   }, []);
 
   useChatStream(enableTranscript);
-  useToolRunner(enableToolRunner);
 
   return (
     <ChatContext.Provider value={EMPTY_CHAT_CONTEXT}>

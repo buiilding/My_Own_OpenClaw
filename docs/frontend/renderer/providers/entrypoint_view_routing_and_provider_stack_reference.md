@@ -45,10 +45,8 @@ All surfaces mount `AppProvider`, which means:
 `ChatProvider` is mounted on all surfaces, but flags differ:
 
 - main app (`App.jsx`):
-  - `enableToolRunner=false`
   - `enableTranscript=true`
 - overlay apps (`ChatBoxApp`, `ChatBoxResponseApp`, `ChatBoxContextLabelApp`):
-  - `enableToolRunner=false`
   - `enableTranscript=false`
 
 ## Main App Stack

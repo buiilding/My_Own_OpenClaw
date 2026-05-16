@@ -10,7 +10,7 @@ function ChatBoxContextLabelApp() {
   return (
     <ErrorBoundary>
       <AppProvider>
-        <ChatProvider enableToolRunner={false} enableTranscript={false}>
+        <ChatProvider enableTranscript={false}>
           <ChatBoxContextLabel />
         </ChatProvider>
       </AppProvider>

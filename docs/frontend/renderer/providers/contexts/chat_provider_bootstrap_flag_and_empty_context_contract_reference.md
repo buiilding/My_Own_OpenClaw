@@ -35,16 +35,15 @@ Effect:
 
 ## ChatProvider Bootstrap Contract
 
-`ChatProvider({ enableToolRunner = false, enableTranscript = true })`:
+`ChatProvider({ enableTranscript = true })`:
 
 1. calls `useChatStream(enableTranscript)`
-2. calls `useToolRunner(enableToolRunner)`
-3. projects transcript-session `conversationRef` into chat-store `activeConversationRef` (`useTranscriptSessionInfo`) only when conversation ref is non-empty
-4. returns `ChatContext.Provider` with frozen empty object value
+2. projects transcript-session `conversationRef` into chat-store `activeConversationRef` (`useTranscriptSessionInfo`) only when conversation ref is non-empty
+3. returns `ChatContext.Provider` with frozen empty object value
 
 Ownership model:
 
-- side effects live inside hooks (event listeners, transcript/tool execution wiring)
+- side effects live inside hooks (event listeners and transcript wiring)
 - provider is the single owner of transcript->chat-store active-conversation projection; leaf UIs should not duplicate this sync
 - null/empty transcript snapshots are ignored so transient startup/session sync races do not clobber active chat workspace identity
 
@@ -52,21 +51,21 @@ Ownership model:
 
 Entrypoint wrappers use different flags:
 
-- main app: `enableToolRunner=false`, `enableTranscript=true`
-- overlay surfaces: `enableToolRunner=false`, `enableTranscript=false`
+- main app: `enableTranscript=true`
+- overlay surfaces: `enableTranscript=false`
 
 Contract outcome:
 
 - overlays still participate in shared chat state display
-- renderer surfaces avoid local tool execution by default; SDK main runtime owns
-  local tool execution and sends display-only tool events to renderer
+- renderer surfaces do not mount local tool execution; SDK main runtime owns local
+  tool execution and sends display-only tool events to renderer
 - overlays avoid transcript write side effects
 
 ## Ordering Assumption
 
-Current provider invokes `useChatStream` before `useToolRunner`.
-
-Even though both consume backend events, contract stability assumes this order remains explicit and intentional for readability/debugging consistency.
+Current provider invokes `useChatStream` after transcript-session bootstrap and
+active-conversation projection setup. Tool execution is not a renderer provider
+concern.
 
 ## Coverage Notes
 
