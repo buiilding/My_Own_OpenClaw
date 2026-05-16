@@ -1,5 +1,6 @@
 import {
   buildDeferredQueryModelConfig,
+  buildDeferredQueryModelSelection,
   buildImmediateBackendConfig,
   hasImmediateBackendConfigChanges,
 } from '../../frontend/src/renderer/app/providers/appConfigBackendSync';
@@ -23,6 +24,16 @@ describe('appConfigBackendSync', () => {
     expect(buildDeferredQueryModelConfig({
       model_provider: 'openai',
     })).toBeNull();
+  });
+
+  test('builds deferred model selection for SDK setModel callers', () => {
+    expect(buildDeferredQueryModelSelection({
+      selected_model_id: ' claude-sonnet-4-5 ',
+      model_provider: ' anthropic ',
+    })).toEqual({
+      modelId: 'claude-sonnet-4-5',
+      modelProvider: 'anthropic',
+    });
   });
 
   test('keeps model selection out of immediate settings sync', () => {

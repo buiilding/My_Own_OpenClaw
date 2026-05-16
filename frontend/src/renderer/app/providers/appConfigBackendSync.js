@@ -33,6 +33,14 @@ function pickConfigKeys(config, predicate) {
 }
 
 export function buildDeferredQueryModelConfig(config) {
+  const selection = buildDeferredQueryModelSelection(config);
+  if (!selection) {
+    return null;
+  }
+  return buildModelSettingsPatch(selection, 'buildDeferredQueryModelConfig');
+}
+
+export function buildDeferredQueryModelSelection(config) {
   if (!isPlainObject(config)) {
     return null;
   }
@@ -45,13 +53,10 @@ export function buildDeferredQueryModelConfig(config) {
   if (!modelId || !modelProvider) {
     return null;
   }
-  return buildModelSettingsPatch(
-    {
-      modelId,
-      modelProvider,
-    },
-    'buildDeferredQueryModelConfig',
-  );
+  return {
+    modelId,
+    modelProvider,
+  };
 }
 
 export function buildImmediateBackendConfig(config) {

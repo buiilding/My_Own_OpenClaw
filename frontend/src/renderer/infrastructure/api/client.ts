@@ -8,6 +8,10 @@ import { IpcBridge, SEND_CHANNELS } from '../ipc/bridge';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import type { CaptureMeta } from '../services/ScreenshotAttachmentPipeline';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
+import {
+  buildModelSettingsPatch,
+  type WindieModelSelection,
+} from './windieSdkClient';
 
 export type RehydrateConversationEntry = {
   role: 'user' | 'assistant' | 'tool';
@@ -146,6 +150,16 @@ export const ApiClient = {
     IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
       type: 'update-settings',
       payload: config
+    });
+  },
+
+  /**
+   * Update backend model selection through the SDK model-selection contract.
+   */
+  setModel: (selection: WindieModelSelection): void => {
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+      type: 'update-settings',
+      payload: buildModelSettingsPatch(selection, 'ApiClient.setModel'),
     });
   },
 

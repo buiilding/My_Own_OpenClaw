@@ -6,7 +6,7 @@ import {
   resolveStoredTranscriptScreenshotValue,
 } from '../../../infrastructure/services/screenshotMessageState';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
-import { buildDeferredQueryModelConfig } from '../../../app/providers/appConfigBackendSync';
+import { buildDeferredQueryModelSelection } from '../../../app/providers/appConfigBackendSync';
 import { DEFAULT_USER_ID } from '../../dashboard/utils/episodicMemoryUtils';
 import {
   getActiveConversationRef,
@@ -62,7 +62,7 @@ async function runReplayQueryFlow({
   screenshotRef,
   screenshotUrl,
   screenshot,
-  deferredQueryModelConfig,
+  deferredQueryModelSelection,
   workspacePath,
 }) {
   const store = new ElectronSidecarConversationStore({ userId: userId || DEFAULT_USER_ID });
@@ -75,8 +75,8 @@ async function runReplayQueryFlow({
     conversationRef,
     messages: rehydrateSnapshot.messages,
   });
-  if (deferredQueryModelConfig) {
-    ApiClient.updateSettings(deferredQueryModelConfig);
+  if (deferredQueryModelSelection) {
+    ApiClient.setModel(deferredQueryModelSelection);
   }
   await ApiClient.sendQuery(
     queryText,
@@ -129,7 +129,7 @@ async function executeReplayAction({
   setThinkingSourceEventType,
   setIsSending,
   errorPrefix,
-  deferredQueryModelConfig,
+  deferredQueryModelSelection,
 }) {
   const conversationRef = ensureConversationRef(
     sessionInfo.conversationRef,
@@ -161,7 +161,7 @@ async function executeReplayAction({
       screenshotRef: screenshotRef || null,
       screenshotUrl: screenshotUrl || null,
       screenshot: screenshot || null,
-      deferredQueryModelConfig,
+      deferredQueryModelSelection,
       workspacePath: workspaceBinding.workspacePath || null,
     });
   } catch (error) {
@@ -179,7 +179,7 @@ export function useConversationReplayActions({
 }) {
   const activeConversationRef = useChatStore((state) => state.activeConversationRef);
   const { config } = useAppConfigContext();
-  const deferredQueryModelConfig = buildDeferredQueryModelConfig(config);
+  const deferredQueryModelSelection = buildDeferredQueryModelSelection(config);
 
   const handleEditFromUser = useCallback(async (userMessageId, editedText) => {
     const normalizedEditedText = typeof editedText === 'string'
@@ -224,11 +224,11 @@ export function useConversationReplayActions({
       setThinkingSourceEventType,
       setIsSending,
       errorPrefix: 'Failed to edit user message',
-      deferredQueryModelConfig,
+      deferredQueryModelSelection,
     });
   }, [
     activeConversationRef,
-    deferredQueryModelConfig,
+    deferredQueryModelSelection,
     messages,
     setIsSending,
     setMessages,
@@ -279,11 +279,11 @@ export function useConversationReplayActions({
       setThinkingSourceEventType,
       setIsSending,
       errorPrefix: 'Failed to retry assistant message',
-      deferredQueryModelConfig,
+      deferredQueryModelSelection,
     });
   }, [
     activeConversationRef,
-    deferredQueryModelConfig,
+    deferredQueryModelSelection,
     messages,
     setIsSending,
     setMessages,

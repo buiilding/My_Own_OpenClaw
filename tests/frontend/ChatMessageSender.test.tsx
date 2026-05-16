@@ -40,6 +40,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachm
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
     sendQuery: jest.fn(),
+    setModel: jest.fn(),
     updateSettings: jest.fn(),
     sendRehydrateConversation: jest.fn(),
   },
@@ -75,6 +76,7 @@ jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferen
 
 const mockCaptureScreenshotAttachment = captureScreenshotAttachment as jest.MockedFunction<typeof captureScreenshotAttachment>;
 const mockSendQuery = ApiClient.sendQuery as jest.MockedFunction<typeof ApiClient.sendQuery>;
+const mockSetModel = ApiClient.setModel as jest.MockedFunction<typeof ApiClient.setModel>;
 const mockUpdateSettings = ApiClient.updateSettings as jest.MockedFunction<typeof ApiClient.updateSettings>;
 const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
 const mockRecordUserMessage = recordUserMessage as jest.MockedFunction<typeof recordUserMessage>;
@@ -174,6 +176,7 @@ describe('useChatMessageSender', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
     mockCaptureScreenshotAttachment.mockReset();
     mockSendQuery.mockReset();
+    mockSetModel.mockReset();
     mockUpdateSettings.mockReset();
     mockUploadArtifactBase64.mockReset();
     mockActiveConversationRef = null;
@@ -262,9 +265,9 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender();
     await sendText(result, 'hello');
     expectNoShowChatboxCall();
-    expect(mockUpdateSettings).toHaveBeenCalledWith({
-      model_provider: 'openai',
-      selected_model_id: expect.any(String),
+    expect(mockSetModel.mock.calls[0][0]).toEqual({
+      modelProvider: 'openai',
+      modelId: expect.any(String),
     });
     expectSingleSendQueryCall('hello', 'conv_msg-1');
   });
@@ -279,12 +282,12 @@ describe('useChatMessageSender', () => {
 
     await sendText(result, 'use anthropic');
 
-    expect(mockUpdateSettings).toHaveBeenCalledTimes(1);
-    expect(mockUpdateSettings).toHaveBeenCalledWith({
-      model_provider: 'anthropic',
-      selected_model_id: 'claude-sonnet-4-5',
+    expect(mockSetModel.mock.calls.length).toBe(1);
+    expect(mockSetModel.mock.calls[0][0]).toEqual({
+      modelProvider: 'anthropic',
+      modelId: 'claude-sonnet-4-5',
     });
-    expect(mockUpdateSettings.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(mockSetModel.mock.invocationCallOrder[0]).toBeLessThan(
       mockSendQuery.mock.invocationCallOrder[0],
     );
   });

@@ -1,4 +1,4 @@
-import { buildDeferredQueryModelConfig } from '../../../../app/providers/appConfigBackendSync';
+import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigBackendSync';
 import { ApiClient } from '../../../../infrastructure/api/client';
 import { ensureConversationInferenceSessionHydrated } from '../../session/conversationInferenceSessionRuntime';
 import { COMPACTION_THINKING_STATUS } from '../chatStream/chatStreamThinkingStatus';
@@ -25,9 +25,9 @@ export async function runManualCompaction({
   setThinkingSourceEventType('context-compaction-started');
   await waitForNextPaint();
 
-  const deferredQueryModelConfig = buildDeferredQueryModelConfig(config);
-  if (deferredQueryModelConfig) {
-    ApiClient.updateSettings(deferredQueryModelConfig);
+  const deferredQueryModelSelection = buildDeferredQueryModelSelection(config);
+  if (deferredQueryModelSelection) {
+    ApiClient.setModel(deferredQueryModelSelection);
   }
 
   const normalizedConversationRef = conversationRef || null;

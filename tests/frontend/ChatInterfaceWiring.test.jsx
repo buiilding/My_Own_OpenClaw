@@ -36,6 +36,7 @@ const mockStopQuery = jest.fn();
 const mockCompactHistory = jest.fn();
 const mockSendQuery = jest.fn();
 const mockSendRehydrateConversation = jest.fn();
+const mockSetModel = jest.fn();
 const mockUpdateSettings = jest.fn();
 const mockEnsureConversationInferenceSessionHydrated = jest.fn();
 const mockRehydrateConversationInferenceSession = jest.fn();
@@ -107,6 +108,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
     compactHistory: (...args) => mockCompactHistory(...args),
     sendQuery: (...args) => mockSendQuery(...args),
     sendRehydrateConversation: (...args) => mockSendRehydrateConversation(...args),
+    setModel: (...args) => mockSetModel(...args),
     updateSettings: (...args) => mockUpdateSettings(...args),
   },
 }));
@@ -201,6 +203,7 @@ describe('ChatInterface wiring', () => {
     mockCompactHistory.mockClear();
     mockSendQuery.mockClear();
     mockSendRehydrateConversation.mockClear();
+    mockSetModel.mockClear();
     mockUpdateSettings.mockClear();
     mockEnsureConversationInferenceSessionHydrated.mockReset();
     mockEnsureConversationInferenceSessionHydrated.mockResolvedValue(undefined);
@@ -647,9 +650,9 @@ describe('ChatInterface wiring', () => {
     expect(mockSetThinkingStatus).toHaveBeenCalledWith('Compacting conversation history...');
     expect(mockSetThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-started');
     await waitFor(() => {
-      expect(mockUpdateSettings).toHaveBeenCalledWith({
-        model_provider: 'anthropic',
-        selected_model_id: 'claude-sonnet-4-5',
+      expect(mockSetModel).toHaveBeenCalledWith({
+        modelProvider: 'anthropic',
+        modelId: 'claude-sonnet-4-5',
       });
       expect(mockEnsureConversationInferenceSessionHydrated).toHaveBeenCalledWith({
         conversationRef: 'conv_existing',
@@ -657,7 +660,7 @@ describe('ChatInterface wiring', () => {
       });
       expect(mockCompactHistory).toHaveBeenCalledWith(true, 'conv_existing');
     });
-    expect(mockUpdateSettings.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(mockSetModel.mock.invocationCallOrder[0]).toBeLessThan(
       mockEnsureConversationInferenceSessionHydrated.mock.invocationCallOrder[0],
     );
   });

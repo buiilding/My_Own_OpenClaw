@@ -155,6 +155,7 @@ jest.mock('../../frontend/src/renderer/features/chat/session/useRendererConversa
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
     compactHistory: (...args) => mockCompactHistory(...args),
+    setModel: (...args) => mockUpdateSettings(...args),
     updateSettings: (...args) => mockUpdateSettings(...args),
     stopQuery: (...args) => mockStopQuery(...args),
   },

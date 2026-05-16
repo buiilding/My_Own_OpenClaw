@@ -27,6 +27,7 @@ jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
 
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
+    setModel: jest.fn(),
     updateSettings: jest.fn(),
     sendQuery: jest.fn(),
   },
@@ -47,7 +48,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWrite
   updateTranscriptSession: jest.fn(),
 }));
 
-const mockUpdateSettings = ApiClient.updateSettings;
+const mockSetModel = ApiClient.setModel;
 const mockSendQuery = ApiClient.sendQuery;
 const mockGetActiveConversationRef = getActiveConversationRef;
 const mockGetTranscriptSessionInfo = getTranscriptSessionInfo;
@@ -135,11 +136,11 @@ describe('useConversationReplayActions', () => {
       },
     ]);
     expect(mockRehydrateConversationInferenceSession).toHaveBeenCalledTimes(1);
-    expect(mockUpdateSettings).toHaveBeenCalledWith({
-      model_provider: 'anthropic',
-      selected_model_id: 'claude-sonnet-4-5',
+    expect(mockSetModel).toHaveBeenCalledWith({
+      modelProvider: 'anthropic',
+      modelId: 'claude-sonnet-4-5',
     });
-    expect(mockUpdateSettings.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(mockSetModel.mock.invocationCallOrder[0]).toBeLessThan(
       mockSendQuery.mock.invocationCallOrder[0],
     );
     expect(mockSendQuery.mock.calls.some(([
