@@ -45,8 +45,9 @@ class _TrackingArtifactStore:
         cls.last_instance = cls()
         return cls.last_instance
 
-    def load_base64(self, artifact_id):
+    def load_base64(self, artifact_id, owner_user_id=None):
         self.loaded_refs.append(artifact_id)
+        self.owner_user_id = owner_user_id
         return f"resolved:{artifact_id}"
 
 
@@ -61,7 +62,7 @@ class _LoadFailArtifactStore:
     def from_config(cls, _config):
         return cls()
 
-    def load_base64(self, _artifact_id):
+    def load_base64(self, _artifact_id, owner_user_id=None):
         raise RuntimeError("missing artifact")
 
 
@@ -100,6 +101,7 @@ async def test_execute_resolves_screenshot_ref_from_artifact_store():
     assert conversation_ref == "conv-1"
     assert entries[0]["image_data"] == "resolved:shot-1"
     assert _TrackingArtifactStore.last_instance.loaded_refs == ["shot-1"]
+    assert _TrackingArtifactStore.last_instance.owner_user_id == "user-1"
 
 
 @pytest.mark.asyncio
