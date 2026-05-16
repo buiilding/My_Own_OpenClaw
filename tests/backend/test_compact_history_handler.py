@@ -10,7 +10,7 @@ from backend.src.agent.compaction.models import (
     CompactionResult,
 )
 from backend.src.api.handlers.compact_history import CompactHistoryHandler
-from backend.src.api.schema import CompactHistoryMessage
+from backend.src.api.schemas import CompactHistoryMessage
 
 
 class _FakeWebSocket:

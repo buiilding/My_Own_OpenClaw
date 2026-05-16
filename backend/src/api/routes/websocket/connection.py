@@ -18,7 +18,7 @@ from backend.src.api.routes.websocket.json_parse import (
     parse_json_object_payload,
 )
 from backend.src.api.routes.websocket.task_manager import TaskManager
-from backend.src.api.schema import HandshakeMessage
+from backend.src.api.schemas import HandshakeMessage
 from backend.src.api.transport.websocket import SafeWebSocket
 from backend.src.tools.client_manifest import validate_client_tool_manifest
 

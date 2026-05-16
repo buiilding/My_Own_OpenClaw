@@ -19,7 +19,7 @@ title: "Backend Message Envelope and Contract Validation Boundary Reference"
 Validation boundary sources:
 
 - Envelope primitives: `backend/src/api/schemas/common.py`
-- Incoming schema union: `backend/src/api/schemas/incoming.py`, `backend/src/api/schema.py`
+- Incoming schema union: `backend/src/api/schemas/incoming.py`
 - Parse + adapter validation flow: `backend/src/api/routes/websocket/message_handler.py`, `backend/src/api/routes/websocket/message_parse_runtime.py`, `backend/src/api/routes/websocket/json_parse.py`
 - Shared validators: `backend/src/core/validation/validators.py`
 - Incoming route-table validation: `backend/src/core/container/incoming_routing.py`

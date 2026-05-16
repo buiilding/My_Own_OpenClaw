@@ -18,7 +18,7 @@ title: "Backend Contracts Docs Hub"
 
 ## Code Scope
 
-- `backend/src/api/schema.py`
+- `backend/src/api/schemas`
 - `backend/src/core/container/incoming_routing.py`
 - `backend/src/api/processing/formatter.py`
 - `backend/src/core/events/streaming_events.py`

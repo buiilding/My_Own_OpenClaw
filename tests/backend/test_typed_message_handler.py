@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from backend.src.api.infrastructure.handler import TypedMessageHandler
-from backend.src.api.schema import QueryMessage, StopQueryMessage
+from backend.src.api.schemas import QueryMessage, StopQueryMessage
 
 
 def _build_query_message() -> QueryMessage:

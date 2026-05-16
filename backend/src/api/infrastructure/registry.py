@@ -10,7 +10,7 @@ from collections.abc import Awaitable
 from typing import Callable, Optional, Union
 
 from backend.src.api.infrastructure.handler import MessageHandler
-from backend.src.api.schema import BaseMessage, IncomingMessage
+from backend.src.api.schemas import BaseMessage, IncomingMessage
 from backend.src.api.transport.protocol import WebSocketSender
 
 logger = logging.getLogger(__name__)

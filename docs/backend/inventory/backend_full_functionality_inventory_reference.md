@@ -134,7 +134,7 @@ Primary files:
 
 - `backend/src/api/contracts/{message_types,formatter_specs,registry}.py`
 - `backend/src/api/schemas/{common,incoming,outgoing}.py`
-- `backend/src/api/schema.py`
+- `backend/src/api/schemas/{common,incoming,outgoing}.py`
 
 Functionality:
 

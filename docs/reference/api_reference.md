@@ -1025,7 +1025,7 @@ All messages follow this structure:
 - `user_id` is injected server-side from the handshake connection context (client-provided, validated at handshake).
 - `timestamp` is optional and ignored by the backend if present.
 - Unknown top-level envelope fields are rejected.
-- Incoming schema source lives in `backend/src/api/schemas/` (`common.py`, `incoming.py`, `outgoing.py`), with package re-exports from `backend/src/api/schema.py`.
+- Incoming schema source lives in `backend/src/api/schemas/` (`common.py`, `incoming.py`, `outgoing.py`) and production code imports that package directly.
 
 ## Client Messages (Frontend → Backend)
 

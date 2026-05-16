@@ -437,7 +437,7 @@ The Python sidecar uses REST endpoints on the same FastAPI server for memory ope
    ↓
 8. Main process sends WebSocket message to backend
    ↓
-9. Backend validates message (`backend/src/api/schemas/incoming.py`, exposed via `backend/src/api/schema.py`)
+9. Backend validates message (`backend/src/api/schemas/incoming.py`)
    ↓
 10. QueryHandler processes message
    ↓

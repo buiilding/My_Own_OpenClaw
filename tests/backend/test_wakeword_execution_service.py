@@ -5,7 +5,7 @@ import pytest
 
 import backend.src.api.services.wakeword_execution as wakeword_module
 from backend.src.api.contracts.message_types import OutgoingMessageType
-from backend.src.api.schema import WakewordDetectedMessage
+from backend.src.api.schemas import WakewordDetectedMessage
 from backend.src.api.services.wakeword_execution import WakewordExecutionService
 
 

@@ -12,7 +12,7 @@ title: "Incoming Route Table, Schema Parity, and Handler-Binding Reference"
 
 - `backend/src/core/container/incoming_routing.py`
 - `backend/src/core/container/api_container.py`
-- `backend/src/api/schema.py`
+- `backend/src/api/schemas/incoming.py`
 - `backend/src/api/schemas/incoming.py`
 - `tests/backend/test_incoming_routing.py`
 

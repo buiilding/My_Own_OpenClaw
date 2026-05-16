@@ -10,7 +10,7 @@ from backend.src.api.infrastructure.handler import TypedMessageHandler
 from backend.src.api.infrastructure.errors import send_error_response
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.processing.tts.manager import TTSManager
-from backend.src.api.schema import WakewordDetectedMessage
+from backend.src.api.schemas import WakewordDetectedMessage
 from backend.src.api.services.wakeword_execution import WakewordExecutionService
 from backend.src.core.services.wakeword_service import WakewordService
 from backend.src.core.validation.validators import ValidationError

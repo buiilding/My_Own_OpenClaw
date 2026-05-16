@@ -17,7 +17,7 @@ from backend.src.api.processing.formatters.system_prompt import (
     SystemPromptEventFormatter,
 )
 from backend.src.api.processing.formatters.tool_schemas import ToolSchemasEventFormatter
-from backend.src.api.schema import (
+from backend.src.api.schemas import (
     ContextCompactionCompletedMessage,
     ContextCompactionFailedMessage,
     ContextCompactionStartedMessage,

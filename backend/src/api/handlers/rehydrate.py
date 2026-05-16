@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Optional
 
 from backend.src.api.infrastructure.errors import send_error_response
 from backend.src.api.infrastructure.handler import TypedMessageHandler
-from backend.src.api.schema import RehydrateConversationMessage
+from backend.src.api.schemas import RehydrateConversationMessage
 from backend.src.api.services.rehydrate_execution import RehydrateExecutionService
 from backend.src.api.transport.protocol import WebSocketSender
 

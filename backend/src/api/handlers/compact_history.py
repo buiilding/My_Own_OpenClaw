@@ -9,7 +9,7 @@ from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.handlers.context import build_user_session_context
 from backend.src.api.infrastructure.errors import send_success_response
 from backend.src.api.infrastructure.handler import TypedMessageHandler
-from backend.src.api.schema import CompactHistoryMessage
+from backend.src.api.schemas import CompactHistoryMessage
 from backend.src.api.transport.protocol import WebSocketSender
 
 if TYPE_CHECKING:

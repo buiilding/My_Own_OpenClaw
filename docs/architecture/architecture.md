@@ -175,7 +175,7 @@ This is not the primary open-source SDK contract. The default client contract is
    ↓
 6. Main Process → WebSocket → Backend
    ↓
-7. Backend validates message (`backend/src/api/schemas/incoming.py`, exposed via `backend/src/api/schema.py`)
+7. Backend validates message (`backend/src/api/schemas/incoming.py`)
    ↓
 8. Message routed to QueryHandler
    ↓

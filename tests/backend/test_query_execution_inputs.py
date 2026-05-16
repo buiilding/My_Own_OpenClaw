@@ -1,4 +1,4 @@
-from backend.src.api.schema import QueryMessage
+from backend.src.api.schemas import QueryMessage
 from backend.src.api.services.query_execution_support.query_execution_inputs import (
     build_query_image_data,
     resolve_query_execution_inputs,
@@ -49,7 +49,8 @@ def test_resolve_query_execution_inputs_resolves_artifacts_and_payload_fields():
         def from_config(cls, _config):
             return cls()
 
-        def load_base64(self, screenshot_ref):
+        def load_base64(self, screenshot_ref, *, owner_user_id=None):
+            assert owner_user_id == "user-1"
             return f"resolved:{screenshot_ref}"
 
     message = _build_message(
@@ -65,6 +66,7 @@ def test_resolve_query_execution_inputs_resolves_artifacts_and_payload_fields():
         message,
         artifact_store_cls=_ArtifactStore,
         session_manager_config=object(),
+        user_id="user-1",
     )
 
     assert inputs.image_data == ["resolved:shot-a", "resolved:shot-b"]

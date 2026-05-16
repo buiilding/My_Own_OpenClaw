@@ -6,7 +6,7 @@ import logging
 import inspect
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
 
-from backend.src.api.schema import RehydrateConversationMessage
+from backend.src.api.schemas import RehydrateConversationMessage
 from backend.src.api.services.rehydrate_entry_normalization import (
     RehydrateEntryNormalizer,
     RehydrateNormalizationState,

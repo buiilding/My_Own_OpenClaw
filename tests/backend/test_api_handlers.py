@@ -27,7 +27,7 @@ from backend.src.api.schemas.incoming import (
     ToolResultData,
     ToolResultSystemState,
 )
-from backend.src.api.schema import (
+from backend.src.api.schemas import (
     ListModelsMessage,
     LoadSettingsMessage,
     QueryMessage,

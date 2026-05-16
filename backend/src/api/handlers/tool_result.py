@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from backend.src.api.infrastructure.handler import MessageHandler
 from backend.src.api.transport.protocol import WebSocketSender
-from backend.src.api.schema import (
+from backend.src.api.schemas import (
     BaseMessage,
     ToolResultMessage,
     ToolBundleResultMessage,

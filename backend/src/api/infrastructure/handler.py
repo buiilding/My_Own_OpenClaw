@@ -7,7 +7,7 @@ Defines the base handler interface that all message handlers must implement.
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
-from backend.src.api.schema import BaseMessage
+from backend.src.api.schemas import BaseMessage
 from backend.src.api.transport.protocol import WebSocketSender
 
 MessageT = TypeVar("MessageT", bound=BaseMessage)

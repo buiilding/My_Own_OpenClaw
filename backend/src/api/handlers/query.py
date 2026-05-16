@@ -19,7 +19,7 @@ from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.transport.sender import WebSocketTransportSender
 from backend.src.api.processing.tts.manager import TTSManager
 from backend.src.api.processing.tts.processor import TTSProcessor
-from backend.src.api.schema import QueryMessage
+from backend.src.api.schemas import QueryMessage
 from backend.src.api.services.query_execution import QueryExecutionService
 from backend.src.services.artifacts import ArtifactStore
 from backend.src.core.validation.validators import (

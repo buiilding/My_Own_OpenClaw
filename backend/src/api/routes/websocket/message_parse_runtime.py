@@ -12,7 +12,7 @@ from backend.src.api.routes.websocket.json_parse import (
     JsonRootTypeError,
     parse_json_object_payload,
 )
-from backend.src.api.schema import IncomingMessage
+from backend.src.api.schemas import IncomingMessage
 from backend.src.core.infrastructure.user_facing_errors import (
     INTERNAL_SERVER_ERROR_MESSAGE,
 )

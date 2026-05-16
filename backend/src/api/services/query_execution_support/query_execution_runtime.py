@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any, List, Optional, Type
 
-from backend.src.api.schema import QueryMessage
+from backend.src.api.schemas import QueryMessage
 from backend.src.services.artifacts import ArtifactStore
 
 logger = logging.getLogger(__name__)
