@@ -38,9 +38,7 @@ body.cg-scroll-locked,
 }
 
 .cg-dashboard-shell::after {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 18%),
-    radial-gradient(1200px 820px at 50% 100%, rgba(0, 0, 0, 0.28), transparent 64%);
+  background: var(--ui-shell-overlay);
   z-index: 0;
 }
 
@@ -674,8 +672,7 @@ body.cg-scroll-locked,
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background:
-    linear-gradient(180deg, rgba(10, 10, 10, 0.92) 0%, rgba(8, 8, 8, 0.82) 100%);
+  background: var(--ui-main-content-bg);
   transform: translateX(0);
   transition: transform var(--cg-sidebar-motion-duration) var(--cg-sidebar-motion-ease);
 }

@@ -90,6 +90,11 @@
   /* Active theme mapping. To revert quickly, point these back to --legacy-* tokens below. */
   --ui-shell-bg: var(--pill-shell-bg);
   --ui-shell-ambient: var(--pill-shell-ambient);
+  --ui-shell-overlay:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 18%),
+    radial-gradient(1200px 820px at 50% 100%, rgba(0, 0, 0, 0.28), transparent 64%);
+  --ui-main-content-bg:
+    linear-gradient(180deg, rgba(10, 10, 10, 0.92) 0%, rgba(8, 8, 8, 0.82) 100%);
   --ui-sidebar-bg: var(--pill-sidebar-bg);
   --ui-panel-bg: var(--pill-surface-bg);
   --ui-panel-raised-bg: var(--pill-panel-elevated-bg);
@@ -183,6 +188,15 @@
   --ui-panel-bg: color-mix(in srgb, var(--appearance-background) 88%, transparent 12%);
   --ui-panel-raised-bg: var(--pill-panel-elevated-bg);
   --ui-surface-elevated: color-mix(in srgb, var(--appearance-background) 88%, #eef5ff 12%);
+  --ui-shell-overlay:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.46) 0%, transparent 20%),
+    radial-gradient(1200px 820px at 50% 100%, rgba(51, 156, 255, 0.08), transparent 64%);
+  --ui-main-content-bg:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--appearance-background) 96%, #edf6ff 4%) 0%,
+      color-mix(in srgb, var(--appearance-background) 90%, #dbeafe 10%) 100%
+    );
   --ui-hover-bg: var(--pill-hover-bg);
   --ui-hover-strong-bg: var(--pill-hover-strong-bg);
   --ui-text-primary: var(--appearance-foreground);
