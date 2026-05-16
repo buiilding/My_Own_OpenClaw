@@ -215,11 +215,10 @@ Primary modules:
   - Keeps macOS/Windows/Linux window rules in one place so composition/runtime modules do not duplicate Electron platform conditionals.
 - `main/ipc.cjs`:
   - Renderer-facing SDK runtime adapter for backend-bound work.
-  - Delegates backend websocket construction to `main/windie_sdk_backend_socket.cjs` through `main/windie_sdk_runtime.cjs`, and keeps handshake send, typed command send, close, idle disconnect, and reconnect policy inside the SDK runtime adapter.
+  - Delegates backend websocket lifecycle to `packages/windie-sdk-js/src/transport/ManagedBackendSession.*`; `main/windie_sdk_runtime.cjs` now supplies Electron-specific socket construction, install-auth headers, handshake data, local tool routing, and renderer fan-out.
   - Delegates backend-bound renderer command normalization, connection policy, settings-sync gating, and typed SDK send dispatch to `main/ipc/ipc_sdk_command_router.cjs`.
   - Opens the SDK runtime connection on demand for backend-bound work instead of at app startup.
-  - Keeps the SDK runtime connection alive through active agent-loop phases, then starts a 30 minute idle grace timer before intentionally closing the connection.
-  - Only asks the SDK runtime to reconnect after unexpected closes while the loop or idle grace window still owns the transport.
+  - Keeps connection waiters, reconnect scheduling, endpoint fallback, typed sends, raw event parsing, and 30 minute idle disconnect policy in the SDK package transport instead of Electron main.
   - Handshake/user/session/conversation context propagation.
   - Settings sync ACK tracking (`settings-updated`/timeout handling).
   - Applies the renderer-owned `global_agent_stop_shortcut` preference locally in main while filtering that key out of backend `update-settings` payloads.

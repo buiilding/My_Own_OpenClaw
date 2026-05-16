@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs: document the SDK managed backend session now owning Electron main websocket lifecycle policy.
 - frontend/sdk: move dashboard replay-cache clearing behind the desktop conversation library runtime facade.
 - frontend/sdk: delegate Electron main websocket lifecycle to the SDK managed backend session instead of owning reconnect and idle timers locally.
 - sdk: add a managed backend websocket session for handshake, reconnect, idle disconnect, fallback, typed sends, and event parsing.

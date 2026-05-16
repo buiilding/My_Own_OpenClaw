@@ -326,6 +326,11 @@ backend tool-call -> SDK conversation runtime -> sidecar /execute-tool -> backen
 
 `WindieAgentSession` is now transport-only. It connects, handshakes, sends
 queries/results, and emits raw backend events. It does not execute local tools.
+`ManagedBackendSession` owns the reusable managed websocket lifecycle for hosts
+that need connection waiters, reconnect scheduling, endpoint fallback, idle
+disconnect, typed backend sends, and raw event parsing. Electron main consumes
+that SDK package transport and only supplies host-specific socket construction,
+headers, handshake data, local tool execution, and renderer fan-out.
 `agent.stream(...)` and `agent.conversation(...).stream(...)` both run through
 `SdkConversationRuntime`, which owns local tool execution when a sidecar/local
 runtime adapter is available.
