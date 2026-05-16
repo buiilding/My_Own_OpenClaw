@@ -6,10 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar: route local JSON-RPC through the sidecar daemon so only one Python memory owner initializes SQLite/FAISS state during embedding backfill.
 - sdk/frontend: expose a conversation-runtime factory for first-party desktop facades while documenting that Electron may use lower-level SDK modules behind SDK interfaces.
 - sdk/frontend: move tool-call/tool-output correlation alias and pending-wait id resolution into the SDK package so runtime state and renderer chat utilities consume canonical SDK identity rules.
 - frontend/sdk: make edit/resend replay tool-pair pruning use SDK tool correlation helpers instead of a renderer-local backend alias parser.
 - frontend/sdk: make the Electron sidecar conversation-store adapter use SDK tool correlation helpers when persisting normalized SDK tool events.
+- frontend/sdk: tighten the Electron main SDK tool router so local execution is claimed only when a backend `request_id` wait is available.
 - sdk: add named adapter payload and local-runtime contract types for backend transport and sidecar runtime boundaries.
 - sdk: make `ConversationRuntime.rehydrate()` emit complete replace-mode backend payloads instead of relying on transport adapters to add `rehydrate_mode`.
 - sdk/backend: keep SDK rehydrate projections backend-schema compatible by using `tool_name`, structured bundle metadata, and per-step bundled tool replay rows.

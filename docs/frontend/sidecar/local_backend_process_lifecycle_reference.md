@@ -18,17 +18,29 @@ title: "Local Backend Process Lifecycle Reference"
 
 ## Process Startup Path
 
+Current preferred runtime:
+
+- Electron main starts/reuses `sidecar_daemon.py` through `sidecar_daemon_manager.cjs`.
+- The daemon owns the single `LocalBackend` / `LocalMemoryStore` instance for the app session.
+- Electron local RPC calls are sent to daemon `POST /rpc`, which dispatches through the same `LocalBackend` JSON-RPC protocol.
+- `local_backend.py` remains the legacy stdin/stdout fallback path when daemon mode is unavailable or disabled in tests.
+
+Do not start `local_backend.py` and `sidecar_daemon.py` as independent memory owners in the same app session. Both initialize `LocalMemoryStore` against the same SQLite/FAISS files, which can produce duplicate embedding backfill, SQLite write locks, and FAISS mapping drift.
+
 Entrypoint:
 
 - `initializeLocalBackendBridge(getWindows)`
 
-Startup sequence:
+Daemon startup sequence:
 
 1. resolve main/chat/response window resolvers
-2. call `startLocalBackend(mainWindow)`
-3. register IPC handlers that proxy to sidecar JSON-RPC methods
+2. create/reuse `sidecarDaemonManager`
+3. call `startDaemonBackedLocalBackend(mainWindow, launchOptions)`
+4. register IPC handlers that proxy to daemon-backed local JSON-RPC methods
 
-`startLocalBackend(...)` behavior:
+Legacy `startLocalBackend(...)` behavior:
+
+`startLocalBackend(...)` is used only when no daemon manager is active.
 
 1. resolve launch target (`resolveSidecarLaunchTarget('local_backend.py')`)
 2. fail-close when launch target is python and command is missing:
@@ -81,7 +93,14 @@ Stderr handling:
 
 ## Request Correlation and Timeout Model
 
-Request send path (`sendRequest`):
+Daemon request send path (`sendRequest`):
+
+1. create UUID request ID
+2. call `sidecarDaemonManager.rpc(...)`
+3. daemon posts the JSON-RPC envelope to `LocalBackend.protocol.handle_request(...)`
+4. response `error` becomes a bridge error; response `result` is returned to IPC callers
+
+Legacy process request send path (`sendRequest`):
 
 1. require process exists and `isPythonReady=true`
 2. create UUID request ID

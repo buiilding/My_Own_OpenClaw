@@ -129,6 +129,30 @@ async def test_sidecar_daemon_execute_tool_endpoint_normalizes_missing_tool_erro
 
 
 @pytest.mark.asyncio
+async def test_sidecar_daemon_rpc_endpoint_uses_backend_protocol():
+    daemon = SidecarDaemon(token="test-token")
+
+    response = await daemon.handle_rpc(
+        FakeRequest(
+            {
+                "jsonrpc": "2.0",
+                "id": "rpc-1",
+                "method": "ping",
+                "params": {},
+            }
+        )
+    )
+    payload = json.loads(response.text)
+
+    assert response.status == 200
+    assert payload == {
+        "jsonrpc": "2.0",
+        "id": "rpc-1",
+        "result": {"status": "ok", "service": "local_backend"},
+    }
+
+
+@pytest.mark.asyncio
 async def test_sidecar_daemon_registers_module_tool_without_restart(
     tmp_path: Path,
     monkeypatch,

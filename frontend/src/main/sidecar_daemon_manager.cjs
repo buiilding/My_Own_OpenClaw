@@ -85,6 +85,15 @@ class SidecarDaemonNodeClient {
     });
   }
 
+  async rpc({ id, method, params }) {
+    return this.post('/rpc', {
+      jsonrpc: '2.0',
+      id,
+      method,
+      params: params && typeof params === 'object' && !Array.isArray(params) ? params : {},
+    });
+  }
+
   async registerModuleTool(payload) {
     return this.post('/tools/register-module', payload);
   }
@@ -282,6 +291,11 @@ function createSidecarDaemonManager(options = {}) {
     return daemonClient.executeTool(payload);
   }
 
+  async function rpc(payload, launchOptions = {}) {
+    const daemonClient = await ensureDaemon(launchOptions);
+    return daemonClient.rpc(payload);
+  }
+
   function getSnapshot() {
     return {
       discoveryPath,
@@ -308,6 +322,7 @@ function createSidecarDaemonManager(options = {}) {
     ensureDaemon,
     executeTool,
     getSnapshot,
+    rpc,
     readDiscovery: () => readDiscoveryFile(discoveryPath),
     shutdown,
   };

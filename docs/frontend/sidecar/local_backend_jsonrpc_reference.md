@@ -23,6 +23,17 @@ title: "Local Backend JSON-RPC Reference"
 
 ## Transport Model
 
+Preferred daemon transport:
+
+- Electron main starts/reuses `sidecar_daemon.py`.
+- The daemon owns the single `LocalBackend` instance, including the local memory store.
+- Electron sends JSON-RPC envelopes to daemon `POST /rpc`.
+- The daemon dispatches requests through `LocalBackend.protocol.handle_request(...)` and returns the JSON-RPC response body.
+
+This keeps memory, transcript writes, embedding backfill, FAISS index writes, and tool execution in one Python process. Do not run a separate `local_backend.py` process beside the daemon as a second memory owner.
+
+Legacy stdin/stdout transport:
+
 Process topology:
 
 - main process spawns `local_backend.py` via resolved Python runtime path.

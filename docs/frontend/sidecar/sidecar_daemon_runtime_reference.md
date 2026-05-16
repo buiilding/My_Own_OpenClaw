@@ -18,8 +18,11 @@ The daemon:
 - generates a random per-process token unless a test explicitly provides one
 - writes a discovery file containing `pid`, `host`, `port`, `base_url`, `token`, and `created_at`
 - is started/reused by Electron main through `frontend/src/main/sidecar_daemon_manager.cjs`
+- owns the app-session `LocalBackend` instance and its `LocalMemoryStore`
 - exposes built-in sidecar tools through the existing `ToolRegistry`
 - dynamically registers module-path tools, extension/plugin tools, and MCP tools without restart
+
+The daemon is the single local memory owner. Electron should route legacy local JSON-RPC calls through daemon `POST /rpc` instead of spawning standalone `local_backend.py` beside it. A second `LocalBackend` process can race SQLite writes while embedding backfill is running.
 
 Default discovery path:
 
@@ -49,10 +52,13 @@ GET  /permissions
 POST /permissions/request
 
 POST /execute-tool
+POST /rpc
 WS   /events
 ```
 
 `/tools` returns the executable local tool manifest. This is sidecar-owned diagnostic/execution shape, not the backend's policy-filtered model-visible schema.
+
+`POST /rpc` accepts the existing local JSON-RPC envelope and dispatches it through `LocalBackend.protocol.handle_request(...)`. It exists so Electron can keep existing memory/status/system-state IPC handlers while using the daemon as the only Python runtime owner.
 
 ## Module Tool Registration
 

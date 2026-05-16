@@ -32,6 +32,7 @@ const {
 } = require('./runtime_paths.cjs');
 const { createLocalBackendSupervisor } = require('./local_backend_supervisor.cjs');
 const { createSidecarDaemonManager } = require('./sidecar_daemon_manager.cjs');
+const { v4: uuidv4 } = require('uuid');
 
 let pythonProcess = null;
 let stdoutBuffer = '';
@@ -55,6 +56,8 @@ let runtimeExecuteTool = async () => ({
 });
 const localBackendSupervisor = createLocalBackendSupervisor();
 let sidecarDaemonManager = null;
+let sidecarDaemonRpcLaunchOptions = null;
+let daemonBackendProcessRef = null;
 
 function isBackendReady() {
   return localBackendSupervisor.getSnapshot().ready;
@@ -482,11 +485,33 @@ function startLocalBackend(mainWindow, options = {}) {
 }
 
 function sendRequest(method, params = {}, options = {}) {
+  if (sidecarDaemonManager && typeof sidecarDaemonManager.rpc === 'function') {
+    const requestId = uuidv4();
+    return sidecarDaemonManager
+      .rpc({
+        id: requestId,
+        method,
+        params,
+      }, sidecarDaemonRpcLaunchOptions || {})
+      .then((response) => {
+        if (response?.error) {
+          throw new Error(response.error.message || 'JSON-RPC error');
+        }
+        return response?.result;
+      });
+  }
   return localBackendRequestTransport.sendRequest(method, params, options);
 }
 
 async function sendRequestOrError(method, params = {}, options = {}) {
-  return localBackendRequestTransport.sendRequestOrError(method, params, options);
+  try {
+    return await sendRequest(method, params, options);
+  } catch (error) {
+    return {
+      success: false,
+      error: getErrorMessage(error),
+    };
+  }
 }
 
 async function getSystemStateFromBackend(fields) {
@@ -541,6 +566,12 @@ function stopLocalBackend() {
   if (sidecarDaemonManager) {
     void sidecarDaemonManager.shutdown();
     sidecarDaemonManager = null;
+    sidecarDaemonRpcLaunchOptions = null;
+    daemonBackendProcessRef = null;
+    resetBackendProcessState({
+      reason: 'Sidecar daemon stopped',
+      status: 'stopped',
+    });
   }
   if (pythonProcess) {
     const processToStop = pythonProcess;
@@ -555,6 +586,31 @@ function stopLocalBackend() {
       }
     }, 5000);
   }
+}
+
+function startDaemonBackedLocalBackend(mainWindow, launchOptions = {}) {
+  if (!sidecarDaemonManager || typeof sidecarDaemonManager.ensureDaemon !== 'function') {
+    return;
+  }
+  sidecarDaemonRpcLaunchOptions = launchOptions;
+  daemonBackendProcessRef = { kind: 'sidecar-daemon' };
+  readinessCheckToken = localBackendSupervisor.attachProcess(daemonBackendProcessRef);
+  void sidecarDaemonManager.ensureDaemon(launchOptions)
+    .then(() => {
+      if (daemonBackendProcessRef) {
+        markBackendReady(mainWindow);
+      }
+    })
+    .catch((error) => {
+      const message = getErrorMessage(error);
+      console.warn(`[LocalBackend] Sidecar daemon startup failed: ${message}`);
+      daemonBackendProcessRef = null;
+      resetBackendProcessState({
+        reason: message,
+        status: 'error',
+      });
+      notifyBackendUnavailable(mainWindow, message);
+    });
 }
 
 async function loadArtifactUploadHeaders() {
@@ -618,21 +674,16 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   });
 
   const [mainWindow] = resolveWindows();
-  startLocalBackend(mainWindow, {
+  const localRuntimeLaunchOptions = {
     isPackaged,
     backendEndpoints,
     permissionStatePath: options.permissionStatePath,
     authStatePath: options.authStatePath,
-  });
+  };
   if (sidecarDaemonManager) {
-    void sidecarDaemonManager.ensureDaemon({
-      isPackaged,
-      backendEndpoints,
-      permissionStatePath: options.permissionStatePath,
-      authStatePath: options.authStatePath,
-    }).catch((error) => {
-      console.warn(`[LocalBackend] Sidecar daemon startup failed: ${getErrorMessage(error)}`);
-    });
+    startDaemonBackedLocalBackend(mainWindow, localRuntimeLaunchOptions);
+  } else {
+    startLocalBackend(mainWindow, localRuntimeLaunchOptions);
   }
 
   const registerRpcHandler = (channel, method, mapParams) => {

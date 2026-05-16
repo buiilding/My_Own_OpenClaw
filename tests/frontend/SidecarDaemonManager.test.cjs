@@ -120,4 +120,60 @@ describe('sidecar daemon manager', () => {
       pid: 456,
     });
   });
+
+  test('rpc posts json-rpc requests through healthy daemon client', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-daemon-'));
+    const discoveryPath = path.join(tempDir, 'sidecar-daemon.json');
+    await fsPromises.writeFile(
+      discoveryPath,
+      JSON.stringify({
+        pid: 123,
+        base_url: 'http://127.0.0.1:4567',
+        token: 'token-123',
+      }),
+      'utf8',
+    );
+    const fetchImpl = jest.fn(async (url) => {
+      if (url.endsWith('/health')) {
+        return jsonResponse({ status: 'ok' });
+      }
+      return jsonResponse({ jsonrpc: '2.0', id: 'rpc-1', result: { status: 'ok' } });
+    });
+    const {
+      createSidecarDaemonManager,
+    } = loadManager();
+
+    const manager = createSidecarDaemonManager({
+      discoveryPath,
+      fetchImpl,
+      spawnImpl: jest.fn(),
+      startTimeoutMs: 50,
+    });
+    await expect(manager.rpc({
+      id: 'rpc-1',
+      method: 'ping',
+      params: {},
+    })).resolves.toEqual({
+      jsonrpc: '2.0',
+      id: 'rpc-1',
+      result: { status: 'ok' },
+    });
+
+    expect(fetchImpl).toHaveBeenLastCalledWith(
+      'http://127.0.0.1:4567/rpc',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'rpc-1',
+          method: 'ping',
+          params: {},
+        }),
+        headers: expect.objectContaining({
+          'content-type': 'application/json',
+          'x-windie-sidecar-token': 'token-123',
+        }),
+      }),
+    );
+  });
 });

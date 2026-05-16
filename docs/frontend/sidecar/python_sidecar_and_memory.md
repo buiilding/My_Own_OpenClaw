@@ -12,15 +12,23 @@ title: "Python Sidecar and Memory"
 
 Primary Python entrypoints under `frontend/src/main/python`:
 
-- `local_backend.py`: JSON-RPC sidecar runtime used for tool execution, system state, and memory APIs
+- `sidecar_daemon.py`: canonical local sidecar runtime; owns the app-session `LocalBackend`, tool registry, memory store, and daemon HTTP/WebSocket surface
+- `local_backend.py`: legacy stdin/stdout JSON-RPC sidecar runtime used when daemon mode is not active
 - `local_backend_memory_handlers.py`: extracted memory-search/store/transcript/delete RPC handlers used by `LocalBackend`
 - `memory_service.py`: minimal memory-only service variant
 - `wakeword_service.py`: binary-protocol wakeword inference service
 
+Only one process may own `LocalMemoryStore` for a running app session. The daemon is the preferred owner. Starting both `sidecar_daemon.py` and standalone `local_backend.py` against the same memory directory can race SQLite writes during remote embedding backfill and corrupt FAISS/SQLite mapping assumptions.
+
 ## Local Backend Protocol
 
-`local_backend.py` uses `core/ipc_protocol.py:JSONRPCProtocol` over stdin/stdout.
+`LocalBackend` uses `core/ipc_protocol.py:JSONRPCProtocol`.
 Memory-focused RPC methods are implemented in `local_backend_memory_handlers.py` and mixed into `LocalBackend`.
+
+Transport paths:
+
+- daemon mode: Electron calls `sidecar_daemon.py` `POST /rpc`, which dispatches to `LocalBackend.protocol.handle_request(...)`
+- legacy mode: Electron spawns `local_backend.py` and sends one JSON-RPC object per stdin/stdout line
 
 Registered methods include:
 

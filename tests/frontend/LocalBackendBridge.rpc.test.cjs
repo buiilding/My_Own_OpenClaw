@@ -15,6 +15,59 @@ const {
 describe('local_backend_bridge RPC handlers', () => {
   registerBridgeSuiteLifecycleHooks();
 
+  test('search-memory routes through sidecar daemon rpc when daemon mode is active', async () => {
+    const sidecarDaemonManager = {
+      ensureDaemon: jest.fn(async () => ({ status: 'ok' })),
+      executeTool: jest.fn(),
+      getSnapshot: jest.fn(() => ({ hasClient: true, pid: 123 })),
+      rpc: jest.fn(async ({ id, method, params }) => ({
+        jsonrpc: '2.0',
+        id,
+        result: {
+          success: true,
+          method,
+          params,
+        },
+      })),
+    };
+    const { handlers, spawn } = initBridge({ sidecarDaemonManager });
+
+    const result = await handlers['search-memory'](null, {
+      query: 'hello',
+      user_id: 'user-1',
+      limit: 3,
+    });
+
+    expect(spawn).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      success: true,
+      method: 'search_memory',
+      params: {
+        query: 'hello',
+        user_id: 'user-1',
+        limit: 3,
+        memory_type: undefined,
+        exclude_conversation_id: undefined,
+        episodic_limit: undefined,
+        semantic_limit: undefined,
+        semantic_min_score: undefined,
+      },
+    });
+    expect(sidecarDaemonManager.rpc).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'search_memory',
+        params: expect.objectContaining({
+          query: 'hello',
+          user_id: 'user-1',
+          limit: 3,
+        }),
+      }),
+      expect.objectContaining({
+        isPackaged: false,
+      }),
+    );
+  });
+
   function emitRpcMessage(stdoutHandler, payload) {
     stdoutHandler()(Buffer.from(`${JSON.stringify({
       jsonrpc: '2.0',

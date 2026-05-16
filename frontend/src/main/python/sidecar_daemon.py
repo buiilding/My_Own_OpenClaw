@@ -276,6 +276,7 @@ class SidecarDaemon:
                 web.get("/permissions", self.handle_permissions),
                 web.post("/permissions/request", self.handle_permissions_request),
                 web.post("/execute-tool", self.handle_execute_tool),
+                web.post("/rpc", self.handle_rpc),
                 web.get("/events", self.handle_events),
             ]
         )
@@ -502,6 +503,13 @@ class SidecarDaemon:
             }
         )
         return web.json_response(result)
+
+    async def handle_rpc(self, request: web.Request) -> web.Response:
+        payload = await request.json()
+        response = await self.backend.protocol.handle_request(payload)
+        if response is None:
+            return web.json_response({"success": True})
+        return web.json_response(response)
 
     async def handle_events(self, request: web.Request) -> web.WebSocketResponse:
         ws = web.WebSocketResponse()

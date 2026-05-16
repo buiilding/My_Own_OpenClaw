@@ -64,6 +64,29 @@ describe('local_backend_bridge process lifecycle', () => {
     }
   });
 
+  test('daemon mode does not spawn standalone local backend process', async () => {
+    const sidecarDaemonManager = {
+      ensureDaemon: jest.fn(async () => ({ status: 'ok' })),
+      executeTool: jest.fn(),
+      getSnapshot: jest.fn(() => ({ hasClient: true, pid: 123 })),
+      rpc: jest.fn(async ({ id }) => ({
+        jsonrpc: '2.0',
+        id,
+        result: { status: 'ok' },
+      })),
+    };
+
+    const { mainWindow, spawn } = initBridge({ sidecarDaemonManager });
+
+    expect(spawn).not.toHaveBeenCalled();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(sidecarDaemonManager.ensureDaemon).toHaveBeenCalledTimes(1);
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', {
+      ready: true,
+    });
+  });
+
   test('execute-tool rejects in-flight request when sidecar exits', async () => {
     const { handlers, processHandlers } = initBridge();
     markReady();
