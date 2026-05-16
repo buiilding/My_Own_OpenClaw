@@ -16,14 +16,12 @@ import {
 
 export function resolveTargetConversationRef(
   event: BackendEvent,
-  fallbackConversationRef: string | null = null,
 ): string | null {
   const store = useChatStore.getState();
   return resolveConversationRefWithTurnFallback({
     explicitConversationRef: resolveEventConversationRef(event),
     turnRef: event.turn_ref,
     resolveConversationRefForTurn: store.resolveConversationRefForTurn,
-    fallbackConversationRef,
   });
 }
 

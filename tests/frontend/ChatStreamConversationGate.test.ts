@@ -18,33 +18,29 @@ describe('chatStreamConversationGate', () => {
       explicitConversationRef: ' conv-explicit ',
       turnRef: 'turn-1',
       resolveConversationRefForTurn: () => 'conv-turn',
-      fallbackConversationRef: 'conv-active',
     })).toBe('conv-explicit');
   });
 
-  test('resolveConversationRefWithTurnFallback falls back by turn then active ref', () => {
+  test('resolveConversationRefWithTurnFallback falls back by turn mapping only', () => {
     expect(resolveConversationRefWithTurnFallback({
       explicitConversationRef: null,
       turnRef: 'turn-2',
       resolveConversationRefForTurn: (turnRef) => turnRef === 'turn-2' ? 'conv-turn' : null,
-      fallbackConversationRef: 'conv-active',
     })).toBe('conv-turn');
 
     expect(resolveConversationRefWithTurnFallback({
       explicitConversationRef: '',
       turnRef: 'turn-missing',
       resolveConversationRefForTurn: () => null,
-      fallbackConversationRef: ' conv-active ',
-    })).toBe('conv-active');
+    })).toBeNull();
   });
 
-  test('resolveConversationRefWithTurnFallback ignores blank turn mapping and falls back to active ref', () => {
+  test('resolveConversationRefWithTurnFallback ignores blank turn mapping', () => {
     expect(resolveConversationRefWithTurnFallback({
       explicitConversationRef: null,
       turnRef: 'turn-blank-mapped',
       resolveConversationRefForTurn: () => '   ',
-      fallbackConversationRef: 'conv-active',
-    })).toBe('conv-active');
+    })).toBeNull();
   });
 
   test('resolveConversationRefWithTurnFallback trims turn ref for lookup and trims mapped conversation ref result', () => {
@@ -52,16 +48,14 @@ describe('chatStreamConversationGate', () => {
       explicitConversationRef: null,
       turnRef: ' turn-2 ',
       resolveConversationRefForTurn: (turnRef) => turnRef === 'turn-2' ? ' conv-turn-trimmed ' : null,
-      fallbackConversationRef: 'conv-active',
     })).toBe('conv-turn-trimmed');
   });
 
-  test('resolveConversationRefWithTurnFallback returns null when only whitespace fallback is available', () => {
+  test('resolveConversationRefWithTurnFallback returns null when no explicit or turn-mapped ref is available', () => {
     expect(resolveConversationRefWithTurnFallback({
       explicitConversationRef: null,
       turnRef: '',
       resolveConversationRefForTurn: () => null,
-      fallbackConversationRef: '   ',
     })).toBeNull();
   });
 
@@ -81,34 +75,23 @@ describe('chatStreamConversationGate', () => {
     expect(resolveEventConversationRef(event)).toBe('conv-2');
   });
 
-  test('resolveEventConversationRef falls back to memory-store session ids', () => {
+  test('resolveEventConversationRef ignores memory-store session ids', () => {
     const event = buildEvent({
       type: 'memory-store',
       payload: {
         session_id: 'conv-memory',
       },
     });
-    expect(resolveEventConversationRef(event)).toBe('conv-memory');
+    expect(resolveEventConversationRef(event)).toBeNull();
   });
 
-  test('resolveEventConversationRef falls back to memory-store event.session_id when payload session is missing', () => {
+  test('resolveEventConversationRef ignores memory-store event session_id', () => {
     const event = buildEvent({
       type: 'memory-store',
       payload: {},
       session_id: 'conv-memory-event',
     });
-    expect(resolveEventConversationRef(event)).toBe('conv-memory-event');
-  });
-
-  test('resolveEventConversationRef ignores whitespace memory-store payload session and falls back to event.session_id', () => {
-    const event = buildEvent({
-      type: 'memory-store',
-      payload: {
-        session_id: '   ',
-      },
-      session_id: 'conv-memory-event',
-    });
-    expect(resolveEventConversationRef(event)).toBe('conv-memory-event');
+    expect(resolveEventConversationRef(event)).toBeNull();
   });
 
   test('resolveEventConversationRef returns null for local-user-message without payload conversation ref', () => {
@@ -154,7 +137,7 @@ describe('chatStreamConversationGate', () => {
     expect(resolveEventConversationRef(event)).toBe('conv-local-from-payload');
   });
 
-  test('resolveEventConversationRef falls through whitespace top-level conversation_ref to memory-store payload session fallback', () => {
+  test('resolveEventConversationRef ignores memory-store session fallback after whitespace top-level conversation_ref', () => {
     const event = buildEvent({
       type: 'memory-store',
       conversation_ref: '   ',
@@ -162,6 +145,6 @@ describe('chatStreamConversationGate', () => {
         session_id: 'conv-memory-from-payload',
       },
     });
-    expect(resolveEventConversationRef(event)).toBe('conv-memory-from-payload');
+    expect(resolveEventConversationRef(event)).toBeNull();
   });
 });

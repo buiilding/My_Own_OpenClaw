@@ -36,20 +36,19 @@ describe('chatStreamBackendIngress', () => {
     expect(dispatchEvent).toHaveBeenCalledWith(event);
   });
 
-  test('sync projection receives normalized null conversation ref for whitespace input', () => {
+  test('quarantines events with whitespace conversation refs before projection or dispatch', () => {
     const syncActiveConversationProjection = jest.fn();
+    const dispatchEvent = jest.fn();
 
-    ingestBackendEvent({ type: 'streaming-response', turn_ref: 'turn-1', user_id: 'user-1' } as any, '   ', {
+    expect(ingestBackendEvent({ type: 'streaming-response', turn_ref: 'turn-1', user_id: 'user-1' } as any, '   ', {
       syncActiveConversationProjection,
       registerTurnConversationRef: jest.fn(),
       enableTranscript: true,
-      dispatchEvent: jest.fn(),
-    });
+      dispatchEvent,
+    })).toBe(false);
 
-    expect(syncActiveConversationProjection).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'streaming-response', turn_ref: 'turn-1' }),
-      null,
-    );
+    expect(syncActiveConversationProjection).not.toHaveBeenCalled();
+    expect(dispatchEvent).not.toHaveBeenCalled();
   });
 
   test('sync projection receives trimmed conversation ref', () => {
@@ -109,32 +108,21 @@ describe('chatStreamBackendIngress', () => {
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-event', 'user-2');
   });
 
-  test('uses active transcript conversation when resolved event conversation is missing', () => {
+  test('quarantines events when resolved event conversation is missing', () => {
     mockGetActiveConversationRef.mockReturnValue('conv-active');
+    const syncActiveConversationProjection = jest.fn();
     const dispatchEvent = jest.fn();
 
-    ingestBackendEvent({ type: 'token-count', user_id: 'user-2' } as any, null, {
-      syncActiveConversationProjection: jest.fn(),
+    expect(ingestBackendEvent({ type: 'token-count', user_id: 'user-2' } as any, null, {
+      syncActiveConversationProjection,
       registerTurnConversationRef: jest.fn(),
       enableTranscript: true,
       dispatchEvent,
-    });
+    })).toBe(false);
 
-    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-active', 'user-2');
-  });
-
-  test('uses trimmed active transcript conversation when resolved event conversation is missing', () => {
-    mockGetActiveConversationRef.mockReturnValue(' conv-active ');
-    const dispatchEvent = jest.fn();
-
-    ingestBackendEvent({ type: 'token-count', user_id: 'user-2' } as any, null, {
-      syncActiveConversationProjection: jest.fn(),
-      registerTurnConversationRef: jest.fn(),
-      enableTranscript: true,
-      dispatchEvent,
-    });
-
-    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-active', 'user-2');
+    expect(syncActiveConversationProjection).not.toHaveBeenCalled();
+    expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
+    expect(dispatchEvent).not.toHaveBeenCalled();
   });
 
   test('ignores whitespace active transcript conversation and falls back to resolved conversation', () => {
@@ -151,17 +139,19 @@ describe('chatStreamBackendIngress', () => {
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-fallback', 'user-2');
   });
 
-  test('does not register turn mapping when conversation ref is missing', () => {
+  test('quarantines before registering turn mapping when conversation ref is missing', () => {
     const registerTurnConversationRef = jest.fn();
+    const dispatchEvent = jest.fn();
 
-    ingestBackendEvent({ type: 'streaming-response', turn_ref: 'turn-2', user_id: 'user-2' } as any, null, {
+    expect(ingestBackendEvent({ type: 'streaming-response', turn_ref: 'turn-2', user_id: 'user-2' } as any, null, {
       syncActiveConversationProjection: jest.fn(),
       registerTurnConversationRef,
       enableTranscript: true,
-      dispatchEvent: jest.fn(),
-    });
+      dispatchEvent,
+    })).toBe(false);
 
     expect(registerTurnConversationRef).not.toHaveBeenCalled();
+    expect(dispatchEvent).not.toHaveBeenCalled();
   });
 
   test('does not register turn mapping when turn ref is missing', () => {
@@ -177,17 +167,19 @@ describe('chatStreamBackendIngress', () => {
     expect(registerTurnConversationRef).not.toHaveBeenCalled();
   });
 
-  test('does not register turn mapping when conversation ref is whitespace', () => {
+  test('quarantines before registering turn mapping when conversation ref is whitespace', () => {
     const registerTurnConversationRef = jest.fn();
+    const dispatchEvent = jest.fn();
 
-    ingestBackendEvent({ type: 'streaming-response', turn_ref: 'turn-2', user_id: 'user-2' } as any, '   ', {
+    expect(ingestBackendEvent({ type: 'streaming-response', turn_ref: 'turn-2', user_id: 'user-2' } as any, '   ', {
       syncActiveConversationProjection: jest.fn(),
       registerTurnConversationRef,
       enableTranscript: true,
-      dispatchEvent: jest.fn(),
-    });
+      dispatchEvent,
+    })).toBe(false);
 
     expect(registerTurnConversationRef).not.toHaveBeenCalled();
+    expect(dispatchEvent).not.toHaveBeenCalled();
   });
 
   test('does not register turn mapping when turn ref is whitespace', () => {
@@ -282,7 +274,7 @@ describe('chatStreamBackendIngress', () => {
   });
 
   test('skips transcript update when transcript is disabled', () => {
-    ingestBackendEvent({ type: 'error', user_id: 'user-3' } as any, null, {
+    ingestBackendEvent({ type: 'error', user_id: 'user-3' } as any, 'conv-3', {
       syncActiveConversationProjection: jest.fn(),
       registerTurnConversationRef: jest.fn(),
       enableTranscript: false,
@@ -292,30 +284,19 @@ describe('chatStreamBackendIngress', () => {
     expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
   });
 
-  test('uses undefined transcript fallback when no active or resolved conversation ref exists', () => {
+  test('quarantines unresolved events instead of using undefined transcript fallback', () => {
     mockGetActiveConversationRef.mockReturnValue(null);
+    const dispatchEvent = jest.fn();
 
-    ingestBackendEvent({ type: 'token-count', user_id: 'user-none' } as any, null, {
+    expect(ingestBackendEvent({ type: 'token-count', user_id: 'user-none' } as any, null, {
       syncActiveConversationProjection: jest.fn(),
       registerTurnConversationRef: jest.fn(),
       enableTranscript: true,
-      dispatchEvent: jest.fn(),
-    });
+      dispatchEvent,
+    })).toBe(false);
 
-    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(undefined, 'user-none');
-  });
-
-  test('uses undefined transcript fallback when resolved conversation ref is whitespace', () => {
-    mockGetActiveConversationRef.mockReturnValue(null);
-
-    ingestBackendEvent({ type: 'token-count', user_id: 'user-none' } as any, '   ', {
-      syncActiveConversationProjection: jest.fn(),
-      registerTurnConversationRef: jest.fn(),
-      enableTranscript: true,
-      dispatchEvent: jest.fn(),
-    });
-
-    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(undefined, 'user-none');
+    expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
+    expect(dispatchEvent).not.toHaveBeenCalled();
   });
 
   test('continues dispatch when transcript session update throws', () => {

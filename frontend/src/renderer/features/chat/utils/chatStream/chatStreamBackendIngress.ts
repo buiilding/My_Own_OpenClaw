@@ -13,7 +13,7 @@ export const ingestBackendEvent = (
   event: BackendEvent,
   conversationRef: string | null,
   deps: IngressDeps,
-) => {
+): boolean => {
   const {
     syncActiveConversationProjection,
     registerTurnConversationRef,
@@ -30,6 +30,10 @@ export const ingestBackendEvent = (
       ? event.turn_ref.trim()
       : ''
   );
+
+  if (!normalizedConversationRef) {
+    return false;
+  }
 
   try {
     syncActiveConversationProjection(event, normalizedConversationRef);
@@ -57,4 +61,5 @@ export const ingestBackendEvent = (
     }
   }
   dispatchEvent(event);
+  return true;
 };

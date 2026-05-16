@@ -31,7 +31,7 @@ describe('useChatStream transcript + event filtering', () => {
     act(() => {
       emitBackendEvent({
         type: 'tool-call',
-        session_id: 'session-1',
+        conversation_ref: 'conv-1',
         user_id: 'user-1',
         payload: {
           tool_name: 'read_file',
@@ -56,7 +56,7 @@ describe('useChatStream transcript + event filtering', () => {
       emitBackendEvent({
         type: 'tool-output',
         id: 'event-1',
-        session_id: 'session-1',
+        conversation_ref: 'conv-1',
         user_id: 'user-1',
         payload: {
           tool_name: 'read_file',
@@ -318,7 +318,7 @@ describe('useChatStream transcript + event filtering', () => {
     act(() => {
       emitBackendEvent({
         type: 'tool-bundle',
-        session_id: 'session-1',
+        conversation_ref: 'conv-1',
         user_id: 'user-1',
         payload: {
           bundle_id: 'bundle-1',
@@ -384,6 +384,7 @@ describe('useChatStream transcript + event filtering', () => {
     await act(async () => {
       emitBackendEvent({
         type: 'memory-store',
+        conversation_ref: 'conv-9',
         user_id: 'user-9',
         session_id: 'session-9',
         payload: {
@@ -397,7 +398,7 @@ describe('useChatStream transcript + event filtering', () => {
       await Promise.resolve();
     });
 
-    const tracking = useChatStore.getState().getWorkspaceState('session-9').streamTracking;
+    const tracking = useChatStore.getState().getWorkspaceState('conv-9').streamTracking;
     expect(tracking.lastEventType).toBe('memory-store');
   });
 
@@ -434,7 +435,7 @@ describe('useChatStream transcript + event filtering', () => {
     expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-active', undefined);
   });
 
-  test('tracks stale memory-store events in their own workspace without switching active transcript', async () => {
+  test('quarantines memory-store events without conversation_ref', async () => {
     setMockActiveConversationRef('conv-active');
     const { emitBackendEvent } = registerBackendListener();
 
@@ -453,11 +454,11 @@ describe('useChatStream transcript + event filtering', () => {
     });
 
     const staleTracking = useChatStore.getState().getWorkspaceState('conv-stale').streamTracking;
-    expect(staleTracking.lastEventType).toBe('memory-store');
-    expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-active', undefined);
+    expect(staleTracking.lastEventType).not.toBe('memory-store');
+    expect(transcriptSpies.updateTranscriptSession).not.toHaveBeenCalled();
   });
 
-  test('still processes events that omit conversation_ref for compatibility', () => {
+  test('quarantines events that omit conversation_ref', () => {
     setMockActiveConversationRef('conv-active');
     const { emitBackendEvent } = registerBackendListener();
 
@@ -475,16 +476,16 @@ describe('useChatStream transcript + event filtering', () => {
       });
     });
 
-    expect(useChatStore.getState().getWorkspaceState('conv-active').tokenCounts).toEqual(
+    expect(useChatStore.getState().getWorkspaceState('conv-active').tokenCounts).not.toEqual(
       expect.objectContaining({
         prompt_tokens: 1,
         visible_output_tokens: 1,
       }),
     );
-    expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-active', undefined);
+    expect(transcriptSpies.updateTranscriptSession).not.toHaveBeenCalled();
   });
 
-  test('preserves transcript session refs when backend event omits conversation and user ids', () => {
+  test('does not sync transcript session when backend event omits conversation and user ids', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -496,7 +497,6 @@ describe('useChatStream transcript + event filtering', () => {
       });
     });
 
-    expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledTimes(1);
-    expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith(undefined, undefined);
+    expect(transcriptSpies.updateTranscriptSession).not.toHaveBeenCalled();
   });
 });

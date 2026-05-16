@@ -19,7 +19,7 @@ title: "Conversation Gate and Conversation Isolation Reference"
 
 ## Ownership Boundary
 
-`chatStreamConversationGate` resolves conversation identity from backend events (`conversation_ref` + compatibility fallbacks). Runtime event acceptance/filtering now lives in `useChatStream` workspace routing logic.
+`chatStreamConversationGate` resolves conversation identity from first-class backend event state: explicit `conversation_ref`, local-user payload `conversation_ref`, or an SDK-recorded `turn_ref -> conversationRef` mapping. Runtime event acceptance/filtering now lives in `useChatStream` workspace routing logic.
 
 It does not:
 
@@ -32,23 +32,21 @@ It does not:
 `resolveEventConversationRef(event)` precedence:
 
 1. top-level `event.conversation_ref` when non-empty string
-2. fallback for `memory-store`: `event.payload.session_id`
-3. fallback for `memory-store`: top-level `event.session_id`
-4. fallback for `local-user-message`: `event.payload.conversation_ref`
-5. otherwise `null`
+2. fallback for `local-user-message`: `event.payload.conversation_ref`
+3. otherwise `null`
 
-This keeps compatibility for:
+This keeps first-class identity strict:
 
 - local-user-message payloads that carry conversation identity inside payload fields
-- memory-store events that only include session identity in compatibility fields
+- memory-store events that only include session identity are unresolved and are quarantined
 
 ## Routing Decision Matrix
 
 `useChatStream` resolves target workspace per event with this precedence:
 
-1. `resolveEventConversationRef(event)` from top-level `conversation_ref` (or compatibility payload fallback for `local-user-message`)
+1. `resolveEventConversationRef(event)` from top-level `conversation_ref` or local-user payload `conversation_ref`
 2. `chatStore.resolveConversationRefForTurn(event.turn_ref)` when conversation ref is omitted
-3. current transcript active conversation ref
+3. quarantine when neither identity source resolves
 
 Result:
 
@@ -64,7 +62,7 @@ Event flow inside backend listener:
 2. resolve target conversation workspace with conversation-ref + turn-ref fallback
 3. sync active chat projection only when event includes explicit conversation identity and active projection is empty or event is `local-user-message`
 4. register `turn_ref -> conversation_ref` mapping when both are available
-5. update transcript session user binding without force-switching active conversation (`activeConversationRef || resolvedConversationRef`)
+5. update transcript session user binding for the resolved conversation
 6. dispatch to per-event handler map
 
 Because routing is per-workspace, background conversation events do not leak into the currently active chat.
@@ -87,16 +85,16 @@ This split keeps identity routing in one helper and turn-phase acceptance in the
 
 - top-level `conversation_ref` precedence
 - `local-user-message` payload fallback resolution
-- compatibility fallback resolution behavior for payload-level conversation refs
+- unresolved backend events are quarantined before UI projection or transcript sync
 
 `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx` verifies end-to-end listener behavior:
 
-- events with omitted conversation refs still process through turn mapping / active fallback
+- events with omitted conversation refs process only through turn mapping; otherwise they are quarantined
 
 ## Drift Hotspots
 
 1. removing turn-ref workspace mapping reintroduces ambiguous routing for events without `conversation_ref`.
-2. removing local-user-message fallback breaks compatibility for payload-level conversation identity.
+2. removing local-user-message payload resolution breaks local echo identity.
 3. force-switching transcript active conversation from background events causes visible chat jumps while another chat is open.
 
 ## Related Pages

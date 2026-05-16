@@ -57,7 +57,7 @@ describe('chatStreamEventRuntime', () => {
     expect(ref).toBe('conv-mapped');
   });
 
-  test('resolves conversation ref from memory-store payload session id fallback', () => {
+  test('does not resolve conversation ref from memory-store payload session id', () => {
     const ref = resolveTargetConversationRef(
       createEvent({
         type: 'memory-store',
@@ -65,10 +65,10 @@ describe('chatStreamEventRuntime', () => {
       }),
     );
 
-    expect(ref).toBe('conv-memory-payload');
+    expect(ref).toBeNull();
   });
 
-  test('resolves conversation ref from memory-store event session id when payload session missing', () => {
+  test('does not resolve conversation ref from memory-store event session id', () => {
     const ref = resolveTargetConversationRef(
       createEvent({
         type: 'memory-store',
@@ -77,19 +77,7 @@ describe('chatStreamEventRuntime', () => {
       }),
     );
 
-    expect(ref).toBe('conv-memory-event');
-  });
-
-  test('resolves conversation ref from memory-store event session id when payload session id is whitespace', () => {
-    const ref = resolveTargetConversationRef(
-      createEvent({
-        type: 'memory-store',
-        payload: { session_id: '   ' },
-        session_id: 'conv-memory-event',
-      }),
-    );
-
-    expect(ref).toBe('conv-memory-event');
+    expect(ref).toBeNull();
   });
 
   test('resolves conversation ref from local-user-message payload fallback', () => {
@@ -115,7 +103,7 @@ describe('chatStreamEventRuntime', () => {
     expect(ref).toBe('conv-local-payload');
   });
 
-  test('resolveTargetConversationRef keeps explicit conversation ref precedence over compatibility fallbacks', () => {
+  test('resolveTargetConversationRef prefers explicit conversation ref over session metadata', () => {
     const ref = resolveTargetConversationRef(
       createEvent({
         type: 'memory-store',
@@ -128,16 +116,15 @@ describe('chatStreamEventRuntime', () => {
     expect(ref).toBe('conv-explicit');
   });
 
-  test('resolveTargetConversationRef uses provided fallback conversation ref when no explicit or mapped identity exists', () => {
+  test('resolveTargetConversationRef returns null when no explicit or turn-mapped identity exists', () => {
     const ref = resolveTargetConversationRef(
       createEvent({
         type: 'streaming-response',
         payload: { content: 'chunk' },
       }),
-      'conv-fallback-active',
     );
 
-    expect(ref).toBe('conv-fallback-active');
+    expect(ref).toBeNull();
   });
 
   test('stale turn guard allows next-turn packets during terminal pending handoff', () => {

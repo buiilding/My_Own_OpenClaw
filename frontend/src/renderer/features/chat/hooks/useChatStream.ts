@@ -74,10 +74,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   });
 
   const resolveTargetConversationRef = useCallback(
-    (event: BackendEvent): string | null => resolveTargetConversationRefRuntime(
-      event,
-      DesktopConversationRuntimeClient.getActiveConversationRef(),
-    ),
+    (event: BackendEvent): string | null => resolveTargetConversationRefRuntime(event),
     [],
   );
 

@@ -45,6 +45,10 @@ For durable or semi-durable storage changes, migrations, reset behavior, and dat
 9. Backend ingests tool results, commits history, and continues or completes.
 10. UI renders SDK display projections while rehydrate snapshots are generated from the same normalized events.
 
+Backend events without explicit conversation identity or a previously registered
+turn-to-conversation mapping are quarantined at renderer ingress. They do not
+fall back to the active chat, because `conversationRef` owns chat identity.
+
 ## Duplication Risk
 
 | Risk | Avoid by |

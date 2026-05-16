@@ -4,14 +4,12 @@ type ResolveConversationRefWithTurnFallbackArgs = {
   explicitConversationRef?: string | null;
   turnRef?: string | null | undefined;
   resolveConversationRefForTurn?: ((turnRef: string) => string | null | undefined) | null;
-  fallbackConversationRef?: string | null;
 };
 
 export function resolveConversationRefWithTurnFallback({
   explicitConversationRef,
   turnRef,
   resolveConversationRefForTurn = null,
-  fallbackConversationRef = null,
 }: ResolveConversationRefWithTurnFallbackArgs): string | null {
   const normalizedConversationRef = (
     typeof explicitConversationRef === 'string'
@@ -30,9 +28,6 @@ export function resolveConversationRefWithTurnFallback({
     }
   }
 
-  if (typeof fallbackConversationRef === 'string' && fallbackConversationRef.trim()) {
-    return fallbackConversationRef.trim();
-  }
   return null;
 }
 
@@ -44,25 +39,6 @@ export function resolveEventConversationRef(event: BackendEvent): string | null 
   );
   if (explicitConversationRef.length > 0) {
     return explicitConversationRef;
-  }
-  if (event.type === 'memory-store') {
-    const payloadSessionId = (
-      typeof event.payload?.session_id === 'string'
-        ? event.payload.session_id.trim()
-        : ''
-    );
-    if (payloadSessionId.length > 0) {
-      return payloadSessionId;
-    }
-    const eventSessionId = (
-      typeof event.session_id === 'string'
-        ? event.session_id.trim()
-        : ''
-    );
-    if (eventSessionId.length > 0) {
-      return eventSessionId;
-    }
-    return null;
   }
   if (event.type !== 'local-user-message') {
     return null;

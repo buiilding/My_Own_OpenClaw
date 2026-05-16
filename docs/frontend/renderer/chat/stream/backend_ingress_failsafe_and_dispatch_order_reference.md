@@ -46,8 +46,8 @@ Execution order:
 1. `syncActiveConversationProjection(event, conversationRef)` (best-effort)
 2. `registerTurnConversationRef(event.turn_ref, conversationRef)` when both values exist (best-effort)
 3. transcript session sync when `enableTranscript=true`:
-  - `activeConversationRef = getActiveConversationRef()`
-  - `updateTranscriptSession(activeConversationRef || conversationRef || undefined, event.user_id)` (best-effort)
+  - `conversationRef` must be resolved before ingress dispatch
+  - `updateTranscriptSession(conversationRef, event.user_id)` (best-effort)
 4. `dispatchEvent(event)` (required)
 
 ## Fail-Safe Isolation Rules
@@ -90,7 +90,7 @@ This keeps listener-level pre-dispatch behavior deterministic and shared across 
 `tests/frontend/ChatStreamBackendIngress.test.ts` verifies:
 
 - normal path ordering: projection sync -> turn map -> transcript update -> dispatch
-- active transcript conversation precedence over ingress fallback conversation
+- unresolved events are quarantined before projection, transcript sync, or dispatch
 - turn-map registration skipped when turn or conversation ref is missing
 - projection-sync throw still dispatches event
 - turn-map throw still updates transcript and dispatches
