@@ -7,6 +7,8 @@ import {
   recordToolMessage,
   recordUserMessage,
 } from '../../../infrastructure/transcript/TranscriptWriter';
+import { ElectronSidecarConversationStore } from '../../../infrastructure/transcript/ElectronSidecarConversationStore';
+import type { CompactedReplaySnapshot } from '../../../infrastructure/api/windieSdkClient';
 
 export type { RehydrateConversationEntry };
 
@@ -58,6 +60,14 @@ export const DesktopConversationRuntimeClient = {
     options: Parameters<typeof recordToolMessage>[1],
   ): void {
     recordToolMessage(text, options);
+  },
+
+  async replaceCompactedReplay(
+    snapshot: CompactedReplaySnapshot,
+    userId: string,
+  ): Promise<void> {
+    const store = new ElectronSidecarConversationStore({ userId });
+    await store.replaceCompactedReplay(snapshot);
   },
 
   sendQuery(input: SendConversationQueryInput): Promise<void> {

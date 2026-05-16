@@ -1,5 +1,13 @@
 import { act, renderHook } from '@testing-library/react';
+
+jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
+  DesktopConversationRuntimeClient: {
+    replaceCompactedReplay: jest.fn(() => Promise.resolve()),
+  },
+}));
+
 import { useChatStreamCompactionHandlers } from '../../frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompactionHandlers';
+import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
 import {
   COMPACTION_COMPLETED_THINKING_STATUS,
   COMPACTION_FAILED_THINKING_STATUS,
@@ -7,6 +15,10 @@ import {
 } from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamThinkingStatus';
 
 describe('useChatStreamCompactionHandlers', () => {
+  beforeEach(() => {
+    jest.mocked(DesktopConversationRuntimeClient.replaceCompactedReplay).mockClear();
+  });
+
   test('updates thinking state for compaction lifecycle events', async () => {
     const resolveTargetConversationRef = jest.fn(() => 'conversation-1');
     const shouldIgnoreForStaleTurn = jest.fn(() => false);
@@ -160,6 +172,45 @@ describe('useChatStreamCompactionHandlers', () => {
       'conversation-1',
     );
     expect(persistCompactedReplay).not.toHaveBeenCalled();
+  });
+
+  test('uses desktop conversation runtime facade for default compaction persistence', async () => {
+    const { result } = renderHook(() => useChatStreamCompactionHandlers({
+      resolveTargetConversationRef: jest.fn(() => 'conversation-1'),
+      shouldIgnoreForStaleTurn: jest.fn(() => false),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      getThinkingSourceEventType: jest.fn(() => 'context-compaction-started'),
+      setCompactionDebugInfo: jest.fn(),
+      recordTrackingEvent: jest.fn(),
+    }));
+
+    await act(async () => {
+      result.current.handleContextCompactionCompleted({
+        type: 'context-compaction-completed',
+        id: 'compaction-event-2',
+        turn_ref: 'turn-2',
+        user_id: 'user-2',
+        payload: {
+          replacement_history_entries: [
+            {
+              role: 'assistant',
+              content: 'summary',
+              message_type: 'context_compaction',
+            },
+          ],
+        },
+      } as any);
+    });
+
+    expect(DesktopConversationRuntimeClient.replaceCompactedReplay).toHaveBeenCalledWith(
+      expect.objectContaining({
+        generationId: 'compaction-conversation-1-compaction-event-2',
+        conversationRef: 'conversation-1',
+        entryCount: 1,
+      }),
+      'user-2',
+    );
   });
 
   test('ignores stale-turn events', () => {

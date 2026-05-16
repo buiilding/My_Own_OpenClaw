@@ -69,4 +69,14 @@ describe('renderer chat runtime boundary', () => {
 
     expect(offenders).toEqual([]);
   });
+
+  test('chat stream compaction persistence uses the desktop runtime facade', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'hooks/chatStream/useChatStreamCompactionHandlers.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('ElectronSidecarConversationStore');
+    expect(source).toContain('DesktopConversationRuntimeClient.replaceCompactedReplay');
+  });
 });

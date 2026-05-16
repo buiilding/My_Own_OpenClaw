@@ -11,8 +11,8 @@ import {
   COMPACTION_FAILED_THINKING_STATUS,
 } from '../../utils/chatStream/chatStreamThinkingStatus';
 import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
-import { ElectronSidecarConversationStore } from '../../../../infrastructure/transcript/ElectronSidecarConversationStore';
 import type { CompactedReplaySnapshot } from '../../../../infrastructure/api/windieSdkClient';
+import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
 import { useTurnScopedBackendEventHandler } from './useTurnScopedBackendEventHandler';
 
 type ResolveTargetConversationRef = (event: BackendEvent) => string | null;
@@ -107,8 +107,7 @@ async function persistCompactedReplaySnapshot(
   snapshot: CompactedReplaySnapshot,
   userId: string,
 ): Promise<void> {
-  const store = new ElectronSidecarConversationStore({ userId });
-  await store.replaceCompactedReplay(snapshot);
+  await DesktopConversationRuntimeClient.replaceCompactedReplay(snapshot, userId);
 }
 
 export function useChatStreamCompactionHandlers({
