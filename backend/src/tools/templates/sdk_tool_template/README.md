@@ -45,7 +45,7 @@ class MyTool(Tool[MyToolArgs]):
 ### 3. Implement run() Method
 
 ```python
-async def run(self, args: MyToolArgs, ctx: Context) -> dict:
+async def run(self, args: MyToolArgs, ctx: ToolContext) -> dict:
     # Your logic here
     return {
         "success": True,
@@ -72,13 +72,17 @@ Create a test file:
 ```python
 import pytest
 from my_tool import MyTool, MyToolArgs
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ExecutionRuntime, SessionContext, ToolContext, UserContext
 
 @pytest.mark.asyncio
 async def test_my_tool():
     tool = MyTool()
     args = MyToolArgs(param1="test")
-    ctx = Context(workspace_root="/workspace", services={})
+    ctx = ToolContext(
+        user=UserContext(user_id="test-user"),
+        session=SessionContext(session_id="test-session", created_at=0),
+        runtime=ExecutionRuntime(workspace_root="/workspace", services={}),
+    )
     
     result = await tool.run(args, ctx)
     
@@ -107,4 +111,3 @@ See existing tools in `backend/src/tools/` for reference:
 - [Tool Development Guide](../../../docs/tool_development.md)
 - [Extension Points Guide](../../../docs/extension_points.md)
 - [Architecture Documentation](../../../docs/architecture.md)
-

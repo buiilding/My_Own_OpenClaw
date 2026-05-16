@@ -70,13 +70,12 @@ class ToolContext:
     The container passed to `tool.run(args, ctx)`.
     
     It combines Identity (User/Session) with Runtime Capabilities.
-    Renamed from 'Context' to 'ToolContext' for clarity.
     """
     user: UserContext
     session: SessionContext
     runtime: ExecutionRuntime
     
-    # Shortcuts for backward compatibility or ease of use
+    # Ergonomic shortcuts for common tool runtime access.
     @property
     def workspace_root(self) -> str:
         return self.runtime.workspace_root
@@ -92,6 +91,3 @@ class ToolContext:
     @property
     def is_interactive(self) -> bool:
         return True
-
-# Alias for backward compatibility during refactor (optional, but good for transition)
-Context = ToolContext

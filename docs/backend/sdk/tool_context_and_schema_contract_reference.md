@@ -117,10 +117,6 @@ Container object passed to tool `run(...)`:
   - `.agents`
   - `.is_interactive` (always `True`)
 
-Backward-compat alias:
-
-- `Context = ToolContext`
-
 ## ContextFactory Runtime Injection Semantics
 
 `ContextFactory.create_tool_context(...)` is the central construction path.
