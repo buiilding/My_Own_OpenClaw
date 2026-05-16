@@ -3,6 +3,9 @@ const {
   buildWindieSdkMainHandshake,
   createWindieSdkMainRuntime,
 } = require('../../frontend/src/main/windie_sdk_runtime.cjs');
+const {
+  createWindieSdkBackendSocket,
+} = require('../../frontend/src/main/windie_sdk_backend_socket.cjs');
 
 class FakeWebSocket extends EventEmitter {
   static OPEN = 1;
@@ -36,6 +39,21 @@ class FakeWebSocket extends EventEmitter {
 describe('Windie SDK main runtime', () => {
   beforeEach(() => {
     FakeWebSocket.instances = [];
+  });
+
+  test('creates backend sockets through the main SDK transport factory', () => {
+    const socket = createWindieSdkBackendSocket({
+      WebSocketImpl: FakeWebSocket,
+      wsUrl: 'wss://api.windieos.com/ws',
+      wsOrigin: 'app://windie',
+      headers: { authorization: 'Bearer install-token' },
+    });
+
+    expect(socket.url).toBe('wss://api.windieos.com/ws');
+    expect(socket.options).toEqual({
+      origin: 'app://windie',
+      headers: { authorization: 'Bearer install-token' },
+    });
   });
 
   test('owns backend websocket handshake and envelope sends for Electron main', async () => {
@@ -90,6 +108,34 @@ describe('Windie SDK main runtime', () => {
       payload: {},
       user_id: 'dev-user',
     });
+  });
+
+  test('delegates socket construction to the main SDK transport boundary', async () => {
+    const createBackendSocket = jest.fn((socketOptions) => (
+      createWindieSdkBackendSocket(socketOptions)
+    ));
+    const runtime = createWindieSdkMainRuntime({
+      WebSocketImpl: FakeWebSocket,
+      createBackendSocket,
+      createMessageId: () => 'msg-1',
+      getEndpoint: () => ({ wsUrl: 'wss://api.windieos.com/ws', wsOrigin: 'app://windie' }),
+      getHeaders: () => ({ authorization: 'Bearer install-token' }),
+      getUserId: () => 'dev-user',
+      buildHandshake: async () => ({ type: 'handshake', user_id: 'dev-user' }),
+    });
+
+    runtime.connect();
+    const socket = FakeWebSocket.instances[0];
+    socket.open();
+    await Promise.resolve();
+
+    expect(createBackendSocket).toHaveBeenCalledWith({
+      WebSocketImpl: FakeWebSocket,
+      wsUrl: 'wss://api.windieos.com/ws',
+      wsOrigin: 'app://windie',
+      headers: { authorization: 'Bearer install-token' },
+    });
+    expect(JSON.parse(socket.sent[0])).toEqual({ type: 'handshake', user_id: 'dev-user' });
   });
 
   test('owns connection waiters and reconnect scheduling', async () => {

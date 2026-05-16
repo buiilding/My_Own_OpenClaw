@@ -13,4 +13,14 @@ describe('main ipc sdk runtime boundary', () => {
 
     expect(source.match(directRuntimeSendPattern) || []).toEqual([]);
   });
+
+  test('main SDK runtime delegates websocket construction to the backend transport module', async () => {
+    const source = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/windie_sdk_runtime.cjs'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('new WebSocketImpl');
+    expect(source).toContain('createWindieSdkBackendSocket');
+  });
 });

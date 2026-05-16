@@ -8,6 +8,9 @@ const {
   markRendererToolEventDisplayOnly,
   routeSdkToolEventToLocalRuntime,
 } = require('./ipc/ipc_sdk_tool_router.cjs');
+const {
+  createWindieSdkBackendSocket,
+} = require('./windie_sdk_backend_socket.cjs');
 
 const DEFAULT_RECONNECT_INTERVAL_MS = 1000;
 const DEFAULT_CONNECT_TIMEOUT_MS = 10000;
@@ -46,6 +49,7 @@ function createWindieSdkMainRuntime(options = {}) {
   if (!WebSocketImpl) {
     throw new Error('createWindieSdkMainRuntime requires WebSocketImpl');
   }
+  const createBackendSocket = options.createBackendSocket || createWindieSdkBackendSocket;
 
   let socket = null;
   let shouldMaintainConnection = false;
@@ -192,8 +196,10 @@ function createWindieSdkMainRuntime(options = {}) {
     }
 
     options.log?.(`Windie SDK runtime connecting to backend at ${wsUrl}...`);
-    const nextSocket = new WebSocketImpl(wsUrl, {
-      origin: endpoint.wsOrigin,
+    const nextSocket = createBackendSocket({
+      WebSocketImpl,
+      wsUrl,
+      wsOrigin: endpoint.wsOrigin,
       headers: options.getHeaders?.() || {},
     });
     socket = nextSocket;

@@ -33,7 +33,7 @@ sequenceDiagram
 | Layer | Owns | Code roots |
 | --- | --- | --- |
 | Backend | model-facing tool schema, policy filtering, parser validation, tool-call events, result waiting, history commit | `backend/src/tools`, `backend/src/agent/tools`, `backend/src/api/processing/formatters/actions`, `backend/src/api/handlers/tool_results.py` |
-| SDK main runtime | backend websocket ownership, local tool-call routing, `tool-result` / `tool-bundle-result` return | `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs` |
+| SDK main runtime | backend websocket ownership, local tool-call routing, `tool-result` / `tool-bundle-result` return | `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/windie_sdk_backend_socket.cjs`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs` |
 | Renderer | tool-call display, transcript/chat state, and stale-turn display guards; no local execution for backend tool events | `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`, `frontend/src/renderer/features/chat/utils/chatStream/chatStreamToolMessages.ts`, `frontend/src/renderer/infrastructure/transcript/*` |
 | Electron main | renderer IPC, sidecar daemon bridge, screenshot artifact upload, system-state bridge, display-only backend event fan-out | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/sidecar_daemon_manager.cjs`, `frontend/src/main/ipc.cjs` |
 | Python sidecar daemon | executable tool implementations and dynamic tool registry | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools/**`, `frontend/src/main/python/memory/**` |

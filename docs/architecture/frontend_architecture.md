@@ -214,7 +214,7 @@ Primary modules:
   - Keeps macOS/Windows/Linux window rules in one place so composition/runtime modules do not duplicate Electron platform conditionals.
 - `main/ipc.cjs`:
   - Renderer-facing SDK runtime adapter for backend-bound work.
-  - Delegates backend websocket construction, handshake send, envelope send, close, and reconnect primitives to `main/windie_sdk_runtime.cjs`.
+  - Delegates backend websocket construction to `main/windie_sdk_backend_socket.cjs` through `main/windie_sdk_runtime.cjs`, and keeps handshake send, envelope send, close, idle disconnect, and reconnect policy inside the SDK runtime adapter.
   - Delegates backend-bound renderer command normalization, connection policy, settings-sync gating, and typed SDK send dispatch to `main/ipc/ipc_sdk_command_router.cjs`.
   - Opens the SDK runtime connection on demand for backend-bound work instead of at app startup.
   - Keeps the SDK runtime connection alive through active agent-loop phases, then starts a 30 minute idle grace timer before intentionally closing the connection.
