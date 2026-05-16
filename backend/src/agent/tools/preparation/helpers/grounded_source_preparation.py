@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from backend.src.agent.tools.preparation.ocr import OcrCoordinator
     from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
     from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
-    from backend.src.core.interfaces.vision import IVisionService
+    from backend.src.core.interfaces.vision import IVisionProvider
 
 logger = logging.getLogger(__name__)
 
@@ -200,7 +200,7 @@ async def resolve_grounded_source_coordinates(
     screenshot_id: str,
     ocr_coordinator: "OcrCoordinator",
     coordinate_resolver: "CoordinateResolver",
-    vision_service: Optional["IVisionService"],
+    vision_service: Optional["IVisionProvider"],
     vision_service_provider,
     context_id: str,
 ) -> None:

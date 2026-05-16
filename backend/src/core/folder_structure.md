@@ -76,7 +76,7 @@ backend/src/core/
 │   ├── __init__.py                    # Package exports
 │   ├── embedding.py                   # EmbeddingProvider - embedding provider abstract base class
 │   ├── tool.py                        # ToolInterface - tool interface protocol with ToolResult and ToolContext
-│   └── vision.py                      # IVisionService - vision service interface protocol
+│   └── vision.py                      # IVisionProvider - vision provider interface protocol
 │
 ├── services/                          # Core service implementations
 │   ├── __init__.py                    # Package exports

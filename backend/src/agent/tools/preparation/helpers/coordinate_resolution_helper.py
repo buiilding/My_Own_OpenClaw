@@ -16,7 +16,7 @@ from backend.src.core.types.enums import CoordinateFindingMethod
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
-    from backend.src.core.interfaces.vision import IVisionService
+    from backend.src.core.interfaces.vision import IVisionProvider
     from backend.src.llm.parser_types import ParsedToolCall
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ async def resolve_coordinates(
     screenshot_id: str,
     ocr_coordinator,
     coordinate_resolver,
-    vision_service: Optional["IVisionService"],
+    vision_service: Optional["IVisionProvider"],
     vision_service_provider,
     context_id: str,  # bundle_id or request_id for logging
 ) -> Tuple[int, int]:

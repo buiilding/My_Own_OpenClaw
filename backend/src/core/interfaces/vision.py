@@ -43,7 +43,3 @@ class IVisionProvider(Protocol):
     ) -> Optional[str]:
         """Answer a descriptive prompt about the image."""
         ...
-
-
-# Backward-compatible alias while the rest of the backend migrates off service naming.
-IVisionService = IVisionProvider

@@ -49,7 +49,7 @@ async def resolve_tool_with_coordinates(
     screenshot_manager: ScreenshotManager,
     ocr_coordinator: OcrCoordinator,
     coordinate_resolver: CoordinateResolver,
-    vision_service: Optional[IVisionService],
+    vision_service: Optional[IVisionProvider],
     vision_service_provider,
     context_id: str,
 ) -> None:

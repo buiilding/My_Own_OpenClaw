@@ -16,7 +16,7 @@ from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser_types import ParsedToolCall
 
 if TYPE_CHECKING:
-    from backend.src.core.interfaces.vision import IVisionService
+    from backend.src.core.interfaces.vision import IVisionProvider
 
 logger = logging.getLogger(__name__)
 
@@ -329,7 +329,7 @@ class VisionCoordinateResolver:
     async def resolve(
         description: str,
         screenshot_data: str,
-        vision_service: "IVisionService",
+        vision_service: "IVisionProvider",
     ) -> Tuple[int, int]:
         """
         Resolve coordinates using Vision model prediction.
@@ -401,7 +401,7 @@ class CoordinateResolver:
         tool_call: ParsedToolCall,
         screenshot_data: str,
         ocr_results: Optional[List[Dict[str, Any]]],
-        vision_service: Optional["IVisionService"],
+        vision_service: Optional["IVisionProvider"],
         *,
         screenshot_id: Optional[str] = None,
     ) -> Tuple[int, int]:

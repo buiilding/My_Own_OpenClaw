@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Callable, Optional
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
-    from backend.src.core.interfaces.vision import IVisionService
+    from backend.src.core.interfaces.vision import IVisionProvider
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class VisionServiceProvider:
     """
 
     @staticmethod
-    def get_vision_service(session: "AgentSession") -> Optional["IVisionService"]:
+    def get_vision_service(session: "AgentSession") -> Optional["IVisionProvider"]:
         """
         Get vision service from session hierarchy.
 

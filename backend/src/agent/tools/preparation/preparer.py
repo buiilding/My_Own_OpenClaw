@@ -37,7 +37,7 @@ from backend.src.llm.parser_types import ParsedToolCall
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
-    from backend.src.core.interfaces.vision import IVisionService
+    from backend.src.core.interfaces.vision import IVisionProvider
 
 logger = logging.getLogger(__name__)
 
@@ -63,9 +63,9 @@ class ToolPreparer:
         screenshot_manager: ScreenshotManager,
         coordinate_resolver: CoordinateResolver,
         ocr_coordinator: OcrCoordinator,
-        vision_service: Optional["IVisionService"] = None,
+        vision_service: Optional["IVisionProvider"] = None,
         vision_service_provider: Optional[
-            Callable[["AgentSession"], Optional["IVisionService"]]
+            Callable[["AgentSession"], Optional["IVisionProvider"]]
         ] = None,
         tool_registry: object | None = None,
     ):

@@ -21,7 +21,7 @@ title: "Vision Service Protocol Boundary and Session Hierarchy Access Contract R
 
 ## `IVisionProvider` Protocol Contract
 
-`IVisionProvider` (typing Protocol, still aliased as `IVisionService` for compatibility) requires:
+`IVisionProvider` is the first-class typing Protocol for vision inference providers and requires:
 
 - attribute: `provider_id`
 - attribute: `model_id`
