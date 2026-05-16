@@ -112,7 +112,6 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const {
     updateLastMessageBySender,
-    updateFirstMessageBySender,
     updateLastAssistantLlmTextMessage,
   } = useStreamMessageUpdaters(updateMessage);
 
@@ -165,6 +164,9 @@ export function useChatStream(enableTranscript: boolean = true) {
     shouldIgnoreForStaleTurn,
     setThinkingStatus,
     setThinkingSourceEventType,
+    getThinkingSourceEventType: (conversationRef?: string | null) => (
+      useChatStore.getState().getWorkspaceState(conversationRef).thinkingSourceEventType
+    ),
     setCompactionDebugInfo,
     recordTrackingEvent,
   });
@@ -193,7 +195,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
     updateLastMessageBySender,
-    updateFirstMessageBySender,
     updateLastAssistantLlmTextMessage,
     recordTrackingEvent,
   });

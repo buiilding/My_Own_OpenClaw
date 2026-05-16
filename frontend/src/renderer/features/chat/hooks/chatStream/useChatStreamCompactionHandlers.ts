@@ -32,6 +32,10 @@ type SetThinkingSourceEventType = (
   conversationRef?: string | null,
 ) => void;
 
+type GetThinkingSourceEventType = (
+  conversationRef?: string | null,
+) => string | null;
+
 type SetCompactionDebugInfo = (
   debugInfo: {
     reason: string | null;
@@ -65,6 +69,7 @@ export function useChatStreamCompactionHandlers({
   shouldIgnoreForStaleTurn,
   setThinkingStatus,
   setThinkingSourceEventType,
+  getThinkingSourceEventType,
   setCompactionDebugInfo,
   recordTrackingEvent,
 }: {
@@ -72,6 +77,7 @@ export function useChatStreamCompactionHandlers({
   shouldIgnoreForStaleTurn: ShouldIgnoreForStaleTurn;
   setThinkingStatus: SetThinkingStatus;
   setThinkingSourceEventType: SetThinkingSourceEventType;
+  getThinkingSourceEventType?: GetThinkingSourceEventType;
   setCompactionDebugInfo: SetCompactionDebugInfo;
   recordTrackingEvent: RecordTrackingEvent;
 }) {
@@ -96,10 +102,17 @@ export function useChatStreamCompactionHandlers({
           : ''
       );
       if (skippedReason) {
-        setThinkingStatus(null, conversationRef);
-        setThinkingSourceEventType(null, conversationRef);
+        const currentSourceEventType = getThinkingSourceEventType?.(conversationRef) ?? null;
+        if (
+          currentSourceEventType === 'context-compaction-started'
+          || currentSourceEventType === 'context-compaction-completed'
+          || currentSourceEventType === 'context-compaction-failed'
+        ) {
+          setThinkingStatus(null, conversationRef);
+          setThinkingSourceEventType(null, conversationRef);
+        }
         setCompactionDebugInfo(null, conversationRef);
-        recordTrackingEvent('context-compaction-completed', event.turn_ref, { skippedReason }, conversationRef);
+        recordTrackingEvent('context-compaction-completed', event.turn_ref, {}, conversationRef);
         return;
       }
       setThinkingStatus(

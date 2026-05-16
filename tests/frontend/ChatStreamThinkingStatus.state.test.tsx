@@ -201,7 +201,10 @@ describe('useChatStream state + stream handling', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({ thinkingStatus: 'Compacting conversation history...' });
+      useChatStore.setState({
+        thinkingStatus: 'Compacting conversation history...',
+        thinkingSourceEventType: 'context-compaction-started',
+      });
       emitBackendEvent({
         type: 'context-compaction-completed',
         payload: { reason: 'manual', strategy: 'inline', skipped_reason: 'below-threshold' },

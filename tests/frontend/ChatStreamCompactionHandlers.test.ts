@@ -29,6 +29,7 @@ describe('useChatStreamCompactionHandlers', () => {
     const shouldIgnoreForStaleTurn = jest.fn(() => false);
     const setThinkingStatus = jest.fn();
     const setThinkingSourceEventType = jest.fn();
+    const getThinkingSourceEventType = jest.fn(() => 'context-compaction-started');
     const setCompactionDebugInfo = jest.fn();
     const recordTrackingEvent = jest.fn();
 
@@ -37,6 +38,7 @@ describe('useChatStreamCompactionHandlers', () => {
       shouldIgnoreForStaleTurn,
       setThinkingStatus,
       setThinkingSourceEventType,
+      getThinkingSourceEventType,
       setCompactionDebugInfo,
       recordTrackingEvent,
     }));
@@ -131,6 +133,46 @@ describe('useChatStreamCompactionHandlers', () => {
         }),
       ],
     );
+  });
+
+  test('does not clear non-compaction thinking state for skipped compaction', async () => {
+    const resolveTargetConversationRef = jest.fn(() => 'conversation-1');
+    const shouldIgnoreForStaleTurn = jest.fn(() => false);
+    const setThinkingStatus = jest.fn();
+    const setThinkingSourceEventType = jest.fn();
+    const getThinkingSourceEventType = jest.fn(() => 'tool-call');
+    const setCompactionDebugInfo = jest.fn();
+    const recordTrackingEvent = jest.fn();
+
+    const { result } = renderHook(() => useChatStreamCompactionHandlers({
+      resolveTargetConversationRef,
+      shouldIgnoreForStaleTurn,
+      setThinkingStatus,
+      setThinkingSourceEventType,
+      getThinkingSourceEventType,
+      setCompactionDebugInfo,
+      recordTrackingEvent,
+    }));
+
+    await act(async () => {
+      result.current.handleContextCompactionCompleted({
+        type: 'context-compaction-completed',
+        turn_ref: 'turn-1',
+        payload: { skipped_reason: 'insufficient-history' },
+      } as any);
+    });
+
+    expect(getThinkingSourceEventType).toHaveBeenCalledWith('conversation-1');
+    expect(setThinkingStatus).not.toHaveBeenCalled();
+    expect(setThinkingSourceEventType).not.toHaveBeenCalled();
+    expect(setCompactionDebugInfo).toHaveBeenCalledWith(null, 'conversation-1');
+    expect(recordTrackingEvent).toHaveBeenCalledWith(
+      'context-compaction-completed',
+      'turn-1',
+      {},
+      'conversation-1',
+    );
+    expect(mockReplaceConversationReplayState).not.toHaveBeenCalled();
   });
 
   test('ignores stale-turn events', () => {
