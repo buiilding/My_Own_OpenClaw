@@ -26,7 +26,7 @@ title: "Event Bus and Cache Infrastructure Reference"
 `EventBus` owns:
 
 - subscriber storage via `EventHandlerStore`
-- global listeners/middleware-like hooks
+- global listeners
 - per-event publish counters (`_event_stats`)
 - error-recovery mode (`enable_error_recovery`)
 

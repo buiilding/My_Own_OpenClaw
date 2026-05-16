@@ -2,7 +2,7 @@
 Enhanced Event Bus for the Desktop Assistant.
 
 Provides a robust event bus with priority support, filtering, error handling,
-and middleware capabilities for decoupling components.
+and global listener capabilities for decoupling components.
 """
 
 from __future__ import annotations
@@ -67,18 +67,6 @@ class EventBus:
         with self._lock:
             self._global_listeners.append(listener)
         logger.debug("Added global listener: %s", listener)
-
-    def add_middleware(
-        self, middleware: Callable[[Event], Awaitable[Optional[bool]]]
-    ) -> None:
-        import warnings
-
-        warnings.warn(
-            "add_middleware is deprecated. Use add_global_listener instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        self.add_global_listener(middleware)
 
     async def publish(self, event: Event) -> None:
         event_type = type(event)

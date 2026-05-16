@@ -236,15 +236,6 @@ class MockEventBus:
         
         assert listener in bus._global_listeners
 
-    def test_add_middleware_deprecated(self, bus):
-        async def middleware(event):
-            return True
-        
-        with pytest.warns(DeprecationWarning):
-            bus.add_middleware(middleware)
-        
-        assert middleware in bus._global_listeners
-
     @pytest.mark.asyncio
     async def test_publish_no_handlers(self, bus):
         event = MockEvent()
