@@ -42,6 +42,34 @@ async function sendFile(res, filePath, contentType) {
 function createServer() {
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url || '/', 'http://127.0.0.1');
+    if (url.pathname === '/api/sdk/models') {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({
+        config: {
+          model_mode: 'online',
+          model_provider: 'openai',
+          selected_model_id: 'gpt-5.4',
+          interaction_mode: 'agent',
+        },
+        models: [
+          {
+            id: 'gpt-5.4',
+            provider: 'openai',
+            label: 'GPT-5.4',
+            model_mode: 'online',
+            supports_tools: true,
+          },
+          {
+            id: 'mistral-large-latest',
+            provider: 'mistral',
+            label: 'Mistral Large',
+            model_mode: 'online',
+            supports_tools: true,
+          },
+        ],
+      }));
+      return;
+    }
     if (url.pathname.startsWith('/sdk/')) {
       const sdkFile = path.join(sdkDist, url.pathname.slice('/sdk/'.length));
       const contentType = sdkFile.endsWith('.js') ? 'text/javascript' : 'application/json';
@@ -55,6 +83,9 @@ function createServer() {
   wss.on('connection', socket => {
     socket.on('message', raw => {
       const message = JSON.parse(raw.toString());
+      if (message.type === 'update-settings') {
+        return;
+      }
       if (message.type !== 'query') {
         return;
       }

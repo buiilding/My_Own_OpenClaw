@@ -53,13 +53,29 @@
         margin-top: 14px;
       }
 
-      input {
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 12px;
+      }
+
+      label {
+        font-weight: 700;
+      }
+
+      input,
+      select {
         flex: 1;
         min-width: 0;
         padding: 12px;
         border: 1px solid #b8c2d2;
         border-radius: 6px;
         font: inherit;
+      }
+
+      select {
+        max-width: 280px;
       }
 
       button {
@@ -80,6 +96,10 @@
   <body>
     <main>
       <h1>Windie SDK Custom UI</h1>
+      <div class="toolbar">
+        <label for="model">Model</label>
+        <select id="model"></select>
+      </div>
       <section id="messages" aria-live="polite"></section>
       <form id="composer">
         <input id="prompt" autocomplete="off" value="Explain what this custom UI is using.">
@@ -95,22 +115,38 @@
 
       const messages = document.querySelector('#messages');
       const prompt = document.querySelector('#prompt');
+      const model = document.querySelector('#model');
       const send = document.querySelector('#send');
       const composer = document.querySelector('#composer');
       const store = new InMemoryConversationStore();
       const client = new WindieClient({
         backendUrl: window.location.origin
       });
+      const modelCatalog = await client.listModels({ userId: 'custom-ui-example-user' });
+      const availableModels = modelCatalog.models.map(entry => ({
+        modelProvider: entry.provider,
+        modelId: entry.id,
+        modelMode: entry.model_mode || 'online',
+        interactionMode: 'agent',
+        label: entry.label || `${entry.provider} ${entry.id}`
+      }));
+      for (const entry of availableModels) {
+        const option = document.createElement('option');
+        option.value = `${entry.modelProvider}:${entry.modelId}`;
+        option.textContent = entry.label;
+        model.append(option);
+      }
+
+      function selectedModel() {
+        return availableModels.find(entry => `${entry.modelProvider}:${entry.modelId}` === model.value)
+          || availableModels[0];
+      }
+
       const agent = await client.wakeUp({
         agentId: 'custom-ui-example',
         name: 'Custom UI Example',
         systemPrompt: 'You are a concise SDK custom UI demo agent.',
-        model: {
-          modelProvider: 'openai',
-          modelId: 'gpt-5.4',
-          modelMode: 'online',
-          interactionMode: 'agent'
-        }
+        model: selectedModel()
       });
       const conversation = agent.conversation({
         conversationRef: 'custom-ui-example',
@@ -135,6 +171,15 @@
 
       conversation.subscribe(render);
 
+      model.addEventListener('change', async () => {
+        model.disabled = true;
+        try {
+          await conversation.setModel(selectedModel());
+        } finally {
+          model.disabled = false;
+        }
+      });
+
       composer.addEventListener('submit', async event => {
         event.preventDefault();
         const text = prompt.value.trim();
@@ -145,12 +190,7 @@
         try {
           for await (const runtimeEvent of conversation.stream({
             text,
-            model: {
-              modelProvider: 'openai',
-              modelId: 'gpt-5.4',
-              modelMode: 'online',
-              interactionMode: 'agent'
-            }
+            model: selectedModel()
           })) {
             if (runtimeEvent.type === 'error') {
               throw runtimeEvent.error;

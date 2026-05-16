@@ -89,6 +89,34 @@ The repo is structured so the desktop app, local sidecar, SDKs, extension roots,
 and backend contracts can be developed directly instead of treated as a closed
 product shell.
 
+## Architecture
+
+WindieOS is becoming a modular agent platform instead of a desktop app with
+hidden orchestration logic. The TypeScript Windie SDK runtime is the canonical
+client runtime for conversations, model selection, backend transport, local tool
+routing, replay, projections, and pluggable conversation stores.
+
+```text
+CLI / custom UI / Electron desktop / tests
+        |
+        v
+Windie SDK runtime
+        |-- hosted backend HTTP/WebSocket
+        |-- local sidecar daemon
+        |-- conversation store adapters
+```
+
+The hosted backend owns inference, model/provider policy, prompts, provider
+history, compaction decisions, OCR/vision/prediction policy, and backend-visible
+tool schemas. The local sidecar owns filesystem, shell, browser, computer-use,
+MCP, plugin, extension, local memory, and permission-checked desktop execution.
+
+The Electron desktop is the flagship reference client built on that SDK
+runtime. It should render SDK display projections, collect user input, expose
+settings, and host desktop-specific permissions and windows. UI rows are not the
+storage truth; backend rehydrate history is generated from normalized SDK
+conversation events or complete compacted replay snapshots.
+
 ## Quick Start
 
 ### Download
@@ -163,6 +191,7 @@ directly into a topic:
 | [Frontend Architecture](docs/architecture/frontend_architecture.md) | Electron main, React renderer, preload boundary, and sidecar ownership. |
 | [Communication Flow](docs/architecture/communication_flow.md) | IPC, JSON-RPC, WebSocket, HTTP, query, memory, and tool event paths. |
 | [Tool System](docs/architecture/tool_system.md) | Hosted orchestration boundary, sidecar tool execution, and renderer visibility. |
+| [Windie SDK Runtime](docs/sdk/windie_client_runtime.md) | Canonical client runtime, model switching, conversation stores, projections, and local tool routing. |
 | [Computer-Use](docs/tools/computer.md) | Mouse, keyboard, screenshots, scrolling, window actions, and coordinate grounding. |
 | [Browser-Use](docs/browser/browser_control.md) | Windie browser profile, browser automation actions, and runtime behavior. |
 | [Frontend Docs](docs/frontend/README.md) | Deep frontend maps across main, renderer, preload, contracts, runtime, and inventory. |
