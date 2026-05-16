@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: move desktop query, stop, rehydrate, and compaction IPC calls behind an app backend-command runtime facade.
 - frontend: keep the response-overlay typing indicator visible in light appearance and apply appearance theming to AppProvider-mounted overlay surfaces.
 - frontend/sdk: route desktop conversation model changes through the app settings runtime facade.
 - frontend/sdk: move the desktop conversation runtime facade into the renderer app runtime layer.

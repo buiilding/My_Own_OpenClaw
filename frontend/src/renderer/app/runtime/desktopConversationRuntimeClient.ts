@@ -1,6 +1,3 @@
-import { ApiClient } from '../../infrastructure/api/client';
-import type { RehydrateConversationEntry } from '../../infrastructure/api/client';
-import type { CaptureMeta } from '../../infrastructure/services/ScreenshotAttachmentPipeline';
 import type { WindieModelSelection } from '../../infrastructure/api/windieSdkClient';
 import {
   recordAssistantMessage,
@@ -9,6 +6,12 @@ import {
 } from '../../infrastructure/transcript/TranscriptWriter';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
+import {
+  DesktopBackendCommandRuntimeClient,
+  type RehydrateConversationEntry,
+  type SendConversationQueryInput as BackendSendConversationQueryInput,
+  type SendConversationRehydrateInput,
+} from './desktopBackendCommandRuntimeClient';
 import {
   ElectronSidecarConversationStore,
   type TranscriptProjectionRewriteEntry,
@@ -21,27 +24,21 @@ import type {
 export type { RehydrateConversationEntry };
 
 type SendConversationQueryInput = {
-  text: string;
-  conversationRef: string;
-  screenshotRef?: string | null;
-  screenshotUrl?: string | null;
-  screenshotRefs?: string[] | null;
-  captureMeta?: CaptureMeta | null;
-  attachmentContext?: string | null;
-  attachmentFilenames?: string[] | null;
-  screenshot?: string | null;
-  workspacePath?: string | null;
+  text: BackendSendConversationQueryInput['text'];
+  conversationRef: BackendSendConversationQueryInput['conversationRef'];
+  screenshotRef?: BackendSendConversationQueryInput['screenshotRef'];
+  screenshotUrl?: BackendSendConversationQueryInput['screenshotUrl'];
+  screenshotRefs?: BackendSendConversationQueryInput['screenshotRefs'];
+  captureMeta?: BackendSendConversationQueryInput['captureMeta'];
+  attachmentContext?: BackendSendConversationQueryInput['attachmentContext'];
+  attachmentFilenames?: BackendSendConversationQueryInput['attachmentFilenames'];
+  screenshot?: BackendSendConversationQueryInput['screenshot'];
+  workspacePath?: BackendSendConversationQueryInput['workspacePath'];
   transcript?: {
     userId?: string | null;
     timestamp?: string | null;
     screenshotRef?: string | null;
   } | null;
-};
-
-type SendConversationRehydrateInput = {
-  conversationRef: string;
-  messages: RehydrateConversationEntry[];
-  workspacePath?: string | null;
 };
 
 type RewriteTranscriptProjectionInput = {
@@ -139,33 +136,18 @@ export const DesktopConversationRuntimeClient = {
         screenshotRef: input.transcript.screenshotRef ?? input.screenshotRef ?? null,
       });
     }
-    return ApiClient.sendQuery(
-      input.text,
-      input.conversationRef,
-      input.screenshotRef ?? null,
-      input.screenshotUrl ?? null,
-      input.screenshotRefs ?? null,
-      input.captureMeta ?? null,
-      input.attachmentContext ?? null,
-      input.attachmentFilenames ?? null,
-      input.screenshot ?? null,
-      input.workspacePath ?? null,
-    );
+    return DesktopBackendCommandRuntimeClient.sendQuery(input);
   },
 
   sendRehydrate(input: SendConversationRehydrateInput): Promise<void> {
-    return ApiClient.sendRehydrateConversation(
-      input.conversationRef,
-      input.messages,
-      input.workspacePath ?? null,
-    );
+    return DesktopBackendCommandRuntimeClient.sendRehydrate(input);
   },
 
   stop(conversationRef: string | null = null): void {
-    ApiClient.stopQuery(conversationRef);
+    DesktopBackendCommandRuntimeClient.stop(conversationRef);
   },
 
   compactHistory(force: boolean = true, conversationRef: string | null = null): void {
-    ApiClient.compactHistory(force, conversationRef);
+    DesktopBackendCommandRuntimeClient.compactHistory(force, conversationRef);
   },
 };

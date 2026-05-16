@@ -3,9 +3,10 @@ import path from 'node:path';
 
 const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
 const allowedRelativePaths = new Set([
+  'app/runtime/desktopBackendCommandRuntimeClient.ts',
+  'app/runtime/desktopConversationRuntimeClient.ts',
   'app/runtime/desktopSettingsRuntimeClient.ts',
   'app/runtime/desktopVoiceRuntimeClient.ts',
-  'features/chat/session/desktopConversationRuntimeClient.ts',
   'infrastructure/api/client.ts',
 ]);
 const allowedBackendIpcRelativePaths = new Set([
