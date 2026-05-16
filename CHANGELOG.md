@@ -15,6 +15,7 @@ All notable changes to WindieOS will be documented in this file.
 - docs: update active debugging and channel routing docs so tool execution routes through SDK main/runtime and sidecar instead of renderer tool-runner paths.
 - frontend/sdk: route deferred chat-send, replay, and manual-compaction model changes through an explicit SDK-style `ApiClient.setModel(...)` call.
 - docs: document `ApiClient.setModel(...)` as the desktop path for deferred model/provider sync.
+- frontend/sdk: add a renderer chat runtime command facade so chat features stop importing low-level backend IPC directly.
 - docs: refocus the README around WindieOS as an open-source OS-layer Codex alternative, voice-first desktop companion, shared-screen collaborator, and hackable agent runtime.
 - backend/openai: synthesize Responses stream payloads from output item events and function-call argument deltas when OpenAI omits the terminal response envelope.
 - frontend: hide chat composer scrollbars across dashboard and minimal pill multiline drafts.

@@ -113,9 +113,9 @@ Persisted thinking cleanup contract from `chatStreamThinkingStatus.ts`:
 7. optional screenshot materialization (`ScreenshotAttachmentPipeline`)
 8. update already-rendered user message with `screenshot_ref/url`
 9. record transcript user row
-10. emit backend `query` via `ApiClient.sendQuery`
+10. emit backend `query` via `DesktopConversationRuntimeClient.sendQuery(...)`
 
-Before final query dispatch, the hook may send immediate model/provider updates via `ApiClient.setModel(...)` when deferred-model selection changes are detected.
+Before final query dispatch, the hook may send immediate model/provider updates via `DesktopConversationRuntimeClient.setModel(...)` when deferred-model selection changes are detected.
 
 Failure handling:
 

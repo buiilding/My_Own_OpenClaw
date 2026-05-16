@@ -24,7 +24,7 @@ flowchart LR
     D --> F["readableFileAttachmentContext via read_file"]
     E --> G["optimistic user row screenshot refs"]
     F --> H["hidden attachment_context"]
-    G --> I["ApiClient.sendQuery"]
+    G --> I["DesktopConversationRuntimeClient.sendQuery"]
     H --> I
     I --> J["Electron query IPC payload normalization"]
     J --> K["Backend query_execution_inputs"]
@@ -108,7 +108,7 @@ flowchart LR
 1. Confirm `MessageInput` sends an object payload with `clipboardImages[]`.
 2. Confirm `chatMessageSenderPayloads.ts` keeps the image after normalization.
 3. Confirm `ScreenshotAttachmentPipeline` materializes the image into a ref or inline fallback.
-4. Confirm `ApiClient.sendQuery` payload includes `screenshot_ref` and `screenshot_refs`.
+4. Confirm `DesktopConversationRuntimeClient.sendQuery` payload includes `screenshot_ref` and `screenshot_refs`.
 5. Confirm backend query input resolution can load the artifact ref.
 
 ### File Chip Appears but Model Does Not See File Text

@@ -87,7 +87,7 @@ Main-process chat window height now tracks the compact-vs-preview visual-anchor 
 - compaction button renders only when `isDevUiEnabled()` is true
 - on click:
   - sets compaction thinking status markers in chat store
-  - calls `ApiClient.compactHistory(true)`
+  - calls `DesktopConversationRuntimeClient.compactHistory(true)`
 
 ## `ChatBoxResponse` Runtime Contract
 

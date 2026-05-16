@@ -1,6 +1,6 @@
 import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigBackendSync';
-import { ApiClient } from '../../../../infrastructure/api/client';
 import { ensureConversationInferenceSessionHydrated } from '../../session/conversationInferenceSessionRuntime';
+import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
 import { COMPACTION_THINKING_STATUS } from '../chatStream/chatStreamThinkingStatus';
 
 export function waitForNextPaint() {
@@ -27,7 +27,7 @@ export async function runManualCompaction({
 
   const deferredQueryModelSelection = buildDeferredQueryModelSelection(config);
   if (deferredQueryModelSelection) {
-    ApiClient.setModel(deferredQueryModelSelection);
+    DesktopConversationRuntimeClient.setModel(deferredQueryModelSelection);
   }
 
   const normalizedConversationRef = conversationRef || null;
@@ -42,5 +42,5 @@ export async function runManualCompaction({
     }
   }
 
-  ApiClient.compactHistory(true, normalizedConversationRef);
+  DesktopConversationRuntimeClient.compactHistory(true, normalizedConversationRef);
 }

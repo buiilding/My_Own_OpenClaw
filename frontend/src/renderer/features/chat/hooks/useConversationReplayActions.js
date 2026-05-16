@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { ApiClient } from '../../../infrastructure/api/client';
 import { useChatStore } from '../stores/chatStore';
 import {
   resolveReplayScreenshotState,
@@ -24,6 +23,7 @@ import {
   markConversationInferenceSessionLocalOnly,
   rehydrateConversationInferenceSession,
 } from '../session/conversationInferenceSessionRuntime';
+import { DesktopConversationRuntimeClient } from '../session/desktopConversationRuntimeClient';
 import {
   applyRendererConversationSelection,
   initializeLocalConversationSession,
@@ -76,20 +76,20 @@ async function runReplayQueryFlow({
     messages: rehydrateSnapshot.messages,
   });
   if (deferredQueryModelSelection) {
-    ApiClient.setModel(deferredQueryModelSelection);
+    DesktopConversationRuntimeClient.setModel(deferredQueryModelSelection);
   }
-  await ApiClient.sendQuery(
-    queryText,
+  await DesktopConversationRuntimeClient.sendQuery({
+    text: queryText,
     conversationRef,
-    screenshotRef || null,
-    screenshotUrl || null,
-    null,
-    null,
-    null,
-    null,
-    screenshot || null,
-    workspacePath || null,
-  );
+    screenshotRef: screenshotRef || null,
+    screenshotUrl: screenshotUrl || null,
+    screenshotRefs: null,
+    captureMeta: null,
+    attachmentContext: null,
+    attachmentFilenames: null,
+    screenshot: screenshot || null,
+    workspacePath: workspacePath || null,
+  });
 }
 
 function ensureConversationRef(sessionConversationRef, storeConversationRef) {

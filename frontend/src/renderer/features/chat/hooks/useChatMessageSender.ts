@@ -4,7 +4,6 @@
  */
 
 import { useCallback, useMemo } from 'react';
-import { ApiClient } from '../../../infrastructure/api/client';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import {
@@ -32,6 +31,7 @@ import {
   markConversationInferenceSessionLocalOnly,
   markConversationInferenceSessionUnknown,
 } from '../session/conversationInferenceSessionRuntime';
+import { DesktopConversationRuntimeClient } from '../session/desktopConversationRuntimeClient';
 import {
   normalizeAttachmentFilenames,
   normalizeOutgoingPayload,
@@ -253,20 +253,19 @@ export function useChatMessageSender(
     try {
       const deferredQueryModelSelection = buildDeferredQueryModelSelection(config);
       if (deferredQueryModelSelection) {
-        ApiClient.setModel(deferredQueryModelSelection);
+        DesktopConversationRuntimeClient.setModel(deferredQueryModelSelection);
       }
-      await ApiClient.sendQuery(
+      await DesktopConversationRuntimeClient.sendQuery({
         text,
         conversationRef,
         screenshotRef,
         screenshotUrl,
-        screenshotRefs.length > 0 ? screenshotRefs : null,
+        screenshotRefs: screenshotRefs.length > 0 ? screenshotRefs : null,
         captureMeta,
         attachmentContext,
-        attachmentFilenames.length > 0 ? attachmentFilenames : null,
-        null,
-        workspaceBinding.workspacePath || null,
-      );
+        attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
+        workspacePath: workspaceBinding.workspacePath || null,
+      });
       logRendererChatPillTrace({
         source: 'renderer-send',
         action: 'query-dispatched',

@@ -1,5 +1,3 @@
-import { ApiClient } from '../../../infrastructure/api/client';
-import type { RehydrateConversationEntry } from '../../../infrastructure/api/client';
 import { ElectronSidecarConversationStore } from '../../../infrastructure/transcript/ElectronSidecarConversationStore';
 import { loadLocalConversationSnapshot } from '../../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import {
@@ -7,6 +5,8 @@ import {
   setConversationWorkspaceBinding,
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
 import { DEFAULT_USER_ID } from '../../dashboard/utils/episodicMemoryUtils';
+import { DesktopConversationRuntimeClient } from './desktopConversationRuntimeClient';
+import type { RehydrateConversationEntry } from './desktopConversationRuntimeClient';
 
 /**
  * The backend only owns transient inference state. The frontend/sidecar transcript remains
@@ -185,11 +185,11 @@ export async function ensureConversationInferenceSessionHydrated({
     const rehydrateSnapshot = await store.loadForRehydrate(normalizedConversationRef);
     const rehydrateMessages = toRehydrateConversationEntries(rehydrateSnapshot.messages);
     if (rehydrateMessages.length > 0) {
-      await ApiClient.sendRehydrateConversation(
-        normalizedConversationRef,
-        rehydrateMessages,
-        getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
-      );
+      await DesktopConversationRuntimeClient.sendRehydrate({
+        conversationRef: normalizedConversationRef,
+        messages: rehydrateMessages,
+        workspacePath: getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
+      });
     }
     if (startingEpoch === connectionEpoch) {
       markConversationInferenceSessionHydrated(normalizedConversationRef);
@@ -216,11 +216,11 @@ export async function rehydrateConversationInferenceSession({
   }
 
   const startingEpoch = connectionEpoch;
-  await ApiClient.sendRehydrateConversation(
-    normalizedConversationRef,
+  await DesktopConversationRuntimeClient.sendRehydrate({
+    conversationRef: normalizedConversationRef,
     messages,
-    getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
-  );
+    workspacePath: getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
+  });
   if (startingEpoch === connectionEpoch) {
     markConversationInferenceSessionHydrated(normalizedConversationRef);
   }

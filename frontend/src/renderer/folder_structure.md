@@ -67,6 +67,10 @@ frontend/src/renderer/
 │   │   │   ├── useStreamMessageUpdaters.ts # useStreamMessageUpdaters - Shared message update callbacks extracted from useChatStream
 │   │   │   └── useTranscription.ts      # useTranscription - Manages input state and voice transcription text insertion
 │   │   │
+│   │   ├── session/                     # Chat SDK/runtime command and conversation session helpers
+│   │   │   ├── desktopConversationRuntimeClient.ts # Renderer command facade for SDK runtime hosted by Electron main
+│   │   │   └── conversationInferenceSessionRuntime.ts # Backend inference rehydrate state for local conversations
+│   │   │
 │   │   ├── stores/                      # State management
 │   │   │   └── chatStore.ts             # chatStore (Zustand) - Messages, isSending, thinkingStatus, tokenCounts
 │   │   │
@@ -267,7 +271,7 @@ frontend/src/renderer/
        ├─> Add to chatStore
        ├─> Main-window sender path: send query directly (no screenshot capture, no window handoff)
        ├─> Overlay sender path: optional captureScreenshotAttachment() screenshot capture
-       └─> ApiClient.sendQuery() - Send to backend via IPC
+       └─> DesktopConversationRuntimeClient.sendQuery() - Send through the renderer runtime facade
            ↓
 3. IPC BRIDGE
    └─> infrastructure/ipc/bridge.ts

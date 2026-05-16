@@ -106,7 +106,7 @@ Workspace-binding invariant:
 `handleNewChat` passes `stopActiveQuery` only when stream phase is active. Stop callback does:
 
 - `stopPlayback()`
-- `ApiClient.stopQuery()`
+- `DesktopConversationRuntimeClient.stop()`
 
 So new-chat resets local store regardless, while active backend loop receives stop signal when applicable.
 

@@ -55,7 +55,8 @@ chat component until the producer and relay contracts are identified.
 ```mermaid
 sequenceDiagram
     participant R as Renderer compose
-    participant A as ApiClient
+    participant A as DesktopConversationRuntimeClient
+    participant IPC as ApiClient
     participant M as Electron main
     participant L as Local sidecar
     participant SDK as SDK runtime
@@ -65,7 +66,8 @@ sequenceDiagram
     R->>R: normalize outgoing text, images, files, conversation_ref
     R->>R: create local pending user row and transcript user row
     R->>A: sendQuery(...)
-    A->>M: to-backend { type: "query", payload }
+    A->>IPC: delegate low-level IPC command
+    IPC->>M: to-backend { type: "query", payload }
     M->>M: ensure initial settings ACK if needed
     M->>M: prepareRendererQuerySend(...)
     M->>S: local-user-message optimistic event
@@ -87,7 +89,7 @@ Before editing, answer which contract is changing:
 
 - Compose contract: text, pasted images, readable files, screenshot capture,
   message-send policy, disabled send states.
-- Renderer-to-main IPC contract: `ApiClient.sendQuery(...)` arguments and
+- Renderer runtime facade contract: `DesktopConversationRuntimeClient.sendQuery(...)` arguments and
   `SEND_CHANNELS.TO_BACKEND` payload shape.
 - Main/SDK runtime contract: query payload filtering, enrichment, settings ACK
   gate, SDK runtime send, local synthetic events, replay, and send failure behavior.
@@ -226,14 +228,14 @@ Renderer stream invariants:
 
 | Symptom | First checks | Likely fix area |
 | --- | --- | --- |
-| User row appears but no backend response | Confirm `ApiClient.sendQuery` fired, `to-backend` reached main, websocket was connected, and send failure event was not synthesized. | `useChatMessageSender.ts`, `ipc.cjs`, `ipc_query_send_runtime.cjs`, websocket connection docs |
+| User row appears but no backend response | Confirm `DesktopConversationRuntimeClient.sendQuery` fired, low-level `to-backend` reached main, websocket was connected, and send failure event was not synthesized. | `useChatMessageSender.ts`, `desktopConversationRuntimeClient.ts`, `ipc.cjs`, `ipc_query_send_runtime.cjs`, websocket connection docs |
 | First query uses old model/settings | Check `ensureInitialSettingsSync()`, pending ACK map, `settings-updated` event id, and timeout logs. | `ipc_settings_sync.cjs`, app config backend sync, backend settings handler |
-| Screenshot displays locally but model cannot inspect it | Check artifact upload result, `screenshot_ref`/`screenshot_refs`, inline screenshot fallback, and backend artifact lookup. | query screenshot pipeline, `ApiClient.sendQuery`, backend `QueryExecutionService` |
+| Screenshot displays locally but model cannot inspect it | Check artifact upload result, `screenshot_ref`/`screenshot_refs`, inline screenshot fallback, and backend artifact lookup. | query screenshot pipeline, `DesktopConversationRuntimeClient.sendQuery`, backend `QueryExecutionService` |
 | File attachment is visible but ignored by model | Check readable file context generation, `attachment_context` stripping, and `<attached_file_context>` insertion. | renderer file helper, `ipc_query_runtime.cjs`, `query_payload_builder.cjs` |
 | Response streams into old dashboard conversation | Check `conversation_ref` creation, transcript-session sync, event `conversation_ref`, and `turn_ref` mapping. | renderer session runtime, `ipc_transcript_session_sync.cjs`, chat stream conversation gate |
 | Minimal pill stuck awaiting | Check `local-user-message`, first stream chunk, terminal/error event, overlay phase transitions, and disconnect watchdog. | overlay phase state, stream phase state, `useChatLoopUiState` |
 | Duplicate local user rows | Check renderer optimistic row plus main synthetic `local-user-message` handling and replay dedupe behavior. | `useChatMessageSender`, `useChatStream`, `ipc_event_replay_state.cjs` |
-| Backend rejects query payload | Compare `ApiClient.sendQuery` and main-filtered payload against `backend/src/api/schemas/incoming.py`. | renderer API client, main query runtime, backend incoming schema |
+| Backend rejects query payload | Compare `DesktopConversationRuntimeClient.sendQuery`, `ApiClient.sendQuery`, and main-filtered payload against `backend/src/api/schemas/incoming.py`. | renderer API client, main query runtime, backend incoming schema |
 
 ## Validation Matrix
 

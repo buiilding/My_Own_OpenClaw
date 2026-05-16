@@ -135,7 +135,7 @@ Read these files when `workspace_path` is missing on the backend:
 
 Forwarding rules:
 
-- Renderer sends normalized `workspace_path` through `ApiClient.sendQuery`.
+- Renderer sends normalized `workspace_path` through `DesktopConversationRuntimeClient.sendQuery`.
 - Electron main resolves local AGENTS.md instructions from the workspace path
   into `agent_definition.agents_md` before forwarding to the backend.
 - Backend query execution normalizes `workspace_path` and `agent_definition`
@@ -195,7 +195,7 @@ Prompt rules:
 | Symptom | First checks | Likely owner |
 | --- | --- | --- |
 | Workspace settings shows no workspace after choosing one | Check permission result payload, `workspace-access-updated`, selected paths, and `normalizeActiveWorkspace`. | Permission IPC and workspace settings |
-| New query omits `workspace_path` | Check conversation binding, `fetchActiveWorkspaceSelection`, and `ApiClient.sendQuery` args. | Renderer send path |
+| New query omits `workspace_path` | Check conversation binding, `fetchActiveWorkspaceSelection`, and `DesktopConversationRuntimeClient.sendQuery` args. | Renderer send path |
 | Resumed chat uses another workspace | Check snapshot workspace metadata, `setConversationWorkspaceBinding`, and `setActiveWorkspaceSelection`. | Dashboard conversation handoff |
 | AGENTS.md works locally but not with hosted backend | Check Electron-injected `agent_definition.agents_md`; do not rely on backend reading a desktop path. | Main repo instruction runtime |
 | Backend prompt uses old workspace | Check `QueryExecutionInputs.workspace_path`, `process_query`, and session manager workspace update path. | Backend query/session runtime |

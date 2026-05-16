@@ -108,7 +108,7 @@ When attachment(s) exist:
   - dedupe final `screenshot_refs[]` for backend send
 10. update optimistic message with `screenshotRef/screenshotUrl` plus `screenshots[]`.
 11. write transcript user row (`recordUserMessage`) with conversation ref + primary screenshot ref.
-12. send backend query (`ApiClient.sendQuery`) with:
+12. send backend query (`DesktopConversationRuntimeClient.sendQuery`) with:
   - `screenshot_ref` (first ref, compatibility path)
   - `screenshot_refs` (all uploaded refs for multi-image queries)
   - optional `attachment_context` (hidden read_file output for selected non-image files)
@@ -167,7 +167,7 @@ Non-fatal failures (send still continues):
 
 Fatal failure:
 
-- `ApiClient.sendQuery` throw
+- `DesktopConversationRuntimeClient.sendQuery` throw
 - sender sets `isSending=false`
 - appends assistant error message (`Failed to send message. Please try again.`)
 - error rethrown

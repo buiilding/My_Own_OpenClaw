@@ -14,7 +14,6 @@ import {
   useChatInterfaceStopShortcut,
 } from '../hooks/useChatInterfaceBindings';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
-import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
@@ -49,6 +48,7 @@ import {
 import {
   VISIBLE_ASSISTANT_REPLY_TYPE_SET,
 } from '../utils/state/chatTurnPresentationState';
+import { DesktopConversationRuntimeClient } from '../session/desktopConversationRuntimeClient';
 import { buildThreadPresentationMessages } from '../utils/message/messagePresentationPipeline';
 import { buildThreadFindState } from '../utils/message/threadFindState';
 import '../../../styles/ChatInterface.css';
@@ -359,7 +359,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
       updateStreamTracking,
     });
     stopPlayback();
-    ApiClient.stopQuery(sessionInfo.conversationRef || null);
+    DesktopConversationRuntimeClient.stop(sessionInfo.conversationRef || null);
   }, [
     composerBusy,
     sessionInfo.conversationRef,
