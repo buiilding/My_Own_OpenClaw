@@ -98,17 +98,17 @@ Utility controls:
 
 ## Manual Compaction Pre-Rehydrate Flow
 
-`handleRunAutoCompaction()` flow:
+`handleRunAutoCompaction()` delegates to the shared manual compaction runtime:
 
 1. sets compaction-specific thinking status/source markers
-2. waits one paint (`waitForNextPaint()`) so state is visible before async work
-3. resolves transcript session (`conversationRef`, `userId`)
-4. syncs deferred model selection (`model_provider`, `selected_model_id`) to backend session config
-5. when both values exist:
-  - loads transcript rows via `loadConversationTranscriptMemories(...)`
-  - maps rows with `toRehydrateMessagePayload(...)`
-  - calls `ApiClient.sendRehydrateConversation(...)`
+2. waits one paint so state is visible before async work
+3. syncs deferred model selection (`model_provider`, `selected_model_id`) to backend session config
+4. resolves transcript session (`conversationRef`, `userId`)
+5. when a conversation ref exists, calls `ensureConversationInferenceSessionHydrated(...)` so backend compaction sees the latest normalized store rehydrate snapshot
 6. always calls `ApiClient.compactHistory(true)` after the pre-rehydrate attempt
+
+The overlay chatbox dev compaction button uses the same helper, so dashboard and
+overlay compaction controls share the same rehydrate-before-compact behavior.
 
 Failure behavior:
 

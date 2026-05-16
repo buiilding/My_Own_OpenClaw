@@ -14,17 +14,13 @@ import {
   useChatInterfaceStopShortcut,
 } from '../hooks/useChatInterfaceBindings';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
-import { buildDeferredQueryModelConfig } from '../../../app/providers/appConfigBackendSync';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
-import { ensureConversationInferenceSessionHydrated } from '../session/conversationInferenceSessionRuntime';
 import { useRendererConversationSessionInfo } from '../session/useRendererConversationSessionInfo';
 import { startNewChatSession } from '../utils/session/newChatSession';
-import {
-  COMPACTION_THINKING_STATUS,
-} from '../utils/chatStream/chatStreamThinkingStatus';
+import { runManualCompaction } from '../utils/session/manualCompactionRuntime';
 import {
   buildChatModelOptions,
   buildChatProviderOptions,
@@ -56,16 +52,6 @@ import {
 import { buildThreadPresentationMessages } from '../utils/message/messagePresentationPipeline';
 import { buildThreadFindState } from '../utils/message/threadFindState';
 import '../../../styles/ChatInterface.css';
-
-function waitForNextPaint() {
-  return new Promise((resolve) => {
-    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-      window.requestAnimationFrame(() => resolve());
-      return;
-    }
-    setTimeout(resolve, 0);
-  });
-}
 
 function workspaceStateMatches(currentWorkspace, nextWorkspace) {
   return (
@@ -412,25 +398,14 @@ function ChatInterface({ focusComposerToken = 0 }) {
   }, []);
 
   const handleRunAutoCompaction = useCallback(async () => {
-    setThinkingStatus(COMPACTION_THINKING_STATUS);
-    setThinkingSourceEventType('context-compaction-started');
-    await waitForNextPaint();
-    const deferredQueryModelConfig = buildDeferredQueryModelConfig(config);
-    if (deferredQueryModelConfig) {
-      ApiClient.updateSettings(deferredQueryModelConfig);
-    }
-    const conversationRef = sessionInfo.conversationRef || null;
-    if (conversationRef) {
-      try {
-        await ensureConversationInferenceSessionHydrated({
-          conversationRef,
-          userId: sessionInfo.userId || null,
-        });
-      } catch (error) {
-        console.warn('[ChatInterface] Failed to rehydrate conversation before compaction:', error);
-      }
-    }
-    ApiClient.compactHistory(true, conversationRef);
+    await runManualCompaction({
+      config,
+      conversationRef: sessionInfo.conversationRef || null,
+      userId: sessionInfo.userId || null,
+      setThinkingStatus,
+      setThinkingSourceEventType,
+      warningContext: 'ChatInterface',
+    });
   }, [config, sessionInfo.conversationRef, sessionInfo.userId, setThinkingSourceEventType, setThinkingStatus]);
 
   const handleProviderSelect = useCallback((provider) => {

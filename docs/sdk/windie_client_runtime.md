@@ -156,6 +156,9 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
 - desktop `TranscriptWriter` visible transcript appends also route through the
   Electron conversation store adapter, so queued user/assistant/tool writes no
   longer own direct row IPC or replay append mutation.
+- desktop manual compaction controls share one rehydrate-first runtime helper
+  that uses the SDK store-backed conversation rehydrate path before sending
+  `compact-history`.
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel

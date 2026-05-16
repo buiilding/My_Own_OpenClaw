@@ -15,7 +15,6 @@ import {
 import { useTextareaAutoResize } from '../hooks/useMessageInputUiBindings';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
-import { ApiClient } from '../../../infrastructure/api/client';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import {
   createChatboxDragState,
@@ -24,7 +23,7 @@ import {
   startChatboxDrag,
   stopChatboxDrag,
 } from '../utils/chatbox/chatboxPillLayout';
-import { COMPACTION_THINKING_STATUS } from '../utils/chatStream/chatStreamThinkingStatus';
+import { runManualCompaction } from '../utils/session/manualCompactionRuntime';
 import {
   AttachmentIcon,
   CompactIcon,
@@ -315,12 +314,19 @@ function ChatBox() {
     if (loopInteractionLocked) {
       return;
     }
-    setThinkingStatus(COMPACTION_THINKING_STATUS);
-    setThinkingSourceEventType('context-compaction-started');
-    ApiClient.compactHistory(true, sessionInfo.conversationRef || null);
+    void runManualCompaction({
+      config,
+      conversationRef: sessionInfo.conversationRef || null,
+      userId: sessionInfo.userId || null,
+      setThinkingStatus,
+      setThinkingSourceEventType,
+      warningContext: 'ChatBox',
+    });
   }, [
+    config,
     loopInteractionLocked,
     sessionInfo.conversationRef,
+    sessionInfo.userId,
     setThinkingSourceEventType,
     setThinkingStatus,
   ]);

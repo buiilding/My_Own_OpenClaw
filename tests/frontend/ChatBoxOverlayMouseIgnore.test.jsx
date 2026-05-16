@@ -20,7 +20,9 @@ const mockUseVoiceMode = jest.fn(() => ({
 }));
 const mockUpdateConfig = jest.fn();
 const mockCompactHistory = jest.fn();
+const mockUpdateSettings = jest.fn();
 const mockStopQuery = jest.fn();
+const mockEnsureConversationInferenceSessionHydrated = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
 const mockSetThinkingStatus = jest.fn();
 const mockSetThinkingSourceEventType = jest.fn();
@@ -153,8 +155,13 @@ jest.mock('../../frontend/src/renderer/features/chat/session/useRendererConversa
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
     compactHistory: (...args) => mockCompactHistory(...args),
+    updateSettings: (...args) => mockUpdateSettings(...args),
     stopQuery: (...args) => mockStopQuery(...args),
   },
+}));
+
+jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
+  ensureConversationInferenceSessionHydrated: (...args) => mockEnsureConversationInferenceSessionHydrated(...args),
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
@@ -186,7 +193,10 @@ describe('ChatBox overlay mouse ignore', () => {
     mockUpdateConfig.mockClear();
     mockSendMessage.mockClear();
     mockCompactHistory.mockClear();
+    mockUpdateSettings.mockClear();
     mockStopQuery.mockClear();
+    mockEnsureConversationInferenceSessionHydrated.mockReset();
+    mockEnsureConversationInferenceSessionHydrated.mockResolvedValue(undefined);
     mockSetThinkingStatus.mockClear();
     mockSetThinkingSourceEventType.mockClear();
     mockSetIsSending.mockClear();
@@ -430,12 +440,21 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(screen.queryByRole('button', { name: 'Run auto compaction' })).not.toBeInTheDocument();
   });
 
-  test('renders dev compaction control and dispatches compact-history', () => {
+  test('renders dev compaction control and dispatches compact-history after rehydrate', async () => {
     mockIsDevUiEnabled.mockReturnValue(true);
     render(<ChatBox />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Run auto compaction' }));
-    expect(mockCompactHistory).toHaveBeenCalledWith(true, 'conv-overlay');
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith('Compacting conversation history...');
+    expect(mockSetThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-started');
+    await flushAnimationFrames();
+    await waitFor(() => {
+      expect(mockEnsureConversationInferenceSessionHydrated).toHaveBeenCalledWith({
+        conversationRef: 'conv-overlay',
+        userId: null,
+      });
+      expect(mockCompactHistory).toHaveBeenCalledWith(true, 'conv-overlay');
+    });
   });
 
   test('dragging pill sends absolute move-chatbox-to coordinates', () => {
