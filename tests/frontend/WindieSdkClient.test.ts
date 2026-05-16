@@ -737,6 +737,51 @@ describe('WindieSdkClient', () => {
     expect(headers.get('x-windie-sidecar-token')).toBe('provider-token');
   });
 
+  test('createWindieLocalRuntimeProvider can start the daemon through a launcher prefix', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-launcher-'));
+    const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
+    const daemonScript = path.join(tempDir, 'sidecar_daemon.py');
+    const launcherScript = path.join(tempDir, 'python-in-env');
+    await fsPromises.writeFile(daemonScript, 'print("daemon")\n', 'utf8');
+    await fsPromises.writeFile(
+      launcherScript,
+      [
+        '#!/usr/bin/env node',
+        "const fs = require('node:fs');",
+        "if (process.argv[2] !== 'sidecar' || process.argv[3] !== 'python') process.exit(2);",
+        "const discoveryIndex = process.argv.indexOf('--discovery-file');",
+        'if (discoveryIndex < 0) process.exit(3);',
+        "fs.writeFileSync(process.argv[discoveryIndex + 1], JSON.stringify({ base_url: 'http://127.0.0.1:43125', token: 'launcher-token' }));",
+        'setTimeout(() => {}, 30000);',
+      ].join('\n'),
+      'utf8',
+    );
+    await fsPromises.chmod(launcherScript, 0o755);
+    mockFetch.mockResolvedValue(jsonResponse({ status: 'ok' }) as any);
+    const provider = createWindieLocalRuntimeProvider({
+      discoveryFile,
+      daemonScript,
+      pythonCommand: launcherScript,
+      pythonArgs: ['sidecar', 'python'],
+      pollIntervalMs: 1,
+      startTimeoutMs: 500,
+      fetchImpl: mockFetch,
+    });
+    const runtime = await provider({
+      wakeUp: { tools: [] },
+      needsLocalRuntime: true,
+    });
+
+    expect(runtime).toBeDefined();
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://127.0.0.1:43125/status',
+      expect.objectContaining({
+        headers: expect.any(Headers),
+      }),
+    );
+    await runtime?.shutdown?.();
+  });
+
   test('wakeUp registers local module tools and sends agent definition in handshake', async () => {
     const localRuntime: WindieLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),

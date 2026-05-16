@@ -348,8 +348,11 @@ starts `sidecar_daemon.py` and waits for fresh discovery metadata.
 
 Non-Electron SDK hosts can override that behavior with:
 
-- `autoSidecar`: daemon script, discovery file, host/port, timeout, or Python command
-  options for the default Node provider.
+- `autoSidecar`: daemon script, discovery file, host/port, timeout, Python
+  command, and optional `pythonArgs` launcher prefix for the default Node
+  provider. Repo-local examples use this to run
+  `scripts/python-in-env sidecar python` while leaving daemon discovery,
+  registration, and shutdown with `WindieClient`.
 - `ensureLocalRuntime`: an async provider that starts/reuses a daemon and returns
   a `WindieLocalRuntimeClient` when `wakeUp` needs local execution.
 - `sidecar`: a custom `WindieLocalRuntimeClient` implementation.

@@ -11,9 +11,11 @@ npm install
 npm run build
 ```
 
-The public package surface is `WindieClient`, `WindieAgent`, `moduleTool`,
-sidecar daemon helpers, hosted SDK route clients, and the SDK conversation
-runtime primitives used by desktop, CLI, and custom UI adapters.
+The public package surface for external app authors is `WindieClient`,
+`WindieAgent`, `moduleTool`, hosted SDK route clients, local-runtime adapter
+options, and conversation APIs. The built-in Electron desktop may use
+lower-level SDK runtime modules behind first-party facades, but public examples
+should model the high-level `WindieClient` path.
 
 ```ts
 import { WindieClient } from '@windie/sdk';
@@ -62,6 +64,19 @@ for await (const event of agent.stream('Run the repo checks and report progress.
     console.log(`\n${event.finalResponse ?? ''}`);
   }
 }
+```
+
+Node examples that need local sidecar execution can let `WindieClient` own
+daemon discovery and startup:
+
+```ts
+const windie = new WindieClient({
+  backendUrl: 'https://api.windieos.com',
+  autoSidecar: {
+    pythonCommand: './scripts/python-in-env',
+    pythonArgs: ['sidecar', 'python'],
+  },
+});
 ```
 
 For custom clients that need durable local state, use the conversation runtime

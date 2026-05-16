@@ -70,6 +70,41 @@ describe('modular sdk refactor completion boundary', () => {
     expect(localSdkLoader).not.toContain('frontend/node_modules');
   });
 
+  test('public examples stay on the high-level WindieClient surface', async () => {
+    const exampleFiles = [
+      'examples/cli-agent/run.mjs',
+      'examples/custom-ui/index.html',
+      'examples/local-tool-extension/run.mjs',
+      'examples/repo-agent-extension/run.mjs',
+    ];
+    const internalRuntimeNeedles = [
+      'SdkConversationRuntime',
+      'createConversationRuntime',
+      'ManagedBackendSession',
+      'ToolExecutionCoordinator',
+      'ElectronSidecarConversationStore',
+      'DesktopConversationRuntimeClient',
+      'DesktopBackendCommandRuntimeClient',
+      'packages/windie-sdk-js/src/runtime',
+      'packages/windie-sdk-js/src/transport',
+      'packages/windie-sdk-js/src/tools/ToolExecutionCoordinator',
+      'frontend/src/renderer',
+      'frontend/src/main',
+    ];
+    const offenders: Record<string, string[]> = {};
+
+    for (const relativePath of exampleFiles) {
+      const source = await read(relativePath);
+      expect(source).toContain('WindieClient');
+      const matches = internalRuntimeNeedles.filter(needle => source.includes(needle));
+      if (matches.length > 0) {
+        offenders[relativePath] = matches;
+      }
+    }
+
+    expect(offenders).toEqual({});
+  });
+
   test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {
     const currentInventoryDocs = [
       'docs/frontend/inventory/frontend_runtime_surface_matrix_reference.md',

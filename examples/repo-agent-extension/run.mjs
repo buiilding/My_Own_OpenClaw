@@ -1,10 +1,7 @@
 #!/usr/bin/env node
 import http from 'node:http';
-import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { promises as fs } from 'node:fs';
-import { spawn } from 'node:child_process';
 import {
   loadLocalWindieSdk,
   loadSdkWebSocket,
@@ -127,70 +124,14 @@ function createMockBackend() {
   };
 }
 
-async function readJson(filePath) {
-  return JSON.parse(await fs.readFile(filePath, 'utf8'));
-}
-
-async function waitForDiscovery(discoveryFile, child) {
-  const deadline = Date.now() + 15000;
-  let lastError = null;
-  while (Date.now() < deadline) {
-    if (child.exitCode !== null) {
-      throw new Error(`sidecar daemon exited early with code ${child.exitCode}`);
-    }
-    try {
-      const discovery = await readJson(discoveryFile);
-      if (discovery.base_url && discovery.token) {
-        return discovery;
-      }
-    } catch (error) {
-      lastError = error;
-    }
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-  throw new Error(`timed out waiting for sidecar discovery: ${lastError?.message || discoveryFile}`);
-}
-
-async function startSidecar() {
-  const discoveryFile = path.join(
-    os.tmpdir(),
-    `windie-repo-agent-example-${process.pid}-${Date.now()}.json`,
-  );
-  const daemonScript = path.join(repoRoot, 'frontend/src/main/python/sidecar_daemon.py');
-  const launcher = path.join(repoRoot, 'scripts/python-in-env');
-  const child = spawn(
-    launcher,
-    ['sidecar', 'python', daemonScript, '--discovery-file', discoveryFile],
-    {
-      cwd: repoRoot,
-      stdio: ['ignore', 'ignore', 'pipe'],
-    },
-  );
-  let stderr = '';
-  child.stderr.on('data', chunk => {
-    stderr += chunk.toString();
-  });
-  const discovery = await waitForDiscovery(discoveryFile, child).catch(error => {
-    if (stderr.trim()) {
-      throw new Error(`${error.message}\n${stderr.trim()}`);
-    }
-    throw error;
-  });
-  return {
-    baseUrl: discovery.base_url,
-    token: discovery.token,
-    child,
-  };
-}
-
 const backend = await createMockBackend().listen();
-const sidecar = await startSidecar();
 const client = new WindieClient({
   backendUrl: backend.backendUrl,
   WebSocketImpl,
-  sidecarDaemon: {
-    baseUrl: sidecar.baseUrl,
-    token: sidecar.token,
+  autoSidecar: {
+    pythonCommand: path.join(repoRoot, 'scripts/python-in-env'),
+    pythonArgs: ['sidecar', 'python'],
+    startTimeoutMs: 15000,
   },
 });
 let agent = null;
@@ -226,6 +167,5 @@ try {
 } finally {
   agent?.sleep();
   await client.shutdownLocalRuntime().catch(() => {});
-  sidecar.child.kill('SIGTERM');
   await backend.close();
 }

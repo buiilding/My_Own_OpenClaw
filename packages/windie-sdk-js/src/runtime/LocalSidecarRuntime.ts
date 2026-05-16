@@ -60,6 +60,7 @@ export type WindieAutoSidecarOptions = {
   discoveryFile?: string;
   daemonScript?: string;
   pythonCommand?: string;
+  pythonArgs?: string[];
   host?: string;
   port?: number;
   startTimeoutMs?: number;
@@ -322,6 +323,7 @@ export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
       ?? processLike?.env?.WINDIE_PYTHON
       ?? 'python3';
     const args = [
+      ...(options.pythonArgs ?? []),
       daemonScript,
       '--discovery-file',
       discoveryFile,
