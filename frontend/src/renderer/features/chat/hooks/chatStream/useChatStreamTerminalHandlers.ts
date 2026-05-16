@@ -14,7 +14,7 @@ import type { ChatStreamThinkingStateDeps } from './chatStreamHandlerTypes';
 import { findLastAssistantLlmTextMessageId } from '../../utils/chatStream/chatStreamMessageUpdates';
 
 type UseChatStreamTerminalHandlersDeps = ChatStreamThinkingStateDeps<
-  'token-count' | 'memory-store' | 'error'
+  'streaming-complete' | 'token-count' | 'memory-store' | 'error'
 > & {
   enableTranscript: boolean;
 };

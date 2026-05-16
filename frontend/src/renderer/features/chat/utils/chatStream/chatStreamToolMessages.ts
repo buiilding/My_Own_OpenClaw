@@ -24,7 +24,7 @@ export function buildToolCallMessage(
     turnRef: event.turn_ref,
     modelId: modelContext.modelId,
     modelProvider: modelContext.modelProvider,
-  });
+  }) as ChatMessage;
 }
 
 export function buildToolBundleMessage(
@@ -42,7 +42,7 @@ export function buildToolBundleMessage(
     turnRef: event.turn_ref,
     modelId: modelContext.modelId,
     modelProvider: modelContext.modelProvider,
-  });
+  }) as ChatMessage;
 }
 
 export function buildToolOutputMessage(

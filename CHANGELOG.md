@@ -31,6 +31,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: route desktop backend-session rehydrate through the Electron sidecar conversation store so active conversation continuation uses the SDK projection path.
 - frontend/sdk: load dashboard recent chats and opened chat messages through the Electron sidecar conversation store projections while preserving legacy transcript fallback.
 - frontend: keep skipped compaction completions from clearing unrelated active stream status while continuing to hide skipped compaction debug panels.
+- frontend: restore chat stream TypeScript checking by tightening IPC channel typing, message-builder casts, and tool transcript payload types.
 - sdk: align bundled local-tool step statuses with the backend `ok`/`error` bundle-result contract.
 - docs: add a direct README docs link for the computer-use guide.
 - frontend/settings: apply Appearance light, dark, and system selections to the renderer theme tokens instead of only persisting the selected setting.

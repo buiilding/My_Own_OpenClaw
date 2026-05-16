@@ -5,6 +5,7 @@
     "moduleResolution": "Node",
     "jsx": "react-jsx",
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": false,
     "noEmit": true,

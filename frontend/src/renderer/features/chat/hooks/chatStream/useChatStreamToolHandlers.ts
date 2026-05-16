@@ -23,6 +23,7 @@ import {
 import {
   buildStructuredToolPayload,
 } from '../../../../infrastructure/transcript/structuredToolPayload';
+import type { TranscriptStructuredToolPayload } from '../../../../infrastructure/transcript/types';
 import {
   buildScreenshotAttachment,
   resolveToolCallCorrelationId,
@@ -66,7 +67,7 @@ export function useChatStreamToolHandlers({
     event: ToolCallEvent | ToolBundleEvent,
     toolName: string,
     correlationId: string | null | undefined,
-    structuredPayload: Record<string, unknown> | null,
+    structuredPayload: TranscriptStructuredToolPayload | null,
   ) => {
     if (!enableTranscript) {
       return;

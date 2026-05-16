@@ -86,7 +86,7 @@ export const useChatStreamCompletionHandler = ({
         turnRef: event.turn_ref || undefined,
         modelId: modelContext.modelId,
         modelProvider: modelContext.modelProvider,
-      });
+      }) as ChatMessage;
       addMessage(newMessage, conversationRef);
       if (enableTranscript) {
         recordAssistantMessage(completionText, {

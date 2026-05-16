@@ -79,7 +79,7 @@ export const useChatStreamTextHandlers = ({
         modelProvider: modelContext.modelProvider,
         thinkingText: nextThinkingStatus,
         thinkingSourceEventType: 'llm-thought',
-      });
+      }) as ChatMessage;
       addMessage(placeholderAssistantMessage, conversationRef);
     }
 
@@ -123,7 +123,7 @@ export const useChatStreamTextHandlers = ({
         turnRef: action.turnRef,
         modelId: modelContext.modelId,
         modelProvider: modelContext.modelProvider,
-      });
+      }) as ChatMessage;
       addMessage(newMessage, conversationRef);
     }
 

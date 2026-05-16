@@ -1,5 +1,5 @@
 export function buildToolCallChatMessageState({
-  id,
+  id = null,
   text,
   toolCallDisplayText = null,
   modelFacingToolCall = null,

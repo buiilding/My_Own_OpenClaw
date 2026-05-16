@@ -2,6 +2,8 @@ import { buildToolOutputChatMessageState } from '../../../infrastructure/transcr
 import type { ChatMessage } from '../stores/chatStore';
 import type { TranscriptModelContext } from './transcriptModelContext';
 
+export type { TranscriptModelContext };
+
 type BuildToolOutputEnvelopeInput = {
   outputText: string;
   sourceEventType: string;
@@ -54,5 +56,5 @@ export function buildToolOutputEnvelopeMessage({
     turnRef,
     modelId: modelContext.modelId,
     modelProvider: modelContext.modelProvider,
-  });
+  }) as ChatMessage;
 }
