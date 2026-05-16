@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- examples: extend the CLI SDK example with retry and typed stop runtime calls.
 - frontend/sdk: add a renderer boundary guardrail for the conversation runtime and transcript projection runtime split.
 - frontend/sdk: cover typed main-runtime tool-result and tool-bundle-result backend sends.
 - sdk: add contract coverage for typed compaction and wakeword backend transport messages.

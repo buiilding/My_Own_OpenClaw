@@ -177,6 +177,11 @@ try {
       process.stdout.write(String(event.event.payload.text ?? ''));
     }
   }
+  await conversation.retryTurn({
+    turnRef: 'cli-example-retry-turn',
+    model: nextModel,
+  });
+  await conversation.stop('cli-example-retry-turn');
 
   const [metadata] = await store.listMetadata();
   console.log('\nConversation metadata:');
