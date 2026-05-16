@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   searchStoredConversations,
 } from '../../../infrastructure/transcript/localConversationStore';
-import { ElectronSidecarConversationStore } from '../../../infrastructure/transcript/ElectronSidecarConversationStore';
 import { loadLocalConversationSnapshot } from '../../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import { buildChatMessagesFromDisplayConversation } from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
+import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
 import {
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
@@ -54,10 +54,6 @@ function useDashboardConversations({
   const recentConversationLoadRequestIdRef = useRef(0);
   const recentConversationLoadInFlightRef = useRef(null);
 
-  const createConversationStore = useCallback((userId) => (
-    new ElectronSidecarConversationStore({ userId })
-  ), []);
-
   const loadRecentConversations = useCallback(async () => {
     if (typeof resolvedUserId !== 'string' || resolvedUserId.trim().length === 0) {
       setIsLoadingRecentConversations(false);
@@ -78,9 +74,8 @@ function useDashboardConversations({
     const loadMarker = {};
     const requestPromise = (async () => {
       try {
-        const store = createConversationStore(resolvedUserId);
         const list = normalizeRecentConversations(
-          (await store.listMetadata()).map((metadata) => ({
+          (await DesktopConversationLibraryClient.listMetadata(resolvedUserId)).map((metadata) => ({
             conversation_id: metadata.conversationRef,
             record_kind: 'conversation_event',
             title: metadata.title || metadata.conversationRef,
@@ -125,7 +120,7 @@ function useDashboardConversations({
     };
 
     return requestPromise;
-  }, [createConversationStore, resolvedUserId]);
+  }, [resolvedUserId]);
 
   const clearPendingTitlePoll = useCallback((conversationRef) => {
     const timerId = pendingTitlePollTimersRef.current.get(conversationRef);
@@ -177,8 +172,10 @@ function useDashboardConversations({
         recordKind: 'transcript',
         conversation,
       });
-      const store = createConversationStore(resolvedUserId);
-      const displayConversation = await store.loadForDisplay(conversationRef);
+      const displayConversation = await DesktopConversationLibraryClient.loadForDisplay(
+        resolvedUserId,
+        conversationRef,
+      );
       const projectedMessages = buildChatMessagesFromDisplayConversation(displayConversation);
       setConversationWorkspaceBinding(conversationRef, snapshot.workspaceBinding);
       try {
@@ -204,7 +201,6 @@ function useDashboardConversations({
     }
   }, [
     resolvedUserId,
-    createConversationStore,
     sessionConversationRef,
     setChatActiveConversationRef,
     setChatIsSending,
@@ -264,8 +260,7 @@ function useDashboardConversations({
     }
 
     try {
-      const store = createConversationStore(resolvedUserId);
-      await store.deleteConversation(conversationRef);
+      await DesktopConversationLibraryClient.deleteConversation(resolvedUserId, conversationRef);
 
       setRecentConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
       setSearchedConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
@@ -288,7 +283,6 @@ function useDashboardConversations({
     }
   }, [
     clearChatMessages,
-    createConversationStore,
     resolvedUserId,
     sessionConversationRef,
     setChatActiveConversationRef,
