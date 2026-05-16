@@ -1031,5 +1031,14 @@ describe('WindieSdkClient', () => {
         ],
       },
     });
+    await expect(agent.loadConversation('conv-runtime-public')).resolves.toMatchObject({
+      display: {
+        messages: [
+          expect.objectContaining({
+            text: 'hello runtime',
+          }),
+        ],
+      },
+    });
   });
 });

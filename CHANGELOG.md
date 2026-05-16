@@ -42,6 +42,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend: route dashboard and overlay manual compaction controls through one rehydrate-first runtime helper.
 - sdk: add first-class `ConversationStore.loadForDisplay` and `loadForRehydrate` methods backed by shared SDK projections and complete replay snapshots.
 - sdk: add `WindieAgent.setModel(...)` and `updateSettings(...)` so SDK hosts can change model/provider selection without hand-shaping backend `update-settings` payloads.
+- sdk: add `agent.loadConversation(conversationRef)` shorthand for startup/open-chat loading while preserving the object form for custom store adapters.
 - sdk: add conversation-level model selection through `conversation.setModel(...)` and per-turn `model` options on send/stream/edit/retry.
 - sdk: let high-level `agent.ask(...)`, `agent.run(...)`, and `agent.stream(...)` string calls apply per-call model selections before sending turns.
 - sdk: let `WindieClient.wakeUp({ model })` apply an initial backend model selection after handshake and before the first turn.

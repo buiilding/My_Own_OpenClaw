@@ -38,6 +38,12 @@ export type WindieAgentOwner = {
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }>;
 };
 
+export type LoadConversationOptions = {
+  conversationRef: string;
+  revisionId?: string;
+  store?: ConversationStore;
+};
+
 export class WindieAgent {
   private readonly defaultConversationStore = new InMemoryConversationStore();
 
@@ -159,12 +165,13 @@ export class WindieAgent {
     return (store ?? this.defaultConversationStore).listMetadata(listOptions);
   }
 
-  async loadConversation(options: {
-    conversationRef: string;
-    revisionId?: string;
-    store?: ConversationStore;
-  }): Promise<ReturnType<SdkConversationRuntime['load']>> {
-    return this.conversation(options).load();
+  async loadConversation(
+    options: string | LoadConversationOptions,
+  ): Promise<ReturnType<SdkConversationRuntime['load']>> {
+    const loadOptions = typeof options === 'string'
+      ? { conversationRef: options }
+      : options;
+    return this.conversation(loadOptions).load();
   }
 
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }> {

@@ -115,6 +115,13 @@ Prefer this over wiring `send()` and `subscribe()` separately in CLI or custom
 UI clients. UI components can still use `subscribe()` when they only need
 projected snapshots.
 
+Startup surfaces should load metadata before full logs. Use
+`agent.listConversations({ limit?, cursor? })` for a conversation list, then
+`agent.loadConversation(conversationRef)` when a row is opened. The string
+shorthand returns the same projected snapshot as the object form; use
+`agent.loadConversation({ conversationRef, store, revisionId })` only when a
+host needs a non-default store adapter or revision seed.
+
 Backend events must carry `conversation_ref` or `turn_ref` to enter a
 conversation runtime. The runtime drops ambiguous packets and ignores packets
 whose `conversationRef` or active `turnRef` does not match the runtime. This is

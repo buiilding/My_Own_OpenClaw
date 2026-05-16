@@ -367,8 +367,10 @@ terminates when the projected runtime phase reaches `completed`, `stopped`, or
 change without manually calling `agent.setModel(...)` first.
 
 `agent.listConversations()` lists metadata from the agent's default conversation
-store. `agent.loadConversation({ conversationRef })` opens a runtime over the
-same store and returns its projected snapshot.
+store. `agent.loadConversation(conversationRef)` is the startup shorthand for
+loading a projected snapshot; pass `agent.loadConversation({ conversationRef,
+store, revisionId })` when a host needs a specific store adapter or revision
+seed.
 
 For a minimal non-Electron consumer, see `examples/cli-agent`. It uses
 `WindieClient.wakeUp`, `agent.conversation`, `InMemoryConversationStore`, and
