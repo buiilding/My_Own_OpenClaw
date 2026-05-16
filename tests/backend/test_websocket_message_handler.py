@@ -484,6 +484,76 @@ async def test_parse_and_validate_message_accepts_tool_result_contract_payload()
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_accepts_sdk_failed_tool_result_payload() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_sdk_failed_tool_result",
+            "type": "tool-result",
+            "payload": {
+                "request_id": "req-sdk-failed-1",
+                "success": False,
+                "data": {
+                    "llm_content": "Tool execution failed: denied by local policy",
+                },
+                "error": "denied by local policy",
+            },
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=4096
+    )
+
+    assert error is None
+    assert isinstance(message, ToolResultMessage)
+    assert message.payload.request_id == "req-sdk-failed-1"
+    assert message.payload.success is False
+    assert message.payload.error == "denied by local policy"
+    assert message.payload.data.llm_content == (
+        "Tool execution failed: denied by local policy"
+    )
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_accepts_sdk_bundle_result_payload() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_sdk_bundle_result",
+            "type": "tool-bundle-result",
+            "payload": {
+                "bundle_id": "bundle-sdk-1",
+                "status": "partial_failure",
+                "step_results": [
+                    {
+                        "tool": "read_file",
+                        "status": "ok",
+                        "output": {"llm_content": "read ok"},
+                    },
+                    {
+                        "tool": "run_shell_command",
+                        "status": "error",
+                        "output": {"error": "exit code 1"},
+                    },
+                ],
+                "error": "1 bundled tool step(s) failed",
+            },
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=4096
+    )
+
+    assert error is None
+    assert isinstance(message, ToolBundleResultMessage)
+    assert message.payload.bundle_id == "bundle-sdk-1"
+    assert message.payload.status == "partial_failure"
+    assert [step.status for step in message.payload.step_results] == ["ok", "error"]
+    assert message.payload.step_results[1].output == {"error": "exit code 1"}
+    assert message.payload.error == "1 bundled tool step(s) failed"
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_trims_tool_result_request_id() -> None:
     payload = json.dumps(
         {

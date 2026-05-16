@@ -48,6 +48,7 @@ Single-tool path:
 
 - backend assigns or preserves a `request_id`
 - SDK runtime returns `tool-result` with the same `request_id`
+- failed SDK tool results keep `success: false`, include `error`, and still carry a model-facing `data.llm_content` string when available
 - backend waiting storage resolves the pending future for that request
 - processing cleanup removes resolved-call state for the request
 
@@ -56,6 +57,7 @@ Bundle path:
 - backend sends one `tool-bundle` event with a `bundle_id`
 - SDK runtime executes bundle steps through the local runtime adapter and returns
   `tool-bundle-result`
+- SDK bundle step statuses use `ok` and `error`; the top-level status is `success`, `partial_failure`, or `failure`
 - backend treats atomic bundle success differently from individual fallback output
 - partial failure must preserve enough per-step output for debugging and model recovery
 
